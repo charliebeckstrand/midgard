@@ -29,7 +29,7 @@
 
 For non-trivial work (three or more steps), enter planning mode before writing code. Delegate research to subagents — one focused task per agent — and keep the main context window clean. Summarize at milestones, not line by line.
 
-The `tasks/` directory preserves knowledge across sessions. If a file below does not exist, create it before writing to it.
+The `claude/` directory preserves knowledge across sessions. If the directory or either file does not exist, create them when there is something worth recording.
 
-- **`tasks/lessons.md`** — Corrections, mistakes, and efficiency discoveries. Append as they happen. Review at the start of every session. Replace the placeholder comment on first write.
-- **`tasks/context.md`** — Key file paths, function signatures, architectural decisions, and anything costly to rediscover. Append only — never overwrite. Replace the placeholder comment on first write.
+- **`claude/lessons.md`** — Corrections, mistakes, and efficiency discoveries. Append as they happen. Review at the start of every session.
+- **`claude/context.md`** — Key file paths, function signatures, architectural decisions, and anything costly to rediscover. Append only — never overwrite.
