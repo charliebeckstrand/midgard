@@ -1,13 +1,1 @@
-import { Suspense } from 'react'
-
-import { LoginForm } from './login-form'
-
-export default function LoginPage() {
-	return (
-		<Suspense>
-			<div className="flex flex-1 items-center justify-center">
-				<LoginForm />
-			</div>
-		</Suspense>
-	)
-}
+export { LoginPage as default } from 'heimdall/pages'

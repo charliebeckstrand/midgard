@@ -1,8 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import type { SubmitEvent } from 'react'
-import { useState } from 'react'
+import { type SubmitEvent, Suspense, useState } from 'react'
 import { Button, Card, Form, Input, Label, Link } from 'rune'
 
 const errors = {
@@ -11,7 +10,7 @@ const errors = {
 	password_mismatch: 'Passwords do not match.',
 }
 
-export function RegisterForm() {
+function RegisterForm() {
 	const router = useRouter()
 
 	const [name, setName] = useState('')
@@ -132,5 +131,15 @@ export function RegisterForm() {
 				Already have an account? <Link href="/login">Sign in</Link>
 			</p>
 		</div>
+	)
+}
+
+export function RegisterPage() {
+	return (
+		<Suspense>
+			<div className="flex flex-1 items-center justify-center">
+				<RegisterForm />
+			</div>
+		</Suspense>
 	)
 }
