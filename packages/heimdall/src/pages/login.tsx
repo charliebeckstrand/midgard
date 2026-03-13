@@ -1,8 +1,7 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
-import type { SubmitEvent } from 'react'
-import { useState } from 'react'
+import { type SubmitEvent, Suspense, useState } from 'react'
 import { Button, Card, Form, Input, Label, Link } from 'rune'
 
 const errors = {
@@ -10,7 +9,7 @@ const errors = {
 	login_failed: 'Login failed. Please try again.',
 }
 
-export function LoginForm() {
+function LoginForm() {
 	const router = useRouter()
 
 	const searchParams = useSearchParams()
@@ -103,5 +102,15 @@ export function LoginForm() {
 				Don't have an account? <Link href="/register">Create one</Link>
 			</p>
 		</div>
+	)
+}
+
+export function LoginPage() {
+	return (
+		<Suspense>
+			<div className="flex flex-1 items-center justify-center">
+				<LoginForm />
+			</div>
+		</Suspense>
 	)
 }

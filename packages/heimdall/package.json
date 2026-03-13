@@ -1,0 +1,54 @@
+{
+	"name": "heimdall",
+	"version": "0.1.0",
+	"description": "Shared authentication module for Midgard apps",
+	"type": "module",
+	"main": "./dist/index.js",
+	"types": "./src/index.ts",
+	"exports": {
+		".": {
+			"types": "./src/index.ts",
+			"import": "./dist/index.js",
+			"default": "./dist/index.js"
+		},
+		"./config": {
+			"types": "./src/config.ts",
+			"import": "./dist/config.js",
+			"default": "./dist/config.js"
+		},
+		"./proxy": {
+			"types": "./src/proxy.ts",
+			"import": "./dist/proxy.js",
+			"default": "./dist/proxy.js"
+		},
+		"./pages": {
+			"types": "./src/pages.ts",
+			"import": "./dist/pages.js",
+			"default": "./dist/pages.js"
+		}
+	},
+	"scripts": {
+		"build": "tsup",
+		"dev": "tsup --watch",
+		"lint": "biome check --config-path=../.. .",
+		"lint:fix": "biome check --config-path=../.. --write .",
+		"format": "biome format --config-path=../.. --write ."
+	},
+	"packageManager": "pnpm@10.29.3",
+	"dependencies": {
+		"rune": "workspace:*"
+	},
+	"peerDependencies": {
+		"next": "^15.0.0 || ^16.0.0",
+		"react": "^18.0.0 || ^19.0.0"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.4.6",
+		"@types/node": "^25.3.3",
+		"@types/react": "^19.1.6",
+		"next": "^16.1.0",
+		"react": "^19.1.0",
+		"tsup": "^8.5.1",
+		"typescript": "^5.9.3"
+	}
+}

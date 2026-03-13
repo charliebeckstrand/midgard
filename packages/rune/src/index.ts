@@ -1,5 +1,3 @@
-export { LoginForm, type LoginFormProps } from './blocks/login-form/index.js'
-export { RegisterForm, type RegisterFormProps } from './blocks/register-form/index.js'
 export { Button, type ButtonProps, buttonVariants } from './button/index.js'
 export { Card, type CardProps, cardVariants } from './card/index.js'
 export { Form, type FormProps, formVariants } from './form/index.js'
