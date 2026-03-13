@@ -2,9 +2,9 @@
 
 ## Apps
 
-| Service | Role | Port |
-| --- | --- | --- |
-| **[Web](apps/web)** | API | `3000` |
+| Service | Port |
+| --- | --- |
+| **[Web](apps/web)** | `3000` |
 
 ## Packages
 
