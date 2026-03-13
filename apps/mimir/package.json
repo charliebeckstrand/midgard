@@ -1,38 +1,31 @@
 {
-	"name": "web",
+	"name": "mimir",
 	"version": "0.1.0",
-	"description": "",
+	"private": true,
 	"type": "module",
 	"scripts": {
-		"dev": "vite --host",
-		"build": "tsc --noEmit && vite build",
-		"preview": "vite preview",
-		"start": "vite preview --port 3000",
+		"dev": "next dev --port 3000 --turbopack",
+		"build": "next build",
+		"start": "next start --port 3000",
 		"lint": "biome check --config-path=../.. .",
 		"lint:fix": "biome check --config-path=../.. --write .",
 		"format": "biome format --config-path=../.. --write .",
-		"test": "vitest run",
-		"test:watch": "vitest",
-		"test:coverage": "vitest run --coverage"
+		"check-types": "tsc --noEmit"
 	},
 	"packageManager": "pnpm@10.29.3",
 	"dependencies": {
+		"next": "^16.1.0",
 		"react": "^19.1.0",
 		"react-dom": "^19.1.0",
-		"react-router-dom": "^7.6.0",
 		"rune": "workspace:*"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.4.6",
-		"@tailwindcss/vite": "^4.1.0",
+		"@tailwindcss/postcss": "^4.1.0",
 		"@types/node": "^25.3.3",
 		"@types/react": "^19.1.6",
 		"@types/react-dom": "^19.1.6",
-		"@vitejs/plugin-react": "^6.0.0",
 		"tailwindcss": "^4.1.0",
-		"tsx": "^4.21.0",
-		"typescript": "^5.9.3",
-		"vite": "^8.0.0",
-		"vitest": "^4.0.18"
+		"typescript": "^5.9.3"
 	}
 }
