@@ -1,10 +1,6 @@
 {
   "name": "midgard",
   "private": true,
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
@@ -12,7 +8,10 @@
     "check-types": "turbo run check-types"
   },
   "devDependencies": {
-    "turbo": "^2.4.4"
+		"@biomejs/biome": "^2.4.6",
+		"@vitest/coverage-v8": "^4.0.18",
+		"husky": "^9.1.7",
+		"turbo": "^2.8.14"
   },
-  "packageManager": "npm@10.8.2"
+  "packageManager": "pnpm@10.29.3"
 }
