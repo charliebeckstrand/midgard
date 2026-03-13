@@ -31,6 +31,6 @@ For non-trivial work (three or more steps), enter planning mode before writing c
 
 The `claude/` directory preserves knowledge across sessions. If the directory or any file below does not exist, create it when there is something worth recording.
 
-- **`claude/structure.md`** — Project structure overview: workspace layout, what each package does, key file paths, tech stack, external services, and common commands. **Read this first at the start of every session.** Update it at the end of any session that changes the project structure (new packages, moved files, added services, dependency changes).
+- **`claude/structure.md`** — Project structure overview: workspace layout, what each package does, key file paths, tech stack, external services, and common commands. **At the start of every session**, read this file first. If it does not exist, explore the codebase and create it before doing anything else. Update it at the end of any session that changes the project structure (new packages, moved files, added services, dependency changes).
 - **`claude/lessons.md`** — Corrections, mistakes, and efficiency discoveries. Append as they happen. Review at the start of every session.
 - **`claude/context.md`** — Function signatures, architectural decisions, and anything costly to rediscover. Append only — never overwrite.
