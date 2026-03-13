@@ -5,14 +5,14 @@ const guestRoutes = ['/login', '/register']
 export async function proxy(request: NextRequest) {
 	const { pathname } = request.nextUrl
 
-	const sessionRes = await fetch(new URL('/auth/session', request.nextUrl.origin), {
+	const sessionResponse = await fetch(new URL('/auth/session', request.nextUrl.origin), {
 		headers: { cookie: request.headers.get('cookie') || '' },
 	})
 
 	let authenticated = false
 
-	if (sessionRes.ok) {
-		const data = (await sessionRes.json()) as { authenticated?: boolean }
+	if (sessionResponse.ok) {
+		const data = (await sessionResponse.json()) as { authenticated?: boolean }
 
 		authenticated = data.authenticated === true
 	}
