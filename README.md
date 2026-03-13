@@ -2,7 +2,7 @@
 
 ## Apps
 
-| Service | Port |
+| Name | Port |
 | --- | --- |
 | **[Web](apps/web)** | `3000` |
 
