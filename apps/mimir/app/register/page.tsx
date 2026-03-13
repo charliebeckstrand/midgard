@@ -1,7 +1,9 @@
-import type { SubmitEvent } from 'react'
+'use client'
 
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import type { SubmitEvent } from 'react'
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
 import { Button, Card, Form, Input, Label } from 'rune'
 
 const errors = {
@@ -10,8 +12,8 @@ const errors = {
 	password_mismatch: 'Passwords do not match.',
 }
 
-export function RegisterPage() {
-	const navigate = useNavigate()
+export default function RegisterPage() {
+	const router = useRouter()
 
 	const [name, setName] = useState('')
 	const [email, setEmail] = useState('')
@@ -40,7 +42,7 @@ export function RegisterPage() {
 			})
 
 			if (res.ok) {
-				navigate('/login?registered=true')
+				router.push('/login?registered=true')
 
 				return
 			}
@@ -127,7 +129,7 @@ export function RegisterPage() {
 
 			<p className="text-sm text-center text-gray-500">
 				Already have an account?{' '}
-				<Link to="/login" className="text-blue-500 hover:underline">
+				<Link href="/login" className="text-blue-500 hover:underline">
 					Sign in
 				</Link>
 			</p>

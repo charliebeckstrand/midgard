@@ -1,7 +1,9 @@
-import type { SubmitEvent } from 'react'
+'use client'
 
+import Link from 'next/link'
+import { useRouter, useSearchParams } from 'next/navigation'
+import type { SubmitEvent } from 'react'
 import { useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Button, Card, Form, Input, Label } from 'rune'
 
 const errors = {
@@ -9,10 +11,9 @@ const errors = {
 	login_failed: 'Login failed. Please try again.',
 }
 
-export function LoginPage() {
-	const navigate = useNavigate()
-
-	const [searchParams] = useSearchParams()
+export function LoginForm() {
+	const router = useRouter()
+	const searchParams = useSearchParams()
 
 	const [error, setError] = useState('')
 	const [submitting, setSubmitting] = useState(false)
@@ -33,7 +34,7 @@ export function LoginPage() {
 			})
 
 			if (res.ok) {
-				navigate('/')
+				router.push('/')
 
 				return
 			}
@@ -98,7 +99,7 @@ export function LoginPage() {
 
 			<p className="text-sm text-center text-gray-500">
 				Don't have an account?{' '}
-				<Link to="/register" className="text-blue-500 hover:underline">
+				<Link href="/register" className="text-blue-500 hover:underline">
 					Create one
 				</Link>
 			</p>
