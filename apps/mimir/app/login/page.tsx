@@ -5,7 +5,9 @@ import { LoginForm } from './login-form'
 export default function LoginPage() {
 	return (
 		<Suspense>
-			<LoginForm />
+			<div className="flex flex-1 items-center justify-center">
+				<LoginForm />
+			</div>
 		</Suspense>
 	)
 }

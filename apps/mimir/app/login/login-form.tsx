@@ -1,10 +1,9 @@
 'use client'
 
-import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import type { SubmitEvent } from 'react'
 import { useState } from 'react'
-import { Button, Card, Form, Input, Label } from 'rune'
+import { Button, Card, Form, Input, Label, Link } from 'rune'
 
 const errors = {
 	invalid_credentials: 'Invalid email or password.',
@@ -13,6 +12,7 @@ const errors = {
 
 export function LoginForm() {
 	const router = useRouter()
+
 	const searchParams = useSearchParams()
 
 	const [error, setError] = useState('')
@@ -50,7 +50,7 @@ export function LoginForm() {
 	}
 
 	return (
-		<div className="w-full min-w-[18rem] space-y-4">
+		<div className="min-w-xs space-y-4">
 			<h1 className="text-2xl font-semibold text-center">Sign in</h1>
 
 			{registered && (
@@ -72,6 +72,7 @@ export function LoginForm() {
 							id="email"
 							placeholder="you@example.com"
 							required
+							autoComplete="email"
 							value={email}
 							onChange={(e) => setEmail(e.target.value)}
 						/>
@@ -86,6 +87,7 @@ export function LoginForm() {
 							id="password"
 							placeholder="Password"
 							required
+							autoComplete="current-password"
 							value={password}
 							onChange={(e) => setPassword(e.target.value)}
 						/>
@@ -98,10 +100,7 @@ export function LoginForm() {
 			</Card>
 
 			<p className="text-sm text-center text-gray-500">
-				Don't have an account?{' '}
-				<Link href="/register" className="text-blue-500 hover:underline">
-					Create one
-				</Link>
+				Don't have an account? <Link href="/register">Create one</Link>
 			</p>
 		</div>
 	)

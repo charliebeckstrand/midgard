@@ -13,6 +13,7 @@ export async function proxy(request: NextRequest) {
 
 	if (sessionRes.ok) {
 		const data = (await sessionRes.json()) as { authenticated?: boolean }
+
 		authenticated = data.authenticated === true
 	}
 

@@ -5,6 +5,7 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
+    "lint:fix": "biome check --write packages/ apps/",
     "check-types": "turbo run check-types",
     "prepare": "husky"
   },
