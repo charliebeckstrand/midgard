@@ -1,23 +1,58 @@
 import type { SubmitEvent } from 'react'
 
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Button, Card, Form, Input, Label } from 'rune'
 
-import { useAuth } from '@/hooks/useAuth'
+const errors = {
+	email_exists: 'An account with that email already exists.',
+	registeration_failed: 'Registration failed. Please try again.',
+	password_mismatch: 'Passwords do not match.',
+}
 
 export function RegisterPage() {
-	const { error, submitting, register } = useAuth()
+	const navigate = useNavigate()
 
 	const [name, setName] = useState('')
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
 	const [confirmPassword, setConfirmPassword] = useState('')
 
+	const [error, setError] = useState('')
+	const [submitting, setSubmitting] = useState(false)
+
 	async function handleSubmit(e: SubmitEvent) {
 		e.preventDefault()
 
-		await register(name, email, password, confirmPassword)
+		if (password !== confirmPassword) {
+			setError(errors.password_mismatch)
+
+			setSubmitting(false)
+
+			return
+		}
+
+		try {
+			const res = await fetch('/auth/register', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ email, password, name }),
+			})
+
+			if (res.ok) {
+				navigate('/login?registered=true')
+
+				return
+			}
+
+			const data = (await res.json().catch(() => ({}))) as { code?: string }
+
+			setError(data.code === 'email_exists' ? errors.email_exists : errors.registeration_failed)
+		} catch {
+			setError(errors.registeration_failed)
+		} finally {
+			setSubmitting(false)
+		}
 	}
 
 	return (
@@ -28,7 +63,7 @@ export function RegisterPage() {
 
 			<Card padding="medium" shadow="small">
 				<Form onSubmit={handleSubmit}>
-					<div className="flex flex-col gap-1.5">
+					<div className="flex flex-col gap-2">
 						<Label htmlFor="name">Name</Label>
 
 						<Input
@@ -42,7 +77,7 @@ export function RegisterPage() {
 						/>
 					</div>
 
-					<div className="flex flex-col gap-1.5">
+					<div className="flex flex-col gap-2">
 						<Label htmlFor="email">Email</Label>
 
 						<Input
@@ -56,7 +91,7 @@ export function RegisterPage() {
 						/>
 					</div>
 
-					<div className="flex flex-col gap-1.5">
+					<div className="flex flex-col gap-2">
 						<Label htmlFor="password">Password</Label>
 
 						<Input
@@ -70,7 +105,7 @@ export function RegisterPage() {
 						/>
 					</div>
 
-					<div className="flex flex-col gap-1.5">
+					<div className="flex flex-col gap-2">
 						<Label htmlFor="confirmPassword">Confirm password</Label>
 
 						<Input
@@ -92,7 +127,7 @@ export function RegisterPage() {
 
 			<p className="text-sm text-center text-gray-500">
 				Already have an account?{' '}
-				<Link to="/login" className="text-blue hover:underline">
+				<Link to="/login" className="text-blue-500 hover:underline">
 					Sign in
 				</Link>
 			</p>

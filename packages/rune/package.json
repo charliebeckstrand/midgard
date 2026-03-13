@@ -1,7 +1,7 @@
 {
 	"name": "rune",
 	"version": "0.1.0",
-	"description": "Geist-inspired UI component library",
+	"description": "Geist-inspired UI components for React",
 	"type": "module",
 	"main": "./dist/index.js",
 	"types": "./src/index.ts",

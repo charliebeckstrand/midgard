@@ -1,10 +1,9 @@
 {
-	"name": "demo",
+	"name": "web",
 	"version": "0.1.0",
 	"description": "",
 	"type": "module",
 	"scripts": {
-		"env:init": "tsx ../../scripts/init-env.ts --services=demo",
 		"dev": "vite --host",
 		"build": "tsc --noEmit && vite build",
 		"preview": "vite preview",

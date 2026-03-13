@@ -1,15 +1,21 @@
 import type { SubmitEvent } from 'react'
 
 import { useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Button, Card, Form, Input, Label } from 'rune'
 
-import { useAuth } from '@/hooks/useAuth'
+const errors = {
+	invalid_credentials: 'Invalid email or password.',
+	login_failed: 'Login failed. Please try again.',
+}
 
 export function LoginPage() {
+	const navigate = useNavigate()
+
 	const [searchParams] = useSearchParams()
 
-	const { error, submitting, login } = useAuth()
+	const [error, setError] = useState('')
+	const [submitting, setSubmitting] = useState(false)
 
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
@@ -19,7 +25,27 @@ export function LoginPage() {
 	async function handleSubmit(e: SubmitEvent) {
 		e.preventDefault()
 
-		await login(email, password)
+		try {
+			const res = await fetch('/auth/login', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ email, password }),
+			})
+
+			if (res.ok) {
+				navigate('/')
+
+				return
+			}
+
+			const data = (await res.json().catch(() => ({}))) as { message?: string }
+
+			setError(data.message || errors.invalid_credentials)
+		} catch {
+			setError(errors.login_failed)
+		} finally {
+			setSubmitting(false)
+		}
 	}
 
 	return (
@@ -72,7 +98,7 @@ export function LoginPage() {
 
 			<p className="text-sm text-center text-gray-500">
 				Don't have an account?{' '}
-				<Link to="/register" className="text-blue hover:underline">
+				<Link to="/register" className="text-blue-500 hover:underline">
 					Create one
 				</Link>
 			</p>
