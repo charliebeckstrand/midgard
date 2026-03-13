@@ -29,8 +29,7 @@
 
 For non-trivial work (three or more steps), enter planning mode before writing code. Delegate research to subagents — one focused task per agent — and keep the main context window clean. Summarize at milestones, not line by line.
 
-The `tasks/` directory tracks work, preserves context, and accumulates lessons across sessions. If a file below does not exist, create it before writing to it.
+The `tasks/` directory preserves knowledge across sessions. If a file below does not exist, create it before writing to it.
 
-- **`tasks/todo.md`** — Plans and progress. Write before implementing, check in before starting, mark complete as you go.
 - **`tasks/lessons.md`** — Corrections, mistakes, and efficiency discoveries. Append as they happen. Review at the start of every session.
 - **`tasks/context.md`** — Key file paths, function signatures, architectural decisions, and anything costly to rediscover. Append only — never overwrite.
