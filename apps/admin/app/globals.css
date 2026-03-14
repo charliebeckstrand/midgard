@@ -9,4 +9,5 @@
 
 :root {
     height: 100%;
+    overscroll-behavior: none;
 }
