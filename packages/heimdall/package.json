@@ -1,7 +1,6 @@
 {
 	"name": "heimdall",
 	"version": "0.1.0",
-	"description": "Shared authentication module for Midgard apps",
 	"type": "module",
 	"main": "./dist/session.js",
 	"types": "./src/session.ts",
