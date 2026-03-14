@@ -3,13 +3,13 @@
 	"version": "0.1.0",
 	"description": "Shared authentication module for Midgard apps",
 	"type": "module",
-	"main": "./dist/index.js",
-	"types": "./src/index.ts",
+	"main": "./dist/session.js",
+	"types": "./src/session.ts",
 	"exports": {
 		".": {
-			"types": "./src/index.ts",
-			"import": "./dist/index.js",
-			"default": "./dist/index.js"
+			"types": "./src/session.ts",
+			"import": "./dist/session.js",
+			"default": "./dist/session.js"
 		},
 		"./config": {
 			"types": "./src/config.ts",
