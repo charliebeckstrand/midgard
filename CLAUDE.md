@@ -6,6 +6,26 @@
 - Hold yourself to a staff engineer standard. Only propose changes you would confidently ship to production. Challenge your own work before presenting it.
 - If a solution feels wrong, iterate until it doesn't. Demand excellence.
 
+## Self-Improvement Rules
+
+The `claude/` directory is a persistent knowledge base that grows across sessions. **Every session should leave the project easier for the next session.** If the `claude/` directory does not exist, create it.
+
+1. **Write immediately, not later.** The moment you learn something, write it down. Do not defer to "end of session." If you catch yourself thinking "I'll add that later," stop and add it now.
+2. **Be specific.** Vague entries waste future sessions' time. Include file paths, function names, and exact error messages.
+3. **Be honest.** Record mistakes and failed approaches — they're the most valuable entries.
+4. **Prune stale info.** If you notice an entry in any file that is no longer accurate, update or remove it.
+5. **Cross-reference.** When an entry in one file relates to another, mention the other file.
+6. **Measure yourself.** If you re-discover something that should have been in the knowledge base, add it immediately and note the gap in `claude/lessons.md`.
+7. **Never push without updating.** The `claude/` directory is part of the deliverable, not an afterthought. Code changes without corresponding knowledge updates are incomplete work.
+
+## Session Start Ritual
+
+At the start of **every** session, before doing any work:
+
+1. Read **all** files in `claude/` — every one of them. They are your memory.
+2. If `claude/project.md` does not exist, explore the codebase and create it before doing anything else.
+3. Note which files are missing or outdated and plan to update them during or at the end of the session.
+
 ## Code
 
 - Understand before modifying. Read the surrounding code, follow its conventions, and let consistency guide your decisions.
@@ -19,32 +39,11 @@
 - Dependencies flow inward. Shared packages never depend on application code.
 - Abstractions are extracted, not predicted. Duplication across multiple call sites earns a shared utility; a single use case does not.
 
-## Git
-
-- Imperative mood, atomic commits. Each commit represents one logical change, described by what it does — not what you did.
-- Feature branches for non-trivial work. Never force-push shared branches.
-- Review your own diff before committing. Read it as a reviewer would.
-- **Before every push**, update relevant `claude/` knowledge files and include them in the commit (or as a separate commit in the same push). Never push code without first reflecting on what the `claude/` directory needs. This is not optional.
-
 ## Workflow
 
 For non-trivial work (three or more steps), enter planning mode before writing code. Delegate research to subagents — one focused task per agent — and keep the main context window clean. Summarize at milestones, not line by line.
 
----
-
-## Self-Improvement System
-
-The `claude/` directory is a persistent knowledge base that grows across sessions. **Every session should leave the project easier for the next session.** If the `claude/` directory does not exist, create it.
-
-### Session Start Ritual
-
-At the start of **every** session, before doing any work:
-
-1. Read **all** files in `claude/` — every one of them. They are your memory.
-2. If `claude/project.md` does not exist, explore the codebase and create it before doing anything else.
-3. Note which files are missing or outdated and plan to update them during or at the end of the session.
-
-### Continuous Learning (During Work)
+## Continuous Learning (During Work)
 
 Do not wait until the end of a session. Update `claude/` files **as you go**:
 
@@ -54,6 +53,12 @@ Do not wait until the end of a session. Update `claude/` files **as you go**:
 - **Found a useful command?** Write it to `claude/commands.md` the moment you use it.
 
 The rule: **if you learned it, write it down before your next action.** Context fades fast — capture it while it's fresh.
+
+## Git
+
+- Imperative mood, atomic commits. Each commit represents one logical change, described by what it does — not what you did.
+- Feature branches for non-trivial work. Never force-push shared branches.
+- Review your own diff before committing. Read it as a reviewer would.
 
 ### Pre-Push Gate
 
@@ -76,7 +81,7 @@ The rule: **if you learned it, write it down before your next action.** Context 
 
 Skipping this gate means knowledge is lost. Treat it as a required step, not a nice-to-have.
 
-### Session End Ritual
+## Session End Ritual
 
 Before ending **every** session, do a final sweep. Ask yourself whether any of the following files need updates that weren't already captured by the pre-push gate:
 
@@ -93,17 +98,19 @@ Before ending **every** session, do a final sweep. Ask yourself whether any of t
 
 This ritual is a **safety net** — most updates should already be done. If you find yourself writing a lot here, you skipped the continuous learning and pre-push steps.
 
-If a file does not exist yet and you have something to record, create it using the format described below.
+---
 
-### Knowledge Files
+## Knowledge Files Reference
 
-All files are append-only unless stated otherwise. Organize entries with dates. Keep entries concise and actionable — future sessions should be able to scan quickly.
+All files live in `claude/`. All are append-only unless stated otherwise. Organize entries with dates. Keep entries concise and actionable — future sessions should be able to scan quickly.
 
-#### `claude/project.md` — Project Map (update in place)
+If a file does not exist yet and you have something to record, create it using the formats below.
+
+### `claude/project.md` — Project Map (update in place)
 
 Project overview: workspace layout, what each package does, key file paths, tech stack, external services, and common commands. This is the only file that gets **updated in place** rather than appended to. Keep it current.
 
-#### `claude/lessons.md` — Hard-Won Knowledge
+### `claude/lessons.md` — Hard-Won Knowledge
 
 Things learned through mistakes, failed approaches, or surprising behavior. Each entry should save a future session from repeating the same mistake.
 
@@ -113,7 +120,7 @@ Format:
 What happened, why it was wrong, and what to do instead.
 ```
 
-#### `claude/context.md` — Expensive-to-Rediscover Context
+### `claude/context.md` — Expensive-to-Rediscover Context
 
 Function signatures, type relationships, non-obvious API contracts, environment variable meanings, and anything that took significant exploration to figure out. This is the "cheat sheet" for the codebase.
 
@@ -123,7 +130,7 @@ Format:
 The context worth preserving.
 ```
 
-#### `claude/preferences.md` — User Preferences
+### `claude/preferences.md` — User Preferences
 
 Code-style, formatting, naming conventions, and workflow preferences stated by the user. Read at session start and apply to all code written. Each preference should be specific and actionable with noted exceptions.
 
@@ -133,7 +140,7 @@ Format:
 - Preference description. Note any exceptions.
 ```
 
-#### `claude/patterns.md` — Reusable Code Patterns
+### `claude/patterns.md` — Reusable Code Patterns
 
 Recurring code patterns, idioms, and snippets specific to this project. When the same pattern is used in 2+ places, extract it here so future sessions can apply it consistently.
 
@@ -143,7 +150,7 @@ Format:
 When to use it, followed by a minimal code example.
 ```
 
-#### `claude/errors.md` — Error Solutions
+### `claude/errors.md` — Error Solutions
 
 Errors encountered and their solutions. Indexed by error message or symptom so future sessions can search for them.
 
@@ -155,7 +162,7 @@ Format:
 - **Date:** YYYY-MM-DD
 ```
 
-#### `claude/decisions.md` — Architecture Decision Records
+### `claude/decisions.md` — Architecture Decision Records
 
 Why things are the way they are. When a non-trivial design choice is made (or discovered), document the decision, the alternatives considered, and why this path was chosen.
 
@@ -169,7 +176,7 @@ Format:
 **Consequences:** What trade-offs this creates.
 ```
 
-#### `claude/commands.md` — Useful Commands & Workflows
+### `claude/commands.md` — Useful Commands & Workflows
 
 CLI commands, scripts, one-liners, and multi-step workflows that are useful for this project. Saves future sessions from re-discovering how to do common operations.
 
@@ -182,7 +189,7 @@ command here
 Optional notes about when to use it or gotchas.
 ```
 
-#### `claude/dependencies.md` — Dependency Notes
+### `claude/dependencies.md` — Dependency Notes
 
 Version quirks, upgrade notes, compatibility issues, and non-obvious behaviors of third-party packages. If a dependency does something unexpected, record it here.
 
@@ -192,7 +199,7 @@ Format:
 What's notable, quirky, or broken. Date discovered: YYYY-MM-DD.
 ```
 
-#### `claude/testing.md` — Testing Patterns & Strategy
+### `claude/testing.md` — Testing Patterns & Strategy
 
 Testing conventions, utilities, setup/teardown patterns, mocking approaches, and what to test for each type of code in this project.
 
@@ -201,13 +208,3 @@ Format:
 ## Category (e.g., Component tests, API tests)
 How tests are structured, what tools are used, and patterns to follow.
 ```
-
-### Self-Improvement Rules
-
-1. **Write immediately, not later.** The moment you learn something, write it down. Do not defer to "end of session." If you catch yourself thinking "I'll add that later," stop and add it now.
-2. **Be specific.** Vague entries waste future sessions' time. Include file paths, function names, and exact error messages.
-3. **Be honest.** Record mistakes and failed approaches — they're the most valuable entries.
-4. **Prune stale info.** If you notice an entry in any file that is no longer accurate, update or remove it.
-5. **Cross-reference.** When an entry in one file relates to another, mention the other file.
-6. **Measure yourself.** If you re-discover something that should have been in the knowledge base, add it immediately and note the gap in `claude/lessons.md`.
-7. **Never push without updating.** The `claude/` directory is part of the deliverable, not an afterthought. Code changes without corresponding knowledge updates are incomplete work.
