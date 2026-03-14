@@ -2,16 +2,56 @@
 
 ## Principles
 
-- Simplicity above all. The best solution is the simplest one that fully solves the problem. Speculative abstractions age poorly — earn complexity through proven need.
-- Hold yourself to a staff engineer standard. Only propose changes you would confidently ship to production. Challenge your own work before presenting it.
-- If a solution feels wrong, iterate until it doesn't. Demand excellence.
+- **Read before writing.** Understand the existing code, its conventions, and the surrounding context before making any change.
+- **Solve exactly what was asked.** Do not fix adjacent problems, refactor nearby code, or add features that were not requested. If you notice something worth improving, document it in the relevant `claude/` file — do not act on it without asking.
+- **Prefer the simplest solution that fully solves the problem.** Add complexity only when the problem demands it, never speculatively.
+- **Every change must be correct, clean, and complete.** Verify your work, then stop. Do not revisit code that already meets these criteria.
+- **No shortcuts.** If a proper solution requires multiple steps, do each one right. If a shortcut is genuinely unavoidable, document it in `claude/debt.md` before moving on.
+- **When stuck, research — do not guess.** If an approach fails twice, stop and investigate why, or ask the user for direction.
+
+## Self-Improvement
+
+The `claude/` directory is a version-controlled, public knowledge base that grows across sessions. **Every session must leave the project easier for the next one.** Create the directory if it does not exist.
+
+1. **Write immediately.** If you learn something, write it down before your next action. Never defer to "end of session."
+2. **Be specific.** Include file paths, function names, and exact error messages. Vague entries waste future sessions.
+3. **Be honest.** Record mistakes and failed approaches — they are the most valuable entries.
+4. **Prune stale info.** Update or remove entries that are no longer accurate.
+5. **Cross-reference.** When entries relate across files, link them.
+6. **Measure yourself.** If you re-discover something that should have been recorded, add it and note the gap in `claude/lessons.md`.
+7. **Never push without updating.** Knowledge updates are part of the deliverable, not an afterthought.
+8. **Nothing sensitive.** Never write secrets, API keys, tokens, passwords, internal URLs, or PII. Reference environment variable *names* (e.g., `BIFROST_URL`), never values. Describe credentials generically (e.g., "the database password from 1Password").
+
+## Session Start
+
+At the start of every session, before doing any work:
+
+1. Create `claude/project.md` if it does not exist (explore the codebase first).
+2. **Tier 1 — Read in full** (core memory):
+   - `project.md` — project map and structure
+   - `lessons.md` — mistakes to avoid
+   - `preferences.md` — user coding preferences
+   - `decisions.md` — architectural decisions and rationale
+   - `glossary.md` — domain terms and naming conventions
+3. **Tier 2 — Scan headers, read relevant sections** (working memory):
+   - `context.md` — non-obvious API contracts and type relationships
+   - `patterns.md` — reusable code patterns
+   - `errors.md` — known error solutions
+   - `commands.md` — useful commands and workflows
+   - `debt.md` — known tech debt
+   - `reviews.md` — common review feedback to avoid
+4. **Tier 3 — Read on-demand** when working in that area (reference):
+   - `dependencies.md` — dependency quirks
+   - `testing.md` — testing patterns and strategy
+   - `apis.md` — API routes and contracts
+   - `env.md` — environment variables reference
+   - `debug.md` — debugging approaches
+5. Note which files are missing or outdated and update them during the session.
 
 ## Code
 
-- Understand before modifying. Read the surrounding code, follow its conventions, and let consistency guide your decisions.
-- Build from small, composable pieces. Colocate what belongs together. Let the type system carry its weight — if a type is hard to express, rethink the design.
+- Build from small, composable pieces. Colocate what belongs together. If a type is hard to express, rethink the design.
 - Formatting is tooling's job. Never fight the formatter.
-- Solve the stated problem — not adjacent ones. A bug fix is not a refactoring opportunity. If the right fix requires broadening scope, ask first.
 
 ## Architecture
 
@@ -19,100 +59,109 @@
 - Dependencies flow inward. Shared packages never depend on application code.
 - Abstractions are extracted, not predicted. Duplication across multiple call sites earns a shared utility; a single use case does not.
 
-## Git
-
-- Imperative mood, atomic commits. Each commit represents one logical change, described by what it does — not what you did.
-- Feature branches for non-trivial work. Never force-push shared branches.
-- Review your own diff before committing. Read it as a reviewer would.
-
 ## Workflow
 
-For non-trivial work (three or more steps), enter planning mode before writing code. Delegate research to subagents — one focused task per agent — and keep the main context window clean. Summarize at milestones, not line by line.
+When a task is non-trivial or unfamiliar, research before writing code:
+
+1. **Research first.** Spawn subagents in parallel to investigate — one per area of concern (e.g., prior art in the codebase, dependency docs, failing behavior). Keep the main context window clean.
+2. **Synthesize.** If the path forward is clear, proceed. If there are meaningful trade-offs, present options to the user and ask.
+
+## Continuous Learning
+
+Update `claude/` files as you work, not at the end:
+
+- **Error?** → `errors.md` immediately, while the message and fix are in context.
+- **Non-obvious API or type relationship?** → `context.md` now.
+- **Design choice?** → `decisions.md` before moving on.
+- **Useful command?** → `commands.md` the moment you use it.
+- **Debugging effort?** → `debug.md` before moving on.
+
+## Git
+
+- Imperative mood, atomic commits. Each commit is one logical change.
+- Feature branches for non-trivial work. Never force-push shared branches.
+- Review your own diff before committing.
+
+### Pre-Push Gate
+
+Before every `git push`:
+
+1. Update every relevant `claude/` file:
+   - `project.md` — file, package, or export changed
+   - `lessons.md` — something surprised you or took multiple attempts
+   - `context.md` — you read code carefully to understand something
+   - `errors.md` — you hit and resolved an error
+   - `decisions.md` — you made a non-trivial design choice
+   - `patterns.md` — you wrote or followed a recurring pattern
+   - `commands.md` — you ran a useful command
+   - `dependencies.md` — a dependency behaved unexpectedly
+   - `testing.md` — you wrote or discovered a testing approach
+   - `preferences.md` — the user stated a preference
+   - `glossary.md` — you introduced or encountered a domain term
+   - `apis.md` — you added, changed, or discovered an API route
+   - `env.md` — you used or discovered an environment variable
+   - `debt.md` — you found existing tech debt
+   - `reviews.md` — you received or noticed recurring review feedback
+   - `debug.md` — you debugged something non-trivial
+2. Commit `claude/` changes as a **separate** commit (e.g., `update claude/ knowledge base`).
+3. Then push.
+
+### Session End
+
+Before ending a session, run through the Pre-Push Gate checklist one final time as a safety net. If you find yourself writing a lot here, you skipped the continuous learning and pre-push steps.
 
 ---
 
-## Self-Improvement System
+## Knowledge Files Reference
 
-The `claude/` directory is a persistent knowledge base that grows across sessions. **Every session should leave the project easier for the next session.** If the `claude/` directory does not exist, create it.
+All files live in `claude/` and are committed to the repository. Append-only unless stated otherwise. Keep entries concise, dated, and actionable. Never include secrets or credentials.
 
-### Session Start Ritual
+Create any file on first use with the format below.
 
-At the start of **every** session, before doing any work:
+### `project.md` — Project Map
 
-1. Read **all** files in `claude/` — every one of them. They are your memory.
-2. If `claude/project.md` does not exist, explore the codebase and create it before doing anything else.
-3. Note which files are missing or outdated and plan to update them during or at the end of the session.
+Project overview: workspace layout, packages, key file paths, tech stack, external services, common commands. **Updated in place** (not append-only).
 
-### Session End Ritual
+### `lessons.md` — Hard-Won Knowledge
 
-Before ending **every** session, reflect and update:
+Mistakes, failed approaches, surprising behavior. Each entry should prevent a future session from repeating it.
 
-1. **Did the project structure change?** Update `claude/project.md`.
-2. **Did I learn something the hard way?** Append to `claude/lessons.md`.
-3. **Did I discover reusable context?** Append to `claude/context.md`.
-4. **Did the user express a preference?** Append to `claude/preferences.md`.
-5. **Did I use a pattern worth remembering?** Append to `claude/patterns.md`.
-6. **Did I hit an error worth documenting?** Append to `claude/errors.md`.
-7. **Did I make or discover an architectural decision?** Append to `claude/decisions.md`.
-8. **Did I find a useful command or workflow?** Append to `claude/commands.md`.
-9. **Did a dependency behave unexpectedly?** Append to `claude/dependencies.md`.
-10. **Did I write or discover a testing approach?** Append to `claude/testing.md`.
-
-If a file does not exist yet and you have something to record, create it using the format described below.
-
-### Knowledge Files
-
-All files are append-only unless stated otherwise. Organize entries with dates. Keep entries concise and actionable — future sessions should be able to scan quickly.
-
-#### `claude/project.md` — Project Map (update in place)
-
-Project overview: workspace layout, what each package does, key file paths, tech stack, external services, and common commands. This is the only file that gets **updated in place** rather than appended to. Keep it current.
-
-#### `claude/lessons.md` — Hard-Won Knowledge
-
-Things learned through mistakes, failed approaches, or surprising behavior. Each entry should save a future session from repeating the same mistake.
-
-Format:
 ```
 ## YYYY-MM-DD — Short title
 What happened, why it was wrong, and what to do instead.
 ```
 
-#### `claude/context.md` — Expensive-to-Rediscover Context
+### `context.md` — Expensive-to-Rediscover Context
 
-Function signatures, type relationships, non-obvious API contracts, environment variable meanings, and anything that took significant exploration to figure out. This is the "cheat sheet" for the codebase.
+Function signatures, type relationships, non-obvious API contracts, environment variable meanings — the codebase cheat sheet.
 
-Format:
 ```
 ## YYYY-MM-DD — Topic
 The context worth preserving.
 ```
 
-#### `claude/preferences.md` — User Preferences
+### `preferences.md` — User Preferences
 
-Code-style, formatting, naming conventions, and workflow preferences stated by the user. Read at session start and apply to all code written. Each preference should be specific and actionable with noted exceptions.
+Code-style, formatting, naming, and workflow preferences. Specific and actionable.
 
-Format:
 ```
-## Category (e.g., Code ordering, Naming conventions)
+## Category
 - Preference description. Note any exceptions.
 ```
 
-#### `claude/patterns.md` — Reusable Code Patterns
+### `patterns.md` — Reusable Code Patterns
 
-Recurring code patterns, idioms, and snippets specific to this project. When the same pattern is used in 2+ places, extract it here so future sessions can apply it consistently.
+Recurring idioms and snippets specific to this project. Extract here when a pattern appears in 2+ places.
 
-Format:
 ```
 ## Pattern name
 When to use it, followed by a minimal code example.
 ```
 
-#### `claude/errors.md` — Error Solutions
+### `errors.md` — Error Solutions
 
-Errors encountered and their solutions. Indexed by error message or symptom so future sessions can search for them.
+Indexed by error message or symptom for quick lookup.
 
-Format:
 ```
 ## Error message or symptom
 - **Cause:** Why it happened.
@@ -120,58 +169,109 @@ Format:
 - **Date:** YYYY-MM-DD
 ```
 
-#### `claude/decisions.md` — Architecture Decision Records
+### `decisions.md` — Architecture Decision Records
 
-Why things are the way they are. When a non-trivial design choice is made (or discovered), document the decision, the alternatives considered, and why this path was chosen.
+Non-trivial design choices with context, alternatives, and trade-offs.
 
-Format:
 ```
 ## YYYY-MM-DD — Decision title
 **Status:** Accepted | Superseded by [link]
 **Context:** What prompted the decision.
 **Decision:** What was decided.
 **Alternatives:** What else was considered.
-**Consequences:** What trade-offs this creates.
+**Consequences:** Trade-offs created.
 ```
 
-#### `claude/commands.md` — Useful Commands & Workflows
+### `commands.md` — Useful Commands & Workflows
 
-CLI commands, scripts, one-liners, and multi-step workflows that are useful for this project. Saves future sessions from re-discovering how to do common operations.
+CLI commands, scripts, and multi-step workflows worth remembering.
 
-Format:
 ```
 ## Task description
 \`\`\`sh
 command here
 \`\`\`
-Optional notes about when to use it or gotchas.
+Optional notes.
 ```
 
-#### `claude/dependencies.md` — Dependency Notes
+### `dependencies.md` — Dependency Notes
 
-Version quirks, upgrade notes, compatibility issues, and non-obvious behaviors of third-party packages. If a dependency does something unexpected, record it here.
+Version quirks, upgrade notes, compatibility issues, unexpected behaviors.
 
-Format:
 ```
 ## package-name@version
-What's notable, quirky, or broken. Date discovered: YYYY-MM-DD.
+What's notable or broken. Date discovered: YYYY-MM-DD.
 ```
 
-#### `claude/testing.md` — Testing Patterns & Strategy
+### `testing.md` — Testing Patterns & Strategy
 
-Testing conventions, utilities, setup/teardown patterns, mocking approaches, and what to test for each type of code in this project.
+Testing conventions, utilities, setup/teardown, mocking approaches.
 
-Format:
 ```
 ## Category (e.g., Component tests, API tests)
-How tests are structured, what tools are used, and patterns to follow.
+How tests are structured and patterns to follow.
 ```
 
-### Self-Improvement Rules
+### `glossary.md` — Domain Glossary
 
-1. **Be proactive.** Don't wait for the user to ask you to record something. If you learn it, write it down.
-2. **Be specific.** Vague entries waste future sessions' time. Include file paths, function names, and exact error messages.
-3. **Be honest.** Record mistakes and failed approaches — they're the most valuable entries.
-4. **Prune stale info.** If you notice an entry in any file that is no longer accurate, update or remove it.
-5. **Cross-reference.** When an entry in one file relates to another, mention the other file.
-6. **Measure yourself.** If you re-discover something that should have been in the knowledge base, add it immediately and note the gap in `claude/lessons.md`.
+Domain-specific terms and naming conventions. This project uses Norse mythology naming.
+
+```
+## Term
+Definition and how it's used in this project.
+```
+
+### `apis.md` — API Routes & Contracts
+
+Endpoints, request/response shapes, auth requirements, and integration points.
+
+```
+## METHOD /path
+- **Request:** params, body, headers
+- **Response:** shape, status codes
+- **Auth:** required | public
+- **Notes:** anything non-obvious
+```
+
+### `env.md` — Environment Variables
+
+Variable names, what they control, defaults, and where they're used. **Names only — never values.**
+
+```
+## VARIABLE_NAME
+- **Used by:** package or file
+- **Purpose:** what it controls
+- **Default:** value if any
+```
+
+### `debt.md` — Technical Debt
+
+Known shortcuts and workarounds with context and ideal fixes.
+
+```
+## YYYY-MM-DD — Short title
+**Where:** file path or area
+**What:** the shortcut or workaround
+**Why:** why it was acceptable at the time
+**Ideal fix:** what should be done when there's time
+```
+
+### `reviews.md` — Review Feedback Patterns
+
+Recurring PR review feedback to avoid repeating.
+
+```
+## Category (e.g., Error handling, Naming, Testing)
+- What reviewers flag and what they expect instead.
+```
+
+### `debug.md` — Debugging Playbook
+
+Debugging strategies that worked for specific problem types.
+
+```
+## Symptom or problem type
+**How to diagnose:** steps that led to the root cause
+**Tools used:** browser devtools, logging, etc.
+**Date:** YYYY-MM-DD
+```
