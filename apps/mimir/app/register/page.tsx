@@ -1,1 +1,1 @@
-export { RegisterPage as default } from 'heimdall/register-page'
+export { RegisterPage as default } from 'sindri/register-page'

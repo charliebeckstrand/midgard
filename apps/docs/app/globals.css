@@ -6,6 +6,7 @@
 
 @source './';
 @source '../../../packages/catalyst/src';
+@source '../../../packages/sindri/src';
 
 :root {
     height: 100%;

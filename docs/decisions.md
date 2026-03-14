@@ -36,3 +36,21 @@ Non-trivial design choices with context, alternatives, and trade-offs.
 - Battle-tested markdown parsing with full GFM support (tables, strikethrough, task lists, etc.).
 - `MarkdownAsync` export works in React Server Components without `'use client'`.
 - Shiki provides high-quality syntax highlighting with VS Code themes.
+
+## 2026-03-14 — Extract UI resources from Heimdall into Sindri package
+
+**Status:** Accepted
+
+**Context:** Heimdall is an auth proxy (session management, route protection, Next.js config helpers), but it also contained UI components (LoginPage, RegisterPage, PasswordInput) and a form hook (useForm). These are shared UI resources that don't belong in an auth module.
+
+**Decision:** Created `packages/sindri` (named after the master dwarf craftsman of Norse mythology) to hold shared UI resources. Moved all components and hooks from Heimdall to Sindri. Heimdall is now purely server-side with no UI dependencies. Apps import auth pages from `sindri/login-page` and `sindri/register-page` instead of `heimdall/login-page` and `heimdall/register-page`.
+
+**Alternatives:**
+- Keep everything in Heimdall: simpler but conflates auth proxy concerns with UI.
+- Move into Catalyst: Catalyst is a generic component library (Headless UI + Tailwind), while these are auth-specific page components with business logic.
+
+**Consequences:**
+- Heimdall has zero UI dependencies (no catalyst, reactbits, @heroicons/react).
+- Sindri can grow to hold more shared UI resources (e.g., profile pages, settings forms).
+- Apps that need auth pages must depend on both heimdall (for session/proxy) and sindri (for UI).
+- Tailwind `@source` directives updated: mimir points to sindri instead of heimdall; docs adds sindri.

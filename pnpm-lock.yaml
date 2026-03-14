@@ -47,6 +47,9 @@ importers:
       shiki:
         specifier: ^3.4.2
         version: 3.23.0
+      sindri:
+        specifier: workspace:*
+        version: link:../../packages/sindri
     devDependencies:
       '@biomejs/biome':
         specifier: ^2.4.6
@@ -96,6 +99,9 @@ importers:
       reactbits:
         specifier: workspace:*
         version: link:../../packages/reactbits
+      sindri:
+        specifier: workspace:*
+        version: link:../../packages/sindri
     devDependencies:
       '@biomejs/biome':
         specifier: ^2.4.6
@@ -160,32 +166,13 @@ importers:
         version: 5.9.3
 
   packages/heimdall:
-    dependencies:
-      '@heroicons/react':
-        specifier: ^2.2.0
-        version: 2.2.0(react@19.2.4)
-      catalyst:
-        specifier: workspace:*
-        version: link:../catalyst
-      clsx:
-        specifier: ^2.1.1
-        version: 2.1.1
-      reactbits:
-        specifier: workspace:*
-        version: link:../reactbits
     devDependencies:
       '@biomejs/biome':
         specifier: ^2.4.6
         version: 2.4.6
-      '@headlessui/react':
-        specifier: ^2.0.0
-        version: 2.2.9(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@types/node':
         specifier: ^25.3.3
         version: 25.5.0
-      '@types/react':
-        specifier: ^19.1.6
-        version: 19.2.14
       next:
         specifier: ^16.1.0
         version: 16.1.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -214,6 +201,43 @@ importers:
       '@types/react':
         specifier: ^19.1.6
         version: 19.2.14
+      react:
+        specifier: ^19.1.0
+        version: 19.2.4
+      tsup:
+        specifier: ^8.5.1
+        version: 8.5.1(jiti@2.6.1)(postcss@8.5.8)(tsx@4.21.0)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
+  packages/sindri:
+    dependencies:
+      '@heroicons/react':
+        specifier: ^2.2.0
+        version: 2.2.0(react@19.2.4)
+      catalyst:
+        specifier: workspace:*
+        version: link:../catalyst
+      reactbits:
+        specifier: workspace:*
+        version: link:../reactbits
+    devDependencies:
+      '@biomejs/biome':
+        specifier: ^2.4.6
+        version: 2.4.6
+      '@headlessui/react':
+        specifier: ^2.0.0
+        version: 2.2.9(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@types/node':
+        specifier: ^25.3.3
+        version: 25.5.0
+      '@types/react':
+        specifier: ^19.1.6
+        version: 19.2.14
+      next:
+        specifier: ^16.1.0
+        version: 16.1.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       react:
         specifier: ^19.1.0
         version: 19.2.4

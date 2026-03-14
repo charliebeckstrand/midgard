@@ -4,7 +4,7 @@
 @variant dark (@media (prefers-color-scheme: dark));
 
 @source './';
-@source '../../../packages/heimdall/src';
+@source '../../../packages/sindri/src';
 @source '../../../packages/catalyst/src';
 
 :root {
