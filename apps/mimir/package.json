@@ -18,7 +18,8 @@
 		"next": "^16.1.0",
 		"react": "^19.1.0",
 		"react-dom": "^19.1.0",
-		"catalyst": "workspace:*"
+		"catalyst": "workspace:*",
+		"reactbits": "workspace:*"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.4.6",

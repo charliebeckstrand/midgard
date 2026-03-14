@@ -3,11 +3,7 @@
 import { AuthLayout, Button, Field, Heading, Input, Label, Strong, Text, TextLink } from 'catalyst'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useState } from 'react'
-
-const errors = {
-	invalid_credentials: 'Invalid email or password.',
-	login_failed: 'Login failed. Please try again.',
-}
+import { ShinyText } from 'reactbits'
 
 function LoginForm() {
 	const router = useRouter()
@@ -22,7 +18,7 @@ function LoginForm() {
 
 	const registered = searchParams.get('registered') === 'true'
 
-	async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+	async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
 		e.preventDefault()
 
 		try {
@@ -38,11 +34,11 @@ function LoginForm() {
 				return
 			}
 
-			const data = (await res.json().catch(() => ({}))) as { message?: string }
+			const data = await res.json()
 
-			setError(data.message || errors.invalid_credentials)
+			setError(data.message || 'Login failed. Please check your credentials and try again.')
 		} catch {
-			setError(errors.login_failed)
+			setError('An unexpected error occurred. Please try again later.')
 		} finally {
 			setSubmitting(false)
 		}
@@ -53,10 +49,15 @@ function LoginForm() {
 			<Heading>Sign in to your account</Heading>
 
 			{registered && (
-				<p className="text-sm text-green-500">Account created successfully. Please sign in.</p>
+				<ShinyText
+					text="Account created successfully. Please sign in."
+					color="green"
+					shineColor="lime"
+					delay={5}
+				/>
 			)}
 
-			{error && <p className="text-sm text-red-500 ">{error}</p>}
+			{error && <p className="text-sm text-red-500">{error}</p>}
 
 			<Field>
 				<Label>Email</Label>

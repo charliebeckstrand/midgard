@@ -4,12 +4,6 @@ import { AuthLayout, Button, Field, Heading, Input, Label, Strong, Text, TextLin
 import { useRouter } from 'next/navigation'
 import { Suspense, useState } from 'react'
 
-const errors = {
-	email_exists: 'An account with that email already exists.',
-	registeration_failed: 'Registration failed. Please try again.',
-	password_mismatch: 'Passwords do not match.',
-}
-
 function RegisterForm() {
 	const router = useRouter()
 
@@ -25,7 +19,7 @@ function RegisterForm() {
 		e.preventDefault()
 
 		if (password !== confirmPassword) {
-			setError(errors.password_mismatch)
+			setError('Passwords do not match.')
 
 			setSubmitting(false)
 
@@ -45,11 +39,13 @@ function RegisterForm() {
 				return
 			}
 
-			const data = (await res.json().catch(() => ({}))) as { code?: string }
+			const data = await res.json()
 
-			setError(data.code === 'email_exists' ? errors.email_exists : errors.registeration_failed)
+			console.log('data', data)
+
+			setError(data.message || 'Registration failed. Please check your details and try again.')
 		} catch {
-			setError(errors.registeration_failed)
+			setError('Registration failed. Please try again later.')
 		} finally {
 			setSubmitting(false)
 		}
@@ -59,7 +55,7 @@ function RegisterForm() {
 		<form onSubmit={handleSubmit} className="grid w-full max-w-sm grid-cols-1 gap-8">
 			<Heading>Create your account</Heading>
 
-			{error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+			{error && <p className="text-sm text-red-500">{error}</p>}
 
 			<Field>
 				<Label>Email</Label>

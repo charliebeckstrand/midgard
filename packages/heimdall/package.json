@@ -36,7 +36,8 @@
 	},
 	"packageManager": "pnpm@10.29.3",
 	"dependencies": {
-		"catalyst": "workspace:*"
+		"catalyst": "workspace:*",
+		"reactbits": "workspace:*"
 	},
 	"peerDependencies": {
 		"next": "^15.0.0 || ^16.0.0",

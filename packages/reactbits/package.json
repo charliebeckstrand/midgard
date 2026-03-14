@@ -1,7 +1,7 @@
 {
 	"name": "reactbits",
 	"version": "0.1.0",
-	"description": "ReactBits components for Midgard",
+	"description": "",
 	"type": "module",
 	"main": "./dist/index.js",
 	"types": "./src/index.ts",
