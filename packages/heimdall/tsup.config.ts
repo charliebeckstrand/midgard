@@ -16,7 +16,7 @@ export default defineConfig([
 	{
 		...shared,
 		entry: {
-			index: 'src/index.ts',
+			session: 'src/session.ts',
 			config: 'src/config.ts',
 			proxy: 'src/proxy.ts',
 		},
