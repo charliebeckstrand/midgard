@@ -3,7 +3,7 @@
 ## Principles
 
 - **Read before writing.** Understand the existing code, its conventions, and the surrounding context before making any change.
-- **Solve exactly what was asked.** Do not fix adjacent problems, refactor nearby code, or add features that were not requested. If the right fix requires broadening scope, ask first.
+- **Solve exactly what was asked.** Do not fix adjacent problems, refactor nearby code, or add features that were not requested. If you notice something worth improving, document it in the relevant `claude/` file — do not act on it without asking.
 - **Prefer the simplest solution that fully solves the problem.** Add complexity only when the problem demands it, never speculatively.
 - **Every change must be correct, clean, and complete.** Verify your work, then stop. Do not revisit code that already meets these criteria.
 - **No shortcuts.** If a proper solution requires multiple steps, do each one right. If a shortcut is genuinely unavoidable, document it in `claude/debt.md` before moving on.
