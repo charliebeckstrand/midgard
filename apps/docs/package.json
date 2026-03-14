@@ -1,0 +1,37 @@
+{
+	"name": "docs",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "next dev --port 3001 --turbopack",
+		"build": "next build",
+		"start": "next start --port 3001",
+		"lint": "biome check --config-path=../.. .",
+		"lint:fix": "biome check --config-path=../.. --write .",
+		"format": "biome format --config-path=../.. --write .",
+		"check-types": "tsc --noEmit"
+	},
+	"packageManager": "pnpm@10.29.3",
+	"dependencies": {
+		"@heroicons/react": "^2.2.0",
+		"catalyst": "workspace:*",
+		"heimdall": "workspace:*",
+		"next": "^16.1.0",
+		"react": "^19.1.0",
+		"react-dom": "^19.1.0",
+		"react-markdown": "^10.1.0",
+		"remark-gfm": "^4.0.1",
+		"shiki": "^3.4.2"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.4.6",
+		"@tailwindcss/postcss": "^4.1.0",
+		"@tailwindcss/typography": "^0.5.16",
+		"@types/node": "^25.3.3",
+		"@types/react": "^19.1.6",
+		"@types/react-dom": "^19.1.6",
+		"tailwindcss": "^4.1.0",
+		"typescript": "^5.9.3"
+	}
+}

@@ -3,30 +3,38 @@
 ## Principles
 
 - **Read before writing.** Understand the existing code, its conventions, and the surrounding context before making any change.
-- **Solve exactly what was asked.** Do not fix adjacent problems, refactor nearby code, or add features that were not requested. If you notice something worth improving, document it in the relevant `claude/` file — do not act on it without asking.
+- **Solve exactly what was asked.** Do not fix adjacent problems, refactor nearby code, or add features that were not requested. If you notice something worth improving, document it in the relevant `docs/` file — do not act on it without asking.
 - **Prefer the simplest solution that fully solves the problem.** Add complexity only when the problem demands it, never speculatively.
 - **Every change must be correct, clean, and complete.** Verify your work, then stop. Do not revisit code that already meets these criteria.
-- **No shortcuts.** If a proper solution requires multiple steps, do each one right. If a shortcut is genuinely unavoidable, document it in `claude/debt.md` before moving on.
+- **No shortcuts.** If a proper solution requires multiple steps, do each one right. If a shortcut is genuinely unavoidable, document it in `docs/debt.md` before moving on.
 - **When stuck, research — do not guess.** If an approach fails twice, stop and investigate why, or ask the user for direction.
 
-## Self-Improvement
+## The `docs/` Directory
 
-The `claude/` directory is a version-controlled, public knowledge base that grows across sessions. **Every session must leave the project easier for the next one.** Create the directory if it does not exist.
+The `docs/` directory is a version-controlled knowledge base that serves as both the agent's working memory and the repository's documentation. It grows across sessions and is written for two audiences:
+
+1. **Agents.** Structured, specific entries that prevent re-discovery and guide future sessions.
+2. **Developers.** Clear, browsable reference docs that anyone on the team can read.
+
+Write with both audiences in mind — clear enough for a developer reading in a browser or editor, structured enough for an agent to parse programmatically. **Every session must leave the project easier for the next one.** Create the directory if it does not exist.
+
+### Writing Guidelines
 
 1. **Write immediately.** If you learn something, write it down before your next action. Never defer to "end of session."
-2. **Be specific.** Include file paths, function names, and exact error messages. Vague entries waste future sessions.
+2. **Be specific.** Include file paths, function names, and exact error messages. Vague entries waste future sessions and confuse human readers.
 3. **Be honest.** Record mistakes and failed approaches — they are the most valuable entries.
 4. **Prune stale info.** Update or remove entries that are no longer accurate.
 5. **Cross-reference.** When entries relate across files, link them.
-6. **Measure yourself.** If you re-discover something that should have been recorded, add it and note the gap in `claude/lessons.md`.
+6. **Measure yourself.** If you re-discover something that should have been recorded, add it and note the gap in `docs/lessons.md`.
 7. **Never push without updating.** Knowledge updates are part of the deliverable, not an afterthought.
-8. **Nothing sensitive.** Never write secrets, API keys, tokens, passwords, internal URLs, or PII. Reference environment variable *names* (e.g., `BIFROST_URL`), never values. Describe credentials generically (e.g., "the database password from 1Password").
+8. **Nothing sensitive.** Never write secrets, API keys, tokens, passwords, internal URLs, or PII. Reference environment variable *names* (e.g., `BIFROST_URL`), never values. Describe credentials generically (e.g., "the database password from 1Password"). For content that should only be visible to authenticated users, add `<!-- auth: required -->` to the top of the file.
+9. **Write for humans too.** Use clear headings, short paragraphs, and code blocks. These files are documentation.
 
 ## Session Start
 
 At the start of every session, before doing any work:
 
-1. Create `claude/project.md` if it does not exist (explore the codebase first).
+1. Create `docs/project.md` if it does not exist (explore the codebase first).
 2. **Tier 1 — Read in full** (core memory):
    - `project.md` — project map and structure
    - `lessons.md` — mistakes to avoid
@@ -68,7 +76,7 @@ When a task is non-trivial or unfamiliar, research before writing code:
 
 ## Continuous Learning
 
-Update `claude/` files as you work, not at the end:
+Update `docs/` files as you work, not at the end:
 
 - **Error?** → `errors.md` immediately, while the message and fix are in context.
 - **Non-obvious API or type relationship?** → `context.md` now.
@@ -86,7 +94,7 @@ Update `claude/` files as you work, not at the end:
 
 Before every `git push`:
 
-1. Update every relevant `claude/` file:
+1. Update every relevant `docs/` file:
    - `project.md` — file, package, or export changed
    - `lessons.md` — something surprised you or took multiple attempts
    - `context.md` — you read code carefully to understand something
@@ -103,7 +111,7 @@ Before every `git push`:
    - `debt.md` — you found existing tech debt
    - `reviews.md` — you received or noticed recurring review feedback
    - `debug.md` — you debugged something non-trivial
-2. Commit `claude/` changes as a **separate** commit (e.g., `update claude/ knowledge base`).
+2. Commit `docs/` changes as a **separate** commit (e.g., `update docs/ knowledge base`).
 3. Then push.
 
 ### Session End
@@ -114,7 +122,7 @@ Before ending a session, run through the Pre-Push Gate checklist one final time 
 
 ## Knowledge Files Reference
 
-All files live in `claude/` and are committed to the repository. Append-only unless stated otherwise. Keep entries concise, dated, and actionable. Never include secrets or credentials.
+All files live in `docs/` and are committed to the repository. Append-only unless stated otherwise. Keep entries concise, dated, and actionable. Never include secrets or credentials.
 
 Create any file on first use with the format below.
 
