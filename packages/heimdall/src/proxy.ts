@@ -4,10 +4,11 @@ const guestRoutes = ['/login', '/register']
 
 interface ProxyOptions {
 	homepage?: string
+	protect?: boolean
 }
 
 export async function proxy(request: NextRequest, options: ProxyOptions = {}) {
-	const { homepage = '/' } = options
+	const { homepage = '/', protect = true } = options
 	const { pathname } = request.nextUrl
 
 	const sessionResponse = await fetch(new URL('/auth/session', request.nextUrl.origin), {
@@ -28,13 +29,9 @@ export async function proxy(request: NextRequest, options: ProxyOptions = {}) {
 		return NextResponse.redirect(new URL(homepage, request.url))
 	}
 
-	if (!isGuestRoute && !authenticated) {
+	if (protect && !isGuestRoute && !authenticated) {
 		return NextResponse.redirect(new URL('/login', request.url))
 	}
 
 	return NextResponse.next()
-}
-
-export const config = {
-	matcher: ['/', '/login', '/register'],
 }

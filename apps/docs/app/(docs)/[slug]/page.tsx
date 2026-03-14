@@ -1,5 +1,5 @@
+import { getSession } from 'heimdall'
 import { notFound } from 'next/navigation'
-import { getSession } from '@/lib/auth'
 import { getDoc, getDocSlugs } from '@/lib/docs'
 import { Markdown } from '@/markdown'
 

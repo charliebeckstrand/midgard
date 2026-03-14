@@ -71,3 +71,27 @@ Non-trivial design choices with context, alternatives, and trade-offs.
 - The app directory, package name, and page title are now `admin`/`Admin`.
 - Norse naming is preserved for infrastructure packages (heimdall, sindri, bifrost) where the metaphors are more descriptive.
 - Existing Turbo cache is invalidated (package name changed).
+
+## 2026-03-14 — Consolidate shared app config and reduce duplication
+
+**Status:** Accepted
+
+**Context:** The admin and docs apps had identical or near-identical config files (postcss, tsconfig, theme.css, next.config). Adding a new app required copying boilerplate. The docs app also had a custom proxy implementation that duplicated heimdall/proxy logic, and an unnecessary auth re-export file.
+
+**Decision:** Consolidated shared configuration:
+1. Moved `postcss.config.mjs` to repo root (Next.js auto-discovers it up the directory tree)
+2. Created `tsconfig.nextjs.json` at repo root with shared Next.js TypeScript settings; apps extend it and add only `baseUrl`, `paths`, and `include`
+3. Moved `theme.css` to `sindri/theme.css` as a CSS export; apps import via `@import 'sindri/theme.css'`
+4. Added `protect` option to `heimdall/proxy` (`true` by default); docs uses `protect: false` for public access
+5. Removed `app/lib/auth.ts` re-export in docs; imports `getSession` directly from `heimdall`
+
+**Alternatives:**
+- Create a dedicated `app-config` package: adds a package for config that's only a few files.
+- Shared root layout component in sindri: `next/font/google` has build-time compiler integration that may not work from external packages; body classes differ between apps.
+- Keep everything as-is: each new app requires copying 5+ config files and risking drift.
+
+**Consequences:**
+- Adding a new app requires minimal boilerplate (see "Adding a New App" in project.md).
+- Theme changes propagate to all apps automatically via sindri.
+- Apps still own their `globals.css` (for app-specific Tailwind plugins like `@tailwindcss/typography`) and `layout.tsx` (for app-specific metadata).
+- `baseUrl` and `paths` must remain in each app's tsconfig (they resolve relative to the file that defines them).

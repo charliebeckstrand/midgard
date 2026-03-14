@@ -13,3 +13,11 @@ The root `tsconfig.base.json` only includes `"lib": ["ES2022"]`. Packages that u
 ## 2026-03-14 — Heimdall tsup has two build passes (outdated — see Sindri)
 
 ~~Heimdall uses two tsup config entries.~~ After the Sindri extraction, Heimdall has a single build pass for server modules only. **Sindri** now uses two tsup config entries: one for the form hook (use-form) with `clean: true`, and one for client components (login-page, register-page, password-input) with `'use client'` banner and `clean: false`. New client-side UI files go in Sindri's second entry.
+
+## 2026-03-14 — Next.js 16 renamed middleware.ts to proxy.ts
+
+Next.js 16 renamed `middleware.ts` to `proxy.ts` and the exported function from `middleware` to `proxy`. The file must be named `proxy.ts` at the app root, and it must export a function named `proxy` (not `middleware`). The old `middleware.ts` convention still works for edge runtime but is deprecated. See: https://nextjs.org/docs/messages/middleware-to-proxy
+
+## 2026-03-14 — tsconfig baseUrl and paths are relative to the file that defines them
+
+When creating a shared `tsconfig.nextjs.json` at the repo root, do NOT put `baseUrl` or `paths` in it. These resolve relative to the file that defines them, so `"baseUrl": "."` in a root tsconfig means the repo root — not the app directory. Each app must define its own `baseUrl`, `paths`, and `include` in its local `tsconfig.json`.

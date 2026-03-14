@@ -1,17 +1,10 @@
 {
-	"extends": "../../tsconfig.base.json",
+	"extends": "../../tsconfig.nextjs.json",
 	"compilerOptions": {
 		"baseUrl": ".",
-		"jsx": "preserve",
-		"lib": ["ES2022", "DOM", "DOM.Iterable"],
-		"module": "ESNext",
-		"moduleResolution": "bundler",
-		"noEmit": true,
-		"plugins": [{ "name": "next" }],
 		"paths": {
 			"@/*": ["./app/*"]
 		}
 	},
-	"include": ["next-env.d.ts", "app", "proxy.ts", "**/*.ts", "**/*.tsx"],
-	"exclude": ["node_modules", ".next"]
+	"include": ["next-env.d.ts", "app", "**/*.ts", "**/*.tsx"]
 }

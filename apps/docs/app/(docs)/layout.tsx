@@ -1,6 +1,6 @@
+import { getSession } from 'heimdall'
 import type { ReactNode } from 'react'
 import { Client } from '@/client'
-import { getSession } from '@/lib/auth'
 import { getAllDocs } from '@/lib/docs'
 
 export default async function DocsLayout({ children }: { children: ReactNode }) {
