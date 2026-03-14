@@ -25,7 +25,4 @@
 
   const isGuestRoute = guestRoutes.some((r) => pathname.startsWith(r))
 
-  // Related lines stay together (same API, sequential setup)
-  process.stdin.resume()
-  process.stdin.setEncoding('utf-8')
   ```
