@@ -1,0 +1,13 @@
+@import 'tailwindcss';
+@import 'sindri/theme.css';
+
+@variant dark (@media (prefers-color-scheme: dark));
+
+@source './';
+@source '../../../packages/sindri/src';
+@source '../../../packages/catalyst/src';
+
+:root {
+    height: 100%;
+    overscroll-behavior: none;
+}
