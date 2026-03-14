@@ -3,7 +3,7 @@
 import { AuthLayout, Button, Field, Heading, Input, Label, Strong, Text, TextLink } from 'catalyst'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useState } from 'react'
-import { ShinyText } from 'reactbits'
+import { ShinyText } from 'reactbits/shiny-text'
 
 function LoginForm() {
 	const router = useRouter()
