@@ -55,7 +55,7 @@ function RegisterForm() {
 		<form onSubmit={handleSubmit} className="grid w-full max-w-sm grid-cols-1 gap-8">
 			<Heading>Create your account</Heading>
 
-			{error && <p className="text-sm text-red-500">{error}</p>}
+			{error && <p className="text-red-500">{error}</p>}
 
 			<Field>
 				<Label>Email</Label>
