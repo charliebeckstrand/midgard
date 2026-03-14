@@ -15,8 +15,8 @@ import {
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useState } from 'react'
 import { ShinyText } from 'reactbits/shiny-text'
+import { email, required, useForm } from '../hooks/use-form'
 import { PasswordInput } from './password-input'
-import { email, required, useForm } from './use-form'
 
 function LoginForm() {
 	const router = useRouter()

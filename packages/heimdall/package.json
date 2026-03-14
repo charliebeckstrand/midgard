@@ -21,12 +21,12 @@
 			"default": "./dist/proxy.js"
 		},
 		"./login-page": {
-			"types": "./src/login-page.tsx",
+			"types": "./src/components/login-page.tsx",
 			"import": "./dist/login-page.js",
 			"default": "./dist/login-page.js"
 		},
 		"./register-page": {
-			"types": "./src/register-page.tsx",
+			"types": "./src/components/register-page.tsx",
 			"import": "./dist/register-page.js",
 			"default": "./dist/register-page.js"
 		}
