@@ -58,16 +58,17 @@ Shared authentication module for all Midgard apps. Provides session management, 
 | `heimdall` | `src/session.ts` | `getSession()` — fetch auth session from Bifrost |
 | `heimdall/config` | `src/config.ts` | `withAuth()` — Next.js config wrapper (rewrites to Bifrost) |
 | `heimdall/proxy` | `src/proxy.ts` | `proxy()` — Next.js middleware for route protection |
-| `heimdall/login-page` | `src/login-page.tsx` | `LoginPage` component |
-| `heimdall/register-page` | `src/register-page.tsx` | `RegisterPage` component |
+| `heimdall/login-page` | `src/components/login-page.tsx` | `LoginPage` component |
+| `heimdall/register-page` | `src/components/register-page.tsx` | `RegisterPage` component |
 
 **Key files:**
 - `src/session.ts` — `getSession()`: calls Bifrost backend using `BIFROST_URL` env var (default `http://localhost:4000`), forwards cookies via `next/headers`
 - `src/config.ts` — `withAuth()`: adds URL rewrites for `/auth/:path*` and `/api/:path*` to Bifrost
 - `src/proxy.ts` — `proxy()`: protected routes redirect unauthenticated users to `/login`; guest routes (`/login`, `/register`) redirect authenticated users to `/`
-- `src/login-page.tsx` — Login form with password visibility toggle
-- `src/register-page.tsx` — Registration form with password visibility toggle
-- `src/password-input.tsx` — `PasswordInput` component with eye/eye-slash toggle (HeroIcons)
+- `src/components/login-page.tsx` — Login form with password visibility toggle
+- `src/components/register-page.tsx` — Registration form with password visibility toggle
+- `src/components/password-input.tsx` — `PasswordInput` component with eye/eye-slash toggle (HeroIcons)
+- `src/hooks/use-form.ts` — Form validation hook with validators (required, email, minLength, matches)
 
 **tsup config:** Two build passes — server modules (session, config, proxy) with `clean: true`, then client modules (login-page, register-page, password-input) with `'use client'` banner and `clean: false`.
 
