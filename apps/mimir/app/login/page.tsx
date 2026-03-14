@@ -1,1 +1,1 @@
-export { LoginPage as default } from 'heimdall/login-page'
+export { LoginPage as default } from 'sindri/login-page'

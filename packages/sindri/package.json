@@ -1,0 +1,54 @@
+{
+	"name": "sindri",
+	"version": "0.1.0",
+	"type": "module",
+	"exports": {
+		"./login-page": {
+			"types": "./src/components/login-page.tsx",
+			"import": "./dist/login-page.js",
+			"default": "./dist/login-page.js"
+		},
+		"./register-page": {
+			"types": "./src/components/register-page.tsx",
+			"import": "./dist/register-page.js",
+			"default": "./dist/register-page.js"
+		},
+		"./password-input": {
+			"types": "./src/components/password-input.tsx",
+			"import": "./dist/password-input.js",
+			"default": "./dist/password-input.js"
+		},
+		"./use-form": {
+			"types": "./src/hooks/use-form.ts",
+			"import": "./dist/use-form.js",
+			"default": "./dist/use-form.js"
+		}
+	},
+	"scripts": {
+		"build": "tsup",
+		"dev": "tsup --watch",
+		"lint": "biome check --config-path=../.. .",
+		"lint:fix": "biome check --config-path=../.. --write .",
+		"format": "biome format --config-path=../.. --write ."
+	},
+	"packageManager": "pnpm@10.29.3",
+	"dependencies": {
+		"@heroicons/react": "^2.2.0",
+		"catalyst": "workspace:*",
+		"reactbits": "workspace:*"
+	},
+	"peerDependencies": {
+		"next": "^15.0.0 || ^16.0.0",
+		"react": "^18.0.0 || ^19.0.0"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.4.6",
+		"@headlessui/react": "^2.0.0",
+		"@types/node": "^25.3.3",
+		"@types/react": "^19.1.6",
+		"next": "^16.1.0",
+		"react": "^19.1.0",
+		"tsup": "^8.5.1",
+		"typescript": "^5.9.3"
+	}
+}
