@@ -2,7 +2,7 @@
 
 > Last updated: 2026-03-14
 
-Midgard is a pnpm monorepo managed by Turbo. It contains a Next.js application backed by shared auth, UI component, and animation-effect packages.
+Midgard is a pnpm monorepo managed by Turbo. It contains Next.js applications backed by shared auth, UI component, and animation-effect packages.
 
 ## Tech Stack
 
@@ -22,11 +22,13 @@ Midgard is a pnpm monorepo managed by Turbo. It contains a Next.js application b
 
 ```
 apps/
-  mimir/          → Main web application (Next.js)
+  mimir/          → Main web application (Next.js, port 3000)
+  docs/           → Documentation dashboard (Next.js, port 3001)
 packages/
   catalyst/       → Shared UI component library (Headless UI + Tailwind)
   heimdall/       → Shared authentication module
   reactbits/      → Animation/effect components (motion-based)
+docs/             → Project documentation and agent knowledge base
 ```
 
 Defined in `pnpm-workspace.yaml`. Turbo tasks configured in `turbo.json`.
@@ -48,6 +50,25 @@ Primary user-facing Next.js 16 application running on port 3000.
 - `next.config.ts` — Uses `withAuth` from heimdall to set up API/auth rewrites
 
 **Depends on:** heimdall, catalyst, reactbits, @heroicons/react
+
+## apps/docs
+
+Documentation dashboard that renders markdown files from the root `docs/` directory. Runs on port 3001.
+
+**Key paths:**
+- `app/layout.tsx` — Root layout
+- `app/(docs)/layout.tsx` — Docs shell with sidebar navigation
+- `app/(docs)/page.tsx` — Dashboard home (card grid of all docs)
+- `app/(docs)/[slug]/page.tsx` — Individual doc page with markdown rendering
+- `app/shell.tsx` — Client-side sidebar/navbar shell
+- `app/markdown.tsx` — Server-side markdown-to-HTML renderer with Shiki syntax highlighting
+- `app/lib/docs.ts` — Reads and parses markdown files from `docs/` directory
+- `app/lib/auth.ts` — Re-exports `getSession` from heimdall
+- `middleware.ts` — Only protects guest routes (login); all docs are public unless `<!-- auth: required -->`
+
+**Auth model:** Public by default. Files with `<!-- auth: required -->` at the top are hidden from unauthenticated users. Optional login via `/login`.
+
+**Depends on:** heimdall, catalyst, @heroicons/react, shiki
 
 ## packages/heimdall
 
