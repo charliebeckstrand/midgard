@@ -4,10 +4,15 @@
 	"description": "",
 	"type": "module",
 	"exports": {
-		"./shiny-text": {
-			"types": "./src/shiny-text.tsx",
-			"import": "./dist/shiny-text.js",
-			"default": "./dist/shiny-text.js"
+		".": {
+			"types": "./src/index.ts",
+			"import": "./dist/index.js",
+			"default": "./dist/index.js"
+		},
+		"./*": {
+			"types": "./src/*.tsx",
+			"import": "./dist/*.js",
+			"default": "./dist/*.js"
 		}
 	},
 	"scripts": {
