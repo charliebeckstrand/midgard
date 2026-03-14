@@ -24,6 +24,7 @@
 - Imperative mood, atomic commits. Each commit represents one logical change, described by what it does — not what you did.
 - Feature branches for non-trivial work. Never force-push shared branches.
 - Review your own diff before committing. Read it as a reviewer would.
+- **Before every push**, update relevant `claude/` knowledge files and include them in the commit (or as a separate commit in the same push). Never push code without first reflecting on what the `claude/` directory needs. This is not optional.
 
 ## Workflow
 
@@ -43,20 +44,54 @@ At the start of **every** session, before doing any work:
 2. If `claude/project.md` does not exist, explore the codebase and create it before doing anything else.
 3. Note which files are missing or outdated and plan to update them during or at the end of the session.
 
+### Continuous Learning (During Work)
+
+Do not wait until the end of a session. Update `claude/` files **as you go**:
+
+- **Hit an error?** Write it to `claude/errors.md` immediately, while the error message and fix are in context.
+- **Discovered a non-obvious API or type relationship?** Write it to `claude/context.md` now, not later.
+- **Made a design choice?** Write it to `claude/decisions.md` before moving on.
+- **Found a useful command?** Write it to `claude/commands.md` the moment you use it.
+
+The rule: **if you learned it, write it down before your next action.** Context fades fast — capture it while it's fresh.
+
+### Pre-Push Gate
+
+**Before every `git push`**, you MUST:
+
+1. Review what you learned during this unit of work.
+2. Update every relevant `claude/` file. At minimum, consider:
+   - `claude/project.md` — if any file, package, or export changed.
+   - `claude/lessons.md` — if anything surprised you or took more than one attempt.
+   - `claude/context.md` — if you had to read code carefully to understand something.
+   - `claude/errors.md` — if you hit and resolved any error.
+   - `claude/decisions.md` — if you made a non-trivial choice.
+   - `claude/patterns.md` — if you wrote or followed a recurring pattern.
+   - `claude/commands.md` — if you ran a useful command.
+   - `claude/dependencies.md` — if a dependency behaved unexpectedly.
+   - `claude/testing.md` — if you wrote or discovered a testing approach.
+   - `claude/preferences.md` — if the user stated a preference.
+3. Stage and commit the `claude/` changes (can be in the same commit or a dedicated `update claude/ knowledge base` commit).
+4. **Only then** run `git push`.
+
+Skipping this gate means knowledge is lost. Treat it as a required step, not a nice-to-have.
+
 ### Session End Ritual
 
-Before ending **every** session, reflect and update:
+Before ending **every** session, do a final sweep. Ask yourself whether any of the following files need updates that weren't already captured by the pre-push gate:
 
-1. **Did the project structure change?** Update `claude/project.md`.
-2. **Did I learn something the hard way?** Append to `claude/lessons.md`.
-3. **Did I discover reusable context?** Append to `claude/context.md`.
-4. **Did the user express a preference?** Append to `claude/preferences.md`.
-5. **Did I use a pattern worth remembering?** Append to `claude/patterns.md`.
-6. **Did I hit an error worth documenting?** Append to `claude/errors.md`.
-7. **Did I make or discover an architectural decision?** Append to `claude/decisions.md`.
-8. **Did I find a useful command or workflow?** Append to `claude/commands.md`.
-9. **Did a dependency behave unexpectedly?** Append to `claude/dependencies.md`.
-10. **Did I write or discover a testing approach?** Append to `claude/testing.md`.
+1. `claude/project.md` — Did the project structure change?
+2. `claude/lessons.md` — Did I learn something the hard way?
+3. `claude/context.md` — Did I discover reusable context?
+4. `claude/preferences.md` — Did the user express a preference?
+5. `claude/patterns.md` — Did I use a pattern worth remembering?
+6. `claude/errors.md` — Did I hit an error worth documenting?
+7. `claude/decisions.md` — Did I make or discover an architectural decision?
+8. `claude/commands.md` — Did I find a useful command or workflow?
+9. `claude/dependencies.md` — Did a dependency behave unexpectedly?
+10. `claude/testing.md` — Did I write or discover a testing approach?
+
+This ritual is a **safety net** — most updates should already be done. If you find yourself writing a lot here, you skipped the continuous learning and pre-push steps.
 
 If a file does not exist yet and you have something to record, create it using the format described below.
 
@@ -169,9 +204,10 @@ How tests are structured, what tools are used, and patterns to follow.
 
 ### Self-Improvement Rules
 
-1. **Be proactive.** Don't wait for the user to ask you to record something. If you learn it, write it down.
+1. **Write immediately, not later.** The moment you learn something, write it down. Do not defer to "end of session." If you catch yourself thinking "I'll add that later," stop and add it now.
 2. **Be specific.** Vague entries waste future sessions' time. Include file paths, function names, and exact error messages.
 3. **Be honest.** Record mistakes and failed approaches — they're the most valuable entries.
 4. **Prune stale info.** If you notice an entry in any file that is no longer accurate, update or remove it.
 5. **Cross-reference.** When an entry in one file relates to another, mention the other file.
 6. **Measure yourself.** If you re-discover something that should have been in the knowledge base, add it immediately and note the gap in `claude/lessons.md`.
+7. **Never push without updating.** The `claude/` directory is part of the deliverable, not an afterthought. Code changes without corresponding knowledge updates are incomplete work.
