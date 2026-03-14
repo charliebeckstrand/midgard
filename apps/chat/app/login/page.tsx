@@ -1,1 +1,5 @@
-export { LoginPage as default } from 'sindri/login-page'
+import { LoginPage } from 'sindri/login-page'
+
+export default function Login() {
+	return <LoginPage showRegisterLink={false} />
+}
