@@ -11,7 +11,7 @@
 
 ## Self-Improvement
 
-The `claude/` directory is a committed, public knowledge base that grows across sessions. **Every session must leave the project easier for the next one.** Create the directory if it does not exist.
+The `claude/` directory is a version-controlled, public knowledge base that grows across sessions. **Every session must leave the project easier for the next one.** Create the directory if it does not exist.
 
 1. **Write immediately.** If you learn something, write it down before your next action. Never defer to "end of session."
 2. **Be specific.** Include file paths, function names, and exact error messages. Vague entries waste future sessions.
@@ -50,10 +50,8 @@ At the start of every session, before doing any work:
 
 ## Code
 
-- Understand before modifying. Read surrounding code and follow its conventions.
 - Build from small, composable pieces. Colocate what belongs together. If a type is hard to express, rethink the design.
 - Formatting is tooling's job. Never fight the formatter.
-- Solve the stated problem — not adjacent ones. A bug fix is not a refactoring opportunity.
 
 ## Architecture
 
@@ -63,15 +61,10 @@ At the start of every session, before doing any work:
 
 ## Workflow
 
-For non-trivial work (three or more steps), enter planning mode before writing code. Delegate research to subagents — one focused task per agent — and keep the main context window clean.
+When a task is non-trivial or unfamiliar, research before writing code:
 
-### Research Before Committing to an Approach
-
-When a task is complex, unfamiliar, or could take significant effort:
-
-1. **Research first.** Spawn subagents in parallel to investigate — one per area of concern (e.g., prior art in the codebase, dependency docs, failing behavior).
+1. **Research first.** Spawn subagents in parallel to investigate — one per area of concern (e.g., prior art in the codebase, dependency docs, failing behavior). Keep the main context window clean.
 2. **Synthesize.** If the path forward is clear, proceed. If there are meaningful trade-offs, present options to the user and ask.
-3. **Never brute-force.** If an attempt fails, research why before retrying. After two failed attempts, ask the user for guidance.
 
 ## Continuous Learning
 
