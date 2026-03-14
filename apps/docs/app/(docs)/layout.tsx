@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
+import { Client } from '@/client'
 import { getSession } from '@/lib/auth'
 import { getAllDocs } from '@/lib/docs'
-import { Shell } from '@/shell'
 
 export default async function DocsLayout({ children }: { children: ReactNode }) {
 	const [session, allDocs] = await Promise.all([getSession(), getAllDocs()])
@@ -12,8 +12,8 @@ export default async function DocsLayout({ children }: { children: ReactNode }) 
 		.map((d) => ({ slug: d.slug, title: d.title, authRequired: d.authRequired }))
 
 	return (
-		<Shell docs={docs} authenticated={authenticated}>
+		<Client docs={docs} authenticated={authenticated}>
 			{children}
-		</Shell>
+		</Client>
 	)
 }

@@ -43,7 +43,6 @@ Primary user-facing Next.js 16 application running on port 3000.
 - `app/(dashboard)/` — Dashboard route group (main authenticated area)
 - `app/(dashboard)/page.tsx` — Dashboard home
 - `app/(dashboard)/users/page.tsx` — Users page
-- `app/(dashboard)/logout-button.tsx` — Logout action
 - `app/login/page.tsx` — Login page (re-exports from `sindri/login-page`)
 - `app/register/page.tsx` — Registration page (re-exports from `sindri/register-page`)
 - `lib/auth.ts` — Re-exports `getSession` from heimdall
@@ -61,7 +60,7 @@ Documentation dashboard that renders markdown files from the root `docs/` direct
 - `app/(docs)/layout.tsx` — Docs shell with sidebar navigation
 - `app/(docs)/page.tsx` — Dashboard home (card grid of all docs)
 - `app/(docs)/[slug]/page.tsx` — Individual doc page with markdown rendering
-- `app/shell.tsx` — Client-side sidebar/navbar shell
+- `app/client.tsx` — Client-side sidebar/navbar shell
 - `app/markdown.tsx` — Server-side markdown-to-HTML renderer with Shiki syntax highlighting
 - `app/lib/docs.ts` — Reads and parses markdown files from `docs/` directory
 - `app/lib/auth.ts` — Re-exports `getSession` from heimdall

@@ -1,43 +1,9 @@
-'use client'
-
-import { UsersIcon } from '@heroicons/react/20/solid'
-import {
-	Navbar,
-	NavbarSpacer,
-	Sidebar,
-	SidebarBody,
-	SidebarItem,
-	SidebarLabel,
-	SidebarLayout,
-	SidebarSection,
-} from 'catalyst'
-import { usePathname } from 'next/navigation'
+import { getUser } from 'heimdall/user'
 import type { ReactNode } from 'react'
+import { DashboardClient } from './client'
 
-export default function DashboardLayout({ children }: { children: ReactNode }) {
-	const pathname = usePathname()
+export default async function DashboardLayout({ children }: { children: ReactNode }) {
+	const { user } = await getUser()
 
-	return (
-		<SidebarLayout
-			navbar={
-				<Navbar>
-					<NavbarSpacer />
-				</Navbar>
-			}
-			sidebar={
-				<Sidebar>
-					<SidebarBody>
-						<SidebarSection>
-							<SidebarItem href="/users" current={pathname.startsWith('/users')}>
-								<UsersIcon />
-								<SidebarLabel>Users</SidebarLabel>
-							</SidebarItem>
-						</SidebarSection>
-					</SidebarBody>
-				</Sidebar>
-			}
-		>
-			{children}
-		</SidebarLayout>
-	)
+	return <DashboardClient user={user}>{children}</DashboardClient>
 }

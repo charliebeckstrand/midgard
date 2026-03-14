@@ -3,9 +3,9 @@
 import { BookOpenIcon, LockClosedIcon } from '@heroicons/react/20/solid'
 import {
 	Navbar,
-	NavbarSpacer,
 	Sidebar,
 	SidebarBody,
+	SidebarFooter,
 	SidebarHeading,
 	SidebarItem,
 	SidebarLabel,
@@ -21,13 +21,13 @@ interface DocEntry {
 	authRequired: boolean
 }
 
-interface ShellProps {
+interface ClientProps {
 	children: ReactNode
 	docs: DocEntry[]
 	authenticated: boolean
 }
 
-export function Shell({ children, docs, authenticated }: ShellProps) {
+export function Client({ children, docs, authenticated }: ClientProps) {
 	const pathname = usePathname()
 
 	const publicDocs = docs.filter((d) => !d.authRequired)
@@ -35,30 +35,17 @@ export function Shell({ children, docs, authenticated }: ShellProps) {
 
 	return (
 		<SidebarLayout
-			navbar={
-				<Navbar>
-					<NavbarSpacer />
-					{!authenticated && (
-						<a
-							href="/login"
-							className="text-sm font-medium text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
-						>
-							Sign in
-						</a>
-					)}
-				</Navbar>
-			}
+			navbar={<Navbar />}
 			sidebar={
 				<Sidebar>
 					<SidebarBody>
 						<SidebarSection>
 							<SidebarItem href="/" current={pathname === '/'}>
 								<BookOpenIcon />
-								<SidebarLabel>All Docs</SidebarLabel>
+								<SidebarLabel>Midgard Docs</SidebarLabel>
 							</SidebarItem>
 						</SidebarSection>
 						<SidebarSection>
-							<SidebarHeading>Documentation</SidebarHeading>
 							{publicDocs.map((doc) => (
 								<SidebarItem
 									key={doc.slug}
@@ -85,6 +72,16 @@ export function Shell({ children, docs, authenticated }: ShellProps) {
 							</SidebarSection>
 						)}
 					</SidebarBody>
+					{!authenticated && (
+						<SidebarFooter>
+							<a
+								href="/login"
+								className="text-sm font-medium text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
+							>
+								Sign in
+							</a>
+						</SidebarFooter>
+					)}
 				</Sidebar>
 			}
 		>

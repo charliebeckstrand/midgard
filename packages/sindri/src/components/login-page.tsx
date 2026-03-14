@@ -18,7 +18,7 @@ import { ShinyText } from 'reactbits/shiny-text'
 import { email, required, useForm } from '../hooks/use-form'
 import { PasswordInput } from './password-input'
 
-function LoginForm() {
+function LoginForm({ showRegisterLink }: { showRegisterLink: boolean }) {
 	const router = useRouter()
 
 	const searchParams = useSearchParams()
@@ -93,21 +93,23 @@ function LoginForm() {
 				Sign in
 			</Button>
 
-			<Text>
-				Don't have an account?{' '}
-				<TextLink href="/register">
-					<Strong>Create one</Strong>
-				</TextLink>
-			</Text>
+			{showRegisterLink && (
+				<Text>
+					Don't have an account?{' '}
+					<TextLink href="/register">
+						<Strong>Create one</Strong>
+					</TextLink>
+				</Text>
+			)}
 		</form>
 	)
 }
 
-export function LoginPage() {
+export function LoginPage({ showRegisterLink = true }: { showRegisterLink?: boolean }) {
 	return (
 		<AuthLayout>
 			<Suspense>
-				<LoginForm />
+				<LoginForm showRegisterLink={showRegisterLink} />
 			</Suspense>
 		</AuthLayout>
 	)

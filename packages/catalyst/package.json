@@ -9,13 +9,146 @@
 			"types": "./src/index.ts",
 			"import": "./dist/index.js",
 			"default": "./dist/index.js"
+		},
+		"./alert": {
+			"types": "./src/alert.tsx",
+			"import": "./dist/alert.js",
+			"default": "./dist/alert.js"
+		},
+		"./auth-layout": {
+			"types": "./src/auth-layout.tsx",
+			"import": "./dist/auth-layout.js",
+			"default": "./dist/auth-layout.js"
+		},
+		"./avatar": {
+			"types": "./src/avatar.tsx",
+			"import": "./dist/avatar.js",
+			"default": "./dist/avatar.js"
+		},
+		"./badge": {
+			"types": "./src/badge.tsx",
+			"import": "./dist/badge.js",
+			"default": "./dist/badge.js"
+		},
+		"./button": {
+			"types": "./src/button.tsx",
+			"import": "./dist/button.js",
+			"default": "./dist/button.js"
+		},
+		"./checkbox": {
+			"types": "./src/checkbox.tsx",
+			"import": "./dist/checkbox.js",
+			"default": "./dist/checkbox.js"
+		},
+		"./combobox": {
+			"types": "./src/combobox.tsx",
+			"import": "./dist/combobox.js",
+			"default": "./dist/combobox.js"
+		},
+		"./description-list": {
+			"types": "./src/description-list.tsx",
+			"import": "./dist/description-list.js",
+			"default": "./dist/description-list.js"
+		},
+		"./dialog": {
+			"types": "./src/dialog.tsx",
+			"import": "./dist/dialog.js",
+			"default": "./dist/dialog.js"
+		},
+		"./divider": {
+			"types": "./src/divider.tsx",
+			"import": "./dist/divider.js",
+			"default": "./dist/divider.js"
+		},
+		"./dropdown": {
+			"types": "./src/dropdown.tsx",
+			"import": "./dist/dropdown.js",
+			"default": "./dist/dropdown.js"
+		},
+		"./fieldset": {
+			"types": "./src/fieldset.tsx",
+			"import": "./dist/fieldset.js",
+			"default": "./dist/fieldset.js"
+		},
+		"./heading": {
+			"types": "./src/heading.tsx",
+			"import": "./dist/heading.js",
+			"default": "./dist/heading.js"
+		},
+		"./input": {
+			"types": "./src/input.tsx",
+			"import": "./dist/input.js",
+			"default": "./dist/input.js"
+		},
+		"./link": {
+			"types": "./src/link.tsx",
+			"import": "./dist/link.js",
+			"default": "./dist/link.js"
+		},
+		"./listbox": {
+			"types": "./src/listbox.tsx",
+			"import": "./dist/listbox.js",
+			"default": "./dist/listbox.js"
+		},
+		"./navbar": {
+			"types": "./src/navbar.tsx",
+			"import": "./dist/navbar.js",
+			"default": "./dist/navbar.js"
+		},
+		"./pagination": {
+			"types": "./src/pagination.tsx",
+			"import": "./dist/pagination.js",
+			"default": "./dist/pagination.js"
+		},
+		"./radio": {
+			"types": "./src/radio.tsx",
+			"import": "./dist/radio.js",
+			"default": "./dist/radio.js"
+		},
+		"./select": {
+			"types": "./src/select.tsx",
+			"import": "./dist/select.js",
+			"default": "./dist/select.js"
+		},
+		"./sidebar": {
+			"types": "./src/sidebar.tsx",
+			"import": "./dist/sidebar.js",
+			"default": "./dist/sidebar.js"
+		},
+		"./sidebar-layout": {
+			"types": "./src/sidebar-layout.tsx",
+			"import": "./dist/sidebar-layout.js",
+			"default": "./dist/sidebar-layout.js"
+		},
+		"./stacked-layout": {
+			"types": "./src/stacked-layout.tsx",
+			"import": "./dist/stacked-layout.js",
+			"default": "./dist/stacked-layout.js"
+		},
+		"./switch": {
+			"types": "./src/switch.tsx",
+			"import": "./dist/switch.js",
+			"default": "./dist/switch.js"
+		},
+		"./table": {
+			"types": "./src/table.tsx",
+			"import": "./dist/table.js",
+			"default": "./dist/table.js"
+		},
+		"./text": {
+			"types": "./src/text.tsx",
+			"import": "./dist/text.js",
+			"default": "./dist/text.js"
+		},
+		"./textarea": {
+			"types": "./src/textarea.tsx",
+			"import": "./dist/textarea.js",
+			"default": "./dist/textarea.js"
 		}
 	},
 	"scripts": {
 		"build": "tsup",
 		"dev": "tsup --watch",
-		"lint": "biome check --config-path=../.. .",
-		"lint:fix": "biome check --config-path=../.. --write .",
 		"format": "biome format --config-path=../.. --write ."
 	},
 	"packageManager": "pnpm@10.29.3",
