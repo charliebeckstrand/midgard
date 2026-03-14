@@ -1,1 +1,1 @@
-export { RegisterPage as default } from 'heimdall/pages'
+export { RegisterPage as default } from 'heimdall/register-page'

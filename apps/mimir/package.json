@@ -14,11 +14,12 @@
 	},
 	"packageManager": "pnpm@10.29.3",
 	"dependencies": {
+		"@heroicons/react": "^2.2.0",
+		"catalyst": "workspace:*",
 		"heimdall": "workspace:*",
 		"next": "^16.1.0",
 		"react": "^19.1.0",
 		"react-dom": "^19.1.0",
-		"catalyst": "workspace:*",
 		"reactbits": "workspace:*"
 	},
 	"devDependencies": {
