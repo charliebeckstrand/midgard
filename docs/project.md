@@ -23,6 +23,7 @@ Midgard is a pnpm monorepo managed by Turbo. It contains Next.js applications ba
 ```
 apps/
   admin/          → Main web application (Next.js, port 3000)
+  chat/           → Chat application (Next.js, port 3002)
   docs/           → Documentation dashboard (Next.js, port 3001)
 packages/
   catalyst/       → Shared UI component library (Headless UI + Tailwind)
@@ -61,6 +62,29 @@ Primary user-facing Next.js 16 application running on port 3000.
 - `app/register/page.tsx` — Registration page (re-exports from `sindri/register-page`)
 - `proxy.ts` — Next.js proxy using `heimdall/proxy` (protects all routes)
 - `next.config.ts` — Uses `withAuth` from heimdall to set up API/auth rewrites
+
+**Depends on:** heimdall, sindri, catalyst, reactbits, @heroicons/react
+
+## apps/chat
+
+Chat application running on port 3002. Authenticated (same model as admin).
+
+**Key paths:**
+- `app/layout.tsx` — Root layout
+- `app/(chat)/` — Chat route group (main authenticated area)
+- `app/(chat)/page.tsx` — Chat home (empty state)
+- `app/(chat)/client.tsx` — Client wrapper with SidebarLayout, sidebar with "New chat" + chat list
+- `app/(chat)/[chatId]/page.tsx` — Individual chat page with message input/display
+- `app/(chat)/sidebar-footer.tsx` — User dropdown with sign-out
+- `app/login/page.tsx` — Login page (re-exports from `sindri/login-page`)
+- `app/register/page.tsx` — Registration page (re-exports from `sindri/register-page`)
+- `proxy.ts` — Next.js proxy using `heimdall/proxy` (protects all routes)
+- `next.config.ts` — Uses `withAuth` from heimdall
+
+**API integration:**
+- `GET /api/chat/history` — Fetches all chats for sidebar listing
+- `GET /api/chat/{chatId}` — Fetches a specific chat's messages
+- `POST /api/chat/{chatId}` — Sends a message (creates chat on first message, appends on subsequent)
 
 **Depends on:** heimdall, sindri, catalyst, reactbits, @heroicons/react
 
