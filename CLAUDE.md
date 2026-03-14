@@ -17,14 +17,33 @@ The `claude/` directory is a persistent knowledge base that grows across session
 5. **Cross-reference.** When an entry in one file relates to another, mention the other file.
 6. **Measure yourself.** If you re-discover something that should have been in the knowledge base, add it immediately and note the gap in `claude/lessons.md`.
 7. **Never push without updating.** The `claude/` directory is part of the deliverable, not an afterthought. Code changes without corresponding knowledge updates are incomplete work.
+8. **Nothing sensitive.** The `claude/` directory is committed and public. Never write secrets, API keys, tokens, passwords, internal URLs, PII, or anything you wouldn't want in a public repo. Reference environment variable *names* (e.g., `BIFROST_URL`), never their values. If context requires mentioning a credential, describe it generically (e.g., "the database password from 1Password") — never include the actual value.
 
 ## Session Start Ritual
 
 At the start of **every** session, before doing any work:
 
-1. Read **all** files in `claude/` — every one of them. They are your memory.
-2. If `claude/project.md` does not exist, explore the codebase and create it before doing anything else.
-3. Note which files are missing or outdated and plan to update them during or at the end of the session.
+1. If `claude/project.md` does not exist, explore the codebase and create it before doing anything else.
+2. **Tier 1 — Read in full** (core memory, always read):
+   - `claude/project.md` — project map and structure
+   - `claude/lessons.md` — mistakes to avoid
+   - `claude/preferences.md` — user's coding preferences
+   - `claude/decisions.md` — why things are the way they are
+   - `claude/glossary.md` — domain terms and naming conventions
+3. **Tier 2 — Scan headers, read relevant sections** (working memory):
+   - `claude/context.md` — non-obvious API contracts and type relationships
+   - `claude/patterns.md` — reusable code patterns
+   - `claude/errors.md` — known error solutions
+   - `claude/commands.md` — useful commands and workflows
+   - `claude/debt.md` — known tech debt and shortcuts
+   - `claude/reviews.md` — common review feedback to avoid
+4. **Tier 3 — Read on-demand** when working in that area (reference shelf):
+   - `claude/dependencies.md` — dependency quirks
+   - `claude/testing.md` — testing patterns and strategy
+   - `claude/apis.md` — API routes and contracts
+   - `claude/env.md` — environment variables reference
+   - `claude/debug.md` — debugging approaches
+5. Note which files are missing or outdated and plan to update them during the session.
 
 ## Code
 
@@ -51,6 +70,8 @@ Do not wait until the end of a session. Update `claude/` files **as you go**:
 - **Discovered a non-obvious API or type relationship?** Write it to `claude/context.md` now, not later.
 - **Made a design choice?** Write it to `claude/decisions.md` before moving on.
 - **Found a useful command?** Write it to `claude/commands.md` the moment you use it.
+- **Took a shortcut?** Write it to `claude/debt.md` so it doesn't get forgotten.
+- **Spent time debugging?** Write the approach to `claude/debug.md` before moving on.
 
 The rule: **if you learned it, write it down before your next action.** Context fades fast — capture it while it's fresh.
 
@@ -76,6 +97,12 @@ The rule: **if you learned it, write it down before your next action.** Context 
    - `claude/dependencies.md` — if a dependency behaved unexpectedly.
    - `claude/testing.md` — if you wrote or discovered a testing approach.
    - `claude/preferences.md` — if the user stated a preference.
+   - `claude/glossary.md` — if you introduced or encountered a domain term.
+   - `claude/apis.md` — if you added, changed, or discovered an API route.
+   - `claude/env.md` — if you used or discovered an environment variable.
+   - `claude/debt.md` — if you took a shortcut or found existing tech debt.
+   - `claude/reviews.md` — if you received or noticed recurring review feedback.
+   - `claude/debug.md` — if you debugged something non-trivial.
 3. Stage and commit the `claude/` changes as a **separate** commit (e.g., `update claude/ knowledge base`) to keep code commits clean.
 4. **Only then** run `git push`.
 
@@ -95,6 +122,12 @@ Before ending **every** session, do a final sweep. Ask yourself whether any of t
 8. `claude/commands.md` — Did I find a useful command or workflow?
 9. `claude/dependencies.md` — Did a dependency behave unexpectedly?
 10. `claude/testing.md` — Did I write or discover a testing approach?
+11. `claude/glossary.md` — Did I introduce or encounter a domain term?
+12. `claude/apis.md` — Did I add, change, or discover an API route?
+13. `claude/env.md` — Did I use or discover an environment variable?
+14. `claude/debt.md` — Did I take a shortcut or find tech debt?
+15. `claude/reviews.md` — Did I receive review feedback worth remembering?
+16. `claude/debug.md` — Did I debug something non-trivial?
 
 This ritual is a **safety net** — most updates should already be done. If you find yourself writing a lot here, you skipped the continuous learning and pre-push steps.
 
@@ -102,7 +135,7 @@ This ritual is a **safety net** — most updates should already be done. If you 
 
 ## Knowledge Files Reference
 
-All files live in `claude/`. All are append-only unless stated otherwise. Organize entries with dates. Keep entries concise and actionable — future sessions should be able to scan quickly.
+All files live in `claude/` and are **committed to the repository**. All are append-only unless stated otherwise. Organize entries with dates. Keep entries concise and actionable — future sessions should be able to scan quickly. Never include secrets, credentials, or sensitive values (see rule 8 above).
 
 If a file does not exist yet and you have something to record, create it using the formats below.
 
@@ -207,4 +240,74 @@ Format:
 ```
 ## Category (e.g., Component tests, API tests)
 How tests are structured, what tools are used, and patterns to follow.
+```
+
+### `claude/glossary.md` — Domain Glossary
+
+Domain-specific terms, naming conventions, and the reasoning behind them. This project uses Norse mythology naming — document what each name maps to and any new terms introduced.
+
+Format:
+```
+## Term
+Definition and how it's used in this project.
+```
+
+### `claude/apis.md` — API Routes & Contracts
+
+API endpoints, request/response shapes, authentication flows, status codes, and integration points. Document both internal routes and external service contracts.
+
+Format:
+```
+## METHOD /path
+- **Request:** params, body, headers
+- **Response:** shape, status codes
+- **Auth:** required | public
+- **Notes:** anything non-obvious
+```
+
+### `claude/env.md` — Environment Variables
+
+Environment variable names, what they control, their defaults, and where they're used. **Never record actual values — only names and descriptions.**
+
+Format:
+```
+## VARIABLE_NAME
+- **Used by:** package or file
+- **Purpose:** what it controls
+- **Default:** value if any
+```
+
+### `claude/debt.md` — Technical Debt
+
+Known shortcuts, workarounds, and things that should be improved. Each entry should explain why the shortcut was taken and what the ideal fix looks like.
+
+Format:
+```
+## YYYY-MM-DD — Short title
+**Where:** file path or area
+**What:** the shortcut or workaround
+**Why:** why it was acceptable at the time
+**Ideal fix:** what should be done when there's time
+```
+
+### `claude/reviews.md` — Review Feedback Patterns
+
+Recurring PR review feedback, common mistakes, and things reviewers consistently flag. Learn from past reviews so the same feedback doesn't come up twice.
+
+Format:
+```
+## Category (e.g., Error handling, Naming, Testing)
+- What reviewers flag and what they expect instead.
+```
+
+### `claude/debug.md` — Debugging Playbook
+
+Debugging strategies, tools, and approaches that worked for specific problem types in this project. When a bug takes significant effort to diagnose, record the approach.
+
+Format:
+```
+## Symptom or problem type
+**How to diagnose:** steps that led to the root cause
+**Tools used:** browser devtools, logging, etc.
+**Date:** YYYY-MM-DD
 ```
