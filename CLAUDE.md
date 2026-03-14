@@ -76,7 +76,7 @@ The rule: **if you learned it, write it down before your next action.** Context 
    - `claude/dependencies.md` — if a dependency behaved unexpectedly.
    - `claude/testing.md` — if you wrote or discovered a testing approach.
    - `claude/preferences.md` — if the user stated a preference.
-3. Stage and commit the `claude/` changes (can be in the same commit or a dedicated `update claude/ knowledge base` commit).
+3. Stage and commit the `claude/` changes as a **separate** commit (e.g., `update claude/ knowledge base`) to keep code commits clean.
 4. **Only then** run `git push`.
 
 Skipping this gate means knowledge is lost. Treat it as a required step, not a nice-to-have.
