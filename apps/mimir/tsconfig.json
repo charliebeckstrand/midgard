@@ -9,10 +9,9 @@
 		"noEmit": true,
 		"plugins": [{ "name": "next" }],
 		"paths": {
-			"@/*": ["./app/*"],
-			"@lib/*": ["./lib/*"]
+			"@/*": ["./app/*"]
 		}
 	},
-	"include": ["next-env.d.ts", "app", "lib", "proxy.ts", "**/*.ts", "**/*.tsx"],
+	"include": ["next-env.d.ts", "app", "proxy.ts", "**/*.ts", "**/*.tsx"],
 	"exclude": ["node_modules", ".next"]
 }
