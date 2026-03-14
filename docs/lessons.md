@@ -10,6 +10,6 @@ Tailwind CSS v4 in apps does not auto-detect classes from workspace packages. Ev
 
 The root `tsconfig.base.json` only includes `"lib": ["ES2022"]`. Packages that use browser APIs (IntersectionObserver, DOM types) must add `"lib": ["ES2022", "DOM", "DOM.Iterable"]` in their own tsconfig.
 
-## 2026-03-14 — Heimdall tsup has two build passes
+## 2026-03-14 — Heimdall tsup has two build passes (outdated — see Sindri)
 
-Heimdall uses two tsup config entries: one for server modules (session, config, proxy) with `clean: true`, and one for client modules (page components) with `'use client'` banner and `clean: false`. New client-side files must be added to the second entry. New server-side files go in the first.
+~~Heimdall uses two tsup config entries.~~ After the Sindri extraction, Heimdall has a single build pass for server modules only. **Sindri** now uses two tsup config entries: one for the form hook (use-form) with `clean: true`, and one for client components (login-page, register-page, password-input) with `'use client'` banner and `clean: false`. New client-side UI files go in Sindri's second entry.
