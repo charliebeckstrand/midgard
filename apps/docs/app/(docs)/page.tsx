@@ -1,5 +1,5 @@
+import { getSession } from 'heimdall'
 import Link from 'next/link'
-import { getSession } from '@/lib/auth'
 import { getAllDocs } from '@/lib/docs'
 
 export default async function DocsHome() {
