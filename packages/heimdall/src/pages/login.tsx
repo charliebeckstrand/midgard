@@ -1,8 +1,8 @@
 'use client'
 
+import { AuthLayout, Button, Field, Heading, Input, Label, Strong, Text, TextLink } from 'catalyst'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { type SubmitEvent, Suspense, useState } from 'react'
-import { Button, Card, Form, Input, Label, Link } from 'rune'
+import { Suspense, useState } from 'react'
 
 const errors = {
 	invalid_credentials: 'Invalid email or password.',
@@ -22,7 +22,7 @@ function LoginForm() {
 
 	const registered = searchParams.get('registered') === 'true'
 
-	async function handleSubmit(e: SubmitEvent) {
+	async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
 		e.preventDefault()
 
 		try {
@@ -49,68 +49,59 @@ function LoginForm() {
 	}
 
 	return (
-		<div className="min-w-xs space-y-4">
-			<h1 className="text-2xl font-semibold text-center">Sign in</h1>
+		<form onSubmit={handleSubmit} className="grid w-full max-w-sm grid-cols-1 gap-8">
+			<Heading>Sign in to your account</Heading>
 
 			{registered && (
-				<p className="text-sm text-green-500 text-center">
-					Account created successfully. Please sign in.
-				</p>
+				<p className="text-sm text-green-500">Account created successfully. Please sign in.</p>
 			)}
 
-			{error && <p className="text-sm text-red-500 text-center">{error}</p>}
+			{error && <p className="text-sm text-red-500 ">{error}</p>}
 
-			<Card>
-				<Form onSubmit={handleSubmit}>
-					<div className="flex flex-col gap-2">
-						<Label htmlFor="email">Email</Label>
+			<Field>
+				<Label>Email</Label>
+				<Input
+					type="email"
+					name="email"
+					required
+					autoComplete="email"
+					value={email}
+					onChange={(e) => setEmail(e.target.value)}
+				/>
+			</Field>
 
-						<Input
-							inputType="email"
-							name="email"
-							id="email"
-							placeholder="you@example.com"
-							required
-							autoComplete="email"
-							value={email}
-							onChange={(e) => setEmail(e.target.value)}
-						/>
-					</div>
+			<Field>
+				<Label>Password</Label>
+				<Input
+					type="password"
+					name="password"
+					required
+					autoComplete="current-password"
+					value={password}
+					onChange={(e) => setPassword(e.target.value)}
+				/>
+			</Field>
 
-					<div className="flex flex-col gap-2">
-						<Label htmlFor="password">Password</Label>
+			<Button type="submit" className="w-full" disabled={submitting}>
+				Sign in
+			</Button>
 
-						<Input
-							inputType="password"
-							name="password"
-							id="password"
-							placeholder="Password"
-							required
-							autoComplete="current-password"
-							value={password}
-							onChange={(e) => setPassword(e.target.value)}
-						/>
-					</div>
-
-					<Button type="default" disabled={submitting}>
-						Sign in
-					</Button>
-				</Form>
-			</Card>
-
-			<p className="text-sm text-center text-gray-500">
-				Don't have an account? <Link href="/register">Create one</Link>
-			</p>
-		</div>
+			<Text>
+				Don't have an account?{' '}
+				<TextLink href="/register">
+					<Strong>Create one</Strong>
+				</TextLink>
+			</Text>
+		</form>
 	)
 }
 
 export function LoginPage() {
 	return (
-		<Suspense>
-			<div className="flex flex-1 items-center justify-center">
+		<AuthLayout>
+			<Suspense>
 				<LoginForm />
-			</div>
-		</Suspense>
+			</Suspense>
+		</AuthLayout>
 	)
 }

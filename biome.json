@@ -25,7 +25,7 @@
 		}
 	},
 	"files": {
-		"includes": ["**/*.ts", "**/*.tsx", "!**/dist", "!**/.next"],
+		"includes": ["**/*.ts", "**/*.tsx", "!**/dist", "!**/.next", "!packages/catalyst"],
 		"ignoreUnknown": true
 	},
 	"vcs": {

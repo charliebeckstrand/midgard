@@ -1,7 +1,10 @@
 import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
 import type { ReactNode } from 'react'
 
 import './globals.css'
+
+const inter = Inter({ subsets: ['latin'], variable: '--font-sans' })
 
 export const metadata: Metadata = {
 	title: 'Mimir',
@@ -9,8 +12,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
 	return (
-		<html lang="en">
-			<body className="flex h-full bg-white antialiased">{children}</body>
+		<html lang="en" className={inter.variable}>
+			<body className="flex h-full bg-white antialiased dark:bg-zinc-900">{children}</body>
 		</html>
 	)
 }

@@ -1,7 +1,7 @@
 'use client'
 
+import { Button } from 'catalyst'
 import { useRouter } from 'next/navigation'
-import { Button } from 'rune'
 
 export function LogoutButton() {
 	const router = useRouter()

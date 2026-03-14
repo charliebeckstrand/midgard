@@ -1,7 +1,7 @@
 {
-	"name": "heimdall",
+	"name": "catalyst",
 	"version": "0.1.0",
-	"description": "Shared authentication module for Midgard apps",
+	"description": "Geist-inspired UI components for React",
 	"type": "module",
 	"main": "./dist/index.js",
 	"types": "./src/index.ts",
@@ -10,21 +10,6 @@
 			"types": "./src/index.ts",
 			"import": "./dist/index.js",
 			"default": "./dist/index.js"
-		},
-		"./config": {
-			"types": "./src/config.ts",
-			"import": "./dist/config.js",
-			"default": "./dist/config.js"
-		},
-		"./proxy": {
-			"types": "./src/proxy.ts",
-			"import": "./dist/proxy.js",
-			"default": "./dist/proxy.js"
-		},
-		"./pages": {
-			"types": "./src/pages.ts",
-			"import": "./dist/pages.js",
-			"default": "./dist/pages.js"
 		}
 	},
 	"scripts": {
@@ -36,20 +21,22 @@
 	},
 	"packageManager": "pnpm@10.29.3",
 	"dependencies": {
-		"catalyst": "workspace:*"
+		"@headlessui/react": "^2.0.0",
+		"class-variance-authority": "^0.7.1",
+		"clsx": "^2.0.0",
+		"motion": "^12.0.0"
 	},
 	"peerDependencies": {
-		"next": "^15.0.0 || ^16.0.0",
+		"next": ">=14.0.0",
 		"react": "^18.0.0 || ^19.0.0"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.4.6",
-		"@headlessui/react": "^2.0.0",
 		"@types/node": "^25.3.3",
 		"@types/react": "^19.1.6",
-		"next": "^16.1.0",
 		"react": "^19.1.0",
 		"tsup": "^8.5.1",
+		"tsx": "^4.21.0",
 		"typescript": "^5.9.3"
 	}
 }

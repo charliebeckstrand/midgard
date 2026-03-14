@@ -9,7 +9,7 @@ const shared = {
 	splitting: false,
 	jsx: 'automatic' as const,
 	jsxImportSource: 'react',
-	external: ['next', 'react', 'react-dom', 'rune'],
+	external: ['next', 'react', 'react-dom', 'catalyst'],
 }
 
 export default defineConfig([

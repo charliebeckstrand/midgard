@@ -1,6 +1,11 @@
+@import 'tailwindcss';
 @import './theme';
 
-@source '../../../packages/rune/src';
+@variant dark (@media (prefers-color-scheme: dark));
+
+@source './';
+@source '../../../packages/heimdall/src';
+@source '../../../packages/catalyst/src';
 
 :root {
     height: 100%;
