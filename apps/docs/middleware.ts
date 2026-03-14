@@ -4,6 +4,7 @@ const guestRoutes = ['/login']
 
 export async function middleware(request: NextRequest) {
 	const { pathname } = request.nextUrl
+
 	const isGuestRoute = guestRoutes.some((r) => pathname.startsWith(r))
 
 	if (!isGuestRoute) return NextResponse.next()
@@ -14,8 +15,10 @@ export async function middleware(request: NextRequest) {
 	})
 
 	let authenticated = false
+
 	if (sessionResponse.ok) {
 		const data = (await sessionResponse.json()) as { authenticated?: boolean }
+
 		authenticated = data.authenticated === true
 	}
 

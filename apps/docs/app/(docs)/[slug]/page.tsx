@@ -14,6 +14,7 @@ export async function generateStaticParams() {
 
 export default async function DocPage({ params }: DocPageProps) {
 	const { slug } = await params
+
 	const [doc, session] = await Promise.all([getDoc(slug), getSession()])
 
 	if (!doc) notFound()
