@@ -39,6 +39,7 @@ Primary user-facing Next.js 16 application running on port 3000.
 - `app/layout.tsx` — Root layout
 - `app/(dashboard)/` — Dashboard route group (main authenticated area)
 - `app/(dashboard)/page.tsx` — Dashboard home
+- `app/(dashboard)/users/page.tsx` — Users page
 - `app/(dashboard)/logout-button.tsx` — Logout action
 - `app/login/page.tsx` — Login page (re-exports from `heimdall/login-page`)
 - `app/register/page.tsx` — Registration page (re-exports from `heimdall/register-page`)
