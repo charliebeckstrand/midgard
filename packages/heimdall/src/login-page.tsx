@@ -1,32 +1,49 @@
 'use client'
 
-import { AuthLayout, Button, Field, Heading, Input, Label, Strong, Text, TextLink } from 'catalyst'
+import {
+	AuthLayout,
+	Button,
+	ErrorMessage,
+	Field,
+	Heading,
+	Input,
+	Label,
+	Strong,
+	Text,
+	TextLink,
+} from 'catalyst'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useState } from 'react'
 import { ShinyText } from 'reactbits/shiny-text'
 import { PasswordInput } from './password-input'
+import { email, required, useForm } from './use-form'
 
 function LoginForm() {
 	const router = useRouter()
 
 	const searchParams = useSearchParams()
 
-	const [error, setError] = useState('')
 	const [submitting, setSubmitting] = useState(false)
 
-	const [email, setEmail] = useState('')
-	const [password, setPassword] = useState('')
+	const [serverError, setServerError] = useState('')
 
 	const registered = searchParams.get('registered') === 'true'
 
-	async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
-		e.preventDefault()
+	const { register, errors, submit } = useForm({
+		email: { validators: [required(), email()] },
+		password: { validators: [required()] },
+	})
+
+	const handleSubmit = submit(async (values) => {
+		setSubmitting(true)
+
+		setServerError('')
 
 		try {
 			const res = await fetch('/auth/login', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ email, password }),
+				body: JSON.stringify({ email: values.email, password: values.password }),
 			})
 
 			if (res.ok) {
@@ -37,13 +54,13 @@ function LoginForm() {
 
 			const data = await res.json()
 
-			setError(data.message || 'Login failed. Please check your credentials and try again.')
+			setServerError(data.message || 'Login failed. Please check your credentials and try again.')
 		} catch {
-			setError('An unexpected error occurred. Please try again later.')
+			setServerError('An unexpected error occurred. Please try again later.')
 		} finally {
 			setSubmitting(false)
 		}
-	}
+	})
 
 	return (
 		<form onSubmit={handleSubmit} className="grid w-full max-w-sm grid-cols-1 gap-8">
@@ -58,29 +75,18 @@ function LoginForm() {
 				/>
 			)}
 
-			{error && <p className="text-sm text-red-500">{error}</p>}
+			{serverError && <p className="text-sm text-red-500">{serverError}</p>}
 
 			<Field>
 				<Label>Email</Label>
-				<Input
-					type="email"
-					name="email"
-					required
-					autoComplete="email"
-					value={email}
-					onChange={(e) => setEmail(e.target.value)}
-				/>
+				<Input type="email" name="email" autoComplete="email" {...register('email')} />
+				{errors.email && <ErrorMessage>{errors.email}</ErrorMessage>}
 			</Field>
 
 			<Field>
 				<Label>Password</Label>
-				<PasswordInput
-					name="password"
-					required
-					autoComplete="current-password"
-					value={password}
-					onChange={(e) => setPassword(e.target.value)}
-				/>
+				<PasswordInput name="password" autoComplete="current-password" {...register('password')} />
+				{errors.password && <ErrorMessage>{errors.password}</ErrorMessage>}
 			</Field>
 
 			<Button type="submit" className="w-full" disabled={submitting}>

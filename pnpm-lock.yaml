@@ -112,6 +112,9 @@ importers:
       catalyst:
         specifier: workspace:*
         version: link:../catalyst
+      clsx:
+        specifier: ^2.1.1
+        version: 2.1.1
       reactbits:
         specifier: workspace:*
         version: link:../reactbits

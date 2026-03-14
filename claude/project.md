@@ -67,7 +67,7 @@ Shared authentication module for all Midgard apps. Provides session management, 
 - `src/proxy.ts` — `proxy()`: protected routes redirect unauthenticated users to `/login`; guest routes (`/login`, `/register`) redirect authenticated users to `/`
 - `src/login-page.tsx` — Login form with password visibility toggle
 - `src/register-page.tsx` — Registration form with password visibility toggle
-- `src/password-input.tsx` — `PasswordInput` component with eye/eye-slash toggle (HeroIcons) and DecryptedText animation overlay
+- `src/password-input.tsx` — `PasswordInput` component with eye/eye-slash toggle (HeroIcons)
 
 **tsup config:** Two build passes — server modules (session, config, proxy) with `clean: true`, then client modules (login-page, register-page, password-input) with `'use client'` banner and `clean: false`.
 
@@ -87,7 +87,6 @@ Animation and visual effect components built on motion (framer-motion).
 
 **Components:**
 - `ShinyText` — Animated gradient text with shine sweep effect
-- `DecryptedText` — Text reveal animation that scrambles characters then resolves (supports sequential/non-sequential, multiple trigger modes: view/hover/click)
 
 **Depends on:** motion
 

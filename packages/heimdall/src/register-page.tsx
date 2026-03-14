@@ -1,37 +1,33 @@
 'use client'
 
-import { AuthLayout, Button, Field, Heading, Input, Label, Strong, Text, TextLink } from 'catalyst'
+import { AuthLayout, Button, ErrorMessage, Field, Heading, Input, Label, Strong, Text, TextLink } from 'catalyst'
 import { useRouter } from 'next/navigation'
 import { Suspense, useState } from 'react'
 import { PasswordInput } from './password-input'
+import { email, matches, minLength, required, useForm } from './use-form'
 
 function RegisterForm() {
 	const router = useRouter()
 
-	const [name, setName] = useState('')
-	const [email, setEmail] = useState('')
-	const [password, setPassword] = useState('')
-	const [confirmPassword, setConfirmPassword] = useState('')
-
-	const [error, setError] = useState('')
+	const [serverError, setServerError] = useState('')
 	const [submitting, setSubmitting] = useState(false)
 
-	async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-		e.preventDefault()
+	const { register, errors, submit } = useForm({
+		email: { validators: [required(), email()] },
+		name: { validators: [required()] },
+		password: { validators: [required(), minLength(8)] },
+		confirmPassword: { validators: [required(), matches('password', 'password')] },
+	})
 
-		if (password !== confirmPassword) {
-			setError('Passwords do not match')
-
-			setSubmitting(false)
-
-			return
-		}
+	const handleSubmit = submit(async (values) => {
+		setSubmitting(true)
+		setServerError('')
 
 		try {
 			const res = await fetch('/auth/register', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ email, password, name }),
+				body: JSON.stringify({ email: values.email, password: values.password, name: values.name }),
 			})
 
 			if (res.ok) {
@@ -42,58 +38,42 @@ function RegisterForm() {
 
 			const data = await res.json()
 
-			console.log('data', data)
-
-			setError(data.message || 'Registration failed. Please check your details and try again.')
+			setServerError(data.message || 'Registration failed. Please check your details and try again.')
 		} catch {
-			setError('Registration failed. Please try again later.')
+			setServerError('Registration failed. Please try again later.')
 		} finally {
 			setSubmitting(false)
 		}
-	}
+	})
 
 	return (
 		<form onSubmit={handleSubmit} className="grid w-full max-w-sm grid-cols-1 gap-8">
 			<Heading>Create your account</Heading>
 
-			{error && <p className="text-red-500">{error}</p>}
+			{serverError && <p className="text-red-500">{serverError}</p>}
 
 			<Field>
 				<Label>Email</Label>
-				<Input
-					type="email"
-					name="email"
-					required
-					autoComplete="email"
-					value={email}
-					onChange={(e) => setEmail(e.target.value)}
-				/>
+				<Input type="email" name="email" autoComplete="email" {...register('email')} />
+				{errors.email && <ErrorMessage>{errors.email}</ErrorMessage>}
 			</Field>
 
 			<Field>
 				<Label>Full name</Label>
-				<Input name="name" required value={name} onChange={(e) => setName(e.target.value)} />
+				<Input name="name" {...register('name')} />
+				{errors.name && <ErrorMessage>{errors.name}</ErrorMessage>}
 			</Field>
 
 			<Field>
 				<Label>Password</Label>
-				<PasswordInput
-					name="password"
-					required
-					autoComplete="new-password"
-					value={password}
-					onChange={(e) => setPassword(e.target.value)}
-				/>
+				<PasswordInput name="password" autoComplete="new-password" {...register('password')} />
+				{errors.password && <ErrorMessage>{errors.password}</ErrorMessage>}
 			</Field>
 
 			<Field>
 				<Label>Confirm password</Label>
-				<PasswordInput
-					name="confirmPassword"
-					required
-					value={confirmPassword}
-					onChange={(e) => setConfirmPassword(e.target.value)}
-				/>
+				<PasswordInput name="confirmPassword" {...register('confirmPassword')} />
+				{errors.confirmPassword && <ErrorMessage>{errors.confirmPassword}</ErrorMessage>}
 			</Field>
 
 			<Button type="submit" className="w-full" disabled={submitting}>
