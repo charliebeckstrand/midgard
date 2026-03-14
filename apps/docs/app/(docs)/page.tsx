@@ -1,12 +1,8 @@
-import { getSession } from 'heimdall'
 import Link from 'next/link'
 import { getAllDocs } from '@/lib/docs'
 
 export default async function DocsHome() {
-	const [session, allDocs] = await Promise.all([getSession(), getAllDocs()])
-	const { authenticated } = session
-
-	const docs = allDocs.filter((d) => !d.authRequired || authenticated)
+	const docs = await getAllDocs()
 
 	return (
 		<div className="mx-auto max-w-4xl">
@@ -19,7 +15,7 @@ export default async function DocsHome() {
 					<Link
 						key={doc.slug}
 						href={`/${doc.slug}`}
-						className="group rounded-lg border border-zinc-200 p-5 transition-colors hover:border-zinc-400 dark:border-zinc-700 dark:hover:border-zinc-500"
+						className="group rounded-lg border border-zinc-200 p-4 transition-colors hover:border-zinc-400 dark:border-zinc-700 dark:hover:border-zinc-500"
 					>
 						<h2 className="font-semibold text-zinc-900 dark:text-white">{doc.title}</h2>
 						{doc.description && (

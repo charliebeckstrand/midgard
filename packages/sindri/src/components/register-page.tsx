@@ -32,7 +32,6 @@ function RegisterForm() {
 
 	const handleSubmit = submit(async (values) => {
 		setSubmitting(true)
-		setServerError('')
 
 		try {
 			const res = await fetch('/auth/register', {

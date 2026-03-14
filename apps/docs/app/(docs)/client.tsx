@@ -1,9 +1,7 @@
 'use client'
 
-import { UsersIcon } from '@heroicons/react/20/solid'
 import {
 	Navbar,
-	NavbarSpacer,
 	Sidebar,
 	SidebarBody,
 	SidebarHeader,
@@ -16,39 +14,46 @@ import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import type { ReactNode } from 'react'
 import { ShinyText } from 'reactbits'
-import { SidebarUserFooter } from './sidebar-footer'
 
-type User = { email: string; name?: string }
+interface DocEntry {
+	slug: string
+	title: string
+}
 
-export function DashboardClient({ user, children }: { user?: User; children: ReactNode }) {
+interface ClientProps {
+	children: ReactNode
+	docs: DocEntry[]
+}
+
+export function Client({ children, docs }: ClientProps) {
 	const pathname = usePathname()
 
 	return (
 		<SidebarLayout
-			navbar={
-				<Navbar>
-					<NavbarSpacer />
-				</Navbar>
-			}
+			navbar={<Navbar />}
 			sidebar={
 				<Sidebar>
 					<SidebarHeader>
 						<SidebarItem href="/" current={pathname === '/'}>
-							<Image src="/gradient.png" alt="gradient" width={24} height={24} />
+							<Image src="/square.png" alt="square" width={24} height={24} />
 							<SidebarLabel>
-								<ShinyText text="Admin" className="font-black text-lg" delay={10} yoyo />
+								<ShinyText text="Docs" className="font-black text-lg" delay={10} yoyo />
 							</SidebarLabel>
 						</SidebarItem>
 					</SidebarHeader>
 					<SidebarBody>
 						<SidebarSection>
-							<SidebarItem href="/users" current={pathname.startsWith('/users')}>
-								<UsersIcon />
-								<SidebarLabel>Users</SidebarLabel>
-							</SidebarItem>
+							{docs.map((doc) => (
+								<SidebarItem
+									key={doc.slug}
+									href={`/${doc.slug}`}
+									current={pathname === `/${doc.slug}`}
+								>
+									<SidebarLabel>{doc.title}</SidebarLabel>
+								</SidebarItem>
+							))}
 						</SidebarSection>
 					</SidebarBody>
-					<SidebarUserFooter user={user} />
 				</Sidebar>
 			}
 		>

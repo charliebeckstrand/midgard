@@ -37,8 +37,6 @@ function LoginForm({ showRegisterLink }: { showRegisterLink: boolean }) {
 	const handleSubmit = submit(async (values) => {
 		setSubmitting(true)
 
-		setServerError('')
-
 		try {
 			const res = await fetch('/auth/login', {
 				method: 'POST',

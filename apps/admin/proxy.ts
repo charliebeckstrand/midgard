@@ -1,7 +1,10 @@
-import { proxy } from 'heimdall/proxy'
+import { proxy as heimdallProxy } from 'heimdall/proxy'
+import type { NextRequest } from 'next/server'
 
-export { proxy }
+export function proxy(request: NextRequest) {
+	return heimdallProxy(request, { protect: true })
+}
 
 export const config = {
-	matcher: ['/', '/login', '/register'],
+	matcher: ['/((?!_next/static|_next/image|favicon.ico|auth/).*)'],
 }

@@ -9,6 +9,7 @@ interface ProxyOptions {
 
 export async function proxy(request: NextRequest, options: ProxyOptions = {}) {
 	const { homepage = '/', protect = true } = options
+
 	const { pathname } = request.nextUrl
 
 	const sessionResponse = await fetch(new URL('/auth/session', request.nextUrl.origin), {

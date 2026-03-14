@@ -4,15 +4,48 @@ import * as Headless from '@headlessui/react'
 import clsx from 'clsx'
 import { LayoutGroup, motion } from 'motion/react'
 import type React from 'react'
-import { forwardRef, useId } from 'react'
+import { forwardRef, useContext, useId } from 'react'
 import { TouchTarget } from './button'
 import { Link } from './link'
+import { MobileSidebarContext } from './sidebar-layout'
+
+function CloseIcon() {
+	return (
+		<svg data-slot="icon" viewBox="0 0 20 20" aria-hidden="true">
+			<path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
+		</svg>
+	)
+}
 
 export function Sidebar({ className, ...props }: React.ComponentPropsWithoutRef<'nav'>) {
 	return <nav {...props} className={clsx(className, 'flex h-full min-h-0 flex-col')} />
 }
 
-export function SidebarHeader({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
+export function SidebarHeader({ className, children, ...props }: React.ComponentPropsWithoutRef<'div'>) {
+	const close = useContext(MobileSidebarContext)
+
+	if (close) {
+		return (
+			<div
+				{...props}
+				className={clsx(
+					className,
+					'flex flex-row items-center border-b border-zinc-950/5 p-4 dark:border-white/5',
+				)}
+			>
+				<div className="flex flex-1 flex-col [&>[data-slot=section]+[data-slot=section]]:mt-2.5">
+					{children}
+				</div>
+				<Headless.CloseButton
+					aria-label="Close navigation"
+					className="rounded-lg fill-current p-2.5 text-zinc-950 hover:bg-zinc-950/5 dark:text-white dark:hover:bg-white/5 *:data-[slot=icon]:size-5 *:data-[slot=icon]:fill-current"
+				>
+					<CloseIcon />
+				</Headless.CloseButton>
+			</div>
+		)
+	}
+
 	return (
 		<div
 			{...props}
@@ -20,7 +53,9 @@ export function SidebarHeader({ className, ...props }: React.ComponentPropsWitho
 				className,
 				'flex flex-col border-b border-zinc-950/5 p-4 dark:border-white/5 [&>[data-slot=section]+[data-slot=section]]:mt-2.5',
 			)}
-		/>
+		>
+			{children}
+		</div>
 	)
 }
 

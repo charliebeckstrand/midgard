@@ -6,7 +6,6 @@ interface DocFile {
 	title: string
 	content: string
 	description: string
-	authRequired: boolean
 }
 
 const DOCS_DIR = join(process.cwd(), '../../docs')
@@ -60,12 +59,10 @@ const PUBLISHED_DOCS: Record<string, { title: string; description: string }> = {
 
 function extractTitle(content: string, slug: string): string {
 	const match = content.match(/^#\s+(.+)$/m)
-	if (match) return match[1]
-	return PUBLISHED_DOCS[slug]?.title ?? slug
-}
 
-function hasAuthMarker(content: string): boolean {
-	return content.trimStart().startsWith('<!-- auth: required -->')
+	if (match) return match[1]
+
+	return PUBLISHED_DOCS[slug]?.title ?? slug
 }
 
 export function isPublished(slug: string): boolean {
@@ -74,6 +71,7 @@ export function isPublished(slug: string): boolean {
 
 export async function getDocSlugs(): Promise<string[]> {
 	const files = await readdir(DOCS_DIR)
+
 	return files
 		.filter((f) => f.endsWith('.md'))
 		.map((f) => f.replace(/\.md$/, ''))
@@ -90,7 +88,6 @@ export async function getDoc(slug: string): Promise<DocFile | null> {
 			title: extractTitle(raw, slug),
 			content: raw,
 			description: PUBLISHED_DOCS[slug]?.description ?? '',
-			authRequired: hasAuthMarker(raw),
 		}
 	} catch {
 		return null
@@ -99,6 +96,8 @@ export async function getDoc(slug: string): Promise<DocFile | null> {
 
 export async function getAllDocs(): Promise<DocFile[]> {
 	const slugs = await getDocSlugs()
+
 	const docs = await Promise.all(slugs.map(getDoc))
+
 	return docs.filter((d): d is DocFile => d !== null)
 }
