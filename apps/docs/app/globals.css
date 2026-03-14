@@ -1,0 +1,12 @@
+@import 'tailwindcss';
+@import './theme';
+@plugin '@tailwindcss/typography';
+
+@variant dark (@media (prefers-color-scheme: dark));
+
+@source './';
+@source '../../../packages/catalyst/src';
+
+:root {
+    height: 100%;
+}
