@@ -19,7 +19,7 @@ function RegisterForm() {
 		e.preventDefault()
 
 		if (password !== confirmPassword) {
-			setError('Passwords do not match.')
+			setError('Passwords do not match')
 
 			setSubmitting(false)
 
