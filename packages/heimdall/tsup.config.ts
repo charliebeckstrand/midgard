@@ -9,7 +9,7 @@ const shared = {
 	splitting: false,
 	jsx: 'automatic' as const,
 	jsxImportSource: 'react',
-	external: ['next', 'react', 'react-dom', 'catalyst'],
+	external: ['next', 'react', 'react-dom', 'catalyst', 'reactbits', '@heroicons/react'],
 }
 
 export default defineConfig([
@@ -25,7 +25,9 @@ export default defineConfig([
 	{
 		...shared,
 		entry: {
-			pages: 'src/pages.tsx',
+			'login-page': 'src/login-page.tsx',
+			'register-page': 'src/register-page.tsx',
+			'password-input': 'src/password-input.tsx',
 		},
 		clean: false,
 		banner: {

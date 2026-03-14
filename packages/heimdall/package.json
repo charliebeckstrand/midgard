@@ -20,10 +20,15 @@
 			"import": "./dist/proxy.js",
 			"default": "./dist/proxy.js"
 		},
-		"./pages": {
-			"types": "./src/pages.tsx",
-			"import": "./dist/pages.js",
-			"default": "./dist/pages.js"
+		"./login-page": {
+			"types": "./src/login-page.tsx",
+			"import": "./dist/login-page.js",
+			"default": "./dist/login-page.js"
+		},
+		"./register-page": {
+			"types": "./src/register-page.tsx",
+			"import": "./dist/register-page.js",
+			"default": "./dist/register-page.js"
 		}
 	},
 	"scripts": {
@@ -35,6 +40,7 @@
 	},
 	"packageManager": "pnpm@10.29.3",
 	"dependencies": {
+		"@heroicons/react": "^2.2.0",
 		"catalyst": "workspace:*",
 		"reactbits": "workspace:*"
 	},
