@@ -1,8 +1,8 @@
 # Project
 
-> Last updated: 2026-03-13
+> Last updated: 2026-03-14
 
-Midgard is a pnpm monorepo managed by Turbo. It contains a Next.js application backed by a shared auth module and a shared UI component library.
+Midgard is a pnpm monorepo managed by Turbo. It contains a Next.js application backed by shared auth, UI component, and animation-effect packages.
 
 ## Tech Stack
 
@@ -10,7 +10,9 @@ Midgard is a pnpm monorepo managed by Turbo. It contains a Next.js application b
 - **Monorepo orchestration**: Turbo
 - **Framework**: Next.js 16 (App Router, Turbopack)
 - **Language**: TypeScript 5.9 (strict, ES2022 target, bundler resolution)
-- **UI**: React 19, Tailwind CSS 4
+- **UI**: React 19, Tailwind CSS 4, Headless UI
+- **Animation**: motion (framer-motion) 12.x
+- **Icons**: @heroicons/react
 - **Component variants**: class-variance-authority (CVA)
 - **Linting/formatting**: Biome (tabs, single quotes, no semicolons, 100-char lines)
 - **Bundling (packages)**: tsup
@@ -22,8 +24,9 @@ Midgard is a pnpm monorepo managed by Turbo. It contains a Next.js application b
 apps/
   mimir/          → Main web application (Next.js)
 packages/
+  catalyst/       → Shared UI component library (Headless UI + Tailwind)
   heimdall/       → Shared authentication module
-  rune/           → Shared UI component library
+  reactbits/      → Animation/effect components (motion-based)
 ```
 
 Defined in `pnpm-workspace.yaml`. Turbo tasks configured in `turbo.json`.
@@ -37,47 +40,56 @@ Primary user-facing Next.js 16 application running on port 3000.
 - `app/(dashboard)/` — Dashboard route group (main authenticated area)
 - `app/(dashboard)/page.tsx` — Dashboard home
 - `app/(dashboard)/logout-button.tsx` — Logout action
-- `app/login/page.tsx` — Login page
-- `app/register/page.tsx` — Registration page
+- `app/login/page.tsx` — Login page (re-exports from `heimdall/login-page`)
+- `app/register/page.tsx` — Registration page (re-exports from `heimdall/register-page`)
 - `lib/auth.ts` — Re-exports `getSession` from heimdall
 - `proxy.ts` — Client-side fetch proxy config
 - `next.config.ts` — Uses `withAuth` from heimdall to set up API/auth rewrites
 
-**Depends on:** heimdall, rune
+**Depends on:** heimdall, catalyst, reactbits, @heroicons/react
 
 ## packages/heimdall
 
-Shared authentication module for all Midgard apps. Provides session management, route protection middleware, and Next.js config helpers.
+Shared authentication module for all Midgard apps. Provides session management, route protection middleware, Next.js config helpers, and auth page components.
 
 **Exports:**
 | Import path | File | Purpose |
 |---|---|---|
-| `heimdall` | `src/index.ts` | `getSession()` — fetch auth session from Bifrost |
+| `heimdall` | `src/session.ts` | `getSession()` — fetch auth session from Bifrost |
 | `heimdall/config` | `src/config.ts` | `withAuth()` — Next.js config wrapper (rewrites to Bifrost) |
 | `heimdall/proxy` | `src/proxy.ts` | `proxy()` — Next.js middleware for route protection |
-| `heimdall/pages` | `src/pages.ts` | Login and register page components |
+| `heimdall/login-page` | `src/login-page.tsx` | `LoginPage` component |
+| `heimdall/register-page` | `src/register-page.tsx` | `RegisterPage` component |
 
 **Key files:**
-- `src/index.ts` — `getSession()`: calls Bifrost backend using `BIFROST_URL` env var (default `http://localhost:4000`), forwards cookies via `next/headers`
+- `src/session.ts` — `getSession()`: calls Bifrost backend using `BIFROST_URL` env var (default `http://localhost:4000`), forwards cookies via `next/headers`
 - `src/config.ts` — `withAuth()`: adds URL rewrites for `/auth/:path*` and `/api/:path*` to Bifrost
 - `src/proxy.ts` — `proxy()`: protected routes redirect unauthenticated users to `/login`; guest routes (`/login`, `/register`) redirect authenticated users to `/`
-- `src/pages.tsx` — `LoginPage`, `RegisterPage`: auth form components
+- `src/login-page.tsx` — Login form with password visibility toggle
+- `src/register-page.tsx` — Registration form with password visibility toggle
+- `src/password-input.tsx` — `PasswordInput` component with eye/eye-slash toggle (HeroIcons) and DecryptedText animation overlay
 
-**Depends on:** rune (for form UI)
+**tsup config:** Two build passes — server modules (session, config, proxy) with `clean: true`, then client modules (login-page, register-page, password-input) with `'use client'` banner and `clean: false`.
 
-## packages/rune
+**Depends on:** catalyst, reactbits, @heroicons/react
 
-Geist-inspired UI component library. Each component exports a component, props type, and CVA variants function.
+## packages/catalyst
 
-**Components:** button, card, form, input, label, link, sidebar
+Headless UI + Tailwind CSS component library with 28+ components. Uses `data-slot` attributes for styling hooks.
 
-**Shared types** (`src/types/index.ts`):
-- `Size`: `'tiny' | 'small' | 'medium' | 'large'`
-- `Type`: `'default' | 'secondary' | 'warning' | 'error' | 'tertiary'`
+**Components:** alert, auth-layout, avatar, badge, button, checkbox, combobox, description-list, dialog, divider, dropdown, fieldset (Field, Label, Description, ErrorMessage, FieldGroup, Legend), heading, input (Input, InputGroup), link, listbox, navbar, pagination, radio, select, sidebar, sidebar-layout, stacked-layout, switch, table, text (Text, TextLink, Strong, Code)
 
-**Tests:** `__tests__/` directory with tests for button, card, form
+**Depends on:** @headlessui/react, clsx, class-variance-authority, motion
 
-**Depends on:** class-variance-authority
+## packages/reactbits
+
+Animation and visual effect components built on motion (framer-motion).
+
+**Components:**
+- `ShinyText` — Animated gradient text with shine sweep effect
+- `DecryptedText` — Text reveal animation that scrambles characters then resolves (supports sequential/non-sequential, multiple trigger modes: view/hover/click)
+
+**Depends on:** motion
 
 ## External Services
 
@@ -88,9 +100,8 @@ Geist-inspired UI component library. Each component exports a component, props t
 | File | Purpose |
 |---|---|
 | `turbo.json` | Task graph: build, dev, lint, check-types |
-| `tsconfig.base.json` | Shared TS config (strict, ES2022, bundler resolution) |
+| `tsconfig.base.json` | Shared TS config (strict, ES2022, bundler resolution, lib: ES2022 only — packages needing DOM must add it locally) |
 | `biome.json` | Formatter + linter rules for all packages |
-| `tsup.config.ts` | Bundle config for library packages |
 | `pnpm-workspace.yaml` | Workspace package locations |
 
 ## Common Commands
