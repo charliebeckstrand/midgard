@@ -25,7 +25,7 @@ export default defineConfig([
 	{
 		...shared,
 		entry: {
-			pages: 'src/pages.ts',
+			pages: 'src/pages.tsx',
 		},
 		clean: false,
 		banner: {

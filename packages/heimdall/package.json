@@ -22,7 +22,7 @@
 			"default": "./dist/proxy.js"
 		},
 		"./pages": {
-			"types": "./src/pages.ts",
+			"types": "./src/pages.tsx",
 			"import": "./dist/pages.js",
 			"default": "./dist/pages.js"
 		}
