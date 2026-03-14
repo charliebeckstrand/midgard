@@ -5,6 +5,7 @@
 - Simplicity above all. The best solution is the simplest one that fully solves the problem. Speculative abstractions age poorly — earn complexity through proven need.
 - Hold yourself to a staff engineer standard. Only propose changes you would confidently ship to production. Challenge your own work before presenting it.
 - If a solution feels wrong, iterate until it doesn't. Demand excellence.
+- **No shortcuts.** Do the work properly. A hacky fix that "works for now" becomes permanent tech debt. If a proper solution is complex, that's fine — break it into steps and do each one right. If you genuinely cannot avoid a shortcut, document it in `claude/debt.md` immediately and explain what the proper fix looks like. Shortcuts should be rare exceptions, not defaults.
 
 ## Self-Improvement Rules
 
@@ -61,6 +62,14 @@ At the start of **every** session, before doing any work:
 ## Workflow
 
 For non-trivial work (three or more steps), enter planning mode before writing code. Delegate research to subagents — one focused task per agent — and keep the main context window clean. Summarize at milestones, not line by line.
+
+### Research Before Committing to an Approach
+
+When a task is complex, unfamiliar, or could take significant effort to resolve:
+
+1. **Stop and research first.** Do not guess at a solution. Spawn subagents to investigate in parallel — one per area of concern (e.g., one to search for prior art in the codebase, one to check dependency docs, one to explore the failing behavior).
+2. **Synthesize findings.** Once research is complete, evaluate the options. If the path forward is clear, proceed. If there are meaningful trade-offs or multiple viable approaches, present them to the user and ask which direction to take.
+3. **Never brute-force.** If a first attempt fails, do not retry the same approach repeatedly. Step back, research why it failed, and choose a different path. If stuck after two attempts, ask the user for guidance rather than spiraling.
 
 ## Continuous Learning (During Work)
 
