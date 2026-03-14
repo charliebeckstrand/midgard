@@ -1,10 +1,21 @@
 'use client'
 
-import { AuthLayout, Button, ErrorMessage, Field, Heading, Input, Label, Strong, Text, TextLink } from 'catalyst'
+import {
+	AuthLayout,
+	Button,
+	ErrorMessage,
+	Field,
+	Heading,
+	Input,
+	Label,
+	Strong,
+	Text,
+	TextLink,
+} from 'catalyst'
 import { useRouter } from 'next/navigation'
 import { Suspense, useState } from 'react'
+import { email, matches, minLength, required, useForm } from '../hooks/use-form'
 import { PasswordInput } from './password-input'
-import { email, matches, minLength, required, useForm } from './use-form'
 
 function RegisterForm() {
 	const router = useRouter()
@@ -38,7 +49,9 @@ function RegisterForm() {
 
 			const data = await res.json()
 
-			setServerError(data.message || 'Registration failed. Please check your details and try again.')
+			setServerError(
+				data.message || 'Registration failed. Please check your details and try again.',
+			)
 		} catch {
 			setServerError('Registration failed. Please try again later.')
 		} finally {

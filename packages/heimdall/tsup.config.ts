@@ -25,9 +25,9 @@ export default defineConfig([
 	{
 		...shared,
 		entry: {
-			'login-page': 'src/login-page.tsx',
-			'register-page': 'src/register-page.tsx',
-			'password-input': 'src/password-input.tsx',
+			'login-page': 'src/components/login-page.tsx',
+			'register-page': 'src/components/register-page.tsx',
+			'password-input': 'src/components/password-input.tsx',
 		},
 		clean: false,
 		banner: {
