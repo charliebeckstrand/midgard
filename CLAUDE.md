@@ -3,7 +3,7 @@
 ## Principles
 
 - Simplicity above all. Earn complexity through proven need.
-- Hold yourself to the highest standard. Every change should be as close to perfect as you can make it.
+- Hold yourself to the highest standard. Write code that is correct, clean, and complete — then stop. Do not over-iterate.
 - If a solution feels wrong, iterate until it doesn't.
 - Do the work properly. Shortcuts become permanent debt. If a proper solution is complex, break it into steps and do each one right. On the rare occasion a shortcut is unavoidable, document it in `claude/debt.md` immediately with what the proper fix looks like.
 
