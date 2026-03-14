@@ -53,4 +53,21 @@ Non-trivial design choices with context, alternatives, and trade-offs.
 - Heimdall has zero UI dependencies (no catalyst, reactbits, @heroicons/react).
 - Sindri can grow to hold more shared UI resources (e.g., profile pages, settings forms).
 - Apps that need auth pages must depend on both heimdall (for session/proxy) and sindri (for UI).
-- Tailwind `@source` directives updated: mimir points to sindri instead of heimdall; docs adds sindri.
+- Tailwind `@source` directives updated: admin points to sindri instead of heimdall; docs adds sindri.
+
+## 2026-03-14 — Rename apps/mimir to apps/admin
+
+**Status:** Accepted
+
+**Context:** The app name "Mimir" (Norse mythology) was not descriptive of its purpose. The app is the primary admin dashboard.
+
+**Decision:** Renamed `apps/mimir` to `apps/admin`. Updated package name, metadata title, and all documentation references.
+
+**Alternatives:**
+- Keep Norse naming: consistent with other packages but unclear to new developers.
+- Use "dashboard": too generic, "admin" better describes the app's role.
+
+**Consequences:**
+- The app directory, package name, and page title are now `admin`/`Admin`.
+- Norse naming is preserved for infrastructure packages (heimdall, sindri, bifrost) where the metaphors are more descriptive.
+- Existing Turbo cache is invalidated (package name changed).
