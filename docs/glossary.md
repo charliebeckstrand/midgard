@@ -5,8 +5,8 @@ Domain-specific terms and naming conventions. This project uses Norse mythology 
 ## Midgard
 The human realm in Norse mythology. Name of the monorepo.
 
-## Mimir
-The wise being who guards the well of knowledge. Name of the main web application (`apps/mimir`).
+## Admin
+The main web application (`apps/admin`). Previously named Mimir (the wise being who guards the well of knowledge in Norse mythology).
 
 ## Heimdall
 The watchman of the gods who guards the Bifrost bridge. Name of the auth module (`packages/heimdall`) — handles session management, route protection, and API proxying.

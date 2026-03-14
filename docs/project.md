@@ -22,7 +22,7 @@ Midgard is a pnpm monorepo managed by Turbo. It contains Next.js applications ba
 
 ```
 apps/
-  mimir/          → Main web application (Next.js, port 3000)
+  admin/          → Main web application (Next.js, port 3000)
   docs/           → Documentation dashboard (Next.js, port 3001)
 packages/
   catalyst/       → Shared UI component library (Headless UI + Tailwind)
@@ -34,7 +34,7 @@ docs/             → Project documentation and agent knowledge base
 
 Defined in `pnpm-workspace.yaml`. Turbo tasks configured in `turbo.json`.
 
-## apps/mimir
+## apps/admin
 
 Primary user-facing Next.js 16 application running on port 3000.
 
