@@ -1,7 +1,7 @@
 import { defineConfig } from 'tsup'
 
 export default defineConfig({
-	entry: { 'shiny-text': 'src/shiny-text.tsx' },
+	entry: ['src/*.tsx'],
 	format: ['esm'],
 	target: 'node22',
 	outDir: 'dist',
