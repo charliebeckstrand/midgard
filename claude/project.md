@@ -57,11 +57,11 @@ Shared authentication module for all Midgard apps. Provides session management, 
 | `heimdall/proxy` | `src/proxy.ts` | `proxy()` — Next.js middleware for route protection |
 | `heimdall/pages` | `src/pages.ts` | Login and register page components |
 
-**Key internals:**
-- `src/lib/session.ts` — Calls Bifrost backend using `BIFROST_URL` env var (default `http://localhost:4000`), forwards cookies via `next/headers`
-- `src/lib/config.ts` — Adds URL rewrites for `/auth/:path*` and `/api/:path*` to Bifrost
-- `src/lib/middleware.ts` — Protected routes redirect unauthenticated users to `/login`; guest routes (`/login`, `/register`) redirect authenticated users to `/`
-- `src/pages/login.tsx`, `src/pages/register.tsx` — Auth form components
+**Key files:**
+- `src/index.ts` — `getSession()`: calls Bifrost backend using `BIFROST_URL` env var (default `http://localhost:4000`), forwards cookies via `next/headers`
+- `src/config.ts` — `withAuth()`: adds URL rewrites for `/auth/:path*` and `/api/:path*` to Bifrost
+- `src/proxy.ts` — `proxy()`: protected routes redirect unauthenticated users to `/login`; guest routes (`/login`, `/register`) redirect authenticated users to `/`
+- `src/pages.tsx` — `LoginPage`, `RegisterPage`: auth form components
 
 **Depends on:** rune (for form UI)
 
