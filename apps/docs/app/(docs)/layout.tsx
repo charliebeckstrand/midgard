@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { getAllDocs, groupDocs } from '@/lib/docs'
+import { getAllDocs, groupDocs } from '@/docs'
 import { Client } from './client'
 
 export default async function DocsLayout({ children }: { children: ReactNode }) {
