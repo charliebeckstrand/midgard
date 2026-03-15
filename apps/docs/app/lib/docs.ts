@@ -57,6 +57,10 @@ const PUBLISHED_DOCS: Record<string, { title: string; description: string }> = {
 	},
 }
 
+function isPublished(slug: string): boolean {
+	return slug in PUBLISHED_DOCS
+}
+
 function extractTitle(content: string, slug: string): string {
 	const match = content.match(/^#\s+(.+)$/m)
 
@@ -65,39 +69,29 @@ function extractTitle(content: string, slug: string): string {
 	return PUBLISHED_DOCS[slug]?.title ?? slug
 }
 
-export function isPublished(slug: string): boolean {
-	return slug in PUBLISHED_DOCS
-}
-
-export async function getDocSlugs(): Promise<string[]> {
+export async function getAllDocs(): Promise<DocFile[]> {
 	const files = await readdir(DOCS_DIR)
 
-	return files
+	const slugs = files
 		.filter((f) => f.endsWith('.md'))
 		.map((f) => f.replace(/\.md$/, ''))
 		.filter(isPublished)
-}
 
-export async function getDoc(slug: string): Promise<DocFile | null> {
-	if (!isPublished(slug)) return null
-
-	try {
-		const raw = await readFile(join(DOCS_DIR, `${slug}.md`), 'utf-8')
-		return {
-			slug,
-			title: extractTitle(raw, slug),
-			content: raw,
-			description: PUBLISHED_DOCS[slug]?.description ?? '',
-		}
-	} catch {
-		return null
-	}
-}
-
-export async function getAllDocs(): Promise<DocFile[]> {
-	const slugs = await getDocSlugs()
-
-	const docs = await Promise.all(slugs.map(getDoc))
+	const docs = await Promise.all(
+		slugs.map(async (slug) => {
+			try {
+				const raw = await readFile(join(DOCS_DIR, `${slug}.md`), 'utf-8')
+				return {
+					slug,
+					title: extractTitle(raw, slug),
+					content: raw,
+					description: PUBLISHED_DOCS[slug]?.description ?? '',
+				}
+			} catch {
+				return null
+			}
+		}),
+	)
 
 	return docs.filter((d): d is DocFile => d !== null)
 }
