@@ -5,7 +5,7 @@ export interface Chat {
 
 export interface ChatMessage {
 	role: 'user' | 'agent'
-	message: string
+	content: string
 }
 
 export interface ClientChatMessage extends ChatMessage {

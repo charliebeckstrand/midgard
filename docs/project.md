@@ -85,11 +85,15 @@ Chat application running on port 3002. Authenticated (same model as admin).
 - `next.config.ts` — Uses `withAuth` from heimdall
 
 **API integration:**
-- `GET /api/chat` — Fetches all chats for sidebar listing
-- `GET /api/chat/{chatId}` — Fetches a specific chat's messages
-- `POST /api/chat/{chatId}` — Sends a message (creates chat on first message, appends on subsequent)
+- `GET /api/chat` — Fetches all chats for sidebar listing (Bifrost)
+- `GET /api/chat/{chatId}` — Fetches a specific chat's messages (Bifrost)
+- `POST /api/chat/{chatId}` — Saves a message to the chat (Bifrost)
+- `POST /api/chat/agent` — AG-UI SSE event stream for agent responses (Next.js API route, simulated)
 
-**Depends on:** heimdall, sindri, catalyst, reactbits, react-textarea-autosize, @heroicons/react
+**Key paths (continued):**
+- `app/api/chat/agent/route.ts` — Agent response API route (AG-UI SSE stream, simulated)
+
+**Depends on:** heimdall, sindri, catalyst, reactbits, react-textarea-autosize, @heroicons/react, @ag-ui/core, @ag-ui/encoder
 
 ## apps/docs
 
