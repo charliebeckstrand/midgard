@@ -1,8 +1,3 @@
-export interface User {
-	email: string
-	name?: string
-}
-
 export interface Chat {
 	id: string
 	title: string

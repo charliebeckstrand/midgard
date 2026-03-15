@@ -13,14 +13,9 @@ import {
 	Label,
 } from 'catalyst'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from 'catalyst/table'
+import type { User } from 'heimdall/user'
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
-
-interface User {
-	id: string
-	email: string
-	created_at: string
-	updated_at: string
-}
 
 interface UsersClientProps {
 	users: User[]
@@ -113,7 +108,11 @@ export function UsersClient({ users }: UsersClientProps) {
 				<TableBody>
 					{users.map((user) => (
 						<TableRow key={user.id}>
-							<TableCell>{user.id}</TableCell>
+							<TableCell>
+								<Link href={`/users/${user.id}`} className="text-blue-500 hover:underline">
+									{user.id}
+								</Link>
+							</TableCell>
 							<TableCell>{user.email}</TableCell>
 							<TableCell>
 								{new Date(user.created_at).toLocaleString(undefined, {
