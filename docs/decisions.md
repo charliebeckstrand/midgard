@@ -194,3 +194,15 @@ Non-trivial design choices with context, alternatives, and trade-offs.
 - Three sequential fetches per user message instead of two (save user → stream agent → save agent).
 - AG-UI protocol compliance means any AG-UI-compatible agent can plug into this endpoint.
 - The `ChatMessage.message` field was renamed to `ChatMessage.content` to align with AG-UI conventions.
+
+## 2026-03-15 — Programmatic smooth scrolling for docs sidebar navigation
+
+**Status:** Accepted
+
+**Context:** The docs app sidebar used `href="#slug"` anchor links for navigation. This had two problems: (1) clicking an already-active sidebar item did nothing because browsers ignore same-hash navigation, and (2) scrolling was instantaneous with no smooth transition. Additionally, `use-active-slug` was listening to `window.scroll` instead of the actual scroll container (the `overflow-y-auto` div inside SidebarLayout), which was incorrect on desktop.
+
+**Decision:** Replace passive hash navigation with programmatic `scrollIntoView({ behavior: 'smooth' })` via `onClick` handlers. Keep `href="#slug"` for accessibility/shareability. Rewrite `useActiveSlug` to find and listen to the correct scroll container by walking up the DOM to the nearest `overflow-y: auto|scroll` ancestor. Simplify the hook API from `(guides, reference)` to `(slugs)`.
+
+**Alternatives:** CSS `scroll-behavior: smooth` on the container (wouldn't fix the already-active click issue). IntersectionObserver (more complex for this use case with multiple entries).
+
+**Consequences:** Sidebar clicks always smooth-scroll to the target section regardless of active state. Scroll detection works correctly on both mobile and desktop layouts. URL hash stays updated for shareability.
