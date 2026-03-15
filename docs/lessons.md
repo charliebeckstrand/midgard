@@ -18,6 +18,14 @@ The root `tsconfig.base.json` only includes `"lib": ["ES2022"]`. Packages that u
 
 Next.js 16 renamed `middleware.ts` to `proxy.ts` and the exported function from `middleware` to `proxy`. The file must be named `proxy.ts` at the app root, and it must export a function named `proxy` (not `middleware`). The old `middleware.ts` convention still works for edge runtime but is deprecated. See: https://nextjs.org/docs/messages/middleware-to-proxy
 
+## 2026-03-15 — motion.div onDrag type conflicts with React's onDrag
+
+When spreading `React.ComponentPropsWithoutRef<'div'>` onto a `motion.div`, the `onDrag` types conflict — React's `DragEventHandler` is incompatible with motion's `(event: PointerEvent, info: PanInfo) => void`. Fix: don't spread arbitrary div props onto motion elements, or explicitly omit `onDrag` from the type.
+
+## 2026-03-15 — Scroll-after-setState requires useEffect, not synchronous call
+
+Calling `scrollToBottom()` immediately after `setMessages(newMessages)` doesn't work because React hasn't committed the update to the DOM yet. The new message element doesn't exist when scroll fires. Fix: use `useEffect` watching `messages.length` so scroll happens after React commits the DOM update.
+
 ## 2026-03-14 — tsconfig baseUrl and paths are relative to the file that defines them
 
 When creating a shared `tsconfig.nextjs.json` at the repo root, do NOT put `baseUrl` or `paths` in it. These resolve relative to the file that defines them, so `"baseUrl": "."` in a root tsconfig means the repo root — not the app directory. Each app must define its own `baseUrl`, `paths`, and `include` in its local `tsconfig.json`.
