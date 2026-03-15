@@ -164,7 +164,14 @@ Tailwind CSS component library with 28+ components. Uses `data-slot` attributes 
 
 ## packages/hlidskjalf
 
-CLI tool for managing and monitoring all workspace dev processes. Built with Ink (React for terminal) and React 18. Runs `pnpm --filter <name> run dev` for each workspace, displays a dashboard with process status and logs.
+CLI tool for managing and monitoring all workspace dev processes. Built with Ink (React for terminal) and React 18. Runs `pnpm --filter <name> run dev` for each workspace, displays a dashboard with process status and logs. Designed to be published to npm and used across multiple Turborepos.
+
+**CLI flags:**
+- `--title=<name>` — Custom title in the dashboard header (default: `hlidskjalf`)
+- `--emoji=<emoji>` — Custom emoji shown when all processes are ready (default: mountain emoji)
+- `--filter=<name>` — Only run specific workspaces (repeatable)
+- `--exclude=<name>` — Exclude specific workspaces from discovery (repeatable)
+- `--order=alphabetical|run` — Sort order for the process list
 
 **Key files:**
 - `src/index.tsx` — CLI entry point (argument parsing, Ink renderer)
