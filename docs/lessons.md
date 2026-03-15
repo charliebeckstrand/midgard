@@ -18,6 +18,10 @@ The root `tsconfig.base.json` only includes `"lib": ["ES2022"]`. Packages that u
 
 Next.js 16 renamed `middleware.ts` to `proxy.ts` and the exported function from `middleware` to `proxy`. The file must be named `proxy.ts` at the app root, and it must export a function named `proxy` (not `middleware`). The old `middleware.ts` convention still works for edge runtime but is deprecated. See: https://nextjs.org/docs/messages/middleware-to-proxy
 
+## 2026-03-15 — Rendering the same React element twice with conditional mounting causes useId hydration mismatches
+
+`SidebarLayout` renders `{sidebar}` twice — once for desktop (always visible) and once for mobile (inside `AnimatePresence` with `{open && ...}`). During SSR, both instances render and React assigns `useId()` values sequentially. On the client, the mobile copy is initially unmounted (`open` is `false`), so `useId()` produces different IDs, causing a hydration mismatch. Fix: always mount the mobile sidebar panel in the DOM and use `motion.animate` to show/hide it instead of conditional rendering. Only the backdrop should use `AnimatePresence` for mount/unmount.
+
 ## 2026-03-15 — motion.div onDrag type conflicts with React's onDrag
 
 When spreading `React.ComponentPropsWithoutRef<'div'>` onto a `motion.div`, the `onDrag` types conflict — React's `DragEventHandler` is incompatible with motion's `(event: PointerEvent, info: PanInfo) => void`. Fix: don't spread arbitrary div props onto motion elements, or explicitly omit `onDrag` from the type.
