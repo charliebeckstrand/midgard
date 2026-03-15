@@ -36,14 +36,31 @@ export function useChatMessages(
 			{ id: pendingId, role: 'agent', message: '', pending: true },
 		])
 
-		const response = await fetch(`/api/chat/${chatId}`, {
+		const saveUserResponse = await fetch(`/api/chat/${chatId}`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ message: content, role: 'user' }),
 		}).catch(() => null)
 
-		if (response?.ok) {
-			const data = await response.json()
+		if (!saveUserResponse?.ok) {
+			setMessages((prev) => prev.filter((m) => m.id !== pendingId))
+			setSending(false)
+			return
+		}
+
+		const allMessages = [...messages, userMessage].map(({ role, message }) => ({
+			role,
+			message,
+		}))
+
+		const agentResponse = await fetch('/api/chat/agent', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ messages: allMessages }),
+		}).catch(() => null)
+
+		if (agentResponse?.ok) {
+			const data = await agentResponse.json()
 
 			if (data.message) {
 				setMessages((prev) =>
