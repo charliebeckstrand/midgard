@@ -38,6 +38,14 @@ When spreading `React.ComponentPropsWithoutRef<'div'>` onto a `motion.div`, the 
 
 Calling `scrollToBottom()` immediately after `setMessages(newMessages)` doesn't work because React hasn't committed the update to the DOM yet. The new message element doesn't exist when scroll fires. Fix: use `useEffect` watching `messages.length` so scroll happens after React commits the DOM update.
 
+## 2026-03-15 — Unbatched EventEmitter emissions cause render flooding in Ink apps
+
+Hlidskjalf's `ProcessRunner` emitted a `change` event for every single log line from every child process. With 8+ processes logging simultaneously, this caused hundreds of React state updates per second in the Ink terminal UI, each triggering a full re-sort and re-render of the dashboard. Fix: batch emissions with `queueMicrotask()` — multiple synchronous log lines within a single I/O callback coalesce into one `change` event.
+
+## 2026-03-15 — tsup DTS generation in watch mode is a memory hog
+
+tsup's `dts: true` spawns a TypeScript worker thread for declaration generation. With 30+ entry points (like catalyst), this worker needs to type-check the entire project on every rebuild, easily hitting Node.js heap limits. In dev/watch mode, use `--no-dts` since consumers use source TypeScript imports anyway (via `"types": "./src/index.ts"` in package.json exports).
+
 ## 2026-03-14 — tsconfig baseUrl and paths are relative to the file that defines them
 
 When creating a shared `tsconfig.nextjs.json` at the repo root, do NOT put `baseUrl` or `paths` in it. These resolve relative to the file that defines them, so `"baseUrl": "."` in a root tsconfig means the repo root — not the app directory. Each app must define its own `baseUrl`, `paths`, and `include` in its local `tsconfig.json`.
