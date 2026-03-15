@@ -1,6 +1,6 @@
 # Project
 
-> Last updated: 2026-03-14
+> Last updated: 2026-03-15
 
 Midgard is a pnpm monorepo managed by Turbo. It contains Next.js applications backed by shared auth, UI component, and animation-effect packages.
 
@@ -28,6 +28,7 @@ apps/
 packages/
   catalyst/       → Shared UI component library (Headless UI + Tailwind)
   heimdall/       → Shared authentication module (session, config, proxy)
+  hlidskjalf/     → CLI dev tool (Ink + React terminal UI, manages workspace processes)
   sindri/         → Shared UI resources (auth pages, form hooks, theme, input components)
   reactbits/      → Animation/effect components (motion-based)
 docs/             → Project documentation and agent knowledge base
@@ -84,11 +85,15 @@ Chat application running on port 3002. Authenticated (same model as admin).
 - `next.config.ts` — Uses `withAuth` from heimdall
 
 **API integration:**
-- `GET /api/chat` — Fetches all chats for sidebar listing
-- `GET /api/chat/{chatId}` — Fetches a specific chat's messages
-- `POST /api/chat/{chatId}` — Sends a message (creates chat on first message, appends on subsequent)
+- `GET /api/chat` — Fetches all chats for sidebar listing (Bifrost)
+- `GET /api/chat/{chatId}` — Fetches a specific chat's messages (Bifrost)
+- `POST /api/chat/{chatId}` — Saves a message to the chat (Bifrost)
+- `POST /api/chat/agent` — AG-UI SSE event stream for agent responses (Next.js API route, simulated)
 
-**Depends on:** heimdall, sindri, catalyst, reactbits, react-textarea-autosize, @heroicons/react
+**Key paths (continued):**
+- `app/api/chat/agent/route.ts` — Agent response API route (AG-UI SSE stream, simulated)
+
+**Depends on:** heimdall, sindri, catalyst, reactbits, react-textarea-autosize, @heroicons/react, @ag-ui/core, @ag-ui/encoder
 
 ## apps/docs
 
@@ -97,14 +102,19 @@ Documentation dashboard that renders markdown files from the root `docs/` direct
 **Key paths:**
 - `app/layout.tsx` — Root layout
 - `app/(docs)/layout.tsx` — Docs shell with sidebar navigation
-- `app/(docs)/page.tsx` — Dashboard home (card grid of all docs)
-- `app/(docs)/[slug]/page.tsx` — Individual doc page with markdown rendering
-- `app/client.tsx` — Client-side sidebar/navbar shell
+- `app/(docs)/page.tsx` — Single-page view rendering all docs stacked with id anchors
+- `app/(docs)/client.tsx` — Client-side sidebar/navbar shell with IntersectionObserver scroll tracking
 - `app/markdown.tsx` — Server-side markdown-to-HTML renderer with Shiki syntax highlighting
 - `app/lib/docs.ts` — Reads and parses markdown files from `docs/` directory
 - `proxy.ts` — Next.js proxy using `heimdall/proxy` with `protect: false` (public app, only redirects authenticated users away from `/login`)
 
 **Auth model:** Public by default. Files with `<!-- auth: required -->` at the top are hidden from unauthenticated users. Optional login via `/login`.
+
+**Doc categories:** The sidebar groups docs into two sections:
+- **Guides** — Developer-facing: `getting-started.md`, `development.md`, `architecture.md`
+- **Reference** — Technical reference: `project.md`, `decisions.md`, `patterns.md`, `commands.md`, `glossary.md`, `apis.md`, `env.md`, `dependencies.md`, `testing.md`, `errors.md`
+
+Categories and ordering are defined in `app/lib/docs.ts` via `GUIDE_DOCS` and `REFERENCE_DOCS`.
 
 **Depends on:** heimdall, sindri, catalyst, @heroicons/react, shiki
 
@@ -160,6 +170,28 @@ Tailwind CSS component library with 28+ components. Uses `data-slot` attributes 
 **Components:** alert, auth-layout, avatar, badge, button, checkbox, combobox, description-list, dialog, divider, dropdown, fieldset (Field, Label, Description, ErrorMessage, FieldGroup, Legend), heading, input (Input, InputGroup), link, listbox, navbar, pagination, primitives (InteractiveButton, InteractiveLink, useInteractiveHandlers, useClickOutside, useEscapeKey), radio, select, sidebar, sidebar-layout, stacked-layout, switch, table, text (Text, TextLink, Strong, Code)
 
 **Depends on:** clsx, class-variance-authority, motion
+
+## packages/hlidskjalf
+
+CLI tool for managing and monitoring all workspace dev processes. Built with Ink (React for terminal) and React 18. Runs `pnpm --filter <name> run dev` for each workspace, displays a dashboard with process status and logs. Designed to be published to npm and used across multiple Turborepos.
+
+**CLI flags:**
+- `--title=<name>` — Custom title in the dashboard header (default: `hlidskjalf`)
+- `--emoji=<emoji>` — Custom emoji shown when all processes are ready (default: mountain emoji)
+- `--filter=<name>` — Only run specific workspaces (repeatable)
+- `--exclude=<name>` — Exclude specific workspaces from discovery (repeatable)
+- `--order=alphabetical|run` — Sort order for the process list
+
+**Key files:**
+- `src/index.tsx` — CLI entry point (argument parsing, Ink renderer)
+- `src/app.tsx` — Main React component (state, event handling, keyboard input)
+- `src/processes.ts` — `ProcessRunner` class (child process management, log parsing, error recovery)
+- `src/workspaces.ts` — Workspace discovery and dependency sorting
+- `src/parser.ts` — Log line parsing (status detection, URL extraction, ANSI stripping)
+- `src/views/dashboard.tsx` — Terminal UI dashboard (process table + log panel)
+- `src/views/loading.tsx` — Loading screen
+
+**Depends on:** ink, react (18.3.1)
 
 ## packages/reactbits
 

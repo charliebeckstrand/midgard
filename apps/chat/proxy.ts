@@ -1,8 +1,8 @@
-import { proxy as heimdallProxy } from 'heimdall/proxy'
+import * as heimdall from 'heimdall/proxy'
 import type { NextRequest } from 'next/server'
 
 export function proxy(request: NextRequest) {
-	return heimdallProxy(request, { protect: true })
+	return heimdall.proxy(request, { protect: true })
 }
 
 export const config = {

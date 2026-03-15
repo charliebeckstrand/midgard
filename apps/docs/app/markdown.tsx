@@ -2,7 +2,7 @@ import type { ComponentPropsWithoutRef, ReactElement } from 'react'
 import { Children, isValidElement } from 'react'
 import { MarkdownAsync } from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { highlight } from '@/lib/highlight'
+import { highlight } from '@/highlight'
 
 interface MarkdownProps {
 	content: string

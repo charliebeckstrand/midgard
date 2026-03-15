@@ -113,6 +113,24 @@ Non-trivial design choices with context, alternatives, and trade-offs.
 - Scroll-to-bottom reliably fires after DOM updates.
 - `react-textarea-autosize` adds ~1.5KB to the chat app bundle.
 
+## 2026-03-15 — Docs app: single-page layout with anchor scroll tracking
+
+**Status:** Accepted
+
+**Context:** The docs app had separate pages for each document (`/project`, `/decisions`, etc.) using a `[slug]` dynamic route. Navigating between docs required full page loads, and the sidebar only tracked the current route.
+
+**Decision:** Consolidated all docs onto a single page. Each doc section is rendered with an `id` anchor matching its slug. The sidebar uses `#slug` anchor links and an `IntersectionObserver` to track which section is currently in view, updating the active sidebar item as the user scrolls.
+
+**Alternatives:**
+- Keep separate pages with prefetching: simpler routing but no scroll tracking, more network requests.
+- Virtual scrolling: unnecessary complexity for the current number of docs.
+
+**Consequences:**
+- All docs load on a single page (larger initial payload, but all content is immediately available).
+- Sidebar highlights the section currently in view as the user scrolls.
+- The `[slug]` dynamic route is removed — old `/slug` URLs will 404 (acceptable since this is an internal tool).
+- Adding a new doc still only requires adding to `PUBLISHED_DOCS` in `docs.ts`.
+
 ## 2026-03-14 — Consolidate shared app config and reduce duplication
 
 **Status:** Accepted
@@ -136,3 +154,43 @@ Non-trivial design choices with context, alternatives, and trade-offs.
 - Theme changes propagate to all apps automatically via sindri.
 - Apps still own their `globals.css` (for app-specific Tailwind plugins like `@tailwindcss/typography`) and `layout.tsx` (for app-specific metadata).
 - `baseUrl` and `paths` must remain in each app's tsconfig (they resolve relative to the file that defines them).
+
+## 2026-03-15 — Add developer guides and grouped sidebar to docs app
+
+**Status:** Accepted
+
+**Context:** The docs app only showed agent-oriented reference docs (project map, decisions, error solutions, etc.). These are useful for agents but not immediately helpful for developers who need to know how to set up the project, run the dev server, or understand the architecture.
+
+**Decision:** Add a "Guides" category of docs alongside the existing "Reference" category. Guide files (`getting-started.md`, `development.md`, `architecture.md`) are written for humans — onboarding, day-to-day workflow, and system design. The docs app sidebar groups these into two labeled sections. CLAUDE.md is updated to include guide files in Tier 1 reading, continuous learning, and the pre-push gate.
+
+**Alternatives:**
+- Separate docs site or README: adds another tool to maintain and fragments information.
+- Inline everything in CLAUDE.md: makes the file too long and mixes agent instructions with developer docs.
+- Keep only reference docs: leaves developers without onboarding material.
+
+**Consequences:**
+- New developers get a clear path from clone to running dev server.
+- Agents read guide files on session start, gaining additional context.
+- Guide files must be kept current — stale setup instructions are worse than none.
+- The `GUIDE_DOCS` and `REFERENCE_DOCS` maps in `apps/docs/app/lib/docs.ts` control what appears in each sidebar section.
+
+## 2026-03-15 — Separate agent response endpoint from message persistence
+
+**Status:** Accepted
+
+**Context:** The chat app coupled agent response generation with message persistence — a single POST to `/api/chat/{chatId}` both saved the user message and returned an agent reply from Bifrost. This made it impossible to swap the agent backend independently.
+
+**Decision:** Created a dedicated `POST /api/chat/agent` Next.js API route handler that returns an AG-UI protocol event stream (SSE). The client now: (1) saves the user message to Bifrost, (2) streams the agent response from the new endpoint via SSE, (3) saves the completed agent response to Bifrost. Uses `@ag-ui/core` for event types and `@ag-ui/encoder` for SSE encoding on the server. The client parses SSE events natively (no `@ag-ui/client` dependency) and accumulates `TEXT_MESSAGE_CONTENT` deltas for real-time streaming display.
+
+**Alternatives:**
+- Keep the coupled approach: simpler but locks agent logic to Bifrost.
+- Server action instead of API route: less flexible for streaming or non-Next.js clients.
+- Use `@ag-ui/client` HttpAgent on the frontend: adds RxJS dependency and significant abstraction for a simple text streaming use case.
+- JSON response (no streaming): simpler but no real-time feedback during generation.
+
+**Consequences:**
+- Agent response logic is decoupled from persistence — can be swapped to a real LLM backend without changing Bifrost or the save flow.
+- The Next.js API route takes precedence over the Bifrost rewrite for `/api/chat/agent`, while all other `/api/*` routes still proxy to Bifrost.
+- Three sequential fetches per user message instead of two (save user → stream agent → save agent).
+- AG-UI protocol compliance means any AG-UI-compatible agent can plug into this endpoint.
+- The `ChatMessage.message` field was renamed to `ChatMessage.content` to align with AG-UI conventions.

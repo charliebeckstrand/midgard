@@ -1,11 +1,16 @@
 import type { ReactNode } from 'react'
-import { getAllDocs } from '@/lib/docs'
+import { getAllDocs, groupDocs } from '@/docs'
 import { Client } from './client'
 
 export default async function DocsLayout({ children }: { children: ReactNode }) {
 	const allDocs = await getAllDocs()
+	const { guides, reference } = groupDocs(allDocs)
 
-	const docs = allDocs.map((d) => ({ slug: d.slug, title: d.title }))
+	const toEntries = (docs: typeof allDocs) => docs.map((d) => ({ slug: d.slug, title: d.title }))
 
-	return <Client docs={docs}>{children}</Client>
+	return (
+		<Client guides={toEntries(guides)} reference={toEntries(reference)}>
+			{children}
+		</Client>
+	)
 }
