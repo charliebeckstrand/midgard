@@ -21,57 +21,6 @@ function CloseMenuIcon() {
   )
 }
 
-function MobileSidebar({ open, close, children }: React.PropsWithChildren<{ open: boolean; close: () => void }>) {
-  useEffect(() => {
-    if (!open) return
-
-    function onKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') close()
-    }
-
-    document.addEventListener('keydown', onKeyDown)
-    document.body.style.overflow = 'hidden'
-
-    return () => {
-      document.removeEventListener('keydown', onKeyDown)
-      document.body.style.overflow = ''
-    }
-  }, [open, close])
-
-  return (
-    <div className={clsx('lg:hidden fixed inset-0 z-50', !open && 'pointer-events-none')} role="dialog" aria-modal={open} aria-hidden={!open}>
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="fixed inset-0 bg-black/30"
-            onClick={close}
-            aria-hidden="true"
-          />
-        )}
-      </AnimatePresence>
-      <motion.div
-        animate={{ x: open ? 0 : '-100%' }}
-        initial={false}
-        transition={{ duration: 0.3, ease: 'easeInOut' }}
-        className="fixed inset-y-0 left-0 w-full max-w-80 p-2"
-      >
-        <div className="flex h-full flex-col rounded-lg bg-white shadow-xs ring-1 ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10">
-          <div className="-mb-3 px-4 pt-3">
-            <NavbarItem onClick={close} aria-label="Close navigation">
-              <CloseMenuIcon />
-            </NavbarItem>
-          </div>
-          {children}
-        </div>
-      </motion.div>
-    </div>
-  )
-}
-
 export function StackedLayout({
   navbar,
   sidebar,
@@ -91,12 +40,64 @@ export function StackedLayout({
     }
   }, [showSidebar])
 
+  useEffect(() => {
+    if (!showSidebar) return
+
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') closeSidebar()
+    }
+
+    document.addEventListener('keydown', onKeyDown)
+    document.body.style.overflow = 'hidden'
+
+    return () => {
+      document.removeEventListener('keydown', onKeyDown)
+      document.body.style.overflow = ''
+    }
+  }, [showSidebar, closeSidebar])
+
   return (
     <div className="relative isolate flex min-h-svh w-full flex-col bg-white lg:bg-zinc-100 dark:bg-zinc-900 dark:lg:bg-zinc-950">
-      {/* Sidebar on mobile */}
-      <MobileSidebar open={showSidebar} close={closeSidebar}>
-        {sidebar}
-      </MobileSidebar>
+      {/* Mobile sidebar backdrop */}
+      <div
+        className={clsx('lg:hidden fixed inset-0 z-50', !showSidebar && 'pointer-events-none')}
+        role="dialog"
+        aria-modal={showSidebar}
+        aria-hidden={!showSidebar}
+      >
+        <AnimatePresence>
+          {showSidebar && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              className="fixed inset-0 bg-black/30"
+              onClick={closeSidebar}
+              aria-hidden="true"
+            />
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Sidebar — rendered ONCE, slides in on mobile */}
+      <div
+        className={clsx(
+          'lg:hidden fixed inset-y-0 left-0 z-50 w-full max-w-80 p-2',
+          'transition-transform duration-300 ease-in-out',
+          showSidebar ? 'translate-x-0' : '-translate-x-full',
+          !showSidebar && 'pointer-events-none',
+        )}
+      >
+        <div className="flex h-full flex-col rounded-lg bg-white shadow-xs ring-1 ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10">
+          <div className="-mb-3 px-4 pt-3">
+            <NavbarItem onClick={closeSidebar} aria-label="Close navigation">
+              <CloseMenuIcon />
+            </NavbarItem>
+          </div>
+          {sidebar}
+        </div>
+      </div>
 
       {/* Navbar */}
       <header className="flex items-center px-4" ref={mainRef as React.RefObject<HTMLElement>}>
