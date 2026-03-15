@@ -136,11 +136,11 @@ export function groupDocs(docs: DocFile[]): { guides: DocFile[]; reference: DocF
 
 	const guides = guideOrder
 		.map((slug) => docs.find((d) => d.slug === slug))
-		.filter((d): d is DocFile => d !== null)
+		.filter((d): d is DocFile => d != null)
 
 	const reference = referenceOrder
 		.map((slug) => docs.find((d) => d.slug === slug))
-		.filter((d): d is DocFile => d !== null)
+		.filter((d): d is DocFile => d != null)
 
 	return { guides, reference }
 }

@@ -105,7 +105,7 @@ Documentation dashboard that renders markdown files from the root `docs/` direct
 - `app/(docs)/page.tsx` — Single-page view rendering all docs stacked with id anchors
 - `app/(docs)/client.tsx` — Client-side sidebar/navbar shell with IntersectionObserver scroll tracking
 - `app/markdown.tsx` — Server-side markdown-to-HTML renderer with Shiki syntax highlighting
-- `app/lib/docs.ts` — Reads and parses markdown files from `docs/` directory
+- `app/docs.ts` — Reads and parses markdown files from `docs/` directory
 - `proxy.ts` — Next.js proxy using `heimdall/proxy` with `protect: false` (public app, only redirects authenticated users away from `/login`)
 
 **Auth model:** Public by default. Files with `<!-- auth: required -->` at the top are hidden from unauthenticated users. Optional login via `/login`.
@@ -114,7 +114,7 @@ Documentation dashboard that renders markdown files from the root `docs/` direct
 - **Guides** — Developer-facing: `getting-started.md`, `development.md`, `architecture.md`
 - **Reference** — Technical reference: `project.md`, `decisions.md`, `patterns.md`, `commands.md`, `glossary.md`, `apis.md`, `env.md`, `dependencies.md`, `testing.md`, `errors.md`
 
-Categories and ordering are defined in `app/lib/docs.ts` via `GUIDE_DOCS` and `REFERENCE_DOCS`.
+Categories and ordering are defined in `app/docs.ts` via `GUIDE_DOCS` and `REFERENCE_DOCS`.
 
 **Depends on:** heimdall, sindri, catalyst, @heroicons/react, shiki
 
