@@ -46,6 +46,10 @@ Hlidskjalf's `ProcessRunner` emitted a `change` event for every single log line 
 
 tsup's `dts: true` spawns a TypeScript worker thread for declaration generation. With 30+ entry points (like catalyst), this worker needs to type-check the entire project on every rebuild, easily hitting Node.js heap limits. In dev/watch mode, use `--no-dts` since consumers use source TypeScript imports anyway (via `"types": "./src/index.ts"` in package.json exports).
 
+## 2026-03-15 — SidebarLayout scroll container is NOT window
+
+The `SidebarLayout` component renders content inside a `div` with `overflow-y-auto` (when `scrollable=true`, the default). On desktop, this inner div is the actual scroll container — `window.scroll` events never fire. Any scroll-tracking hook must find the real scroll container by walking up the DOM to the nearest `overflow-y: auto|scroll` ancestor. Use `getComputedStyle(node).overflowY` to detect it, with `document.documentElement` as fallback.
+
 ## 2026-03-14 — tsconfig baseUrl and paths are relative to the file that defines them
 
 When creating a shared `tsconfig.nextjs.json` at the repo root, do NOT put `baseUrl` or `paths` in it. These resolve relative to the file that defines them, so `"baseUrl": "."` in a root tsconfig means the repo root — not the app directory. Each app must define its own `baseUrl`, `paths`, and `include` in its local `tsconfig.json`.

@@ -11,7 +11,7 @@ export default async function DocsHome() {
 	return (
 		<div className="mx-auto max-w-3xl">
 			{docs.map((doc) => (
-				<section key={doc.slug} id={doc.slug} className="scroll-mt-4 py-8 first:pt-4">
+				<section key={doc.slug} id={doc.slug} className="scroll-mt-6 py-8 first:pt-4">
 					<Markdown content={doc.content} />
 				</section>
 			))}

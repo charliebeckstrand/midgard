@@ -1,46 +1,72 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 
-import type { DocEntry } from './types'
+function findScrollParent(el: HTMLElement): HTMLElement {
+	let node: HTMLElement | null = el.parentElement
 
-export function useActiveSlug(guides: DocEntry[], reference: DocEntry[]) {
+	while (node) {
+		const { overflowY } = getComputedStyle(node)
+
+		if (overflowY === 'auto' || overflowY === 'scroll') return node
+
+		node = node.parentElement
+	}
+
+	return document.documentElement
+}
+
+export function useActiveSlug(slugs: string[]) {
 	const [activeSlug, setActiveSlug] = useState<string | null>(null)
 
-	const slugsRef = useRef<string[]>([])
-
 	useEffect(() => {
-		slugsRef.current = [...guides, ...reference].map((d) => d.slug)
-	}, [guides, reference])
+		if (slugs.length === 0) return
 
-	useEffect(() => {
-		const OFFSET = 64
+		const firstSection = document.getElementById(slugs[0])
+
+		if (!firstSection) return
+
+		const scrollContainer = findScrollParent(firstSection)
+
+		const OFFSET = 24
 
 		const handler = () => {
-			const sections = slugsRef.current
+			const sections = slugs
 				.map((slug) => document.getElementById(slug))
 				.filter((el): el is HTMLElement => el !== null)
 
 			const isAtBottom =
-				window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2
+				scrollContainer.scrollHeight - scrollContainer.scrollTop <= scrollContainer.clientHeight + 2
 
 			if (isAtBottom) {
 				setActiveSlug(sections[sections.length - 1]?.id ?? null)
-
 				return
 			}
 
-			const active = [...sections].reverse().find((el) => el.getBoundingClientRect().top <= OFFSET)
+			const containerTop =
+				scrollContainer === document.documentElement
+					? 0
+					: scrollContainer.getBoundingClientRect().top
+
+			const active = [...sections]
+				.reverse()
+				.find((el) => el.getBoundingClientRect().top - containerTop <= OFFSET)
 
 			setActiveSlug(active?.id ?? sections[0]?.id ?? null)
 		}
 
 		handler()
 
-		window.addEventListener('scroll', handler, { passive: true })
+		scrollContainer.addEventListener('scroll', handler, { passive: true })
 
-		return () => window.removeEventListener('scroll', handler)
-	}, [])
+		if (window.location.hash) {
+			const target = document.getElementById(window.location.hash.slice(1))
+
+			target?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+		}
+
+		return () => scrollContainer.removeEventListener('scroll', handler)
+	}, [slugs])
 
 	return { activeSlug }
 }
