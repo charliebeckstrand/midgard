@@ -34,7 +34,7 @@ export function App({ options }: Props) {
 		const run = async () => {
 			setMessage('Discovering workspaces...')
 
-			let workspaces = discover(options.root)
+			let workspaces = discover(options.root, options.exclude)
 
 			if (options.filter) {
 				workspaces = filterWorkspaces(workspaces, options.filter)
@@ -85,7 +85,7 @@ export function App({ options }: Props) {
 		return () => {
 			process.off('SIGTERM', stop)
 		}
-	}, [exit, options.filter, options.order, options.root, stop])
+	}, [exit, options.exclude, options.filter, options.order, options.root, stop])
 
 	useInput((input, key) => {
 		if (loading) return
@@ -103,7 +103,14 @@ export function App({ options }: Props) {
 		}
 	})
 
-	if (loading) return <Loading message={message} />
+	if (loading) return <Loading message={message} title={options.title} />
 
-	return <Dashboard processes={processes} selectedIndex={cursor} />
+	return (
+		<Dashboard
+			processes={processes}
+			selectedIndex={cursor}
+			title={options.title}
+			emoji={options.emoji}
+		/>
+	)
 }

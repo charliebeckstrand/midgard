@@ -22,5 +22,8 @@ export type SortOrder = 'alphabetical' | 'run'
 export interface Options {
 	root: string
 	filter?: string[]
+	exclude?: string[]
 	order: SortOrder
+	title: string
+	emoji: string
 }

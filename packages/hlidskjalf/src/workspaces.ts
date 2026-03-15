@@ -29,8 +29,9 @@ function workspaceDeps(pkg: PkgJson): string[] {
 
 const kindOrder: Record<WorkspaceKind, number> = { package: 0, app: 1 }
 
-export function discover(root: string): Workspace[] {
+export function discover(root: string, exclude?: string[]): Workspace[] {
 	const results: Workspace[] = []
+	const excludeSet = new Set(exclude)
 
 	for (const dir of ['packages', 'apps']) {
 		const base = join(root, dir)
@@ -42,7 +43,7 @@ export function discover(root: string): Workspace[] {
 			const pkg = readJson<PkgJson>(join(entryPath, 'package.json'))
 
 			if (!pkg?.name) continue
-			if (pkg.name === 'hlidskjalf') continue
+			if (excludeSet.has(pkg.name)) continue
 
 			const manifest = readJson<{ port?: number }>(join(entryPath, 'manifest.json'))
 
