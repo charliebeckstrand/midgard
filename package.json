@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "build": "turbo run build",
-    "dev": "turbo run dev",
+    "dev": "turbo run build --filter=hlidskjalf && node packages/hlidskjalf/dist/index.js",
     "lint": "turbo run lint",
     "lint:fix": "biome check --write packages/ apps/",
     "check-types": "turbo run check-types",
