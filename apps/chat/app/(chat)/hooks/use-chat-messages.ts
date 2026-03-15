@@ -44,7 +44,9 @@ export function useChatMessages(
 
 		if (!saveUserResponse?.ok) {
 			setMessages((prev) => prev.filter((m) => m.id !== pendingId))
+
 			setSending(false)
+
 			return
 		}
 

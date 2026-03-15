@@ -4,6 +4,7 @@ import type { ChatMessage } from '../../../(chat)/types'
 
 export async function POST(request: Request) {
 	const body = (await request.json()) as { messages: ChatMessage[] }
+
 	const messages = body.messages ?? []
 
 	const lastUserMessage = messages.findLast((m) => m.role === 'user')
