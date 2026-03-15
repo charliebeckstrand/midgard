@@ -173,3 +173,20 @@ Non-trivial design choices with context, alternatives, and trade-offs.
 - Agents read guide files on session start, gaining additional context.
 - Guide files must be kept current — stale setup instructions are worse than none.
 - The `GUIDE_DOCS` and `REFERENCE_DOCS` maps in `apps/docs/app/lib/docs.ts` control what appears in each sidebar section.
+
+## 2026-03-15 — Separate agent response endpoint from message persistence
+
+**Status:** Accepted
+
+**Context:** The chat app coupled agent response generation with message persistence — a single POST to `/api/chat/{chatId}` both saved the user message and returned an agent reply from Bifrost. This made it impossible to swap the agent backend independently.
+
+**Decision:** Created a dedicated `POST /api/chat/agent` Next.js API route handler. The client now: (1) saves the user message to Bifrost, (2) requests an agent response from the new endpoint, (3) saves the agent response to Bifrost. The agent endpoint currently returns a simulated response and accepts the full message history for context.
+
+**Alternatives:**
+- Keep the coupled approach: simpler but locks agent logic to Bifrost.
+- Server action instead of API route: less flexible for future streaming or non-Next.js clients.
+
+**Consequences:**
+- Agent response logic is decoupled from persistence — can be swapped to a real LLM backend without changing Bifrost or the save flow.
+- The Next.js API route takes precedence over the Bifrost rewrite for `/api/chat/agent`, while all other `/api/*` routes still proxy to Bifrost.
+- Three sequential fetches per user message instead of two (save user → get agent → save agent).
