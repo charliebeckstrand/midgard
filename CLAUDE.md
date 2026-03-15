@@ -18,6 +18,21 @@ The `docs/` directory is a version-controlled knowledge base that serves as both
 
 Write with both audiences in mind — clear enough for a developer reading in a browser or editor, structured enough for an agent to parse programmatically. **Every session must leave the project easier for the next one.** Create the directory if it does not exist.
 
+### Developer Guides
+
+In addition to agent-oriented reference files, the `docs/` directory contains **developer guides** — docs written primarily for humans who need to use, understand, or contribute to the repo. These are surfaced prominently in the docs app under the "Guides" section.
+
+**Guide files:**
+- `getting-started.md` — Prerequisites, installation, running the dev server, first-time setup
+- `development.md` — Day-to-day dev workflow, adding apps/packages, common tasks
+- `architecture.md` — High-level system design, how packages relate, naming conventions
+
+**Maintenance rules:**
+1. **Scan on session start.** Read the guide files alongside Tier 1 docs for additional context about the project.
+2. **Keep them current.** When your changes affect setup steps, dev workflow, environment variables, architecture, or project structure, update the relevant guide file. These docs are the first thing new developers read — stale info wastes their time.
+3. **Write for newcomers.** Guides should be self-contained and actionable. Assume the reader has never seen the repo before. Avoid jargon without explanation.
+4. **Cross-reference, don't duplicate.** Guides can link to reference docs (e.g., "See [Environment Variables](#env) for the full list") rather than repeating detailed information.
+
 ### Writing Guidelines
 
 1. **Write immediately.** If you learn something, write it down before your next action. Never defer to "end of session."
@@ -41,6 +56,9 @@ At the start of every session, before doing any work:
    - `preferences.md` — user coding preferences
    - `decisions.md` — architectural decisions and rationale
    - `glossary.md` — domain terms and naming conventions
+   - `getting-started.md` — setup and installation guide
+   - `development.md` — dev workflow and common tasks
+   - `architecture.md` — system design overview
 3. **Tier 2 — Scan headers, read relevant sections** (working memory):
    - `context.md` — non-obvious API contracts and type relationships
    - `patterns.md` — reusable code patterns
@@ -83,6 +101,8 @@ Update `docs/` files as you work, not at the end:
 - **Design choice?** → `decisions.md` before moving on.
 - **Useful command?** → `commands.md` the moment you use it.
 - **Debugging effort?** → `debug.md` before moving on.
+- **Changed setup steps, env vars, or dev workflow?** → Update `getting-started.md` and/or `development.md`.
+- **Changed architecture, added/removed packages or apps?** → Update `architecture.md`.
 
 ## Git
 
@@ -111,6 +131,9 @@ Before every `git push`:
    - `debt.md` — you found existing tech debt
    - `reviews.md` — you received or noticed recurring review feedback
    - `debug.md` — you debugged something non-trivial
+   - `getting-started.md` — setup steps, prerequisites, or env vars changed
+   - `development.md` — dev workflow, common tasks, or project structure changed
+   - `architecture.md` — system design, packages, or app relationships changed
 2. Commit `docs/` changes as a **separate** commit (e.g., `update docs/ knowledge base`).
 3. Then push.
 
@@ -283,3 +306,21 @@ Debugging strategies that worked for specific problem types.
 **Tools used:** browser devtools, logging, etc.
 **Date:** YYYY-MM-DD
 ```
+
+---
+
+## Developer Guide Files Reference
+
+These files are surfaced in the docs app under "Guides" and are written primarily for developers. **Updated in place** (not append-only). Keep them current, actionable, and newcomer-friendly.
+
+### `getting-started.md` — Getting Started
+
+Prerequisites, cloning, installing dependencies, environment variables, running the dev server, and verifying the setup.
+
+### `development.md` — Development Workflow
+
+Day-to-day dev patterns: code style, common commands, adding apps/packages, working with shared packages, git workflow, and project structure overview.
+
+### `architecture.md` — Architecture Overview
+
+High-level system design: how apps and packages relate, dependency flow, key design decisions, and naming conventions. Includes a system diagram.

@@ -1,9 +1,11 @@
-import { getAllDocs } from '@/lib/docs'
+import { getAllDocs, groupDocs } from '@/lib/docs'
 import { Markdown } from '@/markdown'
 import { AnchorLink } from './anchor-link'
 
 export default async function DocsHome() {
-	const docs = await getAllDocs()
+	const allDocs = await getAllDocs()
+	const { guides, reference } = groupDocs(allDocs)
+	const docs = [...guides, ...reference]
 
 	return (
 		<div className="mx-auto max-w-3xl">

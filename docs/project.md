@@ -1,6 +1,6 @@
 # Project
 
-> Last updated: 2026-03-14
+> Last updated: 2026-03-15
 
 Midgard is a pnpm monorepo managed by Turbo. It contains Next.js applications backed by shared auth, UI component, and animation-effect packages.
 
@@ -105,6 +105,12 @@ Documentation dashboard that renders markdown files from the root `docs/` direct
 - `proxy.ts` — Next.js proxy using `heimdall/proxy` with `protect: false` (public app, only redirects authenticated users away from `/login`)
 
 **Auth model:** Public by default. Files with `<!-- auth: required -->` at the top are hidden from unauthenticated users. Optional login via `/login`.
+
+**Doc categories:** The sidebar groups docs into two sections:
+- **Guides** — Developer-facing: `getting-started.md`, `development.md`, `architecture.md`
+- **Reference** — Technical reference: `project.md`, `decisions.md`, `patterns.md`, `commands.md`, `glossary.md`, `apis.md`, `env.md`, `dependencies.md`, `testing.md`, `errors.md`
+
+Categories and ordering are defined in `app/lib/docs.ts` via `GUIDE_DOCS` and `REFERENCE_DOCS`.
 
 **Depends on:** heimdall, sindri, catalyst, @heroicons/react, shiki
 
