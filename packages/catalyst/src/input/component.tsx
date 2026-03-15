@@ -33,7 +33,7 @@ type InputProps = {
 
 export function Input({ className, disabled, invalid, ...props }: InputProps) {
 	return (
-		<span data-slot="control" className={clsx(className, controlWrapper)}>
+		<span data-slot="control" className={clsx(className, controlWrapper, 'has-[:read-only]:before:bg-transparent has-[:read-only]:before:shadow-none')}>
 			<input
 				disabled={disabled}
 				data-invalid={invalid ? '' : undefined}
@@ -56,6 +56,7 @@ export function Input({ className, disabled, invalid, ...props }: InputProps) {
 					'relative block w-full appearance-none rounded-lg px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)] sm:px-[calc(--spacing(3)-1px)] sm:py-[calc(--spacing(1.5)-1px)]',
 					controlInput,
 					'dark:scheme-dark',
+					'dark:read-only:bg-transparent',
 				)}
 			/>
 		</span>

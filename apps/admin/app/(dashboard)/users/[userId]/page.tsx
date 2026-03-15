@@ -1,19 +1,22 @@
 import { bifrost } from 'heimdall'
-
 import { UserDetailsClient } from './client'
 
 async function getUserDetails(userId: string) {
-	const res = await bifrost(`/api/users/${userId}`)
+	const [details, chats] = await Promise.all([
+		bifrost(`/api/users/${userId}`),
+		bifrost(`/api/users/${userId}/chats`),
+	])
 
-	if (!res.ok) return null
-
-	return res.json()
+	return {
+		details: details.ok ? await details.json() : null,
+		chats: chats.ok ? await chats.json() : null,
+	}
 }
 
 export default async function UserDetailsPage({ params }: { params: Promise<{ userId: string }> }) {
 	const { userId } = await params
 
-	const user = await getUserDetails(userId)
+	const userDetails = await getUserDetails(userId)
 
-	return <UserDetailsClient user={user} />
+	return <UserDetailsClient details={userDetails.details} chats={userDetails.chats} />
 }

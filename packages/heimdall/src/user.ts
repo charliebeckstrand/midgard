@@ -9,6 +9,13 @@ export type User = {
 	updated_at: string
 }
 
+export type Chat = {
+	id: string
+	user_id: string
+	created_at: string
+	updated_at: string
+}
+
 export type SessionUser = {
 	email: string
 	name?: string

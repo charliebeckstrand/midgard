@@ -39,16 +39,17 @@ function EditUserDialog({ user, onClose }: EditUserDialogProps) {
 			<DialogBody>
 				<Fieldset>
 					<Field data-slot="control">
-						<Label>ID</Label>
-						<Input value={user?.id ?? ''} readOnly />
+						<Label htmlFor="user-id">ID</Label>
+						<Input id="user-id" value={user?.id ?? ''} readOnly />
 					</Field>
 					<Field data-slot="control">
-						<Label>Email</Label>
-						<Input value={email} onChange={(e) => setEmail(e.target.value)} />
+						<Label htmlFor="user-email">Email</Label>
+						<Input id="user-email" value={email} onChange={(e) => setEmail(e.target.value)} />
 					</Field>
 					<Field data-slot="control">
-						<Label>Created At</Label>
+						<Label htmlFor="user-created-at">Created At</Label>
 						<Input
+							id="user-created-at"
 							value={
 								user
 									? new Date(user.created_at).toLocaleString(undefined, {
@@ -61,8 +62,9 @@ function EditUserDialog({ user, onClose }: EditUserDialogProps) {
 						/>
 					</Field>
 					<Field data-slot="control">
-						<Label>Updated At</Label>
+						<Label htmlFor="user-updated-at">Updated At</Label>
 						<Input
+							id="user-updated-at"
 							value={
 								user
 									? new Date(user.updated_at).toLocaleString(undefined, {

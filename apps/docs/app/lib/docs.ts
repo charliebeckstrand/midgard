@@ -83,6 +83,7 @@ export async function getDoc(slug: string): Promise<DocFile | null> {
 
 	try {
 		const raw = await readFile(join(DOCS_DIR, `${slug}.md`), 'utf-8')
+
 		return {
 			slug,
 			title: extractTitle(raw, slug),
