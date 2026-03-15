@@ -1,5 +1,6 @@
 'use client'
 
+import clsx from 'clsx'
 import { AnimatePresence, motion } from 'motion/react'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { NavbarItem } from './navbar'
@@ -38,9 +39,9 @@ function MobileSidebar({ open, close, children }: React.PropsWithChildren<{ open
   }, [open, close])
 
   return (
-    <AnimatePresence>
-      {open && (
-        <div className="lg:hidden fixed inset-0 z-50" role="dialog" aria-modal="true">
+    <div className={clsx('lg:hidden fixed inset-0 z-50', !open && 'pointer-events-none')} role="dialog" aria-modal={open} aria-hidden={!open}>
+      <AnimatePresence>
+        {open && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -50,25 +51,24 @@ function MobileSidebar({ open, close, children }: React.PropsWithChildren<{ open
             onClick={close}
             aria-hidden="true"
           />
-          <motion.div
-            initial={{ x: '-100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '-100%' }}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
-            className="fixed inset-y-0 left-0 w-full max-w-80 p-2"
-          >
-            <div className="flex h-full flex-col rounded-lg bg-white shadow-xs ring-1 ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10">
-              <div className="-mb-3 px-4 pt-3">
-                <NavbarItem onClick={close} aria-label="Close navigation">
-                  <CloseMenuIcon />
-                </NavbarItem>
-              </div>
-              {children}
-            </div>
-          </motion.div>
+        )}
+      </AnimatePresence>
+      <motion.div
+        animate={{ x: open ? 0 : '-100%' }}
+        initial={false}
+        transition={{ duration: 0.3, ease: 'easeInOut' }}
+        className="fixed inset-y-0 left-0 w-full max-w-80 p-2"
+      >
+        <div className="flex h-full flex-col rounded-lg bg-white shadow-xs ring-1 ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10">
+          <div className="-mb-3 px-4 pt-3">
+            <NavbarItem onClick={close} aria-label="Close navigation">
+              <CloseMenuIcon />
+            </NavbarItem>
+          </div>
+          {children}
         </div>
-      )}
-    </AnimatePresence>
+      </motion.div>
+    </div>
   )
 }
 
