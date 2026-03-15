@@ -1,52 +1,181 @@
 'use client'
 
-import * as Headless from '@headlessui/react'
 import clsx from 'clsx'
+import { AnimatePresence, motion } from 'motion/react'
 import type React from 'react'
+import { createContext, useCallback, useContext, useEffect, useId, useRef, useState } from 'react'
 import { Button } from './button'
 import { Link } from './link'
 
-export function Dropdown(props: Headless.MenuProps) {
-  return <Headless.Menu {...props} />
+interface DropdownContextValue {
+  open: boolean
+  toggle: () => void
+  close: () => void
+  buttonId: string
+  menuId: string
+}
+
+const DropdownContext = createContext<DropdownContextValue>({
+  open: false,
+  toggle: () => {},
+  close: () => {},
+  buttonId: '',
+  menuId: '',
+})
+
+export function Dropdown({ children, ...props }: React.PropsWithChildren<{ className?: string }>) {
+  const [open, setOpen] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const buttonId = useId()
+  const menuId = useId()
+
+  const toggle = useCallback(() => setOpen((prev) => !prev), [])
+  const close = useCallback(() => setOpen(false), [])
+
+  useEffect(() => {
+    if (!open) return
+
+    function onPointerDown(e: PointerEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') setOpen(false)
+    }
+
+    document.addEventListener('pointerdown', onPointerDown)
+    document.addEventListener('keydown', onKeyDown)
+
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown)
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [open])
+
+  return (
+    <DropdownContext.Provider value={{ open, toggle, close, buttonId, menuId }}>
+      <div ref={containerRef} className={clsx('relative', props.className)} {...props}>
+        {children}
+      </div>
+    </DropdownContext.Provider>
+  )
 }
 
 export function DropdownButton<T extends React.ElementType = typeof Button>({
-  as = Button,
+  as,
   ...props
-}: { className?: string } & Omit<Headless.MenuButtonProps<T>, 'className'>) {
-  return <Headless.MenuButton as={as} {...props} />
+}: { as?: T; className?: string } & Omit<React.ComponentPropsWithoutRef<T>, 'className'>) {
+  const { toggle, open, buttonId, menuId } = useContext(DropdownContext)
+  const Component = (as || Button) as React.ElementType
+
+  return (
+    <Component
+      {...props}
+      id={buttonId}
+      aria-expanded={open}
+      aria-haspopup="menu"
+      aria-controls={open ? menuId : undefined}
+      onClick={(e: React.MouseEvent) => {
+        const onClickProp = (props as { onClick?: (e: React.MouseEvent) => void }).onClick
+        onClickProp?.(e)
+        toggle()
+      }}
+    />
+  )
+}
+
+const anchorPositionClasses: Record<string, string> = {
+  bottom: 'top-full left-0 mt-2',
+  'bottom start': 'top-full left-0 mt-2',
+  'bottom end': 'top-full right-0 mt-2',
+  top: 'bottom-full left-0 mb-2',
+  'top start': 'bottom-full left-0 mb-2',
+  'top end': 'bottom-full right-0 mb-2',
 }
 
 export function DropdownMenu({
   anchor = 'bottom',
   className,
-  ...props
-}: { className?: string } & Omit<Headless.MenuItemsProps, 'as' | 'className'>) {
+  children,
+}: {
+  anchor?: string
+  className?: string
+  children: React.ReactNode
+}) {
+  const { open, close, menuId, buttonId } = useContext(DropdownContext)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open || !menuRef.current) return
+
+    const items = menuRef.current.querySelectorAll<HTMLElement>('[role="menuitem"]')
+    if (items.length > 0) items[0].focus()
+  }, [open])
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
+    const menu = menuRef.current
+    if (!menu) return
+
+    const items = Array.from(menu.querySelectorAll<HTMLElement>('[role="menuitem"]:not([data-disabled])'))
+    const currentIndex = items.indexOf(document.activeElement as HTMLElement)
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      const next = currentIndex < items.length - 1 ? currentIndex + 1 : 0
+      items[next]?.focus()
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      const prev = currentIndex > 0 ? currentIndex - 1 : items.length - 1
+      items[prev]?.focus()
+    } else if (e.key === 'Home') {
+      e.preventDefault()
+      items[0]?.focus()
+    } else if (e.key === 'End') {
+      e.preventDefault()
+      items[items.length - 1]?.focus()
+    }
+  }
+
+  const positionClass = anchorPositionClasses[anchor] ?? anchorPositionClasses.bottom
+
   return (
-    <Headless.MenuItems
-      {...props}
-      transition
-      anchor={anchor}
-      className={clsx(
-        className,
-        // Anchor positioning
-        '[--anchor-gap:--spacing(2)] [--anchor-padding:--spacing(1)] data-[anchor~=end]:[--anchor-offset:6px] data-[anchor~=start]:[--anchor-offset:-6px] sm:data-[anchor~=end]:[--anchor-offset:4px] sm:data-[anchor~=start]:[--anchor-offset:-4px]',
-        // Base styles
-        'isolate w-max rounded-xl p-1',
-        // Invisible border that is only visible in `forced-colors` mode for accessibility purposes
-        'outline outline-transparent focus:outline-hidden',
-        // Handle scrolling when menu won't fit in viewport
-        'overflow-y-auto',
-        // Popover background
-        'bg-white/75 backdrop-blur-xl dark:bg-zinc-800/75',
-        // Shadows
-        'shadow-lg ring-1 ring-zinc-950/10 dark:ring-white/10 dark:ring-inset',
-        // Define grid at the menu level if subgrid is supported
-        'supports-[grid-template-columns:subgrid]:grid supports-[grid-template-columns:subgrid]:grid-cols-[auto_1fr_1.5rem_0.5rem_auto]',
-        // Transitions
-        'transition data-leave:duration-100 data-leave:ease-in data-closed:data-leave:opacity-0'
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          ref={menuRef}
+          id={menuId}
+          role="menu"
+          aria-labelledby={buttonId}
+          tabIndex={-1}
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          transition={{ duration: 0.1, ease: 'easeOut' }}
+          onKeyDown={handleKeyDown}
+          className={clsx(
+            className,
+            'absolute z-50',
+            positionClass,
+            // Base styles
+            'isolate w-max rounded-xl p-1',
+            // Invisible border that is only visible in `forced-colors` mode for accessibility purposes
+            'outline outline-transparent focus:outline-hidden',
+            // Handle scrolling when menu won't fit in viewport
+            'overflow-y-auto',
+            // Popover background
+            'bg-white/75 backdrop-blur-xl dark:bg-zinc-800/75',
+            // Shadows
+            'shadow-lg ring-1 ring-zinc-950/10 dark:ring-white/10 dark:ring-inset',
+            // Define grid at the menu level if subgrid is supported
+            'supports-[grid-template-columns:subgrid]:grid supports-[grid-template-columns:subgrid]:grid-cols-[auto_1fr_1.5rem_0.5rem_auto]',
+          )}
+        >
+          {children}
+        </motion.div>
       )}
-    />
+    </AnimatePresence>
   )
 }
 
@@ -54,10 +183,12 @@ export function DropdownItem({
   className,
   ...props
 }: { className?: string } & (
-  | ({ href?: never } & Omit<Headless.MenuItemProps<'button'>, 'as' | 'className'>)
-  | ({ href: string } & Omit<Headless.MenuItemProps<typeof Link>, 'as' | 'className'>)
+  | ({ href?: never; onClick?: () => void; disabled?: boolean } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className'>)
+  | ({ href: string; disabled?: boolean } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
 )) {
-  let classes = clsx(
+  const { close } = useContext(DropdownContext)
+
+  const classes = clsx(
     className,
     // Base styles
     'group cursor-default rounded-lg px-3.5 py-2.5 focus:outline-hidden sm:px-3 sm:py-1.5',
@@ -75,13 +206,72 @@ export function DropdownItem({
     '*:data-[slot=icon]:col-start-1 *:data-[slot=icon]:row-start-1 *:data-[slot=icon]:mr-2.5 *:data-[slot=icon]:-ml-0.5 *:data-[slot=icon]:size-5 sm:*:data-[slot=icon]:mr-2 sm:*:data-[slot=icon]:size-4',
     '*:data-[slot=icon]:text-zinc-500 data-focus:*:data-[slot=icon]:text-white dark:*:data-[slot=icon]:text-zinc-400 dark:data-focus:*:data-[slot=icon]:text-white',
     // Avatar
-    '*:data-[slot=avatar]:mr-2.5 *:data-[slot=avatar]:-ml-1 *:data-[slot=avatar]:size-6 sm:*:data-[slot=avatar]:mr-2 sm:*:data-[slot=avatar]:size-5'
+    '*:data-[slot=avatar]:mr-2.5 *:data-[slot=avatar]:-ml-1 *:data-[slot=avatar]:size-6 sm:*:data-[slot=avatar]:mr-2 sm:*:data-[slot=avatar]:size-5',
   )
 
-  return typeof props.href === 'string' ? (
-    <Headless.MenuItem as={Link} {...props} className={classes} />
-  ) : (
-    <Headless.MenuItem as="button" type="button" {...props} className={classes} />
+  function handleFocus(e: React.FocusEvent<HTMLElement>) {
+    e.currentTarget.setAttribute('data-focus', '')
+  }
+
+  function handleBlur(e: React.FocusEvent<HTMLElement>) {
+    e.currentTarget.removeAttribute('data-focus')
+  }
+
+  function handleMouseEnter(e: React.MouseEvent<HTMLElement>) {
+    e.currentTarget.setAttribute('data-focus', '')
+    e.currentTarget.focus()
+  }
+
+  function handleMouseLeave(e: React.MouseEvent<HTMLElement>) {
+    e.currentTarget.removeAttribute('data-focus')
+  }
+
+  if (typeof props.href === 'string') {
+    const { disabled, ...linkProps } = props as { href: string; disabled?: boolean } & React.ComponentPropsWithoutRef<typeof Link>
+
+    return (
+      <Link
+        {...linkProps}
+        role="menuitem"
+        tabIndex={-1}
+        data-disabled={disabled ? '' : undefined}
+        className={classes}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onClick={(e) => {
+          if (disabled) {
+            e.preventDefault()
+            return
+          }
+          close()
+          linkProps.onClick?.(e)
+        }}
+      />
+    )
+  }
+
+  const { disabled, onClick, ...buttonProps } = props as { disabled?: boolean; onClick?: () => void } & React.ComponentPropsWithoutRef<'button'>
+
+  return (
+    <button
+      type="button"
+      {...buttonProps}
+      role="menuitem"
+      tabIndex={-1}
+      data-disabled={disabled ? '' : undefined}
+      className={classes}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onClick={() => {
+        if (disabled) return
+        close()
+        onClick?.()
+      }}
+    />
   )
 }
 
@@ -89,67 +279,56 @@ export function DropdownHeader({ className, ...props }: React.ComponentPropsWith
   return <div {...props} className={clsx(className, 'col-span-5 px-3.5 pt-2.5 pb-1 sm:px-3')} />
 }
 
-export function DropdownSection({
-  className,
-  ...props
-}: { className?: string } & Omit<Headless.MenuSectionProps, 'as' | 'className'>) {
+export function DropdownSection({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
   return (
-    <Headless.MenuSection
+    <div
       {...props}
       className={clsx(
         className,
         // Define grid at the section level instead of the item level if subgrid is supported
-        'col-span-full supports-[grid-template-columns:subgrid]:grid supports-[grid-template-columns:subgrid]:grid-cols-[auto_1fr_1.5rem_0.5rem_auto]'
+        'col-span-full supports-[grid-template-columns:subgrid]:grid supports-[grid-template-columns:subgrid]:grid-cols-[auto_1fr_1.5rem_0.5rem_auto]',
       )}
     />
   )
 }
 
-export function DropdownHeading({
-  className,
-  ...props
-}: { className?: string } & Omit<Headless.MenuHeadingProps, 'as' | 'className'>) {
+export function DropdownHeading({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
   return (
-    <Headless.MenuHeading
+    <div
       {...props}
       className={clsx(
         className,
-        'col-span-full grid grid-cols-[1fr_auto] gap-x-12 px-3.5 pt-2 pb-1 text-sm/5 font-medium text-zinc-500 sm:px-3 sm:text-xs/5 dark:text-zinc-400'
+        'col-span-full grid grid-cols-[1fr_auto] gap-x-12 px-3.5 pt-2 pb-1 text-sm/5 font-medium text-zinc-500 sm:px-3 sm:text-xs/5 dark:text-zinc-400',
       )}
     />
   )
 }
 
-export function DropdownDivider({
-  className,
-  ...props
-}: { className?: string } & Omit<Headless.MenuSeparatorProps, 'as' | 'className'>) {
+export function DropdownDivider({ className, ...props }: React.ComponentPropsWithoutRef<'hr'>) {
   return (
-    <Headless.MenuSeparator
+    <hr
       {...props}
+      role="separator"
       className={clsx(
         className,
-        'col-span-full mx-3.5 my-1 h-px border-0 bg-zinc-950/5 sm:mx-3 dark:bg-white/10 forced-colors:bg-[CanvasText]'
+        'col-span-full mx-3.5 my-1 h-px border-0 bg-zinc-950/5 sm:mx-3 dark:bg-white/10 forced-colors:bg-[CanvasText]',
       )}
     />
   )
 }
 
 export function DropdownLabel({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
-  return <div {...props} data-slot="label" className={clsx(className, 'col-start-2 row-start-1')} {...props} />
+  return <div {...props} data-slot="label" className={clsx(className, 'col-start-2 row-start-1')} />
 }
 
-export function DropdownDescription({
-  className,
-  ...props
-}: { className?: string } & Omit<Headless.DescriptionProps, 'as' | 'className'>) {
+export function DropdownDescription({ className, ...props }: React.ComponentPropsWithoutRef<'p'>) {
   return (
-    <Headless.Description
+    <p
       data-slot="description"
       {...props}
       className={clsx(
         className,
-        'col-span-2 col-start-2 row-start-2 text-sm/5 text-zinc-500 group-data-focus:text-white sm:text-xs/5 dark:text-zinc-400 forced-colors:group-data-focus:text-[HighlightText]'
+        'col-span-2 col-start-2 row-start-2 text-sm/5 text-zinc-500 group-data-focus:text-white sm:text-xs/5 dark:text-zinc-400 forced-colors:group-data-focus:text-[HighlightText]',
       )}
     />
   )
@@ -159,10 +338,9 @@ export function DropdownShortcut({
   keys,
   className,
   ...props
-}: { keys: string | string[]; className?: string } & Omit<Headless.DescriptionProps<'kbd'>, 'as' | 'className'>) {
+}: { keys: string | string[]; className?: string } & Omit<React.ComponentPropsWithoutRef<'kbd'>, 'className'>) {
   return (
-    <Headless.Description
-      as="kbd"
+    <kbd
       {...props}
       className={clsx(className, 'col-start-5 row-start-1 flex justify-self-end')}
     >
@@ -178,6 +356,6 @@ export function DropdownShortcut({
           {char}
         </kbd>
       ))}
-    </Headless.Description>
+    </kbd>
   )
 }

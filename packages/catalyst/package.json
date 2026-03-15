@@ -144,6 +144,11 @@
 			"types": "./src/textarea.tsx",
 			"import": "./dist/textarea.js",
 			"default": "./dist/textarea.js"
+		},
+		"./primitives": {
+			"types": "./src/primitives.tsx",
+			"import": "./dist/primitives.js",
+			"default": "./dist/primitives.js"
 		}
 	},
 	"scripts": {
@@ -153,7 +158,6 @@
 	},
 	"packageManager": "pnpm@10.29.3",
 	"dependencies": {
-		"@headlessui/react": "^2.0.0",
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.0.0",
 		"motion": "^12.0.0"

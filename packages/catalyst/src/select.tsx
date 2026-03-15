@@ -1,11 +1,26 @@
-import * as Headless from '@headlessui/react'
+'use client'
+
 import clsx from 'clsx'
 import React, { forwardRef } from 'react'
+import { useInteractiveHandlers } from './primitives'
 
 export const Select = forwardRef(function Select(
-  { className, multiple, ...props }: { className?: string } & Omit<Headless.SelectProps, 'as' | 'className'>,
+  {
+    className,
+    multiple,
+    disabled,
+    invalid,
+    ...props
+  }: {
+    className?: string
+    multiple?: boolean
+    disabled?: boolean
+    invalid?: boolean
+  } & Omit<React.ComponentPropsWithoutRef<'select'>, 'className'>,
   ref: React.ForwardedRef<HTMLSelectElement>
 ) {
+  const interactive = useInteractiveHandlers()
+
   return (
     <span
       data-slot="control"
@@ -23,10 +38,14 @@ export const Select = forwardRef(function Select(
         'has-data-disabled:opacity-50 has-data-disabled:before:bg-zinc-950/5 has-data-disabled:before:shadow-none',
       ])}
     >
-      <Headless.Select
+      <select
         ref={ref}
         multiple={multiple}
+        disabled={disabled}
+        data-disabled={disabled ? '' : undefined}
+        data-invalid={invalid ? '' : undefined}
         {...props}
+        {...interactive}
         className={clsx([
           // Basic layout
           'relative block w-full appearance-none rounded-lg py-[calc(--spacing(2.5)-1px)] sm:py-[calc(--spacing(1.5)-1px)]',

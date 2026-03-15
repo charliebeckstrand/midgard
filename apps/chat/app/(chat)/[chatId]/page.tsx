@@ -1,13 +1,9 @@
 import { cookies } from 'next/headers'
 
+import type { ChatMessage } from '../types'
 import { ChatView } from './chat-view'
 
-interface Message {
-	role: 'user' | 'agent'
-	message: string
-}
-
-async function getChatHistory(chatId: string): Promise<Message[]> {
+async function getChatHistory(chatId: string): Promise<ChatMessage[]> {
 	const cookieStore = await cookies()
 
 	const res = await fetch(

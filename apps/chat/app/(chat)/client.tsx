@@ -12,24 +12,13 @@ import {
 	SidebarLayout,
 	SidebarSection,
 } from 'catalyst'
-// import dynamic from 'next/dynamic'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import type { ReactNode } from 'react'
 import { ShinyText } from 'reactbits'
 
+import { useChatActions } from './hooks/use-chat-actions'
 import { SidebarUserFooter } from './sidebar-footer'
-
-type User = { email: string; name?: string }
-
-interface Chat {
-	id: string
-	title: string
-}
-
-// const SidebarUserFooter = dynamic(
-// 	() => import('./sidebar-footer').then((m) => m.SidebarUserFooter),
-// 	{ ssr: false },
-// )
+import type { Chat, User } from './types'
 
 export function ChatClient({
 	user,
@@ -41,24 +30,7 @@ export function ChatClient({
 	children: ReactNode
 }) {
 	const pathname = usePathname()
-
-	const router = useRouter()
-
-	function newChat() {
-		const id = crypto.randomUUID()
-
-		router.push(`/${id}?draft=true`)
-	}
-
-	async function deleteChat(chatId: string) {
-		await fetch(`/api/chat/${chatId}`, { method: 'DELETE' }).catch(() => null)
-
-		if (pathname === `/${chatId}`) {
-			router.push('/')
-		}
-
-		router.refresh()
-	}
+	const { newChat, deleteChat } = useChatActions()
 
 	return (
 		<SidebarLayout
@@ -97,7 +69,6 @@ export function ChatClient({
 											type="button"
 											onClick={(e) => {
 												e.preventDefault()
-
 												deleteChat(chat.id)
 											}}
 											className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded p-0.75 opacity-0 transition-opacity group-hover:opacity-100 bg-zinc-800 hover:bg-zinc-700"

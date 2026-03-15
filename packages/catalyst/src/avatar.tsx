@@ -1,8 +1,10 @@
-import * as Headless from '@headlessui/react'
+'use client'
+
 import clsx from 'clsx'
 import React, { forwardRef } from 'react'
 import { TouchTarget } from './button'
 import { Link } from './link'
+import { InteractiveButton } from './primitives'
 
 type AvatarProps = {
   src?: string | null
@@ -60,7 +62,7 @@ export const AvatarButton = forwardRef(function AvatarButton(
     ...props
   }: AvatarProps &
     (
-      | ({ href?: never } & Omit<Headless.ButtonProps, 'as' | 'className'>)
+      | ({ href?: never } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className'>)
       | ({ href: string } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
     ),
   ref: React.ForwardedRef<HTMLButtonElement>
@@ -78,10 +80,10 @@ export const AvatarButton = forwardRef(function AvatarButton(
       </TouchTarget>
     </Link>
   ) : (
-    <Headless.Button {...props} className={classes} ref={ref}>
+    <InteractiveButton {...props} className={classes} ref={ref}>
       <TouchTarget>
         <Avatar src={src} square={square} initials={initials} alt={alt} />
       </TouchTarget>
-    </Headless.Button>
+    </InteractiveButton>
   )
 })

@@ -1,8 +1,6 @@
-interface Props {
-	role: 'user' | 'agent'
-	message: string
-	pending?: boolean
-}
+import type { ClientChatMessage } from '../types'
+
+type Props = Pick<ClientChatMessage, 'role' | 'message' | 'pending'>
 
 export function Message({ role, message, pending }: Props) {
 	return (

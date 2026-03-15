@@ -2,11 +2,7 @@ import { getUser } from 'heimdall/user'
 import { cookies } from 'next/headers'
 import type { ReactNode } from 'react'
 import { ChatClient } from './client'
-
-interface Chat {
-	id: string
-	title: string
-}
+import type { Chat } from './types'
 
 async function fetchChats(): Promise<Chat[]> {
 	const cookieStore = await cookies()

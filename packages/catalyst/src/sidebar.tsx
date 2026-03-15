@@ -1,12 +1,12 @@
 'use client'
 
-import * as Headless from '@headlessui/react'
 import clsx from 'clsx'
 import { LayoutGroup, motion } from 'motion/react'
 import type React from 'react'
 import { forwardRef, useContext, useId } from 'react'
 import { TouchTarget } from './button'
 import { Link } from './link'
+import { InteractiveButton, useInteractiveHandlers } from './primitives'
 import { MobileSidebarContext } from './sidebar-layout'
 
 function CloseIcon() {
@@ -36,12 +36,14 @@ export function SidebarHeader({ className, children, ...props }: React.Component
 				<div className="flex flex-1 flex-col [&>[data-slot=section]+[data-slot=section]]:mt-2.5">
 					{children}
 				</div>
-				<Headless.CloseButton
+				<button
+					type="button"
+					onClick={close}
 					aria-label="Close navigation"
 					className="rounded-lg fill-current p-2.5 text-zinc-950 hover:bg-zinc-950/5 dark:text-white dark:hover:bg-white/5 *:data-[slot=icon]:size-5 *:data-[slot=icon]:fill-current"
 				>
 					<CloseIcon />
-				</Headless.CloseButton>
+				</button>
 			</div>
 		)
 	}
@@ -125,11 +127,13 @@ export const SidebarItem = forwardRef(function SidebarItem(
 		children,
 		...props
 	}: { current?: boolean; className?: string; children: React.ReactNode } & (
-		| ({ href?: never } & Omit<Headless.ButtonProps, 'as' | 'className'>)
-		| ({ href: string } & Omit<Headless.ButtonProps<typeof Link>, 'as' | 'className'>)
+		| ({ href?: never } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className'>)
+		| ({ href: string } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
 	),
 	ref: React.ForwardedRef<HTMLAnchorElement | HTMLButtonElement>,
 ) {
+	const close = useContext(MobileSidebarContext)
+
 	const classes = clsx(
 		// Base
 		'flex w-full items-center gap-3 rounded-lg px-2 py-2.5 text-left text-base/6 font-medium text-zinc-950 sm:py-2 sm:text-sm/5',
@@ -161,24 +165,27 @@ export const SidebarItem = forwardRef(function SidebarItem(
 				/>
 			)}
 			{typeof props.href === 'string' ? (
-				<Headless.CloseButton
-					as={Link}
+				<Link
 					{...props}
 					className={classes}
 					data-current={current ? 'true' : undefined}
-					ref={ref}
+					ref={ref as React.ForwardedRef<HTMLAnchorElement>}
+					onClick={(e) => {
+						close?.()
+						;(props as React.ComponentPropsWithoutRef<typeof Link>).onClick?.(e)
+					}}
 				>
 					<TouchTarget>{children}</TouchTarget>
-				</Headless.CloseButton>
+				</Link>
 			) : (
-				<Headless.Button
+				<InteractiveButton
 					{...props}
 					className={clsx('cursor-default', classes)}
 					data-current={current ? 'true' : undefined}
-					ref={ref}
+					ref={ref as React.ForwardedRef<HTMLButtonElement>}
 				>
 					<TouchTarget>{children}</TouchTarget>
-				</Headless.Button>
+				</InteractiveButton>
 			)}
 		</span>
 	)

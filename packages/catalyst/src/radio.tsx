@@ -1,32 +1,62 @@
-import * as Headless from '@headlessui/react'
+'use client'
+
 import clsx from 'clsx'
+import type React from 'react'
+import { createContext, useCallback, useContext } from 'react'
+
+interface RadioGroupContextValue {
+  value: string | undefined
+  onChange: (value: string) => void
+  disabled?: boolean
+}
+
+const RadioGroupContext = createContext<RadioGroupContextValue>({
+  value: undefined,
+  onChange: () => {},
+})
 
 export function RadioGroup({
   className,
+  value,
+  defaultValue,
+  onChange,
+  disabled,
+  children,
   ...props
-}: { className?: string } & Omit<Headless.RadioGroupProps, 'as' | 'className'>) {
+}: {
+  className?: string
+  value?: string
+  defaultValue?: string
+  onChange?: (value: string) => void
+  disabled?: boolean
+  children: React.ReactNode
+} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className' | 'onChange'>) {
   return (
-    <Headless.RadioGroup
-      data-slot="control"
-      {...props}
-      className={clsx(
-        className,
-        // Basic groups
-        'space-y-3 **:data-[slot=label]:font-normal',
-        // With descriptions
-        'has-data-[slot=description]:space-y-6 has-data-[slot=description]:**:data-[slot=label]:font-medium'
-      )}
-    />
+    <RadioGroupContext.Provider value={{ value, onChange: onChange ?? (() => {}), disabled }}>
+      <div
+        role="radiogroup"
+        data-slot="control"
+        data-disabled={disabled ? '' : undefined}
+        {...props}
+        className={clsx(
+          className,
+          // Basic groups
+          'space-y-3 **:data-[slot=label]:font-normal',
+          // With descriptions
+          'has-data-[slot=description]:space-y-6 has-data-[slot=description]:**:data-[slot=label]:font-medium'
+        )}
+      >
+        {children}
+      </div>
+    </RadioGroupContext.Provider>
   )
 }
 
-export function RadioField({
-  className,
-  ...props
-}: { className?: string } & Omit<Headless.FieldProps, 'as' | 'className'>) {
+export function RadioField({ className, disabled, ...props }: { className?: string; disabled?: boolean } & React.ComponentPropsWithoutRef<'div'>) {
   return (
-    <Headless.Field
+    <div
       data-slot="field"
+      data-disabled={disabled ? '' : undefined}
       {...props}
       className={clsx(
         className,
@@ -120,13 +150,40 @@ type Color = keyof typeof colors
 export function Radio({
   color = 'dark/zinc',
   className,
+  value,
+  disabled: localDisabled,
   ...props
-}: { color?: Color; className?: string } & Omit<Headless.RadioProps, 'as' | 'className' | 'children'>) {
+}: {
+  color?: Color
+  className?: string
+  value: string
+  disabled?: boolean
+} & Omit<React.ComponentPropsWithoutRef<'button'>, 'className' | 'value'>) {
+  const { value: groupValue, onChange, disabled: groupDisabled } = useContext(RadioGroupContext)
+  const disabled = localDisabled ?? groupDisabled
+  const checked = groupValue === value
+
+  const handleClick = useCallback(() => {
+    if (disabled) return
+    onChange(value)
+  }, [disabled, onChange, value])
+
   return (
-    <Headless.Radio
+    <button
+      type="button"
+      role="radio"
+      aria-checked={checked}
       data-slot="control"
-      {...props}
+      data-checked={checked ? '' : undefined}
+      data-disabled={disabled ? '' : undefined}
+      disabled={disabled}
+      onClick={handleClick}
+      onMouseEnter={(e) => e.currentTarget.setAttribute('data-hover', '')}
+      onMouseLeave={(e) => e.currentTarget.removeAttribute('data-hover')}
+      onFocus={(e) => e.currentTarget.setAttribute('data-focus', '')}
+      onBlur={(e) => e.currentTarget.removeAttribute('data-focus')}
       className={clsx(className, 'group inline-flex focus:outline-hidden')}
+      {...props}
     >
       <span className={clsx([base, colors[color]])}>
         <span
@@ -137,6 +194,6 @@ export function Radio({
           )}
         />
       </span>
-    </Headless.Radio>
+    </button>
   )
 }
