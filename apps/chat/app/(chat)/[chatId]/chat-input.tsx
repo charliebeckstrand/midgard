@@ -41,7 +41,7 @@ export function ChatInput({ disabled, onSend }: Props) {
 						onChange={(e) => setInput(e.target.value)}
 						onKeyDown={handleKeyDown}
 						placeholder="Type a message..."
-						className="relative block min-h-9 w-full resize-none appearance-none overflow-hidden rounded-lg border border-zinc-950/10 bg-transparent px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)] text-base/6 text-zinc-950 placeholder:text-zinc-500 focus:outline-hidden data-hover:border-zinc-950/20 sm:px-[calc(--spacing(3)-1px)] sm:py-[calc(--spacing(1.5)-1px)] sm:text-sm/6 dark:border-white/10 dark:bg-white/5 dark:text-white dark:data-hover:border-white/20"
+						className="relative block min-h-9 w-full resize-none appearance-none overflow-hidden rounded-lg border border-zinc-950/10 bg-transparent px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)] text-base/6 text-zinc-950 placeholder:text-zinc-500 focus:outline-hidden hover:border-zinc-950/20 sm:px-[calc(--spacing(3)-1px)] sm:py-[calc(--spacing(1.5)-1px)] sm:text-sm/6 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:border-white/20"
 					/>
 				</span>
 				<Button onClick={handleSend} disabled={!input.trim() || disabled}>

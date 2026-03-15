@@ -11,7 +11,7 @@
 			"default": "./dist/index.js"
 		},
 		"./alert": {
-			"types": "./src/alert.tsx",
+			"types": "./src/alert/index.ts",
 			"import": "./dist/alert.js",
 			"default": "./dist/alert.js"
 		},
@@ -21,62 +21,62 @@
 			"default": "./dist/auth-layout.js"
 		},
 		"./avatar": {
-			"types": "./src/avatar.tsx",
+			"types": "./src/avatar/index.ts",
 			"import": "./dist/avatar.js",
 			"default": "./dist/avatar.js"
 		},
 		"./badge": {
-			"types": "./src/badge.tsx",
+			"types": "./src/badge/index.ts",
 			"import": "./dist/badge.js",
 			"default": "./dist/badge.js"
 		},
 		"./button": {
-			"types": "./src/button.tsx",
+			"types": "./src/button/index.ts",
 			"import": "./dist/button.js",
 			"default": "./dist/button.js"
 		},
 		"./checkbox": {
-			"types": "./src/checkbox.tsx",
+			"types": "./src/checkbox/index.ts",
 			"import": "./dist/checkbox.js",
 			"default": "./dist/checkbox.js"
 		},
 		"./combobox": {
-			"types": "./src/combobox.tsx",
+			"types": "./src/combobox/index.ts",
 			"import": "./dist/combobox.js",
 			"default": "./dist/combobox.js"
 		},
 		"./description-list": {
-			"types": "./src/description-list.tsx",
+			"types": "./src/description-list/index.ts",
 			"import": "./dist/description-list.js",
 			"default": "./dist/description-list.js"
 		},
 		"./dialog": {
-			"types": "./src/dialog.tsx",
+			"types": "./src/dialog/index.ts",
 			"import": "./dist/dialog.js",
 			"default": "./dist/dialog.js"
 		},
 		"./divider": {
-			"types": "./src/divider.tsx",
+			"types": "./src/divider/index.ts",
 			"import": "./dist/divider.js",
 			"default": "./dist/divider.js"
 		},
 		"./dropdown": {
-			"types": "./src/dropdown.tsx",
+			"types": "./src/dropdown/index.ts",
 			"import": "./dist/dropdown.js",
 			"default": "./dist/dropdown.js"
 		},
 		"./fieldset": {
-			"types": "./src/fieldset.tsx",
+			"types": "./src/fieldset/index.ts",
 			"import": "./dist/fieldset.js",
 			"default": "./dist/fieldset.js"
 		},
 		"./heading": {
-			"types": "./src/heading.tsx",
+			"types": "./src/heading/index.ts",
 			"import": "./dist/heading.js",
 			"default": "./dist/heading.js"
 		},
 		"./input": {
-			"types": "./src/input.tsx",
+			"types": "./src/input/index.ts",
 			"import": "./dist/input.js",
 			"default": "./dist/input.js"
 		},
@@ -86,69 +86,74 @@
 			"default": "./dist/link.js"
 		},
 		"./listbox": {
-			"types": "./src/listbox.tsx",
+			"types": "./src/listbox/index.ts",
 			"import": "./dist/listbox.js",
 			"default": "./dist/listbox.js"
 		},
 		"./navbar": {
-			"types": "./src/navbar.tsx",
+			"types": "./src/navbar/index.ts",
 			"import": "./dist/navbar.js",
 			"default": "./dist/navbar.js"
 		},
 		"./pagination": {
-			"types": "./src/pagination.tsx",
+			"types": "./src/pagination/index.ts",
 			"import": "./dist/pagination.js",
 			"default": "./dist/pagination.js"
 		},
 		"./radio": {
-			"types": "./src/radio.tsx",
+			"types": "./src/radio/index.ts",
 			"import": "./dist/radio.js",
 			"default": "./dist/radio.js"
 		},
 		"./select": {
-			"types": "./src/select.tsx",
+			"types": "./src/select/index.ts",
 			"import": "./dist/select.js",
 			"default": "./dist/select.js"
 		},
 		"./sidebar": {
-			"types": "./src/sidebar.tsx",
+			"types": "./src/sidebar/index.ts",
 			"import": "./dist/sidebar.js",
 			"default": "./dist/sidebar.js"
 		},
 		"./sidebar-layout": {
-			"types": "./src/sidebar-layout.tsx",
+			"types": "./src/sidebar-layout/index.ts",
 			"import": "./dist/sidebar-layout.js",
 			"default": "./dist/sidebar-layout.js"
 		},
 		"./stacked-layout": {
-			"types": "./src/stacked-layout.tsx",
+			"types": "./src/stacked-layout/index.ts",
 			"import": "./dist/stacked-layout.js",
 			"default": "./dist/stacked-layout.js"
 		},
 		"./switch": {
-			"types": "./src/switch.tsx",
+			"types": "./src/switch/index.ts",
 			"import": "./dist/switch.js",
 			"default": "./dist/switch.js"
 		},
 		"./table": {
-			"types": "./src/table.tsx",
+			"types": "./src/table/index.ts",
 			"import": "./dist/table.js",
 			"default": "./dist/table.js"
 		},
 		"./text": {
-			"types": "./src/text.tsx",
+			"types": "./src/text/index.ts",
 			"import": "./dist/text.js",
 			"default": "./dist/text.js"
 		},
 		"./textarea": {
-			"types": "./src/textarea.tsx",
+			"types": "./src/textarea/index.ts",
 			"import": "./dist/textarea.js",
 			"default": "./dist/textarea.js"
 		},
-		"./primitives": {
-			"types": "./src/primitives.tsx",
-			"import": "./dist/primitives.js",
-			"default": "./dist/primitives.js"
+		"./hooks": {
+			"types": "./src/hooks/index.ts",
+			"import": "./dist/hooks.js",
+			"default": "./dist/hooks.js"
+		},
+		"./utils": {
+			"types": "./src/utils/index.ts",
+			"import": "./dist/utils.js",
+			"default": "./dist/utils.js"
 		}
 	},
 	"scripts": {

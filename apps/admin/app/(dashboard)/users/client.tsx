@@ -82,7 +82,7 @@ function EditUserDialog({ user, onClose }: EditUserDialogProps) {
 				</Fieldset>
 			</DialogBody>
 			<DialogActions>
-				<Button plain onClick={onClose}>
+				<Button variant="plain" onClick={onClose}>
 					Cancel
 				</Button>
 				<Button color="blue">Save</Button>
@@ -129,10 +129,10 @@ export function UsersClient({ users }: UsersClientProps) {
 							</TableCell>
 							<TableCell>
 								<div className="flex gap-1">
-									<Button outline onClick={() => setEditingUser(user)}>
+									<Button variant="outline" onClick={() => setEditingUser(user)}>
 										Edit
 									</Button>
-									<Button outline>Delete</Button>
+									<Button variant="outline">Delete</Button>
 								</div>
 							</TableCell>
 						</TableRow>

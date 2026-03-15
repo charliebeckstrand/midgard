@@ -6,7 +6,7 @@ import { Button, Heading } from 'catalyst'
 export function SettingsClient() {
 	return (
 		<div className="flex flex-col gap-4 p-6">
-			<Button outline href="/">
+			<Button variant="outline" href="/">
 				<ArrowLeftIcon />
 				Back to chats
 			</Button>
