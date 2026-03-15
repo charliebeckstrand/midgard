@@ -98,9 +98,8 @@ Documentation dashboard that renders markdown files from the root `docs/` direct
 **Key paths:**
 - `app/layout.tsx` — Root layout
 - `app/(docs)/layout.tsx` — Docs shell with sidebar navigation
-- `app/(docs)/page.tsx` — Dashboard home (card grid of all docs)
-- `app/(docs)/[slug]/page.tsx` — Individual doc page with markdown rendering
-- `app/client.tsx` — Client-side sidebar/navbar shell
+- `app/(docs)/page.tsx` — Single-page view rendering all docs stacked with id anchors
+- `app/(docs)/client.tsx` — Client-side sidebar/navbar shell with IntersectionObserver scroll tracking
 - `app/markdown.tsx` — Server-side markdown-to-HTML renderer with Shiki syntax highlighting
 - `app/lib/docs.ts` — Reads and parses markdown files from `docs/` directory
 - `proxy.ts` — Next.js proxy using `heimdall/proxy` with `protect: false` (public app, only redirects authenticated users away from `/login`)

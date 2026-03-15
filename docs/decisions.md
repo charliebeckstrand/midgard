@@ -113,6 +113,24 @@ Non-trivial design choices with context, alternatives, and trade-offs.
 - Scroll-to-bottom reliably fires after DOM updates.
 - `react-textarea-autosize` adds ~1.5KB to the chat app bundle.
 
+## 2026-03-15 — Docs app: single-page layout with anchor scroll tracking
+
+**Status:** Accepted
+
+**Context:** The docs app had separate pages for each document (`/project`, `/decisions`, etc.) using a `[slug]` dynamic route. Navigating between docs required full page loads, and the sidebar only tracked the current route.
+
+**Decision:** Consolidated all docs onto a single page. Each doc section is rendered with an `id` anchor matching its slug. The sidebar uses `#slug` anchor links and an `IntersectionObserver` to track which section is currently in view, updating the active sidebar item as the user scrolls.
+
+**Alternatives:**
+- Keep separate pages with prefetching: simpler routing but no scroll tracking, more network requests.
+- Virtual scrolling: unnecessary complexity for the current number of docs.
+
+**Consequences:**
+- All docs load on a single page (larger initial payload, but all content is immediately available).
+- Sidebar highlights the section currently in view as the user scrolls.
+- The `[slug]` dynamic route is removed — old `/slug` URLs will 404 (acceptable since this is an internal tool).
+- Adding a new doc still only requires adding to `PUBLISHED_DOCS` in `docs.ts`.
+
 ## 2026-03-14 — Consolidate shared app config and reduce duplication
 
 **Status:** Accepted
