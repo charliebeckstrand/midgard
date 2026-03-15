@@ -1,12 +1,12 @@
 'use client'
 
-import * as Headless from '@headlessui/react'
 import clsx from 'clsx'
 import { LayoutGroup, motion } from 'motion/react'
 import type React from 'react'
 import { forwardRef, useId } from 'react'
 import { TouchTarget } from './button'
 import { Link } from './link'
+import { InteractiveButton, useInteractiveHandlers } from './primitives'
 
 export function Navbar({ className, ...props }: React.ComponentPropsWithoutRef<'nav'>) {
 	return <nav {...props} className={clsx(className, 'flex flex-1 items-center gap-4 py-2.5')} />
@@ -43,7 +43,7 @@ export const NavbarItem = forwardRef(function NavbarItem(
 		children,
 		...props
 	}: { current?: boolean; className?: string; children: React.ReactNode } & (
-		| ({ href?: never } & Omit<Headless.ButtonProps, 'as' | 'className'>)
+		| ({ href?: never } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className'>)
 		| ({ href: string } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
 	),
 	ref: React.ForwardedRef<HTMLAnchorElement | HTMLButtonElement>,
@@ -85,14 +85,14 @@ export const NavbarItem = forwardRef(function NavbarItem(
 					<TouchTarget>{children}</TouchTarget>
 				</Link>
 			) : (
-				<Headless.Button
+				<InteractiveButton
 					{...props}
 					className={clsx('cursor-default', classes)}
 					data-current={current ? 'true' : undefined}
-					ref={ref}
+					ref={ref as React.ForwardedRef<HTMLButtonElement>}
 				>
 					<TouchTarget>{children}</TouchTarget>
-				</Headless.Button>
+				</InteractiveButton>
 			)}
 		</span>
 	)

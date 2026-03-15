@@ -1,6 +1,8 @@
-import * as Headless from '@headlessui/react'
+'use client'
+
 import clsx from 'clsx'
 import React, { forwardRef } from 'react'
+import { useInteractiveHandlers } from './primitives'
 
 export function InputGroup({ children }: React.ComponentPropsWithoutRef<'span'>) {
   return (
@@ -25,13 +27,19 @@ type DateType = (typeof dateTypes)[number]
 export const Input = forwardRef(function Input(
   {
     className,
+    disabled,
+    invalid,
     ...props
   }: {
     className?: string
+    disabled?: boolean
+    invalid?: boolean
     type?: 'email' | 'number' | 'password' | 'search' | 'tel' | 'text' | 'url' | DateType
-  } & Omit<Headless.InputProps, 'as' | 'className'>,
+  } & Omit<React.ComponentPropsWithoutRef<'input'>, 'className'>,
   ref: React.ForwardedRef<HTMLInputElement>
 ) {
+  const interactive = useInteractiveHandlers()
+
   return (
     <span
       data-slot="control"
@@ -49,9 +57,13 @@ export const Input = forwardRef(function Input(
         'has-data-disabled:opacity-50 has-data-disabled:before:bg-zinc-950/5 has-data-disabled:before:shadow-none',
       ])}
     >
-      <Headless.Input
+      <input
         ref={ref}
+        disabled={disabled}
+        data-disabled={disabled ? '' : undefined}
+        data-invalid={invalid ? '' : undefined}
         {...props}
+        {...interactive}
         className={clsx([
           // Date classes
           props.type &&

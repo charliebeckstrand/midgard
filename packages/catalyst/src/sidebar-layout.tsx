@@ -1,7 +1,7 @@
 'use client'
 
-import * as Headless from '@headlessui/react'
-import React, { createContext, useState } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
+import React, { createContext, useCallback, useEffect, useRef, useState } from 'react'
 import { NavbarItem } from './navbar'
 
 export const MobileSidebarContext = createContext<(() => void) | null>(null)
@@ -15,23 +15,54 @@ function OpenMenuIcon() {
 }
 
 function MobileSidebar({ open, close, children }: React.PropsWithChildren<{ open: boolean; close: () => void }>) {
+  const panelRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') close()
+    }
+
+    document.addEventListener('keydown', onKeyDown)
+    document.body.style.overflow = 'hidden'
+
+    return () => {
+      document.removeEventListener('keydown', onKeyDown)
+      document.body.style.overflow = ''
+    }
+  }, [open, close])
+
   return (
-    <Headless.Dialog open={open} onClose={close} className="lg:hidden">
-      <Headless.DialogBackdrop
-        transition
-        className="fixed inset-0 bg-black/30 transition data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"
-      />
-      <Headless.DialogPanel
-        transition
-        className="fixed inset-y-0 left-0 w-full max-w-80 p-2 transition duration-300 ease-in-out data-closed:-translate-x-full"
-      >
-        <MobileSidebarContext.Provider value={close}>
-          <div className="flex h-full flex-col rounded-lg bg-white shadow-xs ring-1 ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10">
-            {children}
-          </div>
-        </MobileSidebarContext.Provider>
-      </Headless.DialogPanel>
-    </Headless.Dialog>
+    <AnimatePresence>
+      {open && (
+        <div className="lg:hidden fixed inset-0 z-50" role="dialog" aria-modal="true">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="fixed inset-0 bg-black/30"
+            onClick={close}
+            aria-hidden="true"
+          />
+          <motion.div
+            ref={panelRef}
+            initial={{ x: '-100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '-100%' }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            className="fixed inset-y-0 left-0 w-full max-w-80 p-2"
+          >
+            <MobileSidebarContext.Provider value={close}>
+              <div className="flex h-full flex-col rounded-lg bg-white shadow-xs ring-1 ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10">
+                {children}
+              </div>
+            </MobileSidebarContext.Provider>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
   )
 }
 
@@ -41,7 +72,19 @@ export function SidebarLayout({
   scrollable = true,
   children,
 }: React.PropsWithChildren<{ navbar: React.ReactNode; sidebar: React.ReactNode; scrollable?: boolean }>) {
-  let [showSidebar, setShowSidebar] = useState(false)
+  const [showSidebar, setShowSidebar] = useState(false)
+  const closeSidebar = useCallback(() => setShowSidebar(false), [])
+  const mainRef = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    if (mainRef.current) {
+      if (showSidebar) {
+        mainRef.current.setAttribute('inert', '')
+      } else {
+        mainRef.current.removeAttribute('inert')
+      }
+    }
+  }, [showSidebar])
 
   return (
     <div className="relative isolate flex min-h-svh w-full bg-white max-lg:flex-col lg:bg-zinc-100 dark:bg-zinc-900 dark:lg:bg-zinc-950">
@@ -49,7 +92,7 @@ export function SidebarLayout({
       <div className="fixed inset-y-0 left-0 w-64 max-lg:hidden">{sidebar}</div>
 
       {/* Sidebar on mobile */}
-      <MobileSidebar open={showSidebar} close={() => setShowSidebar(false)}>
+      <MobileSidebar open={showSidebar} close={closeSidebar}>
         {sidebar}
       </MobileSidebar>
 
@@ -64,7 +107,7 @@ export function SidebarLayout({
       </header>
 
       {/* Content */}
-      <main className="flex flex-1 flex-col pb-2 lg:min-w-0 lg:pt-2 lg:pr-2 lg:pl-64 overflow-hidden">
+      <main ref={mainRef} className="flex flex-1 flex-col pb-2 lg:min-w-0 lg:pt-2 lg:pr-2 lg:pl-64 overflow-hidden">
         <div className={`flex flex-col grow py-4 px-6 lg:p-6 lg:rounded-lg lg:bg-white lg:shadow-xs lg:ring-1 lg:ring-zinc-950/5 dark:lg:bg-zinc-900 dark:lg:ring-white/10 ${scrollable ? 'overflow-y-auto' : 'overflow-hidden'}`}>
           {children}
         </div>

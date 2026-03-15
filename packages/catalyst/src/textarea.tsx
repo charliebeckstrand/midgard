@@ -1,15 +1,26 @@
-import * as Headless from '@headlessui/react'
+'use client'
+
 import clsx from 'clsx'
 import React, { forwardRef } from 'react'
+import { useInteractiveHandlers } from './primitives'
 
 export const Textarea = forwardRef(function Textarea(
   {
     className,
     resizable = true,
+    disabled,
+    invalid,
     ...props
-  }: { className?: string; resizable?: boolean } & Omit<Headless.TextareaProps, 'as' | 'className'>,
+  }: {
+    className?: string
+    resizable?: boolean
+    disabled?: boolean
+    invalid?: boolean
+  } & Omit<React.ComponentPropsWithoutRef<'textarea'>, 'className'>,
   ref: React.ForwardedRef<HTMLTextAreaElement>
 ) {
+  const interactive = useInteractiveHandlers()
+
   return (
     <span
       data-slot="control"
@@ -27,9 +38,13 @@ export const Textarea = forwardRef(function Textarea(
         'has-data-disabled:opacity-50 has-data-disabled:before:bg-zinc-950/5 has-data-disabled:before:shadow-none',
       ])}
     >
-      <Headless.Textarea
+      <textarea
         ref={ref}
+        disabled={disabled}
+        data-disabled={disabled ? '' : undefined}
+        data-invalid={invalid ? '' : undefined}
         {...props}
+        {...interactive}
         className={clsx([
           // Basic layout
           'relative block h-full w-full appearance-none rounded-lg px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)] sm:px-[calc(--spacing(3)-1px)] sm:py-[calc(--spacing(1.5)-1px)]',

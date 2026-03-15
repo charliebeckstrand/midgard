@@ -1,6 +1,8 @@
-import * as Headless from '@headlessui/react'
+'use client'
+
 import clsx from 'clsx'
 import type React from 'react'
+import { useCallback } from 'react'
 
 export function CheckboxGroup({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
   return (
@@ -18,13 +20,11 @@ export function CheckboxGroup({ className, ...props }: React.ComponentPropsWitho
   )
 }
 
-export function CheckboxField({
-  className,
-  ...props
-}: { className?: string } & Omit<Headless.FieldProps, 'as' | 'className'>) {
+export function CheckboxField({ className, disabled, ...props }: { className?: string; disabled?: boolean } & React.ComponentPropsWithoutRef<'div'>) {
   return (
-    <Headless.Field
+    <div
       data-slot="field"
+      data-disabled={disabled ? '' : undefined}
       {...props}
       className={clsx(
         className,
@@ -117,17 +117,60 @@ type Color = keyof typeof colors
 export function Checkbox({
   color = 'dark/zinc',
   className,
+  checked,
+  defaultChecked,
+  indeterminate,
+  onChange,
+  disabled,
+  name,
+  value,
   ...props
 }: {
   color?: Color
   className?: string
-} & Omit<Headless.CheckboxProps, 'as' | 'className'>) {
+  checked?: boolean
+  defaultChecked?: boolean
+  indeterminate?: boolean
+  onChange?: (checked: boolean) => void
+  disabled?: boolean
+  name?: string
+  value?: string
+} & Omit<React.ComponentPropsWithoutRef<'button'>, 'className' | 'onChange'>) {
+  const handleClick = useCallback(() => {
+    if (disabled) return
+    onChange?.(!checked)
+  }, [checked, disabled, onChange])
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === ' ') {
+        e.preventDefault()
+        handleClick()
+      }
+    },
+    [handleClick],
+  )
+
   return (
-    <Headless.Checkbox
+    <button
+      type="button"
+      role="checkbox"
+      aria-checked={indeterminate ? 'mixed' : checked}
       data-slot="control"
-      {...props}
+      data-checked={checked ? '' : undefined}
+      data-indeterminate={indeterminate ? '' : undefined}
+      data-disabled={disabled ? '' : undefined}
+      disabled={disabled}
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
+      onMouseEnter={(e) => e.currentTarget.setAttribute('data-hover', '')}
+      onMouseLeave={(e) => e.currentTarget.removeAttribute('data-hover')}
+      onFocus={(e) => e.currentTarget.setAttribute('data-focus', '')}
+      onBlur={(e) => e.currentTarget.removeAttribute('data-focus')}
       className={clsx(className, 'group inline-flex focus:outline-hidden')}
+      {...props}
     >
+      {name && <input type="hidden" name={name} value={checked ? (value ?? 'on') : ''} />}
       <span className={clsx([base, colors[color]])}>
         <svg
           className="size-4 stroke-(--checkbox-check) opacity-0 group-data-checked:opacity-100 sm:h-3.5 sm:w-3.5"
@@ -152,6 +195,6 @@ export function Checkbox({
           />
         </svg>
       </span>
-    </Headless.Checkbox>
+    </button>
   )
 }

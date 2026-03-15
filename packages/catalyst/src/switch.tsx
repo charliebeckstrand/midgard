@@ -1,6 +1,8 @@
-import * as Headless from '@headlessui/react'
+'use client'
+
 import clsx from 'clsx'
 import type React from 'react'
+import { useCallback } from 'react'
 
 export function SwitchGroup({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
   return (
@@ -18,13 +20,11 @@ export function SwitchGroup({ className, ...props }: React.ComponentPropsWithout
   )
 }
 
-export function SwitchField({
-  className,
-  ...props
-}: { className?: string } & Omit<Headless.FieldProps, 'as' | 'className'>) {
+export function SwitchField({ className, disabled, ...props }: { className?: string; disabled?: boolean } & React.ComponentPropsWithoutRef<'div'>) {
   return (
-    <Headless.Field
+    <div
       data-slot="field"
+      data-disabled={disabled ? '' : undefined}
       {...props}
       className={clsx(
         className,
@@ -139,15 +139,40 @@ type Color = keyof typeof colors
 export function Switch({
   color = 'dark/zinc',
   className,
+  checked,
+  defaultChecked,
+  onChange,
+  disabled,
+  name,
   ...props
 }: {
   color?: Color
   className?: string
-} & Omit<Headless.SwitchProps, 'as' | 'className' | 'children'>) {
+  checked?: boolean
+  defaultChecked?: boolean
+  onChange?: (checked: boolean) => void
+  disabled?: boolean
+  name?: string
+} & Omit<React.ComponentPropsWithoutRef<'button'>, 'className' | 'onChange'>) {
+  const handleClick = useCallback(() => {
+    if (disabled) return
+    onChange?.(!checked)
+  }, [checked, disabled, onChange])
+
   return (
-    <Headless.Switch
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
       data-slot="control"
-      {...props}
+      data-checked={checked ? '' : undefined}
+      data-disabled={disabled ? '' : undefined}
+      disabled={disabled}
+      onClick={handleClick}
+      onMouseEnter={(e) => e.currentTarget.setAttribute('data-hover', '')}
+      onMouseLeave={(e) => e.currentTarget.removeAttribute('data-hover')}
+      onFocus={(e) => e.currentTarget.setAttribute('data-focus', '')}
+      onBlur={(e) => e.currentTarget.removeAttribute('data-focus')}
       className={clsx(
         className,
         // Base styles
@@ -171,7 +196,9 @@ export function Switch({
         // Color specific styles
         colors[color]
       )}
+      {...props}
     >
+      {name && <input type="hidden" name={name} value={checked ? 'on' : ''} />}
       <span
         aria-hidden="true"
         className={clsx(
@@ -190,6 +217,6 @@ export function Switch({
           'group-data-checked:group-data-disabled:bg-white group-data-checked:group-data-disabled:shadow-sm group-data-checked:group-data-disabled:ring-black/5'
         )}
       />
-    </Headless.Switch>
+    </button>
   )
 }

@@ -72,6 +72,47 @@ Non-trivial design choices with context, alternatives, and trade-offs.
 - Norse naming is preserved for infrastructure packages (heimdall, sindri, bifrost) where the metaphors are more descriptive.
 - Existing Turbo cache is invalidated (package name changed).
 
+## 2026-03-15 — Remove HeadlessUI from catalyst, replace with motion + primitives
+
+**Status:** Accepted
+
+**Context:** HeadlessUI components in the catalyst package caused intermittent hydration errors across all apps. The library's approach of rendering elements with data attributes during SSR didn't always match the client-side hydration output.
+
+**Decision:** Removed `@headlessui/react` entirely from catalyst. Replaced with:
+1. `primitives.tsx` — `InteractiveButton`, `InteractiveLink`, `useInteractiveHandlers()` that manage `data-hover`/`data-active`/`data-focus`/`data-disabled` attributes via DOM event handlers, preserving all existing Tailwind class strings.
+2. `motion/react` — `AnimatePresence` + `motion.div` for animated overlays (sidebar drawer, dropdown menu, dialog, alert).
+3. Native ARIA — `role="dialog"`, `role="menu"`, `role="menuitem"`, `role="listbox"`, `role="option"`, `role="combobox"`, `role="switch"`, `role="checkbox"`, `role="radio"` with proper `aria-*` attributes.
+4. `inert` attribute on main content for focus trapping in modals.
+5. `useEffect`-based Escape key and click-outside handlers.
+
+**Alternatives:**
+- Fix HeadlessUI hydration issues: Attempted but the errors were intermittent and hard to reproduce/debug. The library's internal state management during SSR was the root cause.
+- Use Radix UI: Another headless library but would introduce a new dependency with potentially similar SSR issues.
+
+**Consequences:**
+- No more intermittent hydration errors from HeadlessUI.
+- One fewer dependency (bundle size reduction).
+- Custom implementations are simpler but less battle-tested for edge cases (e.g., complex focus trapping, virtual scrolling in combobox).
+- All existing Tailwind class strings preserved — no consumer-facing API changes.
+
+## 2026-03-15 — Chat app hook extraction and scroll-to-bottom fix
+
+**Status:** Accepted
+
+**Context:** The chat app had monolithic components (`chat-view.tsx`, `client.tsx`) with duplicated types across files and a scroll bug where `scrollToBottom()` was called synchronously after `setMessages()` before React had committed the state update to the DOM.
+
+**Decision:** Extracted shared types to `types.ts`, created three hooks (`use-scroll-to-bottom`, `use-chat-messages`, `use-chat-actions`), and replaced manual textarea auto-resize with `react-textarea-autosize`. The scroll fix uses `useEffect` watching `messages.length` to scroll after the DOM update instead of calling synchronously after setState.
+
+**Alternatives:**
+- Keep monolithic components: simpler file structure but harder to test and reason about.
+- Use `requestAnimationFrame` for scroll: works but `useEffect` is the idiomatic React approach.
+- Custom auto-resize hook: possible but `react-textarea-autosize` handles edge cases (mobile font-size changes, IME input, font loading) that are hard to get right.
+
+**Consequences:**
+- Chat components are thin render shells, logic is testable in isolation.
+- Scroll-to-bottom reliably fires after DOM updates.
+- `react-textarea-autosize` adds ~1.5KB to the chat app bundle.
+
 ## 2026-03-14 — Consolidate shared app config and reduce duplication
 
 **Status:** Accepted

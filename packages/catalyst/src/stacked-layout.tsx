@@ -1,7 +1,7 @@
 'use client'
 
-import * as Headless from '@headlessui/react'
-import React, { useState } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { NavbarItem } from './navbar'
 
 function OpenMenuIcon() {
@@ -21,26 +21,54 @@ function CloseMenuIcon() {
 }
 
 function MobileSidebar({ open, close, children }: React.PropsWithChildren<{ open: boolean; close: () => void }>) {
+  useEffect(() => {
+    if (!open) return
+
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') close()
+    }
+
+    document.addEventListener('keydown', onKeyDown)
+    document.body.style.overflow = 'hidden'
+
+    return () => {
+      document.removeEventListener('keydown', onKeyDown)
+      document.body.style.overflow = ''
+    }
+  }, [open, close])
+
   return (
-    <Headless.Dialog open={open} onClose={close} className="lg:hidden">
-      <Headless.DialogBackdrop
-        transition
-        className="fixed inset-0 bg-black/30 transition data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"
-      />
-      <Headless.DialogPanel
-        transition
-        className="fixed inset-y-0 w-full max-w-80 p-2 transition duration-300 ease-in-out data-closed:-translate-x-full"
-      >
-        <div className="flex h-full flex-col rounded-lg bg-white shadow-xs ring-1 ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10">
-          <div className="-mb-3 px-4 pt-3">
-            <Headless.CloseButton as={NavbarItem} aria-label="Close navigation">
-              <CloseMenuIcon />
-            </Headless.CloseButton>
-          </div>
-          {children}
+    <AnimatePresence>
+      {open && (
+        <div className="lg:hidden fixed inset-0 z-50" role="dialog" aria-modal="true">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="fixed inset-0 bg-black/30"
+            onClick={close}
+            aria-hidden="true"
+          />
+          <motion.div
+            initial={{ x: '-100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '-100%' }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            className="fixed inset-y-0 left-0 w-full max-w-80 p-2"
+          >
+            <div className="flex h-full flex-col rounded-lg bg-white shadow-xs ring-1 ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10">
+              <div className="-mb-3 px-4 pt-3">
+                <NavbarItem onClick={close} aria-label="Close navigation">
+                  <CloseMenuIcon />
+                </NavbarItem>
+              </div>
+              {children}
+            </div>
+          </motion.div>
         </div>
-      </Headless.DialogPanel>
-    </Headless.Dialog>
+      )}
+    </AnimatePresence>
   )
 }
 
@@ -50,16 +78,28 @@ export function StackedLayout({
   children,
 }: React.PropsWithChildren<{ navbar: React.ReactNode; sidebar: React.ReactNode }>) {
   let [showSidebar, setShowSidebar] = useState(false)
+  const closeSidebar = useCallback(() => setShowSidebar(false), [])
+  const mainRef = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    if (mainRef.current) {
+      if (showSidebar) {
+        mainRef.current.setAttribute('inert', '')
+      } else {
+        mainRef.current.removeAttribute('inert')
+      }
+    }
+  }, [showSidebar])
 
   return (
     <div className="relative isolate flex min-h-svh w-full flex-col bg-white lg:bg-zinc-100 dark:bg-zinc-900 dark:lg:bg-zinc-950">
       {/* Sidebar on mobile */}
-      <MobileSidebar open={showSidebar} close={() => setShowSidebar(false)}>
+      <MobileSidebar open={showSidebar} close={closeSidebar}>
         {sidebar}
       </MobileSidebar>
 
       {/* Navbar */}
-      <header className="flex items-center px-4">
+      <header className="flex items-center px-4" ref={mainRef as React.RefObject<HTMLElement>}>
         <div className="py-2.5 lg:hidden">
           <NavbarItem onClick={() => setShowSidebar(true)} aria-label="Open navigation">
             <OpenMenuIcon />

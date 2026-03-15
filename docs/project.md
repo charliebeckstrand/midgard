@@ -10,7 +10,7 @@ Midgard is a pnpm monorepo managed by Turbo. It contains Next.js applications ba
 - **Monorepo orchestration**: Turbo
 - **Framework**: Next.js 16 (App Router, Turbopack)
 - **Language**: TypeScript 5.9 (strict, ES2022 target, bundler resolution)
-- **UI**: React 19, Tailwind CSS 4, Headless UI
+- **UI**: React 19, Tailwind CSS 4
 - **Animation**: motion (framer-motion) 12.x
 - **Icons**: @heroicons/react
 - **Component variants**: class-variance-authority (CVA)
@@ -73,6 +73,8 @@ Chat application running on port 3002. Authenticated (same model as admin).
 - `app/layout.tsx` — Root layout
 - `app/(chat)/` — Chat route group (main authenticated area)
 - `app/(chat)/page.tsx` — Chat home (empty state)
+- `app/(chat)/types.ts` — Shared types (User, Chat, ChatMessage, ClientChatMessage)
+- `app/(chat)/hooks/` — Extracted hooks (use-scroll-to-bottom, use-chat-messages, use-chat-actions)
 - `app/(chat)/client.tsx` — Client wrapper with SidebarLayout, sidebar with "New chat" + chat list
 - `app/(chat)/[chatId]/page.tsx` — Individual chat page with message input/display
 - `app/(chat)/sidebar-footer.tsx` — User dropdown with sign-out
@@ -86,7 +88,7 @@ Chat application running on port 3002. Authenticated (same model as admin).
 - `GET /api/chat/{chatId}` — Fetches a specific chat's messages
 - `POST /api/chat/{chatId}` — Sends a message (creates chat on first message, appends on subsequent)
 
-**Depends on:** heimdall, sindri, catalyst, reactbits, @heroicons/react
+**Depends on:** heimdall, sindri, catalyst, reactbits, react-textarea-autosize, @heroicons/react
 
 ## apps/docs
 
@@ -153,11 +155,11 @@ Shared UI resources — auth page components, form validation hook, design theme
 
 ## packages/catalyst
 
-Headless UI + Tailwind CSS component library with 28+ components. Uses `data-slot` attributes for styling hooks.
+Tailwind CSS component library with 28+ components. Uses `data-slot` attributes for styling hooks and `data-hover`/`data-active`/`data-focus`/`data-disabled` attributes managed via event handlers in `primitives.tsx`. Animations use `motion/react` (AnimatePresence, motion.div). No HeadlessUI dependency.
 
-**Components:** alert, auth-layout, avatar, badge, button, checkbox, combobox, description-list, dialog, divider, dropdown, fieldset (Field, Label, Description, ErrorMessage, FieldGroup, Legend), heading, input (Input, InputGroup), link, listbox, navbar, pagination, radio, select, sidebar, sidebar-layout, stacked-layout, switch, table, text (Text, TextLink, Strong, Code)
+**Components:** alert, auth-layout, avatar, badge, button, checkbox, combobox, description-list, dialog, divider, dropdown, fieldset (Field, Label, Description, ErrorMessage, FieldGroup, Legend), heading, input (Input, InputGroup), link, listbox, navbar, pagination, primitives (InteractiveButton, InteractiveLink, useInteractiveHandlers, useClickOutside, useEscapeKey), radio, select, sidebar, sidebar-layout, stacked-layout, switch, table, text (Text, TextLink, Strong, Code)
 
-**Depends on:** @headlessui/react, clsx, class-variance-authority, motion
+**Depends on:** clsx, class-variance-authority, motion
 
 ## packages/reactbits
 

@@ -19,7 +19,7 @@ import {
 } from 'catalyst'
 import { useRouter } from 'next/navigation'
 
-type User = { email: string; name?: string }
+import type { User } from './types'
 
 export function SidebarUserFooter({ user }: { user?: User }) {
 	const router = useRouter()

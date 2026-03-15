@@ -1,4 +1,5 @@
 export * from './alert'
+export * from './primitives'
 export * from './auth-layout'
 export * from './avatar'
 export * from './badge'
