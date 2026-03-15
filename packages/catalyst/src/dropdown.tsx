@@ -3,7 +3,7 @@
 import clsx from 'clsx'
 import { AnimatePresence, motion } from 'motion/react'
 import type React from 'react'
-import { createContext, useCallback, useContext, useEffect, useId, useRef, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { Button } from './button'
 import { Link } from './link'
 
@@ -11,23 +11,23 @@ interface DropdownContextValue {
   open: boolean
   toggle: () => void
   close: () => void
-  buttonId: string
-  menuId: string
+  buttonRef: React.RefObject<HTMLElement | null>
+  menuRef: React.RefObject<HTMLDivElement | null>
 }
 
 const DropdownContext = createContext<DropdownContextValue>({
   open: false,
   toggle: () => {},
   close: () => {},
-  buttonId: '',
-  menuId: '',
+  buttonRef: { current: null },
+  menuRef: { current: null },
 })
 
 export function Dropdown({ children, ...props }: React.PropsWithChildren<{ className?: string }>) {
   const [open, setOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
-  const buttonId = useId()
-  const menuId = useId()
+  const buttonRef = useRef<HTMLElement | null>(null)
+  const menuRef = useRef<HTMLDivElement | null>(null)
 
   const toggle = useCallback(() => setOpen((prev) => !prev), [])
   const close = useCallback(() => setOpen(false), [])
@@ -55,7 +55,7 @@ export function Dropdown({ children, ...props }: React.PropsWithChildren<{ class
   }, [open])
 
   return (
-    <DropdownContext.Provider value={{ open, toggle, close, buttonId, menuId }}>
+    <DropdownContext.Provider value={{ open, toggle, close, buttonRef, menuRef }}>
       <div ref={containerRef} className={clsx('relative', props.className)} {...props}>
         {children}
       </div>
@@ -67,16 +67,15 @@ export function DropdownButton<T extends React.ElementType = typeof Button>({
   as,
   ...props
 }: { as?: T; className?: string } & Omit<React.ComponentPropsWithoutRef<T>, 'className'>) {
-  const { toggle, open, buttonId, menuId } = useContext(DropdownContext)
+  const { toggle, open, buttonRef } = useContext(DropdownContext)
   const Component = (as || Button) as React.ElementType
 
   return (
     <Component
       {...props}
-      id={buttonId}
+      ref={buttonRef}
       aria-expanded={open}
       aria-haspopup="menu"
-      aria-controls={open ? menuId : undefined}
       onClick={(e: React.MouseEvent) => {
         const onClickProp = (props as { onClick?: (e: React.MouseEvent) => void }).onClick
         onClickProp?.(e)
@@ -104,14 +103,13 @@ export function DropdownMenu({
   className?: string
   children: React.ReactNode
 }) {
-  const { open, close, menuId, buttonId } = useContext(DropdownContext)
-  const menuRef = useRef<HTMLDivElement>(null)
+  const { open, close, menuRef } = useContext(DropdownContext)
 
   useEffect(() => {
     if (!open || !menuRef.current) return
 
     menuRef.current.focus()
-  }, [open])
+  }, [open, menuRef])
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
     const menu = menuRef.current
@@ -144,9 +142,7 @@ export function DropdownMenu({
       {open && (
         <motion.div
           ref={menuRef}
-          id={menuId}
           role="menu"
-          aria-labelledby={buttonId}
           tabIndex={-1}
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}

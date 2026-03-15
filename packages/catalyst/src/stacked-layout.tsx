@@ -1,6 +1,5 @@
 'use client'
 
-import clsx from 'clsx'
 import { AnimatePresence, motion } from 'motion/react'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { NavbarItem } from './navbar'
@@ -18,6 +17,58 @@ function CloseMenuIcon() {
     <svg data-slot="icon" viewBox="0 0 20 20" aria-hidden="true">
       <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
     </svg>
+  )
+}
+
+function MobileSidebar({ open, close, children }: React.PropsWithChildren<{ open: boolean; close: () => void }>) {
+  useEffect(() => {
+    if (!open) return
+
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') close()
+    }
+
+    document.addEventListener('keydown', onKeyDown)
+    document.body.style.overflow = 'hidden'
+
+    return () => {
+      document.removeEventListener('keydown', onKeyDown)
+      document.body.style.overflow = ''
+    }
+  }, [open, close])
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <div className="lg:hidden fixed inset-0 z-50" role="dialog" aria-modal="true">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="fixed inset-0 bg-black/30"
+            onClick={close}
+            aria-hidden="true"
+          />
+          <motion.div
+            initial={{ x: '-100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '-100%' }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            className="fixed inset-y-0 left-0 w-full max-w-80 p-2"
+          >
+            <div className="flex h-full flex-col rounded-lg bg-white shadow-xs ring-1 ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10">
+              <div className="-mb-3 px-4 pt-3">
+                <NavbarItem onClick={close} aria-label="Close navigation">
+                  <CloseMenuIcon />
+                </NavbarItem>
+              </div>
+              {children}
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
   )
 }
 
@@ -40,64 +91,12 @@ export function StackedLayout({
     }
   }, [showSidebar])
 
-  useEffect(() => {
-    if (!showSidebar) return
-
-    function onKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') closeSidebar()
-    }
-
-    document.addEventListener('keydown', onKeyDown)
-    document.body.style.overflow = 'hidden'
-
-    return () => {
-      document.removeEventListener('keydown', onKeyDown)
-      document.body.style.overflow = ''
-    }
-  }, [showSidebar, closeSidebar])
-
   return (
     <div className="relative isolate flex min-h-svh w-full flex-col bg-white lg:bg-zinc-100 dark:bg-zinc-900 dark:lg:bg-zinc-950">
-      {/* Mobile sidebar backdrop */}
-      <div
-        className={clsx('lg:hidden fixed inset-0 z-50', !showSidebar && 'pointer-events-none')}
-        role="dialog"
-        aria-modal={showSidebar}
-        aria-hidden={!showSidebar}
-      >
-        <AnimatePresence>
-          {showSidebar && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2, ease: 'easeOut' }}
-              className="fixed inset-0 bg-black/30"
-              onClick={closeSidebar}
-              aria-hidden="true"
-            />
-          )}
-        </AnimatePresence>
-      </div>
-
-      {/* Sidebar — rendered ONCE, slides in on mobile */}
-      <div
-        className={clsx(
-          'lg:hidden fixed inset-y-0 left-0 z-50 w-full max-w-80 p-2',
-          'transition-transform duration-300 ease-in-out',
-          showSidebar ? 'translate-x-0' : '-translate-x-full',
-          !showSidebar && 'pointer-events-none',
-        )}
-      >
-        <div className="flex h-full flex-col rounded-lg bg-white shadow-xs ring-1 ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10">
-          <div className="-mb-3 px-4 pt-3">
-            <NavbarItem onClick={closeSidebar} aria-label="Close navigation">
-              <CloseMenuIcon />
-            </NavbarItem>
-          </div>
-          {sidebar}
-        </div>
-      </div>
+      {/* Sidebar on mobile */}
+      <MobileSidebar open={showSidebar} close={closeSidebar}>
+        {sidebar}
+      </MobileSidebar>
 
       {/* Navbar */}
       <header className="flex items-center px-4" ref={mainRef as React.RefObject<HTMLElement>}>

@@ -18,9 +18,17 @@ The root `tsconfig.base.json` only includes `"lib": ["ES2022"]`. Packages that u
 
 Next.js 16 renamed `middleware.ts` to `proxy.ts` and the exported function from `middleware` to `proxy`. The file must be named `proxy.ts` at the app root, and it must export a function named `proxy` (not `middleware`). The old `middleware.ts` convention still works for edge runtime but is deprecated. See: https://nextjs.org/docs/messages/middleware-to-proxy
 
-## 2026-03-15 — Rendering the same React element twice with conditional mounting causes useId hydration mismatches
+## 2026-03-15 — useId() causes hydration mismatches with dual-rendered or conditionally-mounted components
 
-`SidebarLayout` renders `{sidebar}` twice — once for desktop (always visible) and once for mobile (inside `AnimatePresence` with `{open && ...}`). During SSR, both instances render and React assigns `useId()` values sequentially. On the client, the mobile copy is initially unmounted (`open` is `false`), so `useId()` produces different IDs, causing a hydration mismatch. Fix: always mount the mobile sidebar panel in the DOM and use `motion.animate` to show/hide it instead of conditional rendering. Only the backdrop should use `AnimatePresence` for mount/unmount.
+`useId()` generates IDs based on component tree position during rendering. Two patterns break it:
+
+1. **Dual rendering**: `SidebarLayout` renders `{sidebar}` twice (desktop + mobile drawer). Components inside sidebar that call `useId()` (e.g., `LayoutGroup`, `Dropdown`) get different IDs because the tree structure differs between SSR and client hydration.
+
+2. **Conditional mounting with AnimatePresence**: `{open && <Component />}` inside `AnimatePresence` means the component mounts on SSR but not on client (if `open` starts as `false`), shifting `useId()` numbering for all subsequent components.
+
+**Failed approaches**: (a) Always-mounting the mobile panel with `motion.animate` visibility — didn't fix it because `LayoutGroup` and `Dropdown` still used `useId()` internally. (b) Rendering sidebar once with CSS breakpoints — caused visual bugs (sidebar visibly sliding on mobile).
+
+**Fix**: Remove all `useId()` calls from components that appear in dual-rendered trees. Use `useRef()` instead for DOM references, and let `LayoutGroup` auto-generate its own IDs (omit the `id` prop). For ARIA linkage (e.g., `aria-labelledby`), prefer ref-based approaches or omit when the pattern still works without explicit ID linkage.
 
 ## 2026-03-15 — motion.div onDrag type conflicts with React's onDrag
 
