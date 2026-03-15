@@ -1,13 +1,9 @@
-import { cookies } from 'next/headers'
+import { bifrost } from 'heimdall'
 
 import { UsersClient } from './client'
 
 async function getUsers() {
-	const cookieStore = await cookies()
-
-	const res = await fetch(`${process.env.BIFROST_URL || 'http://localhost:4000'}/api/users`, {
-		headers: { cookie: cookieStore.toString() },
-	})
+	const res = await bifrost('/api/users')
 
 	if (!res.ok) return []
 

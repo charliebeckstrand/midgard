@@ -1,4 +1,4 @@
-import { getUser } from 'heimdall/user'
+import { getUser } from 'heimdall'
 import type { ReactNode } from 'react'
 import { DashboardClient } from './client'
 

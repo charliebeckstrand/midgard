@@ -1,15 +1,10 @@
-import { cookies } from 'next/headers'
+import { bifrost } from 'heimdall'
 
 import type { ChatMessage } from '../types'
 import { ChatView } from './chat-view'
 
 async function getChatHistory(chatId: string): Promise<ChatMessage[]> {
-	const cookieStore = await cookies()
-
-	const res = await fetch(
-		`${process.env.BIFROST_URL || 'http://localhost:4000'}/api/chat/${chatId}`,
-		{ headers: { cookie: cookieStore.toString() } },
-	).catch(() => null)
+	const res = await bifrost(`/api/chat/${chatId}`).catch(() => null)
 
 	if (!res?.ok) return []
 

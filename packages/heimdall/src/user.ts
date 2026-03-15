@@ -1,4 +1,4 @@
-import { cookies } from 'next/headers'
+import { bifrost } from './fetch'
 
 type SessionUser = {
 	email: string
@@ -6,14 +6,8 @@ type SessionUser = {
 }
 
 export async function getUser(): Promise<{ user?: SessionUser }> {
-	const cookieStore = await cookies()
-
-	const cookieHeader = cookieStore.toString()
-
 	try {
-		const res = await fetch(`${process.env.BIFROST_URL || 'http://localhost:4000'}/auth/user`, {
-			headers: { cookie: cookieHeader },
-		})
+		const res = await bifrost('/auth/user')
 
 		if (!res.ok) return { user: undefined }
 

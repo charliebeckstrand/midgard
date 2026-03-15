@@ -1,14 +1,8 @@
-import { cookies } from 'next/headers'
+import { bifrost } from './fetch'
 
 export async function getSession(): Promise<{ authenticated: boolean }> {
-	const cookieStore = await cookies()
-
-	const cookieHeader = cookieStore.toString()
-
 	try {
-		const res = await fetch(`${process.env.BIFROST_URL || 'http://localhost:4000'}/auth/session`, {
-			headers: { cookie: cookieHeader },
-		})
+		const res = await bifrost('/auth/session')
 
 		if (!res.ok) return { authenticated: false }
 
