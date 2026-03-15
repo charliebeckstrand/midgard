@@ -1,6 +1,6 @@
 'use client'
 
-import { ChatBubbleLeftIcon, PlusIcon } from '@heroicons/react/20/solid'
+import { ChatBubbleLeftIcon, PlusIcon, XMarkIcon } from '@heroicons/react/20/solid'
 import {
 	Navbar,
 	NavbarSpacer,
@@ -12,10 +12,11 @@ import {
 	SidebarLayout,
 	SidebarSection,
 } from 'catalyst'
-import Image from 'next/image'
+// import dynamic from 'next/dynamic'
 import { usePathname, useRouter } from 'next/navigation'
-import { type ReactNode, useCallback, useEffect, useState } from 'react'
+import type { ReactNode } from 'react'
 import { ShinyText } from 'reactbits'
+
 import { SidebarUserFooter } from './sidebar-footer'
 
 type User = { email: string; name?: string }
@@ -25,31 +26,43 @@ interface Chat {
 	title: string
 }
 
-export function ChatClient({ user, children }: { user?: User; children: ReactNode }) {
+// const SidebarUserFooter = dynamic(
+// 	() => import('./sidebar-footer').then((m) => m.SidebarUserFooter),
+// 	{ ssr: false },
+// )
+
+export function ChatClient({
+	user,
+	chats,
+	children,
+}: {
+	user?: User
+	chats: Chat[]
+	children: ReactNode
+}) {
 	const pathname = usePathname()
+
 	const router = useRouter()
-	const [chats, setChats] = useState<Chat[]>([])
-
-	const fetchChats = useCallback(async () => {
-		const response = await fetch('/api/chat/history').catch(() => null)
-
-		if (response?.ok) {
-			const data = await response.json()
-			setChats(data)
-		}
-	}, [])
-
-	useEffect(() => {
-		fetchChats()
-	}, [fetchChats])
 
 	function newChat() {
 		const id = crypto.randomUUID()
-		router.push(`/${id}`)
+
+		router.push(`/${id}?draft=true`)
+	}
+
+	async function deleteChat(chatId: string) {
+		await fetch(`/api/chat/${chatId}`, { method: 'DELETE' }).catch(() => null)
+
+		if (pathname === `/${chatId}`) {
+			router.push('/')
+		}
+
+		router.refresh()
 	}
 
 	return (
 		<SidebarLayout
+			scrollable={false}
 			navbar={
 				<Navbar>
 					<NavbarSpacer />
@@ -59,7 +72,7 @@ export function ChatClient({ user, children }: { user?: User; children: ReactNod
 				<Sidebar>
 					<SidebarHeader>
 						<SidebarItem href="/" current={pathname === '/'}>
-							<Image src="/gradient.png" alt="gradient" width={24} height={24} />
+							<img src="/hexagon.png" alt="hexagon" width={24} height={24} />
 							<SidebarLabel>
 								<ShinyText text="Chat" className="font-black text-lg" delay={10} yoyo />
 							</SidebarLabel>
@@ -75,14 +88,23 @@ export function ChatClient({ user, children }: { user?: User; children: ReactNod
 						{chats.length > 0 && (
 							<SidebarSection>
 								{chats.map((chat) => (
-									<SidebarItem
-										key={chat.id}
-										href={`/${chat.id}`}
-										current={pathname === `/${chat.id}`}
-									>
-										<ChatBubbleLeftIcon />
-										<SidebarLabel>{chat.title}</SidebarLabel>
-									</SidebarItem>
+									<div key={chat.id} className="group relative">
+										<SidebarItem href={`/${chat.id}`} current={pathname === `/${chat.id}`}>
+											<ChatBubbleLeftIcon />
+											<SidebarLabel>{chat.id}</SidebarLabel>
+										</SidebarItem>
+										<button
+											type="button"
+											onClick={(e) => {
+												e.preventDefault()
+
+												deleteChat(chat.id)
+											}}
+											className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded p-0.75 opacity-0 transition-opacity group-hover:opacity-100 bg-zinc-800 hover:bg-zinc-700"
+										>
+											<XMarkIcon className="size-4 fill-zinc-950 dark:fill-white" />
+										</button>
+									</div>
 								))}
 							</SidebarSection>
 						)}

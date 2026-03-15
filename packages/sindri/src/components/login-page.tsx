@@ -87,7 +87,10 @@ function LoginForm({ showRegisterLink }: { showRegisterLink: boolean }) {
 				{errors.password && <ErrorMessage>{errors.password}</ErrorMessage>}
 			</Field>
 
-			<Button type="submit" className="w-full" disabled={submitting}>
+			<Button
+				type="submit"
+				className={`w-full ${submitting ? 'cursor-not-allowed pointer-events-none' : ''}`}
+			>
 				Sign in
 			</Button>
 

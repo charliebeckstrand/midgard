@@ -21,6 +21,7 @@ function RegisterForm() {
 	const router = useRouter()
 
 	const [serverError, setServerError] = useState('')
+
 	const [submitting, setSubmitting] = useState(false)
 
 	const { register, errors, submit } = useForm({
@@ -88,7 +89,10 @@ function RegisterForm() {
 				{errors.confirmPassword && <ErrorMessage>{errors.confirmPassword}</ErrorMessage>}
 			</Field>
 
-			<Button type="submit" className="w-full" disabled={submitting}>
+			<Button
+				type="submit"
+				className={`w-full ${submitting ? 'cursor-not-allowed pointer-events-none' : ''}`}
+			>
 				Create account
 			</Button>
 

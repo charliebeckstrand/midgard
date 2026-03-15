@@ -10,7 +10,6 @@ import {
 	SidebarLayout,
 	SidebarSection,
 } from 'catalyst'
-import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import type { ReactNode } from 'react'
 import { ShinyText } from 'reactbits'
@@ -35,7 +34,7 @@ export function Client({ children, docs }: ClientProps) {
 				<Sidebar>
 					<SidebarHeader>
 						<SidebarItem href="/" current={pathname === '/'}>
-							<Image src="/square.png" alt="square" width={24} height={24} />
+							<img src="/square.png" alt="square" width={24} height={24} />
 							<SidebarLabel>
 								<ShinyText text="Docs" className="font-black text-lg" delay={10} yoyo />
 							</SidebarLabel>

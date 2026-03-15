@@ -38,8 +38,9 @@ function MobileSidebar({ open, close, children }: React.PropsWithChildren<{ open
 export function SidebarLayout({
   navbar,
   sidebar,
+  scrollable = true,
   children,
-}: React.PropsWithChildren<{ navbar: React.ReactNode; sidebar: React.ReactNode }>) {
+}: React.PropsWithChildren<{ navbar: React.ReactNode; sidebar: React.ReactNode; scrollable?: boolean }>) {
   let [showSidebar, setShowSidebar] = useState(false)
 
   return (
@@ -64,8 +65,8 @@ export function SidebarLayout({
 
       {/* Content */}
       <main className="flex flex-1 flex-col pb-2 lg:min-w-0 lg:pt-2 lg:pr-2 lg:pl-64 overflow-hidden">
-        <div className="grow py-4 px-6 lg:p-6 lg:rounded-lg lg:bg-white lg:shadow-xs lg:ring-1 lg:ring-zinc-950/5 dark:lg:bg-zinc-900 dark:lg:ring-white/10 overflow-y-auto">
-          <div className="mx-auto max-w-6xl">{children}</div>
+        <div className={`flex flex-col grow py-4 px-6 lg:p-6 lg:rounded-lg lg:bg-white lg:shadow-xs lg:ring-1 lg:ring-zinc-950/5 dark:lg:bg-zinc-900 dark:lg:ring-white/10 ${scrollable ? 'overflow-y-auto' : 'overflow-hidden'}`}>
+          {children}
         </div>
       </main>
     </div>

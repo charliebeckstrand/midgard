@@ -12,7 +12,6 @@ import {
 	SidebarLayout,
 	SidebarSection,
 } from 'catalyst'
-import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import type { ReactNode } from 'react'
 import { ShinyText } from 'reactbits'
@@ -34,7 +33,7 @@ export function DashboardClient({ user, children }: { user?: User; children: Rea
 				<Sidebar>
 					<SidebarHeader>
 						<SidebarItem href="/" current={pathname === '/'}>
-							<Image src="/gradient.png" alt="gradient" width={24} height={24} />
+							<img src="/gradient.png" alt="gradient" width={24} height={24} />
 							<SidebarLabel>
 								<ShinyText text="Admin" className="font-black text-lg" delay={10} yoyo />
 							</SidebarLabel>
