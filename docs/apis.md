@@ -3,14 +3,14 @@
 ## POST /api/chat/agent
 
 - **Request:** `{ messages: ChatMessage[] }` — full conversation history
-- **Response:** `{ message: string }` — the agent's reply text
+- **Response:** AG-UI SSE event stream (`text/event-stream`)
 - **Auth:** required (protected by heimdall proxy)
-- **Notes:** Currently returns a simulated response. The endpoint is a Next.js API route (not proxied to Bifrost). The client sends the full message history so the agent has conversational context.
+- **Notes:** Returns an AG-UI protocol event stream. Events follow the lifecycle: `RUN_STARTED` → `TEXT_MESSAGE_START` → `TEXT_MESSAGE_CONTENT` (streamed word-by-word) → `TEXT_MESSAGE_END` → `RUN_FINISHED`. Currently simulated. Uses `@ag-ui/core` for event types and `@ag-ui/encoder` for SSE encoding.
 
 ## POST /api/chat/{chatId}
 
-- **Request:** `{ message: string, role: 'user' | 'agent' }` — a single message to persist
-- **Response:** `{ message: string }`
+- **Request:** `{ content: string, role: 'user' | 'agent' }` — a single message to persist
+- **Response:** `{ content: string }`
 - **Auth:** required
 - **Notes:** Proxied to Bifrost. Called twice per user turn — once to save the user message, once to save the agent response.
 
