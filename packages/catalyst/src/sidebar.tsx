@@ -3,7 +3,7 @@
 import clsx from 'clsx'
 import { LayoutGroup, motion } from 'motion/react'
 import type React from 'react'
-import { forwardRef, useContext, useId } from 'react'
+import { forwardRef, useContext } from 'react'
 import { TouchTarget } from './button'
 import { Link } from './link'
 import { InteractiveButton, useInteractiveHandlers } from './primitives'
@@ -86,10 +86,8 @@ export function SidebarFooter({ className, ...props }: React.ComponentPropsWitho
 }
 
 export function SidebarSection({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
-	const id = useId()
-
 	return (
-		<LayoutGroup id={id}>
+		<LayoutGroup>
 			<div {...props} data-slot="section" className={clsx(className, 'flex flex-col gap-0.5')} />
 		</LayoutGroup>
 	)

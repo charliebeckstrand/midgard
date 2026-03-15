@@ -3,7 +3,7 @@
 import clsx from 'clsx'
 import { LayoutGroup, motion } from 'motion/react'
 import type React from 'react'
-import { forwardRef, useId } from 'react'
+import { forwardRef } from 'react'
 import { TouchTarget } from './button'
 import { Link } from './link'
 import { InteractiveButton, useInteractiveHandlers } from './primitives'
@@ -23,10 +23,8 @@ export function NavbarDivider({ className, ...props }: React.ComponentPropsWitho
 }
 
 export function NavbarSection({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
-	const id = useId()
-
 	return (
-		<LayoutGroup id={id}>
+		<LayoutGroup>
 			<div {...props} className={clsx(className, 'flex items-center gap-3')} />
 		</LayoutGroup>
 	)
