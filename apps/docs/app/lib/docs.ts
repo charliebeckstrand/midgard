@@ -1,20 +1,40 @@
 import { readdir, readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 
-interface DocFile {
+export interface DocFile {
 	slug: string
 	title: string
 	content: string
 	description: string
+	category: 'guides' | 'reference'
 }
 
 const DOCS_DIR = join(process.cwd(), '../../docs')
 
 /**
- * Docs listed here are shown in the docs app dashboard.
- * Other docs in the directory still exist for agent use but are not surfaced in the UI.
+ * Developer-facing guides — shown first in the sidebar under "Guides".
+ * Written for humans: getting started, workflows, architecture.
  */
-const PUBLISHED_DOCS: Record<string, { title: string; description: string }> = {
+const GUIDE_DOCS: Record<string, { title: string; description: string }> = {
+	'getting-started': {
+		title: 'Getting Started',
+		description: 'Prerequisites, installation, and running the dev server.',
+	},
+	development: {
+		title: 'Development Workflow',
+		description: 'Day-to-day development patterns and common tasks.',
+	},
+	architecture: {
+		title: 'Architecture Overview',
+		description: 'How the pieces of Midgard fit together.',
+	},
+}
+
+/**
+ * Reference docs — shown under "Reference" in the sidebar.
+ * Detailed technical reference maintained by both agents and developers.
+ */
+const REFERENCE_DOCS: Record<string, { title: string; description: string }> = {
 	project: {
 		title: 'Project Map',
 		description: 'Workspace layout, packages, key file paths, tech stack, and common commands.',
@@ -57,6 +77,18 @@ const PUBLISHED_DOCS: Record<string, { title: string; description: string }> = {
 	},
 }
 
+const PUBLISHED_DOCS: Record<
+	string,
+	{ title: string; description: string; category: 'guides' | 'reference' }
+> = {
+	...Object.fromEntries(
+		Object.entries(GUIDE_DOCS).map(([k, v]) => [k, { ...v, category: 'guides' as const }]),
+	),
+	...Object.fromEntries(
+		Object.entries(REFERENCE_DOCS).map(([k, v]) => [k, { ...v, category: 'reference' as const }]),
+	),
+}
+
 function isPublished(slug: string): boolean {
 	return slug in PUBLISHED_DOCS
 }
@@ -86,6 +118,7 @@ export async function getAllDocs(): Promise<DocFile[]> {
 					title: extractTitle(raw, slug),
 					content: raw,
 					description: PUBLISHED_DOCS[slug]?.description ?? '',
+					category: PUBLISHED_DOCS[slug]?.category ?? ('reference' as const),
 				}
 			} catch {
 				return null
@@ -94,4 +127,20 @@ export async function getAllDocs(): Promise<DocFile[]> {
 	)
 
 	return docs.filter((d): d is DocFile => d !== null)
+}
+
+/** Returns docs split into guides and reference, preserving definition order. */
+export function groupDocs(docs: DocFile[]): { guides: DocFile[]; reference: DocFile[] } {
+	const guideOrder = Object.keys(GUIDE_DOCS)
+	const referenceOrder = Object.keys(REFERENCE_DOCS)
+
+	const guides = guideOrder
+		.map((slug) => docs.find((d) => d.slug === slug))
+		.filter((d): d is DocFile => d !== null)
+
+	const reference = referenceOrder
+		.map((slug) => docs.find((d) => d.slug === slug))
+		.filter((d): d is DocFile => d !== null)
+
+	return { guides, reference }
 }

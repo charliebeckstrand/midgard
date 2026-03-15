@@ -5,6 +5,7 @@ import {
 	Sidebar,
 	SidebarBody,
 	SidebarHeader,
+	SidebarHeading,
 	SidebarItem,
 	SidebarLabel,
 	SidebarLayout,
@@ -21,16 +22,18 @@ interface DocEntry {
 
 interface ClientProps {
 	children: ReactNode
-	docs: DocEntry[]
+	guides: DocEntry[]
+	reference: DocEntry[]
 }
 
-export function Client({ children, docs }: ClientProps) {
+export function Client({ children, guides, reference }: ClientProps) {
 	const [activeSlug, setActiveSlug] = useState<string | null>(null)
-	const slugsRef = useRef(docs.map((d) => d.slug))
+	const allDocs = [...guides, ...reference]
+	const slugsRef = useRef(allDocs.map((d) => d.slug))
 
 	useEffect(() => {
-		slugsRef.current = docs.map((d) => d.slug)
-	}, [docs])
+		slugsRef.current = [...guides, ...reference].map((d) => d.slug)
+	}, [guides, reference])
 
 	useEffect(() => {
 		const sections = slugsRef.current
@@ -87,7 +90,16 @@ export function Client({ children, docs }: ClientProps) {
 					</SidebarHeader>
 					<SidebarBody>
 						<SidebarSection>
-							{docs.map((doc) => (
+							<SidebarHeading>Guides</SidebarHeading>
+							{guides.map((doc) => (
+								<SidebarItem key={doc.slug} href={`#${doc.slug}`} current={activeSlug === doc.slug}>
+									<SidebarLabel>{doc.title}</SidebarLabel>
+								</SidebarItem>
+							))}
+						</SidebarSection>
+						<SidebarSection>
+							<SidebarHeading>Reference</SidebarHeading>
+							{reference.map((doc) => (
 								<SidebarItem key={doc.slug} href={`#${doc.slug}`} current={activeSlug === doc.slug}>
 									<SidebarLabel>{doc.title}</SidebarLabel>
 								</SidebarItem>
