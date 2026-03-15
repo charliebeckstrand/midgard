@@ -110,8 +110,7 @@ export function DropdownMenu({
   useEffect(() => {
     if (!open || !menuRef.current) return
 
-    const items = menuRef.current.querySelectorAll<HTMLElement>('[role="menuitem"]')
-    if (items.length > 0) items[0].focus()
+    menuRef.current.focus()
   }, [open])
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
@@ -123,11 +122,11 @@ export function DropdownMenu({
 
     if (e.key === 'ArrowDown') {
       e.preventDefault()
-      const next = currentIndex < items.length - 1 ? currentIndex + 1 : 0
+      const next = currentIndex === -1 ? 0 : currentIndex < items.length - 1 ? currentIndex + 1 : 0
       items[next]?.focus()
     } else if (e.key === 'ArrowUp') {
       e.preventDefault()
-      const prev = currentIndex > 0 ? currentIndex - 1 : items.length - 1
+      const prev = currentIndex === -1 ? items.length - 1 : currentIndex > 0 ? currentIndex - 1 : items.length - 1
       items[prev]?.focus()
     } else if (e.key === 'Home') {
       e.preventDefault()
