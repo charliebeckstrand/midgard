@@ -1,9 +1,27 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 
 import type { ChatMessage, ClientChatMessage } from '../types'
+
+function parseSSEEvents(chunk: string): Array<Record<string, unknown>> {
+	const events: Array<Record<string, unknown>> = []
+
+	for (const block of chunk.split('\n\n')) {
+		const dataLine = block.split('\n').find((line) => line.startsWith('data:'))
+
+		if (!dataLine) continue
+
+		try {
+			events.push(JSON.parse(dataLine.slice(5).trim()))
+		} catch {
+			// skip malformed events
+		}
+	}
+
+	return events
+}
 
 export function useChatMessages(
 	chatId: string,
@@ -18,63 +36,111 @@ export function useChatMessages(
 
 	const [isDraft, setIsDraft] = useState(initialIsDraft)
 	const [sending, setSending] = useState(false)
+	const fullContentRef = useRef('')
 
-	async function sendMessage(content: string) {
-		setSending(true)
+	const sendMessage = useCallback(
+		async (content: string) => {
+			setSending(true)
 
-		const userMessage: ClientChatMessage = {
-			id: crypto.randomUUID(),
-			role: 'user',
-			message: content,
-		}
+			const userMessage: ClientChatMessage = {
+				id: crypto.randomUUID(),
+				role: 'user',
+				content,
+			}
 
-		const pendingId = crypto.randomUUID()
+			const pendingId = crypto.randomUUID()
 
-		setMessages((prev) => [
-			...prev,
-			userMessage,
-			{ id: pendingId, role: 'agent', message: '', pending: true },
-		])
+			setMessages((prev) => [
+				...prev,
+				userMessage,
+				{ id: pendingId, role: 'agent', content: '', pending: true },
+			])
 
-		const saveUserResponse = await fetch(`/api/chat/${chatId}`, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ message: content, role: 'user' }),
-		}).catch(() => null)
+			const saveUserResponse = await fetch(`/api/chat/${chatId}`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ content, role: 'user' }),
+			}).catch(() => null)
 
-		if (!saveUserResponse?.ok) {
-			setMessages((prev) => prev.filter((m) => m.id !== pendingId))
+			if (!saveUserResponse?.ok) {
+				setMessages((prev) => prev.filter((m) => m.id !== pendingId))
 
-			setSending(false)
+				setSending(false)
 
-			return
-		}
+				return
+			}
 
-		const allMessages = [...messages, userMessage].map(({ role, message }) => ({
-			role,
-			message,
-		}))
+			const allMessages = [...messages, userMessage].map(({ role, content: c }) => ({
+				role,
+				content: c,
+			}))
 
-		const agentResponse = await fetch('/api/chat/agent', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ messages: allMessages }),
-		}).catch(() => null)
+			const agentResponse = await fetch('/api/chat/agent', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ messages: allMessages }),
+			}).catch(() => null)
 
-		if (agentResponse?.ok) {
-			const data = await agentResponse.json()
+			if (!agentResponse?.ok || !agentResponse.body) {
+				setMessages((prev) => prev.filter((m) => m.id !== pendingId))
 
-			if (data.message) {
-				setMessages((prev) =>
-					prev.map((m) =>
-						m.id === pendingId ? { ...m, message: data.message, pending: false } : m,
-					),
-				)
+				setSending(false)
 
+				return
+			}
+
+			fullContentRef.current = ''
+
+			const reader = agentResponse.body.getReader()
+			const decoder = new TextDecoder()
+			let buffer = ''
+
+			while (true) {
+				const { done, value } = await reader.read()
+
+				if (done) break
+
+				buffer += decoder.decode(value, { stream: true })
+
+				const lastDoubleNewline = buffer.lastIndexOf('\n\n')
+
+				if (lastDoubleNewline === -1) continue
+
+				const complete = buffer.slice(0, lastDoubleNewline + 2)
+				buffer = buffer.slice(lastDoubleNewline + 2)
+
+				for (const event of parseSSEEvents(complete)) {
+					switch (event.type) {
+						case 'TEXT_MESSAGE_CONTENT': {
+							fullContentRef.current += event.delta as string
+
+							const accumulated = fullContentRef.current
+
+							setMessages((prev) =>
+								prev.map((m) =>
+									m.id === pendingId ? { ...m, content: accumulated, pending: true } : m,
+								),
+							)
+
+							break
+						}
+
+						case 'TEXT_MESSAGE_END': {
+							setMessages((prev) =>
+								prev.map((m) => (m.id === pendingId ? { ...m, pending: false } : m)),
+							)
+
+							break
+						}
+					}
+				}
+			}
+
+			if (fullContentRef.current) {
 				await fetch(`/api/chat/${chatId}`, {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ message: data.message, role: 'agent' }),
+					body: JSON.stringify({ content: fullContentRef.current, role: 'agent' }),
 				}).catch(() => null)
 			}
 
@@ -83,12 +149,11 @@ export function useChatMessages(
 				router.replace(`/${chatId}`)
 				router.refresh()
 			}
-		} else {
-			setMessages((prev) => prev.filter((m) => m.id !== pendingId))
-		}
 
-		setSending(false)
-	}
+			setSending(false)
+		},
+		[chatId, isDraft, messages, router],
+	)
 
 	return { messages, sending, isDraft, sendMessage }
 }

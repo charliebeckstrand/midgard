@@ -26,7 +26,7 @@ export function ChatView({ chatId, initialMessages, isDraft: initialIsDraft }: P
 		if (messages.length > 0) {
 			scrollToBottom()
 		}
-	}, [messages.length, scrollToBottom])
+	}, [messages, scrollToBottom])
 
 	return (
 		<div className="flex h-full justify-center">
@@ -39,7 +39,7 @@ export function ChatView({ chatId, initialMessages, isDraft: initialIsDraft }: P
 									<Message
 										key={message.id}
 										role={message.role}
-										message={message.message}
+										content={message.content}
 										pending={message.pending}
 									/>
 								))}

@@ -1,8 +1,8 @@
 import type { ClientChatMessage } from '../types'
 
-type Props = Pick<ClientChatMessage, 'role' | 'message' | 'pending'>
+type Props = Pick<ClientChatMessage, 'role' | 'content' | 'pending'>
 
-export function Message({ role, message, pending }: Props) {
+export function Message({ role, content, pending }: Props) {
 	return (
 		<div className={`flex ${role === 'user' ? 'justify-end' : 'justify-start'}`}>
 			<div
@@ -12,14 +12,14 @@ export function Message({ role, message, pending }: Props) {
 						: 'bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-white'
 				}`}
 			>
-				{pending ? (
+				{pending && !content ? (
 					<div className="flex gap-1 items-center h-6">
 						<span className="size-1.5 rounded-full bg-current animate-bounce [animation-delay:-0.3s]" />
 						<span className="size-1.5 rounded-full bg-current animate-bounce [animation-delay:-0.15s]" />
 						<span className="size-1.5 rounded-full bg-current animate-bounce" />
 					</div>
 				) : (
-					<p className="whitespace-pre-wrap">{message}</p>
+					<p className="whitespace-pre-wrap">{content}</p>
 				)}
 			</div>
 		</div>
