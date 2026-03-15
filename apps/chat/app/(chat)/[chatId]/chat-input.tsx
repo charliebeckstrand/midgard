@@ -34,6 +34,7 @@ export function ChatInput({ disabled, onSend }: Props) {
 			<div className="flex w-full items-center gap-2 px-4">
 				<span className="relative block flex-1 before:absolute before:inset-px before:rounded-[calc(var(--radius-lg)-1px)] before:bg-white before:shadow-sm dark:before:hidden after:pointer-events-none after:absolute after:inset-0 after:rounded-lg after:ring-transparent after:ring-inset sm:focus-within:after:ring-2 sm:focus-within:after:ring-blue-500">
 					<TextareaAutosize
+						rows={1}
 						minRows={1}
 						maxRows={8}
 						value={input}

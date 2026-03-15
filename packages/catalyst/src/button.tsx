@@ -3,7 +3,7 @@
 import clsx from 'clsx'
 import React, { forwardRef } from 'react'
 import { Link } from './link'
-import { InteractiveButton, useInteractiveHandlers } from './primitives'
+import { InteractiveButton } from './primitives'
 
 const styles = {
   base: [

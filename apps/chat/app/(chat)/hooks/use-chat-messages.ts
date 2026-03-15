@@ -62,6 +62,7 @@ export function useChatMessages(
 			if (isDraft) {
 				setIsDraft(false)
 				router.replace(`/${chatId}`)
+				router.refresh()
 			}
 		} else {
 			setMessages((prev) => prev.filter((m) => m.id !== pendingId))

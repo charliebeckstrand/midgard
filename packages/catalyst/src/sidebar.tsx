@@ -6,7 +6,7 @@ import type React from 'react'
 import { forwardRef, useContext } from 'react'
 import { TouchTarget } from './button'
 import { Link } from './link'
-import { InteractiveButton, useInteractiveHandlers } from './primitives'
+import { InteractiveButton } from './primitives'
 import { MobileSidebarContext } from './sidebar-layout'
 
 function CloseIcon() {

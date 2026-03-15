@@ -71,7 +71,7 @@ export function ChatClient({
 												e.preventDefault()
 												deleteChat(chat.id)
 											}}
-											className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded p-0.75 opacity-0 transition-opacity group-hover:opacity-100 bg-zinc-800 hover:bg-zinc-700"
+											className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded p-0.75 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100 bg-zinc-800 hover:bg-zinc-700"
 										>
 											<XMarkIcon className="size-4 fill-zinc-950 dark:fill-white" />
 										</button>
