@@ -1,4 +1,4 @@
-import { getAllDocs, groupDocs } from '@/lib/docs'
+import { getAllDocs, groupDocs } from '@/docs'
 import { Markdown } from '@/markdown'
 import { AnchorLink } from './anchor-link'
 
