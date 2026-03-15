@@ -176,6 +176,11 @@ export function SidebarItem({
 					type="button"
 					className={clsx('cursor-default', classes)}
 					data-current={current ? 'true' : undefined}
+					onClick={(e) => {
+						close?.()
+						
+						;(props as React.ComponentPropsWithoutRef<'button'>).onClick?.(e)
+					}}
 				>
 					<TouchTarget>{children}</TouchTarget>
 				</button>
