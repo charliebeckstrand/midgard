@@ -154,3 +154,22 @@ Non-trivial design choices with context, alternatives, and trade-offs.
 - Theme changes propagate to all apps automatically via sindri.
 - Apps still own their `globals.css` (for app-specific Tailwind plugins like `@tailwindcss/typography`) and `layout.tsx` (for app-specific metadata).
 - `baseUrl` and `paths` must remain in each app's tsconfig (they resolve relative to the file that defines them).
+
+## 2026-03-15 — Add developer guides and grouped sidebar to docs app
+
+**Status:** Accepted
+
+**Context:** The docs app only showed agent-oriented reference docs (project map, decisions, error solutions, etc.). These are useful for agents but not immediately helpful for developers who need to know how to set up the project, run the dev server, or understand the architecture.
+
+**Decision:** Add a "Guides" category of docs alongside the existing "Reference" category. Guide files (`getting-started.md`, `development.md`, `architecture.md`) are written for humans — onboarding, day-to-day workflow, and system design. The docs app sidebar groups these into two labeled sections. CLAUDE.md is updated to include guide files in Tier 1 reading, continuous learning, and the pre-push gate.
+
+**Alternatives:**
+- Separate docs site or README: adds another tool to maintain and fragments information.
+- Inline everything in CLAUDE.md: makes the file too long and mixes agent instructions with developer docs.
+- Keep only reference docs: leaves developers without onboarding material.
+
+**Consequences:**
+- New developers get a clear path from clone to running dev server.
+- Agents read guide files on session start, gaining additional context.
+- Guide files must be kept current — stale setup instructions are worse than none.
+- The `GUIDE_DOCS` and `REFERENCE_DOCS` maps in `apps/docs/app/lib/docs.ts` control what appears in each sidebar section.
