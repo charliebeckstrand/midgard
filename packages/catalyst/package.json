@@ -158,7 +158,7 @@
 	},
 	"scripts": {
 		"build": "tsup",
-		"dev": "tsup --watch",
+		"dev": "tsup --watch --no-dts",
 		"format": "biome format --config-path=../.. --write ."
 	},
 	"packageManager": "pnpm@10.29.3",

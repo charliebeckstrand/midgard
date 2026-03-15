@@ -28,6 +28,7 @@ apps/
 packages/
   catalyst/       → Shared UI component library (Headless UI + Tailwind)
   heimdall/       → Shared authentication module (session, config, proxy)
+  hlidskjalf/     → CLI dev tool (Ink + React terminal UI, manages workspace processes)
   sindri/         → Shared UI resources (auth pages, form hooks, theme, input components)
   reactbits/      → Animation/effect components (motion-based)
 docs/             → Project documentation and agent knowledge base
@@ -160,6 +161,28 @@ Tailwind CSS component library with 28+ components. Uses `data-slot` attributes 
 **Components:** alert, auth-layout, avatar, badge, button, checkbox, combobox, description-list, dialog, divider, dropdown, fieldset (Field, Label, Description, ErrorMessage, FieldGroup, Legend), heading, input (Input, InputGroup), link, listbox, navbar, pagination, primitives (InteractiveButton, InteractiveLink, useInteractiveHandlers, useClickOutside, useEscapeKey), radio, select, sidebar, sidebar-layout, stacked-layout, switch, table, text (Text, TextLink, Strong, Code)
 
 **Depends on:** clsx, class-variance-authority, motion
+
+## packages/hlidskjalf
+
+CLI tool for managing and monitoring all workspace dev processes. Built with Ink (React for terminal) and React 18. Runs `pnpm --filter <name> run dev` for each workspace, displays a dashboard with process status and logs. Designed to be published to npm and used across multiple Turborepos.
+
+**CLI flags:**
+- `--title=<name>` — Custom title in the dashboard header (default: `hlidskjalf`)
+- `--emoji=<emoji>` — Custom emoji shown when all processes are ready (default: mountain emoji)
+- `--filter=<name>` — Only run specific workspaces (repeatable)
+- `--exclude=<name>` — Exclude specific workspaces from discovery (repeatable)
+- `--order=alphabetical|run` — Sort order for the process list
+
+**Key files:**
+- `src/index.tsx` — CLI entry point (argument parsing, Ink renderer)
+- `src/app.tsx` — Main React component (state, event handling, keyboard input)
+- `src/processes.ts` — `ProcessRunner` class (child process management, log parsing, error recovery)
+- `src/workspaces.ts` — Workspace discovery and dependency sorting
+- `src/parser.ts` — Log line parsing (status detection, URL extraction, ANSI stripping)
+- `src/views/dashboard.tsx` — Terminal UI dashboard (process table + log panel)
+- `src/views/loading.tsx` — Loading screen
+
+**Depends on:** ink, react (18.3.1)
 
 ## packages/reactbits
 

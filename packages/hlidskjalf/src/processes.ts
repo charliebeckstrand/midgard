@@ -4,7 +4,7 @@ import { EventEmitter } from 'node:events'
 import { parseLine, stripAnsi } from './parser.js'
 import type { Process, Status, Workspace } from './types.js'
 
-const MAX_LOGS = 500
+const MAX_LOGS = 200
 
 interface RunnerEvents {
 	change: []
@@ -31,10 +31,24 @@ class ProcessRunner extends EventEmitter<RunnerEvents> implements Runner {
 
 	private stopping = false
 
+	private changePending = false
+
 	constructor(root: string) {
 		super()
 
 		this.root = root
+	}
+
+	private scheduleChange(): void {
+		if (this.changePending) return
+
+		this.changePending = true
+
+		queueMicrotask(() => {
+			this.changePending = false
+
+			this.emit('change')
+		})
 	}
 
 	list(): Process[] {
@@ -116,7 +130,7 @@ class ProcessRunner extends EventEmitter<RunnerEvents> implements Runner {
 				proc.logs.push(line)
 
 				if (proc.logs.length > MAX_LOGS) {
-					proc.logs = proc.logs.slice(-MAX_LOGS)
+					proc.logs.splice(0, proc.logs.length - MAX_LOGS)
 				}
 
 				const parsed = parseLine(stripAnsi(line))
@@ -133,7 +147,7 @@ class ProcessRunner extends EventEmitter<RunnerEvents> implements Runner {
 				}
 				if (parsed.url) proc.url = parsed.url
 
-				this.emit('change')
+				this.scheduleChange()
 			}
 		}
 
@@ -184,7 +198,7 @@ class ProcessRunner extends EventEmitter<RunnerEvents> implements Runner {
 
 		proc.status = status
 
-		this.emit('change')
+		this.scheduleChange()
 	}
 
 	async shutdown(): Promise<void> {

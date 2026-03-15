@@ -21,9 +21,11 @@ const HINTS = '\u2191/\u2193  j/k  select    q  quit'
 interface Props {
 	processes: Process[]
 	selectedIndex: number
+	title: string
+	emoji: string
 }
 
-export function Dashboard({ processes, selectedIndex }: Props) {
+export function Dashboard({ processes, selectedIndex, title, emoji }: Props) {
 	const { stdout } = useStdout()
 
 	const cols = stdout?.columns ?? 80
@@ -52,8 +54,8 @@ export function Dashboard({ processes, selectedIndex }: Props) {
 			{/* Header */}
 			<Box>
 				<Box flexGrow={1}>
-					<Text color={allReady ? 'yellow' : 'gray'}>{allReady ? '\u{1F3D4}' : '\u25e6'}</Text>
-					<Text bold>{allReady ? '  Midgard' : ' Midgard'}</Text>
+					<Text color={allReady ? 'yellow' : 'gray'}>{allReady ? emoji : '\u25e6'}</Text>
+					<Text bold>{allReady ? `  ${title}` : ` ${title}`}</Text>
 				</Box>
 				{showHints && <Text dimColor>{HINTS}</Text>}
 			</Box>
