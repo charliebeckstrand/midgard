@@ -5,7 +5,7 @@ import type React from 'react'
 import { ChevronIcon } from '../../primitives/icons'
 import { controlInput, controlWrapper } from '../../recipes/control'
 
-type SelectProps = {
+export type SelectProps = {
 	className?: string
 	multiple?: boolean
 	disabled?: boolean

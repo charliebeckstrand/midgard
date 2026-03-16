@@ -42,7 +42,7 @@ export function CheckboxField({
 	)
 }
 
-type CheckboxProps = VariantProps<typeof checkbox> & {
+export type CheckboxProps = VariantProps<typeof checkbox> & {
 	className?: string
 	checked?: boolean
 	defaultChecked?: boolean

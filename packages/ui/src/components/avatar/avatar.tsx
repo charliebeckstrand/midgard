@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import { Link } from '../../core'
 
-type AvatarProps = {
+export type AvatarProps = {
 	src?: string | null
 	square?: boolean
 	initials?: string

@@ -50,6 +50,14 @@ tsup's `dts: true` spawns a TypeScript worker thread for declaration generation.
 
 The `SidebarLayout` component renders content inside a `div` with `overflow-y-auto` (when `scrollable=true`, the default). On desktop, this inner div is the actual scroll container — `window.scroll` events never fire. Any scroll-tracking hook must find the real scroll container by walking up the DOM to the nearest `overflow-y: auto|scroll` ancestor. Use `getComputedStyle(node).overflowY` to detect it, with `document.documentElement` as fallback.
 
+## 2026-03-16 — Sheet asChild: object spread breaks cloneElement pattern
+
+The `asChild` pattern (render a user-supplied element instead of the default wrapper) requires merging event handlers and refs from the wrapper onto the child element. Using object spread (`{ ...wrapperProps, ...child.props }`) silently discards ref forwarding and does not properly merge event handlers — the last-spread handler wins and the other is lost. The correct implementation is `React.cloneElement(child, mergedProps)`, which preserves the child's ref and allows handlers to be composed explicitly. See `packages/ui/src/components/sheet/trigger.tsx` and `close.tsx` for the reference implementation.
+
+## 2026-03-16 — Biome noArrayIndexKey fires on array index in non-key positions
+
+Biome's `noArrayIndexKey` lint rule flags array index usage in JSX even when the value is not being used as a React `key` prop — for example, generating unique `id` strings like `` `skeleton-bar-${i}` `` inside a `.map()` callback. The rule is overly broad. When the index is used for a non-key purpose and the list is static (e.g., skeleton placeholder bars), suppress the rule with a targeted `// biome-ignore` comment rather than restructuring the code.
+
 ## 2026-03-14 — tsconfig baseUrl and paths are relative to the file that defines them
 
 When creating a shared `tsconfig.nextjs.json` at the repo root, do NOT put `baseUrl` or `paths` in it. These resolve relative to the file that defines them, so `"baseUrl": "."` in a root tsconfig means the repo root — not the app directory. Each app must define its own `baseUrl`, `paths`, and `include` in its local `tsconfig.json`.

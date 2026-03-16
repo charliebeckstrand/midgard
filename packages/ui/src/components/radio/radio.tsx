@@ -63,7 +63,7 @@ export function RadioField({
 	)
 }
 
-type RadioProps = VariantProps<typeof radio> & {
+export type RadioProps = VariantProps<typeof radio> & {
 	className?: string
 	value: string
 	disabled?: boolean

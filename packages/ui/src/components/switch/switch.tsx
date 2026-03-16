@@ -42,7 +42,7 @@ export function SwitchField({
 	)
 }
 
-type SwitchProps = VariantProps<typeof switchVariants> & {
+export type SwitchProps = VariantProps<typeof switchVariants> & {
 	className?: string
 	checked?: boolean
 	defaultChecked?: boolean

@@ -3,7 +3,7 @@ import clsx from 'clsx'
 import { Link } from '../../core'
 import { badge } from './variants'
 
-type BadgeProps = VariantProps<typeof badge>
+export type BadgeProps = VariantProps<typeof badge>
 
 export function Badge({
 	color,
