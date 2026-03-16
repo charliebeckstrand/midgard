@@ -2,12 +2,12 @@
 
 import { useEffect } from 'react'
 import { ChatComposer } from './composer'
-import { ChatContent } from './message'
-import type { ClientChatMessage } from './types'
+import { ChatMessage } from './message'
+import type { ClientChatContent } from './types'
 import { useScrollToBottom } from './use-scroll-to-bottom'
 
 interface ChatLayoutProps {
-	messages: ClientChatMessage[]
+	messages: ClientChatContent[]
 	sending?: boolean
 	isDraft?: boolean
 	onSend: (message: string) => void
@@ -30,7 +30,7 @@ export function ChatLayout({ messages, sending, isDraft, onSend }: ChatLayoutPro
 						{messages.length > 0 && (
 							<div className="mx-auto space-y-4">
 								{messages.map((message) => (
-									<ChatContent key={message.id} role={message.role} content={message.content} />
+									<ChatMessage key={message.id} role={message.role} content={message.content} />
 								))}
 								<div ref={messagesEndRef} />
 							</div>

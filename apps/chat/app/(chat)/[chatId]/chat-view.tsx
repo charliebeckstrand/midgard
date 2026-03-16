@@ -1,11 +1,11 @@
 'use client'
 
-import type { ChatMessage } from 'sindri/chat'
+import type { ChatContent } from 'sindri/chat'
 import { ChatLayout, useChat } from 'sindri/chat'
 
 interface Props {
 	chatId: string
-	initialMessages: ChatMessage[]
+	initialMessages: ChatContent[]
 	isDraft: boolean
 }
 

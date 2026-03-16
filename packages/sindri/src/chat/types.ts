@@ -5,12 +5,12 @@ export type Chat = {
 	updated_at: string
 }
 
-export interface ChatMessage {
+export interface ChatContent {
 	role: 'user' | 'agent'
 	content: string
 }
 
-export interface ClientChatMessage extends ChatMessage {
+export interface ClientChatContent extends ChatContent {
 	id: string
 	pending?: boolean
 }

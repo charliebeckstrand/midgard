@@ -4,17 +4,17 @@ import { EventSourceParserStream } from 'eventsource-parser/stream'
 import { usePathname, useRouter } from 'next/navigation'
 import { useCallback, useState } from 'react'
 
-import type { ChatMessage, ClientChatMessage } from './types'
+import type { ChatContent, ClientChatContent } from './types'
 
 export function useChat(
 	chatId?: string,
-	initialMessages?: ChatMessage[],
+	initialMessages?: ChatContent[],
 	initialIsDraft?: boolean,
 ) {
 	const pathname = usePathname()
 	const router = useRouter()
 
-	const [messages, setMessages] = useState<ClientChatMessage[]>(() =>
+	const [messages, setMessages] = useState<ClientChatContent[]>(() =>
 		(initialMessages ?? []).map((m) => ({ ...m, id: crypto.randomUUID() })),
 	)
 
@@ -27,7 +27,7 @@ export function useChat(
 
 			setSending(true)
 
-			const userMessage: ClientChatMessage = {
+			const userMessage: ClientChatContent = {
 				id: crypto.randomUUID(),
 				role: 'user',
 				content,
