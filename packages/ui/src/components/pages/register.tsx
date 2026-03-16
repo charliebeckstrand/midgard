@@ -27,7 +27,7 @@ export function RegisterPage({
 			<form onSubmit={onSubmit} className="grid w-full max-w-sm grid-cols-1 gap-8">
 				{heading ?? <Heading>Create your account</Heading>}
 
-				{serverError && <p className="text-sm text-red-500">{serverError}</p>}
+				{serverError && <p className="text-sm text-red-600">{serverError}</p>}
 
 				{children}
 

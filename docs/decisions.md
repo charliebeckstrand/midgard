@@ -273,6 +273,14 @@ Non-trivial design choices with context, alternatives, and trade-offs.
 **Alternatives:** (1) Inline tab UI in the demo page only — misses the opportunity to add a reusable component. (2) CSS transitions for the indicator — can't animate between DOM positions smoothly.
 **Consequences:** New reusable Tabs component available at `ui/tabs`. The Divider import was removed from the demo `app.tsx` as it's no longer needed.
 
+## 2026-03-16 — Adopt Vercel Geist dark P3 OKLCH color palette
+
+**Status:** Accepted
+**Context:** The project's color palette used custom OKLCH values with a 100-900 scale (light-to-dark). The user requested adopting Vercel's Geist design system colors and removing orange.
+**Decision:** Replaced the custom color palette with Vercel's Geist dark P3 OKLCH values. Scale changed from 100-900 (light-to-dark) to 100-1000 (dark-to-light). Removed orange, added pink. Final palette: blue, red, amber, green, teal, purple, pink. Color aliases point to shade 600 (Vercel's primary vivid shade). Removed `indigo` and `violet` color variants from components (not in theme). Added `teal`, `purple`, `pink` variants.
+**Alternatives:** (1) Remap Vercel values into existing 100-900 scale — loses fidelity to Vercel's shade distribution. (2) Keep orange — rejected per user request.
+**Consequences:** All component shade references updated. Vercel's dark scale: 100-500 are dark tints, 600 is vivid accent, 700-800 are darker vivids, 900-1000 are light shades. Any `color="indigo"` or `color="violet"` usage must be updated to `purple` or `pink`.
+
 ## 2026-03-16 — Move chat UI components and hooks to sindri
 
 **Status:** Accepted

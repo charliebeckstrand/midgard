@@ -11,7 +11,7 @@ button:focus, [role="button"]:focus, a:focus, input:focus, textarea:focus {
 }
 
 button:focus-visible, [role="button"]:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible {
-    outline: 2px solid var(--color-blue-500);
+    outline: 2px solid var(--color-blue-600);
     outline-offset: -2px;
     border-radius: var(--radius-lg);
 }
