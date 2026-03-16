@@ -1,0 +1,22 @@
+@import 'tailwindcss';
+@import './theme.css';
+
+@variant dark (@media (prefers-color-scheme: dark));
+
+@source '../../../packages/sindri/src';
+@source '../../../packages/ui/src';
+
+:root {
+    height: 100%;
+    overscroll-behavior: none;
+}
+
+/* Remove browser default focus outlines; show blue ring on keyboard navigation only */
+button:focus, [role="button"]:focus, a:focus {
+    outline: none;
+}
+button:focus-visible, [role="button"]:focus-visible, a:focus-visible {
+    outline: 2px solid var(--color-blue-500);
+    outline-offset: 2px;
+    border-radius: var(--radius-lg);
+}
