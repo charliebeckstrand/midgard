@@ -183,9 +183,10 @@ function resolveTypeBodies(
 		// Named type reference — resolve recursively
 		const nameMatch = p.match(/^(\w+)(?:<[^>]*>)?/)
 
-		if (nameMatch && typeDefs.has(nameMatch[1])) {
-			// biome-ignore lint/style/noNonNullAssertion: guaranteed by has() check above
-			const resolved = resolveTypeBodies(typeDefs.get(nameMatch[1])!, typeDefs, cvaVariants)
+		const typeDef = nameMatch ? typeDefs.get(nameMatch[1]) : undefined
+
+		if (typeDef) {
+			const resolved = resolveTypeBodies(typeDef, typeDefs, cvaVariants)
 			bodies.push(...resolved)
 			continue
 		}
