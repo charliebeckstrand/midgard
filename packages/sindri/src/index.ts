@@ -1,1 +1,1 @@
-export type { Chat } from './types'
+export type { Chat } from './chat/types'

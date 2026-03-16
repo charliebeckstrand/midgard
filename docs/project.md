@@ -68,19 +68,19 @@ Primary user-facing Next.js 16 application running on port 3000.
 
 ## apps/chat
 
-Chat application running on port 3002. Authenticated (same model as admin).
+Chat application running on port 3002. Authenticated (same model as admin). Chat UI components and hooks live in `sindri/chat` for cross-app reuse.
 
 **Key paths:**
 - `app/layout.tsx` — Root layout
 - `app/(chat)/` — Chat route group (main authenticated area)
 - `app/(chat)/page.tsx` — Chat home (empty state)
-- `app/(chat)/types.ts` — Shared types (Chat, ChatMessage, ClientChatMessage)
-- `app/(chat)/hooks/` — Extracted hooks (use-scroll-to-bottom, use-chat-messages, use-chat-actions)
+- `app/(chat)/types.ts` — App-local types (Chat for sidebar display)
+- `app/(chat)/` uses `useChat` hook from `sindri/chat` for message state, SSE streaming, and sidebar actions
 - `app/(chat)/client.tsx` — Client wrapper with SidebarLayout, sidebar with "New chat" + chat list
-- `app/(chat)/[chatId]/page.tsx` — Individual chat page with message input/display
+- `app/(chat)/[chatId]/page.tsx` — Server component fetching chat history
+- `app/(chat)/[chatId]/chat-view.tsx` — Thin client wrapper bridging local hooks to `sindri/chat` ChatLayout
 - `app/(chat)/sidebar-footer.tsx` — User dropdown with sign-out
-- `app/login/page.tsx` — Login page (re-exports from `sindri/login-page`)
-- `app/register/page.tsx` — Registration page (re-exports from `sindri/register-page`)
+- `app/login/page.tsx` — Login page (re-exports from `sindri/auth`)
 - `proxy.ts` — Next.js proxy using `heimdall/proxy` (protects all routes)
 - `next.config.ts` — Uses `withAuth` from heimdall
 
@@ -89,7 +89,7 @@ Chat application running on port 3002. Authenticated (same model as admin).
 - `GET /api/chat/{chatId}` — Fetches a specific chat's messages (Bifrost)
 - `POST /api/chat/{chatId}` — Sends messages to the chat and returns agent response (Bifrost handles persistence)
 
-**Depends on:** heimdall, sindri, catalyst, reactbits, react-textarea-autosize, @heroicons/react
+**Depends on:** heimdall, sindri, catalyst, reactbits, @heroicons/react
 
 ## apps/docs
 
@@ -137,27 +137,31 @@ Shared authentication module for all Midgard apps. Provides session management, 
 
 ## packages/sindri
 
-Shared UI resources — auth page components, form validation hook, design theme, and input components. Named after the master dwarf craftsman of Norse mythology.
+Shared UI resources — auth page components, chat UI components, form validation hook, design theme, and input components. Named after the master dwarf craftsman of Norse mythology.
 
 **Exports:**
 | Import path | File | Purpose |
 |---|---|---|
-| `sindri/login-page` | `src/components/login-page.tsx` | `LoginPage` component |
-| `sindri/register-page` | `src/components/register-page.tsx` | `RegisterPage` component |
-| `sindri/password-input` | `src/components/password-input.tsx` | `PasswordInput` component with visibility toggle |
-| `sindri/use-form` | `src/hooks/use-form.ts` | `useForm` hook with validators (required, email, minLength, matches) |
+| `sindri/auth` | `src/auth/index.ts` | `LoginPage`, `RegisterPage`, `PasswordInput` components |
+| `sindri/chat` | `src/chat/index.ts` | `ChatLayout`, `ChatComposer`, `ChatMessage`, `useChat`, `useScrollToBottom`, types |
 | `sindri/theme.css` | `src/theme.css` | Shared design tokens (colors, fonts) for all apps |
 
 **Key files:**
-- `src/components/login-page.tsx` — Login form with password visibility toggle
-- `src/components/register-page.tsx` — Registration form with password visibility toggle
-- `src/components/password-input.tsx` — `PasswordInput` component with eye/eye-slash toggle (HeroIcons)
-- `src/hooks/use-form.ts` — Form validation hook with validators (required, email, minLength, matches)
+- `src/auth/login-page.tsx` — Login form with password visibility toggle
+- `src/auth/register-page.tsx` — Registration form with password visibility toggle
+- `src/auth/password-input.tsx` — `PasswordInput` component with eye/eye-slash toggle (HeroIcons)
+- `src/auth/use-form.ts` — Form validation hook with validators (required, email, minLength, matches)
+- `src/chat/chat-layout.tsx` — Presentational chat layout (message list + composer)
+- `src/chat/composer.tsx` — `ChatComposer` text input with send button (emits `onSend` event)
+- `src/chat/message.tsx` — `ChatMessage` single message bubble display
+- `src/chat/use-chat.ts` — `useChat` hook (message state, SSE streaming, new/delete chat actions)
+- `src/chat/use-scroll-to-bottom.ts` — Auto-scroll hook for message lists
+- `src/chat/types.ts` — `Chat` (DB type), `ChatContent`, `ClientChatContent` interfaces
 - `src/theme.css` — Shared `@theme` block with custom color palette (oklch-based) and font config
 
-**tsup config:** Two build passes — server modules (use-form) with `clean: true`, then client modules (login-page, register-page, password-input) with `'use client'` banner and `clean: false`. The CSS file (`theme.css`) is exported directly, not bundled by tsup.
+**tsup config:** Entry points are `src/index.ts` and `src/*/index.ts`. External: next, react, react-dom, catalyst, reactbits, @heroicons/react, react-textarea-autosize.
 
-**Depends on:** catalyst, reactbits, @heroicons/react
+**Depends on:** catalyst, reactbits, @heroicons/react, react-textarea-autosize, eventsource-parser
 
 ## packages/catalyst
 

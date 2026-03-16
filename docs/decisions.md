@@ -224,3 +224,29 @@ Non-trivial design choices with context, alternatives, and trade-offs.
 - Simpler client code — single POST replaces three-step fetch (save user → stream agent → save agent).
 - No chart or grid rendering in chat — agent responses are text-only.
 - Bifrost handles all message persistence, simplifying the client.
+
+## 2026-03-16 — Move chat UI components and hooks to sindri
+
+**Status:** Accepted
+
+**Context:** The chat app had UI components (message display, input, layout) and hooks (message streaming, sidebar actions) tightly coupled to `apps/chat`. Other apps in the monorepo couldn't reuse the chat interface.
+
+**Decision:** Moved all chat UI and hooks to `sindri/src/chat/`:
+- `ChatLayout` — presentational chat shell (message list + composer), accepts messages/state as props
+- `ChatComposer` — text input with send button, emits `onSend` event
+- `ChatMessage` — single message bubble component
+- `useChat` — consolidated hook combining message state/SSE streaming (`useChatMessages`) and sidebar actions (`useChatActions`)
+- `useScrollToBottom` — auto-scroll utility
+- Types: `ChatContent`, `ClientChatContent`
+
+The chat app retains a thin `ChatView` wrapper that calls `useChat` and passes results to `ChatLayout`, plus app-specific server components and sidebar layout.
+
+**Alternatives:**
+- Keep hooks local, move only UI: simpler but prevents other apps from reusing the streaming/action logic.
+- Create a separate `chat` package: adds a package for what is naturally part of sindri's "shared UI resources" scope.
+
+**Consequences:**
+- Any app can render a full chat interface by importing from `sindri/chat`.
+- `ChatComposer` is independently reusable (emits `onSend`, no hook dependency).
+- `useChat` accepts optional params — call without args for just `newChat`/`deleteChat`, call with `chatId`/messages for full state.
+- `eventsource-parser` and `react-textarea-autosize` move from chat app to sindri dependencies.

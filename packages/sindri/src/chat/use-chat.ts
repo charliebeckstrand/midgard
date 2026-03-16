@@ -1,30 +1,33 @@
 'use client'
 
 import { EventSourceParserStream } from 'eventsource-parser/stream'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useCallback, useState } from 'react'
 
-import type { ChatMessage, ClientChatMessage } from '../types'
+import type { ChatContent, ClientChatContent } from './types'
 
-export function useChatMessages(
-	chatId: string,
-	initialMessages: ChatMessage[],
-	initialIsDraft: boolean,
+export function useChat(
+	chatId?: string,
+	initialMessages?: ChatContent[],
+	initialIsDraft?: boolean,
 ) {
+	const pathname = usePathname()
 	const router = useRouter()
 
-	const [messages, setMessages] = useState<ClientChatMessage[]>(() =>
-		initialMessages.map((m) => ({ ...m, id: crypto.randomUUID() })),
+	const [messages, setMessages] = useState<ClientChatContent[]>(() =>
+		(initialMessages ?? []).map((m) => ({ ...m, id: crypto.randomUUID() })),
 	)
 
-	const [isDraft, setIsDraft] = useState(initialIsDraft)
+	const [isDraft, setIsDraft] = useState(initialIsDraft ?? false)
 	const [sending, setSending] = useState(false)
 
 	const sendMessage = useCallback(
 		async (content: string) => {
+			if (!chatId) return
+
 			setSending(true)
 
-			const userMessage: ClientChatMessage = {
+			const userMessage: ClientChatContent = {
 				id: crypto.randomUUID(),
 				role: 'user',
 				content,
@@ -80,5 +83,21 @@ export function useChatMessages(
 		[chatId, isDraft, router],
 	)
 
-	return { messages, sending, isDraft, sendMessage }
+	function newChat() {
+		const id = crypto.randomUUID()
+
+		router.push(`/${id}?draft=true`)
+	}
+
+	async function deleteChat(id: string) {
+		await fetch(`/api/chat/${id}`, { method: 'DELETE' }).catch(() => null)
+
+		if (pathname === `/${id}`) {
+			router.push('/')
+		}
+
+		router.refresh()
+	}
+
+	return { messages, sending, isDraft, sendMessage, newChat, deleteChat }
 }
