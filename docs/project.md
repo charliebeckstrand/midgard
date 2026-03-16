@@ -89,12 +89,9 @@ Chat application running on port 3002. Authenticated (same model as admin).
 - `GET /api/chat` — Fetches all chats for sidebar listing (Bifrost)
 - `GET /api/chat/{chatId}` — Fetches a specific chat's messages (Bifrost)
 - `POST /api/chat/{chatId}` — Saves a message to the chat (Bifrost)
-- `POST /api/chat/agent` — AG-UI SSE event stream for agent responses (Next.js API route, simulated). Emits text + random tool calls (CreateBarChart, CreateLineChart, CreateAreaChart, CreateScatterChart, CreateBubbleChart, CreatePieChart, CreateDonutChart, CreateComboChart, CreateGrid)
+- `POST /api/chat/agent` — AG-UI SSE event stream for agent responses (proxied to Bifrost). Returns text + tool calls (CreateBarChart, CreateLineChart, CreateAreaChart, CreateScatterChart, CreateBubbleChart, CreatePieChart, CreateDonutChart, CreateComboChart, CreateGrid)
 
-**Key paths (continued):**
-- `app/api/chat/agent/route.ts` — Agent response API route (AG-UI SSE stream, simulated)
-
-**Depends on:** heimdall, sindri, catalyst, reactbits, react-textarea-autosize, @heroicons/react, @ag-ui/core, @ag-ui/encoder, ag-grid-react, ag-grid-community, ag-charts-react, ag-charts-community
+**Depends on:** heimdall, sindri, catalyst, reactbits, react-textarea-autosize, @heroicons/react, ag-grid-react, ag-grid-community, ag-charts-react, ag-charts-community
 
 ## apps/docs
 
