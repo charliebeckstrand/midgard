@@ -147,10 +147,10 @@ function PropsTable({ api }: { api: ComponentApi[] }) {
 									<TableRow key={prop.name}>
 										<TableCell className="font-mono font-medium">{prop.name}</TableCell>
 										<TableCell>
-											<div className="grid grid-cols-[repeat(4,max-content)] gap-1">
+											<div className="grid grid-cols-[repeat(4,max-content)] items-center gap-1">
 												{prop.type.split(' | ').map((t) => (
-													<Badge key={t} color="zinc">
-														{t}
+													<Badge key={t} color="zinc" className="dark:text-white">
+														{t.replace(/^'|'$/g, '')}
 													</Badge>
 												))}
 											</div>
