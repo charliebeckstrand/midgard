@@ -4,6 +4,7 @@ import type { VariantProps } from 'class-variance-authority'
 import clsx from 'clsx'
 import type React from 'react'
 import { useCallback } from 'react'
+import { useControllable } from '../../hooks'
 import { switchVariants } from './variants'
 
 export function SwitchGroup({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
@@ -54,16 +55,23 @@ export type SwitchProps = VariantProps<typeof switchVariants> & {
 export function Switch({
 	color,
 	className,
-	checked,
+	checked: checkedProp,
+	defaultChecked,
 	onChange,
 	disabled,
 	name,
 	...props
 }: SwitchProps) {
+	const [checked, setChecked] = useControllable({
+		value: checkedProp,
+		defaultValue: defaultChecked ?? false,
+		onChange,
+	})
+
 	const handleClick = useCallback(() => {
 		if (disabled) return
-		onChange?.(!checked)
-	}, [checked, disabled, onChange])
+		setChecked(!checked)
+	}, [checked, disabled, setChecked])
 
 	return (
 		<button

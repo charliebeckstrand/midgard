@@ -4,6 +4,7 @@ import type { VariantProps } from 'class-variance-authority'
 import clsx from 'clsx'
 import type React from 'react'
 import { useCallback } from 'react'
+import { useControllable } from '../../hooks'
 import { checkbox } from './variants'
 
 export function CheckboxGroup({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
@@ -56,7 +57,8 @@ export type CheckboxProps = VariantProps<typeof checkbox> & {
 export function Checkbox({
 	color,
 	className,
-	checked,
+	checked: checkedProp,
+	defaultChecked,
 	indeterminate,
 	onChange,
 	disabled,
@@ -64,10 +66,16 @@ export function Checkbox({
 	value,
 	...props
 }: CheckboxProps) {
+	const [checked, setChecked] = useControllable({
+		value: checkedProp,
+		defaultValue: defaultChecked ?? false,
+		onChange,
+	})
+
 	const handleClick = useCallback(() => {
 		if (disabled) return
-		onChange?.(!checked)
-	}, [checked, disabled, onChange])
+		setChecked(!checked)
+	}, [checked, disabled, setChecked])
 
 	const handleKeyDown = useCallback(
 		(e: React.KeyboardEvent) => {
