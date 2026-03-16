@@ -15,7 +15,7 @@ The watchman of the gods who guards the Bifrost bridge. Name of the auth module 
 The rainbow bridge connecting the realms. Name of the external auth backend service that Heimdall proxies to.
 
 ## Catalyst
-Name of the shared UI component library (`packages/catalyst`) — Headless UI + Tailwind CSS components.
+Former name of the shared UI component library (`packages/catalyst`). Now replaced by `packages/ui`.
 
 ## Sindri
 The master dwarf craftsman who forged legendary items including Mjolnir and Draupnir. Name of the shared UI resources package (`packages/sindri`) — auth page components, form hooks, and input components.

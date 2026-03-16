@@ -30,6 +30,11 @@
 			"import": "./dist/primitives.js",
 			"default": "./dist/primitives.js"
 		},
+		"./auth-layout": {
+			"types": "./src/components/auth-layout/index.ts",
+			"import": "./dist/auth-layout.js",
+			"default": "./dist/auth-layout.js"
+		},
 		"./alert": {
 			"types": "./src/components/alert/index.ts",
 			"import": "./dist/alert.js",

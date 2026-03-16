@@ -15,7 +15,7 @@ How the pieces of Midgard fit together.
 │       │              │              │             │
 │  ┌────┴──────────────┴──────────────┴─────┐     │
 │  │         Shared Packages                 │     │
-│  │  ui · catalyst · sindri · reactbits     │     │
+│  │  ui · sindri · reactbits                │     │
 │  └────────────────┬───────────────────────┘     │
 │                   │                              │
 │  ┌────────────────┴───────────────────────┐     │
@@ -39,9 +39,7 @@ How the pieces of Midgard fit together.
 
 ## Shared Packages
 
-**ui** — New component library with five-layer atomic architecture (core → recipes → hooks → primitives → components). Framework-agnostic via LinkProvider pattern. 25 component families, zero duplication through shared recipes and primitives. Replaces catalyst.
-
-**catalyst** — A Tailwind CSS component library with 28+ components. Uses `data-slot` attributes for styling hooks and `motion/react` for animations. No HeadlessUI dependency. Being replaced by `ui`.
+**ui** — Component library with five-layer atomic architecture (core → recipes → hooks → primitives → components). Framework-agnostic via LinkProvider pattern. 28 component families, zero duplication through shared recipes and primitives.
 
 **heimdall** — Server-side authentication module. Provides session management (`getSession`), route protection (`proxy`), and Next.js config helpers (`withAuth`). Proxies auth and API requests to the external Bifrost backend.
 
@@ -71,6 +69,5 @@ The project uses **Norse mythology** names:
 | Bifrost      | Rainbow bridge to Asgard   | External auth backend       |
 | Sindri       | Master dwarf craftsman     | Shared UI resources         |
 | Hlidskjalf   | Odin's watchtower          | Terminal dev dashboard       |
-| Catalyst     | _(non-Norse)_              | UI component library        |
 
 See [Domain Glossary](#glossary) for the full list.

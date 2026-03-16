@@ -1,20 +1,19 @@
 'use client'
 
 import { UsersIcon } from '@heroicons/react/20/solid'
+import { usePathname } from 'next/navigation'
+import type { ReactNode } from 'react'
+import { ShinyText } from 'reactbits'
+import { Navbar, NavbarSpacer } from 'ui/navbar'
 import {
-	Navbar,
-	NavbarSpacer,
 	Sidebar,
 	SidebarBody,
 	SidebarHeader,
 	SidebarItem,
 	SidebarLabel,
-	SidebarLayout,
 	SidebarSection,
-} from 'catalyst'
-import { usePathname } from 'next/navigation'
-import type { ReactNode } from 'react'
-import { ShinyText } from 'reactbits'
+} from 'ui/sidebar'
+import { SidebarLayout } from 'ui/sidebar-layout'
 import { SidebarUserFooter } from './sidebar-footer'
 
 type User = { email: string; name?: string }

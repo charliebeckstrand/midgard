@@ -1,19 +1,13 @@
 'use client'
 
-import {
-	AuthLayout,
-	Button,
-	ErrorMessage,
-	Field,
-	Heading,
-	Input,
-	Label,
-	Strong,
-	Text,
-	TextLink,
-} from 'catalyst'
 import { useRouter } from 'next/navigation'
 import { Suspense, useState } from 'react'
+import { AuthLayout } from 'ui/auth-layout'
+import { Button } from 'ui/button'
+import { ErrorMessage, Field, Label } from 'ui/fieldset'
+import { Heading } from 'ui/heading'
+import { Input } from 'ui/input'
+import { Strong, Text, TextLink } from 'ui/text'
 import { PasswordInput } from './password-input'
 import { useForm } from './use-form'
 import { email, matches, minLength, required } from './use-form-validation'

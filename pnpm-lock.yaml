@@ -27,9 +27,6 @@ importers:
       '@heroicons/react':
         specifier: ^2.2.0
         version: 2.2.0(react@19.2.4)
-      catalyst:
-        specifier: workspace:*
-        version: link:../../packages/catalyst
       heimdall:
         specifier: workspace:*
         version: link:../../packages/heimdall
@@ -51,6 +48,9 @@ importers:
       sindri:
         specifier: workspace:*
         version: link:../../packages/sindri
+      ui:
+        specifier: workspace:*
+        version: link:../../packages/ui
     devDependencies:
       '@biomejs/biome':
         specifier: ^2.4.6
@@ -79,9 +79,6 @@ importers:
       '@heroicons/react':
         specifier: ^2.2.0
         version: 2.2.0(react@19.2.4)
-      catalyst:
-        specifier: workspace:*
-        version: link:../../packages/catalyst
       heimdall:
         specifier: workspace:*
         version: link:../../packages/heimdall
@@ -103,6 +100,9 @@ importers:
       sindri:
         specifier: workspace:*
         version: link:../../packages/sindri
+      ui:
+        specifier: workspace:*
+        version: link:../../packages/ui
     devDependencies:
       '@biomejs/biome':
         specifier: ^2.4.6
@@ -131,9 +131,6 @@ importers:
       '@heroicons/react':
         specifier: ^2.2.0
         version: 2.2.0(react@19.2.4)
-      catalyst:
-        specifier: workspace:*
-        version: link:../../packages/catalyst
       heimdall:
         specifier: workspace:*
         version: link:../../packages/heimdall
@@ -161,6 +158,9 @@ importers:
       sindri:
         specifier: workspace:*
         version: link:../../packages/sindri
+      ui:
+        specifier: workspace:*
+        version: link:../../packages/ui
     devDependencies:
       '@biomejs/biome':
         specifier: ^2.4.6
@@ -275,9 +275,6 @@ importers:
       '@heroicons/react':
         specifier: ^2.2.0
         version: 2.2.0(react@19.2.4)
-      catalyst:
-        specifier: workspace:*
-        version: link:../catalyst
       eventsource-parser:
         specifier: ^3.0.6
         version: 3.0.6
@@ -287,6 +284,9 @@ importers:
       reactbits:
         specifier: workspace:*
         version: link:../reactbits
+      ui:
+        specifier: workspace:*
+        version: link:../ui
     devDependencies:
       '@biomejs/biome':
         specifier: ^2.4.6

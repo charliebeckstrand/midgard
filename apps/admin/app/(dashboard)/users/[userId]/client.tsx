@@ -1,23 +1,12 @@
 'use client'
 
-import {
-	Button,
-	Dialog,
-	DialogActions,
-	DialogBody,
-	DialogTitle,
-	Heading,
-	Subheading,
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from 'catalyst'
 import type { User } from 'heimdall/user'
 import { useState } from 'react'
 import type { Chat } from 'sindri/chat'
+import { Button } from 'ui/button'
+import { Dialog, DialogActions, DialogBody, DialogTitle } from 'ui/dialog'
+import { Heading, Subheading } from 'ui/heading'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from 'ui/table'
 
 interface UserDetailsClientProps {
 	details: User | null

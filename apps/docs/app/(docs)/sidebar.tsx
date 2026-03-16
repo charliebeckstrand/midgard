@@ -1,5 +1,6 @@
 'use client'
 
+import { ShinyText } from 'reactbits'
 import {
 	Sidebar,
 	SidebarBody,
@@ -8,8 +9,7 @@ import {
 	SidebarItem,
 	SidebarLabel,
 	SidebarSection,
-} from 'catalyst'
-import { ShinyText } from 'reactbits'
+} from 'ui/sidebar'
 
 import type { DocEntry } from './types'
 

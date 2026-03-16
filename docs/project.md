@@ -1,6 +1,6 @@
 # Project
 
-> Last updated: 2026-03-15
+> Last updated: 2026-03-16
 
 Midgard is a pnpm monorepo managed by Turbo. It contains Next.js applications backed by shared auth, UI component, and animation-effect packages.
 
@@ -27,7 +27,6 @@ apps/
   docs/           → Documentation dashboard (Next.js, port 3001)
 packages/
   ui/             → New component library (atomic architecture, framework-agnostic)
-  catalyst/       → Shared UI component library (Headless UI + Tailwind) — being replaced by ui
   heimdall/       → Shared authentication module (session, config, proxy)
   hlidskjalf/     → CLI dev tool (Ink + React terminal UI, manages workspace processes)
   sindri/         → Shared UI resources (auth pages, form hooks, theme, input components)
@@ -41,11 +40,11 @@ Defined in `pnpm-workspace.yaml`. Turbo tasks configured in `turbo.json`.
 
 To add a new Next.js app to the monorepo:
 
-1. Create `apps/<name>/package.json` with dependencies on `heimdall`, `sindri`, `catalyst`, and shared devDependencies (see `apps/admin/package.json` as template)
+1. Create `apps/<name>/package.json` with dependencies on `heimdall`, `sindri`, `ui`, and shared devDependencies (see `apps/admin/package.json` as template)
 2. Create `apps/<name>/tsconfig.json` extending `../../tsconfig.nextjs.json` with `baseUrl`, `paths`, and `include`
 3. Create `apps/<name>/next.config.ts` using `withAuth` from `heimdall/config`
 4. Create `apps/<name>/proxy.ts` using `proxy` from `heimdall/proxy` (set `protect: false` for public apps)
-5. Create `apps/<name>/app/globals.css` importing `sindri/theme.css` and adding `@source` directives for sindri and catalyst
+5. Create `apps/<name>/app/globals.css` importing `sindri/theme.css` and adding `@source` directives for sindri and ui
 6. Create `apps/<name>/app/layout.tsx` with Inter font and metadata
 7. Create `apps/<name>/app/login/page.tsx` re-exporting from `sindri/login-page`
 
@@ -65,7 +64,7 @@ Primary user-facing Next.js 16 application running on port 3000.
 - `proxy.ts` — Next.js proxy using `heimdall/proxy` (protects all routes)
 - `next.config.ts` — Uses `withAuth` from heimdall to set up API/auth rewrites
 
-**Depends on:** heimdall, sindri, catalyst, reactbits, @heroicons/react
+**Depends on:** heimdall, sindri, ui, reactbits, @heroicons/react
 
 ## apps/chat
 
@@ -90,7 +89,7 @@ Chat application running on port 3002. Authenticated (same model as admin). Chat
 - `GET /api/chat/{chatId}` — Fetches a specific chat's messages (Bifrost)
 - `POST /api/chat/{chatId}` — Sends messages to the chat and returns agent response (Bifrost handles persistence)
 
-**Depends on:** heimdall, sindri, catalyst, reactbits, @heroicons/react
+**Depends on:** heimdall, sindri, ui, reactbits, @heroicons/react
 
 ## apps/docs
 
@@ -113,7 +112,7 @@ Documentation dashboard that renders markdown files from the root `docs/` direct
 
 Categories and ordering are defined in `app/docs.ts` via `GUIDE_DOCS` and `REFERENCE_DOCS`.
 
-**Depends on:** heimdall, sindri, catalyst, @heroicons/react, shiki
+**Depends on:** heimdall, sindri, ui, @heroicons/react, shiki
 
 ## packages/heimdall
 
@@ -160,9 +159,9 @@ Shared UI resources — auth page components, chat UI components, form validatio
 - `src/chat/types.ts` — `Chat` (DB type), `ChatContent` interface
 - `src/theme.css` — Shared `@theme` block with custom color palette (oklch-based) and font config
 
-**tsup config:** Entry points are `src/index.ts` and `src/*/index.ts`. External: next, react, react-dom, catalyst, reactbits, @heroicons/react, react-textarea-autosize.
+**tsup config:** Entry points are `src/index.ts` and `src/*/index.ts`. External: next, react, react-dom, ui, reactbits, @heroicons/react, react-textarea-autosize.
 
-**Depends on:** catalyst, reactbits, @heroicons/react, react-textarea-autosize, eventsource-parser
+**Depends on:** ui, reactbits, @heroicons/react, react-textarea-autosize, eventsource-parser
 
 ## packages/ui
 
@@ -173,9 +172,9 @@ New component library built from scratch with a five-layer atomic architecture. 
 - `recipes/` — Composable style definitions (control, popover, overlay, item, motion)
 - `hooks/` — Behavioral primitives (useOverlay, useMenuKeyboard, useControllable)
 - `primitives/` — Reusable building blocks (Overlay, PopoverPanel, SlidePanel, icons, TouchTarget)
-- `components/` — 25 component families
+- `components/` — 28 component families
 
-**Components:** alert, avatar, badge, button, checkbox, combobox, description-list, dialog, divider, dropdown, fieldset, heading, input, listbox, navbar, pagination, radio, select, sidebar, sidebar-layout, stacked-layout, switch, table, text, textarea
+**Components:** alert, auth-layout, avatar, badge, button, checkbox, combobox, description-list, dialog, divider, dropdown, fieldset, heading, input, listbox, navbar, pagination, radio, select, sheet, sidebar, sidebar-layout, stacked-layout, switch, table, text, textarea
 
 **Imports:** Consumers import from specific entry points: `ui/button`, `ui/dialog`, `ui/core`, `ui/recipes`, `ui/primitives`, `ui/hooks`
 
@@ -183,15 +182,7 @@ New component library built from scratch with a five-layer atomic architecture. 
 
 **Peer deps:** react ^18 || ^19
 
-**Status:** Replaces `packages/catalyst/` once migration is complete.
-
-## packages/catalyst
-
-Tailwind CSS component library with 28+ components. Uses `data-slot` attributes for styling hooks and `data-hover`/`data-active`/`data-focus`/`data-disabled` attributes managed via event handlers in `primitives.tsx`. Animations use `motion/react` (AnimatePresence, motion.div). No HeadlessUI dependency.
-
-**Components:** alert, auth-layout, avatar, badge, button, checkbox, combobox, description-list, dialog, divider, dropdown, fieldset (Field, Label, Description, ErrorMessage, FieldGroup, Legend), heading, input (Input, InputGroup), link, listbox, navbar, pagination, primitives (InteractiveButton, InteractiveLink, useInteractiveHandlers, useClickOutside, useEscapeKey), radio, select, sidebar, sidebar-layout, stacked-layout, switch, table, text (Text, TextLink, Strong, Code)
-
-**Depends on:** clsx, class-variance-authority, motion
+**Status:** Active. Replaced the former `packages/catalyst/` library.
 
 ## packages/hlidskjalf
 

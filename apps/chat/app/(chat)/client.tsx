@@ -1,22 +1,21 @@
 'use client'
 
 import { ChatBubbleLeftIcon, PlusIcon, XMarkIcon } from '@heroicons/react/20/solid'
-import {
-	Navbar,
-	NavbarSpacer,
-	Sidebar,
-	SidebarBody,
-	SidebarHeader,
-	SidebarItem,
-	SidebarLabel,
-	SidebarLayout,
-	SidebarSection,
-} from 'catalyst'
 import type { User } from 'heimdall/user'
 import { usePathname } from 'next/navigation'
 import type { ReactNode } from 'react'
 import { ShinyText } from 'reactbits'
 import { useChat } from 'sindri/chat'
+import { Navbar, NavbarSpacer } from 'ui/navbar'
+import {
+	Sidebar,
+	SidebarBody,
+	SidebarHeader,
+	SidebarItem,
+	SidebarLabel,
+	SidebarSection,
+} from 'ui/sidebar'
+import { SidebarLayout } from 'ui/sidebar-layout'
 import { SidebarUserFooter } from './sidebar-footer'
 import type { Chat } from './types'
 

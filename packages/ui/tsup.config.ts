@@ -8,6 +8,7 @@ export default defineConfig({
 		hooks: 'src/hooks/index.ts',
 		primitives: 'src/primitives/index.ts',
 		alert: 'src/components/alert/index.ts',
+		'auth-layout': 'src/components/auth-layout/index.ts',
 		avatar: 'src/components/avatar/index.ts',
 		badge: 'src/components/badge/index.ts',
 		button: 'src/components/button/index.ts',

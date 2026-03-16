@@ -1,7 +1,8 @@
 'use client'
 
-import { Navbar, SidebarLayout } from 'catalyst'
 import { usePathname } from 'next/navigation'
+import { Navbar } from 'ui/navbar'
+import { SidebarLayout } from 'ui/sidebar-layout'
 
 import { DocsSidebar } from './sidebar'
 import type { ClientProps } from './types'
