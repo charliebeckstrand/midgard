@@ -186,6 +186,8 @@ New component library built from scratch with a five-layer atomic architecture. 
 
 **Tree-shaking:** `package.json` includes `"sideEffects": false`, enabling bundlers to eliminate unused component code.
 
+**Component showcase (`src/docs/`):** A Vite-powered development app that auto-discovers demo files via `import.meta.glob('./demos/*.tsx', { eager: true })`. Each demo exports a default component and an optional `meta` object (`{ name, category }`). Uses SidebarLayout with hash-based routing. Runs on port 3456 via `pnpm --filter ui docs`. 22 demo files covering all components, organized into categories: Forms, Data Display, Feedback, Overlay, Navigation, Layout. Excluded from the tsup build and tsc via `tsconfig.json` exclude. Dev dependencies: vite, @vitejs/plugin-react, tailwindcss, @tailwindcss/vite, react-dom.
+
 **Depends on:** clsx, class-variance-authority, motion
 
 **Peer deps:** react ^18 || ^19

@@ -21,7 +21,33 @@ pnpm build          # Production build (all packages via Turbo)
 pnpm lint           # Check formatting and lint rules
 pnpm lint:fix       # Auto-fix formatting and lint issues
 pnpm check-types    # TypeScript type checking across the workspace
+pnpm --filter ui docs  # Start the UI component showcase on port 3456
 ```
+
+## UI Component Showcase
+
+The `packages/ui` package includes a standalone Vite app for browsing and developing components in isolation. Start it with:
+
+```sh
+pnpm --filter ui docs
+```
+
+It runs on **port 3456** and hot-reloads as you edit component or demo files.
+
+**Adding a new demo:** Create a file in `packages/ui/src/docs/demos/`. Each file must export:
+
+- A **default React component** — the rendered demo
+- An optional **`meta` object** — `{ name: string, category: string }` used for the sidebar label and grouping
+
+```ts
+// packages/ui/src/docs/demos/my-component.tsx
+export const meta = { name: 'MyComponent', category: 'Forms' }
+export default function MyComponentDemo() {
+  return <MyComponent />
+}
+```
+
+No other files need touching — the app auto-discovers demos via `import.meta.glob`. Categories in use: Forms, Data Display, Feedback, Overlay, Navigation, Layout.
 
 ## Adding a New App
 
