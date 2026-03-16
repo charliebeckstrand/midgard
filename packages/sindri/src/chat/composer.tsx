@@ -1,9 +1,9 @@
 'use client'
 
 import { ArrowUpIcon } from '@heroicons/react/20/solid'
-import { Button } from 'catalyst'
 import { useState } from 'react'
 import TextareaAutosize from 'react-textarea-autosize'
+import { Button } from 'ui/button'
 
 interface Props {
 	disabled?: boolean

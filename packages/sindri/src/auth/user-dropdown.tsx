@@ -5,18 +5,17 @@ import {
 	ChevronUpDownIcon,
 	Cog8ToothIcon,
 } from '@heroicons/react/20/solid'
+import { useRouter } from 'next/navigation'
+import { Avatar } from 'ui/avatar'
 import {
-	Avatar,
 	Dropdown,
 	DropdownButton,
 	DropdownDivider,
 	DropdownItem,
 	DropdownLabel,
 	DropdownMenu,
-	SidebarItem,
-	SidebarLabel,
-} from 'catalyst'
-import { useRouter } from 'next/navigation'
+} from 'ui/dropdown'
+import { SidebarItem, SidebarLabel } from 'ui/sidebar'
 
 type User = { email: string; name?: string }
 

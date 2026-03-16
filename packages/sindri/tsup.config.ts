@@ -12,7 +12,7 @@ export default defineConfig({
 		'next',
 		'react',
 		'react-dom',
-		'catalyst',
+		'ui',
 		'reactbits',
 		'@heroicons/react',
 		'react-textarea-autosize',

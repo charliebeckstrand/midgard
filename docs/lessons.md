@@ -4,7 +4,7 @@ Mistakes, failed approaches, and surprising behavior. Each entry should prevent 
 
 ## 2026-03-14 — Tailwind CSS v4 requires explicit @source directives
 
-Tailwind CSS v4 in apps does not auto-detect classes from workspace packages. Every workspace package whose source files contain Tailwind `className` strings must be explicitly listed with `@source '../../../packages/<name>/src'` in `globals.css`. This includes `catalyst`, `heimdall`, and any future package. Missing a package silently omits those classes — there is no error, the styles just don't appear.
+Tailwind CSS v4 in apps does not auto-detect classes from workspace packages. Every workspace package whose source files contain Tailwind `className` strings must be explicitly listed with `@source '../../../packages/<name>/src'` in `globals.css`. This includes `ui`, `sindri`, and any future package. Missing a package silently omits those classes — there is no error, the styles just don't appear.
 
 ## 2026-03-14 — Base tsconfig lacks DOM types
 
@@ -44,7 +44,7 @@ Hlidskjalf's `ProcessRunner` emitted a `change` event for every single log line 
 
 ## 2026-03-15 — tsup DTS generation in watch mode is a memory hog
 
-tsup's `dts: true` spawns a TypeScript worker thread for declaration generation. With 30+ entry points (like catalyst), this worker needs to type-check the entire project on every rebuild, easily hitting Node.js heap limits. In dev/watch mode, use `--no-dts` since consumers use source TypeScript imports anyway (via `"types": "./src/index.ts"` in package.json exports).
+tsup's `dts: true` spawns a TypeScript worker thread for declaration generation. With 30+ entry points (like ui), this worker needs to type-check the entire project on every rebuild, easily hitting Node.js heap limits. In dev/watch mode, use `--no-dts` since consumers use source TypeScript imports anyway (via `"types": "./src/index.ts"` in package.json exports).
 
 ## 2026-03-15 — SidebarLayout scroll container is NOT window
 

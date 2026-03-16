@@ -30,7 +30,7 @@ pnpm check-types    # TypeScript type checking across the workspace
 3. Create `tsconfig.json` extending `../../tsconfig.nextjs.json`
 4. Create `next.config.ts` using `withAuth` from `heimdall/config`
 5. Create `proxy.ts` using `proxy` from `heimdall/proxy`
-6. Create `app/globals.css` importing `sindri/theme.css` with `@source` directives for sindri and catalyst
+6. Create `app/globals.css` importing `sindri/theme.css` with `@source` directives for sindri and ui
 7. Create `app/layout.tsx` with the Inter font and metadata
 8. Create `app/login/page.tsx` re-exporting from `sindri/login-page`
 
@@ -48,7 +48,7 @@ No `postcss.config.mjs` needed — apps inherit from the root config.
 
 All shared packages run in watch mode during `pnpm dev`. Changes to package source files trigger rebuilds, and Next.js apps pick up the changes automatically via Turbopack.
 
-**Important:** Catalyst's tsup `--watch` mode with DTS generation can cause memory issues. In dev mode it runs with `--no-dts`. If you need type checking, run `pnpm check-types` separately.
+**Important:** The ui package's tsup `--watch` mode with DTS generation can cause memory issues. In dev mode it runs with `--no-dts`. If you need type checking, run `pnpm check-types` separately.
 
 ## Git Workflow
 
@@ -66,7 +66,7 @@ midgard/
 │   ├── chat/        # Chat app (port 3002, authenticated)
 │   └── docs/        # Documentation (port 3001, public)
 ├── packages/
-│   ├── catalyst/    # UI component library
+│   ├── ui/          # UI component library
 │   ├── heimdall/    # Auth module
 │   ├── hlidskjalf/  # Terminal dev dashboard
 │   ├── sindri/      # Shared UI resources

@@ -1,21 +1,14 @@
 'use client'
 
-import {
-	Button,
-	Dialog,
-	DialogActions,
-	DialogBody,
-	DialogTitle,
-	Field,
-	Fieldset,
-	Heading,
-	Input,
-	Label,
-} from 'catalyst'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from 'catalyst/table'
 import type { User } from 'heimdall/user'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import { Button } from 'ui/button'
+import { Dialog, DialogActions, DialogBody, DialogTitle } from 'ui/dialog'
+import { Field, Fieldset, Label } from 'ui/fieldset'
+import { Heading } from 'ui/heading'
+import { Input } from 'ui/input'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from 'ui/table'
 
 interface UsersClientProps {
 	users: User[]

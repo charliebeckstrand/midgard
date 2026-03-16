@@ -44,7 +44,7 @@ This launches **hlidskjalf**, a terminal dashboard that discovers all workspace 
 | Docs   | http://localhost:3001  |
 | Chat   | http://localhost:3002  |
 
-Shared packages (catalyst, heimdall, sindri, reactbits) also run in watch mode so changes propagate automatically.
+Shared packages (ui, heimdall, sindri, reactbits) also run in watch mode so changes propagate automatically.
 
 ### Running a Single App
 

@@ -1,8 +1,8 @@
 'use client'
 
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
-import { Input } from 'catalyst'
 import { type ComponentPropsWithoutRef, useState } from 'react'
+import { Input } from 'ui/input'
 
 type PasswordInputProps = Omit<ComponentPropsWithoutRef<typeof Input>, 'type'>
 

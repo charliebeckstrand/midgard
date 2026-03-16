@@ -58,7 +58,7 @@ Non-trivial design choices with context, alternatives, and trade-offs.
 - Move into Catalyst: Catalyst is a generic component library (Headless UI + Tailwind), while these are auth-specific page components with business logic.
 
 **Consequences:**
-- Heimdall has zero UI dependencies (no catalyst, reactbits, @heroicons/react).
+- Heimdall has zero UI dependencies (no ui, reactbits, @heroicons/react).
 - Sindri can grow to hold more shared UI resources (e.g., profile pages, settings forms).
 - Apps that need auth pages must depend on both heimdall (for session/proxy) and sindri (for UI).
 - Tailwind `@source` directives updated: admin points to sindri instead of heimdall; docs adds sindri.

@@ -15,7 +15,7 @@
 	"packageManager": "pnpm@10.29.3",
 	"dependencies": {
 		"@heroicons/react": "^2.2.0",
-		"catalyst": "workspace:*",
+		"ui": "workspace:*",
 		"heimdall": "workspace:*",
 		"sindri": "workspace:*",
 		"motion": "^12.36.0",
