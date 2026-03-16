@@ -14,8 +14,6 @@
 	},
 	"packageManager": "pnpm@10.29.3",
 	"dependencies": {
-		"@ag-ui/core": "^0.0.47",
-		"@ag-ui/encoder": "^0.0.47",
 		"@heroicons/react": "^2.2.0",
 		"ag-charts-community": "^13.1.0",
 		"ag-charts-react": "^13.1.0",
