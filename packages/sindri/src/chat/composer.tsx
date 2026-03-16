@@ -8,9 +8,10 @@ import { Button } from 'ui/button'
 interface Props {
 	disabled?: boolean
 	onSend: (message: string) => void
+	className?: string
 }
 
-export function ChatComposer({ disabled, onSend }: Props) {
+export function ChatComposer({ disabled, onSend, className }: Props) {
 	const [input, setInput] = useState('')
 
 	function handleSend() {
@@ -32,8 +33,9 @@ export function ChatComposer({ disabled, onSend }: Props) {
 	}
 
 	return (
-		<div className="flex items-center justify-center gap-2">
+		<div className={`flex items-end gap-2 ${className}`}>
 			<TextareaAutosize
+				id="message-composer"
 				autoFocus
 				rows={1}
 				minRows={1}
@@ -42,9 +44,9 @@ export function ChatComposer({ disabled, onSend }: Props) {
 				onChange={(e) => setInput(e.target.value)}
 				onKeyDown={handleKeyDown}
 				placeholder="Ask anything"
-				className="relative block min-h-9 w-full resize-none appearance-none overflow-hidden rounded-lg border border-zinc-950/10 bg-transparent px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)] text-base/6 text-zinc-950 placeholder:text-zinc-500 focus:outline-hidden hover:border-zinc-950/20 sm:px-[calc(--spacing(3)-1px)] sm:py-[calc(--spacing(1.5)-1px)] sm:text-sm/6 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:border-white/20"
+				className="relative block min-h-10 w-full resize-none appearance-none overflow-hidden rounded-lg border border-zinc-950/10 bg-transparent px-4 py-2 text-base/6 text-zinc-950 placeholder:text-zinc-500 focus:outline-hidden hover:border-zinc-950/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:border-white/20"
 			/>
-			<Button onClick={handleSend} disabled={!input.trim() || disabled}>
+			<Button className="size-10" onClick={handleSend} disabled={!input.trim() || disabled}>
 				<ArrowUpIcon className="dark:fill-white! fill-black!" />
 			</Button>
 		</div>
