@@ -43,18 +43,37 @@ export function parseSource(source: string): ComponentApi[] {
 function collectTypeDefinitions(source: string): Map<string, string> {
 	const defs = new Map<string, string>()
 
-	const typeRegex = /type\s+(\w+)(?:<[^>]*>)?\s*=\s*(\{[^}]*\})/g
-	const ifaceRegex = /interface\s+(\w+)(?:<[^>]*>)?(?:\s+extends\s+[^{]*)?\s*(\{[^}]*\})/g
+	// Match `type Name = {` or `interface Name ... {` and then brace-match the body
+	const headerRegex =
+		/(?:type\s+(\w+)(?:<[^>]*>)?\s*=\s*|interface\s+(\w+)(?:<[^>]*>)?(?:\s+extends\s+[^{]*)?\s*)(\{)/g
 
-	for (let m = typeRegex.exec(source); m !== null; m = typeRegex.exec(source)) {
-		defs.set(m[1], m[2])
-	}
+	for (let m = headerRegex.exec(source); m !== null; m = headerRegex.exec(source)) {
+		const name = m[1] ?? m[2]
+		const braceStart = m.index + m[0].length - 1
+		const body = extractBalancedBraces(source, braceStart)
 
-	for (let m = ifaceRegex.exec(source); m !== null; m = ifaceRegex.exec(source)) {
-		defs.set(m[1], m[2])
+		if (name && body) {
+			defs.set(name, body)
+		}
 	}
 
 	return defs
+}
+
+function extractBalancedBraces(source: string, start: number): string | null {
+	if (source[start] !== '{') return null
+
+	let depth = 0
+
+	for (let i = start; i < source.length; i++) {
+		if (source[i] === '{') depth++
+		else if (source[i] === '}') {
+			depth--
+			if (depth === 0) return source.slice(start, i + 1)
+		}
+	}
+
+	return null
 }
 
 // ---------------------------------------------------------------------------
