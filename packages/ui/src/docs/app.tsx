@@ -38,9 +38,9 @@ const componentSources = import.meta.glob<string>('../components/**/*.tsx', {
 	import: 'default',
 })
 
-/** Strip the `export const meta = { ... }` block and surrounding blank lines from demo source */
+/** Strip the `export const meta = { ... }` line and surrounding blank lines from demo source */
 function stripMeta(source: string): string {
-	return source.replace(/export const meta[\s\S]*?\n\}\n?\n*/m, '').trimStart()
+	return source.replace(/export const meta\s*=\s*\{[^}]*\}\s*\n\n?/m, '').trimStart()
 }
 
 /** Group component sources by directory name (e.g. "button", "badge") */
@@ -58,10 +58,10 @@ function buildComponentApis(): Record<string, ComponentApi[]> {
 
 	const apis: Record<string, ComponentApi[]> = {}
 	for (const [dir, sources] of Object.entries(byDir)) {
-		const entries: ComponentApi[] = []
-		for (const source of sources) {
-			entries.push(...parseSource(source))
-		}
+		// Concatenate all files so cross-file type references resolve
+		const combined = sources.join('\n')
+		const entries = parseSource(combined)
+
 		if (entries.length > 0) apis[dir] = entries
 	}
 	return apis
@@ -167,7 +167,12 @@ function DemoPage({ demo }: { demo: (typeof demos)[number] }) {
 			</div>
 			<Divider />
 			{showCode ? <CodeBlock code={demo.source} /> : <demo.component />}
-			{demo.api && <PropsTable api={demo.api} />}
+			{demo.api && (
+				<>
+					<Divider />
+					<PropsTable api={demo.api} />
+				</>
+			)}
 		</div>
 	)
 }
