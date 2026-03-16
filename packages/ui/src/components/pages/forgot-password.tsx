@@ -4,7 +4,7 @@ import { Heading } from '../heading'
 import { AuthLayout } from '../layouts/auth'
 
 export type ForgotPasswordPageProps = {
-	onSubmit: React.FormEventHandler<HTMLFormElement>
+	onSubmit: React.ComponentProps<'form'>['onSubmit']
 	heading?: React.ReactNode
 	serverError?: string
 	submitting?: boolean

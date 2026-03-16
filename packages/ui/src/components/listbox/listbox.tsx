@@ -56,13 +56,12 @@ export function Listbox<T>({
 		<ListboxProvider
 			value={{ open, value: currentValue, onChange: handleChange, close, disabled, invalid }}
 		>
-			<div ref={containerRef} className="relative" {...props}>
+			<div ref={containerRef} data-slot="control" className="relative" {...props}>
 				<button
 					type="button"
 					id={inputId}
 					// biome-ignore lint/a11y/noAutofocus: intentional autoFocus prop for listbox trigger
 					autoFocus={autoFocus}
-					data-slot="control"
 					aria-label={ariaLabel}
 					aria-expanded={open}
 					aria-haspopup="listbox"
