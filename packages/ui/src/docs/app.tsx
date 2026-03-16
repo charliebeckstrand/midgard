@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { Button } from '../components/button'
 import { Heading } from '../components/heading'
 import { SidebarLayout } from '../components/layouts'
 import { Navbar, NavbarItem, NavbarLabel, NavbarSection, NavbarSpacer } from '../components/navbar'
@@ -12,6 +13,7 @@ import {
 	SidebarLabel,
 	SidebarSection,
 } from '../components/sidebar'
+import { CodeBlock } from './code-block'
 
 type DemoModule = {
 	default: React.ComponentType
@@ -19,13 +21,19 @@ type DemoModule = {
 }
 
 const modules = import.meta.glob<DemoModule>('./demos/*.tsx', { eager: true })
+const sources = import.meta.glob<string>('./demos/*.tsx', {
+	eager: true,
+	query: '?raw',
+	import: 'default',
+})
 
 const demos = Object.entries(modules)
 	.map(([path, mod]) => {
 		const id = path.replace('./demos/', '').replace('.tsx', '')
 		const name = mod.meta?.name ?? id.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
 		const category = mod.meta?.category ?? 'Other'
-		return { id, name, category, component: mod.default }
+		const source = (sources[path] as string) ?? ''
+		return { id, name, category, component: mod.default, source }
 	})
 	.sort((a, b) => a.name.localeCompare(b.name))
 
@@ -61,6 +69,22 @@ function useHash() {
 	}, [])
 
 	return hash
+}
+
+function DemoPage({ demo }: { demo: (typeof demos)[number] }) {
+	const [showCode, setShowCode] = useState(false)
+
+	return (
+		<div className="mx-auto max-w-4xl space-y-8 p-6 lg:p-10">
+			<div className="flex items-center justify-between">
+				<Heading>{demo.name}</Heading>
+				<Button variant="outline" onClick={() => setShowCode((v) => !v)}>
+					{showCode ? 'Preview' : 'Code'}
+				</Button>
+			</div>
+			{showCode ? <CodeBlock code={demo.source} /> : <demo.component />}
+		</div>
+	)
 }
 
 export function App() {
@@ -102,10 +126,7 @@ export function App() {
 			}
 		>
 			{current ? (
-				<div className="mx-auto max-w-4xl space-y-8 p-6 lg:p-10">
-					<Heading>{current.name}</Heading>
-					<current.component />
-				</div>
+				<DemoPage key={current.id} demo={current} />
 			) : (
 				<div className="p-10">
 					<Heading>Select a component</Heading>
