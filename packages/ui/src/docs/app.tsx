@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { Badge } from '../components/badge'
 import { Heading, Subheading } from '../components/heading'
 import { SidebarLayout } from '../components/layouts'
 import { Navbar, NavbarItem, NavbarLabel, NavbarSection, NavbarSpacer } from '../components/navbar'
@@ -145,8 +146,14 @@ function PropsTable({ api }: { api: ComponentApi[] }) {
 								{visibleProps.map((prop) => (
 									<TableRow key={prop.name}>
 										<TableCell className="font-mono font-medium">{prop.name}</TableCell>
-										<TableCell className="font-mono text-zinc-500 dark:text-zinc-400">
-											{prop.type}
+										<TableCell>
+											<div className="grid grid-cols-[repeat(4,max-content)] gap-1">
+												{prop.type.split(' | ').map((t) => (
+													<Badge key={t} color="zinc">
+														{t}
+													</Badge>
+												))}
+											</div>
 										</TableCell>
 										<TableCell className="font-mono text-zinc-500 dark:text-zinc-400">
 											{prop.default ?? '—'}
