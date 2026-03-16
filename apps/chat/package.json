@@ -15,11 +15,7 @@
 	"packageManager": "pnpm@10.29.3",
 	"dependencies": {
 		"@heroicons/react": "^2.2.0",
-		"ag-charts-community": "^13.1.0",
-		"ag-charts-react": "^13.1.0",
-		"ag-grid-community": "^35.1.0",
-		"ag-grid-react": "^35.1.0",
-		"catalyst": "workspace:*",
+"catalyst": "workspace:*",
 		"heimdall": "workspace:*",
 		"motion": "^12.36.0",
 		"next": "^16.1.0",

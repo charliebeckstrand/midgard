@@ -1,9 +1,8 @@
 import type { ClientChatMessage } from '../types'
-import { Artifact } from './artifact'
 
-type Props = Pick<ClientChatMessage, 'role' | 'content' | 'pending' | 'toolCalls'>
+type Props = Pick<ClientChatMessage, 'role' | 'content' | 'pending'>
 
-export function Message({ role, content, pending, toolCalls }: Props) {
+export function Message({ role, content, pending }: Props) {
 	return (
 		<div className={`flex ${role === 'user' ? 'justify-end' : 'justify-start'}`}>
 			<div
@@ -13,7 +12,7 @@ export function Message({ role, content, pending, toolCalls }: Props) {
 						: 'bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-white'
 				}`}
 			>
-				{pending && !content ? (
+				{pending ? (
 					<div className="flex gap-1 items-center h-6">
 						<span className="size-1.5 rounded-full bg-current animate-bounce [animation-delay:-0.3s]" />
 						<span className="size-1.5 rounded-full bg-current animate-bounce [animation-delay:-0.15s]" />
@@ -22,12 +21,6 @@ export function Message({ role, content, pending, toolCalls }: Props) {
 				) : (
 					<p className="whitespace-pre-wrap">{content}</p>
 				)}
-
-				{toolCalls?.map((tc) => (
-					<div key={tc.id} className="mt-3 min-w-[400px]">
-						<Artifact toolCall={tc} />
-					</div>
-				))}
 			</div>
 		</div>
 	)
