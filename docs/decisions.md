@@ -257,6 +257,22 @@ Non-trivial design choices with context, alternatives, and trade-offs.
 **Alternatives:** (1) Storybook — large dependency surface (~300 MB), slow startup, significant config overhead for a package this size. (2) Separate Next.js app — heavier than needed, adds an app to the workspace that must be kept in sync with the library. (3) No showcase — impedes component development and review.
 **Consequences:** Adding a new demo requires only a single file in `src/docs/demos/`. The showcase uses the library's own components (SidebarLayout), which provides a real integration test. Vite and its plugins (`@vitejs/plugin-react`, `@tailwindcss/vite`) are dev dependencies of `packages/ui` only and are not shipped to consumers.
 
+## 2026-03-16 — CVA variant resolution and parse-props refactor
+
+**Status:** Accepted
+**Context:** The component showcase's API tab showed incomplete or incorrect prop types for components using CVA (button, badge, alert, dialog). The `parse-props.ts` file was a single monolithic module that couldn't handle CVA variant extraction, balanced parenthesis matching in complex type expressions, or intersection types (`A & B`).
+**Decision:** Refactored `parse-props.ts` into a `parse-props/` directory with focused modules: `scanner.ts` (token scanner for TypeScript source), `cva.ts` (resolves CVA `variants` config into union type props), `parse-source.ts` (source parsing with balanced paren matching and intersection type flattening), `types.ts` (shared types), `index.ts` (public API). The CVA resolver reads variant keys and their options from `cva()` calls and adds them as union-typed props to the API table.
+**Alternatives:** (1) Use TypeScript compiler API for full type resolution — heavyweight dependency, slow at runtime. (2) Regex-based extraction — fragile for nested structures and balanced delimiters.
+**Consequences:** API tab now shows correct variant props for CVA-based components. The modular structure makes it easier to add support for new patterns. The scanner approach handles nested parens/braces correctly without a full parser.
+
+## 2026-03-16 — Tabs component with animated active indicator
+
+**Status:** Accepted
+**Context:** The component showcase demo page used a simple toggle button to switch between Preview and Code views. Adding an API tab required a proper tab UI, and other parts of the app could benefit from a reusable Tabs component.
+**Decision:** Added a Tabs component (`packages/ui/src/components/tabs/`) with `Tab`, `Tabs`, `TabTitle`, `TabSubtitle` exports. Uses `motion.span` with `layoutId` for a smooth animated active indicator that slides between tabs. Each Tabs instance generates a unique `layoutId` by default to prevent cross-instance animation conflicts. Updated the demo page to use Tabs with Preview, Code, and API tabs instead of the toggle button.
+**Alternatives:** (1) Inline tab UI in the demo page only — misses the opportunity to add a reusable component. (2) CSS transitions for the indicator — can't animate between DOM positions smoothly.
+**Consequences:** New reusable Tabs component available at `ui/tabs`. The Divider import was removed from the demo `app.tsx` as it's no longer needed.
+
 ## 2026-03-16 — Move chat UI components and hooks to sindri
 
 **Status:** Accepted
