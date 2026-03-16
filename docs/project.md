@@ -172,9 +172,9 @@ New component library built from scratch with a five-layer atomic architecture. 
 - `recipes/` — Composable style definitions (control, popover, overlay, item, motion)
 - `hooks/` — Behavioral primitives (useOverlay, useMenuKeyboard, useControllable)
 - `primitives/` — Reusable building blocks (Overlay, PopoverPanel, SlidePanel, icons, TouchTarget)
-- `components/` — 28 component families + layouts + pages
+- `components/` — 29 component families + layouts + pages
 
-**Components:** alert, avatar, badge, button, checkbox, combobox, description-list, dialog, divider, dropdown, fieldset, heading, input, listbox, navbar, pagination, placeholder, radio, select, sheet, sidebar, switch, table, text, textarea
+**Components:** alert, avatar, badge, button, checkbox, combobox, description-list, dialog, divider, dropdown, fieldset, heading, input, listbox, navbar, pagination, placeholder, radio, select, sheet, sidebar, switch, table, tabs, text, textarea
 
 **Layouts (`ui/layouts`):** AuthLayout, SidebarLayout, StackedLayout — shared layout shells with a common MobileSidebar primitive and `useMobileSidebar` hook. `MobileSidebarContext` allows nested components to close the mobile sidebar.
 
@@ -186,7 +186,9 @@ New component library built from scratch with a five-layer atomic architecture. 
 
 **Tree-shaking:** `package.json` includes `"sideEffects": false`, enabling bundlers to eliminate unused component code.
 
-**Component showcase (`src/docs/`):** A Vite-powered development app that auto-discovers demo files via `import.meta.glob('./demos/*.tsx', { eager: true })`. Each demo exports a default component and an optional `meta` object (`{ name, category }`). Uses SidebarLayout with hash-based routing. Runs on port 3456 via `pnpm --filter ui docs`. 22 demo files covering all components, organized into categories: Forms, Data Display, Feedback, Overlay, Navigation, Layout. Excluded from the tsup build and tsc via `tsconfig.json` exclude. Dev dependencies: vite, @vitejs/plugin-react, tailwindcss, @tailwindcss/vite, react-dom.
+**Component showcase (`src/docs/`):** A Vite-powered development app that auto-discovers demo files via `import.meta.glob('./demos/*.tsx', { eager: true })`. Each demo exports a default component and an optional `meta` object (`{ name, category }`). Uses SidebarLayout with hash-based routing and Tabs component for Preview/Code/API views. Runs on port 3456 via `pnpm --filter ui docs`. Demo files covering all components, organized into categories: Forms, Data Display, Feedback, Overlay, Navigation, Layout. Excluded from the tsup build and tsc via `tsconfig.json` exclude. Dev dependencies: vite, @vitejs/plugin-react, tailwindcss, @tailwindcss/vite, react-dom.
+
+**Prop parser (`src/docs/parse-props/`):** Extracts component prop types from TypeScript source for the API tab in the showcase. Modular architecture: `scanner.ts` (token scanner), `cva.ts` (CVA variant resolution), `parse-source.ts` (source parsing with balanced paren matching and intersection type handling), `types.ts` (shared types), `index.ts` (public API).
 
 **Depends on:** clsx, class-variance-authority, motion
 

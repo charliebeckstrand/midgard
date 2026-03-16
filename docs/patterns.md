@@ -36,3 +36,32 @@ function Trigger({ asChild, children, onClick, ...rest }: TriggerProps) {
 ```
 
 Reference implementations: `packages/ui/src/components/sheet/trigger.tsx`, `packages/ui/src/components/sheet/close.tsx`.
+
+## motion.span layoutId for animated active indicator
+
+Used in `packages/ui` Tabs component. A `motion.span` with a shared `layoutId` automatically animates between positions when the active tab changes, creating a smooth sliding indicator effect.
+
+**When to use:** When a set of items has an "active" state indicator (underline, highlight, pill) that should animate between items on selection change.
+
+```tsx
+import { motion } from 'motion/react'
+
+function Tab({ isActive, layoutId, children }: { isActive: boolean; layoutId: string; children: React.ReactNode }) {
+  return (
+    <button>
+      {children}
+      {isActive && (
+        <motion.span
+          layoutId={layoutId}
+          className="absolute inset-x-0 bottom-0 h-0.5 bg-current"
+          transition={{ type: 'spring', bounce: 0.15, duration: 0.5 }}
+        />
+      )}
+    </button>
+  )
+}
+```
+
+The `layoutId` must be unique per Tabs instance to avoid cross-instance animation. The Tabs component generates one automatically and allows override via props.
+
+Reference implementation: `packages/ui/src/components/tabs/tabs.tsx`.
