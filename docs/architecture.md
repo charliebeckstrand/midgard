@@ -15,7 +15,7 @@ How the pieces of Midgard fit together.
 │       │              │              │             │
 │  ┌────┴──────────────┴──────────────┴─────┐     │
 │  │         Shared Packages                 │     │
-│  │  catalyst · sindri · reactbits          │     │
+│  │  ui · catalyst · sindri · reactbits     │     │
 │  └────────────────┬───────────────────────┘     │
 │                   │                              │
 │  ┌────────────────┴───────────────────────┐     │
@@ -39,7 +39,9 @@ How the pieces of Midgard fit together.
 
 ## Shared Packages
 
-**catalyst** — A Tailwind CSS component library with 28+ components. Uses `data-slot` attributes for styling hooks and `motion/react` for animations. No HeadlessUI dependency.
+**ui** — New component library with five-layer atomic architecture (core → recipes → hooks → primitives → components). Framework-agnostic via LinkProvider pattern. 25 component families, zero duplication through shared recipes and primitives. Replaces catalyst.
+
+**catalyst** — A Tailwind CSS component library with 28+ components. Uses `data-slot` attributes for styling hooks and `motion/react` for animations. No HeadlessUI dependency. Being replaced by `ui`.
 
 **heimdall** — Server-side authentication module. Provides session management (`getSession`), route protection (`proxy`), and Next.js config helpers (`withAuth`). Proxies auth and API requests to the external Bifrost backend.
 
