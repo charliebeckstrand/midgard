@@ -2,167 +2,174 @@
 	"name": "ui",
 	"version": "0.1.0",
 	"type": "module",
+	"license": "MIT",
 	"sideEffects": false,
+	"files": ["dist", "LICENSE"],
 	"main": "./dist/index.js",
-	"types": "./src/index.ts",
+	"types": "./dist/index.d.ts",
 	"exports": {
 		".": {
-			"types": "./src/index.ts",
+			"types": "./dist/index.d.ts",
 			"import": "./dist/index.js",
 			"default": "./dist/index.js"
 		},
 		"./core": {
-			"types": "./src/core/index.ts",
+			"types": "./dist/core.d.ts",
 			"import": "./dist/core.js",
 			"default": "./dist/core.js"
 		},
 		"./recipes": {
-			"types": "./src/recipes/index.ts",
+			"types": "./dist/recipes.d.ts",
 			"import": "./dist/recipes.js",
 			"default": "./dist/recipes.js"
 		},
 		"./hooks": {
-			"types": "./src/hooks/index.ts",
+			"types": "./dist/hooks.d.ts",
 			"import": "./dist/hooks.js",
 			"default": "./dist/hooks.js"
 		},
 		"./primitives": {
-			"types": "./src/primitives/index.ts",
+			"types": "./dist/primitives.d.ts",
 			"import": "./dist/primitives.js",
 			"default": "./dist/primitives.js"
 		},
 		"./alert": {
-			"types": "./src/components/alert/index.ts",
+			"types": "./dist/alert.d.ts",
 			"import": "./dist/alert.js",
 			"default": "./dist/alert.js"
 		},
 		"./avatar": {
-			"types": "./src/components/avatar/index.ts",
+			"types": "./dist/avatar.d.ts",
 			"import": "./dist/avatar.js",
 			"default": "./dist/avatar.js"
 		},
 		"./badge": {
-			"types": "./src/components/badge/index.ts",
+			"types": "./dist/badge.d.ts",
 			"import": "./dist/badge.js",
 			"default": "./dist/badge.js"
 		},
 		"./button": {
-			"types": "./src/components/button/index.ts",
+			"types": "./dist/button.d.ts",
 			"import": "./dist/button.js",
 			"default": "./dist/button.js"
 		},
 		"./checkbox": {
-			"types": "./src/components/checkbox/index.ts",
+			"types": "./dist/checkbox.d.ts",
 			"import": "./dist/checkbox.js",
 			"default": "./dist/checkbox.js"
 		},
 		"./combobox": {
-			"types": "./src/components/combobox/index.ts",
+			"types": "./dist/combobox.d.ts",
 			"import": "./dist/combobox.js",
 			"default": "./dist/combobox.js"
 		},
 		"./dl": {
-			"types": "./src/components/dl/index.ts",
+			"types": "./dist/dl.d.ts",
 			"import": "./dist/dl.js",
 			"default": "./dist/dl.js"
 		},
 		"./dialog": {
-			"types": "./src/components/dialog/index.ts",
+			"types": "./dist/dialog.d.ts",
 			"import": "./dist/dialog.js",
 			"default": "./dist/dialog.js"
 		},
 		"./divider": {
-			"types": "./src/components/divider/index.ts",
+			"types": "./dist/divider.d.ts",
 			"import": "./dist/divider.js",
 			"default": "./dist/divider.js"
 		},
 		"./dropdown": {
-			"types": "./src/components/dropdown/index.ts",
+			"types": "./dist/dropdown.d.ts",
 			"import": "./dist/dropdown.js",
 			"default": "./dist/dropdown.js"
 		},
 		"./fieldset": {
-			"types": "./src/components/fieldset/index.ts",
+			"types": "./dist/fieldset.d.ts",
 			"import": "./dist/fieldset.js",
 			"default": "./dist/fieldset.js"
 		},
 		"./heading": {
-			"types": "./src/components/heading/index.ts",
+			"types": "./dist/heading.d.ts",
 			"import": "./dist/heading.js",
 			"default": "./dist/heading.js"
 		},
 		"./input": {
-			"types": "./src/components/input/index.ts",
+			"types": "./dist/input.d.ts",
 			"import": "./dist/input.js",
 			"default": "./dist/input.js"
 		},
 		"./listbox": {
-			"types": "./src/components/listbox/index.ts",
+			"types": "./dist/listbox.d.ts",
 			"import": "./dist/listbox.js",
 			"default": "./dist/listbox.js"
 		},
 		"./navbar": {
-			"types": "./src/components/navbar/index.ts",
+			"types": "./dist/navbar.d.ts",
 			"import": "./dist/navbar.js",
 			"default": "./dist/navbar.js"
 		},
 		"./pagination": {
-			"types": "./src/components/pagination/index.ts",
+			"types": "./dist/pagination.d.ts",
 			"import": "./dist/pagination.js",
 			"default": "./dist/pagination.js"
 		},
 		"./radio": {
-			"types": "./src/components/radio/index.ts",
+			"types": "./dist/radio.d.ts",
 			"import": "./dist/radio.js",
 			"default": "./dist/radio.js"
 		},
 		"./select": {
-			"types": "./src/components/select/index.ts",
+			"types": "./dist/select.d.ts",
 			"import": "./dist/select.js",
 			"default": "./dist/select.js"
 		},
 		"./sheet": {
-			"types": "./src/components/sheet/index.ts",
+			"types": "./dist/sheet.d.ts",
 			"import": "./dist/sheet.js",
 			"default": "./dist/sheet.js"
 		},
 		"./sidebar": {
-			"types": "./src/components/sidebar/index.ts",
+			"types": "./dist/sidebar.d.ts",
 			"import": "./dist/sidebar.js",
 			"default": "./dist/sidebar.js"
 		},
 		"./layouts": {
-			"types": "./src/components/layouts/index.ts",
+			"types": "./dist/layouts.d.ts",
 			"import": "./dist/layouts.js",
 			"default": "./dist/layouts.js"
 		},
 		"./pages": {
-			"types": "./src/components/pages/index.ts",
+			"types": "./dist/pages.d.ts",
 			"import": "./dist/pages.js",
 			"default": "./dist/pages.js"
 		},
 		"./switch": {
-			"types": "./src/components/switch/index.ts",
+			"types": "./dist/switch.d.ts",
 			"import": "./dist/switch.js",
 			"default": "./dist/switch.js"
 		},
 		"./table": {
-			"types": "./src/components/table/index.ts",
+			"types": "./dist/table.d.ts",
 			"import": "./dist/table.js",
 			"default": "./dist/table.js"
 		},
+		"./tabs": {
+			"types": "./dist/tabs.d.ts",
+			"import": "./dist/tabs.js",
+			"default": "./dist/tabs.js"
+		},
 		"./text": {
-			"types": "./src/components/text/index.ts",
+			"types": "./dist/text.d.ts",
 			"import": "./dist/text.js",
 			"default": "./dist/text.js"
 		},
 		"./textarea": {
-			"types": "./src/components/textarea/index.ts",
+			"types": "./dist/textarea.d.ts",
 			"import": "./dist/textarea.js",
 			"default": "./dist/textarea.js"
 		},
 		"./placeholder": {
-			"types": "./src/components/placeholder/index.ts",
+			"types": "./dist/placeholder.d.ts",
 			"import": "./dist/placeholder.js",
 			"default": "./dist/placeholder.js"
 		}
@@ -179,7 +186,8 @@
 		"motion": "^12.0.0"
 	},
 	"peerDependencies": {
-		"react": "^18.0.0 || ^19.0.0"
+		"react": "^18.0.0 || ^19.0.0",
+		"react-dom": "^18.0.0 || ^19.0.0"
 	},
 	"devDependencies": {
 		"@tailwindcss/vite": "^4.2.1",
