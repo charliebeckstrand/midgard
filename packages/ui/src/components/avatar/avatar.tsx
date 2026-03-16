@@ -69,7 +69,7 @@ export function AvatarButton({
 	const classes = clsx(
 		className,
 		square ? 'rounded-[20%]' : 'rounded-full',
-		'relative inline-grid focus:outline-hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500',
+		'relative inline-grid focus:outline-hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600',
 	)
 
 	if (typeof props.href === 'string') {

@@ -26,7 +26,7 @@ export function BadgeButton({
 	)) {
 	const classes = clsx(
 		className,
-		'group relative inline-flex rounded-md focus:outline-hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500',
+		'group relative inline-flex rounded-md focus:outline-hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600',
 	)
 
 	if (typeof props.href === 'string') {

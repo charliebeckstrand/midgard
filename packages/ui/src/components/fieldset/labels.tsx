@@ -46,7 +46,7 @@ export function ErrorMessage({ className, ...props }: React.ComponentPropsWithou
 		<p
 			data-slot="error"
 			{...props}
-			className={clsx(className, 'text-base/6 text-red-500 data-disabled:opacity-50 ')}
+			className={clsx(className, 'text-base/6 text-red-600 data-disabled:opacity-50 ')}
 		/>
 	)
 }
