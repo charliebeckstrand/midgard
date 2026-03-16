@@ -4,8 +4,6 @@ export const navItemBase = [
 	'*:data-[slot=icon]:size-6 *:data-[slot=icon]:shrink-0 *:data-[slot=icon]:fill-zinc-500 sm:*:data-[slot=icon]:size-5',
 	// Avatar
 	'*:data-[slot=avatar]:-m-0.5 *:data-[slot=avatar]:size-7 sm:*:data-[slot=avatar]:size-6',
-	// Focus
-	'focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:rounded-lg',
 	// Hover
 	'hover:bg-zinc-950/5 hover:*:data-[slot=icon]:fill-zinc-950',
 	// Active
