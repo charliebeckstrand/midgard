@@ -182,6 +182,10 @@ New component library built from scratch with a five-layer atomic architecture. 
 
 **Imports:** Consumers import from specific entry points: `ui/button`, `ui/dialog`, `ui/layouts`, `ui/pages`, `ui/core`, `ui/recipes`, `ui/primitives`, `ui/hooks`
 
+**Prop type exports:** Every component index file exports its prop types (e.g., `InputProps`, `TextareaProps`, `SelectProps`, `CheckboxProps`, `SwitchProps`, `RadioProps`, `AvatarProps`, `BadgeProps`, `HeadingProps`, `LoginPageProps`, `RegisterPageProps`, `ForgotPasswordPageProps`). This allows consumers to build wrappers without re-declaring prop shapes.
+
+**Tree-shaking:** `package.json` includes `"sideEffects": false`, enabling bundlers to eliminate unused component code.
+
 **Depends on:** clsx, class-variance-authority, motion
 
 **Peer deps:** react ^18 || ^19

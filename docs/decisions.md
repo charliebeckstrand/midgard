@@ -241,6 +241,14 @@ Non-trivial design choices with context, alternatives, and trade-offs.
 - No chart or grid rendering in chat — agent responses are text-only.
 - Bifrost handles all message persistence, simplifying the client.
 
+## 2026-03-16 — UI library refinements for npm readiness
+
+**Status:** Accepted
+**Context:** The `packages/ui` library was functionally complete but had several rough edges that would affect consumers: the Sheet `asChild` pattern used broken object spread instead of `React.cloneElement`, `InputGroup` didn't forward props or accept `className`, `TableBody` didn't accept `className`, `Placeholder` used a hardcoded gray palette and fixed max-width with no `bars` variant, page skeletons lacked a configurable `submitLabel`, and `PaginationPrevious`/`PaginationNext` had no optional `icon` prop. Additionally, no prop types were exported from component index files (forcing consumers to redeclare shapes), and `package.json` was missing `"sideEffects": false`.
+**Decision:** Applied a batch of targeted fixes: (1) replaced object-spread `asChild` in Sheet `trigger.tsx` and `close.tsx` with `React.cloneElement`; (2) spread props and `className` in `InputGroup`; (3) added `className` to `TableBody`; (4) switched `Placeholder` to zinc palette, removed hardcoded `max-w-sm`, added `bars` prop, and exported `PlaceholderProps`; (5) added `submitLabel` prop to `LoginPage`, `RegisterPage`, and `ForgotPasswordPage`; (6) added optional `icon` prop to `PaginationPrevious` and `PaginationNext`; (7) exported all major prop types from each component's `index.ts`; (8) added `"sideEffects": false` to `packages/ui/package.json`.
+**Alternatives:** (1) Fix issues one-by-one across separate PRs — unnecessary overhead for small, non-breaking changes. (2) Skip prop type exports — forces every consumer to manually re-declare shapes or use `ComponentProps<typeof X>` workarounds.
+**Consequences:** Consumers can import prop types directly. Bundlers can tree-shake unused components. The Sheet `asChild` pattern now works correctly. Placeholder is more flexible (no forced width cap, configurable skeleton rows).
+
 ## 2026-03-16 — Move chat UI components and hooks to sindri
 
 **Status:** Accepted
