@@ -18,8 +18,8 @@ interface UserDetailsClientProps {
 
 export function UserDetailsClient({ details, chats: initialChats }: UserDetailsClientProps) {
 	const [chats, setChats] = useState(initialChats)
-	const [confirmDeleteChatId, setConfirmDeleteChatId] = useState<string | null>(null)
-	const [viewChatId, setViewChatId] = useState<string | null>(null)
+	const [confirmDeleteChat, setConfirmDeleteChat] = useState<string | null>(null)
+	const [viewChat, setViewChat] = useState<string | null>(null)
 	const [chatMessages, setChatMessages] = useState<ChatContent[]>([])
 	const [loadingMessages, setLoadingMessages] = useState(false)
 
@@ -38,17 +38,17 @@ export function UserDetailsClient({ details, chats: initialChats }: UserDetailsC
 	}, [])
 
 	useEffect(() => {
-		if (viewChatId) {
-			fetchChatMessages(viewChatId)
+		if (viewChat) {
+			fetchChatMessages(viewChat)
 		}
-	}, [viewChatId, fetchChatMessages])
+	}, [viewChat, fetchChatMessages])
 
 	const deleteChat = async (chatId: string) => {
 		await fetch(`/api/chat/${chatId}`, { method: 'DELETE' }).catch(() => null)
 
 		setChats((prev) => prev?.filter((chat) => chat.id !== chatId) ?? null)
 
-		setConfirmDeleteChatId(null)
+		setConfirmDeleteChat(null)
 	}
 
 	return (
@@ -90,10 +90,10 @@ export function UserDetailsClient({ details, chats: initialChats }: UserDetailsC
 									</TableCell>
 									<TableCell>
 										<div className="flex items-center gap-1">
-											<Button variant="outline" onClick={() => setViewChatId(chat.id)}>
+											<Button variant="outline" onClick={() => setViewChat(chat.id)}>
 												View
 											</Button>
-											<Button variant="outline" onClick={() => setConfirmDeleteChatId(chat.id)}>
+											<Button variant="outline" onClick={() => setConfirmDeleteChat(chat.id)}>
 												Delete
 											</Button>
 										</div>
@@ -105,7 +105,7 @@ export function UserDetailsClient({ details, chats: initialChats }: UserDetailsC
 				</div>
 			</div>
 
-			<Sheet open={viewChatId !== null} onOpenChange={(open) => !open && setViewChatId(null)}>
+			<Sheet open={viewChat !== null} onOpenChange={(open) => !open && setViewChat(null)}>
 				<SheetContent>
 					<SheetHeader>
 						<div className="flex items-center justify-between">
@@ -127,22 +127,19 @@ export function UserDetailsClient({ details, chats: initialChats }: UserDetailsC
 				</SheetContent>
 			</Sheet>
 
-			<Dialog open={confirmDeleteChatId !== null} onClose={() => setConfirmDeleteChatId(null)}>
+			<Dialog open={confirmDeleteChat !== null} onClose={() => setConfirmDeleteChat(null)}>
 				<DialogTitle>Delete Chat</DialogTitle>
 				<DialogBody>
 					Are you sure you want to delete{' '}
 					<div>
-						"<strong>{confirmDeleteChatId}</strong>"?
+						"<strong>{confirmDeleteChat}</strong>"?
 					</div>
 				</DialogBody>
 				<DialogActions>
-					<Button variant="outline" onClick={() => setConfirmDeleteChatId(null)}>
+					<Button variant="outline" onClick={() => setConfirmDeleteChat(null)}>
 						Cancel
 					</Button>
-					<Button
-						color="red"
-						onClick={() => confirmDeleteChatId && deleteChat(confirmDeleteChatId)}
-					>
+					<Button color="red" onClick={() => confirmDeleteChat && deleteChat(confirmDeleteChat)}>
 						Delete
 					</Button>
 				</DialogActions>
