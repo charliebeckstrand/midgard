@@ -36,12 +36,7 @@ export function ChatView({ chatId, initialMessages, isDraft: initialIsDraft }: P
 						{messages.length > 0 && (
 							<div className="mx-auto space-y-4">
 								{messages.map((message) => (
-									<Message
-										key={message.id}
-										role={message.role}
-										content={message.content}
-										pending={message.pending}
-									/>
+									<Message key={message.id} role={message.role} content={message.content} />
 								))}
 								<div ref={messagesEndRef} />
 							</div>

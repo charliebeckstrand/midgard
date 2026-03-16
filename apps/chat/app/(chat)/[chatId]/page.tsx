@@ -8,9 +8,9 @@ async function getChatHistory(chatId: string): Promise<ChatMessage[]> {
 
 	if (!res?.ok) return []
 
-	const data = await res.json()
+	const { messages } = await res.json()
 
-	return data.messages ?? []
+	return messages ?? []
 }
 
 export default async function ChatPage({
@@ -23,7 +23,7 @@ export default async function ChatPage({
 	const { chatId } = await params
 	const { draft } = await searchParams
 
-	const isDraft = draft === 'true'
+	const isDraft = Boolean(draft)
 
 	const initialMessages = isDraft ? [] : await getChatHistory(chatId)
 

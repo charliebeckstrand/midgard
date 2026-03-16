@@ -15,7 +15,8 @@
 	"packageManager": "pnpm@10.29.3",
 	"dependencies": {
 		"@heroicons/react": "^2.2.0",
-"catalyst": "workspace:*",
+		"catalyst": "workspace:*",
+		"eventsource-parser": "^3.0.6",
 		"heimdall": "workspace:*",
 		"motion": "^12.36.0",
 		"next": "^16.1.0",

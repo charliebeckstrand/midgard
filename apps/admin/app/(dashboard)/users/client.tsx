@@ -19,6 +19,7 @@ import { useEffect, useState } from 'react'
 
 interface UsersClientProps {
 	users: User[]
+	currentUser: User
 }
 
 interface EditUserDialogProps {
@@ -88,7 +89,7 @@ function EditUserDialog({ user, onClose }: EditUserDialogProps) {
 	)
 }
 
-export function UsersClient({ users }: UsersClientProps) {
+export function UsersClient({ users, currentUser }: UsersClientProps) {
 	const [editingUser, setEditingUser] = useState<User | null>(null)
 
 	return (
@@ -133,7 +134,9 @@ export function UsersClient({ users }: UsersClientProps) {
 									<Button variant="outline" onClick={() => setEditingUser(user)}>
 										Edit
 									</Button>
-									<Button variant="outline">Delete</Button>
+									<Button variant="outline" disabled={user.id === currentUser.id}>
+										Delete
+									</Button>
 								</div>
 							</TableCell>
 						</TableRow>

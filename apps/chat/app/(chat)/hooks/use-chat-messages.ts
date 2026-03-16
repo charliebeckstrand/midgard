@@ -1,5 +1,6 @@
 'use client'
 
+import { EventSourceParserStream } from 'eventsource-parser/stream'
 import { useRouter } from 'next/navigation'
 import { useCallback, useState } from 'react'
 
@@ -29,46 +30,54 @@ export function useChatMessages(
 				content,
 			}
 
-			const pendingId = crypto.randomUUID()
+			setMessages((prev) => [...prev, userMessage])
 
-			setMessages((prev) => [
-				...prev,
-				userMessage,
-				{ id: pendingId, role: 'agent', content: '', pending: true },
-			])
+			try {
+				const response = await fetch(`/api/chat/${chatId}`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ content }),
+				})
 
-			const allMessages = [...messages, userMessage].map(({ role, content: c }) => ({
-				role,
-				content: c,
-			}))
+				if (!response?.ok || !response.body) {
+					setSending(false)
 
-			const response = await fetch(`/api/chat/${chatId}`, {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ messages: allMessages }),
-			}).catch(() => null)
+					return
+				}
 
-			if (response?.ok) {
-				const data = await response.json()
+				const agentId = crypto.randomUUID()
 
-				setMessages((prev) =>
-					prev.map((m) =>
-						m.id === pendingId ? { ...m, content: data.content, pending: false } : m,
-					),
-				)
+				setMessages((prev) => [...prev, { id: agentId, role: 'agent', content: '' }])
+
+				const reader = response.body
+					.pipeThrough(new TextDecoderStream())
+					.pipeThrough(new EventSourceParserStream())
+					.getReader()
+
+				while (true) {
+					const { done, value } = await reader.read()
+
+					if (done) break
+
+					if (value.event === 'content') {
+						setMessages((prev) =>
+							prev.map((m) => (m.id === agentId ? { ...m, content: value.data } : m)),
+						)
+					}
+				}
 
 				if (isDraft) {
 					setIsDraft(false)
+
 					router.replace(`/${chatId}`)
+
 					router.refresh()
 				}
-			} else {
-				setMessages((prev) => prev.filter((m) => m.id !== pendingId))
+			} finally {
+				setSending(false)
 			}
-
-			setSending(false)
 		},
-		[chatId, isDraft, messages, router],
+		[chatId, isDraft, router],
 	)
 
 	return { messages, sending, isDraft, sendMessage }

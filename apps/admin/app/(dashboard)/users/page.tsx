@@ -1,4 +1,4 @@
-import { bifrost } from 'heimdall'
+import { bifrost, getUser } from 'heimdall'
 
 import { UsersClient } from './client'
 
@@ -11,7 +11,7 @@ async function getUsers() {
 }
 
 export default async function UsersPage() {
-	const users = await getUsers()
+	const [users, { user }] = await Promise.all([getUsers(), getUser()])
 
-	return <UsersClient users={users} />
+	return <UsersClient users={users} currentUser={user} />
 }

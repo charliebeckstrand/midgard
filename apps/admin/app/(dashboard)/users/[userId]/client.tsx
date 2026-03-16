@@ -1,6 +1,5 @@
 'use client'
 
-import { ArrowLeftIcon } from '@heroicons/react/20/solid'
 import {
 	Button,
 	Dialog,
@@ -39,16 +38,11 @@ export function UserDetailsClient({ details, chats: initialChats }: UserDetailsC
 	return (
 		<>
 			<div className="flex flex-col gap-6">
-				<div>
-					<Button variant="outline" href="/users">
-						<ArrowLeftIcon />
-						Back to Users
-					</Button>
-				</div>
-
 				<Heading>{details?.email}</Heading>
 
-				<div className="flex flex-col gap-4">
+				<pre className="dark:text-white">{JSON.stringify(details, null, 2)}</pre>
+
+				<div className="flex flex-col">
 					<Subheading>Chats</Subheading>
 
 					<Table>
@@ -97,7 +91,12 @@ export function UserDetailsClient({ details, chats: initialChats }: UserDetailsC
 
 			<Dialog open={confirmDeleteChatId !== null} onClose={() => setConfirmDeleteChatId(null)}>
 				<DialogTitle>Delete Chat</DialogTitle>
-				<DialogBody>Are you sure you want to delete {confirmDeleteChatId}?</DialogBody>
+				<DialogBody>
+					Are you sure you want to delete{' '}
+					<div>
+						"<strong>{confirmDeleteChatId}</strong>"?
+					</div>
+				</DialogBody>
 				<DialogActions>
 					<Button variant="outline" onClick={() => setConfirmDeleteChatId(null)}>
 						Cancel

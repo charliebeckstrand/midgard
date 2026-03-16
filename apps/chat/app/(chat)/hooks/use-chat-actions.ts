@@ -4,10 +4,12 @@ import { usePathname, useRouter } from 'next/navigation'
 
 export function useChatActions() {
 	const pathname = usePathname()
+
 	const router = useRouter()
 
 	function newChat() {
 		const id = crypto.randomUUID()
+
 		router.push(`/${id}?draft=true`)
 	}
 
