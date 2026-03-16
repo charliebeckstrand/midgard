@@ -12,7 +12,7 @@ function PreviousIcon() {
 			aria-hidden="true"
 		>
 			<path
-				d="M2.75 8H13.25M2.75 8L5.25 5.5M2.75 8L5.25 10.5"
+				d="M10.25 3.75L5.75 8L10.25 12.25"
 				strokeWidth={1.5}
 				strokeLinecap="round"
 				strokeLinejoin="round"
@@ -31,7 +31,7 @@ function NextIcon() {
 			aria-hidden="true"
 		>
 			<path
-				d="M13.25 8L2.75 8M13.25 8L10.75 10.5M13.25 8L10.75 5.5"
+				d="M5.75 3.75L10.25 8L5.75 12.25"
 				strokeWidth={1.5}
 				strokeLinecap="round"
 				strokeLinejoin="round"
