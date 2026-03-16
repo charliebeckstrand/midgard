@@ -1,11 +1,14 @@
 'use client'
 
+import { XMarkIcon } from '@heroicons/react/20/solid'
 import type { User } from 'heimdall/user'
-import { useState } from 'react'
-import type { Chat } from 'sindri/chat'
+import { useCallback, useEffect, useState } from 'react'
+import type { Chat, ChatContent } from 'sindri/chat'
+import { ChatMessages } from 'sindri/chat'
 import { Button } from 'ui/button'
 import { Dialog, DialogActions, DialogBody, DialogTitle } from 'ui/dialog'
 import { Heading, Subheading } from 'ui/heading'
+import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle } from 'ui/sheet'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from 'ui/table'
 
 interface UserDetailsClientProps {
@@ -16,6 +19,29 @@ interface UserDetailsClientProps {
 export function UserDetailsClient({ details, chats: initialChats }: UserDetailsClientProps) {
 	const [chats, setChats] = useState(initialChats)
 	const [confirmDeleteChatId, setConfirmDeleteChatId] = useState<string | null>(null)
+	const [viewChatId, setViewChatId] = useState<string | null>(null)
+	const [chatMessages, setChatMessages] = useState<ChatContent[]>([])
+	const [loadingMessages, setLoadingMessages] = useState(false)
+
+	const fetchChatMessages = useCallback(async (chatId: string) => {
+		setLoadingMessages(true)
+		setChatMessages([])
+
+		const res = await fetch(`/api/chat/${chatId}`).catch(() => null)
+
+		if (res?.ok) {
+			const { messages } = await res.json()
+			setChatMessages(messages ?? [])
+		}
+
+		setLoadingMessages(false)
+	}, [])
+
+	useEffect(() => {
+		if (viewChatId) {
+			fetchChatMessages(viewChatId)
+		}
+	}, [viewChatId, fetchChatMessages])
 
 	const deleteChat = async (chatId: string) => {
 		await fetch(`/api/chat/${chatId}`, { method: 'DELETE' }).catch(() => null)
@@ -64,7 +90,7 @@ export function UserDetailsClient({ details, chats: initialChats }: UserDetailsC
 									</TableCell>
 									<TableCell>
 										<div className="flex items-center gap-1">
-											<Button variant="outline" disabled>
+											<Button variant="outline" onClick={() => setViewChatId(chat.id)}>
 												View
 											</Button>
 											<Button variant="outline" onClick={() => setConfirmDeleteChatId(chat.id)}>
@@ -78,6 +104,28 @@ export function UserDetailsClient({ details, chats: initialChats }: UserDetailsC
 					</Table>
 				</div>
 			</div>
+
+			<Sheet open={viewChatId !== null} onOpenChange={(open) => !open && setViewChatId(null)}>
+				<SheetContent>
+					<SheetHeader>
+						<div className="flex items-center justify-between">
+							<SheetTitle>Chat History</SheetTitle>
+							<SheetClose className="rounded-md p-1 text-zinc-400 hover:text-zinc-500 dark:hover:text-zinc-300">
+								<XMarkIcon className="size-5" />
+							</SheetClose>
+						</div>
+					</SheetHeader>
+					<div className="flex flex-col flex-1 overflow-hidden px-6 pb-6">
+						{loadingMessages ? (
+							<p className="text-sm text-zinc-500">Loading messages…</p>
+						) : chatMessages.length > 0 ? (
+							<ChatMessages messages={chatMessages} />
+						) : (
+							<p className="text-sm text-zinc-500">No messages in this chat.</p>
+						)}
+					</div>
+				</SheetContent>
+			</Sheet>
 
 			<Dialog open={confirmDeleteChatId !== null} onClose={() => setConfirmDeleteChatId(null)}>
 				<DialogTitle>Delete Chat</DialogTitle>

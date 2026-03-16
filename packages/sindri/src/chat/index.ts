@@ -1,6 +1,7 @@
 export { ChatComposer } from './composer'
 export { ChatLayout } from './layout'
 export { ChatMessage } from './message'
+export { ChatMessages } from './messages'
 export type { Chat, ChatContent } from './types'
 export { useChat } from './use-chat'
 export { useScrollToBottom } from './use-scroll-to-bottom'
