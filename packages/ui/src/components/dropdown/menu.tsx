@@ -27,7 +27,7 @@ export function DropdownMenu({
 					itemSelector='[role="menuitem"]:not([data-disabled])'
 					className={clsx(
 						positionClass,
-						'w-max',
+						'w-max max-w-[100vw] sm:max-w-sm',
 						'supports-[grid-template-columns:subgrid]:grid supports-[grid-template-columns:subgrid]:grid-cols-[auto_1fr_1.5rem_0.5rem_auto]',
 						className,
 					)}
