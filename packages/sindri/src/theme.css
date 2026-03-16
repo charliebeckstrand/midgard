@@ -1,5 +1,5 @@
 @theme {
-    --font-sans: var(--font-sans), Inter, sans-serif;
+    --font-sans: var(--font-sans), 'Google Sans', sans-serif;
     --font-sans--font-feature-settings: 'cv11';
 
     --color-black-100: #80827d;
