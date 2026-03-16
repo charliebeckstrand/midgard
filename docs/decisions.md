@@ -234,10 +234,10 @@ Non-trivial design choices with context, alternatives, and trade-offs.
 **Decision:** Moved all chat UI and hooks to `sindri/src/chat/`:
 - `ChatLayout` — presentational chat shell (message list + composer), accepts messages/state as props
 - `ChatComposer` — text input with send button, emits `onSend` event
-- `ChatContent` — single message bubble display
+- `ChatMessage` — single message bubble component
 - `useChat` — consolidated hook combining message state/SSE streaming (`useChatMessages`) and sidebar actions (`useChatActions`)
 - `useScrollToBottom` — auto-scroll utility
-- Types: `ChatMessage`, `ClientChatMessage`
+- Types: `ChatContent`, `ClientChatContent`
 
 The chat app retains a thin `ChatView` wrapper that calls `useChat` and passes results to `ChatLayout`, plus app-specific server components and sidebar layout.
 

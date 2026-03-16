@@ -143,7 +143,7 @@ Shared UI resources — auth page components, chat UI components, form validatio
 | Import path | File | Purpose |
 |---|---|---|
 | `sindri/auth` | `src/auth/index.ts` | `LoginPage`, `RegisterPage`, `PasswordInput` components |
-| `sindri/chat` | `src/chat/index.ts` | `ChatLayout`, `ChatComposer`, `ChatContent`, `useChat`, `useScrollToBottom`, types |
+| `sindri/chat` | `src/chat/index.ts` | `ChatLayout`, `ChatComposer`, `ChatMessage`, `useChat`, `useScrollToBottom`, types |
 | `sindri/theme.css` | `src/theme.css` | Shared design tokens (colors, fonts) for all apps |
 
 **Key files:**
@@ -153,10 +153,10 @@ Shared UI resources — auth page components, chat UI components, form validatio
 - `src/auth/use-form.ts` — Form validation hook with validators (required, email, minLength, matches)
 - `src/chat/chat-layout.tsx` — Presentational chat layout (message list + composer)
 - `src/chat/composer.tsx` — `ChatComposer` text input with send button (emits `onSend` event)
-- `src/chat/message.tsx` — `ChatContent` single message bubble display
+- `src/chat/message.tsx` — `ChatMessage` single message bubble display
 - `src/chat/use-chat.ts` — `useChat` hook (message state, SSE streaming, new/delete chat actions)
 - `src/chat/use-scroll-to-bottom.ts` — Auto-scroll hook for message lists
-- `src/chat/types.ts` — `Chat` (DB type), `ChatMessage`, `ClientChatMessage` interfaces
+- `src/chat/types.ts` — `Chat` (DB type), `ChatContent`, `ClientChatContent` interfaces
 - `src/theme.css` — Shared `@theme` block with custom color palette (oklch-based) and font config
 
 **tsup config:** Entry points are `src/index.ts` and `src/*/index.ts`. External: next, react, react-dom, catalyst, reactbits, @heroicons/react, react-textarea-autosize.
