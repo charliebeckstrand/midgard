@@ -28,11 +28,9 @@ export function PopoverPanel({
 
 	useEffect(() => {
 		if (autoFocus && menuRef.current) {
-			const items = menuRef.current.querySelectorAll<HTMLElement>(itemSelector)
-			if (items.length > 0) items[0].focus()
-			else menuRef.current.focus()
+			menuRef.current.focus()
 		}
-	}, [autoFocus, itemSelector])
+	}, [autoFocus])
 
 	return (
 		<motion.div
