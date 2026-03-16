@@ -10,7 +10,8 @@ type Page = 'login' | 'register' | 'forgot-password'
 
 export default function PagesDemo() {
 	const [page, setPage] = useState<Page>('login')
-	const noop: React.FormEventHandler = (e) => e.preventDefault()
+
+	const noop: React.ComponentProps<'form'>['onSubmit'] = (e) => e.preventDefault()
 
 	return (
 		<div className="space-y-6">
@@ -21,7 +22,7 @@ export default function PagesDemo() {
 					</Button>
 				))}
 			</div>
-			<div className="-mx-6 lg:-mx-10">
+			<div className="">
 				{page === 'login' && (
 					<LoginPage onSubmit={noop} footer={<p className="text-sm text-zinc-500">Footer slot</p>}>
 						<Field>

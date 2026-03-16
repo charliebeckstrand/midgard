@@ -45,7 +45,7 @@ export function Combobox<T>({
 	name?: string
 	inputId?: string
 	anchor?: 'top' | 'bottom'
-} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className' | 'onChange'>) {
+} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className' | 'onChange' | 'children'>) {
 	const [query, setQuery] = useState('')
 	const [open, setOpen] = useState(false)
 	const [currentValue, setValue] = useControllable({ value, defaultValue, onChange })
@@ -100,8 +100,8 @@ export function Combobox<T>({
 
 	return (
 		<ComboboxProvider value={{ value: currentValue, onChange: handleChange, close }}>
-			<div ref={containerRef} className="relative" {...props}>
-				<span data-slot="control" className={clsx(className, controlWrapper)}>
+			<div ref={containerRef} data-slot="control" className="relative" {...props}>
+				<span className={clsx(className, controlWrapper)}>
 					<input
 						ref={inputRef}
 						id={inputId}
