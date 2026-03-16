@@ -18,8 +18,9 @@ export default function ComboboxDemo() {
 
 	return (
 		<Field className="max-w-sm">
-			<Label>Assignee</Label>
+			<Label htmlFor="combobox-assignee">Assignee</Label>
 			<Combobox
+				inputId="combobox-assignee"
 				value={selected}
 				onChange={setSelected}
 				options={people}

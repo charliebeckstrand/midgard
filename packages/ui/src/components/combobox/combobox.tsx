@@ -26,6 +26,7 @@ export function Combobox<T>({
 	disabled,
 	invalid,
 	name,
+	inputId,
 	...props
 }: {
 	options: T[]
@@ -42,6 +43,7 @@ export function Combobox<T>({
 	disabled?: boolean
 	invalid?: boolean
 	name?: string
+	inputId?: string
 	anchor?: 'top' | 'bottom'
 } & Omit<React.ComponentPropsWithoutRef<'div'>, 'className' | 'onChange'>) {
 	const [query, setQuery] = useState('')
@@ -102,6 +104,7 @@ export function Combobox<T>({
 				<span data-slot="control" className={clsx(className, controlWrapper)}>
 					<input
 						ref={inputRef}
+						id={inputId}
 						type="text"
 						role="combobox"
 						// biome-ignore lint/a11y/noAutofocus: intentional autoFocus prop for combobox

@@ -21,6 +21,7 @@ export function Listbox<T>({
 	disabled,
 	invalid,
 	name,
+	inputId,
 	...props
 }: {
 	className?: string
@@ -34,6 +35,7 @@ export function Listbox<T>({
 	disabled?: boolean
 	invalid?: boolean
 	name?: string
+	inputId?: string
 } & Omit<React.ComponentPropsWithoutRef<'div'>, 'className' | 'onChange'>) {
 	const [open, setOpen] = useState(false)
 	const [currentValue, setValue] = useControllable({ value, defaultValue, onChange })
@@ -57,6 +59,7 @@ export function Listbox<T>({
 			<div ref={containerRef} className="relative" {...props}>
 				<button
 					type="button"
+					id={inputId}
 					// biome-ignore lint/a11y/noAutofocus: intentional autoFocus prop for listbox trigger
 					autoFocus={autoFocus}
 					data-slot="control"
