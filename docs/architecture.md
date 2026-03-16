@@ -39,7 +39,7 @@ How the pieces of Midgard fit together.
 
 ## Shared Packages
 
-**ui** — Component library with five-layer atomic architecture (core → recipes → hooks → primitives → components). Framework-agnostic via LinkProvider pattern. 28 component families, zero duplication through shared recipes and primitives.
+**ui** — Component library with five-layer atomic architecture (core → recipes → hooks → primitives → components). Framework-agnostic via LinkProvider pattern. 28 component families, zero duplication through shared recipes and primitives. Includes consolidated `layouts/` (AuthLayout, SidebarLayout, StackedLayout with shared MobileSidebar) and `pages/` (LoginPage, RegisterPage, ForgotPasswordPage skeletons).
 
 **heimdall** — Server-side authentication module. Provides session management (`getSession`), route protection (`proxy`), and Next.js config helpers (`withAuth`). Proxies auth and API requests to the external Bifrost backend.
 
