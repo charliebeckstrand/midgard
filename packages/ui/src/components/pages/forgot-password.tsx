@@ -5,6 +5,7 @@ import { AuthLayout } from '../layouts/auth'
 
 type ForgotPasswordPageProps = {
 	onSubmit: React.FormEventHandler<HTMLFormElement>
+	heading?: React.ReactNode
 	serverError?: string
 	submitting?: boolean
 	children: React.ReactNode
@@ -13,6 +14,7 @@ type ForgotPasswordPageProps = {
 
 export function ForgotPasswordPage({
 	onSubmit,
+	heading,
 	serverError,
 	submitting,
 	children,
@@ -21,7 +23,7 @@ export function ForgotPasswordPage({
 	return (
 		<AuthLayout>
 			<form onSubmit={onSubmit} className="grid w-full max-w-sm grid-cols-1 gap-8">
-				<Heading>Reset your password</Heading>
+				{heading ?? <Heading>Reset your password</Heading>}
 
 				{serverError && <p className="text-sm text-red-500">{serverError}</p>}
 

@@ -5,17 +5,25 @@ import { AuthLayout } from '../layouts/auth'
 
 type LoginPageProps = {
 	onSubmit: React.FormEventHandler<HTMLFormElement>
+	heading?: React.ReactNode
 	serverError?: string
 	submitting?: boolean
 	children: React.ReactNode
 	footer?: React.ReactNode
 }
 
-export function LoginPage({ onSubmit, serverError, submitting, children, footer }: LoginPageProps) {
+export function LoginPage({
+	onSubmit,
+	heading,
+	serverError,
+	submitting,
+	children,
+	footer,
+}: LoginPageProps) {
 	return (
 		<AuthLayout>
 			<form onSubmit={onSubmit} className="grid w-full max-w-sm grid-cols-1 gap-8">
-				<Heading>Sign in to your account</Heading>
+				{heading ?? <Heading>Sign in to your account</Heading>}
 
 				{serverError && <p className="text-sm text-red-500">{serverError}</p>}
 
