@@ -120,6 +120,11 @@
 			"import": "./dist/select.js",
 			"default": "./dist/select.js"
 		},
+		"./sheet": {
+			"types": "./src/components/sheet/index.ts",
+			"import": "./dist/sheet.js",
+			"default": "./dist/sheet.js"
+		},
 		"./sidebar": {
 			"types": "./src/components/sidebar/index.ts",
 			"import": "./dist/sidebar.js",

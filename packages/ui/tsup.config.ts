@@ -25,6 +25,7 @@ export default defineConfig({
 		pagination: 'src/components/pagination/index.ts',
 		radio: 'src/components/radio/index.ts',
 		select: 'src/components/select/index.ts',
+		sheet: 'src/components/sheet/index.ts',
 		sidebar: 'src/components/sidebar/index.ts',
 		'sidebar-layout': 'src/components/sidebar-layout/index.ts',
 		'stacked-layout': 'src/components/stacked-layout/index.ts',
