@@ -16,5 +16,6 @@ export default defineConfig({
 		'reactbits',
 		'@heroicons/react',
 		'react-textarea-autosize',
+		'eventsource-parser',
 	],
 })

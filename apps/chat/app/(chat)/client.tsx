@@ -16,7 +16,7 @@ import type { User } from 'heimdall/user'
 import { usePathname } from 'next/navigation'
 import type { ReactNode } from 'react'
 import { ShinyText } from 'reactbits'
-import { useChatActions } from './hooks/use-chat-actions'
+import { useChat } from 'sindri/chat'
 import { SidebarUserFooter } from './sidebar-footer'
 import type { Chat } from './types'
 
@@ -30,7 +30,7 @@ export function ChatClient({
 	children: ReactNode
 }) {
 	const pathname = usePathname()
-	const { newChat, deleteChat } = useChatActions()
+	const { newChat, deleteChat } = useChat()
 
 	return (
 		<SidebarLayout
