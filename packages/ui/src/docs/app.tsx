@@ -1,8 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Button } from '../components/button'
-import { Divider } from '../components/divider'
 import { Heading, Subheading } from '../components/heading'
 import { SidebarLayout } from '../components/layouts'
 import { Navbar, NavbarItem, NavbarLabel, NavbarSection, NavbarSpacer } from '../components/navbar'
@@ -15,6 +13,7 @@ import {
 	SidebarSection,
 } from '../components/sidebar'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/table'
+import { Tab, Tabs } from '../components/tabs'
 import { CodeBlock } from './code-block'
 import { type ComponentApi, parseSource } from './parse-props'
 
@@ -123,56 +122,70 @@ function useHash() {
 function PropsTable({ api }: { api: ComponentApi[] }) {
 	return (
 		<div className="space-y-8">
-			{api.map((entry) => (
-				<div key={entry.name} className="space-y-3">
-					<Subheading>{entry.name}</Subheading>
-					<Table>
-						<TableHead>
-							<TableRow>
-								<TableHeader>Prop</TableHeader>
-								<TableHeader>Type</TableHeader>
-								<TableHeader>Default</TableHeader>
-							</TableRow>
-						</TableHead>
-						<TableBody>
-							{entry.props.map((prop) => (
-								<TableRow key={prop.name}>
-									<TableCell className="font-mono text-xs font-medium">{prop.name}</TableCell>
-									<TableCell className="font-mono text-xs text-zinc-500 dark:text-zinc-400">
-										{prop.type}
-									</TableCell>
-									<TableCell className="font-mono text-xs text-zinc-500 dark:text-zinc-400">
-										{prop.default ?? '—'}
-									</TableCell>
+			{api.map((entry) => {
+				const visibleProps = entry.props.filter((p) => p.type !== 'never')
+
+				if (visibleProps.length === 0) return null
+
+				// Format: "Button Props", "AlertActions Props"
+				const label = entry.name.replace(/([a-z])([A-Z])/g, '$1\u00A0$2')
+
+				return (
+					<div key={entry.name} className="space-y-3">
+						<Subheading>{`<${label} />`}</Subheading>
+						<Table>
+							<TableHead>
+								<TableRow>
+									<TableHeader>Prop</TableHeader>
+									<TableHeader>Type</TableHeader>
+									<TableHeader>Default</TableHeader>
 								</TableRow>
-							))}
-						</TableBody>
-					</Table>
-				</div>
-			))}
+							</TableHead>
+							<TableBody>
+								{visibleProps.map((prop) => (
+									<TableRow key={prop.name}>
+										<TableCell className="font-mono text-xs font-medium">{prop.name}</TableCell>
+										<TableCell className="font-mono text-xs text-zinc-500 dark:text-zinc-400">
+											{prop.type}
+										</TableCell>
+										<TableCell className="font-mono text-xs text-zinc-500 dark:text-zinc-400">
+											{prop.default ?? '—'}
+										</TableCell>
+									</TableRow>
+								))}
+							</TableBody>
+						</Table>
+					</div>
+				)
+			})}
 		</div>
 	)
 }
 
+type DemoTab = 'preview' | 'code' | 'api'
+
 function DemoPage({ demo }: { demo: (typeof demos)[number] }) {
-	const [showCode, setShowCode] = useState(false)
+	const [tab, setTab] = useState<DemoTab>('preview')
 
 	return (
 		<div className="mx-auto w-full max-w-4xl space-y-8 p-6 lg:p-10">
-			<div className="flex items-center justify-between">
-				<Heading>{demo.name}</Heading>
-				<Button variant="outline" onClick={() => setShowCode((v) => !v)}>
-					{showCode ? 'Preview' : 'Code'}
-				</Button>
-			</div>
-			<Divider />
-			{showCode ? <CodeBlock code={demo.source} /> : <demo.component />}
-			{demo.api && (
-				<>
-					<Divider />
-					<PropsTable api={demo.api} />
-				</>
-			)}
+			<Heading>{demo.name}</Heading>
+			<Tabs>
+				<Tab current={tab === 'preview'} onClick={() => setTab('preview')}>
+					Preview
+				</Tab>
+				<Tab current={tab === 'code'} onClick={() => setTab('code')}>
+					Code
+				</Tab>
+				{demo.api && (
+					<Tab current={tab === 'api'} onClick={() => setTab('api')}>
+						API
+					</Tab>
+				)}
+			</Tabs>
+			{tab === 'preview' && <demo.component />}
+			{tab === 'code' && <CodeBlock code={demo.source} />}
+			{tab === 'api' && demo.api && <PropsTable api={demo.api} />}
 		</div>
 	)
 }
