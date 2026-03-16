@@ -1,7 +1,6 @@
 'use client'
 
 import clsx from 'clsx'
-import { useCallback, useState } from 'react'
 import { TableProvider } from './context'
 
 interface TableProps extends React.ComponentPropsWithoutRef<'div'> {
@@ -20,16 +19,6 @@ export function Table({
 	children,
 	...props
 }: TableProps) {
-	const [fixed, setFixed] = useState(false)
-
-	const tableRef = useCallback((el: HTMLTableElement | null) => {
-		if (!el) return
-		const firstRow = el.querySelector('thead tr, tbody tr')
-		if (firstRow) {
-			setFixed(firstRow.children.length < 4)
-		}
-	}, [])
-
 	return (
 		<TableProvider value={{ bleed, dense, grid, striped }}>
 			<div className="flow-root">
@@ -40,13 +29,7 @@ export function Table({
 					<div
 						className={clsx('inline-block min-w-full align-middle', !bleed && 'sm:px-(--gutter)')}
 					>
-						<table
-							ref={tableRef}
-							className={clsx(
-								'min-w-full text-left text-sm/6 text-zinc-950 dark:text-white',
-								fixed && 'table-fixed',
-							)}
-						>
+						<table className="min-w-full text-left text-sm/6 text-zinc-950 dark:text-white">
 							{children}
 						</table>
 					</div>

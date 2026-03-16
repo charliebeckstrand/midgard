@@ -15,3 +15,12 @@ button:focus-visible, [role="button"]:focus-visible, a:focus-visible, input:focu
     outline-offset: -2px;
     border-radius: var(--radius-lg);
 }
+
+/* Equal-width table columns when there are 3 or fewer columns */
+thead tr > :is(th, td):first-child:nth-last-child(1) { width: 100%; }
+
+thead tr > :is(th, td):first-child:nth-last-child(2),
+thead tr > :is(th, td):first-child:nth-last-child(2) ~ :is(th, td) { width: 50%; }
+
+thead tr > :is(th, td):first-child:nth-last-child(3),
+thead tr > :is(th, td):first-child:nth-last-child(3) ~ :is(th, td) { width: 33.3333%; }
