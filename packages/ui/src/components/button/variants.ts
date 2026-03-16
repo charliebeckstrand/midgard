@@ -2,7 +2,7 @@ import { cva } from 'class-variance-authority'
 
 export const button = cva(
 	[
-		'relative isolate inline-flex items-center justify-center gap-x-2 rounded-lg text-base/6 font-semibold select-none',
+		'relative isolate inline-flex w-fit items-center justify-center gap-x-2 rounded-lg text-base/6 font-semibold select-none',
 		'focus:outline-hidden focus-visible:outline-1 focus-visible:-outline-offset-1 focus-visible:outline-blue-500',
 		'disabled:opacity-50',
 		'*:data-[slot=icon]:-mx-0.5 *:data-[slot=icon]:my-0.5 *:data-[slot=icon]:size-5 *:data-[slot=icon]:shrink-0 *:data-[slot=icon]:self-center *:data-[slot=icon]:text-(--btn-icon) sm:*:data-[slot=icon]:my-1 sm:*:data-[slot=icon]:size-4',
