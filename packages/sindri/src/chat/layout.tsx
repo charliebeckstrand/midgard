@@ -16,7 +16,11 @@ export function ChatLayout({ messages, sending, isDraft, onSend }: ChatLayoutPro
 		<div className="flex flex-col gap-6 h-full justify-center overflow-hidden">
 			{!isDraft && <>{messages.length > 0 && <ChatMessages messages={messages} />}</>}
 
-			<ChatComposer className="lg:w-lg w-full mx-auto" onSend={onSend} disabled={sending} />
+			<ChatComposer
+				className={`w-full ${isDraft ? 'lg:w-lg mx-auto' : ''}`}
+				onSend={onSend}
+				disabled={sending}
+			/>
 		</div>
 	)
 }

@@ -81,7 +81,7 @@ export function Listbox<T>({
 							'relative block w-full appearance-none rounded-lg py-[calc(--spacing(2.5)-1px)] sm:py-[calc(--spacing(1.5)-1px)]',
 							'min-h-11 sm:min-h-9',
 							'pr-[calc(--spacing(7)-1px)] pl-[calc(--spacing(3.5)-1px)] sm:pl-[calc(--spacing(3)-1px)]',
-							'text-left text-base/6 text-zinc-950 placeholder:text-zinc-500 sm:text-sm/6 dark:text-white forced-colors:text-[CanvasText]',
+							'text-left text-base/6 text-zinc-950 placeholder:text-zinc-500  dark:text-white forced-colors:text-[CanvasText]',
 							'border border-zinc-950/10 group-active:border-zinc-950/20 group-hover:border-zinc-950/20 dark:border-white/10 dark:group-active:border-white/20 dark:group-hover:border-white/20',
 							'bg-transparent dark:bg-white/5',
 							'group-data-invalid:border-red-500 group-hover:group-data-invalid:border-red-500 dark:group-data-invalid:border-red-600 dark:hover:group-data-invalid:border-red-600',

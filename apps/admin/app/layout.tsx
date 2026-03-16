@@ -5,7 +5,11 @@ import type { ReactNode } from 'react'
 import './globals.css'
 import { Providers } from './providers'
 
-const googleSans = Google_Sans({ subsets: ['latin'], variable: '--font-sans' })
+const googleSans = Google_Sans({
+	subsets: ['latin'],
+	variable: '--font-sans',
+	weight: ['400', '500', '700'],
+})
 
 export const metadata: Metadata = {
 	title: 'Admin',

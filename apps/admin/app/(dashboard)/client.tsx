@@ -8,13 +8,14 @@ import { Navbar, NavbarSpacer } from 'ui/navbar'
 import {
 	Sidebar,
 	SidebarBody,
+	SidebarFooter,
 	SidebarHeader,
 	SidebarItem,
 	SidebarLabel,
 	SidebarSection,
 } from 'ui/sidebar'
 import { SidebarLayout } from 'ui/sidebar-layout'
-import { SidebarUserFooter } from './sidebar-footer'
+import { SidebarUserDropdown } from './sidebar-user-dropdown'
 
 type User = { email: string; name?: string }
 
@@ -46,7 +47,9 @@ export function DashboardClient({ user, children }: { user?: User; children: Rea
 							</SidebarItem>
 						</SidebarSection>
 					</SidebarBody>
-					<SidebarUserFooter user={user} />
+					<SidebarFooter>
+						<SidebarUserDropdown user={user} />
+					</SidebarFooter>
 				</Sidebar>
 			}
 		>

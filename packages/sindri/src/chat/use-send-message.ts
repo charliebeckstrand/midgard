@@ -6,10 +6,15 @@ import { useCallback, useState } from 'react'
 
 import type { ChatContent } from './types'
 
+interface UseSendMessageOptions {
+	onChatCreated?: () => void
+}
+
 export function useSendMessage(
 	chatId?: string,
 	initialMessages?: ChatContent[],
 	initialIsDraft?: boolean,
+	options?: UseSendMessageOptions,
 ) {
 	const router = useRouter()
 
@@ -73,13 +78,13 @@ export function useSendMessage(
 
 					router.replace(`/${chatId}`)
 
-					router.refresh()
+					options?.onChatCreated?.()
 				}
 			} finally {
 				setSending(false)
 			}
 		},
-		[chatId, isDraft, router],
+		[chatId, isDraft, router, options],
 	)
 
 	return { messages, sending, isDraft, sendMessage }
