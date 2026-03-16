@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useCallback, useRef, useState } from 'react'
 
-import type { ChatMessage, ClientChatMessage } from '../types'
+import type { ChatMessage, ClientChatMessage, ToolCall, ToolCallName } from '../types'
 
 function parseSSEEvents(chunk: string): Array<Record<string, unknown>> {
 	const events: Array<Record<string, unknown>> = []
@@ -37,6 +37,7 @@ export function useChatMessages(
 	const [isDraft, setIsDraft] = useState(initialIsDraft)
 	const [sending, setSending] = useState(false)
 	const fullContentRef = useRef('')
+	const toolCallsRef = useRef<Map<string, { name: ToolCallName; args: string }>>(new Map())
 
 	const sendMessage = useCallback(
 		async (content: string) => {
@@ -90,6 +91,7 @@ export function useChatMessages(
 			}
 
 			fullContentRef.current = ''
+			toolCallsRef.current = new Map()
 
 			const reader = agentResponse.body.getReader()
 			const decoder = new TextDecoder()
@@ -120,6 +122,39 @@ export function useChatMessages(
 								prev.map((m) =>
 									m.id === pendingId ? { ...m, content: accumulated, pending: true } : m,
 								),
+							)
+
+							break
+						}
+
+						case 'TOOL_CALL_START': {
+							toolCallsRef.current.set(event.toolCallId as string, {
+								name: event.toolCallName as ToolCallName,
+								args: '',
+							})
+
+							break
+						}
+
+						case 'TOOL_CALL_ARGS': {
+							const tc = toolCallsRef.current.get(event.toolCallId as string)
+
+							if (tc) {
+								tc.args += event.delta as string
+							}
+
+							break
+						}
+
+						case 'TOOL_CALL_END': {
+							const completed: ToolCall[] = []
+
+							for (const [id, tc] of toolCallsRef.current) {
+								completed.push({ id, name: tc.name, args: tc.args })
+							}
+
+							setMessages((prev) =>
+								prev.map((m) => (m.id === pendingId ? { ...m, toolCalls: completed } : m)),
 							)
 
 							break
