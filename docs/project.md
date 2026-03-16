@@ -172,9 +172,9 @@ New component library built from scratch with a five-layer atomic architecture. 
 - `recipes/` — Composable style definitions (control, popover, overlay, item, motion)
 - `hooks/` — Behavioral primitives (useOverlay, useMenuKeyboard, useControllable)
 - `primitives/` — Reusable building blocks (Overlay, PopoverPanel, SlidePanel, icons, TouchTarget)
-- `components/` — 28 component families
+- `components/` — 29 component families
 
-**Components:** alert, auth-layout, avatar, badge, button, checkbox, combobox, description-list, dialog, divider, dropdown, fieldset, heading, input, listbox, navbar, pagination, radio, select, sheet, sidebar, sidebar-layout, stacked-layout, switch, table, text, textarea
+**Components:** alert, auth-layout, avatar, badge, button, checkbox, combobox, description-list, dialog, divider, dropdown, fieldset, heading, input, listbox, navbar, pagination, placeholder, radio, select, sheet, sidebar, sidebar-layout, stacked-layout, switch, table, text, textarea
 
 **Imports:** Consumers import from specific entry points: `ui/button`, `ui/dialog`, `ui/core`, `ui/recipes`, `ui/primitives`, `ui/hooks`
 
