@@ -3,11 +3,12 @@ import { Button } from '../button'
 import { Heading } from '../heading'
 import { AuthLayout } from '../layouts/auth'
 
-type ForgotPasswordPageProps = {
+export type ForgotPasswordPageProps = {
 	onSubmit: React.FormEventHandler<HTMLFormElement>
 	heading?: React.ReactNode
 	serverError?: string
 	submitting?: boolean
+	submitLabel?: string
 	children: React.ReactNode
 	footer?: React.ReactNode
 }
@@ -17,6 +18,7 @@ export function ForgotPasswordPage({
 	heading,
 	serverError,
 	submitting,
+	submitLabel = 'Send reset link',
 	children,
 	footer,
 }: ForgotPasswordPageProps) {
@@ -33,7 +35,7 @@ export function ForgotPasswordPage({
 					type="submit"
 					className={`w-full ${submitting ? 'cursor-not-allowed pointer-events-none' : ''}`}
 				>
-					Send reset link
+					{submitLabel}
 				</Button>
 
 				{footer}

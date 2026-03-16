@@ -1,6 +1,7 @@
 'use client'
 
 import type React from 'react'
+import { cloneElement, isValidElement, type ReactElement } from 'react'
 import { useSheet } from './context'
 
 export function SheetClose({
@@ -13,19 +14,16 @@ export function SheetClose({
 } & Omit<React.ComponentPropsWithoutRef<'button'>, 'children'>) {
 	const { onOpenChange } = useSheet()
 
-	if (asChild && children && typeof children === 'object' && 'type' in children) {
-		const child = children as React.ReactElement<Record<string, unknown>>
-		return {
-			...child,
-			props: {
-				...child.props,
-				onClick: (e: React.MouseEvent) => {
-					const childOnClick = child.props.onClick as ((e: React.MouseEvent) => void) | undefined
-					childOnClick?.(e)
-					onOpenChange(false)
-				},
+	if (asChild && isValidElement(children)) {
+		return cloneElement(children as ReactElement<Record<string, unknown>>, {
+			onClick: (e: React.MouseEvent) => {
+				const childOnClick = (children as ReactElement<Record<string, unknown>>).props.onClick as
+					| ((e: React.MouseEvent) => void)
+					| undefined
+				childOnClick?.(e)
+				onOpenChange(false)
 			},
-		} as React.ReactElement
+		})
 	}
 
 	return (

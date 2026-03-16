@@ -3,11 +3,12 @@ import { Button } from '../button'
 import { Heading } from '../heading'
 import { AuthLayout } from '../layouts/auth'
 
-type RegisterPageProps = {
+export type RegisterPageProps = {
 	onSubmit: React.FormEventHandler<HTMLFormElement>
 	heading?: React.ReactNode
 	serverError?: string
 	submitting?: boolean
+	submitLabel?: string
 	children: React.ReactNode
 	footer?: React.ReactNode
 }
@@ -17,6 +18,7 @@ export function RegisterPage({
 	heading,
 	serverError,
 	submitting,
+	submitLabel = 'Create account',
 	children,
 	footer,
 }: RegisterPageProps) {
@@ -33,7 +35,7 @@ export function RegisterPage({
 					type="submit"
 					className={`w-full ${submitting ? 'cursor-not-allowed pointer-events-none' : ''}`}
 				>
-					Create account
+					{submitLabel}
 				</Button>
 
 				{footer}

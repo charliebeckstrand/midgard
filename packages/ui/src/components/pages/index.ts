@@ -1,3 +1,6 @@
+export type { ForgotPasswordPageProps } from './forgot-password'
 export { ForgotPasswordPage } from './forgot-password'
+export type { LoginPageProps } from './login'
 export { LoginPage } from './login'
+export type { RegisterPageProps } from './register'
 export { RegisterPage } from './register'
