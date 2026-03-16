@@ -41,6 +41,7 @@ export function ChatView({ chatId, initialMessages, isDraft: initialIsDraft }: P
 										role={message.role}
 										content={message.content}
 										pending={message.pending}
+										toolCalls={message.toolCalls}
 									/>
 								))}
 								<div ref={messagesEndRef} />
