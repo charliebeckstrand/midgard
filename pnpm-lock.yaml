@@ -187,43 +187,6 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
-  packages/catalyst:
-    dependencies:
-      class-variance-authority:
-        specifier: ^0.7.1
-        version: 0.7.1
-      clsx:
-        specifier: ^2.0.0
-        version: 2.1.1
-      motion:
-        specifier: ^12.0.0
-        version: 12.36.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      next:
-        specifier: '>=14.0.0'
-        version: 16.1.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-    devDependencies:
-      '@biomejs/biome':
-        specifier: ^2.4.6
-        version: 2.4.6
-      '@types/node':
-        specifier: ^25.3.3
-        version: 25.5.0
-      '@types/react':
-        specifier: ^19.1.6
-        version: 19.2.14
-      react:
-        specifier: ^19.1.0
-        version: 19.2.4
-      tsup:
-        specifier: ^8.5.1
-        version: 8.5.1(jiti@2.6.1)(postcss@8.5.8)(tsx@4.21.0)(typescript@5.9.3)
-      tsx:
-        specifier: ^4.21.0
-        version: 4.21.0
-      typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
-
   packages/heimdall:
     devDependencies:
       '@biomejs/biome':
@@ -2947,6 +2910,7 @@ snapshots:
   get-tsconfig@4.13.6:
     dependencies:
       resolve-pkg-maps: 1.0.0
+    optional: true
 
   graceful-fs@4.2.11: {}
 
@@ -3695,7 +3659,8 @@ snapshots:
 
   resolve-from@5.0.0: {}
 
-  resolve-pkg-maps@1.0.0: {}
+  resolve-pkg-maps@1.0.0:
+    optional: true
 
   restore-cursor@4.0.0:
     dependencies:
@@ -3910,6 +3875,7 @@ snapshots:
       get-tsconfig: 4.13.6
     optionalDependencies:
       fsevents: 2.3.3
+    optional: true
 
   turbo-darwin-64@2.8.16:
     optional: true

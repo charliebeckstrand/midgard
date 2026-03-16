@@ -28,14 +28,7 @@
 		}
 	},
 	"files": {
-		"includes": [
-			"**/*.ts",
-			"**/*.tsx",
-			"!**/dist",
-			"!**/.next",
-			"!packages/catalyst",
-			"!**/next-env.d.ts"
-		],
+		"includes": ["**/*.ts", "**/*.tsx", "!**/dist", "!**/.next", "!**/next-env.d.ts"],
 		"ignoreUnknown": true
 	},
 	"vcs": {
