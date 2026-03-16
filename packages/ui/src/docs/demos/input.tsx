@@ -1,5 +1,5 @@
 import { Field, Label } from '../../components/fieldset'
-import { Input, InputGroup } from '../../components/input'
+import { Input } from '../../components/input'
 
 export const meta = { category: 'Forms' }
 
@@ -22,12 +22,6 @@ export default function InputDemo() {
 				<Label>Invalid</Label>
 				<Input invalid placeholder="Invalid input" />
 			</Field>
-			{/* <Field>
-				<Label>With input group</Label>
-				<InputGroup>
-					<Input id="input-group" placeholder="Search…" />
-				</InputGroup>
-			</Field> */}
 		</div>
 	)
 }
