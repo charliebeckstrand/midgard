@@ -151,12 +151,12 @@ Shared UI resources — auth page components, chat UI components, form validatio
 - `src/auth/register-page.tsx` — Registration form with password visibility toggle
 - `src/auth/password-input.tsx` — `PasswordInput` component with eye/eye-slash toggle (HeroIcons)
 - `src/auth/use-form.ts` — Form validation hook with validators (required, email, minLength, matches)
-- `src/chat/chat-layout.tsx` — Presentational chat layout (message list + composer)
+- `src/chat/layout.tsx` — Presentational chat layout (message list + composer)
 - `src/chat/composer.tsx` — `ChatComposer` text input with send button (emits `onSend` event)
 - `src/chat/message.tsx` — `ChatMessage` single message bubble display
 - `src/chat/use-chat.ts` — `useChat` hook (message state, SSE streaming, new/delete chat actions)
 - `src/chat/use-scroll-to-bottom.ts` — Auto-scroll hook for message lists
-- `src/chat/types.ts` — `Chat` (DB type), `ChatContent`, `ClientChatContent` interfaces
+- `src/chat/types.ts` — `Chat` (DB type), `ChatContent` interface
 - `src/theme.css` — Shared `@theme` block with custom color palette (oklch-based) and font config
 
 **tsup config:** Entry points are `src/index.ts` and `src/*/index.ts`. External: next, react, react-dom, catalyst, reactbits, @heroicons/react, react-textarea-autosize.

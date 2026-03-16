@@ -1,7 +1,7 @@
 'use client'
 
 import type { ChatContent } from 'sindri/chat'
-import { ChatLayout, useChat } from 'sindri/chat'
+import { ChatLayout, useSendMessage } from 'sindri/chat'
 
 interface Props {
 	chatId: string
@@ -10,11 +10,15 @@ interface Props {
 }
 
 export function ChatView({ chatId, initialMessages, isDraft: initialIsDraft }: Props) {
-	const { messages, sending, isDraft, sendMessage } = useChat(
+	const { messages, sending, isDraft, sendMessage } = useSendMessage(
 		chatId,
 		initialMessages,
 		initialIsDraft,
 	)
 
-	return <ChatLayout messages={messages} sending={sending} isDraft={isDraft} onSend={sendMessage} />
+	return (
+		<div className="h-full w-full max-w-5xl mx-auto">
+			<ChatLayout messages={messages} sending={sending} isDraft={isDraft} onSend={sendMessage} />
+		</div>
+	)
 }

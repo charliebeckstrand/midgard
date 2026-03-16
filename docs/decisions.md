@@ -237,7 +237,7 @@ Non-trivial design choices with context, alternatives, and trade-offs.
 - `ChatMessage` — single message bubble component
 - `useChat` — consolidated hook combining message state/SSE streaming (`useChatMessages`) and sidebar actions (`useChatActions`)
 - `useScrollToBottom` — auto-scroll utility
-- Types: `ChatContent`, `ClientChatContent`
+- Types: `ChatContent`
 
 The chat app retains a thin `ChatView` wrapper that calls `useChat` and passes results to `ChatLayout`, plus app-specific server components and sidebar layout.
 

@@ -6,11 +6,7 @@ export type Chat = {
 }
 
 export interface ChatContent {
+	id?: string
 	role: 'user' | 'agent'
 	content: string
-}
-
-export interface ClientChatContent extends ChatContent {
-	id: string
-	pending?: boolean
 }

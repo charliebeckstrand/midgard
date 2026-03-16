@@ -16,7 +16,8 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useState } from 'react'
 import { ShinyText } from 'reactbits/shiny-text'
 import { PasswordInput } from './password-input'
-import { email, required, useForm } from './use-form'
+import { useForm } from './use-form'
+import { email, required } from './use-form-validation'
 
 function LoginForm({ showRegisterLink }: { showRegisterLink: boolean }) {
 	const router = useRouter()

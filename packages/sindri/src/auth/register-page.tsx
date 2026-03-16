@@ -15,7 +15,8 @@ import {
 import { useRouter } from 'next/navigation'
 import { Suspense, useState } from 'react'
 import { PasswordInput } from './password-input'
-import { email, matches, minLength, required, useForm } from './use-form'
+import { useForm } from './use-form'
+import { email, matches, minLength, required } from './use-form-validation'
 
 function RegisterForm() {
 	const router = useRouter()

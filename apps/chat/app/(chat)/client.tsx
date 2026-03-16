@@ -30,6 +30,7 @@ export function ChatClient({
 	children: ReactNode
 }) {
 	const pathname = usePathname()
+
 	const { newChat, deleteChat } = useChat()
 
 	return (

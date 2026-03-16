@@ -1,6 +1,6 @@
-import type { ClientChatContent } from './types'
+import type { ChatContent } from './types'
 
-type Props = Pick<ClientChatContent, 'role' | 'content'>
+type Props = Pick<ChatContent, 'role' | 'content'>
 
 export function ChatMessage({ role, content }: Props) {
 	return (
