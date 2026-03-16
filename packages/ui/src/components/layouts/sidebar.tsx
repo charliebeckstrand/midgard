@@ -2,35 +2,10 @@
 
 import clsx from 'clsx'
 import type React from 'react'
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { MenuIcon, Overlay, SlidePanel } from '../../primitives'
-import { sidebarBackdrop } from '../../recipes'
+import { MenuIcon } from '../../primitives'
 import { NavbarItem } from '../navbar'
-import { MobileSidebarContext } from './context'
-
-function MobileSidebar({
-	open,
-	close,
-	children,
-}: React.PropsWithChildren<{ open: boolean; close: () => void }>) {
-	return (
-		<Overlay
-			open={open}
-			onClose={close}
-			className={sidebarBackdrop}
-			role="dialog"
-			aria-modal="true"
-		>
-			<SlidePanel>
-				<MobileSidebarContext.Provider value={close}>
-					<div className="flex h-full flex-col rounded-lg bg-white shadow-xs ring-1 ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10">
-						{children}
-					</div>
-				</MobileSidebarContext.Provider>
-			</SlidePanel>
-		</Overlay>
-	)
-}
+import { MobileSidebar } from './mobile-sidebar'
+import { useMobileSidebar } from './use-mobile-sidebar'
 
 export function SidebarLayout({
 	navbar,
@@ -42,19 +17,7 @@ export function SidebarLayout({
 	sidebar: React.ReactNode
 	scrollable?: boolean
 }>) {
-	const [showSidebar, setShowSidebar] = useState(false)
-	const closeSidebar = useCallback(() => setShowSidebar(false), [])
-	const mainRef = useRef<HTMLElement>(null)
-
-	useEffect(() => {
-		if (mainRef.current) {
-			if (showSidebar) {
-				mainRef.current.setAttribute('inert', '')
-			} else {
-				mainRef.current.removeAttribute('inert')
-			}
-		}
-	}, [showSidebar])
+	const { open, setOpen, close, mainRef } = useMobileSidebar()
 
 	return (
 		<div className="relative isolate flex min-h-svh w-full bg-white max-lg:flex-col lg:bg-zinc-100 dark:bg-zinc-900 dark:lg:bg-zinc-950">
@@ -62,14 +25,14 @@ export function SidebarLayout({
 			<div className="fixed inset-y-0 left-0 w-64 max-lg:hidden">{sidebar}</div>
 
 			{/* Sidebar on mobile */}
-			<MobileSidebar open={showSidebar} close={closeSidebar}>
+			<MobileSidebar open={open} close={close}>
 				{sidebar}
 			</MobileSidebar>
 
 			{/* Navbar on mobile */}
 			<header className="flex items-center px-4 lg:hidden">
 				<div className="py-2.5">
-					<NavbarItem onClick={() => setShowSidebar(true)} aria-label="Open navigation">
+					<NavbarItem onClick={() => setOpen(true)} aria-label="Open navigation">
 						<MenuIcon />
 					</NavbarItem>
 				</div>

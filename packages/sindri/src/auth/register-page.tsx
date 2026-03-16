@@ -2,11 +2,9 @@
 
 import { useRouter } from 'next/navigation'
 import { Suspense, useState } from 'react'
-import { AuthLayout } from 'ui/auth-layout'
-import { Button } from 'ui/button'
 import { ErrorMessage, Field, Label } from 'ui/fieldset'
-import { Heading } from 'ui/heading'
 import { Input } from 'ui/input'
+import { RegisterPage as RegisterPageLayout } from 'ui/pages'
 import { Strong, Text, TextLink } from 'ui/text'
 import { PasswordInput } from './password-input'
 import { useForm } from './use-form'
@@ -55,11 +53,19 @@ function RegisterForm() {
 	})
 
 	return (
-		<form onSubmit={handleSubmit} className="grid w-full max-w-sm grid-cols-1 gap-8">
-			<Heading>Create your account</Heading>
-
-			{serverError && <p className="text-red-500">{serverError}</p>}
-
+		<RegisterPageLayout
+			onSubmit={handleSubmit}
+			serverError={serverError}
+			submitting={submitting}
+			footer={
+				<Text>
+					Already have an account?{' '}
+					<TextLink href="/login">
+						<Strong>Sign in</Strong>
+					</TextLink>
+				</Text>
+			}
+		>
 			<Field>
 				<Label>Email</Label>
 				<Input type="email" name="email" autoComplete="email" {...register('email')} />
@@ -83,30 +89,14 @@ function RegisterForm() {
 				<PasswordInput name="confirmPassword" {...register('confirmPassword')} />
 				{errors.confirmPassword && <ErrorMessage>{errors.confirmPassword}</ErrorMessage>}
 			</Field>
-
-			<Button
-				type="submit"
-				className={`w-full ${submitting ? 'cursor-not-allowed pointer-events-none' : ''}`}
-			>
-				Create account
-			</Button>
-
-			<Text>
-				Already have an account?{' '}
-				<TextLink href="/login">
-					<Strong>Sign in</Strong>
-				</TextLink>
-			</Text>
-		</form>
+		</RegisterPageLayout>
 	)
 }
 
 export function RegisterPage() {
 	return (
-		<AuthLayout>
-			<Suspense>
-				<RegisterForm />
-			</Suspense>
-		</AuthLayout>
+		<Suspense>
+			<RegisterForm />
+		</Suspense>
 	)
 }

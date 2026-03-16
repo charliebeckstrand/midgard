@@ -4,6 +4,7 @@ import { UsersIcon } from '@heroicons/react/20/solid'
 import { usePathname } from 'next/navigation'
 import type { ReactNode } from 'react'
 import { ShinyText } from 'reactbits'
+import { SidebarLayout } from 'ui/layouts'
 import { Navbar, NavbarSpacer } from 'ui/navbar'
 import {
 	Sidebar,
@@ -14,7 +15,6 @@ import {
 	SidebarLabel,
 	SidebarSection,
 } from 'ui/sidebar'
-import { SidebarLayout } from 'ui/sidebar-layout'
 import { SidebarUserDropdown } from './sidebar-user-dropdown'
 
 type User = { email: string; name?: string }

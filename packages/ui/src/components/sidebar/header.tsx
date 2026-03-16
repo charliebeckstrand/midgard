@@ -4,7 +4,7 @@ import clsx from 'clsx'
 import type React from 'react'
 import { useContext } from 'react'
 import { CloseIcon } from '../../primitives'
-import { MobileSidebarContext } from '../sidebar-layout/context'
+import { MobileSidebarContext } from '../layouts/context'
 
 export function SidebarHeader({
 	className,

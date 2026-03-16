@@ -1,8 +1,8 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
+import { SidebarLayout } from 'ui/layouts'
 import { Navbar } from 'ui/navbar'
-import { SidebarLayout } from 'ui/sidebar-layout'
 
 import { DocsSidebar } from './sidebar'
 import type { ClientProps } from './types'

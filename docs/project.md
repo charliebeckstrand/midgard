@@ -147,8 +147,8 @@ Shared UI resources — auth page components, chat UI components, form validatio
 | `sindri/theme.css` | `src/theme.css` | Shared design tokens (colors, fonts) for all apps |
 
 **Key files:**
-- `src/auth/login-page.tsx` — Login form with password visibility toggle
-- `src/auth/register-page.tsx` — Registration form with password visibility toggle
+- `src/auth/login-page.tsx` — Login form wrapping `ui/pages` LoginPage skeleton with form state, validation, and routing
+- `src/auth/register-page.tsx` — Registration form wrapping `ui/pages` RegisterPage skeleton with form state, validation, and routing
 - `src/auth/password-input.tsx` — `PasswordInput` component with eye/eye-slash toggle (HeroIcons)
 - `src/auth/use-form.ts` — Form validation hook with validators (required, email, minLength, matches)
 - `src/chat/layout.tsx` — Presentational chat layout (message list + composer)
@@ -172,11 +172,15 @@ New component library built from scratch with a five-layer atomic architecture. 
 - `recipes/` — Composable style definitions (control, popover, overlay, item, motion)
 - `hooks/` — Behavioral primitives (useOverlay, useMenuKeyboard, useControllable)
 - `primitives/` — Reusable building blocks (Overlay, PopoverPanel, SlidePanel, icons, TouchTarget)
-- `components/` — 29 component families
+- `components/` — 28 component families + layouts + pages
 
-**Components:** alert, auth-layout, avatar, badge, button, checkbox, combobox, description-list, dialog, divider, dropdown, fieldset, heading, input, listbox, navbar, pagination, placeholder, radio, select, sheet, sidebar, sidebar-layout, stacked-layout, switch, table, text, textarea
+**Components:** alert, avatar, badge, button, checkbox, combobox, description-list, dialog, divider, dropdown, fieldset, heading, input, listbox, navbar, pagination, placeholder, radio, select, sheet, sidebar, switch, table, text, textarea
 
-**Imports:** Consumers import from specific entry points: `ui/button`, `ui/dialog`, `ui/core`, `ui/recipes`, `ui/primitives`, `ui/hooks`
+**Layouts (`ui/layouts`):** AuthLayout, SidebarLayout, StackedLayout — shared layout shells with a common MobileSidebar primitive and `useMobileSidebar` hook. `MobileSidebarContext` allows nested components to close the mobile sidebar.
+
+**Pages (`ui/pages`):** LoginPage, RegisterPage, ForgotPasswordPage — presentational page skeletons (structure + heading + submit button). Sindri wraps these with form state, validation, and routing logic.
+
+**Imports:** Consumers import from specific entry points: `ui/button`, `ui/dialog`, `ui/layouts`, `ui/pages`, `ui/core`, `ui/recipes`, `ui/primitives`, `ui/hooks`
 
 **Depends on:** clsx, class-variance-authority, motion
 

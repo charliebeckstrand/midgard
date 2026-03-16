@@ -2,6 +2,14 @@
 
 Non-trivial design choices with context, alternatives, and trade-offs.
 
+## 2026-03-16 — Consolidate layouts and extract page skeletons in UI
+
+**Status:** Accepted
+**Context:** `sidebar-layout` and `stacked-layout` were separate component folders with duplicated mobile sidebar logic (Overlay, SlidePanel, inert management, state). Auth pages in sindri contained both visual structure and dynamic behavior (form hooks, routing, validation) in a single component. `auth-layout` was a standalone folder for a simple wrapper.
+**Decision:** Consolidated all layouts into `components/layouts/` with shared primitives (`MobileSidebar`, `useMobileSidebar` hook, `MobileSidebarContext`). Moved `auth-layout` into `layouts/auth.tsx`. Created `components/pages/` with presentational skeletons (`LoginPage`, `RegisterPage`, `ForgotPasswordPage`) that accept dynamic content via children/props. Sindri wraps these skeletons with form state, validation, and routing logic. Added `ForgotPasswordPage` skeleton. Export paths: `ui/layouts`, `ui/pages`.
+**Alternatives:** (1) Keep layouts separate — more duplication, no shared primitives. (2) Keep page structure in sindri — couples visual structure to Next.js/dynamic behavior.
+**Consequences:** Layouts share a single `MobileSidebar` and `useMobileSidebar` hook, eliminating ~40 lines of duplication. Page skeletons are framework-agnostic — sindri provides Next.js-specific behavior. New auth pages only need a skeleton in UI and a behavioral wrapper in sindri. Old import paths (`ui/sidebar-layout`, `ui/stacked-layout`, `ui/auth-layout`) are removed; consumers use `ui/layouts`.
+
 ## 2026-03-16 — New component library (packages/ui) to replace Catalyst
 
 **Status:** Accepted
