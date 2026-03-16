@@ -1,0 +1,5 @@
+export { DialogActions } from './actions'
+export { DialogBody } from './body'
+export { DialogDescription } from './description'
+export { Dialog } from './dialog'
+export { DialogTitle } from './title'
