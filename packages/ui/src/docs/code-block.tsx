@@ -10,9 +10,11 @@ export function CodeBlock({ code }: { code: string }) {
 
 	useEffect(() => {
 		let cancelled = false
+
 		codeToHtml(code, { lang: 'tsx', theme }).then((result) => {
 			if (!cancelled) setHtml(result)
 		})
+
 		return () => {
 			cancelled = true
 		}
