@@ -34,6 +34,7 @@ export default defineConfig({
 		table: 'src/components/table/index.ts',
 		text: 'src/components/text/index.ts',
 		textarea: 'src/components/textarea/index.ts',
+		placeholder: 'src/components/placeholder/index.ts',
 	},
 	format: ['esm'],
 	target: 'node22',

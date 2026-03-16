@@ -164,6 +164,11 @@
 			"types": "./src/components/textarea/index.ts",
 			"import": "./dist/textarea.js",
 			"default": "./dist/textarea.js"
+		},
+		"./placeholder": {
+			"types": "./src/components/placeholder/index.ts",
+			"import": "./dist/placeholder.js",
+			"default": "./dist/placeholder.js"
 		}
 	},
 	"scripts": {
