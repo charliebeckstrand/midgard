@@ -9,4 +9,5 @@ export default defineConfig({
 	dts: true,
 	sourcemap: true,
 	splitting: false,
+	banner: { js: "'use client'" },
 })
