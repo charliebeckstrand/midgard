@@ -74,11 +74,10 @@ Chat application running on port 3002. Authenticated (same model as admin).
 - `app/layout.tsx` — Root layout
 - `app/(chat)/` — Chat route group (main authenticated area)
 - `app/(chat)/page.tsx` — Chat home (empty state)
-- `app/(chat)/types.ts` — Shared types (User, Chat, ChatMessage, ClientChatMessage, ToolCall, ToolCallName)
+- `app/(chat)/types.ts` — Shared types (Chat, ChatMessage, ClientChatMessage)
 - `app/(chat)/hooks/` — Extracted hooks (use-scroll-to-bottom, use-chat-messages, use-chat-actions)
 - `app/(chat)/client.tsx` — Client wrapper with SidebarLayout, sidebar with "New chat" + chat list
 - `app/(chat)/[chatId]/page.tsx` — Individual chat page with message input/display
-- `app/(chat)/[chatId]/artifact.tsx` — Renders tool call results as ag-charts (charts) or ag-grid (grids)
 - `app/(chat)/sidebar-footer.tsx` — User dropdown with sign-out
 - `app/login/page.tsx` — Login page (re-exports from `sindri/login-page`)
 - `app/register/page.tsx` — Registration page (re-exports from `sindri/register-page`)
@@ -88,10 +87,9 @@ Chat application running on port 3002. Authenticated (same model as admin).
 **API integration:**
 - `GET /api/chat` — Fetches all chats for sidebar listing (Bifrost)
 - `GET /api/chat/{chatId}` — Fetches a specific chat's messages (Bifrost)
-- `POST /api/chat/{chatId}` — Saves a message to the chat (Bifrost)
-- `POST /api/chat/agent` — AG-UI SSE event stream for agent responses (proxied to Bifrost). Returns text + tool calls (CreateBarChart, CreateLineChart, CreateAreaChart, CreateScatterChart, CreateBubbleChart, CreatePieChart, CreateDonutChart, CreateComboChart, CreateGrid)
+- `POST /api/chat/{chatId}` — Sends messages to the chat and returns agent response (Bifrost handles persistence)
 
-**Depends on:** heimdall, sindri, catalyst, reactbits, react-textarea-autosize, @heroicons/react, ag-grid-react, ag-grid-community, ag-charts-react, ag-charts-community
+**Depends on:** heimdall, sindri, catalyst, reactbits, react-textarea-autosize, @heroicons/react
 
 ## apps/docs
 
