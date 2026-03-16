@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Button } from '../components/button'
-import { Heading } from '../components/heading'
+import { Heading, Subheading } from '../components/heading'
 import { SidebarLayout } from '../components/layouts'
 import { Navbar, NavbarItem, NavbarLabel, NavbarSection, NavbarSpacer } from '../components/navbar'
 import {
@@ -13,7 +13,9 @@ import {
 	SidebarLabel,
 	SidebarSection,
 } from '../components/sidebar'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/table'
 import { CodeBlock } from './code-block'
+import { type ComponentApi, parseSource } from './parse-props'
 
 type DemoModule = {
 	default: React.ComponentType
@@ -21,19 +23,58 @@ type DemoModule = {
 }
 
 const modules = import.meta.glob<DemoModule>('./demos/*.tsx', { eager: true })
-const sources = import.meta.glob<string>('./demos/*.tsx', {
+const demoSources = import.meta.glob<string>('./demos/*.tsx', {
 	eager: true,
 	query: '?raw',
 	import: 'default',
 })
+
+// Import all component source files for prop extraction
+const componentSources = import.meta.glob<string>('../components/**/*.tsx', {
+	eager: true,
+	query: '?raw',
+	import: 'default',
+})
+
+/** Strip the `export const meta = { ... }` block and surrounding blank lines from demo source */
+function stripMeta(source: string): string {
+	return source.replace(/export const meta[\s\S]*?\n\}\n?\n*/m, '').trimStart()
+}
+
+/** Group component sources by directory name (e.g. "button", "badge") */
+function buildComponentApis(): Record<string, ComponentApi[]> {
+	const byDir: Record<string, string[]> = {}
+
+	for (const [path, source] of Object.entries(componentSources)) {
+		// path: "../components/button/button.tsx"
+		const match = path.match(/\.\.\/components\/([^/]+)\//)
+		if (!match) continue
+		const dir = match[1]
+		if (!byDir[dir]) byDir[dir] = []
+		byDir[dir].push(source as string)
+	}
+
+	const apis: Record<string, ComponentApi[]> = {}
+	for (const [dir, sources] of Object.entries(byDir)) {
+		const entries: ComponentApi[] = []
+		for (const source of sources) {
+			entries.push(...parseSource(source))
+		}
+		if (entries.length > 0) apis[dir] = entries
+	}
+	return apis
+}
+
+const componentApis = buildComponentApis()
 
 const demos = Object.entries(modules)
 	.map(([path, mod]) => {
 		const id = path.replace('./demos/', '').replace('.tsx', '')
 		const name = mod.meta?.name ?? id.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
 		const category = mod.meta?.category ?? 'Other'
-		const source = (sources[path] as string) ?? ''
-		return { id, name, category, component: mod.default, source }
+		const source = stripMeta((demoSources[path] as string) ?? '')
+		const api = componentApis[id]
+		return { id, name, category, component: mod.default, source, api }
 	})
 	.sort((a, b) => a.name.localeCompare(b.name))
 
@@ -71,6 +112,40 @@ function useHash() {
 	return hash
 }
 
+function PropsTable({ api }: { api: ComponentApi[] }) {
+	return (
+		<div className="space-y-8">
+			{api.map((entry) => (
+				<div key={entry.name} className="space-y-3">
+					<Subheading>{entry.name}</Subheading>
+					<Table>
+						<TableHead>
+							<TableRow>
+								<TableHeader>Prop</TableHeader>
+								<TableHeader>Type</TableHeader>
+								<TableHeader>Default</TableHeader>
+							</TableRow>
+						</TableHead>
+						<TableBody>
+							{entry.props.map((prop) => (
+								<TableRow key={prop.name}>
+									<TableCell className="font-mono text-xs font-medium">{prop.name}</TableCell>
+									<TableCell className="font-mono text-xs text-zinc-500 dark:text-zinc-400">
+										{prop.type}
+									</TableCell>
+									<TableCell className="font-mono text-xs text-zinc-500 dark:text-zinc-400">
+										{prop.default ?? '—'}
+									</TableCell>
+								</TableRow>
+							))}
+						</TableBody>
+					</Table>
+				</div>
+			))}
+		</div>
+	)
+}
+
 function DemoPage({ demo }: { demo: (typeof demos)[number] }) {
 	const [showCode, setShowCode] = useState(false)
 
@@ -83,6 +158,7 @@ function DemoPage({ demo }: { demo: (typeof demos)[number] }) {
 				</Button>
 			</div>
 			{showCode ? <CodeBlock code={demo.source} /> : <demo.component />}
+			{demo.api && <PropsTable api={demo.api} />}
 		</div>
 	)
 }
