@@ -17,9 +17,8 @@ import {
 	SidebarItem,
 	SidebarLabel,
 } from 'catalyst'
+import type { User } from 'heimdall/user'
 import { useRouter } from 'next/navigation'
-
-import type { User } from './types'
 
 export function SidebarUserFooter({ user }: { user?: User }) {
 	const router = useRouter()

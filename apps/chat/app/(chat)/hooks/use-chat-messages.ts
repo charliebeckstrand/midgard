@@ -4,7 +4,7 @@ import { EventSourceParserStream } from 'eventsource-parser/stream'
 import { useRouter } from 'next/navigation'
 import { useCallback, useState } from 'react'
 
-import type { ChatMessage, ClientChatMessage } from '../types'
+import type { ChatMessage, ClientChatMessage } from 'sindri/chat'
 
 export function useChatMessages(
 	chatId: string,

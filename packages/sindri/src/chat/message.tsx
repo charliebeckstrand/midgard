@@ -1,8 +1,8 @@
-import type { ClientChatMessage } from '../types'
+import type { ClientChatMessage } from './types'
 
 type Props = Pick<ClientChatMessage, 'role' | 'content'>
 
-export function Message({ role, content }: Props) {
+export function ChatContent({ role, content }: Props) {
 	return (
 		<div className={`flex ${role === 'user' ? 'justify-end' : 'justify-start'}`}>
 			<div

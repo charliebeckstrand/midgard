@@ -1,6 +1,6 @@
 import { bifrost } from 'heimdall'
 
-import type { ChatMessage } from '../types'
+import type { ChatMessage } from 'sindri/chat'
 import { ChatView } from './chat-view'
 
 async function getChatHistory(chatId: string): Promise<ChatMessage[]> {

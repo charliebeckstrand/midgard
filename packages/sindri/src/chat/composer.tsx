@@ -10,7 +10,7 @@ interface Props {
 	onSend: (message: string) => void
 }
 
-export function ChatInput({ disabled, onSend }: Props) {
+export function ChatComposer({ disabled, onSend }: Props) {
 	const [input, setInput] = useState('')
 
 	function handleSend() {
