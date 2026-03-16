@@ -1,6 +1,6 @@
 import { DD, DL, DT } from '../../components/dl'
 
-export const meta = { category: 'Data Display' }
+export const meta = { name: 'DL', category: 'Data Display' }
 
 export default function DLDemo() {
 	return (
