@@ -2,6 +2,14 @@
 
 Non-trivial design choices with context, alternatives, and trade-offs.
 
+## 2026-03-16 — New component library (packages/ui) to replace Catalyst
+
+**Status:** Accepted
+**Context:** Catalyst components are overly complex — monolithic files, duplicated code, inconsistent patterns. Rather than refactoring, a clean rewrite was chosen.
+**Decision:** Build a new library from scratch with five-layer atomic architecture (core → recipes → hooks → primitives → components). Framework-agnostic via LinkProvider pattern. No HeadlessUI, no Next.js coupling. Dependencies: clsx, CVA, motion only.
+**Alternatives:** (1) Refactor Catalyst in-place — rejected due to accumulated complexity. (2) Use HeadlessUI — rejected due to bundle size (~45KB) and useId hydration issues.
+**Consequences:** Migration required for all apps. Catalyst will be deleted once migration is complete. Shared recipes eliminate ~350+ lines of cross-component duplication.
+
 ## 2026-03-14 — Rename claude/ to docs/ and create docs dashboard app
 
 **Status:** Accepted

@@ -26,7 +26,8 @@ apps/
   chat/           → Chat application (Next.js, port 3002)
   docs/           → Documentation dashboard (Next.js, port 3001)
 packages/
-  catalyst/       → Shared UI component library (Headless UI + Tailwind)
+  ui/             → New component library (atomic architecture, framework-agnostic)
+  catalyst/       → Shared UI component library (Headless UI + Tailwind) — being replaced by ui
   heimdall/       → Shared authentication module (session, config, proxy)
   hlidskjalf/     → CLI dev tool (Ink + React terminal UI, manages workspace processes)
   sindri/         → Shared UI resources (auth pages, form hooks, theme, input components)
@@ -162,6 +163,27 @@ Shared UI resources — auth page components, chat UI components, form validatio
 **tsup config:** Entry points are `src/index.ts` and `src/*/index.ts`. External: next, react, react-dom, catalyst, reactbits, @heroicons/react, react-textarea-autosize.
 
 **Depends on:** catalyst, reactbits, @heroicons/react, react-textarea-autosize, eventsource-parser
+
+## packages/ui
+
+New component library built from scratch with a five-layer atomic architecture. Framework-agnostic (no Next.js dependency), works with any React ecosystem via LinkProvider pattern.
+
+**Architecture (dependencies flow strictly downward):**
+- `core/` — createContext factory, framework-agnostic Link/LinkProvider
+- `recipes/` — Composable style definitions (control, popover, overlay, item, motion)
+- `hooks/` — Behavioral primitives (useOverlay, useMenuKeyboard, useControllable)
+- `primitives/` — Reusable building blocks (Overlay, PopoverPanel, SlidePanel, icons, TouchTarget)
+- `components/` — 25 component families
+
+**Components:** alert, avatar, badge, button, checkbox, combobox, description-list, dialog, divider, dropdown, fieldset, heading, input, listbox, navbar, pagination, radio, select, sidebar, sidebar-layout, stacked-layout, switch, table, text, textarea
+
+**Imports:** Consumers import from specific entry points: `ui/button`, `ui/dialog`, `ui/core`, `ui/recipes`, `ui/primitives`, `ui/hooks`
+
+**Depends on:** clsx, class-variance-authority, motion
+
+**Peer deps:** react ^18 || ^19
+
+**Status:** Replaces `packages/catalyst/` once migration is complete.
 
 ## packages/catalyst
 
