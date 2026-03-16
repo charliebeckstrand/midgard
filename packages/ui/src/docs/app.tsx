@@ -144,11 +144,11 @@ function PropsTable({ api }: { api: ComponentApi[] }) {
 							<TableBody>
 								{visibleProps.map((prop) => (
 									<TableRow key={prop.name}>
-										<TableCell className="font-mono text-xs font-medium">{prop.name}</TableCell>
-										<TableCell className="font-mono text-xs text-zinc-500 dark:text-zinc-400">
+										<TableCell className="font-mono font-medium">{prop.name}</TableCell>
+										<TableCell className="font-mono text-zinc-500 dark:text-zinc-400">
 											{prop.type}
 										</TableCell>
-										<TableCell className="font-mono text-xs text-zinc-500 dark:text-zinc-400">
+										<TableCell className="font-mono text-zinc-500 dark:text-zinc-400">
 											{prop.default ?? '—'}
 										</TableCell>
 									</TableRow>

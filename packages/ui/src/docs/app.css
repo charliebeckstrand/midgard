@@ -5,3 +5,12 @@
 :root {
     overscroll-behavior: none;
 }
+
+/* Equal-width table columns when there are 3 or fewer columns */
+table > thead tr > :is(th, td):first-child:nth-last-child(1) { width: 100%; }
+
+table > thead tr > :is(th, td):first-child:nth-last-child(2),
+table > thead tr > :is(th, td):first-child:nth-last-child(2) ~ :is(th, td) { width: 50%; }
+
+table > thead tr > :is(th, td):first-child:nth-last-child(3),
+table > thead tr > :is(th, td):first-child:nth-last-child(3) ~ :is(th, td) { width: 33.3333%; }
