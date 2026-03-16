@@ -92,3 +92,13 @@
     --color-teal: var(--color-teal-500);
     --color-purple: var(--color-purple-500);
 }
+
+/* Remove browser default focus outlines; show blue ring on keyboard navigation only */
+button:focus, [role="button"]:focus, a:focus {
+    outline: none;
+}
+button:focus-visible, [role="button"]:focus-visible, a:focus-visible {
+    outline: 2px solid var(--color-blue-500);
+    outline-offset: 2px;
+    border-radius: var(--radius-lg);
+}
