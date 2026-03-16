@@ -169,7 +169,7 @@
 	},
 	"scripts": {
 		"build": "tsup",
-		"dev": "tsup --watch --no-dts",
+		"dev": "tsup --watch --no-dts & vite --config vite.docs.config.ts & wait",
 		"docs": "vite --config vite.docs.config.ts",
 		"check-types": "tsc --noEmit"
 	},
