@@ -12,7 +12,7 @@ export function SheetDescription({ className, ...props }: React.ComponentPropsWi
 			{...props}
 			className={clsx(
 				className,
-				'flex-1 overflow-y-auto px-6 text-base/6 text-zinc-500 sm:text-sm/6 dark:text-zinc-400',
+				'flex-1 overflow-y-auto px-6 text-base/6 text-zinc-500  dark:text-zinc-400',
 			)}
 		/>
 	)

@@ -2,7 +2,11 @@
 
 import { usePathname, useRouter } from 'next/navigation'
 
-export function useChat() {
+interface UseChatOptions {
+	onDelete?: () => void
+}
+
+export function useChat(options?: UseChatOptions) {
 	const pathname = usePathname()
 	const router = useRouter()
 
@@ -19,7 +23,7 @@ export function useChat() {
 			router.push('/')
 		}
 
-		router.refresh()
+		options?.onDelete?.()
 	}
 
 	return { newChat, deleteChat }

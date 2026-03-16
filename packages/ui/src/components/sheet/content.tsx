@@ -27,27 +27,56 @@ const positionClasses: Record<SheetSide, string> = {
 }
 
 const sizeClasses: Record<SheetSide, string> = {
-	right: 'h-full w-full sm:max-w-sm',
-	left: 'h-full w-full sm:max-w-sm',
+	right: 'h-full w-full',
+	left: 'h-full w-full',
 	top: 'w-full',
 	bottom: 'w-full',
 }
 
 const floatClasses: Record<SheetSide, string> = {
-	right: 'p-3 pl-0',
-	left: 'p-3 pr-0',
-	top: 'p-3 pb-0',
-	bottom: 'p-3 pt-0',
+	right: 'p-4',
+	left: 'p-4',
+	top: 'p-4',
+	bottom: 'p-4',
 }
+
+const maxWidthClasses: Record<string, string> = {
+	xs: 'sm:max-w-xs',
+	sm: 'sm:max-w-sm',
+	md: 'sm:max-w-md',
+	lg: 'sm:max-w-lg',
+	xl: 'sm:max-w-xl',
+	'2xl': 'sm:max-w-2xl',
+	'3xl': 'sm:max-w-3xl',
+	'4xl': 'sm:max-w-4xl',
+	'5xl': 'sm:max-w-5xl',
+	'6xl': 'sm:max-w-6xl',
+	'7xl': 'sm:max-w-7xl',
+}
+
+export type SheetSize =
+	| 'xs'
+	| 'sm'
+	| 'md'
+	| 'lg'
+	| 'xl'
+	| '2xl'
+	| '3xl'
+	| '4xl'
+	| '5xl'
+	| '6xl'
+	| '7xl'
 
 export function SheetContent({
 	className,
 	children,
 	noOverlay,
+	size = 'sm',
 }: {
 	className?: string
 	children: React.ReactNode
 	noOverlay?: boolean
+	size?: SheetSize
 }) {
 	const { open, onOpenChange, side, modal, titleId, descriptionId } = useSheet()
 
@@ -95,6 +124,7 @@ export function SheetContent({
 							'fixed',
 							positionClasses[side],
 							sizeClasses[side],
+							isHorizontal && maxWidthClasses[size],
 							isHorizontal && floatClasses[side],
 						)}
 					>

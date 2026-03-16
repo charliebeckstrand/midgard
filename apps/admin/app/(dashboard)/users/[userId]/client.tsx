@@ -8,7 +8,7 @@ import { ChatMessages } from 'sindri/chat'
 import { Button } from 'ui/button'
 import { Dialog, DialogActions, DialogBody, DialogTitle } from 'ui/dialog'
 import { Heading, Subheading } from 'ui/heading'
-import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle } from 'ui/sheet'
+import { Sheet, SheetClose, SheetContent, SheetHeader, SheetSubtitle, SheetTitle } from 'ui/sheet'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from 'ui/table'
 
 interface UserDetailsClientProps {
@@ -106,12 +106,15 @@ export function UserDetailsClient({ details, chats: initialChats }: UserDetailsC
 			</div>
 
 			<Sheet open={viewChat !== null} onOpenChange={(open) => !open && setViewChat(null)}>
-				<SheetContent>
+				<SheetContent size="3xl">
 					<SheetHeader>
 						<div className="flex items-center justify-between">
-							<SheetTitle>Chat History</SheetTitle>
+							<div className="flex flex-col">
+								<SheetTitle>Chat History</SheetTitle>
+								<SheetSubtitle>{viewChat}</SheetSubtitle>
+							</div>
 							<SheetClose className="rounded-md p-1 text-zinc-400 hover:text-zinc-500 dark:hover:text-zinc-300">
-								<XMarkIcon className="size-5" />
+								<XMarkIcon className="size-6" />
 							</SheetClose>
 						</div>
 					</SheetHeader>

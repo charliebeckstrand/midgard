@@ -22,7 +22,7 @@ export function ChatMessages({ messages }: ChatMessagesProps) {
 		<div className="flex-1 grow overflow-y-auto">
 			{messages.length > 0 && (
 				<>
-					<div className="flex flex-col gap-4 mx-auto">
+					<div className="flex flex-col gap-6 mx-auto">
 						{messages.map((message, index) => (
 							<ChatMessage
 								key={message.id || index}
