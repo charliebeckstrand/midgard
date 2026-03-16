@@ -6,7 +6,7 @@ import type React from 'react'
 import { useContext } from 'react'
 import { Link } from '../../core'
 import { TouchTarget } from '../../primitives'
-import { MobileSidebarContext } from '../sidebar-layout/context'
+import { MobileSidebarContext } from '../layouts/context'
 import { navItemBase } from './recipes'
 
 export function SidebarItem({

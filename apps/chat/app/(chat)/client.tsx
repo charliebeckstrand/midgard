@@ -6,6 +6,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { type ReactNode, useCallback, useMemo } from 'react'
 import { ShinyText } from 'reactbits'
 import { useChat } from 'sindri/chat'
+import { SidebarLayout } from 'ui/layouts'
 import { Navbar, NavbarSpacer } from 'ui/navbar'
 import {
 	Sidebar,
@@ -16,7 +17,6 @@ import {
 	SidebarLabel,
 	SidebarSection,
 } from 'ui/sidebar'
-import { SidebarLayout } from 'ui/sidebar-layout'
 import { ChatContext } from './context'
 import { SidebarUserDropdown } from './sidebar-user-dropdown'
 import type { Chat } from './types'

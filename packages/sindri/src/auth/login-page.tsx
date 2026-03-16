@@ -3,11 +3,9 @@
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useState } from 'react'
 import { ShinyText } from 'reactbits/shiny-text'
-import { AuthLayout } from 'ui/auth-layout'
-import { Button } from 'ui/button'
 import { ErrorMessage, Field, Label } from 'ui/fieldset'
-import { Heading } from 'ui/heading'
 import { Input } from 'ui/input'
+import { LoginPage as LoginPageLayout } from 'ui/pages'
 import { Strong, Text, TextLink } from 'ui/text'
 import { PasswordInput } from './password-input'
 import { useForm } from './use-form'
@@ -56,9 +54,21 @@ function LoginForm({ showRegisterLink }: { showRegisterLink: boolean }) {
 	})
 
 	return (
-		<form onSubmit={handleSubmit} className="grid w-full max-w-sm grid-cols-1 gap-8">
-			<Heading>Sign in to your account</Heading>
-
+		<LoginPageLayout
+			onSubmit={handleSubmit}
+			serverError={serverError}
+			submitting={submitting}
+			footer={
+				showRegisterLink ? (
+					<Text>
+						Don't have an account?{' '}
+						<TextLink href="/register">
+							<Strong>Create one</Strong>
+						</TextLink>
+					</Text>
+				) : undefined
+			}
+		>
 			{registered && (
 				<ShinyText
 					text="Account created successfully. Please sign in."
@@ -67,8 +77,6 @@ function LoginForm({ showRegisterLink }: { showRegisterLink: boolean }) {
 					delay={5}
 				/>
 			)}
-
-			{serverError && <p className="text-sm text-red-500">{serverError}</p>}
 
 			<Field>
 				<Label>Email</Label>
@@ -81,32 +89,14 @@ function LoginForm({ showRegisterLink }: { showRegisterLink: boolean }) {
 				<PasswordInput name="password" autoComplete="current-password" {...register('password')} />
 				{errors.password && <ErrorMessage>{errors.password}</ErrorMessage>}
 			</Field>
-
-			<Button
-				type="submit"
-				className={`w-full ${submitting ? 'cursor-not-allowed pointer-events-none' : ''}`}
-			>
-				Sign in
-			</Button>
-
-			{showRegisterLink && (
-				<Text>
-					Don't have an account?{' '}
-					<TextLink href="/register">
-						<Strong>Create one</Strong>
-					</TextLink>
-				</Text>
-			)}
-		</form>
+		</LoginPageLayout>
 	)
 }
 
 export function LoginPage({ showRegisterLink = true }: { showRegisterLink?: boolean }) {
 	return (
-		<AuthLayout>
-			<Suspense>
-				<LoginForm showRegisterLink={showRegisterLink} />
-			</Suspense>
-		</AuthLayout>
+		<Suspense>
+			<LoginForm showRegisterLink={showRegisterLink} />
+		</Suspense>
 	)
 }

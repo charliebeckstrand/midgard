@@ -30,11 +30,6 @@
 			"import": "./dist/primitives.js",
 			"default": "./dist/primitives.js"
 		},
-		"./auth-layout": {
-			"types": "./src/components/auth-layout/index.ts",
-			"import": "./dist/auth-layout.js",
-			"default": "./dist/auth-layout.js"
-		},
 		"./alert": {
 			"types": "./src/components/alert/index.ts",
 			"import": "./dist/alert.js",
@@ -135,15 +130,15 @@
 			"import": "./dist/sidebar.js",
 			"default": "./dist/sidebar.js"
 		},
-		"./sidebar-layout": {
-			"types": "./src/components/sidebar-layout/index.ts",
-			"import": "./dist/sidebar-layout.js",
-			"default": "./dist/sidebar-layout.js"
+		"./layouts": {
+			"types": "./src/components/layouts/index.ts",
+			"import": "./dist/layouts.js",
+			"default": "./dist/layouts.js"
 		},
-		"./stacked-layout": {
-			"types": "./src/components/stacked-layout/index.ts",
-			"import": "./dist/stacked-layout.js",
-			"default": "./dist/stacked-layout.js"
+		"./pages": {
+			"types": "./src/components/pages/index.ts",
+			"import": "./dist/pages.js",
+			"default": "./dist/pages.js"
 		},
 		"./switch": {
 			"types": "./src/components/switch/index.ts",
