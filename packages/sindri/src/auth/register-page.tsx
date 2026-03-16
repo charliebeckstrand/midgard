@@ -14,8 +14,8 @@ import {
 } from 'catalyst'
 import { useRouter } from 'next/navigation'
 import { Suspense, useState } from 'react'
-import { email, matches, minLength, required, useForm } from '../hooks/use-form'
 import { PasswordInput } from './password-input'
+import { email, matches, minLength, required, useForm } from './use-form'
 
 function RegisterForm() {
 	const router = useRouter()

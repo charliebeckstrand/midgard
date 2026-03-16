@@ -15,8 +15,9 @@ import {
 	TableHeader,
 	TableRow,
 } from 'catalyst'
-import type { Chat, User } from 'heimdall/user'
+import type { User } from 'heimdall/user'
 import { useState } from 'react'
+import type { Chat } from 'sindri/chat'
 
 interface UserDetailsClientProps {
 	details: User | null

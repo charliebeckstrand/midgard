@@ -19,7 +19,7 @@ import { useEffect, useState } from 'react'
 
 interface UsersClientProps {
 	users: User[]
-	currentUser: User
+	currentUser: User | undefined
 }
 
 interface EditUserDialogProps {
@@ -134,7 +134,7 @@ export function UsersClient({ users, currentUser }: UsersClientProps) {
 									<Button variant="outline" onClick={() => setEditingUser(user)}>
 										Edit
 									</Button>
-									<Button variant="outline" disabled={user.id === currentUser.id}>
+									<Button variant="outline" disabled={user.id === currentUser?.id}>
 										Delete
 									</Button>
 								</div>

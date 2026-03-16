@@ -40,6 +40,4 @@ export default defineConfig({
 	dts: true,
 	sourcemap: true,
 	splitting: false,
-	jsx: 'automatic',
-	jsxImportSource: 'react',
 })
