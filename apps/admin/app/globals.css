@@ -1,3 +1,8 @@
+@import 'tailwindcss';
 @import 'sindri/globals.css';
 
+@variant dark (@media (prefers-color-scheme: dark));
+
 @source './';
+@source '../../../packages/sindri/src';
+@source '../../../packages/ui/src';
