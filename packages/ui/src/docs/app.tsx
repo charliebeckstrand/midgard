@@ -49,11 +49,13 @@ const sortedCategories = Object.entries(categories).sort(
 	([a], [b]) => (categoryOrder.indexOf(a) >>> 0) - (categoryOrder.indexOf(b) >>> 0),
 )
 
+const defaultDemo = sortedCategories[0]?.[1]?.[0]?.id || demos[0]?.id || ''
+
 function useHash() {
-	const [hash, setHash] = useState(() => window.location.hash.slice(1) || demos[0]?.id || '')
+	const [hash, setHash] = useState(() => window.location.hash.slice(1) || defaultDemo)
 
 	useEffect(() => {
-		const onHashChange = () => setHash(window.location.hash.slice(1) || demos[0]?.id || '')
+		const onHashChange = () => setHash(window.location.hash.slice(1) || defaultDemo)
 		window.addEventListener('hashchange', onHashChange)
 		return () => window.removeEventListener('hashchange', onHashChange)
 	}, [])
