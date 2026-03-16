@@ -33,7 +33,7 @@ How the pieces of Midgard fit together.
 
 **Admin** — The primary user-facing dashboard. Protected by authentication. Provides user management, settings, and the main application experience.
 
-**Chat** — A real-time chat application. Protected by authentication. Features message history, auto-scrolling, and a sidebar with chat list.
+**Chat** — A real-time chat application. Protected by authentication. Features message history, auto-scrolling, and a sidebar with chat list. All chat UI components and hooks live in `sindri/chat` for cross-app reuse.
 
 **Docs** — A public documentation dashboard. Renders markdown files from the `docs/` directory with syntax highlighting and anchor-based navigation. No auth required to view.
 
@@ -43,7 +43,7 @@ How the pieces of Midgard fit together.
 
 **heimdall** — Server-side authentication module. Provides session management (`getSession`), route protection (`proxy`), and Next.js config helpers (`withAuth`). Proxies auth and API requests to the external Bifrost backend.
 
-**sindri** — Shared UI resources including auth page components (login, register), form validation (`useForm`), password input with visibility toggle, and the shared CSS theme.
+**sindri** — Shared UI resources including auth page components (login, register), chat UI components (layout, composer, message display), form validation (`useForm`), and the shared CSS theme.
 
 **reactbits** — Animation and visual effect components built on motion (framer-motion).
 
