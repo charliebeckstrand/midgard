@@ -16,8 +16,13 @@ export default function ListboxDemo() {
 
 	return (
 		<Field className="max-w-sm">
-			<Label>Status</Label>
-			<Listbox value={selected} onChange={setSelected} placeholder="Select status…">
+			<Label htmlFor="listbox-status">Status</Label>
+			<Listbox
+				inputId="listbox-status"
+				value={selected}
+				onChange={setSelected}
+				placeholder="Select status…"
+			>
 				{statuses.map((status) => (
 					<ListboxOption key={status.value} value={status.value}>
 						<ListboxLabel>{status.label}</ListboxLabel>

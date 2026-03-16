@@ -1,7 +1,7 @@
 import { cva } from 'class-variance-authority'
 
 export const badge = cva(
-	'inline-flex items-center gap-x-1.5 rounded-md px-1.5 py-0.5 text-sm/5 font-medium sm:text-xs/5 forced-colors:outline',
+	'inline-flex items-center gap-x-1.5 rounded-md font-medium forced-colors:outline',
 	{
 		variants: {
 			color: {
@@ -22,9 +22,15 @@ export const badge = cva(
 					'bg-white text-zinc-950 group-hover:bg-zinc-50 dark:bg-white/5 dark:text-white dark:group-hover:bg-white/10',
 				dark: 'bg-zinc-950/10 text-zinc-700 group-hover:bg-zinc-950/15 dark:bg-white/10 dark:text-zinc-300 dark:group-hover:bg-white/15',
 			},
+			size: {
+				sm: 'px-1 py-0.5 text-xs/4',
+				md: 'px-1.5 py-0.5 text-sm/5 sm:text-xs/5',
+				lg: 'px-2 py-1 text-sm/5',
+			},
 		},
 		defaultVariants: {
 			color: 'zinc',
+			size: 'md',
 		},
 	},
 )

@@ -21,12 +21,10 @@ const pulseAnimation = {
 
 const bar = 'h-2 rounded-full bg-zinc-200 dark:bg-zinc-700'
 
-const defaultWidths = ['max-w-[90%]', '', 'max-w-[90%]']
-
 export function Placeholder({ className, bars = 3 }: PlaceholderProps) {
 	const items = Array.from({ length: bars }, (_, i) => ({
 		id: `bar-${i}`,
-		width: defaultWidths[i % defaultWidths.length],
+		width: i % 2 === 0 ? 'max-w-[90%]' : '',
 		spacing: i < bars - 1,
 	}))
 

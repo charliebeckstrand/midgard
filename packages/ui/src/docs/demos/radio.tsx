@@ -15,8 +15,8 @@ export default function RadioDemo() {
 			<RadioGroup value={selected} onChange={setSelected}>
 				{plans.map((plan) => (
 					<RadioField key={plan}>
-						<Radio value={plan} />
-						<Label>{plan}</Label>
+						<Radio id={`radio-${plan.toLowerCase()}`} value={plan} />
+						<Label htmlFor={`radio-${plan.toLowerCase()}`}>{plan}</Label>
 					</RadioField>
 				))}
 			</RadioGroup>

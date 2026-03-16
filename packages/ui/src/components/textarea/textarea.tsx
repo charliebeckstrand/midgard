@@ -25,7 +25,7 @@ export function Textarea({
 				data-invalid={invalid ? '' : undefined}
 				{...props}
 				className={clsx(
-					'relative block h-full w-full appearance-none rounded-lg px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)] sm:px-[calc(--spacing(3)-1px)] sm:py-[calc(--spacing(1.5)-1px)]',
+					'relative block h-full min-h-11 w-full appearance-none rounded-lg px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)] sm:min-h-9 sm:px-[calc(--spacing(3)-1px)] sm:py-[calc(--spacing(1.5)-1px)]',
 					controlInput,
 					resizable ? 'resize-y' : 'resize-none',
 				)}

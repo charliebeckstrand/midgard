@@ -7,8 +7,8 @@ export default function SelectDemo() {
 	return (
 		<div className="max-w-sm space-y-6">
 			<Field>
-				<Label>Country</Label>
-				<Select>
+				<Label htmlFor="select-country">Country</Label>
+				<Select id="select-country">
 					<option value="">Select a country…</option>
 					<option>United States</option>
 					<option>Canada</option>
@@ -17,8 +17,8 @@ export default function SelectDemo() {
 				</Select>
 			</Field>
 			<Field>
-				<Label>Disabled</Label>
-				<Select disabled>
+				<Label htmlFor="select-disabled">Disabled</Label>
+				<Select id="select-disabled" disabled>
 					<option>Cannot change</option>
 				</Select>
 			</Field>
