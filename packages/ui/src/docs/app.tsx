@@ -31,7 +31,7 @@ const demoSources = import.meta.glob<string>('./demos/*.tsx', {
 })
 
 // Import all component source files for prop extraction
-const componentSources = import.meta.glob<string>('../components/**/*.tsx', {
+const componentSources = import.meta.glob<string>('../components/**/*.{ts,tsx}', {
 	eager: true,
 	query: '?raw',
 	import: 'default',

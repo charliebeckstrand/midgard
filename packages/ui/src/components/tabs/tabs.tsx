@@ -3,10 +3,13 @@
 import clsx from 'clsx'
 import { LayoutGroup, motion } from 'motion/react'
 import type React from 'react'
+import { useId } from 'react'
 
 export function Tabs({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
+	const groupId = useId()
+
 	return (
-		<LayoutGroup>
+		<LayoutGroup id={groupId}>
 			<div
 				{...props}
 				className={clsx(className, 'flex gap-4 border-b border-zinc-950/10 dark:border-white/10')}

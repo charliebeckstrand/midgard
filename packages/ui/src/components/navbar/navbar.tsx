@@ -3,6 +3,7 @@
 import clsx from 'clsx'
 import { LayoutGroup } from 'motion/react'
 import type React from 'react'
+import { useId } from 'react'
 
 export function Navbar({ className, ...props }: React.ComponentPropsWithoutRef<'nav'>) {
 	return (
@@ -21,8 +22,10 @@ export function NavbarDivider({ className, ...props }: React.ComponentPropsWitho
 }
 
 export function NavbarSection({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
+	const groupId = useId()
+
 	return (
-		<LayoutGroup>
+		<LayoutGroup id={groupId}>
 			<div {...props} className={clsx(className, 'flex items-center gap-3')} />
 		</LayoutGroup>
 	)
