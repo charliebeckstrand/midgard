@@ -249,6 +249,14 @@ Non-trivial design choices with context, alternatives, and trade-offs.
 **Alternatives:** (1) Fix issues one-by-one across separate PRs — unnecessary overhead for small, non-breaking changes. (2) Skip prop type exports — forces every consumer to manually re-declare shapes or use `ComponentProps<typeof X>` workarounds.
 **Consequences:** Consumers can import prop types directly. Bundlers can tree-shake unused components. The Sheet `asChild` pattern now works correctly. Placeholder is more flexible (no forced width cap, configurable skeleton rows).
 
+## 2026-03-16 — Vite component showcase instead of Storybook
+
+**Status:** Accepted
+**Context:** The `packages/ui` library grew to 28 component families with no interactive development environment. Options were Storybook, a custom Next.js app, or a lightweight Vite app within the package itself.
+**Decision:** Built a minimal Vite app at `packages/ui/src/docs/`. Demo files are auto-discovered via `import.meta.glob('./demos/*.tsx', { eager: true })`. Each demo exports a default component and an optional `meta` object (`{ name, category }`). The shell uses `SidebarLayout` with hash-based routing. Runs via `pnpm --filter ui docs` on port 3456. Excluded from the tsup build and tsc via `tsconfig.json` exclude so it has no impact on library consumers.
+**Alternatives:** (1) Storybook — large dependency surface (~300 MB), slow startup, significant config overhead for a package this size. (2) Separate Next.js app — heavier than needed, adds an app to the workspace that must be kept in sync with the library. (3) No showcase — impedes component development and review.
+**Consequences:** Adding a new demo requires only a single file in `src/docs/demos/`. The showcase uses the library's own components (SidebarLayout), which provides a real integration test. Vite and its plugins (`@vitejs/plugin-react`, `@tailwindcss/vite`) are dev dependencies of `packages/ui` only and are not shipped to consumers.
+
 ## 2026-03-16 — Move chat UI components and hooks to sindri
 
 **Status:** Accepted

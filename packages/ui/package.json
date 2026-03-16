@@ -170,6 +170,7 @@
 	"scripts": {
 		"build": "tsup",
 		"dev": "tsup --watch --no-dts",
+		"docs": "vite --config vite.docs.config.ts",
 		"check-types": "tsc --noEmit"
 	},
 	"dependencies": {
@@ -181,10 +182,16 @@
 		"react": "^18.0.0 || ^19.0.0"
 	},
 	"devDependencies": {
+		"@tailwindcss/vite": "^4.2.1",
 		"@types/node": "^25.3.3",
 		"@types/react": "^19.1.6",
+		"@types/react-dom": "^19.2.3",
+		"@vitejs/plugin-react": "^6.0.1",
 		"react": "^19.1.0",
+		"react-dom": "^19.2.4",
+		"tailwindcss": "^4.2.1",
 		"tsup": "^8.5.1",
-		"typescript": "^5.9.3"
+		"typescript": "^5.9.3",
+		"vite": "^8.0.0"
 	}
 }
