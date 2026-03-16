@@ -176,7 +176,7 @@ Non-trivial design choices with context, alternatives, and trade-offs.
 
 ## 2026-03-15 — Separate agent response endpoint from message persistence
 
-**Status:** Accepted
+**Status:** Superseded by [2026-03-16 — Revert AG Grid/Charts and streaming](#2026-03-16--revert-ag-gridcharts-and-streaming)
 
 **Context:** The chat app coupled agent response generation with message persistence — a single POST to `/api/chat/{chatId}` both saved the user message and returned an agent reply from Bifrost. This made it impossible to swap the agent backend independently.
 
@@ -206,3 +206,21 @@ Non-trivial design choices with context, alternatives, and trade-offs.
 **Alternatives:** CSS `scroll-behavior: smooth` on the container (wouldn't fix the already-active click issue). IntersectionObserver (more complex for this use case with multiple entries).
 
 **Consequences:** Sidebar clicks always smooth-scroll to the target section regardless of active state. Scroll detection works correctly on both mobile and desktop layouts. URL hash stays updated for shareability.
+
+## 2026-03-16 — Revert AG Grid/Charts and streaming
+
+**Status:** Accepted
+
+**Context:** The chat app used AG Grid and AG Charts to render tool call results (grids and charts) from an AG-UI SSE event stream. This added complexity (SSE parsing, tool call accumulation, AG dependencies) for functionality that wasn't needed.
+
+**Decision:** Removed AG Grid, AG Charts, and the entire tool call / artifact system. Reverted to a simple POST/response pattern: the client sends messages to `POST /api/chat/{chatId}`, and Bifrost returns the agent response as JSON. Bifrost now handles persisting both user and agent messages. Removed `artifact.tsx`, `ToolCall`/`ToolCallName` types, and SSE event parsing from `use-chat-messages`.
+
+**Alternatives:**
+- Keep charts only, remove grid: still adds AG Charts dependency for a rarely used feature.
+- Keep streaming but remove tool calls: streaming adds complexity without clear benefit for current use case.
+
+**Consequences:**
+- Four fewer dependencies (ag-grid-community, ag-grid-react, ag-charts-community, ag-charts-react).
+- Simpler client code — single POST replaces three-step fetch (save user → stream agent → save agent).
+- No chart or grid rendering in chat — agent responses are text-only.
+- Bifrost handles all message persistence, simplifying the client.
