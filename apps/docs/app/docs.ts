@@ -101,6 +101,24 @@ function extractTitle(content: string, slug: string): string {
 	return PUBLISHED_DOCS[slug]?.title ?? slug
 }
 
+export async function getDoc(slug: string): Promise<DocFile | null> {
+	if (!isPublished(slug)) return null
+
+	try {
+		const raw = await readFile(join(DOCS_DIR, `${slug}.md`), 'utf-8')
+
+		return {
+			slug,
+			title: extractTitle(raw, slug),
+			content: raw,
+			description: PUBLISHED_DOCS[slug]?.description ?? '',
+			category: PUBLISHED_DOCS[slug]?.category ?? 'reference',
+		}
+	} catch {
+		return null
+	}
+}
+
 export async function getAllDocs(): Promise<DocFile[]> {
 	const files = await readdir(DOCS_DIR)
 
@@ -113,6 +131,7 @@ export async function getAllDocs(): Promise<DocFile[]> {
 		slugs.map(async (slug) => {
 			try {
 				const raw = await readFile(join(DOCS_DIR, `${slug}.md`), 'utf-8')
+
 				return {
 					slug,
 					title: extractTitle(raw, slug),

@@ -1,15 +1,15 @@
 'use client'
 
 import { Navbar, SidebarLayout } from 'catalyst'
-import { useMemo } from 'react'
+import { usePathname } from 'next/navigation'
 
 import { DocsSidebar } from './sidebar'
 import type { ClientProps } from './types'
-import { useActiveSlug } from './use-active-slug'
 
 export function Client({ children, guides, reference }: ClientProps) {
-	const slugs = useMemo(() => [...guides, ...reference].map((d) => d.slug), [guides, reference])
-	const { activeSlug } = useActiveSlug(slugs)
+	const pathname = usePathname()
+
+	const activeSlug = pathname === '/' ? null : pathname.slice(1)
 
 	return (
 		<SidebarLayout

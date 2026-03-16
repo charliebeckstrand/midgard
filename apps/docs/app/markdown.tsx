@@ -1,7 +1,9 @@
+import Link from 'next/link'
 import type { ComponentPropsWithoutRef, ReactElement } from 'react'
 import { Children, isValidElement } from 'react'
 import { MarkdownAsync } from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+
 import { highlight } from '@/highlight'
 
 interface MarkdownProps {
@@ -47,10 +49,18 @@ function stripAuthMarker(content: string): string {
 	return content.replace(/^<!--\s*auth:\s*required\s*-->\n?/, '')
 }
 
+function A({ href, ...props }: ComponentPropsWithoutRef<'a'>) {
+	if (href?.startsWith('#')) {
+		return <Link href={`/${href.slice(1)}`} {...props} />
+	}
+
+	return <a href={href} {...props} />
+}
+
 export async function Markdown({ content }: MarkdownProps) {
 	return (
 		<div className="prose dark:prose-invert max-w-none">
-			<MarkdownAsync remarkPlugins={[remarkGfm]} components={{ code: Code, pre: Pre }}>
+			<MarkdownAsync remarkPlugins={[remarkGfm]} components={{ a: A, code: Code, pre: Pre }}>
 				{stripAuthMarker(content)}
 			</MarkdownAsync>
 		</div>
