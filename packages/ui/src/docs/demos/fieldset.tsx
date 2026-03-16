@@ -11,25 +11,25 @@ export default function FieldsetDemo() {
 			<Legend>Profile</Legend>
 			<FieldGroup>
 				<Field>
-					<Label>Full name</Label>
-					<Input placeholder="Jane Smith" />
+					<Label htmlFor="fieldset-name">Full name</Label>
+					<Input id="fieldset-name" placeholder="Jane Smith" />
 				</Field>
 				<Field>
-					<Label>Email</Label>
+					<Label htmlFor="fieldset-email">Email</Label>
 					<Description>We'll use this for account notifications.</Description>
-					<Input type="email" placeholder="jane@example.com" />
+					<Input id="fieldset-email" type="email" placeholder="jane@example.com" />
 				</Field>
 				<Field>
-					<Label>Country</Label>
-					<Select>
+					<Label htmlFor="fieldset-country">Country</Label>
+					<Select id="fieldset-country">
 						<option>United States</option>
 						<option>Canada</option>
 						<option>United Kingdom</option>
 					</Select>
 				</Field>
 				<Field>
-					<Label>Bio</Label>
-					<Textarea placeholder="Tell us about yourself…" />
+					<Label htmlFor="fieldset-bio">Bio</Label>
+					<Textarea id="fieldset-bio" placeholder="Tell us about yourself…" />
 				</Field>
 			</FieldGroup>
 		</Fieldset>

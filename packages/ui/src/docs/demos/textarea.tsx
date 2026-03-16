@@ -7,16 +7,16 @@ export default function TextareaDemo() {
 	return (
 		<div className="max-w-sm space-y-6">
 			<Field>
-				<Label>Message</Label>
-				<Textarea placeholder="Write your message…" />
+				<Label htmlFor="textarea-message">Message</Label>
+				<Textarea id="textarea-message" placeholder="Write your message…" />
 			</Field>
 			<Field>
-				<Label>Non-resizable</Label>
-				<Textarea resizable={false} placeholder="Cannot resize" />
+				<Label htmlFor="textarea-non-resizable">Non-resizable</Label>
+				<Textarea id="textarea-non-resizable" resizable={false} placeholder="Cannot resize" />
 			</Field>
 			<Field>
-				<Label>Invalid</Label>
-				<Textarea invalid placeholder="Something went wrong" />
+				<Label htmlFor="textarea-invalid">Invalid</Label>
+				<Textarea id="textarea-invalid" invalid placeholder="Something went wrong" />
 			</Field>
 		</div>
 	)

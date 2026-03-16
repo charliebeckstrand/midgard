@@ -10,17 +10,17 @@ export default function CheckboxDemo() {
 	return (
 		<CheckboxGroup>
 			<CheckboxField>
-				<Checkbox checked={checked} onChange={setChecked} />
-				<Label>Accept terms and conditions</Label>
+				<Checkbox id="checkbox-terms" checked={checked} onChange={setChecked} />
+				<Label htmlFor="checkbox-terms">Accept terms and conditions</Label>
 				<Description>You agree to our Terms of Service and Privacy Policy.</Description>
 			</CheckboxField>
 			<CheckboxField>
-				<Checkbox defaultChecked />
-				<Label>Subscribe to newsletter</Label>
+				<Checkbox id="checkbox-newsletter" defaultChecked />
+				<Label htmlFor="checkbox-newsletter">Subscribe to newsletter</Label>
 			</CheckboxField>
 			<CheckboxField disabled>
-				<Checkbox />
-				<Label>Disabled option</Label>
+				<Checkbox id="checkbox-disabled" />
+				<Label htmlFor="checkbox-disabled">Disabled option</Label>
 			</CheckboxField>
 		</CheckboxGroup>
 	)
