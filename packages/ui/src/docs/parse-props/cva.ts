@@ -9,11 +9,14 @@ import type { CvaVariant } from './types'
 /** Scan source for `const name = cva(...)` definitions and extract variant metadata */
 export function collectCvaVariants(source: string): Map<string, CvaVariant[]> {
 	const result = new Map<string, CvaVariant[]>()
+
 	const cvaRegex = /const\s+(\w+)\s*=\s*cva\s*\(/g
 
 	for (let m = cvaRegex.exec(source); m !== null; m = cvaRegex.exec(source)) {
 		const name = m[1]
+
 		const parenStart = m.index + m[0].length - 1
+
 		const cvaArgs = extractBalancedParens(source, parenStart)
 
 		if (!cvaArgs) continue
@@ -33,6 +36,7 @@ export function cvaVariantsToTypeBody(variants: CvaVariant[]): string {
 	const entries = variants
 		.map((v) => {
 			const type = v.options.map((o) => `'${o}'`).join(' | ')
+
 			return `${v.name}?: ${type}`
 		})
 		.join('\n')
@@ -48,6 +52,7 @@ function parseCvaVariants(cvaArgs: string): CvaVariant[] {
 	if (!variantsMatch?.index) return variants
 
 	const variantsStart = variantsMatch.index + variantsMatch[0].length - 1
+
 	const variantsBody = extractBalancedBraces(cvaArgs, variantsStart)
 
 	if (!variantsBody) return variants
@@ -55,11 +60,14 @@ function parseCvaVariants(cvaArgs: string): CvaVariant[] {
 	const defaults = parseDefaultVariants(cvaArgs)
 
 	const inner = variantsBody.slice(1, -1)
+
 	const variantKeyRegex = /(\w+)\s*:\s*\{/g
 
 	for (let m = variantKeyRegex.exec(inner); m !== null; m = variantKeyRegex.exec(inner)) {
 		const variantName = m[1]
+
 		const braceStart = m.index + m[0].length - 1
+
 		const optionsBody = extractBalancedBraces(inner, braceStart)
 
 		if (!optionsBody) continue
@@ -76,11 +84,13 @@ function parseCvaVariants(cvaArgs: string): CvaVariant[] {
 
 function parseDefaultVariants(cvaArgs: string): Map<string, string> {
 	const defaults = new Map<string, string>()
+
 	const defaultsMatch = cvaArgs.match(/defaultVariants\s*:\s*\{/)
 
 	if (!defaultsMatch?.index) return defaults
 
 	const defaultsStart = defaultsMatch.index + defaultsMatch[0].length - 1
+
 	const defaultsBody = extractBalancedBraces(cvaArgs, defaultsStart)
 
 	if (!defaultsBody) return defaults

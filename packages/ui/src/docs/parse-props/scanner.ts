@@ -22,6 +22,7 @@ function extractBalanced(
 		if (source[i] === open) depth++
 		else if (source[i] === close) {
 			depth--
+
 			if (depth === 0) return source.slice(start, i + 1)
 		}
 	}
@@ -32,8 +33,11 @@ function extractBalanced(
 /** Split a string at top-level occurrences of any delimiter character, respecting nesting and strings */
 export function splitAtTopLevel(str: string, ...delimiters: string[]): string[] {
 	const parts: string[] = []
+
 	let depth = 0
+
 	let current = ''
+
 	let inString: string | null = null
 
 	for (let i = 0; i < str.length; i++) {
@@ -41,13 +45,17 @@ export function splitAtTopLevel(str: string, ...delimiters: string[]): string[] 
 
 		if (inString) {
 			current += ch
+
 			if (ch === inString && str[i - 1] !== '\\') inString = null
+
 			continue
 		}
 
 		if (ch === "'" || ch === '"' || ch === '`') {
 			inString = ch
+
 			current += ch
+
 			continue
 		}
 
@@ -57,6 +65,7 @@ export function splitAtTopLevel(str: string, ...delimiters: string[]): string[] 
 
 		if (delimiters.includes(ch) && depth === 0) {
 			if (current.trim()) parts.push(current.trim())
+
 			current = ''
 		} else {
 			current += ch
@@ -77,6 +86,7 @@ export function extractObjectKeys(body: string): string[] {
 	return splitAtTopLevel(inner, ',')
 		.map((entry) => {
 			const match = entry.trim().match(/^['"]?([\w-]+)['"]?\s*:/)
+
 			return match?.[1]
 		})
 		.filter((key): key is string => key !== undefined)
@@ -94,6 +104,7 @@ export function extractInlineObjectType(annotation: string): string | null {
 /** Extract the RHS of a type alias, stopping at the first top-level newline */
 export function extractTypeRhs(source: string, start: number): string | null {
 	let depth = 0
+
 	let inString: string | null = null
 
 	for (let i = start; i < source.length; i++) {
@@ -101,11 +112,13 @@ export function extractTypeRhs(source: string, start: number): string | null {
 
 		if (inString) {
 			if (ch === inString && source[i - 1] !== '\\') inString = null
+
 			continue
 		}
 
 		if (ch === "'" || ch === '"' || ch === '`') {
 			inString = ch
+
 			continue
 		}
 
@@ -115,10 +128,12 @@ export function extractTypeRhs(source: string, start: number): string | null {
 
 		if (ch === '\n' && depth === 0) {
 			const rhs = source.slice(start, i).trim()
+
 			return rhs || null
 		}
 	}
 
 	const rhs = source.slice(start).trim()
+
 	return rhs || null
 }
