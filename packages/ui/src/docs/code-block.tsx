@@ -18,21 +18,15 @@ export function CodeBlock({ code }: { code: string }) {
 		}
 	}, [code])
 
-	if (!html) {
-		return (
-			<div className="rounded-lg bg-zinc-950 p-4">
-				<pre className="text-sm text-zinc-400">
-					<code>{code}</code>
-				</pre>
-			</div>
-		)
-	}
-
-	return (
+	return html ? (
 		<div
 			className="[&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:p-4 [&_pre]:text-sm/6"
 			// biome-ignore lint/security/noDangerouslySetInnerHtml: shiki output is trusted
 			dangerouslySetInnerHTML={{ __html: html }}
 		/>
+	) : (
+		<pre className="overflow-x-auto rounded-lg bg-[#0d1117] p-4 text-sm/6 text-zinc-400">
+			<code>{code}</code>
+		</pre>
 	)
 }
