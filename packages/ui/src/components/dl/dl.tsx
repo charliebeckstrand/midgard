@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 
-export function DescriptionList({ className, ...props }: React.ComponentPropsWithoutRef<'dl'>) {
+export function DL({ className, ...props }: React.ComponentPropsWithoutRef<'dl'>) {
 	return (
 		<dl
 			{...props}
@@ -12,7 +12,7 @@ export function DescriptionList({ className, ...props }: React.ComponentPropsWit
 	)
 }
 
-export function DescriptionTerm({ className, ...props }: React.ComponentPropsWithoutRef<'dt'>) {
+export function DT({ className, ...props }: React.ComponentPropsWithoutRef<'dt'>) {
 	return (
 		<dt
 			{...props}
@@ -24,7 +24,7 @@ export function DescriptionTerm({ className, ...props }: React.ComponentPropsWit
 	)
 }
 
-export function DescriptionDetails({ className, ...props }: React.ComponentPropsWithoutRef<'dd'>) {
+export function DD({ className, ...props }: React.ComponentPropsWithoutRef<'dd'>) {
 	return (
 		<dd
 			{...props}

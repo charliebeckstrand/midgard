@@ -61,10 +61,10 @@
 			"import": "./dist/combobox.js",
 			"default": "./dist/combobox.js"
 		},
-		"./description-list": {
-			"types": "./src/components/description-list/index.ts",
-			"import": "./dist/description-list.js",
-			"default": "./dist/description-list.js"
+		"./dl": {
+			"types": "./src/components/dl/index.ts",
+			"import": "./dist/dl.js",
+			"default": "./dist/dl.js"
 		},
 		"./dialog": {
 			"types": "./src/components/dialog/index.ts",

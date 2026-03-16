@@ -13,7 +13,7 @@ export default defineConfig({
 		button: 'src/components/button/index.ts',
 		checkbox: 'src/components/checkbox/index.ts',
 		combobox: 'src/components/combobox/index.ts',
-		'description-list': 'src/components/description-list/index.ts',
+		dl: 'src/components/dl/index.ts',
 		dialog: 'src/components/dialog/index.ts',
 		divider: 'src/components/divider/index.ts',
 		dropdown: 'src/components/dropdown/index.ts',
