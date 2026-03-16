@@ -1,6 +1,7 @@
 import { Button } from '../../components/button'
 import {
 	Sheet,
+	SheetBody,
 	SheetClose,
 	SheetContent,
 	SheetDescription,
@@ -24,9 +25,9 @@ export default function SheetDemo() {
 						<SheetTitle>Sheet Title</SheetTitle>
 						<SheetDescription>This is a sheet panel sliding from the right.</SheetDescription>
 					</SheetHeader>
-					<div className="p-4">
+					<SheetBody>
 						<p className="text-sm text-zinc-500">Sheet content goes here.</p>
-					</div>
+					</SheetBody>
 					<SheetFooter>
 						<SheetClose>
 							<Button variant="plain">Close</Button>
@@ -42,9 +43,9 @@ export default function SheetDemo() {
 					<SheetHeader>
 						<SheetTitle>Left Sheet</SheetTitle>
 					</SheetHeader>
-					<div className="p-4">
+					<SheetBody>
 						<p className="text-sm text-zinc-500">Slides from the left.</p>
-					</div>
+					</SheetBody>
 				</SheetContent>
 			</Sheet>
 		</div>

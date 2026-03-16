@@ -1,3 +1,4 @@
+export { SheetBody } from './body'
 export { SheetClose } from './close'
 export { SheetContent } from './content'
 export { SheetDescription } from './description'
