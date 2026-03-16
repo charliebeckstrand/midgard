@@ -145,7 +145,7 @@ function PropsTable({ api }: { api: ComponentApi[] }) {
 							<TableBody>
 								{visibleProps.map((prop) => (
 									<TableRow key={prop.name}>
-										<TableCell className="font-mono text-xs font-medium">{prop.name}</TableCell>
+										<TableCell className="font-mono font-medium">{prop.name}</TableCell>
 										<TableCell>
 											<div className="grid grid-cols-[repeat(4,max-content)] gap-1">
 												{prop.type.split(' | ').map((t) => (
@@ -155,7 +155,7 @@ function PropsTable({ api }: { api: ComponentApi[] }) {
 												))}
 											</div>
 										</TableCell>
-										<TableCell className="font-mono text-xs text-zinc-500 dark:text-zinc-400">
+										<TableCell className="font-mono text-zinc-500 dark:text-zinc-400">
 											{prop.default ?? '—'}
 										</TableCell>
 									</TableRow>

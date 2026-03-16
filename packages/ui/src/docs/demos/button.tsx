@@ -3,6 +3,7 @@ import { Button } from '../../components/button'
 export const meta = { category: 'Forms' }
 
 const variants = ['solid', 'outline', 'plain', 'ghost'] as const
+
 const colors = ['zinc', 'red', 'orange', 'amber', 'green', 'blue', 'indigo', 'violet'] as const
 
 export default function ButtonDemo() {

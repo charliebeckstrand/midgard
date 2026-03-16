@@ -12,14 +12,18 @@ const IGNORED_PROPS = new Set(['className', 'children', 'ref', 'key'])
 
 export function parseSource(source: string): ComponentApi[] {
 	const results: ComponentApi[] = []
+
 	const cvaVariants = collectCvaVariants(source)
+
 	const typeDefs = collectTypeDefinitions(source, cvaVariants)
 
 	const fnHeaderRegex = /export\s+function\s+(\w+)\s*(?:<[^>]*>)?\s*\(/g
 
 	for (let m = fnHeaderRegex.exec(source); m !== null; m = fnHeaderRegex.exec(source)) {
 		const name = m[1]
+
 		const parenStart = m.index + m[0].length - 1
+
 		const paramBlock = extractBalancedParens(source, parenStart)
 
 		if (!paramBlock) continue
@@ -52,7 +56,9 @@ function collectTypeDefinitions(
 
 	for (let m = typeRegex.exec(source); m !== null; m = typeRegex.exec(source)) {
 		const name = m[1]
+
 		const rhsStart = m.index + m[0].length
+
 		const rhs = extractTypeRhs(source, rhsStart)
 
 		if (name && rhs) {
@@ -64,7 +70,9 @@ function collectTypeDefinitions(
 
 	for (let m = ifaceRegex.exec(source); m !== null; m = ifaceRegex.exec(source)) {
 		const name = m[1]
+
 		const braceStart = m.index + m[0].length - 1
+
 		const body = extractBalancedBraces(source, braceStart)
 
 		if (name && body) {
