@@ -2,6 +2,7 @@
 
 import type React from 'react'
 import { cn, Link } from '../../core'
+import { iconSlot } from '../../recipes/icon'
 import { menuItemBase } from '../../recipes/item'
 import { useDropdown } from './context'
 
@@ -13,8 +14,9 @@ const itemClasses = [
 	'group px-3.5 sm:px-3',
 	// Focus
 	'focus:outline-hidden',
-	// Icon slots — layout
-	'*:data-[slot=icon]:col-start-1 *:data-[slot=icon]:row-start-1 *:data-[slot=icon]:mr-2.5 *:data-[slot=icon]:-ml-0.5 *:data-[slot=icon]:size-5 sm:*:data-[slot=icon]:mr-2 sm:*:data-[slot=icon]:size-4',
+	// Icon slots — sizing from shared recipe, dropdown-specific grid positioning + spacing
+	...iconSlot,
+	'*:data-[slot=icon]:col-start-1 *:data-[slot=icon]:row-start-1 *:data-[slot=icon]:mr-2.5 *:data-[slot=icon]:-ml-0.5 sm:*:data-[slot=icon]:mr-2',
 	// Icon slots — light
 	'*:data-[slot=icon]:text-zinc-500',
 	// Icon slots — hover + focus
@@ -52,6 +54,7 @@ export function DropdownItem({
 				{...linkProps}
 				role="menuitem"
 				tabIndex={-1}
+				data-slot="item"
 				data-disabled={disabled ? '' : undefined}
 				className={classes}
 				onClick={(e) => {
@@ -76,6 +79,7 @@ export function DropdownItem({
 			{...buttonProps}
 			role="menuitem"
 			tabIndex={-1}
+			data-slot="item"
 			data-disabled={disabled ? '' : undefined}
 			className={classes}
 			onClick={() => {
@@ -116,7 +120,11 @@ export function DropdownShortcut({
 	'className'
 >) {
 	return (
-		<kbd {...props} className={cn('col-start-5 row-start-1 flex justify-self-end', className)}>
+		<kbd
+			data-slot="shortcut"
+			{...props}
+			className={cn('col-start-5 row-start-1 flex justify-self-end', className)}
+		>
 			{(Array.isArray(keys) ? keys : keys.split('')).map((char, index) => (
 				<kbd
 					// biome-ignore lint/suspicious/noArrayIndexKey: keyboard shortcut characters have no stable unique ID

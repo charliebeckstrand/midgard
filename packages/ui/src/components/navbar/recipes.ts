@@ -1,7 +1,10 @@
+import { iconSlot } from '../../recipes/icon'
+
 /** Shared item classes for navbar and sidebar items */
 export const navItemBase = [
-	// Icon slots
-	'*:data-[slot=icon]:size-5 *:data-[slot=icon]:shrink-0 *:data-[slot=icon]:fill-zinc-500',
+	// Icon slots — sizing from shared recipe, nav-specific fill color
+	...iconSlot,
+	'*:data-[slot=icon]:fill-zinc-500',
 	'dark:text-white dark:*:data-[slot=icon]:fill-zinc-400',
 	// Avatar slots
 	'*:data-[slot=avatar]:-m-0.5 *:data-[slot=avatar]:size-7 sm:*:data-[slot=avatar]:size-6',

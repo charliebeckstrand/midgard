@@ -8,6 +8,7 @@ export function Divider({
 	return (
 		<hr
 			role="presentation"
+			data-slot="divider"
 			{...props}
 			className={cn(
 				'w-full border-t',

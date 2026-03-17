@@ -12,6 +12,7 @@ export function TableCell({ className, children, ...props }: React.ComponentProp
 	return (
 		<td
 			ref={href ? setCellRef : undefined}
+			data-slot="cell"
 			{...props}
 			className={cn(
 				className,

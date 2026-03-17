@@ -11,7 +11,9 @@ export function Badge({
 	className,
 	...props
 }: BadgeProps & React.ComponentPropsWithoutRef<'span'>) {
-	return <span {...props} className={cn(badge({ variant, color, size }), className)} />
+	return (
+		<span data-slot="badge" {...props} className={cn(badge({ variant, color, size }), className)} />
+	)
 }
 
 export function BadgeButton({

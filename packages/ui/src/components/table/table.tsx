@@ -38,9 +38,15 @@ export function Table({
 }
 
 export function TableHead({ className, ...props }: React.ComponentPropsWithoutRef<'thead'>) {
-	return <thead {...props} className={cn('text-zinc-500 dark:text-zinc-400', className)} />
+	return (
+		<thead
+			data-slot="head"
+			{...props}
+			className={cn('text-zinc-500 dark:text-zinc-400', className)}
+		/>
+	)
 }
 
 export function TableBody({ className, ...props }: React.ComponentPropsWithoutRef<'tbody'>) {
-	return <tbody {...props} className={className} />
+	return <tbody data-slot="body" {...props} className={className} />
 }

@@ -15,6 +15,7 @@ export function TableRow({
 	return (
 		<TableRowProvider value={{ href, target, title }}>
 			<tr
+				data-slot="row"
 				{...props}
 				className={cn(
 					className,
@@ -42,6 +43,7 @@ export function TableHeader({ className, ...props }: React.ComponentPropsWithout
 
 	return (
 		<th
+			data-slot="header"
 			{...props}
 			className={cn(
 				className,

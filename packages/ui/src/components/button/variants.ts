@@ -1,14 +1,17 @@
 import { cva } from 'class-variance-authority'
 import { buttonColors } from '../../recipes/colors'
+import { iconSlot, iconSlotIconOnly } from '../../recipes/icon'
 
 export const button = cva(
 	[
 		// Layout
 		'relative isolate inline-flex w-fit items-center justify-center gap-x-2 rounded-lg text-base/6 font-semibold select-none',
-		// Icon slots
-		'*:data-[slot=icon]:-mx-0.5 *:data-[slot=icon]:my-0.5 *:data-[slot=icon]:size-5 *:data-[slot=icon]:shrink-0 *:data-[slot=icon]:self-center *:data-[slot=icon]:text-(--btn-icon) sm:*:data-[slot=icon]:my-1 sm:*:data-[slot=icon]:size-4',
+		// Icon slots — sizing from shared recipe, button-specific spacing + color
+		...iconSlot,
+		'*:data-[slot=icon]:-mx-0.5 *:data-[slot=icon]:my-0.5 *:data-[slot=icon]:self-center *:data-[slot=icon]:text-(--btn-icon) sm:*:data-[slot=icon]:my-1',
 		// Icon-only — square aspect, centered, no gap
-		'data-icon-only:gap-0 data-icon-only:*:data-[slot=icon]:mx-0 data-icon-only:*:data-[slot=icon]:my-0 sm:data-icon-only:*:data-[slot=icon]:my-0',
+		'data-icon-only:gap-0',
+		...iconSlotIconOnly,
 		// Focus
 		'focus:outline-hidden',
 		'focus-visible:outline-1 focus-visible:-outline-offset-1 focus-visible:outline-blue-600',

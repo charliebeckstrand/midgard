@@ -1,7 +1,7 @@
 'use client'
 
-import clsx from 'clsx'
 import type React from 'react'
+import { cn } from '../../core'
 import { useAlert } from './context'
 
 export function AlertTitle({ className, ...props }: React.ComponentPropsWithoutRef<'h2'>) {
@@ -9,10 +9,11 @@ export function AlertTitle({ className, ...props }: React.ComponentPropsWithoutR
 	return (
 		<h2
 			id={titleId}
+			data-slot="title"
 			{...props}
-			className={clsx(
+			className={cn(
+				'text-center text-base/6 font-semibold text-balance text-zinc-950 sm:text-left sm:text-wrap dark:text-white',
 				className,
-				'text-center text-base/6 font-semibold text-balance text-zinc-950 sm:text-left  sm:text-wrap dark:text-white',
 			)}
 		/>
 	)

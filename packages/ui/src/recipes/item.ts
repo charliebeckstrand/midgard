@@ -17,10 +17,12 @@ export const menuItemBase = [
 	'forced-color-adjust-none forced-colors:focus:bg-[Highlight] forced-colors:focus:text-[HighlightText]',
 ]
 
+import { iconSlot } from './icon'
+
 /** Icon and avatar slot styles shared by menu items */
 export const menuItemSlots = [
-	// Icon sizing
-	'*:data-[slot=icon]:size-5 *:data-[slot=icon]:shrink-0 sm:*:data-[slot=icon]:size-4',
+	// Icon sizing — from shared recipe
+	...iconSlot,
 	// Icon colors
 	'*:data-[slot=icon]:text-zinc-500',
 	'dark:*:data-[slot=icon]:text-zinc-400',
