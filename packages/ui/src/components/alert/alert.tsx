@@ -10,19 +10,15 @@ import { popoverAnimation } from '../../recipes/motion'
 import { alertBackdrop } from '../../recipes/overlay'
 import { AlertProvider } from './context'
 
-export function Alert({
-	open,
-	onClose,
-	size = 'md',
-	className,
-	children,
-}: {
+export type AlertProps = {
 	open: boolean
 	onClose: () => void
 	size?: keyof typeof panelSizes
 	className?: string
 	children: React.ReactNode
-}) {
+}
+
+export function Alert({ open, onClose, size = 'md', className, children }: AlertProps) {
 	const titleId = useId()
 	const descriptionId = useId()
 

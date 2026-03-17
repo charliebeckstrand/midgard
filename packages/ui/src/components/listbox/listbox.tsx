@@ -9,6 +9,21 @@ import { ChevronIcon } from '../../primitives'
 import { ListboxProvider, SelectedOptionProvider } from './context'
 import { ListboxOptions } from './options'
 
+export type ListboxProps<T> = {
+	className?: string
+	placeholder?: React.ReactNode
+	autoFocus?: boolean
+	'aria-label'?: string
+	children?: React.ReactNode
+	value?: T
+	defaultValue?: T
+	onChange?: (value: T) => void
+	disabled?: boolean
+	invalid?: boolean
+	name?: string
+	inputId?: string
+} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className' | 'onChange'>
+
 export function Listbox<T>({
 	className,
 	placeholder,
@@ -23,20 +38,7 @@ export function Listbox<T>({
 	name,
 	inputId,
 	...props
-}: {
-	className?: string
-	placeholder?: React.ReactNode
-	autoFocus?: boolean
-	'aria-label'?: string
-	children?: React.ReactNode
-	value?: T
-	defaultValue?: T
-	onChange?: (value: T) => void
-	disabled?: boolean
-	invalid?: boolean
-	name?: string
-	inputId?: string
-} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className' | 'onChange'>) {
+}: ListboxProps<T>) {
 	const [open, setOpen] = useState(false)
 	const [currentValue, setValue] = useControllable({ value, defaultValue, onChange })
 	const containerRef = useRef<HTMLDivElement>(null)
@@ -83,7 +85,7 @@ export function Listbox<T>({
 							'relative block w-full appearance-none rounded-lg py-[calc(--spacing(2.5)-1px)] sm:py-[calc(--spacing(1.5)-1px)]',
 							'min-h-11 sm:min-h-9',
 							'pr-[calc(--spacing(7)-1px)] pl-[calc(--spacing(3.5)-1px)] sm:pl-[calc(--spacing(3)-1px)]',
-							'text-left text-base/6 text-zinc-950 placeholder:text-zinc-500  dark:text-white forced-colors:text-[CanvasText]',
+							'text-left text-base/6 text-zinc-950 placeholder:text-zinc-500 dark:text-white forced-colors:text-[CanvasText]',
 							'border border-zinc-950/10 group-active:border-zinc-950/20 group-hover:border-zinc-950/20 dark:border-white/10 dark:group-active:border-white/20 dark:group-hover:border-white/20',
 							'bg-transparent dark:bg-white/5',
 							'group-data-invalid:border-red-600 group-hover:group-data-invalid:border-red-600 dark:group-data-invalid:border-red-700 dark:hover:group-data-invalid:border-red-700',

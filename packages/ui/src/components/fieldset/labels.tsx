@@ -9,7 +9,7 @@ export function Label({ className, ...props }: React.ComponentPropsWithoutRef<'l
 			{...props}
 			className={clsx(
 				className,
-				'text-base/6 text-zinc-950 select-none data-disabled:opacity-50  dark:text-white',
+				'text-base/6 text-zinc-950 select-none data-disabled:opacity-50 dark:text-white',
 			)}
 		/>
 	)
@@ -22,7 +22,7 @@ export function Legend({ className, ...props }: React.ComponentPropsWithoutRef<'
 			{...props}
 			className={clsx(
 				className,
-				'text-base/6 font-semibold text-zinc-950 disabled:opacity-50  dark:text-white',
+				'text-base/6 font-semibold text-zinc-950 disabled:opacity-50 dark:text-white',
 			)}
 		/>
 	)
@@ -35,7 +35,7 @@ export function Description({ className, ...props }: React.ComponentPropsWithout
 			{...props}
 			className={clsx(
 				className,
-				'text-base/6 text-zinc-500 data-disabled:opacity-50  dark:text-zinc-400',
+				'text-base/6 text-zinc-500 data-disabled:opacity-50 dark:text-zinc-400',
 			)}
 		/>
 	)
@@ -46,7 +46,7 @@ export function ErrorMessage({ className, ...props }: React.ComponentPropsWithou
 		<p
 			data-slot="error"
 			{...props}
-			className={clsx(className, 'text-base/6 text-red-600 data-disabled:opacity-50 ')}
+			className={clsx(className, 'text-base/6 text-red-600 data-disabled:opacity-50')}
 		/>
 	)
 }
