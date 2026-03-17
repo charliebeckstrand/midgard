@@ -1,4 +1,4 @@
-import { createContext } from '../../core'
+import { createContext as reactCreateContext, useContext } from 'react'
 
 export interface DropdownContextValue {
 	open: boolean
@@ -7,4 +7,19 @@ export interface DropdownContextValue {
 	fullWidth?: boolean
 }
 
-export const [DropdownProvider, useDropdown] = createContext<DropdownContextValue>('Dropdown')
+const DropdownContext = reactCreateContext<DropdownContextValue | null>(null)
+
+export const DropdownProvider = DropdownContext.Provider
+
+export function useDropdown(): DropdownContextValue {
+	const value = useContext(DropdownContext)
+	if (value === null) {
+		throw new Error('useDropdown must be used within <Dropdown>')
+	}
+	return value
+}
+
+/** Returns the dropdown context or `null` when not inside a `<Dropdown>`. */
+export function useDropdownContext(): DropdownContextValue | null {
+	return useContext(DropdownContext)
+}

@@ -5,6 +5,7 @@ import type React from 'react'
 import { useContext } from 'react'
 import { Link } from '../../core'
 import { ActiveIndicator, TouchTarget } from '../../primitives'
+import { useDropdownContext } from '../dropdown/context'
 import { MobileSidebarContext } from '../layouts/context'
 import { navItemBase } from './recipes'
 
@@ -18,6 +19,7 @@ export function SidebarItem({
 	| ({ href: string } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
 )) {
 	const close = useContext(MobileSidebarContext)
+	const dropdown = useDropdownContext()
 
 	const classes = clsx(
 		// Base
@@ -41,7 +43,7 @@ export function SidebarItem({
 					data-slot="sidebar-item"
 					data-current={current ? 'true' : undefined}
 					onClick={(e) => {
-						if (!e.currentTarget.hasAttribute('aria-haspopup')) close?.()
+						if (!dropdown) close?.()
 						;(props as React.ComponentPropsWithoutRef<typeof Link>).onClick?.(e)
 					}}
 				>
@@ -55,7 +57,7 @@ export function SidebarItem({
 					data-slot="sidebar-item"
 					data-current={current ? 'true' : undefined}
 					onClick={(e) => {
-						if (!e.currentTarget.hasAttribute('aria-haspopup')) close?.()
+						if (!dropdown) close?.()
 						;(props as React.ComponentPropsWithoutRef<'button'>).onClick?.(e)
 					}}
 				>
