@@ -1,5 +1,6 @@
 import type React from 'react'
 import { cn } from '../../core'
+import { ink, muted } from '../../recipes/text'
 
 export function Label({ className, ...props }: React.ComponentPropsWithoutRef<'label'>) {
 	return (
@@ -7,10 +8,7 @@ export function Label({ className, ...props }: React.ComponentPropsWithoutRef<'l
 		<label
 			data-slot="label"
 			{...props}
-			className={cn(
-				'text-base/6 text-zinc-950 select-none data-disabled:opacity-50 dark:text-white',
-				className,
-			)}
+			className={cn(`text-base/6 ${ink} select-none data-disabled:opacity-50`, className)}
 		/>
 	)
 }
@@ -20,10 +18,7 @@ export function Legend({ className, ...props }: React.ComponentPropsWithoutRef<'
 		<legend
 			data-slot="legend"
 			{...props}
-			className={cn(
-				'text-base/6 font-semibold text-zinc-950 disabled:opacity-50 dark:text-white',
-				className,
-			)}
+			className={cn(`text-base/6 font-semibold ${ink} disabled:opacity-50`, className)}
 		/>
 	)
 }
@@ -33,10 +28,7 @@ export function Description({ className, ...props }: React.ComponentPropsWithout
 		<p
 			data-slot="description"
 			{...props}
-			className={cn(
-				'text-base/6 text-zinc-500 data-disabled:opacity-50 dark:text-zinc-400',
-				className,
-			)}
+			className={cn(`text-base/6 ${muted} data-disabled:opacity-50`, className)}
 		/>
 	)
 }

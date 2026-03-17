@@ -1,11 +1,12 @@
+import { ink } from './text'
+
 /** Base styles for selectable menu items (Dropdown, Listbox, Combobox) */
 export const menuItemBase = [
 	// Layout
 	'cursor-default rounded-lg py-2.5 sm:py-1.5',
 	'outline-hidden',
 	// Text
-	'text-base/6 text-zinc-950',
-	'dark:text-white',
+	`text-base/6 ${ink}`,
 	// Focus
 	'focus:bg-blue-600 focus:text-white',
 	// Hover
@@ -23,9 +24,8 @@ import { iconSlot } from './icon'
 export const menuItemSlots = [
 	// Icon sizing — from shared recipe
 	...iconSlot,
-	// Icon colors
-	'*:data-[slot=icon]:text-zinc-500',
-	'dark:*:data-[slot=icon]:text-zinc-400',
+	// Icon colors — secondary text color applied to icon slot
+	'*:data-[slot=icon]:text-zinc-500 dark:*:data-[slot=icon]:text-zinc-400',
 	// Icon colors — focus
 	'group-focus/option:*:data-[slot=icon]:text-white',
 	// Icon colors — forced colors

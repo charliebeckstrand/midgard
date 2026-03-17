@@ -1,4 +1,5 @@
 import { cn } from '../../core'
+import { ink } from '../../recipes/text'
 
 export type HeadingProps = { level?: 1 | 2 | 3 | 4 | 5 | 6 } & React.ComponentPropsWithoutRef<
 	'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
@@ -17,11 +18,7 @@ export function Heading({ className, level = 1, ...props }: HeadingProps) {
 	const Element: `h${typeof level}` = `h${level}`
 
 	return (
-		<Element
-			data-slot="heading"
-			{...props}
-			className={cn(headingSizes[level], 'text-zinc-950', 'dark:text-white', className)}
-		/>
+		<Element data-slot="heading" {...props} className={cn(headingSizes[level], ink, className)} />
 	)
 }
 
@@ -32,7 +29,7 @@ export function Subheading({ className, level = 2, ...props }: HeadingProps) {
 		<Element
 			data-slot="heading"
 			{...props}
-			className={cn('text-base/7 font-semibold text-zinc-950', 'dark:text-white', className)}
+			className={cn(`text-base/7 font-semibold ${ink}`, className)}
 		/>
 	)
 }
