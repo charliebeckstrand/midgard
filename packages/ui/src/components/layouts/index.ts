@@ -1,4 +1,9 @@
 export { AuthLayout } from './auth'
 export { MobileSidebarContext } from './context'
-export { SidebarLayout } from './sidebar'
+export {
+	SidebarLayout,
+	SidebarLayoutBody,
+	SidebarLayoutFooter,
+	SidebarLayoutHeader,
+} from './sidebar'
 export { StackedLayout } from './stacked'

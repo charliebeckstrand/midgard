@@ -4,7 +4,6 @@ import clsx from 'clsx'
 import { AnimatePresence, motion } from 'motion/react'
 import type React from 'react'
 import { useEffect } from 'react'
-import { panelSizes } from '../../recipes/dialog'
 import { overlayAnimation } from '../../recipes/motion'
 import { overlayBackdrop } from '../../recipes/overlay'
 import type { SheetSide } from './context'
@@ -41,16 +40,44 @@ const floatClasses: Record<SheetSide, string> = {
 	bottom: 'p-4',
 }
 
-export type SheetSize = keyof typeof panelSizes
+const maxWidthClasses: Record<string, string> = {
+	xs: 'sm:max-w-xs',
+	sm: 'sm:max-w-sm',
+	md: 'sm:max-w-md',
+	lg: 'sm:max-w-lg',
+	xl: 'sm:max-w-xl',
+	'2xl': 'sm:max-w-2xl',
+	'3xl': 'sm:max-w-3xl',
+	'4xl': 'sm:max-w-4xl',
+	'5xl': 'sm:max-w-5xl',
+	'6xl': 'sm:max-w-6xl',
+	'7xl': 'sm:max-w-7xl',
+}
 
-export type SheetContentProps = {
+export type SheetSize =
+	| 'xs'
+	| 'sm'
+	| 'md'
+	| 'lg'
+	| 'xl'
+	| '2xl'
+	| '3xl'
+	| '4xl'
+	| '5xl'
+	| '6xl'
+	| '7xl'
+
+export function SheetContent({
+	className,
+	children,
+	noOverlay,
+	size = 'sm',
+}: {
 	className?: string
 	children: React.ReactNode
 	noOverlay?: boolean
 	size?: SheetSize
-}
-
-export function SheetContent({ className, children, noOverlay, size = 'sm' }: SheetContentProps) {
+}) {
 	const { open, onOpenChange, side, modal, titleId, descriptionId } = useSheet()
 
 	useEffect(() => {
@@ -97,7 +124,7 @@ export function SheetContent({ className, children, noOverlay, size = 'sm' }: Sh
 							'fixed',
 							positionClasses[side],
 							sizeClasses[side],
-							isHorizontal && panelSizes[size],
+							isHorizontal && maxWidthClasses[size],
 							isHorizontal && floatClasses[side],
 						)}
 					>

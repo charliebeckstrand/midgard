@@ -1,6 +1,5 @@
 export { DialogActions } from './actions'
 export { DialogBody } from './body'
 export { DialogDescription } from './description'
-export type { DialogProps } from './dialog'
 export { Dialog } from './dialog'
 export { DialogTitle } from './title'

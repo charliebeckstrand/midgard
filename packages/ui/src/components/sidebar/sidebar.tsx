@@ -29,7 +29,7 @@ export function SidebarBody({ className, ...props }: React.ComponentPropsWithout
 			{...props}
 			className={clsx(
 				className,
-				'flex flex-1 flex-col overflow-y-auto p-4 [&>[data-slot=section]+[data-slot=section]]:mt-4',
+				'flex flex-1 flex-col overflow-hidden p-4 [&>[data-slot=section]+[data-slot=section]]:mt-4',
 			)}
 		/>
 	)
@@ -47,8 +47,22 @@ export function SidebarFooter({ className, ...props }: React.ComponentPropsWitho
 	)
 }
 
-export function SidebarSection({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
-	return <div {...props} data-slot="section" className={clsx(className, 'flex flex-col gap-1')} />
+export function SidebarSection({
+	className,
+	scrollable,
+	...props
+}: React.ComponentPropsWithoutRef<'div'> & { scrollable?: boolean }) {
+	return (
+		<div
+			{...props}
+			data-slot="section"
+			className={clsx(
+				className,
+				'flex flex-col gap-1',
+				scrollable && '-my-2 -mr-2 -ml-4 py-2 pr-2 pl-4 overflow-y-auto',
+			)}
+		/>
+	)
 }
 
 export function SidebarDivider({ className, ...props }: React.ComponentPropsWithoutRef<'hr'>) {

@@ -1,3 +1,4 @@
+export { useDropdown } from './context'
 export { Dropdown } from './dropdown'
 export { DropdownDescription, DropdownItem, DropdownLabel, DropdownShortcut } from './item'
 export { DropdownMenu } from './menu'

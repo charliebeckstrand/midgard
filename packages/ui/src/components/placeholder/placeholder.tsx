@@ -3,13 +3,8 @@
 import clsx from 'clsx'
 import { motion } from 'motion/react'
 
-type PlaceholderProps = {
-	className?: string
-	bars?: number
-}
-
 const pulseAnimation = {
-	initial: { opacity: 0.4 },
+	initial: { opacity: 0.5 },
 	animate: { opacity: 1 },
 	transition: {
 		duration: 1,
@@ -19,9 +14,20 @@ const pulseAnimation = {
 	},
 }
 
+export function Placeholder({ className }: { className?: string }) {
+	return (
+		<motion.div
+			role="status"
+			aria-label="Loading"
+			className={clsx(className, 'rounded-lg bg-zinc-200 dark:bg-zinc-700')}
+			{...pulseAnimation}
+		/>
+	)
+}
+
 const bar = 'h-2 rounded-full bg-zinc-200 dark:bg-zinc-700'
 
-export function Placeholder({ className, bars = 3 }: PlaceholderProps) {
+export function PlaceholderText({ className, bars = 3 }: { className?: string; bars?: number }) {
 	const items = Array.from({ length: bars }, (_, i) => ({
 		id: `bar-${i}`,
 		width: i % 2 === 0 ? 'max-w-[90%]' : '',
@@ -49,12 +55,12 @@ export function PlaceholderInput({ className }: { className?: string }) {
 			aria-label="Loading"
 			className={clsx(
 				className,
-				'relative block w-full rounded-lg border border-zinc-950/10 px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)] sm:px-[calc(--spacing(3)-1px)] sm:py-[calc(--spacing(1.5)-1px)]',
-				'dark:border-white/10',
+				'relative block w-full rounded-lg ring-1 ring-zinc-950/10 bg-zinc-200 dark:bg-zinc-800 px-3.5 py-2.5 sm:px-3 sm:py-1.5',
+				'dark:ring-white/10',
 			)}
 			{...pulseAnimation}
 		>
-			<div className="h-[1em] max-w-[60%] rounded bg-zinc-200 text-base/6 sm:text-sm/6 dark:bg-zinc-700" />
+			<div className="h-lh" />
 		</motion.div>
 	)
 }
@@ -66,8 +72,8 @@ export function PlaceholderTextarea({ className }: { className?: string }) {
 			aria-label="Loading"
 			className={clsx(
 				className,
-				'relative block w-full rounded-lg border border-zinc-950/10 px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)] sm:px-[calc(--spacing(3)-1px)] sm:py-[calc(--spacing(1.5)-1px)]',
-				'dark:border-white/10',
+				'relative block w-full rounded-lg ring-1 ring-zinc-950/10 px-3.5 py-2.5 sm:px-3 sm:py-1.5',
+				'dark:ring-white/10',
 			)}
 			{...pulseAnimation}
 		>
@@ -75,6 +81,21 @@ export function PlaceholderTextarea({ className }: { className?: string }) {
 			<div className="mb-2 h-[1em] rounded bg-zinc-200 text-base/6 sm:text-sm/6 dark:bg-zinc-700" />
 			<div className="h-[1em] max-w-[40%] rounded bg-zinc-200 text-base/6 sm:text-sm/6 dark:bg-zinc-700" />
 		</motion.div>
+	)
+}
+
+export function PlaceholderButton({ className }: { className?: string }) {
+	return (
+		<motion.div
+			role="status"
+			aria-label="Loading"
+			className={clsx(
+				className,
+				'size-10 rounded-lg ring-1 ring-zinc-950/10 bg-zinc-200 dark:bg-zinc-800',
+				'dark:ring-white/10',
+			)}
+			{...pulseAnimation}
+		/>
 	)
 }
 
@@ -93,7 +114,7 @@ export function PlaceholderSidebarItem({
 			{...pulseAnimation}
 		>
 			{icon && <div className="size-5 shrink-0 rounded bg-zinc-200 sm:size-4 dark:bg-zinc-700" />}
-			<div className="h-2 flex-1 max-w-[70%] rounded-full bg-zinc-200 dark:bg-zinc-700" />
+			<div className="h-lh flex-1 rounded bg-zinc-200 text-base/6 sm:text-sm/6 dark:bg-zinc-700" />
 		</motion.div>
 	)
 }

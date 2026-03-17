@@ -50,9 +50,13 @@ function buildComponentApis(): Record<string, ComponentApi[]> {
 	for (const [path, source] of Object.entries(componentSources)) {
 		// path: "../components/button/button.tsx"
 		const match = path.match(/\.\.\/components\/([^/]+)\//)
-		if (!match) continue
+
+		if (!match?.[1]) continue
+
 		const dir = match[1]
+
 		if (!byDir[dir]) byDir[dir] = []
+
 		byDir[dir].push(source as string)
 	}
 
@@ -60,6 +64,7 @@ function buildComponentApis(): Record<string, ComponentApi[]> {
 	for (const [dir, sources] of Object.entries(byDir)) {
 		// Concatenate all files so cross-file type references resolve
 		const combined = sources.join('\n')
+
 		const entries = parseSource(combined)
 
 		if (entries.length > 0) apis[dir] = entries
@@ -75,7 +80,9 @@ const demos = Object.entries(modules)
 		const name = mod.meta?.name ?? id.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
 
 		const category = mod.meta?.category ?? 'Other'
+
 		const source = stripMeta((demoSources[path] as string) ?? '')
+
 		const api = componentApis[id]
 
 		return { id, name, category, component: mod.default, source, api }
@@ -85,7 +92,7 @@ const demos = Object.entries(modules)
 const categories = demos.reduce<Record<string, typeof demos>>((acc, demo) => {
 	if (!acc[demo.category]) acc[demo.category] = []
 
-	acc[demo.category].push(demo)
+	acc[demo.category]?.push(demo)
 
 	return acc
 }, {})
@@ -175,7 +182,7 @@ function DemoPage({ demo }: { demo: (typeof demos)[number] }) {
 	const [tab, setTab] = useState<DemoTab>('preview')
 
 	return (
-		<div className="mx-auto w-full space-y-8 p-6 lg:p-10">
+		<div className="mx-auto w-full space-y-6 px-6 lg:py-6">
 			<Heading>{demo.name}</Heading>
 			<Tabs>
 				<Tab current={tab === 'preview'} onClick={() => setTab('preview')}>

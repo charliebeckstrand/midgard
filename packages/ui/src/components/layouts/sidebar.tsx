@@ -1,7 +1,7 @@
 'use client'
 
-import clsx from 'clsx'
-import type React from 'react'
+import React from 'react'
+import { twMerge } from 'tailwind-merge'
 import { MenuIcon } from '../../primitives'
 import { NavbarItem } from '../navbar'
 import { MobileSidebar } from './mobile-sidebar'
@@ -10,17 +10,15 @@ import { useMobileSidebar } from './use-mobile-sidebar'
 export function SidebarLayout({
 	navbar,
 	sidebar,
-	scrollable = true,
 	children,
 }: React.PropsWithChildren<{
 	navbar: React.ReactNode
 	sidebar: React.ReactNode
-	scrollable?: boolean
 }>) {
 	const { open, setOpen, close, mainRef } = useMobileSidebar()
 
 	return (
-		<div className="relative isolate flex min-h-svh w-full bg-white max-lg:flex-col lg:bg-zinc-100 dark:bg-zinc-950">
+		<div className="relative isolate flex h-svh w-full bg-white max-lg:flex-col lg:bg-zinc-100 dark:bg-zinc-950">
 			{/* Sidebar on desktop */}
 			<div className="fixed inset-y-0 left-0 w-64 max-lg:hidden">{sidebar}</div>
 
@@ -31,11 +29,9 @@ export function SidebarLayout({
 
 			{/* Navbar on mobile */}
 			<header className="flex items-center px-4 lg:hidden">
-				<div className="py-2.5">
-					<NavbarItem onClick={() => setOpen(true)} aria-label="Open navigation">
-						<MenuIcon />
-					</NavbarItem>
-				</div>
+				<NavbarItem onClick={() => setOpen(true)} aria-label="Open navigation">
+					<MenuIcon />
+				</NavbarItem>
 				<div className="min-w-0 flex-1">{navbar}</div>
 			</header>
 
@@ -44,15 +40,44 @@ export function SidebarLayout({
 				ref={mainRef}
 				className="flex flex-1 flex-col pb-2 lg:min-w-0 lg:pt-2 lg:pr-2 lg:pl-64 overflow-hidden"
 			>
-				<div
-					className={clsx(
-						'flex flex-col grow py-4 px-6 lg:p-6 lg:rounded-lg lg:bg-white lg:shadow-xs lg:ring-1 lg:ring-zinc-950/5 dark:lg:bg-zinc-900 dark:lg:ring-white/10',
-						scrollable ? 'overflow-y-auto' : 'overflow-hidden',
-					)}
-				>
+				<div className="flex flex-col grow overflow-hidden lg:rounded-lg lg:bg-white lg:shadow-xs lg:ring-1 lg:ring-zinc-950/5 dark:lg:bg-zinc-900 dark:lg:ring-white/10 [&:has([data-slot=footer])>[data-slot=body]]:pb-0">
 					{children}
 				</div>
 			</main>
+		</div>
+	)
+}
+
+export function SidebarLayoutHeader({
+	children,
+	className,
+}: React.PropsWithChildren<{ className?: string }>) {
+	return (
+		<div data-slot="header" className={twMerge('shrink-0', className)}>
+			{children}
+		</div>
+	)
+}
+
+export const SidebarLayoutBody = React.forwardRef<
+	HTMLDivElement,
+	React.PropsWithChildren<{ className?: string }>
+>(function SidebarLayoutBody({ children, className }, ref) {
+	return (
+		<div
+			ref={ref}
+			data-slot="body"
+			className={`flex-1 min-h-0 overflow-y-auto p-6 ${className ?? ''}`}
+		>
+			{children}
+		</div>
+	)
+})
+
+export function SidebarLayoutFooter({ children }: React.PropsWithChildren) {
+	return (
+		<div data-slot="footer" className="shrink-0 p-6">
+			{children}
 		</div>
 	)
 }

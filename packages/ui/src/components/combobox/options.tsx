@@ -2,15 +2,13 @@
 
 import clsx from 'clsx'
 import type React from 'react'
+import { forwardRef } from 'react'
 import { PopoverPanel } from '../../primitives'
 
-export function ComboboxOptions({
-	className,
-	children,
-}: {
-	className?: string
-	children: React.ReactNode
-}) {
+export const ComboboxOptions = forwardRef<
+	HTMLDivElement,
+	{ className?: string; children: React.ReactNode }
+>(function ComboboxOptions({ className, children }, _ref) {
 	return (
 		<PopoverPanel
 			className={clsx('empty:invisible', 'scroll-py-1', 'overflow-y-scroll', className)}
@@ -18,4 +16,4 @@ export function ComboboxOptions({
 			{children}
 		</PopoverPanel>
 	)
-}
+})

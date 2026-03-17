@@ -1,5 +1,5 @@
 export { SidebarHeader } from './header'
-export { SidebarItem, SidebarLabel } from './item'
+export { SidebarItem, SidebarItemActions, SidebarLabel } from './item'
 export {
 	Sidebar,
 	SidebarBody,

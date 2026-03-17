@@ -1,12 +1,33 @@
 'use client'
 
 import clsx from 'clsx'
-import type React from 'react'
-import { useContext } from 'react'
+import React, { useContext } from 'react'
 import { Link } from '../../core'
 import { ActiveIndicator, TouchTarget } from '../../primitives'
 import { MobileSidebarContext } from '../layouts/context'
 import { navItemBase } from './recipes'
+
+export function SidebarItemActions({
+	className,
+	...props
+}: React.ComponentPropsWithoutRef<'span'>) {
+	return <span {...props} className={clsx(className, 'pointer-events-auto')} />
+}
+
+function splitActions(children: React.ReactNode) {
+	const actions: React.ReactNode[] = []
+	const rest: React.ReactNode[] = []
+
+	React.Children.forEach(children, (child) => {
+		if (React.isValidElement(child) && child.type === SidebarItemActions) {
+			actions.push(child)
+		} else {
+			rest.push(child)
+		}
+	})
+
+	return { actions, rest }
+}
 
 export function SidebarItem({
 	current,
@@ -18,10 +39,11 @@ export function SidebarItem({
 	| ({ href: string } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
 )) {
 	const close = useContext(MobileSidebarContext)
+	const { actions, rest } = splitActions(children)
 
 	const classes = clsx(
 		// Base
-		'flex w-full items-center gap-3 rounded-lg px-2 py-2.5 text-left text-base/6 font-medium text-zinc-950 sm:py-2',
+		'flex w-full items-center gap-3 rounded-lg px-2 py-2.5 text-left text-base/6 font-medium select-none text-zinc-950 sm:py-2',
 		navItemBase,
 		// Trailing icon (down chevron or similar)
 		'*:last:data-[slot=icon]:ml-auto *:last:data-[slot=icon]:size-5 sm:*:last:data-[slot=icon]:size-4',
@@ -32,12 +54,12 @@ export function SidebarItem({
 	)
 
 	return (
-		<span className={clsx(className, 'relative')}>
+		<span className={clsx(className, 'group relative')}>
 			{current && <ActiveIndicator orientation="vertical" />}
 			{typeof props.href === 'string' ? (
 				<Link
 					{...props}
-					className={classes}
+					className={clsx(classes, current && 'pointer-events-none')}
 					data-slot="sidebar-item"
 					data-current={current ? 'true' : undefined}
 					onClick={(e) => {
@@ -45,7 +67,7 @@ export function SidebarItem({
 						;(props as React.ComponentPropsWithoutRef<typeof Link>).onClick?.(e)
 					}}
 				>
-					<TouchTarget>{children}</TouchTarget>
+					<TouchTarget>{rest}</TouchTarget>
 				</Link>
 			) : (
 				<button
@@ -54,14 +76,12 @@ export function SidebarItem({
 					className={clsx('cursor-default', classes)}
 					data-slot="sidebar-item"
 					data-current={current ? 'true' : undefined}
-					onClick={(e) => {
-						close?.()
-						;(props as React.ComponentPropsWithoutRef<'button'>).onClick?.(e)
-					}}
+					onClick={(props as React.ComponentPropsWithoutRef<'button'>).onClick}
 				>
-					<TouchTarget>{children}</TouchTarget>
+					<TouchTarget>{rest}</TouchTarget>
 				</button>
 			)}
+			{actions}
 		</span>
 	)
 }

@@ -12,7 +12,7 @@ export function AlertDescription({ className, ...props }: React.ComponentPropsWi
 			{...props}
 			className={clsx(
 				className,
-				'mt-2 text-center text-base/6 text-zinc-500 text-pretty sm:text-left dark:text-zinc-400',
+				'mt-2 text-center text-base/6 text-zinc-500 text-pretty sm:text-left  dark:text-zinc-400',
 			)}
 		/>
 	)

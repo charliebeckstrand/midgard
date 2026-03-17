@@ -38,7 +38,7 @@ export function Input({ className, disabled, invalid, ...props }: InputProps) {
 			className={clsx(
 				className,
 				controlWrapper,
-				'has-[:read-only]:before:bg-transparent has-[:read-only]:before:shadow-none',
+				'has-read-only:before:bg-transparent has-read-only:before:shadow-none',
 			)}
 		>
 			<input

@@ -1,5 +1,4 @@
 export { AlertActions } from './actions'
-export type { AlertProps } from './alert'
 export { Alert } from './alert'
 export { AlertBody } from './body'
 export { AlertDescription } from './description'

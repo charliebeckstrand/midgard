@@ -12,7 +12,7 @@ export function AlertTitle({ className, ...props }: React.ComponentPropsWithoutR
 			{...props}
 			className={clsx(
 				className,
-				'text-center text-base/6 font-semibold text-balance text-zinc-950 sm:text-left sm:text-wrap dark:text-white',
+				'text-center text-base/6 font-semibold text-balance text-zinc-950 sm:text-left  sm:text-wrap dark:text-white',
 			)}
 		/>
 	)

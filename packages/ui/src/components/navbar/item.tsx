@@ -26,17 +26,21 @@ export function NavbarItem({
 	)
 
 	return (
-		<span className={clsx(className, 'relative')}>
+		<span className={clsx('group relative')}>
 			{current && <ActiveIndicator orientation="horizontal" />}
 			{typeof props.href === 'string' ? (
-				<Link {...props} className={classes} data-current={current ? 'true' : undefined}>
+				<Link
+					{...props}
+					className={clsx(className, classes)}
+					data-current={current ? 'true' : undefined}
+				>
 					<TouchTarget>{children}</TouchTarget>
 				</Link>
 			) : (
 				<button
 					{...props}
 					type="button"
-					className={clsx('cursor-default', classes)}
+					className={clsx(className, 'cursor-default', classes)}
 					data-current={current ? 'true' : undefined}
 				>
 					<TouchTarget>{children}</TouchTarget>
