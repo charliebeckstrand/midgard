@@ -1,7 +1,7 @@
 /** Base styles for selectable menu items (Dropdown, Listbox, Combobox) */
 export const menuItemBase = [
 	'cursor-default rounded-lg py-2.5 sm:py-1.5',
-	'text-base/6 text-zinc-950  dark:text-white forced-colors:text-[CanvasText]',
+	'text-base/6 text-zinc-950 dark:text-white forced-colors:text-[CanvasText]',
 	'outline-hidden focus:bg-blue-600 focus:text-white hover:bg-blue-600 hover:text-white',
 	'forced-color-adjust-none forced-colors:focus:bg-[Highlight] forced-colors:focus:text-[HighlightText]',
 	'data-disabled:opacity-50',

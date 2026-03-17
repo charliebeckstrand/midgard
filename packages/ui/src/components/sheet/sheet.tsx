@@ -5,19 +5,21 @@ import { useCallback, useId, useState } from 'react'
 import type { SheetSide } from './context'
 import { SheetProvider } from './context'
 
+export type SheetProps = {
+	children: React.ReactNode
+	side?: SheetSide
+	modal?: boolean
+	open?: boolean
+	onOpenChange?: (open: boolean) => void
+}
+
 export function Sheet({
 	children,
 	side = 'right',
 	modal = true,
 	open: controlledOpen,
 	onOpenChange: controlledOnOpenChange,
-}: {
-	children: React.ReactNode
-	side?: SheetSide
-	modal?: boolean
-	open?: boolean
-	onOpenChange?: (open: boolean) => void
-}) {
+}: SheetProps) {
 	const [internalOpen, setInternalOpen] = useState(false)
 	const open = controlledOpen ?? internalOpen
 	const onOpenChange = useCallback(

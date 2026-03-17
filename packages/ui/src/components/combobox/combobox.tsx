@@ -10,6 +10,25 @@ import { controlInput, controlWrapper } from '../../recipes'
 import { ComboboxProvider } from './context'
 import { ComboboxOptions } from './options'
 
+export type ComboboxProps<T> = {
+	options: T[]
+	displayValue: (value: T | null) => string | undefined
+	filter?: (value: T, query: string) => boolean
+	className?: string
+	placeholder?: string
+	autoFocus?: boolean
+	'aria-label'?: string
+	children: (value: NonNullable<T>) => React.ReactElement
+	value?: T
+	defaultValue?: T
+	onChange?: (value: T) => void
+	disabled?: boolean
+	invalid?: boolean
+	name?: string
+	inputId?: string
+	anchor?: 'top' | 'bottom'
+} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className' | 'onChange' | 'children'>
+
 export function Combobox<T>({
 	options,
 	displayValue,
@@ -28,29 +47,11 @@ export function Combobox<T>({
 	name,
 	inputId,
 	...props
-}: {
-	options: T[]
-	displayValue: (value: T | null) => string | undefined
-	filter?: (value: T, query: string) => boolean
-	className?: string
-	placeholder?: string
-	autoFocus?: boolean
-	'aria-label'?: string
-	children: (value: NonNullable<T>) => React.ReactElement
-	value?: T
-	defaultValue?: T
-	onChange?: (value: T) => void
-	disabled?: boolean
-	invalid?: boolean
-	name?: string
-	inputId?: string
-	anchor?: 'top' | 'bottom'
-} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className' | 'onChange' | 'children'>) {
+}: ComboboxProps<T>) {
 	const [query, setQuery] = useState('')
 	const [open, setOpen] = useState(false)
 	const [currentValue, setValue] = useControllable({ value, defaultValue, onChange })
 	const inputRef = useRef<HTMLInputElement>(null)
-	const listRef = useRef<HTMLDivElement>(null)
 
 	const filteredOptions =
 		query === ''
@@ -79,22 +80,9 @@ export function Combobox<T>({
 	const anchorClasses = anchor === 'top' ? 'bottom-full mb-1' : 'top-full mt-1'
 
 	function handleInputKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-		if (e.key === 'ArrowDown') {
+		if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
 			e.preventDefault()
-			if (!open) {
-				setOpen(true)
-			} else if (listRef.current) {
-				const items = listRef.current.querySelectorAll<HTMLElement>('[role="option"]')
-				if (items.length > 0) items[0].focus()
-			}
-		} else if (e.key === 'ArrowUp') {
-			e.preventDefault()
-			if (!open) {
-				setOpen(true)
-			} else if (listRef.current) {
-				const items = listRef.current.querySelectorAll<HTMLElement>('[role="option"]')
-				if (items.length > 0) items[items.length - 1].focus()
-			}
+			if (!open) setOpen(true)
 		}
 	}
 
@@ -156,7 +144,7 @@ export function Combobox<T>({
 
 				<AnimatePresence>
 					{open && filteredOptions.length > 0 && (
-						<ComboboxOptions ref={listRef} className={`left-0 ${anchorClasses}`}>
+						<ComboboxOptions className={`left-0 ${anchorClasses}`}>
 							{filteredOptions.map((option) => children(option as NonNullable<T>))}
 						</ComboboxOptions>
 					)}

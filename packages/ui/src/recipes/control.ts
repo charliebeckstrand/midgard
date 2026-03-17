@@ -26,7 +26,7 @@ export const dateInputOverrides = [
 
 /** Shared input element styles (Input, Select, Textarea, Combobox) */
 export const controlInput = [
-	'text-base/6 text-zinc-950 placeholder:text-zinc-500  dark:text-white',
+	'text-base/6 text-zinc-950 placeholder:text-zinc-500 dark:text-white',
 	'border border-zinc-950/10 hover:border-zinc-950/20 dark:border-white/10 dark:hover:border-white/20',
 	'bg-transparent dark:bg-white/5',
 	'focus:outline-hidden',
