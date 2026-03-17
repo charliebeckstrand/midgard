@@ -44,6 +44,7 @@ export function SidebarItem({
 					data-current={current ? 'true' : undefined}
 					onClick={(e) => {
 						if (!dropdown) close?.()
+
 						;(props as React.ComponentPropsWithoutRef<typeof Link>).onClick?.(e)
 					}}
 				>
@@ -58,6 +59,7 @@ export function SidebarItem({
 					data-current={current ? 'true' : undefined}
 					onClick={(e) => {
 						if (!dropdown) close?.()
+
 						;(props as React.ComponentPropsWithoutRef<'button'>).onClick?.(e)
 					}}
 				>
