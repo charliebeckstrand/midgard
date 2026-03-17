@@ -14,3 +14,14 @@ table > thead tr > :is(th, td):first-child:nth-last-child(2) ~ :is(th, td) { wid
 
 table > thead tr > :is(th, td):first-child:nth-last-child(3),
 table > thead tr > :is(th, td):first-child:nth-last-child(3) ~ :is(th, td) { width: 33.3333%; }
+
+/* Remove browser default focus outlines; show blue ring on keyboard navigation only */
+button:focus, [role="button"]:focus, [role="tab"]:focus, a:focus, input:focus, textarea:focus {
+    outline: none;
+}
+
+button:focus-visible, [role="button"]:focus-visible, [role="tab"]:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible {
+    outline: 2px solid var(--color-blue-600);
+    outline-offset: -2px;
+    border-radius: var(--radius-lg);
+}

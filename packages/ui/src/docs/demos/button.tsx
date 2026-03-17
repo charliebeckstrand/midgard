@@ -4,7 +4,7 @@ export const meta = { category: 'Forms' }
 
 const variants = ['solid', 'outline', 'plain', 'ghost'] as const
 
-const colors = ['zinc', 'red', 'amber', 'green', 'blue', 'purple', 'pink'] as const
+const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 
 export default function ButtonDemo() {
 	return (

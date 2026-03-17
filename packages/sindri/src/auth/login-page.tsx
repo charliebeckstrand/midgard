@@ -2,10 +2,10 @@
 
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useState } from 'react'
-import { ShinyText } from 'reactbits/shiny-text'
 import { ErrorMessage, Field, Label } from 'ui/fieldset'
 import { Input } from 'ui/input'
 import { LoginPage as LoginPageLayout } from 'ui/pages'
+import { ShinyText } from 'ui/react-bits/shiny-text'
 import { Strong, Text, TextLink } from 'ui/text'
 import { PasswordInput } from './password-input'
 import { useForm } from './use-form'

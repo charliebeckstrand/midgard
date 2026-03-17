@@ -4,10 +4,11 @@ import { ChatBubbleLeftIcon, PlusIcon, XMarkIcon } from '@heroicons/react/20/sol
 import type { User } from 'heimdall/user'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { type ReactNode, useCallback, useMemo } from 'react'
-import { ShinyText } from 'reactbits'
 import { useChat } from 'sindri/chat'
+import { useArrowAction } from 'ui/hooks'
 import { SidebarLayout } from 'ui/layouts'
 import { Navbar, NavbarSpacer } from 'ui/navbar'
+import { ShinyText } from 'ui/react-bits/shiny-text'
 import {
 	Sidebar,
 	SidebarBody,
@@ -20,6 +21,40 @@ import {
 import { ChatContext } from './context'
 import { SidebarUserDropdown } from './sidebar-user-dropdown'
 import type { Chat } from './types'
+
+function ChatItem({
+	chat,
+	current,
+	onDelete,
+}: {
+	chat: Chat
+	current: boolean
+	onDelete: (id: string) => void
+}) {
+	const { actionRef, onPrimaryKeyDown, onActionKeyDown } = useArrowAction<HTMLButtonElement>()
+
+	return (
+		<div className="group relative">
+			<SidebarItem href={`/${chat.id}`} current={current} onKeyDown={onPrimaryKeyDown}>
+				<ChatBubbleLeftIcon />
+				<SidebarLabel>{chat.id}</SidebarLabel>
+			</SidebarItem>
+			<button
+				ref={actionRef}
+				type="button"
+				tabIndex={-1}
+				onKeyDown={onActionKeyDown}
+				onClick={(e) => {
+					e.preventDefault()
+					onDelete(chat.id)
+				}}
+				className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded p-0.75 opacity-0 transition-opacity focus:opacity-100 group-hover:opacity-100 bg-zinc-800 hover:bg-zinc-700"
+			>
+				<XMarkIcon className="size-4 fill-zinc-950 dark:fill-white" />
+			</button>
+		</div>
+	)
+}
 
 export function ChatClient({
 	user,
@@ -40,6 +75,7 @@ export function ChatClient({
 
 	const activeChatId = useMemo(() => {
 		const match = pathname.match(/^\/([^/]+)/)
+
 		return match ? match[1] : null
 	}, [pathname])
 
@@ -93,22 +129,12 @@ export function ChatClient({
 						{chats.length > 0 && (
 							<SidebarSection>
 								{chats.map((chat) => (
-									<div key={chat.id} className="group relative">
-										<SidebarItem href={`/${chat.id}`} current={pathname === `/${chat.id}`}>
-											<ChatBubbleLeftIcon />
-											<SidebarLabel>{chat.id}</SidebarLabel>
-										</SidebarItem>
-										<button
-											type="button"
-											onClick={(e) => {
-												e.preventDefault()
-												deleteChat(chat.id)
-											}}
-											className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded p-0.75 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100 bg-zinc-800 hover:bg-zinc-700"
-										>
-											<XMarkIcon className="size-4 fill-zinc-950 dark:fill-white" />
-										</button>
-									</div>
+									<ChatItem
+										key={chat.id}
+										chat={chat}
+										current={pathname === `/${chat.id}`}
+										onDelete={deleteChat}
+									/>
 								))}
 							</SidebarSection>
 						)}

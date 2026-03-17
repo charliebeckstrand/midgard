@@ -16,7 +16,8 @@ export function DropdownMenu({
 	className?: string
 	children: React.ReactNode
 }) {
-	const { open } = useDropdown()
+	const { open, fullWidth } = useDropdown()
+
 	const positionClass = anchorPositions[anchor] ?? anchorPositions.bottom
 
 	return (
@@ -27,7 +28,7 @@ export function DropdownMenu({
 					itemSelector='[role="menuitem"]:not([data-disabled])'
 					className={clsx(
 						positionClass,
-						'min-w-max',
+						!fullWidth && 'min-w-max',
 						'supports-[grid-template-columns:subgrid]:grid supports-[grid-template-columns:subgrid]:grid-cols-[auto_1fr_1.5rem_0.5rem_auto]',
 						className,
 					)}

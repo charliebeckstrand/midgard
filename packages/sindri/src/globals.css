@@ -1,12 +1,14 @@
 @import './theme.css';
 
+@variant dark (@media (prefers-color-scheme: dark));
+
 :root {
     height: 100%;
     overscroll-behavior: none;
 }
 
 /* Remove browser default focus outlines; show blue ring on keyboard navigation only */
-button:focus, [role="button"]:focus, a:focus, input:focus, textarea:focus {
+button:focus, [role="button"]:focus, [role="tab"]:focus, a:focus, input:focus, textarea:focus {
     outline: none;
 }
 

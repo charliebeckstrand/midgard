@@ -1,6 +1,6 @@
 import { defineConfig } from 'tsup'
 
-export default defineConfig({
+export default defineConfig((options) => ({
 	entry: {
 		index: 'src/index.ts',
 		core: 'src/core/index.ts',
@@ -35,13 +35,14 @@ export default defineConfig({
 		text: 'src/components/text/index.ts',
 		textarea: 'src/components/textarea/index.ts',
 		placeholder: 'src/components/placeholder/index.ts',
+		'react-bits/shiny-text': 'src/components/react-bits/shiny-text.tsx',
 	},
 	format: ['esm'],
 	target: 'es2022',
 	outDir: 'dist',
-	clean: true,
+	clean: !options.watch,
 	dts: true,
 	sourcemap: true,
 	splitting: true,
 	banner: { js: "'use client'" },
-})
+}))

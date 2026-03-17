@@ -3,14 +3,22 @@
 import clsx from 'clsx'
 import { LayoutGroup } from 'motion/react'
 import type React from 'react'
-import { useId } from 'react'
+import { useId, useRef } from 'react'
+import { useMenuKeyboard } from '../../hooks'
 
 export function Sidebar({ className, ...props }: React.ComponentPropsWithoutRef<'nav'>) {
 	const groupId = useId()
+	const ref = useRef<HTMLElement>(null)
+	const onKeyDown = useMenuKeyboard(ref, '[data-slot="sidebar-item"]')
 
 	return (
 		<LayoutGroup id={groupId}>
-			<nav {...props} className={clsx(className, 'flex h-full min-h-0 flex-col')} />
+			<nav
+				ref={ref}
+				onKeyDown={onKeyDown}
+				{...props}
+				className={clsx(className, 'flex h-full min-h-0 flex-col')}
+			/>
 		</LayoutGroup>
 	)
 }

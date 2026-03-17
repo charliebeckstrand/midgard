@@ -38,6 +38,7 @@ export function SidebarItem({
 				<Link
 					{...props}
 					className={classes}
+					data-slot="sidebar-item"
 					data-current={current ? 'true' : undefined}
 					onClick={(e) => {
 						close?.()
@@ -51,10 +52,10 @@ export function SidebarItem({
 					{...props}
 					type="button"
 					className={clsx('cursor-default', classes)}
+					data-slot="sidebar-item"
 					data-current={current ? 'true' : undefined}
 					onClick={(e) => {
 						close?.()
-
 						;(props as React.ComponentPropsWithoutRef<'button'>).onClick?.(e)
 					}}
 				>

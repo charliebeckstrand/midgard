@@ -7,7 +7,12 @@
       "Read(//Users/charliebeckstrand/Sites/midgard/**)",
       "Bash(done)",
       "Bash(find /Users/charliebeckstrand/Sites/midgard/docs -type f -name *.md)",
-      "Bash(pnpm build:*)"
+      "Bash(pnpm build:*)",
+      "Bash(grep -r \"heimdall\\\\|withAuth\\\\|bifrost\\\\|getSession\\\\|getUser\\\\|proxy\" /Users/charliebeckstrand/Sites/midgard/apps --include=*.ts --include=*.tsx)",
+      "Bash(grep -r \"reactbits\\\\|ShinyText\" /Users/charliebeckstrand/Sites/midgard/apps --include=*.ts --include=*.tsx)",
+      "Bash(pnpm install:*)",
+      "Bash(pnpm --filter ui build)",
+      "Bash(pnpm --filter sindri build)"
     ]
   }
 }

@@ -18,9 +18,6 @@ export const checkboxColors = {
 	green:
 		'[--checkbox-check:var(--color-white)] [--checkbox-checked-bg:var(--color-green-600)] [--checkbox-checked-border:var(--color-green-800)]/90',
 	blue: '[--checkbox-check:var(--color-white)] [--checkbox-checked-bg:var(--color-blue-600)] [--checkbox-checked-border:var(--color-blue-800)]/90',
-	purple:
-		'[--checkbox-check:var(--color-white)] [--checkbox-checked-bg:var(--color-purple-600)] [--checkbox-checked-border:var(--color-purple-800)]/90',
-	pink: '[--checkbox-check:var(--color-white)] [--checkbox-checked-bg:var(--color-pink-700)] [--checkbox-checked-border:var(--color-pink-800)]/90',
 } as const
 
 /** Radio color variants — maps to --radio-checked-bg, --radio-checked-border, --radio-checked-indicator */
@@ -35,9 +32,6 @@ export const radioColors = {
 	green:
 		'[--radio-checked-indicator:var(--color-white)] [--radio-checked-bg:var(--color-green-600)] [--radio-checked-border:var(--color-green-800)]/90',
 	blue: '[--radio-checked-indicator:var(--color-white)] [--radio-checked-bg:var(--color-blue-600)] [--radio-checked-border:var(--color-blue-800)]/90',
-	purple:
-		'[--radio-checked-indicator:var(--color-white)] [--radio-checked-bg:var(--color-purple-600)] [--radio-checked-border:var(--color-purple-800)]/90',
-	pink: '[--radio-checked-indicator:var(--color-white)] [--radio-checked-bg:var(--color-pink-700)] [--radio-checked-border:var(--color-pink-800)]/90',
 } as const
 
 /** Switch color variants — maps to --switch-bg, --switch-bg-ring, --switch, --switch-ring, --switch-shadow */
@@ -69,14 +63,6 @@ export const switchColors = {
 	blue: [
 		'[--switch-bg-ring:var(--color-blue-800)]/90 [--switch-bg:var(--color-blue-600)] dark:[--switch-bg-ring:transparent]',
 		'[--switch:white] [--switch-ring:var(--color-blue-800)]/90 [--switch-shadow:var(--color-blue-200)]/20',
-	],
-	purple: [
-		'[--switch-bg-ring:var(--color-purple-800)]/90 [--switch-bg:var(--color-purple-600)] dark:[--switch-bg-ring:transparent]',
-		'[--switch:white] [--switch-ring:var(--color-purple-800)]/90 [--switch-shadow:var(--color-purple-200)]/20',
-	],
-	pink: [
-		'[--switch-bg-ring:var(--color-pink-800)]/90 [--switch-bg:var(--color-pink-700)] dark:[--switch-bg-ring:transparent]',
-		'[--switch:white] [--switch-ring:var(--color-pink-800)]/90 [--switch-shadow:var(--color-pink-200)]/20',
 	],
 } as const
 
@@ -113,14 +99,6 @@ export const buttonColors = {
 		'text-white [--btn-hover-overlay:var(--color-white)]/10 [--btn-bg:var(--color-blue-600)] [--btn-border:var(--color-blue-800)]/90',
 		'[--btn-icon:var(--color-blue-900)] active:[--btn-icon:var(--color-blue-1000)] hover:[--btn-icon:var(--color-blue-1000)]',
 	],
-	purple: [
-		'text-white [--btn-hover-overlay:var(--color-white)]/10 [--btn-bg:var(--color-purple-600)] [--btn-border:var(--color-purple-800)]/90',
-		'[--btn-icon:var(--color-purple-900)] active:[--btn-icon:var(--color-purple-1000)] hover:[--btn-icon:var(--color-purple-1000)]',
-	],
-	pink: [
-		'text-white [--btn-hover-overlay:var(--color-white)]/10 [--btn-bg:var(--color-pink-700)] [--btn-border:var(--color-pink-800)]/90',
-		'[--btn-icon:var(--color-pink-900)] active:[--btn-icon:var(--color-pink-1000)] hover:[--btn-icon:var(--color-pink-1000)]',
-	],
 } as const
 
 /** Badge subtle color variants — translucent bg with tinted text */
@@ -132,9 +110,6 @@ export const badgeSubtleColors = {
 		'bg-green-600/15 text-green-700 group-hover:bg-green-600/25 dark:bg-green-500/15 dark:text-green-400 dark:group-hover:bg-green-500/25',
 	blue: 'bg-blue-600/15 text-blue-700 group-hover:bg-blue-600/25 dark:bg-blue-500/15 dark:text-blue-400 dark:group-hover:bg-blue-500/25',
 	teal: 'bg-teal-600/15 text-teal-700 group-hover:bg-teal-600/25 dark:bg-teal-500/15 dark:text-teal-400 dark:group-hover:bg-teal-500/25',
-	purple:
-		'bg-purple-600/15 text-purple-700 group-hover:bg-purple-600/25 dark:bg-purple-500/15 dark:text-purple-400 dark:group-hover:bg-purple-500/25',
-	pink: 'bg-pink-600/15 text-pink-700 group-hover:bg-pink-600/25 dark:bg-pink-500/15 dark:text-pink-400 dark:group-hover:bg-pink-500/25',
 	zinc: 'bg-zinc-600/10 text-zinc-700 group-hover:bg-zinc-600/20 dark:bg-white/10 dark:text-zinc-300 dark:group-hover:bg-white/15',
 	white:
 		'bg-white text-zinc-950 group-hover:bg-zinc-50 dark:bg-white/10 dark:text-white dark:group-hover:bg-white/15',
@@ -150,9 +125,6 @@ export const badgeSolidColors = {
 		'bg-green-600 text-white group-hover:bg-green-700 dark:bg-green-500 dark:group-hover:bg-green-600',
 	blue: 'bg-blue-600 text-white group-hover:bg-blue-700 dark:bg-blue-500 dark:group-hover:bg-blue-600',
 	teal: 'bg-teal-600 text-white group-hover:bg-teal-700 dark:bg-teal-500 dark:group-hover:bg-teal-600',
-	purple:
-		'bg-purple-600 text-white group-hover:bg-purple-700 dark:bg-purple-500 dark:group-hover:bg-purple-600',
-	pink: 'bg-pink-600 text-white group-hover:bg-pink-700 dark:bg-pink-500 dark:group-hover:bg-pink-600',
 	zinc: 'bg-zinc-700 text-white group-hover:bg-zinc-800 dark:bg-zinc-600 dark:group-hover:bg-zinc-500',
 	white:
 		'bg-white text-zinc-950 group-hover:bg-zinc-100 dark:bg-zinc-200 dark:text-zinc-950 dark:group-hover:bg-zinc-300',

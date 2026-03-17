@@ -4,9 +4,15 @@ import type React from 'react'
 import { type RefObject, useCallback } from 'react'
 
 /**
- * Keyboard navigation for menu items (ArrowDown, ArrowUp, Home, End).
+ * Keyboard navigation for menu items.
+ *
+ * @param orientation - `'vertical'` uses ArrowUp/ArrowDown (default), `'horizontal'` uses ArrowLeft/ArrowRight.
  */
-export function useMenuKeyboard(containerRef: RefObject<HTMLElement | null>, selector: string) {
+export function useMenuKeyboard(
+	containerRef: RefObject<HTMLElement | null>,
+	selector: string,
+	orientation: 'vertical' | 'horizontal' = 'vertical',
+) {
 	return useCallback(
 		(e: React.KeyboardEvent) => {
 			const container = containerRef.current
@@ -15,15 +21,18 @@ export function useMenuKeyboard(containerRef: RefObject<HTMLElement | null>, sel
 			const items = Array.from(container.querySelectorAll<HTMLElement>(selector))
 			const currentIndex = items.indexOf(document.activeElement as HTMLElement)
 
+			const nextKey = orientation === 'vertical' ? 'ArrowDown' : 'ArrowRight'
+			const prevKey = orientation === 'vertical' ? 'ArrowUp' : 'ArrowLeft'
+
 			switch (e.key) {
-				case 'ArrowDown': {
+				case nextKey: {
 					e.preventDefault()
 					const next =
 						currentIndex === -1 ? 0 : currentIndex < items.length - 1 ? currentIndex + 1 : 0
 					items[next]?.focus()
 					break
 				}
-				case 'ArrowUp': {
+				case prevKey: {
 					e.preventDefault()
 					const prev =
 						currentIndex === -1
@@ -46,6 +55,6 @@ export function useMenuKeyboard(containerRef: RefObject<HTMLElement | null>, sel
 				}
 			}
 		},
-		[containerRef, selector],
+		[containerRef, selector, orientation],
 	)
 }

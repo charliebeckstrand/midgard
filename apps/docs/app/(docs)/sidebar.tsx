@@ -1,6 +1,6 @@
 'use client'
 
-import { ShinyText } from 'reactbits'
+import { ShinyText } from 'ui/react-bits/shiny-text'
 import {
 	Sidebar,
 	SidebarBody,

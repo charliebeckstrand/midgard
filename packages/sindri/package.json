@@ -33,8 +33,7 @@
 		"@heroicons/react": "^2.2.0",
 		"ui": "workspace:*",
 		"eventsource-parser": "^3.0.6",
-		"react-textarea-autosize": "^8.5.9",
-		"reactbits": "workspace:*"
+		"react-textarea-autosize": "^8.5.9"
 	},
 	"peerDependencies": {
 		"next": "^15.0.0 || ^16.0.0",

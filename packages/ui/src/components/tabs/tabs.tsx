@@ -3,15 +3,21 @@
 import clsx from 'clsx'
 import { LayoutGroup } from 'motion/react'
 import type React from 'react'
-import { useId } from 'react'
+import { useId, useRef } from 'react'
+import { useMenuKeyboard } from '../../hooks'
 import { ActiveIndicator } from '../../primitives'
 
 export function Tabs({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
 	const groupId = useId()
+	const ref = useRef<HTMLDivElement>(null)
+	const onKeyDown = useMenuKeyboard(ref, '[role="tab"]', 'horizontal')
 
 	return (
 		<LayoutGroup id={groupId}>
 			<div
+				ref={ref}
+				role="tablist"
+				onKeyDown={onKeyDown}
 				{...props}
 				className={clsx(className, 'flex gap-4 border-b border-zinc-950/10 dark:border-white/10')}
 			/>
@@ -32,13 +38,15 @@ export function Tab({
 	append?: React.ReactNode
 } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className'> & { className?: string }) {
 	return (
-		<span className={clsx(className, 'relative flex')}>
+		<span className={clsx(className, 'relative flex pb-2.5')}>
 			{current && <ActiveIndicator orientation="underline" />}
 			<button
 				{...props}
 				type="button"
+				role="tab"
+				aria-selected={current}
 				className={clsx(
-					'flex items-center gap-2 px-2 pb-3 pt-1 text-sm/6 font-medium',
+					'flex items-center gap-2 px-2 py-1 text-sm/6 font-medium focus:outline-hidden',
 					current
 						? 'text-zinc-950 dark:text-white'
 						: 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200',

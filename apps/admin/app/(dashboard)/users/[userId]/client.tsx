@@ -8,8 +8,10 @@ import { ChatMessages } from 'sindri/chat'
 import { Button } from 'ui/button'
 import { Dialog, DialogActions, DialogBody, DialogTitle } from 'ui/dialog'
 import { Heading, Subheading } from 'ui/heading'
+import { Placeholder } from 'ui/placeholder'
 import { Sheet, SheetClose, SheetContent, SheetHeader, SheetSubtitle, SheetTitle } from 'ui/sheet'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from 'ui/table'
+import { Text } from 'ui/text'
 
 interface UserDetailsClientProps {
 	details: User | null
@@ -118,13 +120,13 @@ export function UserDetailsClient({ details, chats: initialChats }: UserDetailsC
 							</SheetClose>
 						</div>
 					</SheetHeader>
-					<div className="flex flex-col flex-1 overflow-hidden px-6 pb-6">
+					<div className="flex flex-col flex-1 overflow-hidden p-6">
 						{loadingMessages ? (
-							<p className="text-sm text-zinc-500">Loading messages…</p>
+							<Placeholder />
 						) : chatMessages.length > 0 ? (
 							<ChatMessages messages={chatMessages} />
 						) : (
-							<p className="text-sm text-zinc-500">No messages in this chat.</p>
+							<Text className="text-zinc-500">No messages in this chat.</Text>
 						)}
 					</div>
 				</SheetContent>
