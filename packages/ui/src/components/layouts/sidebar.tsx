@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { twMerge } from 'tailwind-merge'
+import { cn } from '../../core'
 import { MenuIcon } from '../../primitives'
 import { NavbarItem } from '../navbar'
 import { MobileSidebar } from './mobile-sidebar'
@@ -53,7 +53,7 @@ export function SidebarLayoutHeader({
 	className,
 }: React.PropsWithChildren<{ className?: string }>) {
 	return (
-		<div data-slot="header" className={twMerge('shrink-0', className)}>
+		<div data-slot="header" className={cn('shrink-0', className)}>
 			{children}
 		</div>
 	)
@@ -64,11 +64,7 @@ export const SidebarLayoutBody = React.forwardRef<
 	React.PropsWithChildren<{ className?: string }>
 >(function SidebarLayoutBody({ children, className }, ref) {
 	return (
-		<div
-			ref={ref}
-			data-slot="body"
-			className={`flex-1 min-h-0 overflow-y-auto p-6 ${className ?? ''}`}
-		>
+		<div ref={ref} data-slot="body" className={cn('flex-1 min-h-0 overflow-y-auto p-6', className)}>
 			{children}
 		</div>
 	)

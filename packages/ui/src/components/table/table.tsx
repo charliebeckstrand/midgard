@@ -1,6 +1,6 @@
 'use client'
 
-import clsx from 'clsx'
+import { cn } from '../../core'
 import { TableProvider } from './context'
 
 interface TableProps extends React.ComponentPropsWithoutRef<'div'> {
@@ -24,11 +24,9 @@ export function Table({
 			<div className="flow-root">
 				<div
 					{...props}
-					className={clsx(className, '-mx-(--gutter) overflow-x-auto whitespace-nowrap')}
+					className={cn('-mx-(--gutter) overflow-x-auto whitespace-nowrap', className)}
 				>
-					<div
-						className={clsx('inline-block min-w-full align-middle', !bleed && 'sm:px-(--gutter)')}
-					>
+					<div className={cn('inline-block min-w-full align-middle', !bleed && 'sm:px-(--gutter)')}>
 						<table className="min-w-full text-left text-sm/6 text-zinc-950 dark:text-white">
 							{children}
 						</table>
@@ -40,7 +38,7 @@ export function Table({
 }
 
 export function TableHead({ className, ...props }: React.ComponentPropsWithoutRef<'thead'>) {
-	return <thead {...props} className={clsx(className, 'text-zinc-500 dark:text-zinc-400')} />
+	return <thead {...props} className={cn('text-zinc-500 dark:text-zinc-400', className)} />
 }
 
 export function TableBody({ className, ...props }: React.ComponentPropsWithoutRef<'tbody'>) {

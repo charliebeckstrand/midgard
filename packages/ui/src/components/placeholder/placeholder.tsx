@@ -1,7 +1,7 @@
 'use client'
 
-import clsx from 'clsx'
 import { motion } from 'motion/react'
+import { cn } from '../../core'
 
 const pulseAnimation = {
 	initial: { opacity: 0.5 },
@@ -19,13 +19,13 @@ export function Placeholder({ className }: { className?: string }) {
 		<motion.div
 			role="status"
 			aria-label="Loading"
-			className={clsx(className, 'rounded-lg bg-zinc-200 dark:bg-zinc-700')}
+			className={cn('rounded-lg bg-zinc-200 dark:bg-zinc-800', className)}
 			{...pulseAnimation}
 		/>
 	)
 }
 
-const bar = 'h-2 rounded-full bg-zinc-200 dark:bg-zinc-700'
+const bar = 'h-2 rounded-full bg-zinc-200 dark:bg-zinc-800'
 
 export function PlaceholderText({ className, bars = 3 }: { className?: string; bars?: number }) {
 	const items = Array.from({ length: bars }, (_, i) => ({
@@ -38,11 +38,11 @@ export function PlaceholderText({ className, bars = 3 }: { className?: string; b
 		<motion.div
 			role="status"
 			aria-label="Loading"
-			className={clsx(className, 'w-full')}
+			className={cn('w-full', className)}
 			{...pulseAnimation}
 		>
 			{items.map((item) => (
-				<div key={item.id} className={clsx(bar, item.width, item.spacing && 'mb-2.5')} />
+				<div key={item.id} className={cn(bar, item.width, item.spacing && 'mb-2.5')} />
 			))}
 		</motion.div>
 	)
@@ -53,10 +53,10 @@ export function PlaceholderInput({ className }: { className?: string }) {
 		<motion.div
 			role="status"
 			aria-label="Loading"
-			className={clsx(
-				className,
+			className={cn(
 				'relative block w-full rounded-lg ring-1 ring-zinc-950/10 bg-zinc-200 dark:bg-zinc-800 px-3.5 py-2.5 sm:px-3 sm:py-1.5',
 				'dark:ring-white/10',
+				className,
 			)}
 			{...pulseAnimation}
 		>
@@ -70,16 +70,16 @@ export function PlaceholderTextarea({ className }: { className?: string }) {
 		<motion.div
 			role="status"
 			aria-label="Loading"
-			className={clsx(
-				className,
+			className={cn(
 				'relative block w-full rounded-lg ring-1 ring-zinc-950/10 px-3.5 py-2.5 sm:px-3 sm:py-1.5',
 				'dark:ring-white/10',
+				className,
 			)}
 			{...pulseAnimation}
 		>
-			<div className="mb-2 h-[1em] max-w-[80%] rounded bg-zinc-200 text-base/6 sm:text-sm/6 dark:bg-zinc-700" />
-			<div className="mb-2 h-[1em] rounded bg-zinc-200 text-base/6 sm:text-sm/6 dark:bg-zinc-700" />
-			<div className="h-[1em] max-w-[40%] rounded bg-zinc-200 text-base/6 sm:text-sm/6 dark:bg-zinc-700" />
+			<div className="mb-2 h-[1em] max-w-[80%] rounded bg-zinc-200 text-base/6 sm:text-sm/6 dark:bg-zinc-800" />
+			<div className="mb-2 h-[1em] rounded bg-zinc-200 text-base/6 sm:text-sm/6 dark:bg-zinc-800" />
+			<div className="h-[1em] max-w-[40%] rounded bg-zinc-200 text-base/6 sm:text-sm/6 dark:bg-zinc-800" />
 		</motion.div>
 	)
 }
@@ -89,10 +89,10 @@ export function PlaceholderButton({ className }: { className?: string }) {
 		<motion.div
 			role="status"
 			aria-label="Loading"
-			className={clsx(
-				className,
+			className={cn(
 				'size-10 rounded-lg ring-1 ring-zinc-950/10 bg-zinc-200 dark:bg-zinc-800',
 				'dark:ring-white/10',
+				className,
 			)}
 			{...pulseAnimation}
 		/>
@@ -110,11 +110,11 @@ export function PlaceholderSidebarItem({
 		<motion.div
 			role="status"
 			aria-label="Loading"
-			className={clsx(className, 'flex w-full items-center gap-3 rounded-lg px-2 py-2.5 sm:py-2')}
+			className={cn('flex w-full items-center gap-3 rounded-lg px-2 py-2.5 sm:py-2', className)}
 			{...pulseAnimation}
 		>
-			{icon && <div className="size-5 shrink-0 rounded bg-zinc-200 sm:size-4 dark:bg-zinc-700" />}
-			<div className="h-lh flex-1 rounded bg-zinc-200 text-base/6 sm:text-sm/6 dark:bg-zinc-700" />
+			{icon && <div className="size-5 shrink-0 rounded bg-zinc-200 sm:size-4 dark:bg-zinc-800" />}
+			<div className="h-lh flex-1 rounded bg-zinc-200 text-base/6 sm:text-sm/6 dark:bg-zinc-800" />
 		</motion.div>
 	)
 }

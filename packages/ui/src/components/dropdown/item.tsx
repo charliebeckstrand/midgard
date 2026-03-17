@@ -1,8 +1,7 @@
 'use client'
 
-import clsx from 'clsx'
 import type React from 'react'
-import { Link } from '../../core'
+import { cn, Link } from '../../core'
 import { menuItemBase } from '../../recipes/item'
 import { useDropdown } from './context'
 
@@ -30,7 +29,7 @@ export function DropdownItem({
 	  >)
 )) {
 	const { close } = useDropdown()
-	const classes = clsx(className, itemClasses)
+	const classes = cn(itemClasses, className)
 
 	if (typeof props.href === 'string') {
 		const { disabled, ...linkProps } = props as {
@@ -78,7 +77,7 @@ export function DropdownItem({
 }
 
 export function DropdownLabel({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
-	return <div {...props} data-slot="label" className={clsx(className, 'col-start-2 row-start-1')} />
+	return <div {...props} data-slot="label" className={cn('col-start-2 row-start-1', className)} />
 }
 
 export function DropdownDescription({ className, ...props }: React.ComponentPropsWithoutRef<'p'>) {
@@ -86,9 +85,9 @@ export function DropdownDescription({ className, ...props }: React.ComponentProp
 		<p
 			data-slot="description"
 			{...props}
-			className={clsx(
-				className,
+			className={cn(
 				'col-span-2 col-start-2 row-start-2 text-sm/5 text-zinc-500 group-focus:text-white sm:text-xs/5 dark:text-zinc-400 forced-colors:group-focus:text-[HighlightText]',
+				className,
 			)}
 		/>
 	)
@@ -103,12 +102,12 @@ export function DropdownShortcut({
 	'className'
 >) {
 	return (
-		<kbd {...props} className={clsx(className, 'col-start-5 row-start-1 flex justify-self-end')}>
+		<kbd {...props} className={cn('col-start-5 row-start-1 flex justify-self-end', className)}>
 			{(Array.isArray(keys) ? keys : keys.split('')).map((char, index) => (
 				<kbd
 					// biome-ignore lint/suspicious/noArrayIndexKey: keyboard shortcut characters have no stable unique ID
 					key={index}
-					className={clsx(
+					className={cn(
 						'min-w-[2ch] text-center font-sans text-zinc-400 capitalize group-focus:text-white forced-colors:group-focus:text-[HighlightText]',
 						index > 0 && char.length > 1 && 'pl-1',
 					)}

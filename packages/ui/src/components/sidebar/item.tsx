@@ -1,8 +1,7 @@
 'use client'
 
-import clsx from 'clsx'
 import React, { useContext } from 'react'
-import { Link } from '../../core'
+import { cn, Link } from '../../core'
 import { ActiveIndicator, TouchTarget } from '../../primitives'
 import { MobileSidebarContext } from '../layouts/context'
 import { navItemBase } from './recipes'
@@ -11,7 +10,7 @@ export function SidebarItemActions({
 	className,
 	...props
 }: React.ComponentPropsWithoutRef<'span'>) {
-	return <span {...props} className={clsx(className, 'pointer-events-auto')} />
+	return <span {...props} className={cn('pointer-events-auto', className)} />
 }
 
 function splitActions(children: React.ReactNode) {
@@ -41,7 +40,7 @@ export function SidebarItem({
 	const close = useContext(MobileSidebarContext)
 	const { actions, rest } = splitActions(children)
 
-	const classes = clsx(
+	const classes = cn(
 		// Base
 		'flex w-full items-center gap-3 rounded-lg px-2 py-2.5 text-left text-base/6 font-medium select-none text-zinc-950 sm:py-2',
 		navItemBase,
@@ -54,12 +53,12 @@ export function SidebarItem({
 	)
 
 	return (
-		<span className={clsx(className, 'group relative')}>
+		<span className={cn('group relative', className)}>
 			{current && <ActiveIndicator orientation="vertical" />}
 			{typeof props.href === 'string' ? (
 				<Link
 					{...props}
-					className={clsx(classes, current && 'pointer-events-none')}
+					className={cn(classes, current && 'pointer-events-none')}
 					data-slot="sidebar-item"
 					data-current={current ? 'true' : undefined}
 					onClick={(e) => {
@@ -73,7 +72,7 @@ export function SidebarItem({
 				<button
 					{...props}
 					type="button"
-					className={clsx('cursor-default', classes)}
+					className={cn('cursor-default', classes)}
 					data-slot="sidebar-item"
 					data-current={current ? 'true' : undefined}
 					onClick={(props as React.ComponentPropsWithoutRef<'button'>).onClick}
@@ -87,5 +86,5 @@ export function SidebarItem({
 }
 
 export function SidebarLabel({ className, ...props }: React.ComponentPropsWithoutRef<'span'>) {
-	return <span {...props} className={clsx(className, 'truncate')} />
+	return <span {...props} className={cn('truncate', className)} />
 }

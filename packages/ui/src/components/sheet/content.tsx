@@ -1,9 +1,9 @@
 'use client'
 
-import clsx from 'clsx'
 import { AnimatePresence, motion } from 'motion/react'
 import type React from 'react'
 import { useEffect } from 'react'
+import { cn } from '../../core'
 import { overlayAnimation } from '../../recipes/motion'
 import { overlayBackdrop } from '../../recipes/overlay'
 import type { SheetSide } from './context'
@@ -120,7 +120,7 @@ export function SheetContent({
 						animate={isHorizontal ? { x: 0 } : { y: 0 }}
 						exit={slide.exit}
 						transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
-						className={clsx(
+						className={cn(
 							'fixed',
 							positionClasses[side],
 							sizeClasses[side],
@@ -129,7 +129,7 @@ export function SheetContent({
 						)}
 					>
 						<div
-							className={clsx(
+							className={cn(
 								'flex h-full flex-col bg-white shadow-lg dark:bg-zinc-900',
 								isHorizontal
 									? 'rounded-xl ring-1 ring-zinc-950/10 dark:ring-white/10'

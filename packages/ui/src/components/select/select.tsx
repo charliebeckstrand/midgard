@@ -1,7 +1,7 @@
 'use client'
 
-import clsx from 'clsx'
 import type React from 'react'
+import { cn } from '../../core'
 import { ChevronIcon } from '../../primitives/icons'
 import { controlInput, controlWrapper } from '../../recipes/control'
 
@@ -14,13 +14,13 @@ export type SelectProps = {
 
 export function Select({ className, multiple, disabled, invalid, ...props }: SelectProps) {
 	return (
-		<span data-slot="control" className={clsx(className, 'group', controlWrapper)}>
+		<span data-slot="control" className={cn('group', controlWrapper, className)}>
 			<select
 				multiple={multiple}
 				disabled={disabled}
 				data-invalid={invalid ? '' : undefined}
 				{...props}
-				className={clsx(
+				className={cn(
 					'relative block w-full appearance-none rounded-lg py-[calc(--spacing(2.5)-1px)] sm:py-[calc(--spacing(1.5)-1px)]',
 					multiple
 						? 'px-[calc(--spacing(3.5)-1px)] sm:px-[calc(--spacing(3)-1px)]'

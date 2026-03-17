@@ -1,6 +1,5 @@
 import type { VariantProps } from 'class-variance-authority'
-import clsx from 'clsx'
-import { Link } from '../../core'
+import { cn, Link } from '../../core'
 import { badge } from './variants'
 
 export type BadgeProps = VariantProps<typeof badge>
@@ -12,7 +11,7 @@ export function Badge({
 	className,
 	...props
 }: BadgeProps & React.ComponentPropsWithoutRef<'span'>) {
-	return <span {...props} className={badge({ variant, color, size, className })} />
+	return <span {...props} className={cn(badge({ variant, color, size }), className)} />
 }
 
 export function BadgeButton({
@@ -26,9 +25,9 @@ export function BadgeButton({
 		| ({ href?: never } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className'>)
 		| ({ href: string } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
 	)) {
-	const classes = clsx(
-		className,
+	const classes = cn(
 		'group relative inline-flex rounded-md focus:outline-hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600',
+		className,
 	)
 
 	if (typeof props.href === 'string') {

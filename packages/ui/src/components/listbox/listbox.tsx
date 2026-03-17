@@ -1,9 +1,9 @@
 'use client'
 
-import clsx from 'clsx'
 import { AnimatePresence } from 'motion/react'
 import type React from 'react'
 import { useCallback, useRef, useState } from 'react'
+import { cn } from '../../core'
 import { useControllable, useOverlay } from '../../hooks'
 import { ChevronIcon } from '../../primitives'
 import { ListboxProvider, SelectedOptionProvider } from './context'
@@ -68,27 +68,27 @@ export function Listbox<T>({
 					data-invalid={invalid ? '' : undefined}
 					disabled={disabled}
 					onClick={() => !disabled && setOpen((prev) => !prev)}
-					className={clsx([
-						className,
+					className={cn(
 						'group relative block w-full',
 						'before:absolute before:inset-px before:rounded-[calc(var(--radius-lg)-1px)] before:bg-white before:shadow-sm',
 						'dark:before:hidden',
 						'focus:outline-hidden',
 						'after:pointer-events-none after:absolute after:inset-0 after:rounded-lg after:ring-transparent after:ring-inset focus-visible:after:ring-2 focus-visible:after:ring-blue-600',
 						'disabled:opacity-50 disabled:before:bg-zinc-950/5 disabled:before:shadow-none',
-					])}
+						className,
+					)}
 				>
 					<span
-						className={clsx([
+						className={cn(
 							'relative block w-full appearance-none rounded-lg py-[calc(--spacing(2.5)-1px)] sm:py-[calc(--spacing(1.5)-1px)]',
 							'min-h-11 sm:min-h-9',
 							'pr-[calc(--spacing(7)-1px)] pl-[calc(--spacing(3.5)-1px)] sm:pl-[calc(--spacing(3)-1px)]',
-							'text-left text-base/6 text-zinc-950 placeholder:text-zinc-500  dark:text-white forced-colors:text-[CanvasText]',
+							'text-left text-base/6 text-zinc-950 placeholder:text-zinc-500 dark:text-white forced-colors:text-[CanvasText]',
 							'border border-zinc-950/10 group-active:border-zinc-950/20 group-hover:border-zinc-950/20 dark:border-white/10 dark:group-active:border-white/20 dark:group-hover:border-white/20',
 							'bg-transparent dark:bg-white/5',
 							'group-data-invalid:border-red-600 group-hover:group-data-invalid:border-red-600 dark:group-data-invalid:border-red-700 dark:hover:group-data-invalid:border-red-700',
 							'group-disabled:border-zinc-950/20 group-disabled:opacity-100 dark:group-disabled:border-white/15 dark:group-disabled:bg-white/2.5 dark:group-disabled:hover:border-white/15',
-						])}
+						)}
 					>
 						<SelectedOptionProvider value={{ isSelectedOption: true }}>
 							{currentValue !== undefined

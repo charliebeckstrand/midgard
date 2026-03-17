@@ -1,5 +1,4 @@
-import clsx from 'clsx'
-import { Link } from '../../core'
+import { cn, Link } from '../../core'
 
 export type AvatarProps = {
 	src?: string | null
@@ -21,13 +20,13 @@ export function Avatar({
 		<span
 			data-slot="avatar"
 			{...props}
-			className={clsx(
-				className,
+			className={cn(
 				'inline-grid shrink-0 align-middle [--avatar-radius:20%] *:col-start-1 *:row-start-1',
 				'outline -outline-offset-1 outline-white/10',
 				square
 					? 'rounded-(--avatar-radius) *:rounded-(--avatar-radius)'
 					: 'rounded-full *:rounded-full',
+				className,
 			)}
 		>
 			{initials && (
@@ -66,10 +65,10 @@ export function AvatarButton({
 		| ({ href?: never } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className'>)
 		| ({ href: string } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
 	)) {
-	const classes = clsx(
-		className,
+	const classes = cn(
 		square ? 'rounded-[20%]' : 'rounded-full',
 		'relative inline-grid focus:outline-hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600',
+		className,
 	)
 
 	if (typeof props.href === 'string') {

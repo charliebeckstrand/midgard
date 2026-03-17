@@ -1,13 +1,13 @@
 'use client'
 
-import { twMerge } from 'tailwind-merge'
+import { cn } from '../../core'
 import { Link } from '../../core/link-context'
 import { TouchTarget } from '../../primitives/touch-target'
 import type { ButtonProps } from './types'
 import { button } from './variants'
 
 export function Button({ variant, color, className, children, ...props }: ButtonProps) {
-	const classes = twMerge(button({ variant, color }), className)
+	const classes = cn(button({ variant, color }), className)
 
 	if (typeof props.href === 'string') {
 		return (
@@ -18,7 +18,7 @@ export function Button({ variant, color, className, children, ...props }: Button
 	}
 
 	return (
-		<button type="button" {...props} className={twMerge(classes, 'cursor-default')}>
+		<button type="button" {...props} className={cn(classes, 'cursor-default')}>
 			<TouchTarget>{children}</TouchTarget>
 		</button>
 	)

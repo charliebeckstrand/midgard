@@ -1,7 +1,7 @@
 'use client'
 
-import clsx from 'clsx'
 import type React from 'react'
+import { cn } from '../../core'
 import { controlInput, controlWrapper } from '../../recipes/control'
 
 export type TextareaProps = {
@@ -19,12 +19,12 @@ export function Textarea({
 	...props
 }: TextareaProps) {
 	return (
-		<span data-slot="control" className={clsx(className, controlWrapper)}>
+		<span data-slot="control" className={cn(controlWrapper, className)}>
 			<textarea
 				disabled={disabled}
 				data-invalid={invalid ? '' : undefined}
 				{...props}
-				className={clsx(
+				className={cn(
 					'relative block h-full min-h-11 w-full appearance-none rounded-lg px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)] sm:min-h-9 sm:px-[calc(--spacing(3)-1px)] sm:py-[calc(--spacing(1.5)-1px)]',
 					controlInput,
 					resizable ? 'resize-y' : 'resize-none',
