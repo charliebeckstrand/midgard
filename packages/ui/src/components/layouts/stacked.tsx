@@ -31,7 +31,7 @@ export function StackedLayout({
 			</MobileSidebar>
 
 			{/* Navbar */}
-			<header className="flex items-center px-4" ref={mainRef as React.RefObject<HTMLElement>}>
+			<header className="flex items-center px-4" ref={mainRef}>
 				<div className="py-2.5 lg:hidden">
 					<NavbarItem onClick={() => setOpen(true)} aria-label="Open navigation">
 						<MenuIcon />
