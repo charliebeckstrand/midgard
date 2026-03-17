@@ -1,5 +1,4 @@
 export { withAuth } from './config'
 export { bifrost } from './fetch'
 export { proxy } from './proxy'
-export { getSession } from './session'
 export { getUser } from './user'

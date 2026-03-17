@@ -33,9 +33,6 @@ importers:
       heimdall:
         specifier: workspace:*
         version: link:../../packages/heimdall
-      motion:
-        specifier: ^12.36.0
-        version: 12.36.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       next:
         specifier: ^16.1.0
         version: 16.1.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -82,9 +79,6 @@ importers:
       heimdall:
         specifier: workspace:*
         version: link:../../packages/heimdall
-      motion:
-        specifier: ^12.36.0
-        version: 12.36.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       next:
         specifier: ^16.1.0
         version: 16.1.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -125,9 +119,6 @@ importers:
 
   apps/docs:
     dependencies:
-      '@heroicons/react':
-        specifier: ^2.2.0
-        version: 2.2.0(react@19.2.4)
       next:
         specifier: ^16.1.0
         version: 16.1.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4)

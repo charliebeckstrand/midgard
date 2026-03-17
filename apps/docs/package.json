@@ -13,7 +13,6 @@
 		"check-types": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@heroicons/react": "^2.2.0",
 		"ui": "workspace:*",
 		"sindri": "workspace:*",
 		"next": "^16.1.0",
