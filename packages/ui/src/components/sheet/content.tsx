@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import type React from 'react'
 import { useEffect } from 'react'
 import { cn } from '../../core'
-import { katachi, narabi, omote, ugoki } from '../../recipes'
+import { katachi, ma, narabi, omote, ugoki } from '../../recipes'
 import { useSheet } from './context'
 
 export type SheetSize = katachi.PanelSize
@@ -66,7 +66,7 @@ export function SheetContent({
 							'fixed',
 							narabi.slide[side],
 							isHorizontal && katachi.panel[size],
-							isHorizontal && 'p-4',
+							isHorizontal && ma.float,
 						)}
 					>
 						<div
