@@ -3,7 +3,7 @@
 import type React from 'react'
 import { cn, Link } from '../../core'
 import { ActiveIndicator, TouchTarget } from '../../primitives'
-import { iconOnlyDetection } from '../../recipes/icon'
+import { katachi } from '../../recipes'
 import { navItemBase } from './recipes'
 
 export function NavbarItem({
@@ -24,7 +24,7 @@ export function NavbarItem({
 		// Avatar (navbar-specific override)
 		'*:data-[slot=avatar]:[--avatar-radius:var(--radius-md)]',
 		// Icon-only — auto-detected square aspect
-		...iconOnlyDetection,
+		...katachi.iconDetect,
 	)
 
 	return (

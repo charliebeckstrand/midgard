@@ -2,7 +2,7 @@
 
 import type React from 'react'
 import { cn } from '../../core'
-import { muted } from '../../recipes/text'
+import { sumi } from '../../recipes'
 import { useDialog } from './context'
 
 export function DialogDescription({ className, ...props }: React.ComponentPropsWithoutRef<'p'>) {
@@ -12,7 +12,7 @@ export function DialogDescription({ className, ...props }: React.ComponentPropsW
 			id={descriptionId}
 			data-slot="description"
 			{...props}
-			className={cn(`mt-2 text-base/6 ${muted} text-pretty`, className)}
+			className={cn(`mt-2 text-base/6 ${sumi.usui} text-pretty`, className)}
 		/>
 	)
 }

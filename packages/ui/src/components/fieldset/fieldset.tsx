@@ -1,6 +1,6 @@
 import type React from 'react'
 import { cn } from '../../core'
-import { formFieldSpacing } from '../../recipes/control'
+import { narabi } from '../../recipes'
 
 export function Fieldset({
 	className,
@@ -35,7 +35,7 @@ export function Field({
 		<div
 			data-disabled={disabled ? '' : undefined}
 			{...props}
-			className={cn(...formFieldSpacing, className)}
+			className={cn(...narabi.field, className)}
 		/>
 	)
 }

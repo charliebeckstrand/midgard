@@ -2,7 +2,7 @@
 
 import type React from 'react'
 import { cn } from '../../core'
-import { ink } from '../../recipes/text'
+import { sumi } from '../../recipes'
 import { useAlert } from './context'
 
 export function AlertTitle({ className, ...props }: React.ComponentPropsWithoutRef<'h2'>) {
@@ -13,7 +13,7 @@ export function AlertTitle({ className, ...props }: React.ComponentPropsWithoutR
 			data-slot="title"
 			{...props}
 			className={cn(
-				`text-center text-base/6 font-semibold text-balance ${ink} sm:text-left sm:text-wrap`,
+				`text-center text-base/6 font-semibold text-balance ${sumi.base} sm:text-left sm:text-wrap`,
 				className,
 			)}
 		/>

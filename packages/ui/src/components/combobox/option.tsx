@@ -3,7 +3,7 @@
 import type React from 'react'
 import { cn } from '../../core'
 import { CheckIcon } from '../../primitives'
-import { menuItemBase, menuItemSlots } from '../../recipes/item'
+import { narabi, sawari } from '../../recipes'
 import { useCombobox } from './context'
 
 export function ComboboxOption<T>({
@@ -21,7 +21,7 @@ export function ComboboxOption<T>({
 	const { value: selectedValue, onChange } = useCombobox()
 	const selected = selectedValue === value
 
-	const sharedClasses = cn('flex min-w-0 items-center', menuItemSlots)
+	const sharedClasses = cn('flex min-w-0 items-center', narabi.item)
 
 	return (
 		<div
@@ -39,7 +39,7 @@ export function ComboboxOption<T>({
 			}}
 			className={cn(
 				'group/option grid w-full cursor-default grid-cols-[1fr_--spacing(5)] items-baseline gap-x-2 rounded-lg pr-2 pl-3.5 sm:grid-cols-[1fr_--spacing(4)] sm:pr-2 sm:pl-3',
-				menuItemBase,
+				sawari.item,
 			)}
 			{...props}
 		>

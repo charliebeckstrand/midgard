@@ -1,5 +1,5 @@
 import { cva } from 'class-variance-authority'
-import { radioColors } from '../../recipes/colors'
+import { nuri } from '../../recipes'
 
 export const radio = cva(
 	[
@@ -41,7 +41,7 @@ export const radio = cva(
 	],
 	{
 		variants: {
-			color: radioColors,
+			color: nuri.radio,
 		},
 		defaultVariants: {
 			color: 'zinc',

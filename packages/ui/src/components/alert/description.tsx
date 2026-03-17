@@ -2,7 +2,7 @@
 
 import type React from 'react'
 import { cn } from '../../core'
-import { muted } from '../../recipes/text'
+import { sumi } from '../../recipes'
 import { useAlert } from './context'
 
 export function AlertDescription({ className, ...props }: React.ComponentPropsWithoutRef<'p'>) {
@@ -12,7 +12,10 @@ export function AlertDescription({ className, ...props }: React.ComponentPropsWi
 			id={descriptionId}
 			data-slot="description"
 			{...props}
-			className={cn(`mt-2 text-center text-base/6 ${muted} text-pretty sm:text-left`, className)}
+			className={cn(
+				`mt-2 text-center text-base/6 ${sumi.usui} text-pretty sm:text-left`,
+				className,
+			)}
 		/>
 	)
 }

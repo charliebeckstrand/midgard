@@ -2,7 +2,7 @@
 
 import type React from 'react'
 import { cn } from '../../core'
-import { controlInput, controlPadding, controlWrapper } from '../../recipes/control'
+import { ma, omote } from '../../recipes'
 
 export type TextareaProps = {
 	className?: string
@@ -19,14 +19,14 @@ export function Textarea({
 	...props
 }: TextareaProps) {
 	return (
-		<span data-slot="control" className={cn(controlWrapper, className)}>
+		<span data-slot="control" className={cn(omote.control, className)}>
 			<textarea
 				disabled={disabled}
 				data-invalid={invalid ? '' : undefined}
 				{...props}
 				className={cn(
-					`relative block h-full min-h-11 w-full appearance-none rounded-lg sm:min-h-9 ${controlPadding}`,
-					controlInput,
+					`relative block h-full min-h-11 w-full appearance-none rounded-lg sm:min-h-9 ${ma.control}`,
+					omote.input,
 					resizable ? 'resize-y' : 'resize-none',
 				)}
 			/>

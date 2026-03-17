@@ -4,9 +4,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import type React from 'react'
 import { useEffect } from 'react'
 import { cn } from '../../core'
-import { type PanelSize, panelSizes } from '../../recipes/dialog'
-import { overlayAnimation } from '../../recipes/motion'
-import { overlayBackdrop } from '../../recipes/overlay'
+import { katachi, omote, ugoki } from '../../recipes'
 import type { SheetSide } from './context'
 import { useSheet } from './context'
 
@@ -41,7 +39,7 @@ const floatClasses: Record<SheetSide, string> = {
 	bottom: 'p-4',
 }
 
-export type SheetSize = PanelSize
+export type SheetSize = katachi.PanelSize
 
 export function SheetContent({
 	className,
@@ -81,8 +79,8 @@ export function SheetContent({
 				<div className="fixed inset-0 z-50">
 					{!noOverlay && (
 						<motion.div
-							{...overlayAnimation}
-							className={overlayBackdrop}
+							{...ugoki.overlay}
+							className={omote.backdrop}
 							onClick={() => onOpenChange(false)}
 							aria-hidden="true"
 						/>
@@ -100,7 +98,7 @@ export function SheetContent({
 							'fixed',
 							positionClasses[side],
 							sizeClasses[side],
-							isHorizontal && panelSizes[size],
+							isHorizontal && katachi.panel[size],
 							isHorizontal && floatClasses[side],
 						)}
 					>

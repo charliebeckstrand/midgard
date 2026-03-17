@@ -1,5 +1,5 @@
 import { cva } from 'class-variance-authority'
-import { switchColors } from '../../recipes/colors'
+import { nuri } from '../../recipes'
 
 export const switchVariants = cva(
 	[
@@ -31,7 +31,7 @@ export const switchVariants = cva(
 	],
 	{
 		variants: {
-			color: switchColors,
+			color: nuri.switch,
 		},
 		defaultVariants: {
 			color: 'zinc',

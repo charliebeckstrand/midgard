@@ -2,7 +2,7 @@
 
 import { motion } from 'motion/react'
 import type React from 'react'
-import { slidePanelAnimation } from '../recipes/motion'
+import { ugoki } from '../recipes'
 
 export function SlidePanel({
 	className,
@@ -13,7 +13,7 @@ export function SlidePanel({
 }) {
 	return (
 		<motion.div
-			{...slidePanelAnimation}
+			{...ugoki.slide}
 			className={className ?? 'fixed inset-y-0 left-0 w-full max-w-80 p-2'}
 		>
 			{children}

@@ -2,7 +2,7 @@
 
 import type React from 'react'
 import { cn } from '../../core'
-import { ink } from '../../recipes/text'
+import { sumi } from '../../recipes'
 import { useSheet } from './context'
 
 export function SheetTitle({ className, ...props }: React.ComponentPropsWithoutRef<'h2'>) {
@@ -12,7 +12,7 @@ export function SheetTitle({ className, ...props }: React.ComponentPropsWithoutR
 			id={titleId}
 			data-slot="title"
 			{...props}
-			className={cn(`text-lg/6 font-semibold ${ink} sm:text-base/6`, className)}
+			className={cn(`text-lg/6 font-semibold ${sumi.base} sm:text-base/6`, className)}
 		/>
 	)
 }

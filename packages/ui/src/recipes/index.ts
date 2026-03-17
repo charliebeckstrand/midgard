@@ -1,24 +1,14 @@
-export { borderDefault, borderSoft } from './border'
-export {
-	badgeSolidColors,
-	badgeSubtleColors,
-	buttonColors,
-	checkboxColors,
-	radioColors,
-	switchColors,
-} from './colors'
-export {
-	controlInput,
-	controlPadding,
-	controlWrapper,
-	dateInputOverrides,
-	formFieldSpacing,
-} from './control'
-export { type PanelSize, panelSizes } from './dialog'
-export { focusReset, focusRing, focusRingOffset } from './focus'
-export { iconOnlyDetection, iconSize, iconSlot, iconSlotIconOnly, trailingIcon } from './icon'
-export { menuItemBase, menuItemSlots } from './item'
-export { overlayAnimation, popoverAnimation, slidePanelAnimation } from './motion'
-export { alertBackdrop, overlayBackdrop, sidebarBackdrop } from './overlay'
-export { anchorPositions, popoverMenu } from './popover'
-export { ink, muted } from './text'
+// ─── Sumi (墨) — The marks ──────────────────────────────────────────────────
+
+export { kage } from './kage'
+export { katachi } from './katachi'
+// ─── Ki (気) — The energy ───────────────────────────────────────────────────
+export { ki } from './ki'
+// ─── Ma (間) — The space ────────────────────────────────────────────────────
+export { ma } from './ma'
+export { narabi } from './narabi'
+export { nuri } from './nuri'
+export { omote } from './omote'
+export { sawari } from './sawari'
+export { sumi } from './sumi'
+export { ugoki } from './ugoki'

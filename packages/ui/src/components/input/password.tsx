@@ -2,13 +2,13 @@
 
 import { useState } from 'react'
 import { cn } from '../../core'
-import { iconSize } from '../../recipes/icon'
+import { katachi } from '../../recipes'
 import { Input, type InputProps } from './input'
 
 function EyeIcon({ className }: { className?: string }) {
 	return (
 		<svg
-			className={cn(iconSize, className)}
+			className={cn(katachi.icon, className)}
 			viewBox="0 0 20 20"
 			fill="currentColor"
 			aria-hidden="true"
@@ -26,7 +26,7 @@ function EyeIcon({ className }: { className?: string }) {
 function EyeSlashIcon({ className }: { className?: string }) {
 	return (
 		<svg
-			className={cn(iconSize, className)}
+			className={cn(katachi.icon, className)}
 			viewBox="0 0 20 20"
 			fill="currentColor"
 			aria-hidden="true"

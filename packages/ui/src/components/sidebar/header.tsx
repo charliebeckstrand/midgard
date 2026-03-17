@@ -4,7 +4,7 @@ import type React from 'react'
 import { useContext } from 'react'
 import { cn } from '../../core'
 import { CloseIcon } from '../../primitives'
-import { iconSlot } from '../../recipes/icon'
+import { katachi } from '../../recipes'
 import { MobileSidebarContext } from '../layouts/context'
 
 export function SidebarHeader({
@@ -33,7 +33,7 @@ export function SidebarHeader({
 					className={cn(
 						'rounded-lg fill-current p-2.5 text-zinc-950 hover:bg-zinc-950/5',
 						'dark:text-white dark:hover:bg-white/5',
-						...iconSlot,
+						...katachi.iconSlot,
 						'*:data-[slot=icon]:fill-current',
 					)}
 				>

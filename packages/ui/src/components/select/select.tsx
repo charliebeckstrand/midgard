@@ -3,7 +3,7 @@
 import type React from 'react'
 import { cn } from '../../core'
 import { ChevronIcon } from '../../primitives/icons'
-import { controlInput, controlWrapper } from '../../recipes/control'
+import { omote } from '../../recipes'
 
 export type SelectProps = {
 	className?: string
@@ -14,7 +14,7 @@ export type SelectProps = {
 
 export function Select({ className, multiple, disabled, invalid, ...props }: SelectProps) {
 	return (
-		<span data-slot="control" className={cn('group', controlWrapper, className)}>
+		<span data-slot="control" className={cn('group', omote.control, className)}>
 			<select
 				multiple={multiple}
 				disabled={disabled}
@@ -26,7 +26,7 @@ export function Select({ className, multiple, disabled, invalid, ...props }: Sel
 						? 'px-[calc(--spacing(3.5)-1px)] sm:px-[calc(--spacing(3)-1px)]'
 						: 'pr-[calc(--spacing(10)-1px)] pl-[calc(--spacing(3.5)-1px)] sm:pr-[calc(--spacing(9)-1px)] sm:pl-[calc(--spacing(3)-1px)]',
 					'[&_optgroup]:font-semibold',
-					controlInput,
+					omote.input,
 					'dark:*:text-white dark:*:bg-zinc-800',
 				)}
 			/>

@@ -1,5 +1,5 @@
 import { cva } from 'class-variance-authority'
-import { checkboxColors } from '../../recipes/colors'
+import { nuri } from '../../recipes'
 
 export const checkbox = cva(
 	[
@@ -37,7 +37,7 @@ export const checkbox = cva(
 	],
 	{
 		variants: {
-			color: checkboxColors,
+			color: nuri.checkbox,
 		},
 		defaultVariants: {
 			color: 'zinc',

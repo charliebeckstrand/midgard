@@ -1,9 +1,9 @@
-import { iconSlot } from '../../recipes/icon'
+import { katachi } from '../../recipes'
 
 /** Shared item classes for navbar and sidebar items */
 export const navItemBase = [
 	// Icon slots — sizing from shared recipe, nav-specific fill color
-	...iconSlot,
+	...katachi.iconSlot,
 	'*:data-[slot=icon]:fill-zinc-500',
 	'dark:text-white dark:*:data-[slot=icon]:fill-zinc-400',
 	// Avatar slots

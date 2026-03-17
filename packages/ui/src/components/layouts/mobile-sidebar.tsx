@@ -3,7 +3,7 @@
 import type React from 'react'
 import { cn } from '../../core'
 import { Overlay, SlidePanel } from '../../primitives'
-import { sidebarBackdrop } from '../../recipes'
+import { omote } from '../../recipes'
 import { MobileSidebarContext } from './context'
 
 export function MobileSidebar({
@@ -17,13 +17,7 @@ export function MobileSidebar({
 	header?: React.ReactNode
 }>) {
 	return (
-		<Overlay
-			open={open}
-			onClose={close}
-			className={sidebarBackdrop}
-			role="dialog"
-			aria-modal="true"
-		>
+		<Overlay open={open} onClose={close} className={omote.sidebar} role="dialog" aria-modal="true">
 			<SlidePanel>
 				<MobileSidebarContext.Provider value={close}>
 					<div

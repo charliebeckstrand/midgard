@@ -3,7 +3,7 @@
 import type React from 'react'
 import { cn } from '../../core'
 import { CheckIcon } from '../../primitives'
-import { menuItemBase, menuItemSlots } from '../../recipes/item'
+import { narabi, sawari } from '../../recipes'
 import { useListbox, useSelectedOption } from './context'
 
 export function ListboxOption<T>({
@@ -22,7 +22,7 @@ export function ListboxOption<T>({
 	const { isSelectedOption } = useSelectedOption()
 	const selected = selectedValue === value
 
-	const sharedClasses = cn('flex min-w-0 items-center', menuItemSlots)
+	const sharedClasses = cn('flex min-w-0 items-center', narabi.item)
 
 	if (isSelectedOption) {
 		if (!selected) return null
@@ -45,7 +45,7 @@ export function ListboxOption<T>({
 			}}
 			className={cn(
 				'group/option grid cursor-default grid-cols-[--spacing(5)_1fr] items-baseline gap-x-2 rounded-lg pr-3.5 pl-2 sm:grid-cols-[--spacing(4)_1fr] sm:pr-3 sm:pl-1.5',
-				menuItemBase,
+				sawari.item,
 			)}
 			{...props}
 		>

@@ -2,13 +2,7 @@
 
 import type React from 'react'
 import { cn } from '../../core'
-import {
-	controlInput,
-	controlPadding,
-	controlWrapper,
-	dateInputOverrides,
-} from '../../recipes/control'
-import { iconSlot } from '../../recipes/icon'
+import { katachi, ma, omote } from '../../recipes'
 
 export function InputGroup({ className, ...props }: React.ComponentPropsWithoutRef<'span'>) {
 	return (
@@ -19,7 +13,7 @@ export function InputGroup({ className, ...props }: React.ComponentPropsWithoutR
 				'relative isolate block',
 				'has-[[data-slot=icon]:first-child]:[&_input]:pl-10 has-[[data-slot=icon]:last-child]:[&_input]:pr-10 sm:has-[[data-slot=icon]:first-child]:[&_input]:pl-8 sm:has-[[data-slot=icon]:last-child]:[&_input]:pr-8',
 				// Icon slots — sizing from shared recipe, input-specific positioning
-				...iconSlot,
+				...katachi.iconSlot,
 				'*:data-[slot=icon]:pointer-events-none *:data-[slot=icon]:absolute *:data-[slot=icon]:top-3 *:data-[slot=icon]:z-10 sm:*:data-[slot=icon]:top-2.5',
 				'[&>[data-slot=icon]:first-child]:left-3 sm:[&>[data-slot=icon]:first-child]:left-2.5 [&>[data-slot=icon]:last-child]:right-3 sm:[&>[data-slot=icon]:last-child]:right-2.5',
 				'*:data-[slot=icon]:text-zinc-500 dark:*:data-[slot=icon]:text-zinc-400',
@@ -44,7 +38,7 @@ export function Input({ className, disabled, invalid, ...props }: InputProps) {
 		<span
 			data-slot="control"
 			className={cn(
-				controlWrapper,
+				omote.control,
 				'has-read-only:before:bg-transparent has-read-only:before:shadow-none',
 				className,
 			)}
@@ -54,9 +48,9 @@ export function Input({ className, disabled, invalid, ...props }: InputProps) {
 				data-invalid={invalid ? '' : undefined}
 				{...props}
 				className={cn(
-					props.type && dateTypes.includes(props.type) && dateInputOverrides,
-					`relative block w-full appearance-none rounded-lg ${controlPadding}`,
-					controlInput,
+					props.type && dateTypes.includes(props.type) && omote.date,
+					`relative block w-full appearance-none rounded-lg ${ma.control}`,
+					omote.input,
 					'dark:scheme-dark',
 					'dark:read-only:bg-transparent',
 				)}

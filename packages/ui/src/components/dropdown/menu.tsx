@@ -4,7 +4,7 @@ import { AnimatePresence } from 'motion/react'
 import type React from 'react'
 import { cn } from '../../core'
 import { PopoverPanel } from '../../primitives'
-import { anchorPositions } from '../../recipes/popover'
+import { narabi } from '../../recipes'
 import { useDropdown } from './context'
 
 export function DropdownMenu({
@@ -18,7 +18,7 @@ export function DropdownMenu({
 }) {
 	const { open, fullWidth } = useDropdown()
 
-	const positionClass = anchorPositions[anchor] ?? anchorPositions.bottom
+	const positionClass = narabi.anchor[anchor] ?? narabi.anchor.bottom
 
 	return (
 		<AnimatePresence>

@@ -2,12 +2,11 @@
 
 import type React from 'react'
 import { cn, Link } from '../../core'
-import { iconSlot } from '../../recipes/icon'
-import { menuItemBase } from '../../recipes/item'
+import { katachi, sawari } from '../../recipes'
 import { useDropdown } from './context'
 
 const itemClasses = [
-	...menuItemBase,
+	...sawari.item,
 	// Layout
 	'text-left',
 	'col-span-full grid grid-cols-[auto_1fr_1.5rem_0.5rem_auto] items-center supports-[grid-template-columns:subgrid]:grid-cols-subgrid',
@@ -15,7 +14,7 @@ const itemClasses = [
 	// Focus
 	'focus:outline-hidden',
 	// Icon slots — sizing from shared recipe, dropdown-specific grid positioning + spacing
-	...iconSlot,
+	...katachi.iconSlot,
 	'*:data-[slot=icon]:col-start-1 *:data-[slot=icon]:row-start-1 *:data-[slot=icon]:mr-2.5 *:data-[slot=icon]:-ml-0.5 sm:*:data-[slot=icon]:mr-2',
 	// Icon slots — light
 	'*:data-[slot=icon]:text-zinc-500',

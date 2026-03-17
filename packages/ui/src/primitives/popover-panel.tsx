@@ -5,8 +5,7 @@ import type React from 'react'
 import { useEffect, useRef } from 'react'
 import { cn } from '../core'
 import { useMenuKeyboard } from '../hooks/use-menu-keyboard'
-import { popoverAnimation } from '../recipes/motion'
-import { popoverMenu } from '../recipes/popover'
+import { omote, ugoki } from '../recipes'
 
 export function PopoverPanel({
 	className,
@@ -37,12 +36,12 @@ export function PopoverPanel({
 			ref={menuRef}
 			role={role}
 			tabIndex={-1}
-			{...popoverAnimation}
+			{...ugoki.popover}
 			onKeyDown={(e) => {
 				handleKeyDown(e)
 				onKeyDownProp?.(e)
 			}}
-			className={cn('absolute z-50', popoverMenu, className)}
+			className={cn('absolute z-50', omote.popover, className)}
 		>
 			{children}
 		</motion.div>

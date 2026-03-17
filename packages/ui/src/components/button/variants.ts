@@ -1,17 +1,16 @@
 import { cva } from 'class-variance-authority'
-import { buttonColors } from '../../recipes/colors'
-import { iconSlot, iconSlotIconOnly } from '../../recipes/icon'
+import { katachi, nuri } from '../../recipes'
 
 export const button = cva(
 	[
 		// Layout
 		'relative isolate inline-flex w-fit items-center justify-center gap-x-2 rounded-lg text-base/6 font-semibold select-none',
 		// Icon slots — sizing from shared recipe, button-specific spacing + color
-		...iconSlot,
+		...katachi.iconSlot,
 		'*:data-[slot=icon]:-mx-0.5 *:data-[slot=icon]:my-0.5 *:data-[slot=icon]:self-center *:data-[slot=icon]:text-(--btn-icon) sm:*:data-[slot=icon]:my-1',
 		// Icon-only — square aspect, centered, no gap
 		'data-icon-only:gap-0',
-		...iconSlotIconOnly,
+		...katachi.iconOnly,
 		// Focus
 		'focus:outline-hidden',
 		'focus-visible:outline-1 focus-visible:-outline-offset-1 focus-visible:outline-blue-600',
@@ -104,13 +103,13 @@ export const button = cva(
 			},
 		},
 		compoundVariants: [
-			{ variant: 'solid', color: 'zinc', class: buttonColors.zinc },
-			{ variant: 'solid', color: 'white', class: buttonColors.white },
-			{ variant: 'solid', color: 'dark', class: buttonColors.dark },
-			{ variant: 'solid', color: 'red', class: buttonColors.red },
-			{ variant: 'solid', color: 'amber', class: buttonColors.amber },
-			{ variant: 'solid', color: 'green', class: buttonColors.green },
-			{ variant: 'solid', color: 'blue', class: buttonColors.blue },
+			{ variant: 'solid', color: 'zinc', class: nuri.button.zinc },
+			{ variant: 'solid', color: 'white', class: nuri.button.white },
+			{ variant: 'solid', color: 'dark', class: nuri.button.dark },
+			{ variant: 'solid', color: 'red', class: nuri.button.red },
+			{ variant: 'solid', color: 'amber', class: nuri.button.amber },
+			{ variant: 'solid', color: 'green', class: nuri.button.green },
+			{ variant: 'solid', color: 'blue', class: nuri.button.blue },
 		],
 		defaultVariants: {
 			variant: 'solid',
