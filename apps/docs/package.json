@@ -12,11 +12,8 @@
 		"format": "biome format --config-path=../.. --write .",
 		"check-types": "tsc --noEmit"
 	},
-	"packageManager": "pnpm@10.29.3",
 	"dependencies": {
-		"@heroicons/react": "^2.2.0",
 		"ui": "workspace:*",
-		"heimdall": "workspace:*",
 		"sindri": "workspace:*",
 		"next": "^16.1.0",
 		"react": "^19.1.0",

@@ -8,19 +8,15 @@ import { Overlay } from '../../primitives'
 import { panelSizes } from '../../recipes/dialog'
 import { DialogProvider } from './context'
 
-export function Dialog({
-	open,
-	onClose,
-	size = 'lg',
-	className,
-	children,
-}: {
+export type DialogProps = {
 	open: boolean
 	onClose: () => void
 	size?: keyof typeof panelSizes
 	className?: string
 	children: React.ReactNode
-}) {
+}
+
+export function Dialog({ open, onClose, size = 'lg', className, children }: DialogProps) {
 	const titleId = useId()
 	const descriptionId = useId()
 

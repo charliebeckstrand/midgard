@@ -1,5 +1,5 @@
-import { withAuth } from 'heimdall/config'
+import type { NextConfig } from 'next'
 
-export default withAuth({
+export default {
 	devIndicators: false,
-})
+} satisfies NextConfig

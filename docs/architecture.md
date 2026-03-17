@@ -5,23 +5,26 @@ How the pieces of Midgard fit together.
 ## System Diagram
 
 ```
-┌─────────────────────────────────────────────────┐
-│                    Midgard                       │
-│                                                  │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐      │
-│  │  Admin   │  │   Chat   │  │   Docs   │      │
-│  │  :3000   │  │  :3002   │  │  :3001   │      │
-│  └────┬─────┘  └────┬─────┘  └────┬─────┘      │
-│       │              │              │             │
-│  ┌────┴──────────────┴──────────────┴─────┐     │
-│  │         Shared Packages                 │     │
-│  │  ui · sindri · reactbits                │     │
-│  └────────────────┬───────────────────────┘     │
-│                   │                              │
-│  ┌────────────────┴───────────────────────┐     │
-│  │            heimdall (auth)              │     │
-│  └────────────────┬───────────────────────┘     │
-└───────────────────┼─────────────────────────────┘
+┌──────────────────────────────────────────────────────┐
+│                       Midgard                         │
+│                                                       │
+│  ┌──────────┐  ┌──────────┐       ┌──────────┐      │
+│  │  Admin   │  │   Chat   │       │   Docs   │      │
+│  │  :3000   │  │  :3002   │       │  :3001   │      │
+│  └────┬─────┘  └────┬─────┘       └────┬─────┘      │
+│       │              │                  │             │
+│       │              │     ┌────────────┘             │
+│       │              │     │                          │
+│  ┌────┴──────────────┴─────┴─────────────────┐       │
+│  │         Shared Packages                    │       │
+│  │  ui · sindri · reactbits                   │       │
+│  └────────────────┬──────────────────────────┘       │
+│                   │                                   │
+│  ┌────────────────┴──────────────────────┐           │
+│  │         heimdall (auth)                │           │
+│  │    (admin + chat only)                 │           │
+│  └────────────────┬──────────────────────┘           │
+└───────────────────┼──────────────────────────────────┘
                     │
             ┌───────┴───────┐
             │   Bifrost     │
@@ -35,7 +38,7 @@ How the pieces of Midgard fit together.
 
 **Chat** — A real-time chat application. Protected by authentication. Features message history, auto-scrolling, and a sidebar with chat list. All chat UI components and hooks live in `sindri/chat` for cross-app reuse.
 
-**Docs** — A public documentation dashboard. Renders markdown files from the `docs/` directory with syntax highlighting and anchor-based navigation. No auth required to view.
+**Docs** — A public documentation dashboard. Renders markdown files from the `docs/` directory with syntax highlighting and anchor-based navigation. No auth or heimdall dependency — purely public.
 
 ## Shared Packages
 
@@ -52,7 +55,7 @@ How the pieces of Midgard fit together.
 ## Key Design Decisions
 
 - **Dependencies flow inward.** Apps depend on packages, never the reverse. Packages never depend on app code.
-- **Auth is centralized.** All authentication flows through heimdall, which proxies to Bifrost. Apps only need to call `getSession()` or `getUser()`.
+- **Auth is centralized.** Authenticated apps use heimdall, which proxies to Bifrost. Apps only need to call `getSession()` or `getUser()`. Public apps (like docs) don't depend on heimdall at all.
 - **Extend before inventing.** Prefer growing an existing module over creating a new one unless there's a clear, distinct boundary.
 - **Abstractions are extracted, not predicted.** A pattern must appear in 2+ places before it earns a shared utility.
 
@@ -70,4 +73,4 @@ The project uses **Norse mythology** names:
 | Sindri       | Master dwarf craftsman     | Shared UI resources         |
 | Hlidskjalf   | Odin's watchtower          | Terminal dev dashboard       |
 
-See [Domain Glossary](#glossary) for the full list.
+| Reactbits   | Animation components       | Visual effects package      |

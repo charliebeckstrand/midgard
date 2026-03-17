@@ -1,7 +1,7 @@
 import { bifrost } from 'heimdall'
 
 import type { ChatContent } from 'sindri/chat'
-import { ChatView } from './chat-view'
+import { ChatView } from '../chat-view'
 
 async function getChatHistory(chatId: string): Promise<ChatContent[]> {
 	const res = await bifrost(`/api/chat/${chatId}`).catch(() => null)

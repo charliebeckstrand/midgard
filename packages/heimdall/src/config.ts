@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next'
+import { BIFROST_URL } from './env'
 
 export function withAuth(config: NextConfig = {}): NextConfig {
 	const userRewrites = config.rewrites
@@ -6,16 +7,14 @@ export function withAuth(config: NextConfig = {}): NextConfig {
 	return {
 		...config,
 		async rewrites() {
-			const bifrostUrl = process.env.BIFROST_URL || 'http://localhost:4000'
-
 			const authRewrites = [
 				{
 					source: '/auth/:path*',
-					destination: `${bifrostUrl}/auth/:path*`,
+					destination: `${BIFROST_URL}/auth/:path*`,
 				},
 				{
 					source: '/api/:path*',
-					destination: `${bifrostUrl}/api/:path*`,
+					destination: `${BIFROST_URL}/api/:path*`,
 				},
 			]
 
