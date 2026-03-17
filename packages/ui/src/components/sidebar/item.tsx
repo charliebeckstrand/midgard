@@ -41,7 +41,7 @@ export function SidebarItem({
 					data-slot="sidebar-item"
 					data-current={current ? 'true' : undefined}
 					onClick={(e) => {
-						close?.()
+						if (!e.currentTarget.hasAttribute('aria-haspopup')) close?.()
 						;(props as React.ComponentPropsWithoutRef<typeof Link>).onClick?.(e)
 					}}
 				>
@@ -55,7 +55,7 @@ export function SidebarItem({
 					data-slot="sidebar-item"
 					data-current={current ? 'true' : undefined}
 					onClick={(e) => {
-						close?.()
+						if (!e.currentTarget.hasAttribute('aria-haspopup')) close?.()
 						;(props as React.ComponentPropsWithoutRef<'button'>).onClick?.(e)
 					}}
 				>

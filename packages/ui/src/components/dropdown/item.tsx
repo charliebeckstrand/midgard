@@ -2,8 +2,10 @@
 
 import clsx from 'clsx'
 import type React from 'react'
+import { useContext } from 'react'
 import { Link } from '../../core'
 import { menuItemBase } from '../../recipes/item'
+import { MobileSidebarContext } from '../layouts/context'
 import { useDropdown } from './context'
 
 const itemClasses = [
@@ -30,6 +32,7 @@ export function DropdownItem({
 	  >)
 )) {
 	const { close } = useDropdown()
+	const closeSidebar = useContext(MobileSidebarContext)
 	const classes = clsx(className, itemClasses)
 
 	if (typeof props.href === 'string') {
@@ -50,6 +53,7 @@ export function DropdownItem({
 						return
 					}
 					close()
+					closeSidebar?.()
 					linkProps.onClick?.(e)
 				}}
 			/>
@@ -71,6 +75,7 @@ export function DropdownItem({
 			onClick={() => {
 				if (disabled) return
 				close()
+				closeSidebar?.()
 				onClick?.()
 			}}
 		/>
