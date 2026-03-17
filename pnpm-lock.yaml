@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       hlidskjalf:
-        specifier: 0.1.4
-        version: 0.1.4(@types/react@19.2.14)
+        specifier: 0.1.9
+        version: 0.1.9(@types/react@19.2.14)
     devDependencies:
       '@biomejs/biome':
         specifier: ^2.4.6
@@ -1526,8 +1526,8 @@ packages:
   hast-util-whitespace@3.0.0:
     resolution: {integrity: sha512-88JUN06ipLwsnv+dVn+OIYOvAuvBMy/Qoi6O7mQHxdPXpjy+Cd6xRkWwux7DKO+4sYILtLBRIKgsdpS2gQc7qw==}
 
-  hlidskjalf@0.1.4:
-    resolution: {integrity: sha512-YgVihWxv9GM5OC9pTVgwN70yZfWxbdDNtxt1+XyPYw6I0ARjUS8cIPisDlC1fjWNsxMihoVPP+qdxuB0ARiD1g==}
+  hlidskjalf@0.1.9:
+    resolution: {integrity: sha512-5+sKSN5fdjsNqgDL3z624KvtoTFkpsrnyX3VKqI9hiMsc+zXg+LPWvbRaxmJXBqxt/86GyiPAtQWd5gAz/XAGg==}
     engines: {node: '>=22'}
     hasBin: true
 
@@ -3326,7 +3326,7 @@ snapshots:
     dependencies:
       '@types/hast': 3.0.4
 
-  hlidskjalf@0.1.4(@types/react@19.2.14):
+  hlidskjalf@0.1.9(@types/react@19.2.14):
     dependencies:
       ink: 5.2.1(@types/react@19.2.14)(react@18.3.1)
       react: 18.3.1

@@ -78,7 +78,13 @@ export function PlaceholderTextarea({ className }: { className?: string }) {
 	)
 }
 
-export function PlaceholderSidebarItem({ className }: { className?: string }) {
+export function PlaceholderSidebarItem({
+	className,
+	icon = true,
+}: {
+	className?: string
+	icon?: boolean
+}) {
 	return (
 		<motion.div
 			role="status"
@@ -86,7 +92,7 @@ export function PlaceholderSidebarItem({ className }: { className?: string }) {
 			className={clsx(className, 'flex w-full items-center gap-3 rounded-lg px-2 py-2.5 sm:py-2')}
 			{...pulseAnimation}
 		>
-			<div className="size-5 shrink-0 rounded bg-zinc-200 sm:size-4 dark:bg-zinc-700" />
+			{icon && <div className="size-5 shrink-0 rounded bg-zinc-200 sm:size-4 dark:bg-zinc-700" />}
 			<div className="h-2 flex-1 max-w-[70%] rounded-full bg-zinc-200 dark:bg-zinc-700" />
 		</motion.div>
 	)

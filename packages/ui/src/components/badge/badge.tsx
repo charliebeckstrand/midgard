@@ -6,15 +6,17 @@ import { badge } from './variants'
 export type BadgeProps = VariantProps<typeof badge>
 
 export function Badge({
+	variant,
 	color,
 	size,
 	className,
 	...props
 }: BadgeProps & React.ComponentPropsWithoutRef<'span'>) {
-	return <span {...props} className={badge({ color, size, className })} />
+	return <span {...props} className={badge({ variant, color, size, className })} />
 }
 
 export function BadgeButton({
+	variant,
 	color,
 	size,
 	className,
@@ -32,7 +34,7 @@ export function BadgeButton({
 	if (typeof props.href === 'string') {
 		return (
 			<Link {...props} className={classes}>
-				<Badge color={color} size={size}>
+				<Badge variant={variant} color={color} size={size}>
 					{children}
 				</Badge>
 			</Link>
@@ -41,7 +43,7 @@ export function BadgeButton({
 
 	return (
 		<button type="button" {...props} className={classes}>
-			<Badge color={color} size={size}>
+			<Badge variant={variant} color={color} size={size}>
 				{children}
 			</Badge>
 		</button>

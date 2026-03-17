@@ -1,11 +1,10 @@
 'use client'
 
 import clsx from 'clsx'
-import { motion } from 'motion/react'
 import type React from 'react'
 import { useContext } from 'react'
 import { Link } from '../../core'
-import { TouchTarget } from '../../primitives'
+import { ActiveIndicator, TouchTarget } from '../../primitives'
 import { MobileSidebarContext } from '../layouts/context'
 import { navItemBase } from './recipes'
 
@@ -34,12 +33,7 @@ export function SidebarItem({
 
 	return (
 		<span className={clsx(className, 'relative')}>
-			{current && (
-				<motion.span
-					layoutId="current-indicator"
-					className="absolute inset-y-2 -left-4 w-0.5 rounded-full bg-zinc-950 dark:bg-white"
-				/>
-			)}
+			{current && <ActiveIndicator orientation="vertical" />}
 			{typeof props.href === 'string' ? (
 				<Link
 					{...props}

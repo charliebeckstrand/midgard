@@ -6,7 +6,13 @@ import type React from 'react'
 import { useId } from 'react'
 
 export function Sidebar({ className, ...props }: React.ComponentPropsWithoutRef<'nav'>) {
-	return <nav {...props} className={clsx(className, 'flex h-full min-h-0 flex-col')} />
+	const groupId = useId()
+
+	return (
+		<LayoutGroup id={groupId}>
+			<nav {...props} className={clsx(className, 'flex h-full min-h-0 flex-col')} />
+		</LayoutGroup>
+	)
 }
 
 export function SidebarBody({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
@@ -34,13 +40,7 @@ export function SidebarFooter({ className, ...props }: React.ComponentPropsWitho
 }
 
 export function SidebarSection({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
-	const groupId = useId()
-
-	return (
-		<LayoutGroup id={groupId}>
-			<div {...props} data-slot="section" className={clsx(className, 'flex flex-col gap-0.5')} />
-		</LayoutGroup>
-	)
+	return <div {...props} data-slot="section" className={clsx(className, 'flex flex-col gap-0.5')} />
 }
 
 export function SidebarDivider({ className, ...props }: React.ComponentPropsWithoutRef<'hr'>) {

@@ -1,9 +1,10 @@
 'use client'
 
 import clsx from 'clsx'
-import { LayoutGroup, motion } from 'motion/react'
+import { LayoutGroup } from 'motion/react'
 import type React from 'react'
 import { useId } from 'react'
+import { ActiveIndicator } from '../../primitives'
 
 export function Tabs({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
 	const groupId = useId()
@@ -32,12 +33,7 @@ export function Tab({
 } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className'> & { className?: string }) {
 	return (
 		<span className={clsx(className, 'relative flex')}>
-			{current && (
-				<motion.span
-					layoutId="current-indicator"
-					className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-zinc-950 dark:bg-white"
-				/>
-			)}
+			{current && <ActiveIndicator orientation="underline" />}
 			<button
 				{...props}
 				type="button"
@@ -66,7 +62,7 @@ export function TabSubtitle({ className, ...props }: React.ComponentPropsWithout
 			{...props}
 			className={clsx(
 				className,
-				'text-xs/5 text-zinc-500 group-data-[current]:text-zinc-700 dark:text-zinc-400 dark:group-data-[current]:text-zinc-300',
+				'text-xs/5 text-zinc-500 group-data-current:text-zinc-700 dark:text-zinc-400 dark:group-data-current:text-zinc-300',
 			)}
 		/>
 	)

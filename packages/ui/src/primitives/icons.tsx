@@ -48,6 +48,35 @@ export function MenuIcon() {
 	)
 }
 
+export function CheckboxIcon({ className }: { className?: string }) {
+	return (
+		<svg
+			aria-hidden="true"
+			className={clsx(
+				'size-4 stroke-(--checkbox-check) opacity-0 group-data-checked:opacity-100 sm:h-3.5 sm:w-3.5',
+				className,
+			)}
+			viewBox="0 0 14 14"
+			fill="none"
+		>
+			<path
+				className="opacity-100 group-data-indeterminate:opacity-0"
+				d="M3 8L6 11L11 3.5"
+				strokeWidth={2}
+				strokeLinecap="round"
+				strokeLinejoin="round"
+			/>
+			<path
+				className="opacity-0 group-data-indeterminate:opacity-100"
+				d="M3 7H11"
+				strokeWidth={2}
+				strokeLinecap="round"
+				strokeLinejoin="round"
+			/>
+		</svg>
+	)
+}
+
 export function CloseIcon() {
 	return (
 		<svg data-slot="icon" viewBox="0 0 20 20" aria-hidden="true">

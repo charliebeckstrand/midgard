@@ -1,5 +1,5 @@
 import { bifrost, getUser } from 'heimdall'
-import type { ReactNode } from 'react'
+import { type ReactNode, Suspense } from 'react'
 import { ChatClient } from './client'
 import type { Chat } from './types'
 
@@ -15,8 +15,10 @@ export default async function ChatLayout({ children }: { children: ReactNode }) 
 	const [{ user }, chats] = await Promise.all([getUser(), fetchChats()])
 
 	return (
-		<ChatClient user={user} chats={chats}>
-			{children}
-		</ChatClient>
+		<Suspense>
+			<ChatClient user={user} chats={chats}>
+				{children}
+			</ChatClient>
+		</Suspense>
 	)
 }

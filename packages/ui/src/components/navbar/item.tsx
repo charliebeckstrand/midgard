@@ -1,10 +1,9 @@
 'use client'
 
 import clsx from 'clsx'
-import { motion } from 'motion/react'
 import type React from 'react'
 import { Link } from '../../core'
-import { TouchTarget } from '../../primitives'
+import { ActiveIndicator, TouchTarget } from '../../primitives'
 import { navItemBase } from './recipes'
 
 export function NavbarItem({
@@ -28,12 +27,7 @@ export function NavbarItem({
 
 	return (
 		<span className={clsx(className, 'relative')}>
-			{current && (
-				<motion.span
-					layoutId="current-indicator"
-					className="absolute inset-x-2 -bottom-2.5 h-0.5 rounded-full bg-zinc-950 dark:bg-white"
-				/>
-			)}
+			{current && <ActiveIndicator orientation="horizontal" />}
 			{typeof props.href === 'string' ? (
 				<Link {...props} className={classes} data-current={current ? 'true' : undefined}>
 					<TouchTarget>{children}</TouchTarget>

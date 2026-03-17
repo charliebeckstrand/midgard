@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cat /Users/charliebeckstrand/Sites/midgard/packages/catalyst-ui-kit/*)",
+      "Bash(for dir:*)",
+      "Bash(do echo:*)",
+      "Read(//Users/charliebeckstrand/Sites/midgard/**)",
+      "Bash(done)",
+      "Bash(find /Users/charliebeckstrand/Sites/midgard/docs -type f -name *.md)",
+      "Bash(pnpm build:*)"
+    ]
+  }
+}

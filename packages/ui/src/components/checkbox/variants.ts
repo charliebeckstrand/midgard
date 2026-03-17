@@ -1,4 +1,5 @@
 import { cva } from 'class-variance-authority'
+import { checkboxColors } from '../../recipes/colors'
 
 export const checkbox = cva(
 	[
@@ -20,21 +21,7 @@ export const checkbox = cva(
 	],
 	{
 		variants: {
-			color: {
-				zinc: '[--checkbox-check:var(--color-white)] [--checkbox-checked-bg:var(--color-zinc-900)] [--checkbox-checked-border:var(--color-zinc-950)]/90 dark:[--checkbox-checked-bg:var(--color-zinc-600)]',
-				white:
-					'[--checkbox-check:var(--color-zinc-900)] [--checkbox-checked-bg:var(--color-white)] [--checkbox-checked-border:var(--color-zinc-950)]/15',
-				dark: '[--checkbox-check:var(--color-white)] [--checkbox-checked-bg:var(--color-zinc-900)] [--checkbox-checked-border:var(--color-zinc-950)]/90',
-				red: '[--checkbox-check:var(--color-white)] [--checkbox-checked-bg:var(--color-red-600)] [--checkbox-checked-border:var(--color-red-800)]/90',
-				amber:
-					'[--checkbox-check:var(--color-amber-100)] [--checkbox-checked-bg:var(--color-amber-700)] [--checkbox-checked-border:var(--color-amber-600)]/80',
-				green:
-					'[--checkbox-check:var(--color-white)] [--checkbox-checked-bg:var(--color-green-600)] [--checkbox-checked-border:var(--color-green-800)]/90',
-				blue: '[--checkbox-check:var(--color-white)] [--checkbox-checked-bg:var(--color-blue-600)] [--checkbox-checked-border:var(--color-blue-800)]/90',
-				purple:
-					'[--checkbox-check:var(--color-white)] [--checkbox-checked-bg:var(--color-purple-600)] [--checkbox-checked-border:var(--color-purple-800)]/90',
-				pink: '[--checkbox-check:var(--color-white)] [--checkbox-checked-bg:var(--color-pink-700)] [--checkbox-checked-border:var(--color-pink-800)]/90',
-			},
+			color: checkboxColors,
 		},
 		defaultVariants: {
 			color: 'zinc',

@@ -1,4 +1,5 @@
 import { cva } from 'class-variance-authority'
+import { radioColors } from '../../recipes/colors'
 
 export const radio = cva(
 	[
@@ -20,21 +21,7 @@ export const radio = cva(
 	],
 	{
 		variants: {
-			color: {
-				zinc: '[--radio-checked-bg:var(--color-zinc-900)] [--radio-checked-border:var(--color-zinc-950)]/90 [--radio-checked-indicator:var(--color-white)] dark:[--radio-checked-bg:var(--color-zinc-600)]',
-				white:
-					'[--radio-checked-bg:var(--color-white)] [--radio-checked-border:var(--color-zinc-950)]/15 [--radio-checked-indicator:var(--color-zinc-900)]',
-				dark: '[--radio-checked-bg:var(--color-zinc-900)] [--radio-checked-border:var(--color-zinc-950)]/90 [--radio-checked-indicator:var(--color-white)]',
-				red: '[--radio-checked-indicator:var(--color-white)] [--radio-checked-bg:var(--color-red-600)] [--radio-checked-border:var(--color-red-800)]/90',
-				amber:
-					'[--radio-checked-bg:var(--color-amber-700)] [--radio-checked-border:var(--color-amber-600)]/80 [--radio-checked-indicator:var(--color-amber-100)]',
-				green:
-					'[--radio-checked-indicator:var(--color-white)] [--radio-checked-bg:var(--color-green-600)] [--radio-checked-border:var(--color-green-800)]/90',
-				blue: '[--radio-checked-indicator:var(--color-white)] [--radio-checked-bg:var(--color-blue-600)] [--radio-checked-border:var(--color-blue-800)]/90',
-				purple:
-					'[--radio-checked-indicator:var(--color-white)] [--radio-checked-bg:var(--color-purple-600)] [--radio-checked-border:var(--color-purple-800)]/90',
-				pink: '[--radio-checked-indicator:var(--color-white)] [--radio-checked-bg:var(--color-pink-700)] [--radio-checked-border:var(--color-pink-800)]/90',
-			},
+			color: radioColors,
 		},
 		defaultVariants: {
 			color: 'zinc',

@@ -5,19 +5,8 @@ import { motion } from 'motion/react'
 import type React from 'react'
 import { useId } from 'react'
 import { Overlay } from '../../primitives'
+import { panelSizes } from '../../recipes/dialog'
 import { DialogProvider } from './context'
-
-const sizes = {
-	xs: 'sm:max-w-xs',
-	sm: 'sm:max-w-sm',
-	md: 'sm:max-w-md',
-	lg: 'sm:max-w-lg',
-	xl: 'sm:max-w-xl',
-	'2xl': 'sm:max-w-2xl',
-	'3xl': 'sm:max-w-3xl',
-	'4xl': 'sm:max-w-4xl',
-	'5xl': 'sm:max-w-5xl',
-}
 
 export function Dialog({
 	open,
@@ -28,7 +17,7 @@ export function Dialog({
 }: {
 	open: boolean
 	onClose: () => void
-	size?: keyof typeof sizes
+	size?: keyof typeof panelSizes
 	className?: string
 	children: React.ReactNode
 }) {
@@ -52,7 +41,7 @@ export function Dialog({
 							animate={{ opacity: 1, y: 0 }}
 							exit={{ opacity: 0, y: 0 }}
 							transition={{ duration: 0.15 }}
-							className={clsx(sizes[size], 'row-start-2 flex w-full min-w-0 sm:mb-auto')}
+							className={clsx(panelSizes[size], 'row-start-2 flex w-full min-w-0 sm:mb-auto')}
 						>
 							<div
 								className={clsx(

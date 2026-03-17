@@ -1,4 +1,6 @@
-export { CheckIcon, ChevronIcon, CloseIcon, MenuIcon } from './icons'
+export { ActiveIndicator } from './active-indicator'
+export { CheckboxIcon, CheckIcon, ChevronIcon, CloseIcon, MenuIcon } from './icons'
+export { OptionDescription, OptionLabel } from './option-parts'
 export { Overlay } from './overlay'
 export { PopoverPanel } from './popover-panel'
 export { SlidePanel } from './slide-panel'

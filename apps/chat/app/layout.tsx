@@ -5,7 +5,11 @@ import type { ReactNode } from 'react'
 import './globals.css'
 import { Providers } from './providers'
 
-const googleSans = Google_Sans({ adjustFontFallback: false, subsets: ['latin'], variable: '--font-sans' })
+const googleSans = Google_Sans({
+	adjustFontFallback: false,
+	subsets: ['latin'],
+	variable: '--font-sans',
+})
 
 export const metadata: Metadata = {
 	title: 'Chat',

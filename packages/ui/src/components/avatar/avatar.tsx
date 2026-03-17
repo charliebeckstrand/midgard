@@ -36,7 +36,7 @@ export function Avatar({
 					viewBox="0 0 100 100"
 					aria-hidden={alt ? undefined : 'true'}
 				>
-					<title>{alt || ''}</title>
+					<title>{alt || initials}</title>
 					<text
 						x="50%"
 						y="50%"

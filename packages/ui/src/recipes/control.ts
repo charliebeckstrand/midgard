@@ -8,6 +8,22 @@ export const controlWrapper = [
 	'has-[:disabled]:opacity-50 has-[:disabled]:before:bg-zinc-950/5 has-[:disabled]:before:shadow-none',
 ]
 
+/** WebKit date input overrides — normalises padding on date/time picker pseudo-elements */
+export const dateInputOverrides = [
+	'[&::-webkit-datetime-edit-fields-wrapper]:p-0',
+	'[&::-webkit-date-and-time-value]:min-h-[1.5em]',
+	'[&::-webkit-datetime-edit]:inline-flex',
+	'[&::-webkit-datetime-edit]:p-0',
+	'[&::-webkit-datetime-edit-year-field]:p-0',
+	'[&::-webkit-datetime-edit-month-field]:p-0',
+	'[&::-webkit-datetime-edit-day-field]:p-0',
+	'[&::-webkit-datetime-edit-hour-field]:p-0',
+	'[&::-webkit-datetime-edit-minute-field]:p-0',
+	'[&::-webkit-datetime-edit-second-field]:p-0',
+	'[&::-webkit-datetime-edit-millisecond-field]:p-0',
+	'[&::-webkit-datetime-edit-meridiem-field]:p-0',
+]
+
 /** Shared input element styles (Input, Select, Textarea, Combobox) */
 export const controlInput = [
 	'text-base/6 text-zinc-950 placeholder:text-zinc-500  dark:text-white',

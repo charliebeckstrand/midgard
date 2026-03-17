@@ -2,7 +2,7 @@
 
 import clsx from 'clsx'
 import type React from 'react'
-import { controlInput, controlWrapper } from '../../recipes/control'
+import { controlInput, controlWrapper, dateInputOverrides } from '../../recipes/control'
 
 export function InputGroup({ className, ...props }: React.ComponentPropsWithoutRef<'span'>) {
 	return (
@@ -46,21 +46,7 @@ export function Input({ className, disabled, invalid, ...props }: InputProps) {
 				data-invalid={invalid ? '' : undefined}
 				{...props}
 				className={clsx(
-					props.type &&
-						dateTypes.includes(props.type) && [
-							'[&::-webkit-datetime-edit-fields-wrapper]:p-0',
-							'[&::-webkit-date-and-time-value]:min-h-[1.5em]',
-							'[&::-webkit-datetime-edit]:inline-flex',
-							'[&::-webkit-datetime-edit]:p-0',
-							'[&::-webkit-datetime-edit-year-field]:p-0',
-							'[&::-webkit-datetime-edit-month-field]:p-0',
-							'[&::-webkit-datetime-edit-day-field]:p-0',
-							'[&::-webkit-datetime-edit-hour-field]:p-0',
-							'[&::-webkit-datetime-edit-minute-field]:p-0',
-							'[&::-webkit-datetime-edit-second-field]:p-0',
-							'[&::-webkit-datetime-edit-millisecond-field]:p-0',
-							'[&::-webkit-datetime-edit-meridiem-field]:p-0',
-						],
+					props.type && dateTypes.includes(props.type) && dateInputOverrides,
 					'relative block w-full appearance-none rounded-lg px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)] sm:px-[calc(--spacing(3)-1px)] sm:py-[calc(--spacing(1.5)-1px)]',
 					controlInput,
 					'dark:scheme-dark',
