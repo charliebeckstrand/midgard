@@ -2,325 +2,75 @@
 
 ## Principles
 
-- **Read before writing.** Understand the existing code, its conventions, and the surrounding context before making any change.
-- **Solve exactly what was asked.** Do not fix adjacent problems, refactor nearby code, or add features that were not requested. If you notice something worth improving, document it in the relevant `docs/` file — do not act on it without asking.
-- **Prefer the simplest solution that fully solves the problem.** Add complexity only when the problem demands it, never speculatively.
-- **Every change must be correct, clean, and complete.** Verify your work, then stop. Do not revisit code that already meets these criteria.
-- **No shortcuts.** If a proper solution requires multiple steps, do each one right. If a shortcut is genuinely unavoidable, document it in `docs/debt.md` before moving on.
-- **When stuck, research — do not guess.** If an approach fails twice, stop and investigate why, or ask the user for direction.
+- **Understand first, then act.** Read the relevant code, understand the conventions, then move with confidence.
+- **Leave it better than you found it.** If you see something broken or inconsistent in code you're already touching, fix it. Don't walk past problems.
+- **Ship quality, not quantity.** Do fewer things well. A clean, working solution beats a sprawling one.
+- **Earn complexity.** Start with the obvious approach. Only add abstraction, indirection, or configurability when the code demands it — not when it might be useful someday.
+- **Investigate, don't retry.** When something fails, understand why before trying again. Two blind retries is a wasted session.
+- **Use your tools.** Spawn subagents for research. Search the codebase instead of guessing at file paths. Let the formatter handle formatting.
+- **Record what you learn.** Append to the Log section below. One line, dated, specific. This is how you make the next session faster.
 
-## The `docs/` Directory
+## Project
 
-The `docs/` directory is a version-controlled knowledge base that serves as both the agent's working memory and the repository's documentation. It grows across sessions and is written for two audiences:
+Midgard is a pnpm monorepo (Turbo, Next.js 16, React 19, TypeScript 5.9, Tailwind CSS 4, Biome). Norse mythology naming.
 
-1. **Agents.** Structured, specific entries that prevent re-discovery and guide future sessions.
-2. **Developers.** Clear, browsable reference docs that anyone on the team can read.
+```
+apps/
+  admin/          → Dashboard (port 3000, authenticated)
+  chat/           → Chat app (port 3002, authenticated)
+  docs/           → Documentation (port 3001, public)
+packages/
+  ui/             → Component library (5-layer atomic, framework-agnostic)
+  heimdall/       → Auth module (session, proxy, config) → talks to Bifrost backend
+  sindri/         → Shared UI resources (auth pages, chat UI, theme)
+  hlidskjalf/     → Terminal dev dashboard (Ink + React)
+  reactbits/      → Animation components (motion)
+```
 
-Write with both audiences in mind — clear enough for a developer reading in a browser or editor, structured enough for an agent to parse programmatically. **Every session must leave the project easier for the next one.** Create the directory if it does not exist.
+## Stack
 
-### Developer Guides
+pnpm 10 · Turbo · Next.js 16 (App Router, Turbopack) · TypeScript 5.9 (strict) · React 19 · Tailwind CSS 4 · motion 12 · CVA · Biome (tabs, single quotes, no semicolons, 100-char) · tsup · Husky
 
-In addition to agent-oriented reference files, the `docs/` directory contains **developer guides** — docs written primarily for humans who need to use, understand, or contribute to the repo. These are surfaced prominently in the docs app under the "Guides" section.
+## Commands
 
-**Guide files:**
-- `getting-started.md` — Prerequisites, installation, running the dev server, first-time setup
-- `development.md` — Day-to-day dev workflow, adding apps/packages, common tasks
-- `architecture.md` — High-level system design, how packages relate, naming conventions
+```sh
+pnpm dev              # Start everything (hlidskjalf dashboard)
+pnpm build            # Production build via Turbo
+pnpm lint             # Check formatting + lint
+pnpm lint:fix         # Auto-fix
+pnpm check-types      # TypeScript check
+pnpm --filter ui docs # Component showcase (port 3456)
+```
 
-**Maintenance rules:**
-1. **Scan on session start.** Read the guide files alongside Tier 1 docs for additional context about the project.
-2. **Keep them current.** When your changes affect setup steps, dev workflow, environment variables, architecture, or project structure, update the relevant guide file. These docs are the first thing new developers read — stale info wastes their time.
-3. **Write for newcomers.** Guides should be self-contained and actionable. Assume the reader has never seen the repo before. Avoid jargon without explanation.
-4. **Cross-reference, don't duplicate.** Guides can link to reference docs (e.g., "See [Environment Variables](#env) for the full list") rather than repeating detailed information.
+## Preferences
 
-### Writing Guidelines
-
-1. **Write immediately.** If you learn something, write it down before your next action. Never defer to "end of session."
-2. **Be specific.** Include file paths, function names, and exact error messages. Vague entries waste future sessions and confuse human readers.
-3. **Be honest.** Record mistakes and failed approaches — they are the most valuable entries.
-4. **Prune stale info.** Update or remove entries that are no longer accurate.
-5. **Cross-reference.** When entries relate across files, link them.
-6. **Measure yourself.** If you re-discover something that should have been recorded, add it and note the gap in `docs/lessons.md`.
-7. **Never push without updating.** Knowledge updates are part of the deliverable, not an afterthought.
-8. **Nothing sensitive.** Never write secrets, API keys, tokens, passwords, internal URLs, or PII. Reference environment variable *names* (e.g., `BIFROST_URL`), never values. Describe credentials generically (e.g., "the database password from 1Password"). For content that should only be visible to authenticated users, add `<!-- auth: required -->` to the top of the file.
-9. **Write for humans too.** Use clear headings, short paragraphs, and code blocks. These files are documentation.
-
-## Session Start
-
-At the start of every session, before doing any work:
-
-1. Create `docs/project.md` if it does not exist (explore the codebase first).
-2. **Tier 1 — Read in full** (core memory):
-   - `project.md` — project map and structure
-   - `lessons.md` — mistakes to avoid
-   - `preferences.md` — user coding preferences
-   - `decisions.md` — architectural decisions and rationale
-   - `glossary.md` — domain terms and naming conventions
-   - `getting-started.md` — setup and installation guide
-   - `development.md` — dev workflow and common tasks
-   - `architecture.md` — system design overview
-3. **Tier 2 — Scan headers, read relevant sections** (working memory):
-   - `context.md` — non-obvious API contracts and type relationships
-   - `patterns.md` — reusable code patterns
-   - `errors.md` — known error solutions
-   - `commands.md` — useful commands and workflows
-   - `debt.md` — known tech debt
-   - `reviews.md` — common review feedback to avoid
-4. **Tier 3 — Read on-demand** when working in that area (reference):
-   - `dependencies.md` — dependency quirks
-   - `testing.md` — testing patterns and strategy
-   - `apis.md` — API routes and contracts
-   - `env.md` — environment variables reference
-   - `debug.md` — debugging approaches
-5. Note which files are missing or outdated and update them during the session.
-
-## Code
-
-- Build from small, composable pieces. Colocate what belongs together. If a type is hard to express, rethink the design.
-- Formatting is tooling's job. Never fight the formatter.
-
-## Architecture
-
-- Extend before inventing. Prefer growing an existing module over creating a new one unless there is a clear, distinct boundary.
-- Dependencies flow inward. Shared packages never depend on application code.
-- Abstractions are extracted, not predicted. Duplication across multiple call sites earns a shared utility; a single use case does not.
-
-## Workflow
-
-When a task is non-trivial or unfamiliar, research before writing code:
-
-1. **Research first.** Spawn subagents in parallel to investigate — one per area of concern (e.g., prior art in the codebase, dependency docs, failing behavior). Keep the main context window clean.
-2. **Synthesize.** If the path forward is clear, proceed. If there are meaningful trade-offs, present options to the user and ask.
-
-## Continuous Learning
-
-Update `docs/` files as you work, not at the end:
-
-- **Error?** → `errors.md` immediately, while the message and fix are in context.
-- **Non-obvious API or type relationship?** → `context.md` now.
-- **Design choice?** → `decisions.md` before moving on.
-- **Useful command?** → `commands.md` the moment you use it.
-- **Debugging effort?** → `debug.md` before moving on.
-- **Changed setup steps, env vars, or dev workflow?** → Update `getting-started.md` and/or `development.md`.
-- **Changed architecture, added/removed packages or apps?** → Update `architecture.md`.
+- Types and interfaces above consts/functions (unless a type depends on a const).
+- Blank lines between unrelated statements; related lines stay together.
+- Dependencies flow inward. Shared packages never depend on app code.
+- Extend before inventing. Prefer growing an existing module over creating a new one.
+- Abstractions are extracted, not predicted. 2+ call sites earns a utility; one does not.
 
 ## Git
 
-- Imperative mood, atomic commits. Each commit is one logical change.
-- Feature branches for non-trivial work. Never force-push shared branches.
-- Review your own diff before committing.
-
-### Pre-Push Gate
-
-Before every `git push`:
-
-1. Update every relevant `docs/` file:
-   - `project.md` — file, package, or export changed
-   - `lessons.md` — something surprised you or took multiple attempts
-   - `context.md` — you read code carefully to understand something
-   - `errors.md` — you hit and resolved an error
-   - `decisions.md` — you made a non-trivial design choice
-   - `patterns.md` — you wrote or followed a recurring pattern
-   - `commands.md` — you ran a useful command
-   - `dependencies.md` — a dependency behaved unexpectedly
-   - `testing.md` — you wrote or discovered a testing approach
-   - `preferences.md` — the user stated a preference
-   - `glossary.md` — you introduced or encountered a domain term
-   - `apis.md` — you added, changed, or discovered an API route
-   - `env.md` — you used or discovered an environment variable
-   - `debt.md` — you found existing tech debt
-   - `reviews.md` — you received or noticed recurring review feedback
-   - `debug.md` — you debugged something non-trivial
-   - `getting-started.md` — setup steps, prerequisites, or env vars changed
-   - `development.md` — dev workflow, common tasks, or project structure changed
-   - `architecture.md` — system design, packages, or app relationships changed
-2. Commit `docs/` changes as a **separate** commit (e.g., `update docs/ knowledge base`).
-3. Then push.
-
-### Session End
-
-Before ending a session, run through the Pre-Push Gate checklist one final time as a safety net. If you find yourself writing a lot here, you skipped the continuous learning and pre-push steps.
-
----
-
-## Knowledge Files Reference
-
-All files live in `docs/` and are committed to the repository. Append-only unless stated otherwise. Keep entries concise, dated, and actionable. Never include secrets or credentials.
-
-Create any file on first use with the format below.
-
-### `project.md` — Project Map
-
-Project overview: workspace layout, packages, key file paths, tech stack, external services, common commands. **Updated in place** (not append-only).
-
-### `lessons.md` — Hard-Won Knowledge
-
-Mistakes, failed approaches, surprising behavior. Each entry should prevent a future session from repeating it.
-
-```
-## YYYY-MM-DD — Short title
-What happened, why it was wrong, and what to do instead.
-```
-
-### `context.md` — Expensive-to-Rediscover Context
-
-Function signatures, type relationships, non-obvious API contracts, environment variable meanings — the codebase cheat sheet.
-
-```
-## YYYY-MM-DD — Topic
-The context worth preserving.
-```
-
-### `preferences.md` — User Preferences
-
-Code-style, formatting, naming, and workflow preferences. Specific and actionable.
-
-```
-## Category
-- Preference description. Note any exceptions.
-```
-
-### `patterns.md` — Reusable Code Patterns
-
-Recurring idioms and snippets specific to this project. Extract here when a pattern appears in 2+ places.
-
-```
-## Pattern name
-When to use it, followed by a minimal code example.
-```
-
-### `errors.md` — Error Solutions
-
-Indexed by error message or symptom for quick lookup.
-
-```
-## Error message or symptom
-- **Cause:** Why it happened.
-- **Fix:** What resolved it.
-- **Date:** YYYY-MM-DD
-```
-
-### `decisions.md` — Architecture Decision Records
-
-Non-trivial design choices with context, alternatives, and trade-offs.
-
-```
-## YYYY-MM-DD — Decision title
-**Status:** Accepted | Superseded by [link]
-**Context:** What prompted the decision.
-**Decision:** What was decided.
-**Alternatives:** What else was considered.
-**Consequences:** Trade-offs created.
-```
-
-### `commands.md` — Useful Commands & Workflows
-
-CLI commands, scripts, and multi-step workflows worth remembering.
-
-```
-## Task description
-\`\`\`sh
-command here
-\`\`\`
-Optional notes.
-```
-
-### `dependencies.md` — Dependency Notes
-
-Version quirks, upgrade notes, compatibility issues, unexpected behaviors.
-
-```
-## package-name@version
-What's notable or broken. Date discovered: YYYY-MM-DD.
-```
-
-### `testing.md` — Testing Patterns & Strategy
-
-Testing conventions, utilities, setup/teardown, mocking approaches.
-
-```
-## Category (e.g., Component tests, API tests)
-How tests are structured and patterns to follow.
-```
-
-### `glossary.md` — Domain Glossary
-
-Domain-specific terms and naming conventions. This project uses Norse mythology naming.
-
-```
-## Term
-Definition and how it's used in this project.
-```
-
-### `apis.md` — API Routes & Contracts
-
-Endpoints, request/response shapes, auth requirements, and integration points.
-
-```
-## METHOD /path
-- **Request:** params, body, headers
-- **Response:** shape, status codes
-- **Auth:** required | public
-- **Notes:** anything non-obvious
-```
-
-### `env.md` — Environment Variables
-
-Variable names, what they control, defaults, and where they're used. **Names only — never values.**
-
-```
-## VARIABLE_NAME
-- **Used by:** package or file
-- **Purpose:** what it controls
-- **Default:** value if any
-```
-
-### `debt.md` — Technical Debt
-
-Known shortcuts and workarounds with context and ideal fixes.
-
-```
-## YYYY-MM-DD — Short title
-**Where:** file path or area
-**What:** the shortcut or workaround
-**Why:** why it was acceptable at the time
-**Ideal fix:** what should be done when there's time
-```
-
-### `reviews.md` — Review Feedback Patterns
-
-Recurring PR review feedback to avoid repeating.
-
-```
-## Category (e.g., Error handling, Naming, Testing)
-- What reviewers flag and what they expect instead.
-```
-
-### `debug.md` — Debugging Playbook
-
-Debugging strategies that worked for specific problem types.
-
-```
-## Symptom or problem type
-**How to diagnose:** steps that led to the root cause
-**Tools used:** browser devtools, logging, etc.
-**Date:** YYYY-MM-DD
-```
-
----
-
-## Developer Guide Files Reference
-
-These files are surfaced in the docs app under "Guides" and are written primarily for developers. **Updated in place** (not append-only). Keep them current, actionable, and newcomer-friendly.
-
-### `getting-started.md` — Getting Started
-
-Prerequisites, cloning, installing dependencies, environment variables, running the dev server, and verifying the setup.
-
-### `development.md` — Development Workflow
-
-Day-to-day dev patterns: code style, common commands, adding apps/packages, working with shared packages, git workflow, and project structure overview.
-
-### `architecture.md` — Architecture Overview
-
-High-level system design: how apps and packages relate, dependency flow, key design decisions, and naming conventions. Includes a system diagram.
+Imperative mood, atomic commits. Feature branches for non-trivial work. Never force-push shared branches. Review your own diff before committing.
+
+## Log
+
+Append new entries at the bottom. One line per lesson. Date + what you learned. This is the most important section — it compounds across sessions.
+
+- 2026-03-14: Tailwind v4 needs explicit `@source` directives for workspace packages in each app's globals.css — missing = styles silently absent
+- 2026-03-14: Base tsconfig only has `"lib": ["ES2022"]` — packages using DOM APIs must add `"DOM"` and `"DOM.Iterable"` locally
+- 2026-03-14: `baseUrl` and `paths` in tsconfig resolve relative to the file defining them — keep these in each app's tsconfig, not in shared root configs
+- 2026-03-14: Next.js 16 renamed middleware.ts → proxy.ts, exported function `middleware` → `proxy`
+- 2026-03-14: Sindri tsup needs two entries: one for form hook (`clean: true`), one for client components with `'use client'` banner (`clean: false`)
+- 2026-03-15: `useId()` breaks in dual-rendered trees (SidebarLayout renders sidebar twice for desktop/mobile) — use `useRef()` instead, omit LayoutGroup `id` prop
+- 2026-03-15: `motion.div` `onDrag` type conflicts with React's `DragEventHandler` — don't spread arbitrary div props onto motion elements
+- 2026-03-15: Don't call `scrollToBottom()` after `setState` — React hasn't committed yet. Use `useEffect` watching `messages.length`
+- 2026-03-15: Unbatched EventEmitter emissions flood Ink renders — batch with `queueMicrotask()` to coalesce per I/O callback
+- 2026-03-15: tsup `--watch` with `dts: true` and 30+ entry points hits heap limits — use `--no-dts` in dev mode
+- 2026-03-15: SidebarLayout scroll container is NOT window — it's a `div` with `overflow-y-auto`. Walk up DOM to find nearest scrollable ancestor
+- 2026-03-16: `asChild` pattern needs `React.cloneElement`, not object spread — spread drops refs and clobbers handlers
+- 2026-03-16: Biome `noArrayIndexKey` fires even when index isn't used as a React `key` — suppress with targeted biome-ignore when index is for IDs in static lists
+- 2026-03-16: Vercel Geist dark P3 OKLCH palette: 100-500 dark tints, 600 vivid accent (color aliases point here), 700-800 darker vivids, 900-1000 light shades
+- 2026-03-16: Every ui component exports its prop types from index.ts (e.g., `InputProps`, `ButtonProps`) — always do this for new components
+- 2026-03-17: Next.js font warning "Failed to find font override values for Google Sans" — fix with `adjustFontFallback: false` in font config

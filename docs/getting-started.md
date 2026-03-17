@@ -28,8 +28,6 @@ BIFROST_URL=http://localhost:4000
 
 The docs app is public and does not require auth configuration.
 
-See [Environment Variables](#env) for the full list of variables.
-
 ## Start the Dev Server
 
 ```sh

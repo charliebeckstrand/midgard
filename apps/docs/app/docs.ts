@@ -43,38 +43,6 @@ const REFERENCE_DOCS: Record<string, { title: string; description: string }> = {
 		title: 'Architecture Decisions',
 		description: 'Non-trivial design choices with context and trade-offs.',
 	},
-	patterns: {
-		title: 'Reusable Code Patterns',
-		description: 'Recurring idioms and snippets specific to this project.',
-	},
-	commands: {
-		title: 'Commands & Workflows',
-		description: 'CLI commands, scripts, and multi-step workflows.',
-	},
-	glossary: {
-		title: 'Domain Glossary',
-		description: 'Domain-specific terms and naming conventions.',
-	},
-	apis: {
-		title: 'API Routes & Contracts',
-		description: 'Endpoints, request/response shapes, and auth requirements.',
-	},
-	env: {
-		title: 'Environment Variables',
-		description: 'Environment variable names, purposes, and defaults.',
-	},
-	dependencies: {
-		title: 'Dependency Notes',
-		description: 'Version quirks, upgrade notes, and compatibility issues.',
-	},
-	testing: {
-		title: 'Testing Patterns',
-		description: 'Testing conventions, utilities, and mocking approaches.',
-	},
-	errors: {
-		title: 'Error Solutions',
-		description: 'Error messages indexed with causes and fixes.',
-	},
 }
 
 const PUBLISHED_DOCS: Record<

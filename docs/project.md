@@ -108,7 +108,7 @@ Documentation dashboard that renders markdown files from the root `docs/` direct
 
 **Doc categories:** The sidebar groups docs into two sections:
 - **Guides** — Developer-facing: `getting-started.md`, `development.md`, `architecture.md`
-- **Reference** — Technical reference: `project.md`, `decisions.md`, `patterns.md`, `commands.md`, `glossary.md`, `apis.md`, `env.md`, `dependencies.md`, `testing.md`, `errors.md`
+- **Reference** — Technical reference: `project.md`, `decisions.md`
 
 Categories and ordering are defined in `app/docs.ts` via `GUIDE_DOCS` and `REFERENCE_DOCS`.
 

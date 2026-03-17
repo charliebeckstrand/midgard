@@ -70,4 +70,4 @@ The project uses **Norse mythology** names:
 | Sindri       | Master dwarf craftsman     | Shared UI resources         |
 | Hlidskjalf   | Odin's watchtower          | Terminal dev dashboard       |
 
-See [Domain Glossary](#glossary) for the full list.
+| Reactbits   | Animation components       | Visual effects package      |

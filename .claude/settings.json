@@ -1,18 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(cat /Users/charliebeckstrand/Sites/midgard/packages/catalyst-ui-kit/*)",
-      "Bash(for dir:*)",
-      "Bash(do echo:*)",
-      "Read(//Users/charliebeckstrand/Sites/midgard/**)",
-      "Bash(done)",
-      "Bash(find /Users/charliebeckstrand/Sites/midgard/docs -type f -name *.md)",
       "Bash(pnpm build:*)",
-      "Bash(grep -r \"heimdall\\\\|withAuth\\\\|bifrost\\\\|getSession\\\\|getUser\\\\|proxy\" /Users/charliebeckstrand/Sites/midgard/apps --include=*.ts --include=*.tsx)",
-      "Bash(grep -r \"reactbits\\\\|ShinyText\" /Users/charliebeckstrand/Sites/midgard/apps --include=*.ts --include=*.tsx)",
       "Bash(pnpm install:*)",
-      "Bash(pnpm --filter ui build)",
-      "Bash(pnpm --filter sindri build)"
+      "Bash(pnpm lint:*)",
+      "Bash(pnpm check-types:*)",
+      "Bash(pnpm --filter * build)",
+      "Bash(pnpm --filter * dev)"
     ]
   }
 }
