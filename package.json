@@ -17,6 +17,6 @@
   },
   "packageManager": "pnpm@10.29.3",
   "dependencies": {
-    "hlidskjalf": "0.1.2"
+    "hlidskjalf": "0.1.4"
   }
 }
