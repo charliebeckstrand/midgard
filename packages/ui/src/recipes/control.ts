@@ -1,3 +1,20 @@
+/** Standard form control padding — the px/py calc shared by Input, Select, Textarea, Combobox */
+export const controlPadding =
+	'px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)] sm:px-[calc(--spacing(3)-1px)] sm:py-[calc(--spacing(1.5)-1px)]'
+
+/**
+ * Form field slot spacing — how label, control, description, and error relate.
+ * Used by Field, Fieldset, and any container that lays out form slot children.
+ */
+export const formFieldSpacing = [
+	'[&>[data-slot=label]+[data-slot=control]]:mt-3',
+	'[&>[data-slot=label]+[data-slot=description]]:mt-1',
+	'[&>[data-slot=description]+[data-slot=control]]:mt-3',
+	'[&>[data-slot=control]+[data-slot=description]]:mt-3',
+	'[&>[data-slot=control]+[data-slot=error]]:mt-3',
+	'*:data-[slot=label]:font-medium',
+]
+
 /** Form control wrapper (Input, Select, Textarea, Combobox) */
 export const controlWrapper = [
 	// Layout

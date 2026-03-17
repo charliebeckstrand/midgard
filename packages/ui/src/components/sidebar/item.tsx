@@ -3,6 +3,7 @@
 import React, { useContext } from 'react'
 import { cn, Link } from '../../core'
 import { ActiveIndicator, TouchTarget } from '../../primitives'
+import { iconOnlyDetection, trailingIcon } from '../../recipes/icon'
 import { MobileSidebarContext } from '../layouts/context'
 import { navItemBase } from './recipes'
 
@@ -45,14 +46,12 @@ export function SidebarItem({
 		'flex w-full items-center gap-3 rounded-lg px-2 py-2.5 text-left text-base/6 font-medium select-none text-zinc-950 sm:py-2',
 		navItemBase,
 		// Trailing icon (down chevron or similar)
-		'*:last:data-[slot=icon]:ml-auto *:last:data-[slot=icon]:size-5 sm:*:last:data-[slot=icon]:size-4',
+		...trailingIcon,
 		// Current
 		'data-current:*:data-[slot=icon]:fill-zinc-950',
 		'dark:data-current:*:data-[slot=icon]:fill-white',
-		// Icon-only — square aspect (auto-detected: has icon, no label)
-		'[&:has([data-slot=icon]):not(:has([data-slot=label]))]:aspect-square',
-		'[&:has([data-slot=icon]):not(:has([data-slot=label]))]:justify-center',
-		'[&:has([data-slot=icon]):not(:has([data-slot=label]))]:w-auto',
+		// Icon-only — auto-detected square aspect
+		...iconOnlyDetection,
 	)
 
 	return (

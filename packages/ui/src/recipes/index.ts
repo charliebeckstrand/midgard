@@ -6,9 +6,15 @@ export {
 	radioColors,
 	switchColors,
 } from './colors'
-export { controlInput, controlWrapper, dateInputOverrides } from './control'
+export {
+	controlInput,
+	controlPadding,
+	controlWrapper,
+	dateInputOverrides,
+	formFieldSpacing,
+} from './control'
 export { panelSizes } from './dialog'
-export { iconSize, iconSlot, iconSlotIconOnly } from './icon'
+export { iconOnlyDetection, iconSize, iconSlot, iconSlotIconOnly, trailingIcon } from './icon'
 export { menuItemBase, menuItemSlots } from './item'
 export { overlayAnimation, popoverAnimation, slidePanelAnimation } from './motion'
 export { alertBackdrop, overlayBackdrop, sidebarBackdrop } from './overlay'

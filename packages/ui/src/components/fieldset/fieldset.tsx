@@ -1,5 +1,6 @@
 import type React from 'react'
 import { cn } from '../../core'
+import { formFieldSpacing } from '../../recipes/control'
 
 export function Fieldset({
 	className,
@@ -34,15 +35,7 @@ export function Field({
 		<div
 			data-disabled={disabled ? '' : undefined}
 			{...props}
-			className={cn(
-				'[&>[data-slot=label]+[data-slot=control]]:mt-3',
-				'[&>[data-slot=label]+[data-slot=description]]:mt-1',
-				'[&>[data-slot=description]+[data-slot=control]]:mt-3',
-				'[&>[data-slot=control]+[data-slot=description]]:mt-3',
-				'[&>[data-slot=control]+[data-slot=error]]:mt-3',
-				'*:data-[slot=label]:font-medium',
-				className,
-			)}
+			className={cn(...formFieldSpacing, className)}
 		/>
 	)
 }
