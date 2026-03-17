@@ -1,9 +1,9 @@
 'use client'
 
-import clsx from 'clsx'
 import { motion } from 'motion/react'
 import type React from 'react'
 import { useEffect, useRef } from 'react'
+import { cn } from '../core'
 import { useMenuKeyboard } from '../hooks/use-menu-keyboard'
 import { popoverAnimation } from '../recipes/motion'
 import { popoverMenu } from '../recipes/popover'
@@ -42,7 +42,7 @@ export function PopoverPanel({
 				handleKeyDown(e)
 				onKeyDownProp?.(e)
 			}}
-			className={clsx('absolute z-50', popoverMenu, className)}
+			className={cn('absolute z-50', popoverMenu, className)}
 		>
 			{children}
 		</motion.div>

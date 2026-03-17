@@ -50,14 +50,14 @@ export function Tab({
 					'flex items-center gap-2 px-2 py-1 text-sm/6 font-medium',
 					// Focus
 					'focus:outline-hidden',
-					// Current vs inactive
-					current ? 'text-zinc-950' : 'text-zinc-500',
-					// Hover (inactive only)
-					!current && 'hover:text-zinc-700',
-					// Dark
-					current ? 'dark:text-white' : 'dark:text-zinc-400',
+					// Light — inactive default, current override
+					'text-zinc-500 data-current:text-zinc-950',
+					// Light — hover (inactive only)
+					'not-data-current:hover:text-zinc-700',
+					// Dark — inactive default, current override
+					'dark:text-zinc-400 dark:data-current:text-white',
 					// Dark — hover (inactive only)
-					!current && 'dark:hover:text-zinc-200',
+					'dark:not-data-current:hover:text-zinc-200',
 				)}
 			>
 				{prepend}

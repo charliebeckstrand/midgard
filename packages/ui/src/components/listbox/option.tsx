@@ -1,7 +1,7 @@
 'use client'
 
-import clsx from 'clsx'
 import type React from 'react'
+import { cn } from '../../core'
 import { CheckIcon } from '../../primitives'
 import { menuItemBase, menuItemSlots } from '../../recipes/item'
 import { useListbox, useSelectedOption } from './context'
@@ -22,11 +22,11 @@ export function ListboxOption<T>({
 	const { isSelectedOption } = useSelectedOption()
 	const selected = selectedValue === value
 
-	const sharedClasses = clsx('flex min-w-0 items-center', menuItemSlots)
+	const sharedClasses = cn('flex min-w-0 items-center', menuItemSlots)
 
 	if (isSelectedOption) {
 		if (!selected) return null
-		return <span className={clsx(className, sharedClasses)}>{children}</span>
+		return <span className={cn(className, sharedClasses)}>{children}</span>
 	}
 
 	return (
@@ -43,14 +43,14 @@ export function ListboxOption<T>({
 					if (!disabled) onChange(value)
 				}
 			}}
-			className={clsx(
+			className={cn(
 				'group/option grid cursor-default grid-cols-[--spacing(5)_1fr] items-baseline gap-x-2 rounded-lg pr-3.5 pl-2 sm:grid-cols-[--spacing(4)_1fr] sm:pr-3 sm:pl-1.5',
 				menuItemBase,
 			)}
 			{...props}
 		>
 			<CheckIcon className="relative hidden self-center group-data-selected/option:inline" />
-			<span className={clsx(className, sharedClasses, 'col-start-2')}>{children}</span>
+			<span className={cn(className, sharedClasses, 'col-start-2')}>{children}</span>
 		</div>
 	)
 }

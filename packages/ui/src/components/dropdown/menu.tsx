@@ -1,8 +1,8 @@
 'use client'
 
-import clsx from 'clsx'
 import { AnimatePresence } from 'motion/react'
 import type React from 'react'
+import { cn } from '../../core'
 import { PopoverPanel } from '../../primitives'
 import { anchorPositions } from '../../recipes/popover'
 import { useDropdown } from './context'
@@ -26,7 +26,7 @@ export function DropdownMenu({
 				<PopoverPanel
 					role="menu"
 					itemSelector='[role="menuitem"]:not([data-disabled])'
-					className={clsx(
+					className={cn(
 						positionClass,
 						!fullWidth && 'min-w-max',
 						'supports-[grid-template-columns:subgrid]:grid supports-[grid-template-columns:subgrid]:grid-cols-[auto_1fr_1.5rem_0.5rem_auto]',
