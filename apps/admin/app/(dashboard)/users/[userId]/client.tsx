@@ -58,8 +58,6 @@ export function UserDetailsClient({ details, chats: initialChats }: UserDetailsC
 			<div className="flex flex-col gap-6">
 				<Heading>{details?.email}</Heading>
 
-				<pre className="dark:text-white">{JSON.stringify(details, null, 2)}</pre>
-
 				<div className="flex flex-col">
 					<Subheading>Chats</Subheading>
 

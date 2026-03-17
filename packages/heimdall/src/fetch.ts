@@ -1,11 +1,10 @@
 import { cookies } from 'next/headers'
+import { BIFROST_URL } from './env'
 
 export async function bifrost(path: string, init: RequestInit = {}): Promise<Response> {
-	const base = process.env.BIFROST_URL || 'http://localhost:4000'
-
 	const cookieStore = await cookies()
 
-	return fetch(`${base}${path}`, {
+	return fetch(`${BIFROST_URL}${path}`, {
 		...init,
 		headers: {
 			...init.headers,
