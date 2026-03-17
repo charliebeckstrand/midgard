@@ -20,12 +20,7 @@ export function MobileSidebar({
 		<Overlay open={open} onClose={close} className={omote.sidebar} role="dialog" aria-modal="true">
 			<SlidePanel>
 				<MobileSidebarContext.Provider value={close}>
-					<div
-						className={cn(
-							'flex h-full flex-col rounded-lg bg-white shadow-xs ring-1 ring-zinc-950/5',
-							'dark:bg-zinc-900 dark:ring-white/10',
-						)}
-					>
+					<div className={cn(`flex h-full flex-col rounded-lg ${omote.card}`)}>
 						{header}
 						{children}
 					</div>

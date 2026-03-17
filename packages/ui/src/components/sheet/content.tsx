@@ -104,13 +104,8 @@ export function SheetContent({
 					>
 						<div
 							className={cn(
-								// Light
-								'flex h-full flex-col bg-white shadow-lg',
+								`flex h-full flex-col ${omote.panel}`,
 								isHorizontal ? 'rounded-xl' : '',
-								'ring-1 ring-zinc-950/10',
-								// Dark
-								'dark:bg-zinc-900',
-								'dark:ring-white/10',
 								className,
 							)}
 						>

@@ -12,6 +12,12 @@ import { kage } from './kage'
 import { sumi } from './sumi'
 
 export const omote = {
+	/** Elevated panel surface — modals, dialogs, alerts */
+	panel: `bg-white shadow-lg ${kage.ring} dark:bg-zinc-900 forced-colors:outline`,
+
+	/** Content card surface — layout containers, sidebars */
+	card: `bg-white shadow-xs ${kage.ringUsui} dark:bg-zinc-900`,
+
 	/** The outer chrome of a form control (Input, Select, Textarea, Combobox) */
 	control: [
 		// Layout

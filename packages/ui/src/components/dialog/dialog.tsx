@@ -5,7 +5,7 @@ import type React from 'react'
 import { useId } from 'react'
 import { cn } from '../../core'
 import { Overlay } from '../../primitives'
-import { katachi, ugoki } from '../../recipes'
+import { katachi, omote, ugoki } from '../../recipes'
 import { DialogProvider } from './context'
 
 export function Dialog({
@@ -42,9 +42,7 @@ export function Dialog({
 						>
 							<div
 								className={cn(
-									'w-full min-w-0 rounded-t-3xl bg-white p-(--gutter) shadow-lg ring-1 ring-zinc-950/10 [--gutter:--spacing(8)] sm:rounded-2xl',
-									'dark:bg-zinc-900 dark:ring-white/10',
-									'forced-colors:outline',
+									`w-full min-w-0 rounded-t-3xl p-(--gutter) [--gutter:--spacing(8)] sm:rounded-2xl ${omote.panel}`,
 									className,
 								)}
 							>
