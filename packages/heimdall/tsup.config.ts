@@ -4,9 +4,7 @@ export default defineConfig({
 	entry: {
 		index: 'src/index.ts',
 		config: 'src/config.ts',
-		fetch: 'src/fetch.ts',
 		proxy: 'src/proxy.ts',
-		session: 'src/session.ts',
 		user: 'src/user.ts',
 	},
 	format: ['esm'],

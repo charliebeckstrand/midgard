@@ -20,11 +20,6 @@
 			"import": "./dist/proxy.js",
 			"default": "./dist/proxy.js"
 		},
-		"./fetch": {
-			"types": "./src/fetch.ts",
-			"import": "./dist/fetch.js",
-			"default": "./dist/fetch.js"
-		},
 		"./user": {
 			"types": "./src/user.ts",
 			"import": "./dist/user.js",
