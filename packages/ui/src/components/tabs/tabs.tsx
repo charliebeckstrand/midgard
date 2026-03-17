@@ -19,7 +19,7 @@ export function Tabs({ className, ...props }: React.ComponentPropsWithoutRef<'di
 				role="tablist"
 				onKeyDown={onKeyDown}
 				{...props}
-				className={cn('flex gap-4 border-b border-zinc-950/10 dark:border-white/10', className)}
+				className={cn('flex gap-4 border-b border-zinc-950/10', 'dark:border-white/10', className)}
 			/>
 		</LayoutGroup>
 	)
@@ -46,10 +46,17 @@ export function Tab({
 				role="tab"
 				aria-selected={current}
 				className={cn(
-					'flex items-center gap-2 px-2 py-1 text-sm/6 font-medium focus:outline-hidden',
-					current
-						? 'text-zinc-950 dark:text-white'
-						: 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200',
+					'flex items-center gap-2 px-2 py-1 text-sm/6 font-medium',
+					// Focus
+					'focus:outline-hidden',
+					// Current vs inactive
+					current ? 'text-zinc-950' : 'text-zinc-500',
+					// Hover (inactive only)
+					!current && 'hover:text-zinc-700',
+					// Dark
+					current ? 'dark:text-white' : 'dark:text-zinc-400',
+					// Dark — hover (inactive only)
+					!current && 'dark:hover:text-zinc-200',
 				)}
 			>
 				{prepend}
@@ -69,7 +76,10 @@ export function TabSubtitle({ className, ...props }: React.ComponentPropsWithout
 		<span
 			{...props}
 			className={cn(
-				'text-xs/5 text-zinc-500 group-data-current:text-zinc-700 dark:text-zinc-400 dark:group-data-current:text-zinc-300',
+				'text-xs/5 text-zinc-500',
+				'group-data-current:text-zinc-700',
+				'dark:text-zinc-400',
+				'dark:group-data-current:text-zinc-300',
 				className,
 			)}
 		/>

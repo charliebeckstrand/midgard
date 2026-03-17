@@ -7,11 +7,22 @@ import { useDropdown } from './context'
 
 const itemClasses = [
 	...menuItemBase,
-	'group px-3.5 focus:outline-hidden sm:px-3',
+	// Layout
 	'text-left',
 	'col-span-full grid grid-cols-[auto_1fr_1.5rem_0.5rem_auto] items-center supports-[grid-template-columns:subgrid]:grid-cols-subgrid',
+	'group px-3.5 sm:px-3',
+	// Focus
+	'focus:outline-hidden',
+	// Icon slots — layout
 	'*:data-[slot=icon]:col-start-1 *:data-[slot=icon]:row-start-1 *:data-[slot=icon]:mr-2.5 *:data-[slot=icon]:-ml-0.5 *:data-[slot=icon]:size-5 sm:*:data-[slot=icon]:mr-2 sm:*:data-[slot=icon]:size-4',
-	'*:data-[slot=icon]:text-zinc-500 focus:*:data-[slot=icon]:text-white hover:*:data-[slot=icon]:text-white dark:*:data-[slot=icon]:text-zinc-400',
+	// Icon slots — light
+	'*:data-[slot=icon]:text-zinc-500',
+	// Icon slots — hover + focus
+	'focus:*:data-[slot=icon]:text-white',
+	'hover:*:data-[slot=icon]:text-white',
+	// Icon slots — dark
+	'dark:*:data-[slot=icon]:text-zinc-400',
+	// Avatar slots
 	'*:data-[slot=avatar]:mr-2.5 *:data-[slot=avatar]:-ml-1 *:data-[slot=avatar]:size-6 sm:*:data-[slot=avatar]:mr-2 sm:*:data-[slot=avatar]:size-5',
 ]
 
@@ -86,7 +97,10 @@ export function DropdownDescription({ className, ...props }: React.ComponentProp
 			data-slot="description"
 			{...props}
 			className={cn(
-				'col-span-2 col-start-2 row-start-2 text-sm/5 text-zinc-500 group-focus:text-white sm:text-xs/5 dark:text-zinc-400 forced-colors:group-focus:text-[HighlightText]',
+				'col-span-2 col-start-2 row-start-2 text-sm/5 text-zinc-500 sm:text-xs/5',
+				'group-focus:text-white',
+				'dark:text-zinc-400',
+				'forced-colors:group-focus:text-[HighlightText]',
 				className,
 			)}
 		/>
@@ -108,7 +122,9 @@ export function DropdownShortcut({
 					// biome-ignore lint/suspicious/noArrayIndexKey: keyboard shortcut characters have no stable unique ID
 					key={index}
 					className={cn(
-						'min-w-[2ch] text-center font-sans text-zinc-400 capitalize group-focus:text-white forced-colors:group-focus:text-[HighlightText]',
+						'min-w-[2ch] text-center font-sans text-zinc-400 capitalize',
+						'group-focus:text-white',
+						'forced-colors:group-focus:text-[HighlightText]',
 						index > 0 && char.length > 1 && 'pl-1',
 					)}
 				>

@@ -3,44 +3,83 @@ import { buttonColors } from '../../recipes/colors'
 
 export const button = cva(
 	[
+		// Layout
 		'relative isolate inline-flex w-fit items-center justify-center gap-x-2 rounded-lg text-base/6 font-semibold select-none',
-		'focus:outline-hidden focus-visible:outline-1 focus-visible:-outline-offset-1 focus-visible:outline-blue-600',
-		'disabled:opacity-50',
+		// Icon slots
 		'*:data-[slot=icon]:-mx-0.5 *:data-[slot=icon]:my-0.5 *:data-[slot=icon]:size-5 *:data-[slot=icon]:shrink-0 *:data-[slot=icon]:self-center *:data-[slot=icon]:text-(--btn-icon) sm:*:data-[slot=icon]:my-1 sm:*:data-[slot=icon]:size-4',
-		'forced-colors:[--btn-icon:ButtonText] forced-colors:hover:[--btn-icon:ButtonText]',
+		// Focus
+		'focus:outline-hidden',
+		'focus-visible:outline-1 focus-visible:-outline-offset-1 focus-visible:outline-blue-600',
+		// Disabled
+		'disabled:opacity-50',
+		// Forced colors
+		'forced-colors:[--btn-icon:ButtonText]',
+		'forced-colors:hover:[--btn-icon:ButtonText]',
 	],
 	{
 		variants: {
 			variant: {
 				solid: [
-					'items-baseline border px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)] sm:px-[calc(--spacing(3)-1px)] sm:py-[calc(--spacing(1.5)-1px)] ',
+					// Layout + sizing
+					'items-baseline border px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)] sm:px-[calc(--spacing(3)-1px)] sm:py-[calc(--spacing(1.5)-1px)]',
+					// Light — border and before pseudo (visual bg)
 					'border-transparent bg-(--btn-border)',
-					'dark:bg-(--btn-bg)',
 					'before:absolute before:inset-0 before:-z-10 before:rounded-[calc(var(--radius-lg)-1px)] before:bg-(--btn-bg)',
 					'before:shadow-sm',
-					'dark:before:hidden',
-					'dark:border-white/5',
+					// Light — after pseudo (inset highlight)
 					'after:absolute after:inset-0 after:-z-10 after:rounded-[calc(var(--radius-lg)-1px)]',
 					'after:shadow-[inset_0_1px_--theme(--color-white/15%)]',
-					'active:after:bg-(--btn-hover-overlay) not-disabled:hover:after:bg-(--btn-hover-overlay)',
-					'dark:after:-inset-px dark:after:rounded-lg',
+					// Hover + Active
+					'active:after:bg-(--btn-hover-overlay)',
+					'not-disabled:hover:after:bg-(--btn-hover-overlay)',
+					// Disabled
 					'disabled:before:shadow-none disabled:after:shadow-none',
+					// Dark
+					'dark:bg-(--btn-bg)',
+					'dark:border-white/5',
+					'dark:before:hidden',
+					'dark:after:-inset-px dark:after:rounded-lg',
 				],
 				outline: [
-					'items-baseline border px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)] sm:px-[calc(--spacing(3)-1px)] sm:py-[calc(--spacing(1.5)-1px)] ',
-					'border-zinc-950/10 text-zinc-950 active:bg-zinc-950/2.5 not-disabled:hover:bg-zinc-950/2.5',
-					'dark:border-white/15 dark:text-white dark:[--btn-bg:transparent] dark:active:bg-white/5 dark:not-disabled:hover:bg-white/5',
-					'[--btn-icon:var(--color-zinc-500)] active:[--btn-icon:var(--color-zinc-700)] hover:[--btn-icon:var(--color-zinc-700)] dark:active:[--btn-icon:var(--color-zinc-400)] dark:hover:[--btn-icon:var(--color-zinc-400)]',
+					// Layout + sizing
+					'items-baseline border px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)] sm:px-[calc(--spacing(3)-1px)] sm:py-[calc(--spacing(1.5)-1px)]',
+					// Light
+					'border-zinc-950/10 text-zinc-950',
+					'[--btn-icon:var(--color-zinc-500)]',
+					// Hover + Active
+					'active:bg-zinc-950/2.5 active:[--btn-icon:var(--color-zinc-700)]',
+					'not-disabled:hover:bg-zinc-950/2.5',
+					'hover:[--btn-icon:var(--color-zinc-700)]',
+					// Dark
+					'dark:border-white/15 dark:text-white dark:[--btn-bg:transparent]',
+					'dark:active:bg-white/5 dark:active:[--btn-icon:var(--color-zinc-400)]',
+					'dark:not-disabled:hover:bg-white/5',
+					'dark:hover:[--btn-icon:var(--color-zinc-400)]',
 				],
 				plain: [
-					'items-baseline border border-transparent px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)] sm:px-[calc(--spacing(3)-1px)] sm:py-[calc(--spacing(1.5)-1px)] ',
-					'text-zinc-950 active:bg-zinc-950/5 not-disabled:hover:bg-zinc-950/5',
-					'dark:text-white dark:active:bg-white/10 dark:not-disabled:hover:bg-white/10',
-					'[--btn-icon:var(--color-zinc-500)] active:[--btn-icon:var(--color-zinc-700)] hover:[--btn-icon:var(--color-zinc-700)] dark:[--btn-icon:var(--color-zinc-500)] dark:active:[--btn-icon:var(--color-zinc-400)] dark:hover:[--btn-icon:var(--color-zinc-400)]',
+					// Layout + sizing
+					'items-baseline border border-transparent px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)] sm:px-[calc(--spacing(3)-1px)] sm:py-[calc(--spacing(1.5)-1px)]',
+					// Light
+					'text-zinc-950',
+					'[--btn-icon:var(--color-zinc-500)]',
+					// Hover + Active
+					'active:bg-zinc-950/5 active:[--btn-icon:var(--color-zinc-700)]',
+					'not-disabled:hover:bg-zinc-950/5',
+					'hover:[--btn-icon:var(--color-zinc-700)]',
+					// Dark
+					'dark:text-white',
+					'dark:[--btn-icon:var(--color-zinc-500)]',
+					'dark:active:bg-white/10 dark:active:[--btn-icon:var(--color-zinc-400)]',
+					'dark:not-disabled:hover:bg-white/10',
+					'dark:hover:[--btn-icon:var(--color-zinc-400)]',
 				],
 				ghost: [
-					'text-zinc-950 dark:text-white',
-					'[--btn-icon:var(--color-zinc-500)] dark:[--btn-icon:var(--color-zinc-400)]',
+					// Light
+					'text-zinc-950',
+					'[--btn-icon:var(--color-zinc-500)]',
+					// Dark
+					'dark:text-white',
+					'dark:[--btn-icon:var(--color-zinc-400)]',
 				],
 			},
 			color: {

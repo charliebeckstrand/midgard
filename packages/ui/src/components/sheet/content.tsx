@@ -130,10 +130,13 @@ export function SheetContent({
 					>
 						<div
 							className={cn(
-								'flex h-full flex-col bg-white shadow-lg dark:bg-zinc-900',
-								isHorizontal
-									? 'rounded-xl ring-1 ring-zinc-950/10 dark:ring-white/10'
-									: 'ring-1 ring-zinc-950/10 dark:ring-white/10',
+								// Light
+								'flex h-full flex-col bg-white shadow-lg',
+								isHorizontal ? 'rounded-xl' : '',
+								'ring-1 ring-zinc-950/10',
+								// Dark
+								'dark:bg-zinc-900',
+								'dark:ring-white/10',
 								className,
 							)}
 						>

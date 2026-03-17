@@ -40,7 +40,8 @@ export function SidebarFooter({ className, ...props }: React.ComponentPropsWitho
 		<div
 			{...props}
 			className={cn(
-				'flex flex-col border-t border-zinc-950/5 p-4 dark:border-white/5 [&>[data-slot=section]+[data-slot=section]]:mt-2.5',
+				'flex flex-col border-t border-zinc-950/5 p-4 [&>[data-slot=section]+[data-slot=section]]:mt-2.5',
+				'dark:border-white/5',
 				className,
 			)}
 		/>
@@ -69,7 +70,7 @@ export function SidebarDivider({ className, ...props }: React.ComponentPropsWith
 	return (
 		<hr
 			{...props}
-			className={cn('my-4 border-t border-zinc-950/5 lg:-mx-4 dark:border-white/5', className)}
+			className={cn('my-4 border-t border-zinc-950/5 lg:-mx-4', 'dark:border-white/5', className)}
 		/>
 	)
 }
@@ -82,7 +83,11 @@ export function SidebarHeading({ className, ...props }: React.ComponentPropsWith
 	return (
 		<h3
 			{...props}
-			className={cn('mb-1 px-2 text-xs/6 font-medium text-zinc-500 dark:text-zinc-400', className)}
+			className={cn(
+				'mb-1 px-2 text-xs/6 font-medium text-zinc-500',
+				'dark:text-zinc-400',
+				className,
+			)}
 		/>
 	)
 }

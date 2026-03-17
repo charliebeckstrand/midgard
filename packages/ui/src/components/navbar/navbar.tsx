@@ -14,7 +14,7 @@ export function NavbarDivider({ className, ...props }: React.ComponentPropsWitho
 		<div
 			aria-hidden="true"
 			{...props}
-			className={cn('h-6 w-px bg-zinc-950/10 dark:bg-white/10', className)}
+			className={cn('h-6 w-px bg-zinc-950/10', 'dark:bg-white/10', className)}
 		/>
 	)
 }

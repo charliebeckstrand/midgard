@@ -1,7 +1,7 @@
 'use client'
 
-import clsx from 'clsx'
 import { motion } from 'motion/react'
+import { cn } from '../core'
 
 const orientations = {
 	vertical: 'inset-y-2 -left-4 w-0.5',
@@ -32,8 +32,10 @@ export function ActiveIndicator({
 	return (
 		<motion.span
 			layoutId={layoutId}
-			className={clsx(
-				'absolute rounded-full bg-zinc-950 dark:bg-white',
+			className={cn(
+				'absolute rounded-full',
+				'bg-zinc-950',
+				'dark:bg-white',
 				orientations[orientation],
 				className,
 			)}
