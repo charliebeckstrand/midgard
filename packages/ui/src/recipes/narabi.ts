@@ -31,6 +31,14 @@ export const narabi = {
 		'top end': 'bottom-full right-0 mb-2',
 	} as Record<string, string>,
 
+	/** Slide panel position + sizing per direction */
+	slide: {
+		right: 'inset-y-0 right-0 h-full w-full',
+		left: 'inset-y-0 left-0 h-full w-full',
+		top: 'inset-x-0 top-0 w-full',
+		bottom: 'inset-x-0 bottom-0 w-full',
+	} as Record<string, string>,
+
 	/** Icon and avatar slot layout within menu items */
 	item: [
 		// Icon sizing — from shared recipe

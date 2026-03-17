@@ -31,4 +31,12 @@ export const ugoki = {
 		exit: { x: '-100%' },
 		transition: { duration: 0.3, ease: 'easeInOut' as const },
 	},
+
+	/** Slide panel initial/exit vectors per direction */
+	panel: {
+		right: { initial: { x: '100%' }, exit: { x: '100%' } },
+		left: { initial: { x: '-100%' }, exit: { x: '-100%' } },
+		top: { initial: { y: '-100%' }, exit: { y: '-100%' } },
+		bottom: { initial: { y: '100%' }, exit: { y: '100%' } },
+	} as Record<string, { initial: Record<string, string>; exit: Record<string, string> }>,
 }

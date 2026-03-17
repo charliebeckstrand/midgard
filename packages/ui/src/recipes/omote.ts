@@ -18,6 +18,9 @@ export const omote = {
 	/** Content card surface — layout containers, sidebars */
 	card: `bg-white shadow-xs ${kage.ringUsui} dark:bg-zinc-900`,
 
+	/** Desktop content area surface — the card treatment applied at lg: breakpoint */
+	content: `lg:rounded-lg lg:bg-white lg:shadow-xs lg:ring-1 lg:ring-zinc-950/5 dark:lg:bg-zinc-900 dark:lg:ring-white/10`,
+
 	/** The outer chrome of a form control (Input, Select, Textarea, Combobox) */
 	control: [
 		// Layout

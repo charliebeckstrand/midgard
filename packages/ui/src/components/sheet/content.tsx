@@ -4,40 +4,8 @@ import { AnimatePresence, motion } from 'motion/react'
 import type React from 'react'
 import { useEffect } from 'react'
 import { cn } from '../../core'
-import { katachi, omote, ugoki } from '../../recipes'
-import type { SheetSide } from './context'
+import { katachi, narabi, omote, ugoki } from '../../recipes'
 import { useSheet } from './context'
-
-const slideAnimations: Record<
-	SheetSide,
-	{ initial: Record<string, string>; exit: Record<string, string> }
-> = {
-	right: { initial: { x: '100%' }, exit: { x: '100%' } },
-	left: { initial: { x: '-100%' }, exit: { x: '-100%' } },
-	top: { initial: { y: '-100%' }, exit: { y: '-100%' } },
-	bottom: { initial: { y: '100%' }, exit: { y: '100%' } },
-}
-
-const positionClasses: Record<SheetSide, string> = {
-	right: 'inset-y-0 right-0',
-	left: 'inset-y-0 left-0',
-	top: 'inset-x-0 top-0',
-	bottom: 'inset-x-0 bottom-0',
-}
-
-const sizeClasses: Record<SheetSide, string> = {
-	right: 'h-full w-full',
-	left: 'h-full w-full',
-	top: 'w-full',
-	bottom: 'w-full',
-}
-
-const floatClasses: Record<SheetSide, string> = {
-	right: 'p-4',
-	left: 'p-4',
-	top: 'p-4',
-	bottom: 'p-4',
-}
 
 export type SheetSize = katachi.PanelSize
 
@@ -70,7 +38,7 @@ export function SheetContent({
 		}
 	}, [open, onOpenChange, modal])
 
-	const slide = slideAnimations[side]
+	const slide = ugoki.panel[side]
 	const isHorizontal = side === 'left' || side === 'right'
 
 	return (
@@ -96,10 +64,9 @@ export function SheetContent({
 						transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
 						className={cn(
 							'fixed',
-							positionClasses[side],
-							sizeClasses[side],
+							narabi.slide[side],
 							isHorizontal && katachi.panel[size],
-							isHorizontal && floatClasses[side],
+							isHorizontal && 'p-4',
 						)}
 					>
 						<div

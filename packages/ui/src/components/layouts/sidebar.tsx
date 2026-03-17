@@ -3,6 +3,7 @@
 import React from 'react'
 import { cn } from '../../core'
 import { MenuIcon } from '../../primitives'
+import { omote } from '../../recipes'
 import { NavbarItem } from '../navbar'
 import { MobileSidebar } from './mobile-sidebar'
 import { useMobileSidebar } from './use-mobile-sidebar'
@@ -49,8 +50,7 @@ export function SidebarLayout({
 				<div
 					className={cn(
 						'flex flex-col grow overflow-hidden',
-						'lg:rounded-lg lg:bg-white lg:shadow-xs lg:ring-1 lg:ring-zinc-950/5',
-						'dark:lg:bg-zinc-900 dark:lg:ring-white/10',
+						omote.content,
 						'[&:has([data-slot=footer])>[data-slot=body]]:pb-0',
 					)}
 				>
