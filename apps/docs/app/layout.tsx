@@ -5,6 +5,7 @@ import type { ReactNode } from 'react'
 import './globals.css'
 
 const googleSans = Google_Sans({
+	adjustFontFallback: false,
 	subsets: ['latin'],
 	variable: '--font-sans',
 	weight: ['400', '500', '700'],
