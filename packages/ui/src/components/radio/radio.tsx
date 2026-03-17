@@ -4,6 +4,7 @@ import type { VariantProps } from 'class-variance-authority'
 import type React from 'react'
 import { useCallback } from 'react'
 import { cn } from '../../core'
+import { ki } from '../../recipes'
 import { RadioGroupProvider, useRadioGroup } from './context'
 import { radio } from './variants'
 
@@ -89,7 +90,7 @@ export function Radio({ color, className, value, disabled: localDisabled, ...pro
 			data-checked={checked ? '' : undefined}
 			disabled={disabled}
 			onClick={handleClick}
-			className={cn('group inline-flex focus:outline-hidden', className)}
+			className={cn(`group inline-flex ${ki.reset}`, className)}
 			{...props}
 		>
 			<span className={radio({ color })}>

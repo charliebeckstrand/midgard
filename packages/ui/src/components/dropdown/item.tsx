@@ -2,7 +2,7 @@
 
 import type React from 'react'
 import { cn, Link } from '../../core'
-import { katachi, sawari } from '../../recipes'
+import { katachi, ki, sawari } from '../../recipes'
 import { useDropdown } from './context'
 
 const itemClasses = [
@@ -12,7 +12,7 @@ const itemClasses = [
 	'col-span-full grid grid-cols-[auto_1fr_1.5rem_0.5rem_auto] items-center supports-[grid-template-columns:subgrid]:grid-cols-subgrid',
 	'group px-3.5 sm:px-3',
 	// Focus
-	'focus:outline-hidden',
+	ki.reset,
 	// Icon slots — sizing from shared recipe, dropdown-specific grid positioning + spacing
 	...katachi.iconSlot,
 	'*:data-[slot=icon]:col-start-1 *:data-[slot=icon]:row-start-1 *:data-[slot=icon]:mr-2.5 *:data-[slot=icon]:-ml-0.5 sm:*:data-[slot=icon]:mr-2',

@@ -1,4 +1,5 @@
 import { cn, Link } from '../../core'
+import { ki } from '../../recipes'
 
 export type AvatarProps = {
 	src?: string | null
@@ -67,7 +68,7 @@ export function AvatarButton({
 	)) {
 	const classes = cn(
 		square ? 'rounded-[20%]' : 'rounded-full',
-		'relative inline-grid focus:outline-hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600',
+		`relative inline-grid ${ki.reset} ${ki.offset}`,
 		className,
 	)
 

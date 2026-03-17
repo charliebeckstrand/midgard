@@ -1,5 +1,5 @@
 import { cva } from 'class-variance-authority'
-import { katachi, nuri } from '../../recipes'
+import { katachi, ki, nuri } from '../../recipes'
 
 export const button = cva(
 	[
@@ -12,8 +12,8 @@ export const button = cva(
 		'data-icon-only:gap-0',
 		...katachi.iconOnly,
 		// Focus
-		'focus:outline-hidden',
-		'focus-visible:outline-1 focus-visible:-outline-offset-1 focus-visible:outline-blue-600',
+		ki.reset,
+		ki.ring,
 		// Disabled
 		'disabled:opacity-50',
 		// Forced colors

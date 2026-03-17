@@ -6,6 +6,7 @@ import { createContext, useCallback, useContext } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
 import { CheckboxIcon } from '../../primitives'
+import { ki } from '../../recipes'
 import { checkbox } from './variants'
 
 const DisabledContext = createContext(false)
@@ -110,7 +111,7 @@ export function Checkbox({
 			disabled={disabled}
 			onClick={handleClick}
 			onKeyDown={handleKeyDown}
-			className={cn('group inline-flex focus:outline-hidden', className)}
+			className={cn(`group inline-flex ${ki.reset}`, className)}
 			{...props}
 		>
 			{name && <input type="hidden" name={name} value={checked ? (value ?? 'on') : ''} />}

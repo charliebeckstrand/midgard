@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { cn, Link } from '../../core'
+import { ki } from '../../recipes'
 import { useTableContext, useTableRowContext } from './context'
 
 export function TableCell({ className, children, ...props }: React.ComponentPropsWithoutRef<'td'>) {
@@ -35,7 +36,7 @@ export function TableCell({ className, children, ...props }: React.ComponentProp
 					target={target}
 					aria-label={title}
 					tabIndex={cellRef?.previousElementSibling === null ? 0 : -1}
-					className="absolute inset-0 focus:outline-hidden"
+					className={`absolute inset-0 ${ki.reset}`}
 				/>
 			)}
 			{children}

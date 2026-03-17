@@ -6,6 +6,7 @@ import { useId, useRef } from 'react'
 import { cn } from '../../core'
 import { useMenuKeyboard } from '../../hooks'
 import { ActiveIndicator } from '../../primitives'
+import { kage, ki } from '../../recipes'
 
 export function Tabs({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
 	const groupId = useId()
@@ -19,7 +20,7 @@ export function Tabs({ className, ...props }: React.ComponentPropsWithoutRef<'di
 				role="tablist"
 				onKeyDown={onKeyDown}
 				{...props}
-				className={cn('flex gap-4 border-b border-zinc-950/10', 'dark:border-white/10', className)}
+				className={cn(`flex gap-4 border-b ${kage.base}`, className)}
 			/>
 		</LayoutGroup>
 	)
@@ -49,7 +50,7 @@ export function Tab({
 				className={cn(
 					'flex items-center gap-2 px-2 py-1 text-sm/6 font-medium',
 					// Focus
-					'focus:outline-hidden',
+					ki.reset,
 					// Light — inactive default, current override
 					'text-zinc-500 data-current:text-zinc-950',
 					// Light — hover (inactive only)

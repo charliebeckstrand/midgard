@@ -1,5 +1,5 @@
 import { cva } from 'class-variance-authority'
-import { nuri } from '../../recipes'
+import { ki, nuri } from '../../recipes'
 
 export const switchVariants = cva(
 	[
@@ -10,8 +10,8 @@ export const switchVariants = cva(
 		'bg-zinc-200 ring-1 ring-black/5 ring-inset',
 		'data-checked:bg-(--switch-bg) data-checked:ring-(--switch-bg-ring)',
 		// Focus
-		'focus:outline-hidden',
-		'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600',
+		ki.reset,
+		ki.offset,
 		// Hover
 		'not-disabled:hover:ring-black/15',
 		'not-disabled:hover:data-checked:ring-(--switch-bg-ring)',

@@ -1,5 +1,6 @@
 import type { VariantProps } from 'class-variance-authority'
 import { cn, Link } from '../../core'
+import { ki } from '../../recipes'
 import { badge } from './variants'
 
 export type BadgeProps = VariantProps<typeof badge>
@@ -27,10 +28,7 @@ export function BadgeButton({
 		| ({ href?: never } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className'>)
 		| ({ href: string } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
 	)) {
-	const classes = cn(
-		'group relative inline-flex rounded-md focus:outline-hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600',
-		className,
-	)
+	const classes = cn(`group relative inline-flex rounded-md ${ki.reset} ${ki.offset}`, className)
 
 	if (typeof props.href === 'string') {
 		return (
