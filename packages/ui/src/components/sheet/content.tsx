@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import type React from 'react'
 import { useEffect } from 'react'
 import { cn } from '../../core'
-import { panelSizes } from '../../recipes/dialog'
+import { type PanelSize, panelSizes } from '../../recipes/dialog'
 import { overlayAnimation } from '../../recipes/motion'
 import { overlayBackdrop } from '../../recipes/overlay'
 import type { SheetSide } from './context'
@@ -41,20 +41,7 @@ const floatClasses: Record<SheetSide, string> = {
 	bottom: 'p-4',
 }
 
-// Sheet uses panelSizes from recipes/dialog.ts (shared with Dialog and Alert)
-
-export type SheetSize =
-	| 'xs'
-	| 'sm'
-	| 'md'
-	| 'lg'
-	| 'xl'
-	| '2xl'
-	| '3xl'
-	| '4xl'
-	| '5xl'
-	| '6xl'
-	| '7xl'
+export type SheetSize = PanelSize
 
 export function SheetContent({
 	className,

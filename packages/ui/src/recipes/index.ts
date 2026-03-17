@@ -13,7 +13,7 @@ export {
 	dateInputOverrides,
 	formFieldSpacing,
 } from './control'
-export { panelSizes } from './dialog'
+export { type PanelSize, panelSizes } from './dialog'
 export { iconOnlyDetection, iconSize, iconSlot, iconSlotIconOnly, trailingIcon } from './icon'
 export { menuItemBase, menuItemSlots } from './item'
 export { overlayAnimation, popoverAnimation, slidePanelAnimation } from './motion'

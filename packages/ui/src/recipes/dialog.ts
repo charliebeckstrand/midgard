@@ -1,5 +1,18 @@
+export type PanelSize =
+	| 'xs'
+	| 'sm'
+	| 'md'
+	| 'lg'
+	| 'xl'
+	| '2xl'
+	| '3xl'
+	| '4xl'
+	| '5xl'
+	| '6xl'
+	| '7xl'
+
 /** Shared size classes for Dialog, Alert, and Sheet panels */
-export const panelSizes: Record<string, string> = {
+export const panelSizes: Record<PanelSize, string> = {
 	xs: 'sm:max-w-xs',
 	sm: 'sm:max-w-sm',
 	md: 'sm:max-w-md',
