@@ -28,7 +28,6 @@
 		"lint:fix": "biome check --config-path=../.. --write .",
 		"format": "biome format --config-path=../.. --write ."
 	},
-	"packageManager": "pnpm@10.29.3",
 	"dependencies": {
 		"@heroicons/react": "^2.2.0",
 		"ui": "workspace:*",
@@ -41,7 +40,6 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.4.6",
-		"@headlessui/react": "^2.0.0",
 		"@types/node": "^25.3.3",
 		"@types/react": "^19.1.6",
 		"next": "^16.1.0",
