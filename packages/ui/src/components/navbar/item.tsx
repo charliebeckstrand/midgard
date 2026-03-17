@@ -22,6 +22,9 @@ export function NavbarItem({
 		'*:not-nth-2:last:data-[slot=icon]:ml-auto *:not-nth-2:last:data-[slot=icon]:size-5 sm:*:not-nth-2:last:data-[slot=icon]:size-4',
 		// Avatar (navbar-specific override)
 		'*:data-[slot=avatar]:[--avatar-radius:var(--radius-md)]',
+		// Icon-only — square aspect (auto-detected: has icon, no label)
+		'[&:has([data-slot=icon]):not(:has([data-slot=label]))]:aspect-square',
+		'[&:has([data-slot=icon]):not(:has([data-slot=label]))]:justify-center',
 	)
 
 	return (
@@ -50,5 +53,5 @@ export function NavbarItem({
 }
 
 export function NavbarLabel({ className, ...props }: React.ComponentPropsWithoutRef<'span'>) {
-	return <span {...props} className={cn('truncate', className)} />
+	return <span data-slot="label" {...props} className={cn('truncate', className)} />
 }

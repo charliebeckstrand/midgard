@@ -7,6 +7,8 @@ export const button = cva(
 		'relative isolate inline-flex w-fit items-center justify-center gap-x-2 rounded-lg text-base/6 font-semibold select-none',
 		// Icon slots
 		'*:data-[slot=icon]:-mx-0.5 *:data-[slot=icon]:my-0.5 *:data-[slot=icon]:size-5 *:data-[slot=icon]:shrink-0 *:data-[slot=icon]:self-center *:data-[slot=icon]:text-(--btn-icon) sm:*:data-[slot=icon]:my-1 sm:*:data-[slot=icon]:size-4',
+		// Icon-only — square aspect, centered, no gap
+		'data-icon-only:gap-0 data-icon-only:*:data-[slot=icon]:mx-0 data-icon-only:*:data-[slot=icon]:my-0 sm:data-icon-only:*:data-[slot=icon]:my-0',
 		// Focus
 		'focus:outline-hidden',
 		'focus-visible:outline-1 focus-visible:-outline-offset-1 focus-visible:outline-blue-600',
@@ -22,6 +24,8 @@ export const button = cva(
 				solid: [
 					// Layout + sizing
 					'items-baseline border px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)] sm:px-[calc(--spacing(3)-1px)] sm:py-[calc(--spacing(1.5)-1px)]',
+					// Icon-only — square padding
+					'data-icon-only:items-center data-icon-only:p-[calc(--spacing(2.5)-1px)] sm:data-icon-only:p-[calc(--spacing(1.5)-1px)]',
 					// Light — border and before pseudo (visual bg)
 					'border-transparent bg-(--btn-border)',
 					'before:absolute before:inset-0 before:-z-10 before:rounded-[calc(var(--radius-lg)-1px)] before:bg-(--btn-bg)',
@@ -43,6 +47,8 @@ export const button = cva(
 				outline: [
 					// Layout + sizing
 					'items-baseline border px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)] sm:px-[calc(--spacing(3)-1px)] sm:py-[calc(--spacing(1.5)-1px)]',
+					// Icon-only — square padding
+					'data-icon-only:items-center data-icon-only:p-[calc(--spacing(2.5)-1px)] sm:data-icon-only:p-[calc(--spacing(1.5)-1px)]',
 					// Light
 					'border-zinc-950/10 text-zinc-950',
 					'[--btn-icon:var(--color-zinc-500)]',
@@ -59,6 +65,8 @@ export const button = cva(
 				plain: [
 					// Layout + sizing
 					'items-baseline border border-transparent px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)] sm:px-[calc(--spacing(3)-1px)] sm:py-[calc(--spacing(1.5)-1px)]',
+					// Icon-only — square padding
+					'data-icon-only:items-center data-icon-only:p-[calc(--spacing(2.5)-1px)] sm:data-icon-only:p-[calc(--spacing(1.5)-1px)]',
 					// Light
 					'text-zinc-950',
 					'[--btn-icon:var(--color-zinc-500)]',

@@ -48,8 +48,11 @@ export function SidebarItem({
 		'*:last:data-[slot=icon]:ml-auto *:last:data-[slot=icon]:size-5 sm:*:last:data-[slot=icon]:size-4',
 		// Current
 		'data-current:*:data-[slot=icon]:fill-zinc-950',
-		// Dark current
 		'dark:data-current:*:data-[slot=icon]:fill-white',
+		// Icon-only — square aspect (auto-detected: has icon, no label)
+		'[&:has([data-slot=icon]):not(:has([data-slot=label]))]:aspect-square',
+		'[&:has([data-slot=icon]):not(:has([data-slot=label]))]:justify-center',
+		'[&:has([data-slot=icon]):not(:has([data-slot=label]))]:w-auto',
 	)
 
 	return (
@@ -86,5 +89,5 @@ export function SidebarItem({
 }
 
 export function SidebarLabel({ className, ...props }: React.ComponentPropsWithoutRef<'span'>) {
-	return <span {...props} className={cn('truncate', className)} />
+	return <span data-slot="label" {...props} className={cn('truncate', className)} />
 }
