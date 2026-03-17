@@ -119,17 +119,18 @@ Shared authentication module for all Midgard apps. Provides session management, 
 **Exports:**
 | Import path | File | Purpose |
 |---|---|---|
-| `heimdall` | `src/session.ts` | `getSession()` — fetch auth session from Bifrost |
+| `heimdall` | `src/index.ts` | `getSession()`, `getUser()`, `bifrost()`, `withAuth()`, `proxy()` — barrel re-export |
 | `heimdall/config` | `src/config.ts` | `withAuth()` — Next.js config wrapper (rewrites to Bifrost) |
 | `heimdall/proxy` | `src/proxy.ts` | `proxy()` — Next.js proxy for route protection |
 | `heimdall/user` | `src/user.ts` | `getUser()` — fetch authenticated user from Bifrost |
 
 **Key files:**
-- `src/session.ts` — `getSession()`: calls Bifrost backend using `BIFROST_URL` env var (default `http://localhost:4000`), forwards cookies via `next/headers`
+- `src/fetch.ts` — `bifrost()`: base fetch helper calling Bifrost backend using `BIFROST_URL` env var, forwards cookies via `next/headers`
+- `src/session.ts` — `getSession()`: checks auth session via `bifrost()`
 - `src/config.ts` — `withAuth()`: adds URL rewrites for `/auth/:path*` and `/api/:path*` to Bifrost
 - `src/proxy.ts` — `proxy(request, options)`: guest routes (`/login`, `/register`) redirect authenticated users to homepage; when `protect: true` (default), non-guest routes redirect unauthenticated users to `/login`
 
-**tsup config:** Single build pass for server modules (session, config, proxy, user).
+**tsup config:** Single build pass for server modules (index, config, proxy, user). Internal modules (`fetch.ts`, `session.ts`) are bundled into consumers via `splitting: false`.
 
 **Depends on:** (no workspace deps)
 
