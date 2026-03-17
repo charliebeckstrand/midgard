@@ -23,8 +23,6 @@ packages/
   ui/             → Component library (5-layer atomic, framework-agnostic)
   heimdall/       → Auth module (session, proxy, config) → talks to Bifrost backend
   sindri/         → Shared UI resources (auth pages, chat UI, theme)
-  hlidskjalf/     → Terminal dev dashboard (Ink + React)
-  reactbits/      → Animation components (motion)
 ```
 
 ## Stack
