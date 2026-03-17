@@ -2,6 +2,14 @@
 
 Non-trivial design choices with context, alternatives, and trade-offs.
 
+## 2026-03-17 — Clean up unused configs and unnecessary dependencies
+
+**Status:** Accepted
+**Context:** Audit of config files revealed several unused or redundant artifacts: a root `tsup.config.ts` not used by any package or script, duplicate `packageManager` fields in all sub-packages (only the root needs it), `@headlessui/react` in sindri's devDependencies (never imported after HeadlessUI removal), and the docs app wiring up heimdall auth (proxy.ts + withAuth) despite being a fully public app.
+**Decision:** Removed root `tsup.config.ts`, removed `packageManager` from all 5 sub-package `package.json` files, removed `@headlessui/react` from sindri, removed `proxy.ts` and `heimdall` dependency from the docs app, and simplified `next.config.ts` to a plain config without `withAuth`.
+**Alternatives:** (1) Keep configs for potential future use — adds noise and maintenance burden. (2) Only remove the clearly dead root tsup config — misses the other cleanup opportunities.
+**Consequences:** Fewer files to maintain, clearer signal about which apps require auth, pnpm version only needs updating in one place.
+
 ## 2026-03-16 — Consolidate layouts and extract page skeletons in UI
 
 **Status:** Accepted

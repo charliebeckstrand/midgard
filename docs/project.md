@@ -1,6 +1,6 @@
 # Project
 
-> Last updated: 2026-03-16
+> Last updated: 2026-03-17
 
 Midgard is a pnpm monorepo managed by Turbo. It contains Next.js applications backed by shared auth, UI component, and animation-effect packages.
 
@@ -40,13 +40,13 @@ Defined in `pnpm-workspace.yaml`. Turbo tasks configured in `turbo.json`.
 
 To add a new Next.js app to the monorepo:
 
-1. Create `apps/<name>/package.json` with dependencies on `heimdall`, `sindri`, `ui`, and shared devDependencies (see `apps/admin/package.json` as template)
+1. Create `apps/<name>/package.json` with dependencies on `sindri`, `ui`, and shared devDependencies (see `apps/docs/package.json` as template)
 2. Create `apps/<name>/tsconfig.json` extending `../../tsconfig.nextjs.json` with `baseUrl`, `paths`, and `include`
-3. Create `apps/<name>/next.config.ts` using `withAuth` from `heimdall/config`
-4. Create `apps/<name>/proxy.ts` using `proxy` from `heimdall/proxy` (set `protect: false` for public apps)
+3. Create `apps/<name>/next.config.ts` (use `withAuth` from `heimdall/config` only if the app requires authentication)
+4. If authenticated: create `apps/<name>/proxy.ts` using `proxy` from `heimdall/proxy`, and add `heimdall` to dependencies
 5. Create `apps/<name>/app/globals.css` importing `sindri/theme.css` and adding `@source` directives for sindri and ui
 6. Create `apps/<name>/app/layout.tsx` with Inter font and metadata
-7. Create `apps/<name>/app/login/page.tsx` re-exporting from `sindri/login-page`
+7. If authenticated: create `apps/<name>/app/login/page.tsx` re-exporting from `sindri/auth`
 
 No `postcss.config.mjs` needed — apps inherit from the root config.
 
@@ -102,9 +102,7 @@ Documentation dashboard that renders markdown files from the root `docs/` direct
 - `app/(docs)/client.tsx` — Client-side sidebar/navbar shell with IntersectionObserver scroll tracking
 - `app/markdown.tsx` — Server-side markdown-to-HTML renderer with Shiki syntax highlighting
 - `app/docs.ts` — Reads and parses markdown files from `docs/` directory
-- `proxy.ts` — Next.js proxy using `heimdall/proxy` with `protect: false` (public app, only redirects authenticated users away from `/login`)
-
-**Auth model:** Public by default. Files with `<!-- auth: required -->` at the top are hidden from unauthenticated users. Optional login via `/login`.
+**Auth model:** Public — no authentication or proxy middleware. Files with `<!-- auth: required -->` at the top are hidden from unauthenticated users in the UI layer.
 
 **Doc categories:** The sidebar groups docs into two sections:
 - **Guides** — Developer-facing: `getting-started.md`, `development.md`, `architecture.md`
@@ -112,7 +110,7 @@ Documentation dashboard that renders markdown files from the root `docs/` direct
 
 Categories and ordering are defined in `app/docs.ts` via `GUIDE_DOCS` and `REFERENCE_DOCS`.
 
-**Depends on:** heimdall, sindri, ui, @heroicons/react, shiki
+**Depends on:** sindri, ui, @heroicons/react, shiki
 
 ## packages/heimdall
 
