@@ -28,12 +28,12 @@ export const katachi = {
 	} satisfies Record<katachi.PanelSize, string>,
 
 	/** The standard icon size pair (string form for direct className use) */
-	icon: '*:data-[slot=icon]:size-5 sm:*:data-[slot=icon]:size-4',
+	icon: '*:data-[slot=icon]:size-5',
 
 	/** Base icon slot — sizing + shrink-0 */
 	iconSlot: [
 		'*:data-[slot=icon]:size-5 *:data-[slot=icon]:shrink-0',
-		'sm:*:data-[slot=icon]:size-4',
+		'sm:*:data-[slot=icon]:size-5',
 	],
 
 	/** Icon-only containers — reset margins so icon centres cleanly */
@@ -44,10 +44,7 @@ export const katachi = {
 	],
 
 	/** Trailing icon — last icon pushes right (chevrons, arrows) */
-	iconTrailing: [
-		'*:last:data-[slot=icon]:ml-auto *:last:data-[slot=icon]:size-5',
-		'sm:*:last:data-[slot=icon]:size-4',
-	],
+	iconTrailing: ['*:last:data-[slot=icon]:ml-auto *:last:data-[slot=icon]:size-5'],
 
 	/** Pure CSS auto-detection for square aspect when element has icon but no label */
 	iconDetect: [

@@ -30,15 +30,18 @@ export function SheetContent({
 		}
 
 		document.addEventListener('keydown', onKeyDown)
+
 		if (modal) document.body.style.overflow = 'hidden'
 
 		return () => {
 			document.removeEventListener('keydown', onKeyDown)
+
 			if (modal) document.body.style.overflow = ''
 		}
 	}, [open, onOpenChange, modal])
 
 	const slide = ugoki.panel[side]
+
 	const isHorizontal = side === 'left' || side === 'right'
 
 	return (
@@ -58,9 +61,9 @@ export function SheetContent({
 						aria-modal={modal}
 						aria-labelledby={titleId}
 						aria-describedby={descriptionId}
-						initial={slide.initial}
+						initial={slide?.initial}
 						animate={isHorizontal ? { x: 0 } : { y: 0 }}
-						exit={slide.exit}
+						exit={slide?.exit}
 						transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
 						className={cn(
 							'fixed',

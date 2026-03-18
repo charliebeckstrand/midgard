@@ -71,7 +71,7 @@ export function ChatClient({
 
 	const searchParams = useSearchParams()
 
-	const { newChat, deleteChat } = useChat()
+	const { newChat, deleteChat } = useChat({ onDelete: () => router.refresh() })
 
 	const activeChatId = useMemo(() => {
 		const match = pathname.match(/^\/([^/]+)/)

@@ -13,7 +13,7 @@ interface ChatLayoutProps {
 
 export function ChatLayout({ messages, sending, isDraft, onSend }: ChatLayoutProps) {
 	return (
-		<div className="flex flex-col gap-6 h-full justify-center overflow-hidden">
+		<div className="flex flex-col gap-6 h-full justify-center">
 			{!isDraft && <>{messages.length > 0 && <ChatMessages messages={messages} />}</>}
 
 			<ChatComposer

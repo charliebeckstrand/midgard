@@ -31,7 +31,7 @@ export function SidebarHeader({
 					onClick={close}
 					aria-label="Close navigation"
 					className={cn(
-						'rounded-lg fill-current p-2.5 text-zinc-950 hover:bg-zinc-950/5',
+						'rounded-lg fill-current p-2 text-zinc-950 hover:bg-zinc-950/5',
 						'dark:text-white dark:hover:bg-white/5',
 						...katachi.iconSlot,
 						'*:data-[slot=icon]:fill-current',

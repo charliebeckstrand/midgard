@@ -85,7 +85,7 @@ export function Combobox<T>({
 				setOpen(true)
 			} else if (listRef.current) {
 				const items = listRef.current.querySelectorAll<HTMLElement>('[role="option"]')
-				if (items.length > 0) items[0].focus()
+				if (items.length > 0) items[0]?.focus()
 			}
 		} else if (e.key === 'ArrowUp') {
 			e.preventDefault()
@@ -93,7 +93,7 @@ export function Combobox<T>({
 				setOpen(true)
 			} else if (listRef.current) {
 				const items = listRef.current.querySelectorAll<HTMLElement>('[role="option"]')
-				if (items.length > 0) items[items.length - 1].focus()
+				if (items.length > 0) items[items.length - 1]?.focus()
 			}
 		}
 	}
