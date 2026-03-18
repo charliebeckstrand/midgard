@@ -43,6 +43,31 @@ function stripMeta(source: string): string {
 	return source.replace(/export const meta\s*=\s*\{[^}]*\}\s*\n\n?/m, '').trimStart()
 }
 
+/** Transform demo source into copy-pasteable usage code */
+function simplifySource(source: string): string {
+	// Rewrite internal component paths to package imports
+	const result = source.replace(/from\s+['"]\.\.\/\.\.\/components\/([^'"]+)['"]/g, 'from "ui/$1"')
+
+	// Extract the default export function body
+	const match = result.match(
+		/export default function \w+\(\) \{\n([\s\S]*?)\treturn \(\n([\s\S]*?)\n\t\)\n\}\s*$/,
+	)
+
+	if (!match) return result
+
+	const beforeFunc = result.slice(0, result.indexOf('export default function')).trim()
+	const bodyStatements = match[1].trim()
+	const jsx = match[2].replace(/^\t\t/gm, '')
+
+	const parts = [beforeFunc]
+
+	if (bodyStatements) parts.push(bodyStatements.replace(/^\t/gm, ''))
+
+	parts.push(jsx)
+
+	return parts.filter(Boolean).join('\n\n')
+}
+
 /** Group component sources by directory name (e.g. "button", "badge") */
 function buildComponentApis(): Record<string, ComponentApi[]> {
 	const byDir: Record<string, string[]> = {}
@@ -81,7 +106,7 @@ const demos = Object.entries(modules)
 
 		const category = mod.meta?.category ?? 'Other'
 
-		const source = stripMeta((demoSources[path] as string) ?? '')
+		const source = simplifySource(stripMeta((demoSources[path] as string) ?? ''))
 
 		const api = componentApis[id]
 
