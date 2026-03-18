@@ -47,7 +47,7 @@ export function Skeleton({ children, className }: SkeletonProps) {
 			<div className="pointer-events-none invisible" aria-hidden="true">
 				{children}
 			</div>
-			<div className={cn('absolute inset-0 rounded-[inherit] rounded-lg', fill)} />
+			<div className={cn('absolute inset-0 rounded-lg', fill)} />
 		</motion.div>
 	)
 }
