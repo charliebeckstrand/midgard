@@ -1,5 +1,5 @@
-import clsx from 'clsx'
 import type React from 'react'
+import { cn } from '../../core'
 import { Button } from '../button/button'
 
 function PreviousIcon() {
@@ -45,7 +45,7 @@ export function Pagination({
 	className,
 	...props
 }: React.ComponentPropsWithoutRef<'nav'>) {
-	return <nav aria-label={ariaLabel} {...props} className={clsx(className, 'flex gap-x-2')} />
+	return <nav aria-label={ariaLabel} {...props} className={cn('flex gap-x-2', className)} />
 }
 
 export function PaginationPrevious({
@@ -59,7 +59,7 @@ export function PaginationPrevious({
 	icon?: React.ReactNode
 }>) {
 	return (
-		<span className={clsx(className, 'grow basis-0')}>
+		<span className={cn('grow basis-0', className)}>
 			<Button
 				{...(href === null ? { disabled: true } : { href })}
 				variant="plain"
@@ -83,7 +83,7 @@ export function PaginationNext({
 	icon?: React.ReactNode
 }>) {
 	return (
-		<span className={clsx(className, 'flex grow basis-0 justify-end')}>
+		<span className={cn('flex grow basis-0 justify-end', className)}>
 			<Button
 				{...(href === null ? { disabled: true } : { href })}
 				variant="plain"

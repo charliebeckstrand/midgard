@@ -1,10 +1,10 @@
 import { cva } from 'class-variance-authority'
-import { badgeSolidColors, badgeSubtleColors } from '../../recipes/colors'
+import { nuri } from '../../recipes'
 
 // Color keys only — actual styles applied via compoundVariants
 const colorKeys = Object.fromEntries(
-	Object.keys(badgeSolidColors).map((key) => [key, '']),
-) as Record<keyof typeof badgeSolidColors, string>
+	Object.keys(nuri.badgeSolid).map((key) => [key, '']),
+) as Record<keyof typeof nuri.badgeSolid, string>
 
 export const badge = cva(
 	'inline-flex items-center justify-center gap-x-1.5 rounded-md font-medium forced-colors:outline',
@@ -22,14 +22,14 @@ export const badge = cva(
 			},
 		},
 		compoundVariants: [
-			...Object.entries(badgeSolidColors).map(([color, classes]) => ({
+			...Object.entries(nuri.badgeSolid).map(([color, classes]) => ({
 				variant: 'solid' as const,
-				color: color as keyof typeof badgeSolidColors,
+				color: color as keyof typeof nuri.badgeSolid,
 				className: classes,
 			})),
-			...Object.entries(badgeSubtleColors).map(([color, classes]) => ({
+			...Object.entries(nuri.badgeSoft).map(([color, classes]) => ({
 				variant: 'subtle' as const,
-				color: color as keyof typeof badgeSubtleColors,
+				color: color as keyof typeof nuri.badgeSoft,
 				className: classes,
 			})),
 		],

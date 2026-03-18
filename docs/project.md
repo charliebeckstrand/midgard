@@ -164,11 +164,11 @@ Shared UI resources — auth page components, chat UI components, form validatio
 
 ## packages/ui
 
-New component library built from scratch with a five-layer atomic architecture. Framework-agnostic (no Next.js dependency), works with any React ecosystem via LinkProvider pattern.
+Component library built on **Kata** (型) — a recipe-based design system where composable style primitives replace scattered Tailwind strings with a shared visual vocabulary. Framework-agnostic (no Next.js dependency), works with any React ecosystem via LinkProvider pattern.
 
 **Architecture (dependencies flow strictly downward):**
 - `core/` — createContext factory, framework-agnostic Link/LinkProvider
-- `recipes/` — Composable style definitions (control, popover, overlay, item, motion)
+- `recipes/` — **Kata** — ten composable style modules: Sumi (ink/text), Kage (edges), Nuri (fills), Omote (surfaces), Ki (focus), Sawari (touch), Ugoki (motion), Ma (space), Katachi (shape), Narabi (arrangement)
 - `hooks/` — Behavioral primitives (useOverlay, useMenuKeyboard, useControllable)
 - `primitives/` — Reusable building blocks (Overlay, PopoverPanel, SlidePanel, icons, TouchTarget)
 - `components/` — 29 component families + layouts + pages

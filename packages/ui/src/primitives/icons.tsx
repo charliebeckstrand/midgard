@@ -1,9 +1,9 @@
-import clsx from 'clsx'
+import { cn } from '../core'
 
 export function ChevronIcon({ className }: { className?: string }) {
 	return (
 		<svg
-			className={clsx(
+			className={cn(
 				'size-5 stroke-zinc-500 dark:stroke-zinc-400 forced-colors:stroke-[CanvasText]',
 				className,
 			)}
@@ -30,7 +30,7 @@ export function ChevronIcon({ className }: { className?: string }) {
 export function CheckIcon({ className }: { className?: string }) {
 	return (
 		<svg
-			className={clsx('size-5 stroke-current', className)}
+			className={cn('size-5 stroke-current', className)}
 			viewBox="0 0 16 16"
 			fill="none"
 			aria-hidden="true"
@@ -52,7 +52,7 @@ export function CheckboxIcon({ className }: { className?: string }) {
 	return (
 		<svg
 			aria-hidden="true"
-			className={clsx(
+			className={cn(
 				'size-5 stroke-(--checkbox-check) opacity-0 group-data-checked:opacity-100',
 				className,
 			)}

@@ -1,13 +1,11 @@
 'use client'
 
-import clsx from 'clsx'
 import { motion } from 'motion/react'
 import type React from 'react'
 import { useId } from 'react'
+import { cn } from '../../core'
 import { Overlay } from '../../primitives'
-import { panelSizes } from '../../recipes/dialog'
-import { popoverAnimation } from '../../recipes/motion'
-import { alertBackdrop } from '../../recipes/overlay'
+import { katachi, omote, ugoki } from '../../recipes'
 import { AlertProvider } from './context'
 
 export function Alert({
@@ -19,7 +17,7 @@ export function Alert({
 }: {
 	open: boolean
 	onClose: () => void
-	size?: keyof typeof panelSizes
+	size?: keyof typeof katachi.panel
 	className?: string
 	children: React.ReactNode
 }) {
@@ -31,7 +29,7 @@ export function Alert({
 			<Overlay
 				open={open}
 				onClose={onClose}
-				className={alertBackdrop}
+				className={omote.alert}
 				role="alertdialog"
 				aria-modal="true"
 				aria-labelledby={titleId}
@@ -40,11 +38,11 @@ export function Alert({
 				<div className="fixed inset-0 w-screen overflow-y-auto pt-6 sm:pt-0">
 					<div className="grid min-h-full grid-rows-[1fr_auto_1fr] justify-items-center p-8 sm:grid-rows-[1fr_auto_3fr] sm:p-4">
 						<motion.div
-							{...popoverAnimation}
-							className={clsx(
+							{...ugoki.popover}
+							className={cn(
+								katachi.panel[size],
+								`row-start-2 w-full rounded-2xl p-8 sm:p-6 ${omote.panel}`,
 								className,
-								panelSizes[size],
-								'row-start-2 w-full rounded-2xl bg-white p-8 shadow-lg ring-1 ring-zinc-950/10 sm:rounded-2xl sm:p-6 dark:bg-zinc-900 dark:ring-white/10 forced-colors:outline',
 							)}
 						>
 							{children}

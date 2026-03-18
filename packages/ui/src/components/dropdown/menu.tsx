@@ -1,10 +1,10 @@
 'use client'
 
-import clsx from 'clsx'
 import { AnimatePresence } from 'motion/react'
 import type React from 'react'
+import { cn } from '../../core'
 import { PopoverPanel } from '../../primitives'
-import { anchorPositions } from '../../recipes/popover'
+import { narabi } from '../../recipes'
 import { useDropdown } from './context'
 
 export function DropdownMenu({
@@ -18,7 +18,7 @@ export function DropdownMenu({
 }) {
 	const { open, fullWidth } = useDropdown()
 
-	const positionClass = anchorPositions[anchor] ?? anchorPositions.bottom
+	const positionClass = narabi.anchor[anchor] ?? narabi.anchor.bottom
 
 	return (
 		<AnimatePresence>
@@ -26,7 +26,7 @@ export function DropdownMenu({
 				<PopoverPanel
 					role="menu"
 					itemSelector='[role="menuitem"]:not([data-disabled])'
-					className={clsx(
+					className={cn(
 						positionClass,
 						!fullWidth && 'min-w-max',
 						'supports-[grid-template-columns:subgrid]:grid supports-[grid-template-columns:subgrid]:grid-cols-[auto_1fr_1.5rem_0.5rem_auto]',

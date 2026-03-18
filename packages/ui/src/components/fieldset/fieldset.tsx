@@ -1,5 +1,6 @@
-import clsx from 'clsx'
 import type React from 'react'
+import { cn } from '../../core'
+import { narabi } from '../../recipes'
 
 export function Fieldset({
 	className,
@@ -13,13 +14,13 @@ export function Fieldset({
 		<fieldset
 			disabled={disabled}
 			{...props}
-			className={clsx(className, '*:data-[slot=text]:mt-1 [&>*+[data-slot=control]]:mt-6')}
+			className={cn('*:data-[slot=text]:mt-1 [&>*+[data-slot=control]]:mt-6', className)}
 		/>
 	)
 }
 
 export function FieldGroup({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
-	return <div data-slot="control" {...props} className={clsx(className, 'space-y-8')} />
+	return <div data-slot="control" {...props} className={cn('space-y-8', className)} />
 }
 
 export function Field({
@@ -34,15 +35,7 @@ export function Field({
 		<div
 			data-disabled={disabled ? '' : undefined}
 			{...props}
-			className={clsx(
-				className,
-				'[&>[data-slot=label]+[data-slot=control]]:mt-3',
-				'[&>[data-slot=label]+[data-slot=description]]:mt-1',
-				'[&>[data-slot=description]+[data-slot=control]]:mt-3',
-				'[&>[data-slot=control]+[data-slot=description]]:mt-3',
-				'[&>[data-slot=control]+[data-slot=error]]:mt-3',
-				'*:data-[slot=label]:font-medium',
-			)}
+			className={cn(...narabi.field, className)}
 		/>
 	)
 }

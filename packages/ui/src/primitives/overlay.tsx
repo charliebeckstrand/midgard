@@ -3,8 +3,7 @@
 import { AnimatePresence, motion } from 'motion/react'
 import type React from 'react'
 import { useEffect } from 'react'
-import { overlayAnimation } from '../recipes/motion'
-import { overlayBackdrop } from '../recipes/overlay'
+import { omote, ugoki } from '../recipes'
 
 export function Overlay({
 	open,
@@ -39,8 +38,8 @@ export function Overlay({
 			{open && (
 				<div className="fixed inset-0 z-50" {...props}>
 					<motion.div
-						{...overlayAnimation}
-						className={className ?? overlayBackdrop}
+						{...ugoki.overlay}
+						className={className ?? omote.backdrop}
 						onClick={onClose}
 						aria-hidden="true"
 					/>

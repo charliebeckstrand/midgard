@@ -1,11 +1,11 @@
 'use client'
 
-import clsx from 'clsx'
 import { motion } from 'motion/react'
 import type React from 'react'
 import { useId } from 'react'
+import { cn } from '../../core'
 import { Overlay } from '../../primitives'
-import { panelSizes } from '../../recipes/dialog'
+import { katachi, omote, ugoki } from '../../recipes'
 import { DialogProvider } from './context'
 
 export function Dialog({
@@ -17,7 +17,7 @@ export function Dialog({
 }: {
 	open: boolean
 	onClose: () => void
-	size?: keyof typeof panelSizes
+	size?: katachi.PanelSize
 	className?: string
 	children: React.ReactNode
 }) {
@@ -37,16 +37,13 @@ export function Dialog({
 				<div className="fixed inset-0 w-screen overflow-y-auto pt-6 sm:pt-0">
 					<div className="grid min-h-full grid-rows-[1fr_auto] justify-items-center sm:grid-rows-[1fr_auto_3fr] sm:p-4">
 						<motion.div
-							initial={{ opacity: 0, y: 0 }}
-							animate={{ opacity: 1, y: 0 }}
-							exit={{ opacity: 0, y: 0 }}
-							transition={{ duration: 0.15 }}
-							className={clsx(panelSizes[size], 'row-start-2 flex w-full min-w-0 sm:mb-auto')}
+							{...ugoki.overlay}
+							className={cn(katachi.panel[size], 'row-start-2 flex w-full min-w-0 sm:mb-auto')}
 						>
 							<div
-								className={clsx(
+								className={cn(
+									`w-full min-w-0 rounded-t-3xl p-(--gutter) [--gutter:--spacing(8)] sm:rounded-2xl ${omote.panel}`,
 									className,
-									'w-full min-w-0 rounded-t-3xl bg-white p-(--gutter) shadow-lg ring-1 ring-zinc-950/10 [--gutter:--spacing(8)] sm:rounded-2xl dark:bg-zinc-900 dark:ring-white/10 forced-colors:outline',
 								)}
 							>
 								{children}

@@ -1,9 +1,9 @@
 'use client'
 
-import clsx from 'clsx'
 import type React from 'react'
-import { Link } from '../../core'
+import { cn, Link } from '../../core'
 import { ActiveIndicator, TouchTarget } from '../../primitives'
+import { katachi } from '../../recipes'
 import { navItemBase } from './recipes'
 
 export function NavbarItem({
@@ -15,23 +15,25 @@ export function NavbarItem({
 	| ({ href?: never } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className'>)
 	| ({ href: string } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
 )) {
-	const classes = clsx(
-		// Base
+	const classes = cn(
+		// Layout
 		'relative flex min-w-0 items-center gap-3 rounded-lg p-2 text-left text-base/6 font-medium text-zinc-950',
 		navItemBase,
-		// Trailing icon (down chevron or similar)
+		// Trailing icon — navbar-specific: skips when icon is 2nd child (no label between icons)
 		'*:not-nth-2:last:data-[slot=icon]:ml-auto *:not-nth-2:last:data-[slot=icon]:size-5 sm:*:not-nth-2:last:data-[slot=icon]:size-4',
 		// Avatar (navbar-specific override)
 		'*:data-[slot=avatar]:[--avatar-radius:var(--radius-md)]',
+		// Icon-only — auto-detected square aspect
+		...katachi.iconDetect,
 	)
 
 	return (
-		<span className={clsx('group relative')}>
+		<span className="group relative">
 			{current && <ActiveIndicator orientation="horizontal" />}
 			{typeof props.href === 'string' ? (
 				<Link
 					{...props}
-					className={clsx(className, classes)}
+					className={cn(classes, className)}
 					data-current={current ? 'true' : undefined}
 				>
 					<TouchTarget>{children}</TouchTarget>
@@ -40,7 +42,7 @@ export function NavbarItem({
 				<button
 					{...props}
 					type="button"
-					className={clsx(className, 'cursor-default', classes)}
+					className={cn('cursor-default', classes, className)}
 					data-current={current ? 'true' : undefined}
 				>
 					<TouchTarget>{children}</TouchTarget>
@@ -51,5 +53,5 @@ export function NavbarItem({
 }
 
 export function NavbarLabel({ className, ...props }: React.ComponentPropsWithoutRef<'span'>) {
-	return <span {...props} className={clsx(className, 'truncate')} />
+	return <span data-slot="label" {...props} className={cn('truncate', className)} />
 }

@@ -1,9 +1,10 @@
 'use client'
 
-import clsx from 'clsx'
 import type React from 'react'
 import { useContext } from 'react'
+import { cn } from '../../core'
 import { CloseIcon } from '../../primitives'
+import { katachi } from '../../recipes'
 import { MobileSidebarContext } from '../layouts/context'
 
 export function SidebarHeader({
@@ -17,9 +18,9 @@ export function SidebarHeader({
 		return (
 			<div
 				{...props}
-				className={clsx(
-					className,
+				className={cn(
 					'flex flex-row items-center border-b border-zinc-950/5 p-4 dark:border-white/5',
+					className,
 				)}
 			>
 				<div className="flex flex-1 flex-col [&>[data-slot=section]+[data-slot=section]]:mt-2.5">
@@ -29,7 +30,12 @@ export function SidebarHeader({
 					type="button"
 					onClick={close}
 					aria-label="Close navigation"
-					className="rounded-lg fill-current p-2.5 text-zinc-950 hover:bg-zinc-950/5 dark:text-white dark:hover:bg-white/5 *:data-[slot=icon]:size-5 *:data-[slot=icon]:fill-current"
+					className={cn(
+						'rounded-lg fill-current p-2.5 text-zinc-950 hover:bg-zinc-950/5',
+						'dark:text-white dark:hover:bg-white/5',
+						...katachi.iconSlot,
+						'*:data-[slot=icon]:fill-current',
+					)}
 				>
 					<CloseIcon />
 				</button>
@@ -40,9 +46,9 @@ export function SidebarHeader({
 	return (
 		<div
 			{...props}
-			className={clsx(
-				className,
+			className={cn(
 				'flex flex-col border-b border-zinc-950/5 p-4 dark:border-white/5 [&>[data-slot=section]+[data-slot=section]]:mt-2.5',
+				className,
 			)}
 		>
 			{children}

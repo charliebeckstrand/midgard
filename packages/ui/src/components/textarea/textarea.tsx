@@ -1,8 +1,8 @@
 'use client'
 
-import clsx from 'clsx'
 import type React from 'react'
-import { controlInput, controlWrapper } from '../../recipes/control'
+import { cn } from '../../core'
+import { ma, omote } from '../../recipes'
 
 export type TextareaProps = {
 	className?: string
@@ -19,14 +19,14 @@ export function Textarea({
 	...props
 }: TextareaProps) {
 	return (
-		<span data-slot="control" className={clsx(className, controlWrapper)}>
+		<span data-slot="control" className={cn(omote.control, className)}>
 			<textarea
 				disabled={disabled}
 				data-invalid={invalid ? '' : undefined}
 				{...props}
-				className={clsx(
-					'relative block h-full min-h-11 w-full appearance-none rounded-lg px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)] sm:min-h-9 sm:px-[calc(--spacing(3)-1px)] sm:py-[calc(--spacing(1.5)-1px)]',
-					controlInput,
+				className={cn(
+					`relative block h-full min-h-11 w-full appearance-none rounded-lg sm:min-h-9 ${ma.control}`,
+					omote.input,
 					resizable ? 'resize-y' : 'resize-none',
 				)}
 			/>

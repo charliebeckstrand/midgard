@@ -1,1 +1,1 @@
-export { createContext, Link, LinkProvider, useLink } from './core'
+export { cn, createContext, Link, LinkProvider, useLink } from './core'

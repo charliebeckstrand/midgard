@@ -1,12 +1,12 @@
 'use client'
 
-import clsx from 'clsx'
 import { AnimatePresence } from 'motion/react'
 import type React from 'react'
 import { useCallback, useRef, useState } from 'react'
+import { cn } from '../../core'
 import { useControllable, useOverlay } from '../../hooks'
 import { ChevronIcon } from '../../primitives'
-import { controlInput, controlWrapper } from '../../recipes'
+import { omote } from '../../recipes'
 import { ComboboxProvider } from './context'
 import { ComboboxOptions } from './options'
 
@@ -101,7 +101,7 @@ export function Combobox<T>({
 	return (
 		<ComboboxProvider value={{ value: currentValue, onChange: handleChange, close }}>
 			<div ref={containerRef} data-slot="control" className="relative" {...props}>
-				<span className={clsx(className, controlWrapper)}>
+				<span className={cn(omote.control, className)}>
 					<input
 						ref={inputRef}
 						id={inputId}
@@ -124,10 +124,10 @@ export function Combobox<T>({
 						}}
 						onFocus={() => setOpen(true)}
 						onKeyDown={handleInputKeyDown}
-						className={clsx(
+						className={cn(
 							'relative block w-full appearance-none rounded-lg py-[calc(--spacing(2.5)-1px)] sm:py-[calc(--spacing(1.5)-1px)]',
 							'pr-[calc(--spacing(10)-1px)] pl-[calc(--spacing(3.5)-1px)] sm:pr-[calc(--spacing(9)-1px)] sm:pl-[calc(--spacing(3)-1px)]',
-							controlInput,
+							omote.input,
 							'dark:scheme-dark',
 						)}
 					/>

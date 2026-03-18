@@ -1,9 +1,9 @@
 'use client'
 
 import type { VariantProps } from 'class-variance-authority'
-import clsx from 'clsx'
 import type React from 'react'
 import { useCallback } from 'react'
+import { cn } from '../../core'
 import { useControllable } from '../../hooks'
 import { switchVariants } from './variants'
 
@@ -12,10 +12,10 @@ export function SwitchGroup({ className, ...props }: React.ComponentPropsWithout
 		<div
 			data-slot="control"
 			{...props}
-			className={clsx(
-				className,
+			className={cn(
 				'space-y-3 **:data-[slot=label]:font-normal',
 				'has-data-[slot=description]:space-y-6 has-data-[slot=description]:**:data-[slot=label]:font-medium',
+				className,
 			)}
 		/>
 	)
@@ -31,13 +31,13 @@ export function SwitchField({
 			data-slot="field"
 			data-disabled={disabled ? '' : undefined}
 			{...props}
-			className={clsx(
-				className,
+			className={cn(
 				'grid grid-cols-[1fr_auto] gap-x-8 gap-y-1 sm:grid-cols-[1fr_auto]',
 				'*:data-[slot=control]:col-start-2 *:data-[slot=control]:self-start sm:*:data-[slot=control]:mt-0.5',
 				'*:data-[slot=label]:col-start-1 *:data-[slot=label]:row-start-1',
 				'*:data-[slot=description]:col-start-1 *:data-[slot=description]:row-start-2',
 				'has-data-[slot=description]:**:data-[slot=label]:font-medium',
+				className,
 			)}
 		/>
 	)
@@ -82,13 +82,13 @@ export function Switch({
 			data-checked={checked ? '' : undefined}
 			disabled={disabled}
 			onClick={handleClick}
-			className={switchVariants({ color, className })}
+			className={cn(switchVariants({ color }), className)}
 			{...props}
 		>
 			{name && <input type="hidden" name={name} value={checked ? 'on' : ''} />}
 			<span
 				aria-hidden="true"
-				className={clsx(
+				className={cn(
 					'pointer-events-none relative inline-block size-4.5 rounded-full sm:size-3.5',
 					'translate-x-0 transition duration-200 ease-in-out',
 					'border border-transparent',

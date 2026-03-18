@@ -1,6 +1,7 @@
 'use client'
 
-import clsx from 'clsx'
+import { cn } from '../../core'
+import { sumi } from '../../recipes'
 import { TableProvider } from './context'
 
 interface TableProps extends React.ComponentPropsWithoutRef<'div'> {
@@ -24,14 +25,10 @@ export function Table({
 			<div className="flow-root">
 				<div
 					{...props}
-					className={clsx(className, '-mx-(--gutter) overflow-x-auto whitespace-nowrap')}
+					className={cn('-mx-(--gutter) overflow-x-auto whitespace-nowrap', className)}
 				>
-					<div
-						className={clsx('inline-block min-w-full align-middle', !bleed && 'sm:px-(--gutter)')}
-					>
-						<table className="min-w-full text-left text-sm/6 text-zinc-950 dark:text-white">
-							{children}
-						</table>
+					<div className={cn('inline-block min-w-full align-middle', !bleed && 'sm:px-(--gutter)')}>
+						<table className={`min-w-full text-left text-sm/6 ${sumi.base}`}>{children}</table>
 					</div>
 				</div>
 			</div>
@@ -40,9 +37,9 @@ export function Table({
 }
 
 export function TableHead({ className, ...props }: React.ComponentPropsWithoutRef<'thead'>) {
-	return <thead {...props} className={clsx(className, 'text-zinc-500 dark:text-zinc-400')} />
+	return <thead data-slot="head" {...props} className={cn(sumi.usui, className)} />
 }
 
 export function TableBody({ className, ...props }: React.ComponentPropsWithoutRef<'tbody'>) {
-	return <tbody {...props} className={className} />
+	return <tbody data-slot="body" {...props} className={className} />
 }

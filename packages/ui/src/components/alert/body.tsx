@@ -1,8 +1,8 @@
 'use client'
 
-import clsx from 'clsx'
 import type React from 'react'
+import { cn } from '../../core'
 
 export function AlertBody({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
-	return <div {...props} className={clsx(className, 'mt-4')} />
+	return <div data-slot="body" {...props} className={cn('mt-4', className)} />
 }

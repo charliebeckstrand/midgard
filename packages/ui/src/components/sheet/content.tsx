@@ -1,71 +1,13 @@
 'use client'
 
-import clsx from 'clsx'
 import { AnimatePresence, motion } from 'motion/react'
 import type React from 'react'
 import { useEffect } from 'react'
-import { overlayAnimation } from '../../recipes/motion'
-import { overlayBackdrop } from '../../recipes/overlay'
-import type { SheetSide } from './context'
+import { cn } from '../../core'
+import { katachi, ma, narabi, omote, ugoki } from '../../recipes'
 import { useSheet } from './context'
 
-const slideAnimations: Record<
-	SheetSide,
-	{ initial: Record<string, string>; exit: Record<string, string> }
-> = {
-	right: { initial: { x: '100%' }, exit: { x: '100%' } },
-	left: { initial: { x: '-100%' }, exit: { x: '-100%' } },
-	top: { initial: { y: '-100%' }, exit: { y: '-100%' } },
-	bottom: { initial: { y: '100%' }, exit: { y: '100%' } },
-}
-
-const positionClasses: Record<SheetSide, string> = {
-	right: 'inset-y-0 right-0',
-	left: 'inset-y-0 left-0',
-	top: 'inset-x-0 top-0',
-	bottom: 'inset-x-0 bottom-0',
-}
-
-const sizeClasses: Record<SheetSide, string> = {
-	right: 'h-full w-full',
-	left: 'h-full w-full',
-	top: 'w-full',
-	bottom: 'w-full',
-}
-
-const floatClasses: Record<SheetSide, string> = {
-	right: 'p-4',
-	left: 'p-4',
-	top: 'p-4',
-	bottom: 'p-4',
-}
-
-const maxWidthClasses: Record<string, string> = {
-	xs: 'sm:max-w-xs',
-	sm: 'sm:max-w-sm',
-	md: 'sm:max-w-md',
-	lg: 'sm:max-w-lg',
-	xl: 'sm:max-w-xl',
-	'2xl': 'sm:max-w-2xl',
-	'3xl': 'sm:max-w-3xl',
-	'4xl': 'sm:max-w-4xl',
-	'5xl': 'sm:max-w-5xl',
-	'6xl': 'sm:max-w-6xl',
-	'7xl': 'sm:max-w-7xl',
-}
-
-export type SheetSize =
-	| 'xs'
-	| 'sm'
-	| 'md'
-	| 'lg'
-	| 'xl'
-	| '2xl'
-	| '3xl'
-	| '4xl'
-	| '5xl'
-	| '6xl'
-	| '7xl'
+export type SheetSize = katachi.PanelSize
 
 export function SheetContent({
 	className,
@@ -96,7 +38,7 @@ export function SheetContent({
 		}
 	}, [open, onOpenChange, modal])
 
-	const slide = slideAnimations[side]
+	const slide = ugoki.panel[side]
 	const isHorizontal = side === 'left' || side === 'right'
 
 	return (
@@ -105,8 +47,8 @@ export function SheetContent({
 				<div className="fixed inset-0 z-50">
 					{!noOverlay && (
 						<motion.div
-							{...overlayAnimation}
-							className={overlayBackdrop}
+							{...ugoki.overlay}
+							className={omote.backdrop}
 							onClick={() => onOpenChange(false)}
 							aria-hidden="true"
 						/>
@@ -120,20 +62,17 @@ export function SheetContent({
 						animate={isHorizontal ? { x: 0 } : { y: 0 }}
 						exit={slide.exit}
 						transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
-						className={clsx(
+						className={cn(
 							'fixed',
-							positionClasses[side],
-							sizeClasses[side],
-							isHorizontal && maxWidthClasses[size],
-							isHorizontal && floatClasses[side],
+							narabi.slide[side],
+							isHorizontal && katachi.panel[size],
+							isHorizontal && ma.float,
 						)}
 					>
 						<div
-							className={clsx(
-								'flex h-full flex-col bg-white shadow-lg dark:bg-zinc-900',
-								isHorizontal
-									? 'rounded-xl ring-1 ring-zinc-950/10 dark:ring-white/10'
-									: 'ring-1 ring-zinc-950/10 dark:ring-white/10',
+							className={cn(
+								`flex h-full flex-col ${omote.panel}`,
+								isHorizontal ? 'rounded-xl' : '',
 								className,
 							)}
 						>

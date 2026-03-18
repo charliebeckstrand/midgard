@@ -1,8 +1,8 @@
 'use client'
 
-import clsx from 'clsx'
 import type React from 'react'
 import { useCallback, useState } from 'react'
+import { cn } from '../../core'
 import { useOverlay } from '../../hooks'
 import { DropdownProvider } from './context'
 
@@ -20,7 +20,7 @@ export function Dropdown({
 		<DropdownProvider value={{ open, toggle, close, fullWidth }}>
 			<div
 				ref={containerRef}
-				className={clsx('relative', fullWidth && 'flex w-full flex-col', className)}
+				className={cn('relative', fullWidth && 'flex w-full flex-col', className)}
 			>
 				{children}
 			</div>
