@@ -6,22 +6,15 @@ import { cn } from '../../core'
 import { useOverlay } from '../../hooks'
 import { DropdownProvider } from './context'
 
-export function Dropdown({
-	children,
-	className,
-	fullWidth,
-}: React.PropsWithChildren<{ className?: string; fullWidth?: boolean }>) {
+export function Dropdown({ children, className }: React.PropsWithChildren<{ className?: string }>) {
 	const [open, setOpen] = useState(false)
 	const toggle = useCallback(() => setOpen((prev) => !prev), [])
 	const close = useCallback(() => setOpen(false), [])
 	const containerRef = useOverlay(open, close)
 
 	return (
-		<DropdownProvider value={{ open, toggle, close, fullWidth }}>
-			<div
-				ref={containerRef}
-				className={cn('relative', fullWidth && 'flex w-full flex-col', className)}
-			>
+		<DropdownProvider value={{ open, toggle, close }}>
+			<div ref={containerRef} className={cn('relative', className)}>
 				{children}
 			</div>
 		</DropdownProvider>
