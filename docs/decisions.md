@@ -18,13 +18,13 @@ Non-trivial design choices with context, alternatives, and trade-offs.
 **Alternatives:** (1) Keep layouts separate — more duplication, no shared primitives. (2) Keep page structure in sindri — couples visual structure to Next.js/dynamic behavior.
 **Consequences:** Layouts share a single `MobileSidebar` and `useMobileSidebar` hook, eliminating ~40 lines of duplication. Page skeletons are framework-agnostic — sindri provides Next.js-specific behavior. New auth pages only need a skeleton in UI and a behavioral wrapper in sindri. Old import paths (`ui/sidebar-layout`, `ui/stacked-layout`, `ui/auth-layout`) are removed; consumers use `ui/layouts`.
 
-## 2026-03-16 — New component library (packages/ui) to replace Catalyst
+## 2026-03-16 — New component library (packages/ui) with Kata design system
 
 **Status:** Accepted
 **Context:** Catalyst components are overly complex — monolithic files, duplicated code, inconsistent patterns. Rather than refactoring, a clean rewrite was chosen.
-**Decision:** Build a new library from scratch with five-layer atomic architecture (core → recipes → hooks → primitives → components). Framework-agnostic via LinkProvider pattern. No HeadlessUI, no Next.js coupling. Dependencies: clsx, CVA, motion only.
-**Alternatives:** (1) Refactor Catalyst in-place — rejected due to accumulated complexity. (2) Use HeadlessUI — rejected due to bundle size (~45KB) and useId hydration issues.
-**Consequences:** Migration required for all apps. Catalyst will be deleted once migration is complete. Shared recipes eliminate ~350+ lines of cross-component duplication.
+**Decision:** Build a new library from scratch with five-layer atomic architecture (core → recipes → hooks → primitives → components). The recipe layer is named **Kata** (型, "form") — ten composable style modules that encode every visual decision: Sumi (ink), Kage (edges), Nuri (fills), Omote (surfaces), Ki (focus), Sawari (touch), Ugoki (motion), Ma (space), Katachi (shape), Narabi (arrangement). Components compose recipes — `cn(omote.control, ma.control, kage.ring)` — rather than redeclaring Tailwind strings. Framework-agnostic via LinkProvider pattern. No HeadlessUI, no Next.js coupling. Dependencies: clsx, CVA, motion only.
+**Alternatives:** (1) Refactor Catalyst in-place — rejected due to accumulated complexity. (2) Use HeadlessUI — rejected due to bundle size (~45KB) and useId hydration issues. (3) Design tokens as CSS custom properties — rejected; Tailwind class strings compose more naturally with CVA and `cn()`, and colocation of responsive/dark variants in the recipe keeps the component file clean.
+**Consequences:** Migration required for all apps. Catalyst will be deleted once migration is complete. Kata recipes eliminate ~350+ lines of cross-component duplication. When a recipe changes, every component that references it updates in lockstep — no shotgun surgery.
 
 ## 2026-03-14 — Rename claude/ to docs/ and create docs dashboard app
 

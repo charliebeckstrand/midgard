@@ -20,7 +20,7 @@ apps/
   chat/           → Chat app (port 3002, authenticated)
   docs/           → Documentation (port 3001, public)
 packages/
-  ui/             → Component library (5-layer atomic, framework-agnostic)
+  ui/             → Component library (Kata design system, 5-layer atomic, framework-agnostic)
   heimdall/       → Auth module (session, proxy, config) → talks to Bifrost backend
   sindri/         → Shared UI resources (auth pages, chat UI, theme)
 ```
