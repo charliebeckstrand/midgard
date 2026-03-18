@@ -54,9 +54,10 @@ export function SidebarLayout({
 			>
 				<div
 					className={cn(
-						'flex flex-col grow p-6',
+						'flex flex-col grow min-h-0 p-4 lg:p-6',
 						scrollable && 'overflow-hidden',
 						omote.content,
+						'[&>[data-slot=header]>nav]:p-0',
 						'[&:has([data-slot=footer])>[data-slot=body]]:pb-0',
 					)}
 				>
@@ -91,7 +92,7 @@ export const SidebarLayoutBody = React.forwardRef<
 
 export function SidebarLayoutFooter({ children }: React.PropsWithChildren) {
 	return (
-		<div data-slot="footer" className="shrink-0">
+		<div data-slot="footer" className="shrink-0 pt-4 lg:pt-6">
 			{children}
 		</div>
 	)
