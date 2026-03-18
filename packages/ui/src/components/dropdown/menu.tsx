@@ -16,7 +16,7 @@ export function DropdownMenu({
 	className?: string
 	children: React.ReactNode
 }) {
-	const { open, fullWidth } = useDropdown()
+	const { open } = useDropdown()
 
 	const positionClass = narabi.anchor[anchor] ?? narabi.anchor.bottom
 
@@ -28,7 +28,9 @@ export function DropdownMenu({
 					itemSelector='[role="menuitem"]:not([data-disabled])'
 					className={cn(
 						positionClass,
-						fullWidth ? 'w-full max-w-full' : 'min-w-max',
+						'min-w-max',
+						// Inside a sidebar, match parent width instead of growing to content
+						'[[data-slot=sidebar]_&]:w-full [[data-slot=sidebar]_&]:min-w-0',
 						'supports-[grid-template-columns:subgrid]:grid supports-[grid-template-columns:subgrid]:grid-cols-[auto_1fr_1.5rem_0.5rem_auto]',
 						className,
 					)}

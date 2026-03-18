@@ -15,6 +15,7 @@ export function Sidebar({ className, ...props }: React.ComponentPropsWithoutRef<
 		<LayoutGroup id={groupId}>
 			<nav
 				ref={ref}
+				data-slot="sidebar"
 				onKeyDown={onKeyDown}
 				{...props}
 				className={cn('flex h-full min-h-0 flex-col', className)}

@@ -33,7 +33,7 @@ export function SidebarUserDropdown({ user }: { user?: User }) {
 	const initials = user?.email?.[0]?.toUpperCase() ?? 'U'
 
 	return (
-		<Dropdown fullWidth>
+		<Dropdown>
 			<DropdownButton as={SidebarItem}>
 				<Avatar
 					initials={initials}
@@ -42,7 +42,7 @@ export function SidebarUserDropdown({ user }: { user?: User }) {
 				<SidebarLabel>{displayName}</SidebarLabel>
 				<ChevronUpDownIcon />
 			</DropdownButton>
-			<DropdownMenu anchor="top start" className="min-w-64">
+			<DropdownMenu anchor="top start">
 				<DropdownItem href="/settings">
 					<Cog8ToothIcon />
 					<DropdownLabel>Settings</DropdownLabel>
