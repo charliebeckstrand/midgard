@@ -11,12 +11,10 @@ import { useMobileSidebar } from './use-mobile-sidebar'
 export function SidebarLayout({
 	navbar,
 	sidebar,
-	scrollable = true,
 	children,
 }: React.PropsWithChildren<{
 	navbar: React.ReactNode
 	sidebar: React.ReactNode
-	scrollable?: boolean
 }>) {
 	const { open, setOpen, close, mainRef } = useMobileSidebar()
 
@@ -47,16 +45,13 @@ export function SidebarLayout({
 			{/* Content */}
 			<main
 				ref={mainRef}
-				className={cn(
-					'flex flex-1 flex-col pb-2 lg:min-w-0 lg:pt-2 lg:pr-2 lg:pl-64',
-					scrollable ? 'overflow-hidden' : 'overflow-auto',
-				)}
+				className="flex flex-1 flex-col overflow-hidden pb-2 lg:min-w-0 lg:pt-2 lg:pr-2 lg:pl-64"
 			>
 				<div
 					className={cn(
-						'flex flex-col grow p-6',
-						scrollable && 'overflow-hidden',
+						'flex flex-col grow min-h-0 overflow-hidden p-4 lg:p-6',
 						omote.content,
+						'[&>[data-slot=header]>nav]:p-0',
 						'[&:has([data-slot=footer])>[data-slot=body]]:pb-0',
 					)}
 				>
@@ -91,7 +86,7 @@ export const SidebarLayoutBody = React.forwardRef<
 
 export function SidebarLayoutFooter({ children }: React.PropsWithChildren) {
 	return (
-		<div data-slot="footer" className="shrink-0">
+		<div data-slot="footer" className="shrink-0 pt-4 lg:pt-6">
 			{children}
 		</div>
 	)
