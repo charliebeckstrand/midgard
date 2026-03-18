@@ -11,40 +11,142 @@
 	"main": "./src/index.ts",
 	"types": "./src/index.ts",
 	"exports": {
-		".": "./src/index.ts",
-		"./core": "./src/core/index.ts",
-		"./recipes": "./src/recipes/index.ts",
-		"./hooks": "./src/hooks/index.ts",
-		"./primitives": "./src/primitives/index.ts",
-		"./alert": "./src/components/alert/index.ts",
-		"./avatar": "./src/components/avatar/index.ts",
-		"./badge": "./src/components/badge/index.ts",
-		"./button": "./src/components/button/index.ts",
-		"./checkbox": "./src/components/checkbox/index.ts",
-		"./combobox": "./src/components/combobox/index.ts",
-		"./dl": "./src/components/dl/index.ts",
-		"./dialog": "./src/components/dialog/index.ts",
-		"./divider": "./src/components/divider/index.ts",
-		"./dropdown": "./src/components/dropdown/index.ts",
-		"./fieldset": "./src/components/fieldset/index.ts",
-		"./heading": "./src/components/heading/index.ts",
-		"./input": "./src/components/input/index.ts",
-		"./listbox": "./src/components/listbox/index.ts",
-		"./navbar": "./src/components/navbar/index.ts",
-		"./pagination": "./src/components/pagination/index.ts",
-		"./radio": "./src/components/radio/index.ts",
-		"./select": "./src/components/select/index.ts",
-		"./sheet": "./src/components/sheet/index.ts",
-		"./sidebar": "./src/components/sidebar/index.ts",
-		"./layouts": "./src/components/layouts/index.ts",
-		"./pages": "./src/components/pages/index.ts",
-		"./switch": "./src/components/switch/index.ts",
-		"./table": "./src/components/table/index.ts",
-		"./tabs": "./src/components/tabs/index.ts",
-		"./text": "./src/components/text/index.ts",
-		"./textarea": "./src/components/textarea/index.ts",
-		"./placeholder": "./src/components/placeholder/index.ts",
-		"./react-bits/shiny-text": "./src/components/react-bits/shiny-text.tsx"
+		".": {
+			"types": "./src/index.ts",
+			"default": "./src/index.ts"
+		},
+		"./core": {
+			"types": "./src/core/index.ts",
+			"default": "./src/core/index.ts"
+		},
+		"./recipes": {
+			"types": "./src/recipes/index.ts",
+			"default": "./src/recipes/index.ts"
+		},
+		"./hooks": {
+			"types": "./src/hooks/index.ts",
+			"default": "./src/hooks/index.ts"
+		},
+		"./primitives": {
+			"types": "./src/primitives/index.ts",
+			"default": "./src/primitives/index.ts"
+		},
+		"./alert": {
+			"types": "./src/components/alert/index.ts",
+			"default": "./src/components/alert/index.ts"
+		},
+		"./avatar": {
+			"types": "./src/components/avatar/index.ts",
+			"default": "./src/components/avatar/index.ts"
+		},
+		"./badge": {
+			"types": "./src/components/badge/index.ts",
+			"default": "./src/components/badge/index.ts"
+		},
+		"./button": {
+			"types": "./src/components/button/index.ts",
+			"default": "./src/components/button/index.ts"
+		},
+		"./checkbox": {
+			"types": "./src/components/checkbox/index.ts",
+			"default": "./src/components/checkbox/index.ts"
+		},
+		"./combobox": {
+			"types": "./src/components/combobox/index.ts",
+			"default": "./src/components/combobox/index.ts"
+		},
+		"./dl": {
+			"types": "./src/components/dl/index.ts",
+			"default": "./src/components/dl/index.ts"
+		},
+		"./dialog": {
+			"types": "./src/components/dialog/index.ts",
+			"default": "./src/components/dialog/index.ts"
+		},
+		"./divider": {
+			"types": "./src/components/divider/index.ts",
+			"default": "./src/components/divider/index.ts"
+		},
+		"./dropdown": {
+			"types": "./src/components/dropdown/index.ts",
+			"default": "./src/components/dropdown/index.ts"
+		},
+		"./fieldset": {
+			"types": "./src/components/fieldset/index.ts",
+			"default": "./src/components/fieldset/index.ts"
+		},
+		"./heading": {
+			"types": "./src/components/heading/index.ts",
+			"default": "./src/components/heading/index.ts"
+		},
+		"./input": {
+			"types": "./src/components/input/index.ts",
+			"default": "./src/components/input/index.ts"
+		},
+		"./listbox": {
+			"types": "./src/components/listbox/index.ts",
+			"default": "./src/components/listbox/index.ts"
+		},
+		"./navbar": {
+			"types": "./src/components/navbar/index.ts",
+			"default": "./src/components/navbar/index.ts"
+		},
+		"./pagination": {
+			"types": "./src/components/pagination/index.ts",
+			"default": "./src/components/pagination/index.ts"
+		},
+		"./radio": {
+			"types": "./src/components/radio/index.ts",
+			"default": "./src/components/radio/index.ts"
+		},
+		"./select": {
+			"types": "./src/components/select/index.ts",
+			"default": "./src/components/select/index.ts"
+		},
+		"./sheet": {
+			"types": "./src/components/sheet/index.ts",
+			"default": "./src/components/sheet/index.ts"
+		},
+		"./sidebar": {
+			"types": "./src/components/sidebar/index.ts",
+			"default": "./src/components/sidebar/index.ts"
+		},
+		"./layouts": {
+			"types": "./src/components/layouts/index.ts",
+			"default": "./src/components/layouts/index.ts"
+		},
+		"./pages": {
+			"types": "./src/components/pages/index.ts",
+			"default": "./src/components/pages/index.ts"
+		},
+		"./switch": {
+			"types": "./src/components/switch/index.ts",
+			"default": "./src/components/switch/index.ts"
+		},
+		"./table": {
+			"types": "./src/components/table/index.ts",
+			"default": "./src/components/table/index.ts"
+		},
+		"./tabs": {
+			"types": "./src/components/tabs/index.ts",
+			"default": "./src/components/tabs/index.ts"
+		},
+		"./text": {
+			"types": "./src/components/text/index.ts",
+			"default": "./src/components/text/index.ts"
+		},
+		"./textarea": {
+			"types": "./src/components/textarea/index.ts",
+			"default": "./src/components/textarea/index.ts"
+		},
+		"./placeholder": {
+			"types": "./src/components/placeholder/index.ts",
+			"default": "./src/components/placeholder/index.ts"
+		},
+		"./react-bits/shiny-text": {
+			"types": "./src/components/react-bits/shiny-text.tsx",
+			"default": "./src/components/react-bits/shiny-text.tsx"
+		}
 	},
 	"publishConfig": {
 		"main": "./dist/index.js",
