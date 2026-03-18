@@ -11,10 +11,12 @@ import { useMobileSidebar } from './use-mobile-sidebar'
 export function SidebarLayout({
 	navbar,
 	sidebar,
+	scrollable = true,
 	children,
 }: React.PropsWithChildren<{
 	navbar: React.ReactNode
 	sidebar: React.ReactNode
+	scrollable?: boolean
 }>) {
 	const { open, setOpen, close, mainRef } = useMobileSidebar()
 
@@ -45,11 +47,15 @@ export function SidebarLayout({
 			{/* Content */}
 			<main
 				ref={mainRef}
-				className="flex flex-1 flex-col overflow-hidden pb-2 lg:min-w-0 lg:pt-2 lg:pr-2 lg:pl-64"
+				className={cn(
+					'flex flex-1 flex-col pb-2 lg:min-w-0 lg:pt-2 lg:pr-2 lg:pl-64',
+					scrollable ? 'overflow-hidden' : 'overflow-auto',
+				)}
 			>
 				<div
 					className={cn(
-						'flex flex-col grow overflow-hidden p-6',
+						'flex flex-col grow p-6',
+						scrollable && 'overflow-hidden',
 						omote.content,
 						'[&:has([data-slot=footer])>[data-slot=body]]:pb-0',
 					)}

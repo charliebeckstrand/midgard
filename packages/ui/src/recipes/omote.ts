@@ -92,7 +92,7 @@ export const omote = {
 	].join(' '),
 
 	/** Mobile sidebar backdrop surface */
-	sidebar: 'fixed inset-0 bg-black/30',
+	sidebar: 'fixed inset-0 bg-black/30 backdrop-blur-xs',
 
 	/** Popover menu surface (Dropdown, Listbox, Combobox) */
 	popover: [

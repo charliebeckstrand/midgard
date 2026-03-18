@@ -6,14 +6,15 @@
       "outputs": [".next/**", "!.next/cache/**", "dist/**"]
     },
     "check-types": {
-      "dependsOn": ["^check-types"]
+      "dependsOn": ["^build"],
+      "inputs": ["src/**", "app/**", "tsconfig.json", "../../tsconfig.base.json", "../../tsconfig.nextjs.json"]
     },
     "dev": {
       "cache": false,
       "persistent": true
     },
     "lint": {
-      "dependsOn": ["^lint"]
+      "inputs": ["src/**", "app/**", "../../biome.json"]
     }
   }
 }

@@ -8,19 +8,23 @@ import { Overlay } from '../../primitives'
 import { katachi, omote, ugoki } from '../../recipes'
 import { DialogProvider } from './context'
 
-export function Dialog({
-	open,
-	onClose,
-	size = 'lg',
-	className,
-	children,
-}: {
+export type DialogProps = {
 	open: boolean
 	onClose: () => void
+	outsideClick?: boolean
 	size?: katachi.PanelSize
 	className?: string
 	children: React.ReactNode
-}) {
+}
+
+export function Dialog({
+	open,
+	onClose,
+	outsideClick,
+	size = 'lg',
+	className,
+	children,
+}: DialogProps) {
 	const titleId = useId()
 	const descriptionId = useId()
 
@@ -29,6 +33,7 @@ export function Dialog({
 			<Overlay
 				open={open}
 				onClose={onClose}
+				outsideClick={outsideClick}
 				role="dialog"
 				aria-modal="true"
 				aria-labelledby={titleId}
