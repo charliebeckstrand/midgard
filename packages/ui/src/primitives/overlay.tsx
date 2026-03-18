@@ -5,18 +5,22 @@ import type React from 'react'
 import { useEffect } from 'react'
 import { omote, ugoki } from '../recipes'
 
+export type OverlayProps = {
+	open: boolean
+	onClose: () => void
+	outsideClick?: boolean
+	className?: string
+	children: React.ReactNode
+} & Omit<React.HTMLAttributes<HTMLDivElement>, 'className' | 'children'>
+
 export function Overlay({
 	open,
 	onClose,
+	outsideClick = true,
 	className,
 	children,
 	...props
-}: {
-	open: boolean
-	onClose: () => void
-	className?: string
-	children: React.ReactNode
-} & Omit<React.HTMLAttributes<HTMLDivElement>, 'className' | 'children'>) {
+}: OverlayProps) {
 	useEffect(() => {
 		if (!open) return
 
@@ -40,7 +44,7 @@ export function Overlay({
 					<motion.div
 						{...ugoki.overlay}
 						className={className ?? omote.backdrop}
-						onClick={onClose}
+						onClick={outsideClick ? onClose : undefined}
 						aria-hidden="true"
 					/>
 					{children}
