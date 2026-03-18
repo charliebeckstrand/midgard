@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useState } from 'react'
+import { Button } from 'ui/button'
 import { ErrorMessage, Field, Label } from 'ui/fieldset'
 import { Input } from 'ui/input'
 import { LoginPage as LoginPageLayout } from 'ui/pages'
@@ -57,7 +58,14 @@ function LoginForm({ showRegisterLink }: { showRegisterLink: boolean }) {
 		<LoginPageLayout
 			onSubmit={handleSubmit}
 			serverError={serverError}
-			submitting={submitting}
+			submit={
+				<Button
+					type="submit"
+					className={`w-full ${submitting ? 'cursor-not-allowed pointer-events-none' : ''}`}
+				>
+					Sign in
+				</Button>
+			}
 			footer={
 				showRegisterLink ? (
 					<Text>
