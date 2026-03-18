@@ -12,7 +12,7 @@ export default defineConfig({
 	outDir: 'dist',
 	clean: true,
 	dts: true,
-	sourcemap: true,
+	sourcemap: false,
 	splitting: false,
 	external: ['next', 'react'],
 })
