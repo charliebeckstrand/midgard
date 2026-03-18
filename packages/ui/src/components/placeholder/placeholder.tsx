@@ -2,8 +2,10 @@
 
 import { motion } from 'motion/react'
 import { cn } from '../../core'
+import { kage, katachi, ma } from '../../recipes'
+import { skeleton } from './skeleton'
 
-const pulseAnimation = {
+const pulse = {
 	initial: { opacity: 0.5 },
 	animate: { opacity: 1 },
 	transition: {
@@ -14,19 +16,31 @@ const pulseAnimation = {
 	},
 }
 
-export function Placeholder({ className }: { className?: string }) {
-	return (
-		<motion.div
-			role="status"
-			aria-label="Loading"
-			className={cn('rounded-lg bg-zinc-200 dark:bg-zinc-800', className)}
-			{...pulseAnimation}
-		/>
-	)
-}
+const fill = 'bg-zinc-200 dark:bg-zinc-800'
+const bar = `h-2 rounded-full ${fill}`
 
-const bar = 'h-2 rounded-full bg-zinc-200 dark:bg-zinc-800'
+/** @deprecated Use `Skeleton` or component-specific skeletons instead */
+export const Placeholder = skeleton('', 'Placeholder')
 
+/** @deprecated Use `InputSkeleton` from `ui/input` instead */
+export const PlaceholderInput = skeleton(
+	`block w-full ${katachi.maru} ${kage.ring} ${ma.control}`,
+	'PlaceholderInput',
+)
+
+/** @deprecated Use `TextareaSkeleton` from `ui/textarea` instead */
+export const PlaceholderTextarea = skeleton(
+	`block w-full ${katachi.maru} ${kage.ring} ${ma.control} min-h-[5.5rem] sm:min-h-[4.5rem]`,
+	'PlaceholderTextarea',
+)
+
+/** @deprecated Use `ButtonSkeleton` from `ui/button` instead */
+export const PlaceholderButton = skeleton(
+	`inline-flex ${katachi.maru} border border-transparent ${ma.control}`,
+	'PlaceholderButton',
+)
+
+/** Multi-line text skeleton with configurable bar count */
 export function PlaceholderText({ className, bars = 3 }: { className?: string; bars?: number }) {
 	const items = Array.from({ length: bars }, (_, i) => ({
 		id: `bar-${i}`,
@@ -35,12 +49,7 @@ export function PlaceholderText({ className, bars = 3 }: { className?: string; b
 	}))
 
 	return (
-		<motion.div
-			role="status"
-			aria-label="Loading"
-			className={cn('w-full', className)}
-			{...pulseAnimation}
-		>
+		<motion.div role="status" aria-label="Loading" className={cn('w-full', className)} {...pulse}>
 			{items.map((item) => (
 				<div key={item.id} className={cn(bar, item.width, item.spacing && 'mb-2.5')} />
 			))}
@@ -48,57 +57,7 @@ export function PlaceholderText({ className, bars = 3 }: { className?: string; b
 	)
 }
 
-export function PlaceholderInput({ className }: { className?: string }) {
-	return (
-		<motion.div
-			role="status"
-			aria-label="Loading"
-			className={cn(
-				'relative block w-full rounded-lg ring-1 ring-zinc-950/10 bg-zinc-200 dark:bg-zinc-800 px-3.5 py-2.5 sm:px-3 sm:py-1.5',
-				'dark:ring-white/10',
-				className,
-			)}
-			{...pulseAnimation}
-		>
-			<div className="h-lh" />
-		</motion.div>
-	)
-}
-
-export function PlaceholderTextarea({ className }: { className?: string }) {
-	return (
-		<motion.div
-			role="status"
-			aria-label="Loading"
-			className={cn(
-				'relative block w-full rounded-lg ring-1 ring-zinc-950/10 px-3.5 py-2.5 sm:px-3 sm:py-1.5',
-				'dark:ring-white/10',
-				className,
-			)}
-			{...pulseAnimation}
-		>
-			<div className="mb-2 h-[1em] max-w-[80%] rounded bg-zinc-200 text-base/6 sm:text-sm/6 dark:bg-zinc-800" />
-			<div className="mb-2 h-[1em] rounded bg-zinc-200 text-base/6 sm:text-sm/6 dark:bg-zinc-800" />
-			<div className="h-[1em] max-w-[40%] rounded bg-zinc-200 text-base/6 sm:text-sm/6 dark:bg-zinc-800" />
-		</motion.div>
-	)
-}
-
-export function PlaceholderButton({ className }: { className?: string }) {
-	return (
-		<motion.div
-			role="status"
-			aria-label="Loading"
-			className={cn(
-				'size-10 rounded-lg ring-1 ring-zinc-950/10 bg-zinc-200 dark:bg-zinc-800',
-				'dark:ring-white/10',
-				className,
-			)}
-			{...pulseAnimation}
-		/>
-	)
-}
-
+/** Sidebar item skeleton with optional icon placeholder */
 export function PlaceholderSidebarItem({
 	className,
 	icon = true,
@@ -111,10 +70,10 @@ export function PlaceholderSidebarItem({
 			role="status"
 			aria-label="Loading"
 			className={cn('flex w-full items-center gap-3 rounded-lg px-2 py-2.5 sm:py-2', className)}
-			{...pulseAnimation}
+			{...pulse}
 		>
-			{icon && <div className="size-5 shrink-0 rounded bg-zinc-200 sm:size-4 dark:bg-zinc-800" />}
-			<div className="h-lh flex-1 rounded bg-zinc-200 text-base/6 sm:text-sm/6 dark:bg-zinc-800" />
+			{icon && <div className={cn('size-5 shrink-0 rounded sm:size-4', fill)} />}
+			<div className={cn('h-lh flex-1 rounded text-base/6 sm:text-sm/6', fill)} />
 		</motion.div>
 	)
 }
