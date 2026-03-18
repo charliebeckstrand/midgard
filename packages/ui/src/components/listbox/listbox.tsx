@@ -2,7 +2,7 @@
 
 import { AnimatePresence } from 'motion/react'
 import type React from 'react'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { cn } from '../../core'
 import { useControllable, useOverlay } from '../../hooks'
 import { ChevronIcon } from '../../primitives'
@@ -39,8 +39,8 @@ export function Listbox<T>({
 } & Omit<React.ComponentPropsWithoutRef<'div'>, 'className' | 'onChange'>) {
 	const [open, setOpen] = useState(false)
 	const [currentValue, setValue] = useControllable({ value, defaultValue, onChange })
-	const containerRef = useRef<HTMLDivElement>(null)
 	const close = useCallback(() => setOpen(false), [])
+	const containerRef = useOverlay(open, close)
 
 	const handleChange = useCallback(
 		(newValue: unknown) => {
@@ -49,8 +49,6 @@ export function Listbox<T>({
 		},
 		[setValue],
 	)
-
-	useOverlay(open, close)
 
 	return (
 		<ListboxProvider
