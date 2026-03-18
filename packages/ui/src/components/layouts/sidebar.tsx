@@ -45,11 +45,11 @@ export function SidebarLayout({
 			{/* Content */}
 			<main
 				ref={mainRef}
-				className="flex flex-1 flex-col overflow-hidden p-6 max-lg:pt-0 lg:min-w-0 lg:pl-64"
+				className="flex flex-1 flex-col overflow-hidden pb-2 lg:min-w-0 lg:pt-2 lg:pr-2 lg:pl-64"
 			>
 				<div
 					className={cn(
-						'flex flex-col grow overflow-hidden',
+						'flex flex-col grow overflow-hidden p-6',
 						omote.content,
 						'[&:has([data-slot=footer])>[data-slot=body]]:pb-0',
 					)}
@@ -77,7 +77,7 @@ export const SidebarLayoutBody = React.forwardRef<
 	React.PropsWithChildren<{ className?: string }>
 >(function SidebarLayoutBody({ children, className }, ref) {
 	return (
-		<div ref={ref} data-slot="body" className={cn('flex-1 min-h-0 overflow-y-auto p-6', className)}>
+		<div ref={ref} data-slot="body" className={cn('flex-1 min-h-0 overflow-y-auto', className)}>
 			{children}
 		</div>
 	)
@@ -85,7 +85,7 @@ export const SidebarLayoutBody = React.forwardRef<
 
 export function SidebarLayoutFooter({ children }: React.PropsWithChildren) {
 	return (
-		<div data-slot="footer" className="shrink-0 p-6">
+		<div data-slot="footer" className="shrink-0">
 			{children}
 		</div>
 	)
