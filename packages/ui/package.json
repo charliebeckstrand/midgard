@@ -189,7 +189,7 @@
 		}
 	},
 	"scripts": {
-		"build": "tsup",
+		"build": "tsup && tsc --emitDeclarationOnly --outDir dist",
 		"dev": "trap 'kill 0' EXIT; tsup --watch --no-dts & vite --config vite.docs.config.ts & wait",
 		"docs": "vite --config vite.docs.config.ts",
 		"check-types": "tsc --noEmit"
