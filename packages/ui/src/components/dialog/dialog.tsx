@@ -40,7 +40,14 @@ export function Dialog({
 				aria-describedby={descriptionId}
 			>
 				<div className="fixed inset-0 w-screen overflow-y-auto pt-6 sm:pt-0">
-					<div className="grid min-h-full grid-rows-[1fr_auto] justify-items-center sm:grid-rows-[1fr_auto_3fr] sm:p-4">
+					{/* biome-ignore lint/a11y/useKeyWithClickEvents: keyboard close handled by Overlay Escape listener */}
+					{/* biome-ignore lint/a11y/noStaticElementInteractions: backdrop dismiss area */}
+					<div
+						className="grid min-h-full grid-rows-[1fr_auto] justify-items-center sm:grid-rows-[1fr_auto_3fr] sm:p-4"
+						onClick={(e) => {
+							if (outsideClick !== false && e.target === e.currentTarget) onClose()
+						}}
+					>
 						<motion.div
 							{...ugoki.overlay}
 							className={cn(katachi.panel[size], 'row-start-2 flex w-full min-w-0 sm:mb-auto')}

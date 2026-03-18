@@ -1,5 +1,4 @@
 import type React from 'react'
-import { Button } from '../button'
 import { Heading } from '../heading'
 import { AuthLayout } from '../layouts/auth'
 
@@ -7,8 +6,7 @@ export type LoginPageProps = {
 	onSubmit: React.ComponentProps<'form'>['onSubmit']
 	heading?: React.ReactNode
 	serverError?: string
-	submitting?: boolean
-	submitLabel?: string
+	submit?: React.ReactNode
 	children: React.ReactNode
 	footer?: React.ReactNode
 }
@@ -17,8 +15,7 @@ export function LoginPage({
 	onSubmit,
 	heading,
 	serverError,
-	submitting,
-	submitLabel = 'Sign in',
+	submit,
 	children,
 	footer,
 }: LoginPageProps) {
@@ -31,12 +28,7 @@ export function LoginPage({
 
 				{children}
 
-				<Button
-					type="submit"
-					className={`w-full ${submitting ? 'cursor-not-allowed pointer-events-none' : ''}`}
-				>
-					{submitLabel}
-				</Button>
+				{submit}
 
 				{footer}
 			</form>
