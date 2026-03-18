@@ -37,29 +37,14 @@ const entry = {
 	'react-bits/shiny-text': 'src/components/react-bits/shiny-text.tsx',
 }
 
-export default defineConfig((options) => [
-	// JS bundles
-	{
-		entry,
-		format: ['esm'],
-		target: 'es2022',
-		outDir: 'dist',
-		clean: !options.watch,
-		dts: false,
-		sourcemap: true,
-		splitting: true,
-		banner: { js: "'use client'" },
-	},
-	// Declarations in a separate pass to avoid heap exhaustion
-	...(options.watch
-		? []
-		: [
-				{
-					entry,
-					format: ['esm'],
-					outDir: 'dist',
-					clean: false,
-					dts: { only: true },
-				},
-			]),
-])
+export default defineConfig({
+	entry,
+	format: ['esm'],
+	target: 'es2022',
+	outDir: 'dist',
+	clean: true,
+	dts: false,
+	sourcemap: true,
+	splitting: true,
+	banner: { js: "'use client'" },
+})
