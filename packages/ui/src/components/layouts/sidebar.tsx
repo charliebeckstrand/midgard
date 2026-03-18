@@ -45,7 +45,7 @@ export function SidebarLayout({
 			{/* Content */}
 			<main
 				ref={mainRef}
-				className="flex flex-1 flex-col pb-2 lg:min-w-0 lg:pt-2 lg:pr-2 lg:pl-64 overflow-hidden"
+				className="flex flex-1 flex-col overflow-hidden p-6 max-lg:pt-0 lg:min-w-0 lg:pl-64"
 			>
 				<div
 					className={cn(

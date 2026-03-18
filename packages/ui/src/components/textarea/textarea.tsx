@@ -16,12 +16,22 @@ export function Textarea({
 	resizable = true,
 	disabled,
 	invalid,
+	readOnly,
 	...props
 }: TextareaProps) {
 	return (
-		<span data-slot="control" className={cn(omote.control, className)}>
+		<span
+			data-slot="control"
+			className={cn(
+				omote.control,
+				'has-read-only:before:bg-transparent has-read-only:before:shadow-none',
+				className,
+			)}
+		>
 			<textarea
 				disabled={disabled}
+				readOnly={readOnly}
+				tabIndex={readOnly ? -1 : undefined}
 				data-invalid={invalid ? '' : undefined}
 				{...props}
 				className={cn(

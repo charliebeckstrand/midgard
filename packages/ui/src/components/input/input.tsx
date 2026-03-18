@@ -33,7 +33,7 @@ export type InputProps = {
 	type?: 'email' | 'number' | 'password' | 'search' | 'tel' | 'text' | 'url' | DateType
 } & Omit<React.ComponentPropsWithoutRef<'input'>, 'className'>
 
-export function Input({ className, disabled, invalid, ...props }: InputProps) {
+export function Input({ className, disabled, invalid, readOnly, ...props }: InputProps) {
 	return (
 		<span
 			data-slot="control"
@@ -45,6 +45,8 @@ export function Input({ className, disabled, invalid, ...props }: InputProps) {
 		>
 			<input
 				disabled={disabled}
+				readOnly={readOnly}
+				tabIndex={readOnly ? -1 : undefined}
 				data-invalid={invalid ? '' : undefined}
 				{...props}
 				className={cn(
