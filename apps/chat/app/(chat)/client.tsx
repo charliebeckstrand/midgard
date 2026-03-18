@@ -103,7 +103,6 @@ export function ChatClient({
 
 	return (
 		<SidebarLayout
-			scrollable={false}
 			navbar={
 				<Navbar>
 					<NavbarSpacer />
