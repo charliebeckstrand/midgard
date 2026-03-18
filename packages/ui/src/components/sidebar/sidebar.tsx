@@ -29,7 +29,7 @@ export function SidebarBody({ className, ...props }: React.ComponentPropsWithout
 		<div
 			{...props}
 			className={cn(
-				'flex flex-1 flex-col overflow-hidden p-4 [&>[data-slot=section]+[data-slot=section]]:mt-4',
+				'flex flex-1 flex-col overflow-y-auto p-4 [&>[data-slot=section]+[data-slot=section]]:mt-4',
 				className,
 			)}
 		/>
