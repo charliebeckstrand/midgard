@@ -40,7 +40,7 @@ export function Overlay({
 	return (
 		<AnimatePresence>
 			{open && (
-				<div className="fixed inset-0 z-50" {...props}>
+				<div className="fixed inset-0 z-[99]" {...props}>
 					<motion.div
 						{...ugoki.overlay}
 						className={className ?? omote.backdrop}
