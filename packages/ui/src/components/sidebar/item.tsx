@@ -3,9 +3,8 @@
 import React from 'react'
 import { cn, Link } from '../../core'
 import { ActiveIndicator, TouchTarget } from '../../primitives'
-import { katachi } from '../../recipes'
+import { katachi, sawari } from '../../recipes'
 import { useOffcanvas } from '../layouts/context'
-import { navItemBase } from './recipes'
 
 export function SidebarItemActions({
 	className,
@@ -44,7 +43,7 @@ export function SidebarItem({
 	const classes = cn(
 		// Base
 		'flex w-full items-center gap-3 rounded-lg px-2 py-2.5 text-left text-base/6 font-medium select-none text-zinc-950 sm:py-2',
-		navItemBase,
+		sawari.nav,
 		// Trailing icon (down chevron or similar)
 		...katachi.iconTrailing,
 		// Current

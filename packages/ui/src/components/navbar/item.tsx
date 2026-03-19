@@ -3,8 +3,7 @@
 import type React from 'react'
 import { cn, Link } from '../../core'
 import { ActiveIndicator, TouchTarget } from '../../primitives'
-import { katachi } from '../../recipes'
-import { navItemBase } from './recipes'
+import { katachi, sawari } from '../../recipes'
 
 export function NavbarItem({
 	current,
@@ -18,7 +17,7 @@ export function NavbarItem({
 	const classes = cn(
 		// Layout
 		'relative flex min-w-0 items-center gap-3 rounded-lg p-2 text-left text-base/6 font-medium text-zinc-950',
-		navItemBase,
+		sawari.nav,
 		// Trailing icon — navbar-specific: skips when icon is 2nd child (no label between icons)
 		'*:not-nth-2:last:data-[slot=icon]:ml-auto *:not-nth-2:last:data-[slot=icon]:size-5',
 		// Avatar (navbar-specific override)

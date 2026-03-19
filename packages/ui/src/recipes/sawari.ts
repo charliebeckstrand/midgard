@@ -8,6 +8,7 @@
  * Concern: interaction
  */
 
+import { katachi } from './katachi'
 import { sumi } from './sumi'
 
 export const sawari = {
@@ -27,5 +28,32 @@ export const sawari = {
 		// Forced colors
 		'forced-colors:text-[CanvasText]',
 		'forced-color-adjust-none forced-colors:focus:bg-[Highlight] forced-colors:focus:text-[HighlightText]',
+	],
+
+	/** Navigation item interaction — subtle bg tint on hover/active, icon fill transitions (Navbar, Sidebar) */
+	nav: [
+		// Icon slots — sizing from shared recipe, secondary fill
+		...katachi.iconSlot,
+		'*:data-[slot=icon]:fill-zinc-500',
+		'dark:text-white dark:*:data-[slot=icon]:fill-zinc-400',
+		// Avatar slots
+		'*:data-[slot=avatar]:-m-0.5 *:data-[slot=avatar]:size-7 sm:*:data-[slot=avatar]:size-6',
+		// Hover
+		'group-hover:bg-zinc-950/5 group-hover:*:data-[slot=icon]:fill-zinc-950',
+		'dark:group-hover:bg-white/5 dark:group-hover:*:data-[slot=icon]:fill-white',
+		// Active
+		'active:bg-zinc-950/5 active:*:data-[slot=icon]:fill-zinc-950',
+		'dark:active:bg-white/5 dark:active:*:data-[slot=icon]:fill-white',
+	],
+
+	/** Tab interaction — text color shifts between inactive (secondary) and current (primary) */
+	tab: [
+		// Inactive
+		'text-zinc-500 dark:text-zinc-400',
+		// Current
+		'data-current:text-zinc-950 dark:data-current:text-white',
+		// Hover (inactive only)
+		'not-data-current:hover:text-zinc-700',
+		'dark:not-data-current:hover:text-zinc-200',
 	],
 }
