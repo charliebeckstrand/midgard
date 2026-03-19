@@ -2,18 +2,19 @@
 
 import { LayoutGroup } from 'motion/react'
 import type React from 'react'
-import { useRef } from 'react'
+import { useId, useRef } from 'react'
 import { cn } from '../../core'
 import { useMenuKeyboard } from '../../hooks'
 import { ActiveIndicator, useActiveIndicator } from '../../primitives'
 import { kage, ki, sawari } from '../../recipes'
 
 export function Tabs({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
+	const groupId = useId()
 	const ref = useRef<HTMLDivElement>(null)
 	const onKeyDown = useMenuKeyboard(ref, '[role="tab"]', 'horizontal')
 
 	return (
-		<LayoutGroup>
+		<LayoutGroup id={groupId}>
 			<div
 				ref={ref}
 				role="tablist"

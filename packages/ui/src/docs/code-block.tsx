@@ -65,7 +65,17 @@ export function CodeBlock({ code }: { code: string }) {
 	useEffect(() => {
 		let cancelled = false
 
-		codeToHtml(code, { lang: 'tsx', theme }).then((result) => {
+		codeToHtml(code, {
+			lang: 'tsx',
+			theme,
+			transformers: [
+				{
+					pre(node) {
+						delete node.properties.tabindex
+					},
+				},
+			],
+		}).then((result) => {
 			if (!cancelled) setHtml(result)
 		})
 
