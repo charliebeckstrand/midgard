@@ -49,7 +49,7 @@ export function Tab({
 				aria-selected={current}
 				data-current={current ? '' : undefined}
 				className={cn(
-					'relative z-10 flex items-center gap-2 px-2 py-1 text-sm/6 font-medium',
+					'relative z-10 flex items-center gap-2 px-2 py-1 text-sm/6 font-medium outline-hidden',
 					ki.reset,
 					sawari.tab,
 				)}

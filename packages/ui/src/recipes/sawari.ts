@@ -38,12 +38,12 @@ export const sawari = {
 		'dark:text-white dark:*:data-[slot=icon]:fill-zinc-400',
 		// Avatar slots
 		'*:data-[slot=avatar]:-m-0.5 *:data-[slot=avatar]:size-7 sm:*:data-[slot=avatar]:size-6',
-		// Hover
-		'group-hover:bg-zinc-950/5 group-hover:*:data-[slot=icon]:fill-zinc-950',
-		'dark:group-hover:bg-white/5 dark:group-hover:*:data-[slot=icon]:fill-white',
+		// Hover (inactive only — active items already have ActiveIndicator bg)
+		'not-data-current:group-hover:bg-zinc-950/5 group-hover:*:data-[slot=icon]:fill-zinc-950',
+		'dark:not-data-current:group-hover:bg-white/5 dark:group-hover:*:data-[slot=icon]:fill-white',
 		// Active
-		'active:bg-zinc-950/5 active:*:data-[slot=icon]:fill-zinc-950',
-		'dark:active:bg-white/5 dark:active:*:data-[slot=icon]:fill-white',
+		'not-data-current:active:bg-zinc-950/5 active:*:data-[slot=icon]:fill-zinc-950',
+		'dark:not-data-current:active:bg-white/5 dark:active:*:data-[slot=icon]:fill-white',
 	],
 
 	/** Tab interaction — text color shifts between inactive (secondary) and current (primary) */
