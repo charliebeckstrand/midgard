@@ -72,7 +72,7 @@ export function SidebarSection({
 				{...props}
 				data-slot="section"
 				className={cn(
-					'flex flex-col gap-1 -my-2 -mr-2 -ml-4 py-2 pr-2 pl-4 overflow-y-auto',
+					'flex min-h-0 flex-col gap-1 -my-2 -mr-2 -ml-4 py-2 pr-2 pl-4 overflow-y-auto',
 					className,
 				)}
 			/>
