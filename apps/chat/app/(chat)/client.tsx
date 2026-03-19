@@ -48,7 +48,7 @@ function ChatItem({
 					e.preventDefault()
 					onDelete(chat.id)
 				}}
-				className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded p-0.75 opacity-0 transition-opacity focus:opacity-100 group-hover:opacity-100 bg-zinc-800 hover:bg-zinc-700"
+				className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded p-0.75 opacity-0 transition-opacity focus:opacity-100 group-hover:opacity-100 group-hover:bg-zinc-700 bg-zinc-800 hover:bg-zinc-600"
 			>
 				<XMarkIcon className="size-4 fill-zinc-950 dark:fill-white" />
 			</button>

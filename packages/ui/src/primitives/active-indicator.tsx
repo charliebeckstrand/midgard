@@ -9,7 +9,7 @@ const spring: Transition = {
 	type: 'spring',
 	stiffness: 200,
 	damping: 20,
-	mass: 0.8,
+	// mass: 0.8,
 }
 
 const tapSpring: Transition = {
@@ -35,7 +35,7 @@ export function useActiveIndicator() {
 	const [scope, animate] = useAnimate<HTMLSpanElement>()
 
 	const onPointerDown = useCallback(() => {
-		animate(scope.current, { scale: 0.97 }, tapSpring)
+		animate(scope.current, { scale: 0.99 }, tapSpring)
 	}, [animate, scope])
 
 	const onPointerUp = useCallback(() => {

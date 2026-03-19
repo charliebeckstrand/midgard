@@ -40,10 +40,10 @@ export const sawari = {
 		'*:data-[slot=avatar]:-m-0.5 *:data-[slot=avatar]:size-7 sm:*:data-[slot=avatar]:size-6',
 		// Hover (non-current only — current items use ActiveIndicator)
 		'group-hover:bg-zinc-950/5 group-hover:*:data-[slot=icon]:fill-zinc-950',
-		'dark:group-hover:bg-white/5 dark:group-hover:*:data-[slot=icon]:fill-white',
+		'dark:group-hover:bg-white/5 dark:group-hover:*:data-[slot=icon]:fill-zinc-400',
 		// Pressed (non-current only, stronger tint)
 		'active:bg-zinc-950/10 active:*:data-[slot=icon]:fill-zinc-950',
-		'dark:active:bg-white/10 dark:active:*:data-[slot=icon]:fill-white',
+		'dark:active:bg-white/10',
 		// Current — override hover/active bg to keep it stable
 		'data-current:group-hover:!bg-transparent',
 		'dark:data-current:group-hover:!bg-transparent',

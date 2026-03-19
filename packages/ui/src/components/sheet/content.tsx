@@ -28,6 +28,7 @@ export function SheetContent({
 	useOverlay(open, () => onOpenChange(false), { scrollLock: modal })
 
 	const autoFocus = useCallback((el: HTMLDivElement | null) => el?.focus(), [])
+
 	const slide = ugoki.panel[side]
 
 	const isHorizontal = side === 'left' || side === 'right'

@@ -36,7 +36,7 @@ export function ChatComposer({ disabled, onSend, className }: Props) {
 		<div className={`flex items-end gap-2 ${className}`}>
 			<TextareaAutosize
 				id="message-composer"
-				autoFocus
+				// autoFocus
 				rows={1}
 				minRows={1}
 				maxRows={8}

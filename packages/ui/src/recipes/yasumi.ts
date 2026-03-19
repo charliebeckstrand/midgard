@@ -2,7 +2,6 @@
  * Yasumi (休み) — Rest.
  *
  * When an element is dormant — greyed out, non-interactive, waiting.
- * The visual language of "not right now."
  *
  * Concern: disabled state
  */

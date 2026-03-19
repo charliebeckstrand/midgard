@@ -39,7 +39,7 @@ export function SidebarLayout({
 			</Sheet>
 
 			{/* Navbar on mobile */}
-			<header className="flex items-center px-4 py-2 lg:hidden">
+			<header className="flex items-center p-6 gap-4 lg:hidden [&_nav]:p-0">
 				<NavbarItem onClick={() => setOpen(true)} aria-label="Open navigation">
 					<MenuIcon />
 				</NavbarItem>

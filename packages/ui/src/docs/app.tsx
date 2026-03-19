@@ -238,11 +238,6 @@ export function App() {
 		<SidebarLayout
 			navbar={
 				<Navbar>
-					<NavbarSection>
-						<NavbarItem href="#">
-							<NavbarLabel>UI Components</NavbarLabel>
-						</NavbarItem>
-					</NavbarSection>
 					<NavbarSpacer />
 				</Navbar>
 			}

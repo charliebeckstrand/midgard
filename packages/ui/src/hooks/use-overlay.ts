@@ -11,6 +11,7 @@ export function useOverlay(
 	options: { scrollLock?: boolean } = {},
 ) {
 	const containerRef = useRef<HTMLDivElement>(null)
+
 	const stableClose = useCallback(() => onClose(), [onClose])
 
 	useEffect(() => {
@@ -36,6 +37,7 @@ export function useOverlay(
 		return () => {
 			document.removeEventListener('keydown', onKeyDown)
 			document.removeEventListener('pointerdown', onPointerDown)
+
 			if (options.scrollLock) {
 				document.body.style.overflow = ''
 			}
