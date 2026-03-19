@@ -1,5 +1,6 @@
 'use client'
 
+import { motion } from 'motion/react'
 import type React from 'react'
 import { cn, Link } from '../../core'
 import { ActiveIndicator, TouchTarget } from '../../primitives'
@@ -26,8 +27,10 @@ export function NavbarItem({
 		...katachi.iconDetect,
 	)
 
+	const Wrapper = current ? motion.span : 'span'
+
 	return (
-		<span className="group relative">
+		<Wrapper className="group relative" {...(current && { whileTap: { scale: 0.97 } })}>
 			{current && <ActiveIndicator />}
 			{typeof props.href === 'string' ? (
 				<Link
@@ -47,7 +50,7 @@ export function NavbarItem({
 					<TouchTarget>{children}</TouchTarget>
 				</button>
 			)}
-		</span>
+		</Wrapper>
 	)
 }
 
