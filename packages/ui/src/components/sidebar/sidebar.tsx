@@ -1,6 +1,6 @@
 'use client'
 
-import { LayoutGroup } from 'motion/react'
+import { LayoutGroup, motion } from 'motion/react'
 import type React from 'react'
 import { useId, useRef } from 'react'
 import { cn } from '../../core'
@@ -30,9 +30,15 @@ export function SidebarHeading({ className, ...props }: React.ComponentPropsWith
 	return <h3 {...props} className={cn(`mb-1 px-2 text-xs/6 font-medium ${sumi.usui}`, className)} />
 }
 
-export function SidebarBody({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
+type DivProps = Omit<
+	React.ComponentPropsWithoutRef<'div'>,
+	'onDrag' | 'onDragEnd' | 'onDragStart' | 'onAnimationStart' | 'onAnimationEnd'
+>
+
+export function SidebarBody({ className, ...props }: DivProps) {
 	return (
-		<div
+		<motion.div
+			layoutScroll
 			{...props}
 			className={cn(
 				'flex flex-1 flex-col overflow-y-auto p-4 [&>[data-slot=section]+[data-slot=section]]:mt-4',
@@ -58,18 +64,22 @@ export function SidebarSection({
 	className,
 	scrollable,
 	...props
-}: React.ComponentPropsWithoutRef<'div'> & { scrollable?: boolean }) {
-	return (
-		<div
-			{...props}
-			data-slot="section"
-			className={cn(
-				'flex flex-col gap-1',
-				scrollable && '-my-2 -mr-2 -ml-4 py-2 pr-2 pl-4 overflow-y-auto',
-				className,
-			)}
-		/>
-	)
+}: DivProps & { scrollable?: boolean }) {
+	if (scrollable) {
+		return (
+			<motion.div
+				layoutScroll
+				{...props}
+				data-slot="section"
+				className={cn(
+					'flex flex-col gap-1 -my-2 -mr-2 -ml-4 py-2 pr-2 pl-4 overflow-y-auto',
+					className,
+				)}
+			/>
+		)
+	}
+
+	return <div {...props} data-slot="section" className={cn('flex flex-col gap-1', className)} />
 }
 
 export function SidebarDivider({ className, ...props }: React.ComponentPropsWithoutRef<'hr'>) {
