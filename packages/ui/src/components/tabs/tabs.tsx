@@ -1,20 +1,19 @@
 'use client'
 
-import { LayoutGroup, motion } from 'motion/react'
+import { LayoutGroup } from 'motion/react'
 import type React from 'react'
-import { useId, useRef } from 'react'
+import { useRef } from 'react'
 import { cn } from '../../core'
 import { useMenuKeyboard } from '../../hooks'
-import { ActiveIndicator } from '../../primitives'
+import { ActiveIndicator, useActiveIndicator } from '../../primitives'
 import { kage, ki, sawari } from '../../recipes'
 
 export function Tabs({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
-	const groupId = useId()
 	const ref = useRef<HTMLDivElement>(null)
 	const onKeyDown = useMenuKeyboard(ref, '[role="tab"]', 'horizontal')
 
 	return (
-		<LayoutGroup id={groupId}>
+		<LayoutGroup>
 			<div
 				ref={ref}
 				role="tablist"
@@ -38,14 +37,11 @@ export function Tab({
 	prepend?: React.ReactNode
 	append?: React.ReactNode
 } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className'> & { className?: string }) {
-	const Wrapper = current ? motion.span : 'span'
+	const { ref: indicatorRef, tapHandlers } = useActiveIndicator()
 
 	return (
-		<Wrapper
-			className={cn('group relative flex', className)}
-			{...(current && { whileTap: { scale: 0.97 } })}
-		>
-			{current && <ActiveIndicator />}
+		<span className={cn('group relative flex', className)} {...(current ? tapHandlers : undefined)}>
+			{current && <ActiveIndicator ref={indicatorRef} />}
 			<button
 				{...props}
 				type="button"
@@ -62,7 +58,7 @@ export function Tab({
 				{children}
 				{append}
 			</button>
-		</Wrapper>
+		</span>
 	)
 }
 

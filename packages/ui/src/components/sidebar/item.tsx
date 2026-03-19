@@ -1,9 +1,8 @@
 'use client'
 
-import { motion } from 'motion/react'
 import React from 'react'
 import { cn, Link } from '../../core'
-import { ActiveIndicator, TouchTarget } from '../../primitives'
+import { ActiveIndicator, TouchTarget, useActiveIndicator } from '../../primitives'
 import { katachi, sawari } from '../../recipes'
 import { useOffcanvas } from '../layouts/context'
 
@@ -39,6 +38,7 @@ export function SidebarItem({
 	| ({ href: string } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
 )) {
 	const offcanvas = useOffcanvas()
+	const { ref: indicatorRef, tapHandlers } = useActiveIndicator()
 	const { actions, rest } = splitActions(children)
 
 	const classes = cn(
@@ -54,14 +54,9 @@ export function SidebarItem({
 		...katachi.iconDetect,
 	)
 
-	const Wrapper = current ? motion.span : 'span'
-
 	return (
-		<Wrapper
-			className={cn('group relative', className)}
-			{...(current && { whileTap: { scale: 0.97 } })}
-		>
-			{current && <ActiveIndicator />}
+		<span className={cn('group relative', className)} {...(current ? tapHandlers : undefined)}>
+			{current && <ActiveIndicator ref={indicatorRef} />}
 			{typeof props.href === 'string' ? (
 				<Link
 					{...props}
@@ -88,7 +83,7 @@ export function SidebarItem({
 				</button>
 			)}
 			{actions}
-		</Wrapper>
+		</span>
 	)
 }
 

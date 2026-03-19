@@ -1,9 +1,8 @@
 'use client'
 
-import { motion } from 'motion/react'
 import type React from 'react'
 import { cn, Link } from '../../core'
-import { ActiveIndicator, TouchTarget } from '../../primitives'
+import { ActiveIndicator, TouchTarget, useActiveIndicator } from '../../primitives'
 import { katachi, sawari } from '../../recipes'
 
 export function NavbarItem({
@@ -15,6 +14,8 @@ export function NavbarItem({
 	| ({ href?: never } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className'>)
 	| ({ href: string } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
 )) {
+	const { ref: indicatorRef, tapHandlers } = useActiveIndicator()
+
 	const classes = cn(
 		// Layout
 		'relative flex min-w-0 items-center gap-3 rounded-lg p-2 text-left text-base/6 font-medium text-zinc-950',
@@ -27,11 +28,9 @@ export function NavbarItem({
 		...katachi.iconDetect,
 	)
 
-	const Wrapper = current ? motion.span : 'span'
-
 	return (
-		<Wrapper className="group relative" {...(current && { whileTap: { scale: 0.97 } })}>
-			{current && <ActiveIndicator />}
+		<span className="group relative" {...(current ? tapHandlers : undefined)}>
+			{current && <ActiveIndicator ref={indicatorRef} />}
 			{typeof props.href === 'string' ? (
 				<Link
 					{...props}
@@ -50,7 +49,7 @@ export function NavbarItem({
 					<TouchTarget>{children}</TouchTarget>
 				</button>
 			)}
-		</Wrapper>
+		</span>
 	)
 }
 
