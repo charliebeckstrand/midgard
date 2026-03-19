@@ -1,5 +1,6 @@
 'use client'
 
+import { motion } from 'motion/react'
 import React from 'react'
 import { cn, Link } from '../../core'
 import { ActiveIndicator, TouchTarget } from '../../primitives'
@@ -53,8 +54,13 @@ export function SidebarItem({
 		...katachi.iconDetect,
 	)
 
+	const Wrapper = current ? motion.span : 'span'
+
 	return (
-		<span className={cn('group relative', className)}>
+		<Wrapper
+			className={cn('group relative', className)}
+			{...(current && { whileTap: { scale: 0.97 } })}
+		>
 			{current && <ActiveIndicator />}
 			{typeof props.href === 'string' ? (
 				<Link
@@ -82,7 +88,7 @@ export function SidebarItem({
 				</button>
 			)}
 			{actions}
-		</span>
+		</Wrapper>
 	)
 }
 

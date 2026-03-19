@@ -1,6 +1,6 @@
 'use client'
 
-import { LayoutGroup } from 'motion/react'
+import { LayoutGroup, motion } from 'motion/react'
 import type React from 'react'
 import { useId, useRef } from 'react'
 import { cn } from '../../core'
@@ -38,8 +38,13 @@ export function Tab({
 	prepend?: React.ReactNode
 	append?: React.ReactNode
 } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className'> & { className?: string }) {
+	const Wrapper = current ? motion.span : 'span'
+
 	return (
-		<span className={cn('group relative flex', className)}>
+		<Wrapper
+			className={cn('group relative flex', className)}
+			{...(current && { whileTap: { scale: 0.97 } })}
+		>
 			{current && <ActiveIndicator />}
 			<button
 				{...props}
@@ -57,7 +62,7 @@ export function Tab({
 				{children}
 				{append}
 			</button>
-		</span>
+		</Wrapper>
 	)
 }
 
