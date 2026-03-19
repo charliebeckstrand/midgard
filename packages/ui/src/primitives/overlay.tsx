@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from 'motion/react'
 import type React from 'react'
 import { useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { omote, ugoki } from '../recipes'
 
 export type OverlayProps = {
@@ -37,7 +38,9 @@ export function Overlay({
 		}
 	}, [open, onClose])
 
-	return (
+	if (typeof document === 'undefined') return null
+
+	return createPortal(
 		<AnimatePresence>
 			{open && (
 				<div className="fixed inset-0 z-[99]" {...props}>
@@ -50,6 +53,7 @@ export function Overlay({
 					{children}
 				</div>
 			)}
-		</AnimatePresence>
+		</AnimatePresence>,
+		document.body,
 	)
 }
