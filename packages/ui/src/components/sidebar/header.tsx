@@ -1,20 +1,19 @@
 'use client'
 
 import type React from 'react'
-import { useContext } from 'react'
 import { cn } from '../../core'
 import { CloseIcon } from '../../primitives'
 import { katachi } from '../../recipes'
-import { MobileSidebarContext } from '../layouts/context'
+import { useOffcanvas } from '../layouts/context'
 
 export function SidebarHeader({
 	className,
 	children,
 	...props
 }: React.ComponentPropsWithoutRef<'div'>) {
-	const close = useContext(MobileSidebarContext)
+	const offcanvas = useOffcanvas()
 
-	if (close) {
+	if (offcanvas) {
 		return (
 			<div
 				{...props}
@@ -28,7 +27,7 @@ export function SidebarHeader({
 				</div>
 				<button
 					type="button"
-					onClick={close}
+					onClick={offcanvas.close}
 					aria-label="Close navigation"
 					className={cn(
 						'rounded-lg fill-current p-2 text-zinc-950 hover:bg-zinc-950/5',

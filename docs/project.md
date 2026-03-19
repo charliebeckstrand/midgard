@@ -170,12 +170,12 @@ Component library built on **Kata** (型) — a recipe-based design system where
 - `core/` — createContext factory, framework-agnostic Link/LinkProvider
 - `recipes/` — **Kata** — ten composable style modules: Sumi (ink/text), Kage (edges), Nuri (fills), Omote (surfaces), Ki (focus), Sawari (touch), Ugoki (motion), Ma (space), Katachi (shape), Narabi (arrangement)
 - `hooks/` — Behavioral primitives (useOverlay, useMenuKeyboard, useControllable)
-- `primitives/` — Reusable building blocks (Overlay, PopoverPanel, SlidePanel, icons, TouchTarget)
+- `primitives/` — Reusable building blocks (Overlay, PopoverPanel, icons, TouchTarget)
 - `components/` — 29 component families + layouts + pages
 
 **Components:** alert, avatar, badge, button, checkbox, combobox, description-list, dialog, divider, dropdown, fieldset, heading, input, listbox, navbar, pagination, placeholder, radio, select, sheet, sidebar, switch, table, tabs, text, textarea
 
-**Layouts (`ui/layouts`):** AuthLayout, SidebarLayout, StackedLayout — shared layout shells with a common MobileSidebar primitive and `useMobileSidebar` hook. `MobileSidebarContext` allows nested components to close the mobile sidebar.
+**Layouts (`ui/layouts`):** AuthLayout, SidebarLayout — shared layout shells. SidebarLayout uses the Sheet component (side="left") for the mobile sidebar. `OffcanvasContext` allows nested components (SidebarItem, SidebarHeader) to close the offcanvas panel.
 
 **Pages (`ui/pages`):** LoginPage, RegisterPage, ForgotPasswordPage — presentational page skeletons (structure + heading + submit button). Sindri wraps these with form state, validation, and routing logic.
 

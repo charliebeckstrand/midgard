@@ -24,14 +24,6 @@ export const ugoki = {
 		transition: { duration: 0.15 },
 	},
 
-	/** Panel slide-in from left (mobile sidebar) */
-	slide: {
-		initial: { x: '-100%' },
-		animate: { x: 0 },
-		exit: { x: '-100%' },
-		transition: { duration: 0.3, ease: 'easeInOut' as const },
-	},
-
 	/** Slide panel initial/exit vectors per direction */
 	panel: {
 		right: { initial: { x: '100%' }, exit: { x: '100%' } },

@@ -79,6 +79,9 @@ export const omote = {
 	/** Dialog/alert overlay surface */
 	backdrop: 'fixed inset-0 bg-zinc-950/25 dark:bg-zinc-950/50',
 
+	/** Mobile sidebar backdrop surface */
+	sidebar: 'fixed inset-0 bg-black/30 backdrop-blur-xs',
+
 	/** Alert-specific overlay with scroll and padding */
 	alert: [
 		'fixed inset-0 flex w-screen justify-center overflow-y-auto',
@@ -90,9 +93,6 @@ export const omote = {
 		// Dark
 		'dark:bg-zinc-950/50',
 	].join(' '),
-
-	/** Mobile sidebar backdrop surface */
-	sidebar: 'fixed inset-0 bg-black/30 backdrop-blur-xs',
 
 	/** Popover menu surface (Dropdown, Listbox, Combobox) */
 	popover: [

@@ -1,10 +1,10 @@
 'use client'
 
-import React, { useContext } from 'react'
+import React from 'react'
 import { cn, Link } from '../../core'
 import { ActiveIndicator, TouchTarget } from '../../primitives'
 import { katachi } from '../../recipes'
-import { MobileSidebarContext } from '../layouts/context'
+import { useOffcanvas } from '../layouts/context'
 import { navItemBase } from './recipes'
 
 export function SidebarItemActions({
@@ -38,7 +38,7 @@ export function SidebarItem({
 	| ({ href?: never } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className'>)
 	| ({ href: string } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
 )) {
-	const close = useContext(MobileSidebarContext)
+	const offcanvas = useOffcanvas()
 	const { actions, rest } = splitActions(children)
 
 	const classes = cn(
@@ -64,7 +64,7 @@ export function SidebarItem({
 					data-slot="sidebar-item"
 					data-current={current ? 'true' : undefined}
 					onClick={(e) => {
-						close?.()
+						offcanvas?.close()
 						;(props as React.ComponentPropsWithoutRef<typeof Link>).onClick?.(e)
 					}}
 				>

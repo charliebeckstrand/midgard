@@ -13,11 +13,13 @@ export function SheetContent({
 	className,
 	children,
 	noOverlay,
+	backdropClassName,
 	size = 'sm',
 }: {
 	className?: string
 	children: React.ReactNode
 	noOverlay?: boolean
+	backdropClassName?: string
 	size?: SheetSize
 }) {
 	const { open, onOpenChange, side, modal, titleId, descriptionId } = useSheet()
@@ -51,7 +53,7 @@ export function SheetContent({
 					{!noOverlay && (
 						<motion.div
 							{...ugoki.overlay}
-							className={omote.backdrop}
+							className={backdropClassName ?? omote.backdrop}
 							onClick={() => onOpenChange(false)}
 							aria-hidden="true"
 						/>

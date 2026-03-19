@@ -3,5 +3,4 @@ export { CheckboxIcon, CheckIcon, ChevronIcon, CloseIcon, MenuIcon } from './ico
 export { OptionDescription, OptionLabel } from './option'
 export { Overlay, type OverlayProps } from './overlay'
 export { PopoverPanel } from './popover-panel'
-export { SlidePanel } from './slide-panel'
 export { TouchTarget } from './touch-target'
