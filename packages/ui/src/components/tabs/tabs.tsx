@@ -5,7 +5,7 @@ import type React from 'react'
 import { useRef } from 'react'
 import { cn } from '../../core'
 import { useMenuKeyboard } from '../../hooks'
-import { ActiveIndicator } from '../../primitives'
+import { ActiveIndicator, useActiveIndicator } from '../../primitives'
 import { kage, ki, sawari } from '../../recipes'
 
 export function Tabs({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
@@ -37,9 +37,11 @@ export function Tab({
 	prepend?: React.ReactNode
 	append?: React.ReactNode
 } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className'> & { className?: string }) {
+	const { ref: indicatorRef, tapHandlers } = useActiveIndicator()
+
 	return (
-		<span className={cn('group relative flex active:scale-[0.97] transition-transform', className)}>
-			{current && <ActiveIndicator />}
+		<span className={cn('group relative flex', className)} {...(current ? tapHandlers : undefined)}>
+			{current && <ActiveIndicator ref={indicatorRef} />}
 			<button
 				{...props}
 				type="button"

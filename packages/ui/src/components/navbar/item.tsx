@@ -2,7 +2,7 @@
 
 import type React from 'react'
 import { cn, Link } from '../../core'
-import { ActiveIndicator, TouchTarget } from '../../primitives'
+import { ActiveIndicator, TouchTarget, useActiveIndicator } from '../../primitives'
 import { katachi, sawari } from '../../recipes'
 
 export function NavbarItem({
@@ -14,6 +14,8 @@ export function NavbarItem({
 	| ({ href?: never } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className'>)
 	| ({ href: string } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
 )) {
+	const { ref: indicatorRef, tapHandlers } = useActiveIndicator()
+
 	const classes = cn(
 		// Layout
 		'relative flex min-w-0 items-center gap-3 rounded-lg p-2 text-left text-base/6 font-medium text-zinc-950',
@@ -27,8 +29,8 @@ export function NavbarItem({
 	)
 
 	return (
-		<span className="group relative active:scale-[0.97] transition-transform">
-			{current && <ActiveIndicator />}
+		<span className="group relative" {...(current ? tapHandlers : undefined)}>
+			{current && <ActiveIndicator ref={indicatorRef} />}
 			{typeof props.href === 'string' ? (
 				<Link
 					{...props}
