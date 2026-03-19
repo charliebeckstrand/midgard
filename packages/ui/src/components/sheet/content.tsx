@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from 'motion/react'
 import type React from 'react'
 import { useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import { cn } from '../../core'
 import { useOverlay } from '../../hooks'
 import { katachi, ma, narabi, omote, ugoki } from '../../recipes'
@@ -33,7 +34,9 @@ export function SheetContent({
 
 	const isHorizontal = side === 'left' || side === 'right'
 
-	return (
+	if (typeof document === 'undefined') return null
+
+	return createPortal(
 		<AnimatePresence>
 			{open && (
 				<div className="fixed inset-0 z-50">
@@ -75,6 +78,7 @@ export function SheetContent({
 					</motion.div>
 				</div>
 			)}
-		</AnimatePresence>
+		</AnimatePresence>,
+		document.body,
 	)
 }
