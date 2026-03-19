@@ -2,8 +2,8 @@
 
 import { AnimatePresence, motion } from 'motion/react'
 import type React from 'react'
-import { useEffect } from 'react'
 import { cn } from '../../core'
+import { useOverlay } from '../../hooks'
 import { katachi, ma, narabi, omote, ugoki } from '../../recipes'
 import { useSheet } from './context'
 
@@ -24,23 +24,7 @@ export function SheetContent({
 }) {
 	const { open, onOpenChange, side, modal, titleId, descriptionId } = useSheet()
 
-	useEffect(() => {
-		if (!open) return
-
-		function onKeyDown(e: KeyboardEvent) {
-			if (e.key === 'Escape') onOpenChange(false)
-		}
-
-		document.addEventListener('keydown', onKeyDown)
-
-		if (modal) document.body.style.overflow = 'hidden'
-
-		return () => {
-			document.removeEventListener('keydown', onKeyDown)
-
-			if (modal) document.body.style.overflow = ''
-		}
-	}, [open, onOpenChange, modal])
+	useOverlay(open, () => onOpenChange(false), { scrollLock: modal })
 
 	const slide = ugoki.panel[side]
 

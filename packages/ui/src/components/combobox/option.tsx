@@ -52,4 +52,4 @@ export function ComboboxOption<T>({
 export {
 	OptionDescription as ComboboxDescription,
 	OptionLabel as ComboboxLabel,
-} from '../../primitives/option-parts'
+} from '../../primitives/option'

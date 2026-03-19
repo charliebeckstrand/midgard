@@ -58,4 +58,4 @@ export function ListboxOption<T>({
 export {
 	OptionDescription as ListboxDescription,
 	OptionLabel as ListboxLabel,
-} from '../../primitives/option-parts'
+} from '../../primitives/option'

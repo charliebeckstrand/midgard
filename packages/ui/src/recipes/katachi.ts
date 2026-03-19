@@ -12,7 +12,7 @@ export const katachi = {
 	/** Maru (丸) — the system border radius for softening edges */
 	maru: 'rounded-lg',
 
-	/** Max-width constraints for Dialog, Alert, and Sheet panels */
+	/** Max-width constraints for Dialog and Sheet panels */
 	panel: {
 		xs: 'sm:max-w-xs',
 		sm: 'sm:max-w-sm',

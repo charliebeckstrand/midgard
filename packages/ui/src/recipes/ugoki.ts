@@ -16,7 +16,7 @@ export const ugoki = {
 		transition: { duration: 0.1, ease: 'easeOut' as const },
 	},
 
-	/** Backdrop fade for dialogs and alerts */
+	/** Backdrop fade for dialogs and sheets */
 	overlay: {
 		initial: { opacity: 0 },
 		animate: { opacity: 1 },
