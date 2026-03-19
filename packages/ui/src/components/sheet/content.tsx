@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from 'motion/react'
 import type React from 'react'
+import { useCallback } from 'react'
 import { cn } from '../../core'
 import { useOverlay } from '../../hooks'
 import { katachi, ma, narabi, omote, ugoki } from '../../recipes'
@@ -26,6 +27,7 @@ export function SheetContent({
 
 	useOverlay(open, () => onOpenChange(false), { scrollLock: modal })
 
+	const autoFocus = useCallback((el: HTMLDivElement | null) => el?.focus(), [])
 	const slide = ugoki.panel[side]
 
 	const isHorizontal = side === 'left' || side === 'right'
@@ -43,6 +45,8 @@ export function SheetContent({
 						/>
 					)}
 					<motion.div
+						ref={autoFocus}
+						tabIndex={-1}
 						role="dialog"
 						aria-modal={modal}
 						aria-labelledby={titleId}
@@ -52,7 +56,7 @@ export function SheetContent({
 						exit={slide?.exit}
 						transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
 						className={cn(
-							'fixed',
+							'fixed outline-hidden',
 							narabi.slide[side],
 							isHorizontal && katachi.panel[size],
 							isHorizontal && ma.float,

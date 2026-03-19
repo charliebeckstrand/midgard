@@ -2,7 +2,7 @@
 
 import { motion } from 'motion/react'
 import type React from 'react'
-import { useId } from 'react'
+import { useCallback, useId } from 'react'
 import { cn } from '../../core'
 import { Overlay } from '../../primitives'
 import { katachi, omote, ugoki } from '../../recipes'
@@ -27,6 +27,7 @@ export function Dialog({
 }: DialogProps) {
 	const titleId = useId()
 	const descriptionId = useId()
+	const autoFocus = useCallback((el: HTMLDivElement | null) => el?.focus(), [])
 
 	return (
 		<DialogProvider value={{ titleId, descriptionId }}>
@@ -53,8 +54,10 @@ export function Dialog({
 							className={cn(katachi.panel[size], 'row-start-2 flex w-full min-w-0 sm:mb-auto')}
 						>
 							<div
+								ref={autoFocus}
+								tabIndex={-1}
 								className={cn(
-									`w-full min-w-0 rounded-t-3xl p-(--gutter) [--gutter:--spacing(8)] sm:rounded-2xl ${omote.panel}`,
+									`w-full min-w-0 rounded-t-3xl p-(--gutter) [--gutter:--spacing(8)] outline-hidden sm:rounded-2xl ${omote.panel}`,
 									className,
 								)}
 							>
