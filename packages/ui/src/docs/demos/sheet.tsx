@@ -6,9 +6,9 @@ import {
 	SheetContent,
 	SheetFooter,
 	SheetHeader,
+	SheetOpen,
 	SheetSubtitle,
 	SheetTitle,
-	SheetTrigger,
 } from '../../components/sheet'
 
 export const meta = { category: 'Overlay' }
@@ -17,9 +17,9 @@ export default function SheetDemo() {
 	return (
 		<div className="flex gap-3">
 			<Sheet side="left">
-				<SheetTrigger>
+				<SheetOpen>
 					<Button variant="outline">Open Left</Button>
-				</SheetTrigger>
+				</SheetOpen>
 				<SheetContent>
 					<SheetHeader>
 						<SheetTitle>Left Sheet</SheetTitle>
@@ -30,9 +30,9 @@ export default function SheetDemo() {
 				</SheetContent>
 			</Sheet>
 			<Sheet>
-				<SheetTrigger>
+				<SheetOpen>
 					<Button>Open Right</Button>
-				</SheetTrigger>
+				</SheetOpen>
 				<SheetContent>
 					<SheetHeader>
 						<SheetTitle>Sheet Title</SheetTitle>

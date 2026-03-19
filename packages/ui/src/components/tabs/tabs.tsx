@@ -6,7 +6,7 @@ import { useId, useRef } from 'react'
 import { cn } from '../../core'
 import { useMenuKeyboard } from '../../hooks'
 import { ActiveIndicator } from '../../primitives'
-import { kage, ki } from '../../recipes'
+import { kage, ki, sawari } from '../../recipes'
 
 export function Tabs({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
 	const groupId = useId()
@@ -39,8 +39,8 @@ export function Tab({
 	append?: React.ReactNode
 } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className'> & { className?: string }) {
 	return (
-		<span className={cn('group relative flex pb-2.5', className)}>
-			{current && <ActiveIndicator orientation="underline" />}
+		<span className={cn('group relative flex', className)}>
+			{current && <ActiveIndicator />}
 			<button
 				{...props}
 				type="button"
@@ -48,17 +48,9 @@ export function Tab({
 				aria-selected={current}
 				data-current={current ? '' : undefined}
 				className={cn(
-					'flex items-center gap-2 px-2 py-1 text-sm/6 font-medium',
-					// Focus
+					'relative z-10 flex items-center gap-2 px-2 py-1 text-sm/6 font-medium',
 					ki.reset,
-					// Light — inactive default, current override
-					'text-zinc-500 data-current:text-zinc-950',
-					// Light — hover (inactive only)
-					'not-data-current:hover:text-zinc-700',
-					// Dark — inactive default, current override
-					'dark:text-zinc-400 dark:data-current:text-white',
-					// Dark — hover (inactive only)
-					'dark:not-data-current:hover:text-zinc-200',
+					sawari.tab,
 				)}
 			>
 				{prepend}

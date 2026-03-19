@@ -6,7 +6,7 @@ import { useCallback, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useControllable, useOverlay } from '../../hooks'
 import { ChevronIcon } from '../../primitives'
-import { omote } from '../../recipes'
+import { narabi, omote } from '../../recipes'
 import { ComboboxProvider } from './context'
 import { ComboboxOptions } from './options'
 
@@ -76,7 +76,7 @@ export function Combobox<T>({
 	)
 
 	const containerRef = useOverlay(open, close)
-	const anchorClasses = anchor === 'top' ? 'bottom-full mb-1' : 'top-full mt-1'
+	const anchorClasses = narabi.anchor[anchor] ?? narabi.anchor.bottom
 
 	function handleInputKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
 		if (e.key === 'ArrowDown') {

@@ -16,20 +16,12 @@ export const ugoki = {
 		transition: { duration: 0.1, ease: 'easeOut' as const },
 	},
 
-	/** Backdrop fade for dialogs and alerts */
+	/** Backdrop fade for dialogs and sheets */
 	overlay: {
 		initial: { opacity: 0 },
 		animate: { opacity: 1 },
 		exit: { opacity: 0 },
 		transition: { duration: 0.15 },
-	},
-
-	/** Panel slide-in from left (mobile sidebar) */
-	slide: {
-		initial: { x: '-100%' },
-		animate: { x: 0 },
-		exit: { x: '-100%' },
-		transition: { duration: 0.3, ease: 'easeInOut' as const },
 	},
 
 	/** Slide panel initial/exit vectors per direction */

@@ -63,7 +63,7 @@ The library follows a five-layer atomic architecture (core → recipes → hooks
 
 Each recipe is a plain object of Tailwind class strings. Components compose them — `cn(omote.control, ma.control, kage.ring)` — rather than redeclaring styles. When a recipe changes, every component that references it updates in lockstep.
 
-Includes consolidated `layouts/` (AuthLayout, SidebarLayout, StackedLayout with shared MobileSidebar) and `pages/` (LoginPage, RegisterPage, ForgotPasswordPage skeletons). Ships a Vite-powered component showcase at `src/docs/` (port 3456, `pnpm --filter ui docs`) with 22 demo files auto-discovered via `import.meta.glob`; excluded from the library build.
+Includes consolidated `layouts/` (AuthLayout, SidebarLayout with OffcanvasContext) and `pages/` (LoginPage, RegisterPage, ForgotPasswordPage skeletons). Ships a Vite-powered component showcase at `src/docs/` (port 3456, `pnpm --filter ui docs`) with 22 demo files auto-discovered via `import.meta.glob`; excluded from the library build.
 
 **heimdall** — Server-side authentication module. Provides session management (`getSession`), route protection (`proxy`), and Next.js config helpers (`withAuth`). Proxies auth and API requests to the external Bifrost backend.
 

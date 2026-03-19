@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { cn, Link } from '../../core'
-import { ki } from '../../recipes'
+import { kage, ki } from '../../recipes'
 import { useTableContext, useTableRowContext } from './context'
 
 export function TableCell({ className, children, ...props }: React.ComponentPropsWithoutRef<'td'>) {
@@ -20,11 +20,9 @@ export function TableCell({ className, children, ...props }: React.ComponentProp
 				'relative px-4 first:pl-(--gutter,--spacing(2)) last:pr-(--gutter,--spacing(2))',
 				dense ? 'py-2.5' : 'py-4',
 				// Row borders
-				!striped && 'border-b border-zinc-950/5',
-				!striped && 'dark:border-white/5',
+				!striped && `border-b ${kage.usui}`,
 				// Grid lines
-				grid && 'border-l border-l-zinc-950/5 first:border-l-0',
-				grid && 'dark:border-l-white/5',
+				grid && `border-l ${kage.usui} first:border-l-0`,
 				// Bleed
 				!bleed && 'sm:first:pl-1 sm:last:pr-1',
 			)}

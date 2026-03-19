@@ -31,10 +31,6 @@
 			"types": "./src/primitives/index.ts",
 			"default": "./src/primitives/index.ts"
 		},
-		"./alert": {
-			"types": "./src/components/alert/index.ts",
-			"default": "./src/components/alert/index.ts"
-		},
 		"./avatar": {
 			"types": "./src/components/avatar/index.ts",
 			"default": "./src/components/avatar/index.ts"
@@ -171,10 +167,6 @@
 			"./primitives": {
 				"types": "./dist/primitives.d.ts",
 				"import": "./dist/primitives.js"
-			},
-			"./alert": {
-				"types": "./dist/alert.d.ts",
-				"import": "./dist/alert.js"
 			},
 			"./avatar": {
 				"types": "./dist/avatar.d.ts",

@@ -1,9 +1,8 @@
 export { AuthLayout } from './auth'
-export { MobileSidebarContext } from './context'
+export { OffcanvasContext, type OffcanvasContextValue, useOffcanvas } from './context'
 export {
 	SidebarLayout,
 	SidebarLayoutBody,
 	SidebarLayoutFooter,
 	SidebarLayoutHeader,
 } from './sidebar'
-export { StackedLayout } from './stacked'

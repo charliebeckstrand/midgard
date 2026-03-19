@@ -12,7 +12,7 @@ import { kage } from './kage'
 import { sumi } from './sumi'
 
 export const omote = {
-	/** Elevated panel surface — modals, dialogs, alerts */
+	/** Elevated panel surface — modals, dialogs, sheets */
 	panel: `bg-white shadow-lg ${kage.ring} dark:bg-zinc-900 forced-colors:outline`,
 
 	/** Content card surface — layout containers, sidebars */
@@ -76,20 +76,8 @@ export const omote = {
 		'[&::-webkit-datetime-edit-meridiem-field]:p-0',
 	],
 
-	/** Dialog/alert overlay surface */
+	/** Dialog overlay surface */
 	backdrop: 'fixed inset-0 bg-zinc-950/25 dark:bg-zinc-950/50',
-
-	/** Alert-specific overlay with scroll and padding */
-	alert: [
-		'fixed inset-0 flex w-screen justify-center overflow-y-auto',
-		'px-2 py-2 sm:px-6 sm:py-8 lg:px-8 lg:py-16',
-		// Light
-		'bg-zinc-950/15',
-		// Focus
-		'focus:outline-0',
-		// Dark
-		'dark:bg-zinc-950/50',
-	].join(' '),
 
 	/** Mobile sidebar backdrop surface */
 	sidebar: 'fixed inset-0 bg-black/30 backdrop-blur-xs',

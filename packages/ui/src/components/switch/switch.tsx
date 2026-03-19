@@ -5,20 +5,11 @@ import type React from 'react'
 import { useCallback } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
+import { narabi } from '../../recipes'
 import { switchVariants } from './variants'
 
 export function SwitchGroup({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
-	return (
-		<div
-			data-slot="control"
-			{...props}
-			className={cn(
-				'space-y-3 **:data-[slot=label]:font-normal',
-				'has-data-[slot=description]:space-y-6 has-data-[slot=description]:**:data-[slot=label]:font-medium',
-				className,
-			)}
-		/>
-	)
+	return <div data-slot="control" {...props} className={cn(narabi.group, className)} />
 }
 
 export function SwitchField({

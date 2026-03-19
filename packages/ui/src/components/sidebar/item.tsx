@@ -1,11 +1,10 @@
 'use client'
 
-import React, { useContext } from 'react'
+import React from 'react'
 import { cn, Link } from '../../core'
 import { ActiveIndicator, TouchTarget } from '../../primitives'
-import { katachi } from '../../recipes'
-import { MobileSidebarContext } from '../layouts/context'
-import { navItemBase } from './recipes'
+import { katachi, sawari } from '../../recipes'
+import { useOffcanvas } from '../layouts/context'
 
 export function SidebarItemActions({
 	className,
@@ -38,13 +37,13 @@ export function SidebarItem({
 	| ({ href?: never } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className'>)
 	| ({ href: string } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
 )) {
-	const close = useContext(MobileSidebarContext)
+	const offcanvas = useOffcanvas()
 	const { actions, rest } = splitActions(children)
 
 	const classes = cn(
 		// Base
 		'flex w-full items-center gap-3 rounded-lg px-2 py-2.5 text-left text-base/6 font-medium select-none text-zinc-950 sm:py-2',
-		navItemBase,
+		sawari.nav,
 		// Trailing icon (down chevron or similar)
 		...katachi.iconTrailing,
 		// Current
@@ -56,15 +55,15 @@ export function SidebarItem({
 
 	return (
 		<span className={cn('group relative', className)}>
-			{current && <ActiveIndicator orientation="vertical" />}
+			{current && <ActiveIndicator />}
 			{typeof props.href === 'string' ? (
 				<Link
 					{...props}
-					className={cn(classes, current && 'pointer-events-none')}
+					className={cn(classes, 'relative z-10', current && 'pointer-events-none')}
 					data-slot="sidebar-item"
 					data-current={current ? 'true' : undefined}
 					onClick={(e) => {
-						close?.()
+						offcanvas?.close()
 						;(props as React.ComponentPropsWithoutRef<typeof Link>).onClick?.(e)
 					}}
 				>
@@ -74,7 +73,7 @@ export function SidebarItem({
 				<button
 					{...props}
 					type="button"
-					className={cn('cursor-default', classes)}
+					className={cn('cursor-default', classes, 'relative z-10')}
 					data-slot="sidebar-item"
 					data-current={current ? 'true' : undefined}
 					onClick={(props as React.ComponentPropsWithoutRef<'button'>).onClick}

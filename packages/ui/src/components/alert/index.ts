@@ -1,5 +1,0 @@
-export { AlertActions } from './actions'
-export { Alert } from './alert'
-export { AlertBody } from './body'
-export { AlertDescription } from './description'
-export { AlertTitle } from './title'
