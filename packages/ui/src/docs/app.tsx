@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { Badge } from '../components/badge'
 import { Heading, Subheading } from '../components/heading'
 import { SidebarLayout } from '../components/layouts'
-import { Navbar, NavbarItem, NavbarLabel, NavbarSection, NavbarSpacer } from '../components/navbar'
+import { Navbar, NavbarSpacer } from '../components/navbar'
 import {
 	Sidebar,
 	SidebarBody,
