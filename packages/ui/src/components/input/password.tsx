@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { cn } from '../../core'
-import { katachi } from '../../recipes'
+import { katachi, sumi } from '../../recipes'
 import { Input, type InputProps } from './input'
 
 function EyeIcon({ className }: { className?: string }) {
@@ -52,7 +52,7 @@ export function PasswordInput(props: PasswordInputProps) {
 			<button
 				type="button"
 				onClick={() => setVisible((v) => !v)}
-				className="absolute inset-y-0 right-0 flex items-center pr-3 text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
+				className={`absolute inset-y-0 right-0 flex items-center pr-3 ${sumi.usui} hover:text-zinc-700 dark:hover:text-zinc-200`}
 				aria-label={visible ? 'Hide password' : 'Show password'}
 			>
 				{visible ? <EyeSlashIcon /> : <EyeIcon />}

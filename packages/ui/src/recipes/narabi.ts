@@ -39,6 +39,21 @@ export const narabi = {
 		bottom: 'inset-x-0 bottom-0 w-full',
 	} as Record<string, string>,
 
+	/** Toggle field grid — control (checkbox/radio) leading, label + description trailing */
+	toggle: [
+		'grid grid-cols-[1.125rem_1fr] gap-x-4 gap-y-1 sm:grid-cols-[1rem_1fr]',
+		'*:data-[slot=control]:col-start-1 *:data-[slot=control]:row-start-1 *:data-[slot=control]:mt-0.75 sm:*:data-[slot=control]:mt-1',
+		'*:data-[slot=label]:col-start-2 *:data-[slot=label]:row-start-1',
+		'*:data-[slot=description]:col-start-2 *:data-[slot=description]:row-start-2',
+		'has-data-[slot=description]:**:data-[slot=label]:font-medium',
+	],
+
+	/** Control group spacing — consistent vertical rhythm for checkbox, radio, switch groups */
+	group: [
+		'space-y-3 **:data-[slot=label]:font-normal',
+		'has-data-[slot=description]:space-y-6 has-data-[slot=description]:**:data-[slot=label]:font-medium',
+	],
+
 	/** Icon and avatar slot layout within menu items */
 	item: [
 		// Icon sizing — from shared recipe

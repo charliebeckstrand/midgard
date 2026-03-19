@@ -1,6 +1,7 @@
 'use client'
 
 import { cn } from '../../core'
+import { kage } from '../../recipes'
 import { TableRowProvider, useTableContext } from './context'
 
 export function TableRow({
@@ -48,12 +49,9 @@ export function TableHeader({ className, ...props }: React.ComponentPropsWithout
 			className={cn(
 				className,
 				// Light
-				'border-b border-b-zinc-950/10 px-4 py-2 font-medium first:pl-(--gutter,--spacing(2)) last:pr-(--gutter,--spacing(2))',
-				// Dark
-				'dark:border-b-white/10',
+				`border-b ${kage.base} px-4 py-2 font-medium first:pl-(--gutter,--spacing(2)) last:pr-(--gutter,--spacing(2))`,
 				// Grid lines
-				grid && 'border-l border-l-zinc-950/5 first:border-l-0',
-				grid && 'dark:border-l-white/5',
+				grid && `border-l ${kage.usui} first:border-l-0`,
 				// Bleed
 				!bleed && 'sm:first:pl-1 sm:last:pr-1',
 			)}

@@ -1,6 +1,6 @@
 import type React from 'react'
 import { cn } from '../../core'
-import { sumi } from '../../recipes'
+import { sumi, yasumi } from '../../recipes'
 
 export function Label({ className, ...props }: React.ComponentPropsWithoutRef<'label'>) {
 	return (
@@ -8,7 +8,7 @@ export function Label({ className, ...props }: React.ComponentPropsWithoutRef<'l
 		<label
 			data-slot="label"
 			{...props}
-			className={cn(`text-base/6 ${sumi.base} select-none data-disabled:opacity-50`, className)}
+			className={cn(`text-base/6 ${sumi.base} select-none ${yasumi.base}`, className)}
 		/>
 	)
 }
@@ -18,7 +18,7 @@ export function Legend({ className, ...props }: React.ComponentPropsWithoutRef<'
 		<legend
 			data-slot="legend"
 			{...props}
-			className={cn(`text-base/6 font-semibold ${sumi.base} disabled:opacity-50`, className)}
+			className={cn(`text-base/6 font-semibold ${sumi.base} ${yasumi.base}`, className)}
 		/>
 	)
 }
@@ -28,7 +28,7 @@ export function Description({ className, ...props }: React.ComponentPropsWithout
 		<p
 			data-slot="description"
 			{...props}
-			className={cn(`text-base/6 ${sumi.usui} data-disabled:opacity-50`, className)}
+			className={cn(`text-base/6 ${sumi.usui} ${yasumi.base}`, className)}
 		/>
 	)
 }
@@ -38,7 +38,7 @@ export function ErrorMessage({ className, ...props }: React.ComponentPropsWithou
 		<p
 			data-slot="error"
 			{...props}
-			className={cn('text-base/6 text-red-600 data-disabled:opacity-50', className)}
+			className={cn(`text-base/6 text-red-600 ${yasumi.base}`, className)}
 		/>
 	)
 }

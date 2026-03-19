@@ -3,7 +3,7 @@
 import type React from 'react'
 import { cn } from '../../core'
 import { CloseIcon } from '../../primitives'
-import { katachi } from '../../recipes'
+import { kage, katachi, sumi } from '../../recipes'
 import { useOffcanvas } from '../layouts/context'
 
 export function SidebarHeader({
@@ -17,10 +17,7 @@ export function SidebarHeader({
 		return (
 			<div
 				{...props}
-				className={cn(
-					'flex flex-row items-center border-b border-zinc-950/5 p-4 dark:border-white/5',
-					className,
-				)}
+				className={cn(`flex flex-row items-center border-b ${kage.usui} p-4`, className)}
 			>
 				<div className="flex flex-1 flex-col [&>[data-slot=section]+[data-slot=section]]:mt-2.5">
 					{children}
@@ -30,8 +27,7 @@ export function SidebarHeader({
 					onClick={offcanvas.close}
 					aria-label="Close navigation"
 					className={cn(
-						'rounded-lg fill-current p-2 text-zinc-950 hover:bg-zinc-950/5',
-						'dark:text-white dark:hover:bg-white/5',
+						`rounded-lg fill-current p-2 ${sumi.base} hover:bg-zinc-950/5 dark:hover:bg-white/5`,
 						...katachi.iconSlot,
 						'*:data-[slot=icon]:fill-current',
 					)}
@@ -46,7 +42,7 @@ export function SidebarHeader({
 		<div
 			{...props}
 			className={cn(
-				'flex flex-col border-b border-zinc-950/5 p-4 dark:border-white/5 [&>[data-slot=section]+[data-slot=section]]:mt-2.5',
+				`flex flex-col border-b ${kage.usui} p-4 [&>[data-slot=section]+[data-slot=section]]:mt-2.5`,
 				className,
 			)}
 		>

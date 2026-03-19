@@ -1,5 +1,6 @@
 import type React from 'react'
 import { cn } from '../../core'
+import { sumi } from '../../recipes'
 
 export function DropdownSection({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
 	return (
@@ -20,8 +21,7 @@ export function DropdownHeading({ className, ...props }: React.ComponentPropsWit
 			data-slot="heading"
 			{...props}
 			className={cn(
-				'col-span-full grid grid-cols-[1fr_auto] gap-x-12 px-3.5 pt-2 pb-1 text-sm/5 font-medium text-zinc-500 sm:px-3 sm:text-xs/5',
-				'dark:text-zinc-400',
+				`col-span-full grid grid-cols-[1fr_auto] gap-x-12 px-3.5 pt-2 pb-1 text-sm/5 font-medium ${sumi.usui} sm:px-3 sm:text-xs/5`,
 				className,
 			)}
 		/>

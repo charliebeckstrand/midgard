@@ -5,6 +5,7 @@ import type React from 'react'
 import { useId, useRef } from 'react'
 import { cn } from '../../core'
 import { useMenuKeyboard } from '../../hooks'
+import { kage, sumi } from '../../recipes'
 
 export function Sidebar({ className, ...props }: React.ComponentPropsWithoutRef<'nav'>) {
 	const groupId = useId()
@@ -27,16 +28,7 @@ export function Sidebar({ className, ...props }: React.ComponentPropsWithoutRef<
 }
 
 export function SidebarHeading({ className, ...props }: React.ComponentPropsWithoutRef<'h3'>) {
-	return (
-		<h3
-			{...props}
-			className={cn(
-				'mb-1 px-2 text-xs/6 font-medium text-zinc-500',
-				'dark:text-zinc-400',
-				className,
-			)}
-		/>
-	)
+	return <h3 {...props} className={cn(`mb-1 px-2 text-xs/6 font-medium ${sumi.usui}`, className)} />
 }
 
 export function SidebarBody({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
@@ -56,8 +48,7 @@ export function SidebarFooter({ className, ...props }: React.ComponentPropsWitho
 		<div
 			{...props}
 			className={cn(
-				'flex flex-col border-t border-zinc-950/5 p-4 [&>[data-slot=section]+[data-slot=section]]:mt-2.5',
-				'dark:border-white/5',
+				`flex flex-col border-t ${kage.usui} p-4 [&>[data-slot=section]+[data-slot=section]]:mt-2.5`,
 				className,
 			)}
 		/>
@@ -83,12 +74,7 @@ export function SidebarSection({
 }
 
 export function SidebarDivider({ className, ...props }: React.ComponentPropsWithoutRef<'hr'>) {
-	return (
-		<hr
-			{...props}
-			className={cn('my-4 border-t border-zinc-950/5 lg:-mx-4', 'dark:border-white/5', className)}
-		/>
-	)
+	return <hr {...props} className={cn(`my-4 border-t ${kage.usui} lg:-mx-4`, className)} />
 }
 
 export function SidebarSpacer({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {

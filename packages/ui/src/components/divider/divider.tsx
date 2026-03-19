@@ -1,4 +1,5 @@
 import { cn } from '../../core'
+import { kage } from '../../recipes'
 
 export function Divider({
 	soft = false,
@@ -10,12 +11,7 @@ export function Divider({
 			role="presentation"
 			data-slot="divider"
 			{...props}
-			className={cn(
-				'w-full border-t',
-				soft ? 'border-zinc-950/5' : 'border-zinc-950/10',
-				soft ? 'dark:border-white/5' : 'dark:border-white/10',
-				className,
-			)}
+			className={cn('w-full border-t', soft ? kage.usui : kage.base, className)}
 		/>
 	)
 }
