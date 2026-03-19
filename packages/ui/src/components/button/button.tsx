@@ -1,11 +1,14 @@
 'use client'
 
+import { motion } from 'motion/react'
 import React from 'react'
 import { cn } from '../../core'
 import { Link } from '../../core/link-context'
 import { TouchTarget } from '../../primitives/touch-target'
 import type { ButtonProps } from './types'
 import { button } from './variants'
+
+const tapScale = { scale: 0.99 }
 
 function detectIconOnly(children: React.ReactNode): boolean {
 	try {
@@ -32,13 +35,14 @@ export function Button({ variant, color, className, children, ...props }: Button
 	}
 
 	return (
-		<button
+		<motion.button
 			type="button"
-			{...props}
+			whileTap={tapScale}
+			{...(props as React.ComponentPropsWithoutRef<typeof motion.button>)}
 			className={cn(classes, 'cursor-default')}
 			data-icon-only={iconOnly ? '' : undefined}
 		>
 			<TouchTarget>{children}</TouchTarget>
-		</button>
+		</motion.button>
 	)
 }
