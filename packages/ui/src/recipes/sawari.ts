@@ -36,6 +36,9 @@ export const sawari = {
 		...katachi.iconSlot,
 		'*:data-[slot=icon]:fill-zinc-500',
 		'dark:text-white dark:*:data-[slot=icon]:fill-zinc-400',
+		// Animate text color and icon fill to match ActiveIndicator spring
+		'transition-[color,fill] duration-150 delay-75',
+		'*:data-[slot=icon]:transition-[fill] *:data-[slot=icon]:duration-150 *:data-[slot=icon]:delay-75',
 		// Avatar slots
 		'*:data-[slot=avatar]:-m-0.5 *:data-[slot=avatar]:size-7 sm:*:data-[slot=avatar]:size-6',
 		// Hover (non-current only — current items use ActiveIndicator)
