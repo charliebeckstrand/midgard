@@ -23,6 +23,7 @@ export function PopoverPanel({
 	onKeyDown?: React.KeyboardEventHandler
 }) {
 	const menuRef = useRef<HTMLDivElement>(null)
+
 	const handleKeyDown = useMenuKeyboard(menuRef, itemSelector)
 
 	useEffect(() => {

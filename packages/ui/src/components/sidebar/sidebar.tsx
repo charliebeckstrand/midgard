@@ -8,7 +8,9 @@ import { useMenuKeyboard } from '../../hooks'
 
 export function Sidebar({ className, ...props }: React.ComponentPropsWithoutRef<'nav'>) {
 	const groupId = useId()
+
 	const ref = useRef<HTMLElement>(null)
+
 	const onKeyDown = useMenuKeyboard(ref, '[data-slot="sidebar-item"]')
 
 	return (
@@ -21,6 +23,19 @@ export function Sidebar({ className, ...props }: React.ComponentPropsWithoutRef<
 				className={cn('flex h-full min-h-0 flex-col', className)}
 			/>
 		</LayoutGroup>
+	)
+}
+
+export function SidebarHeading({ className, ...props }: React.ComponentPropsWithoutRef<'h3'>) {
+	return (
+		<h3
+			{...props}
+			className={cn(
+				'mb-1 px-2 text-xs/6 font-medium text-zinc-500',
+				'dark:text-zinc-400',
+				className,
+			)}
+		/>
 	)
 }
 
@@ -78,17 +93,4 @@ export function SidebarDivider({ className, ...props }: React.ComponentPropsWith
 
 export function SidebarSpacer({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
 	return <div aria-hidden="true" {...props} className={cn('mt-8 flex-1', className)} />
-}
-
-export function SidebarHeading({ className, ...props }: React.ComponentPropsWithoutRef<'h3'>) {
-	return (
-		<h3
-			{...props}
-			className={cn(
-				'mb-1 px-2 text-xs/6 font-medium text-zinc-500',
-				'dark:text-zinc-400',
-				className,
-			)}
-		/>
-	)
 }
