@@ -39,8 +39,8 @@ export function Tab({
 	append?: React.ReactNode
 } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className'> & { className?: string }) {
 	return (
-		<span className={cn('group relative flex pb-2.5', className)}>
-			{current && <ActiveIndicator orientation="underline" />}
+		<span className={cn('group relative flex', className)}>
+			{current && <ActiveIndicator />}
 			<button
 				{...props}
 				type="button"
@@ -48,7 +48,7 @@ export function Tab({
 				aria-selected={current}
 				data-current={current ? '' : undefined}
 				className={cn(
-					'flex items-center gap-2 px-2 py-1 text-sm/6 font-medium',
+					'relative z-10 flex items-center gap-2 px-2 py-1 text-sm/6 font-medium',
 					ki.reset,
 					sawari.tab,
 				)}

@@ -55,11 +55,11 @@ export function SidebarItem({
 
 	return (
 		<span className={cn('group relative', className)}>
-			{current && <ActiveIndicator orientation="vertical" />}
+			{current && <ActiveIndicator />}
 			{typeof props.href === 'string' ? (
 				<Link
 					{...props}
-					className={cn(classes, current && 'pointer-events-none')}
+					className={cn(classes, 'relative z-10', current && 'pointer-events-none')}
 					data-slot="sidebar-item"
 					data-current={current ? 'true' : undefined}
 					onClick={(e) => {
@@ -73,7 +73,7 @@ export function SidebarItem({
 				<button
 					{...props}
 					type="button"
-					className={cn('cursor-default', classes)}
+					className={cn('cursor-default', classes, 'relative z-10')}
 					data-slot="sidebar-item"
 					data-current={current ? 'true' : undefined}
 					onClick={(props as React.ComponentPropsWithoutRef<'button'>).onClick}

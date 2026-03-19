@@ -28,11 +28,11 @@ export function NavbarItem({
 
 	return (
 		<span className="group relative">
-			{current && <ActiveIndicator orientation="horizontal" />}
+			{current && <ActiveIndicator />}
 			{typeof props.href === 'string' ? (
 				<Link
 					{...props}
-					className={cn(classes, className)}
+					className={cn(classes, 'relative z-10', className)}
 					data-current={current ? 'true' : undefined}
 				>
 					<TouchTarget>{children}</TouchTarget>
@@ -41,7 +41,7 @@ export function NavbarItem({
 				<button
 					{...props}
 					type="button"
-					className={cn('cursor-default', classes, className)}
+					className={cn('cursor-default', classes, 'relative z-10', className)}
 					data-current={current ? 'true' : undefined}
 				>
 					<TouchTarget>{children}</TouchTarget>
