@@ -1,5 +1,6 @@
 import type React from 'react'
 import { cn } from '../../core'
+import { sumi } from '../../recipes'
 import { Button } from '../button/button'
 
 export function PaginationList({ className, ...props }: React.ComponentPropsWithoutRef<'span'>) {
@@ -45,10 +46,7 @@ export function PaginationGap({
 			aria-hidden="true"
 			data-slot="gap"
 			{...props}
-			className={cn(
-				'w-9 text-center text-sm/6 font-semibold text-zinc-950 select-none dark:text-white',
-				className,
-			)}
+			className={cn(`w-9 text-center text-sm/6 font-semibold ${sumi.base} select-none`, className)}
 		>
 			{children}
 		</span>
