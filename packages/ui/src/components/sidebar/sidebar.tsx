@@ -2,20 +2,18 @@
 
 import { LayoutGroup } from 'motion/react'
 import type React from 'react'
-import { useId, useRef } from 'react'
+import { useRef } from 'react'
 import { cn } from '../../core'
 import { useMenuKeyboard } from '../../hooks'
 import { kage, sumi } from '../../recipes'
 
 export function Sidebar({ className, ...props }: React.ComponentPropsWithoutRef<'nav'>) {
-	const groupId = useId()
-
 	const ref = useRef<HTMLElement>(null)
 
 	const onKeyDown = useMenuKeyboard(ref, '[data-slot="sidebar-item"]')
 
 	return (
-		<LayoutGroup id={groupId}>
+		<LayoutGroup>
 			<nav
 				ref={ref}
 				data-slot="sidebar"
