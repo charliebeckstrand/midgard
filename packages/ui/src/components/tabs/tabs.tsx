@@ -20,7 +20,7 @@ export function Tabs({ className, ...props }: React.ComponentPropsWithoutRef<'di
 				role="tablist"
 				onKeyDown={onKeyDown}
 				{...props}
-				className={cn(`flex gap-4 border-b ${kage.base}`, className)}
+				className={cn(`flex gap-4 ${kage.base}`, className)}
 			/>
 		</LayoutGroup>
 	)
