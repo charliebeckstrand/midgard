@@ -30,7 +30,7 @@ export function DropdownMenu({
 						positionClass,
 						'min-w-max',
 						// Inside a sidebar, match parent width instead of growing to content
-						'[[data-slot=sidebar]_&]:w-full [[data-slot=sidebar]_&]:min-w-0',
+						'lg:in-data-[slot=sidebar]:w-full in-data-[slot=sidebar]:min-w-0',
 						'supports-[grid-template-columns:subgrid]:grid supports-[grid-template-columns:subgrid]:grid-cols-[auto_1fr_1.5rem_0.5rem_auto]',
 						className,
 					)}

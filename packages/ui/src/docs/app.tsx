@@ -207,7 +207,7 @@ function DemoPage({ demo }: { demo: (typeof demos)[number] }) {
 	const [tab, setTab] = useState<DemoTab>('preview')
 
 	return (
-		<div className="mx-auto w-full space-y-6 px-6 lg:py-6">
+		<div className="mx-auto w-full space-y-6 lg:p-6 lg:px-6 px-2">
 			<Heading>{demo.name}</Heading>
 			<Tabs>
 				<Tab current={tab === 'preview'} onClick={() => setTab('preview')}>

@@ -37,7 +37,7 @@ function ChatItem({
 		<div className="group relative">
 			<SidebarItem href={`/${chat.id}`} current={current} onKeyDown={onPrimaryKeyDown}>
 				<ChatBubbleLeftIcon />
-				<SidebarLabel>{chat.id}</SidebarLabel>
+				<SidebarLabel className="group-hover:pr-6">{chat.id}</SidebarLabel>
 			</SidebarItem>
 			<button
 				ref={actionRef}

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { cn } from '../../core'
 import { MenuIcon } from '../../primitives'
 import { omote } from '../../recipes'
@@ -18,7 +18,25 @@ export function SidebarLayout({
 	sidebar: React.ReactNode
 }>) {
 	const [open, setOpen] = useState(false)
+
 	const close = useCallback(() => setOpen(false), [])
+
+	// Auto-close mobile sidebar when viewport crosses the lg breakpoint
+	useEffect(() => {
+		const breakpoint = getComputedStyle(document.documentElement)
+			.getPropertyValue('--breakpoint-lg')
+			.trim()
+
+		const mql = window.matchMedia(`(min-width: ${breakpoint})`)
+
+		const handler = () => {
+			if (mql.matches) setOpen(false)
+		}
+
+		mql.addEventListener('change', handler)
+
+		return () => mql.removeEventListener('change', handler)
+	}, [])
 
 	return (
 		<div
@@ -50,7 +68,7 @@ export function SidebarLayout({
 			<main className="flex flex-1 flex-col overflow-hidden pb-2 lg:min-w-0 lg:pt-2 lg:pr-2 lg:pl-64">
 				<div
 					className={cn(
-						'flex flex-col grow min-h-0 overflow-hidden p-4 lg:p-6',
+						'flex flex-col grow min-h-0 overflow-hidden px-6 pb-6 lg:pt-6',
 						omote.content,
 						'[&>[data-slot=header]>nav]:p-0',
 						'[&:has([data-slot=footer])>[data-slot=body]]:pb-0',
