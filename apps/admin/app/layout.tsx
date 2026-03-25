@@ -1,15 +1,17 @@
 import type { Metadata } from 'next'
-import { Google_Sans } from 'next/font/google'
+import localFont from 'next/font/local'
 import type { ReactNode } from 'react'
 
 import './globals.css'
 import { Providers } from './providers'
 
-const googleSans = Google_Sans({
-	adjustFontFallback: false,
-	subsets: ['latin'],
+const googleSans = localFont({
+	src: [
+		{ path: '../../../packages/sindri/src/fonts/google-sans-400.woff2', weight: '400' },
+		{ path: '../../../packages/sindri/src/fonts/google-sans-500.woff2', weight: '500' },
+		{ path: '../../../packages/sindri/src/fonts/google-sans-700.woff2', weight: '700' },
+	],
 	variable: '--font-sans',
-	weight: ['400', '500', '700'],
 })
 
 export const metadata: Metadata = {
