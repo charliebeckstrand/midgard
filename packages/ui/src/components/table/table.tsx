@@ -4,7 +4,7 @@ import { cn } from '../../core'
 import { sumi } from '../../recipes'
 import { TableProvider } from './context'
 
-interface TableProps extends React.ComponentPropsWithoutRef<'div'> {
+export interface TableProps extends React.ComponentPropsWithoutRef<'div'> {
 	bleed?: boolean
 	dense?: boolean
 	grid?: boolean

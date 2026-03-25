@@ -4,7 +4,7 @@ import type React from 'react'
 import { cloneElement, isValidElement, type ReactElement } from 'react'
 import { useSheet } from './context'
 
-type SheetButtonProps = {
+export type SheetButtonProps = {
 	asChild?: boolean
 	children: React.ReactElement | React.ReactNode
 } & Omit<React.ComponentPropsWithoutRef<'button'>, 'children'>

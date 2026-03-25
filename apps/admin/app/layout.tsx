@@ -1,16 +1,8 @@
 import type { Metadata } from 'next'
-import { Google_Sans } from 'next/font/google'
 import type { ReactNode } from 'react'
 
 import './globals.css'
 import { Providers } from './providers'
-
-const googleSans = Google_Sans({
-	adjustFontFallback: false,
-	subsets: ['latin'],
-	variable: '--font-sans',
-	weight: ['400', '500', '700'],
-})
 
 export const metadata: Metadata = {
 	title: 'Admin',
@@ -18,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
 	return (
-		<html lang="en" className={googleSans.variable}>
+		<html lang="en">
 			<body className="flex h-full justify-center bg-white dark:bg-zinc-900 antialiased">
 				<Providers>{children}</Providers>
 			</body>

@@ -22,7 +22,7 @@ function detectIconOnly(children: React.ReactNode): boolean {
 	}
 }
 
-export function Button({ variant, color, className, children, ...props }: ButtonProps) {
+export function Button({ ref, variant, color, className, children, ...props }: ButtonProps) {
 	const iconOnly = detectIconOnly(children)
 	const classes = cn(button({ variant, color }), iconOnly && 'icon-only', className)
 
@@ -38,6 +38,7 @@ export function Button({ variant, color, className, children, ...props }: Button
 		<motion.button
 			type="button"
 			whileTap={tapScale}
+			ref={ref as React.Ref<HTMLButtonElement>}
 			{...(props as React.ComponentPropsWithoutRef<typeof motion.button>)}
 			className={cn(classes, 'cursor-default')}
 			data-icon-only={iconOnly ? '' : undefined}
