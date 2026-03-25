@@ -4,9 +4,9 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"dev": "next dev --port 3002 --turbopack",
+		"dev": "next dev --port 3001 --turbopack",
 		"build": "next build",
-		"start": "next start --port 3002",
+		"start": "next start --port 3001",
 		"lint": "biome check --config-path=../.. .",
 		"lint:fix": "biome check --config-path=../.. --write .",
 		"format": "biome format --config-path=../.. --write .",

@@ -17,8 +17,7 @@ Midgard is a pnpm monorepo (Turbo, Next.js 16, React 19, TypeScript 5.9, Tailwin
 ```
 apps/
   admin/          → Dashboard (port 3000, authenticated)
-  chat/           → Chat app (port 3002, authenticated)
-  docs/           → Documentation (port 3001, public)
+  chat/           → Chat app (port 3001, authenticated)
 packages/
   ui/             → Component library (Kata design system, 5-layer atomic, framework-agnostic)
   heimdall/       → Auth module (session, proxy, config) → talks to Bifrost backend
