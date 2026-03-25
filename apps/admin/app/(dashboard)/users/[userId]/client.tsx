@@ -33,6 +33,7 @@ export function UserDetailsClient({ details, chats: initialChats }: UserDetailsC
 
 		if (res?.ok) {
 			const { messages } = await res.json()
+			
 			setChatMessages(messages ?? [])
 		}
 
