@@ -27,7 +27,7 @@ packages/
 
 ## Stack
 
-pnpm 10 · Turbo · Next.js 16 (App Router, Turbopack) · TypeScript 5.9 (strict) · React 19 · Tailwind CSS 4 · motion 12 · CVA · Biome (tabs, single quotes, no semicolons, 100-char) · tsup · Husky
+pnpm 10 · Turbo · Next.js 16 (App Router, Turbopack) · TypeScript 5.9 (strict) · React 19 · Tailwind CSS 4 · motion 12 · CVA · Biome (tabs, single quotes, no semicolons, 100-char) · tsup · Lefthook
 
 ## Commands
 
@@ -72,3 +72,4 @@ Append new entries at the bottom. One line per lesson. Date + what you learned. 
 - 2026-03-16: Vercel Geist dark P3 OKLCH palette: 100-500 dark tints, 600 vivid accent (color aliases point here), 700-800 darker vivids, 900-1000 light shades
 - 2026-03-16: Every ui component exports its prop types from index.ts (e.g., `InputProps`, `ButtonProps`) — always do this for new components
 - 2026-03-17: Next.js font warning "Failed to find font override values for Google Sans" — fix with `adjustFontFallback: false` in font config
+- 2026-03-25: Switched from Husky to Lefthook — config lives in `lefthook.yml` at repo root, `prepare` script runs `lefthook install`
