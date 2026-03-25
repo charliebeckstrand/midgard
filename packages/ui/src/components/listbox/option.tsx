@@ -2,8 +2,8 @@
 
 import type React from 'react'
 import { cn } from '../../core'
-import { CheckIcon } from '../../primitives'
-import { narabi, sawari } from '../../recipes'
+import { BaseOption } from '../../primitives'
+import { narabi } from '../../recipes'
 import { useListbox, useSelectedOption } from './context'
 
 export function ListboxOption<T>({
@@ -17,7 +17,7 @@ export function ListboxOption<T>({
 	children?: React.ReactNode
 	value: T
 	disabled?: boolean
-} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>) {
+} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className' | 'onSelect'>) {
 	const { value: selectedValue, onChange } = useListbox()
 	const { isSelectedOption } = useSelectedOption()
 	const selected = selectedValue === value
@@ -30,28 +30,16 @@ export function ListboxOption<T>({
 	}
 
 	return (
-		<div
-			role="option"
-			aria-selected={selected}
-			data-selected={selected ? '' : undefined}
-			data-disabled={disabled ? '' : undefined}
-			tabIndex={-1}
-			onClick={() => !disabled && onChange(value)}
-			onKeyDown={(e) => {
-				if (e.key === 'Enter' || e.key === ' ') {
-					e.preventDefault()
-					if (!disabled) onChange(value)
-				}
-			}}
-			className={cn(
-				'group/option grid cursor-default grid-cols-[--spacing(5)_1fr] items-baseline gap-x-2 rounded-lg pr-3.5 pl-2 sm:grid-cols-[--spacing(4)_1fr] sm:pr-3 sm:pl-1.5',
-				sawari.item,
-			)}
+		<BaseOption
+			selected={selected}
+			disabled={disabled}
+			checkPosition="start"
+			onSelect={() => onChange(value)}
+			className={className}
 			{...props}
 		>
-			<CheckIcon className="relative hidden self-center group-data-selected/option:inline" />
-			<span className={cn(className, sharedClasses, 'col-start-2')}>{children}</span>
-		</div>
+			{children}
+		</BaseOption>
 	)
 }
 

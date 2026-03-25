@@ -6,6 +6,7 @@ import type { button } from './variants'
 export type ButtonProps = VariantProps<typeof button> & {
 	className?: string
 	children: React.ReactNode
+	ref?: React.Ref<HTMLButtonElement | HTMLAnchorElement>
 } & (
 		| ({ href?: never } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className'>)
 		| ({ href: string } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)

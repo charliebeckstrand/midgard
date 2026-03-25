@@ -50,7 +50,6 @@ export function Combobox<T>({
 	const [open, setOpen] = useState(false)
 	const [currentValue, setValue] = useControllable({ value, defaultValue, onChange })
 	const inputRef = useRef<HTMLInputElement>(null)
-	const listRef = useRef<HTMLDivElement>(null)
 
 	const filteredOptions =
 		query === ''
@@ -83,16 +82,16 @@ export function Combobox<T>({
 			e.preventDefault()
 			if (!open) {
 				setOpen(true)
-			} else if (listRef.current) {
-				const items = listRef.current.querySelectorAll<HTMLElement>('[role="option"]')
+			} else if (containerRef.current) {
+				const items = containerRef.current.querySelectorAll<HTMLElement>('[role="option"]')
 				if (items.length > 0) items[0]?.focus()
 			}
 		} else if (e.key === 'ArrowUp') {
 			e.preventDefault()
 			if (!open) {
 				setOpen(true)
-			} else if (listRef.current) {
-				const items = listRef.current.querySelectorAll<HTMLElement>('[role="option"]')
+			} else if (containerRef.current) {
+				const items = containerRef.current.querySelectorAll<HTMLElement>('[role="option"]')
 				if (items.length > 0) items[items.length - 1]?.focus()
 			}
 		}
@@ -156,7 +155,7 @@ export function Combobox<T>({
 
 				<AnimatePresence>
 					{open && filteredOptions.length > 0 && (
-						<ComboboxOptions ref={listRef} className={`left-0 ${anchorClasses}`}>
+						<ComboboxOptions className={`left-0 ${anchorClasses}`}>
 							{filteredOptions.map((option) => children(option as NonNullable<T>))}
 						</ComboboxOptions>
 					)}
