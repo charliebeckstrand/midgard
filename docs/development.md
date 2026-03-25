@@ -89,15 +89,14 @@ All shared packages run in watch mode during `pnpm dev`. Changes to package sour
 midgard/
 ├── apps/
 │   ├── admin/       # Main dashboard (port 3000, authenticated)
-│   ├── chat/        # Chat app (port 3002, authenticated)
-│   └── docs/        # Documentation (port 3001, public)
+│   ├── chat/        # Chat app (port 3001, authenticated)
 ├── packages/
 │   ├── ui/          # UI component library
 │   ├── heimdall/    # Auth module
 │   ├── hlidskjalf/  # Terminal dev dashboard
 │   ├── sindri/      # Shared UI resources
 │   └── reactbits/   # Animation components
-├── docs/            # Documentation (rendered by docs app)
+├── docs/            # Project documentation and agent knowledge base
 ├── turbo.json       # Build orchestration
 └── biome.json       # Linting & formatting
 ```

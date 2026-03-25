@@ -16,15 +16,14 @@ Midgard is a pnpm monorepo managed by Turbo. It contains Next.js applications ba
 - **Component variants**: class-variance-authority (CVA)
 - **Linting/formatting**: Biome (tabs, single quotes, no semicolons, 100-char lines)
 - **Bundling (packages)**: tsup
-- **Git hooks**: Husky
+- **Git hooks**: Lefthook
 
 ## Workspace Layout
 
 ```
 apps/
   admin/          → Main web application (Next.js, port 3000)
-  chat/           → Chat application (Next.js, port 3002)
-  docs/           → Documentation dashboard (Next.js, port 3001)
+  chat/           → Chat application (Next.js, port 3001)
 packages/
   ui/             → New component library (atomic architecture, framework-agnostic)
   heimdall/       → Shared authentication module (session, config, proxy)
@@ -40,7 +39,7 @@ Defined in `pnpm-workspace.yaml`. Turbo tasks configured in `turbo.json`.
 
 To add a new Next.js app to the monorepo:
 
-1. Create `apps/<name>/package.json` with dependencies on `sindri`, `ui`, and shared devDependencies (see `apps/docs/package.json` as template)
+1. Create `apps/<name>/package.json` with dependencies on `sindri`, `ui`, and shared devDependencies (see `apps/admin/package.json` as template)
 2. Create `apps/<name>/tsconfig.json` extending `../../tsconfig.nextjs.json` with `baseUrl`, `paths`, and `include`
 3. Create `apps/<name>/next.config.ts` (use `withAuth` from `heimdall/config` only if the app requires authentication)
 4. If authenticated: create `apps/<name>/proxy.ts` using `proxy` from `heimdall/proxy`, and add `heimdall` to dependencies
@@ -68,7 +67,7 @@ Primary user-facing Next.js 16 application running on port 3000.
 
 ## apps/chat
 
-Chat application running on port 3002. Authenticated (same model as admin). Chat UI components and hooks live in `sindri/chat` for cross-app reuse.
+Chat application running on port 3001. Authenticated (same model as admin). Chat UI components and hooks live in `sindri/chat` for cross-app reuse.
 
 **Key paths:**
 - `app/layout.tsx` — Root layout
@@ -90,27 +89,6 @@ Chat application running on port 3002. Authenticated (same model as admin). Chat
 - `POST /api/chat/{chatId}` — Sends messages to the chat and returns agent response (Bifrost handles persistence)
 
 **Depends on:** heimdall, sindri, ui, reactbits, @heroicons/react
-
-## apps/docs
-
-Documentation dashboard that renders markdown files from the root `docs/` directory. Runs on port 3001.
-
-**Key paths:**
-- `app/layout.tsx` — Root layout
-- `app/(docs)/layout.tsx` — Docs shell with sidebar navigation
-- `app/(docs)/page.tsx` — Single-page view rendering all docs stacked with id anchors
-- `app/(docs)/client.tsx` — Client-side sidebar/navbar shell with IntersectionObserver scroll tracking
-- `app/markdown.tsx` — Server-side markdown-to-HTML renderer with Shiki syntax highlighting
-- `app/docs.ts` — Reads and parses markdown files from `docs/` directory
-**Auth model:** Public — no authentication or proxy middleware. Files with `<!-- auth: required -->` at the top are hidden from unauthenticated users in the UI layer.
-
-**Doc categories:** The sidebar groups docs into two sections:
-- **Guides** — Developer-facing: `getting-started.md`, `development.md`, `architecture.md`
-- **Reference** — Technical reference: `project.md`, `decisions.md`
-
-Categories and ordering are defined in `app/docs.ts` via `GUIDE_DOCS` and `REFERENCE_DOCS`.
-
-**Depends on:** sindri, ui, @heroicons/react, shiki
 
 ## packages/heimdall
 

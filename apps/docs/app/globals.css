@@ -1,8 +1,0 @@
-@import 'tailwindcss';
-@import 'sindri/globals.css';
-
-@plugin '@tailwindcss/typography';
-
-@source './';
-@source '../../../packages/sindri/src';
-@source '../../../packages/ui/src';

@@ -26,8 +26,6 @@ Each app that uses authentication needs a `BIFROST_URL` pointing to the auth bac
 BIFROST_URL=http://localhost:4000
 ```
 
-The docs app is public and does not require auth configuration.
-
 ## Start the Dev Server
 
 ```sh
@@ -39,8 +37,7 @@ This launches **hlidskjalf**, a terminal dashboard that discovers all workspace 
 | App    | URL                    |
 | ------ | ---------------------- |
 | Admin  | http://localhost:3000  |
-| Docs   | http://localhost:3001  |
-| Chat   | http://localhost:3002  |
+| Chat   | http://localhost:3001  |
 
 Shared packages (ui, heimdall, sindri, reactbits) also run in watch mode so changes propagate automatically.
 
@@ -50,7 +47,6 @@ If you only need one app:
 
 ```sh
 pnpm --filter admin dev    # Just the admin app
-pnpm --filter docs dev     # Just the docs app
 pnpm --filter chat dev     # Just the chat app
 ```
 
@@ -59,10 +55,9 @@ Note: shared packages won't rebuild automatically in this mode. Use `pnpm dev` f
 ## Verify Your Setup
 
 1. Run `pnpm dev` and wait for all processes to show "ready"
-2. Open http://localhost:3001 — the docs app should load without auth
-3. Open http://localhost:3000 — the admin app should redirect to `/login`
-4. Run `pnpm check-types` to verify TypeScript is configured correctly
-5. Run `pnpm lint` to verify Biome is working
+2. Open http://localhost:3000 — the admin app should redirect to `/login`
+3. Run `pnpm check-types` to verify TypeScript is configured correctly
+4. Run `pnpm lint` to verify Biome is working
 
 ## Next Steps
 
