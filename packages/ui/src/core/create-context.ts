@@ -7,9 +7,11 @@ export function createContext<T>(name: string): [Provider<T>, () => T] {
 
 	function useContextValue(): T {
 		const value = useContext(Context)
+		
 		if (value === null) {
-			throw new Error(`use${name} must be used within <${name}>`)
+			throw new Error(`use${name} must be used within <${name}>`
 		}
+		
 		return value
 	}
 
