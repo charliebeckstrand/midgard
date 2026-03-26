@@ -1,9 +1,11 @@
-export { SheetBody } from './body'
 export { SheetContent } from './content'
-export { SheetDescription } from './description'
-export { SheetFooter } from './footer'
-export { SheetHeader } from './header'
 export { Sheet } from './sheet'
-export { SheetSubtitle } from './subtitle'
-export { SheetTitle } from './title'
+export {
+	SheetBody,
+	SheetDescription,
+	SheetFooter,
+	SheetHeader,
+	SheetSubtitle,
+	SheetTitle,
+} from './slots'
 export { type SheetButtonProps, SheetClose, SheetOpen } from './trigger'
