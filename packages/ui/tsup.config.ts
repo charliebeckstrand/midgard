@@ -2,10 +2,7 @@ import { defineConfig } from 'tsup'
 
 const entry = {
 	index: 'src/index.ts',
-	core: 'src/core/index.ts',
-	recipes: 'src/recipes/index.ts',
 	hooks: 'src/hooks/index.ts',
-	primitives: 'src/primitives/index.ts',
 	avatar: 'src/components/avatar/index.ts',
 	badge: 'src/components/badge/index.ts',
 	button: 'src/components/button/index.ts',

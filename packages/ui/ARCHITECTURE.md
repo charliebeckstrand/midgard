@@ -1,9 +1,9 @@
-# SRA — Slot Recipe Architecture
+# Component Architecture
 
-A CSS architecture for component libraries built on Tailwind CSS + React. Invented for Midgard.
+A CSS architecture for component libraries built on Tailwind CSS + React.
 
-SRA solves the problem that no existing methodology (BEM, ITCSS, CUBE CSS) bridges
-tokens, variants, slots, and data attributes into one coherent system. It gives you:
+Three layers — slots, recipes, and data attributes — bridge tokens, variants,
+and styling into one coherent system:
 
 - **Identity** — every element in the DOM knows what it is
 - **Relationships** — parents style children through slots, not class name coupling
@@ -237,7 +237,7 @@ One inline override is better than a leaky abstraction.
 
 ## CSS Selector Patterns
 
-SRA uses a small set of Tailwind selector patterns consistently:
+A small set of Tailwind selector patterns are used consistently:
 
 ```
 *:data-[slot=X]:...           — style direct children by slot

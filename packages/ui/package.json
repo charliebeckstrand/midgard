@@ -15,21 +15,9 @@
 			"types": "./src/index.ts",
 			"default": "./src/index.ts"
 		},
-		"./core": {
-			"types": "./src/core/index.ts",
-			"default": "./src/core/index.ts"
-		},
-		"./recipes": {
-			"types": "./src/recipes/index.ts",
-			"default": "./src/recipes/index.ts"
-		},
 		"./hooks": {
 			"types": "./src/hooks/index.ts",
 			"default": "./src/hooks/index.ts"
-		},
-		"./primitives": {
-			"types": "./src/primitives/index.ts",
-			"default": "./src/primitives/index.ts"
 		},
 		"./avatar": {
 			"types": "./src/components/avatar/index.ts",
@@ -142,144 +130,6 @@
 		"./react-bits/shiny-text": {
 			"types": "./src/components/react-bits/shiny-text.tsx",
 			"default": "./src/components/react-bits/shiny-text.tsx"
-		}
-	},
-	"publishConfig": {
-		"main": "./dist/index.js",
-		"types": "./dist/index.d.ts",
-		"exports": {
-			".": {
-				"types": "./dist/index.d.ts",
-				"import": "./dist/index.js"
-			},
-			"./core": {
-				"types": "./dist/core.d.ts",
-				"import": "./dist/core.js"
-			},
-			"./recipes": {
-				"types": "./dist/recipes.d.ts",
-				"import": "./dist/recipes.js"
-			},
-			"./hooks": {
-				"types": "./dist/hooks.d.ts",
-				"import": "./dist/hooks.js"
-			},
-			"./primitives": {
-				"types": "./dist/primitives.d.ts",
-				"import": "./dist/primitives.js"
-			},
-			"./avatar": {
-				"types": "./dist/avatar.d.ts",
-				"import": "./dist/avatar.js"
-			},
-			"./badge": {
-				"types": "./dist/badge.d.ts",
-				"import": "./dist/badge.js"
-			},
-			"./button": {
-				"types": "./dist/button.d.ts",
-				"import": "./dist/button.js"
-			},
-			"./checkbox": {
-				"types": "./dist/checkbox.d.ts",
-				"import": "./dist/checkbox.js"
-			},
-			"./combobox": {
-				"types": "./dist/combobox.d.ts",
-				"import": "./dist/combobox.js"
-			},
-			"./dl": {
-				"types": "./dist/dl.d.ts",
-				"import": "./dist/dl.js"
-			},
-			"./dialog": {
-				"types": "./dist/dialog.d.ts",
-				"import": "./dist/dialog.js"
-			},
-			"./divider": {
-				"types": "./dist/divider.d.ts",
-				"import": "./dist/divider.js"
-			},
-			"./dropdown": {
-				"types": "./dist/dropdown.d.ts",
-				"import": "./dist/dropdown.js"
-			},
-			"./fieldset": {
-				"types": "./dist/fieldset.d.ts",
-				"import": "./dist/fieldset.js"
-			},
-			"./heading": {
-				"types": "./dist/heading.d.ts",
-				"import": "./dist/heading.js"
-			},
-			"./input": {
-				"types": "./dist/input.d.ts",
-				"import": "./dist/input.js"
-			},
-			"./listbox": {
-				"types": "./dist/listbox.d.ts",
-				"import": "./dist/listbox.js"
-			},
-			"./navbar": {
-				"types": "./dist/navbar.d.ts",
-				"import": "./dist/navbar.js"
-			},
-			"./pagination": {
-				"types": "./dist/pagination.d.ts",
-				"import": "./dist/pagination.js"
-			},
-			"./radio": {
-				"types": "./dist/radio.d.ts",
-				"import": "./dist/radio.js"
-			},
-			"./select": {
-				"types": "./dist/select.d.ts",
-				"import": "./dist/select.js"
-			},
-			"./sheet": {
-				"types": "./dist/sheet.d.ts",
-				"import": "./dist/sheet.js"
-			},
-			"./sidebar": {
-				"types": "./dist/sidebar.d.ts",
-				"import": "./dist/sidebar.js"
-			},
-			"./layouts": {
-				"types": "./dist/layouts.d.ts",
-				"import": "./dist/layouts.js"
-			},
-			"./pages": {
-				"types": "./dist/pages.d.ts",
-				"import": "./dist/pages.js"
-			},
-			"./switch": {
-				"types": "./dist/switch.d.ts",
-				"import": "./dist/switch.js"
-			},
-			"./table": {
-				"types": "./dist/table.d.ts",
-				"import": "./dist/table.js"
-			},
-			"./tabs": {
-				"types": "./dist/tabs.d.ts",
-				"import": "./dist/tabs.js"
-			},
-			"./text": {
-				"types": "./dist/text.d.ts",
-				"import": "./dist/text.js"
-			},
-			"./textarea": {
-				"types": "./dist/textarea.d.ts",
-				"import": "./dist/textarea.js"
-			},
-			"./placeholder": {
-				"types": "./dist/placeholder.d.ts",
-				"import": "./dist/placeholder.js"
-			},
-			"./react-bits/shiny-text": {
-				"types": "./dist/react-bits/shiny-text.d.ts",
-				"import": "./dist/react-bits/shiny-text.js"
-			}
 		}
 	},
 	"scripts": {
