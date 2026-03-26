@@ -30,10 +30,12 @@ export function Overlay({
 		}
 
 		document.addEventListener('keydown', onKeyDown)
+		
 		document.body.style.overflow = 'hidden'
 
 		return () => {
 			document.removeEventListener('keydown', onKeyDown)
+			
 			document.body.style.overflow = ''
 		}
 	}, [open, onClose])
