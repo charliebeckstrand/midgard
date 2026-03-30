@@ -79,6 +79,10 @@
 			"types": "./src/components/pagination/index.ts",
 			"default": "./src/components/pagination/index.ts"
 		},
+		"./placeholder": {
+			"types": "./src/components/placeholder/index.ts",
+			"default": "./src/components/placeholder/index.ts"
+		},
 		"./radio": {
 			"types": "./src/components/radio/index.ts",
 			"default": "./src/components/radio/index.ts"
@@ -94,14 +98,6 @@
 		"./sidebar": {
 			"types": "./src/components/sidebar/index.ts",
 			"default": "./src/components/sidebar/index.ts"
-		},
-		"./layouts": {
-			"types": "./src/components/layouts/index.ts",
-			"default": "./src/components/layouts/index.ts"
-		},
-		"./pages": {
-			"types": "./src/components/pages/index.ts",
-			"default": "./src/components/pages/index.ts"
 		},
 		"./switch": {
 			"types": "./src/components/switch/index.ts",
@@ -123,9 +119,13 @@
 			"types": "./src/components/textarea/index.ts",
 			"default": "./src/components/textarea/index.ts"
 		},
-		"./placeholder": {
-			"types": "./src/components/placeholder/index.ts",
-			"default": "./src/components/placeholder/index.ts"
+		"./layouts": {
+			"types": "./src/layouts/index.ts",
+			"default": "./src/layouts/index.ts"
+		},
+		"./pages": {
+			"types": "./src/pages/index.ts",
+			"default": "./src/pages/index.ts"
 		},
 		"./react-bits/shiny-text": {
 			"types": "./src/components/react-bits/shiny-text.tsx",

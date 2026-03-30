@@ -1,50 +1,42 @@
-import { cva } from 'class-variance-authority'
-import { nuri } from '../../recipes'
+import { cva, type VariantProps } from 'class-variance-authority'
+import { ki, nuri } from '../../recipes'
 
-export const radio = cva(
+export const radioVariants = cva(
 	[
-		// Layout
-		'relative isolate flex size-4.75 shrink-0 rounded-full sm:size-4.25',
-		// Light — before pseudo (visual bg/shadow)
-		'before:absolute before:inset-0 before:-z-10 before:rounded-full before:bg-white before:shadow-sm',
-		'group-data-checked:before:bg-(--radio-checked-bg)',
-		// Light — border
-		'border border-zinc-950/15',
-		'group-data-checked:border-transparent group-data-checked:bg-(--radio-checked-border)',
-		// Light — after pseudo (inset highlight)
-		'after:absolute after:inset-0 after:rounded-full after:shadow-[inset_0_1px_--theme(--color-white/15%)]',
-		// Light — indicator
-		'[--radio-indicator:transparent]',
-		'group-data-checked:[--radio-indicator:var(--radio-checked-indicator)]',
-		// Hover
-		'group-hover:border-zinc-950/30',
-		'group-hover:group-data-checked:border-transparent',
-		'group-hover:[--radio-indicator:var(--color-zinc-900)]/10',
-		'group-hover:group-data-checked:[--radio-indicator:var(--radio-checked-indicator)]',
+		// Base
+		'inline-flex size-[1.125rem] shrink-0 cursor-pointer items-center justify-center rounded-full sm:size-4',
+		// Unchecked
+		'border border-zinc-950/15 bg-white shadow-xs dark:border-white/15 dark:bg-white/5',
 		// Focus
-		'group-focus-visible:outline group-focus-visible:outline-2 group-focus-visible:outline-offset-2 group-focus-visible:outline-blue-600',
+		ki.reset,
+		ki.offset,
+		// Checked
+		'checked:border-transparent checked:bg-(--radio-checked-bg)',
+		'checked:border-(--radio-checked-border)',
+		// Hover
+		'hover:border-zinc-950/30 dark:hover:border-white/30',
+		'checked:hover:opacity-90',
 		// Disabled
-		'group-disabled:opacity-50',
-		'group-disabled:border-zinc-950/25 group-disabled:bg-zinc-950/5 group-disabled:[--radio-checked-indicator:var(--color-zinc-950)]/50 group-disabled:before:bg-transparent',
-		// Dark
-		'dark:before:hidden',
-		'dark:bg-white/5 dark:group-data-checked:bg-(--radio-checked-bg)',
-		'dark:border-white/15 dark:group-data-checked:border-white/5',
-		'dark:after:-inset-px dark:after:hidden dark:after:rounded-full dark:group-data-checked:after:block',
-		// Dark — hover
-		'dark:group-hover:border-white/30',
-		'dark:group-hover:group-data-checked:border-white/5',
-		'dark:group-hover:[--radio-indicator:var(--color-zinc-700)]',
-		'dark:group-hover:group-data-checked:[--radio-indicator:var(--radio-checked-indicator)]',
-		// Dark — disabled
-		'dark:group-disabled:border-white/20 dark:group-disabled:bg-white/2.5 dark:group-disabled:[--radio-checked-indicator:var(--color-white)]/50 dark:group-data-checked:group-disabled:after:hidden',
+		'disabled:opacity-50 disabled:cursor-default',
+		// Forced colors
+		'forced-colors:appearance-auto forced-colors:checked:appearance-auto',
 	],
 	{
 		variants: {
-			color: nuri.radio,
+			color: {
+				zinc: nuri.radio.zinc,
+				white: nuri.radio.white,
+				dark: nuri.radio.dark,
+				red: nuri.radio.red,
+				amber: nuri.radio.amber,
+				green: nuri.radio.green,
+				blue: nuri.radio.blue,
+			},
 		},
 		defaultVariants: {
 			color: 'zinc',
 		},
 	},
 )
+
+export type RadioVariants = VariantProps<typeof radioVariants>
