@@ -33,6 +33,6 @@ export function useLink() {
 
 export function Link({ href, ...props }: LinkProps) {
 	const { component: LinkComponent } = useLink()
-	
+
 	return <LinkComponent href={href} {...props} />
 }

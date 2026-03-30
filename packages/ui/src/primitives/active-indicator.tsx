@@ -1,21 +1,38 @@
 'use client'
 
-import { type MotionStyle, motion, type Transition, useAnimate } from 'motion/react'
+import { LayoutGroup, type MotionStyle, motion, type Transition, useAnimate } from 'motion/react'
 import type React from 'react'
-import { useCallback } from 'react'
+import { createContext, useCallback, useContext, useId, useMemo } from 'react'
 import { cn } from '../core'
 
 const spring: Transition = {
 	type: 'spring',
-	stiffness: 200,
-	damping: 20,
-	// mass: 0.8,
+	stiffness: 300,
+	damping: 30,
 }
 
 const tapSpring: Transition = {
 	type: 'spring',
 	stiffness: 500,
 	damping: 15,
+}
+
+const ActiveIndicatorScopeContext = createContext<string | undefined>(undefined)
+
+/**
+ * Creates a local scope for active indicators so multiple independent
+ * nav/tab/sidebar groups can coexist on the same page.
+ */
+export function ActiveIndicatorScope({ children, id }: React.PropsWithChildren<{ id?: string }>) {
+	const fallbackId = useId()
+	const scopeId = id ?? fallbackId
+	const layoutId = useMemo(() => `current-indicator-${scopeId}`, [scopeId])
+
+	return (
+		<ActiveIndicatorScopeContext.Provider value={layoutId}>
+			<LayoutGroup id={layoutId}>{children}</LayoutGroup>
+		</ActiveIndicatorScopeContext.Provider>
+	)
 }
 
 /**
@@ -47,7 +64,7 @@ export function useActiveIndicator() {
 
 export function ActiveIndicator({
 	ref,
-	layoutId = 'current-indicator',
+	layoutId,
 	className,
 	style,
 }: {
@@ -56,10 +73,13 @@ export function ActiveIndicator({
 	className?: string
 	style?: MotionStyle
 }) {
+	const scopedLayoutId = useContext(ActiveIndicatorScopeContext)
+	const resolvedLayoutId = layoutId ?? scopedLayoutId ?? 'current-indicator'
+
 	return (
 		<motion.span
 			ref={ref}
-			layoutId={layoutId}
+			layoutId={resolvedLayoutId}
 			className={cn('absolute inset-0 rounded-lg bg-zinc-950/5 dark:bg-white/10', className)}
 			style={{ borderRadius: 8, ...style }}
 			transition={spring}

@@ -189,12 +189,7 @@ export const nuri = {
 			'dark:bg-red-500',
 			'dark:group-hover:bg-red-600',
 		],
-		amber: [
-			'bg-amber-500 text-amber-950',
-			'group-hover:bg-amber-600',
-			'dark:bg-amber-600 dark:text-white',
-			'dark:group-hover:bg-amber-700',
-		],
+		amber: ['bg-amber-600 text-amber-950', 'group-hover:bg-amber-700'],
 		green: [
 			'bg-green-600 text-white',
 			'group-hover:bg-green-700',

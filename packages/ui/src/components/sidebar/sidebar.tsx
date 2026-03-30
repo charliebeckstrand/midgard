@@ -1,10 +1,11 @@
 'use client'
 
-import { LayoutGroup, motion } from 'motion/react'
+import { motion } from 'motion/react'
 import type React from 'react'
 import { useRef } from 'react'
 import { cn } from '../../core'
 import { useMenuKeyboard } from '../../hooks'
+import { ActiveIndicatorScope } from '../../primitives'
 import { kage, sumi } from '../../recipes'
 
 export function Sidebar({ className, ...props }: React.ComponentPropsWithoutRef<'nav'>) {
@@ -13,7 +14,7 @@ export function Sidebar({ className, ...props }: React.ComponentPropsWithoutRef<
 	const onKeyDown = useMenuKeyboard(ref, '[data-slot="sidebar-item"]')
 
 	return (
-		<LayoutGroup>
+		<ActiveIndicatorScope>
 			<nav
 				ref={ref}
 				data-slot="sidebar"
@@ -21,7 +22,7 @@ export function Sidebar({ className, ...props }: React.ComponentPropsWithoutRef<
 				{...props}
 				className={cn('flex h-full min-h-0 flex-col', className)}
 			/>
-		</LayoutGroup>
+		</ActiveIndicatorScope>
 	)
 }
 
@@ -70,10 +71,7 @@ export function SidebarSection({
 				layoutScroll
 				{...props}
 				data-slot="section"
-				className={cn(
-					'flex flex-col gap-1 -my-2 -mr-2 -ml-4 py-2 pr-2 pl-4 overflow-y-auto',
-					className,
-				)}
+				className={cn('flex flex-col gap-1 -mr-2 -ml-4 py-2 pr-2 pl-4 overflow-y-auto', className)}
 			/>
 		)
 	}

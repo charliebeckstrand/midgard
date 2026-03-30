@@ -16,7 +16,7 @@ const pulse = {
 	},
 }
 
-const fill = 'bg-zinc-200 dark:bg-zinc-800'
+const fill = 'bg-(--color-placeholder)'
 const bar = `h-2 rounded-full ${fill}`
 
 /** @deprecated Use `Skeleton` or component-specific skeletons instead */

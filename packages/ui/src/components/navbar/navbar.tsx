@@ -1,11 +1,15 @@
 'use client'
 
-import { LayoutGroup } from 'motion/react'
 import type React from 'react'
 import { cn } from '../../core'
+import { ActiveIndicatorScope } from '../../primitives'
 
 export function Navbar({ className, ...props }: React.ComponentPropsWithoutRef<'nav'>) {
-	return <nav {...props} className={cn('flex items-center gap-4 p-6', className)} />
+	return (
+		<ActiveIndicatorScope>
+			<nav {...props} className={cn('flex items-center gap-4 p-6', className)} />
+		</ActiveIndicatorScope>
+	)
 }
 
 export function NavbarDivider({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
@@ -20,9 +24,9 @@ export function NavbarDivider({ className, ...props }: React.ComponentPropsWitho
 
 export function NavbarSection({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
 	return (
-		<LayoutGroup>
+		<ActiveIndicatorScope>
 			<div {...props} className={cn('flex items-center gap-3', className)} />
-		</LayoutGroup>
+		</ActiveIndicatorScope>
 	)
 }
 

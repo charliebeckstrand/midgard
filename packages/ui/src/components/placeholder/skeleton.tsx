@@ -14,7 +14,7 @@ const pulse = {
 	},
 }
 
-const fill = 'bg-zinc-200 dark:bg-zinc-800'
+const fill = 'bg-(--color-placeholder)'
 
 export type SkeletonProps = {
 	className?: string

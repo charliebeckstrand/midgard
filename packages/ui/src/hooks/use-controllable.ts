@@ -13,7 +13,7 @@ export function useControllable<T>(props: {
 	onChange?: (value: T) => void
 }): [T | undefined, (value: T) => void] {
 	const { value, defaultValue, onChange } = props
-	
+
 	const [internalValue, setInternalValue] = useState<T | undefined>(defaultValue)
 
 	const currentValue = value !== undefined ? value : internalValue

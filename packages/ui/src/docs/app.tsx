@@ -56,14 +56,14 @@ function simplifySource(source: string): string {
 	if (!match) return result
 
 	const beforeFunc = result.slice(0, result.indexOf('export default function')).trim()
-	const bodyStatements = match[1].trim()
-	const jsx = match[2].replace(/^\t\t/gm, '')
+	const bodyStatements = match[1]?.trim()
+	const jsx = match[2]?.replace(/^\t\t/gm, '')
 
 	const parts = [beforeFunc]
 
 	if (bodyStatements) parts.push(bodyStatements.replace(/^\t/gm, ''))
 
-	parts.push(jsx)
+	if (jsx) parts.push(jsx)
 
 	return parts.filter(Boolean).join('\n\n')
 }

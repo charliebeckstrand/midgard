@@ -12,10 +12,12 @@ import { OffcanvasContext } from './context'
 export function SidebarLayout({
 	navbar,
 	sidebar,
+	actions,
 	children,
 }: React.PropsWithChildren<{
 	navbar: React.ReactNode
 	sidebar: React.ReactNode
+	actions?: React.ReactNode
 }>) {
 	const [open, setOpen] = useState(false)
 
@@ -41,7 +43,7 @@ export function SidebarLayout({
 	return (
 		<div
 			className={cn(
-				'relative isolate flex h-svh w-full max-lg:flex-col',
+				'relative isolate flex h-svh w-full max-lg:flex-col overflow-hidden',
 				'bg-white lg:bg-zinc-100',
 				'dark:bg-zinc-950',
 			)}
@@ -64,11 +66,14 @@ export function SidebarLayout({
 				<div className="min-w-0 flex-1">{navbar}</div>
 			</header>
 
+			{/* Persistent actions (top-right on desktop) */}
+			{actions && <div className="fixed top-5 right-5 z-10 max-lg:hidden">{actions}</div>}
+
 			{/* Content */}
 			<main className="flex flex-1 flex-col overflow-hidden pb-2 lg:min-w-0 lg:pt-2 lg:pr-2 lg:pl-64">
 				<div
 					className={cn(
-						'flex flex-col grow min-h-0 overflow-hidden px-6 pb-6 lg:pt-6',
+						'flex flex-col grow min-h-0 px-6 pb-6 lg:pt-6 overflow-y-auto',
 						omote.content,
 						'[&>[data-slot=header]>nav]:p-0',
 						'[&:has([data-slot=footer])>[data-slot=body]]:pb-0',

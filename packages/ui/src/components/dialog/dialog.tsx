@@ -12,6 +12,7 @@ export type DialogProps = {
 	open: boolean
 	onClose: () => void
 	outsideClick?: boolean
+	backdropClassName?: string
 	size?: katachi.PanelSize
 	className?: string
 	children: React.ReactNode
@@ -21,6 +22,7 @@ export function Dialog({
 	open,
 	onClose,
 	outsideClick,
+	backdropClassName,
 	size = 'lg',
 	className,
 	children,
@@ -35,6 +37,7 @@ export function Dialog({
 				open={open}
 				onClose={onClose}
 				outsideClick={outsideClick}
+				className={backdropClassName}
 				role="dialog"
 				aria-modal="true"
 				aria-labelledby={titleId}

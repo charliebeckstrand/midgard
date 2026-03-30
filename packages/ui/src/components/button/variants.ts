@@ -60,7 +60,7 @@ export const button = cva(
 					'hover:[--btn-icon:var(--color-zinc-700)]',
 					// Dark
 					'dark:border-white/15 dark:text-white dark:[--btn-bg:transparent]',
-					'dark:active:bg-white/5 dark:active:[--btn-icon:var(--color-zinc-400)]',
+					'dark:not-disabled:active:bg-white/5 dark:not-disabled:active:[--btn-icon:var(--color-zinc-400)]',
 					'dark:not-disabled:hover:bg-white/5',
 					'dark:hover:[--btn-icon:var(--color-zinc-400)]',
 				],

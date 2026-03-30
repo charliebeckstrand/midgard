@@ -1,11 +1,10 @@
 'use client'
 
-import { LayoutGroup } from 'motion/react'
 import type React from 'react'
 import { useRef } from 'react'
 import { cn } from '../../core'
 import { useMenuKeyboard } from '../../hooks'
-import { ActiveIndicator, useActiveIndicator } from '../../primitives'
+import { ActiveIndicator, ActiveIndicatorScope, useActiveIndicator } from '../../primitives'
 import { kage, ki, sawari } from '../../recipes'
 
 export function Tabs({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
@@ -13,7 +12,7 @@ export function Tabs({ className, ...props }: React.ComponentPropsWithoutRef<'di
 	const onKeyDown = useMenuKeyboard(ref, '[role="tab"]', 'horizontal')
 
 	return (
-		<LayoutGroup>
+		<ActiveIndicatorScope>
 			<div
 				ref={ref}
 				role="tablist"
@@ -21,7 +20,7 @@ export function Tabs({ className, ...props }: React.ComponentPropsWithoutRef<'di
 				{...props}
 				className={cn(`flex gap-4 ${kage.base}`, className)}
 			/>
-		</LayoutGroup>
+		</ActiveIndicatorScope>
 	)
 }
 
@@ -49,7 +48,7 @@ export function Tab({
 				aria-selected={current}
 				data-current={current ? '' : undefined}
 				className={cn(
-					'relative z-10 flex items-center gap-2 px-2 py-1 text-sm/6 font-medium outline-hidden',
+					'relative z-10 flex items-center gap-2 px-3 py-2 font-medium outline-hidden',
 					ki.reset,
 					sawari.tab,
 				)}

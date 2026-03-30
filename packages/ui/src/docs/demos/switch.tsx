@@ -19,10 +19,10 @@ export default function SwitchDemo() {
 				<Description>Use the dark color scheme.</Description>
 				<Switch id="switch-dark-mode" defaultChecked color="blue" />
 			</SwitchField>
-			<SwitchField disabled>
+			<SwitchField>
 				<Label htmlFor="switch-disabled">Disabled</Label>
 				<Description>This switch is disabled.</Description>
-				<Switch id="switch-disabled" />
+				<Switch id="switch-disabled" disabled />
 			</SwitchField>
 		</SwitchGroup>
 	)

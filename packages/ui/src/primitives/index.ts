@@ -1,6 +1,6 @@
-export { ActiveIndicator, useActiveIndicator } from './active-indicator'
+export { ActiveIndicator, ActiveIndicatorScope, useActiveIndicator } from './active-indicator'
 export { CheckboxIcon, CheckIcon, ChevronIcon, CloseIcon, MenuIcon } from './icons'
-export { BaseOption, type BaseOptionProps, OptionDescription, OptionLabel } from './option'
+export { BaseOption, OptionDescription, OptionLabel } from './option'
 export { Overlay, type OverlayProps } from './overlay'
 export { PopoverPanel } from './popover-panel'
 export { TouchTarget } from './touch-target'
