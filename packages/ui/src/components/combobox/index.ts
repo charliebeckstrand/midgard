@@ -1,0 +1,15 @@
+export { Combobox, type ComboboxProps } from './combobox'
+export {
+	ComboboxDescription,
+	type ComboboxDescriptionProps,
+	ComboboxLabel,
+	type ComboboxLabelProps,
+	ComboboxOption,
+	type ComboboxOptionProps,
+} from './option'
+export {
+	comboboxInputVariants,
+	comboboxOptionsVariants,
+	comboboxOptionVariants,
+	comboboxVariants,
+} from './variants'

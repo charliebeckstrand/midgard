@@ -35,7 +35,7 @@ export function Checkbox({ className, color, ...props }: CheckboxProps) {
 
 export type CheckboxGroupProps = {
 	className?: string
-} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
+} & Omit<React.ComponentPropsWithoutRef<'fieldset'>, 'className'>
 
 export function CheckboxGroup({ className, ...props }: CheckboxGroupProps) {
 	return <fieldset data-slot="control" className={cn(narabi.group, className)} {...props} />
