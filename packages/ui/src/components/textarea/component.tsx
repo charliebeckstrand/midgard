@@ -1,5 +1,5 @@
 import { cn } from '../../core'
-import { textareaControlVariants, textareaVariants, type TextareaVariants } from './variants'
+import { type TextareaVariants, textareaControlVariants, textareaVariants } from './variants'
 
 export type TextareaProps = TextareaVariants & {
 	className?: string

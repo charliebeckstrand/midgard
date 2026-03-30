@@ -7,13 +7,7 @@ export type FieldsetProps = {
 } & Omit<React.ComponentPropsWithoutRef<'fieldset'>, 'className'>
 
 export function Fieldset({ className, ...props }: FieldsetProps) {
-	return (
-		<fieldset
-			data-slot="fieldset"
-			className={cn(fieldsetVariants(), className)}
-			{...props}
-		/>
-	)
+	return <fieldset data-slot="fieldset" className={cn(fieldsetVariants(), className)} {...props} />
 }
 
 export type LegendProps = {
@@ -21,11 +15,5 @@ export type LegendProps = {
 } & Omit<React.ComponentPropsWithoutRef<'legend'>, 'className'>
 
 export function Legend({ className, ...props }: LegendProps) {
-	return (
-		<legend
-			data-slot="legend"
-			className={cn(legendVariants(), className)}
-			{...props}
-		/>
-	)
+	return <legend data-slot="legend" className={cn(legendVariants(), className)} {...props} />
 }

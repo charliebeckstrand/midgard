@@ -1,5 +1,5 @@
 import { cn } from '../../core'
-import { selectControlVariants, selectVariants, type SelectVariants } from './variants'
+import { type SelectVariants, selectControlVariants, selectVariants } from './variants'
 
 export type SelectProps = SelectVariants & {
 	className?: string
@@ -8,11 +8,7 @@ export type SelectProps = SelectVariants & {
 export function Select({ className, children, ...props }: SelectProps) {
 	return (
 		<span data-slot="control" className={selectControlVariants()}>
-			<select
-				data-slot="select"
-				className={cn(selectVariants(), className)}
-				{...props}
-			>
+			<select data-slot="select" className={cn(selectVariants(), className)} {...props}>
 				{children}
 			</select>
 			<svg

@@ -1,8 +1,6 @@
-'use client'
-
 import { cn, Link } from '../../core'
 import { TouchTarget } from '../../primitives'
-import { buttonVariants, type ButtonVariants } from './variants'
+import { type ButtonVariants, buttonVariants } from './variants'
 
 type ButtonBaseProps = ButtonVariants & {
 	className?: string
@@ -14,27 +12,26 @@ export type ButtonProps = ButtonBaseProps &
 		| ({ href: string } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
 	)
 
-export function Button({ variant, color, className, ...props }: ButtonProps) {
+export function Button({ variant, color, className, children, ...props }: ButtonProps) {
 	const classes = cn(buttonVariants({ variant, color }), className)
 
 	if ('href' in props && props.href !== undefined) {
-		const { href, ...rest } = props
-
+		const { href, ...linkProps } = props
 		return (
-			<Link href={href} data-slot="button" className={classes} {...rest}>
-				<TouchTarget>{rest.children}</TouchTarget>
+			<Link data-slot="button" href={href} className={classes} {...linkProps}>
+				<TouchTarget>{children}</TouchTarget>
 			</Link>
 		)
 	}
 
-	const { type = 'button', ...rest } = props as Omit<
-		React.ComponentPropsWithoutRef<'button'>,
-		'className'
-	>
-
 	return (
-		<button data-slot="button" type={type} className={classes} {...rest}>
-			<TouchTarget>{rest.children}</TouchTarget>
+		<button
+			data-slot="button"
+			type="button"
+			className={classes}
+			{...(props as Omit<React.ComponentPropsWithoutRef<'button'>, 'className'>)}
+		>
+			<TouchTarget>{children}</TouchTarget>
 		</button>
 	)
 }

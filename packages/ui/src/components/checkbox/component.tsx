@@ -1,8 +1,6 @@
-'use client'
-
 import { cn } from '../../core'
 import { narabi } from '../../recipes'
-import { checkboxVariants, type CheckboxVariants } from './variants'
+import { type CheckboxVariants, checkboxVariants } from './variants'
 
 export type CheckboxProps = CheckboxVariants & {
 	className?: string
@@ -10,18 +8,11 @@ export type CheckboxProps = CheckboxVariants & {
 
 export function Checkbox({ className, color, ...props }: CheckboxProps) {
 	return (
-		<span
-			data-slot="control"
-			className="relative inline-flex items-center justify-center"
-		>
+		<span data-slot="control" className="relative inline-flex items-center justify-center">
 			<input
 				type="checkbox"
 				data-slot="checkbox"
-				className={cn(
-					checkboxVariants({ color }),
-					'appearance-none',
-					className,
-				)}
+				className={cn(checkboxVariants({ color }), 'appearance-none', className)}
 				{...props}
 			/>
 			<svg
@@ -47,14 +38,7 @@ export type CheckboxGroupProps = {
 } & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
 
 export function CheckboxGroup({ className, ...props }: CheckboxGroupProps) {
-	return (
-		<div
-			data-slot="control"
-			role="group"
-			className={cn(narabi.group, className)}
-			{...props}
-		/>
-	)
+	return <fieldset data-slot="control" className={cn(narabi.group, className)} {...props} />
 }
 
 export type CheckboxFieldProps = {
@@ -62,11 +46,5 @@ export type CheckboxFieldProps = {
 } & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
 
 export function CheckboxField({ className, ...props }: CheckboxFieldProps) {
-	return (
-		<div
-			data-slot="field"
-			className={cn(narabi.toggle, className)}
-			{...props}
-		/>
-	)
+	return <div data-slot="field" className={cn(narabi.toggle, className)} {...props} />
 }

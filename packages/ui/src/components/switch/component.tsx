@@ -1,6 +1,6 @@
 import { cn } from '../../core'
 import { narabi } from '../../recipes'
-import { switchThumbVariants, switchVariants, type SwitchVariants } from './variants'
+import { type SwitchVariants, switchThumbVariants, switchVariants } from './variants'
 
 export type SwitchProps = SwitchVariants & {
 	className?: string
@@ -8,29 +8,14 @@ export type SwitchProps = SwitchVariants & {
 
 export function Switch({ className, color, ...props }: SwitchProps) {
 	return (
-		<span
-			data-slot="control"
-			className="relative inline-flex items-center"
-		>
+		<span data-slot="control" className="relative inline-flex h-6 w-10 items-center">
 			<input
 				type="checkbox"
-				role="switch"
 				data-slot="switch"
-				className="peer sr-only"
+				className={cn(switchVariants({ color }), 'appearance-none', className)}
 				{...props}
 			/>
-			<span
-				aria-hidden="true"
-				className={cn(
-					switchVariants({ color }),
-					'peer-checked:data-checked peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-blue-600',
-					'peer-disabled:opacity-50 peer-disabled:cursor-default',
-					className,
-				)}
-				data-checked={undefined}
-			>
-				<span className={switchThumbVariants()} />
-			</span>
+			<span aria-hidden="true" className={switchThumbVariants()} />
 		</span>
 	)
 }
@@ -40,11 +25,5 @@ export type SwitchFieldProps = {
 } & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
 
 export function SwitchField({ className, ...props }: SwitchFieldProps) {
-	return (
-		<div
-			data-slot="field"
-			className={cn(narabi.toggle, className)}
-			{...props}
-		/>
-	)
+	return <div data-slot="field" className={cn(narabi.toggle, className)} {...props} />
 }

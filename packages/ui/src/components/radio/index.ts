@@ -1,9 +1,9 @@
 export {
 	Radio,
 	RadioField,
-	RadioGroup,
 	type RadioFieldProps,
+	RadioGroup,
 	type RadioGroupProps,
 	type RadioProps,
 } from './component'
-export { radioVariants, type RadioVariants } from './variants'
+export { type RadioVariants, radioVariants } from './variants'

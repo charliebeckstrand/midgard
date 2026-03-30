@@ -11,14 +11,14 @@ export const switchVariants = cva(
 		ki.reset,
 		ki.offset,
 		// Checked — track
-		'data-checked:bg-(--switch-bg) data-checked:ring-(--switch-bg-ring) data-checked:ring-inset',
+		'checked:bg-(--switch-bg) checked:ring-(--switch-bg-ring) checked:ring-inset',
 		// Hover
 		'hover:bg-zinc-300 dark:hover:bg-white/15',
-		'data-checked:hover:opacity-90',
+		'checked:hover:opacity-90',
 		// Disabled
 		'disabled:opacity-50 disabled:cursor-default',
 		// Forced colors
-		'forced-colors:appearance-auto forced-colors:data-checked:appearance-auto',
+		'forced-colors:appearance-auto forced-colors:checked:appearance-auto',
 	],
 	{
 		variants: {
@@ -39,11 +39,11 @@ export const switchVariants = cva(
 )
 
 export const switchThumbVariants = cva([
-	'pointer-events-none relative inline-block size-4 rounded-full',
-	'translate-x-1 transition-transform duration-200 ease-in-out',
+	'pointer-events-none absolute inline-block size-4 rounded-full',
+	'left-1 transition-[left] duration-200 ease-in-out',
 	'bg-white shadow-sm ring-1 ring-zinc-950/5',
-	'peer-checked:group-[]:translate-x-5',
-	'peer-checked:group-[]:bg-(--switch) peer-checked:group-[]:shadow-(--switch-shadow) peer-checked:group-[]:ring-(--switch-ring)',
+	'[:checked+&]:left-5',
+	'[:checked+&]:bg-(--switch) [:checked+&]:shadow-(--switch-shadow) [:checked+&]:ring-(--switch-ring)',
 ])
 
 export type SwitchVariants = VariantProps<typeof switchVariants>

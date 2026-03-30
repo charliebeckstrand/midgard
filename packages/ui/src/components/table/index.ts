@@ -1,0 +1,25 @@
+export {
+	Table,
+	TableBody,
+	type TableBodyProps,
+	TableCell,
+	type TableCellProps,
+	TableHead,
+	TableHeader,
+	type TableHeaderProps,
+	type TableHeadProps,
+	type TableProps,
+	TableRow,
+	type TableRowProps,
+} from './component'
+export {
+	type TableVariants,
+	tableBodyVariants,
+	tableCellVariants,
+	tableGridVariants,
+	tableHeaderVariants,
+	tableHeadVariants,
+	tableRowStripedVariants,
+	tableRowVariants,
+	tableVariants,
+} from './variants'

@@ -1,2 +1,2 @@
-export { Avatar, type AvatarProps, AvatarButton, type AvatarButtonProps } from './component'
-export { avatarVariants, type AvatarVariants } from './variants'
+export { Avatar, AvatarButton, type AvatarButtonProps, type AvatarProps } from './component'
+export { type AvatarVariants, avatarVariants } from './variants'

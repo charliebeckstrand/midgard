@@ -1,5 +1,5 @@
 import { cn } from '../../core'
-import { headingVariants, type HeadingVariants } from './variants'
+import { type HeadingVariants, headingVariants } from './variants'
 
 type HeadingLevel = 1 | 2 | 3 | 4 | 5 | 6
 
@@ -11,5 +11,7 @@ export type HeadingProps = HeadingVariants & {
 export function Heading({ level = 1, className, ...props }: HeadingProps) {
 	const Tag = `h${level}` as const
 
-	return <Tag data-slot="heading" className={cn(headingVariants({ level }), className)} {...props} />
+	return (
+		<Tag data-slot="heading" className={cn(headingVariants({ level }), className)} {...props} />
+	)
 }

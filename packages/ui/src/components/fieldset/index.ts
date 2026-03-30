@@ -4,16 +4,16 @@ export { Field, type FieldProps } from './field'
 export { Fieldset, type FieldsetProps, Legend, type LegendProps } from './fieldset'
 export { Label, type LabelProps } from './label'
 export {
-	descriptionVariants,
-	errorVariants,
-	fieldVariants,
-	fieldsetVariants,
-	labelVariants,
-	legendVariants,
 	type DescriptionVariants,
+	descriptionVariants,
 	type ErrorVariants,
-	type FieldVariants,
+	errorVariants,
 	type FieldsetVariants,
+	type FieldVariants,
+	fieldsetVariants,
+	fieldVariants,
 	type LabelVariants,
 	type LegendVariants,
+	labelVariants,
+	legendVariants,
 } from './variants'

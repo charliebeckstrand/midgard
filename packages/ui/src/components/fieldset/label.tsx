@@ -6,11 +6,6 @@ export type LabelProps = {
 } & Omit<React.ComponentPropsWithoutRef<'label'>, 'className'>
 
 export function Label({ className, ...props }: LabelProps) {
-	return (
-		<label
-			data-slot="label"
-			className={cn(labelVariants(), className)}
-			{...props}
-		/>
-	)
+	// biome-ignore lint/a11y/noLabelWithoutControl: htmlFor is passed via ...props by the consumer
+	return <label data-slot="label" className={cn(labelVariants(), className)} {...props} />
 }

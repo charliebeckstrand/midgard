@@ -6,11 +6,5 @@ export type DescriptionProps = {
 } & Omit<React.ComponentPropsWithoutRef<'p'>, 'className'>
 
 export function Description({ className, ...props }: DescriptionProps) {
-	return (
-		<p
-			data-slot="description"
-			className={cn(descriptionVariants(), className)}
-			{...props}
-		/>
-	)
+	return <p data-slot="description" className={cn(descriptionVariants(), className)} {...props} />
 }

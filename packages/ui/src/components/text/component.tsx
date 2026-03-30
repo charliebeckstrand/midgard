@@ -1,5 +1,5 @@
 import { cn } from '../../core'
-import { textVariants, type TextVariants } from './variants'
+import { type TextVariants, textVariants } from './variants'
 
 export type TextProps = TextVariants & {
 	className?: string

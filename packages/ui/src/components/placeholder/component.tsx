@@ -1,5 +1,5 @@
 import { cn } from '../../core'
-import { placeholderVariants, type PlaceholderVariants } from './variants'
+import { type PlaceholderVariants, placeholderVariants } from './variants'
 
 export type PlaceholderProps = PlaceholderVariants & {
 	className?: string

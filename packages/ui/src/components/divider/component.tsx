@@ -1,9 +1,8 @@
 import { cn } from '../../core'
-import { dividerVariants, type DividerVariants } from './variants'
+import { type DividerVariants, dividerVariants } from './variants'
 
 export type DividerProps = DividerVariants & {
 	className?: string
-	soft?: boolean
 } & Omit<React.ComponentPropsWithoutRef<'hr'>, 'className'>
 
 export function Divider({ orientation, soft, className, ...props }: DividerProps) {

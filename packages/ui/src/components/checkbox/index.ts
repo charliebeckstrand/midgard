@@ -1,9 +1,9 @@
 export {
 	Checkbox,
 	CheckboxField,
-	CheckboxGroup,
 	type CheckboxFieldProps,
+	CheckboxGroup,
 	type CheckboxGroupProps,
 	type CheckboxProps,
 } from './component'
-export { checkboxVariants, type CheckboxVariants } from './variants'
+export { type CheckboxVariants, checkboxVariants } from './variants'

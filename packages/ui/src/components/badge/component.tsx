@@ -1,5 +1,5 @@
 import { cn, Link } from '../../core'
-import { badgeVariants, type BadgeVariants } from './variants'
+import { type BadgeVariants, badgeVariants } from './variants'
 
 type BadgeBaseProps = BadgeVariants & {
 	className?: string
@@ -11,16 +11,25 @@ export type BadgeProps = BadgeBaseProps &
 		| ({ href: string } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
 	)
 
-export function Badge({ variant, color, size, className, ...props }: BadgeProps) {
+export function Badge({ variant, color, size, className, children, ...props }: BadgeProps) {
 	const classes = cn(badgeVariants({ variant, color, size }), className)
 
 	if ('href' in props && props.href !== undefined) {
-		const { href, ...rest } = props
-
+		const { href, ...linkProps } = props
 		return (
-			<Link href={href} data-slot="badge" className={cn('group', classes)} {...rest} />
+			<Link data-slot="badge" href={href} className={classes} {...linkProps}>
+				{children}
+			</Link>
 		)
 	}
 
-	return <span data-slot="badge" className={classes} {...props} />
+	return (
+		<span
+			data-slot="badge"
+			className={classes}
+			{...(props as Omit<React.ComponentPropsWithoutRef<'span'>, 'className'>)}
+		>
+			{children}
+		</span>
+	)
 }

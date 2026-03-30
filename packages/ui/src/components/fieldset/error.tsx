@@ -6,11 +6,5 @@ export type ErrorMessageProps = {
 } & Omit<React.ComponentPropsWithoutRef<'p'>, 'className'>
 
 export function ErrorMessage({ className, ...props }: ErrorMessageProps) {
-	return (
-		<p
-			data-slot="error"
-			className={cn(errorVariants(), className)}
-			{...props}
-		/>
-	)
+	return <p data-slot="error" className={cn(errorVariants(), className)} {...props} />
 }

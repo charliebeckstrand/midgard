@@ -4,4 +4,4 @@ export {
 	type SwitchFieldProps,
 	type SwitchProps,
 } from './component'
-export { switchVariants, type SwitchVariants } from './variants'
+export { type SwitchVariants, switchVariants } from './variants'

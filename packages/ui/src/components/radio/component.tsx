@@ -1,6 +1,6 @@
 import { cn } from '../../core'
 import { narabi } from '../../recipes'
-import { radioVariants, type RadioVariants } from './variants'
+import { type RadioVariants, radioVariants } from './variants'
 
 export type RadioProps = RadioVariants & {
 	className?: string
@@ -8,28 +8,17 @@ export type RadioProps = RadioVariants & {
 
 export function Radio({ className, color, ...props }: RadioProps) {
 	return (
-		<span
-			data-slot="control"
-			className="relative inline-flex items-center justify-center"
-		>
+		<span data-slot="control" className="relative inline-flex items-center justify-center">
 			<input
 				type="radio"
 				data-slot="radio"
-				className="peer sr-only"
+				className={cn(radioVariants({ color }), 'appearance-none', className)}
 				{...props}
 			/>
 			<span
 				aria-hidden="true"
-				className={cn(
-					radioVariants({ color }),
-					'peer-checked:data-checked peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-blue-600',
-					'peer-disabled:opacity-50',
-					className,
-				)}
-				data-checked={undefined}
-			>
-				<span className="size-1.5 rounded-full bg-(--radio-checked-indicator) opacity-0 peer-checked:group-[]:opacity-100 sm:size-1" />
-			</span>
+				className="pointer-events-none absolute size-1.5 rounded-full bg-(--radio-checked-indicator) opacity-0 [:checked+&]:opacity-100 sm:size-1"
+			/>
 		</span>
 	)
 }
@@ -40,12 +29,7 @@ export type RadioGroupProps = {
 
 export function RadioGroup({ className, ...props }: RadioGroupProps) {
 	return (
-		<div
-			data-slot="control"
-			role="radiogroup"
-			className={cn(narabi.group, className)}
-			{...props}
-		/>
+		<div data-slot="control" role="radiogroup" className={cn(narabi.group, className)} {...props} />
 	)
 }
 
@@ -54,11 +38,5 @@ export type RadioFieldProps = {
 } & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
 
 export function RadioField({ className, ...props }: RadioFieldProps) {
-	return (
-		<div
-			data-slot="field"
-			className={cn(narabi.toggle, className)}
-			{...props}
-		/>
-	)
+	return <div data-slot="field" className={cn(narabi.toggle, className)} {...props} />
 }

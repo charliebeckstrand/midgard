@@ -1,2 +1,2 @@
 export { Textarea, type TextareaProps } from './component'
-export { textareaVariants, type TextareaVariants } from './variants'
+export { type TextareaVariants, textareaVariants } from './variants'
