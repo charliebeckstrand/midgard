@@ -1,39 +1,21 @@
-import { cn } from '../../core'
 import {
-	dialogActionsVariants,
-	dialogBodyVariants,
-	dialogDescriptionVariants,
-	dialogTitleVariants,
-} from './variants'
+	createPanelSlots,
+	type PanelActionsProps,
+	type PanelBodyProps,
+	type PanelDescriptionProps,
+	type PanelTitleProps,
+} from '../../primitives'
 
-export type DialogTitleProps = React.ComponentPropsWithoutRef<'h2'>
+const { Title, Description, Body, Actions } = createPanelSlots('dialog')
 
-export type DialogDescriptionProps = React.ComponentPropsWithoutRef<'p'>
+export type DialogTitleProps = PanelTitleProps
+export type DialogDescriptionProps = PanelDescriptionProps
+export type DialogBodyProps = PanelBodyProps
+export type DialogActionsProps = PanelActionsProps
 
-export type DialogBodyProps = React.ComponentPropsWithoutRef<'div'>
-
-export type DialogActionsProps = React.ComponentPropsWithoutRef<'div'>
-
-export function DialogTitle({ className, ...props }: DialogTitleProps) {
-	return <h2 data-slot="dialog-title" className={cn(dialogTitleVariants(), className)} {...props} />
-}
-
-export function DialogDescription({ className, ...props }: DialogDescriptionProps) {
-	return (
-		<p
-			data-slot="dialog-description"
-			className={cn(dialogDescriptionVariants(), className)}
-			{...props}
-		/>
-	)
-}
-
-export function DialogBody({ className, ...props }: DialogBodyProps) {
-	return <div data-slot="dialog-body" className={cn(dialogBodyVariants(), className)} {...props} />
-}
-
-export function DialogActions({ className, ...props }: DialogActionsProps) {
-	return (
-		<div data-slot="dialog-actions" className={cn(dialogActionsVariants(), className)} {...props} />
-	)
+export {
+	Actions as DialogActions,
+	Body as DialogBody,
+	Description as DialogDescription,
+	Title as DialogTitle,
 }

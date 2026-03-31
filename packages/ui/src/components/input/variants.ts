@@ -1,9 +1,7 @@
 import { cva, type VariantProps } from 'class-variance-authority'
-import { katachi, ma, omote } from '../../recipes'
+import { omote } from '../../recipes'
 
-export const inputControlVariants = cva(omote.control)
-
-export const inputVariants = cva([...omote.input, ma.control, katachi.maru])
+export const inputVariants = cva(omote.formInput)
 
 export const inputDateVariants = cva(omote.date)
 

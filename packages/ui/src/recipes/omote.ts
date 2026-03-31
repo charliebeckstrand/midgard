@@ -9,7 +9,38 @@
  */
 
 import { kage } from './kage'
+import { katachi } from './katachi'
+import { ki } from './ki'
+import { ma } from './ma'
 import { sumi } from './sumi'
+
+/** The surface of an input element — text, bg, border, hover, focus, invalid, disabled */
+const input = [
+	// Layout
+	'relative block w-full',
+	// Height
+	'min-h-11',
+	// Text
+	`text-base/6 ${sumi.base} placeholder:text-zinc-500`,
+	// Background
+	'bg-transparent',
+	'dark:bg-white/5',
+	// Border
+	`border ${kage.base}`,
+	// Hover
+	'hover:border-zinc-950/20',
+	'dark:hover:border-white/20',
+	// Focus
+	'focus:outline-hidden',
+	// Invalid
+	'data-invalid:border-red-600',
+	'data-invalid:hover:border-red-600',
+	// Disabled
+	'disabled:border-zinc-950/20',
+	'dark:disabled:border-white/15 dark:disabled:bg-white/2.5',
+	'dark:hover:disabled:border-white/15',
+	'disabled:cursor-not-allowed',
+]
 
 export const omote = {
 	/** Elevated panel surface — modals, dialogs, sheets */
@@ -35,33 +66,30 @@ export const omote = {
 		'has-[:disabled]:opacity-50 has-[:disabled]:before:bg-zinc-950/5 has-[:disabled]:before:shadow-none has-[:disabled]:cursor-not-allowed',
 	],
 
-	/** The surface of an input element — text, bg, border, hover, focus, invalid, disabled */
-	input: [
-		// Layout
-		'relative block w-full',
-		// Height
-		'min-h-11',
-		// Text
-		`text-base/6 ${sumi.base} placeholder:text-zinc-500`,
-		// Background
-		'bg-transparent',
-		'dark:bg-white/5',
-		// Border
-		`border ${kage.base}`,
-		// Hover
-		'hover:border-zinc-950/20',
-		'dark:hover:border-white/20',
-		// Focus
-		'focus:outline-hidden',
-		// Invalid
-		'data-invalid:border-red-600',
-		'data-invalid:hover:border-red-600',
-		// Disabled
-		'disabled:border-zinc-950/20',
-		'dark:disabled:border-white/15 dark:disabled:bg-white/2.5',
-		'dark:hover:disabled:border-white/15',
-		'disabled:cursor-not-allowed',
+	/** Hidden native input base — positioning, focus, disabled, forced-colors (checkbox, radio, switch) */
+	hiddenInput: [
+		'absolute inset-0 appearance-none cursor-pointer',
+		ki.offset,
+		'disabled:opacity-50 disabled:cursor-not-allowed',
+		'forced-colors:appearance-auto forced-colors:checked:appearance-auto',
 	],
+
+	/** Checkable input surface — extends hiddenInput with unchecked border/bg and hover states (checkbox, radio) */
+	check: [
+		'absolute inset-0 appearance-none cursor-pointer',
+		ki.offset,
+		'border border-zinc-950/15 bg-white shadow-xs dark:border-white/15 dark:bg-white/5',
+		'not-disabled:hover:border-zinc-950/30 dark:not-disabled:hover:border-white/30',
+		'not-disabled:checked:hover:opacity-90',
+		'disabled:opacity-50 disabled:cursor-not-allowed',
+		'forced-colors:appearance-auto forced-colors:checked:appearance-auto',
+	],
+
+	/** The surface of an input element — text, bg, border, hover, focus, invalid, disabled */
+	input,
+
+	/** Complete form input base: input surface + control spacing + rounded corners */
+	formInput: [...input, ma.control, katachi.maru],
 
 	/** WebKit date/time picker surface normalisation */
 	date: [

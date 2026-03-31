@@ -1,5 +1,6 @@
 import { cn } from '../../core'
-import { type SelectVariants, selectControlVariants, selectVariants } from './variants'
+import { FormControl } from '../../primitives'
+import { type SelectVariants, selectVariants } from './variants'
 
 export type SelectProps = SelectVariants & {
 	className?: string
@@ -7,7 +8,7 @@ export type SelectProps = SelectVariants & {
 
 export function Select({ className, children, ...props }: SelectProps) {
 	return (
-		<span data-slot="control" className={selectControlVariants()}>
+		<FormControl>
 			<select data-slot="select" className={cn(selectVariants(), className)} {...props}>
 				{children}
 			</select>
@@ -24,6 +25,6 @@ export function Select({ className, children, ...props }: SelectProps) {
 					clipRule="evenodd"
 				/>
 			</svg>
-		</span>
+		</FormControl>
 	)
 }

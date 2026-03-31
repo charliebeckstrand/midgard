@@ -1,12 +1,8 @@
 'use client'
 
-import { cn, Link } from '../../core'
-import {
-	ActiveIndicator,
-	ActiveIndicatorScope,
-	TouchTarget,
-	useActiveIndicator,
-} from '../../primitives'
+import { cn } from '../../core'
+import { ActiveIndicatorScope } from '../../primitives'
+import { createNavItem, type NavItemProps } from '../../primitives/create-nav-item'
 import {
 	navbarItemVariants,
 	navbarLabelVariants,
@@ -23,16 +19,7 @@ export type NavbarLabelProps = React.ComponentPropsWithoutRef<'span'>
 
 export type NavbarSpacerProps = React.ComponentPropsWithoutRef<'div'>
 
-type NavbarItemBaseProps = {
-	current?: boolean
-	className?: string
-}
-
-export type NavbarItemProps = NavbarItemBaseProps &
-	(
-		| ({ href?: never } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className'>)
-		| ({ href: string } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
-	)
+export type NavbarItemProps = NavItemProps
 
 export function Navbar({ className, children, ...props }: NavbarProps) {
 	return (
@@ -50,41 +37,7 @@ export function NavbarSection({ className, ...props }: NavbarSectionProps) {
 	)
 }
 
-export function NavbarItem({ current, className, children, ...props }: NavbarItemProps) {
-	const indicator = useActiveIndicator()
-	const classes = cn(navbarItemVariants(), className)
-
-	if ('href' in props && props.href !== undefined) {
-		const { href, ...linkProps } = props
-		return (
-			<span data-slot="navbar-item" className="group relative" {...indicator.tapHandlers}>
-				<Link
-					data-current={current ? '' : undefined}
-					href={href}
-					className={classes}
-					{...linkProps}
-				>
-					<TouchTarget>{children}</TouchTarget>
-				</Link>
-				{current && <ActiveIndicator ref={indicator.ref} />}
-			</span>
-		)
-	}
-
-	return (
-		<span data-slot="navbar-item" className="group relative" {...indicator.tapHandlers}>
-			<button
-				data-current={current ? '' : undefined}
-				type="button"
-				className={classes}
-				{...(props as Omit<React.ComponentPropsWithoutRef<'button'>, 'className'>)}
-			>
-				<TouchTarget>{children}</TouchTarget>
-			</button>
-			{current && <ActiveIndicator ref={indicator.ref} />}
-		</span>
-	)
-}
+export const NavbarItem = createNavItem({ slotPrefix: 'navbar', variants: navbarItemVariants })
 
 export function NavbarLabel({ className, ...props }: NavbarLabelProps) {
 	return (

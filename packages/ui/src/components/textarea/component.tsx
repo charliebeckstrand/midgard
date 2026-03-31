@@ -1,5 +1,6 @@
 import { cn } from '../../core'
-import { type TextareaVariants, textareaControlVariants, textareaVariants } from './variants'
+import { FormControl } from '../../primitives'
+import { type TextareaVariants, textareaVariants } from './variants'
 
 export type TextareaProps = TextareaVariants & {
 	className?: string
@@ -7,12 +8,12 @@ export type TextareaProps = TextareaVariants & {
 
 export function Textarea({ className, resize, ...props }: TextareaProps) {
 	return (
-		<span data-slot="control" className={textareaControlVariants()}>
+		<FormControl>
 			<textarea
 				data-slot="textarea"
 				className={cn(textareaVariants({ resize }), className)}
 				{...props}
 			/>
-		</span>
+		</FormControl>
 	)
 }

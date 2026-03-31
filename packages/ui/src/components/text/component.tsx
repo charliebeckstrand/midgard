@@ -1,5 +1,20 @@
+import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '../../core'
-import { type TextVariants, textVariants } from './variants'
+import { sumi } from '../../recipes'
+
+export const textVariants = cva('', {
+	variants: {
+		variant: {
+			default: sumi.base,
+			muted: sumi.usui,
+		},
+	},
+	defaultVariants: {
+		variant: 'default',
+	},
+})
+
+export type TextVariants = VariantProps<typeof textVariants>
 
 export type TextProps = TextVariants & {
 	className?: string

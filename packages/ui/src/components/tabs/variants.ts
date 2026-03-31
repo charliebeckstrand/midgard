@@ -1,8 +1,6 @@
 import { cva } from 'class-variance-authority'
 import { kage, sawari } from '../../recipes'
 
-export const tabGroupVariants = cva('')
-
 export const tabListVariants = cva(['flex gap-4', 'border-b', kage.usui])
 
 export const tabVariants = cva([
@@ -18,7 +16,3 @@ export const tabVariants = cva([
 export const tabIndicatorVariants = cva(
 	'inset-x-0 -bottom-px top-auto h-0.5 rounded-full bg-zinc-950 dark:bg-white',
 )
-
-export const tabPanelsVariants = cva('')
-
-export const tabPanelVariants = cva('')

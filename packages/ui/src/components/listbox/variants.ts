@@ -1,8 +1,6 @@
 import { cva } from 'class-variance-authority'
 import { narabi, omote, sawari, sumi } from '../../recipes'
 
-export const listboxVariants = cva(omote.control)
-
 export const listboxButtonVariants = cva([
 	'relative block w-full appearance-none rounded-lg py-1.5 pr-8 pl-3',
 	'text-left text-base/6',
@@ -10,7 +8,7 @@ export const listboxButtonVariants = cva([
 	omote.input,
 ])
 
-export const listboxOptionsVariants = cva([omote.popover, 'max-h-60'])
+export const listboxOptionsVariants = cva('max-h-60')
 
 export const listboxValueVariants = cva('block truncate')
 

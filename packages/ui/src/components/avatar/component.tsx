@@ -1,5 +1,5 @@
-import { cn, Link } from '../../core'
-import { TouchTarget } from '../../primitives'
+import { cn } from '../../core'
+import { Polymorphic, type PolymorphicProps, TouchTarget } from '../../primitives'
 import {
 	type AvatarVariants,
 	avatarButtonVariants,
@@ -50,34 +50,20 @@ type AvatarButtonBaseProps = AvatarVariants & {
 	className?: string
 }
 
-export type AvatarButtonProps = AvatarButtonBaseProps &
-	(
-		| ({ href?: never } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className'>)
-		| ({ href: string } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
-	)
+export type AvatarButtonProps = AvatarButtonBaseProps & PolymorphicProps<'button'>
 
 export function AvatarButton({ src, alt, initials, size, className, ...props }: AvatarButtonProps) {
-	const classes = cn(avatarButtonVariants(), className)
-
-	const avatar = <Avatar src={src} alt={alt} initials={initials} size={size} />
-
-	if ('href' in props && props.href !== undefined) {
-		const { href, ...linkProps } = props
-		return (
-			<Link data-slot="avatar-button" href={href} className={classes} {...linkProps}>
-				<TouchTarget>{avatar}</TouchTarget>
-			</Link>
-		)
-	}
-
 	return (
-		<button
-			data-slot="avatar-button"
-			type="button"
-			className={classes}
-			{...(props as Omit<React.ComponentPropsWithoutRef<'button'>, 'className'>)}
+		<Polymorphic
+			as="button"
+			dataSlot="avatar-button"
+			href={props.href}
+			className={cn(avatarButtonVariants(), className)}
+			{...props}
 		>
-			<TouchTarget>{avatar}</TouchTarget>
-		</button>
+			<TouchTarget>
+				<Avatar src={src} alt={alt} initials={initials} size={size} />
+			</TouchTarget>
+		</Polymorphic>
 	)
 }

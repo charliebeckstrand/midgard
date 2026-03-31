@@ -12,5 +12,4 @@ export {
 	comboboxInputVariants,
 	comboboxOptionsVariants,
 	comboboxOptionVariants,
-	comboboxVariants,
 } from './variants'

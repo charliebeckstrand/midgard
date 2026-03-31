@@ -3,12 +3,10 @@ export {
 	type DescriptionDetailsProps,
 	DescriptionList,
 	type DescriptionListProps,
+	type DescriptionListVariants,
 	DescriptionTerm,
 	type DescriptionTermProps,
-} from './component'
-export {
-	type DescriptionListVariants,
 	descriptionDetailsVariants,
 	descriptionListVariants,
 	descriptionTermVariants,
-} from './variants'
+} from './component'

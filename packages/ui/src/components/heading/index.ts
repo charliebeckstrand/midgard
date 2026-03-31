@@ -1,2 +1,1 @@
-export { Heading, type HeadingProps } from './component'
-export { type HeadingVariants, headingVariants } from './variants'
+export { Heading, type HeadingProps, type HeadingVariants, headingVariants } from './component'

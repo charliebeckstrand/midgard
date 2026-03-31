@@ -1,10 +1,8 @@
 'use client'
 
-import { createContext, useContext } from 'react'
-import { cn } from '../../core'
+import { cn, createContext } from '../../core'
 import {
 	type TableVariants,
-	tableBodyVariants,
 	tableCellVariants,
 	tableGridVariants,
 	tableHeaderVariants,
@@ -20,16 +18,7 @@ type TableContextValue = {
 	striped: boolean
 }
 
-const TableContext = createContext<TableContextValue>({
-	bleed: false,
-	dense: false,
-	grid: false,
-	striped: false,
-})
-
-function useTable() {
-	return useContext(TableContext)
-}
+const [TableProvider, useTable] = createContext<TableContextValue>('Table')
 
 export type TableProps = TableVariants & {
 	className?: string
@@ -38,7 +27,7 @@ export type TableProps = TableVariants & {
 
 export function Table({ bleed, dense, grid, striped, className, children }: TableProps) {
 	return (
-		<TableContext.Provider
+		<TableProvider
 			value={{
 				bleed: bleed ?? false,
 				dense: dense ?? false,
@@ -47,11 +36,9 @@ export function Table({ bleed, dense, grid, striped, className, children }: Tabl
 			}}
 		>
 			<div data-slot="table" className={cn('overflow-x-auto', bleed && '-mx-4 sm:-mx-6')}>
-				<table className={cn(tableVariants({ bleed, dense, grid, striped }), className)}>
-					{children}
-				</table>
+				<table className={cn(tableVariants(), className)}>{children}</table>
 			</div>
-		</TableContext.Provider>
+		</TableProvider>
 	)
 }
 
@@ -91,13 +78,7 @@ export function TableBody({ className, children }: TableBodyProps) {
 	const { striped } = useTable()
 
 	return (
-		<tbody
-			className={cn(
-				tableBodyVariants(),
-				striped && '*:odd:bg-zinc-950/2.5 dark:*:odd:bg-white/2.5',
-				className,
-			)}
-		>
+		<tbody className={cn(striped && '*:odd:bg-zinc-950/2.5 dark:*:odd:bg-white/2.5', className)}>
 			{children}
 		</tbody>
 	)

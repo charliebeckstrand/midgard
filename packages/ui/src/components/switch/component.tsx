@@ -16,10 +16,10 @@ export function Switch({ className, color, ...props }: SwitchProps) {
 			data-slot="control"
 			className={cn(
 				'relative inline-flex h-6 w-10 shrink-0 items-center',
-				'has-[:checked]:*:data-[slot=thumb]:left-5',
-				'has-[:checked]:*:data-[slot=thumb]:bg-(--switch)',
-				'has-[:checked]:*:data-[slot=thumb]:shadow-(--switch-shadow)',
-				'has-[:checked]:*:data-[slot=thumb]:ring-(--switch-ring)',
+				'has-[:checked]:*:data-[slot=switch-thumb]:left-5',
+				'has-[:checked]:*:data-[slot=switch-thumb]:bg-(--switch)',
+				'has-[:checked]:*:data-[slot=switch-thumb]:shadow-(--switch-shadow)',
+				'has-[:checked]:*:data-[slot=switch-thumb]:ring-(--switch-ring)',
 				switchColorVariants({ color }),
 			)}
 		>
@@ -29,7 +29,7 @@ export function Switch({ className, color, ...props }: SwitchProps) {
 				className={cn(switchVariants(), className)}
 				{...props}
 			/>
-			<span data-slot="thumb" aria-hidden="true" className={switchThumbVariants()} />
+			<span data-slot="switch-thumb" aria-hidden="true" className={switchThumbVariants()} />
 		</span>
 	)
 }

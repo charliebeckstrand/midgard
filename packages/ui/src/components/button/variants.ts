@@ -1,5 +1,8 @@
 import { cva, type VariantProps } from 'class-variance-authority'
+import { compoundColorVariants } from '../../core'
 import { katachi, ki, nuri, yasumi } from '../../recipes'
+
+type ButtonColor = keyof typeof nuri.button
 
 export const buttonVariants = cva(
 	[
@@ -21,7 +24,6 @@ export const buttonVariants = cva(
 		'[&:has(>[data-slot=icon]:nth-child(2):last-child)]:size-10',
 		'[&:has(>[data-slot=icon]:nth-child(2):last-child)]:gap-0',
 		// Focus
-		ki.reset,
 		ki.ring,
 		// Disabled
 		yasumi.base,
@@ -71,25 +73,12 @@ export const buttonVariants = cva(
 					'*:data-[slot=icon]:fill-zinc-500 dark:*:data-[slot=icon]:fill-zinc-400',
 				],
 			},
-			color: {
-				zinc: '',
-				white: '',
-				dark: '',
-				red: '',
-				amber: '',
-				green: '',
-				blue: '',
-			},
+			color: Object.fromEntries(Object.keys(nuri.button).map((k) => [k, ''])) as Record<
+				ButtonColor,
+				''
+			>,
 		},
-		compoundVariants: [
-			{ variant: 'solid', color: 'zinc', className: nuri.button.zinc },
-			{ variant: 'solid', color: 'white', className: nuri.button.white },
-			{ variant: 'solid', color: 'dark', className: nuri.button.dark },
-			{ variant: 'solid', color: 'red', className: nuri.button.red },
-			{ variant: 'solid', color: 'amber', className: nuri.button.amber },
-			{ variant: 'solid', color: 'green', className: nuri.button.green },
-			{ variant: 'solid', color: 'blue', className: nuri.button.blue },
-		],
+		compoundVariants: compoundColorVariants('solid', nuri.button),
 		defaultVariants: {
 			variant: 'solid',
 			color: 'zinc',

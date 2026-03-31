@@ -1,5 +1,5 @@
 import { cn } from '../../core'
-import { narabi } from '../../recipes'
+import { ToggleField, ToggleGroup } from '../../primitives'
 import { type CheckboxVariants, checkboxColorVariants, checkboxVariants } from './variants'
 
 export type CheckboxProps = CheckboxVariants & {
@@ -11,7 +11,7 @@ export function Checkbox({ className, color, ...props }: CheckboxProps) {
 		<span
 			data-slot="control"
 			className={cn(
-				'relative inline-flex size-4.5 items-center justify-center has-checked:*:data-[slot=check]:opacity-100',
+				'relative inline-flex size-4.5 items-center justify-center has-checked:*:data-[slot=checkbox-check]:opacity-100',
 				checkboxColorVariants({ color }),
 			)}
 		>
@@ -22,7 +22,7 @@ export function Checkbox({ className, color, ...props }: CheckboxProps) {
 				{...props}
 			/>
 			<svg
-				data-slot="check"
+				data-slot="checkbox-check"
 				className="pointer-events-none absolute size-3 text-(--checkbox-check) opacity-0"
 				viewBox="0 0 14 14"
 				fill="none"
@@ -40,18 +40,14 @@ export function Checkbox({ className, color, ...props }: CheckboxProps) {
 	)
 }
 
-export type CheckboxGroupProps = {
-	className?: string
-} & Omit<React.ComponentPropsWithoutRef<'fieldset'>, 'className'>
+export type CheckboxGroupProps = React.ComponentPropsWithoutRef<'div'> & { className?: string }
 
-export function CheckboxGroup({ className, ...props }: CheckboxGroupProps) {
-	return <fieldset data-slot="control" className={cn(narabi.group, className)} {...props} />
+export function CheckboxGroup(props: CheckboxGroupProps) {
+	return <ToggleGroup {...props} />
 }
 
-export type CheckboxFieldProps = {
-	className?: string
-} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
+export type CheckboxFieldProps = React.ComponentPropsWithoutRef<'div'> & { className?: string }
 
-export function CheckboxField({ className, ...props }: CheckboxFieldProps) {
-	return <div data-slot="field" className={cn(narabi.toggle, className)} {...props} />
+export function CheckboxField(props: CheckboxFieldProps) {
+	return <ToggleField {...props} />
 }

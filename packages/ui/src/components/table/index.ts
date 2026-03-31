@@ -14,12 +14,10 @@ export {
 } from './component'
 export {
 	type TableVariants,
-	tableBodyVariants,
 	tableCellVariants,
 	tableGridVariants,
 	tableHeaderVariants,
 	tableHeadVariants,
-	tableRowStripedVariants,
 	tableRowVariants,
 	tableVariants,
 } from './variants'

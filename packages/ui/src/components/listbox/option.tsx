@@ -1,42 +1,22 @@
 'use client'
 
-import type React from 'react'
-import { cn } from '../../core'
-import { BaseOption, OptionDescription, OptionLabel } from '../../primitives'
+import type {
+	SelectDescriptionProps,
+	SelectLabelProps,
+	SelectOptionProps,
+} from '../../primitives/create-select-option'
+import { createSelectOption } from '../../primitives/create-select-option'
 import { useListboxContext } from './listbox'
 
-export type ListboxOptionProps = {
-	value: unknown
-	disabled?: boolean
-	className?: string
-	children?: React.ReactNode
-}
+export type ListboxOptionProps = SelectOptionProps
 
-export function ListboxOption({ value, disabled, className, children }: ListboxOptionProps) {
-	const { value: selectedValue, select } = useListboxContext()
+export type ListboxLabelProps = SelectLabelProps
 
-	return (
-		<BaseOption
-			selected={selectedValue === value}
-			disabled={disabled}
-			checkPosition="end"
-			onSelect={() => select(value)}
-			data-slot="listbox-option"
-			className={className}
-		>
-			{children}
-		</BaseOption>
-	)
-}
+export type ListboxDescriptionProps = SelectDescriptionProps
 
-export type ListboxLabelProps = React.ComponentPropsWithoutRef<'span'>
+const { Option, Label, Description } = createSelectOption({
+	slotPrefix: 'listbox',
+	useContext: useListboxContext,
+})
 
-export function ListboxLabel({ className, ...props }: ListboxLabelProps) {
-	return <OptionLabel data-slot="listbox-label" className={cn(className)} {...props} />
-}
-
-export type ListboxDescriptionProps = React.ComponentPropsWithoutRef<'span'>
-
-export function ListboxDescription({ className, ...props }: ListboxDescriptionProps) {
-	return <OptionDescription data-slot="listbox-description" className={cn(className)} {...props} />
-}
+export { Option as ListboxOption, Label as ListboxLabel, Description as ListboxDescription }

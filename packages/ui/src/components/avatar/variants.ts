@@ -27,8 +27,4 @@ export const avatarInitialsVariants = cva(
 
 export const avatarImageVariants = cva('size-full object-cover')
 
-export const avatarButtonVariants = cva([
-	'relative cursor-default rounded-full',
-	ki.reset,
-	ki.offset,
-])
+export const avatarButtonVariants = cva(['relative cursor-default rounded-full', ki.offset])
