@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useState } from 'react'
 import { Button } from 'ui/button'
@@ -7,7 +8,7 @@ import { ErrorMessage, Field, Label } from 'ui/fieldset'
 import { Input } from 'ui/input'
 import { LoginPage as LoginPageLayout } from 'ui/pages'
 import { ShinyText } from 'ui/react-bits/shiny-text'
-import { Strong, Text, TextLink } from 'ui/text'
+import { Text } from 'ui/text'
 import { PasswordInput } from './password-input'
 import { useForm } from './use-form'
 import { email, required } from './use-form-validation'
@@ -69,10 +70,7 @@ function LoginForm({ showRegisterLink }: { showRegisterLink: boolean }) {
 			footer={
 				showRegisterLink ? (
 					<Text>
-						Don't have an account?{' '}
-						<TextLink href="/register">
-							<Strong>Create one</Strong>
-						</TextLink>
+						Don't have an account? <Link href="/register">Create one</Link>
 					</Text>
 				) : undefined
 			}

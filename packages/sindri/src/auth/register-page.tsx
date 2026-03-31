@@ -1,11 +1,12 @@
 'use client'
 
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Suspense, useState } from 'react'
 import { ErrorMessage, Field, Label } from 'ui/fieldset'
 import { Input } from 'ui/input'
 import { RegisterPage as RegisterPageLayout } from 'ui/pages'
-import { Strong, Text, TextLink } from 'ui/text'
+import { Text } from 'ui/text'
 import { PasswordInput } from './password-input'
 import { useForm } from './use-form'
 import { email, matches, minLength, required } from './use-form-validation'
@@ -59,10 +60,7 @@ function RegisterForm() {
 			submitting={submitting}
 			footer={
 				<Text>
-					Already have an account?{' '}
-					<TextLink href="/login">
-						<Strong>Sign in</Strong>
-					</TextLink>
+					Already have an account? <Link href="/login">Sign in</Link>
 				</Text>
 			}
 		>
