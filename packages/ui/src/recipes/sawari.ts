@@ -25,7 +25,7 @@ export const sawari = {
 		'*:data-[slot=icon]:size-5 *:data-[slot=icon]:shrink-0',
 		'*:data-[slot=icon]:fill-zinc-500',
 		'dark:text-white dark:*:data-[slot=icon]:fill-zinc-400',
-		'*:data-[slot=avatar]:-m-0.5 *:data-[slot=avatar]:size-7 sm:*:data-[slot=avatar]:size-6',
+		'*:data-[slot=avatar]:-m-0.5 *:data-[slot=avatar]:size-7',
 		'group-hover:bg-zinc-950/5 group-hover:*:data-[slot=icon]:fill-zinc-950',
 		'dark:group-hover:bg-white/5 dark:group-hover:*:data-[slot=icon]:fill-zinc-400',
 		'active:bg-zinc-950/10 active:*:data-[slot=icon]:fill-zinc-950',

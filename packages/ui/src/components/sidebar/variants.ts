@@ -1,7 +1,7 @@
 import { cva } from 'class-variance-authority'
 import { katachi, ki, sawari, sumi } from '../../recipes'
 
-export const sidebarVariants = cva('flex h-full flex-col gap-y-4 overflow-y-auto px-2 py-4')
+export const sidebarVariants = cva('flex h-full flex-col gap-y-4 overflow-y-auto p-4')
 
 export const sidebarItemVariants = cva([
 	'group relative flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left text-sm/6 font-medium',

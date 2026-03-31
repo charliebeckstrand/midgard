@@ -24,14 +24,14 @@ export default function PagesDemo() {
 			</div>
 			<div className="">
 				{page === 'login' && (
-					<LoginPage onSubmit={noop} footer={<p className="text-sm text-zinc-500">Footer slot</p>}>
+					<LoginPage onSubmit={noop} submit={<Button type="submit">Sign in</Button>}>
 						<Field>
 							<Label>Email</Label>
 							<Input type="email" placeholder="you@example.com" />
 						</Field>
 						<Field>
 							<Label>Password</Label>
-							<Input type="password" />
+							<Input type="password" placeholder="•••••••••" />
 						</Field>
 					</LoginPage>
 				)}
@@ -47,7 +47,7 @@ export default function PagesDemo() {
 						</Field>
 						<Field>
 							<Label>Password</Label>
-							<Input type="password" />
+							<Input type="password" placeholder="•••••••••" />
 						</Field>
 					</RegisterPage>
 				)}

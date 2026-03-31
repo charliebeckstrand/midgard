@@ -6,13 +6,13 @@ export const tabGroupVariants = cva('')
 export const tabListVariants = cva(['flex gap-4', 'border-b', kage.usui])
 
 export const tabVariants = cva([
-	'relative flex items-center gap-2 px-1 py-3 text-sm/6 font-medium',
+	'relative flex items-center gap-2 px-1 py-3 font-medium',
 	// Focus — suppress ring, show muted bottom line only
 	'outline-none',
 	'after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:rounded-full',
-	'after:bg-transparent not-data-current:focus-visible:after:bg-zinc-400 dark:not-data-current:focus-visible:after:bg-zinc-500',
-	...sawari.tab,
+	'after:bg-transparent not-data-current:focus-visible:after:bg-blue-500',
 	'cursor-default',
+	...sawari.tab,
 ])
 
 export const tabIndicatorVariants = cva(

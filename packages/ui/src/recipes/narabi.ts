@@ -36,8 +36,8 @@ export const narabi = {
 
 	/** Toggle field grid — control (checkbox/radio) leading, label + description trailing */
 	toggle: [
-		'grid grid-cols-[1.125rem_1fr] gap-x-4 gap-y-1 sm:grid-cols-[1rem_1fr]',
-		'*:data-[slot=control]:col-start-1 *:data-[slot=control]:row-start-1 *:data-[slot=control]:mt-0.75 sm:*:data-[slot=control]:mt-1',
+		'grid grid-cols-[1.125rem_1fr] gap-x-4 gap-y-1',
+		'*:data-[slot=control]:col-start-1 *:data-[slot=control]:row-start-1 *:data-[slot=control]:mt-0.75',
 		'*:data-[slot=label]:col-start-2 *:data-[slot=label]:row-start-1',
 		'*:data-[slot=description]:col-start-2 *:data-[slot=description]:row-start-2',
 		'has-data-[slot=description]:**:data-[slot=label]:font-medium',
@@ -56,6 +56,6 @@ export const narabi = {
 		'group-focus/option:*:data-[slot=icon]:text-white',
 		'forced-colors:*:data-[slot=icon]:text-[CanvasText]',
 		'forced-colors:group-focus/option:*:data-[slot=icon]:text-[Canvas]',
-		'*:data-[slot=avatar]:-mx-0.5 *:data-[slot=avatar]:size-6 sm:*:data-[slot=avatar]:size-5',
+		'*:data-[slot=avatar]:-mx-0.5 *:data-[slot=avatar]:size-6',
 	],
 }

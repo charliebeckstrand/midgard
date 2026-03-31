@@ -30,15 +30,17 @@ export const omote = {
 		'dark:before:hidden',
 		// After pseudo — focus ring
 		'after:pointer-events-none after:absolute after:inset-0 after:rounded-lg after:ring-transparent after:ring-inset',
-		'focus-within:after:ring-2 focus-within:after:ring-blue-600',
+		'focus-within:after:ring-2 not-has-[[data-invalid]]:focus-within:after:ring-blue-600 has-[[data-invalid]]:focus-within:after:ring-red-600',
 		// Disabled
-		'has-[:disabled]:opacity-50 has-[:disabled]:before:bg-zinc-950/5 has-[:disabled]:before:shadow-none',
+		'has-[:disabled]:opacity-50 has-[:disabled]:before:bg-zinc-950/5 has-[:disabled]:before:shadow-none has-[:disabled]:cursor-not-allowed',
 	],
 
 	/** The surface of an input element — text, bg, border, hover, focus, invalid, disabled */
 	input: [
 		// Layout
 		'relative block w-full',
+		// Height
+		'min-h-11',
 		// Text
 		`text-base/6 ${sumi.base} placeholder:text-zinc-500`,
 		// Background
@@ -53,13 +55,12 @@ export const omote = {
 		'focus:outline-hidden',
 		// Invalid
 		'data-invalid:border-red-600',
-		'dark:data-invalid:border-red-700',
 		'data-invalid:hover:border-red-600',
-		'dark:data-invalid:hover:border-red-700',
 		// Disabled
 		'disabled:border-zinc-950/20',
 		'dark:disabled:border-white/15 dark:disabled:bg-white/2.5',
 		'dark:hover:disabled:border-white/15',
+		'disabled:cursor-not-allowed',
 	],
 
 	/** WebKit date/time picker surface normalisation */

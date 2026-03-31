@@ -2,7 +2,7 @@
 
 import type React from 'react'
 import { useCallback, useEffect, useState } from 'react'
-import { NavbarItem } from '../components/navbar'
+import { Button } from '../components/button'
 import { Sheet } from '../components/sheet/sheet'
 import { cn } from '../core'
 import { MenuIcon } from '../primitives'
@@ -57,9 +57,9 @@ export function SidebarLayout({
 
 			{/* Navbar on mobile */}
 			<header className="flex items-center gap-4 p-6 lg:hidden [&_nav]:p-0">
-				<NavbarItem onClick={() => setOpen(true)} aria-label="Open navigation">
+				<Button variant="plain" onClick={() => setOpen(true)} aria-label="Open navigation">
 					<MenuIcon />
-				</NavbarItem>
+				</Button>
 				<div className="min-w-0 flex-1">{navbar}</div>
 			</header>
 

@@ -14,9 +14,12 @@ export const buttonVariants = cva(
 		// Icon slots
 		katachi.icon,
 		// Icon-only — square with equal padding when only child is an icon
-		'[&:has(>[data-slot=icon]:only-child)]:!px-0 [&:has(>[data-slot=icon]:only-child)]:!py-0',
-		'[&:has(>[data-slot=icon]:only-child)]:size-9 sm:[&:has(>[data-slot=icon]:only-child)]:size-7',
-		'[&:has(>[data-slot=icon]:only-child)]:gap-0',
+		// TouchTarget wraps children in a fragment with a hidden <span> + {children},
+		// so icon-only buttons have exactly 2 element children: the span and the icon.
+		// :nth-child(2):last-child ensures the icon is the only real child.
+		'[&:has(>[data-slot=icon]:nth-child(2):last-child)]:px-0 [&:has(>[data-slot=icon]:nth-child(2):last-child)]:py-0',
+		'[&:has(>[data-slot=icon]:nth-child(2):last-child)]:size-9',
+		'[&:has(>[data-slot=icon]:nth-child(2):last-child)]:gap-0',
 		// Focus
 		ki.reset,
 		ki.ring,
@@ -54,18 +57,18 @@ export const buttonVariants = cva(
 					'border-zinc-950/10 dark:border-white/15',
 					'text-zinc-950 dark:text-white',
 					'bg-transparent not-disabled:hover:bg-zinc-950/2.5 dark:not-disabled:hover:bg-white/5',
-					'*:data-[slot=icon]:text-zinc-500 dark:*:data-[slot=icon]:text-zinc-400',
+					'*:data-[slot=icon]:fill-zinc-500 dark:*:data-[slot=icon]:fill-zinc-400',
 				],
 				plain: [
 					'border border-transparent',
 					'text-zinc-950 dark:text-white',
 					'not-disabled:hover:bg-zinc-950/5 dark:not-disabled:hover:bg-white/10',
-					'*:data-[slot=icon]:text-zinc-500 dark:*:data-[slot=icon]:text-zinc-400',
+					'*:data-[slot=icon]:fill-zinc-500 dark:*:data-[slot=icon]:fill-zinc-400',
 				],
 				ghost: [
 					'border border-transparent',
 					'text-zinc-950 dark:text-white',
-					'*:data-[slot=icon]:text-zinc-500 dark:*:data-[slot=icon]:text-zinc-400',
+					'*:data-[slot=icon]:fill-zinc-500 dark:*:data-[slot=icon]:fill-zinc-400',
 				],
 			},
 			color: {

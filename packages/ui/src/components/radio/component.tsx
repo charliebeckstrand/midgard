@@ -11,7 +11,7 @@ export function Radio({ className, color, ...props }: RadioProps) {
 		<span
 			data-slot="control"
 			className={cn(
-				'relative inline-flex size-[1.125rem] items-center justify-center has-[:checked]:*:data-[slot=indicator]:opacity-100 sm:size-4',
+				'relative inline-flex size-4.5 items-center justify-center has-checked:*:data-[slot=indicator]:opacity-100',
 				radioColorVariants({ color }),
 			)}
 		>
@@ -19,7 +19,7 @@ export function Radio({ className, color, ...props }: RadioProps) {
 			<span
 				data-slot="indicator"
 				aria-hidden="true"
-				className="pointer-events-none absolute size-1.5 rounded-full bg-(--radio-checked-indicator) opacity-0 sm:size-1"
+				className="pointer-events-none absolute size-1.5 rounded-full bg-(--radio-checked-indicator) opacity-0"
 			/>
 		</span>
 	)

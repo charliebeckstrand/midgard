@@ -12,9 +12,8 @@ export const ki = {
 	reset: '',
 
 	/** The standard focus indicator — slight offset ring */
-	ring: 'outline-none focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-600',
+	ring: 'outline-none focus-visible:ring-2 focus-visible:ring-blue-600',
 
 	/** Focus indicator with breathing room — for larger targets */
-	offset:
-		'outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600',
+	offset: 'outline-none focus-visible:ring-2 ring-inset focus-visible:ring-blue-600',
 }
