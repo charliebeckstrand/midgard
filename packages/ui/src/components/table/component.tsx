@@ -9,7 +9,6 @@ import {
 	tableGridVariants,
 	tableHeaderVariants,
 	tableHeadVariants,
-	tableRowStripedVariants,
 	tableRowVariants,
 	tableVariants,
 } from './variants'
@@ -89,7 +88,19 @@ export type TableBodyProps = {
 }
 
 export function TableBody({ className, children }: TableBodyProps) {
-	return <tbody className={cn(tableBodyVariants(), className)}>{children}</tbody>
+	const { striped } = useTable()
+
+	return (
+		<tbody
+			className={cn(
+				tableBodyVariants(),
+				striped && '*:odd:bg-zinc-950/2.5 dark:*:odd:bg-white/2.5',
+				className,
+			)}
+		>
+			{children}
+		</tbody>
+	)
 }
 
 export type TableRowProps = {
@@ -99,13 +110,8 @@ export type TableRowProps = {
 } & Omit<React.ComponentPropsWithoutRef<'tr'>, 'className'>
 
 export function TableRow({ className, children, ...props }: TableRowProps) {
-	const { striped } = useTable()
-
 	return (
-		<tr
-			className={cn(tableRowVariants(), striped && tableRowStripedVariants(), className)}
-			{...props}
-		>
+		<tr className={cn(tableRowVariants(), className)} {...props}>
 			{children}
 		</tr>
 	)

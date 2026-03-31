@@ -3,8 +3,8 @@ import { ki, nuri } from '../../recipes'
 
 export const switchVariants = cva(
 	[
-		// Base
-		'group relative inline-flex h-6 w-10 shrink-0 cursor-pointer items-center rounded-full',
+		// Base — fills the parent span
+		'absolute inset-0 appearance-none cursor-pointer rounded-full',
 		// Unchecked — track
 		'bg-zinc-200 ring-1 ring-zinc-950/5 ring-inset dark:bg-white/10 dark:ring-white/15',
 		// Focus
@@ -39,11 +39,9 @@ export const switchVariants = cva(
 )
 
 export const switchThumbVariants = cva([
-	'pointer-events-none absolute inline-block size-4 rounded-full',
-	'left-1 transition-[left] duration-200 ease-in-out',
+	'pointer-events-none absolute top-1 left-1 inline-block size-4 rounded-full',
 	'bg-white shadow-sm ring-1 ring-zinc-950/5',
-	'[:checked+&]:left-5',
-	'[:checked+&]:bg-(--switch) [:checked+&]:shadow-(--switch-shadow) [:checked+&]:ring-(--switch-ring)',
+	'transition-[left] duration-200 ease-in-out',
 ])
 
 export type SwitchVariants = VariantProps<typeof switchVariants>

@@ -37,6 +37,8 @@ export const omote = {
 
 	/** The surface of an input element — text, bg, border, hover, focus, invalid, disabled */
 	input: [
+		// Layout
+		'relative block w-full',
 		// Text
 		`text-base/6 ${sumi.base} placeholder:text-zinc-500`,
 		// Background

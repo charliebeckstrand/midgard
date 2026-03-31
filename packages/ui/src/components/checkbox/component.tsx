@@ -8,22 +8,26 @@ export type CheckboxProps = CheckboxVariants & {
 
 export function Checkbox({ className, color, ...props }: CheckboxProps) {
 	return (
-		<span data-slot="control" className="relative inline-flex items-center justify-center">
+		<span
+			data-slot="control"
+			className="relative inline-flex size-[1.125rem] items-center justify-center has-[:checked]:*:data-[slot=check]:opacity-100 sm:size-4"
+		>
 			<input
 				type="checkbox"
 				data-slot="checkbox"
-				className={cn(checkboxVariants({ color }), 'appearance-none', className)}
+				className={cn(checkboxVariants({ color }), className)}
 				{...props}
 			/>
 			<svg
-				className="pointer-events-none absolute size-3.5 opacity-0 [:checked+&]:opacity-100 sm:size-3"
+				data-slot="check"
+				className="pointer-events-none absolute size-3.5 text-(--checkbox-check) opacity-0 sm:size-3"
 				viewBox="0 0 14 14"
 				fill="none"
 				aria-hidden="true"
 			>
 				<path
 					d="M3 8L6 11L11 3.5"
-					className="stroke-(--checkbox-check)"
+					stroke="currentColor"
 					strokeWidth={2}
 					strokeLinecap="round"
 					strokeLinejoin="round"

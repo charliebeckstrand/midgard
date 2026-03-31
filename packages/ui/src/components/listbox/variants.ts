@@ -5,7 +5,7 @@ export const listboxVariants = cva(omote.control)
 
 export const listboxButtonVariants = cva([
 	'relative block w-full appearance-none rounded-lg py-1.5 pr-8 pl-3',
-	'text-left text-base/6 sm:text-sm/6',
+	'text-left text-base/6',
 	sumi.base,
 	omote.input,
 ])

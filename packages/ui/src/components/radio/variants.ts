@@ -3,8 +3,8 @@ import { ki, nuri } from '../../recipes'
 
 export const radioVariants = cva(
 	[
-		// Base
-		'inline-flex size-[1.125rem] shrink-0 cursor-pointer items-center justify-center rounded-full sm:size-4',
+		// Base — fills the parent span
+		'absolute inset-0 appearance-none cursor-pointer rounded-full',
 		// Unchecked
 		'border border-zinc-950/15 bg-white shadow-xs dark:border-white/15 dark:bg-white/5',
 		// Focus
