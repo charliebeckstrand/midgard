@@ -85,7 +85,7 @@ export function Combobox<T>({
 
 	return (
 		<ComboboxProvider value={{ value, select: select as (v: unknown) => void, query }}>
-			<div ref={containerRef} data-slot="combobox" className={cn('relative', className)}>
+			<div ref={containerRef} data-slot="control" className={cn('relative', className)}>
 				<span className={cn(comboboxVariants())}>
 					<input
 						ref={inputRef}

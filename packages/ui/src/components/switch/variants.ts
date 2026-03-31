@@ -30,10 +30,10 @@ export const switchVariants = cva([
 	ki.offset,
 	// Checked — track
 	'checked:bg-(--switch-bg) checked:ring-(--switch-bg-ring) checked:ring-inset',
-	// Hover — only on unchecked so it doesn't override the active color
-	'not-checked:hover:bg-zinc-300 dark:not-checked:hover:bg-white/15',
+	// Hover — only on unchecked and not disabled
+	'not-disabled:not-checked:hover:bg-zinc-300 dark:not-disabled:not-checked:hover:bg-white/15',
 	// Disabled
-	'disabled:opacity-50 disabled:cursor-default',
+	'disabled:opacity-50 disabled:cursor-not-allowed',
 	// Forced colors
 	'forced-colors:appearance-auto forced-colors:checked:appearance-auto',
 ])
