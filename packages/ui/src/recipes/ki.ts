@@ -8,12 +8,13 @@
  * Concern: interaction
  */
 export const ki = {
-	/** Suppress browser default outline (applied before custom indicators) */
-	reset: 'focus:outline-hidden',
+	/** No-op — focus suppression handled by global CSS :focus:not(:focus-visible) reset */
+	reset: '',
 
 	/** The standard focus indicator — slight offset ring */
-	ring: 'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-600',
+	ring: 'outline-none focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-600',
 
 	/** Focus indicator with breathing room — for larger targets */
-	offset: 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600',
+	offset:
+		'outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600',
 }
