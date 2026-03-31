@@ -20,7 +20,7 @@ export default function InputDemo() {
 			</Field>
 			<Field>
 				<Label>Invalid</Label>
-				<Input invalid placeholder="Invalid input" />
+				<Input data-invalid placeholder="Invalid input" />
 			</Field>
 		</div>
 	)

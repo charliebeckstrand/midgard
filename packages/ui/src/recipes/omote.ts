@@ -21,7 +21,7 @@ const input = [
 	// Height
 	'min-h-11',
 	// Text
-	`text-base/6 ${sumi.base} placeholder:text-zinc-500`,
+	`${sumi.base} text-base/6 placeholder:text-zinc-500`,
 	// Background
 	'bg-transparent',
 	'dark:bg-white/5',
@@ -35,6 +35,8 @@ const input = [
 	// Invalid
 	'data-invalid:border-red-600',
 	'data-invalid:hover:border-red-600',
+	// Read-only
+	'read-only:bg-transparent dark:read-only:bg-transparent',
 	// Disabled
 	'disabled:border-zinc-950/20',
 	'dark:disabled:border-white/15 dark:disabled:bg-white/2.5',
@@ -44,10 +46,10 @@ const input = [
 
 export const omote = {
 	/** Elevated panel surface — modals, dialogs, sheets */
-	panel: `bg-white shadow-lg ${kage.ring} dark:bg-zinc-900 forced-colors:outline`,
+	panel: `bg-white shadow-lg dark:bg-zinc-900 forced-colors:outline ${kage.ring}`,
 
 	/** Content card surface — layout containers, sidebars */
-	card: `bg-white shadow-xs ${kage.ringUsui} dark:bg-zinc-900`,
+	card: `bg-white shadow-xs dark:bg-zinc-900 ${kage.ringUsui}`,
 
 	/** Desktop content area surface — the card treatment applied at lg: breakpoint */
 	content: `lg:rounded-lg lg:bg-white lg:shadow-xs lg:ring-1 lg:ring-zinc-950/5 dark:lg:bg-zinc-900 dark:lg:ring-white/10`,
@@ -63,6 +65,8 @@ export const omote = {
 		'after:pointer-events-none after:absolute after:inset-0 after:rounded-lg after:ring-transparent after:ring-inset',
 		'focus-within:after:ring-2 not-has-[[data-invalid]]:focus-within:after:ring-blue-600 has-[[data-invalid]]:focus-within:after:ring-red-600',
 		'data-open:after:ring-2 not-has-[[data-invalid]]:data-open:after:ring-blue-600 has-[[data-invalid]]:data-open:after:ring-red-600',
+		// Invalid — red ring at rest, focus-within overrides to ring-2
+		'has-[[data-invalid]]:not-focus-within:after:ring-1 has-[[data-invalid]]:not-focus-within:after:ring-red-600',
 		// Disabled
 		'has-[:disabled]:opacity-50 has-[:disabled]:before:bg-zinc-950/5 has-[:disabled]:before:shadow-none has-[:disabled]:cursor-not-allowed',
 	],
@@ -70,20 +74,20 @@ export const omote = {
 	/** Hidden native input base — positioning, focus, disabled, forced-colors (checkbox, radio, switch) */
 	hiddenInput: [
 		'absolute inset-0 appearance-none cursor-pointer',
-		ki.offset,
 		'disabled:opacity-50 disabled:cursor-not-allowed',
 		'forced-colors:appearance-auto forced-colors:checked:appearance-auto',
+		ki.offset,
 	],
 
 	/** Checkable input surface — extends hiddenInput with unchecked border/bg and hover states (checkbox, radio) */
 	check: [
 		'absolute inset-0 appearance-none cursor-pointer',
-		ki.offset,
 		'border border-zinc-950/15 bg-white shadow-xs dark:border-white/15 dark:bg-white/5',
 		'not-disabled:hover:border-zinc-950/30 dark:not-disabled:hover:border-white/30',
 		'not-disabled:checked:hover:opacity-90',
 		'disabled:opacity-50 disabled:cursor-not-allowed',
 		'forced-colors:appearance-auto forced-colors:checked:appearance-auto',
+		ki.offset,
 	],
 
 	/** The surface of an input element — text, bg, border, hover, focus, invalid, disabled */
