@@ -1,4 +1,11 @@
 export { ActiveIndicator, ActiveIndicatorScope, useActiveIndicator } from './active-indicator'
+export { createNavItem, type NavItemProps } from './create-nav-item'
+export {
+	createSelectOption,
+	type SelectDescriptionProps,
+	type SelectLabelProps,
+	type SelectOptionProps,
+} from './create-select-option'
 export { FormControl, type FormControlProps } from './form-control'
 export { CheckboxIcon, CheckIcon, ChevronIcon, CloseIcon, MenuIcon } from './icons'
 export { BaseOption, OptionDescription, OptionLabel } from './option'

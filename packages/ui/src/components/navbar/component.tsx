@@ -1,14 +1,8 @@
 'use client'
 
 import { cn } from '../../core'
-import {
-	ActiveIndicator,
-	ActiveIndicatorScope,
-	Polymorphic,
-	type PolymorphicProps,
-	TouchTarget,
-	useActiveIndicator,
-} from '../../primitives'
+import { ActiveIndicatorScope } from '../../primitives'
+import { createNavItem, type NavItemProps } from '../../primitives/create-nav-item'
 import {
 	navbarItemVariants,
 	navbarLabelVariants,
@@ -25,12 +19,7 @@ export type NavbarLabelProps = React.ComponentPropsWithoutRef<'span'>
 
 export type NavbarSpacerProps = React.ComponentPropsWithoutRef<'div'>
 
-type NavbarItemBaseProps = {
-	current?: boolean
-	className?: string
-}
-
-export type NavbarItemProps = NavbarItemBaseProps & PolymorphicProps<'button'>
+export type NavbarItemProps = NavItemProps
 
 export function Navbar({ className, children, ...props }: NavbarProps) {
 	return (
@@ -48,25 +37,7 @@ export function NavbarSection({ className, ...props }: NavbarSectionProps) {
 	)
 }
 
-export function NavbarItem({ current, className, children, ...props }: NavbarItemProps) {
-	const indicator = useActiveIndicator()
-
-	return (
-		<span data-slot="navbar-item" className="group relative" {...indicator.tapHandlers}>
-			<Polymorphic
-				as="button"
-				dataSlot="navbar-item-inner"
-				href={props.href}
-				data-current={current ? '' : undefined}
-				className={cn(navbarItemVariants(), className)}
-				{...props}
-			>
-				<TouchTarget>{children}</TouchTarget>
-			</Polymorphic>
-			{current && <ActiveIndicator ref={indicator.ref} />}
-		</span>
-	)
-}
+export const NavbarItem = createNavItem({ slotPrefix: 'navbar', variants: navbarItemVariants })
 
 export function NavbarLabel({ className, ...props }: NavbarLabelProps) {
 	return (

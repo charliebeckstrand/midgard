@@ -1,21 +1,10 @@
 'use client'
 
 import { cn } from '../../core'
-import {
-	ActiveIndicator,
-	Polymorphic,
-	type PolymorphicProps,
-	TouchTarget,
-	useActiveIndicator,
-} from '../../primitives'
+import { createNavItem, type NavItemProps } from '../../primitives/create-nav-item'
 import { sidebarItemVariants, sidebarLabelVariants, sidebarSectionVariants } from './variants'
 
-type SidebarItemBaseProps = {
-	current?: boolean
-	className?: string
-}
-
-export type SidebarItemProps = SidebarItemBaseProps & PolymorphicProps<'button'>
+export type SidebarItemProps = NavItemProps
 
 export type SidebarLabelProps = React.ComponentPropsWithoutRef<'span'>
 
@@ -23,25 +12,7 @@ export type SidebarSectionProps = React.ComponentPropsWithoutRef<'div'>
 
 export type SidebarSpacerProps = React.ComponentPropsWithoutRef<'div'>
 
-export function SidebarItem({ current, className, children, ...props }: SidebarItemProps) {
-	const indicator = useActiveIndicator()
-
-	return (
-		<span data-slot="sidebar-item" className="group relative" {...indicator.tapHandlers}>
-			<Polymorphic
-				as="button"
-				dataSlot="sidebar-item-inner"
-				href={props.href}
-				data-current={current ? '' : undefined}
-				className={cn(sidebarItemVariants(), className)}
-				{...props}
-			>
-				<TouchTarget>{children}</TouchTarget>
-			</Polymorphic>
-			{current && <ActiveIndicator ref={indicator.ref} />}
-		</span>
-	)
-}
+export const SidebarItem = createNavItem({ slotPrefix: 'sidebar', variants: sidebarItemVariants })
 
 export function SidebarLabel({ className, ...props }: SidebarLabelProps) {
 	return (

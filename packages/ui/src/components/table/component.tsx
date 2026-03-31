@@ -36,9 +36,7 @@ export function Table({ bleed, dense, grid, striped, className, children }: Tabl
 			}}
 		>
 			<div data-slot="table" className={cn('overflow-x-auto', bleed && '-mx-4 sm:-mx-6')}>
-				<table className={cn(tableVariants({ bleed, dense, grid, striped }), className)}>
-					{children}
-				</table>
+				<table className={cn(tableVariants(), className)}>{children}</table>
 			</div>
 		</TableProvider>
 	)
