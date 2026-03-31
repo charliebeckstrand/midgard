@@ -6,7 +6,7 @@ export const sheetPanelVariants = cva(
 		omote.panel,
 		'fixed flex flex-col overflow-y-auto rounded-xl p-6',
 		// Mobile: always bottom sheet, constrain height
-		'max-sm:inset-x-0 max-sm:bottom-0 max-sm:w-full max-sm:max-h-[85dvh] max-sm:rounded-b-none',
+		'max-sm:inset-x-0 max-sm:bottom-0 max-sm:w-full max-sm:max-h-[calc(100dvh-theme(spacing.6))] max-sm:rounded-b-none',
 	],
 	{
 		variants: {
