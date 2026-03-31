@@ -3,8 +3,8 @@ import { ki, nuri } from '../../recipes'
 
 export const checkboxVariants = cva(
 	[
-		// Base
-		'inline-flex size-[1.125rem] shrink-0 cursor-pointer items-center justify-center sm:size-4',
+		// Base — fills the parent span
+		'absolute inset-0 appearance-none cursor-pointer',
 		// Rounded
 		'rounded-[--spacing(1)]',
 		// Unchecked

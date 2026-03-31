@@ -1,33 +1,43 @@
 import { cva, type VariantProps } from 'class-variance-authority'
 import { katachi, ki, narabi, omote, sumi } from '../../recipes'
 
-export const sheetPanelVariants = cva([omote.panel, 'fixed flex flex-col rounded-xl p-6 m-2'], {
-	variants: {
-		side: {
-			right: narabi.slide.right,
-			left: narabi.slide.left,
-			top: narabi.slide.top,
-			bottom: narabi.slide.bottom,
+export const sheetPanelVariants = cva(
+	[
+		omote.panel,
+		'fixed flex flex-col rounded-xl p-6',
+		// Floating margin on desktop
+		'sm:m-2',
+		// Mobile: always bottom sheet
+		'max-sm:inset-x-0 max-sm:bottom-0 max-sm:w-full max-sm:rounded-b-none',
+	],
+	{
+		variants: {
+			side: {
+				right: 'sm:inset-y-0 sm:right-0 sm:h-full sm:w-full',
+				left: 'sm:inset-y-0 sm:left-0 sm:h-full sm:w-full',
+				top: narabi.slide.top,
+				bottom: narabi.slide.bottom,
+			},
+			size: {
+				xs: katachi.panel.xs,
+				sm: katachi.panel.sm,
+				md: katachi.panel.md,
+				lg: katachi.panel.lg,
+				xl: katachi.panel.xl,
+				'2xl': katachi.panel['2xl'],
+				'3xl': katachi.panel['3xl'],
+				'4xl': katachi.panel['4xl'],
+				'5xl': katachi.panel['5xl'],
+				'6xl': katachi.panel['6xl'],
+				'7xl': katachi.panel['7xl'],
+			},
 		},
-		size: {
-			xs: katachi.panel.xs,
-			sm: katachi.panel.sm,
-			md: katachi.panel.md,
-			lg: katachi.panel.lg,
-			xl: katachi.panel.xl,
-			'2xl': katachi.panel['2xl'],
-			'3xl': katachi.panel['3xl'],
-			'4xl': katachi.panel['4xl'],
-			'5xl': katachi.panel['5xl'],
-			'6xl': katachi.panel['6xl'],
-			'7xl': katachi.panel['7xl'],
+		defaultVariants: {
+			side: 'right',
+			size: 'md',
 		},
 	},
-	defaultVariants: {
-		side: 'right',
-		size: 'md',
-	},
-})
+)
 
 export const sheetTitleVariants = cva([sumi.base, 'text-lg/7 font-semibold'])
 

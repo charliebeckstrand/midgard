@@ -29,7 +29,7 @@ export default function BadgeDemo() {
 					{sizes.map((size) => (
 						<div key={size} className="flex flex-wrap items-center gap-2">
 							{colors.map((color) => (
-								<Badge key={color} variant="subtle" color={color} size={size}>
+								<Badge key={color} variant="soft" color={color} size={size}>
 									{color}
 								</Badge>
 							))}

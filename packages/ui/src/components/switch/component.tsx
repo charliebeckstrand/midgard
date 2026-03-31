@@ -7,14 +7,17 @@ export type SwitchProps = SwitchVariants & {
 
 export function Switch({ className, color, ...props }: SwitchProps) {
 	return (
-		<span data-slot="control" className="relative inline-flex h-6 w-10 items-center">
+		<span
+			data-slot="control"
+			className="relative inline-flex h-6 w-10 shrink-0 items-center has-[:checked]:*:data-[slot=thumb]:left-5 has-[:checked]:*:data-[slot=thumb]:bg-(--switch) has-[:checked]:*:data-[slot=thumb]:shadow-(--switch-shadow) has-[:checked]:*:data-[slot=thumb]:ring-(--switch-ring)"
+		>
 			<input
 				type="checkbox"
 				data-slot="switch"
-				className={cn(switchVariants({ color }), 'appearance-none', className)}
+				className={cn(switchVariants({ color }), className)}
 				{...props}
 			/>
-			<span aria-hidden="true" className={switchThumbVariants()} />
+			<span data-slot="thumb" aria-hidden="true" className={switchThumbVariants()} />
 		</span>
 	)
 }

@@ -1,7 +1,7 @@
 import { cva, type VariantProps } from 'class-variance-authority'
 import { ki, sumi } from '../../recipes'
 
-export const paginationVariants = cva('flex gap-1')
+export const paginationVariants = cva('flex list-none gap-1')
 
 export const pageButtonVariants = cva(
 	[
