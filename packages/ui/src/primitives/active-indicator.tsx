@@ -25,7 +25,9 @@ const ActiveIndicatorScopeContext = createContext<string | undefined>(undefined)
  */
 export function ActiveIndicatorScope({ children, id }: React.PropsWithChildren<{ id?: string }>) {
 	const fallbackId = useId()
+
 	const scopeId = id ?? fallbackId
+
 	const layoutId = useMemo(() => `current-indicator-${scopeId}`, [scopeId])
 
 	return (
