@@ -1,8 +1,8 @@
 import { cva, type VariantProps } from 'class-variance-authority'
 import {
-	panelActionsVariants as sheetActionsVariants,
-	panelDescriptionVariants as sheetDescriptionVariants,
-	panelTitleVariants as sheetTitleVariants,
+	panelActionsVariants,
+	panelDescriptionVariants,
+	panelTitleVariants,
 } from '../../primitives/panel-slots'
 import { katachi, ki, narabi, omote, sumi } from '../../recipes'
 
@@ -30,10 +30,14 @@ export const sheetPanelVariants = cva(
 	},
 )
 
-export { sheetActionsVariants, sheetDescriptionVariants, sheetTitleVariants }
+export const sheetTitleVariants = cva([panelTitleVariants(), 'px-6 pt-6'])
+
+export const sheetDescriptionVariants = cva([panelDescriptionVariants(), 'px-6'])
+
+export const sheetActionsVariants = cva([panelActionsVariants(), 'px-6 pb-6'])
 
 /** SheetBody extends panelBody with scroll support */
-export const sheetBodyVariants = cva('mt-4 flex-1 overflow-y-auto')
+export const sheetBodyVariants = cva('mt-4 flex-1 overflow-y-auto px-6')
 
 export const sheetCloseVariants = cva([
 	'absolute right-4 top-4 rounded-md p-1',
