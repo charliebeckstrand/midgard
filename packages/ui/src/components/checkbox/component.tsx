@@ -1,6 +1,6 @@
 import { cn } from '../../core'
 import { narabi } from '../../recipes'
-import { type CheckboxVariants, checkboxVariants } from './variants'
+import { type CheckboxVariants, checkboxColorVariants, checkboxVariants } from './variants'
 
 export type CheckboxProps = CheckboxVariants & {
 	className?: string
@@ -10,12 +10,15 @@ export function Checkbox({ className, color, ...props }: CheckboxProps) {
 	return (
 		<span
 			data-slot="control"
-			className="relative inline-flex size-[1.125rem] items-center justify-center has-[:checked]:*:data-[slot=check]:opacity-100 sm:size-4"
+			className={cn(
+				'relative inline-flex size-[1.125rem] items-center justify-center has-[:checked]:*:data-[slot=check]:opacity-100 sm:size-4',
+				checkboxColorVariants({ color }),
+			)}
 		>
 			<input
 				type="checkbox"
 				data-slot="checkbox"
-				className={cn(checkboxVariants({ color }), className)}
+				className={cn(checkboxVariants(), className)}
 				{...props}
 			/>
 			<svg

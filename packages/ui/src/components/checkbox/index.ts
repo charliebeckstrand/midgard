@@ -6,4 +6,4 @@ export {
 	type CheckboxGroupProps,
 	type CheckboxProps,
 } from './component'
-export { type CheckboxVariants, checkboxVariants } from './variants'
+export { type CheckboxVariants, checkboxColorVariants, checkboxVariants } from './variants'

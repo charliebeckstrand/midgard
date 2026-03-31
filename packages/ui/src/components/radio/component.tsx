@@ -1,6 +1,6 @@
 import { cn } from '../../core'
 import { narabi } from '../../recipes'
-import { type RadioVariants, radioVariants } from './variants'
+import { type RadioVariants, radioColorVariants, radioVariants } from './variants'
 
 export type RadioProps = RadioVariants & {
 	className?: string
@@ -10,14 +10,12 @@ export function Radio({ className, color, ...props }: RadioProps) {
 	return (
 		<span
 			data-slot="control"
-			className="relative inline-flex size-[1.125rem] items-center justify-center has-[:checked]:*:data-[slot=indicator]:opacity-100 sm:size-4"
+			className={cn(
+				'relative inline-flex size-[1.125rem] items-center justify-center has-[:checked]:*:data-[slot=indicator]:opacity-100 sm:size-4',
+				radioColorVariants({ color }),
+			)}
 		>
-			<input
-				type="radio"
-				data-slot="radio"
-				className={cn(radioVariants({ color }), className)}
-				{...props}
-			/>
+			<input type="radio" data-slot="radio" className={cn(radioVariants(), className)} {...props} />
 			<span
 				data-slot="indicator"
 				aria-hidden="true"

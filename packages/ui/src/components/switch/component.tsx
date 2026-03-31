@@ -1,5 +1,10 @@
 import { cn } from '../../core'
-import { type SwitchVariants, switchThumbVariants, switchVariants } from './variants'
+import {
+	type SwitchVariants,
+	switchColorVariants,
+	switchThumbVariants,
+	switchVariants,
+} from './variants'
 
 export type SwitchProps = SwitchVariants & {
 	className?: string
@@ -9,12 +14,19 @@ export function Switch({ className, color, ...props }: SwitchProps) {
 	return (
 		<span
 			data-slot="control"
-			className="relative inline-flex h-6 w-10 shrink-0 items-center has-[:checked]:*:data-[slot=thumb]:left-5 has-[:checked]:*:data-[slot=thumb]:bg-(--switch) has-[:checked]:*:data-[slot=thumb]:shadow-(--switch-shadow) has-[:checked]:*:data-[slot=thumb]:ring-(--switch-ring)"
+			className={cn(
+				'relative inline-flex h-6 w-10 shrink-0 items-center',
+				'has-[:checked]:*:data-[slot=thumb]:left-5',
+				'has-[:checked]:*:data-[slot=thumb]:bg-(--switch)',
+				'has-[:checked]:*:data-[slot=thumb]:shadow-(--switch-shadow)',
+				'has-[:checked]:*:data-[slot=thumb]:ring-(--switch-ring)',
+				switchColorVariants({ color }),
+			)}
 		>
 			<input
 				type="checkbox"
 				data-slot="switch"
-				className={cn(switchVariants({ color }), className)}
+				className={cn(switchVariants(), className)}
 				{...props}
 			/>
 			<span data-slot="thumb" aria-hidden="true" className={switchThumbVariants()} />
