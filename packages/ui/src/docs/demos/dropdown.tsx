@@ -1,4 +1,4 @@
-import { buttonVariants } from '../../components/button'
+import { Button } from '../../components/button'
 import {
 	Dropdown,
 	DropdownButton,
@@ -14,7 +14,9 @@ export const meta = { category: 'Overlay' }
 export default function DropdownDemo() {
 	return (
 		<Dropdown>
-			<DropdownButton className={buttonVariants({ variant: 'outline' })}>Options</DropdownButton>
+			<DropdownButton>
+				<Button variant="outline">Options</Button>
+			</DropdownButton>
 			<DropdownMenu>
 				<DropdownSection>
 					<DropdownItem>
