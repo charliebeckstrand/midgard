@@ -11,8 +11,8 @@ export const ki = {
 	/** Suppress browser default outline (applied before custom indicators) */
 	reset: 'focus:outline-hidden',
 
-	/** The standard focus indicator — tight ring, inset */
-	ring: 'focus-visible:outline-1 focus-visible:-outline-offset-1 focus-visible:outline-blue-600',
+	/** The standard focus indicator — slight offset ring */
+	ring: 'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-600',
 
 	/** Focus indicator with breathing room — for larger targets */
 	offset: 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600',
