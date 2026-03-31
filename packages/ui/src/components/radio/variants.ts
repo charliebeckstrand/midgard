@@ -32,10 +32,10 @@ export const radioVariants = cva([
 	'checked:border-transparent checked:bg-(--radio-checked-bg)',
 	'checked:border-(--radio-checked-border)',
 	// Hover
-	'hover:border-zinc-950/30 dark:hover:border-white/30',
-	'checked:hover:opacity-90',
+	'not-disabled:hover:border-zinc-950/30 dark:not-disabled:hover:border-white/30',
+	'not-disabled:checked:hover:opacity-90',
 	// Disabled
-	'disabled:opacity-50 disabled:cursor-default',
+	'disabled:opacity-50 disabled:cursor-not-allowed',
 	// Forced colors
 	'forced-colors:appearance-auto forced-colors:checked:appearance-auto',
 ])
