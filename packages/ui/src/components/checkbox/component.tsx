@@ -11,7 +11,7 @@ export function Checkbox({ className, color, ...props }: CheckboxProps) {
 		<span
 			data-slot="control"
 			className={cn(
-				'relative inline-flex size-4.5 items-center justify-center has-checked:*:data-[slot=check]:opacity-100',
+				'relative inline-flex size-4.5 items-center justify-center has-checked:*:data-[slot=checkbox-check]:opacity-100',
 				checkboxColorVariants({ color }),
 			)}
 		>
@@ -22,7 +22,7 @@ export function Checkbox({ className, color, ...props }: CheckboxProps) {
 				{...props}
 			/>
 			<svg
-				data-slot="check"
+				data-slot="checkbox-check"
 				className="pointer-events-none absolute size-3 text-(--checkbox-check) opacity-0"
 				viewBox="0 0 14 14"
 				fill="none"
