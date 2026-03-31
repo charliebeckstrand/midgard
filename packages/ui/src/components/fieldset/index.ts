@@ -1,19 +1,22 @@
-export { Description, type DescriptionProps } from './description'
-export { ErrorMessage, type ErrorMessageProps } from './error'
-export { Field, type FieldProps } from './field'
-export { Fieldset, type FieldsetProps, Legend, type LegendProps } from './fieldset'
-export { Label, type LabelProps } from './label'
 export {
-	type DescriptionVariants,
+	Description,
+	type DescriptionProps,
+	ErrorMessage,
+	type ErrorMessageProps,
+	Field,
+	type FieldProps,
+	Fieldset,
+	type FieldsetProps,
+	Label,
+	type LabelProps,
+	Legend,
+	type LegendProps,
+} from './component'
+export {
 	descriptionVariants,
-	type ErrorVariants,
 	errorVariants,
-	type FieldsetVariants,
-	type FieldVariants,
 	fieldsetVariants,
 	fieldVariants,
-	type LabelVariants,
-	type LegendVariants,
 	labelVariants,
 	legendVariants,
 } from './variants'

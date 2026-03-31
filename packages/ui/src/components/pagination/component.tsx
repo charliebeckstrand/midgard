@@ -1,4 +1,5 @@
-import { cn, Link } from '../../core'
+import { cn } from '../../core'
+import { Polymorphic, type PolymorphicProps } from '../../primitives'
 import {
 	pageButtonVariants,
 	paginationGapVariants,
@@ -15,11 +16,7 @@ type PaginationPageBaseProps = {
 	className?: string
 }
 
-export type PaginationPageProps = PaginationPageBaseProps &
-	(
-		| ({ href?: never } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className'>)
-		| ({ href: string } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
-	)
+export type PaginationPageProps = PaginationPageBaseProps & PolymorphicProps<'button'>
 
 export type PaginationGapProps = React.ComponentPropsWithoutRef<'span'>
 
@@ -27,17 +24,9 @@ type PaginationNavBaseProps = {
 	className?: string
 }
 
-export type PaginationPreviousProps = PaginationNavBaseProps &
-	(
-		| ({ href?: never } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className'>)
-		| ({ href: string } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
-	)
+export type PaginationPreviousProps = PaginationNavBaseProps & PolymorphicProps<'button'>
 
-export type PaginationNextProps = PaginationNavBaseProps &
-	(
-		| ({ href?: never } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className'>)
-		| ({ href: string } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
-	)
+export type PaginationNextProps = PaginationNavBaseProps & PolymorphicProps<'button'>
 
 export function Pagination({ className, ...props }: PaginationProps) {
 	return (
@@ -66,36 +55,18 @@ export function PaginationPage({
 	children,
 	...props
 }: PaginationPageProps) {
-	const classes = cn(pageButtonVariants({ current }), className)
-
-	if ('href' in props && props.href !== undefined) {
-		const { href, ...linkProps } = props
-		return (
-			<li>
-				<Link
-					data-slot="pagination-page"
-					href={href}
-					aria-current={current ? 'page' : undefined}
-					className={classes}
-					{...linkProps}
-				>
-					<span className="relative z-10">{children}</span>
-				</Link>
-			</li>
-		)
-	}
-
 	return (
 		<li>
-			<button
-				data-slot="pagination-page"
-				type="button"
+			<Polymorphic
+				as="button"
+				dataSlot="pagination-page"
+				href={props.href}
 				aria-current={current ? 'page' : undefined}
-				className={classes}
-				{...(props as Omit<React.ComponentPropsWithoutRef<'button'>, 'className'>)}
+				className={cn(pageButtonVariants({ current }), className)}
+				{...props}
 			>
 				<span className="relative z-10">{children}</span>
-			</button>
+			</Polymorphic>
 		</li>
 	)
 }
@@ -120,29 +91,17 @@ function PaginationNavButton({
 	children,
 	...props
 }: { slot: string } & (PaginationPreviousProps | PaginationNextProps)) {
-	const classes = cn(paginationNavVariants(), className)
-
-	if ('href' in props && props.href !== undefined) {
-		const { href, ...linkProps } = props
-		return (
-			<li>
-				<Link data-slot={slot} href={href} className={classes} {...linkProps}>
-					{children}
-				</Link>
-			</li>
-		)
-	}
-
 	return (
 		<li>
-			<button
-				data-slot={slot}
-				type="button"
-				className={classes}
-				{...(props as Omit<React.ComponentPropsWithoutRef<'button'>, 'className'>)}
+			<Polymorphic
+				as="button"
+				dataSlot={slot}
+				href={props.href}
+				className={cn(paginationNavVariants(), className)}
+				{...props}
 			>
 				{children}
-			</button>
+			</Polymorphic>
 		</li>
 	)
 }

@@ -1,5 +1,5 @@
 import { cn } from '../../core'
-import { narabi } from '../../recipes'
+import { ToggleField, ToggleGroup } from '../../primitives'
 import { type RadioVariants, radioColorVariants, radioVariants } from './variants'
 
 export type RadioProps = RadioVariants & {
@@ -25,20 +25,14 @@ export function Radio({ className, color, ...props }: RadioProps) {
 	)
 }
 
-export type RadioGroupProps = {
-	className?: string
-} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
+export type RadioGroupProps = React.ComponentPropsWithoutRef<'div'> & { className?: string }
 
-export function RadioGroup({ className, ...props }: RadioGroupProps) {
-	return (
-		<div data-slot="control" role="radiogroup" className={cn(narabi.group, className)} {...props} />
-	)
+export function RadioGroup(props: RadioGroupProps) {
+	return <ToggleGroup role="radiogroup" {...props} />
 }
 
-export type RadioFieldProps = {
-	className?: string
-} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
+export type RadioFieldProps = React.ComponentPropsWithoutRef<'div'> & { className?: string }
 
-export function RadioField({ className, ...props }: RadioFieldProps) {
-	return <div data-slot="field" className={cn(narabi.toggle, className)} {...props} />
+export function RadioField(props: RadioFieldProps) {
+	return <ToggleField {...props} />
 }

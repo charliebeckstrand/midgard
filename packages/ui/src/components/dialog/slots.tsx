@@ -1,39 +1,31 @@
-import { cn } from '../../core'
 import {
-	dialogActionsVariants,
-	dialogBodyVariants,
-	dialogDescriptionVariants,
-	dialogTitleVariants,
-} from './variants'
+	PanelActions,
+	type PanelActionsProps,
+	PanelBody,
+	type PanelBodyProps,
+	PanelDescription,
+	type PanelDescriptionProps,
+	PanelTitle,
+	type PanelTitleProps,
+} from '../../primitives'
 
-export type DialogTitleProps = React.ComponentPropsWithoutRef<'h2'>
+export type DialogTitleProps = PanelTitleProps
+export type DialogDescriptionProps = PanelDescriptionProps
+export type DialogBodyProps = PanelBodyProps
+export type DialogActionsProps = PanelActionsProps
 
-export type DialogDescriptionProps = React.ComponentPropsWithoutRef<'p'>
-
-export type DialogBodyProps = React.ComponentPropsWithoutRef<'div'>
-
-export type DialogActionsProps = React.ComponentPropsWithoutRef<'div'>
-
-export function DialogTitle({ className, ...props }: DialogTitleProps) {
-	return <h2 data-slot="dialog-title" className={cn(dialogTitleVariants(), className)} {...props} />
+export function DialogTitle(props: DialogTitleProps) {
+	return <PanelTitle slot="dialog-title" {...props} />
 }
 
-export function DialogDescription({ className, ...props }: DialogDescriptionProps) {
-	return (
-		<p
-			data-slot="dialog-description"
-			className={cn(dialogDescriptionVariants(), className)}
-			{...props}
-		/>
-	)
+export function DialogDescription(props: DialogDescriptionProps) {
+	return <PanelDescription slot="dialog-description" {...props} />
 }
 
-export function DialogBody({ className, ...props }: DialogBodyProps) {
-	return <div data-slot="dialog-body" className={cn(dialogBodyVariants(), className)} {...props} />
+export function DialogBody(props: DialogBodyProps) {
+	return <PanelBody slot="dialog-body" {...props} />
 }
 
-export function DialogActions({ className, ...props }: DialogActionsProps) {
-	return (
-		<div data-slot="dialog-actions" className={cn(dialogActionsVariants(), className)} {...props} />
-	)
+export function DialogActions(props: DialogActionsProps) {
+	return <PanelActions slot="dialog-actions" {...props} />
 }

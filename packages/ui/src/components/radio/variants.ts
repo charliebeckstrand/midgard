@@ -1,23 +1,9 @@
 import { cva, type VariantProps } from 'class-variance-authority'
+import { colorVariants } from '../../core'
 import { ki, nuri } from '../../recipes'
 
 /** Color custom properties — applied to the parent span so siblings can inherit */
-export const radioColorVariants = cva('', {
-	variants: {
-		color: {
-			zinc: nuri.radio.zinc,
-			white: nuri.radio.white,
-			dark: nuri.radio.dark,
-			red: nuri.radio.red,
-			amber: nuri.radio.amber,
-			green: nuri.radio.green,
-			blue: nuri.radio.blue,
-		},
-	},
-	defaultVariants: {
-		color: 'zinc',
-	},
-})
+export const radioColorVariants = colorVariants(nuri.radio)
 
 /** Input styling — no color (inherited from parent) */
 export const radioVariants = cva([
@@ -26,7 +12,6 @@ export const radioVariants = cva([
 	// Unchecked
 	'border border-zinc-950/15 bg-white shadow-xs dark:border-white/15 dark:bg-white/5',
 	// Focus
-	ki.reset,
 	ki.offset,
 	// Checked
 	'checked:border-transparent checked:bg-(--radio-checked-bg)',

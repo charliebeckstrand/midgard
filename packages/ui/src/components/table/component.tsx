@@ -1,7 +1,6 @@
 'use client'
 
-import { createContext, useContext } from 'react'
-import { cn } from '../../core'
+import { cn, createContext } from '../../core'
 import {
 	type TableVariants,
 	tableBodyVariants,
@@ -20,16 +19,7 @@ type TableContextValue = {
 	striped: boolean
 }
 
-const TableContext = createContext<TableContextValue>({
-	bleed: false,
-	dense: false,
-	grid: false,
-	striped: false,
-})
-
-function useTable() {
-	return useContext(TableContext)
-}
+const [TableProvider, useTable] = createContext<TableContextValue>('Table')
 
 export type TableProps = TableVariants & {
 	className?: string
@@ -38,7 +28,7 @@ export type TableProps = TableVariants & {
 
 export function Table({ bleed, dense, grid, striped, className, children }: TableProps) {
 	return (
-		<TableContext.Provider
+		<TableProvider
 			value={{
 				bleed: bleed ?? false,
 				dense: dense ?? false,
@@ -51,7 +41,7 @@ export function Table({ bleed, dense, grid, striped, className, children }: Tabl
 					{children}
 				</table>
 			</div>
-		</TableContext.Provider>
+		</TableProvider>
 	)
 }
 

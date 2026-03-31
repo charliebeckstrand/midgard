@@ -1,23 +1,9 @@
 import { cva, type VariantProps } from 'class-variance-authority'
+import { colorVariants } from '../../core'
 import { ki, nuri } from '../../recipes'
 
 /** Color custom properties — applied to the parent span so siblings can inherit */
-export const switchColorVariants = cva('', {
-	variants: {
-		color: {
-			zinc: nuri.switch.zinc,
-			white: nuri.switch.white,
-			dark: nuri.switch.dark,
-			red: nuri.switch.red,
-			amber: nuri.switch.amber,
-			green: nuri.switch.green,
-			blue: nuri.switch.blue,
-		},
-	},
-	defaultVariants: {
-		color: 'zinc',
-	},
-})
+export const switchColorVariants = colorVariants(nuri.switch)
 
 /** Input styling — no color (inherited from parent) */
 export const switchVariants = cva([
@@ -26,7 +12,6 @@ export const switchVariants = cva([
 	// Unchecked — track
 	'bg-zinc-200 ring-1 ring-zinc-950/5 ring-inset dark:bg-white/10 dark:ring-white/15',
 	// Focus
-	ki.reset,
 	ki.offset,
 	// Checked — track
 	'checked:bg-(--switch-bg) checked:ring-(--switch-bg-ring) checked:ring-inset',

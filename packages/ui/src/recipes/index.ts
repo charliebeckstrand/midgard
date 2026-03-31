@@ -1,10 +1,14 @@
-// ─── Sumi (墨) — The marks ──────────────────────────────────────────────────
+/**
+ * Kata (型) — Design token recipes.
+ *
+ * Each recipe captures one concern of the design system as reusable
+ * Tailwind class fragments. Components compose these rather than
+ * hard-coding utility classes.
+ */
 
 export { kage } from './kage'
 export { katachi } from './katachi'
-// ─── Ki (気) — The energy ───────────────────────────────────────────────────
 export { ki } from './ki'
-// ─── Ma (間) — The space ────────────────────────────────────────────────────
 export { ma } from './ma'
 export { narabi } from './narabi'
 export { nuri } from './nuri'
