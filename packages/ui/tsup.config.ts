@@ -33,7 +33,7 @@ const entry = {
 	layouts: 'src/layouts/index.ts',
 	pages: 'src/pages/index.ts',
 	// Special
-	'react-bits/shiny-text': 'src/components/react-bits/shiny-text.tsx',
+	'shiny-text': 'src/components/react-bits/index.ts',
 }
 
 export default defineConfig({

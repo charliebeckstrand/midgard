@@ -127,16 +127,18 @@
 			"types": "./src/pages/index.ts",
 			"default": "./src/pages/index.ts"
 		},
-		"./react-bits/shiny-text": {
-			"types": "./src/components/react-bits/shiny-text.tsx",
-			"default": "./src/components/react-bits/shiny-text.tsx"
+		"./shiny-text": {
+			"types": "./src/components/react-bits/index.ts",
+			"default": "./src/components/react-bits/index.ts"
 		}
 	},
 	"scripts": {
 		"build": "tsup && tsc --emitDeclarationOnly --outDir dist",
 		"dev": "trap 'kill 0' EXIT; tsup --watch --no-dts & vite --config vite.docs.config.ts & wait",
 		"docs": "vite --config vite.docs.config.ts",
-		"check-types": "tsc --noEmit"
+		"check-types": "tsc --noEmit",
+		"lint": "biome check --config-path=../.. .",
+		"lint:fix": "biome check --write --config-path=../.. ."
 	},
 	"dependencies": {
 		"class-variance-authority": "^0.7.1",

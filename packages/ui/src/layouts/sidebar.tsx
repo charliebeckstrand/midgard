@@ -9,16 +9,13 @@ import { MenuIcon } from '../primitives'
 import { omote } from '../recipes'
 import { OffcanvasContext } from './context'
 
-export function SidebarLayout({
-	navbar,
-	sidebar,
-	actions,
-	children,
-}: React.PropsWithChildren<{
+export type SidebarLayoutProps = React.PropsWithChildren<{
 	navbar: React.ReactNode
 	sidebar: React.ReactNode
 	actions?: React.ReactNode
-}>) {
+}>
+
+export function SidebarLayout({ navbar, sidebar, actions, children }: SidebarLayoutProps) {
 	const [open, setOpen] = useState(false)
 
 	const close = useCallback(() => setOpen(false), [])
@@ -83,10 +80,9 @@ export function SidebarLayout({
 	)
 }
 
-export function SidebarLayoutHeader({
-	children,
-	className,
-}: React.PropsWithChildren<{ className?: string }>) {
+export type SidebarLayoutHeaderProps = React.PropsWithChildren<{ className?: string }>
+
+export function SidebarLayoutHeader({ children, className }: SidebarLayoutHeaderProps) {
 	return (
 		<div data-slot="header" className={cn('shrink-0', className)}>
 			{children}
@@ -94,11 +90,12 @@ export function SidebarLayoutHeader({
 	)
 }
 
-export function SidebarLayoutBody({
-	ref,
-	children,
-	className,
-}: React.PropsWithChildren<{ className?: string; ref?: React.Ref<HTMLDivElement> }>) {
+export type SidebarLayoutBodyProps = React.PropsWithChildren<{
+	className?: string
+	ref?: React.Ref<HTMLDivElement>
+}>
+
+export function SidebarLayoutBody({ ref, children, className }: SidebarLayoutBodyProps) {
 	return (
 		<div ref={ref} data-slot="body" className={cn('flex-1 min-h-0 overflow-y-auto', className)}>
 			{children}
@@ -106,7 +103,9 @@ export function SidebarLayoutBody({
 	)
 }
 
-export function SidebarLayoutFooter({ children }: React.PropsWithChildren) {
+export type SidebarLayoutFooterProps = React.PropsWithChildren
+
+export function SidebarLayoutFooter({ children }: SidebarLayoutFooterProps) {
 	return (
 		<div data-slot="footer" className="shrink-0 pt-4 lg:pt-6">
 			{children}
