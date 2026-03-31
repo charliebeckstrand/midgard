@@ -24,8 +24,8 @@ export const buttonVariants = cva(
 		yasumi.base,
 		// Cursor
 		'cursor-default',
-		// Active — scale down instead of color change
-		'active:scale-[0.97] transition-transform duration-100',
+		// Active — scale down instead of color change (not when disabled)
+		'not-disabled:active:scale-[0.97] transition-transform duration-100',
 	],
 	{
 		variants: {
@@ -45,7 +45,7 @@ export const buttonVariants = cva(
 					'after:absolute after:inset-0 after:-z-10 after:rounded-[calc(var(--radius-lg)-1px)]',
 					'after:shadow-[shadow:inset_0_1px_theme(--color-white/15%)]',
 					// Hover
-					'hover:before:bg-[var(--btn-hover-overlay)]',
+					'not-disabled:hover:before:bg-[var(--btn-hover-overlay)]',
 					// Icon color
 					'*:data-[slot=icon]:text-[var(--btn-icon)]',
 				],
@@ -53,13 +53,13 @@ export const buttonVariants = cva(
 					'border',
 					'border-zinc-950/10 dark:border-white/15',
 					'text-zinc-950 dark:text-white',
-					'bg-transparent hover:bg-zinc-950/2.5 dark:hover:bg-white/5',
+					'bg-transparent not-disabled:hover:bg-zinc-950/2.5 dark:not-disabled:hover:bg-white/5',
 					'*:data-[slot=icon]:text-zinc-500 dark:*:data-[slot=icon]:text-zinc-400',
 				],
 				plain: [
 					'border border-transparent',
 					'text-zinc-950 dark:text-white',
-					'hover:bg-zinc-950/5 dark:hover:bg-white/10',
+					'not-disabled:hover:bg-zinc-950/5 dark:not-disabled:hover:bg-white/10',
 					'*:data-[slot=icon]:text-zinc-500 dark:*:data-[slot=icon]:text-zinc-400',
 				],
 				ghost: [
