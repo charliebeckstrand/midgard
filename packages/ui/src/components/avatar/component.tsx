@@ -1,6 +1,12 @@
 import { cn, Link } from '../../core'
 import { TouchTarget } from '../../primitives'
-import { type AvatarVariants, avatarVariants } from './variants'
+import {
+	type AvatarVariants,
+	avatarButtonVariants,
+	avatarImageVariants,
+	avatarInitialsVariants,
+	avatarVariants,
+} from './variants'
 
 export type AvatarProps = AvatarVariants & {
 	src?: string | null
@@ -14,7 +20,7 @@ export function Avatar({ src, alt = '', initials, size, className, ...props }: A
 		<span data-slot="avatar" className={cn(avatarVariants({ size }), className)} {...props}>
 			{initials && (
 				<svg
-					className="select-none fill-current text-[48px] font-medium uppercase"
+					className={avatarInitialsVariants()}
 					viewBox="0 0 100 100"
 					aria-hidden={alt ? undefined : 'true'}
 					role="img"
@@ -32,7 +38,7 @@ export function Avatar({ src, alt = '', initials, size, className, ...props }: A
 					</text>
 				</svg>
 			)}
-			{src && <img className="size-full object-cover" src={src} alt={alt} />}
+			{src && <img className={avatarImageVariants()} src={src} alt={alt} />}
 		</span>
 	)
 }
@@ -51,10 +57,7 @@ export type AvatarButtonProps = AvatarButtonBaseProps &
 	)
 
 export function AvatarButton({ src, alt, initials, size, className, ...props }: AvatarButtonProps) {
-	const classes = cn(
-		'relative cursor-default rounded-full focus:outline-hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600',
-		className,
-	)
+	const classes = cn(avatarButtonVariants(), className)
 
 	const avatar = <Avatar src={src} alt={alt} initials={initials} size={size} />
 

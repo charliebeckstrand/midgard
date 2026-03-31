@@ -9,7 +9,12 @@ import { useMenuKeyboard } from '../../hooks/use-menu-keyboard'
 import { useOverlay } from '../../hooks/use-overlay'
 import { ChevronIcon, PopoverPanel } from '../../primitives'
 import { narabi } from '../../recipes'
-import { comboboxInputVariants, comboboxOptionsVariants, comboboxVariants } from './variants'
+import {
+	comboboxChevronVariants,
+	comboboxInputVariants,
+	comboboxOptionsVariants,
+	comboboxVariants,
+} from './variants'
 
 type ComboboxContextValue<T = unknown> = {
 	value: T | undefined
@@ -111,7 +116,7 @@ export function Combobox<T>({
 						tabIndex={-1}
 						aria-hidden="true"
 						onClick={() => setOpen(!open)}
-						className="absolute inset-y-0 right-0 flex items-center pr-2"
+						className={comboboxChevronVariants()}
 					>
 						<ChevronIcon />
 					</button>

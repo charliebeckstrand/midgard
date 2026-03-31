@@ -18,4 +18,6 @@ export const sidebarLabelVariants = cva(['truncate', sumi.usui])
 
 export const sidebarHeaderVariants = cva('flex flex-col gap-2 px-2')
 
+export const sidebarBodyVariants = cva('flex flex-1 flex-col gap-4 overflow-y-auto')
+
 export const sidebarFooterVariants = cva('mt-auto sticky bottom-0 flex flex-col gap-0.5')

@@ -12,6 +12,7 @@ export {
 } from './component'
 export {
 	tabGroupVariants,
+	tabIndicatorVariants,
 	tabListVariants,
 	tabPanelsVariants,
 	tabPanelVariants,

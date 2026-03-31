@@ -9,7 +9,9 @@ export {
 } from './option'
 export {
 	listboxButtonVariants,
+	listboxChevronVariants,
 	listboxOptionsVariants,
 	listboxOptionVariants,
+	listboxValueVariants,
 	listboxVariants,
 } from './variants'

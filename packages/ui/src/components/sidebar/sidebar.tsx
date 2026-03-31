@@ -2,7 +2,12 @@
 
 import { cn } from '../../core'
 import { ActiveIndicatorScope } from '../../primitives'
-import { sidebarFooterVariants, sidebarHeaderVariants, sidebarVariants } from './variants'
+import {
+	sidebarBodyVariants,
+	sidebarFooterVariants,
+	sidebarHeaderVariants,
+	sidebarVariants,
+} from './variants'
 
 export type SidebarProps = React.ComponentPropsWithoutRef<'nav'>
 
@@ -30,11 +35,7 @@ export function SidebarHeader({ className, ...props }: SidebarHeaderProps) {
 
 export function SidebarBody({ className, ...props }: SidebarBodyProps) {
 	return (
-		<div
-			data-slot="sidebar-body"
-			className={cn('flex flex-1 flex-col gap-4 overflow-y-auto', className)}
-			{...props}
-		/>
+		<div data-slot="sidebar-body" className={cn(sidebarBodyVariants(), className)} {...props} />
 	)
 }
 

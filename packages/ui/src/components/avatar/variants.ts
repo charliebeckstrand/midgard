@@ -19,3 +19,14 @@ export const avatarVariants = cva(
 )
 
 export type AvatarVariants = VariantProps<typeof avatarVariants>
+
+export const avatarInitialsVariants = cva(
+	'select-none fill-current text-[48px] font-medium uppercase',
+)
+
+export const avatarImageVariants = cva('size-full object-cover')
+
+export const avatarButtonVariants = cva([
+	'relative cursor-default rounded-full',
+	'focus:outline-hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600',
+])

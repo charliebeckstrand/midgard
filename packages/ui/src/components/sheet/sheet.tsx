@@ -37,7 +37,7 @@ export function Sheet({ open, onClose, side = 'right', size, className, children
 				aria-modal="true"
 				data-slot="sheet"
 				onClick={(e) => e.stopPropagation()}
-				className={cn('flex flex-col p-6', sheetPanelVariants({ side, size }), className)}
+				className={cn(sheetPanelVariants({ side, size }), className)}
 			>
 				<SheetProvider value={{ onClose }}>{children}</SheetProvider>
 			</motion.div>

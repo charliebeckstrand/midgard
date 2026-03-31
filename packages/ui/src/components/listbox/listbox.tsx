@@ -8,7 +8,13 @@ import { useControllable } from '../../hooks/use-controllable'
 import { useOverlay } from '../../hooks/use-overlay'
 import { ChevronIcon, PopoverPanel } from '../../primitives'
 import { narabi } from '../../recipes'
-import { listboxButtonVariants, listboxOptionsVariants, listboxVariants } from './variants'
+import {
+	listboxButtonVariants,
+	listboxChevronVariants,
+	listboxOptionsVariants,
+	listboxValueVariants,
+	listboxVariants,
+} from './variants'
 
 type ListboxContextValue<T = unknown> = {
 	value: T | undefined
@@ -79,10 +85,10 @@ export function Listbox<T>({
 						onClick={() => setOpen(!open)}
 						className={cn(listboxButtonVariants())}
 					>
-						<span className="block truncate">
+						<span className={listboxValueVariants()}>
 							{label ?? <span className="text-zinc-500">{placeholder}</span>}
 						</span>
-						<span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+						<span className={listboxChevronVariants()}>
 							<ChevronIcon />
 						</span>
 					</button>

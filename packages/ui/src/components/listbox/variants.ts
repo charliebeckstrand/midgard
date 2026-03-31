@@ -12,4 +12,10 @@ export const listboxButtonVariants = cva([
 
 export const listboxOptionsVariants = cva([omote.popover, 'max-h-60'])
 
+export const listboxValueVariants = cva('block truncate')
+
+export const listboxChevronVariants = cva(
+	'pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2',
+)
+
 export const listboxOptionVariants = cva([sawari.item, narabi.item])

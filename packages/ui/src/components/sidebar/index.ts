@@ -19,6 +19,7 @@ export {
 	type SidebarProps,
 } from './sidebar'
 export {
+	sidebarBodyVariants,
 	sidebarFooterVariants,
 	sidebarHeaderVariants,
 	sidebarItemVariants,

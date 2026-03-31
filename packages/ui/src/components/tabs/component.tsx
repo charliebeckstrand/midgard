@@ -4,6 +4,7 @@ import { cn } from '../../core'
 import { ActiveIndicator, ActiveIndicatorScope, useActiveIndicator } from '../../primitives'
 import {
 	tabGroupVariants,
+	tabIndicatorVariants,
 	tabListVariants,
 	tabPanelsVariants,
 	tabPanelVariants,
@@ -50,12 +51,7 @@ export function Tab({ current, className, children, ...props }: TabProps) {
 			{...props}
 		>
 			<span className="relative z-10">{children}</span>
-			{current && (
-				<ActiveIndicator
-					ref={indicator.ref}
-					className="inset-x-0 -bottom-px top-auto h-0.5 rounded-full bg-zinc-950 dark:bg-white"
-				/>
-			)}
+			{current && <ActiveIndicator ref={indicator.ref} className={tabIndicatorVariants()} />}
 		</button>
 	)
 }

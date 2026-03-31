@@ -13,6 +13,10 @@ export const tabVariants = cva([
 	'cursor-default',
 ])
 
+export const tabIndicatorVariants = cva(
+	'inset-x-0 -bottom-px top-auto h-0.5 rounded-full bg-zinc-950 dark:bg-white',
+)
+
 export const tabPanelsVariants = cva('')
 
 export const tabPanelVariants = cva('')
