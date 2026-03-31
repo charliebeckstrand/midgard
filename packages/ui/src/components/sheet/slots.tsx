@@ -1,65 +1,39 @@
-'use client'
-
-import type React from 'react'
 import { cn } from '../../core'
-import { kage, sumi } from '../../recipes'
-import { useSheet } from './context'
+import {
+	sheetActionsVariants,
+	sheetBodyVariants,
+	sheetDescriptionVariants,
+	sheetTitleVariants,
+} from './variants'
 
-export function SheetHeader({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
+export type SheetTitleProps = React.ComponentPropsWithoutRef<'h2'>
+
+export type SheetDescriptionProps = React.ComponentPropsWithoutRef<'p'>
+
+export type SheetBodyProps = React.ComponentPropsWithoutRef<'div'>
+
+export type SheetActionsProps = React.ComponentPropsWithoutRef<'div'>
+
+export function SheetTitle({ className, ...props }: SheetTitleProps) {
+	return <h2 data-slot="sheet-title" className={cn(sheetTitleVariants(), className)} {...props} />
+}
+
+export function SheetDescription({ className, ...props }: SheetDescriptionProps) {
 	return (
-		<div
-			data-slot="header"
+		<p
+			data-slot="sheet-description"
+			className={cn(sheetDescriptionVariants(), className)}
 			{...props}
-			className={cn('flex flex-col gap-1.5 px-6 pt-6', className)}
 		/>
 	)
 }
 
-export function SheetBody({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
-	return (
-		<div data-slot="body" {...props} className={cn('flex-1 overflow-auto px-6 py-6', className)} />
-	)
+export function SheetBody({ className, ...props }: SheetBodyProps) {
+	return <div data-slot="sheet-body" className={cn(sheetBodyVariants(), className)} {...props} />
 }
 
-export function SheetFooter({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
+export function SheetActions({ className, ...props }: SheetActionsProps) {
 	return (
-		<div
-			data-slot="footer"
-			{...props}
-			className={cn(
-				`mt-auto flex items-center justify-end gap-3 border-t ${kage.base} px-6 py-4`,
-				className,
-			)}
-		/>
-	)
-}
-
-export function SheetTitle({ className, ...props }: React.ComponentPropsWithoutRef<'h2'>) {
-	const { titleId } = useSheet()
-	return (
-		<h2
-			id={titleId}
-			data-slot="title"
-			{...props}
-			className={cn(`text-lg/6 font-semibold ${sumi.base} sm:text-base/6`, className)}
-		/>
-	)
-}
-
-export function SheetSubtitle({ className, ...props }: React.ComponentPropsWithoutRef<'p'>) {
-	return (
-		<p data-slot="description" {...props} className={cn(`text-sm/6 ${sumi.usui}`, className)} />
-	)
-}
-
-export function SheetDescription({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
-	const { descriptionId } = useSheet()
-	return (
-		<div
-			id={descriptionId}
-			data-slot="description"
-			{...props}
-			className={cn(`flex-1 overflow-y-auto px-6 text-base/6 ${sumi.usui}`, className)}
-		/>
+		<div data-slot="sheet-actions" className={cn(sheetActionsVariants(), className)} {...props} />
 	)
 }

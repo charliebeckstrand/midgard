@@ -1,54 +1,43 @@
 import type React from 'react'
 import { cn } from '../../core'
-import { sumi } from '../../recipes'
+import {
+	dropdownHeadingVariants,
+	dropdownSectionVariants,
+	dropdownSeparatorVariants,
+} from './variants'
 
-export function DropdownSection({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
+export type DropdownSectionProps = React.ComponentPropsWithoutRef<'fieldset'>
+
+export function DropdownSection({ className, ...props }: DropdownSectionProps) {
 	return (
-		<div
-			data-slot="section"
+		<fieldset
+			data-slot="dropdown-section"
+			className={cn(dropdownSectionVariants(), className)}
 			{...props}
-			className={cn(
-				'col-span-full supports-[grid-template-columns:subgrid]:grid supports-[grid-template-columns:subgrid]:grid-cols-[auto_1fr_1.5rem_0.5rem_auto]',
-				className,
-			)}
 		/>
 	)
 }
 
-export function DropdownHeading({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
+export type DropdownHeadingProps = React.ComponentPropsWithoutRef<'div'>
+
+export function DropdownHeading({ className, ...props }: DropdownHeadingProps) {
 	return (
 		<div
-			data-slot="heading"
+			data-slot="dropdown-heading"
+			className={cn(dropdownHeadingVariants(), className)}
 			{...props}
-			className={cn(
-				`col-span-full grid grid-cols-[1fr_auto] gap-x-12 px-3.5 pt-2 pb-1 text-sm/5 font-medium ${sumi.usui} sm:px-3 sm:text-xs/5`,
-				className,
-			)}
 		/>
 	)
 }
 
-export function DropdownDivider({ className, ...props }: React.ComponentPropsWithoutRef<'hr'>) {
+export type DropdownSeparatorProps = React.ComponentPropsWithoutRef<'hr'>
+
+export function DropdownSeparator({ className, ...props }: DropdownSeparatorProps) {
 	return (
 		<hr
-			data-slot="divider"
+			data-slot="dropdown-separator"
+			className={cn(dropdownSeparatorVariants(), className)}
 			{...props}
-			className={cn(
-				'col-span-full mx-3.5 my-1 h-px border-0 bg-zinc-950/5 sm:mx-3',
-				'dark:bg-white/10',
-				'forced-colors:bg-[CanvasText]',
-				className,
-			)}
-		/>
-	)
-}
-
-export function DropdownHeader({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
-	return (
-		<div
-			data-slot="header"
-			{...props}
-			className={cn('col-span-5 px-3.5 pt-2.5 pb-1 sm:px-3', className)}
 		/>
 	)
 }

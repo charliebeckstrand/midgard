@@ -1,95 +1,67 @@
-import { cva } from 'class-variance-authority'
-import { katachi, ki, nuri } from '../../recipes'
+import { cva, type VariantProps } from 'class-variance-authority'
+import { katachi, ki, nuri, yasumi } from '../../recipes'
 
-export const button = cva(
+export const buttonVariants = cva(
 	[
 		// Layout
-		'relative isolate inline-flex w-fit items-center justify-center gap-x-2 rounded-lg text-base/6 font-semibold select-none',
-		// Icon slots — sizing from shared recipe, button-specific spacing + color
-		...katachi.iconSlot,
-		'*:data-[slot=icon]:-mx-0.5 *:data-[slot=icon]:my-0.5 *:data-[slot=icon]:self-center *:data-[slot=icon]:text-(--btn-icon) sm:*:data-[slot=icon]:my-1',
-		// Icon-only — square aspect, centered, no gap
-		'data-icon-only:gap-0',
-		...katachi.iconOnly,
+		'relative isolate inline-flex items-center justify-center gap-x-2',
+		// Sizing
+		'px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)] sm:px-[calc(--spacing(3)-1px)] sm:py-[calc(--spacing(1.5)-1px)] sm:text-sm/6',
+		// Shape
+		katachi.maru,
+		// Font
+		'font-semibold',
+		// Icon slots
+		katachi.icon,
 		// Focus
 		ki.reset,
 		ki.ring,
 		// Disabled
-		'disabled:opacity-50',
-		// Forced colors
-		'forced-colors:[--btn-icon:ButtonText]',
-		'forced-colors:hover:[--btn-icon:ButtonText]',
+		yasumi.base,
+		// Cursor
+		'cursor-default',
 	],
 	{
 		variants: {
 			variant: {
 				solid: [
-					// Layout + sizing
-					'items-baseline border px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)] sm:px-[calc(--spacing(3)-1px)] sm:py-[calc(--spacing(1.5)-1px)]',
-					// Icon-only — square padding
-					'data-icon-only:items-center data-icon-only:p-[calc(--spacing(2.5)-1px)] sm:data-icon-only:p-[calc(--spacing(1.5)-1px)]',
-					// Light — border and before pseudo (visual bg)
-					'border-transparent bg-(--btn-border)',
-					'before:absolute before:inset-0 before:-z-10 before:rounded-[calc(var(--radius-lg)-1px)] before:bg-(--btn-bg)',
+					// Border
+					'border border-transparent',
+					// Background via custom property
+					'bg-[var(--btn-bg)]',
+					// Border pseudo-element
+					'before:absolute before:inset-0 before:-z-10 before:rounded-[calc(var(--radius-lg)-1px)]',
+					'before:bg-[var(--btn-bg)]',
 					'before:shadow-sm',
-					// Light — after pseudo (inset highlight)
+					// Border overlay
+					'border-[var(--btn-border)]',
+					// Highlight pseudo-element
 					'after:absolute after:inset-0 after:-z-10 after:rounded-[calc(var(--radius-lg)-1px)]',
-					'after:shadow-[inset_0_1px_--theme(--color-white/15%)]',
-					// Hover + Active
-					'active:after:bg-(--btn-hover-overlay)',
-					'not-disabled:hover:after:bg-(--btn-hover-overlay)',
-					// Disabled
-					'disabled:before:shadow-none disabled:after:shadow-none',
-					// Dark
-					'dark:bg-(--btn-bg)',
-					'dark:border-white/5',
-					'dark:before:hidden',
-					'dark:after:-inset-px dark:after:rounded-lg',
+					'after:shadow-[shadow:inset_0_1px_theme(--color-white/15%)]',
+					// Hover
+					'hover:before:bg-[var(--btn-hover-overlay)]',
+					// Active
+					'active:after:bg-[var(--btn-hover-overlay)]',
+					// Icon color
+					'*:data-[slot=icon]:text-[var(--btn-icon)]',
 				],
 				outline: [
-					// Layout + sizing
-					'items-baseline border px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)] sm:px-[calc(--spacing(3)-1px)] sm:py-[calc(--spacing(1.5)-1px)]',
-					// Icon-only — square padding
-					'data-icon-only:items-center data-icon-only:p-[calc(--spacing(2.5)-1px)] sm:data-icon-only:p-[calc(--spacing(1.5)-1px)]',
-					// Light
-					'border-zinc-950/10 text-zinc-950',
-					'[--btn-icon:var(--color-zinc-500)]',
-					// Hover + Active
-					'active:bg-zinc-950/2.5 active:[--btn-icon:var(--color-zinc-700)]',
-					'not-disabled:hover:bg-zinc-950/2.5',
-					'hover:[--btn-icon:var(--color-zinc-700)]',
-					// Dark
-					'dark:border-white/15 dark:text-white dark:[--btn-bg:transparent]',
-					'dark:not-disabled:active:bg-white/5 dark:not-disabled:active:[--btn-icon:var(--color-zinc-400)]',
-					'dark:not-disabled:hover:bg-white/5',
-					'dark:hover:[--btn-icon:var(--color-zinc-400)]',
+					'border',
+					'border-zinc-950/10 dark:border-white/15',
+					'text-zinc-950 dark:text-white',
+					'bg-transparent hover:bg-zinc-950/2.5 dark:hover:bg-white/5',
+					'*:data-[slot=icon]:text-zinc-500 dark:*:data-[slot=icon]:text-zinc-400',
 				],
 				plain: [
-					// Layout + sizing
-					'items-baseline border border-transparent px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)] sm:px-[calc(--spacing(3)-1px)] sm:py-[calc(--spacing(1.5)-1px)]',
-					// Icon-only — square padding
-					'data-icon-only:items-center data-icon-only:p-[calc(--spacing(2.5)-1px)] sm:data-icon-only:p-[calc(--spacing(1.5)-1px)]',
-					// Light
-					'text-zinc-950',
-					'[--btn-icon:var(--color-zinc-500)]',
-					// Hover + Active
-					'active:bg-zinc-950/5 active:[--btn-icon:var(--color-zinc-700)]',
-					'not-disabled:hover:bg-zinc-950/5',
-					'hover:[--btn-icon:var(--color-zinc-700)]',
-					// Dark
-					'dark:text-white',
-					'dark:[--btn-icon:var(--color-zinc-500)]',
-					'dark:active:bg-white/10 dark:active:[--btn-icon:var(--color-zinc-400)]',
-					'dark:not-disabled:hover:bg-white/10',
-					'dark:hover:[--btn-icon:var(--color-zinc-400)]',
+					'border border-transparent',
+					'text-zinc-950 dark:text-white',
+					'hover:bg-zinc-950/5 dark:hover:bg-white/10',
+					'*:data-[slot=icon]:text-zinc-500 dark:*:data-[slot=icon]:text-zinc-400',
 				],
 				ghost: [
-					// Light
-					'text-zinc-950',
-					'[--btn-icon:var(--color-zinc-500)]',
-					// Dark
-					'dark:text-white',
-					'dark:[--btn-icon:var(--color-zinc-400)]',
+					'border border-transparent',
+					'text-zinc-950 dark:text-white',
+					'*:data-[slot=icon]:text-zinc-500 dark:*:data-[slot=icon]:text-zinc-400',
 				],
 			},
 			color: {
@@ -103,13 +75,13 @@ export const button = cva(
 			},
 		},
 		compoundVariants: [
-			{ variant: 'solid', color: 'zinc', class: nuri.button.zinc },
-			{ variant: 'solid', color: 'white', class: nuri.button.white },
-			{ variant: 'solid', color: 'dark', class: nuri.button.dark },
-			{ variant: 'solid', color: 'red', class: nuri.button.red },
-			{ variant: 'solid', color: 'amber', class: nuri.button.amber },
-			{ variant: 'solid', color: 'green', class: nuri.button.green },
-			{ variant: 'solid', color: 'blue', class: nuri.button.blue },
+			{ variant: 'solid', color: 'zinc', className: nuri.button.zinc },
+			{ variant: 'solid', color: 'white', className: nuri.button.white },
+			{ variant: 'solid', color: 'dark', className: nuri.button.dark },
+			{ variant: 'solid', color: 'red', className: nuri.button.red },
+			{ variant: 'solid', color: 'amber', className: nuri.button.amber },
+			{ variant: 'solid', color: 'green', className: nuri.button.green },
+			{ variant: 'solid', color: 'blue', className: nuri.button.blue },
 		],
 		defaultVariants: {
 			variant: 'solid',
@@ -117,3 +89,5 @@ export const button = cva(
 		},
 	},
 )
+
+export type ButtonVariants = VariantProps<typeof buttonVariants>

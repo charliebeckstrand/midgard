@@ -1,20 +1,35 @@
 'use client'
 
 import type React from 'react'
-import { useCallback, useState } from 'react'
-import { cn } from '../../core'
-import { useOverlay } from '../../hooks'
-import { DropdownProvider } from './context'
+import { useCallback, useRef, useState } from 'react'
+import { createContext } from '../../core'
 
-export function Dropdown({ children, className }: React.PropsWithChildren<{ className?: string }>) {
+type DropdownContextValue = {
+	open: boolean
+	setOpen: (open: boolean) => void
+	close: () => void
+	triggerRef: React.RefObject<HTMLButtonElement | null>
+}
+
+export const [DropdownProvider, useDropdownContext] =
+	createContext<DropdownContextValue>('Dropdown')
+
+export type DropdownProps = {
+	children: React.ReactNode
+}
+
+export function Dropdown({ children }: DropdownProps) {
 	const [open, setOpen] = useState(false)
-	const toggle = useCallback(() => setOpen((prev) => !prev), [])
-	const close = useCallback(() => setOpen(false), [])
-	const containerRef = useOverlay(open, close)
+	const triggerRef = useRef<HTMLButtonElement>(null)
+
+	const close = useCallback(() => {
+		setOpen(false)
+		triggerRef.current?.focus()
+	}, [])
 
 	return (
-		<DropdownProvider value={{ open, toggle, close }}>
-			<div ref={containerRef} className={cn('relative', className)}>
+		<DropdownProvider value={{ open, setOpen, close, triggerRef }}>
+			<div data-slot="dropdown" className="relative">
 				{children}
 			</div>
 		</DropdownProvider>

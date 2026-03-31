@@ -1,40 +1,49 @@
-import { cva } from 'class-variance-authority'
+import { cva, type VariantProps } from 'class-variance-authority'
 import { ki, nuri } from '../../recipes'
 
 export const switchVariants = cva(
 	[
-		// Layout
-		'group relative isolate inline-flex h-6 w-10 cursor-default rounded-full p-[3px] sm:h-5 sm:w-8',
-		'transition duration-0 ease-in-out data-changing:duration-200',
-		// Light
-		'bg-zinc-200 ring-1 ring-black/5 ring-inset',
-		'data-checked:bg-(--switch-bg) data-checked:ring-(--switch-bg-ring)',
+		// Base
+		'group relative inline-flex h-6 w-10 shrink-0 cursor-pointer items-center rounded-full',
+		// Unchecked — track
+		'bg-zinc-200 ring-1 ring-zinc-950/5 ring-inset dark:bg-white/10 dark:ring-white/15',
 		// Focus
 		ki.reset,
 		ki.offset,
+		// Checked — track
+		'checked:bg-(--switch-bg) checked:ring-(--switch-bg-ring) checked:ring-inset',
 		// Hover
-		'not-disabled:hover:ring-black/15',
-		'not-disabled:hover:data-checked:ring-(--switch-bg-ring)',
+		'hover:bg-zinc-300 dark:hover:bg-white/15',
+		'checked:hover:opacity-90',
 		// Disabled
-		'disabled:bg-zinc-200 disabled:opacity-50 disabled:data-checked:bg-zinc-200 disabled:data-checked:ring-black/5',
-		// Dark
-		'dark:bg-white/5 dark:ring-white/15',
-		'dark:data-checked:bg-(--switch-bg) dark:data-checked:ring-(--switch-bg-ring)',
-		// Dark — hover
-		'dark:not-disabled:hover:ring-white/25',
-		'dark:not-disabled:hover:data-checked:ring-(--switch-bg-ring)',
-		// Dark — disabled
-		'dark:disabled:bg-white/15 dark:disabled:data-checked:bg-white/15 dark:disabled:data-checked:ring-white/15',
+		'disabled:opacity-50 disabled:cursor-default',
 		// Forced colors
-		'forced-colors:outline forced-colors:[--switch-bg:Highlight]',
-		'dark:forced-colors:[--switch-bg:Highlight]',
+		'forced-colors:appearance-auto forced-colors:checked:appearance-auto',
 	],
 	{
 		variants: {
-			color: nuri.switch,
+			color: {
+				zinc: nuri.switch.zinc,
+				white: nuri.switch.white,
+				dark: nuri.switch.dark,
+				red: nuri.switch.red,
+				amber: nuri.switch.amber,
+				green: nuri.switch.green,
+				blue: nuri.switch.blue,
+			},
 		},
 		defaultVariants: {
 			color: 'zinc',
 		},
 	},
 )
+
+export const switchThumbVariants = cva([
+	'pointer-events-none absolute inline-block size-4 rounded-full',
+	'left-1 transition-[left] duration-200 ease-in-out',
+	'bg-white shadow-sm ring-1 ring-zinc-950/5',
+	'[:checked+&]:left-5',
+	'[:checked+&]:bg-(--switch) [:checked+&]:shadow-(--switch-shadow) [:checked+&]:ring-(--switch-ring)',
+])
+
+export type SwitchVariants = VariantProps<typeof switchVariants>

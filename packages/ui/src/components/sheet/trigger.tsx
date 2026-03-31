@@ -1,45 +1,33 @@
 'use client'
 
-import type React from 'react'
-import { cloneElement, isValidElement, type ReactElement } from 'react'
-import { useSheet } from './context'
+import React from 'react'
+import { useSheetContext } from './sheet'
 
-export type SheetButtonProps = {
-	asChild?: boolean
-	children: React.ReactElement | React.ReactNode
-} & Omit<React.ComponentPropsWithoutRef<'button'>, 'children'>
-
-function SheetButton({
-	asChild,
-	children,
-	action,
-	...props
-}: SheetButtonProps & { action: () => void }) {
-	if (asChild && isValidElement(children)) {
-		return cloneElement(children as ReactElement<Record<string, unknown>>, {
-			onClick: (e: React.MouseEvent) => {
-				const childOnClick = (children as ReactElement<Record<string, unknown>>).props.onClick as
-					| ((e: React.MouseEvent) => void)
-					| undefined
-				childOnClick?.(e)
-				action()
-			},
-		})
-	}
-
-	return (
-		<button type="button" onClick={action} {...props}>
-			{children}
-		</button>
-	)
+export type SheetOpenProps = {
+	children: React.ReactElement<{ onClick?: React.MouseEventHandler }>
+	onClick?: () => void
 }
 
-export function SheetOpen(props: SheetButtonProps) {
-	const { onOpenChange } = useSheet()
-	return <SheetButton {...props} action={() => onOpenChange(true)} />
+export type SheetCloseProps = {
+	children: React.ReactElement<{ onClick?: React.MouseEventHandler }>
 }
 
-export function SheetClose(props: SheetButtonProps) {
-	const { onOpenChange } = useSheet()
-	return <SheetButton {...props} action={() => onOpenChange(false)} />
+export function SheetOpen({ children, onClick }: SheetOpenProps) {
+	return React.cloneElement(children, {
+		onClick: (e: React.MouseEvent) => {
+			children.props.onClick?.(e)
+			onClick?.()
+		},
+	})
+}
+
+export function SheetClose({ children }: SheetCloseProps) {
+	const { onClose } = useSheetContext()
+
+	return React.cloneElement(children, {
+		onClick: (e: React.MouseEvent) => {
+			children.props.onClick?.(e)
+			onClose()
+		},
+	})
 }

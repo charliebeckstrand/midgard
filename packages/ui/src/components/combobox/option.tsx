@@ -1,39 +1,42 @@
 'use client'
 
 import type React from 'react'
-import { BaseOption } from '../../primitives'
-import { useCombobox } from './context'
+import { cn } from '../../core'
+import { BaseOption, OptionDescription, OptionLabel } from '../../primitives'
+import { useComboboxContext } from './combobox'
 
-export function ComboboxOption<T>({
-	children,
-	className,
-	value,
-	disabled,
-	...props
-}: {
+export type ComboboxOptionProps = {
+	value: unknown
+	disabled?: boolean
 	className?: string
 	children?: React.ReactNode
-	value: T
-	disabled?: boolean
-} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className' | 'onSelect'>) {
-	const { value: selectedValue, onChange } = useCombobox()
-	const selected = selectedValue === value
+}
+
+export function ComboboxOption({ value, disabled, className, children }: ComboboxOptionProps) {
+	const { value: selectedValue, select } = useComboboxContext()
 
 	return (
 		<BaseOption
-			selected={selected}
+			selected={selectedValue === value}
 			disabled={disabled}
 			checkPosition="end"
-			onSelect={() => onChange(value)}
+			onSelect={() => select(value)}
+			data-slot="combobox-option"
 			className={className}
-			{...props}
 		>
 			{children}
 		</BaseOption>
 	)
 }
 
-export {
-	OptionDescription as ComboboxDescription,
-	OptionLabel as ComboboxLabel,
-} from '../../primitives/option'
+export type ComboboxLabelProps = React.ComponentPropsWithoutRef<'span'>
+
+export function ComboboxLabel({ className, ...props }: ComboboxLabelProps) {
+	return <OptionLabel data-slot="combobox-label" className={cn(className)} {...props} />
+}
+
+export type ComboboxDescriptionProps = React.ComponentPropsWithoutRef<'span'>
+
+export function ComboboxDescription({ className, ...props }: ComboboxDescriptionProps) {
+	return <OptionDescription data-slot="combobox-description" className={cn(className)} {...props} />
+}

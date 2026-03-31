@@ -1,6 +1,31 @@
-export { useDropdown } from './context'
-export { Dropdown } from './dropdown'
-export { DropdownDescription, DropdownItem, DropdownLabel, DropdownShortcut } from './item'
-export { DropdownMenu } from './menu'
-export { DropdownDivider, DropdownHeader, DropdownHeading, DropdownSection } from './section'
-export { DropdownButton } from './trigger'
+export { Dropdown, type DropdownProps } from './dropdown'
+export {
+	DropdownDescription,
+	type DropdownDescriptionProps,
+	DropdownItem,
+	type DropdownItemProps,
+	DropdownLabel,
+	type DropdownLabelProps,
+	DropdownShortcut,
+	type DropdownShortcutProps,
+} from './item'
+export { DropdownMenu, type DropdownMenuProps } from './menu'
+export {
+	DropdownHeading,
+	type DropdownHeadingProps,
+	DropdownSection,
+	type DropdownSectionProps,
+	DropdownSeparator,
+	type DropdownSeparatorProps,
+} from './section'
+export { DropdownButton, type DropdownButtonProps } from './trigger'
+export {
+	dropdownDescriptionVariants,
+	dropdownHeadingVariants,
+	dropdownItemVariants,
+	dropdownLabelVariants,
+	dropdownMenuVariants,
+	dropdownSectionVariants,
+	dropdownSeparatorVariants,
+	dropdownShortcutVariants,
+} from './variants'

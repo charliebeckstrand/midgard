@@ -1,88 +1,46 @@
 'use client'
 
-import { motion } from 'motion/react'
-import type React from 'react'
-import { useRef } from 'react'
 import { cn } from '../../core'
-import { useMenuKeyboard } from '../../hooks'
 import { ActiveIndicatorScope } from '../../primitives'
-import { kage, sumi } from '../../recipes'
+import {
+	sidebarBodyVariants,
+	sidebarFooterVariants,
+	sidebarHeaderVariants,
+	sidebarVariants,
+} from './variants'
 
-export function Sidebar({ className, ...props }: React.ComponentPropsWithoutRef<'nav'>) {
-	const ref = useRef<HTMLElement>(null)
+export type SidebarProps = React.ComponentPropsWithoutRef<'nav'>
 
-	const onKeyDown = useMenuKeyboard(ref, '[data-slot="sidebar-item"]')
+export type SidebarHeaderProps = React.ComponentPropsWithoutRef<'div'>
 
+export type SidebarBodyProps = React.ComponentPropsWithoutRef<'div'>
+
+export type SidebarFooterProps = React.ComponentPropsWithoutRef<'div'>
+
+export function Sidebar({ className, children, ...props }: SidebarProps) {
 	return (
 		<ActiveIndicatorScope>
-			<nav
-				ref={ref}
-				data-slot="sidebar"
-				onKeyDown={onKeyDown}
-				{...props}
-				className={cn('flex h-full min-h-0 flex-col', className)}
-			/>
+			<nav data-slot="sidebar" className={cn(sidebarVariants(), className)} {...props}>
+				{children}
+			</nav>
 		</ActiveIndicatorScope>
 	)
 }
 
-export function SidebarHeading({ className, ...props }: React.ComponentPropsWithoutRef<'h3'>) {
-	return <h3 {...props} className={cn(`mb-1 px-2 text-xs/6 font-medium ${sumi.usui}`, className)} />
-}
-
-type DivProps = Omit<
-	React.ComponentPropsWithoutRef<'div'>,
-	'onDrag' | 'onDragEnd' | 'onDragStart' | 'onAnimationStart' | 'onAnimationEnd'
->
-
-export function SidebarBody({ className, ...props }: DivProps) {
+export function SidebarHeader({ className, ...props }: SidebarHeaderProps) {
 	return (
-		<motion.div
-			layoutScroll
-			{...props}
-			className={cn(
-				'flex flex-1 flex-col overflow-y-auto p-4 [&>[data-slot=section]+[data-slot=section]]:mt-4',
-				className,
-			)}
-		/>
+		<div data-slot="sidebar-header" className={cn(sidebarHeaderVariants(), className)} {...props} />
 	)
 }
 
-export function SidebarFooter({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
+export function SidebarBody({ className, ...props }: SidebarBodyProps) {
 	return (
-		<div
-			{...props}
-			className={cn(
-				`flex flex-col border-t ${kage.usui} p-4 [&>[data-slot=section]+[data-slot=section]]:mt-2.5`,
-				className,
-			)}
-		/>
+		<div data-slot="sidebar-body" className={cn(sidebarBodyVariants(), className)} {...props} />
 	)
 }
 
-export function SidebarSection({
-	className,
-	scrollable,
-	...props
-}: DivProps & { scrollable?: boolean }) {
-	if (scrollable) {
-		return (
-			<motion.div
-				layoutScroll
-				{...props}
-				data-slot="section"
-				className={cn('flex flex-col gap-1 -mr-2 -ml-4 py-2 pr-2 pl-4 overflow-y-auto', className)}
-			/>
-		)
-	}
-
-	return <div {...props} data-slot="section" className={cn('flex flex-col gap-1', className)} />
-}
-
-export function SidebarDivider({ className, ...props }: React.ComponentPropsWithoutRef<'hr'>) {
-	return <hr {...props} className={cn(`my-4 border-t ${kage.usui} lg:-mx-4`, className)} />
-}
-
-export function SidebarSpacer({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
-	return <div aria-hidden="true" {...props} className={cn('mt-8 flex-1', className)} />
+export function SidebarFooter({ className, ...props }: SidebarFooterProps) {
+	return (
+		<div data-slot="sidebar-footer" className={cn(sidebarFooterVariants(), className)} {...props} />
+	)
 }

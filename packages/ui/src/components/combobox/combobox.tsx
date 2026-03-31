@@ -2,164 +2,142 @@
 
 import { AnimatePresence } from 'motion/react'
 import type React from 'react'
-import { useCallback, useRef, useState } from 'react'
-import { cn } from '../../core'
-import { useControllable, useOverlay } from '../../hooks'
-import { ChevronIcon } from '../../primitives'
-import { narabi, omote } from '../../recipes'
-import { ComboboxProvider } from './context'
-import { ComboboxOptions } from './options'
+import { useCallback, useMemo, useRef, useState } from 'react'
+import { cn, createContext } from '../../core'
+import { useControllable } from '../../hooks/use-controllable'
+import { useMenuKeyboard } from '../../hooks/use-menu-keyboard'
+import { useOverlay } from '../../hooks/use-overlay'
+import { ChevronIcon, PopoverPanel } from '../../primitives'
+import { narabi } from '../../recipes'
+import {
+	comboboxChevronVariants,
+	comboboxInputVariants,
+	comboboxOptionsVariants,
+	comboboxVariants,
+} from './variants'
 
-export function Combobox<T>({
-	options,
-	displayValue,
-	filter,
-	anchor = 'bottom',
-	className,
-	placeholder,
-	autoFocus,
-	'aria-label': ariaLabel,
-	children,
-	value,
-	defaultValue,
-	onChange,
-	disabled,
-	invalid,
-	name,
-	inputId,
-	...props
-}: {
-	options: T[]
-	displayValue: (value: T | null) => string | undefined
-	filter?: (value: T, query: string) => boolean
-	className?: string
-	placeholder?: string
-	autoFocus?: boolean
-	'aria-label'?: string
-	children: (value: NonNullable<T>) => React.ReactElement
+type ComboboxContextValue<T = unknown> = {
+	value: T | undefined
+	select: (value: T) => void
+	query: string
+}
+
+export const [ComboboxProvider, useComboboxContext] =
+	createContext<ComboboxContextValue>('Combobox')
+
+export type ComboboxProps<T> = {
 	value?: T
 	defaultValue?: T
 	onChange?: (value: T) => void
-	disabled?: boolean
-	invalid?: boolean
-	name?: string
-	inputId?: string
-	anchor?: 'top' | 'bottom'
-} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className' | 'onChange' | 'children'>) {
+	placeholder?: string
+	displayValue?: (value: T) => string
+	anchor?: keyof typeof narabi.anchor
+	className?: string
+	children: React.ReactNode | ((query: string) => React.ReactNode)
+}
+
+export function Combobox<T>({
+	value: valueProp,
+	defaultValue,
+	onChange,
+	placeholder = 'Search...',
+	displayValue,
+	anchor = 'bottom start',
+	className,
+	children,
+}: ComboboxProps<T>) {
+	const [value, setValue] = useControllable<T>({
+		value: valueProp,
+		defaultValue,
+		onChange,
+	})
+
 	const [query, setQuery] = useState('')
 	const [open, setOpen] = useState(false)
-	const [currentValue, setValue] = useControllable({ value, defaultValue, onChange })
 	const inputRef = useRef<HTMLInputElement>(null)
+	const optionsRef = useRef<HTMLDivElement>(null)
 
-	const filteredOptions =
-		query === ''
-			? options
-			: options.filter((option) =>
-					filter
-						? filter(option, query)
-						: displayValue(option)?.toLowerCase().includes(query.toLowerCase()),
-				)
+	const handleKeyDown = useMenuKeyboard(optionsRef, '[role="option"]:not([data-disabled])')
 
 	const close = useCallback(() => {
 		setOpen(false)
 		setQuery('')
 	}, [])
 
-	const handleChange = useCallback(
-		(newValue: unknown) => {
-			setValue(newValue as T)
+	const select = useCallback(
+		(newValue: T) => {
+			setValue(newValue)
 			close()
 			inputRef.current?.focus()
 		},
 		[setValue, close],
 	)
 
-	const containerRef = useOverlay(open, close)
-	const anchorClasses = narabi.anchor[anchor] ?? narabi.anchor.bottom
+	const inputDisplay = useMemo(() => {
+		if (query) return query
+		if (value !== undefined && displayValue) return displayValue(value)
+		return ''
+	}, [query, value, displayValue])
 
-	function handleInputKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-		if (e.key === 'ArrowDown') {
-			e.preventDefault()
-			if (!open) {
-				setOpen(true)
-			} else if (containerRef.current) {
-				const items = containerRef.current.querySelectorAll<HTMLElement>('[role="option"]')
-				if (items.length > 0) items[0]?.focus()
-			}
-		} else if (e.key === 'ArrowUp') {
-			e.preventDefault()
-			if (!open) {
-				setOpen(true)
-			} else if (containerRef.current) {
-				const items = containerRef.current.querySelectorAll<HTMLElement>('[role="option"]')
-				if (items.length > 0) items[items.length - 1]?.focus()
-			}
-		}
-	}
+	const containerRef = useOverlay(open, close)
+
+	const rendered = typeof children === 'function' ? children(query) : children
 
 	return (
-		<ComboboxProvider value={{ value: currentValue, onChange: handleChange, close }}>
-			<div ref={containerRef} data-slot="control" className="relative" {...props}>
-				<span className={cn(omote.control, className)}>
+		<ComboboxProvider value={{ value, select: select as (v: unknown) => void, query }}>
+			<div ref={containerRef} data-slot="combobox" className={cn('relative', className)}>
+				<span className={cn(comboboxVariants())}>
 					<input
 						ref={inputRef}
-						id={inputId}
 						type="text"
 						role="combobox"
-						// biome-ignore lint/a11y/noAutofocus: intentional autoFocus prop for combobox
-						autoFocus={autoFocus}
-						autoComplete="off"
-						data-slot="control"
-						aria-label={ariaLabel}
+						aria-haspopup="listbox"
 						aria-expanded={open}
 						aria-autocomplete="list"
-						data-invalid={invalid ? '' : undefined}
-						disabled={disabled}
+						data-slot="combobox-input"
+						value={inputDisplay}
 						placeholder={placeholder}
-						value={query || (open ? '' : (displayValue(currentValue as T) ?? ''))}
 						onChange={(e) => {
 							setQuery(e.target.value)
-							if (!open) setOpen(true)
+							setOpen(true)
 						}}
 						onFocus={() => setOpen(true)}
-						onKeyDown={handleInputKeyDown}
-						className={cn(
-							'relative block w-full appearance-none rounded-lg py-[calc(--spacing(2.5)-1px)] sm:py-[calc(--spacing(1.5)-1px)]',
-							'pr-[calc(--spacing(10)-1px)] pl-[calc(--spacing(3.5)-1px)] sm:pr-[calc(--spacing(9)-1px)] sm:pl-[calc(--spacing(3)-1px)]',
-							omote.input,
-							'dark:scheme-dark',
-						)}
+						onKeyDown={(e) => {
+							if (e.key === 'Escape') {
+								close()
+								return
+							}
+							handleKeyDown(e)
+						}}
+						className={cn(comboboxInputVariants())}
 					/>
 					<button
 						type="button"
 						tabIndex={-1}
-						className="group absolute inset-y-0 right-0 flex items-center px-2"
-						disabled={disabled}
-						onClick={() => {
-							if (disabled) return
-							setOpen((prev) => !prev)
-							inputRef.current?.focus()
-						}}
+						aria-hidden="true"
+						onClick={() => setOpen(!open)}
+						className={comboboxChevronVariants()}
 					>
-						<ChevronIcon className="group-disabled:stroke-zinc-600 group-hover:stroke-zinc-700 dark:group-hover:stroke-zinc-300" />
+						<ChevronIcon />
 					</button>
 				</span>
 
-				{name && (
-					<input
-						type="hidden"
-						name={name}
-						value={currentValue != null ? String(currentValue) : ''}
-					/>
-				)}
-
-				<AnimatePresence>
-					{open && filteredOptions.length > 0 && (
-						<ComboboxOptions className={`left-0 ${anchorClasses}`}>
-							{filteredOptions.map((option) => children(option as NonNullable<T>))}
-						</ComboboxOptions>
-					)}
-				</AnimatePresence>
+				<div ref={optionsRef}>
+					<AnimatePresence>
+						{open && (
+							<PopoverPanel
+								role="listbox"
+								autoFocus={false}
+								className={cn(narabi.anchor[anchor], comboboxOptionsVariants())}
+								onKeyDown={(e) => {
+									if (e.key === 'Escape') close()
+								}}
+							>
+								{rendered}
+							</PopoverPanel>
+						)}
+					</AnimatePresence>
+				</div>
 			</div>
 		</ComboboxProvider>
 	)

@@ -1,11 +1,21 @@
-export { SheetContent } from './content'
-export { Sheet } from './sheet'
+export { Sheet, type SheetProps } from './sheet'
 export {
+	SheetActions,
+	type SheetActionsProps,
 	SheetBody,
+	type SheetBodyProps,
 	SheetDescription,
-	SheetFooter,
-	SheetHeader,
-	SheetSubtitle,
+	type SheetDescriptionProps,
 	SheetTitle,
+	type SheetTitleProps,
 } from './slots'
-export { type SheetButtonProps, SheetClose, SheetOpen } from './trigger'
+export { SheetClose, type SheetCloseProps, SheetOpen, type SheetOpenProps } from './trigger'
+export {
+	type SheetPanelVariants,
+	sheetActionsVariants,
+	sheetBodyVariants,
+	sheetCloseVariants,
+	sheetDescriptionVariants,
+	sheetPanelVariants,
+	sheetTitleVariants,
+} from './variants'

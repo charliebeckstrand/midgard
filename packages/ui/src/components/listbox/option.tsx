@@ -2,48 +2,41 @@
 
 import type React from 'react'
 import { cn } from '../../core'
-import { BaseOption } from '../../primitives'
-import { narabi } from '../../recipes'
-import { useListbox, useSelectedOption } from './context'
+import { BaseOption, OptionDescription, OptionLabel } from '../../primitives'
+import { useListboxContext } from './listbox'
 
-export function ListboxOption<T>({
-	children,
-	className,
-	value,
-	disabled,
-	...props
-}: {
+export type ListboxOptionProps = {
+	value: unknown
+	disabled?: boolean
 	className?: string
 	children?: React.ReactNode
-	value: T
-	disabled?: boolean
-} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className' | 'onSelect'>) {
-	const { value: selectedValue, onChange } = useListbox()
-	const { isSelectedOption } = useSelectedOption()
-	const selected = selectedValue === value
+}
 
-	const sharedClasses = cn('flex min-w-0 items-center', narabi.item)
-
-	if (isSelectedOption) {
-		if (!selected) return null
-		return <span className={cn(className, sharedClasses)}>{children}</span>
-	}
+export function ListboxOption({ value, disabled, className, children }: ListboxOptionProps) {
+	const { value: selectedValue, select } = useListboxContext()
 
 	return (
 		<BaseOption
-			selected={selected}
+			selected={selectedValue === value}
 			disabled={disabled}
-			checkPosition="start"
-			onSelect={() => onChange(value)}
+			checkPosition="end"
+			onSelect={() => select(value)}
+			data-slot="listbox-option"
 			className={className}
-			{...props}
 		>
 			{children}
 		</BaseOption>
 	)
 }
 
-export {
-	OptionDescription as ListboxDescription,
-	OptionLabel as ListboxLabel,
-} from '../../primitives/option'
+export type ListboxLabelProps = React.ComponentPropsWithoutRef<'span'>
+
+export function ListboxLabel({ className, ...props }: ListboxLabelProps) {
+	return <OptionLabel data-slot="listbox-label" className={cn(className)} {...props} />
+}
+
+export type ListboxDescriptionProps = React.ComponentPropsWithoutRef<'span'>
+
+export function ListboxDescription({ className, ...props }: ListboxDescriptionProps) {
+	return <OptionDescription data-slot="listbox-description" className={cn(className)} {...props} />
+}

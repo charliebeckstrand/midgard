@@ -2,74 +2,33 @@
 
 import { motion } from 'motion/react'
 import type React from 'react'
-import { useCallback, useId } from 'react'
 import { cn } from '../../core'
 import { Overlay } from '../../primitives'
-import { katachi, omote, ugoki } from '../../recipes'
-import { DialogProvider } from './context'
+import { ugoki } from '../../recipes'
+import { type DialogPanelVariants, dialogPanelVariants } from './variants'
 
-export type DialogProps = {
+export type DialogProps = DialogPanelVariants & {
 	open: boolean
 	onClose: () => void
-	outsideClick?: boolean
-	backdropClassName?: string
-	size?: katachi.PanelSize
 	className?: string
 	children: React.ReactNode
 }
 
-export function Dialog({
-	open,
-	onClose,
-	outsideClick,
-	backdropClassName,
-	size = 'lg',
-	className,
-	children,
-}: DialogProps) {
-	const titleId = useId()
-	const descriptionId = useId()
-	const autoFocus = useCallback((el: HTMLDivElement | null) => el?.focus(), [])
-
+export function Dialog({ open, onClose, size, className, children }: DialogProps) {
 	return (
-		<DialogProvider value={{ titleId, descriptionId }}>
-			<Overlay
-				open={open}
-				onClose={onClose}
-				outsideClick={outsideClick}
-				className={backdropClassName}
-				role="dialog"
-				aria-modal="true"
-				aria-labelledby={titleId}
-				aria-describedby={descriptionId}
-			>
-				<div className="fixed inset-0 w-screen overflow-y-auto pt-6 sm:pt-0">
-					{/* biome-ignore lint/a11y/useKeyWithClickEvents: keyboard close handled by Overlay Escape listener */}
-					{/* biome-ignore lint/a11y/noStaticElementInteractions: backdrop dismiss area */}
-					<div
-						className="grid min-h-full grid-rows-[1fr_auto] justify-items-center sm:grid-rows-[1fr_auto_3fr] sm:p-4"
-						onClick={(e) => {
-							if (outsideClick !== false && e.target === e.currentTarget) onClose()
-						}}
-					>
-						<motion.div
-							{...ugoki.overlay}
-							className={cn(katachi.panel[size], 'row-start-2 flex w-full min-w-0 sm:mb-auto')}
-						>
-							<div
-								ref={autoFocus}
-								tabIndex={-1}
-								className={cn(
-									`w-full min-w-0 rounded-t-3xl p-(--gutter) [--gutter:--spacing(8)] outline-hidden sm:rounded-2xl ${omote.panel}`,
-									className,
-								)}
-							>
-								{children}
-							</div>
-						</motion.div>
-					</div>
-				</div>
-			</Overlay>
-		</DialogProvider>
+		<Overlay open={open} onClose={onClose}>
+			<div className="fixed inset-0 flex min-h-full items-center justify-center p-4">
+				<motion.div
+					{...ugoki.popover}
+					role="dialog"
+					aria-modal="true"
+					data-slot="dialog"
+					onClick={(e) => e.stopPropagation()}
+					className={cn(dialogPanelVariants({ size }), className)}
+				>
+					{children}
+				</motion.div>
+			</div>
+		</Overlay>
 	)
 }

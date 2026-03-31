@@ -3,6 +3,7 @@ import { defineConfig } from 'tsup'
 const entry = {
 	index: 'src/index.ts',
 	hooks: 'src/hooks/index.ts',
+	// Components
 	avatar: 'src/components/avatar/index.ts',
 	badge: 'src/components/badge/index.ts',
 	button: 'src/components/button/index.ts',
@@ -18,18 +19,20 @@ const entry = {
 	listbox: 'src/components/listbox/index.ts',
 	navbar: 'src/components/navbar/index.ts',
 	pagination: 'src/components/pagination/index.ts',
+	placeholder: 'src/components/placeholder/index.ts',
 	radio: 'src/components/radio/index.ts',
 	select: 'src/components/select/index.ts',
 	sheet: 'src/components/sheet/index.ts',
 	sidebar: 'src/components/sidebar/index.ts',
-	layouts: 'src/components/layouts/index.ts',
-	pages: 'src/components/pages/index.ts',
 	switch: 'src/components/switch/index.ts',
 	table: 'src/components/table/index.ts',
 	tabs: 'src/components/tabs/index.ts',
 	text: 'src/components/text/index.ts',
 	textarea: 'src/components/textarea/index.ts',
-	placeholder: 'src/components/placeholder/index.ts',
+	// Layouts & Pages
+	layouts: 'src/layouts/index.ts',
+	pages: 'src/pages/index.ts',
+	// Special
 	'react-bits/shiny-text': 'src/components/react-bits/shiny-text.tsx',
 }
 

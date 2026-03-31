@@ -3,9 +3,6 @@
  *
  * The form of a thing — how big, how wide, what proportions.
  * Icon sizes, panel widths, the physical envelope of an element.
- *
- * Branch of: Ma (root)
- * Concern: sizing, dimensions
  */
 
 export const katachi = {
@@ -27,31 +24,8 @@ export const katachi = {
 		'7xl': 'sm:max-w-7xl',
 	} satisfies Record<katachi.PanelSize, string>,
 
-	/** The standard icon size pair (string form for direct className use) */
-	icon: '*:data-[slot=icon]:size-5',
-
-	/** Base icon slot — sizing + shrink-0 */
-	iconSlot: [
-		'*:data-[slot=icon]:size-5 *:data-[slot=icon]:shrink-0',
-		'sm:*:data-[slot=icon]:size-5',
-	],
-
-	/** Icon-only containers — reset margins so icon centres cleanly */
-	iconOnly: [
-		'data-icon-only:*:data-[slot=icon]:mx-0',
-		'data-icon-only:*:data-[slot=icon]:my-0',
-		'sm:data-icon-only:*:data-[slot=icon]:my-0',
-	],
-
-	/** Trailing icon — last icon pushes right (chevrons, arrows) */
-	iconTrailing: ['*:last:data-[slot=icon]:ml-auto *:last:data-[slot=icon]:size-5'],
-
-	/** Pure CSS auto-detection for square aspect when element has icon but no label */
-	iconDetect: [
-		'[&:has([data-slot=icon]):not(:has([data-slot=label]))]:aspect-square',
-		'[&:has([data-slot=icon]):not(:has([data-slot=label]))]:justify-center',
-		'[&:has([data-slot=icon]):not(:has([data-slot=label]))]:w-auto',
-	],
+	/** The standard icon slot — sizing + shrink for data-slot="icon" children */
+	icon: '*:data-[slot=icon]:size-5 *:data-[slot=icon]:shrink-0',
 }
 
 export namespace katachi {

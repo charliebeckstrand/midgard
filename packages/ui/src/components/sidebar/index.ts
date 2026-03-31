@@ -1,12 +1,29 @@
-export { PlaceholderSidebarItem as SidebarItemSkeleton } from '../placeholder'
-export { SidebarHeader } from './header'
-export { SidebarItem, SidebarItemActions, SidebarLabel } from './item'
+export {
+	SidebarItem,
+	type SidebarItemProps,
+	SidebarLabel,
+	type SidebarLabelProps,
+	SidebarSection,
+	type SidebarSectionProps,
+	SidebarSpacer,
+	type SidebarSpacerProps,
+} from './item'
 export {
 	Sidebar,
 	SidebarBody,
-	SidebarDivider,
+	type SidebarBodyProps,
 	SidebarFooter,
-	SidebarHeading,
-	SidebarSection,
-	SidebarSpacer,
+	type SidebarFooterProps,
+	SidebarHeader,
+	type SidebarHeaderProps,
+	type SidebarProps,
 } from './sidebar'
+export {
+	sidebarBodyVariants,
+	sidebarFooterVariants,
+	sidebarHeaderVariants,
+	sidebarItemVariants,
+	sidebarLabelVariants,
+	sidebarSectionVariants,
+	sidebarVariants,
+} from './variants'

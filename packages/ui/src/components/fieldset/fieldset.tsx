@@ -1,41 +1,19 @@
-import type React from 'react'
 import { cn } from '../../core'
-import { narabi } from '../../recipes'
+import { fieldsetVariants, legendVariants } from './variants'
 
-export function Fieldset({
-	className,
-	disabled,
-	...props
-}: { className?: string; disabled?: boolean } & Omit<
-	React.ComponentPropsWithoutRef<'fieldset'>,
-	'className'
->) {
-	return (
-		<fieldset
-			disabled={disabled}
-			{...props}
-			className={cn('*:data-[slot=text]:mt-1 [&>*+[data-slot=control]]:mt-6', className)}
-		/>
-	)
+export type FieldsetProps = {
+	className?: string
+	disabled?: boolean
+} & Omit<React.ComponentPropsWithoutRef<'fieldset'>, 'className'>
+
+export function Fieldset({ className, ...props }: FieldsetProps) {
+	return <fieldset data-slot="fieldset" className={cn(fieldsetVariants(), className)} {...props} />
 }
 
-export function FieldGroup({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
-	return <div data-slot="control" {...props} className={cn('space-y-8', className)} />
-}
+export type LegendProps = {
+	className?: string
+} & Omit<React.ComponentPropsWithoutRef<'legend'>, 'className'>
 
-export function Field({
-	className,
-	disabled,
-	...props
-}: { className?: string; disabled?: boolean } & Omit<
-	React.ComponentPropsWithoutRef<'div'>,
-	'className'
->) {
-	return (
-		<div
-			data-disabled={disabled ? '' : undefined}
-			{...props}
-			className={cn(...narabi.field, className)}
-		/>
-	)
+export function Legend({ className, ...props }: LegendProps) {
+	return <legend data-slot="legend" className={cn(legendVariants(), className)} {...props} />
 }

@@ -1,92 +1,85 @@
 'use client'
 
-import React from 'react'
 import { cn, Link } from '../../core'
 import { ActiveIndicator, TouchTarget, useActiveIndicator } from '../../primitives'
-import { katachi, sawari } from '../../recipes'
-import { useOffcanvas } from '../layouts/context'
+import { sidebarItemVariants, sidebarLabelVariants, sidebarSectionVariants } from './variants'
 
-export function SidebarItemActions({
-	className,
-	...props
-}: React.ComponentPropsWithoutRef<'span'>) {
-	return <span {...props} className={cn('pointer-events-auto', className)} />
+type SidebarItemBaseProps = {
+	current?: boolean
+	className?: string
 }
 
-function splitActions(children: React.ReactNode) {
-	const actions: React.ReactNode[] = []
-	const rest: React.ReactNode[] = []
-
-	React.Children.forEach(children, (child) => {
-		if (React.isValidElement(child) && child.type === SidebarItemActions) {
-			actions.push(child)
-		} else {
-			rest.push(child)
-		}
-	})
-
-	return { actions, rest }
-}
-
-export function SidebarItem({
-	current,
-	className,
-	children,
-	...props
-}: { current?: boolean; className?: string; children: React.ReactNode } & (
-	| ({ href?: never } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className'>)
-	| ({ href: string } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
-)) {
-	const offcanvas = useOffcanvas()
-	const { ref: indicatorRef, tapHandlers } = useActiveIndicator()
-	const { actions, rest } = splitActions(children)
-
-	const classes = cn(
-		// Base
-		'flex w-full items-center gap-3 rounded-lg px-2 py-2.5 text-left text-base/6 font-medium select-none text-zinc-950 sm:py-2',
-		sawari.nav,
-		// Trailing icon (down chevron or similar)
-		...katachi.iconTrailing,
-		// Current
-		'data-current:*:data-[slot=icon]:fill-zinc-950',
-		'dark:data-current:*:data-[slot=icon]:fill-white',
-		// Icon-only — auto-detected square aspect
-		...katachi.iconDetect,
+export type SidebarItemProps = SidebarItemBaseProps &
+	(
+		| ({ href?: never } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className'>)
+		| ({ href: string } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
 	)
 
-	return (
-		<span className={cn('group relative', className)} {...(current ? tapHandlers : undefined)}>
-			{current && <ActiveIndicator ref={indicatorRef} />}
-			{typeof props.href === 'string' ? (
+export type SidebarLabelProps = React.ComponentPropsWithoutRef<'span'>
+
+export type SidebarSectionProps = React.ComponentPropsWithoutRef<'div'>
+
+export type SidebarSpacerProps = React.ComponentPropsWithoutRef<'div'>
+
+export function SidebarItem({ current, className, children, ...props }: SidebarItemProps) {
+	const indicator = useActiveIndicator()
+	const classes = cn(sidebarItemVariants(), className)
+
+	if ('href' in props && props.href !== undefined) {
+		const { href, ...linkProps } = props
+		return (
+			<span data-slot="sidebar-item" className="group relative" {...indicator.tapHandlers}>
 				<Link
-					{...props}
-					className={cn(classes, 'relative z-10', current && 'pointer-events-none')}
-					data-slot="sidebar-item"
-					data-current={current ? 'true' : undefined}
-					onClick={(e) => {
-						offcanvas?.close()
-						;(props as React.ComponentPropsWithoutRef<typeof Link>).onClick?.(e)
-					}}
+					data-current={current ? '' : undefined}
+					href={href}
+					className={classes}
+					{...linkProps}
 				>
-					<TouchTarget>{rest}</TouchTarget>
+					<TouchTarget>{children}</TouchTarget>
 				</Link>
-			) : (
-				<button
-					{...props}
-					type="button"
-					className={cn('cursor-default', classes, 'relative z-10')}
-					data-slot="sidebar-item"
-					data-current={current ? 'true' : undefined}
-					onClick={(props as React.ComponentPropsWithoutRef<'button'>).onClick}
-				>
-					<TouchTarget>{rest}</TouchTarget>
-				</button>
-			)}
-			{actions}
+				{current && <ActiveIndicator ref={indicator.ref} />}
+			</span>
+		)
+	}
+
+	return (
+		<span data-slot="sidebar-item" className="group relative" {...indicator.tapHandlers}>
+			<button
+				data-current={current ? '' : undefined}
+				type="button"
+				className={classes}
+				{...(props as Omit<React.ComponentPropsWithoutRef<'button'>, 'className'>)}
+			>
+				<TouchTarget>{children}</TouchTarget>
+			</button>
+			{current && <ActiveIndicator ref={indicator.ref} />}
 		</span>
 	)
 }
 
-export function SidebarLabel({ className, ...props }: React.ComponentPropsWithoutRef<'span'>) {
-	return <span data-slot="label" {...props} className={cn('truncate', className)} />
+export function SidebarLabel({ className, ...props }: SidebarLabelProps) {
+	return (
+		<span data-slot="sidebar-label" className={cn(sidebarLabelVariants(), className)} {...props} />
+	)
+}
+
+export function SidebarSection({ className, ...props }: SidebarSectionProps) {
+	return (
+		<div
+			data-slot="sidebar-section"
+			className={cn(sidebarSectionVariants(), className)}
+			{...props}
+		/>
+	)
+}
+
+export function SidebarSpacer({ className, ...props }: SidebarSpacerProps) {
+	return (
+		<div
+			data-slot="sidebar-spacer"
+			aria-hidden="true"
+			className={cn('mt-auto', className)}
+			{...props}
+		/>
+	)
 }

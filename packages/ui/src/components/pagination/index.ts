@@ -1,2 +1,21 @@
-export { PaginationGap, PaginationList, PaginationPage } from './page'
-export { Pagination, PaginationNext, PaginationPrevious } from './pagination'
+export {
+	Pagination,
+	PaginationGap,
+	type PaginationGapProps,
+	PaginationList,
+	type PaginationListProps,
+	PaginationNext,
+	type PaginationNextProps,
+	PaginationPage,
+	type PaginationPageProps,
+	PaginationPrevious,
+	type PaginationPreviousProps,
+	type PaginationProps,
+} from './component'
+export {
+	type PageButtonVariants,
+	pageButtonVariants,
+	paginationGapVariants,
+	paginationNavVariants,
+	paginationVariants,
+} from './variants'

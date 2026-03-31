@@ -1,10 +1,2 @@
-export {
-	Placeholder,
-	PlaceholderButton,
-	PlaceholderInput,
-	PlaceholderSidebarItem,
-	PlaceholderText,
-	PlaceholderTextarea,
-} from './placeholder'
-export type { SkeletonProps } from './skeleton'
-export { Skeleton, skeleton } from './skeleton'
+export { Placeholder, type PlaceholderProps } from './component'
+export { type PlaceholderVariants, placeholderVariants } from './variants'

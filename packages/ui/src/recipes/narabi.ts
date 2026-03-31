@@ -3,12 +3,7 @@
  *
  * How elements line up — the ordering, positioning, and slot relationships
  * between siblings. The choreography of a layout.
- *
- * Branch of: Ma (root)
- * Concern: layout, positioning
  */
-
-import { katachi } from './katachi'
 
 export const narabi = {
 	/** How form field slots relate — label → control → description → error */
@@ -56,16 +51,11 @@ export const narabi = {
 
 	/** Icon and avatar slot layout within menu items */
 	item: [
-		// Icon sizing — from shared recipe
-		...katachi.iconSlot,
-		// Icon colors — secondary text color applied to icon slot
+		'*:data-[slot=icon]:size-5 *:data-[slot=icon]:shrink-0',
 		'*:data-[slot=icon]:text-zinc-500 dark:*:data-[slot=icon]:text-zinc-400',
-		// Icon colors — focus
 		'group-focus/option:*:data-[slot=icon]:text-white',
-		// Icon colors — forced colors
 		'forced-colors:*:data-[slot=icon]:text-[CanvasText]',
 		'forced-colors:group-focus/option:*:data-[slot=icon]:text-[Canvas]',
-		// Avatar sizing
 		'*:data-[slot=avatar]:-mx-0.5 *:data-[slot=avatar]:size-6 sm:*:data-[slot=avatar]:size-5',
 	],
 }

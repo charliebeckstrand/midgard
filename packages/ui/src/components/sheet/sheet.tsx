@@ -1,39 +1,46 @@
 'use client'
 
+import { motion } from 'motion/react'
 import type React from 'react'
-import { useCallback, useId, useState } from 'react'
-import type { SheetSide } from './context'
-import { SheetProvider } from './context'
+import { cn, createContext } from '../../core'
+import { Overlay } from '../../primitives'
+import { ugoki } from '../../recipes'
+import { type SheetPanelVariants, sheetPanelVariants } from './variants'
 
-export function Sheet({
-	children,
-	side = 'right',
-	modal = true,
-	open: controlledOpen,
-	onOpenChange: controlledOnOpenChange,
-}: {
+type SheetSide = 'right' | 'left' | 'top' | 'bottom'
+
+type SheetContextValue = {
+	onClose: () => void
+}
+
+export const [SheetProvider, useSheetContext] = createContext<SheetContextValue>('Sheet')
+
+export type SheetProps = SheetPanelVariants & {
+	open: boolean
+	onClose: () => void
+	className?: string
 	children: React.ReactNode
-	side?: SheetSide
-	modal?: boolean
-	open?: boolean
-	onOpenChange?: (open: boolean) => void
-}) {
-	const [internalOpen, setInternalOpen] = useState(false)
-	const open = controlledOpen ?? internalOpen
-	const onOpenChange = useCallback(
-		(value: boolean) => {
-			controlledOnOpenChange?.(value)
-			if (controlledOpen === undefined) setInternalOpen(value)
-		},
-		[controlledOpen, controlledOnOpenChange],
-	)
+}
 
-	const titleId = useId()
-	const descriptionId = useId()
+export function Sheet({ open, onClose, side = 'right', size, className, children }: SheetProps) {
+	const resolvedSide = (side ?? 'right') as SheetSide
+	const panelMotion = ugoki.panel[resolvedSide]
 
 	return (
-		<SheetProvider value={{ open, onOpenChange, side, modal, titleId, descriptionId }}>
-			{children}
-		</SheetProvider>
+		<Overlay open={open} onClose={onClose}>
+			<motion.div
+				initial={{ ...panelMotion.initial, opacity: 0 }}
+				animate={{ x: 0, y: 0, opacity: 1 }}
+				exit={{ ...panelMotion.exit, opacity: 0 }}
+				transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
+				role="dialog"
+				aria-modal="true"
+				data-slot="sheet"
+				onClick={(e) => e.stopPropagation()}
+				className={cn(sheetPanelVariants({ side, size }), className)}
+			>
+				<SheetProvider value={{ onClose }}>{children}</SheetProvider>
+			</motion.div>
+		</Overlay>
 	)
 }

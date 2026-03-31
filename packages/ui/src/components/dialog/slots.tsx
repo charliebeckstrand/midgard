@@ -1,47 +1,39 @@
-'use client'
-
-import type React from 'react'
 import { cn } from '../../core'
-import { sumi } from '../../recipes'
-import { useDialog } from './context'
+import {
+	dialogActionsVariants,
+	dialogBodyVariants,
+	dialogDescriptionVariants,
+	dialogTitleVariants,
+} from './variants'
 
-export function DialogTitle({ className, ...props }: React.ComponentPropsWithoutRef<'h2'>) {
-	const { titleId } = useDialog()
-	return (
-		<h2
-			id={titleId}
-			data-slot="title"
-			{...props}
-			className={cn(`text-lg/6 font-semibold text-balance ${sumi.base} sm:text-base/6`, className)}
-		/>
-	)
+export type DialogTitleProps = React.ComponentPropsWithoutRef<'h2'>
+
+export type DialogDescriptionProps = React.ComponentPropsWithoutRef<'p'>
+
+export type DialogBodyProps = React.ComponentPropsWithoutRef<'div'>
+
+export type DialogActionsProps = React.ComponentPropsWithoutRef<'div'>
+
+export function DialogTitle({ className, ...props }: DialogTitleProps) {
+	return <h2 data-slot="dialog-title" className={cn(dialogTitleVariants(), className)} {...props} />
 }
 
-export function DialogDescription({ className, ...props }: React.ComponentPropsWithoutRef<'p'>) {
-	const { descriptionId } = useDialog()
+export function DialogDescription({ className, ...props }: DialogDescriptionProps) {
 	return (
 		<p
-			id={descriptionId}
-			data-slot="description"
+			data-slot="dialog-description"
+			className={cn(dialogDescriptionVariants(), className)}
 			{...props}
-			className={cn(`mt-2 text-base/6 ${sumi.usui} text-pretty`, className)}
 		/>
 	)
 }
 
-export function DialogBody({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
-	return <div data-slot="body" {...props} className={cn(`mt-6 ${sumi.base}`, className)} />
+export function DialogBody({ className, ...props }: DialogBodyProps) {
+	return <div data-slot="dialog-body" className={cn(dialogBodyVariants(), className)} {...props} />
 }
 
-export function DialogActions({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
+export function DialogActions({ className, ...props }: DialogActionsProps) {
 	return (
-		<div
-			data-slot="actions"
-			{...props}
-			className={cn(
-				'mt-8 flex flex-col-reverse items-center justify-end gap-3 *:w-full sm:flex-row sm:*:w-auto',
-				className,
-			)}
-		/>
+		<div data-slot="dialog-actions" className={cn(dialogActionsVariants(), className)} {...props} />
 	)
 }
