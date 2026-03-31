@@ -1,6 +1,7 @@
 'use client'
 
 import { cn } from '../core'
+import { useOffcanvas } from '../layouts/context'
 import {
 	ActiveIndicator,
 	Polymorphic,
@@ -22,8 +23,15 @@ export type NavItemProps = {
  * function differ.
  */
 export function createNavItem(config: { slotPrefix: string; variants: () => string }) {
-	function NavItem({ current, className, children, ...props }: NavItemProps) {
+	function NavItem({ current, className, children, onClick, ...props }: NavItemProps) {
 		const indicator = useActiveIndicator()
+		const offcanvas = useOffcanvas()
+
+		function handleClick(e: React.MouseEvent<HTMLElement>) {
+			onClick?.(e as React.MouseEvent<HTMLButtonElement> & React.MouseEvent<HTMLAnchorElement>)
+
+			offcanvas?.close()
+		}
 
 		return (
 			<span
@@ -37,6 +45,7 @@ export function createNavItem(config: { slotPrefix: string; variants: () => stri
 					href={props.href}
 					data-current={current ? '' : undefined}
 					className={cn(config.variants(), className)}
+					onClick={handleClick}
 					{...props}
 				>
 					<TouchTarget>{children}</TouchTarget>

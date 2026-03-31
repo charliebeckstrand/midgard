@@ -1,7 +1,9 @@
 'use client'
 
 import { cn } from '../../core'
-import { ActiveIndicatorScope } from '../../primitives'
+import { useOffcanvas } from '../../layouts/context'
+import { ActiveIndicatorScope, CloseIcon } from '../../primitives'
+import { Button } from '../button'
 import {
 	sidebarBodyVariants,
 	sidebarFooterVariants,
@@ -27,9 +29,23 @@ export function Sidebar({ className, children, ...props }: SidebarProps) {
 	)
 }
 
-export function SidebarHeader({ className, ...props }: SidebarHeaderProps) {
+export function SidebarHeader({ className, children, ...props }: SidebarHeaderProps) {
+	const offcanvas = useOffcanvas()
+
 	return (
-		<div data-slot="sidebar-header" className={cn(sidebarHeaderVariants(), className)} {...props} />
+		<div data-slot="sidebar-header" className={cn(sidebarHeaderVariants(), className)} {...props}>
+			<div className="flex-1">{children}</div>
+			{offcanvas && (
+				<Button
+					variant="plain"
+					aria-label="Close navigation"
+					onClick={offcanvas.close}
+					className="ml-auto"
+				>
+					<CloseIcon />
+				</Button>
+			)}
+		</div>
 	)
 }
 

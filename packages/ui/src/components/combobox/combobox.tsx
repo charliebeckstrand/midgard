@@ -12,7 +12,8 @@ import { narabi } from '../../recipes'
 import { comboboxChevronVariants, comboboxInputVariants, comboboxOptionsVariants } from './variants'
 
 type ComboboxContextValue<T = unknown> = {
-	value: T | undefined
+	value: T | T[] | undefined
+	multiple: boolean
 	select: (value: T) => void
 	query: string
 }
@@ -20,10 +21,7 @@ type ComboboxContextValue<T = unknown> = {
 export const [ComboboxProvider, useComboboxContext] =
 	createContext<ComboboxContextValue>('Combobox')
 
-export type ComboboxProps<T> = {
-	value?: T
-	defaultValue?: T
-	onChange?: (value: T) => void
+type ComboboxBaseProps<T> = {
 	placeholder?: string
 	displayValue?: (value: T) => string
 	anchor?: keyof typeof narabi.anchor
@@ -31,24 +29,43 @@ export type ComboboxProps<T> = {
 	children: React.ReactNode | ((query: string) => React.ReactNode)
 }
 
+export type ComboboxProps<T> = ComboboxBaseProps<T> &
+	(
+		| {
+				multiple?: false
+				value?: T
+				defaultValue?: T
+				onChange?: (value: T) => void
+		  }
+		| {
+				multiple: true
+				value?: T[]
+				defaultValue?: T[]
+				onChange?: (value: T[]) => void
+		  }
+	)
+
 export function Combobox<T>({
 	value: valueProp,
 	defaultValue,
 	onChange,
+	multiple = false,
 	placeholder = 'Search...',
 	displayValue,
 	anchor = 'bottom start',
 	className,
 	children,
 }: ComboboxProps<T>) {
-	const [value, setValue] = useControllable<T>({
+	const [value, setValue] = useControllable<T | T[]>({
 		value: valueProp,
-		defaultValue,
-		onChange,
+		defaultValue: defaultValue as T | T[] | undefined,
+		onChange: onChange as ((value: T | T[]) => void) | undefined,
 	})
 
 	const [query, setQuery] = useState('')
 	const [open, setOpen] = useState(false)
+	const [editing, setEditing] = useState(false)
+
 	const inputRef = useRef<HTMLInputElement>(null)
 	const optionsRef = useRef<HTMLDivElement>(null)
 
@@ -57,31 +74,44 @@ export function Combobox<T>({
 	const close = useCallback(() => {
 		setOpen(false)
 		setQuery('')
+
+		setEditing(false)
 	}, [])
 
 	const select = useCallback(
 		(newValue: T) => {
-			setValue(newValue)
-			close()
-			inputRef.current?.focus()
+			if (multiple) {
+				const arr = (Array.isArray(value) ? value : []) as T[]
+				const next = arr.includes(newValue) ? arr.filter((v) => v !== newValue) : [...arr, newValue]
+				setValue(next)
+				setQuery('')
+				setEditing(false)
+				inputRef.current?.focus()
+			} else {
+				setValue(newValue)
+				close()
+				inputRef.current?.focus()
+			}
 		},
-		[setValue, close],
+		[multiple, value, setValue, close],
 	)
 
 	const inputDisplay = useMemo(() => {
-		if (query) return query
-		if (value !== undefined && displayValue) return displayValue(value)
+		if (editing) return query
+
+		if (!multiple && value !== undefined && displayValue) return displayValue(value as T)
+
 		return ''
-	}, [query, value, displayValue])
+	}, [editing, query, value, displayValue, multiple])
 
 	const containerRef = useOverlay(open, close)
 
 	const rendered = typeof children === 'function' ? children(query) : children
 
 	return (
-		<ComboboxProvider value={{ value, select: select as (v: unknown) => void, query }}>
+		<ComboboxProvider value={{ value, multiple, select: select as (v: unknown) => void, query }}>
 			<div ref={containerRef} data-slot="control" className={cn('relative', className)}>
-				<FormControl>
+				<FormControl data-open={open || undefined}>
 					<input
 						ref={inputRef}
 						type="text"
@@ -93,6 +123,8 @@ export function Combobox<T>({
 						value={inputDisplay}
 						placeholder={placeholder}
 						onChange={(e) => {
+							setEditing(true)
+
 							setQuery(e.target.value)
 							setOpen(true)
 						}}
@@ -100,6 +132,7 @@ export function Combobox<T>({
 						onKeyDown={(e) => {
 							if (e.key === 'Escape') {
 								close()
+
 								return
 							}
 							handleKeyDown(e)
@@ -109,7 +142,7 @@ export function Combobox<T>({
 					<button
 						type="button"
 						tabIndex={-1}
-						aria-hidden="true"
+						inert={open || undefined}
 						onClick={() => setOpen(!open)}
 						className={comboboxChevronVariants()}
 					>
@@ -129,6 +162,9 @@ export function Combobox<T>({
 								}}
 							>
 								{rendered}
+								<output className="hidden p-2 text-zinc-500 only:block dark:text-amber-500">
+									No results
+								</output>
 							</PopoverPanel>
 						)}
 					</AnimatePresence>

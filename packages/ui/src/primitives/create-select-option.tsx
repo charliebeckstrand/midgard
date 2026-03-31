@@ -23,14 +23,23 @@ export type SelectDescriptionProps = React.ComponentPropsWithoutRef<'span'>
  */
 export function createSelectOption(config: {
 	slotPrefix: string
-	useContext: () => { value: unknown; select: (value: unknown) => void }
+	useContext: () => {
+		value: unknown
+		multiple?: boolean
+		select: (value: unknown) => void
+	}
 }) {
 	function Option({ value, disabled, className, children }: SelectOptionProps) {
-		const { value: selectedValue, select } = config.useContext()
+		const { value: selectedValue, multiple, select } = config.useContext()
+
+		const selected =
+			multiple && Array.isArray(selectedValue)
+				? selectedValue.includes(value)
+				: selectedValue === value
 
 		return (
 			<BaseOption
-				selected={selectedValue === value}
+				selected={selected}
 				disabled={disabled}
 				checkPosition="end"
 				onSelect={() => select(value)}

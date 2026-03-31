@@ -8,13 +8,13 @@
  * `<motion.div {...ugoki.popover}>` — no inline overrides needed.
  */
 
-const slideTransition = { duration: 0.3, ease: [0.32, 0.72, 0, 1] } as const
+const slideTransition = { duration: 0.15 } as const
 
 function slideConfig(axis: 'x' | 'y', value: string) {
 	return {
-		initial: { [axis]: value, opacity: 0 },
+		initial: { [axis]: value, opacity: 1 },
 		animate: { x: 0, y: 0, opacity: 1 },
-		exit: { [axis]: value, opacity: 0 },
+		exit: { [axis]: value, opacity: 1 },
 		transition: slideTransition,
 	}
 }

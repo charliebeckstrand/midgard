@@ -16,8 +16,8 @@ export const sheetPanelVariants = cva(
 	{
 		variants: {
 			side: {
-				right: 'sm:top-2 sm:right-2 sm:bottom-2 sm:w-full',
-				left: 'sm:top-2 sm:left-2 sm:bottom-2 sm:w-full',
+				right: 'sm:top-4 sm:right-4 sm:bottom-4 sm:w-full',
+				left: 'sm:top-4 sm:left-4 sm:bottom-4 sm:w-full',
 				top: narabi.slide.top,
 				bottom: narabi.slide.bottom,
 			},

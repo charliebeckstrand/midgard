@@ -53,9 +53,7 @@ export const narabi = {
 	item: [
 		'*:data-[slot=icon]:size-5 *:data-[slot=icon]:shrink-0',
 		'*:data-[slot=icon]:text-zinc-500 dark:*:data-[slot=icon]:text-zinc-400',
-		'group-focus/option:*:data-[slot=icon]:text-white',
 		'forced-colors:*:data-[slot=icon]:text-[CanvasText]',
-		'forced-colors:group-focus/option:*:data-[slot=icon]:text-[Canvas]',
 		'*:data-[slot=avatar]:-mx-0.5 *:data-[slot=avatar]:size-6',
 	],
 }

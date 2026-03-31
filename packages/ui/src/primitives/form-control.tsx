@@ -1,10 +1,7 @@
 import { cn } from '../core'
 import { omote } from '../recipes'
 
-export type FormControlProps = {
-	className?: string
-	children: React.ReactNode
-}
+export type FormControlProps = React.ComponentPropsWithoutRef<'span'>
 
 /**
  * Outer chrome wrapper for form inputs (Input, Textarea, Select, Combobox, Listbox).
@@ -13,10 +10,6 @@ export type FormControlProps = {
  * from `omote.control`. Every text-entry or select-like control should wrap
  * its native element in this.
  */
-export function FormControl({ className, children }: FormControlProps) {
-	return (
-		<span data-slot="control" className={cn(omote.control, className)}>
-			{children}
-		</span>
-	)
+export function FormControl({ className, ...props }: FormControlProps) {
+	return <span data-slot="control" className={cn(omote.control, className)} {...props} />
 }

@@ -16,66 +16,119 @@ import {
 } from './variants'
 
 type ListboxContextValue<T = unknown> = {
-	value: T | undefined
+	value: T | T[] | undefined
+	multiple: boolean
 	select: (value: T) => void
 	close: () => void
 }
 
 export const [ListboxProvider, useListboxContext] = createContext<ListboxContextValue>('Listbox')
 
-export type ListboxProps<T> = {
-	value?: T
-	defaultValue?: T
-	onChange?: (value: T) => void
+type ListboxBaseProps = {
 	placeholder?: string
-	displayValue?: (value: T) => string
 	anchor?: keyof typeof narabi.anchor
 	className?: string
+	inputId?: string
 	children: React.ReactNode
 }
+
+export type ListboxProps<T> = ListboxBaseProps &
+	(
+		| {
+				multiple?: false
+				value?: T
+				defaultValue?: T
+				onChange?: (value: T) => void
+				displayValue?: (value: T) => string
+		  }
+		| {
+				multiple: true
+				value?: T[]
+				defaultValue?: T[]
+				onChange?: (value: T[]) => void
+				displayValue?: (value: T) => string
+		  }
+	)
 
 export function Listbox<T>({
 	value: valueProp,
 	defaultValue,
 	onChange,
+	multiple = false,
 	placeholder = 'Select...',
 	displayValue,
 	anchor = 'bottom start',
 	className,
+	inputId,
 	children,
 }: ListboxProps<T>) {
-	const [value, setValue] = useControllable<T>({
+	const [value, setValue] = useControllable<T | T[]>({
 		value: valueProp,
-		defaultValue,
-		onChange,
+		defaultValue: defaultValue as T | T[] | undefined,
+		onChange: onChange as ((value: T | T[]) => void) | undefined,
 	})
 
 	const [open, setOpen] = useState(false)
+
 	const triggerRef = useRef<HTMLButtonElement>(null)
+	const pendingValue = useRef<T | T[] | undefined>(undefined)
 
 	const close = useCallback(() => {
 		setOpen(false)
+
 		triggerRef.current?.focus()
 	}, [])
 
 	const select = useCallback(
 		(newValue: T) => {
-			setValue(newValue)
-			close()
+			if (multiple) {
+				const arr = (Array.isArray(value) ? value : []) as T[]
+
+				const next = arr.includes(newValue) ? arr.filter((v) => v !== newValue) : [...arr, newValue]
+
+				setValue(next)
+			} else {
+				pendingValue.current = newValue
+
+				close()
+			}
 		},
-		[setValue, close],
+		[multiple, value, setValue, close],
 	)
+
+	const onExitComplete = useCallback(() => {
+		if (pendingValue.current !== undefined) {
+			setValue(pendingValue.current)
+
+			pendingValue.current = undefined
+		}
+	}, [setValue])
 
 	const containerRef = useOverlay(open, close)
 
-	const label = value !== undefined && displayValue ? displayValue(value) : undefined
+	const label = (() => {
+		if (multiple) {
+			const arr = Array.isArray(value) ? value : []
+
+			if (arr.length === 0) return undefined
+
+			if (arr.length > 3) return `${arr.length} selected`
+
+			if (displayValue) return arr.map((v) => displayValue(v as T)).join(', ')
+
+			return `${arr.length} selected`
+		}
+		if (value !== undefined && displayValue) return displayValue(value as T)
+		return undefined
+	})()
 
 	return (
-		<ListboxProvider value={{ value, select: select as (v: unknown) => void, close }}>
+		<ListboxProvider value={{ value, multiple, select: select as (v: unknown) => void, close }}>
 			<div data-slot="control" className={cn('relative', className)}>
-				<FormControl>
+				<FormControl data-open={open || undefined}>
 					<button
 						ref={triggerRef}
+						id={inputId}
 						type="button"
 						role="combobox"
 						aria-haspopup="listbox"
@@ -93,7 +146,7 @@ export function Listbox<T>({
 					</button>
 				</FormControl>
 
-				<AnimatePresence>
+				<AnimatePresence onExitComplete={onExitComplete}>
 					{open && (
 						<div ref={containerRef}>
 							<PopoverPanel

@@ -2,8 +2,7 @@
 
 import { motion } from 'motion/react'
 import type React from 'react'
-import { useSyncExternalStore } from 'react'
-import { cn, createContext } from '../../core'
+import { cn, createContext, useIsDesktop } from '../../core'
 import { Overlay } from '../../primitives'
 import { ugoki } from '../../recipes'
 import { type SheetPanelVariants, sheetPanelVariants } from './variants'
@@ -15,21 +14,6 @@ type SheetContextValue = {
 }
 
 export const [SheetProvider, useSheetContext] = createContext<SheetContextValue>('Sheet')
-
-const smQuery = typeof window !== 'undefined' ? window.matchMedia('(min-width: 640px)') : null
-
-function subscribeSmQuery(cb: () => void) {
-	smQuery?.addEventListener('change', cb)
-	return () => smQuery?.removeEventListener('change', cb)
-}
-
-function getSmSnapshot() {
-	return smQuery?.matches ?? true
-}
-
-function useIsDesktop() {
-	return useSyncExternalStore(subscribeSmQuery, getSmSnapshot, () => true)
-}
 
 export type SheetProps = SheetPanelVariants & {
 	open: boolean

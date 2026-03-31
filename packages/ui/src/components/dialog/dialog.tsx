@@ -2,7 +2,7 @@
 
 import { motion } from 'motion/react'
 import type React from 'react'
-import { cn } from '../../core'
+import { cn, useIsDesktop } from '../../core'
 import { Overlay } from '../../primitives'
 import { ugoki } from '../../recipes'
 import { type DialogPanelVariants, dialogPanelVariants } from './variants'
@@ -10,16 +10,30 @@ import { type DialogPanelVariants, dialogPanelVariants } from './variants'
 export type DialogProps = DialogPanelVariants & {
 	open: boolean
 	onClose: () => void
+	outsideClick?: boolean
 	className?: string
 	children: React.ReactNode
 }
 
-export function Dialog({ open, onClose, size, className, children }: DialogProps) {
+export function Dialog({
+	open,
+	onClose,
+	outsideClick = true,
+	size,
+	className,
+	children,
+}: DialogProps) {
+	const isDesktop = useIsDesktop()
+
 	return (
-		<Overlay open={open} onClose={onClose}>
-			<div className="fixed inset-0 flex min-h-full items-center justify-center p-4">
+		<Overlay open={open} onClose={onClose} outsideClick={outsideClick}>
+			<div
+				aria-hidden="true"
+				className="fixed inset-0 flex min-h-full items-end sm:items-center sm:justify-center sm:p-4"
+				onClick={outsideClick ? onClose : undefined}
+			>
 				<motion.div
-					{...ugoki.popover}
+					{...(isDesktop ? ugoki.popover : ugoki.panel.bottom)}
 					role="dialog"
 					aria-modal="true"
 					data-slot="dialog"

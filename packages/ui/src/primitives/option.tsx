@@ -50,11 +50,11 @@ export function BaseOption({
 			{...props}
 		>
 			{isStart && (
-				<CheckIcon className="relative hidden self-center group-data-selected/option:inline" />
+				<CheckIcon className="relative hidden self-center text-green-600 group-data-selected/option:inline" />
 			)}
 			<span className={cn(className, sharedClasses, isStart && 'col-start-2')}>{children}</span>
 			{!isStart && (
-				<CheckIcon className="relative col-start-2 hidden self-center group-data-selected/option:inline" />
+				<CheckIcon className="relative col-start-2 hidden self-center text-green-600 group-data-selected/option:inline" />
 			)}
 		</div>
 	)
