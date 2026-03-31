@@ -20,6 +20,8 @@ export const buttonVariants = cva(
 		yasumi.base,
 		// Cursor
 		'cursor-default',
+		// Active — scale down instead of color change
+		'active:scale-[0.97] transition-transform duration-100',
 	],
 	{
 		variants: {
@@ -40,8 +42,6 @@ export const buttonVariants = cva(
 					'after:shadow-[shadow:inset_0_1px_theme(--color-white/15%)]',
 					// Hover
 					'hover:before:bg-[var(--btn-hover-overlay)]',
-					// Active
-					'active:after:bg-[var(--btn-hover-overlay)]',
 					// Icon color
 					'*:data-[slot=icon]:text-[var(--btn-icon)]',
 				],
