@@ -2,7 +2,7 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { ki } from '../../recipes'
 
 export const avatarVariants = cva(
-	'inline-grid place-items-center overflow-hidden rounded-full align-middle *:col-start-1 *:row-start-1',
+	'inline-grid place-items-center overflow-hidden rounded-full align-middle text-white *:col-start-1 *:row-start-1 bg-zinc-600 dark:bg-zinc-700',
 	{
 		variants: {
 			size: {

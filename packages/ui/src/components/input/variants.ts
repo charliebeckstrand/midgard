@@ -3,7 +3,7 @@ import { katachi, ma, omote } from '../../recipes'
 
 export const inputControlVariants = cva(omote.control)
 
-export const inputVariants = cva([...omote.input, ma.control, katachi.maru, 'sm:text-sm/6'])
+export const inputVariants = cva([...omote.input, ma.control, katachi.maru])
 
 export const inputDateVariants = cva(omote.date)
 

@@ -14,24 +14,26 @@ const people = [
 ]
 
 export default function ComboboxDemo() {
-	const [selected, setSelected] = useState<string | null>(null)
+	const [selected, setSelected] = useState<string | undefined>(undefined)
 
 	return (
 		<Field className="max-w-sm">
-			<Label htmlFor="combobox-assignee">Assignee</Label>
+			<Label>Assignee</Label>
 			<Combobox
-				inputId="combobox-assignee"
 				value={selected}
 				onChange={setSelected}
-				options={people}
-				displayValue={(v) => v ?? ''}
+				displayValue={(v: string) => v}
 				placeholder="Select a person…"
 			>
-				{(person) => (
-					<ComboboxOption value={person}>
-						<ComboboxLabel>{person}</ComboboxLabel>
-					</ComboboxOption>
-				)}
+				{(query) =>
+					people
+						.filter((p) => !query || p.toLowerCase().includes(query.toLowerCase()))
+						.map((person) => (
+							<ComboboxOption key={person} value={person}>
+								<ComboboxLabel>{person}</ComboboxLabel>
+							</ComboboxOption>
+						))
+				}
 			</Combobox>
 		</Field>
 	)
