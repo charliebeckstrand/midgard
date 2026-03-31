@@ -1,4 +1,5 @@
 import { cva, type VariantProps } from 'class-variance-authority'
+import { ki } from '../../recipes'
 
 export const avatarVariants = cva(
 	'inline-grid place-items-center overflow-hidden rounded-full align-middle *:col-start-1 *:row-start-1',
@@ -28,5 +29,6 @@ export const avatarImageVariants = cva('size-full object-cover')
 
 export const avatarButtonVariants = cva([
 	'relative cursor-default rounded-full',
-	'focus:outline-hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600',
+	ki.reset,
+	ki.offset,
 ])

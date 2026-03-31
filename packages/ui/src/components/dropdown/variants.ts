@@ -20,15 +20,15 @@ export const dropdownHeadingVariants = cva([
 export const dropdownLabelVariants = cva('truncate')
 
 export const dropdownDescriptionVariants = cva([
-	'flex flex-1 overflow-hidden text-zinc-500 before:w-2 before:min-w-0 before:shrink',
+	sumi.usui,
+	'flex flex-1 overflow-hidden before:w-2 before:min-w-0 before:shrink',
 	'group-focus/option:text-white',
-	'dark:text-zinc-400',
 ])
 
 export const dropdownShortcutVariants = cva([
-	'ml-auto pl-4 text-xs/5 text-zinc-400',
+	sumi.usui,
+	'ml-auto pl-4 text-xs/5',
 	'group-focus/option:text-white/70',
-	'dark:text-zinc-500',
 ])
 
 export const dropdownSeparatorVariants = cva(['my-1 border-t', kage.usui])

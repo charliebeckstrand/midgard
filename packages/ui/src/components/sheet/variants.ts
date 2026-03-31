@@ -1,5 +1,5 @@
 import { cva, type VariantProps } from 'class-variance-authority'
-import { katachi, narabi, omote, sumi } from '../../recipes'
+import { katachi, ki, narabi, omote, sumi } from '../../recipes'
 
 export const sheetPanelVariants = cva([omote.panel, 'fixed flex flex-col p-6'], {
 	variants: {
@@ -39,9 +39,10 @@ export const sheetActionsVariants = cva('mt-6 flex items-center justify-end gap-
 
 export const sheetCloseVariants = cva([
 	'absolute right-4 top-4 rounded-md p-1',
-	'text-zinc-400 hover:text-zinc-500',
-	'dark:text-zinc-500 dark:hover:text-zinc-400',
-	'focus:outline-hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600',
+	sumi.usui,
+	'hover:text-zinc-500 dark:hover:text-zinc-400',
+	ki.reset,
+	ki.offset,
 ])
 
 export type SheetPanelVariants = VariantProps<typeof sheetPanelVariants>

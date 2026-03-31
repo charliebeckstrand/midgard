@@ -32,14 +32,14 @@ export type TableVariants = VariantProps<typeof tableVariants>
 
 export const tableHeadVariants = cva(sumi.usui)
 
-export const tableHeaderVariants = cva([`border-b ${kage.usui} px-4 py-2 font-medium`, sumi.usui])
+export const tableHeaderVariants = cva(['border-b px-4 py-2 font-medium', kage.usui, sumi.usui])
 
 export const tableBodyVariants = cva('')
 
-export const tableRowVariants = cva([`border-b ${kage.usui}`, 'last:border-b-0'])
+export const tableRowVariants = cva(['border-b last:border-b-0', kage.usui])
 
 export const tableCellVariants = cva(['px-4 py-2', sumi.base])
 
-export const tableRowStripedVariants = cva(['even:bg-zinc-950/2.5 dark:even:bg-white/2.5'])
+export const tableRowStripedVariants = cva('even:bg-zinc-950/2.5 dark:even:bg-white/2.5')
 
-export const tableGridVariants = cva([`border-l ${kage.usui} first:border-l-0`])
+export const tableGridVariants = cva(['border-l first:border-l-0', kage.usui])
