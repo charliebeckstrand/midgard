@@ -10,6 +10,7 @@
 
 import { kage } from './kage'
 import { katachi } from './katachi'
+import { ki } from './ki'
 import { ma } from './ma'
 import { sumi } from './sumi'
 
@@ -63,6 +64,25 @@ export const omote = {
 		'focus-within:after:ring-2 not-has-[[data-invalid]]:focus-within:after:ring-blue-600 has-[[data-invalid]]:focus-within:after:ring-red-600',
 		// Disabled
 		'has-[:disabled]:opacity-50 has-[:disabled]:before:bg-zinc-950/5 has-[:disabled]:before:shadow-none has-[:disabled]:cursor-not-allowed',
+	],
+
+	/** Hidden native input base — positioning, focus, disabled, forced-colors (checkbox, radio, switch) */
+	hiddenInput: [
+		'absolute inset-0 appearance-none cursor-pointer',
+		ki.offset,
+		'disabled:opacity-50 disabled:cursor-not-allowed',
+		'forced-colors:appearance-auto forced-colors:checked:appearance-auto',
+	],
+
+	/** Checkable input surface — extends hiddenInput with unchecked border/bg and hover states (checkbox, radio) */
+	check: [
+		'absolute inset-0 appearance-none cursor-pointer',
+		ki.offset,
+		'border border-zinc-950/15 bg-white shadow-xs dark:border-white/15 dark:bg-white/5',
+		'not-disabled:hover:border-zinc-950/30 dark:not-disabled:hover:border-white/30',
+		'not-disabled:checked:hover:opacity-90',
+		'disabled:opacity-50 disabled:cursor-not-allowed',
+		'forced-colors:appearance-auto forced-colors:checked:appearance-auto',
 	],
 
 	/** The surface of an input element — text, bg, border, hover, focus, invalid, disabled */
