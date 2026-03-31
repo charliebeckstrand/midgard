@@ -72,3 +72,6 @@ Append new entries at the bottom. One line per lesson. Date + what you learned. 
 - 2026-03-16: Every ui component exports its prop types from index.ts (e.g., `InputProps`, `ButtonProps`) — always do this for new components
 - 2026-03-17: Next.js font warning "Failed to find font override values for Google Sans" — fix with `adjustFontFallback: false` in font config
 - 2026-03-25: Switched from Husky to Lefthook — config lives in `lefthook.yml` at repo root, `prepare` script runs `lefthook install`
+- 2026-03-31: CVA `colorVariants` factory needs `as { [K in keyof T]: string | string[] }` cast — `nuri` uses `as const` which produces `readonly` tuples incompatible with CVA's mutable `string[]`
+- 2026-03-31: `katachi.panel` can be passed directly as CVA `variants.size` — no need to re-enumerate each key, CVA accepts the record shape as-is
+- 2026-03-31: tsup entry points can be derived from `package.json` exports via `Object.fromEntries` — keeps a single source of truth for subpath exports
