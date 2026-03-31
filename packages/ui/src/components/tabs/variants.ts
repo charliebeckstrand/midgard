@@ -10,7 +10,7 @@ export const tabVariants = cva([
 	// Focus — suppress ring, show muted bottom line only
 	'outline-none',
 	'after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:rounded-full',
-	'after:bg-transparent focus-visible:after:bg-zinc-400 dark:focus-visible:after:bg-zinc-500',
+	'after:bg-transparent not-data-current:focus-visible:after:bg-zinc-400 dark:not-data-current:focus-visible:after:bg-zinc-500',
 	...sawari.tab,
 	'cursor-default',
 ])
