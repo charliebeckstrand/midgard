@@ -1,52 +1,43 @@
+import { useState } from 'react'
 import { Button } from '../../components/button'
 import {
 	Sheet,
+	SheetActions,
 	SheetBody,
-	SheetClose,
-	SheetContent,
-	SheetFooter,
-	SheetHeader,
-	SheetOpen,
-	SheetSubtitle,
+	SheetDescription,
 	SheetTitle,
 } from '../../components/sheet'
 
 export const meta = { category: 'Overlay' }
 
 export default function SheetDemo() {
+	const [leftOpen, setLeftOpen] = useState(false)
+	const [rightOpen, setRightOpen] = useState(false)
+
 	return (
 		<div className="flex gap-3">
-			<Sheet side="left">
-				<SheetOpen>
-					<Button variant="outline">Open Left</Button>
-				</SheetOpen>
-				<SheetContent>
-					<SheetHeader>
-						<SheetTitle>Left Sheet</SheetTitle>
-					</SheetHeader>
-					<SheetBody>
-						<p className="text-sm text-zinc-500">Slides from the left.</p>
-					</SheetBody>
-				</SheetContent>
+			<Button variant="outline" onClick={() => setLeftOpen(true)}>
+				Open Left
+			</Button>
+			<Sheet side="left" open={leftOpen} onClose={() => setLeftOpen(false)}>
+				<SheetTitle>Left Sheet</SheetTitle>
+				<SheetBody>
+					<p className="text-sm text-zinc-500">Slides from the left.</p>
+				</SheetBody>
 			</Sheet>
-			<Sheet>
-				<SheetOpen>
-					<Button>Open Right</Button>
-				</SheetOpen>
-				<SheetContent>
-					<SheetHeader>
-						<SheetTitle>Sheet Title</SheetTitle>
-						<SheetSubtitle>This is a sheet panel sliding from the right.</SheetSubtitle>
-					</SheetHeader>
-					<SheetBody>
-						<p className="text-sm text-zinc-500">Sheet content goes here.</p>
-					</SheetBody>
-					<SheetFooter>
-						<SheetClose>
-							<Button variant="plain">Close</Button>
-						</SheetClose>
-					</SheetFooter>
-				</SheetContent>
+
+			<Button onClick={() => setRightOpen(true)}>Open Right</Button>
+			<Sheet open={rightOpen} onClose={() => setRightOpen(false)}>
+				<SheetTitle>Sheet Title</SheetTitle>
+				<SheetDescription>This is a sheet panel sliding from the right.</SheetDescription>
+				<SheetBody>
+					<p className="text-sm text-zinc-500">Sheet content goes here.</p>
+				</SheetBody>
+				<SheetActions>
+					<Button variant="plain" onClick={() => setRightOpen(false)}>
+						Close
+					</Button>
+				</SheetActions>
 			</Sheet>
 		</div>
 	)

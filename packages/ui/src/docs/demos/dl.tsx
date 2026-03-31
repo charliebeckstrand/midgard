@@ -1,18 +1,18 @@
-import { DD, DL, DT } from '../../components/dl'
+import { DescriptionDetails, DescriptionList, DescriptionTerm } from '../../components/dl'
 
 export const meta = { name: 'DL', category: 'Data Display' }
 
 export default function DLDemo() {
 	return (
-		<DL>
-			<DT>Name</DT>
-			<DD>Wade Cooper</DD>
-			<DT>Email</DT>
-			<DD>wade@example.com</DD>
-			<DT>Role</DT>
-			<DD>Administrator</DD>
-			<DT>Status</DT>
-			<DD>Active</DD>
-		</DL>
+		<DescriptionList>
+			<DescriptionTerm>Name</DescriptionTerm>
+			<DescriptionDetails>Wade Cooper</DescriptionDetails>
+			<DescriptionTerm>Email</DescriptionTerm>
+			<DescriptionDetails>wade@example.com</DescriptionDetails>
+			<DescriptionTerm>Role</DescriptionTerm>
+			<DescriptionDetails>Administrator</DescriptionDetails>
+			<DescriptionTerm>Status</DescriptionTerm>
+			<DescriptionDetails>Active</DescriptionDetails>
+		</DescriptionList>
 	)
 }

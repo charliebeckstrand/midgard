@@ -1,4 +1,4 @@
-import { Description, Field, FieldGroup, Fieldset, Label, Legend } from '../../components/fieldset'
+import { Description, Field, Fieldset, Label, Legend } from '../../components/fieldset'
 import { Input } from '../../components/input'
 import { Select } from '../../components/select'
 import { Textarea } from '../../components/textarea'
@@ -9,7 +9,7 @@ export default function FieldsetDemo() {
 	return (
 		<Fieldset className="max-w-lg">
 			<Legend>Profile</Legend>
-			<FieldGroup>
+			<div className="space-y-6">
 				<Field>
 					<Label htmlFor="fieldset-name">Full name</Label>
 					<Input id="fieldset-name" placeholder="Jane Smith" />
@@ -31,7 +31,7 @@ export default function FieldsetDemo() {
 					<Label htmlFor="fieldset-bio">Bio</Label>
 					<Textarea id="fieldset-bio" placeholder="Tell us about yourself…" />
 				</Field>
-			</FieldGroup>
+			</div>
 		</Fieldset>
 	)
 }

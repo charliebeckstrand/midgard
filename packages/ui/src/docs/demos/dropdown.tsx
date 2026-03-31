@@ -1,12 +1,11 @@
-import { Button } from '../../components/button'
 import {
 	Dropdown,
 	DropdownButton,
-	DropdownDivider,
 	DropdownItem,
 	DropdownLabel,
 	DropdownMenu,
 	DropdownSection,
+	DropdownSeparator,
 } from '../../components/dropdown'
 
 export const meta = { category: 'Overlay' }
@@ -14,7 +13,9 @@ export const meta = { category: 'Overlay' }
 export default function DropdownDemo() {
 	return (
 		<Dropdown>
-			<DropdownButton as={Button}>Options</DropdownButton>
+			<DropdownButton className="rounded-lg border border-zinc-950/10 px-3 py-1.5 text-sm font-medium dark:border-white/10">
+				Options
+			</DropdownButton>
 			<DropdownMenu>
 				<DropdownSection>
 					<DropdownItem>
@@ -24,7 +25,7 @@ export default function DropdownDemo() {
 						<DropdownLabel>Duplicate</DropdownLabel>
 					</DropdownItem>
 				</DropdownSection>
-				<DropdownDivider />
+				<DropdownSeparator />
 				<DropdownSection>
 					<DropdownItem>
 						<DropdownLabel>Archive</DropdownLabel>

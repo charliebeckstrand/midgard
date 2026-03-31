@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Button } from '../../components/button'
 import { Field, Label } from '../../components/fieldset'
 import { Input } from '../../components/input'
-import { ForgotPasswordPage, LoginPage, RegisterPage } from '../../components/pages'
+import { ForgotPasswordPage, LoginPage, RegisterPage } from '../../pages'
 
 export const meta = { category: 'Layout' }
 

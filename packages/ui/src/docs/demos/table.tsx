@@ -1,4 +1,11 @@
-import { Table, TableBody, TableCell, TableHead, TableRow } from '../../components/table'
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from '../../components/table'
 
 export const meta = { category: 'Data Display' }
 
@@ -15,9 +22,9 @@ export default function TableDemo() {
 			<Table>
 				<TableHead>
 					<TableRow>
-						<TableCell>Name</TableCell>
-						<TableCell>Email</TableCell>
-						<TableCell>Role</TableCell>
+						<TableHeader>Name</TableHeader>
+						<TableHeader>Email</TableHeader>
+						<TableHeader>Role</TableHeader>
 					</TableRow>
 				</TableHead>
 				<TableBody>
@@ -35,8 +42,8 @@ export default function TableDemo() {
 				<Table striped>
 					<TableHead>
 						<TableRow>
-							<TableCell>Name</TableCell>
-							<TableCell>Role</TableCell>
+							<TableHeader>Name</TableHeader>
+							<TableHeader>Role</TableHeader>
 						</TableRow>
 					</TableHead>
 					<TableBody>
