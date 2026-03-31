@@ -18,7 +18,7 @@ export const buttonVariants = cva(
 		// so icon-only buttons have exactly 2 element children: the span and the icon.
 		// :nth-child(2):last-child ensures the icon is the only real child.
 		'[&:has(>[data-slot=icon]:nth-child(2):last-child)]:px-0 [&:has(>[data-slot=icon]:nth-child(2):last-child)]:py-0',
-		'[&:has(>[data-slot=icon]:nth-child(2):last-child)]:size-9',
+		'[&:has(>[data-slot=icon]:nth-child(2):last-child)]:size-10',
 		'[&:has(>[data-slot=icon]:nth-child(2):last-child)]:gap-0',
 		// Focus
 		ki.reset,
