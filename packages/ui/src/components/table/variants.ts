@@ -32,7 +32,7 @@ export type TableVariants = VariantProps<typeof tableVariants>
 
 export const tableHeadVariants = cva(sumi.usui)
 
-export const tableHeaderVariants = cva(['border-b px-4 py-2 font-medium', kage.usui, sumi.usui])
+export const tableHeaderVariants = cva(['border-b px-4 py-2 font-semibold', kage.usui, sumi.usui])
 
 export const tableBodyVariants = cva('')
 
