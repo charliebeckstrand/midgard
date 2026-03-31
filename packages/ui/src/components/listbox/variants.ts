@@ -8,7 +8,7 @@ export const listboxButtonVariants = cva([
 	omote.input,
 ])
 
-export const listboxOptionsVariants = cva([omote.popover, 'max-h-60'])
+export const listboxOptionsVariants = cva('max-h-60')
 
 export const listboxValueVariants = cva('block truncate')
 

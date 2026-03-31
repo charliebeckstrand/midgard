@@ -9,7 +9,37 @@
  */
 
 import { kage } from './kage'
+import { katachi } from './katachi'
+import { ma } from './ma'
 import { sumi } from './sumi'
+
+/** The surface of an input element — text, bg, border, hover, focus, invalid, disabled */
+const input = [
+	// Layout
+	'relative block w-full',
+	// Height
+	'min-h-11',
+	// Text
+	`text-base/6 ${sumi.base} placeholder:text-zinc-500`,
+	// Background
+	'bg-transparent',
+	'dark:bg-white/5',
+	// Border
+	`border ${kage.base}`,
+	// Hover
+	'hover:border-zinc-950/20',
+	'dark:hover:border-white/20',
+	// Focus
+	'focus:outline-hidden',
+	// Invalid
+	'data-invalid:border-red-600',
+	'data-invalid:hover:border-red-600',
+	// Disabled
+	'disabled:border-zinc-950/20',
+	'dark:disabled:border-white/15 dark:disabled:bg-white/2.5',
+	'dark:hover:disabled:border-white/15',
+	'disabled:cursor-not-allowed',
+]
 
 export const omote = {
 	/** Elevated panel surface — modals, dialogs, sheets */
@@ -36,32 +66,10 @@ export const omote = {
 	],
 
 	/** The surface of an input element — text, bg, border, hover, focus, invalid, disabled */
-	input: [
-		// Layout
-		'relative block w-full',
-		// Height
-		'min-h-11',
-		// Text
-		`text-base/6 ${sumi.base} placeholder:text-zinc-500`,
-		// Background
-		'bg-transparent',
-		'dark:bg-white/5',
-		// Border
-		`border ${kage.base}`,
-		// Hover
-		'hover:border-zinc-950/20',
-		'dark:hover:border-white/20',
-		// Focus
-		'focus:outline-hidden',
-		// Invalid
-		'data-invalid:border-red-600',
-		'data-invalid:hover:border-red-600',
-		// Disabled
-		'disabled:border-zinc-950/20',
-		'dark:disabled:border-white/15 dark:disabled:bg-white/2.5',
-		'dark:hover:disabled:border-white/15',
-		'disabled:cursor-not-allowed',
-	],
+	input,
+
+	/** Complete form input base: input surface + control spacing + rounded corners */
+	formInput: [...input, ma.control, katachi.maru],
 
 	/** WebKit date/time picker surface normalisation */
 	date: [

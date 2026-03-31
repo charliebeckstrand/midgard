@@ -44,15 +44,11 @@ export function Sheet({ open, onClose, side = 'right', size, className, children
 
 	// Mobile always slides from bottom; desktop uses the configured side
 	const animSide = isDesktop ? resolvedSide : 'bottom'
-	const panelMotion = ugoki.panel[animSide]
 
 	return (
 		<Overlay open={open} onClose={onClose}>
 			<motion.div
-				initial={{ ...panelMotion.initial, opacity: 0 }}
-				animate={{ x: 0, y: 0, opacity: 1 }}
-				exit={{ ...panelMotion.exit, opacity: 0 }}
-				transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
+				{...ugoki.panel[animSide]}
 				role="dialog"
 				aria-modal="true"
 				data-slot="sheet"
