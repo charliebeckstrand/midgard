@@ -4,9 +4,9 @@ import { katachi, ki, narabi, omote, sumi } from '../../recipes'
 export const sheetPanelVariants = cva(
 	[
 		omote.panel,
-		'fixed flex flex-col rounded-xl p-6',
-		// Mobile: always bottom sheet
-		'max-sm:inset-x-0 max-sm:bottom-0 max-sm:w-full max-sm:rounded-b-none',
+		'fixed flex flex-col overflow-y-auto rounded-xl p-6',
+		// Mobile: always bottom sheet, constrain height
+		'max-sm:inset-x-0 max-sm:bottom-0 max-sm:w-full max-sm:max-h-[85dvh] max-sm:rounded-b-none',
 	],
 	{
 		variants: {
