@@ -13,9 +13,9 @@ export const buttonVariants = cva(
 		'font-semibold',
 		// Icon slots
 		katachi.icon,
-		// Icon-only — square aspect with equal padding when only child is an icon
-		'[&:has(>[data-slot=icon]:only-child)]:aspect-square',
-		'[&:has(>[data-slot=icon]:only-child)]:p-2 sm:[&:has(>[data-slot=icon]:only-child)]:p-1.5',
+		// Icon-only — square with equal padding when only child is an icon
+		'[&:has(>[data-slot=icon]:only-child)]:!px-0 [&:has(>[data-slot=icon]:only-child)]:!py-0',
+		'[&:has(>[data-slot=icon]:only-child)]:size-9 sm:[&:has(>[data-slot=icon]:only-child)]:size-7',
 		'[&:has(>[data-slot=icon]:only-child)]:gap-0',
 		// Focus
 		ki.reset,
