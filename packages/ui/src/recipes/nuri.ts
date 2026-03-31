@@ -86,30 +86,23 @@ export const nuri = {
 	button: {
 		zinc: [
 			'text-white [--btn-bg:var(--color-zinc-900)] [--btn-border:var(--color-zinc-950)]/90 [--btn-hover-overlay:var(--color-white)]/10',
-			'[--btn-icon:var(--color-zinc-400)]',
-			'active:[--btn-icon:var(--color-zinc-300)]',
-			'hover:[--btn-icon:var(--color-zinc-300)]',
+			'[--btn-icon:var(--color-zinc-400)] hover:[--btn-icon:var(--color-zinc-300)]',
 			'dark:text-white dark:[--btn-bg:var(--color-zinc-600)] dark:[--btn-hover-overlay:var(--color-white)]/5',
 		],
 		white: [
 			'text-zinc-950 [--btn-bg:white] [--btn-border:var(--color-zinc-950)]/10 [--btn-hover-overlay:var(--color-zinc-950)]/2.5',
-			'[--btn-icon:var(--color-zinc-400)]',
-			'active:[--btn-border:var(--color-zinc-950)]/15 active:[--btn-icon:var(--color-zinc-500)]',
-			'hover:[--btn-border:var(--color-zinc-950)]/15 hover:[--btn-icon:var(--color-zinc-500)]',
+			'[--btn-icon:var(--color-zinc-400)] hover:[--btn-icon:var(--color-zinc-500)]',
+			'hover:[--btn-border:var(--color-zinc-950)]/15',
 			'dark:[--btn-hover-overlay:var(--color-zinc-950)]/5',
 		],
 		dark: [
 			'text-white [--btn-bg:var(--color-zinc-900)] [--btn-border:var(--color-zinc-950)]/90 [--btn-hover-overlay:var(--color-white)]/10',
-			'[--btn-icon:var(--color-zinc-400)]',
-			'active:[--btn-icon:var(--color-zinc-300)]',
-			'hover:[--btn-icon:var(--color-zinc-300)]',
+			'[--btn-icon:var(--color-zinc-400)] hover:[--btn-icon:var(--color-zinc-300)]',
 			'dark:[--btn-hover-overlay:var(--color-white)]/5 dark:[--btn-bg:var(--color-zinc-800)]',
 		],
 		red: [
 			'text-white [--btn-hover-overlay:var(--color-white)]/10 [--btn-bg:var(--color-red-600)] [--btn-border:var(--color-red-800)]/90',
-			'[--btn-icon:var(--color-red-900)]',
-			'active:[--btn-icon:var(--color-red-1000)]',
-			'hover:[--btn-icon:var(--color-red-1000)]',
+			'[--btn-icon:var(--color-red-900)] hover:[--btn-icon:var(--color-red-1000)]',
 		],
 		amber: [
 			'text-amber-100 [--btn-hover-overlay:var(--color-white)]/25 [--btn-bg:var(--color-amber-700)] [--btn-border:var(--color-amber-600)]/80',
@@ -117,15 +110,11 @@ export const nuri = {
 		],
 		green: [
 			'text-white [--btn-hover-overlay:var(--color-white)]/10 [--btn-bg:var(--color-green-600)] [--btn-border:var(--color-green-800)]/90',
-			'[--btn-icon:var(--color-white)]/60',
-			'active:[--btn-icon:var(--color-white)]/80',
-			'hover:[--btn-icon:var(--color-white)]/80',
+			'[--btn-icon:var(--color-white)]/60 hover:[--btn-icon:var(--color-white)]/80',
 		],
 		blue: [
 			'text-white [--btn-hover-overlay:var(--color-white)]/10 [--btn-bg:var(--color-blue-600)] [--btn-border:var(--color-blue-800)]/90',
-			'[--btn-icon:var(--color-blue-900)]',
-			'active:[--btn-icon:var(--color-blue-1000)]',
-			'hover:[--btn-icon:var(--color-blue-1000)]',
+			'[--btn-icon:var(--color-blue-900)] hover:[--btn-icon:var(--color-blue-1000)]',
 		],
 	},
 

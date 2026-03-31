@@ -6,4 +6,4 @@ export {
 	type RadioGroupProps,
 	type RadioProps,
 } from './component'
-export { type RadioVariants, radioVariants } from './variants'
+export { type RadioVariants, radioColorVariants, radioVariants } from './variants'
