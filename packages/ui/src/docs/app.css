@@ -20,3 +20,9 @@ table > thead tr > :is(th, td):first-child:nth-last-child(3),
 table > thead tr > :is(th, td):first-child:nth-last-child(3) ~ :is(th, td) {
 	width: 33.3333%;
 }
+
+/* Suppress browser default focus outline on click — components
+   provide their own focus-visible indicators via ki.ring/ki.offset */
+:focus:not(:focus-visible) {
+	outline: none;
+}
