@@ -13,5 +13,4 @@ export {
 	listboxOptionsVariants,
 	listboxOptionVariants,
 	listboxValueVariants,
-	listboxVariants,
 } from './variants'

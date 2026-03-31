@@ -3,7 +3,6 @@
 import { cn, createContext } from '../../core'
 import {
 	type TableVariants,
-	tableBodyVariants,
 	tableCellVariants,
 	tableGridVariants,
 	tableHeaderVariants,
@@ -81,13 +80,7 @@ export function TableBody({ className, children }: TableBodyProps) {
 	const { striped } = useTable()
 
 	return (
-		<tbody
-			className={cn(
-				tableBodyVariants(),
-				striped && '*:odd:bg-zinc-950/2.5 dark:*:odd:bg-white/2.5',
-				className,
-			)}
-		>
+		<tbody className={cn(striped && '*:odd:bg-zinc-950/2.5 dark:*:odd:bg-white/2.5', className)}>
 			{children}
 		</tbody>
 	)

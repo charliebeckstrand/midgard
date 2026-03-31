@@ -10,11 +10,4 @@ export {
 	type TabPanelsProps,
 	type TabProps,
 } from './component'
-export {
-	tabGroupVariants,
-	tabIndicatorVariants,
-	tabListVariants,
-	tabPanelsVariants,
-	tabPanelVariants,
-	tabVariants,
-} from './variants'
+export { tabIndicatorVariants, tabListVariants, tabVariants } from './variants'

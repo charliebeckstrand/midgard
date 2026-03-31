@@ -7,14 +7,9 @@ import { cn, createContext } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { useMenuKeyboard } from '../../hooks/use-menu-keyboard'
 import { useOverlay } from '../../hooks/use-overlay'
-import { ChevronIcon, PopoverPanel } from '../../primitives'
+import { ChevronIcon, FormControl, PopoverPanel } from '../../primitives'
 import { narabi } from '../../recipes'
-import {
-	comboboxChevronVariants,
-	comboboxInputVariants,
-	comboboxOptionsVariants,
-	comboboxVariants,
-} from './variants'
+import { comboboxChevronVariants, comboboxInputVariants, comboboxOptionsVariants } from './variants'
 
 type ComboboxContextValue<T = unknown> = {
 	value: T | undefined
@@ -86,7 +81,7 @@ export function Combobox<T>({
 	return (
 		<ComboboxProvider value={{ value, select: select as (v: unknown) => void, query }}>
 			<div ref={containerRef} data-slot="control" className={cn('relative', className)}>
-				<span className={cn(comboboxVariants())}>
+				<FormControl>
 					<input
 						ref={inputRef}
 						type="text"
@@ -120,7 +115,7 @@ export function Combobox<T>({
 					>
 						<ChevronIcon />
 					</button>
-				</span>
+				</FormControl>
 
 				<div ref={optionsRef}>
 					<AnimatePresence>

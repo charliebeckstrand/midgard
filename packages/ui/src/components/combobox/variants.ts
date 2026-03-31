@@ -1,8 +1,6 @@
 import { cva } from 'class-variance-authority'
 import { narabi, omote, sawari } from '../../recipes'
 
-export const comboboxVariants = cva(omote.control)
-
 export const comboboxInputVariants = cva([...omote.input, 'rounded-lg py-1.5 pr-8 pl-3'])
 
 export const comboboxChevronVariants = cva('absolute inset-y-0 right-0 flex items-center pr-2')

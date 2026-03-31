@@ -1,2 +1,1 @@
-export { Divider, type DividerProps } from './component'
-export { type DividerVariants, dividerVariants } from './variants'
+export { Divider, type DividerProps, type DividerVariants, dividerVariants } from './component'

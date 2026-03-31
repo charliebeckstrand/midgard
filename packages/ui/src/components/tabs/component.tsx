@@ -2,14 +2,7 @@
 
 import { cn } from '../../core'
 import { ActiveIndicator, ActiveIndicatorScope, useActiveIndicator } from '../../primitives'
-import {
-	tabGroupVariants,
-	tabIndicatorVariants,
-	tabListVariants,
-	tabPanelsVariants,
-	tabPanelVariants,
-	tabVariants,
-} from './variants'
+import { tabIndicatorVariants, tabListVariants, tabVariants } from './variants'
 
 export type TabGroupProps = React.ComponentPropsWithoutRef<'div'>
 
@@ -25,7 +18,7 @@ export type TabPanelsProps = React.ComponentPropsWithoutRef<'div'>
 export type TabPanelProps = React.ComponentPropsWithoutRef<'div'>
 
 export function TabGroup({ className, ...props }: TabGroupProps) {
-	return <div data-slot="tab-group" className={cn(tabGroupVariants(), className)} {...props} />
+	return <div data-slot="tab-group" className={className} {...props} />
 }
 
 export function TabList({ className, children, ...props }: TabListProps) {
@@ -57,9 +50,9 @@ export function Tab({ current, className, children, ...props }: TabProps) {
 }
 
 export function TabPanels({ className, ...props }: TabPanelsProps) {
-	return <div data-slot="tab-panels" className={cn(tabPanelsVariants(), className)} {...props} />
+	return <div data-slot="tab-panels" className={className} {...props} />
 }
 
 export function TabPanel({ className, ...props }: TabPanelProps) {
-	return <div data-slot="tab-panel" className={cn(tabPanelVariants(), className)} {...props} />
+	return <div data-slot="tab-panel" className={className} {...props} />
 }

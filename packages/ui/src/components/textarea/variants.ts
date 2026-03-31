@@ -1,8 +1,6 @@
 import { cva, type VariantProps } from 'class-variance-authority'
 import { katachi, ma, omote } from '../../recipes'
 
-export const textareaControlVariants = cva(omote.control)
-
 export const textareaVariants = cva([...omote.input, ma.control, katachi.maru], {
 	variants: {
 		resize: {

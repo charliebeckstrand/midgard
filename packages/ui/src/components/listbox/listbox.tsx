@@ -6,14 +6,13 @@ import { useCallback, useRef, useState } from 'react'
 import { cn, createContext } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { useOverlay } from '../../hooks/use-overlay'
-import { ChevronIcon, PopoverPanel } from '../../primitives'
+import { ChevronIcon, FormControl, PopoverPanel } from '../../primitives'
 import { narabi } from '../../recipes'
 import {
 	listboxButtonVariants,
 	listboxChevronVariants,
 	listboxOptionsVariants,
 	listboxValueVariants,
-	listboxVariants,
 } from './variants'
 
 type ListboxContextValue<T = unknown> = {
@@ -74,7 +73,7 @@ export function Listbox<T>({
 	return (
 		<ListboxProvider value={{ value, select: select as (v: unknown) => void, close }}>
 			<div data-slot="control" className={cn('relative', className)}>
-				<span className={cn(listboxVariants())}>
+				<FormControl>
 					<button
 						ref={triggerRef}
 						type="button"
@@ -92,7 +91,7 @@ export function Listbox<T>({
 							<ChevronIcon />
 						</span>
 					</button>
-				</span>
+				</FormControl>
 
 				<AnimatePresence>
 					{open && (

@@ -1,13 +1,8 @@
 import { cva, type VariantProps } from 'class-variance-authority'
+import { compoundColorVariants } from '../../core'
 import { katachi, ki, nuri, yasumi } from '../../recipes'
 
 type ButtonColor = keyof typeof nuri.button
-
-const solidCompoundVariants = Object.entries(nuri.button).map(([color, classes]) => ({
-	variant: 'solid' as const,
-	color: color as ButtonColor,
-	className: classes,
-}))
 
 export const buttonVariants = cva(
 	[
@@ -83,7 +78,7 @@ export const buttonVariants = cva(
 				''
 			>,
 		},
-		compoundVariants: solidCompoundVariants,
+		compoundVariants: compoundColorVariants(nuri.button, 'solid'),
 		defaultVariants: {
 			variant: 'solid',
 			color: 'zinc',

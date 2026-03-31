@@ -1,2 +1,6 @@
-export { Placeholder, type PlaceholderProps } from './component'
-export { type PlaceholderVariants, placeholderVariants } from './variants'
+export {
+	Placeholder,
+	type PlaceholderProps,
+	type PlaceholderVariants,
+	placeholderVariants,
+} from './component'

@@ -1,15 +1,13 @@
 export { ActiveIndicator, ActiveIndicatorScope, useActiveIndicator } from './active-indicator'
+export { FormControl, type FormControlProps } from './form-control'
 export { CheckboxIcon, CheckIcon, ChevronIcon, CloseIcon, MenuIcon } from './icons'
 export { BaseOption, OptionDescription, OptionLabel } from './option'
 export { Overlay, type OverlayProps } from './overlay'
 export {
-	PanelActions,
+	createPanelSlots,
 	type PanelActionsProps,
-	PanelBody,
 	type PanelBodyProps,
-	PanelDescription,
 	type PanelDescriptionProps,
-	PanelTitle,
 	type PanelTitleProps,
 	panelActionsVariants,
 	panelBodyVariants,
