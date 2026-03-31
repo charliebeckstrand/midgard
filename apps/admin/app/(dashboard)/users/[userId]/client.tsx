@@ -7,9 +7,9 @@ import type { Chat, ChatContent } from 'sindri/chat'
 import { ChatMessages } from 'sindri/chat'
 import { Button } from 'ui/button'
 import { Dialog, DialogActions, DialogBody, DialogTitle } from 'ui/dialog'
-import { Heading, Subheading } from 'ui/heading'
+import { Heading } from 'ui/heading'
 import { Placeholder } from 'ui/placeholder'
-import { Sheet, SheetClose, SheetContent, SheetHeader, SheetSubtitle, SheetTitle } from 'ui/sheet'
+import { Sheet, SheetBody, SheetClose, SheetDescription, SheetTitle } from 'ui/sheet'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from 'ui/table'
 import { Text } from 'ui/text'
 
@@ -60,7 +60,7 @@ export function UserDetailsClient({ details, chats: initialChats }: UserDetailsC
 				<Heading>{details?.email}</Heading>
 
 				<div className="flex flex-col">
-					<Subheading>Chats</Subheading>
+					<Heading level={2}>Chats</Heading>
 
 					<Table>
 						<TableHead>
@@ -106,29 +106,30 @@ export function UserDetailsClient({ details, chats: initialChats }: UserDetailsC
 				</div>
 			</div>
 
-			<Sheet open={viewChat !== null} onOpenChange={(open) => !open && setViewChat(null)}>
-				<SheetContent size="3xl">
-					<SheetHeader>
-						<div className="flex items-center justify-between">
-							<div className="flex flex-col">
-								<SheetTitle>Chat History</SheetTitle>
-								<SheetSubtitle>{viewChat}</SheetSubtitle>
-							</div>
-							<SheetClose className="rounded-md p-1 text-zinc-400 hover:text-zinc-500 dark:hover:text-zinc-300">
-								<XMarkIcon className="size-6" />
-							</SheetClose>
-						</div>
-					</SheetHeader>
-					<div className="flex flex-col flex-1 overflow-hidden p-6">
-						{loadingMessages ? (
-							<Placeholder />
-						) : chatMessages.length > 0 ? (
-							<ChatMessages messages={chatMessages} />
-						) : (
-							<Text className="text-zinc-500">No messages in this chat.</Text>
-						)}
+			<Sheet open={viewChat !== null} onClose={() => setViewChat(null)} size="3xl">
+				<div className="flex items-center justify-between">
+					<div className="flex flex-col">
+						<SheetTitle>Chat History</SheetTitle>
+						<SheetDescription>{viewChat}</SheetDescription>
 					</div>
-				</SheetContent>
+					<SheetClose>
+						<button
+							type="button"
+							className="rounded-md p-1 text-zinc-400 hover:text-zinc-500 dark:hover:text-zinc-300"
+						>
+							<XMarkIcon className="size-6" />
+						</button>
+					</SheetClose>
+				</div>
+				<SheetBody>
+					{loadingMessages ? (
+						<Placeholder />
+					) : chatMessages.length > 0 ? (
+						<ChatMessages messages={chatMessages} />
+					) : (
+						<Text className="text-zinc-500">No messages in this chat.</Text>
+					)}
+				</SheetBody>
 			</Sheet>
 
 			<Dialog open={confirmDeleteChat !== null} onClose={() => setConfirmDeleteChat(null)}>

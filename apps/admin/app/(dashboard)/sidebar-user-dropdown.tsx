@@ -10,10 +10,10 @@ import { Avatar } from 'ui/avatar'
 import {
 	Dropdown,
 	DropdownButton,
-	DropdownDivider,
 	DropdownItem,
 	DropdownLabel,
 	DropdownMenu,
+	DropdownSeparator,
 } from 'ui/dropdown'
 import { SidebarItem, SidebarLabel } from 'ui/sidebar'
 
@@ -34,20 +34,22 @@ export function SidebarUserDropdown({ user }: { user?: User }) {
 
 	return (
 		<Dropdown>
-			<DropdownButton as={SidebarItem}>
-				<Avatar
-					initials={initials}
-					className="bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
-				/>
-				<SidebarLabel>{displayName}</SidebarLabel>
-				<ChevronUpDownIcon />
+			<DropdownButton>
+				<SidebarItem>
+					<Avatar
+						initials={initials}
+						className="bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
+					/>
+					<SidebarLabel>{displayName}</SidebarLabel>
+					<ChevronUpDownIcon />
+				</SidebarItem>
 			</DropdownButton>
 			<DropdownMenu anchor="top start">
 				<DropdownItem href="/settings">
 					<Cog8ToothIcon />
 					<DropdownLabel>Settings</DropdownLabel>
 				</DropdownItem>
-				<DropdownDivider />
+				<DropdownSeparator />
 				<DropdownItem onClick={signOut}>
 					<ArrowRightStartOnRectangleIcon />
 					<DropdownLabel>Sign out</DropdownLabel>

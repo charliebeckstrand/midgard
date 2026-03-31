@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 import type { ReactNode } from 'react'
 import { SidebarLayout } from 'ui/layouts'
 import { Navbar, NavbarSpacer } from 'ui/navbar'
-import { ShinyText } from 'ui/react-bits/shiny-text'
+import { ShinyText } from 'ui/shiny-text'
 import {
 	Sidebar,
 	SidebarBody,
