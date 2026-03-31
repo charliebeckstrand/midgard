@@ -14,7 +14,7 @@ export function Select({ className, children, ...props }: SelectProps) {
 			</select>
 			<svg
 				data-slot="icon"
-				className="pointer-events-none absolute right-3.5 top-1/2 size-4 -translate-y-1/2 fill-zinc-500 dark:fill-zinc-400 sm:right-3"
+				className="pointer-events-none absolute right-3 top-1/2 size-5 -translate-y-1/2 fill-zinc-500 dark:fill-zinc-400"
 				viewBox="0 0 16 16"
 				fill="currentColor"
 				aria-hidden="true"

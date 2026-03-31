@@ -1,11 +1,10 @@
 import { cva } from 'class-variance-authority'
-import { narabi, omote, sawari, sumi } from '../../recipes'
+import { narabi, omote, sawari } from '../../recipes'
 
 export const listboxButtonVariants = cva([
-	'relative block w-full appearance-none rounded-lg py-1.5 pr-8 pl-3',
+	...omote.input,
+	'appearance-none rounded-lg py-1.5 pr-8 pl-3',
 	'text-left text-base/6',
-	sumi.base,
-	omote.input,
 ])
 
 export const listboxOptionsVariants = cva('max-h-60')

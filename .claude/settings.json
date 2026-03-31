@@ -7,7 +7,9 @@
       "Bash(pnpm check-types:*)",
       "Bash(pnpm --filter * build)",
       "Bash(pnpm --filter * dev)",
-      "Bash(pnpm --filter ui check-types)"
+      "Bash(pnpm --filter ui check-types)",
+      "Bash(node -e \":*)",
+      "Bash(npx tsx -e \":*)"
     ]
   }
 }

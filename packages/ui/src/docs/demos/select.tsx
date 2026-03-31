@@ -9,7 +9,9 @@ export default function SelectDemo() {
 			<Field>
 				<Label htmlFor="select-country">Country</Label>
 				<Select id="select-country">
-					<option value="">Select a country…</option>
+					<option value="" disabled selected>
+						Select a country…
+					</option>
 					<option>United States</option>
 					<option>Canada</option>
 					<option>United Kingdom</option>
