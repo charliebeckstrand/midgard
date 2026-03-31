@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Badge } from '../components/badge'
-import { Heading, Subheading } from '../components/heading'
-import { SidebarLayout } from '../components/layouts'
+import { Heading } from '../components/heading'
 import { Navbar, NavbarSpacer } from '../components/navbar'
 import {
 	Sidebar,
@@ -14,7 +13,8 @@ import {
 	SidebarSection,
 } from '../components/sidebar'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/table'
-import { Tab, Tabs } from '../components/tabs'
+import { Tab, TabGroup, TabList } from '../components/tabs'
+import { SidebarLayout } from '../layouts'
 import { CodeBlock } from './code-block'
 import { type ComponentApi, parseSource } from './parse-props'
 
@@ -32,11 +32,14 @@ const demoSources = import.meta.glob<string>('./demos/*.tsx', {
 })
 
 // Import all component source files for prop extraction
-const componentSources = import.meta.glob<string>('../components/**/*.{ts,tsx}', {
-	eager: true,
-	query: '?raw',
-	import: 'default',
-})
+const componentSources = import.meta.glob<string>(
+	['../components/**/*.{ts,tsx}', '../layouts/*.{ts,tsx}', '../pages/*.{ts,tsx}'],
+	{
+		eager: true,
+		query: '?raw',
+		import: 'default',
+	},
+)
 
 /** Strip the `export const meta = { ... }` line and surrounding blank lines from demo source */
 function stripMeta(source: string): string {
@@ -46,7 +49,9 @@ function stripMeta(source: string): string {
 /** Transform demo source into copy-pasteable usage code */
 function simplifySource(source: string): string {
 	// Rewrite internal component paths to package imports
-	const result = source.replace(/from\s+['"]\.\.\/\.\.\/components\/([^'"]+)['"]/g, 'from "ui/$1"')
+	let result = source.replace(/from\s+['"]\.\.\/\.\.\/components\/([^'"]+)['"]/g, 'from "ui/$1"')
+	result = result.replace(/from\s+['"]\.\.\/\.\.\/layouts['"]/g, 'from "ui/layouts"')
+	result = result.replace(/from\s+['"]\.\.\/\.\.\/pages['"]/g, 'from "ui/pages"')
 
 	// Extract the default export function body
 	const match = result.match(
@@ -165,7 +170,7 @@ function PropsTable({ api }: { api: ComponentApi[] }) {
 
 				return (
 					<div key={entry.name} className="space-y-3">
-						<Subheading>{`<${label} />`}</Subheading>
+						<Heading level={3}>{`<${label} />`}</Heading>
 						<Table>
 							<TableHead>
 								<TableRow>
@@ -209,19 +214,21 @@ function DemoPage({ demo }: { demo: (typeof demos)[number] }) {
 	return (
 		<div className="mx-auto w-full space-y-6 lg:p-6 lg:px-6 px-2">
 			<Heading>{demo.name}</Heading>
-			<Tabs>
-				<Tab current={tab === 'preview'} onClick={() => setTab('preview')}>
-					Preview
-				</Tab>
-				<Tab current={tab === 'code'} onClick={() => setTab('code')}>
-					Code
-				</Tab>
-				{demo.api && (
-					<Tab current={tab === 'api'} onClick={() => setTab('api')}>
-						API
+			<TabGroup>
+				<TabList>
+					<Tab current={tab === 'preview'} onClick={() => setTab('preview')}>
+						Preview
 					</Tab>
-				)}
-			</Tabs>
+					<Tab current={tab === 'code'} onClick={() => setTab('code')}>
+						Code
+					</Tab>
+					{demo.api && (
+						<Tab current={tab === 'api'} onClick={() => setTab('api')}>
+							API
+						</Tab>
+					)}
+				</TabList>
+			</TabGroup>
 			{tab === 'preview' && <demo.component />}
 			{tab === 'code' && <CodeBlock code={demo.source} />}
 			{tab === 'api' && demo.api && <PropsTable api={demo.api} />}

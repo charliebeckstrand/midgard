@@ -1,4 +1,4 @@
-import { Heading, Subheading } from '../../components/heading'
+import { Heading } from '../../components/heading'
 
 export const meta = { category: 'Data Display' }
 
@@ -11,7 +11,6 @@ export default function HeadingDemo() {
 			<Heading level={4}>Heading 4</Heading>
 			<Heading level={5}>Heading 5</Heading>
 			<Heading level={6}>Heading 6</Heading>
-			<Subheading>Subheading</Subheading>
 		</div>
 	)
 }

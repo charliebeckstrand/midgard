@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Description, Label } from '../../components/fieldset'
-import { Switch, SwitchField, SwitchGroup } from '../../components/switch'
+import { Switch, SwitchField } from '../../components/switch'
 
 export const meta = { category: 'Forms' }
 
@@ -8,7 +8,7 @@ export default function SwitchDemo() {
 	const [enabled, setEnabled] = useState(false)
 
 	return (
-		<SwitchGroup>
+		<div className="space-y-6">
 			<SwitchField>
 				<Label htmlFor="switch-notifications">Notifications</Label>
 				<Description>Receive email notifications for new activity.</Description>
@@ -24,6 +24,6 @@ export default function SwitchDemo() {
 				<Description>This switch is disabled.</Description>
 				<Switch id="switch-disabled" disabled />
 			</SwitchField>
-		</SwitchGroup>
+		</div>
 	)
 }

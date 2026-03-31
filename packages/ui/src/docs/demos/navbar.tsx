@@ -1,6 +1,5 @@
 import {
 	Navbar,
-	NavbarDivider,
 	NavbarItem,
 	NavbarLabel,
 	NavbarSection,
@@ -24,7 +23,6 @@ export default function NavbarDemo() {
 				</NavbarItem>
 			</NavbarSection>
 			<NavbarSpacer />
-			<NavbarDivider />
 			<NavbarSection>
 				<NavbarItem href="#navbar">
 					<NavbarLabel>Profile</NavbarLabel>
