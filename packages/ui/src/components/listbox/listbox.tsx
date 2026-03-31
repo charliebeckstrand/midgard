@@ -73,7 +73,7 @@ export function Listbox<T>({
 
 	return (
 		<ListboxProvider value={{ value, select: select as (v: unknown) => void, close }}>
-			<div data-slot="listbox" className={cn('relative', className)}>
+			<div data-slot="control" className={cn('relative', className)}>
 				<span className={cn(listboxVariants())}>
 					<button
 						ref={triggerRef}
