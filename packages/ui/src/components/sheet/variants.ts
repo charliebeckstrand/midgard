@@ -5,16 +5,14 @@ export const sheetPanelVariants = cva(
 	[
 		omote.panel,
 		'fixed flex flex-col rounded-xl p-6',
-		// Floating margin on desktop
-		'sm:m-2',
 		// Mobile: always bottom sheet
 		'max-sm:inset-x-0 max-sm:bottom-0 max-sm:w-full max-sm:rounded-b-none',
 	],
 	{
 		variants: {
 			side: {
-				right: 'sm:inset-y-0 sm:right-0 sm:h-full sm:w-full',
-				left: 'sm:inset-y-0 sm:left-0 sm:h-full sm:w-full',
+				right: 'sm:top-2 sm:right-2 sm:bottom-2 sm:w-full',
+				left: 'sm:top-2 sm:left-2 sm:bottom-2 sm:w-full',
 				top: narabi.slide.top,
 				bottom: narabi.slide.bottom,
 			},
