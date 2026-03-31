@@ -2,6 +2,7 @@
 
 import { motion } from 'motion/react'
 import type React from 'react'
+import { useSyncExternalStore } from 'react'
 import { cn, createContext } from '../../core'
 import { Overlay } from '../../primitives'
 import { ugoki } from '../../recipes'
@@ -15,6 +16,21 @@ type SheetContextValue = {
 
 export const [SheetProvider, useSheetContext] = createContext<SheetContextValue>('Sheet')
 
+const smQuery = typeof window !== 'undefined' ? window.matchMedia('(min-width: 640px)') : null
+
+function subscribeSmQuery(cb: () => void) {
+	smQuery?.addEventListener('change', cb)
+	return () => smQuery?.removeEventListener('change', cb)
+}
+
+function getSmSnapshot() {
+	return smQuery?.matches ?? true
+}
+
+function useIsDesktop() {
+	return useSyncExternalStore(subscribeSmQuery, getSmSnapshot, () => true)
+}
+
 export type SheetProps = SheetPanelVariants & {
 	open: boolean
 	onClose: () => void
@@ -23,8 +39,12 @@ export type SheetProps = SheetPanelVariants & {
 }
 
 export function Sheet({ open, onClose, side = 'right', size, className, children }: SheetProps) {
+	const isDesktop = useIsDesktop()
 	const resolvedSide = (side ?? 'right') as SheetSide
-	const panelMotion = ugoki.panel[resolvedSide]
+
+	// Mobile always slides from bottom; desktop uses the configured side
+	const animSide = isDesktop ? resolvedSide : 'bottom'
+	const panelMotion = ugoki.panel[animSide]
 
 	return (
 		<Overlay open={open} onClose={onClose}>
