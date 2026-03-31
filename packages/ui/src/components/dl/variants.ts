@@ -7,9 +7,9 @@ export const descriptionListVariants = cva(
 
 export const descriptionTermVariants = cva([
 	sumi.usui,
-	'col-start-1 border-t pt-3',
+	'col-start-1 border-t pt-3 first:border-none first:pt-0',
 	kage.usui,
-	'sm:py-3',
+	'sm:py-3 sm:first:pt-0',
 	'font-medium',
 ])
 

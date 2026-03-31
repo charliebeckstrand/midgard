@@ -7,7 +7,6 @@ export const selectVariants = cva([
 	...omote.input,
 	ma.control,
 	katachi.maru,
-	'sm:text-sm/6',
 	'appearance-none',
 	// Caret icon space
 	'pr-[calc(--spacing(10))]',

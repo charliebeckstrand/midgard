@@ -77,7 +77,7 @@ export const omote = {
 	],
 
 	/** Dialog overlay surface */
-	backdrop: 'fixed inset-0 bg-zinc-950/25 dark:bg-zinc-950/50',
+	backdrop: 'fixed inset-0 bg-zinc-950/25 backdrop-blur-xs dark:bg-zinc-950/50',
 
 	/** Mobile sidebar backdrop surface */
 	sidebar: 'fixed inset-0 bg-black/30 backdrop-blur-xs',

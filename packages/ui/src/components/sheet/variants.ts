@@ -1,7 +1,7 @@
 import { cva, type VariantProps } from 'class-variance-authority'
 import { katachi, ki, narabi, omote, sumi } from '../../recipes'
 
-export const sheetPanelVariants = cva([omote.panel, 'fixed flex flex-col p-6'], {
+export const sheetPanelVariants = cva([omote.panel, 'fixed flex flex-col rounded-xl p-6 m-2'], {
 	variants: {
 		side: {
 			right: narabi.slide.right,

@@ -54,7 +54,7 @@ export function PaginationList({ className, ...props }: PaginationListProps) {
 	return (
 		<ol
 			data-slot="pagination-list"
-			className={cn('flex items-center gap-1', className)}
+			className={cn('flex list-none items-center gap-1', className)}
 			{...props}
 		/>
 	)

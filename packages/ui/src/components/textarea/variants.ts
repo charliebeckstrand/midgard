@@ -3,7 +3,7 @@ import { katachi, ma, omote } from '../../recipes'
 
 export const textareaControlVariants = cva(omote.control)
 
-export const textareaVariants = cva([...omote.input, ma.control, katachi.maru, 'sm:text-sm/6'], {
+export const textareaVariants = cva([...omote.input, ma.control, katachi.maru], {
 	variants: {
 		resize: {
 			none: 'resize-none',

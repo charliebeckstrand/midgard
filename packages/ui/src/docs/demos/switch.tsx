@@ -1,18 +1,15 @@
-import { useState } from 'react'
 import { Description, Label } from '../../components/fieldset'
 import { Switch, SwitchField } from '../../components/switch'
 
 export const meta = { category: 'Forms' }
 
 export default function SwitchDemo() {
-	const [enabled, setEnabled] = useState(false)
-
 	return (
 		<div className="space-y-6">
 			<SwitchField>
 				<Label htmlFor="switch-notifications">Notifications</Label>
 				<Description>Receive email notifications for new activity.</Description>
-				<Switch id="switch-notifications" checked={enabled} onChange={setEnabled} />
+				<Switch id="switch-notifications" />
 			</SwitchField>
 			<SwitchField>
 				<Label htmlFor="switch-dark-mode">Dark mode</Label>
