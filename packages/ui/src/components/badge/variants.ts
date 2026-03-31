@@ -27,8 +27,8 @@ export const badgeVariants = cva(
 			},
 		},
 		compoundVariants: [
-			...compoundColorVariants(nuri.badgeSolid, 'solid'),
-			...compoundColorVariants(nuri.badgeSoft, 'soft'),
+			...compoundColorVariants('solid', nuri.badgeSolid),
+			...compoundColorVariants('soft', nuri.badgeSoft),
 		],
 		defaultVariants: {
 			variant: 'soft',

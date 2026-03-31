@@ -78,7 +78,7 @@ export const buttonVariants = cva(
 				''
 			>,
 		},
-		compoundVariants: compoundColorVariants(nuri.button, 'solid'),
+		compoundVariants: compoundColorVariants('solid', nuri.button),
 		defaultVariants: {
 			variant: 'solid',
 			color: 'zinc',

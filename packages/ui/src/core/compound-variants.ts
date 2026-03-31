@@ -6,13 +6,13 @@
  *
  * @example
  * ```ts
- * compoundColorVariants(nuri.button, 'solid')
+ * compoundColorVariants('solid', nuri.button)
  * // → [{ variant: 'solid', color: 'zinc', className: nuri.button.zinc }, ...]
  * ```
  */
-export function compoundColorVariants<C extends string, V extends string>(
-	tokenMap: Record<C, string | readonly string[]>,
+export function compoundColorVariants<V extends string, C extends string>(
 	variant: V,
+	tokenMap: Record<C, string | readonly string[]>,
 ) {
 	return (Object.entries(tokenMap) as [C, string | readonly string[]][]).map(
 		([color, classes]) => ({
