@@ -6,6 +6,7 @@ const smQuery = typeof window !== 'undefined' ? window.matchMedia('(min-width: 6
 
 function subscribe(cb: () => void) {
 	smQuery?.addEventListener('change', cb)
+	
 	return () => smQuery?.removeEventListener('change', cb)
 }
 
