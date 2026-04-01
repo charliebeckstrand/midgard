@@ -6,7 +6,7 @@ export const textVariants = cva('', {
 	variants: {
 		variant: {
 			default: sumi.base,
-			muted: sumi.usui,
+			muted: sumi.muted,
 		},
 	},
 	defaultVariants: {

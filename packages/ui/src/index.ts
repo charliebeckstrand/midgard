@@ -1,7 +1,9 @@
 export {
-	type ColorVariants,
+	type ColorCvaVariants,
 	cn,
-	colorVariants,
+	colorCva,
+	colorKeys,
+	compoundColors,
 	createContext,
 	Link,
 	LinkProvider,

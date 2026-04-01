@@ -9,8 +9,8 @@
  */
 
 export const katachi = {
-	/** Maru (丸) — the system border radius for softening edges */
-	maru: 'rounded-lg',
+	/** The system border radius for softening edges */
+	radius: 'rounded-lg',
 
 	/** Max-width constraints for Dialog and Sheet panels */
 	panel: {

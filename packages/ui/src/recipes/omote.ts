@@ -83,7 +83,7 @@ export const omote = {
 	input,
 
 	/** Complete form input base: input surface + control spacing + rounded corners */
-	formInput: [...input, ma.control, katachi.maru],
+	formInput: [...input, ma.control, katachi.radius],
 
 	/** WebKit date/time picker surface normalisation */
 	date: [

@@ -1,8 +1,6 @@
 import { cva, type VariantProps } from 'class-variance-authority'
-import { compoundColorVariants } from '../../core'
+import { colorKeys, compoundColors } from '../../core'
 import { katachi, ki, nuri, yasumi } from '../../recipes'
-
-type ButtonColor = keyof typeof nuri.button
 
 export const buttonVariants = cva(
 	[
@@ -11,7 +9,7 @@ export const buttonVariants = cva(
 		// Sizing
 		'px-[calc(--spacing(3)-1px)] py-[calc(--spacing(2)-1px)]',
 		// Shape
-		katachi.maru,
+		katachi.radius,
 		// Font
 		'font-semibold',
 		// Icon slots
@@ -73,12 +71,9 @@ export const buttonVariants = cva(
 					'*:data-[slot=icon]:fill-zinc-500 dark:*:data-[slot=icon]:fill-zinc-400',
 				],
 			},
-			color: Object.fromEntries(Object.keys(nuri.button).map((k) => [k, ''])) as Record<
-				ButtonColor,
-				''
-			>,
+			color: colorKeys(nuri.button),
 		},
-		compoundVariants: compoundColorVariants('solid', nuri.button),
+		compoundVariants: compoundColors('solid', nuri.button),
 		defaultVariants: {
 			variant: 'solid',
 			color: 'zinc',

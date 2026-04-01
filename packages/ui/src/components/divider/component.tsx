@@ -9,7 +9,7 @@ export const dividerVariants = cva('border-0', {
 			vertical: 'self-stretch border-l',
 		},
 		soft: {
-			true: kage.usui,
+			true: kage.subtle,
 			false: kage.base,
 		},
 	},

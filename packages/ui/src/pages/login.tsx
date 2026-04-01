@@ -25,7 +25,7 @@ export function LoginPage({
 			<form onSubmit={onSubmit} className="grid w-full max-w-sm grid-cols-1 gap-8">
 				{heading ?? <Heading>Sign in to your account</Heading>}
 
-				{serverError && <p className={sumi.ayamari}>{serverError}</p>}
+				{serverError && <p className={sumi.error}>{serverError}</p>}
 
 				{children}
 

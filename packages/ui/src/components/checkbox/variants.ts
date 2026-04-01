@@ -1,9 +1,9 @@
 import { cva, type VariantProps } from 'class-variance-authority'
-import { colorVariants } from '../../core'
+import { colorCva } from '../../core'
 import { nuri, omote } from '../../recipes'
 
 /** Color custom properties — applied to the parent span so siblings can inherit */
-export const checkboxColorVariants = colorVariants(nuri.checkbox)
+export const checkboxColorVariants = colorCva('', nuri.checkbox)
 
 /** Input styling — no color (inherited from parent) */
 export const checkboxVariants = cva([

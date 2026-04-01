@@ -10,6 +10,7 @@
 
 import { katachi } from './katachi'
 import { ki } from './ki'
+import { narabi } from './narabi'
 import { sumi } from './sumi'
 
 /** Base interaction pattern for selectable menu items (Dropdown, Listbox, Combobox) */
@@ -49,4 +50,7 @@ export const sawari = {
 
 	/** Composed: navigation item interaction + focus + icon sizing */
 	navItem: [...nav, ki.offset, katachi.icon],
+
+	/** Composed: selectable option in a menu/list — interaction + icon/avatar slot layout */
+	option: [...item, ...narabi.item],
 }

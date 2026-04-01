@@ -9,6 +9,6 @@ export const fieldVariants = cva([...narabi.field, yasumi.base])
 
 export const labelVariants = cva([sumi.base, 'text-base/6 select-none', yasumi.base])
 
-export const descriptionVariants = cva([sumi.usui, 'text-base/6', yasumi.base])
+export const descriptionVariants = cva([sumi.muted, 'text-base/6', yasumi.base])
 
-export const errorVariants = cva([sumi.ayamari, 'text-base/6', yasumi.base])
+export const errorVariants = cva([sumi.error, 'text-base/6', yasumi.base])

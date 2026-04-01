@@ -14,7 +14,7 @@ export const sidebarSectionVariants = cva('flex flex-col gap-0.5')
 export const sidebarLabelVariants = cva([
 	'truncate',
 	'group-data-[current]:text-zinc-950 dark:group-data-[current]:text-white',
-	sumi.usui,
+	sumi.muted,
 ])
 
 export const sidebarHeaderVariants = cva('flex items-center gap-2')

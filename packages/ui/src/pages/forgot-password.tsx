@@ -28,7 +28,7 @@ export function ForgotPasswordPage({
 			<form onSubmit={onSubmit} className="grid w-full max-w-sm grid-cols-1 gap-8">
 				{heading ?? <Heading>Reset your password</Heading>}
 
-				{serverError && <p className={sumi.ayamari}>{serverError}</p>}
+				{serverError && <p className={sumi.error}>{serverError}</p>}
 
 				{children}
 
