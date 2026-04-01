@@ -9,6 +9,7 @@
  */
 
 import { ki } from './ki'
+import { maru } from './maru'
 import { narabi } from './narabi'
 import { sumi } from './sumi'
 import { take } from './take'
@@ -16,7 +17,8 @@ import { take } from './take'
 /** Base interaction pattern for selectable menu items (Dropdown, Listbox, Combobox) */
 const item = [
 	sumi.base,
-	'cursor-default rounded-lg py-2.5 outline-hidden sm:py-1.5',
+	maru.rounded,
+	'cursor-default py-2.5 outline-hidden sm:py-1.5',
 	'text-base/6',
 	'hover:bg-zinc-950/5 focus:bg-zinc-950/5',
 	'dark:hover:bg-white/5 dark:focus:bg-white/5',

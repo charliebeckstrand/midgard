@@ -1,10 +1,11 @@
 import { cva } from 'class-variance-authority'
 import { form } from '../../primitives/form'
-import { sawari } from '../../recipes'
+import { maru, sawari } from '../../recipes'
 
 export const listboxButtonVariants = cva([
 	...form.input,
-	'appearance-none rounded-lg py-1.5 pr-8 pl-3',
+	maru.rounded,
+	'appearance-none py-1.5 pr-8 pl-3',
 	'text-left text-base/6',
 ])
 

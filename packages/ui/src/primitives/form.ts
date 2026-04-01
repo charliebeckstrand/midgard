@@ -31,7 +31,8 @@ export const form = {
 		// Layout
 		'relative block w-full',
 		// Background on wrapper so it's visible through all child element types
-		'bg-white rounded-lg dark:bg-white/5',
+		maru.rounded,
+		'bg-white dark:bg-white/5',
 		// Before pseudo — visual border/shadow
 		'before:absolute before:inset-px before:rounded-[calc(var(--radius-lg)-1px)] before:shadow-sm',
 		'dark:before:hidden',

@@ -1,5 +1,5 @@
 import { cva, type VariantProps } from 'class-variance-authority'
-import { ki, sumi } from '../../recipes'
+import { ki, maru, sumi } from '../../recipes'
 
 export const paginationVariants = cva('flex list-none gap-1')
 
@@ -8,7 +8,8 @@ export const paginationListVariants = cva('flex list-none items-center gap-1 m-0
 export const pageButtonVariants = cva(
 	[
 		ki.ring,
-		'relative inline-flex min-w-9 items-center justify-center rounded-lg px-2 py-1.5 text-sm/6 font-medium',
+		maru.rounded,
+		'relative inline-flex min-w-9 items-center justify-center px-2 py-1.5 text-sm/6 font-medium',
 		'cursor-default',
 		'before:absolute before:inset-px before:rounded-[calc(var(--radius-lg)-1px)]',
 	],
@@ -36,7 +37,8 @@ export const paginationGapVariants = cva([
 export const paginationNavVariants = cva([
 	ki.ring,
 	sumi.muted,
-	'inline-flex items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-sm/6 font-medium',
+	maru.rounded,
+	'inline-flex items-center justify-center gap-1 px-2 py-1.5 text-sm/6 font-medium',
 	'hover:text-zinc-950 dark:hover:text-white',
 	'cursor-default',
 	'disabled:opacity-50',

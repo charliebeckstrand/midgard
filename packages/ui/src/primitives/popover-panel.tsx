@@ -5,7 +5,7 @@ import type React from 'react'
 import { useEffect, useRef } from 'react'
 import { cn } from '../core'
 import { useMenuKeyboard } from '../hooks/use-menu-keyboard'
-import { omote, ugoki } from '../recipes'
+import { maru, omote, ugoki } from '../recipes'
 
 export function PopoverPanel({
 	className,
@@ -44,7 +44,8 @@ export function PopoverPanel({
 			}}
 			className={cn(
 				omote.popover,
-				'isolate absolute z-50 min-w-full rounded-xl p-1 space-y-0.5 select-none',
+				maru.rounded,
+				'isolate absolute z-50 min-w-full p-1 space-y-0.5 select-none',
 				'outline outline-transparent focus:outline-hidden',
 				'overflow-y-auto overscroll-contain',
 				className,

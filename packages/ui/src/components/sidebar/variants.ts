@@ -1,11 +1,12 @@
 import { cva } from 'class-variance-authority'
-import { sawari, sumi } from '../../recipes'
+import { maru, sawari, sumi } from '../../recipes'
 
 export const sidebarVariants = cva('flex h-full flex-col gap-y-4 overflow-y-auto p-4')
 
 export const sidebarItemVariants = cva([
 	...sawari.navItem,
-	'group relative flex w-full items-center gap-3 rounded-lg px-2 py-2',
+	maru.rounded,
+	'group relative flex w-full items-center gap-3 px-2 py-2',
 	'text-left font-medium cursor-default',
 ])
 

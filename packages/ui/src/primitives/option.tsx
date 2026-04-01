@@ -1,6 +1,6 @@
 import type React from 'react'
 import { cn } from '../core'
-import { narabi, sawari } from '../recipes'
+import { maru, narabi, sawari } from '../recipes'
 import { CheckIcon } from './icons'
 
 export type BaseOptionProps = {
@@ -41,7 +41,8 @@ export function BaseOption({
 				}
 			}}
 			className={cn(
-				'group/option grid w-full cursor-default items-baseline gap-x-2 rounded-lg',
+				maru.rounded,
+				'group/option grid w-full cursor-default items-baseline gap-x-2',
 				isStart
 					? 'grid-cols-[--spacing(5)_1fr] pr-3.5 pl-2 sm:grid-cols-[--spacing(4)_1fr] sm:pr-3 sm:pl-1.5'
 					: 'grid-cols-[1fr_--spacing(5)] pr-2 pl-3.5 sm:grid-cols-[1fr_--spacing(4)] sm:pr-2 sm:pl-3',
