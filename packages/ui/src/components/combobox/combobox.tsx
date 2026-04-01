@@ -8,7 +8,7 @@ import { useControllable } from '../../hooks/use-controllable'
 import { useMenuKeyboard } from '../../hooks/use-menu-keyboard'
 import { useOverlay } from '../../hooks/use-overlay'
 import { ChevronIcon, FormControl, PopoverPanel } from '../../primitives'
-import { narabi } from '../../recipes'
+import { narabi, sumi } from '../../recipes'
 import { comboboxChevronVariants, comboboxInputVariants, comboboxOptionsVariants } from './variants'
 
 type ComboboxContextValue<T = unknown> = {
@@ -162,9 +162,7 @@ export function Combobox<T>({
 								}}
 							>
 								{rendered}
-								<output className="hidden p-2 text-zinc-500 only:block dark:text-amber-500">
-									No results
-								</output>
+								<output className={cn('hidden p-2 only:block', sumi.usui)}>No results</output>
 							</PopoverPanel>
 						)}
 					</AnimatePresence>
