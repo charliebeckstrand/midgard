@@ -23,7 +23,7 @@ export type NavItemProps = {
  * function differ.
  */
 export function createNavItem(config: { slotPrefix: string; variants: () => string }) {
-	function NavItem({ current, className, children, onClick, ...props }: NavItemProps) {
+	function NavItem({ current, className, children, onClick, href, ...props }: NavItemProps) {
 		const indicator = useActiveIndicator()
 		const offcanvas = useOffcanvas()
 
@@ -42,7 +42,7 @@ export function createNavItem(config: { slotPrefix: string; variants: () => stri
 				<Polymorphic
 					as="button"
 					dataSlot={`${config.slotPrefix}-item-inner`}
-					href={props.href}
+					href={href}
 					data-current={current ? '' : undefined}
 					className={cn(config.variants(), className)}
 					onClick={handleClick}

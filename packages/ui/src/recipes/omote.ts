@@ -47,9 +47,6 @@ export const omote = {
 	/** Elevated panel surface — modals, dialogs, sheets */
 	panel: `bg-white shadow-lg dark:bg-zinc-900 forced-colors:outline ${kage.ring}`,
 
-	/** Content card surface — layout containers, sidebars */
-	card: `bg-white shadow-xs dark:bg-zinc-900 ${kage.ringUsui}`,
-
 	/** Desktop content area surface — the card treatment applied at lg: breakpoint */
 	content: `lg:rounded-lg lg:bg-white lg:shadow-xs lg:ring-1 lg:ring-zinc-950/5 dark:lg:bg-zinc-900 dark:lg:ring-white/10`,
 
@@ -115,9 +112,6 @@ export const omote = {
 
 	/** Dialog overlay surface */
 	backdrop: 'fixed inset-0 bg-zinc-950/25 backdrop-blur-xs dark:bg-zinc-950/50',
-
-	/** Mobile sidebar backdrop surface */
-	sidebar: 'fixed inset-0 bg-black/30 backdrop-blur-xs',
 
 	/** Popover menu surface (Dropdown, Listbox, Combobox) */
 	popover: [

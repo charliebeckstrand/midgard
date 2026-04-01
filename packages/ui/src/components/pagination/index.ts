@@ -16,6 +16,7 @@ export {
 	type PageButtonVariants,
 	pageButtonVariants,
 	paginationGapVariants,
+	paginationListVariants,
 	paginationNavVariants,
 	paginationVariants,
 } from './variants'
