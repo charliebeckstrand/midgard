@@ -1,33 +1,16 @@
 import { cva, type VariantProps } from 'class-variance-authority'
 import { colorKeys, compoundColors } from '../../core'
-import { katachi, ki, nuri, yasumi } from '../../recipes'
+import { katachi, ki, nuri, take, yasumi } from '../../recipes'
 
 export const buttonVariants = cva(
 	[
-		// Layout
-		'relative isolate inline-flex items-center justify-center gap-x-2',
-		// Sizing
-		'px-[calc(--spacing(3)-1px)] py-[calc(--spacing(2)-1px)]',
-		// Shape
 		katachi.radius,
-		// Font
-		'font-semibold',
-		// Icon slots
 		katachi.icon,
-		// Icon-only — square with equal padding when only child is an icon
-		// TouchTarget wraps children in a fragment with a hidden <span> + {children},
-		// so icon-only buttons have exactly 2 element children: the span and the icon.
-		// :nth-child(2):last-child ensures the icon is the only real child.
-		'[&:has(>[data-slot=icon]:nth-child(2):last-child)]:px-0 [&:has(>[data-slot=icon]:nth-child(2):last-child)]:py-0',
-		'[&:has(>[data-slot=icon]:nth-child(2):last-child)]:size-10',
-		'[&:has(>[data-slot=icon]:nth-child(2):last-child)]:gap-0',
-		// Focus
 		ki.ring,
-		// Disabled
 		yasumi.base,
-		// Cursor
+		...take.button,
+		'relative isolate inline-flex items-center justify-center gap-x-2 font-semibold',
 		'cursor-default',
-		// Active — scale down instead of color change (not when disabled)
 		'not-disabled:active:scale-[0.99] transition-transform duration-100',
 	],
 	{

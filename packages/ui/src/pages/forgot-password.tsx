@@ -1,8 +1,8 @@
 import type React from 'react'
 import { Button } from '../components/button'
 import { Heading } from '../components/heading'
+import { Text } from '../components/text'
 import { AuthLayout } from '../layouts/auth'
-import { sumi } from '../recipes'
 
 export type ForgotPasswordPageProps = {
 	onSubmit: React.ComponentProps<'form'>['onSubmit']
@@ -28,7 +28,7 @@ export function ForgotPasswordPage({
 			<form onSubmit={onSubmit} className="grid w-full max-w-sm grid-cols-1 gap-8">
 				{heading ?? <Heading>Reset your password</Heading>}
 
-				{serverError && <p className={sumi.error}>{serverError}</p>}
+				{serverError && <Text variant="error">{serverError}</Text>}
 
 				{children}
 

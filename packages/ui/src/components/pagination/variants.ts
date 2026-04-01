@@ -7,8 +7,8 @@ export const paginationListVariants = cva('flex list-none items-center gap-1 m-0
 
 export const pageButtonVariants = cva(
 	[
-		'relative inline-flex min-w-9 items-center justify-center rounded-lg px-2 py-1.5 text-sm/6 font-medium',
 		ki.ring,
+		'relative inline-flex min-w-9 items-center justify-center rounded-lg px-2 py-1.5 text-sm/6 font-medium',
 		'cursor-default',
 		'before:absolute before:inset-px before:rounded-[calc(var(--radius-lg)-1px)]',
 	],
@@ -28,15 +28,15 @@ export const pageButtonVariants = cva(
 export type PageButtonVariants = VariantProps<typeof pageButtonVariants>
 
 export const paginationGapVariants = cva([
-	'inline-flex min-w-9 items-center justify-center text-sm/6',
 	sumi.muted,
+	'inline-flex min-w-9 items-center justify-center text-sm/6',
 	'select-none',
 ])
 
 export const paginationNavVariants = cva([
-	'inline-flex items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-sm/6 font-medium',
 	ki.ring,
 	sumi.muted,
+	'inline-flex items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-sm/6 font-medium',
 	'hover:text-zinc-950 dark:hover:text-white',
 	'cursor-default',
 	'disabled:opacity-50',
