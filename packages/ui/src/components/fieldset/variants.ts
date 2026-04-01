@@ -11,4 +11,4 @@ export const labelVariants = cva([sumi.base, 'text-base/6 select-none', yasumi.b
 
 export const descriptionVariants = cva([sumi.usui, 'text-base/6', yasumi.base])
 
-export const errorVariants = cva(['text-red-600 dark:text-red-500', 'text-base/6', yasumi.base])
+export const errorVariants = cva([sumi.ayamari, 'text-base/6', yasumi.base])
