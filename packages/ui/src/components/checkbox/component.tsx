@@ -1,5 +1,5 @@
 import { cn } from '../../core'
-import { ToggleField, ToggleGroup } from '../../primitives'
+import { CheckboxIcon, ToggleField, ToggleGroup } from '../../primitives'
 import { type CheckboxVariants, checkboxColorVariants, checkboxVariants } from './variants'
 
 export type CheckboxProps = CheckboxVariants & {
@@ -21,21 +21,7 @@ export function Checkbox({ className, color, ...props }: CheckboxProps) {
 				className={cn(checkboxVariants(), className)}
 				{...props}
 			/>
-			<svg
-				data-slot="checkbox-check"
-				className="pointer-events-none absolute size-3 text-(--checkbox-check) opacity-0"
-				viewBox="0 0 14 14"
-				fill="none"
-				aria-hidden="true"
-			>
-				<path
-					d="M3 8L6 11L11 3.5"
-					stroke="currentColor"
-					strokeWidth={2}
-					strokeLinecap="round"
-					strokeLinejoin="round"
-				/>
-			</svg>
+			<CheckboxIcon />
 		</span>
 	)
 }

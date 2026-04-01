@@ -8,12 +8,12 @@ type ButtonBaseProps = ButtonVariants & {
 
 export type ButtonProps = ButtonBaseProps & PolymorphicProps<'button'>
 
-export function Button({ variant, color, className, children, ...props }: ButtonProps) {
+export function Button({ variant, color, className, children, href, ...props }: ButtonProps) {
 	return (
 		<Polymorphic
 			as="button"
 			dataSlot="button"
-			href={props.href}
+			href={href}
 			className={cn(buttonVariants({ variant, color }), className)}
 			{...props}
 		>

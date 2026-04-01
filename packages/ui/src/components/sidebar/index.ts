@@ -8,16 +8,15 @@ export {
 	SidebarSpacer,
 	type SidebarSpacerProps,
 } from './item'
+export { Sidebar, type SidebarProps } from './sidebar'
 export {
-	Sidebar,
 	SidebarBody,
 	type SidebarBodyProps,
 	SidebarFooter,
 	type SidebarFooterProps,
 	SidebarHeader,
 	type SidebarHeaderProps,
-	type SidebarProps,
-} from './sidebar'
+} from './slots'
 export {
 	sidebarBodyVariants,
 	sidebarFooterVariants,

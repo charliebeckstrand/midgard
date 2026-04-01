@@ -27,40 +27,40 @@ export type PanelActionsProps = React.ComponentPropsWithoutRef<'div'>
  * // Title renders <h2 data-slot="dialog-title" ...>
  * ```
  */
-export function createPanelSlots(prefix: string) {
+type PanelSlotVariants = {
+	title?: () => string
+	description?: () => string
+	body?: () => string
+	actions?: () => string
+}
+
+export function createPanelSlots(prefix: string, variants?: PanelSlotVariants) {
+	const titleCva = variants?.title ?? panelTitleVariants
+	const descriptionCva = variants?.description ?? panelDescriptionVariants
+	const bodyCva = variants?.body ?? panelBodyVariants
+	const actionsCva = variants?.actions ?? panelActionsVariants
+
 	function Title({ className, ...props }: PanelTitleProps) {
-		return (
-			<h2
-				data-slot={`${prefix}-title`}
-				className={cn(panelTitleVariants(), className)}
-				{...props}
-			/>
-		)
+		return <h2 data-slot={`${prefix}-title`} className={cn(titleCva(), className)} {...props} />
 	}
 
 	function Description({ className, ...props }: PanelDescriptionProps) {
 		return (
 			<p
 				data-slot={`${prefix}-description`}
-				className={cn(panelDescriptionVariants(), className)}
+				className={cn(descriptionCva(), className)}
 				{...props}
 			/>
 		)
 	}
 
 	function Body({ className, ...props }: PanelBodyProps) {
-		return (
-			<div data-slot={`${prefix}-body`} className={cn(panelBodyVariants(), className)} {...props} />
-		)
+		return <div data-slot={`${prefix}-body`} className={cn(bodyCva(), className)} {...props} />
 	}
 
 	function Actions({ className, ...props }: PanelActionsProps) {
 		return (
-			<div
-				data-slot={`${prefix}-actions`}
-				className={cn(panelActionsVariants(), className)}
-				{...props}
-			/>
+			<div data-slot={`${prefix}-actions`} className={cn(actionsCva(), className)} {...props} />
 		)
 	}
 

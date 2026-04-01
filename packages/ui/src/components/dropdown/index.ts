@@ -17,7 +17,7 @@ export {
 	type DropdownSectionProps,
 	DropdownSeparator,
 	type DropdownSeparatorProps,
-} from './section'
+} from './slots'
 export { DropdownButton, type DropdownButtonProps } from './trigger'
 export {
 	dropdownDescriptionVariants,
