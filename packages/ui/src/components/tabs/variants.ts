@@ -1,7 +1,7 @@
 import { cva } from 'class-variance-authority'
 import { kage, sawari } from '../../recipes'
 
-export const tabListVariants = cva([kage.subtle, 'flex gap-4', 'border-b'])
+export const tabListVariants = cva([kage.borderSubtle, 'flex gap-4', 'border-b'])
 
 export const tabVariants = cva([
 	...sawari.tab,

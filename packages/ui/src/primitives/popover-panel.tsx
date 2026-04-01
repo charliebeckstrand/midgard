@@ -42,7 +42,13 @@ export function PopoverPanel({
 				handleKeyDown(e)
 				onKeyDownProp?.(e)
 			}}
-			className={cn(omote.popover, 'absolute z-50 space-y-0.5', className)}
+			className={cn(
+				omote.popover,
+				'isolate absolute z-50 min-w-full rounded-xl p-1 space-y-0.5 select-none',
+				'outline outline-transparent focus:outline-hidden',
+				'overflow-y-auto overscroll-contain',
+				className,
+			)}
 		>
 			{children}
 		</motion.div>

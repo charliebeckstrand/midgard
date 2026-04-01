@@ -8,7 +8,7 @@ export const descriptionListVariants = cva(
 
 export const descriptionTermVariants = cva([
 	sumi.muted,
-	kage.subtle,
+	kage.borderSubtle,
 	'col-start-1 border-t pt-3 first:border-none first:pt-0',
 	'sm:py-3 sm:first:pt-0',
 	'font-medium',
@@ -16,7 +16,7 @@ export const descriptionTermVariants = cva([
 
 export const descriptionDetailsVariants = cva([
 	sumi.base,
-	kage.subtle,
+	kage.borderSubtle,
 	'pb-3 pt-1',
 	'sm:border-t sm:py-3',
 	'sm:nth-2:border-none',

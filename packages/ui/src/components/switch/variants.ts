@@ -1,13 +1,14 @@
 import { cva, type VariantProps } from 'class-variance-authority'
 import { colorCva } from '../../core'
-import { nuri, omote } from '../../recipes'
+import { form } from '../../primitives/form'
+import { nuri } from '../../recipes'
 
 /** Color custom properties — applied to the parent span so siblings can inherit */
 export const switchColorVariants = colorCva('', nuri.switch)
 
 /** Input styling — no color (inherited from parent) */
 export const switchVariants = cva([
-	...omote.hiddenInput,
+	...form.hiddenInput,
 	'rounded-full',
 	// Unchecked — track
 	'bg-zinc-200 ring-1 ring-zinc-950/5 ring-inset dark:bg-white/10 dark:ring-white/15',

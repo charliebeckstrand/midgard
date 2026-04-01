@@ -1,18 +1,18 @@
 /**
- * Kage (影) — Edges and borders.
+ * Kage (影) — Shadow and edges.
  *
- * The shadow that defines form — dividers, outlines, separators.
- * Each value encodes a light/dark border-color pair.
+ * The shadow that defines form — borders, dividers, rings, drop shadows.
+ * Everything that creates depth and delineation between elements.
  *
  * Branch of: Sumi (root)
- * Concern: color
+ * Concern: depth, borders, shadows
  */
 export const kage = {
-	/** The standard edge — subtle separator between surfaces */
-	base: 'border-zinc-950/10 dark:border-white/10',
+	/** The standard border — separator between surfaces */
+	border: 'border-zinc-950/10 dark:border-white/10',
 
-	/** A softer edge — dividers within content, quieter boundaries */
-	subtle: 'border-zinc-950/5 dark:border-white/5',
+	/** A softer border — dividers within content, quieter boundaries */
+	borderSubtle: 'border-zinc-950/5 dark:border-white/5',
 
 	/** Ring edge — the standard ring boundary for elevated surfaces */
 	ring: 'ring-1 ring-zinc-950/10 dark:ring-white/10',

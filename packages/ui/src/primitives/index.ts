@@ -6,6 +6,7 @@ export {
 	type SelectLabelProps,
 	type SelectOptionProps,
 } from './create-select-option'
+export { form } from './form'
 export { FormControl, type FormControlProps } from './form-control'
 export { CheckboxIcon, CheckIcon, ChevronIcon, CloseIcon, MenuIcon } from './icons'
 export { BaseOption, OptionDescription, OptionLabel } from './option'
