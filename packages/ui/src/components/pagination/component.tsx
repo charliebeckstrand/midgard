@@ -3,6 +3,7 @@ import { Polymorphic, type PolymorphicProps } from '../../primitives'
 import {
 	pageButtonVariants,
 	paginationGapVariants,
+	paginationListVariants,
 	paginationNavVariants,
 	paginationVariants,
 } from './variants'
@@ -43,7 +44,7 @@ export function PaginationList({ className, ...props }: PaginationListProps) {
 	return (
 		<ol
 			data-slot="pagination-list"
-			className={cn('flex list-none items-center gap-1 m-0 p-0', className)}
+			className={cn(paginationListVariants(), className)}
 			{...props}
 		/>
 	)
@@ -53,6 +54,7 @@ export function PaginationPage({
 	current = false,
 	className,
 	children,
+	href,
 	...props
 }: PaginationPageProps) {
 	return (
@@ -60,7 +62,7 @@ export function PaginationPage({
 			<Polymorphic
 				as="button"
 				dataSlot="pagination-page"
-				href={props.href}
+				href={href}
 				aria-current={current ? 'page' : undefined}
 				className={cn(pageButtonVariants({ current }), className)}
 				{...props}
@@ -89,6 +91,7 @@ function PaginationNavButton({
 	slot,
 	className,
 	children,
+	href,
 	...props
 }: { slot: string } & (PaginationPreviousProps | PaginationNextProps)) {
 	return (
@@ -96,7 +99,7 @@ function PaginationNavButton({
 			<Polymorphic
 				as="button"
 				dataSlot={slot}
-				href={props.href}
+				href={href}
 				className={cn(paginationNavVariants(), className)}
 				{...props}
 			>

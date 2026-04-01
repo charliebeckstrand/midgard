@@ -52,12 +52,20 @@ type AvatarButtonBaseProps = AvatarVariants & {
 
 export type AvatarButtonProps = AvatarButtonBaseProps & PolymorphicProps<'button'>
 
-export function AvatarButton({ src, alt, initials, size, className, ...props }: AvatarButtonProps) {
+export function AvatarButton({
+	src,
+	alt,
+	initials,
+	size,
+	className,
+	href,
+	...props
+}: AvatarButtonProps) {
 	return (
 		<Polymorphic
 			as="button"
 			dataSlot="avatar-button"
-			href={props.href}
+			href={href}
 			className={cn(avatarButtonVariants(), className)}
 			{...props}
 		>

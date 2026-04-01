@@ -7,7 +7,7 @@ import { cn, createContext } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { useOverlay } from '../../hooks/use-overlay'
 import { ChevronIcon, FormControl, PopoverPanel } from '../../primitives'
-import { narabi } from '../../recipes'
+import { narabi, sumi } from '../../recipes'
 import {
 	listboxButtonVariants,
 	listboxChevronVariants,
@@ -138,7 +138,7 @@ export function Listbox<T>({
 						className={cn(listboxButtonVariants())}
 					>
 						<span className={listboxValueVariants()}>
-							{label ?? <span className="text-zinc-500">{placeholder}</span>}
+							{label ?? <span className={sumi.usui}>{placeholder}</span>}
 						</span>
 						<span className={listboxChevronVariants()}>
 							<ChevronIcon />

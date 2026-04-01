@@ -13,4 +13,7 @@ export const sumi = {
 
 	/** Diluted ink (薄い) — descriptions, placeholders, secondary labels */
 	usui: 'text-zinc-500 dark:text-zinc-400',
+
+	/** Error ink — validation messages, destructive state text */
+	ayamari: 'text-red-600 dark:text-red-500',
 }

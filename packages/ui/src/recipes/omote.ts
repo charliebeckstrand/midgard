@@ -16,42 +16,30 @@ import { sumi } from './sumi'
 
 /** The surface of an input element — text, bg, border, hover, focus, invalid, disabled */
 const input = [
-	// Layout
-	'relative block w-full',
-	// Height
-	'min-h-11',
-	// Text
-	`${sumi.base} text-base/6 placeholder:text-zinc-500`,
-	// Background
-	'bg-transparent',
-	// Border
-	`border ${kage.base}`,
-	// Hover
-	'hover:border-zinc-950/20',
-	'dark:hover:border-white/20',
-	// Focus
+	sumi.base,
+	kage.base,
+	'relative block w-full min-h-11',
+	'text-base/6 placeholder:text-zinc-500',
+	'bg-transparent border',
+	'hover:border-zinc-950/20 dark:hover:border-white/20',
 	'focus:outline-hidden',
-	// Invalid
-	'data-invalid:border-red-600',
-	'data-invalid:hover:border-red-600',
-	// Read-only
+	'data-invalid:border-red-600 data-invalid:hover:border-red-600',
 	'read-only:bg-transparent dark:read-only:bg-transparent',
-	// Disabled
-	'disabled:border-zinc-950/20',
+	'disabled:border-zinc-950/20 disabled:cursor-not-allowed',
 	'dark:disabled:border-white/15 dark:disabled:bg-white/2.5',
 	'dark:hover:disabled:border-white/15',
-	'disabled:cursor-not-allowed',
 ]
 
 export const omote = {
 	/** Elevated panel surface — modals, dialogs, sheets */
-	panel: `bg-white shadow-lg dark:bg-zinc-900 forced-colors:outline ${kage.ring}`,
-
-	/** Content card surface — layout containers, sidebars */
-	card: `bg-white shadow-xs dark:bg-zinc-900 ${kage.ringUsui}`,
+	panel: [kage.ring, 'bg-white shadow-lg dark:bg-zinc-900 forced-colors:outline'],
 
 	/** Desktop content area surface — the card treatment applied at lg: breakpoint */
-	content: `lg:rounded-lg lg:bg-white lg:shadow-xs lg:ring-1 lg:ring-zinc-950/5 dark:lg:bg-zinc-900 dark:lg:ring-white/10`,
+	content: [
+		'lg:rounded-lg lg:bg-white lg:shadow-xs',
+		'lg:ring-1 lg:ring-zinc-950/5',
+		'dark:lg:bg-zinc-900 dark:lg:ring-white/10',
+	],
 
 	/** The outer chrome of a form control (Input, Select, Textarea, Combobox) */
 	control: [
@@ -115,9 +103,6 @@ export const omote = {
 
 	/** Dialog overlay surface */
 	backdrop: 'fixed inset-0 bg-zinc-950/25 backdrop-blur-xs dark:bg-zinc-950/50',
-
-	/** Mobile sidebar backdrop surface */
-	sidebar: 'fixed inset-0 bg-black/30 backdrop-blur-xs',
 
 	/** Popover menu surface (Dropdown, Listbox, Combobox) */
 	popover: [

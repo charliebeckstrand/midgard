@@ -3,6 +3,8 @@ import { ki, sumi } from '../../recipes'
 
 export const paginationVariants = cva('flex list-none gap-1')
 
+export const paginationListVariants = cva('flex list-none items-center gap-1 m-0 p-0')
+
 export const pageButtonVariants = cva(
 	[
 		'relative inline-flex min-w-9 items-center justify-center rounded-lg px-2 py-1.5 text-sm/6 font-medium',
