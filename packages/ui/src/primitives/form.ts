@@ -7,13 +7,13 @@
  * single-concern tokens.
  */
 
-import { kage, ki, ma, maru, sumi } from '../recipes'
+import { kage, ki, maru, sumi, take } from '../recipes'
 
 /** The surface of an input element — text, bg, border, hover, focus, invalid, disabled */
 const input = [
 	sumi.base,
 	kage.border,
-	'relative block w-full min-h-11',
+	'relative block w-full',
 	'text-base/6 placeholder:text-zinc-500',
 	'bg-transparent border',
 	'hover:border-zinc-950/20 dark:hover:border-white/20',
@@ -69,7 +69,7 @@ export const form = {
 	input,
 
 	/** Complete form input base: input surface + control spacing + rounded corners */
-	formInput: [...input, ma.control, maru.rounded],
+	formInput: [...input, take.control, maru.rounded],
 
 	/** WebKit date/time picker surface normalisation */
 	date: [

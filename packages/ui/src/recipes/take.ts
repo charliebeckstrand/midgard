@@ -17,6 +17,9 @@
 const io = '[&:has(>[data-slot=icon]:nth-child(2):last-child)]'
 
 export const take = {
+	/** The internal breathing room of a form control */
+	control: 'px-[calc(--spacing(3)-1px)] py-[calc(--spacing(2)-1px)]',
+
 	/** Badge density scale — padding, text, icon per step */
 	badge: {
 		sm: 'px-1.5 py-0.5 text-xs/4 *:data-[slot=icon]:size-3',

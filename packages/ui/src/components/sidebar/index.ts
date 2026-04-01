@@ -1,5 +1,9 @@
 export {
+	SidebarDivider,
+	type SidebarDividerProps,
 	SidebarItem,
+	SidebarItemActions,
+	type SidebarItemActionsProps,
 	type SidebarItemProps,
 	SidebarLabel,
 	type SidebarLabelProps,

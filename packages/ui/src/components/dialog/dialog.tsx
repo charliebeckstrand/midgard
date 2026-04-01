@@ -27,18 +27,13 @@ export function Dialog({
 
 	return (
 		<Overlay open={open} onClose={onClose} outsideClick={outsideClick}>
-			<div
-				aria-hidden="true"
-				className="fixed inset-0 flex min-h-full items-end sm:items-center sm:justify-center sm:p-4"
-				onClick={outsideClick ? onClose : undefined}
-			>
+			<div className="pointer-events-none fixed inset-0 flex min-h-full items-end sm:items-center sm:justify-center sm:p-4">
 				<motion.div
 					{...(isDesktop ? ugoki.popover : ugoki.panel.bottom)}
 					role="dialog"
 					aria-modal="true"
 					data-slot="dialog"
-					onClick={(e) => e.stopPropagation()}
-					className={cn(dialogPanelVariants({ size }), className)}
+					className={cn('pointer-events-auto', dialogPanelVariants({ size }), className)}
 				>
 					{children}
 				</motion.div>

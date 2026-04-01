@@ -8,7 +8,6 @@
 
 export { kage } from './kage'
 export { ki } from './ki'
-export { ma } from './ma'
 export { maru } from './maru'
 export { narabi } from './narabi'
 export { nuri } from './nuri'

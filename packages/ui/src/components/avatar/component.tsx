@@ -15,7 +15,7 @@ export type AvatarProps = AvatarVariants & {
 	className?: string
 } & Omit<React.ComponentPropsWithoutRef<'span'>, 'className'>
 
-export function Avatar({ src, alt = '', initials, size, className, ...props }: AvatarProps) {
+export function Avatar({ src, alt = '', initials, size = 'sm', className, ...props }: AvatarProps) {
 	return (
 		<span data-slot="avatar" className={cn(avatarVariants({ size }), className)} {...props}>
 			{initials && (

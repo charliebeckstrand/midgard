@@ -8,7 +8,15 @@ type BadgeBaseProps = BadgeVariants & {
 
 export type BadgeProps = BadgeBaseProps & PolymorphicProps<'span'>
 
-export function Badge({ variant, color, size, className, children, href, ...props }: BadgeProps) {
+export function Badge({
+	variant = 'solid',
+	color,
+	size,
+	className,
+	children,
+	href,
+	...props
+}: BadgeProps) {
 	return (
 		<Polymorphic
 			as="span"

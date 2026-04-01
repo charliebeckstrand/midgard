@@ -12,6 +12,10 @@ export type SidebarSectionProps = React.ComponentPropsWithoutRef<'div'>
 
 export type SidebarSpacerProps = React.ComponentPropsWithoutRef<'div'>
 
+export type SidebarDividerProps = React.ComponentPropsWithoutRef<'hr'>
+
+export type SidebarItemActionsProps = React.ComponentPropsWithoutRef<'div'>
+
 export const SidebarItem = createNavItem({ slotPrefix: 'sidebar', variants: sidebarItemVariants })
 
 export function SidebarLabel({ className, ...props }: SidebarLabelProps) {
@@ -36,6 +40,26 @@ export function SidebarSpacer({ className, ...props }: SidebarSpacerProps) {
 			data-slot="sidebar-spacer"
 			aria-hidden="true"
 			className={cn('mt-auto', className)}
+			{...props}
+		/>
+	)
+}
+
+export function SidebarDivider({ className, ...props }: SidebarDividerProps) {
+	return (
+		<hr
+			data-slot="sidebar-divider"
+			className={cn('my-1 border-0 border-t border-zinc-200 dark:border-zinc-700', className)}
+			{...props}
+		/>
+	)
+}
+
+export function SidebarItemActions({ className, ...props }: SidebarItemActionsProps) {
+	return (
+		<div
+			data-slot="sidebar-item-actions"
+			className={cn('flex items-center gap-1', className)}
 			{...props}
 		/>
 	)
