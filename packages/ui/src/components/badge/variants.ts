@@ -1,9 +1,9 @@
 import { cva, type VariantProps } from 'class-variance-authority'
 import { colorKeys, compoundColors } from '../../core'
-import { katachi, nuri, take } from '../../recipes'
+import { nuri, take } from '../../recipes'
 
 export const badgeVariants = cva(
-	['group inline-flex items-center gap-x-1.5 font-medium', katachi.icon],
+	['group inline-flex items-center gap-x-1.5 font-medium', take.icon],
 	{
 		variants: {
 			variant: {

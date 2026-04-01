@@ -9,9 +9,9 @@
  */
 
 import { kage } from './kage'
-import { katachi } from './katachi'
 import { ki } from './ki'
 import { ma } from './ma'
+import { maru } from './maru'
 import { sumi } from './sumi'
 
 /** The surface of an input element — text, bg, border, hover, focus, invalid, disabled */
@@ -83,7 +83,7 @@ export const omote = {
 	input,
 
 	/** Complete form input base: input surface + control spacing + rounded corners */
-	formInput: [...input, ma.control, katachi.radius],
+	formInput: [...input, ma.control, maru.rounded],
 
 	/** WebKit date/time picker surface normalisation */
 	date: [

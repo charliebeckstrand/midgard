@@ -1,14 +1,13 @@
 import { cva, type VariantProps } from 'class-variance-authority'
 import { colorKeys, compoundColors } from '../../core'
-import { katachi, ki, nuri, take, yasumi } from '../../recipes'
+import { ki, maru, nuri, take, yasumi } from '../../recipes'
 
 export const buttonVariants = cva(
 	[
-		katachi.radius,
-		katachi.icon,
+		maru.rounded,
+		take.icon,
 		ki.ring,
 		yasumi.base,
-		...take.button,
 		'relative isolate inline-flex items-center justify-center gap-x-2 font-semibold',
 		'cursor-default',
 		'not-disabled:active:scale-[0.99] transition-transform duration-100',
@@ -55,11 +54,13 @@ export const buttonVariants = cva(
 				],
 			},
 			color: colorKeys(nuri.button),
+			size: take.button,
 		},
 		compoundVariants: compoundColors('solid', nuri.button),
 		defaultVariants: {
 			variant: 'solid',
 			color: 'zinc',
+			size: 'md',
 		},
 	},
 )

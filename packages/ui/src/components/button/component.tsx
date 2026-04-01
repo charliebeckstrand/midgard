@@ -8,13 +8,13 @@ type ButtonBaseProps = ButtonVariants & {
 
 export type ButtonProps = ButtonBaseProps & PolymorphicProps<'button'>
 
-export function Button({ variant, color, className, children, href, ...props }: ButtonProps) {
+export function Button({ variant, color, size, className, children, href, ...props }: ButtonProps) {
 	return (
 		<Polymorphic
 			as="button"
 			dataSlot="button"
 			href={href}
-			className={cn(buttonVariants({ variant, color }), className)}
+			className={cn(buttonVariants({ variant, color, size }), className)}
 			{...props}
 		>
 			<TouchTarget>{children}</TouchTarget>

@@ -4,7 +4,7 @@ import {
 	panelDescriptionVariants,
 	panelTitleVariants,
 } from '../../primitives/panel-slots'
-import { katachi, ki, narabi, omote, sumi } from '../../recipes'
+import { ki, narabi, omote, sumi, take } from '../../recipes'
 
 export const sheetPanelVariants = cva(
 	[
@@ -20,7 +20,7 @@ export const sheetPanelVariants = cva(
 				top: narabi.slide.top,
 				bottom: narabi.slide.bottom,
 			},
-			size: katachi.panel,
+			size: take.panel,
 		},
 		defaultVariants: {
 			side: 'right',

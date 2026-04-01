@@ -1,12 +1,12 @@
 import { cva } from 'class-variance-authority'
-import { kage, katachi, sawari, sumi } from '../../recipes'
+import { kage, sawari, sumi, take } from '../../recipes'
 
 export const dropdownMenuVariants = cva('w-max min-w-48 max-h-60')
 
 export const dropdownItemVariants = cva([
 	'group/option flex w-full items-center gap-3 px-3.5 py-2.5 sm:px-3 sm:py-1.5',
 	sawari.option,
-	katachi.icon,
+	take.icon,
 ])
 
 export const dropdownSectionVariants = cva('first:pt-0 last:pb-0')
