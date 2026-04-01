@@ -3,6 +3,7 @@
  *
  * When an element is dormant — greyed out, non-interactive, waiting.
  *
+ * Branch of: Yasumi (root)
  * Concern: disabled state
  */
 export const yasumi = {

@@ -3,6 +3,9 @@
  *
  * The form of a thing — how big, how wide, what proportions.
  * Icon sizes, panel widths, the physical envelope of an element.
+ *
+ * Branch of: Katachi (root)
+ * Concern: dimension
  */
 
 export const katachi = {

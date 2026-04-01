@@ -6,6 +6,9 @@
  *
  * Every motion config is a complete spread for motion.div:
  * `<motion.div {...ugoki.popover}>` — no inline overrides needed.
+ *
+ * Branch of: Ugoki (root)
+ * Concern: animation
  */
 
 const slideTransition = { duration: 0.15 } as const

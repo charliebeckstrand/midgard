@@ -3,6 +3,9 @@
  *
  * How elements line up — the ordering, positioning, and slot relationships
  * between siblings. The choreography of a layout.
+ *
+ * Branch of: Narabi (root)
+ * Concern: layout
  */
 
 export const narabi = {
