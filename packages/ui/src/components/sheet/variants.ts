@@ -4,13 +4,12 @@ import {
 	panelDescriptionVariants,
 	panelTitleVariants,
 } from '../../primitives/panel-slots'
-import { katachi, ki, narabi, omote, sumi } from '../../recipes'
+import { ki, narabi, omote, sumi, take } from '../../recipes'
 
 export const sheetPanelVariants = cva(
 	[
 		omote.panel,
 		'fixed flex flex-col overflow-y-auto rounded-xl',
-		// Mobile: always bottom sheet, constrain height
 		'max-sm:inset-x-0 max-sm:bottom-0 max-sm:w-full max-sm:max-h-[calc(75dvh)] max-sm:rounded-b-none',
 	],
 	{
@@ -21,7 +20,7 @@ export const sheetPanelVariants = cva(
 				top: narabi.slide.top,
 				bottom: narabi.slide.bottom,
 			},
-			size: katachi.panel,
+			size: take.panel,
 		},
 		defaultVariants: {
 			side: 'right',
@@ -40,10 +39,10 @@ export const sheetActionsVariants = cva([panelActionsVariants(), 'px-6 pb-6'])
 export const sheetBodyVariants = cva('mt-4 flex-1 overflow-y-auto px-6')
 
 export const sheetCloseVariants = cva([
-	'absolute right-4 top-4 rounded-md p-1',
-	sumi.usui,
-	'hover:text-zinc-500 dark:hover:text-zinc-400',
+	sumi.muted,
 	ki.offset,
+	'absolute right-4 top-4 rounded-md p-1',
+	'hover:text-zinc-500 dark:hover:text-zinc-400',
 ])
 
 export type SheetPanelVariants = VariantProps<typeof sheetPanelVariants>

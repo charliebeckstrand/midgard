@@ -1,17 +1,11 @@
 import { cva, type VariantProps } from 'class-variance-authority'
-import { ki } from '../../recipes'
+import { ki, take } from '../../recipes'
 
 export const avatarVariants = cva(
 	'inline-grid place-items-center overflow-hidden rounded-full align-middle text-white *:col-start-1 *:row-start-1 bg-zinc-600 dark:bg-zinc-700',
 	{
 		variants: {
-			size: {
-				xs: 'size-6',
-				sm: 'size-8',
-				md: 'size-10',
-				lg: 'size-12',
-				xl: 'size-16',
-			},
+			size: take.avatar,
 		},
 		defaultVariants: {
 			size: 'md',
@@ -27,4 +21,4 @@ export const avatarInitialsVariants = cva(
 
 export const avatarImageVariants = cva('size-full object-cover')
 
-export const avatarButtonVariants = cva(['relative cursor-default rounded-full', ki.offset])
+export const avatarButtonVariants = cva([ki.offset, 'relative cursor-default rounded-full'])

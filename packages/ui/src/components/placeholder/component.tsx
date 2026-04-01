@@ -1,12 +1,13 @@
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '../../core'
+import { maru } from '../../recipes'
 
 export const placeholderVariants = cva(['animate-pulse bg-zinc-200 dark:bg-zinc-700'], {
 	variants: {
 		variant: {
 			line: 'h-4 w-full rounded',
 			circle: 'rounded-full',
-			rect: 'w-full rounded-lg',
+			rect: ['w-full', maru.rounded],
 		},
 	},
 	defaultVariants: {

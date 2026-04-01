@@ -5,7 +5,7 @@ import type React from 'react'
 import { useEffect, useRef } from 'react'
 import { cn } from '../core'
 import { useMenuKeyboard } from '../hooks/use-menu-keyboard'
-import { omote, ugoki } from '../recipes'
+import { maru, omote, ugoki } from '../recipes'
 
 export function PopoverPanel({
 	className,
@@ -42,7 +42,14 @@ export function PopoverPanel({
 				handleKeyDown(e)
 				onKeyDownProp?.(e)
 			}}
-			className={cn(omote.popover, 'absolute z-50 space-y-0.5', className)}
+			className={cn(
+				omote.popover,
+				maru.rounded,
+				'isolate absolute z-50 min-w-full p-1 space-y-0.5 select-none',
+				'outline outline-transparent focus:outline-hidden',
+				'overflow-y-auto overscroll-contain',
+				className,
+			)}
 		>
 			{children}
 		</motion.div>

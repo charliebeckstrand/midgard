@@ -1,9 +1,11 @@
 import { cva } from 'class-variance-authority'
-import { narabi, omote, sawari } from '../../recipes'
+import { form } from '../../primitives/form'
+import { maru, sawari } from '../../recipes'
 
 export const listboxButtonVariants = cva([
-	...omote.input,
-	'appearance-none rounded-lg py-1.5 pr-8 pl-3',
+	...form.input,
+	maru.rounded,
+	'appearance-none py-1.5 pr-8 pl-3',
 	'text-left text-base/6',
 ])
 
@@ -15,4 +17,4 @@ export const listboxChevronVariants = cva(
 	'pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2',
 )
 
-export const listboxOptionVariants = cva([sawari.item, narabi.item])
+export const listboxOptionVariants = cva(sawari.option)

@@ -1,6 +1,5 @@
 export { cn } from './cn'
-export { type ColorVariants, colorVariants } from './color-variants'
-export { compoundColorVariants } from './compound-variants'
+export { type ColorCvaVariants, colorCva, colorKeys, compoundColors } from './color-cva'
 export { createContext } from './create-context'
 export { Link, LinkProvider, useLink } from './link-context'
 export { useIsDesktop } from './use-breakpoint'

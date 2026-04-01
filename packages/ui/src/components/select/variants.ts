@@ -1,8 +1,8 @@
 import { cva, type VariantProps } from 'class-variance-authority'
-import { omote } from '../../recipes'
+import { form } from '../../primitives/form'
 
 export const selectVariants = cva([
-	...omote.formInput,
+	...form.formInput,
 	'appearance-none',
 	// Caret icon space
 	'pr-[calc(--spacing(10))]',

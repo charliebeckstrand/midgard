@@ -4,6 +4,7 @@ import { LayoutGroup, type MotionStyle, motion, type Transition, useAnimate } fr
 import type React from 'react'
 import { createContext, useCallback, useContext, useId, useMemo } from 'react'
 import { cn } from '../core'
+import { maru } from '../recipes'
 
 const spring: Transition = {
 	type: 'spring',
@@ -82,7 +83,7 @@ export function ActiveIndicator({
 		<motion.span
 			ref={ref}
 			layoutId={resolvedLayoutId}
-			className={cn('absolute inset-0 rounded-lg bg-zinc-950/5 dark:bg-white/10', className)}
+			className={cn(maru.rounded, 'absolute inset-0 bg-zinc-950/5 dark:bg-white/10', className)}
 			style={{ borderRadius: 8, ...style }}
 			transition={spring}
 		/>

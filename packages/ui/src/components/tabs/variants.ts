@@ -1,16 +1,15 @@
 import { cva } from 'class-variance-authority'
 import { kage, sawari } from '../../recipes'
 
-export const tabListVariants = cva(['flex gap-4', 'border-b', kage.usui])
+export const tabListVariants = cva([kage.borderSubtle, 'flex gap-4', 'border-b'])
 
 export const tabVariants = cva([
+	...sawari.tab,
 	'relative flex items-center gap-2 px-1 py-3 font-medium',
-	// Focus — suppress ring, show muted bottom line only
 	'outline-none',
 	'after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:rounded-full',
 	'after:bg-transparent not-data-current:focus-visible:after:bg-blue-500',
 	'cursor-default',
-	...sawari.tab,
 ])
 
 export const tabIndicatorVariants = cva(

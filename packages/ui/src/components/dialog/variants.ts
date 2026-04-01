@@ -5,7 +5,7 @@ import {
 	panelDescriptionVariants as dialogDescriptionVariants,
 	panelTitleVariants as dialogTitleVariants,
 } from '../../primitives/panel-slots'
-import { katachi, omote } from '../../recipes'
+import { omote, take } from '../../recipes'
 
 export const dialogPanelVariants = cva(
 	[
@@ -18,7 +18,7 @@ export const dialogPanelVariants = cva(
 	],
 	{
 		variants: {
-			size: katachi.panel,
+			size: take.panel,
 		},
 		defaultVariants: {
 			size: 'lg',

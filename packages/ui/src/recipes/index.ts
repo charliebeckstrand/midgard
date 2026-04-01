@@ -7,13 +7,14 @@
  */
 
 export { kage } from './kage'
-export { katachi } from './katachi'
 export { ki } from './ki'
 export { ma } from './ma'
+export { maru } from './maru'
 export { narabi } from './narabi'
 export { nuri } from './nuri'
 export { omote } from './omote'
 export { sawari } from './sawari'
 export { sumi } from './sumi'
+export { take } from './take'
 export { ugoki } from './ugoki'
 export { yasumi } from './yasumi'

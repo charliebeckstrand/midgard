@@ -1,7 +1,7 @@
 import { cva, type VariantProps } from 'class-variance-authority'
-import { omote } from '../../recipes'
+import { form } from '../../primitives/form'
 
-export const textareaVariants = cva(omote.formInput, {
+export const textareaVariants = cva(form.formInput, {
 	variants: {
 		resize: {
 			none: 'resize-none',

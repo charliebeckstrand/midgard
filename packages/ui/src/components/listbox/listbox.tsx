@@ -138,7 +138,7 @@ export function Listbox<T>({
 						className={cn(listboxButtonVariants())}
 					>
 						<span className={listboxValueVariants()}>
-							{label ?? <span className={sumi.usui}>{placeholder}</span>}
+							{label ?? <span className={sumi.muted}>{placeholder}</span>}
 						</span>
 						<span className={listboxChevronVariants()}>
 							<ChevronIcon />

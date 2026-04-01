@@ -1,35 +1,15 @@
 import { cva, type VariantProps } from 'class-variance-authority'
-import { compoundColorVariants } from '../../core'
-import { katachi, ki, nuri, yasumi } from '../../recipes'
-
-type ButtonColor = keyof typeof nuri.button
+import { colorKeys, compoundColors } from '../../core'
+import { ki, maru, nuri, take, yasumi } from '../../recipes'
 
 export const buttonVariants = cva(
 	[
-		// Layout
-		'relative isolate inline-flex items-center justify-center gap-x-2',
-		// Sizing
-		'px-[calc(--spacing(3)-1px)] py-[calc(--spacing(2)-1px)]',
-		// Shape
-		katachi.maru,
-		// Font
-		'font-semibold',
-		// Icon slots
-		katachi.icon,
-		// Icon-only — square with equal padding when only child is an icon
-		// TouchTarget wraps children in a fragment with a hidden <span> + {children},
-		// so icon-only buttons have exactly 2 element children: the span and the icon.
-		// :nth-child(2):last-child ensures the icon is the only real child.
-		'[&:has(>[data-slot=icon]:nth-child(2):last-child)]:px-0 [&:has(>[data-slot=icon]:nth-child(2):last-child)]:py-0',
-		'[&:has(>[data-slot=icon]:nth-child(2):last-child)]:size-10',
-		'[&:has(>[data-slot=icon]:nth-child(2):last-child)]:gap-0',
-		// Focus
+		maru.rounded,
+		take.icon,
 		ki.ring,
-		// Disabled
-		yasumi.base,
-		// Cursor
+		yasumi.disabled,
+		'relative isolate inline-flex items-center justify-center gap-x-2 font-semibold',
 		'cursor-default',
-		// Active — scale down instead of color change (not when disabled)
 		'not-disabled:active:scale-[0.99] transition-transform duration-100',
 	],
 	{
@@ -73,15 +53,14 @@ export const buttonVariants = cva(
 					'*:data-[slot=icon]:fill-zinc-500 dark:*:data-[slot=icon]:fill-zinc-400',
 				],
 			},
-			color: Object.fromEntries(Object.keys(nuri.button).map((k) => [k, ''])) as Record<
-				ButtonColor,
-				''
-			>,
+			color: colorKeys(nuri.button),
+			size: take.button,
 		},
-		compoundVariants: compoundColorVariants('solid', nuri.button),
+		compoundVariants: compoundColors('solid', nuri.button),
 		defaultVariants: {
 			variant: 'solid',
 			color: 'zinc',
+			size: 'md',
 		},
 	},
 )
