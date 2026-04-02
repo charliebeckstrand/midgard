@@ -9,11 +9,17 @@
  */
 export const sumi = {
 	/** Full-strength ink — headings, labels, body text */
-	base: 'text-zinc-950 dark:text-white',
+	text: 'text-zinc-950 dark:text-white',
 
 	/** Muted ink — descriptions, placeholders, secondary labels */
-	muted: 'text-zinc-500 dark:text-zinc-400',
+	mutedText: 'text-zinc-500 dark:text-zinc-400',
 
 	/** Error ink — validation messages, destructive state text */
-	error: 'text-red-600 dark:text-red-500',
+	errorText: 'text-red-600 dark:text-red-500',
+
+	/** Muted fill — icon fills at secondary weight */
+	mutedFill: 'fill-zinc-500 dark:fill-zinc-400',
+
+	/** Muted fill scoped to icon slots */
+	iconFill: '*:data-[slot=icon]:fill-zinc-500 dark:*:data-[slot=icon]:fill-zinc-400',
 }

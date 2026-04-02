@@ -6,7 +6,7 @@ export function ChevronIcon({ className }: { className?: string }) {
 		<svg
 			className={cn(
 				'size-5 stroke-current forced-colors:stroke-[CanvasText]',
-				sumi.muted,
+				sumi.mutedText,
 				className,
 			)}
 			viewBox="0 0 16 16"

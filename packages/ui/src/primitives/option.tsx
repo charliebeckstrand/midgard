@@ -82,7 +82,7 @@ export function OptionDescription({
 			{...props}
 			className={cn(
 				'flex flex-1 overflow-hidden before:w-2 before:min-w-0 before:shrink',
-				sumi.muted,
+				sumi.mutedText,
 				'group-focus/option:text-white',
 				className,
 			)}

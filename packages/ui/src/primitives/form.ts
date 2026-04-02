@@ -11,7 +11,7 @@ import { kage, ki, maru, sumi, take } from '../recipes'
 
 /** The surface of an input element — text, bg, border, hover, focus, invalid, disabled */
 const input = [
-	sumi.base,
+	sumi.text,
 	kage.border,
 	'relative block w-full',
 	'text-base/6 placeholder:text-zinc-500',

@@ -12,6 +12,6 @@ export const navbarItemVariants = cva([
 
 export const navbarSectionVariants = cva('flex items-center gap-3')
 
-export const navbarLabelVariants = cva([sumi.muted, 'text-sm/6'])
+export const navbarLabelVariants = cva([sumi.mutedText, 'text-sm/6'])
 
 export const navbarSpacerVariants = cva('flex-1')

@@ -39,7 +39,7 @@ export const sheetActionsVariants = cva([panelActionsVariants(), 'px-6 pb-6'])
 export const sheetBodyVariants = cva('mt-4 flex-1 overflow-y-auto px-6')
 
 export const sheetCloseVariants = cva([
-	sumi.muted,
+	sumi.mutedText,
 	ki.offset,
 	'absolute right-4 top-4 rounded-md p-1',
 	'hover:text-zinc-500 dark:hover:text-zinc-400',

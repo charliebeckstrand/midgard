@@ -13,7 +13,7 @@ export const sidebarItemVariants = cva([
 export const sidebarSectionVariants = cva('flex flex-col gap-0.5')
 
 export const sidebarLabelVariants = cva([
-	sumi.muted,
+	sumi.mutedText,
 	'truncate',
 	'group-data-[current]:text-zinc-950 dark:group-data-[current]:text-white',
 ])

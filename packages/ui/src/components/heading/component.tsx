@@ -2,7 +2,7 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '../../core'
 import { sumi } from '../../recipes'
 
-export const headingVariants = cva(sumi.base, {
+export const headingVariants = cva(sumi.text, {
 	variants: {
 		level: {
 			1: 'text-3xl/9 font-bold tracking-tight',
