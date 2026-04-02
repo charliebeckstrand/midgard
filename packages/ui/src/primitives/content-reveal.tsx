@@ -77,6 +77,9 @@ export function ContentReveal({
 	)
 }
 
+const inFlow = { position: 'relative' as const, top: 'auto' as const }
+const outOfFlow = { position: 'absolute' as const, top: 0, left: 0, right: 0 }
+
 function WaitReveal({ ready, placeholder, children, className }: Omit<ContentRevealProps, 'mode'>) {
 	const placeholderRef = useRef<HTMLDivElement>(null)
 	const contentRef = useRef<HTMLDivElement>(null)
@@ -98,8 +101,7 @@ function WaitReveal({ ready, placeholder, children, className }: Omit<ContentRev
 			animate={height !== undefined ? { height } : undefined}
 			initial={false}
 			transition={ugoki.reveal.transition}
-			className={cn('grid overflow-hidden', className)}
-			style={{ gridTemplate: '1fr / 1fr' }}
+			className={cn('relative overflow-hidden', className)}
 		>
 			<motion.div
 				ref={placeholderRef}
@@ -107,7 +109,7 @@ function WaitReveal({ ready, placeholder, children, className }: Omit<ContentRev
 				animate={ready ? hidden : visible}
 				initial={false}
 				transition={ugoki.reveal.transition}
-				style={{ ...gridCell, pointerEvents: ready ? 'none' : undefined }}
+				style={{ ...(ready ? outOfFlow : inFlow), pointerEvents: ready ? 'none' : undefined }}
 			>
 				{placeholder}
 			</motion.div>
@@ -116,7 +118,7 @@ function WaitReveal({ ready, placeholder, children, className }: Omit<ContentRev
 				animate={ready ? visible : hidden}
 				initial={false}
 				transition={ugoki.reveal.transition}
-				style={{ ...gridCell, pointerEvents: ready ? undefined : 'none' }}
+				style={{ ...(ready ? inFlow : outOfFlow), pointerEvents: ready ? undefined : 'none' }}
 			>
 				{children}
 			</motion.div>
