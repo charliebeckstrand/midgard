@@ -19,20 +19,23 @@ export type ContentRevealProps = {
 	className?: string
 	/**
 	 * Animation mode:
-	 * - `crossfade` (default) — both children overlap in a grid cell, dimensions stay stable
-	 * - `wait` — placeholder exits fully before content enters
+	 * - `crossfade` (default) — both children always rendered in a grid cell, pure opacity + blur
+	 * - `wait` — placeholder exits fully before content enters (includes vertical shift)
 	 */
 	mode?: 'crossfade' | 'wait'
 }
+
+const hidden = { opacity: 0, filter: 'blur(4px)' }
+const visible = { opacity: 1, filter: 'blur(0px)' }
 
 /**
  * Animated transition wrapper that crossfades between a placeholder
  * and real content. The placeholder should mirror the content's layout
  * (a "carbon copy") so dimensions remain stable during the swap.
  *
- * Uses a CSS grid overlay so both children occupy the same cell —
- * the container's size is determined by whichever child is present,
- * preventing layout shift.
+ * Both children are always rendered in the same CSS grid cell —
+ * the container height is locked to max(placeholder, content),
+ * preventing any layout shift during the transition.
  */
 export function ContentReveal({
 	ready,
@@ -43,7 +46,7 @@ export function ContentReveal({
 }: ContentRevealProps) {
 	if (mode === 'wait') {
 		return (
-			<AnimatePresence mode="wait">
+			<AnimatePresence mode="wait" initial={false}>
 				{ready ? (
 					<motion.div key="content" {...ugoki.reveal} className={className}>
 						{children}
@@ -59,20 +62,23 @@ export function ContentReveal({
 
 	return (
 		<div className={cn('grid', className)} style={{ gridTemplate: '1fr / 1fr' }}>
-			<AnimatePresence>
-				{!ready && (
-					<motion.div key="placeholder" {...ugoki.reveal} style={{ gridArea: '1 / 1' }}>
-						{placeholder}
-					</motion.div>
-				)}
-			</AnimatePresence>
-			<AnimatePresence>
-				{ready && (
-					<motion.div key="content" {...ugoki.reveal} style={{ gridArea: '1 / 1' }}>
-						{children}
-					</motion.div>
-				)}
-			</AnimatePresence>
+			<motion.div
+				aria-hidden={ready}
+				animate={ready ? hidden : visible}
+				initial={false}
+				transition={ugoki.reveal.transition}
+				style={{ gridArea: '1 / 1', pointerEvents: ready ? 'none' : undefined }}
+			>
+				{placeholder}
+			</motion.div>
+			<motion.div
+				animate={ready ? visible : hidden}
+				initial={false}
+				transition={ugoki.reveal.transition}
+				style={{ gridArea: '1 / 1', pointerEvents: ready ? undefined : 'none' }}
+			>
+				{children}
+			</motion.div>
 		</div>
 	)
 }
