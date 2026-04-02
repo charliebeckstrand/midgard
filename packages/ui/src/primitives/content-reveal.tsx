@@ -46,17 +46,19 @@ export function ContentReveal({
 }: ContentRevealProps) {
 	if (mode === 'wait') {
 		return (
-			<AnimatePresence mode="wait" initial={false}>
-				{ready ? (
-					<motion.div key="content" {...ugoki.reveal} className={className}>
-						{children}
-					</motion.div>
-				) : (
-					<motion.div key="placeholder" {...ugoki.reveal} className={className}>
-						{placeholder}
-					</motion.div>
-				)}
-			</AnimatePresence>
+			<motion.div layout transition={ugoki.layout} className={className}>
+				<AnimatePresence mode="popLayout" initial={false}>
+					{ready ? (
+						<motion.div key="content" {...ugoki.reveal}>
+							{children}
+						</motion.div>
+					) : (
+						<motion.div key="placeholder" {...ugoki.reveal}>
+							{placeholder}
+						</motion.div>
+					)}
+				</AnimatePresence>
+			</motion.div>
 		)
 	}
 
