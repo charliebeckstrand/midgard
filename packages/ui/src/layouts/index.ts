@@ -1,3 +1,8 @@
+export {
+	OffcanvasContext,
+	type OffcanvasContextValue,
+	useOffcanvas,
+} from '../core/offcanvas-context'
 export { AuthLayout, type AuthLayoutProps } from './auth'
 export {
 	SidebarLayout,
