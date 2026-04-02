@@ -2,7 +2,8 @@
 
 import { motion } from 'motion/react'
 import type React from 'react'
-import { cn, createContext, useIsDesktop } from '../../core'
+import { cn, createContext } from '../../core'
+import { useIsDesktop } from '../../hooks'
 import { Overlay } from '../../primitives'
 import { ugoki } from '../../recipes'
 import { type SheetPanelVariants, sheetPanelVariants } from './variants'

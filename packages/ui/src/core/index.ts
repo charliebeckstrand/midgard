@@ -3,4 +3,3 @@ export { type ColorCvaVariants, colorCva, colorKeys, compoundColors } from './co
 export { createContext } from './create-context'
 export { Link, LinkProvider, useLink } from './link-context'
 export { OffcanvasContext, type OffcanvasContextValue, useOffcanvas } from './offcanvas-context'
-export { useIsDesktop } from './use-breakpoint'

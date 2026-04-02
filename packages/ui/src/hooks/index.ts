@@ -1,4 +1,5 @@
 export { useArrowAction } from './use-arrow-action'
+export { useIsDesktop } from './use-breakpoint'
 export { useControllable } from './use-controllable'
 export { useMenuKeyboard } from './use-menu-keyboard'
 export { useOverlay } from './use-overlay'
