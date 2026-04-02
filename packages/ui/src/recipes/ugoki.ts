@@ -36,9 +36,18 @@ const layout = {
 	damping: 30,
 }
 
+/** Reveal — placeholder-to-content crossfade with subtle vertical shift + blur */
+const reveal = {
+	initial: { opacity: 0, y: 4, filter: 'blur(4px)' },
+	animate: { opacity: 1, y: 0, filter: 'blur(0px)' },
+	exit: { opacity: 0, y: -4, filter: 'blur(4px)' },
+	transition: { duration: 0.25, ease: [0.25, 0.1, 0.25, 1] as const },
+}
+
 export const ugoki = {
 	tap,
 	layout,
+	reveal,
 	/** Popover enter/exit — scale + fade for dropdown menus */
 	popover: {
 		initial: { opacity: 0, scale: 0.95 },

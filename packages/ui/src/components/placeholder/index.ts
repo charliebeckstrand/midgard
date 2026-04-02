@@ -8,3 +8,4 @@ export {
 	type PlaceholderVariants,
 	placeholderVariants,
 } from './component'
+export { PlaceholderReveal, type PlaceholderRevealProps } from './reveal'

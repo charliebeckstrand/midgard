@@ -1,4 +1,5 @@
 export { ActiveIndicator, ActiveIndicatorScope, useActiveIndicator } from './active-indicator'
+export { ContentReveal, type ContentRevealProps } from './content-reveal'
 export { createNavItem, type NavItemProps } from './create-nav-item'
 export {
 	createSelectOption,
