@@ -30,4 +30,4 @@ export const dropdownShortcutVariants = cva([
 	'group-focus/option:text-white/70',
 ])
 
-export const dropdownSeparatorVariants = cva([kage.borderSubtle, 'my-1 border-t'])
+export const dropdownSeparatorVariants = cva([...kage.separator, 'my-1'])

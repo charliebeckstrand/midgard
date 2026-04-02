@@ -1,5 +1,5 @@
 import { cva } from 'class-variance-authority'
-import { maru, sawari, sumi } from '../../recipes'
+import { kage, maru, sawari, sumi } from '../../recipes'
 
 export const sidebarVariants = cva('flex h-full flex-col gap-y-4 overflow-y-auto p-4')
 
@@ -21,5 +21,7 @@ export const sidebarLabelVariants = cva([
 export const sidebarHeaderVariants = cva('flex items-center gap-2')
 
 export const sidebarBodyVariants = cva('flex flex-1 flex-col gap-4 overflow-y-auto')
+
+export const sidebarDividerVariants = cva([...kage.separator, 'my-1'])
 
 export const sidebarFooterVariants = cva('mt-auto sticky bottom-0 flex flex-col gap-0.5')

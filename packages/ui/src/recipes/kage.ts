@@ -19,4 +19,7 @@ export const kage = {
 
 	/** Soft ring edge — quieter ring for content cards */
 	ringSubtle: 'ring-1 ring-zinc-950/5 dark:ring-white/10',
+
+	/** Horizontal separator line — standard menu/panel divider */
+	separator: ['border-t', 'border-zinc-950/5 dark:border-white/5'],
 }

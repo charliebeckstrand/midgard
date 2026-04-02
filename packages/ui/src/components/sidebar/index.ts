@@ -23,6 +23,7 @@ export {
 } from './slots'
 export {
 	sidebarBodyVariants,
+	sidebarDividerVariants,
 	sidebarFooterVariants,
 	sidebarHeaderVariants,
 	sidebarItemVariants,
