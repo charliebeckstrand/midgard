@@ -10,7 +10,7 @@
 import { kage, ki, maru, sumi, take } from '../recipes'
 
 /** The surface of an input element — text, bg, border, hover, focus, invalid, disabled */
-const input = [
+const inputBase = [
 	sumi.text,
 	kage.border,
 	'relative block w-full',
@@ -46,8 +46,8 @@ export const form = {
 		'has-[>:disabled]:opacity-50 has-[>:disabled]:before:bg-zinc-950/5 has-[>:disabled]:before:shadow-none has-[>:disabled]:cursor-not-allowed',
 	],
 
-	/** Hidden native input base — positioning, focus, disabled, forced-colors (checkbox, radio, switch) */
-	hiddenInput: [
+	/** Hidden native input — positioning, focus, disabled, forced-colors (checkbox, radio, switch) */
+	hidden: [
 		'absolute inset-0 appearance-none cursor-pointer',
 		'disabled:opacity-50 disabled:cursor-not-allowed',
 		'forced-colors:appearance-auto forced-colors:checked:appearance-auto',
@@ -65,11 +65,11 @@ export const form = {
 		ki.offset,
 	],
 
-	/** The surface of an input element — text, bg, border, hover, focus, invalid, disabled */
-	input,
+	/** Input surface without spacing — for controls that apply their own padding (Combobox, Listbox) */
+	inputBase,
 
-	/** Complete form input base: input surface + control spacing + rounded corners */
-	formInput: [...input, take.control, maru.rounded],
+	/** Complete input: surface + spacing + rounded corners */
+	input: [...inputBase, take.control, maru.rounded],
 
 	/** WebKit date/time picker surface normalisation */
 	date: [

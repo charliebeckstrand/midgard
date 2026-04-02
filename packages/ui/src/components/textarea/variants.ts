@@ -1,7 +1,7 @@
 import { cva, type VariantProps } from 'class-variance-authority'
 import { form } from '../../primitives/form'
 
-export const textareaVariants = cva([form.formInput, 'min-h-10'], {
+export const textareaVariants = cva([form.input, 'min-h-10'], {
 	variants: {
 		resize: {
 			none: 'resize-none',

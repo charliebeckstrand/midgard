@@ -3,7 +3,7 @@ import { form } from '../../primitives/form'
 import { maru, sawari } from '../../recipes'
 
 export const listboxButtonVariants = cva([
-	...form.input,
+	...form.inputBase,
 	maru.rounded,
 	'appearance-none py-1.5 pr-8 pl-3',
 	'text-left text-base/6',
