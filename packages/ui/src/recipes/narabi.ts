@@ -46,8 +46,8 @@ export const narabi = {
 		'has-data-[slot=description]:**:data-[slot=label]:font-medium',
 	],
 
-	/** Switch toggle field grid — wider leading column for the switch control */
-	toggleSwitch: [
+	/** Switch field grid — wider leading column for the switch control */
+	switch: [
 		'grid grid-cols-[2.5rem_1fr] items-center gap-x-4 gap-y-1',
 		'*:data-[slot=control]:col-start-1 *:data-[slot=control]:row-start-1',
 		'*:data-[slot=label]:col-start-2 *:data-[slot=label]:row-start-1',
