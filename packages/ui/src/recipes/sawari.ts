@@ -46,7 +46,7 @@ export const sawari = {
 
 	/** Tab interaction — text color shifts between inactive and current */
 	tab: [
-		'text-zinc-500 dark:text-zinc-400',
+		sumi.textMuted,
 		'data-current:text-zinc-950 dark:data-current:text-white',
 		'not-data-current:hover:text-zinc-700 dark:not-data-current:hover:text-zinc-200',
 	],

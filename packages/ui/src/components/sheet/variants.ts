@@ -42,7 +42,6 @@ export const sheetCloseVariants = cva([
 	sumi.textMuted,
 	ki.offset,
 	'absolute right-4 top-4 rounded-md p-1',
-	'hover:text-zinc-500 dark:hover:text-zinc-400',
 ])
 
 export type SheetPanelVariants = VariantProps<typeof sheetPanelVariants>
