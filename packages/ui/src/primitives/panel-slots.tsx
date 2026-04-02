@@ -4,7 +4,7 @@ import { sumi } from '../recipes'
 
 export const panelTitleVariants = cva([sumi.text, 'text-lg/7 font-semibold'])
 
-export const panelDescriptionVariants = cva([sumi.mutedText, 'text-base/6'])
+export const panelDescriptionVariants = cva([sumi.textMuted, 'text-base/6'])
 
 export const panelBodyVariants = cva('mt-4')
 

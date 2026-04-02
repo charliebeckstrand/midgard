@@ -10,12 +10,12 @@ export type TableVariants = {
 
 export const tableVariants = cva('w-full text-left text-base/6')
 
-export const tableHeadVariants = cva(sumi.mutedText)
+export const tableHeadVariants = cva(sumi.textMuted)
 
 export const tableHeaderVariants = cva([
 	'border-b px-4 py-2 font-semibold',
 	kage.borderSubtle,
-	sumi.mutedText,
+	sumi.textMuted,
 ])
 
 export const tableRowVariants = cva(['border-b last:border-b-0', kage.borderSubtle])

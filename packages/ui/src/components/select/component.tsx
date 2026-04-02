@@ -17,7 +17,7 @@ export function Select({ className, children, ...props }: SelectProps) {
 				data-slot="icon"
 				className={cn(
 					'pointer-events-none absolute right-3 top-1/2 size-5 -translate-y-1/2 fill-current',
-					sumi.mutedText,
+					sumi.textMuted,
 				)}
 				viewBox="0 0 16 16"
 				aria-hidden="true"

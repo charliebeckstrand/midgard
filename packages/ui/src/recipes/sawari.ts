@@ -30,7 +30,7 @@ const item = [
 /** Navigation item interaction — subtle bg tint on hover/active, icon fill transitions */
 const nav = [
 	'*:data-[slot=icon]:size-5 *:data-[slot=icon]:shrink-0',
-	sumi.iconFill,
+	sumi.fillIcon,
 	'*:data-[slot=avatar]:-m-0.5 *:data-[slot=avatar]:size-7',
 	'dark:text-white',
 	'group-hover:bg-zinc-950/5 group-hover:*:data-[slot=icon]:fill-zinc-950',
