@@ -5,9 +5,9 @@ import { useCallback, useEffect, useState } from 'react'
 import { Button } from '../components/button'
 import { Sheet } from '../components/sheet/sheet'
 import { cn } from '../core'
+import { OffcanvasContext } from '../core/offcanvas-context'
 import { MenuIcon } from '../primitives'
 import { omote } from '../recipes'
-import { OffcanvasContext } from './context'
 
 export type SidebarLayoutProps = React.PropsWithChildren<{
 	navbar: React.ReactNode

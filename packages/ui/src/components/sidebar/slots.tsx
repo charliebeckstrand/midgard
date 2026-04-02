@@ -1,7 +1,7 @@
 'use client'
 
 import { cn } from '../../core'
-import { useOffcanvas } from '../../layouts/context'
+import { useOffcanvas } from '../../core/offcanvas-context'
 import { CloseIcon } from '../../primitives'
 import { Button } from '../button'
 import { sidebarBodyVariants, sidebarFooterVariants, sidebarHeaderVariants } from './variants'
