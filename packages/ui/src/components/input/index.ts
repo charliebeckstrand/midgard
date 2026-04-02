@@ -1,2 +1,2 @@
 export { Input, type InputProps } from './component'
-export { type InputVariants, inputVariants } from './variants'
+export { type InputVariants, inputDateVariants, inputVariants } from './variants'

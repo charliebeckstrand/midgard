@@ -5,9 +5,9 @@ import { sumi } from '../../recipes'
 export const textVariants = cva('', {
 	variants: {
 		variant: {
-			default: sumi.base,
-			muted: sumi.muted,
-			error: sumi.error,
+			default: sumi.text,
+			muted: sumi.textMuted,
+			error: sumi.textError,
 		},
 	},
 	defaultVariants: {

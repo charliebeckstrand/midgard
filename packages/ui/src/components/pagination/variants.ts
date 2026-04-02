@@ -16,8 +16,8 @@ export const pageButtonVariants = cva(
 	{
 		variants: {
 			current: {
-				true: ['text-zinc-950 dark:text-white', 'before:bg-zinc-950/5 dark:before:bg-white/10'],
-				false: [sumi.muted, 'hover:text-zinc-950 dark:hover:text-white'],
+				true: [sumi.text, 'before:bg-zinc-950/5 dark:before:bg-white/10'],
+				false: [sumi.textMuted, 'hover:text-zinc-950 dark:hover:text-white'],
 			},
 		},
 		defaultVariants: {
@@ -29,14 +29,14 @@ export const pageButtonVariants = cva(
 export type PageButtonVariants = VariantProps<typeof pageButtonVariants>
 
 export const paginationGapVariants = cva([
-	sumi.muted,
+	sumi.textMuted,
 	'inline-flex min-w-9 items-center justify-center text-sm/6',
 	'select-none',
 ])
 
 export const paginationNavVariants = cva([
 	ki.ring,
-	sumi.muted,
+	sumi.textMuted,
 	maru.rounded,
 	'inline-flex items-center justify-center gap-1 px-2 py-1.5 text-sm/6 font-medium',
 	'hover:text-zinc-950 dark:hover:text-white',

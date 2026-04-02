@@ -1,5 +1,6 @@
 import { cn } from '../../core'
 import { FormControl } from '../../primitives'
+import { sumi } from '../../recipes'
 import { type SelectVariants, selectVariants } from './variants'
 
 export type SelectProps = SelectVariants & {
@@ -14,9 +15,11 @@ export function Select({ className, children, ...props }: SelectProps) {
 			</select>
 			<svg
 				data-slot="icon"
-				className="pointer-events-none absolute right-3 top-1/2 size-5 -translate-y-1/2 fill-zinc-500 dark:fill-zinc-400"
+				className={cn(
+					'pointer-events-none absolute right-3 top-1/2 size-5 -translate-y-1/2 fill-current',
+					sumi.textMuted,
+				)}
 				viewBox="0 0 16 16"
-				fill="currentColor"
 				aria-hidden="true"
 			>
 				<path

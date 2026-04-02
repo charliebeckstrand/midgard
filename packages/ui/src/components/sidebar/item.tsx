@@ -2,7 +2,12 @@
 
 import { cn } from '../../core'
 import { createNavItem, type NavItemProps } from '../../primitives/create-nav-item'
-import { sidebarItemVariants, sidebarLabelVariants, sidebarSectionVariants } from './variants'
+import {
+	sidebarDividerVariants,
+	sidebarItemVariants,
+	sidebarLabelVariants,
+	sidebarSectionVariants,
+} from './variants'
 
 export type SidebarItemProps = NavItemProps
 
@@ -49,7 +54,7 @@ export function SidebarDivider({ className, ...props }: SidebarDividerProps) {
 	return (
 		<hr
 			data-slot="sidebar-divider"
-			className={cn('my-1 border-0 border-t border-zinc-200 dark:border-zinc-700', className)}
+			className={cn(sidebarDividerVariants(), className)}
 			{...props}
 		/>
 	)

@@ -8,7 +8,7 @@ export const switchColorVariants = colorCva('', nuri.switch)
 
 /** Input styling — no color (inherited from parent) */
 export const switchVariants = cva([
-	...form.hiddenInput,
+	...form.hidden,
 	'rounded-full',
 	// Unchecked — track
 	'bg-zinc-200 ring-1 ring-zinc-950/5 ring-inset dark:bg-white/10 dark:ring-white/15',

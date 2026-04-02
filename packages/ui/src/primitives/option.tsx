@@ -1,6 +1,6 @@
 import type React from 'react'
 import { cn } from '../core'
-import { maru, narabi, sawari } from '../recipes'
+import { maru, narabi, sawari, sumi } from '../recipes'
 import { CheckIcon } from './icons'
 
 export type BaseOptionProps = {
@@ -81,9 +81,9 @@ export function OptionDescription({
 		<span
 			{...props}
 			className={cn(
-				'flex flex-1 overflow-hidden text-zinc-500 before:w-2 before:min-w-0 before:shrink',
+				'flex flex-1 overflow-hidden before:w-2 before:min-w-0 before:shrink',
+				sumi.textMuted,
 				'group-focus/option:text-white',
-				'dark:text-zinc-400',
 				className,
 			)}
 		>

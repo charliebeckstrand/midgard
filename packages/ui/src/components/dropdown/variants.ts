@@ -12,22 +12,22 @@ export const dropdownItemVariants = cva([
 export const dropdownSectionVariants = cva('first:pt-0 last:pb-0')
 
 export const dropdownHeadingVariants = cva([
-	sumi.muted,
+	sumi.textMuted,
 	'px-3.5 pb-1 pt-2 text-xs/5 font-medium sm:px-3',
 ])
 
 export const dropdownLabelVariants = cva('truncate')
 
 export const dropdownDescriptionVariants = cva([
-	sumi.muted,
+	sumi.textMuted,
 	'flex flex-1 overflow-hidden before:w-2 before:min-w-0 before:shrink',
 	'group-focus/option:text-white',
 ])
 
 export const dropdownShortcutVariants = cva([
-	sumi.muted,
+	sumi.textMuted,
 	'ml-auto pl-4 text-xs/5',
 	'group-focus/option:text-white/70',
 ])
 
-export const dropdownSeparatorVariants = cva([kage.borderSubtle, 'my-1 border-t'])
+export const dropdownSeparatorVariants = cva([...kage.separator, 'my-1'])

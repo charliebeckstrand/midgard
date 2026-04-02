@@ -2,9 +2,9 @@ import { cva } from 'class-variance-authority'
 import { cn } from '../core'
 import { sumi } from '../recipes'
 
-export const panelTitleVariants = cva([sumi.base, 'text-lg/7 font-semibold'])
+export const panelTitleVariants = cva([sumi.text, 'text-lg/7 font-semibold'])
 
-export const panelDescriptionVariants = cva([sumi.muted, 'text-base/6'])
+export const panelDescriptionVariants = cva([sumi.textMuted, 'text-base/6'])
 
 export const panelBodyVariants = cva('mt-4')
 

@@ -162,7 +162,7 @@ export function Combobox<T>({
 								}}
 							>
 								{rendered}
-								<output className={cn('hidden p-2 only:block', sumi.muted)}>No results</output>
+								<output className={cn('hidden p-2 only:block', sumi.textMuted)}>No results</output>
 							</PopoverPanel>
 						)}
 					</AnimatePresence>

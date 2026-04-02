@@ -16,7 +16,7 @@ import { take } from './take'
 
 /** Base interaction pattern for selectable menu items (Dropdown, Listbox, Combobox) */
 const item = [
-	sumi.base,
+	sumi.text,
 	maru.rounded,
 	'cursor-default py-2.5 outline-hidden sm:py-1.5',
 	'text-base/6',
@@ -29,9 +29,10 @@ const item = [
 
 /** Navigation item interaction — subtle bg tint on hover/active, icon fill transitions */
 const nav = [
-	'*:data-[slot=icon]:size-5 *:data-[slot=icon]:shrink-0 *:data-[slot=icon]:fill-zinc-500',
+	'*:data-[slot=icon]:size-5 *:data-[slot=icon]:shrink-0',
+	sumi.fillIcon,
 	'*:data-[slot=avatar]:-m-0.5 *:data-[slot=avatar]:size-7',
-	'dark:text-white dark:*:data-[slot=icon]:fill-zinc-400',
+	'dark:text-white',
 	'group-hover:bg-zinc-950/5 group-hover:*:data-[slot=icon]:fill-zinc-950',
 	'dark:group-hover:bg-white/5 dark:group-hover:*:data-[slot=icon]:fill-zinc-400',
 	'active:bg-zinc-950/10 active:*:data-[slot=icon]:fill-zinc-950',
@@ -45,7 +46,7 @@ export const sawari = {
 
 	/** Tab interaction — text color shifts between inactive and current */
 	tab: [
-		'text-zinc-500 dark:text-zinc-400',
+		sumi.textMuted,
 		'data-current:text-zinc-950 dark:data-current:text-white',
 		'not-data-current:hover:text-zinc-700 dark:not-data-current:hover:text-zinc-200',
 	],
