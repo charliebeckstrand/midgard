@@ -64,9 +64,9 @@ export const narabi = {
 
 	/** Icon and avatar slot layout within menu items */
 	item: [
-		'*:data-[slot=icon]:size-5 *:data-[slot=icon]:shrink-0',
 		sumi.textIcon,
-		'forced-colors:*:data-[slot=icon]:text-[CanvasText]',
+		'*:data-[slot=icon]:size-5 *:data-[slot=icon]:shrink-0',
 		'*:data-[slot=avatar]:-mx-0.5 *:data-[slot=avatar]:size-6',
+		'forced-colors:*:data-[slot=icon]:text-[CanvasText]',
 	],
 }

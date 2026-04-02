@@ -15,7 +15,7 @@ import { kage } from './kage'
 
 export const omote = {
 	/** Elevated panel surface — modals, dialogs, sheets */
-	panel: [kage.ring, 'bg-white shadow-lg dark:bg-zinc-900 forced-colors:outline'],
+	panel: [kage.ring, 'bg-white shadow-lg', 'dark:bg-zinc-900', 'forced-colors:outline'],
 
 	/** Desktop content area surface — the card treatment applied at lg: breakpoint */
 	content: [
@@ -29,7 +29,9 @@ export const omote = {
 
 	/** Popover menu surface — frosted glass with depth (Dropdown, Listbox, Combobox) */
 	popover: [
-		'bg-white/75 backdrop-blur-xl dark:bg-zinc-800/75',
-		'shadow-lg ring-1 ring-zinc-950/10 dark:ring-white/10 dark:ring-inset',
+		'bg-white/75 backdrop-blur-xl',
+		'shadow-lg ring-1 ring-zinc-950/10',
+		'dark:bg-zinc-800/75',
+		'dark:ring-white/10 dark:ring-inset',
 	],
 }
