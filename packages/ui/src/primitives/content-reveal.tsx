@@ -46,7 +46,7 @@ export function ContentReveal({
 }: ContentRevealProps) {
 	if (mode === 'wait') {
 		return (
-			<motion.div layout transition={ugoki.layout} className={className}>
+			<motion.div layout transition={ugoki.reveal.transition} className={className}>
 				<AnimatePresence mode="popLayout" initial={false}>
 					{ready ? (
 						<motion.div key="content" {...ugoki.reveal}>
