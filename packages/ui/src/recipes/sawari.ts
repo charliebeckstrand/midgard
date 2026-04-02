@@ -34,9 +34,9 @@ const nav = [
 	'*:data-[slot=avatar]:-m-0.5 *:data-[slot=avatar]:size-7',
 	'group-hover:bg-zinc-950/5 group-hover:*:data-[slot=icon]:fill-zinc-950',
 	'active:bg-zinc-950/10 active:*:data-[slot=icon]:fill-zinc-950',
+	'data-current:group-hover:!bg-transparent data-current:active:!bg-transparent',
 	'dark:text-white',
 	'dark:group-hover:bg-white/5 dark:group-hover:*:data-[slot=icon]:fill-zinc-400',
-	'data-current:group-hover:!bg-transparent data-current:active:!bg-transparent',
 	'dark:data-current:group-hover:!bg-transparent dark:data-current:active:!bg-transparent',
 ]
 
