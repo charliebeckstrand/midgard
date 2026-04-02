@@ -8,6 +8,8 @@
  * Concern: layout
  */
 
+import { sumi } from './sumi'
+
 export const narabi = {
 	/** How form field slots relate — label → control → description → error */
 	field: [
@@ -63,7 +65,7 @@ export const narabi = {
 	/** Icon and avatar slot layout within menu items */
 	item: [
 		'*:data-[slot=icon]:size-5 *:data-[slot=icon]:shrink-0',
-		'*:data-[slot=icon]:text-zinc-500 dark:*:data-[slot=icon]:text-zinc-400',
+		sumi.textIcon,
 		'forced-colors:*:data-[slot=icon]:text-[CanvasText]',
 		'*:data-[slot=avatar]:-mx-0.5 *:data-[slot=avatar]:size-6',
 	],

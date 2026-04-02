@@ -17,6 +17,9 @@ export const sumi = {
 	/** Error ink — validation messages, destructive state text */
 	textError: 'text-red-600 dark:text-red-500',
 
+	/** Muted text scoped to icon slots */
+	textIcon: '*:data-[slot=icon]:text-zinc-500 dark:*:data-[slot=icon]:text-zinc-400',
+
 	/** Muted fill — icon fills at secondary weight */
 	fillMuted: 'fill-zinc-500 dark:fill-zinc-400',
 

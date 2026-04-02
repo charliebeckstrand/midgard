@@ -14,7 +14,7 @@ const input = [
 	sumi.text,
 	kage.border,
 	'relative block w-full',
-	'text-base/6 placeholder:text-zinc-500',
+	'text-base/6 placeholder:text-zinc-500 dark:placeholder:text-zinc-400',
 	'bg-transparent border',
 	'hover:border-zinc-950/20 dark:hover:border-white/20',
 	'focus:outline-hidden',
