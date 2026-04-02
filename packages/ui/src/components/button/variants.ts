@@ -1,6 +1,6 @@
 import { cva, type VariantProps } from 'class-variance-authority'
 import { colorKeys, compoundColors } from '../../core'
-import { ki, maru, nuri, take, yasumi } from '../../recipes'
+import { ki, maru, nuri, sumi, take, yasumi } from '../../recipes'
 
 export const buttonVariants = cva(
 	[
@@ -37,19 +37,19 @@ export const buttonVariants = cva(
 				outline: [
 					'border',
 					'border-zinc-950/10 dark:border-white/15',
-					'text-zinc-950 dark:text-white',
+					sumi.base,
 					'bg-transparent not-disabled:hover:bg-zinc-950/2.5 dark:not-disabled:hover:bg-white/5',
 					'*:data-[slot=icon]:fill-zinc-500 dark:*:data-[slot=icon]:fill-zinc-400',
 				],
 				plain: [
 					'border border-transparent',
-					'text-zinc-950 dark:text-white',
+					sumi.base,
 					'not-disabled:hover:bg-zinc-950/5 dark:not-disabled:hover:bg-white/10',
 					'*:data-[slot=icon]:fill-zinc-500 dark:*:data-[slot=icon]:fill-zinc-400',
 				],
 				ghost: [
 					'border border-transparent',
-					'text-zinc-950 dark:text-white',
+					sumi.base,
 					'*:data-[slot=icon]:fill-zinc-500 dark:*:data-[slot=icon]:fill-zinc-400',
 				],
 			},

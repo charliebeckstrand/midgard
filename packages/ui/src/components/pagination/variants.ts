@@ -16,7 +16,7 @@ export const pageButtonVariants = cva(
 	{
 		variants: {
 			current: {
-				true: ['text-zinc-950 dark:text-white', 'before:bg-zinc-950/5 dark:before:bg-white/10'],
+				true: [sumi.base, 'before:bg-zinc-950/5 dark:before:bg-white/10'],
 				false: [sumi.muted, 'hover:text-zinc-950 dark:hover:text-white'],
 			},
 		},
