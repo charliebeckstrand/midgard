@@ -19,5 +19,6 @@ export {
 	tableHeaderVariants,
 	tableHeadVariants,
 	tableRowVariants,
+	tableStripedVariants,
 	tableVariants,
 } from './variants'

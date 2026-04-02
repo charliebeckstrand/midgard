@@ -8,6 +8,7 @@ import {
 	useTransform,
 } from 'motion/react'
 import { type FC, useCallback, useEffect, useRef, useState } from 'react'
+import { cn } from '../../core'
 
 export interface ShinyTextProps {
 	text: string
@@ -116,7 +117,7 @@ export const ShinyText: FC<ShinyTextProps> = ({
 
 	return (
 		<motion.span
-			className={`inline-block ${className}`}
+			className={cn('inline-block', className)}
 			style={{ ...gradientStyle, backgroundPosition }}
 			onMouseEnter={handleMouseEnter}
 			onMouseLeave={handleMouseLeave}

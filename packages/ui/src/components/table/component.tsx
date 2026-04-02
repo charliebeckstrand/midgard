@@ -8,6 +8,7 @@ import {
 	tableHeaderVariants,
 	tableHeadVariants,
 	tableRowVariants,
+	tableStripedVariants,
 	tableVariants,
 } from './variants'
 
@@ -77,11 +78,7 @@ export type TableBodyProps = {
 export function TableBody({ className, children }: TableBodyProps) {
 	const { striped } = useTable()
 
-	return (
-		<tbody className={cn(striped && '*:odd:bg-zinc-950/2.5 dark:*:odd:bg-white/2.5', className)}>
-			{children}
-		</tbody>
-	)
+	return <tbody className={cn(striped && tableStripedVariants(), className)}>{children}</tbody>
 }
 
 export type TableRowProps = {
