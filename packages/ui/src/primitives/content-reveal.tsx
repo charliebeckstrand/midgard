@@ -1,7 +1,8 @@
 'use client'
 
-import { AnimatePresence, motion } from 'motion/react'
+import { motion } from 'motion/react'
 import type React from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { cn } from '../core'
 import { ugoki } from '../recipes'
 
@@ -19,23 +20,24 @@ export type ContentRevealProps = {
 	className?: string
 	/**
 	 * Animation mode:
-	 * - `crossfade` (default) — both children always rendered in a grid cell, pure opacity + blur
-	 * - `wait` — placeholder exits fully before content enters (includes vertical shift)
+	 * - `crossfade` (default) — both children overlap in a grid cell, height = max(both)
+	 * - `wait` — crossfade with height animating to match the active child
 	 */
 	mode?: 'crossfade' | 'wait'
 }
 
 const hidden = { opacity: 0, filter: 'blur(4px)' }
 const visible = { opacity: 1, filter: 'blur(0px)' }
+const gridCell = { gridArea: '1 / 1' } as const
 
 /**
  * Animated transition wrapper that crossfades between a placeholder
  * and real content. The placeholder should mirror the content's layout
  * (a "carbon copy") so dimensions remain stable during the swap.
  *
- * Both children are always rendered in the same CSS grid cell —
- * the container height is locked to max(placeholder, content),
- * preventing any layout shift during the transition.
+ * Both children are always rendered in the same CSS grid cell.
+ * In crossfade mode the container height is max(placeholder, content).
+ * In wait mode the container height animates to match the active child.
  */
 export function ContentReveal({
 	ready,
@@ -46,19 +48,9 @@ export function ContentReveal({
 }: ContentRevealProps) {
 	if (mode === 'wait') {
 		return (
-			<motion.div layout transition={ugoki.reveal.transition} className={className}>
-				<AnimatePresence mode="popLayout" initial={false}>
-					{ready ? (
-						<motion.div key="content" {...ugoki.reveal}>
-							{children}
-						</motion.div>
-					) : (
-						<motion.div key="placeholder" {...ugoki.reveal}>
-							{placeholder}
-						</motion.div>
-					)}
-				</AnimatePresence>
-			</motion.div>
+			<WaitReveal ready={ready} placeholder={placeholder} className={className}>
+				{children}
+			</WaitReveal>
 		)
 	}
 
@@ -69,7 +61,7 @@ export function ContentReveal({
 				animate={ready ? hidden : visible}
 				initial={false}
 				transition={ugoki.reveal.transition}
-				style={{ gridArea: '1 / 1', pointerEvents: ready ? 'none' : undefined }}
+				style={{ ...gridCell, pointerEvents: ready ? 'none' : undefined }}
 			>
 				{placeholder}
 			</motion.div>
@@ -77,10 +69,57 @@ export function ContentReveal({
 				animate={ready ? visible : hidden}
 				initial={false}
 				transition={ugoki.reveal.transition}
-				style={{ gridArea: '1 / 1', pointerEvents: ready ? undefined : 'none' }}
+				style={{ ...gridCell, pointerEvents: ready ? undefined : 'none' }}
 			>
 				{children}
 			</motion.div>
 		</div>
+	)
+}
+
+function WaitReveal({ ready, placeholder, children, className }: Omit<ContentRevealProps, 'mode'>) {
+	const placeholderRef = useRef<HTMLDivElement>(null)
+	const contentRef = useRef<HTMLDivElement>(null)
+	const [height, setHeight] = useState<number | undefined>(undefined)
+
+	useEffect(() => {
+		const el = ready ? contentRef.current : placeholderRef.current
+		if (!el) return
+
+		const ro = new ResizeObserver(([entry]) => {
+			setHeight(entry.contentRect.height)
+		})
+		ro.observe(el)
+		return () => ro.disconnect()
+	}, [ready])
+
+	return (
+		<motion.div
+			animate={height !== undefined ? { height } : undefined}
+			initial={false}
+			transition={ugoki.reveal.transition}
+			className={cn('grid overflow-hidden', className)}
+			style={{ gridTemplate: '1fr / 1fr' }}
+		>
+			<motion.div
+				ref={placeholderRef}
+				aria-hidden={ready}
+				animate={ready ? hidden : visible}
+				initial={false}
+				transition={ugoki.reveal.transition}
+				style={{ ...gridCell, pointerEvents: ready ? 'none' : undefined }}
+			>
+				{placeholder}
+			</motion.div>
+			<motion.div
+				ref={contentRef}
+				animate={ready ? visible : hidden}
+				initial={false}
+				transition={ugoki.reveal.transition}
+				style={{ ...gridCell, pointerEvents: ready ? undefined : 'none' }}
+			>
+				{children}
+			</motion.div>
+		</motion.div>
 	)
 }
