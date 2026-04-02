@@ -29,14 +29,14 @@ const item = [
 
 /** Navigation item interaction — subtle bg tint on hover/active, icon fill transitions */
 const nav = [
-	'*:data-[slot=icon]:size-5 *:data-[slot=icon]:shrink-0',
 	sumi.fillIcon,
+	'*:data-[slot=icon]:size-5 *:data-[slot=icon]:shrink-0',
 	'*:data-[slot=avatar]:-m-0.5 *:data-[slot=avatar]:size-7',
-	'dark:text-white',
 	'group-hover:bg-zinc-950/5 group-hover:*:data-[slot=icon]:fill-zinc-950',
-	'dark:group-hover:bg-white/5 dark:group-hover:*:data-[slot=icon]:fill-zinc-400',
 	'active:bg-zinc-950/10 active:*:data-[slot=icon]:fill-zinc-950',
 	'data-current:group-hover:!bg-transparent data-current:active:!bg-transparent',
+	'dark:text-white',
+	'dark:group-hover:bg-white/5 dark:group-hover:*:data-[slot=icon]:fill-zinc-400',
 	'dark:data-current:group-hover:!bg-transparent dark:data-current:active:!bg-transparent',
 ]
 
@@ -47,8 +47,10 @@ export const sawari = {
 	/** Tab interaction — text color shifts between inactive and current */
 	tab: [
 		sumi.textMuted,
-		'data-current:text-zinc-950 dark:data-current:text-white',
-		'not-data-current:hover:text-zinc-700 dark:not-data-current:hover:text-zinc-200',
+		'data-current:text-zinc-950',
+		'not-data-current:hover:text-zinc-700',
+		'dark:data-current:text-white',
+		'dark:not-data-current:hover:text-zinc-200',
 	],
 
 	/** Composed: navigation item interaction + focus + icon sizing */

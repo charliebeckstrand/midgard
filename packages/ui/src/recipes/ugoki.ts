@@ -22,7 +22,23 @@ function slideConfig(axis: 'x' | 'y', value: string) {
 	}
 }
 
+/** Tap feedback — snappy spring for press interactions */
+const tap = {
+	type: 'spring' as const,
+	stiffness: 500,
+	damping: 15,
+}
+
+/** Layout morph — fluid spring for layoutId transitions */
+const layout = {
+	type: 'spring' as const,
+	stiffness: 300,
+	damping: 30,
+}
+
 export const ugoki = {
+	tap,
+	layout,
 	/** Popover enter/exit — scale + fade for dropdown menus */
 	popover: {
 		initial: { opacity: 0, scale: 0.95 },

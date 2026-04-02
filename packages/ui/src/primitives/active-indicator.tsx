@@ -1,22 +1,10 @@
 'use client'
 
-import { LayoutGroup, type MotionStyle, motion, type Transition, useAnimate } from 'motion/react'
+import { LayoutGroup, type MotionStyle, motion, useAnimate } from 'motion/react'
 import type React from 'react'
 import { createContext, useCallback, useContext, useId, useMemo } from 'react'
 import { cn } from '../core'
-import { maru } from '../recipes'
-
-const spring: Transition = {
-	type: 'spring',
-	stiffness: 300,
-	damping: 30,
-}
-
-const tapSpring: Transition = {
-	type: 'spring',
-	stiffness: 500,
-	damping: 15,
-}
+import { maru, ugoki } from '../recipes'
 
 const ActiveIndicatorScopeContext = createContext<string | undefined>(undefined)
 
@@ -55,11 +43,11 @@ export function useActiveIndicator() {
 	const [scope, animate] = useAnimate<HTMLSpanElement>()
 
 	const onPointerDown = useCallback(() => {
-		animate(scope.current, { scale: 0.99 }, tapSpring)
+		animate(scope.current, { scale: 0.99 }, ugoki.tap)
 	}, [animate, scope])
 
 	const onPointerUp = useCallback(() => {
-		animate(scope.current, { scale: 1 }, tapSpring)
+		animate(scope.current, { scale: 1 }, ugoki.tap)
 	}, [animate, scope])
 
 	return { ref: scope, tapHandlers: { onPointerDown, onPointerUp, onPointerLeave: onPointerUp } }
@@ -85,7 +73,7 @@ export function ActiveIndicator({
 			layoutId={resolvedLayoutId}
 			className={cn(maru.rounded, 'absolute inset-0 bg-zinc-950/5 dark:bg-white/10', className)}
 			style={{ borderRadius: 8, ...style }}
-			transition={spring}
+			transition={ugoki.layout}
 		/>
 	)
 }

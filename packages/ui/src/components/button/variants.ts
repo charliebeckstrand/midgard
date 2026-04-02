@@ -10,7 +10,6 @@ export const buttonVariants = cva(
 		yasumi.disabled,
 		'relative isolate inline-flex items-center justify-center gap-x-2 font-semibold',
 		'cursor-default',
-		'not-disabled:active:scale-[0.99] transition-transform duration-100',
 	],
 	{
 		variants: {
