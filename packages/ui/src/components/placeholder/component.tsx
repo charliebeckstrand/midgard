@@ -5,7 +5,7 @@ import { maru } from '../../recipes'
 export const placeholderVariants = cva(['animate-pulse bg-zinc-200 dark:bg-zinc-700'], {
 	variants: {
 		variant: {
-			line: 'h-4 w-full rounded',
+			line: 'h-3.5 w-full rounded',
 			circle: 'rounded-full',
 			rect: ['w-full', maru.rounded],
 		},
@@ -38,6 +38,8 @@ export function Placeholder({ variant, className, ...props }: PlaceholderProps) 
 	)
 }
 
+const barWidths = ['max-w-[40%]', 'max-w-[70%]', 'max-w-[80%]', 'max-w-[50%]']
+
 export function PlaceholderText({ bars = 3, className, ...props }: PlaceholderTextProps) {
 	return (
 		<div className={cn('space-y-2', className)} aria-hidden="true" {...props}>
@@ -45,7 +47,7 @@ export function PlaceholderText({ bars = 3, className, ...props }: PlaceholderTe
 				<Placeholder
 					// biome-ignore lint/suspicious/noArrayIndexKey: deterministic static skeleton list
 					key={index}
-					className={cn(index === bars - 1 && bars > 1 ? 'max-w-[70%]' : undefined)}
+					className={bars > 1 ? barWidths[index % barWidths.length] : undefined}
 				/>
 			))}
 		</div>
