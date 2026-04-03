@@ -10,6 +10,8 @@ export const buttonVariants = cva(
 		yasumi.disabled,
 		'relative isolate inline-flex items-center justify-center gap-x-2 font-semibold',
 		'cursor-default',
+		// Hover overlay pseudo — rounded-[inherit] so rounded-full etc. always match
+		'after:absolute after:inset-0 after:-z-10 after:rounded-[inherit]',
 	],
 	{
 		variants: {
@@ -17,10 +19,19 @@ export const buttonVariants = cva(
 				solid: [
 					// Border
 					'border border-transparent',
-					// Background via custom property
+					// Background on the element itself so custom bg-* classes can override
 					'bg-[var(--btn-bg)]',
-					// Border overlay
 					'border-[var(--btn-border)]',
+					'shadow-sm',
+					// Hover + active via after overlay
+					'not-disabled:hover:after:bg-black/10',
+					'active:after:bg-black/15',
+					// Disabled
+					'disabled:shadow-none',
+					// Dark
+					'dark:border-white/5',
+					'dark:not-disabled:hover:after:bg-white/10',
+					'dark:active:after:bg-white/15',
 					// Icon color
 					'*:data-[slot=icon]:text-[var(--btn-icon)]',
 				],
@@ -28,13 +39,18 @@ export const buttonVariants = cva(
 					'border',
 					'border-zinc-950/10 dark:border-white/15',
 					sumi.text,
-					'bg-white dark:bg-zinc-900 not-disabled:hover:bg-zinc-100 dark:not-disabled:hover:bg-zinc-800',
+					'bg-white dark:bg-zinc-900',
+					// Hover via after overlay
+					'not-disabled:hover:after:bg-zinc-950/[0.025]',
+					'dark:not-disabled:hover:after:bg-white/5',
 					sumi.fillIcon,
 				],
 				plain: [
 					'border border-transparent',
 					sumi.text,
-					'not-disabled:hover:bg-zinc-950/5 dark:not-disabled:hover:bg-white/10',
+					// Hover via after overlay
+					'not-disabled:hover:after:bg-zinc-950/5',
+					'dark:not-disabled:hover:after:bg-white/10',
 					sumi.fillIcon,
 				],
 				ghost: ['border border-transparent', sumi.text, sumi.fillIcon],
