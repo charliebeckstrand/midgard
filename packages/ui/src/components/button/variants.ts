@@ -23,15 +23,18 @@ export const buttonVariants = cva(
 					'bg-[var(--btn-bg)]',
 					'border-[var(--btn-border)]',
 					'shadow-sm',
+					// Hover/active overlay defaults (overridden per-color in nuri.button)
+					'[--btn-hover:color-mix(in_oklab,black_10%,transparent)]',
+					'[--btn-active:color-mix(in_oklab,black_15%,transparent)]',
+					'dark:[--btn-hover:color-mix(in_oklab,white_10%,transparent)]',
+					'dark:[--btn-active:color-mix(in_oklab,white_15%,transparent)]',
 					// Hover + active via after overlay
-					'not-disabled:hover:after:bg-black/10',
-					'active:after:bg-black/15',
+					'not-disabled:hover:after:bg-[var(--btn-hover)]',
+					'active:after:bg-[var(--btn-active)]',
 					// Disabled
 					'disabled:shadow-none',
 					// Dark
 					'dark:border-white/5',
-					'dark:not-disabled:hover:after:bg-white/10',
-					'dark:active:after:bg-white/15',
 					// Icon color
 					'*:data-[slot=icon]:text-[var(--btn-icon)]',
 				],

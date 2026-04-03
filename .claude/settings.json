@@ -9,7 +9,8 @@
       "Bash(pnpm --filter * dev)",
       "Bash(pnpm --filter ui check-types)",
       "Bash(node -e \":*)",
-      "Bash(npx tsx -e \":*)"
+      "Bash(npx tsx -e \":*)",
+      "Bash(ls /Users/charliebeckstrand/Sites/midgard/node_modules/.pnpm/tailwindcss*/node_modules/tailwindcss/utilities.css)"
     ]
   }
 }

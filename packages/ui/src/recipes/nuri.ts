@@ -86,7 +86,6 @@ export const nuri = {
 	button: {
 		zinc: [
 			'text-white [--btn-bg:var(--color-zinc-900)] [--btn-border:var(--color-zinc-950)]/90',
-			// '[--btn-icon:var(--color-zinc-400)] hover:[--btn-icon:var(--color-zinc-300)]',
 			'dark:[--btn-bg:var(--color-zinc-600)]',
 		],
 		white: [
@@ -98,7 +97,11 @@ export const nuri = {
 			'text-white [--btn-bg:var(--color-zinc-900)] [--btn-border:var(--color-zinc-950)]/90',
 			'[--btn-icon:var(--color-zinc-400)] hover:[--btn-icon:var(--color-zinc-300)]',
 		],
-		red: ['text-white [--btn-bg:var(--color-red-600)] [--btn-border:var(--color-red-800)]/90'],
+		red: [
+			'text-white [--btn-bg:var(--color-red-600)] [--btn-border:var(--color-red-800)]/90',
+			'dark:[--btn-hover:color-mix(in_oklab,white_20%,transparent)]',
+			'dark:[--btn-active:color-mix(in_oklab,white_25%,transparent)]',
+		],
 		amber: [
 			'text-amber-100 [--btn-bg:var(--color-amber-600)] [--btn-border:var(--color-amber-600)]/80',
 		],

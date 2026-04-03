@@ -6,6 +6,8 @@ export const selectVariants = cva([
 	'appearance-none',
 	// Caret icon space
 	'pr-[calc(--spacing(10))]',
+	// Windows browsers render native <option> elements using system color-scheme
+	'dark:[color-scheme:dark]',
 ])
 
 export type SelectVariants = VariantProps<typeof selectVariants>
