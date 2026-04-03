@@ -17,6 +17,7 @@ export function resolveResponsive<T>(
 
 		for (const [bp, v] of Object.entries(obj)) {
 			if (v === undefined) continue
+
 			classes.push(resolver(v, bp === 'initial' ? undefined : bp))
 		}
 
@@ -30,6 +31,7 @@ export function resolveResponsive<T>(
 export function responsiveClass(prefix: string) {
 	return (value: number, bp?: string): string => {
 		const cls = `${prefix}-${value}`
+
 		return bp ? `${bp}:${cls}` : cls
 	}
 }

@@ -85,6 +85,7 @@ function resolveSpan(
 	columns: Responsive<number> | undefined,
 ): string[] {
 	if (value === undefined) return []
+
 	if (value === 'full') return resolveFullSpan(columns)
 
 	return resolveResponsive(value as Responsive<number>, responsiveClass('col-span'))
@@ -101,6 +102,7 @@ export function GridCell({
 	...props
 }: GridCellProps) {
 	const ctx = useGrid()
+
 	const columns = ctx?.columns
 
 	return (
