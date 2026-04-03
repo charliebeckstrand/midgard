@@ -132,8 +132,8 @@
 			"default": "./src/pages/index.ts"
 		},
 		"./shiny-text": {
-			"types": "./src/components/react-bits/index.ts",
-			"default": "./src/components/react-bits/index.ts"
+			"types": "./src/components/shiny-text/index.ts",
+			"default": "./src/components/shiny-text/index.ts"
 		}
 	},
 	"scripts": {
