@@ -13,6 +13,7 @@ import {
 export type NavItemProps = {
 	current?: boolean
 	className?: string
+	preventClose?: boolean
 } & PolymorphicProps<'button'>
 
 /**
@@ -23,14 +24,24 @@ export type NavItemProps = {
  * function differ.
  */
 export function createNavItem(config: { slotPrefix: string; variants: () => string }) {
-	function NavItem({ current, className, children, onClick, href, ...props }: NavItemProps) {
+	function NavItem({
+		current,
+		className,
+		children,
+		onClick,
+		href,
+		preventClose,
+		...props
+	}: NavItemProps) {
 		const indicator = useActiveIndicator()
 		const offcanvas = useOffcanvas()
 
 		function handleClick(e: React.MouseEvent<HTMLElement>) {
 			onClick?.(e as React.MouseEvent<HTMLButtonElement> & React.MouseEvent<HTMLAnchorElement>)
 
-			offcanvas?.close()
+			if (!preventClose) {
+				offcanvas?.close()
+			}
 		}
 
 		return (

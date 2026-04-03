@@ -13,9 +13,6 @@
  * Concern: sizing
  */
 
-/** Icon-only button selector — matches when only child is a data-slot icon */
-const io = '[&:has(>[data-slot=icon]:nth-child(2):last-child)]'
-
 export const take = {
 	/** The internal breathing room of a form control */
 	control: 'px-[calc(--spacing(3)-1px)] py-[calc(--spacing(2)-1px)]',
@@ -27,20 +24,11 @@ export const take = {
 		lg: 'px-2.5 py-1 text-sm/5 *:data-[slot=icon]:size-4',
 	},
 
-	/** Button density scale — padding, text, icon-only square per step */
+	/** Button density scale — padding + text per step (icon-only handled by Button component) */
 	button: {
-		sm: [
-			'px-[calc(--spacing(2.5)-1px)] py-[calc(--spacing(1.5)-1px)] text-xs/5',
-			`${io}:px-0 ${io}:py-0 ${io}:size-8 ${io}:gap-0`,
-		],
-		md: [
-			'px-[calc(--spacing(3)-1px)] py-[calc(--spacing(2)-1px)] text-sm/6',
-			`${io}:px-0 ${io}:py-0 ${io}:size-10 ${io}:gap-0`,
-		],
-		lg: [
-			'px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)] text-base/6',
-			`${io}:px-0 ${io}:py-0 ${io}:size-12 ${io}:gap-0`,
-		],
+		sm: 'px-[calc(--spacing(2.5)-1px)] py-[calc(--spacing(1.5)-1px)] text-xs/5',
+		md: 'px-[calc(--spacing(3)-1px)] py-[calc(--spacing(2)-1px)] text-sm/6',
+		lg: 'px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)] text-base/6',
 	},
 
 	/** Avatar dimension scale — absolute sizing per step */

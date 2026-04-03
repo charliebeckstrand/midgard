@@ -55,6 +55,10 @@
 			"types": "./src/components/dropdown/index.ts",
 			"default": "./src/components/dropdown/index.ts"
 		},
+		"./grid": {
+			"types": "./src/components/grid/index.ts",
+			"default": "./src/components/grid/index.ts"
+		},
 		"./fieldset": {
 			"types": "./src/components/fieldset/index.ts",
 			"default": "./src/components/fieldset/index.ts"

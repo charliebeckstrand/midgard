@@ -82,34 +82,30 @@ export const nuri = {
 		],
 	},
 
-	/** Button (solid variant) — maps to --btn-bg, --btn-border, --btn-hover-overlay, --btn-icon */
+	/** Button (solid variant) — maps to --btn-bg, --btn-border, --btn-icon */
 	button: {
 		zinc: [
-			'text-white [--btn-bg:var(--color-zinc-900)] [--btn-border:var(--color-zinc-950)]/90 [--btn-hover-overlay:var(--color-white)]/10',
-			'[--btn-icon:var(--color-zinc-400)] hover:[--btn-icon:var(--color-zinc-300)]',
+			'text-white [--btn-bg:var(--color-zinc-900)] [--btn-border:var(--color-zinc-950)]/90',
+			// '[--btn-icon:var(--color-zinc-400)] hover:[--btn-icon:var(--color-zinc-300)]',
 			'dark:[--btn-bg:var(--color-zinc-600)]',
 		],
 		white: [
-			'text-zinc-950 [--btn-bg:white] [--btn-border:var(--color-zinc-950)]/10 [--btn-hover-overlay:var(--color-zinc-950)]/2.5',
+			'text-zinc-950 [--btn-bg:white] [--btn-border:var(--color-zinc-950)]/10',
 			'hover:[--btn-border:var(--color-zinc-950)]/15',
-			'dark:[--btn-hover-overlay:var(--color-zinc-950)]/10',
+			'dark:[--btn-bg:var(--color-zinc-600)]',
 		],
 		dark: [
-			'text-white [--btn-bg:var(--color-zinc-900)] [--btn-border:var(--color-zinc-950)]/90 [--btn-hover-overlay:var(--color-white)]/10',
+			'text-white [--btn-bg:var(--color-zinc-900)] [--btn-border:var(--color-zinc-950)]/90',
 			'[--btn-icon:var(--color-zinc-400)] hover:[--btn-icon:var(--color-zinc-300)]',
 		],
-		red: [
-			'text-white [--btn-hover-overlay:var(--color-white)]/10 [--btn-bg:var(--color-red-600)] [--btn-border:var(--color-red-800)]/90',
-		],
+		red: ['text-white [--btn-bg:var(--color-red-600)] [--btn-border:var(--color-red-800)]/90'],
 		amber: [
-			'text-amber-100 [--btn-hover-overlay:var(--color-white)]/10 [--btn-bg:var(--color-amber-600)] [--btn-border:var(--color-amber-600)]/80',
+			'text-amber-100 [--btn-bg:var(--color-amber-600)] [--btn-border:var(--color-amber-600)]/80',
 		],
 		green: [
-			'text-white [--btn-hover-overlay:var(--color-white)]/10 [--btn-bg:var(--color-green-600)] [--btn-border:var(--color-green-800)]/90',
+			'text-white [--btn-bg:var(--color-green-600)] [--btn-border:var(--color-green-800)]/90',
 		],
-		blue: [
-			'text-white [--btn-hover-overlay:var(--color-white)]/10 [--btn-bg:var(--color-blue-600)] [--btn-border:var(--color-blue-800)]/90',
-		],
+		blue: ['text-white [--btn-bg:var(--color-blue-600)] [--btn-border:var(--color-blue-800)]/90'],
 	},
 
 	/** Badge soft — translucent fill with tinted text */

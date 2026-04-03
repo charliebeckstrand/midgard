@@ -19,17 +19,8 @@ export const buttonVariants = cva(
 					'border border-transparent',
 					// Background via custom property
 					'bg-[var(--btn-bg)]',
-					// Border pseudo-element
-					'before:absolute before:inset-0 before:-z-10 before:rounded-[calc(var(--radius-lg)-1px)]',
-					'before:bg-[var(--btn-bg)]',
-					'before:shadow-sm',
 					// Border overlay
 					'border-[var(--btn-border)]',
-					// Highlight pseudo-element
-					'after:absolute after:inset-0 after:-z-10 after:rounded-[calc(var(--radius-lg)-1px)]',
-					'after:shadow-[shadow:inset_0_1px_theme(--color-white/15%)]',
-					// Hover
-					'not-disabled:hover:before:bg-[var(--btn-hover-overlay)]',
 					// Icon color
 					'*:data-[slot=icon]:text-[var(--btn-icon)]',
 				],
@@ -37,7 +28,7 @@ export const buttonVariants = cva(
 					'border',
 					'border-zinc-950/10 dark:border-white/15',
 					sumi.text,
-					'bg-transparent not-disabled:hover:bg-zinc-950/2.5 dark:not-disabled:hover:bg-white/5',
+					'bg-white dark:bg-zinc-900 not-disabled:hover:bg-zinc-100 dark:not-disabled:hover:bg-zinc-800',
 					sumi.fillIcon,
 				],
 				plain: [
@@ -59,5 +50,18 @@ export const buttonVariants = cva(
 		},
 	},
 )
+
+export const iconOnlySize = cva('p-0 gap-0', {
+	variants: {
+		size: {
+			sm: 'size-8',
+			md: 'size-10',
+			lg: 'size-12',
+		},
+	},
+	defaultVariants: {
+		size: 'md',
+	},
+})
 
 export type ButtonVariants = VariantProps<typeof buttonVariants>
