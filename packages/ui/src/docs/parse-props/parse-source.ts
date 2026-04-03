@@ -111,7 +111,9 @@ function extractProps(
 
 	const destructured = paramBlock.slice(0, colonIdx).trim()
 	const typeAnnotation = paramBlock.slice(colonIdx + 1).trim()
+	
 	const defaults = extractDefaults(destructured)
+	
 	const bodies = resolveTypeBodies(typeAnnotation, typeDefs, cvaVariants)
 
 	if (bodies.length === 0) return []
@@ -141,6 +143,7 @@ function findTypeAnnotationStart(paramBlock: string): number {
 
 function extractDefaults(destructured: string): Map<string, string> {
 	const defaults = new Map<string, string>()
+	
 	const inner = destructured.replace(/^\{|\}$/g, '').trim()
 
 	if (!inner) return defaults
@@ -151,7 +154,9 @@ function extractDefaults(destructured: string): Map<string, string> {
 		if (eqIdx === -1) continue
 
 		const raw = part.slice(0, eqIdx).trim()
+		
 		const name = raw.includes(':') ? (raw.split(':').pop()?.trim() ?? '') : raw
+		
 		const value = part.slice(eqIdx + 1).trim()
 
 		if (name && !name.startsWith('...')) {
@@ -185,6 +190,7 @@ function resolveTypeBodies(
 
 		if (inlineBrace) {
 			bodies.push(inlineBrace)
+			
 			continue
 		}
 
@@ -195,7 +201,9 @@ function resolveTypeBodies(
 
 		if (typeDef) {
 			const resolved = resolveTypeBodies(typeDef, typeDefs, cvaVariants)
+			
 			bodies.push(...resolved)
+			
 			continue
 		}
 
@@ -222,6 +230,7 @@ function resolveTypeBodies(
 
 function parseTypeBody(typeBody: string, defaults: Map<string, string>): PropDef[] {
 	const props: PropDef[] = []
+	
 	const inner = typeBody.slice(1, -1).trim()
 
 	if (!inner) return props
@@ -240,6 +249,7 @@ function parseTypeBody(typeBody: string, defaults: Map<string, string>): PropDef
 		if (IGNORED_PROPS.has(name)) continue
 
 		const cleanType = type.replace(/;?\s*$/, '').trim()
+		
 		const defaultVal = defaults.get(name)
 
 		props.push({
