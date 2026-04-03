@@ -50,6 +50,7 @@ function stripMeta(source: string): string {
 function simplifySource(source: string): string {
 	// Rewrite internal component paths to package imports
 	let result = source.replace(/from\s+['"]\.\.\/\.\.\/components\/([^'"]+)['"]/g, 'from "ui/$1"')
+	
 	result = result.replace(/from\s+['"]\.\.\/\.\.\/layouts['"]/g, 'from "ui/layouts"')
 	result = result.replace(/from\s+['"]\.\.\/\.\.\/pages['"]/g, 'from "ui/pages"')
 
@@ -61,7 +62,9 @@ function simplifySource(source: string): string {
 	if (!match) return result
 
 	const beforeFunc = result.slice(0, result.indexOf('export default function')).trim()
+	
 	const bodyStatements = match[1]?.trim()
+	
 	const jsx = match[2]?.replace(/^\t\t/gm, '')
 
 	const parts = [beforeFunc]
@@ -91,6 +94,7 @@ function buildComponentApis(): Record<string, ComponentApi[]> {
 	}
 
 	const apis: Record<string, ComponentApi[]> = {}
+	
 	for (const [dir, sources] of Object.entries(byDir)) {
 		// Concatenate all files so cross-file type references resolve
 		const combined = sources.join('\n')
@@ -107,6 +111,7 @@ const componentApis = buildComponentApis()
 const demos = Object.entries(modules)
 	.map(([path, mod]) => {
 		const id = path.replace('./demos/', '').replace('.tsx', '')
+		
 		const name = mod.meta?.name ?? id.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
 
 		const category = mod.meta?.category ?? 'Other'
