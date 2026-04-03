@@ -10,6 +10,7 @@ function CopyButton({ code }: { code: string }) {
 
 	const copy = useCallback(() => {
 		navigator.clipboard.writeText(code)
+		
 		setCopied(true)
 	}, [code])
 
