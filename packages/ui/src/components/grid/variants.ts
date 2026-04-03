@@ -13,6 +13,7 @@ export function resolveResponsive<T>(
 
 	if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
 		const obj = value as Record<string, T>
+		
 		const classes: string[] = []
 
 		for (const [bp, v] of Object.entries(obj)) {
