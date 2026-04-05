@@ -11,6 +11,7 @@
 const motoi = {
 	ring: 'outline-none focus-visible:ring-2 focus-visible:ring-blue-600',
 	offset: 'outline-none focus-visible:ring-2 ring-inset focus-visible:ring-blue-600',
+	indicator: 'not-data-current:focus-visible:after:bg-blue-600',
 }
 
 // ── Export ───────────────────────────────────────────────

@@ -80,7 +80,7 @@ export const katachi = {
 				nuri.buttonSolid,
 				'not-disabled:hover:after:bg-[var(--btn-hover)]',
 				'active:after:bg-[var(--btn-active)]',
-				'disabled:shadow-none',
+				yasumi.disabledShadow,
 				'*:data-[slot=icon]:text-[var(--btn-icon)]',
 			],
 			outline: [kage.borderStrong, sumi.text, omote.surface, sawari.hoverSubtle, sumi.fillIcon],
@@ -179,9 +179,9 @@ export const katachi = {
 		description: [
 			sumi.textMuted,
 			'flex flex-1 overflow-hidden before:w-2 before:min-w-0 before:shrink',
-			'group-focus/option:text-white',
+			sawari.focusText,
 		],
-		shortcut: [sumi.textMuted, 'ml-auto pl-4 text-xs/5', 'group-focus/option:text-white/70'],
+		shortcut: [sumi.textMuted, 'ml-auto pl-4 text-xs/5', sawari.focusTextMuted],
 		separator: [...kage.separator, 'my-1'],
 	},
 
@@ -399,9 +399,8 @@ export const katachi = {
 		thumb: [
 			'pointer-events-none absolute top-1 left-1 inline-block size-4',
 			maru.roundedFull,
-			'bg-white',
+			nuri.switchThumb,
 			kage.shadow,
-			'ring-1 ring-zinc-950/5',
 			'transition-[left] duration-200 ease-in-out',
 		],
 	},
@@ -427,7 +426,8 @@ export const katachi = {
 			'relative flex items-center gap-2 px-1 py-3 font-medium',
 			'outline-none',
 			'after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:rounded-full',
-			'after:bg-transparent not-data-current:focus-visible:after:bg-blue-500',
+			'after:bg-transparent',
+			ki.indicator,
 			sawari.cursor,
 		],
 		indicator: ['inset-x-0 -bottom-px top-auto h-0.5', maru.roundedFull, nuri.tabIndicator],
@@ -473,7 +473,7 @@ export const katachi = {
 		description: [
 			'flex flex-1 overflow-hidden before:w-2 before:min-w-0 before:shrink',
 			sumi.textMuted,
-			'group-focus/option:text-white',
+			sawari.focusText,
 		],
 	},
 } as const

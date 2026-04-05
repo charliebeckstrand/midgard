@@ -68,4 +68,6 @@ export const sawari = {
 	cursor: 'cursor-default',
 	hover: [hiru.hover, yoru.hover],
 	hoverSubtle: [hiru.hoverSubtle, yoru.hoverSubtle],
+	focusText: 'group-focus/option:text-white',
+	focusTextMuted: 'group-focus/option:text-white/70',
 }
