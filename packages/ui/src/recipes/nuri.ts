@@ -106,6 +106,17 @@ const hiru = {
 		white: ['bg-white text-zinc-950', 'group-hover:bg-zinc-100'],
 		dark: ['bg-zinc-950 text-white', 'group-hover:bg-zinc-800'],
 	},
+
+	avatar: 'bg-zinc-600',
+	buttonSolid: [
+		'[--btn-hover:color-mix(in_oklab,black_10%,transparent)]',
+		'[--btn-active:color-mix(in_oklab,black_15%,transparent)]',
+	],
+	switchTrack: 'bg-zinc-200 ring-1 ring-zinc-950/5 ring-inset',
+	switchHover: 'not-disabled:not-checked:hover:bg-zinc-300',
+	sidebarLabel: 'group-data-[current]:text-zinc-950',
+	tableStriped: '*:odd:bg-zinc-950/2.5',
+	tabIndicator: 'bg-zinc-950',
 }
 
 // ── Yoru (夜) ───────────────────────────────────────────
@@ -161,6 +172,18 @@ const yoru = {
 		white: ['dark:bg-zinc-200 dark:text-zinc-950', 'dark:group-hover:bg-zinc-300'],
 		dark: ['dark:bg-white dark:text-zinc-950', 'dark:group-hover:bg-zinc-200'],
 	},
+
+	avatar: 'dark:bg-zinc-700',
+	buttonSolid: [
+		'dark:[--btn-hover:color-mix(in_oklab,white_10%,transparent)]',
+		'dark:[--btn-active:color-mix(in_oklab,white_15%,transparent)]',
+		'dark:border-white/5',
+	],
+	switchTrack: 'dark:bg-white/10 dark:ring-white/15',
+	switchHover: 'dark:not-disabled:not-checked:hover:bg-white/15',
+	sidebarLabel: 'dark:group-data-[current]:text-white',
+	tableStriped: 'dark:*:odd:bg-white/2.5',
+	tabIndicator: 'dark:bg-white',
 }
 
 // ── Export ───────────────────────────────────────────────
@@ -230,31 +253,11 @@ export const nuri = {
 
 	// ── Component-specific color tokens ──────────────────
 
-	/** Avatar default background */
-	avatar: 'bg-zinc-600 dark:bg-zinc-700',
-
-	/** Button solid variant — overlay defaults + dark border */
-	buttonSolid: [
-		'[--btn-hover:color-mix(in_oklab,black_10%,transparent)]',
-		'[--btn-active:color-mix(in_oklab,black_15%,transparent)]',
-		'dark:[--btn-hover:color-mix(in_oklab,white_10%,transparent)]',
-		'dark:[--btn-active:color-mix(in_oklab,white_15%,transparent)]',
-		'dark:border-white/5',
-	],
-
-	/** Switch unchecked track colors */
-	switchTrack: 'bg-zinc-200 ring-1 ring-zinc-950/5 ring-inset dark:bg-white/10 dark:ring-white/15',
-
-	/** Switch unchecked hover */
-	switchHover:
-		'not-disabled:not-checked:hover:bg-zinc-300 dark:not-disabled:not-checked:hover:bg-white/15',
-
-	/** Sidebar label current state */
-	sidebarLabel: 'group-data-[current]:text-zinc-950 dark:group-data-[current]:text-white',
-
-	/** Table striped rows */
-	tableStriped: '*:odd:bg-zinc-950/2.5 dark:*:odd:bg-white/2.5',
-
-	/** Tab indicator bar */
-	tabIndicator: 'bg-zinc-950 dark:bg-white',
+	avatar: [hiru.avatar, yoru.avatar],
+	buttonSolid: [hiru.buttonSolid, yoru.buttonSolid],
+	switchTrack: [hiru.switchTrack, yoru.switchTrack],
+	switchHover: [hiru.switchHover, yoru.switchHover],
+	sidebarLabel: [hiru.sidebarLabel, yoru.sidebarLabel],
+	tableStriped: [hiru.tableStriped, yoru.tableStriped],
+	tabIndicator: [hiru.tabIndicator, yoru.tabIndicator],
 } as const

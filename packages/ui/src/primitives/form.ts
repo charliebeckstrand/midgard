@@ -61,7 +61,6 @@ const yoru = {
 	inputBase: [
 		'dark:placeholder:text-zinc-400',
 		'dark:hover:border-white/20',
-		'dark:read-only:bg-transparent',
 		'dark:disabled:border-white/15 dark:disabled:bg-white/2.5',
 		'dark:hover:disabled:border-white/15',
 	],

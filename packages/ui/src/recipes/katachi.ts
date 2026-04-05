@@ -90,6 +90,7 @@ export const katachi = {
 		color: nuri.button,
 		size: take.button,
 		iconOnly: take.buttonIcon,
+		iconOnlyBase: 'p-0 gap-0',
 		defaults: { variant: 'solid' as const, color: 'zinc' as const, size: 'md' as const },
 	},
 
@@ -290,9 +291,9 @@ export const katachi = {
 			sumi.textMuted,
 			sumi.textHover,
 			maru.rounded,
+			yasumi.disabled,
 			'inline-flex items-center justify-center gap-1 px-2 py-1.5 text-sm/6 font-medium',
 			sawari.cursor,
-			'disabled:opacity-50',
 		],
 	},
 
