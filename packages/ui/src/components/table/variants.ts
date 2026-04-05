@@ -1,5 +1,5 @@
 import { cva } from 'class-variance-authority'
-import { kage, sumi } from '../../recipes'
+import { katachi } from '../../recipes'
 
 export type TableVariants = {
 	dense?: boolean
@@ -8,20 +8,18 @@ export type TableVariants = {
 	striped?: boolean
 }
 
-export const tableVariants = cva('w-full text-left text-base/6')
+const k = katachi.table
 
-export const tableHeadVariants = cva(sumi.textMuted)
+export const tableVariants = cva(k.base)
 
-export const tableHeaderVariants = cva([
-	'border-b px-4 py-2 font-semibold',
-	kage.borderSubtle,
-	sumi.textMuted,
-])
+export const tableHeadVariants = cva(k.head)
 
-export const tableRowVariants = cva(['border-b last:border-b-0', kage.borderSubtle])
+export const tableHeaderVariants = cva(k.header)
 
-export const tableCellVariants = cva(['px-4 py-2', sumi.text])
+export const tableRowVariants = cva(k.row)
 
-export const tableGridVariants = cva(['border-l first:border-l-0', kage.borderSubtle])
+export const tableCellVariants = cva(k.cell)
 
-export const tableStripedVariants = cva('*:odd:bg-zinc-950/2.5 dark:*:odd:bg-white/2.5')
+export const tableGridVariants = cva(k.grid)
+
+export const tableStripedVariants = cva(k.striped)

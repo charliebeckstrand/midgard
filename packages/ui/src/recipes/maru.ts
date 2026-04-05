@@ -1,13 +1,15 @@
 /**
  * Maru (丸) — Roundness.
  *
- * The curvature of edges — how sharp or soft an element's corners are.
- * A single source of truth for the system's border-radius values.
+ * The curvature of edges — a single source of truth for border-radius.
  *
- * Branch of: Maru (root)
+ * Tier: 1
  * Concern: shape
  */
+
+// ── Motoi (基) ──────────────────────────────────────────
 export const maru = {
-	/** The system border radius — standard rounding for controls and surfaces */
 	rounded: 'rounded-lg',
-}
+	roundedMd: 'rounded-md',
+	roundedFull: 'rounded-full',
+} as const

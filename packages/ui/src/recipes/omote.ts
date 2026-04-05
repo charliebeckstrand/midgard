@@ -4,34 +4,53 @@
  * The face of a thing — backgrounds, chrome, backdrops. Everything that
  * establishes a visual plane for content to sit on.
  *
- * Pure surface concern only: background colors, backdrop blur, shadow, ring chrome.
- * No sizing, spacing, interaction, or layout.
- *
- * Branch of: Sumi (root)
- * Concern: color, chrome
+ * Tier: 2
+ * Concern: surface
  */
 
 import { kage } from './kage'
 
-export const omote = {
-	/** Elevated panel surface — modals, dialogs, sheets */
-	panel: [kage.ring, 'bg-white shadow-lg', 'dark:bg-zinc-900', 'forced-colors:outline'],
-
-	/** Desktop content area surface — the card treatment applied at lg: breakpoint */
-	content: [
-		'lg:rounded-lg lg:bg-white lg:shadow-xs',
-		'lg:ring-1 lg:ring-zinc-950/5',
-		'dark:lg:bg-zinc-900 dark:lg:ring-white/10',
-	],
-
-	/** Dialog overlay surface — background tint + blur */
-	backdrop: 'bg-zinc-950/25 backdrop-blur-xs dark:bg-zinc-950/50',
-
-	/** Popover menu surface — frosted glass with depth (Dropdown, Listbox, Combobox) */
-	popover: [
-		'bg-white/75 backdrop-blur-xl',
-		'shadow-lg ring-1 ring-zinc-950/10',
-		'dark:bg-zinc-800/75',
-		'dark:ring-white/10 dark:ring-inset',
-	],
+// ── Motoi (基) ──────────────────────────────────────────
+const motoi = {
+	panel: ['shadow-lg', 'forced-colors:outline'],
+	content: 'lg:rounded-lg lg:shadow-xs',
+	backdrop: 'backdrop-blur-xs',
+	popover: 'backdrop-blur-xl shadow-lg',
+	skeleton: 'animate-pulse',
 }
+
+// ── Hiru (昼) ───────────────────────────────────────────
+const hiru = {
+	panel: 'bg-white',
+	content: 'lg:bg-white lg:ring-1 lg:ring-zinc-950/5',
+	backdrop: 'bg-zinc-950/25',
+	popover: 'bg-white/75 ring-1 ring-zinc-950/10',
+	surface: 'bg-white',
+	tint: 'bg-zinc-950/5',
+	tintBefore: 'before:bg-zinc-950/5',
+	skeleton: 'bg-zinc-200',
+}
+
+// ── Yoru (夜) ───────────────────────────────────────────
+const yoru = {
+	panel: 'dark:bg-zinc-900',
+	content: 'dark:lg:bg-zinc-900 dark:lg:ring-white/10',
+	backdrop: 'dark:bg-zinc-950/50',
+	popover: ['dark:bg-zinc-800/75', 'dark:ring-white/10 dark:ring-inset'],
+	surface: 'dark:bg-zinc-900',
+	tint: 'dark:bg-white/10',
+	tintBefore: 'dark:before:bg-white/10',
+	skeleton: 'dark:bg-zinc-700',
+}
+
+// ── Export ───────────────────────────────────────────────
+export const omote = {
+	panel: [kage.ring, motoi.panel, hiru.panel, yoru.panel],
+	content: [motoi.content, hiru.content, yoru.content],
+	backdrop: [motoi.backdrop, hiru.backdrop, yoru.backdrop],
+	popover: [motoi.popover, hiru.popover, yoru.popover],
+	surface: [hiru.surface, yoru.surface],
+	tint: [hiru.tint, yoru.tint],
+	tintBefore: [hiru.tintBefore, yoru.tintBefore],
+	skeleton: [motoi.skeleton, hiru.skeleton, yoru.skeleton],
+} as const

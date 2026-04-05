@@ -1,18 +1,12 @@
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '../../core'
-import { maru } from '../../recipes'
+import { katachi } from '../../recipes'
 
-export const placeholderVariants = cva(['animate-pulse bg-zinc-200 dark:bg-zinc-700'], {
-	variants: {
-		variant: {
-			line: 'h-4 w-full rounded',
-			circle: 'rounded-full',
-			rect: ['w-full', maru.rounded],
-		},
-	},
-	defaultVariants: {
-		variant: 'line',
-	},
+const k = katachi.placeholder
+
+export const placeholderVariants = cva(k.base, {
+	variants: { variant: k.variant },
+	defaultVariants: k.defaults,
 })
 
 export type PlaceholderVariants = VariantProps<typeof placeholderVariants>

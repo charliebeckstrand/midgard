@@ -1,13 +1,8 @@
 import { cva, type VariantProps } from 'class-variance-authority'
-import { form } from '../../primitives/form'
+import { katachi } from '../../recipes'
 
-export const selectVariants = cva([
-	...form.input,
-	'appearance-none',
-	// Caret icon space
-	'pr-[calc(--spacing(10))]',
-	// Windows browsers render native <option> elements using system color-scheme
-	'dark:[color-scheme:dark]',
-])
+const k = katachi.select
+
+export const selectVariants = cva(k.base)
 
 export type SelectVariants = VariantProps<typeof selectVariants>

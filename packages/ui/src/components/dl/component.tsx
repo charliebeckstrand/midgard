@@ -1,26 +1,14 @@
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '../../core'
-import { kage, sumi } from '../../recipes'
+import { katachi } from '../../recipes'
 
-export const descriptionListVariants = cva(
-	'grid grid-cols-1 text-sm/6 sm:grid-cols-[min(50%,--spacing(56))_auto]',
-)
+const k = katachi.dl
 
-export const descriptionTermVariants = cva([
-	sumi.textMuted,
-	kage.borderSubtle,
-	'col-start-1 border-t pt-3 first:border-none first:pt-0',
-	'sm:py-3 sm:first:pt-0',
-	'font-medium',
-])
+export const descriptionListVariants = cva(k.base)
 
-export const descriptionDetailsVariants = cva([
-	sumi.text,
-	kage.borderSubtle,
-	'pb-3 pt-1',
-	'sm:border-t sm:py-3',
-	'sm:nth-2:border-none',
-])
+export const descriptionTermVariants = cva(k.term)
+
+export const descriptionDetailsVariants = cva(k.details)
 
 export type DescriptionListVariants = VariantProps<typeof descriptionListVariants>
 

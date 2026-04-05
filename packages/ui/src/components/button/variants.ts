@@ -1,86 +1,22 @@
 import { cva, type VariantProps } from 'class-variance-authority'
 import { colorKeys, compoundColors } from '../../core'
-import { ki, maru, nuri, sumi, take, yasumi } from '../../recipes'
+import { katachi } from '../../recipes'
 
-export const buttonVariants = cva(
-	[
-		maru.rounded,
-		take.icon,
-		ki.ring,
-		yasumi.disabled,
-		'relative isolate inline-flex items-center justify-center gap-x-2 font-semibold',
-		'cursor-default',
-		// Hover overlay pseudo — rounded-[inherit] so rounded-full etc. always match
-		'after:absolute after:inset-0 after:-z-10 after:rounded-[inherit]',
-	],
-	{
-		variants: {
-			variant: {
-				solid: [
-					// Border
-					'border border-transparent',
-					// Background on the element itself so custom bg-* classes can override
-					'bg-[var(--btn-bg)]',
-					'border-[var(--btn-border)]',
-					'shadow-sm',
-					// Hover/active overlay defaults (overridden per-color in nuri.button)
-					'[--btn-hover:color-mix(in_oklab,black_10%,transparent)]',
-					'[--btn-active:color-mix(in_oklab,black_15%,transparent)]',
-					'dark:[--btn-hover:color-mix(in_oklab,white_10%,transparent)]',
-					'dark:[--btn-active:color-mix(in_oklab,white_15%,transparent)]',
-					// Hover + active via after overlay
-					'not-disabled:hover:after:bg-[var(--btn-hover)]',
-					'active:after:bg-[var(--btn-active)]',
-					// Disabled
-					'disabled:shadow-none',
-					// Dark
-					'dark:border-white/5',
-					// Icon color
-					'*:data-[slot=icon]:text-[var(--btn-icon)]',
-				],
-				outline: [
-					'border',
-					'border-zinc-950/10 dark:border-white/15',
-					sumi.text,
-					'bg-white dark:bg-zinc-900',
-					// Hover via after overlay
-					'not-disabled:hover:after:bg-zinc-950/[0.025]',
-					'dark:not-disabled:hover:after:bg-white/5',
-					sumi.fillIcon,
-				],
-				plain: [
-					'border border-transparent',
-					sumi.text,
-					// Hover via after overlay
-					'not-disabled:hover:after:bg-zinc-950/5',
-					'dark:not-disabled:hover:after:bg-white/10',
-					sumi.fillIcon,
-				],
-				ghost: ['border border-transparent', sumi.text, sumi.fillIcon],
-			},
-			color: colorKeys(nuri.button),
-			size: take.button,
-		},
-		compoundVariants: compoundColors('solid', nuri.button),
-		defaultVariants: {
-			variant: 'solid',
-			color: 'zinc',
-			size: 'md',
-		},
-	},
-)
+const k = katachi.button
 
-export const iconOnlySize = cva('p-0 gap-0', {
+export const buttonVariants = cva(k.base, {
 	variants: {
-		size: {
-			sm: 'size-8',
-			md: 'size-10',
-			lg: 'size-12',
-		},
+		variant: k.variant,
+		color: colorKeys(k.color),
+		size: k.size,
 	},
-	defaultVariants: {
-		size: 'md',
-	},
+	compoundVariants: compoundColors('solid', k.color),
+	defaultVariants: k.defaults,
+})
+
+export const iconOnlySize = cva(k.iconOnlyBase, {
+	variants: { size: k.iconOnly },
+	defaultVariants: { size: 'md' },
 })
 
 export type ButtonVariants = VariantProps<typeof buttonVariants>

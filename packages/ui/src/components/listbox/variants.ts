@@ -1,20 +1,14 @@
 import { cva } from 'class-variance-authority'
-import { form } from '../../primitives/form'
-import { maru, sawari } from '../../recipes'
+import { katachi } from '../../recipes'
 
-export const listboxButtonVariants = cva([
-	...form.inputBase,
-	maru.rounded,
-	'appearance-none py-1.5 pr-8 pl-3',
-	'text-left text-base/6',
-])
+const k = katachi.listbox
 
-export const listboxOptionsVariants = cva('max-h-60')
+export const listboxButtonVariants = cva(k.button)
 
-export const listboxValueVariants = cva('block truncate')
+export const listboxOptionsVariants = cva(k.options)
 
-export const listboxChevronVariants = cva(
-	'pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2',
-)
+export const listboxValueVariants = cva(k.value)
 
-export const listboxOptionVariants = cva(sawari.option)
+export const listboxChevronVariants = cva(k.chevron)
+
+export const listboxOptionVariants = cva(k.option)

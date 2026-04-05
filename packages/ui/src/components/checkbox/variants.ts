@@ -1,17 +1,11 @@
 import { cva, type VariantProps } from 'class-variance-authority'
 import { colorCva } from '../../core'
-import { form } from '../../primitives/form'
-import { nuri } from '../../recipes'
+import { katachi } from '../../recipes'
 
-/** Color custom properties — applied to the parent span so siblings can inherit */
-export const checkboxColorVariants = colorCva('', nuri.checkbox)
+const k = katachi.checkbox
 
-/** Input styling — no color (inherited from parent) */
-export const checkboxVariants = cva([
-	...form.check,
-	'rounded-[--spacing(1)]',
-	'checked:border-transparent checked:bg-(--checkbox-checked-bg)',
-	'checked:border-(--checkbox-checked-border)',
-])
+export const checkboxColorVariants = colorCva('', k.color)
+
+export const checkboxVariants = cva(k.base)
 
 export type CheckboxVariants = VariantProps<typeof checkboxColorVariants>
