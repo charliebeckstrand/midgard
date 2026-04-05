@@ -1,28 +1,38 @@
 /**
  * Sumi (墨) — The marks.
  *
- * The ink, the pigment — what the eye reads. Each value encodes a light/dark
- * color pair. Changing the design system's text palette means editing these values.
+ * The ink, the pigment — what the eye reads.
  *
- * Branch of: Sumi (root)
+ * Tier: 1
  * Concern: color
  */
-export const sumi = {
-	/** Full-strength ink — headings, labels, body text */
-	text: 'text-zinc-950 dark:text-white',
 
-	/** Muted ink — descriptions, placeholders, secondary labels */
-	textMuted: 'text-zinc-500 dark:text-zinc-400',
-
-	/** Error ink — validation messages, destructive state text */
-	textError: 'text-red-600 dark:text-red-500',
-
-	/** Muted text scoped to icon slots */
-	textIcon: '*:data-[slot=icon]:text-zinc-500 dark:*:data-[slot=icon]:text-zinc-400',
-
-	/** Muted fill — icon fills at secondary weight */
-	fillMuted: 'fill-zinc-500 dark:fill-zinc-400',
-
-	/** Muted fill scoped to icon slots */
-	fillIcon: '*:data-[slot=icon]:fill-zinc-500 dark:*:data-[slot=icon]:fill-zinc-400',
+// ── Hiru (昼) ───────────────────────────────────────────
+const hiru = {
+	text: 'text-zinc-950',
+	textMuted: 'text-zinc-500',
+	textError: 'text-red-600',
+	textIcon: '*:data-[slot=icon]:text-zinc-500',
+	fillMuted: 'fill-zinc-500',
+	fillIcon: '*:data-[slot=icon]:fill-zinc-500',
 }
+
+// ── Yoru (夜) ───────────────────────────────────────────
+const yoru = {
+	text: 'dark:text-white',
+	textMuted: 'dark:text-zinc-400',
+	textError: 'dark:text-red-500',
+	textIcon: 'dark:*:data-[slot=icon]:text-zinc-400',
+	fillMuted: 'dark:fill-zinc-400',
+	fillIcon: 'dark:*:data-[slot=icon]:fill-zinc-400',
+}
+
+// ── Export ───────────────────────────────────────────────
+export const sumi = {
+	text: [hiru.text, yoru.text],
+	textMuted: [hiru.textMuted, yoru.textMuted],
+	textError: [hiru.textError, yoru.textError],
+	textIcon: [hiru.textIcon, yoru.textIcon],
+	fillMuted: [hiru.fillMuted, yoru.fillMuted],
+	fillIcon: [hiru.fillIcon, yoru.fillIcon],
+} as const

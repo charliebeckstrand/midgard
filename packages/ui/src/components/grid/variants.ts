@@ -1,5 +1,5 @@
 import { cva, type VariantProps } from 'class-variance-authority'
-import { kage } from '../../recipes/kage'
+import { katachi } from '../../recipes'
 
 // ─── Responsive utility ─────────────────────────────────────────────────────
 
@@ -13,7 +13,7 @@ export function resolveResponsive<T>(
 
 	if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
 		const obj = value as Record<string, T>
-		
+
 		const classes: string[] = []
 
 		for (const [bp, v] of Object.entries(obj)) {
@@ -61,16 +61,11 @@ export const justifyMap = {
 
 // ─── Divider variants ────────────────────────────────────────────────────────
 
-export const gridDividerVariants = cva(['border-0 border-t col-span-full'], {
-	variants: {
-		soft: {
-			true: kage.borderSubtle,
-			false: kage.border,
-		},
-	},
-	defaultVariants: {
-		soft: false,
-	},
+const k = katachi.grid
+
+export const gridDividerVariants = cva(k.divider.base, {
+	variants: { soft: k.divider.soft },
+	defaultVariants: k.divider.defaults,
 })
 
 export type GridDividerVariants = VariantProps<typeof gridDividerVariants>

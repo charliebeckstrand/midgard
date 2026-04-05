@@ -7,6 +7,7 @@
  */
 
 export { kage } from './kage'
+export { katachi } from './katachi'
 export { ki } from './ki'
 export { maru } from './maru'
 export { narabi } from './narabi'

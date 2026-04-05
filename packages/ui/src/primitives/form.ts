@@ -1,77 +1,85 @@
 /**
  * Shared form class compositions.
  *
- * These are pre-composed class bundles for form components that intentionally
+ * Pre-composed class bundles for form components that intentionally
  * cross recipe concern boundaries (surface + interaction + disabled + sizing).
- * They live here in primitives rather than in recipes because recipes are
- * single-concern tokens.
+ *
+ * Tier: 2
+ * Concern: form
  */
 
 import { kage, ki, maru, sumi, take } from '../recipes'
 
-/** The surface of an input element — text, bg, border, hover, focus, invalid, disabled */
-const inputBase = [
-	sumi.text,
-	kage.border,
-	'relative block w-full',
-	'text-base/6 placeholder:text-zinc-500 dark:placeholder:text-zinc-400',
-	'bg-transparent border',
-	'hover:border-zinc-950/20 dark:hover:border-white/20',
-	'focus:outline-hidden',
-	'data-invalid:border-red-600 data-invalid:hover:border-red-600',
-	'read-only:bg-transparent dark:read-only:bg-transparent',
-	'disabled:border-zinc-950/20 disabled:cursor-not-allowed',
-	'dark:disabled:border-white/15 dark:disabled:bg-white/2.5',
-	'dark:hover:disabled:border-white/15',
-]
-
-export const form = {
-	/** The outer chrome of a form control (Input, Select, Textarea, Combobox) */
-	control: [
-		// Layout
+// ── Motoi (基) ──────────────────────────────────────────
+const motoi = {
+	inputBase: [
 		'relative block w-full',
-		// Background on wrapper so it's visible through all child element types
+		'text-base/6',
+		'bg-transparent border',
+		'focus:outline-hidden',
+		'read-only:bg-transparent',
+	],
+	control: [
+		'relative block w-full',
 		maru.rounded,
-		'bg-white dark:bg-white/5',
-		// Before pseudo — visual border/shadow
 		'before:absolute before:inset-px before:rounded-[calc(var(--radius-lg)-1px)] before:shadow-sm',
-		'dark:before:hidden',
-		// After pseudo — focus ring
 		'after:pointer-events-none after:absolute after:inset-0 after:rounded-lg after:ring-transparent after:ring-inset',
 		'focus-within:after:ring-2 not-has-[[data-invalid]]:focus-within:after:ring-blue-600 has-[[data-invalid]]:focus-within:after:ring-red-600',
 		'data-open:after:ring-2 not-has-[[data-invalid]]:data-open:after:ring-blue-600 has-[[data-invalid]]:data-open:after:ring-red-600',
-		// Invalid — red ring at rest, focus-within overrides to ring-2
 		'has-[[data-invalid]]:not-focus-within:after:ring-1 has-[[data-invalid]]:not-focus-within:after:ring-red-600',
-		// Disabled
-		'has-[>:disabled]:opacity-50 has-[>:disabled]:before:bg-zinc-950/5 has-[>:disabled]:before:shadow-none has-[>:disabled]:cursor-not-allowed',
+		'has-[>:disabled]:opacity-50 has-[>:disabled]:before:shadow-none has-[>:disabled]:cursor-not-allowed',
 	],
-
-	/** Hidden native input — positioning, focus, disabled, forced-colors (checkbox, radio, switch) */
 	hidden: [
 		'absolute inset-0 appearance-none cursor-pointer',
 		'disabled:opacity-50 disabled:cursor-not-allowed',
 		'forced-colors:appearance-auto forced-colors:checked:appearance-auto',
 		ki.offset,
 	],
-
-	/** Checkable input surface — border/bg/hover for unchecked state (checkbox, radio) */
 	check: [
 		'absolute inset-0 appearance-none cursor-pointer',
-		'border border-zinc-950/15 bg-white shadow-xs dark:border-white/15 dark:bg-white/5',
-		'not-disabled:hover:border-zinc-950/30 dark:not-disabled:hover:border-white/30',
+		'shadow-xs',
 		'not-disabled:checked:hover:opacity-90',
 		'disabled:opacity-50 disabled:cursor-not-allowed',
 		'forced-colors:appearance-auto forced-colors:checked:appearance-auto',
 		ki.offset,
 	],
+}
 
-	/** Input surface without spacing — for controls that apply their own padding (Combobox, Listbox) */
+// ── Hiru (昼) ───────────────────────────────────────────
+const hiru = {
+	inputBase: [
+		'placeholder:text-zinc-500',
+		'hover:border-zinc-950/20',
+		'data-invalid:border-red-600 data-invalid:hover:border-red-600',
+		'disabled:border-zinc-950/20 disabled:cursor-not-allowed',
+	],
+	control: ['bg-white', 'has-[>:disabled]:before:bg-zinc-950/5'],
+	check: ['border border-zinc-950/15 bg-white', 'not-disabled:hover:border-zinc-950/30'],
+}
+
+// ── Yoru (夜) ───────────────────────────────────────────
+const yoru = {
+	inputBase: [
+		'dark:placeholder:text-zinc-400',
+		'dark:hover:border-white/20',
+		'dark:read-only:bg-transparent',
+		'dark:disabled:border-white/15 dark:disabled:bg-white/2.5',
+		'dark:hover:disabled:border-white/15',
+	],
+	control: ['dark:bg-white/5', 'dark:before:hidden'],
+	check: ['dark:border-white/15 dark:bg-white/5', 'dark:not-disabled:hover:border-white/30'],
+}
+
+// ── Composed (internal) ─────────────────────────────────
+const inputBase = [sumi.text, kage.border, motoi.inputBase, hiru.inputBase, yoru.inputBase]
+
+// ── Export ───────────────────────────────────────────────
+export const form = {
+	control: [motoi.control, hiru.control, yoru.control],
+	hidden: motoi.hidden,
+	check: [motoi.check, hiru.check, yoru.check],
 	inputBase,
-
-	/** Complete input: surface + spacing + rounded corners */
 	input: [...inputBase, take.control, maru.rounded],
-
-	/** WebKit date/time picker surface normalisation */
 	date: [
 		'[&::-webkit-datetime-edit-fields-wrapper]:p-0',
 		'[&::-webkit-date-and-time-value]:min-h-[1.5em]',

@@ -1,6 +1,6 @@
 import { cva, type VariantProps } from 'class-variance-authority'
 
-type ColorTokenValue = string | readonly string[]
+type ColorTokenValue = string | readonly (string | readonly string[])[]
 type ColorTokenMap = Record<string, ColorTokenValue>
 type MutableTokenMap = Record<string, string | string[]>
 

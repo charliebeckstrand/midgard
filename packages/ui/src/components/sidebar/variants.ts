@@ -1,27 +1,20 @@
 import { cva } from 'class-variance-authority'
-import { kage, maru, sawari, sumi } from '../../recipes'
+import { katachi } from '../../recipes'
 
-export const sidebarVariants = cva('flex h-full flex-col gap-y-4 overflow-y-auto p-4')
+const k = katachi.sidebar
 
-export const sidebarItemVariants = cva([
-	...sawari.navItem,
-	maru.rounded,
-	'group relative flex w-full items-center gap-3 px-2 py-2',
-	'text-left font-medium cursor-default',
-])
+export const sidebarVariants = cva(k.root)
 
-export const sidebarSectionVariants = cva('flex flex-col gap-0.5')
+export const sidebarItemVariants = cva(k.item)
 
-export const sidebarLabelVariants = cva([
-	sumi.textMuted,
-	'truncate',
-	'group-data-[current]:text-zinc-950 dark:group-data-[current]:text-white',
-])
+export const sidebarSectionVariants = cva(k.section)
 
-export const sidebarHeaderVariants = cva('flex items-center gap-2')
+export const sidebarLabelVariants = cva(k.label)
 
-export const sidebarBodyVariants = cva('flex flex-1 flex-col gap-4 overflow-y-auto')
+export const sidebarHeaderVariants = cva(k.header)
 
-export const sidebarDividerVariants = cva([...kage.separator, 'my-1'])
+export const sidebarBodyVariants = cva(k.body)
 
-export const sidebarFooterVariants = cva('mt-auto sticky bottom-0 flex flex-col gap-0.5')
+export const sidebarDividerVariants = cva(k.divider)
+
+export const sidebarFooterVariants = cva(k.footer)

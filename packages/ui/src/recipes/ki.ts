@@ -1,18 +1,17 @@
 /**
  * Ki (気) — Energy.
  *
- * The spirit that makes an element alive — how it signals focus,
- * how it tells the user "I'm listening."
+ * How an element signals focus — the spirit that says "I'm listening."
  *
- * Focus suppression (:focus without :focus-visible) is handled by global CSS.
- *
- * Branch of: Ki (root)
- * Concern: interaction
+ * Tier: 1
+ * Concern: focus
  */
-export const ki = {
-	/** The standard focus indicator — slight offset ring */
-	ring: 'outline-none focus-visible:ring-2 focus-visible:ring-blue-600',
 
-	/** Focus indicator with breathing room — for larger targets */
+// ── Motoi (基) ──────────────────────────────────────────
+const motoi = {
+	ring: 'outline-none focus-visible:ring-2 focus-visible:ring-blue-600',
 	offset: 'outline-none focus-visible:ring-2 ring-inset focus-visible:ring-blue-600',
 }
+
+// ── Export ───────────────────────────────────────────────
+export const ki = motoi

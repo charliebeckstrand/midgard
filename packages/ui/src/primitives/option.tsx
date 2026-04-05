@@ -1,7 +1,9 @@
 import type React from 'react'
 import { cn } from '../core'
-import { maru, narabi, sawari, sumi } from '../recipes'
+import { katachi } from '../recipes'
 import { CheckIcon } from './icons'
+
+const k = katachi.option
 
 export type BaseOptionProps = {
 	className?: string
@@ -23,7 +25,7 @@ export function BaseOption({
 	...props
 }: BaseOptionProps) {
 	const isStart = checkPosition === 'start'
-	const sharedClasses = cn('flex min-w-0 items-center', narabi.item)
+	const sharedClasses = cn(k.content)
 
 	return (
 		<div
@@ -40,14 +42,7 @@ export function BaseOption({
 					if (!disabled) onSelect()
 				}
 			}}
-			className={cn(
-				maru.rounded,
-				'group/option grid w-full cursor-default items-baseline gap-x-2',
-				isStart
-					? 'grid-cols-[--spacing(5)_1fr] pr-3.5 pl-2 sm:grid-cols-[--spacing(4)_1fr] sm:pr-3 sm:pl-1.5'
-					: 'grid-cols-[1fr_--spacing(5)] pr-2 pl-3.5 sm:grid-cols-[1fr_--spacing(4)] sm:pr-2 sm:pl-3',
-				sawari.item,
-			)}
+			className={cn(k.base, isStart ? k.start : k.end)}
 			{...props}
 		>
 			{isStart && (
@@ -63,12 +58,7 @@ export function BaseOption({
 
 /** Shared label for Listbox and Combobox options */
 export function OptionLabel({ className, ...props }: React.ComponentPropsWithoutRef<'span'>) {
-	return (
-		<span
-			{...props}
-			className={cn('ml-2.5 truncate first:ml-0 sm:ml-2 sm:first:ml-0', className)}
-		/>
-	)
+	return <span {...props} className={cn(k.label, className)} />
 }
 
 /** Shared description for Listbox and Combobox options */
@@ -78,15 +68,7 @@ export function OptionDescription({
 	...props
 }: React.ComponentPropsWithoutRef<'span'>) {
 	return (
-		<span
-			{...props}
-			className={cn(
-				'flex flex-1 overflow-hidden before:w-2 before:min-w-0 before:shrink',
-				sumi.textMuted,
-				'group-focus/option:text-white',
-				className,
-			)}
-		>
+		<span {...props} className={cn(k.description, className)}>
 			<span className="flex-1 truncate">{children}</span>
 		</span>
 	)

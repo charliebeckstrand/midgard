@@ -1,14 +1,16 @@
 import { cva } from 'class-variance-authority'
 import { cn } from '../core'
-import { sumi } from '../recipes'
+import { katachi } from '../recipes'
 
-export const panelTitleVariants = cva([sumi.text, 'text-lg/7 font-semibold'])
+const k = katachi.panel
 
-export const panelDescriptionVariants = cva([sumi.textMuted, 'text-base/6'])
+export const panelTitleVariants = cva(k.title)
 
-export const panelBodyVariants = cva('mt-4')
+export const panelDescriptionVariants = cva(k.description)
 
-export const panelActionsVariants = cva('mt-6 flex items-center justify-end gap-3')
+export const panelBodyVariants = cva(k.body)
+
+export const panelActionsVariants = cva(k.actions)
 
 export type PanelTitleProps = React.ComponentPropsWithoutRef<'h2'>
 export type PanelDescriptionProps = React.ComponentPropsWithoutRef<'p'>

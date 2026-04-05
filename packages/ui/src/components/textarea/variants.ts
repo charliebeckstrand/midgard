@@ -1,17 +1,11 @@
 import { cva, type VariantProps } from 'class-variance-authority'
-import { form } from '../../primitives/form'
+import { katachi } from '../../recipes'
 
-export const textareaVariants = cva([form.input, 'min-h-10'], {
-	variants: {
-		resize: {
-			none: 'resize-none',
-			vertical: 'resize-y',
-			horizontal: 'resize-x',
-		},
-	},
-	defaultVariants: {
-		resize: 'none',
-	},
+const k = katachi.textarea
+
+export const textareaVariants = cva(k.base, {
+	variants: { resize: k.resize },
+	defaultVariants: k.defaults,
 })
 
 export type TextareaVariants = VariantProps<typeof textareaVariants>

@@ -1,21 +1,12 @@
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '../../core'
-import { sumi } from '../../recipes'
+import { katachi } from '../../recipes'
 
-export const headingVariants = cva(sumi.text, {
-	variants: {
-		level: {
-			1: 'text-3xl/9 font-bold tracking-tight',
-			2: 'text-2xl/8 font-semibold tracking-tight',
-			3: 'text-xl/7 font-semibold tracking-tight',
-			4: 'text-lg/6 font-semibold',
-			5: 'text-base/6 font-medium',
-			6: 'text-sm/5 font-medium',
-		},
-	},
-	defaultVariants: {
-		level: 1,
-	},
+const k = katachi.heading
+
+export const headingVariants = cva(k.base, {
+	variants: { level: k.level },
+	defaultVariants: k.defaults,
 })
 
 export type HeadingVariants = VariantProps<typeof headingVariants>

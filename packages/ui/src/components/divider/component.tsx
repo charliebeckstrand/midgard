@@ -1,22 +1,15 @@
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '../../core'
-import { kage } from '../../recipes'
+import { katachi } from '../../recipes'
 
-export const dividerVariants = cva('border-0', {
+const k = katachi.divider
+
+export const dividerVariants = cva(k.base, {
 	variants: {
-		orientation: {
-			horizontal: 'w-full border-t',
-			vertical: 'self-stretch border-l',
-		},
-		soft: {
-			true: kage.borderSubtle,
-			false: kage.border,
-		},
+		orientation: k.orientation,
+		soft: k.soft,
 	},
-	defaultVariants: {
-		orientation: 'horizontal',
-		soft: false,
-	},
+	defaultVariants: k.defaults,
 })
 
 export type DividerVariants = VariantProps<typeof dividerVariants>

@@ -1,11 +1,12 @@
 import { cva } from 'class-variance-authority'
-import { form } from '../../primitives/form'
-import { maru, sawari } from '../../recipes'
+import { katachi } from '../../recipes'
 
-export const comboboxInputVariants = cva([...form.inputBase, maru.rounded, 'py-1.5 pr-8 pl-3'])
+const k = katachi.combobox
 
-export const comboboxChevronVariants = cva('absolute inset-y-0 right-0 flex items-center pr-2')
+export const comboboxInputVariants = cva(k.input)
 
-export const comboboxOptionsVariants = cva('max-h-60')
+export const comboboxChevronVariants = cva(k.chevron)
 
-export const comboboxOptionVariants = cva(sawari.option)
+export const comboboxOptionsVariants = cva(k.options)
+
+export const comboboxOptionVariants = cva(k.option)

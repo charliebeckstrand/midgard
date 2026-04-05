@@ -1,14 +1,16 @@
 import { cva } from 'class-variance-authority'
-import { narabi, sumi, yasumi } from '../../recipes'
+import { katachi } from '../../recipes'
 
-export const fieldsetVariants = cva(['[&>legend+*]:pt-6', yasumi.disabled])
+const k = katachi.fieldset
 
-export const legendVariants = cva([sumi.text, 'text-base/6 font-semibold', yasumi.disabled])
+export const fieldsetVariants = cva(k.root)
 
-export const fieldVariants = cva([...narabi.field, yasumi.disabled])
+export const legendVariants = cva(k.legend)
 
-export const labelVariants = cva([sumi.text, 'text-base/6 select-none', yasumi.disabled])
+export const fieldVariants = cva(k.field)
 
-export const descriptionVariants = cva([sumi.textMuted, 'text-base/6', yasumi.disabled])
+export const labelVariants = cva(k.label)
 
-export const errorVariants = cva([sumi.textError, 'text-base/6', yasumi.disabled])
+export const descriptionVariants = cva(k.description)
+
+export const errorVariants = cva(k.error)

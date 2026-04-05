@@ -1,33 +1,20 @@
 import { cva } from 'class-variance-authority'
-import { kage, sawari, sumi, take } from '../../recipes'
+import { katachi } from '../../recipes'
 
-export const dropdownMenuVariants = cva('w-max min-w-48 max-h-60')
+const k = katachi.dropdown
 
-export const dropdownItemVariants = cva([
-	'group/option flex w-full items-center gap-3 px-3.5 py-2.5 sm:px-3 sm:py-1.5',
-	sawari.option,
-	take.icon,
-])
+export const dropdownMenuVariants = cva(k.menu)
 
-export const dropdownSectionVariants = cva('first:pt-0 last:pb-0')
+export const dropdownItemVariants = cva(k.item)
 
-export const dropdownHeadingVariants = cva([
-	sumi.textMuted,
-	'px-3.5 pb-1 pt-2 text-xs/5 font-medium sm:px-3',
-])
+export const dropdownSectionVariants = cva(k.section)
 
-export const dropdownLabelVariants = cva('truncate')
+export const dropdownHeadingVariants = cva(k.heading)
 
-export const dropdownDescriptionVariants = cva([
-	sumi.textMuted,
-	'flex flex-1 overflow-hidden before:w-2 before:min-w-0 before:shrink',
-	'group-focus/option:text-white',
-])
+export const dropdownLabelVariants = cva(k.label)
 
-export const dropdownShortcutVariants = cva([
-	sumi.textMuted,
-	'ml-auto pl-4 text-xs/5',
-	'group-focus/option:text-white/70',
-])
+export const dropdownDescriptionVariants = cva(k.description)
 
-export const dropdownSeparatorVariants = cva([...kage.separator, 'my-1'])
+export const dropdownShortcutVariants = cva(k.shortcut)
+
+export const dropdownSeparatorVariants = cva(k.separator)

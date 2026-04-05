@@ -1,25 +1,40 @@
 /**
  * Kage (影) — Shadow and edges.
  *
- * The shadow that defines form — borders, dividers, rings, drop shadows.
- * Everything that creates depth and delineation between elements.
+ * Borders, dividers, rings, shadows — everything that creates depth.
  *
- * Branch of: Sumi (root)
- * Concern: depth, borders, shadows
+ * Tier: 1
+ * Concern: edge
  */
-export const kage = {
-	/** The standard border — separator between surfaces */
-	border: 'border-zinc-950/10 dark:border-white/10',
 
-	/** A softer border — dividers within content, quieter boundaries */
-	borderSubtle: 'border-zinc-950/5 dark:border-white/5',
-
-	/** Ring edge — the standard ring boundary for elevated surfaces */
-	ring: 'ring-1 ring-zinc-950/10 dark:ring-white/10',
-
-	/** Soft ring edge — quieter ring for content cards */
-	ringSubtle: 'ring-1 ring-zinc-950/5 dark:ring-white/10',
-
-	/** Horizontal separator line — standard menu/panel divider */
-	separator: ['border-t', 'border-zinc-950/5 dark:border-white/5'],
+// ── Motoi (基) ──────────────────────────────────────────
+const motoi = {
+	border: 'border',
+	ring: 'ring-1',
+	separator: 'border-t',
 }
+
+// ── Hiru (昼) ───────────────────────────────────────────
+const hiru = {
+	border: 'border-zinc-950/10',
+	borderSubtle: 'border-zinc-950/5',
+	ring: 'ring-zinc-950/10',
+	ringSubtle: 'ring-zinc-950/5',
+}
+
+// ── Yoru (夜) ───────────────────────────────────────────
+const yoru = {
+	border: 'dark:border-white/10',
+	borderSubtle: 'dark:border-white/5',
+	ring: 'dark:ring-white/10',
+	ringSubtle: 'dark:ring-white/10',
+}
+
+// ── Export ───────────────────────────────────────────────
+export const kage = {
+	border: [motoi.border, hiru.border, yoru.border],
+	borderSubtle: [motoi.border, hiru.borderSubtle, yoru.borderSubtle],
+	ring: [motoi.ring, hiru.ring, yoru.ring],
+	ringSubtle: [motoi.ring, hiru.ringSubtle, yoru.ringSubtle],
+	separator: [motoi.separator, hiru.borderSubtle, yoru.borderSubtle],
+} as const
