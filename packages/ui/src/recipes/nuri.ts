@@ -242,18 +242,6 @@ export const nuri = {
 		'dark:border-white/5',
 	],
 
-	/** Button outline variant — hover overlay */
-	buttonOutlineHover: [
-		'not-disabled:hover:after:bg-zinc-950/[0.025]',
-		'dark:not-disabled:hover:after:bg-white/5',
-	],
-
-	/** Button plain variant — hover overlay */
-	buttonPlainHover: [
-		'not-disabled:hover:after:bg-zinc-950/5',
-		'dark:not-disabled:hover:after:bg-white/10',
-	],
-
 	/** Switch unchecked track colors */
 	switchTrack: 'bg-zinc-200 ring-1 ring-zinc-950/5 ring-inset dark:bg-white/10 dark:ring-white/15',
 
