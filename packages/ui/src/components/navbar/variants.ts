@@ -3,7 +3,7 @@ import { katachi } from '../../recipes'
 
 const k = katachi.navbar
 
-export const navbarVariants = cva(k.root)
+export const navbarVariants = cva(k.base)
 
 export const navbarItemVariants = cva(k.item)
 

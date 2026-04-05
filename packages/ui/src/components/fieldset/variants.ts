@@ -3,7 +3,7 @@ import { katachi } from '../../recipes'
 
 const k = katachi.fieldset
 
-export const fieldsetVariants = cva(k.root)
+export const fieldsetVariants = cva(k.base)
 
 export const legendVariants = cva(k.legend)
 

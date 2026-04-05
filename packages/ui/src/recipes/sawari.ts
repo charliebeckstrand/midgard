@@ -62,4 +62,5 @@ export const sawari = {
 	tab: [sumi.textMuted, hiru.tab, yoru.tab],
 	navItem: [...nav, ki.offset, take.icon],
 	option: [...item, ...narabi.item],
+	cursor: 'cursor-default',
 }

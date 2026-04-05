@@ -227,4 +227,34 @@ export const nuri = {
 		white: [...hiru.badgeSolid.white, ...yoru.badgeSolid.white],
 		dark: [...hiru.badgeSolid.dark, ...yoru.badgeSolid.dark],
 	},
+
+	// ── Component-specific color tokens ──────────────────
+
+	/** Avatar default background */
+	avatar: 'bg-zinc-600 dark:bg-zinc-700',
+
+	/** Button solid variant — overlay defaults + dark border */
+	buttonSolid: [
+		'[--btn-hover:color-mix(in_oklab,black_10%,transparent)]',
+		'[--btn-active:color-mix(in_oklab,black_15%,transparent)]',
+		'dark:[--btn-hover:color-mix(in_oklab,white_10%,transparent)]',
+		'dark:[--btn-active:color-mix(in_oklab,white_15%,transparent)]',
+		'dark:border-white/5',
+	],
+
+	/** Switch unchecked track colors */
+	switchTrack: 'bg-zinc-200 ring-1 ring-zinc-950/5 ring-inset dark:bg-white/10 dark:ring-white/15',
+
+	/** Switch unchecked hover */
+	switchHover:
+		'not-disabled:not-checked:hover:bg-zinc-300 dark:not-disabled:not-checked:hover:bg-white/15',
+
+	/** Sidebar label current state */
+	sidebarLabel: 'group-data-[current]:text-zinc-950 dark:group-data-[current]:text-white',
+
+	/** Table striped rows */
+	tableStriped: '*:odd:bg-zinc-950/2.5 dark:*:odd:bg-white/2.5',
+
+	/** Tab indicator bar */
+	tabIndicator: 'bg-zinc-950 dark:bg-white',
 } as const

@@ -4,7 +4,7 @@ import { katachi } from '../../recipes'
 
 const k = katachi.dl
 
-export const descriptionListVariants = cva(k.root)
+export const descriptionListVariants = cva(k.base)
 
 export const descriptionTermVariants = cva(k.term)
 

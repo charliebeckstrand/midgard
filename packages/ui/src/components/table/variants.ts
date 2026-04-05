@@ -10,7 +10,7 @@ export type TableVariants = {
 
 const k = katachi.table
 
-export const tableVariants = cva(k.root)
+export const tableVariants = cva(k.base)
 
 export const tableHeadVariants = cva(k.head)
 

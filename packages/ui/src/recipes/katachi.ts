@@ -26,17 +26,21 @@ import { yasumi } from './yasumi'
 export const katachi = {
 	// ─── Active Indicator ────────────────────────────────
 
-	activeIndicator: [maru.rounded, 'absolute inset-0 bg-zinc-950/5 dark:bg-white/10'],
+	activeIndicator: [maru.rounded, 'absolute inset-0', omote.tint],
 
 	// ─── Avatar ──────────────────────────────────────────
 
 	avatar: {
-		base: 'inline-grid place-items-center overflow-hidden rounded-full align-middle text-white *:col-start-1 *:row-start-1 bg-zinc-600 dark:bg-zinc-700',
+		base: [
+			'inline-grid place-items-center overflow-hidden align-middle text-white *:col-start-1 *:row-start-1',
+			maru.roundedFull,
+			nuri.avatar,
+		],
 		size: take.avatar,
 		defaults: { size: 'md' as const },
 		initials: 'select-none fill-current text-[48px] font-medium uppercase',
 		image: 'size-full object-cover',
-		button: [ki.offset, 'relative cursor-default rounded-full'],
+		button: [ki.offset, 'relative', sawari.cursor, maru.roundedFull],
 	},
 
 	// ─── Badge ───────────────────────────────────────────
@@ -44,8 +48,8 @@ export const katachi = {
 	badge: {
 		base: ['group inline-flex items-center gap-x-1.5 font-medium', take.icon],
 		variant: {
-			solid: 'rounded-md',
-			soft: 'rounded-md',
+			solid: maru.roundedMd,
+			soft: maru.roundedMd,
 		},
 		colorSolid: nuri.badgeSolid,
 		colorSoft: nuri.badgeSoft,
@@ -62,7 +66,7 @@ export const katachi = {
 			ki.ring,
 			yasumi.disabled,
 			'relative isolate inline-flex items-center justify-center gap-x-2 font-semibold',
-			'cursor-default',
+			sawari.cursor,
 			'after:absolute after:inset-0 after:-z-10 after:rounded-[inherit]',
 		],
 		variant: {
@@ -70,22 +74,17 @@ export const katachi = {
 				'border border-transparent',
 				'bg-[var(--btn-bg)]',
 				'border-[var(--btn-border)]',
-				'shadow-sm',
-				'[--btn-hover:color-mix(in_oklab,black_10%,transparent)]',
-				'[--btn-active:color-mix(in_oklab,black_15%,transparent)]',
-				'dark:[--btn-hover:color-mix(in_oklab,white_10%,transparent)]',
-				'dark:[--btn-active:color-mix(in_oklab,white_15%,transparent)]',
+				kage.shadow,
+				nuri.buttonSolid,
 				'not-disabled:hover:after:bg-[var(--btn-hover)]',
 				'active:after:bg-[var(--btn-active)]',
 				'disabled:shadow-none',
-				'dark:border-white/5',
 				'*:data-[slot=icon]:text-[var(--btn-icon)]',
 			],
 			outline: [
-				'border',
-				'border-zinc-950/10 dark:border-white/15',
+				'border border-zinc-950/10 dark:border-white/15',
 				sumi.text,
-				'bg-white dark:bg-zinc-900',
+				omote.surface,
 				'not-disabled:hover:after:bg-zinc-950/[0.025]',
 				'dark:not-disabled:hover:after:bg-white/5',
 				sumi.fillIcon,
@@ -159,7 +158,7 @@ export const katachi = {
 	// ─── Description List ────────────────────────────────
 
 	dl: {
-		root: 'grid grid-cols-1 text-sm/6 sm:grid-cols-[min(50%,--spacing(56))_auto]',
+		base: 'grid grid-cols-1 text-sm/6 sm:grid-cols-[min(50%,--spacing(56))_auto]',
 		term: [
 			sumi.textMuted,
 			kage.borderSubtle,
@@ -200,7 +199,7 @@ export const katachi = {
 	// ─── Fieldset ────────────────────────────────────────
 
 	fieldset: {
-		root: ['[&>legend+*]:pt-6', yasumi.disabled],
+		base: ['[&>legend+*]:pt-6', yasumi.disabled],
 		legend: [sumi.text, 'text-base/6 font-semibold', yasumi.disabled],
 		field: [...narabi.field, yasumi.disabled],
 		label: [sumi.text, 'text-base/6 select-none', yasumi.disabled],
@@ -261,12 +260,12 @@ export const katachi = {
 	// ─── Navbar ──────────────────────────────────────────
 
 	navbar: {
-		root: 'flex items-center gap-3 px-4 py-2.5',
+		base: 'flex items-center gap-3 px-4 py-2.5',
 		item: [
 			...sawari.navItem,
 			maru.rounded,
 			'group relative flex items-center gap-2 px-2 py-1 text-sm/6 font-medium',
-			'cursor-default',
+			sawari.cursor,
 		],
 		section: 'flex items-center gap-3',
 		label: [sumi.textMuted, 'text-sm/6'],
@@ -276,19 +275,19 @@ export const katachi = {
 	// ─── Pagination ──────────────────────────────────────
 
 	pagination: {
-		root: 'flex list-none gap-1',
+		base: 'flex list-none gap-1',
 		list: 'flex list-none items-center gap-1 m-0 p-0',
 		page: {
 			base: [
 				ki.ring,
 				maru.rounded,
 				'relative inline-flex min-w-9 items-center justify-center px-2 py-1.5 text-sm/6 font-medium',
-				'cursor-default',
+				sawari.cursor,
 				'before:absolute before:inset-px before:rounded-[calc(var(--radius-lg)-1px)]',
 			],
 			current: {
 				true: [sumi.text, 'before:bg-zinc-950/5 dark:before:bg-white/10'],
-				false: [sumi.textMuted, 'hover:text-zinc-950 dark:hover:text-white'],
+				false: [sumi.textMuted, sumi.textHover],
 			},
 			defaults: { current: false as const },
 		},
@@ -300,10 +299,10 @@ export const katachi = {
 		nav: [
 			ki.ring,
 			sumi.textMuted,
+			sumi.textHover,
 			maru.rounded,
 			'inline-flex items-center justify-center gap-1 px-2 py-1.5 text-sm/6 font-medium',
-			'hover:text-zinc-950 dark:hover:text-white',
-			'cursor-default',
+			sawari.cursor,
 			'disabled:opacity-50',
 		],
 	},
@@ -320,10 +319,10 @@ export const katachi = {
 	// ─── Placeholder ─────────────────────────────────────
 
 	placeholder: {
-		base: 'animate-pulse bg-zinc-200 dark:bg-zinc-700',
+		base: omote.skeleton,
 		variant: {
 			line: 'h-4 w-full rounded',
-			circle: 'rounded-full',
+			circle: maru.roundedFull,
 			rect: ['w-full', maru.rounded],
 		},
 		defaults: { variant: 'line' as const },
@@ -335,7 +334,7 @@ export const katachi = {
 		color: nuri.radio,
 		base: [
 			...form.check,
-			'rounded-full',
+			maru.roundedFull,
 			'checked:border-transparent checked:bg-(--radio-checked-bg)',
 			'checked:border-(--radio-checked-border)',
 		],
@@ -374,25 +373,22 @@ export const katachi = {
 		description: [sumi.textMuted, 'text-base/6', 'px-6'],
 		actions: ['mt-6 flex items-center justify-end gap-3', 'px-6 pb-6'],
 		body: 'mt-4 flex-1 overflow-y-auto px-6',
-		close: [sumi.textMuted, ki.offset, 'absolute right-4 top-4 rounded-md p-1'],
+		close: [sumi.textMuted, ki.offset, 'absolute right-4 top-4', maru.roundedMd, 'p-1'],
 	},
 
 	// ─── Sidebar ─────────────────────────────────────────
 
 	sidebar: {
-		root: 'flex h-full flex-col gap-y-4 overflow-y-auto p-4',
+		base: 'flex h-full flex-col gap-y-4 overflow-y-auto p-4',
 		item: [
 			...sawari.navItem,
 			maru.rounded,
 			'group relative flex w-full items-center gap-3 px-2 py-2',
-			'text-left font-medium cursor-default',
+			'text-left font-medium',
+			sawari.cursor,
 		],
 		section: 'flex flex-col gap-0.5',
-		label: [
-			sumi.textMuted,
-			'truncate',
-			'group-data-[current]:text-zinc-950 dark:group-data-[current]:text-white',
-		],
+		label: [sumi.textMuted, 'truncate', nuri.sidebarLabel],
 		header: 'flex items-center gap-2',
 		body: 'flex flex-1 flex-col gap-4 overflow-y-auto',
 		divider: [...kage.separator, 'my-1'],
@@ -405,14 +401,17 @@ export const katachi = {
 		color: nuri.switch,
 		base: [
 			...form.hidden,
-			'rounded-full',
-			'bg-zinc-200 ring-1 ring-zinc-950/5 ring-inset dark:bg-white/10 dark:ring-white/15',
+			maru.roundedFull,
+			nuri.switchTrack,
 			'checked:bg-(--switch-bg) checked:ring-(--switch-bg-ring) checked:ring-inset',
-			'not-disabled:not-checked:hover:bg-zinc-300 dark:not-disabled:not-checked:hover:bg-white/15',
+			nuri.switchHover,
 		],
 		thumb: [
-			'pointer-events-none absolute top-1 left-1 inline-block size-4 rounded-full',
-			'bg-white shadow-sm ring-1 ring-zinc-950/5',
+			'pointer-events-none absolute top-1 left-1 inline-block size-4',
+			maru.roundedFull,
+			'bg-white',
+			kage.shadow,
+			'ring-1 ring-zinc-950/5',
 			'transition-[left] duration-200 ease-in-out',
 		],
 	},
@@ -420,13 +419,13 @@ export const katachi = {
 	// ─── Table ───────────────────────────────────────────
 
 	table: {
-		root: 'w-full text-left text-base/6',
+		base: 'w-full text-left text-base/6',
 		head: sumi.textMuted,
 		header: ['border-b px-4 py-2 font-semibold', kage.borderSubtle, sumi.textMuted],
 		row: ['border-b last:border-b-0', kage.borderSubtle],
 		cell: ['px-4 py-2', sumi.text],
 		grid: ['border-l first:border-l-0', kage.borderSubtle],
-		striped: '*:odd:bg-zinc-950/2.5 dark:*:odd:bg-white/2.5',
+		striped: nuri.tableStriped,
 	},
 
 	// ─── Tabs ────────────────────────────────────────────
@@ -439,9 +438,9 @@ export const katachi = {
 			'outline-none',
 			'after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:rounded-full',
 			'after:bg-transparent not-data-current:focus-visible:after:bg-blue-500',
-			'cursor-default',
+			sawari.cursor,
 		],
-		indicator: 'inset-x-0 -bottom-px top-auto h-0.5 rounded-full bg-zinc-950 dark:bg-white',
+		indicator: ['inset-x-0 -bottom-px top-auto h-0.5', maru.roundedFull, nuri.tabIndicator],
 	},
 
 	// ─── Text ────────────────────────────────────────────
@@ -472,7 +471,8 @@ export const katachi = {
 	option: {
 		base: [
 			maru.rounded,
-			'group/option grid w-full cursor-default items-baseline gap-x-2',
+			'group/option grid w-full items-baseline gap-x-2',
+			sawari.cursor,
 			sawari.item,
 		],
 		start:

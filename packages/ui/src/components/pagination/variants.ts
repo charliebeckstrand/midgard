@@ -3,7 +3,7 @@ import { katachi } from '../../recipes'
 
 const k = katachi.pagination
 
-export const paginationVariants = cva(k.root)
+export const paginationVariants = cva(k.base)
 
 export const paginationListVariants = cva(k.list)
 

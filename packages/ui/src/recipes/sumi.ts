@@ -11,6 +11,7 @@
 const hiru = {
 	text: 'text-zinc-950',
 	textMuted: 'text-zinc-500',
+	textHover: 'hover:text-zinc-950',
 	textError: 'text-red-600',
 	textIcon: '*:data-[slot=icon]:text-zinc-500',
 	fillMuted: 'fill-zinc-500',
@@ -21,6 +22,7 @@ const hiru = {
 const yoru = {
 	text: 'dark:text-white',
 	textMuted: 'dark:text-zinc-400',
+	textHover: 'dark:hover:text-white',
 	textError: 'dark:text-red-500',
 	textIcon: 'dark:*:data-[slot=icon]:text-zinc-400',
 	fillMuted: 'dark:fill-zinc-400',
@@ -31,6 +33,7 @@ const yoru = {
 export const sumi = {
 	text: [hiru.text, yoru.text],
 	textMuted: [hiru.textMuted, yoru.textMuted],
+	textHover: [hiru.textHover, yoru.textHover],
 	textError: [hiru.textError, yoru.textError],
 	textIcon: [hiru.textIcon, yoru.textIcon],
 	fillMuted: [hiru.fillMuted, yoru.fillMuted],

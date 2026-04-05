@@ -12,6 +12,7 @@ const motoi = {
 	border: 'border',
 	ring: 'ring-1',
 	separator: 'border-t',
+	shadow: 'shadow-sm',
 }
 
 // ── Hiru (昼) ───────────────────────────────────────────
@@ -37,4 +38,5 @@ export const kage = {
 	ring: [motoi.ring, hiru.ring, yoru.ring],
 	ringSubtle: [motoi.ring, hiru.ringSubtle, yoru.ringSubtle],
 	separator: [motoi.separator, hiru.borderSubtle, yoru.borderSubtle],
+	shadow: motoi.shadow,
 } as const
