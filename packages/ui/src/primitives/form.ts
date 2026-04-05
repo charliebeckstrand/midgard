@@ -14,7 +14,6 @@ import { kage, ki, maru, sumi, take } from '../recipes'
 const motoi = {
 	inputBase: [
 		'relative block w-full',
-		'text-base/6',
 		'bg-transparent border',
 		'focus:outline-hidden',
 		'read-only:bg-transparent',
@@ -79,7 +78,7 @@ export const form = {
 	hidden: motoi.hidden,
 	check: [motoi.check, hiru.check, yoru.check],
 	inputBase,
-	input: [...inputBase, take.control, maru.rounded],
+	input: [...inputBase, take.control.md, maru.rounded],
 	date: [
 		'[&::-webkit-datetime-edit-fields-wrapper]:p-0',
 		'[&::-webkit-date-and-time-value]:min-h-[1.5em]',

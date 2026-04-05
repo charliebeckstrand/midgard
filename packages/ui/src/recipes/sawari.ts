@@ -12,7 +12,6 @@ import { ki } from './ki'
 import { maru } from './maru'
 import { narabi } from './narabi'
 import { sumi } from './sumi'
-import { take } from './take'
 
 // ── Motoi (基) ──────────────────────────────────────────
 const motoi = {
@@ -60,7 +59,7 @@ export const sawari = {
 	item,
 	nav,
 	tab: [sumi.textMuted, hiru.tab, yoru.tab],
-	navItem: [...nav, ki.offset, take.icon],
+	navItem: [...nav, ki.offset],
 	option: [...item, ...narabi.item],
 	cursor: 'cursor-default',
 }

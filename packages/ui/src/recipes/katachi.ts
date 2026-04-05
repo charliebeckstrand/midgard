@@ -5,6 +5,9 @@
  * slot styles, and defaults. Variant files become thin CVA plumbing that maps
  * katachi entries into cva() calls.
  *
+ * Sizing, spacing, and gap belong in take — not here. Katachi handles
+ * structure, visual styling, and composition of lower-tier recipes.
+ *
  * Tier: 3
  * Concern: component form
  */
@@ -46,7 +49,7 @@ export const katachi = {
 	// ─── Badge ───────────────────────────────────────────
 
 	badge: {
-		base: ['group inline-flex items-center gap-x-1.5 font-medium', take.icon],
+		base: 'group inline-flex items-center font-medium',
 		variant: {
 			solid: maru.roundedMd,
 			soft: maru.roundedMd,
@@ -62,10 +65,9 @@ export const katachi = {
 	button: {
 		base: [
 			maru.rounded,
-			take.icon,
 			ki.ring,
 			yasumi.disabled,
-			'relative isolate inline-flex items-center justify-center gap-x-2 font-semibold',
+			'relative isolate inline-flex items-center justify-center font-semibold',
 			sawari.cursor,
 			'after:absolute after:inset-0 after:-z-10 after:rounded-[inherit]',
 		],
@@ -100,7 +102,7 @@ export const katachi = {
 		},
 		color: nuri.button,
 		size: take.button,
-		iconOnly: { sm: 'size-8', md: 'size-10', lg: 'size-12' },
+		iconOnly: take.buttonIcon,
 		defaults: { variant: 'solid' as const, color: 'zinc' as const, size: 'md' as const },
 	},
 
@@ -119,7 +121,7 @@ export const katachi = {
 	// ─── Combobox ────────────────────────────────────────
 
 	combobox: {
-		input: [...form.inputBase, maru.rounded, 'py-1.5 pr-8 pl-3'],
+		input: [...form.inputBase, maru.rounded, take.control.md, 'pr-8 pl-3'],
 		chevron: 'absolute inset-y-0 right-0 flex items-center pr-2',
 		options: 'max-h-60',
 		option: sawari.option,
@@ -182,7 +184,6 @@ export const katachi = {
 		item: [
 			'group/option flex w-full items-center gap-3 px-3.5 py-2.5 sm:px-3 sm:py-1.5',
 			sawari.option,
-			take.icon,
 		],
 		section: 'first:pt-0 last:pb-0',
 		heading: [sumi.textMuted, 'px-3.5 pb-1 pt-2 text-xs/5 font-medium sm:px-3'],
@@ -248,8 +249,9 @@ export const katachi = {
 		button: [
 			...form.inputBase,
 			maru.rounded,
-			'appearance-none py-1.5 pr-8 pl-3',
-			'text-left text-base/6',
+			take.control.md,
+			'appearance-none pr-8 pl-3',
+			'text-left',
 		],
 		options: 'max-h-60',
 		value: 'block truncate',

@@ -24,34 +24,65 @@ const motoi = {
 	icon: { sm: 'size-4', md: 'size-5', lg: 'size-5' },
 }
 
+// Icon slot — applies sizing to data-slot="icon" children
+const iconSlot = {
+	sm: `*:data-[slot=icon]:${motoi.icon.sm} *:data-[slot=icon]:shrink-0`,
+	md: `*:data-[slot=icon]:${motoi.icon.md} *:data-[slot=icon]:shrink-0`,
+	lg: `*:data-[slot=icon]:${motoi.icon.lg} *:data-[slot=icon]:shrink-0`,
+}
+
 // ── Export ───────────────────────────────────────────────
 export const take = {
 	// Core density tokens
 	...motoi,
 
 	// Icon slot (applies to data-slot="icon" children)
-	iconSlot: {
-		sm: `*:data-[slot=icon]:${motoi.icon.sm} *:data-[slot=icon]:shrink-0`,
-		md: `*:data-[slot=icon]:${motoi.icon.md} *:data-[slot=icon]:shrink-0`,
-		lg: `*:data-[slot=icon]:${motoi.icon.lg} *:data-[slot=icon]:shrink-0`,
-	},
+	iconSlot,
 
-	// Button density (padding offset by 1px for border)
+	// Button density (padding offset by 1px for border, includes gap + text + icon slot)
 	button: {
-		sm: ['px-[calc(--spacing(1.5)-1px)] py-[calc(--spacing(1.5)-1px)]', motoi.text.sm],
-		md: ['px-[calc(--spacing(2)-1px)] py-[calc(--spacing(2)-1px)]', motoi.text.md],
-		lg: ['px-[calc(--spacing(3)-1px)] py-[calc(--spacing(2.5)-1px)]', motoi.text.lg],
+		sm: [
+			'px-[calc(--spacing(1.5)-1px)] py-[calc(--spacing(1.5)-1px)]',
+			motoi.gap.sm,
+			motoi.text.sm,
+			iconSlot.sm,
+		],
+		md: [
+			'px-[calc(--spacing(2)-1px)] py-[calc(--spacing(2)-1px)]',
+			motoi.gap.md,
+			motoi.text.md,
+			iconSlot.md,
+		],
+		lg: [
+			'px-[calc(--spacing(3)-1px)] py-[calc(--spacing(2.5)-1px)]',
+			motoi.gap.lg,
+			motoi.text.lg,
+			iconSlot.lg,
+		],
 	},
 
-	// Badge density (compact vertical padding)
+	// Icon-only button dimensions (touch target slightly larger than text button)
+	buttonIcon: { sm: 'size-8', md: 'size-10', lg: 'size-12' },
+
+	// Badge density (compact vertical padding, includes gap + text + icon slot)
 	badge: {
-		sm: ['px-1.5 py-0.5', motoi.text.sm, `*:data-[slot=icon]:${motoi.icon.sm}`],
-		md: ['px-2 py-0.5', 'text-xs/5', '*:data-[slot=icon]:size-3.5'],
-		lg: ['px-2.5 py-1', motoi.text.md, `*:data-[slot=icon]:${motoi.icon.sm}`],
+		sm: ['px-1.5 py-0.5', motoi.gap.sm, motoi.text.sm, `*:data-[slot=icon]:${motoi.icon.sm}`],
+		md: ['px-2 py-0.5', 'gap-x-1.5', 'text-xs/5', '*:data-[slot=icon]:size-3.5'],
+		lg: ['px-2.5 py-1', 'gap-x-1.5', motoi.text.md, `*:data-[slot=icon]:${motoi.icon.sm}`],
 	},
 
-	// Form control padding (Input, Select, Textarea, Combobox)
-	control: 'px-[calc(--spacing(3)-1px)] py-[calc(--spacing(2)-1px)]',
+	// Form control density — same height as buttons at each step
+	//
+	//   step   height   px      py      text
+	//   ─────  ──────   ──────  ──────  ──────────
+	//   sm     28px     10px    6px     12px/16px
+	//   md     36px     12px    8px     14px/20px
+	//   lg     44px     14px    10px    16px/24px
+	control: {
+		sm: ['px-[calc(--spacing(2.5)-1px)] py-[calc(--spacing(1.5)-1px)]', motoi.text.sm],
+		md: ['px-[calc(--spacing(3)-1px)] py-[calc(--spacing(2)-1px)]', motoi.text.md],
+		lg: ['px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)]', motoi.text.lg],
+	},
 
 	// Avatar dimension scale
 	avatar: {
@@ -81,6 +112,7 @@ export const take = {
 export namespace take {
 	export type BadgeSize = keyof typeof take.badge
 	export type ButtonSize = keyof typeof take.button
+	export type ControlSize = keyof typeof take.control
 	export type AvatarSize = keyof typeof take.avatar
 	export type PanelSize =
 		| 'xs'
