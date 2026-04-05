@@ -27,6 +27,7 @@ const hiru = {
 	popover: 'bg-white/75 ring-1 ring-zinc-950/10',
 	surface: 'bg-white',
 	tint: 'bg-zinc-950/5',
+	tintBefore: 'before:bg-zinc-950/5',
 	skeleton: 'bg-zinc-200',
 }
 
@@ -38,6 +39,7 @@ const yoru = {
 	popover: ['dark:bg-zinc-800/75', 'dark:ring-white/10 dark:ring-inset'],
 	surface: 'dark:bg-zinc-900',
 	tint: 'dark:bg-white/10',
+	tintBefore: 'dark:before:bg-white/10',
 	skeleton: 'dark:bg-zinc-700',
 }
 
@@ -49,5 +51,6 @@ export const omote = {
 	popover: [motoi.popover, hiru.popover, yoru.popover],
 	surface: [hiru.surface, yoru.surface],
 	tint: [hiru.tint, yoru.tint],
+	tintBefore: [hiru.tintBefore, yoru.tintBefore],
 	skeleton: [motoi.skeleton, hiru.skeleton, yoru.skeleton],
 } as const

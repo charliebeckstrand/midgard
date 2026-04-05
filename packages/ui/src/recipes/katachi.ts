@@ -84,20 +84,13 @@ export const katachi = {
 				'*:data-[slot=icon]:text-[var(--btn-icon)]',
 			],
 			outline: [
-				'border border-zinc-950/10 dark:border-white/15',
+				kage.borderStrong,
 				sumi.text,
 				omote.surface,
-				'not-disabled:hover:after:bg-zinc-950/[0.025]',
-				'dark:not-disabled:hover:after:bg-white/5',
+				nuri.buttonOutlineHover,
 				sumi.fillIcon,
 			],
-			plain: [
-				'border border-transparent',
-				sumi.text,
-				'not-disabled:hover:after:bg-zinc-950/5',
-				'dark:not-disabled:hover:after:bg-white/10',
-				sumi.fillIcon,
-			],
+			plain: ['border border-transparent', sumi.text, nuri.buttonPlainHover, sumi.fillIcon],
 			ghost: ['border border-transparent', sumi.text, sumi.fillIcon],
 		},
 		color: nuri.button,
@@ -288,7 +281,7 @@ export const katachi = {
 				'before:absolute before:inset-px before:rounded-[calc(var(--radius-lg)-1px)]',
 			],
 			current: {
-				true: [sumi.text, 'before:bg-zinc-950/5 dark:before:bg-white/10'],
+				true: [sumi.text, omote.tintBefore],
 				false: [sumi.textMuted, sumi.textHover],
 			},
 			defaults: { current: false as const },
@@ -349,7 +342,7 @@ export const katachi = {
 			...form.input,
 			'appearance-none',
 			'pr-[calc(--spacing(10))]',
-			'dark:[color-scheme:dark]',
+			'dark:[color-scheme:dark]', // native browser hint for select dropdowns
 		],
 	},
 

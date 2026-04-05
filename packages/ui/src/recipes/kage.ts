@@ -26,6 +26,7 @@ const hiru = {
 // ── Yoru (夜) ───────────────────────────────────────────
 const yoru = {
 	border: 'dark:border-white/10',
+	borderStrong: 'dark:border-white/15',
 	borderSubtle: 'dark:border-white/5',
 	ring: 'dark:ring-white/10',
 	ringSubtle: 'dark:ring-white/10',
@@ -34,6 +35,7 @@ const yoru = {
 // ── Export ───────────────────────────────────────────────
 export const kage = {
 	border: [motoi.border, hiru.border, yoru.border],
+	borderStrong: [motoi.border, hiru.border, yoru.borderStrong],
 	borderSubtle: [motoi.border, hiru.borderSubtle, yoru.borderSubtle],
 	ring: [motoi.ring, hiru.ring, yoru.ring],
 	ringSubtle: [motoi.ring, hiru.ringSubtle, yoru.ringSubtle],
