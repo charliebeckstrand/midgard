@@ -80,7 +80,7 @@ export const katachi = {
 				nuri.buttonSolid,
 				'not-disabled:hover:after:bg-[var(--btn-hover)]',
 				'active:after:bg-[var(--btn-active)]',
-				yasumi.disabledShadow,
+				'disabled:shadow-none',
 				'*:data-[slot=icon]:text-[var(--btn-icon)]',
 			],
 			outline: [kage.borderStrong, sumi.text, omote.surface, sawari.hoverSubtle, sumi.fillIcon],
