@@ -77,31 +77,24 @@ export const katachi = {
 		],
 		variant: {
 			solid: {
-				base: [
-					'border border-transparent',
-					'bg-[var(--btn-bg)]',
-					'border-[var(--btn-border)]',
-					kage.shadow,
-					nuri.buttonSolidBase,
-					'not-disabled:hover:after:bg-[var(--btn-hover)]',
-					'disabled:shadow-none',
-					'*:data-[slot=icon]:text-[var(--btn-icon)]',
-				],
+				base: ['border border-transparent', kage.shadow, sawari.hover, 'disabled:shadow-none'],
 				color: nuri.buttonSolid,
 			},
 			soft: {
-				base: ['border border-transparent', sumi.fillIcon],
+				base: ['border border-transparent', sawari.hover, sumi.fillIcon],
 				color: nuri.buttonSoft,
 			},
 			outline: {
-				base: [kage.borderStrong, sumi.text, omote.surface, sumi.fillIcon],
+				base: [kage.borderStrong, sumi.text, omote.surface, sawari.hover, sumi.fillIcon],
 				color: nuri.buttonOutline,
 			},
 			plain: {
 				base: ['border border-transparent', sumi.text, sawari.hover, sumi.fillIcon],
+				color: nuri.buttonPlain,
 			},
 			ghost: {
 				base: ['border border-transparent', sumi.text, sumi.fillIcon],
+				color: nuri.buttonGhost,
 			},
 		},
 		size: take.button,
@@ -135,7 +128,7 @@ export const katachi = {
 			solid: {
 				base: 'border border-transparent',
 				color: nuri.solid,
-				active: nuri.chipSolidActive,
+				active: nuri.solid,
 			},
 			soft: {
 				base: 'border border-transparent',
@@ -145,7 +138,7 @@ export const katachi = {
 			outline: {
 				base: 'border',
 				color: nuri.outline,
-				active: nuri.solid,
+				active: nuri.chipOutlineActive,
 			},
 			plain: {
 				base: 'border border-transparent',

@@ -14,7 +14,9 @@ const variantBase = Object.fromEntries(
 function buttonCompoundColors() {
 	return (Object.keys(k.variant) as Variant[]).flatMap((variant) => {
 		const v = k.variant[variant]
+
 		if (!('color' in v)) return []
+
 		return Object.entries(v.color as ColorMap).map(([c, classes]) => ({
 			variant,
 			color: c as keyof (typeof k.variant)['solid']['color'],

@@ -9,24 +9,39 @@ const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 
 const variants = ['solid', 'soft', 'outline', 'plain'] as const
 
-const sizes = ['sm', 'md', 'lg'] as const
+const sizes = [
+	{ value: 'sm', label: 'small' },
+	{ value: 'md', label: 'medium' },
+	{ value: 'lg', label: 'large' },
+] as const
 
-function ToggleRow({ variant }: { variant: (typeof variants)[number] }) {
-	const [active, setActive] = useState<string | null>(null)
+const labels = ['First', 'Second', 'Third', 'Fourth', 'Fifth'] as const
+
+function ActiveRow() {
+	const [active, setActive] = useState<Set<string>>(() => new Set(['First']))
+
+	const toggle = (label: string) =>
+		setActive((prev) => {
+			const next = new Set(prev)
+
+			if (next.has(label)) next.delete(label)
+			else next.add(label)
+
+			return next
+		})
 
 	return (
 		<div className="space-y-3">
-			<p className="text-sm font-medium text-zinc-500 dark:text-zinc-400 capitalize">{variant}</p>
+			<p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">Active</p>
 			<div className="flex flex-wrap items-center gap-2">
-				{colors.map((color) => (
+				{labels.map((label) => (
 					<Chip
-						key={color}
-						variant={variant}
-						color={color}
-						active={active === color}
-						onClick={() => setActive(active === color ? null : color)}
+						key={label}
+						variant="outline"
+						active={active.has(label)}
+						onClick={() => toggle(label)}
 					>
-						{color}
+						{label}
 					</Chip>
 				))}
 			</div>
@@ -38,14 +53,26 @@ export default function ChipDemo() {
 	return (
 		<div className="space-y-8">
 			{variants.map((variant) => (
-				<ToggleRow key={variant} variant={variant} />
+				<div key={variant} className="space-y-3">
+					<p className="text-sm font-medium text-zinc-500 dark:text-zinc-400 capitalize">
+						{variant}
+					</p>
+					<div className="flex flex-wrap items-center gap-2">
+						{colors.map((color) => (
+							<Chip key={color} variant={variant} color={color}>
+								{color}
+							</Chip>
+						))}
+					</div>
+				</div>
 			))}
+			<ActiveRow />
 			<div className="space-y-3">
 				<p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">Sizes</p>
 				<div className="flex flex-wrap items-center gap-2">
 					{sizes.map((size) => (
-						<Chip key={size} size={size}>
-							{size}
+						<Chip key={size.value} size={size.value}>
+							{size.label}
 						</Chip>
 					))}
 				</div>

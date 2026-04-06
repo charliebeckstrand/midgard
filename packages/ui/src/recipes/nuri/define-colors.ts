@@ -10,7 +10,7 @@ type ColorEntry = ModeValue | { light: ModeValue; dark: ModeValue }
 
 function flatten(v: ModeValue): string[] {
 	if (typeof v === 'string') return [v]
-	
+
 	return v.flatMap((item) => (typeof item === 'string' ? [item] : [...item]))
 }
 
@@ -20,7 +20,7 @@ function isModePair(entry: ColorEntry): entry is { light: ModeValue; dark: ModeV
 
 function resolveEntry(entry: ColorEntry): string[] {
 	if (isModePair(entry)) return [...flatten(entry.light), ...flatten(entry.dark)]
-	
+
 	return flatten(entry)
 }
 

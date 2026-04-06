@@ -9,9 +9,9 @@
  */
 
 import { extendSoft, extendSolid, soft, solid } from './badge'
-import { buttonOutline, buttonSoft, buttonSolid, buttonSolidBase } from './button'
+import { buttonGhost, buttonOutline, buttonPlain, buttonSoft, buttonSolid } from './button'
 import { checkbox } from './checkbox'
-import { chipSolidActive } from './chip'
+import { chipOutlineActive } from './chip'
 import { outline, text } from './palette'
 import { radio } from './radio'
 import { switchColor } from './switch'
@@ -27,20 +27,21 @@ import {
 
 export const nuri = {
 	// ── Shared color variants ────────────────────────────
-	soft,
 	solid,
+	soft,
 	outline,
 	text,
-	extend: { soft: extendSoft, solid: extendSolid },
+	extend: { solid: extendSolid, soft: extendSoft },
 
 	// ── Button ───────────────────────────────────────────
 	buttonSolid,
-	buttonSolidBase,
 	buttonSoft,
 	buttonOutline,
+	buttonPlain,
+	buttonGhost,
 
-	// ── Chip (active-state override) ─────────────────────
-	chipSolidActive,
+	// ── Chip ────────────────────────────────────────────
+	chipOutlineActive,
 
 	// ── Form controls ────────────────────────────────────
 	checkbox,

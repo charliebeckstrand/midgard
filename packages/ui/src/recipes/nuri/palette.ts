@@ -1,5 +1,5 @@
 /**
- * Shared color foundations for soft and solid variants.
+ * Shared color foundations for solid, soft, and outline variants.
  *
  * Buttons, badges, and chips all use the same base colors —
  * only the hover mechanism differs (not-disabled:hover vs group-hover).
@@ -25,50 +25,10 @@ export const text = defineColors({
 	blue: { light: 'text-blue-700', dark: 'dark:text-blue-400' },
 })
 
-// ── Soft ─────────────────────────────────────────────────
-
-const softBg = defineColors({
-	zinc: { light: 'bg-zinc-600/10', dark: 'dark:bg-white/10' },
-	red: { light: 'bg-red-600/15', dark: 'dark:bg-red-500/15' },
-	amber: { light: 'bg-amber-500/15', dark: 'dark:bg-amber-500/15' },
-	green: { light: 'bg-green-600/15', dark: 'dark:bg-green-500/15' },
-	blue: { light: 'bg-blue-600/15', dark: 'dark:bg-blue-500/15' },
-})
-
-export const soft = merge(softBg, text)
-
-export const softHover: HoverMap<Color> = {
-	zinc: { light: 'bg-zinc-600/20', dark: 'bg-white/15' },
-	red: { light: 'bg-red-600/25', dark: 'bg-red-500/25' },
-	amber: { light: 'bg-amber-500/20', dark: 'bg-amber-500/25' },
-	green: { light: 'bg-green-600/25', dark: 'bg-green-500/25' },
-	blue: { light: 'bg-blue-600/25', dark: 'bg-blue-500/25' },
-}
-
-// ── Outline ─────────────────────────────────────────────
-
-const outlineBorder = defineColors({
-	zinc: { light: 'border-zinc-300', dark: 'dark:border-zinc-600' },
-	red: { light: 'border-red-300', dark: 'dark:border-red-700' },
-	amber: { light: 'border-amber-300', dark: 'dark:border-amber-700' },
-	green: { light: 'border-green-300', dark: 'dark:border-green-700' },
-	blue: { light: 'border-blue-300', dark: 'dark:border-blue-700' },
-})
-
-export const outline = merge(outlineBorder, text)
-
-export const outlineHover: HoverMap<Color> = {
-	zinc: { light: 'bg-zinc-600/10', dark: 'bg-white/10' },
-	red: { light: 'bg-red-600/10', dark: 'bg-red-500/10' },
-	amber: { light: 'bg-amber-500/10', dark: 'bg-amber-500/10' },
-	green: { light: 'bg-green-600/10', dark: 'bg-green-500/10' },
-	blue: { light: 'bg-blue-600/10', dark: 'bg-blue-500/10' },
-}
-
 // ── Solid ────────────────────────────────────────────────
 
 const solidBg = defineColors({
-	zinc: { light: 'bg-zinc-700', dark: 'dark:bg-zinc-600' },
+	zinc: { light: 'bg-zinc-800', dark: 'dark:bg-zinc-600' },
 	red: { light: 'bg-red-600', dark: 'dark:bg-red-500' },
 	amber: 'bg-amber-500',
 	green: { light: 'bg-green-600', dark: 'dark:bg-green-500' },
@@ -93,6 +53,46 @@ export const solidHover: HoverMap<Color> = {
 	blue: { light: 'bg-blue-700', dark: 'bg-blue-600' },
 }
 
+// ── Soft ─────────────────────────────────────────────────
+
+const softBg = defineColors({
+	zinc: { light: 'bg-zinc-600/10', dark: 'dark:bg-white/10' },
+	red: { light: 'bg-red-600/15', dark: 'dark:bg-red-500/15' },
+	amber: { light: 'bg-amber-500/15', dark: 'dark:bg-amber-500/15' },
+	green: { light: 'bg-green-600/15', dark: 'dark:bg-green-500/15' },
+	blue: { light: 'bg-blue-600/15', dark: 'dark:bg-blue-500/15' },
+})
+
+export const soft = merge(softBg, text)
+
+export const softHover: HoverMap<Color> = {
+	zinc: { light: 'bg-zinc-600/20', dark: 'bg-white/15' },
+	red: { light: 'bg-red-600/25', dark: 'bg-red-500/25' },
+	amber: { light: 'bg-amber-500/20', dark: 'bg-amber-500/25' },
+	green: { light: 'bg-green-600/25', dark: 'bg-green-500/25' },
+	blue: { light: 'bg-blue-600/25', dark: 'bg-blue-500/25' },
+}
+
+// ── Outline ─────────────────────────────────────────────
+
+export const outlineBorder = defineColors({
+	zinc: { light: 'border-zinc-800', dark: 'dark:border-zinc-600' },
+	red: { light: 'border-red-600', dark: 'dark:border-red-700' },
+	amber: { light: 'border-amber-500', dark: 'dark:border-amber-700' },
+	green: { light: 'border-green-600', dark: 'dark:border-green-700' },
+	blue: { light: 'border-blue-600', dark: 'dark:border-blue-700' },
+})
+
+export const outline = merge(outlineBorder, text)
+
+export const outlineHover: HoverMap<Color> = {
+	zinc: { light: 'bg-zinc-600/10', dark: 'bg-white/10' },
+	red: { light: 'bg-red-600/10', dark: 'bg-red-500/10' },
+	amber: { light: 'bg-amber-500/10', dark: 'bg-amber-500/10' },
+	green: { light: 'bg-green-600/10', dark: 'bg-green-500/10' },
+	blue: { light: 'bg-blue-600/10', dark: 'bg-blue-500/10' },
+}
+
 // ── Extended colors (white + dark, shared by button/badge) ─
 
 export const extend = {
@@ -100,22 +100,6 @@ export const extend = {
 		white: { light: 'text-zinc-950', dark: 'dark:text-white' },
 		dark: { light: 'text-zinc-700', dark: 'dark:text-zinc-300' },
 	}),
-
-	soft: merge(
-		defineColors({
-			white: { light: 'bg-white', dark: 'dark:bg-white/10' },
-			dark: { light: 'bg-zinc-950/10', dark: 'dark:bg-white/10' },
-		}),
-		defineColors({
-			white: { light: 'text-zinc-950', dark: 'dark:text-white' },
-			dark: { light: 'text-zinc-700', dark: 'dark:text-zinc-300' },
-		}),
-	),
-
-	softHover: {
-		white: { light: 'bg-zinc-50', dark: 'bg-white/15' },
-		dark: { light: 'bg-zinc-950/15', dark: 'bg-white/15' },
-	} as HoverMap<'white' | 'dark'>,
 
 	solid: merge(
 		defineColors({
@@ -131,6 +115,22 @@ export const extend = {
 	solidHover: {
 		white: { light: 'bg-zinc-100', dark: 'bg-zinc-300' },
 		dark: { light: 'bg-zinc-800', dark: 'bg-zinc-200' },
+	} as HoverMap<'white' | 'dark'>,
+
+	soft: merge(
+		defineColors({
+			white: { light: 'bg-white', dark: 'dark:bg-white/10' },
+			dark: { light: 'bg-zinc-950/10', dark: 'dark:bg-white/10' },
+		}),
+		defineColors({
+			white: { light: 'text-zinc-950', dark: 'dark:text-white' },
+			dark: { light: 'text-zinc-700', dark: 'dark:text-zinc-300' },
+		}),
+	),
+
+	softHover: {
+		white: { light: 'bg-zinc-50', dark: 'bg-white/15' },
+		dark: { light: 'bg-zinc-950/15', dark: 'bg-white/15' },
 	} as HoverMap<'white' | 'dark'>,
 }
 

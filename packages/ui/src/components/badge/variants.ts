@@ -14,6 +14,7 @@ const variantBase = Object.fromEntries(
 function badgeCompoundColors() {
 	return (Object.keys(k.variant) as Variant[]).flatMap((variant) => {
 		const { color } = k.variant[variant]
+
 		return Object.entries(color as ColorMap).map(([c, classes]) => ({
 			variant,
 			color: c as keyof (typeof k.variant)['solid']['color'],

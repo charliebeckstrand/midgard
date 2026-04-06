@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Button } from '../../components/button'
 import { Field, Label } from '../../components/fieldset'
 import { Input } from '../../components/input'
+import { PasswordInput } from '../../components/input/password'
 import { ForgotPasswordPage, LoginPage, RegisterPage } from '../../pages'
 
 export const meta = { category: 'Layout' }
@@ -31,7 +32,7 @@ export default function PagesDemo() {
 						</Field>
 						<Field>
 							<Label>Password</Label>
-							<Input type="password" placeholder="•••••••••" />
+							<PasswordInput placeholder="•••••••••" />
 						</Field>
 					</LoginPage>
 				)}
@@ -47,7 +48,7 @@ export default function PagesDemo() {
 						</Field>
 						<Field>
 							<Label>Password</Label>
-							<Input type="password" placeholder="•••••••••" />
+							<PasswordInput placeholder="•••••••••" />
 						</Field>
 					</RegisterPage>
 				)}

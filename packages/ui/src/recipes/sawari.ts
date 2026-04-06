@@ -26,6 +26,7 @@ const motoi = {
 		'*:data-[slot=icon]:size-5 *:data-[slot=icon]:shrink-0',
 		'*:data-[slot=avatar]:-m-0.5 *:data-[slot=avatar]:size-7',
 	],
+	hover: 'not-disabled:hover:after:bg-[color-mix(in_oklab,currentColor_15%,transparent)]',
 }
 
 // ── Hiru (昼) ───────────────────────────────────────────
@@ -37,8 +38,6 @@ const hiru = {
 		'data-current:group-hover:!bg-transparent data-current:active:!bg-transparent',
 	],
 	tab: ['data-current:text-zinc-950', 'not-data-current:hover:text-zinc-700'],
-	hover: 'not-disabled:hover:after:bg-zinc-950/5',
-	hoverSubtle: 'not-disabled:hover:after:bg-zinc-950/[0.025]',
 }
 
 // ── Yoru (夜) ───────────────────────────────────────────
@@ -50,8 +49,6 @@ const yoru = {
 		'dark:data-current:group-hover:!bg-transparent dark:data-current:active:!bg-transparent',
 	],
 	tab: ['dark:data-current:text-white', 'dark:not-data-current:hover:text-zinc-200'],
-	hover: 'dark:not-disabled:hover:after:bg-white/10',
-	hoverSubtle: 'dark:not-disabled:hover:after:bg-white/5',
 }
 
 // ── Composed (internal) ─────────────────────────────────
@@ -66,8 +63,7 @@ export const sawari = {
 	navItem: [...nav, ki.offset],
 	option: [...item, ...narabi.item],
 	cursor: 'cursor-default',
-	hover: [hiru.hover, yoru.hover],
-	hoverSubtle: [hiru.hoverSubtle, yoru.hoverSubtle],
+	hover: motoi.hover,
 	focusText: 'group-focus/option:text-white',
 	focusTextMuted: 'group-focus/option:text-white/70',
 }

@@ -27,12 +27,7 @@ export default function CheckboxDemo() {
 			<CheckboxGroup className="mt-4">
 				{colors.map((color) => (
 					<CheckboxField key={color}>
-						<Checkbox
-							id={`checkbox-${color}`}
-							value={color}
-							color={color}
-							defaultChecked={color === 'blue'}
-						/>
+						<Checkbox id={`checkbox-${color}`} value={color} color={color} defaultChecked />
 						<Label htmlFor={`checkbox-${color}`}>{color}</Label>
 					</CheckboxField>
 				))}

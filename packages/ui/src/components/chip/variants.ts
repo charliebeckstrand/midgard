@@ -12,9 +12,9 @@ type ColorMap = Record<Color, string | readonly string[]>
 function chipCompoundColors() {
 	return (Object.keys(k.variant) as Variant[]).flatMap((variant) => {
 		const { color, active } = k.variant[variant]
+
 		return [
 			...toCompound(variant, false, color as ColorMap),
-			...toCompound(variant, true, color as ColorMap),
 			...toCompound(variant, true, active as ColorMap),
 		]
 	})
