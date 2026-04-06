@@ -11,6 +11,10 @@ export default function InputDemo() {
 				<Input id="input-default" placeholder="Enter text…" />
 			</Field>
 			<Field>
+				<Label htmlFor="input-outline">Outline</Label>
+				<Input id="input-outline" variant="outline" placeholder="Enter text…" />
+			</Field>
+			<Field>
 				<Label htmlFor="input-disabled">Disabled</Label>
 				<Input id="input-disabled" disabled placeholder="Disabled" />
 			</Field>

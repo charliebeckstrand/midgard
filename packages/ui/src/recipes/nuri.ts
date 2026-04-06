@@ -125,6 +125,38 @@ const hiru = {
 		blue: 'border-blue-300 text-blue-700',
 	},
 
+	chipOutlineBorder: {
+		zinc: 'border-zinc-700',
+		red: 'border-red-600',
+		amber: 'border-amber-600',
+		green: 'border-green-600',
+		blue: 'border-blue-600',
+	},
+
+	chipText: {
+		zinc: 'text-zinc-700',
+		red: 'text-red-700',
+		amber: 'text-amber-700',
+		green: 'text-green-700',
+		blue: 'text-blue-700',
+	},
+
+	chipPlainHover: {
+		zinc: 'hover:bg-zinc-600/10',
+		red: 'hover:bg-red-600/15',
+		amber: 'hover:bg-amber-600/15',
+		green: 'hover:bg-green-600/15',
+		blue: 'hover:bg-blue-600/15',
+	},
+
+	chipSolidActive: {
+		zinc: 'bg-zinc-600',
+		red: 'bg-red-500',
+		amber: 'bg-amber-500',
+		green: 'bg-green-500',
+		blue: 'bg-blue-500',
+	},
+
 	avatar: 'bg-zinc-600',
 
 	buttonSolid: '[--btn-hover:color-mix(in_oklab,black_10%,transparent)]',
@@ -208,6 +240,38 @@ const yoru = {
 		amber: 'dark:border-amber-700 dark:text-amber-400',
 		green: 'dark:border-green-700 dark:text-green-400',
 		blue: 'dark:border-blue-700 dark:text-blue-400',
+	},
+
+	chipOutlineBorder: {
+		zinc: 'dark:border-zinc-600',
+		red: 'dark:border-red-500',
+		amber: 'dark:border-amber-600',
+		green: 'dark:border-green-500',
+		blue: 'dark:border-blue-500',
+	},
+
+	chipText: {
+		zinc: 'dark:text-zinc-300',
+		red: 'dark:text-red-400',
+		amber: 'dark:text-amber-400',
+		green: 'dark:text-green-400',
+		blue: 'dark:text-blue-400',
+	},
+
+	chipPlainHover: {
+		zinc: 'dark:hover:bg-white/10',
+		red: 'dark:hover:bg-red-500/15',
+		amber: 'dark:hover:bg-amber-500/15',
+		green: 'dark:hover:bg-green-500/15',
+		blue: 'dark:hover:bg-blue-500/15',
+	},
+
+	chipSolidActive: {
+		zinc: 'dark:bg-zinc-500',
+		red: 'dark:bg-red-400',
+		amber: 'dark:bg-amber-500',
+		green: 'dark:bg-green-400',
+		blue: 'dark:bg-blue-400',
 	},
 
 	avatar: 'dark:bg-zinc-700',
@@ -295,6 +359,34 @@ export const nuri = {
 		amber: [hiru.chipBorder.amber, yoru.chipBorder.amber],
 		green: [hiru.chipBorder.green, yoru.chipBorder.green],
 		blue: [hiru.chipBorder.blue, yoru.chipBorder.blue],
+	},
+	chipOutlineBorder: {
+		zinc: [hiru.chipOutlineBorder.zinc, yoru.chipOutlineBorder.zinc],
+		red: [hiru.chipOutlineBorder.red, yoru.chipOutlineBorder.red],
+		amber: [hiru.chipOutlineBorder.amber, yoru.chipOutlineBorder.amber],
+		green: [hiru.chipOutlineBorder.green, yoru.chipOutlineBorder.green],
+		blue: [hiru.chipOutlineBorder.blue, yoru.chipOutlineBorder.blue],
+	},
+	chipText: {
+		zinc: [hiru.chipText.zinc, yoru.chipText.zinc],
+		red: [hiru.chipText.red, yoru.chipText.red],
+		amber: [hiru.chipText.amber, yoru.chipText.amber],
+		green: [hiru.chipText.green, yoru.chipText.green],
+		blue: [hiru.chipText.blue, yoru.chipText.blue],
+	},
+	chipPlainHover: {
+		zinc: [hiru.chipPlainHover.zinc, yoru.chipPlainHover.zinc],
+		red: [hiru.chipPlainHover.red, yoru.chipPlainHover.red],
+		amber: [hiru.chipPlainHover.amber, yoru.chipPlainHover.amber],
+		green: [hiru.chipPlainHover.green, yoru.chipPlainHover.green],
+		blue: [hiru.chipPlainHover.blue, yoru.chipPlainHover.blue],
+	},
+	chipSolidActive: {
+		zinc: [hiru.chipSolidActive.zinc, yoru.chipSolidActive.zinc],
+		red: [hiru.chipSolidActive.red, yoru.chipSolidActive.red],
+		amber: [hiru.chipSolidActive.amber, yoru.chipSolidActive.amber],
+		green: [hiru.chipSolidActive.green, yoru.chipSolidActive.green],
+		blue: [hiru.chipSolidActive.blue, yoru.chipSolidActive.blue],
 	},
 	buttonSoft: {
 		zinc: [hiru.buttonSoft.zinc, yoru.buttonSoft.zinc],

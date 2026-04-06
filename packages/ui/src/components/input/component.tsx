@@ -8,15 +8,17 @@ export type InputProps = InputVariants & {
 	className?: string
 } & Omit<React.ComponentPropsWithoutRef<'input'>, 'className'>
 
-export function Input({ className, type, ...props }: InputProps) {
+const outlineControl = 'bg-transparent dark:bg-transparent before:shadow-none'
+
+export function Input({ className, type, variant, ...props }: InputProps) {
 	const isDate = DATE_TYPES.has(type ?? '')
 
 	return (
-		<FormControl>
+		<FormControl className={cn(variant === 'outline' && outlineControl)}>
 			<input
 				data-slot="input"
 				type={type}
-				className={cn(inputVariants(), isDate && inputDateVariants(), className)}
+				className={cn(inputVariants({ variant }), isDate && inputDateVariants(), className)}
 				{...props}
 			/>
 		</FormControl>

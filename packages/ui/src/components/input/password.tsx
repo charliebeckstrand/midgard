@@ -9,15 +9,17 @@ export type PasswordInputProps = InputVariants & {
 	className?: string
 } & Omit<React.ComponentPropsWithoutRef<'input'>, 'className' | 'type'>
 
-export function PasswordInput({ className, ...props }: PasswordInputProps) {
+const outlineControl = 'bg-transparent dark:bg-transparent before:shadow-none'
+
+export function PasswordInput({ className, variant, ...props }: PasswordInputProps) {
 	const [visible, setVisible] = useState(false)
 
 	return (
-		<FormControl className="relative">
+		<FormControl className={cn(variant === 'outline' && outlineControl, 'relative')}>
 			<input
 				data-slot="input"
 				type={visible ? 'text' : 'password'}
-				className={cn(inputVariants(), 'pr-10', className)}
+				className={cn(inputVariants({ variant }), 'pr-10', className)}
 				{...props}
 			/>
 			<button

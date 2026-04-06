@@ -64,10 +64,10 @@ export const katachi = {
 
 	button: {
 		base: [
+			'relative isolate inline-flex items-center justify-center font-semibold',
 			maru.rounded,
 			ki.ring,
 			yasumi.disabled,
-			'relative isolate inline-flex items-center justify-center font-semibold',
 			sawari.cursor,
 			'after:absolute after:inset-0 after:-z-10 after:rounded-[inherit]',
 		],
@@ -123,13 +123,7 @@ export const katachi = {
 		},
 		active: { true: '', false: '' },
 		colorOutline: nuri.chipBorder,
-		colorOutlineOnly: {
-			zinc: 'border-zinc-700 dark:border-zinc-600',
-			red: 'border-red-600 dark:border-red-500',
-			amber: 'border-amber-600 dark:border-amber-600',
-			green: 'border-green-600 dark:border-green-500',
-			blue: 'border-blue-600 dark:border-blue-500',
-		},
+		colorOutlineOnly: nuri.chipOutlineBorder,
 		colorSoft: {
 			zinc: nuri.badgeSoft.zinc,
 			red: nuri.badgeSoft.red,
@@ -144,27 +138,9 @@ export const katachi = {
 			green: nuri.badgeSolid.green,
 			blue: nuri.badgeSolid.blue,
 		},
-		colorText: {
-			zinc: 'text-zinc-700 dark:text-zinc-300',
-			red: 'text-red-700 dark:text-red-400',
-			amber: 'text-amber-700 dark:text-amber-400',
-			green: 'text-green-700 dark:text-green-400',
-			blue: 'text-blue-700 dark:text-blue-400',
-		},
-		colorPlainHover: {
-			zinc: 'hover:bg-zinc-600/10 dark:hover:bg-white/10',
-			red: 'hover:bg-red-600/15 dark:hover:bg-red-500/15',
-			amber: 'hover:bg-amber-600/15 dark:hover:bg-amber-500/15',
-			green: 'hover:bg-green-600/15 dark:hover:bg-green-500/15',
-			blue: 'hover:bg-blue-600/15 dark:hover:bg-blue-500/15',
-		},
-		colorSolidActive: {
-			zinc: 'bg-zinc-600 dark:bg-zinc-500',
-			red: 'bg-red-500 dark:bg-red-400',
-			amber: 'bg-amber-500 dark:bg-amber-500',
-			green: 'bg-green-500 dark:bg-green-400',
-			blue: 'bg-blue-500 dark:bg-blue-400',
-		},
+		colorText: nuri.chipText,
+		colorPlainHover: nuri.chipPlainHover,
+		colorSolidActive: nuri.chipSolidActive,
 		size: take.badge,
 		defaults: {
 			variant: 'outline' as const,
@@ -219,14 +195,14 @@ export const katachi = {
 		base: 'grid grid-cols-1 text-sm/6 sm:grid-cols-[min(50%,--spacing(56))_auto]',
 		term: [
 			sumi.textMuted,
-			'border-zinc-950/5 dark:border-white/5',
+			kage.borderSubtleColor,
 			'col-start-1 border-t pt-3 first:border-none first:pt-0',
 			'sm:py-3 sm:first:pt-0',
 			'font-medium',
 		],
 		details: [
 			sumi.text,
-			'border-zinc-950/5 dark:border-white/5',
+			kage.borderSubtleColor,
 			'pb-3 pt-1',
 			'sm:border-t sm:py-3',
 			'sm:nth-2:border-none sm:nth-2:pt-0',
@@ -296,6 +272,11 @@ export const katachi = {
 
 	input: {
 		base: form.input,
+		variant: {
+			default: [],
+			outline: kage.borderEmphasis,
+		},
+		defaults: { variant: 'default' as const },
 		date: form.date,
 	},
 
@@ -479,20 +460,22 @@ export const katachi = {
 		base: 'w-full text-left text-base/6',
 		head: sumi.textMuted,
 		header: [
-			'border-b px-4 py-2 font-semibold',
-			'border-zinc-950/5 dark:border-white/5',
+			'border-b font-semibold',
+			take.px.md,
+			take.py.md,
+			kage.borderSubtleColor,
 			sumi.textMuted,
 		],
-		row: ['border-b last:border-b-0', 'border-zinc-950/5 dark:border-white/5'],
-		cell: ['px-4 py-2', sumi.text],
-		grid: ['border-l first:border-l-0', 'border-zinc-950/5 dark:border-white/5'],
+		row: ['border-b last:border-b-0', kage.borderSubtleColor],
+		cell: [take.px.md, take.py.md, sumi.text],
+		grid: ['border-l first:border-l-0', kage.borderSubtleColor],
 		striped: nuri.tableStriped,
 	},
 
 	// ─── Tabs ────────────────────────────────────────────
 
 	tabs: {
-		list: ['flex gap-4', 'border-b', 'border-zinc-950/5', 'dark:border-white/5'],
+		list: ['flex gap-4', 'border-b', kage.borderSubtleColor],
 		tab: [
 			...sawari.tab,
 			'relative flex items-center gap-2 px-1 py-3 font-medium',
