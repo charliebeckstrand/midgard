@@ -10,22 +10,20 @@
 
 import { ki } from './ki'
 import { maru } from './maru'
-import { narabi } from './narabi'
 import { sumi } from './sumi'
+import { take } from './take'
+import { yasumi } from './yasumi'
 
 // ── Motoi (基) ──────────────────────────────────────────
 const motoi = {
 	item: [
 		'cursor-default py-2.5 outline-hidden sm:py-1.5',
 		'text-base/6',
-		'data-disabled:opacity-50',
+		yasumi.disabled,
 		'forced-color-adjust-none forced-colors:text-[CanvasText]',
 		'forced-colors:focus:bg-[Highlight] forced-colors:focus:text-[HighlightText]',
 	],
-	nav: [
-		'*:data-[slot=icon]:size-5 *:data-[slot=icon]:shrink-0',
-		'*:data-[slot=avatar]:-m-0.5 *:data-[slot=avatar]:size-7',
-	],
+	nav: [take.iconSlot.md, '*:data-[slot=avatar]:-m-0.5 *:data-[slot=avatar]:size-7'],
 	hover: 'not-disabled:hover:after:bg-[color-mix(in_oklab,currentColor_15%,transparent)]',
 }
 
@@ -61,7 +59,6 @@ export const sawari = {
 	nav,
 	tab: [sumi.textMuted, hiru.tab, yoru.tab],
 	navItem: [...nav, ki.offset],
-	option: [...item, ...narabi.item],
 	cursor: 'cursor-default',
 	hover: motoi.hover,
 	focusText: 'group-focus/option:text-white',

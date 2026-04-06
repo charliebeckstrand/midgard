@@ -17,8 +17,14 @@ export const solid = withHover(paletteSolid, paletteSolidHover, 'group-hover:')
 
 export const outline = withHover(paletteOutline, paletteOutlineHover, 'group-hover:')
 
-// ── Extended (white + dark with group-hover — badge only) ─
+// ── Badge-specific (base + white/dark extended, group-hover) ─
 
-export const extendSoft = withHover(paletteExtend.soft, paletteExtend.softHover, 'group-hover:')
+export const badgeSolid = {
+	...solid,
+	...withHover(paletteExtend.solid, paletteExtend.solidHover, 'group-hover:'),
+}
 
-export const extendSolid = withHover(paletteExtend.solid, paletteExtend.solidHover, 'group-hover:')
+export const badgeSoft = {
+	...soft,
+	...withHover(paletteExtend.soft, paletteExtend.softHover, 'group-hover:'),
+}
