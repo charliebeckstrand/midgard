@@ -281,6 +281,13 @@ function SidebarContent({ route }: { route: string }) {
 				onChange={(id: string) => {
 					window.location.hash = id
 
+					// Scroll the matching sidebar item into view
+					const sidebar = document.querySelector('[data-slot="sidebar"]')
+
+					const item = sidebar?.querySelector<HTMLElement>(`[href="#${id}"]`)
+
+					item?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+
 					offcanvas?.close()
 				}}
 			>
