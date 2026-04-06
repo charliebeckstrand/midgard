@@ -2,7 +2,7 @@ import { Badge } from '../../components/badge'
 
 export const meta = { category: 'Data Display' }
 
-const colors = ['zinc', 'red', 'amber', 'green', 'blue', 'teal'] as const
+const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 
 const sizes = ['sm', 'md', 'lg'] as const
 

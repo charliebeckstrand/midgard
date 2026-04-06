@@ -139,7 +139,6 @@ export const katachi = {
 			blue: nuri.badgeSolid.blue,
 		},
 		colorText: nuri.chipText,
-		colorPlainHover: nuri.chipPlainHover,
 		colorSolidActive: nuri.chipSolidActive,
 		size: take.badge,
 		defaults: {

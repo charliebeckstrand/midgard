@@ -105,6 +105,7 @@ export function Combobox<T>({
 			} else {
 				setQuery('')
 				setEditing(false)
+
 				inputRef.current?.focus()
 			}
 		},
@@ -177,7 +178,7 @@ export function Combobox<T>({
 								}}
 							>
 								{rendered}
-								<output className={cn('hidden text-sm p-2 only:block', sumi.textMuted)}>
+								<output className={cn('hidden p-2 text-sm only:block', sumi.textMuted)}>
 									No results
 								</output>
 							</PopoverPanel>

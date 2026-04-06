@@ -40,7 +40,6 @@ export const chipVariants = cva(k.base, {
 		...chipColors('outline', true, k.colorOutlineOnly),
 		// plain → colored text + hover bg, active → soft tint
 		...chipColors('plain', false, k.colorText),
-		...chipColors('plain', false, k.colorPlainHover),
 		...chipColors('plain', true, k.colorSoft),
 	],
 	defaultVariants: k.defaults,

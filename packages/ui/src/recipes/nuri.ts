@@ -87,10 +87,9 @@ const hiru = {
 
 	badgeSoft: {
 		red: ['bg-red-600/15 text-red-700', 'group-hover:bg-red-600/25'],
-		amber: ['bg-amber-600/15 text-amber-700', 'group-hover:bg-amber-600/25'],
+		amber: ['bg-amber-500/15 text-amber-700', 'group-hover:bg-amber-500/20'],
 		green: ['bg-green-600/15 text-green-700', 'group-hover:bg-green-600/25'],
 		blue: ['bg-blue-600/15 text-blue-700', 'group-hover:bg-blue-600/25'],
-		teal: ['bg-teal-600/15 text-teal-700', 'group-hover:bg-teal-600/25'],
 		zinc: ['bg-zinc-600/10 text-zinc-700', 'group-hover:bg-zinc-600/20'],
 		white: ['bg-white text-zinc-950', 'group-hover:bg-zinc-50'],
 		dark: ['bg-zinc-950/10 text-zinc-700', 'group-hover:bg-zinc-950/15'],
@@ -98,10 +97,9 @@ const hiru = {
 
 	badgeSolid: {
 		red: ['bg-red-600 text-white', 'group-hover:bg-red-700'],
-		amber: ['bg-amber-600 text-amber-950', 'group-hover:bg-amber-700'],
+		amber: ['bg-amber-500 text-amber-950', 'group-hover:bg-amber-600'],
 		green: ['bg-green-600 text-white', 'group-hover:bg-green-700'],
 		blue: ['bg-blue-600 text-white', 'group-hover:bg-blue-700'],
-		teal: ['bg-teal-600 text-white', 'group-hover:bg-teal-700'],
 		zinc: ['bg-zinc-700 text-white', 'group-hover:bg-zinc-800'],
 		white: ['bg-white text-zinc-950', 'group-hover:bg-zinc-100'],
 		dark: ['bg-zinc-950 text-white', 'group-hover:bg-zinc-800'],
@@ -112,7 +110,7 @@ const hiru = {
 		white: 'bg-white text-zinc-950 not-disabled:hover:bg-zinc-50',
 		dark: 'bg-zinc-950/10 text-zinc-700 not-disabled:hover:bg-zinc-950/15',
 		red: 'bg-red-600/15 text-red-700 not-disabled:hover:bg-red-600/25',
-		amber: 'bg-amber-600/15 text-amber-700 not-disabled:hover:bg-amber-600/25',
+		amber: 'bg-amber-500/15 text-amber-700 not-disabled:hover:bg-amber-500/20',
 		green: 'bg-green-600/15 text-green-700 not-disabled:hover:bg-green-600/25',
 		blue: 'bg-blue-600/15 text-blue-700 not-disabled:hover:bg-blue-600/25',
 	},
@@ -128,7 +126,7 @@ const hiru = {
 	chipOutlineBorder: {
 		zinc: 'border-zinc-700',
 		red: 'border-red-600',
-		amber: 'border-amber-600',
+		amber: 'border-amber-500',
 		green: 'border-green-600',
 		blue: 'border-blue-600',
 	},
@@ -141,18 +139,10 @@ const hiru = {
 		blue: 'text-blue-700',
 	},
 
-	chipPlainHover: {
-		zinc: 'hover:bg-zinc-600/10',
-		red: 'hover:bg-red-600/15',
-		amber: 'hover:bg-amber-600/15',
-		green: 'hover:bg-green-600/15',
-		blue: 'hover:bg-blue-600/15',
-	},
-
 	chipSolidActive: {
 		zinc: 'bg-zinc-600',
 		red: 'bg-red-500',
-		amber: 'bg-amber-500',
+		amber: 'bg-amber-400',
 		green: 'bg-green-500',
 		blue: 'bg-blue-500',
 	},
@@ -209,7 +199,6 @@ const yoru = {
 		amber: ['dark:bg-amber-500/15 dark:text-amber-400', 'dark:group-hover:bg-amber-500/25'],
 		green: ['dark:bg-green-500/15 dark:text-green-400', 'dark:group-hover:bg-green-500/25'],
 		blue: ['dark:bg-blue-500/15 dark:text-blue-400', 'dark:group-hover:bg-blue-500/25'],
-		teal: ['dark:bg-teal-500/15 dark:text-teal-400', 'dark:group-hover:bg-teal-500/25'],
 		zinc: ['dark:bg-white/10 dark:text-zinc-300', 'dark:group-hover:bg-white/15'],
 		white: ['dark:bg-white/10 dark:text-white', 'dark:group-hover:bg-white/15'],
 		dark: ['dark:bg-white/10 dark:text-zinc-300', 'dark:group-hover:bg-white/15'],
@@ -219,7 +208,6 @@ const yoru = {
 		red: ['dark:bg-red-500', 'dark:group-hover:bg-red-600'],
 		green: ['dark:bg-green-500', 'dark:group-hover:bg-green-600'],
 		blue: ['dark:bg-blue-500', 'dark:group-hover:bg-blue-600'],
-		teal: ['dark:bg-teal-500', 'dark:group-hover:bg-teal-600'],
 		zinc: ['dark:bg-zinc-600', 'dark:group-hover:bg-zinc-500'],
 		white: ['dark:bg-zinc-200 dark:text-zinc-950', 'dark:group-hover:bg-zinc-300'],
 		dark: ['dark:bg-white dark:text-zinc-950', 'dark:group-hover:bg-zinc-200'],
@@ -234,6 +222,7 @@ const yoru = {
 		green: 'dark:bg-green-500/15 dark:text-green-400 dark:not-disabled:hover:bg-green-500/25',
 		blue: 'dark:bg-blue-500/15 dark:text-blue-400 dark:not-disabled:hover:bg-blue-500/25',
 	},
+
 	chipBorder: {
 		zinc: 'dark:border-zinc-600 dark:text-zinc-300',
 		red: 'dark:border-red-700 dark:text-red-400',
@@ -245,7 +234,7 @@ const yoru = {
 	chipOutlineBorder: {
 		zinc: 'dark:border-zinc-600',
 		red: 'dark:border-red-500',
-		amber: 'dark:border-amber-600',
+		amber: 'dark:border-amber-500',
 		green: 'dark:border-green-500',
 		blue: 'dark:border-blue-500',
 	},
@@ -258,31 +247,29 @@ const yoru = {
 		blue: 'dark:text-blue-400',
 	},
 
-	chipPlainHover: {
-		zinc: 'dark:hover:bg-white/10',
-		red: 'dark:hover:bg-red-500/15',
-		amber: 'dark:hover:bg-amber-500/15',
-		green: 'dark:hover:bg-green-500/15',
-		blue: 'dark:hover:bg-blue-500/15',
-	},
-
 	chipSolidActive: {
 		zinc: 'dark:bg-zinc-500',
 		red: 'dark:bg-red-400',
-		amber: 'dark:bg-amber-500',
+		amber: 'dark:bg-amber-400',
 		green: 'dark:bg-green-400',
 		blue: 'dark:bg-blue-400',
 	},
 
 	avatar: 'dark:bg-zinc-700',
+
 	buttonSolid: [
 		'dark:[--btn-hover:color-mix(in_oklab,white_10%,transparent)]',
 		'dark:border-white/5',
 	],
+
 	switchTrack: 'dark:bg-white/10 dark:ring-white/15',
+
 	switchHover: 'dark:not-disabled:not-checked:hover:bg-white/15',
+
 	sidebarLabel: 'dark:group-data-[current]:text-white',
+
 	tableStriped: 'dark:*:odd:bg-white/2.5',
+
 	tabIndicator: 'dark:bg-white',
 }
 
@@ -334,7 +321,6 @@ export const nuri = {
 		amber: [...hiru.badgeSoft.amber, ...yoru.badgeSoft.amber],
 		green: [...hiru.badgeSoft.green, ...yoru.badgeSoft.green],
 		blue: [...hiru.badgeSoft.blue, ...yoru.badgeSoft.blue],
-		teal: [...hiru.badgeSoft.teal, ...yoru.badgeSoft.teal],
 		zinc: [...hiru.badgeSoft.zinc, ...yoru.badgeSoft.zinc],
 		white: [...hiru.badgeSoft.white, ...yoru.badgeSoft.white],
 		dark: [...hiru.badgeSoft.dark, ...yoru.badgeSoft.dark],
@@ -345,7 +331,6 @@ export const nuri = {
 		amber: hiru.badgeSolid.amber,
 		green: [...hiru.badgeSolid.green, ...yoru.badgeSolid.green],
 		blue: [...hiru.badgeSolid.blue, ...yoru.badgeSolid.blue],
-		teal: [...hiru.badgeSolid.teal, ...yoru.badgeSolid.teal],
 		zinc: [...hiru.badgeSolid.zinc, ...yoru.badgeSolid.zinc],
 		white: [...hiru.badgeSolid.white, ...yoru.badgeSolid.white],
 		dark: [...hiru.badgeSolid.dark, ...yoru.badgeSolid.dark],
@@ -373,13 +358,6 @@ export const nuri = {
 		amber: [hiru.chipText.amber, yoru.chipText.amber],
 		green: [hiru.chipText.green, yoru.chipText.green],
 		blue: [hiru.chipText.blue, yoru.chipText.blue],
-	},
-	chipPlainHover: {
-		zinc: [hiru.chipPlainHover.zinc, yoru.chipPlainHover.zinc],
-		red: [hiru.chipPlainHover.red, yoru.chipPlainHover.red],
-		amber: [hiru.chipPlainHover.amber, yoru.chipPlainHover.amber],
-		green: [hiru.chipPlainHover.green, yoru.chipPlainHover.green],
-		blue: [hiru.chipPlainHover.blue, yoru.chipPlainHover.blue],
 	},
 	chipSolidActive: {
 		zinc: [hiru.chipSolidActive.zinc, yoru.chipSolidActive.zinc],
