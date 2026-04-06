@@ -45,6 +45,26 @@ export const softHover: HoverMap<Color> = {
 	blue: { light: 'bg-blue-600/25', dark: 'bg-blue-500/25' },
 }
 
+// ── Outline ─────────────────────────────────────────────
+
+const outlineBorder = defineColors({
+	zinc: { light: 'border-zinc-300', dark: 'dark:border-zinc-600' },
+	red: { light: 'border-red-300', dark: 'dark:border-red-700' },
+	amber: { light: 'border-amber-300', dark: 'dark:border-amber-700' },
+	green: { light: 'border-green-300', dark: 'dark:border-green-700' },
+	blue: { light: 'border-blue-300', dark: 'dark:border-blue-700' },
+})
+
+export const outline = merge(outlineBorder, text)
+
+export const outlineHover: HoverMap<Color> = {
+	zinc: { light: 'bg-zinc-600/10', dark: 'bg-white/10' },
+	red: { light: 'bg-red-600/10', dark: 'bg-red-500/10' },
+	amber: { light: 'bg-amber-500/10', dark: 'bg-amber-500/10' },
+	green: { light: 'bg-green-600/10', dark: 'bg-green-500/10' },
+	blue: { light: 'bg-blue-600/10', dark: 'bg-blue-500/10' },
+}
+
 // ── Solid ────────────────────────────────────────────────
 
 const solidBg = defineColors({

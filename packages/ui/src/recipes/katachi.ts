@@ -51,11 +51,15 @@ export const katachi = {
 	badge: {
 		base: 'group inline-flex items-center font-medium',
 		variant: {
-			solid: maru.roundedMd,
-			soft: maru.roundedMd,
+			solid: {
+				base: maru.roundedMd,
+				color: { ...nuri.solid, ...nuri.extend.solid },
+			},
+			soft: {
+				base: maru.roundedMd,
+				color: { ...nuri.soft, ...nuri.extend.soft },
+			},
 		},
-		colorSolid: { ...nuri.solid, ...nuri.extend.solid },
-		colorSoft: { ...nuri.soft, ...nuri.extend.soft },
 		size: take.badge,
 		defaults: { variant: 'soft' as const, color: 'zinc' as const, size: 'md' as const },
 	},
@@ -72,23 +76,34 @@ export const katachi = {
 			'after:absolute after:inset-0 after:-z-10 after:rounded-[inherit]',
 		],
 		variant: {
-			solid: [
-				'border border-transparent',
-				'bg-[var(--btn-bg)]',
-				'border-[var(--btn-border)]',
-				kage.shadow,
-				nuri.buttonSolid,
-				'not-disabled:hover:after:bg-[var(--btn-hover)]',
-				'disabled:shadow-none',
-				'*:data-[slot=icon]:text-[var(--btn-icon)]',
-			],
-			soft: ['border border-transparent', sumi.fillIcon],
-			outline: [kage.borderStrong, sumi.text, omote.surface, sawari.hoverSubtle, sumi.fillIcon],
-			plain: ['border border-transparent', sumi.text, sawari.hover, sumi.fillIcon],
-			ghost: ['border border-transparent', sumi.text, sumi.fillIcon],
+			solid: {
+				base: [
+					'border border-transparent',
+					'bg-[var(--btn-bg)]',
+					'border-[var(--btn-border)]',
+					kage.shadow,
+					nuri.buttonSolidBase,
+					'not-disabled:hover:after:bg-[var(--btn-hover)]',
+					'disabled:shadow-none',
+					'*:data-[slot=icon]:text-[var(--btn-icon)]',
+				],
+				color: nuri.buttonSolid,
+			},
+			soft: {
+				base: ['border border-transparent', sumi.fillIcon],
+				color: nuri.buttonSoft,
+			},
+			outline: {
+				base: [kage.borderStrong, sumi.text, omote.surface, sumi.fillIcon],
+				color: nuri.buttonOutline,
+			},
+			plain: {
+				base: ['border border-transparent', sumi.text, sawari.hover, sumi.fillIcon],
+			},
+			ghost: {
+				base: ['border border-transparent', sumi.text, sumi.fillIcon],
+			},
 		},
-		colorSolid: nuri.button,
-		colorSoft: nuri.buttonSoft,
 		size: take.button,
 		iconOnly: take.buttonIcon,
 		iconOnlyBase: 'p-0 gap-0',
@@ -117,17 +132,27 @@ export const katachi = {
 			ki.ring,
 		],
 		variant: {
-			solid: 'border border-transparent',
-			soft: 'border border-transparent',
-			outline: 'border',
-			plain: 'border border-transparent',
+			solid: {
+				base: 'border border-transparent',
+				color: nuri.solid,
+				active: nuri.chipSolidActive,
+			},
+			soft: {
+				base: 'border border-transparent',
+				color: nuri.soft,
+				active: nuri.solid,
+			},
+			outline: {
+				base: 'border',
+				color: nuri.outline,
+				active: nuri.solid,
+			},
+			plain: {
+				base: 'border border-transparent',
+				color: nuri.text,
+				active: nuri.soft,
+			},
 		},
-		active: { true: '', false: '' },
-		colorOutline: nuri.outline,
-		colorSoft: nuri.soft,
-		colorSolid: nuri.solid,
-		colorText: nuri.text,
-		colorSolidActive: nuri.chipSolidActive,
 		size: take.badge,
 		defaults: {
 			variant: 'outline' as const,
