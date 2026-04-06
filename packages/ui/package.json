@@ -23,6 +23,10 @@
 			"types": "./src/components/avatar/index.ts",
 			"default": "./src/components/avatar/index.ts"
 		},
+		"./breadcrumb": {
+			"types": "./src/components/breadcrumb/index.ts",
+			"default": "./src/components/breadcrumb/index.ts"
+		},
 		"./badge": {
 			"types": "./src/components/badge/index.ts",
 			"default": "./src/components/badge/index.ts"

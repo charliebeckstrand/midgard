@@ -69,7 +69,18 @@ export default function ButtonDemo() {
 				</div>
 			</div>
 			<div className="space-y-3">
-				<p className="text-sm font-medium text-zinc-500">Icon</p>
+				<p className="text-sm font-medium text-zinc-500">With icon</p>
+				<div className="flex flex-wrap gap-2">
+					{variants.map((variant) => (
+						<Button key={variant} variant={variant}>
+							<PlusIcon />
+							{variant}
+						</Button>
+					))}
+				</div>
+			</div>
+			<div className="space-y-3">
+				<p className="text-sm font-medium text-zinc-500">Icon only</p>
 				<div className="flex flex-wrap gap-2">
 					{variants.map((variant) => (
 						<Button key={variant} variant={variant}>

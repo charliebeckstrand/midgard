@@ -53,6 +53,34 @@ export const katachi = {
 		button: [ki.offset, 'relative', sawari.cursor, maru.roundedFull],
 	},
 
+	// ─── Breadcrumb ─────────────────────────────────────
+
+	breadcrumb: {
+		base: '',
+		list: 'flex flex-wrap items-center gap-1.5 break-words text-sm/5',
+		item: {
+			base: 'inline-flex items-center gap-1.5',
+			current: {
+				true: [sumi.text, 'font-normal'],
+				false: [],
+			},
+			defaults: { current: false as const },
+		},
+		link: {
+			base: '',
+			current: {
+				true: [sumi.text, 'font-normal'],
+				false: [
+					sumi.textMuted,
+					sawari.cursor,
+					'transition-colors hover:text-zinc-950 dark:hover:text-white',
+				],
+			},
+			defaults: { current: false as const },
+		},
+		separator: [sumi.textMuted, '[&>svg]:size-3.5'],
+	},
+
 	// ─── Badge ───────────────────────────────────────────
 
 	badge: {
@@ -109,6 +137,7 @@ export const katachi = {
 			},
 		},
 		size: take.button,
+		withIcon: take.buttonWithIcon,
 		iconOnly: take.buttonIcon,
 		iconOnlyBase: 'p-0 gap-0',
 		defaults: { variant: 'solid' as const, color: 'zinc' as const, size: 'md' as const },

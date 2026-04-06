@@ -25,19 +25,20 @@ const motoi = {
 }
 
 // Icon slot — applies sizing to data-slot="icon" children
+// Uses static strings (not template literals) so Tailwind's scanner can detect them.
 const iconSlot = {
-	sm: `*:data-[slot=icon]:${motoi.icon.sm} *:data-[slot=icon]:shrink-0`,
-	md: `*:data-[slot=icon]:${motoi.icon.md} *:data-[slot=icon]:shrink-0`,
-	lg: `*:data-[slot=icon]:${motoi.icon.lg} *:data-[slot=icon]:shrink-0`,
+	sm: '*:data-[slot=icon]:size-4 *:data-[slot=icon]:shrink-0',
+	md: '*:data-[slot=icon]:size-5 *:data-[slot=icon]:shrink-0',
+	lg: '*:data-[slot=icon]:size-5 *:data-[slot=icon]:shrink-0',
 }
 
 // Compact density — shared by badge and chip (same form factor).
 // The md step intentionally diverges from motoi — tighter text size
 // (xs/5 vs sm/5), narrower gap (1.5 vs 1), and smaller icon (3.5 vs 5).
 const compact = {
-	sm: ['px-1.5 py-0.5', motoi.gap.sm, motoi.text.sm, `*:data-[slot=icon]:${motoi.icon.sm}`],
+	sm: ['px-1.5 py-0.5', motoi.gap.sm, motoi.text.sm, '*:data-[slot=icon]:size-4'],
 	md: ['px-2 py-0.5', 'gap-x-1.5', 'text-xs/5', '*:data-[slot=icon]:size-3.5'],
-	lg: ['px-2.5 py-1', 'gap-x-1.5', motoi.text.md, `*:data-[slot=icon]:${motoi.icon.sm}`],
+	lg: ['px-2.5 py-1', 'gap-x-1.5', motoi.text.md, '*:data-[slot=icon]:size-4'],
 } as const
 
 // ── Export ───────────────────────────────────────────────
@@ -68,6 +69,13 @@ export const take = {
 			motoi.text.lg,
 			iconSlot.lg,
 		],
+	},
+
+	// Extra trailing padding for buttons with icon + text (balances visual icon weight).
+	buttonWithIcon: {
+		sm: 'pr-[calc(--spacing(3)-1px)]',
+		md: 'pr-[calc(--spacing(4)-1px)]',
+		lg: 'pr-[calc(--spacing(6)-1px)]',
 	},
 
 	// Icon-only button dimensions (touch target slightly larger than text button)

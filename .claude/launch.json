@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "docs",
+      "runtimeExecutable": "/bin/sh",
+      "runtimeArgs": ["-c", "export PATH=/opt/homebrew/bin:$PATH && pnpm --filter ui docs"],
+      "port": 3456
+    }
+  ]
+}

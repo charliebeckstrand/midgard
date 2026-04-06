@@ -25,6 +25,11 @@ export const buttonVariants = cva(k.base, {
 	defaultVariants: k.defaults,
 })
 
+export const withIconSize = cva('', {
+	variants: { size: k.withIcon },
+	defaultVariants: { size: 'md' },
+})
+
 export const iconOnlySize = cva(k.iconOnlyBase, {
 	variants: { size: k.iconOnly },
 	defaultVariants: { size: 'md' },

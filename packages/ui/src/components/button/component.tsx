@@ -4,7 +4,7 @@ import { type HTMLMotionProps, motion } from 'motion/react'
 import { Children, isValidElement } from 'react'
 import { cn, Link } from '../../core'
 import { type PolymorphicProps, TouchTarget, tapFeedback } from '../../primitives'
-import { type ButtonVariants, buttonVariants, iconOnlySize } from './variants'
+import { type ButtonVariants, buttonVariants, iconOnlySize, withIconSize } from './variants'
 
 const MotionLink = motion.create(Link)
 
@@ -13,6 +13,13 @@ function isIconOnly(children: React.ReactNode): boolean {
 	const arr = Children.toArray(children)
 
 	return arr.length === 1 && isValidElement(arr[0])
+}
+
+/** Multiple children with at least one React element — icon + text */
+function hasIcon(children: React.ReactNode): boolean {
+	const arr = Children.toArray(children)
+
+	return arr.length > 1 && arr.some(isValidElement)
 }
 
 type ButtonBaseProps = ButtonVariants & {
@@ -27,6 +34,7 @@ export function Button({ variant, color, size, className, children, href, ...pro
 	const classes = cn(
 		buttonVariants({ variant, color, size }),
 		iconOnly && iconOnlySize({ size }),
+		!iconOnly && hasIcon(children) && withIconSize({ size }),
 		className,
 	)
 
