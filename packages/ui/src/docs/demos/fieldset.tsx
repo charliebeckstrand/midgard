@@ -1,6 +1,6 @@
 import { Description, Field, Fieldset, Label, Legend } from '../../components/fieldset'
 import { Input } from '../../components/input'
-import { Select } from '../../components/select'
+import { Select, SelectLabel, SelectOption } from '../../components/select'
 import { Textarea } from '../../components/textarea'
 import { Example } from '../example'
 
@@ -11,7 +11,7 @@ export default function FieldsetDemo() {
 		<Example
 			code={`import { Description, Field, Fieldset, Label, Legend } from 'ui/fieldset'
 import { Input } from 'ui/input'
-import { Select } from 'ui/select'
+import { Select, SelectLabel, SelectOption } from 'ui/select'
 import { Textarea } from 'ui/textarea'
 
 <Fieldset>
@@ -27,10 +27,16 @@ import { Textarea } from 'ui/textarea'
   </Field>
   <Field>
     <Label>Country</Label>
-    <Select>
-      <option>United States</option>
-      <option>Canada</option>
-      <option>United Kingdom</option>
+    <Select placeholder="Select a country…" displayValue={(v) => v}>
+      <SelectOption value="United States">
+        <SelectLabel>United States</SelectLabel>
+      </SelectOption>
+      <SelectOption value="Canada">
+        <SelectLabel>Canada</SelectLabel>
+      </SelectOption>
+      <SelectOption value="United Kingdom">
+        <SelectLabel>United Kingdom</SelectLabel>
+      </SelectOption>
     </Select>
   </Field>
   <Field>
@@ -52,11 +58,17 @@ import { Textarea } from 'ui/textarea'
 						<Input id="fieldset-email" type="email" placeholder="jane@example.com" />
 					</Field>
 					<Field>
-						<Label htmlFor="fieldset-country">Country</Label>
-						<Select id="fieldset-country">
-							<option>United States</option>
-							<option>Canada</option>
-							<option>United Kingdom</option>
+						<Label>Country</Label>
+						<Select placeholder="Select a country…" displayValue={(v: string) => v}>
+							<SelectOption value="United States">
+								<SelectLabel>United States</SelectLabel>
+							</SelectOption>
+							<SelectOption value="Canada">
+								<SelectLabel>Canada</SelectLabel>
+							</SelectOption>
+							<SelectOption value="United Kingdom">
+								<SelectLabel>United Kingdom</SelectLabel>
+							</SelectOption>
 						</Select>
 					</Field>
 					<Field>

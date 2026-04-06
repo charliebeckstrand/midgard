@@ -10,7 +10,6 @@ export type BaseOptionProps = {
 	children?: React.ReactNode
 	selected: boolean
 	disabled?: boolean
-	muted?: boolean
 	checkPosition: 'start' | 'end'
 	onSelect: () => void
 } & Omit<React.ComponentPropsWithoutRef<'div'>, 'className' | 'onSelect'>
@@ -21,7 +20,6 @@ export function BaseOption({
 	className,
 	selected,
 	disabled,
-	muted,
 	checkPosition,
 	onSelect,
 	...props
@@ -44,7 +42,7 @@ export function BaseOption({
 					if (!disabled) onSelect()
 				}
 			}}
-			className={cn(k.base, isStart ? k.start : k.end, muted && 'text-zinc-500 dark:text-zinc-400')}
+			className={cn(k.base, isStart ? k.start : k.end)}
 			{...props}
 		>
 			{isStart && (
@@ -61,7 +59,7 @@ export function BaseOption({
 /** Shared label for Listbox and Combobox options */
 export function OptionLabel({ className, ...props }: React.ComponentPropsWithoutRef<'span'>) {
 	return (
-		<span {...props} className={cn(k.label, 'group-data-selected/option:font-medium', className)} />
+		<span {...props} className={cn(k.label, 'group-data-selected/option:font-bold', className)} />
 	)
 }
 

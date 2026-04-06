@@ -1,5 +1,5 @@
 import { Field, Label } from '../../components/fieldset'
-import { Select } from '../../components/select'
+import { Select, SelectLabel, SelectOption } from '../../components/select'
 import { Example } from '../example'
 
 export const meta = { category: 'Forms' }
@@ -10,46 +10,38 @@ export default function SelectDemo() {
 			<Example
 				title="Default"
 				code={`import { Field, Label } from 'ui/fieldset'
-import { Select } from 'ui/select'
+import { Select, SelectLabel, SelectOption } from 'ui/select'
 
 <Field className="max-w-sm">
 	<Label>Country</Label>
-	<Select>
-		<option value="" disabled selected>Select a country…</option>
-		<option>United States</option>
-		<option>Canada</option>
+	<Select placeholder="Select a country…" displayValue={(v) => v}>
+		<SelectOption value="United States">
+			<SelectLabel>United States</SelectLabel>
+		</SelectOption>
+		<SelectOption value="Canada">
+			<SelectLabel>Canada</SelectLabel>
+		</SelectOption>
+		<SelectOption value="United Kingdom">
+			<SelectLabel>United Kingdom</SelectLabel>
+		</SelectOption>
 	</Select>
 </Field>`}
 			>
 				<Field className="max-w-sm">
-					<Label htmlFor="select-country">Country</Label>
-					<Select id="select-country">
-						<option value="" disabled selected>
-							Select a country…
-						</option>
-						<option>United States</option>
-						<option>Canada</option>
-						<option>United Kingdom</option>
-						<option>Australia</option>
-					</Select>
-				</Field>
-			</Example>
-			<Example
-				title="Disabled"
-				code={`import { Field, Label } from 'ui/fieldset'
-import { Select } from 'ui/select'
-
-<Field className="max-w-sm">
-	<Label>Disabled</Label>
-	<Select disabled>
-		<option>Cannot change</option>
-	</Select>
-</Field>`}
-			>
-				<Field className="max-w-sm">
-					<Label htmlFor="select-disabled">Disabled</Label>
-					<Select id="select-disabled" disabled>
-						<option>Cannot change</option>
+					<Label>Country</Label>
+					<Select placeholder="Select a country…" displayValue={(v: string) => v}>
+						<SelectOption value="United States">
+							<SelectLabel>United States</SelectLabel>
+						</SelectOption>
+						<SelectOption value="Canada">
+							<SelectLabel>Canada</SelectLabel>
+						</SelectOption>
+						<SelectOption value="United Kingdom">
+							<SelectLabel>United Kingdom</SelectLabel>
+						</SelectOption>
+						<SelectOption value="Australia">
+							<SelectLabel>Australia</SelectLabel>
+						</SelectOption>
 					</Select>
 				</Field>
 			</Example>

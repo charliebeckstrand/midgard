@@ -1,2 +1,16 @@
 export { Select, type SelectProps } from './component'
-export { type SelectVariants, selectVariants } from './variants'
+export {
+	SelectDescription,
+	type SelectDescriptionComponentProps,
+	SelectLabel,
+	type SelectLabelComponentProps,
+	SelectOption,
+	type SelectOptionComponentProps,
+} from './option'
+export {
+	selectButtonVariants,
+	selectChevronVariants,
+	selectOptionsVariants,
+	selectOptionVariants,
+	selectValueVariants,
+} from './variants'
