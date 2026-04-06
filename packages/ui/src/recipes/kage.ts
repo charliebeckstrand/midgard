@@ -31,6 +31,7 @@ const yoru = {
 	borderEmphasis: 'dark:border-white/20',
 	borderSubtle: 'dark:border-white/5',
 	ring: 'dark:ring-white/10',
+	ringStrong: 'dark:ring-white/15',
 	ringSubtle: 'dark:ring-white/10',
 }
 
@@ -42,6 +43,7 @@ export const kage = {
 	borderSubtle: [motoi.border, hiru.borderSubtle, yoru.borderSubtle],
 	borderSubtleColor: [hiru.borderSubtle, yoru.borderSubtle],
 	ring: [motoi.ring, hiru.ring, yoru.ring],
+	ringInset: [motoi.ring, 'ring-inset', hiru.ringSubtle, yoru.ringStrong],
 	ringSubtle: [motoi.ring, hiru.ringSubtle, yoru.ringSubtle],
 	separator: [motoi.separator, hiru.borderSubtle, yoru.borderSubtle],
 	shadow: motoi.shadow,

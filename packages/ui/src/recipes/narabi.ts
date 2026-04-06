@@ -9,6 +9,7 @@
  */
 
 import { sumi } from './sumi'
+import { take } from './take'
 
 // ── Motoi (基) ──────────────────────────────────────────
 export const narabi = {
@@ -53,7 +54,7 @@ export const narabi = {
 
 	item: [
 		sumi.textIcon,
-		'*:data-[slot=icon]:size-5 *:data-[slot=icon]:shrink-0',
+		take.iconSlot.md,
 		'*:data-[slot=avatar]:-mx-0.5 *:data-[slot=avatar]:size-6',
 		'forced-colors:*:data-[slot=icon]:text-[CanvasText]',
 	],

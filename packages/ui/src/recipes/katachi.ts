@@ -165,7 +165,7 @@ export const katachi = {
 		input: [...form.inputBase, maru.rounded, take.control.md, 'pr-8 pl-3'],
 		chevron: 'absolute inset-y-0 right-0 flex items-center pr-2',
 		options: 'max-h-60',
-		option: sawari.option,
+		option: [...sawari.item, ...narabi.item],
 	},
 
 	// ─── Dialog ──────────────────────────────────────────
@@ -224,7 +224,8 @@ export const katachi = {
 		menu: 'w-max min-w-48 max-h-60',
 		item: [
 			'group/option flex w-full items-center gap-3 px-3.5 py-2.5 sm:px-3 sm:py-1.5',
-			sawari.option,
+			...sawari.item,
+			...narabi.item,
 		],
 		section: 'first:pt-0 last:pb-0',
 		heading: [sumi.textMuted, 'px-3.5 pb-1 pt-2 text-xs/5 font-medium sm:px-3'],
@@ -302,7 +303,7 @@ export const katachi = {
 		options: 'max-h-60',
 		value: 'block truncate',
 		chevron: 'pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2',
-		option: sawari.option,
+		option: [...sawari.item, ...narabi.item],
 	},
 
 	// ─── Navbar ──────────────────────────────────────────
