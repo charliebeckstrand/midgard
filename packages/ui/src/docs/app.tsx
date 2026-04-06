@@ -16,6 +16,7 @@ import {
 } from '../components/sidebar'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/table'
 import { Tab, TabGroup, TabList } from '../components/tabs'
+import { useOffcanvas } from '../core/offcanvas-context'
 import { SidebarLayout } from '../layouts'
 import { MoonIcon, SunIcon } from '../primitives'
 import { CodeBlock } from './code-block'
@@ -264,6 +265,53 @@ function useDarkMode() {
 	return [dark, toggle] as const
 }
 
+function SidebarContent({ route }: { route: string }) {
+	const offcanvas = useOffcanvas()
+
+	return (
+		<Sidebar>
+			<SidebarHeader className="">
+				<SidebarItem href="#">
+					<SidebarLabel className="font-semibold">UI Components</SidebarLabel>
+				</SidebarItem>
+			</SidebarHeader>
+			<Combobox
+				placeholder="Search components"
+				selectable={false}
+				onChange={(id: string) => {
+					window.location.hash = id
+
+					offcanvas?.close()
+				}}
+			>
+				{(query) => {
+					const q = query.toLowerCase()
+
+					return demos
+						.filter((d) => !q || d.name.toLowerCase().includes(q))
+						.map((d) => (
+							<ComboboxOption key={d.id} value={d.id}>
+								{d.name}
+							</ComboboxOption>
+						))
+				}}
+			</Combobox>
+			<SidebarBody>
+				{sortedCategories.map(([category, items]) => (
+					<SidebarSection key={category}>
+						<span className="px-2 text-xs/6 font-medium text-zinc-500">{category}</span>
+						{items.map((demo) => (
+							<SidebarItem key={demo.id} href={`#${demo.id}`} current={route === demo.id}>
+								<SidebarLabel>{demo.name}</SidebarLabel>
+							</SidebarItem>
+						))}
+					</SidebarSection>
+				))}
+			</SidebarBody>
+		</Sidebar>
+	)
+}
+
 export function App() {
 	const route = useHash()
 
@@ -286,46 +334,7 @@ export function App() {
 					</Button>
 				</Navbar>
 			}
-			sidebar={
-				<Sidebar>
-					<SidebarHeader className="">
-						<SidebarItem href="#">
-							<SidebarLabel className="font-semibold">UI Components</SidebarLabel>
-						</SidebarItem>
-					</SidebarHeader>
-					<Combobox
-						placeholder="Search components"
-						selectable={false}
-						onChange={(id: string) => {
-							window.location.hash = id
-						}}
-					>
-						{(query) => {
-							const q = query.toLowerCase()
-
-							return demos
-								.filter((d) => !q || d.name.toLowerCase().includes(q))
-								.map((d) => (
-									<ComboboxOption key={d.id} value={d.id}>
-										{d.name}
-									</ComboboxOption>
-								))
-						}}
-					</Combobox>
-					<SidebarBody>
-						{sortedCategories.map(([category, items]) => (
-							<SidebarSection key={category}>
-								<span className="px-2 text-xs/6 font-medium text-zinc-500">{category}</span>
-								{items.map((demo) => (
-									<SidebarItem key={demo.id} href={`#${demo.id}`} current={route === demo.id}>
-										<SidebarLabel>{demo.name}</SidebarLabel>
-									</SidebarItem>
-								))}
-							</SidebarSection>
-						))}
-					</SidebarBody>
-				</Sidebar>
-			}
+			sidebar={<SidebarContent route={route} />}
 		>
 			{current ? (
 				<DemoPage key={current.id} demo={current} />
