@@ -8,11 +8,11 @@
  * Concern: color
  */
 
-import { extendSoft, extendSolid, soft, solid } from './badge'
+import { extendSoft, extendSolid, outline, soft, solid } from './badge'
 import { buttonGhost, buttonOutline, buttonPlain, buttonSoft, buttonSolid } from './button'
 import { checkbox } from './checkbox'
 import { chipOutlineActive } from './chip'
-import { outline, text } from './palette'
+import { text } from './palette'
 import { radio } from './radio'
 import { switchColor } from './switch'
 import {

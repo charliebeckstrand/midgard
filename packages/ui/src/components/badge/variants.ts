@@ -9,7 +9,7 @@ type ColorMap = Record<string, string | string[]>
 
 const variantBase = Object.fromEntries(
 	Object.entries(k.variant).map(([key, { base }]) => [key, base]),
-) as Record<Variant, string>
+) as unknown as Record<Variant, string | string[]>
 
 function badgeCompoundColors() {
 	return (Object.keys(k.variant) as Variant[]).flatMap((variant) => {

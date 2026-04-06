@@ -52,12 +52,16 @@ export const katachi = {
 		base: 'group inline-flex items-center font-medium',
 		variant: {
 			solid: {
-				base: maru.roundedMd,
+				base: ['border border-transparent', maru.roundedMd],
 				color: { ...nuri.solid, ...nuri.extend.solid },
 			},
 			soft: {
-				base: maru.roundedMd,
+				base: ['border border-transparent', maru.roundedMd],
 				color: { ...nuri.soft, ...nuri.extend.soft },
+			},
+			outline: {
+				base: ['border', maru.roundedMd],
+				color: nuri.outline,
 			},
 		},
 		size: take.badge,
