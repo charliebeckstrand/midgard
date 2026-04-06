@@ -14,26 +14,18 @@ export const button = defineColors({
 		],
 		dark: 'dark:[--btn-bg:var(--color-zinc-600)]',
 	},
-	dark: {
-		light: [
-			'text-white [--btn-bg:var(--color-zinc-900)] [--btn-border:transparent]',
-			'[--btn-icon:var(--color-zinc-400)] hover:[--btn-icon:var(--color-zinc-300)]',
-		],
-	},
+	dark: [
+		'text-white [--btn-bg:var(--color-zinc-900)] [--btn-border:transparent]',
+		'[--btn-icon:var(--color-zinc-400)] hover:[--btn-icon:var(--color-zinc-300)]',
+	],
 	red: {
 		light: 'text-white [--btn-bg:var(--color-red-600)] [--btn-border:transparent]',
 		dark: 'dark:[--btn-hover:color-mix(in_oklab,white_20%,transparent)]',
 	},
-	amber: {
-		light:
-			'text-amber-100 [--btn-bg:var(--color-amber-600)] [--btn-border:var(--color-amber-600)]/80',
-	},
-	green: {
-		light: 'text-white [--btn-bg:var(--color-green-600)] [--btn-border:transparent]',
-	},
-	blue: {
-		light: 'text-white [--btn-bg:var(--color-blue-600)] [--btn-border:transparent]',
-	},
+	amber:
+		'text-amber-100 [--btn-bg:var(--color-amber-600)] [--btn-border:var(--color-amber-600)]/80',
+	green: 'text-white [--btn-bg:var(--color-green-600)] [--btn-border:transparent]',
+	blue: 'text-white [--btn-bg:var(--color-blue-600)] [--btn-border:transparent]',
 })
 
 export const buttonSoft = withHover(

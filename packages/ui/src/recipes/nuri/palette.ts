@@ -50,17 +50,17 @@ export const softHover: HoverMap<Color> = {
 const solidBg = defineColors({
 	zinc: { light: 'bg-zinc-700', dark: 'dark:bg-zinc-600' },
 	red: { light: 'bg-red-600', dark: 'dark:bg-red-500' },
-	amber: { light: 'bg-amber-500' },
+	amber: 'bg-amber-500',
 	green: { light: 'bg-green-600', dark: 'dark:bg-green-500' },
 	blue: { light: 'bg-blue-600', dark: 'dark:bg-blue-500' },
 })
 
 const solidText = defineColors({
-	zinc: { light: 'text-white' },
-	red: { light: 'text-white' },
-	amber: { light: 'text-amber-950' },
-	green: { light: 'text-white' },
-	blue: { light: 'text-white' },
+	zinc: 'text-white',
+	red: 'text-white',
+	amber: 'text-amber-950',
+	green: 'text-white',
+	blue: 'text-white',
 })
 
 export const solid = merge(solidBg, solidText)
