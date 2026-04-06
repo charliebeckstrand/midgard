@@ -37,10 +37,15 @@ export function createSelectOption(config: {
 				? selectedValue.includes(value)
 				: selectedValue === value
 
+		const hasSelection = multiple
+			? Array.isArray(selectedValue) && selectedValue.length > 0
+			: selectedValue !== undefined
+
 		return (
 			<BaseOption
 				selected={selected}
 				disabled={disabled}
+				muted={!selected && hasSelection}
 				checkPosition="end"
 				onSelect={() => select(value)}
 				data-slot={`${config.slotPrefix}-option`}

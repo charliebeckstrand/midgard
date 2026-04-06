@@ -30,10 +30,6 @@ import { Description, Label } from 'ui/fieldset'
 						<Label htmlFor="checkbox-terms">Accept terms and conditions</Label>
 						<Description>You agree to our Terms of Service and Privacy Policy.</Description>
 					</CheckboxField>
-					<CheckboxField>
-						<Checkbox id="checkbox-disabled" disabled />
-						<Label htmlFor="checkbox-disabled">Disabled option</Label>
-					</CheckboxField>
 				</CheckboxGroup>
 			</Example>
 			<Example

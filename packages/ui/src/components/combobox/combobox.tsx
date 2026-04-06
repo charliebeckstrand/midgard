@@ -125,24 +125,23 @@ export function Combobox<T>({
 	const rendered = typeof children === 'function' ? children(query) : children
 
 	// Mark the sole visible option as active so it highlights without stealing focus
+	// Derive a key from rendered children so the effect re-runs as the list filters
+	const childCount = Array.isArray(rendered) ? rendered.length : rendered ? 1 : 0
+
 	useEffect(() => {
-		if (!editing || !open) return
+		if (!editing || !open || !childCount) return
 
-		const timer = setTimeout(() => {
-			const container = optionsRef.current
-			if (!container) return
+		const container = optionsRef.current
 
-			// Clear any previous active marker
-			for (const el of container.querySelectorAll('[data-active]'))
-				el.removeAttribute('data-active')
+		if (!container) return
 
-			const items = container.querySelectorAll<HTMLElement>('[role="option"]:not([data-disabled])')
+		// Clear any previous active marker
+		for (const el of container.querySelectorAll('[data-active]')) el.removeAttribute('data-active')
 
-			if (items.length === 1) items[0]?.setAttribute('data-active', '')
-		}, 50)
+		const items = container.querySelectorAll<HTMLElement>('[role="option"]:not([data-disabled])')
 
-		return () => clearTimeout(timer)
-	}, [editing, open])
+		if (items.length === 1) items[0]?.setAttribute('data-active', '')
+	}, [editing, open, childCount])
 
 	return (
 		<ComboboxProvider value={{ value, multiple, select: select as (v: unknown) => void, query }}>
@@ -172,12 +171,26 @@ export function Combobox<T>({
 								return
 							}
 							if (e.key === 'Enter') {
-								const active = optionsRef.current?.querySelector<HTMLElement>('[data-active]')
+								const container = optionsRef.current
+								const active = container?.querySelector<HTMLElement>('[data-active]')
 
 								if (active) {
 									e.preventDefault()
 
 									active.click()
+
+									return
+								}
+
+								// If there's exactly one visible option, select it
+								const items = container?.querySelectorAll<HTMLElement>(
+									'[role="option"]:not([data-disabled])',
+								)
+
+								if (items?.length === 1) {
+									e.preventDefault()
+
+									items[0]?.click()
 
 									return
 								}
