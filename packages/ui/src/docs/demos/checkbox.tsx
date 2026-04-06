@@ -7,7 +7,7 @@ export default function CheckboxDemo() {
 	return (
 		<CheckboxGroup>
 			<CheckboxField>
-				<Checkbox id="checkbox-terms" />
+				<Checkbox id="checkbox-terms" color="blue" />
 				<Label htmlFor="checkbox-terms">Accept terms and conditions</Label>
 				<Description>You agree to our Terms of Service and Privacy Policy.</Description>
 			</CheckboxField>
