@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Avatar } from '../../components/avatar'
 import { Button } from '../../components/button'
-import { Placeholder, PlaceholderReveal } from '../../components/placeholder'
+import { Placeholder } from '../../components/placeholder'
 import { ContentReveal } from '../../primitives/content-reveal'
 import { Example } from '../example'
 
