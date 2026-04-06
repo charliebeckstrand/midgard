@@ -94,7 +94,8 @@ export const katachi = {
 				color: nuri.buttonSoft,
 			},
 			outline: {
-				base: [kage.borderStrong, sumi.text, omote.surface, sawari.hoverSubtle, sumi.fillIcon],
+				base: [kage.borderStrong, sumi.text, omote.surface, sumi.fillIcon],
+				color: nuri.buttonOutline,
 			},
 			plain: {
 				base: ['border border-transparent', sumi.text, sawari.hover, sumi.fillIcon],

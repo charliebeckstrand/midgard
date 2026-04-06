@@ -1,5 +1,5 @@
 import { defineColors, mode } from './define-colors'
-import { extend, soft, softHover, withHover } from './palette'
+import { extend, outline, outlineHover, soft, softHover, withHover } from './palette'
 
 export const buttonSolid = defineColors({
 	zinc: {
@@ -33,6 +33,8 @@ export const buttonSoft = withHover(
 	{ ...softHover, ...extend.softHover },
 	'not-disabled:hover:',
 )
+
+export const buttonOutline = withHover(outline, outlineHover, 'not-disabled:hover:')
 
 export const buttonSolidBase = mode('[--btn-hover:color-mix(in_oklab,black_10%,transparent)]', [
 	'dark:[--btn-hover:color-mix(in_oklab,white_10%,transparent)]',
