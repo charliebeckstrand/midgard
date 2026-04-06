@@ -15,7 +15,7 @@ const motoi = {
 	panel: ['shadow-lg', 'forced-colors:outline'],
 	content: 'lg:rounded-lg lg:shadow-xs',
 	backdrop: 'backdrop-blur-sm',
-	popover: 'backdrop-blur-xl shadow-lg',
+	popover: 'backdrop-blur-sm shadow-lg',
 	skeleton: 'animate-pulse',
 }
 
@@ -24,7 +24,7 @@ const hiru = {
 	panel: 'bg-white',
 	content: 'lg:bg-white lg:ring-1 lg:ring-zinc-950/5',
 	backdrop: 'bg-zinc-950/50',
-	popover: 'bg-white/75 ring-1 ring-zinc-950/10',
+	popover: 'bg-white/90 ring-1 ring-zinc-950/10',
 	surface: 'bg-white',
 	tint: 'bg-zinc-950/5',
 	tintBefore: 'before:bg-zinc-950/5',
