@@ -49,7 +49,7 @@ export const narabi = {
 
 	group: [
 		'space-y-3 **:data-[slot=label]:font-normal',
-		'has-data-[slot=description]:space-y-6 has-data-[slot=description]:**:data-[slot=label]:font-medium',
+		'has-data-[slot=description]:**:data-[slot=label]:font-medium',
 	],
 
 	item: [

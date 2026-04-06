@@ -28,7 +28,7 @@ function CopyButton({ code }: { code: string }) {
 			disabled={copied}
 			onClick={copy}
 			aria-label={copied ? 'Copied' : 'Copy to clipboard'}
-			className="absolute top-3 right-3 rounded-md p-1.5 text-zinc-400 transition-colors hover:bg-white/10 hover:text-zinc-200 disabled:text-green-400"
+			className="absolute top-3 right-3 rounded-md bg-[#0d1117] p-1.5 text-zinc-400 hover:bg-[#161b22] hover:text-zinc-200 disabled:text-green-400"
 		>
 			{copied ? (
 				<svg
@@ -60,7 +60,8 @@ function CopyButton({ code }: { code: string }) {
 	)
 }
 
-export function CodeBlock({ code }: { code: string }) {
+export function CodeBlock({ code: rawCode }: { code: string }) {
+	const code = rawCode.trim()
 	const [html, setHtml] = useState<string | null>(null)
 
 	useEffect(() => {
@@ -90,12 +91,12 @@ export function CodeBlock({ code }: { code: string }) {
 			<CopyButton code={code} />
 			{html ? (
 				<div
-					className="[&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:p-4 [&_pre]:text-sm/6"
+					className="[&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:p-4 [&_pre]:pr-12 [&_pre]:text-sm/6"
 					// biome-ignore lint/security/noDangerouslySetInnerHtml: shiki output is trusted
 					dangerouslySetInnerHTML={{ __html: html }}
 				/>
 			) : (
-				<pre className="overflow-x-auto rounded-lg bg-[#0d1117] p-4 text-sm/6 text-zinc-400">
+				<pre className="overflow-x-auto rounded-lg bg-[#0d1117] p-4 pr-12 text-sm/6 text-zinc-400">
 					<code>{code}</code>
 				</pre>
 			)}

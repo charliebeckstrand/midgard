@@ -47,6 +47,10 @@
 			"types": "./src/components/combobox/index.ts",
 			"default": "./src/components/combobox/index.ts"
 		},
+		"./disclosure": {
+			"types": "./src/components/disclosure/index.ts",
+			"default": "./src/components/disclosure/index.ts"
+		},
 		"./dl": {
 			"types": "./src/components/dl/index.ts",
 			"default": "./src/components/dl/index.ts"

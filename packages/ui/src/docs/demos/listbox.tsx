@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Field, Label } from '../../components/fieldset'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
+import { Example } from '../example'
 
 export const meta = { category: 'Forms' }
 
@@ -10,6 +11,8 @@ const statuses = [
 	{ value: 'delayed', label: 'Delayed' },
 	{ value: 'canceled', label: 'Canceled' },
 ]
+
+const statusesCode = `const statuses = [\n${statuses.map((s) => `  { value: '${s.value}', label: '${s.label}' },`).join('\n')}\n]`
 
 function SingleListbox() {
 	const [selected, setSelected] = useState(statuses[0].value)
@@ -58,15 +61,47 @@ function MultiListbox() {
 
 export default function ListboxDemo() {
 	return (
-		<div className="space-y-6">
-			<div className="space-y-3">
-				<p className="text-sm font-medium text-zinc-500">Single</p>
+		<div className="space-y-8">
+			<Example
+				title="Single"
+				code={`import { Field, Label } from 'ui/fieldset'
+import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
+
+${statusesCode}
+
+<Field>
+  <Label>Status</Label>
+  <Listbox value={value} onChange={setValue} placeholder="Select status…">
+    {statuses.map((status) => (
+      <ListboxOption key={status.value} value={status.value}>
+        <ListboxLabel>{status.label}</ListboxLabel>
+      </ListboxOption>
+    ))}
+  </Listbox>
+</Field>`}
+			>
 				<SingleListbox />
-			</div>
-			<div className="space-y-3">
-				<p className="text-sm font-medium text-zinc-500">Multiple</p>
+			</Example>
+			<Example
+				title="Multiple"
+				code={`import { Field, Label } from 'ui/fieldset'
+import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
+
+${statusesCode}
+
+<Field>
+  <Label>Statuses</Label>
+  <Listbox multiple value={values} onChange={setValues} placeholder="Select statuses…">
+    {statuses.map((status) => (
+      <ListboxOption key={status.value} value={status.value}>
+        <ListboxLabel>{status.label}</ListboxLabel>
+      </ListboxOption>
+    ))}
+  </Listbox>
+</Field>`}
+			>
 				<MultiListbox />
-			</div>
+			</Example>
 		</div>
 	)
 }

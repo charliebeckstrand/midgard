@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Button } from '../../components/button'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 import { PlusIcon } from '../../primitives/icons'
+import { Example } from '../example'
 
 export const meta = { category: 'Forms' }
 
@@ -19,13 +20,17 @@ const sizes = [
 	{ value: 'lg', label: 'large' },
 ] as const
 
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
+
 export default function ButtonDemo() {
 	const [colorVariant, setColorVariant] = useState<(typeof colorVariants)[number]>('solid')
 
 	return (
-		<div className="space-y-6">
-			<div className="space-y-3">
-				<p className="text-sm font-medium text-zinc-500">Variants</p>
+		<div className="space-y-8">
+			<Example
+				title="Variants"
+				code={`import { Button } from 'ui/button'\n\n${variants.map((v) => `<Button variant="${v}">${cap(v)}</Button>`).join('\n')}`}
+			>
 				<div className="flex flex-wrap gap-2">
 					{variants.map((variant) => (
 						<Button key={variant} variant={variant}>
@@ -33,23 +38,29 @@ export default function ButtonDemo() {
 						</Button>
 					))}
 				</div>
-			</div>
-			<div className="flex flex-col gap-3">
-				<p className="text-sm font-medium text-zinc-500">Colors</p>
-				<div className="flex">
-					<Listbox
-						value={colorVariant}
-						onChange={setColorVariant}
-						className="min-w-26"
-						displayValue={(v: string) => v.charAt(0).toUpperCase() + v.slice(1)}
-					>
-						{colorVariants.map((v) => (
-							<ListboxOption key={v} value={v}>
-								<ListboxLabel>{v.charAt(0).toUpperCase() + v.slice(1)}</ListboxLabel>
-							</ListboxOption>
-						))}
-					</Listbox>
-				</div>
+			</Example>
+			<Example
+				title={
+					<div className="flex items-center justify-between gap-2">
+						<div>Colors</div>
+						<Listbox
+							value={colorVariant}
+							onChange={setColorVariant}
+							className="min-w-26"
+							displayValue={(v: string) => cap(v)}
+						>
+							{colorVariants.map((v) => (
+								<ListboxOption key={v} value={v}>
+									<ListboxLabel>{cap(v)}</ListboxLabel>
+								</ListboxOption>
+							))}
+						</Listbox>
+					</div>
+				}
+				code={`import { Button } from 'ui/button'\n\n${colors
+					.map((c) => `<Button variant="${colorVariant}" color="${c}">${cap(c)}</Button>`)
+					.join('\n')}`}
+			>
 				<div className="flex flex-wrap gap-2">
 					{colors.map((color) => (
 						<Button key={color} variant={colorVariant} color={color}>
@@ -57,9 +68,11 @@ export default function ButtonDemo() {
 						</Button>
 					))}
 				</div>
-			</div>
-			<div className="space-y-3">
-				<p className="text-sm font-medium text-zinc-500">Sizes</p>
+			</Example>
+			<Example
+				title="Sizes"
+				code={`import { Button } from 'ui/button'\n\n${sizes.map((s) => `<Button size="${s.value}">${cap(s.label)}</Button>`).join('\n')}`}
+			>
 				<div className="flex flex-wrap items-center gap-2">
 					{sizes.map(({ value, label }) => (
 						<Button key={value} size={value}>
@@ -67,9 +80,13 @@ export default function ButtonDemo() {
 						</Button>
 					))}
 				</div>
-			</div>
-			<div className="space-y-3">
-				<p className="text-sm font-medium text-zinc-500">With icon</p>
+			</Example>
+			<Example
+				title="With icon"
+				code={`import { Button } from 'ui/button'\nimport { PlusIcon } from 'ui/primitives'\n\n${variants
+					.map((v) => `<Button variant="${v}">\n  <PlusIcon />\n  ${cap(v)}\n</Button>`)
+					.join('\n')}`}
+			>
 				<div className="flex flex-wrap gap-2">
 					{variants.map((variant) => (
 						<Button key={variant} variant={variant}>
@@ -78,9 +95,11 @@ export default function ButtonDemo() {
 						</Button>
 					))}
 				</div>
-			</div>
-			<div className="space-y-3">
-				<p className="text-sm font-medium text-zinc-500">Icon only</p>
+			</Example>
+			<Example
+				title="Icon only"
+				code={`import { Button } from 'ui/button'\nimport { PlusIcon } from 'ui/primitives'\n\n${variants.map((v) => `<Button variant="${v}">\n  <PlusIcon />\n</Button>`).join('\n')}`}
+			>
 				<div className="flex flex-wrap gap-2">
 					{variants.map((variant) => (
 						<Button key={variant} variant={variant}>
@@ -88,11 +107,13 @@ export default function ButtonDemo() {
 						</Button>
 					))}
 				</div>
-			</div>
-			<div className="space-y-3">
-				<p className="text-sm font-medium text-zinc-500">Disabled</p>
+			</Example>
+			<Example
+				title="Disabled"
+				code={`import { Button } from 'ui/button'\n\n<Button disabled>Disabled</Button>`}
+			>
 				<Button disabled>Disabled</Button>
-			</div>
+			</Example>
 		</div>
 	)
 }

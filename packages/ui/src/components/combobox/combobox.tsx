@@ -2,7 +2,7 @@
 
 import { AnimatePresence } from 'motion/react'
 import type React from 'react'
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { cn, createContext } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { useMenuKeyboard } from '../../hooks/use-menu-keyboard'
@@ -124,6 +124,26 @@ export function Combobox<T>({
 
 	const rendered = typeof children === 'function' ? children(query) : children
 
+	// Mark the sole visible option as active so it highlights without stealing focus
+	useEffect(() => {
+		if (!editing || !open) return
+
+		const timer = setTimeout(() => {
+			const container = optionsRef.current
+			if (!container) return
+
+			// Clear any previous active marker
+			for (const el of container.querySelectorAll('[data-active]'))
+				el.removeAttribute('data-active')
+
+			const items = container.querySelectorAll<HTMLElement>('[role="option"]:not([data-disabled])')
+
+			if (items.length === 1) items[0].setAttribute('data-active', '')
+		}, 50)
+
+		return () => clearTimeout(timer)
+	}, [editing, open])
+
 	return (
 		<ComboboxProvider value={{ value, multiple, select: select as (v: unknown) => void, query }}>
 			<div ref={containerRef} data-slot="control" className={cn('relative', className)}>
@@ -150,6 +170,17 @@ export function Combobox<T>({
 								close()
 
 								return
+							}
+							if (e.key === 'Enter') {
+								const active = optionsRef.current?.querySelector<HTMLElement>('[data-active]')
+
+								if (active) {
+									e.preventDefault()
+
+									active.click()
+
+									return
+								}
 							}
 							handleKeyDown(e)
 						}}

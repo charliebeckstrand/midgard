@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Chip } from '../../components/chip'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
+import { Example } from '../example'
 
 export const meta = { category: 'Data Display' }
 
@@ -20,8 +21,11 @@ const sizes = [
 
 const labels = ['First', 'Second', 'Third', 'Fourth', 'Fifth'] as const
 
-function ActiveRow() {
-	const [active, setActive] = useState<Set<string>>(() => new Set(['First']))
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
+
+export default function ChipDemo() {
+	const [colorVariant, setColorVariant] = useState<(typeof colorVariants)[number]>('solid')
+	const [active, setActive] = useState<Set<string>>(() => new Set(['First', 'Second']))
 
 	const toggle = (label: string) =>
 		setActive((prev) => {
@@ -34,31 +38,11 @@ function ActiveRow() {
 		})
 
 	return (
-		<div className="space-y-3">
-			<p className="text-sm font-medium text-zinc-500">Active</p>
-			<div className="flex flex-wrap items-center gap-2">
-				{labels.map((label) => (
-					<Chip
-						key={label}
-						variant="outline"
-						active={active.has(label)}
-						onClick={() => toggle(label)}
-					>
-						{label}
-					</Chip>
-				))}
-			</div>
-		</div>
-	)
-}
-
-export default function ChipDemo() {
-	const [colorVariant, setColorVariant] = useState<(typeof colorVariants)[number]>('solid')
-
-	return (
-		<div className="space-y-6">
-			<div className="space-y-3">
-				<p className="text-sm font-medium text-zinc-500">Variants</p>
+		<div className="space-y-8">
+			<Example
+				title="Variants"
+				code={`import { Chip } from 'ui/chip'\n\n${variants.map((v) => `<Chip variant="${v}">${cap(v)}</Chip>`).join('\n')}`}
+			>
 				<div className="flex flex-wrap gap-2">
 					{variants.map((variant) => (
 						<Chip key={variant} variant={variant}>
@@ -66,23 +50,29 @@ export default function ChipDemo() {
 						</Chip>
 					))}
 				</div>
-			</div>
-			<div className="flex flex-col gap-3">
-				<p className="text-sm font-medium text-zinc-500">Colors</p>
-				<div className="flex">
-					<Listbox
-						value={colorVariant}
-						onChange={setColorVariant}
-						className="min-w-26"
-						displayValue={(v: string) => v.charAt(0).toUpperCase() + v.slice(1)}
-					>
-						{colorVariants.map((v) => (
-							<ListboxOption key={v} value={v}>
-								<ListboxLabel>{v.charAt(0).toUpperCase() + v.slice(1)}</ListboxLabel>
-							</ListboxOption>
-						))}
-					</Listbox>
-				</div>
+			</Example>
+			<Example
+				title={
+					<div className="flex items-center justify-between gap-2">
+						<div>Colors</div>
+						<Listbox
+							value={colorVariant}
+							onChange={setColorVariant}
+							className="min-w-26"
+							displayValue={(v: string) => cap(v)}
+						>
+							{colorVariants.map((v) => (
+								<ListboxOption key={v} value={v}>
+									<ListboxLabel>{cap(v)}</ListboxLabel>
+								</ListboxOption>
+							))}
+						</Listbox>
+					</div>
+				}
+				code={`import { Chip } from 'ui/chip'\n\n${colors
+					.map((c) => `<Chip variant="${colorVariant}" color="${c}">${cap(c)}</Chip>`)
+					.join('\n')}`}
+			>
 				<div className="flex flex-wrap gap-2">
 					{colors.map((color) => (
 						<Chip key={color} variant={colorVariant} color={color}>
@@ -90,9 +80,11 @@ export default function ChipDemo() {
 						</Chip>
 					))}
 				</div>
-			</div>
-			<div className="space-y-3">
-				<p className="text-sm font-medium text-zinc-500">Sizes</p>
+			</Example>
+			<Example
+				title="Sizes"
+				code={`import { Chip } from 'ui/chip'\n\n${sizes.map((s) => `<Chip size="${s.value}">${cap(s.label)}</Chip>`).join('\n')}`}
+			>
 				<div className="flex flex-wrap items-center gap-2">
 					{sizes.map(({ value, label }) => (
 						<Chip key={value} size={value}>
@@ -100,8 +92,29 @@ export default function ChipDemo() {
 						</Chip>
 					))}
 				</div>
-			</div>
-			<ActiveRow />
+			</Example>
+			<Example
+				title="Active"
+				code={`import { Chip } from 'ui/chip'\n\n${labels
+					.map(
+						(l) =>
+							`<Chip variant="outline"${active.has(l) ? ' active' : ''} onClick={toggle}>${l}</Chip>`,
+					)
+					.join('\n')}`}
+			>
+				<div className="flex flex-wrap items-center gap-2">
+					{labels.map((label) => (
+						<Chip
+							key={label}
+							variant="outline"
+							active={active.has(label)}
+							onClick={() => toggle(label)}
+						>
+							{label}
+						</Chip>
+					))}
+				</div>
+			</Example>
 		</div>
 	)
 }

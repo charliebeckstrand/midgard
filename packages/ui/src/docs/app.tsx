@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from 'react'
 import { Badge } from '../components/badge'
 import { Button } from '../components/button'
 import { Combobox, ComboboxOption } from '../components/combobox'
+import { Disclosure, DisclosureButton, DisclosurePanel } from '../components/disclosure'
+import { Divider } from '../components/divider'
 import { Heading } from '../components/heading'
 import { Navbar, NavbarSpacer } from '../components/navbar'
 import {
@@ -15,11 +17,9 @@ import {
 	SidebarSection,
 } from '../components/sidebar'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/table'
-import { Tab, TabGroup, TabList } from '../components/tabs'
 import { useOffcanvas } from '../core/offcanvas-context'
 import { SidebarLayout } from '../layouts'
 import { MoonIcon, SunIcon } from '../primitives'
-import { CodeBlock } from './code-block'
 import { type ComponentApi, parseSource } from './parse-props'
 
 type DemoModule = {
@@ -28,12 +28,6 @@ type DemoModule = {
 }
 
 const modules = import.meta.glob<DemoModule>('./demos/*.tsx', { eager: true })
-
-const demoSources = import.meta.glob<string>('./demos/*.tsx', {
-	eager: true,
-	query: '?raw',
-	import: 'default',
-})
 
 // Import all component source files for prop extraction
 const componentSources = import.meta.glob<string>(
@@ -44,41 +38,6 @@ const componentSources = import.meta.glob<string>(
 		import: 'default',
 	},
 )
-
-/** Strip the `export const meta = { ... }` line and surrounding blank lines from demo source */
-function stripMeta(source: string): string {
-	return source.replace(/export const meta\s*=\s*\{[^}]*\}\s*\n\n?/m, '').trimStart()
-}
-
-/** Transform demo source into copy-pasteable usage code */
-function simplifySource(source: string): string {
-	// Rewrite internal component paths to package imports
-	let result = source.replace(/from\s+['"]\.\.\/\.\.\/components\/([^'"]+)['"]/g, 'from "ui/$1"')
-
-	result = result.replace(/from\s+['"]\.\.\/\.\.\/layouts['"]/g, 'from "ui/layouts"')
-	result = result.replace(/from\s+['"]\.\.\/\.\.\/pages['"]/g, 'from "ui/pages"')
-
-	// Extract the default export function body
-	const match = result.match(
-		/export default function \w+\(\) \{\n([\s\S]*?)\treturn \(\n([\s\S]*?)\n\t\)\n\}\s*$/,
-	)
-
-	if (!match) return result
-
-	const beforeFunc = result.slice(0, result.indexOf('export default function')).trim()
-
-	const bodyStatements = match[1]?.trim()
-
-	const jsx = match[2]?.replace(/^\t\t/gm, '')
-
-	const parts = [beforeFunc]
-
-	if (bodyStatements) parts.push(bodyStatements.replace(/^\t/gm, ''))
-
-	if (jsx) parts.push(jsx)
-
-	return parts.filter(Boolean).join('\n\n')
-}
 
 /** Group component sources by directory name (e.g. "button", "badge") */
 function buildComponentApis(): Record<string, ComponentApi[]> {
@@ -120,11 +79,9 @@ const demos = Object.entries(modules)
 
 		const category = mod.meta?.category ?? 'Other'
 
-		const source = simplifySource(stripMeta((demoSources[path] as string) ?? ''))
-
 		const api = componentApis[id]
 
-		return { id, name, category, component: mod.default, source, api }
+		return { id, name, category, component: mod.default, api }
 	})
 	.sort((a, b) => a.name.localeCompare(b.name))
 
@@ -215,32 +172,39 @@ function PropsTable({ api }: { api: ComponentApi[] }) {
 	)
 }
 
-type DemoTab = 'preview' | 'code' | 'api'
-
 function DemoPage({ demo }: { demo: (typeof demos)[number] }) {
-	const [tab, setTab] = useState<DemoTab>('preview')
-
 	return (
-		<div className="mx-auto w-full space-y-6 lg:p-6 lg:px-6 px-2">
+		<div className="mx-auto w-full space-y-6 px-2 lg:p-6 lg:px-6">
 			<Heading>{demo.name}</Heading>
-			<TabGroup>
-				<TabList>
-					<Tab current={tab === 'preview'} onClick={() => setTab('preview')}>
-						Preview
-					</Tab>
-					<Tab current={tab === 'code'} onClick={() => setTab('code')}>
-						Code
-					</Tab>
-					{demo.api && (
-						<Tab current={tab === 'api'} onClick={() => setTab('api')}>
-							API
-						</Tab>
-					)}
-				</TabList>
-			</TabGroup>
-			{tab === 'preview' && <demo.component />}
-			{tab === 'code' && <CodeBlock code={demo.source} />}
-			{tab === 'api' && demo.api && <PropsTable api={demo.api} />}
+			<demo.component />
+			{demo.api && (
+				<>
+					<Divider />
+					<Disclosure>
+						<DisclosureButton className="flex items-center gap-1.5 text-sm font-medium text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300">
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								viewBox="0 0 16 16"
+								fill="currentColor"
+								className="size-3.5 transition-transform in-data-open:rotate-90"
+								aria-hidden="true"
+							>
+								<path
+									fillRule="evenodd"
+									d="M6.22 4.22a.75.75 0 0 1 1.06 0l3.25 3.25a.75.75 0 0 1 0 1.06l-3.25 3.25a.75.75 0 0 1-1.06-1.06L8.94 8 6.22 5.28a.75.75 0 0 1 0-1.06Z"
+									clipRule="evenodd"
+								/>
+							</svg>
+							API Reference
+						</DisclosureButton>
+						<DisclosurePanel>
+							<div className="pt-4">
+								<PropsTable api={demo.api} />
+							</div>
+						</DisclosurePanel>
+					</Disclosure>
+				</>
+			)}
 		</div>
 	)
 }

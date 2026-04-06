@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Combobox, ComboboxLabel, ComboboxOption } from '../../components/combobox'
 import { Field, Label } from '../../components/fieldset'
+import { Example } from '../example'
 
 export const meta = { category: 'Forms' }
 
@@ -12,6 +13,8 @@ const people = [
 	'Tanya Fox',
 	'Hellen Schmidt',
 ]
+
+const peopleCode = `import { Combobox, ComboboxLabel, ComboboxOption } from 'ui/combobox'\nimport { Field, Label } from 'ui/fieldset'\n\nconst people = [\n${people.map((p) => `  '${p}',`).join('\n')}\n]`
 
 function SingleCombobox() {
 	const [selected, setSelected] = useState<string | undefined>(undefined)
@@ -68,15 +71,49 @@ function MultiCombobox() {
 
 export default function ComboboxDemo() {
 	return (
-		<div className="space-y-6">
-			<div className="space-y-3">
-				<p className="text-sm font-medium text-zinc-500">Single</p>
+		<div className="space-y-8">
+			<Example
+				title="Single"
+				code={`${peopleCode}
+
+<Field>
+  <Label>Assignee</Label>
+  <Combobox value={value} onChange={setValue} placeholder="Select a person…">
+    {(query) =>
+      people
+        .filter((p) => !query || p.toLowerCase().includes(query.toLowerCase()))
+        .map((person) => (
+          <ComboboxOption key={person} value={person}>
+            <ComboboxLabel>{person}</ComboboxLabel>
+          </ComboboxOption>
+        ))
+    }
+  </Combobox>
+</Field>`}
+			>
 				<SingleCombobox />
-			</div>
-			<div className="space-y-3">
-				<p className="text-sm font-medium text-zinc-500">Multiple</p>
+			</Example>
+			<Example
+				title="Multiple"
+				code={`${peopleCode}
+
+<Field>
+  <Label>Assignees</Label>
+  <Combobox multiple value={values} onChange={setValues} placeholder="Select people…">
+    {(query) =>
+      people
+        .filter((p) => !query || p.toLowerCase().includes(query.toLowerCase()))
+        .map((person) => (
+          <ComboboxOption key={person} value={person}>
+            <ComboboxLabel>{person}</ComboboxLabel>
+          </ComboboxOption>
+        ))
+    }
+  </Combobox>
+</Field>`}
+			>
 				<MultiCombobox />
-			</div>
+			</Example>
 		</div>
 	)
 }

@@ -70,11 +70,7 @@ export const katachi = {
 			base: '',
 			current: {
 				true: [sumi.text, 'font-normal'],
-				false: [
-					sumi.textMuted,
-					sawari.cursor,
-					'transition-colors hover:text-zinc-950 dark:hover:text-white',
-				],
+				false: [sumi.textMuted, sawari.cursor, 'hover:text-zinc-950 dark:hover:text-white'],
 			},
 			defaults: { current: false as const },
 		},
@@ -199,7 +195,7 @@ export const katachi = {
 
 	combobox: {
 		input: [...form.inputBase, maru.rounded, take.control.md, 'pr-8 pl-3'],
-		chevron: narabi.chevron,
+		chevron: ['absolute inset-y-px right-px flex items-center pr-2'],
 		options: take.popup,
 		option: [...sawari.item, ...narabi.item],
 	},
@@ -228,8 +224,8 @@ export const katachi = {
 			vertical: 'self-stretch border-l',
 		},
 		soft: {
-			true: kage.borderSubtle,
-			false: kage.border,
+			true: ['border-zinc-950/5', 'dark:border-white/5'],
+			false: ['border-zinc-950/10', 'dark:border-white/10'],
 		},
 		defaults: { orientation: 'horizontal' as const, soft: false as const },
 	},
@@ -555,6 +551,7 @@ export const katachi = {
 			maru.rounded,
 			sawari.cursor,
 			sawari.item,
+			'data-active:bg-zinc-950/5 dark:data-active:bg-white/5',
 		],
 		start:
 			'grid-cols-[--spacing(5)_1fr] pr-3.5 pl-2 sm:grid-cols-[--spacing(4)_1fr] sm:pr-3 sm:pl-1.5',

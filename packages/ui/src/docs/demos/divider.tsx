@@ -1,18 +1,17 @@
 import { Divider } from '../../components/divider'
+import { Example } from '../example'
 
 export const meta = { category: 'Layout' }
 
 export default function DividerDemo() {
 	return (
-		<div className="space-y-6">
-			<div className="space-y-3">
-				<p className="text-sm font-medium text-zinc-500">Default</p>
+		<div className="space-y-8">
+			<Example title="Default" code={`import { Divider } from 'ui/divider'\n\n<Divider />`}>
 				<Divider />
-			</div>
-			<div className="space-y-3">
-				<p className="text-sm font-medium text-zinc-500">Soft</p>
+			</Example>
+			<Example title="Soft" code={`import { Divider } from 'ui/divider'\n\n<Divider soft />`}>
 				<Divider soft />
-			</div>
+			</Example>
 		</div>
 	)
 }

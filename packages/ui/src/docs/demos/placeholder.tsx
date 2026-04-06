@@ -3,6 +3,7 @@ import { Avatar } from '../../components/avatar'
 import { Button } from '../../components/button'
 import { Placeholder, PlaceholderReveal } from '../../components/placeholder'
 import { ContentReveal } from '../../primitives/content-reveal'
+import { Example } from '../example'
 
 export const meta = { category: 'Feedback' }
 
@@ -136,35 +137,63 @@ function PlaceholderRevealDemo() {
 
 export default function PlaceholderDemo() {
 	return (
-		<div className="max-w-md space-y-8">
-			<section className="space-y-3">
-				<p className="text-sm font-medium text-zinc-500">Line (default)</p>
+		<div className="space-y-8">
+			<Example
+				title="Line (default)"
+				code={`import { Placeholder } from 'ui/placeholder'
+
+<Placeholder />
+<Placeholder className="max-w-[70%]" />
+<Placeholder className="max-w-[50%]" />`}
+			>
 				<div className="flex flex-col gap-2">
 					<Placeholder />
 					<Placeholder className="max-w-[70%]" />
 					<Placeholder className="max-w-[50%]" />
 				</div>
-			</section>
+			</Example>
 
-			<section className="space-y-3">
-				<p className="text-sm font-medium text-zinc-500">Rectangle</p>
+			<Example
+				title="Rectangle"
+				code={`import { Placeholder } from 'ui/placeholder'
+
+<Placeholder variant="rect" className="h-10" />
+<Placeholder variant="rect" className="h-24" />`}
+			>
 				<div className="flex flex-col gap-2">
 					<Placeholder variant="rect" className="h-10" />
 					<Placeholder variant="rect" className="h-24" />
 				</div>
-			</section>
+			</Example>
 
-			<section className="space-y-3">
-				<p className="text-sm font-medium text-zinc-500">Circle</p>
+			<Example
+				title="Circle"
+				code={`import { Placeholder } from 'ui/placeholder'
+
+<Placeholder variant="circle" className="size-8" />
+<Placeholder variant="circle" className="size-10" />
+<Placeholder variant="circle" className="size-12" />`}
+			>
 				<div className="flex items-center gap-2">
 					<Placeholder variant="circle" className="size-8" />
 					<Placeholder variant="circle" className="size-10" />
 					<Placeholder variant="circle" className="size-12" />
 				</div>
-			</section>
+			</Example>
 
-			<section className="space-y-3">
-				<p className="text-sm font-medium text-zinc-500">Composed layout</p>
+			<Example
+				title="Composed layout"
+				code={`import { Placeholder } from 'ui/placeholder'
+
+<div className="flex items-start gap-3">
+	<Placeholder variant="circle" className="size-10" />
+	<div className="flex-1 space-y-2">
+		<Placeholder className="max-w-[40%]" />
+		<Placeholder />
+		<Placeholder className="max-w-[80%]" />
+	</div>
+</div>`}
+			>
 				<div className="flex items-start gap-3">
 					<Placeholder variant="circle" className="size-10" />
 					<div className="flex-1 space-y-2">
@@ -173,22 +202,47 @@ export default function PlaceholderDemo() {
 						<Placeholder className="max-w-[80%]" />
 					</div>
 				</div>
-			</section>
+			</Example>
 
-			<section className="space-y-4">
-				<p className="text-sm font-medium text-zinc-500">ContentReveal — crossfade</p>
+			<Example
+				title="ContentReveal — crossfade"
+				code={`import { ContentReveal } from 'ui/primitives'
+
+<ContentReveal
+	ready={ready}
+	placeholder={<Placeholder />}
+>
+	<p>Loaded content</p>
+</ContentReveal>`}
+			>
 				<CrossfadeRevealDemo />
-			</section>
+			</Example>
 
-			<section className="space-y-4">
-				<p className="text-sm font-medium text-zinc-500">ContentReveal — wait mode</p>
+			<Example
+				title="ContentReveal — wait mode"
+				code={`import { ContentReveal } from 'ui/primitives'
+
+<ContentReveal
+	ready={ready}
+	mode="wait"
+	placeholder={<Placeholder />}
+>
+	<p>Loaded content</p>
+</ContentReveal>`}
+			>
 				<WaitRevealDemo />
-			</section>
+			</Example>
 
-			<section className="space-y-4">
-				<p className="text-sm font-medium text-zinc-500">PlaceholderReveal (convenience)</p>
+			<Example
+				title="PlaceholderReveal (convenience)"
+				code={`import { PlaceholderReveal } from 'ui/placeholder'
+
+<PlaceholderReveal ready={ready} bars={4}>
+	<p>Content revealed after loading.</p>
+</PlaceholderReveal>`}
+			>
 				<PlaceholderRevealDemo />
-			</section>
+			</Example>
 		</div>
 	)
 }
