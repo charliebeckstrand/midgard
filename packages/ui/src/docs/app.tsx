@@ -1,10 +1,10 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Badge } from '../components/badge'
 import { Button } from '../components/button'
+import { Combobox, ComboboxOption } from '../components/combobox'
 import { Heading } from '../components/heading'
-import { Input } from '../components/input'
 import { Navbar, NavbarSpacer } from '../components/navbar'
 import {
 	Sidebar,
@@ -269,22 +269,7 @@ export function App() {
 
 	const [dark, toggleDark] = useDarkMode()
 
-	const [search, setSearch] = useState('')
-
 	const current = demos.find((d) => d.id === route)
-
-	const filteredCategories = useMemo(() => {
-		if (!search.trim()) return sortedCategories
-
-		const query = search.toLowerCase()
-
-		return sortedCategories
-			.map(
-				([category, items]) =>
-					[category, items.filter((d) => d.name.toLowerCase().includes(query))] as const,
-			)
-			.filter(([, items]) => items.length > 0)
-	}, [search])
 
 	return (
 		<SidebarLayout
@@ -308,13 +293,27 @@ export function App() {
 							<SidebarLabel className="font-semibold">UI Components</SidebarLabel>
 						</SidebarItem>
 					</SidebarHeader>
-					<Input
+					<Combobox
 						placeholder="Search components"
-						value={search}
-						onChange={(e) => setSearch(e.target.value)}
-					/>
+						selectable={false}
+						onChange={(id: string) => {
+							window.location.hash = id
+						}}
+					>
+						{(query) => {
+							const q = query.toLowerCase()
+
+							return demos
+								.filter((d) => !q || d.name.toLowerCase().includes(q))
+								.map((d) => (
+									<ComboboxOption key={d.id} value={d.id}>
+										{d.name}
+									</ComboboxOption>
+								))
+						}}
+					</Combobox>
 					<SidebarBody>
-						{filteredCategories.map(([category, items]) => (
+						{sortedCategories.map(([category, items]) => (
 							<SidebarSection key={category}>
 								<span className="px-2 text-xs/6 font-medium text-zinc-500">{category}</span>
 								{items.map((demo) => (
@@ -324,9 +323,6 @@ export function App() {
 								))}
 							</SidebarSection>
 						))}
-						{filteredCategories.length === 0 && (
-							<div className="text-sm text-zinc-500 dark:text-amber-500">No components found</div>
-						)}
 					</SidebarBody>
 				</Sidebar>
 			}

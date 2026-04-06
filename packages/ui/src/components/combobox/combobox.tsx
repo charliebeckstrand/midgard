@@ -26,6 +26,10 @@ type ComboboxBaseProps<T> = {
 	displayValue?: (value: T) => string
 	anchor?: keyof typeof narabi.anchor
 	className?: string
+	/** When false, onChange still fires but the value is never stored or shown as selected. */
+	selectable?: boolean
+	/** Whether the menu closes after an option is selected. Defaults to true for single, false for multiple. */
+	closeOnSelect?: boolean
 	children: React.ReactNode | ((query: string) => React.ReactNode)
 }
 
@@ -53,6 +57,8 @@ export function Combobox<T>({
 	placeholder = 'Search...',
 	displayValue,
 	anchor = 'bottom start',
+	selectable = true,
+	closeOnSelect,
 	className,
 	children,
 }: ComboboxProps<T>) {
@@ -78,22 +84,31 @@ export function Combobox<T>({
 		setEditing(false)
 	}, [])
 
+	const shouldClose = closeOnSelect ?? !multiple
+
 	const select = useCallback(
 		(newValue: T) => {
-			if (multiple) {
+			if (!selectable) {
+				;(onChange as ((value: T) => void) | undefined)?.(newValue)
+			} else if (multiple) {
 				const arr = (Array.isArray(value) ? value : []) as T[]
+
 				const next = arr.includes(newValue) ? arr.filter((v) => v !== newValue) : [...arr, newValue]
+
 				setValue(next)
+			} else {
+				setValue(newValue)
+			}
+
+			if (shouldClose) {
+				close()
+			} else {
 				setQuery('')
 				setEditing(false)
 				inputRef.current?.focus()
-			} else {
-				setValue(newValue)
-				close()
-				inputRef.current?.focus()
 			}
 		},
-		[multiple, value, setValue, close],
+		[multiple, selectable, shouldClose, value, setValue, onChange, close],
 	)
 
 	const inputDisplay = useMemo(() => {
@@ -162,7 +177,9 @@ export function Combobox<T>({
 								}}
 							>
 								{rendered}
-								<output className={cn('hidden p-2 only:block', sumi.textMuted)}>No results</output>
+								<output className={cn('hidden text-sm p-2 only:block', sumi.textMuted)}>
+									No results
+								</output>
 							</PopoverPanel>
 						)}
 					</AnimatePresence>
