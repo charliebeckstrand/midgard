@@ -117,17 +117,27 @@ export const katachi = {
 			ki.ring,
 		],
 		variant: {
-			solid: 'border border-transparent',
-			soft: 'border border-transparent',
-			outline: 'border',
-			plain: 'border border-transparent',
+			solid: {
+				base: 'border border-transparent',
+				color: nuri.solid,
+				active: nuri.chipSolidActive,
+			},
+			soft: {
+				base: 'border border-transparent',
+				color: nuri.soft,
+				active: nuri.solid,
+			},
+			outline: {
+				base: 'border',
+				color: nuri.outline,
+				active: nuri.solid,
+			},
+			plain: {
+				base: 'border border-transparent',
+				color: nuri.text,
+				active: nuri.soft,
+			},
 		},
-		active: { true: '', false: '' },
-		colorOutline: nuri.outline,
-		colorSoft: nuri.soft,
-		colorSolid: nuri.solid,
-		colorText: nuri.text,
-		colorSolidActive: nuri.chipSolidActive,
 		size: take.badge,
 		defaults: {
 			variant: 'outline' as const,
