@@ -25,6 +25,7 @@ export {
 } from './panel-slots'
 export { Polymorphic, type PolymorphicProps } from './polymorphic'
 export { PopoverPanel } from './popover-panel'
+export { tapFeedback } from './tap-feedback'
 export {
 	ToggleField,
 	type ToggleFieldProps,

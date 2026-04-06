@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import type React from 'react'
 import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
+import { cn } from '../core'
 import { omote, ugoki } from '../recipes'
 
 export type OverlayProps = {
@@ -48,7 +49,7 @@ export function Overlay({
 				<div className="fixed inset-0 z-[99]" {...props}>
 					<motion.div
 						{...ugoki.overlay}
-						className={className ?? `absolute inset-0 ${omote.backdrop}`}
+						className={className ?? cn('absolute inset-0', omote.backdrop)}
 						onClick={outsideClick ? onClose : undefined}
 						aria-hidden="true"
 					/>

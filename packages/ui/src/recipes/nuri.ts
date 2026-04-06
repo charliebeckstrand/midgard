@@ -107,16 +107,38 @@ const hiru = {
 		dark: ['bg-zinc-950 text-white', 'group-hover:bg-zinc-800'],
 	},
 
+	buttonSoft: {
+		zinc: 'bg-zinc-600/10 text-zinc-700 not-disabled:hover:bg-zinc-600/20',
+		white: 'bg-white text-zinc-950 not-disabled:hover:bg-zinc-50',
+		dark: 'bg-zinc-950/10 text-zinc-700 not-disabled:hover:bg-zinc-950/15',
+		red: 'bg-red-600/15 text-red-700 not-disabled:hover:bg-red-600/25',
+		amber: 'bg-amber-600/15 text-amber-700 not-disabled:hover:bg-amber-600/25',
+		green: 'bg-green-600/15 text-green-700 not-disabled:hover:bg-green-600/25',
+		blue: 'bg-blue-600/15 text-blue-700 not-disabled:hover:bg-blue-600/25',
+	},
+
+	chipBorder: {
+		zinc: 'border-zinc-300 text-zinc-700',
+		red: 'border-red-300 text-red-700',
+		amber: 'border-amber-300 text-amber-700',
+		green: 'border-green-300 text-green-700',
+		blue: 'border-blue-300 text-blue-700',
+	},
+
 	avatar: 'bg-zinc-600',
-	buttonSolid: [
-		'[--btn-hover:color-mix(in_oklab,black_10%,transparent)]',
-		'[--btn-active:color-mix(in_oklab,black_15%,transparent)]',
-	],
+
+	buttonSolid: '[--btn-hover:color-mix(in_oklab,black_10%,transparent)]',
+
 	switchTrack: 'bg-zinc-200 ring-1 ring-zinc-950/5 ring-inset',
+
 	switchThumb: 'bg-white ring-1 ring-zinc-950/5',
+
 	switchHover: 'not-disabled:not-checked:hover:bg-zinc-300',
+
 	sidebarLabel: 'group-data-[current]:text-zinc-950',
+
 	tableStriped: '*:odd:bg-zinc-950/2.5',
+
 	tabIndicator: 'bg-zinc-950',
 }
 
@@ -147,10 +169,7 @@ const yoru = {
 	button: {
 		zinc: 'dark:[--btn-bg:var(--color-zinc-600)]',
 		white: 'dark:[--btn-bg:var(--color-zinc-600)]',
-		red: [
-			'dark:[--btn-hover:color-mix(in_oklab,white_20%,transparent)]',
-			'dark:[--btn-active:color-mix(in_oklab,white_25%,transparent)]',
-		],
+		red: 'dark:[--btn-hover:color-mix(in_oklab,white_20%,transparent)]',
 	},
 
 	badgeSoft: {
@@ -174,10 +193,26 @@ const yoru = {
 		dark: ['dark:bg-white dark:text-zinc-950', 'dark:group-hover:bg-zinc-200'],
 	},
 
+	buttonSoft: {
+		zinc: 'dark:bg-white/10 dark:text-zinc-300 dark:not-disabled:hover:bg-white/15',
+		white: 'dark:bg-white/10 dark:text-white dark:not-disabled:hover:bg-white/15',
+		dark: 'dark:bg-white/10 dark:text-zinc-300 dark:not-disabled:hover:bg-white/15',
+		red: 'dark:bg-red-500/15 dark:text-red-400 dark:not-disabled:hover:bg-red-500/25',
+		amber: 'dark:bg-amber-500/15 dark:text-amber-400 dark:not-disabled:hover:bg-amber-500/25',
+		green: 'dark:bg-green-500/15 dark:text-green-400 dark:not-disabled:hover:bg-green-500/25',
+		blue: 'dark:bg-blue-500/15 dark:text-blue-400 dark:not-disabled:hover:bg-blue-500/25',
+	},
+	chipBorder: {
+		zinc: 'dark:border-zinc-600 dark:text-zinc-300',
+		red: 'dark:border-red-700 dark:text-red-400',
+		amber: 'dark:border-amber-700 dark:text-amber-400',
+		green: 'dark:border-green-700 dark:text-green-400',
+		blue: 'dark:border-blue-700 dark:text-blue-400',
+	},
+
 	avatar: 'dark:bg-zinc-700',
 	buttonSolid: [
 		'dark:[--btn-hover:color-mix(in_oklab,white_10%,transparent)]',
-		'dark:[--btn-active:color-mix(in_oklab,white_15%,transparent)]',
 		'dark:border-white/5',
 	],
 	switchTrack: 'dark:bg-white/10 dark:ring-white/15',
@@ -254,6 +289,22 @@ export const nuri = {
 
 	// ── Component-specific color tokens ──────────────────
 
+	chipBorder: {
+		zinc: [hiru.chipBorder.zinc, yoru.chipBorder.zinc],
+		red: [hiru.chipBorder.red, yoru.chipBorder.red],
+		amber: [hiru.chipBorder.amber, yoru.chipBorder.amber],
+		green: [hiru.chipBorder.green, yoru.chipBorder.green],
+		blue: [hiru.chipBorder.blue, yoru.chipBorder.blue],
+	},
+	buttonSoft: {
+		zinc: [hiru.buttonSoft.zinc, yoru.buttonSoft.zinc],
+		white: [hiru.buttonSoft.white, yoru.buttonSoft.white],
+		dark: [hiru.buttonSoft.dark, yoru.buttonSoft.dark],
+		red: [hiru.buttonSoft.red, yoru.buttonSoft.red],
+		amber: [hiru.buttonSoft.amber, yoru.buttonSoft.amber],
+		green: [hiru.buttonSoft.green, yoru.buttonSoft.green],
+		blue: [hiru.buttonSoft.blue, yoru.buttonSoft.blue],
+	},
 	avatar: [hiru.avatar, yoru.avatar],
 	buttonSolid: [hiru.buttonSolid, yoru.buttonSolid],
 	switchTrack: [hiru.switchTrack, yoru.switchTrack],

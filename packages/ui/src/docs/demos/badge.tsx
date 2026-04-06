@@ -24,7 +24,7 @@ export default function BadgeDemo() {
 				</div>
 			</div>
 			<div className="space-y-1">
-				<p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">Subtle</p>
+				<p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">Soft</p>
 				<div className="space-y-4">
 					{sizes.map((size) => (
 						<div key={size} className="flex flex-wrap items-center gap-2">

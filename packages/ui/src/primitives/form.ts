@@ -8,7 +8,11 @@
  * Concern: form
  */
 
-import { kage, ki, maru, sumi, take } from '../recipes'
+import { kage } from '../recipes/kage'
+import { ki } from '../recipes/ki'
+import { maru } from '../recipes/maru'
+import { sumi } from '../recipes/sumi'
+import { take } from '../recipes/take'
 
 // ── Motoi (基) ──────────────────────────────────────────
 const motoi = {

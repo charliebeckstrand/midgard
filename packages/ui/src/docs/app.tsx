@@ -1,8 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Badge } from '../components/badge'
 import { Heading } from '../components/heading'
+import { Input } from '../components/input'
 import { Navbar, NavbarSpacer } from '../components/navbar'
 import {
 	Sidebar,
@@ -244,7 +245,22 @@ function DemoPage({ demo }: { demo: (typeof demos)[number] }) {
 export function App() {
 	const route = useHash()
 
+	const [search, setSearch] = useState('')
+
 	const current = demos.find((d) => d.id === route)
+
+	const filteredCategories = useMemo(() => {
+		if (!search.trim()) return sortedCategories
+
+		const query = search.toLowerCase()
+
+		return sortedCategories
+			.map(
+				([category, items]) =>
+					[category, items.filter((d) => d.name.toLowerCase().includes(query))] as const,
+			)
+			.filter(([, items]) => items.length > 0)
+	}, [search])
 
 	return (
 		<SidebarLayout
@@ -255,13 +271,18 @@ export function App() {
 			}
 			sidebar={
 				<Sidebar>
-					<SidebarHeader>
+					<SidebarHeader className="">
 						<SidebarItem href="#">
 							<SidebarLabel className="font-semibold">UI Components</SidebarLabel>
 						</SidebarItem>
 					</SidebarHeader>
+					<Input
+						placeholder="Search components"
+						value={search}
+						onChange={(e) => setSearch(e.target.value)}
+					/>
 					<SidebarBody>
-						{sortedCategories.map(([category, items]) => (
+						{filteredCategories.map(([category, items]) => (
 							<SidebarSection key={category}>
 								<span className="px-2 text-xs/6 font-medium text-zinc-500">{category}</span>
 								{items.map((demo) => (
@@ -271,6 +292,9 @@ export function App() {
 								))}
 							</SidebarSection>
 						))}
+						{filteredCategories.length === 0 && (
+							<div className="text-sm text-zinc-500 dark:text-amber-500">No components found</div>
+						)}
 					</SidebarBody>
 				</Sidebar>
 			}

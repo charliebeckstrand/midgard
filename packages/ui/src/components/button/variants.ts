@@ -1,6 +1,6 @@
 import { cva, type VariantProps } from 'class-variance-authority'
 import { colorKeys, compoundColors } from '../../core'
-import { katachi } from '../../recipes'
+import { katachi, nuri } from '../../recipes'
 
 const k = katachi.button
 
@@ -10,7 +10,7 @@ export const buttonVariants = cva(k.base, {
 		color: colorKeys(k.color),
 		size: k.size,
 	},
-	compoundVariants: compoundColors('solid', k.color),
+	compoundVariants: compoundColors({ solid: k.color, soft: nuri.buttonSoft }),
 	defaultVariants: k.defaults,
 })
 
