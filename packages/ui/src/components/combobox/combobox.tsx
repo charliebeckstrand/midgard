@@ -138,7 +138,7 @@ export function Combobox<T>({
 
 			const items = container.querySelectorAll<HTMLElement>('[role="option"]:not([data-disabled])')
 
-			if (items.length === 1) items[0].setAttribute('data-active', '')
+			if (items.length === 1) items[0]?.setAttribute('data-active', '')
 		}, 50)
 
 		return () => clearTimeout(timer)

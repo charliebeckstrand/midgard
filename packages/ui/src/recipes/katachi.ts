@@ -516,6 +516,7 @@ export const katachi = {
 			'after:bg-transparent',
 			ki.indicator,
 			sawari.cursor,
+			yasumi.disabled,
 		],
 		indicator: ['inset-x-0 -bottom-px top-auto h-0.5', maru.roundedFull, nuri.tabIndicator],
 	},

@@ -90,7 +90,7 @@ function WaitReveal({ ready, placeholder, children, className }: Omit<ContentRev
 		if (!el) return
 
 		const ro = new ResizeObserver(([entry]) => {
-			setHeight(entry.contentRect.height)
+			if (entry) setHeight(entry.contentRect.height)
 		})
 		ro.observe(el)
 		return () => ro.disconnect()

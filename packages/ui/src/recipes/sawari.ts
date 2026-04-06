@@ -35,7 +35,7 @@ const hiru = {
 		'active:bg-zinc-950/10 active:*:data-[slot=icon]:fill-zinc-950',
 		'data-current:group-hover:!bg-transparent data-current:active:!bg-transparent',
 	],
-	tab: ['data-current:text-zinc-950', 'not-data-current:hover:text-zinc-700'],
+	tab: ['data-current:text-zinc-950', 'not-data-current:not-disabled:hover:text-zinc-700'],
 }
 
 // ── Yoru (夜) ───────────────────────────────────────────
@@ -46,7 +46,7 @@ const yoru = {
 		'dark:group-hover:bg-white/5 dark:group-hover:*:data-[slot=icon]:fill-zinc-400',
 		'dark:data-current:group-hover:!bg-transparent dark:data-current:active:!bg-transparent',
 	],
-	tab: ['dark:data-current:text-white', 'dark:not-data-current:hover:text-zinc-200'],
+	tab: ['dark:data-current:text-white', 'dark:not-data-current:not-disabled:hover:text-zinc-200'],
 }
 
 // ── Composed (internal) ─────────────────────────────────

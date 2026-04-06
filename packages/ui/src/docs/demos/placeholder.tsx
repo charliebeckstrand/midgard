@@ -32,7 +32,6 @@ function CrossfadeRevealDemo() {
 							<Placeholder className="max-w-[40%]" />
 							<Placeholder />
 							<Placeholder className="max-w-[80%]" />
-							{/* <Placeholder className="max-w-[50%]" /> */}
 						</div>
 					</div>
 				}
