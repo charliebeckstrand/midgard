@@ -1,29 +1,19 @@
 import { cva, type VariantProps } from 'class-variance-authority'
-import { colorKeys } from '../../core'
+import { colorKeys, compoundColors } from '../../core'
 import { katachi } from '../../recipes'
 
 const k = katachi.button
 
 type Variant = keyof typeof k.variant
-type ColorMap = Record<string, string | string[]>
+type Color = keyof (typeof k.variant)['solid']['color']
 
 const variantBase = Object.fromEntries(
 	Object.entries(k.variant).map(([key, { base }]) => [key, base]),
 ) as unknown as Record<Variant, string | readonly string[]>
 
-function buttonCompoundColors() {
-	return (Object.keys(k.variant) as Variant[]).flatMap((variant) => {
-		const v = k.variant[variant]
-
-		if (!('color' in v)) return []
-
-		return Object.entries(v.color as ColorMap).map(([c, classes]) => ({
-			variant,
-			color: c as keyof (typeof k.variant)['solid']['color'],
-			className: classes as string | string[],
-		}))
-	})
-}
+const variantColors = Object.fromEntries(
+	Object.entries(k.variant).map(([key, { color }]) => [key, color]),
+) as Record<Variant, Record<Color, string | string[]>>
 
 export const buttonVariants = cva(k.base, {
 	variants: {
@@ -31,7 +21,7 @@ export const buttonVariants = cva(k.base, {
 		color: colorKeys(k.variant.solid.color),
 		size: k.size,
 	},
-	compoundVariants: buttonCompoundColors(),
+	compoundVariants: compoundColors(variantColors),
 	defaultVariants: k.defaults,
 })
 

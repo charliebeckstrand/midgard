@@ -53,11 +53,11 @@ export const katachi = {
 		variant: {
 			solid: {
 				base: ['border border-transparent', maru.roundedMd],
-				color: { ...nuri.solid, ...nuri.extend.solid },
+				color: nuri.badgeSolid,
 			},
 			soft: {
 				base: ['border border-transparent', maru.roundedMd],
-				color: { ...nuri.soft, ...nuri.extend.soft },
+				color: nuri.badgeSoft,
 			},
 			outline: {
 				base: ['border', maru.roundedMd],
@@ -98,7 +98,7 @@ export const katachi = {
 			},
 			ghost: {
 				base: ['border border-transparent', sumi.text, sumi.fillIcon],
-				color: nuri.buttonGhost,
+				color: nuri.buttonPlain,
 			},
 		},
 		size: take.button,
@@ -150,7 +150,7 @@ export const katachi = {
 				active: nuri.soft,
 			},
 		},
-		size: take.badge,
+		size: take.chip,
 		defaults: {
 			variant: 'outline' as const,
 			color: 'zinc' as const,

@@ -31,6 +31,15 @@ const iconSlot = {
 	lg: `*:data-[slot=icon]:${motoi.icon.lg} *:data-[slot=icon]:shrink-0`,
 }
 
+// Compact density — shared by badge and chip (same form factor).
+// The md step intentionally diverges from motoi — tighter text size
+// (xs/5 vs sm/5), narrower gap (1.5 vs 1), and smaller icon (3.5 vs 5).
+const compact = {
+	sm: ['px-1.5 py-0.5', motoi.gap.sm, motoi.text.sm, `*:data-[slot=icon]:${motoi.icon.sm}`],
+	md: ['px-2 py-0.5', 'gap-x-1.5', 'text-xs/5', '*:data-[slot=icon]:size-3.5'],
+	lg: ['px-2.5 py-1', 'gap-x-1.5', motoi.text.md, `*:data-[slot=icon]:${motoi.icon.sm}`],
+} as const
+
 // ── Export ───────────────────────────────────────────────
 export const take = {
 	// Core density tokens
@@ -64,12 +73,9 @@ export const take = {
 	// Icon-only button dimensions (touch target slightly larger than text button)
 	buttonIcon: { sm: 'size-8', md: 'size-9', lg: 'size-12' },
 
-	// Badge density (compact vertical padding, includes gap + text + icon slot)
-	badge: {
-		sm: ['px-1.5 py-0.5', motoi.gap.sm, motoi.text.sm, `*:data-[slot=icon]:${motoi.icon.sm}`],
-		md: ['px-2 py-0.5', 'gap-x-1.5', 'text-xs/5', '*:data-[slot=icon]:size-3.5'],
-		lg: ['px-2.5 py-1', 'gap-x-1.5', motoi.text.md, `*:data-[slot=icon]:${motoi.icon.sm}`],
-	},
+	// Badge and chip share the same compact density scale
+	badge: compact,
+	chip: compact,
 
 	// Form control density — same height as buttons at each step
 	//
@@ -111,6 +117,7 @@ export const take = {
 
 export namespace take {
 	export type BadgeSize = keyof typeof take.badge
+	export type ChipSize = keyof typeof take.chip
 	export type ButtonSize = keyof typeof take.button
 	export type ControlSize = keyof typeof take.control
 	export type AvatarSize = keyof typeof take.avatar

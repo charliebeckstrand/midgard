@@ -6,6 +6,5 @@ export const buttonSoft = { ...soft, ...extend.soft }
 
 export const buttonOutline = outline
 
+/** Shared by both `plain` and `ghost` button variants (text color only). */
 export const buttonPlain = text
-
-export const buttonGhost = text
