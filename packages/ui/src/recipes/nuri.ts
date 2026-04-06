@@ -69,20 +69,20 @@ const hiru = {
 	},
 
 	button: {
-		zinc: 'text-white [--btn-bg:var(--color-zinc-900)] [--btn-border:var(--color-zinc-950)]/90',
+		zinc: 'text-white [--btn-bg:var(--color-zinc-900)] [--btn-border:transparent] [--btn-hover:color-mix(in_oklab,white_15%,transparent)]',
 		white: [
 			'text-zinc-950 [--btn-bg:white] [--btn-border:var(--color-zinc-950)]/10',
 			'hover:[--btn-border:var(--color-zinc-950)]/15',
 		],
 		dark: [
-			'text-white [--btn-bg:var(--color-zinc-900)] [--btn-border:var(--color-zinc-950)]/90',
+			'text-white [--btn-bg:var(--color-zinc-900)] [--btn-border:transparent]',
 			'[--btn-icon:var(--color-zinc-400)] hover:[--btn-icon:var(--color-zinc-300)]',
 		],
-		red: 'text-white [--btn-bg:var(--color-red-600)] [--btn-border:var(--color-red-800)]/90',
+		red: 'text-white [--btn-bg:var(--color-red-600)] [--btn-border:transparent]',
 		amber:
 			'text-amber-100 [--btn-bg:var(--color-amber-600)] [--btn-border:var(--color-amber-600)]/80',
-		green: 'text-white [--btn-bg:var(--color-green-600)] [--btn-border:var(--color-green-800)]/90',
-		blue: 'text-white [--btn-bg:var(--color-blue-600)] [--btn-border:var(--color-blue-800)]/90',
+		green: 'text-white [--btn-bg:var(--color-green-600)] [--btn-border:transparent]',
+		blue: 'text-white [--btn-bg:var(--color-blue-600)] [--btn-border:transparent]',
 	},
 
 	badgeSoft: {

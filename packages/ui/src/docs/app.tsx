@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Badge } from '../components/badge'
+import { Button } from '../components/button'
 import { Heading } from '../components/heading'
 import { Input } from '../components/input'
 import { Navbar, NavbarSpacer } from '../components/navbar'
@@ -16,6 +17,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/table'
 import { Tab, TabGroup, TabList } from '../components/tabs'
 import { SidebarLayout } from '../layouts'
+import { MoonIcon, SunIcon } from '../primitives'
 import { CodeBlock } from './code-block'
 import { type ComponentApi, parseSource } from './parse-props'
 
@@ -242,8 +244,30 @@ function DemoPage({ demo }: { demo: (typeof demos)[number] }) {
 	)
 }
 
+function useDarkMode() {
+	const [dark, setDark] = useState(() => {
+		const stored = localStorage.getItem('theme')
+
+		if (stored) return stored === 'dark'
+
+		return window.matchMedia('(prefers-color-scheme: dark)').matches
+	})
+
+	useEffect(() => {
+		document.documentElement.classList.toggle('dark', dark)
+
+		localStorage.setItem('theme', dark ? 'dark' : 'light')
+	}, [dark])
+
+	const toggle = useCallback(() => setDark((d) => !d), [])
+
+	return [dark, toggle] as const
+}
+
 export function App() {
 	const route = useHash()
+
+	const [dark, toggleDark] = useDarkMode()
 
 	const [search, setSearch] = useState('')
 
@@ -264,9 +288,17 @@ export function App() {
 
 	return (
 		<SidebarLayout
+			actions={
+				<Button variant="plain" onClick={toggleDark} aria-label="Toggle dark mode">
+					{dark ? <SunIcon /> : <MoonIcon />}
+				</Button>
+			}
 			navbar={
 				<Navbar>
 					<NavbarSpacer />
+					<Button variant="plain" onClick={toggleDark} aria-label="Toggle dark mode">
+						{dark ? <SunIcon /> : <MoonIcon />}
+					</Button>
 				</Navbar>
 			}
 			sidebar={

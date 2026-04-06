@@ -2,6 +2,8 @@
 
 @source '../';
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
 	overscroll-behavior: none;
 }
