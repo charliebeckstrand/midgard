@@ -471,15 +471,9 @@ export const katachi = {
 
 	table: {
 		base: 'w-full text-left text-base/6',
-		head: sumi.textMuted,
-		header: [
-			'border-b font-semibold',
-			take.px.md,
-			take.py.md,
-			kage.borderSubtleColor,
-			sumi.textMuted,
-		],
-		row: ['border-b last:border-b-0', kage.borderSubtleColor],
+		head: [sumi.textMuted, 'border-b', kage.borderSubtleColor],
+		header: ['font-semibold', take.px.md, take.py.md, sumi.textMuted],
+		row: [],
 		cell: [take.px.md, take.py.md, sumi.text],
 		grid: ['border-l first:border-l-0', kage.borderSubtleColor],
 		striped: nuri.tableStriped,

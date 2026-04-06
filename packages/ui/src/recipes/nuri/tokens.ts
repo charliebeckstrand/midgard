@@ -17,6 +17,6 @@ export const sidebarLabel = mode(
 	'dark:group-data-[current]:text-white',
 )
 
-export const tableStriped = mode('*:odd:bg-zinc-950/2.5', 'dark:*:odd:bg-white/2.5')
+export const tableStriped = mode('*:even:bg-zinc-950/2.5', 'dark:*:even:bg-white/2.5')
 
 export const tabIndicator = mode('bg-zinc-950', 'dark:bg-white')
