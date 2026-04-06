@@ -35,9 +35,8 @@ export const chipVariants = cva(k.base, {
 		...chipColors('soft', true, k.colorSolid),
 		// outline + inactive → colored border
 		...chipColors('outline', false, k.colorOutline),
-		// outline + active → solid fill + matching border
+		// outline + active → solid fill, border stays from outline
 		...chipColors('outline', true, k.colorSolid),
-		...chipColors('outline', true, k.colorOutlineOnly),
 		// plain → colored text + hover bg, active → soft tint
 		...chipColors('plain', false, k.colorText),
 		...chipColors('plain', true, k.colorSoft),
