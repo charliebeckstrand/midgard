@@ -9,12 +9,16 @@
 
 import { defineColors } from './define-colors'
 
+// ── Base color palette ──────────────────────────────────
+
+export const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
+
+export type Color = (typeof colors)[number]
+
 // ── Text (ink) ──────────────────────────────────────────
 
 export const text = defineColors({
 	zinc: { light: 'text-zinc-700', dark: 'dark:text-zinc-300' },
-	white: { light: 'text-zinc-950', dark: 'dark:text-white' },
-	dark: { light: 'text-zinc-700', dark: 'dark:text-zinc-300' },
 	red: { light: 'text-red-700', dark: 'dark:text-red-400' },
 	amber: { light: 'text-amber-700', dark: 'dark:text-amber-400' },
 	green: { light: 'text-green-700', dark: 'dark:text-green-400' },
@@ -25,8 +29,6 @@ export const text = defineColors({
 
 const softBg = defineColors({
 	zinc: { light: 'bg-zinc-600/10', dark: 'dark:bg-white/10' },
-	white: { light: 'bg-white', dark: 'dark:bg-white/10' },
-	dark: { light: 'bg-zinc-950/10', dark: 'dark:bg-white/10' },
 	red: { light: 'bg-red-600/15', dark: 'dark:bg-red-500/15' },
 	amber: { light: 'bg-amber-500/15', dark: 'dark:bg-amber-500/15' },
 	green: { light: 'bg-green-600/15', dark: 'dark:bg-green-500/15' },
@@ -35,10 +37,8 @@ const softBg = defineColors({
 
 export const soft = merge(softBg, text)
 
-export const softHover: HoverMap<keyof typeof soft> = {
+export const softHover: HoverMap<Color> = {
 	zinc: { light: 'bg-zinc-600/20', dark: 'bg-white/15' },
-	white: { light: 'bg-zinc-50', dark: 'bg-white/15' },
-	dark: { light: 'bg-zinc-950/15', dark: 'bg-white/15' },
 	red: { light: 'bg-red-600/25', dark: 'bg-red-500/25' },
 	amber: { light: 'bg-amber-500/20', dark: 'bg-amber-500/25' },
 	green: { light: 'bg-green-600/25', dark: 'bg-green-500/25' },
@@ -49,8 +49,6 @@ export const softHover: HoverMap<keyof typeof soft> = {
 
 const solidBg = defineColors({
 	zinc: { light: 'bg-zinc-700', dark: 'dark:bg-zinc-600' },
-	white: { light: 'bg-white', dark: 'dark:bg-zinc-200' },
-	dark: { light: 'bg-zinc-950', dark: 'dark:bg-white' },
 	red: { light: 'bg-red-600', dark: 'dark:bg-red-500' },
 	amber: { light: 'bg-amber-500' },
 	green: { light: 'bg-green-600', dark: 'dark:bg-green-500' },
@@ -59,8 +57,6 @@ const solidBg = defineColors({
 
 const solidText = defineColors({
 	zinc: { light: 'text-white' },
-	white: { light: 'text-zinc-950', dark: 'dark:text-zinc-950' },
-	dark: { light: 'text-white', dark: 'dark:text-zinc-950' },
 	red: { light: 'text-white' },
 	amber: { light: 'text-amber-950' },
 	green: { light: 'text-white' },
@@ -69,14 +65,53 @@ const solidText = defineColors({
 
 export const solid = merge(solidBg, solidText)
 
-export const solidHover: HoverMap<keyof typeof solid> = {
+export const solidHover: HoverMap<Color> = {
 	zinc: { light: 'bg-zinc-800', dark: 'bg-zinc-500' },
-	white: { light: 'bg-zinc-100', dark: 'bg-zinc-300' },
-	dark: { light: 'bg-zinc-800', dark: 'bg-zinc-200' },
 	red: { light: 'bg-red-700', dark: 'bg-red-600' },
 	amber: { light: 'bg-amber-600' },
 	green: { light: 'bg-green-700', dark: 'bg-green-600' },
 	blue: { light: 'bg-blue-700', dark: 'bg-blue-600' },
+}
+
+// ── Extended colors (white + dark, shared by button/badge) ─
+
+export const extend = {
+	text: defineColors({
+		white: { light: 'text-zinc-950', dark: 'dark:text-white' },
+		dark: { light: 'text-zinc-700', dark: 'dark:text-zinc-300' },
+	}),
+
+	soft: merge(
+		defineColors({
+			white: { light: 'bg-white', dark: 'dark:bg-white/10' },
+			dark: { light: 'bg-zinc-950/10', dark: 'dark:bg-white/10' },
+		}),
+		defineColors({
+			white: { light: 'text-zinc-950', dark: 'dark:text-white' },
+			dark: { light: 'text-zinc-700', dark: 'dark:text-zinc-300' },
+		}),
+	),
+
+	softHover: {
+		white: { light: 'bg-zinc-50', dark: 'bg-white/15' },
+		dark: { light: 'bg-zinc-950/15', dark: 'bg-white/15' },
+	} as HoverMap<'white' | 'dark'>,
+
+	solid: merge(
+		defineColors({
+			white: { light: 'bg-white', dark: 'dark:bg-zinc-200' },
+			dark: { light: 'bg-zinc-950', dark: 'dark:bg-white' },
+		}),
+		defineColors({
+			white: { light: 'text-zinc-950', dark: 'dark:text-zinc-950' },
+			dark: { light: 'text-white', dark: 'dark:text-zinc-950' },
+		}),
+	),
+
+	solidHover: {
+		white: { light: 'bg-zinc-100', dark: 'bg-zinc-300' },
+		dark: { light: 'bg-zinc-800', dark: 'bg-zinc-200' },
+	} as HoverMap<'white' | 'dark'>,
 }
 
 // ── Helpers ─────────────────────────────────────────────
@@ -93,14 +128,6 @@ export function merge<K extends string>(
 		K,
 		string[]
 	>
-}
-
-/** Pick a subset of keys from a color map. */
-export function pick<K extends string, S extends K>(
-	map: Record<K, string[]>,
-	keys: readonly S[],
-): Record<S, string[]> {
-	return Object.fromEntries(keys.map((k) => [k, map[k]])) as Record<S, string[]>
 }
 
 /**
