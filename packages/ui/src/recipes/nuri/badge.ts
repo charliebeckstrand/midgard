@@ -1,13 +1,20 @@
-import { extend, soft, softHover, solid, solidHover, withHover } from './palette'
+import {
+	extend as paletteExtend,
+	soft as paletteSoft,
+	softHover as paletteSoftHover,
+	solid as paletteSolid,
+	solidHover as paletteSolidHover,
+	withHover,
+} from './palette'
 
-export const badgeSoft = withHover(
-	{ ...soft, ...extend.soft },
-	{ ...softHover, ...extend.softHover },
-	'group-hover:',
-)
+// ── Base (5 colors, group-hover — shared by badge + chip) ─
 
-export const badgeSolid = withHover(
-	{ ...solid, ...extend.solid },
-	{ ...solidHover, ...extend.solidHover },
-	'group-hover:',
-)
+export const soft = withHover(paletteSoft, paletteSoftHover, 'group-hover:')
+
+export const solid = withHover(paletteSolid, paletteSolidHover, 'group-hover:')
+
+// ── Extended (white + dark with group-hover — badge only) ─
+
+export const extendSoft = withHover(paletteExtend.soft, paletteExtend.softHover, 'group-hover:')
+
+export const extendSolid = withHover(paletteExtend.solid, paletteExtend.solidHover, 'group-hover:')

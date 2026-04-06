@@ -44,7 +44,7 @@ export function colorKeys<T extends ColorTokenMap>(tokenMap: T): { [K in keyof T
  * compoundVariants: compoundColors('solid', nuri.button)
  *
  * // Multiple variants × color
- * compoundVariants: compoundColors({ solid: nuri.badgeSolid, soft: nuri.badgeSoft })
+ * compoundVariants: compoundColors({ solid: nuri.solid, soft: nuri.soft })
  * ```
  */
 export function compoundColors<V extends string, C extends string>(

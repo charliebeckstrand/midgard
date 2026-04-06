@@ -8,10 +8,10 @@
  * Concern: color
  */
 
-import { badgeSoft, badgeSolid } from './badge'
+import { extendSoft, extendSolid, soft, solid } from './badge'
 import { button, buttonSoft, buttonSolid } from './button'
 import { checkbox } from './checkbox'
-import { chipBorder, chipOutlineBorder, chipSolidActive, chipText } from './chip'
+import { chipSolidActive, outline, text } from './chip'
 import { radio } from './radio'
 import { switchColor } from './switch'
 import {
@@ -25,18 +25,27 @@ import {
 } from './tokens'
 
 export const nuri = {
-	checkbox,
-	radio,
-	switch: switchColor,
+	// ── Shared color variants ────────────────────────────
+	soft,
+	solid,
+	outline,
+	text,
+	extend: { soft: extendSoft, solid: extendSolid },
+
+	// ── Button ───────────────────────────────────────────
 	button,
 	buttonSoft,
 	buttonSolid,
-	badgeSoft,
-	badgeSolid,
-	chipBorder,
-	chipOutlineBorder,
-	chipText,
+
+	// ── Chip (active-state override) ─────────────────────
 	chipSolidActive,
+
+	// ── Form controls ────────────────────────────────────
+	checkbox,
+	radio,
+	switch: switchColor,
+
+	// ── Scalar tokens ────────────────────────────────────
 	avatar,
 	switchTrack,
 	switchThumb,
