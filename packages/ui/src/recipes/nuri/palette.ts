@@ -21,7 +21,7 @@ export const text = defineColors({
 	blue: { light: 'text-blue-700', dark: 'dark:text-blue-400' },
 })
 
-// ── Soft background ─────────────────────────────────────
+// ── Soft ─────────────────────────────────────────────────
 
 const softBg = defineColors({
 	zinc: { light: 'bg-zinc-600/10', dark: 'dark:bg-white/10' },
@@ -45,23 +45,29 @@ export const softHover: HoverMap<keyof typeof soft> = {
 	blue: { light: 'bg-blue-600/25', dark: 'bg-blue-500/25' },
 }
 
-// ── Solid base (bg + text, no hover) ────────────────────
+// ── Solid ────────────────────────────────────────────────
 
-export const solid = defineColors({
-	zinc: { light: 'bg-zinc-700 text-white', dark: 'dark:bg-zinc-600' },
-	white: {
-		light: 'bg-white text-zinc-950',
-		dark: 'dark:bg-zinc-200 dark:text-zinc-950',
-	},
-	dark: {
-		light: 'bg-zinc-950 text-white',
-		dark: 'dark:bg-white dark:text-zinc-950',
-	},
-	red: { light: 'bg-red-600 text-white', dark: 'dark:bg-red-500' },
-	amber: { light: 'bg-amber-500 text-amber-950' },
-	green: { light: 'bg-green-600 text-white', dark: 'dark:bg-green-500' },
-	blue: { light: 'bg-blue-600 text-white', dark: 'dark:bg-blue-500' },
+const solidBg = defineColors({
+	zinc: { light: 'bg-zinc-700', dark: 'dark:bg-zinc-600' },
+	white: { light: 'bg-white', dark: 'dark:bg-zinc-200' },
+	dark: { light: 'bg-zinc-950', dark: 'dark:bg-white' },
+	red: { light: 'bg-red-600', dark: 'dark:bg-red-500' },
+	amber: { light: 'bg-amber-500' },
+	green: { light: 'bg-green-600', dark: 'dark:bg-green-500' },
+	blue: { light: 'bg-blue-600', dark: 'dark:bg-blue-500' },
 })
+
+const solidText = defineColors({
+	zinc: { light: 'text-white' },
+	white: { light: 'text-zinc-950', dark: 'dark:text-zinc-950' },
+	dark: { light: 'text-white', dark: 'dark:text-zinc-950' },
+	red: { light: 'text-white' },
+	amber: { light: 'text-amber-950' },
+	green: { light: 'text-white' },
+	blue: { light: 'text-white' },
+})
+
+export const solid = merge(solidBg, solidText)
 
 export const solidHover: HoverMap<keyof typeof solid> = {
 	zinc: { light: 'bg-zinc-800', dark: 'bg-zinc-500' },
@@ -79,7 +85,7 @@ type HoverEntry = { light: string; dark?: string }
 type HoverMap<K extends string> = Record<K, HoverEntry>
 
 /** Merge two color maps with the same keys into one. */
-function merge<K extends string>(
+export function merge<K extends string>(
 	a: Record<K, string[]>,
 	b: Record<K, string[]>,
 ): Record<K, string[]> {
@@ -87,6 +93,14 @@ function merge<K extends string>(
 		K,
 		string[]
 	>
+}
+
+/** Pick a subset of keys from a color map. */
+export function pick<K extends string, S extends K>(
+	map: Record<K, string[]>,
+	keys: readonly S[],
+): Record<S, string[]> {
+	return Object.fromEntries(keys.map((k) => [k, map[k]])) as Record<S, string[]>
 }
 
 /**
