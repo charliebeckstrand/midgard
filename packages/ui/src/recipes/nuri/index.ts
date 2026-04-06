@@ -9,7 +9,7 @@
  */
 
 import { extendSoft, extendSolid, soft, solid } from './badge'
-import { button, buttonSoft, buttonSolid } from './button'
+import { buttonSoft, buttonSolid, buttonSolidBase } from './button'
 import { checkbox } from './checkbox'
 import { chipSolidActive, outline, text } from './chip'
 import { radio } from './radio'
@@ -33,9 +33,9 @@ export const nuri = {
 	extend: { soft: extendSoft, solid: extendSolid },
 
 	// ── Button ───────────────────────────────────────────
-	button,
-	buttonSoft,
 	buttonSolid,
+	buttonSolidBase,
+	buttonSoft,
 
 	// ── Chip (active-state override) ─────────────────────
 	chipSolidActive,
