@@ -58,4 +58,10 @@ export const narabi = {
 		'*:data-[slot=avatar]:-mx-0.5 *:data-[slot=avatar]:size-6',
 		'forced-colors:*:data-[slot=icon]:text-[CanvasText]',
 	],
+
+	/** Truncated description with a spacer pseudo-element. */
+	description: 'flex flex-1 overflow-hidden before:w-2 before:min-w-0 before:shrink',
+
+	/** End-aligned icon slot inside a relative input container. */
+	chevron: 'absolute inset-y-0 right-0 flex items-center pr-2',
 } as const

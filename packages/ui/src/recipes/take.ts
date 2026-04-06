@@ -99,6 +99,9 @@ export const take = {
 		xl: 'size-16',
 	},
 
+	// Popup list max-height (dropdown, combobox, listbox)
+	popup: 'max-h-60',
+
 	// Panel constraint scale (max-width for dialogs/sheets)
 	panel: {
 		xs: 'sm:max-w-xs',

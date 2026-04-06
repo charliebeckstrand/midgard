@@ -163,8 +163,8 @@ export const katachi = {
 
 	combobox: {
 		input: [...form.inputBase, maru.rounded, take.control.md, 'pr-8 pl-3'],
-		chevron: 'absolute inset-y-0 right-0 flex items-center pr-2',
-		options: 'max-h-60',
+		chevron: narabi.chevron,
+		options: take.popup,
 		option: [...sawari.item, ...narabi.item],
 	},
 
@@ -221,7 +221,7 @@ export const katachi = {
 	// ─── Dropdown ────────────────────────────────────────
 
 	dropdown: {
-		menu: 'w-max min-w-48 max-h-60',
+		menu: ['w-max min-w-48', take.popup],
 		item: [
 			'group/option flex w-full items-center gap-3 px-3.5 py-2.5 sm:px-3 sm:py-1.5',
 			...sawari.item,
@@ -230,13 +230,9 @@ export const katachi = {
 		section: 'first:pt-0 last:pb-0',
 		heading: [sumi.textMuted, 'px-3.5 pb-1 pt-2 text-xs/5 font-medium sm:px-3'],
 		label: 'truncate',
-		description: [
-			sumi.textMuted,
-			'flex flex-1 overflow-hidden before:w-2 before:min-w-0 before:shrink',
-			sawari.focusText,
-		],
+		description: [sumi.textMuted, narabi.description, sawari.focusText],
 		shortcut: [sumi.textMuted, 'ml-auto pl-4 text-xs/5', sawari.focusTextMuted],
-		separator: [...kage.separator, 'my-1'],
+		separator: kage.divider,
 	},
 
 	// ─── Fieldset ────────────────────────────────────────
@@ -300,9 +296,9 @@ export const katachi = {
 			'appearance-none pr-8 pl-3',
 			'text-left',
 		],
-		options: 'max-h-60',
+		options: take.popup,
 		value: 'block truncate',
-		chevron: 'pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2',
+		chevron: ['pointer-events-none', narabi.chevron],
 		option: [...sawari.item, ...narabi.item],
 	},
 
@@ -440,7 +436,7 @@ export const katachi = {
 		label: [sumi.textMuted, 'truncate', nuri.sidebarLabel],
 		header: 'flex items-center gap-2',
 		body: 'flex flex-1 flex-col gap-4 overflow-y-auto',
-		divider: [...kage.separator, 'my-1'],
+		divider: kage.divider,
 		footer: 'mt-auto sticky bottom-0 flex flex-col gap-0.5',
 	},
 
@@ -535,10 +531,6 @@ export const katachi = {
 		end: 'grid-cols-[1fr_--spacing(5)] pr-2 pl-3.5 sm:grid-cols-[1fr_--spacing(4)] sm:pr-2 sm:pl-3',
 		content: ['flex min-w-0 items-center', narabi.item],
 		label: 'ml-2.5 truncate first:ml-0 sm:ml-2 sm:first:ml-0',
-		description: [
-			'flex flex-1 overflow-hidden before:w-2 before:min-w-0 before:shrink',
-			sumi.textMuted,
-			sawari.focusText,
-		],
+		description: [narabi.description, sumi.textMuted, sawari.focusText],
 	},
 } as const

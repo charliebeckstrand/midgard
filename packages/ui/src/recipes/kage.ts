@@ -46,5 +46,7 @@ export const kage = {
 	ringInset: [motoi.ring, 'ring-inset', hiru.ringSubtle, yoru.ringStrong],
 	ringSubtle: [motoi.ring, hiru.ringSubtle, yoru.ringSubtle],
 	separator: [motoi.separator, hiru.borderSubtle, yoru.borderSubtle],
+	/** Separator with standard vertical margin (dropdown/sidebar dividers). */
+	divider: [motoi.separator, hiru.borderSubtle, yoru.borderSubtle, 'my-1'],
 	shadow: motoi.shadow,
 } as const
