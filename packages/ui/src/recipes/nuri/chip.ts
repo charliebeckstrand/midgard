@@ -1,4 +1,7 @@
 import { defineColors } from './define-colors'
+import { text } from './palette'
+
+export const chipText = text
 
 export const chipBorder = defineColors({
 	zinc: {
@@ -43,29 +46,6 @@ export const chipOutlineBorder = defineColors({
 	blue: {
 		light: 'border-blue-600',
 		dark: 'dark:border-blue-500',
-	},
-})
-
-export const chipText = defineColors({
-	zinc: {
-		light: 'text-zinc-700',
-		dark: 'dark:text-zinc-300',
-	},
-	red: {
-		light: 'text-red-700',
-		dark: 'dark:text-red-400',
-	},
-	amber: {
-		light: 'text-amber-700',
-		dark: 'dark:text-amber-400',
-	},
-	green: {
-		light: 'text-green-700',
-		dark: 'dark:text-green-400',
-	},
-	blue: {
-		light: 'text-blue-700',
-		dark: 'dark:text-blue-400',
 	},
 })
 
