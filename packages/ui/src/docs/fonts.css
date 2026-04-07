@@ -1,0 +1,42 @@
+@font-face {
+    font-family: 'Geist';
+    font-weight: 100 900;
+    font-display: swap;
+    src: url('./fonts/Geist/Geist-VariableFont_wght.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Geist Mono';
+    font-weight: 100 900;
+    font-display: swap;
+    src: url('./fonts/Geist_Mono/GeistMono-VariableFont_wght.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Google Sans';
+    font-weight: 100 900;
+    font-display: swap;
+    src: url('./fonts/Google_Sans/GoogleSans-VariableFont_GRAD,opsz,wght.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Google Sans Code';
+    font-weight: 100 900;
+    font-display: swap;
+    src: url('./fonts/Google_Sans_Code/GoogleSansCode-VariableFont_wght.ttf') format('truetype');
+}
+
+
+:root {
+    --font-sans:
+    'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial,
+    sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+
+    --font-sans--font-feature-settings: 'cv11';
+
+    --font-code:
+    'Google Sans Code', SF Mono, SF Mono-Regular, Consolas, 'Liberation Mono', Menlo, Courier,
+    monospace;
+
+    --font-code--font-feature-settings: 'cv11';
+}

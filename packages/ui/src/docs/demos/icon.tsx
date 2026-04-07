@@ -44,7 +44,7 @@ function IconCard({ name, size }: { name: IconName; size: string }) {
 		>
 			<Icon name={name} size={size} />
 			<span className={`text-xs whitespace-nowrap ${copied ? 'text-green-600' : 'text-zinc-500'}`}>
-				{copied ? 'Copied!' : name}
+				{copied ? 'Copied!' : <span className="font-code">{name}</span>}
 			</span>
 		</button>
 	)

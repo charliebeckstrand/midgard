@@ -1,0 +1,55 @@
+@font-face {
+    font-family: 'Google Sans';
+    font-weight: 400;
+    font-display: swap;
+    src: url('./fonts/Google_Sans/static/GoogleSans-Regular.ttf') format('ttf');
+}
+
+@font-face {
+    font-family: 'Google Sans';
+    font-weight: 500;
+    font-display: swap;
+    src: url('./fonts/Google_Sans/static/GoogleSans-Medium.ttf') format('ttf');
+}
+
+@font-face {
+    font-family: 'Google Sans';
+    font-weight: 700;
+    font-display: swap;
+    src: url('./fonts/Google_Sans/static/GoogleSans-Bold.ttf') format('ttf');
+}
+
+@font-face {
+    font-family: 'Google Sans Code';
+    font-weight: 400;
+    font-display: swap;
+    src: url('./fonts/Google_Sans_Code/static/GoogleSansCode-Regular.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Google Sans Code';
+    font-weight: 500;
+    font-display: swap;
+    src: url('./fonts/Google_Sans_Code/static/GoogleSansCode-Medium.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Google Sans Code';
+    font-weight: 700;
+    font-display: swap;
+    src: url('./fonts/Google_Sans_Code/static/GoogleSansCode-Bold.ttf') format('truetype');
+}
+
+:root {
+    --font-sans:
+    'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial,
+    sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+
+    --font-sans--font-feature-settings: 'cv11';
+
+    --font-code:
+    'Google Sans Code', SF Mono, SF Mono-Regular, Consolas, 'Liberation Mono', Menlo, Courier,
+    monospace;
+    
+    --font-code--font-feature-settings: 'cv11';
+}

@@ -180,6 +180,11 @@ export function Combobox<T>({
 							setOpen(true)
 						}}
 						onFocus={() => setOpen(true)}
+						onBlur={(e) => {
+							if (containerRef.current?.contains(e.relatedTarget as Node)) return
+
+							close()
+						}}
 						onKeyDown={(e) => {
 							if (e.key === 'Escape') {
 								close()

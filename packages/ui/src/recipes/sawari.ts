@@ -32,8 +32,7 @@ const hiru = {
 	item: 'hover:bg-zinc-950/5 focus:bg-zinc-950/5',
 	nav: [
 		'group-hover:bg-zinc-950/5 group-hover:*:data-[slot=icon]:fill-zinc-950',
-		'active:bg-zinc-950/10 active:*:data-[slot=icon]:fill-zinc-950',
-		'data-current:group-hover:!bg-transparent data-current:active:!bg-transparent',
+		'data-current:group-hover:bg-transparent! data-current:active:bg-transparent!',
 	],
 	tab: ['data-current:text-zinc-950', 'not-data-current:not-disabled:hover:text-zinc-700'],
 }
@@ -44,7 +43,7 @@ const yoru = {
 	nav: [
 		'dark:text-white',
 		'dark:group-hover:bg-white/5 dark:group-hover:*:data-[slot=icon]:fill-zinc-400',
-		'dark:data-current:group-hover:!bg-transparent dark:data-current:active:!bg-transparent',
+		'dark:data-current:group-hover:bg-transparent! dark:data-current:active:bg-transparent!',
 	],
 	tab: ['dark:data-current:text-white', 'dark:not-data-current:not-disabled:hover:text-zinc-200'],
 }

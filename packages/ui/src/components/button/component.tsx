@@ -1,13 +1,10 @@
 'use client'
 
-import { type HTMLMotionProps, motion } from 'motion/react'
-import { Children, isValidElement } from 'react'
+import { Children, isValidElement, type PointerEvent } from 'react'
 import { cn, Link } from '../../core'
-import { type PolymorphicProps, TouchTarget, tapFeedback } from '../../primitives'
+import { type PolymorphicProps, TouchTarget, useRipple } from '../../primitives'
 import { ButtonSizeProvider } from './context'
 import { type ButtonVariants, buttonVariants, iconOnlySize, withIconSize } from './variants'
-
-const MotionLink = motion.create(Link)
 
 /** A single React element child (not text) — treat as icon-only */
 function isIconOnly(children: React.ReactNode): boolean {
@@ -25,7 +22,7 @@ function hasIcon(children: React.ReactNode): boolean {
 
 type ButtonBaseProps = ButtonVariants & {
 	className?: string
-	spring?: boolean
+	ripple?: boolean
 }
 
 export type ButtonProps = ButtonBaseProps & PolymorphicProps<'button'>
@@ -37,10 +34,11 @@ export function Button({
 	className,
 	children,
 	href,
-	spring = true,
+	ripple = variant !== 'ghost',
 	...props
 }: ButtonProps) {
 	const iconOnly = isIconOnly(children)
+	const { onPointerDown: handleRipple, element: rippleElement } = useRipple()
 
 	const classes = cn(
 		buttonVariants({ variant, color, size }),
@@ -49,39 +47,39 @@ export function Button({
 		className,
 	)
 
-	const tap = spring ? tapFeedback : undefined
+	const pointerDown = (e: PointerEvent<HTMLElement>) => {
+		if (ripple) handleRipple(e)
+	}
 
 	if (href !== undefined) {
-		const { onDrag, onDragEnd, onDragOver, onDragStart, ...linkProps } = props as Record<
-			string,
-			unknown
-		>
-
 		return (
-			<MotionLink data-slot="button" href={href} className={classes} {...tap} {...linkProps}>
+			<Link
+				data-slot="button"
+				href={href}
+				className={classes}
+				{...(props as Omit<React.ComponentPropsWithoutRef<typeof Link>, 'href' | 'className'>)}
+				onPointerDown={pointerDown}
+			>
+				{ripple && rippleElement}
 				<TouchTarget>
 					<ButtonSizeProvider value={size ?? 'md'}>{children}</ButtonSizeProvider>
 				</TouchTarget>
-			</MotionLink>
+			</Link>
 		)
 	}
 
-	const { onDrag, onDragEnd, onDragOver, onDragStart, ...buttonProps } = props as Record<
-		string,
-		unknown
-	>
-
 	return (
-		<motion.button
+		<button
 			data-slot="button"
 			type="button"
 			className={classes}
-			{...tap}
-			{...(buttonProps as Omit<HTMLMotionProps<'button'>, 'className'>)}
+			{...(props as Omit<React.ComponentPropsWithoutRef<'button'>, 'className'>)}
+			onPointerDown={pointerDown}
 		>
+			{ripple && rippleElement}
 			<TouchTarget>
 				<ButtonSizeProvider value={size ?? 'md'}>{children}</ButtonSizeProvider>
 			</TouchTarget>
-		</motion.button>
+		</button>
 	)
 }
