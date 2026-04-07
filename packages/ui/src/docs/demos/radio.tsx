@@ -1,5 +1,6 @@
 import { Label } from '../../components/fieldset'
 import { Radio, RadioField, RadioGroup } from '../../components/radio'
+import { code } from '../code'
 import { Example } from '../example'
 
 export const meta = { category: 'Forms' }
@@ -12,12 +13,14 @@ export default function RadioDemo() {
 		<div className="space-y-8">
 			<Example
 				title="Default"
-				code={`import { Radio, RadioField, RadioGroup } from 'ui/radio'\nimport { Label } from 'ui/fieldset'\n\n<RadioGroup>\n${plans
-					.map(
-						(p) =>
-							`  <RadioField>\n    <Radio name="plan" value="${p.toLowerCase()}" />\n    <Label>${p}</Label>\n  </RadioField>`,
-					)
-					.join('\n')}\n</RadioGroup>`}
+				code={code`
+					import { Radio, RadioField, RadioGroup } from 'ui/radio'
+					import { Label } from 'ui/fieldset'
+
+					<RadioGroup>
+					${plans.map((p) => `  <RadioField>\n    <Radio name="plan" value="${p.toLowerCase()}" />\n    <Label>${p}</Label>\n  </RadioField>`)}
+					</RadioGroup>
+				`}
 			>
 				<RadioGroup>
 					{plans.map((plan) => (
@@ -36,12 +39,14 @@ export default function RadioDemo() {
 
 			<Example
 				title="Colors"
-				code={`import { Radio, RadioField, RadioGroup } from 'ui/radio'\nimport { Label } from 'ui/fieldset'\n\n<RadioGroup>\n${colors
-					.map(
-						(c) =>
-							`  <RadioField>\n    <Radio name="color" value="${c}" color="${c}" />\n    <Label>${c.charAt(0).toUpperCase() + c.slice(1)}</Label>\n  </RadioField>`,
-					)
-					.join('\n')}\n</RadioGroup>`}
+				code={code`
+					import { Radio, RadioField, RadioGroup } from 'ui/radio'
+					import { Label } from 'ui/fieldset'
+
+					<RadioGroup>
+					${colors.map((c) => `  <RadioField>\n    <Radio name="color" value="${c}" color="${c}" />\n    <Label>${c.charAt(0).toUpperCase() + c.slice(1)}</Label>\n  </RadioField>`)}
+					</RadioGroup>
+				`}
 			>
 				<RadioGroup>
 					{colors.map((color) => (
@@ -61,20 +66,21 @@ export default function RadioDemo() {
 
 			<Example
 				title="Disabled"
-				code={`
-import { Radio, RadioField, RadioGroup } from 'ui/radio'
-import { Label } from 'ui/fieldset'
+				code={code`
+					import { Radio, RadioField, RadioGroup } from 'ui/radio'
+					import { Label } from 'ui/fieldset'
 
-<RadioGroup>
-  <RadioField>
-	<Radio name="option" value="enabled" defaultChecked />
-	<Label>Enabled option</Label>
-  </RadioField>
-  <RadioField>
-	<Radio name="option" value="disabled" disabled />
-	<Label>Disabled option</Label>
-  </RadioField>
-</RadioGroup>`}
+					<RadioGroup>
+					  <RadioField>
+					    <Radio name="option" value="enabled" defaultChecked />
+					    <Label>Enabled option</Label>
+					  </RadioField>
+					  <RadioField>
+					    <Radio name="option" value="disabled" disabled />
+					    <Label>Disabled option</Label>
+					  </RadioField>
+					</RadioGroup>
+				`}
 			>
 				<RadioGroup>
 					<RadioField>

@@ -3,6 +3,7 @@ import { Avatar } from '../../components/avatar'
 import { Button } from '../../components/button'
 import { Placeholder } from '../../components/placeholder'
 import { ContentReveal } from '../../primitives/content-reveal'
+import { code } from '../code'
 import { Example } from '../example'
 
 export const meta = { category: 'Feedback' }
@@ -110,12 +111,13 @@ export default function PlaceholderDemo() {
 		<div className="space-y-8">
 			<Example
 				title="Line (default)"
-				code={`
-import { Placeholder } from 'ui/placeholder'
+				code={code`
+					import { Placeholder } from 'ui/placeholder'
 
-<Placeholder />
-<Placeholder className="max-w-[70%]" />
-<Placeholder className="max-w-[50%]" />`}
+					<Placeholder />
+					<Placeholder className="max-w-[70%]" />
+					<Placeholder className="max-w-[50%]" />
+				`}
 			>
 				<div className="flex flex-col gap-2 max-w-sm">
 					<Placeholder />
@@ -126,11 +128,12 @@ import { Placeholder } from 'ui/placeholder'
 
 			<Example
 				title="Rectangle"
-				code={`
-import { Placeholder } from 'ui/placeholder'
+				code={code`
+					import { Placeholder } from 'ui/placeholder'
 
-<Placeholder variant="rect" className="h-10" />
-<Placeholder variant="rect" className="h-24" />`}
+					<Placeholder variant="rect" className="h-10" />
+					<Placeholder variant="rect" className="h-24" />
+				`}
 			>
 				<div className="flex flex-col gap-2 max-w-sm">
 					<Placeholder variant="rect" className="h-10" />
@@ -140,12 +143,13 @@ import { Placeholder } from 'ui/placeholder'
 
 			<Example
 				title="Circle"
-				code={`
-import { Placeholder } from 'ui/placeholder'
+				code={code`
+					import { Placeholder } from 'ui/placeholder'
 
-<Placeholder variant="circle" className="size-8" />
-<Placeholder variant="circle" className="size-10" />
-<Placeholder variant="circle" className="size-12" />`}
+					<Placeholder variant="circle" className="size-8" />
+					<Placeholder variant="circle" className="size-10" />
+					<Placeholder variant="circle" className="size-12" />
+				`}
 			>
 				<div className="flex items-center gap-2 max-w-sm">
 					<Placeholder variant="circle" className="size-8" />
@@ -156,17 +160,18 @@ import { Placeholder } from 'ui/placeholder'
 
 			<Example
 				title="Composed layout"
-				code={`
-import { Placeholder } from 'ui/placeholder'
+				code={code`
+					import { Placeholder } from 'ui/placeholder'
 
-<div className="flex items-start gap-3">
-	<Placeholder variant="circle" className="size-10" />
-	<div className="flex-1 space-y-2">
-		<Placeholder className="max-w-[40%]" />
-		<Placeholder />
-		<Placeholder className="max-w-[80%]" />
-	</div>
-</div>`}
+					<div className="flex items-start gap-3">
+						<Placeholder variant="circle" className="size-10" />
+						<div className="flex-1 space-y-2">
+							<Placeholder className="max-w-[40%]" />
+							<Placeholder />
+							<Placeholder className="max-w-[80%]" />
+						</div>
+					</div>
+				`}
 			>
 				<div className="flex items-start gap-3">
 					<Placeholder variant="circle" className="size-10" />
@@ -180,31 +185,33 @@ import { Placeholder } from 'ui/placeholder'
 
 			<Example
 				title="ContentReveal — crossfade"
-				code={`
-import { ContentReveal } from 'ui/primitives'
+				code={code`
+					import { ContentReveal } from 'ui/primitives'
 
-<ContentReveal
-	ready={ready}
-	placeholder={<Placeholder />}
->
-	<p>Loaded content</p>
-</ContentReveal>`}
+					<ContentReveal
+						ready={ready}
+						placeholder={<Placeholder />}
+					>
+						<p>Loaded content</p>
+					</ContentReveal>
+				`}
 			>
 				<CrossfadeRevealDemo />
 			</Example>
 
 			<Example
 				title="ContentReveal — wait mode"
-				code={`
-import { ContentReveal } from 'ui/primitives'
+				code={code`
+					import { ContentReveal } from 'ui/primitives'
 
-<ContentReveal
-	ready={ready}
-	mode="wait"
-	placeholder={<Placeholder />}
->
-	<p>Loaded content</p>
-</ContentReveal>`}
+					<ContentReveal
+						ready={ready}
+						mode="wait"
+						placeholder={<Placeholder />}
+					>
+						<p>Loaded content</p>
+					</ContentReveal>
+				`}
 			>
 				<WaitRevealDemo />
 			</Example>

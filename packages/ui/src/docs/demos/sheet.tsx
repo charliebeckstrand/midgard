@@ -7,6 +7,7 @@ import {
 	SheetDescription,
 	SheetTitle,
 } from '../../components/sheet'
+import { code } from '../code'
 import { Example } from '../example'
 
 export const meta = { category: 'Overlay' }
@@ -17,19 +18,21 @@ export default function SheetDemo() {
 
 	return (
 		<Example
-			code={`import { Sheet, SheetActions, SheetBody, SheetDescription, SheetTitle } from 'ui/sheet'
-import { Button } from 'ui/button'
+			code={code`
+				import { Sheet, SheetActions, SheetBody, SheetDescription, SheetTitle } from 'ui/sheet'
+				import { Button } from 'ui/button'
 
-<Sheet open={open} onClose={onClose}>
-	<SheetTitle>Sheet Title</SheetTitle>
-	<SheetDescription>Description text.</SheetDescription>
-	<SheetBody>
-		<p>Sheet content goes here.</p>
-	</SheetBody>
-	<SheetActions>
-		<Button variant="plain" onClick={onClose}>Close</Button>
-	</SheetActions>
-</Sheet>`}
+				<Sheet open={open} onClose={onClose}>
+					<SheetTitle>Sheet Title</SheetTitle>
+					<SheetDescription>Description text.</SheetDescription>
+					<SheetBody>
+						<p>Sheet content goes here.</p>
+					</SheetBody>
+					<SheetActions>
+						<Button variant="plain" onClick={onClose}>Close</Button>
+					</SheetActions>
+				</Sheet>
+			`}
 		>
 			<div className="flex gap-3">
 				<Button variant="outline" onClick={() => setLeftOpen(true)}>

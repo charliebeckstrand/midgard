@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Badge } from '../../components/badge'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
+import { code } from '../code'
 import { Example } from '../example'
 
 export const meta = { category: 'Data Display' }
@@ -28,7 +29,11 @@ export default function BadgeDemo() {
 		<div className="space-y-8">
 			<Example
 				title="Variants"
-				code={`import { Badge } from 'ui/badge'\n\n${variants.map((v) => `<Badge variant="${v}">${cap(v)}</Badge>`).join('\n')}`}
+				code={code`
+					import { Badge } from 'ui/badge'
+
+					${variants.map((v) => `<Badge variant="${v}">${cap(v)}</Badge>`)}
+				`}
 			>
 				<div className="flex flex-wrap gap-2">
 					{variants.map((variant) => (
@@ -56,9 +61,11 @@ export default function BadgeDemo() {
 						</Listbox>
 					</div>
 				}
-				code={`import { Badge } from 'ui/badge'\n\n${colors
-					.map((c) => `<Badge variant="${colorVariant}" color="${c}">${cap(c)}</Badge>`)
-					.join('\n')}`}
+				code={code`
+					import { Badge } from 'ui/badge'
+
+					${colors.map((c) => `<Badge variant="${colorVariant}" color="${c}">${cap(c)}</Badge>`)}
+				`}
 			>
 				<div className="flex flex-wrap gap-2">
 					{colors.map((color) => (
@@ -70,7 +77,11 @@ export default function BadgeDemo() {
 			</Example>
 			<Example
 				title="Sizes"
-				code={`import { Badge } from 'ui/badge'\n\n${sizes.map((s) => `<Badge size="${s.value}">${cap(s.label)}</Badge>`).join('\n')}`}
+				code={code`
+					import { Badge } from 'ui/badge'
+
+					${sizes.map((s) => `<Badge size="${s.value}">${cap(s.label)}</Badge>`)}
+				`}
 			>
 				<div className="flex flex-wrap items-center gap-2">
 					{sizes.map(({ value, label }) => (

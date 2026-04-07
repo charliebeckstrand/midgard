@@ -1,4 +1,5 @@
 import { Text } from '../../components/text'
+import { code } from '../code'
 import { Example } from '../example'
 
 export const meta = { category: 'Data Display' }
@@ -6,10 +7,12 @@ export const meta = { category: 'Data Display' }
 export default function TextDemo() {
 	return (
 		<Example
-			code={`import { Text } from 'ui/text'
+			code={code`
+				import { Text } from 'ui/text'
 
-<Text>Default paragraph text.</Text>
-<Text variant="muted">Muted secondary text.</Text>`}
+				<Text>Default paragraph text.</Text>
+				<Text variant="muted">Muted secondary text.</Text>
+			`}
 		>
 			<div className="space-y-4">
 				<Text>

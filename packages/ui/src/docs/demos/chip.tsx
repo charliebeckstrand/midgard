@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Chip } from '../../components/chip'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
+import { code } from '../code'
 import { Example } from '../example'
 
 export const meta = { category: 'Data Display' }
@@ -41,7 +42,11 @@ export default function ChipDemo() {
 		<div className="space-y-8">
 			<Example
 				title="Variants"
-				code={`import { Chip } from 'ui/chip'\n\n${variants.map((v) => `<Chip variant="${v}">${cap(v)}</Chip>`).join('\n')}`}
+				code={code`
+					import { Chip } from 'ui/chip'
+
+					${variants.map((v) => `<Chip variant="${v}">${cap(v)}</Chip>`)}
+				`}
 			>
 				<div className="flex flex-wrap gap-2">
 					{variants.map((variant) => (
@@ -69,9 +74,11 @@ export default function ChipDemo() {
 						</Listbox>
 					</div>
 				}
-				code={`import { Chip } from 'ui/chip'\n\n${colors
-					.map((c) => `<Chip variant="${colorVariant}" color="${c}">${cap(c)}</Chip>`)
-					.join('\n')}`}
+				code={code`
+					import { Chip } from 'ui/chip'
+
+					${colors.map((c) => `<Chip variant="${colorVariant}" color="${c}">${cap(c)}</Chip>`)}
+				`}
 			>
 				<div className="flex flex-wrap gap-2">
 					{colors.map((color) => (
@@ -83,7 +90,11 @@ export default function ChipDemo() {
 			</Example>
 			<Example
 				title="Sizes"
-				code={`import { Chip } from 'ui/chip'\n\n${sizes.map((s) => `<Chip size="${s.value}">${cap(s.label)}</Chip>`).join('\n')}`}
+				code={code`
+					import { Chip } from 'ui/chip'
+
+					${sizes.map((s) => `<Chip size="${s.value}">${cap(s.label)}</Chip>`)}
+				`}
 			>
 				<div className="flex flex-wrap items-center gap-2">
 					{sizes.map(({ value, label }) => (
@@ -95,12 +106,11 @@ export default function ChipDemo() {
 			</Example>
 			<Example
 				title="Active"
-				code={`import { Chip } from 'ui/chip'\n\n${labels
-					.map(
-						(l) =>
-							`<Chip variant="outline"${active.has(l) ? ' active' : ''} onClick={toggle}>${l}</Chip>`,
-					)
-					.join('\n')}`}
+				code={code`
+					import { Chip } from 'ui/chip'
+
+					${labels.map((l) => `<Chip variant="outline"${active.has(l) ? ' active' : ''} onClick={toggle}>${l}</Chip>`)}
+				`}
 			>
 				<div className="flex flex-wrap items-center gap-2">
 					{labels.map((label) => (

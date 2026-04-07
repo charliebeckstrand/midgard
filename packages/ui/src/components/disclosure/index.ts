@@ -6,3 +6,4 @@ export {
 	type DisclosurePanelProps,
 	type DisclosureProps,
 } from './component'
+export { disclosureButtonVariants, disclosurePanelVariants } from './variants'

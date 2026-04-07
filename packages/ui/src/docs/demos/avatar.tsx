@@ -1,4 +1,5 @@
 import { Avatar } from '../../components/avatar'
+import { code } from '../code'
 import { Example } from '../example'
 
 export const meta = { category: 'Data Display' }
@@ -13,9 +14,11 @@ const avatars = [
 export default function AvatarDemo() {
 	return (
 		<Example
-			code={`import { Avatar } from 'ui/avatar'\n\n${avatars
-				.map((a) => `<Avatar initials="${a.initials}" className="${a.size}" />`)
-				.join('\n')}`}
+			code={code`
+				import { Avatar } from 'ui/avatar'
+
+				${avatars.map((a) => `<Avatar initials="${a.initials}" className="${a.size}" />`)}
+			`}
 		>
 			<div className="flex items-center gap-4">
 				{avatars.map((a) => (

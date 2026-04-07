@@ -25,7 +25,7 @@ export function Example({
 							{({ open }) => (open ? 'Hide code' : 'Show code')}
 						</DisclosureButton>
 						<DisclosurePanel>
-							<div className="border-t border-zinc-200 [&_pre]:rounded-none [&_pre]:rounded-b-lg dark:border-zinc-800">
+							<div className="border-t border-zinc-200 dark:border-zinc-800">
 								<CodeBlock code={code} />
 							</div>
 						</DisclosurePanel>

@@ -200,6 +200,21 @@ export const katachi = {
 		option: [...sawari.item, ...narabi.item],
 	},
 
+	// ─── Disclosure ─────────────────────────────────────
+
+	disclosure: {
+		button: [
+			'flex items-center gap-2',
+			sumi.textMuted,
+			sumi.textHover,
+			take.text.sm,
+			'font-medium',
+			ki.offset,
+			sawari.cursor,
+		],
+		panel: 'overflow-hidden',
+	},
+
 	// ─── Dialog ──────────────────────────────────────────
 
 	dialog: {

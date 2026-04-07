@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Field, Label } from '../../components/fieldset'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
+import { code } from '../code'
 import { Example } from '../example'
 
 export const meta = { category: 'Forms' }
@@ -11,8 +12,6 @@ const statuses = [
 	{ value: 'delayed', label: 'Delayed' },
 	{ value: 'canceled', label: 'Canceled' },
 ]
-
-const statusesCode = `const statuses = [\n${statuses.map((s) => `  { value: '${s.value}', label: '${s.label}' },`).join('\n')}\n]`
 
 function SingleListbox() {
 	const [selected, setSelected] = useState(statuses[0].value)
@@ -64,41 +63,49 @@ export default function ListboxDemo() {
 		<div className="space-y-8">
 			<Example
 				title="Single"
-				code={`import { Field, Label } from 'ui/fieldset'
-import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
+				code={code`
+					import { Field, Label } from 'ui/fieldset'
+					import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
 
-${statusesCode}
+					const statuses = [
+					${statuses.map((s) => `  { value: '${s.value}', label: '${s.label}' },`)}
+					]
 
-<Field>
-  <Label>Status</Label>
-  <Listbox value={value} onChange={setValue} placeholder="Select status…">
-    {statuses.map((status) => (
-      <ListboxOption key={status.value} value={status.value}>
-        <ListboxLabel>{status.label}</ListboxLabel>
-      </ListboxOption>
-    ))}
-  </Listbox>
-</Field>`}
+					<Field>
+						<Label>Status</Label>
+						<Listbox value={value} onChange={setValue} placeholder="Select status…">
+							{statuses.map((status) => (
+								<ListboxOption key={status.value} value={status.value}>
+									<ListboxLabel>{status.label}</ListboxLabel>
+								</ListboxOption>
+							))}
+						</Listbox>
+					</Field>
+				`}
 			>
 				<SingleListbox />
 			</Example>
 			<Example
 				title="Multiple"
-				code={`import { Field, Label } from 'ui/fieldset'
-import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
+				code={code`
+					import { Field, Label } from 'ui/fieldset'
+					import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
 
-${statusesCode}
+					const statuses = [
+					${statuses.map((s) => `  { value: '${s.value}', label: '${s.label}' },`)}
+					]
 
-<Field>
-  <Label>Statuses</Label>
-  <Listbox multiple value={values} onChange={setValues} placeholder="Select statuses…">
-    {statuses.map((status) => (
-      <ListboxOption key={status.value} value={status.value}>
-        <ListboxLabel>{status.label}</ListboxLabel>
-      </ListboxOption>
-    ))}
-  </Listbox>
-</Field>`}
+					<Field>
+						<Label>Statuses</Label>
+						<Listbox multiple value={values} onChange={setValues} placeholder="Select statuses…">
+							{statuses.map((status) => (
+								<ListboxOption key={status.value} value={status.value}>
+									<ListboxLabel>{status.label}</ListboxLabel>
+								</ListboxOption>
+							))}
+						</Listbox>
+					</Field>
+				`}
 			>
 				<MultiListbox />
 			</Example>

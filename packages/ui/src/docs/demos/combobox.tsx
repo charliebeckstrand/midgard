@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Combobox, ComboboxLabel, ComboboxOption } from '../../components/combobox'
 import { Field, Label } from '../../components/fieldset'
+import { code } from '../code'
 import { Example } from '../example'
 
 export const meta = { category: 'Forms' }
@@ -13,8 +14,6 @@ const people = [
 	'Tanya Fox',
 	'Hellen Schmidt',
 ]
-
-const peopleCode = `import { Combobox, ComboboxLabel, ComboboxOption } from 'ui/combobox'\nimport { Field, Label } from 'ui/fieldset'\n\nconst people = [\n${people.map((p) => `  '${p}',`).join('\n')}\n]`
 
 function SingleCombobox() {
 	const [selected, setSelected] = useState<string | undefined>(undefined)
@@ -74,43 +73,57 @@ export default function ComboboxDemo() {
 		<div className="space-y-8">
 			<Example
 				title="Single"
-				code={`${peopleCode}
+				code={code`
+					import { Combobox, ComboboxLabel, ComboboxOption } from 'ui/combobox'
+					import { Field, Label } from 'ui/fieldset'
 
-<Field>
-  <Label>Assignee</Label>
-  <Combobox value={value} onChange={setValue} placeholder="Select a person…">
-    {(query) =>
-      people
-        .filter((p) => !query || p.toLowerCase().includes(query.toLowerCase()))
-        .map((person) => (
-          <ComboboxOption key={person} value={person}>
-            <ComboboxLabel>{person}</ComboboxLabel>
-          </ComboboxOption>
-        ))
-    }
-  </Combobox>
-</Field>`}
+					const people = [
+					${people.map((p) => `  '${p}',`)}
+					]
+
+					<Field>
+						<Label>Assignee</Label>
+						<Combobox value={value} onChange={setValue} placeholder="Select a person…">
+							{(query) =>
+								people
+									.filter((p) => !query || p.toLowerCase().includes(query.toLowerCase()))
+									.map((person) => (
+										<ComboboxOption key={person} value={person}>
+											<ComboboxLabel>{person}</ComboboxLabel>
+										</ComboboxOption>
+									))
+							}
+						</Combobox>
+					</Field>
+				`}
 			>
 				<SingleCombobox />
 			</Example>
 			<Example
 				title="Multiple"
-				code={`${peopleCode}
+				code={code`
+					import { Combobox, ComboboxLabel, ComboboxOption } from 'ui/combobox'
+					import { Field, Label } from 'ui/fieldset'
 
-<Field>
-  <Label>Assignees</Label>
-  <Combobox multiple value={values} onChange={setValues} placeholder="Select people…">
-    {(query) =>
-      people
-        .filter((p) => !query || p.toLowerCase().includes(query.toLowerCase()))
-        .map((person) => (
-          <ComboboxOption key={person} value={person}>
-            <ComboboxLabel>{person}</ComboboxLabel>
-          </ComboboxOption>
-        ))
-    }
-  </Combobox>
-</Field>`}
+					const people = [
+					${people.map((p) => `  '${p}',`)}
+					]
+
+					<Field>
+						<Label>Assignees</Label>
+						<Combobox multiple value={values} onChange={setValues} placeholder="Select people…">
+							{(query) =>
+								people
+									.filter((p) => !query || p.toLowerCase().includes(query.toLowerCase()))
+									.map((person) => (
+										<ComboboxOption key={person} value={person}>
+											<ComboboxLabel>{person}</ComboboxLabel>
+										</ComboboxOption>
+									))
+							}
+						</Combobox>
+					</Field>
+				`}
 			>
 				<MultiCombobox />
 			</Example>

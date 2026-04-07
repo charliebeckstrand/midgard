@@ -1,5 +1,6 @@
 import { Field, Label } from '../../components/fieldset'
 import { Textarea } from '../../components/textarea'
+import { code } from '../code'
 import { Example } from '../example'
 
 export const meta = { category: 'Forms' }
@@ -9,13 +10,15 @@ export default function TextareaDemo() {
 		<div className="space-y-8">
 			<Example
 				title="Default"
-				code={`import { Field, Label } from 'ui/fieldset'
-import { Textarea } from 'ui/textarea'
+				code={code`
+					import { Field, Label } from 'ui/fieldset'
+					import { Textarea } from 'ui/textarea'
 
-<Field className="max-w-sm">
-	<Label>Message</Label>
-	<Textarea resize="vertical" placeholder="Write your message…" />
-</Field>`}
+					<Field className="max-w-sm">
+						<Label>Message</Label>
+						<Textarea resize="vertical" placeholder="Write your message…" />
+					</Field>
+				`}
 			>
 				<Field className="max-w-sm">
 					<Label htmlFor="textarea-message">Message</Label>
@@ -24,13 +27,15 @@ import { Textarea } from 'ui/textarea'
 			</Example>
 			<Example
 				title="Non-resizable"
-				code={`import { Field, Label } from 'ui/fieldset'
-import { Textarea } from 'ui/textarea'
+				code={code`
+					import { Field, Label } from 'ui/fieldset'
+					import { Textarea } from 'ui/textarea'
 
-<Field className="max-w-sm">
-	<Label>Non-resizable</Label>
-	<Textarea placeholder="Cannot resize" />
-</Field>`}
+					<Field className="max-w-sm">
+						<Label>Non-resizable</Label>
+						<Textarea placeholder="Cannot resize" />
+					</Field>
+				`}
 			>
 				<Field className="max-w-sm">
 					<Label htmlFor="textarea-non-resizable">Non-resizable</Label>
@@ -39,13 +44,15 @@ import { Textarea } from 'ui/textarea'
 			</Example>
 			<Example
 				title="Invalid"
-				code={`import { Field, Label } from 'ui/fieldset'
-import { Textarea } from 'ui/textarea'
+				code={code`
+					import { Field, Label } from 'ui/fieldset'
+					import { Textarea } from 'ui/textarea'
 
-<Field className="max-w-sm">
-	<Label>Invalid</Label>
-	<Textarea data-invalid placeholder="Something went wrong" />
-</Field>`}
+					<Field className="max-w-sm">
+						<Label>Invalid</Label>
+						<Textarea data-invalid placeholder="Something went wrong" />
+					</Field>
+				`}
 			>
 				<Field className="max-w-sm">
 					<Label htmlFor="textarea-invalid">Invalid</Label>

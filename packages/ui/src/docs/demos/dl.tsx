@@ -1,4 +1,5 @@
 import { DescriptionDetails, DescriptionList, DescriptionTerm } from '../../components/dl'
+import { code } from '../code'
 import { Example } from '../example'
 
 export const meta = { name: 'DL', category: 'Data Display' }
@@ -6,18 +7,20 @@ export const meta = { name: 'DL', category: 'Data Display' }
 export default function DLDemo() {
 	return (
 		<Example
-			code={`import { DescriptionDetails, DescriptionList, DescriptionTerm } from 'ui/dl'
+			code={code`
+				import { DescriptionDetails, DescriptionList, DescriptionTerm } from 'ui/dl'
 
-<DescriptionList>
-  <DescriptionTerm>Name</DescriptionTerm>
-  <DescriptionDetails>Wade Cooper</DescriptionDetails>
-  <DescriptionTerm>Email</DescriptionTerm>
-  <DescriptionDetails>wade@example.com</DescriptionDetails>
-  <DescriptionTerm>Role</DescriptionTerm>
-  <DescriptionDetails>Administrator</DescriptionDetails>
-  <DescriptionTerm>Status</DescriptionTerm>
-  <DescriptionDetails>Active</DescriptionDetails>
-</DescriptionList>`}
+				<DescriptionList>
+					<DescriptionTerm>Name</DescriptionTerm>
+					<DescriptionDetails>Wade Cooper</DescriptionDetails>
+					<DescriptionTerm>Email</DescriptionTerm>
+					<DescriptionDetails>wade@example.com</DescriptionDetails>
+					<DescriptionTerm>Role</DescriptionTerm>
+					<DescriptionDetails>Administrator</DescriptionDetails>
+					<DescriptionTerm>Status</DescriptionTerm>
+					<DescriptionDetails>Active</DescriptionDetails>
+				</DescriptionList>
+			`}
 		>
 			<DescriptionList>
 				<DescriptionTerm>Name</DescriptionTerm>

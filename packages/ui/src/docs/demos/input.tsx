@@ -1,5 +1,6 @@
 import { Field, Label } from '../../components/fieldset'
 import { Input } from '../../components/input'
+import { code } from '../code'
 import { Example } from '../example'
 
 export const meta = { category: 'Forms' }
@@ -9,13 +10,15 @@ export default function InputDemo() {
 		<div className="space-y-8">
 			<Example
 				title="Default"
-				code={`import { Field, Label } from 'ui/fieldset'
-import { Input } from 'ui/input'
+				code={code`
+					import { Field, Label } from 'ui/fieldset'
+					import { Input } from 'ui/input'
 
-<Field className="max-w-sm">
-  <Label>Name</Label>
-  <Input placeholder="Enter text…" />
-</Field>`}
+					<Field className="max-w-sm">
+						<Label>Name</Label>
+						<Input placeholder="Enter text…" />
+					</Field>
+				`}
 			>
 				<Field className="max-w-sm">
 					<Label htmlFor="input-default">Default</Label>
@@ -24,9 +27,11 @@ import { Input } from 'ui/input'
 			</Example>
 			<Example
 				title="Outline"
-				code={`import { Input } from 'ui/input'
+				code={code`
+					import { Input } from 'ui/input'
 
-<Input variant="outline" placeholder="Enter text…" />`}
+					<Input variant="outline" placeholder="Enter text…" />
+				`}
 			>
 				<Field className="max-w-sm">
 					<Label htmlFor="input-outline">Outline</Label>
@@ -35,9 +40,11 @@ import { Input } from 'ui/input'
 			</Example>
 			<Example
 				title="Disabled"
-				code={`import { Input } from 'ui/input'
+				code={code`
+					import { Input } from 'ui/input'
 
-<Input disabled placeholder="Disabled" />`}
+					<Input disabled placeholder="Disabled" />
+				`}
 			>
 				<Field className="max-w-sm">
 					<Label htmlFor="input-disabled">Disabled</Label>
@@ -46,9 +53,11 @@ import { Input } from 'ui/input'
 			</Example>
 			<Example
 				title="Readonly"
-				code={`import { Input } from 'ui/input'
+				code={code`
+					import { Input } from 'ui/input'
 
-<Input readOnly placeholder="Readonly" />`}
+					<Input readOnly placeholder="Readonly" />
+				`}
 			>
 				<Field className="max-w-sm">
 					<Label>Readonly</Label>
@@ -57,9 +66,11 @@ import { Input } from 'ui/input'
 			</Example>
 			<Example
 				title="Invalid"
-				code={`import { Input } from 'ui/input'
+				code={code`
+					import { Input } from 'ui/input'
 
-<Input data-invalid placeholder="Invalid input" />`}
+					<Input data-invalid placeholder="Invalid input" />
+				`}
 			>
 				<Field className="max-w-sm">
 					<Label>Invalid</Label>

@@ -4,6 +4,7 @@ import { Field, Label } from '../../components/fieldset'
 import { Input } from '../../components/input'
 import { PasswordInput } from '../../components/input/password'
 import { ForgotPasswordPage, LoginPage, RegisterPage } from '../../pages'
+import { code } from '../code'
 import { Example } from '../example'
 
 export const meta = { category: 'Layout' }
@@ -17,21 +18,23 @@ export default function PagesDemo() {
 
 	return (
 		<Example
-			code={`import { LoginPage } from 'ui/pages'
-import { Button } from 'ui/button'
-import { Field, Label } from 'ui/fieldset'
-import { Input, PasswordInput } from 'ui/input'
+			code={code`
+				import { LoginPage } from 'ui/pages'
+				import { Button } from 'ui/button'
+				import { Field, Label } from 'ui/fieldset'
+				import { Input, PasswordInput } from 'ui/input'
 
-<LoginPage onSubmit={onSubmit} submit={<Button type="submit">Sign in</Button>}>
-	<Field>
-		<Label>Email</Label>
-		<Input type="email" placeholder="you@example.com" />
-	</Field>
-	<Field>
-		<Label>Password</Label>
-		<PasswordInput placeholder="•••••••••" />
-	</Field>
-</LoginPage>`}
+				<LoginPage onSubmit={onSubmit} submit={<Button type="submit">Sign in</Button>}>
+					<Field>
+						<Label>Email</Label>
+						<Input type="email" placeholder="you@example.com" />
+					</Field>
+					<Field>
+						<Label>Password</Label>
+						<PasswordInput placeholder="•••••••••" />
+					</Field>
+				</LoginPage>
+			`}
 		>
 			<div className="space-y-6">
 				<div className="flex gap-2">
