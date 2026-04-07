@@ -1,16 +1,16 @@
 'use client'
 
 import { cn, createContext } from '../../core'
-import {
-	type TableVariants,
-	tableCellVariants,
-	tableGridVariants,
-	tableHeaderVariants,
-	tableHeadVariants,
-	tableRowVariants,
-	tableStripedVariants,
-	tableVariants,
-} from './variants'
+import { katachi } from '../../recipes'
+
+const k = katachi.table
+
+export type TableVariants = {
+	dense?: boolean
+	bleed?: boolean
+	grid?: boolean
+	striped?: boolean
+}
 
 type TableContextValue = {
 	bleed: boolean
@@ -37,7 +37,7 @@ export function Table({ bleed, dense, grid, striped, className, children }: Tabl
 			}}
 		>
 			<div data-slot="table" className={cn('overflow-x-auto', bleed && '-mx-4 sm:-mx-6')}>
-				<table className={cn(tableVariants(), className)}>{children}</table>
+				<table className={cn(k.base, className)}>{children}</table>
 			</div>
 		</TableProvider>
 	)
@@ -49,7 +49,7 @@ export type TableHeadProps = {
 }
 
 export function TableHead({ className, children }: TableHeadProps) {
-	return <thead className={cn(tableHeadVariants(), className)}>{children}</thead>
+	return <thead className={cn(k.head, className)}>{children}</thead>
 }
 
 export type TableHeaderProps = {
@@ -61,10 +61,7 @@ export function TableHeader({ className, children, ...props }: TableHeaderProps)
 	const { grid, dense } = useTable()
 
 	return (
-		<th
-			className={cn(tableHeaderVariants(), grid && tableGridVariants(), dense && 'py-1', className)}
-			{...props}
-		>
+		<th className={cn(k.header, grid && k.grid, dense && 'py-1', className)} {...props}>
 			{children}
 		</th>
 	)
@@ -78,7 +75,7 @@ export type TableBodyProps = {
 export function TableBody({ className, children }: TableBodyProps) {
 	const { striped } = useTable()
 
-	return <tbody className={cn(striped && tableStripedVariants(), className)}>{children}</tbody>
+	return <tbody className={cn(striped && k.striped, className)}>{children}</tbody>
 }
 
 export type TableRowProps = {
@@ -89,7 +86,7 @@ export type TableRowProps = {
 
 export function TableRow({ className, children, ...props }: TableRowProps) {
 	return (
-		<tr className={cn(tableRowVariants(), className)} {...props}>
+		<tr className={cn(k.row, className)} {...props}>
 			{children}
 		</tr>
 	)
@@ -104,10 +101,7 @@ export function TableCell({ className, children, ...props }: TableCellProps) {
 	const { grid, dense } = useTable()
 
 	return (
-		<td
-			className={cn(tableCellVariants(), grid && tableGridVariants(), dense && 'py-1', className)}
-			{...props}
-		>
+		<td className={cn(k.cell, grid && k.grid, dense && 'py-1', className)} {...props}>
 			{children}
 		</td>
 	)

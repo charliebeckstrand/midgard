@@ -12,11 +12,3 @@ export {
 	Legend,
 	type LegendProps,
 } from './component'
-export {
-	descriptionVariants,
-	errorVariants,
-	fieldsetVariants,
-	fieldVariants,
-	labelVariants,
-	legendVariants,
-} from './variants'

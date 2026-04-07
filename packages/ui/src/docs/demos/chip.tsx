@@ -57,22 +57,20 @@ export default function ChipDemo() {
 				</div>
 			</Example>
 			<Example
-				title={
-					<div className="flex items-center justify-between gap-2">
-						<div>Colors</div>
-						<Listbox
-							value={colorVariant}
-							onChange={setColorVariant}
-							className="min-w-26"
-							displayValue={(v: string) => cap(v)}
-						>
-							{colorVariants.map((v) => (
-								<ListboxOption key={v} value={v}>
-									<ListboxLabel>{cap(v)}</ListboxLabel>
-								</ListboxOption>
-							))}
-						</Listbox>
-					</div>
+				title="Colors"
+				actions={
+					<Listbox
+						value={colorVariant}
+						onChange={setColorVariant}
+						className="min-w-26"
+						displayValue={(v: string) => cap(v)}
+					>
+						{colorVariants.map((v) => (
+							<ListboxOption key={v} value={v}>
+								<ListboxLabel>{cap(v)}</ListboxLabel>
+							</ListboxOption>
+						))}
+					</Listbox>
 				}
 				code={code`
 					import { Chip } from 'ui/chip'

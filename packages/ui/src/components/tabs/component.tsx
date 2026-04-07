@@ -2,7 +2,9 @@
 
 import { cn } from '../../core'
 import { ActiveIndicator, ActiveIndicatorScope, useActiveIndicator } from '../../primitives'
-import { tabIndicatorVariants, tabListVariants, tabVariants } from './variants'
+import { katachi } from '../../recipes'
+
+const k = katachi.tabs
 
 export type TabGroupProps = React.ComponentPropsWithoutRef<'div'>
 
@@ -24,7 +26,7 @@ export function TabGroup({ className, ...props }: TabGroupProps) {
 export function TabList({ className, children, ...props }: TabListProps) {
 	return (
 		<ActiveIndicatorScope>
-			<div data-slot="tab-list" className={cn(tabListVariants(), className)} {...props}>
+			<div data-slot="tab-list" className={cn(k.list, className)} {...props}>
 				{children}
 			</div>
 		</ActiveIndicatorScope>
@@ -39,12 +41,12 @@ export function Tab({ current, className, children, ...props }: TabProps) {
 			data-slot="tab"
 			data-current={current ? '' : undefined}
 			type="button"
-			className={cn(tabVariants(), className)}
+			className={cn(k.tab, className)}
 			{...indicator.tapHandlers}
 			{...props}
 		>
 			<span className="relative z-10">{children}</span>
-			{current && <ActiveIndicator ref={indicator.ref} className={tabIndicatorVariants()} />}
+			{current && <ActiveIndicator ref={indicator.ref} className={cn(k.indicator)} />}
 		</button>
 	)
 }

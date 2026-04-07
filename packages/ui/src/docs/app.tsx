@@ -7,6 +7,7 @@ import { Combobox, ComboboxOption } from '../components/combobox'
 import { Disclosure, DisclosureButton, DisclosurePanel } from '../components/disclosure'
 import { Divider } from '../components/divider'
 import { Heading } from '../components/heading'
+import { Icon } from '../components/icon'
 import { Navbar, NavbarSpacer } from '../components/navbar'
 import {
 	Sidebar,
@@ -18,7 +19,6 @@ import {
 } from '../components/sidebar'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/table'
 import { useOffcanvas } from '../core/offcanvas-context'
-import { ChevronRightIcon, MoonIcon, SunIcon } from '../icons'
 import { SidebarLayout } from '../layouts'
 import { type ComponentApi, parseSource } from './parse-props'
 
@@ -94,6 +94,7 @@ const categories = demos.reduce<Record<string, typeof demos>>((acc, demo) => {
 }, {})
 
 const categoryOrder = [
+	'Base',
 	'Forms',
 	'Data Display',
 	'Feedback',
@@ -181,8 +182,8 @@ function DemoPage({ demo }: { demo: (typeof demos)[number] }) {
 				<>
 					<Divider />
 					<Disclosure>
-						<DisclosureButton>
-							<ChevronRightIcon className="transition-transform in-data-open:rotate-90" />
+						<DisclosureButton className="-mt-4 -ml-2">
+							<Icon name="chevron-right" className="transition-transform in-data-open:rotate-90" />
 							API Reference
 						</DisclosureButton>
 						<DisclosurePanel>
@@ -281,25 +282,15 @@ export function App() {
 	return (
 		<SidebarLayout
 			actions={
-				<Button
-					variant="soft"
-					color={dark ? 'amber' : 'zinc'}
-					onClick={toggleDark}
-					aria-label="Toggle dark mode"
-				>
-					{dark ? <SunIcon /> : <MoonIcon />}
+				<Button variant="plain" onClick={toggleDark} aria-label="Toggle dark mode">
+					{dark ? <Icon name="sun" /> : <Icon name="moon" />}
 				</Button>
 			}
 			navbar={
 				<Navbar>
 					<NavbarSpacer />
-					<Button
-						variant="plain"
-						color={dark ? 'amber' : 'zinc'}
-						onClick={toggleDark}
-						aria-label="Toggle dark mode"
-					>
-						{dark ? <SunIcon /> : <MoonIcon />}
+					<Button variant="plain" onClick={toggleDark} aria-label="Toggle dark mode">
+						{dark ? <Icon name="sun" /> : <Icon name="moon" />}
 					</Button>
 				</Navbar>
 			}

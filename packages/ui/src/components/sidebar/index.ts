@@ -21,13 +21,3 @@ export {
 	SidebarHeader,
 	type SidebarHeaderProps,
 } from './slots'
-export {
-	sidebarBodyVariants,
-	sidebarDividerVariants,
-	sidebarFooterVariants,
-	sidebarHeaderVariants,
-	sidebarItemVariants,
-	sidebarLabelVariants,
-	sidebarSectionVariants,
-	sidebarVariants,
-} from './variants'

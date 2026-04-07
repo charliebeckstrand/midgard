@@ -4,6 +4,7 @@ import { type HTMLMotionProps, motion } from 'motion/react'
 import { Children, isValidElement } from 'react'
 import { cn, Link } from '../../core'
 import { type PolymorphicProps, TouchTarget, tapFeedback } from '../../primitives'
+import { ButtonSizeProvider } from './context'
 import { type ButtonVariants, buttonVariants, iconOnlySize, withIconSize } from './variants'
 
 const MotionLink = motion.create(Link)
@@ -58,7 +59,9 @@ export function Button({
 
 		return (
 			<MotionLink data-slot="button" href={href} className={classes} {...tap} {...linkProps}>
-				<TouchTarget>{children}</TouchTarget>
+				<TouchTarget>
+					<ButtonSizeProvider value={size ?? 'md'}>{children}</ButtonSizeProvider>
+				</TouchTarget>
 			</MotionLink>
 		)
 	}
@@ -76,7 +79,9 @@ export function Button({
 			{...tap}
 			{...(buttonProps as Omit<HTMLMotionProps<'button'>, 'className'>)}
 		>
-			<TouchTarget>{children}</TouchTarget>
+			<TouchTarget>
+				<ButtonSizeProvider value={size ?? 'md'}>{children}</ButtonSizeProvider>
+			</TouchTarget>
 		</motion.button>
 	)
 }

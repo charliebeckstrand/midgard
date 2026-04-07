@@ -2,9 +2,11 @@
 
 import { cn } from '../../core'
 import { useOffcanvas } from '../../core/offcanvas-context'
-import { CloseIcon } from '../../icons'
+import { katachi } from '../../recipes'
 import { Button } from '../button'
-import { sidebarBodyVariants, sidebarFooterVariants, sidebarHeaderVariants } from './variants'
+import { Icon } from '../icon'
+
+const k = katachi.sidebar
 
 export type SidebarHeaderProps = React.ComponentPropsWithoutRef<'div'> & {
 	closeIcon?: React.ReactNode
@@ -18,7 +20,7 @@ export function SidebarHeader({ className, children, closeIcon, ...props }: Side
 	const offcanvas = useOffcanvas()
 
 	return (
-		<div data-slot="sidebar-header" className={cn(sidebarHeaderVariants(), className)} {...props}>
+		<div data-slot="sidebar-header" className={cn(k.header, className)} {...props}>
 			<div className="flex-1">{children}</div>
 			{offcanvas && (
 				<Button
@@ -27,7 +29,7 @@ export function SidebarHeader({ className, children, closeIcon, ...props }: Side
 					onClick={offcanvas.close}
 					className="ml-auto"
 				>
-					{closeIcon ?? <CloseIcon />}
+					{closeIcon ?? <Icon name="x" />}
 				</Button>
 			)}
 		</div>
@@ -35,13 +37,9 @@ export function SidebarHeader({ className, children, closeIcon, ...props }: Side
 }
 
 export function SidebarBody({ className, ...props }: SidebarBodyProps) {
-	return (
-		<div data-slot="sidebar-body" className={cn(sidebarBodyVariants(), className)} {...props} />
-	)
+	return <div data-slot="sidebar-body" className={cn(k.body, className)} {...props} />
 }
 
 export function SidebarFooter({ className, ...props }: SidebarFooterProps) {
-	return (
-		<div data-slot="sidebar-footer" className={cn(sidebarFooterVariants(), className)} {...props} />
-	)
+	return <div data-slot="sidebar-footer" className={cn(k.footer, className)} {...props} />
 }

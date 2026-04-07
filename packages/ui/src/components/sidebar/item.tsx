@@ -2,12 +2,9 @@
 
 import { cn } from '../../core'
 import { createNavItem, type NavItemProps } from '../../primitives/create-nav-item'
-import {
-	sidebarDividerVariants,
-	sidebarItemVariants,
-	sidebarLabelVariants,
-	sidebarSectionVariants,
-} from './variants'
+import { katachi } from '../../recipes'
+
+const k = katachi.sidebar
 
 export type SidebarItemProps = NavItemProps
 
@@ -21,22 +18,14 @@ export type SidebarDividerProps = React.ComponentPropsWithoutRef<'hr'>
 
 export type SidebarItemActionsProps = React.ComponentPropsWithoutRef<'div'>
 
-export const SidebarItem = createNavItem({ slotPrefix: 'sidebar', variants: sidebarItemVariants })
+export const SidebarItem = createNavItem({ slotPrefix: 'sidebar', variants: () => cn(k.item) })
 
 export function SidebarLabel({ className, ...props }: SidebarLabelProps) {
-	return (
-		<span data-slot="sidebar-label" className={cn(sidebarLabelVariants(), className)} {...props} />
-	)
+	return <span data-slot="sidebar-label" className={cn(k.label, className)} {...props} />
 }
 
 export function SidebarSection({ className, ...props }: SidebarSectionProps) {
-	return (
-		<div
-			data-slot="sidebar-section"
-			className={cn(sidebarSectionVariants(), className)}
-			{...props}
-		/>
-	)
+	return <div data-slot="sidebar-section" className={cn(k.section, className)} {...props} />
 }
 
 export function SidebarSpacer({ className, ...props }: SidebarSpacerProps) {
@@ -51,13 +40,7 @@ export function SidebarSpacer({ className, ...props }: SidebarSpacerProps) {
 }
 
 export function SidebarDivider({ className, ...props }: SidebarDividerProps) {
-	return (
-		<hr
-			data-slot="sidebar-divider"
-			className={cn(sidebarDividerVariants(), className)}
-			{...props}
-		/>
-	)
+	return <hr data-slot="sidebar-divider" className={cn(k.divider, className)} {...props} />
 }
 
 export function SidebarItemActions({ className, ...props }: SidebarItemActionsProps) {

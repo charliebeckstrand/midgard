@@ -6,7 +6,6 @@ export {
 	type PlaceholderSidebarItemProps,
 	PlaceholderText,
 	type PlaceholderTextProps,
-	type PlaceholderVariants,
-	placeholderVariants,
 } from './component'
 export { PlaceholderReveal, type PlaceholderRevealProps } from './reveal'
+export { type PlaceholderVariants, placeholderVariants } from './variants'

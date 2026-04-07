@@ -1,1 +1,2 @@
-export { Text, type TextProps, type TextVariants, textVariants } from './component'
+export { Text, type TextProps } from './component'
+export { type TextVariants, textVariants } from './variants'

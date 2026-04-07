@@ -1,15 +1,5 @@
-import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '../../core'
-import { katachi } from '../../recipes'
-
-const k = katachi.placeholder
-
-export const placeholderVariants = cva(k.base, {
-	variants: { variant: k.variant },
-	defaultVariants: k.defaults,
-})
-
-export type PlaceholderVariants = VariantProps<typeof placeholderVariants>
+import { type PlaceholderVariants, placeholderVariants } from './variants'
 
 export type PlaceholderProps = PlaceholderVariants & {
 	className?: string

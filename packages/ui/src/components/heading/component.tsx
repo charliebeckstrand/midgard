@@ -1,15 +1,5 @@
-import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '../../core'
-import { katachi } from '../../recipes'
-
-const k = katachi.heading
-
-export const headingVariants = cva(k.base, {
-	variants: { level: k.level },
-	defaultVariants: k.defaults,
-})
-
-export type HeadingVariants = VariantProps<typeof headingVariants>
+import { type HeadingVariants, headingVariants } from './variants'
 
 type HeadingLevel = 1 | 2 | 3 | 4 | 5 | 6
 

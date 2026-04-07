@@ -1,16 +1,9 @@
-import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '../../core'
 import { katachi } from '../../recipes'
 
 const k = katachi.dl
 
-export const descriptionListVariants = cva(k.base)
-
-export const descriptionTermVariants = cva(k.term)
-
-export const descriptionDetailsVariants = cva(k.details)
-
-export type DescriptionListVariants = VariantProps<typeof descriptionListVariants>
+export type DescriptionListVariants = Record<string, never>
 
 export type DescriptionListProps = {
 	className?: string
@@ -25,15 +18,13 @@ export type DescriptionDetailsProps = {
 } & Omit<React.ComponentPropsWithoutRef<'dd'>, 'className'>
 
 export function DescriptionList({ className, ...props }: DescriptionListProps) {
-	return <dl data-slot="dl" className={cn(descriptionListVariants(), className)} {...props} />
+	return <dl data-slot="dl" className={cn(k.base, className)} {...props} />
 }
 
 export function DescriptionTerm({ className, ...props }: DescriptionTermProps) {
-	return <dt data-slot="dl-term" className={cn(descriptionTermVariants(), className)} {...props} />
+	return <dt data-slot="dl-term" className={cn(k.term, className)} {...props} />
 }
 
 export function DescriptionDetails({ className, ...props }: DescriptionDetailsProps) {
-	return (
-		<dd data-slot="dl-details" className={cn(descriptionDetailsVariants(), className)} {...props} />
-	)
+	return <dd data-slot="dl-details" className={cn(k.details, className)} {...props} />
 }

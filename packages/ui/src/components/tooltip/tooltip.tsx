@@ -18,8 +18,9 @@ import { AnimatePresence, motion } from 'motion/react'
 import type React from 'react'
 import { cloneElement, isValidElement, useState } from 'react'
 import { cn } from '../../core'
-import { ugoki } from '../../recipes'
-import { tooltipContentVariants, tooltipTriggerVariants } from './variants'
+import { katachi, ugoki } from '../../recipes'
+
+const k = katachi.tooltip
 
 export type TooltipProps = {
 	placement?: 'top' | 'bottom' | 'left' | 'right'
@@ -39,7 +40,7 @@ export type TooltipContentProps = {
 
 export function Tooltip({
 	placement = 'top',
-	delay = 200,
+	delay = 100,
 	interactive = false,
 	children,
 }: TooltipProps) {
@@ -100,7 +101,7 @@ export function Tooltip({
 		<div
 			ref={refs.setReference}
 			data-slot="tooltip"
-			className={tooltipTriggerVariants()}
+			className={k.trigger}
 			{...(getReferenceProps() as React.HTMLAttributes<HTMLDivElement>)}
 		>
 			{trigger}
@@ -117,11 +118,7 @@ export function Tooltip({
 						>
 							<motion.div
 								{...ugoki.tooltip}
-								className={cn(
-									tooltipContentVariants(),
-									interactive && 'pointer-events-auto',
-									contentClassName,
-								)}
+								className={cn(k.content, interactive && 'pointer-events-auto', contentClassName)}
 							>
 								{contentChildren}
 							</motion.div>

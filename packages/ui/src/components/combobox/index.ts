@@ -7,9 +7,3 @@ export {
 	ComboboxOption,
 	type ComboboxOptionProps,
 } from './option'
-export {
-	comboboxChevronVariants,
-	comboboxInputVariants,
-	comboboxOptionsVariants,
-	comboboxOptionVariants,
-} from './variants'

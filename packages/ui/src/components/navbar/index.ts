@@ -10,10 +10,3 @@ export {
 	NavbarSpacer,
 	type NavbarSpacerProps,
 } from './component'
-export {
-	navbarItemVariants,
-	navbarLabelVariants,
-	navbarSectionVariants,
-	navbarSpacerVariants,
-	navbarVariants,
-} from './variants'

@@ -7,10 +7,3 @@ export {
 	SelectOption,
 	type SelectOptionComponentProps,
 } from './option'
-export {
-	selectButtonVariants,
-	selectChevronVariants,
-	selectOptionsVariants,
-	selectOptionVariants,
-	selectValueVariants,
-} from './variants'

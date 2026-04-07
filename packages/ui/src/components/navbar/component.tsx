@@ -3,13 +3,9 @@
 import { cn } from '../../core'
 import { ActiveIndicatorScope } from '../../primitives'
 import { createNavItem, type NavItemProps } from '../../primitives/create-nav-item'
-import {
-	navbarItemVariants,
-	navbarLabelVariants,
-	navbarSectionVariants,
-	navbarSpacerVariants,
-	navbarVariants,
-} from './variants'
+import { katachi } from '../../recipes'
+
+const k = katachi.navbar
 
 export type NavbarProps = React.ComponentPropsWithoutRef<'nav'>
 
@@ -24,7 +20,7 @@ export type NavbarItemProps = NavItemProps
 export function Navbar({ className, children, ...props }: NavbarProps) {
 	return (
 		<ActiveIndicatorScope>
-			<nav data-slot="navbar" className={cn(navbarVariants(), className)} {...props}>
+			<nav data-slot="navbar" className={cn(k.base, className)} {...props}>
 				{children}
 			</nav>
 		</ActiveIndicatorScope>
@@ -32,17 +28,13 @@ export function Navbar({ className, children, ...props }: NavbarProps) {
 }
 
 export function NavbarSection({ className, ...props }: NavbarSectionProps) {
-	return (
-		<div data-slot="navbar-section" className={cn(navbarSectionVariants(), className)} {...props} />
-	)
+	return <div data-slot="navbar-section" className={cn(k.section, className)} {...props} />
 }
 
-export const NavbarItem = createNavItem({ slotPrefix: 'navbar', variants: navbarItemVariants })
+export const NavbarItem = createNavItem({ slotPrefix: 'navbar', variants: () => cn(k.item) })
 
 export function NavbarLabel({ className, ...props }: NavbarLabelProps) {
-	return (
-		<span data-slot="navbar-label" className={cn(navbarLabelVariants(), className)} {...props} />
-	)
+	return <span data-slot="navbar-label" className={cn(k.label, className)} {...props} />
 }
 
 export function NavbarSpacer({ className, ...props }: NavbarSpacerProps) {
@@ -50,7 +42,7 @@ export function NavbarSpacer({ className, ...props }: NavbarSpacerProps) {
 		<div
 			data-slot="navbar-spacer"
 			aria-hidden="true"
-			className={cn(navbarSpacerVariants(), className)}
+			className={cn(k.spacer, className)}
 			{...props}
 		/>
 	)

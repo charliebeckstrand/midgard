@@ -2,9 +2,9 @@
 
 import { motion } from 'motion/react'
 import { cn } from '../../core'
-import { CloseIcon } from '../../icons'
 import { katachi, ugoki } from '../../recipes'
 import { Button } from '../button'
+import { Icon } from '../icon'
 import type { ToastData, ToastPosition } from './toast-context'
 import { toastCardVariants } from './variants'
 
@@ -76,7 +76,7 @@ export function ToastCard({
 					className={cn(katachi.toast.close)}
 					onClick={() => onDismiss(t.id)}
 				>
-					{closeIcon ?? <CloseIcon />}
+					{closeIcon ?? <Icon name="x" />}
 				</Button>
 			)}
 		</motion.div>

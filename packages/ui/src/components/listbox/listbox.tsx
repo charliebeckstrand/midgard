@@ -6,15 +6,11 @@ import { useCallback, useRef, useState } from 'react'
 import { cn, createContext } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { useOverlay } from '../../hooks/use-overlay'
-import { ChevronIcon } from '../../icons'
 import { FormControl, PopoverPanel } from '../../primitives'
-import { narabi, sumi } from '../../recipes'
-import {
-	listboxButtonVariants,
-	listboxChevronVariants,
-	listboxOptionsVariants,
-	listboxValueVariants,
-} from './variants'
+import { katachi, narabi, sumi } from '../../recipes'
+import { Icon } from '../icon'
+
+const k = katachi.listbox
 
 type ListboxContextValue<T = unknown> = {
 	value: T | T[] | undefined
@@ -138,22 +134,19 @@ export function Listbox<T>({
 						aria-expanded={open}
 						data-slot="listbox-button"
 						onClick={() => setOpen(!open)}
-						className={cn(listboxButtonVariants())}
+						className={cn(k.button)}
 					>
-						<span className={listboxValueVariants()}>
+						<span className={k.value}>
 							{label ?? <span className={cn(sumi.textMuted)}>{placeholder}</span>}
 						</span>
-						<span className={listboxChevronVariants()}>{icon ?? <ChevronIcon />}</span>
+						<span className={cn(k.chevron)}>{icon ?? <Icon name="chevron-up-down" />}</span>
 					</button>
 				</FormControl>
 
 				<AnimatePresence onExitComplete={onExitComplete}>
 					{open && (
 						<div ref={containerRef}>
-							<PopoverPanel
-								role="listbox"
-								className={cn(narabi.anchor[anchor], listboxOptionsVariants())}
-							>
+							<PopoverPanel role="listbox" className={cn(narabi.anchor[anchor], k.options)}>
 								{children}
 							</PopoverPanel>
 						</div>

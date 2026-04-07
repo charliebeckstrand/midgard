@@ -6,4 +6,3 @@ export {
 	TooltipTrigger,
 	type TooltipTriggerProps,
 } from './tooltip'
-export { tooltipContentVariants, tooltipTriggerVariants } from './variants'

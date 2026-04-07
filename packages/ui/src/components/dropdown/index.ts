@@ -19,13 +19,3 @@ export {
 	type DropdownSeparatorProps,
 } from './slots'
 export { DropdownButton, type DropdownButtonProps } from './trigger'
-export {
-	dropdownDescriptionVariants,
-	dropdownHeadingVariants,
-	dropdownItemVariants,
-	dropdownLabelVariants,
-	dropdownMenuVariants,
-	dropdownSectionVariants,
-	dropdownSeparatorVariants,
-	dropdownShortcutVariants,
-} from './variants'

@@ -11,14 +11,5 @@ export {
 	type TableProps,
 	TableRow,
 	type TableRowProps,
-} from './component'
-export {
 	type TableVariants,
-	tableCellVariants,
-	tableGridVariants,
-	tableHeaderVariants,
-	tableHeadVariants,
-	tableRowVariants,
-	tableStripedVariants,
-	tableVariants,
-} from './variants'
+} from './component'

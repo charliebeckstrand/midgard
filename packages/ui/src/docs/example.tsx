@@ -7,21 +7,28 @@ import { CodeBlock } from './code-block'
 
 export function Example({
 	title,
+	actions,
 	code,
 	children,
 }: {
 	title?: ReactNode
+	actions?: ReactNode
 	code?: string
 	children: ReactNode
 }) {
 	return (
 		<div className="space-y-2">
-			{title && <Heading level={3}>{title}</Heading>}
+			{(title || actions) && (
+				<div className="flex items-center justify-between gap-2">
+					{title && <Heading level={3}>{title}</Heading>}
+					{actions}
+				</div>
+			)}
 			<div className="rounded-lg border border-zinc-200 dark:border-zinc-800">
 				<div className="p-4">{children}</div>
 				{code && (
 					<Disclosure>
-						<DisclosureButton className="flex w-full items-center gap-1.5 border-t border-zinc-200 px-4 py-2 text-xs font-medium text-zinc-500 hover:text-zinc-700 dark:border-zinc-800 dark:hover:text-zinc-300">
+						<DisclosureButton className="flex w-full border-t border-zinc-200 text-sm px-4 py-2 dark:border-zinc-800">
 							{({ open }) => (open ? 'Hide code' : 'Show code')}
 						</DisclosureButton>
 						<DisclosurePanel>

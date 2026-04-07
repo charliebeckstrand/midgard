@@ -1,12 +1,7 @@
 import { cn } from '../../core'
-import {
-	descriptionVariants,
-	errorVariants,
-	fieldsetVariants,
-	fieldVariants,
-	labelVariants,
-	legendVariants,
-} from './variants'
+import { katachi } from '../../recipes'
+
+const k = katachi.fieldset
 
 export type FieldsetProps = {
 	className?: string
@@ -14,7 +9,7 @@ export type FieldsetProps = {
 } & Omit<React.ComponentPropsWithoutRef<'fieldset'>, 'className'>
 
 export function Fieldset({ className, ...props }: FieldsetProps) {
-	return <fieldset data-slot="fieldset" className={cn(fieldsetVariants(), className)} {...props} />
+	return <fieldset data-slot="fieldset" className={cn(k.base, className)} {...props} />
 }
 
 export type LegendProps = {
@@ -22,7 +17,7 @@ export type LegendProps = {
 } & Omit<React.ComponentPropsWithoutRef<'legend'>, 'className'>
 
 export function Legend({ className, ...props }: LegendProps) {
-	return <legend data-slot="legend" className={cn(legendVariants(), className)} {...props} />
+	return <legend data-slot="legend" className={cn(k.legend, className)} {...props} />
 }
 
 export type FieldProps = {
@@ -35,7 +30,7 @@ export function Field({ className, disabled, ...props }: FieldProps) {
 		<div
 			data-slot="field"
 			{...(disabled ? { 'data-disabled': true } : {})}
-			className={cn(fieldVariants(), className)}
+			className={cn(k.field, className)}
 			{...props}
 		/>
 	)
@@ -47,7 +42,7 @@ export type LabelProps = {
 
 export function Label({ className, ...props }: LabelProps) {
 	// biome-ignore lint/a11y/noLabelWithoutControl: htmlFor is passed via ...props by the consumer
-	return <label data-slot="label" className={cn(labelVariants(), className)} {...props} />
+	return <label data-slot="label" className={cn(k.label, className)} {...props} />
 }
 
 export type DescriptionProps = {
@@ -55,7 +50,7 @@ export type DescriptionProps = {
 } & Omit<React.ComponentPropsWithoutRef<'p'>, 'className'>
 
 export function Description({ className, ...props }: DescriptionProps) {
-	return <p data-slot="description" className={cn(descriptionVariants(), className)} {...props} />
+	return <p data-slot="description" className={cn(k.description, className)} {...props} />
 }
 
 export type ErrorMessageProps = {
@@ -63,5 +58,5 @@ export type ErrorMessageProps = {
 } & Omit<React.ComponentPropsWithoutRef<'p'>, 'className'>
 
 export function ErrorMessage({ className, ...props }: ErrorMessageProps) {
-	return <p data-slot="error" className={cn(errorVariants(), className)} {...props} />
+	return <p data-slot="error" className={cn(k.error, className)} {...props} />
 }

@@ -1,6 +1,6 @@
 import type React from 'react'
+import { Icon } from '../components/icon'
 import { cn } from '../core'
-import { CheckIcon } from '../icons'
 import { katachi } from '../recipes'
 
 const k = katachi.option
@@ -30,7 +30,10 @@ export function BaseOption({
 	const sharedClasses = cn(k.content)
 
 	const checkIcon = icon ?? (
-		<CheckIcon className="relative hidden self-center text-green-600 group-data-selected/option:inline" />
+		<Icon
+			name="check"
+			className="relative hidden self-center text-green-600 group-data-selected/option:inline"
+		/>
 	)
 
 	return (

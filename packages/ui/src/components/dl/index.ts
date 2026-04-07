@@ -6,7 +6,4 @@ export {
 	type DescriptionListVariants,
 	DescriptionTerm,
 	type DescriptionTermProps,
-	descriptionDetailsVariants,
-	descriptionListVariants,
-	descriptionTermVariants,
 } from './component'

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { type BundledTheme, codeToHtml } from 'shiki'
 import { Button } from '../components/button'
-import { CheckIcon, CopyIcon } from '../icons'
+import { Icon } from '../components/icon'
 
 const theme: BundledTheme = 'github-dark-default'
 
@@ -28,12 +28,13 @@ function CopyButton({ code }: { code: string }) {
 		<div className="absolute top-0 right-0 pt-3 pr-3 bg-[#0d1117]">
 			<Button
 				variant="plain"
+				size="sm"
 				disabled={copied}
 				onClick={copy}
 				aria-label={copied ? 'Copied' : 'Copy to clipboard'}
-				className={`disabled:opacity-100 ${copied ? 'text-green-500!' : 'text-zinc-400! hover:text-white!'}`}
+				className={`${copied ? 'text-green-500!' : 'text-zinc-400! hover:text-white!'} disabled:opacity-100`}
 			>
-				{copied ? <CheckIcon className="size-4" /> : <CopyIcon className="size-4" />}
+				{copied ? <Icon name="check" /> : <Icon name="clipboard" />}
 			</Button>
 		</div>
 	)

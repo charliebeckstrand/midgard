@@ -7,10 +7,3 @@ export {
 	ListboxOption,
 	type ListboxOptionProps,
 } from './option'
-export {
-	listboxButtonVariants,
-	listboxChevronVariants,
-	listboxOptionsVariants,
-	listboxOptionVariants,
-	listboxValueVariants,
-} from './variants'

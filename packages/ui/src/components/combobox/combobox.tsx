@@ -7,10 +7,11 @@ import { cn, createContext } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { useMenuKeyboard } from '../../hooks/use-menu-keyboard'
 import { useOverlay } from '../../hooks/use-overlay'
-import { ChevronIcon } from '../../icons'
 import { FormControl, PopoverPanel } from '../../primitives'
-import { narabi, sumi } from '../../recipes'
-import { comboboxChevronVariants, comboboxInputVariants, comboboxOptionsVariants } from './variants'
+import { katachi, narabi, sumi } from '../../recipes'
+import { Icon } from '../icon'
+
+const k = katachi.combobox
 
 type ComboboxContextValue<T = unknown> = {
 	value: T | T[] | undefined
@@ -200,16 +201,16 @@ export function Combobox<T>({
 							}
 							handleKeyDown(e)
 						}}
-						className={cn(comboboxInputVariants())}
+						className={cn(k.input)}
 					/>
 					<button
 						type="button"
 						tabIndex={-1}
 						inert={open || undefined}
 						onClick={() => setOpen(!open)}
-						className={comboboxChevronVariants()}
+						className={cn(k.chevron)}
 					>
-						{icon ?? <ChevronIcon />}
+						{icon ?? <Icon name="chevron-up-down" />}
 					</button>
 				</FormControl>
 
@@ -219,7 +220,7 @@ export function Combobox<T>({
 							<PopoverPanel
 								role="listbox"
 								autoFocus={false}
-								className={cn(narabi.anchor[anchor], comboboxOptionsVariants())}
+								className={cn(narabi.anchor[anchor], k.options)}
 								onKeyDown={(e) => {
 									if (e.key === 'Escape') close()
 								}}

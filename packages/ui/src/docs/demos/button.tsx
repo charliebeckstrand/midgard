@@ -2,12 +2,12 @@
 
 import { useState } from 'react'
 import { Button } from '../../components/button'
+import { Icon } from '../../components/icon'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
-import { PlusIcon } from '../../icons'
 import { code } from '../code'
 import { Example } from '../example'
 
-export const meta = { category: 'Forms' }
+export const meta = { category: 'Base' }
 
 const variants = ['solid', 'soft', 'outline', 'plain', 'ghost'] as const
 
@@ -45,22 +45,20 @@ export default function ButtonDemo() {
 				</div>
 			</Example>
 			<Example
-				title={
-					<div className="flex items-center justify-between gap-2">
-						<div>Colors</div>
-						<Listbox
-							value={colorVariant}
-							onChange={setColorVariant}
-							className="min-w-26"
-							displayValue={(v: string) => cap(v)}
-						>
-							{colorVariants.map((v) => (
-								<ListboxOption key={v} value={v}>
-									<ListboxLabel>{cap(v)}</ListboxLabel>
-								</ListboxOption>
-							))}
-						</Listbox>
-					</div>
+				title="Colors"
+				actions={
+					<Listbox
+						value={colorVariant}
+						onChange={setColorVariant}
+						className="min-w-26"
+						displayValue={(v: string) => cap(v)}
+					>
+						{colorVariants.map((v) => (
+							<ListboxOption key={v} value={v}>
+								<ListboxLabel>{cap(v)}</ListboxLabel>
+							</ListboxOption>
+						))}
+					</Listbox>
 				}
 				code={code`
 					import { Button } from 'ui/button'
@@ -96,15 +94,15 @@ export default function ButtonDemo() {
 				title="With icon"
 				code={code`
 					import { Button } from 'ui/button'
-					import { PlusIcon } from 'ui/icons'
+					import { Icon } from 'ui/icon'
 
-					${variants.map((v) => `<Button variant="${v}">\n  <PlusIcon />\n  ${cap(v)}\n</Button>`)}
+					${variants.map((v) => `<Button variant="${v}">\n  <Icon name="plus" />\n  ${cap(v)}\n</Button>`)}
 				`}
 			>
 				<div className="flex flex-wrap gap-2">
 					{variants.map((variant) => (
 						<Button key={variant} variant={variant}>
-							<PlusIcon />
+							<Icon name="plus" />
 							{variant}
 						</Button>
 					))}
@@ -114,15 +112,15 @@ export default function ButtonDemo() {
 				title="Icon only"
 				code={code`
 					import { Button } from 'ui/button'
-					import { PlusIcon } from 'ui/icons'
+					import { Icon } from 'ui/icon'
 
-					${variants.map((v) => `<Button variant="${v}">\n  <PlusIcon />\n</Button>`)}
+					${variants.map((v) => `<Button variant="${v}">\n  <Icon name="plus" />\n</Button>`)}
 				`}
 			>
 				<div className="flex flex-wrap gap-2">
 					{variants.map((variant) => (
 						<Button key={variant} variant={variant}>
-							<PlusIcon />
+							<Icon name="plus" />
 						</Button>
 					))}
 				</div>

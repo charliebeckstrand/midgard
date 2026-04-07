@@ -3,10 +3,13 @@
 import { AnimatePresence, motion } from 'motion/react'
 import type React from 'react'
 import { useCallback, useState } from 'react'
+import { cn } from '../../core/cn'
 import { createContext } from '../../core/create-context'
+import { katachi } from '../../recipes'
 import { Button } from '../button'
 import type { ButtonVariants } from '../button/variants'
-import { disclosureButtonVariants, disclosurePanelVariants } from './variants'
+
+const k = katachi.disclosure
 
 type DisclosureContextValue = {
 	open: boolean
@@ -51,7 +54,7 @@ export function DisclosureButton({ className, children, ...props }: DisclosureBu
 			aria-expanded={open}
 			spring={false}
 			onClick={toggle}
-			className={disclosureButtonVariants({ className })}
+			className={cn(k.button, className)}
 			{...props}
 		>
 			{typeof children === 'function' ? children({ open }) : children}
@@ -76,7 +79,7 @@ export function DisclosurePanel({ children, className }: DisclosurePanelProps) {
 					animate={{ height: 'auto', opacity: 1 }}
 					exit={{ height: 0, opacity: 0 }}
 					transition={{ duration: 0.2, ease: 'easeInOut' }}
-					className={disclosurePanelVariants({ className })}
+					className={cn(k.panel, className)}
 				>
 					{children}
 				</motion.div>

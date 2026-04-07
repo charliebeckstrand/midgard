@@ -1,18 +1,5 @@
-import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '../../core'
-import { katachi } from '../../recipes'
-
-const k = katachi.divider
-
-export const dividerVariants = cva(k.base, {
-	variants: {
-		orientation: k.orientation,
-		soft: k.soft,
-	},
-	defaultVariants: k.defaults,
-})
-
-export type DividerVariants = VariantProps<typeof dividerVariants>
+import { type DividerVariants, dividerVariants } from './variants'
 
 export type DividerProps = DividerVariants & {
 	className?: string

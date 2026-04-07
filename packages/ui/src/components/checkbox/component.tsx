@@ -1,6 +1,6 @@
 import { cn } from '../../core'
-import { CheckboxIcon } from '../../icons'
 import { ToggleField, ToggleGroup } from '../../primitives'
+import { CheckboxIcon } from '../icon'
 import { type CheckboxVariants, checkboxColorVariants, checkboxVariants } from './variants'
 
 export type CheckboxProps = CheckboxVariants & {

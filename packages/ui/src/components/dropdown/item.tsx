@@ -2,13 +2,10 @@
 
 import type React from 'react'
 import { cn, Link } from '../../core'
+import { katachi } from '../../recipes'
 import { useDropdownContext } from './dropdown'
-import {
-	dropdownDescriptionVariants,
-	dropdownItemVariants,
-	dropdownLabelVariants,
-	dropdownShortcutVariants,
-} from './variants'
+
+const k = katachi.dropdown
 
 type DropdownItemBaseProps = {
 	disabled?: boolean
@@ -45,7 +42,7 @@ export function DropdownItem({
 		close()
 	}
 
-	const classes = cn('group/option', dropdownItemVariants(), className)
+	const classes = cn('group/option', k.item, className)
 
 	if (href) {
 		return (
@@ -92,35 +89,19 @@ export function DropdownItem({
 export type DropdownLabelProps = React.ComponentPropsWithoutRef<'span'>
 
 export function DropdownLabel({ className, ...props }: DropdownLabelProps) {
-	return (
-		<span
-			data-slot="dropdown-label"
-			className={cn(dropdownLabelVariants(), className)}
-			{...props}
-		/>
-	)
+	return <span data-slot="dropdown-label" className={cn(k.label, className)} {...props} />
 }
 
 export type DropdownDescriptionProps = React.ComponentPropsWithoutRef<'span'>
 
 export function DropdownDescription({ className, ...props }: DropdownDescriptionProps) {
 	return (
-		<span
-			data-slot="dropdown-description"
-			className={cn(dropdownDescriptionVariants(), className)}
-			{...props}
-		/>
+		<span data-slot="dropdown-description" className={cn(k.description, className)} {...props} />
 	)
 }
 
 export type DropdownShortcutProps = React.ComponentPropsWithoutRef<'kbd'>
 
 export function DropdownShortcut({ className, ...props }: DropdownShortcutProps) {
-	return (
-		<kbd
-			data-slot="dropdown-shortcut"
-			className={cn(dropdownShortcutVariants(), className)}
-			{...props}
-		/>
-	)
+	return <kbd data-slot="dropdown-shortcut" className={cn(k.shortcut, className)} {...props} />
 }

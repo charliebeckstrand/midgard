@@ -3,10 +3,10 @@
 import type React from 'react'
 import { useCallback, useEffect, useState } from 'react'
 import { Button } from '../components/button'
+import { Icon } from '../components/icon'
 import { Sheet } from '../components/sheet/sheet'
 import { cn } from '../core'
 import { OffcanvasContext } from '../core/offcanvas-context'
-import { MenuIcon } from '../icons'
 import { omote } from '../recipes'
 
 export type SidebarLayoutProps = React.PropsWithChildren<{
@@ -62,7 +62,7 @@ export function SidebarLayout({
 			{/* Navbar on mobile */}
 			<header className="flex items-center gap-4 p-6 lg:hidden [&_nav]:p-0">
 				<Button variant="plain" onClick={() => setOpen(true)} aria-label="Open navigation">
-					{menuIcon ?? <MenuIcon />}
+					{menuIcon ?? <Icon name="menu" />}
 				</Button>
 				<div className="min-w-0 flex-1">{navbar}</div>
 			</header>
