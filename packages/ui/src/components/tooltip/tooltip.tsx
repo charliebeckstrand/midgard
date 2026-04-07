@@ -1,15 +1,30 @@
 'use client'
 
+import {
+	autoUpdate,
+	FloatingPortal,
+	flip,
+	offset,
+	safePolygon,
+	shift,
+	useDismiss,
+	useFloating,
+	useFocus,
+	useHover,
+	useInteractions,
+	useRole,
+} from '@floating-ui/react'
 import { AnimatePresence, motion } from 'motion/react'
 import type React from 'react'
-import { cloneElement, isValidElement, useId } from 'react'
+import { cloneElement, isValidElement, useState } from 'react'
 import { cn } from '../../core'
-import { useDelayedToggle } from '../../hooks'
 import { ugoki } from '../../recipes'
 import { tooltipContentVariants, tooltipTriggerVariants } from './variants'
 
 export type TooltipProps = {
-	delayMs?: number
+	placement?: 'top' | 'bottom' | 'left' | 'right'
+	delay?: number
+	interactive?: boolean
 	children: React.ReactNode
 }
 
@@ -18,53 +33,102 @@ export type TooltipTriggerProps = {
 }
 
 export type TooltipContentProps = {
-	placement?: 'top' | 'bottom' | 'left' | 'right'
 	className?: string
 	children: React.ReactNode
 }
 
-export function Tooltip({ delayMs = 700, children }: TooltipProps) {
-	const tooltipId = useId()
-	const { open, show, hide } = useDelayedToggle({ showDelay: delayMs })
+export function Tooltip({
+	placement = 'top',
+	delay = 200,
+	interactive = false,
+	children,
+}: TooltipProps) {
+	const [open, setOpen] = useState(false)
 
-	const triggerProps = {
-		onMouseEnter: show,
-		onMouseLeave: hide,
-		onFocus: show,
-		onBlur: hide,
-		'aria-describedby': open ? tooltipId : undefined,
-	}
+	let contentClassName: string | undefined
 
-	let trigger: React.ReactNode = null
-	let content: React.ReactNode = null
+	let contentChildren: React.ReactNode = null
 
 	const childArray = Array.isArray(children) ? children : [children]
 
 	for (const child of childArray) {
-		if (isValidElement(child)) {
-			if (child.type === TooltipTrigger) {
-				trigger = cloneElement(
-					child as React.ReactElement<{ _triggerProps: typeof triggerProps }>,
-					{
-						_triggerProps: triggerProps,
-					},
-				)
-			} else if (child.type === TooltipContent) {
-				content = cloneElement(
-					child as React.ReactElement<{ _tooltipId: string; _open: boolean }>,
-					{
-						_tooltipId: tooltipId,
-						_open: open,
-					},
-				)
-			}
+		if (isValidElement(child) && child.type === TooltipContent) {
+			const contentProps = child.props as TooltipContentProps
+
+			contentClassName = contentProps.className
+			contentChildren = contentProps.children
+		}
+	}
+
+	const { refs, floatingStyles, context } = useFloating({
+		placement,
+		open,
+		onOpenChange: setOpen,
+		whileElementsMounted: autoUpdate,
+		middleware: [offset(8), flip(), shift({ padding: 8 })],
+	})
+
+	const hover = useHover(context, {
+		delay: { open: delay, close: 100 },
+		...(interactive && { handleClose: safePolygon() }),
+	})
+
+	const focus = useFocus(context)
+
+	const dismiss = useDismiss(context)
+
+	const role = useRole(context, { role: 'tooltip' })
+
+	const { getReferenceProps, getFloatingProps } = useInteractions([hover, focus, dismiss, role])
+
+	let trigger: React.ReactNode = null
+
+	for (const child of childArray) {
+		if (isValidElement(child) && child.type === TooltipTrigger) {
+			trigger = cloneElement(
+				child as React.ReactElement<{
+					_triggerProps: Record<string, unknown>
+				}>,
+				{
+					_triggerProps: getReferenceProps(),
+				},
+			)
 		}
 	}
 
 	return (
-		<div data-slot="tooltip" className={tooltipTriggerVariants()}>
+		<div
+			ref={refs.setReference}
+			data-slot="tooltip"
+			className={tooltipTriggerVariants()}
+			{...(getReferenceProps() as React.HTMLAttributes<HTMLDivElement>)}
+		>
 			{trigger}
-			{content}
+			<FloatingPortal>
+				<AnimatePresence>
+					{open && (
+						<div
+							ref={refs.setFloating}
+							style={{
+								...floatingStyles,
+								pointerEvents: interactive ? 'auto' : 'none',
+							}}
+							{...(interactive ? getFloatingProps() : {})}
+						>
+							<motion.div
+								{...ugoki.tooltip}
+								className={cn(
+									tooltipContentVariants(),
+									interactive && 'pointer-events-auto',
+									contentClassName,
+								)}
+							>
+								{contentChildren}
+							</motion.div>
+						</div>
+					)}
+				</AnimatePresence>
+			</FloatingPortal>
 		</div>
 	)
 }
@@ -72,37 +136,19 @@ export function Tooltip({ delayMs = 700, children }: TooltipProps) {
 export function TooltipTrigger({
 	children,
 	...props
-}: TooltipTriggerProps & { _triggerProps?: Record<string, unknown> }) {
-	const triggerProps = props._triggerProps ?? {}
-
+}: TooltipTriggerProps & {
+	_triggerProps?: Record<string, unknown>
+}) {
 	if (isValidElement(children)) {
-		return cloneElement(children as React.ReactElement<Record<string, unknown>>, triggerProps)
+		return cloneElement(
+			children as React.ReactElement<Record<string, unknown>>,
+			props._triggerProps ?? {},
+		)
 	}
 
-	return <span {...triggerProps}>{children}</span>
+	return <span {...(props._triggerProps ?? {})}>{children}</span>
 }
 
-export function TooltipContent({
-	placement = 'top',
-	className,
-	children,
-	...props
-}: TooltipContentProps & { _tooltipId?: string; _open?: boolean }) {
-	const tooltipId = props._tooltipId
-	const open = props._open ?? false
-
-	return (
-		<AnimatePresence>
-			{open && (
-				<motion.div
-					{...ugoki.tooltip}
-					role="tooltip"
-					id={tooltipId}
-					className={cn(tooltipContentVariants({ placement }), className)}
-				>
-					{children}
-				</motion.div>
-			)}
-		</AnimatePresence>
-	)
+export function TooltipContent(_props: TooltipContentProps) {
+	return null
 }

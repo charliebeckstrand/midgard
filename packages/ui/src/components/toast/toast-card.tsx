@@ -1,71 +1,82 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { useCallback, useEffect, useRef } from 'react'
 import { cn } from '../../core'
 import { CloseIcon } from '../../primitives'
 import { katachi, ugoki } from '../../recipes'
-import type { ToastData } from './toast'
+import { Button } from '../button'
+import type { ToastData, ToastPosition } from './toast-context'
 import { toastCardVariants } from './variants'
+
+function getToastMotion(position: ToastPosition) {
+	if (position.startsWith('bottom')) return ugoki.toast.bottom
+	if (position.startsWith('top')) return ugoki.toast.top
+	if (position.endsWith('right')) return ugoki.toast.right
+
+	return ugoki.toast.left
+}
 
 type ToastCardProps = {
 	toast: ToastData
+	position: ToastPosition
+	showCloseButton?: boolean
 	onDismiss: (id: string) => void
+	onPause: () => void
+	onResume: () => void
 }
 
-export function ToastCard({ toast: t, onDismiss }: ToastCardProps) {
-	const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
-	const remainingRef = useRef(t.duration ?? 5000)
-	const startRef = useRef(Date.now())
+export function ToastCard({
+	toast: t,
+	position,
+	showCloseButton = true,
+	onDismiss,
+	onPause,
+	onResume,
+}: ToastCardProps) {
+	const motionConfig = getToastMotion(position)
 
-	const startTimer = useCallback(() => {
-		startRef.current = Date.now()
-		timerRef.current = setTimeout(() => onDismiss(t.id), remainingRef.current)
-	}, [t.id, onDismiss])
-
-	const pauseTimer = useCallback(() => {
-		clearTimeout(timerRef.current)
-		remainingRef.current -= Date.now() - startRef.current
-	}, [])
-
-	useEffect(() => {
-		startTimer()
-		return () => clearTimeout(timerRef.current)
-	}, [startTimer])
+	const overflow = ugoki.toast.overflow
 
 	return (
 		<motion.div
 			layout
-			{...ugoki.toast}
+			initial={motionConfig.initial}
+			animate={t.overflow ? overflow.exit : motionConfig.animate}
+			exit={
+				t.overflow
+					? { opacity: 0, transition: { duration: 0 } }
+					: t.dismissed
+						? { opacity: 0 }
+						: motionConfig.exit
+			}
+			transition={t.overflow ? overflow.transition : motionConfig.transition}
 			data-slot="toast"
 			className={cn('relative', toastCardVariants({ type: t.type }))}
-			onMouseEnter={pauseTimer}
-			onMouseLeave={startTimer}
+			onAnimationComplete={() => {
+				if (t.overflow) onDismiss(t.id)
+			}}
+			onMouseEnter={onPause}
+			onMouseLeave={onResume}
 		>
-			<div className={cn(katachi.toast.title)}>{t.title}</div>
+			<div className="flex-1 min-w-0">
+				<div className={cn(katachi.toast.title)}>{t.title}</div>
 
-			{t.description && <div className={cn(katachi.toast.description)}>{t.description}</div>}
+				{t.description && <div className={cn(katachi.toast.description)}>{t.description}</div>}
 
-			{t.action && (
-				<div className={cn(katachi.toast.actions)}>
-					<button
-						type="button"
-						onClick={t.action.onClick}
-						className="text-sm font-medium underline"
-					>
-						{t.action.label}
-					</button>
-				</div>
+				{t.actions && <div className={cn(katachi.toast.actions)}>{t.actions}</div>}
+			</div>
+
+			{showCloseButton && (
+				<Button
+					variant="plain"
+					color="inherit"
+					aria-label="Dismiss"
+					className={cn(katachi.toast.close)}
+					onClick={() => onDismiss(t.id)}
+				>
+					<CloseIcon />
+				</Button>
 			)}
-
-			<button
-				type="button"
-				onClick={() => onDismiss(t.id)}
-				className={cn(katachi.toast.close)}
-				aria-label="Dismiss"
-			>
-				<CloseIcon />
-			</button>
 		</motion.div>
 	)
 }

@@ -1,10 +1,12 @@
 import { extend, outline, soft, solid, text } from './palette'
 
-export const buttonSolid = { ...solid, ...extend.solid }
+const inherit = ['text-inherit'] as string[]
 
-export const buttonSoft = { ...soft, ...extend.soft }
+export const buttonSolid = { ...solid, ...extend.solid, inherit }
 
-export const buttonOutline = outline
+export const buttonSoft = { ...soft, ...extend.soft, inherit }
+
+export const buttonOutline = { ...outline, inherit }
 
 /** Shared by both `plain` and `ghost` button variants (text color only). */
-export const buttonPlain = text
+export const buttonPlain = { ...text, inherit }

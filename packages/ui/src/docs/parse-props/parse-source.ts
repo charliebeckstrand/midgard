@@ -246,7 +246,7 @@ function parseTypeBody(typeBody: string, defaults: Map<string, string>): PropDef
 
 		const [, name, type] = propMatch
 
-		if (IGNORED_PROPS.has(name)) continue
+		if (IGNORED_PROPS.has(name) || name.startsWith('_')) continue
 
 		const cleanType = type.replace(/;?\s*$/, '').trim()
 

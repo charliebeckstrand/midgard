@@ -1,5 +1,5 @@
 import { Button } from '../../components/button'
-import { ToastProvider, useToast } from '../../components/toast'
+import { Toast, useToast } from '../../components/toast'
 import { code } from '../code'
 import { Example } from '../example'
 
@@ -51,7 +51,7 @@ function ActionToastButton() {
 				toast({
 					title: 'Message deleted',
 					description: 'The message has been removed.',
-					action: { label: 'Undo', onClick: () => {} },
+					actions: <Button size="sm">Undo</Button>,
 				})
 			}
 		>
@@ -62,12 +62,12 @@ function ActionToastButton() {
 
 export default function ToastDemo() {
 	return (
-		<ToastProvider>
+		<Toast>
 			<div className="space-y-8">
 				<Example
 					title="Types"
 					code={code`
-						import { ToastProvider, useToast } from 'ui/toast'
+						import { Toast, useToast } from 'ui/toast'
 						import { Button } from 'ui/button'
 
 						function App() {
@@ -80,9 +80,9 @@ export default function ToastDemo() {
 							)
 						}
 
-						<ToastProvider>
+						<Toast>
 							<App />
-						</ToastProvider>
+						</Toast>
 					`}
 				>
 					<ToastButtons />
@@ -91,16 +91,18 @@ export default function ToastDemo() {
 				<Example
 					title="With action"
 					code={code`
+						import { Button } from 'ui/button'
+
 						toast({
 							title: 'Message deleted',
 							description: 'The message has been removed.',
-							action: { label: 'Undo', onClick: () => {} },
+							actions: <Button size="sm">Undo</Button>,
 						})
 					`}
 				>
 					<ActionToastButton />
 				</Example>
 			</div>
-		</ToastProvider>
+		</Toast>
 	)
 }

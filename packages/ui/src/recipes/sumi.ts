@@ -14,8 +14,6 @@ const hiru = {
 	textHover: 'hover:text-zinc-950',
 	textError: 'text-red-600',
 	textIcon: '*:data-[slot=icon]:text-zinc-500',
-	fillMuted: 'fill-zinc-500',
-	fillIcon: '*:data-[slot=icon]:fill-zinc-500',
 }
 
 // ── Yoru (夜) ───────────────────────────────────────────
@@ -25,8 +23,6 @@ const yoru = {
 	textHover: 'dark:hover:text-white',
 	textError: 'dark:text-red-500',
 	textIcon: 'dark:*:data-[slot=icon]:text-zinc-400',
-	fillMuted: 'dark:fill-zinc-400',
-	fillIcon: 'dark:*:data-[slot=icon]:fill-zinc-400',
 }
 
 // ── Export ───────────────────────────────────────────────
@@ -36,6 +32,4 @@ export const sumi = {
 	textHover: [hiru.textHover, yoru.textHover],
 	textError: [hiru.textError, yoru.textError],
 	textIcon: [hiru.textIcon, yoru.textIcon],
-	fillMuted: [hiru.fillMuted, yoru.fillMuted],
-	fillIcon: [hiru.fillIcon, yoru.fillIcon],
 } as const

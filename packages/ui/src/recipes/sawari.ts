@@ -51,7 +51,7 @@ const yoru = {
 
 // ── Composed (internal) ─────────────────────────────────
 const item = [sumi.text, maru.rounded, motoi.item, hiru.item, yoru.item]
-const nav = [sumi.fillIcon, motoi.nav, hiru.nav, yoru.nav]
+const nav = [motoi.nav, hiru.nav, yoru.nav]
 
 // ── Export ───────────────────────────────────────────────
 export const sawari = {

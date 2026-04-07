@@ -1,11 +1,11 @@
+export { Toast } from './toast'
 export {
+	type ToastContextProps,
 	type ToastData,
 	type ToastPosition,
-	ToastProvider,
-	type ToastProviderProps,
 	type ToastType,
 	useToast,
-} from './toast'
+} from './toast-context'
 export {
 	type ToastCardVariants,
 	type ToastViewportVariants,

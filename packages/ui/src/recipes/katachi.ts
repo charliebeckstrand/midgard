@@ -116,19 +116,19 @@ export const katachi = {
 				color: nuri.buttonSolid,
 			},
 			soft: {
-				base: ['border border-transparent', sawari.hover, sumi.fillIcon],
+				base: ['border border-transparent', sawari.hover],
 				color: nuri.buttonSoft,
 			},
 			outline: {
-				base: [kage.borderStrong, sumi.text, omote.surface, sawari.hover, sumi.fillIcon],
+				base: [kage.borderStrong, omote.surface, sawari.hover],
 				color: nuri.buttonOutline,
 			},
 			plain: {
-				base: ['border border-transparent', sumi.text, sawari.hover, sumi.fillIcon],
+				base: ['border border-transparent', sawari.hover],
 				color: nuri.buttonPlain,
 			},
 			ghost: {
-				base: ['border border-transparent', sumi.text, sumi.fillIcon],
+				base: ['border border-transparent'],
 				color: nuri.buttonPlain,
 			},
 		},
@@ -562,23 +562,26 @@ export const katachi = {
 	// ─── Toast ───────────────────────────────────────────
 
 	toast: {
-		viewport: 'fixed z-[100] flex flex-col gap-2 p-4 pointer-events-none',
+		viewport:
+			'fixed z-[100] top-0 bottom-0 flex flex-col p-4 pointer-events-none max-sm:inset-x-0 max-sm:justify-end',
+		scroll:
+			'flex flex-col gap-2 max-h-full overflow-y-auto overscroll-contain pointer-events-auto w-fit max-sm:w-full',
 		position: {
-			'top-right': 'top-0 right-0',
-			'top-left': 'top-0 left-0',
-			'bottom-right': 'bottom-0 right-0',
-			'bottom-left': 'bottom-0 left-0',
+			'top-right': 'justify-start right-0',
+			'top-left': 'justify-start left-0',
+			'bottom-right': 'justify-end right-0',
+			'bottom-left': 'justify-end left-0',
 		},
-		card: [omote.panel, maru.rounded, 'pointer-events-auto w-80 p-4'],
-		title: [sumi.text, 'text-sm/5 font-semibold'],
-		description: [sumi.textMuted, 'text-sm/5 mt-1'],
-		actions: 'mt-3 flex items-center gap-2',
-		close: [sumi.textMuted, 'absolute top-2 right-2 p-1', maru.roundedMd, sawari.cursor],
+		card: [maru.rounded, 'w-80 max-sm:w-full p-4 flex items-center gap-3'],
+		title: 'text-sm/5 font-semibold',
+		description: 'text-sm/5 mt-1 opacity-90',
+		actions: 'mt-3 flex items-center gap-1',
+		close: [maru.roundedMd, sawari.cursor],
 		type: {
-			default: [],
-			success: ['border-l-4 border-l-emerald-500'],
-			warning: ['border-l-4 border-l-amber-500'],
-			error: ['border-l-4 border-l-red-500'],
+			default: ['bg-zinc-100 dark:bg-zinc-800', sumi.text],
+			success: 'bg-green-600 text-white',
+			warning: 'bg-amber-500 text-amber-950',
+			error: 'bg-red-600 text-white',
 		},
 		defaults: { position: 'bottom-right' as const, type: 'default' as const },
 	},
@@ -586,16 +589,18 @@ export const katachi = {
 	// ─── Tooltip ─────────────────────────────────────────
 
 	tooltip: {
-		trigger: 'relative inline-flex',
+		trigger: 'inline-flex',
 		content: [
 			omote.popover,
 			maru.rounded,
-			'absolute z-50 px-3 py-1.5',
 			sumi.text,
-			'text-xs/4 font-medium',
+			take.px.md,
+			take.py.md,
+			take.text.md,
+			'z-50',
+			'font-medium',
 			'whitespace-nowrap pointer-events-none',
 		],
-		anchor: narabi.anchor,
 	},
 
 	// ─── Option (shared primitive) ───────────────────────
