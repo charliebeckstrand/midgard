@@ -1,4 +1,5 @@
 import { Field, Label } from '../../components/fieldset'
+import { Icon } from '../../components/icon'
 import { Input } from '../../components/input'
 import { code } from '../code'
 import { Example } from '../example'
@@ -41,6 +42,122 @@ export default function InputDemo() {
 					<Label htmlFor="input-outline">Outline</Label>
 					<Input id="input-outline" variant="outline" placeholder="Enter text…" />
 				</Field>
+			</Example>
+			<Example
+				title="Sizes"
+				code={code`
+					import { Field, Label } from 'ui/fieldset'
+					import { Input } from 'ui/input'
+
+					<Field className="max-w-sm">
+						<Label>Small</Label>
+						<Input size="sm" placeholder="Small input" />
+					</Field>
+					<Field className="max-w-sm">
+						<Label>Medium</Label>
+						<Input size="md" placeholder="Medium input" />
+					</Field>
+					<Field className="max-w-sm">
+						<Label>Large</Label>
+						<Input size="lg" placeholder="Large input" />
+					</Field>
+				`}
+			>
+				<div className="flex max-w-sm flex-col gap-4">
+					<Field>
+						<Label>Small</Label>
+						<Input size="sm" placeholder="Small input" />
+					</Field>
+					<Field>
+						<Label>Medium</Label>
+						<Input size="md" placeholder="Medium input" />
+					</Field>
+					<Field>
+						<Label>Large</Label>
+						<Input size="lg" placeholder="Large input" />
+					</Field>
+				</div>
+			</Example>
+			<Example
+				title="Prefix"
+				code={code`
+					import { Field, Label } from 'ui/fieldset'
+					import { Icon } from 'ui/icon'
+					import { Input } from 'ui/input'
+
+					<Input prefix={<Icon name="search" />} placeholder="Search" />
+					<Input prefix={<Icon name="lock" />} placeholder="Password" />
+					<Input prefix={<Icon name="hash" />} placeholder="Channel name" />
+				`}
+			>
+				<div className="flex max-w-sm flex-col gap-4">
+					<Input prefix={<Icon name="search" />} placeholder="Search" />
+					<Input prefix={<Icon name="lock" />} placeholder="Password" />
+					<Input prefix={<Icon name="hash" />} placeholder="Channel name" />
+				</div>
+			</Example>
+			<Example
+				title="Suffix"
+				code={code`
+					import { Field, Label } from 'ui/fieldset'
+					import { Icon } from 'ui/icon'
+					import { Input } from 'ui/input'
+
+					<Input suffix={<Icon name="check" />} placeholder="Verified" />
+					<Input suffix={<Icon name="share" />} placeholder="Share" />
+				`}
+			>
+				<div className="flex max-w-sm flex-col gap-4">
+					<Input suffix={<Icon name="check" />} placeholder="Verified" />
+					<Input suffix={<Icon name="share" />} placeholder="Share" />
+				</div>
+			</Example>
+			<Example
+				title="Prefix and suffix"
+				code={code`
+					import { Icon } from 'ui/icon'
+					import { Input } from 'ui/input'
+
+					<Input
+						size="sm"
+						prefix={<Icon name="search" />}
+						suffix={<Icon name="command" />}
+						placeholder="Small"
+					/>
+					<Input
+						size="md"
+						prefix={<Icon name="search" />}
+						suffix={<Icon name="command" />}
+						placeholder="Medium"
+					/>
+					<Input
+						size="lg"
+						prefix={<Icon name="search" />}
+						suffix={<Icon name="command" />}
+						placeholder="Large"
+					/>
+				`}
+			>
+				<div className="flex max-w-sm flex-col gap-4">
+					<Input
+						size="sm"
+						prefix={<Icon name="search" />}
+						suffix={<Icon name="command" />}
+						placeholder="Small"
+					/>
+					<Input
+						size="md"
+						prefix={<Icon name="search" />}
+						suffix={<Icon name="command" />}
+						placeholder="Medium"
+					/>
+					<Input
+						size="lg"
+						prefix={<Icon name="search" />}
+						suffix={<Icon name="command" />}
+						placeholder="Large"
+					/>
+				</div>
 			</Example>
 			<Example
 				title="Disabled"

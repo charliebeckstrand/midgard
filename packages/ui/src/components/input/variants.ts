@@ -6,6 +6,7 @@ const k = katachi.input
 export const inputVariants = cva(k.base, {
 	variants: {
 		variant: k.variant,
+		size: k.size,
 	},
 	defaultVariants: k.defaults,
 })

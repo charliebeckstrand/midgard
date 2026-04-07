@@ -2,6 +2,7 @@
 
 import { cn } from '../../core'
 import { useButtonSize } from '../button/context'
+import { useInputSize } from '../input/context'
 import { type IconName, iconData } from './icon-data'
 
 export type { IconName }
@@ -13,6 +14,7 @@ type IconProps = React.SVGProps<SVGSVGElement> & {
 }
 
 const sizeMap: Record<string, string> = {
+	xs: 'size-3',
 	sm: 'size-4',
 	md: 'size-5',
 	lg: 'size-6',
@@ -22,8 +24,9 @@ export type { IconProps }
 
 export function Icon({ name, size, className, ...props }: IconProps) {
 	const buttonSize = useButtonSize()
+	const inputSize = useInputSize()
 
-	const resolvedSize = size ?? buttonSize ?? 'md'
+	const resolvedSize = size ?? buttonSize ?? inputSize ?? 'md'
 
 	const icon = iconData[name]
 

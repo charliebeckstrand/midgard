@@ -71,6 +71,10 @@ export default function PagesDemo() {
 								<Label>Password</Label>
 								<PasswordInput placeholder="•••••••••" />
 							</Field>
+							<Field>
+								<Label>Confirm Password</Label>
+								<PasswordInput placeholder="•••••••••" />
+							</Field>
 						</RegisterPage>
 					)}
 					{page === 'forgot-password' && (

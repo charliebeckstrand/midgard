@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Icon, type IconName } from '../../components/icon'
 import { iconData } from '../../components/icon/icon-data'
 import { Input } from '../../components/input'
+import { Listbox, ListboxOption } from '../../components/listbox'
 import { code } from '../code'
 import { Example } from '../example'
 
@@ -22,9 +23,9 @@ const allNames = (Object.keys(iconData) as IconName[]).sort((a, b) => {
 	return a.localeCompare(b)
 })
 
-const sizes = ['sm', 'md', 'lg'] as const
+const sizes = ['xs', 'sm', 'md', 'lg'] as const
 
-function IconCard({ name }: { name: IconName }) {
+function IconCard({ name, size }: { name: IconName; size: string }) {
 	const [copied, setCopied] = useState(false)
 
 	function copy() {
@@ -41,7 +42,7 @@ function IconCard({ name }: { name: IconName }) {
 			onClick={copy}
 			className="flex cursor-pointer flex-col items-center gap-2 rounded-lg border border-zinc-200 p-3 transition-colors hover:bg-zinc-100 dark:border-zinc-800 dark:text-white dark:hover:bg-zinc-800"
 		>
-			<Icon name={name} />
+			<Icon name={name} size={size} />
 			<span className={`text-xs whitespace-nowrap ${copied ? 'text-green-600' : 'text-zinc-500'}`}>
 				{copied ? 'Copied!' : name}
 			</span>
@@ -52,13 +53,24 @@ function IconCard({ name }: { name: IconName }) {
 export default function IconDemo() {
 	const [query, setQuery] = useState('')
 
+	const [size, setSize] = useState<string>('md')
+
 	const filtered = allNames.filter((name) => !query || name.includes(query.toLowerCase()))
 
 	return (
 		<div className="space-y-8">
 			<Input placeholder="Search icons" value={query} onChange={(e) => setQuery(e.target.value)} />
 			<Example
-				title="All icons"
+				title="Icons"
+				actions={
+					<Listbox className="min-w-20" value={size} onChange={setSize} displayValue={(v) => v}>
+						{sizes.map((s) => (
+							<ListboxOption key={s} value={s}>
+								{s}
+							</ListboxOption>
+						))}
+					</Listbox>
+				}
 				code={code`
 					import { Icon } from 'ui/icon'
 
@@ -68,7 +80,7 @@ export default function IconDemo() {
 				{filtered.length > 0 ? (
 					<div className="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-4">
 						{filtered.map((name) => (
-							<IconCard key={name} name={name} />
+							<IconCard key={name} name={name} size={size} />
 						))}
 					</div>
 				) : (

@@ -57,7 +57,7 @@ export function Combobox<T>({
 	defaultValue,
 	onChange,
 	multiple = false,
-	placeholder = 'Search...',
+	placeholder = 'Search',
 	displayValue,
 	anchor = 'bottom start',
 	icon,

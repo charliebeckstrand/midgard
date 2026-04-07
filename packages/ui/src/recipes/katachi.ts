@@ -322,12 +322,16 @@ export const katachi = {
 	// ─── Input ───────────────────────────────────────────
 
 	input: {
-		base: form.input,
+		base: [...form.inputBase, maru.rounded],
 		variant: {
 			default: [],
 			outline: kage.borderEmphasis,
 		},
-		defaults: { variant: 'default' as const },
+		size: take.control,
+		affix: ['pointer-events-none absolute inset-y-0 flex items-center', sumi.textMuted],
+		prefix: 'left-0 pl-3',
+		suffix: 'right-0 pr-3',
+		defaults: { variant: 'default' as const, size: 'md' as const },
 		date: form.date,
 	},
 
