@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { Button } from '../../components/button'
 import { Field, Label } from '../../components/fieldset'
+import { Heading } from '../../components/heading'
 import { Input } from '../../components/input'
 import { PasswordInput } from '../../components/input/password'
-import { ForgotPasswordPage, LoginPage, RegisterPage } from '../../pages'
+import { AuthPage } from '../../pages'
 import { code } from '../code'
 import { Example } from '../example'
 
@@ -14,17 +15,25 @@ type Page = 'login' | 'register' | 'forgot-password'
 export default function PagesDemo() {
 	const [page, setPage] = useState<Page>('login')
 
-	const noop: React.ComponentProps<'form'>['onSubmit'] = (e) => e.preventDefault()
+	const [submitting, setSubmitting] = useState(false)
+
+	const handleSubmit: React.ComponentProps<'form'>['onSubmit'] = (e) => {
+		e.preventDefault()
+
+		setSubmitting(true)
+
+		setTimeout(() => setSubmitting(false), 2000)
+	}
 
 	return (
 		<Example
 			code={code`
-				import { LoginPage } from 'ui/pages'
+				import { AuthPage } from 'ui/pages'
 				import { Button } from 'ui/button'
 				import { Field, Label } from 'ui/fieldset'
 				import { Input, PasswordInput } from 'ui/input'
 
-				<LoginPage onSubmit={onSubmit} submit={<Button type="submit">Sign in</Button>}>
+				<AuthPage heading={<Heading>Sign in to your account</Heading>} onSubmit={onSubmit}>
 					<Field>
 						<Label>Email</Label>
 						<Input type="email" placeholder="you@example.com" />
@@ -33,7 +42,7 @@ export default function PagesDemo() {
 						<Label>Password</Label>
 						<PasswordInput placeholder="•••••••••" />
 					</Field>
-				</LoginPage>
+				</AuthPage>
 			`}
 		>
 			<div className="space-y-6">
@@ -44,9 +53,18 @@ export default function PagesDemo() {
 						</Button>
 					))}
 				</div>
-				<div className="">
+				<div>
 					{page === 'login' && (
-						<LoginPage onSubmit={noop} submit={<Button type="submit">Sign in</Button>}>
+						<AuthPage
+							heading={<Heading>Sign in to your account</Heading>}
+							onSubmit={handleSubmit}
+							submitting={submitting}
+							actions={
+								<Button type="submit" disabled={submitting}>
+									{submitting ? 'Signing in...' : 'Sign in'}
+								</Button>
+							}
+						>
 							<Field>
 								<Label>Email</Label>
 								<Input type="email" placeholder="you@example.com" />
@@ -55,10 +73,19 @@ export default function PagesDemo() {
 								<Label>Password</Label>
 								<PasswordInput placeholder="•••••••••" />
 							</Field>
-						</LoginPage>
+						</AuthPage>
 					)}
 					{page === 'register' && (
-						<RegisterPage onSubmit={noop}>
+						<AuthPage
+							heading={<Heading>Create your account</Heading>}
+							onSubmit={handleSubmit}
+							submitting={submitting}
+							actions={
+								<Button type="submit" disabled={submitting}>
+									{submitting ? 'Creating account...' : 'Create account'}
+								</Button>
+							}
+						>
 							<Field>
 								<Label>Name</Label>
 								<Input placeholder="Jane Smith" />
@@ -75,15 +102,24 @@ export default function PagesDemo() {
 								<Label>Confirm Password</Label>
 								<PasswordInput placeholder="•••••••••" />
 							</Field>
-						</RegisterPage>
+						</AuthPage>
 					)}
 					{page === 'forgot-password' && (
-						<ForgotPasswordPage onSubmit={noop}>
+						<AuthPage
+							heading={<Heading>Reset your password</Heading>}
+							onSubmit={handleSubmit}
+							submitting={submitting}
+							actions={
+								<Button type="submit" disabled={submitting}>
+									{submitting ? 'Sending reset link...' : 'Send reset link'}
+								</Button>
+							}
+						>
 							<Field>
 								<Label>Email</Label>
 								<Input type="email" placeholder="you@example.com" />
 							</Field>
-						</ForgotPasswordPage>
+						</AuthPage>
 					)}
 				</div>
 			</div>

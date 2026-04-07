@@ -50,7 +50,7 @@ export default function ButtonDemo() {
 					<Listbox
 						value={colorVariant}
 						onChange={setColorVariant}
-						className="min-w-26"
+						className="min-w-30"
 						displayValue={(v: string) => cap(v)}
 					>
 						{colorVariants.map((v) => (

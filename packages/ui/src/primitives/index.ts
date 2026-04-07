@@ -25,7 +25,7 @@ export {
 export { Polymorphic, type PolymorphicProps } from './polymorphic'
 export { PopoverPanel } from './popover-panel'
 export { useRipple } from './ripple'
-export { tapFeedback } from './tap-feedback'
+export { useTap } from './tap'
 export {
 	ToggleField,
 	type ToggleFieldProps,

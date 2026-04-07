@@ -52,7 +52,7 @@ export function DisclosureButton({ className, children, ...props }: DisclosureBu
 			variant="ghost"
 			data-slot="disclosure-button"
 			aria-expanded={open}
-			ripple={false}
+			spring={false}
 			onClick={toggle}
 			className={cn(k.button, className)}
 			{...props}

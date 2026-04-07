@@ -24,13 +24,6 @@ import { sumi } from './sumi'
 import { take } from './take'
 import { yasumi } from './yasumi'
 
-// ── Panel slot bases (shared by dialog + sheet) ─────────
-
-const panelTitle = [sumi.text, 'text-lg/7 font-semibold'] as const
-const panelDescription = [sumi.textMuted, 'text-base/6'] as const
-const panelBody = 'mt-4'
-const panelActions = 'mt-6 flex items-center justify-end gap-3'
-
 // ── Export ───────────────────────────────────────────────
 
 export const katachi = {
@@ -403,12 +396,7 @@ export const katachi = {
 
 	// ─── Panel (shared slots for Dialog/Sheet) ───────────
 
-	panel: {
-		title: panelTitle,
-		description: panelDescription,
-		body: panelBody,
-		actions: panelActions,
-	},
+	panel: narabi.panel,
 
 	// ─── Placeholder ─────────────────────────────────────
 
@@ -463,10 +451,10 @@ export const katachi = {
 			size: take.panel,
 			defaults: { side: 'right' as const, size: 'md' as const },
 		},
-		title: [...panelTitle, 'px-6 pt-6'],
-		description: [...panelDescription, 'px-6'],
-		actions: [panelActions, 'px-6 pb-6'],
-		body: [panelBody, 'flex-1 overflow-y-auto px-6'],
+		title: [...narabi.panel.title, 'px-6 pt-6'],
+		description: [...narabi.panel.description, 'px-6'],
+		actions: [narabi.panel.actions, 'px-6 pb-6'],
+		body: [narabi.panel.body, 'flex-1 overflow-y-auto px-6'],
 		close: [sumi.textMuted, ki.offset, 'absolute right-4 top-4', maru.roundedMd, 'p-1'],
 	},
 

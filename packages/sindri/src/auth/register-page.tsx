@@ -4,10 +4,9 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Suspense, useState } from 'react'
 import { ErrorMessage, Field, Label } from 'ui/fieldset'
-import { Input } from 'ui/input'
-import { RegisterPage as RegisterPageLayout } from 'ui/pages'
+import { Input, PasswordInput } from 'ui/input'
+import { AuthPage } from 'ui/pages'
 import { Text } from 'ui/text'
-import { PasswordInput } from './password-input'
 import { useForm } from './use-form'
 import { email, matches, minLength, required } from './use-form-validation'
 
@@ -54,14 +53,19 @@ function RegisterForm() {
 	})
 
 	return (
-		<RegisterPageLayout
+		<AuthPage
 			onSubmit={handleSubmit}
 			serverError={serverError}
 			submitting={submitting}
 			footer={
-				<Text>
-					Already have an account? <Link href="/login">Sign in</Link>
-				</Text>
+				<div className="text-center">
+					<Text>
+						Already have an account?{' '}
+						<Link href="/login" className="font-medium hover:underline underline-offset-6">
+							Sign in
+						</Link>
+					</Text>
+				</div>
 			}
 		>
 			<Field>
@@ -87,7 +91,7 @@ function RegisterForm() {
 				<PasswordInput name="confirmPassword" {...register('confirmPassword')} />
 				{errors.confirmPassword && <ErrorMessage>{errors.confirmPassword}</ErrorMessage>}
 			</Field>
-		</RegisterPageLayout>
+		</AuthPage>
 	)
 }
 

@@ -6,7 +6,7 @@ import { createContext, useCallback, useContext, useId, useMemo } from 'react'
 import { cn } from '../core'
 import { katachi, ugoki } from '../recipes'
 
-const ActiveIndicatorScopeContext = createContext<string | undefined>(undefined)
+const ActiveIndicatorContext = createContext<string | undefined>(undefined)
 
 /**
  * Creates a local scope for active indicators so multiple independent
@@ -20,9 +20,9 @@ export function ActiveIndicatorScope({ children, id }: React.PropsWithChildren<{
 	const layoutId = useMemo(() => `current-indicator-${scopeId}`, [scopeId])
 
 	return (
-		<ActiveIndicatorScopeContext.Provider value={layoutId}>
+		<ActiveIndicatorContext.Provider value={layoutId}>
 			<LayoutGroup id={layoutId}>{children}</LayoutGroup>
-		</ActiveIndicatorScopeContext.Provider>
+		</ActiveIndicatorContext.Provider>
 	)
 }
 
@@ -43,11 +43,11 @@ export function useActiveIndicator() {
 	const [scope, animate] = useAnimate<HTMLSpanElement>()
 
 	const onPointerDown = useCallback(() => {
-		animate(scope.current, { scale: 0.99 }, ugoki.tap)
+		animate(scope.current, { scale: 0.99 }, ugoki.spring)
 	}, [animate, scope])
 
 	const onPointerUp = useCallback(() => {
-		animate(scope.current, { scale: 1 }, ugoki.tap)
+		animate(scope.current, { scale: 1 }, ugoki.spring)
 	}, [animate, scope])
 
 	return { ref: scope, tapHandlers: { onPointerDown, onPointerUp, onPointerLeave: onPointerUp } }
@@ -64,7 +64,8 @@ export function ActiveIndicator({
 	className?: string
 	style?: MotionStyle
 }) {
-	const scopedLayoutId = useContext(ActiveIndicatorScopeContext)
+	const scopedLayoutId = useContext(ActiveIndicatorContext)
+
 	const resolvedLayoutId = layoutId ?? scopedLayoutId ?? 'current-indicator'
 
 	return (
@@ -73,7 +74,7 @@ export function ActiveIndicator({
 			layoutId={resolvedLayoutId}
 			className={cn(katachi.activeIndicator, className)}
 			style={{ borderRadius: 8, ...style }}
-			transition={ugoki.layout}
+			transition={ugoki.spring}
 		/>
 	)
 }

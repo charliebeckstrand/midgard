@@ -1,37 +1,41 @@
 import type React from 'react'
-import { Heading } from '../components/heading'
+import { Fieldset } from '../components/fieldset/component'
 import { Text } from '../components/text'
 import { AuthLayout } from '../layouts/auth'
 
-export type LoginPageProps = {
+export type AuthPageProps = {
 	onSubmit: React.ComponentProps<'form'>['onSubmit']
+	submitting?: boolean
 	heading?: React.ReactNode
 	serverError?: string
-	submit?: React.ReactNode
 	children: React.ReactNode
+	actions?: React.ReactNode
 	footer?: React.ReactNode
 }
 
-export function LoginPage({
+export function AuthPage({
 	onSubmit,
+	submitting,
 	heading,
 	serverError,
-	submit,
 	children,
+	actions,
 	footer,
-}: LoginPageProps) {
+}: AuthPageProps) {
 	return (
 		<AuthLayout>
-			<form onSubmit={onSubmit} className="grid w-full max-w-sm grid-cols-1 gap-8">
-				{heading ?? <Heading>Sign in to your account</Heading>}
+			<form onSubmit={onSubmit} className="grid gap-8 w-full max-w-sm">
+				{heading}
 
 				{serverError && <Text variant="error">{serverError}</Text>}
 
-				{children}
+				<Fieldset disabled={submitting} className="grid gap-8">
+					{children}
 
-				{submit}
+					{actions}
 
-				{footer}
+					{footer}
+				</Fieldset>
 			</form>
 		</AuthLayout>
 	)

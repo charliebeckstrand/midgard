@@ -22,15 +22,8 @@ function slideConfig(axis: 'x' | 'y', value: string) {
 	}
 }
 
-/** Tap feedback — snappy spring for press interactions */
-const tap = {
-	type: 'spring' as const,
-	stiffness: 500,
-	damping: 15,
-}
-
 /** Layout morph — fluid spring for layoutId transitions */
-const layout = {
+const spring = {
 	type: 'spring' as const,
 	stiffness: 300,
 	damping: 30,
@@ -45,8 +38,7 @@ const reveal = {
 }
 
 export const ugoki = {
-	tap,
-	layout,
+	spring,
 	reveal,
 	/** Popover enter/exit — scale + fade for dropdown menus */
 	popover: {

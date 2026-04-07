@@ -5,11 +5,10 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useState } from 'react'
 import { Button } from 'ui/button'
 import { ErrorMessage, Field, Label } from 'ui/fieldset'
-import { Input } from 'ui/input'
-import { LoginPage as LoginPageLayout } from 'ui/pages'
+import { Input, PasswordInput } from 'ui/input'
+import { AuthPage } from 'ui/pages'
 import { ShinyText } from 'ui/shiny-text'
 import { Text } from 'ui/text'
-import { PasswordInput } from './password-input'
 import { useForm } from './use-form'
 import { email, required } from './use-form-validation'
 
@@ -56,10 +55,11 @@ function LoginForm({ showRegisterLink }: { showRegisterLink: boolean }) {
 	})
 
 	return (
-		<LoginPageLayout
+		<AuthPage
 			onSubmit={handleSubmit}
 			serverError={serverError}
-			submit={
+			submitting={submitting}
+			actions={
 				<Button
 					type="submit"
 					className={`w-full ${submitting ? 'cursor-not-allowed pointer-events-none' : ''}`}
@@ -69,9 +69,14 @@ function LoginForm({ showRegisterLink }: { showRegisterLink: boolean }) {
 			}
 			footer={
 				showRegisterLink ? (
-					<Text>
-						Don't have an account? <Link href="/register">Create one</Link>
-					</Text>
+					<div className="text-center">
+						<Text>
+							Don't have an account?{' '}
+							<Link href="/register" className="font-medium hover:underline underline-offset-6">
+								Create one
+							</Link>
+						</Text>
+					</div>
 				) : undefined
 			}
 		>
@@ -95,7 +100,7 @@ function LoginForm({ showRegisterLink }: { showRegisterLink: boolean }) {
 				<PasswordInput name="password" autoComplete="current-password" {...register('password')} />
 				{errors.password && <ErrorMessage>{errors.password}</ErrorMessage>}
 			</Field>
-		</LoginPageLayout>
+		</AuthPage>
 	)
 }
 
