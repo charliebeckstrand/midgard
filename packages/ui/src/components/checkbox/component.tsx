@@ -11,14 +11,14 @@ export function Checkbox({ className, color, ...props }: CheckboxProps) {
 		<span
 			data-slot="control"
 			className={cn(
-				'relative inline-flex size-4.5 items-center justify-center has-checked:*:data-[slot=checkbox-check]:opacity-100',
+				'relative inline-flex size-4.5 items-center justify-center rounded-sm has-checked:*:data-[slot=checkbox-check]:opacity-100 has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-blue-600',
 				checkboxColorVariants({ color }),
 			)}
 		>
 			<input
 				type="checkbox"
 				data-slot="checkbox"
-				className={cn(checkboxVariants(), className)}
+				className={cn(checkboxVariants(), 'focus-visible:ring-0', className)}
 				{...props}
 			/>
 			<CheckboxIcon />

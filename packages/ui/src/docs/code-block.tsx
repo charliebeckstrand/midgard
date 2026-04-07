@@ -27,11 +27,10 @@ function CopyButton({ code }: { code: string }) {
 		<div className="absolute top-0 right-0 pt-3 pr-3 bg-[#0d1117]">
 			<Button
 				variant="plain"
-				size="sm"
 				disabled={copied}
 				onClick={copy}
 				aria-label={copied ? 'Copied' : 'Copy to clipboard'}
-				className={`disabled:opacity-100 ${copied ? 'text-green-500!' : 'text-zinc-100!'}`}
+				className={`disabled:opacity-100 ${copied ? 'text-green-500!' : 'text-zinc-400! hover:text-white!'}`}
 			>
 				{copied ? (
 					<svg

@@ -11,11 +11,16 @@ export function Radio({ className, color, ...props }: RadioProps) {
 		<span
 			data-slot="control"
 			className={cn(
-				'relative inline-flex size-4.5 items-center justify-center has-checked:*:data-[slot=radio-indicator]:opacity-100',
+				'relative inline-flex size-4.5 items-center justify-center rounded-full has-checked:*:data-[slot=radio-indicator]:opacity-100 has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-blue-600',
 				radioColorVariants({ color }),
 			)}
 		>
-			<input type="radio" data-slot="radio" className={cn(radioVariants(), className)} {...props} />
+			<input
+				type="radio"
+				data-slot="radio"
+				className={cn(radioVariants(), 'focus-visible:ring-0', className)}
+				{...props}
+			/>
 			<span
 				data-slot="radio-indicator"
 				aria-hidden="true"
