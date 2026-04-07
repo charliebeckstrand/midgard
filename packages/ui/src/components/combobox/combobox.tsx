@@ -78,6 +78,7 @@ export function Combobox<T>({
 
 	const inputRef = useRef<HTMLInputElement>(null)
 	const optionsRef = useRef<HTMLDivElement>(null)
+	const pendingValue = useRef<T | T[] | undefined>(undefined)
 
 	const handleKeyDown = useMenuKeyboard(optionsRef, '[role="option"]:not([data-disabled])')
 
@@ -100,6 +101,8 @@ export function Combobox<T>({
 				const next = arr.includes(newValue) ? arr.filter((v) => v !== newValue) : [...arr, newValue]
 
 				setValue(next)
+			} else if (shouldClose) {
+				pendingValue.current = newValue
 			} else {
 				setValue(newValue)
 			}
@@ -115,6 +118,14 @@ export function Combobox<T>({
 		},
 		[multiple, selectable, shouldClose, value, setValue, onChange, close],
 	)
+
+	const onExitComplete = useCallback(() => {
+		if (pendingValue.current !== undefined) {
+			setValue(pendingValue.current)
+
+			pendingValue.current = undefined
+		}
+	}, [setValue])
 
 	const inputDisplay = useMemo(() => {
 		if (editing) return query
@@ -215,7 +226,7 @@ export function Combobox<T>({
 				</FormControl>
 
 				<div ref={optionsRef}>
-					<AnimatePresence>
+					<AnimatePresence onExitComplete={onExitComplete}>
 						{open && (
 							<PopoverPanel
 								role="listbox"
