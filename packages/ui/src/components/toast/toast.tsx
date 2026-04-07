@@ -12,6 +12,7 @@ export function Toast({
 	position = 'bottom-right',
 	maxToasts = 5,
 	duration = 3000,
+	closeIcon,
 	children,
 }: ToastContextProps) {
 	const { toasts, toast, dismiss, pause, resume, handleExitComplete, isBottom } = useToastState({
@@ -37,6 +38,7 @@ export function Toast({
 									toast={t}
 									position={position}
 									showCloseButton={t.showCloseButton}
+									closeIcon={closeIcon}
 									onDismiss={dismiss}
 									onPause={pause}
 									onResume={resume}

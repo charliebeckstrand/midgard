@@ -36,6 +36,7 @@ export type ToastContextProps = {
 	position?: ToastPosition
 	duration: number
 	maxToasts?: number
+	closeIcon?: React.ReactNode
 }
 
 let counter = 0

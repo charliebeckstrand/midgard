@@ -2,7 +2,7 @@
 
 import { motion } from 'motion/react'
 import { cn } from '../../core'
-import { CloseIcon } from '../../primitives'
+import { CloseIcon } from '../../icons'
 import { katachi, ugoki } from '../../recipes'
 import { Button } from '../button'
 import type { ToastData, ToastPosition } from './toast-context'
@@ -20,6 +20,7 @@ type ToastCardProps = {
 	toast: ToastData
 	position: ToastPosition
 	showCloseButton?: boolean
+	closeIcon?: React.ReactNode
 	onDismiss: (id: string) => void
 	onPause: () => void
 	onResume: () => void
@@ -29,6 +30,7 @@ export function ToastCard({
 	toast: t,
 	position,
 	showCloseButton = true,
+	closeIcon,
 	onDismiss,
 	onPause,
 	onResume,
@@ -74,7 +76,7 @@ export function ToastCard({
 					className={cn(katachi.toast.close)}
 					onClick={() => onDismiss(t.id)}
 				>
-					<CloseIcon />
+					{closeIcon ?? <CloseIcon />}
 				</Button>
 			)}
 		</motion.div>

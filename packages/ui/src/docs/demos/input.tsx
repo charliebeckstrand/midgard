@@ -28,9 +28,13 @@ export default function InputDemo() {
 			<Example
 				title="Outline"
 				code={code`
+					import { Field, Label } from 'ui/fieldset'
 					import { Input } from 'ui/input'
 
-					<Input variant="outline" placeholder="Enter text…" />
+					<Field className="max-w-sm">
+						<Label>Name</Label>
+						<Input variant="outline" placeholder="Enter text…" />
+					</Field>
 				`}
 			>
 				<Field className="max-w-sm">
@@ -41,9 +45,13 @@ export default function InputDemo() {
 			<Example
 				title="Disabled"
 				code={code`
+					import { Field, Label } from 'ui/fieldset'
 					import { Input } from 'ui/input'
 
-					<Input disabled placeholder="Disabled" />
+					<Field className="max-w-sm">
+						<Label htmlFor="input-disabled">Disabled</Label>
+						<Input id="input-disabled" disabled placeholder="Disabled" />
+					</Field>
 				`}
 			>
 				<Field className="max-w-sm">
@@ -54,9 +62,13 @@ export default function InputDemo() {
 			<Example
 				title="Readonly"
 				code={code`
+					import { Field, Label } from 'ui/fieldset'
 					import { Input } from 'ui/input'
 
-					<Input readOnly placeholder="Readonly" />
+					<Field className="max-w-sm">
+						<Label htmlFor="input-readonly">Readonly</Label>
+						<Input id="input-readonly" readOnly placeholder="Readonly" />
+					</Field>
 				`}
 			>
 				<Field className="max-w-sm">
@@ -67,9 +79,13 @@ export default function InputDemo() {
 			<Example
 				title="Invalid"
 				code={code`
+					import { Field, Label } from 'ui/fieldset'
 					import { Input } from 'ui/input'
 
-					<Input data-invalid placeholder="Invalid input" />
+					<Field className="max-w-sm">
+						<Label htmlFor="input-invalid">Invalid</Label>
+						<Input id="input-invalid" data-invalid placeholder="Invalid input" />
+					</Field>
 				`}
 			>
 				<Field className="max-w-sm">

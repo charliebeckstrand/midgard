@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Button } from '../../components/button'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
-import { PlusIcon } from '../../primitives/icons'
+import { PlusIcon } from '../../icons'
 import { code } from '../code'
 import { Example } from '../example'
 
@@ -96,7 +96,7 @@ export default function ButtonDemo() {
 				title="With icon"
 				code={code`
 					import { Button } from 'ui/button'
-					import { PlusIcon } from 'ui/primitives'
+					import { PlusIcon } from 'ui/icons'
 
 					${variants.map((v) => `<Button variant="${v}">\n  <PlusIcon />\n  ${cap(v)}\n</Button>`)}
 				`}
@@ -114,7 +114,7 @@ export default function ButtonDemo() {
 				title="Icon only"
 				code={code`
 					import { Button } from 'ui/button'
-					import { PlusIcon } from 'ui/primitives'
+					import { PlusIcon } from 'ui/icons'
 
 					${variants.map((v) => `<Button variant="${v}">\n  <PlusIcon />\n</Button>`)}
 				`}

@@ -18,8 +18,8 @@ import {
 } from '../components/sidebar'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/table'
 import { useOffcanvas } from '../core/offcanvas-context'
+import { ChevronRightIcon, MoonIcon, SunIcon } from '../icons'
 import { SidebarLayout } from '../layouts'
-import { MoonIcon, SunIcon } from '../primitives'
 import { type ComponentApi, parseSource } from './parse-props'
 
 type DemoModule = {
@@ -181,20 +181,8 @@ function DemoPage({ demo }: { demo: (typeof demos)[number] }) {
 				<>
 					<Divider />
 					<Disclosure>
-						<DisclosureButton className="flex items-center gap-1.5 text-sm font-medium text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300">
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								viewBox="0 0 16 16"
-								fill="currentColor"
-								className="size-3.5 transition-transform in-data-open:rotate-90"
-								aria-hidden="true"
-							>
-								<path
-									fillRule="evenodd"
-									d="M6.22 4.22a.75.75 0 0 1 1.06 0l3.25 3.25a.75.75 0 0 1 0 1.06l-3.25 3.25a.75.75 0 0 1-1.06-1.06L8.94 8 6.22 5.28a.75.75 0 0 1 0-1.06Z"
-									clipRule="evenodd"
-								/>
-							</svg>
+						<DisclosureButton>
+							<ChevronRightIcon className="transition-transform in-data-open:rotate-90" />
 							API Reference
 						</DisclosureButton>
 						<DisclosurePanel>
@@ -293,14 +281,24 @@ export function App() {
 	return (
 		<SidebarLayout
 			actions={
-				<Button variant="plain" onClick={toggleDark} aria-label="Toggle dark mode">
+				<Button
+					variant="soft"
+					color={dark ? 'amber' : 'zinc'}
+					onClick={toggleDark}
+					aria-label="Toggle dark mode"
+				>
 					{dark ? <SunIcon /> : <MoonIcon />}
 				</Button>
 			}
 			navbar={
 				<Navbar>
 					<NavbarSpacer />
-					<Button variant="plain" onClick={toggleDark} aria-label="Toggle dark mode">
+					<Button
+						variant="plain"
+						color={dark ? 'amber' : 'zinc'}
+						onClick={toggleDark}
+						aria-label="Toggle dark mode"
+					>
 						{dark ? <SunIcon /> : <MoonIcon />}
 					</Button>
 				</Navbar>

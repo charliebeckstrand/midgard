@@ -4,6 +4,8 @@ import { AnimatePresence, motion } from 'motion/react'
 import type React from 'react'
 import { useCallback, useState } from 'react'
 import { createContext } from '../../core/create-context'
+import { Button } from '../button'
+import type { ButtonVariants } from '../button/variants'
 import { disclosureButtonVariants, disclosurePanelVariants } from './variants'
 
 type DisclosureContextValue = {
@@ -34,25 +36,26 @@ export function Disclosure({ defaultOpen = false, children, className }: Disclos
 	)
 }
 
-export type DisclosureButtonProps = Omit<React.ComponentProps<'button'>, 'children'> & {
-	className?: string
-	children: React.ReactNode | ((bag: { open: boolean }) => React.ReactNode)
-}
+export type DisclosureButtonProps = ButtonVariants &
+	Omit<React.ComponentProps<'button'>, 'children'> & {
+		children: React.ReactNode | ((bag: { open: boolean }) => React.ReactNode)
+	}
 
 export function DisclosureButton({ className, children, ...props }: DisclosureButtonProps) {
 	const { open, toggle } = useDisclosureContext()
 
 	return (
-		<button
-			type="button"
+		<Button
+			variant="ghost"
 			data-slot="disclosure-button"
 			aria-expanded={open}
+			spring={false}
 			onClick={toggle}
 			className={disclosureButtonVariants({ className })}
 			{...props}
 		>
 			{typeof children === 'function' ? children({ open }) : children}
-		</button>
+		</Button>
 	)
 }
 

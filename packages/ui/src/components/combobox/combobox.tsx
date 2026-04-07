@@ -7,7 +7,8 @@ import { cn, createContext } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { useMenuKeyboard } from '../../hooks/use-menu-keyboard'
 import { useOverlay } from '../../hooks/use-overlay'
-import { ChevronIcon, FormControl, PopoverPanel } from '../../primitives'
+import { ChevronIcon } from '../../icons'
+import { FormControl, PopoverPanel } from '../../primitives'
 import { narabi, sumi } from '../../recipes'
 import { comboboxChevronVariants, comboboxInputVariants, comboboxOptionsVariants } from './variants'
 
@@ -25,6 +26,7 @@ type ComboboxBaseProps<T> = {
 	placeholder?: string
 	displayValue?: (value: T) => string
 	anchor?: keyof typeof narabi.anchor
+	icon?: React.ReactNode
 	className?: string
 	/** When false, onChange still fires but the value is never stored or shown as selected. */
 	selectable?: boolean
@@ -57,6 +59,7 @@ export function Combobox<T>({
 	placeholder = 'Search...',
 	displayValue,
 	anchor = 'bottom start',
+	icon,
 	selectable = true,
 	closeOnSelect,
 	className,
@@ -206,7 +209,7 @@ export function Combobox<T>({
 						onClick={() => setOpen(!open)}
 						className={comboboxChevronVariants()}
 					>
-						<ChevronIcon />
+						{icon ?? <ChevronIcon />}
 					</button>
 				</FormControl>
 

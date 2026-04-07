@@ -2,17 +2,19 @@
 
 import { cn } from '../../core'
 import { useOffcanvas } from '../../core/offcanvas-context'
-import { CloseIcon } from '../../primitives'
+import { CloseIcon } from '../../icons'
 import { Button } from '../button'
 import { sidebarBodyVariants, sidebarFooterVariants, sidebarHeaderVariants } from './variants'
 
-export type SidebarHeaderProps = React.ComponentPropsWithoutRef<'div'>
+export type SidebarHeaderProps = React.ComponentPropsWithoutRef<'div'> & {
+	closeIcon?: React.ReactNode
+}
 
 export type SidebarBodyProps = React.ComponentPropsWithoutRef<'div'>
 
 export type SidebarFooterProps = React.ComponentPropsWithoutRef<'div'>
 
-export function SidebarHeader({ className, children, ...props }: SidebarHeaderProps) {
+export function SidebarHeader({ className, children, closeIcon, ...props }: SidebarHeaderProps) {
 	const offcanvas = useOffcanvas()
 
 	return (
@@ -25,7 +27,7 @@ export function SidebarHeader({ className, children, ...props }: SidebarHeaderPr
 					onClick={offcanvas.close}
 					className="ml-auto"
 				>
-					<CloseIcon />
+					{closeIcon ?? <CloseIcon />}
 				</Button>
 			)}
 		</div>

@@ -195,7 +195,7 @@ export const katachi = {
 
 	combobox: {
 		input: [...form.inputBase, maru.rounded, take.control.md, 'pr-8 pl-3'],
-		chevron: ['absolute inset-y-px right-px flex items-center pr-2'],
+		chevron: ['absolute inset-y-px right-px flex items-center pr-2', sumi.textMuted],
 		options: take.popup,
 		option: [...sawari.item, ...narabi.item],
 	},
@@ -204,13 +204,11 @@ export const katachi = {
 
 	disclosure: {
 		button: [
-			'flex items-center gap-2',
+			'justify-start rounded-none border-0 after:hidden',
+			'ring-inset',
 			sumi.textMuted,
 			sumi.textHover,
-			take.text.sm,
 			'font-medium',
-			ki.offset,
-			sawari.cursor,
 		],
 		panel: 'overflow-hidden',
 	},
@@ -345,7 +343,7 @@ export const katachi = {
 		],
 		options: take.popup,
 		value: 'block truncate',
-		chevron: ['pointer-events-none', narabi.chevron],
+		chevron: ['pointer-events-none', narabi.chevron, sumi.textMuted],
 		option: [...sawari.item, ...narabi.item],
 	},
 

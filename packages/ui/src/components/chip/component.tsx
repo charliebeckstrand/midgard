@@ -9,6 +9,7 @@ const MotionLink = motion.create(Link)
 
 type ChipBaseProps = ChipVariants & {
 	className?: string
+	spring?: boolean
 }
 
 export type ChipProps = ChipBaseProps & PolymorphicProps<'span'>
@@ -21,21 +22,25 @@ export function Chip({
 	className,
 	children,
 	href,
+	spring = true,
 	...props
 }: ChipProps) {
 	const classes = cn(chipVariants({ variant, color, active, size }), className)
+
+	const tap = spring ? tapFeedback : undefined
+
 	const { onDrag, onDragEnd, onDragOver, onDragStart, ...rest } = props as Record<string, unknown>
 
 	if (href !== undefined) {
 		return (
-			<MotionLink data-slot="chip" href={href} className={classes} {...tapFeedback} {...rest}>
+			<MotionLink data-slot="chip" href={href} className={classes} {...tap} {...rest}>
 				{children}
 			</MotionLink>
 		)
 	}
 
 	return (
-		<motion.span data-slot="chip" className={classes} {...tapFeedback} {...rest}>
+		<motion.span data-slot="chip" className={classes} {...tap} {...rest}>
 			{children}
 		</motion.span>
 	)

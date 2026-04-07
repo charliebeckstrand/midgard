@@ -6,16 +6,23 @@ import { Button } from '../components/button'
 import { Sheet } from '../components/sheet/sheet'
 import { cn } from '../core'
 import { OffcanvasContext } from '../core/offcanvas-context'
-import { MenuIcon } from '../primitives'
+import { MenuIcon } from '../icons'
 import { omote } from '../recipes'
 
 export type SidebarLayoutProps = React.PropsWithChildren<{
 	navbar: React.ReactNode
 	sidebar: React.ReactNode
 	actions?: React.ReactNode
+	menuIcon?: React.ReactNode
 }>
 
-export function SidebarLayout({ navbar, sidebar, actions, children }: SidebarLayoutProps) {
+export function SidebarLayout({
+	navbar,
+	sidebar,
+	actions,
+	menuIcon,
+	children,
+}: SidebarLayoutProps) {
 	const [open, setOpen] = useState(false)
 
 	const close = useCallback(() => setOpen(false), [])
@@ -55,7 +62,7 @@ export function SidebarLayout({ navbar, sidebar, actions, children }: SidebarLay
 			{/* Navbar on mobile */}
 			<header className="flex items-center gap-4 p-6 lg:hidden [&_nav]:p-0">
 				<Button variant="plain" onClick={() => setOpen(true)} aria-label="Open navigation">
-					<MenuIcon />
+					{menuIcon ?? <MenuIcon />}
 				</Button>
 				<div className="min-w-0 flex-1">{navbar}</div>
 			</header>
@@ -68,6 +75,7 @@ export function SidebarLayout({ navbar, sidebar, actions, children }: SidebarLay
 				<div
 					className={cn(
 						'flex grow flex-col min-h-0 px-6 pb-6 lg:pt-6 overflow-y-auto',
+						actions && 'lg:pr-[calc(var(--spacing)*9+1px)]',
 						omote.content,
 						'[&>[data-slot=header]>nav]:p-0',
 						'[&:has([data-slot=footer])>[data-slot=body]]:pb-0',

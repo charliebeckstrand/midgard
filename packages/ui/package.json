@@ -19,6 +19,10 @@
 			"types": "./src/hooks/index.ts",
 			"default": "./src/hooks/index.ts"
 		},
+		"./icons": {
+			"types": "./src/icons/index.tsx",
+			"default": "./src/icons/index.tsx"
+		},
 		"./avatar": {
 			"types": "./src/components/avatar/index.ts",
 			"default": "./src/components/avatar/index.ts"

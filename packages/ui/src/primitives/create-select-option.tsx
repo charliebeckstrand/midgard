@@ -7,6 +7,7 @@ import { BaseOption, OptionDescription, OptionLabel } from './option'
 export type SelectOptionProps = {
 	value: unknown
 	disabled?: boolean
+	icon?: React.ReactNode
 	className?: string
 	children?: React.ReactNode
 }
@@ -29,7 +30,7 @@ export function createSelectOption(config: {
 		select: (value: unknown) => void
 	}
 }) {
-	function Option({ value, disabled, className, children }: SelectOptionProps) {
+	function Option({ value, disabled, icon, className, children }: SelectOptionProps) {
 		const { value: selectedValue, multiple, select } = config.useContext()
 
 		const selected =
@@ -41,6 +42,7 @@ export function createSelectOption(config: {
 			<BaseOption
 				selected={selected}
 				disabled={disabled}
+				icon={icon}
 				checkPosition="end"
 				onSelect={() => select(value)}
 				data-slot={`${config.slotPrefix}-option`}

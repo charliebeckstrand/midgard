@@ -6,7 +6,8 @@ import { useCallback, useRef, useState } from 'react'
 import { cn, createContext } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { useOverlay } from '../../hooks/use-overlay'
-import { ChevronIcon, FormControl, PopoverPanel } from '../../primitives'
+import { ChevronIcon } from '../../icons'
+import { FormControl, PopoverPanel } from '../../primitives'
 import { narabi, sumi } from '../../recipes'
 import {
 	listboxButtonVariants,
@@ -27,6 +28,7 @@ export const [ListboxProvider, useListboxContext] = createContext<ListboxContext
 type ListboxBaseProps = {
 	placeholder?: string
 	anchor?: keyof typeof narabi.anchor
+	icon?: React.ReactNode
 	className?: string
 	inputId?: string
 	children: React.ReactNode
@@ -58,6 +60,7 @@ export function Listbox<T>({
 	placeholder = 'Select...',
 	displayValue,
 	anchor = 'bottom start',
+	icon,
 	className,
 	inputId,
 	children,
@@ -140,9 +143,7 @@ export function Listbox<T>({
 						<span className={listboxValueVariants()}>
 							{label ?? <span className={cn(sumi.textMuted)}>{placeholder}</span>}
 						</span>
-						<span className={listboxChevronVariants()}>
-							<ChevronIcon />
-						</span>
+						<span className={listboxChevronVariants()}>{icon ?? <ChevronIcon />}</span>
 					</button>
 				</FormControl>
 

@@ -1,13 +1,14 @@
 import type React from 'react'
 import { cn } from '../core'
+import { CheckIcon } from '../icons'
 import { katachi } from '../recipes'
-import { CheckIcon } from './icons'
 
 const k = katachi.option
 
 export type BaseOptionProps = {
 	className?: string
 	children?: React.ReactNode
+	icon?: React.ReactNode
 	selected: boolean
 	disabled?: boolean
 	checkPosition: 'start' | 'end'
@@ -18,6 +19,7 @@ export type BaseOptionProps = {
 export function BaseOption({
 	children,
 	className,
+	icon,
 	selected,
 	disabled,
 	checkPosition,
@@ -26,6 +28,10 @@ export function BaseOption({
 }: BaseOptionProps) {
 	const isStart = checkPosition === 'start'
 	const sharedClasses = cn(k.content)
+
+	const checkIcon = icon ?? (
+		<CheckIcon className="relative hidden self-center text-green-600 group-data-selected/option:inline" />
+	)
 
 	return (
 		<div
@@ -45,13 +51,9 @@ export function BaseOption({
 			className={cn(k.base, isStart ? k.start : k.end)}
 			{...props}
 		>
-			{isStart && (
-				<CheckIcon className="relative hidden self-center text-green-600 group-data-selected/option:inline" />
-			)}
+			{isStart && checkIcon}
 			<span className={cn(className, sharedClasses, isStart && 'col-start-2')}>{children}</span>
-			{!isStart && (
-				<CheckIcon className="relative col-start-2 hidden self-center text-green-600 group-data-selected/option:inline" />
-			)}
+			{!isStart && checkIcon}
 		</div>
 	)
 }

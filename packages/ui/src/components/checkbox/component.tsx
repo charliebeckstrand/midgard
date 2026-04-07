@@ -1,12 +1,14 @@
 import { cn } from '../../core'
-import { CheckboxIcon, ToggleField, ToggleGroup } from '../../primitives'
+import { CheckboxIcon } from '../../icons'
+import { ToggleField, ToggleGroup } from '../../primitives'
 import { type CheckboxVariants, checkboxColorVariants, checkboxVariants } from './variants'
 
 export type CheckboxProps = CheckboxVariants & {
+	icon?: React.ReactNode
 	className?: string
 } & Omit<React.ComponentPropsWithoutRef<'input'>, 'className' | 'type'>
 
-export function Checkbox({ className, color, ...props }: CheckboxProps) {
+export function Checkbox({ className, color, icon, ...props }: CheckboxProps) {
 	return (
 		<span
 			data-slot="control"
@@ -21,7 +23,7 @@ export function Checkbox({ className, color, ...props }: CheckboxProps) {
 				className={cn(checkboxVariants(), 'focus-visible:ring-0', className)}
 				{...props}
 			/>
-			<CheckboxIcon />
+			{icon ?? <CheckboxIcon />}
 		</span>
 	)
 }

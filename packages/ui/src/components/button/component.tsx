@@ -24,11 +24,21 @@ function hasIcon(children: React.ReactNode): boolean {
 
 type ButtonBaseProps = ButtonVariants & {
 	className?: string
+	spring?: boolean
 }
 
 export type ButtonProps = ButtonBaseProps & PolymorphicProps<'button'>
 
-export function Button({ variant, color, size, className, children, href, ...props }: ButtonProps) {
+export function Button({
+	variant,
+	color,
+	size,
+	className,
+	children,
+	href,
+	spring = true,
+	...props
+}: ButtonProps) {
 	const iconOnly = isIconOnly(children)
 
 	const classes = cn(
@@ -38,6 +48,8 @@ export function Button({ variant, color, size, className, children, href, ...pro
 		className,
 	)
 
+	const tap = spring ? tapFeedback : undefined
+
 	if (href !== undefined) {
 		const { onDrag, onDragEnd, onDragOver, onDragStart, ...linkProps } = props as Record<
 			string,
@@ -45,13 +57,7 @@ export function Button({ variant, color, size, className, children, href, ...pro
 		>
 
 		return (
-			<MotionLink
-				data-slot="button"
-				href={href}
-				className={classes}
-				{...tapFeedback}
-				{...linkProps}
-			>
+			<MotionLink data-slot="button" href={href} className={classes} {...tap} {...linkProps}>
 				<TouchTarget>{children}</TouchTarget>
 			</MotionLink>
 		)
@@ -67,7 +73,7 @@ export function Button({ variant, color, size, className, children, href, ...pro
 			data-slot="button"
 			type="button"
 			className={classes}
-			{...tapFeedback}
+			{...tap}
 			{...(buttonProps as Omit<HTMLMotionProps<'button'>, 'className'>)}
 		>
 			<TouchTarget>{children}</TouchTarget>
