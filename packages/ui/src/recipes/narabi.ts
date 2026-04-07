@@ -29,6 +29,8 @@ export const narabi = {
 		top: 'bottom-full left-0 mb-2',
 		'top start': 'bottom-full left-0 mb-2',
 		'top end': 'bottom-full right-0 mb-2',
+		left: 'right-full top-1/2 -translate-y-1/2 mr-2',
+		right: 'left-full top-1/2 -translate-y-1/2 ml-2',
 	} as Record<string, string>,
 
 	slide: {

@@ -119,6 +119,14 @@
 			"types": "./src/components/switch/index.ts",
 			"default": "./src/components/switch/index.ts"
 		},
+		"./toast": {
+			"types": "./src/components/toast/index.ts",
+			"default": "./src/components/toast/index.ts"
+		},
+		"./tooltip": {
+			"types": "./src/components/tooltip/index.ts",
+			"default": "./src/components/tooltip/index.ts"
+		},
 		"./table": {
 			"types": "./src/components/table/index.ts",
 			"default": "./src/components/table/index.ts"
