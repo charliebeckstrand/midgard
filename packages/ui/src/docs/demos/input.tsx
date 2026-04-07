@@ -63,19 +63,25 @@ export default function InputDemo() {
 					</Field>
 				`}
 			>
-				<div className="flex max-w-sm flex-col gap-4">
-					<Field>
-						<Label>Small</Label>
-						<Input size="sm" placeholder="Small input" />
-					</Field>
-					<Field>
-						<Label>Medium</Label>
-						<Input size="md" placeholder="Medium input" />
-					</Field>
-					<Field>
-						<Label>Large</Label>
-						<Input size="lg" placeholder="Large input" />
-					</Field>
+				<div className="flex flex-col gap-4">
+					<div className="flex max-w-xs flex-col gap-4">
+						<Field>
+							<Label>Small</Label>
+							<Input size="sm" placeholder="Small input" />
+						</Field>
+					</div>
+					<div className="flex max-w-sm flex-col gap-4">
+						<Field>
+							<Label>Medium</Label>
+							<Input size="md" placeholder="Medium input" />
+						</Field>
+					</div>
+					<div className="flex max-w-md flex-col gap-4">
+						<Field>
+							<Label>Large</Label>
+							<Input size="lg" placeholder="Large input" />
+						</Field>
+					</div>
 				</div>
 			</Example>
 			<Example
@@ -138,25 +144,31 @@ export default function InputDemo() {
 					/>
 				`}
 			>
-				<div className="flex max-w-sm flex-col gap-4">
-					<Input
-						size="sm"
-						prefix={<Icon name="search" />}
-						suffix={<Icon name="command" />}
-						placeholder="Small"
-					/>
-					<Input
-						size="md"
-						prefix={<Icon name="search" />}
-						suffix={<Icon name="command" />}
-						placeholder="Medium"
-					/>
-					<Input
-						size="lg"
-						prefix={<Icon name="search" />}
-						suffix={<Icon name="command" />}
-						placeholder="Large"
-					/>
+				<div className="flex flex-col gap-4">
+					<div className="flex max-w-xs flex-col gap-4">
+						<Input
+							size="sm"
+							prefix={<Icon name="search" />}
+							suffix={<Icon name="command" />}
+							placeholder="Small"
+						/>
+					</div>
+					<div className="flex max-w-sm flex-col gap-4">
+						<Input
+							size="md"
+							prefix={<Icon name="search" />}
+							suffix={<Icon name="command" />}
+							placeholder="Medium"
+						/>
+					</div>
+					<div className="flex max-w-md flex-col gap-4">
+						<Input
+							size="lg"
+							prefix={<Icon name="search" />}
+							suffix={<Icon name="command" />}
+							placeholder="Large"
+						/>
+					</div>
 				</div>
 			</Example>
 			<Example

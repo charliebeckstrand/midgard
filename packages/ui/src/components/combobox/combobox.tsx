@@ -84,6 +84,7 @@ export function Combobox<T>({
 
 	const close = useCallback(() => {
 		setOpen(false)
+
 		setQuery('')
 
 		setEditing(false)
