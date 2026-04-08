@@ -24,6 +24,15 @@ table > thead tr > :is(th, td):first-child:nth-last-child(3) ~ :is(th, td) {
 	width: 33.3333%;
 }
 
+/* Prevent mobile Safari from zooming in on input focus (requires font-size >= 16px). */
+@media (hover: none) {
+	input,
+	select,
+	textarea {
+		font-size: 1rem !important;
+	}
+}
+
 /* Suppress browser default focus ring on mouse click.
    Keyboard focus-visible indicators are handled by ki.ring / ki.offset. */
 :focus:not(:focus-visible) {
