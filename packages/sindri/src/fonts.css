@@ -1,28 +1,24 @@
-
 @font-face {
-    font-family: 'Google Sans';
-    font-weight: 100 900;
+    font-family: 'Google Sans Flex';
+    font-weight: 100 1000;
     font-display: swap;
-    src: url('./fonts/GoogleSans-VariableFont_GRAD,opsz,wght.ttf') format('truetype');
+    src: url('./fonts/GoogleSansFlex-VariableFont_GRAD,ROND,opsz,slnt,wdth,wght.ttf') format('truetype');
 }
 
 @font-face {
     font-family: 'Google Sans Code';
-    font-weight: 100 900;
+    font-weight: 100 800;
     font-display: swap;
     src: url('./fonts/GoogleSansCode-VariableFont_wght.ttf') format('truetype');
 }
 
 :root {
-    --font-sans:
-        'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial,
-        sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+    --font-sans: 'Google Sans Flex', sans-serif;
 
-    --font-sans--font-feature-settings: 'cv11';
+    --font-sans--font-variation-settings: 'slnt' 0, 'wdth' 100, 'GRAD' 0, 'ROND' 0;
 
     --font-code:
-        'Google Sans Code', SF Mono, SF Mono-Regular, Consolas, 'Liberation Mono', Menlo, Courier,
-        monospace;
-    
+        'Google Sans Code', SF Mono, SF Mono-Regular, Consolas, monospace;
+        
     --font-code--font-feature-settings: 'cv11';
 }

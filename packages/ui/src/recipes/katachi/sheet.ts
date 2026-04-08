@@ -10,7 +10,7 @@ export const sheet = {
 		base: [
 			omote.panel,
 			'fixed flex flex-col overflow-y-auto rounded-xl',
-			'max-sm:inset-x-0 max-sm:bottom-0 max-sm:w-full max-sm:max-h-[calc(75dvh)] max-sm:rounded-b-none',
+			'max-sm:inset-x-0 max-sm:bottom-0 max-sm:w-full max-sm:max-h-full max-sm:min-h-[50svh] max-sm:rounded-b-none',
 		],
 		side: {
 			right: 'sm:top-4 sm:right-4 sm:bottom-4 sm:w-full',
