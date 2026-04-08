@@ -1,7 +1,7 @@
 'use client'
 
 import { ChevronRight, Moon, Sun } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Badge } from '../components/badge'
 import { Button } from '../components/button'
 import { Combobox, ComboboxOption } from '../components/combobox'
@@ -283,6 +283,12 @@ export function App() {
 
 	const current = demos.find((d) => d.id === route)
 
+	const contentRef = useRef<HTMLDivElement>(null)
+
+	useEffect(() => {
+		if (route != null) contentRef.current?.closest('[class*="overflow-y"]')?.scrollTo(0, 0)
+	}, [route])
+
 	return (
 		<SidebarLayout
 			actions={
@@ -300,13 +306,15 @@ export function App() {
 			}
 			sidebar={<SidebarContent route={route} />}
 		>
-			{current ? (
-				<DemoPage key={current.id} demo={current} />
-			) : (
-				<div className="p-6">
-					<Heading>Select a component</Heading>
-				</div>
-			)}
+			<div ref={contentRef}>
+				{current ? (
+					<DemoPage key={current.id} demo={current} />
+				) : (
+					<div className="p-6">
+						<Heading>Select a component</Heading>
+					</div>
+				)}
+			</div>
 		</SidebarLayout>
 	)
 }

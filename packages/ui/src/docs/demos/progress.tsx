@@ -57,6 +57,41 @@ function InteractiveBar() {
 	)
 }
 
+function InteractiveGauge() {
+	const [value, setValue] = useState(60)
+
+	return (
+		<Example
+			title="Gauge"
+			actions={
+				<div className="flex items-center gap-1">
+					<Button
+						variant="plain"
+						disabled={value <= 0}
+						onClick={() => setValue((v) => Math.max(0, v - step))}
+					>
+						<Icon icon={<Minus />} />
+					</Button>
+					<Button
+						variant="plain"
+						disabled={value >= 100}
+						onClick={() => setValue((v) => Math.min(100, v + step))}
+					>
+						<Icon icon={<Plus />} />
+					</Button>
+				</div>
+			}
+			code={code`
+				import { ProgressGauge } from 'ui/progress'
+
+				<ProgressGauge value={60} />
+			`}
+		>
+			<ProgressGauge value={value} size="lg" />
+		</Example>
+	)
+}
+
 export default function ProgressDemo() {
 	return (
 		<div className="space-y-8">
@@ -97,20 +132,9 @@ export default function ProgressDemo() {
 					))}
 				</div>
 			</Example>
+			<InteractiveGauge />
 			<Example
-				title="Indeterminate"
-				code={code`
-					import { ProgressBar } from 'ui/progress'
-
-					<ProgressBar />
-				`}
-			>
-				<div className="max-w-sm">
-					<ProgressBar />
-				</div>
-			</Example>
-			<Example
-				title="Gauge"
+				title="Gauge sizes"
 				code={code`
 					import { ProgressGauge } from 'ui/progress'
 
@@ -131,7 +155,7 @@ export default function ProgressDemo() {
 				</div>
 			</Example>
 			<Example
-				title="Label"
+				title="Gauge with label"
 				code={code`
 					import { ProgressGauge } from 'ui/progress'
 
@@ -162,7 +186,7 @@ export default function ProgressDemo() {
 			>
 				<div className="flex items-center gap-4">
 					{colors.map((color) => (
-						<ProgressGauge key={color} color={color} value={75} size="lg" label />
+						<ProgressGauge key={color} color={color} value={75} size="lg" />
 					))}
 				</div>
 			</Example>

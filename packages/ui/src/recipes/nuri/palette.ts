@@ -93,22 +93,19 @@ export const outlineHover: HoverMap<Color> = {
 	blue: { light: 'bg-blue-600/10', dark: 'bg-blue-500/10' },
 }
 
-// ── Extended colors (white, shared by button/badge) ─
+// ── Extended colors (shared by button/badge) ─
 
 export const extend = {
 	text: defineColors({
 		white: { light: 'text-zinc-950', dark: 'dark:text-white' },
-		// dark: { light: 'text-zinc-700', dark: 'dark:text-zinc-300' },
 	}),
 
 	solid: merge(
 		defineColors({
 			white: { light: 'bg-white', dark: 'dark:bg-white' },
-			// dark: { light: 'bg-zinc-950', dark: 'dark:bg-white' },
 		}),
 		defineColors({
 			white: { light: 'text-zinc-950', dark: 'dark:text-zinc-950' },
-			// dark: { light: 'text-white', dark: 'dark:text-zinc-950' },
 		}),
 	),
 
@@ -119,11 +116,9 @@ export const extend = {
 	soft: merge(
 		defineColors({
 			white: { light: 'bg-white', dark: 'dark:bg-white/10' },
-			// dark: { light: 'bg-zinc-950/10', dark: 'dark:bg-white/10' },
 		}),
 		defineColors({
 			white: { light: 'text-zinc-950', dark: 'dark:text-white' },
-			// dark: { light: 'text-zinc-700', dark: 'dark:text-zinc-300' },
 		}),
 	),
 

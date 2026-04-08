@@ -4,7 +4,7 @@ import { nuri } from '../nuri'
 import { sawari } from '../sawari'
 
 export const alert = {
-	base: ['flex gap-3 p-4 text-sm/5', maru.rounded],
+	base: ['flex w-fit gap-3 p-4 text-sm/5', maru.rounded],
 	variant: {
 		solid: {
 			base: ['border border-transparent', kage.shadow],
@@ -25,8 +25,8 @@ export const alert = {
 	},
 	icon: 'shrink-0',
 	content: 'flex-1 min-w-0',
-	title: 'font-semibold',
-	description: 'mt-1 opacity-90',
+	title: 'text-base/6 font-semibold',
+	description: 'mt-1',
 	actions: 'mt-3 flex items-center gap-1',
 	close: [maru.roundedMd, sawari.cursor, 'shrink-0 -m-1 p-1'],
 	defaults: { variant: 'soft' as const, color: 'zinc' as const },

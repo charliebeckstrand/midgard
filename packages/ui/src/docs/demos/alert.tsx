@@ -19,6 +19,43 @@ const types = ['info', 'success', 'warning', 'error'] as const
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
+function ClosableDemo() {
+	const [visible, setVisible] = useState(true)
+
+	if (!visible) {
+		return <Button onClick={() => setVisible(true)}>Show alert</Button>
+	}
+
+	return (
+		<Alert
+			type="success"
+			title="Changes saved"
+			description="Your changes have been saved successfully."
+			closable
+			onClose={() => setVisible(false)}
+		/>
+	)
+}
+
+function ClosableBlockDemo() {
+	const [visible, setVisible] = useState(true)
+
+	if (!visible) {
+		return <Button onClick={() => setVisible(true)}>Show alert</Button>
+	}
+
+	return (
+		<Alert
+			block
+			type="info"
+			title="Full-width alert"
+			description="This alert stretches to fill its container."
+			closable
+			onClose={() => setVisible(false)}
+		/>
+	)
+}
+
 export default function AlertDemo() {
 	const [colorVariant, setColorVariant] = useState<(typeof colorVariants)[number]>('soft')
 
@@ -139,28 +176,16 @@ export default function AlertDemo() {
 					}
 				/>
 			</Example>
+			<Example
+				title="Block"
+				code={code`
+					import { Alert } from 'ui/alert'
+
+					<Alert block type="info" title="Full-width alert" />
+				`}
+			>
+				<ClosableBlockDemo />
+			</Example>
 		</div>
-	)
-}
-
-function ClosableDemo() {
-	const [visible, setVisible] = useState(true)
-
-	if (!visible) {
-		return (
-			<Button variant="outline" size="sm" onClick={() => setVisible(true)}>
-				Show alert
-			</Button>
-		)
-	}
-
-	return (
-		<Alert
-			type="success"
-			title="Changes saved"
-			description="Your changes have been saved successfully."
-			closable
-			onClose={() => setVisible(false)}
-		/>
 	)
 }

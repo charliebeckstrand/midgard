@@ -48,6 +48,7 @@ export type AlertProps = Omit<AlertVariants, 'color'> & {
 	title?: React.ReactNode
 	description?: React.ReactNode
 	actions?: React.ReactNode
+	block?: boolean
 	closable?: boolean
 	onClose?: () => void
 	className?: string
@@ -62,6 +63,7 @@ export function Alert({
 	title,
 	description,
 	actions,
+	block,
 	closable,
 	onClose,
 	className,
@@ -86,6 +88,8 @@ export function Alert({
 			className={cn(
 				alertVariants({ variant, color: resolvedColor }),
 				center && 'items-center',
+				block && 'w-full',
+				type && !closable && 'pr-6',
 				className,
 			)}
 		>
