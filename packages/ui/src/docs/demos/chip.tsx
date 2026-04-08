@@ -2,9 +2,9 @@
 
 import { useState } from 'react'
 import { Chip } from '../../components/chip'
-import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 import { code } from '../code'
 import { Example } from '../example'
+import { VariantListbox } from '../variant-listbox'
 
 export const meta = { category: 'Data Display' }
 
@@ -60,18 +60,11 @@ export default function ChipDemo() {
 			<Example
 				title="Colors"
 				actions={
-					<Listbox
+					<VariantListbox
+						variants={colorVariants}
 						value={colorVariant}
 						onChange={setColorVariant}
-						className="min-w-28"
-						displayValue={(v: string) => cap(v)}
-					>
-						{colorVariants.map((v) => (
-							<ListboxOption key={v} value={v}>
-								<ListboxLabel>{cap(v)}</ListboxLabel>
-							</ListboxOption>
-						))}
-					</Listbox>
+					/>
 				}
 				code={code`
 					import { Chip } from 'ui/chip'

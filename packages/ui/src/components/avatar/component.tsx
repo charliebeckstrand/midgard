@@ -30,7 +30,7 @@ export type AvatarGroupProps = {
 	children: React.ReactNode
 }
 
-export function AvatarGroup({ extra, size = 'sm', className, children }: AvatarGroupProps) {
+export function AvatarGroup({ extra, size = 'md', className, children }: AvatarGroupProps) {
 	return (
 		<AvatarGroupSizeContext value={size}>
 			<div
@@ -77,7 +77,7 @@ export function Avatar({
 }: AvatarProps) {
 	const groupSize = use(AvatarGroupSizeContext)
 
-	const resolvedSize = size ?? groupSize ?? 'sm'
+	const resolvedSize = size ?? groupSize ?? 'md'
 
 	const avatarEl = (
 		<span

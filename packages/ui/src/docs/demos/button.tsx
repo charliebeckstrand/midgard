@@ -3,9 +3,10 @@
 import { useState } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
-import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 import { code } from '../code'
 import { Example } from '../example'
+import { SizeListbox, sizeLabels } from '../size-listbox'
+import { VariantListbox } from '../variant-listbox'
 
 export const meta = { category: 'Base' }
 
@@ -15,18 +16,16 @@ const colorVariants = ['solid', 'soft', 'outline', 'plain', 'ghost'] as const
 
 const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 
-const sizes = [
-	{ value: 'sm', label: 'small' },
-	{ value: 'md', label: 'medium' },
-	{ value: 'lg', label: 'large' },
-] as const
+const sizes = ['sm', 'md', 'lg'] as const
+
+type Size = (typeof sizes)[number]
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
 export default function ButtonDemo() {
 	const [colorVariant, setColorVariant] = useState<(typeof colorVariants)[number]>('solid')
-	const [iconSize, setIconSize] = useState<(typeof sizes)[number]['value']>('md')
-	const [iconOnlySize, setIconOnlySize] = useState<(typeof sizes)[number]['value']>('md')
+	const [iconSize, setIconSize] = useState<Size>('md')
+	const [iconOnlySize, setIconOnlySize] = useState<Size>('md')
 
 	return (
 		<div className="space-y-8">
@@ -49,18 +48,11 @@ export default function ButtonDemo() {
 			<Example
 				title="Colors"
 				actions={
-					<Listbox
+					<VariantListbox
+						variants={colorVariants}
 						value={colorVariant}
 						onChange={setColorVariant}
-						className="min-w-28"
-						displayValue={(v: string) => cap(v)}
-					>
-						{colorVariants.map((v) => (
-							<ListboxOption key={v} value={v}>
-								<ListboxLabel>{cap(v)}</ListboxLabel>
-							</ListboxOption>
-						))}
-					</Listbox>
+					/>
 				}
 				code={code`
 					import { Button } from 'ui/button'
@@ -81,33 +73,20 @@ export default function ButtonDemo() {
 				code={code`
 					import { Button } from 'ui/button'
 
-					${sizes.map((s) => `<Button size="${s.value}">${cap(s.label)}</Button>`)}
+					${sizes.map((s) => `<Button size="${s}">${sizeLabels[s] ?? s}</Button>`)}
 				`}
 			>
 				<div className="flex flex-wrap items-center gap-2">
-					{sizes.map(({ value, label }) => (
-						<Button key={value} size={value}>
-							{label}
+					{sizes.map((s) => (
+						<Button key={s} size={s}>
+							{sizeLabels[s] ?? s}
 						</Button>
 					))}
 				</div>
 			</Example>
 			<Example
 				title="With icon"
-				actions={
-					<Listbox
-						value={iconSize}
-						onChange={setIconSize}
-						className="min-w-30"
-						displayValue={(v: string) => sizes.find((s) => s.value === v)?.label ?? v}
-					>
-						{sizes.map((s) => (
-							<ListboxOption key={s.value} value={s.value}>
-								<ListboxLabel>{cap(s.label)}</ListboxLabel>
-							</ListboxOption>
-						))}
-					</Listbox>
-				}
+				actions={<SizeListbox sizes={sizes} value={iconSize} onChange={setIconSize} />}
 				code={code`
 					import { Button } from 'ui/button'
 					import { Icon } from 'ui/icon'
@@ -126,20 +105,7 @@ export default function ButtonDemo() {
 			</Example>
 			<Example
 				title="Icon only"
-				actions={
-					<Listbox
-						value={iconOnlySize}
-						onChange={setIconOnlySize}
-						className="min-w-30"
-						displayValue={(v: string) => sizes.find((s) => s.value === v)?.label ?? v}
-					>
-						{sizes.map((s) => (
-							<ListboxOption key={s.value} value={s.value}>
-								<ListboxLabel>{cap(s.label)}</ListboxLabel>
-							</ListboxOption>
-						))}
-					</Listbox>
-				}
+				actions={<SizeListbox sizes={sizes} value={iconOnlySize} onChange={setIconOnlySize} />}
 				code={code`
 					import { Button } from 'ui/button'
 					import { Icon } from 'ui/icon'

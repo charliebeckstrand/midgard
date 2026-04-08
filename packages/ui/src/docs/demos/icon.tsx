@@ -4,9 +4,9 @@ import { useState } from 'react'
 import { Icon, type IconName } from '../../components/icon'
 import { iconData } from '../../components/icon/icon-data'
 import { Input } from '../../components/input'
-import { Listbox, ListboxOption } from '../../components/listbox'
 import { code } from '../code'
 import { Example } from '../example'
+import { SizeListbox } from '../size-listbox'
 
 export const meta = { category: 'Base' }
 
@@ -62,15 +62,7 @@ export default function IconDemo() {
 			<Input placeholder="Search icons" value={query} onChange={(e) => setQuery(e.target.value)} />
 			<Example
 				title="Icons"
-				actions={
-					<Listbox className="min-w-20" value={size} onChange={setSize} displayValue={(v) => v}>
-						{sizes.map((s) => (
-							<ListboxOption key={s} value={s}>
-								{s}
-							</ListboxOption>
-						))}
-					</Listbox>
-				}
+				actions={<SizeListbox sizes={sizes} value={size} onChange={setSize} />}
 				code={code`
 					import { Icon } from 'ui/icon'
 

@@ -2,9 +2,10 @@
 
 import { useState } from 'react'
 import { Avatar, AvatarGroup } from '../../components/avatar'
-import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 import { code } from '../code'
 import { Example } from '../example'
+import { SizeListbox } from '../size-listbox'
+import { VariantListbox } from '../variant-listbox'
 
 export const meta = { category: 'Data Display' }
 
@@ -21,8 +22,8 @@ const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
 export default function AvatarDemo() {
 	const [colorVariant, setColorVariant] = useState<Variant>('solid')
-	const [groupSize, setGroupSize] = useState<Size>('sm')
-	const [statusSize, setStatusSize] = useState<Size>('sm')
+	const [groupSize, setGroupSize] = useState<Size>('md')
+	const [statusSize, setStatusSize] = useState<Size>('md')
 
 	return (
 		<div className="space-y-8">
@@ -43,18 +44,7 @@ export default function AvatarDemo() {
 			<Example
 				title="Colors"
 				actions={
-					<Listbox
-						value={colorVariant}
-						onChange={setColorVariant}
-						className="min-w-28"
-						displayValue={(v: string) => cap(v)}
-					>
-						{variants.map((v) => (
-							<ListboxOption key={v} value={v}>
-								<ListboxLabel>{cap(v)}</ListboxLabel>
-							</ListboxOption>
-						))}
-					</Listbox>
+					<VariantListbox variants={variants} value={colorVariant} onChange={setColorVariant} />
 				}
 				code={code`
 					import { Avatar } from 'ui/avatar'
@@ -70,20 +60,7 @@ export default function AvatarDemo() {
 			</Example>
 			<Example
 				title="Group"
-				actions={
-					<Listbox
-						value={groupSize}
-						onChange={setGroupSize}
-						className="min-w-20"
-						displayValue={(v: string) => v}
-					>
-						{sizes.map((s) => (
-							<ListboxOption key={s} value={s}>
-								<ListboxLabel>{s}</ListboxLabel>
-							</ListboxOption>
-						))}
-					</Listbox>
-				}
+				actions={<SizeListbox sizes={sizes} value={groupSize} onChange={setGroupSize} />}
 				code={code`
 					import { Avatar, AvatarGroup } from 'ui/avatar'
 
@@ -100,20 +77,7 @@ export default function AvatarDemo() {
 			</Example>
 			<Example
 				title="Status"
-				actions={
-					<Listbox
-						value={statusSize}
-						onChange={setStatusSize}
-						className="min-w-20"
-						displayValue={(v: string) => v}
-					>
-						{sizes.map((s) => (
-							<ListboxOption key={s} value={s}>
-								<ListboxLabel>{s}</ListboxLabel>
-							</ListboxOption>
-						))}
-					</Listbox>
-				}
+				actions={<SizeListbox sizes={sizes} value={statusSize} onChange={setStatusSize} />}
 				code={code`
 					import { Avatar } from 'ui/avatar'
 
