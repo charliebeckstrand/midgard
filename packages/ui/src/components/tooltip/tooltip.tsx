@@ -19,6 +19,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import type React from 'react'
 import { cloneElement, isValidElement, useState } from 'react'
 import { cn } from '../../core'
+import { useHasHover } from '../../hooks'
 import { katachi, ugoki } from '../../recipes'
 
 const k = katachi.tooltip
@@ -70,12 +71,15 @@ export function Tooltip({
 		middleware: [offset(8), flip(), shift({ padding: 8 })],
 	})
 
+	const hasHover = useHasHover()
+
 	const hover = useHover(context, {
+		enabled: hasHover,
 		delay: { open: delay, close: 100 },
 		...(interactive && { handleClose: safePolygon() }),
 	})
 
-	const click = useClick(context)
+	const click = useClick(context, { enabled: !hasHover })
 
 	const focus = useFocus(context)
 
