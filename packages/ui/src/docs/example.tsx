@@ -28,9 +28,11 @@ export function Example({
 				<div className="p-4">{children}</div>
 				{code && (
 					<Disclosure>
-						<DisclosureButton className="flex w-full border-t border-zinc-200 text-sm px-4 py-2 dark:border-zinc-800">
-							{({ open }) => (open ? 'Hide code' : 'Show code')}
-						</DisclosureButton>
+						<div className="border-t border-zinc-200 dark:border-zinc-800">
+							<DisclosureButton className="flex text-sm px-4 py-2">
+								{({ open }) => (open ? 'Hide code' : 'Show code')}
+							</DisclosureButton>
+						</div>
 						<DisclosurePanel>
 							<div className="border-t border-zinc-200 dark:border-zinc-800">
 								<CodeBlock code={code} />
