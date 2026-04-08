@@ -23,6 +23,10 @@
 			"types": "./src/components/icon/index.ts",
 			"default": "./src/components/icon/index.ts"
 		},
+		"./alert": {
+			"types": "./src/components/alert/index.ts",
+			"default": "./src/components/alert/index.ts"
+		},
 		"./avatar": {
 			"types": "./src/components/avatar/index.ts",
 			"default": "./src/components/avatar/index.ts"
@@ -98,6 +102,10 @@
 		"./pagination": {
 			"types": "./src/components/pagination/index.ts",
 			"default": "./src/components/pagination/index.ts"
+		},
+		"./progress": {
+			"types": "./src/components/progress/index.ts",
+			"default": "./src/components/progress/index.ts"
 		},
 		"./placeholder": {
 			"types": "./src/components/placeholder/index.ts",
@@ -176,6 +184,7 @@
 		"@floating-ui/react": "^0.27.19",
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.0.0",
+		"lucide-react": "^1.7.0",
 		"motion": "^12.0.0",
 		"tailwind-merge": "^3.5.0"
 	},

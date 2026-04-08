@@ -1,5 +1,6 @@
 'use client'
 
+import { Menu } from 'lucide-react'
 import type React from 'react'
 import { useCallback, useEffect, useState } from 'react'
 import { Button } from '../components/button'
@@ -62,7 +63,7 @@ export function SidebarLayout({
 			{/* Navbar on mobile */}
 			<header className="flex items-center gap-4 p-6 lg:hidden [&_nav]:p-0">
 				<Button variant="plain" onClick={() => setOpen(true)} aria-label="Open navigation">
-					{menuIcon ?? <Icon name="menu" />}
+					{menuIcon ?? <Icon icon={<Menu />} />}
 				</Button>
 				<div className="min-w-0 flex-1">{navbar}</div>
 			</header>

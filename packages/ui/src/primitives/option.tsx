@@ -1,3 +1,4 @@
+import { Check } from 'lucide-react'
 import type React from 'react'
 import { Icon } from '../components/icon'
 import { cn } from '../core'
@@ -31,7 +32,7 @@ export function BaseOption({
 
 	const checkIcon = icon ?? (
 		<Icon
-			name="check"
+			icon={<Check />}
 			className="relative hidden self-center text-green-600 group-data-selected/option:inline"
 		/>
 	)

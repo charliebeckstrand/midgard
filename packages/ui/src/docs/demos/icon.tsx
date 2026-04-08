@@ -1,103 +1,91 @@
 'use client'
 
-import { useState } from 'react'
-import { Icon, type IconName } from '../../components/icon'
-import { iconData } from '../../components/icon/icon-data'
-import { Input } from '../../components/input'
+import { Heart, Plus, Search, Star } from 'lucide-react'
+import { Icon } from '../../components/icon'
 import { code } from '../code'
 import { Example } from '../example'
-import { SizeListbox } from '../size-listbox'
 
 export const meta = { category: 'Base' }
 
-const allNames = (Object.keys(iconData) as IconName[]).sort((a, b) => {
-	const baseA = a.replace(/-\d+$/, '')
-	const baseB = b.replace(/-\d+$/, '')
-
-	if (baseA !== baseB) return baseA.localeCompare(baseB)
-
-	// Base name (no suffix) comes first
-	if (a === baseA) return -1
-	if (b === baseB) return 1
-
-	return a.localeCompare(b)
-})
-
 const sizes = ['xs', 'sm', 'md', 'lg'] as const
 
-function IconCard({ name, size }: { name: IconName; size: string }) {
-	const [copied, setCopied] = useState(false)
-
-	function copy() {
-		navigator.clipboard.writeText(name)
-
-		setCopied(true)
-
-		setTimeout(() => setCopied(false), 1500)
-	}
-
-	return (
-		<button
-			type="button"
-			onClick={copy}
-			className="flex cursor-pointer flex-col items-center gap-2 rounded-lg border border-zinc-200 p-3 transition-colors hover:bg-zinc-100 dark:border-zinc-800 dark:text-white dark:hover:bg-zinc-800"
-		>
-			<Icon name={name} size={size} />
-			<span className={`text-xs whitespace-nowrap ${copied ? 'text-green-600' : 'text-zinc-500'}`}>
-				{copied ? 'Copied!' : <span className="font-code">{name}</span>}
-			</span>
-		</button>
-	)
-}
-
 export default function IconDemo() {
-	const [query, setQuery] = useState('')
-
-	const [size, setSize] = useState<string>('md')
-
-	const filtered = allNames.filter((name) => !query || name.includes(query.toLowerCase()))
-
 	return (
 		<div className="space-y-8">
-			<Input placeholder="Search icons" value={query} onChange={(e) => setQuery(e.target.value)} />
 			<Example
-				title="Icons"
-				actions={<SizeListbox sizes={sizes} value={size} onChange={setSize} />}
+				title="Usage"
 				code={code`
+					import { Search, Heart, Star } from 'lucide-react'
 					import { Icon } from 'ui/icon'
 
-					<Icon name="plus" />
+					<Icon icon={<Search />} />
+					<Icon icon={<Heart />} />
+					<Icon icon={<Star />} />
 				`}
 			>
-				{filtered.length > 0 ? (
-					<div className="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-4">
-						{filtered.map((name) => (
-							<IconCard key={name} name={name} size={size} />
-						))}
-					</div>
-				) : (
-					<p className="py-2 text-center text-sm text-zinc-500 dark:text-amber-500">
-						No icons match "{query}"
-					</p>
-				)}
+				<div className="flex items-center gap-4 dark:text-white">
+					<Icon icon={<Search />} />
+					<Icon icon={<Heart />} />
+					<Icon icon={<Star />} />
+				</div>
 			</Example>
 			<Example
 				title="Sizes"
 				code={code`
+					import { Plus } from 'lucide-react'
 					import { Icon } from 'ui/icon'
 
-					<Icon name="plus" size="sm" />
-					<Icon name="plus" size="md" />
-					<Icon name="plus" size="lg" />
+					<Icon icon={<Plus />} size="xs" />
+					<Icon icon={<Plus />} size="sm" />
+					<Icon icon={<Plus />} size="md" />
+					<Icon icon={<Plus />} size="lg" />
 				`}
 			>
 				<div className="flex items-center gap-4 dark:text-white">
-					{sizes.map((size) => (
-						<div key={size} className="flex flex-col items-center gap-2">
-							<Icon name="plus" size={size} />
-							<span className="text-xs text-zinc-500">{size}</span>
+					{sizes.map((s) => (
+						<div key={s} className="flex flex-col items-center gap-2">
+							<Icon icon={<Plus />} size={s} />
+							<span className="text-xs text-zinc-500">{s}</span>
 						</div>
 					))}
+				</div>
+			</Example>
+			<Example
+				title="Custom size"
+				code={code`
+					import { Star } from 'lucide-react'
+					import { Icon } from 'ui/icon'
+
+					<Icon icon={<Star />} size={32} />
+				`}
+			>
+				<div className="dark:text-white">
+					<Icon icon={<Star />} size={32} />
+				</div>
+			</Example>
+			<Example
+				title="Any icon library"
+				code={code`
+					// Works with any SVG icon component.
+					// The Icon wrapper handles sizing and accessibility.
+
+					// Lucide (lucide-react)
+					import { Search } from 'lucide-react'
+					<Icon icon={<Search />} />
+
+					// Heroicons (@heroicons/react)
+					import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
+					<Icon icon={<MagnifyingGlassIcon />} />
+
+					// Custom SVG component
+					<Icon icon={<MyCustomIcon />} />
+				`}
+			>
+				<div className="flex items-center gap-4 dark:text-white">
+					<Icon icon={<Search />} />
+					<span className="text-sm text-zinc-500">
+						Works with Lucide, Heroicons, Font Awesome, or any SVG component
+					</span>
 				</div>
 			</Example>
 		</div>
