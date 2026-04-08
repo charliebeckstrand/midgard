@@ -48,7 +48,7 @@ export default function FieldsetDemo() {
 				</Fieldset>
 			`}
 		>
-			<Fieldset className="max-w-lg">
+			<Fieldset className="lg:max-w-lg">
 				<Legend>Profile</Legend>
 				<div className="space-y-6">
 					<Field>

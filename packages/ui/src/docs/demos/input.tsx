@@ -58,14 +58,14 @@ export default function InputDemo() {
 						<Label>Medium</Label>
 						<Input size="md" placeholder="Medium input" />
 					</Field>
-					<Field className="lg:max-w-sm">
+					<Field className="lg:max-w-md">
 						<Label>Large</Label>
 						<Input size="lg" placeholder="Large input" />
 					</Field>
 				`}
 			>
 				<div className="flex flex-col gap-4">
-					<div className="flex max-w-xs flex-col gap-4">
+					<div className="flex lg:max-w-xs flex-col gap-4">
 						<Field>
 							<Label>Small</Label>
 							<Input size="sm" placeholder="Small input" />
@@ -77,7 +77,7 @@ export default function InputDemo() {
 							<Input size="md" placeholder="Medium input" />
 						</Field>
 					</div>
-					<div className="flex max-w-md flex-col gap-4">
+					<div className="flex lg:max-w-md flex-col gap-4">
 						<Field>
 							<Label>Large</Label>
 							<Input size="lg" placeholder="Large input" />
@@ -132,10 +132,24 @@ export default function InputDemo() {
 						suffix={<Icon icon={<Command />} />}
 						placeholder="Small"
 					/>
+
+					<Input
+						size="md"
+						prefix={<Icon icon={<Search />} />}
+						suffix={<Icon icon={<Command />} />}
+						placeholder="Medium"
+					/>
+
+					<Input
+						size="lg"
+						prefix={<Icon icon={<Search />} />}
+						suffix={<Icon icon={<Command />} />}
+						placeholder="Large"
+					/>
 				`}
 			>
 				<div className="flex flex-col gap-4">
-					<div className="flex max-w-xs flex-col gap-4">
+					<div className="flex lg:max-w-xs flex-col gap-4">
 						<Input
 							size="sm"
 							prefix={<Icon icon={<Search />} />}
@@ -151,7 +165,7 @@ export default function InputDemo() {
 							placeholder="Medium"
 						/>
 					</div>
-					<div className="flex max-w-md flex-col gap-4">
+					<div className="flex lg:max-w-md flex-col gap-4">
 						<Input
 							size="lg"
 							prefix={<Icon icon={<Search />} />}
