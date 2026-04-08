@@ -232,6 +232,7 @@ function SidebarContent({ route }: { route: string }) {
 		const sheet = document.querySelector('[data-slot="sheet"]')
 
 		const current = sheet?.querySelector<HTMLElement>('[data-current]')
+
 		current?.scrollIntoView({ block: 'nearest', behavior: 'instant' })
 	}, [offcanvas])
 
