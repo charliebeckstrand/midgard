@@ -233,7 +233,7 @@ function SidebarContent({ route }: { route: string }) {
 
 		const current = sheet?.querySelector<HTMLElement>('[data-current]')
 
-		current?.scrollIntoView({ block: 'nearest', behavior: 'instant' })
+		current?.scrollIntoView({ block: 'center', behavior: 'instant' })
 	}, [offcanvas])
 
 	return (
