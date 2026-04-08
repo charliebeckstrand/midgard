@@ -7,8 +7,8 @@ export const radio = {
 	base: [
 		...form.checkSurface,
 		maru.roundedFull,
-		'has-checked:border-transparent has-checked:bg-(--radio-checked-bg)',
-		'has-checked:border-(--radio-checked-border)',
+		'[--radio-checked-border:transparent]',
+		'has-checked:bg-(--radio-checked-bg) has-checked:border-(--radio-checked-border)',
 		'not-has-[:disabled]:has-checked:hover:opacity-90',
 	],
 	input: form.check,
