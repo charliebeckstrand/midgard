@@ -8,7 +8,7 @@
  * Concern: color
  */
 
-import { badgeSoft, badgeSolid, outline, soft, solid } from './badge'
+import { outline, soft, solid } from './badge'
 import { buttonOutline, buttonPlain, buttonSoft, buttonSolid } from './button'
 import { checkbox } from './checkbox'
 import { chipOutlineActive } from './chip'
@@ -31,9 +31,6 @@ export const nuri = {
 	soft,
 	outline,
 	text,
-	badgeSolid,
-	badgeSoft,
-
 	// ── Button ───────────────────────────────────────────
 	buttonSolid,
 	buttonSoft,

@@ -16,7 +16,7 @@ export default function SelectDemo() {
 
 					<Field className="max-w-sm">
 						<Label>Country</Label>
-						<Select placeholder="Select a country…" displayValue={(v) => v}>
+						<Select placeholder="Select a country" displayValue={(v) => v}>
 							<SelectOption value="United States">
 								<SelectLabel>United States</SelectLabel>
 							</SelectOption>
@@ -32,7 +32,7 @@ export default function SelectDemo() {
 			>
 				<Field className="max-w-sm">
 					<Label>Country</Label>
-					<Select placeholder="Select a country…" displayValue={(v: string) => v}>
+					<Select placeholder="Select a country" displayValue={(v: string) => v}>
 						<SelectOption value="United States">
 							<SelectLabel>United States</SelectLabel>
 						</SelectOption>

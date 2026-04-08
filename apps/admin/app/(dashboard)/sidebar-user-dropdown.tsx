@@ -9,11 +9,11 @@ import { useRouter } from 'next/navigation'
 import { Avatar } from 'ui/avatar'
 import {
 	Dropdown,
-	DropdownButton,
 	DropdownItem,
 	DropdownLabel,
 	DropdownMenu,
 	DropdownSeparator,
+	DropdownTrigger,
 } from 'ui/dropdown'
 import { SidebarItem, SidebarLabel } from 'ui/sidebar'
 
@@ -34,7 +34,7 @@ export function SidebarUserDropdown({ user }: { user?: User }) {
 
 	return (
 		<Dropdown>
-			<DropdownButton>
+			<DropdownTrigger>
 				<SidebarItem>
 					<Avatar
 						initials={initials}
@@ -43,8 +43,8 @@ export function SidebarUserDropdown({ user }: { user?: User }) {
 					<SidebarLabel>{displayName}</SidebarLabel>
 					<ChevronUpDownIcon />
 				</SidebarItem>
-			</DropdownButton>
-			<DropdownMenu anchor="top start">
+			</DropdownTrigger>
+			<DropdownMenu placement="top start">
 				<DropdownItem href="/settings">
 					<Cog8ToothIcon />
 					<DropdownLabel>Settings</DropdownLabel>

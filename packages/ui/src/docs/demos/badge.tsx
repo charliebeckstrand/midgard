@@ -8,9 +8,9 @@ import { Example } from '../example'
 
 export const meta = { category: 'Data Display' }
 
-const variants = ['solid', 'soft', 'outline'] as const
+const variants = ['solid', 'soft', 'outline', 'plain'] as const
 
-const colorVariants = ['solid', 'soft', 'outline'] as const
+const colorVariants = ['solid', 'soft', 'outline', 'plain'] as const
 
 const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 
@@ -49,7 +49,7 @@ export default function BadgeDemo() {
 					<Listbox
 						value={colorVariant}
 						onChange={setColorVariant}
-						className="min-w-26"
+						className="min-w-28"
 						displayValue={(v: string) => cap(v)}
 					>
 						{colorVariants.map((v) => (

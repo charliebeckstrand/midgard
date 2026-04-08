@@ -1,12 +1,12 @@
 import { Button } from '../../components/button'
 import {
 	Dropdown,
-	DropdownButton,
 	DropdownItem,
 	DropdownLabel,
 	DropdownMenu,
 	DropdownSection,
 	DropdownSeparator,
+	DropdownTrigger,
 } from '../../components/dropdown'
 import { code } from '../code'
 import { Example } from '../example'
@@ -17,13 +17,13 @@ export default function DropdownDemo() {
 	return (
 		<Example
 			code={code`
-				import { Dropdown, DropdownButton, DropdownItem, DropdownLabel, DropdownMenu, DropdownSection, DropdownSeparator } from 'ui/dropdown'
+				import { Dropdown, DropdownTrigger, DropdownItem, DropdownLabel, DropdownMenu, DropdownSection, DropdownSeparator } from 'ui/dropdown'
 				import { Button } from 'ui/button'
 
 				<Dropdown>
-					<DropdownButton>
+					<DropdownTrigger>
 						<Button variant="outline">Options</Button>
-					</DropdownButton>
+					</DropdownTrigger>
 					<DropdownMenu>
 						<DropdownSection>
 							<DropdownItem>
@@ -47,9 +47,9 @@ export default function DropdownDemo() {
 			`}
 		>
 			<Dropdown>
-				<DropdownButton>
+				<DropdownTrigger>
 					<Button variant="outline">Options</Button>
-				</DropdownButton>
+				</DropdownTrigger>
 				<DropdownMenu>
 					<DropdownSection>
 						<DropdownItem>

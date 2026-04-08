@@ -25,6 +25,8 @@ const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
 export default function ButtonDemo() {
 	const [colorVariant, setColorVariant] = useState<(typeof colorVariants)[number]>('solid')
+	const [iconSize, setIconSize] = useState<(typeof sizes)[number]['value']>('md')
+	const [iconOnlySize, setIconOnlySize] = useState<(typeof sizes)[number]['value']>('md')
 
 	return (
 		<div className="space-y-8">
@@ -50,7 +52,7 @@ export default function ButtonDemo() {
 					<Listbox
 						value={colorVariant}
 						onChange={setColorVariant}
-						className="min-w-30"
+						className="min-w-28"
 						displayValue={(v: string) => cap(v)}
 					>
 						{colorVariants.map((v) => (
@@ -92,16 +94,30 @@ export default function ButtonDemo() {
 			</Example>
 			<Example
 				title="With icon"
+				actions={
+					<Listbox
+						value={iconSize}
+						onChange={setIconSize}
+						className="min-w-30"
+						displayValue={(v: string) => sizes.find((s) => s.value === v)?.label ?? v}
+					>
+						{sizes.map((s) => (
+							<ListboxOption key={s.value} value={s.value}>
+								<ListboxLabel>{cap(s.label)}</ListboxLabel>
+							</ListboxOption>
+						))}
+					</Listbox>
+				}
 				code={code`
 					import { Button } from 'ui/button'
 					import { Icon } from 'ui/icon'
 
-					${variants.map((v) => `<Button variant="${v}">\n  <Icon name="plus" />\n  ${cap(v)}\n</Button>`)}
+					${variants.map((v) => `<Button variant="${v}" size="${iconSize}">\n  <Icon name="plus" />\n  ${cap(v)}\n</Button>`)}
 				`}
 			>
 				<div className="flex flex-wrap gap-2">
 					{variants.map((variant) => (
-						<Button key={variant} variant={variant}>
+						<Button key={variant} variant={variant} size={iconSize}>
 							<Icon name="plus" />
 							{variant}
 						</Button>
@@ -110,16 +126,30 @@ export default function ButtonDemo() {
 			</Example>
 			<Example
 				title="Icon only"
+				actions={
+					<Listbox
+						value={iconOnlySize}
+						onChange={setIconOnlySize}
+						className="min-w-30"
+						displayValue={(v: string) => sizes.find((s) => s.value === v)?.label ?? v}
+					>
+						{sizes.map((s) => (
+							<ListboxOption key={s.value} value={s.value}>
+								<ListboxLabel>{cap(s.label)}</ListboxLabel>
+							</ListboxOption>
+						))}
+					</Listbox>
+				}
 				code={code`
 					import { Button } from 'ui/button'
 					import { Icon } from 'ui/icon'
 
-					${variants.map((v) => `<Button variant="${v}">\n  <Icon name="plus" />\n</Button>`)}
+					${variants.map((v) => `<Button variant="${v}" size="${iconOnlySize}">\n  <Icon name="plus" />\n</Button>`)}
 				`}
 			>
 				<div className="flex flex-wrap gap-2">
 					{variants.map((variant) => (
-						<Button key={variant} variant={variant}>
+						<Button key={variant} variant={variant} size={iconOnlySize}>
 							<Icon name="plus" />
 						</Button>
 					))}

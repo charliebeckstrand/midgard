@@ -11,13 +11,18 @@ import { useDropdownContext } from './dropdown'
 const k = katachi.dropdown
 
 export type DropdownMenuProps = {
-	anchor?: keyof typeof narabi.anchor
+	placement?: keyof typeof narabi.placement
 	className?: string
 	children: React.ReactNode
 }
 
-export function DropdownMenu({ anchor = 'bottom start', className, children }: DropdownMenuProps) {
+export function DropdownMenu({
+	placement = 'bottom start',
+	className,
+	children,
+}: DropdownMenuProps) {
 	const { open, close } = useDropdownContext()
+
 	const containerRef = useOverlay(open, close)
 
 	return (
@@ -27,7 +32,7 @@ export function DropdownMenu({ anchor = 'bottom start', className, children }: D
 					<PopoverPanel
 						role="menu"
 						itemSelector='[role="menuitem"]:not([data-disabled])'
-						className={cn(narabi.anchor[anchor], k.menu, className)}
+						className={cn(narabi.placement[placement], k.menu, className)}
 					>
 						{children}
 					</PopoverPanel>

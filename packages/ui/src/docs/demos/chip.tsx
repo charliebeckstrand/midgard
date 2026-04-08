@@ -26,6 +26,7 @@ const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
 export default function ChipDemo() {
 	const [colorVariant, setColorVariant] = useState<(typeof colorVariants)[number]>('solid')
+
 	const [active, setActive] = useState<Set<string>>(() => new Set(['First', 'Second']))
 
 	const toggle = (label: string) =>
@@ -62,7 +63,7 @@ export default function ChipDemo() {
 					<Listbox
 						value={colorVariant}
 						onChange={setColorVariant}
-						className="min-w-26"
+						className="min-w-28"
 						displayValue={(v: string) => cap(v)}
 					>
 						{colorVariants.map((v) => (

@@ -1,0 +1,18 @@
+import { gap, iconSlot, text } from './density'
+
+/** Button density (padding offset by 1px for border, includes gap + text + icon slot) */
+export const button = {
+	sm: ['px-[calc(--spacing(1.5)-1px)] py-[calc(--spacing(1.5)-1px)]', gap.sm, text.sm, iconSlot.sm],
+	md: ['px-[calc(--spacing(2)-1px)] py-[calc(--spacing(2)-1px)]', gap.md, text.md, iconSlot.md],
+	lg: ['px-[calc(--spacing(3)-1px)] py-[calc(--spacing(2.5)-1px)]', gap.lg, text.lg, iconSlot.lg],
+}
+
+/** Extra trailing padding for buttons with icon + text (balances visual icon weight) */
+export const buttonWithIcon = {
+	sm: 'pr-[calc(--spacing(3)-1px)]',
+	md: 'pr-[calc(--spacing(4)-1px)]',
+	lg: 'pr-[calc(--spacing(6)-1px)]',
+}
+
+/** Icon-only button dimensions (touch target slightly larger than text button) */
+export const buttonIcon = { sm: 'size-7', md: 'size-9', lg: 'size-11' }

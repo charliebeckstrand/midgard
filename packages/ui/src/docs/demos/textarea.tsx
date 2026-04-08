@@ -16,13 +16,13 @@ export default function TextareaDemo() {
 
 					<Field className="max-w-sm">
 						<Label>Message</Label>
-						<Textarea resize="vertical" placeholder="Write your message…" />
+						<Textarea resize="vertical" placeholder="Write your message" />
 					</Field>
 				`}
 			>
 				<Field className="max-w-sm">
 					<Label htmlFor="textarea-message">Message</Label>
-					<Textarea id="textarea-message" resize="vertical" placeholder="Write your message…" />
+					<Textarea id="textarea-message" resize="vertical" placeholder="Write your message" />
 				</Field>
 			</Example>
 			<Example

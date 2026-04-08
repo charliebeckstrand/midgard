@@ -23,7 +23,7 @@ export const [ListboxProvider, useListboxContext] = createContext<ListboxContext
 
 type ListboxBaseProps = {
 	placeholder?: string
-	anchor?: keyof typeof narabi.anchor
+	placement?: keyof typeof narabi.placement
 	icon?: React.ReactNode
 	className?: string
 	inputId?: string
@@ -53,9 +53,9 @@ export function Listbox<T>({
 	defaultValue,
 	onChange,
 	multiple = false,
-	placeholder = 'Select...',
+	placeholder = 'Select',
 	displayValue,
-	anchor = 'bottom start',
+	placement = 'bottom start',
 	icon,
 	className,
 	inputId,
@@ -146,7 +146,7 @@ export function Listbox<T>({
 				<AnimatePresence onExitComplete={onExitComplete}>
 					{open && (
 						<div ref={containerRef}>
-							<PopoverPanel role="listbox" className={cn(narabi.anchor[anchor], k.options)}>
+							<PopoverPanel role="listbox" className={cn(narabi.placement[placement], k.options)}>
 								{children}
 							</PopoverPanel>
 						</div>

@@ -23,7 +23,7 @@ function SingleListbox() {
 				value={selected}
 				onChange={setSelected}
 				displayValue={(v: string) => statuses.find((s) => s.value === v)?.label ?? v}
-				placeholder="Select status…"
+				placeholder="Select status"
 			>
 				{statuses.map((status) => (
 					<ListboxOption key={status.value} value={status.value}>
@@ -46,7 +46,7 @@ function MultiListbox() {
 				value={selected}
 				onChange={setSelected}
 				displayValue={(v: string) => statuses.find((s) => s.value === v)?.label ?? v}
-				placeholder="Select statuses…"
+				placeholder="Select statuses"
 			>
 				{statuses.map((status) => (
 					<ListboxOption key={status.value} value={status.value}>
@@ -73,7 +73,7 @@ export default function ListboxDemo() {
 
 					<Field>
 						<Label>Status</Label>
-						<Listbox value={value} onChange={setValue} placeholder="Select status…">
+						<Listbox value={value} onChange={setValue} placeholder="Select status">
 							{statuses.map((status) => (
 								<ListboxOption key={status.value} value={status.value}>
 									<ListboxLabel>{status.label}</ListboxLabel>
@@ -97,7 +97,7 @@ export default function ListboxDemo() {
 
 					<Field>
 						<Label>Statuses</Label>
-						<Listbox multiple value={values} onChange={setValues} placeholder="Select statuses…">
+						<Listbox multiple value={values} onChange={setValues} placeholder="Select statuses">
 							{statuses.map((status) => (
 								<ListboxOption key={status.value} value={status.value}>
 									<ListboxLabel>{status.label}</ListboxLabel>

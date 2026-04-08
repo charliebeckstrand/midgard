@@ -17,11 +17,11 @@ import { yasumi } from './yasumi'
 // ── Motoi (基) ──────────────────────────────────────────
 const motoi = {
 	item: [
-		'cursor-default py-2.5 outline-hidden sm:py-1.5',
+		'cursor-default sm:py-1.5 py-2.5 outline-hidden',
 		'text-base/6',
-		yasumi.disabled,
 		'forced-color-adjust-none forced-colors:text-[CanvasText]',
 		'forced-colors:focus:bg-[Highlight] forced-colors:focus:text-[HighlightText]',
+		yasumi.disabled,
 	],
 	nav: [take.iconSlot.md, '*:data-[slot=avatar]:-m-0.5 *:data-[slot=avatar]:size-7'],
 	hover: 'not-disabled:hover:after:bg-[color-mix(in_oklab,currentColor_15%,transparent)]',

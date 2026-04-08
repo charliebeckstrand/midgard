@@ -4,11 +4,11 @@ import { cloneElement, isValidElement, type ReactElement } from 'react'
 import { cn } from '../../core'
 import { useDropdownContext } from './dropdown'
 
-export type DropdownButtonProps =
+export type DropdownTriggerProps =
 	| ({ children: ReactElement } & { className?: string })
 	| React.ComponentPropsWithoutRef<'button'>
 
-export function DropdownButton({ children, className, ...props }: DropdownButtonProps) {
+export function DropdownTrigger({ children, className, ...props }: DropdownTriggerProps) {
 	const { open, setOpen, triggerRef } = useDropdownContext()
 
 	const handleClick = (e: React.MouseEvent) => {
@@ -24,7 +24,7 @@ export function DropdownButton({ children, className, ...props }: DropdownButton
 			ref: triggerRef,
 			'aria-haspopup': 'menu',
 			'aria-expanded': open,
-			'data-slot': 'dropdown-button',
+			'data-slot': 'dropdown-trigger',
 			onClick: (e: React.MouseEvent) => {
 				const childOnClick = (children as ReactElement<Record<string, unknown>>).props?.onClick as
 					| ((e: React.MouseEvent) => void)
@@ -42,7 +42,7 @@ export function DropdownButton({ children, className, ...props }: DropdownButton
 			type="button"
 			aria-haspopup="menu"
 			aria-expanded={open}
-			data-slot="dropdown-button"
+			data-slot="dropdown-trigger"
 			onClick={handleClick}
 			className={cn(className)}
 			{...props}

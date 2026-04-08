@@ -25,7 +25,7 @@ function SingleCombobox() {
 				value={selected}
 				onChange={setSelected}
 				displayValue={(v: string) => v}
-				placeholder="Select a person…"
+				placeholder="Select a person"
 			>
 				{(query) =>
 					people
@@ -52,7 +52,7 @@ function MultiCombobox() {
 				value={selected}
 				onChange={setSelected}
 				displayValue={(v: string) => v}
-				placeholder={selected.length ? `${selected.length} selected` : 'Select people…'}
+				placeholder={selected.length ? `${selected.length} selected` : 'Select people'}
 			>
 				{(query) =>
 					people
@@ -83,7 +83,7 @@ export default function ComboboxDemo() {
 
 					<Field>
 						<Label>Assignee</Label>
-						<Combobox value={value} onChange={setValue} placeholder="Select a person…">
+						<Combobox value={value} onChange={setValue} placeholder="Select a person">
 							{(query) =>
 								people
 									.filter((p) => !query || p.toLowerCase().includes(query.toLowerCase()))
@@ -111,7 +111,7 @@ export default function ComboboxDemo() {
 
 					<Field>
 						<Label>Assignees</Label>
-						<Combobox multiple value={values} onChange={setValues} placeholder="Select people…">
+						<Combobox multiple value={values} onChange={setValues} placeholder="Select people">
 							{(query) =>
 								people
 									.filter((p) => !query || p.toLowerCase().includes(query.toLowerCase()))

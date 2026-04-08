@@ -119,6 +119,10 @@
 			"types": "./src/components/sidebar/index.ts",
 			"default": "./src/components/sidebar/index.ts"
 		},
+		"./status": {
+			"types": "./src/components/status/index.ts",
+			"default": "./src/components/status/index.ts"
+		},
 		"./switch": {
 			"types": "./src/components/switch/index.ts",
 			"default": "./src/components/switch/index.ts"

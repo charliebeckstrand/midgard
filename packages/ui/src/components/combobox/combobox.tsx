@@ -26,7 +26,7 @@ export const [ComboboxProvider, useComboboxContext] =
 type ComboboxBaseProps<T> = {
 	placeholder?: string
 	displayValue?: (value: T) => string
-	anchor?: keyof typeof narabi.anchor
+	placement?: keyof typeof narabi.placement
 	icon?: React.ReactNode
 	className?: string
 	/** When false, onChange still fires but the value is never stored or shown as selected. */
@@ -59,7 +59,7 @@ export function Combobox<T>({
 	multiple = false,
 	placeholder = 'Search',
 	displayValue,
-	anchor = 'bottom start',
+	placement = 'bottom start',
 	icon,
 	selectable = true,
 	closeOnSelect,
@@ -237,7 +237,7 @@ export function Combobox<T>({
 							<PopoverPanel
 								role="listbox"
 								autoFocus={false}
-								className={cn(narabi.anchor[anchor], k.options)}
+								className={cn(narabi.placement[placement], k.options)}
 								onKeyDown={(e) => {
 									if (e.key === 'Escape') close()
 								}}

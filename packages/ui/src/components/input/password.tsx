@@ -1,44 +1,29 @@
 'use client'
 
 import { useState } from 'react'
-import { cn } from '../../core'
-import { FormControl } from '../../primitives'
+import { Button } from '../button'
 import { Icon } from '../icon'
-import { InputSizeProvider } from './context'
-import { type InputVariants, inputVariants } from './variants'
+import { Input, type InputProps } from './component'
 
-export type PasswordInputProps = InputVariants & {
-	className?: string
-} & Omit<React.ComponentPropsWithoutRef<'input'>, 'className' | 'type' | 'size'>
+export type PasswordInputProps = Omit<InputProps, 'type' | 'suffix'>
 
-const outlineControl = 'bg-transparent dark:bg-transparent before:shadow-none'
-
-const iconSize = { sm: 'xs', md: 'sm', lg: 'md' } as const
-
-const buttonPadding = { sm: 'pr-8', md: 'pr-9', lg: 'pr-11' }
-
-export function PasswordInput({ className, variant, size, ...props }: PasswordInputProps) {
+export function PasswordInput(props: PasswordInputProps) {
 	const [visible, setVisible] = useState(false)
-	const resolvedSize = size ?? 'md'
 
 	return (
-		<InputSizeProvider value={iconSize[resolvedSize]}>
-			<FormControl className={cn(variant === 'outline' && outlineControl, 'relative')}>
-				<input
-					data-slot="input"
-					type={visible ? 'text' : 'password'}
-					className={cn(inputVariants({ variant, size }), buttonPadding[resolvedSize], className)}
-					{...props}
-				/>
-				<button
-					type="button"
+		<Input
+			{...props}
+			type={visible ? 'text' : 'password'}
+			suffix={
+				<Button
+					variant="ghost"
+					size="sm"
 					aria-label={visible ? 'Hide password' : 'Show password'}
 					onClick={() => setVisible((v) => !v)}
-					className="absolute inset-y-0 right-0 flex items-center pr-3 text-zinc-400 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300"
 				>
 					<Icon name={visible ? 'eye-off' : 'eye'} />
-				</button>
-			</FormControl>
-		</InputSizeProvider>
+				</Button>
+			}
+		/>
 	)
 }

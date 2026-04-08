@@ -18,4 +18,4 @@ export {
 	DropdownSeparator,
 	type DropdownSeparatorProps,
 } from './slots'
-export { DropdownButton, type DropdownButtonProps } from './trigger'
+export { DropdownTrigger, type DropdownTriggerProps } from './trigger'

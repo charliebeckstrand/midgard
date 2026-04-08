@@ -29,7 +29,7 @@ export default function FieldsetDemo() {
 					</Field>
 					<Field>
 						<Label>Country</Label>
-						<Select placeholder="Select a country…" displayValue={(v) => v}>
+						<Select placeholder="Select a country" displayValue={(v) => v}>
 							<SelectOption value="United States">
 								<SelectLabel>United States</SelectLabel>
 							</SelectOption>
@@ -43,7 +43,7 @@ export default function FieldsetDemo() {
 					</Field>
 					<Field>
 						<Label>Bio</Label>
-						<Textarea placeholder="Tell us about yourself…" />
+						<Textarea placeholder="Tell us about yourself" />
 					</Field>
 				</Fieldset>
 			`}
@@ -62,7 +62,7 @@ export default function FieldsetDemo() {
 					</Field>
 					<Field>
 						<Label>Country</Label>
-						<Select placeholder="Select a country…" displayValue={(v: string) => v}>
+						<Select placeholder="Select a country" displayValue={(v: string) => v}>
 							<SelectOption value="United States">
 								<SelectLabel>United States</SelectLabel>
 							</SelectOption>
@@ -76,7 +76,7 @@ export default function FieldsetDemo() {
 					</Field>
 					<Field>
 						<Label htmlFor="fieldset-bio">Bio</Label>
-						<Textarea id="fieldset-bio" placeholder="Tell us about yourself…" />
+						<Textarea id="fieldset-bio" placeholder="Tell us about yourself" />
 					</Field>
 				</div>
 			</Fieldset>

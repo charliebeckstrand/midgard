@@ -17,13 +17,13 @@ export default function InputDemo() {
 
 					<Field className="max-w-sm">
 						<Label>Name</Label>
-						<Input placeholder="Enter text…" />
+						<Input placeholder="Enter text" />
 					</Field>
 				`}
 			>
 				<Field className="max-w-sm">
 					<Label htmlFor="input-default">Default</Label>
-					<Input id="input-default" placeholder="Enter text…" />
+					<Input id="input-default" placeholder="Enter text" />
 				</Field>
 			</Example>
 			<Example
@@ -34,13 +34,13 @@ export default function InputDemo() {
 
 					<Field className="max-w-sm">
 						<Label>Name</Label>
-						<Input variant="outline" placeholder="Enter text…" />
+						<Input variant="outline" placeholder="Enter text" />
 					</Field>
 				`}
 			>
 				<Field className="max-w-sm">
 					<Label htmlFor="input-outline">Outline</Label>
-					<Input id="input-outline" variant="outline" placeholder="Enter text…" />
+					<Input id="input-outline" variant="outline" placeholder="Enter text" />
 				</Field>
 			</Example>
 			<Example
