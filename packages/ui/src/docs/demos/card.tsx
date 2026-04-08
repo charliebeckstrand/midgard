@@ -14,7 +14,7 @@ import { Example } from '../example'
 
 export const meta = { category: 'Layout' }
 
-const variants = ['outline', 'filled', 'elevated'] as const
+const variants = ['outline', 'solid', 'elevated'] as const
 
 export default function CardDemo() {
 	return (
@@ -25,7 +25,7 @@ export default function CardDemo() {
 					import { Card, CardBody } from 'ui/card'
 
 					<Card variant="outline">...</Card>
-					<Card variant="filled">...</Card>
+					<Card variant="solid">...</Card>
 					<Card variant="elevated">...</Card>
 				`}
 			>

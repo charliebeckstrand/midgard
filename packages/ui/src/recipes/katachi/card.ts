@@ -7,7 +7,7 @@ export const card = {
 	base: ['overflow-hidden', maru.rounded],
 	variant: {
 		outline: [kage.border, omote.surface],
-		filled: [omote.tint],
+		solid: [omote.tint],
 		elevated: [kage.shadow, omote.surface],
 	},
 	header: ['px-5 pt-5 pb-0', sumi.text],
