@@ -1,5 +1,9 @@
 'use client'
 
+import { Minus, Plus } from 'lucide-react'
+import { useState } from 'react'
+import { Button } from '../../components/button'
+import { Icon } from '../../components/icon'
 import { ProgressBar, ProgressGauge } from '../../components/progress'
 import { code } from '../code'
 import { Example } from '../example'
@@ -12,23 +16,51 @@ const barSizes = ['sm', 'md', 'lg'] as const
 
 const gaugeSizes = ['xs', 'sm', 'md', 'lg', 'xl'] as const
 
+const step = 10
+
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
+
+function InteractiveBar() {
+	const [value, setValue] = useState(60)
+
+	return (
+		<Example
+			title="Default"
+			actions={
+				<div className="flex items-center gap-1">
+					<Button
+						variant="plain"
+						disabled={value <= 0}
+						onClick={() => setValue((v) => Math.max(0, v - step))}
+					>
+						<Icon icon={<Minus />} />
+					</Button>
+					<Button
+						variant="plain"
+						disabled={value >= 100}
+						onClick={() => setValue((v) => Math.min(100, v + step))}
+					>
+						<Icon icon={<Plus />} />
+					</Button>
+				</div>
+			}
+			code={code`
+				import { ProgressBar } from 'ui/progress'
+
+				<ProgressBar value={60} />
+			`}
+		>
+			<div className="max-w-sm">
+				<ProgressBar value={value} />
+			</div>
+		</Example>
+	)
+}
 
 export default function ProgressDemo() {
 	return (
 		<div className="space-y-8">
-			<Example
-				title="Default"
-				code={code`
-					import { ProgressBar } from 'ui/progress'
-
-					<ProgressBar value={60} />
-				`}
-			>
-				<div className="max-w-sm">
-					<ProgressBar value={60} />
-				</div>
-			</Example>
+			<InteractiveBar />
 			<Example
 				title="Bar sizes"
 				code={code`

@@ -27,7 +27,7 @@ export function Checkbox({ className, color, icon, ...props }: CheckboxProps) {
 				<Check
 					data-slot="checkbox-check"
 					aria-hidden="true"
-					className="pointer-events-none absolute size-3 stroke-(--checkbox-check) opacity-0"
+					className="pointer-events-none absolute size-3.5 stroke-(--checkbox-check) opacity-0"
 					strokeWidth={2}
 				/>
 			)}

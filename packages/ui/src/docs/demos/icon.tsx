@@ -1,6 +1,7 @@
 'use client'
 
 import { Heart, Plus, Search, Star } from 'lucide-react'
+import { Alert, AlertDescription } from '../../components/alert'
 import { Icon } from '../../components/icon'
 import { code } from '../code'
 import { Example } from '../example'
@@ -81,12 +82,12 @@ export default function IconDemo() {
 					<Icon icon={<MyCustomIcon />} />
 				`}
 			>
-				<div className="flex items-center gap-4 dark:text-white">
-					<Icon icon={<Search />} />
-					<span className="text-sm text-zinc-500">
-						Works with Lucide, Heroicons, Font Awesome, or any SVG component
-					</span>
-				</div>
+				<Alert type="info">
+					<AlertDescription>
+						The Icon component can wrap any SVG icon component, not just those from Lucide. It
+						provides consistent sizing and accessibility features across different icon libraries.
+					</AlertDescription>
+				</Alert>
 			</Example>
 		</div>
 	)

@@ -27,6 +27,7 @@ export function ProgressBar({
 	className,
 }: ProgressBarProps) {
 	const determinate = value != null
+
 	const pct = determinate ? Math.min(100, Math.max(0, (value / max) * 100)) : 0
 
 	return (
@@ -71,6 +72,7 @@ export type ProgressGaugeProps = {
 }
 
 const gaugeViewBox = 36
+
 const defaultStrokeWidth = 3.5
 
 export function ProgressGauge({
@@ -83,10 +85,13 @@ export function ProgressGauge({
 	className,
 }: ProgressGaugeProps) {
 	const pct = Math.min(100, Math.max(0, (value / max) * 100))
+
 	const resolvedSize = size ?? 'md'
 
 	const radius = (gaugeViewBox - strokeWidth) / 2
+
 	const circumference = 2 * Math.PI * radius
+
 	const offset = circumference - (pct / 100) * circumference
 
 	const resolvedLabel = label === true ? Math.round(pct) : label
