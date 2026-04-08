@@ -8,4 +8,6 @@ export const radioColorVariants = colorCva('', k.color)
 
 export const radioVariants = cva(k.base)
 
+export const radioInputVariants = cva(k.input)
+
 export type RadioVariants = VariantProps<typeof radioColorVariants>

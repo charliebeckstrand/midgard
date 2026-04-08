@@ -5,9 +5,11 @@ import { nuri } from '../nuri'
 export const radio = {
 	color: nuri.radio,
 	base: [
-		...form.check,
+		...form.checkSurface,
 		maru.roundedFull,
-		'checked:border-transparent checked:bg-(--radio-checked-bg)',
-		'checked:border-(--radio-checked-border)',
+		'has-checked:border-transparent has-checked:bg-(--radio-checked-bg)',
+		'has-checked:border-(--radio-checked-border)',
+		'not-has-[:disabled]:has-checked:hover:opacity-90',
 	],
+	input: form.check,
 }

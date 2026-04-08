@@ -3,6 +3,7 @@ import { narabi } from '../../recipes'
 import {
 	type SwitchVariants,
 	switchColorVariants,
+	switchInputVariants,
 	switchThumbVariants,
 	switchVariants,
 } from './variants'
@@ -21,13 +22,15 @@ export function Switch({ className, color, ...props }: SwitchProps) {
 				'has-[:checked]:*:data-[slot=switch-thumb]:bg-(--switch)',
 				'has-[:checked]:*:data-[slot=switch-thumb]:shadow-(--switch-shadow)',
 				'has-[:checked]:*:data-[slot=switch-thumb]:ring-(--switch-ring)',
+				'has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-blue-600',
+				switchVariants(),
 				switchColorVariants({ color }),
 			)}
 		>
 			<input
 				type="checkbox"
 				data-slot="switch"
-				className={cn(switchVariants(), className)}
+				className={cn(switchInputVariants(), className)}
 				{...props}
 			/>
 			<span data-slot="switch-thumb" aria-hidden="true" className={switchThumbVariants()} />

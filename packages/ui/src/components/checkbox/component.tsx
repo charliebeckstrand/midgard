@@ -1,7 +1,12 @@
 import { Check } from 'lucide-react'
 import { cn } from '../../core'
 import { ToggleField, ToggleGroup } from '../../primitives'
-import { type CheckboxVariants, checkboxColorVariants, checkboxVariants } from './variants'
+import {
+	type CheckboxVariants,
+	checkboxColorVariants,
+	checkboxInputVariants,
+	checkboxVariants,
+} from './variants'
 
 export type CheckboxProps = CheckboxVariants & {
 	icon?: React.ReactNode
@@ -13,14 +18,17 @@ export function Checkbox({ className, color, icon, ...props }: CheckboxProps) {
 		<span
 			data-slot="control"
 			className={cn(
-				'relative inline-flex size-4.5 items-center justify-center rounded-sm has-checked:*:data-[slot=checkbox-check]:opacity-100 has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-blue-600',
+				'relative inline-flex size-4.5 items-center justify-center',
+				'has-checked:*:data-[slot=checkbox-check]:opacity-100',
+				'has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-blue-600',
+				checkboxVariants(),
 				checkboxColorVariants({ color }),
 			)}
 		>
 			<input
 				type="checkbox"
 				data-slot="checkbox"
-				className={cn(checkboxVariants(), 'focus-visible:ring-0', className)}
+				className={cn(checkboxInputVariants(), className)}
 				{...props}
 			/>
 			{icon ?? (

@@ -1,6 +1,11 @@
 import { cn } from '../../core'
 import { ToggleField, ToggleGroup } from '../../primitives'
-import { type RadioVariants, radioColorVariants, radioVariants } from './variants'
+import {
+	type RadioVariants,
+	radioColorVariants,
+	radioInputVariants,
+	radioVariants,
+} from './variants'
 
 export type RadioProps = RadioVariants & {
 	className?: string
@@ -11,14 +16,17 @@ export function Radio({ className, color, ...props }: RadioProps) {
 		<span
 			data-slot="control"
 			className={cn(
-				'relative inline-flex size-4.5 items-center justify-center rounded-full has-checked:*:data-[slot=radio-indicator]:opacity-100 has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-blue-600',
+				'relative inline-flex size-4.5 items-center justify-center',
+				'has-checked:*:data-[slot=radio-indicator]:opacity-100',
+				'has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-blue-600',
+				radioVariants(),
 				radioColorVariants({ color }),
 			)}
 		>
 			<input
 				type="radio"
 				data-slot="radio"
-				className={cn(radioVariants(), 'focus-visible:ring-0', className)}
+				className={cn(radioInputVariants(), className)}
 				{...props}
 			/>
 			<span
