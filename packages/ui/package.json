@@ -43,6 +43,10 @@
 			"types": "./src/components/button/index.ts",
 			"default": "./src/components/button/index.ts"
 		},
+		"./card": {
+			"types": "./src/components/card/index.ts",
+			"default": "./src/components/card/index.ts"
+		},
 		"./chip": {
 			"types": "./src/components/chip/index.ts",
 			"default": "./src/components/chip/index.ts"

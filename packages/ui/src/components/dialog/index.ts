@@ -1,3 +1,4 @@
+export { ConfirmDialog, type ConfirmDialogProps } from './confirm'
 export { Dialog, type DialogProps } from './dialog'
 export {
 	DialogActions,
