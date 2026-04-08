@@ -11,6 +11,7 @@ export {
 	type SidebarSectionProps,
 	SidebarSpacer,
 	type SidebarSpacerProps,
+	sidebarItemVariants,
 } from './item'
 export { Sidebar, type SidebarProps } from './sidebar'
 export {

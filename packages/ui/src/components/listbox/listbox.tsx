@@ -1,13 +1,25 @@
 'use client'
 
+import {
+	autoUpdate,
+	FloatingPortal,
+	flip,
+	offset,
+	type Placement,
+	shift,
+	size,
+	useDismiss,
+	useFloating,
+	useInteractions,
+	useRole,
+} from '@floating-ui/react'
 import { AnimatePresence } from 'motion/react'
 import type React from 'react'
 import { useCallback, useRef, useState } from 'react'
 import { cn, createContext } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
-import { useOverlay } from '../../hooks/use-overlay'
 import { FormControl, PopoverPanel } from '../../primitives'
-import { katachi, narabi, sumi } from '../../recipes'
+import { katachi, sumi } from '../../recipes'
 import { Icon } from '../icon'
 
 const k = katachi.listbox
@@ -23,7 +35,7 @@ export const [ListboxProvider, useListboxContext] = createContext<ListboxContext
 
 type ListboxBaseProps = {
 	placeholder?: string
-	placement?: keyof typeof narabi.placement
+	placement?: Placement
 	icon?: React.ReactNode
 	className?: string
 	inputId?: string
@@ -55,7 +67,7 @@ export function Listbox<T>({
 	multiple = false,
 	placeholder = 'Select',
 	displayValue,
-	placement = 'bottom start',
+	placement = 'bottom-start',
 	icon,
 	className,
 	inputId,
@@ -71,6 +83,31 @@ export function Listbox<T>({
 
 	const triggerRef = useRef<HTMLButtonElement>(null)
 	const pendingValue = useRef<T | T[] | undefined>(undefined)
+
+	const { refs, floatingStyles, context } = useFloating({
+		placement,
+		open,
+		onOpenChange: setOpen,
+		whileElementsMounted: autoUpdate,
+		middleware: [
+			offset(4),
+			flip(),
+			shift({ padding: 8 }),
+			size({
+				apply({ rects, elements }) {
+					Object.assign(elements.floating.style, {
+						minWidth: `${rects.reference.width}px`,
+					})
+				},
+			}),
+		],
+	})
+
+	const dismiss = useDismiss(context)
+
+	const role = useRole(context, { role: 'listbox' })
+
+	const { getReferenceProps, getFloatingProps } = useInteractions([dismiss, role])
 
 	const close = useCallback(() => {
 		setOpen(false)
@@ -103,8 +140,6 @@ export function Listbox<T>({
 		}
 	}, [setValue])
 
-	const containerRef = useOverlay(open, close)
-
 	const label = (() => {
 		if (multiple) {
 			const arr = Array.isArray(value) ? value : []
@@ -117,13 +152,20 @@ export function Listbox<T>({
 
 			return `${arr.length} selected`
 		}
+
 		if (value !== undefined && displayValue) return displayValue(value as T)
+
 		return undefined
 	})()
 
 	return (
 		<ListboxProvider value={{ value, multiple, select: select as (v: unknown) => void, close }}>
-			<div data-slot="control" className={cn('relative', className)}>
+			<div
+				data-slot="control"
+				ref={refs.setReference}
+				className={cn(className)}
+				{...getReferenceProps()}
+			>
 				<FormControl data-open={open || undefined}>
 					<button
 						ref={triggerRef}
@@ -137,22 +179,29 @@ export function Listbox<T>({
 						className={cn(k.button)}
 					>
 						<span className={k.value}>
-							{label ?? <span className={cn(sumi.textMuted)}>{placeholder}</span>}
+							{label || <span className={cn(sumi.textMuted)}>{placeholder}</span>}
 						</span>
 						<span className={cn(k.chevron)}>{icon ?? <Icon name="chevron-up-down" />}</span>
 					</button>
 				</FormControl>
+			</div>
 
+			<FloatingPortal>
 				<AnimatePresence onExitComplete={onExitComplete}>
 					{open && (
-						<div ref={containerRef}>
-							<PopoverPanel role="listbox" className={cn(narabi.placement[placement], k.options)}>
+						<div
+							ref={refs.setFloating}
+							style={floatingStyles}
+							className="z-100"
+							{...getFloatingProps()}
+						>
+							<PopoverPanel role="listbox" className={cn('relative min-w-full', k.options)}>
 								{children}
 							</PopoverPanel>
 						</div>
 					)}
 				</AnimatePresence>
-			</div>
+			</FloatingPortal>
 		</ListboxProvider>
 	)
 }

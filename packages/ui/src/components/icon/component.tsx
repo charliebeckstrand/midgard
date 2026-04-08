@@ -7,13 +7,15 @@ import { type IconName, iconData } from './icon-data'
 
 export type { IconName }
 
+type SizeToken = 'xs' | 'sm' | 'md' | 'lg'
+
 type IconProps = React.SVGProps<SVGSVGElement> & {
 	name: IconName
-	size?: number | string
+	size?: SizeToken | number
 	className?: string
 }
 
-const sizeMap: Record<string, string> = {
+const sizeMap: Record<SizeToken, string> = {
 	xs: 'size-3',
 	sm: 'size-4',
 	md: 'size-5',
@@ -22,13 +24,15 @@ const sizeMap: Record<string, string> = {
 
 export type { IconProps }
 
-export function Icon({ name, size, className, ...props }: IconProps) {
+export function Icon({ name, size, className, style, ...props }: IconProps) {
 	const buttonSize = useButtonSize()
 	const inputSize = useInputSize()
 
 	const resolvedSize = size ?? buttonSize ?? inputSize ?? 'md'
 
 	const icon = iconData[name]
+
+	const isNumeric = typeof resolvedSize === 'number'
 
 	return (
 		<svg
@@ -40,7 +44,8 @@ export function Icon({ name, size, className, ...props }: IconProps) {
 			strokeLinecap="round"
 			strokeLinejoin="round"
 			aria-hidden="true"
-			className={cn(sizeMap[resolvedSize], className)}
+			className={cn(!isNumeric && sizeMap[resolvedSize], className)}
+			style={isNumeric ? { width: resolvedSize, height: resolvedSize, ...style } : style}
 			{...props}
 		>
 			{icon.content}

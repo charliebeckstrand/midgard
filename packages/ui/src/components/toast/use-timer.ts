@@ -2,7 +2,7 @@ import { useCallback, useRef } from 'react'
 import type { ToastData } from './toast-context'
 
 export function useTimer(
-	toastsRef: React.RefObject<ToastData[]>,
+	toastsRef: React.MutableRefObject<ToastData[]>,
 	duration: number,
 	startDrain: () => void,
 	stopDrain: () => void,

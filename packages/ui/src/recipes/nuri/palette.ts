@@ -114,8 +114,7 @@ export const extend = {
 
 	solidHover: {
 		white: { light: 'bg-zinc-100', dark: 'bg-zinc-100' },
-		// dark: { light: 'bg-zinc-800', dark: 'bg-zinc-200' },
-	} as HoverMap<'white' | 'dark'>,
+	} as HoverMap<'white'>,
 
 	soft: merge(
 		defineColors({
@@ -130,8 +129,7 @@ export const extend = {
 
 	softHover: {
 		white: { light: 'bg-zinc-50', dark: 'bg-white/15' },
-		// dark: { light: 'bg-zinc-950/15', dark: 'bg-white/15' },
-	} as HoverMap<'white' | 'dark'>,
+	} as HoverMap<'white'>,
 }
 
 // ── Helpers ─────────────────────────────────────────────

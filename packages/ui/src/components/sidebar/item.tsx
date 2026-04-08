@@ -18,7 +18,9 @@ export type SidebarDividerProps = React.ComponentPropsWithoutRef<'hr'>
 
 export type SidebarItemActionsProps = React.ComponentPropsWithoutRef<'div'>
 
-export const SidebarItem = createNavItem({ slotPrefix: 'sidebar', variants: () => cn(k.item) })
+export const sidebarItemVariants = () => cn(k.item)
+
+export const SidebarItem = createNavItem({ slotPrefix: 'sidebar', variants: sidebarItemVariants })
 
 export function SidebarLabel({ className, ...props }: SidebarLabelProps) {
 	return <span data-slot="sidebar-label" className={cn(k.label, className)} {...props} />

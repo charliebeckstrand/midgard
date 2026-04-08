@@ -18,7 +18,8 @@ const iconSize = { sm: 'xs', md: 'sm', lg: 'md' } as const
 const prefixPadding = { sm: 'pl-8', md: 'pl-9', lg: 'pl-11' }
 const suffixPadding = { sm: 'pr-8', md: 'pr-9', lg: 'pr-11' }
 
-export type InputProps = InputVariants & {
+export type InputProps = Omit<InputVariants, 'size'> & {
+	size?: 'sm' | 'md' | 'lg'
 	prefix?: React.ReactNode
 	suffix?: React.ReactNode
 	className?: string

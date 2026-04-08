@@ -1,14 +1,26 @@
 'use client'
 
+import {
+	autoUpdate,
+	FloatingPortal,
+	flip,
+	offset,
+	type Placement,
+	shift,
+	size,
+	useDismiss,
+	useFloating,
+	useInteractions,
+	useRole,
+} from '@floating-ui/react'
 import { AnimatePresence } from 'motion/react'
 import type React from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { cn, createContext } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { useMenuKeyboard } from '../../hooks/use-menu-keyboard'
-import { useOverlay } from '../../hooks/use-overlay'
 import { FormControl, PopoverPanel } from '../../primitives'
-import { katachi, narabi, sumi } from '../../recipes'
+import { katachi, sumi } from '../../recipes'
 import { Icon } from '../icon'
 
 const k = katachi.combobox
@@ -26,7 +38,7 @@ export const [ComboboxProvider, useComboboxContext] =
 type ComboboxBaseProps<T> = {
 	placeholder?: string
 	displayValue?: (value: T) => string
-	placement?: keyof typeof narabi.placement
+	placement?: Placement
 	icon?: React.ReactNode
 	className?: string
 	/** When false, onChange still fires but the value is never stored or shown as selected. */
@@ -59,7 +71,7 @@ export function Combobox<T>({
 	multiple = false,
 	placeholder = 'Search',
 	displayValue,
-	placement = 'bottom start',
+	placement = 'bottom-start',
 	icon,
 	selectable = true,
 	closeOnSelect,
@@ -81,6 +93,30 @@ export function Combobox<T>({
 	const pendingValue = useRef<T | T[] | undefined>(undefined)
 
 	const handleKeyDown = useMenuKeyboard(optionsRef, '[role="option"]:not([data-disabled])')
+
+	const { refs, floatingStyles, context } = useFloating({
+		placement,
+		open,
+		onOpenChange: setOpen,
+		whileElementsMounted: autoUpdate,
+		middleware: [
+			offset(4),
+			flip(),
+			shift({ padding: 8 }),
+			size({
+				apply({ rects, elements }) {
+					Object.assign(elements.floating.style, {
+						minWidth: `${rects.reference.width}px`,
+					})
+				},
+			}),
+		],
+	})
+
+	const dismiss = useDismiss(context)
+	const role = useRole(context, { role: 'listbox' })
+
+	const { getReferenceProps, getFloatingProps } = useInteractions([dismiss, role])
 
 	const close = useCallback(() => {
 		setOpen(false)
@@ -136,8 +172,6 @@ export function Combobox<T>({
 		return ''
 	}, [editing, query, value, displayValue, multiple])
 
-	const containerRef = useOverlay(open, close)
-
 	const rendered = typeof children === 'function' ? children(query) : children
 
 	// Mark the sole visible option as active so it highlights without stealing focus
@@ -161,7 +195,12 @@ export function Combobox<T>({
 
 	return (
 		<ComboboxProvider value={{ value, multiple, select: select as (v: unknown) => void, query }}>
-			<div ref={containerRef} data-slot="control" className={cn('relative', className)}>
+			<div
+				data-slot="control"
+				ref={refs.setReference}
+				className={cn(className)}
+				{...getReferenceProps()}
+			>
 				<FormControl data-open={open || undefined}>
 					<input
 						ref={inputRef}
@@ -181,7 +220,9 @@ export function Combobox<T>({
 						}}
 						onFocus={() => setOpen(true)}
 						onBlur={(e) => {
-							if (containerRef.current?.contains(e.relatedTarget as Node)) return
+							// Check if focus moved to the floating panel
+							const floating = refs.floating.current
+							if (floating?.contains(e.relatedTarget as Node)) return
 
 							close()
 						}}
@@ -230,27 +271,36 @@ export function Combobox<T>({
 						{icon ?? <Icon name="chevron-up-down" />}
 					</button>
 				</FormControl>
+			</div>
 
+			<FloatingPortal>
 				<div ref={optionsRef}>
 					<AnimatePresence onExitComplete={onExitComplete}>
 						{open && (
-							<PopoverPanel
-								role="listbox"
-								autoFocus={false}
-								className={cn(narabi.placement[placement], k.options)}
-								onKeyDown={(e) => {
-									if (e.key === 'Escape') close()
-								}}
+							<div
+								ref={refs.setFloating}
+								style={floatingStyles}
+								className="z-100"
+								{...getFloatingProps()}
 							>
-								{rendered}
-								<output className={cn('hidden p-2 text-sm only:block', sumi.textMuted)}>
-									No results
-								</output>
-							</PopoverPanel>
+								<PopoverPanel
+									role="listbox"
+									autoFocus={false}
+									className={cn('relative', k.options)}
+									onKeyDown={(e) => {
+										if (e.key === 'Escape') close()
+									}}
+								>
+									{rendered}
+									<output className={cn('hidden p-2 text-sm only:block', sumi.textMuted)}>
+										No results
+									</output>
+								</PopoverPanel>
+							</div>
 						)}
 					</AnimatePresence>
 				</div>
-			</div>
+			</FloatingPortal>
 		</ComboboxProvider>
 	)
 }

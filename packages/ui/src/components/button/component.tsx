@@ -52,6 +52,11 @@ export function Button({
 
 	const pointerDown = (e: PointerEvent<HTMLElement>) => {
 		if (ripple) handleRipple(e)
+
+		const consumerHandler = (props as { onPointerDown?: (e: PointerEvent<HTMLElement>) => void })
+			.onPointerDown
+
+		consumerHandler?.(e)
 	}
 
 	const tap = useTap(spring)
