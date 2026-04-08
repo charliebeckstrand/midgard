@@ -8,10 +8,14 @@ import { take } from '../take'
 export const sheet = {
 	panel: {
 		base: [
-			omote.panel,
+			omote.panel.chrome,
 			'fixed flex flex-col overflow-y-auto rounded-xl',
 			'max-sm:inset-x-0 max-sm:bottom-0 max-sm:w-full max-sm:max-h-full max-sm:min-h-[50svh] max-sm:rounded-b-none',
 		],
+		glass: {
+			true: 'bg-transparent',
+			false: omote.panel.bg,
+		},
 		side: {
 			right: 'sm:top-4 sm:right-4 sm:bottom-4 sm:w-full',
 			left: 'sm:top-4 sm:left-4 sm:bottom-4 sm:w-full',

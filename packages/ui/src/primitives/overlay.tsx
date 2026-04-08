@@ -49,7 +49,7 @@ export function Overlay({
 				<div className="fixed inset-0 z-[99]" {...props}>
 					<motion.div
 						{...ugoki.overlay}
-						className={className ?? cn('absolute inset-0', omote.backdrop)}
+						className={className ?? cn('absolute inset-0', omote.backdrop.base)}
 						onClick={outsideClick ? onClose : undefined}
 						aria-hidden="true"
 					/>

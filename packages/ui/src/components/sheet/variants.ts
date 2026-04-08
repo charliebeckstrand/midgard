@@ -1,5 +1,5 @@
 import { cva, type VariantProps } from 'class-variance-authority'
-import { katachi } from '../../recipes'
+import { katachi, omote } from '../../recipes'
 
 const k = katachi.sheet
 
@@ -7,8 +7,19 @@ export const sheetPanelVariants = cva(k.panel.base, {
 	variants: {
 		side: k.panel.side,
 		size: k.panel.size,
+		glass: k.panel.glass,
 	},
-	defaultVariants: k.panel.defaults,
+	defaultVariants: { ...k.panel.defaults, glass: false },
+})
+
+export const sheetBackdropVariants = cva('absolute inset-0', {
+	variants: {
+		glass: {
+			true: [omote.backdrop.color, 'backdrop-blur-lg'],
+			false: omote.backdrop.base,
+		},
+	},
+	defaultVariants: { glass: false },
 })
 
 export const sheetTitleVariants = cva(k.title)

@@ -45,9 +45,17 @@ const yoru = {
 
 // ── Export ───────────────────────────────────────────────
 export const omote = {
-	panel: [kage.ring, motoi.panel, hiru.panel, yoru.panel],
+	panel: {
+		base: [kage.ring, motoi.panel, hiru.panel, yoru.panel],
+		chrome: [kage.ring, motoi.panel],
+		bg: [hiru.panel, yoru.panel],
+	},
 	content: [motoi.content, hiru.content, yoru.content],
-	backdrop: [motoi.backdrop, hiru.backdrop, yoru.backdrop],
+	backdrop: {
+		base: [motoi.backdrop, hiru.backdrop, yoru.backdrop],
+		blur: motoi.backdrop,
+		color: [hiru.backdrop, yoru.backdrop],
+	},
 	popover: [motoi.popover, hiru.popover, yoru.popover],
 	surface: [hiru.surface, yoru.surface],
 	tint: [hiru.tint, yoru.tint],
