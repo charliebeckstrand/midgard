@@ -15,5 +15,3 @@ export const pageButtonVariants = cva(k.page.base, {
 export type PageButtonVariants = VariantProps<typeof pageButtonVariants>
 
 export const paginationGapVariants = cva(k.gap)
-
-export const paginationNavVariants = cva(k.nav)

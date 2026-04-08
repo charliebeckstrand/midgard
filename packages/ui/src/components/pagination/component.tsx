@@ -1,10 +1,11 @@
 import { cn } from '../../core'
 import { Polymorphic, type PolymorphicProps } from '../../primitives'
+import { Button, type ButtonProps } from '../button'
+import { Icon } from '../icon'
 import {
 	pageButtonVariants,
 	paginationGapVariants,
 	paginationListVariants,
-	paginationNavVariants,
 	paginationVariants,
 } from './variants'
 
@@ -21,13 +22,9 @@ export type PaginationPageProps = PaginationPageBaseProps & PolymorphicProps<'bu
 
 export type PaginationGapProps = React.ComponentPropsWithoutRef<'span'>
 
-type PaginationNavBaseProps = {
-	className?: string
-}
+export type PaginationPreviousProps = ButtonProps
 
-export type PaginationPreviousProps = PaginationNavBaseProps & PolymorphicProps<'button'>
-
-export type PaginationNextProps = PaginationNavBaseProps & PolymorphicProps<'button'>
+export type PaginationNextProps = ButtonProps
 
 export function Pagination({ className, ...props }: PaginationProps) {
 	return (
@@ -89,27 +86,22 @@ export function PaginationGap({ className, ...props }: PaginationGapProps) {
 
 function PaginationNavButton({
 	slot,
-	className,
 	children,
-	href,
 	...props
 }: { slot: string } & (PaginationPreviousProps | PaginationNextProps)) {
 	return (
 		<li>
-			<Polymorphic
-				as="button"
-				dataSlot={slot}
-				href={href}
-				className={cn(paginationNavVariants(), className)}
-				{...props}
-			>
+			<Button data-slot={slot} variant="plain" {...props}>
 				{children}
-			</Polymorphic>
+			</Button>
 		</li>
 	)
 }
 
-export function PaginationPrevious({ children = 'Previous', ...props }: PaginationPreviousProps) {
+export function PaginationPrevious({
+	children = <Icon name="chevron-left" />,
+	...props
+}: PaginationPreviousProps) {
 	return (
 		<PaginationNavButton slot="pagination-previous" {...props}>
 			{children}
@@ -117,7 +109,10 @@ export function PaginationPrevious({ children = 'Previous', ...props }: Paginati
 	)
 }
 
-export function PaginationNext({ children = 'Next', ...props }: PaginationNextProps) {
+export function PaginationNext({
+	children = <Icon name="chevron-right" />,
+	...props
+}: PaginationNextProps) {
 	return (
 		<PaginationNavButton slot="pagination-next" {...props}>
 			{children}
