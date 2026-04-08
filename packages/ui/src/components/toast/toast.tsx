@@ -10,15 +10,15 @@ import { toastViewportVariants } from './variants'
 
 export function Toast({
 	position = 'bottom-right',
+	duration = 5000,
 	maxToasts = 5,
-	duration = 3000,
 	closeIcon,
 	children,
 }: ToastContextProps) {
 	const { toasts, toast, dismiss, pause, resume, handleExitComplete, isBottom } = useToastState({
 		position,
-		maxToasts,
 		duration,
+		maxToasts,
 	})
 
 	if (typeof document === 'undefined') {

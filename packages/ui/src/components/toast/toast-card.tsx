@@ -39,46 +39,51 @@ export function ToastCard({
 
 	const overflow = ugoki.toast.overflow
 
+	const isOverflow = t.overflow
+
 	return (
 		<motion.div
 			layout
-			initial={motionConfig.initial}
-			animate={t.overflow ? overflow.exit : motionConfig.animate}
-			exit={
-				t.overflow
-					? { opacity: 0, transition: { duration: 0 } }
-					: t.dismissed
-						? { opacity: 0 }
-						: motionConfig.exit
-			}
-			transition={t.overflow ? overflow.transition : motionConfig.transition}
-			data-slot="toast"
-			className={cn('relative', toastCardVariants({ type: t.type }))}
-			onAnimationComplete={() => {
-				if (t.overflow) onDismiss(t.id)
+			style={{ paddingBottom: 8, zIndex: t.zIndex }}
+			exit={{
+				height: 0,
+				paddingBottom: 0,
+				transition: { duration: isOverflow ? 0 : 0.15 },
 			}}
-			onMouseEnter={onPause}
-			onMouseLeave={onResume}
+			transition={{ layout: { type: 'spring', stiffness: 300, damping: 30 } }}
 		>
-			<div className="flex-1 min-w-0">
-				<div className={cn(katachi.toast.title)}>{t.title}</div>
+			<motion.div
+				initial={motionConfig.initial}
+				animate={isOverflow ? overflow.exit : motionConfig.animate}
+				transition={isOverflow ? overflow.transition : motionConfig.transition}
+				data-slot="toast"
+				className={cn('relative', toastCardVariants({ type: t.type }))}
+				onAnimationComplete={() => {
+					if (isOverflow) onDismiss(t.id)
+				}}
+				onMouseEnter={onPause}
+				onMouseLeave={onResume}
+			>
+				<div className="flex-1 min-w-0">
+					<div className={cn(katachi.toast.title)}>{t.title}</div>
 
-				{t.description && <div className={cn(katachi.toast.description)}>{t.description}</div>}
+					{t.description && <div className={cn(katachi.toast.description)}>{t.description}</div>}
 
-				{t.actions && <div className={cn(katachi.toast.actions)}>{t.actions}</div>}
-			</div>
+					{t.actions && <div className={cn(katachi.toast.actions)}>{t.actions}</div>}
+				</div>
 
-			{showCloseButton && (
-				<Button
-					variant="plain"
-					color="inherit"
-					aria-label="Dismiss"
-					className={cn(katachi.toast.close)}
-					onClick={() => onDismiss(t.id)}
-				>
-					{closeIcon ?? <Icon name="x" />}
-				</Button>
-			)}
+				{showCloseButton && (
+					<Button
+						variant="plain"
+						color="inherit"
+						aria-label="Dismiss"
+						className={cn(katachi.toast.close)}
+						onClick={() => onDismiss(t.id)}
+					>
+						{closeIcon ?? <Icon name="x" />}
+					</Button>
+				)}
+			</motion.div>
 		</motion.div>
 	)
 }

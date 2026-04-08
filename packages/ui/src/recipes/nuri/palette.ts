@@ -93,44 +93,44 @@ export const outlineHover: HoverMap<Color> = {
 	blue: { light: 'bg-blue-600/10', dark: 'bg-blue-500/10' },
 }
 
-// ── Extended colors (white + dark, shared by button/badge) ─
+// ── Extended colors (white, shared by button/badge) ─
 
 export const extend = {
 	text: defineColors({
 		white: { light: 'text-zinc-950', dark: 'dark:text-white' },
-		dark: { light: 'text-zinc-700', dark: 'dark:text-zinc-300' },
+		// dark: { light: 'text-zinc-700', dark: 'dark:text-zinc-300' },
 	}),
 
 	solid: merge(
 		defineColors({
-			white: { light: 'bg-white', dark: 'dark:bg-zinc-200' },
-			dark: { light: 'bg-zinc-950', dark: 'dark:bg-white' },
+			white: { light: 'bg-white', dark: 'dark:bg-white' },
+			// dark: { light: 'bg-zinc-950', dark: 'dark:bg-white' },
 		}),
 		defineColors({
 			white: { light: 'text-zinc-950', dark: 'dark:text-zinc-950' },
-			dark: { light: 'text-white', dark: 'dark:text-zinc-950' },
+			// dark: { light: 'text-white', dark: 'dark:text-zinc-950' },
 		}),
 	),
 
 	solidHover: {
-		white: { light: 'bg-zinc-100', dark: 'bg-zinc-300' },
-		dark: { light: 'bg-zinc-800', dark: 'bg-zinc-200' },
+		white: { light: 'bg-zinc-100', dark: 'bg-zinc-100' },
+		// dark: { light: 'bg-zinc-800', dark: 'bg-zinc-200' },
 	} as HoverMap<'white' | 'dark'>,
 
 	soft: merge(
 		defineColors({
 			white: { light: 'bg-white', dark: 'dark:bg-white/10' },
-			dark: { light: 'bg-zinc-950/10', dark: 'dark:bg-white/10' },
+			// dark: { light: 'bg-zinc-950/10', dark: 'dark:bg-white/10' },
 		}),
 		defineColors({
 			white: { light: 'text-zinc-950', dark: 'dark:text-white' },
-			dark: { light: 'text-zinc-700', dark: 'dark:text-zinc-300' },
+			// dark: { light: 'text-zinc-700', dark: 'dark:text-zinc-300' },
 		}),
 	),
 
 	softHover: {
 		white: { light: 'bg-zinc-50', dark: 'bg-white/15' },
-		dark: { light: 'bg-zinc-950/15', dark: 'bg-white/15' },
+		// dark: { light: 'bg-zinc-950/15', dark: 'bg-white/15' },
 	} as HoverMap<'white' | 'dark'>,
 }
 
@@ -170,9 +170,11 @@ export function withHover<K extends string>(
 	return Object.fromEntries(
 		(Object.keys(base) as K[]).map((k) => {
 			const h = hover[k]
+
 			const hoverClasses = h.dark
 				? [`${prefix}${h.light}`, `dark:${prefix}${h.dark}`]
 				: [`${prefix}${h.light}`]
+
 			return [k, [...base[k], ...hoverClasses]]
 		}),
 	) as Record<K, string[]>

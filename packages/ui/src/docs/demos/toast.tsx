@@ -16,6 +16,18 @@ function ToastButtons() {
 			<Button
 				variant="outline"
 				onClick={() =>
+					toast({
+						title: 'Draft saved',
+						description: 'Your draft has been saved locally.',
+						type: 'secondary',
+					})
+				}
+			>
+				Secondary
+			</Button>
+			<Button
+				variant="outline"
+				onClick={() =>
 					toast({ title: 'Saved', description: 'Your changes have been saved.', type: 'success' })
 				}
 			>
@@ -41,6 +53,25 @@ function ToastButtons() {
 	)
 }
 
+function PersistToastButton() {
+	const { toast } = useToast()
+
+	return (
+		<Button
+			variant="outline"
+			onClick={() =>
+				toast({
+					title: 'Attention:',
+					description: 'This toast will stay until dismissed.',
+					persist: true,
+				})
+			}
+		>
+			Persist
+		</Button>
+	)
+}
+
 function ActionToastButton() {
 	const { toast } = useToast()
 
@@ -51,7 +82,13 @@ function ActionToastButton() {
 				toast({
 					title: 'Message deleted',
 					description: 'The message has been removed.',
-					actions: <Button size="sm">Undo</Button>,
+					type: 'success',
+					duration: 7000,
+					actions: (
+						<Button color="white" size="sm">
+							Undo
+						</Button>
+					),
 				})
 			}
 		>
@@ -86,6 +123,19 @@ export default function ToastDemo() {
 					`}
 				>
 					<ToastButtons />
+				</Example>
+
+				<Example
+					title="Persist"
+					code={code`
+						toast({
+							title: 'Attention:',
+							description: 'This toast will stay until dismissed.',
+							persist: true,
+						})
+					`}
+				>
+					<PersistToastButton />
 				</Example>
 
 				<Example

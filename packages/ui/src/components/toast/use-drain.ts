@@ -27,7 +27,7 @@ export function useDrain(toastsRef: React.RefObject<ToastData[]>, sync: () => vo
 	const startDrain = useCallback(() => {
 		drainingRef.current = true
 
-		const active = toastsRef.current.filter((t) => !t.overflow)
+		const active = toastsRef.current.filter((t) => !t.overflow && !t.persist)
 
 		drainQueueRef.current = active.map((t) => t.id)
 

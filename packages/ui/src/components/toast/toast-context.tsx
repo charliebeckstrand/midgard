@@ -6,16 +6,18 @@ import { createContext } from '../../core'
 import { useDrain } from './use-drain'
 import { useTimer } from './use-timer'
 
-export type ToastType = 'default' | 'success' | 'warning' | 'error'
+export type ToastType = 'default' | 'secondary' | 'success' | 'warning' | 'error'
 export type ToastPosition = 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left'
 
 export type ToastData = {
 	id: string
+	zIndex: number
 	title: string
 	description?: string
 	type?: ToastType
 	actions?: React.ReactNode
 	showCloseButton?: boolean
+	persist?: boolean
 	overflow?: boolean
 	dismissed?: boolean
 }
@@ -34,7 +36,7 @@ export { ToastContext, useToast }
 export type ToastContextProps = {
 	children: React.ReactNode
 	position?: ToastPosition
-	duration: number
+	duration?: number
 	maxToasts?: number
 	closeIcon?: React.ReactNode
 }
@@ -43,11 +45,11 @@ let counter = 0
 
 export function useToastState({
 	position,
-	duration,
+	duration = 5000,
 	maxToasts = 5,
 }: {
 	position: ToastPosition
-	duration: number
+	duration?: number
 	maxToasts?: number
 }) {
 	const isBottom = position.startsWith('bottom')
@@ -108,7 +110,7 @@ export function useToastState({
 
 			const id = `toast-${++counter}`
 
-			toastsRef.current = [...toastsRef.current, { ...data, id }]
+			toastsRef.current = [...toastsRef.current, { ...data, id, zIndex: counter }]
 
 			// Mark oldest toasts as overflow when exceeding max
 			const active = toastsRef.current.filter((t) => !t.overflow)
@@ -131,7 +133,7 @@ export function useToastState({
 
 			resetRemaining(data.duration ?? duration)
 
-			startTimer()
+			if (!data.persist) startTimer()
 
 			sync()
 
