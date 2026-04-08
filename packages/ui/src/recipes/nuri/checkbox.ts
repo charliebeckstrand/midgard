@@ -4,7 +4,7 @@ export const checkbox = defineColors({
 	zinc: {
 		light:
 			'[--checkbox-check:var(--color-white)] [--checkbox-checked-bg:var(--color-zinc-900)] [--checkbox-checked-border:var(--color-zinc-950)]/90',
-		dark: 'dark:[--checkbox-checked-bg:var(--color-zinc-600)]',
+		dark: 'dark:[--checkbox-checked-bg:var(--color-zinc-600)] dark:[--checkbox-checked-border:var(--color-zinc-700)]/90',
 	},
 	white:
 		'[--checkbox-check:var(--color-zinc-900)] [--checkbox-checked-bg:var(--color-white)] [--checkbox-checked-border:var(--color-zinc-950)]/15',
