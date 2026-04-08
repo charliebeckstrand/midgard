@@ -9,7 +9,6 @@
  */
 
 import { kage } from '../recipes/kage'
-import { ki } from '../recipes/ki'
 import { maru } from '../recipes/maru'
 import { sumi } from '../recipes/sumi'
 import { take } from '../recipes/take'
@@ -33,18 +32,18 @@ const motoi = {
 		'has-[>:disabled]:opacity-50 has-[>:disabled]:before:shadow-none has-[>:disabled]:cursor-not-allowed',
 	],
 	hidden: [
-		'absolute inset-0 appearance-none cursor-pointer',
-		'disabled:opacity-50 disabled:cursor-not-allowed',
-		'forced-colors:appearance-auto forced-colors:checked:appearance-auto',
-		ki.offset,
+		'absolute inset-0 opacity-0 cursor-pointer',
+		'disabled:cursor-not-allowed',
+		'forced-colors:opacity-100 forced-colors:appearance-auto forced-colors:checked:appearance-auto',
 	],
 	check: [
-		'absolute inset-0 appearance-none cursor-pointer',
-		'shadow-xs',
-		'not-disabled:checked:hover:opacity-90',
-		'disabled:opacity-50 disabled:cursor-not-allowed',
-		'forced-colors:appearance-auto forced-colors:checked:appearance-auto',
-		ki.offset,
+		'absolute inset-0 opacity-0 cursor-pointer',
+		'disabled:cursor-not-allowed',
+		'forced-colors:opacity-100 forced-colors:appearance-auto forced-colors:checked:appearance-auto',
+	],
+	checkSurface: [
+		'border shadow-xs',
+		'has-[:disabled]:opacity-50 has-[:disabled]:cursor-not-allowed',
 	],
 }
 
@@ -57,7 +56,7 @@ const hiru = {
 		'disabled:border-zinc-950/20 disabled:cursor-not-allowed',
 	],
 	control: ['bg-white', 'has-[>:disabled]:before:bg-zinc-950/5'],
-	check: ['border border-zinc-950/15 bg-white', 'not-disabled:hover:border-zinc-950/30'],
+	checkSurface: ['border-zinc-950/15 bg-white', 'not-has-[:disabled]:hover:border-zinc-950/30'],
 }
 
 // ── Yoru (夜) ───────────────────────────────────────────
@@ -69,7 +68,10 @@ const yoru = {
 		'dark:hover:disabled:border-white/15',
 	],
 	control: ['dark:bg-white/5', 'dark:before:hidden'],
-	check: ['dark:border-white/15 dark:bg-white/5', 'dark:not-disabled:hover:border-white/30'],
+	checkSurface: [
+		'dark:border-white/15 dark:bg-white/5',
+		'dark:not-has-[:disabled]:hover:border-white/30',
+	],
 }
 
 // ── Composed (internal) ─────────────────────────────────
@@ -79,7 +81,8 @@ const inputBase = [sumi.text, kage.border, motoi.inputBase, hiru.inputBase, yoru
 export const form = {
 	control: [motoi.control, hiru.control, yoru.control],
 	hidden: motoi.hidden,
-	check: [motoi.check, hiru.check, yoru.check],
+	check: motoi.check,
+	checkSurface: [motoi.checkSurface, hiru.checkSurface, yoru.checkSurface],
 	inputBase,
 	input: [...inputBase, take.control.md, maru.rounded],
 	date: [

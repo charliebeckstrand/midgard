@@ -8,6 +8,8 @@ export const switchColorVariants = colorCva('', k.color)
 
 export const switchVariants = cva(k.base)
 
+export const switchInputVariants = cva(k.input)
+
 export const switchThumbVariants = cva(k.thumb)
 
 export type SwitchVariants = VariantProps<typeof switchColorVariants>

@@ -7,6 +7,7 @@ export {
 export {
 	type SwitchVariants,
 	switchColorVariants,
+	switchInputVariants,
 	switchThumbVariants,
 	switchVariants,
 } from './variants'

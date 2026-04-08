@@ -8,4 +8,6 @@ export const checkboxColorVariants = colorCva('', k.color)
 
 export const checkboxVariants = cva(k.base)
 
+export const checkboxInputVariants = cva(k.input)
+
 export type CheckboxVariants = VariantProps<typeof checkboxColorVariants>
