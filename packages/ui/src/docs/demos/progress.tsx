@@ -50,7 +50,7 @@ function InteractiveBar() {
 				<ProgressBar value={60} />
 			`}
 		>
-			<div className="max-w-sm">
+			<div className="lg:max-w-sm">
 				<ProgressBar value={value} />
 			</div>
 		</Example>
@@ -106,7 +106,7 @@ export default function ProgressDemo() {
 					<ProgressBar size="lg" value={80} />
 				`}
 			>
-				<div className="flex max-w-sm flex-col gap-4">
+				<div className="flex lg:max-w-sm flex-col gap-4">
 					{barSizes.map((s) => (
 						<div key={s} className="flex items-center gap-3">
 							<span className="w-6 text-xs text-zinc-500">{s}</span>
@@ -123,7 +123,7 @@ export default function ProgressDemo() {
 					${colors.map((c) => `<ProgressBar color="${c}" value={60} />`)}
 				`}
 			>
-				<div className="flex max-w-sm flex-col gap-4">
+				<div className="flex lg:max-w-sm flex-col gap-4">
 					{colors.map((color) => (
 						<div key={color} className="flex items-center gap-3">
 							<span className="w-10 text-xs text-zinc-500">{cap(color)}</span>

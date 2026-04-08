@@ -24,7 +24,7 @@ export function AuthPage({
 }: AuthPageProps) {
 	return (
 		<AuthLayout>
-			<form onSubmit={onSubmit} className="grid gap-8 w-full max-w-sm">
+			<form onSubmit={onSubmit} className="grid gap-8 w-full lg:max-w-sm">
 				{heading}
 
 				{serverError && <Text variant="error">{serverError}</Text>}

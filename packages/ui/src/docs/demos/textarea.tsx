@@ -14,13 +14,13 @@ export default function TextareaDemo() {
 					import { Field, Label } from 'ui/fieldset'
 					import { Textarea } from 'ui/textarea'
 
-					<Field className="max-w-sm">
+					<Field className="lg:max-w-sm">
 						<Label>Message</Label>
 						<Textarea resize="vertical" placeholder="Write your message" />
 					</Field>
 				`}
 			>
-				<Field className="max-w-sm">
+				<Field className="lg:max-w-sm">
 					<Label htmlFor="textarea-message">Message</Label>
 					<Textarea id="textarea-message" resize="vertical" placeholder="Write your message" />
 				</Field>
@@ -31,13 +31,13 @@ export default function TextareaDemo() {
 					import { Field, Label } from 'ui/fieldset'
 					import { Textarea } from 'ui/textarea'
 
-					<Field className="max-w-sm">
+					<Field className="lg:max-w-sm">
 						<Label>Non-resizable</Label>
 						<Textarea placeholder="Cannot resize" />
 					</Field>
 				`}
 			>
-				<Field className="max-w-sm">
+				<Field className="lg:max-w-sm">
 					<Label htmlFor="textarea-non-resizable">Non-resizable</Label>
 					<Textarea id="textarea-non-resizable" placeholder="Cannot resize" />
 				</Field>
@@ -48,13 +48,13 @@ export default function TextareaDemo() {
 					import { Field, Label } from 'ui/fieldset'
 					import { Textarea } from 'ui/textarea'
 
-					<Field className="max-w-sm">
+					<Field className="lg:max-w-sm">
 						<Label>Invalid</Label>
 						<Textarea data-invalid placeholder="Something went wrong" />
 					</Field>
 				`}
 			>
-				<Field className="max-w-sm">
+				<Field className="lg:max-w-sm">
 					<Label htmlFor="textarea-invalid">Invalid</Label>
 					<Textarea id="textarea-invalid" data-invalid={true} placeholder="Something went wrong" />
 				</Field>

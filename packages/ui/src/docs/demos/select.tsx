@@ -14,7 +14,7 @@ export default function SelectDemo() {
 					import { Field, Label } from 'ui/fieldset'
 					import { Select, SelectLabel, SelectOption } from 'ui/select'
 
-					<Field className="max-w-sm">
+					<Field className="lg:max-w-sm">
 						<Label>Country</Label>
 						<Select placeholder="Select a country" displayValue={(v) => v}>
 							<SelectOption value="United States">
@@ -30,7 +30,7 @@ export default function SelectDemo() {
 					</Field>
 				`}
 			>
-				<Field className="max-w-sm">
+				<Field className="lg:max-w-sm">
 					<Label>Country</Label>
 					<Select placeholder="Select a country" displayValue={(v: string) => v}>
 						<SelectOption value="United States">
