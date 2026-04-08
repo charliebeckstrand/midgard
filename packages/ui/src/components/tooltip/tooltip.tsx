@@ -7,6 +7,7 @@ import {
 	offset,
 	safePolygon,
 	shift,
+	useClick,
 	useDismiss,
 	useFloating,
 	useFocus,
@@ -74,13 +75,21 @@ export function Tooltip({
 		...(interactive && { handleClose: safePolygon() }),
 	})
 
+	const click = useClick(context)
+
 	const focus = useFocus(context)
 
 	const dismiss = useDismiss(context)
 
 	const role = useRole(context, { role: 'tooltip' })
 
-	const { getReferenceProps, getFloatingProps } = useInteractions([hover, focus, dismiss, role])
+	const { getReferenceProps, getFloatingProps } = useInteractions([
+		hover,
+		click,
+		focus,
+		dismiss,
+		role,
+	])
 
 	let trigger: React.ReactNode = null
 
