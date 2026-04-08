@@ -25,7 +25,7 @@ export function Example({
 				</div>
 			)}
 			<div className="rounded-lg border border-zinc-200 dark:border-zinc-800">
-				<div className="p-4">{children}</div>
+				<div className="overflow-x-auto p-4">{children}</div>
 				{code && (
 					<Disclosure>
 						<div className="border-t border-zinc-200 dark:border-zinc-800">

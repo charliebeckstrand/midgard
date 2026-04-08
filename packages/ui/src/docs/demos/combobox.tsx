@@ -19,7 +19,7 @@ function SingleCombobox() {
 	const [selected, setSelected] = useState<string | undefined>(undefined)
 
 	return (
-		<Field className="max-w-sm">
+		<Field className="lg:max-w-sm">
 			<Label>Assignee</Label>
 			<Combobox
 				value={selected}
@@ -45,7 +45,7 @@ function MultiCombobox() {
 	const [selected, setSelected] = useState<string[]>([])
 
 	return (
-		<Field className="max-w-sm">
+		<Field className="lg:max-w-sm">
 			<Label>Assignees</Label>
 			<Combobox
 				multiple

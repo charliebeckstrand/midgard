@@ -16,13 +16,13 @@ export default function InputDemo() {
 					import { Field, Label } from 'ui/fieldset'
 					import { Input } from 'ui/input'
 
-					<Field className="max-w-sm">
+					<Field className="lg:max-w-sm">
 						<Label>Name</Label>
 						<Input placeholder="Enter text" />
 					</Field>
 				`}
 			>
-				<Field className="max-w-sm">
+				<Field className="lg:max-w-sm">
 					<Label htmlFor="input-default">Default</Label>
 					<Input id="input-default" placeholder="Enter text" />
 				</Field>
@@ -33,13 +33,13 @@ export default function InputDemo() {
 					import { Field, Label } from 'ui/fieldset'
 					import { Input } from 'ui/input'
 
-					<Field className="max-w-sm">
+					<Field className="lg:max-w-sm">
 						<Label>Name</Label>
 						<Input variant="outline" placeholder="Enter text" />
 					</Field>
 				`}
 			>
-				<Field className="max-w-sm">
+				<Field className="lg:max-w-sm">
 					<Label htmlFor="input-outline">Outline</Label>
 					<Input id="input-outline" variant="outline" placeholder="Enter text" />
 				</Field>
@@ -50,15 +50,15 @@ export default function InputDemo() {
 					import { Field, Label } from 'ui/fieldset'
 					import { Input } from 'ui/input'
 
-					<Field className="max-w-sm">
+					<Field className="lg:max-w-sm">
 						<Label>Small</Label>
 						<Input size="sm" placeholder="Small input" />
 					</Field>
-					<Field className="max-w-sm">
+					<Field className="lg:max-w-sm">
 						<Label>Medium</Label>
 						<Input size="md" placeholder="Medium input" />
 					</Field>
-					<Field className="max-w-sm">
+					<Field className="lg:max-w-sm">
 						<Label>Large</Label>
 						<Input size="lg" placeholder="Large input" />
 					</Field>
@@ -71,7 +71,7 @@ export default function InputDemo() {
 							<Input size="sm" placeholder="Small input" />
 						</Field>
 					</div>
-					<div className="flex max-w-sm flex-col gap-4">
+					<div className="flex lg:max-w-sm flex-col gap-4">
 						<Field>
 							<Label>Medium</Label>
 							<Input size="md" placeholder="Medium input" />
@@ -97,7 +97,7 @@ export default function InputDemo() {
 					<Input prefix={<Icon icon={<Hash />} />} placeholder="Channel name" />
 				`}
 			>
-				<div className="flex max-w-sm flex-col gap-4">
+				<div className="flex lg:max-w-sm flex-col gap-4">
 					<Input prefix={<Icon icon={<Search />} />} placeholder="Search" />
 					<Input prefix={<Icon icon={<Lock />} />} placeholder="Password" />
 					<Input prefix={<Icon icon={<Hash />} />} placeholder="Channel name" />
@@ -114,7 +114,7 @@ export default function InputDemo() {
 					<Input suffix={<Icon icon={<Share />} />} placeholder="Share" />
 				`}
 			>
-				<div className="flex max-w-sm flex-col gap-4">
+				<div className="flex lg:max-w-sm flex-col gap-4">
 					<Input suffix={<Icon icon={<Check />} />} placeholder="Verified" />
 					<Input suffix={<Icon icon={<Share />} />} placeholder="Share" />
 				</div>
@@ -143,7 +143,7 @@ export default function InputDemo() {
 							placeholder="Small"
 						/>
 					</div>
-					<div className="flex max-w-sm flex-col gap-4">
+					<div className="flex lg:max-w-sm flex-col gap-4">
 						<Input
 							size="md"
 							prefix={<Icon icon={<Search />} />}
@@ -167,13 +167,13 @@ export default function InputDemo() {
 					import { Field, Label } from 'ui/fieldset'
 					import { Input } from 'ui/input'
 
-					<Field className="max-w-sm">
+					<Field className="lg:max-w-sm">
 						<Label htmlFor="input-disabled">Disabled</Label>
 						<Input id="input-disabled" disabled placeholder="Disabled" />
 					</Field>
 				`}
 			>
-				<Field className="max-w-sm">
+				<Field className="lg:max-w-sm">
 					<Label htmlFor="input-disabled">Disabled</Label>
 					<Input id="input-disabled" disabled placeholder="Disabled" />
 				</Field>
@@ -184,13 +184,13 @@ export default function InputDemo() {
 					import { Field, Label } from 'ui/fieldset'
 					import { Input } from 'ui/input'
 
-					<Field className="max-w-sm">
+					<Field className="lg:max-w-sm">
 						<Label htmlFor="input-readonly">Readonly</Label>
 						<Input id="input-readonly" readOnly placeholder="Readonly" />
 					</Field>
 				`}
 			>
-				<Field className="max-w-sm">
+				<Field className="lg:max-w-sm">
 					<Label>Readonly</Label>
 					<Input readOnly placeholder="Readonly" />
 				</Field>
@@ -201,13 +201,13 @@ export default function InputDemo() {
 					import { Field, Label } from 'ui/fieldset'
 					import { Input } from 'ui/input'
 
-					<Field className="max-w-sm">
+					<Field className="lg:max-w-sm">
 						<Label htmlFor="input-invalid">Invalid</Label>
 						<Input id="input-invalid" data-invalid placeholder="Invalid input" />
 					</Field>
 				`}
 			>
-				<Field className="max-w-sm">
+				<Field className="lg:max-w-sm">
 					<Label>Invalid</Label>
 					<Input data-invalid placeholder="Invalid input" />
 				</Field>

@@ -17,7 +17,7 @@ function SingleListbox() {
 	const [selected, setSelected] = useState(statuses[0].value)
 
 	return (
-		<Field className="max-w-sm">
+		<Field className="lg:max-w-sm">
 			<Label>Status</Label>
 			<Listbox
 				value={selected}
@@ -39,7 +39,7 @@ function MultiListbox() {
 	const [selected, setSelected] = useState<string[]>([])
 
 	return (
-		<Field className="max-w-sm">
+		<Field className="lg:max-w-sm">
 			<Label>Statuses</Label>
 			<Listbox
 				multiple

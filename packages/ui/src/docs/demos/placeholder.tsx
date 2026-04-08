@@ -119,7 +119,7 @@ export default function PlaceholderDemo() {
 					<Placeholder className="max-w-[50%]" />
 				`}
 			>
-				<div className="flex flex-col gap-2 max-w-sm">
+				<div className="flex flex-col gap-2 lg:max-w-sm">
 					<Placeholder />
 					<Placeholder className="max-w-[70%]" />
 					<Placeholder className="max-w-[50%]" />
@@ -135,7 +135,7 @@ export default function PlaceholderDemo() {
 					<Placeholder variant="rect" className="h-24" />
 				`}
 			>
-				<div className="flex flex-col gap-2 max-w-sm">
+				<div className="flex flex-col gap-2 lg:max-w-sm">
 					<Placeholder variant="rect" className="h-10" />
 					<Placeholder variant="rect" className="h-24" />
 				</div>
@@ -151,7 +151,7 @@ export default function PlaceholderDemo() {
 					<Placeholder variant="circle" className="size-12" />
 				`}
 			>
-				<div className="flex items-center gap-2 max-w-sm">
+				<div className="flex items-center gap-2 lg:max-w-sm">
 					<Placeholder variant="circle" className="size-8" />
 					<Placeholder variant="circle" className="size-10" />
 					<Placeholder variant="circle" className="size-12" />
@@ -175,7 +175,7 @@ export default function PlaceholderDemo() {
 			>
 				<div className="flex items-start gap-3">
 					<Placeholder variant="circle" className="size-10" />
-					<div className="flex-1 space-y-2 max-w-sm">
+					<div className="flex-1 space-y-2 lg:max-w-sm">
 						<Placeholder className="max-w-[40%]" />
 						<Placeholder />
 						<Placeholder className="max-w-[80%]" />
