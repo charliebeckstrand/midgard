@@ -225,6 +225,15 @@ function useDarkMode() {
 function SidebarContent({ route }: { route: string }) {
 	const offcanvas = useOffcanvas()
 
+	// Scroll the active item into view when the mobile sidebar opens
+	useEffect(() => {
+		if (!offcanvas) return
+
+		const sheet = document.querySelector('[data-slot="sheet"]')
+		const current = sheet?.querySelector<HTMLElement>('[data-current]')
+		current?.scrollIntoView({ block: 'nearest', behavior: 'instant' })
+	}, [offcanvas])
+
 	return (
 		<Sidebar>
 			<SidebarHeader className="">
