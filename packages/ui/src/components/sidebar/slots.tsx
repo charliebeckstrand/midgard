@@ -1,5 +1,6 @@
 'use client'
 
+import { X } from 'lucide-react'
 import { cn } from '../../core'
 import { useOffcanvas } from '../../core/offcanvas-context'
 import { katachi } from '../../recipes'
@@ -29,7 +30,7 @@ export function SidebarHeader({ className, children, closeIcon, ...props }: Side
 					onClick={offcanvas.close}
 					className="ml-auto"
 				>
-					{closeIcon ?? <Icon name="x" />}
+					{closeIcon ?? <Icon icon={<X />} />}
 				</Button>
 			)}
 		</div>

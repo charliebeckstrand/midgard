@@ -13,6 +13,7 @@
  */
 
 import { activeIndicator } from './active-indicator'
+import { alert } from './alert'
 import { avatar } from './avatar'
 import { badge } from './badge'
 import { breadcrumb } from './breadcrumb'
@@ -35,6 +36,7 @@ import { option } from './option'
 import { pagination } from './pagination'
 import { panel } from './panel'
 import { placeholder } from './placeholder'
+import { progress } from './progress'
 import { radio } from './radio'
 import { select } from './select'
 import { sheet } from './sheet'
@@ -50,6 +52,7 @@ import { tooltip } from './tooltip'
 
 export const katachi = {
 	activeIndicator,
+	alert,
 	avatar,
 	badge,
 	breadcrumb,
@@ -72,6 +75,7 @@ export const katachi = {
 	pagination,
 	panel,
 	placeholder,
+	progress,
 	radio,
 	select,
 	sheet,

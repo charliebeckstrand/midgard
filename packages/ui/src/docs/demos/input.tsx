@@ -1,3 +1,4 @@
+import { Check, Command, Hash, Lock, Search, Share } from 'lucide-react'
 import { Field, Label } from '../../components/fieldset'
 import { Icon } from '../../components/icon'
 import { Input } from '../../components/input'
@@ -87,60 +88,49 @@ export default function InputDemo() {
 			<Example
 				title="Prefix"
 				code={code`
-					import { Field, Label } from 'ui/fieldset'
+					import { Search, Lock, Hash } from 'lucide-react'
 					import { Icon } from 'ui/icon'
 					import { Input } from 'ui/input'
 
-					<Input prefix={<Icon name="search" />} placeholder="Search" />
-					<Input prefix={<Icon name="lock" />} placeholder="Password" />
-					<Input prefix={<Icon name="hash" />} placeholder="Channel name" />
+					<Input prefix={<Icon icon={<Search />} />} placeholder="Search" />
+					<Input prefix={<Icon icon={<Lock />} />} placeholder="Password" />
+					<Input prefix={<Icon icon={<Hash />} />} placeholder="Channel name" />
 				`}
 			>
 				<div className="flex max-w-sm flex-col gap-4">
-					<Input prefix={<Icon name="search" />} placeholder="Search" />
-					<Input prefix={<Icon name="lock" />} placeholder="Password" />
-					<Input prefix={<Icon name="hash" />} placeholder="Channel name" />
+					<Input prefix={<Icon icon={<Search />} />} placeholder="Search" />
+					<Input prefix={<Icon icon={<Lock />} />} placeholder="Password" />
+					<Input prefix={<Icon icon={<Hash />} />} placeholder="Channel name" />
 				</div>
 			</Example>
 			<Example
 				title="Suffix"
 				code={code`
-					import { Field, Label } from 'ui/fieldset'
+					import { Check, Share } from 'lucide-react'
 					import { Icon } from 'ui/icon'
 					import { Input } from 'ui/input'
 
-					<Input suffix={<Icon name="check" />} placeholder="Verified" />
-					<Input suffix={<Icon name="share" />} placeholder="Share" />
+					<Input suffix={<Icon icon={<Check />} />} placeholder="Verified" />
+					<Input suffix={<Icon icon={<Share />} />} placeholder="Share" />
 				`}
 			>
 				<div className="flex max-w-sm flex-col gap-4">
-					<Input suffix={<Icon name="check" />} placeholder="Verified" />
-					<Input suffix={<Icon name="share" />} placeholder="Share" />
+					<Input suffix={<Icon icon={<Check />} />} placeholder="Verified" />
+					<Input suffix={<Icon icon={<Share />} />} placeholder="Share" />
 				</div>
 			</Example>
 			<Example
 				title="Prefix and suffix"
 				code={code`
+					import { Search, Command } from 'lucide-react'
 					import { Icon } from 'ui/icon'
 					import { Input } from 'ui/input'
 
 					<Input
 						size="sm"
-						prefix={<Icon name="search" />}
-						suffix={<Icon name="command" />}
+						prefix={<Icon icon={<Search />} />}
+						suffix={<Icon icon={<Command />} />}
 						placeholder="Small"
-					/>
-					<Input
-						size="md"
-						prefix={<Icon name="search" />}
-						suffix={<Icon name="command" />}
-						placeholder="Medium"
-					/>
-					<Input
-						size="lg"
-						prefix={<Icon name="search" />}
-						suffix={<Icon name="command" />}
-						placeholder="Large"
 					/>
 				`}
 			>
@@ -148,24 +138,24 @@ export default function InputDemo() {
 					<div className="flex max-w-xs flex-col gap-4">
 						<Input
 							size="sm"
-							prefix={<Icon name="search" />}
-							suffix={<Icon name="command" />}
+							prefix={<Icon icon={<Search />} />}
+							suffix={<Icon icon={<Command />} />}
 							placeholder="Small"
 						/>
 					</div>
 					<div className="flex max-w-sm flex-col gap-4">
 						<Input
 							size="md"
-							prefix={<Icon name="search" />}
-							suffix={<Icon name="command" />}
+							prefix={<Icon icon={<Search />} />}
+							suffix={<Icon icon={<Command />} />}
 							placeholder="Medium"
 						/>
 					</div>
 					<div className="flex max-w-md flex-col gap-4">
 						<Input
 							size="lg"
-							prefix={<Icon name="search" />}
-							suffix={<Icon name="command" />}
+							prefix={<Icon icon={<Search />} />}
+							suffix={<Icon icon={<Command />} />}
 							placeholder="Large"
 						/>
 					</div>

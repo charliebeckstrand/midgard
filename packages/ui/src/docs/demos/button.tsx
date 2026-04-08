@@ -1,5 +1,6 @@
 'use client'
 
+import { Plus } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
@@ -91,13 +92,13 @@ export default function ButtonDemo() {
 					import { Button } from 'ui/button'
 					import { Icon } from 'ui/icon'
 
-					${variants.map((v) => `<Button variant="${v}" size="${iconSize}">\n  <Icon name="plus" />\n  ${cap(v)}\n</Button>`)}
+					${variants.map((v) => `<Button variant="${v}" size="${iconSize}">\n  <Icon icon={<Plus />} />\n  ${cap(v)}\n</Button>`)}
 				`}
 			>
 				<div className="flex flex-wrap gap-2">
 					{variants.map((variant) => (
 						<Button key={variant} variant={variant} size={iconSize}>
-							<Icon name="plus" />
+							<Icon icon={<Plus />} />
 							{variant}
 						</Button>
 					))}
@@ -110,13 +111,13 @@ export default function ButtonDemo() {
 					import { Button } from 'ui/button'
 					import { Icon } from 'ui/icon'
 
-					${variants.map((v) => `<Button variant="${v}" size="${iconOnlySize}">\n  <Icon name="plus" />\n</Button>`)}
+					${variants.map((v) => `<Button variant="${v}" size="${iconOnlySize}">\n  <Icon icon={<Plus />} />\n</Button>`)}
 				`}
 			>
 				<div className="flex flex-wrap gap-2">
 					{variants.map((variant) => (
 						<Button key={variant} variant={variant} size={iconOnlySize}>
-							<Icon name="plus" />
+							<Icon icon={<Plus />} />
 						</Button>
 					))}
 				</div>

@@ -1,5 +1,6 @@
 'use client'
 
+import { X } from 'lucide-react'
 import { motion } from 'motion/react'
 import { cn } from '../../core'
 import { katachi, ugoki } from '../../recipes'
@@ -80,7 +81,7 @@ export function ToastCard({
 						className={cn(katachi.toast.close)}
 						onClick={() => onDismiss(t.id)}
 					>
-						{closeIcon ?? <Icon name="x" />}
+						{closeIcon ?? <Icon icon={<X />} />}
 					</Button>
 				)}
 			</motion.div>

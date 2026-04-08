@@ -13,6 +13,7 @@ import {
 	useInteractions,
 	useRole,
 } from '@floating-ui/react'
+import { ChevronsUpDown } from 'lucide-react'
 import { AnimatePresence } from 'motion/react'
 import type React from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -268,7 +269,7 @@ export function Combobox<T>({
 						onClick={() => setOpen(!open)}
 						className={cn(k.chevron)}
 					>
-						{icon ?? <Icon name="chevron-up-down" />}
+						{icon ?? <Icon icon={<ChevronsUpDown />} />}
 					</button>
 				</FormControl>
 			</div>

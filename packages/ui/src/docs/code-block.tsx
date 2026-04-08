@@ -1,5 +1,6 @@
 'use client'
 
+import { Check, Clipboard } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { type BundledTheme, codeToHtml } from 'shiki'
 import { Button } from '../components/button'
@@ -34,7 +35,7 @@ function CopyButton({ code }: { code: string }) {
 				aria-label={copied ? 'Copied' : 'Copy to clipboard'}
 				className={`${copied ? 'text-green-500!' : 'text-zinc-400! hover:text-white!'} disabled:opacity-100`}
 			>
-				{copied ? <Icon name="check" /> : <Icon name="clipboard" />}
+				{copied ? <Icon icon={<Check />} /> : <Icon icon={<Clipboard />} />}
 			</Button>
 		</div>
 	)

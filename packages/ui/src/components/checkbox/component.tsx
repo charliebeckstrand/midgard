@@ -1,6 +1,6 @@
+import { Check } from 'lucide-react'
 import { cn } from '../../core'
 import { ToggleField, ToggleGroup } from '../../primitives'
-import { CheckboxIcon } from '../icon'
 import { type CheckboxVariants, checkboxColorVariants, checkboxVariants } from './variants'
 
 export type CheckboxProps = CheckboxVariants & {
@@ -23,7 +23,14 @@ export function Checkbox({ className, color, icon, ...props }: CheckboxProps) {
 				className={cn(checkboxVariants(), 'focus-visible:ring-0', className)}
 				{...props}
 			/>
-			{icon ?? <CheckboxIcon />}
+			{icon ?? (
+				<Check
+					data-slot="checkbox-check"
+					aria-hidden="true"
+					className="pointer-events-none absolute size-3 stroke-(--checkbox-check) opacity-0"
+					strokeWidth={2}
+				/>
+			)}
 		</span>
 	)
 }

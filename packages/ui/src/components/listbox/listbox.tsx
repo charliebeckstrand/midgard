@@ -13,6 +13,7 @@ import {
 	useInteractions,
 	useRole,
 } from '@floating-ui/react'
+import { ChevronsUpDown } from 'lucide-react'
 import { AnimatePresence } from 'motion/react'
 import type React from 'react'
 import { useCallback, useRef, useState } from 'react'
@@ -181,7 +182,7 @@ export function Listbox<T>({
 						<span className={k.value}>
 							{label || <span className={cn(sumi.textMuted)}>{placeholder}</span>}
 						</span>
-						<span className={cn(k.chevron)}>{icon ?? <Icon name="chevron-up-down" />}</span>
+						<span className={cn(k.chevron)}>{icon ?? <Icon icon={<ChevronsUpDown />} />}</span>
 					</button>
 				</FormControl>
 			</div>

@@ -1,5 +1,6 @@
 'use client'
 
+import { ChevronRight, Moon, Sun } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { Badge } from '../components/badge'
 import { Button } from '../components/button'
@@ -183,7 +184,10 @@ function DemoPage({ demo }: { demo: (typeof demos)[number] }) {
 					<Divider />
 					<Disclosure>
 						<DisclosureButton className="-mt-4 -ml-2">
-							<Icon name="chevron-right" className="transition-transform in-data-open:rotate-90" />
+							<Icon
+								icon={<ChevronRight />}
+								className="transition-transform in-data-open:rotate-90"
+							/>
 							API Reference
 						</DisclosureButton>
 						<DisclosurePanel>
@@ -283,14 +287,14 @@ export function App() {
 		<SidebarLayout
 			actions={
 				<Button variant="plain" onClick={toggleDark} aria-label="Toggle dark mode">
-					{dark ? <Icon name="sun" /> : <Icon name="moon" />}
+					{dark ? <Icon icon={<Sun />} /> : <Icon icon={<Moon />} />}
 				</Button>
 			}
 			navbar={
 				<Navbar>
 					<NavbarSpacer />
 					<Button variant="plain" onClick={toggleDark} aria-label="Toggle dark mode">
-						{dark ? <Icon name="sun" /> : <Icon name="moon" />}
+						{dark ? <Icon icon={<Sun />} /> : <Icon icon={<Moon />} />}
 					</Button>
 				</Navbar>
 			}

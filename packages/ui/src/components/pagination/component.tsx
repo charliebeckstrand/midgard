@@ -1,3 +1,4 @@
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '../../core'
 import { Polymorphic, type PolymorphicProps } from '../../primitives'
 import { Button, type ButtonProps } from '../button'
@@ -99,7 +100,7 @@ function PaginationNavButton({
 }
 
 export function PaginationPrevious({
-	children = <Icon name="chevron-left" />,
+	children = <Icon icon={<ChevronLeft />} />,
 	...props
 }: PaginationPreviousProps) {
 	return (
@@ -110,7 +111,7 @@ export function PaginationPrevious({
 }
 
 export function PaginationNext({
-	children = <Icon name="chevron-right" />,
+	children = <Icon icon={<ChevronRight />} />,
 	...props
 }: PaginationNextProps) {
 	return (
