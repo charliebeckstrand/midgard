@@ -61,5 +61,5 @@ export const sawari = {
 	cursor: 'cursor-default',
 	hover: motoi.hover,
 	focusText: 'group-focus/option:text-white',
-	focusTextMuted: 'group-focus/option:text-white/70',
+	focusTextMuted: 'group-focus/option:text-white/75',
 }

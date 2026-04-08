@@ -13,7 +13,7 @@ export const sheet = {
 			'max-sm:inset-x-0 max-sm:bottom-0 max-sm:w-full max-sm:max-h-full max-sm:min-h-[50svh] max-sm:rounded-b-none',
 		],
 		glass: {
-			true: 'bg-transparent',
+			true: 'bg-transparent backdrop-blur-md',
 			false: omote.panel.bg,
 		},
 		side: {

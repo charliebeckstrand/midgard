@@ -15,7 +15,7 @@ export const sheetPanelVariants = cva(k.panel.base, {
 export const sheetBackdropVariants = cva('absolute inset-0', {
 	variants: {
 		glass: {
-			true: [omote.backdrop.color, 'backdrop-blur-lg'],
+			true: [omote.backdrop.color, 'backdrop-blur-md'],
 			false: omote.backdrop.base,
 		},
 	},

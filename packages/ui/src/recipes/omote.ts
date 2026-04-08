@@ -23,7 +23,7 @@ const motoi = {
 const hiru = {
 	panel: 'bg-white',
 	content: 'lg:bg-white lg:ring-1 lg:ring-zinc-950/5',
-	backdrop: 'bg-zinc-950/50',
+	backdrop: 'bg-white/50',
 	popover: 'bg-white/90 ring-1 ring-zinc-950/10',
 	surface: 'bg-white',
 	tint: 'bg-zinc-950/5',
@@ -35,7 +35,7 @@ const hiru = {
 const yoru = {
 	panel: 'dark:bg-zinc-900',
 	content: 'dark:lg:bg-zinc-900 dark:lg:ring-white/10',
-	backdrop: 'dark:bg-zinc-950/70',
+	backdrop: 'dark:bg-zinc-950/50',
 	popover: ['dark:bg-zinc-800/75', 'dark:ring-white/10 dark:ring-inset'],
 	surface: 'dark:bg-zinc-900',
 	tint: 'dark:bg-white/10',
