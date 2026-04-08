@@ -18,6 +18,7 @@ import { avatar } from './avatar'
 import { badge } from './badge'
 import { breadcrumb } from './breadcrumb'
 import { button } from './button'
+import { card } from './card'
 import { checkbox } from './checkbox'
 import { chip } from './chip'
 import { combobox } from './combobox'
@@ -57,6 +58,7 @@ export const katachi = {
 	badge,
 	breadcrumb,
 	button,
+	card,
 	checkbox,
 	chip,
 	combobox,
