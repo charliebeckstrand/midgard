@@ -44,7 +44,7 @@ export default function TimelineDemo() {
 							Finalized wireframes and design system tokens.
 						</TimelineDescription>
 					</TimelineItem>
-					<TimelineItem last>
+					<TimelineItem>
 						<TimelineMarker />
 						<TimelineTimestamp>Mar 2026</TimelineTimestamp>
 						<TimelineHeading>Beta released</TimelineHeading>
@@ -77,7 +77,7 @@ export default function TimelineDemo() {
 						<TimelineTimestamp>Step 2</TimelineTimestamp>
 						<TimelineHeading>Verify</TimelineHeading>
 					</TimelineItem>
-					<TimelineItem last>
+					<TimelineItem>
 						<TimelineMarker />
 						<TimelineTimestamp>Step 3</TimelineTimestamp>
 						<TimelineHeading>Complete</TimelineHeading>
@@ -92,11 +92,21 @@ export default function TimelineDemo() {
 					<Timeline>
 						<TimelineItem>
 							<TimelineMarker />
-							<TimelineHeading>Completed</TimelineHeading>
+							<TimelineTimestamp>Mon, Apr 7</TimelineTimestamp>
+							<TimelineHeading>Requirements gathered</TimelineHeading>
+							<TimelineDescription>Stakeholder interviews and scope definition.</TimelineDescription>
 						</TimelineItem>
-						<TimelineItem active>
+						<TimelineItem>
 							<TimelineMarker active />
-							<TimelineHeading>In progress</TimelineHeading>
+							<TimelineTimestamp>Wed, Apr 9</TimelineTimestamp>
+							<TimelineHeading>Implementation in progress</TimelineHeading>
+							<TimelineDescription>Building the timeline component.</TimelineDescription>
+						</TimelineItem>
+						<TimelineItem>
+							<TimelineMarker />
+							<TimelineTimestamp>Fri, Apr 11</TimelineTimestamp>
+							<TimelineHeading>Code review</TimelineHeading>
+							<TimelineDescription>Pending team review and approval.</TimelineDescription>
 						</TimelineItem>
 					</Timeline>
 				`}
@@ -108,13 +118,13 @@ export default function TimelineDemo() {
 						<TimelineHeading>Requirements gathered</TimelineHeading>
 						<TimelineDescription>Stakeholder interviews and scope definition.</TimelineDescription>
 					</TimelineItem>
-					<TimelineItem active>
+					<TimelineItem>
 						<TimelineMarker active />
 						<TimelineTimestamp>Wed, Apr 9</TimelineTimestamp>
 						<TimelineHeading>Implementation in progress</TimelineHeading>
 						<TimelineDescription>Building the timeline component.</TimelineDescription>
 					</TimelineItem>
-					<TimelineItem last>
+					<TimelineItem>
 						<TimelineMarker />
 						<TimelineTimestamp>Fri, Apr 11</TimelineTimestamp>
 						<TimelineHeading>Code review</TimelineHeading>
@@ -132,7 +142,21 @@ export default function TimelineDemo() {
 							<TimelineMarker />
 							<TimelineTimestamp>10:30 AM</TimelineTimestamp>
 							<TimelineHeading>Commit pushed</TimelineHeading>
-							<TimelineDescription>Updated dependencies and fixed linting errors.</TimelineDescription>
+							<TimelineDescription>
+								Updated dependencies and fixed linting errors.
+							</TimelineDescription>
+						</TimelineItem>
+						<TimelineItem>
+							<TimelineMarker />
+							<TimelineTimestamp>11:15 AM</TimelineTimestamp>
+							<TimelineHeading>Review requested</TimelineHeading>
+							<TimelineDescription>Assigned to two reviewers for approval.</TimelineDescription>
+						</TimelineItem>
+						<TimelineItem>
+							<TimelineMarker active />
+							<TimelineTimestamp>2:00 PM</TimelineTimestamp>
+							<TimelineHeading>Merged to main</TimelineHeading>
+							<TimelineDescription>All checks passed, deployed to staging.</TimelineDescription>
 						</TimelineItem>
 					</Timeline>
 				`}
@@ -152,8 +176,8 @@ export default function TimelineDemo() {
 						<TimelineHeading>Review requested</TimelineHeading>
 						<TimelineDescription>Assigned to two reviewers for approval.</TimelineDescription>
 					</TimelineItem>
-					<TimelineItem last>
-						<TimelineMarker />
+					<TimelineItem>
+						<TimelineMarker active />
 						<TimelineTimestamp>2:00 PM</TimelineTimestamp>
 						<TimelineHeading>Merged to main</TimelineHeading>
 						<TimelineDescription>All checks passed, deployed to staging.</TimelineDescription>

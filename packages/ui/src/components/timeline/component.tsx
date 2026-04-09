@@ -42,12 +42,11 @@ export function Timeline({
 
 export type TimelineItemProps = {
 	active?: boolean
-	last?: boolean
 	className?: string
 	children?: React.ReactNode
 }
 
-export function TimelineItem({ active, last, className, children }: TimelineItemProps) {
+export function TimelineItem({ active, className, children }: TimelineItemProps) {
 	const { orientation, variant } = useTimeline()
 
 	return (
@@ -60,7 +59,7 @@ export function TimelineItem({ active, last, className, children }: TimelineItem
 				className,
 			)}
 		>
-			{!last && <TimelineConnector orientation={orientation} variant={variant} />}
+			<TimelineConnector orientation={orientation} variant={variant} />
 			{children}
 		</li>
 	)

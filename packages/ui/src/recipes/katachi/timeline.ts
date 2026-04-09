@@ -11,19 +11,16 @@ export const timeline = {
 		outline: '',
 	},
 	item: {
-		base: 'relative',
-		vertical: 'pl-8 pb-8 last:pb-0',
-		horizontal: 'pt-8 pr-8 last:pr-0',
+		base: 'relative last:[&>[data-slot=timeline-connector]]:hidden',
+		vertical: 'grid grid-cols-[0.875rem_1fr] gap-x-4 pb-8 last:pb-0',
+		horizontal: 'pl-[6.5px] pt-8 pr-8 last:pr-0',
 		active: '',
 	},
 	connector: {
 		base: 'absolute',
 		vertical: {
-			solid: ['left-[6px] top-[20.5px] -bottom-[6.5px] w-0.5', 'bg-zinc-200 dark:bg-zinc-700'],
-			outline: [
-				'left-[6.5px] top-[20.5px] -bottom-[6.5px] w-px',
-				'bg-zinc-950/10 dark:bg-white/10',
-			],
+			solid: ['left-[6px] top-[7px] -bottom-[7px] w-0.5', 'bg-zinc-200 dark:bg-zinc-700'],
+			outline: ['left-[6.5px] top-[7px] -bottom-[7px] w-px', 'bg-zinc-950/10 dark:bg-white/10'],
 		},
 		horizontal: {
 			solid: ['top-[6px] left-[20.5px] -right-[6.5px] h-0.5', 'bg-zinc-200 dark:bg-zinc-700'],
@@ -31,18 +28,18 @@ export const timeline = {
 		},
 	},
 	marker: {
-		base: ['absolute z-10 flex items-center justify-center', 'size-3.5 rounded-full'],
+		base: ['z-10 flex items-center justify-center', 'size-3.5 rounded-full'],
 		solid: 'bg-zinc-300 dark:bg-zinc-600',
 		outline: 'border-2 border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900',
 		active: {
 			solid: 'bg-blue-500 dark:bg-blue-400',
-			outline: 'border-blue-500 dark:border-blue-400 bg-white dark:bg-zinc-900',
+			outline: 'border-2 border-blue-500 dark:border-blue-400 bg-white dark:bg-zinc-900',
 		},
-		vertical: 'left-0 top-[6.5px]',
-		horizontal: 'top-0 left-[6.5px]',
+		vertical: 'col-start-1 row-start-1 self-center justify-self-center',
+		horizontal: 'absolute top-0 left-[6.5px]',
 	},
-	heading: ['text-sm/6 font-semibold', sumi.text],
-	description: ['mt-0.5 text-sm/5', sumi.textMuted],
-	timestamp: ['text-xs/5', sumi.textMuted],
+	heading: ['col-start-2 text-sm/6 font-semibold', sumi.text],
+	description: ['col-start-2 mt-0.5 text-sm/5', sumi.textMuted],
+	timestamp: ['col-start-2 text-xs/5', sumi.textMuted],
 	defaults: { orientation: 'vertical' as const, variant: 'solid' as const },
 }
