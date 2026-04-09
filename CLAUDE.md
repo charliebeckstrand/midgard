@@ -28,3 +28,7 @@
 ## Workflow
 
 For non-trivial work (three or more steps), enter planning mode before writing code. Delegate research to subagents — one focused task per agent — and keep the main context window clean. Summarize at milestones, not line by line.
+
+## Skills
+
+- When asked to create, add, build, or scaffold a new UI component in `packages/ui`, always use the `/ui-component` skill. This ensures the component follows established patterns, uses the recipe system correctly, and integrates with existing primitives.
