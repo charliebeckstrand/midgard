@@ -6,8 +6,8 @@ export const dl = {
 	term: [
 		sumi.textMuted,
 		kage.borderSubtleColor,
-		'col-start-1 border-t pt-3 first:border-none first:pt-0',
-		'sm:py-3 sm:first:pt-0',
+		'col-start-1 border-t pt-3 first:border-none',
+		'sm:py-3',
 		'font-medium',
 	],
 	details: [
@@ -15,6 +15,6 @@ export const dl = {
 		kage.borderSubtleColor,
 		'pb-3 pt-1',
 		'sm:border-t sm:py-3',
-		'sm:nth-2:border-none sm:nth-2:pt-0',
+		'sm:nth-2:border-none',
 	],
 }
