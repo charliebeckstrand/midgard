@@ -98,18 +98,18 @@ export function Alert({
 				)}
 			>
 				<div className={cn(k.content)}>
-					<div className="flex items-center gap-2">
+					<div className="flex items-center gap-3">
 						{resolvedIcon && <Icon icon={resolvedIcon} className={cn('shrink-0')} />}
 						{title && <div className={cn(k.title)}>{title}</div>}
 					</div>
 
 					{description && (
-						<div className={cn(k.description, resolvedIcon && 'pl-7')}>{description}</div>
+						<div className={cn(k.description, resolvedIcon && 'pl-8')}>{description}</div>
 					)}
 
 					{children}
 
-					{actions && <div className={cn(k.actions, resolvedIcon && 'pl-7')}>{actions}</div>}
+					{actions && <div className={cn(k.actions, resolvedIcon && 'pl-8')}>{actions}</div>}
 				</div>
 
 				{closable && (
