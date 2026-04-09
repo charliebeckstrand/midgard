@@ -3,7 +3,7 @@
 import type { ButtonVariants } from '../button'
 import { Button } from '../button'
 import { Dialog } from './dialog'
-import { DialogActions, DialogBody, DialogDescription, DialogTitle } from './slots'
+import { DialogActions, DialogDescription, DialogTitle } from './slots'
 import type { DialogPanelVariants } from './variants'
 
 type ConfirmDialogAction = {
@@ -40,7 +40,7 @@ export function ConfirmDialog({
 		<Dialog open={open} onClose={onClose} size={size} className={className}>
 			{title && <DialogTitle>{title}</DialogTitle>}
 			{description && <DialogDescription>{description}</DialogDescription>}
-			{children && <DialogBody>{children}</DialogBody>}
+			{children}
 			<DialogActions>
 				<Button variant="plain" color={cancel?.color} disabled={cancel?.disabled} onClick={onClose}>
 					{cancel?.label ?? 'Cancel'}

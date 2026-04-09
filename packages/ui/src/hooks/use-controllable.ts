@@ -10,7 +10,7 @@ import { useCallback, useState } from 'react'
 export function useControllable<T>(props: {
 	value?: T | null
 	defaultValue?: T
-	onChange?: (value: T) => void
+	onChange?: (value: T | undefined) => void
 }): [T | undefined, (value: T | undefined) => void] {
 	const { value, defaultValue, onChange } = props
 
@@ -22,9 +22,9 @@ export function useControllable<T>(props: {
 
 	const setValue = useCallback(
 		(newValue: T | undefined) => {
-			if (!isControlled || newValue === undefined) setInternalValue(newValue)
+			if (!isControlled) setInternalValue(newValue)
 
-			if (newValue !== undefined) onChange?.(newValue)
+			onChange?.(newValue)
 		},
 		[isControlled, onChange],
 	)

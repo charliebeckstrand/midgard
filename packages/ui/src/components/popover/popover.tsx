@@ -15,7 +15,7 @@ import {
 } from '@floating-ui/react'
 import { AnimatePresence, motion } from 'motion/react'
 import type React from 'react'
-import { cloneElement, isValidElement, useCallback, useRef, useState } from 'react'
+import { cloneElement, isValidElement, useCallback, useEffect, useRef, useState } from 'react'
 import { cn, createContext } from '../../core'
 import { katachi, ugoki } from '../../recipes'
 
@@ -29,8 +29,8 @@ type PopoverContextValue = {
 	setReference: (node: HTMLElement | null) => void
 	setFloating: (node: HTMLElement | null) => void
 	floatingStyles: React.CSSProperties
-	getReferenceProps: () => Record<string, unknown>
-	getFloatingProps: () => Record<string, unknown>
+	getReferenceProps: (userProps?: object) => Record<string, unknown>
+	getFloatingProps: (userProps?: object) => Record<string, unknown>
 	onExitComplete?: () => void
 }
 
@@ -114,9 +114,10 @@ export function Popover({
 export type PopoverTriggerProps = {
 	children: React.ReactNode
 	className?: string
+	manual?: boolean
 }
 
-export function PopoverTrigger({ children, className }: PopoverTriggerProps) {
+export function PopoverTrigger({ children, className, manual = false }: PopoverTriggerProps) {
 	const { open, triggerRef, setReference, getReferenceProps } = usePopoverContext()
 
 	const mergeRefs = useCallback(
@@ -128,27 +129,56 @@ export function PopoverTrigger({ children, className }: PopoverTriggerProps) {
 		[triggerRef, setReference],
 	)
 
-	const referenceProps = getReferenceProps()
+	const ignoreTrigger = useCallback((target: EventTarget | null): boolean => {
+		if (!(target instanceof Element)) return false
+
+		return target.closest('[data-popover-ignore]') !== null
+	}, [])
+
+	const stopIgnoredTriggerEvent = useCallback(
+		(e: React.SyntheticEvent<HTMLElement>) => {
+			if (!ignoreTrigger(e.target)) return
+
+			e.preventDefault()
+			e.stopPropagation()
+		},
+		[ignoreTrigger],
+	)
 
 	if (isValidElement(children)) {
-		return cloneElement(children as React.ReactElement<Record<string, unknown>>, {
+		const child = children as React.ReactElement<
+			React.HTMLAttributes<HTMLElement> &
+				React.RefAttributes<HTMLElement> & { [key: `data-${string}`]: string | undefined }
+		>
+		const referenceProps = manual ? child.props : getReferenceProps(child.props)
+
+		return cloneElement(child, {
+			...(referenceProps as React.HTMLAttributes<HTMLElement>),
 			ref: mergeRefs,
 			'aria-haspopup': 'dialog',
 			'aria-expanded': open,
 			'data-slot': 'popover-trigger',
-			...referenceProps,
+			onPointerDownCapture: stopIgnoredTriggerEvent,
+			onMouseDownCapture: stopIgnoredTriggerEvent,
+			onClickCapture: stopIgnoredTriggerEvent,
+			className: cn(k.trigger, child.props.className, className),
 		})
 	}
 
+	const referenceProps = manual ? {} : getReferenceProps()
+
 	return (
 		<button
+			{...referenceProps}
 			ref={mergeRefs}
 			type="button"
 			aria-haspopup="dialog"
 			aria-expanded={open}
 			data-slot="popover-trigger"
+			onPointerDownCapture={stopIgnoredTriggerEvent}
+			onMouseDownCapture={stopIgnoredTriggerEvent}
+			onClickCapture={stopIgnoredTriggerEvent}
 			className={cn(k.trigger, className)}
-			{...referenceProps}
 		>
 			{children}
 		</button>
@@ -157,12 +187,20 @@ export function PopoverTrigger({ children, className }: PopoverTriggerProps) {
 
 export type PopoverContentProps = {
 	className?: string
+	autoFocus?: boolean
 	children: React.ReactNode
 }
 
-export function PopoverContent({ className, children }: PopoverContentProps) {
+export function PopoverContent({ className, autoFocus = false, children }: PopoverContentProps) {
 	const { open, setFloating, floatingStyles, getFloatingProps, onExitComplete } =
 		usePopoverContext()
+	const contentRef = useRef<HTMLDivElement | null>(null)
+
+	useEffect(() => {
+		if (open && autoFocus) {
+			contentRef.current?.focus()
+		}
+	}, [open, autoFocus])
 
 	return (
 		<FloatingPortal>
@@ -176,6 +214,8 @@ export function PopoverContent({ className, children }: PopoverContentProps) {
 					>
 						<motion.div
 							{...ugoki.popover}
+							ref={contentRef}
+							tabIndex={autoFocus ? -1 : undefined}
 							data-slot="popover-content"
 							className={cn(k.content, className)}
 						>

@@ -1,7 +1,7 @@
 'use client'
 
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { katachi } from '../../recipes'
@@ -69,6 +69,7 @@ export type CalendarProps = {
 	rangeEnd?: Date | null
 	hoverDate?: Date | null
 	onHoverDate?: (date: Date | null) => void
+	activeDate?: Date | null
 	className?: string
 }
 
@@ -82,9 +83,23 @@ export function Calendar({
 	rangeEnd,
 	hoverDate,
 	onHoverDate,
+	activeDate,
 	className,
 }: CalendarProps) {
-	const [value, setValue] = useControllable({ value: valueProp, defaultValue, onChange })
+	const handleValueChange = useCallback(
+		(nextValue: Date | undefined) => {
+			if (nextValue === undefined) return
+
+			onChange?.(nextValue)
+		},
+		[onChange],
+	)
+
+	const [value, setValue] = useControllable({
+		value: valueProp,
+		defaultValue,
+		onChange: handleValueChange,
+	})
 
 	const today = useMemo(() => new Date(), [])
 
@@ -125,6 +140,15 @@ export function Calendar({
 
 	const monthLabel = viewDate.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
 
+	useEffect(() => {
+		if (!activeDate) return
+
+		const nextMonth = new Date(activeDate.getFullYear(), activeDate.getMonth(), 1)
+		if (nextMonth.getTime() !== viewDate.getTime()) {
+			setViewDate(nextMonth)
+		}
+	}, [activeDate, viewDate])
+
 	return (
 		<div data-slot="calendar" className={cn(k.root, className)}>
 			<div className={k.header}>
@@ -155,6 +179,7 @@ export function Calendar({
 
 					const isToday = isSameDay(date, today)
 					const isSelected = value != null && isSameDay(date, value)
+					const isActive = activeDate != null && isSameDay(date, activeDate)
 					const isRangeStart = rangeStart != null && isSameDay(date, rangeStart)
 					const isRangeEnd = effectiveEnd != null && isSameDay(date, effectiveEnd)
 
@@ -167,7 +192,6 @@ export function Calendar({
 						<button
 							key={date.toISOString()}
 							type="button"
-							tabIndex={-1}
 							disabled={disabled}
 							aria-pressed={isSelected || isEdge}
 							onClick={() => {
@@ -175,9 +199,11 @@ export function Calendar({
 							}}
 							onMouseEnter={() => onHoverDate?.(date)}
 							onMouseLeave={() => onHoverDate?.(null)}
+							data-calendar-day
 							className={cn(
 								k.day.base,
 								!disabled && !isSelected && !isEdge && !inRange && k.day.hover,
+								isActive && !isSelected && !isEdge && k.day.active,
 								isToday && !isSelected && !isEdge && k.day.today,
 								isSelected && !rangeStart && k.day.selected,
 								isEdge && k.day.rangeEdge,

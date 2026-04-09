@@ -1,5 +1,6 @@
 'use client'
 
+import { forwardRef } from 'react'
 import { cn } from '../../core'
 import { FormControl } from '../../primitives'
 import { katachi } from '../../recipes'
@@ -22,7 +23,10 @@ export type InputProps = Omit<InputVariants, 'size'> & {
 
 const outlineControl = 'bg-transparent dark:bg-transparent before:shadow-none'
 
-export function Input({ className, type, variant, size, prefix, suffix, ...props }: InputProps) {
+export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
+	{ className, type, variant, size, prefix, suffix, ...props },
+	ref,
+) {
 	const isDate = DATE_TYPES.has(type ?? '')
 
 	const resolvedSize = size ?? 'md'
@@ -35,6 +39,7 @@ export function Input({ className, type, variant, size, prefix, suffix, ...props
 				{prefix && <span className={cn(k.affix, k.prefix)}>{prefix}</span>}
 
 				<input
+					ref={ref}
 					data-slot="input"
 					type={type}
 					className={cn(
@@ -51,4 +56,4 @@ export function Input({ className, type, variant, size, prefix, suffix, ...props
 			</FormControl>
 		</InputSizeProvider>
 	)
-}
+})

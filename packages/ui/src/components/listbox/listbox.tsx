@@ -74,10 +74,19 @@ export function Listbox<T>({
 	inputId,
 	children,
 }: ListboxProps<T>) {
+	const handleValueChange = useCallback(
+		(nextValue: T | T[] | undefined) => {
+			if (nextValue === undefined) return
+
+			;(onChange as ((value: T | T[]) => void) | undefined)?.(nextValue)
+		},
+		[onChange],
+	)
+
 	const [value, setValue] = useControllable<T | T[]>({
 		value: valueProp,
 		defaultValue: defaultValue as T | T[] | undefined,
-		onChange: onChange as ((value: T | T[]) => void) | undefined,
+		onChange: handleValueChange,
 	})
 
 	const [open, setOpen] = useState(false)

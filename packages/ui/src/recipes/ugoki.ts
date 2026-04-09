@@ -40,7 +40,7 @@ const reveal = {
 export const ugoki = {
 	spring,
 	reveal,
-	/** Popover enter/exit — scale + fade for dropdown menus */
+	/** Popover enter/exit — fade for dropdown menus */
 	popover: {
 		initial: { opacity: 0, scale: 1 },
 		animate: { opacity: 1, scale: 1 },

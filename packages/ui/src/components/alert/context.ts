@@ -3,7 +3,7 @@
 import { createContext as reactCreateContext, useContext } from 'react'
 
 type AlertVariant = 'solid' | 'soft' | 'outline' | 'plain'
-type AlertColor = 'zinc' | 'red' | 'amber' | 'green' | 'blue' | 'white'
+type AlertColor = 'zinc' | 'red' | 'amber' | 'green' | 'blue'
 
 export type AlertContextValue = {
 	variant: AlertVariant
