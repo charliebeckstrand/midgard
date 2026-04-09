@@ -43,6 +43,10 @@
 			"types": "./src/components/button/index.ts",
 			"default": "./src/components/button/index.ts"
 		},
+		"./calendar": {
+			"types": "./src/components/calendar/index.ts",
+			"default": "./src/components/calendar/index.ts"
+		},
 		"./card": {
 			"types": "./src/components/card/index.ts",
 			"default": "./src/components/card/index.ts"
@@ -66,6 +70,10 @@
 		"./dl": {
 			"types": "./src/components/dl/index.ts",
 			"default": "./src/components/dl/index.ts"
+		},
+		"./datepicker": {
+			"types": "./src/components/datepicker/index.ts",
+			"default": "./src/components/datepicker/index.ts"
 		},
 		"./dialog": {
 			"types": "./src/components/dialog/index.ts",
@@ -106,6 +114,10 @@
 		"./pagination": {
 			"types": "./src/components/pagination/index.ts",
 			"default": "./src/components/pagination/index.ts"
+		},
+		"./popover": {
+			"types": "./src/components/popover/index.ts",
+			"default": "./src/components/popover/index.ts"
 		},
 		"./progress": {
 			"types": "./src/components/progress/index.ts",
