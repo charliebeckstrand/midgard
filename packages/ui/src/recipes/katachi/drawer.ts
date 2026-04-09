@@ -3,27 +3,19 @@ import { maru } from '../maru'
 import { narabi } from '../narabi'
 import { omote } from '../omote'
 import { sumi } from '../sumi'
-import { take } from '../take'
 
-export const sheet = {
+export const drawer = {
 	panel: {
-		base: [omote.panel.chrome, narabi.panel.base, 'fixed overflow-y-auto rounded-xl'],
+		base: [
+			omote.panel.chrome,
+			narabi.panel.base,
+			'fixed inset-x-0 bottom-0 w-full overflow-y-auto',
+			'rounded-t-xl max-h-[85dvh]',
+		],
 		glass: {
 			true: 'bg-transparent backdrop-blur-md',
 			false: omote.panel.bg,
 		},
-		side: {
-			right: [
-				'inset-y-0 right-0 w-full',
-				'max-sm:rounded-r-none',
-				'sm:top-4 sm:right-4 sm:bottom-4',
-			],
-			left: ['inset-y-0 left-0 w-full', 'max-sm:rounded-l-none', 'sm:top-4 sm:left-4 sm:bottom-4'],
-			top: narabi.slide.top,
-			bottom: narabi.slide.bottom,
-		},
-		size: take.panel,
-		defaults: { side: 'right' as const, size: 'md' as const },
 	},
 	title: [...narabi.panel.title, 'px-6 pt-6'],
 	description: [...narabi.panel.description, 'px-6'],

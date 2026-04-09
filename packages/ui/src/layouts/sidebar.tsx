@@ -4,8 +4,8 @@ import { Menu } from 'lucide-react'
 import type React from 'react'
 import { useCallback, useEffect, useState } from 'react'
 import { Button } from '../components/button'
+import { Drawer } from '../components/drawer/drawer'
 import { Icon } from '../components/icon'
-import { Sheet } from '../components/sheet/sheet'
 import { cn } from '../core'
 import { OffcanvasContext } from '../core/offcanvas-context'
 import { omote } from '../recipes'
@@ -56,9 +56,9 @@ export function SidebarLayout({
 			<div className="fixed inset-y-0 left-0 w-64 max-lg:hidden">{sidebar}</div>
 
 			{/* Sidebar on mobile */}
-			<Sheet side="left" size="sm" open={open} onClose={close}>
+			<Drawer open={open} onClose={close}>
 				<OffcanvasContext.Provider value={{ close }}>{sidebar}</OffcanvasContext.Provider>
-			</Sheet>
+			</Drawer>
 
 			{/* Navbar on mobile */}
 			<header className="flex items-center gap-4 p-6 lg:hidden [&_nav]:p-0">
