@@ -175,6 +175,10 @@
 			"types": "./src/components/textarea/index.ts",
 			"default": "./src/components/textarea/index.ts"
 		},
+		"./timeline": {
+			"types": "./src/components/timeline/index.ts",
+			"default": "./src/components/timeline/index.ts"
+		},
 		"./layouts": {
 			"types": "./src/layouts/index.ts",
 			"default": "./src/layouts/index.ts"

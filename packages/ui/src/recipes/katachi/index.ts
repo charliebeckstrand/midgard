@@ -50,6 +50,7 @@ import { table } from './table'
 import { tabs } from './tabs'
 import { text } from './text'
 import { textarea } from './textarea'
+import { timeline } from './timeline'
 import { toast } from './toast'
 import { tooltip } from './tooltip'
 
@@ -92,6 +93,7 @@ export const katachi = {
 	tabs,
 	text,
 	textarea,
+	timeline,
 	toast,
 	tooltip,
 } as const
