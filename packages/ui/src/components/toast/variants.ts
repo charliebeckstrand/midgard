@@ -12,14 +12,4 @@ export const toastViewportVariants = cva(k.viewport, {
 	},
 })
 
-export const toastCardVariants = cva(k.card, {
-	variants: {
-		type: k.type,
-	},
-	defaultVariants: {
-		type: k.defaults.type,
-	},
-})
-
 export type ToastViewportVariants = VariantProps<typeof toastViewportVariants>
-export type ToastCardVariants = VariantProps<typeof toastCardVariants>

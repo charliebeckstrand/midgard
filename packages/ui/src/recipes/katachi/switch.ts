@@ -15,10 +15,12 @@ export const switchRecipe = {
 	],
 	input: form.hidden,
 	thumb: [
-		'pointer-events-none absolute top-1 left-1 inline-block size-4',
+		'absolute top-1 left-1 inline-block',
+		'transition-[left] duration-0',
+		'pointer-events-none',
+		'size-4',
 		maru.roundedFull,
 		nuri.switchThumb,
 		kage.shadow,
-		'transition-[left] duration-200 ease-in-out',
 	],
 }

@@ -5,7 +5,7 @@ import { Example } from '../example'
 
 export const meta = { category: 'Overlay' }
 
-const placements = ['top', 'bottom', 'left', 'right'] as const
+const placements = ['left', 'top', 'bottom', 'right'] as const
 
 export default function TooltipDemo() {
 	return (

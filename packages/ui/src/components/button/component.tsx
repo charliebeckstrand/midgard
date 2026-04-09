@@ -4,6 +4,7 @@ import { motion } from 'motion/react'
 import { Children, isValidElement, type PointerEvent } from 'react'
 import { cn, Link } from '../../core'
 import { type PolymorphicProps, TouchTarget, useRipple, useTap } from '../../primitives'
+import { useAlertContext } from '../alert/context'
 import { ButtonSizeProvider } from './context'
 import { type ButtonVariants, buttonVariants, iconOnlySize, withIconSize } from './variants'
 
@@ -40,6 +41,12 @@ export function Button({
 	spring = true,
 	...props
 }: ButtonProps) {
+	const alert = useAlertContext()
+
+	if (!color && alert) {
+		color = alert.variant === 'solid' ? 'inherit' : alert.color
+	}
+
 	const iconOnly = isIconOnly(children)
 
 	const { onPointerDown: handleRipple, element: rippleElement } = useRipple()

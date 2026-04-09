@@ -14,28 +14,27 @@ export const button = {
 		ki.ring,
 		yasumi.disabled,
 		sawari.cursor,
-		'after:absolute after:inset-0 after:-z-10 after:rounded-[inherit]',
 	],
 	variant: {
 		solid: {
-			base: ['border border-transparent', kage.shadow, sawari.hover, 'disabled:shadow-none'],
+			base: ['border border-transparent', 'disabled:shadow-none'],
 			color: nuri.buttonSolid,
 		},
 		soft: {
-			base: ['border border-transparent', sawari.hover],
+			base: ['border border-transparent'],
 			color: nuri.buttonSoft,
 		},
 		outline: {
-			base: [kage.borderStrong, omote.surface, sawari.hover],
+			base: [kage.borderStrong, omote.surface],
 			color: nuri.buttonOutline,
 		},
 		plain: {
-			base: ['border border-transparent', sawari.hover],
+			base: ['border border-transparent'],
 			color: nuri.buttonPlain,
 		},
 		ghost: {
 			base: ['border border-transparent'],
-			color: nuri.buttonPlain,
+			color: nuri.buttonGhost,
 		},
 	},
 	size: take.button,

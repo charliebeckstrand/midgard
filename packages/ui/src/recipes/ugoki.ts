@@ -42,10 +42,10 @@ export const ugoki = {
 	reveal,
 	/** Popover enter/exit — scale + fade for dropdown menus */
 	popover: {
-		initial: { opacity: 0, scale: 0.95 },
+		initial: { opacity: 0, scale: 1 },
 		animate: { opacity: 1, scale: 1 },
-		exit: { opacity: 0, scale: 0.95 },
-		transition: { duration: 0.1, ease: 'easeOut' as const },
+		exit: { opacity: 0, scale: 1 },
+		transition: { duration: 0.15, ease: 'easeOut' as const },
 	},
 
 	/** Backdrop fade — overlay for dialogs and sheets */
@@ -81,12 +81,6 @@ export const ugoki = {
 			animate: { y: 0, opacity: 1 },
 			exit: { y: '-100%', opacity: 1 },
 			transition: { duration: 0.15, ease: 'easeOut' as const },
-		},
-		overflow: {
-			initial: { opacity: 1 },
-			animate: { opacity: 1 },
-			exit: { opacity: 0, y: -8 },
-			transition: { duration: 0.2 },
 		},
 	},
 

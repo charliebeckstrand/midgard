@@ -14,7 +14,7 @@ import { Example } from '../example'
 
 export const meta = { category: 'Layout' }
 
-const variants = ['solid', 'outline', 'elevated'] as const
+const variants = ['solid', 'outline'] as const
 
 export default function CardDemo() {
 	return (
@@ -26,10 +26,9 @@ export default function CardDemo() {
 
 					<Card variant="solid">...</Card>
 					<Card variant="outline">...</Card>
-					<Card variant="elevated">...</Card>
 				`}
 			>
-				<div className="grid gap-4 sm:grid-cols-3">
+				<div className="grid gap-4 sm:grid-cols-2">
 					{variants.map((variant) => (
 						<Card key={variant} variant={variant}>
 							<CardBody>
@@ -54,7 +53,7 @@ export default function CardDemo() {
 							<Text>Configure your project name, description, and visibility.</Text>
 						</CardBody>
 						<CardFooter>
-							<Button>Save changes</Button>
+							<Button color="blue">Save changes</Button>
 							<Button variant="plain">Cancel</Button>
 						</CardFooter>
 					</Card>
@@ -69,7 +68,7 @@ export default function CardDemo() {
 						<Text>Configure your project name, description, and visibility.</Text>
 					</CardBody>
 					<CardFooter>
-						<Button>Save changes</Button>
+						<Button color="blue">Save changes</Button>
 						<Button variant="plain">Cancel</Button>
 					</CardFooter>
 				</Card>
@@ -108,7 +107,7 @@ export default function CardDemo() {
 						<Text>Last deployed 3 minutes ago to production.</Text>
 					</CardBody>
 					<CardFooter>
-						<Button variant="outline">View logs</Button>
+						<Button variant="plain">View logs</Button>
 					</CardFooter>
 				</Card>
 			</Example>

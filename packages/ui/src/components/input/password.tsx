@@ -17,7 +17,7 @@ export function PasswordInput(props: PasswordInputProps) {
 			type={visible ? 'text' : 'password'}
 			suffix={
 				<Button
-					variant="ghost"
+					variant="plain"
 					size="sm"
 					aria-label={visible ? 'Hide password' : 'Show password'}
 					onClick={() => setVisible((v) => !v)}

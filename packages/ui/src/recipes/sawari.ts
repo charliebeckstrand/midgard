@@ -24,7 +24,6 @@ const motoi = {
 		yasumi.disabled,
 	],
 	nav: [take.iconSlot.md, '*:data-[slot=avatar]:-m-0.5 *:data-[slot=avatar]:size-7'],
-	hover: 'not-disabled:hover:after:bg-[color-mix(in_oklab,currentColor_15%,transparent)]',
 }
 
 // ── Hiru (昼) ───────────────────────────────────────────
@@ -59,7 +58,6 @@ export const sawari = {
 	tab: [sumi.textMuted, hiru.tab, yoru.tab],
 	navItem: [...nav, ki.offset],
 	cursor: 'cursor-default',
-	hover: motoi.hover,
 	focusText: 'group-focus/option:text-white',
 	focusTextMuted: 'group-focus/option:text-white/75',
 }

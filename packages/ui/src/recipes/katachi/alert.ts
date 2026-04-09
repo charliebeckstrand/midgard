@@ -24,7 +24,7 @@ export const alert = {
 		},
 	},
 	icon: 'shrink-0',
-	content: 'flex-1 min-w-0',
+	content: 'flex flex-col flex-1 min-w-0',
 	title: 'text-base/6 font-semibold',
 	description: 'mt-1',
 	actions: 'mt-3 flex items-center gap-1',

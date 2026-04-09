@@ -42,7 +42,7 @@ export type TooltipContentProps = {
 
 export function Tooltip({
 	placement = 'top',
-	delay = 100,
+	delay = 250,
 	interactive = false,
 	children,
 }: TooltipProps) {

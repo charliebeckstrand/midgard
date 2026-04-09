@@ -18,10 +18,10 @@ export function Switch({ className, color, ...props }: SwitchProps) {
 			data-slot="control"
 			className={cn(
 				'relative inline-flex h-6 w-10 shrink-0 items-center',
-				'has-[:checked]:*:data-[slot=switch-thumb]:left-5',
-				'has-[:checked]:*:data-[slot=switch-thumb]:bg-(--switch)',
-				'has-[:checked]:*:data-[slot=switch-thumb]:shadow-(--switch-shadow)',
-				'has-[:checked]:*:data-[slot=switch-thumb]:ring-(--switch-ring)',
+				'has-checked:*:data-[slot=switch-thumb]:left-5',
+				'has-checked:*:data-[slot=switch-thumb]:bg-(--switch)',
+				'has-checked:*:data-[slot=switch-thumb]:shadow-(--switch-shadow)',
+				'has-checked:*:data-[slot=switch-thumb]:ring-(--switch-ring)',
 				'has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-blue-600',
 				switchVariants(),
 				switchColorVariants({ color }),

@@ -75,12 +75,20 @@ export default function CheckboxDemo() {
 					import { Description, Label } from 'ui/fieldset'
 
 					<CheckboxGroup>
-						${colors.map(
-							(c) => `<CheckboxField>
-		<Checkbox color="${c}" defaultChecked />
-		<Label>${c}</Label>
-	</CheckboxField>`,
-						)}
+						<CheckboxField>
+							<Checkbox id="checkbox-blue" value="blue" color="blue" defaultChecked />
+							<Label htmlFor="checkbox-blue">blue</Label>
+						</CheckboxField>
+
+						<CheckboxField>
+							<Checkbox id="checkbox-green" value="green" color="green" defaultChecked />
+							<Label htmlFor="checkbox-green">green</Label>
+						</CheckboxField>
+						
+						<CheckboxField>
+							<Checkbox id="checkbox-red" value="red" color="red" defaultChecked />
+							<Label htmlFor="checkbox-red">red</Label>
+						</CheckboxField>
 					</CheckboxGroup>
 				`}
 			>

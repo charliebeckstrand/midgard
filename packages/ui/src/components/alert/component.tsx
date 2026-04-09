@@ -6,6 +6,7 @@ import { cn } from '../../core'
 import { katachi } from '../../recipes'
 import { Button } from '../button'
 import { Icon } from '../icon'
+import { AlertProvider } from './context'
 import { type AlertVariants, alertVariants } from './variants'
 
 type AlertType = 'info' | 'success' | 'warning' | 'error'
@@ -69,7 +70,9 @@ export function Alert({
 	className,
 	children,
 }: AlertProps) {
-	const resolvedColor = type ? typeColorMap[type] : color
+	const resolvedVariant = variant ?? 'soft'
+
+	const resolvedColor = type ? typeColorMap[type] : (color ?? 'zinc')
 
 	const resolvedIcon = icon ?? (type ? typeIconMap[type] : undefined)
 
@@ -82,41 +85,45 @@ export function Alert({
 	const center = !(hasTitle && hasDescription)
 
 	return (
-		<div
-			data-slot="alert"
-			role={role}
-			className={cn(
-				alertVariants({ variant, color: resolvedColor }),
-				center && 'items-center',
-				block && 'w-full',
-				type && !closable && 'pr-6',
-				className,
-			)}
-		>
-			{resolvedIcon && <Icon icon={resolvedIcon} className={cn('shrink-0')} />}
+		<AlertProvider value={{ variant: resolvedVariant, color: resolvedColor }}>
+			<div
+				data-slot="alert"
+				role={role}
+				className={cn(
+					alertVariants({ variant, color: resolvedColor }),
+					center && 'items-center',
+					block && 'w-full',
+					type && !closable && 'pr-6',
+					className,
+				)}
+			>
+				<div className={cn(k.content)}>
+					<div className="flex items-center gap-2">
+						{resolvedIcon && <Icon icon={resolvedIcon} className={cn('shrink-0')} />}
+						{title && <div className={cn(k.title)}>{title}</div>}
+					</div>
 
-			<div className={cn(k.content)}>
-				{title && <div className={cn(k.title)}>{title}</div>}
+					{description && (
+						<div className={cn(k.description, resolvedIcon && 'pl-7')}>{description}</div>
+					)}
 
-				{description && <div className={cn(k.description)}>{description}</div>}
+					{children}
 
-				{children}
+					{actions && <div className={cn(k.actions, resolvedIcon && 'pl-7')}>{actions}</div>}
+				</div>
 
-				{actions && <div className={cn(k.actions)}>{actions}</div>}
+				{closable && (
+					<Button
+						variant="plain"
+						aria-label="Dismiss"
+						className={cn(k.close, 'self-center')}
+						onClick={onClose}
+					>
+						<Icon icon={<X />} />
+					</Button>
+				)}
 			</div>
-
-			{closable && (
-				<Button
-					variant="plain"
-					color="inherit"
-					aria-label="Dismiss"
-					className={cn(k.close, 'self-center')}
-					onClick={onClose}
-				>
-					<Icon icon={<X />} />
-				</Button>
-			)}
-		</div>
+		</AlertProvider>
 	)
 }
 

@@ -1,12 +1,13 @@
-import { extend, outline, soft, solid, text } from './palette'
+import { merge, outline, plainHover, soft, softHover, solid, solidHover, text } from './palette'
 
-const inherit = ['text-inherit'] as string[]
+const inherit = ['text-inherit', 'not-disabled:hover:bg-current/15'] as string[]
 
-export const buttonSolid = { ...solid, ...extend.solid, inherit }
+export const buttonSolid = { ...merge(solid, solidHover), inherit }
 
-export const buttonSoft = { ...soft, ...extend.soft, inherit }
+export const buttonSoft = { ...merge(soft, softHover), inherit }
 
-export const buttonOutline = { ...outline, inherit }
+export const buttonOutline = { ...merge(outline, plainHover), inherit }
 
-/** Shared by both `plain` and `ghost` button variants (text color only). */
-export const buttonPlain = { ...text, inherit }
+export const buttonPlain = { ...merge(text, plainHover), inherit }
+
+export const buttonGhost = { ...text, inherit: ['text-inherit'] as string[] }

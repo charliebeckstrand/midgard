@@ -4,7 +4,7 @@ import { sumi } from '../sumi'
 import { take } from '../take'
 
 export const tooltip = {
-	trigger: 'inline-flex',
+	trigger: 'inline-flex cursor-help *:cursor-help',
 	content: [
 		omote.popover,
 		maru.rounded,

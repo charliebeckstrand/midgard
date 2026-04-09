@@ -1,14 +1,12 @@
 import { kage } from '../kage'
 import { maru } from '../maru'
-import { omote } from '../omote'
 import { sumi } from '../sumi'
 
 export const card = {
 	base: ['overflow-hidden', maru.rounded],
 	variant: {
-		solid: [omote.tint],
-		outline: [kage.border, omote.surface],
-		elevated: [kage.shadow, omote.surface],
+		solid: ['bg-zinc-100 dark:bg-zinc-800', kage.border],
+		outline: [kage.border],
 	},
 	header: ['px-5 pt-5 pb-0', sumi.text],
 	title: 'text-base/6 font-semibold',

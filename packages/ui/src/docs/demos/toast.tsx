@@ -84,11 +84,7 @@ function ActionToastButton() {
 					description: 'The message has been removed.',
 					type: 'success',
 					duration: 7000,
-					actions: (
-						<Button color="white" size="sm">
-							Undo
-						</Button>
-					),
+					actions: <Button>Undo</Button>,
 				})
 			}
 		>

@@ -9,7 +9,7 @@
  */
 
 import { outline, soft, solid } from './badge'
-import { buttonOutline, buttonPlain, buttonSoft, buttonSolid } from './button'
+import { buttonGhost, buttonOutline, buttonPlain, buttonSoft, buttonSolid } from './button'
 import { checkbox } from './checkbox'
 import { chipOutlineActive } from './chip'
 import { text } from './palette'
@@ -31,11 +31,13 @@ export const nuri = {
 	soft,
 	outline,
 	text,
+
 	// ── Button ───────────────────────────────────────────
 	buttonSolid,
 	buttonSoft,
 	buttonOutline,
 	buttonPlain,
+	buttonGhost,
 
 	// ── Chip ────────────────────────────────────────────
 	chipOutlineActive,

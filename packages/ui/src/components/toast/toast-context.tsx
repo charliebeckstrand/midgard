@@ -18,11 +18,10 @@ export type ToastData = {
 	actions?: React.ReactNode
 	showCloseButton?: boolean
 	persist?: boolean
-	overflow?: boolean
 	dismissed?: boolean
 }
 
-type ToastInput = Omit<ToastData, 'id' | 'overflow'> & { duration?: number }
+type ToastInput = Omit<ToastData, 'id' | 'zIndex'> & { duration?: number }
 
 type ToastContextValue = {
 	toast: (data: ToastInput) => string
@@ -38,7 +37,6 @@ export type ToastContextProps = {
 	position?: ToastPosition
 	duration?: number
 	maxToasts?: number
-	closeIcon?: React.ReactNode
 }
 
 let counter = 0
@@ -112,23 +110,18 @@ export function useToastState({
 
 			toastsRef.current = [...toastsRef.current, { ...data, id, zIndex: counter }]
 
-			// Mark oldest toasts as overflow when exceeding max
-			const active = toastsRef.current.filter((t) => !t.overflow)
+			// Dismiss oldest toasts when exceeding max
+			if (maxToasts > 0) {
+				const active = toastsRef.current.filter((t) => !t.dismissed)
+				const excess = active.length - maxToasts
 
-			const excess = maxToasts > 0 ? active.length - maxToasts : 0
+				if (excess > 0) {
+					const toDismiss = active.slice(0, excess)
 
-			if (excess > 0) {
-				let marked = 0
-
-				toastsRef.current = toastsRef.current.map((t) => {
-					if (!t.overflow && marked < excess) {
-						marked++
-
-						return { ...t, overflow: true }
+					for (const t of toDismiss) {
+						dismiss(t.id)
 					}
-
-					return t
-				})
+				}
 			}
 
 			resetRemaining(data.duration ?? duration)
@@ -139,7 +132,7 @@ export function useToastState({
 
 			return id
 		},
-		[maxToasts, duration, sync, startTimer, stopDrain, resetRemaining],
+		[maxToasts, duration, sync, startTimer, stopDrain, resetRemaining, dismiss],
 	)
 
 	const toasts = [...toastsRef.current].reverse()
