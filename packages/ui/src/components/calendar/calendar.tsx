@@ -174,7 +174,6 @@ export function Calendar({
 								!disabled && !isSelected && !isEdge && !inRange && k.day.hover,
 								isActive && !isSelected && !isEdge && k.day.active,
 								isToday && !isSelected && !isEdge && k.day.today,
-								isEdge && k.day.rangeEdge,
 								inRange && !isEdge && k.day.inRange,
 								disabled && k.day.disabled,
 							)}

@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Calendar } from '../../components/calendar'
-import { Text } from '../../components/text'
 import { code } from '../code'
 import { Example } from '../example'
 

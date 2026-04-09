@@ -104,17 +104,20 @@ function DatePickerSingle({
 
 	const openCalendar = useCallback(() => {
 		setOpen(true)
+
 		setActiveDate(getInitialActiveDate())
 	}, [getInitialActiveDate])
 
 	const closeCalendar = useCallback(() => {
 		setOpen(false)
+
 		setActiveDate(getInitialActiveDate())
 	}, [getInitialActiveDate])
 
 	const handleSelect = useCallback(
 		(date: Date) => {
 			setValue(date)
+
 			closeCalendar()
 		},
 		[closeCalendar, setValue],
@@ -239,13 +242,17 @@ function DatePickerRange({
 
 	const openCalendar = useCallback(() => {
 		setOpen(true)
+
 		setActiveDate(getInitialActiveDate())
 	}, [getInitialActiveDate])
 
 	const closeCalendar = useCallback(() => {
 		setOpen(false)
+
 		setRangeStart(null)
+
 		setHoverDate(null)
+
 		setActiveDate(getInitialActiveDate())
 	}, [getInitialActiveDate])
 
@@ -289,6 +296,7 @@ function DatePickerRange({
 
 	const clearRange = useCallback(() => {
 		closeCalendar()
+
 		setValue(undefined)
 	}, [closeCalendar, setValue])
 

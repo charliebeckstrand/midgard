@@ -18,9 +18,5 @@ export const calendar = {
 		disabled: 'opacity-40 pointer-events-none',
 		outside: 'opacity-0 pointer-events-none',
 		inRange: 'bg-zinc-950/5 dark:bg-white/5 rounded-none',
-		rangeEdge: [
-			'bg-zinc-950 text-white dark:bg-white dark:text-zinc-950',
-			'hover:bg-zinc-800 dark:hover:bg-zinc-200',
-		],
 	},
 }
