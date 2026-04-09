@@ -18,6 +18,7 @@ import { avatar } from './avatar'
 import { badge } from './badge'
 import { breadcrumb } from './breadcrumb'
 import { button } from './button'
+import { calendar } from './calendar'
 import { card } from './card'
 import { checkbox } from './checkbox'
 import { chip } from './chip'
@@ -37,6 +38,7 @@ import { option } from './option'
 import { pagination } from './pagination'
 import { panel } from './panel'
 import { placeholder } from './placeholder'
+import { popover } from './popover'
 import { progress } from './progress'
 import { radio } from './radio'
 import { select } from './select'
@@ -58,6 +60,7 @@ export const katachi = {
 	badge,
 	breadcrumb,
 	button,
+	calendar,
 	card,
 	checkbox,
 	chip,
@@ -77,6 +80,7 @@ export const katachi = {
 	pagination,
 	panel,
 	placeholder,
+	popover,
 	progress,
 	radio,
 	select,

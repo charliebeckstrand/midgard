@@ -19,4 +19,4 @@ const { Option, Label, Description } = createSelectOption({
 	useContext: useComboboxContext,
 })
 
-export { Option as ComboboxOption, Label as ComboboxLabel, Description as ComboboxDescription }
+export { Description as ComboboxDescription, Label as ComboboxLabel, Option as ComboboxOption }

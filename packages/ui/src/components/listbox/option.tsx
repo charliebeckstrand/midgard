@@ -19,4 +19,4 @@ const { Option, Label, Description } = createSelectOption({
 	useContext: useListboxContext,
 })
 
-export { Option as ListboxOption, Label as ListboxLabel, Description as ListboxDescription }
+export { Description as ListboxDescription, Label as ListboxLabel, Option as ListboxOption }
