@@ -129,20 +129,33 @@ export function PopoverTrigger({ children, className, manual = false }: PopoverT
 		[triggerRef, setReference],
 	)
 
-	const ignoreTrigger = useCallback((target: EventTarget | null): boolean => {
-		if (!(target instanceof Element)) return false
-
-		return target.closest('[data-popover-ignore]') !== null
+	const shouldIgnore = useCallback((e: React.SyntheticEvent<HTMLElement>): boolean => {
+		return e.target instanceof Element && e.target.closest('[data-popover-ignore]') !== null
 	}, [])
 
-	const stopIgnoredTriggerEvent = useCallback(
-		(e: React.SyntheticEvent<HTMLElement>) => {
-			if (!ignoreTrigger(e.target)) return
+	const wrapReferenceProps = useCallback(
+		(props?: Record<string, unknown>) => {
+			const refProps = getReferenceProps(props)
 
-			e.preventDefault()
-			e.stopPropagation()
+			const eventKeys = Object.keys(refProps).filter((key) => /^on[A-Z]/.test(key))
+
+			const wrapped: Record<string, unknown> = { ...refProps }
+
+			for (const key of eventKeys) {
+				const original = refProps[key]
+
+				if (typeof original === 'function') {
+					wrapped[key] = (e: React.SyntheticEvent<HTMLElement>) => {
+						if (shouldIgnore(e)) return
+
+						return original(e)
+					}
+				}
+			}
+
+			return wrapped
 		},
-		[ignoreTrigger],
+		[getReferenceProps, shouldIgnore],
 	)
 
 	if (isValidElement(children)) {
@@ -150,7 +163,9 @@ export function PopoverTrigger({ children, className, manual = false }: PopoverT
 			React.HTMLAttributes<HTMLElement> &
 				React.RefAttributes<HTMLElement> & { [key: `data-${string}`]: string | undefined }
 		>
-		const referenceProps = manual ? child.props : getReferenceProps(child.props)
+		const referenceProps = manual
+			? child.props
+			: wrapReferenceProps(child.props as Record<string, unknown>)
 
 		return cloneElement(child, {
 			...(referenceProps as React.HTMLAttributes<HTMLElement>),
@@ -158,14 +173,11 @@ export function PopoverTrigger({ children, className, manual = false }: PopoverT
 			'aria-haspopup': 'dialog',
 			'aria-expanded': open,
 			'data-slot': 'popover-trigger',
-			onPointerDownCapture: stopIgnoredTriggerEvent,
-			onMouseDownCapture: stopIgnoredTriggerEvent,
-			onClickCapture: stopIgnoredTriggerEvent,
 			className: cn(k.trigger, child.props.className, className),
 		})
 	}
 
-	const referenceProps = manual ? {} : getReferenceProps()
+	const referenceProps = manual ? {} : wrapReferenceProps()
 
 	return (
 		<button
@@ -175,9 +187,6 @@ export function PopoverTrigger({ children, className, manual = false }: PopoverT
 			aria-haspopup="dialog"
 			aria-expanded={open}
 			data-slot="popover-trigger"
-			onPointerDownCapture={stopIgnoredTriggerEvent}
-			onMouseDownCapture={stopIgnoredTriggerEvent}
-			onClickCapture={stopIgnoredTriggerEvent}
 			className={cn(k.trigger, className)}
 		>
 			{children}

@@ -253,6 +253,8 @@ function DatePickerRange({
 		(date: Date) => {
 			if (rangeStart === null) {
 				setRangeStart(date)
+
+				setHoverDate(null)
 			} else {
 				const start = rangeStart
 
@@ -265,7 +267,9 @@ function DatePickerRange({
 				}
 
 				setRangeStart(null)
+
 				setHoverDate(null)
+
 				closeCalendar()
 			}
 		},
