@@ -15,6 +15,7 @@ export const listbox = {
 		'appearance-none',
 	],
 	options: take.popup,
+	panel: 'relative min-w-full',
 	value: 'block truncate',
 	chevron: [take.control.icon, take.listbox.icon, sumi.textMuted],
 	option: [...sawari.item, ...narabi.item],

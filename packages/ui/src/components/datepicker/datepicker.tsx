@@ -4,10 +4,13 @@ import { CalendarIcon, XIcon } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
+import { katachi } from '../../recipes'
 import { Calendar } from '../calendar'
 import { Icon } from '../icon'
 import { Input } from '../input'
 import { Popover, PopoverContent, PopoverTrigger } from '../popover'
+
+const k = katachi.datepicker
 
 type DatePickerSingleProps = {
 	range?: false
@@ -109,14 +112,10 @@ function DatePickerSingle({
 					value={displayValue}
 					placeholder={placeholder}
 					disabled={disabled}
-					className={cn('cursor-pointer', className)}
+					className={cn(k.input, className)}
 					suffix={
 						value && !disabled ? (
-							<button
-								type="button"
-								onClick={handleClear}
-								className="p-3 -m-3 pointer-events-auto cursor-pointer hover:text-zinc-950 dark:hover:text-white"
-							>
+							<button type="button" onClick={handleClear} className={cn(k.clearButton)}>
 								<Icon icon={<XIcon />} />
 							</button>
 						) : (
@@ -125,7 +124,7 @@ function DatePickerSingle({
 					}
 				/>
 			</PopoverTrigger>
-			<PopoverContent className="p-0">
+			<PopoverContent className={k.popoverContent}>
 				<Calendar value={value ?? null} onChange={handleSelect} min={min} max={max} />
 			</PopoverContent>
 		</Popover>
@@ -202,14 +201,10 @@ function DatePickerRange({
 					value={displayValue}
 					placeholder={placeholder}
 					disabled={disabled}
-					className={cn('cursor-pointer', className)}
+					className={cn(k.input, className)}
 					suffix={
 						value && !disabled ? (
-							<button
-								type="button"
-								onClick={handleClear}
-								className="p-3 -m-3 pointer-events-auto cursor-pointer hover:text-zinc-950 dark:hover:text-white"
-							>
+							<button type="button" onClick={handleClear} className={cn(k.clearButton)}>
 								<Icon icon={<XIcon />} />
 							</button>
 						) : (
@@ -218,7 +213,7 @@ function DatePickerRange({
 					}
 				/>
 			</PopoverTrigger>
-			<PopoverContent className="p-0">
+			<PopoverContent className={k.popoverContent}>
 				<Calendar
 					value={undefined}
 					onChange={handleSelect}

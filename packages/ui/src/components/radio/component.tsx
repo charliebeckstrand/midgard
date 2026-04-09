@@ -1,11 +1,14 @@
 import { cn } from '../../core'
 import { ToggleField, ToggleGroup } from '../../primitives'
+import { katachi } from '../../recipes'
 import {
 	type RadioVariants,
 	radioColorVariants,
 	radioInputVariants,
 	radioVariants,
 } from './variants'
+
+const k = katachi.radio
 
 export type RadioProps = RadioVariants & {
 	className?: string
@@ -15,13 +18,7 @@ export function Radio({ className, color, ...props }: RadioProps) {
 	return (
 		<span
 			data-slot="control"
-			className={cn(
-				'relative inline-flex size-4.5 items-center justify-center',
-				'has-checked:*:data-[slot=radio-indicator]:opacity-100',
-				'has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-blue-600',
-				radioVariants(),
-				radioColorVariants({ color }),
-			)}
+			className={cn(k.wrapper, radioVariants(), radioColorVariants({ color }))}
 		>
 			<input
 				type="radio"

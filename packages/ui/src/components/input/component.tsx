@@ -13,11 +13,6 @@ const k = katachi.input
 // Icon size is one step smaller than the input size.
 const iconSize = { sm: 'xs', md: 'sm', lg: 'md' } as const
 
-// Padding offsets when prefix/suffix icons are present.
-// Matches affix padding (pl-3/pr-3 = 12px) + icon size + breathing room.
-const prefixPadding = { sm: 'pl-8', md: 'pl-9', lg: 'pl-11' }
-const suffixPadding = { sm: 'pr-8', md: 'pr-9', lg: 'pr-11' }
-
 export type InputProps = Omit<InputVariants, 'size'> & {
 	size?: 'sm' | 'md' | 'lg'
 	prefix?: React.ReactNode
@@ -45,8 +40,8 @@ export function Input({ className, type, variant, size, prefix, suffix, ...props
 					className={cn(
 						inputVariants({ variant, size }),
 						isDate && inputDateVariants(),
-						prefix && prefixPadding[resolvedSize],
-						suffix && suffixPadding[resolvedSize],
+						prefix && k.prefixPadding[resolvedSize],
+						suffix && k.suffixPadding[resolvedSize],
 						className,
 					)}
 					{...props}

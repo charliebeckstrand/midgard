@@ -13,6 +13,7 @@ export const calendar = {
 		'hover:bg-zinc-950/5 dark:hover:bg-white/5',
 		'outline-none focus-visible:ring-2 focus-visible:ring-blue-600',
 	],
+	navIcon: 'size-4',
 	grid: 'grid grid-cols-7',
 	weekday: [sumi.textMuted, 'flex items-center justify-center size-9 text-xs font-medium'],
 	day: {

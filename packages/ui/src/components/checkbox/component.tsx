@@ -1,12 +1,15 @@
 import { Check } from 'lucide-react'
 import { cn } from '../../core'
 import { ToggleField, ToggleGroup } from '../../primitives'
+import { katachi } from '../../recipes'
 import {
 	type CheckboxVariants,
 	checkboxColorVariants,
 	checkboxInputVariants,
 	checkboxVariants,
 } from './variants'
+
+const k = katachi.checkbox
 
 export type CheckboxProps = CheckboxVariants & {
 	icon?: React.ReactNode
@@ -17,13 +20,7 @@ export function Checkbox({ className, color, icon, ...props }: CheckboxProps) {
 	return (
 		<span
 			data-slot="control"
-			className={cn(
-				'relative inline-flex size-4.5 items-center justify-center',
-				'has-checked:*:data-[slot=checkbox-check]:opacity-100',
-				'has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-blue-600',
-				checkboxVariants(),
-				checkboxColorVariants({ color }),
-			)}
+			className={cn(k.wrapper, checkboxVariants(), checkboxColorVariants({ color }))}
 		>
 			<input
 				type="checkbox"

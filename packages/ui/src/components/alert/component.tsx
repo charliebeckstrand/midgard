@@ -91,25 +91,24 @@ export function Alert({
 				role={role}
 				className={cn(
 					alertVariants({ variant, color: resolvedColor }),
-					center && 'items-center',
+					center ? 'items-center' : 'items-start',
 					block && 'w-full',
 					type && !closable && 'pr-6',
 					className,
 				)}
 			>
-				<div className={cn(k.content)}>
-					<div className="flex items-center gap-3">
-						{resolvedIcon && <Icon icon={resolvedIcon} className={cn('shrink-0')} />}
-						{title && <div className={cn(k.title)}>{title}</div>}
-					</div>
+				{resolvedIcon && (
+					<Icon icon={resolvedIcon} className={cn('shrink-0', !center && 'mt-0.5')} />
+				)}
 
-					{description && (
-						<div className={cn(k.description, resolvedIcon && 'pl-8')}>{description}</div>
-					)}
+				<div className={cn(k.content)}>
+					{title && <div className={cn(k.title)}>{title}</div>}
+
+					{description && <div className={cn(k.description)}>{description}</div>}
 
 					{children}
 
-					{actions && <div className={cn(k.actions, resolvedIcon && 'pl-8')}>{actions}</div>}
+					{actions && <div className={cn(k.actions)}>{actions}</div>}
 				</div>
 
 				{closable && (

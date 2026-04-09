@@ -129,11 +129,11 @@ export function Calendar({
 		<div data-slot="calendar" className={cn(k.root, className)}>
 			<div className={k.header}>
 				<button type="button" onClick={prevMonth} className={cn(k.nav)} aria-label="Previous month">
-					<ChevronLeft className="size-4" />
+					<ChevronLeft className={k.navIcon} />
 				</button>
 				<span className={cn(k.title)}>{monthLabel}</span>
 				<button type="button" onClick={nextMonth} className={cn(k.nav)} aria-label="Next month">
-					<ChevronRight className="size-4" />
+					<ChevronRight className={k.navIcon} />
 				</button>
 			</div>
 

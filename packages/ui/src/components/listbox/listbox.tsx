@@ -193,10 +193,10 @@ export function Listbox<T>({
 						<div
 							ref={refs.setFloating}
 							style={floatingStyles}
-							className="z-100"
+							className={katachi.popover.portal}
 							{...getFloatingProps()}
 						>
-							<PopoverPanel role="listbox" className={cn('relative min-w-full', k.options)}>
+							<PopoverPanel role="listbox" className={cn(k.panel, k.options)}>
 								{children}
 							</PopoverPanel>
 						</div>

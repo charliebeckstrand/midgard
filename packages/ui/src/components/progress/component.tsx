@@ -41,19 +41,13 @@ export function ProgressBar({
 		>
 			{determinate ? (
 				<motion.div
-					className={cn(k.bar.fill, k.color[color].fill.replace('fill-', 'bg-'))}
+					className={cn(k.bar.fill, k.color[color].bg)}
 					initial={{ width: 0 }}
 					animate={{ width: `${pct}%` }}
 					transition={{ type: 'spring', stiffness: 100, damping: 20 }}
 				/>
 			) : (
-				<div
-					className={cn(
-						k.bar.fill,
-						k.color[color].fill.replace('fill-', 'bg-'),
-						'w-1/3 animate-[progress-indeterminate_1.5s_ease-in-out_infinite]',
-					)}
-				/>
+				<div className={cn(k.bar.fill, k.color[color].bg, k.bar.indeterminate)} />
 			)}
 		</div>
 	)

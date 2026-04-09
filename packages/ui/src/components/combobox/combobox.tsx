@@ -21,7 +21,7 @@ import { cn, createContext } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { useMenuKeyboard } from '../../hooks/use-menu-keyboard'
 import { FormControl, PopoverPanel } from '../../primitives'
-import { katachi, sumi } from '../../recipes'
+import { katachi } from '../../recipes'
 import { Icon } from '../icon'
 
 const k = katachi.combobox
@@ -281,7 +281,7 @@ export function Combobox<T>({
 							<div
 								ref={refs.setFloating}
 								style={floatingStyles}
-								className="z-100"
+								className={katachi.popover.portal}
 								{...getFloatingProps()}
 							>
 								<PopoverPanel
@@ -293,9 +293,7 @@ export function Combobox<T>({
 									}}
 								>
 									{rendered}
-									<output className={cn('hidden p-2 text-sm only:block', sumi.textMuted)}>
-										No results
-									</output>
+									<output className={cn(k.empty)}>No results</output>
 								</PopoverPanel>
 							</div>
 						)}

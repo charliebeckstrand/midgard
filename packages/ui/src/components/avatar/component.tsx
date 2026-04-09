@@ -1,5 +1,6 @@
 import { createContext, use } from 'react'
 import { cn } from '../../core'
+import { katachi } from '../../recipes'
 import type { take } from '../../recipes/take'
 import { StatusDot } from '../status'
 import {
@@ -11,17 +12,11 @@ import {
 
 type AvatarSize = take.AvatarSize
 
+const ka = katachi.avatar
+
 // ── AvatarGroup ─────────────────────────────────────
 
 const AvatarGroupSizeContext = createContext<AvatarSize | null>(null)
-
-const sizeMap: Record<AvatarSize, string> = {
-	xs: '-space-x-1',
-	sm: '-space-x-1.5',
-	md: '-space-x-2',
-	lg: '-space-x-2.5',
-	xl: '-space-x-3',
-}
 
 export type AvatarGroupProps = {
 	size?: AvatarSize
@@ -35,11 +30,7 @@ export function AvatarGroup({ extra, size = 'md', className, children }: AvatarG
 		<AvatarGroupSizeContext value={size}>
 			<div
 				data-slot="avatar-group"
-				className={cn(
-					'flex items-center *:ring-2 *:ring-white dark:*:ring-zinc-900',
-					sizeMap[size],
-					className,
-				)}
+				className={cn(ka.group.base, ka.group.ring, ka.group.spacing[size], className)}
 			>
 				{children}
 				{extra != null && extra > 0 && <Avatar size={size} initials={`+${extra}`} />}
@@ -117,10 +108,7 @@ export function Avatar({
 		<AvatarSizeContext value={resolvedSize}>
 			<span data-slot="avatar-with-status" className={cn('relative inline-flex', className)}>
 				{avatarEl}
-				<StatusDot
-					status={status}
-					className="absolute top-0 right-0 ring-2 ring-white dark:ring-zinc-900"
-				/>
+				<StatusDot status={status} className={cn('absolute top-0 right-0', ka.statusRing)} />
 			</span>
 		</AvatarSizeContext>
 	)

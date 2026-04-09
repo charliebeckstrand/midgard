@@ -168,7 +168,12 @@ export function PopoverContent({ className, children }: PopoverContentProps) {
 		<FloatingPortal>
 			<AnimatePresence onExitComplete={onExitComplete}>
 				{open && (
-					<div ref={setFloating} style={floatingStyles} className="z-100" {...getFloatingProps()}>
+					<div
+						ref={setFloating}
+						style={floatingStyles}
+						className={k.portal}
+						{...getFloatingProps()}
+					>
 						<motion.div
 							{...ugoki.popover}
 							data-slot="popover-content"

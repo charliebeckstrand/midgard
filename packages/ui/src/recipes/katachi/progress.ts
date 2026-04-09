@@ -5,6 +5,7 @@ export const progress = {
 	bar: {
 		track: ['overflow-hidden', maru.roundedFull, 'bg-zinc-200 dark:bg-zinc-700'],
 		fill: ['h-full', maru.roundedFull],
+		indeterminate: 'w-1/3 animate-[progress-indeterminate_1.5s_ease-in-out_infinite]',
 		size: {
 			sm: 'h-1',
 			md: 'h-2',
@@ -34,16 +35,27 @@ export const progress = {
 	color: {
 		zinc: {
 			fill: 'fill-zinc-600 dark:fill-zinc-400',
+			bg: 'bg-zinc-600 dark:bg-zinc-400',
 			stroke: 'stroke-zinc-600 dark:stroke-zinc-400',
 		},
-		red: { fill: 'fill-red-600 dark:fill-red-500', stroke: 'stroke-red-600 dark:stroke-red-500' },
-		amber: { fill: 'fill-amber-500', stroke: 'stroke-amber-500' },
+		red: {
+			fill: 'fill-red-600 dark:fill-red-500',
+			bg: 'bg-red-600 dark:bg-red-500',
+			stroke: 'stroke-red-600 dark:stroke-red-500',
+		},
+		amber: {
+			fill: 'fill-amber-500',
+			bg: 'bg-amber-500',
+			stroke: 'stroke-amber-500',
+		},
 		green: {
 			fill: 'fill-green-600 dark:fill-green-500',
+			bg: 'bg-green-600 dark:bg-green-500',
 			stroke: 'stroke-green-600 dark:stroke-green-500',
 		},
 		blue: {
 			fill: 'fill-blue-600 dark:fill-blue-500',
+			bg: 'bg-blue-600 dark:bg-blue-500',
 			stroke: 'stroke-blue-600 dark:stroke-blue-500',
 		},
 	},
