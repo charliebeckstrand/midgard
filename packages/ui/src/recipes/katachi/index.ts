@@ -35,6 +35,7 @@ import { grid } from './grid'
 import { heading } from './heading'
 import { input } from './input'
 import { listbox } from './listbox'
+import { menu } from './menu'
 import { navbar } from './navbar'
 import { option } from './option'
 import { pagination } from './pagination'
@@ -80,6 +81,7 @@ export const katachi = {
 	heading,
 	input,
 	listbox,
+	menu,
 	navbar,
 	option,
 	pagination,
