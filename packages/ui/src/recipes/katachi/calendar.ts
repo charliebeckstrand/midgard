@@ -1,4 +1,5 @@
 import { maru } from '../maru'
+import { nuri } from '../nuri'
 import { sumi } from '../sumi'
 
 export const calendar = {
@@ -22,7 +23,7 @@ export const calendar = {
 			'outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-600',
 		],
 		hover: 'hover:bg-zinc-950/5 dark:hover:bg-white/5',
-		today: 'font-semibold',
+		today: ['font-semibold', ...nuri.buttonSoft.blue],
 		selected: 'bg-zinc-950 text-white dark:bg-white dark:text-zinc-950',
 		disabled: 'opacity-40 pointer-events-none',
 		outside: 'opacity-0 pointer-events-none',

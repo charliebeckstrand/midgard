@@ -1,7 +1,7 @@
 'use client'
 
-import { CalendarIcon } from 'lucide-react'
-import { useCallback, useState } from 'react'
+import { CalendarIcon, XIcon } from 'lucide-react'
+import { useCallback, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { Calendar } from '../calendar'
@@ -13,14 +13,14 @@ type DatePickerSingleProps = {
 	range?: false
 	value?: Date
 	defaultValue?: Date
-	onChange?: (value: Date) => void
+	onChange?: (value: Date | undefined) => void
 }
 
 type DatePickerRangeProps = {
 	range: true
 	value?: [Date, Date]
 	defaultValue?: [Date, Date]
-	onChange?: (value: [Date, Date]) => void
+	onChange?: (value: [Date, Date] | undefined) => void
 }
 
 type DatePickerBaseProps = {
@@ -60,20 +60,49 @@ function DatePickerSingle({
 	disabled = false,
 }: DatePickerBaseProps & DatePickerSingleProps) {
 	const [value, setValue] = useControllable({ value: valueProp, defaultValue, onChange })
+
 	const [open, setOpen] = useState(false)
 
-	const handleSelect = useCallback(
-		(date: Date) => {
-			setValue(date)
-			setOpen(false)
+	const pendingRef = useRef<Date | null>(null)
+
+	const handleSelect = useCallback((date: Date) => {
+		pendingRef.current = date
+		setOpen(false)
+	}, [])
+
+	const handleOpenChange = useCallback((nextOpen: boolean) => {
+		setOpen(nextOpen)
+	}, [])
+
+	const handleExitComplete = useCallback(() => {
+		if (pendingRef.current) {
+			setValue(pendingRef.current)
+
+			pendingRef.current = null
+		}
+	}, [setValue])
+
+	const handleClear = useCallback(
+		(e: React.MouseEvent) => {
+			e.stopPropagation()
+
+			pendingRef.current = null
+
+			setValue(undefined)
+			onChange?.(undefined)
 		},
-		[setValue],
+		[setValue, onChange],
 	)
 
 	const displayValue = value ? formatDate(value) : ''
 
 	return (
-		<Popover placement="bottom-start" open={open} onOpenChange={setOpen}>
+		<Popover
+			placement="bottom-start"
+			open={open}
+			onOpenChange={handleOpenChange}
+			onExitComplete={handleExitComplete}
+		>
 			<PopoverTrigger>
 				<Input
 					readOnly
@@ -81,11 +110,23 @@ function DatePickerSingle({
 					placeholder={placeholder}
 					disabled={disabled}
 					className={cn('cursor-pointer', className)}
-					suffix={<Icon icon={<CalendarIcon />} />}
+					suffix={
+						value && !disabled ? (
+							<button
+								type="button"
+								onClick={handleClear}
+								className="p-3 -m-3 pointer-events-auto cursor-pointer hover:text-zinc-950 dark:hover:text-white"
+							>
+								<Icon icon={<XIcon />} />
+							</button>
+						) : (
+							<Icon icon={<CalendarIcon />} />
+						)
+					}
 				/>
 			</PopoverTrigger>
 			<PopoverContent className="p-0">
-				<Calendar value={value} onChange={handleSelect} min={min} max={max} />
+				<Calendar value={value ?? null} onChange={handleSelect} min={min} max={max} />
 			</PopoverContent>
 		</Popover>
 	)
@@ -112,6 +153,7 @@ function DatePickerRange({
 				setRangeStart(date)
 			} else {
 				const start = rangeStart
+
 				const end = date
 
 				if (start.getTime() <= end.getTime()) {
@@ -130,11 +172,25 @@ function DatePickerRange({
 
 	const handleOpenChange = useCallback((nextOpen: boolean) => {
 		setOpen(nextOpen)
+
 		if (!nextOpen) {
 			setRangeStart(null)
 			setHoverDate(null)
 		}
 	}, [])
+
+	const handleClear = useCallback(
+		(e: React.MouseEvent) => {
+			e.stopPropagation()
+
+			setRangeStart(null)
+			setHoverDate(null)
+
+			setValue(undefined)
+			onChange?.(undefined)
+		},
+		[setValue, onChange],
+	)
 
 	const displayValue = value ? formatRange(value[0], value[1]) : ''
 
@@ -147,7 +203,19 @@ function DatePickerRange({
 					placeholder={placeholder}
 					disabled={disabled}
 					className={cn('cursor-pointer', className)}
-					suffix={<Icon icon={<CalendarIcon />} />}
+					suffix={
+						value && !disabled ? (
+							<button
+								type="button"
+								onClick={handleClear}
+								className="p-3 -m-3 pointer-events-auto cursor-pointer hover:text-zinc-950 dark:hover:text-white"
+							>
+								<Icon icon={<XIcon />} />
+							</button>
+						) : (
+							<Icon icon={<CalendarIcon />} />
+						)
+					}
 				/>
 			</PopoverTrigger>
 			<PopoverContent className="p-0">

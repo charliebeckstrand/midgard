@@ -10,9 +10,11 @@ export default function CalendarDemo() {
 	const [date, setDate] = useState<Date | undefined>(undefined)
 
 	const min = new Date()
+
 	min.setDate(min.getDate() - 30)
 
 	const max = new Date()
+
 	max.setDate(max.getDate() + 30)
 
 	return (

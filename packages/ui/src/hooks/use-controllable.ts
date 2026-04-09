@@ -8,22 +8,25 @@ import { useCallback, useState } from 'react'
  * When only `defaultValue` is provided, the component manages its own state.
  */
 export function useControllable<T>(props: {
-	value?: T
+	value?: T | null
 	defaultValue?: T
 	onChange?: (value: T) => void
-}): [T | undefined, (value: T) => void] {
+}): [T | undefined, (value: T | undefined) => void] {
 	const { value, defaultValue, onChange } = props
 
 	const [internalValue, setInternalValue] = useState<T | undefined>(defaultValue)
 
-	const currentValue = value !== undefined ? value : internalValue
+	const isControlled = value !== undefined
+
+	const currentValue = isControlled ? (value ?? undefined) : internalValue
 
 	const setValue = useCallback(
-		(newValue: T) => {
-			if (value === undefined) setInternalValue(newValue)
-			onChange?.(newValue)
+		(newValue: T | undefined) => {
+			if (!isControlled || newValue === undefined) setInternalValue(newValue)
+
+			if (newValue !== undefined) onChange?.(newValue)
 		},
-		[value, onChange],
+		[isControlled, onChange],
 	)
 
 	return [currentValue, setValue]

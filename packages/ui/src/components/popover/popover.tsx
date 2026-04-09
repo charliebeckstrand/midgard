@@ -31,6 +31,7 @@ type PopoverContextValue = {
 	floatingStyles: React.CSSProperties
 	getReferenceProps: () => Record<string, unknown>
 	getFloatingProps: () => Record<string, unknown>
+	onExitComplete?: () => void
 }
 
 const [PopoverProvider, usePopoverContext] = createContext<PopoverContextValue>('Popover')
@@ -39,6 +40,7 @@ export type PopoverProps = {
 	placement?: Placement
 	open?: boolean
 	onOpenChange?: (open: boolean) => void
+	onExitComplete?: () => void
 	className?: string
 	children: React.ReactNode
 }
@@ -47,6 +49,7 @@ export function Popover({
 	placement = 'bottom',
 	open: openProp,
 	onOpenChange,
+	onExitComplete,
 	className,
 	children,
 }: PopoverProps) {
@@ -73,13 +76,16 @@ export function Popover({
 	})
 
 	const click = useClick(context)
+
 	const dismiss = useDismiss(context)
+
 	const role = useRole(context, { role: 'dialog' })
 
 	const { getReferenceProps, getFloatingProps } = useInteractions([click, dismiss, role])
 
 	const close = useCallback(() => {
 		setOpen(false)
+
 		triggerRef.current?.focus()
 	}, [setOpen])
 
@@ -95,6 +101,7 @@ export function Popover({
 				floatingStyles,
 				getReferenceProps,
 				getFloatingProps,
+				onExitComplete,
 			}}
 		>
 			<div data-slot="popover" className={cn(className)}>
@@ -154,11 +161,12 @@ export type PopoverContentProps = {
 }
 
 export function PopoverContent({ className, children }: PopoverContentProps) {
-	const { open, setFloating, floatingStyles, getFloatingProps } = usePopoverContext()
+	const { open, setFloating, floatingStyles, getFloatingProps, onExitComplete } =
+		usePopoverContext()
 
 	return (
 		<FloatingPortal>
-			<AnimatePresence>
+			<AnimatePresence onExitComplete={onExitComplete}>
 				{open && (
 					<div ref={setFloating} style={floatingStyles} className="z-100" {...getFloatingProps()}>
 						<motion.div

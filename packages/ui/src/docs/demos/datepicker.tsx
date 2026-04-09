@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { DatePicker } from '../../components/datepicker'
-import { Text } from '../../components/text'
 import { code } from '../code'
 import { Example } from '../example'
 
@@ -24,7 +23,6 @@ export default function DatePickerDemo() {
 			>
 				<div className="w-64 space-y-2">
 					<DatePicker value={date} onChange={setDate} />
-					<Text>{date ? `Selected: ${date.toLocaleDateString()}` : 'No date selected'}</Text>
 				</div>
 			</Example>
 
@@ -40,11 +38,6 @@ export default function DatePickerDemo() {
 			>
 				<div className="w-64 space-y-2">
 					<DatePicker range value={range} onChange={setRange} />
-					<Text>
-						{range
-							? `${range[0].toLocaleDateString()} – ${range[1].toLocaleDateString()}`
-							: 'No range selected'}
-					</Text>
 				</div>
 			</Example>
 

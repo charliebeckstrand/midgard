@@ -21,6 +21,7 @@ function isSameDay(a: Date, b: Date): boolean {
 function isBeforeDay(a: Date, b: Date): boolean {
 	const ac = new Date(a.getFullYear(), a.getMonth(), a.getDate())
 	const bc = new Date(b.getFullYear(), b.getMonth(), b.getDate())
+
 	return ac.getTime() < bc.getTime()
 }
 
@@ -28,8 +29,10 @@ function isBetween(date: Date, start: Date, end: Date): boolean {
 	const d = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime()
 	const s = new Date(start.getFullYear(), start.getMonth(), start.getDate()).getTime()
 	const e = new Date(end.getFullYear(), end.getMonth(), end.getDate()).getTime()
+
 	const lo = Math.min(s, e)
 	const hi = Math.max(s, e)
+
 	return d > lo && d < hi
 }
 
@@ -39,7 +42,9 @@ function getDaysInMonth(year: number, month: number): number {
 
 function getCalendarDays(year: number, month: number): Date[] {
 	const firstDay = new Date(year, month, 1).getDay()
+
 	const daysInMonth = getDaysInMonth(year, month)
+
 	const days: Date[] = []
 
 	// Padding days from previous month
@@ -55,7 +60,7 @@ function getCalendarDays(year: number, month: number): Date[] {
 }
 
 export type CalendarProps = {
-	value?: Date
+	value?: Date | null
 	defaultValue?: Date
 	onChange?: (date: Date) => void
 	min?: Date
@@ -93,7 +98,9 @@ export function Calendar({
 	)
 
 	const year = viewDate.getFullYear()
+
 	const month = viewDate.getMonth()
+
 	const days = useMemo(() => getCalendarDays(year, month), [year, month])
 
 	const prevMonth = useCallback(() => {
@@ -108,6 +115,7 @@ export function Calendar({
 		(date: Date) => {
 			if (min && isBeforeDay(date, min)) return true
 			if (max && isBeforeDay(max, date)) return true
+
 			return false
 		},
 		[min, max],
@@ -138,16 +146,20 @@ export function Calendar({
 
 				{days.map((date) => {
 					const isOutside = date.getMonth() !== month
+
 					if (isOutside) {
 						return <div key={date.toISOString()} className={cn(k.day.base, k.day.outside)} />
 					}
 
 					const disabled = isDisabled(date)
+
 					const isToday = isSameDay(date, today)
 					const isSelected = value != null && isSameDay(date, value)
 					const isRangeStart = rangeStart != null && isSameDay(date, rangeStart)
 					const isRangeEnd = effectiveEnd != null && isSameDay(date, effectiveEnd)
+
 					const isEdge = isRangeStart || isRangeEnd
+
 					const inRange =
 						rangeStart != null && effectiveEnd != null && isBetween(date, rangeStart, effectiveEnd)
 
