@@ -79,6 +79,10 @@
 			"types": "./src/components/dialog/index.ts",
 			"default": "./src/components/dialog/index.ts"
 		},
+		"./drawer": {
+			"types": "./src/components/drawer/index.ts",
+			"default": "./src/components/drawer/index.ts"
+		},
 		"./divider": {
 			"types": "./src/components/divider/index.ts",
 			"default": "./src/components/divider/index.ts"

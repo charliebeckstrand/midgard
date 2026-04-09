@@ -28,6 +28,7 @@ import { dialog } from './dialog'
 import { disclosure } from './disclosure'
 import { divider } from './divider'
 import { dl } from './dl'
+import { drawer } from './drawer'
 import { dropdown } from './dropdown'
 import { fieldset } from './fieldset'
 import { grid } from './grid'
@@ -69,6 +70,7 @@ export const katachi = {
 	combobox,
 	datepicker,
 	dialog,
+	drawer,
 	disclosure,
 	divider,
 	dl,
