@@ -323,6 +323,184 @@ Add an entry to `package.json` under `"exports"`:
 
 Place it in alphabetical order among the existing component exports.
 
+### 9. Create the demo page
+
+Add a new file at `src/docs/demos/<name>.tsx`. This is **required** for every new component.
+
+The demo system is auto-discovered — `app.tsx` uses `import.meta.glob('./demos/*.tsx', { eager: true })` so simply creating the file registers it in the sidebar.
+
+**Structure:**
+- Export a `meta` object with a `category` field
+- Export a default function `<Name>Demo`
+- Use the `Example` component to wrap each demo section
+- Use the `code` tagged template literal for code snippets
+- Import components from their relative path (`../../components/<name>`)
+- Import `code` from `../code` and `Example` from `../example`
+
+**Categories** (pick the most appropriate):
+`'Base'` | `'Forms'` | `'Data Display'` | `'Feedback'` | `'Overlay'` | `'Navigation'` | `'Layout'` | `'Other'`
+
+**Interactive controls** (optional, for demos that switch variants/sizes):
+- `VariantListbox` from `../variant-listbox` — dropdown to switch between variant values
+- `SizeListbox` from `../size-listbox` — dropdown to switch between size values
+
+**Pattern — simple presentational component:**
+```tsx
+import { <Name> } from '../../components/<name>'
+import { code } from '../code'
+import { Example } from '../example'
+
+export const meta = { category: '<Category>' }
+
+export default function <Name>Demo() {
+  return (
+    <div className="space-y-8">
+      <Example
+        title="Default"
+        code={code`
+          import { <Name> } from 'ui/<name>'
+
+          <<Name>>Example</<Name>>
+        `}
+      >
+        <<Name>>Example</<Name>>
+      </Example>
+    </div>
+  )
+}
+```
+
+**Pattern — component with variant + color:**
+```tsx
+'use client'
+
+import { useState } from 'react'
+import { <Name> } from '../../components/<name>'
+import { code } from '../code'
+import { Example } from '../example'
+import { VariantListbox } from '../variant-listbox'
+
+export const meta = { category: '<Category>' }
+
+const variants = ['solid', 'soft', 'outline'] as const
+const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
+
+export default function <Name>Demo() {
+  const [variant, setVariant] = useState<(typeof variants)[number]>('solid')
+
+  return (
+    <div className="space-y-8">
+      <Example
+        title="Variants"
+        code={code`
+          import { <Name> } from 'ui/<name>'
+
+          ${variants.map((v) => `<<Name> variant="${v}">${cap(v)}</<Name>>`)}
+        `}
+      >
+        <div className="flex flex-wrap gap-2">
+          {variants.map((v) => (
+            <<Name> key={v} variant={v}>{v}</<Name>>
+          ))}
+        </div>
+      </Example>
+      <Example
+        title="Colors"
+        actions={<VariantListbox variants={variants} value={variant} onChange={setVariant} />}
+        code={code`
+          import { <Name> } from 'ui/<name>'
+
+          ${colors.map((c) => `<<Name> variant="${'${variant}'}" color="${c}">${cap(c)}</<Name>>`)}
+        `}
+      >
+        <div className="flex flex-wrap gap-2">
+          {colors.map((c) => (
+            <<Name> key={c} variant={variant} color={c}>{c}</<Name>>
+          ))}
+        </div>
+      </Example>
+    </div>
+  )
+}
+```
+
+**Pattern — compound component:**
+```tsx
+import { <Name>, <Name>Header, <Name>Body } from '../../components/<name>'
+import { code } from '../code'
+import { Example } from '../example'
+
+export const meta = { category: '<Category>' }
+
+export default function <Name>Demo() {
+  return (
+    <div className="space-y-8">
+      <Example
+        title="Basic"
+        code={code`
+          import { <Name>, <Name>Header, <Name>Body } from 'ui/<name>'
+
+          <<Name>>
+            <<Name>Header>Title</<Name>Header>
+            <<Name>Body>Content</<Name>Body>
+          </<Name>>
+        `}
+      >
+        <<Name>>
+          <<Name>Header>Title</<Name>Header>
+          <<Name>Body>Content</<Name>Body>
+        </<Name>>
+      </Example>
+    </div>
+  )
+}
+```
+
+**Pattern — interactive/overlay component:**
+```tsx
+import { useState } from 'react'
+import { Button } from '../../components/button'
+import { <Name> } from '../../components/<name>'
+import { code } from '../code'
+import { Example } from '../example'
+
+export const meta = { category: 'Overlay' }
+
+export default function <Name>Demo() {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <div className="space-y-8">
+      <Example
+        title="Default"
+        code={code`
+          import { <Name> } from 'ui/<name>'
+          import { Button } from 'ui/button'
+
+          <Button onClick={() => setOpen(true)}>Open <Name></Button>
+          <<Name> open={open} onClose={() => setOpen(false)}>
+            ...
+          </<Name>>
+        `}
+      >
+        <Button onClick={() => setOpen(true)}>Open <Name></Button>
+        <<Name> open={open} onClose={() => setOpen(false)}>
+          ...
+        </<Name>>
+      </Example>
+    </div>
+  )
+}
+```
+
+**Guidelines:**
+- Show each major feature in its own `Example` block (variants, colors, sizes, composition with other components)
+- Code snippets should use the package import path (`'ui/<name>'`), not the relative path
+- Keep demos concise — demonstrate the API, not every permutation
+- Compose with existing components (Button, Text, Badge, etc.) in at least one example when it makes sense
+- Add `'use client'` only when the demo uses `useState` or other hooks
+
 ---
 
 ## Existing components (for reference and composition)
@@ -391,6 +569,7 @@ Before finishing, verify:
 - [ ] `component.tsx` follows conventions (data-slot, cn, className merge, prop spreading)
 - [ ] `index.ts` barrel exports all public API (components, props types, variant types, variant functions)
 - [ ] `package.json` export entry added (alphabetical)
+- [ ] Demo page created at `src/docs/demos/<name>.tsx` with correct `meta.category`
 - [ ] No unused imports or dead code
 - [ ] `'use client'` only added when actually needed (hooks, event handlers, motion)
 - [ ] Existing primitives, recipes, and hooks used where applicable (no reinventing)
