@@ -5,59 +5,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { katachi } from '../../recipes'
+import { Button } from '../button'
+import { CalendarPicker } from './calendar-picker'
+import { getCalendarDays, isBeforeDay, isBetween, isSameDay, WEEKDAYS } from './calendar-utilities'
 
 const k = katachi.calendar
-
-const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
-
-function isSameDay(a: Date, b: Date): boolean {
-	return (
-		a.getFullYear() === b.getFullYear() &&
-		a.getMonth() === b.getMonth() &&
-		a.getDate() === b.getDate()
-	)
-}
-
-function isBeforeDay(a: Date, b: Date): boolean {
-	const ac = new Date(a.getFullYear(), a.getMonth(), a.getDate())
-	const bc = new Date(b.getFullYear(), b.getMonth(), b.getDate())
-
-	return ac.getTime() < bc.getTime()
-}
-
-function isBetween(date: Date, start: Date, end: Date): boolean {
-	const d = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime()
-	const s = new Date(start.getFullYear(), start.getMonth(), start.getDate()).getTime()
-	const e = new Date(end.getFullYear(), end.getMonth(), end.getDate()).getTime()
-
-	const lo = Math.min(s, e)
-	const hi = Math.max(s, e)
-
-	return d > lo && d < hi
-}
-
-function getDaysInMonth(year: number, month: number): number {
-	return new Date(year, month + 1, 0).getDate()
-}
-
-function getCalendarDays(year: number, month: number): Date[] {
-	const firstDay = new Date(year, month, 1).getDay()
-
-	const daysInMonth = getDaysInMonth(year, month)
-
-	const days: Date[] = []
-
-	// Padding days from previous month
-	for (let i = firstDay - 1; i >= 0; i--) {
-		days.push(new Date(year, month, -i))
-	}
-
-	for (let d = 1; d <= daysInMonth; d++) {
-		days.push(new Date(year, month, d))
-	}
-
-	return days
-}
 
 export type CalendarProps = {
 	value?: Date | null
@@ -140,25 +92,43 @@ export function Calendar({
 
 	const monthLabel = viewDate.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
 
+	const handlePickerNavigate = useCallback((y: number, m: number) => {
+		setViewDate(new Date(y, m, 1))
+	}, [])
+
+	const handleSelectToday = useCallback(() => {
+		setValue(today)
+
+		setViewDate(new Date(today.getFullYear(), today.getMonth(), 1))
+	}, [today, setValue])
+
 	useEffect(() => {
 		if (!activeDate) return
 
-		const nextMonth = new Date(activeDate.getFullYear(), activeDate.getMonth(), 1)
-		if (nextMonth.getTime() !== viewDate.getTime()) {
-			setViewDate(nextMonth)
-		}
-	}, [activeDate, viewDate])
+		setViewDate((prev) => {
+			const next = new Date(activeDate.getFullYear(), activeDate.getMonth(), 1)
+
+			return next.getTime() === prev.getTime() ? prev : next
+		})
+	}, [activeDate])
 
 	return (
 		<div data-slot="calendar" className={cn(k.root, className)}>
 			<div className={k.header}>
-				<button type="button" onClick={prevMonth} className={cn(k.nav)} aria-label="Previous month">
+				<Button variant="plain" onClick={prevMonth} aria-label="Previous month">
 					<ChevronLeft className={k.navIcon} />
-				</button>
-				<span className={cn(k.title)}>{monthLabel}</span>
-				<button type="button" onClick={nextMonth} className={cn(k.nav)} aria-label="Next month">
+				</Button>
+				<CalendarPicker
+					year={year}
+					month={month}
+					today={today}
+					onNavigate={handlePickerNavigate}
+					onSelectToday={handleSelectToday}
+					monthLabel={monthLabel}
+				/>
+				<Button variant="plain" onClick={nextMonth} aria-label="Next month">
 					<ChevronRight className={k.navIcon} />
-				</button>
+				</Button>
 			</div>
 
 			<div className={k.grid}>
@@ -172,7 +142,7 @@ export function Calendar({
 					const isOutside = date.getMonth() !== month
 
 					if (isOutside) {
-						return <div key={date.toISOString()} className={cn(k.day.base, k.day.outside)} />
+						return <Button variant="plain" disabled key={date.toISOString()} />
 					}
 
 					const disabled = isDisabled(date)
@@ -189,10 +159,10 @@ export function Calendar({
 						rangeStart != null && effectiveEnd != null && isBetween(date, rangeStart, effectiveEnd)
 
 					return (
-						<button
+						<Button
 							key={date.toISOString()}
-							type="button"
 							disabled={disabled}
+							variant={isSelected || isEdge ? 'solid' : 'plain'}
 							aria-pressed={isSelected || isEdge}
 							onClick={() => {
 								if (!disabled) setValue(date)
@@ -201,18 +171,16 @@ export function Calendar({
 							onMouseLeave={() => onHoverDate?.(null)}
 							data-calendar-day
 							className={cn(
-								k.day.base,
 								!disabled && !isSelected && !isEdge && !inRange && k.day.hover,
 								isActive && !isSelected && !isEdge && k.day.active,
 								isToday && !isSelected && !isEdge && k.day.today,
-								isSelected && !rangeStart && k.day.selected,
 								isEdge && k.day.rangeEdge,
 								inRange && !isEdge && k.day.inRange,
 								disabled && k.day.disabled,
 							)}
 						>
 							{date.getDate()}
-						</button>
+						</Button>
 					)
 				})}
 			</div>

@@ -9,7 +9,7 @@ import { Calendar } from '../calendar'
 import { Icon } from '../icon'
 import { Input } from '../input'
 import { Popover, PopoverContent, type PopoverProps, PopoverTrigger } from '../popover'
-import { useInputKeyDown } from './use-input-keydown'
+import { useInputKeyDown } from './use-keyboard'
 
 const k = katachi.datepicker
 

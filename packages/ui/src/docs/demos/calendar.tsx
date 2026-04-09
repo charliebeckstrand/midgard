@@ -29,10 +29,7 @@ export default function CalendarDemo() {
 					<Calendar value={date} onChange={setDate} />
 				`}
 			>
-				<div className="space-y-2">
-					<Calendar value={date} onChange={setDate} />
-					<Text>{date ? `Selected: ${date.toLocaleDateString()}` : 'No date selected'}</Text>
-				</div>
+				<Calendar value={date} onChange={setDate} />
 			</Example>
 
 			<Example
