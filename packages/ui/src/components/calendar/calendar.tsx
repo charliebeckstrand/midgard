@@ -1,13 +1,14 @@
 'use client'
 
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { katachi } from '../../recipes'
 import { Button } from '../button'
 import { CalendarPicker } from './calendar-picker'
 import { getCalendarDays, isBeforeDay, isBetween, isSameDay, WEEKDAYS } from './calendar-utilities'
+import { useKeyboard } from './use-keyboard'
 
 const k = katachi.calendar
 
@@ -90,6 +91,12 @@ export function Calendar({
 
 	const effectiveEnd = hoverDate ?? rangeEnd
 
+	const headerRef = useRef<HTMLDivElement>(null)
+	const gridRef = useRef<HTMLDivElement>(null)
+
+	const handleHeaderKeyDown = useKeyboard(headerRef)
+	const handleGridKeyDown = useKeyboard(gridRef, 7)
+
 	const monthLabel = viewDate.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
 
 	const handlePickerNavigate = useCallback((y: number, m: number) => {
@@ -114,7 +121,7 @@ export function Calendar({
 
 	return (
 		<div data-slot="calendar" className={cn(k.root, className)}>
-			<div className={k.header}>
+			<div ref={headerRef} role="toolbar" onKeyDown={handleHeaderKeyDown} className={k.header}>
 				<Button variant="plain" onClick={prevMonth} aria-label="Previous month">
 					<ChevronLeft className={k.navIcon} />
 				</Button>
@@ -138,50 +145,62 @@ export function Calendar({
 					</div>
 				))}
 
-				{days.map((date) => {
-					const isOutside = date.getMonth() !== month
+				<div
+					ref={gridRef}
+					role="listbox"
+					onKeyDown={handleGridKeyDown}
+					className="col-span-7 grid grid-cols-7"
+				>
+					{days.map((date) => {
+						const isOutside = date.getMonth() !== month
 
-					if (isOutside) {
-						return <Button variant="plain" disabled key={date.toISOString()} />
-					}
+						if (isOutside) return null
 
-					const disabled = isDisabled(date)
+						const disabled = isDisabled(date)
 
-					const isToday = isSameDay(date, today)
-					const isSelected = value != null && isSameDay(date, value)
-					const isActive = activeDate != null && isSameDay(date, activeDate)
-					const isRangeStart = rangeStart != null && isSameDay(date, rangeStart)
-					const isRangeEnd = effectiveEnd != null && isSameDay(date, effectiveEnd)
+						const isToday = isSameDay(date, today)
+						const isSelected = value != null && isSameDay(date, value)
+						const isActive = activeDate != null && isSameDay(date, activeDate)
+						const isRangeStart = rangeStart != null && isSameDay(date, rangeStart)
+						const isRangeEnd = effectiveEnd != null && isSameDay(date, effectiveEnd)
 
-					const isEdge = isRangeStart || isRangeEnd
+						const isEdge = isRangeStart || isRangeEnd
 
-					const inRange =
-						rangeStart != null && effectiveEnd != null && isBetween(date, rangeStart, effectiveEnd)
+						const inRange =
+							rangeStart != null &&
+							effectiveEnd != null &&
+							isBetween(date, rangeStart, effectiveEnd)
 
-					return (
-						<Button
-							key={date.toISOString()}
-							disabled={disabled}
-							variant={isSelected || isEdge ? 'solid' : 'plain'}
-							aria-pressed={isSelected || isEdge}
-							onClick={() => {
-								if (!disabled) setValue(date)
-							}}
-							onMouseEnter={() => onHoverDate?.(date)}
-							onMouseLeave={() => onHoverDate?.(null)}
-							data-calendar-day
-							className={cn(
-								!disabled && !isSelected && !isEdge && !inRange && k.day.hover,
-								isActive && !isSelected && !isEdge && k.day.active,
-								isToday && !isSelected && !isEdge && k.day.today,
-								inRange && !isEdge && k.day.inRange,
-								disabled && k.day.disabled,
-							)}
-						>
-							{date.getDate()}
-						</Button>
-					)
-				})}
+						const isFirst = date.getDate() === 1
+
+						return (
+							<Button
+								key={date.toISOString()}
+								disabled={disabled}
+								variant={isSelected || isEdge ? 'solid' : 'plain'}
+								aria-pressed={isSelected || isEdge}
+								onClick={() => {
+									if (!disabled) setValue(date)
+								}}
+								onMouseEnter={() => onHoverDate?.(date)}
+								onMouseLeave={() => onHoverDate?.(null)}
+								data-calendar-day
+								style={
+									isFirst ? { gridColumnStart: new Date(year, month, 1).getDay() + 1 } : undefined
+								}
+								className={cn(
+									!disabled && !isSelected && !isEdge && !inRange && k.day.hover,
+									isActive && !isSelected && !isEdge && k.day.active,
+									isToday && !isSelected && !isEdge && k.day.today,
+									inRange && !isEdge && k.day.inRange,
+									disabled && k.day.disabled,
+								)}
+							>
+								{date.getDate()}
+							</Button>
+						)
+					})}
+				</div>
 			</div>
 		</div>
 	)

@@ -1,6 +1,6 @@
 import { type KeyboardEvent, type RefObject, useCallback } from 'react'
 
-export function usePickerKeyboard(gridRef: RefObject<HTMLElement | null>, cols = 3) {
+export function useKeyboard(gridRef: RefObject<HTMLElement | null>, cols = 3) {
 	return useCallback(
 		(e: KeyboardEvent) => {
 			const grid = gridRef.current

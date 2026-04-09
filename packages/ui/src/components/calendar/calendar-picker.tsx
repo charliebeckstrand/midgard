@@ -7,7 +7,7 @@ import { katachi } from '../../recipes'
 import { Button } from '../button'
 import { Popover, PopoverContent, PopoverTrigger } from '../popover'
 import { MONTHS } from './calendar-utilities'
-import { usePickerKeyboard } from './use-keyboard'
+import { useKeyboard } from './use-keyboard'
 
 const k = katachi.calendar
 
@@ -28,15 +28,15 @@ export function CalendarPicker({
 	onSelectToday,
 	monthLabel,
 }: CalendarPickerProps) {
+	const [pickerView, setPickerView] = useState<'months' | 'years'>('months')
 	const [pickerOpen, setPickerOpen] = useState(false)
 	const [pickerYear, setPickerYear] = useState(year)
-	const [pickerView, setPickerView] = useState<'months' | 'years'>('months')
 
 	const decadeStart = Math.floor(pickerYear / 10) * 10
 
 	const pickerGridRef = useRef<HTMLDivElement>(null)
 
-	const handlePickerKeyDown = usePickerKeyboard(pickerGridRef)
+	const handlePickerKeyDown = useKeyboard(pickerGridRef)
 
 	const focusPickerGrid = useCallback(() => {
 		requestAnimationFrame(() => {

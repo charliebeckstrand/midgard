@@ -83,10 +83,18 @@ export function Popover({
 
 	const { getReferenceProps, getFloatingProps } = useInteractions([click, dismiss, role])
 
+	const prevOpenRef = useRef(open)
+
+	useEffect(() => {
+		if (prevOpenRef.current && !open) {
+			triggerRef.current?.focus()
+		}
+
+		prevOpenRef.current = open
+	}, [open])
+
 	const close = useCallback(() => {
 		setOpen(false)
-
-		triggerRef.current?.focus()
 	}, [setOpen])
 
 	return (
