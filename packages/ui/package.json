@@ -23,6 +23,10 @@
 			"types": "./src/components/icon/index.ts",
 			"default": "./src/components/icon/index.ts"
 		},
+		"./accordion": {
+			"types": "./src/components/accordion/index.ts",
+			"default": "./src/components/accordion/index.ts"
+		},
 		"./alert": {
 			"types": "./src/components/alert/index.ts",
 			"default": "./src/components/alert/index.ts"
@@ -87,10 +91,6 @@
 			"types": "./src/components/divider/index.ts",
 			"default": "./src/components/divider/index.ts"
 		},
-		"./dropdown": {
-			"types": "./src/components/dropdown/index.ts",
-			"default": "./src/components/dropdown/index.ts"
-		},
 		"./grid": {
 			"types": "./src/components/grid/index.ts",
 			"default": "./src/components/grid/index.ts"
@@ -150,6 +150,10 @@
 		"./sidebar": {
 			"types": "./src/components/sidebar/index.ts",
 			"default": "./src/components/sidebar/index.ts"
+		},
+		"./spinner": {
+			"types": "./src/components/spinner/index.ts",
+			"default": "./src/components/spinner/index.ts"
 		},
 		"./status": {
 			"types": "./src/components/status/index.ts",
