@@ -22,11 +22,11 @@ import { FormControl } from '../../primitives'
 import { katachi, ugoki } from '../../recipes'
 import { sumi } from '../../recipes/sumi'
 import { Button } from '../button'
-import { Calendar } from '../calendar'
+import { Calendar, type CalendarActive, type CalendarHandle } from '../calendar'
 import { Icon } from '../icon'
 import { DatePickerRange } from './datepicker-range'
 import { addDays, clampDate, formatDate } from './datepicker-utilities'
-import { useInputKeyDown } from './use-keyboard'
+import { type FooterButton, useDatePickerKeyDown } from './use-keyboard'
 
 const k = katachi.datepicker
 
@@ -78,33 +78,34 @@ function DatePickerSingle({
 
 	const [open, setOpen] = useState(false)
 
-	const [activeDate, setActiveDate] = useState<Date | null>(null)
+	const [active, setActive] = useState<CalendarActive | null>(null)
 
 	const triggerRef = useRef<HTMLButtonElement>(null)
+	const calendarRef = useRef<CalendarHandle>(null)
 
 	const getInitialActiveDate = useCallback(
 		() => clampDate(value ?? min ?? new Date(), min, max),
 		[value, min, max],
 	)
 
-	const moveActiveDate = useCallback(
+	const moveGridDate = useCallback(
 		(delta: number) => {
-			const next = clampDate(addDays(activeDate ?? getInitialActiveDate(), delta), min, max)
-			setActiveDate(next)
+			const base = active?.zone === 'grid' ? active.date : getInitialActiveDate()
+			return clampDate(addDays(base, delta), min, max)
 		},
-		[activeDate, getInitialActiveDate, min, max],
+		[active, getInitialActiveDate, min, max],
 	)
 
 	const openCalendar = useCallback(() => {
 		setOpen(true)
 
-		setActiveDate(null)
+		setActive(null)
 	}, [])
 
 	const closeCalendar = useCallback(() => {
 		setOpen(false)
 
-		setActiveDate(null)
+		setActive(null)
 	}, [])
 
 	const handleSelect = useCallback(
@@ -137,17 +138,38 @@ function DatePickerSingle({
 		[closeCalendar, openCalendar],
 	)
 
+	const handlePickerOpenChange = useCallback((pickerOpen: boolean) => {
+		if (!pickerOpen) {
+			// Defer past the inner Popover's own focus restore.
+			requestAnimationFrame(() => triggerRef.current?.focus())
+		}
+	}, [])
+
+	const handleFooterActivate = useCallback(
+		(kind: FooterButton) => {
+			if (kind === 'clear') handleClear()
+			else handleSelectToday()
+		},
+		[handleClear, handleSelectToday],
+	)
+
+	const footerButtons: FooterButton[] = value != null ? ['clear', 'today'] : ['today']
+
 	const displayValue = value ? formatDate(value) : ''
 
-	const handleInputKeyDown = useInputKeyDown({
+	const handleInputKeyDown = useDatePickerKeyDown({
 		disabled,
 		open,
-		activeDate,
+		active,
+		setActive,
 		openCalendar,
 		closeCalendar,
-		moveActiveDate,
+		moveGridDate,
 		getInitialActiveDate,
 		handleSelect,
+		calendarRef,
+		footerButtons,
+		onFooterActivate: handleFooterActivate,
 	})
 
 	const { refs, floatingStyles, context } = useFloating({
@@ -213,11 +235,13 @@ function DatePickerSingle({
 								onMouseDown={(e) => e.preventDefault()}
 							>
 								<Calendar
+									ref={calendarRef}
 									value={value ?? null}
 									onChange={handleSelect}
 									min={min}
 									max={max}
-									activeDate={open ? activeDate : null}
+									active={open ? active : null}
+									onPickerOpenChange={handlePickerOpenChange}
 								/>
 								<div data-slot="calendar-footer" className={katachi.calendar.footer}>
 									{value != null && (
@@ -226,11 +250,25 @@ function DatePickerSingle({
 											color="amber"
 											onClick={handleClear}
 											aria-label="Clear selection"
+											className={cn(
+												active?.zone === 'footer' &&
+													footerButtons[active.index] === 'clear' &&
+													katachi.calendar.day.active,
+											)}
 										>
 											Clear
 										</Button>
 									)}
-									<Button variant="soft" color="blue" onClick={handleSelectToday}>
+									<Button
+										variant="soft"
+										color="blue"
+										onClick={handleSelectToday}
+										className={cn(
+											active?.zone === 'footer' &&
+												footerButtons[active.index] === 'today' &&
+												katachi.calendar.day.active,
+										)}
+									>
 										Today
 									</Button>
 								</div>

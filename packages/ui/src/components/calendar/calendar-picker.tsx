@@ -17,6 +17,9 @@ type CalendarPickerProps = {
 	today: Date
 	onNavigate: (year: number, month: number) => void
 	monthLabel: string
+	open?: boolean
+	onOpenChange?: (open: boolean) => void
+	triggerClassName?: string
 }
 
 export function CalendarPicker({
@@ -25,15 +28,30 @@ export function CalendarPicker({
 	today,
 	onNavigate,
 	monthLabel,
+	open: openProp,
+	onOpenChange,
+	triggerClassName,
 }: CalendarPickerProps) {
 	const [pickerView, setPickerView] = useState<'months' | 'years'>('months')
-	const [pickerOpen, setPickerOpen] = useState(false)
+
+	const [internalOpen, setInternalOpen] = useState(false)
+
 	const [pickerYear, setPickerYear] = useState(year)
 	const [decadeYear, setDecadeYear] = useState(year)
 
 	const decadeStart = Math.floor(decadeYear / 10) * 10
 
 	const pickerGridRef = useRef<HTMLDivElement>(null)
+
+	const pickerOpen = openProp !== undefined ? openProp : internalOpen
+
+	const setPickerOpen = useCallback(
+		(value: boolean) => {
+			if (openProp === undefined) setInternalOpen(value)
+			onOpenChange?.(value)
+		},
+		[openProp, onOpenChange],
+	)
 
 	const handlePickerKeyDown = useKeyboard(pickerGridRef)
 
@@ -67,7 +85,7 @@ export function CalendarPicker({
 				setPickerView('months')
 			}
 		},
-		[year],
+		[year, setPickerOpen],
 	)
 
 	const selectMonth = useCallback(
@@ -76,13 +94,15 @@ export function CalendarPicker({
 
 			setPickerOpen(false)
 		},
-		[pickerYear, onNavigate],
+		[pickerYear, onNavigate, setPickerOpen],
 	)
 
 	return (
 		<Popover placement="bottom" open={pickerOpen} onOpenChange={handlePickerOpen}>
 			<PopoverTrigger>
-				<Button variant="plain">{monthLabel}</Button>
+				<Button variant="plain" className={triggerClassName}>
+					{monthLabel}
+				</Button>
 			</PopoverTrigger>
 			<PopoverContent className="min-w-64">
 				{pickerView === 'months' ? (

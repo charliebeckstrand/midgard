@@ -1,7 +1,15 @@
 'use client'
 
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import {
+	forwardRef,
+	useCallback,
+	useEffect,
+	useImperativeHandle,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { katachi } from '../../recipes'
@@ -11,6 +19,17 @@ import { getCalendarDays, isBeforeDay, isSameDay, WEEKDAYS } from './calendar-ut
 import { useKeyboard } from './use-keyboard'
 
 const k = katachi.calendar
+
+export type CalendarActive =
+	| { zone: 'header'; index: 0 | 1 | 2 }
+	| { zone: 'grid'; date: Date }
+	| { zone: 'footer'; index: number }
+
+export type CalendarHandle = {
+	prevMonth: () => void
+	nextMonth: () => void
+	openPicker: () => void
+}
 
 export type CalendarDayContext = {
 	date: Date
@@ -35,21 +54,26 @@ export type CalendarProps = {
 	onChange?: (date: Date) => void
 	min?: Date
 	max?: Date
-	activeDate?: Date | null
+	active?: CalendarActive | null
+	onPickerOpenChange?: (open: boolean) => void
 	getDayProps?: (ctx: CalendarDayContext) => CalendarDayProps
 	className?: string
 }
 
-export function Calendar({
-	value: valueProp,
-	defaultValue,
-	onChange,
-	min,
-	max,
-	activeDate,
-	getDayProps,
-	className,
-}: CalendarProps) {
+export const Calendar = forwardRef<CalendarHandle, CalendarProps>(function Calendar(
+	{
+		value: valueProp,
+		defaultValue,
+		onChange,
+		min,
+		max,
+		active,
+		onPickerOpenChange,
+		getDayProps,
+		className,
+	},
+	ref,
+) {
 	const handleValueChange = useCallback(
 		(nextValue: Date | undefined) => {
 			if (nextValue) onChange?.(nextValue)
@@ -88,6 +112,26 @@ export function Calendar({
 		setViewDate(new Date(year, month + 1, 1))
 	}, [year, month])
 
+	const [pickerOpen, setPickerOpen] = useState(false)
+
+	const handlePickerOpenChange = useCallback(
+		(open: boolean) => {
+			setPickerOpen(open)
+			onPickerOpenChange?.(open)
+		},
+		[onPickerOpenChange],
+	)
+
+	const openPicker = useCallback(() => {
+		handlePickerOpenChange(true)
+	}, [handlePickerOpenChange])
+
+	useImperativeHandle(ref, () => ({ prevMonth, nextMonth, openPicker }), [
+		prevMonth,
+		nextMonth,
+		openPicker,
+	])
+
 	const isDisabled = useCallback(
 		(date: Date) => {
 			if (min && isBeforeDay(date, min)) return true
@@ -110,15 +154,17 @@ export function Calendar({
 		setViewDate(new Date(y, m, 1))
 	}, [])
 
+	const activeGridDate = active?.zone === 'grid' ? active.date : null
+
 	useEffect(() => {
-		if (!activeDate) return
+		if (!activeGridDate) return
 
 		setViewDate((prev) => {
-			const next = new Date(activeDate.getFullYear(), activeDate.getMonth(), 1)
+			const next = new Date(activeGridDate.getFullYear(), activeGridDate.getMonth(), 1)
 
 			return next.getTime() === prev.getTime() ? prev : next
 		})
-	}, [activeDate])
+	}, [activeGridDate])
 
 	useEffect(() => {
 		if (!value) return
@@ -131,10 +177,17 @@ export function Calendar({
 		})
 	}, [value])
 
+	const headerActiveIndex = active?.zone === 'header' ? active.index : null
+
 	return (
 		<div data-slot="calendar" className={cn(k.root, className)}>
 			<div ref={headerRef} role="toolbar" onKeyDown={handleHeaderKeyDown} className={k.header}>
-				<Button variant="plain" onClick={prevMonth} aria-label="Previous month">
+				<Button
+					variant="plain"
+					onClick={prevMonth}
+					aria-label="Previous month"
+					className={cn(headerActiveIndex === 0 && k.day.active)}
+				>
 					<ChevronLeft className={k.navIcon} />
 				</Button>
 				<CalendarPicker
@@ -143,8 +196,16 @@ export function Calendar({
 					today={today}
 					onNavigate={handlePickerNavigate}
 					monthLabel={monthLabel}
+					open={pickerOpen}
+					onOpenChange={handlePickerOpenChange}
+					triggerClassName={cn(headerActiveIndex === 1 && k.day.active)}
 				/>
-				<Button variant="plain" onClick={nextMonth} aria-label="Next month">
+				<Button
+					variant="plain"
+					onClick={nextMonth}
+					aria-label="Next month"
+					className={cn(headerActiveIndex === 2 && k.day.active)}
+				>
 					<ChevronRight className={k.navIcon} />
 				</Button>
 			</div>
@@ -171,7 +232,7 @@ export function Calendar({
 
 						const isSelected = value != null && isSameDay(date, value)
 
-						const isActive = activeDate != null && isSameDay(date, activeDate)
+						const isActive = activeGridDate != null && isSameDay(date, activeGridDate)
 
 						const dayProps = getDayProps?.({ date, disabled, isToday, isSelected, isActive })
 
@@ -207,4 +268,4 @@ export function Calendar({
 			</div>
 		</div>
 	)
-}
+})

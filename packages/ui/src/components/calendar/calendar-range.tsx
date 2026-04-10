@@ -1,9 +1,14 @@
 'use client'
 
-import { useCallback, useMemo } from 'react'
+import { forwardRef, useCallback, useMemo } from 'react'
 import { cn } from '../../core'
 import { katachi } from '../../recipes'
-import { Calendar, type CalendarDayContext } from './calendar'
+import {
+	Calendar,
+	type CalendarActive,
+	type CalendarDayContext,
+	type CalendarHandle,
+} from './calendar'
 import { isBeforeDay, isBetween, isSameDay } from './calendar-utilities'
 
 const k = katachi.calendar
@@ -16,21 +21,26 @@ export type CalendarRangeProps = {
 	rangeEnd?: Date | null
 	hoverDate?: Date | null
 	onHoverDate?: (date: Date | null) => void
-	activeDate?: Date | null
+	active?: CalendarActive | null
+	onPickerOpenChange?: (open: boolean) => void
 	className?: string
 }
 
-export function CalendarRange({
-	onChange,
-	min,
-	max,
-	rangeStart,
-	rangeEnd,
-	hoverDate,
-	onHoverDate,
-	activeDate,
-	className,
-}: CalendarRangeProps) {
+export const CalendarRange = forwardRef<CalendarHandle, CalendarRangeProps>(function CalendarRange(
+	{
+		onChange,
+		min,
+		max,
+		rangeStart,
+		rangeEnd,
+		hoverDate,
+		onHoverDate,
+		active,
+		onPickerOpenChange,
+		className,
+	},
+	ref,
+) {
 	const effectiveEnd = hoverDate ?? rangeEnd
 
 	const getDayProps = useCallback(
@@ -81,14 +91,16 @@ export function CalendarRange({
 
 	return (
 		<Calendar
+			ref={ref}
 			value={undefined}
 			defaultValue={defaultValue}
 			onChange={onChange}
 			min={min}
 			max={max}
-			activeDate={activeDate}
+			active={active}
+			onPickerOpenChange={onPickerOpenChange}
 			getDayProps={getDayProps}
 			className={className}
 		/>
 	)
-}
+})

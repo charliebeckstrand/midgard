@@ -19,11 +19,11 @@ import { FormControl } from '../../primitives'
 import { katachi, ugoki } from '../../recipes'
 import { sumi } from '../../recipes/sumi'
 import { Button } from '../button'
-import { CalendarRange } from '../calendar'
+import { type CalendarActive, type CalendarHandle, CalendarRange } from '../calendar'
 import { Icon } from '../icon'
 import type { DatePickerBaseProps, DatePickerRangeProps } from './datepicker'
 import { addDays, clampDate, formatRange } from './datepicker-utilities'
-import { useInputKeyDown } from './use-keyboard'
+import { type FooterButton, useDatePickerKeyDown } from './use-keyboard'
 
 const k = katachi.datepicker
 
@@ -40,12 +40,15 @@ export function DatePickerRange({
 }: DatePickerBaseProps & DatePickerRangeProps) {
 	const [value, setValue] = useControllable({ value: valueProp, defaultValue, onChange })
 	const [open, setOpen] = useState(false)
+
 	const [rangeStart, setRangeStart] = useState<Date | null>(null)
 	const [hoverDate, setHoverDate] = useState<Date | null>(null)
-	const [activeDate, setActiveDate] = useState<Date | null>(null)
+
+	const [active, setActive] = useState<CalendarActive | null>(null)
 
 	const pendingRef = useRef<{ value: [Date, Date] | undefined } | null>(null)
 	const triggerRef = useRef<HTMLButtonElement>(null)
+	const calendarRef = useRef<CalendarHandle>(null)
 
 	const flushPending = useCallback(() => {
 		if (pendingRef.current) {
@@ -58,7 +61,7 @@ export function DatePickerRange({
 
 		setHoverDate(null)
 
-		setActiveDate(null)
+		setActive(null)
 	}, [setValue])
 
 	const getInitialActiveDate = useCallback(
@@ -66,13 +69,17 @@ export function DatePickerRange({
 		[rangeStart, value, min, max],
 	)
 
-	const moveActiveDate = useCallback(
+	const moveGridDate = useCallback(
 		(delta: number) => {
-			const next = clampDate(addDays(activeDate ?? getInitialActiveDate(), delta), min, max)
+			const base = active?.zone === 'grid' ? active.date : getInitialActiveDate()
 
-			setActiveDate(next)
+			const next = clampDate(addDays(base, delta), min, max)
+
+			if (rangeStart !== null) setHoverDate(next)
+
+			return next
 		},
-		[activeDate, getInitialActiveDate, min, max],
+		[active, getInitialActiveDate, min, max, rangeStart],
 	)
 
 	const openCalendar = useCallback(() => {
@@ -129,6 +136,21 @@ export function DatePickerRange({
 
 	const showClear = rangeStart === null && value != null
 
+	const footerButtons: FooterButton[] = showClear ? ['clear'] : []
+
+	const handleFooterActivate = useCallback(
+		(kind: FooterButton) => {
+			if (kind === 'clear') handleClear()
+		},
+		[handleClear],
+	)
+
+	const handlePickerOpenChange = useCallback((pickerOpen: boolean) => {
+		if (!pickerOpen) {
+			requestAnimationFrame(() => triggerRef.current?.focus())
+		}
+	}, [])
+
 	const displayValue = value ? formatRange(value[0], value[1]) : ''
 
 	const { refs, floatingStyles, context } = useFloating({
@@ -143,15 +165,19 @@ export function DatePickerRange({
 
 	const { getReferenceProps, getFloatingProps } = useInteractions([dismiss])
 
-	const handleInputKeyDown = useInputKeyDown({
+	const handleInputKeyDown = useDatePickerKeyDown({
 		disabled,
 		open,
-		activeDate,
+		active,
+		setActive,
 		openCalendar,
 		closeCalendar,
-		moveActiveDate,
+		moveGridDate,
 		getInitialActiveDate,
 		handleSelect,
+		calendarRef,
+		footerButtons,
+		onFooterActivate: handleFooterActivate,
 	})
 
 	return (
@@ -204,6 +230,7 @@ export function DatePickerRange({
 								onMouseDown={(e) => e.preventDefault()}
 							>
 								<CalendarRange
+									ref={calendarRef}
 									onChange={handleSelect}
 									min={min}
 									max={max}
@@ -211,7 +238,8 @@ export function DatePickerRange({
 									rangeEnd={rangeStart === null ? (value ? value[1] : null) : null}
 									hoverDate={rangeStart !== null ? hoverDate : null}
 									onHoverDate={setHoverDate}
-									activeDate={open ? activeDate : null}
+									active={open ? active : null}
+									onPickerOpenChange={handlePickerOpenChange}
 								/>
 								{showClear && (
 									<div data-slot="calendar-footer" className={katachi.calendar.footer}>
@@ -220,6 +248,11 @@ export function DatePickerRange({
 											color="amber"
 											onClick={handleClear}
 											aria-label="Clear selection"
+											className={cn(
+												active?.zone === 'footer' &&
+													footerButtons[active.index] === 'clear' &&
+													katachi.calendar.day.active,
+											)}
 										>
 											Clear
 										</Button>

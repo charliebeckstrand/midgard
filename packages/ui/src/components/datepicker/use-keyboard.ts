@@ -1,39 +1,53 @@
-import { type KeyboardEvent, useCallback } from 'react'
+import { type KeyboardEvent, type RefObject, useCallback } from 'react'
 
-type UseInputKeyDownParams = {
+import type { CalendarActive, CalendarHandle } from '../calendar'
+
+export type FooterButton = 'clear' | 'today'
+
+type FooterAction = (kind: FooterButton) => void
+
+type UseDatePickerKeyDownParams = {
 	disabled: boolean
 	open: boolean
-	activeDate: Date | null
+	active: CalendarActive | null
+	setActive: (next: CalendarActive | null) => void
 	openCalendar: () => void
 	closeCalendar: () => void
-	moveActiveDate: (delta: number) => void
+	moveGridDate: (delta: number) => Date
 	getInitialActiveDate: () => Date
 	handleSelect: (date: Date) => void
+	calendarRef: RefObject<CalendarHandle | null>
+	footerButtons: FooterButton[]
+	onFooterActivate: FooterAction
 }
 
-export function useInputKeyDown({
+export function useDatePickerKeyDown({
 	disabled,
 	open,
-	activeDate,
+	active,
+	setActive,
 	openCalendar,
 	closeCalendar,
-	moveActiveDate,
+	moveGridDate,
 	getInitialActiveDate,
 	handleSelect,
-}: UseInputKeyDownParams) {
+	calendarRef,
+	footerButtons,
+	onFooterActivate,
+}: UseDatePickerKeyDownParams) {
 	return useCallback(
 		(e: KeyboardEvent<HTMLElement>) => {
 			if (disabled) return
 
-			if (!open && ['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(e.key)) {
-				e.preventDefault()
+			if (!open) {
+				if (['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(e.key)) {
+					e.preventDefault()
 
-				openCalendar()
+					openCalendar()
+				}
 
 				return
 			}
-
-			if (!open) return
 
 			if (e.key === 'Escape') {
 				e.preventDefault()
@@ -43,26 +57,171 @@ export function useInputKeyDown({
 				return
 			}
 
-			if (e.key === 'ArrowRight') {
+			// Shift+ArrowUp jumps to the toolbar from anywhere; Shift+ArrowDown jumps to the footer.
+			if (e.shiftKey && e.key === 'ArrowUp') {
 				e.preventDefault()
 
-				moveActiveDate(1)
+				setActive({ zone: 'header', index: 1 })
 
 				return
 			}
 
+			if (e.shiftKey && e.key === 'ArrowDown') {
+				e.preventDefault()
+
+				if (footerButtons.length > 0) {
+					setActive({ zone: 'footer', index: 0 })
+				}
+
+				return
+			}
+
+			const isArrow =
+				e.key === 'ArrowLeft' ||
+				e.key === 'ArrowRight' ||
+				e.key === 'ArrowUp' ||
+				e.key === 'ArrowDown'
+
+			// First arrow press after open: materialize on the grid.
+			if (isArrow && active === null) {
+				e.preventDefault()
+
+				setActive({ zone: 'grid', date: getInitialActiveDate() })
+
+				return
+			}
+
+			if (active === null) {
+				if (e.key === 'Enter' || e.key === ' ') {
+					e.preventDefault()
+
+					handleSelect(getInitialActiveDate())
+				}
+
+				return
+			}
+
+			if (active.zone === 'grid') {
+				if (e.key === 'ArrowLeft') {
+					e.preventDefault()
+
+					const next = moveGridDate(-1)
+
+					setActive({ zone: 'grid', date: next })
+
+					return
+				}
+
+				if (e.key === 'ArrowRight') {
+					e.preventDefault()
+
+					const next = moveGridDate(1)
+
+					setActive({ zone: 'grid', date: next })
+
+					return
+				}
+
+				if (e.key === 'ArrowUp') {
+					e.preventDefault()
+
+					const next = moveGridDate(-7)
+
+					setActive({ zone: 'grid', date: next })
+
+					return
+				}
+
+				if (e.key === 'ArrowDown') {
+					e.preventDefault()
+
+					const next = moveGridDate(7)
+
+					setActive({ zone: 'grid', date: next })
+
+					return
+				}
+
+				if (e.key === 'Enter' || e.key === ' ') {
+					e.preventDefault()
+
+					handleSelect(active.date)
+
+					return
+				}
+
+				return
+			}
+
+			if (active.zone === 'header') {
+				if (e.key === 'ArrowLeft') {
+					e.preventDefault()
+
+					const nextIndex = active.index === 0 ? 2 : ((active.index - 1) as 0 | 1 | 2)
+
+					setActive({ zone: 'header', index: nextIndex })
+
+					return
+				}
+
+				if (e.key === 'ArrowRight') {
+					e.preventDefault()
+
+					const nextIndex = active.index === 2 ? 0 : ((active.index + 1) as 0 | 1 | 2)
+
+					setActive({ zone: 'header', index: nextIndex })
+
+					return
+				}
+
+				if (e.key === 'ArrowDown') {
+					e.preventDefault()
+
+					setActive({ zone: 'grid', date: getInitialActiveDate() })
+
+					return
+				}
+
+				if (e.key === 'ArrowUp') {
+					e.preventDefault()
+
+					return
+				}
+
+				if (e.key === 'Enter' || e.key === ' ') {
+					e.preventDefault()
+
+					if (active.index === 0) calendarRef.current?.prevMonth()
+					else if (active.index === 1) calendarRef.current?.openPicker()
+					else calendarRef.current?.nextMonth()
+
+					return
+				}
+
+				return
+			}
+
+			// active.zone === 'footer'
 			if (e.key === 'ArrowLeft') {
 				e.preventDefault()
 
-				moveActiveDate(-1)
+				if (footerButtons.length === 0) return
+
+				const nextIndex = active.index === 0 ? footerButtons.length - 1 : active.index - 1
+
+				setActive({ zone: 'footer', index: nextIndex })
 
 				return
 			}
 
-			if (e.key === 'ArrowDown') {
+			if (e.key === 'ArrowRight') {
 				e.preventDefault()
 
-				moveActiveDate(7)
+				if (footerButtons.length === 0) return
+
+				const nextIndex = active.index === footerButtons.length - 1 ? 0 : active.index + 1
+
+				setActive({ zone: 'footer', index: nextIndex })
 
 				return
 			}
@@ -70,28 +229,40 @@ export function useInputKeyDown({
 			if (e.key === 'ArrowUp') {
 				e.preventDefault()
 
-				moveActiveDate(-7)
+				setActive({ zone: 'grid', date: getInitialActiveDate() })
+
+				return
+			}
+
+			if (e.key === 'ArrowDown') {
+				e.preventDefault()
 
 				return
 			}
 
 			if (e.key === 'Enter' || e.key === ' ') {
-				const next = activeDate ?? getInitialActiveDate()
-
 				e.preventDefault()
 
-				handleSelect(next)
+				const kind = footerButtons[active.index]
+
+				if (kind) onFooterActivate(kind)
+
+				return
 			}
 		},
 		[
 			disabled,
 			open,
-			activeDate,
+			active,
+			setActive,
 			openCalendar,
 			closeCalendar,
-			moveActiveDate,
+			moveGridDate,
 			getInitialActiveDate,
 			handleSelect,
+			calendarRef,
+			footerButtons,
+			onFooterActivate,
 		],
 	)
 }
