@@ -148,11 +148,11 @@ export const Calendar = forwardRef<CalendarHandle, CalendarProps>(function Calen
 	const handleHeaderKeyDown = useKeyboard(headerRef)
 	const handleGridKeyDown = useKeyboard(gridRef, 7)
 
-	const monthLabel = viewDate.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
-
 	const handlePickerNavigate = useCallback((y: number, m: number) => {
 		setViewDate(new Date(y, m, 1))
 	}, [])
+
+	const monthLabel = viewDate.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
 
 	const activeGridDate = active?.zone === 'grid' ? active.date : null
 

@@ -91,6 +91,7 @@ function DatePickerSingle({
 	const moveGridDate = useCallback(
 		(delta: number) => {
 			const base = active?.zone === 'grid' ? active.date : getInitialActiveDate()
+
 			return clampDate(addDays(base, delta), min, max)
 		},
 		[active, getInitialActiveDate, min, max],
