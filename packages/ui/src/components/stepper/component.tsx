@@ -1,6 +1,6 @@
 'use client'
 
-import { Check, Dot } from 'lucide-react'
+import { Check } from 'lucide-react'
 import { Children, isValidElement } from 'react'
 import { cn } from '../../core'
 import { useIsDesktop } from '../../hooks'
