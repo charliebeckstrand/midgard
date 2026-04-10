@@ -1,4 +1,6 @@
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from 'lucide-react'
 import { Button } from '../../components/button'
+import { Icon } from '../../components/icon'
 import { Popover, PopoverContent, PopoverTrigger } from '../../components/popover'
 import { code } from '../code'
 import { Example } from '../example'
@@ -6,6 +8,13 @@ import { Example } from '../example'
 export const meta = { category: 'Overlay' }
 
 const placements = ['left', 'top', 'bottom', 'right'] as const
+
+const iconMap = {
+	left: <ChevronLeft />,
+	top: <ChevronUp />,
+	bottom: <ChevronDown />,
+	right: <ChevronRight />,
+}
 
 export default function PopoverDemo() {
 	return (
@@ -29,7 +38,10 @@ export default function PopoverDemo() {
 			>
 				<Popover>
 					<PopoverTrigger>
-						<Button variant="outline">Open popover</Button>
+						<Button variant="outline">
+							Open popover
+							<Icon icon={<ChevronDown />} />
+						</Button>
 					</PopoverTrigger>
 					<PopoverContent>
 						<p className="text-sm font-medium">Popover content</p>
@@ -46,14 +58,27 @@ export default function PopoverDemo() {
 					import { Popover, PopoverContent, PopoverTrigger } from 'ui/popover'
 					import { Button } from 'ui/button'
 
-					${placements.map((p) => `<Popover placement="${p}">\n  <PopoverTrigger>\n    <Button variant="outline">${p}</Button>\n  </PopoverTrigger>\n  <PopoverContent>Popover on ${p}</PopoverContent>\n</Popover>`)}
+					<Popover placement={placement}>
+						<PopoverTrigger>
+							<Button variant="outline">{placement}</Button>
+						</PopoverTrigger>
+						<PopoverContent>Popover on {placement}</PopoverContent>
+					</Popover>
 				`}
 			>
 				<div className="flex flex-wrap items-center justify-center gap-4 py-8">
 					{placements.map((placement) => (
 						<Popover key={placement} placement={placement}>
 							<PopoverTrigger>
-								<Button variant="outline">{placement}</Button>
+								<Button variant="outline">
+									{(placement === 'left' || placement === 'top') && (
+										<Icon icon={iconMap[placement]} />
+									)}
+									{placement}
+									{(placement === 'right' || placement === 'bottom') && (
+										<Icon icon={iconMap[placement]} />
+									)}
+								</Button>
 							</PopoverTrigger>
 							<PopoverContent>Popover on {placement}</PopoverContent>
 						</Popover>

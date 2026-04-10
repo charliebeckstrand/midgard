@@ -59,14 +59,12 @@ export function ActiveIndicator({
 	className,
 	style,
 	children,
-	onLayoutAnimationComplete,
 }: {
 	ref?: React.Ref<HTMLSpanElement>
 	layoutId?: string
 	className?: string
 	style?: MotionStyle
 	children?: React.ReactNode
-	onLayoutAnimationComplete?: () => void
 }) {
 	const scopedLayoutId = useContext(ActiveIndicatorContext)
 
@@ -79,7 +77,6 @@ export function ActiveIndicator({
 			className={cn(katachi.activeIndicator, className)}
 			style={{ borderRadius: 8, ...style }}
 			transition={ugoki.spring}
-			onLayoutAnimationComplete={onLayoutAnimationComplete}
 		>
 			{children}
 		</motion.span>

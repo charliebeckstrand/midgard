@@ -7,11 +7,18 @@ export const button = {
 	lg: ['px-[calc(--spacing(3)-1px)] py-[calc(--spacing(2.5)-1px)]', gap.lg, text.lg, iconSlot.lg],
 }
 
-/** Extra trailing padding for buttons with icon + text (balances visual icon weight) */
+/** Extra padding opposite the icon for buttons with icon + text (balances visual icon weight) */
 export const buttonWithIcon = {
-	sm: 'pr-[calc(--spacing(3)-1px)]',
-	md: 'pr-[calc(--spacing(4)-1px)]',
-	lg: 'pr-[calc(--spacing(6)-1px)]',
+	start: {
+		sm: 'pr-[calc(--spacing(3)-1px)]',
+		md: 'pr-[calc(--spacing(4)-1px)]',
+		lg: 'pr-[calc(--spacing(6)-1px)]',
+	},
+	end: {
+		sm: 'pl-[calc(--spacing(3)-1px)]',
+		md: 'pl-[calc(--spacing(4)-1px)]',
+		lg: 'pl-[calc(--spacing(6)-1px)]',
+	},
 }
 
 /** Icon-only button dimensions (touch target slightly larger than text button) */

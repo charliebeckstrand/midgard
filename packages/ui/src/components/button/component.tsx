@@ -6,13 +6,24 @@ import { cn, Link } from '../../core'
 import { type PolymorphicProps, TouchTarget, useRipple, useTap } from '../../primitives'
 import { useAlertContext } from '../alert/context'
 import { ButtonSizeProvider } from './context'
-import { type ButtonVariants, buttonVariants, iconOnlySize, withIconSize } from './variants'
+import {
+	type ButtonVariants,
+	buttonVariants,
+	iconOnlySize,
+	withIconEndSize,
+	withIconStartSize,
+} from './variants'
 
-/** Multiple children with at least one React element — icon + text */
-function hasIcon(children: React.ReactNode): boolean {
+/** Which sides of an icon + text button hold an icon */
+function iconSides(children: React.ReactNode): { start: boolean; end: boolean } {
 	const arr = Children.toArray(children)
 
-	return arr.length > 1 && arr.some(isValidElement)
+	if (arr.length < 2) return { start: false, end: false }
+
+	return {
+		start: isValidElement(arr[0]),
+		end: isValidElement(arr[arr.length - 1]),
+	}
 }
 
 /** A single React element child (not text) — treat as icon-only */
@@ -48,12 +59,15 @@ export function Button({
 	}
 
 	const iconOnly = isIconOnly(children)
+	const sides = iconOnly ? { start: false, end: false } : iconSides(children)
 
 	const { onPointerDown: handleRipple, element: rippleElement } = useRipple()
 
 	const classes = cn(
 		buttonVariants({ variant, color, size }),
-		iconOnly ? iconOnlySize({ size }) : hasIcon(children) && withIconSize({ size }),
+		iconOnly && iconOnlySize({ size }),
+		sides.start && !sides.end && withIconStartSize({ size }),
+		sides.end && !sides.start && withIconEndSize({ size }),
 		className,
 	)
 

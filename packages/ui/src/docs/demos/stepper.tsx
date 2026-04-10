@@ -8,7 +8,6 @@ import { Icon } from '../../components/icon'
 import {
 	Stepper,
 	StepperDescription,
-	StepperIndicator,
 	StepperPanel,
 	StepperPanels,
 	StepperSeparator,
@@ -58,23 +57,20 @@ export default function StepperDemo() {
 					</div>
 				}
 				code={code`
-					import { Stepper, StepperStep, StepperIndicator, StepperTitle, StepperSeparator } from 'ui/stepper'
+					import { Stepper, StepperStep, StepperTitle, StepperSeparator } from 'ui/stepper'
 
 					const [value, setValue] = useState(1)
 
 					<Stepper value={value} onValueChange={setValue}>
 						<StepperStep value={0}>
-							<StepperIndicator>1</StepperIndicator>
 							<StepperTitle>Account</StepperTitle>
 						</StepperStep>
 						<StepperSeparator />
 						<StepperStep value={1}>
-							<StepperIndicator>2</StepperIndicator>
 							<StepperTitle>Profile</StepperTitle>
 						</StepperStep>
 						<StepperSeparator />
 						<StepperStep value={2}>
-							<StepperIndicator>3</StepperIndicator>
 							<StepperTitle>Confirm</StepperTitle>
 						</StepperStep>
 					</Stepper>
@@ -93,7 +89,6 @@ export default function StepperDemo() {
 						<Fragment key={step.title}>
 							{index > 0 && <StepperSeparator />}
 							<StepperStep value={index}>
-								<StepperIndicator>{index + 1}</StepperIndicator>
 								<StepperTitle>{step.title}</StepperTitle>
 							</StepperStep>
 						</Fragment>
@@ -124,13 +119,11 @@ export default function StepperDemo() {
 				code={code`
 					<Stepper orientation="vertical" value={value} onValueChange={setValue}>
 						<StepperStep value={0}>
-							<StepperIndicator>1</StepperIndicator>
 							<StepperTitle>Account</StepperTitle>
 							<StepperDescription>Create your account</StepperDescription>
 						</StepperStep>
 						<StepperSeparator />
 						<StepperStep value={1}>
-							<StepperIndicator>2</StepperIndicator>
 							<StepperTitle>Profile</StepperTitle>
 							<StepperDescription>Add your details</StepperDescription>
 						</StepperStep>
@@ -142,7 +135,6 @@ export default function StepperDemo() {
 						<Fragment key={step.title}>
 							{index > 0 && <StepperSeparator />}
 							<StepperStep value={index}>
-								<StepperIndicator>{index + 1}</StepperIndicator>
 								<StepperTitle>{step.title}</StepperTitle>
 								<StepperDescription>{step.description}</StepperDescription>
 							</StepperStep>
@@ -176,17 +168,14 @@ export default function StepperDemo() {
 					// outside the stepper can advance the value.
 					<Stepper linear value={value} onValueChange={setValue}>
 						<StepperStep value={0}>
-							<StepperIndicator>1</StepperIndicator>
 							<StepperTitle>Account</StepperTitle>
 						</StepperStep>
 						<StepperSeparator />
 						<StepperStep value={1}>
-							<StepperIndicator>2</StepperIndicator>
 							<StepperTitle>Profile</StepperTitle>
 						</StepperStep>
 						<StepperSeparator />
 						<StepperStep value={2}>
-							<StepperIndicator>3</StepperIndicator>
 							<StepperTitle>Confirm</StepperTitle>
 						</StepperStep>
 					</Stepper>
@@ -197,7 +186,6 @@ export default function StepperDemo() {
 						<Fragment key={step.title}>
 							{index > 0 && <StepperSeparator />}
 							<StepperStep value={index}>
-								<StepperIndicator>{index + 1}</StepperIndicator>
 								<StepperTitle>{step.title}</StepperTitle>
 							</StepperStep>
 						</Fragment>
@@ -228,17 +216,14 @@ export default function StepperDemo() {
 				code={code`
 					<Stepper value={value} onValueChange={setValue}>
 						<StepperStep value={0}>
-							<StepperIndicator>1</StepperIndicator>
 							<StepperTitle>Account</StepperTitle>
 						</StepperStep>
 						<StepperSeparator />
 						<StepperStep value={1}>
-							<StepperIndicator>2</StepperIndicator>
 							<StepperTitle>Profile</StepperTitle>
 						</StepperStep>
 						<StepperSeparator />
 						<StepperStep value={2}>
-							<StepperIndicator>3</StepperIndicator>
 							<StepperTitle>Confirm</StepperTitle>
 						</StepperStep>
 
@@ -255,7 +240,6 @@ export default function StepperDemo() {
 						<Fragment key={step.title}>
 							{index > 0 && <StepperSeparator />}
 							<StepperStep value={index}>
-								<StepperIndicator>{index + 1}</StepperIndicator>
 								<StepperTitle>{step.title}</StepperTitle>
 							</StepperStep>
 						</Fragment>
@@ -277,17 +261,14 @@ export default function StepperDemo() {
 				code={code`
 					<Stepper value={1}>
 						<StepperStep value={0}>
-							<StepperIndicator>1</StepperIndicator>
 							<StepperTitle>Account</StepperTitle>
 						</StepperStep>
 						<StepperSeparator />
 						<StepperStep value={1}>
-							<StepperIndicator>2</StepperIndicator>
 							<StepperTitle>Profile</StepperTitle>
 						</StepperStep>
 						<StepperSeparator />
 						<StepperStep value={2}>
-							<StepperIndicator>3</StepperIndicator>
 							<StepperTitle>Confirm</StepperTitle>
 						</StepperStep>
 					</Stepper>
@@ -298,7 +279,6 @@ export default function StepperDemo() {
 						<Fragment key={step.title}>
 							{index > 0 && <StepperSeparator />}
 							<StepperStep value={index}>
-								<StepperIndicator>{index + 1}</StepperIndicator>
 								<StepperTitle>{step.title}</StepperTitle>
 							</StepperStep>
 						</Fragment>
