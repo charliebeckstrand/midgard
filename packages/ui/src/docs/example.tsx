@@ -8,11 +8,13 @@ import { CodeBlock } from './code-block'
 export function Example({
 	title,
 	actions,
+	footer,
 	code,
 	children,
 }: {
 	title?: ReactNode
 	actions?: ReactNode
+	footer?: ReactNode
 	code?: string
 	children: ReactNode
 }) {
@@ -26,6 +28,9 @@ export function Example({
 			)}
 			<div className="rounded-lg border border-zinc-200 dark:border-zinc-800">
 				<div className="overflow-x-auto p-4">{children}</div>
+				{footer && (
+					<div className="border-t border-zinc-200 dark:border-zinc-800 p-4">{footer}</div>
+				)}
 				{code && (
 					<Disclosure>
 						<div className="border-t border-zinc-200 dark:border-zinc-800">

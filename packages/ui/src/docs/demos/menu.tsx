@@ -1,4 +1,4 @@
-import { Alert } from '../../components/alert'
+import { Alert, AlertDescription } from '../../components/alert'
 import { Button } from '../../components/button'
 import {
 	Menu,
@@ -67,13 +67,10 @@ export default function MenuDemo() {
 					</Menu>
 
 					<Alert type="warning">
-						<div className="flex gap-1">
-							<span>This is for demonstration purposes.</span>
-							<code className="font-bold">MenuContent</code>
-							<span>must be wrapped in a</span>
-							<code className="font-bold">Menu</code>
-							<span>component.</span>
-						</div>
+						<AlertDescription>
+							This is for demonstration purposes. <code className="font-bold">MenuContent</code>{' '}
+							must be wrapped in a <code className="font-bold">Menu</code> component.
+						</AlertDescription>
 					</Alert>
 				</div>
 			</Example>

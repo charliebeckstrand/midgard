@@ -3,6 +3,7 @@
 import { Check } from 'lucide-react'
 import { Children, isValidElement, useCallback, useState } from 'react'
 import { cn } from '../../core'
+import { useIsDesktop } from '../../hooks'
 import { ActiveIndicator, ActiveIndicatorScope } from '../../primitives'
 import { katachi } from '../../recipes'
 import {
@@ -28,12 +29,31 @@ const k = katachi.stepper
 export type StepperProps = StepperVariants & {
 	value: number
 	onValueChange?: (value: number) => void
+	/**
+	 * When true, users can only click steps that are completed or current.
+	 * Upcoming steps are rendered as disabled buttons; advancing the stepper
+	 * has to happen via `onValueChange` (e.g. from a "Next" button).
+	 */
+	linear?: boolean
+	orientation?: StepperOrientation
 	className?: string
 	children?: React.ReactNode
 }
 
-export function Stepper({ value, onValueChange, orientation, className, children }: StepperProps) {
-	const resolvedOrientation: StepperOrientation = orientation ?? 'horizontal'
+export function Stepper({
+	value,
+	onValueChange,
+	linear = false,
+	orientation,
+	className,
+	children,
+}: StepperProps) {
+	const isDesktop = useIsDesktop()
+
+	// When orientation isn't explicitly set, fall back to vertical on mobile so
+	// the steps stack instead of overflowing the viewport horizontally.
+	const resolvedOrientation: StepperOrientation =
+		orientation ?? (isDesktop ? 'horizontal' : 'vertical')
 
 	// `settledValue` lags `value` until the pill's layout animation completes.
 	// It is only consulted to hold the landing step's check during a backward
@@ -45,6 +65,18 @@ export function Stepper({ value, onValueChange, orientation, className, children
 		setSettledValue(value)
 	}, [value])
 
+	const { rowChildren, panelsChildren } = partitionStepperChildren(children)
+
+	const row = (
+		<div
+			data-slot="stepper"
+			data-orientation={resolvedOrientation}
+			className={cn(stepperVariants({ orientation: resolvedOrientation }), className)}
+		>
+			{rowChildren}
+		</div>
+	)
+
 	return (
 		<StepperProvider
 			value={{
@@ -53,16 +85,18 @@ export function Stepper({ value, onValueChange, orientation, className, children
 				onValueChange,
 				onActiveIndicatorSettled,
 				orientation: resolvedOrientation,
+				linear,
 			}}
 		>
 			<ActiveIndicatorScope>
-				<div
-					data-slot="stepper"
-					data-orientation={resolvedOrientation}
-					className={cn(stepperVariants({ orientation }), className)}
-				>
-					{children}
-				</div>
+				{panelsChildren.length === 0 ? (
+					row
+				) : (
+					<div data-slot="stepper-root" className="flex flex-col gap-6">
+						{row}
+						{panelsChildren}
+					</div>
+				)}
 			</ActiveIndicatorScope>
 		</StepperProvider>
 	)
@@ -116,12 +150,32 @@ function partitionVerticalChildren(children: React.ReactNode): React.ReactNode {
 	)
 }
 
+// Splits the children of `Stepper` into the row content (steps, separators,
+// anything not a panels group) and the panels group itself, so the two can be
+// stacked vertically when content panels are present.
+function partitionStepperChildren(children: React.ReactNode): {
+	rowChildren: React.ReactNode[]
+	panelsChildren: React.ReactNode[]
+} {
+	const rowChildren: React.ReactNode[] = []
+
+	const panelsChildren: React.ReactNode[] = []
+
+	Children.forEach(children, (child) => {
+		if (isValidElement(child) && child.type === StepperPanels) {
+			panelsChildren.push(child)
+		} else {
+			rowChildren.push(child)
+		}
+	})
+
+	return { rowChildren, panelsChildren }
+}
+
 export function StepperStep({ value, disabled, className, children }: StepperStepProps) {
-	const { value: currentValue, settledValue, onValueChange, orientation } = useStepper()
+	const { value: currentValue, settledValue, onValueChange, orientation, linear } = useStepper()
 
 	const state = computeState(value, currentValue, settledValue)
-
-	const clickable = onValueChange !== undefined && !disabled
 
 	const classes = cn(stepperStepVariants({ orientation }), className)
 
@@ -134,16 +188,21 @@ export function StepperStep({ value, disabled, className, children }: StepperSte
 
 	const inner = <StepperStepProvider value={{ value, state }}>{layoutChildren}</StepperStepProvider>
 
-	if (clickable) {
+	// Interactive when the parent provided an `onValueChange`. Linear mode forbids
+	// jumping to upcoming steps, so those render as `<button disabled>` — the
+	// browser blocks clicks, AT skips it, and the not-allowed cursor is automatic
+	// via the recipe's `disabled:cursor-not-allowed`.
+	if (onValueChange !== undefined) {
+		const isDisabled = disabled === true || (linear && state === 'upcoming')
+
 		return (
 			<button
 				type="button"
 				data-slot="stepper-step"
 				data-state={state}
-				data-clickable="true"
-				disabled={disabled}
+				disabled={isDisabled}
 				onClick={() => onValueChange(value)}
-				className={classes}
+				className={cn(classes, 'cursor-pointer')}
 			>
 				{inner}
 			</button>
@@ -154,7 +213,6 @@ export function StepperStep({ value, disabled, className, children }: StepperSte
 		<div
 			data-slot="stepper-step"
 			data-state={state}
-			data-clickable="false"
 			data-disabled={disabled ? '' : undefined}
 			className={classes}
 		>
@@ -251,5 +309,40 @@ export function StepperSeparator({ className }: StepperSeparatorProps) {
 			aria-hidden="true"
 			className={cn(stepperSeparatorVariants({ orientation }), className)}
 		/>
+	)
+}
+
+// ── StepperPanels ───────────────────────────────────────
+
+export type StepperPanelsProps = {
+	className?: string
+	children?: React.ReactNode
+}
+
+export function StepperPanels({ className, children }: StepperPanelsProps) {
+	return (
+		<div data-slot="stepper-panels" className={className}>
+			{children}
+		</div>
+	)
+}
+
+// ── StepperPanel ────────────────────────────────────────
+
+export type StepperPanelProps = {
+	value: number
+	className?: string
+	children?: React.ReactNode
+}
+
+export function StepperPanel({ value, className, children }: StepperPanelProps) {
+	const { value: currentValue } = useStepper()
+
+	if (value !== currentValue) return null
+
+	return (
+		<div data-slot="stepper-panel" className={className}>
+			{children}
+		</div>
 	)
 }

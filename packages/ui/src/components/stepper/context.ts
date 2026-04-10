@@ -12,6 +12,7 @@ type StepperContextValue = {
 	onValueChange?: (value: number) => void
 	onActiveIndicatorSettled: () => void
 	orientation: StepperOrientation
+	linear: boolean
 }
 
 type StepperStepContextValue = {

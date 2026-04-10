@@ -2,12 +2,15 @@
 
 import { Minus, Plus } from 'lucide-react'
 import { Fragment, useState } from 'react'
+import { Alert, AlertDescription } from '../../components/alert'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import {
 	Stepper,
 	StepperDescription,
 	StepperIndicator,
+	StepperPanel,
+	StepperPanels,
 	StepperSeparator,
 	StepperStep,
 	StepperTitle,
@@ -22,14 +25,15 @@ const steps = [
 	{ title: 'Profile', description: 'Add your details' },
 	{
 		title: 'Confirm',
-		description:
-			'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. ',
+		description: 'Review your information and submit',
 	},
 ]
 
 export default function StepperDemo() {
 	const [horizontalValue, setHorizontalValue] = useState(1)
 	const [verticalValue, setVerticalValue] = useState(1)
+	const [linearValue, setLinearValue] = useState(0)
+	const [panelsValue, setPanelsValue] = useState(0)
 
 	return (
 		<div className="space-y-8">
@@ -75,6 +79,14 @@ export default function StepperDemo() {
 						</StepperStep>
 					</Stepper>
 				`}
+				footer={
+					<Alert type="info">
+						<AlertDescription>
+							When <code className="font-bold">orientation</code> isn't explicitly set, the stepper
+							falls back to vertical on mobile.
+						</AlertDescription>
+					</Alert>
+				}
 			>
 				<Stepper value={horizontalValue} onValueChange={setHorizontalValue}>
 					{steps.map((step, index) => (
@@ -90,7 +102,7 @@ export default function StepperDemo() {
 			</Example>
 
 			<Example
-				title="Vertical with descriptions"
+				title="Vertical"
 				actions={
 					<div className="flex items-center gap-1">
 						<Button
@@ -136,6 +148,127 @@ export default function StepperDemo() {
 							</StepperStep>
 						</Fragment>
 					))}
+				</Stepper>
+			</Example>
+
+			<Example
+				title="Linear"
+				actions={
+					<div className="flex items-center gap-1">
+						<Button
+							variant="plain"
+							disabled={linearValue <= 0}
+							onClick={() => setLinearValue((v) => Math.max(0, v - 1))}
+						>
+							<Icon icon={<Minus />} />
+						</Button>
+						<Button
+							variant="plain"
+							disabled={linearValue >= steps.length - 1}
+							onClick={() => setLinearValue((v) => Math.min(steps.length - 1, v + 1))}
+						>
+							<Icon icon={<Plus />} />
+						</Button>
+					</div>
+				}
+				code={code`
+					// Upcoming steps render as <button disabled>; only the buttons
+					// outside the stepper can advance the value.
+					<Stepper linear value={value} onValueChange={setValue}>
+						<StepperStep value={0}>
+							<StepperIndicator>1</StepperIndicator>
+							<StepperTitle>Account</StepperTitle>
+						</StepperStep>
+						<StepperSeparator />
+						<StepperStep value={1}>
+							<StepperIndicator>2</StepperIndicator>
+							<StepperTitle>Profile</StepperTitle>
+						</StepperStep>
+						<StepperSeparator />
+						<StepperStep value={2}>
+							<StepperIndicator>3</StepperIndicator>
+							<StepperTitle>Confirm</StepperTitle>
+						</StepperStep>
+					</Stepper>
+				`}
+			>
+				<Stepper linear value={linearValue} onValueChange={setLinearValue}>
+					{steps.map((step, index) => (
+						<Fragment key={step.title}>
+							{index > 0 && <StepperSeparator />}
+							<StepperStep value={index}>
+								<StepperIndicator>{index + 1}</StepperIndicator>
+								<StepperTitle>{step.title}</StepperTitle>
+							</StepperStep>
+						</Fragment>
+					))}
+				</Stepper>
+			</Example>
+
+			<Example
+				title="With content panels"
+				actions={
+					<div className="flex items-center gap-1">
+						<Button
+							variant="plain"
+							disabled={panelsValue <= 0}
+							onClick={() => setPanelsValue((v) => Math.max(0, v - 1))}
+						>
+							<Icon icon={<Minus />} />
+						</Button>
+						<Button
+							variant="plain"
+							disabled={panelsValue >= steps.length - 1}
+							onClick={() => setPanelsValue((v) => Math.min(steps.length - 1, v + 1))}
+						>
+							<Icon icon={<Plus />} />
+						</Button>
+					</div>
+				}
+				code={code`
+					<Stepper value={value} onValueChange={setValue}>
+						<StepperStep value={0}>
+							<StepperIndicator>1</StepperIndicator>
+							<StepperTitle>Account</StepperTitle>
+						</StepperStep>
+						<StepperSeparator />
+						<StepperStep value={1}>
+							<StepperIndicator>2</StepperIndicator>
+							<StepperTitle>Profile</StepperTitle>
+						</StepperStep>
+						<StepperSeparator />
+						<StepperStep value={2}>
+							<StepperIndicator>3</StepperIndicator>
+							<StepperTitle>Confirm</StepperTitle>
+						</StepperStep>
+
+						<StepperPanels>
+							<StepperPanel value={0}>Account form</StepperPanel>
+							<StepperPanel value={1}>Profile form</StepperPanel>
+							<StepperPanel value={2}>Review and submit</StepperPanel>
+						</StepperPanels>
+					</Stepper>
+				`}
+			>
+				<Stepper value={panelsValue} onValueChange={setPanelsValue}>
+					{steps.map((step, index) => (
+						<Fragment key={step.title}>
+							{index > 0 && <StepperSeparator />}
+							<StepperStep value={index}>
+								<StepperIndicator>{index + 1}</StepperIndicator>
+								<StepperTitle>{step.title}</StepperTitle>
+							</StepperStep>
+						</Fragment>
+					))}
+					<StepperPanels>
+						{steps.map((step, index) => (
+							<StepperPanel key={step.title} value={index}>
+								<div className="rounded-md border border-zinc-200 p-4 text-sm text-zinc-500 dark:border-zinc-800">
+									{step.title} content goes here.
+								</div>
+							</StepperPanel>
+						))}
+					</StepperPanels>
 				</Stepper>
 			</Example>
 

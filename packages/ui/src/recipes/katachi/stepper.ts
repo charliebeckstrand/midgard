@@ -9,11 +9,7 @@ export const stepper = {
 		vertical: 'flex-col items-stretch gap-3',
 	},
 	step: {
-		base: [
-			'group relative text-left outline-none',
-			yasumi.disabled,
-			'data-[clickable=true]:cursor-pointer data-[clickable=false]:cursor-default',
-		],
+		base: ['group relative text-left outline-none', yasumi.disabled],
 		orientation: {
 			horizontal: 'flex w-32 shrink-0 flex-col items-center gap-0.5 text-center',
 			vertical: [
