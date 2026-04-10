@@ -22,8 +22,8 @@ export const accordion = {
 	button: [
 		'flex w-full items-center justify-between gap-3',
 		'px-4 py-3 text-left text-sm/6 font-medium',
-		sumi.text,
-		'not-disabled:hover:bg-zinc-950/[2.5%] dark:not-disabled:hover:bg-white/[2.5%]',
+		sumi.textMuted,
+		sumi.textHover,
 		'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-inset',
 		'disabled:opacity-50 disabled:cursor-not-allowed',
 	],

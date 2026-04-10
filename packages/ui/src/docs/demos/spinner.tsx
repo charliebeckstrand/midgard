@@ -65,18 +65,18 @@ export default function SpinnerDemo() {
 					import { Spinner } from 'ui/spinner'
 
 					<Button disabled>
-						<Spinner size="sm" />
+						<Spinner />
 						Loading
 					</Button>
 				`}
 			>
 				<div className="flex items-center gap-3">
 					<Button disabled>
-						<Spinner size="sm" />
+						<Spinner />
 						Loading
 					</Button>
 					<Button variant="soft" disabled>
-						<Spinner size="sm" />
+						<Spinner />
 						Saving
 					</Button>
 				</div>

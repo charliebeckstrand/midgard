@@ -41,6 +41,7 @@ export type AccordionProps = (SingleProps | MultipleProps) &
 
 function toArray(value: string | string[] | null | undefined): string[] {
 	if (value == null) return []
+
 	return Array.isArray(value) ? value : [value]
 }
 
@@ -87,7 +88,9 @@ export function Accordion(props: AccordionProps) {
 				const next = current.includes(value)
 					? current.filter((v) => v !== value)
 					: [...current, value]
+
 				setCurrent(next)
+
 				return
 			}
 

@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { code } from '../code'
+import { ColorListbox } from '../color-listbox'
 import { Example } from '../example'
 import { SizeListbox, sizeLabels } from '../size-listbox'
 import { VariantListbox } from '../variant-listbox'
@@ -27,6 +28,7 @@ export default function ButtonDemo() {
 	const [colorVariant, setColorVariant] = useState<(typeof colorVariants)[number]>('solid')
 	const [iconSize, setIconSize] = useState<Size>('md')
 	const [iconOnlySize, setIconOnlySize] = useState<Size>('md')
+	const [rippleColor, setRippleColor] = useState<(typeof colors)[number]>('zinc')
 
 	return (
 		<div className="space-y-8">
@@ -123,6 +125,23 @@ export default function ButtonDemo() {
 				</div>
 			</Example>
 			<Example
+				title="Ripple"
+				actions={<ColorListbox colors={colors} value={rippleColor} onChange={setRippleColor} />}
+				code={code`
+					import { Button } from 'ui/button'
+
+					${variants.map((v) => `<Button variant="${v}" color="${rippleColor}" ripple>${cap(v)}</Button>`)}
+				`}
+			>
+				<div className="flex flex-wrap gap-2">
+					{variants.map((variant) => (
+						<Button key={variant} variant={variant} color={rippleColor} ripple>
+							{variant}
+						</Button>
+					))}
+				</div>
+			</Example>
+			<Example
 				title="Disabled"
 				code={code`
 					import { Button } from 'ui/button'
@@ -131,6 +150,33 @@ export default function ButtonDemo() {
 				`}
 			>
 				<Button disabled>Disabled</Button>
+			</Example>
+			<Example
+				title="Loading"
+				code={code`
+					import { Button } from 'ui/button'
+					import { Icon } from 'ui/icon'
+
+					<Button loading>Loading</Button>
+					<Button loading variant="soft">
+						<Icon icon={<Plus />} />
+						Saving
+					</Button>
+					<Button loading variant="outline">
+						<Icon icon={<Plus />} />
+					</Button>
+				`}
+			>
+				<div className="flex flex-wrap items-center gap-2">
+					<Button loading>Loading</Button>
+					<Button loading variant="soft">
+						<Icon icon={<Plus />} />
+						Saving
+					</Button>
+					<Button loading variant="outline">
+						<Icon icon={<Plus />} />
+					</Button>
+				</div>
 			</Example>
 		</div>
 	)

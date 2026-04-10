@@ -17,14 +17,14 @@ const motoi = {
 const hiru = {
 	text: 'text-zinc-950',
 	textMuted: 'text-zinc-500',
-	textHover: 'hover:text-zinc-950',
+	textHover: 'hover:not-disabled:text-zinc-950',
 }
 
 // ── Yoru (夜) ───────────────────────────────────────────
 const yoru = {
 	text: 'dark:text-white',
 	textMuted: 'dark:text-zinc-400',
-	textHover: 'dark:hover:text-white',
+	textHover: 'dark:hover:not-disabled:text-white',
 }
 
 // ── Export ───────────────────────────────────────────────
