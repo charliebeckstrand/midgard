@@ -155,6 +155,10 @@
 			"types": "./src/components/status/index.ts",
 			"default": "./src/components/status/index.ts"
 		},
+		"./stepper": {
+			"types": "./src/components/stepper/index.ts",
+			"default": "./src/components/stepper/index.ts"
+		},
 		"./switch": {
 			"types": "./src/components/switch/index.ts",
 			"default": "./src/components/switch/index.ts"
