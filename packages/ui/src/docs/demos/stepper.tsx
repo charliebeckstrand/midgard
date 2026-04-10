@@ -1,7 +1,9 @@
 'use client'
 
+import { Minus, Plus } from 'lucide-react'
 import { Fragment, useState } from 'react'
 import { Button } from '../../components/button'
+import { Icon } from '../../components/icon'
 import {
 	Stepper,
 	StepperDescription,
@@ -18,7 +20,11 @@ export const meta = { category: 'Navigation' }
 const steps = [
 	{ title: 'Account', description: 'Create your account' },
 	{ title: 'Profile', description: 'Add your details' },
-	{ title: 'Confirm', description: 'Review and submit' },
+	{
+		title: 'Confirm',
+		description:
+			'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. ',
+	},
 ]
 
 export default function StepperDemo() {
@@ -29,6 +35,24 @@ export default function StepperDemo() {
 		<div className="space-y-8">
 			<Example
 				title="Horizontal"
+				actions={
+					<div className="flex items-center gap-1">
+						<Button
+							variant="plain"
+							disabled={horizontalValue <= 0}
+							onClick={() => setHorizontalValue((v) => Math.max(0, v - 1))}
+						>
+							<Icon icon={<Minus />} />
+						</Button>
+						<Button
+							variant="plain"
+							disabled={horizontalValue >= steps.length - 1}
+							onClick={() => setHorizontalValue((v) => Math.min(steps.length - 1, v + 1))}
+						>
+							<Icon icon={<Plus />} />
+						</Button>
+					</div>
+				}
 				code={code`
 					import { Stepper, StepperStep, StepperIndicator, StepperTitle, StepperSeparator } from 'ui/stepper'
 
@@ -52,38 +76,39 @@ export default function StepperDemo() {
 					</Stepper>
 				`}
 			>
-				<div className="space-y-6">
-					<Stepper value={horizontalValue} onValueChange={setHorizontalValue}>
-						{steps.map((step, index) => (
-							<Fragment key={step.title}>
-								{index > 0 && <StepperSeparator />}
-								<StepperStep value={index}>
-									<StepperIndicator>{index + 1}</StepperIndicator>
-									<StepperTitle>{step.title}</StepperTitle>
-								</StepperStep>
-							</Fragment>
-						))}
-					</Stepper>
-					<div className="flex justify-center gap-2">
-						<Button
-							variant="outline"
-							disabled={horizontalValue === 0}
-							onClick={() => setHorizontalValue((v) => Math.max(0, v - 1))}
-						>
-							Back
-						</Button>
-						<Button
-							disabled={horizontalValue === steps.length - 1}
-							onClick={() => setHorizontalValue((v) => Math.min(steps.length - 1, v + 1))}
-						>
-							Next
-						</Button>
-					</div>
-				</div>
+				<Stepper value={horizontalValue} onValueChange={setHorizontalValue}>
+					{steps.map((step, index) => (
+						<Fragment key={step.title}>
+							{index > 0 && <StepperSeparator />}
+							<StepperStep value={index}>
+								<StepperIndicator>{index + 1}</StepperIndicator>
+								<StepperTitle>{step.title}</StepperTitle>
+							</StepperStep>
+						</Fragment>
+					))}
+				</Stepper>
 			</Example>
 
 			<Example
 				title="Vertical with descriptions"
+				actions={
+					<div className="flex items-center gap-1">
+						<Button
+							variant="plain"
+							disabled={verticalValue <= 0}
+							onClick={() => setVerticalValue((v) => Math.max(0, v - 1))}
+						>
+							<Icon icon={<Minus />} />
+						</Button>
+						<Button
+							variant="plain"
+							disabled={verticalValue >= steps.length - 1}
+							onClick={() => setVerticalValue((v) => Math.min(steps.length - 1, v + 1))}
+						>
+							<Icon icon={<Plus />} />
+						</Button>
+					</div>
+				}
 				code={code`
 					<Stepper orientation="vertical" value={value} onValueChange={setValue}>
 						<StepperStep value={0}>

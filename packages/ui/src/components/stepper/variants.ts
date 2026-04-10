@@ -19,6 +19,13 @@ export const stepperStepVariants = cva(k.step.base, {
 	defaultVariants: k.defaults,
 })
 
+export const stepperTitleVariants = cva(k.title.base, {
+	variants: {
+		orientation: k.title.orientation,
+	},
+	defaultVariants: k.defaults,
+})
+
 export const stepperSeparatorVariants = cva(k.separator.base, {
 	variants: {
 		orientation: k.separator.orientation,

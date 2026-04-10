@@ -8,7 +8,9 @@ export type StepState = 'completed' | 'current' | 'upcoming'
 
 type StepperContextValue = {
 	value: number
+	displayValue: number
 	onValueChange?: (value: number) => void
+	onActiveIndicatorSettled: () => void
 	orientation: StepperOrientation
 }
 

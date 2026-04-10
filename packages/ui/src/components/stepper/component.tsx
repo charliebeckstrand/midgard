@@ -1,5 +1,7 @@
 'use client'
 
+import { Check } from 'lucide-react'
+import { Children, isValidElement, useCallback, useState } from 'react'
 import { cn } from '../../core'
 import { ActiveIndicator, ActiveIndicatorScope } from '../../primitives'
 import { katachi } from '../../recipes'
@@ -15,6 +17,7 @@ import {
 	type StepperVariants,
 	stepperSeparatorVariants,
 	stepperStepVariants,
+	stepperTitleVariants,
 	stepperVariants,
 } from './variants'
 
@@ -32,8 +35,27 @@ export type StepperProps = StepperVariants & {
 export function Stepper({ value, onValueChange, orientation, className, children }: StepperProps) {
 	const resolvedOrientation: StepperOrientation = orientation ?? 'horizontal'
 
+	// `displayValue` lags `value` until the active indicator pill finishes its
+	// layout animation. All step content (numbers vs. checks) is derived from
+	// `displayValue`, so a step's appearance only changes once the pill has
+	// arrived. The pill itself follows the live `value` prop directly via
+	// framer-motion's layout animation, so it moves immediately on click.
+	const [displayValue, setDisplayValue] = useState(value)
+
+	const onActiveIndicatorSettled = useCallback(() => {
+		setDisplayValue(value)
+	}, [value])
+
 	return (
-		<StepperProvider value={{ value, onValueChange, orientation: resolvedOrientation }}>
+		<StepperProvider
+			value={{
+				value,
+				displayValue,
+				onValueChange,
+				onActiveIndicatorSettled,
+				orientation: resolvedOrientation,
+			}}
+		>
 			<ActiveIndicatorScope>
 				<div
 					data-slot="stepper"
@@ -58,17 +80,52 @@ export type StepperStepProps = {
 
 function computeState(stepValue: number, currentValue: number): StepState {
 	if (stepValue < currentValue) return 'completed'
+
 	if (stepValue === currentValue) return 'current'
+
 	return 'upcoming'
 }
 
+function partitionVerticalChildren(children: React.ReactNode): React.ReactNode {
+	const indicators: React.ReactNode[] = []
+
+	const rest: React.ReactNode[] = []
+
+	Children.forEach(children, (child) => {
+		if (isValidElement(child) && child.type === StepperIndicator) {
+			indicators.push(child)
+		} else {
+			rest.push(child)
+		}
+	})
+
+	return (
+		<>
+			{indicators}
+			<span data-slot="stepper-content" className={k.content}>
+				{rest}
+			</span>
+		</>
+	)
+}
+
 export function StepperStep({ value, disabled, className, children }: StepperStepProps) {
-	const { value: currentValue, onValueChange, orientation } = useStepper()
-	const state = computeState(value, currentValue)
+	const { displayValue, onValueChange, orientation } = useStepper()
+
+	const state = computeState(value, displayValue)
+
 	const clickable = onValueChange !== undefined && !disabled
+
 	const classes = cn(stepperStepVariants({ orientation }), className)
 
-	const inner = <StepperStepProvider value={{ value, state }}>{children}</StepperStepProvider>
+	// In vertical mode the step is a flex row [indicator, content-column]. We split
+	// the children so the indicator stays as a flex sibling and everything else
+	// (title, description, ...) gets wrapped in a content span that lays out as a
+	// flex column. The wrapper's top offset (in the recipe) aligns the title's
+	// first line with the indicator's center.
+	const layoutChildren = orientation === 'vertical' ? partitionVerticalChildren(children) : children
+
+	const inner = <StepperStepProvider value={{ value, state }}>{layoutChildren}</StepperStepProvider>
 
 	if (clickable) {
 		return (
@@ -107,14 +164,40 @@ export type StepperIndicatorProps = {
 }
 
 export function StepperIndicator({ className, children }: StepperIndicatorProps) {
-	const { state } = useStepperStep()
+	const { value: stepValue, state } = useStepperStep()
+
+	const { value: liveValue, onActiveIndicatorSettled } = useStepper()
+
+	// Whichever step matches the live prop hosts the pill; framer-motion's
+	// LayoutGroup morphs the pill from its previous position. Underlying
+	// content is driven by `state` (which lags via `displayValue`), so steps
+	// don't visibly change until the pill has finished moving into place.
+	const isTarget = stepValue === liveValue
+
+	const completed = state === 'completed'
 
 	return (
-		<span data-slot="stepper-indicator" className={cn(k.indicator, className)}>
-			{state === 'current' && (
-				<ActiveIndicator className={cn(k.activeIndicator)} style={{ borderRadius: '9999px' }} />
+		<span
+			data-slot="stepper-indicator"
+			data-display-state={state}
+			className={cn(k.indicator, className)}
+		>
+			<span className="grid place-items-center">
+				{completed ? (
+					<Check aria-hidden="true" strokeWidth={2.5} className="size-4 text-green-600" />
+				) : (
+					children
+				)}
+			</span>
+			{isTarget && (
+				<ActiveIndicator
+					className={cn(k.activeIndicator)}
+					style={{ borderRadius: '9999px' }}
+					onLayoutAnimationComplete={onActiveIndicatorSettled}
+				>
+					{children}
+				</ActiveIndicator>
 			)}
-			<span className="relative z-10">{children}</span>
 		</span>
 	)
 }
@@ -124,7 +207,15 @@ export function StepperIndicator({ className, children }: StepperIndicatorProps)
 export type StepperTitleProps = React.ComponentPropsWithoutRef<'span'>
 
 export function StepperTitle({ className, ...props }: StepperTitleProps) {
-	return <span data-slot="stepper-title" className={cn(k.title, className)} {...props} />
+	const { orientation } = useStepper()
+
+	return (
+		<span
+			data-slot="stepper-title"
+			className={cn(stepperTitleVariants({ orientation }), className)}
+			{...props}
+		/>
+	)
 }
 
 // ── StepperDescription ──────────────────────────────────
