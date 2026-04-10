@@ -47,6 +47,7 @@ import { select } from './select'
 import { sheet } from './sheet'
 import { sidebar } from './sidebar'
 import { status } from './status'
+import { stepper } from './stepper'
 import { switchRecipe } from './switch'
 import { table } from './table'
 import { tabs } from './tabs'
@@ -92,6 +93,7 @@ export const katachi = {
 	sheet,
 	sidebar,
 	status,
+	stepper,
 	switch: switchRecipe,
 	table,
 	tabs,
