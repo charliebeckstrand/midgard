@@ -91,10 +91,6 @@
 			"types": "./src/components/divider/index.ts",
 			"default": "./src/components/divider/index.ts"
 		},
-		"./dropdown": {
-			"types": "./src/components/dropdown/index.ts",
-			"default": "./src/components/dropdown/index.ts"
-		},
 		"./grid": {
 			"types": "./src/components/grid/index.ts",
 			"default": "./src/components/grid/index.ts"
