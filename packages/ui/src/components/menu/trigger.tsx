@@ -2,14 +2,14 @@
 
 import { cloneElement, isValidElement, type ReactElement, useCallback } from 'react'
 import { cn } from '../../core'
-import { useDropdownContext } from './dropdown'
+import { useMenuContext } from './menu'
 
-export type DropdownTriggerProps =
+export type MenuTriggerProps =
 	| ({ children: ReactElement } & { className?: string })
 	| React.ComponentPropsWithoutRef<'button'>
 
-export function DropdownTrigger({ children, className, ...props }: DropdownTriggerProps) {
-	const { open, setOpen, triggerRef, setReference, getReferenceProps } = useDropdownContext()
+export function MenuTrigger({ children, className, ...props }: MenuTriggerProps) {
+	const { open, setOpen, triggerRef, setReference, getReferenceProps } = useMenuContext()
 
 	const mergeRefs = useCallback(
 		(node: HTMLElement | null) => {
@@ -28,7 +28,7 @@ export function DropdownTrigger({ children, className, ...props }: DropdownTrigg
 			ref: mergeRefs,
 			'aria-haspopup': 'menu',
 			'aria-expanded': open,
-			'data-slot': 'dropdown-trigger',
+			'data-slot': 'menu-trigger',
 			...referenceProps,
 			onClick: (e: React.MouseEvent) => {
 				const childOnClick = (children as ReactElement<Record<string, unknown>>).props?.onClick as
@@ -47,7 +47,7 @@ export function DropdownTrigger({ children, className, ...props }: DropdownTrigg
 			type="button"
 			aria-haspopup="menu"
 			aria-expanded={open}
-			data-slot="dropdown-trigger"
+			data-slot="menu-trigger"
 			onClick={() => setOpen(!open)}
 			className={cn(className)}
 			{...referenceProps}

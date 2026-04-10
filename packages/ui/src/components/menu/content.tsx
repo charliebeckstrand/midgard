@@ -5,7 +5,7 @@ import { AnimatePresence } from 'motion/react'
 import type React from 'react'
 import { cn } from '../../core'
 import { PopoverPanel } from '../../primitives'
-import { katachi } from '../../recipes'
+import { katachi, maru, omote } from '../../recipes'
 import { useMenuContext } from './menu'
 
 const k = katachi.menu
@@ -16,7 +16,25 @@ export type MenuContentProps = {
 }
 
 export function MenuContent({ className, children }: MenuContentProps) {
-	const { open, close, setFloating, floatingStyles, getFloatingProps } = useMenuContext()
+	const {
+		open,
+		close,
+		static: isStatic,
+		setFloating,
+		floatingStyles,
+		getFloatingProps,
+	} = useMenuContext()
+
+	if (isStatic) {
+		return (
+			<div
+				role="menu"
+				className={cn(omote.popover, maru.rounded, 'p-1 space-y-0.5', k.content, className)}
+			>
+				{children}
+			</div>
+		)
+	}
 
 	return (
 		<FloatingPortal>

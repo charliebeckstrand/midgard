@@ -57,7 +57,20 @@ export function SidebarLayout({
 
 			{/* Sidebar on mobile */}
 			<Drawer open={open} onClose={close}>
-				<OffcanvasContext.Provider value={{ close }}>{sidebar}</OffcanvasContext.Provider>
+				<OffcanvasContext.Provider value={{ close }}>
+					<div
+						ref={(node) => {
+							if (!node) return
+
+							const current = node.querySelector('[data-current]')
+
+							current?.scrollIntoView({ block: 'center' })
+						}}
+						className="contents"
+					>
+						{sidebar}
+					</div>
+				</OffcanvasContext.Provider>
 			</Drawer>
 
 			{/* Navbar on mobile */}

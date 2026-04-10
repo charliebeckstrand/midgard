@@ -19,7 +19,7 @@ import {
 	SidebarSection,
 } from 'ui/sidebar'
 import { ChatContext } from './context'
-import { SidebarUserDropdown } from './sidebar-user-dropdown'
+import { SidebarUserMenu } from './sidebar-user-menu'
 import type { Chat } from './types'
 
 function ChatItem({
@@ -139,7 +139,7 @@ export function ChatClient({
 						)}
 					</SidebarBody>
 					<SidebarFooter>
-						<SidebarUserDropdown user={user} />
+						<SidebarUserMenu user={user} />
 					</SidebarFooter>
 				</Sidebar>
 			}

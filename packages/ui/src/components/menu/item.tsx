@@ -20,10 +20,7 @@ export type MenuItemProps = MenuItemBaseProps &
 				React.ComponentPropsWithoutRef<typeof Link>,
 				keyof MenuItemBaseProps
 		  >)
-		| ({ href?: never } & Omit<
-				React.ComponentPropsWithoutRef<'button'>,
-				keyof MenuItemBaseProps
-		  >)
+		| ({ href?: never } & Omit<React.ComponentPropsWithoutRef<'button'>, keyof MenuItemBaseProps>)
 	)
 
 export function MenuItem({

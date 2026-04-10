@@ -9,7 +9,7 @@ export const sheet = {
 	panel: {
 		base: [omote.panel.chrome, narabi.panel.base, 'fixed overflow-y-auto rounded-xl'],
 		glass: {
-			true: 'bg-transparent backdrop-blur-md',
+			true: 'bg-transparent backdrop-blur-sm',
 			false: omote.panel.bg,
 		},
 		side: {

@@ -123,8 +123,6 @@ export default function DialogDemo() {
 					>
 						<DialogBody>
 							...
-						</DialogBody>
-						<DialogBody>
 							<CheckboxField>
 								<Checkbox id="terms" color="blue" checked={accepted} onChange={() => setAccepted(!accepted)} />
 								<Label htmlFor="terms">Accept terms and conditions</Label>
@@ -192,9 +190,7 @@ export default function DialogDemo() {
 							officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur
 							adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
 						</Text>
-					</DialogBody>
-					<DialogBody>
-						<CheckboxField>
+						<CheckboxField className="my-2">
 							<Checkbox
 								id="terms"
 								color="blue"

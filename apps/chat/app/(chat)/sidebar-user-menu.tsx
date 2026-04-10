@@ -5,21 +5,13 @@ import {
 	ChevronUpDownIcon,
 	Cog8ToothIcon,
 } from '@heroicons/react/20/solid'
+import type { User } from 'heimdall/user'
 import { useRouter } from 'next/navigation'
 import { Avatar } from 'ui/avatar'
-import {
-	Dropdown,
-	DropdownItem,
-	DropdownLabel,
-	DropdownMenu,
-	DropdownSeparator,
-	DropdownTrigger,
-} from 'ui/dropdown'
+import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from 'ui/menu'
 import { SidebarItem, SidebarLabel } from 'ui/sidebar'
 
-type User = { email: string; name?: string }
-
-export function SidebarUserDropdown({ user }: { user?: User }) {
+export function SidebarUserMenu({ user }: { user?: User }) {
 	const router = useRouter()
 
 	async function signOut() {
@@ -33,8 +25,8 @@ export function SidebarUserDropdown({ user }: { user?: User }) {
 	const initials = user?.email?.[0]?.toUpperCase() ?? 'U'
 
 	return (
-		<Dropdown placement="top-start">
-			<DropdownTrigger>
+		<Menu placement="top-start">
+			<MenuTrigger>
 				<SidebarItem>
 					<Avatar
 						initials={initials}
@@ -43,18 +35,18 @@ export function SidebarUserDropdown({ user }: { user?: User }) {
 					<SidebarLabel>{displayName}</SidebarLabel>
 					<ChevronUpDownIcon />
 				</SidebarItem>
-			</DropdownTrigger>
-			<DropdownMenu>
-				<DropdownItem href="/settings">
+			</MenuTrigger>
+			<MenuContent>
+				<MenuItem href="/settings">
 					<Cog8ToothIcon />
-					<DropdownLabel>Settings</DropdownLabel>
-				</DropdownItem>
-				<DropdownSeparator />
-				<DropdownItem onClick={signOut}>
+					<MenuLabel>Settings</MenuLabel>
+				</MenuItem>
+				<MenuSeparator />
+				<MenuItem onClick={signOut}>
 					<ArrowRightStartOnRectangleIcon />
-					<DropdownLabel>Sign out</DropdownLabel>
-				</DropdownItem>
-			</DropdownMenu>
-		</Dropdown>
+					<MenuLabel>Sign out</MenuLabel>
+				</MenuItem>
+			</MenuContent>
+		</Menu>
 	)
 }

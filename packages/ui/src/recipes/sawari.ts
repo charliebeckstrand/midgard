@@ -28,7 +28,7 @@ const motoi = {
 
 // ── Hiru (昼) ───────────────────────────────────────────
 const hiru = {
-	item: 'hover:bg-zinc-950/5 focus:bg-zinc-950/5',
+	item: 'not-disabled:not-data-disabled:hover:bg-zinc-950/5 not-disabled:not-data-disabled:focus:bg-zinc-950/5',
 	nav: [
 		'group-hover:bg-zinc-950/5 group-hover:*:data-[slot=icon]:fill-zinc-950',
 		'data-current:group-hover:bg-transparent! data-current:active:bg-transparent!',
@@ -38,7 +38,7 @@ const hiru = {
 
 // ── Yoru (夜) ───────────────────────────────────────────
 const yoru = {
-	item: 'dark:hover:bg-white/5 dark:focus:bg-white/5',
+	item: 'dark:not-disabled:not-data-disabled:hover:bg-white/5 dark:not-disabled:not-data-disabled:focus:bg-white/5',
 	nav: [
 		'dark:text-white',
 		'dark:group-hover:bg-white/5 dark:group-hover:*:data-[slot=icon]:fill-zinc-400',

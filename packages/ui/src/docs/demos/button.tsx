@@ -9,7 +9,7 @@ import { Example } from '../example'
 import { SizeListbox, sizeLabels } from '../size-listbox'
 import { VariantListbox } from '../variant-listbox'
 
-export const meta = { category: 'Base' }
+export const meta = { category: 'Forms' }
 
 const variants = ['solid', 'soft', 'outline', 'plain', 'ghost'] as const
 

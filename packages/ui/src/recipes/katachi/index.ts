@@ -29,7 +29,6 @@ import { disclosure } from './disclosure'
 import { divider } from './divider'
 import { dl } from './dl'
 import { drawer } from './drawer'
-import { dropdown } from './dropdown'
 import { fieldset } from './fieldset'
 import { grid } from './grid'
 import { heading } from './heading'
@@ -75,7 +74,6 @@ export const katachi = {
 	disclosure,
 	divider,
 	dl,
-	dropdown,
 	fieldset,
 	grid,
 	heading,

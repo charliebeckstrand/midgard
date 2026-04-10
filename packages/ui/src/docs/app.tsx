@@ -95,7 +95,6 @@ const categories = demos.reduce<Record<string, typeof demos>>((acc, demo) => {
 }, {})
 
 const categoryOrder = [
-	'Base',
 	'Forms',
 	'Data Display',
 	'Feedback',

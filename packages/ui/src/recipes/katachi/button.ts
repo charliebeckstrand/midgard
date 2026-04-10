@@ -2,7 +2,6 @@ import { kage } from '../kage'
 import { ki } from '../ki'
 import { maru } from '../maru'
 import { nuri } from '../nuri'
-import { omote } from '../omote'
 import { sawari } from '../sawari'
 import { take } from '../take'
 import { yasumi } from '../yasumi'
@@ -25,7 +24,7 @@ export const button = {
 			color: nuri.buttonSoft,
 		},
 		outline: {
-			base: [kage.borderStrong, omote.surface],
+			base: [kage.borderStrong],
 			color: nuri.buttonOutline,
 		},
 		plain: {

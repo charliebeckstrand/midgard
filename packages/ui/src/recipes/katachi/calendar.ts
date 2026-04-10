@@ -15,7 +15,7 @@ export const calendar = {
 		hover: 'hover:bg-zinc-950/5 dark:hover:bg-white/5',
 		active: 'ring-2 ring-inset ring-blue-600',
 		today: ['font-semibold', ...nuri.buttonSoft.blue],
-		disabled: 'opacity-40 pointer-events-none',
+		disabled: 'opacity-40 cursor-not-allowed',
 		outside: 'opacity-0 pointer-events-none',
 		inRange: 'bg-zinc-950/5 dark:bg-white/5 rounded-none',
 	},

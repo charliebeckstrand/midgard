@@ -18,3 +18,4 @@ export {
 	MenuSeparator,
 	type MenuSeparatorProps,
 } from './slots'
+export { MenuTrigger, type MenuTriggerProps } from './trigger'

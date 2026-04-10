@@ -6,7 +6,7 @@ import { Icon } from '../../components/icon'
 import { code } from '../code'
 import { Example } from '../example'
 
-export const meta = { category: 'Base' }
+export const meta = { category: 'Data Display' }
 
 const sizes = ['xs', 'sm', 'md', 'lg'] as const
 

@@ -15,6 +15,6 @@ export const menu = {
 	heading: [sumi.textMuted, 'px-3.5 pb-1 pt-2 text-xs/5 font-medium sm:px-3'],
 	label: 'truncate',
 	description: [sumi.textMuted, sawari.focusText, narabi.description],
-	shortcut: ['ml-auto pl-4 text-xs/5', sumi.textMuted, sawari.focusTextMuted],
+	shortcut: ['font-mono ml-auto pl-4 text-sm/5', sumi.textMuted, sawari.focusTextMuted],
 	separator: kage.divider,
 }

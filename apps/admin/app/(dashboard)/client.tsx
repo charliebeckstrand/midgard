@@ -15,7 +15,7 @@ import {
 	SidebarLabel,
 	SidebarSection,
 } from 'ui/sidebar'
-import { SidebarUserDropdown } from './sidebar-user-dropdown'
+import { SidebarUserMenu } from './sidebar-user-menu'
 
 type User = { email: string; name?: string }
 
@@ -48,7 +48,7 @@ export function DashboardClient({ user, children }: { user?: User; children: Rea
 						</SidebarSection>
 					</SidebarBody>
 					<SidebarFooter>
-						<SidebarUserDropdown user={user} />
+						<SidebarUserMenu user={user} />
 					</SidebarFooter>
 				</Sidebar>
 			}
