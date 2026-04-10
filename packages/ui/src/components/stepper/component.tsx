@@ -35,22 +35,21 @@ export type StepperProps = StepperVariants & {
 export function Stepper({ value, onValueChange, orientation, className, children }: StepperProps) {
 	const resolvedOrientation: StepperOrientation = orientation ?? 'horizontal'
 
-	// `displayValue` lags `value` until the active indicator pill finishes its
-	// layout animation. All step content (numbers vs. checks) is derived from
-	// `displayValue`, so a step's appearance only changes once the pill has
-	// arrived. The pill itself follows the live `value` prop directly via
-	// framer-motion's layout animation, so it moves immediately on click.
-	const [displayValue, setDisplayValue] = useState(value)
+	// `settledValue` lags `value` until the pill's layout animation completes.
+	// It is only consulted to hold the landing step's check during a backward
+	// morph — see `computeState`. Every other visual change is driven directly
+	// by the live `value` prop and happens instantly on click.
+	const [settledValue, setSettledValue] = useState(value)
 
 	const onActiveIndicatorSettled = useCallback(() => {
-		setDisplayValue(value)
+		setSettledValue(value)
 	}, [value])
 
 	return (
 		<StepperProvider
 			value={{
 				value,
-				displayValue,
+				settledValue,
 				onValueChange,
 				onActiveIndicatorSettled,
 				orientation: resolvedOrientation,
@@ -78,10 +77,18 @@ export type StepperStepProps = {
 	children?: React.ReactNode
 }
 
-function computeState(stepValue: number, currentValue: number): StepState {
-	if (stepValue < currentValue) return 'completed'
+// A step is `completed` (shows a check) if it sits below the live `value`, OR
+// if it's the landing step of a backward morph — `stepValue === value` and the
+// pill hasn't yet settled there (`stepValue < settledValue`). That second case
+// keeps the old check visible under the still-in-flight pill; once the pill
+// arrives `settledValue` catches up and the step flips to `current`, but by
+// then the pill is covering the swap.
+function computeState(stepValue: number, value: number, settledValue: number): StepState {
+	if (stepValue < value) return 'completed'
 
-	if (stepValue === currentValue) return 'current'
+	if (stepValue === value) {
+		return stepValue < settledValue ? 'completed' : 'current'
+	}
 
 	return 'upcoming'
 }
@@ -110,9 +117,9 @@ function partitionVerticalChildren(children: React.ReactNode): React.ReactNode {
 }
 
 export function StepperStep({ value, disabled, className, children }: StepperStepProps) {
-	const { displayValue, onValueChange, orientation } = useStepper()
+	const { value: currentValue, settledValue, onValueChange, orientation } = useStepper()
 
-	const state = computeState(value, displayValue)
+	const state = computeState(value, currentValue, settledValue)
 
 	const clickable = onValueChange !== undefined && !disabled
 
@@ -166,13 +173,13 @@ export type StepperIndicatorProps = {
 export function StepperIndicator({ className, children }: StepperIndicatorProps) {
 	const { value: stepValue, state } = useStepperStep()
 
-	const { value: liveValue, onActiveIndicatorSettled } = useStepper()
+	const { value: currentValue, onActiveIndicatorSettled } = useStepper()
 
 	// Whichever step matches the live prop hosts the pill; framer-motion's
-	// LayoutGroup morphs the pill from its previous position. Underlying
-	// content is driven by `state` (which lags via `displayValue`), so steps
-	// don't visibly change until the pill has finished moving into place.
-	const isTarget = stepValue === liveValue
+	// LayoutGroup morphs the pill from its previous position. The underlying
+	// check vs. number is driven by `state` from `computeState`, which only
+	// lags in the narrow "landing step of a backward morph" case.
+	const isTarget = stepValue === currentValue
 
 	const completed = state === 'completed'
 
