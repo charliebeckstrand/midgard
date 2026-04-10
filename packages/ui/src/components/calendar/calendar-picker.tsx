@@ -16,7 +16,6 @@ type CalendarPickerProps = {
 	month: number
 	today: Date
 	onNavigate: (year: number, month: number) => void
-	onSelectToday: () => void
 	monthLabel: string
 }
 
@@ -25,14 +24,14 @@ export function CalendarPicker({
 	month,
 	today,
 	onNavigate,
-	onSelectToday,
 	monthLabel,
 }: CalendarPickerProps) {
 	const [pickerView, setPickerView] = useState<'months' | 'years'>('months')
 	const [pickerOpen, setPickerOpen] = useState(false)
 	const [pickerYear, setPickerYear] = useState(year)
+	const [decadeYear, setDecadeYear] = useState(year)
 
-	const decadeStart = Math.floor(pickerYear / 10) * 10
+	const decadeStart = Math.floor(decadeYear / 10) * 10
 
 	const pickerGridRef = useRef<HTMLDivElement>(null)
 
@@ -62,6 +61,8 @@ export function CalendarPicker({
 
 			if (open) {
 				setPickerYear(year)
+
+				setDecadeYear(year)
 
 				setPickerView('months')
 			}
@@ -97,7 +98,10 @@ export function CalendarPicker({
 							<Button
 								variant="plain"
 								onClick={() => {
+									setDecadeYear(pickerYear)
+
 									setPickerView('years')
+
 									focusPickerGrid()
 								}}
 							>
@@ -141,7 +145,7 @@ export function CalendarPicker({
 						<div className={k.header}>
 							<Button
 								variant="plain"
-								onClick={() => setPickerYear((y) => y - 10)}
+								onClick={() => setDecadeYear((y) => y - 10)}
 								aria-label="Previous decade"
 							>
 								<ChevronLeft className={k.navIcon} />
@@ -150,6 +154,7 @@ export function CalendarPicker({
 								variant="plain"
 								onClick={() => {
 									setPickerView('months')
+
 									focusPickerGrid()
 								}}
 							>
@@ -157,7 +162,7 @@ export function CalendarPicker({
 							</Button>
 							<Button
 								variant="plain"
-								onClick={() => setPickerYear((y) => y + 10)}
+								onClick={() => setDecadeYear((y) => y + 10)}
 								aria-label="Next decade"
 							>
 								<ChevronRight className={k.navIcon} />
@@ -183,7 +188,9 @@ export function CalendarPicker({
 										data-selected={isSelected || undefined}
 										onClick={() => {
 											setPickerYear(y)
+
 											setPickerView('months')
+
 											focusPickerGrid()
 										}}
 										className={cn(isCurrent && !isSelected && k.picker.cellCurrent)}
@@ -195,29 +202,15 @@ export function CalendarPicker({
 						</div>
 					</>
 				)}
-				<div className="flex items-center justify-center gap-1 px-2 pb-2">
-					{pickerView === 'years' && (
-						<Button
-							variant="plain"
-							onClick={() => {
-								setPickerView('months')
-								focusPickerGrid()
-							}}
-						>
-							Months
-						</Button>
-					)}
-					<Button
-						variant="soft"
-						color="blue"
+				<div className="flex items-center justify-center gap-2">
+					{/* <Button
+						variant="plain"
 						onClick={() => {
-							onSelectToday()
-
 							setPickerOpen(false)
 						}}
 					>
-						Today
-					</Button>
+						Close
+					</Button> */}
 				</div>
 			</PopoverContent>
 		</Popover>

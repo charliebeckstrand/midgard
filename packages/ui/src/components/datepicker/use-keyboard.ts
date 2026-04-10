@@ -22,7 +22,7 @@ export function useInputKeyDown({
 	handleSelect,
 }: UseInputKeyDownParams) {
 	return useCallback(
-		(e: KeyboardEvent<HTMLInputElement>) => {
+		(e: KeyboardEvent<HTMLElement>) => {
 			if (disabled) return
 
 			if (!open && ['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(e.key)) {

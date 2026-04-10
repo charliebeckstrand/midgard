@@ -5,139 +5,128 @@ import {
 	FloatingPortal,
 	flip,
 	offset,
-	type Placement,
 	shift,
 	useDismiss,
 	useFloating,
 	useInteractions,
-	useRole,
 } from '@floating-ui/react'
 import { CalendarIcon } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useRef, useState } from 'react'
-
 import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { FormControl } from '../../primitives'
 import { katachi, ugoki } from '../../recipes'
 import { sumi } from '../../recipes/sumi'
-import { Calendar } from '../calendar'
+import { CalendarRange } from '../calendar'
 import { Icon } from '../icon'
-import { DatePickerRange } from './datepicker-range'
-import { addDays, clampDate, formatDate } from './datepicker-utilities'
+import type { DatePickerBaseProps, DatePickerRangeProps } from './datepicker'
+import { addDays, clampDate, formatRange } from './datepicker-utilities'
 import { useInputKeyDown } from './use-keyboard'
 
 const k = katachi.datepicker
 
-export type DatePickerSingleProps = {
-	range?: false
-	value?: Date
-	defaultValue?: Date
-	onChange?: (value: Date | undefined) => void
-}
-
-export type DatePickerRangeProps = {
-	range: true
-	value?: [Date, Date]
-	defaultValue?: [Date, Date]
-	onChange?: (value: [Date, Date] | undefined) => void
-}
-
-export type DatePickerBaseProps = {
-	min?: Date
-	max?: Date
-	placeholder?: string
-	placement?: Placement
-	className?: string
-	disabled?: boolean
-}
-
-export type DatePickerProps = DatePickerBaseProps & (DatePickerSingleProps | DatePickerRangeProps)
-
-export function DatePicker(props: DatePickerProps) {
-	if (props.range) {
-		return <DatePickerRange {...props} />
-	}
-
-	return <DatePickerSingle {...props} />
-}
-
-function DatePickerSingle({
+export function DatePickerRange({
 	value: valueProp,
 	defaultValue,
 	onChange,
 	min,
 	max,
-	placeholder = 'Select a date',
+	placeholder = 'Select dates',
 	placement = 'bottom-start',
 	className,
 	disabled = false,
-}: DatePickerBaseProps & DatePickerSingleProps) {
+}: DatePickerBaseProps & DatePickerRangeProps) {
 	const [value, setValue] = useControllable({ value: valueProp, defaultValue, onChange })
-
 	const [open, setOpen] = useState(false)
-
+	const [rangeStart, setRangeStart] = useState<Date | null>(null)
+	const [hoverDate, setHoverDate] = useState<Date | null>(null)
 	const [activeDate, setActiveDate] = useState<Date | null>(null)
 
+	const pendingRef = useRef<{ value: [Date, Date] | undefined } | null>(null)
 	const triggerRef = useRef<HTMLButtonElement>(null)
 
+	const flushPending = useCallback(() => {
+		if (pendingRef.current) {
+			setValue(pendingRef.current.value)
+
+			pendingRef.current = null
+		}
+
+		setRangeStart(null)
+
+		setHoverDate(null)
+
+		setActiveDate(null)
+	}, [setValue])
+
 	const getInitialActiveDate = useCallback(
-		() => clampDate(value ?? min ?? new Date(), min, max),
-		[value, min, max],
+		() => clampDate(rangeStart ?? value?.[0] ?? min ?? new Date(), min, max),
+		[rangeStart, value, min, max],
 	)
 
 	const moveActiveDate = useCallback(
 		(delta: number) => {
 			const next = clampDate(addDays(activeDate ?? getInitialActiveDate(), delta), min, max)
+
 			setActiveDate(next)
 		},
 		[activeDate, getInitialActiveDate, min, max],
 	)
 
 	const openCalendar = useCallback(() => {
-		setOpen(true)
+		flushPending()
 
-		setActiveDate(null)
-	}, [])
+		setOpen(true)
+	}, [flushPending])
 
 	const closeCalendar = useCallback(() => {
 		setOpen(false)
-
-		setActiveDate(null)
 	}, [])
+
+	const handleClear = useCallback(() => {
+		pendingRef.current = { value: undefined }
+
+		closeCalendar()
+	}, [closeCalendar])
 
 	const handleSelect = useCallback(
 		(date: Date) => {
-			setValue(date)
+			if (rangeStart === null) {
+				setRangeStart(date)
 
-			closeCalendar()
+				setHoverDate(null)
+			} else {
+				const start = rangeStart
+
+				const end = date
+
+				const range: [Date, Date] = start.getTime() <= end.getTime() ? [start, end] : [end, start]
+
+				// Pin both endpoints so the visual range stays stable through the exit animation,
+				// even when the second pick comes from the keyboard (no prior hoverDate).
+				setHoverDate(end)
+
+				pendingRef.current = { value: range }
+
+				closeCalendar()
+			}
 		},
-		[closeCalendar, setValue],
+		[closeCalendar, rangeStart],
 	)
 
 	const handleOpenChange = useCallback(
 		(nextOpen: boolean) => {
-			if (nextOpen) {
-				openCalendar()
-			} else {
+			if (!nextOpen) {
 				closeCalendar()
+			} else {
+				openCalendar()
 			}
 		},
 		[closeCalendar, openCalendar],
 	)
 
-	const displayValue = value ? formatDate(value) : ''
-
-	const handleInputKeyDown = useInputKeyDown({
-		disabled,
-		open,
-		activeDate,
-		openCalendar,
-		closeCalendar,
-		moveActiveDate,
-		getInitialActiveDate,
-		handleSelect,
-	})
+	const displayValue = value ? formatRange(value[0], value[1]) : ''
 
 	const { refs, floatingStyles, context } = useFloating({
 		placement,
@@ -149,9 +138,18 @@ function DatePickerSingle({
 
 	const dismiss = useDismiss(context)
 
-	const role = useRole(context, { role: 'dialog' })
+	const { getReferenceProps, getFloatingProps } = useInteractions([dismiss])
 
-	const { getReferenceProps, getFloatingProps } = useInteractions([dismiss, role])
+	const handleInputKeyDown = useInputKeyDown({
+		disabled,
+		open,
+		activeDate,
+		openCalendar,
+		closeCalendar,
+		moveActiveDate,
+		getInitialActiveDate,
+		handleSelect,
+	})
 
 	return (
 		<>
@@ -167,8 +165,8 @@ function DatePickerSingle({
 						type="button"
 						aria-haspopup="dialog"
 						aria-expanded={open}
-						data-slot="datepicker-button"
 						disabled={disabled}
+						data-slot="datepicker-button"
 						onClick={() => {
 							if (open) closeCalendar()
 							else openCalendar()
@@ -187,13 +185,14 @@ function DatePickerSingle({
 			</div>
 
 			<FloatingPortal>
-				<AnimatePresence>
+				<AnimatePresence onExitComplete={flushPending}>
 					{open && (
 						<div
 							ref={refs.setFloating}
 							style={floatingStyles}
 							className={katachi.popover.portal}
 							{...getFloatingProps()}
+							tabIndex={-1}
 						>
 							<motion.div
 								{...ugoki.popover}
@@ -201,15 +200,15 @@ function DatePickerSingle({
 								className={cn(katachi.popover.content, k.popoverContent)}
 								onMouseDown={(e) => e.preventDefault()}
 							>
-								<Calendar
-									value={value ?? null}
+								<CalendarRange
 									onChange={handleSelect}
-									onClear={() => {
-										setValue(undefined)
-										closeCalendar()
-									}}
+									onClear={rangeStart === null && value ? handleClear : undefined}
 									min={min}
 									max={max}
+									rangeStart={rangeStart ?? (value ? value[0] : null)}
+									rangeEnd={rangeStart === null ? (value ? value[1] : null) : null}
+									hoverDate={rangeStart !== null ? hoverDate : null}
+									onHoverDate={setHoverDate}
 									activeDate={open ? activeDate : null}
 								/>
 							</motion.div>

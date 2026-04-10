@@ -22,11 +22,11 @@ export function useControllable<T>(props: {
 
 	const setValue = useCallback(
 		(newValue: T | undefined) => {
-			if (!isControlled) setInternalValue(newValue)
+			setInternalValue(newValue)
 
 			onChange?.(newValue)
 		},
-		[isControlled, onChange],
+		[onChange],
 	)
 
 	return [currentValue, setValue]

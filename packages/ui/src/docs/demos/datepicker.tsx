@@ -21,7 +21,7 @@ export default function DatePickerDemo() {
 					<DatePicker value={date} onChange={setDate} />
 				`}
 			>
-				<div className="w-64 space-y-2">
+				<div className="sm:max-w-72 space-y-2">
 					<DatePicker value={date} onChange={setDate} />
 				</div>
 			</Example>
@@ -36,7 +36,7 @@ export default function DatePickerDemo() {
 					<DatePicker range value={range} onChange={setRange} />
 				`}
 			>
-				<div className="w-64 space-y-2">
+				<div className="sm:max-w-72 space-y-2">
 					<DatePicker range value={range} onChange={setRange} />
 				</div>
 			</Example>
@@ -49,7 +49,7 @@ export default function DatePickerDemo() {
 					<DatePicker disabled placeholder="Cannot select" />
 				`}
 			>
-				<div className="w-64">
+				<div className="sm:max-w-72">
 					<DatePicker disabled placeholder="Cannot select" />
 				</div>
 			</Example>

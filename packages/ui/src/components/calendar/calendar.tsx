@@ -5,24 +5,41 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { katachi } from '../../recipes'
-import { Button } from '../button'
+import { Button, type ButtonVariants } from '../button'
 import { CalendarPicker } from './calendar-picker'
-import { getCalendarDays, isBeforeDay, isBetween, isSameDay, WEEKDAYS } from './calendar-utilities'
+import { getCalendarDays, isBeforeDay, isSameDay, WEEKDAYS } from './calendar-utilities'
 import { useKeyboard } from './use-keyboard'
 
 const k = katachi.calendar
+
+export type CalendarDayContext = {
+	date: Date
+	disabled: boolean
+	isToday: boolean
+	isSelected: boolean
+	isActive: boolean
+}
+
+export type CalendarDayProps = {
+	selected?: boolean
+	variant?: ButtonVariants['variant']
+	color?: ButtonVariants['color']
+	className?: string
+	onMouseEnter?: () => void
+	onMouseLeave?: () => void
+}
 
 export type CalendarProps = {
 	value?: Date | null
 	defaultValue?: Date
 	onChange?: (date: Date) => void
+	onClear?: () => void
 	min?: Date
 	max?: Date
-	rangeStart?: Date | null
-	rangeEnd?: Date | null
-	hoverDate?: Date | null
-	onHoverDate?: (date: Date | null) => void
 	activeDate?: Date | null
+	getDayProps?: (ctx: CalendarDayContext) => CalendarDayProps
+	showToday?: boolean
+	showClear?: boolean
 	className?: string
 }
 
@@ -30,20 +47,18 @@ export function Calendar({
 	value: valueProp,
 	defaultValue,
 	onChange,
+	onClear,
 	min,
 	max,
-	rangeStart,
-	rangeEnd,
-	hoverDate,
-	onHoverDate,
 	activeDate,
+	getDayProps,
+	showToday = true,
+	showClear,
 	className,
 }: CalendarProps) {
 	const handleValueChange = useCallback(
 		(nextValue: Date | undefined) => {
-			if (nextValue === undefined) return
-
-			onChange?.(nextValue)
+			if (nextValue) onChange?.(nextValue)
 		},
 		[onChange],
 	)
@@ -53,6 +68,12 @@ export function Calendar({
 		defaultValue,
 		onChange: handleValueChange,
 	})
+
+	const handleClear = useCallback(() => {
+		setValue(undefined)
+
+		onClear?.()
+	}, [setValue, onClear])
 
 	const today = useMemo(() => new Date(), [])
 
@@ -88,8 +109,6 @@ export function Calendar({
 		},
 		[min, max],
 	)
-
-	const effectiveEnd = hoverDate ?? rangeEnd
 
 	const headerRef = useRef<HTMLDivElement>(null)
 	const gridRef = useRef<HTMLDivElement>(null)
@@ -130,7 +149,6 @@ export function Calendar({
 					month={month}
 					today={today}
 					onNavigate={handlePickerNavigate}
-					onSelectToday={handleSelectToday}
 					monthLabel={monthLabel}
 				/>
 				<Button variant="plain" onClick={nextMonth} aria-label="Next month">
@@ -152,48 +170,40 @@ export function Calendar({
 					className="col-span-7 grid grid-cols-7"
 				>
 					{days.map((date) => {
-						const isOutside = date.getMonth() !== month
-
-						if (isOutside) return null
+						if (date.getMonth() !== month) return null
 
 						const disabled = isDisabled(date)
 
 						const isToday = isSameDay(date, today)
+
 						const isSelected = value != null && isSameDay(date, value)
+
 						const isActive = activeDate != null && isSameDay(date, activeDate)
-						const isRangeStart = rangeStart != null && isSameDay(date, rangeStart)
-						const isRangeEnd = effectiveEnd != null && isSameDay(date, effectiveEnd)
 
-						const isEdge = isRangeStart || isRangeEnd
+						const dayProps = getDayProps?.({ date, disabled, isToday, isSelected, isActive })
 
-						const inRange =
-							rangeStart != null &&
-							effectiveEnd != null &&
-							isBetween(date, rangeStart, effectiveEnd)
+						const selected = dayProps?.selected ?? isSelected
 
 						const isFirst = date.getDate() === 1
 
 						return (
 							<Button
 								key={date.toISOString()}
+								variant={dayProps?.variant ?? (selected ? 'solid' : isToday ? 'soft' : 'plain')}
+								color={dayProps?.color ?? (selected || isToday ? 'blue' : undefined)}
+								aria-pressed={selected}
 								disabled={disabled}
-								variant={isSelected || isEdge ? 'solid' : 'plain'}
-								aria-pressed={isSelected || isEdge}
 								onClick={() => {
 									if (!disabled) setValue(date)
 								}}
-								onMouseEnter={() => onHoverDate?.(date)}
-								onMouseLeave={() => onHoverDate?.(null)}
-								data-calendar-day
+								onMouseEnter={dayProps?.onMouseEnter}
+								onMouseLeave={dayProps?.onMouseLeave}
 								style={
 									isFirst ? { gridColumnStart: new Date(year, month, 1).getDay() + 1 } : undefined
 								}
 								className={cn(
-									!disabled && !isSelected && !isEdge && !inRange && k.day.hover,
-									isActive && !isSelected && !isEdge && k.day.active,
-									isToday && !isSelected && !isEdge && k.day.today,
-									inRange && !isEdge && k.day.inRange,
-									disabled && k.day.disabled,
+									isActive && (selected ? k.day.activeSelected : k.day.active),
+									dayProps?.className,
 								)}
 							>
 								{date.getDate()}
@@ -201,6 +211,19 @@ export function Calendar({
 						)
 					})}
 				</div>
+			</div>
+
+			<div className="flex items-center justify-center pt-2 gap-2 empty:hidden">
+				{(showClear ?? value != null) && (
+					<Button variant="soft" color="amber" onClick={handleClear} aria-label="Clear selection">
+						Clear
+					</Button>
+				)}
+				{showToday && (
+					<Button variant="soft" color="blue" onClick={handleSelectToday}>
+						Today
+					</Button>
+				)}
 			</div>
 		</div>
 	)
