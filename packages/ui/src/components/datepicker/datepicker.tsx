@@ -21,6 +21,7 @@ import { useControllable } from '../../hooks/use-controllable'
 import { FormControl } from '../../primitives'
 import { katachi, ugoki } from '../../recipes'
 import { sumi } from '../../recipes/sumi'
+import { Button } from '../button'
 import { Calendar } from '../calendar'
 import { Icon } from '../icon'
 import { DatePickerRange } from './datepicker-range'
@@ -115,6 +116,16 @@ function DatePickerSingle({
 		[closeCalendar, setValue],
 	)
 
+	const handleClear = useCallback(() => {
+		setValue(undefined)
+
+		closeCalendar()
+	}, [closeCalendar, setValue])
+
+	const handleSelectToday = useCallback(() => {
+		handleSelect(new Date())
+	}, [handleSelect])
+
 	const handleOpenChange = useCallback(
 		(nextOpen: boolean) => {
 			if (nextOpen) {
@@ -204,14 +215,25 @@ function DatePickerSingle({
 								<Calendar
 									value={value ?? null}
 									onChange={handleSelect}
-									onClear={() => {
-										setValue(undefined)
-										closeCalendar()
-									}}
 									min={min}
 									max={max}
 									activeDate={open ? activeDate : null}
 								/>
+								<div data-slot="calendar-footer" className={katachi.calendar.footer}>
+									{value != null && (
+										<Button
+											variant="soft"
+											color="amber"
+											onClick={handleClear}
+											aria-label="Clear selection"
+										>
+											Clear
+										</Button>
+									)}
+									<Button variant="soft" color="blue" onClick={handleSelectToday}>
+										Today
+									</Button>
+								</div>
 							</motion.div>
 						</div>
 					)}

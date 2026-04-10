@@ -10,7 +10,6 @@ const k = katachi.calendar
 
 export type CalendarRangeProps = {
 	onChange?: (date: Date) => void
-	onClear?: () => void
 	min?: Date
 	max?: Date
 	rangeStart?: Date | null
@@ -23,7 +22,6 @@ export type CalendarRangeProps = {
 
 export function CalendarRange({
 	onChange,
-	onClear,
 	min,
 	max,
 	rangeStart,
@@ -41,9 +39,11 @@ export function CalendarRange({
 
 			const isRangeStart = rangeStart != null && isSameDay(date, rangeStart)
 			const isRangeEnd = effectiveEnd != null && isSameDay(date, effectiveEnd)
+
 			const isEdge = isRangeStart || isRangeEnd
 
 			const hasRange = rangeStart != null && effectiveEnd != null
+
 			const inRange = hasRange && isBetween(date, rangeStart, effectiveEnd)
 
 			const startBeforeEnd = hasRange && isBeforeDay(rangeStart, effectiveEnd)
@@ -84,13 +84,10 @@ export function CalendarRange({
 			value={undefined}
 			defaultValue={defaultValue}
 			onChange={onChange}
-			onClear={onClear}
 			min={min}
 			max={max}
 			activeDate={activeDate}
 			getDayProps={getDayProps}
-			showToday={false}
-			showClear={rangeStart != null && rangeEnd != null}
 			className={className}
 		/>
 	)

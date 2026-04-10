@@ -202,16 +202,6 @@ export function CalendarPicker({
 						</div>
 					</>
 				)}
-				<div className="flex items-center justify-center gap-2">
-					{/* <Button
-						variant="plain"
-						onClick={() => {
-							setPickerOpen(false)
-						}}
-					>
-						Close
-					</Button> */}
-				</div>
 			</PopoverContent>
 		</Popover>
 	)

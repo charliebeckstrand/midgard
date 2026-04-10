@@ -18,6 +18,7 @@ import { useControllable } from '../../hooks/use-controllable'
 import { FormControl } from '../../primitives'
 import { katachi, ugoki } from '../../recipes'
 import { sumi } from '../../recipes/sumi'
+import { Button } from '../button'
 import { CalendarRange } from '../calendar'
 import { Icon } from '../icon'
 import type { DatePickerBaseProps, DatePickerRangeProps } from './datepicker'
@@ -126,6 +127,8 @@ export function DatePickerRange({
 		[closeCalendar, openCalendar],
 	)
 
+	const showClear = rangeStart === null && value != null
+
 	const displayValue = value ? formatRange(value[0], value[1]) : ''
 
 	const { refs, floatingStyles, context } = useFloating({
@@ -202,7 +205,6 @@ export function DatePickerRange({
 							>
 								<CalendarRange
 									onChange={handleSelect}
-									onClear={rangeStart === null && value ? handleClear : undefined}
 									min={min}
 									max={max}
 									rangeStart={rangeStart ?? (value ? value[0] : null)}
@@ -211,6 +213,18 @@ export function DatePickerRange({
 									onHoverDate={setHoverDate}
 									activeDate={open ? activeDate : null}
 								/>
+								{showClear && (
+									<div data-slot="calendar-footer" className={katachi.calendar.footer}>
+										<Button
+											variant="soft"
+											color="amber"
+											onClick={handleClear}
+											aria-label="Clear selection"
+										>
+											Clear
+										</Button>
+									</div>
+								)}
 							</motion.div>
 						</div>
 					)}

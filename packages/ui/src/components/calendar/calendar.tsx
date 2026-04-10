@@ -33,13 +33,10 @@ export type CalendarProps = {
 	value?: Date | null
 	defaultValue?: Date
 	onChange?: (date: Date) => void
-	onClear?: () => void
 	min?: Date
 	max?: Date
 	activeDate?: Date | null
 	getDayProps?: (ctx: CalendarDayContext) => CalendarDayProps
-	showToday?: boolean
-	showClear?: boolean
 	className?: string
 }
 
@@ -47,13 +44,10 @@ export function Calendar({
 	value: valueProp,
 	defaultValue,
 	onChange,
-	onClear,
 	min,
 	max,
 	activeDate,
 	getDayProps,
-	showToday = true,
-	showClear,
 	className,
 }: CalendarProps) {
 	const handleValueChange = useCallback(
@@ -68,12 +62,6 @@ export function Calendar({
 		defaultValue,
 		onChange: handleValueChange,
 	})
-
-	const handleClear = useCallback(() => {
-		setValue(undefined)
-
-		onClear?.()
-	}, [setValue, onClear])
 
 	const today = useMemo(() => new Date(), [])
 
@@ -122,12 +110,6 @@ export function Calendar({
 		setViewDate(new Date(y, m, 1))
 	}, [])
 
-	const handleSelectToday = useCallback(() => {
-		setValue(today)
-
-		setViewDate(new Date(today.getFullYear(), today.getMonth(), 1))
-	}, [today, setValue])
-
 	useEffect(() => {
 		if (!activeDate) return
 
@@ -137,6 +119,17 @@ export function Calendar({
 			return next.getTime() === prev.getTime() ? prev : next
 		})
 	}, [activeDate])
+
+	useEffect(() => {
+		if (!value) return
+
+		setViewDate((prev) => {
+			if (value.getFullYear() === prev.getFullYear() && value.getMonth() === prev.getMonth())
+				return prev
+
+			return new Date(value.getFullYear(), value.getMonth(), 1)
+		})
+	}, [value])
 
 	return (
 		<div data-slot="calendar" className={cn(k.root, className)}>
@@ -211,19 +204,6 @@ export function Calendar({
 						)
 					})}
 				</div>
-			</div>
-
-			<div className="flex items-center justify-center pt-2 gap-2 empty:hidden">
-				{(showClear ?? value != null) && (
-					<Button variant="soft" color="amber" onClick={handleClear} aria-label="Clear selection">
-						Clear
-					</Button>
-				)}
-				{showToday && (
-					<Button variant="soft" color="blue" onClick={handleSelectToday}>
-						Today
-					</Button>
-				)}
 			</div>
 		</div>
 	)
