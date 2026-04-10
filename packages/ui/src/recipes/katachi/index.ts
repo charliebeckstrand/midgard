@@ -12,6 +12,7 @@
  * Concern: component form
  */
 
+import { accordion } from './accordion'
 import { activeIndicator } from './active-indicator'
 import { alert } from './alert'
 import { avatar } from './avatar'
@@ -46,6 +47,7 @@ import { radio } from './radio'
 import { select } from './select'
 import { sheet } from './sheet'
 import { sidebar } from './sidebar'
+import { spinner } from './spinner'
 import { status } from './status'
 import { stepper } from './stepper'
 import { switchRecipe } from './switch'
@@ -58,6 +60,7 @@ import { toast } from './toast'
 import { tooltip } from './tooltip'
 
 export const katachi = {
+	accordion,
 	activeIndicator,
 	alert,
 	avatar,
@@ -92,6 +95,7 @@ export const katachi = {
 	select,
 	sheet,
 	sidebar,
+	spinner,
 	status,
 	stepper,
 	switch: switchRecipe,
