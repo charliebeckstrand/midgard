@@ -1,19 +1,38 @@
 import { cn } from '../../core'
 import { katachi } from '../../recipes'
-import { type CardVariants, cardVariants } from './variants'
+import { Box, type BoxProps } from '../box'
 
 const k = katachi.card
 
-export type CardProps = CardVariants & {
-	className?: string
-	children?: React.ReactNode
-}
+export type CardProps = BoxProps
 
-export function Card({ variant, className, children }: CardProps) {
+export function Card({
+	p,
+	px,
+	py,
+	radius = 'lg',
+	bg = 'tint',
+	border = true,
+	className,
+	...props
+}: CardProps) {
+	const noExplicitPadding = p === undefined && px === undefined && py === undefined
 	return (
-		<div data-slot="card" className={cn(cardVariants({ variant }), className)}>
-			{children}
-		</div>
+		<Box
+			dataSlot="card"
+			p={p}
+			px={px}
+			py={py}
+			radius={radius}
+			bg={bg}
+			border={border}
+			className={cn(
+				'overflow-hidden',
+				noExplicitPadding && '[&:not(:has(>[data-slot^=card-]))]:p-5',
+				className,
+			)}
+			{...props}
+		/>
 	)
 }
 

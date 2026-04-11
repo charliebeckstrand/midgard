@@ -36,6 +36,8 @@ type BoxBaseProps = {
 	bg?: BoxBg
 	/** Border. `true` uses the default token; pass `'subtle'` / `'strong'` to pick a weight. */
 	border?: BoxBorder
+	/** Override the `data-slot` attribute. Defaults to `"box"`. */
+	dataSlot?: string
 	className?: string
 }
 
@@ -57,6 +59,7 @@ export function Box({
 	radius,
 	bg,
 	border,
+	dataSlot = 'box',
 	className,
 	href,
 	children,
@@ -65,7 +68,7 @@ export function Box({
 	return (
 		<Polymorphic
 			as="div"
-			dataSlot="box"
+			dataSlot={dataSlot}
 			href={href}
 			className={cn(
 				p !== undefined && paddingMap[p],

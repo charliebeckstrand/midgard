@@ -12,4 +12,3 @@ export {
 	CardTitle,
 	type CardTitleProps,
 } from './component'
-export { type CardVariants, cardVariants } from './variants'

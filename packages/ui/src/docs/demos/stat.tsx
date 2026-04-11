@@ -55,7 +55,7 @@ export default function StatDemo() {
 
 			<Example title="Dashboard grid">
 				<div className="grid gap-4 sm:grid-cols-3">
-					<Card variant="outline">
+					<Card bg="none">
 						<CardBody>
 							<Stat>
 								<StatLabel>Revenue</StatLabel>
@@ -67,7 +67,7 @@ export default function StatDemo() {
 							</Stat>
 						</CardBody>
 					</Card>
-					<Card variant="outline">
+					<Card bg="none">
 						<CardBody>
 							<Stat>
 								<StatLabel>Active users</StatLabel>
@@ -79,7 +79,7 @@ export default function StatDemo() {
 							</Stat>
 						</CardBody>
 					</Card>
-					<Card variant="outline">
+					<Card bg="none">
 						<CardBody>
 							<Stat>
 								<StatLabel>Churn</StatLabel>

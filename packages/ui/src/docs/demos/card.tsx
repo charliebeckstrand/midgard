@@ -1,3 +1,4 @@
+import { Alert, AlertDescription, AlertTitle } from '../../components/alert'
 import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'
 import {
@@ -8,27 +9,74 @@ import {
 	CardHeader,
 	CardTitle,
 } from '../../components/card'
+import { Code } from '../../components/code'
 import { Text } from '../../components/text'
+import { code } from '../code'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Layout' }
 
-const variants = ['solid', 'outline'] as const
-
 export default function CardDemo() {
 	return (
 		<div className="space-y-8">
-			<Example title="Variants">
-				<div className="grid gap-4 sm:grid-cols-2">
-					{variants.map((variant) => (
-						<Card key={variant} variant={variant}>
-							<CardBody>
-								<Text>{variant}</Text>
-							</CardBody>
-						</Card>
-					))}
-				</div>
+			<Alert type="info" closable>
+				<AlertTitle>Box API</AlertTitle>
+				<AlertDescription>
+					The <Code>&lt;Card&gt;</Code> component extends the <Code>&lt;Box&gt;</Code> component.
+				</AlertDescription>
+				<Text className="py-2">
+					See the{' '}
+					<a href="#box" className="hover:underline underline-offset-4">
+						Box documentation
+					</a>{' '}
+					for more details and examples of the Box API.
+				</Text>
+			</Alert>
+
+			<Example
+				title="Default"
+				code={code`
+					import { Card } from 'ui/card'
+
+					<Card>Content</Card>
+				`}
+			>
+				<Card>Content</Card>
 			</Example>
+
+			{/* <Example
+				title="Box API"
+				code={code`
+					import { Card } from 'ui/card'
+
+					<Card p={4} radius="lg" bg="tint">Tint</Card>
+					<Card p={4} radius="lg" bg="surface">Surface</Card>
+					<Card p={4} radius="lg" bg="none">Outline</Card>
+				`}
+			>
+				<div className="space-y-3">
+					<Alert type="info" closable>
+						<AlertTitle>Box API</AlertTitle>
+						<AlertDescription>
+							The Card component extends the Box component, so you can use all of the Box props to
+							customize it.
+						</AlertDescription>
+					</Alert>
+
+					<div className="grid gap-4 sm:grid-cols-3">
+						<Card p={4} radius="lg" bg="tint">
+							Tint
+						</Card>
+						<Card p={4} radius="lg" bg="surface">
+							Surface
+						</Card>
+						<Card p={4} radius="lg" bg="none">
+							Outline
+						</Card>
+					</div>
+				</div>
+			</Example> */}
+
 			<Example title="With header and footer">
 				<Card>
 					<CardHeader>
@@ -44,6 +92,7 @@ export default function CardDemo() {
 					</CardFooter>
 				</Card>
 			</Example>
+
 			<Example title="Composing with other components">
 				<Card>
 					<CardHeader>

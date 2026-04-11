@@ -117,7 +117,7 @@ export default function ScrollAreaDemo() {
 			</Example>
 
 			<Example title="Bare (nested in a container)">
-				<Card variant="outline" className="max-w-96">
+				<Card bg="none" className="max-w-96">
 					<CardHeader>
 						<CardTitle>Paragraphs</CardTitle>
 					</CardHeader>
