@@ -1,9 +1,9 @@
 'use client'
 
 import type { ReactNode } from 'react'
+import { CodeBlock } from '../components/code'
 import { Disclosure, DisclosureButton, DisclosurePanel } from '../components/disclosure'
 import { Heading } from '../components/heading'
-import { CodeBlock } from './code-block'
 import { deriveCode } from './derive-code'
 
 export function Example({
@@ -43,7 +43,7 @@ export function Example({
 							</DisclosureButton>
 						</div>
 						<DisclosurePanel>
-							<div className="border-t border-zinc-200 dark:border-zinc-800">
+							<div className="overflow-hidden rounded-b-lg border-t border-zinc-200 dark:border-zinc-800">
 								<CodeBlock code={resolvedCode} />
 							</div>
 						</DisclosurePanel>
