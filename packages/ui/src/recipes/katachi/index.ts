@@ -24,6 +24,7 @@ import { card } from './card'
 import { checkbox } from './checkbox'
 import { chip } from './chip'
 import { combobox } from './combobox'
+import { commandPalette } from './command-palette'
 import { datepicker } from './datepicker'
 import { dialog } from './dialog'
 import { disclosure } from './disclosure'
@@ -74,6 +75,7 @@ export const katachi = {
 	checkbox,
 	chip,
 	combobox,
+	commandPalette,
 	datepicker,
 	dialog,
 	drawer,
