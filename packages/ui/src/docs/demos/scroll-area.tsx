@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Alert, AlertDescription, AlertTitle } from '../../components/alert'
+import { Alert, AlertTitle } from '../../components/alert'
 import { Badge } from '../../components/badge'
 import { Card, CardBody, CardHeader, CardTitle } from '../../components/card'
 import { Code } from '../../components/code'
