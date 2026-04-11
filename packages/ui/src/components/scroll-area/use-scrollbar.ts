@@ -4,6 +4,7 @@ import type React from 'react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
 	computeThumb,
+	findScrollableAncestor,
 	HIDDEN_THUMB,
 	SCROLL_FADE_DELAY_MS,
 	type ScrollbarMode,
@@ -72,6 +73,24 @@ export function useScrollbar({ orientation, scrollbar }: UseScrollbarOptions) {
 		},
 		[],
 	)
+
+	useEffect(() => {
+		const el = viewportRef.current
+		if (!el) return
+
+		const handleWheel = (event: WheelEvent) => {
+			if (!event.shiftKey) return
+			event.preventDefault()
+
+			const target = findScrollableAncestor(el.parentElement)
+			const options: ScrollToOptions = { top: event.deltaY, left: event.deltaX, behavior: 'auto' }
+			if (target) target.scrollBy(options)
+			else window.scrollBy(options)
+		}
+
+		el.addEventListener('wheel', handleWheel, { passive: false })
+		return () => el.removeEventListener('wheel', handleWheel)
+	}, [])
 
 	const handleScroll = useCallback(() => {
 		updateThumbs()

@@ -29,3 +29,32 @@ export function computeThumb(
 
 	return { size, offset, visible: true }
 }
+
+/**
+ * Walk up the DOM from `start` looking for an element that is actually
+ * scrollable on either axis. Returns `null` if nothing is found, in which case
+ * callers should fall back to scrolling the window.
+ */
+export function findScrollableAncestor(start: HTMLElement | null): HTMLElement | null {
+	let current = start
+
+	while (current && current !== document.body && current !== document.documentElement) {
+		const style = getComputedStyle(current)
+
+		const overflowY = style.overflowY
+		const overflowX = style.overflowX
+
+		const canScrollY =
+			(overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'overlay') &&
+			current.scrollHeight > current.clientHeight
+
+		const canScrollX =
+			(overflowX === 'auto' || overflowX === 'scroll' || overflowX === 'overlay') &&
+			current.scrollWidth > current.clientWidth
+
+		if (canScrollY || canScrollX) return current
+
+		current = current.parentElement
+	}
+	return null
+}

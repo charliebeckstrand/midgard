@@ -42,6 +42,7 @@ export function ScrollArea({
 	} = useScrollbar({ orientation: orientation ?? 'vertical', scrollbar })
 
 	const showScrollbar = scrollbar !== 'hidden'
+
 	const scrollbarState: 'auto' | 'active' =
 		scrollbar === 'visible' || isScrolling ? 'active' : 'auto'
 
