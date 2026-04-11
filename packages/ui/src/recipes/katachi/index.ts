@@ -45,6 +45,7 @@ import { placeholder } from './placeholder'
 import { popover } from './popover'
 import { progress } from './progress'
 import { radio } from './radio'
+import { scrollArea } from './scroll-area'
 import { select } from './select'
 import { sheet } from './sheet'
 import { sidebar } from './sidebar'
@@ -96,6 +97,7 @@ export const katachi = {
 	popover,
 	progress,
 	radio,
+	scrollArea,
 	select,
 	sheet,
 	sidebar,

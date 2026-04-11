@@ -147,6 +147,10 @@
 			"types": "./src/components/radio/index.ts",
 			"default": "./src/components/radio/index.ts"
 		},
+		"./scroll-area": {
+			"types": "./src/components/scroll-area/index.ts",
+			"default": "./src/components/scroll-area/index.ts"
+		},
 		"./select": {
 			"types": "./src/components/select/index.ts",
 			"default": "./src/components/select/index.ts"
