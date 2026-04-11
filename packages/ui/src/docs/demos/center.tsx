@@ -1,3 +1,4 @@
+import { Area } from '../../components/area'
 import { Card } from '../../components/card'
 import { Center } from '../../components/center'
 import { code } from '../code'
@@ -18,9 +19,11 @@ export default function CenterDemo() {
 					</Center>
 				`}
 			>
-				<Center className="h-40 w-full rounded-lg border border-dashed border-zinc-300 dark:border-zinc-700">
-					<Card>Centered</Card>
-				</Center>
+				<Area className="h-40 w-full">
+					<Center className="h-full">
+						<Card>Centered</Card>
+					</Center>
+				</Area>
 			</Example>
 
 			<Example
@@ -33,12 +36,11 @@ export default function CenterDemo() {
 					</Center>
 				`}
 			>
-				<Center
-					maxW="md"
-					className="h-40 w-full rounded-lg border border-dashed border-zinc-300 dark:border-zinc-700"
-				>
-					<Card>Constrained to max-w-md</Card>
-				</Center>
+				<Area className="h-40 w-full">
+					<Center maxW="md" className="h-full">
+						<Card>Constrained to max-w-md</Card>
+					</Center>
+				</Area>
 			</Example>
 
 			<Example

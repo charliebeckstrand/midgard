@@ -1,12 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Avatar } from '../../components/avatar'
 import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'
 import { Card, CardBody, CardHeader } from '../../components/card'
 import { Checkbox } from '../../components/checkbox'
 import { Chip } from '../../components/chip'
+import { Combobox, ComboboxLabel, ComboboxOption } from '../../components/combobox'
 import { Heading } from '../../components/heading'
 import { Input } from '../../components/input'
 import { Radio } from '../../components/radio'
@@ -19,20 +20,71 @@ import { Example } from '../components/example'
 
 export const meta = { category: 'Feedback' }
 
+const dynamicComponents = [
+	{ name: 'Avatar', render: () => <Avatar size="md" /> },
+	{ name: 'Badge', render: () => <Badge>New</Badge> },
+	{ name: 'Button', render: () => <Button>Submit</Button> },
+	{ name: 'Checkbox', render: () => <Checkbox /> },
+	{ name: 'Chip', render: () => <Chip>Filter</Chip> },
+	{ name: 'Heading', render: () => <Heading level={3}>The quick brown fox</Heading> },
+	{ name: 'Input', render: () => <Input placeholder="Email" /> },
+	{ name: 'Radio', render: () => <Radio /> },
+	{ name: 'Switch', render: () => <Switch /> },
+	{ name: 'Text', render: () => <Text>The quick brown fox jumps over the lazy dog.</Text> },
+	{ name: 'Textarea', render: () => <Textarea placeholder="Bio" /> },
+]
+
+function DynamicExample() {
+	const [selected, setSelected] = useState<string>('Button')
+
+	const active = dynamicComponents.find((c) => c.name === selected)
+
+	return (
+		<Example
+			title="Dynamic skeletons"
+			actions={
+				<Combobox
+					value={selected}
+					onChange={setSelected}
+					displayValue={(v: string) => v}
+					placeholder="Search components"
+					className="w-56"
+				>
+					{(query) =>
+						dynamicComponents
+							.filter((c) => !query || c.name.toLowerCase().includes(query.toLowerCase()))
+							.map((c) => (
+								<ComboboxOption key={c.name} value={c.name}>
+									<ComboboxLabel>{c.name}</ComboboxLabel>
+								</ComboboxOption>
+							))
+					}
+				</Combobox>
+			}
+			code={code`
+				<Skeleton>
+					<Button>Submit</Button>
+				</Skeleton>
+			`}
+		>
+			<div className="sm:max-w-sm">
+				<Skeleton>{active?.render()}</Skeleton>
+			</div>
+		</Example>
+	)
+}
+
 function TransitionDemo() {
 	const [ready, setReady] = useState(false)
 
-	useEffect(() => {
-		if (!ready) return
-
-		const timer = setTimeout(() => setReady(false), 4000)
-
-		return () => clearTimeout(timer)
-	}, [ready])
-
 	return (
 		<div className="space-y-4">
-			<Button variant="outline" size="sm" onClick={() => setReady(!ready)}>
+			<Button
+				variant={ready ? 'soft' : 'outline'}
+				color={ready ? 'red' : undefined}
+				size="sm"
+				onClick={() => setReady(!ready)}
+			>
 				{ready ? 'Reset' : 'Simulate load'}
 			</Button>
 
@@ -48,7 +100,7 @@ function TransitionDemo() {
 						</div>
 					</CardHeader>
 					<CardBody>
-						<Text>Working on design systems and component libraries. Based in San Francisco.</Text>
+						<Text>Design systems & component libraries.</Text>
 					</CardBody>
 				</Card>
 			</Skeleton>
@@ -59,34 +111,7 @@ function TransitionDemo() {
 export default function SkeletonDemo() {
 	return (
 		<div className="space-y-8">
-			<Example
-				title="Dynamic skeletons"
-				code={code`
-					import { Skeleton } from 'ui/skeleton'
-
-					<Skeleton>
-						<Button size="lg">Submit</Button>
-						<Avatar size="md" />
-						<Input placeholder="Email" />
-					</Skeleton>
-				`}
-			>
-				<Skeleton>
-					<div className="flex flex-wrap items-center gap-4">
-						<Button size="lg">Submit</Button>
-						<Button>Save</Button>
-						<Button size="sm" variant="outline">
-							Cancel
-						</Button>
-						<Avatar size="md" />
-						<Badge>New</Badge>
-						<Chip>Filter</Chip>
-						<Switch />
-						<Checkbox />
-						<Radio />
-					</div>
-				</Skeleton>
-			</Example>
+			<DynamicExample />
 
 			<Example title="Form">
 				<Skeleton>

@@ -1,3 +1,3 @@
 export const text = {
-	base: 'h-4 w-3/4',
+	base: 'h-6 sm:max-w-sm',
 }

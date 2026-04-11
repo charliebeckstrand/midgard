@@ -1,3 +1,4 @@
+import { Area } from '../../components/area'
 import { Button } from '../../components/button'
 import { Heading } from '../../components/heading'
 import { Spacer } from '../../components/spacer'
@@ -25,15 +26,13 @@ export default function SpacerDemo() {
 					</Stack>
 				`}
 			>
-				<Stack
-					direction="row"
-					align="center"
-					className="w-full rounded-lg border border-dashed border-zinc-300 p-3 dark:border-zinc-700"
-				>
-					<Heading level={3}>Title</Heading>
-					<Spacer />
-					<Button>Action</Button>
-				</Stack>
+				<Area padding="md" className="w-full">
+					<Stack direction="row" align="center">
+						<Heading level={3}>Title</Heading>
+						<Spacer />
+						<Button>Action</Button>
+					</Stack>
+				</Area>
 			</Example>
 
 			<Example
@@ -51,17 +50,14 @@ export default function SpacerDemo() {
 					</Stack>
 				`}
 			>
-				<Stack
-					direction="row"
-					gap={3}
-					align="center"
-					className="w-full rounded-lg border border-dashed border-zinc-300 p-3 dark:border-zinc-700"
-				>
-					<Button variant="plain">Back</Button>
-					<Spacer />
-					<Button variant="plain">Cancel</Button>
-					<Button>Save</Button>
-				</Stack>
+				<Area padding="md" className="w-full">
+					<Stack direction="row" gap={3} align="center">
+						<Button variant="plain">Back</Button>
+						<Spacer />
+						<Button variant="plain">Cancel</Button>
+						<Button>Save</Button>
+					</Stack>
+				</Area>
 			</Example>
 		</div>
 	)

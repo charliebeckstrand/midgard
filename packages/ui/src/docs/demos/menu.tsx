@@ -1,5 +1,7 @@
 import { Alert, AlertDescription } from '../../components/alert'
+import { Area } from '../../components/area'
 import { Button } from '../../components/button'
+import { Code } from '../../components/code'
 import {
 	Menu,
 	MenuContent,
@@ -16,37 +18,11 @@ export const meta = { category: 'Overlay' }
 export default function MenuDemo() {
 	return (
 		<div className="space-y-8">
-			<Example title="Preview">
-				<div className="space-y-4">
-					<Menu defaultOpen>
-						<MenuContent>
-							<MenuSection>
-								<MenuItem>
-									<MenuLabel>Edit</MenuLabel>
-								</MenuItem>
-								<MenuItem>
-									<MenuLabel>Duplicate</MenuLabel>
-								</MenuItem>
-							</MenuSection>
-							<MenuSeparator />
-							<MenuSection>
-								<MenuItem>
-									<MenuLabel>Archive</MenuLabel>
-								</MenuItem>
-								<MenuItem>
-									<MenuLabel>Delete</MenuLabel>
-								</MenuItem>
-							</MenuSection>
-						</MenuContent>
-					</Menu>
-					<Alert type="warning" closable>
-						<AlertDescription>
-							This is for demonstration purposes. <code className="font-bold">MenuContent</code>{' '}
-							must be wrapped in a <code className="font-bold">Menu</code> component.
-						</AlertDescription>
-					</Alert>
-				</div>
-			</Example>
+			<Alert type="info" closable>
+				<AlertDescription>
+					<Code>&lt;MenuContent&gt;</Code> must be wrapped in a <Code>&lt;Menu&gt;</Code> component.
+				</AlertDescription>
+			</Alert>
 
 			<Example title="Dropdown Menu">
 				<Menu placement="bottom-start">
@@ -77,9 +53,9 @@ export default function MenuDemo() {
 
 			<Example title="Context Menu">
 				<Menu>
-					<div className="flex h-40 items-center justify-center rounded-lg border border-dashed border-zinc-300 dark:border-zinc-700">
+					<Area className="flex h-40 items-center justify-center">
 						<span className="text-sm select-none">Right-click here</span>
-					</div>
+					</Area>
 					<MenuContent>
 						<MenuSection>
 							<MenuItem>

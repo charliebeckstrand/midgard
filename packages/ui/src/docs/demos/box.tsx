@@ -59,21 +59,6 @@ export default function BoxDemo() {
 					px=6 py=3
 				</Box>
 			</Example>
-
-			<Example
-				title="As a link"
-				code={code`
-					import { Box } from 'ui/box'
-
-					<Box href="/home" p={4} radius="lg" bg="surface" border>
-						Link box
-					</Box>
-				`}
-			>
-				<Box href="/home" p={4} radius="lg" bg="surface" border>
-					Link box
-				</Box>
-			</Example>
 		</div>
 	)
 }

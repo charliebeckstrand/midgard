@@ -31,6 +31,10 @@
 			"types": "./src/components/alert/index.ts",
 			"default": "./src/components/alert/index.ts"
 		},
+		"./area": {
+			"types": "./src/components/area/index.ts",
+			"default": "./src/components/area/index.ts"
+		},
 		"./aspect-ratio": {
 			"types": "./src/components/aspect-ratio/index.ts",
 			"default": "./src/components/aspect-ratio/index.ts"

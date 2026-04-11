@@ -24,33 +24,6 @@ export default function ContainerDemo() {
 			</Example>
 
 			<Example
-				title="Sizes"
-				code={code`
-					import { Container } from 'ui/container'
-
-					<Container size="sm"><Card>sm — reading width</Card></Container>
-					<Container size="md"><Card>md — content area</Card></Container>
-					<Container size="lg"><Card>lg — wide content</Card></Container>
-					<Container size="xl"><Card>xl — full page</Card></Container>
-				`}
-			>
-				<div className="space-y-3">
-					<Container size="sm">
-						<Card>sm — reading width</Card>
-					</Container>
-					<Container size="md">
-						<Card>md — content area</Card>
-					</Container>
-					<Container size="lg">
-						<Card>lg — wide content</Card>
-					</Container>
-					<Container size="xl">
-						<Card>xl — full page</Card>
-					</Container>
-				</div>
-			</Example>
-
-			<Example
 				title="Padding"
 				code={code`
 					import { Container } from 'ui/container'
@@ -66,6 +39,9 @@ export default function ContainerDemo() {
 					</Container>
 					<Container padding="sm">
 						<Card>Small padding</Card>
+					</Container>
+					<Container padding="md">
+						<Card>Medium padding</Card>
 					</Container>
 					<Container padding="lg">
 						<Card>Large padding</Card>

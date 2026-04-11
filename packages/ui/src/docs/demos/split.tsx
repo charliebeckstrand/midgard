@@ -37,8 +37,12 @@ export default function SplitDemo() {
 				`}
 			>
 				<Split ratio="1/3" gap={6}>
-					<Card>Sidebar (1/3)</Card>
-					<Card>Main content (2/3)</Card>
+					<Card>
+						<div className="line-clamp-1">Sidebar (1/3)</div>
+					</Card>
+					<Card>
+						<div className="line-clamp-1">Main content (2/3)</div>
+					</Card>
 				</Split>
 			</Example>
 
@@ -53,9 +57,9 @@ export default function SplitDemo() {
 					</Split>
 				`}
 			>
-				<Split direction="vertical" ratio="1/4" className="h-48">
-					<Card>Header</Card>
-					<Card>Body</Card>
+				<Split direction="vertical" ratio="1/4" className="h-72">
+					<Card>Header (1/4)</Card>
+					<Card>Body (3/4)</Card>
 				</Split>
 			</Example>
 		</div>

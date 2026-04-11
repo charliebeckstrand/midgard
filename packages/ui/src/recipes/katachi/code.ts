@@ -6,7 +6,7 @@ const blockBg = 'bg-[#0d1117]'
 
 export const code = {
 	inline: {
-		base: ['font-mono py-0.75', 'bg-zinc-950/[0.06] dark:bg-white/10 mx-0.5', maru.roundedMd],
+		base: ['font-mono py-0.75', 'bg-current/15 mx-0.5', maru.roundedMd],
 		size: {
 			sm: ['text-[0.625rem]', 'p-1'],
 			md: ['text-xs', 'p-1.25'],
