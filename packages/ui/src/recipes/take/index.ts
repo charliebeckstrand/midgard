@@ -16,6 +16,7 @@ import { gap, iconSlot, px, py, text } from './density'
 import { listbox } from './listbox'
 import { panel } from './panel'
 import { popup } from './popup'
+import { scrollArea } from './scroll-area'
 
 export const take = {
 	// Core density tokens
@@ -50,6 +51,9 @@ export const take = {
 
 	// Panel
 	panel,
+
+	// Scroll area
+	scrollArea,
 } as const
 
 export namespace take {

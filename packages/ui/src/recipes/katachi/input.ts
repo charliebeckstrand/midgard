@@ -1,11 +1,11 @@
-import { form } from '../../primitives/form'
 import { kage } from '../kage'
 import { maru } from '../maru'
 import { sumi } from '../sumi'
 import { take } from '../take'
+import { waku } from '../waku'
 
 export const input = {
-	base: [...form.inputBase, maru.rounded],
+	base: [...waku.inputBase, maru.rounded],
 	variant: {
 		default: [],
 		outline: kage.borderEmphasis,
@@ -17,5 +17,6 @@ export const input = {
 	prefixPadding: { sm: 'pl-8', md: 'pl-9', lg: 'pl-11' },
 	suffixPadding: { sm: 'pr-8', md: 'pr-9', lg: 'pr-11' },
 	defaults: { variant: 'default' as const, size: 'md' as const },
-	date: form.date,
+	date: waku.date,
+	number: waku.number,
 }

@@ -1,5 +1,6 @@
 export { useArrowAction } from './use-arrow-action'
 export { useIsDesktop } from './use-breakpoint'
+export { useButtonHold } from './use-button-hold'
 export { useControllable } from './use-controllable'
 export { useHasHover } from './use-has-hover'
 export { useMenuKeyboard } from './use-menu-keyboard'

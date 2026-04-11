@@ -5,6 +5,7 @@ import { Children, isValidElement, type PointerEvent } from 'react'
 import { cn, Link } from '../../core'
 import { type PolymorphicProps, TouchTarget, useRipple, useTap } from '../../primitives'
 import { useAlertContext } from '../alert/context'
+import { useInputSize } from '../input/context'
 import { Kbd } from '../kbd'
 import { Spinner } from '../spinner'
 import { ButtonSizeProvider } from './context'
@@ -98,10 +99,13 @@ export function Button({
 	...props
 }: ButtonProps) {
 	const alert = useAlertContext()
+	const inputSize = useInputSize()
 
 	if (!color && alert) {
 		color = alert.variant === 'solid' ? 'inherit' : alert.color
 	}
+
+	const resolvedSize = size ?? inputSize
 
 	const renderedChildren = loading ? withLoadingSpinner(children) : children
 
@@ -112,12 +116,12 @@ export function Button({
 	const { onPointerDown: handleRipple, element: rippleElement } = useRipple()
 
 	const classes = cn(
-		buttonVariants({ variant, color, size }),
-		iconOnly && iconOnlySize({ size }),
-		sides.start && !sides.end && withIconStartSize({ size }),
-		sides.end && !sides.start && withIconEndSize({ size }),
-		kbds.start && !kbds.end && withKbdStartSize({ size }),
-		kbds.end && !kbds.start && withKbdEndSize({ size }),
+		buttonVariants({ variant, color, size: resolvedSize }),
+		iconOnly && iconOnlySize({ size: resolvedSize }),
+		sides.start && !sides.end && withIconStartSize({ size: resolvedSize }),
+		sides.end && !sides.start && withIconEndSize({ size: resolvedSize }),
+		kbds.start && !kbds.end && withKbdStartSize({ size: resolvedSize }),
+		kbds.end && !kbds.start && withKbdEndSize({ size: resolvedSize }),
 		className,
 	)
 
@@ -145,7 +149,7 @@ export function Button({
 				>
 					{ripple && rippleElement}
 					<TouchTarget>
-						<ButtonSizeProvider value={size ?? 'md'}>{renderedChildren}</ButtonSizeProvider>
+						<ButtonSizeProvider value={resolvedSize ?? 'md'}>{renderedChildren}</ButtonSizeProvider>
 					</TouchTarget>
 				</Link>
 			</motion.span>
@@ -170,7 +174,7 @@ export function Button({
 		>
 			{ripple && rippleElement}
 			<TouchTarget>
-				<ButtonSizeProvider value={size ?? 'md'}>{renderedChildren}</ButtonSizeProvider>
+				<ButtonSizeProvider value={resolvedSize ?? 'md'}>{renderedChildren}</ButtonSizeProvider>
 			</TouchTarget>
 		</motion.button>
 	)

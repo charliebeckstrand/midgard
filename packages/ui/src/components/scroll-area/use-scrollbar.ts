@@ -1,0 +1,132 @@
+'use client'
+
+import type React from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import {
+	computeThumb,
+	HIDDEN_THUMB,
+	SCROLL_FADE_DELAY_MS,
+	type ScrollbarMode,
+	type ThumbState,
+} from './utilities'
+
+type Orientation = 'vertical' | 'horizontal' | 'both'
+
+type UseScrollbarOptions = {
+	orientation: Orientation
+	scrollbar: ScrollbarMode
+}
+
+/**
+ * Manages the custom scrollbar state for a scroll area: thumb size/offset
+ * computed from the viewport's scroll metrics, visibility fade during active
+ * scrolling, and pointer-drag interaction to scroll by dragging the thumb.
+ *
+ * Returns refs to attach to the viewport and each track, the current thumb
+ * state per axis, and the handlers to wire up onScroll / onPointerDown.
+ */
+export function useScrollbar({ orientation, scrollbar }: UseScrollbarOptions) {
+	const viewportRef = useRef<HTMLDivElement>(null)
+	const verticalTrackRef = useRef<HTMLDivElement>(null)
+	const horizontalTrackRef = useRef<HTMLDivElement>(null)
+	const scrollFadeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+	const [verticalThumb, setVerticalThumb] = useState<ThumbState>(HIDDEN_THUMB)
+	const [horizontalThumb, setHorizontalThumb] = useState<ThumbState>(HIDDEN_THUMB)
+	const [isScrolling, setIsScrolling] = useState(false)
+
+	const hasVertical = orientation === 'vertical' || orientation === 'both'
+	const hasHorizontal = orientation === 'horizontal' || orientation === 'both'
+
+	const updateThumbs = useCallback(() => {
+		const el = viewportRef.current
+		if (!el) return
+
+		if (hasVertical) {
+			const trackHeight = verticalTrackRef.current?.clientHeight ?? 0
+			setVerticalThumb(computeThumb(el.scrollTop, el.clientHeight, el.scrollHeight, trackHeight))
+		}
+
+		if (hasHorizontal) {
+			const trackWidth = horizontalTrackRef.current?.clientWidth ?? 0
+			setHorizontalThumb(computeThumb(el.scrollLeft, el.clientWidth, el.scrollWidth, trackWidth))
+		}
+	}, [hasVertical, hasHorizontal])
+
+	useEffect(() => {
+		const el = viewportRef.current
+		if (!el) return
+
+		updateThumbs()
+
+		const observer = new ResizeObserver(updateThumbs)
+		observer.observe(el)
+		for (const child of Array.from(el.children)) observer.observe(child)
+
+		return () => observer.disconnect()
+	}, [updateThumbs])
+
+	useEffect(
+		() => () => {
+			if (scrollFadeTimeoutRef.current) clearTimeout(scrollFadeTimeoutRef.current)
+		},
+		[],
+	)
+
+	const handleScroll = useCallback(() => {
+		updateThumbs()
+
+		if (scrollbar === 'auto') {
+			setIsScrolling(true)
+			if (scrollFadeTimeoutRef.current) clearTimeout(scrollFadeTimeoutRef.current)
+			scrollFadeTimeoutRef.current = setTimeout(() => setIsScrolling(false), SCROLL_FADE_DELAY_MS)
+		}
+	}, [scrollbar, updateThumbs])
+
+	const startDrag = (axis: 'x' | 'y') => (event: React.PointerEvent<HTMLDivElement>) => {
+		const el = viewportRef.current
+		const track = axis === 'y' ? verticalTrackRef.current : horizontalTrackRef.current
+		if (!el || !track) return
+
+		event.preventDefault()
+		event.stopPropagation()
+
+		const startClient = axis === 'y' ? event.clientY : event.clientX
+		const startScroll = axis === 'y' ? el.scrollTop : el.scrollLeft
+		const trackSize = axis === 'y' ? track.clientHeight : track.clientWidth
+		const viewportSize = axis === 'y' ? el.clientHeight : el.clientWidth
+		const contentSize = axis === 'y' ? el.scrollHeight : el.scrollWidth
+		const thumbSize = axis === 'y' ? verticalThumb.size : horizontalThumb.size
+		const maxOffset = trackSize - thumbSize
+		const maxScroll = contentSize - viewportSize
+		const scale = maxOffset > 0 ? maxScroll / maxOffset : 0
+
+		const onMove = (ev: PointerEvent) => {
+			const delta = (axis === 'y' ? ev.clientY : ev.clientX) - startClient
+			const next = startScroll + delta * scale
+			if (axis === 'y') el.scrollTop = next
+			else el.scrollLeft = next
+		}
+
+		const onUp = () => {
+			window.removeEventListener('pointermove', onMove)
+			window.removeEventListener('pointerup', onUp)
+		}
+
+		window.addEventListener('pointermove', onMove)
+		window.addEventListener('pointerup', onUp)
+	}
+
+	return {
+		viewportRef,
+		verticalTrackRef,
+		horizontalTrackRef,
+		verticalThumb,
+		horizontalThumb,
+		isScrolling,
+		hasVertical,
+		hasHorizontal,
+		handleScroll,
+		startDrag,
+	}
+}

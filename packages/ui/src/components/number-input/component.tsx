@@ -3,7 +3,8 @@
 import { Minus, Plus } from 'lucide-react'
 import { forwardRef } from 'react'
 import { cn } from '../../core'
-import { useControllable } from '../../hooks'
+import { useButtonHold, useControllable } from '../../hooks'
+import { katachi } from '../../recipes'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
@@ -11,7 +12,7 @@ import { Input, type InputProps } from '../input'
 type Size = 'sm' | 'md' | 'lg'
 
 const padding: Record<Size, string> = {
-	sm: 'pr-[4.25rem]',
+	sm: 'pr-[4rem]',
 	md: 'pr-[4.5rem]',
 	lg: 'pr-[5rem]',
 }
@@ -37,7 +38,9 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
 	const resolvedSize: Size = size ?? 'md'
 
 	const precision = step.toString().split('.')[1]?.length ?? 0
+
 	const round = (n: number) => Number(n.toFixed(precision))
+
 	const clamp = (n: number) => {
 		if (min !== undefined && n < min) return min
 		if (max !== undefined && n > max) return max
@@ -46,14 +49,22 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
 
 	const change = (delta: number) => {
 		const base = current ?? clamp(0)
+
 		setValue(round(clamp(base + delta)))
 	}
+
+	const atMin = min !== undefined && current !== undefined && current <= min
+	const atMax = max !== undefined && current !== undefined && current >= max
+
+	const decreaseHold = useButtonHold(() => change(-step), { disabled: disabled || atMin })
+	const increaseHold = useButtonHold(() => change(step), { disabled: disabled || atMax })
 
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const v = e.target.value
 
 		if (v === '') {
 			setValue(undefined)
+
 			return
 		}
 
@@ -63,9 +74,6 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
 
 		setValue(clamp(n))
 	}
-
-	const atMin = min !== undefined && current !== undefined && current <= min
-	const atMax = max !== undefined && current !== undefined && current >= max
 
 	return (
 		<Input
@@ -80,34 +88,26 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
 			min={min}
 			max={max}
 			step={step}
-			className={cn(
-				padding[resolvedSize],
-				'[appearance:textfield] [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none',
-				className,
-			)}
+			className={cn(padding[resolvedSize], katachi.input.number, className)}
 			suffix={
-				<span className="pointer-events-auto flex items-center gap-0.5">
+				<span className="pointer-events-auto flex items-center gap-0.5 -mr-1.5">
 					<Button
 						variant="plain"
-						size="sm"
 						spring={false}
 						tabIndex={-1}
 						disabled={disabled || atMin}
 						aria-label="Decrease"
-						onMouseDown={(e) => e.preventDefault()}
-						onClick={() => change(-step)}
+						{...decreaseHold}
 					>
 						<Icon icon={<Minus />} />
 					</Button>
 					<Button
 						variant="plain"
-						size="sm"
 						spring={false}
 						tabIndex={-1}
 						disabled={disabled || atMax}
 						aria-label="Increase"
-						onMouseDown={(e) => e.preventDefault()}
-						onClick={() => change(step)}
+						{...increaseHold}
 					>
 						<Icon icon={<Plus />} />
 					</Button>

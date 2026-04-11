@@ -18,7 +18,7 @@ const colorVariants = ['solid', 'soft', 'outline', 'plain', 'ghost'] as const
 
 const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 
-const sizes = ['sm', 'md', 'lg'] as const
+const sizes = ['xs', 'sm', 'md', 'lg'] as const
 
 type Size = (typeof sizes)[number]
 

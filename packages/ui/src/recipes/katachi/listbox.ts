@@ -1,13 +1,13 @@
-import { form } from '../../primitives/form'
 import { maru } from '../maru'
 import { narabi } from '../narabi'
 import { sawari } from '../sawari'
 import { sumi } from '../sumi'
 import { take } from '../take'
+import { waku } from '../waku'
 
 export const listbox = {
 	button: [
-		...form.inputBase,
+		...waku.inputBase,
 		take.control.md,
 		take.listbox.padding,
 		maru.rounded,

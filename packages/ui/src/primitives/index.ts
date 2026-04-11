@@ -7,7 +7,6 @@ export {
 	type SelectLabelProps,
 	type SelectOptionProps,
 } from './create-select-option'
-export { form } from './form'
 export { FormControl, type FormControlProps } from './form-control'
 export { BaseOption, OptionDescription, OptionLabel } from './option'
 export { Overlay, type OverlayProps } from './overlay'

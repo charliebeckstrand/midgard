@@ -1,7 +1,7 @@
-import { form } from '../../primitives/form'
 import { ki } from '../ki'
 import { nuri } from '../nuri'
 import { sumi } from '../sumi'
+import { waku } from '../waku'
 
 export const checkbox = {
 	wrapper: [
@@ -11,12 +11,12 @@ export const checkbox = {
 	],
 	color: nuri.checkbox,
 	base: [
-		...form.checkSurface,
+		...waku.checkSurface,
 		'rounded-[--spacing(1)]',
 		'[--checkbox-checked-border:transparent]',
 		'has-checked:bg-(--checkbox-checked-bg) has-checked:border-(--checkbox-checked-border)',
 		'not-has-[:disabled]:has-checked:hover:opacity-90',
 	],
-	input: form.check,
+	input: waku.check,
 	disabled: sumi.textDisabled,
 }

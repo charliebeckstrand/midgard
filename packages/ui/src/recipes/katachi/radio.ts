@@ -1,8 +1,8 @@
-import { form } from '../../primitives/form'
 import { ki } from '../ki'
 import { maru } from '../maru'
 import { nuri } from '../nuri'
 import { sumi } from '../sumi'
+import { waku } from '../waku'
 
 export const radio = {
 	wrapper: [
@@ -12,12 +12,12 @@ export const radio = {
 	],
 	color: nuri.radio,
 	base: [
-		...form.checkSurface,
+		...waku.checkSurface,
 		maru.roundedFull,
 		'[--radio-checked-border:transparent]',
 		'has-checked:bg-(--radio-checked-bg) has-checked:border-(--radio-checked-border)',
 		'not-has-[:disabled]:has-checked:hover:opacity-90',
 	],
-	input: form.check,
+	input: waku.check,
 	disabled: sumi.textDisabled,
 }

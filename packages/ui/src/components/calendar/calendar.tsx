@@ -15,8 +15,8 @@ import { useControllable } from '../../hooks/use-controllable'
 import { katachi } from '../../recipes'
 import { Button, type ButtonVariants } from '../button'
 import { CalendarPicker } from './calendar-picker'
-import { getCalendarDays, isBeforeDay, isSameDay, WEEKDAYS } from './calendar-utilities'
 import { useKeyboard } from './use-keyboard'
+import { getCalendarDays, isBeforeDay, isSameDay, WEEKDAYS } from './utilities'
 
 const k = katachi.calendar
 

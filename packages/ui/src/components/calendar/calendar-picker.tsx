@@ -6,8 +6,8 @@ import { cn } from '../../core'
 import { katachi } from '../../recipes'
 import { Button } from '../button'
 import { Popover, PopoverContent, PopoverTrigger } from '../popover'
-import { MONTHS } from './calendar-utilities'
 import { useKeyboard } from './use-keyboard'
+import { MONTHS } from './utilities'
 
 const k = katachi.calendar
 

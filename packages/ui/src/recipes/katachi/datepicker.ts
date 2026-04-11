@@ -1,12 +1,12 @@
-import { form } from '../../primitives/form'
 import { ki } from '../ki'
 import { maru } from '../maru'
 import { sumi } from '../sumi'
 import { take } from '../take'
+import { waku } from '../waku'
 
 export const datepicker = {
 	button: [
-		...form.inputBase,
+		...waku.inputBase,
 		take.control.md,
 		take.listbox.padding,
 		maru.rounded,

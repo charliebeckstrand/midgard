@@ -1,9 +1,19 @@
+'use client'
+
+import { useState } from 'react'
+import { Badge } from '../../components/badge'
+import { Card, CardBody, CardHeader, CardTitle } from '../../components/card'
 import { ScrollArea } from '../../components/scroll-area'
 import { Text } from '../../components/text'
 import { code } from '../code'
 import { Example } from '../example'
+import { SizeListbox } from '../size-listbox'
 
 export const meta = { category: 'Layout' }
+
+const sizes = ['sm', 'md', 'lg', 'xl', '2xl'] as const
+
+type Size = (typeof sizes)[number]
 
 const paragraphs = Array.from({ length: 12 }, (_, i) => ({
 	id: `para-${i}`,
@@ -28,19 +38,24 @@ const tags = [
 ]
 
 export default function ScrollAreaDemo() {
+	const [verticalSize, setVerticalSize] = useState<Size>('md')
+	const [horizontalSize, setHorizontalSize] = useState<Size>('md')
+	const [bothSize, setBothSize] = useState<Size>('md')
+
 	return (
 		<div className="space-y-8">
 			<Example
-				title="Vertical"
+				title="Vertical with size"
+				actions={<SizeListbox sizes={sizes} value={verticalSize} onChange={setVerticalSize} />}
 				code={code`
 					import { ScrollArea } from 'ui/scroll-area'
 
-					<ScrollArea className="h-48 rounded-lg border p-4">
-						<div className="space-y-3">...</div>
+					<ScrollArea size="${verticalSize}" rounded className="max-w-96">
+						...
 					</ScrollArea>
 				`}
 			>
-				<ScrollArea className="h-48 max-w-md rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
+				<ScrollArea size={verticalSize} rounded className="max-w-96">
 					<div className="space-y-3">
 						{paragraphs.map((p) => (
 							<Text key={p.id}>{p.text}</Text>
@@ -50,27 +65,20 @@ export default function ScrollAreaDemo() {
 			</Example>
 
 			<Example
-				title="Horizontal"
+				title="Horizontal with size"
+				actions={<SizeListbox sizes={sizes} value={horizontalSize} onChange={setHorizontalSize} />}
 				code={code`
 					import { ScrollArea } from 'ui/scroll-area'
 
-					<ScrollArea orientation="horizontal" className="rounded-lg border">
-						<div className="flex w-max gap-2 p-3">...</div>
+					<ScrollArea orientation="horizontal" size="${horizontalSize}" rounded>
+						...
 					</ScrollArea>
 				`}
 			>
-				<ScrollArea
-					orientation="horizontal"
-					className="max-w-md rounded-lg border border-zinc-200 dark:border-zinc-800"
-				>
-					<div className="flex w-max gap-2 p-3">
+				<ScrollArea orientation="horizontal" size={horizontalSize} rounded>
+					<div className="flex w-max gap-2">
 						{tags.map((tag) => (
-							<span
-								key={tag}
-								className="shrink-0 rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-sm text-zinc-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
-							>
-								{tag}
-							</span>
+							<Badge key={tag}>{tag}</Badge>
 						))}
 					</div>
 				</ScrollArea>
@@ -78,24 +86,96 @@ export default function ScrollAreaDemo() {
 
 			<Example
 				title="Both axes"
+				actions={<SizeListbox sizes={sizes} value={bothSize} onChange={setBothSize} />}
 				code={code`
 					import { ScrollArea } from 'ui/scroll-area'
 
-					<ScrollArea orientation="both" className="h-64 rounded-lg border">
-						<div className="w-[800px] p-4">...</div>
+					<ScrollArea orientation="both" size="${bothSize}" rounded>
+						...
 					</ScrollArea>
 				`}
 			>
-				<ScrollArea
-					orientation="both"
-					className="h-64 max-w-md rounded-lg border border-zinc-200 dark:border-zinc-800"
-				>
-					<div className="w-[800px] space-y-3 p-4">
+				<ScrollArea orientation="both" size={bothSize} rounded>
+					<div className="w-max space-y-3">
+						{paragraphs.map((p) => (
+							<Text key={p.id} className="whitespace-nowrap">
+								{p.text}
+							</Text>
+						))}
+					</div>
+				</ScrollArea>
+			</Example>
+
+			<Example
+				title="Hidden scrollbar"
+				code={code`
+					import { ScrollArea } from 'ui/scroll-area'
+
+					<ScrollArea size="md" scrollbar="hidden" rounded className="max-w-96">
+						...
+					</ScrollArea>
+				`}
+			>
+				<ScrollArea size="md" scrollbar="hidden" rounded className="max-w-96">
+					<div className="space-y-3">
 						{paragraphs.map((p) => (
 							<Text key={p.id}>{p.text}</Text>
 						))}
 					</div>
 				</ScrollArea>
+			</Example>
+
+			<Example
+				title="Visible scrollbar"
+				code={code`
+					import { ScrollArea } from 'ui/scroll-area'
+
+					<ScrollArea size="md" scrollbar="visible" rounded className="max-w-96">
+						...
+					</ScrollArea>
+				`}
+			>
+				<ScrollArea size="md" scrollbar="visible" rounded className="max-w-96">
+					<div className="space-y-3">
+						{paragraphs.map((p) => (
+							<Text key={p.id}>{p.text}</Text>
+						))}
+					</div>
+				</ScrollArea>
+			</Example>
+
+			<Example
+				title="Bare (nested in a container)"
+				code={code`
+					import { Card, CardBody, CardHeader, CardTitle } from 'ui/card'
+					import { ScrollArea } from 'ui/scroll-area'
+
+					<Card variant="outline" className="max-w-96">
+						<CardHeader>
+							<CardTitle>Paragraphs</CardTitle>
+						</CardHeader>
+						<CardBody>
+							<ScrollArea bare size="md">
+								...
+							</ScrollArea>
+						</CardBody>
+					</Card>
+				`}
+			>
+				<Card variant="outline" className="max-w-96">
+					<CardHeader>
+						<CardTitle>Paragraphs</CardTitle>
+					</CardHeader>
+					<CardBody>
+						<ScrollArea bare size="md">
+							<div className="space-y-3">
+								{paragraphs.map((p) => (
+									<Text key={p.id}>{p.text}</Text>
+								))}
+							</div>
+						</ScrollArea>
+					</CardBody>
+				</Card>
 			</Example>
 		</div>
 	)

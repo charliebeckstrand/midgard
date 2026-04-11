@@ -2,7 +2,7 @@
 
 import { createContext, useContext } from 'react'
 
-type ButtonSize = 'sm' | 'md' | 'lg'
+type ButtonSize = 'xs' | 'sm' | 'md' | 'lg'
 
 const ButtonSizeContext = createContext<ButtonSize | undefined>(undefined)
 

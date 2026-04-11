@@ -25,8 +25,8 @@ import { Button } from '../button'
 import { Calendar, type CalendarActive, type CalendarHandle } from '../calendar'
 import { Icon } from '../icon'
 import { DatePickerRange } from './datepicker-range'
-import { addDays, clampDate, formatDate } from './datepicker-utilities'
 import { type FooterButton, useDatePickerKeyDown } from './use-keyboard'
+import { addDays, clampDate, formatDate } from './utilities'
 
 const k = katachi.datepicker
 

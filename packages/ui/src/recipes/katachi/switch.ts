@@ -1,9 +1,9 @@
-import { form } from '../../primitives/form'
 import { kage } from '../kage'
 import { ki } from '../ki'
 import { maru } from '../maru'
 import { nuri } from '../nuri'
 import { sumi } from '../sumi'
+import { waku } from '../waku'
 
 export const switchRecipe = {
 	wrapper: [
@@ -23,7 +23,7 @@ export const switchRecipe = {
 		'dark:not-has-[:disabled]:not-has-[:checked]:hover:bg-white/15',
 		'has-[:disabled]:opacity-50 has-[:disabled]:cursor-not-allowed',
 	],
-	input: form.hidden,
+	input: waku.hidden,
 	disabled: sumi.textDisabled,
 	thumb: [
 		'absolute top-1 left-1 inline-block',

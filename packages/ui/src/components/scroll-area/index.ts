@@ -1,2 +1,7 @@
 export { ScrollArea, type ScrollAreaProps } from './component'
-export { type ScrollAreaVariants, scrollAreaVariants } from './variants'
+export {
+	type ScrollAreaViewportVariants,
+	type ScrollAreaWrapperVariants,
+	scrollAreaViewportVariants,
+	scrollAreaWrapperVariants,
+} from './variants'
