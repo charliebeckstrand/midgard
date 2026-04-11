@@ -159,6 +159,10 @@
 			"types": "./src/components/spinner/index.ts",
 			"default": "./src/components/spinner/index.ts"
 		},
+		"./stat": {
+			"types": "./src/components/stat/index.ts",
+			"default": "./src/components/stat/index.ts"
+		},
 		"./status": {
 			"types": "./src/components/status/index.ts",
 			"default": "./src/components/status/index.ts"
