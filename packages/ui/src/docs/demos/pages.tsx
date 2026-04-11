@@ -26,7 +26,7 @@ export default function PagesDemo() {
 
 	return (
 		<Example>
-			<div className="space-y-6">
+			<div className="space-y-4">
 				<div className="flex gap-2">
 					{(['login', 'register', 'forgot-password'] as const).map((p) => (
 						<Button key={p} variant={page === p ? 'solid' : 'outline'} onClick={() => setPage(p)}>

@@ -103,6 +103,9 @@ export default function ButtonDemo() {
 					))}
 				</div>
 			</Example>
+			<Example title="Spring">
+				<Button spring>Spring</Button>
+			</Example>
 			<Example title="Disabled">
 				<Button disabled>Disabled</Button>
 			</Example>

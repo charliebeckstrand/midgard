@@ -61,7 +61,7 @@ export default function NumberInputDemo() {
 			</Example>
 
 			<Example title="Sizes">
-				<div className="flex flex-col gap-4">
+				<div className="space-y-4">
 					<div className="lg:max-w-xs">
 						<Field>
 							<Label>Small</Label>

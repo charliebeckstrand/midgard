@@ -11,7 +11,7 @@ export default function FieldsetDemo() {
 		<Example>
 			<Fieldset className="lg:max-w-lg">
 				<Legend>Profile</Legend>
-				<div className="space-y-6">
+				<div className="space-y-4">
 					<Field>
 						<Label htmlFor="fieldset-name">Full name</Label>
 						<Input id="fieldset-name" placeholder="Jane Smith" />

@@ -21,7 +21,7 @@ export default function SwitchDemo() {
 				title="Default"
 				actions={<SizeListbox sizes={sizes} value={size} onChange={setSize} />}
 			>
-				<div className="space-y-6">
+				<div className="space-y-4">
 					<SwitchField size={size}>
 						<Label htmlFor="switch-notifications">Notifications</Label>
 						<Description>Receive email notifications for new activity.</Description>
@@ -35,7 +35,7 @@ export default function SwitchDemo() {
 				</div>
 			</Example>
 			<Example title="Sizes">
-				<div className="space-y-6">
+				<div className="space-y-4">
 					<SwitchField size="sm">
 						<Label htmlFor="switch-sm">Small</Label>
 						<Switch id="switch-sm" size="sm" />
@@ -51,7 +51,7 @@ export default function SwitchDemo() {
 				</div>
 			</Example>
 			<Example title="Colors">
-				<div className="space-y-6">
+				<div className="space-y-4">
 					<SwitchField>
 						<Label htmlFor="switch-purple">Blue</Label>
 						<Switch id="switch-purple" color="blue" defaultChecked />

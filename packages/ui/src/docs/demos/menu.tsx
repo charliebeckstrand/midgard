@@ -17,7 +17,7 @@ export default function MenuDemo() {
 	return (
 		<div className="space-y-8">
 			<Example title="Preview">
-				<div className="flex flex-col gap-4">
+				<div className="space-y-4">
 					<Menu defaultOpen>
 						<MenuContent>
 							<MenuSection>
@@ -39,7 +39,6 @@ export default function MenuDemo() {
 							</MenuSection>
 						</MenuContent>
 					</Menu>
-
 					<Alert type="warning" closable>
 						<AlertDescription>
 							This is for demonstration purposes. <code className="font-bold">MenuContent</code>{' '}

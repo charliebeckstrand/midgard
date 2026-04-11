@@ -32,7 +32,7 @@ export default function DialogDemo() {
 				<Dialog open={open} onClose={() => setOpen(false)}>
 					<DialogTitle>Create project</DialogTitle>
 					<DialogDescription>Enter the details for your new project.</DialogDescription>
-					<DialogBody className="flex flex-col gap-4">
+					<DialogBody className="space-y-4">
 						<Field>
 							<Label>Project name</Label>
 							<Input placeholder="My Project" />
