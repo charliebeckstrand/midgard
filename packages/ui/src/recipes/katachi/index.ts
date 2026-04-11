@@ -35,6 +35,7 @@ import { fieldset } from './fieldset'
 import { grid } from './grid'
 import { heading } from './heading'
 import { input } from './input'
+import { kbd } from './kbd'
 import { listbox } from './listbox'
 import { menu } from './menu'
 import { navbar } from './navbar'
@@ -86,6 +87,7 @@ export const katachi = {
 	grid,
 	heading,
 	input,
+	kbd,
 	listbox,
 	menu,
 	navbar,

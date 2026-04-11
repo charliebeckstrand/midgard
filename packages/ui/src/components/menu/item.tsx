@@ -3,6 +3,7 @@
 import type React from 'react'
 import { cn, Link } from '../../core'
 import { katachi } from '../../recipes'
+import { Kbd, type KbdProps } from '../kbd'
 import { useMenuContext } from './menu'
 
 const k = katachi.menu
@@ -95,8 +96,8 @@ export function MenuDescription({ className, ...props }: MenuDescriptionProps) {
 	return <span data-slot="menu-description" className={cn(k.description, className)} {...props} />
 }
 
-export type MenuShortcutProps = React.ComponentPropsWithoutRef<'kbd'>
+export type MenuShortcutProps = KbdProps
 
 export function MenuShortcut({ className, ...props }: MenuShortcutProps) {
-	return <kbd data-slot="menu-shortcut" className={cn(k.shortcut, className)} {...props} />
+	return <Kbd data-slot="menu-shortcut" className={cn(k.shortcut, className)} {...props} />
 }

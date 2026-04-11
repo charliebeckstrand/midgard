@@ -16,7 +16,3 @@ export {
 	CommandPaletteGroup,
 	type CommandPaletteGroupProps,
 } from './slots'
-export {
-	type CommandPalettePanelVariants,
-	commandPalettePanelVariants,
-} from './variants'

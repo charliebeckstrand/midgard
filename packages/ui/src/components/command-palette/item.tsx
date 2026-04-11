@@ -3,6 +3,7 @@
 import type React from 'react'
 import { cn, Link } from '../../core'
 import { katachi } from '../../recipes'
+import { Kbd, type KbdProps } from '../kbd'
 import { useCommandPaletteContext } from './context'
 
 const k = katachi.commandPalette
@@ -106,10 +107,10 @@ export function CommandPaletteDescription({ className, ...props }: CommandPalett
 	)
 }
 
-export type CommandPaletteShortcutProps = React.ComponentPropsWithoutRef<'kbd'>
+export type CommandPaletteShortcutProps = KbdProps
 
 export function CommandPaletteShortcut({ className, ...props }: CommandPaletteShortcutProps) {
 	return (
-		<kbd data-slot="command-palette-shortcut" className={cn(k.shortcut, className)} {...props} />
+		<Kbd data-slot="command-palette-shortcut" className={cn(k.shortcut, className)} {...props} />
 	)
 }

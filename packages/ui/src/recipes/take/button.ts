@@ -14,6 +14,20 @@ export const buttonWithIcon = {
 	},
 }
 
+/** Extra padding opposite a Kbd child — half the icon offset, since Kbd carries less visual weight */
+export const buttonWithKbd = {
+	start: {
+		sm: 'pr-[calc(--spacing(1.5)-1px)]',
+		md: 'pr-[calc(--spacing(2)-1px)]',
+		lg: 'pr-[calc(--spacing(3)-1px)]',
+	},
+	end: {
+		sm: 'pl-[calc(--spacing(1.5)-1px)]',
+		md: 'pl-[calc(--spacing(2)-1px)]',
+		lg: 'pl-[calc(--spacing(3)-1px)]',
+	},
+}
+
 /** Gap override when a spinner child is present (extra breathing room beyond the icon gap) */
 export const buttonWithSpinner = {
 	sm: 'has-[[data-slot=spinner]]:gap-1.5',

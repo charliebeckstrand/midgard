@@ -1,6 +1,7 @@
 import type React from 'react'
 import { cn } from '../../core'
 import { katachi } from '../../recipes'
+import { Alert, AlertDescription, type AlertProps } from '../alert'
 
 const k = katachi.commandPalette
 
@@ -26,8 +27,14 @@ export function CommandPaletteGroup({
 	)
 }
 
-export type CommandPaletteEmptyProps = React.ComponentPropsWithoutRef<'div'>
+export type CommandPaletteEmptyProps = Omit<AlertProps, 'variant' | 'color' | 'children'> & {
+	children?: React.ReactNode
+}
 
-export function CommandPaletteEmpty({ className, ...props }: CommandPaletteEmptyProps) {
-	return <div data-slot="command-palette-empty" className={cn(k.empty, className)} {...props} />
+export function CommandPaletteEmpty({ children, ...props }: CommandPaletteEmptyProps) {
+	return (
+		<Alert variant="soft" color="amber" className="mt-2" {...props}>
+			<AlertDescription>{children}</AlertDescription>
+		</Alert>
+	)
 }

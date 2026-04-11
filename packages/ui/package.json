@@ -111,6 +111,10 @@
 			"types": "./src/components/input/index.ts",
 			"default": "./src/components/input/index.ts"
 		},
+		"./kbd": {
+			"types": "./src/components/kbd/index.ts",
+			"default": "./src/components/kbd/index.ts"
+		},
 		"./listbox": {
 			"types": "./src/components/listbox/index.ts",
 			"default": "./src/components/listbox/index.ts"

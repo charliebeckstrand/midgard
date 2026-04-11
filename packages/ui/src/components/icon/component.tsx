@@ -30,6 +30,7 @@ export function Icon({ icon, size, className }: IconProps) {
 
 	return cloneElement(icon as ReactElement<Record<string, unknown>>, {
 		'aria-hidden': 'true',
+		'data-slot': 'icon',
 		className: cn(!isNumeric && sizeMap[resolvedSize], className),
 		...(isNumeric && { style: { width: resolvedSize, height: resolvedSize } }),
 	})

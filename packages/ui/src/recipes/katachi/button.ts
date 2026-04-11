@@ -38,6 +38,7 @@ export const button = {
 	},
 	size: take.button,
 	withIcon: take.buttonWithIcon,
+	withKbd: take.buttonWithKbd,
 	iconOnly: take.buttonIcon,
 	iconOnlyBase: 'p-0 gap-0',
 	defaults: { variant: 'solid' as const, color: 'zinc' as const, size: 'md' as const },

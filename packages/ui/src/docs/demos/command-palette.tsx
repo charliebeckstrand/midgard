@@ -23,6 +23,7 @@ import {
 	CommandPaletteShortcut,
 } from '../../components/command-palette'
 import { Icon } from '../../components/icon'
+import { Kbd } from '../../components/kbd'
 import { code } from '../code'
 import { Example } from '../example'
 
@@ -41,29 +42,24 @@ const commands: Command[] = [
 	{
 		id: 'new-file',
 		label: 'New file',
-		shortcut: '⌘N',
 		icon: <FilePlus />,
 		group: 'Files',
 	},
 	{
 		id: 'new-folder',
 		label: 'New folder',
-		shortcut: '⇧⌘N',
 		icon: <FolderPlus />,
 		group: 'Files',
 	},
 	{
 		id: 'open-file',
-		label: 'Open file…',
-		shortcut: '⌘O',
+		label: 'Open file',
 		icon: <File />,
 		group: 'Files',
 	},
 	{
 		id: 'duplicate',
 		label: 'Duplicate',
-		description: 'Create a copy of the current item',
-		shortcut: '⌘D',
 		icon: <Copy />,
 		group: 'Edit',
 	},
@@ -76,28 +72,24 @@ const commands: Command[] = [
 	{
 		id: 'delete',
 		label: 'Delete',
-		shortcut: '⌫',
 		icon: <Trash2 />,
 		group: 'Edit',
 	},
 	{
 		id: 'profile',
 		label: 'Profile',
-		description: 'Manage your account details',
 		icon: <User />,
 		group: 'Application',
 	},
 	{
 		id: 'appearance',
 		label: 'Appearance',
-		description: 'Change theme and accent color',
 		icon: <Palette />,
 		group: 'Application',
 	},
 	{
 		id: 'settings',
 		label: 'Settings',
-		shortcut: '⌘,',
 		icon: <Settings />,
 		group: 'Application',
 	},
@@ -120,13 +112,13 @@ function filterCommands(query: string) {
 
 export default function CommandPaletteDemo() {
 	const [open, setOpen] = useState(false)
-	const [lastRan, setLastRan] = useState<string | null>(null)
 
 	// Open on ⌘K / Ctrl+K
 	useEffect(() => {
 		function onKeyDown(e: KeyboardEvent) {
 			if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
 				e.preventDefault()
+
 				setOpen((prev) => !prev)
 			}
 		}
@@ -146,7 +138,6 @@ export default function CommandPaletteDemo() {
 						CommandPaletteGroup,
 						CommandPaletteItem,
 						CommandPaletteLabel,
-						CommandPaletteShortcut,
 					} from 'ui/command-palette'
 					import { Button } from 'ui/button'
 					import { Icon } from 'ui/icon'
@@ -155,34 +146,22 @@ export default function CommandPaletteDemo() {
 					const [open, setOpen] = useState(false)
 
 					<Button onClick={() => setOpen(true)}>Open palette</Button>
+
 					<CommandPalette open={open} onClose={() => setOpen(false)}>
-						{(query) => (
-							<CommandPaletteGroup heading="Files">
-								<CommandPaletteItem onAction={() => console.log('new file')}>
-									<Icon icon={<FilePlus />} />
-									<CommandPaletteLabel>New file</CommandPaletteLabel>
-									<CommandPaletteShortcut>⌘N</CommandPaletteShortcut>
-								</CommandPaletteItem>
-							</CommandPaletteGroup>
-						)}
+						<CommandPaletteGroup heading="Files">
+							<CommandPaletteItem onAction={() => console.log('new file')}>
+								<Icon icon={<FilePlus />} />
+								<CommandPaletteLabel>New file</CommandPaletteLabel>
+							</CommandPaletteItem>
+						</CommandPaletteGroup>
 					</CommandPalette>
 				`}
 			>
-				<div className="flex flex-col items-start gap-3">
-					<Button onClick={() => setOpen(true)}>Open command palette</Button>
-					<p className="text-sm text-zinc-500 dark:text-zinc-400">
-						Press{' '}
-						<kbd className="rounded bg-zinc-100 px-1.5 py-0.5 font-mono text-xs dark:bg-zinc-800">
-							⌘K
-						</kbd>{' '}
-						to toggle.{' '}
-						{lastRan && (
-							<span>
-								Last action: <span className="font-mono">{lastRan}</span>
-							</span>
-						)}
-					</p>
-				</div>
+				<Button color="blue" variant="soft" onClick={() => setOpen(true)}>
+					Open command palette
+					<Kbd cmd>K</Kbd>
+				</Button>
+
 				<CommandPalette open={open} onClose={() => setOpen(false)}>
 					{(query) => {
 						const results = filterCommands(query)
@@ -199,7 +178,7 @@ export default function CommandPaletteDemo() {
 							return (
 								<CommandPaletteGroup key={group} heading={group}>
 									{items.map((c) => (
-										<CommandPaletteItem key={c.id} onAction={() => setLastRan(c.label)}>
+										<CommandPaletteItem key={c.id}>
 											<Icon icon={c.icon} size="sm" />
 											<CommandPaletteLabel>{c.label}</CommandPaletteLabel>
 											{c.description && (

@@ -35,6 +35,16 @@ export const withIconEndSize = cva('', {
 	defaultVariants: { size: 'md' },
 })
 
+export const withKbdStartSize = cva('', {
+	variants: { size: k.withKbd.start },
+	defaultVariants: { size: 'md' },
+})
+
+export const withKbdEndSize = cva('', {
+	variants: { size: k.withKbd.end },
+	defaultVariants: { size: 'md' },
+})
+
 export const iconOnlySize = cva(k.iconOnlyBase, {
 	variants: { size: k.iconOnly },
 	defaultVariants: { size: 'md' },

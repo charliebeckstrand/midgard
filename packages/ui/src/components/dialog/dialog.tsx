@@ -11,14 +11,21 @@ import { type DialogPanelVariants, dialogPanelVariants } from './variants'
 export type DialogProps = DialogPanelVariants & {
 	open: boolean
 	onClose: () => void
+	align?: 'center' | 'start'
 	outsideClick?: boolean
 	className?: string
 	children: React.ReactNode
 }
 
+const alignClasses = {
+	center: 'sm:items-center',
+	start: 'sm:items-start',
+} as const
+
 export function Dialog({
 	open,
 	onClose,
+	align = 'center',
 	outsideClick = true,
 	size,
 	className,
@@ -28,7 +35,12 @@ export function Dialog({
 
 	return (
 		<Overlay open={open} onClose={onClose} outsideClick={outsideClick}>
-			<div className="pointer-events-none fixed inset-0 flex min-h-full items-end sm:items-center sm:justify-center sm:p-4">
+			<div
+				className={cn(
+					'pointer-events-none fixed inset-0 flex min-h-full items-end sm:justify-center sm:p-4',
+					alignClasses[align],
+				)}
+			>
 				<motion.div
 					{...(isDesktop ? ugoki.popover : ugoki.panel.bottom)}
 					role="dialog"
