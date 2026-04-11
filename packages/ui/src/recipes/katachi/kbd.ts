@@ -3,7 +3,7 @@ import { narabi } from '../narabi'
 
 export const kbd = {
 	base: [
-		narabi.center.inline,
+		narabi.position.centerInline,
 		'gap-0.25',
 		'font-mono text-xs leading-none',
 		'px-1.5 py-0.5',

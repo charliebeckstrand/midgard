@@ -45,7 +45,7 @@ export const withKbdEndSize = cva('', {
 	defaultVariants: { size: 'md' },
 })
 
-export const iconOnlySize = cva(k.iconOnlyBase, {
+export const iconOnlySize = cva('p-0 gap-0', {
 	variants: { size: k.iconOnly },
 	defaultVariants: { size: 'md' },
 })

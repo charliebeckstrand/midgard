@@ -17,15 +17,16 @@ const colorVariants = ['solid', 'soft', 'outline', 'plain', 'ghost'] as const
 
 const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 
-const sizes = ['xs', 'sm', 'md', 'lg'] as const
+export const sizes = ['xs', 'sm', 'md', 'lg'] as const
 
 type Size = (typeof sizes)[number]
 
 export default function ButtonDemo() {
 	const [colorVariant, setColorVariant] = useState<(typeof colorVariants)[number]>('solid')
+	const [rippleColor, setRippleColor] = useState<(typeof colors)[number]>('zinc')
+
 	const [iconSize, setIconSize] = useState<Size>('md')
 	const [iconOnlySize, setIconOnlySize] = useState<Size>('md')
-	const [rippleColor, setRippleColor] = useState<(typeof colors)[number]>('zinc')
 
 	return (
 		<div className="space-y-8">

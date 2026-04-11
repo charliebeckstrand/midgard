@@ -29,7 +29,7 @@ export const timeline = {
 		},
 	},
 	marker: {
-		base: [narabi.center.flex, 'z-10 size-3.5 rounded-full'],
+		base: [narabi.position.center, 'z-10 size-3.5 rounded-full'],
 		solid: 'bg-zinc-300 dark:bg-zinc-600',
 		outline: 'border-2 border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900',
 		active: {

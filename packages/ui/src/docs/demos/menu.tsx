@@ -40,7 +40,7 @@ export default function MenuDemo() {
 						</MenuContent>
 					</Menu>
 
-					<Alert type="warning">
+					<Alert type="warning" closable>
 						<AlertDescription>
 							This is for demonstration purposes. <code className="font-bold">MenuContent</code>{' '}
 							must be wrapped in a <code className="font-bold">Menu</code> component.

@@ -8,7 +8,7 @@
  */
 
 import { avatar } from './avatar'
-import { button, buttonIcon, buttonWithIcon, buttonWithKbd } from './button'
+import { button, buttonWithIcon, buttonWithIconSize, buttonWithKbd } from './button'
 import { combobox } from './combobox'
 import { compact } from './compact'
 import { control } from './control'
@@ -32,7 +32,7 @@ export const take = {
 	button,
 	buttonWithIcon,
 	buttonWithKbd,
-	buttonIcon,
+	buttonWithIconSize,
 
 	// Badge and chip share the same compact density scale
 	badge: compact,

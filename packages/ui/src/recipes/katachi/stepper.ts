@@ -23,7 +23,7 @@ export const stepper = {
 	},
 	content: 'flex flex-1 flex-col gap-1',
 	indicator: [
-		narabi.center.flex,
+		narabi.position.center,
 		'relative size-7 shrink-0',
 		'text-sm',
 		maru.roundedFull,

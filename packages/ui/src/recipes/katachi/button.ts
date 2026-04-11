@@ -9,8 +9,9 @@ import { yasumi } from '../yasumi'
 
 export const button = {
 	base: [
-		narabi.center.inline,
-		'relative isolate font-semibold',
+		narabi.position.centerInline,
+		narabi.position.isolate,
+		'font-semibold',
 		'border',
 		maru.rounded,
 		ki.ring,
@@ -42,7 +43,6 @@ export const button = {
 	size: take.button,
 	withIcon: take.buttonWithIcon,
 	withKbd: take.buttonWithKbd,
-	iconOnly: take.buttonIcon,
-	iconOnlyBase: 'p-0 gap-0',
+	iconOnly: take.buttonWithIconSize,
 	defaults: { variant: 'solid' as const, color: 'zinc' as const, size: 'md' as const },
 }

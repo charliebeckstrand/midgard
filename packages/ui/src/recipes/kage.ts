@@ -11,7 +11,7 @@
 const motoi = {
 	border: 'border',
 	ring: 'ring-1',
-	separator: 'border-t',
+	divider: 'border-t',
 	shadow: 'shadow-sm',
 }
 
@@ -37,9 +37,6 @@ const yoru = {
 	ringSubtle: 'dark:ring-white/10',
 }
 
-// ── Composed (internal) ─────────────────────────────────
-const separator = [motoi.separator, hiru.borderSubtle, yoru.borderSubtle]
-
 // ── Export ───────────────────────────────────────────────
 export const kage = {
 	border: [motoi.border, hiru.border, yoru.border],
@@ -49,9 +46,8 @@ export const kage = {
 	borderSubtleColor: [hiru.borderSubtle, yoru.borderSubtle],
 	borderTransparent: [hiru.borderTransparent, yoru.borderTransparent],
 	ring: [motoi.ring, hiru.ring, yoru.ring],
-	ringInset: [motoi.ring, 'ring-inset', hiru.ringSubtle, yoru.ringStrong],
+	ringInset: [motoi.ring, hiru.ringSubtle, yoru.ringStrong, 'ring-inset'],
 	ringSubtle: [motoi.ring, hiru.ringSubtle, yoru.ringSubtle],
-	separator,
-	divider: [...separator, 'my-1'],
+	divider: [motoi.divider, hiru.borderSubtle, yoru.borderSubtle, 'my-1.5'],
 	shadow: motoi.shadow,
 } as const

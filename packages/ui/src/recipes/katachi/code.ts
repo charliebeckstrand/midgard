@@ -20,7 +20,7 @@ export const code = {
 		fallback: ['overflow-x-auto p-4 pr-14 text-sm/6', 'text-zinc-400'],
 		copyWrapper: ['absolute top-0 right-0 z-10 p-3', blockBg],
 		copy: [
-			narabi.center.flex,
+			narabi.position.center,
 			'size-8',
 			maru.rounded,
 			sumi.textMuted,

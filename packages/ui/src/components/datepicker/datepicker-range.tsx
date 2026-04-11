@@ -242,7 +242,7 @@ export function DatePickerRange({
 									onPickerOpenChange={handlePickerOpenChange}
 								/>
 								{showClear && (
-									<div data-slot="calendar-footer" className={katachi.calendar.footer}>
+									<div data-slot="calendar-footer" className={cn(katachi.calendar.footer)}>
 										<Button
 											variant="soft"
 											color="amber"

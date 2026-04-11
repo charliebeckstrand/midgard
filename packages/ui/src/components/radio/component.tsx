@@ -29,7 +29,7 @@ export function Radio({ className, color, ...props }: RadioProps) {
 			<span
 				data-slot="radio-indicator"
 				aria-hidden="true"
-				className="pointer-events-none absolute size-1.5 rounded-full bg-(--radio-checked-indicator) opacity-0"
+				className="absolute size-1.5 rounded-full bg-(--radio-checked-indicator) opacity-0 pointer-events-none"
 			/>
 		</span>
 	)

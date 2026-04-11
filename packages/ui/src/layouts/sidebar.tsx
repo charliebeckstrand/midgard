@@ -8,8 +8,7 @@ import { Drawer } from '../components/drawer/drawer'
 import { Icon } from '../components/icon'
 import { cn } from '../core'
 import { OffcanvasContext } from '../core/offcanvas-context'
-import { omote } from '../recipes'
-
+import { narabi, omote } from '../recipes'
 export type SidebarLayoutProps = React.PropsWithChildren<{
 	navbar: React.ReactNode
 	sidebar: React.ReactNode
@@ -47,7 +46,8 @@ export function SidebarLayout({
 	return (
 		<div
 			className={cn(
-				'relative isolate flex h-svh w-full max-lg:flex-col overflow-hidden',
+				narabi.position.isolate,
+				'flex h-svh w-full max-lg:flex-col overflow-hidden',
 				'bg-white lg:bg-zinc-100',
 				'dark:bg-zinc-950',
 			)}

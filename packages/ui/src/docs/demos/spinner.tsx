@@ -1,16 +1,23 @@
+import { useState } from 'react'
 import { Button } from '../../components/button'
 import { Spinner } from '../../components/spinner'
 import { Example } from '../components/example'
+import { SizeListbox } from '../components/size-listbox'
+import { sizes as buttonSizes } from '../demos/button'
 
 export const meta = { category: 'Feedback' }
 
 const sizes = ['xs', 'sm', 'md', 'lg', 'xl'] as const
+
+type ButtonSize = (typeof buttonSizes)[number]
 
 const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
 export default function SpinnerDemo() {
+	const [buttonSize, setButtonSize] = useState<ButtonSize>('md')
+
 	return (
 		<div className="space-y-8">
 			<Example title="Default">
@@ -36,13 +43,16 @@ export default function SpinnerDemo() {
 					))}
 				</div>
 			</Example>
-			<Example title="Inside a button">
+			<Example
+				title="Inside a button"
+				actions={<SizeListbox sizes={buttonSizes} value={buttonSize} onChange={setButtonSize} />}
+			>
 				<div className="flex items-center gap-3">
-					<Button disabled>
+					<Button disabled size={buttonSize}>
 						<Spinner />
 						Loading
 					</Button>
-					<Button variant="soft" disabled>
+					<Button variant="soft" disabled size={buttonSize}>
 						<Spinner />
 						Saving
 					</Button>

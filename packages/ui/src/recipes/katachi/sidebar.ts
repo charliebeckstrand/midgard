@@ -18,5 +18,5 @@ export const sidebar = {
 	header: 'flex items-center gap-2',
 	body: 'flex flex-1 flex-col gap-4 overflow-y-auto',
 	divider: kage.divider,
-	footer: 'mt-auto sticky bottom-0 flex flex-col gap-0.5',
+	footer: 'sticky bottom-0 flex flex-col gap-0.5 mt-auto',
 }
