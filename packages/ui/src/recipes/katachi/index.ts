@@ -23,6 +23,7 @@ import { calendar } from './calendar'
 import { card } from './card'
 import { checkbox } from './checkbox'
 import { chip } from './chip'
+import { code } from './code'
 import { combobox } from './combobox'
 import { commandPalette } from './command-palette'
 import { datepicker } from './datepicker'
@@ -76,6 +77,7 @@ export const katachi = {
 	card,
 	checkbox,
 	chip,
+	code,
 	combobox,
 	commandPalette,
 	datepicker,
