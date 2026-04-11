@@ -3,7 +3,7 @@
 import { Check } from 'lucide-react'
 import { Children, isValidElement, useRef } from 'react'
 import { cn } from '../../core'
-import { useIsDesktop } from '../../hooks'
+import { useIsDesktop, useRovingFocus } from '../../hooks'
 import { ActiveIndicator, ActiveIndicatorScope } from '../../primitives'
 import { katachi } from '../../recipes'
 import {
@@ -14,7 +14,6 @@ import {
 	useStepper,
 	useStepperStep,
 } from './context'
-import { useKeyboard } from './use-keyboard'
 import {
 	type StepperVariants,
 	stepperSeparatorVariants,
@@ -60,7 +59,10 @@ export function Stepper({
 
 	const rowRef = useRef<HTMLDivElement>(null)
 
-	const handleKeyDown = useKeyboard(rowRef, resolvedOrientation)
+	const handleKeyDown = useRovingFocus(rowRef, {
+		itemSelector: 'button[data-slot="stepper-step"]:not(:disabled)',
+		orientation: resolvedOrientation,
+	})
 
 	const row = (
 		<div

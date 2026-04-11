@@ -12,10 +12,10 @@ import {
 } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
+import { useRovingFocus } from '../../hooks/use-keyboard'
 import { katachi } from '../../recipes'
 import { Button, type ButtonVariants } from '../button'
 import { CalendarPicker } from './calendar-picker'
-import { useKeyboard } from './use-keyboard'
 import { getCalendarDays, isBeforeDay, isSameDay, WEEKDAYS } from './utilities'
 
 const k = katachi.calendar
@@ -145,8 +145,14 @@ export const Calendar = forwardRef<CalendarHandle, CalendarProps>(function Calen
 	const headerRef = useRef<HTMLDivElement>(null)
 	const gridRef = useRef<HTMLDivElement>(null)
 
-	const handleHeaderKeyDown = useKeyboard(headerRef)
-	const handleGridKeyDown = useKeyboard(gridRef, 7)
+	const handleHeaderKeyDown = useRovingFocus(headerRef, {
+		itemSelector: 'button',
+		orientation: 'horizontal',
+	})
+	const handleGridKeyDown = useRovingFocus(gridRef, {
+		itemSelector: 'button',
+		cols: 7,
+	})
 
 	const handlePickerNavigate = useCallback((y: number, m: number) => {
 		setViewDate(new Date(y, m, 1))

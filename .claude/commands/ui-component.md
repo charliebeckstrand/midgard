@@ -556,7 +556,8 @@ alert, avatar, badge, breadcrumb, button, calendar, card, checkbox, chip, combob
 - **useIsDesktop** — responsive breakpoint detection
 - **useHasHover** — hover capability detection
 - **useArrowAction** — arrow key navigation
-- **useMenuKeyboard** — keyboard navigation for menus
+- **useRovingFocus** — roving-focus keyboard navigation for 1D/2D lists (menus, steppers, calendar grids)
+- **useRovingActive** — virtual-focus keyboard navigation (command palettes, comboboxes where focus must stay on an input)
 
 ## Recipe tier system
 
