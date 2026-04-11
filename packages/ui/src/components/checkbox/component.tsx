@@ -48,6 +48,6 @@ export function CheckboxGroup(props: CheckboxGroupProps) {
 
 export type CheckboxFieldProps = React.ComponentPropsWithoutRef<'div'> & { className?: string }
 
-export function CheckboxField(props: CheckboxFieldProps) {
-	return <ToggleField {...props} />
+export function CheckboxField({ className, ...props }: CheckboxFieldProps) {
+	return <ToggleField className={cn(k.disabled, className)} {...props} />
 }

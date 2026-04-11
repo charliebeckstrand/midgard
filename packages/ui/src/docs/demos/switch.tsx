@@ -24,7 +24,6 @@ export default function SwitchDemo() {
 				</SwitchField>
 				<SwitchField>
 					<Label>Disabled</Label>
-					<Description>This switch is disabled.</Description>
 					<Switch disabled />
 				</SwitchField>
 			`}

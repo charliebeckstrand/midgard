@@ -43,6 +43,6 @@ export function RadioGroup(props: RadioGroupProps) {
 
 export type RadioFieldProps = React.ComponentPropsWithoutRef<'div'> & { className?: string }
 
-export function RadioField(props: RadioFieldProps) {
-	return <ToggleField {...props} />
+export function RadioField({ className, ...props }: RadioFieldProps) {
+	return <ToggleField className={cn(k.disabled, className)} {...props} />
 }

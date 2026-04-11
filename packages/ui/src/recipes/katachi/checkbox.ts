@@ -1,6 +1,7 @@
 import { form } from '../../primitives/form'
 import { ki } from '../ki'
 import { nuri } from '../nuri'
+import { sumi } from '../sumi'
 
 export const checkbox = {
 	wrapper: [
@@ -17,4 +18,5 @@ export const checkbox = {
 		'not-has-[:disabled]:has-checked:hover:opacity-90',
 	],
 	input: form.check,
+	disabled: sumi.textDisabled,
 }

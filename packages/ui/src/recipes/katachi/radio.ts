@@ -2,6 +2,7 @@ import { form } from '../../primitives/form'
 import { ki } from '../ki'
 import { maru } from '../maru'
 import { nuri } from '../nuri'
+import { sumi } from '../sumi'
 
 export const radio = {
 	wrapper: [
@@ -18,4 +19,5 @@ export const radio = {
 		'not-has-[:disabled]:has-checked:hover:opacity-90',
 	],
 	input: form.check,
+	disabled: sumi.textDisabled,
 }

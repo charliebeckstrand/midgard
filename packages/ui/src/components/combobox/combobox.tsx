@@ -232,6 +232,7 @@ export function Combobox<T>({
 						onBlur={(e) => {
 							// Check if focus moved to the floating panel
 							const floating = refs.floating.current
+
 							if (floating?.contains(e.relatedTarget as Node)) return
 
 							close()
@@ -244,6 +245,7 @@ export function Combobox<T>({
 							}
 							if (e.key === 'Enter') {
 								const container = optionsRef.current
+
 								const active = container?.querySelector<HTMLElement>('[data-active]')
 
 								if (active) {

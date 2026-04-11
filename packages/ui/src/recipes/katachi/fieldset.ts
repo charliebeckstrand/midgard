@@ -7,6 +7,6 @@ export const fieldset = {
 	legend: [sumi.text, 'text-base/6 font-semibold', yasumi.disabled],
 	field: [...narabi.field, yasumi.disabled],
 	label: [sumi.text, 'text-base/6 select-none', yasumi.disabled],
-	description: [sumi.textMuted, 'text-base/6', yasumi.disabled],
-	error: [sumi.textError, 'text-base/6', yasumi.disabled],
+	description: ['text-base/6', sumi.textMuted, yasumi.disabled],
+	error: ['text-base/6', sumi.textError, yasumi.disabled],
 }

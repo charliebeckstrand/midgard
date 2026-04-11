@@ -36,5 +36,11 @@ export type SwitchFieldProps = {
 } & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
 
 export function SwitchField({ className, ...props }: SwitchFieldProps) {
-	return <div data-slot="field" className={cn(narabi.toggle, k.field, className)} {...props} />
+	return (
+		<div
+			data-slot="field"
+			className={cn(narabi.toggle, k.field, k.disabled, className)}
+			{...props}
+		/>
+	)
 }

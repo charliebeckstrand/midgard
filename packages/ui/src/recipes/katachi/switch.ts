@@ -3,6 +3,7 @@ import { kage } from '../kage'
 import { ki } from '../ki'
 import { maru } from '../maru'
 import { nuri } from '../nuri'
+import { sumi } from '../sumi'
 
 export const switchRecipe = {
 	wrapper: [
@@ -23,6 +24,7 @@ export const switchRecipe = {
 		'has-[:disabled]:opacity-50 has-[:disabled]:cursor-not-allowed',
 	],
 	input: form.hidden,
+	disabled: sumi.textDisabled,
 	thumb: [
 		'absolute top-1 left-1 inline-block',
 		'transition-[left] duration-0',
@@ -32,5 +34,5 @@ export const switchRecipe = {
 		nuri.switchThumb,
 		kage.shadow,
 	],
-	field: 'grid-cols-[2.5rem_1fr] items-center *:data-[slot=control]:mt-0',
+	field: 'grid-cols-[2.5rem_1fr] *:data-[slot=control]:row-span-2 *:data-[slot=control]:mt-0',
 }
