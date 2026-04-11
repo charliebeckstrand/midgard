@@ -1,5 +1,6 @@
 import { kage } from '../kage'
 import { maru } from '../maru'
+import { nuri } from '../nuri'
 import { sumi } from '../sumi'
 import { yasumi } from '../yasumi'
 
@@ -47,9 +48,11 @@ export const stepper = {
 			vertical: 'hidden',
 		},
 	},
-	activeIndicator: [
-		'inset-auto top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30',
+	activeIndicator: ['z-30', ...nuri.buttonSoft.blue],
+	activeIndicatorDot: [
+		'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2',
 		'size-3 bg-blue-600 dark:bg-blue-600',
+		maru.roundedFull,
 	],
 	activeIndicatorBorder: [
 		'z-30',

@@ -1,7 +1,7 @@
 'use client'
 
 import { Check } from 'lucide-react'
-import { Children, isValidElement } from 'react'
+import { Children, isValidElement, useRef } from 'react'
 import { cn } from '../../core'
 import { useIsDesktop } from '../../hooks'
 import { ActiveIndicator, ActiveIndicatorScope } from '../../primitives'
@@ -14,6 +14,7 @@ import {
 	useStepper,
 	useStepperStep,
 } from './context'
+import { useKeyboard } from './use-keyboard'
 import {
 	type StepperVariants,
 	stepperSeparatorVariants,
@@ -57,10 +58,18 @@ export function Stepper({
 
 	const { rowChildren, panelsChildren } = partitionStepperChildren(children)
 
+	const rowRef = useRef<HTMLDivElement>(null)
+
+	const handleKeyDown = useKeyboard(rowRef, resolvedOrientation)
+
 	const row = (
 		<div
+			ref={rowRef}
 			data-slot="stepper"
 			data-orientation={resolvedOrientation}
+			role="toolbar"
+			aria-orientation={resolvedOrientation}
+			onKeyDown={onValueChange !== undefined ? handleKeyDown : undefined}
 			className={cn(stepperVariants({ orientation: resolvedOrientation }), className)}
 		>
 			{rowChildren}
@@ -256,7 +265,9 @@ export function StepperIndicator({ className, children }: StepperIndicatorProps)
 				<ActiveIndicator
 					className={cn(hasChildren ? k.activeIndicatorBorder : k.activeIndicator)}
 					style={{ borderRadius: '9999px' }}
-				/>
+				>
+					{!hasChildren && <span aria-hidden="true" className={cn(k.activeIndicatorDot)} />}
+				</ActiveIndicator>
 			)}
 		</span>
 	)
