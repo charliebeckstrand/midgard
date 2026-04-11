@@ -7,7 +7,6 @@ import {
 	AccordionItem,
 	AccordionPanel,
 } from '../../components/accordion'
-import { code } from '../code'
 import { Example } from '../example'
 import { VariantListbox } from '../variant-listbox'
 
@@ -41,21 +40,6 @@ export default function AccordionDemo() {
 			<Example
 				title="Default"
 				actions={<VariantListbox variants={variants} value={variant} onChange={setVariant} />}
-				code={code`
-					import {
-						Accordion,
-						AccordionButton,
-						AccordionItem,
-						AccordionPanel,
-					} from 'ui/accordion'
-
-					<Accordion variant="${variant}" defaultValue="shipping">
-						<AccordionItem value="shipping">
-							<AccordionButton>Shipping & delivery</AccordionButton>
-							<AccordionPanel>Orders ship within one business day…</AccordionPanel>
-						</AccordionItem>
-					</Accordion>
-				`}
 			>
 				<div className="lg:max-w-md">
 					<Accordion variant={variant} defaultValue="shipping">
@@ -68,16 +52,7 @@ export default function AccordionDemo() {
 					</Accordion>
 				</div>
 			</Example>
-			<Example
-				title="Multiple"
-				code={code`
-					import { Accordion, AccordionItem, AccordionButton, AccordionPanel } from 'ui/accordion'
-
-					<Accordion type="multiple" defaultValue={['shipping', 'returns']}>
-						{/* items */}
-					</Accordion>
-				`}
-			>
+			<Example title="Multiple">
 				<div className="lg:max-w-md">
 					<Accordion type="multiple" variant="bordered" defaultValue={['shipping', 'returns']}>
 						{items.map((item) => (
@@ -89,15 +64,7 @@ export default function AccordionDemo() {
 					</Accordion>
 				</div>
 			</Example>
-			<Example
-				title="Disabled item"
-				code={code`
-					<AccordionItem value="support" disabled>
-						<AccordionButton>Customer support</AccordionButton>
-						<AccordionPanel>...</AccordionPanel>
-					</AccordionItem>
-				`}
-			>
+			<Example title="Disabled item">
 				<div className="lg:max-w-md">
 					<Accordion variant="plain" defaultValue="shipping">
 						{items.map((item) => (

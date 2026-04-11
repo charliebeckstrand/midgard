@@ -1,19 +1,11 @@
 import { Text } from '../../components/text'
-import { code } from '../code'
 import { Example } from '../example'
 
 export const meta = { category: 'Data Display' }
 
 export default function TextDemo() {
 	return (
-		<Example
-			code={code`
-				import { Text } from 'ui/text'
-
-				<Text>Default paragraph text.</Text>
-				<Text variant="muted">Muted secondary text.</Text>
-			`}
-		>
+		<Example>
 			<div className="space-y-4">
 				<Text>
 					This is a paragraph of text using the default variant with proper line height and color.

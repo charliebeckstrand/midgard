@@ -5,7 +5,6 @@ import { Heading } from '../../components/heading'
 import { Input } from '../../components/input'
 import { PasswordInput } from '../../components/input/password'
 import { AuthPage } from '../../pages'
-import { code } from '../code'
 import { Example } from '../example'
 
 export const meta = { category: 'Layout' }
@@ -26,25 +25,7 @@ export default function PagesDemo() {
 	}
 
 	return (
-		<Example
-			code={code`
-				import { AuthPage } from 'ui/pages'
-				import { Button } from 'ui/button'
-				import { Field, Label } from 'ui/fieldset'
-				import { Input, PasswordInput } from 'ui/input'
-
-				<AuthPage heading={<Heading>Sign in to your account</Heading>} onSubmit={onSubmit}>
-					<Field>
-						<Label>Email</Label>
-						<Input type="email" placeholder="you@example.com" />
-					</Field>
-					<Field>
-						<Label>Password</Label>
-						<PasswordInput placeholder="•••••••••" />
-					</Field>
-				</AuthPage>
-			`}
-		>
+		<Example>
 			<div className="space-y-6">
 				<div className="flex gap-2">
 					{(['login', 'register', 'forgot-password'] as const).map((p) => (

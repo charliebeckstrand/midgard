@@ -6,7 +6,6 @@ import {
 	TimelineMarker,
 	TimelineTimestamp,
 } from '../../components/timeline'
-import { code } from '../code'
 import { Example } from '../example'
 
 export const meta = { category: 'Data Display' }
@@ -14,21 +13,7 @@ export const meta = { category: 'Data Display' }
 export default function TimelineDemo() {
 	return (
 		<div className="space-y-8">
-			<Example
-				title="Vertical"
-				code={code`
-					import { Timeline, TimelineItem, TimelineMarker, TimelineHeading, TimelineDescription, TimelineTimestamp } from 'ui/timeline'
-
-					<Timeline>
-						<TimelineItem>
-							<TimelineMarker />
-							<TimelineTimestamp>Jan 2026</TimelineTimestamp>
-							<TimelineHeading>Project kicked off</TimelineHeading>
-							<TimelineDescription>Initial planning and team assembly.</TimelineDescription>
-						</TimelineItem>
-					</Timeline>
-				`}
-			>
+			<Example title="Vertical">
 				<Timeline>
 					<TimelineItem>
 						<TimelineMarker />
@@ -52,20 +37,7 @@ export default function TimelineDemo() {
 					</TimelineItem>
 				</Timeline>
 			</Example>
-			<Example
-				title="Horizontal"
-				code={code`
-					import { Timeline, TimelineItem, TimelineMarker, TimelineHeading, TimelineTimestamp } from 'ui/timeline'
-
-					<Timeline orientation="horizontal">
-						<TimelineItem>
-							<TimelineMarker />
-							<TimelineTimestamp>Step 1</TimelineTimestamp>
-							<TimelineHeading>Register</TimelineHeading>
-						</TimelineItem>
-					</Timeline>
-				`}
-			>
+			<Example title="Horizontal">
 				<Timeline orientation="horizontal">
 					<TimelineItem>
 						<TimelineMarker />
@@ -84,33 +56,7 @@ export default function TimelineDemo() {
 					</TimelineItem>
 				</Timeline>
 			</Example>
-			<Example
-				title="Active item"
-				code={code`
-					import { Timeline, TimelineItem, TimelineMarker, TimelineHeading, TimelineDescription, TimelineTimestamp } from 'ui/timeline'
-
-					<Timeline>
-						<TimelineItem>
-							<TimelineMarker />
-							<TimelineTimestamp>Mon, Apr 7</TimelineTimestamp>
-							<TimelineHeading>Requirements gathered</TimelineHeading>
-							<TimelineDescription>Stakeholder interviews and scope definition.</TimelineDescription>
-						</TimelineItem>
-						<TimelineItem>
-							<TimelineMarker active />
-							<TimelineTimestamp>Wed, Apr 9</TimelineTimestamp>
-							<TimelineHeading>Implementation in progress</TimelineHeading>
-							<TimelineDescription>Building the timeline component.</TimelineDescription>
-						</TimelineItem>
-						<TimelineItem>
-							<TimelineMarker />
-							<TimelineTimestamp>Fri, Apr 11</TimelineTimestamp>
-							<TimelineHeading>Code review</TimelineHeading>
-							<TimelineDescription>Pending team review and approval.</TimelineDescription>
-						</TimelineItem>
-					</Timeline>
-				`}
-			>
+			<Example title="Active item">
 				<Timeline>
 					<TimelineItem>
 						<TimelineMarker />
@@ -132,35 +78,7 @@ export default function TimelineDemo() {
 					</TimelineItem>
 				</Timeline>
 			</Example>
-			<Example
-				title="Outline variant"
-				code={code`
-					import { Timeline, TimelineItem, TimelineMarker, TimelineHeading, TimelineDescription, TimelineTimestamp } from 'ui/timeline'
-
-					<Timeline variant="outline">
-						<TimelineItem>
-							<TimelineMarker />
-							<TimelineTimestamp>10:30 AM</TimelineTimestamp>
-							<TimelineHeading>Commit pushed</TimelineHeading>
-							<TimelineDescription>
-								Updated dependencies and fixed linting errors.
-							</TimelineDescription>
-						</TimelineItem>
-						<TimelineItem>
-							<TimelineMarker />
-							<TimelineTimestamp>11:15 AM</TimelineTimestamp>
-							<TimelineHeading>Review requested</TimelineHeading>
-							<TimelineDescription>Assigned to two reviewers for approval.</TimelineDescription>
-						</TimelineItem>
-						<TimelineItem>
-							<TimelineMarker active />
-							<TimelineTimestamp>2:00 PM</TimelineTimestamp>
-							<TimelineHeading>Merged to main</TimelineHeading>
-							<TimelineDescription>All checks passed, deployed to staging.</TimelineDescription>
-						</TimelineItem>
-					</Timeline>
-				`}
-			>
+			<Example title="Outline variant">
 				<Timeline variant="outline">
 					<TimelineItem>
 						<TimelineMarker />

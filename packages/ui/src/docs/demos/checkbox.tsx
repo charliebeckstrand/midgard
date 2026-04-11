@@ -1,6 +1,5 @@
 import { Checkbox, CheckboxField, CheckboxGroup } from '../../components/checkbox'
 import { Description, Label } from '../../components/fieldset'
-import { code } from '../code'
 import { Example } from '../example'
 
 export const meta = { category: 'Forms' }
@@ -10,19 +9,7 @@ const colors = ['blue', 'green', 'red'] as const
 export default function CheckboxDemo() {
 	return (
 		<div className="space-y-8">
-			<Example
-				title="Default"
-				code={code`
-					import { Checkbox, CheckboxField } from 'ui/checkbox'
-					import { Description, Label } from 'ui/fieldset'
-
-					<CheckboxField>
-						<Checkbox id="terms" />
-						<Label htmlFor="terms">Accept terms</Label>
-						<Description>You agree to our Terms of Service.</Description>
-					</CheckboxField>
-				`}
-			>
+			<Example title="Default">
 				<CheckboxGroup>
 					<CheckboxField>
 						<Checkbox id="checkbox-terms" />
@@ -32,27 +19,7 @@ export default function CheckboxDemo() {
 				</CheckboxGroup>
 			</Example>
 
-			<Example
-				title="Group"
-				code={code`
-					import { Checkbox, CheckboxField, CheckboxGroup } from 'ui/checkbox'
-					import { Description, Label } from 'ui/fieldset'
-
-					<CheckboxGroup>
-						<CheckboxField>
-							<Checkbox id="newsletter" />
-							<Label htmlFor="newsletter">Subscribe to newsletter</Label>
-							<Description>Get the latest news and updates.</Description>
-						</CheckboxField>
-
-						<CheckboxField>
-							<Checkbox id="opt-out" />
-							<Label htmlFor="opt-out">Opt out of data collection</Label>
-							<Description>We will not collect any personal data.</Description>
-						</CheckboxField>
-					</CheckboxGroup>
-				`}
-			>
+			<Example title="Group">
 				<CheckboxGroup>
 					<CheckboxField>
 						<Checkbox id="checkbox-newsletter" />
@@ -68,30 +35,7 @@ export default function CheckboxDemo() {
 				</CheckboxGroup>
 			</Example>
 
-			<Example
-				title="Colors"
-				code={code`
-					import { Checkbox, CheckboxField, CheckboxGroup } from 'ui/checkbox'
-					import { Description, Label } from 'ui/fieldset'
-
-					<CheckboxGroup>
-						<CheckboxField>
-							<Checkbox id="checkbox-blue" value="blue" color="blue" defaultChecked />
-							<Label htmlFor="checkbox-blue">blue</Label>
-						</CheckboxField>
-
-						<CheckboxField>
-							<Checkbox id="checkbox-green" value="green" color="green" defaultChecked />
-							<Label htmlFor="checkbox-green">green</Label>
-						</CheckboxField>
-						
-						<CheckboxField>
-							<Checkbox id="checkbox-red" value="red" color="red" defaultChecked />
-							<Label htmlFor="checkbox-red">red</Label>
-						</CheckboxField>
-					</CheckboxGroup>
-				`}
-			>
+			<Example title="Colors">
 				<CheckboxGroup>
 					{colors.map((color) => (
 						<CheckboxField key={color}>
@@ -102,18 +46,7 @@ export default function CheckboxDemo() {
 				</CheckboxGroup>
 			</Example>
 
-			<Example
-				title="Disabled"
-				code={code`
-					import { Checkbox, CheckboxField } from 'ui/checkbox'
-					import { Description, Label } from 'ui/fieldset'
-
-					<CheckboxField>
-						<Checkbox id="checkbox-disabled" disabled />
-						<Label htmlFor="checkbox-disabled">Disabled option</Label>
-					</CheckboxField>
-				`}
-			>
+			<Example title="Disabled">
 				<CheckboxGroup>
 					<CheckboxField>
 						<Checkbox id="checkbox-disabled" disabled />

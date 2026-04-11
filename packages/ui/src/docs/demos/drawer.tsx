@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Button } from '../../components/button'
 import { Drawer, DrawerActions, DrawerBody, DrawerTitle } from '../../components/drawer'
-import { code } from '../code'
 import { Example } from '../example'
 
 export const meta = { category: 'Overlay' }
@@ -12,23 +11,7 @@ export default function DrawerDemo() {
 
 	return (
 		<div className="space-y-8">
-			<Example
-				title="Default"
-				code={code`
-					import { Drawer, DrawerActions, DrawerBody, DrawerDescription, DrawerTitle } from 'ui/drawer'
-					import { Button } from 'ui/button'
-
-					<Drawer open={open} onClose={onClose}>
-						<DrawerTitle>Drawer Title</DrawerTitle>
-						<DrawerBody>
-							<p>Drawer content goes here.</p>
-						</DrawerBody>
-						<DrawerActions>
-							<Button variant="plain" onClick={onClose}>Close</Button>
-						</DrawerActions>
-					</Drawer>
-				`}
-			>
+			<Example title="Default">
 				<Button onClick={() => setOpen(true)}>Open Drawer</Button>
 				<Drawer open={open} onClose={() => setOpen(false)}>
 					<DrawerTitle>Drawer</DrawerTitle>
@@ -41,20 +24,7 @@ export default function DrawerDemo() {
 				</Drawer>
 			</Example>
 
-			<Example
-				title="Glass"
-				code={code`
-					import { Drawer, DrawerBody, DrawerTitle } from 'ui/drawer'
-					import { Button } from 'ui/button'
-
-					<Drawer glass open={open} onClose={onClose}>
-						<DrawerTitle>Glass Drawer</DrawerTitle>
-						<DrawerBody>
-							<p>Transparent panel over the backdrop.</p>
-						</DrawerBody>
-					</Drawer>
-				`}
-			>
+			<Example title="Glass">
 				<Button variant="outline" onClick={() => setGlassOpen(true)}>
 					Open Glass Drawer
 				</Button>

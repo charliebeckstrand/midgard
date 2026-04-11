@@ -70,16 +70,7 @@ export default function SliderDemo() {
 	return (
 		<div className="space-y-8">
 			<Interactive />
-			<Example
-				title="Sizes"
-				code={code`
-					import { Slider } from 'ui/slider'
-
-					<Slider size="sm" defaultValue={40} />
-					<Slider size="md" defaultValue={60} />
-					<Slider size="lg" defaultValue={80} />
-				`}
-			>
+			<Example title="Sizes">
 				<div className="flex lg:max-w-sm flex-col gap-4">
 					{sizes.map((s, i) => (
 						<div key={s} className="flex items-center gap-3">
@@ -89,14 +80,7 @@ export default function SliderDemo() {
 					))}
 				</div>
 			</Example>
-			<Example
-				title="Colors"
-				code={code`
-					import { Slider } from 'ui/slider'
-
-					${colors.map((c) => `<Slider color="${c}" defaultValue={60} />`)}
-				`}
-			>
+			<Example title="Colors">
 				<div className="flex lg:max-w-sm flex-col gap-4">
 					{colors.map((color) => (
 						<div key={color} className="flex items-center gap-3">
@@ -107,14 +91,7 @@ export default function SliderDemo() {
 				</div>
 			</Example>
 			<RangeAndStep />
-			<Example
-				title="Disabled"
-				code={code`
-					import { Slider } from 'ui/slider'
-
-					<Slider disabled defaultValue={40} />
-				`}
-			>
+			<Example title="Disabled">
 				<div className="lg:max-w-sm">
 					<Slider disabled defaultValue={40} />
 				</div>

@@ -1,5 +1,4 @@
 import { StatusDot } from '../../components/status'
-import { code } from '../code'
 import { Example } from '../example'
 
 export const meta = { category: 'Data Display' }
@@ -13,14 +12,7 @@ const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 export default function StatusDemo() {
 	return (
 		<div className="space-y-8">
-			<Example
-				title="Statuses"
-				code={code`
-					import { StatusDot } from 'ui/status'
-
-					${statuses.map((s) => `<StatusDot status="${s}" />`)}
-				`}
-			>
+			<Example title="Statuses">
 				<div className="flex flex-col gap-3">
 					{statuses.map((status) => (
 						<div key={status} className="flex items-center gap-2">
@@ -30,14 +22,7 @@ export default function StatusDemo() {
 					))}
 				</div>
 			</Example>
-			<Example
-				title="Sizes"
-				code={code`
-					import { StatusDot } from 'ui/status'
-
-					${sizes.map((s) => `<StatusDot status="active" size="${s}" />`)}
-				`}
-			>
+			<Example title="Sizes">
 				<div className="flex flex-col gap-3">
 					{sizes.map((size) => (
 						<div key={size} className="flex items-center gap-2">

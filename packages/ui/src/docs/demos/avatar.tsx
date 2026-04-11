@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { Avatar, AvatarGroup } from '../../components/avatar'
-import { code } from '../code'
 import { Example } from '../example'
 import { SizeListbox } from '../size-listbox'
 import { VariantListbox } from '../variant-listbox'
@@ -27,14 +26,7 @@ export default function AvatarDemo() {
 
 	return (
 		<div className="space-y-8">
-			<Example
-				title="Variants"
-				code={code`
-					import { Avatar } from 'ui/avatar'
-
-					${variants.map((v) => `<Avatar variant="${v}" initials="A" />`)}
-				`}
-			>
+			<Example title="Variants">
 				<div className="flex items-center gap-2">
 					{variants.map((v) => (
 						<Avatar key={v} variant={v} initials="A" />
@@ -46,11 +38,6 @@ export default function AvatarDemo() {
 				actions={
 					<VariantListbox variants={variants} value={colorVariant} onChange={setColorVariant} />
 				}
-				code={code`
-					import { Avatar } from 'ui/avatar'
-
-					${colors.map((c) => `<Avatar variant="${colorVariant}" color="${c}" initials="${cap(c)[0]}" />`)}
-				`}
 			>
 				<div className="flex items-center gap-2">
 					{colors.map((color) => (
@@ -61,13 +48,6 @@ export default function AvatarDemo() {
 			<Example
 				title="Group"
 				actions={<SizeListbox sizes={sizes} value={groupSize} onChange={setGroupSize} />}
-				code={code`
-					import { Avatar, AvatarGroup } from 'ui/avatar'
-
-					<AvatarGroup size="${groupSize}" extra={3}>
-						${groupAvatars.map((i) => `<Avatar initials="${i}" />`)}
-					</AvatarGroup>
-				`}
 			>
 				<AvatarGroup size={groupSize} extra={3}>
 					{groupAvatars.map((initials) => (
@@ -78,14 +58,6 @@ export default function AvatarDemo() {
 			<Example
 				title="Status"
 				actions={<SizeListbox sizes={sizes} value={statusSize} onChange={setStatusSize} />}
-				code={code`
-					import { Avatar } from 'ui/avatar'
-
-					<Avatar size="${statusSize}" initials="AB" status="inactive" />
-					<Avatar size="${statusSize}" initials="CD" status="active" />
-					<Avatar size="${statusSize}" initials="EF" status="warning" />
-					<Avatar size="${statusSize}" initials="GH" status="error" />
-				`}
 			>
 				<div className="flex items-center gap-3">
 					<Avatar size={statusSize} initials="AB" status="inactive" />

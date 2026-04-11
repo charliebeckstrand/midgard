@@ -61,14 +61,7 @@ export default function AlertDemo() {
 
 	return (
 		<div className="space-y-8">
-			<Example
-				title="Variants"
-				code={code`
-					import { Alert } from 'ui/alert'
-
-					${variants.map((v) => `<Alert variant="${v}" title="${cap(v)} alert" />`)}
-				`}
-			>
+			<Example title="Variants">
 				<div className="flex flex-col gap-3">
 					{variants.map((variant) => (
 						<Alert key={variant} variant={variant} title={`${cap(variant)} alert`} />
@@ -84,11 +77,6 @@ export default function AlertDemo() {
 						onChange={setColorVariant}
 					/>
 				}
-				code={code`
-					import { Alert } from 'ui/alert'
-
-					${colors.map((c) => `<Alert variant="${colorVariant}" color="${c}" title="${cap(c)}" />`)}
-				`}
 			>
 				<div className="flex flex-col gap-3">
 					{colors.map((color) => (
@@ -96,35 +84,14 @@ export default function AlertDemo() {
 					))}
 				</div>
 			</Example>
-			<Example
-				title="Types"
-				code={code`
-					import { Alert } from 'ui/alert'
-
-					<Alert type="info" title="New update available" />
-					<Alert type="success" title="Changes saved successfully" />
-					<Alert type="warning" title="Storage is almost full" />
-					<Alert type="error" title="Something went wrong" />
-				`}
-			>
+			<Example title="Types">
 				<div className="flex flex-col gap-3">
 					{types.map((type) => (
 						<Alert key={type} type={type} title={`${cap(type)} alert`} />
 					))}
 				</div>
 			</Example>
-			<Example
-				title="With description"
-				code={code`
-					import { Alert } from 'ui/alert'
-
-					<Alert
-						type="info"
-						title="New update available"
-						description="Version 2.0 includes new features and performance improvements."
-					/>
-				`}
-			>
+			<Example title="With description">
 				<div className="flex flex-col gap-3">
 					{types.map((type) => (
 						<Alert
@@ -151,20 +118,7 @@ export default function AlertDemo() {
 			>
 				<ClosableDemo />
 			</Example>
-			<Example
-				title="With actions"
-				code={code`
-					import { Alert } from 'ui/alert'
-					import { Button } from 'ui/button'
-
-					<Alert
-						type="warning"
-						title="Storage is almost full"
-						description="You have used 90% of your available storage."
-						actions={<Button size="sm" color="amber">Upgrade</Button>}
-					/>
-				`}
-			>
+			<Example title="With actions">
 				<Alert
 					type="warning"
 					title="Storage is almost full"
