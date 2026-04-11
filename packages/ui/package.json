@@ -123,6 +123,10 @@
 			"types": "./src/components/navbar/index.ts",
 			"default": "./src/components/navbar/index.ts"
 		},
+		"./number-input": {
+			"types": "./src/components/number-input/index.ts",
+			"default": "./src/components/number-input/index.ts"
+		},
 		"./pagination": {
 			"types": "./src/components/pagination/index.ts",
 			"default": "./src/components/pagination/index.ts"
