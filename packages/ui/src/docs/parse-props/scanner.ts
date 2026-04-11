@@ -101,7 +101,11 @@ export function extractInlineObjectType(annotation: string): string | null {
 	return extractBalancedBraces(annotation, start)
 }
 
-/** Extract the RHS of a type alias, stopping at the first top-level newline */
+/**
+ * Extract the RHS of a type alias. Stops at a top-level newline UNLESS the
+ * following non-whitespace character continues the type expression (`|`, `&`)
+ * — this lets multi-line discriminated unions and intersections parse cleanly.
+ */
 export function extractTypeRhs(source: string, start: number): string | null {
 	let depth = 0
 
@@ -127,6 +131,11 @@ export function extractTypeRhs(source: string, start: number): string | null {
 		else if (ch === '>' && source[i - 1] !== '=') depth--
 
 		if (ch === '\n' && depth === 0) {
+			let j = i + 1
+			while (j < source.length && (source[j] === ' ' || source[j] === '\t')) j++
+			const next = source[j]
+			if (next === '|' || next === '&') continue
+
 			const rhs = source.slice(start, i).trim()
 
 			return rhs || null

@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronRight, Moon, Sun } from 'lucide-react'
+import { ChevronDown, ChevronRight, Moon, Sun } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Badge } from '../components/badge'
 import { Button } from '../components/button'
@@ -21,7 +21,12 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/table'
 import { useOffcanvas } from '../core/offcanvas-context'
 import { SidebarLayout } from '../layouts'
-import { type ComponentApi, parseSource } from './parse-props'
+import {
+	buildResolutionContext,
+	type ComponentApi,
+	parsePublicExports,
+	parseSource,
+} from './parse-props'
 
 type DemoModule = {
 	default: React.ComponentType
@@ -30,9 +35,15 @@ type DemoModule = {
 
 const modules = import.meta.glob<DemoModule>('./demos/*.tsx', { eager: true })
 
-// Import all component source files for prop extraction
+// Import all component source files for prop extraction.
+// Primitives are included so cross-module type refs (e.g. PolymorphicProps) resolve.
 const componentSources = import.meta.glob<string>(
-	['../components/**/*.{ts,tsx}', '../layouts/*.{ts,tsx}', '../pages/*.{ts,tsx}'],
+	[
+		'../components/**/*.{ts,tsx}',
+		'../layouts/*.{ts,tsx}',
+		'../pages/*.{ts,tsx}',
+		'../primitives/*.{ts,tsx}',
+	],
 	{
 		eager: true,
 		query: '?raw',
@@ -40,33 +51,58 @@ const componentSources = import.meta.glob<string>(
 	},
 )
 
-/** Group component sources by directory name (e.g. "button", "badge") */
+const indexSources = import.meta.glob<string>('../components/*/index.ts', {
+	eager: true,
+	query: '?raw',
+	import: 'default',
+})
+
+/**
+ * Build API metadata per component directory. Returns an ordered list of
+ * publicly-exported components (from each directory's `index.ts`), each
+ * enriched with parsed props + pass-through metadata.
+ */
 function buildComponentApis(): Record<string, ComponentApi[]> {
+	// Sources grouped by component directory
 	const byDir: Record<string, string[]> = {}
+	// Global pool of sources for cross-module type resolution
+	const allSources: string[] = []
 
 	for (const [path, source] of Object.entries(componentSources)) {
-		// path: "../components/button/button.tsx"
-		const match = path.match(/\.\.\/components\/([^/]+)\//)
+		allSources.push(source as string)
 
+		const match = path.match(/\.\.\/components\/([^/]+)\//)
 		if (!match?.[1]) continue
 
 		const dir = match[1]
-
 		if (!byDir[dir]) byDir[dir] = []
-
 		byDir[dir].push(source as string)
 	}
+
+	const sharedCtx = buildResolutionContext(allSources)
 
 	const apis: Record<string, ComponentApi[]> = {}
 
 	for (const [dir, sources] of Object.entries(byDir)) {
-		// Concatenate all files so cross-file type references resolve
 		const combined = sources.join('\n')
+		const parsed = parseSource(combined, sharedCtx)
+		const parsedByName = new Map(parsed.map((api) => [api.name, api]))
 
-		const entries = parseSource(combined)
+		// Preserve the declaration order from index.ts so the API Reference
+		// matches how users see components organized in the public API.
+		const indexSource = indexSources[`../components/${dir}/index.ts`]
+		const publicNames = indexSource
+			? parsePublicExports(indexSource)
+			: parsed.map((api) => api.name)
+
+		const entries: ComponentApi[] = []
+		for (const name of publicNames) {
+			entries.push(parsedByName.get(name) ?? { name, props: [] })
+		}
 
 		if (entries.length > 0) apis[dir] = entries
 	}
+
 	return apis
 }
 
@@ -124,48 +160,146 @@ function useHash() {
 	return hash
 }
 
+/** Split a type expression on top-level `|`, respecting nesting and strings. */
+function splitUnion(type: string): string[] {
+	const parts: string[] = []
+	let depth = 0
+	let inString: string | null = null
+	let current = ''
+
+	for (let i = 0; i < type.length; i++) {
+		const ch = type[i]
+
+		if (inString) {
+			current += ch
+			if (ch === inString && type[i - 1] !== '\\') inString = null
+			continue
+		}
+
+		if (ch === "'" || ch === '"' || ch === '`') {
+			inString = ch
+			current += ch
+			continue
+		}
+
+		if (ch === '{' || ch === '[' || ch === '(' || ch === '<') depth++
+		else if (ch === '}' || ch === ']' || ch === ')') depth--
+		else if (ch === '>' && type[i - 1] !== '=') depth--
+
+		if (ch === '|' && depth === 0) {
+			if (current.trim()) parts.push(current.trim())
+			current = ''
+			continue
+		}
+
+		current += ch
+	}
+	if (current.trim()) parts.push(current.trim())
+	return parts
+}
+
+function TypeBadges({ type }: { type: string }) {
+	const parts = splitUnion(type)
+	return (
+		<div className="flex flex-wrap items-center gap-1">
+			{parts.map((t) => (
+				<Badge key={t} color="zinc" className="dark:text-white">
+					{t.replace(/^'|'$/g, '')}
+				</Badge>
+			))}
+		</div>
+	)
+}
+
+/**
+ * Renders the Type cell of the props table. When the prop has no breakdown
+ * it's shown as plain badges; when a breakdown exists the cell becomes a
+ * toggle button that reveals the expanded form on click.
+ */
+function TypeCell({ type, breakdown }: { type: string; breakdown?: string }) {
+	const [expanded, setExpanded] = useState(false)
+
+	if (!breakdown) {
+		return <TypeBadges type={type} />
+	}
+
+	return (
+		<div className="space-y-1.5">
+			<button
+				type="button"
+				aria-expanded={expanded}
+				onClick={() => setExpanded((v) => !v)}
+				className="group flex cursor-pointer items-center gap-1.5 rounded-md text-left outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+			>
+				<TypeBadges type={type} />
+				<Icon
+					icon={<ChevronDown />}
+					className={`size-4 text-zinc-400 transition-transform dark:text-zinc-500 ${
+						expanded ? 'rotate-180' : ''
+					}`}
+				/>
+			</button>
+			{expanded && (
+				<div className="flex items-start gap-1.5 border-zinc-200 border-l pl-2 text-xs dark:border-zinc-800">
+					<TypeBadges type={breakdown} />
+				</div>
+			)}
+		</div>
+	)
+}
+
 function PropsTable({ api }: { api: ComponentApi[] }) {
 	return (
 		<div className="space-y-8">
 			{api.map((entry) => {
 				const visibleProps = entry.props.filter((p) => p.type !== 'never')
-
-				if (visibleProps.length === 0) return null
-
-				// Format: "Button Props", "AlertActions Props"
-				const label = entry.name.replace(/([a-z])([A-Z])/g, '$1\u00A0$2')
+				const passThrough = entry.passThrough ?? []
 
 				return (
 					<div key={entry.name} className="space-y-3">
-						<Heading level={3}>{`<${label} />`}</Heading>
-						<Table>
-							<TableHead>
-								<TableRow>
-									<TableHeader>Prop</TableHeader>
-									<TableHeader>Type</TableHeader>
-									<TableHeader>Default</TableHeader>
-								</TableRow>
-							</TableHead>
-							<TableBody>
-								{visibleProps.map((prop) => (
-									<TableRow key={prop.name}>
-										<TableCell className="font-mono font-medium">{prop.name}</TableCell>
-										<TableCell>
-											<div className="grid grid-cols-[repeat(4,max-content)] items-center gap-1">
-												{prop.type.split(' | ').map((t) => (
-													<Badge key={t} color="zinc" className="dark:text-white">
-														{t.replace(/^'|'$/g, '')}
-													</Badge>
-												))}
-											</div>
-										</TableCell>
-										<TableCell className="font-mono text-zinc-500 dark:text-zinc-400">
-											{prop.default ?? '—'}
-										</TableCell>
+						<Heading level={3} className="font-mono">{`<${entry.name} />`}</Heading>
+						{visibleProps.length > 0 ? (
+							<Table>
+								<TableHead>
+									<TableRow>
+										<TableHeader>Prop</TableHeader>
+										<TableHeader>Type</TableHeader>
+										<TableHeader>Default</TableHeader>
 									</TableRow>
+								</TableHead>
+								<TableBody>
+									{visibleProps.map((prop) => (
+										<TableRow key={prop.name}>
+											<TableCell className="font-mono font-medium align-top">{prop.name}</TableCell>
+											<TableCell>
+												<TypeCell type={prop.type} breakdown={prop.breakdown} />
+											</TableCell>
+											<TableCell className="font-mono text-zinc-500 dark:text-zinc-400 align-top">
+												{prop.default ?? '—'}
+											</TableCell>
+										</TableRow>
+									))}
+								</TableBody>
+							</Table>
+						) : (
+							<p className="text-sm text-zinc-500 dark:text-zinc-400">
+								This component accepts no explicit props.
+							</p>
+						)}
+						{passThrough.length > 0 && (
+							<div className="flex flex-wrap items-center gap-1.5 text-sm text-zinc-600 dark:text-zinc-400">
+								<span>Also accepts all</span>
+								{passThrough.map((pt, i) => (
+									<span key={pt.element} className="flex items-center gap-1.5">
+										<Badge color="zinc" className="font-mono dark:text-white">
+											{`<${pt.element}>`}
+										</Badge>
+										{i < passThrough.length - 1 && <span>,</span>}
+									</span>
 								))}
-							</TableBody>
-						</Table>
+								<span>HTML attributes.</span>
+							</div>
+						)}
 					</div>
 				)
 			})}
