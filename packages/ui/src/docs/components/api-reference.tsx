@@ -14,7 +14,7 @@ import {
 	TableHeader,
 	TableRow,
 } from '../../components/table'
-import type { ComponentApi } from '../parse-props'
+import type { ComponentApi, PropDef } from '../parse-props'
 
 /** Split a type expression on top-level `|`, respecting nesting and strings. */
 function splitUnion(type: string): string[] {
@@ -116,44 +116,65 @@ function TypeCell({ type, breakdown }: { type: string; breakdown?: string }) {
 	)
 }
 
+function PropRowsTable({ rows }: { rows: PropDef[] }) {
+	return (
+		<Table>
+			<TableHead>
+				<TableRow>
+					<TableHeader>Prop</TableHeader>
+					<TableHeader>Type</TableHeader>
+					<TableHeader>Default</TableHeader>
+				</TableRow>
+			</TableHead>
+			<TableBody>
+				{rows.map((prop) => (
+					<TableRow key={prop.name}>
+						<TableCell className="font-mono font-medium align-top">{prop.name}</TableCell>
+						<TableCell>
+							<TypeCell type={prop.type} breakdown={prop.breakdown} />
+						</TableCell>
+						<TableCell className="font-mono text-zinc-500 dark:text-zinc-400 align-top">
+							{prop.default ?? '—'}
+						</TableCell>
+					</TableRow>
+				))}
+			</TableBody>
+		</Table>
+	)
+}
+
 export function PropsTable({ api }: { api: ComponentApi[] }) {
 	return (
 		<div className="space-y-8">
 			{api.map((entry) => {
 				const visibleProps = entry.props.filter((p) => p.type !== 'never')
+				const events = visibleProps.filter((p) => /^on[A-Z]/.test(p.name))
+				const props = visibleProps.filter((p) => !/^on[A-Z]/.test(p.name))
 
 				const passThrough = entry.passThrough ?? []
 
 				return (
 					<div key={entry.name} className="space-y-3">
 						<Heading level={3} className="font-mono">{`<${entry.name} />`}</Heading>
-						{visibleProps.length > 0 ? (
-							<Table>
-								<TableHead>
-									<TableRow>
-										<TableHeader>Prop</TableHeader>
-										<TableHeader>Type</TableHeader>
-										<TableHeader>Default</TableHeader>
-									</TableRow>
-								</TableHead>
-								<TableBody>
-									{visibleProps.map((prop) => (
-										<TableRow key={prop.name}>
-											<TableCell className="font-mono font-medium align-top">{prop.name}</TableCell>
-											<TableCell>
-												<TypeCell type={prop.type} breakdown={prop.breakdown} />
-											</TableCell>
-											<TableCell className="font-mono text-zinc-500 dark:text-zinc-400 align-top">
-												{prop.default ?? '—'}
-											</TableCell>
-										</TableRow>
-									))}
-								</TableBody>
-							</Table>
-						) : (
+						{visibleProps.length === 0 ? (
 							<p className="text-sm text-zinc-500 dark:text-zinc-400">
 								This component accepts no explicit props.
 							</p>
+						) : (
+							<div className="space-y-6">
+								{props.length > 0 && (
+									<div className="space-y-3">
+										<Heading level={4}>Props</Heading>
+										<PropRowsTable rows={props} />
+									</div>
+								)}
+								{events.length > 0 && (
+									<div className="space-y-3">
+										<Heading level={4}>Events</Heading>
+										<PropRowsTable rows={events} />
+									</div>
+								)}
+							</div>
 						)}
 						{passThrough.length > 0 && (
 							<div className="flex flex-wrap items-center gap-1.5 text-sm text-zinc-600 dark:text-zinc-400">
