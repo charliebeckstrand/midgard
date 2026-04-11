@@ -175,6 +175,10 @@
 			"types": "./src/components/sidebar/index.ts",
 			"default": "./src/components/sidebar/index.ts"
 		},
+		"./skeleton": {
+			"types": "./src/components/skeleton/index.ts",
+			"default": "./src/components/skeleton/index.ts"
+		},
 		"./slider": {
 			"types": "./src/components/slider/index.ts",
 			"default": "./src/components/slider/index.ts"
@@ -182,6 +186,10 @@
 		"./spinner": {
 			"types": "./src/components/spinner/index.ts",
 			"default": "./src/components/spinner/index.ts"
+		},
+		"./stack": {
+			"types": "./src/components/stack/index.ts",
+			"default": "./src/components/stack/index.ts"
 		},
 		"./stat": {
 			"types": "./src/components/stat/index.ts",
