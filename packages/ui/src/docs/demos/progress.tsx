@@ -58,16 +58,7 @@ export default function ProgressDemo() {
 	return (
 		<div className="space-y-8">
 			<InteractiveBar />
-			<Example
-				title="Bar sizes"
-				code={code`
-					import { ProgressBar } from 'ui/progress'
-
-					<ProgressBar size="sm" value={40} />
-					<ProgressBar size="md" value={60} />
-					<ProgressBar size="lg" value={80} />
-				`}
-			>
+			<Example title="Bar sizes">
 				<div className="flex lg:max-w-sm flex-col gap-4">
 					{barSizes.map((s) => (
 						<div key={s} className="flex items-center gap-3">
@@ -77,14 +68,7 @@ export default function ProgressDemo() {
 					))}
 				</div>
 			</Example>
-			<Example
-				title="Bar colors"
-				code={code`
-					import { ProgressBar } from 'ui/progress'
-
-					${colors.map((c) => `<ProgressBar color="${c}" value={60} />`)}
-				`}
-			>
+			<Example title="Bar colors">
 				<div className="flex lg:max-w-sm flex-col gap-4">
 					{colors.map((color) => (
 						<div key={color} className="flex items-center gap-3">
@@ -95,18 +79,7 @@ export default function ProgressDemo() {
 				</div>
 			</Example>
 			<InteractiveGauge />
-			<Example
-				title="Gauge sizes"
-				code={code`
-					import { ProgressGauge } from 'ui/progress'
-
-					<ProgressGauge value={75} size="xs" />
-					<ProgressGauge value={75} size="sm" />
-					<ProgressGauge value={75} size="md" />
-					<ProgressGauge value={75} size="lg" />
-					<ProgressGauge value={75} size="xl" />
-				`}
-			>
+			<Example title="Gauge sizes">
 				<div className="flex items-end gap-4">
 					{gaugeSizes.map((s) => (
 						<div key={s} className="flex flex-col items-center gap-2">
@@ -116,15 +89,7 @@ export default function ProgressDemo() {
 					))}
 				</div>
 			</Example>
-			<Example
-				title="Gauge with label"
-				code={code`
-					import { ProgressGauge } from 'ui/progress'
-
-					<ProgressGauge value={80} label={true} />
-					<ProgressGauge value={100} label={true} />
-				`}
-			>
+			<Example title="Gauge with label">
 				<div className="flex items-end gap-4">
 					{gaugeSizes.map((s) => (
 						<ProgressGauge
@@ -138,14 +103,7 @@ export default function ProgressDemo() {
 					<ProgressGauge value={100} size="xl" color="green" label />
 				</div>
 			</Example>
-			<Example
-				title="Gauge colors"
-				code={code`
-					import { ProgressGauge } from 'ui/progress'
-
-					${colors.map((c) => `<ProgressGauge color="${c}" value={75} label />`)}
-				`}
-			>
+			<Example title="Gauge colors">
 				<div className="flex items-center gap-4">
 					{colors.map((color) => (
 						<ProgressGauge key={color} color={color} value={75} size="lg" />

@@ -7,7 +7,6 @@ import { Card, CardBody, CardHeader, CardTitle } from '../../components/card'
 import { Kbd } from '../../components/kbd'
 import { ScrollArea } from '../../components/scroll-area'
 import { Text } from '../../components/text'
-import { code } from '../code'
 import { Example } from '../example'
 import { SizeListbox } from '../size-listbox'
 
@@ -56,13 +55,6 @@ export default function ScrollAreaDemo() {
 			<Example
 				title="Vertical with size"
 				actions={<SizeListbox sizes={sizes} value={verticalSize} onChange={setVerticalSize} />}
-				code={code`
-					import { ScrollArea } from 'ui/scroll-area'
-
-					<ScrollArea size="${verticalSize}" rounded className="max-w-96">
-						...
-					</ScrollArea>
-				`}
 			>
 				<ScrollArea size={verticalSize} rounded className="max-w-96">
 					<div className="space-y-3">
@@ -76,13 +68,6 @@ export default function ScrollAreaDemo() {
 			<Example
 				title="Horizontal with size"
 				actions={<SizeListbox sizes={sizes} value={horizontalSize} onChange={setHorizontalSize} />}
-				code={code`
-					import { ScrollArea } from 'ui/scroll-area'
-
-					<ScrollArea orientation="horizontal" size="${horizontalSize}" rounded>
-						...
-					</ScrollArea>
-				`}
 			>
 				<ScrollArea orientation="horizontal" size={horizontalSize} rounded>
 					<div className="flex w-max gap-2">
@@ -96,13 +81,6 @@ export default function ScrollAreaDemo() {
 			<Example
 				title="Both axes"
 				actions={<SizeListbox sizes={sizes} value={bothSize} onChange={setBothSize} />}
-				code={code`
-					import { ScrollArea } from 'ui/scroll-area'
-
-					<ScrollArea orientation="both" size="${bothSize}" rounded>
-						...
-					</ScrollArea>
-				`}
 			>
 				<ScrollArea orientation="both" size={bothSize} rounded>
 					<div className="w-max space-y-3">
@@ -115,16 +93,7 @@ export default function ScrollAreaDemo() {
 				</ScrollArea>
 			</Example>
 
-			<Example
-				title="Hidden scrollbar"
-				code={code`
-					import { ScrollArea } from 'ui/scroll-area'
-
-					<ScrollArea size="md" scrollbar="hidden" rounded className="max-w-96">
-						...
-					</ScrollArea>
-				`}
-			>
+			<Example title="Hidden scrollbar">
 				<ScrollArea size="md" scrollbar="hidden" rounded className="max-w-96">
 					<div className="space-y-3">
 						{paragraphs.map((p) => (
@@ -134,16 +103,7 @@ export default function ScrollAreaDemo() {
 				</ScrollArea>
 			</Example>
 
-			<Example
-				title="Visible scrollbar"
-				code={code`
-					import { ScrollArea } from 'ui/scroll-area'
-
-					<ScrollArea size="md" scrollbar="visible" rounded className="max-w-96">
-						...
-					</ScrollArea>
-				`}
-			>
+			<Example title="Visible scrollbar">
 				<ScrollArea size="md" scrollbar="visible" rounded className="max-w-96">
 					<div className="space-y-3">
 						{paragraphs.map((p) => (
@@ -153,24 +113,7 @@ export default function ScrollAreaDemo() {
 				</ScrollArea>
 			</Example>
 
-			<Example
-				title="Bare (nested in a container)"
-				code={code`
-					import { Card, CardBody, CardHeader, CardTitle } from 'ui/card'
-					import { ScrollArea } from 'ui/scroll-area'
-
-					<Card variant="outline" className="max-w-96">
-						<CardHeader>
-							<CardTitle>Paragraphs</CardTitle>
-						</CardHeader>
-						<CardBody>
-							<ScrollArea bare size="md">
-								...
-							</ScrollArea>
-						</CardBody>
-					</Card>
-				`}
-			>
+			<Example title="Bare (nested in a container)">
 				<Card variant="outline" className="max-w-96">
 					<CardHeader>
 						<CardTitle>Paragraphs</CardTitle>

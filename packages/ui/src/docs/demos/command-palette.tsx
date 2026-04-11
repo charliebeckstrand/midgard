@@ -24,7 +24,6 @@ import {
 } from '../../components/command-palette'
 import { Icon } from '../../components/icon'
 import { Kbd } from '../../components/kbd'
-import { code } from '../code'
 import { Example } from '../example'
 
 export const meta = { category: 'Overlay' }
@@ -130,33 +129,7 @@ export default function CommandPaletteDemo() {
 
 	return (
 		<div className="space-y-8">
-			<Example
-				title="Default"
-				code={code`
-					import {
-						CommandPalette,
-						CommandPaletteGroup,
-						CommandPaletteItem,
-						CommandPaletteLabel,
-					} from 'ui/command-palette'
-					import { Button } from 'ui/button'
-					import { Icon } from 'ui/icon'
-					import { FilePlus, Settings } from 'lucide-react'
-
-					const [open, setOpen] = useState(false)
-
-					<Button onClick={() => setOpen(true)}>Open palette</Button>
-
-					<CommandPalette open={open} onClose={() => setOpen(false)}>
-						<CommandPaletteGroup heading="Files">
-							<CommandPaletteItem onAction={() => console.log('new file')}>
-								<Icon icon={<FilePlus />} />
-								<CommandPaletteLabel>New file</CommandPaletteLabel>
-							</CommandPaletteItem>
-						</CommandPaletteGroup>
-					</CommandPalette>
-				`}
-			>
+			<Example title="Default">
 				<Button color="blue" variant="soft" onClick={() => setOpen(true)}>
 					Open command palette
 					<Kbd cmd>K</Kbd>

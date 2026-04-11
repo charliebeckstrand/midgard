@@ -109,16 +109,7 @@ function WaitRevealDemo() {
 export default function PlaceholderDemo() {
 	return (
 		<div className="space-y-8">
-			<Example
-				title="Line (default)"
-				code={code`
-					import { Placeholder } from 'ui/placeholder'
-
-					<Placeholder />
-					<Placeholder className="max-w-[70%]" />
-					<Placeholder className="max-w-[50%]" />
-				`}
-			>
+			<Example title="Line (default)">
 				<div className="flex flex-col gap-2 lg:max-w-sm">
 					<Placeholder />
 					<Placeholder className="max-w-[70%]" />
@@ -126,31 +117,14 @@ export default function PlaceholderDemo() {
 				</div>
 			</Example>
 
-			<Example
-				title="Rectangle"
-				code={code`
-					import { Placeholder } from 'ui/placeholder'
-
-					<Placeholder variant="rect" className="h-10" />
-					<Placeholder variant="rect" className="h-24" />
-				`}
-			>
+			<Example title="Rectangle">
 				<div className="flex flex-col gap-2 lg:max-w-sm">
 					<Placeholder variant="rect" className="h-10" />
 					<Placeholder variant="rect" className="h-24" />
 				</div>
 			</Example>
 
-			<Example
-				title="Circle"
-				code={code`
-					import { Placeholder } from 'ui/placeholder'
-
-					<Placeholder variant="circle" className="size-8" />
-					<Placeholder variant="circle" className="size-10" />
-					<Placeholder variant="circle" className="size-12" />
-				`}
-			>
+			<Example title="Circle">
 				<div className="flex items-center gap-2 lg:max-w-sm">
 					<Placeholder variant="circle" className="size-8" />
 					<Placeholder variant="circle" className="size-10" />
@@ -158,21 +132,7 @@ export default function PlaceholderDemo() {
 				</div>
 			</Example>
 
-			<Example
-				title="Composed layout"
-				code={code`
-					import { Placeholder } from 'ui/placeholder'
-
-					<div className="flex items-start gap-3">
-						<Placeholder variant="circle" className="size-10" />
-						<div className="flex-1 space-y-2">
-							<Placeholder className="max-w-[40%]" />
-							<Placeholder />
-							<Placeholder className="max-w-[80%]" />
-						</div>
-					</div>
-				`}
-			>
+			<Example title="Composed layout">
 				<div className="flex items-start gap-3">
 					<Placeholder variant="circle" className="size-10" />
 					<div className="flex-1 space-y-2 lg:max-w-sm">

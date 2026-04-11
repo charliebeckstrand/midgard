@@ -1,6 +1,5 @@
 import { Button } from '../../components/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
-import { code } from '../code'
 import { Example } from '../example'
 
 export const meta = { category: 'Overlay' }
@@ -10,20 +9,7 @@ const placements = ['left', 'top', 'bottom', 'right'] as const
 export default function TooltipDemo() {
 	return (
 		<div className="space-y-8">
-			<Example
-				title="Basic"
-				code={code`
-					import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
-					import { Button } from 'ui/button'
-
-					<Tooltip>
-						<TooltipTrigger>
-							<Button variant="outline">Hover me</Button>
-						</TooltipTrigger>
-						<TooltipContent>This is a tooltip</TooltipContent>
-					</Tooltip>
-				`}
-			>
+			<Example title="Basic">
 				<Tooltip>
 					<TooltipTrigger>
 						<Button variant="outline">Hover me</Button>
@@ -32,15 +18,7 @@ export default function TooltipDemo() {
 				</Tooltip>
 			</Example>
 
-			<Example
-				title="Placement"
-				code={code`
-					import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
-					import { Button } from 'ui/button'
-
-					${placements.map((p) => `<Tooltip placement="${p}">\n  <TooltipTrigger>\n    <Button variant="outline">${p}</Button>\n  </TooltipTrigger>\n  <TooltipContent>Tooltip on ${p}</TooltipContent>\n</Tooltip>`)}
-				`}
-			>
+			<Example title="Placement">
 				<div className="flex flex-wrap items-center justify-center gap-4 py-8">
 					{placements.map((placement) => (
 						<Tooltip key={placement} placement={placement}>
@@ -53,22 +31,7 @@ export default function TooltipDemo() {
 				</div>
 			</Example>
 
-			<Example
-				title="Interactive"
-				code={code`
-					import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
-					import { Button } from 'ui/button'
-
-					<Tooltip interactive>
-						<TooltipTrigger>
-							<Button variant="outline">Hover me</Button>
-						</TooltipTrigger>
-						<TooltipContent>
-							This tooltip stays open when you hover over it.
-						</TooltipContent>
-					</Tooltip>
-				`}
-			>
+			<Example title="Interactive">
 				<Tooltip interactive>
 					<TooltipTrigger>
 						<Button variant="outline">Hover me</Button>

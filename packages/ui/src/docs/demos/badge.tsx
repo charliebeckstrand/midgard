@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { Badge } from '../../components/badge'
-import { code } from '../code'
 import { Example } from '../example'
 import { VariantListbox } from '../variant-listbox'
 
@@ -20,21 +19,12 @@ const sizes = [
 	{ value: 'lg', label: 'large' },
 ] as const
 
-const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
-
 export default function BadgeDemo() {
 	const [colorVariant, setColorVariant] = useState<(typeof colorVariants)[number]>('solid')
 
 	return (
 		<div className="space-y-8">
-			<Example
-				title="Variants"
-				code={code`
-					import { Badge } from 'ui/badge'
-
-					${variants.map((v) => `<Badge variant="${v}">${cap(v)}</Badge>`)}
-				`}
-			>
+			<Example title="Variants">
 				<div className="flex flex-wrap gap-2">
 					{variants.map((variant) => (
 						<Badge key={variant} variant={variant}>
@@ -52,11 +42,6 @@ export default function BadgeDemo() {
 						onChange={setColorVariant}
 					/>
 				}
-				code={code`
-					import { Badge } from 'ui/badge'
-
-					${colors.map((c) => `<Badge variant="${colorVariant}" color="${c}">${cap(c)}</Badge>`)}
-				`}
 			>
 				<div className="flex flex-wrap gap-2">
 					{colors.map((color) => (
@@ -66,14 +51,7 @@ export default function BadgeDemo() {
 					))}
 				</div>
 			</Example>
-			<Example
-				title="Sizes"
-				code={code`
-					import { Badge } from 'ui/badge'
-
-					${sizes.map((s) => `<Badge size="${s.value}">${cap(s.label)}</Badge>`)}
-				`}
-			>
+			<Example title="Sizes">
 				<div className="flex flex-wrap items-center gap-2">
 					{sizes.map(({ value, label }) => (
 						<Badge key={value} size={value}>

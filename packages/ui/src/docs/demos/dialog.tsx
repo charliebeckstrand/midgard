@@ -13,7 +13,6 @@ import { Field, Label } from '../../components/fieldset'
 import { Input } from '../../components/input'
 import { Text } from '../../components/text'
 import { Textarea } from '../../components/textarea'
-import { code } from '../code'
 import { Example } from '../example'
 
 export const meta = { category: 'Overlay' }
@@ -26,30 +25,7 @@ export default function DialogDemo() {
 
 	return (
 		<div className="space-y-8">
-			<Example
-				title="Dialog"
-				code={code`
-					import { Dialog, DialogActions, DialogBody, DialogDescription, DialogTitle } from 'ui/dialog'
-					import { Button } from 'ui/button'
-					import { Field, Label } from 'ui/fieldset'
-					import { Input } from 'ui/input'
-
-					<Dialog open={open} onClose={setOpen}>
-						<DialogTitle>Create project</DialogTitle>
-						<DialogDescription>Enter the details for your new project.</DialogDescription>
-						<DialogBody>
-							<Field>
-								<Label>Project name</Label>
-								<Input placeholder="My Project" />
-							</Field>
-						</DialogBody>
-						<DialogActions>
-							<Button variant="plain" onClick={() => setOpen(false)}>Cancel</Button>
-							<Button color="green" onClick={() => setOpen(false)}>Create</Button>
-						</DialogActions>
-					</Dialog>
-				`}
-			>
+			<Example title="Dialog">
 				<Button color="green" onClick={() => setOpen(true)}>
 					Create project
 				</Button>
@@ -76,22 +52,7 @@ export default function DialogDemo() {
 					</DialogActions>
 				</Dialog>
 			</Example>
-			<Example
-				title="Confirm dialog"
-				code={code`
-					import { ConfirmDialog } from 'ui/dialog'
-					import { Button } from 'ui/button'
-
-					<ConfirmDialog
-						open={discardOpen}
-						onClose={() => setDiscardOpen(false)}
-						onConfirm={() => setDiscardOpen(false)}
-						description="You have unsaved changes that will be lost."
-						confirm={{ label: 'Discard changes', color: 'amber' }}
-						cancel={{ label: 'Keep editing' }}
-					/>
-				`}
-			>
+			<Example title="Confirm dialog">
 				<Button color="amber" onClick={() => setDiscardOpen(true)}>
 					Discard changes
 				</Button>
@@ -104,33 +65,7 @@ export default function DialogDemo() {
 					cancel={{ label: 'Keep editing' }}
 				/>
 			</Example>
-			<Example
-				title="Confirm with body content"
-				code={code`
-					import { ConfirmDialog } from 'ui/dialog'
-					import { Button } from 'ui/button'
-					import { Checkbox, CheckboxField } from 'ui/checkbox'
-					import { Text } from 'ui/text'
-
-					const [accepted, setAccepted] = useState(false)
-
-					<ConfirmDialog
-						open={termsConditionsOpen}
-						onClose={() => setTermsConditionsOpen(false)}
-						onConfirm={() => setTermsConditionsOpen(false)}
-						title="Terms and Conditions"
-						confirm={{ label: 'Accept', color: 'blue', disabled: !accepted }}
-					>
-						<DialogBody>
-							...
-							<CheckboxField>
-								<Checkbox id="terms" color="blue" checked={accepted} onChange={() => setAccepted(!accepted)} />
-								<Label htmlFor="terms">Accept terms and conditions</Label>
-							</CheckboxField>
-						</DialogBody>
-					</ConfirmDialog>
-				`}
-			>
+			<Example title="Confirm with body content">
 				<Button color="blue" onClick={() => setTermsConditionsOpen(true)}>
 					Accept terms and conditions
 				</Button>

@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Calendar } from '../../components/calendar'
-import { code } from '../code'
 import { Example } from '../example'
 
 export const meta = { category: 'Forms' }
@@ -18,27 +17,11 @@ export default function CalendarDemo() {
 
 	return (
 		<div className="space-y-8">
-			<Example
-				title="Basic"
-				code={code`
-					import { Calendar } from 'ui/calendar'
-
-					const [date, setDate] = useState<Date>()
-
-					<Calendar value={date} onChange={setDate} />
-				`}
-			>
+			<Example title="Basic">
 				<Calendar value={date} onChange={setDate} />
 			</Example>
 
-			<Example
-				title="With min/max"
-				code={code`
-					import { Calendar } from 'ui/calendar'
-
-					<Calendar min={minDate} max={maxDate} />
-				`}
-			>
+			<Example title="With min/max">
 				<Calendar min={min} max={max} />
 			</Example>
 		</div>

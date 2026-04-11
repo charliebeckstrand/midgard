@@ -1,6 +1,5 @@
 import { Button } from '../../components/button'
 import { Spinner } from '../../components/spinner'
-import { code } from '../code'
 import { Example } from '../example'
 
 export const meta = { category: 'Feedback' }
@@ -14,24 +13,10 @@ const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 export default function SpinnerDemo() {
 	return (
 		<div className="space-y-8">
-			<Example
-				title="Default"
-				code={code`
-					import { Spinner } from 'ui/spinner'
-
-					<Spinner />
-				`}
-			>
+			<Example title="Default">
 				<Spinner />
 			</Example>
-			<Example
-				title="Sizes"
-				code={code`
-					import { Spinner } from 'ui/spinner'
-
-					${sizes.map((s) => `<Spinner size="${s}" />`)}
-				`}
-			>
+			<Example title="Sizes">
 				<div className="flex items-end gap-4">
 					{sizes.map((s) => (
 						<div key={s} className="flex flex-col items-center gap-2">
@@ -41,14 +26,7 @@ export default function SpinnerDemo() {
 					))}
 				</div>
 			</Example>
-			<Example
-				title="Colors"
-				code={code`
-					import { Spinner } from 'ui/spinner'
-
-					${colors.map((c) => `<Spinner color="${c}" />`)}
-				`}
-			>
+			<Example title="Colors">
 				<div className="flex items-center gap-4">
 					{colors.map((c) => (
 						<div key={c} className="flex flex-col items-center gap-2">
@@ -58,18 +36,7 @@ export default function SpinnerDemo() {
 					))}
 				</div>
 			</Example>
-			<Example
-				title="Inside a button"
-				code={code`
-					import { Button } from 'ui/button'
-					import { Spinner } from 'ui/spinner'
-
-					<Button disabled>
-						<Spinner />
-						Loading
-					</Button>
-				`}
-			>
+			<Example title="Inside a button">
 				<div className="flex items-center gap-3">
 					<Button disabled>
 						<Spinner />

@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Button } from '../../components/button'
 import { Sheet, SheetActions, SheetBody, SheetTitle } from '../../components/sheet'
-import { code } from '../code'
 import { Example } from '../example'
 
 export const meta = { category: 'Overlay' }
@@ -14,24 +13,7 @@ export default function SheetDemo() {
 
 	return (
 		<div className="space-y-8">
-			<Example
-				title="Default"
-				code={code`
-					import { Sheet, SheetActions, SheetBody, SheetDescription, SheetTitle } from 'ui/sheet'
-					import { Button } from 'ui/button'
-
-					<Sheet open={open} onClose={onClose}>
-						<SheetTitle>Sheet Title</SheetTitle>
-						<SheetDescription>Description text.</SheetDescription>
-						<SheetBody>
-							<p>Sheet content goes here.</p>
-						</SheetBody>
-						<SheetActions>
-							<Button variant="plain" onClick={onClose}>Close</Button>
-						</SheetActions>
-					</Sheet>
-				`}
-			>
+			<Example title="Default">
 				<div className="flex gap-3">
 					<Button variant="outline" onClick={() => setLeftOpen(true)}>
 						Open Left
@@ -59,20 +41,7 @@ export default function SheetDemo() {
 				</div>
 			</Example>
 
-			<Example
-				title="Glass"
-				code={code`
-					import { Sheet, SheetBody, SheetTitle } from 'ui/sheet'
-					import { Button } from 'ui/button'
-
-					<Sheet glass open={open} onClose={onClose}>
-						<SheetTitle>Glass Sheet</SheetTitle>
-						<SheetBody>
-							<p>Transparent panel over the backdrop.</p>
-						</SheetBody>
-					</Sheet>
-				`}
-			>
+			<Example title="Glass">
 				<div className="flex gap-3">
 					<Button variant="outline" onClick={() => setGlassLeftOpen(true)}>
 						Open Left

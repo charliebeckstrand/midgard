@@ -9,7 +9,6 @@ import {
 	PaginationPage,
 	PaginationPrevious,
 } from '../../components/pagination'
-import { code } from '../code'
 import { Example } from '../example'
 
 export const meta = { category: 'Navigation' }
@@ -31,24 +30,7 @@ export default function PaginationDemo() {
 	const visible = getVisiblePages(page, totalPages)
 
 	return (
-		<Example
-			code={code`
-				import { Pagination, PaginationGap, PaginationList, PaginationNext, PaginationPage, PaginationPrevious } from 'ui/pagination'
-
-				<Pagination>
-					<PaginationPrevious href="?page=1" />
-					<PaginationList>
-						<PaginationPage href="?page=1">1</PaginationPage>
-						<PaginationPage href="?page=2" current>2</PaginationPage>
-						<PaginationPage href="?page=3">3</PaginationPage>
-						<PaginationGap />
-						<PaginationPage href="?page=9">9</PaginationPage>
-						<PaginationPage href="?page=10">10</PaginationPage>
-					</PaginationList>
-					<PaginationNext href="?page=3" />
-				</Pagination>
-			`}
-		>
+		<Example>
 			<Pagination>
 				<PaginationPrevious
 					onClick={() => setPage((p) => Math.max(1, p - 1))}
