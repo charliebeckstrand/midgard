@@ -24,11 +24,11 @@ import { card } from './card'
 import { checkbox } from './checkbox'
 import { chip } from './chip'
 import { code } from './code'
+import { collapse } from './collapse'
 import { combobox } from './combobox'
 import { commandPalette } from './command-palette'
 import { datepicker } from './datepicker'
 import { dialog } from './dialog'
-import { disclosure } from './disclosure'
 import { divider } from './divider'
 import { dl } from './dl'
 import { drawer } from './drawer'
@@ -78,12 +78,12 @@ export const katachi = {
 	checkbox,
 	chip,
 	code,
+	collapse,
 	combobox,
 	commandPalette,
 	datepicker,
 	dialog,
 	drawer,
-	disclosure,
 	divider,
 	dl,
 	fieldset,
