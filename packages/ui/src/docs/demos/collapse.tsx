@@ -12,7 +12,7 @@ export default function CollapseDemo() {
 
 	return (
 		<div className="space-y-8">
-			<Example title="String trigger">
+			<Example title="Default">
 				<Collapse trigger="Toggle details">
 					<p className="pt-2 text-sm text-zinc-500">
 						When the trigger is a string, Collapse renders it as muted text that highlights on

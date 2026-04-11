@@ -17,7 +17,7 @@ export default function CalendarDemo() {
 
 	return (
 		<div className="space-y-8">
-			<Example title="Basic">
+			<Example title="Default">
 				<Calendar value={date} onChange={setDate} />
 			</Example>
 

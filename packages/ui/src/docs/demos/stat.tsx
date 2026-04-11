@@ -9,7 +9,7 @@ export const meta = { category: 'Data Display' }
 export default function StatDemo() {
 	return (
 		<div className="space-y-8">
-			<Example title="Basic">
+			<Example title="Default">
 				<Stat>
 					<StatLabel>Monthly recurring revenue</StatLabel>
 					<StatValue>$12,345</StatValue>

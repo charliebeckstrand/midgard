@@ -10,7 +10,7 @@ export default function DatePickerDemo() {
 
 	return (
 		<div className="space-y-8">
-			<Example title="Basic">
+			<Example title="Default">
 				<div className="sm:max-w-72 space-y-2">
 					<DatePicker value={date} onChange={setDate} />
 				</div>

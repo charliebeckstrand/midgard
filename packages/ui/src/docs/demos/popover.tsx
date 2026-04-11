@@ -18,7 +18,7 @@ const iconMap = {
 export default function PopoverDemo() {
 	return (
 		<div className="space-y-8">
-			<Example title="Basic">
+			<Example title="Default">
 				<Popover>
 					<PopoverTrigger>
 						<Button variant="outline">
