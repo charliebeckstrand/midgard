@@ -56,7 +56,7 @@ export const sawari = {
 	item,
 	nav,
 	tab: [sumi.textMuted, hiru.tab, yoru.tab],
-	navItem: [...nav, ki.offset],
+	navItem: [...nav, ki.inset],
 	cursor: 'cursor-default',
 	focusText: 'group-focus/option:text-white',
 	focusTextMuted: 'group-focus/option:text-white/75',

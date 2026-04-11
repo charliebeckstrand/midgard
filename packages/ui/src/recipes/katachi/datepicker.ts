@@ -18,7 +18,7 @@ export const datepicker = {
 	icon: [take.listbox.icon, 'flex items-center pr-3 pointer-events-none', sumi.textMuted],
 	clearButton: [
 		'pointer-events-auto cursor-pointer p-1 -m-1 rounded-md',
-		ki.offset,
+		ki.inset,
 		...sumi.textHover,
 	],
 	popoverContent: 'p-0',

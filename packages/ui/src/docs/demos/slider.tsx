@@ -5,6 +5,7 @@ import { Slider } from '../../components/slider'
 import { Text } from '../../components/text'
 import { code } from '../code'
 import { Example } from '../example'
+import { ValueStepper } from '../value-stepper'
 
 export const meta = { category: 'Forms' }
 
@@ -20,6 +21,7 @@ function Interactive() {
 	return (
 		<Example
 			title="Default"
+			actions={<ValueStepper value={value} onChange={setValue} max={100} step={10} />}
 			code={code`
 				import { Slider } from 'ui/slider'
 
@@ -31,6 +33,34 @@ function Interactive() {
 			<div className="space-y-3 lg:max-w-sm">
 				<Slider value={value} onChange={setValue} />
 				<Text className="tabular-nums">{value}</Text>
+			</div>
+		</Example>
+	)
+}
+
+function RangeAndStep() {
+	const [ratio, setRatio] = useState(0.5)
+	const [signed, setSigned] = useState(0)
+
+	return (
+		<Example
+			title="Range and step"
+			actions={
+				<div className="flex flex-col items-end gap-1">
+					<ValueStepper value={ratio} onChange={setRatio} min={0} max={1} step={0.1} />
+					<ValueStepper value={signed} onChange={setSigned} min={-50} max={50} step={5} />
+				</div>
+			}
+			code={code`
+				import { Slider } from 'ui/slider'
+
+				<Slider min={0} max={1} step={0.1} value={ratio} onChange={setRatio} />
+				<Slider min={-50} max={50} step={5} value={signed} onChange={setSigned} />
+			`}
+		>
+			<div className="flex lg:max-w-sm flex-col gap-4">
+				<Slider min={0} max={1} step={0.1} value={ratio} onChange={setRatio} color="green" />
+				<Slider min={-50} max={50} step={5} value={signed} onChange={setSigned} color="amber" />
 			</div>
 		</Example>
 	)
@@ -76,20 +106,7 @@ export default function SliderDemo() {
 					))}
 				</div>
 			</Example>
-			<Example
-				title="Range and step"
-				code={code`
-					import { Slider } from 'ui/slider'
-
-					<Slider min={0} max={1} step={0.1} defaultValue={0.5} />
-					<Slider min={-50} max={50} step={5} defaultValue={0} />
-				`}
-			>
-				<div className="flex lg:max-w-sm flex-col gap-4">
-					<Slider min={0} max={1} step={0.1} defaultValue={0.5} color="green" />
-					<Slider min={-50} max={50} step={5} defaultValue={0} color="amber" />
-				</div>
-			</Example>
+			<RangeAndStep />
 			<Example
 				title="Disabled"
 				code={code`

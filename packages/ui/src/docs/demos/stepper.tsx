@@ -1,10 +1,7 @@
 'use client'
 
-import { Minus, Plus } from 'lucide-react'
 import { Fragment, useState } from 'react'
 import { Alert, AlertDescription } from '../../components/alert'
-import { Button } from '../../components/button'
-import { Icon } from '../../components/icon'
 import {
 	Stepper,
 	StepperDescription,
@@ -16,6 +13,7 @@ import {
 } from '../../components/stepper'
 import { code } from '../code'
 import { Example } from '../example'
+import { ValueStepper } from '../value-stepper'
 
 export const meta = { category: 'Navigation' }
 
@@ -39,22 +37,11 @@ export default function StepperDemo() {
 			<Example
 				title="Horizontal"
 				actions={
-					<div className="flex items-center gap-1">
-						<Button
-							variant="plain"
-							disabled={horizontalValue <= 0}
-							onClick={() => setHorizontalValue((v) => Math.max(0, v - 1))}
-						>
-							<Icon icon={<Minus />} />
-						</Button>
-						<Button
-							variant="plain"
-							disabled={horizontalValue >= steps.length - 1}
-							onClick={() => setHorizontalValue((v) => Math.min(steps.length - 1, v + 1))}
-						>
-							<Icon icon={<Plus />} />
-						</Button>
-					</div>
+					<ValueStepper
+						value={horizontalValue}
+						onChange={setHorizontalValue}
+						max={steps.length - 1}
+					/>
 				}
 				code={code`
 					import { Stepper, StepperStep, StepperTitle, StepperSeparator } from 'ui/stepper'
@@ -99,22 +86,7 @@ export default function StepperDemo() {
 			<Example
 				title="Vertical"
 				actions={
-					<div className="flex items-center gap-1">
-						<Button
-							variant="plain"
-							disabled={verticalValue <= 0}
-							onClick={() => setVerticalValue((v) => Math.max(0, v - 1))}
-						>
-							<Icon icon={<Minus />} />
-						</Button>
-						<Button
-							variant="plain"
-							disabled={verticalValue >= steps.length - 1}
-							onClick={() => setVerticalValue((v) => Math.min(steps.length - 1, v + 1))}
-						>
-							<Icon icon={<Plus />} />
-						</Button>
-					</div>
+					<ValueStepper value={verticalValue} onChange={setVerticalValue} max={steps.length - 1} />
 				}
 				code={code`
 					<Stepper orientation="vertical" value={value} onValueChange={setValue}>
@@ -146,22 +118,7 @@ export default function StepperDemo() {
 			<Example
 				title="Linear"
 				actions={
-					<div className="flex items-center gap-1">
-						<Button
-							variant="plain"
-							disabled={linearValue <= 0}
-							onClick={() => setLinearValue((v) => Math.max(0, v - 1))}
-						>
-							<Icon icon={<Minus />} />
-						</Button>
-						<Button
-							variant="plain"
-							disabled={linearValue >= steps.length - 1}
-							onClick={() => setLinearValue((v) => Math.min(steps.length - 1, v + 1))}
-						>
-							<Icon icon={<Plus />} />
-						</Button>
-					</div>
+					<ValueStepper value={linearValue} onChange={setLinearValue} max={steps.length - 1} />
 				}
 				code={code`
 					// Upcoming steps render as <button disabled>; only the buttons
@@ -196,22 +153,7 @@ export default function StepperDemo() {
 			<Example
 				title="With content panels"
 				actions={
-					<div className="flex items-center gap-1">
-						<Button
-							variant="plain"
-							disabled={panelsValue <= 0}
-							onClick={() => setPanelsValue((v) => Math.max(0, v - 1))}
-						>
-							<Icon icon={<Minus />} />
-						</Button>
-						<Button
-							variant="plain"
-							disabled={panelsValue >= steps.length - 1}
-							onClick={() => setPanelsValue((v) => Math.min(steps.length - 1, v + 1))}
-						>
-							<Icon icon={<Plus />} />
-						</Button>
-					</div>
+					<ValueStepper value={panelsValue} onChange={setPanelsValue} max={steps.length - 1} />
 				}
 				code={code`
 					<Stepper value={value} onValueChange={setValue}>

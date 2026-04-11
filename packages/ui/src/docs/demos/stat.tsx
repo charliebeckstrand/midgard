@@ -106,7 +106,7 @@ export default function StatDemo() {
 					import { Stat, StatLabel, StatValue, StatDelta } from 'ui/stat'
 
 					<div className="grid gap-4 sm:grid-cols-3">
-						<Card>
+						<Card variant="outline">
 							<CardBody>
 								<Stat>
 									<StatLabel>Revenue</StatLabel>
@@ -120,7 +120,7 @@ export default function StatDemo() {
 				`}
 			>
 				<div className="grid gap-4 sm:grid-cols-3">
-					<Card>
+					<Card variant="outline">
 						<CardBody>
 							<Stat>
 								<StatLabel>Revenue</StatLabel>
@@ -132,7 +132,7 @@ export default function StatDemo() {
 							</Stat>
 						</CardBody>
 					</Card>
-					<Card>
+					<Card variant="outline">
 						<CardBody>
 							<Stat>
 								<StatLabel>Active users</StatLabel>
@@ -144,7 +144,7 @@ export default function StatDemo() {
 							</Stat>
 						</CardBody>
 					</Card>
-					<Card>
+					<Card variant="outline">
 						<CardBody>
 							<Stat>
 								<StatLabel>Churn</StatLabel>

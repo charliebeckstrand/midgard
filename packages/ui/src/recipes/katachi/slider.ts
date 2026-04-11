@@ -1,11 +1,10 @@
-import { ki } from '../ki'
 import { yasumi } from '../yasumi'
 
 export const slider = {
 	base: [
-		'w-full appearance-none bg-transparent cursor-pointer',
+		'w-full appearance-none bg-transparent cursor-pointer outline-none',
+
 		yasumi.disabled,
-		ki.ring,
 
 		// ── WebKit track ─────────────────────────────────
 		// `--slider-value` is set inline from the component (0%-100%),
@@ -24,6 +23,9 @@ export const slider = {
 		'[&::-webkit-slider-thumb]:transition-transform',
 		'hover:not-disabled:[&::-webkit-slider-thumb]:scale-110',
 		'active:[&::-webkit-slider-thumb]:scale-110',
+		'focus-visible:[&::-webkit-slider-thumb]:ring-2',
+		'focus-visible:[&::-webkit-slider-thumb]:ring-blue-600',
+		'dark:focus-visible:[&::-webkit-slider-thumb]:ring-blue-600',
 
 		// ── Firefox track ────────────────────────────────
 		'[&::-moz-range-track]:w-full',
@@ -39,6 +41,9 @@ export const slider = {
 		'[&::-moz-range-thumb]:shadow-sm',
 		'[&::-moz-range-thumb]:transition-transform',
 		'hover:not-disabled:[&::-moz-range-thumb]:scale-110',
+		'focus-visible:[&::-moz-range-thumb]:ring-2',
+		'focus-visible:[&::-moz-range-thumb]:ring-blue-600',
+		'dark:focus-visible:[&::-moz-range-thumb]:ring-blue-600',
 	],
 	size: {
 		sm: [

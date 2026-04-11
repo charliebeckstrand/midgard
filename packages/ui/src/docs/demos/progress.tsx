@@ -1,12 +1,10 @@
 'use client'
 
-import { Minus, Plus } from 'lucide-react'
 import { useState } from 'react'
-import { Button } from '../../components/button'
-import { Icon } from '../../components/icon'
 import { ProgressBar, ProgressGauge } from '../../components/progress'
 import { code } from '../code'
 import { Example } from '../example'
+import { ValueStepper } from '../value-stepper'
 
 export const meta = { category: 'Feedback' }
 
@@ -16,8 +14,6 @@ const barSizes = ['sm', 'md', 'lg'] as const
 
 const gaugeSizes = ['xs', 'sm', 'md', 'lg', 'xl'] as const
 
-const step = 10
-
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
 function InteractiveBar() {
@@ -26,24 +22,7 @@ function InteractiveBar() {
 	return (
 		<Example
 			title="Default"
-			actions={
-				<div className="flex items-center gap-1">
-					<Button
-						variant="plain"
-						disabled={value <= 0}
-						onClick={() => setValue((v) => Math.max(0, v - step))}
-					>
-						<Icon icon={<Minus />} />
-					</Button>
-					<Button
-						variant="plain"
-						disabled={value >= 100}
-						onClick={() => setValue((v) => Math.min(100, v + step))}
-					>
-						<Icon icon={<Plus />} />
-					</Button>
-				</div>
-			}
+			actions={<ValueStepper value={value} onChange={setValue} max={100} step={10} />}
 			code={code`
 				import { ProgressBar } from 'ui/progress'
 
@@ -63,24 +42,7 @@ function InteractiveGauge() {
 	return (
 		<Example
 			title="Gauge"
-			actions={
-				<div className="flex items-center gap-1">
-					<Button
-						variant="plain"
-						disabled={value <= 0}
-						onClick={() => setValue((v) => Math.max(0, v - step))}
-					>
-						<Icon icon={<Minus />} />
-					</Button>
-					<Button
-						variant="plain"
-						disabled={value >= 100}
-						onClick={() => setValue((v) => Math.min(100, v + step))}
-					>
-						<Icon icon={<Plus />} />
-					</Button>
-				</div>
-			}
+			actions={<ValueStepper value={value} onChange={setValue} max={100} step={10} />}
 			code={code`
 				import { ProgressGauge } from 'ui/progress'
 

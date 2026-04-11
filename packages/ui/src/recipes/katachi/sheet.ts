@@ -29,5 +29,5 @@ export const sheet = {
 	description: [...narabi.panel.description, 'px-6'],
 	actions: [narabi.panel.actions, 'px-6 pb-6'],
 	body: [narabi.panel.body, 'flex-1 overflow-y-auto px-6'],
-	close: [sumi.textMuted, ki.offset, 'absolute right-4 top-4', maru.roundedMd, 'p-1'],
+	close: [sumi.textMuted, ki.inset, 'absolute right-4 top-4', maru.roundedMd, 'p-1'],
 }
