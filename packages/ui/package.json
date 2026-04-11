@@ -31,6 +31,10 @@
 			"types": "./src/components/alert/index.ts",
 			"default": "./src/components/alert/index.ts"
 		},
+		"./aspect-ratio": {
+			"types": "./src/components/aspect-ratio/index.ts",
+			"default": "./src/components/aspect-ratio/index.ts"
+		},
 		"./avatar": {
 			"types": "./src/components/avatar/index.ts",
 			"default": "./src/components/avatar/index.ts"
@@ -43,6 +47,10 @@
 			"types": "./src/components/badge/index.ts",
 			"default": "./src/components/badge/index.ts"
 		},
+		"./box": {
+			"types": "./src/components/box/index.ts",
+			"default": "./src/components/box/index.ts"
+		},
 		"./button": {
 			"types": "./src/components/button/index.ts",
 			"default": "./src/components/button/index.ts"
@@ -54,6 +62,10 @@
 		"./card": {
 			"types": "./src/components/card/index.ts",
 			"default": "./src/components/card/index.ts"
+		},
+		"./center": {
+			"types": "./src/components/center/index.ts",
+			"default": "./src/components/center/index.ts"
 		},
 		"./chip": {
 			"types": "./src/components/chip/index.ts",
@@ -78,6 +90,10 @@
 		"./command-palette": {
 			"types": "./src/components/command-palette/index.ts",
 			"default": "./src/components/command-palette/index.ts"
+		},
+		"./container": {
+			"types": "./src/components/container/index.ts",
+			"default": "./src/components/container/index.ts"
 		},
 		"./disclosure": {
 			"types": "./src/components/disclosure/index.ts",
@@ -183,9 +199,17 @@
 			"types": "./src/components/slider/index.ts",
 			"default": "./src/components/slider/index.ts"
 		},
+		"./spacer": {
+			"types": "./src/components/spacer/index.ts",
+			"default": "./src/components/spacer/index.ts"
+		},
 		"./spinner": {
 			"types": "./src/components/spinner/index.ts",
 			"default": "./src/components/spinner/index.ts"
+		},
+		"./split": {
+			"types": "./src/components/split/index.ts",
+			"default": "./src/components/split/index.ts"
 		},
 		"./stack": {
 			"types": "./src/components/stack/index.ts",
