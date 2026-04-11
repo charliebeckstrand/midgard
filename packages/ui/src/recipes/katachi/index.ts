@@ -47,6 +47,7 @@ import { radio } from './radio'
 import { select } from './select'
 import { sheet } from './sheet'
 import { sidebar } from './sidebar'
+import { slider } from './slider'
 import { spinner } from './spinner'
 import { status } from './status'
 import { stepper } from './stepper'
@@ -95,6 +96,7 @@ export const katachi = {
 	select,
 	sheet,
 	sidebar,
+	slider,
 	spinner,
 	status,
 	stepper,
