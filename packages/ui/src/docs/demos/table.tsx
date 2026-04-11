@@ -6,7 +6,7 @@ import {
 	TableHeader,
 	TableRow,
 } from '../../components/table'
-import { Example } from '../example'
+import { Example } from '../components/example'
 
 export const meta = { category: 'Data Display' }
 

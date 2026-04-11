@@ -4,7 +4,7 @@ import { Button } from '../../components/button'
 import { Placeholder } from '../../components/placeholder'
 import { ContentReveal } from '../../primitives/content-reveal'
 import { code } from '../code'
-import { Example } from '../example'
+import { Example } from '../components/example'
 
 export const meta = { category: 'Feedback' }
 

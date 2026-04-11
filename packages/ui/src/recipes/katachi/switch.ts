@@ -27,7 +27,7 @@ export const switchRecipe = {
 	disabled: sumi.textDisabled,
 	thumb: [
 		'absolute top-1 left-1 inline-block',
-		'transition-[left] duration-0',
+		'transition-[left] duration-200 ease-in-out',
 		'pointer-events-none',
 		'size-4',
 		maru.roundedFull,

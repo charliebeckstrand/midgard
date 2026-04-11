@@ -1,8 +1,8 @@
 'use client'
 
 import { Minus, Plus } from 'lucide-react'
-import { Button } from '../components/button'
-import { Icon } from '../components/icon'
+import { Button } from '../../components/button'
+import { Icon } from '../../components/icon'
 
 interface ValueStepperProps {
 	value: number

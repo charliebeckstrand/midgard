@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { DatePicker } from '../../components/datepicker'
-import { Example } from '../example'
+import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
 

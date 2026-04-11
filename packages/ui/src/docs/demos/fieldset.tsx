@@ -2,7 +2,7 @@ import { Description, Field, Fieldset, Label, Legend } from '../../components/fi
 import { Input } from '../../components/input'
 import { Select, SelectLabel, SelectOption } from '../../components/select'
 import { Textarea } from '../../components/textarea'
-import { Example } from '../example'
+import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
 

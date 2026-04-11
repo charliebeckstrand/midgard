@@ -1,10 +1,10 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { CodeBlock } from '../components/code'
-import { Disclosure, DisclosureButton, DisclosurePanel } from '../components/disclosure'
-import { Heading } from '../components/heading'
-import { deriveCode } from './derive-code'
+import { CodeBlock } from '../../components/code'
+import { Disclosure, DisclosureButton, DisclosurePanel } from '../../components/disclosure'
+import { Heading } from '../../components/heading'
+import { deriveCode } from '../derive-code'
 
 export function Example({
 	title,

@@ -4,10 +4,10 @@ import { Plus } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
-import { ColorListbox } from '../color-listbox'
-import { Example } from '../example'
-import { SizeListbox, sizeLabels } from '../size-listbox'
-import { VariantListbox } from '../variant-listbox'
+import { ColorListbox } from '../components/color-listbox'
+import { Example } from '../components/example'
+import { SizeListbox, sizeLabels } from '../components/size-listbox'
+import { VariantListbox } from '../components/variant-listbox'
 
 export const meta = { category: 'Forms' }
 

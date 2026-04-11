@@ -9,7 +9,7 @@ import {
 	CardTitle,
 } from '../../components/card'
 import { Text } from '../../components/text'
-import { Example } from '../example'
+import { Example } from '../components/example'
 
 export const meta = { category: 'Layout' }
 

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Field, Label } from '../../components/fieldset'
 import { NumberInput } from '../../components/number-input'
 import { code } from '../code'
-import { Example } from '../example'
+import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
 

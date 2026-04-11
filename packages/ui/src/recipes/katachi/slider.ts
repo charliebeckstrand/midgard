@@ -46,19 +46,25 @@ export const slider = {
 		'dark:focus-visible:[&::-moz-range-thumb]:ring-blue-600',
 	],
 	size: {
+		// Vertical padding on the input element extends the native range's click /
+		// drag area above and below the track — the visible thumb size is unchanged,
+		// but the entire padded input surface grabs the thumb.
 		sm: [
+			'py-2',
 			'[&::-webkit-slider-runnable-track]:h-1',
 			'[&::-webkit-slider-thumb]:size-3 [&::-webkit-slider-thumb]:-mt-1',
 			'[&::-moz-range-track]:h-1',
 			'[&::-moz-range-thumb]:size-3',
 		],
 		md: [
+			'py-2.5',
 			'[&::-webkit-slider-runnable-track]:h-1.5',
 			'[&::-webkit-slider-thumb]:size-4 [&::-webkit-slider-thumb]:-mt-[5px]',
 			'[&::-moz-range-track]:h-1.5',
 			'[&::-moz-range-thumb]:size-4',
 		],
 		lg: [
+			'py-3',
 			'[&::-webkit-slider-runnable-track]:h-2',
 			'[&::-webkit-slider-thumb]:size-5 [&::-webkit-slider-thumb]:-mt-[6px]',
 			'[&::-moz-range-track]:h-2',

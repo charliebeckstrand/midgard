@@ -1,6 +1,6 @@
 import { Button } from '../../components/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
-import { Example } from '../example'
+import { Example } from '../components/example'
 
 export const meta = { category: 'Overlay' }
 

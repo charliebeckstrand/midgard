@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Button } from '../../components/button'
 import { Sheet, SheetActions, SheetBody, SheetTitle } from '../../components/sheet'
-import { Example } from '../example'
+import { Example } from '../components/example'
 
 export const meta = { category: 'Overlay' }
 

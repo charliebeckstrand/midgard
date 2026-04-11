@@ -7,8 +7,8 @@ import { Card, CardBody, CardHeader, CardTitle } from '../../components/card'
 import { Kbd } from '../../components/kbd'
 import { ScrollArea } from '../../components/scroll-area'
 import { Text } from '../../components/text'
-import { Example } from '../example'
-import { SizeListbox } from '../size-listbox'
+import { Example } from '../components/example'
+import { SizeListbox } from '../components/size-listbox'
 
 export const meta = { category: 'Layout' }
 

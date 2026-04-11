@@ -1,7 +1,7 @@
 'use client'
 
 import { Disclosure, DisclosureButton, DisclosurePanel } from '../../components/disclosure'
-import { Example } from '../example'
+import { Example } from '../components/example'
 
 export const meta = { category: 'Data Display' }
 

@@ -4,8 +4,8 @@ import { useState } from 'react'
 import { Slider } from '../../components/slider'
 import { Text } from '../../components/text'
 import { code } from '../code'
-import { Example } from '../example'
-import { ValueStepper } from '../value-stepper'
+import { Example } from '../components/example'
+import { ValueStepper } from '../components/value-stepper'
 
 export const meta = { category: 'Forms' }
 

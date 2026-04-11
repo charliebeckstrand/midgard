@@ -2,7 +2,7 @@ import { ArrowDown, ArrowUp } from 'lucide-react'
 import { Card, CardBody } from '../../components/card'
 import { Icon } from '../../components/icon'
 import { Stat, StatDelta, StatDescription, StatLabel, StatValue } from '../../components/stat'
-import { Example } from '../example'
+import { Example } from '../components/example'
 
 export const meta = { category: 'Data Display' }
 

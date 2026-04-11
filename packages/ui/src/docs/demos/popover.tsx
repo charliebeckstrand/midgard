@@ -2,7 +2,7 @@ import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from 'lucide-react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { Popover, PopoverContent, PopoverTrigger } from '../../components/popover'
-import { Example } from '../example'
+import { Example } from '../components/example'
 
 export const meta = { category: 'Overlay' }
 

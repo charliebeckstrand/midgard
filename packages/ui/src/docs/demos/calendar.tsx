@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Calendar } from '../../components/calendar'
-import { Example } from '../example'
+import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
 

@@ -5,7 +5,7 @@ import {
 	BreadcrumbList,
 	BreadcrumbSeparator,
 } from '../../components/breadcrumb'
-import { Example } from '../example'
+import { Example } from '../components/example'
 
 export const meta = { category: 'Navigation' }
 

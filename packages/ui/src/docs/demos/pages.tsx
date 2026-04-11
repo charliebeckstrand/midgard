@@ -5,7 +5,7 @@ import { Heading } from '../../components/heading'
 import { Input } from '../../components/input'
 import { PasswordInput } from '../../components/input/password'
 import { AuthPage } from '../../pages'
-import { Example } from '../example'
+import { Example } from '../components/example'
 
 export const meta = { category: 'Layout' }
 

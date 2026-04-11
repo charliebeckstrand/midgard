@@ -99,6 +99,7 @@ export function Button({
 	...props
 }: ButtonProps) {
 	const alert = useAlertContext()
+
 	const inputSize = useInputSize()
 
 	if (!color && alert) {
@@ -110,6 +111,7 @@ export function Button({
 	const renderedChildren = loading ? withLoadingSpinner(children) : children
 
 	const iconOnly = isIconOnly(renderedChildren)
+
 	const sides = iconOnly ? { start: false, end: false } : iconSides(renderedChildren)
 	const kbds = iconOnly ? { start: false, end: false } : kbdSides(renderedChildren)
 

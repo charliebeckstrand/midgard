@@ -3,7 +3,7 @@
 import { Heart, Plus, Search, Star } from 'lucide-react'
 import { Alert, AlertDescription } from '../../components/alert'
 import { Icon } from '../../components/icon'
-import { Example } from '../example'
+import { Example } from '../components/example'
 
 export const meta = { category: 'Data Display' }
 

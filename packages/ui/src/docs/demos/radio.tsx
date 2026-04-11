@@ -1,6 +1,6 @@
 import { Label } from '../../components/fieldset'
 import { Radio, RadioField, RadioGroup } from '../../components/radio'
-import { Example } from '../example'
+import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
 

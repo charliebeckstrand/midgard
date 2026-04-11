@@ -1,6 +1,6 @@
 import { Button } from '../../components/button'
 import { Spinner } from '../../components/spinner'
-import { Example } from '../example'
+import { Example } from '../components/example'
 
 export const meta = { category: 'Feedback' }
 

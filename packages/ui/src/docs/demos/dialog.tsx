@@ -13,7 +13,7 @@ import { Field, Label } from '../../components/fieldset'
 import { Input } from '../../components/input'
 import { Text } from '../../components/text'
 import { Textarea } from '../../components/textarea'
-import { Example } from '../example'
+import { Example } from '../components/example'
 
 export const meta = { category: 'Overlay' }
 

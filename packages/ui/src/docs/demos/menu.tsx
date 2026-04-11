@@ -9,7 +9,7 @@ import {
 	MenuSeparator,
 	MenuTrigger,
 } from '../../components/menu'
-import { Example } from '../example'
+import { Example } from '../components/example'
 
 export const meta = { category: 'Overlay' }
 

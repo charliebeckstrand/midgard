@@ -41,7 +41,7 @@ function CopyButton({ code }: { code: string }) {
 			aria-label={copied ? 'Copied' : 'Copy to clipboard'}
 			className={cn(k.copy)}
 		>
-			<Icon icon={copied ? <Check /> : <Clipboard />} />
+			<Icon icon={copied ? <Check /> : <Clipboard />} size="sm" />
 		</button>
 	)
 }
@@ -50,6 +50,7 @@ export type CodeBlockProps = {
 	code: string
 	lang?: BundledLanguage
 	theme?: BundledTheme
+	inline?: boolean
 	className?: string
 }
 
@@ -57,6 +58,7 @@ export function CodeBlock({
 	code: rawCode,
 	lang = 'tsx',
 	theme = 'github-dark-default',
+	inline,
 	className,
 }: CodeBlockProps) {
 	const code = rawCode.trim()
@@ -100,7 +102,7 @@ export function CodeBlock({
 	}, [code, lang, theme])
 
 	return (
-		<div data-slot="code-block" className={cn(codeBlockVariants(), className)}>
+		<div data-slot="code-block" className={cn(codeBlockVariants({ inline }), className)}>
 			<CopyButton code={code} />
 			{html ? (
 				<div

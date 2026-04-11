@@ -1,5 +1,5 @@
 import { Heading } from '../../components/heading'
-import { Example } from '../example'
+import { Example } from '../components/example'
 
 export const meta = { category: 'Data Display' }
 

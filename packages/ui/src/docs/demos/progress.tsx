@@ -3,8 +3,8 @@
 import { useState } from 'react'
 import { ProgressBar, ProgressGauge } from '../../components/progress'
 import { code } from '../code'
-import { Example } from '../example'
-import { ValueStepper } from '../value-stepper'
+import { Example } from '../components/example'
+import { ValueStepper } from '../components/value-stepper'
 
 export const meta = { category: 'Feedback' }
 

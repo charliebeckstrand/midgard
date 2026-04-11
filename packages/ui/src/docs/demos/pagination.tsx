@@ -9,7 +9,7 @@ import {
 	PaginationPage,
 	PaginationPrevious,
 } from '../../components/pagination'
-import { Example } from '../example'
+import { Example } from '../components/example'
 
 export const meta = { category: 'Navigation' }
 
