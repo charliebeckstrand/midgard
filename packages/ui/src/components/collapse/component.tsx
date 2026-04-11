@@ -5,8 +5,6 @@ import type React from 'react'
 import { useCallback, useState } from 'react'
 import { cn } from '../../core/cn'
 import { katachi, ugoki } from '../../recipes'
-import { Button } from '../button'
-import type { ButtonVariants } from '../button/variants'
 import { CollapseProvider, useCollapseContext } from './context'
 
 const k = katachi.collapse
@@ -40,12 +38,16 @@ export function Collapse({
 	className,
 }: CollapseProps) {
 	const [uncontrolled, setUncontrolled] = useState(defaultOpen)
+
 	const isControlled = openProp !== undefined
+
 	const open = isControlled ? openProp : uncontrolled
 
 	const toggle = useCallback(() => {
 		const next = !open
+
 		if (!isControlled) setUncontrolled(next)
+
 		onOpenChange?.(next)
 	}, [open, isControlled, onOpenChange])
 
@@ -67,28 +69,26 @@ export function Collapse({
 
 // ── Trigger ─────────────────────────────────────────────
 
-export type CollapseTriggerProps = ButtonVariants &
-	Omit<React.ComponentProps<'button'>, 'children'> & {
-		children: React.ReactNode | ((bag: { open: boolean }) => React.ReactNode)
-	}
+export type CollapseTriggerProps = Omit<React.ComponentProps<'button'>, 'children'> & {
+	children: React.ReactNode | ((bag: { open: boolean }) => React.ReactNode)
+}
 
 export function CollapseTrigger({ className, children, ...props }: CollapseTriggerProps) {
 	const { open, toggle } = useCollapseContext()
+
 	const rendered = typeof children === 'function' ? children({ open }) : children
-	const muted = typeof rendered === 'string'
 
 	return (
-		<Button
-			variant="ghost"
+		<button
+			type="button"
 			data-slot="collapse-trigger"
 			aria-expanded={open}
-			spring={false}
 			onClick={toggle}
-			className={cn(muted && k.trigger, className)}
+			className={cn(k.trigger, className)}
 			{...props}
 		>
 			{rendered}
-		</Button>
+		</button>
 	)
 }
 

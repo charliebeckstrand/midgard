@@ -1,11 +1,13 @@
 import { ki } from '../ki'
+import { narabi } from '../narabi'
 import { nuri } from '../nuri'
 import { sumi } from '../sumi'
 import { waku } from '../waku'
 
 export const checkbox = {
 	wrapper: [
-		'relative inline-flex size-4.5 items-center justify-center',
+		narabi.center.inline,
+		'relative size-4.5',
 		'has-checked:*:data-[slot=checkbox-check]:opacity-100',
 		ki.outline,
 	],

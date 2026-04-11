@@ -1,9 +1,8 @@
 import { maru } from '../maru'
-import { sumi } from '../sumi'
+import { narabi } from '../narabi'
+import { sumi, yoru } from '../sumi'
 
 const blockBg = 'bg-[#0d1117]'
-
-const blockPre = ['overflow-x-auto', 'p-4', 'pr-14', 'text-sm/6'] as const
 
 export const code = {
 	inline: {
@@ -17,14 +16,16 @@ export const code = {
 	block: {
 		base: ['relative overflow-hidden', blockBg, maru.rounded],
 		inline: 'w-fit max-w-full',
-		content: blockPre.map((c) => `[&_pre]:${c}`),
-		fallback: [...blockPre, 'text-zinc-400'],
+		content: '[&_pre]:overflow-x-auto [&_pre]:p-4 [&_pre]:pr-14 [&_pre]:text-sm/6',
+		fallback: ['overflow-x-auto p-4 pr-14 text-sm/6', 'text-zinc-400'],
+		copyWrapper: ['absolute top-0 right-0 z-10 p-3', blockBg],
 		copy: [
-			'absolute top-3 right-3 z-10',
-			blockBg,
-			'flex size-8 items-center justify-center rounded-md',
+			narabi.center.flex,
+			'size-8',
+			maru.rounded,
 			sumi.textMuted,
-			sumi.textHover,
+			yoru.textHover,
+			yoru.textFocus,
 			'disabled:text-green-600',
 		],
 	},

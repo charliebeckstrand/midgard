@@ -1,3 +1,4 @@
+import { narabi } from '../narabi'
 import { nuri } from '../nuri'
 import { sumi } from '../sumi'
 
@@ -10,8 +11,8 @@ export const calendar = {
 	},
 	navIcon: 'size-4.5',
 	grid: 'grid grid-cols-7',
-	weekday: [sumi.textMuted, 'flex items-center justify-center size-9 text-xs font-medium'],
-	footer: 'flex items-center justify-center gap-2 px-3 pb-3',
+	weekday: [sumi.textMuted, narabi.center.flex, 'size-9 text-xs font-medium'],
+	footer: `${narabi.center.flex} gap-2 px-3 pb-3`,
 	day: {
 		active: 'ring-2 ring-inset ring-blue-600',
 		activeSelected: 'bg-blue-500',

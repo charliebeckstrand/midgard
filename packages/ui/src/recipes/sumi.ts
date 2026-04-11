@@ -8,13 +8,13 @@
  */
 
 // ── Motoi (基) ──────────────────────────────────────────
-const motoi = {
+export const motoi = {
 	textError: 'text-red-600',
 	textIcon: 'text-inherit',
 }
 
 // ── Hiru (昼) ───────────────────────────────────────────
-const hiru = {
+export const hiru = {
 	text: 'text-zinc-950',
 	textMuted: 'text-zinc-500',
 	textDisabled: [
@@ -22,10 +22,11 @@ const hiru = {
 		'has-disabled:**:data-[slot=label]:text-zinc-500',
 	] as const,
 	textHover: 'hover:not-disabled:text-zinc-950',
+	textFocus: 'focus-visible:not-disabled:text-zinc-950',
 }
 
 // ── Yoru (夜) ───────────────────────────────────────────
-const yoru = {
+export const yoru = {
 	text: 'dark:text-white',
 	textMuted: 'dark:text-zinc-400',
 	textDisabled: [
@@ -33,6 +34,7 @@ const yoru = {
 		'dark:has-disabled:**:data-[slot=label]:text-zinc-400',
 	] as const,
 	textHover: 'dark:hover:not-disabled:text-white',
+	textFocus: 'dark:focus-visible:not-disabled:text-white',
 }
 
 // ── Export ───────────────────────────────────────────────
@@ -43,4 +45,5 @@ export const sumi = {
 	textMuted: [hiru.textMuted, yoru.textMuted],
 	textDisabled: [hiru.textDisabled, yoru.textDisabled],
 	textHover: [hiru.textHover, yoru.textHover],
+	textFocus: [hiru.textFocus, yoru.textFocus],
 } as const

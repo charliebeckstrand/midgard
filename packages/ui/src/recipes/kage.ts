@@ -20,6 +20,7 @@ const hiru = {
 	border: 'border-zinc-950/10',
 	borderEmphasis: 'border-zinc-950/20',
 	borderSubtle: 'border-zinc-950/5',
+	borderTransparent: 'border-transparent',
 	ring: 'ring-zinc-950/10',
 	ringSubtle: 'ring-zinc-950/5',
 }
@@ -30,6 +31,7 @@ const yoru = {
 	borderStrong: 'dark:border-white/15',
 	borderEmphasis: 'dark:border-white/20',
 	borderSubtle: 'dark:border-white/5',
+	borderTransparent: 'dark:border-transparent',
 	ring: 'dark:ring-white/10',
 	ringStrong: 'dark:ring-white/15',
 	ringSubtle: 'dark:ring-white/10',
@@ -45,6 +47,7 @@ export const kage = {
 	borderEmphasis: [motoi.border, hiru.borderEmphasis, yoru.borderEmphasis],
 	borderSubtle: [motoi.border, hiru.borderSubtle, yoru.borderSubtle],
 	borderSubtleColor: [hiru.borderSubtle, yoru.borderSubtle],
+	borderTransparent: [hiru.borderTransparent, yoru.borderTransparent],
 	ring: [motoi.ring, hiru.ring, yoru.ring],
 	ringInset: [motoi.ring, 'ring-inset', hiru.ringSubtle, yoru.ringStrong],
 	ringSubtle: [motoi.ring, hiru.ringSubtle, yoru.ringSubtle],

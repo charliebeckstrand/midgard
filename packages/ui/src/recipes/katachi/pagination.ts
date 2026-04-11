@@ -1,5 +1,6 @@
 import { ki } from '../ki'
 import { maru } from '../maru'
+import { narabi } from '../narabi'
 import { omote } from '../omote'
 import { sawari } from '../sawari'
 import { sumi } from '../sumi'
@@ -12,7 +13,8 @@ export const pagination = {
 		base: [
 			ki.ring,
 			maru.rounded,
-			'relative inline-flex min-w-9 items-center justify-center px-2 py-1.5 text-sm/6 font-medium',
+			narabi.center.inline,
+			'relative min-w-9 px-2 py-1.5 text-sm/6 font-medium',
 			sawari.cursor,
 			'before:absolute before:inset-px before:rounded-[calc(var(--radius-lg)-1px)]',
 		],
@@ -22,14 +24,15 @@ export const pagination = {
 		},
 		defaults: { current: false as const },
 	},
-	gap: [sumi.textMuted, 'inline-flex min-w-9 items-center justify-center text-sm/6', 'select-none'],
+	gap: [sumi.textMuted, narabi.center.inline, 'min-w-9 text-sm/6', 'select-none'],
 	nav: [
 		ki.ring,
 		sumi.textMuted,
 		sumi.textHover,
 		maru.rounded,
 		yasumi.disabled,
-		'inline-flex items-center justify-center gap-1 px-2 py-1.5 text-sm/6 font-medium',
+		narabi.center.inline,
+		'gap-1 px-2 py-1.5 text-sm/6 font-medium',
 		sawari.cursor,
 	],
 }

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Button } from '../../components/button'
 import { Collapse, CollapsePanel, CollapseTrigger } from '../../components/collapse'
-import { Example } from '../example'
+import { Example } from '../components/example'
 
 export const meta = { category: 'Data Display' }
 
@@ -40,9 +40,7 @@ export default function CollapseDemo() {
 			</Example>
 			<Example title="Controlled">
 				<div className="space-y-2">
-					<Button onClick={() => setOpen((o) => !o)}>
-						{open ? 'Hide panel' : 'Show panel'}
-					</Button>
+					<Button onClick={() => setOpen((o) => !o)}>{open ? 'Hide panel' : 'Show panel'}</Button>
 					<Collapse open={open} onOpenChange={setOpen}>
 						<CollapsePanel>
 							<p className="pt-2 text-sm text-zinc-500">

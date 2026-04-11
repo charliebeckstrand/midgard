@@ -23,6 +23,7 @@ export default function CodeDemo() {
 				actions={<SizeListbox sizes={sizes} value={size} onChange={setSize} />}
 				code={code`
 					import { Code } from 'ui/code'
+					import { Text } from 'ui/text'
 
 					<Text>
 						Run <Code>pnpm install</Code> to install dependencies.
@@ -31,22 +32,6 @@ export default function CodeDemo() {
 			>
 				<Text>
 					Run <Code size={size}>pnpm install</Code> to install dependencies.
-				</Text>
-			</Example>
-			<Example
-				title="Inline code"
-				code={code`
-					import { Code } from 'ui/code'
-
-					<Text>
-						Run <Code>pnpm install</Code> to install dependencies, then call{' '}
-						<Code>{'codeToHtml()'}</Code> to highlight a snippet.
-					</Text>
-				`}
-			>
-				<Text>
-					Run <Code>pnpm install</Code> to install dependencies, then call{' '}
-					<Code>{'codeToHtml()'}</Code> to highlight a snippet.
 				</Text>
 			</Example>
 			<Example
@@ -72,10 +57,10 @@ export default function CodeDemo() {
 				code={code`
 					import { CodeBlock } from 'ui/code'
 
-					<CodeBlock lang="bash" code="pnpm add ui" inline />
+					<CodeBlock inline lang="bash" code="pnpm add ui" />
 				`}
 			>
-				<CodeBlock lang="bash" code="pnpm add ui" inline />
+				<CodeBlock inline lang="bash" code="pnpm add ui" />
 			</Example>
 		</div>
 	)

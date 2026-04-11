@@ -1,12 +1,14 @@
 import { ki } from '../ki'
 import { maru } from '../maru'
+import { narabi } from '../narabi'
 import { nuri } from '../nuri'
 import { sumi } from '../sumi'
 import { waku } from '../waku'
 
 export const radio = {
 	wrapper: [
-		'relative inline-flex size-4.5 items-center justify-center',
+		narabi.center.inline,
+		'relative size-4.5',
 		'has-checked:*:data-[slot=radio-indicator]:opacity-100',
 		ki.outline,
 	],
