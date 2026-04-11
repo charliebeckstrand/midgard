@@ -17,7 +17,7 @@
 export const px = { sm: 'px-1.5', md: 'px-2', lg: 'px-3' }
 export const py = { sm: 'py-1.5', md: 'py-2', lg: 'py-2.5' }
 export const gap = { xs: 'gap-0.5', sm: 'gap-0.75', md: 'gap-1', lg: 'gap-1.5' }
-export const text = { xs: 'text-xs/4', sm: 'text-xs/4', md: 'text-sm/5', lg: 'text-base/6' }
+export const text = { xs: 'text-[0.625rem]/3', sm: 'text-xs/4', md: 'text-sm/5', lg: 'text-base/6' }
 
 /** Icon slot — applies sizing to data-slot="icon" children */
 export const iconSlot = {
