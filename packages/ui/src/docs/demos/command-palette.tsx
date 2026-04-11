@@ -131,7 +131,7 @@ export default function CommandPaletteDemo() {
 	return (
 		<div className="space-y-8">
 			<Example
-				title="Command palette"
+				title="Default"
 				code={code`
 					import {
 						CommandPalette,
