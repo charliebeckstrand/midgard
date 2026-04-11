@@ -4,7 +4,7 @@ import { motion } from 'motion/react'
 import type React from 'react'
 import { useEffect, useRef } from 'react'
 import { cn } from '../core'
-import { useMenuKeyboard } from '../hooks/use-menu-keyboard'
+import { useRovingFocus } from '../hooks/use-keyboard'
 import { maru, omote, ugoki } from '../recipes'
 
 export function PopoverPanel({
@@ -24,7 +24,7 @@ export function PopoverPanel({
 }) {
 	const menuRef = useRef<HTMLDivElement>(null)
 
-	const handleKeyDown = useMenuKeyboard(menuRef, itemSelector)
+	const handleKeyDown = useRovingFocus(menuRef, { itemSelector, focusOnEmpty: true })
 
 	useEffect(() => {
 		if (!autoFocus || !menuRef.current) return

@@ -19,7 +19,7 @@ import type React from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { cn, createContext } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
-import { useMenuKeyboard } from '../../hooks/use-menu-keyboard'
+import { useRovingFocus } from '../../hooks/use-keyboard'
 import { FormControl, PopoverPanel } from '../../primitives'
 import { katachi } from '../../recipes'
 import { Icon } from '../icon'
@@ -102,7 +102,10 @@ export function Combobox<T>({
 	const optionsRef = useRef<HTMLDivElement>(null)
 	const pendingValue = useRef<T | T[] | undefined>(undefined)
 
-	const handleKeyDown = useMenuKeyboard(optionsRef, '[role="option"]:not([data-disabled])')
+	const handleKeyDown = useRovingFocus(optionsRef, {
+		itemSelector: '[role="option"]:not([data-disabled])',
+		focusOnEmpty: true,
+	})
 
 	const { refs, floatingStyles, context } = useFloating({
 		placement,

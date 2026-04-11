@@ -3,12 +3,12 @@
 import { Search, X } from 'lucide-react'
 import type React from 'react'
 import { useEffect, useRef, useState } from 'react'
+import { useRovingActive } from '../../hooks/use-keyboard'
 import { Button } from '../button'
 import { Dialog, DialogBody, type DialogPanelVariants } from '../dialog'
 import { Icon } from '../icon'
 import { Input } from '../input'
 import { CommandPaletteProvider } from './context'
-import { useKeyboard } from './use-keyboard'
 
 export type CommandPaletteProps = Pick<DialogPanelVariants, 'size'> & {
 	open: boolean
@@ -34,7 +34,9 @@ export function CommandPalette({
 
 	const inputRef = useRef<HTMLInputElement>(null)
 
-	const { listRef, onKeyDown } = useKeyboard()
+	const { listRef, onKeyDown } = useRovingActive<HTMLDivElement>({
+		itemSelector: '[data-slot="command-palette-item"]:not([data-disabled])',
+	})
 
 	// Reset query when closed
 	useEffect(() => {
