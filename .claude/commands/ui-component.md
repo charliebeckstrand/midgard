@@ -43,6 +43,33 @@ For components with multiple distinct sub-components (e.g. dialog has `dialog.ts
 
 ## Step-by-step instructions
 
+### 0. Audit existing components for composition (REQUIRED — do this first)
+
+**Before writing any code, analyze whether the component can be built by composing existing components.** This is the most common mistake: reinventing behavior (overlays, inputs, buttons, motion, keyboard handling) that already ships as a component in this package.
+
+Follow this reuse hierarchy — always prefer the highest level that applies:
+
+1. **Compose existing components** (`Dialog`, `Input`, `Button`, `Popover`, `Listbox`, `Sheet`, `Drawer`, …) — the full list is under *Existing components* below
+2. **Use primitives** (`Overlay`, `FormControl`, `Polymorphic`, `TouchTarget`, `createPanelSlots`, …) only when no component fits
+3. **Use recipes/hooks** (`katachi`, `ugoki`, `useIsDesktop`, `useOverlay`, …) only when no primitive fits
+4. **Write raw markup + Tailwind** only as a last resort
+
+**Mandatory composition audit.** Before Step 1, answer these in your head (or out loud if non-obvious):
+
+- Does the component render in a modal/overlay surface? → **Compose `Dialog`, `Sheet`, `Drawer`, or `Popover`.** Do not reach for `Overlay` + `motion` + `ugoki` directly unless you're building a brand-new overlay primitive.
+- Does it contain a text input? → **Compose `Input` or `Textarea`.** Do not render raw `<input>` with custom recipe classes.
+- Does it contain an action trigger? → **Compose `Button`.** Do not render styled `<button>` elements.
+- Does it show a list of selectable options? → **Compose `Listbox`, `Combobox`, or `Menu`.** Do not reimplement keyboard navigation or option rendering.
+- Does it need panel slots (title, description, body, actions)? → **Reuse `createPanelSlots`** (see `Dialog`, `Sheet`, `Drawer` for reference).
+- Does it need polymorphic `href`/`as` behavior? → **Use `Polymorphic`.**
+- Does it need a controlled/uncontrolled state pair? → **Use `useControllable`.**
+
+If the answer to any of the above is yes and you find yourself writing `<Overlay>`, `motion.div`, `role="dialog"`, raw `<input>`, raw `<button>`, or a new `*PanelVariants` that mirrors an existing one — **stop and compose the existing component instead**.
+
+**Worked example — CommandPalette.** A command palette is "a dialog that contains a search input and a list". The correct implementation is ~80 lines that wrap `<Dialog>` + `<DialogBody>` + `<Input>` and layer keyboard navigation on top. An earlier attempt duplicated `Dialog`'s overlay, motion, panel variants, and re-styled a raw `<input>` — doubling the line count and drifting from the design system. Do not repeat that mistake.
+
+**When a new katachi recipe is NOT needed.** If every visual element comes from a composed component, you do not need a new recipe, variants file, or katachi registration. Skip Steps 1–4 and go straight to `component.tsx`. Only introduce a recipe when the component owns genuinely new styling (a new surface, a new layout arrangement, a new slot) that no existing recipe covers.
+
 ### 1. Create the katachi recipe (if the component needs styling)
 
 Add a new file at `src/recipes/katachi/<name>.ts`.
@@ -564,7 +591,9 @@ Lower tiers never import from higher tiers. Katachi (Tier 3) composes everything
 ## Checklist
 
 Before finishing, verify:
-- [ ] Katachi recipe created and registered in `katachi/index.ts` (alphabetical)
+- [ ] **Composition audit done (Step 0).** Every existing component that could have been composed was composed. No duplicated `Overlay` + `motion` + `ugoki` wrappers, no raw `<input>`/`<button>` where `Input`/`Button` fit, no re-implementations of keyboard nav that `Listbox`/`Combobox`/`Menu` already provide.
+- [ ] **No parallel panel variants.** If the component renders in a dialog/sheet/drawer/popover, it reuses that component's `*PanelVariants` (e.g. `DialogPanelVariants`) rather than defining its own size/surface recipe.
+- [ ] Katachi recipe created and registered in `katachi/index.ts` (alphabetical) — **only if the component introduces genuinely new styling not available through composition**
 - [ ] `variants.ts` uses CVA with correct pattern for the variant type
 - [ ] `component.tsx` follows conventions (data-slot, cn, className merge, prop spreading)
 - [ ] `index.ts` barrel exports all public API (components, props types, variant types, variant functions)
@@ -572,4 +601,4 @@ Before finishing, verify:
 - [ ] Demo page created at `src/docs/demos/<name>.tsx` with correct `meta.category`
 - [ ] No unused imports or dead code
 - [ ] `'use client'` only added when actually needed (hooks, event handlers, motion)
-- [ ] Existing primitives, recipes, and hooks used where applicable (no reinventing)
+- [ ] Diff read as a reviewer: if the component is longer than the closest existing analog, justify why or shrink it by composing more
