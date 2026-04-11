@@ -1,4 +1,7 @@
+import { ArrowUp, Code, Mic, Plus } from 'lucide-react'
+import { Button } from '../../components/button'
 import { Field, Label } from '../../components/fieldset'
+import { Icon } from '../../components/icon'
 import { Textarea } from '../../components/textarea'
 import { Example } from '../components/example'
 
@@ -17,6 +20,40 @@ export default function TextareaDemo() {
 				<Field className="lg:max-w-sm">
 					<Label htmlFor="textarea-non-resizable">Non-resizable</Label>
 					<Textarea id="textarea-non-resizable" placeholder="Cannot resize" />
+				</Field>
+			</Example>
+			<Example title="Auto resize">
+				<Field className="lg:max-w-sm">
+					<Label htmlFor="textarea-auto-resize">Auto resize</Label>
+					<Textarea id="textarea-auto-resize" autoResize rows={1} placeholder="Grows as you type" />
+				</Field>
+			</Example>
+			<Example title="With actions">
+				<Field className="lg:max-w-sm">
+					<Label htmlFor="textarea-actions">Prompt</Label>
+					<Textarea
+						id="textarea-actions"
+						autoResize
+						rows={3}
+						placeholder="Ask anything"
+						actions={
+							<>
+								<Button variant="plain" size="sm">
+									<Icon icon={<Code />} />
+									Code
+								</Button>
+								<Button variant="plain" size="sm" className="ml-auto">
+									<Icon icon={<Plus />} />
+								</Button>
+								<Button variant="plain" size="sm">
+									<Icon icon={<Mic />} />
+								</Button>
+								<Button size="sm" color="amber">
+									<Icon icon={<ArrowUp />} />
+								</Button>
+							</>
+						}
+					/>
 				</Field>
 			</Example>
 			<Example title="Invalid">
