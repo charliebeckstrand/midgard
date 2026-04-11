@@ -4,8 +4,11 @@ import { motion } from 'motion/react'
 import type { PointerEvent } from 'react'
 import { cn, Link } from '../../core'
 import { type PolymorphicProps, TouchTarget, useRipple, useTap } from '../../primitives'
+import { kokkaku } from '../../recipes'
 import { useAlertContext } from '../alert/context'
 import { useInputSize } from '../input/context'
+import { Placeholder } from '../placeholder'
+import { useSkeleton } from '../skeleton/context'
 import { ButtonSizeProvider } from './context'
 import { iconSides, isIconOnly, kbdSides, withLoadingSpinner } from './utilities'
 import {
@@ -42,6 +45,11 @@ export function Button({
 	const alert = useAlertContext()
 
 	const inputSize = useInputSize()
+	const skeleton = useSkeleton()
+
+	const { onPointerDown: handleRipple, element: rippleElement } = useRipple()
+
+	const tap = useTap(spring)
 
 	if (!color && alert) {
 		color = alert.variant === 'solid' ? 'inherit' : alert.color
@@ -49,14 +57,20 @@ export function Button({
 
 	const resolvedSize = size ?? inputSize
 
+	if (skeleton) {
+		return (
+			<Placeholder
+				className={cn(kokkaku.button.base, kokkaku.button.size[resolvedSize ?? 'md'], className)}
+			/>
+		)
+	}
+
 	const renderedChildren = loading ? withLoadingSpinner(children) : children
 
 	const iconOnly = isIconOnly(renderedChildren)
 
 	const sides = iconOnly ? { start: false, end: false } : iconSides(renderedChildren)
 	const kbds = iconOnly ? { start: false, end: false } : kbdSides(renderedChildren)
-
-	const { onPointerDown: handleRipple, element: rippleElement } = useRipple()
 
 	const classes = cn(
 		buttonVariants({ variant, color, size: resolvedSize }),
@@ -76,8 +90,6 @@ export function Button({
 
 		consumerHandler?.(e)
 	}
-
-	const tap = useTap(spring)
 
 	if (href !== undefined) {
 		return (

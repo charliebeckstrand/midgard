@@ -1,5 +1,7 @@
 import { cn } from '../../core'
-import { katachi, narabi } from '../../recipes'
+import { katachi, kokkaku, narabi } from '../../recipes'
+import { Placeholder } from '../placeholder'
+import { useSkeleton } from '../skeleton/context'
 import {
 	type SwitchFieldVariants,
 	type SwitchVariants,
@@ -17,6 +19,14 @@ export type SwitchProps = SwitchVariants & {
 } & Omit<React.ComponentPropsWithoutRef<'input'>, 'className' | 'type' | 'size'>
 
 export function Switch({ className, color, size, ...props }: SwitchProps) {
+	if (useSkeleton()) {
+		return (
+			<Placeholder
+				className={cn(kokkaku.switch.base, kokkaku.switch.size[size ?? 'md'], className)}
+			/>
+		)
+	}
+
 	return (
 		<span
 			data-slot="control"

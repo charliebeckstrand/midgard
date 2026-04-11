@@ -1,5 +1,8 @@
 import { cn, Link } from '../../core'
 import type { PolymorphicProps } from '../../primitives'
+import { kokkaku } from '../../recipes'
+import { Placeholder } from '../placeholder'
+import { useSkeleton } from '../skeleton/context'
 import { type ChipVariants, chipVariants } from './variants'
 
 type ChipBaseProps = ChipVariants & {
@@ -18,6 +21,12 @@ export function Chip({
 	href,
 	...props
 }: ChipProps) {
+	if (useSkeleton()) {
+		return (
+			<Placeholder className={cn(kokkaku.chip.base, kokkaku.chip.size[size ?? 'md'], className)} />
+		)
+	}
+
 	const classes = cn(chipVariants({ variant, color, active, size }), className)
 
 	if (href !== undefined) {

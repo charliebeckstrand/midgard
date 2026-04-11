@@ -1,7 +1,9 @@
 import { createContext, use } from 'react'
 import { cn } from '../../core'
-import { katachi } from '../../recipes'
+import { katachi, kokkaku } from '../../recipes'
 import type { take } from '../../recipes/take'
+import { Placeholder } from '../placeholder'
+import { useSkeleton } from '../skeleton/context'
 import { StatusDot } from '../status'
 import {
 	type AvatarVariants,
@@ -67,8 +69,19 @@ export function Avatar({
 	...props
 }: AvatarProps) {
 	const groupSize = use(AvatarGroupSizeContext)
+	const skeleton = useSkeleton()
 
 	const resolvedSize = size ?? groupSize ?? 'md'
+
+	if (skeleton) {
+		return (
+			<AvatarSizeContext value={resolvedSize}>
+				<Placeholder
+					className={cn(kokkaku.avatar.base, kokkaku.avatar.size[resolvedSize], className)}
+				/>
+			</AvatarSizeContext>
+		)
+	}
 
 	const avatarEl = (
 		<span

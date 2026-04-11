@@ -1,6 +1,2 @@
-export {
-	Skeleton,
-	type SkeletonComponent,
-	type SkeletonProps,
-	skeletonComponents,
-} from './component'
+export { Skeleton, type SkeletonProps } from './component'
+export { SkeletonProvider, useSkeleton } from './context'

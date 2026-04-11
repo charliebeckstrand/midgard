@@ -1,5 +1,8 @@
 import { cn } from '../../core'
 import { Polymorphic, type PolymorphicProps } from '../../primitives'
+import { kokkaku } from '../../recipes'
+import { Placeholder } from '../placeholder'
+import { useSkeleton } from '../skeleton/context'
 import { type BadgeVariants, badgeVariants } from './variants'
 
 type BadgeBaseProps = BadgeVariants & {
@@ -17,6 +20,14 @@ export function Badge({
 	href,
 	...props
 }: BadgeProps) {
+	if (useSkeleton()) {
+		return (
+			<Placeholder
+				className={cn(kokkaku.badge.base, kokkaku.badge.size[size ?? 'md'], className)}
+			/>
+		)
+	}
+
 	return (
 		<Polymorphic
 			as="span"

@@ -3,7 +3,9 @@
 import { forwardRef } from 'react'
 import { cn } from '../../core'
 import { FormControl } from '../../primitives'
-import { katachi } from '../../recipes'
+import { katachi, kokkaku } from '../../recipes'
+import { Placeholder } from '../placeholder'
+import { useSkeleton } from '../skeleton/context'
 import { InputSizeProvider } from './context'
 import { type InputVariants, inputDateVariants, inputVariants } from './variants'
 
@@ -27,9 +29,19 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 	{ className, type, variant, size, prefix, suffix, ...props },
 	ref,
 ) {
+	const skeleton = useSkeleton()
+
 	const isDate = DATE_TYPES.has(type ?? '')
 
 	const resolvedSize = size ?? 'md'
+
+	if (skeleton) {
+		return (
+			<Placeholder
+				className={cn(kokkaku.input.base, kokkaku.input.size[resolvedSize], className)}
+			/>
+		)
+	}
 
 	const hasAffix = prefix !== undefined || suffix !== undefined
 
