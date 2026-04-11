@@ -67,6 +67,10 @@
 			"types": "./src/components/checkbox/index.ts",
 			"default": "./src/components/checkbox/index.ts"
 		},
+		"./collapse": {
+			"types": "./src/components/collapse/index.ts",
+			"default": "./src/components/collapse/index.ts"
+		},
 		"./combobox": {
 			"types": "./src/components/combobox/index.ts",
 			"default": "./src/components/combobox/index.ts"
