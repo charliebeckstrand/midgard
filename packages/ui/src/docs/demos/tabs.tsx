@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '../../components/tabs'
-import { Example } from '../example'
+import { Example } from '../components/example'
 
 export const meta = { category: 'Navigation' }
 

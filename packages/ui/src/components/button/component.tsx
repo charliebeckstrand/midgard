@@ -1,14 +1,13 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { Children, isValidElement, type PointerEvent } from 'react'
+import type { PointerEvent } from 'react'
 import { cn, Link } from '../../core'
 import { type PolymorphicProps, TouchTarget, useRipple, useTap } from '../../primitives'
 import { useAlertContext } from '../alert/context'
 import { useInputSize } from '../input/context'
-import { Kbd } from '../kbd'
-import { Spinner } from '../spinner'
 import { ButtonSizeProvider } from './context'
+import { iconSides, isIconOnly, kbdSides, withLoadingSpinner } from './utilities'
 import {
 	type ButtonVariants,
 	buttonVariants,
@@ -18,64 +17,6 @@ import {
 	withKbdEndSize,
 	withKbdStartSize,
 } from './variants'
-
-/** True for anything the button should treat as an icon — i.e., any element that isn't a <Kbd>. */
-function isIconLike(node: React.ReactNode): boolean {
-	if (!isValidElement(node)) return false
-
-	return node.type !== Kbd
-}
-
-/** Which sides of an icon + text button hold an icon */
-function iconSides(children: React.ReactNode): { start: boolean; end: boolean } {
-	const arr = Children.toArray(children)
-
-	if (arr.length < 2) return { start: false, end: false }
-
-	return {
-		start: isIconLike(arr[0]),
-		end: isIconLike(arr[arr.length - 1]),
-	}
-}
-
-/** True when the node is a <Kbd> child. */
-function isKbd(node: React.ReactNode): boolean {
-	if (!isValidElement(node)) return false
-
-	return node.type === Kbd
-}
-
-/** Which sides of a kbd + text button hold a Kbd */
-function kbdSides(children: React.ReactNode): { start: boolean; end: boolean } {
-	const arr = Children.toArray(children)
-
-	if (arr.length < 2) return { start: false, end: false }
-
-	return {
-		start: isKbd(arr[0]),
-		end: isKbd(arr[arr.length - 1]),
-	}
-}
-
-/** A single icon child — treat as icon-only */
-function isIconOnly(children: React.ReactNode): boolean {
-	const arr = Children.toArray(children)
-
-	return arr.length === 1 && isIconLike(arr[0])
-}
-
-/** Replace a leading icon with a Spinner, or prepend one if none exists */
-function withLoadingSpinner(children: React.ReactNode): React.ReactNode {
-	const arr = Children.toArray(children)
-
-	const spinner = <Spinner key="loading-spinner" />
-
-	if (arr.length > 0 && isIconLike(arr[0])) {
-		return [spinner, ...arr.slice(1)]
-	}
-
-	return [spinner, ...arr]
-}
 
 type ButtonBaseProps = ButtonVariants & {
 	className?: string
@@ -94,11 +35,12 @@ export function Button({
 	children,
 	href,
 	ripple = false,
-	spring = true,
+	spring = false,
 	loading = false,
 	...props
 }: ButtonProps) {
 	const alert = useAlertContext()
+
 	const inputSize = useInputSize()
 
 	if (!color && alert) {
@@ -110,6 +52,7 @@ export function Button({
 	const renderedChildren = loading ? withLoadingSpinner(children) : children
 
 	const iconOnly = isIconOnly(renderedChildren)
+
 	const sides = iconOnly ? { start: false, end: false } : iconSides(renderedChildren)
 	const kbds = iconOnly ? { start: false, end: false } : kbdSides(renderedChildren)
 

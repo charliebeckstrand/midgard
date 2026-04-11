@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Field, Label } from '../../components/fieldset'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 import { code } from '../code'
-import { Example } from '../example'
+import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
 

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Field, Label } from '../../components/fieldset'
 import { NumberInput } from '../../components/number-input'
 import { code } from '../code'
-import { Example } from '../example'
+import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
 
@@ -61,7 +61,7 @@ export default function NumberInputDemo() {
 			</Example>
 
 			<Example title="Sizes">
-				<div className="flex flex-col gap-4">
+				<div className="space-y-4">
 					<div className="lg:max-w-xs">
 						<Field>
 							<Label>Small</Label>

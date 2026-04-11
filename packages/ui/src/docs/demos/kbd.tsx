@@ -1,6 +1,6 @@
 import { Button } from '../../components/button'
 import { Kbd } from '../../components/kbd'
-import { Example } from '../example'
+import { Example } from '../components/example'
 
 export const meta = { category: 'Data Display' }
 

@@ -1,10 +1,10 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { CodeBlock } from '../components/code'
-import { Disclosure, DisclosureButton, DisclosurePanel } from '../components/disclosure'
-import { Heading } from '../components/heading'
-import { deriveCode } from './derive-code'
+import { CodeBlock } from '../../components/code'
+import { Disclosure, DisclosureButton, DisclosurePanel } from '../../components/disclosure'
+import { Heading } from '../../components/heading'
+import { deriveCode } from '../derive-code'
 
 export function Example({
 	title,
@@ -43,9 +43,10 @@ export function Example({
 							</DisclosureButton>
 						</div>
 						<DisclosurePanel>
-							<div className="overflow-hidden rounded-b-lg border-t border-zinc-200 dark:border-zinc-800">
-								<CodeBlock code={resolvedCode} />
-							</div>
+							<CodeBlock
+								code={resolvedCode}
+								className="rounded-t-none border-t border-zinc-200 dark:border-zinc-800"
+							/>
 						</DisclosurePanel>
 					</Disclosure>
 				)}

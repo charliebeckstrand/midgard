@@ -1,5 +1,5 @@
 import { DescriptionDetails, DescriptionList, DescriptionTerm } from '../../components/dl'
-import { Example } from '../example'
+import { Example } from '../components/example'
 
 export const meta = { name: 'DL', category: 'Data Display' }
 

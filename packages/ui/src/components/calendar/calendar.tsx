@@ -188,7 +188,7 @@ export const Calendar = forwardRef<CalendarHandle, CalendarProps>(function Calen
 					aria-label="Previous month"
 					className={cn(headerActiveIndex === 0 && k.day.active)}
 				>
-					<ChevronLeft className={k.navIcon} />
+					<ChevronLeft className={k.nav.icon} />
 				</Button>
 				<CalendarPicker
 					year={year}
@@ -206,7 +206,7 @@ export const Calendar = forwardRef<CalendarHandle, CalendarProps>(function Calen
 					aria-label="Next month"
 					className={cn(headerActiveIndex === 2 && k.day.active)}
 				>
-					<ChevronRight className={k.navIcon} />
+					<ChevronRight className={k.nav.icon} />
 				</Button>
 			</div>
 
@@ -256,6 +256,7 @@ export const Calendar = forwardRef<CalendarHandle, CalendarProps>(function Calen
 									isFirst ? { gridColumnStart: new Date(year, month, 1).getDay() + 1 } : undefined
 								}
 								className={cn(
+									k.day.base,
 									isActive && (selected ? k.day.activeSelected : k.day.active),
 									dayProps?.className,
 								)}

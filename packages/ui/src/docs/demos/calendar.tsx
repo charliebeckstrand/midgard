@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Calendar } from '../../components/calendar'
-import { Example } from '../example'
+import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
 
@@ -17,7 +17,7 @@ export default function CalendarDemo() {
 
 	return (
 		<div className="space-y-8">
-			<Example title="Basic">
+			<Example title="Default">
 				<Calendar value={date} onChange={setDate} />
 			</Example>
 

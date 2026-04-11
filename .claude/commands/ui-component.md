@@ -464,7 +464,7 @@ export default function <Name>Demo() {
   return (
     <div className="space-y-8">
       <Example
-        title="Basic"
+        title="Default"
         code={code`
           import { <Name>, <Name>Header, <Name>Body } from 'ui/<name>'
 

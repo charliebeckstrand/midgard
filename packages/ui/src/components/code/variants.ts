@@ -3,10 +3,21 @@ import { katachi } from '../../recipes'
 
 const k = katachi.code
 
-export const codeVariants = cva(k.inline)
+export const codeVariants = cva(k.inline.base, {
+	variants: { size: k.inline.size },
+	defaultVariants: { size: 'md' },
+})
 
 export type CodeVariants = VariantProps<typeof codeVariants>
 
-export const codeBlockVariants = cva(k.block.base)
+export const codeBlockVariants = cva(k.block.base, {
+	variants: {
+		inline: {
+			true: k.block.inline,
+			false: '',
+		},
+	},
+	defaultVariants: { inline: false },
+})
 
 export type CodeBlockVariants = VariantProps<typeof codeBlockVariants>

@@ -1,26 +1,32 @@
 import { maru } from '../maru'
+import { narabi } from '../narabi'
+import { sumi, yoru } from '../sumi'
 
 const blockBg = 'bg-[#0d1117]'
-const blockPre = ['overflow-x-auto', 'p-4', 'pr-14', 'text-sm/6'] as const
 
 export const code = {
-	inline: [
-		'font-mono text-[0.875em]',
-		'px-1.5 py-0.5',
-		'bg-zinc-950/[0.06] dark:bg-white/10',
-		maru.roundedMd,
-	],
+	inline: {
+		base: ['font-mono py-0.75', 'bg-zinc-950/[0.06] dark:bg-white/10 mx-0.5', maru.roundedMd],
+		size: {
+			sm: ['text-[0.625rem]', 'p-1'],
+			md: ['text-xs', 'p-1.25'],
+			lg: ['text-sm', 'p-1.5'],
+		},
+	},
 	block: {
 		base: ['relative overflow-hidden', blockBg, maru.rounded],
-		content: blockPre.map((c) => `[&_pre]:${c}`),
-		fallback: [...blockPre, 'text-zinc-400'],
+		inline: 'w-fit max-w-full',
+		content: '[&_pre]:overflow-x-auto [&_pre]:p-4 [&_pre]:pr-14 [&_pre]:text-sm/6',
+		fallback: ['overflow-x-auto p-4 pr-14 text-sm/6', 'text-zinc-400'],
+		copyWrapper: ['absolute top-0 right-0 z-10 p-3', blockBg],
 		copy: [
-			'absolute top-2 right-2 z-10',
-			blockBg,
-			'flex size-8 items-center justify-center rounded-md',
-			'text-zinc-400 transition-colors',
-			'not-disabled:hover:text-white not-disabled:focus-visible:text-white',
-			'disabled:text-green-500',
+			narabi.position.center,
+			'size-8',
+			maru.rounded,
+			sumi.textMuted,
+			yoru.textHover,
+			yoru.textFocus,
+			'disabled:text-green-600',
 		],
 	},
 }

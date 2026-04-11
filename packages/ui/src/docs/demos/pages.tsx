@@ -5,7 +5,7 @@ import { Heading } from '../../components/heading'
 import { Input } from '../../components/input'
 import { PasswordInput } from '../../components/input/password'
 import { AuthPage } from '../../pages'
-import { Example } from '../example'
+import { Example } from '../components/example'
 
 export const meta = { category: 'Layout' }
 
@@ -26,7 +26,7 @@ export default function PagesDemo() {
 
 	return (
 		<Example>
-			<div className="space-y-6">
+			<div className="space-y-4">
 				<div className="flex gap-2">
 					{(['login', 'register', 'forgot-password'] as const).map((p) => (
 						<Button key={p} variant={page === p ? 'solid' : 'outline'} onClick={() => setPage(p)}>

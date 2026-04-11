@@ -2,14 +2,14 @@ import { ArrowDown, ArrowUp } from 'lucide-react'
 import { Card, CardBody } from '../../components/card'
 import { Icon } from '../../components/icon'
 import { Stat, StatDelta, StatDescription, StatLabel, StatValue } from '../../components/stat'
-import { Example } from '../example'
+import { Example } from '../components/example'
 
 export const meta = { category: 'Data Display' }
 
 export default function StatDemo() {
 	return (
 		<div className="space-y-8">
-			<Example title="Basic">
+			<Example title="Default">
 				<Stat>
 					<StatLabel>Monthly recurring revenue</StatLabel>
 					<StatValue>$12,345</StatValue>

@@ -1,6 +1,6 @@
 'use client'
 
-import { Listbox, ListboxLabel, ListboxOption } from '../components/listbox'
+import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 
 export const sizeLabels: Record<string, string> = {
 	xs: 'Extra small',

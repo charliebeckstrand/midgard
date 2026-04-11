@@ -1,5 +1,6 @@
 import { kage } from '../kage'
 import { maru } from '../maru'
+import { narabi } from '../narabi'
 import { nuri } from '../nuri'
 import { sumi } from '../sumi'
 import { yasumi } from '../yasumi'
@@ -22,7 +23,8 @@ export const stepper = {
 	},
 	content: 'flex flex-1 flex-col gap-1',
 	indicator: [
-		'relative flex size-7 shrink-0 items-center justify-center',
+		narabi.position.center,
+		'relative size-7 shrink-0',
 		'text-sm',
 		maru.roundedFull,
 		kage.borderSubtle,

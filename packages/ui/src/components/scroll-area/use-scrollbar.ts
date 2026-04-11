@@ -78,9 +78,26 @@ export function useScrollbar({ orientation, scrollbar }: UseScrollbarOptions) {
 		const el = viewportRef.current
 		if (!el) return
 
+		let locked: { top: number; left: number } | null = null
+
+		const lock = () => {
+			locked = { top: el.scrollTop, left: el.scrollLeft }
+		}
+		const unlock = () => {
+			locked = null
+		}
+
+		const handleKeyDown = (event: KeyboardEvent) => {
+			if (event.key === 'Shift' && !locked) lock()
+		}
+		const handleKeyUp = (event: KeyboardEvent) => {
+			if (event.key === 'Shift') unlock()
+		}
+
 		const handleWheel = (event: WheelEvent) => {
 			if (!event.shiftKey) return
 			event.preventDefault()
+			if (!locked) lock()
 
 			const target = findScrollableAncestor(el.parentElement)
 			const options: ScrollToOptions = { top: event.deltaY, left: event.deltaX, behavior: 'auto' }
@@ -88,8 +105,25 @@ export function useScrollbar({ orientation, scrollbar }: UseScrollbarOptions) {
 			else window.scrollBy(options)
 		}
 
+		const handleScrollLock = () => {
+			if (!locked) return
+			if (el.scrollTop !== locked.top) el.scrollTop = locked.top
+			if (el.scrollLeft !== locked.left) el.scrollLeft = locked.left
+		}
+
+		window.addEventListener('keydown', handleKeyDown)
+		window.addEventListener('keyup', handleKeyUp)
+		window.addEventListener('blur', unlock)
 		el.addEventListener('wheel', handleWheel, { passive: false })
-		return () => el.removeEventListener('wheel', handleWheel)
+		el.addEventListener('scroll', handleScrollLock)
+
+		return () => {
+			window.removeEventListener('keydown', handleKeyDown)
+			window.removeEventListener('keyup', handleKeyUp)
+			window.removeEventListener('blur', unlock)
+			el.removeEventListener('wheel', handleWheel)
+			el.removeEventListener('scroll', handleScrollLock)
+		}
 	}, [])
 
 	const handleScroll = useCallback(() => {

@@ -4,10 +4,10 @@ import { Plus } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
-import { ColorListbox } from '../color-listbox'
-import { Example } from '../example'
-import { SizeListbox, sizeLabels } from '../size-listbox'
-import { VariantListbox } from '../variant-listbox'
+import { ColorListbox } from '../components/color-listbox'
+import { Example } from '../components/example'
+import { SizeListbox, sizeLabels } from '../components/size-listbox'
+import { VariantListbox } from '../components/variant-listbox'
 
 export const meta = { category: 'Forms' }
 
@@ -17,15 +17,16 @@ const colorVariants = ['solid', 'soft', 'outline', 'plain', 'ghost'] as const
 
 const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 
-const sizes = ['xs', 'sm', 'md', 'lg'] as const
+export const sizes = ['xs', 'sm', 'md', 'lg'] as const
 
 type Size = (typeof sizes)[number]
 
 export default function ButtonDemo() {
 	const [colorVariant, setColorVariant] = useState<(typeof colorVariants)[number]>('solid')
+	const [rippleColor, setRippleColor] = useState<(typeof colors)[number]>('zinc')
+
 	const [iconSize, setIconSize] = useState<Size>('md')
 	const [iconOnlySize, setIconOnlySize] = useState<Size>('md')
-	const [rippleColor, setRippleColor] = useState<(typeof colors)[number]>('zinc')
 
 	return (
 		<div className="space-y-8">
@@ -101,6 +102,9 @@ export default function ButtonDemo() {
 						</Button>
 					))}
 				</div>
+			</Example>
+			<Example title="Spring">
+				<Button spring>Spring</Button>
 			</Example>
 			<Example title="Disabled">
 				<Button disabled>Disabled</Button>

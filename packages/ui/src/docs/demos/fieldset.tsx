@@ -2,7 +2,7 @@ import { Description, Field, Fieldset, Label, Legend } from '../../components/fi
 import { Input } from '../../components/input'
 import { Select, SelectLabel, SelectOption } from '../../components/select'
 import { Textarea } from '../../components/textarea'
-import { Example } from '../example'
+import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
 
@@ -11,7 +11,7 @@ export default function FieldsetDemo() {
 		<Example>
 			<Fieldset className="lg:max-w-lg">
 				<Legend>Profile</Legend>
-				<div className="space-y-6">
+				<div className="space-y-4">
 					<Field>
 						<Label htmlFor="fieldset-name">Full name</Label>
 						<Input id="fieldset-name" placeholder="Jane Smith" />

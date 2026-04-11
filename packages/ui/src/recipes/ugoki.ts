@@ -92,6 +92,14 @@ export const ugoki = {
 		transition: { duration: 0.1, ease: 'easeOut' as const },
 	},
 
+	/** Collapse — height + opacity reveal for disclosure panels */
+	collapse: {
+		initial: { height: 0, opacity: 0 },
+		animate: { height: 'auto', opacity: 1 },
+		exit: { height: 0, opacity: 0 },
+		transition: { duration: 0.2, ease: 'easeInOut' as const },
+	},
+
 	/** Slide panel — complete motion configs per direction */
 	panel: {
 		right: slideConfig('x', '100%'),

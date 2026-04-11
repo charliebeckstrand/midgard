@@ -1,7 +1,7 @@
 import { Button } from '../../components/button'
 import { Toast, useToast } from '../../components/toast'
 import { code } from '../code'
-import { Example } from '../example'
+import { Example } from '../components/example'
 
 export const meta = { category: 'Feedback' }
 

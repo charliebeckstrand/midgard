@@ -38,13 +38,13 @@ export function useRipple() {
 	const element = (
 		<span
 			aria-hidden
-			className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]"
+			className="absolute inset-0 overflow-hidden rounded-[inherit] pointer-events-none"
 		>
 			<AnimatePresence>
 				{ripples.map((r) => (
 					<motion.span
 						key={r.key}
-						className="absolute rounded-full bg-current"
+						className="absolute bg-current rounded-full"
 						style={{
 							left: r.x - r.size / 2,
 							top: r.y - r.size / 2,

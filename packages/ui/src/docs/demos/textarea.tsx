@@ -1,6 +1,6 @@
 import { Field, Label } from '../../components/fieldset'
 import { Textarea } from '../../components/textarea'
-import { Example } from '../example'
+import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
 

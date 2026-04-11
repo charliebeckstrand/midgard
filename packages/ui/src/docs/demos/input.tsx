@@ -2,7 +2,7 @@ import { Check, Command, Hash, Lock, Search, Share } from 'lucide-react'
 import { Field, Label } from '../../components/fieldset'
 import { Icon } from '../../components/icon'
 import { Input } from '../../components/input'
-import { Example } from '../example'
+import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
 
@@ -15,14 +15,20 @@ export default function InputDemo() {
 					<Input id="input-default" placeholder="Enter text" />
 				</Field>
 			</Example>
-			<Example title="Outline">
-				<Field className="lg:max-w-sm">
-					<Label htmlFor="input-outline">Outline</Label>
-					<Input id="input-outline" variant="outline" placeholder="Enter text" />
-				</Field>
+			<Example title="Variants">
+				<div className="space-y-4">
+					<Field className="lg:max-w-sm">
+						<Label htmlFor="input-default">Default</Label>
+						<Input id="input-default" placeholder="Enter text" />
+					</Field>
+					<Field className="lg:max-w-sm">
+						<Label htmlFor="input-outline">Outline</Label>
+						<Input id="input-outline" variant="outline" placeholder="Enter text" />
+					</Field>
+				</div>
 			</Example>
 			<Example title="Sizes">
-				<div className="flex flex-col gap-4">
+				<div className="space-y-4">
 					<div className="flex lg:max-w-xs flex-col gap-4">
 						<Field>
 							<Label>Small</Label>
@@ -57,7 +63,7 @@ export default function InputDemo() {
 				</div>
 			</Example>
 			<Example title="Prefix and suffix">
-				<div className="flex flex-col gap-4">
+				<div className="space-y-4">
 					<div className="flex lg:max-w-xs flex-col gap-4">
 						<Input
 							size="sm"

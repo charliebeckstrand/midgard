@@ -11,8 +11,8 @@ import {
 	StepperStep,
 	StepperTitle,
 } from '../../components/stepper'
-import { Example } from '../example'
-import { ValueStepper } from '../value-stepper'
+import { Example } from '../components/example'
+import { ValueStepper } from '../components/value-stepper'
 
 export const meta = { category: 'Navigation' }
 

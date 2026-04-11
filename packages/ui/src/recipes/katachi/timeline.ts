@@ -1,3 +1,4 @@
+import { narabi } from '../narabi'
 import { sumi } from '../sumi'
 
 export const timeline = {
@@ -28,7 +29,7 @@ export const timeline = {
 		},
 	},
 	marker: {
-		base: ['z-10 flex items-center justify-center', 'size-3.5 rounded-full'],
+		base: [narabi.position.center, 'z-10 size-3.5 rounded-full'],
 		solid: 'bg-zinc-300 dark:bg-zinc-600',
 		outline: 'border-2 border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900',
 		active: {

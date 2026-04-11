@@ -1,6 +1,6 @@
 import { Checkbox, CheckboxField, CheckboxGroup } from '../../components/checkbox'
 import { Description, Label } from '../../components/fieldset'
-import { Example } from '../example'
+import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
 

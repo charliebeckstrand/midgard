@@ -1,6 +1,6 @@
 'use client'
 
-import { Listbox, ListboxLabel, ListboxOption } from '../components/listbox'
+import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 
 interface VariantListboxProps<T extends string> {
 	variants: readonly T[]

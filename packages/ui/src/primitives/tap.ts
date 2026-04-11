@@ -11,7 +11,7 @@ export function useTap(enabled = true) {
 	if (!enabled) return {}
 
 	return {
-		whileTap: { scale: 0.97 } as const,
+		whileTap: { scale: 0.95 } as const,
 		transition: ugoki.spring,
 	}
 }

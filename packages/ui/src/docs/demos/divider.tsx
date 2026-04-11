@@ -1,5 +1,5 @@
 import { Divider } from '../../components/divider'
-import { Example } from '../example'
+import { Example } from '../components/example'
 
 export const meta = { category: 'Layout' }
 

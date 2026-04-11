@@ -2,9 +2,9 @@
 
 import { useState } from 'react'
 import { Avatar, AvatarGroup } from '../../components/avatar'
-import { Example } from '../example'
-import { SizeListbox } from '../size-listbox'
-import { VariantListbox } from '../variant-listbox'
+import { Example } from '../components/example'
+import { SizeListbox } from '../components/size-listbox'
+import { VariantListbox } from '../components/variant-listbox'
 
 export const meta = { category: 'Data Display' }
 

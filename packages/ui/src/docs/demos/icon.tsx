@@ -3,7 +3,7 @@
 import { Heart, Plus, Search, Star } from 'lucide-react'
 import { Alert, AlertDescription } from '../../components/alert'
 import { Icon } from '../../components/icon'
-import { Example } from '../example'
+import { Example } from '../components/example'
 
 export const meta = { category: 'Data Display' }
 
@@ -12,7 +12,13 @@ const sizes = ['xs', 'sm', 'md', 'lg'] as const
 export default function IconDemo() {
 	return (
 		<div className="space-y-8">
-			<Example title="Usage">
+			<Alert type="info" closable>
+				<AlertDescription>
+					The Icon component can wrap any SVG icon component. It provides consistent sizing and
+					accessibility features across different icon libraries.
+				</AlertDescription>
+			</Alert>
+			<Example title="Default">
 				<div className="flex items-center gap-4 dark:text-white">
 					<Icon icon={<Search />} />
 					<Icon icon={<Heart />} />
@@ -33,14 +39,6 @@ export default function IconDemo() {
 				<div className="dark:text-white">
 					<Icon icon={<Star />} size={32} />
 				</div>
-			</Example>
-			<Example title="Any icon library">
-				<Alert type="info">
-					<AlertDescription>
-						The Icon component can wrap any SVG icon component, not just those from Lucide. It
-						provides consistent sizing and accessibility features across different icon libraries.
-					</AlertDescription>
-				</Alert>
 			</Example>
 		</div>
 	)

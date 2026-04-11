@@ -6,15 +6,18 @@ export const buttonWithIcon = {
 		xs: 'pr-[calc(--spacing(2)-1px)]',
 		sm: 'pr-[calc(--spacing(3)-1px)]',
 		md: 'pr-[calc(--spacing(4)-1px)]',
-		lg: 'pr-[calc(--spacing(6)-1px)]',
+		lg: 'pr-[calc(--spacing(5)-1px)]',
 	},
 	end: {
 		xs: 'pl-[calc(--spacing(2)-1px)]',
 		sm: 'pl-[calc(--spacing(3)-1px)]',
 		md: 'pl-[calc(--spacing(4)-1px)]',
-		lg: 'pl-[calc(--spacing(6)-1px)]',
+		lg: 'pl-[calc(--spacing(5)-1px)]',
 	},
 }
+
+/** Icon-only button dimensions (touch target slightly larger than text button) */
+export const buttonWithIconSize = { xs: 'size-6', sm: 'size-7', md: 'size-9', lg: 'size-11' }
 
 /** Extra padding opposite a Kbd child — half the icon offset, since Kbd carries less visual weight */
 export const buttonWithKbd = {
@@ -38,6 +41,18 @@ export const buttonWithSpinner = {
 	sm: 'has-[[data-slot=spinner]]:gap-1.5',
 	md: 'has-[[data-slot=spinner]]:gap-2',
 	lg: 'has-[[data-slot=spinner]]:gap-2.5',
+	start: {
+		xs: 'pr-[calc(--spacing(2)-1px)]',
+		sm: 'pr-[calc(--spacing(3)-1px)]',
+		md: 'pr-[calc(--spacing(4)-1px)]',
+		lg: 'pr-[calc(--spacing(5)-1px)]',
+	},
+	end: {
+		xs: 'pl-[calc(--spacing(2)-1px)]',
+		sm: 'pl-[calc(--spacing(3)-1px)]',
+		md: 'pl-[calc(--spacing(4)-1px)]',
+		lg: 'pl-[calc(--spacing(5)-1px)]',
+	},
 }
 
 /** Button density (padding offset by 1px for border, includes gap + text + icon slot) */
@@ -48,6 +63,8 @@ export const button = {
 		text.xs,
 		iconSlot.xs,
 		buttonWithSpinner.xs,
+		buttonWithSpinner.start.xs,
+		buttonWithSpinner.end.xs,
 	],
 	sm: [
 		'px-[calc(--spacing(1.5)-1px)] py-[calc(--spacing(1.5)-1px)]',
@@ -55,6 +72,8 @@ export const button = {
 		text.sm,
 		iconSlot.sm,
 		buttonWithSpinner.sm,
+		buttonWithSpinner.start.sm,
+		buttonWithSpinner.end.sm,
 	],
 	md: [
 		'px-[calc(--spacing(2)-1px)] py-[calc(--spacing(2)-1px)]',
@@ -62,6 +81,8 @@ export const button = {
 		text.md,
 		iconSlot.md,
 		buttonWithSpinner.md,
+		buttonWithSpinner.start.md,
+		buttonWithSpinner.end.md,
 	],
 	lg: [
 		'px-[calc(--spacing(3)-1px)] py-[calc(--spacing(2.5)-1px)]',
@@ -69,8 +90,7 @@ export const button = {
 		text.lg,
 		iconSlot.lg,
 		buttonWithSpinner.lg,
+		buttonWithSpinner.start.lg,
+		buttonWithSpinner.end.lg,
 	],
 }
-
-/** Icon-only button dimensions (touch target slightly larger than text button) */
-export const buttonIcon = { xs: 'size-6', sm: 'size-7', md: 'size-9', lg: 'size-11' }

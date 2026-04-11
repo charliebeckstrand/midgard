@@ -24,7 +24,7 @@ import {
 } from '../../components/command-palette'
 import { Icon } from '../../components/icon'
 import { Kbd } from '../../components/kbd'
-import { Example } from '../example'
+import { Example } from '../components/example'
 
 export const meta = { category: 'Overlay' }
 

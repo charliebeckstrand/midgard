@@ -244,7 +244,7 @@ function DatePickerSingle({
 									active={open ? active : null}
 									onPickerOpenChange={handlePickerOpenChange}
 								/>
-								<div data-slot="calendar-footer" className={katachi.calendar.footer}>
+								<div data-slot="calendar-footer" className={cn(katachi.calendar.footer)}>
 									{value != null && (
 										<Button
 											variant="soft"

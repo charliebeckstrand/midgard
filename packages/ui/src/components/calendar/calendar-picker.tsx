@@ -113,7 +113,7 @@ export function CalendarPicker({
 								onClick={() => setPickerYear((y) => y - 1)}
 								aria-label="Previous year"
 							>
-								<ChevronLeft className={k.navIcon} />
+								<ChevronLeft className={k.nav.icon} />
 							</Button>
 							<Button
 								variant="plain"
@@ -132,7 +132,7 @@ export function CalendarPicker({
 								onClick={() => setPickerYear((y) => y + 1)}
 								aria-label="Next year"
 							>
-								<ChevronRight className={k.navIcon} />
+								<ChevronRight className={k.nav.icon} />
 							</Button>
 						</div>
 						<div
@@ -168,7 +168,7 @@ export function CalendarPicker({
 								onClick={() => setDecadeYear((y) => y - 10)}
 								aria-label="Previous decade"
 							>
-								<ChevronLeft className={k.navIcon} />
+								<ChevronLeft className={k.nav.icon} />
 							</Button>
 							<Button
 								variant="plain"
@@ -185,7 +185,7 @@ export function CalendarPicker({
 								onClick={() => setDecadeYear((y) => y + 10)}
 								aria-label="Next decade"
 							>
-								<ChevronRight className={k.navIcon} />
+								<ChevronRight className={k.nav.icon} />
 							</Button>
 						</div>
 						<div

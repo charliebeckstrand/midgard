@@ -1,6 +1,6 @@
 import { Button } from '../../components/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
-import { Example } from '../example'
+import { Example } from '../components/example'
 
 export const meta = { category: 'Overlay' }
 
@@ -9,7 +9,7 @@ const placements = ['left', 'top', 'bottom', 'right'] as const
 export default function TooltipDemo() {
 	return (
 		<div className="space-y-8">
-			<Example title="Basic">
+			<Example title="Default">
 				<Tooltip>
 					<TooltipTrigger>
 						<Button variant="outline">Hover me</Button>

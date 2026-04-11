@@ -1,20 +1,24 @@
+import { narabi } from '../narabi'
 import { nuri } from '../nuri'
 import { sumi } from '../sumi'
 
 export const calendar = {
-	root: 'inline-flex flex-col p-3 select-none min-w-72 [&:not(:has(+[data-slot=calendar-footer]))]:pb-4',
+	root: 'inline-flex flex-col min-w-72 p-3 [&:not(:has(+[data-slot=calendar-footer]))]:pb-4 select-none',
+	grid: 'grid grid-cols-7',
 	header: 'flex items-center justify-between mb-2',
+	footer: [narabi.position.center, 'gap-2 px-3 pb-3'],
+	nav: {
+		icon: 'size-4.5',
+	},
 	picker: {
 		grid: 'grid grid-cols-3 gap-1 p-2',
 		cellCurrent: ['font-semibold', ...nuri.buttonSoft.blue],
 	},
-	navIcon: 'size-4.5',
-	grid: 'grid grid-cols-7',
-	weekday: [sumi.textMuted, 'flex items-center justify-center size-9 text-xs font-medium'],
-	footer: 'flex items-center justify-center gap-2 px-3 pb-3',
+	weekday: [narabi.position.center, 'w-full aspect-square text-xs font-medium', sumi.textMuted],
 	day: {
+		base: 'w-full aspect-square p-0 ring-inset',
 		active: 'ring-2 ring-inset ring-blue-600',
-		activeSelected: 'bg-blue-500',
+		activeSelected: 'bg-blue-600',
 		rangeLeftEdge: 'rounded-r-none',
 		rangeRightEdge: 'rounded-l-none',
 	},
