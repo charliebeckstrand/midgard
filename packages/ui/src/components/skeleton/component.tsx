@@ -44,7 +44,7 @@ const presets = {
 		</div>
 	),
 	chip: () => <Placeholder variant="rect" className="h-7 w-20 rounded-full" />,
-	heading: () => <Placeholder className="h-7 w-3/4" />,
+	heading: () => <Placeholder className="h-7 w-1/2" />,
 	input: () => <Placeholder variant="rect" className="h-10 w-full max-w-sm rounded-lg" />,
 	listbox: () => (
 		<div className="w-full max-w-sm space-y-2 rounded-lg border border-zinc-200 p-2 dark:border-zinc-800">
@@ -99,12 +99,6 @@ const presets = {
 			))}
 		</div>
 	),
-	slider: () => (
-		<div className="flex w-full max-w-sm items-center">
-			<Placeholder className="h-1.5 flex-1 rounded-full" />
-			<Placeholder variant="circle" className="-ml-2 size-4" />
-		</div>
-	),
 	stat: () => (
 		<div className="space-y-2">
 			<Placeholder className="h-3 w-24" />
@@ -147,9 +141,9 @@ const presets = {
 	),
 	text: () => (
 		<div className="w-full max-w-md space-y-2">
-			<Placeholder className="h-3" />
-			<Placeholder className="h-3" />
 			<Placeholder className="h-3 max-w-[70%]" />
+			<Placeholder className="h-3 max-w-[90%]" />
+			<Placeholder className="h-3 max-w-[50%]" />
 		</div>
 	),
 	textarea: () => <Placeholder variant="rect" className="h-28 w-full max-w-sm rounded-lg" />,

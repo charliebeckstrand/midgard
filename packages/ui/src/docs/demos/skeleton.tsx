@@ -20,7 +20,7 @@ function SkeletonPicker() {
 					value={selected}
 					onChange={setSelected}
 					displayValue={(v) => v}
-					placeholder="Search components…"
+					placeholder="Search components"
 				>
 					{(query) =>
 						skeletonComponents
@@ -33,9 +33,11 @@ function SkeletonPicker() {
 					}
 				</Combobox>
 			</Field>
-			<div className="flex min-h-48 items-center justify-center rounded-lg border border-dashed border-zinc-300 p-8 dark:border-zinc-700">
+			<div className="flex items-center rounded-lg border border-dashed border-zinc-300 p-8 dark:border-zinc-700">
 				{selected ? (
-					<Skeleton component={selected} />
+					<div className="w-full max-w-xl">
+						<Skeleton component={selected} />
+					</div>
 				) : (
 					<p className="text-sm text-zinc-500">Pick a component to preview its skeleton.</p>
 				)}
@@ -87,13 +89,13 @@ export default function SkeletonDemo() {
 				code={code`
 					import { Skeleton } from 'ui/skeleton'
 
-					<Skeleton component="card" />
 					<Skeleton component="button" />
 					<Skeleton component="avatar" />
+					<Skeleton component="badge" />
 				`}
 			>
 				<div className="flex flex-wrap items-start gap-8">
-					<Skeleton component="card" />
+					{/* <Skeleton component="card" /> */}
 					<div className="space-y-4">
 						<Skeleton component="button" />
 						<Skeleton component="avatar" />

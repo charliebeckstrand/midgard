@@ -3,7 +3,7 @@ import { maru } from '../maru'
 import { sumi } from '../sumi'
 
 export const card = {
-	base: ['overflow-hidden', maru.rounded],
+	base: ['overflow-hidden', maru.rounded, '[&:not(:has(>[data-slot^=card-]))]:p-5'],
 	variant: {
 		solid: ['bg-zinc-100 dark:bg-zinc-800', kage.border],
 		outline: [kage.border],

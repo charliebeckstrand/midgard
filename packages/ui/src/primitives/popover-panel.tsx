@@ -27,10 +27,17 @@ export function PopoverPanel({
 	const handleKeyDown = useMenuKeyboard(menuRef, itemSelector)
 
 	useEffect(() => {
-		if (autoFocus && menuRef.current) {
+		if (!autoFocus || !menuRef.current) return
+
+		const selected = menuRef.current.querySelector<HTMLElement>(`${itemSelector}[data-selected]`)
+
+		if (selected) {
+			selected.focus()
+			selected.scrollIntoView({ block: 'nearest' })
+		} else {
 			menuRef.current.focus()
 		}
-	}, [autoFocus])
+	}, [autoFocus, itemSelector])
 
 	return (
 		<motion.div

@@ -184,12 +184,12 @@ export function Combobox<T>({
 
 	const rendered = typeof children === 'function' ? children(query) : children
 
-	// Mark the sole visible option as active so it highlights without stealing focus
-	// Derive a key from rendered children so the effect re-runs as the list filters
+	// Mark the active option so it highlights without stealing focus from the input.
+	// Derive a key from rendered children so the effect re-runs as the list filters.
 	const childCount = Array.isArray(rendered) ? rendered.length : rendered ? 1 : 0
 
 	useEffect(() => {
-		if (!editing || !open || !childCount) return
+		if (!open || !childCount) return
 
 		const container = optionsRef.current
 
@@ -198,9 +198,23 @@ export function Combobox<T>({
 		// Clear any previous active marker
 		for (const el of container.querySelectorAll('[data-active]')) el.removeAttribute('data-active')
 
-		const items = container.querySelectorAll<HTMLElement>('[role="option"]:not([data-disabled])')
+		if (editing) {
+			// During search, highlight the sole visible option so Enter can select it
+			const items = container.querySelectorAll<HTMLElement>('[role="option"]:not([data-disabled])')
 
-		if (items.length === 1) items[0]?.setAttribute('data-active', '')
+			if (items.length === 1) items[0]?.setAttribute('data-active', '')
+		} else {
+			// On open, highlight the currently selected option (if any)
+			const selected = container.querySelector<HTMLElement>(
+				'[role="option"]:not([data-disabled])[data-selected]',
+			)
+
+			if (selected) {
+				selected.setAttribute('data-active', '')
+
+				selected.scrollIntoView({ block: 'center' })
+			}
+		}
 	}, [editing, open, childCount])
 
 	return (
