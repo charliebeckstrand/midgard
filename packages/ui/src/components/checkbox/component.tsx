@@ -1,7 +1,7 @@
 import { Check } from 'lucide-react'
 import { cn } from '../../core'
 import { ToggleField, ToggleGroup } from '../../primitives'
-import { katachi } from '../../recipes'
+import { katachi, kokkaku } from '../../recipes'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
 import {
@@ -20,7 +20,7 @@ export type CheckboxProps = CheckboxVariants & {
 
 export function Checkbox({ className, color, icon, ...props }: CheckboxProps) {
 	if (useSkeleton()) {
-		return <Placeholder className={cn('size-4.5 rounded-[--spacing(1)]', className)} />
+		return <Placeholder className={cn(kokkaku.checkbox.base, className)} />
 	}
 
 	return (

@@ -3,13 +3,11 @@
 import { forwardRef } from 'react'
 import { cn } from '../../core'
 import { FormControl } from '../../primitives'
-import { katachi, maru } from '../../recipes'
+import { katachi, kokkaku } from '../../recipes'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
 import { InputSizeProvider } from './context'
 import { type InputVariants, inputDateVariants, inputVariants } from './variants'
-
-const skeletonSize = { sm: 'h-7', md: 'h-9', lg: 'h-11' } as const
 
 const DATE_TYPES = new Set(['date', 'datetime-local', 'month', 'time', 'week'])
 
@@ -39,7 +37,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 
 	if (skeleton) {
 		return (
-			<Placeholder className={cn(skeletonSize[resolvedSize], 'w-full', maru.rounded, className)} />
+			<Placeholder
+				className={cn(kokkaku.input.base, kokkaku.input.size[resolvedSize], className)}
+			/>
 		)
 	}
 

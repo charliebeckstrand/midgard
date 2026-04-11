@@ -1,6 +1,6 @@
 import { cn } from '../../core'
 import { ToggleField, ToggleGroup } from '../../primitives'
-import { katachi, maru } from '../../recipes'
+import { katachi, kokkaku } from '../../recipes'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
 import {
@@ -18,7 +18,7 @@ export type RadioProps = RadioVariants & {
 
 export function Radio({ className, color, ...props }: RadioProps) {
 	if (useSkeleton()) {
-		return <Placeholder className={cn('size-4.5', maru.roundedFull, className)} />
+		return <Placeholder className={cn(kokkaku.radio.base, className)} />
 	}
 
 	return (

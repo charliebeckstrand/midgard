@@ -1,6 +1,6 @@
 import { createContext, use } from 'react'
 import { cn } from '../../core'
-import { katachi, maru } from '../../recipes'
+import { katachi, kokkaku } from '../../recipes'
 import type { take } from '../../recipes/take'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
@@ -76,7 +76,9 @@ export function Avatar({
 	if (skeleton) {
 		return (
 			<AvatarSizeContext value={resolvedSize}>
-				<Placeholder className={cn(ka.size[resolvedSize], maru.roundedFull, className)} />
+				<Placeholder
+					className={cn(kokkaku.avatar.base, kokkaku.avatar.size[resolvedSize], className)}
+				/>
 			</AvatarSizeContext>
 		)
 	}

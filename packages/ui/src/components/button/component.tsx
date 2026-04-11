@@ -4,7 +4,7 @@ import { motion } from 'motion/react'
 import type { PointerEvent } from 'react'
 import { cn, Link } from '../../core'
 import { type PolymorphicProps, TouchTarget, useRipple, useTap } from '../../primitives'
-import { maru } from '../../recipes'
+import { kokkaku } from '../../recipes'
 import { useAlertContext } from '../alert/context'
 import { useInputSize } from '../input/context'
 import { Placeholder } from '../placeholder'
@@ -20,13 +20,6 @@ import {
 	withKbdEndSize,
 	withKbdStartSize,
 } from './variants'
-
-const skeletonSize = {
-	xs: 'h-6 w-16',
-	sm: 'h-7 w-20',
-	md: 'h-9 w-24',
-	lg: 'h-11 w-28',
-} as const
 
 type ButtonBaseProps = ButtonVariants & {
 	className?: string
@@ -66,7 +59,9 @@ export function Button({
 
 	if (skeleton) {
 		return (
-			<Placeholder className={cn(skeletonSize[resolvedSize ?? 'md'], maru.rounded, className)} />
+			<Placeholder
+				className={cn(kokkaku.button.base, kokkaku.button.size[resolvedSize ?? 'md'], className)}
+			/>
 		)
 	}
 

@@ -1,6 +1,6 @@
 import { cn } from '../../core'
 import { FormControl } from '../../primitives'
-import { maru } from '../../recipes'
+import { kokkaku } from '../../recipes'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
 import { type TextareaVariants, textareaVariants } from './variants'
@@ -11,7 +11,7 @@ export type TextareaProps = TextareaVariants & {
 
 export function Textarea({ className, resize, ...props }: TextareaProps) {
 	if (useSkeleton()) {
-		return <Placeholder className={cn('h-28 w-full', maru.rounded, className)} />
+		return <Placeholder className={cn(kokkaku.textarea.base, className)} />
 	}
 
 	return (
