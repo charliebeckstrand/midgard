@@ -34,6 +34,13 @@ export default function StepperDemo() {
 
 	return (
 		<div className="space-y-8">
+			<Alert type="info" closable>
+				<AlertDescription>
+					When <code>orientation</code> isn't explicitly set, the stepper falls back to 'vertical'
+					on mobile.
+				</AlertDescription>
+			</Alert>
+
 			<Example
 				title="Horizontal"
 				actions={
@@ -62,14 +69,6 @@ export default function StepperDemo() {
 						</StepperStep>
 					</Stepper>
 				`}
-				footer={
-					<Alert type="info">
-						<AlertDescription>
-							When <code className="font-bold">orientation</code> isn't explicitly set, the stepper
-							falls back to vertical on mobile.
-						</AlertDescription>
-					</Alert>
-				}
 			>
 				<Stepper value={horizontalValue} onValueChange={setHorizontalValue}>
 					{steps.map((step, index) => (

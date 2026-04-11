@@ -12,8 +12,8 @@ export type KbdProps = React.ComponentPropsWithoutRef<'kbd'> & {
 export function Kbd({ cmd, ctrl, className, children, ...props }: KbdProps) {
 	return (
 		<kbd data-slot="kbd" className={cn(kbdVariants(), className)} {...props}>
-			{ctrl && <span>⌃</span>}
 			{cmd && <span>⌘</span>}
+			{ctrl && <span>⌃</span>}
 			{children}
 		</kbd>
 	)

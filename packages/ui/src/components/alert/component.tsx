@@ -1,7 +1,7 @@
 'use client'
 
 import { AlertTriangle, CheckCircle, Info, X, XCircle } from 'lucide-react'
-import { Children, isValidElement, type ReactNode } from 'react'
+import { Children, isValidElement, type ReactNode, useState } from 'react'
 import { cn } from '../../core'
 import { katachi } from '../../recipes'
 import { Button } from '../button'
@@ -70,6 +70,10 @@ export function Alert({
 	className,
 	children,
 }: AlertProps) {
+	const [dismissed, setDismissed] = useState(false)
+
+	if (dismissed) return null
+
 	const resolvedVariant = variant ?? 'soft'
 
 	const resolvedColor = type ? typeColorMap[type] : (color ?? 'zinc')
@@ -116,7 +120,10 @@ export function Alert({
 						variant="plain"
 						aria-label="Dismiss"
 						className={cn(k.close, 'self-center')}
-						onClick={onClose}
+						onClick={() => {
+							setDismissed(true)
+							onClose?.()
+						}}
 					>
 						<Icon icon={<X />} />
 					</Button>

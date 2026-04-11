@@ -1,8 +1,10 @@
 'use client'
 
 import { useState } from 'react'
+import { Alert } from '../../components/alert'
 import { Badge } from '../../components/badge'
 import { Card, CardBody, CardHeader, CardTitle } from '../../components/card'
+import { Kbd } from '../../components/kbd'
 import { ScrollArea } from '../../components/scroll-area'
 import { Text } from '../../components/text'
 import { code } from '../code'
@@ -44,6 +46,13 @@ export default function ScrollAreaDemo() {
 
 	return (
 		<div className="space-y-8">
+			<Alert type="warning" closable>
+				<Text>
+					<code>ScrollArea</code> intercepts scroll events — hold{' '}
+					<Kbd className="mx-0.5">Shift</Kbd> while scrolling to scroll the page instead.
+				</Text>
+			</Alert>
+
 			<Example
 				title="Vertical with size"
 				actions={<SizeListbox sizes={sizes} value={verticalSize} onChange={setVerticalSize} />}
