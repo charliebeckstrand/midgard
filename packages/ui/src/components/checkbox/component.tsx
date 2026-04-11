@@ -2,6 +2,8 @@ import { Check } from 'lucide-react'
 import { cn } from '../../core'
 import { ToggleField, ToggleGroup } from '../../primitives'
 import { katachi } from '../../recipes'
+import { Placeholder } from '../placeholder'
+import { useSkeleton } from '../skeleton/context'
 import {
 	type CheckboxVariants,
 	checkboxColorVariants,
@@ -17,6 +19,10 @@ export type CheckboxProps = CheckboxVariants & {
 } & Omit<React.ComponentPropsWithoutRef<'input'>, 'className' | 'type'>
 
 export function Checkbox({ className, color, icon, ...props }: CheckboxProps) {
+	if (useSkeleton()) {
+		return <Placeholder className={cn('size-4.5 rounded-[--spacing(1)]', className)} />
+	}
+
 	return (
 		<span
 			data-slot="control"

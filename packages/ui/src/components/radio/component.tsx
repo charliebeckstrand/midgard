@@ -1,6 +1,8 @@
 import { cn } from '../../core'
 import { ToggleField, ToggleGroup } from '../../primitives'
-import { katachi } from '../../recipes'
+import { katachi, maru } from '../../recipes'
+import { Placeholder } from '../placeholder'
+import { useSkeleton } from '../skeleton/context'
 import {
 	type RadioVariants,
 	radioColorVariants,
@@ -15,6 +17,10 @@ export type RadioProps = RadioVariants & {
 } & Omit<React.ComponentPropsWithoutRef<'input'>, 'className' | 'type'>
 
 export function Radio({ className, color, ...props }: RadioProps) {
+	if (useSkeleton()) {
+		return <Placeholder className={cn('size-4.5', maru.roundedFull, className)} />
+	}
+
 	return (
 		<span
 			data-slot="control"

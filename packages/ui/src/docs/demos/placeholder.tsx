@@ -1,110 +1,7 @@
-import { useEffect, useState } from 'react'
-import { Avatar } from '../../components/avatar'
-import { Button } from '../../components/button'
 import { Placeholder } from '../../components/placeholder'
-import { ContentReveal } from '../../primitives/content-reveal'
-import { code } from '../code'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Feedback' }
-
-function CrossfadeRevealDemo() {
-	const [ready, setReady] = useState(false)
-
-	useEffect(() => {
-		if (!ready) return
-
-		const timer = setTimeout(() => setReady(false), 4000)
-
-		return () => clearTimeout(timer)
-	}, [ready])
-
-	return (
-		<div className="space-y-3">
-			<Button variant="outline" size="sm" onClick={() => setReady(!ready)}>
-				{ready ? 'Reset' : 'Simulate load'}
-			</Button>
-			<ContentReveal
-				ready={ready}
-				placeholder={
-					<div className="flex items-start gap-3">
-						<Placeholder variant="circle" className="size-10" />
-						<div className="flex-1 space-y-2 max-w-md">
-							<Placeholder className="max-w-[40%]" />
-							<Placeholder />
-							<Placeholder className="max-w-[80%]" />
-						</div>
-					</div>
-				}
-			>
-				<div className="flex items-start gap-3">
-					<Avatar initials="JD" className="size-10" />
-					<div className="flex-1 space-y-1">
-						<p className="text-sm font-semibold text-zinc-900 dark:text-white">Jane Doe</p>
-						<p className="text-sm text-zinc-600 dark:text-zinc-400">
-							Senior Engineer at Acme Corp. Working on design systems and component libraries.
-						</p>
-						<p className="text-sm text-zinc-500">San Francisco, CA</p>
-					</div>
-				</div>
-			</ContentReveal>
-		</div>
-	)
-}
-
-function WaitRevealDemo() {
-	const [ready, setReady] = useState(false)
-
-	useEffect(() => {
-		if (!ready) return
-
-		const timer = setTimeout(() => setReady(false), 4000)
-
-		return () => clearTimeout(timer)
-	}, [ready])
-
-	return (
-		<div className="space-y-3">
-			<Button variant="outline" size="sm" onClick={() => setReady(!ready)}>
-				{ready ? 'Reset' : 'Simulate load'}
-			</Button>
-			<ContentReveal
-				ready={ready}
-				mode="wait"
-				placeholder={
-					<div className="flex items-start gap-3">
-						<Placeholder variant="circle" className="size-10" />
-						<div className="flex-1 space-y-2 max-w-md">
-							<Placeholder className="max-w-[40%]" />
-							<Placeholder />
-							<Placeholder className="max-w-[80%]" />
-						</div>
-					</div>
-				}
-			>
-				<div className="flex items-start gap-3">
-					<Avatar initials="JD" className="size-10" />
-					<div className="flex-1 space-y-1">
-						<p className="text-sm font-semibold text-zinc-900 dark:text-white">Jane Doe</p>
-						<p className="text-sm text-zinc-600 dark:text-zinc-400">
-							Senior Engineer at Acme Corp. Working on design systems and component libraries.
-						</p>
-						<p className="text-sm text-zinc-500">San Francisco, CA</p>
-					</div>
-				</div>
-
-				<div className="mt-4 space-y-2">
-					<p className="text-sm font-medium text-zinc-900 dark:text-white">Recent activity</p>
-					<ul className="space-y-1.5 text-sm text-zinc-600 dark:text-zinc-400">
-						<li>Merged PR #42 — Refactor token pipeline</li>
-						<li>Reviewed PR #38 — Add color palette docs</li>
-						<li>Opened issue #45 — Audit focus ring contrast</li>
-					</ul>
-				</div>
-			</ContentReveal>
-		</div>
-	)
-}
 
 export default function PlaceholderDemo() {
 	return (
@@ -119,61 +16,28 @@ export default function PlaceholderDemo() {
 
 			<Example title="Rectangle">
 				<div className="flex flex-col gap-2 lg:max-w-sm">
-					<Placeholder variant="rect" className="h-10" />
-					<Placeholder variant="rect" className="h-24" />
+					<Placeholder className="h-10" />
+					<Placeholder className="h-24" />
 				</div>
 			</Example>
 
 			<Example title="Circle">
 				<div className="flex items-center gap-2 lg:max-w-sm">
-					<Placeholder variant="circle" className="size-8" />
-					<Placeholder variant="circle" className="size-10" />
-					<Placeholder variant="circle" className="size-12" />
+					<Placeholder className="size-8 rounded-full" />
+					<Placeholder className="size-10 rounded-full" />
+					<Placeholder className="size-12 rounded-full" />
 				</div>
 			</Example>
 
-			<Example title="Composed layout">
+			<Example title="Composed">
 				<div className="flex items-start gap-3">
-					<Placeholder variant="circle" className="size-10" />
+					<Placeholder className="size-10 rounded-full" />
 					<div className="flex-1 space-y-2 lg:max-w-sm">
 						<Placeholder className="max-w-[40%]" />
 						<Placeholder />
 						<Placeholder className="max-w-[80%]" />
 					</div>
 				</div>
-			</Example>
-
-			<Example
-				title="ContentReveal — crossfade"
-				code={code`
-					import { ContentReveal } from 'ui/primitives'
-
-					<ContentReveal
-						ready={ready}
-						placeholder={<Placeholder />}
-					>
-						<p>Loaded content</p>
-					</ContentReveal>
-				`}
-			>
-				<CrossfadeRevealDemo />
-			</Example>
-
-			<Example
-				title="ContentReveal — wait mode"
-				code={code`
-					import { ContentReveal } from 'ui/primitives'
-
-					<ContentReveal
-						ready={ready}
-						mode="wait"
-						placeholder={<Placeholder />}
-					>
-						<p>Loaded content</p>
-					</ContentReveal>
-				`}
-			>
-				<WaitRevealDemo />
 			</Example>
 		</div>
 	)
