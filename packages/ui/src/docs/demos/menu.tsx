@@ -1,4 +1,4 @@
-import { Alert, AlertDescription } from '../../components/alert'
+import { Alert, AlertDescription, AlertTitle } from '../../components/alert'
 import { Area } from '../../components/area'
 import { Button } from '../../components/button'
 import { Code } from '../../components/code'
@@ -19,6 +19,7 @@ export default function MenuDemo() {
 	return (
 		<div className="space-y-8">
 			<Alert type="info" closable>
+				<AlertTitle>Menu Context</AlertTitle>
 				<AlertDescription>
 					<Code>&lt;MenuContent&gt;</Code> must be wrapped in a <Code>&lt;Menu&gt;</Code> component.
 				</AlertDescription>

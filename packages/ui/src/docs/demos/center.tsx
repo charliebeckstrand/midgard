@@ -14,7 +14,7 @@ export default function CenterDemo() {
 				code={code`
 					import { Center } from 'ui/center'
 
-					<Center className="h-40">
+					<Center>
 						<Card>Centered</Card>
 					</Center>
 				`}
@@ -31,7 +31,7 @@ export default function CenterDemo() {
 				code={code`
 					import { Center } from 'ui/center'
 
-					<Center maxW="md" className="h-40">
+					<Center maxW="md">
 						<Card>Constrained to max-w-md</Card>
 					</Center>
 				`}
@@ -48,7 +48,7 @@ export default function CenterDemo() {
 				code={code`
 					import { Center } from 'ui/center'
 
-					<Center inline className="size-20 rounded-full bg-zinc-100">
+					<Center inline className="size-20 rounded-full bg-zinc-100 dark:bg-zinc-800">
 						OK
 					</Center>
 				`}

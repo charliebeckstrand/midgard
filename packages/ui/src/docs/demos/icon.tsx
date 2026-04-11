@@ -1,7 +1,8 @@
 'use client'
 
 import { Heart, Plus, Search, Star } from 'lucide-react'
-import { Alert, AlertDescription } from '../../components/alert'
+import { Alert, AlertDescription, AlertTitle } from '../../components/alert'
+import { Code } from '../../components/code'
 import { Icon } from '../../components/icon'
 import { Example } from '../components/example'
 
@@ -13,9 +14,10 @@ export default function IconDemo() {
 	return (
 		<div className="space-y-8">
 			<Alert type="info" closable>
+				<AlertTitle>SVG support</AlertTitle>
 				<AlertDescription>
-					The Icon component can wrap any SVG icon component. It provides consistent sizing and
-					accessibility features across different icon libraries.
+					The <Code>&lt;Icon&gt;</Code> component can wrap any SVG icon component. It provides a
+					consistent interface for sizing and styling icons.
 				</AlertDescription>
 			</Alert>
 			<Example title="Default">

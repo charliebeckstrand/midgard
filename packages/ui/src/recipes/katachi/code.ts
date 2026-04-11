@@ -1,27 +1,24 @@
 import { maru } from '../maru'
 import { narabi } from '../narabi'
 import { sumi, yoru } from '../sumi'
+import { take } from '../take'
 
 const blockBg = 'bg-[#0d1117]'
 
 export const code = {
 	inline: {
-		base: ['font-mono py-0.75', 'bg-current/15 mx-0.5', maru.roundedMd],
-		size: {
-			sm: ['text-[0.625rem]', 'p-1'],
-			md: ['text-xs', 'p-1.25'],
-			lg: ['text-sm', 'p-1.5'],
-		},
+		base: [take.code.base, take.code.margin],
+		size: take.code.size,
 	},
 	block: {
-		base: ['relative overflow-hidden', blockBg, maru.rounded],
+		base: ['relative overflow-hidden', maru.rounded, blockBg],
 		inline: 'w-fit max-w-full',
 		content: '[&_pre]:overflow-x-auto [&_pre]:p-4 [&_pre]:pr-14 [&_pre]:text-sm/6',
-		fallback: ['overflow-x-auto p-4 pr-14 text-sm/6', 'text-zinc-400'],
-		copyWrapper: ['absolute top-0 right-0 z-10 p-3', blockBg],
+		fallback: ['p-4 pr-14', 'text-sm/6 text-zinc-400', 'overflow-x-auto'],
+		copyWrapper: ['absolute top-0 right-0', 'p-3', 'z-10', blockBg],
 		copy: [
-			narabi.position.center,
 			'size-8',
+			narabi.position.center,
 			maru.rounded,
 			sumi.textMuted,
 			yoru.textHover,

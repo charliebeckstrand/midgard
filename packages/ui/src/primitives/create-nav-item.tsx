@@ -14,6 +14,7 @@ export type NavItemProps = {
 	current?: boolean
 	className?: string
 	preventClose?: boolean
+	spring?: boolean
 } & PolymorphicProps<'button'>
 
 /**
@@ -31,6 +32,7 @@ export function createNavItem(config: { slotPrefix: string; variants: () => stri
 		onClick,
 		href,
 		preventClose,
+		spring = false,
 		...props
 	}: NavItemProps) {
 		const indicator = useActiveIndicator()
@@ -48,7 +50,7 @@ export function createNavItem(config: { slotPrefix: string; variants: () => stri
 			<span
 				data-slot={`${config.slotPrefix}-item`}
 				className="group relative"
-				{...indicator.tapHandlers}
+				{...(spring ? indicator.tapHandlers : {})}
 			>
 				<Polymorphic
 					as="button"

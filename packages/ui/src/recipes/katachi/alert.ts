@@ -26,7 +26,7 @@ export const alert = {
 	icon: 'shrink-0',
 	content: 'flex flex-col flex-1 gap-1 min-w-0',
 	title: 'text-base/6 font-semibold',
-	description: '',
+	description: 'leading-loose',
 	actions: 'mt-3 flex items-center gap-1',
 	close: [maru.roundedMd, sawari.cursor, 'shrink-0 -m-1 p-1'],
 	defaults: { variant: 'soft' as const, color: 'zinc' as const },

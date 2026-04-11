@@ -14,6 +14,7 @@ import { compact } from './compact'
 import { control } from './control'
 import { gap, iconSlot, px, py, text } from './density'
 import { listbox } from './listbox'
+import { mark } from './mark'
 import { panel } from './panel'
 import { popup } from './popup'
 import { scrollArea } from './scroll-area'
@@ -38,6 +39,10 @@ export const take = {
 	badge: compact,
 	chip: compact,
 
+	// Inline code and kbd share the same mark density scale
+	code: mark,
+	kbd: mark,
+
 	// Form controls
 	control,
 	combobox,
@@ -59,6 +64,8 @@ export const take = {
 export namespace take {
 	export type BadgeSize = keyof typeof take.badge
 	export type ChipSize = keyof typeof take.chip
+	export type CodeSize = keyof typeof take.code.size
+	export type KbdSize = keyof typeof take.kbd.size
 	export type ButtonSize = keyof typeof take.button
 	export type ControlSize = keyof typeof take.control
 	export type AvatarSize = keyof typeof take.avatar

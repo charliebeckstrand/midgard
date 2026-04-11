@@ -1,13 +1,7 @@
-import { maru } from '../maru'
 import { narabi } from '../narabi'
+import { take } from '../take'
 
 export const kbd = {
-	base: [
-		narabi.position.centerInline,
-		'gap-0.25',
-		'font-mono text-xs leading-none',
-		'px-1.5 py-0.5',
-		'bg-current/15',
-		maru.roundedMd,
-	],
+	base: [narabi.position.centerInline, take.kbd.base, take.kbd.margin],
+	size: take.kbd.size,
 }

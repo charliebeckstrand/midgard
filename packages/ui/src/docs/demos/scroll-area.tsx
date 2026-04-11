@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { Alert } from '../../components/alert'
+import { Alert, AlertDescription, AlertTitle } from '../../components/alert'
 import { Badge } from '../../components/badge'
 import { Card, CardBody, CardHeader, CardTitle } from '../../components/card'
+import { Code } from '../../components/code'
 import { Kbd } from '../../components/kbd'
 import { ScrollArea } from '../../components/scroll-area'
 import { Text } from '../../components/text'
@@ -46,9 +47,11 @@ export default function ScrollAreaDemo() {
 	return (
 		<div className="space-y-8">
 			<Alert type="warning" closable>
-				<Text>
-					<code>ScrollArea</code> intercepts scroll events — hold{' '}
-					<Kbd className="mx-0.5">Shift</Kbd> while scrolling to scroll the page instead.
+				<AlertTitle>Scroll behavior</AlertTitle>
+				<Text className="leading-loose">
+					<Code>&lt;ScrollArea&gt;</Code>
+					intercepts scroll events. Hold <Kbd>Shift</Kbd> while scrolling to scroll the page
+					instead.
 				</Text>
 			</Alert>
 
