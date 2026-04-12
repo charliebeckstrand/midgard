@@ -1,8 +1,8 @@
 'use client'
 
 import { cn } from '../../core'
+import { createNavItem, type NavItemProps } from '../nav'
 import { ActiveIndicatorScope } from '../../primitives'
-import { createNavItem, type NavItemProps } from '../../primitives/create-nav-item'
 import { katachi } from '../../recipes'
 
 const k = katachi.navbar
