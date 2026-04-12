@@ -219,6 +219,10 @@
 			"types": "./src/components/sidebar/index.ts",
 			"default": "./src/components/sidebar/index.ts"
 		},
+		"./sizer": {
+			"types": "./src/components/sizer/index.ts",
+			"default": "./src/components/sizer/index.ts"
+		},
 		"./skeleton": {
 			"types": "./src/components/skeleton/index.ts",
 			"default": "./src/components/skeleton/index.ts"
