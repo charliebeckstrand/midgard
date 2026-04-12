@@ -4,8 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { PasswordInput, type PasswordInputProps } from '../input'
 import { Text } from '../text'
 import { PasswordConfirmProvider, usePasswordConfirm } from './context'
-
-type Status = 'idle' | 'valid' | 'warning'
+import { deriveStatus, handlePasswordInput } from './utilities'
 
 type PasswordConfirmEvents = {
 	onPasswordMatch?: () => void
@@ -19,16 +18,6 @@ type PasswordConfirmProps = {
 	children?: React.ReactNode
 }
 
-export type Props = PasswordConfirmProps & PasswordConfirmEvents
-
-function deriveStatus(password: string, confirm: string): Status {
-	if (!password || !confirm || confirm.length < password.length) return 'idle'
-
-	if (password === confirm) return 'valid'
-
-	return 'warning'
-}
-
 export function PasswordConfirm({
 	onPasswordMatch,
 	onPasswordMismatch,
@@ -36,7 +25,7 @@ export function PasswordConfirm({
 	warning,
 	className,
 	children,
-}: Props) {
+}: PasswordConfirmEvents & PasswordConfirmProps) {
 	const [password, setPassword] = useState('')
 	const [confirm, setConfirm] = useState('')
 
@@ -61,15 +50,10 @@ export function PasswordConfirm({
 		else if (current === 'mismatch') onMismatchRef.current?.()
 	}, [status])
 
-	const handleInput = useCallback((e: React.FormEvent<HTMLDivElement>) => {
-		const target = e.target
-
-		if (!(target instanceof HTMLInputElement)) return
-
-		if ('passwordConfirmInput' in target.dataset) return
-
-		setPassword(target.value)
-	}, [])
+	const handleInput = useCallback(
+		(e: React.SyntheticEvent<HTMLDivElement>) => handlePasswordInput(e, setPassword),
+		[],
+	)
 
 	return (
 		<PasswordConfirmProvider value={{ status, setConfirm }}>
@@ -90,7 +74,9 @@ export function PasswordConfirm({
 	)
 }
 
-export type PasswordConfirmInputProps = PasswordInputProps
+export type PasswordConfirmInputProps = Omit<PasswordInputProps, 'onChange'> & {
+	onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
+}
 
 export function PasswordConfirmInput({ onChange, ...props }: PasswordConfirmInputProps) {
 	const { status, setConfirm } = usePasswordConfirm()

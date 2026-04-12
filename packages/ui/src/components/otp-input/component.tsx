@@ -33,8 +33,6 @@ type OtpInputProps = {
 	className?: string
 }
 
-export type Props = OtpInputProps & OtpInputEvents
-
 export function OtpInput({
 	onChange,
 	onComplete,
@@ -48,7 +46,7 @@ export function OtpInput({
 	autoFocus,
 	type = 'text',
 	className,
-}: Props) {
+}: OtpInputEvents & OtpInputProps) {
 	const [current, setCurrent] = useControllable({ value, defaultValue, onChange })
 
 	const cellsRef = useRef<(HTMLInputElement | null)[]>([])
