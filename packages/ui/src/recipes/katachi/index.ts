@@ -33,6 +33,7 @@ import { divider } from './divider'
 import { dl } from './dl'
 import { drawer } from './drawer'
 import { fieldset } from './fieldset'
+import { fileUpload } from './file-upload'
 import { grid } from './grid'
 import { heading } from './heading'
 import { input } from './input'
@@ -89,6 +90,7 @@ export const katachi = {
 	divider,
 	dl,
 	fieldset,
+	fileUpload,
 	grid,
 	heading,
 	input,
