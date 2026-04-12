@@ -11,12 +11,11 @@ const k = katachi.stat
 
 export type StatProps = {
 	className?: string
-	children?: React.ReactNode
-}
+} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
 
-export function Stat({ className, children }: StatProps) {
+export function Stat({ className, children, ...props }: StatProps) {
 	return (
-		<div data-slot="stat" className={cn(k.base, className)}>
+		<div data-slot="stat" className={cn(k.base, className)} {...props}>
 			{children}
 		</div>
 	)
@@ -24,12 +23,11 @@ export function Stat({ className, children }: StatProps) {
 
 export type StatLabelProps = {
 	className?: string
-	children?: React.ReactNode
-}
+} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
 
-export function StatLabel({ className, children }: StatLabelProps) {
+export function StatLabel({ className, children, ...props }: StatLabelProps) {
 	return (
-		<div data-slot="stat-label" className={cn(k.label, className)}>
+		<div data-slot="stat-label" className={cn(k.label, className)} {...props}>
 			{children}
 		</div>
 	)
@@ -37,12 +35,11 @@ export function StatLabel({ className, children }: StatLabelProps) {
 
 export type StatValueProps = StatValueVariants & {
 	className?: string
-	children?: React.ReactNode
-}
+} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
 
-export function StatValue({ size, className, children }: StatValueProps) {
+export function StatValue({ size, className, children, ...props }: StatValueProps) {
 	return (
-		<div data-slot="stat-value" className={cn(statValueVariants({ size }), className)}>
+		<div data-slot="stat-value" className={cn(statValueVariants({ size }), className)} {...props}>
 			{children}
 		</div>
 	)
@@ -50,12 +47,11 @@ export function StatValue({ size, className, children }: StatValueProps) {
 
 export type StatDeltaProps = StatDeltaVariants & {
 	className?: string
-	children?: React.ReactNode
-}
+} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
 
-export function StatDelta({ trend, className, children }: StatDeltaProps) {
+export function StatDelta({ trend, className, children, ...props }: StatDeltaProps) {
 	return (
-		<div data-slot="stat-delta" className={cn(statDeltaVariants({ trend }), className)}>
+		<div data-slot="stat-delta" className={cn(statDeltaVariants({ trend }), className)} {...props}>
 			{children}
 		</div>
 	)
@@ -63,12 +59,11 @@ export function StatDelta({ trend, className, children }: StatDeltaProps) {
 
 export type StatDescriptionProps = {
 	className?: string
-	children?: React.ReactNode
-}
+} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
 
-export function StatDescription({ className, children }: StatDescriptionProps) {
+export function StatDescription({ className, children, ...props }: StatDescriptionProps) {
 	return (
-		<div data-slot="stat-description" className={cn(k.description, className)}>
+		<div data-slot="stat-description" className={cn(k.description, className)} {...props}>
 			{children}
 		</div>
 	)

@@ -25,8 +25,7 @@ export type StackProps = {
 	/** Render as `inline-flex` instead of `flex`. */
 	inline?: boolean
 	className?: string
-	children?: React.ReactNode
-} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className' | 'children'>
+} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
 
 export function Stack({
 	direction = 'column',

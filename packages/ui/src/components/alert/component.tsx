@@ -135,18 +135,24 @@ export function Alert({
 
 export type AlertTitleProps = {
 	className?: string
-	children: React.ReactNode
-}
+} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
 
-export function AlertTitle({ className, children }: AlertTitleProps) {
-	return <div className={cn(k.title, className)}>{children}</div>
+export function AlertTitle({ className, children, ...props }: AlertTitleProps) {
+	return (
+		<div className={cn(k.title, className)} {...props}>
+			{children}
+		</div>
+	)
 }
 
 export type AlertDescriptionProps = {
 	className?: string
-	children: React.ReactNode
-}
+} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
 
-export function AlertDescription({ className, children }: AlertDescriptionProps) {
-	return <div className={cn(k.description, className)}>{children}</div>
+export function AlertDescription({ className, children, ...props }: AlertDescriptionProps) {
+	return (
+		<div className={cn(k.description, className)} {...props}>
+			{children}
+		</div>
+	)
 }

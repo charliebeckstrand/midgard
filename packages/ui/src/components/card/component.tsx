@@ -38,12 +38,11 @@ export function Card({
 
 export type CardHeaderProps = {
 	className?: string
-	children?: React.ReactNode
-}
+} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
 
-export function CardHeader({ className, children }: CardHeaderProps) {
+export function CardHeader({ className, children, ...props }: CardHeaderProps) {
 	return (
-		<div data-slot="card-header" className={cn(k.header, className)}>
+		<div data-slot="card-header" className={cn(k.header, className)} {...props}>
 			{children}
 		</div>
 	)
@@ -51,12 +50,11 @@ export function CardHeader({ className, children }: CardHeaderProps) {
 
 export type CardTitleProps = {
 	className?: string
-	children?: React.ReactNode
-}
+} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
 
-export function CardTitle({ className, children }: CardTitleProps) {
+export function CardTitle({ className, children, ...props }: CardTitleProps) {
 	return (
-		<div data-slot="card-title" className={cn(k.title, className)}>
+		<div data-slot="card-title" className={cn(k.title, className)} {...props}>
 			{children}
 		</div>
 	)
@@ -64,12 +62,11 @@ export function CardTitle({ className, children }: CardTitleProps) {
 
 export type CardDescriptionProps = {
 	className?: string
-	children?: React.ReactNode
-}
+} & Omit<React.ComponentPropsWithoutRef<'p'>, 'className'>
 
-export function CardDescription({ className, children }: CardDescriptionProps) {
+export function CardDescription({ className, children, ...props }: CardDescriptionProps) {
 	return (
-		<p data-slot="card-description" className={cn(k.description, className)}>
+		<p data-slot="card-description" className={cn(k.description, className)} {...props}>
 			{children}
 		</p>
 	)
@@ -77,12 +74,11 @@ export function CardDescription({ className, children }: CardDescriptionProps) {
 
 export type CardBodyProps = {
 	className?: string
-	children?: React.ReactNode
-}
+} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
 
-export function CardBody({ className, children }: CardBodyProps) {
+export function CardBody({ className, children, ...props }: CardBodyProps) {
 	return (
-		<div data-slot="card-body" className={cn(k.body, className)}>
+		<div data-slot="card-body" className={cn(k.body, className)} {...props}>
 			{children}
 		</div>
 	)
@@ -90,12 +86,11 @@ export function CardBody({ className, children }: CardBodyProps) {
 
 export type CardFooterProps = {
 	className?: string
-	children?: React.ReactNode
-}
+} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
 
-export function CardFooter({ className, children }: CardFooterProps) {
+export function CardFooter({ className, children, ...props }: CardFooterProps) {
 	return (
-		<div data-slot="card-footer" className={cn(k.footer, className)}>
+		<div data-slot="card-footer" className={cn(k.footer, className)} {...props}>
 			{children}
 		</div>
 	)

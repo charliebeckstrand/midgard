@@ -8,8 +8,7 @@ export type AreaProps = {
 	/** Border style. Defaults to `dashed`. */
 	border?: AreaBorder
 	className?: string
-	children?: React.ReactNode
-} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className' | 'children'>
+} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
 
 /**
  * A neutral, rounded outline used in demos and docs to visualize the bounds
