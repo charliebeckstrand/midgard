@@ -2,6 +2,12 @@
 
 import { ChevronDown } from 'lucide-react'
 import { useState } from 'react'
+import {
+	Accordion,
+	AccordionButton,
+	AccordionItem,
+	AccordionPanel,
+} from '../../components/accordion'
 import { Badge } from '../../components/badge'
 import { Code } from '../../components/code'
 import { Heading } from '../../components/heading'
@@ -14,6 +20,7 @@ import {
 	TableHeader,
 	TableRow,
 } from '../../components/table'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import type { ComponentApi, PropDef } from '../parse-props'
 
 /** Split a type expression on top-level `|`, respecting nesting and strings. */
@@ -84,8 +91,29 @@ function TypeBadges({ type }: { type: string }) {
  * it's shown as plain badges; when a breakdown exists the cell becomes a
  * toggle button that reveals the expanded form on click.
  */
-function TypeCell({ type, breakdown }: { type: string; breakdown?: string }) {
+function TypeCell({
+	type,
+	breakdown,
+	externalFrom,
+}: {
+	type: string
+	breakdown?: string
+	externalFrom?: string
+}) {
 	const [expanded, setExpanded] = useState(false)
+
+	if (externalFrom) {
+		return (
+			<Tooltip>
+				<TooltipTrigger>
+					<Badge variant="outline">{type}</Badge>
+				</TooltipTrigger>
+				<TooltipContent>
+					Type imported from <span className="font-semibold">{externalFrom}</span>
+				</TooltipContent>
+			</Tooltip>
+		)
+	}
 
 	if (!breakdown) {
 		return <TypeBadges type={type} />
@@ -131,7 +159,11 @@ function PropRowsTable({ rows }: { rows: PropDef[] }) {
 					<TableRow key={prop.name}>
 						<TableCell className="font-mono font-medium align-top">{prop.name}</TableCell>
 						<TableCell>
-							<TypeCell type={prop.type} breakdown={prop.breakdown} />
+							<TypeCell
+								type={prop.type}
+								breakdown={prop.breakdown}
+								externalFrom={prop.externalFrom}
+							/>
 						</TableCell>
 						<TableCell className="font-mono text-zinc-500 dark:text-zinc-400 align-top">
 							{prop.default ?? '—'}
@@ -143,54 +175,68 @@ function PropRowsTable({ rows }: { rows: PropDef[] }) {
 	)
 }
 
-export function PropsTable({ api }: { api: ComponentApi[] }) {
+function ComponentEntry({ entry }: { entry: ComponentApi }) {
+	const visibleProps = entry.props.filter((p) => p.type !== 'never')
+
+	const events = visibleProps
+		.filter((p) => /^on[A-Z]/.test(p.name))
+		.sort((a, b) => a.name.localeCompare(b.name))
+
+	const props = visibleProps
+		.filter((p) => !/^on[A-Z]/.test(p.name))
+		.sort((a, b) => a.name.localeCompare(b.name))
+
+	const passThrough = entry.passThrough ?? []
+
 	return (
-		<div className="space-y-8">
-			{api.map((entry) => {
-				const visibleProps = entry.props.filter((p) => p.type !== 'never')
-				const events = visibleProps.filter((p) => /^on[A-Z]/.test(p.name))
-				const props = visibleProps.filter((p) => !/^on[A-Z]/.test(p.name))
-
-				const passThrough = entry.passThrough ?? []
-
-				return (
-					<div key={entry.name} className="space-y-3">
-						<Heading level={3} className="font-mono">{`<${entry.name} />`}</Heading>
-						{visibleProps.length === 0 ? (
-							<p className="text-sm text-zinc-500 dark:text-zinc-400">
-								This component accepts no explicit props.
-							</p>
-						) : (
-							<div className="space-y-6">
-								{props.length > 0 && (
-									<div className="space-y-3">
-										<Heading level={4}>Props</Heading>
-										<PropRowsTable rows={props} />
-									</div>
-								)}
-								{events.length > 0 && (
-									<div className="space-y-3">
-										<Heading level={4}>Events</Heading>
-										<PropRowsTable rows={events} />
-									</div>
-								)}
-							</div>
-						)}
-						{passThrough.length > 0 && (
-							<div className="flex flex-wrap items-center gap-1.5 text-sm text-zinc-600 dark:text-zinc-400">
-								<span>Also accepts all</span>
-								{passThrough.map((pt, i) => (
-									<span key={pt.element} className="flex items-center gap-1.5">
-										<Code className="font-mono dark:text-white">{`<${pt.element}>`}</Code>
-										{i < passThrough.length - 1 && <span>,</span>}
-									</span>
-								))}
-								<span>HTML attributes.</span>
-							</div>
-						)}
-					</div>
-				)
-			})}
+		<div className="space-y-3">
+			{visibleProps.length === 0 ? (
+				<p className="text-sm text-zinc-500 dark:text-zinc-400">
+					This component accepts no explicit props.
+				</p>
+			) : (
+				<div className="space-y-6">
+					{props.length > 0 && (
+						<div className="space-y-3">
+							<Heading level={4}>Props</Heading>
+							<PropRowsTable rows={props} />
+						</div>
+					)}
+					{events.length > 0 && (
+						<div className="space-y-3">
+							<Heading level={4}>Events</Heading>
+							<PropRowsTable rows={events} />
+						</div>
+					)}
+				</div>
+			)}
+			{passThrough.length > 0 && (
+				<div className="flex flex-wrap items-center gap-1.5 text-sm text-zinc-600 dark:text-zinc-400">
+					<span>Also accepts all</span>
+					{passThrough.map((pt, i) => (
+						<span key={pt.element} className="flex items-center gap-1.5">
+							<Code className="font-mono dark:text-white">{`<${pt.element}>`}</Code>
+							{i < passThrough.length - 1 && <span>,</span>}
+						</span>
+					))}
+					<span>HTML attributes.</span>
+				</div>
+			)}
 		</div>
+	)
+}
+
+export function ApiReference({ api }: { api: ComponentApi[] }) {
+	return (
+		<Accordion type="multiple">
+			{api.map((entry) => (
+				<AccordionItem key={entry.name} value={entry.name}>
+					<AccordionButton className="font-mono">{`<${entry.name} />`}</AccordionButton>
+					<AccordionPanel>
+						<ComponentEntry entry={entry} />
+					</AccordionPanel>
+				</AccordionItem>
+			))}
+		</Accordion>
 	)
 }

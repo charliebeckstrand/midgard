@@ -132,8 +132,11 @@ export function extractTypeRhs(source: string, start: number): string | null {
 
 		if (ch === '\n' && depth === 0) {
 			let j = i + 1
+
 			while (j < source.length && (source[j] === ' ' || source[j] === '\t')) j++
+
 			const next = source[j]
+
 			if (next === '|' || next === '&') continue
 
 			const rhs = source.slice(start, i).trim()

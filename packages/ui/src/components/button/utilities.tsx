@@ -2,6 +2,7 @@ import { Children, isValidElement } from 'react'
 import { Icon } from '../icon'
 import { Kbd } from '../kbd'
 import { Spinner } from '../spinner'
+import type { SpinnerProps } from '../spinner/component'
 
 /** True when the node is an <Icon> or <Spinner> — the two slots that affect button padding. */
 export function isIconLike(node: React.ReactNode): boolean {
@@ -49,10 +50,13 @@ export function isIconOnly(children: React.ReactNode): boolean {
 }
 
 /** Replace a leading icon with a Spinner, or prepend one if none exists */
-export function withLoadingSpinner(children: React.ReactNode): React.ReactNode {
+export function withLoadingSpinner(
+	children: React.ReactNode,
+	options?: Pick<SpinnerProps, 'color' | 'size' | 'label'>,
+): React.ReactNode {
 	const arr = Children.toArray(children)
 
-	const spinner = <Spinner key="loading-spinner" />
+	const spinner = <Spinner key="loading-spinner" {...options} />
 
 	if (arr.length > 0 && isIconLike(arr[0])) {
 		return [spinner, ...arr.slice(1)]

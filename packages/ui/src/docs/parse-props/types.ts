@@ -5,6 +5,8 @@ export type PropDef = {
 	/** Expanded form when `type` contains named references, e.g. "'sm' | 'md' | 'lg' | 'inherit'" */
 	breakdown?: string
 	default?: string
+	/** Package name when the type is imported from an external library (e.g. "@floating-ui/react") */
+	externalFrom?: string
 }
 
 /**
@@ -32,4 +34,6 @@ export type CvaVariant = {
 export type ResolutionContext = {
 	typeDefs: Map<string, string>
 	cvaVariants: Map<string, CvaVariant[]>
+	/** Type name → external package name (e.g. "Placement" → "@floating-ui/react") */
+	externalImports: Map<string, string>
 }

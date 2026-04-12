@@ -58,7 +58,7 @@ export default function DialogDemo() {
 				<Dialog glass open={glassOpen} onClose={() => setGlassOpen(false)}>
 					<DialogTitle>Glass dialog</DialogTitle>
 					<DialogDescription>This dialog uses a frosted glass background effect.</DialogDescription>
-					<DialogBody>
+					<DialogBody className="space-y-4">
 						<Text>
 							The glass variant applies a backdrop blur with a transparent background, allowing
 							content behind the dialog to show through.

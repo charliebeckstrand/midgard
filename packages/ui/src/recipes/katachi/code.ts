@@ -1,6 +1,5 @@
 import { maru } from '../maru'
 import { narabi } from '../narabi'
-import { sumi, yoru } from '../sumi'
 import { take } from '../take'
 
 const blockBg = 'bg-[#0d1117]'
@@ -20,9 +19,9 @@ export const code = {
 			'size-8',
 			narabi.position.center,
 			maru.rounded,
-			sumi.textMuted,
-			yoru.textHover,
-			yoru.textFocus,
+			'text-zinc-400',
+			'hover:not-disabled:text-white',
+			'focus-visible:not-disabled:text-white',
 			'disabled:text-green-600',
 		],
 	},

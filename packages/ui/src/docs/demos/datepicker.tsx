@@ -8,6 +8,7 @@ export const meta = { category: 'Forms' }
 export default function DatePickerDemo() {
 	const [date, setDate] = useState<Date | undefined>(undefined)
 	const [range, setRange] = useState<[Date, Date] | undefined>(undefined)
+	const [glassRange, setGlassRange] = useState<[Date, Date] | undefined>(undefined)
 
 	return (
 		<div className="space-y-8">
@@ -32,7 +33,7 @@ export default function DatePickerDemo() {
 			<Example title="Glass">
 				<Glass>
 					<div className="sm:max-w-72">
-						<DatePicker range value={range} onChange={setRange} />
+						<DatePicker range value={glassRange} onChange={setGlassRange} />
 					</div>
 				</Glass>
 			</Example>

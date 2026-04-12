@@ -11,20 +11,6 @@ export const switchColor = defineColors({
 			'dark:[--switch-ring:var(--color-zinc-700)]/90',
 		],
 	},
-	white: {
-		light: [
-			'[--switch-bg-ring:var(--color-black)]/15 [--switch-bg:white]',
-			'[--switch-shadow:var(--color-black)]/10 [--switch-ring:transparent] [--switch:var(--color-zinc-950)]',
-		],
-		dark: 'dark:[--switch-bg-ring:transparent]',
-	},
-	dark: {
-		light: [
-			'[--switch-bg-ring:var(--color-zinc-950)]/90 [--switch-bg:var(--color-zinc-900)]',
-			'[--switch-ring:var(--color-zinc-950)]/90 [--switch-shadow:var(--color-black)]/10 [--switch:white]',
-		],
-		dark: 'dark:[--switch-bg-ring:var(--color-white)]/15',
-	},
 	red: {
 		light: [
 			'[--switch-bg-ring:var(--color-red-800)]/90 [--switch-bg:var(--color-red-600)]',

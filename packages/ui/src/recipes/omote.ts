@@ -8,6 +8,7 @@
  * Concern: surface
  */
 
+import { garasu } from './garasu'
 import { kage } from './kage'
 
 // ── Motoi (基) ──────────────────────────────────────────
@@ -16,7 +17,7 @@ const motoi = {
 	content: 'lg:rounded-lg lg:shadow-xs',
 	popover: 'backdrop-blur',
 	skeleton: 'animate-pulse',
-	glass: 'bg-transparent backdrop-blur',
+	glass: ['bg-transparent', garasu.md],
 }
 
 // ── Hiru (昼) ───────────────────────────────────────────
@@ -52,7 +53,7 @@ export const omote = {
 	},
 	content: [motoi.content, hiru.content, yoru.content],
 	backdrop: {
-		base: [hiru.backdrop, yoru.backdrop],
+		base: [hiru.backdrop, yoru.backdrop, garasu.sm],
 		color: [hiru.backdrop, yoru.backdrop],
 	},
 	glass: motoi.glass,

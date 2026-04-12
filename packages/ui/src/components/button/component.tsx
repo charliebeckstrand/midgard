@@ -6,9 +6,11 @@ import { cn, Link } from '../../core'
 import { type PolymorphicProps, TouchTarget, useRipple, useTap } from '../../primitives'
 import { kokkaku } from '../../recipes'
 import { useAlertContext } from '../alert/context'
+import { useGlass } from '../glass/context'
 import { useInputSize } from '../input/context'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
+import type { SpinnerProps } from '../spinner/component'
 import { ButtonSizeProvider } from './context'
 import { iconSides, isIconOnly, kbdSides, withLoadingSpinner } from './utilities'
 import {
@@ -21,11 +23,13 @@ import {
 	withKbdStartSize,
 } from './variants'
 
+export type LoadingOptions = Pick<SpinnerProps, 'color' | 'size' | 'label'>
+
 type ButtonBaseProps = ButtonVariants & {
-	className?: string
 	ripple?: boolean
 	spring?: boolean
-	loading?: boolean
+	loading?: boolean | LoadingOptions
+	className?: string
 }
 
 export type ButtonProps = ButtonBaseProps & PolymorphicProps<'button'>
@@ -39,10 +43,14 @@ export function Button({
 	href,
 	ripple = false,
 	spring = false,
-	loading = false,
+	loading: loadingProp = false,
 	...props
 }: ButtonProps) {
+	const loading = !!loadingProp
+	const loadingOptions = typeof loadingProp === 'object' ? loadingProp : undefined
+
 	const alert = useAlertContext()
+	const glass = useGlass()
 
 	const inputSize = useInputSize()
 	const skeleton = useSkeleton()
@@ -50,6 +58,8 @@ export function Button({
 	const { onPointerDown: handleRipple, element: rippleElement } = useRipple()
 
 	const tap = useTap(spring)
+
+	const resolvedVariant = variant ?? (glass ? 'glass' : undefined)
 
 	if (!color && alert) {
 		color = alert.variant === 'solid' ? 'inherit' : alert.color
@@ -65,7 +75,7 @@ export function Button({
 		)
 	}
 
-	const renderedChildren = loading ? withLoadingSpinner(children) : children
+	const renderedChildren = loading ? withLoadingSpinner(children, loadingOptions) : children
 
 	const iconOnly = isIconOnly(renderedChildren)
 
@@ -73,7 +83,7 @@ export function Button({
 	const kbds = iconOnly ? { start: false, end: false } : kbdSides(renderedChildren)
 
 	const classes = cn(
-		buttonVariants({ variant, color, size: resolvedSize }),
+		buttonVariants({ variant: resolvedVariant, color, size: resolvedSize }),
 		iconOnly && iconOnlySize({ size: resolvedSize }),
 		sides.start && !sides.end && withIconStartSize({ size: resolvedSize }),
 		sides.end && !sides.start && withIconEndSize({ size: resolvedSize }),

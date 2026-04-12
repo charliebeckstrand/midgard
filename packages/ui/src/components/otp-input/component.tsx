@@ -9,12 +9,7 @@ import { useInputEvents } from './use-input-events'
 
 const k = katachi.otpInput
 
-type OtpInputEvents = {
-	onChange?: (value: string | undefined) => void
-	onComplete?: (value: string) => void
-}
-
-type OtpInputProps = {
+export type OtpInputProps = {
 	/** Number of input cells. @default 6 */
 	length?: number
 	/** Cell size. @default 'md' */
@@ -31,6 +26,8 @@ type OtpInputProps = {
 	/** Restrict input to digits only. @default 'text' */
 	type?: 'text' | 'number'
 	className?: string
+	onChange?: (value: string | undefined) => void
+	onComplete?: (value: string) => void
 }
 
 export function OtpInput({
@@ -46,7 +43,7 @@ export function OtpInput({
 	autoFocus,
 	type = 'text',
 	className,
-}: OtpInputEvents & OtpInputProps) {
+}: OtpInputProps) {
 	const [current, setCurrent] = useControllable({ value, defaultValue, onChange })
 
 	const cellsRef = useRef<(HTMLInputElement | null)[]>([])

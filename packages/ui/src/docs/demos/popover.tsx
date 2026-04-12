@@ -1,5 +1,6 @@
 import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from 'lucide-react'
 import { Button } from '../../components/button'
+import { Glass } from '../../components/glass'
 import { Icon } from '../../components/icon'
 import { Popover, PopoverContent, PopoverTrigger } from '../../components/popover'
 import { Example } from '../components/example'
@@ -15,6 +16,13 @@ const iconMap = {
 	right: <ChevronRight />,
 }
 
+const popoverContent = (
+	<>
+		<p className="text-sm font-medium">Popover content</p>
+		<p className="mt-1 text-sm text-zinc-500">This is a general-purpose floating container.</p>
+	</>
+)
+
 export default function PopoverDemo() {
 	return (
 		<div className="space-y-8">
@@ -26,13 +34,22 @@ export default function PopoverDemo() {
 							<Icon icon={<ChevronDown />} />
 						</Button>
 					</PopoverTrigger>
-					<PopoverContent>
-						<p className="text-sm font-medium">Popover content</p>
-						<p className="mt-1 text-sm text-zinc-500">
-							This is a general-purpose floating container.
-						</p>
-					</PopoverContent>
+					<PopoverContent>{popoverContent}</PopoverContent>
 				</Popover>
+			</Example>
+
+			<Example title="Glass">
+				<Glass>
+					<Popover>
+						<PopoverTrigger>
+							<Button variant="outline">
+								Open popover
+								<Icon icon={<ChevronDown />} />
+							</Button>
+						</PopoverTrigger>
+						<PopoverContent>{popoverContent}</PopoverContent>
+					</Popover>
+				</Glass>
 			</Example>
 
 			<Example title="Placement">

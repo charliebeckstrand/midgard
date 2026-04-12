@@ -20,6 +20,8 @@ const componentSources = import.meta.glob<string>(
 		'../layouts/*.{ts,tsx}',
 		'../pages/*.{ts,tsx}',
 		'../primitives/*.{ts,tsx}',
+		'../recipes/**/*.ts',
+		'../core/color-cva.ts',
 	],
 	{
 		eager: true,

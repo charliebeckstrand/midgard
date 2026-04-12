@@ -6,16 +6,13 @@ import { Text } from '../text'
 import { PasswordConfirmProvider, usePasswordConfirm } from './context'
 import { deriveStatus, handlePasswordInput } from './utilities'
 
-type PasswordConfirmEvents = {
-	onPasswordMatch?: () => void
-	onPasswordMismatch?: () => void
-}
-
-type PasswordConfirmProps = {
+export type PasswordConfirmProps = {
 	valid?: React.ReactNode
 	warning?: React.ReactNode
 	className?: string
 	children?: React.ReactNode
+	onPasswordMatch?: () => void
+	onPasswordMismatch?: () => void
 }
 
 export function PasswordConfirm({
@@ -25,7 +22,7 @@ export function PasswordConfirm({
 	warning,
 	className,
 	children,
-}: PasswordConfirmEvents & PasswordConfirmProps) {
+}: PasswordConfirmProps) {
 	const [password, setPassword] = useState('')
 	const [confirm, setConfirm] = useState('')
 

@@ -9,12 +9,14 @@ import { deriveCode } from '../derive-code'
 export function Example({
 	title,
 	actions,
+	preview,
 	footer,
 	code,
 	children,
 }: {
 	title?: ReactNode
 	actions?: ReactNode
+	preview?: ReactNode
 	footer?: ReactNode
 	/** Explicit override. When omitted, the block is derived from `children`. */
 	code?: string
@@ -32,6 +34,9 @@ export function Example({
 			)}
 			<div className="rounded-lg border border-zinc-200 dark:border-zinc-800">
 				<div className="overflow-x-auto p-4 space-y-4">{children}</div>
+				{preview && (
+					<div className="border-t border-zinc-200 dark:border-zinc-800 p-4">{preview}</div>
+				)}
 				{footer && (
 					<div className="border-t border-zinc-200 dark:border-zinc-800 p-4">{footer}</div>
 				)}

@@ -3,6 +3,7 @@ import { ki } from '../ki'
 import { maru } from '../maru'
 import { narabi } from '../narabi'
 import { nuri } from '../nuri'
+import { omote } from '../omote'
 import { sawari } from '../sawari'
 import { take } from '../take'
 import { yasumi } from '../yasumi'
@@ -38,6 +39,10 @@ export const button = {
 		ghost: {
 			base: kage.borderTransparent,
 			color: nuri.buttonGhost,
+		},
+		glass: {
+			base: [kage.borderTransparent, omote.glass],
+			color: nuri.buttonPlain,
 		},
 	},
 	size: take.button,

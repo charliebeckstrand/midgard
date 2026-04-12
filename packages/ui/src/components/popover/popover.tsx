@@ -17,7 +17,8 @@ import { AnimatePresence, motion } from 'motion/react'
 import type React from 'react'
 import { cloneElement, isValidElement, useCallback, useEffect, useRef, useState } from 'react'
 import { cn, createContext } from '../../core'
-import { katachi, ugoki } from '../../recipes'
+import { kage, katachi, omote, ugoki } from '../../recipes'
+import { useGlass } from '../glass/context'
 
 const k = katachi.popover
 
@@ -211,7 +212,10 @@ export type PopoverContentProps = {
 export function PopoverContent({ className, autoFocus = false, children }: PopoverContentProps) {
 	const { open, setFloating, floatingStyles, getFloatingProps, onExitComplete } =
 		usePopoverContext()
+
 	const contentRef = useRef<HTMLDivElement | null>(null)
+
+	const glass = useGlass()
 
 	useEffect(() => {
 		if (open && autoFocus) {
@@ -234,7 +238,11 @@ export function PopoverContent({ className, autoFocus = false, children }: Popov
 							ref={contentRef}
 							tabIndex={autoFocus ? -1 : undefined}
 							data-slot="popover-content"
-							className={cn(k.content, className)}
+							className={cn(
+								k.content,
+								glass && [omote.glass, kage.ring, 'bg-transparent dark:bg-transparent'],
+								className,
+							)}
 						>
 							{children}
 						</motion.div>
