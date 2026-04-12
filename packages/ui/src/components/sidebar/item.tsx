@@ -1,7 +1,7 @@
 'use client'
 
 import { cn } from '../../core'
-import { createNavItem, type NavItemProps } from '../../primitives/create-nav-item'
+import { createNavItem, type NavItemProps } from '../nav/create-nav-item'
 import { katachi } from '../../recipes'
 
 const k = katachi.sidebar

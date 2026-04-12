@@ -1,14 +1,14 @@
 'use client'
 
-import { cn } from '../core'
-import { useOffcanvas } from '../core/offcanvas-context'
+import { cn } from '../../core'
+import { useOffcanvas } from '../../core/offcanvas-context'
 import {
 	ActiveIndicator,
 	Polymorphic,
 	type PolymorphicProps,
 	TouchTarget,
 	useActiveIndicator,
-} from '.'
+} from '../../primitives'
 
 export type NavItemProps = {
 	current?: boolean

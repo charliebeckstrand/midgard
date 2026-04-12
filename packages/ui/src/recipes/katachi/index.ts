@@ -40,6 +40,7 @@ import { input } from './input'
 import { kbd } from './kbd'
 import { listbox } from './listbox'
 import { menu } from './menu'
+import { nav } from './nav'
 import { navbar } from './navbar'
 import { option } from './option'
 import { otpInput } from './otp-input'
@@ -97,6 +98,7 @@ export const katachi = {
 	kbd,
 	listbox,
 	menu,
+	nav,
 	navbar,
 	option,
 	otpInput,
