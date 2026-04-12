@@ -1,2 +1,2 @@
 export { Sizer, type SizerProps } from './component'
-export type { SizerSize } from './variants'
+export type { SizerGap, SizerSize } from './variants'

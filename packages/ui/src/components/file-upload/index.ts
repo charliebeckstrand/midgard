@@ -1,2 +1,4 @@
 export { FileUpload, type FileUploadProps } from './component'
-export { type FileUploadVariants, fileUploadVariants } from './variants'
+export { useFileHandlers } from './use-file-handlers'
+export { fileListToArray, formatFileNames } from './utilities'
+export { fileUploadClasses } from './variants'

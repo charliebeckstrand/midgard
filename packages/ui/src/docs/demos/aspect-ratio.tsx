@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { AspectRatio, type AspectRatioPreset } from '../../components/aspect-ratio'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
+import { Sizer } from '../../components/sizer'
 import { code } from '../code'
 import { Example } from '../components/example'
 
@@ -50,11 +51,11 @@ function PresetsExample() {
 				<AspectRatio ratio={ratio} />
 			`}
 		>
-			<div className="max-w-xl">
+			<Sizer size="full">
 				<AspectRatio ratio={ratio} className={placeholder}>
 					{ratio}
 				</AspectRatio>
-			</div>
+			</Sizer>
 		</Example>
 	)
 }
@@ -74,11 +75,11 @@ export default function AspectRatioDemo() {
 					</AspectRatio>
 				`}
 			>
-				<div className="max-w-xl">
+				<Sizer size="full">
 					<AspectRatio ratio={1.618} className={placeholder}>
 						golden (1.618)
 					</AspectRatio>
-				</div>
+				</Sizer>
 			</Example>
 		</div>
 	)

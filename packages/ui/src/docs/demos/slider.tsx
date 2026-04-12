@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Sizer } from '../../components/sizer'
 import { Slider } from '../../components/slider'
 import { Text } from '../../components/text'
 import { code } from '../code'
@@ -30,10 +31,10 @@ function Interactive() {
 				<Slider value={value} onChange={setValue} />
 			`}
 		>
-			<div className="space-y-3 lg:max-w-sm">
+			<Sizer gap={3}>
 				<Slider value={value} onChange={setValue} />
 				<Text className="tabular-nums">{value}</Text>
-			</div>
+			</Sizer>
 		</Example>
 	)
 }
@@ -58,10 +59,10 @@ function RangeAndStep() {
 				<Slider min={-50} max={50} step={5} value={signed} onChange={setSigned} />
 			`}
 		>
-			<div className="flex lg:max-w-sm flex-col gap-4">
+			<Sizer>
 				<Slider min={0} max={1} step={0.1} value={ratio} onChange={setRatio} color="green" />
 				<Slider min={-50} max={50} step={5} value={signed} onChange={setSigned} color="amber" />
-			</div>
+			</Sizer>
 		</Example>
 	)
 }
@@ -71,30 +72,30 @@ export default function SliderDemo() {
 		<div className="space-y-8">
 			<Interactive />
 			<Example title="Sizes">
-				<div className="flex lg:max-w-sm flex-col gap-4">
+				<Sizer>
 					{sizes.map((s, i) => (
 						<div key={s} className="flex items-center gap-3">
 							<span className="w-6 text-xs text-zinc-500">{s}</span>
 							<Slider size={s} defaultValue={40 + i * 20} className="flex-1" />
 						</div>
 					))}
-				</div>
+				</Sizer>
 			</Example>
 			<Example title="Colors">
-				<div className="flex lg:max-w-sm flex-col gap-4">
+				<Sizer>
 					{colors.map((color) => (
 						<div key={color} className="flex items-center gap-3">
 							<span className="w-10 text-xs text-zinc-500">{cap(color)}</span>
 							<Slider color={color} defaultValue={60} className="flex-1" />
 						</div>
 					))}
-				</div>
+				</Sizer>
 			</Example>
 			<RangeAndStep />
 			<Example title="Disabled">
-				<div className="lg:max-w-sm">
+				<Sizer>
 					<Slider disabled defaultValue={40} />
-				</div>
+				</Sizer>
 			</Example>
 		</div>
 	)

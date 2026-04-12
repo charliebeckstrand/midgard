@@ -18,7 +18,11 @@ function ClosableDemo() {
 	const [visible, setVisible] = useState(true)
 
 	if (!visible) {
-		return <Button onClick={() => setVisible(true)}>Show banner</Button>
+		return (
+			<div className="px-4">
+				<Button onClick={() => setVisible(true)}>Show banner</Button>
+			</div>
+		)
 	}
 
 	return (

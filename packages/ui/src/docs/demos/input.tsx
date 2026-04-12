@@ -2,6 +2,7 @@ import { Check, Command, Hash, Lock, Search, Share } from 'lucide-react'
 import { Field, Label } from '../../components/fieldset'
 import { Icon } from '../../components/icon'
 import { Input } from '../../components/input'
+import { Sizer } from '../../components/sizer'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
@@ -13,53 +14,55 @@ export default function InputDemo() {
 		<div className="space-y-8">
 			<Example title="Variants">
 				{variants.map((variant) => (
-					<Field className="lg:max-w-sm" key={variant}>
-						<Label htmlFor={`input-${variant}`}>
-							{variant.charAt(0).toUpperCase() + variant.slice(1)}
-						</Label>
-						<Input
-							id={`input-${variant}`}
-							variant={variant}
-							placeholder={`This is a ${variant} input`}
-						/>
-					</Field>
+					<Sizer key={variant}>
+						<Field>
+							<Label htmlFor={`input-${variant}`}>
+								{variant.charAt(0).toUpperCase() + variant.slice(1)}
+							</Label>
+							<Input
+								id={`input-${variant}`}
+								variant={variant}
+								placeholder={`This is a ${variant} input`}
+							/>
+						</Field>
+					</Sizer>
 				))}
 			</Example>
 			<Example title="Sizes">
-				<div className="flex lg:max-w-xs flex-col gap-4">
+				<Sizer size="sm">
 					<Field>
 						<Label>Small</Label>
 						<Input size="sm" placeholder="Small input" />
 					</Field>
-				</div>
-				<div className="flex lg:max-w-sm flex-col gap-4">
+				</Sizer>
+				<Sizer size="md">
 					<Field>
 						<Label>Medium</Label>
 						<Input size="md" placeholder="Medium input" />
 					</Field>
-				</div>
-				<div className="flex lg:max-w-md flex-col gap-4">
+				</Sizer>
+				<Sizer size="lg">
 					<Field>
 						<Label>Large</Label>
 						<Input size="lg" placeholder="Large input" />
 					</Field>
-				</div>
+				</Sizer>
 			</Example>
 			<Example title="Prefix">
-				<div className="flex lg:max-w-sm flex-col gap-4">
+				<Sizer>
 					<Input prefix={<Icon icon={<Search />} />} placeholder="Search" />
 					<Input prefix={<Icon icon={<Lock />} />} placeholder="Password" />
 					<Input prefix={<Icon icon={<Hash />} />} placeholder="Channel name" />
-				</div>
+				</Sizer>
 			</Example>
 			<Example title="Suffix">
-				<div className="flex lg:max-w-sm flex-col gap-4">
+				<Sizer>
 					<Input suffix={<Icon icon={<Check />} />} placeholder="Verified" />
 					<Input suffix={<Icon icon={<Share />} />} placeholder="Share" />
-				</div>
+				</Sizer>
 			</Example>
 			<Example title="Prefix and suffix">
-				<div className="flex lg:max-w-xs flex-col gap-4">
+				<Sizer>
 					<Input
 						size="sm"
 						prefix={<Icon icon={<Search />} />}
@@ -78,31 +81,39 @@ export default function InputDemo() {
 						suffix={<Icon icon={<Command />} />}
 						placeholder="Large"
 					/>
-				</div>
+				</Sizer>
 			</Example>
 			<Example title="Disabled">
-				<Field className="lg:max-w-sm">
-					<Label htmlFor="input-disabled">Disabled</Label>
-					<Input id="input-disabled" disabled placeholder="Disabled" />
-				</Field>
+				<Sizer>
+					<Field>
+						<Label htmlFor="input-disabled">Disabled</Label>
+						<Input id="input-disabled" disabled placeholder="Disabled" />
+					</Field>
+				</Sizer>
 			</Example>
 			<Example title="Readonly">
-				<Field className="lg:max-w-sm">
-					<Label>Readonly</Label>
-					<Input readOnly placeholder="Readonly" />
-				</Field>
+				<Sizer>
+					<Field>
+						<Label>Readonly</Label>
+						<Input readOnly placeholder="Readonly" />
+					</Field>
+				</Sizer>
 			</Example>
 			<Example title="Invalid">
-				<Field className="lg:max-w-sm">
-					<Label>Invalid</Label>
-					<Input data-invalid placeholder="Invalid input" />
-				</Field>
+				<Sizer>
+					<Field>
+						<Label>Invalid</Label>
+						<Input data-invalid placeholder="Invalid input" />
+					</Field>
+				</Sizer>
 			</Example>
 			<Example title="Valid">
-				<Field className="lg:max-w-sm">
-					<Label>Valid</Label>
-					<Input data-valid placeholder="Valid input" />
-				</Field>
+				<Sizer>
+					<Field>
+						<Label>Valid</Label>
+						<Input data-valid placeholder="Valid input" />
+					</Field>
+				</Sizer>
 			</Example>
 		</div>
 	)

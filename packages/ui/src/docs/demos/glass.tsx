@@ -20,6 +20,7 @@ import {
 import { NumberInput } from '../../components/number-input'
 import { Select, SelectLabel, SelectOption } from '../../components/select'
 import { Sheet, SheetActions, SheetBody, SheetTitle } from '../../components/sheet'
+import { Sizer } from '../../components/sizer'
 import { Text } from '../../components/text'
 import { Textarea } from '../../components/textarea'
 import { Example } from '../components/example'
@@ -41,7 +42,7 @@ export default function GlassDemo() {
 		<div className="space-y-8">
 			<Example title="Glass wrapper">
 				<Glass>
-					<div className="flex flex-col gap-4 lg:max-w-sm">
+					<Sizer>
 						<Field>
 							<Label>Input</Label>
 							<Input placeholder="Glass input" />
@@ -54,13 +55,13 @@ export default function GlassDemo() {
 							<Label>Number</Label>
 							<NumberInput defaultValue={1} />
 						</Field>
-					</div>
+					</Sizer>
 				</Glass>
 			</Example>
 
 			<Example title="Form controls">
 				<Glass>
-					<div className="flex flex-col gap-4 lg:max-w-sm">
+					<Sizer>
 						<Field>
 							<Label>Select</Label>
 							<Select placeholder="Select a person" displayValue={(v: string) => v}>
@@ -94,7 +95,7 @@ export default function GlassDemo() {
 							<Label>Date</Label>
 							<DatePicker value={date} onChange={setDate} />
 						</Field>
-					</div>
+					</Sizer>
 				</Glass>
 			</Example>
 

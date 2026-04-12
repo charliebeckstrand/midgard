@@ -7,6 +7,7 @@ import {
 	AccordionItem,
 	AccordionPanel,
 } from '../../components/accordion'
+import { Sizer } from '../../components/sizer'
 import { Example } from '../components/example'
 import { VariantListbox } from '../components/variant-listbox'
 
@@ -41,7 +42,7 @@ export default function AccordionDemo() {
 				title="Default"
 				actions={<VariantListbox variants={variants} value={variant} onChange={setVariant} />}
 			>
-				<div className="lg:max-w-md">
+				<Sizer size="md">
 					<Accordion variant={variant} defaultValue="shipping">
 						{items.map((item) => (
 							<AccordionItem key={item.value} value={item.value}>
@@ -50,10 +51,10 @@ export default function AccordionDemo() {
 							</AccordionItem>
 						))}
 					</Accordion>
-				</div>
+				</Sizer>
 			</Example>
 			<Example title="Multiple">
-				<div className="lg:max-w-md">
+				<Sizer size="md">
 					<Accordion type="multiple" variant="bordered" defaultValue={['shipping', 'returns']}>
 						{items.map((item) => (
 							<AccordionItem key={item.value} value={item.value}>
@@ -62,10 +63,10 @@ export default function AccordionDemo() {
 							</AccordionItem>
 						))}
 					</Accordion>
-				</div>
+				</Sizer>
 			</Example>
 			<Example title="Disabled item">
-				<div className="lg:max-w-md">
+				<Sizer size="md">
 					<Accordion variant="plain" defaultValue="shipping">
 						{items.map((item) => (
 							<AccordionItem
@@ -78,7 +79,7 @@ export default function AccordionDemo() {
 							</AccordionItem>
 						))}
 					</Accordion>
-				</div>
+				</Sizer>
 			</Example>
 		</div>
 	)

@@ -11,6 +11,7 @@ import { Combobox, ComboboxLabel, ComboboxOption } from '../../components/combob
 import { Heading } from '../../components/heading'
 import { Input } from '../../components/input'
 import { Radio } from '../../components/radio'
+import { Sizer } from '../../components/sizer'
 import { Skeleton } from '../../components/skeleton'
 import { Switch } from '../../components/switch'
 import { Text } from '../../components/text'
@@ -67,9 +68,9 @@ function DynamicExample() {
 				</Skeleton>
 			`}
 		>
-			<div className="sm:max-w-sm">
+			<Sizer>
 				<Skeleton>{active?.render()}</Skeleton>
-			</div>
+			</Sizer>
 		</Example>
 	)
 }
@@ -89,20 +90,22 @@ function TransitionDemo() {
 			</Button>
 
 			<Skeleton ready={ready}>
-				<Card className="max-w-sm">
-					<CardHeader>
-						<div className="flex items-center gap-3">
-							<Avatar initials="JD" />
-							<div className="flex-1 space-y-1">
-								<Heading level={5}>Jane Doe</Heading>
-								<Text>Senior Engineer</Text>
+				<Sizer>
+					<Card>
+						<CardHeader>
+							<div className="flex items-center gap-3">
+								<Avatar initials="JD" />
+								<div className="flex-1 space-y-1">
+									<Heading level={5}>Jane Doe</Heading>
+									<Text>Senior Engineer</Text>
+								</div>
 							</div>
-						</div>
-					</CardHeader>
-					<CardBody>
-						<Text>Design systems & component libraries.</Text>
-					</CardBody>
-				</Card>
+						</CardHeader>
+						<CardBody>
+							<Text>Design systems & component libraries.</Text>
+						</CardBody>
+					</Card>
+				</Sizer>
 			</Skeleton>
 		</>
 	)
@@ -115,13 +118,13 @@ export default function SkeletonDemo() {
 
 			<Example title="Form">
 				<Skeleton>
-					<div className="max-w-sm space-y-3">
+					<Sizer gap={3}>
 						<Heading level={3}>Create account</Heading>
 						<Input placeholder="Email" />
 						<Input placeholder="Password" type="password" />
 						<Textarea placeholder="Bio" />
 						<Button>Sign up</Button>
-					</div>
+					</Sizer>
 				</Skeleton>
 			</Example>
 

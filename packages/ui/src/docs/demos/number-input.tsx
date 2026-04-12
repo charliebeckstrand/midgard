@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Field, Label } from '../../components/fieldset'
 import { Glass } from '../../components/glass'
 import { NumberInput } from '../../components/number-input'
+import { Sizer } from '../../components/sizer'
 import { code } from '../code'
 import { Example } from '../components/example'
 
@@ -24,10 +25,12 @@ function Controlled() {
 				<NumberInput value={value} onChange={setValue} min={0} max={10} />
 			`}
 		>
-			<Field className="lg:max-w-sm">
-				<Label>Quantity</Label>
-				<NumberInput value={value} onChange={setValue} min={0} max={10} />
-			</Field>
+			<Sizer>
+				<Field>
+					<Label>Quantity</Label>
+					<NumberInput value={value} onChange={setValue} min={0} max={10} />
+				</Field>
+			</Sizer>
 		</Example>
 	)
 }
@@ -36,7 +39,7 @@ export default function NumberInputDemo() {
 	return (
 		<div className="space-y-8">
 			<Example title="Variants">
-				<div className="lg:max-w-sm flex flex-col gap-4">
+				<Sizer>
 					<Field>
 						<Label htmlFor="num-default">Default</Label>
 						<NumberInput id="num-default" defaultValue={1} />
@@ -51,51 +54,57 @@ export default function NumberInputDemo() {
 							<NumberInput defaultValue={1} />
 						</Field>
 					</Glass>
-				</div>
+				</Sizer>
 			</Example>
 
 			<Example title="Sizes">
-				<div className="lg:max-w-xs">
+				<Sizer size="sm">
 					<Field>
 						<Label>Small</Label>
 						<NumberInput size="sm" defaultValue={1} />
 					</Field>
-				</div>
-				<div className="lg:max-w-sm">
+				</Sizer>
+				<Sizer size="md">
 					<Field>
 						<Label>Medium</Label>
 						<NumberInput size="md" defaultValue={1} />
 					</Field>
-				</div>
-				<div className="lg:max-w-md">
+				</Sizer>
+				<Sizer size="lg">
 					<Field>
 						<Label>Large</Label>
 						<NumberInput size="lg" defaultValue={1} />
 					</Field>
-				</div>
+				</Sizer>
 			</Example>
 
 			<Controlled />
 
 			<Example title="Disabled">
-				<Field className="lg:max-w-sm">
-					<Label>Disabled</Label>
-					<NumberInput disabled defaultValue={1} />
-				</Field>
+				<Sizer>
+					<Field>
+						<Label>Disabled</Label>
+						<NumberInput disabled defaultValue={1} />
+					</Field>
+				</Sizer>
 			</Example>
 
 			<Example title="Invalid">
-				<Field className="lg:max-w-sm">
-					<Label>Invalid</Label>
-					<NumberInput data-invalid defaultValue={1} />
-				</Field>
+				<Sizer>
+					<Field>
+						<Label>Invalid</Label>
+						<NumberInput data-invalid defaultValue={1} />
+					</Field>
+				</Sizer>
 			</Example>
 
 			<Example title="Valid">
-				<Field className="lg:max-w-sm">
-					<Label>Valid</Label>
-					<NumberInput data-valid defaultValue={1} />
-				</Field>
+				<Sizer>
+					<Field>
+						<Label>Valid</Label>
+						<NumberInput data-valid defaultValue={1} />
+					</Field>
+				</Sizer>
 			</Example>
 		</div>
 	)

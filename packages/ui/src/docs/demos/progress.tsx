@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { ProgressBar, ProgressGauge } from '../../components/progress'
+import { Sizer } from '../../components/sizer'
 import { code } from '../code'
 import { Example } from '../components/example'
 import { ValueStepper } from '../components/value-stepper'
@@ -29,9 +30,9 @@ function InteractiveBar() {
 				<ProgressBar value={60} />
 			`}
 		>
-			<div className="lg:max-w-sm">
+			<Sizer>
 				<ProgressBar value={value} />
-			</div>
+			</Sizer>
 		</Example>
 	)
 }
@@ -59,24 +60,24 @@ export default function ProgressDemo() {
 		<div className="space-y-8">
 			<InteractiveBar />
 			<Example title="Bar sizes">
-				<div className="flex lg:max-w-sm flex-col gap-4">
+				<Sizer>
 					{barSizes.map((s) => (
 						<div key={s} className="flex items-center gap-3">
 							<span className="w-6 text-xs text-zinc-500">{s}</span>
 							<ProgressBar size={s} value={60} className="flex-1" />
 						</div>
 					))}
-				</div>
+				</Sizer>
 			</Example>
 			<Example title="Bar colors">
-				<div className="flex lg:max-w-sm flex-col gap-4">
+				<Sizer>
 					{colors.map((color) => (
 						<div key={color} className="flex items-center gap-3">
 							<span className="w-10 text-xs text-zinc-500">{cap(color)}</span>
 							<ProgressBar color={color} value={60} className="flex-1" />
 						</div>
 					))}
-				</div>
+				</Sizer>
 			</Example>
 			<InteractiveGauge />
 			<Example title="Gauge sizes">

@@ -4,6 +4,7 @@ import { Upload } from 'lucide-react'
 import { useState } from 'react'
 import { FileUpload } from '../../components/file-upload'
 import { Icon } from '../../components/icon'
+import { Sizer } from '../../components/sizer'
 import { Text } from '../../components/text'
 import { code } from '../code'
 import { Example } from '../components/example'
@@ -14,14 +15,29 @@ function AreaDemo() {
 	const [files, setFiles] = useState<File[]>([])
 
 	return (
-		<div className="space-y-2">
+		<Sizer>
 			<FileUpload accept="image/*" onFiles={setFiles} />
 			{files.length > 0 && (
-				<Text size="sm" muted>
-					Selected: {files.map((f) => f.name).join(', ')}
-				</Text>
+				<Text variant="muted">Selected: {files.map((f) => f.name).join(', ')}</Text>
 			)}
-		</div>
+		</Sizer>
+	)
+}
+
+function CustomContentDemo() {
+	const [files, setFiles] = useState<File[]>([])
+
+	return (
+		<Sizer>
+			<FileUpload accept=".pdf,.doc,.docx" onFiles={setFiles}>
+				<Icon icon={<Upload />} size="lg" />
+				<Text>Upload documents</Text>
+				<Text variant="muted">PDF, DOC up to 10MB</Text>
+			</FileUpload>
+			{files.length > 0 && (
+				<Text variant="muted">Selected: {files.map((f) => f.name).join(', ')}</Text>
+			)}
+		</Sizer>
 	)
 }
 
@@ -29,14 +45,12 @@ function InputDemo() {
 	const [files, setFiles] = useState<File[]>([])
 
 	return (
-		<div className="space-y-2">
+		<Sizer>
 			<FileUpload variant="input" accept="image/*" onFiles={setFiles} />
 			{files.length > 0 && (
-				<Text size="sm" muted>
-					Selected: {files.map((f) => f.name).join(', ')}
-				</Text>
+				<Text variant="muted">Selected: {files.map((f) => f.name).join(', ')}</Text>
 			)}
-		</div>
+		</Sizer>
 	)
 }
 
@@ -44,14 +58,22 @@ function ButtonDemo() {
 	const [files, setFiles] = useState<File[]>([])
 
 	return (
-		<div className="space-y-2">
+		<Sizer>
 			<FileUpload variant="button" onFiles={setFiles} />
 			{files.length > 0 && (
-				<Text size="sm" muted>
-					Selected: {files.map((f) => f.name).join(', ')}
-				</Text>
+				<Text variant="muted">Selected: {files.map((f) => f.name).join(', ')}</Text>
 			)}
-		</div>
+		</Sizer>
+	)
+}
+
+function DisabledDemo() {
+	return (
+		<Sizer>
+			<FileUpload disabled />
+			<FileUpload variant="input" disabled />
+			<FileUpload variant="button" disabled />
+		</Sizer>
 	)
 }
 
@@ -69,22 +91,6 @@ export default function FileUploadDemo() {
 				<AreaDemo />
 			</Example>
 			<Example
-				title="Sizes"
-				code={code`
-					import { FileUpload } from 'ui/file-upload'
-
-					<FileUpload size="sm" />
-					<FileUpload size="md" />
-					<FileUpload size="lg" />
-				`}
-			>
-				<div className="space-y-4">
-					<FileUpload size="sm" />
-					<FileUpload size="md" />
-					<FileUpload size="lg" />
-				</div>
-			</Example>
-			<Example
 				title="Custom content"
 				code={code`
 					import { FileUpload } from 'ui/file-upload'
@@ -93,20 +99,12 @@ export default function FileUploadDemo() {
 
 					<FileUpload accept=".pdf,.doc,.docx">
 						<Icon icon={<FileText />} size="lg" />
-						<Text size="sm" weight="medium">Upload documents</Text>
-						<Text size="sm" muted>PDF, DOC up to 10MB</Text>
+						<Text>Upload documents</Text>
+						<Text variant="muted">PDF, DOC up to 10MB</Text>
 					</FileUpload>
 				`}
 			>
-				<FileUpload accept=".pdf,.doc,.docx">
-					<Icon icon={<Upload />} size="lg" />
-					<Text size="sm" weight="medium">
-						Upload documents
-					</Text>
-					<Text size="sm" muted>
-						PDF, DOC up to 10MB
-					</Text>
-				</FileUpload>
+				<CustomContentDemo />
 			</Example>
 			<Example
 				title="Input variant"
@@ -152,11 +150,7 @@ export default function FileUploadDemo() {
 					<FileUpload variant="button" disabled />
 				`}
 			>
-				<div className="space-y-4">
-					<FileUpload disabled />
-					<FileUpload variant="input" disabled />
-					<FileUpload variant="button" disabled />
-				</div>
+				<DisabledDemo />
 			</Example>
 		</div>
 	)
