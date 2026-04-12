@@ -7,7 +7,7 @@ import type { Demo } from './registry'
 
 export function DemoPage({ demo }: { demo: Demo }) {
 	return (
-		<div className="mx-auto w-full space-y-6 px-2 lg:p-6 lg:px-6">
+		<div className="mx-auto w-full space-y-4 px-2 lg:p-6 lg:px-6">
 			<Heading>{demo.name}</Heading>
 			<demo.component />
 			{demo.api && (

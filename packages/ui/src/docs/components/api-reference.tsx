@@ -189,7 +189,7 @@ function ComponentEntry({ entry }: { entry: ComponentApi }) {
 	const passThrough = entry.passThrough ?? []
 
 	return (
-		<div className="space-y-3">
+		<div className="space-y-4">
 			{visibleProps.length === 0 ? (
 				<p className="text-sm text-zinc-500 dark:text-zinc-400">
 					This component accepts no explicit props.
@@ -197,13 +197,13 @@ function ComponentEntry({ entry }: { entry: ComponentApi }) {
 			) : (
 				<div className="space-y-6">
 					{props.length > 0 && (
-						<div className="space-y-3">
+						<div className="space-y-4">
 							<Heading level={4}>Props</Heading>
 							<PropRowsTable rows={props} />
 						</div>
 					)}
 					{events.length > 0 && (
-						<div className="space-y-3">
+						<div className="space-y-4">
 							<Heading level={4}>Events</Heading>
 							<PropRowsTable rows={events} />
 						</div>

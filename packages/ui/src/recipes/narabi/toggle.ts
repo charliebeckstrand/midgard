@@ -8,6 +8,6 @@ export const toggle = [
 ]
 
 export const group = [
-	'space-y-3 **:data-[slot=label]:font-normal',
+	'space-y-4 **:data-[slot=label]:font-normal',
 	'has-data-[slot=description]:**:data-[slot=label]:font-medium',
 ]

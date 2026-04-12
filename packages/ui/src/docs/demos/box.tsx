@@ -35,7 +35,7 @@ export default function BoxDemo() {
 					</Box>
 				`}
 			>
-				<div className="space-y-3">
+				<div className="space-y-4">
 					<Box p={6} radius="lg" bg="surface" border>
 						Surface with default border
 					</Box>

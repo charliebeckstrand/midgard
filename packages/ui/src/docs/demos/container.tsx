@@ -33,7 +33,7 @@ export default function ContainerDemo() {
 					<Container padding="lg"><Card>Large padding</Card></Container>
 				`}
 			>
-				<div className="space-y-3">
+				<div className="space-y-4">
 					<Container padding="none">
 						<Card>No padding</Card>
 					</Container>

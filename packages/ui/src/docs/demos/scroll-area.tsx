@@ -60,7 +60,7 @@ export default function ScrollAreaDemo() {
 				actions={<SizeListbox sizes={sizes} value={verticalSize} onChange={setVerticalSize} />}
 			>
 				<ScrollArea size={verticalSize} rounded className="max-w-96">
-					<div className="space-y-3">
+					<div className="space-y-4">
 						{paragraphs.map((p) => (
 							<Text key={p.id}>{p.text}</Text>
 						))}
@@ -86,7 +86,7 @@ export default function ScrollAreaDemo() {
 				actions={<SizeListbox sizes={sizes} value={bothSize} onChange={setBothSize} />}
 			>
 				<ScrollArea orientation="both" size={bothSize} rounded>
-					<div className="w-max space-y-3">
+					<div className="w-max space-y-4">
 						{paragraphs.map((p) => (
 							<Text key={p.id} className="whitespace-nowrap">
 								{p.text}
@@ -98,7 +98,7 @@ export default function ScrollAreaDemo() {
 
 			<Example title="Hidden scrollbar">
 				<ScrollArea size="md" scrollbar="hidden" rounded className="max-w-96">
-					<div className="space-y-3">
+					<div className="space-y-4">
 						{paragraphs.map((p) => (
 							<Text key={p.id}>{p.text}</Text>
 						))}
@@ -108,7 +108,7 @@ export default function ScrollAreaDemo() {
 
 			<Example title="Visible scrollbar">
 				<ScrollArea size="md" scrollbar="visible" rounded className="max-w-96">
-					<div className="space-y-3">
+					<div className="space-y-4">
 						{paragraphs.map((p) => (
 							<Text key={p.id}>{p.text}</Text>
 						))}
@@ -123,7 +123,7 @@ export default function ScrollAreaDemo() {
 					</CardHeader>
 					<CardBody>
 						<ScrollArea bare size="md">
-							<div className="space-y-3">
+							<div className="space-y-4">
 								{paragraphs.map((p) => (
 									<Text key={p.id}>{p.text}</Text>
 								))}

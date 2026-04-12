@@ -54,7 +54,7 @@ export default function CardDemo() {
 					<Card p={4} radius="lg" bg="none">Outline</Card>
 				`}
 			>
-				<div className="space-y-3">
+				<div className="space-y-4">
 					<Alert type="info" closable>
 						<AlertTitle>Box API</AlertTitle>
 						<AlertDescription>

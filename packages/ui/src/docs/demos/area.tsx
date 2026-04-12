@@ -28,7 +28,7 @@ export default function AreaDemo() {
 					<Area padding="lg">Large</Area>
 				`}
 			>
-				<div className="space-y-3">
+				<div className="space-y-4">
 					<Area padding="sm">Small</Area>
 					<Area padding="md">Medium</Area>
 					<Area padding="lg">Large</Area>
@@ -44,7 +44,7 @@ export default function AreaDemo() {
 					<Area border="solid" padding="md">Solid</Area>
 				`}
 			>
-				<div className="space-y-3">
+				<div className="space-y-4">
 					<Area border="dashed" padding="md">
 						Dashed
 					</Area>
