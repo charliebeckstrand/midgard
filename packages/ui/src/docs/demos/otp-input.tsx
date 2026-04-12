@@ -1,8 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { Field, Label } from '../../components/fieldset'
+import { Field } from '../../components/fieldset'
+import { Glass } from '../../components/glass'
 import { OtpInput } from '../../components/otp-input'
+import { Spinner } from '../../components/spinner'
 import { Text } from '../../components/text'
 import { code } from '../code'
 import { Example } from '../components/example'
@@ -11,7 +13,8 @@ export const meta = { category: 'Forms' }
 
 export default function OtpInputDemo() {
 	const [value, setValue] = useState('')
-	const [completed, setCompleted] = useState('')
+	const [verifying, setVerifying] = useState(false)
+	const [valid, setValid] = useState(false)
 
 	return (
 		<div className="space-y-8">
@@ -27,29 +30,19 @@ export default function OtpInputDemo() {
 			</Example>
 
 			<Example
-				title="Sizes"
+				title="Glass"
 				code={code`
+					import { Glass } from 'ui/glass'
 					import { OtpInput } from 'ui/otp-input'
 
-					<OtpInput size="sm" length={4} />
-					<OtpInput size="md" length={4} />
-					<OtpInput size="lg" length={4} />
+					<Glass>
+						<OtpInput />
+					</Glass>
 				`}
 			>
-				<div className="flex flex-col gap-4">
-					<Field>
-						<Label>Small</Label>
-						<OtpInput size="sm" length={4} />
-					</Field>
-					<Field>
-						<Label>Medium</Label>
-						<OtpInput size="md" length={4} />
-					</Field>
-					<Field>
-						<Label>Large</Label>
-						<OtpInput size="lg" length={4} />
-					</Field>
-				</div>
+				<Glass>
+					<OtpInput />
+				</Glass>
 			</Example>
 
 			<Example
@@ -61,7 +54,6 @@ export default function OtpInputDemo() {
 				`}
 			>
 				<Field>
-					<Label>Verification code</Label>
 					<OtpInput type="number" length={6} />
 				</Field>
 			</Example>
@@ -78,16 +70,32 @@ export default function OtpInputDemo() {
 					/>
 				`}
 			>
-				<div className="space-y-2">
+				<div className="flex items-center gap-3">
 					<OtpInput
 						type="number"
 						length={6}
 						value={value}
-						onChange={(v) => setValue(v ?? '')}
-						onComplete={setCompleted}
+						valid={valid}
+						onChange={(v) => {
+							setValue(v ?? '')
+
+							setVerifying(false)
+
+							setValid(false)
+						}}
+						onComplete={() => {
+							setVerifying(true)
+
+							setTimeout(() => {
+								setVerifying(false)
+
+								setValid(true)
+							}, 3000)
+						}}
 					/>
-					{completed && <Text>Completed: {completed}</Text>}
 				</div>
+				{verifying && <Spinner color="blue" size="lg" />}
+				{valid && <Text color="green">Code verified!</Text>}
 			</Example>
 
 			<Example
@@ -110,8 +118,20 @@ export default function OtpInputDemo() {
 				`}
 			>
 				<Field>
-					<Label>Invalid code</Label>
 					<OtpInput invalid length={4} />
+				</Field>
+			</Example>
+
+			<Example
+				title="Valid"
+				code={code`
+					import { OtpInput } from 'ui/otp-input'
+
+					<OtpInput valid length={4} />
+				`}
+			>
+				<Field>
+					<OtpInput valid length={4} />
 				</Field>
 			</Example>
 		</div>

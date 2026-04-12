@@ -4,7 +4,7 @@ import { katachi } from '../../recipes'
 const k = katachi.text
 
 export const textVariants = cva('', {
-	variants: { variant: k.variant },
+	variants: { variant: k.variant, color: k.color },
 	defaultVariants: k.defaults,
 })
 

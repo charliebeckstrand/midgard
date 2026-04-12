@@ -16,6 +16,8 @@ const hiru = [
 	'placeholder:text-zinc-500',
 	'hover:border-zinc-950/20',
 	'data-invalid:border-red-600 data-invalid:hover:border-red-600',
+	'data-warning:border-amber-500 data-warning:hover:border-amber-500',
+	'data-valid:border-green-600 data-valid:hover:border-green-600',
 	'disabled:border-zinc-950/20 disabled:cursor-not-allowed',
 ]
 

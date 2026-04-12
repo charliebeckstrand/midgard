@@ -9,7 +9,8 @@ export const accordion = {
 		bordered: [
 			maru.rounded,
 			kage.border,
-			'overflow-hidden divide-y divide-zinc-950/10 dark:divide-white/10',
+			'divide-y divide-zinc-950/10 dark:divide-white/10',
+			'overflow-hidden',
 		],
 		plain: ['divide-y divide-zinc-950/10 dark:divide-white/10'],
 	},
@@ -20,8 +21,9 @@ export const accordion = {
 		plain: '',
 	},
 	button: [
-		'flex w-full items-center justify-between gap-3',
-		'px-4 py-3 text-left text-sm/6 font-medium',
+		'w-full flex items-center justify-between gap-3',
+		'px-4 py-3 text-left',
+		'text-sm/6 font-medium',
 		sumi.textMuted,
 		sumi.textHover,
 		'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-inset',
@@ -32,6 +34,6 @@ export const accordion = {
 		'group-data-[open]/accordion-item:rotate-180',
 	],
 	panel: 'overflow-hidden',
-	body: ['px-4 pb-3 pt-0 text-sm/6', sumi.textMuted],
+	body: ['px-4 pb-3 pt-0', 'text-sm/6', sumi.textMuted],
 	defaults: { variant: 'separated' as const },
 }

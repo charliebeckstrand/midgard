@@ -171,6 +171,10 @@
 			"types": "./src/components/pagination/index.ts",
 			"default": "./src/components/pagination/index.ts"
 		},
+		"./password-confirm": {
+			"types": "./src/components/password-confirm/index.ts",
+			"default": "./src/components/password-confirm/index.ts"
+		},
 		"./popover": {
 			"types": "./src/components/popover/index.ts",
 			"default": "./src/components/popover/index.ts"

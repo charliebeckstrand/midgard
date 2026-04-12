@@ -6,12 +6,14 @@ import { type TextVariants, textVariants } from './variants'
 
 export type TextProps = TextVariants & {
 	className?: string
-} & Omit<React.ComponentPropsWithoutRef<'p'>, 'className'>
+} & Omit<React.ComponentPropsWithoutRef<'p'>, 'className' | 'color'>
 
-export function Text({ variant, className, ...props }: TextProps) {
+export function Text({ variant, color, className, ...props }: TextProps) {
 	if (useSkeleton()) {
 		return <Placeholder className={cn(kokkaku.text.base, className)} />
 	}
 
-	return <p data-slot="text" className={cn(textVariants({ variant }), className)} {...props} />
+	return (
+		<p data-slot="text" className={cn(textVariants({ variant, color }), className)} {...props} />
+	)
 }

@@ -96,6 +96,12 @@ export default function InputDemo() {
 					<Input data-invalid placeholder="Invalid input" />
 				</Field>
 			</Example>
+			<Example title="Valid">
+				<Field className="lg:max-w-sm">
+					<Label>Valid</Label>
+					<Input data-valid placeholder="Valid input" />
+				</Field>
+			</Example>
 		</div>
 	)
 }

@@ -36,38 +36,21 @@ export default function NumberInputDemo() {
 	return (
 		<div className="space-y-8">
 			<Example title="Variants">
-				<Field className="lg:max-w-sm">
-					<Label htmlFor="num-default">Default</Label>
-					<NumberInput id="num-default" defaultValue={1} />
-				</Field>
-				<Field className="lg:max-w-sm">
-					<Label>Outline</Label>
-					<NumberInput variant="outline" defaultValue={1} />
-				</Field>
-				<Glass>
-					<Field className="lg:max-w-sm">
-						<Label>Glass</Label>
-						<NumberInput defaultValue={1} />
-					</Field>
-				</Glass>
-			</Example>
-
-			<Controlled />
-
-			<Example title="Min, max, and step">
-				<div className="flex lg:max-w-sm flex-col gap-4">
+				<div className="lg:max-w-sm flex flex-col gap-4">
 					<Field>
-						<Label>Step 5 (0–100)</Label>
-						<NumberInput defaultValue={0} min={0} max={100} step={5} />
+						<Label htmlFor="num-default">Default</Label>
+						<NumberInput id="num-default" defaultValue={1} />
 					</Field>
 					<Field>
-						<Label>Step 0.1 (0–1)</Label>
-						<NumberInput defaultValue={0.5} min={0} max={1} step={0.1} />
+						<Label>Outline</Label>
+						<NumberInput variant="outline" defaultValue={1} />
 					</Field>
-					<Field>
-						<Label>Signed (−50 to 50)</Label>
-						<NumberInput defaultValue={0} min={-50} max={50} />
-					</Field>
+					<Glass>
+						<Field>
+							<Label>Glass</Label>
+							<NumberInput defaultValue={1} />
+						</Field>
+					</Glass>
 				</div>
 			</Example>
 
@@ -77,16 +60,22 @@ export default function NumberInputDemo() {
 						<Label>Small</Label>
 						<NumberInput size="sm" defaultValue={1} />
 					</Field>
+				</div>
+				<div className="lg:max-w-sm">
 					<Field>
 						<Label>Medium</Label>
 						<NumberInput size="md" defaultValue={1} />
 					</Field>
+				</div>
+				<div className="lg:max-w-md">
 					<Field>
 						<Label>Large</Label>
 						<NumberInput size="lg" defaultValue={1} />
 					</Field>
 				</div>
 			</Example>
+
+			<Controlled />
 
 			<Example title="Disabled">
 				<Field className="lg:max-w-sm">
@@ -99,6 +88,13 @@ export default function NumberInputDemo() {
 				<Field className="lg:max-w-sm">
 					<Label>Invalid</Label>
 					<NumberInput data-invalid defaultValue={1} />
+				</Field>
+			</Example>
+
+			<Example title="Valid">
+				<Field className="lg:max-w-sm">
+					<Label>Valid</Label>
+					<NumberInput data-valid defaultValue={1} />
 				</Field>
 			</Example>
 		</div>

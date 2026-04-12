@@ -26,22 +26,28 @@ export default function PasswordInputDemo() {
 					</Field>
 				</Glass>
 			</Example>
+
 			<Example title="Sizes">
-				<div className="flex lg:max-w-xs flex-col gap-4">
+				<div className="lg:max-w-xs">
 					<Field>
 						<Label>Small</Label>
 						<PasswordInput size="sm" placeholder="Small input" />
 					</Field>
+				</div>
+				<div className="lg:max-w-sm">
 					<Field>
 						<Label>Medium</Label>
 						<PasswordInput size="md" placeholder="Medium input" />
 					</Field>
+				</div>
+				<div className="lg:max-w-md">
 					<Field>
 						<Label>Large</Label>
 						<PasswordInput size="lg" placeholder="Large input" />
 					</Field>
 				</div>
 			</Example>
+
 			<Example title="Prefix">
 				<Field className="lg:max-w-sm">
 					<Label htmlFor="password-prefix">Password</Label>
@@ -52,22 +58,32 @@ export default function PasswordInputDemo() {
 					/>
 				</Field>
 			</Example>
+
 			<Example title="Disabled">
 				<Field className="lg:max-w-sm">
 					<Label htmlFor="password-disabled">Disabled</Label>
 					<PasswordInput id="password-disabled" disabled placeholder="Disabled" />
 				</Field>
 			</Example>
+
 			<Example title="Readonly">
 				<Field className="lg:max-w-sm">
 					<Label>Readonly</Label>
 					<PasswordInput readOnly defaultValue="hunter2" />
 				</Field>
 			</Example>
+
 			<Example title="Invalid">
 				<Field className="lg:max-w-sm">
 					<Label>Invalid</Label>
 					<PasswordInput data-invalid placeholder="Invalid input" />
+				</Field>
+			</Example>
+
+			<Example title="Valid">
+				<Field className="lg:max-w-sm">
+					<Label>Valid</Label>
+					<PasswordInput data-valid placeholder="Valid input" />
 				</Field>
 			</Example>
 		</div>
