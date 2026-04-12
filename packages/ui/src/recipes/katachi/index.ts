@@ -41,6 +41,7 @@ import { listbox } from './listbox'
 import { menu } from './menu'
 import { navbar } from './navbar'
 import { option } from './option'
+import { otpInput } from './otp-input'
 import { pagination } from './pagination'
 import { panel } from './panel'
 import { placeholder } from './placeholder'
@@ -64,6 +65,7 @@ import { textarea } from './textarea'
 import { timeline } from './timeline'
 import { toast } from './toast'
 import { tooltip } from './tooltip'
+import { tree } from './tree'
 
 export const katachi = {
 	accordion,
@@ -95,6 +97,7 @@ export const katachi = {
 	menu,
 	navbar,
 	option,
+	otpInput,
 	pagination,
 	panel,
 	placeholder,
@@ -118,4 +121,5 @@ export const katachi = {
 	timeline,
 	toast,
 	tooltip,
+	tree,
 } as const
