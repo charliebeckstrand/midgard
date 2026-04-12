@@ -51,6 +51,10 @@
 			"types": "./src/components/badge/index.ts",
 			"default": "./src/components/badge/index.ts"
 		},
+		"./banner": {
+			"types": "./src/components/banner/index.ts",
+			"default": "./src/components/banner/index.ts"
+		},
 		"./box": {
 			"types": "./src/components/box/index.ts",
 			"default": "./src/components/box/index.ts"
@@ -134,6 +138,10 @@
 		"./fieldset": {
 			"types": "./src/components/fieldset/index.ts",
 			"default": "./src/components/fieldset/index.ts"
+		},
+		"./file-upload": {
+			"types": "./src/components/file-upload/index.ts",
+			"default": "./src/components/file-upload/index.ts"
 		},
 		"./heading": {
 			"types": "./src/components/heading/index.ts",
