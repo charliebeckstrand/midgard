@@ -1,36 +1,36 @@
 'use client'
 
 import { useState } from 'react'
-import { Nav, NavContent, NavItem, NavList } from '../../components/nav'
+import { Nav, NavContent, NavContents, NavItem, NavList } from '../../components/nav'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Navigation' }
 
-const items = ['Account', 'Notifications', 'Billing']
-
 export default function NavDemo() {
-	const [current, setCurrent] = useState('Account')
+	const [current, setCurrent] = useState('account')
 
 	return (
 		<div className="space-y-8">
-			<Example title="Default">
+			<Example title="Value model with content">
 				<div className="flex gap-8">
-					<Nav>
+					<Nav value={current} onChange={setCurrent}>
 						<NavList>
-							{items.map((item) => (
-								<NavItem
-									key={item}
-									current={current === item}
-									onClick={() => setCurrent(item)}
-								>
-									{item}
-								</NavItem>
-							))}
+							<NavItem value="account">Account</NavItem>
+							<NavItem value="notifications">Notifications</NavItem>
+							<NavItem value="billing">Billing</NavItem>
 						</NavList>
 					</Nav>
-					<NavContent className="flex-1 text-sm text-zinc-500">
-						{current} settings would go here.
-					</NavContent>
+					<NavContents className="flex-1 text-sm text-zinc-500">
+						<NavContent value="account">
+							Account settings would go here.
+						</NavContent>
+						<NavContent value="notifications">
+							Notification preferences would go here.
+						</NavContent>
+						<NavContent value="billing">
+							Billing information would go here.
+						</NavContent>
+					</NavContents>
 				</div>
 			</Example>
 

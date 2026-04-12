@@ -1,7 +1,7 @@
 'use client'
 
 import { cn } from '../../core'
-import { createNavItem, type NavItemProps } from '../nav'
+import { createNavItem, type BaseNavItemProps } from '../nav'
 import { ActiveIndicatorScope } from '../../primitives'
 import { katachi } from '../../recipes'
 
@@ -15,7 +15,7 @@ export type NavbarLabelProps = React.ComponentPropsWithoutRef<'span'>
 
 export type NavbarSpacerProps = React.ComponentPropsWithoutRef<'div'>
 
-export type NavbarItemProps = NavItemProps
+export type NavbarItemProps = BaseNavItemProps
 
 export function Navbar({ className, children, ...props }: NavbarProps) {
 	return (
