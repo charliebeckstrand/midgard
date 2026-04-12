@@ -6,7 +6,7 @@ export const status = {
 			outline: 'border-2 border-current bg-white dark:bg-zinc-900',
 		},
 		status: {
-			inactive: 'text-zinc-400 dark:text-zinc-500',
+			inactive: 'text-zinc-300 dark:text-zinc-400',
 			active: 'text-green-500',
 			info: 'text-blue-500',
 			warning: 'text-amber-500',
