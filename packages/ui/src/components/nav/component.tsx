@@ -77,26 +77,26 @@ export function NavItem({ value, current, onClick, ...props }: NavItemProps) {
 	return <BaseNavItem current={isCurrent} onClick={handleClick} {...props} />
 }
 
+// ── NavContents ─────────────────────────────────────────
+
+export type NavContentsProps = React.ComponentPropsWithoutRef<'div'>
+
+export function NavContents({ className, ...props }: NavContentsProps) {
+	return <div data-slot="nav-contents" className={className} {...props} />
+}
+
 // ── NavContent ──────────────────────────────────────────
 
-export type NavContentProps = React.ComponentPropsWithoutRef<'div'>
-
-export function NavContent({ className, ...props }: NavContentProps) {
-	return <div data-slot="nav-content" className={className} {...props} />
+export type NavContentProps = React.ComponentPropsWithoutRef<'div'> & {
+	value?: string
 }
 
-// ── NavItemContent ──────────────────────────────────────
-
-export type NavItemContentProps = React.ComponentPropsWithoutRef<'div'> & {
-	value: string
-}
-
-export function NavItemContent({ value, className, ...props }: NavItemContentProps) {
+export function NavContent({ value, className, ...props }: NavContentProps) {
 	const ctx = useNavContext()
 
-	if (ctx?.value !== undefined && ctx.value !== value) {
+	if (value !== undefined && ctx?.value !== undefined && ctx.value !== value) {
 		return null
 	}
 
-	return <div data-slot="nav-item-content" className={className} {...props} />
+	return <div data-slot="nav-content" className={className} {...props} />
 }

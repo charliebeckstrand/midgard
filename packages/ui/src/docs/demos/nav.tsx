@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Nav, NavContent, NavItem, NavItemContent, NavList } from '../../components/nav'
+import { Nav, NavContent, NavContents, NavItem, NavList } from '../../components/nav'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Navigation' }
@@ -20,17 +20,17 @@ export default function NavDemo() {
 							<NavItem value="billing">Billing</NavItem>
 						</NavList>
 					</Nav>
-					<NavContent className="flex-1 text-sm text-zinc-500">
-						<NavItemContent value="account">
+					<NavContents className="flex-1 text-sm text-zinc-500">
+						<NavContent value="account">
 							Account settings would go here.
-						</NavItemContent>
-						<NavItemContent value="notifications">
+						</NavContent>
+						<NavContent value="notifications">
 							Notification preferences would go here.
-						</NavItemContent>
-						<NavItemContent value="billing">
+						</NavContent>
+						<NavContent value="billing">
 							Billing information would go here.
-						</NavItemContent>
-					</NavContent>
+						</NavContent>
+					</NavContents>
 				</div>
 			</Example>
 
