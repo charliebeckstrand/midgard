@@ -12,7 +12,6 @@ type SliderBaseProps = SliderVariants & {
 	min?: number
 	max?: number
 	step?: number
-	className?: string
 }
 
 export type SliderProps = SliderBaseProps &

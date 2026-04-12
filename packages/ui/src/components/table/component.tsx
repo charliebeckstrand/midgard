@@ -54,7 +54,6 @@ export function TableHead({ className, children }: TableHeadProps) {
 
 export type TableHeaderProps = {
 	className?: string
-	children?: React.ReactNode
 } & Omit<React.ComponentPropsWithoutRef<'th'>, 'className'>
 
 export function TableHeader({ className, children, ...props }: TableHeaderProps) {
@@ -80,7 +79,6 @@ export function TableBody({ className, children }: TableBodyProps) {
 
 export type TableRowProps = {
 	className?: string
-	children?: React.ReactNode
 	href?: string
 } & Omit<React.ComponentPropsWithoutRef<'tr'>, 'className'>
 
@@ -94,7 +92,6 @@ export function TableRow({ className, children, ...props }: TableRowProps) {
 
 export type TableCellProps = {
 	className?: string
-	children?: React.ReactNode
 } & Omit<React.ComponentPropsWithoutRef<'td'>, 'className'>
 
 export function TableCell({ className, children, ...props }: TableCellProps) {

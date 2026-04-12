@@ -8,7 +8,6 @@ const k = katachi.option
 
 export type BaseOptionProps = {
 	className?: string
-	children?: React.ReactNode
 	icon?: React.ReactNode
 	selected: boolean
 	disabled?: boolean
