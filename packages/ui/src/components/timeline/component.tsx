@@ -1,5 +1,7 @@
+import { Children, isValidElement } from 'react'
 import { cn } from '../../core'
 import { katachi } from '../../recipes'
+import type { Color } from '../../recipes/nuri/palette'
 import { StatusDot, type StatusDotProps } from '../status'
 import {
 	type TimelineOrientation,
@@ -14,6 +16,8 @@ const k = katachi.timeline
 // ── Timeline ────────────────────────────────────────────
 
 export type TimelineProps = TimelineVariants & {
+	orientation?: TimelineOrientation
+	variant?: TimelineVariant
 	className?: string
 	children?: React.ReactNode
 }
@@ -43,12 +47,26 @@ export function Timeline({
 
 export type TimelineItemProps = {
 	active?: boolean
+	variant?: TimelineVariant
 	className?: string
 	children?: React.ReactNode
-}
+} & TimelineMarkerConfig
 
-export function TimelineItem({ active, className, children }: TimelineItemProps) {
-	const { orientation, variant } = useTimeline()
+export function TimelineItem({
+	active,
+	variant: variantProp,
+	className,
+	children,
+	status,
+	color,
+	pulse,
+}: TimelineItemProps) {
+	const { orientation, variant: contextVariant } = useTimeline()
+	const variant = variantProp ?? contextVariant
+
+	const hasMarker = Children.toArray(children).some(
+		(child) => isValidElement(child) && child.type === TimelineMarker,
+	)
 
 	return (
 		<li
@@ -60,8 +78,11 @@ export function TimelineItem({ active, className, children }: TimelineItemProps)
 				className,
 			)}
 		>
-			<TimelineConnector orientation={orientation} variant={variant} />
-			{children}
+			<TimelineProvider value={{ orientation, variant }}>
+				<TimelineConnector orientation={orientation} variant={variant} />
+				{!hasMarker && <TimelineMarker {...({ status, color, pulse } as TimelineMarkerProps)} />}
+				{children}
+			</TimelineProvider>
 		</li>
 	)
 }
@@ -88,12 +109,15 @@ function TimelineConnector({
 
 // ── TimelineMarker ──────────────────────────────────────
 
-export type TimelineMarkerProps = {
-	status?: StatusDotProps['status']
+type TimelineMarkerConfig = {
+	pulse?: StatusDotProps['pulse']
+} & ({ status?: StatusDotProps['status']; color?: never } | { color?: Color; status?: never })
+
+export type TimelineMarkerProps = TimelineMarkerConfig & {
 	className?: string
 }
 
-export function TimelineMarker({ status, className }: TimelineMarkerProps) {
+export function TimelineMarker({ status, color, pulse, className }: TimelineMarkerProps) {
 	const { orientation, variant } = useTimeline()
 
 	return (
@@ -101,9 +125,11 @@ export function TimelineMarker({ status, className }: TimelineMarkerProps) {
 			data-slot="timeline-marker"
 			variant={variant}
 			status={status}
+			pulse={pulse}
 			className={cn(
 				k.marker.base,
 				orientation === 'vertical' ? k.marker.vertical : k.marker.horizontal,
+				color && k.marker.color[color],
 				className,
 			)}
 		/>

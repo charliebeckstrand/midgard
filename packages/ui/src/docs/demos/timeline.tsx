@@ -3,7 +3,6 @@ import {
 	TimelineDescription,
 	TimelineHeading,
 	TimelineItem,
-	TimelineMarker,
 	TimelineTimestamp,
 } from '../../components/timeline'
 import { Example } from '../components/example'
@@ -16,21 +15,18 @@ export default function TimelineDemo() {
 			<Example title="Vertical">
 				<Timeline>
 					<TimelineItem>
-						<TimelineMarker />
 						<TimelineTimestamp>Jan 2026</TimelineTimestamp>
 						<TimelineHeading>Project kicked off</TimelineHeading>
 						<TimelineDescription>Initial planning and team assembly.</TimelineDescription>
 					</TimelineItem>
-					<TimelineItem>
-						<TimelineMarker status="info" />
+					<TimelineItem status="info">
 						<TimelineTimestamp>Feb 2026</TimelineTimestamp>
 						<TimelineHeading>Design completed</TimelineHeading>
 						<TimelineDescription>
 							Finalized wireframes and design system tokens.
 						</TimelineDescription>
 					</TimelineItem>
-					<TimelineItem>
-						<TimelineMarker />
+					<TimelineItem variant="outline">
 						<TimelineTimestamp>Mar 2026</TimelineTimestamp>
 						<TimelineHeading>Beta released</TimelineHeading>
 						<TimelineDescription>Shipped to early adopters for feedback.</TimelineDescription>
@@ -40,48 +36,22 @@ export default function TimelineDemo() {
 			<Example title="Horizontal">
 				<Timeline orientation="horizontal">
 					<TimelineItem>
-						<TimelineMarker />
 						<TimelineTimestamp>Step 1</TimelineTimestamp>
 						<TimelineHeading>Register</TimelineHeading>
 					</TimelineItem>
 					<TimelineItem>
-						<TimelineMarker />
 						<TimelineTimestamp>Step 2</TimelineTimestamp>
 						<TimelineHeading>Verify</TimelineHeading>
 					</TimelineItem>
-					<TimelineItem>
-						<TimelineMarker status="active" />
+					<TimelineItem status="active">
 						<TimelineTimestamp>Step 3</TimelineTimestamp>
 						<TimelineHeading>Complete</TimelineHeading>
-					</TimelineItem>
-				</Timeline>
-			</Example>
-			<Example title="Active item">
-				<Timeline>
-					<TimelineItem>
-						<TimelineMarker />
-						<TimelineTimestamp>Mon, Apr 7</TimelineTimestamp>
-						<TimelineHeading>Requirements gathered</TimelineHeading>
-						<TimelineDescription>Stakeholder interviews and scope definition.</TimelineDescription>
-					</TimelineItem>
-					<TimelineItem>
-						<TimelineMarker status="warning" />
-						<TimelineTimestamp>Wed, Apr 9</TimelineTimestamp>
-						<TimelineHeading>Implementation in progress</TimelineHeading>
-						<TimelineDescription>Building the timeline component.</TimelineDescription>
-					</TimelineItem>
-					<TimelineItem>
-						<TimelineMarker />
-						<TimelineTimestamp>Fri, Apr 11</TimelineTimestamp>
-						<TimelineHeading>Code review</TimelineHeading>
-						<TimelineDescription>Pending team review and approval.</TimelineDescription>
 					</TimelineItem>
 				</Timeline>
 			</Example>
 			<Example title="Outline variant">
 				<Timeline variant="outline">
 					<TimelineItem>
-						<TimelineMarker />
 						<TimelineTimestamp>10:30 AM</TimelineTimestamp>
 						<TimelineHeading>Commit pushed</TimelineHeading>
 						<TimelineDescription>
@@ -89,16 +59,68 @@ export default function TimelineDemo() {
 						</TimelineDescription>
 					</TimelineItem>
 					<TimelineItem>
-						<TimelineMarker />
 						<TimelineTimestamp>11:15 AM</TimelineTimestamp>
 						<TimelineHeading>Review requested</TimelineHeading>
 						<TimelineDescription>Assigned to two reviewers for approval.</TimelineDescription>
 					</TimelineItem>
-					<TimelineItem>
-						<TimelineMarker status="active" />
+					<TimelineItem status="active">
 						<TimelineTimestamp>2:00 PM</TimelineTimestamp>
 						<TimelineHeading>Merged to main</TimelineHeading>
 						<TimelineDescription>All checks passed, deployed to staging.</TimelineDescription>
+					</TimelineItem>
+				</Timeline>
+			</Example>
+			<Example title="Pulse status">
+				<Timeline variant="outline">
+					<TimelineItem>
+						<TimelineTimestamp>Apr 1, 2026</TimelineTimestamp>
+						<TimelineHeading>Feature development</TimelineHeading>
+						<TimelineDescription>Implemented core functionality and tests.</TimelineDescription>
+					</TimelineItem>
+					<TimelineItem status="error" pulse>
+						<TimelineTimestamp>Apr 10, 2026</TimelineTimestamp>
+						<TimelineHeading>Deployment failed</TimelineHeading>
+						<TimelineDescription>
+							Investigating root cause and rolling back changes.
+						</TimelineDescription>
+					</TimelineItem>
+				</Timeline>
+			</Example>
+			<Example title="Per-item variant">
+				<Timeline variant="outline">
+					<TimelineItem variant="solid" status="active">
+						<TimelineTimestamp>Step 1</TimelineTimestamp>
+						<TimelineHeading>Account created</TimelineHeading>
+						<TimelineDescription>Highlighted with a solid marker override.</TimelineDescription>
+					</TimelineItem>
+					<TimelineItem>
+						<TimelineTimestamp>Step 2</TimelineTimestamp>
+						<TimelineHeading>Email verified</TimelineHeading>
+						<TimelineDescription>Inherits the outline variant from Timeline.</TimelineDescription>
+					</TimelineItem>
+					<TimelineItem>
+						<TimelineTimestamp>Step 3</TimelineTimestamp>
+						<TimelineHeading>Profile completed</TimelineHeading>
+						<TimelineDescription>Inherits the outline variant from Timeline.</TimelineDescription>
+					</TimelineItem>
+				</Timeline>
+			</Example>
+			<Example title="Custom color">
+				<Timeline>
+					<TimelineItem color="blue">
+						<TimelineTimestamp>09:00 AM</TimelineTimestamp>
+						<TimelineHeading>Build started</TimelineHeading>
+						<TimelineDescription>CI pipeline triggered on push to main.</TimelineDescription>
+					</TimelineItem>
+					<TimelineItem color="amber">
+						<TimelineTimestamp>09:12 AM</TimelineTimestamp>
+						<TimelineHeading>Deploying</TimelineHeading>
+						<TimelineDescription>Rolling out to staging environment.</TimelineDescription>
+					</TimelineItem>
+					<TimelineItem color="green">
+						<TimelineTimestamp>09:18 AM</TimelineTimestamp>
+						<TimelineHeading>Live</TimelineHeading>
+						<TimelineDescription>Deployment healthy, all probes passing.</TimelineDescription>
 					</TimelineItem>
 				</Timeline>
 			</Example>
