@@ -44,6 +44,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
 	const clamp = (n: number) => {
 		if (min !== undefined && n < min) return min
 		if (max !== undefined && n > max) return max
+
 		return n
 	}
 
@@ -90,7 +91,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
 			step={step}
 			className={cn(padding[resolvedSize], katachi.input.number, className)}
 			suffix={
-				<span className="pointer-events-auto flex items-center gap-0.5 -mr-1.5">
+				<span className="pointer-events-auto flex items-center gap-0.5">
 					<Button
 						variant="plain"
 						spring={false}

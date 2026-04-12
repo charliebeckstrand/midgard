@@ -4,9 +4,8 @@ import { Eye, EyeOff } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../button'
 import { Icon } from '../icon'
+import { Input, type InputProps, useInputSize } from '../input'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
-import { Input, type InputProps } from './component'
-import { useInputSize } from './context'
 
 export type PasswordInputProps = Omit<InputProps, 'type' | 'suffix'>
 

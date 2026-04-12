@@ -32,6 +32,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 	const skeleton = useSkeleton()
 
 	const resolvedVariant = variant ?? (glass ? 'glass' : undefined)
+
 	const isDate = DATE_TYPES.has(type ?? '')
 
 	const resolvedSize = size ?? 'md'
@@ -45,6 +46,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 	}
 
 	const hasAffix = prefix !== undefined || suffix !== undefined
+
 	const transparentControl =
 		(resolvedVariant === 'outline' || resolvedVariant === 'glass') &&
 		'bg-transparent dark:bg-transparent before:shadow-none'
@@ -52,7 +54,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 	return (
 		<InputSizeProvider value={iconSize[resolvedSize]}>
 			<FormControl className={cn(transparentControl, hasAffix && 'relative')}>
-				{prefix && <span className={cn(k.affix, k.prefix)}>{prefix}</span>}
+				{prefix && (
+					<span className={cn(k.affix, k.prefix.base, k.prefix[resolvedSize])}>{prefix}</span>
+				)}
 
 				<input
 					ref={ref}
@@ -61,14 +65,16 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 					className={cn(
 						inputVariants({ variant: resolvedVariant, size }),
 						isDate && inputDateVariants(),
-						prefix && k.prefixPadding[resolvedSize],
-						suffix && k.suffixPadding[resolvedSize],
+						prefix && k.prefix.input[resolvedSize],
+						suffix && k.suffix.input[resolvedSize],
 						className,
 					)}
 					{...props}
 				/>
 
-				{suffix && <span className={cn(k.affix, k.suffix)}>{suffix}</span>}
+				{suffix && (
+					<span className={cn(k.affix, k.suffix.base, k.suffix[resolvedSize])}>{suffix}</span>
+				)}
 			</FormControl>
 		</InputSizeProvider>
 	)

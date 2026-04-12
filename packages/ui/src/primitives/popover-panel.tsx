@@ -53,8 +53,9 @@ export function PopoverPanel({
 				handleKeyDown(e)
 				onKeyDownProp?.(e)
 			}}
+			data-glass={glass ? '' : undefined}
 			className={cn(
-				glass ? [omote.glass, kage.ring] : omote.popover,
+				glass ? [omote.glass, kage.ring, 'group/glass'] : omote.popover,
 				maru.rounded,
 				'isolate absolute min-w-full',
 				'p-1 space-y-0.5',

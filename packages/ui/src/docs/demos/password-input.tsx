@@ -1,8 +1,7 @@
 import { Lock } from 'lucide-react'
 import { Field, Label } from '../../components/fieldset'
-import { Glass } from '../../components/glass'
 import { Icon } from '../../components/icon'
-import { PasswordInput } from '../../components/input'
+import { PasswordInput } from '../../components/password-input'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
@@ -19,12 +18,12 @@ export default function PasswordInputDemo() {
 					<Label htmlFor="password-outline">Outline</Label>
 					<PasswordInput id="password-outline" variant="outline" placeholder="Enter password" />
 				</Field>
-				<Glass>
+				{/* <Glass>
 					<Field className="lg:max-w-sm">
 						<Label>Glass</Label>
 						<PasswordInput placeholder="Enter password" />
 					</Field>
-				</Glass>
+				</Glass> */}
 			</Example>
 
 			<Example title="Sizes">

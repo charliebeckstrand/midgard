@@ -31,12 +31,14 @@ export default function InputDemo() {
 						<Label>Small</Label>
 						<Input size="sm" placeholder="Small input" />
 					</Field>
-
+				</div>
+				<div className="flex lg:max-w-sm flex-col gap-4">
 					<Field>
 						<Label>Medium</Label>
 						<Input size="md" placeholder="Medium input" />
 					</Field>
-
+				</div>
+				<div className="flex lg:max-w-md flex-col gap-4">
 					<Field>
 						<Label>Large</Label>
 						<Input size="lg" placeholder="Large input" />

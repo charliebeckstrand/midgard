@@ -1,8 +1,8 @@
 'use client'
 
 import { Field, Label } from '../../components/fieldset'
-import { PasswordInput } from '../../components/input'
 import { PasswordConfirm, PasswordConfirmInput } from '../../components/password-confirm'
+import { PasswordInput } from '../../components/password-input'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }

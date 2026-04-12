@@ -3,16 +3,16 @@ import { gap, iconSlot, text } from './density'
 /** Extra padding opposite the icon for buttons with icon + text (balances visual icon weight) */
 export const buttonWithIcon = {
 	start: {
-		xs: 'pr-[calc(--spacing(2)-1px)]',
-		sm: 'pr-[calc(--spacing(3)-1px)]',
-		md: 'pr-[calc(--spacing(4)-1px)]',
-		lg: 'pr-[calc(--spacing(5)-1px)]',
+		xs: 'pr-[calc(--spacing(1.5)-1px)]',
+		sm: 'pr-[calc(--spacing(2)-1px)]',
+		md: 'pr-[calc(--spacing(3)-1px)]',
+		lg: 'pr-[calc(--spacing(4)-1px)]',
 	},
 	end: {
-		xs: 'pl-[calc(--spacing(2)-1px)]',
-		sm: 'pl-[calc(--spacing(3)-1px)]',
-		md: 'pl-[calc(--spacing(4)-1px)]',
-		lg: 'pl-[calc(--spacing(5)-1px)]',
+		xs: 'pl-[calc(--spacing(1.5)-1px)]',
+		sm: 'pl-[calc(--spacing(2)-1px)]',
+		md: 'pl-[calc(--spacing(3)-1px)]',
+		lg: 'pl-[calc(--spacing(4)-1px)]',
 	},
 }
 

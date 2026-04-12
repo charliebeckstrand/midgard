@@ -3,7 +3,7 @@ import { Button } from '../../components/button'
 import { Field, Label } from '../../components/fieldset'
 import { Heading } from '../../components/heading'
 import { Input } from '../../components/input'
-import { PasswordInput } from '../../components/input/password'
+import { PasswordInput } from '../../components/password-input'
 import { AuthPage } from '../../pages'
 import { Example } from '../components/example'
 

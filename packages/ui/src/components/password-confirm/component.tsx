@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { PasswordInput, type PasswordInputProps } from '../input'
+import { PasswordInput, type PasswordInputProps } from '../password-input'
 import { Text } from '../text'
 import { PasswordConfirmProvider, usePasswordConfirm } from './context'
 import { deriveStatus, handlePasswordInput } from './utilities'

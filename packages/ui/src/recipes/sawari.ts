@@ -47,8 +47,16 @@ const yoru = {
 	tab: ['dark:data-current:text-white', 'dark:not-data-current:not-disabled:hover:text-zinc-200'],
 }
 
+// ── Garasu (ガラス) — Glass overrides ───────────────────
+const garasu = {
+	item: [
+		'group-data-[glass]/glass:not-disabled:not-data-disabled:hover:bg-white/10',
+		'group-data-[glass]/glass:not-disabled:not-data-disabled:focus:bg-white/10',
+	],
+}
+
 // ── Composed (internal) ─────────────────────────────────
-const item = [sumi.text, maru.rounded, motoi.item, hiru.item, yoru.item]
+const item = [sumi.text, maru.rounded, motoi.item, hiru.item, yoru.item, garasu.item]
 const nav = [motoi.nav, hiru.nav, yoru.nav]
 
 // ── Export ───────────────────────────────────────────────
