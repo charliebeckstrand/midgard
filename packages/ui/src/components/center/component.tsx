@@ -10,8 +10,7 @@ export type CenterProps = {
 	/** Render as `inline-flex` instead of `flex`. */
 	inline?: boolean
 	className?: string
-	children?: React.ReactNode
-} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className' | 'children'>
+} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
 
 export function Center({ minH, maxW, inline, className, children, ...props }: CenterProps) {
 	const content = maxW ? (

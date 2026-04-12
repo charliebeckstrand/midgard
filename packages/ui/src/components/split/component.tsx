@@ -19,8 +19,7 @@ export type SplitProps = {
 	/** Gap between the two panes. Defaults to `4`. */
 	gap?: SplitGap
 	className?: string
-	children?: React.ReactNode
-} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className' | 'children'>
+} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
 
 export function Split({
 	direction = 'horizontal',

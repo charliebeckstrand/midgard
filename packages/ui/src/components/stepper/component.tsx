@@ -237,10 +237,9 @@ export function StepperStep({ value, disabled, className, children }: StepperSte
 
 export type StepperIndicatorProps = {
 	className?: string
-	children?: React.ReactNode
-}
+} & Omit<React.ComponentPropsWithoutRef<'span'>, 'className'>
 
-export function StepperIndicator({ className, children }: StepperIndicatorProps) {
+export function StepperIndicator({ className, children, ...props }: StepperIndicatorProps) {
 	const { state } = useStepperStep()
 
 	// Two visual modes, switched on whether the consumer passed children:
@@ -255,6 +254,7 @@ export function StepperIndicator({ className, children }: StepperIndicatorProps)
 			data-slot="stepper-indicator"
 			data-display-state={state}
 			className={cn(k.indicator, className)}
+			{...props}
 		>
 			<span className="grid place-items-center">
 				{state === 'completed' ? (
@@ -307,9 +307,9 @@ export function StepperDescription({ className, ...props }: StepperDescriptionPr
 
 export type StepperSeparatorProps = {
 	className?: string
-}
+} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
 
-export function StepperSeparator({ className }: StepperSeparatorProps) {
+export function StepperSeparator({ className, ...props }: StepperSeparatorProps) {
 	const { orientation } = useStepper()
 
 	return (
@@ -318,6 +318,7 @@ export function StepperSeparator({ className }: StepperSeparatorProps) {
 			role="presentation"
 			aria-hidden="true"
 			className={cn(stepperSeparatorVariants({ orientation }), className)}
+			{...props}
 		/>
 	)
 }
@@ -326,12 +327,11 @@ export function StepperSeparator({ className }: StepperSeparatorProps) {
 
 export type StepperPanelsProps = {
 	className?: string
-	children?: React.ReactNode
-}
+} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
 
-export function StepperPanels({ className, children }: StepperPanelsProps) {
+export function StepperPanels({ className, children, ...props }: StepperPanelsProps) {
 	return (
-		<div data-slot="stepper-panels" className={className}>
+		<div data-slot="stepper-panels" className={className} {...props}>
 			{children}
 		</div>
 	)
@@ -342,16 +342,15 @@ export function StepperPanels({ className, children }: StepperPanelsProps) {
 export type StepperPanelProps = {
 	value: number
 	className?: string
-	children?: React.ReactNode
-}
+} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
 
-export function StepperPanel({ value, className, children }: StepperPanelProps) {
+export function StepperPanel({ value, className, children, ...props }: StepperPanelProps) {
 	const { value: currentValue } = useStepper()
 
 	if (value !== currentValue) return null
 
 	return (
-		<div data-slot="stepper-panel" className={className}>
+		<div data-slot="stepper-panel" className={className} {...props}>
 			{children}
 		</div>
 	)
