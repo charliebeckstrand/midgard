@@ -1,7 +1,7 @@
 'use client'
 
 import { cn } from '../../core'
-import { createNavItem, type NavItemProps } from '../nav/create-nav-item'
+import { createNavItem, type NavItemProps } from '../nav'
 import { ActiveIndicatorScope } from '../../primitives'
 import { katachi } from '../../recipes'
 
