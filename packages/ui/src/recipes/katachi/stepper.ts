@@ -38,7 +38,7 @@ export const stepper = {
 	separator: {
 		base: 'shrink-0',
 		orientation: {
-			horizontal: ['-mx-12 mt-2 flex-1 self-start border-t', kage.borderSubtleColor],
+			horizontal: ['-mx-12 mt-2 flex-1 self-start border-t', kage.borderColor],
 			vertical: 'hidden',
 		},
 	},

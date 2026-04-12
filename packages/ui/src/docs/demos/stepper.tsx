@@ -4,7 +4,6 @@ import { Fragment, useState } from 'react'
 import { Alert, AlertDescription } from '../../components/alert'
 import {
 	Stepper,
-	StepperDescription,
 	StepperPanel,
 	StepperPanels,
 	StepperSeparator,
@@ -74,7 +73,6 @@ export default function StepperDemo() {
 							{index > 0 && <StepperSeparator />}
 							<StepperStep value={index}>
 								<StepperTitle>{step.title}</StepperTitle>
-								<StepperDescription>{step.description}</StepperDescription>
 							</StepperStep>
 						</Fragment>
 					))}

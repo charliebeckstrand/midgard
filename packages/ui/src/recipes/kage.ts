@@ -40,6 +40,7 @@ const yoru = {
 // ── Export ───────────────────────────────────────────────
 export const kage = {
 	border: [motoi.border, hiru.border, yoru.border],
+	borderColor: [hiru.border, yoru.border],
 	borderStrong: [motoi.border, hiru.border, yoru.borderStrong],
 	borderEmphasis: [motoi.border, hiru.borderEmphasis, yoru.borderEmphasis],
 	borderSubtle: [motoi.border, hiru.borderSubtle, yoru.borderSubtle],
