@@ -28,6 +28,16 @@ export default function StatusDemo() {
 					))}
 				</div>
 			</Example>
+			<Example title="Outline">
+				<div className="flex flex-col gap-3">
+					{statuses.map((s) => (
+						<div key={s} className="flex items-center gap-2">
+							<StatusDot variant="outline" status={s} />
+							<span className="text-sm text-zinc-500 dark:text-zinc-400">{cap(s)}</span>
+						</div>
+					))}
+				</div>
+			</Example>
 			<Example
 				title="Sizes"
 				actions={<VariantListbox variants={statuses} value={status} onChange={setStatus} />}
