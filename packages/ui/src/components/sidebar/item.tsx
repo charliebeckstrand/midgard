@@ -1,12 +1,12 @@
 'use client'
 
 import { cn } from '../../core'
-import { createNavItem, type NavItemProps } from '../nav'
+import { createNavItem, type BaseNavItemProps } from '../nav'
 import { katachi } from '../../recipes'
 
 const k = katachi.sidebar
 
-export type SidebarItemProps = NavItemProps
+export type SidebarItemProps = BaseNavItemProps
 
 export type SidebarLabelProps = React.ComponentPropsWithoutRef<'span'>
 
