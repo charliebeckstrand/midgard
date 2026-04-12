@@ -5,6 +5,7 @@ import type React from 'react'
 import { cn, createContext } from '../../core'
 import { Overlay } from '../../primitives'
 import { ugoki } from '../../recipes'
+import { useGlass } from '../glass/context'
 import { type DrawerPanelVariants, drawerBackdropVariants, drawerPanelVariants } from './variants'
 
 type DrawerContextValue = {
@@ -20,16 +21,23 @@ export type DrawerProps = DrawerPanelVariants & {
 	children: React.ReactNode
 }
 
-export function Drawer({ open, onClose, glass = false, className, children }: DrawerProps) {
+export function Drawer({ open, onClose, glass, className, children }: DrawerProps) {
+	const glassContext = useGlass()
+	const resolvedGlass = glass ?? glassContext
+
 	return (
-		<Overlay open={open} onClose={onClose} className={drawerBackdropVariants({ glass })}>
+		<Overlay
+			open={open}
+			onClose={onClose}
+			className={drawerBackdropVariants({ glass: resolvedGlass })}
+		>
 			<motion.div
 				{...ugoki.panel.bottom}
 				role="dialog"
 				aria-modal="true"
 				data-slot="drawer"
 				onClick={(e) => e.stopPropagation()}
-				className={cn(drawerPanelVariants({ glass }), className)}
+				className={cn(drawerPanelVariants({ glass: resolvedGlass }), className)}
 			>
 				<DrawerProvider value={{ onClose }}>{children}</DrawerProvider>
 			</motion.div>

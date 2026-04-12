@@ -19,10 +19,11 @@ import { useCallback, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { FormControl } from '../../primitives'
-import { katachi, ugoki } from '../../recipes'
+import { kage, katachi, omote, ugoki } from '../../recipes'
 import { sumi } from '../../recipes/sumi'
 import { Button } from '../button'
 import { Calendar, type CalendarActive, type CalendarHandle } from '../calendar'
+import { useGlass } from '../glass/context'
 import { Icon } from '../icon'
 import { DatePickerRange } from './datepicker-range'
 import { type FooterButton, useDatePickerKeyDown } from './use-keyboard'
@@ -74,6 +75,7 @@ function DatePickerSingle({
 	className,
 	disabled = false,
 }: DatePickerBaseProps & DatePickerSingleProps) {
+	const glass = useGlass()
 	const [value, setValue] = useControllable({ value: valueProp, defaultValue, onChange })
 
 	const [open, setOpen] = useState(false)
@@ -195,7 +197,10 @@ function DatePickerSingle({
 				className={cn(className)}
 				{...getReferenceProps()}
 			>
-				<FormControl data-open={open || undefined}>
+				<FormControl
+					data-open={open || undefined}
+					className={cn(glass && 'bg-transparent dark:bg-transparent before:shadow-none')}
+				>
 					<button
 						ref={triggerRef}
 						type="button"
@@ -232,7 +237,11 @@ function DatePickerSingle({
 							<motion.div
 								{...ugoki.popover}
 								data-slot="datepicker-content"
-								className={cn(katachi.popover.content, k.popoverContent)}
+								className={cn(
+									katachi.popover.content,
+									k.popoverContent,
+									glass && [omote.glass, kage.ring, 'bg-transparent dark:bg-transparent'],
+								)}
 								onMouseDown={(e) => e.preventDefault()}
 							>
 								<Calendar

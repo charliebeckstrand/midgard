@@ -1,8 +1,14 @@
 import { kage } from '../kage'
+import { omote } from '../omote'
 import { waku } from '../waku'
 
 export const textarea = {
 	base: [waku.input, 'min-h-9'],
+	variant: {
+		default: [],
+		outline: kage.borderEmphasis,
+		glass: omote.glass,
+	},
 	autoResize: 'field-sizing-content',
 	/** Strip textarea chrome when the field is nested inside a framed container. */
 	bare: 'border-0 rounded-none pt-3 focus:outline-hidden',

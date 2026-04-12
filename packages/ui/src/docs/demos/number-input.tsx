@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Field, Label } from '../../components/fieldset'
+import { Glass } from '../../components/glass'
 import { NumberInput } from '../../components/number-input'
 import { code } from '../code'
 import { Example } from '../components/example'
@@ -34,11 +35,21 @@ function Controlled() {
 export default function NumberInputDemo() {
 	return (
 		<div className="space-y-8">
-			<Example title="Default">
+			<Example title="Variants">
 				<Field className="lg:max-w-sm">
-					<Label htmlFor="num-default">Quantity</Label>
+					<Label htmlFor="num-default">Default</Label>
 					<NumberInput id="num-default" defaultValue={1} />
 				</Field>
+				<Field className="lg:max-w-sm">
+					<Label>Outline</Label>
+					<NumberInput variant="outline" defaultValue={1} />
+				</Field>
+				<Glass>
+					<Field className="lg:max-w-sm">
+						<Label>Glass</Label>
+						<NumberInput defaultValue={1} />
+					</Field>
+				</Glass>
 			</Example>
 
 			<Controlled />
@@ -61,33 +72,20 @@ export default function NumberInputDemo() {
 			</Example>
 
 			<Example title="Sizes">
-				<div className="space-y-4">
-					<div className="lg:max-w-xs">
-						<Field>
-							<Label>Small</Label>
-							<NumberInput size="sm" defaultValue={1} />
-						</Field>
-					</div>
-					<div className="lg:max-w-sm">
-						<Field>
-							<Label>Medium</Label>
-							<NumberInput size="md" defaultValue={1} />
-						</Field>
-					</div>
-					<div className="lg:max-w-md">
-						<Field>
-							<Label>Large</Label>
-							<NumberInput size="lg" defaultValue={1} />
-						</Field>
-					</div>
+				<div className="lg:max-w-xs">
+					<Field>
+						<Label>Small</Label>
+						<NumberInput size="sm" defaultValue={1} />
+					</Field>
+					<Field>
+						<Label>Medium</Label>
+						<NumberInput size="md" defaultValue={1} />
+					</Field>
+					<Field>
+						<Label>Large</Label>
+						<NumberInput size="lg" defaultValue={1} />
+					</Field>
 				</div>
-			</Example>
-
-			<Example title="Outline">
-				<Field className="lg:max-w-sm">
-					<Label>Outline</Label>
-					<NumberInput variant="outline" defaultValue={1} />
-				</Field>
 			</Example>
 
 			<Example title="Disabled">

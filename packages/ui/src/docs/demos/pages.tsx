@@ -26,83 +26,81 @@ export default function PagesDemo() {
 
 	return (
 		<Example>
-			<div className="space-y-4">
-				<div className="flex gap-2">
-					{(['login', 'register', 'forgot-password'] as const).map((p) => (
-						<Button key={p} variant={page === p ? 'solid' : 'outline'} onClick={() => setPage(p)}>
-							{p}
-						</Button>
-					))}
-				</div>
-				<div>
-					{page === 'login' && (
-						<AuthPage
-							heading={<Heading>Sign in to your account</Heading>}
-							onSubmit={handleSubmit}
-							submitting={submitting}
-							actions={
-								<Button type="submit" disabled={submitting}>
-									{submitting ? 'Signing in...' : 'Sign in'}
-								</Button>
-							}
-						>
-							<Field>
-								<Label>Email</Label>
-								<Input type="email" placeholder="you@example.com" />
-							</Field>
-							<Field>
-								<Label>Password</Label>
-								<PasswordInput placeholder="•••••••••" />
-							</Field>
-						</AuthPage>
-					)}
-					{page === 'register' && (
-						<AuthPage
-							heading={<Heading>Create your account</Heading>}
-							onSubmit={handleSubmit}
-							submitting={submitting}
-							actions={
-								<Button type="submit" disabled={submitting}>
-									{submitting ? 'Creating account...' : 'Create account'}
-								</Button>
-							}
-						>
-							<Field>
-								<Label>Name</Label>
-								<Input placeholder="Jane Smith" />
-							</Field>
-							<Field>
-								<Label>Email</Label>
-								<Input type="email" placeholder="you@example.com" />
-							</Field>
-							<Field>
-								<Label>Password</Label>
-								<PasswordInput placeholder="•••••••••" />
-							</Field>
-							<Field>
-								<Label>Confirm Password</Label>
-								<PasswordInput placeholder="•••••••••" />
-							</Field>
-						</AuthPage>
-					)}
-					{page === 'forgot-password' && (
-						<AuthPage
-							heading={<Heading>Reset your password</Heading>}
-							onSubmit={handleSubmit}
-							submitting={submitting}
-							actions={
-								<Button type="submit" disabled={submitting}>
-									{submitting ? 'Sending reset link...' : 'Send reset link'}
-								</Button>
-							}
-						>
-							<Field>
-								<Label>Email</Label>
-								<Input type="email" placeholder="you@example.com" />
-							</Field>
-						</AuthPage>
-					)}
-				</div>
+			<div className="flex gap-2">
+				{(['login', 'register', 'forgot-password'] as const).map((p) => (
+					<Button key={p} variant={page === p ? 'solid' : 'outline'} onClick={() => setPage(p)}>
+						{p}
+					</Button>
+				))}
+			</div>
+			<div>
+				{page === 'login' && (
+					<AuthPage
+						heading={<Heading>Sign in to your account</Heading>}
+						onSubmit={handleSubmit}
+						submitting={submitting}
+						actions={
+							<Button type="submit" disabled={submitting}>
+								{submitting ? 'Signing in...' : 'Sign in'}
+							</Button>
+						}
+					>
+						<Field>
+							<Label>Email</Label>
+							<Input type="email" placeholder="you@example.com" />
+						</Field>
+						<Field>
+							<Label>Password</Label>
+							<PasswordInput placeholder="•••••••••" />
+						</Field>
+					</AuthPage>
+				)}
+				{page === 'register' && (
+					<AuthPage
+						heading={<Heading>Create your account</Heading>}
+						onSubmit={handleSubmit}
+						submitting={submitting}
+						actions={
+							<Button type="submit" disabled={submitting}>
+								{submitting ? 'Creating account...' : 'Create account'}
+							</Button>
+						}
+					>
+						<Field>
+							<Label>Name</Label>
+							<Input placeholder="Jane Smith" />
+						</Field>
+						<Field>
+							<Label>Email</Label>
+							<Input type="email" placeholder="you@example.com" />
+						</Field>
+						<Field>
+							<Label>Password</Label>
+							<PasswordInput placeholder="•••••••••" />
+						</Field>
+						<Field>
+							<Label>Confirm Password</Label>
+							<PasswordInput placeholder="•••••••••" />
+						</Field>
+					</AuthPage>
+				)}
+				{page === 'forgot-password' && (
+					<AuthPage
+						heading={<Heading>Reset your password</Heading>}
+						onSubmit={handleSubmit}
+						submitting={submitting}
+						actions={
+							<Button type="submit" disabled={submitting}>
+								{submitting ? 'Sending reset link...' : 'Send reset link'}
+							</Button>
+						}
+					>
+						<Field>
+							<Label>Email</Label>
+							<Input type="email" placeholder="you@example.com" />
+						</Field>
+					</AuthPage>
+				)}
 			</div>
 		</Example>
 	)

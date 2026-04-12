@@ -8,6 +8,8 @@ import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
 
+const variants = ['default', 'outline', 'glass'] as const
+
 export default function TextareaDemo() {
 	const [withActionsValue, setWithActionsValue] = useState('')
 
@@ -18,6 +20,21 @@ export default function TextareaDemo() {
 					<Label htmlFor="textarea-message">Message</Label>
 					<Textarea id="textarea-message" resize="vertical" placeholder="Write your message" />
 				</Field>
+			</Example>
+			<Example title="Variants">
+				{variants.map((variant) => (
+					<Field className="lg:max-w-sm" key={variant}>
+						<Label htmlFor={`textarea-${variant}`}>
+							{variant.charAt(0).toUpperCase() + variant.slice(1)}
+						</Label>
+						<Textarea
+							id={`textarea-${variant}`}
+							variant={variant}
+							resize="vertical"
+							placeholder={`This is a ${variant} textarea`}
+						/>
+					</Field>
+				))}
 			</Example>
 			<Example title="Non-resizable">
 				<Field className="lg:max-w-sm">

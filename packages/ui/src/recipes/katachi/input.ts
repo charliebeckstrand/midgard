@@ -1,5 +1,6 @@
 import { kage } from '../kage'
 import { maru } from '../maru'
+import { omote } from '../omote'
 import { sumi } from '../sumi'
 import { take } from '../take'
 import { waku } from '../waku'
@@ -9,6 +10,7 @@ export const input = {
 	variant: {
 		default: [],
 		outline: kage.borderEmphasis,
+		glass: omote.glass,
 	},
 	size: take.control,
 	affix: ['absolute inset-y-0 flex items-center', sumi.textMuted],

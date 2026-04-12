@@ -13,7 +13,7 @@ export const drawerPanelVariants = cva(k.panel.base, {
 export const drawerBackdropVariants = cva('absolute inset-0', {
 	variants: {
 		glass: {
-			true: [omote.backdrop.color, 'backdrop-blur-md'],
+			true: omote.backdrop.color,
 			false: omote.backdrop.base,
 		},
 	},

@@ -5,8 +5,11 @@ const k = katachi.dialog
 const p = katachi.panel
 
 export const dialogPanelVariants = cva(k.panel.base, {
-	variants: { size: k.panel.size },
-	defaultVariants: k.panel.defaults,
+	variants: {
+		glass: k.panel.glass,
+		size: k.panel.size,
+	},
+	defaultVariants: { ...k.panel.defaults, glass: false },
 })
 
 export const dialogTitleVariants = cva(p.title)

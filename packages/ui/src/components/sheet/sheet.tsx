@@ -5,6 +5,7 @@ import type React from 'react'
 import { cn, createContext } from '../../core'
 import { Overlay } from '../../primitives'
 import { ugoki } from '../../recipes'
+import { useGlass } from '../glass/context'
 import { type SheetPanelVariants, sheetBackdropVariants, sheetPanelVariants } from './variants'
 
 type SheetSide = 'right' | 'left' | 'top' | 'bottom'
@@ -27,19 +28,26 @@ export function Sheet({
 	onClose,
 	side = 'right',
 	size,
-	glass = false,
+	glass,
 	className,
 	children,
 }: SheetProps) {
+	const glassContext = useGlass()
+	const resolvedGlass = glass ?? glassContext
+
 	return (
-		<Overlay open={open} onClose={onClose} className={sheetBackdropVariants({ glass })}>
+		<Overlay
+			open={open}
+			onClose={onClose}
+			className={sheetBackdropVariants({ glass: resolvedGlass })}
+		>
 			<motion.div
 				{...ugoki.panel[(side ?? 'right') as SheetSide]}
 				role="dialog"
 				aria-modal="true"
 				data-slot="sheet"
 				onClick={(e) => e.stopPropagation()}
-				className={cn(sheetPanelVariants({ side, size, glass }), className)}
+				className={cn(sheetPanelVariants({ side, size, glass: resolvedGlass }), className)}
 			>
 				<SheetProvider value={{ onClose }}>{children}</SheetProvider>
 			</motion.div>

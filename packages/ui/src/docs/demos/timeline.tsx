@@ -88,7 +88,7 @@ export default function TimelineDemo() {
 			</Example>
 			<Example title="Per-item variant">
 				<Timeline variant="outline">
-					<TimelineItem variant="solid" status="active">
+					<TimelineItem variant="solid" status="info">
 						<TimelineTimestamp>Step 1</TimelineTimestamp>
 						<TimelineHeading>Account created</TimelineHeading>
 						<TimelineDescription>Highlighted with a solid marker override.</TimelineDescription>

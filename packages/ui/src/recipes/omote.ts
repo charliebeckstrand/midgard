@@ -14,17 +14,17 @@ import { kage } from './kage'
 const motoi = {
 	panel: ['shadow-lg', 'forced-colors:outline'],
 	content: 'lg:rounded-lg lg:shadow-xs',
-	backdrop: 'backdrop-blur-sm',
-	popover: 'backdrop-blur-sm shadow-lg',
+	popover: 'backdrop-blur',
 	skeleton: 'animate-pulse',
+	glass: 'bg-transparent backdrop-blur',
 }
 
 // ── Hiru (昼) ───────────────────────────────────────────
 const hiru = {
 	panel: 'bg-white',
-	content: 'lg:bg-white lg:ring-1 lg:ring-zinc-950/5',
+	content: ['lg:bg-white', 'lg:ring-1 lg:ring-zinc-950/5'],
 	backdrop: 'bg-white/50',
-	popover: 'bg-white/90 ring-1 ring-zinc-950/10',
+	popover: ['bg-white/90', 'ring-1 ring-zinc-950/10'],
 	surface: 'bg-white',
 	tint: 'bg-zinc-950/5',
 	tintBefore: 'before:bg-zinc-950/5',
@@ -34,7 +34,7 @@ const hiru = {
 // ── Yoru (夜) ───────────────────────────────────────────
 const yoru = {
 	panel: 'dark:bg-zinc-900',
-	content: 'dark:lg:bg-zinc-900 dark:lg:ring-white/10',
+	content: ['dark:lg:bg-zinc-900', 'dark:lg:ring-white/10'],
 	backdrop: 'dark:bg-zinc-950/50',
 	popover: ['dark:bg-zinc-800/75', 'dark:ring-white/10 dark:ring-inset'],
 	surface: 'dark:bg-zinc-900',
@@ -52,10 +52,10 @@ export const omote = {
 	},
 	content: [motoi.content, hiru.content, yoru.content],
 	backdrop: {
-		base: [motoi.backdrop, hiru.backdrop, yoru.backdrop],
-		blur: motoi.backdrop,
+		base: [hiru.backdrop, yoru.backdrop],
 		color: [hiru.backdrop, yoru.backdrop],
 	},
+	glass: motoi.glass,
 	popover: [motoi.popover, hiru.popover, yoru.popover],
 	surface: [hiru.surface, yoru.surface],
 	tint: [hiru.tint, yoru.tint],

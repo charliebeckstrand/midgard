@@ -13,7 +13,7 @@ export const drawer = {
 			'rounded-t-xl max-h-[85dvh]',
 		],
 		glass: {
-			true: 'bg-transparent backdrop-blur-md',
+			true: omote.glass,
 			false: omote.panel.bg,
 		},
 	},

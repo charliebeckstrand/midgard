@@ -21,50 +21,44 @@ export default function SwitchDemo() {
 				title="Default"
 				actions={<SizeListbox sizes={sizes} value={size} onChange={setSize} />}
 			>
-				<div className="space-y-4">
-					<SwitchField size={size}>
-						<Label htmlFor="switch-notifications">Notifications</Label>
-						<Description>Receive email notifications for new activity.</Description>
-						<Switch id="switch-notifications" size={size} />
-					</SwitchField>
-					<SwitchField size={size}>
-						<Label htmlFor="switch-dark-mode">Dark mode</Label>
-						<Description>Use the dark color scheme.</Description>
-						<Switch id="switch-dark-mode" defaultChecked color="blue" size={size} />
-					</SwitchField>
-				</div>
+				<SwitchField size={size}>
+					<Label htmlFor="switch-notifications">Notifications</Label>
+					<Description>Receive email notifications for new activity.</Description>
+					<Switch id="switch-notifications" size={size} />
+				</SwitchField>
+				<SwitchField size={size}>
+					<Label htmlFor="switch-dark-mode">Dark mode</Label>
+					<Description>Use the dark color scheme.</Description>
+					<Switch id="switch-dark-mode" defaultChecked color="blue" size={size} />
+				</SwitchField>
 			</Example>
 			<Example title="Sizes">
-				<div className="space-y-4">
-					<SwitchField size="sm">
-						<Label htmlFor="switch-sm">Small</Label>
-						<Switch id="switch-sm" size="sm" />
-					</SwitchField>
-					<SwitchField size="md">
-						<Label htmlFor="switch-md">Medium</Label>
-						<Switch id="switch-md" size="md" defaultChecked />
-					</SwitchField>
-					<SwitchField size="lg">
-						<Label htmlFor="switch-lg">Large</Label>
-						<Switch id="switch-lg" size="lg" />
-					</SwitchField>
-				</div>
+				<SwitchField size="sm">
+					<Label htmlFor="switch-sm">Small</Label>
+					<Switch id="switch-sm" size="sm" />
+				</SwitchField>
+				<SwitchField size="md">
+					<Label htmlFor="switch-md">Medium</Label>
+					<Switch id="switch-md" size="md" defaultChecked />
+				</SwitchField>
+				<SwitchField size="lg">
+					<Label htmlFor="switch-lg">Large</Label>
+					<Switch id="switch-lg" size="lg" />
+				</SwitchField>
 			</Example>
 			<Example title="Colors">
-				<div className="space-y-4">
-					<SwitchField>
-						<Label htmlFor="switch-purple">Blue</Label>
-						<Switch id="switch-purple" color="blue" defaultChecked />
-					</SwitchField>
-					<SwitchField>
-						<Label htmlFor="switch-green">Green</Label>
-						<Switch id="switch-green" color="green" defaultChecked />
-					</SwitchField>
-					<SwitchField>
-						<Label htmlFor="switch-red">Red</Label>
-						<Switch id="switch-red" color="red" defaultChecked />
-					</SwitchField>
-				</div>
+				<SwitchField>
+					<Label htmlFor="switch-purple">Blue</Label>
+					<Switch id="switch-purple" color="blue" defaultChecked />
+				</SwitchField>
+				<SwitchField>
+					<Label htmlFor="switch-green">Green</Label>
+					<Switch id="switch-green" color="green" defaultChecked />
+				</SwitchField>
+				<SwitchField>
+					<Label htmlFor="switch-red">Red</Label>
+					<Switch id="switch-red" color="red" defaultChecked />
+				</SwitchField>
 			</Example>
 			<Example title="Disabled">
 				<SwitchField>

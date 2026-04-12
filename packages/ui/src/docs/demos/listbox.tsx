@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Field, Label } from '../../components/fieldset'
+import { Glass } from '../../components/glass'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 import { code } from '../code'
 import { Example } from '../components/example'
@@ -14,12 +15,12 @@ const statuses = [
 ]
 
 function SingleListbox() {
-	const [selected, setSelected] = useState(statuses[0].value)
+	const [selected, setSelected] = useState<string | undefined>(undefined)
 
 	return (
 		<Field className="lg:max-w-sm">
 			<Label>Status</Label>
-			<Listbox
+			<Listbox<string>
 				value={selected}
 				onChange={setSelected}
 				displayValue={(v: string) => statuses.find((s) => s.value === v)?.label ?? v}
@@ -41,11 +42,11 @@ function MultiListbox() {
 	return (
 		<Field className="lg:max-w-sm">
 			<Label>Statuses</Label>
-			<Listbox
+			<Listbox<string>
 				multiple
 				value={selected}
 				onChange={setSelected}
-				displayValue={(v: string) => statuses.find((s) => s.value === v)?.label ?? v}
+				displayValue={(v) => statuses.find((s) => s.value === v)?.label ?? v}
 				placeholder="Select statuses"
 			>
 				{statuses.map((status) => (
@@ -108,6 +109,24 @@ export default function ListboxDemo() {
 				`}
 			>
 				<MultiListbox />
+			</Example>
+
+			<Example title="Glass">
+				<Glass>
+					<Field className="lg:max-w-sm">
+						<Label>Status</Label>
+						<Listbox<string>
+							displayValue={(v: string) => statuses.find((s) => s.value === v)?.label ?? v}
+							placeholder="Select status"
+						>
+							{statuses.map((status) => (
+								<ListboxOption key={status.value} value={status.value}>
+									<ListboxLabel>{status.label}</ListboxLabel>
+								</ListboxOption>
+							))}
+						</Listbox>
+					</Field>
+				</Glass>
 			</Example>
 		</div>
 	)

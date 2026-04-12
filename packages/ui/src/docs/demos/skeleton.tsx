@@ -78,7 +78,7 @@ function TransitionDemo() {
 	const [ready, setReady] = useState(false)
 
 	return (
-		<div className="space-y-4">
+		<>
 			<Button
 				variant={ready ? 'soft' : 'outline'}
 				color={ready ? 'red' : undefined}
@@ -104,7 +104,7 @@ function TransitionDemo() {
 					</CardBody>
 				</Card>
 			</Skeleton>
-		</div>
+		</>
 	)
 }
 

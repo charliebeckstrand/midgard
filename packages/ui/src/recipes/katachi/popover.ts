@@ -5,5 +5,5 @@ import { sumi } from '../sumi'
 export const popover = {
 	trigger: 'inline-flex',
 	portal: 'z-100',
-	content: [omote.popover, sumi.text, maru.rounded, 'z-50 p-4'],
+	content: [omote.popover, 'z-50 p-4', sumi.text, maru.rounded],
 }

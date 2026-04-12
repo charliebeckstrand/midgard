@@ -6,47 +6,41 @@ import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
 
+const variants = ['default', 'outline', 'glass'] as const
+
 export default function InputDemo() {
 	return (
 		<div className="space-y-8">
-			<Example title="Default">
-				<Field className="lg:max-w-sm">
-					<Label htmlFor="input-default">Default</Label>
-					<Input id="input-default" placeholder="Enter text" />
-				</Field>
-			</Example>
 			<Example title="Variants">
-				<div className="space-y-4">
-					<Field className="lg:max-w-sm">
-						<Label htmlFor="input-default">Default</Label>
-						<Input id="input-default" placeholder="Enter text" />
+				{variants.map((variant) => (
+					<Field className="lg:max-w-sm" key={variant}>
+						<Label htmlFor={`input-${variant}`}>
+							{variant.charAt(0).toUpperCase() + variant.slice(1)}
+						</Label>
+						<Input
+							id={`input-${variant}`}
+							variant={variant}
+							placeholder={`This is a ${variant} input`}
+						/>
 					</Field>
-					<Field className="lg:max-w-sm">
-						<Label htmlFor="input-outline">Outline</Label>
-						<Input id="input-outline" variant="outline" placeholder="Enter text" />
-					</Field>
-				</div>
+				))}
 			</Example>
 			<Example title="Sizes">
-				<div className="space-y-4">
-					<div className="flex lg:max-w-xs flex-col gap-4">
-						<Field>
-							<Label>Small</Label>
-							<Input size="sm" placeholder="Small input" />
-						</Field>
-					</div>
-					<div className="flex lg:max-w-sm flex-col gap-4">
-						<Field>
-							<Label>Medium</Label>
-							<Input size="md" placeholder="Medium input" />
-						</Field>
-					</div>
-					<div className="flex lg:max-w-md flex-col gap-4">
-						<Field>
-							<Label>Large</Label>
-							<Input size="lg" placeholder="Large input" />
-						</Field>
-					</div>
+				<div className="flex lg:max-w-xs flex-col gap-4">
+					<Field>
+						<Label>Small</Label>
+						<Input size="sm" placeholder="Small input" />
+					</Field>
+
+					<Field>
+						<Label>Medium</Label>
+						<Input size="md" placeholder="Medium input" />
+					</Field>
+
+					<Field>
+						<Label>Large</Label>
+						<Input size="lg" placeholder="Large input" />
+					</Field>
 				</div>
 			</Example>
 			<Example title="Prefix">
@@ -63,31 +57,25 @@ export default function InputDemo() {
 				</div>
 			</Example>
 			<Example title="Prefix and suffix">
-				<div className="space-y-4">
-					<div className="flex lg:max-w-xs flex-col gap-4">
-						<Input
-							size="sm"
-							prefix={<Icon icon={<Search />} />}
-							suffix={<Icon icon={<Command />} />}
-							placeholder="Small"
-						/>
-					</div>
-					<div className="flex lg:max-w-sm flex-col gap-4">
-						<Input
-							size="md"
-							prefix={<Icon icon={<Search />} />}
-							suffix={<Icon icon={<Command />} />}
-							placeholder="Medium"
-						/>
-					</div>
-					<div className="flex lg:max-w-md flex-col gap-4">
-						<Input
-							size="lg"
-							prefix={<Icon icon={<Search />} />}
-							suffix={<Icon icon={<Command />} />}
-							placeholder="Large"
-						/>
-					</div>
+				<div className="flex lg:max-w-xs flex-col gap-4">
+					<Input
+						size="sm"
+						prefix={<Icon icon={<Search />} />}
+						suffix={<Icon icon={<Command />} />}
+						placeholder="Small"
+					/>
+					<Input
+						size="md"
+						prefix={<Icon icon={<Search />} />}
+						suffix={<Icon icon={<Command />} />}
+						placeholder="Medium"
+					/>
+					<Input
+						size="lg"
+						prefix={<Icon icon={<Search />} />}
+						suffix={<Icon icon={<Command />} />}
+						placeholder="Large"
+					/>
 				</div>
 			</Example>
 			<Example title="Disabled">

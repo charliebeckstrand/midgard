@@ -2,6 +2,7 @@ import { Alert, AlertDescription, AlertTitle } from '../../components/alert'
 import { Area } from '../../components/area'
 import { Button } from '../../components/button'
 import { Code } from '../../components/code'
+import { Glass } from '../../components/glass'
 import {
 	Menu,
 	MenuContent,
@@ -77,6 +78,29 @@ export default function MenuDemo() {
 						</MenuSection>
 					</MenuContent>
 				</Menu>
+			</Example>
+
+			<Example title="Glass">
+				<Glass>
+					<Menu placement="bottom-start">
+						<MenuTrigger>
+							<Button variant="outline">Glass menu</Button>
+						</MenuTrigger>
+						<MenuContent>
+							<MenuSection>
+								<MenuItem>
+									<MenuLabel>Edit</MenuLabel>
+								</MenuItem>
+								<MenuItem>
+									<MenuLabel>Duplicate</MenuLabel>
+								</MenuItem>
+								<MenuItem>
+									<MenuLabel>Delete</MenuLabel>
+								</MenuItem>
+							</MenuSection>
+						</MenuContent>
+					</Menu>
+				</Glass>
 			</Example>
 		</div>
 	)

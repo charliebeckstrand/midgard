@@ -6,6 +6,7 @@ import { cn } from '../../core'
 import { useIsDesktop } from '../../hooks'
 import { Overlay } from '../../primitives'
 import { ugoki } from '../../recipes'
+import { useGlass } from '../glass/context'
 import { type DialogPanelVariants, dialogPanelVariants } from './variants'
 
 export type DialogProps = DialogPanelVariants & {
@@ -27,10 +28,13 @@ export function Dialog({
 	onClose,
 	align = 'center',
 	outsideClick = true,
+	glass,
 	size,
 	className,
 	children,
 }: DialogProps) {
+	const glassContext = useGlass()
+	const resolvedGlass = glass ?? glassContext
 	const isDesktop = useIsDesktop()
 
 	return (
@@ -46,7 +50,11 @@ export function Dialog({
 					role="dialog"
 					aria-modal="true"
 					data-slot="dialog"
-					className={cn('pointer-events-auto', dialogPanelVariants({ size }), className)}
+					className={cn(
+						'pointer-events-auto',
+						dialogPanelVariants({ glass: resolvedGlass, size }),
+						className,
+					)}
 				>
 					{children}
 				</motion.div>

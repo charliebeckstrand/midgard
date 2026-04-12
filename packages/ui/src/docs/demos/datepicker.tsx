@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { DatePicker } from '../../components/datepicker'
+import { Glass } from '../../components/glass'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
@@ -26,6 +27,14 @@ export default function DatePickerDemo() {
 				<div className="sm:max-w-72">
 					<DatePicker disabled placeholder="Cannot select" />
 				</div>
+			</Example>
+
+			<Example title="Glass">
+				<Glass>
+					<div className="sm:max-w-72">
+						<DatePicker range value={range} onChange={setRange} />
+					</div>
+				</Glass>
 			</Example>
 		</div>
 	)

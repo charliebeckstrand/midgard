@@ -19,6 +19,7 @@ export const meta = { category: 'Overlay' }
 
 export default function DialogDemo() {
 	const [open, setOpen] = useState(false)
+	const [glassOpen, setGlassOpen] = useState(false)
 	const [discardOpen, setDiscardOpen] = useState(false)
 	const [termsConditionsOpen, setTermsConditionsOpen] = useState(false)
 	const [accepted, setAccepted] = useState(false)
@@ -48,6 +49,24 @@ export default function DialogDemo() {
 						</Button>
 						<Button color="green" onClick={() => setOpen(false)}>
 							Create project
+						</Button>
+					</DialogActions>
+				</Dialog>
+			</Example>
+			<Example title="Glass">
+				<Button onClick={() => setGlassOpen(true)}>Open glass dialog</Button>
+				<Dialog glass open={glassOpen} onClose={() => setGlassOpen(false)}>
+					<DialogTitle>Glass dialog</DialogTitle>
+					<DialogDescription>This dialog uses a frosted glass background effect.</DialogDescription>
+					<DialogBody>
+						<Text>
+							The glass variant applies a backdrop blur with a transparent background, allowing
+							content behind the dialog to show through.
+						</Text>
+					</DialogBody>
+					<DialogActions>
+						<Button variant="plain" onClick={() => setGlassOpen(false)}>
+							Close
 						</Button>
 					</DialogActions>
 				</Dialog>

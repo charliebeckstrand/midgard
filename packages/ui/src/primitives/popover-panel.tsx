@@ -3,9 +3,10 @@
 import { motion } from 'motion/react'
 import type React from 'react'
 import { useEffect, useRef } from 'react'
+import { useGlass } from '../components/glass/context'
 import { cn } from '../core'
 import { useRovingFocus } from '../hooks/use-keyboard'
-import { maru, omote, ugoki } from '../recipes'
+import { kage, maru, omote, ugoki } from '../recipes'
 
 export function PopoverPanel({
 	className,
@@ -24,6 +25,8 @@ export function PopoverPanel({
 }) {
 	const menuRef = useRef<HTMLDivElement>(null)
 
+	const glass = useGlass()
+
 	const handleKeyDown = useRovingFocus(menuRef, { itemSelector, focusOnEmpty: true })
 
 	useEffect(() => {
@@ -33,6 +36,7 @@ export function PopoverPanel({
 
 		if (selected) {
 			selected.focus()
+
 			selected.scrollIntoView({ block: 'nearest' })
 		} else {
 			menuRef.current.focus()
@@ -50,11 +54,13 @@ export function PopoverPanel({
 				onKeyDownProp?.(e)
 			}}
 			className={cn(
-				omote.popover,
+				glass ? [omote.glass, kage.ring] : omote.popover,
 				maru.rounded,
-				'isolate absolute z-50 min-w-full p-1 space-y-0.5 select-none',
+				'isolate absolute min-w-full',
+				'p-1 space-y-0.5',
 				'outline outline-transparent focus:outline-hidden',
 				'overflow-y-auto overscroll-contain',
+				'z-50 select-none',
 				className,
 			)}
 		>
