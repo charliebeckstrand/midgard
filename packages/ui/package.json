@@ -163,6 +163,10 @@
 			"types": "./src/components/number-input/index.ts",
 			"default": "./src/components/number-input/index.ts"
 		},
+		"./otp-input": {
+			"types": "./src/components/otp-input/index.ts",
+			"default": "./src/components/otp-input/index.ts"
+		},
 		"./pagination": {
 			"types": "./src/components/pagination/index.ts",
 			"default": "./src/components/pagination/index.ts"
@@ -266,6 +270,10 @@
 		"./timeline": {
 			"types": "./src/components/timeline/index.ts",
 			"default": "./src/components/timeline/index.ts"
+		},
+		"./tree": {
+			"types": "./src/components/tree/index.ts",
+			"default": "./src/components/tree/index.ts"
 		},
 		"./layouts": {
 			"types": "./src/layouts/index.ts",
