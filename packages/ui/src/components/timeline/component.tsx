@@ -1,5 +1,6 @@
 import { cn } from '../../core'
 import { katachi } from '../../recipes'
+import { StatusDot, type StatusDotProps } from '../status'
 import {
 	type TimelineOrientation,
 	TimelineProvider,
@@ -88,26 +89,24 @@ function TimelineConnector({
 // ── TimelineMarker ──────────────────────────────────────
 
 export type TimelineMarkerProps = {
-	active?: boolean
+	status?: StatusDotProps['status']
 	className?: string
-	children?: React.ReactNode
 }
 
-export function TimelineMarker({ active, className, children }: TimelineMarkerProps) {
+export function TimelineMarker({ status, className }: TimelineMarkerProps) {
 	const { orientation, variant } = useTimeline()
 
 	return (
-		<div
+		<StatusDot
 			data-slot="timeline-marker"
+			variant={variant}
+			status={status}
 			className={cn(
 				k.marker.base,
 				orientation === 'vertical' ? k.marker.vertical : k.marker.horizontal,
-				active ? k.marker.active[variant] : k.marker[variant],
 				className,
 			)}
-		>
-			{children}
-		</div>
+		/>
 	)
 }
 

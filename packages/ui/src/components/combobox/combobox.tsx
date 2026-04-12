@@ -290,15 +290,9 @@ export function Combobox<T>({
 						}}
 						className={cn(k.input)}
 					/>
-					<button
-						type="button"
-						tabIndex={-1}
-						inert={open || undefined}
-						onClick={() => setOpen(!open)}
-						className={cn(k.chevron)}
-					>
-						{icon ?? <Icon icon={<ChevronsUpDown />} />}
-					</button>
+					<span data-slot="icon" className={cn(k.chevron)}>
+						{icon ?? <Icon icon={<ChevronsUpDown />} size="sm" />}
+					</span>
 				</FormControl>
 			</div>
 

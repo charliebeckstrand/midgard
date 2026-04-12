@@ -22,7 +22,7 @@ export default function TimelineDemo() {
 						<TimelineDescription>Initial planning and team assembly.</TimelineDescription>
 					</TimelineItem>
 					<TimelineItem>
-						<TimelineMarker />
+						<TimelineMarker status="info" />
 						<TimelineTimestamp>Feb 2026</TimelineTimestamp>
 						<TimelineHeading>Design completed</TimelineHeading>
 						<TimelineDescription>
@@ -50,7 +50,7 @@ export default function TimelineDemo() {
 						<TimelineHeading>Verify</TimelineHeading>
 					</TimelineItem>
 					<TimelineItem>
-						<TimelineMarker />
+						<TimelineMarker status="active" />
 						<TimelineTimestamp>Step 3</TimelineTimestamp>
 						<TimelineHeading>Complete</TimelineHeading>
 					</TimelineItem>
@@ -65,7 +65,7 @@ export default function TimelineDemo() {
 						<TimelineDescription>Stakeholder interviews and scope definition.</TimelineDescription>
 					</TimelineItem>
 					<TimelineItem>
-						<TimelineMarker active />
+						<TimelineMarker status="warning" />
 						<TimelineTimestamp>Wed, Apr 9</TimelineTimestamp>
 						<TimelineHeading>Implementation in progress</TimelineHeading>
 						<TimelineDescription>Building the timeline component.</TimelineDescription>
@@ -95,7 +95,7 @@ export default function TimelineDemo() {
 						<TimelineDescription>Assigned to two reviewers for approval.</TimelineDescription>
 					</TimelineItem>
 					<TimelineItem>
-						<TimelineMarker active />
+						<TimelineMarker status="active" />
 						<TimelineTimestamp>2:00 PM</TimelineTimestamp>
 						<TimelineHeading>Merged to main</TimelineHeading>
 						<TimelineDescription>All checks passed, deployed to staging.</TimelineDescription>

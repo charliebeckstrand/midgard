@@ -5,7 +5,7 @@ export const textarea = {
 	base: [waku.input, 'min-h-9'],
 	autoResize: 'field-sizing-content',
 	/** Strip textarea chrome when the field is nested inside a framed container. */
-	bare: 'border-0 rounded-none focus:outline-hidden',
+	bare: 'border-0 rounded-none pt-3 focus:outline-hidden',
 	/** Border for the wrapping FormControl when an actions slot is present. */
 	frame: kage.border,
 	/** Layout for the actions row rendered beneath the textarea. */

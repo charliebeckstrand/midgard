@@ -1,4 +1,5 @@
-import { ArrowUp, Code, Mic, Plus } from 'lucide-react'
+import { ArrowUp, CircleDashed, Plus } from 'lucide-react'
+import { useState } from 'react'
 import { Button } from '../../components/button'
 import { Field, Label } from '../../components/fieldset'
 import { Icon } from '../../components/icon'
@@ -8,6 +9,8 @@ import { Example } from '../components/example'
 export const meta = { category: 'Forms' }
 
 export default function TextareaDemo() {
+	const [withActionsValue, setWithActionsValue] = useState('')
+
 	return (
 		<div className="space-y-8">
 			<Example title="Default">
@@ -33,22 +36,21 @@ export default function TextareaDemo() {
 					<Label htmlFor="textarea-actions">Prompt</Label>
 					<Textarea
 						id="textarea-actions"
+						value={withActionsValue}
+						onChange={(e) => setWithActionsValue(e.target.value)}
 						autoResize
 						rows={3}
 						placeholder="Ask anything"
 						actions={
 							<>
 								<Button variant="plain" size="sm">
-									<Icon icon={<Code />} />
-									Code
+									<Icon icon={<CircleDashed />} />
+									<span className="ml-1">Data Analyst</span>
 								</Button>
 								<Button variant="plain" size="sm" className="ml-auto">
 									<Icon icon={<Plus />} />
 								</Button>
-								<Button variant="plain" size="sm">
-									<Icon icon={<Mic />} />
-								</Button>
-								<Button size="sm" color="amber">
+								<Button size="sm" color="blue" disabled={!withActionsValue.trim()}>
 									<Icon icon={<ArrowUp />} />
 								</Button>
 							</>

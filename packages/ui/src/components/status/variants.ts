@@ -5,8 +5,10 @@ const k = katachi.status.dot
 
 export const statusDotVariants = cva(k.base, {
 	variants: {
+		variant: k.variant,
 		status: k.status,
 		size: k.size,
+		pulse: k.pulse,
 	},
 	defaultVariants: k.defaults,
 })

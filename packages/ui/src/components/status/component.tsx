@@ -18,7 +18,7 @@ export type StatusDotProps = StatusDotVariants & {
 	className?: string
 } & Omit<React.ComponentPropsWithoutRef<'span'>, 'className'>
 
-export function StatusDot({ status, size, className, ...props }: StatusDotProps) {
+export function StatusDot({ variant, status, size, pulse, className, ...props }: StatusDotProps) {
 	const avatarSize = use(AvatarSizeContext)
 
 	const resolvedSize = size ?? (avatarSize ? avatarToStatusSize[avatarSize] : undefined)
@@ -26,7 +26,7 @@ export function StatusDot({ status, size, className, ...props }: StatusDotProps)
 	return (
 		<span
 			data-slot="status-dot"
-			className={cn(statusDotVariants({ status, size: resolvedSize }), className)}
+			className={cn(statusDotVariants({ variant, status, size: resolvedSize, pulse }), className)}
 			{...props}
 		/>
 	)

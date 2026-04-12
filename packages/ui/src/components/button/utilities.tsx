@@ -1,12 +1,13 @@
 import { Children, isValidElement } from 'react'
+import { Icon } from '../icon'
 import { Kbd } from '../kbd'
 import { Spinner } from '../spinner'
 
-/** True for anything the button should treat as an icon — i.e., any element that isn't a <Kbd>. */
+/** True when the node is an <Icon> or <Spinner> — the two slots that affect button padding. */
 export function isIconLike(node: React.ReactNode): boolean {
 	if (!isValidElement(node)) return false
 
-	return node.type !== Kbd
+	return node.type === Icon || node.type === Spinner
 }
 
 /** Which sides of an icon + text button hold an icon */
