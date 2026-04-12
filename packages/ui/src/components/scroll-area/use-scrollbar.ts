@@ -41,27 +41,33 @@ export function useScrollbar({ orientation, scrollbar }: UseScrollbarOptions) {
 
 	const updateThumbs = useCallback(() => {
 		const el = viewportRef.current
+
 		if (!el) return
 
 		if (hasVertical) {
 			const trackHeight = verticalTrackRef.current?.clientHeight ?? 0
+
 			setVerticalThumb(computeThumb(el.scrollTop, el.clientHeight, el.scrollHeight, trackHeight))
 		}
 
 		if (hasHorizontal) {
 			const trackWidth = horizontalTrackRef.current?.clientWidth ?? 0
+
 			setHorizontalThumb(computeThumb(el.scrollLeft, el.clientWidth, el.scrollWidth, trackWidth))
 		}
 	}, [hasVertical, hasHorizontal])
 
 	useEffect(() => {
 		const el = viewportRef.current
+
 		if (!el) return
 
 		updateThumbs()
 
 		const observer = new ResizeObserver(updateThumbs)
+
 		observer.observe(el)
+
 		for (const child of Array.from(el.children)) observer.observe(child)
 
 		return () => observer.disconnect()
@@ -76,53 +82,26 @@ export function useScrollbar({ orientation, scrollbar }: UseScrollbarOptions) {
 
 	useEffect(() => {
 		const el = viewportRef.current
+
 		if (!el) return
-
-		let locked: { top: number; left: number } | null = null
-
-		const lock = () => {
-			locked = { top: el.scrollTop, left: el.scrollLeft }
-		}
-		const unlock = () => {
-			locked = null
-		}
-
-		const handleKeyDown = (event: KeyboardEvent) => {
-			if (event.key === 'Shift' && !locked) lock()
-		}
-		const handleKeyUp = (event: KeyboardEvent) => {
-			if (event.key === 'Shift') unlock()
-		}
 
 		const handleWheel = (event: WheelEvent) => {
 			if (!event.shiftKey) return
+
 			event.preventDefault()
-			if (!locked) lock()
 
 			const target = findScrollableAncestor(el.parentElement)
+
 			const options: ScrollToOptions = { top: event.deltaY, left: event.deltaX, behavior: 'auto' }
+
 			if (target) target.scrollBy(options)
 			else window.scrollBy(options)
 		}
 
-		const handleScrollLock = () => {
-			if (!locked) return
-			if (el.scrollTop !== locked.top) el.scrollTop = locked.top
-			if (el.scrollLeft !== locked.left) el.scrollLeft = locked.left
-		}
-
-		window.addEventListener('keydown', handleKeyDown)
-		window.addEventListener('keyup', handleKeyUp)
-		window.addEventListener('blur', unlock)
 		el.addEventListener('wheel', handleWheel, { passive: false })
-		el.addEventListener('scroll', handleScrollLock)
 
 		return () => {
-			window.removeEventListener('keydown', handleKeyDown)
-			window.removeEventListener('keyup', handleKeyUp)
-			window.removeEventListener('blur', unlock)
 			el.removeEventListener('wheel', handleWheel)
-			el.removeEventListener('scroll', handleScrollLock)
 		}
 	}, [])
 
@@ -131,14 +110,18 @@ export function useScrollbar({ orientation, scrollbar }: UseScrollbarOptions) {
 
 		if (scrollbar === 'auto') {
 			setIsScrolling(true)
+
 			if (scrollFadeTimeoutRef.current) clearTimeout(scrollFadeTimeoutRef.current)
+
 			scrollFadeTimeoutRef.current = setTimeout(() => setIsScrolling(false), SCROLL_FADE_DELAY_MS)
 		}
 	}, [scrollbar, updateThumbs])
 
 	const startDrag = (axis: 'x' | 'y') => (event: React.PointerEvent<HTMLDivElement>) => {
 		const el = viewportRef.current
+
 		const track = axis === 'y' ? verticalTrackRef.current : horizontalTrackRef.current
+
 		if (!el || !track) return
 
 		event.preventDefault()
@@ -150,13 +133,17 @@ export function useScrollbar({ orientation, scrollbar }: UseScrollbarOptions) {
 		const viewportSize = axis === 'y' ? el.clientHeight : el.clientWidth
 		const contentSize = axis === 'y' ? el.scrollHeight : el.scrollWidth
 		const thumbSize = axis === 'y' ? verticalThumb.size : horizontalThumb.size
+
 		const maxOffset = trackSize - thumbSize
 		const maxScroll = contentSize - viewportSize
+
 		const scale = maxOffset > 0 ? maxScroll / maxOffset : 0
 
 		const onMove = (ev: PointerEvent) => {
 			const delta = (axis === 'y' ? ev.clientY : ev.clientX) - startClient
+
 			const next = startScroll + delta * scale
+
 			if (axis === 'y') el.scrollTop = next
 			else el.scrollLeft = next
 		}

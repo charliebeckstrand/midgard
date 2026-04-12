@@ -125,7 +125,9 @@ export default function GlassDemo() {
 			<Example title="Overlays">
 				<Glass>
 					<div className="flex gap-3">
-						<Button onClick={() => setDialogOpen(true)}>Dialog</Button>
+						<Button variant="outline" onClick={() => setDialogOpen(true)}>
+							Dialog
+						</Button>
 
 						<Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
 							<DialogTitle>Glass dialog</DialogTitle>

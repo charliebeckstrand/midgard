@@ -18,6 +18,7 @@ export default function SheetDemo() {
 					<Button variant="outline" onClick={() => setLeftOpen(true)}>
 						Open Left
 					</Button>
+
 					<Sheet side="left" open={leftOpen} onClose={() => setLeftOpen(false)}>
 						<SheetTitle>Left Sheet</SheetTitle>
 						<SheetBody>
@@ -29,6 +30,7 @@ export default function SheetDemo() {
 					</Sheet>
 
 					<Button onClick={() => setRightOpen(true)}>Open Right</Button>
+
 					<Sheet open={rightOpen} onClose={() => setRightOpen(false)}>
 						<SheetTitle>Right Sheet</SheetTitle>
 						<SheetBody>
@@ -46,6 +48,7 @@ export default function SheetDemo() {
 					<Button variant="outline" onClick={() => setGlassLeftOpen(true)}>
 						Open Left
 					</Button>
+
 					<Sheet glass side="left" open={glassLeftOpen} onClose={() => setGlassLeftOpen(false)}>
 						<SheetTitle>Glass Sheet</SheetTitle>
 						<SheetBody>
@@ -59,6 +62,7 @@ export default function SheetDemo() {
 					<Button variant="outline" onClick={() => setGlassRightOpen(true)}>
 						Open Right
 					</Button>
+
 					<Sheet glass open={glassRightOpen} onClose={() => setGlassRightOpen(false)}>
 						<SheetTitle>Glass Sheet</SheetTitle>
 						<SheetBody>

@@ -13,5 +13,5 @@ export const mark = {
 		md: ['text-xs', 'p-1.25'],
 		lg: ['text-sm', 'p-1.5'],
 	},
-	margin: 'not-first:ml-1 not-last:mr-1',
+	margin: '',
 } as const

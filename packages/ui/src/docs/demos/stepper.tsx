@@ -35,7 +35,7 @@ export default function StepperDemo() {
 		<div className="space-y-8">
 			<Alert type="info" closable>
 				<AlertDescription>
-					When <code>orientation</code> isn't explicitly set, the stepper falls back to{' '}
+					When <code>orientation</code> is not explicitly set, the stepper defaults to{' '}
 					<code>vertical</code> on mobile.
 				</AlertDescription>
 			</Alert>

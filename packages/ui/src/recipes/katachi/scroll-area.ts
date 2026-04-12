@@ -11,7 +11,7 @@ export const scrollArea = {
 		},
 	},
 	viewport: {
-		base: ['overscroll-contain', '[scrollbar-width:none]', '[&::-webkit-scrollbar]:hidden'],
+		base: ['[scrollbar-width:none]', '[&::-webkit-scrollbar]:hidden'],
 		bare: {
 			true: '',
 			false: 'p-4',

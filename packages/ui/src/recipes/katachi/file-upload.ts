@@ -4,9 +4,10 @@ import { sumi } from '../sumi'
 
 export const fileUpload = {
 	dropzone: [
-		'flex flex-col items-center justify-center gap-3 text-sm',
+		'flex flex-col items-center justify-center gap-3',
 		'border border-dashed border-zinc-300 dark:border-zinc-700',
-		'cursor-pointer transition-colors',
+		'cursor-pointer',
+		'text-sm',
 		maru.rounded,
 		ki.ring,
 		sumi.textMuted,

@@ -1,6 +1,5 @@
 'use client'
 
-import { Check } from 'lucide-react'
 import { Children, isValidElement, useRef } from 'react'
 import { cn } from '../../core'
 import { useIsDesktop, useRovingFocus } from '../../hooks'
@@ -240,36 +239,20 @@ export type StepperIndicatorProps = {
 	children?: React.ReactNode
 }
 
-export function StepperIndicator({ className, children }: StepperIndicatorProps) {
+export function StepperIndicator({ className }: StepperIndicatorProps) {
+	const { onValueChange } = useStepper()
 	const { state } = useStepperStep()
 
-	// Two visual modes, switched on whether the consumer passed children:
-	//   - No children → dot mode: a small blue pill marks the current step.
-	//   - With children (e.g. a step number) → border mode: the children stay
-	//     visible and the current step is marked by a blue border that morphs
-	//     between steps via layoutId.
-	const hasChildren = children !== undefined
+	const interactive = onValueChange !== undefined
 
 	return (
 		<span
 			data-slot="stepper-indicator"
 			data-display-state={state}
-			className={cn(k.indicator, className)}
+			className={cn(k.indicator.base, interactive && k.indicator.interactive, className)}
 		>
-			<span className="grid place-items-center">
-				{state === 'completed' ? (
-					<Check aria-hidden="true" strokeWidth={2.5} className="size-4 text-green-600" />
-				) : hasChildren ? (
-					children
-				) : null}
-			</span>
 			{state === 'current' && (
-				<ActiveIndicator
-					className={cn(hasChildren ? k.activeIndicatorBorder : k.activeIndicator)}
-					style={{ borderRadius: '9999px' }}
-				>
-					{!hasChildren && <span aria-hidden="true" className={cn(k.activeIndicatorDot)} />}
-				</ActiveIndicator>
+				<ActiveIndicator className={cn(k.activeIndicator)} style={{ borderRadius: '9999px' }} />
 			)}
 		</span>
 	)

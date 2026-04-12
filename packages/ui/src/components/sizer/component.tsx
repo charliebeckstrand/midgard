@@ -11,7 +11,7 @@ export type SizerProps = {
 	children?: React.ReactNode
 } & Omit<React.ComponentPropsWithoutRef<'div'>, 'className' | 'children'>
 
-export function Sizer({ size = 'md', gap = 4, className, children, ...props }: SizerProps) {
+export function Sizer({ size = 'sm', gap = 4, className, children, ...props }: SizerProps) {
 	return (
 		<div
 			data-slot="sizer"
