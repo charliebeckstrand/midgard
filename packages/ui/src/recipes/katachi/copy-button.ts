@@ -1,18 +1,9 @@
-import { maru } from '../maru'
-import { narabi } from '../narabi'
-import { sumi } from '../sumi'
-import { take } from '../take'
+import { toggleIconButton } from './toggle-icon-button'
 
 export const copyButton = {
 	base: [
-		'relative p-0',
-		narabi.position.center,
-		maru.rounded,
-		sumi.textMuted,
-		sumi.textHover,
-		'dark:hover:not-disabled:text-white',
-		'focus-visible:not-disabled:text-white',
+		...toggleIconButton.base,
 		'disabled:text-green-600 disabled:opacity-100 disabled:cursor-default',
 	],
-	size: take.buttonWithIconSize,
+	size: toggleIconButton.size,
 }
