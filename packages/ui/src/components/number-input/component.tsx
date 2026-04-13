@@ -3,7 +3,7 @@
 import { Minus, Plus } from 'lucide-react'
 import { forwardRef } from 'react'
 import { cn } from '../../core'
-import { useButtonHold, useControllable } from '../../hooks'
+import { useControllable } from '../../hooks'
 import { katachi } from '../../recipes'
 import { Button } from '../button'
 import { Icon } from '../icon'
@@ -57,8 +57,8 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
 	const atMin = min !== undefined && current !== undefined && current <= min
 	const atMax = max !== undefined && current !== undefined && current >= max
 
-	const decreaseHold = useButtonHold(() => change(-step), { disabled: disabled || atMin })
-	const increaseHold = useButtonHold(() => change(step), { disabled: disabled || atMax })
+	const decrease = () => change(-step)
+	const increase = () => change(step)
 
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const v = e.target.value
@@ -98,7 +98,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
 						tabIndex={-1}
 						disabled={disabled || atMin}
 						aria-label="Decrease"
-						{...decreaseHold}
+						onClick={decrease}
 					>
 						<Icon icon={<Minus />} />
 					</Button>
@@ -108,7 +108,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
 						tabIndex={-1}
 						disabled={disabled || atMax}
 						aria-label="Increase"
-						{...increaseHold}
+						onClick={increase}
 					>
 						<Icon icon={<Plus />} />
 					</Button>

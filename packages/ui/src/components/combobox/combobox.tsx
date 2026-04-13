@@ -21,6 +21,7 @@ import { cn, createContext } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { useRovingFocus } from '../../hooks/use-keyboard'
 import { useSelect } from '../../hooks/use-select'
+import { useVirtualKeyboardStable } from '../../hooks/use-virtual-keyboard-stable'
 import { FormControl, PopoverPanel } from '../../primitives'
 import { katachi } from '../../recipes'
 import { Icon } from '../icon'
@@ -109,6 +110,8 @@ export function Combobox<T>({
 		itemSelector: '[role="option"]:not([data-disabled])',
 		focusOnEmpty: true,
 	})
+
+	const waitForKeyboard = useVirtualKeyboardStable()
 
 	const { refs, floatingStyles, context } = useFloating({
 		placement,
@@ -234,7 +237,7 @@ export function Combobox<T>({
 							setQuery(e.target.value)
 							setOpen(true)
 						}}
-						onFocus={() => setOpen(true)}
+						onFocus={() => waitForKeyboard(() => setOpen(true))}
 						onBlur={(e) => {
 							// Check if focus moved to the floating panel
 							const floating = refs.floating.current
