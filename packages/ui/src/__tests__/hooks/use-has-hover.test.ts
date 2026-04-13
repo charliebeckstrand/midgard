@@ -19,6 +19,7 @@ describe('useHasHover', () => {
 
 		// Dynamic import so the module picks up the updated matchMedia mock
 		const { useHasHover } = await import('../../hooks/use-has-hover')
+
 		const { result } = renderHook(() => useHasHover())
 
 		expect(result.current).toBe(true)
@@ -40,7 +41,9 @@ describe('useHasHover', () => {
 		})
 
 		vi.resetModules()
+
 		const { useHasHover } = await import('../../hooks/use-has-hover')
+
 		const { result } = renderHook(() => useHasHover())
 
 		expect(result.current).toBe(false)

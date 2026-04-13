@@ -20,6 +20,7 @@ describe('TagInput', () => {
 
 	it('renders a text input', () => {
 		const { container } = renderUI(<TagInput />)
+
 		const input = getInput(container)
 
 		expect(input).toBeInTheDocument()
@@ -28,6 +29,7 @@ describe('TagInput', () => {
 
 	it('forwards ref to the input', () => {
 		const ref = createRef<HTMLInputElement>()
+
 		const { container } = renderUI(<TagInput ref={ref} />)
 
 		expect(ref.current).toBeInstanceOf(HTMLInputElement)
@@ -36,6 +38,7 @@ describe('TagInput', () => {
 
 	it('shows placeholder when there are no tags', () => {
 		const { container } = renderUI(<TagInput placeholder="Add tags..." />)
+
 		const input = getInput(container)
 
 		expect(input).toHaveAttribute('placeholder', 'Add tags...')
@@ -43,6 +46,7 @@ describe('TagInput', () => {
 
 	it('hides placeholder when tags exist', () => {
 		const { container } = renderUI(<TagInput defaultValue={['react']} placeholder="Add tags..." />)
+
 		const input = getInput(container)
 
 		expect(input).not.toHaveAttribute('placeholder')
@@ -57,8 +61,11 @@ describe('TagInput', () => {
 
 	it('adds a tag on Enter', async () => {
 		const onChange = vi.fn()
+
 		const { container } = renderUI(<TagInput onChange={onChange} />)
+
 		const input = getInput(container)
+
 		const user = userEvent.setup()
 
 		await user.type(input, 'react{Enter}')
@@ -68,8 +75,11 @@ describe('TagInput', () => {
 
 	it('adds a tag on comma', async () => {
 		const onChange = vi.fn()
+
 		const { container } = renderUI(<TagInput onChange={onChange} />)
+
 		const input = getInput(container)
+
 		const user = userEvent.setup()
 
 		await user.type(input, 'vue,')
@@ -79,8 +89,11 @@ describe('TagInput', () => {
 
 	it('adds a tag on blur', async () => {
 		const onChange = vi.fn()
+
 		const { container } = renderUI(<TagInput onChange={onChange} />)
+
 		const input = getInput(container)
+
 		const user = userEvent.setup()
 
 		await user.type(input, 'svelte')
@@ -91,8 +104,11 @@ describe('TagInput', () => {
 
 	it('does not add duplicate tags', async () => {
 		const onChange = vi.fn()
+
 		const { container } = renderUI(<TagInput defaultValue={['react']} onChange={onChange} />)
+
 		const input = getInput(container)
+
 		const user = userEvent.setup()
 
 		await user.type(input, 'react{Enter}')
@@ -102,10 +118,13 @@ describe('TagInput', () => {
 
 	it('removes a tag via its remove button', async () => {
 		const onChange = vi.fn()
+
 		const { container } = renderUI(<TagInput defaultValue={['react', 'vue']} onChange={onChange} />)
+
 		const user = userEvent.setup()
 
 		const removeButtons = getRemoveButtons(container)
+
 		expect(removeButtons.length).toBe(2)
 
 		await user.click(removeButtons[0])
@@ -115,8 +134,11 @@ describe('TagInput', () => {
 
 	it('removes last tag on Backspace when input is empty', async () => {
 		const onChange = vi.fn()
+
 		const { container } = renderUI(<TagInput defaultValue={['react', 'vue']} onChange={onChange} />)
+
 		const input = getInput(container)
+
 		const user = userEvent.setup()
 
 		await user.click(input)
@@ -127,10 +149,13 @@ describe('TagInput', () => {
 
 	it('respects max tag limit', async () => {
 		const onChange = vi.fn()
+
 		const { container } = renderUI(
 			<TagInput defaultValue={['a', 'b']} max={2} onChange={onChange} />,
 		)
+
 		const input = getInput(container)
+
 		const user = userEvent.setup()
 
 		await user.type(input, 'c{Enter}')
@@ -140,20 +165,27 @@ describe('TagInput', () => {
 
 	it('respects validate function', async () => {
 		const onChange = vi.fn()
+
 		const validate = (tag: string) => tag.length >= 2
+
 		const { container } = renderUI(<TagInput validate={validate} onChange={onChange} />)
+
 		const input = getInput(container)
+
 		const user = userEvent.setup()
 
 		await user.type(input, 'x{Enter}')
+
 		expect(onChange).not.toHaveBeenCalled()
 
 		await user.type(input, 'ok{Enter}')
+
 		expect(onChange).toHaveBeenCalledWith(['ok'])
 	})
 
 	it('disables the input when disabled', () => {
 		const { container } = renderUI(<TagInput disabled />)
+
 		const input = getInput(container)
 
 		expect(input).toBeDisabled()
@@ -161,6 +193,7 @@ describe('TagInput', () => {
 
 	it('hides remove buttons when disabled', () => {
 		const { container } = renderUI(<TagInput defaultValue={['react']} disabled />)
+
 		const removeButtons = getRemoveButtons(container)
 
 		expect(removeButtons.length).toBe(0)
@@ -168,6 +201,7 @@ describe('TagInput', () => {
 
 	it('applies custom className', () => {
 		const { container } = renderUI(<TagInput className="custom" />)
+
 		const tagInput = bySlot(container, 'tag-input')
 
 		expect(tagInput?.className).toContain('custom')

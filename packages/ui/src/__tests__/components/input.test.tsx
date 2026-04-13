@@ -6,14 +6,17 @@ import { bySlot, renderUI, userEvent } from '../helpers'
 describe('Input', () => {
 	it('renders an input with data-slot="input"', () => {
 		const { container } = renderUI(<Input />)
+
 		const input = bySlot(container, 'input')
 
 		expect(input).toBeInTheDocument()
+
 		expect(input?.tagName).toBe('INPUT')
 	})
 
 	it('applies custom className', () => {
 		const { container } = renderUI(<Input className="custom" />)
+
 		const input = bySlot(container, 'input')
 
 		expect(input?.className).toContain('custom')
@@ -21,14 +24,17 @@ describe('Input', () => {
 
 	it('forwards ref', () => {
 		const ref = createRef<HTMLInputElement>()
+
 		const { container } = renderUI(<Input ref={ref} />)
 
 		expect(ref.current).toBeInstanceOf(HTMLInputElement)
+
 		expect(ref.current).toBe(bySlot(container, 'input'))
 	})
 
 	it('sets the type attribute', () => {
 		const { container } = renderUI(<Input type="email" />)
+
 		const input = bySlot(container, 'input')
 
 		expect(input).toHaveAttribute('type', 'email')
@@ -36,6 +42,7 @@ describe('Input', () => {
 
 	it('passes through placeholder', () => {
 		const { container } = renderUI(<Input placeholder="Enter text" />)
+
 		const input = bySlot(container, 'input')
 
 		expect(input).toHaveAttribute('placeholder', 'Enter text')
@@ -55,8 +62,11 @@ describe('Input', () => {
 
 	it('fires onChange handler', async () => {
 		const onChange = vi.fn()
+
 		const { container } = renderUI(<Input onChange={onChange} />)
+
 		const input = bySlot(container, 'input') as HTMLInputElement
+
 		const user = userEvent.setup()
 
 		await user.type(input, 'a')

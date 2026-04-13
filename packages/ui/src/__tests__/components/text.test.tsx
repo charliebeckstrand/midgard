@@ -5,9 +5,11 @@ import { bySlot, renderUI, screen } from '../helpers'
 describe('Text', () => {
 	it('renders a p element with data-slot="text"', () => {
 		const { container } = renderUI(<Text>Hello</Text>)
+
 		const text = bySlot(container, 'text')
 
 		expect(text).toBeInTheDocument()
+
 		expect(text?.tagName).toBe('P')
 	})
 
@@ -19,6 +21,7 @@ describe('Text', () => {
 
 	it('applies custom className', () => {
 		const { container } = renderUI(<Text className="prose">Content</Text>)
+
 		const text = bySlot(container, 'text')
 
 		expect(text?.className).toContain('prose')
@@ -26,6 +29,7 @@ describe('Text', () => {
 
 	it('passes through HTML attributes', () => {
 		const { container } = renderUI(<Text id="intro">Intro</Text>)
+
 		const text = bySlot(container, 'text')
 
 		expect(text).toHaveAttribute('id', 'intro')

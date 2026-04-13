@@ -46,9 +46,11 @@ describe('BottomNavItem', () => {
 				<BottomNavItem icon={TestIcon}>Tab</BottomNavItem>
 			</BottomNav>,
 		)
+
 		const item = bySlot(container, 'bottom-nav-item')
 
 		expect(item?.tagName).toBe('BUTTON')
+
 		expect(item).toHaveAttribute('type', 'button')
 	})
 
@@ -60,9 +62,11 @@ describe('BottomNavItem', () => {
 				</BottomNavItem>
 			</BottomNav>,
 		)
+
 		const item = bySlot(container, 'bottom-nav-item')
 
 		expect(item?.tagName).toBe('A')
+
 		expect(item).toHaveAttribute('href', '/home')
 	})
 
@@ -74,6 +78,7 @@ describe('BottomNavItem', () => {
 				</BottomNavItem>
 			</BottomNav>,
 		)
+
 		const item = bySlot(container, 'bottom-nav-item')
 
 		expect(item).toHaveAttribute('data-current', '')
@@ -90,14 +95,17 @@ describe('BottomNavItem', () => {
 				</BottomNavItem>
 			</BottomNav>,
 		)
+
 		const items = allBySlot(container, 'bottom-nav-item')
 
 		expect(items[0]).toHaveAttribute('data-current', '')
+
 		expect(items[1]).not.toHaveAttribute('data-current')
 	})
 
 	it('calls onChange with value on click', () => {
 		const onChange = vi.fn()
+
 		const { container } = renderUI(
 			<BottomNav onChange={onChange}>
 				<BottomNavItem icon={TestIcon} value="search">
@@ -105,6 +113,7 @@ describe('BottomNavItem', () => {
 				</BottomNavItem>
 			</BottomNav>,
 		)
+
 		const item = bySlot(container, 'bottom-nav-item')
 
 		item?.click()
@@ -120,6 +129,7 @@ describe('BottomNavItem', () => {
 				</BottomNavItem>
 			</BottomNav>,
 		)
+
 		const item = bySlot(container, 'bottom-nav-item')
 
 		expect(item?.className).toContain('custom')

@@ -13,6 +13,7 @@ describe('useButtonHold', () => {
 
 	it('fires action once on click', () => {
 		const onAction = vi.fn()
+
 		const { result } = renderHook(() => useButtonHold(onAction))
 
 		act(() => {
@@ -24,6 +25,7 @@ describe('useButtonHold', () => {
 
 	it('fires action on pointer down', () => {
 		const onAction = vi.fn()
+
 		const { result } = renderHook(() => useButtonHold(onAction))
 
 		act(() => {
@@ -37,6 +39,7 @@ describe('useButtonHold', () => {
 
 	it('repeats action after delay when held', () => {
 		const onAction = vi.fn()
+
 		const { result } = renderHook(() => useButtonHold(onAction, { delay: 100, interval: 50 }))
 
 		act(() => {
@@ -65,6 +68,7 @@ describe('useButtonHold', () => {
 
 	it('stops repeating on pointer up', () => {
 		const onAction = vi.fn()
+
 		const { result } = renderHook(() => useButtonHold(onAction, { delay: 100, interval: 50 }))
 
 		act(() => {
@@ -92,6 +96,7 @@ describe('useButtonHold', () => {
 
 	it('stops repeating on pointer leave', () => {
 		const onAction = vi.fn()
+
 		const { result } = renderHook(() => useButtonHold(onAction, { delay: 100, interval: 50 }))
 
 		act(() => {
@@ -114,6 +119,7 @@ describe('useButtonHold', () => {
 
 	it('does not fire when disabled', () => {
 		const onAction = vi.fn()
+
 		const { result } = renderHook(() => useButtonHold(onAction, { disabled: true }))
 
 		act(() => {
@@ -125,6 +131,7 @@ describe('useButtonHold', () => {
 
 	it('does not double-fire on click after pointer up', () => {
 		const onAction = vi.fn()
+
 		const { result } = renderHook(() => useButtonHold(onAction))
 
 		act(() => {

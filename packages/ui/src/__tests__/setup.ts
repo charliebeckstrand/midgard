@@ -32,9 +32,11 @@ vi.mock('motion/react', () => {
 
 	function stripMotionProps(props: Record<string, unknown>) {
 		const clean: Record<string, unknown> = {}
+
 		for (const [k, v] of Object.entries(props)) {
 			if (!MOTION_PROPS.has(k)) clean[k] = v
 		}
+
 		return clean
 	}
 

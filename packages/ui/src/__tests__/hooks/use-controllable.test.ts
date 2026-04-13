@@ -27,6 +27,7 @@ describe('useControllable', () => {
 
 	it('calls onChange when value is set in uncontrolled mode', () => {
 		const onChange = vi.fn()
+
 		const { result } = renderHook(() => useControllable({ defaultValue: 'a', onChange }))
 
 		act(() => {
@@ -55,6 +56,7 @@ describe('useControllable', () => {
 
 	it('calls onChange in controlled mode', () => {
 		const onChange = vi.fn()
+
 		const { result } = renderHook(() => useControllable({ value: 'a', onChange }))
 
 		act(() => {

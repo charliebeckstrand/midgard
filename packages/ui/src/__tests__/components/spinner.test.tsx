@@ -5,9 +5,11 @@ import { bySlot, renderUI, screen } from '../helpers'
 describe('Spinner', () => {
 	it('renders an output with data-slot="spinner"', () => {
 		const { container } = renderUI(<Spinner />)
+
 		const spinner = bySlot(container, 'spinner')
 
 		expect(spinner).toBeInTheDocument()
+
 		expect(spinner?.tagName).toBe('OUTPUT')
 	})
 
@@ -26,14 +28,17 @@ describe('Spinner', () => {
 
 	it('renders an SVG spinner graphic', () => {
 		const { container } = renderUI(<Spinner />)
+
 		const svg = container.querySelector('svg')
 
 		expect(svg).toBeInTheDocument()
+
 		expect(svg).toHaveAttribute('aria-hidden', 'true')
 	})
 
 	it('applies custom className', () => {
 		const { container } = renderUI(<Spinner className="big" />)
+
 		const spinner = bySlot(container, 'spinner')
 
 		expect(spinner?.className).toContain('big')

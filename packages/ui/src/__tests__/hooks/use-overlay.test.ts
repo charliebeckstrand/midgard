@@ -11,6 +11,7 @@ describe('useOverlay', () => {
 
 	it('calls onClose when Escape is pressed while open', () => {
 		const onClose = vi.fn()
+
 		renderHook(() => useOverlay(true, onClose))
 
 		document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
@@ -20,6 +21,7 @@ describe('useOverlay', () => {
 
 	it('does not call onClose on Escape when closed', () => {
 		const onClose = vi.fn()
+
 		renderHook(() => useOverlay(false, onClose))
 
 		document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
@@ -29,11 +31,14 @@ describe('useOverlay', () => {
 
 	it('calls onClose on pointer down outside the container', () => {
 		const onClose = vi.fn()
+
 		const { result } = renderHook(() => useOverlay(true, onClose))
 
 		// Simulate a container element
 		const container = document.createElement('div')
+
 		document.body.appendChild(container)
+
 		Object.defineProperty(result.current, 'current', { value: container, writable: true })
 
 		// Re-render to pick up the ref

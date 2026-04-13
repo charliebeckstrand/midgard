@@ -9,9 +9,11 @@ describe('Polymorphic', () => {
 				Text
 			</Polymorphic>,
 		)
+
 		const el = bySlot(container, 'tag')
 
 		expect(el).toBeInTheDocument()
+
 		expect(el?.tagName).toBe('SPAN')
 	})
 
@@ -21,10 +23,13 @@ describe('Polymorphic', () => {
 				Link
 			</Polymorphic>,
 		)
+
 		const el = bySlot(container, 'tag')
 
 		expect(el).toBeInTheDocument()
+
 		expect(el?.tagName).toBe('A')
+
 		expect(el).toHaveAttribute('href', '/path')
 	})
 
@@ -34,6 +39,7 @@ describe('Polymorphic', () => {
 				Content
 			</Polymorphic>,
 		)
+
 		const el = bySlot(container, 'card')
 
 		expect(el).toHaveClass('card-cls')
@@ -45,6 +51,7 @@ describe('Polymorphic', () => {
 				Click
 			</Polymorphic>,
 		)
+
 		const el = bySlot(container, 'action')
 
 		expect(el).toHaveAttribute('type', 'button')
@@ -56,6 +63,7 @@ describe('Polymorphic', () => {
 				Label
 			</Polymorphic>,
 		)
+
 		const el = bySlot(container, 'label')
 
 		expect(el).not.toHaveAttribute('type')

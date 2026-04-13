@@ -1,4 +1,4 @@
-import { type RenderOptions, render } from '@testing-library/react'
+import { type RenderOptions, type RenderResult, render } from '@testing-library/react'
 import type { ReactElement, ReactNode } from 'react'
 import { GlassProvider } from '../components/glass/context'
 import { InputSizeProvider } from '../components/input/context'
@@ -21,7 +21,7 @@ type UIRenderOptions = UIContextOptions & Omit<RenderOptions, 'wrapper'>
  * mode, and `inputSize` to inject a size context — matching how components
  * resolve these values in production.
  */
-export function renderUI(ui: ReactElement, options: UIRenderOptions = {}) {
+export function renderUI(ui: ReactElement, options: UIRenderOptions = {}): RenderResult {
 	const { skeleton, glass, inputSize, ...renderOptions } = options
 
 	function Wrapper({ children }: { children: ReactNode }) {
@@ -30,9 +30,11 @@ export function renderUI(ui: ReactElement, options: UIRenderOptions = {}) {
 		if (skeleton !== undefined) {
 			node = <SkeletonProvider value={skeleton}>{node}</SkeletonProvider>
 		}
+
 		if (glass !== undefined) {
 			node = <GlassProvider value={glass}>{node}</GlassProvider>
 		}
+
 		if (inputSize !== undefined) {
 			node = <InputSizeProvider value={inputSize}>{node}</InputSizeProvider>
 		}

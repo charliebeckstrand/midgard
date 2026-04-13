@@ -23,6 +23,7 @@ describe('TouchTarget', () => {
 		const touchArea = container.querySelector('[aria-hidden="true"]')
 
 		expect(touchArea).toBeInTheDocument()
+
 		expect(touchArea?.tagName).toBe('SPAN')
 	})
 })
