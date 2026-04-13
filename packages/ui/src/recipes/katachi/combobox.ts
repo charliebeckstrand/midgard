@@ -6,7 +6,14 @@ import { take } from '../take'
 import { waku } from '../waku'
 
 export const combobox = {
-	input: [...waku.inputBase, take.control.md, take.combobox.padding, maru.rounded, 'truncate'],
+	input: [
+		...waku.inputBase,
+		'block',
+		take.control.md,
+		take.combobox.padding,
+		maru.rounded,
+		'truncate',
+	],
 	chevron: [take.control.icon, take.combobox.icon, sumi.textMuted],
 	options: take.popup,
 	option: [...sawari.item, ...narabi.item],

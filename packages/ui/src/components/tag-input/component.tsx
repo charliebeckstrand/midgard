@@ -1,17 +1,24 @@
 'use client'
 
-import { forwardRef, type KeyboardEvent, useCallback, useRef } from 'react'
+import { PlusIcon, XIcon } from 'lucide-react'
+import { forwardRef, useCallback, useEffect, useRef, useState } from 'react'
 import { cn } from '../../core'
-import { useControllable } from '../../hooks'
+import { useControllable, useTagKeyboard } from '../../hooks'
 import { FormControl } from '../../primitives'
 import { katachi } from '../../recipes'
+import type { Color } from '../../recipes/nuri/palette'
+import { Button } from '../button'
 import { Chip } from '../chip'
-import { type TagInputVariants, tagInputVariants } from './variants'
+import { Icon } from '../icon'
+import { buttonSize, chipSize } from './utilities'
+import { type TagInputVariants, tagInputContainerVariants, tagInputVariants } from './variants'
 
 const k = katachi.tagInput
 
 export type TagInputProps = Omit<TagInputVariants, 'size'> & {
 	size?: 'sm' | 'md' | 'lg'
+	/** Tag appearance. */
+	tag?: { color?: Color }
 	/** Current tag values (controlled). */
 	value?: string[]
 	/** Initial tag values (uncontrolled). */
@@ -29,10 +36,8 @@ export type TagInputProps = Omit<TagInputVariants, 'size'> & {
 	className?: string
 }
 
-const chipSize = { sm: 'sm', md: 'sm', lg: 'md' } as const
-
 export const TagInput = forwardRef<HTMLInputElement, TagInputProps>(function TagInput(
-	{ size, value, defaultValue, onChange, placeholder, disabled, max, validate, className },
+	{ size, tag, value, defaultValue, onChange, placeholder, disabled, max, validate, className },
 	ref,
 ) {
 	const [tags = [], setTags] = useControllable<string[]>({
@@ -41,19 +46,47 @@ export const TagInput = forwardRef<HTMLInputElement, TagInputProps>(function Tag
 		onChange,
 	})
 
+	const [inputValue, setInputValue] = useState('')
+
+	const containerRef = useRef<HTMLDivElement>(null)
 	const innerRef = useRef<HTMLInputElement>(null)
+
 	const inputRef = (ref as React.RefObject<HTMLInputElement>) ?? innerRef
 
+	useEffect(() => {
+		const el = containerRef.current
+
+		if (!el) return
+
+		const handler = (e: MouseEvent) => {
+			if ((e.target as HTMLElement).closest('button')) return
+
+			inputRef.current?.focus()
+		}
+
+		el.addEventListener('click', handler)
+
+		return () => el.removeEventListener('click', handler)
+	}, [inputRef])
+
 	const resolvedSize = size ?? 'md'
+	const resolvedColor = tag?.color ?? 'zinc'
 
 	const addTag = useCallback(
-		(raw: string) => {
+		(raw: string): boolean => {
 			const tag = raw.trim()
-			if (!tag) return
-			if (tags.includes(tag)) return
-			if (max !== undefined && tags.length >= max) return
-			if (validate && !validate(tag)) return
+
+			if (!tag) return false
+
+			if (tags.includes(tag)) return false
+
+			if (max !== undefined && tags.length >= max) return false
+
+			if (validate && !validate(tag)) return false
+
 			setTags([...tags, tag])
+
+			return true
 		},
 		[tags, setTags, max, validate],
 	)
@@ -65,70 +98,106 @@ export const TagInput = forwardRef<HTMLInputElement, TagInputProps>(function Tag
 		[tags, setTags],
 	)
 
-	const handleKeyDown = useCallback(
-		(e: KeyboardEvent<HTMLInputElement>) => {
-			const input = e.currentTarget
+	const clearInput = useCallback(() => setInputValue(''), [])
 
-			if (e.key === 'Enter' || e.key === ',') {
-				e.preventDefault()
-				addTag(input.value)
-				input.value = ''
-			}
+	const handleKeyDown = useTagKeyboard({
+		inputValue,
+		addTag,
+		removeTag,
+		clearInput,
+		tagCount: tags.length,
+	})
 
-			if (e.key === 'Backspace' && input.value === '' && tags.length > 0) {
-				removeTag(tags.length - 1)
-			}
-		},
-		[addTag, removeTag, tags.length],
-	)
+	const handleBlur = useCallback(() => {
+		if (addTag(inputValue)) {
+			setInputValue('')
+		}
+	}, [addTag, inputValue])
 
-	const handleBlur = useCallback(
-		(e: React.FocusEvent<HTMLInputElement>) => {
-			addTag(e.currentTarget.value)
-			e.currentTarget.value = ''
-		},
-		[addTag],
-	)
+	const handleSubmit = useCallback(() => {
+		if (addTag(inputValue)) {
+			setInputValue('')
+
+			inputRef.current?.focus()
+		}
+	}, [addTag, inputValue, inputRef])
 
 	return (
 		<FormControl>
-			{/* biome-ignore lint/a11y/noStaticElementInteractions: click-to-focus is a convenience, keyboard users focus the input directly */}
-			{/* biome-ignore lint/a11y/useKeyWithClickEvents: the inner input handles all keyboard interaction */}
 			<div
+				ref={containerRef}
 				data-slot="tag-input"
-				className={cn(tagInputVariants({ size }), className)}
-				onClick={() => inputRef.current?.focus()}
+				data-disabled={disabled || undefined}
+				className={cn(tagInputContainerVariants({ size }), className)}
 			>
-				{tags.map((tag, i) => (
-					<Chip key={tag} size={chipSize[resolvedSize]} variant="soft">
-						{tag}
-						{!disabled && (
-							<button
-								type="button"
-								aria-label={`Remove ${tag}`}
-								className="ml-1 -mr-0.5 inline-flex items-center justify-center rounded-full opacity-60 hover:opacity-100 focus:outline-none"
-								onClick={(e) => {
-									e.stopPropagation()
-									removeTag(i)
-								}}
-							>
-								<svg viewBox="0 0 16 16" fill="currentColor" className="size-3" aria-hidden="true">
-									<path d="M5.28 4.22a.75.75 0 0 0-1.06 1.06L6.94 8l-2.72 2.72a.75.75 0 1 0 1.06 1.06L8 9.06l2.72 2.72a.75.75 0 1 0 1.06-1.06L9.06 8l2.72-2.72a.75.75 0 0 0-1.06-1.06L8 6.94L5.28 4.22Z" />
-								</svg>
-							</button>
-						)}
-					</Chip>
-				))}
+				<div className={cn(tagInputVariants({ size }))}>
+					{tags.map((t, i) => (
+						<Chip
+							key={t}
+							size={chipSize[resolvedSize]}
+							variant="solid"
+							color={resolvedColor}
+							className={cn(
+								'max-w-full',
+								resolvedSize === 'sm' && 'text-[0.625rem]/3 px-1.5 py-px',
+							)}
+						>
+							<span className="truncate">{t}</span>
+							{!disabled && (
+								<button
+									type="button"
+									aria-label={`Remove ${t}`}
+									className="relative ml-1 -mr-0.5 inline-flex shrink-0 items-center justify-center rounded-full opacity-60 hover:opacity-100 focus:outline-none before:absolute before:-inset-2 before:content-['']"
+									onMouseDown={(e) => e.preventDefault()}
+									onClick={(e) => {
+										e.stopPropagation()
 
-				<input
-					ref={inputRef}
-					type="text"
-					className={cn(k.input)}
-					placeholder={tags.length === 0 ? placeholder : undefined}
-					disabled={disabled}
-					onKeyDown={handleKeyDown}
-					onBlur={handleBlur}
-				/>
+										removeTag(i)
+									}}
+								>
+									<Icon icon={<XIcon />} size="xs" />
+								</button>
+							)}
+						</Chip>
+					))}
+
+					<input
+						ref={inputRef}
+						type="text"
+						value={inputValue}
+						className={cn(k.input)}
+						placeholder={tags.length === 0 ? placeholder : undefined}
+						disabled={disabled}
+						onChange={(e) => setInputValue(e.target.value)}
+						onKeyDown={handleKeyDown}
+						onBlur={handleBlur}
+					/>
+				</div>
+
+				{/* {inputValue.trim() && !disabled && (
+					<Button
+						type="button"
+						color="blue"
+						size="xs"
+						disabled={max !== undefined && tags.length >= max}
+						aria-label="Add tag"
+						onMouseDown={(e) => e.preventDefault()}
+						onClick={handleSubmit}
+					>
+						<PlusIcon className="size-4" />
+					</Button>
+				)} */}
+				<Button
+					type="button"
+					color="blue"
+					size={buttonSize[resolvedSize]}
+					disabled={disabled || (max !== undefined && tags.length >= max) || !inputValue.trim()}
+					aria-label="Add tag"
+					onMouseDown={(e) => e.preventDefault()}
+					onClick={handleSubmit}
+				>
+					<PlusIcon className="size-4" />
+				</Button>
 			</div>
 		</FormControl>
 	)

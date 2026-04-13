@@ -6,7 +6,7 @@ import { take } from '../take'
 import { waku } from '../waku'
 
 export const input = {
-	base: [...waku.inputBase, maru.rounded],
+	base: [...waku.inputBase, 'block', maru.rounded],
 	variant: {
 		default: [],
 		outline: kage.borderEmphasis,

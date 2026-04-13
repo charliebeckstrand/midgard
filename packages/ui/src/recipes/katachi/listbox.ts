@@ -8,6 +8,7 @@ import { waku } from '../waku'
 export const listbox = {
 	button: [
 		...waku.inputBase,
+		'block',
 		take.control.md,
 		take.listbox.padding,
 		maru.rounded,

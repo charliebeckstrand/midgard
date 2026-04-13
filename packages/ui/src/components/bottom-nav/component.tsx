@@ -2,7 +2,14 @@
 
 import type { ReactElement } from 'react'
 import { cn } from '../../core'
-import { Polymorphic, type PolymorphicProps, TouchTarget } from '../../primitives'
+import {
+	ActiveIndicator,
+	ActiveIndicatorScope,
+	Polymorphic,
+	type PolymorphicProps,
+	TouchTarget,
+	useActiveIndicator,
+} from '../../primitives'
 import { katachi } from '../../recipes'
 import { Icon } from '../icon'
 import { Nav, NavList, type NavProps } from '../nav'
@@ -17,9 +24,11 @@ export type BottomNavProps = NavProps
 export function BottomNav({ className, children, ...props }: BottomNavProps) {
 	return (
 		<Nav {...props}>
-			<NavList orientation="horizontal" className={cn(k.base, className)}>
-				{children}
-			</NavList>
+			<ActiveIndicatorScope>
+				<NavList orientation="horizontal" className={cn(k.base, className)}>
+					{children}
+				</NavList>
+			</ActiveIndicatorScope>
 		</Nav>
 	)
 }
@@ -44,6 +53,7 @@ export function BottomNavItem({
 	...props
 }: BottomNavItemProps) {
 	const ctx = useNavContext()
+	const indicator = useActiveIndicator()
 
 	const isCurrent = current ?? (value !== undefined && ctx?.value === value)
 
@@ -63,13 +73,14 @@ export function BottomNavItem({
 			data-current={isCurrent ? '' : undefined}
 			className={cn(k.item, isCurrent && k.current, className)}
 			onClick={handleClick}
+			{...indicator.tapHandlers}
 			{...props}
 		>
 			<TouchTarget>
 				<Icon icon={icon} />
 				<span>{children}</span>
 			</TouchTarget>
-			{isCurrent && <span className={cn(k.indicator)} aria-hidden />}
+			{isCurrent && <ActiveIndicator ref={indicator.ref} className={cn(k.indicator)} />}
 		</Polymorphic>
 	)
 }

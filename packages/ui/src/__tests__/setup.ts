@@ -58,7 +58,11 @@ vi.mock('motion/react', () => {
 		return children
 	}
 
-	return { motion, AnimatePresence, LayoutGroup }
+	function useAnimate() {
+		return [{ current: null }, vi.fn()]
+	}
+
+	return { motion, AnimatePresence, LayoutGroup, useAnimate }
 })
 
 // ── Browser API stubs ───────────────────────────────

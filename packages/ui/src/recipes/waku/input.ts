@@ -5,7 +5,7 @@ import { take } from '../take'
 
 // ── Motoi (基) ──────────────────────────────────────────
 const motoi = [
-	'relative block w-full',
+	'relative w-full',
 	'bg-transparent border',
 	'focus:outline-hidden',
 	'read-only:bg-transparent',
@@ -31,4 +31,4 @@ const yoru = [
 
 export const inputBase = [sumi.text, kage.border, motoi, hiru, yoru]
 
-export const input = [...inputBase, take.control.md, maru.rounded]
+export const input = [...inputBase, 'block', take.control.md, maru.rounded]

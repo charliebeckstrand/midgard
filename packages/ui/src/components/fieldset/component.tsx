@@ -37,11 +37,12 @@ export function Field({ className, disabled, ...props }: FieldProps) {
 
 export type LabelProps = {
 	className?: string
+	htmlFor?: string
 } & Omit<React.ComponentPropsWithoutRef<'label'>, 'className'>
 
-export function Label({ className, ...props }: LabelProps) {
-	// biome-ignore lint/a11y/noLabelWithoutControl: htmlFor is passed via ...props by the consumer
-	return <label data-slot="label" className={cn(k.label, className)} {...props} />
+export function Label({ className, htmlFor, ...props }: LabelProps) {
+	// biome-ignore lint/a11y/noLabelWithoutControl: htmlFor is optional — labels may be associated via FormControl context
+	return <label data-slot="label" htmlFor={htmlFor} className={cn(k.label, className)} {...props} />
 }
 
 export type DescriptionProps = {

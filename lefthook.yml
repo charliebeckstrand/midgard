@@ -2,3 +2,5 @@ pre-commit:
   jobs:
     - name: biome check
       run: pnpm biome check
+    - name: test
+      run: pnpm --filter ui test

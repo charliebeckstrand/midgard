@@ -1,15 +1,28 @@
 import { maru } from '../maru'
 import { sumi } from '../sumi'
-import { take } from '../take'
+import { text } from '../take/density'
 import { waku } from '../waku'
 
 export const tagInput = {
-	base: ['flex flex-wrap items-center gap-1.5 cursor-text', ...waku.inputBase, maru.rounded],
-	size: {
-		sm: [take.control.sm, 'min-h-7'],
-		md: [take.control.md, 'min-h-9'],
-		lg: [take.control.lg, 'min-h-11'],
+	container: [
+		'flex items-center gap-4',
+		'cursor-text',
+		...waku.inputBase,
+		maru.rounded,
+		'data-disabled:cursor-not-allowed data-disabled:**:!cursor-not-allowed data-disabled:hover:border-zinc-950/20',
+		'dark:data-disabled:hover:border-white/15',
+	],
+	containerSize: {
+		sm: ['px-[calc(--spacing(2.25)-1px)] py-[calc(--spacing(2.5)-1px)]', 'min-h-9', text.sm],
+		md: ['px-[calc(--spacing(2.75)-1px)] py-[calc(--spacing(3)-1px)]', 'min-h-11', text.md],
+		lg: ['px-[calc(--spacing(3.25)-1px)] py-[calc(--spacing(3.5)-1px)]', 'min-h-13', text.lg],
 	},
-	input: ['flex-1 min-w-20 bg-transparent border-none p-0 focus:outline-none', sumi.text],
+	base: ['flex flex-wrap items-center content-center gap-1 flex-1'],
+	size: {
+		sm: [text.sm],
+		md: [text.md],
+		lg: [text.lg],
+	},
+	input: ['flex-1 min-w-20', 'bg-transparent border-none p-0', 'focus:outline-none', sumi.text],
 	defaults: { size: 'md' as const },
 }

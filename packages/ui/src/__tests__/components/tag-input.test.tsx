@@ -178,6 +178,8 @@ describe('TagInput', () => {
 
 		expect(onChange).not.toHaveBeenCalled()
 
+		await user.clear(input)
+
 		await user.type(input, 'ok{Enter}')
 
 		expect(onChange).toHaveBeenCalledWith(['ok'])
