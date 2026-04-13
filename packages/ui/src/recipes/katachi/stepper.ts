@@ -18,15 +18,16 @@ export const stepper = {
 	},
 	content: 'flex flex-1 flex-col gap-1',
 	indicator: {
-		base: ['relative size-3.5 shrink-0', maru.roundedFull, 'bg-zinc-300 dark:bg-zinc-600'],
+		base: ['relative size-3.5 shrink-0', maru.roundedFull, 'bg-zinc-400 dark:bg-zinc-600'],
 		interactive: [
-			'group-enabled:group-hover:bg-blue-200 dark:group-enabled:group-hover:bg-zinc-500',
+			'group-enabled:group-hover:bg-zinc-500 dark:group-enabled:group-hover:bg-zinc-500',
 			'group-focus-visible:outline-2 group-focus-visible:outline-blue-600',
 		],
 	},
 	title: {
-		base: ['text-sm font-medium leading-none', sumi.textMuted],
+		base: ['text-sm font-medium leading-none', 'text-zinc-400 dark:text-zinc-600'],
 		interactive: [
+			'group-enabled:group-hover:group-not-data-[state=current]:text-zinc-500 dark:group-enabled:group-hover:group-not-data-[state=current]:text-zinc-500',
 			'group-data-[state=current]:text-zinc-950 dark:group-data-[state=current]:text-white',
 		],
 		orientation: {
