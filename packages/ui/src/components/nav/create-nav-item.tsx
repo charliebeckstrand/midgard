@@ -28,18 +28,21 @@ export type NavItemProps = {
  * function differ.
  */
 export function createNavItem(config: { slotPrefix: string; variants: () => string }) {
+	const innerSlot = `${config.slotPrefix}-item-inner`
+
 	function NavItem({
 		icon,
 		current,
 		className,
 		children,
-		onClick,
 		href,
 		preventClose,
 		spring = false,
+		onClick,
 		...props
 	}: NavItemProps) {
 		const indicator = useActiveIndicator()
+
 		const offcanvas = useOffcanvas()
 
 		function handleClick(e: React.MouseEvent<HTMLElement>) {
@@ -50,13 +53,6 @@ export function createNavItem(config: { slotPrefix: string; variants: () => stri
 			}
 		}
 
-		const content = (
-			<TouchTarget>
-				{icon && <Icon icon={icon} />}
-				{children}
-			</TouchTarget>
-		)
-
 		return (
 			<span
 				data-slot={`${config.slotPrefix}-item`}
@@ -65,22 +61,19 @@ export function createNavItem(config: { slotPrefix: string; variants: () => stri
 			>
 				<Polymorphic
 					as="button"
-					dataSlot={`${config.slotPrefix}-item-inner`}
+					dataSlot={innerSlot}
 					href={href}
 					data-current={current ? '' : undefined}
-					className={cn(config.variants(), className)}
+					className={cn(config.variants(), 'relative z-10', className)}
 					onClick={handleClick}
 					{...props}
 				>
-					{content}
+					<TouchTarget>
+						{icon && <Icon icon={icon} />}
+						{children}
+					</TouchTarget>
 				</Polymorphic>
-				{current && (
-					<ActiveIndicator ref={indicator.ref}>
-						<span className={cn(config.variants(), className)} aria-hidden>
-							{content}
-						</span>
-					</ActiveIndicator>
-				)}
+				{current && <ActiveIndicator ref={indicator.ref} />}
 			</span>
 		)
 	}

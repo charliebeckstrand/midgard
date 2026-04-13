@@ -45,7 +45,7 @@ export function SidebarContent({ route }: { route: string }) {
 
 					const item = sidebar?.querySelector<HTMLElement>(`[href="#${id}"]`)
 
-					item?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+					item?.scrollIntoView({ block: 'center', behavior: 'smooth' })
 
 					offcanvas?.close()
 				}}
