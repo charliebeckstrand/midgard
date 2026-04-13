@@ -1,0 +1,69 @@
+'use client'
+
+import { Home, MessageCircle, Search, Settings, User } from 'lucide-react'
+import { useState } from 'react'
+import { BottomNav, BottomNavItem } from '../../components/bottom-nav'
+import { code } from '../code'
+import { Example } from '../components/example'
+
+export const meta = { category: 'Navigation' }
+
+const items = [
+	{ value: 'home', label: 'Home', icon: <Home /> },
+	{ value: 'search', label: 'Search', icon: <Search /> },
+	{ value: 'messages', label: 'Messages', icon: <MessageCircle /> },
+	{ value: 'profile', label: 'Profile', icon: <User /> },
+	{ value: 'settings', label: 'Settings', icon: <Settings /> },
+]
+
+function BottomNavExample() {
+	const [active, setActive] = useState('home')
+
+	return (
+		<div className="relative h-20 overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-700">
+			<BottomNav value={active} onChange={setActive} className="absolute rounded-none">
+				{items.map(({ value, label, icon }) => (
+					<BottomNavItem key={value} value={value} icon={icon}>
+						{label}
+					</BottomNavItem>
+				))}
+			</BottomNav>
+		</div>
+	)
+}
+
+export default function BottomNavDemo() {
+	return (
+		<div className="space-y-8">
+			<Example
+				title="Default"
+				code={code`
+					import { BottomNav, BottomNavItem } from 'ui/bottom-nav'
+					import { Home, Search, MessageCircle, User, Settings } from 'lucide-react'
+
+					<BottomNav value={active} onChange={setActive}>
+					${items.map(({ value, label }) => `  <BottomNavItem value="${value}" icon={<${label} />}>${label}</BottomNavItem>`)}
+					</BottomNav>
+				`}
+			>
+				<BottomNavExample />
+			</Example>
+
+			<Example title="With links">
+				<div className="relative h-20 overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-700">
+					<BottomNav className="absolute rounded-none">
+						<BottomNavItem icon={<Home />} href="/" current>
+							Home
+						</BottomNavItem>
+						<BottomNavItem icon={<Search />} href="/search">
+							Search
+						</BottomNavItem>
+						<BottomNavItem icon={<User />} href="/profile">
+							Profile
+						</BottomNavItem>
+					</BottomNav>
+				</div>
+			</Example>
+		</div>
+	)
+}

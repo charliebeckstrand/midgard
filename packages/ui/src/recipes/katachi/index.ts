@@ -17,6 +17,7 @@ import { activeIndicator } from './active-indicator'
 import { alert } from './alert'
 import { avatar } from './avatar'
 import { badge } from './badge'
+import { bottomNav } from './bottom-nav'
 import { breadcrumb } from './breadcrumb'
 import { button } from './button'
 import { calendar } from './calendar'
@@ -63,6 +64,7 @@ import { stepper } from './stepper'
 import { switchRecipe } from './switch'
 import { table } from './table'
 import { tabs } from './tabs'
+import { tagInput } from './tag-input'
 import { text } from './text'
 import { textarea } from './textarea'
 import { timeline } from './timeline'
@@ -76,6 +78,7 @@ export const katachi = {
 	alert,
 	avatar,
 	badge,
+	bottomNav,
 	breadcrumb,
 	button,
 	calendar,
@@ -120,6 +123,7 @@ export const katachi = {
 	status,
 	stepper,
 	switch: switchRecipe,
+	tagInput,
 	table,
 	tabs,
 	text,
