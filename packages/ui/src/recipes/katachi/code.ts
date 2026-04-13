@@ -13,6 +13,7 @@ export const code = {
 		inline: 'w-fit max-w-full',
 		content: '[&_pre]:overflow-x-auto [&_pre]:p-4 [&_pre]:pr-14 [&_pre]:text-sm/6',
 		fallback: ['p-4 pr-14', 'text-sm/6 text-zinc-400', 'overflow-x-auto'],
-		copyButton: ['absolute top-0 right-0', 'p-3', 'z-10', blockBg],
+		copyButton: ['text-zinc-400', 'hover:not-disabled:text-white'],
+		copyButtonWrapper: ['absolute top-0 right-0', 'p-4', 'z-10', blockBg],
 	},
 }

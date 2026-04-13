@@ -71,8 +71,8 @@ export function CodeBlock({
 
 	return (
 		<div data-slot="code-block" className={cn(codeBlockVariants({ inline }), className)}>
-			<div className={cn(k.copyButton)}>
-				<CopyButton value={code} size="sm" />
+			<div className={cn(k.copyButtonWrapper)}>
+				<CopyButton value={code} className={cn(k.copyButton)} />
 			</div>
 			{html ? (
 				<div
