@@ -3,7 +3,7 @@
 import { AtSignIcon, HomeIcon, InfoIcon } from 'lucide-react'
 import { useState } from 'react'
 import { Area } from '../../components/area'
-import { NavContent, NavContents, NavItem, NavList, NavProvider } from '../../components/nav'
+import { Nav, NavContent, NavContents, NavItem, NavList, NavProvider } from '../../components/nav'
 import { Navbar } from '../../components/navbar'
 import { Spacer } from '../../components/spacer'
 import { code } from '../code'
@@ -14,9 +14,7 @@ export const meta = { category: 'Navigation' }
 function NavItems() {
 	return (
 		<NavList>
-			<NavItem value="home" current>
-				Home
-			</NavItem>
+			<NavItem value="home">Home</NavItem>
 			<NavItem value="about">About</NavItem>
 			<NavItem value="contact">Contact</NavItem>
 		</NavList>
@@ -30,7 +28,9 @@ export default function NavbarDemo() {
 		<div className="space-y-8">
 			<Example title="Default">
 				<Navbar variant="outline">
-					<NavItems />
+					<Nav value="home">
+						<NavItems />
+					</Nav>
 				</Navbar>
 			</Example>
 
@@ -48,10 +48,15 @@ export default function NavbarDemo() {
 				`}
 			>
 				<Navbar variant="outline">
-					<NavItems />
+					<Nav value="home">
+						<NavItems />
+					</Nav>
 				</Navbar>
+
 				<Navbar variant="plain">
-					<NavItems />
+					<Nav value="home">
+						<NavItems />
+					</Nav>
 				</Navbar>
 			</Example>
 
@@ -103,6 +108,46 @@ export default function NavbarDemo() {
 						</NavContents>
 					</Area>
 				</NavProvider>
+			</Example>
+
+			<Example
+				title="With icons"
+				code={code`
+				import { Navbar } from 'ui/navbar'
+				import { NavList, NavItem } from 'ui/nav'
+				import { HomeIcon, InfoIcon, AtSignIcon } from 'lucide-react'
+
+				<Navbar>
+					<NavList>
+						<NavItem value="home">
+							<HomeIcon className="me-2" />
+							Home
+						</NavItem>
+						<NavItem value="about">
+							<InfoIcon className="me-2" />
+							About
+						</NavItem>
+						<NavItem value="contact">
+							<AtSignIcon className="me-2" />
+							Contact
+						</NavItem>
+					</NavList>
+				</Navbar>
+			`}
+			>
+				<Navbar>
+					<NavList>
+						<NavItem value="home" icon={<HomeIcon />}>
+							Home
+						</NavItem>
+						<NavItem value="about" icon={<InfoIcon />}>
+							About
+						</NavItem>
+						<NavItem value="contact" icon={<AtSignIcon />}>
+							Contact
+						</NavItem>
+					</NavList>
+				</Navbar>
 			</Example>
 		</div>
 	)
