@@ -5,7 +5,6 @@ const k = katachi.fieldset
 
 export type FieldsetProps = {
 	className?: string
-	disabled?: boolean
 } & Omit<React.ComponentPropsWithoutRef<'fieldset'>, 'className'>
 
 export function Fieldset({ className, ...props }: FieldsetProps) {

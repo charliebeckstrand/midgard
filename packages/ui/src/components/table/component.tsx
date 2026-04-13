@@ -45,16 +45,18 @@ export function Table({ bleed, dense, grid, striped, className, children }: Tabl
 
 export type TableHeadProps = {
 	className?: string
-	children?: React.ReactNode
-}
+} & Omit<React.ComponentPropsWithoutRef<'thead'>, 'className'>
 
-export function TableHead({ className, children }: TableHeadProps) {
-	return <thead className={cn(k.head, className)}>{children}</thead>
+export function TableHead({ className, children, ...props }: TableHeadProps) {
+	return (
+		<thead className={cn(k.head, className)} {...props}>
+			{children}
+		</thead>
+	)
 }
 
 export type TableHeaderProps = {
 	className?: string
-	children?: React.ReactNode
 } & Omit<React.ComponentPropsWithoutRef<'th'>, 'className'>
 
 export function TableHeader({ className, children, ...props }: TableHeaderProps) {
@@ -69,18 +71,20 @@ export function TableHeader({ className, children, ...props }: TableHeaderProps)
 
 export type TableBodyProps = {
 	className?: string
-	children?: React.ReactNode
-}
+} & Omit<React.ComponentPropsWithoutRef<'tbody'>, 'className'>
 
-export function TableBody({ className, children }: TableBodyProps) {
+export function TableBody({ className, children, ...props }: TableBodyProps) {
 	const { striped } = useTable()
 
-	return <tbody className={cn(striped && k.striped, className)}>{children}</tbody>
+	return (
+		<tbody className={cn(striped && k.striped, className)} {...props}>
+			{children}
+		</tbody>
+	)
 }
 
 export type TableRowProps = {
 	className?: string
-	children?: React.ReactNode
 	href?: string
 } & Omit<React.ComponentPropsWithoutRef<'tr'>, 'className'>
 
@@ -94,7 +98,6 @@ export function TableRow({ className, children, ...props }: TableRowProps) {
 
 export type TableCellProps = {
 	className?: string
-	children?: React.ReactNode
 } & Omit<React.ComponentPropsWithoutRef<'td'>, 'className'>
 
 export function TableCell({ className, children, ...props }: TableCellProps) {

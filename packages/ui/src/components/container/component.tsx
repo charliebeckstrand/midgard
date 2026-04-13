@@ -8,8 +8,7 @@ export type ContainerProps = {
 	/** Responsive horizontal padding. Defaults to `md`. Pass `none` to disable. */
 	padding?: ContainerPadding
 	className?: string
-	children?: React.ReactNode
-} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className' | 'children'>
+} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
 
 export function Container({
 	size = 'xl',
