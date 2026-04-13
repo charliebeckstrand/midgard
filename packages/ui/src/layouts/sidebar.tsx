@@ -74,7 +74,7 @@ export function SidebarLayout({
 			</Drawer>
 
 			{/* Navbar on mobile */}
-			<header className="flex items-center gap-4 p-6 lg:hidden [&_nav]:p-0">
+			<header className="flex items-center gap-4 p-6 lg:hidden [&_nav]:p-0 [&_nav]:overflow-visible">
 				<Button variant="plain" onClick={() => setOpen(true)} aria-label="Open navigation">
 					{menuIcon ?? <Icon icon={<Menu />} />}
 				</Button>
