@@ -18,6 +18,7 @@
 - Extend before inventing. Prefer growing an existing module over creating a new one unless there is a clear, distinct boundary.
 - Dependencies flow inward. Shared packages never depend on application code.
 - Abstractions are extracted, not predicted. Duplication across multiple call sites earns a shared utility; a single use case does not.
+- When an existing component almost fits but is missing a capability (e.g. ref forwarding, a variant, a prop), ask the user whether extending the component makes sense long-term — not just for the immediate use case. Never update a shared component without explicit approval; propose the change and let the user decide.
 
 ## Git
 
