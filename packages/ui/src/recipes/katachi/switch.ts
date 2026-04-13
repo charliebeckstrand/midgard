@@ -7,7 +7,7 @@ import { waku } from '../waku'
 
 export const switchRecipe = {
 	wrapper: [
-		'relative inline-flex shrink-0 items-center',
+		'relative inline-flex shrink-0 items-center cursor-pointer',
 		'has-checked:*:data-[slot=switch-thumb]:bg-(--switch)',
 		'has-checked:*:data-[slot=switch-thumb]:shadow-(--switch-shadow)',
 		'has-checked:*:data-[slot=switch-thumb]:ring-(--switch-ring)',
