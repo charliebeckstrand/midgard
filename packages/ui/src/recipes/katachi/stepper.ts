@@ -9,6 +9,7 @@ export const stepper = {
 		horizontal: 'flex-row items-start gap-4 px-4',
 		vertical: 'flex-col items-start gap-4 pr-4 py-4',
 	},
+
 	step: {
 		base: ['group relative text-left outline-none', yasumi.disabled],
 		orientation: {
@@ -16,26 +17,31 @@ export const stepper = {
 			vertical: ['flex w-full items-center gap-4 py-1 first:pt-0', kage.borderSubtleColor],
 		},
 	},
+
 	content: 'flex flex-1 flex-col gap-1',
+
 	indicator: {
 		base: ['relative size-3.5 shrink-0', maru.roundedFull, 'bg-zinc-400 dark:bg-zinc-600'],
 		interactive: [
-			'group-enabled:group-hover:bg-zinc-500 dark:group-enabled:group-hover:bg-zinc-500',
+			'group-enabled:group-hover:bg-zinc-500',
 			'group-focus-visible:outline-2 group-focus-visible:outline-blue-600',
 		],
 	},
+
 	title: {
 		base: ['text-sm font-medium leading-none', 'text-zinc-400 dark:text-zinc-600'],
 		interactive: [
-			'group-enabled:group-hover:group-not-data-[state=current]:text-zinc-500 dark:group-enabled:group-hover:group-not-data-[state=current]:text-zinc-500',
 			'group-data-[state=current]:text-zinc-950 dark:group-data-[state=current]:text-white',
+			'group-enabled:group-hover:group-not-data-[state=current]:text-zinc-500',
 		],
 		orientation: {
 			horizontal: 'mt-2',
 			vertical: '',
 		},
 	},
+
 	description: ['text-xs/4', sumi.textMuted],
+
 	separator: {
 		base: 'shrink-0',
 		orientation: {
@@ -43,6 +49,7 @@ export const stepper = {
 			vertical: 'hidden',
 		},
 	},
-	activeIndicator: ['z-30', 'bg-blue-500 dark:bg-blue-500'],
+
+	activeIndicator: ['z-30', 'bg-blue-500'],
 	defaults: { orientation: 'horizontal' as const },
 }
