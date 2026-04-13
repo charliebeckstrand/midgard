@@ -4,9 +4,10 @@ import { Button } from '../../components/button'
 import { Field, Label } from '../../components/fieldset'
 import { Icon } from '../../components/icon'
 import { Sizer } from '../../components/sizer'
+import { Spacer } from '../../components/spacer'
 import { Textarea } from '../../components/textarea'
+import { code } from '../code'
 import { Example } from '../components/example'
-
 export const meta = { category: 'Forms' }
 
 const variants = ['default', 'outline', 'glass'] as const
@@ -62,7 +63,39 @@ export default function TextareaDemo() {
 					</Field>
 				</Sizer>
 			</Example>
-			<Example title="With actions">
+			<Example
+				title="With actions"
+				code={code`
+					import { ArrowUp, CircleDashed, Plus } from 'lucide-react'
+					import { Button } from 'ui'
+					import { Icon } from 'ui'
+					import { Spacer } from 'ui'
+					import { Textarea } from 'ui'
+
+					<Textarea
+						value={value}
+						onChange={(e) => setValue(e.target.value)}
+						autoResize
+						rows={3}
+						placeholder="Ask anything"
+						actions={
+							<>
+								<Button variant="plain" size="sm">
+									<Icon icon={<CircleDashed />} />
+									<span className="ml-1">Data Analyst</span>
+								</Button>
+								<Spacer />
+								<Button variant="plain" size="sm">
+									<Icon icon={<Plus />} />
+								</Button>
+								<Button size="sm" color="blue" disabled={!value.trim()}>
+									<Icon icon={<ArrowUp />} />
+								</Button>
+							</>
+						}
+					/>
+				`}
+			>
 				<Sizer>
 					<Field>
 						<Label htmlFor="textarea-actions">Prompt</Label>
@@ -79,7 +112,8 @@ export default function TextareaDemo() {
 										<Icon icon={<CircleDashed />} />
 										<span className="ml-1">Data Analyst</span>
 									</Button>
-									<Button variant="plain" size="sm" className="ml-auto">
+									<Spacer />
+									<Button variant="plain" size="sm">
 										<Icon icon={<Plus />} />
 									</Button>
 									<Button size="sm" color="blue" disabled={!withActionsValue.trim()}>

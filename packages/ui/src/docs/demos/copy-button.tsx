@@ -23,9 +23,6 @@ export default function CopyButtonDemo() {
 			<Example title="Custom icon">
 				<CopyButton value="https://example.com" icon={<CopyIcon />} />
 			</Example>
-			{/* <Example title="Custom timeout (5s)">
-				<CopyButton value="Copied with a longer timeout!" timeout={5000} />
-			</Example> */}
 		</div>
 	)
 }
