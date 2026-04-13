@@ -1,6 +1,8 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
+
+type SetValue<T> = T | undefined | ((prev: T | undefined) => T | undefined)
 
 /**
  * Manages controlled/uncontrolled value state.
@@ -11,7 +13,7 @@ export function useControllable<T>(props: {
 	value?: T | null
 	defaultValue?: T
 	onChange?: (value: T | undefined) => void
-}): [T | undefined, (value: T | undefined) => void] {
+}): [T | undefined, (value: SetValue<T>) => void] {
 	const { value, defaultValue, onChange } = props
 
 	const [internalValue, setInternalValue] = useState<T | undefined>(defaultValue)
@@ -20,13 +22,22 @@ export function useControllable<T>(props: {
 
 	const currentValue = isControlled ? (value ?? undefined) : internalValue
 
-	const setValue = useCallback(
-		(newValue: T | undefined) => {
-			if (!isControlled) setInternalValue(newValue)
+	const valueRef = useRef(currentValue)
 
-			onChange?.(newValue)
+	valueRef.current = currentValue
+
+	const setValue = useCallback(
+		(next: SetValue<T>) => {
+			const resolved =
+				typeof next === 'function'
+					? (next as (prev: T | undefined) => T | undefined)(valueRef.current)
+					: next
+
+			setInternalValue(resolved)
+
+			onChange?.(resolved)
 		},
-		[isControlled, onChange],
+		[onChange],
 	)
 
 	return [currentValue, setValue]

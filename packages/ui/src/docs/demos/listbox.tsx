@@ -23,6 +23,7 @@ function SingleListbox() {
 			<Field>
 				<Label>Status</Label>
 				<Listbox<string>
+					nullable
 					value={selected}
 					onChange={setSelected}
 					displayValue={(v: string) => statuses.find((s) => s.value === v)?.label ?? v}

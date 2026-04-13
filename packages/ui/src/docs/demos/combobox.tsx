@@ -25,6 +25,7 @@ function SingleCombobox() {
 			<Field>
 				<Label>Assignee</Label>
 				<Combobox
+					nullable
 					value={selected}
 					onChange={setSelected}
 					displayValue={(v: string) => v}

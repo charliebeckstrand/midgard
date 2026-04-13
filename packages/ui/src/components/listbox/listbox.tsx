@@ -19,6 +19,7 @@ import type React from 'react'
 import { useCallback, useRef, useState } from 'react'
 import { cn, createContext } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
+import { useSelect } from '../../hooks/use-select'
 import { FormControl, PopoverPanel } from '../../primitives'
 import { katachi, sumi } from '../../recipes'
 import { Icon } from '../icon'
@@ -40,6 +41,8 @@ type ListboxBaseProps = {
 	icon?: React.ReactNode
 	className?: string
 	inputId?: string
+	/** When true, clicking the selected option again clears the selection. */
+	nullable?: boolean
 	children: React.ReactNode
 }
 
@@ -67,6 +70,7 @@ export function Listbox<T>({
 	displayValue,
 	onChange,
 	multiple = false,
+	nullable = false,
 	placeholder = 'Select',
 	placement = 'bottom-start',
 	icon,
@@ -92,10 +96,6 @@ export function Listbox<T>({
 	const [open, setOpen] = useState(false)
 
 	const triggerRef = useRef<HTMLButtonElement>(null)
-
-	const pendingValue = useRef<T | T[] | undefined>(undefined)
-
-	const hasPendingValue = useRef(false)
 
 	const { refs, floatingStyles, context } = useFloating({
 		placement,
@@ -128,34 +128,16 @@ export function Listbox<T>({
 		triggerRef.current?.focus()
 	}, [])
 
+	const toggle = useSelect({ multiple, nullable, setValue })
+
 	const select = useCallback(
 		(newValue: T) => {
-			if (multiple) {
-				const arr = (Array.isArray(value) ? value : []) as T[]
+			toggle(newValue)
 
-				const next = arr.includes(newValue) ? arr.filter((v) => v !== newValue) : [...arr, newValue]
-
-				setValue(next)
-			} else {
-				pendingValue.current = value === newValue ? undefined : newValue
-
-				hasPendingValue.current = true
-
-				close()
-			}
+			if (!multiple) close()
 		},
-		[multiple, value, setValue, close],
+		[multiple, toggle, close],
 	)
-
-	const onExitComplete = useCallback(() => {
-		if (hasPendingValue.current) {
-			setValue(pendingValue.current)
-
-			pendingValue.current = undefined
-
-			hasPendingValue.current = false
-		}
-	}, [setValue])
 
 	const label = (() => {
 		if (multiple) {
@@ -206,7 +188,7 @@ export function Listbox<T>({
 			</div>
 
 			<FloatingPortal>
-				<AnimatePresence onExitComplete={onExitComplete}>
+				<AnimatePresence>
 					{open && (
 						<div
 							ref={refs.setFloating}

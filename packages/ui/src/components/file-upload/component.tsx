@@ -126,7 +126,7 @@ export function FileUpload(props: FileUploadProps) {
 	const { ratio } = props
 
 	return (
-		<AspectRatio ratio={ratio ?? '16/9'}>
+		<AspectRatio ratio={ratio ?? '16/9'} className="overflow-visible">
 			<button
 				type="button"
 				data-slot="file-upload"

@@ -20,6 +20,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { cn, createContext } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { useRovingFocus } from '../../hooks/use-keyboard'
+import { useSelect } from '../../hooks/use-select'
 import { FormControl, PopoverPanel } from '../../primitives'
 import { katachi } from '../../recipes'
 import { Icon } from '../icon'
@@ -44,6 +45,8 @@ type ComboboxBaseProps<T> = {
 	className?: string
 	/** When false, onChange still fires but the value is never stored or shown as selected. */
 	selectable?: boolean
+	/** When true, clicking the selected option again clears the selection. */
+	nullable?: boolean
 	/** Whether the menu closes after an option is selected. Defaults to true for single, false for multiple. */
 	closeOnSelect?: boolean
 	children: React.ReactNode | ((query: string) => React.ReactNode)
@@ -53,7 +56,7 @@ type ComboboxSingleProps<T> = {
 	multiple?: false
 	value?: T
 	defaultValue?: T
-	onChange?: (value: T) => void
+	onChange?: (value: T | undefined) => void
 }
 
 type ComboboxMultipleProps<T> = {
@@ -76,17 +79,18 @@ export function Combobox<T>({
 	placement = 'bottom-start',
 	icon,
 	selectable = true,
+	nullable = false,
 	closeOnSelect,
 	className,
 	children,
 }: ComboboxProps<T>) {
 	const handleValueChange = useCallback(
 		(nextValue: T | T[] | undefined) => {
-			if (nextValue === undefined) return
+			if (nextValue === undefined && multiple) return
 
-			;(onChange as ((value: T | T[]) => void) | undefined)?.(nextValue)
+			;(onChange as ((value: T | T[] | undefined) => void) | undefined)?.(nextValue)
 		},
-		[onChange],
+		[onChange, multiple],
 	)
 
 	const [value, setValue] = useControllable<T | T[]>({
@@ -101,8 +105,6 @@ export function Combobox<T>({
 
 	const inputRef = useRef<HTMLInputElement>(null)
 	const optionsRef = useRef<HTMLDivElement>(null)
-	const pendingValue = useRef<T | T[] | undefined>(undefined)
-
 	const handleKeyDown = useRovingFocus(optionsRef, {
 		itemSelector: '[role="option"]:not([data-disabled])',
 		focusOnEmpty: true,
@@ -142,20 +144,14 @@ export function Combobox<T>({
 
 	const shouldClose = closeOnSelect ?? !multiple
 
+	const toggle = useSelect({ multiple, nullable, setValue })
+
 	const select = useCallback(
 		(newValue: T) => {
 			if (!selectable) {
 				;(onChange as ((value: T) => void) | undefined)?.(newValue)
-			} else if (multiple) {
-				const arr = (Array.isArray(value) ? value : []) as T[]
-
-				const next = arr.includes(newValue) ? arr.filter((v) => v !== newValue) : [...arr, newValue]
-
-				setValue(next)
-			} else if (shouldClose) {
-				pendingValue.current = newValue
 			} else {
-				setValue(newValue)
+				toggle(newValue)
 			}
 
 			if (shouldClose) {
@@ -167,16 +163,8 @@ export function Combobox<T>({
 				inputRef.current?.focus()
 			}
 		},
-		[multiple, selectable, shouldClose, value, setValue, onChange, close],
+		[selectable, shouldClose, toggle, onChange, close],
 	)
-
-	const onExitComplete = useCallback(() => {
-		if (pendingValue.current !== undefined) {
-			setValue(pendingValue.current)
-
-			pendingValue.current = undefined
-		}
-	}, [setValue])
 
 	const inputDisplay = useMemo(() => {
 		if (editing) return query
@@ -299,7 +287,7 @@ export function Combobox<T>({
 
 			<FloatingPortal>
 				<div ref={optionsRef}>
-					<AnimatePresence onExitComplete={onExitComplete}>
+					<AnimatePresence>
 						{open && (
 							<div
 								ref={refs.setFloating}
