@@ -28,7 +28,7 @@ export function Switch({ className, color, size, ...props }: SwitchProps) {
 	}
 
 	return (
-		<span
+		<label
 			data-slot="control"
 			className={cn(k.wrapper, switchVariants({ size }), switchColorVariants({ color }))}
 		>
@@ -39,7 +39,7 @@ export function Switch({ className, color, size, ...props }: SwitchProps) {
 				{...props}
 			/>
 			<span data-slot="switch-thumb" aria-hidden="true" className={switchThumbVariants()} />
-		</span>
+		</label>
 	)
 }
 
