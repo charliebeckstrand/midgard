@@ -1,11 +1,10 @@
 'use client'
 
-import { Check, Clipboard } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { type BundledLanguage, type BundledTheme, codeToHtml } from 'shiki'
 import { cn } from '../../core'
 import { katachi } from '../../recipes'
-import { Icon } from '../icon'
+import { CopyButton } from '../copy-button'
 import { codeBlockVariants } from './variants'
 
 const k = katachi.code.block
@@ -14,37 +13,6 @@ const k = katachi.code.block
 const htmlCache = new Map<string, string>()
 
 const cacheKey = (code: string, lang: string, theme: string) => `${theme}\u0000${lang}\u0000${code}`
-
-function CopyButton({ code }: { code: string }) {
-	const [copied, setCopied] = useState(false)
-
-	const copy = useCallback(() => {
-		navigator.clipboard.writeText(code)
-
-		setCopied(true)
-	}, [code])
-
-	useEffect(() => {
-		if (!copied) return
-
-		const timer = setTimeout(() => setCopied(false), 2000)
-
-		return () => clearTimeout(timer)
-	}, [copied])
-
-	return (
-		<button
-			type="button"
-			data-slot="code-block-copy"
-			disabled={copied}
-			onClick={copy}
-			aria-label={copied ? 'Copied' : 'Copy to clipboard'}
-			className={cn(k.copy)}
-		>
-			<Icon icon={copied ? <Check /> : <Clipboard />} size="sm" />
-		</button>
-	)
-}
 
 export type CodeBlockProps = {
 	code: string
@@ -104,7 +72,7 @@ export function CodeBlock({
 	return (
 		<div data-slot="code-block" className={cn(codeBlockVariants({ inline }), className)}>
 			<div className={cn(k.copyWrapper)}>
-				<CopyButton code={code} />
+				<CopyButton value={code} className={cn(k.copy)} />
 			</div>
 			{html ? (
 				<div
