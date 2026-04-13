@@ -1,4 +1,16 @@
-type PanelSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | '6xl' | '7xl'
+type PanelSize =
+	| 'xs'
+	| 'sm'
+	| 'md'
+	| 'lg'
+	| 'xl'
+	| '2xl'
+	| '3xl'
+	| '4xl'
+	| '5xl'
+	| '6xl'
+	| '7xl'
+	| 'full'
 
 /** Panel constraint scale (max-width for dialogs/sheets) */
 export const panel = {
@@ -13,4 +25,5 @@ export const panel = {
 	'5xl': 'sm:max-w-5xl',
 	'6xl': 'sm:max-w-6xl',
 	'7xl': 'sm:max-w-7xl',
+	full: 'sm:max-w-full',
 } satisfies Record<PanelSize, string>

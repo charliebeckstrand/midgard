@@ -5,7 +5,7 @@ import { sumi } from '../sumi'
 import { take } from '../take'
 
 export const menu = {
-	content: ['w-max min-w-48', take.popup],
+	content: ['min-w-48', take.popup],
 	item: [
 		'group/option flex w-full items-center gap-3 px-3.5 py-2.5 sm:px-3 sm:py-1.5',
 		...sawari.item,

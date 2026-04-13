@@ -62,11 +62,6 @@ function DynamicExample() {
 					}
 				</Combobox>
 			}
-			code={code`
-				<Skeleton>
-					<Button>Submit</Button>
-				</Skeleton>
-			`}
 		>
 			<Sizer>
 				<Skeleton>{active?.render()}</Skeleton>

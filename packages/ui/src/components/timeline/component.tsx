@@ -62,6 +62,7 @@ export function TimelineItem({
 	pulse,
 }: TimelineItemProps) {
 	const { orientation, variant: contextVariant } = useTimeline()
+
 	const variant = variantProp ?? contextVariant
 
 	const hasMarker = Children.toArray(children).some(
@@ -114,10 +115,17 @@ type TimelineMarkerConfig = {
 } & ({ status?: StatusDotProps['status']; color?: never } | { color?: Color; status?: never })
 
 export type TimelineMarkerProps = TimelineMarkerConfig & {
+	active?: boolean
 	className?: string
 }
 
-export function TimelineMarker({ status, color, pulse, className }: TimelineMarkerProps) {
+export function TimelineMarker({
+	status,
+	color,
+	pulse,
+	active: _active,
+	className,
+}: TimelineMarkerProps) {
 	const { orientation, variant } = useTimeline()
 
 	return (
