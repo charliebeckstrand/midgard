@@ -57,8 +57,8 @@ export default function SettingsPageDemo() {
 				onSubmit={handleSubmit}
 				submitting={submitting}
 				actions={
-					<Button type="submit" color="blue" disabled={submitting}>
-						{submitting ? 'Saving...' : 'Save changes'}
+					<Button type="submit" loading={submitting} color="blue" disabled={submitting}>
+						{submitting ? 'Saving' : 'Save changes'}
 					</Button>
 				}
 			>
