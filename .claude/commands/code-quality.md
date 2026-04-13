@@ -1,8 +1,10 @@
 # Code Quality
 
-TRIGGER when: the user asks to review, check, audit, or ensure code quality on changed or new code — or invokes this skill directly after writing code.
+TRIGGER when: the user invokes this skill directly after writing or modifying code during a session. This skill targets the *files you just changed* — not an entire package. For package-wide consistency audits, use `/audit` instead.
 
-You are reviewing recently changed TypeScript/TSX code in this monorepo for formatting, lint compliance, type safety, and idiomatic modern TypeScript. Your goal is to catch issues that slip past automated tooling and fix them.
+DO NOT TRIGGER when: the user asks to audit, review, or find inconsistencies across a package, or asks to clean up, standardize, or align an entire codebase with conventions. Those are `/audit` tasks.
+
+You are reviewing recently changed TypeScript/TSX code in this monorepo for formatting, lint compliance, type safety, line formatting, and idiomatic modern TypeScript. Your goal is to catch issues in freshly written code that slip past automated tooling and fix them.
 
 ## Arguments
 
@@ -345,16 +347,7 @@ function greet() {
 }
 ```
 
-### 6. Check component conventions (if UI code changed)
-
-If any files under `packages/ui/src/components/` changed, additionally verify:
-
-- **`data-slot` attribute** present on root elements
-- **`className` merging** uses `cn()` from core, not string concatenation
-- **Props are spread** onto the root element (`{...props}`)
-- **`'use client'`** directive present only when the component uses hooks, event handlers, or motion — not on purely presentational components
-
-### 7. Report and fix
+### 6. Report and fix
 
 For each issue found:
 1. Fix it directly in the file
