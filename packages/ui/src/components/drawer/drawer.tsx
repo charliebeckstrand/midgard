@@ -42,10 +42,6 @@ export function Drawer({ open, onClose, glass, className, children }: DrawerProp
 				onClick={(e) => e.stopPropagation()}
 				className={cn(drawerPanelVariants({ glass: resolvedGlass }), className)}
 			>
-				<div
-					aria-hidden="true"
-					className="mx-auto mt-3 mb-1 h-1.5 w-10 shrink-0 rounded-full bg-current opacity-20"
-				/>
 				<DrawerProvider value={{ onClose }}>{children}</DrawerProvider>
 			</motion.div>
 		</Overlay>

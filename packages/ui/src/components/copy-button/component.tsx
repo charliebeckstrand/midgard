@@ -3,14 +3,19 @@
 import { Check, Clipboard } from 'lucide-react'
 import { type ReactElement, useCallback, useEffect, useState } from 'react'
 import { cn } from '../../core'
+import { katachi } from '../../recipes'
+import { Button } from '../button'
 import { Icon } from '../icon'
+
+type Size = 'xs' | 'sm' | 'md' | 'lg'
 
 export type CopyButtonProps = {
 	value: string
 	icon?: ReactElement
+	size?: Size
 	timeout?: number
 	className?: string
-} & Omit<React.ComponentPropsWithoutRef<'button'>, 'children'>
+} & Omit<React.ComponentPropsWithoutRef<'button'>, 'children' | 'type' | 'color'>
 
 const iconTransition =
 	'transition-[opacity,filter,scale] duration-300 ease-in-out will-change-[opacity,filter,scale]'
@@ -18,6 +23,7 @@ const iconTransition =
 export function CopyButton({
 	value,
 	icon,
+	size = 'md',
 	timeout = 2000,
 	className,
 	disabled,
@@ -27,6 +33,7 @@ export function CopyButton({
 
 	const copy = useCallback(() => {
 		navigator.clipboard.writeText(value)
+
 		setIsCopied(true)
 	}, [value])
 
@@ -39,14 +46,15 @@ export function CopyButton({
 	}, [isCopied, timeout])
 
 	return (
-		<button
+		<Button
 			{...props}
-			type="button"
+			variant="ghost"
+			size={size}
 			data-slot="copy-button"
 			disabled={isCopied || disabled}
 			onClick={copy}
 			aria-label={isCopied ? 'Copied' : 'Copy to clipboard'}
-			className={cn('relative', className)}
+			className={cn(katachi.copyButton.base, className)}
 		>
 			<span
 				className={cn(
@@ -58,13 +66,13 @@ export function CopyButton({
 			</span>
 			<span
 				className={cn(
-					'absolute inset-0 flex items-center justify-center',
+					'absolute inset-0 flex items-center justify-center text-green-600',
 					iconTransition,
 					isCopied ? 'scale-100 opacity-100 blur-0' : 'blur-xs scale-[0.25] opacity-0',
 				)}
 			>
 				<Icon icon={<Check />} />
 			</span>
-		</button>
+		</Button>
 	)
 }

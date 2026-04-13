@@ -26,10 +26,12 @@ const VELOCITY_THRESHOLD = 0.4
  */
 function canContentScroll(target: EventTarget | null, boundary: HTMLElement, side: Side): boolean {
 	let node = target as HTMLElement | null
+
 	const isVertical = side === 'top' || side === 'bottom'
 
 	while (node && node !== boundary) {
 		const style = window.getComputedStyle(node)
+
 		const overflow = isVertical ? style.overflowY : style.overflowX
 
 		if (overflow === 'auto' || overflow === 'scroll') {
@@ -67,11 +69,14 @@ function canContentScroll(target: EventTarget | null, boundary: HTMLElement, sid
 
 function attachDrag(panel: HTMLDivElement, side: Side, onCloseRef: React.RefObject<() => void>) {
 	const isVertical = side === 'top' || side === 'bottom'
+
 	const sign = side === 'bottom' || side === 'right' ? 1 : -1
 
 	let startX = 0
 	let startY = 0
+
 	let startTime = 0
+
 	let tracking = false
 	let decided = false
 
@@ -87,7 +92,9 @@ function attachDrag(panel: HTMLDivElement, side: Side, onCloseRef: React.RefObje
 
 	function setBackdrop(opacity: string, transition = '') {
 		const el = backdrop()
+
 		if (!el) return
+
 		el.style.opacity = opacity
 		el.style.transition = transition
 	}
@@ -96,41 +103,52 @@ function attachDrag(panel: HTMLDivElement, side: Side, onCloseRef: React.RefObje
 
 	function handleTouchStart(e: TouchEvent) {
 		const touch = e.touches[0]
+
 		startX = touch.clientX
 		startY = touch.clientY
+
 		startTime = Date.now()
+
 		tracking = false
 		decided = false
 
 		setPanel('', '', '')
+
 		setBackdrop('')
 	}
 
 	function handleTouchMove(e: TouchEvent) {
 		const touch = e.touches[0]
+
 		const dx = touch.clientX - startX
 		const dy = touch.clientY - startY
 
 		if (!decided) {
 			const distance = Math.sqrt(dx * dx + dy * dy)
+
 			if (distance < LOCK_THRESHOLD) return
 
 			decided = true
 
 			const isHorizontal = Math.abs(dx) > Math.abs(dy)
+
 			if (isVertical === isHorizontal) {
 				tracking = false
+
 				return
 			}
 
 			const delta = isVertical ? dy : dx
+
 			if (delta * sign <= 0) {
 				tracking = false
+
 				return
 			}
 
 			if (canContentScroll(e.target, panel, side)) {
 				tracking = false
+
 				return
 			}
 
@@ -142,13 +160,17 @@ function attachDrag(panel: HTMLDivElement, side: Side, onCloseRef: React.RefObje
 		e.preventDefault()
 
 		const delta = isVertical ? dy : dx
+
 		const offset = Math.max(0, delta * sign)
+
 		const visual = offset * sign
 
 		setPanel(isVertical ? `0 ${visual}px` : `${visual}px 0`, 'none')
 
 		const size = isVertical ? panel.offsetHeight : panel.offsetWidth
+
 		const progress = Math.min(offset / size, 1)
+
 		setBackdrop(String(1 - progress))
 	}
 
@@ -156,9 +178,13 @@ function attachDrag(panel: HTMLDivElement, side: Side, onCloseRef: React.RefObje
 		if (!tracking) return
 
 		const touch = e.changedTouches[0]
+
 		const delta = isVertical ? touch.clientY - startY : touch.clientX - startX
+
 		const offset = delta * sign
+
 		const elapsed = Date.now() - startTime
+
 		const velocity = offset / Math.max(elapsed, 1)
 
 		if (offset > DISMISS_THRESHOLD || velocity > VELOCITY_THRESHOLD) {
@@ -170,34 +196,47 @@ function attachDrag(panel: HTMLDivElement, side: Side, onCloseRef: React.RefObje
 
 	function dismiss() {
 		let done = false
+
 		const finish = () => {
 			if (done) return
+
 			done = true
+
 			setPanel('', '', 'hidden')
+
 			setBackdrop('0')
+
 			onCloseRef.current()
 		}
 
 		setPanel(isVertical ? `0 ${sign * 100}dvh` : `${sign * 100}dvw 0`, 'translate 0.15s ease-out')
+
 		setBackdrop('0', 'opacity 0.15s ease-out')
 
 		panel.addEventListener('transitionend', finish, { once: true })
+
 		setTimeout(finish, 200)
 	}
 
 	function snapBack() {
 		let done = false
+
 		const reset = () => {
 			if (done) return
+
 			done = true
+
 			setPanel('', '')
+
 			setBackdrop('')
 		}
 
 		setPanel('', 'translate 0.15s ease-out')
+
 		setBackdrop('', 'opacity 0.15s ease-out')
 
 		panel.addEventListener('transitionend', reset, { once: true })
+
 		setTimeout(reset, 200)
 	}
 
@@ -228,11 +267,14 @@ function attachDrag(panel: HTMLDivElement, side: Side, onCloseRef: React.RefObje
  */
 export function useSwipeDismiss(side: Side, onClose: () => void) {
 	const ref = useRef<HTMLDivElement>(null)
+
 	const onCloseRef = useRef(onClose)
+
 	onCloseRef.current = onClose
 
 	useEffect(() => {
 		const panel = ref.current
+
 		if (!panel) return
 
 		return attachDrag(panel, side, onCloseRef)

@@ -1,6 +1,6 @@
 'use client'
 
-import { Link } from 'lucide-react'
+import { CopyIcon } from 'lucide-react'
 import { CopyButton } from '../../components/copy-button'
 import { Example } from '../components/example'
 
@@ -10,25 +10,22 @@ export default function CopyButtonDemo() {
 	return (
 		<div className="space-y-8">
 			<Example title="Default">
-				<CopyButton
-					value="Hello, world!"
-					className="size-8 flex items-center justify-center rounded-md text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
-				/>
+				<CopyButton value="Hello, world!" />
+			</Example>
+			<Example title="Sizes">
+				<div className="flex items-center gap-4">
+					<CopyButton value="Large" size="lg" />
+					<CopyButton value="Medium (default)" size="md" />
+					<CopyButton value="Small" size="sm" />
+					<CopyButton value="Extra small" size="xs" />
+				</div>
 			</Example>
 			<Example title="Custom icon">
-				<CopyButton
-					value="https://example.com"
-					icon={<Link />}
-					className="size-8 flex items-center justify-center rounded-md text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
-				/>
+				<CopyButton value="https://example.com" icon={<CopyIcon />} />
 			</Example>
-			<Example title="Custom timeout (5s)">
-				<CopyButton
-					value="Copied with a longer timeout!"
-					timeout={5000}
-					className="size-8 flex items-center justify-center rounded-md text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
-				/>
-			</Example>
+			{/* <Example title="Custom timeout (5s)">
+				<CopyButton value="Copied with a longer timeout!" timeout={5000} />
+			</Example> */}
 		</div>
 	)
 }
