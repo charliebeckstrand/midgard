@@ -11,6 +11,7 @@ export type OverlayProps = {
 	open: boolean
 	onClose: () => void
 	outsideClick?: boolean
+	glass?: boolean
 	className?: string
 	children: React.ReactNode
 } & Omit<React.HTMLAttributes<HTMLDivElement>, 'className' | 'children'>
@@ -19,6 +20,7 @@ export function Overlay({
 	open,
 	onClose,
 	outsideClick = true,
+	glass,
 	className,
 	children,
 	...props
@@ -49,7 +51,10 @@ export function Overlay({
 				<div className="fixed inset-0 z-[99]" {...props}>
 					<motion.div
 						{...ugoki.overlay}
-						className={className ?? cn('absolute inset-0', omote.backdrop.base)}
+						className={
+							className ??
+							cn('absolute inset-0', glass ? omote.backdrop.glass : omote.backdrop.base)
+						}
 						onClick={outsideClick ? onClose : undefined}
 						aria-hidden="true"
 					/>

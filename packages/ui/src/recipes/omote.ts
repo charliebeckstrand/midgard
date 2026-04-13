@@ -24,7 +24,10 @@ const motoi = {
 const hiru = {
 	panel: 'bg-white',
 	content: ['lg:bg-white', 'lg:ring-1 lg:ring-zinc-950/5'],
-	backdrop: 'bg-white/50',
+	backdrop: {
+		md: 'bg-white/50',
+		lg: 'bg-white/75',
+	},
 	popover: ['bg-white/90', 'ring-1 ring-zinc-950/10'],
 	surface: 'bg-white',
 	tint: 'bg-zinc-950/5',
@@ -36,7 +39,10 @@ const hiru = {
 const yoru = {
 	panel: 'dark:bg-zinc-900',
 	content: ['dark:lg:bg-zinc-900', 'dark:lg:ring-white/10'],
-	backdrop: 'dark:bg-zinc-950/50',
+	backdrop: {
+		md: 'dark:bg-zinc-950/50',
+		lg: 'dark:bg-zinc-950/75',
+	},
 	popover: ['dark:bg-zinc-800/75', 'dark:ring-white/10 dark:ring-inset'],
 	surface: 'dark:bg-zinc-900',
 	tint: 'dark:bg-white/10',
@@ -53,8 +59,8 @@ export const omote = {
 	},
 	content: [motoi.content, hiru.content, yoru.content],
 	backdrop: {
-		base: [hiru.backdrop, yoru.backdrop, garasu.sm],
-		color: [hiru.backdrop, yoru.backdrop],
+		base: [hiru.backdrop.md, yoru.backdrop.md, garasu.sm],
+		glass: [hiru.backdrop.lg, yoru.backdrop.lg],
 	},
 	glass: motoi.glass,
 	popover: [motoi.popover, hiru.popover, yoru.popover],

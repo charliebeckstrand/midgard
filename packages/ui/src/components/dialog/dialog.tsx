@@ -38,7 +38,7 @@ export function Dialog({
 	const isDesktop = useIsDesktop()
 
 	return (
-		<Overlay open={open} onClose={onClose} outsideClick={outsideClick}>
+		<Overlay open={open} onClose={onClose} outsideClick={outsideClick} glass={resolvedGlass}>
 			<div
 				className={cn(
 					'pointer-events-none fixed inset-0 flex min-h-full items-end sm:justify-center sm:p-4',
