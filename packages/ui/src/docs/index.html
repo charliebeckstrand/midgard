@@ -4,8 +4,8 @@
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
 		<title>UI Components</title>
-		<link rel="preload" href="./fonts/GoogleSansFlex-VariableFont_GRAD,ROND,opsz,slnt,wdth,wght.ttf" as="font" type="font/ttf" crossorigin />
-		<link rel="preload" href="./fonts/GoogleSansCode-VariableFont_wght.ttf" as="font" type="font/ttf" crossorigin />
+		<!-- Fonts load via CSS @font-face with font-display: swap — no preload needed.
+		     The flex font is 4 MB; preloading it competes with JS for bandwidth. -->
 	</head>
 	<body class="h-full bg-zinc-100 dark:bg-zinc-900 text-zinc-950 dark:text-white">
 		<div id="root" class="h-full"></div>

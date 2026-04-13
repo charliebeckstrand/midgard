@@ -7,10 +7,16 @@ import { renderNodes } from './walk'
 
 export type { ComponentInfo, ComponentMap } from './types'
 
-// Eagerly construct the default map at module load. The glob is Vite-specific,
-// so tests that want to exercise `deriveCode` in isolation can pass their own
-// map via the second argument.
-const DEFAULT_MAP: ComponentMap = buildComponentMap()
+// Lazy singleton — built on first deriveCode call, then cached.
+let mapPromise: Promise<ComponentMap> | null = null
+
+function getDefaultMap(): Promise<ComponentMap> {
+	if (!mapPromise) {
+		mapPromise = buildComponentMap()
+	}
+
+	return mapPromise
+}
 
 /**
  * Walk a React children tree and produce a simplified code block showing how
@@ -26,9 +32,11 @@ const DEFAULT_MAP: ComponentMap = buildComponentMap()
  * caller should then either provide an explicit `code` override or omit the
  * code block entirely.
  */
-export function deriveCode(children: ReactNode, map: ComponentMap = DEFAULT_MAP): string | null {
+export async function deriveCode(children: ReactNode, map?: ComponentMap): Promise<string | null> {
+	const resolvedMap = map ?? (await getDefaultMap())
+
 	const ctx: Ctx = {
-		map,
+		map: resolvedMap,
 		imports: new Map(),
 		consts: [],
 		constNames: new Set(),

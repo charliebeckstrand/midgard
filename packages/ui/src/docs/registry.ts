@@ -1,21 +1,146 @@
-import {
-	buildResolutionContext,
-	type ComponentApi,
-	parsePublicExports,
-	parseSource,
-} from './parse-props'
+import { type ComponentType, type LazyExoticComponent, lazy } from 'react'
+import type { ComponentApi, ResolutionContext } from './parse-props'
+
+// ---------------------------------------------------------------------------
+// Lazy demo loaders (no demo code loaded until navigated to)
+// ---------------------------------------------------------------------------
 
 type DemoModule = {
-	default: React.ComponentType
+	default: ComponentType
 	meta?: { name?: string; category?: string }
 }
 
-const modules = import.meta.glob<DemoModule>(['./demos/*.tsx', './demos/pages/*.tsx'], {
-	eager: true,
-})
+const loaders = import.meta.glob<DemoModule>(['./demos/*.tsx', './demos/pages/*.tsx'])
 
-// Import all component source files for prop extraction.
-// Primitives are included so cross-module type refs (e.g. PolymorphicProps) resolve.
+// Map glob paths to { id → loader }
+const loaderById = new Map<string, () => Promise<DemoModule>>()
+
+for (const [path, loader] of Object.entries(loaders)) {
+	const id = path
+		.replace(/^\.\/demos\//, '')
+		.replace('.tsx', '')
+		.replace(/\//g, '-')
+
+	loaderById.set(id, loader)
+}
+
+// ---------------------------------------------------------------------------
+// Static demo metadata — avoids importing demo code for sidebar/search
+// ---------------------------------------------------------------------------
+
+const categoryMap: Record<string, string> = {
+	accordion: 'Data Display',
+	alert: 'Feedback',
+	area: 'Layout',
+	'aspect-ratio': 'Layout',
+	avatar: 'Data Display',
+	badge: 'Data Display',
+	banner: 'Feedback',
+	'bottom-nav': 'Navigation',
+	box: 'Layout',
+	breadcrumb: 'Navigation',
+	button: 'Forms',
+	calendar: 'Forms',
+	card: 'Layout',
+	center: 'Layout',
+	checkbox: 'Forms',
+	chip: 'Data Display',
+	code: 'Data Display',
+	collapse: 'Data Display',
+	combobox: 'Forms',
+	'command-palette': 'Overlay',
+	container: 'Layout',
+	'copy-button': 'Other',
+	datepicker: 'Forms',
+	dialog: 'Overlay',
+	disclosure: 'Data Display',
+	divider: 'Layout',
+	dl: 'Data Display',
+	drawer: 'Overlay',
+	fieldset: 'Forms',
+	'file-upload': 'Forms',
+	glass: 'Other',
+	grid: 'Layout',
+	heading: 'Data Display',
+	icon: 'Data Display',
+	input: 'Forms',
+	kbd: 'Data Display',
+	listbox: 'Forms',
+	menu: 'Overlay',
+	nav: 'Navigation',
+	navbar: 'Navigation',
+	'number-input': 'Forms',
+	'otp-input': 'Forms',
+	pagination: 'Navigation',
+	'password-confirm': 'Forms',
+	'password-input': 'Forms',
+	placeholder: 'Feedback',
+	popover: 'Overlay',
+	progress: 'Feedback',
+	radio: 'Forms',
+	'scroll-area': 'Layout',
+	select: 'Forms',
+	sheet: 'Overlay',
+	'shiny-text': 'Other',
+	sidebar: 'Navigation',
+	sizer: 'Layout',
+	skeleton: 'Feedback',
+	slider: 'Forms',
+	spacer: 'Layout',
+	spinner: 'Feedback',
+	split: 'Layout',
+	stack: 'Layout',
+	stat: 'Data Display',
+	status: 'Data Display',
+	stepper: 'Navigation',
+	switch: 'Forms',
+	table: 'Data Display',
+	tabs: 'Navigation',
+	'tag-input': 'Forms',
+	text: 'Data Display',
+	textarea: 'Forms',
+	timeline: 'Data Display',
+	toast: 'Feedback',
+	'toggle-icon-button': 'Other',
+	tooltip: 'Overlay',
+	tree: 'Data Display',
+	'pages-auth-page': 'Pages',
+	'pages-chat-page': 'Pages',
+	'pages-dashboard-page': 'Pages',
+	'pages-settings-page': 'Pages',
+}
+
+const nameOverrides: Record<string, string> = {
+	dl: 'DL',
+}
+
+// ---------------------------------------------------------------------------
+// Lazy React.lazy cache
+// ---------------------------------------------------------------------------
+
+const lazyCache = new Map<string, LazyExoticComponent<ComponentType>>()
+
+export function getLazyComponent(id: string): LazyExoticComponent<ComponentType> {
+	let component = lazyCache.get(id)
+
+	if (!component) {
+		const loader = loaderById.get(id)
+
+		if (!loader) throw new Error(`No demo found for id: ${id}`)
+
+		component = lazy(loader)
+
+		lazyCache.set(id, component)
+	}
+
+	return component
+}
+
+// ---------------------------------------------------------------------------
+// Lazy component API extraction — deferred until a demo's API Reference opens
+// ---------------------------------------------------------------------------
+
+// Raw source loaders (not loaded until getComponentApi is first called)
 const componentSources = import.meta.glob<string>(
 	[
 		'../components/**/*.{ts,tsx}',
@@ -26,93 +151,133 @@ const componentSources = import.meta.glob<string>(
 		'../core/color-cva.ts',
 	],
 	{
-		eager: true,
 		query: '?raw',
 		import: 'default',
 	},
 )
 
 const indexSources = import.meta.glob<string>('../components/*/index.ts', {
-	eager: true,
 	query: '?raw',
 	import: 'default',
 })
 
-/**
- * Build API metadata per component directory. Returns an ordered list of
- * publicly-exported components (from each directory's `index.ts`), each
- * enriched with parsed props + pass-through metadata.
- */
-function buildComponentApis(): Record<string, ComponentApi[]> {
-	// Sources grouped by component directory
-	const byDir: Record<string, string[]> = {}
-
-	// Global pool of sources for cross-module type resolution
-	const allSources: string[] = []
-
-	for (const [path, source] of Object.entries(componentSources)) {
-		allSources.push(source as string)
-
-		const match = path.match(/\.\.\/components\/([^/]+)\//)
-
-		if (!match?.[1]) continue
-
-		const dir = match[1]
-
-		if (!byDir[dir]) byDir[dir] = []
-
-		byDir[dir].push(source as string)
-	}
-
-	const sharedCtx = buildResolutionContext(allSources)
-
-	const apis: Record<string, ComponentApi[]> = {}
-
-	for (const [dir, sources] of Object.entries(byDir)) {
-		const combined = sources.join('\n')
-
-		const parsed = parseSource(combined, sharedCtx)
-
-		const parsedByName = new Map(parsed.map((api) => [api.name, api]))
-
-		// Preserve the declaration order from index.ts so the API Reference
-		// matches how users see components organized in the public API.
-		const indexSource = indexSources[`../components/${dir}/index.ts`]
-
-		const publicNames = indexSource
-			? parsePublicExports(indexSource)
-			: parsed.map((api) => api.name)
-
-		const entries: ComponentApi[] = []
-
-		for (const name of publicNames) {
-			entries.push(parsedByName.get(name) ?? { name, props: [] })
-		}
-
-		if (entries.length > 0) apis[dir] = entries
-	}
-
-	return apis
+type SourceData = {
+	ctx: ResolutionContext
+	byDir: Record<string, string[]>
+	indexByDir: Record<string, string>
 }
 
-const componentApis = buildComponentApis()
+let sourceDataPromise: Promise<SourceData> | null = null
 
-export const demos = Object.entries(modules)
-	.map(([path, mod]) => {
-		const id = path
-			.replace(/^\.\/demos\//, '')
-			.replace('.tsx', '')
-			.replace(/\//g, '-')
+/** Load all raw sources and build the shared resolution context (once). */
+function loadSourceData(): Promise<SourceData> {
+	if (!sourceDataPromise) {
+		sourceDataPromise = (async () => {
+			const { buildResolutionContext } = await import('./parse-props')
 
+			const [sourceEntries, indexEntries] = await Promise.all([
+				Promise.all(
+					Object.entries(componentSources).map(
+						async ([path, loader]) => [path, await loader()] as const,
+					),
+				),
+				Promise.all(
+					Object.entries(indexSources).map(
+						async ([path, loader]) => [path, await loader()] as const,
+					),
+				),
+			])
+
+			const byDir: Record<string, string[]> = {}
+			const allSources: string[] = []
+
+			for (const [path, source] of sourceEntries) {
+				allSources.push(source)
+
+				const match = path.match(/\.\.\/components\/([^/]+)\//)
+
+				if (!match?.[1]) continue
+
+				const dir = match[1]
+
+				if (!byDir[dir]) byDir[dir] = []
+
+				byDir[dir].push(source)
+			}
+
+			const ctx = buildResolutionContext(allSources)
+
+			const indexByDir: Record<string, string> = {}
+
+			for (const [path, source] of indexEntries) {
+				const match = path.match(/components\/([^/]+)\/index\.ts$/)
+
+				if (match?.[1]) indexByDir[match[1]] = source
+			}
+
+			return { ctx, byDir, indexByDir }
+		})()
+	}
+
+	return sourceDataPromise
+}
+
+const apiCache = new Map<string, ComponentApi[]>()
+
+/** Load and parse the API for a single component directory. */
+export async function getComponentApi(id: string): Promise<ComponentApi[] | undefined> {
+	const cached = apiCache.get(id)
+
+	if (cached) return cached
+
+	const [{ parseSource, parsePublicExports }, { ctx, byDir, indexByDir }] = await Promise.all([
+		import('./parse-props'),
+		loadSourceData(),
+	])
+
+	const sources = byDir[id]
+
+	if (!sources) return undefined
+
+	const combined = sources.join('\n')
+
+	const parsed = parseSource(combined, ctx)
+
+	const parsedByName = new Map(parsed.map((api) => [api.name, api]))
+
+	const indexSource = indexByDir[id]
+
+	const publicNames = indexSource ? parsePublicExports(indexSource) : parsed.map((api) => api.name)
+
+	const entries: ComponentApi[] = []
+
+	for (const name of publicNames) {
+		entries.push(parsedByName.get(name) ?? { name, props: [] })
+	}
+
+	if (entries.length > 0) {
+		apiCache.set(id, entries)
+
+		return entries
+	}
+
+	return undefined
+}
+
+// ---------------------------------------------------------------------------
+// Public demo list
+// ---------------------------------------------------------------------------
+
+export const demos = [...loaderById.keys()]
+	.map((id) => {
 		const label = id.replace(/^pages-/, '')
 
-		const name = mod.meta?.name ?? label.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+		const name =
+			nameOverrides[id] ?? label.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
 
-		const category = mod.meta?.category ?? 'Other'
+		const category = categoryMap[id] ?? 'Other'
 
-		const api = componentApis[id]
-
-		return { id, name, category, component: mod.default, api }
+		return { id, name, category }
 	})
 	.sort((a, b) => a.name.localeCompare(b.name))
 
