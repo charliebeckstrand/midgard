@@ -1,6 +1,6 @@
 'use client'
 
-import { Bookmark, Heart, Moon, Sun, Volume2, VolumeOff } from 'lucide-react'
+import { Heart, Moon, Sun, Volume2, VolumeOff } from 'lucide-react'
 import { useState } from 'react'
 import { ToggleIconButton } from '../../components/toggle-icon-button'
 import { Example } from '../components/example'
@@ -9,12 +9,6 @@ export const meta = { category: 'Other' }
 
 export default function ToggleIconButtonDemo() {
 	const [dark, setDark] = useState(false)
-	const [hearted, setHearted] = useState<Record<string, boolean>>({
-		xs: false,
-		sm: false,
-		md: false,
-		lg: false,
-	})
 	const [noAnimation, setNoAnimation] = useState(false)
 	const [muted, setMuted] = useState(false)
 
