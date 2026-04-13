@@ -2,11 +2,11 @@
 
 import { ArrowUp, CircleDashed, MessageSquare, Plus, Trash } from 'lucide-react'
 import { useRef, useState } from 'react'
-import { Avatar } from '../../components/avatar'
-import { Box } from '../../components/box'
-import { Button } from '../../components/button'
-import { Heading } from '../../components/heading'
-import { Icon } from '../../components/icon'
+import { Avatar } from '../../../components/avatar'
+import { Box } from '../../../components/box'
+import { Button } from '../../../components/button'
+import { Heading } from '../../../components/heading'
+import { Icon } from '../../../components/icon'
 import {
 	Sidebar,
 	SidebarBody,
@@ -14,13 +14,13 @@ import {
 	SidebarItem,
 	SidebarLabel,
 	SidebarSection,
-} from '../../components/sidebar'
-import { Spacer } from '../../components/spacer'
-import { Stack } from '../../components/stack'
-import { Text } from '../../components/text'
-import { Textarea } from '../../components/textarea'
-import { ChatMessage, ChatPage } from '../../pages'
-import { Example } from '../components/example'
+} from '../../../components/sidebar'
+import { Spacer } from '../../../components/spacer'
+import { Stack } from '../../../components/stack'
+import { Text } from '../../../components/text'
+import { Textarea } from '../../../components/textarea'
+import { ChatMessage, ChatPage } from '../../../pages'
+import { Example } from '../../components/example'
 export const meta = { category: 'Pages' }
 
 type Message = {
