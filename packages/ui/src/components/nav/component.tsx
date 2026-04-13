@@ -23,11 +23,9 @@ export function Nav({ value, onChange, className, children, ...props }: NavProps
 
 	return (
 		<NavProvider value={ctx}>
-			<ActiveIndicatorScope>
-				<nav data-slot="nav" className={className} {...props}>
-					{children}
-				</nav>
-			</ActiveIndicatorScope>
+			<nav data-slot="nav" className={className} {...props}>
+				{children}
+			</nav>
 		</NavProvider>
 	)
 }
@@ -51,17 +49,19 @@ export function NavList({ orientation, className, children, ...props }: NavListP
 	})
 
 	return (
-		<div
-			ref={ref}
-			role="tablist"
-			data-slot="nav-list"
-			data-orientation={resolvedOrientation}
-			className={cn(k.list.base, k.list.orientation[resolvedOrientation], className)}
-			onKeyDown={handleKeyDown}
-			{...props}
-		>
-			{children}
-		</div>
+		<ActiveIndicatorScope>
+			<div
+				ref={ref}
+				role="tablist"
+				data-slot="nav-list"
+				data-orientation={resolvedOrientation}
+				className={cn(k.list.base, k.list.orientation[resolvedOrientation], className)}
+				onKeyDown={handleKeyDown}
+				{...props}
+			>
+				{children}
+			</div>
+		</ActiveIndicatorScope>
 	)
 }
 

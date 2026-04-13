@@ -15,6 +15,15 @@ export default function NavDemo() {
 
 	return (
 		<div className="space-y-8">
+			<Example title="Default">
+				<Sizer>
+					<NavList orientation="horizontal">
+						<NavItem value="home">Home</NavItem>
+						<NavItem value="about">About</NavItem>
+						<NavItem value="contact">Contact</NavItem>
+					</NavList>
+				</Sizer>
+			</Example>
 			<Example
 				title="Value model with content"
 				code={code`
@@ -42,13 +51,11 @@ export default function NavDemo() {
 			>
 				<Sizer>
 					<NavProvider value={{ value: current, onChange: setCurrent }}>
-						<Navbar>
-							<NavList orientation="horizontal">
-								<NavItem value="account">Account</NavItem>
-								<NavItem value="notifications">Notifications</NavItem>
-								<NavItem value="billing">Billing</NavItem>
-							</NavList>
-						</Navbar>
+						<NavList orientation="horizontal">
+							<NavItem value="account">Account</NavItem>
+							<NavItem value="notifications">Notifications</NavItem>
+							<NavItem value="billing">Billing</NavItem>
+						</NavList>
 						<Area>
 							<NavContents>
 								<NavContent value="account">Account settings</NavContent>
@@ -61,11 +68,13 @@ export default function NavDemo() {
 			</Example>
 
 			<Example title="With links">
-				<NavList>
-					<NavItem current>Dashboard</NavItem>
-					<NavItem href="#settings">Settings</NavItem>
-					<NavItem href="#docs">Documentation</NavItem>
-				</NavList>
+				<Sizer>
+					<NavList>
+						<NavItem current>Dashboard</NavItem>
+						<NavItem href="#settings">Settings</NavItem>
+						<NavItem href="#docs">Documentation</NavItem>
+					</NavList>
+				</Sizer>
 			</Example>
 		</div>
 	)
