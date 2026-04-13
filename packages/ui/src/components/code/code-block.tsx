@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { type BundledLanguage, type BundledTheme, codeToHtml } from 'shiki'
+import type { BundledLanguage, BundledTheme } from 'shiki'
 import { cn } from '../../core'
 import { katachi } from '../../recipes'
 import { CopyButton } from '../copy-button'
@@ -24,6 +24,17 @@ function cacheSet(key: string, value: string) {
 	}
 
 	htmlCache.set(key, value)
+}
+
+// Lazy-load shiki on first use — avoids pulling the full bundle into the initial chunk.
+let shikiPromise: Promise<typeof import('shiki')> | null = null
+
+function loadShiki() {
+	if (!shikiPromise) {
+		shikiPromise = import('shiki')
+	}
+
+	return shikiPromise
 }
 
 export type CodeBlockProps = {
@@ -60,21 +71,23 @@ export function CodeBlock({
 
 		let cancelled = false
 
-		codeToHtml(code, {
-			lang,
-			theme,
-			transformers: [
-				{
-					pre(node) {
-						delete node.properties.tabindex
+		loadShiki().then(({ codeToHtml }) =>
+			codeToHtml(code, {
+				lang,
+				theme,
+				transformers: [
+					{
+						pre(node) {
+							delete node.properties.tabindex
+						},
 					},
-				},
-			],
-		}).then((result) => {
-			cacheSet(key, result)
+				],
+			}).then((result) => {
+				cacheSet(key, result)
 
-			if (!cancelled) setHtml(result)
-		})
+				if (!cancelled) setHtml(result)
+			}),
+		)
 
 		return () => {
 			cancelled = true

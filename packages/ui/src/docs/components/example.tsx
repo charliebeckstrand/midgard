@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import { type ReactNode, useEffect, useState } from 'react'
 import { CodeBlock } from '../../components/code'
 import { Disclosure, DisclosureButton, DisclosurePanel } from '../../components/disclosure'
 import { Heading } from '../../components/heading'
@@ -22,7 +22,21 @@ export function Example({
 	code?: string
 	children: ReactNode
 }) {
-	const resolvedCode = code ?? deriveCode(children)
+	const [resolvedCode, setResolvedCode] = useState<string | null>(code ?? null)
+
+	useEffect(() => {
+		if (code != null) return
+
+		let cancelled = false
+
+		deriveCode(children).then((result) => {
+			if (!cancelled) setResolvedCode(result)
+		})
+
+		return () => {
+			cancelled = true
+		}
+	}, [code, children])
 
 	return (
 		<div className="space-y-2">
