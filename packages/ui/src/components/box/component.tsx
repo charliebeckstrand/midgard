@@ -38,6 +38,7 @@ type BoxBaseProps = {
 	border?: BoxBorder
 	/** Override the `data-slot` attribute. Defaults to `"box"`. */
 	dataSlot?: string
+	ref?: React.Ref<HTMLDivElement>
 	className?: string
 }
 
@@ -60,6 +61,7 @@ export function Box({
 	bg,
 	border,
 	dataSlot = 'box',
+	ref,
 	className,
 	href,
 	children,
@@ -68,6 +70,7 @@ export function Box({
 	return (
 		<Polymorphic
 			as="div"
+			ref={ref}
 			dataSlot={dataSlot}
 			href={href}
 			className={cn(

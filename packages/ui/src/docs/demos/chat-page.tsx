@@ -1,0 +1,176 @@
+'use client'
+
+import { MessageSquare, Send } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { Avatar } from '../../components/avatar'
+import { Box } from '../../components/box'
+import { Button } from '../../components/button'
+import { Heading } from '../../components/heading'
+import { Icon } from '../../components/icon'
+import {
+	Sidebar,
+	SidebarBody,
+	SidebarDivider,
+	SidebarHeader,
+	SidebarItem,
+	SidebarLabel,
+	SidebarSection,
+} from '../../components/sidebar'
+import { Stack } from '../../components/stack'
+import { Text } from '../../components/text'
+import { Textarea } from '../../components/textarea'
+import { ChatMessage, ChatPage } from '../../pages'
+import { Example } from '../components/example'
+
+export const meta = { category: 'Layout' }
+
+type Message = {
+	id: number
+	role: 'user' | 'agent'
+	content: string
+}
+
+const conversations = [
+	{ id: 1, title: 'Project kickoff', preview: 'Let me help you plan...', active: true },
+	{ id: 2, title: 'Bug investigation', preview: 'I found the root cause...' },
+	{ id: 3, title: 'Code review', preview: 'The implementation looks...' },
+	{ id: 4, title: 'Architecture design', preview: 'Here are the trade-offs...' },
+	{ id: 5, title: 'Deployment strategy', preview: 'For zero-downtime...' },
+]
+
+const initialMessages: Message[] = [
+	{ id: 1, role: 'user', content: 'Can you help me plan the project kickoff meeting?' },
+	{
+		id: 2,
+		role: 'agent',
+		content:
+			"Of course! I'd be happy to help you plan the kickoff meeting. Let's start by identifying the key stakeholders and objectives. Who will be attending?",
+	},
+	{
+		id: 3,
+		role: 'user',
+		content:
+			'The engineering team, product manager, and the design lead. We need to align on the Q2 roadmap.',
+	},
+	{
+		id: 4,
+		role: 'agent',
+		content:
+			"Great team composition. Here's a suggested agenda:\n\n1. Welcome & introductions (5 min)\n2. Q2 objectives overview (15 min)\n3. Technical architecture review (20 min)\n4. Design system updates (15 min)\n5. Sprint planning & timeline (20 min)\n6. Q&A and next steps (10 min)\n\nShall I draft a more detailed outline for any of these sections?",
+	},
+	{
+		id: 5,
+		role: 'user',
+		content: 'Yes, can you expand on the technical architecture section?',
+	},
+	{
+		id: 6,
+		role: 'agent',
+		content:
+			'For the technical architecture section, I recommend covering:\n\n- Current system overview and pain points\n- Proposed microservices migration plan\n- API versioning strategy\n- Database scaling considerations\n- CI/CD pipeline improvements\n\nThis gives the team context on where we are and where we need to go.',
+	},
+]
+
+export default function ChatPageDemo() {
+	const [messages, setMessages] = useState(initialMessages)
+	const [input, setInput] = useState('')
+	const bodyRef = useRef<HTMLDivElement>(null)
+
+	const send = () => {
+		const text = input.trim()
+
+		if (!text) return
+
+		const userMsg: Message = { id: Date.now(), role: 'user', content: text }
+
+		setMessages((prev) => [...prev, userMsg])
+		setInput('')
+
+		setTimeout(() => {
+			const agentMsg: Message = {
+				id: Date.now() + 1,
+				role: 'agent',
+				content:
+					'Thanks for sharing that. Let me think about the best approach and get back to you with a detailed plan.',
+			}
+
+			setMessages((prev) => [...prev, agentMsg])
+
+			requestAnimationFrame(() => {
+				bodyRef.current?.scrollTo({ top: bodyRef.current.scrollHeight, behavior: 'smooth' })
+			})
+		}, 800)
+
+		requestAnimationFrame(() => {
+			bodyRef.current?.scrollTo({ top: bodyRef.current.scrollHeight, behavior: 'smooth' })
+		})
+	}
+
+	const sidebar = (
+		<Sidebar>
+			<SidebarHeader>
+				<Stack direction="row" align="center" gap={2}>
+					<Icon icon={<MessageSquare />} />
+					<Heading level={4}>Messages</Heading>
+				</Stack>
+			</SidebarHeader>
+			<SidebarDivider />
+			<SidebarBody>
+				<SidebarSection>
+					{conversations.map((conv) => (
+						<SidebarItem key={conv.id} current={conv.active}>
+							<Stack gap={0}>
+								<SidebarLabel>{conv.title}</SidebarLabel>
+								<Text className="text-xs truncate" variant="muted">
+									{conv.preview}
+								</Text>
+							</Stack>
+						</SidebarItem>
+					))}
+				</SidebarSection>
+			</SidebarBody>
+		</Sidebar>
+	)
+
+	return (
+		<Example>
+			<Box className="h-[600px]">
+				<ChatPage
+					sidebar={sidebar}
+					bodyRef={bodyRef}
+					navbar={<Heading level={4}>Project kickoff</Heading>}
+					title={
+						<Stack direction="row" align="center" gap={3}>
+							<Avatar initials="PK" size="sm" />
+							<Heading level={3}>Project kickoff</Heading>
+						</Stack>
+					}
+					messages={messages.map((msg) => (
+						<ChatMessage key={msg.id} role={msg.role}>
+							{msg.content}
+						</ChatMessage>
+					))}
+					prompt={
+						<Textarea
+							placeholder="Type a message..."
+							value={input}
+							onChange={(e) => setInput(e.target.value)}
+							onKeyDown={(e) => {
+								if (e.key === 'Enter' && !e.shiftKey) {
+									e.preventDefault()
+									send()
+								}
+							}}
+							rows={2}
+							actions={
+								<Button size="sm" color="blue" onClick={send}>
+									<Icon icon={<Send />} />
+								</Button>
+							}
+						/>
+					}
+				/>
+			</Box>
+		</Example>
+	)
+}

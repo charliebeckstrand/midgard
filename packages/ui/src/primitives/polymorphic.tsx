@@ -24,6 +24,7 @@ export type PolymorphicProps<Fallback extends keyof React.JSX.IntrinsicElements>
 export function Polymorphic<Fallback extends keyof React.JSX.IntrinsicElements>({
 	as,
 	href,
+	ref,
 	dataSlot,
 	className,
 	children,
@@ -31,6 +32,7 @@ export function Polymorphic<Fallback extends keyof React.JSX.IntrinsicElements>(
 }: {
 	as: Fallback
 	href: string | undefined
+	ref?: React.Ref<Element>
 	dataSlot: string
 	className: string
 	children: React.ReactNode
@@ -52,6 +54,7 @@ export function Polymorphic<Fallback extends keyof React.JSX.IntrinsicElements>(
 
 	return (
 		<Element
+			ref={ref}
 			data-slot={dataSlot}
 			type={as === 'button' ? 'button' : undefined}
 			className={className}
