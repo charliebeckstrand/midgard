@@ -2,5 +2,10 @@ pre-commit:
   jobs:
     - name: biome check
       run: pnpm biome check
+      priority: 1
+    - name: check-types
+      run: pnpm check-types
+      priority: 2
     - name: test
       run: pnpm --filter ui test
+      priority: 3

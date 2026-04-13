@@ -4,7 +4,7 @@ import { UsersIcon } from '@heroicons/react/20/solid'
 import { usePathname } from 'next/navigation'
 import type { ReactNode } from 'react'
 import { SidebarLayout } from 'ui/layouts'
-import { Navbar, NavbarSpacer } from 'ui/navbar'
+import { Navbar } from 'ui/navbar'
 import { ShinyText } from 'ui/shiny-text'
 import {
 	Sidebar,
@@ -15,6 +15,7 @@ import {
 	SidebarLabel,
 	SidebarSection,
 } from 'ui/sidebar'
+import { Spacer } from 'ui/spacer'
 import { SidebarUserMenu } from './sidebar-user-menu'
 
 type User = { email: string; name?: string }
@@ -26,7 +27,7 @@ export function DashboardClient({ user, children }: { user?: User; children: Rea
 		<SidebarLayout
 			navbar={
 				<Navbar>
-					<NavbarSpacer />
+					<Spacer />
 				</Navbar>
 			}
 			sidebar={

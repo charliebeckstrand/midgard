@@ -7,7 +7,7 @@ import { type ReactNode, useCallback, useMemo } from 'react'
 import { useChat } from 'sindri/chat'
 import { useArrowAction } from 'ui/hooks'
 import { SidebarLayout } from 'ui/layouts'
-import { Navbar, NavbarSpacer } from 'ui/navbar'
+import { Navbar } from 'ui/navbar'
 import { ShinyText } from 'ui/shiny-text'
 import {
 	Sidebar,
@@ -18,6 +18,7 @@ import {
 	SidebarLabel,
 	SidebarSection,
 } from 'ui/sidebar'
+import { Spacer } from 'ui/spacer'
 import { ChatContext } from './context'
 import { SidebarUserMenu } from './sidebar-user-menu'
 import type { Chat } from './types'
@@ -105,7 +106,7 @@ export function ChatClient({
 		<SidebarLayout
 			navbar={
 				<Navbar>
-					<NavbarSpacer />
+					<Spacer />
 				</Navbar>
 			}
 			sidebar={
