@@ -279,6 +279,10 @@
 			"types": "./src/components/toast/index.ts",
 			"default": "./src/components/toast/index.ts"
 		},
+		"./toggle-icon-button": {
+			"types": "./src/components/toggle-icon-button/index.ts",
+			"default": "./src/components/toggle-icon-button/index.ts"
+		},
 		"./tooltip": {
 			"types": "./src/components/tooltip/index.ts",
 			"default": "./src/components/tooltip/index.ts"

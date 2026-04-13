@@ -17,8 +17,7 @@ export type CopyButtonProps = {
 	className?: string
 } & Omit<React.ComponentPropsWithoutRef<'button'>, 'children' | 'type' | 'color'>
 
-const iconTransition =
-	'transition-[opacity,filter,scale] duration-300 ease-in-out will-change-[opacity,filter,scale]'
+const k = katachi.toggleIconButton
 
 export function CopyButton({
 	value,
@@ -56,19 +55,14 @@ export function CopyButton({
 			aria-label={isCopied ? 'Copied' : 'Copy to clipboard'}
 			className={cn(katachi.copyButton.base, className)}
 		>
-			<span
-				className={cn(
-					iconTransition,
-					isCopied ? 'blur-xs scale-[0.25] opacity-0' : 'scale-100 opacity-100 blur-0',
-				)}
-			>
+			<span className={cn(k.transition, isCopied ? k.inactive : k.active)}>
 				<Icon icon={icon ?? <Clipboard />} />
 			</span>
 			<span
 				className={cn(
 					'absolute inset-0 flex items-center justify-center text-green-600',
-					iconTransition,
-					isCopied ? 'scale-100 opacity-100 blur-0' : 'blur-xs scale-[0.25] opacity-0',
+					k.transition,
+					isCopied ? k.active : k.inactive,
 				)}
 			>
 				<Icon icon={<Check />} />
