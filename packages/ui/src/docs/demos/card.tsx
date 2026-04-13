@@ -9,7 +9,6 @@ import {
 	CardHeader,
 	CardTitle,
 } from '../../components/card'
-import { Code } from '../../components/code'
 import { Text } from '../../components/text'
 import { code } from '../code'
 import { Example } from '../components/example'
