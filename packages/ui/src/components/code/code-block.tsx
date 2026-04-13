@@ -9,10 +9,22 @@ import { codeBlockVariants } from './variants'
 
 const k = katachi.code.block
 
+const MAX_CACHE_SIZE = 200
+
 /** Shared cache keyed by `${theme}\u0000${lang}\u0000${code}`. Avoids re-tokenizing on remount. */
 const htmlCache = new Map<string, string>()
 
 const cacheKey = (code: string, lang: string, theme: string) => `${theme}\u0000${lang}\u0000${code}`
+
+function cacheSet(key: string, value: string) {
+	if (htmlCache.size >= MAX_CACHE_SIZE) {
+		const first = htmlCache.keys().next().value as string
+
+		htmlCache.delete(first)
+	}
+
+	htmlCache.set(key, value)
+}
 
 export type CodeBlockProps = {
 	code: string
@@ -59,7 +71,7 @@ export function CodeBlock({
 				},
 			],
 		}).then((result) => {
-			htmlCache.set(key, result)
+			cacheSet(key, result)
 
 			if (!cancelled) setHtml(result)
 		})

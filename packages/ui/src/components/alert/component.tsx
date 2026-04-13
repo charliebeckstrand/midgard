@@ -121,8 +121,8 @@ export function Alert({
 						aria-label="Dismiss"
 						className={cn(k.close, 'self-center')}
 						onClick={() => {
-							setDismissed(true)
-							onClose?.()
+							if (onClose) onClose()
+							else setDismissed(true)
 						}}
 					>
 						<Icon icon={<X />} />

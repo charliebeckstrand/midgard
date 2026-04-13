@@ -27,12 +27,13 @@ export function MenuContent({ className, children }: MenuContentProps) {
 
 	if (isStatic) {
 		return (
-			<div
+			<PopoverPanel
 				role="menu"
+				itemSelector='[role="menuitem"]:not([data-disabled])'
 				className={cn(omote.popover, maru.rounded, 'p-1 space-y-0.5', k.content, className)}
 			>
 				{children}
-			</div>
+			</PopoverPanel>
 		)
 	}
 

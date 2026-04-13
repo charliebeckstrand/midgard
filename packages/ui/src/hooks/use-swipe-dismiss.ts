@@ -103,6 +103,7 @@ function attachDrag(panel: HTMLDivElement, side: Side, onCloseRef: React.RefObje
 
 	function handleTouchStart(e: TouchEvent) {
 		const touch = e.touches[0]
+		if (!touch) return
 
 		startX = touch.clientX
 		startY = touch.clientY
@@ -119,6 +120,8 @@ function attachDrag(panel: HTMLDivElement, side: Side, onCloseRef: React.RefObje
 
 	function handleTouchMove(e: TouchEvent) {
 		const touch = e.touches[0]
+
+		if (!touch) return
 
 		const dx = touch.clientX - startX
 		const dy = touch.clientY - startY
@@ -178,6 +181,7 @@ function attachDrag(panel: HTMLDivElement, side: Side, onCloseRef: React.RefObje
 		if (!tracking) return
 
 		const touch = e.changedTouches[0]
+		if (!touch) return
 
 		const delta = isVertical ? touch.clientY - startY : touch.clientX - startX
 
