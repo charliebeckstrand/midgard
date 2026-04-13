@@ -43,8 +43,10 @@ const yoru = {
 // ── Garasu (ガラス) — Glass overrides ───────────────────
 const garasu = {
 	item: [
-		'group-data-[glass]/glass:not-disabled:not-data-disabled:hover:bg-white/10',
-		'group-data-[glass]/glass:not-disabled:not-data-disabled:focus:bg-white/10',
+		'group-data-[glass]/glass:not-disabled:not-data-disabled:hover:bg-zinc-950/10',
+		'group-data-[glass]/glass:not-disabled:not-data-disabled:focus:bg-zinc-950/10',
+		'dark:group-data-[glass]/glass:not-disabled:not-data-disabled:hover:bg-white/10',
+		'dark:group-data-[glass]/glass:not-disabled:not-data-disabled:focus:bg-white/10',
 	],
 }
 
