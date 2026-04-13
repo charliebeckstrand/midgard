@@ -7,14 +7,30 @@ export default defineConfig({
 	root: 'src/docs',
 	plugins: [react(), tailwindcss()],
 	server: { port: 3456 },
+	resolve: {
+		alias: [
+			// Use the web bundle (web-relevant languages only) instead of all ~300 grammars.
+			// The public CodeBlock component still references 'shiki' — this alias only
+			// affects the docs build. Regex ensures shiki/wasm etc. are not rewritten.
+			{ find: /^shiki$/, replacement: 'shiki/bundle/web' },
+		],
+	},
 	build: {
 		target: 'esnext',
 		rollupOptions: {
 			output: {
-				manualChunks: {
-					'vendor-react': ['react', 'react-dom'],
-					'vendor-shiki': ['shiki'],
-					'vendor-ui': ['motion', '@floating-ui/react', 'lucide-react'],
+				manualChunks(id) {
+					if (id.includes('node_modules/react-dom') || id.includes('node_modules/react/')) {
+						return 'vendor-react'
+					}
+
+					if (
+						id.includes('node_modules/motion') ||
+						id.includes('node_modules/@floating-ui') ||
+						id.includes('node_modules/lucide-react')
+					) {
+						return 'vendor-ui'
+					}
 				},
 			},
 		},
