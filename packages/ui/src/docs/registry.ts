@@ -104,7 +104,9 @@ export const demos = Object.entries(modules)
 			.replace('.tsx', '')
 			.replace(/\//g, '-')
 
-		const name = mod.meta?.name ?? id.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+		const label = id.replace(/^pages-/, '')
+
+		const name = mod.meta?.name ?? label.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
 
 		const category = mod.meta?.category ?? 'Other'
 
