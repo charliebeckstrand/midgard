@@ -22,7 +22,7 @@ export function Radio({ className, color, ...props }: RadioProps) {
 	}
 
 	return (
-		<span
+		<label
 			data-slot="control"
 			className={cn(k.wrapper, radioVariants(), radioColorVariants({ color }))}
 		>
@@ -37,7 +37,7 @@ export function Radio({ className, color, ...props }: RadioProps) {
 				aria-hidden="true"
 				className="absolute size-1.5 rounded-full bg-(--radio-checked-indicator) opacity-0 pointer-events-none"
 			/>
-		</span>
+		</label>
 	)
 }
 

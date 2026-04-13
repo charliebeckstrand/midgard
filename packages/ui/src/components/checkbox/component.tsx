@@ -24,7 +24,7 @@ export function Checkbox({ className, color, icon, ...props }: CheckboxProps) {
 	}
 
 	return (
-		<span
+		<label
 			data-slot="control"
 			className={cn(k.wrapper, checkboxVariants(), checkboxColorVariants({ color }))}
 		>
@@ -42,7 +42,7 @@ export function Checkbox({ className, color, icon, ...props }: CheckboxProps) {
 					strokeWidth={2}
 				/>
 			)}
-		</span>
+		</label>
 	)
 }
 

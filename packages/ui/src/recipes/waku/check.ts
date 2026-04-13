@@ -1,7 +1,7 @@
 // ── Motoi (基) ──────────────────────────────────────────
 const motoi = {
 	check: [
-		'absolute -inset-3 opacity-0 cursor-pointer',
+		'absolute inset-0 opacity-0 cursor-pointer',
 		'disabled:cursor-not-allowed',
 		'forced-colors:opacity-100 forced-colors:appearance-auto forced-colors:checked:appearance-auto',
 	],
