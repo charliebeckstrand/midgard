@@ -52,7 +52,11 @@ vi.mock('motion/react', () => {
 		return children
 	}
 
-	return { motion, AnimatePresence }
+	function LayoutGroup({ children }: { children: React.ReactNode }) {
+		return children
+	}
+
+	return { motion, AnimatePresence, LayoutGroup }
 })
 
 // ── Browser API stubs ───────────────────────────────
