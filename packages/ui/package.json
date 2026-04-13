@@ -55,6 +55,10 @@
 			"types": "./src/components/banner/index.ts",
 			"default": "./src/components/banner/index.ts"
 		},
+		"./bottom-nav": {
+			"types": "./src/components/bottom-nav/index.ts",
+			"default": "./src/components/bottom-nav/index.ts"
+		},
 		"./box": {
 			"types": "./src/components/box/index.ts",
 			"default": "./src/components/box/index.ts"
@@ -286,6 +290,10 @@
 		"./tabs": {
 			"types": "./src/components/tabs/index.ts",
 			"default": "./src/components/tabs/index.ts"
+		},
+		"./tag-input": {
+			"types": "./src/components/tag-input/index.ts",
+			"default": "./src/components/tag-input/index.ts"
 		},
 		"./text": {
 			"types": "./src/components/text/index.ts",
