@@ -215,9 +215,17 @@
 			"types": "./src/components/radio/index.ts",
 			"default": "./src/components/radio/index.ts"
 		},
+		"./resizable": {
+			"types": "./src/components/resizable/index.ts",
+			"default": "./src/components/resizable/index.ts"
+		},
 		"./scroll-area": {
 			"types": "./src/components/scroll-area/index.ts",
 			"default": "./src/components/scroll-area/index.ts"
+		},
+		"./segmented-control": {
+			"types": "./src/components/segmented-control/index.ts",
+			"default": "./src/components/segmented-control/index.ts"
 		},
 		"./select": {
 			"types": "./src/components/select/index.ts",
