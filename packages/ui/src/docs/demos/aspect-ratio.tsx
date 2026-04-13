@@ -51,7 +51,7 @@ function PresetsExample() {
 				<AspectRatio ratio={ratio} />
 			`}
 		>
-			<Sizer size="full">
+			<Sizer size="xl">
 				<AspectRatio ratio={ratio} className={placeholder}>
 					{ratio}
 				</AspectRatio>
@@ -75,7 +75,7 @@ export default function AspectRatioDemo() {
 					</AspectRatio>
 				`}
 			>
-				<Sizer size="full">
+				<Sizer size="xl">
 					<AspectRatio ratio={1.618} className={placeholder}>
 						golden (1.618)
 					</AspectRatio>
