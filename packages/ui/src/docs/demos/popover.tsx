@@ -53,23 +53,53 @@ export default function PopoverDemo() {
 			</Example>
 
 			<Example title="Placement">
-				<div className="flex flex-wrap items-center justify-center gap-4 py-8">
-					{placements.map((placement) => (
-						<Popover key={placement} placement={placement}>
-							<PopoverTrigger>
-								<Button variant="outline">
-									{(placement === 'left' || placement === 'top') && (
-										<Icon icon={iconMap[placement]} />
-									)}
-									{placement}
-									{(placement === 'right' || placement === 'bottom') && (
-										<Icon icon={iconMap[placement]} />
-									)}
-								</Button>
-							</PopoverTrigger>
-							<PopoverContent>Popover on {placement}</PopoverContent>
-						</Popover>
-					))}
+				<div>
+					<div className="hidden items-center justify-center gap-4 sm:flex">
+						{placements.map((placement) => (
+							<Popover key={placement} placement={placement}>
+								<PopoverTrigger>
+									<Button variant="outline">
+										{(placement === 'left' || placement === 'top') && (
+											<Icon icon={iconMap[placement]} />
+										)}
+										{placement}
+										{(placement === 'right' || placement === 'bottom') && (
+											<Icon icon={iconMap[placement]} />
+										)}
+									</Button>
+								</PopoverTrigger>
+								<PopoverContent>Popover {placement}</PopoverContent>
+							</Popover>
+						))}
+					</div>
+					<div className="space-y-4 sm:hidden">
+						<div className="flex flex-col gap-4">
+							{(['right', 'bottom'] as const).map((placement) => (
+								<Popover key={placement} placement={placement}>
+									<PopoverTrigger>
+										<Button variant="outline" className="self-start">
+											{placement}
+											<Icon icon={iconMap[placement]} />
+										</Button>
+									</PopoverTrigger>
+									<PopoverContent>Popover {placement}</PopoverContent>
+								</Popover>
+							))}
+						</div>
+						<div className="flex flex-col items-end gap-4">
+							{(['top', 'left'] as const).map((placement) => (
+								<Popover key={placement} placement={placement}>
+									<PopoverTrigger>
+										<Button variant="outline" className="self-end">
+											<Icon icon={iconMap[placement]} />
+											{placement}
+										</Button>
+									</PopoverTrigger>
+									<PopoverContent>Popover {placement}</PopoverContent>
+								</Popover>
+							))}
+						</div>
+					</div>
 				</div>
 			</Example>
 		</div>

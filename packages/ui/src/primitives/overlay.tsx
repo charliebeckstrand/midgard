@@ -48,7 +48,7 @@ export function Overlay({
 	return createPortal(
 		<AnimatePresence>
 			{open && (
-				<div className="fixed inset-0 z-[99]" {...props}>
+				<div className="fixed inset-0 z-99" {...props}>
 					<motion.div
 						{...ugoki.overlay}
 						className={
