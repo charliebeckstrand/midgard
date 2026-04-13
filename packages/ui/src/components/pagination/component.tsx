@@ -1,6 +1,14 @@
+'use client'
+
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '../../core'
-import { Polymorphic, type PolymorphicProps } from '../../primitives'
+import {
+	ActiveIndicator,
+	ActiveIndicatorScope,
+	Polymorphic,
+	type PolymorphicProps,
+	useActiveIndicator,
+} from '../../primitives'
 import { Button, type ButtonProps } from '../button'
 import { Icon } from '../icon'
 import {
@@ -38,13 +46,17 @@ export function Pagination({ className, ...props }: PaginationProps) {
 	)
 }
 
-export function PaginationList({ className, ...props }: PaginationListProps) {
+export function PaginationList({ className, children, ...props }: PaginationListProps) {
 	return (
-		<ol
-			data-slot="pagination-list"
-			className={cn(paginationListVariants(), className)}
-			{...props}
-		/>
+		<ActiveIndicatorScope>
+			<ol
+				data-slot="pagination-list"
+				className={cn(paginationListVariants(), className)}
+				{...props}
+			>
+				{children}
+			</ol>
+		</ActiveIndicatorScope>
 	)
 }
 
@@ -55,6 +67,8 @@ export function PaginationPage({
 	href,
 	...props
 }: PaginationPageProps) {
+	const indicator = useActiveIndicator()
+
 	return (
 		<li>
 			<Polymorphic
@@ -63,9 +77,11 @@ export function PaginationPage({
 				href={href}
 				aria-current={current ? 'page' : undefined}
 				className={cn(pageButtonVariants({ current }), className)}
+				{...indicator.tapHandlers}
 				{...props}
 			>
 				<span className="relative z-10">{children}</span>
+				{current && <ActiveIndicator ref={indicator.ref} />}
 			</Polymorphic>
 		</li>
 	)
