@@ -10,7 +10,9 @@ type DemoModule = {
 	meta?: { name?: string; category?: string }
 }
 
-const modules = import.meta.glob<DemoModule>('./demos/*.tsx', { eager: true })
+const modules = import.meta.glob<DemoModule>(['./demos/*.tsx', './demos/pages/*.tsx'], {
+	eager: true,
+})
 
 // Import all component source files for prop extraction.
 // Primitives are included so cross-module type refs (e.g. PolymorphicProps) resolve.
@@ -97,7 +99,7 @@ const componentApis = buildComponentApis()
 
 export const demos = Object.entries(modules)
 	.map(([path, mod]) => {
-		const id = path.replace('./demos/', '').replace('.tsx', '')
+		const id = path.replace(/^\.\/demos\/(?:.*\/)?/, '').replace('.tsx', '')
 
 		const name = mod.meta?.name ?? id.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
 

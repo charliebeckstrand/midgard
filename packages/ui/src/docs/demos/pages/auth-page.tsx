@@ -1,17 +1,21 @@
-import { useState } from 'react'
-import { Button } from '../../components/button'
-import { Field, Label } from '../../components/fieldset'
-import { Heading } from '../../components/heading'
-import { Input } from '../../components/input'
-import { PasswordInput } from '../../components/password-input'
-import { AuthPage } from '../../pages'
-import { Example } from '../components/example'
+'use client'
 
-export const meta = { category: 'Layout' }
+import { useState } from 'react'
+import { Button } from '../../../components/button'
+import { Field, Label } from '../../../components/fieldset'
+import { Heading } from '../../../components/heading'
+import { Input } from '../../../components/input'
+import { NavItem, NavList, NavProvider } from '../../../components/nav'
+import { Navbar } from '../../../components/navbar'
+import { PasswordInput } from '../../../components/password-input'
+import { AuthPage } from '../../../pages'
+import { Example } from '../../components/example'
+
+export const meta = { category: 'Pages' }
 
 type Page = 'login' | 'register' | 'forgot-password'
 
-export default function PagesDemo() {
+export default function AuthPageDemo() {
 	const [page, setPage] = useState<Page>('login')
 
 	const [submitting, setSubmitting] = useState(false)
@@ -26,13 +30,15 @@ export default function PagesDemo() {
 
 	return (
 		<Example>
-			<div className="flex gap-2">
-				{(['login', 'register', 'forgot-password'] as const).map((p) => (
-					<Button key={p} variant={page === p ? 'solid' : 'outline'} onClick={() => setPage(p)}>
-						{p}
-					</Button>
-				))}
-			</div>
+			<Navbar>
+				<NavProvider value={{ value: page, onChange: (v) => setPage(v as Page) }}>
+					<NavList orientation="horizontal">
+						<NavItem value="login">Login</NavItem>
+						<NavItem value="register">Register</NavItem>
+						<NavItem value="forgot-password">Forgot Password</NavItem>
+					</NavList>
+				</NavProvider>
+			</Navbar>
 			<div>
 				{page === 'login' && (
 					<AuthPage

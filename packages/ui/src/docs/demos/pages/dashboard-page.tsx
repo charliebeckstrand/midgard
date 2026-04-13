@@ -1,16 +1,16 @@
 'use client'
 
 import { Search } from 'lucide-react'
-import { Card, CardBody, CardHeader, CardTitle } from '../../components/card'
-import { Grid } from '../../components/grid'
-import { Heading } from '../../components/heading'
-import { Icon } from '../../components/icon'
-import { Input } from '../../components/input'
-import { Select, SelectLabel, SelectOption } from '../../components/select'
-import { Sizer } from '../../components/sizer'
-import { Spacer } from '../../components/spacer'
-import { Stack } from '../../components/stack'
-import { Stat, StatDelta, StatLabel, StatValue } from '../../components/stat'
+import { Card, CardBody, CardHeader, CardTitle } from '../../../components/card'
+import { Grid } from '../../../components/grid'
+import { Heading } from '../../../components/heading'
+import { Icon } from '../../../components/icon'
+import { Input } from '../../../components/input'
+import { Select, SelectLabel, SelectOption } from '../../../components/select'
+import { Sizer } from '../../../components/sizer'
+import { Spacer } from '../../../components/spacer'
+import { Stack } from '../../../components/stack'
+import { Stat, StatDelta, StatLabel, StatValue } from '../../../components/stat'
 import {
 	Table,
 	TableBody,
@@ -18,9 +18,9 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow,
-} from '../../components/table'
-import { DashboardPage } from '../../pages'
-import { Example } from '../components/example'
+} from '../../../components/table'
+import { DashboardPage } from '../../../pages'
+import { Example } from '../../components/example'
 
 export const meta = { category: 'Pages' }
 
