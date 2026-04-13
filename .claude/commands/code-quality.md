@@ -201,7 +201,151 @@ const result = items.map(transform)
 
 Use `.map()`, `.filter()`, `.flatMap()`, `.find()`, `for...of` over index-based loops. Only keep index loops when the index itself is needed beyond array access.
 
-### 5. Check component conventions (if UI code changed)
+### 5. Enforce line formatting
+
+Blank lines separate unrelated concerns. Missing blank lines create walls of text; excessive blank lines fragment logic. Read the changed files and enforce these rules — they are **hard rules**, fix every violation:
+
+#### Between top-level declarations — always one blank line
+
+Every exported function, type, const, or component must be separated by exactly one blank line from its neighbors. No exceptions.
+
+```ts
+// Correct
+export type CardProps = { className?: string; children?: React.ReactNode }
+
+export function Card({ className, children }: CardProps) {
+	return <div className={cn(k.base, className)}>{children}</div>
+}
+
+export type CardHeaderProps = { className?: string; children?: React.ReactNode }
+
+export function CardHeader({ className, children }: CardHeaderProps) {
+	return <div className={cn(k.header, className)}>{children}</div>
+}
+```
+
+```ts
+// Wrong — declarations jammed together
+export type CardProps = { className?: string; children?: React.ReactNode }
+export function Card({ className, children }: CardProps) {
+	return <div className={cn(k.base, className)}>{children}</div>
+}
+export type CardHeaderProps = { className?: string; children?: React.ReactNode }
+export function CardHeader({ className, children }: CardHeaderProps) {
+	return <div className={cn(k.header, className)}>{children}</div>
+}
+```
+
+#### After `'use client'` — one blank line
+
+```ts
+'use client'
+
+import { motion } from 'motion/react'
+```
+
+#### After the import block — one blank line
+
+One blank line between the last import and the first declaration (type, const, function).
+
+#### Inside function bodies — blank lines between distinct concerns
+
+Group related statements together. Separate unrelated groups with one blank line. The common groupings in order:
+
+1. **Props destructuring / parameter setup**
+2. **Hook calls** (grouped by relatedness)
+3. **Derived state / computed values**
+4. **Conditional logic / early returns**
+5. **Return / JSX**
+
+```tsx
+// Correct — each concern is a distinct block
+export function Button({ variant, color, size, loading, className, children, ...props }: ButtonProps) {
+	const glass = useGlass()
+	const skeleton = useSkeleton()
+
+	const resolvedVariant = variant ?? (glass ? 'glass' : undefined)
+
+	if (skeleton) return <Placeholder className={className} />
+
+	return (
+		<button className={cn(buttonVariants({ variant: resolvedVariant, color, size }), className)} {...props}>
+			{children}
+		</button>
+	)
+}
+```
+
+```tsx
+// Wrong — everything runs together
+export function Button({ variant, color, size, loading, className, children, ...props }: ButtonProps) {
+	const glass = useGlass()
+	const skeleton = useSkeleton()
+	const resolvedVariant = variant ?? (glass ? 'glass' : undefined)
+	if (skeleton) return <Placeholder className={className} />
+	return (
+		<button className={cn(buttonVariants({ variant: resolvedVariant, color, size }), className)} {...props}>
+			{children}
+		</button>
+	)
+}
+```
+
+Specific patterns to watch for:
+
+- **Blank line after hook calls** before derived state or logic that consumes them
+- **Blank line before a return statement** when it's preceded by logic (not needed when the function body is a single return)
+- **Blank line before and after conditionals** (`if`/`switch`) that represent a distinct decision
+- **Blank line between unrelated const declarations** — two consts computing different things get a blank line; two consts setting up the same thing stay together
+
+```ts
+// Related — no blank line needed
+const sides = iconOnly ? { start: false, end: false } : iconSides(renderedChildren)
+const kbds = iconOnly ? { start: false, end: false } : kbdSides(renderedChildren)
+
+// Unrelated — blank line required
+const renderedChildren = loading ? withLoadingSpinner(children, loadingOptions) : children
+
+const iconOnly = isIconOnly(renderedChildren)
+```
+
+#### Inside JSX — blank lines between logically separate sections
+
+```tsx
+// Correct — prefix, input, and suffix are distinct sections
+{prefix && (
+	<span className={k.affix}>{prefix}</span>
+)}
+
+<input className={cn(k.input, className)} {...props} />
+
+{suffix && (
+	<span className={k.affix}>{suffix}</span>
+)}
+```
+
+#### Never more than one consecutive blank line
+
+Two or more blank lines in a row are always wrong. Collapse to one.
+
+#### No trailing blank lines inside blocks
+
+No blank line before a closing `}`, `)`, or `]`.
+
+```ts
+// Wrong
+function greet() {
+	return 'hello'
+
+}
+
+// Correct
+function greet() {
+	return 'hello'
+}
+```
+
+### 6. Check component conventions (if UI code changed)
 
 If any files under `packages/ui/src/components/` changed, additionally verify:
 
@@ -210,13 +354,13 @@ If any files under `packages/ui/src/components/` changed, additionally verify:
 - **Props are spread** onto the root element (`{...props}`)
 - **`'use client'`** directive present only when the component uses hooks, event handlers, or motion — not on purely presentational components
 
-### 6. Report and fix
+### 7. Report and fix
 
 For each issue found:
 1. Fix it directly in the file
 2. After all fixes, re-run `pnpm biome check --config-path=. <files>` to ensure your changes don't introduce formatting drift
 
-Summarize what you fixed in a short list, grouped by category (formatting, lint, type safety, idiom).
+Summarize what you fixed in a short list, grouped by category (formatting, line formatting, lint, type safety, idiom).
 
 ---
 
