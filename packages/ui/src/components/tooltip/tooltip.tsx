@@ -17,7 +17,7 @@ import {
 } from '@floating-ui/react'
 import { AnimatePresence, motion } from 'motion/react'
 import type React from 'react'
-import { cloneElement, isValidElement, useState } from 'react'
+import { isValidElement, useState } from 'react'
 import { cn } from '../../core'
 import { useHasHover } from '../../hooks'
 import { katachi, ugoki } from '../../recipes'
@@ -99,14 +99,7 @@ export function Tooltip({
 
 	for (const child of childArray) {
 		if (isValidElement(child) && child.type === TooltipTrigger) {
-			trigger = cloneElement(
-				child as React.ReactElement<{
-					_triggerProps: Record<string, unknown>
-				}>,
-				{
-					_triggerProps: getReferenceProps(),
-				},
-			)
+			trigger = child
 		}
 	}
 
@@ -143,20 +136,12 @@ export function Tooltip({
 	)
 }
 
-export function TooltipTrigger({
-	children,
-	...props
-}: TooltipTriggerProps & {
-	_triggerProps?: Record<string, unknown>
-}) {
+export function TooltipTrigger({ children }: TooltipTriggerProps) {
 	if (isValidElement(children)) {
-		return cloneElement(
-			children as React.ReactElement<Record<string, unknown>>,
-			props._triggerProps ?? {},
-		)
+		return children
 	}
 
-	return <span {...(props._triggerProps ?? {})}>{children}</span>
+	return <span>{children}</span>
 }
 
 export function TooltipContent(_props: TooltipContentProps) {
