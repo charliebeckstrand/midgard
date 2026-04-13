@@ -5,7 +5,7 @@ import { take } from '../take'
 
 export const toggleIconButton = {
 	base: [
-		'relative p-0',
+		'relative',
 		narabi.position.center,
 		maru.rounded,
 		sumi.textMuted,

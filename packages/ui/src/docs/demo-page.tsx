@@ -12,7 +12,6 @@ export function DemoPage({ demo }: { demo: Demo }) {
 			<demo.component />
 			{demo.api && (
 				<>
-					<Divider />
 					<Heading level={2}>API Reference</Heading>
 					<ApiReference api={demo.api} />
 				</>

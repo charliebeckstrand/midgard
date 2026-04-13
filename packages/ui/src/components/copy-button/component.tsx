@@ -4,8 +4,7 @@ import { Check, Clipboard } from 'lucide-react'
 import { type ReactElement, useCallback, useEffect, useState } from 'react'
 import { cn } from '../../core'
 import { katachi } from '../../recipes'
-import { Button } from '../button'
-import { Icon } from '../icon'
+import { ToggleIconButton } from '../toggle-icon-button'
 
 type Size = 'xs' | 'sm' | 'md' | 'lg'
 
@@ -16,8 +15,6 @@ export type CopyButtonProps = {
 	timeout?: number
 	className?: string
 } & Omit<React.ComponentPropsWithoutRef<'button'>, 'children' | 'type' | 'color'>
-
-const k = katachi.toggleIconButton
 
 export function CopyButton({
 	value,
@@ -45,28 +42,17 @@ export function CopyButton({
 	}, [isCopied, timeout])
 
 	return (
-		<Button
+		<ToggleIconButton
 			{...props}
-			variant="ghost"
+			pressed={isCopied}
+			icon={icon ?? <Clipboard />}
+			activeIcon={<Check />}
 			size={size}
 			data-slot="copy-button"
 			disabled={isCopied || disabled}
 			onClick={copy}
 			aria-label={isCopied ? 'Copied' : 'Copy to clipboard'}
 			className={cn(katachi.copyButton.base, className)}
-		>
-			<span className={cn(k.transition, isCopied ? k.inactive : k.active)}>
-				<Icon icon={icon ?? <Clipboard />} />
-			</span>
-			<span
-				className={cn(
-					'absolute inset-0 flex items-center justify-center text-green-600',
-					k.transition,
-					isCopied ? k.active : k.inactive,
-				)}
-			>
-				<Icon icon={<Check />} />
-			</span>
-		</Button>
+		/>
 	)
 }

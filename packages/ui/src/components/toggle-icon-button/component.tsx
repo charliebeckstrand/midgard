@@ -12,6 +12,7 @@ export type ToggleIconButtonProps = {
 	pressed: boolean
 	icon: ReactElement
 	activeIcon: ReactElement
+	animate?: boolean
 	size?: Size
 	className?: string
 } & Omit<React.ComponentPropsWithoutRef<'button'>, 'children' | 'type' | 'color'>
@@ -22,10 +23,26 @@ export function ToggleIconButton({
 	pressed,
 	icon,
 	activeIcon,
+	animate = true,
 	size = 'md',
 	className,
 	...props
 }: ToggleIconButtonProps) {
+	if (!animate) {
+		return (
+			<Button
+				{...props}
+				variant="ghost"
+				size={size}
+				data-slot="toggle-icon-button"
+				aria-pressed={pressed}
+				className={cn(k.base, className)}
+			>
+				<Icon icon={pressed ? activeIcon : icon} />
+			</Button>
+		)
+	}
+
 	return (
 		<Button
 			{...props}
