@@ -71,6 +71,7 @@ export function TreeItem({
 				role="treeitem"
 				aria-expanded={hasChildren ? open : undefined}
 				data-slot="tree-item-content"
+				data-open={open || undefined}
 				className={cn('group/tree-item', k.itemContent, active && k.itemContentActive, className)}
 				style={{ paddingLeft: `${depth * 1.375 + 0.5}rem` }}
 				onClick={() => hasChildren && setOpen((prev) => !prev)}
