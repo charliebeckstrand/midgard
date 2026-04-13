@@ -3,6 +3,7 @@
 import { motion } from 'motion/react'
 import type React from 'react'
 import { cn, createContext } from '../../core'
+import { useSwipeDismiss } from '../../hooks'
 import { Overlay } from '../../primitives'
 import { ugoki } from '../../recipes'
 import { useGlass } from '../glass/context'
@@ -24,6 +25,7 @@ export type DrawerProps = DrawerPanelVariants & {
 export function Drawer({ open, onClose, glass, className, children }: DrawerProps) {
 	const glassContext = useGlass()
 	const resolvedGlass = glass ?? glassContext
+	const swipeRef = useSwipeDismiss('bottom', onClose)
 
 	return (
 		<Overlay
@@ -32,6 +34,7 @@ export function Drawer({ open, onClose, glass, className, children }: DrawerProp
 			className={drawerBackdropVariants({ glass: resolvedGlass })}
 		>
 			<motion.div
+				ref={swipeRef}
 				{...ugoki.panel.bottom}
 				role="dialog"
 				aria-modal="true"
@@ -39,6 +42,10 @@ export function Drawer({ open, onClose, glass, className, children }: DrawerProp
 				onClick={(e) => e.stopPropagation()}
 				className={cn(drawerPanelVariants({ glass: resolvedGlass }), className)}
 			>
+				<div
+					aria-hidden="true"
+					className="mx-auto mt-3 mb-1 h-1.5 w-10 shrink-0 rounded-full bg-current opacity-20"
+				/>
 				<DrawerProvider value={{ onClose }}>{children}</DrawerProvider>
 			</motion.div>
 		</Overlay>
