@@ -8,7 +8,7 @@ import { waku } from '../waku'
 export const radio = {
 	wrapper: [
 		narabi.position.centerInline,
-		'relative size-4.5',
+		'relative size-4.5 cursor-pointer',
 		'has-checked:*:data-[slot=radio-indicator]:opacity-100',
 		ki.outline,
 	],

@@ -7,7 +7,7 @@ import { waku } from '../waku'
 export const checkbox = {
 	wrapper: [
 		narabi.position.centerInline,
-		'relative size-4.5',
+		'relative size-4.5 cursor-pointer',
 		'has-checked:*:data-[slot=checkbox-check]:opacity-100',
 		ki.outline,
 	],

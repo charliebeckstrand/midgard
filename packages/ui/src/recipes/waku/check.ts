@@ -1,9 +1,8 @@
 // ── Motoi (基) ──────────────────────────────────────────
 const motoi = {
 	check: [
-		'absolute inset-0 opacity-0 cursor-pointer',
-		'disabled:cursor-not-allowed',
-		'forced-colors:opacity-100 forced-colors:appearance-auto forced-colors:checked:appearance-auto',
+		'absolute inset-0 opacity-0 pointer-events-none',
+		'forced-colors:opacity-100 forced-colors:pointer-events-auto forced-colors:appearance-auto forced-colors:checked:appearance-auto',
 	],
 	surface: ['border shadow-xs', 'has-[:disabled]:opacity-50 has-[:disabled]:cursor-not-allowed'],
 }
