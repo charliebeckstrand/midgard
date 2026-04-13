@@ -49,29 +49,30 @@ type ComboboxBaseProps<T> = {
 	children: React.ReactNode | ((query: string) => React.ReactNode)
 }
 
+type ComboboxSingleProps<T> = {
+	multiple?: false
+	value?: T
+	defaultValue?: T
+	onChange?: (value: T) => void
+}
+
+type ComboboxMultipleProps<T> = {
+	multiple: true
+	value?: T[]
+	defaultValue?: T[]
+	onChange?: (value: T[]) => void
+}
+
 export type ComboboxProps<T> = ComboboxBaseProps<T> &
-	(
-		| {
-				multiple?: false
-				value?: T
-				defaultValue?: T
-				onChange?: (value: T) => void
-		  }
-		| {
-				multiple: true
-				value?: T[]
-				defaultValue?: T[]
-				onChange?: (value: T[]) => void
-		  }
-	)
+	(ComboboxSingleProps<T> | ComboboxMultipleProps<T>)
 
 export function Combobox<T>({
 	value: valueProp,
 	defaultValue,
+	displayValue,
 	onChange,
 	multiple = false,
 	placeholder = 'Search',
-	displayValue,
 	placement = 'bottom-start',
 	icon,
 	selectable = true,

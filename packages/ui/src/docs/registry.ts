@@ -126,6 +126,7 @@ const categoryOrder = [
 	'Overlay',
 	'Navigation',
 	'Layout',
+	'Pages',
 	'Other',
 ]
 

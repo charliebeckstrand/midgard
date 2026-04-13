@@ -6,6 +6,8 @@ import { Checkbox, CheckboxField, CheckboxGroup } from '../../components/checkbo
 import { Description, Field, Label } from '../../components/fieldset'
 import { Heading } from '../../components/heading'
 import { Input } from '../../components/input'
+import { PasswordConfirm, PasswordConfirmInput } from '../../components/password-confirm'
+import { PasswordInput } from '../../components/password-input'
 import { Select, SelectLabel, SelectOption } from '../../components/select'
 import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'
@@ -15,7 +17,7 @@ import { Textarea } from '../../components/textarea'
 import { SettingsPage } from '../../pages'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Layout' }
+export const meta = { category: 'Pages' }
 
 type TabId = 'profile' | 'notifications' | 'security'
 
@@ -126,7 +128,7 @@ export default function SettingsPageDemo() {
 
 								<div>
 									<Label>Push notifications</Label>
-									<Stack gap={3} className="pt-2">
+									<Stack gap={3} className="pt-4">
 										<SwitchField>
 											<Label htmlFor="push-dm">Direct messages</Label>
 											<Switch id="push-dm" defaultChecked />
@@ -148,16 +150,22 @@ export default function SettingsPageDemo() {
 							<Sizer size="lg" gap={6}>
 								<Field>
 									<Label>Current password</Label>
-									<Input type="password" placeholder="Enter current password" />
+									<PasswordInput placeholder="Enter current password" />
 								</Field>
-								<Field>
-									<Label>New password</Label>
-									<Input type="password" placeholder="Enter new password" />
-								</Field>
-								<Field>
-									<Label>Confirm new password</Label>
-									<Input type="password" placeholder="Confirm new password" />
-								</Field>
+								<PasswordConfirm
+									className="space-y-6"
+									valid="Passwords match"
+									warning="Passwords do not match"
+								>
+									<Field>
+										<Label>New password</Label>
+										<PasswordInput placeholder="Enter new password" />
+									</Field>
+									<Field>
+										<Label>Confirm new password</Label>
+										<PasswordConfirmInput placeholder="Confirm new password" />
+									</Field>
+								</PasswordConfirm>
 								<SwitchField>
 									<Label htmlFor="switch-2fa">Two-factor authentication</Label>
 									<Description>Add an extra layer of security to your account</Description>

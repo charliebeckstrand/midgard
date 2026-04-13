@@ -36,13 +36,14 @@ export function DashboardLayout({ filters, children }: DashboardLayoutProps) {
 	}, [])
 
 	return (
-		<Stack gap={0} className="min-h-dvh w-full bg-white dark:bg-zinc-950">
+		<Stack gap={0} className="w-full bg-white dark:bg-zinc-950">
 			{filters && (
 				<>
 					{/* Filters visible on desktop */}
-					<Box p={6} bg="surface" className="shrink-0 max-lg:hidden">
+					<Box p={6} className="shrink-0 max-lg:hidden">
 						{filters}
 					</Box>
+
 					<Divider soft className="max-lg:hidden" />
 
 					{/* Filters button on mobile */}

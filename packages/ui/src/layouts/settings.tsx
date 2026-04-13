@@ -11,7 +11,7 @@ export type SettingsLayoutProps = React.PropsWithChildren<{
 
 export function SettingsLayout({ heading, tabs, children, actions }: SettingsLayoutProps) {
 	return (
-		<Stack gap={0} className="min-h-dvh w-full bg-white dark:bg-zinc-950">
+		<Stack gap={0} className="w-full bg-white dark:bg-zinc-950">
 			{heading && (
 				<Box px={6} className="shrink-0 pt-6">
 					{heading}

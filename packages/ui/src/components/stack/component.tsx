@@ -24,6 +24,8 @@ export type StackProps = {
 	wrap?: boolean
 	/** Render as `inline-flex` instead of `flex`. */
 	inline?: boolean
+	/** Optional width, useful when `inline` is true. */
+	width?: 'full' | 'min' | 'max' | 'fit'
 	className?: string
 } & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
 
@@ -34,6 +36,7 @@ export function Stack({
 	justify,
 	wrap,
 	inline,
+	width,
 	className,
 	children,
 	...props
@@ -43,6 +46,10 @@ export function Stack({
 			data-slot="stack"
 			className={cn(
 				inline ? 'inline-flex' : 'flex',
+				width === 'full' && 'w-full',
+				width === 'min' && 'w-min',
+				width === 'max' && 'w-max',
+				width === 'fit' && 'w-fit',
 				directionMap[direction],
 				gapMap[gap],
 				align && alignMap[align],

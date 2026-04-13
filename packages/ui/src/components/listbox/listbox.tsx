@@ -43,31 +43,31 @@ type ListboxBaseProps = {
 	children: React.ReactNode
 }
 
-export type ListboxProps<T> = ListboxBaseProps &
-	(
-		| {
-				multiple?: false
-				value?: T
-				defaultValue?: T
-				onChange?: (value: T) => void
-				displayValue?: (value: T) => string
-		  }
-		| {
-				multiple: true
-				value?: T[]
-				defaultValue?: T[]
-				onChange?: (value: T[]) => void
-				displayValue?: (value: T) => string
-		  }
-	)
+type ListboxSingleProps<T> = {
+	multiple?: false
+	value?: T
+	defaultValue?: T
+	onChange?: (value: T | undefined) => void
+}
+
+type ListboxMultipleProps<T> = {
+	multiple: true
+	value?: T[]
+	defaultValue?: T[]
+	onChange?: (value: T[]) => void
+}
+
+export type ListboxProps<T> = ListboxBaseProps & {
+	displayValue?: (value: T) => string
+} & (ListboxSingleProps<T> | ListboxMultipleProps<T>)
 
 export function Listbox<T>({
 	value: valueProp,
 	defaultValue,
+	displayValue,
 	onChange,
 	multiple = false,
 	placeholder = 'Select',
-	displayValue,
 	placement = 'bottom-start',
 	icon,
 	className,
@@ -76,11 +76,11 @@ export function Listbox<T>({
 }: ListboxProps<T>) {
 	const handleValueChange = useCallback(
 		(nextValue: T | T[] | undefined) => {
-			if (nextValue === undefined) return
+			if (nextValue === undefined && multiple) return
 
-			;(onChange as ((value: T | T[]) => void) | undefined)?.(nextValue)
+			;(onChange as ((value: T | T[] | undefined) => void) | undefined)?.(nextValue)
 		},
-		[onChange],
+		[onChange, multiple],
 	)
 
 	const [value, setValue] = useControllable<T | T[]>({
@@ -92,7 +92,10 @@ export function Listbox<T>({
 	const [open, setOpen] = useState(false)
 
 	const triggerRef = useRef<HTMLButtonElement>(null)
+
 	const pendingValue = useRef<T | T[] | undefined>(undefined)
+
+	const hasPendingValue = useRef(false)
 
 	const { refs, floatingStyles, context } = useFloating({
 		placement,
@@ -134,7 +137,9 @@ export function Listbox<T>({
 
 				setValue(next)
 			} else {
-				pendingValue.current = newValue
+				pendingValue.current = value === newValue ? undefined : newValue
+
+				hasPendingValue.current = true
 
 				close()
 			}
@@ -143,10 +148,12 @@ export function Listbox<T>({
 	)
 
 	const onExitComplete = useCallback(() => {
-		if (pendingValue.current !== undefined) {
+		if (hasPendingValue.current) {
 			setValue(pendingValue.current)
 
 			pendingValue.current = undefined
+
+			hasPendingValue.current = false
 		}
 	}, [setValue])
 

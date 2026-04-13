@@ -1,6 +1,6 @@
 'use client'
 
-import { MessageSquare, Send } from 'lucide-react'
+import { ArrowUp, CircleDashed, MessageSquare, Plus, Trash } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { Avatar } from '../../components/avatar'
 import { Box } from '../../components/box'
@@ -10,19 +10,18 @@ import { Icon } from '../../components/icon'
 import {
 	Sidebar,
 	SidebarBody,
-	SidebarDivider,
 	SidebarHeader,
 	SidebarItem,
 	SidebarLabel,
 	SidebarSection,
 } from '../../components/sidebar'
+import { Spacer } from '../../components/spacer'
 import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
 import { Textarea } from '../../components/textarea'
 import { ChatMessage, ChatPage } from '../../pages'
 import { Example } from '../components/example'
-
-export const meta = { category: 'Layout' }
+export const meta = { category: 'Pages' }
 
 type Message = {
 	id: number
@@ -73,7 +72,9 @@ const initialMessages: Message[] = [
 
 export default function ChatPageDemo() {
 	const [messages, setMessages] = useState(initialMessages)
+
 	const [input, setInput] = useState('')
+
 	const bodyRef = useRef<HTMLDivElement>(null)
 
 	const send = () => {
@@ -84,6 +85,7 @@ export default function ChatPageDemo() {
 		const userMsg: Message = { id: Date.now(), role: 'user', content: text }
 
 		setMessages((prev) => [...prev, userMsg])
+
 		setInput('')
 
 		setTimeout(() => {
@@ -108,22 +110,29 @@ export default function ChatPageDemo() {
 
 	const sidebar = (
 		<Sidebar>
-			<SidebarHeader>
+			<SidebarHeader className="min-h-7">
 				<Stack direction="row" align="center" gap={2}>
 					<Icon icon={<MessageSquare />} />
 					<Heading level={4}>Messages</Heading>
 				</Stack>
 			</SidebarHeader>
-			<SidebarDivider />
 			<SidebarBody>
 				<SidebarSection>
 					{conversations.map((conv) => (
 						<SidebarItem key={conv.id} current={conv.active}>
-							<Stack gap={0}>
-								<SidebarLabel>{conv.title}</SidebarLabel>
-								<Text className="text-xs truncate" variant="muted">
-									{conv.preview}
-								</Text>
+							<Stack direction="row" align="center" justify="center" gap={4} width="full">
+								<Stack gap={0}>
+									<SidebarLabel>{conv.title}</SidebarLabel>
+									<Text className="text-xs truncate" variant="muted">
+										{conv.preview}
+									</Text>
+								</Stack>
+								<Spacer />
+								{!conv.active && (
+									<Button color="red" variant="soft" size="sm">
+										<Icon icon={<Trash />} />
+									</Button>
+								)}
 							</Stack>
 						</SidebarItem>
 					))}
@@ -134,7 +143,7 @@ export default function ChatPageDemo() {
 
 	return (
 		<Example>
-			<Box className="h-[600px]">
+			<Box>
 				<ChatPage
 					sidebar={sidebar}
 					bodyRef={bodyRef}
@@ -152,20 +161,26 @@ export default function ChatPageDemo() {
 					))}
 					prompt={
 						<Textarea
-							placeholder="Type a message..."
+							id="textarea-actions"
 							value={input}
 							onChange={(e) => setInput(e.target.value)}
-							onKeyDown={(e) => {
-								if (e.key === 'Enter' && !e.shiftKey) {
-									e.preventDefault()
-									send()
-								}
-							}}
-							rows={2}
+							autoResize
+							rows={3}
+							className="max-h-48"
+							placeholder="Ask anything"
 							actions={
-								<Button size="sm" color="blue" onClick={send}>
-									<Icon icon={<Send />} />
-								</Button>
+								<>
+									<Button variant="plain" size="sm">
+										<Icon icon={<CircleDashed />} />
+										<span className="ml-1">Data Analyst</span>
+									</Button>
+									<Button variant="plain" size="sm" className="ml-auto">
+										<Icon icon={<Plus />} />
+									</Button>
+									<Button size="sm" color="amber" disabled={!input.trim()} onClick={send}>
+										<Icon icon={<ArrowUp />} />
+									</Button>
+								</>
 							}
 						/>
 					}

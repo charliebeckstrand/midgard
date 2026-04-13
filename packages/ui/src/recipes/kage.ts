@@ -49,6 +49,6 @@ export const kage = {
 	ring: [motoi.ring, hiru.ring, yoru.ring],
 	ringInset: [motoi.ring, hiru.ringSubtle, yoru.ringStrong, 'ring-inset'],
 	ringSubtle: [motoi.ring, hiru.ringSubtle, yoru.ringSubtle],
-	divider: [motoi.divider, hiru.borderSubtle, yoru.borderSubtle, 'my-1.5'],
+	divider: [motoi.divider, hiru.borderSubtle, yoru.borderSubtle],
 	shadow: motoi.shadow,
 } as const

@@ -7,6 +7,8 @@ import { Heading } from '../../components/heading'
 import { Icon } from '../../components/icon'
 import { Input } from '../../components/input'
 import { Select, SelectLabel, SelectOption } from '../../components/select'
+import { Sizer } from '../../components/sizer'
+import { Spacer } from '../../components/spacer'
 import { Stack } from '../../components/stack'
 import { Stat, StatDelta, StatLabel, StatValue } from '../../components/stat'
 import {
@@ -20,7 +22,7 @@ import {
 import { DashboardPage } from '../../pages'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Layout' }
+export const meta = { category: 'Pages' }
 
 const stats = [
 	{ label: 'Total revenue', value: '$45,231', delta: '+20.1%', trend: 'up' as const },
@@ -63,8 +65,6 @@ function Filters() {
 					<SelectLabel>Books</SelectLabel>
 				</SelectOption>
 			</Select>
-
-			<Input placeholder="Search orders..." prefix={<Icon icon={<Search />} />} className="w-64" />
 		</Stack>
 	)
 }
@@ -74,7 +74,7 @@ export default function DashboardPageDemo() {
 		<Example>
 			<DashboardPage heading={<Heading>Dashboard</Heading>} filters={<Filters />}>
 				<Stack gap={6}>
-					<Grid columns={{ default: 1, sm: 2, lg: 4 }} gap={4}>
+					<Grid columns={{ initial: 1, sm: 2, lg: 4 }} gap={4}>
 						{stats.map((stat) => (
 							<Card key={stat.label}>
 								<CardBody>
@@ -89,8 +89,12 @@ export default function DashboardPageDemo() {
 					</Grid>
 
 					<Card>
-						<CardHeader>
+						<CardHeader className="flex items-center gap-4">
 							<CardTitle>Recent orders</CardTitle>
+							<Spacer />
+							<Sizer size="xs">
+								<Input placeholder="Search orders" prefix={<Icon icon={<Search />} />} />
+							</Sizer>
 						</CardHeader>
 						<CardBody>
 							<Table>

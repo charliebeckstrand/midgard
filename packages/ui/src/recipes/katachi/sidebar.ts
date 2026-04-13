@@ -3,7 +3,7 @@ import { maru } from '../maru'
 import { sawari } from '../sawari'
 
 export const sidebar = {
-	base: ['flex flex-col gap-y-4', 'h-full', 'p-4', 'overflow-y-auto'],
+	base: ['flex flex-col gap-y-4', 'h-full', 'px-4 py-6', 'overflow-y-auto'],
 	item: [
 		...sawari.navItem,
 		maru.rounded,

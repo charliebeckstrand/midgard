@@ -7,7 +7,7 @@ import { type NavbarVariants, navbarVariants } from './variants'
 
 export type NavbarProps = NavbarVariants & React.ComponentPropsWithoutRef<'nav'>
 
-export function Navbar({ variant, className, children, ...props }: NavbarProps) {
+export function Navbar({ variant = 'plain', className, children, ...props }: NavbarProps) {
 	return (
 		<NavbarProvider value={true}>
 			<ActiveIndicatorScope>
