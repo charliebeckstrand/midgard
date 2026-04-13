@@ -34,3 +34,4 @@ For non-trivial work (three or more steps), enter planning mode before writing c
 
 - When asked to create, add, build, or scaffold a new UI component in `packages/ui`, always use the `/ui-component` skill. This ensures the component follows established patterns, uses the recipe system correctly, and integrates with existing primitives.
 - When asked to recommend, suggest, or identify new UI components — or asked what's missing, what to build next, or how to expand the library — always use the `/ui-component-recommend` skill. After recommendations are approved, use `/ui-component` to create each one.
+- After writing or modifying TypeScript code, use the `/code-quality` skill to verify formatting, lint compliance, and idiomatic patterns. This catches non-null assertions, `any` types, enums, `React.FC`, and other disallowed patterns that automated tooling may miss.
