@@ -9,11 +9,11 @@ import { Example } from '../components/example'
 export const meta = { category: 'Navigation' }
 
 const items = [
-	{ value: 'home', label: 'Home', icon: <Home /> },
-	{ value: 'search', label: 'Search', icon: <Search /> },
-	{ value: 'messages', label: 'Messages', icon: <MessageCircle /> },
-	{ value: 'profile', label: 'Profile', icon: <User /> },
-	{ value: 'settings', label: 'Settings', icon: <Settings /> },
+	{ value: 'home', label: 'Home', icon: <Home />, iconName: 'Home' },
+	{ value: 'search', label: 'Search', icon: <Search />, iconName: 'Search' },
+	{ value: 'messages', label: 'Messages', icon: <MessageCircle />, iconName: 'MessageCircle' },
+	{ value: 'profile', label: 'Profile', icon: <User />, iconName: 'User' },
+	{ value: 'settings', label: 'Settings', icon: <Settings />, iconName: 'Settings' },
 ]
 
 function BottomNavExample() {
@@ -42,7 +42,7 @@ export default function BottomNavDemo() {
 					import { Home, Search, MessageCircle, User, Settings } from 'lucide-react'
 
 					<BottomNav value={active} onChange={setActive}>
-					${items.map(({ value, label }) => `  <BottomNavItem value="${value}" icon={<${label} />}>${label}</BottomNavItem>`)}
+					${items.map(({ value, label, iconName }) => `  <BottomNavItem value="${value}" icon={<${iconName} />}>${label}</BottomNavItem>`)}
 					</BottomNav>
 				`}
 			>

@@ -1,7 +1,7 @@
 'use client'
 
 import { PlusIcon, XIcon } from 'lucide-react'
-import { forwardRef, useCallback, useEffect, useRef, useState } from 'react'
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useControllable, useTagKeyboard } from '../../hooks'
 import { FormControl } from '../../primitives'
@@ -49,9 +49,9 @@ export const TagInput = forwardRef<HTMLInputElement, TagInputProps>(function Tag
 	const [inputValue, setInputValue] = useState('')
 
 	const containerRef = useRef<HTMLDivElement>(null)
-	const innerRef = useRef<HTMLInputElement>(null)
+	const inputRef = useRef<HTMLInputElement>(null)
 
-	const inputRef = (ref as React.RefObject<HTMLInputElement>) ?? innerRef
+	useImperativeHandle(ref, () => inputRef.current as HTMLInputElement)
 
 	useEffect(() => {
 		const el = containerRef.current
@@ -67,7 +67,7 @@ export const TagInput = forwardRef<HTMLInputElement, TagInputProps>(function Tag
 		el.addEventListener('click', handler)
 
 		return () => el.removeEventListener('click', handler)
-	}, [inputRef])
+	}, [])
 
 	const resolvedSize = size ?? 'md'
 	const resolvedColor = tag?.color ?? 'zinc'
@@ -120,7 +120,7 @@ export const TagInput = forwardRef<HTMLInputElement, TagInputProps>(function Tag
 
 			inputRef.current?.focus()
 		}
-	}, [addTag, inputValue, inputRef])
+	}, [addTag, inputValue])
 
 	return (
 		<FormControl>

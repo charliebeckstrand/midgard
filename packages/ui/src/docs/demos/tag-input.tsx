@@ -70,7 +70,7 @@ export default function TagInputDemo() {
 
 					<Field>
 						<Label>Tags</Label>
-						<TagInput value={tags} onChange={setTags} placeholder="Add a tag" />
+						<TagInput value={tags} onChange={(v) => setTags(v ?? [])} placeholder="Add a tag" />
 					</Field>
 				`}
 			>
@@ -84,7 +84,7 @@ export default function TagInputDemo() {
 			<Example
 				title="Max tags"
 				code={code`
-					<TagInput value={tags} onChange={setTags} max={5} placeholder="Add up to 5 tags..." />
+					<TagInput value={tags} onChange={(v) => setTags(v ?? [])} max={5} placeholder="Add up to 5 tags..." />
 				`}
 			>
 				<MaxTagInput />

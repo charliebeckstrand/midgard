@@ -32,7 +32,7 @@ describe('useOverlay', () => {
 	it('calls onClose on pointer down outside the container', () => {
 		const onClose = vi.fn()
 
-		const { result } = renderHook(() => useOverlay(true, onClose))
+		const { result, rerender } = renderHook(() => useOverlay(true, onClose))
 
 		// Simulate a container element
 		const container = document.createElement('div')
@@ -42,7 +42,7 @@ describe('useOverlay', () => {
 		Object.defineProperty(result.current, 'current', { value: container, writable: true })
 
 		// Re-render to pick up the ref
-		renderHook(() => useOverlay(true, onClose))
+		rerender()
 
 		// Click outside
 		document.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }))

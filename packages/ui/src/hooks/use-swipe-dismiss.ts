@@ -127,9 +127,25 @@ function attachDrag(panel: HTMLDivElement, side: Side, onCloseRef: React.RefObje
 		const dy = touch.clientY - startY
 
 		if (!decided) {
+			// iOS Safari marks touchmove events as non-cancelable once the
+			// browser commits to a native scroll gesture.  If that happens
+			// before we've decided, we can't take over — bail out early.
+			if (!e.cancelable) {
+				decided = true
+				tracking = false
+
+				return
+			}
+
 			const distance = Math.sqrt(dx * dx + dy * dy)
 
-			if (distance < LOCK_THRESHOLD) return
+			if (distance < LOCK_THRESHOLD) {
+				// Claim the gesture during the decision window so iOS does
+				// not lock it into a native scroll before we can decide.
+				e.preventDefault()
+
+				return
+			}
 
 			decided = true
 
@@ -159,6 +175,8 @@ function attachDrag(panel: HTMLDivElement, side: Side, onCloseRef: React.RefObje
 		}
 
 		if (!tracking) return
+
+		if (!e.cancelable) return
 
 		e.preventDefault()
 

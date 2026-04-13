@@ -127,7 +127,7 @@ describe('TagInput', () => {
 
 		expect(removeButtons.length).toBe(2)
 
-		await user.click(removeButtons[0])
+		await user.click(removeButtons[0] as Element)
 
 		expect(onChange).toHaveBeenCalledWith(['vue'])
 	})

@@ -99,7 +99,10 @@ const componentApis = buildComponentApis()
 
 export const demos = Object.entries(modules)
 	.map(([path, mod]) => {
-		const id = path.replace(/^\.\/demos\/(?:.*\/)?/, '').replace('.tsx', '')
+		const id = path
+			.replace(/^\.\/demos\//, '')
+			.replace('.tsx', '')
+			.replace(/\//g, '-')
 
 		const name = mod.meta?.name ?? id.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
 

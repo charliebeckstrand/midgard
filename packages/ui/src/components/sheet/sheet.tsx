@@ -3,7 +3,6 @@
 import { motion } from 'motion/react'
 import type React from 'react'
 import { cn, createContext } from '../../core'
-import { useSwipeDismiss } from '../../hooks'
 import { Overlay } from '../../primitives'
 import { ugoki } from '../../recipes'
 import { useGlass } from '../glass/context'
@@ -36,7 +35,6 @@ export function Sheet({
 	const glassContext = useGlass()
 	const resolvedGlass = glass ?? glassContext
 	const resolvedSide = (side ?? 'right') as SheetSide
-	const swipeRef = useSwipeDismiss(resolvedSide, onClose)
 
 	return (
 		<Overlay
@@ -45,7 +43,6 @@ export function Sheet({
 			className={sheetBackdropVariants({ glass: resolvedGlass })}
 		>
 			<motion.div
-				ref={swipeRef}
 				{...ugoki.panel[resolvedSide]}
 				role="dialog"
 				aria-modal="true"

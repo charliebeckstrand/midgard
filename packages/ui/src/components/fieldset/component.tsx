@@ -41,7 +41,7 @@ export type LabelProps = {
 } & Omit<React.ComponentPropsWithoutRef<'label'>, 'className'>
 
 export function Label({ className, htmlFor, ...props }: LabelProps) {
-	// biome-ignore lint/a11y/noLabelWithoutControl: htmlFor is optional — labels may be associated via FormControl context
+	// biome-ignore lint/a11y/noLabelWithoutControl: htmlFor is passed by the consumer or the label wraps its control
 	return <label data-slot="label" htmlFor={htmlFor} className={cn(k.label, className)} {...props} />
 }
 

@@ -4,7 +4,6 @@ import type { ReactElement } from 'react'
 import { cn } from '../../core'
 import {
 	ActiveIndicator,
-	ActiveIndicatorScope,
 	Polymorphic,
 	type PolymorphicProps,
 	TouchTarget,
@@ -24,11 +23,9 @@ export type BottomNavProps = NavProps
 export function BottomNav({ className, children, ...props }: BottomNavProps) {
 	return (
 		<Nav {...props}>
-			<ActiveIndicatorScope>
-				<NavList orientation="horizontal" className={cn(k.base, className)}>
-					{children}
-				</NavList>
-			</ActiveIndicatorScope>
+			<NavList orientation="horizontal" className={cn(k.base, className)}>
+				{children}
+			</NavList>
 		</Nav>
 	)
 }

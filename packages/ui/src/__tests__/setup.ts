@@ -10,8 +10,8 @@ afterEach(() => {
 // Replaces animated wrappers with plain HTML elements so tests run in jsdom
 // without needing a full animation runtime.
 
-vi.mock('motion/react', () => {
-	const { createElement, forwardRef } = require('react')
+vi.mock('motion/react', async () => {
+	const { createElement, forwardRef } = await import('react')
 
 	const MOTION_PROPS = new Set([
 		'animate',
