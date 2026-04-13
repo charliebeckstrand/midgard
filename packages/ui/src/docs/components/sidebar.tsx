@@ -34,10 +34,12 @@ export function SidebarContent({ route }: { route: string }) {
 					<SidebarLabel className="font-semibold">UI Components</SidebarLabel>
 				</SidebarItem>
 			</SidebarHeader>
-			<Combobox
+			<Combobox<string>
 				placeholder="Search components"
 				selectable={false}
-				onChange={(id: string) => {
+				onChange={(id) => {
+					if (!id) return
+
 					window.location.hash = id
 
 					// Scroll the matching sidebar item into view

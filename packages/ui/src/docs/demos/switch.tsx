@@ -26,11 +26,6 @@ export default function SwitchDemo() {
 					<Description>Receive email notifications for new activity.</Description>
 					<Switch id="switch-notifications" size={size} />
 				</SwitchField>
-				<SwitchField size={size}>
-					<Label htmlFor="switch-dark-mode">Dark mode</Label>
-					<Description>Use the dark color scheme.</Description>
-					<Switch id="switch-dark-mode" defaultChecked color="blue" size={size} />
-				</SwitchField>
 			</Example>
 			<Example title="Sizes">
 				<SwitchField size="sm">
