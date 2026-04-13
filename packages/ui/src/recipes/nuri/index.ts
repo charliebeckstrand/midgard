@@ -15,15 +15,7 @@ import { chipOutlineActive } from './chip'
 import { text } from './palette'
 import { radio } from './radio'
 import { switchColor } from './switch'
-import {
-	avatar,
-	sidebarLabel,
-	switchHover,
-	switchThumb,
-	switchTrack,
-	tabIndicator,
-	tableStriped,
-} from './tokens'
+import { avatar, switchHover, switchThumb, switchTrack, tabIndicator, tableStriped } from './tokens'
 
 export const nuri = {
 	// ── Shared color variants ────────────────────────────
@@ -52,7 +44,6 @@ export const nuri = {
 	switchTrack,
 	switchThumb,
 	switchHover,
-	sidebarLabel,
 	tableStriped,
 	tabIndicator,
 } as const

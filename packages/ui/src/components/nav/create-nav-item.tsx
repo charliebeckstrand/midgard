@@ -1,5 +1,6 @@
 'use client'
 
+import type { ReactElement } from 'react'
 import { cn } from '../../core'
 import { useOffcanvas } from '../../core/offcanvas-context'
 import {
@@ -9,8 +10,10 @@ import {
 	TouchTarget,
 	useActiveIndicator,
 } from '../../primitives'
+import { Icon } from '../icon'
 
 export type NavItemProps = {
+	icon?: ReactElement
 	current?: boolean
 	className?: string
 	preventClose?: boolean
@@ -26,6 +29,7 @@ export type NavItemProps = {
  */
 export function createNavItem(config: { slotPrefix: string; variants: () => string }) {
 	function NavItem({
+		icon,
 		current,
 		className,
 		children,
@@ -46,6 +50,13 @@ export function createNavItem(config: { slotPrefix: string; variants: () => stri
 			}
 		}
 
+		const content = (
+			<TouchTarget>
+				{icon && <Icon icon={icon} />}
+				{children}
+			</TouchTarget>
+		)
+
 		return (
 			<span
 				data-slot={`${config.slotPrefix}-item`}
@@ -61,9 +72,15 @@ export function createNavItem(config: { slotPrefix: string; variants: () => stri
 					onClick={handleClick}
 					{...props}
 				>
-					<TouchTarget>{children}</TouchTarget>
+					{content}
 				</Polymorphic>
-				{current && <ActiveIndicator ref={indicator.ref} />}
+				{current && (
+					<ActiveIndicator ref={indicator.ref}>
+						<span className={cn(config.variants(), className)} aria-hidden>
+							{content}
+						</span>
+					</ActiveIndicator>
+				)}
 			</span>
 		)
 	}

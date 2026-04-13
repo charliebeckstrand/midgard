@@ -1,7 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { Nav, NavContent, NavContents, NavItem, NavList } from '../../components/nav'
+import { Area } from '../../components/area'
+import { NavContent, NavContents, NavItem, NavList, NavProvider } from '../../components/nav'
+import { Navbar } from '../../components/navbar'
+import { Sizer } from '../../components/sizer'
+import { code } from '../code'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Navigation' }
@@ -11,37 +15,57 @@ export default function NavDemo() {
 
 	return (
 		<div className="space-y-8">
-			<Example title="Value model with content">
-				<div className="flex gap-8">
-					<Nav value={current} onChange={setCurrent}>
-						<NavList>
+			<Example
+				title="Value model with content"
+				code={code`
+				import { Nav, NavList, NavItem, NavContent, NavContents, NavProvider } from 'ui/nav'
+
+				const [current, setCurrent] = useState('Account')
+				
+				<NavProvider value={{ value: current, onChange: setCurrent }}>
+					<Navbar>
+						<NavList orientation="horizontal">
 							<NavItem value="account">Account</NavItem>
 							<NavItem value="notifications">Notifications</NavItem>
 							<NavItem value="billing">Billing</NavItem>
 						</NavList>
-					</Nav>
-					<NavContents className="flex-1 text-sm text-zinc-500">
-						<NavContent value="account">
-							Account settings would go here.
-						</NavContent>
-						<NavContent value="notifications">
-							Notification preferences would go here.
-						</NavContent>
-						<NavContent value="billing">
-							Billing information would go here.
-						</NavContent>
-					</NavContents>
-				</div>
+					</Navbar>
+					<Area>
+						<NavContents>
+							<NavContent value="account">Account settings</NavContent>
+							<NavContent value="notifications">Notification preferences</NavContent>
+							<NavContent value="billing">Billing information</NavContent>
+						</NavContents>
+					</Area>
+				</NavProvider>
+			`}
+			>
+				<Sizer>
+					<NavProvider value={{ value: current, onChange: setCurrent }}>
+						<Navbar>
+							<NavList orientation="horizontal">
+								<NavItem value="account">Account</NavItem>
+								<NavItem value="notifications">Notifications</NavItem>
+								<NavItem value="billing">Billing</NavItem>
+							</NavList>
+						</Navbar>
+						<Area>
+							<NavContents>
+								<NavContent value="account">Account settings</NavContent>
+								<NavContent value="notifications">Notification preferences</NavContent>
+								<NavContent value="billing">Billing information</NavContent>
+							</NavContents>
+						</Area>
+					</NavProvider>
+				</Sizer>
 			</Example>
 
 			<Example title="With links">
-				<Nav>
-					<NavList>
-						<NavItem current>Dashboard</NavItem>
-						<NavItem href="#settings">Settings</NavItem>
-						<NavItem href="#docs">Documentation</NavItem>
-					</NavList>
-				</Nav>
+				<NavList>
+					<NavItem current>Dashboard</NavItem>
+					<NavItem href="#settings">Settings</NavItem>
+					<NavItem href="#docs">Documentation</NavItem>
+				</NavList>
 			</Example>
 		</div>
 	)

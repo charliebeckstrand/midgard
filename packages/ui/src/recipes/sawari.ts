@@ -29,21 +29,14 @@ const motoi = {
 // ── Hiru (昼) ───────────────────────────────────────────
 const hiru = {
 	item: 'not-disabled:not-data-disabled:hover:bg-zinc-950/5 not-disabled:not-data-disabled:focus:bg-zinc-950/5',
-	nav: [
-		'group-hover:bg-zinc-950/5 group-hover:*:data-[slot=icon]:fill-zinc-950',
-		'data-current:group-hover:bg-transparent! data-current:active:bg-transparent!',
-	],
+	nav: ['group-hover:bg-zinc-950/5'],
 	tab: ['data-current:text-zinc-950', 'not-data-current:not-disabled:hover:text-zinc-700'],
 }
 
 // ── Yoru (夜) ───────────────────────────────────────────
 const yoru = {
 	item: 'dark:not-disabled:not-data-disabled:hover:bg-white/5 dark:not-disabled:not-data-disabled:focus:bg-white/5',
-	nav: [
-		'dark:text-white',
-		'dark:group-hover:bg-white/5 dark:group-hover:*:data-[slot=icon]:fill-zinc-400',
-		'dark:data-current:group-hover:bg-transparent! dark:data-current:active:bg-transparent!',
-	],
+	nav: ['dark:text-white', 'dark:group-hover:bg-white/5'],
 	tab: ['dark:data-current:text-white', 'dark:not-data-current:not-disabled:hover:text-zinc-200'],
 }
 

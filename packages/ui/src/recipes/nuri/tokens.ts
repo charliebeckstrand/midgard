@@ -12,11 +12,6 @@ export const switchHover = mode(
 	'dark:not-disabled:not-checked:hover:bg-white/15',
 )
 
-export const sidebarLabel = mode(
-	'group-data-[current]:text-zinc-950',
-	'dark:group-data-[current]:text-white',
-)
-
 export const tableStriped = mode('*:even:bg-zinc-950/2.5', 'dark:*:even:bg-white/2.5')
 
 export const tabIndicator = mode('bg-zinc-950', 'dark:bg-white')

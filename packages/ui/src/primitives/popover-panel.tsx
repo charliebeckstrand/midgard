@@ -37,7 +37,7 @@ export function PopoverPanel({
 		if (selected) {
 			selected.focus()
 
-			selected.scrollIntoView({ block: 'nearest' })
+			selected.scrollIntoView({ block: 'center' })
 		} else {
 			menuRef.current.focus()
 		}

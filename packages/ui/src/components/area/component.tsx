@@ -15,7 +15,13 @@ export type AreaProps = {
  * A neutral, rounded outline used in demos and docs to visualize the bounds
  * of a layout primitive. Defaults to a dashed border with no padding.
  */
-export function Area({ padding, border = 'dashed', className, children, ...props }: AreaProps) {
+export function Area({
+	padding = 'md',
+	border = 'dashed',
+	className,
+	children,
+	...props
+}: AreaProps) {
 	return (
 		<div
 			data-slot="area"

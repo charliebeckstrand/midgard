@@ -1,16 +1,14 @@
+import { kage } from '../kage'
 import { maru } from '../maru'
-import { sawari } from '../sawari'
-import { sumi } from '../sumi'
+import { omote } from '../omote'
 
 export const navbar = {
-	base: 'flex items-center gap-3 overflow-x-auto px-4 py-2.5',
-	item: [
-		...sawari.navItem,
-		maru.rounded,
-		'group relative flex items-center gap-2 px-2 py-1 text-sm/6 font-medium',
-		sawari.cursor,
-	],
-	section: 'flex items-center gap-3',
-	label: [sumi.textMuted, 'text-sm/6'],
-	spacer: 'flex-1',
+	base: ['flex items-center gap-3 overflow-x-auto px-4 py-2.5', 'border', maru.rounded],
+	variant: {
+		solid: ['bg-zinc-200 dark:bg-zinc-800', kage.borderTransparent],
+		soft: [omote.tint, kage.borderTransparent],
+		outline: [kage.borderColor],
+		plain: [kage.borderTransparent],
+	},
+	defaults: { variant: 'outline' as const },
 }

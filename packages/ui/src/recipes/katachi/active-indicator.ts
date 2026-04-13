@@ -1,4 +1,7 @@
 import { maru } from '../maru'
-import { omote } from '../omote'
 
-export const activeIndicator = ['absolute inset-0', omote.tint, maru.rounded]
+export const activeIndicator = [
+	'absolute inset-0',
+	'bg-zinc-600 text-white **:text-white dark:**:text-white overflow-hidden',
+	maru.rounded,
+]

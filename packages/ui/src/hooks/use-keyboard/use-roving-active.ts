@@ -71,7 +71,7 @@ export function useRovingActive<L extends HTMLElement = HTMLElement>({
 				else el.removeAttribute(ACTIVE_ATTR)
 			}
 
-			if (scrollIntoView) items[nextIndex]?.scrollIntoView({ block: 'nearest' })
+			if (scrollIntoView) items[nextIndex]?.scrollIntoView({ block: 'center' })
 		},
 		[itemSelector, cols, orientation, activationKey, scrollIntoView],
 	)

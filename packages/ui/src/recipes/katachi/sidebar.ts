@@ -1,6 +1,5 @@
 import { kage } from '../kage'
 import { maru } from '../maru'
-import { nuri } from '../nuri'
 import { sawari } from '../sawari'
 import { sumi } from '../sumi'
 
@@ -14,7 +13,7 @@ export const sidebar = {
 		sawari.cursor,
 	],
 	section: 'flex flex-col gap-0.5',
-	label: [sumi.textMuted, 'truncate', nuri.sidebarLabel],
+	label: [sumi.textMuted, 'truncate'],
 	header: 'flex items-center gap-2',
 	body: 'flex flex-1 flex-col gap-4 overflow-y-auto',
 	divider: kage.divider,

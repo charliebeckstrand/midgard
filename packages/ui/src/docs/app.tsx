@@ -5,7 +5,8 @@ import { useEffect, useRef } from 'react'
 import { Button } from '../components/button'
 import { Heading } from '../components/heading'
 import { Icon } from '../components/icon'
-import { Navbar, NavbarSpacer } from '../components/navbar'
+import { Navbar } from '../components/navbar'
+import { Spacer } from '../components/spacer'
 import { SidebarLayout } from '../layouts'
 import { SidebarContent } from './components/sidebar'
 import { DemoPage } from './demo-page'
@@ -35,7 +36,7 @@ export function App() {
 			}
 			navbar={
 				<Navbar>
-					<NavbarSpacer />
+					<Spacer />
 					<Button variant="plain" onClick={toggleDark} aria-label="Toggle dark mode">
 						{dark ? <Icon icon={<Sun />} /> : <Icon icon={<Moon />} />}
 					</Button>

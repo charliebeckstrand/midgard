@@ -20,13 +20,11 @@ export default function CardDemo() {
 	return (
 		<div className="space-y-8">
 			<Alert type="info" closable>
-				<AlertTitle>Box API</AlertTitle>
-				<AlertDescription>
-					The <Code>&lt;Card&gt;</Code> component extends the <Code>&lt;Box&gt;</Code> component.
-				</AlertDescription>
+				<AlertTitle>Box</AlertTitle>
+				<AlertDescription>The Card component extends the Box component.</AlertDescription>
 				<Text className="py-2">
 					See the{' '}
-					<a href="#box" className="hover:underline underline-offset-4">
+					<a href="#box" className="underline underline-offset-4">
 						Box documentation
 					</a>{' '}
 					for more details and examples of the Box API.
