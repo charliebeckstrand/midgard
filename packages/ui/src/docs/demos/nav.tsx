@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { Area } from '../../components/area'
 import { NavContent, NavContents, NavItem, NavList, NavProvider } from '../../components/nav'
-import { Navbar } from '../../components/navbar'
 import { Sizer } from '../../components/sizer'
 import { code } from '../code'
 import { Example } from '../components/example'
