@@ -2,11 +2,10 @@
 
 import { Moon, Sun } from 'lucide-react'
 import { useEffect, useRef } from 'react'
-import { Button } from '../components/button'
 import { Heading } from '../components/heading'
-import { Icon } from '../components/icon'
 import { Navbar } from '../components/navbar'
 import { Spacer } from '../components/spacer'
+import { ToggleIconButton } from '../components/toggle-icon-button'
 import { SidebarLayout } from '../layouts'
 import { SidebarContent } from './components/sidebar'
 import { DemoPage } from './demo-page'
@@ -30,16 +29,24 @@ export function App() {
 	return (
 		<SidebarLayout
 			actions={
-				<Button variant="plain" onClick={toggleDark} aria-label="Toggle dark mode">
-					{dark ? <Icon icon={<Sun />} /> : <Icon icon={<Moon />} />}
-				</Button>
+				<ToggleIconButton
+					pressed={dark}
+					icon={<Moon />}
+					activeIcon={<Sun />}
+					onClick={toggleDark}
+					aria-label="Toggle dark mode"
+				/>
 			}
 			navbar={
 				<Navbar>
 					<Spacer />
-					<Button variant="plain" onClick={toggleDark} aria-label="Toggle dark mode">
-						{dark ? <Icon icon={<Sun />} /> : <Icon icon={<Moon />} />}
-					</Button>
+					<ToggleIconButton
+						pressed={dark}
+						icon={<Moon />}
+						activeIcon={<Sun />}
+						onClick={toggleDark}
+						aria-label="Toggle dark mode"
+					/>
 				</Navbar>
 			}
 			sidebar={<SidebarContent route={route} />}
