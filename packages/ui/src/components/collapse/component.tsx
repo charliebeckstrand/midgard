@@ -53,7 +53,7 @@ export function Collapse({
 
 	return (
 		<CollapseProvider value={{ open, toggle }}>
-			<div data-slot="collapse" data-open={open || undefined} className={className}>
+			<div data-slot="collapse" data-open={open || undefined} className={cn(k.root, className)}>
 				{trigger !== undefined ? (
 					<>
 						<CollapseTrigger>{trigger}</CollapseTrigger>
