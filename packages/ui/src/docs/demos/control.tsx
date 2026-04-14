@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Alert, AlertDescription } from '../../components/alert'
 import { Button } from '../../components/button'
 import { Control } from '../../components/control'
 import { ErrorMessage, Fieldset, Label, Legend } from '../../components/fieldset'
@@ -9,7 +10,6 @@ import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'
 import { Textarea } from '../../components/textarea'
 import { Example } from '../components/example'
-
 export const meta = { category: 'Forms' }
 
 export default function ControlDemo() {
@@ -17,7 +17,17 @@ export default function ControlDemo() {
 
 	return (
 		<Stack gap={8}>
-			<Example title="Auto-wired field">
+			<Alert type="info" variant="soft" color="blue">
+				<AlertDescription className="leading-relaxed">
+					The Control component generates a stable id and propagates state (disabled, readOnly,
+					size, variant) to control-aware children (Label, Input, Textarea, Description,
+					ErrorMessage). Parent state cascades to nested children — matching fieldset disabled
+					semantics — while size and variant inherit from the nearest ancestor unless explicitly
+					overridden.
+				</AlertDescription>
+			</Alert>
+
+			<Example title="Default">
 				<Sizer>
 					<Control>
 						<Label>Email</Label>

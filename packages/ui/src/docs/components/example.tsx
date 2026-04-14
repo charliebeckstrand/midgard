@@ -10,6 +10,7 @@ import { deriveCode } from '../derive-code'
 
 export function Example({
 	title,
+	prefix,
 	actions,
 	preview,
 	footer,
@@ -17,6 +18,7 @@ export function Example({
 	children,
 }: {
 	title?: ReactNode
+	prefix?: ReactNode
 	actions?: ReactNode
 	preview?: ReactNode
 	footer?: ReactNode
@@ -44,6 +46,9 @@ export function Example({
 				</Flex>
 			)}
 			<div className="rounded-lg border border-zinc-200 dark:border-zinc-800">
+				{prefix && (
+					<div className="border-b border-zinc-200 dark:border-zinc-800 p-4">{prefix}</div>
+				)}
 				<div className="overflow-x-auto p-4 space-y-4">{children}</div>
 				{preview && (
 					<div className="border-t border-zinc-200 dark:border-zinc-800 p-4">{preview}</div>
