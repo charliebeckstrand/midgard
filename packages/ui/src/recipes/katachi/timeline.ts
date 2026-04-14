@@ -1,7 +1,7 @@
 import { sumi } from '../sumi'
 
 export const timeline = {
-	base: 'list-none p-0 m-0',
+	base: ['list-none p-0 m-0'],
 	orientation: {
 		vertical: 'flex flex-col',
 		horizontal: 'flex flex-row overflow-x-auto',

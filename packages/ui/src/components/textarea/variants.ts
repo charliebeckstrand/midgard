@@ -9,7 +9,7 @@ export const textareaVariants = cva(k.base, {
 		resize: k.resize,
 		autoResize: { true: k.autoResize, false: '' },
 	},
-	defaultVariants: { ...k.defaults, variant: 'default', autoResize: false },
+	defaultVariants: k.defaults,
 })
 
 export type TextareaVariants = VariantProps<typeof textareaVariants>

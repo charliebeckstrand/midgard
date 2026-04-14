@@ -9,7 +9,7 @@ type Color = keyof (typeof k.variant)['solid']['color']
 
 const variantBase = Object.fromEntries(
 	Object.entries(k.variant).map(([key, { base }]) => [key, base]),
-) as unknown as Record<Variant, string | string[]>
+) as unknown as Record<Variant, string | readonly string[]>
 
 const variantColors = Object.fromEntries(
 	Object.entries(k.variant).map(([key, { color }]) => [key, color]),

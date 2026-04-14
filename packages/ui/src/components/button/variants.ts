@@ -27,27 +27,27 @@ export const buttonVariants = cva(k.base, {
 
 export const withIconStartSize = cva('', {
 	variants: { size: k.withIcon.start },
-	defaultVariants: { size: 'md' },
+	defaultVariants: { size: k.defaults.size },
 })
 
 export const withIconEndSize = cva('', {
 	variants: { size: k.withIcon.end },
-	defaultVariants: { size: 'md' },
+	defaultVariants: { size: k.defaults.size },
 })
 
 export const withKbdStartSize = cva('', {
 	variants: { size: k.withKbd.start },
-	defaultVariants: { size: 'md' },
+	defaultVariants: { size: k.defaults.size },
 })
 
 export const withKbdEndSize = cva('', {
 	variants: { size: k.withKbd.end },
-	defaultVariants: { size: 'md' },
+	defaultVariants: { size: k.defaults.size },
 })
 
 export const iconOnlySize = cva('p-0 gap-0', {
 	variants: { size: k.iconOnly },
-	defaultVariants: { size: 'md' },
+	defaultVariants: { size: k.defaults.size },
 })
 
 export type ButtonVariants = VariantProps<typeof buttonVariants>

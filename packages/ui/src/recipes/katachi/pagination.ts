@@ -6,7 +6,7 @@ import { sumi } from '../sumi'
 import { yasumi } from '../yasumi'
 
 export const pagination = {
-	base: 'flex list-none gap-1',
+	base: ['flex list-none gap-1'],
 	list: 'flex list-none items-center gap-1 m-0 p-0',
 	page: {
 		base: [

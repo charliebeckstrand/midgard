@@ -21,7 +21,7 @@ export const button = {
 	],
 	variant: {
 		solid: {
-			base: [kage.borderTransparent],
+			base: kage.borderTransparent,
 			color: nuri.buttonSolid,
 		},
 		soft: {

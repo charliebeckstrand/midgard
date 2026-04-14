@@ -21,5 +21,5 @@ export const textarea = {
 		vertical: 'resize-y',
 		horizontal: 'resize-x',
 	},
-	defaults: { resize: 'none' as const },
+	defaults: { variant: 'default' as const, resize: 'none' as const, autoResize: false as const },
 }

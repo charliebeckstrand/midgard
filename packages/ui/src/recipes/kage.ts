@@ -33,7 +33,7 @@ const yoru = {
 	borderTransparent: 'dark:border-transparent',
 	ring: 'dark:ring-white/10',
 	ringStrong: 'dark:ring-white/15',
-	ringSubtle: 'dark:ring-white/10',
+	ringSubtle: 'dark:ring-white/5',
 }
 
 // ── Export ───────────────────────────────────────────────

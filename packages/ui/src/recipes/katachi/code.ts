@@ -7,6 +7,7 @@ export const code = {
 	inline: {
 		base: [take.code.base, take.code.margin],
 		size: take.code.size,
+		defaults: { size: 'md' as const },
 	},
 	block: {
 		base: ['relative overflow-hidden', maru.rounded, blockBg],
