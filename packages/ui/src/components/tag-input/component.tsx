@@ -70,7 +70,10 @@ export const TagInput = forwardRef<HTMLInputElement, TagInputProps>(function Tag
 	}, [])
 
 	const resolvedSize = size ?? 'md'
+
 	const resolvedColor = tag?.color ?? 'zinc'
+
+	const atMax = max !== undefined && tags.length >= max
 
 	const addTag = useCallback(
 		(raw: string): boolean => {
@@ -94,8 +97,12 @@ export const TagInput = forwardRef<HTMLInputElement, TagInputProps>(function Tag
 	const removeTag = useCallback(
 		(index: number) => {
 			setTags(tags.filter((_, i) => i !== index))
+
+			if (atMax) {
+				requestAnimationFrame(() => inputRef.current?.focus())
+			}
 		},
-		[tags, setTags],
+		[tags, setTags, atMax],
 	)
 
 	const clearInput = useCallback(() => setInputValue(''), [])
@@ -167,7 +174,7 @@ export const TagInput = forwardRef<HTMLInputElement, TagInputProps>(function Tag
 						value={inputValue}
 						className={cn(k.input)}
 						placeholder={tags.length === 0 ? placeholder : undefined}
-						disabled={disabled}
+						disabled={disabled || atMax}
 						onChange={(e) => setInputValue(e.target.value)}
 						onKeyDown={handleKeyDown}
 						onBlur={handleBlur}
@@ -191,7 +198,7 @@ export const TagInput = forwardRef<HTMLInputElement, TagInputProps>(function Tag
 					type="button"
 					color="blue"
 					size={buttonSize[resolvedSize]}
-					disabled={disabled || (max !== undefined && tags.length >= max) || !inputValue.trim()}
+					disabled={disabled || atMax || !inputValue.trim()}
 					aria-label="Add tag"
 					onMouseDown={(e) => e.preventDefault()}
 					onClick={handleSubmit}

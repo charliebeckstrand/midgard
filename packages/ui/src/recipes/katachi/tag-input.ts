@@ -13,9 +13,9 @@ export const tagInput = {
 		'dark:data-disabled:hover:border-white/15',
 	],
 	containerSize: {
-		sm: ['px-[calc(--spacing(2.25)-1px)] py-[calc(--spacing(2.5)-1px)]', 'min-h-9', text.sm],
-		md: ['px-[calc(--spacing(2.75)-1px)] py-[calc(--spacing(3)-1px)]', 'min-h-11', text.md],
-		lg: ['px-[calc(--spacing(3.25)-1px)] py-[calc(--spacing(3.5)-1px)]', 'min-h-13', text.lg],
+		sm: ['p-[calc(--spacing(1.5)-1px)]', text.sm],
+		md: ['p-[calc(--spacing(2)-1px)]', text.md],
+		lg: ['p-[calc(--spacing(2.5)-1px)]', text.lg],
 	},
 	base: ['flex flex-wrap items-center content-center gap-1 flex-1'],
 	size: {
