@@ -6,7 +6,6 @@ import { Glass } from '../../components/glass'
 import { SearchInput } from '../../components/search-input'
 import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'
-import { code } from '../code'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
@@ -15,22 +14,7 @@ function Controlled() {
 	const [value, setValue] = useState('')
 
 	return (
-		<Example
-			title="Controlled with clear"
-			code={code`
-				import { useState } from 'react'
-				import { SearchInput } from 'ui/search-input'
-
-				const [value, setValue] = useState('')
-
-				<SearchInput
-					value={value}
-					onChange={(e) => setValue(e.target.value)}
-					onClear={() => setValue('')}
-					placeholder="Search..."
-				/>
-			`}
-		>
+		<Example title="Controlled with clear">
 			<Sizer>
 				<Field>
 					<Label>Search</Label>
@@ -49,14 +33,7 @@ function Controlled() {
 export default function SearchInputDemo() {
 	return (
 		<Stack gap={8}>
-			<Example
-				title="Default"
-				code={code`
-					import { SearchInput } from 'ui/search-input'
-
-					<SearchInput placeholder="Search..." />
-				`}
-			>
+			<Example title="Default">
 				<Sizer>
 					<Field>
 						<Label>Search</Label>
@@ -107,14 +84,7 @@ export default function SearchInputDemo() {
 
 			<Controlled />
 
-			<Example
-				title="Loading"
-				code={code`
-					import { SearchInput } from 'ui/search-input'
-
-					<SearchInput loading placeholder="Searching..." />
-				`}
-			>
+			<Example title="Loading">
 				<Sizer>
 					<Field>
 						<Label>Loading</Label>
