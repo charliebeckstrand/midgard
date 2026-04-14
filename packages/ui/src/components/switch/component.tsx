@@ -1,5 +1,8 @@
+'use client'
+
 import { cn } from '../../core'
 import { katachi, kokkaku, narabi } from '../../recipes'
+import { useControl } from '../control/context'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
 import {
@@ -18,7 +21,13 @@ export type SwitchProps = SwitchVariants & {
 	className?: string
 } & Omit<React.ComponentPropsWithoutRef<'input'>, 'className' | 'type' | 'size'>
 
-export function Switch({ className, color, size, ...props }: SwitchProps) {
+export function Switch({ className, color, size, id, disabled, required, ...props }: SwitchProps) {
+	const control = useControl()
+
+	const resolvedId = id ?? control?.id
+	const resolvedDisabled = disabled ?? control?.disabled
+	const resolvedRequired = required ?? control?.required
+
 	if (useSkeleton()) {
 		return (
 			<Placeholder
@@ -35,6 +44,10 @@ export function Switch({ className, color, size, ...props }: SwitchProps) {
 			<input
 				type="checkbox"
 				data-slot="switch"
+				id={resolvedId}
+				disabled={resolvedDisabled}
+				required={resolvedRequired}
+				{...(control?.invalid ? { 'data-invalid': '', 'aria-invalid': true } : {})}
 				className={cn(switchInputVariants(), className)}
 				{...props}
 			/>

@@ -45,7 +45,6 @@ import { menu } from './menu'
 import { nav } from './nav'
 import { navbar } from './navbar'
 import { option } from './option'
-import { otpInput } from './otp-input'
 import { pagination } from './pagination'
 import { panel } from './panel'
 import { placeholder } from './placeholder'
@@ -110,7 +109,6 @@ export const katachi = {
 	nav,
 	navbar,
 	option,
-	otpInput,
 	pagination,
 	panel,
 	placeholder,

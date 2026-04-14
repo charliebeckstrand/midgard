@@ -24,6 +24,7 @@ import { useSelect } from '../../hooks/use-select'
 import { useVirtualKeyboardStable } from '../../hooks/use-virtual-keyboard-stable'
 import { FormControl, PopoverPanel } from '../../primitives'
 import { katachi } from '../../recipes'
+import { useControl } from '../control/context'
 import { Icon } from '../icon'
 
 const k = katachi.combobox
@@ -85,6 +86,10 @@ export function Combobox<T>({
 	className,
 	children,
 }: ComboboxProps<T>) {
+	const control = useControl()
+
+	const resolvedDisabled = control?.disabled
+
 	const handleValueChange = useCallback(
 		(nextValue: T | T[] | undefined) => {
 			if (nextValue === undefined && multiple) return
@@ -241,6 +246,9 @@ export function Combobox<T>({
 						aria-expanded={open}
 						aria-autocomplete="list"
 						data-slot="combobox-input"
+						id={control?.id}
+						disabled={resolvedDisabled}
+						{...(control?.invalid ? { 'data-invalid': '', 'aria-invalid': true } : {})}
 						value={inputDisplay}
 						placeholder={placeholder}
 						onChange={(e) => {

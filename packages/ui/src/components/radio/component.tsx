@@ -1,6 +1,9 @@
+'use client'
+
 import { cn } from '../../core'
 import { ToggleField, ToggleGroup } from '../../primitives'
 import { katachi, kokkaku } from '../../recipes'
+import { useControl } from '../control/context'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
 import {
@@ -16,7 +19,13 @@ export type RadioProps = RadioVariants & {
 	className?: string
 } & Omit<React.ComponentPropsWithoutRef<'input'>, 'className' | 'type'>
 
-export function Radio({ className, color, ...props }: RadioProps) {
+export function Radio({ className, color, id, disabled, required, ...props }: RadioProps) {
+	const control = useControl()
+
+	const resolvedId = id ?? control?.id
+	const resolvedDisabled = disabled ?? control?.disabled
+	const resolvedRequired = required ?? control?.required
+
 	if (useSkeleton()) {
 		return <Placeholder className={cn(kokkaku.radio.base, className)} />
 	}
@@ -29,6 +38,10 @@ export function Radio({ className, color, ...props }: RadioProps) {
 			<input
 				type="radio"
 				data-slot="radio"
+				id={resolvedId}
+				disabled={resolvedDisabled}
+				required={resolvedRequired}
+				{...(control?.invalid ? { 'data-invalid': '', 'aria-invalid': true } : {})}
 				className={cn(radioInputVariants(), className)}
 				{...props}
 			/>
