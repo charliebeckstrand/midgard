@@ -8,6 +8,7 @@ export type CollapseContextValue = {
 	open: boolean
 	toggle: () => void
 	animate: CollapseAnimation
+	triggerId: string
 	panelId: string
 }
 

@@ -120,7 +120,7 @@ export function Tooltip({
 								...floatingStyles,
 								pointerEvents: interactive ? 'auto' : 'none',
 							}}
-							{...(interactive ? getFloatingProps() : {})}
+							{...getFloatingProps()}
 						>
 							<motion.div
 								{...ugoki.tooltip}

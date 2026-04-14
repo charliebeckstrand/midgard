@@ -54,10 +54,12 @@ export function Collapse({
 		onOpenChange?.(next)
 	}, [open, isControlled, onOpenChange])
 
-	const panelId = useId()
+	const id = useId()
+	const triggerId = `${id}-trigger`
+	const panelId = `${id}-panel`
 
 	return (
-		<CollapseProvider value={{ open, toggle, animate: animateProp, panelId }}>
+		<CollapseProvider value={{ open, toggle, animate: animateProp, triggerId, panelId }}>
 			<div data-slot="collapse" data-open={open || undefined} className={cn(k.root, className)}>
 				{trigger !== undefined ? (
 					<>
@@ -79,13 +81,14 @@ export type CollapseTriggerProps = Omit<React.ComponentProps<'button'>, 'childre
 }
 
 export function CollapseTrigger({ className, children, onClick, ...props }: CollapseTriggerProps) {
-	const { open, toggle, panelId } = useCollapseContext()
+	const { open, toggle, triggerId, panelId } = useCollapseContext()
 
 	const rendered = typeof children === 'function' ? children({ open }) : children
 
 	return (
 		<button
 			type="button"
+			id={triggerId}
 			data-slot="collapse-trigger"
 			aria-expanded={open}
 			aria-controls={panelId}
@@ -109,11 +112,16 @@ export type CollapsePanelProps = {
 }
 
 export function CollapsePanel({ children, className }: CollapsePanelProps) {
-	const { open, animate, panelId } = useCollapseContext()
+	const { open, animate, triggerId, panelId } = useCollapseContext()
 
 	if (animate === false) {
 		return open ? (
-			<section id={panelId} data-slot="collapse-panel" className={cn(k.panel, className)}>
+			<section
+				id={panelId}
+				aria-labelledby={triggerId}
+				data-slot="collapse-panel"
+				className={cn(k.panel, className)}
+			>
 				{children}
 			</section>
 		) : null
@@ -126,6 +134,7 @@ export function CollapsePanel({ children, className }: CollapsePanelProps) {
 			{open && (
 				<motion.section
 					id={panelId}
+					aria-labelledby={triggerId}
 					data-slot="collapse-panel"
 					{...ugoki.collapse[variant]}
 					className={cn(k.panel, className)}

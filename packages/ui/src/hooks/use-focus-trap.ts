@@ -23,9 +23,14 @@ export function useFocusTrap(active: boolean) {
 
 		previouslyFocused.current = document.activeElement as HTMLElement
 
-		// Focus the first focusable element inside the trap
+		// Focus the first focusable element inside the trap, or the container itself
 		const first = container.querySelector<HTMLElement>(focusableSelector)
-		first?.focus()
+		if (first) {
+			first.focus()
+		} else {
+			container.tabIndex = -1
+			container.focus()
+		}
 
 		function onKeyDown(e: KeyboardEvent) {
 			if (e.key !== 'Tab' || !container) return

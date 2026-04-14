@@ -9,6 +9,7 @@ import {
 	useDismiss,
 	useFloating,
 	useInteractions,
+	useRole,
 } from '@floating-ui/react'
 import { Calendar as CalendarIcon } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
@@ -164,8 +165,9 @@ export function DatePickerRange({
 	})
 
 	const dismiss = useDismiss(context)
+	const role = useRole(context, { role: 'dialog' })
 
-	const { getReferenceProps, getFloatingProps } = useInteractions([dismiss])
+	const { getReferenceProps, getFloatingProps } = useInteractions([dismiss, role])
 
 	const handleInputKeyDown = useDatePickerKeyDown({
 		disabled,
