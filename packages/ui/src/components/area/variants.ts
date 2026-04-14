@@ -1,4 +1,6 @@
-import { kage } from '../../recipes'
+import { kage, maru } from '../../recipes'
+
+export const radius = maru.rounded
 
 export const paddingMap = {
 	sm: 'p-2',

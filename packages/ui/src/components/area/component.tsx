@@ -1,7 +1,6 @@
 import type React from 'react'
 import { cn } from '../../core'
-import { maru } from '../../recipes'
-import { type AreaBorder, type AreaPadding, borderMap, paddingMap } from './variants'
+import { type AreaBorder, type AreaPadding, borderMap, paddingMap, radius } from './variants'
 
 export type AreaProps = {
 	/** Padding token. Omit for no padding. */
@@ -30,7 +29,7 @@ export function Area({
 		<div
 			data-slot="area"
 			className={cn(
-				'flex', maru.rounded,
+				'flex', radius,
 				grow && 'flex-1 h-full',
 				center && 'items-center justify-center',
 				paddingMap[padding],
