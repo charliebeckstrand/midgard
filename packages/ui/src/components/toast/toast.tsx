@@ -4,7 +4,7 @@ import { AnimatePresence } from 'motion/react'
 import { createPortal } from 'react-dom'
 import { cn } from '../../core'
 import { ToastAlert } from './alert'
-import { ToastContext, type ToastContextProps, useToastState } from './toast-context'
+import { ToastContext, type ToastProps, useToastState } from './toast-context'
 import { k, toastViewportVariants } from './variants'
 
 export function Toast({
@@ -12,7 +12,7 @@ export function Toast({
 	duration = 5000,
 	maxToasts = 5,
 	children,
-}: ToastContextProps) {
+}: ToastProps) {
 	const { toasts, toast, dismiss, pause, resume, handleExitComplete, isBottom } = useToastState({
 		position,
 		duration,
