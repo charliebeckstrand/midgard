@@ -22,6 +22,7 @@ import { useControllable } from '../../hooks/use-controllable'
 import { useSelect } from '../../hooks/use-select'
 import { FormControl, PopoverPanel } from '../../primitives'
 import { sumi } from '../../recipes'
+import { useControl } from '../control/context'
 import { Icon } from '../icon'
 import { k, kPopover } from './variants'
 
@@ -77,6 +78,10 @@ export function Listbox<T>({
 	inputId,
 	children,
 }: ListboxProps<T>) {
+	const control = useControl()
+
+	const resolvedId = inputId ?? control?.id
+	const resolvedDisabled = control?.disabled
 	const handleValueChange = useCallback(
 		(nextValue: T | T[] | undefined) => {
 			if (nextValue === undefined && multiple) return
@@ -181,13 +186,15 @@ export function Listbox<T>({
 				<FormControl data-open={open || undefined}>
 					<button
 						ref={triggerRef}
-						id={inputId}
+						id={resolvedId}
 						type="button"
 						role="combobox"
 						aria-haspopup="listbox"
 						aria-expanded={open}
 						aria-controls={open ? listboxId : undefined}
+						disabled={resolvedDisabled}
 						data-slot="listbox-button"
+						{...(control?.invalid ? { 'data-invalid': '', 'aria-invalid': true } : {})}
 						onClick={() => setOpen(!open)}
 						className={cn(k.button)}
 					>

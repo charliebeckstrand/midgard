@@ -1,4 +1,7 @@
+'use client'
+
 import { cn } from '../../core'
+import { useControl } from '../control/context'
 import { k } from './variants'
 
 export type FieldsetProps = {
@@ -39,22 +42,46 @@ export type LabelProps = {
 } & Omit<React.ComponentPropsWithoutRef<'label'>, 'className'>
 
 export function Label({ className, htmlFor, ...props }: LabelProps) {
-	// biome-ignore lint/a11y/noLabelWithoutControl: htmlFor is passed by the consumer or the label wraps its control
-	return <label data-slot="label" htmlFor={htmlFor} className={cn(k.label, className)} {...props} />
+	const control = useControl()
+	return (
+		// biome-ignore lint/a11y/noLabelWithoutControl: htmlFor is passed by the consumer or the label wraps its control
+		<label
+			data-slot="label"
+			htmlFor={htmlFor ?? control?.id}
+			className={cn(k.label, className)}
+			{...props}
+		/>
+	)
 }
 
 export type DescriptionProps = {
 	className?: string
 } & Omit<React.ComponentPropsWithoutRef<'p'>, 'className'>
 
-export function Description({ className, ...props }: DescriptionProps) {
-	return <p data-slot="description" className={cn(k.description, className)} {...props} />
+export function Description({ className, id, ...props }: DescriptionProps) {
+	const control = useControl()
+	return (
+		<p
+			data-slot="description"
+			id={id ?? (control ? `${control.id}-description` : undefined)}
+			className={cn(k.description, className)}
+			{...props}
+		/>
+	)
 }
 
 export type ErrorMessageProps = {
 	className?: string
 } & Omit<React.ComponentPropsWithoutRef<'p'>, 'className'>
 
-export function ErrorMessage({ className, ...props }: ErrorMessageProps) {
-	return <p data-slot="error" className={cn(k.error, className)} {...props} />
+export function ErrorMessage({ className, id, ...props }: ErrorMessageProps) {
+	const control = useControl()
+	return (
+		<p
+			data-slot="error"
+			id={id ?? (control ? `${control.id}-error` : undefined)}
+			className={cn(k.error, className)}
+			{...props}
+		/>
+	)
 }

@@ -23,6 +23,7 @@ import { useRovingFocus } from '../../hooks/use-keyboard'
 import { useSelect } from '../../hooks/use-select'
 import { useVirtualKeyboardStable } from '../../hooks/use-virtual-keyboard-stable'
 import { FormControl, PopoverPanel } from '../../primitives'
+import { useControl } from '../control/context'
 import { Icon } from '../icon'
 import { k, kPopover } from './variants'
 
@@ -83,6 +84,10 @@ export function Combobox<T>({
 	className,
 	children,
 }: ComboboxProps<T>) {
+	const control = useControl()
+
+	const resolvedDisabled = control?.disabled
+
 	const handleValueChange = useCallback(
 		(nextValue: T | T[] | undefined) => {
 			if (nextValue === undefined && multiple) return
@@ -239,6 +244,9 @@ export function Combobox<T>({
 						aria-controls={open ? listboxId : undefined}
 						aria-autocomplete="list"
 						data-slot="combobox-input"
+						id={control?.id}
+						disabled={resolvedDisabled}
+						{...(control?.invalid ? { 'data-invalid': '', 'aria-invalid': true } : {})}
 						value={inputDisplay}
 						placeholder={placeholder}
 						onChange={(e) => {

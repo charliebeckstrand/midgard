@@ -1,6 +1,9 @@
+'use client'
+
 import { cn } from '../../core'
 import { FormControl } from '../../primitives'
 import { kokkaku } from '../../recipes'
+import { useControl } from '../control/context'
 import { useGlass } from '../glass/context'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
@@ -17,9 +20,19 @@ export function Textarea({
 	resize,
 	autoResize,
 	actions,
+	id,
+	disabled,
+	required,
+	readOnly,
 	...props
 }: TextareaProps) {
 	const glass = useGlass()
+	const control = useControl()
+
+	const resolvedId = id ?? control?.id
+	const resolvedDisabled = disabled ?? control?.disabled
+	const resolvedRequired = required ?? control?.required
+	const resolvedReadOnly = readOnly ?? control?.readOnly
 
 	const resolvedVariant = variant ?? (glass ? 'glass' : undefined)
 
@@ -31,11 +44,20 @@ export function Textarea({
 		return <Placeholder className={cn(kokkaku.textarea.base, className)} />
 	}
 
+	const controlProps = {
+		id: resolvedId,
+		disabled: resolvedDisabled,
+		required: resolvedRequired,
+		readOnly: resolvedReadOnly,
+		...(control?.invalid ? { 'data-invalid': '', 'aria-invalid': true as const } : {}),
+	}
+
 	if (actions !== undefined) {
 		return (
 			<FormControl className={cn(k.frame, transparentControl)}>
 				<textarea
 					data-slot="textarea"
+					{...controlProps}
 					className={cn(
 						textareaVariants({ variant: resolvedVariant, resize: 'none', autoResize }),
 						k.bare,
@@ -54,6 +76,7 @@ export function Textarea({
 		<FormControl className={cn(transparentControl)}>
 			<textarea
 				data-slot="textarea"
+				{...controlProps}
 				className={cn(
 					textareaVariants({ variant: resolvedVariant, resize, autoResize }),
 					className,

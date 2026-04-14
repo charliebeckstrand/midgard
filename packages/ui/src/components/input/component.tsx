@@ -4,6 +4,7 @@ import { forwardRef } from 'react'
 import { cn } from '../../core'
 import { FormControl } from '../../primitives'
 import { kokkaku } from '../../recipes'
+import { useControl } from '../control/context'
 import { useGlass } from '../glass/context'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
@@ -23,11 +24,17 @@ export type InputProps = Omit<InputVariants, 'size'> & {
 } & Omit<React.ComponentPropsWithoutRef<'input'>, 'className' | 'size' | 'prefix'>
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
-	{ className, type, variant, size, prefix, suffix, ...props },
+	{ className, type, variant, size, prefix, suffix, id, disabled, required, readOnly, ...props },
 	ref,
 ) {
 	const glass = useGlass()
 	const skeleton = useSkeleton()
+	const control = useControl()
+
+	const resolvedId = id ?? control?.id
+	const resolvedDisabled = disabled ?? control?.disabled
+	const resolvedRequired = required ?? control?.required
+	const resolvedReadOnly = readOnly ?? control?.readOnly
 
 	const resolvedVariant = variant ?? (glass ? 'glass' : undefined)
 
@@ -60,6 +67,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 					ref={ref}
 					data-slot="input"
 					type={type}
+					id={resolvedId}
+					disabled={resolvedDisabled}
+					required={resolvedRequired}
+					readOnly={resolvedReadOnly}
+					{...(control?.invalid ? { 'data-invalid': '', 'aria-invalid': true } : {})}
 					className={cn(
 						inputVariants({ variant: resolvedVariant, size }),
 						isDate && inputDateVariants(),

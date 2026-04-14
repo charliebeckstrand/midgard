@@ -111,6 +111,10 @@
 			"types": "./src/components/container/index.ts",
 			"default": "./src/components/container/index.ts"
 		},
+		"./control": {
+			"types": "./src/components/control/index.ts",
+			"default": "./src/components/control/index.ts"
+		},
 		"./disclosure": {
 			"types": "./src/components/disclosure/index.ts",
 			"default": "./src/components/disclosure/index.ts"
@@ -186,10 +190,6 @@
 		"./number-input": {
 			"types": "./src/components/number-input/index.ts",
 			"default": "./src/components/number-input/index.ts"
-		},
-		"./otp-input": {
-			"types": "./src/components/otp-input/index.ts",
-			"default": "./src/components/otp-input/index.ts"
 		},
 		"./pagination": {
 			"types": "./src/components/pagination/index.ts",

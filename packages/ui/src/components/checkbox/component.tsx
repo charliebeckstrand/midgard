@@ -1,7 +1,10 @@
+'use client'
+
 import { Check } from 'lucide-react'
 import { cn } from '../../core'
 import { ToggleField, ToggleGroup } from '../../primitives'
 import { kokkaku } from '../../recipes'
+import { useControl } from '../control/context'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
 import {
@@ -17,7 +20,21 @@ export type CheckboxProps = CheckboxVariants & {
 	className?: string
 } & Omit<React.ComponentPropsWithoutRef<'input'>, 'className' | 'type'>
 
-export function Checkbox({ className, color, icon, ...props }: CheckboxProps) {
+export function Checkbox({
+	className,
+	color,
+	icon,
+	id,
+	disabled,
+	required,
+	...props
+}: CheckboxProps) {
+	const control = useControl()
+
+	const resolvedId = id ?? control?.id
+	const resolvedDisabled = disabled ?? control?.disabled
+	const resolvedRequired = required ?? control?.required
+
 	if (useSkeleton()) {
 		return <Placeholder className={cn(kokkaku.checkbox.base, className)} />
 	}
@@ -30,6 +47,10 @@ export function Checkbox({ className, color, icon, ...props }: CheckboxProps) {
 			<input
 				type="checkbox"
 				data-slot="checkbox"
+				id={resolvedId}
+				disabled={resolvedDisabled}
+				required={resolvedRequired}
+				{...(control?.invalid ? { 'data-invalid': '', 'aria-invalid': true } : {})}
 				className={cn(checkboxInputVariants(), className)}
 				{...props}
 			/>
