@@ -1,6 +1,6 @@
 'use client'
 
-import { Plus, X } from 'lucide-react'
+import { CornerLeftDown, X } from 'lucide-react'
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useControllable, useTagKeyboard } from '../../hooks'
@@ -9,7 +9,7 @@ import type { Color } from '../../recipes/nuri/palette'
 import { Button } from '../button'
 import { Chip } from '../chip'
 import { Icon } from '../icon'
-import { buttonSize, chipSize } from './utilities'
+import { chipRemoveSize, chipSize } from './utilities'
 import { k, type TagInputVariants, tagInputContainerVariants, tagInputVariants } from './variants'
 
 export type TagInputProps = Omit<TagInputVariants, 'size'> & {
@@ -139,19 +139,17 @@ export const TagInput = forwardRef<HTMLInputElement, TagInputProps>(function Tag
 						<Chip
 							key={t}
 							size={chipSize[resolvedSize]}
-							variant="solid"
+							variant="outline"
 							color={resolvedColor}
-							className={cn(
-								'max-w-full',
-								resolvedSize === 'sm' && 'text-[0.625rem]/3 px-1.5 py-px',
-							)}
+							className="max-w-full"
 						>
 							<span className="truncate">{t}</span>
 							{!disabled && (
-								<button
-									type="button"
+								<Button
 									aria-label={`Remove ${t}`}
-									className="relative ml-1 -mr-0.5 inline-flex shrink-0 items-center justify-center rounded-full opacity-60 hover:opacity-100 focus:outline-none before:absolute before:-inset-2 before:content-['']"
+									className={chipRemoveSize[resolvedSize]}
+									size="xs"
+									variant="plain"
 									onMouseDown={(e) => e.preventDefault()}
 									onClick={(e) => {
 										e.stopPropagation()
@@ -159,8 +157,8 @@ export const TagInput = forwardRef<HTMLInputElement, TagInputProps>(function Tag
 										removeTag(i)
 									}}
 								>
-									<Icon icon={<X />} size="xs" />
-								</button>
+									<Icon icon={<X />} />
+								</Button>
 							)}
 						</Chip>
 					))}
@@ -177,32 +175,17 @@ export const TagInput = forwardRef<HTMLInputElement, TagInputProps>(function Tag
 						onKeyDown={handleKeyDown}
 						onBlur={handleBlur}
 					/>
-				</div>
 
-				{/* {inputValue.trim() && !disabled && (
 					<Button
-						type="button"
-						color="blue"
 						size="xs"
-						disabled={max !== undefined && tags.length >= max}
-						aria-label="Add tag"
+						color="blue"
+						disabled={disabled || atMax || inputValue.trim() === ''}
 						onMouseDown={(e) => e.preventDefault()}
 						onClick={handleSubmit}
 					>
-						<Plus className="size-4" />
+						<Icon icon={<CornerLeftDown />} />
 					</Button>
-				)} */}
-				<Button
-					type="button"
-					color="blue"
-					size={buttonSize[resolvedSize]}
-					disabled={disabled || atMax || !inputValue.trim()}
-					aria-label="Add tag"
-					onMouseDown={(e) => e.preventDefault()}
-					onClick={handleSubmit}
-				>
-					<Plus className="size-4" />
-				</Button>
+				</div>
 			</div>
 		</FormControl>
 	)

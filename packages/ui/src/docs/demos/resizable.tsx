@@ -7,7 +7,7 @@ import { Example } from '../components/example'
 
 export const meta = { category: 'Layout' }
 
-const Pane = () => <Area border="solid" />
+const Pane = () => <Area p={4} />
 
 export default function ResizableDemo() {
 	return (

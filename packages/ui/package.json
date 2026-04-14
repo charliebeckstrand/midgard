@@ -151,9 +151,9 @@
 			"types": "./src/components/fieldset/index.ts",
 			"default": "./src/components/fieldset/index.ts"
 		},
-		"./filter": {
-			"types": "./src/components/filter/index.ts",
-			"default": "./src/components/filter/index.ts"
+		"./filters": {
+			"types": "./src/components/filters/index.ts",
+			"default": "./src/components/filters/index.ts"
 		},
 		"./file-upload": {
 			"types": "./src/components/file-upload/index.ts",

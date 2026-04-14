@@ -5,109 +5,39 @@ import type { ComponentApi, ResolutionContext } from './parse-props'
 // Lazy demo loaders (no demo code loaded until navigated to)
 // ---------------------------------------------------------------------------
 
+type DemoMeta = { name?: string; category?: string }
+
 type DemoModule = {
 	default: ComponentType
-	meta?: { name?: string; category?: string }
+	meta?: DemoMeta
 }
 
 const loaders = import.meta.glob<DemoModule>(['./demos/*.tsx', './demos/pages/*.tsx'])
+
+const metas = import.meta.glob<DemoMeta>(['./demos/*.tsx', './demos/pages/*.tsx'], {
+	eager: true,
+	import: 'meta',
+})
+
+function pathToId(path: string) {
+	return path
+		.replace(/^\.\/demos\//, '')
+		.replace('.tsx', '')
+		.replace(/\//g, '-')
+}
 
 // Map glob paths to { id → loader }
 const loaderById = new Map<string, () => Promise<DemoModule>>()
 
 for (const [path, loader] of Object.entries(loaders)) {
-	const id = path
-		.replace(/^\.\/demos\//, '')
-		.replace('.tsx', '')
-		.replace(/\//g, '-')
-
-	loaderById.set(id, loader)
+	loaderById.set(pathToId(path), loader)
 }
 
-// ---------------------------------------------------------------------------
-// Static demo metadata — avoids importing demo code for sidebar/search
-// ---------------------------------------------------------------------------
+// Map glob paths to { id → meta }
+const metaById = new Map<string, DemoMeta>()
 
-const categoryMap: Record<string, string> = {
-	accordion: 'Data Display',
-	alert: 'Feedback',
-	area: 'Layout',
-	'aspect-ratio': 'Layout',
-	avatar: 'Data Display',
-	badge: 'Data Display',
-	banner: 'Feedback',
-	'bottom-nav': 'Navigation',
-	box: 'Layout',
-	breadcrumb: 'Navigation',
-	button: 'Forms',
-	calendar: 'Forms',
-	card: 'Layout',
-	center: 'Layout',
-	checkbox: 'Forms',
-	chip: 'Data Display',
-	code: 'Data Display',
-	collapse: 'Data Display',
-	combobox: 'Forms',
-	'command-palette': 'Overlay',
-	container: 'Layout',
-	'copy-button': 'Other',
-	datepicker: 'Forms',
-	dialog: 'Overlay',
-	disclosure: 'Data Display',
-	divider: 'Layout',
-	dl: 'Data Display',
-	drawer: 'Overlay',
-	fieldset: 'Forms',
-	'file-upload': 'Forms',
-	glass: 'Other',
-	heading: 'Data Display',
-	icon: 'Data Display',
-	input: 'Forms',
-	kbd: 'Data Display',
-	listbox: 'Forms',
-	menu: 'Overlay',
-	nav: 'Navigation',
-	navbar: 'Navigation',
-	'number-input': 'Forms',
-	pagination: 'Navigation',
-	'password-confirm': 'Forms',
-	'password-input': 'Forms',
-	placeholder: 'Feedback',
-	popover: 'Overlay',
-	progress: 'Feedback',
-	radio: 'Forms',
-	'scroll-area': 'Layout',
-	select: 'Forms',
-	sheet: 'Overlay',
-	sizer: 'Layout',
-	skeleton: 'Feedback',
-	slider: 'Forms',
-	spacer: 'Layout',
-	spinner: 'Feedback',
-	split: 'Layout',
-	stack: 'Layout',
-	stat: 'Data Display',
-	status: 'Data Display',
-	stepper: 'Navigation',
-	switch: 'Forms',
-	table: 'Data Display',
-	tabs: 'Navigation',
-	'tag-input': 'Forms',
-	text: 'Data Display',
-	textarea: 'Forms',
-	timeline: 'Data Display',
-	toast: 'Feedback',
-	'toggle-icon-button': 'Other',
-	tooltip: 'Overlay',
-	tree: 'Data Display',
-	'pages-auth-page': 'Pages',
-	'pages-chat-page': 'Pages',
-	'pages-dashboard-page': 'Pages',
-	'pages-settings-page': 'Pages',
-}
-
-const nameOverrides: Record<string, string> = {
-	dl: 'DL',
+for (const [path, meta] of Object.entries(metas)) {
+	metaById.set(pathToId(path), meta)
 }
 
 // ---------------------------------------------------------------------------
@@ -304,10 +234,11 @@ export const demos = [...loaderById.keys()]
 	.map((id) => {
 		const label = id.replace(/^pages-/, '')
 
-		const name =
-			nameOverrides[id] ?? label.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+		const meta = metaById.get(id)
 
-		const category = categoryMap[id] ?? 'Other'
+		const name = meta?.name ?? label.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+
+		const category = meta?.category ?? 'Other'
 
 		return { id, name, category }
 	})

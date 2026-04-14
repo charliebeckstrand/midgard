@@ -26,7 +26,7 @@ export default function SpacerDemo() {
 					</Stack>
 				`}
 			>
-				<Area padding="md" className="w-full">
+				<Area p={3} className="w-full">
 					<Stack direction="row" align="center" className="w-full">
 						<Heading level={3}>Title</Heading>
 						<Spacer />
@@ -50,7 +50,7 @@ export default function SpacerDemo() {
 					</Stack>
 				`}
 			>
-				<Area padding="md" className="w-full">
+				<Area p={3} className="w-full">
 					<Stack direction="row" gap={3} align="center" className="w-full">
 						<Button variant="plain">Back</Button>
 						<Spacer />

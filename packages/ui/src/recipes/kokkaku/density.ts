@@ -27,6 +27,7 @@ export const control = {
  *   lg     28px    h-7
  */
 export const compact = {
+	xs: 'h-4',
 	sm: 'h-5',
 	md: 'h-6',
 	lg: 'h-7',

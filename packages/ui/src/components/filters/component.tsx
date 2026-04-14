@@ -1,8 +1,11 @@
 'use client'
 
+import type React from 'react'
 import { Children, cloneElement, isValidElement, useCallback, useMemo } from 'react'
+import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
-import { type FilterContextValue, FilterProvider, useFilter } from './context'
+import { Flex } from '../flex'
+import { type FiltersContextValue, FiltersProvider, useFilters } from './context'
 
 // ── Helpers ────────────────────────────────────────
 
@@ -10,7 +13,9 @@ type FilterValue = Record<string, unknown>
 
 function isActive(v: unknown): boolean {
 	if (v === undefined || v === null || v === '') return false
+
 	if (Array.isArray(v) && v.length === 0) return false
+
 	return true
 }
 
@@ -20,25 +25,33 @@ function isSyntheticEvent(v: unknown): v is React.SyntheticEvent<HTMLInputElemen
 
 // ── Filter ─────────────────────────────────────────
 
-export type FilterProps<T extends FilterValue = FilterValue> = {
+export type FiltersProps<T extends FilterValue = FilterValue> = {
 	value?: T
 	defaultValue?: T
-	onChange?: (value: T | undefined) => void
+	onChange?: (value: T) => void
+	onClear?: () => void
+	clear?: React.ReactNode
+	affix?: React.ReactNode
+	suffix?: React.ReactNode
 	children: React.ReactNode
 	className?: string
 }
 
-export function Filter<T extends FilterValue = FilterValue>({
+export function Filters<T extends FilterValue = FilterValue>({
 	value: valueProp,
 	defaultValue,
 	onChange,
+	onClear,
+	clear,
+	affix,
+	suffix,
 	children,
 	className,
-}: FilterProps<T>) {
+}: FiltersProps<T>) {
 	const [state, setState] = useControllable<T>({
 		value: valueProp,
 		defaultValue: defaultValue ?? ({} as T),
-		onChange,
+		onChange: onChange as ((value: T | undefined) => void) | undefined,
 	})
 
 	const filterValue = (state ?? {}) as T
@@ -50,60 +63,72 @@ export function Filter<T extends FilterValue = FilterValue>({
 		[setState],
 	)
 
-	const clear = useCallback(() => {
+	const handleClear = useCallback(() => {
 		if (defaultValue) {
 			setState(defaultValue)
 		} else {
 			setState((prev) => {
-				const cleared = {} as Record<string, unknown>
-				for (const key of Object.keys(prev ?? {})) {
-					cleared[key] = undefined
-				}
+				const cleared = {} as Record<string, undefined>
+
+				for (const key of Object.keys(prev ?? {})) cleared[key] = undefined
+
 				return cleared as T
 			})
 		}
-	}, [defaultValue, setState])
+		onClear?.()
+	}, [defaultValue, setState, onClear])
 
 	const activeCount = useMemo(
 		() => Object.values(filterValue).filter(isActive).length,
 		[filterValue],
 	)
 
-	const ctx: FilterContextValue = useMemo(
-		() => ({ value: filterValue, setValue, clear, activeCount }),
-		[filterValue, setValue, clear, activeCount],
+	const ctx: FiltersContextValue = useMemo(
+		() => ({ value: filterValue, setValue, clear: handleClear, onClear, activeCount }),
+		[filterValue, setValue, handleClear, onClear, activeCount],
 	)
 
 	return (
-		<FilterProvider value={ctx}>
-			<div data-slot="filter" className={className}>
-				{children}
+		<FiltersProvider value={ctx}>
+			<div data-slot="filters" className={cn('flex flex-col gap-4', className)}>
+				{affix && <div data-slot="filters-affix">{affix}</div>}
+				<Flex
+					direction={{ initial: 'row', md: 'column' }}
+					gap={2}
+					align={{ initial: 'end', md: 'start' }}
+				>
+					{children}
+					{clear && <Flex>{clear}</Flex>}
+				</Flex>
+				{suffix && <div data-slot="filters-suffix">{suffix}</div>}
 			</div>
-		</FilterProvider>
+		</FiltersProvider>
 	)
 }
 
-// ── FilterField ────────────────────────────────────
+// ── FiltersField ───────────────────────────────────
 
-export type FilterFieldRenderProps = {
+export type FiltersFieldRenderProps = {
 	value: unknown
 	onChange: (value: unknown) => void
 }
 
-export type FilterFieldProps = {
+export type FiltersFieldProps = {
 	name: string
-	children: React.ReactNode | ((field: FilterFieldRenderProps) => React.ReactNode)
+	children: React.ReactNode | ((field: FiltersFieldRenderProps) => React.ReactNode)
 	className?: string
 }
 
-export function FilterField({ name, children, className }: FilterFieldProps) {
-	const { value: filterValue, setValue } = useFilter()
+export function FiltersField({ name, children, className }: FiltersFieldProps) {
+	const { value: filterValue, setValue } = useFilters()
+
 	const fieldValue = filterValue[name]
 
 	const handleChange = useCallback(
 		(valueOrEvent: unknown) => {
 			if (isSyntheticEvent(valueOrEvent)) {
 				const target = valueOrEvent.target as HTMLInputElement
+
 				setValue(name, target.type === 'checkbox' ? target.checked : target.value)
 			} else {
 				setValue(name, valueOrEvent)
@@ -112,7 +137,7 @@ export function FilterField({ name, children, className }: FilterFieldProps) {
 		[name, setValue],
 	)
 
-	const renderProps: FilterFieldRenderProps = { value: fieldValue, onChange: handleChange }
+	const renderProps: FiltersFieldRenderProps = { value: fieldValue, onChange: handleChange }
 
 	// Render prop pattern
 	if (typeof children === 'function') {
@@ -124,12 +149,14 @@ export function FilterField({ name, children, className }: FilterFieldProps) {
 	}
 
 	// Clone element pattern — inject value + onChange
+	// Pass null (not undefined) so children stay in controlled mode when cleared
 	const child = Children.only(children)
+
 	if (isValidElement(child)) {
 		return (
 			<div data-slot="filter-field" className={className}>
 				{cloneElement(child as React.ReactElement<Record<string, unknown>>, {
-					value: fieldValue,
+					value: fieldValue ?? null,
 					onChange: handleChange,
 				})}
 			</div>
@@ -143,20 +170,21 @@ export function FilterField({ name, children, className }: FilterFieldProps) {
 	)
 }
 
-// ── FilterClear ────────────────────────────────────
+// ── FiltersClear ───────────────────────────────────
 
-export type FilterClearProps = {
+export type FiltersClearProps = {
 	children: React.ReactNode
 	className?: string
 }
 
-export function FilterClear({ children, className }: FilterClearProps) {
-	const { clear } = useFilter()
+export function FiltersClear({ children, className }: FiltersClearProps) {
+	const { clear: handleClear } = useFilters()
 
 	const child = Children.only(children)
+
 	if (isValidElement<Record<string, unknown>>(child)) {
 		return cloneElement(child, {
-			onClick: clear,
+			onClick: handleClear,
 			className: className
 				? `${(child.props.className as string) ?? ''} ${className}`.trim()
 				: child.props.className,
@@ -164,7 +192,7 @@ export function FilterClear({ children, className }: FilterClearProps) {
 	}
 
 	return (
-		<button data-slot="filter-clear" type="button" onClick={clear} className={className}>
+		<button data-slot="filter-clear" type="button" onClick={handleClear} className={className}>
 			{children}
 		</button>
 	)

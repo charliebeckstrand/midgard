@@ -1,4 +1,5 @@
 import { kumi } from '../../recipes'
+import { type Responsive, resolveResponsive } from '../grid/variants'
 
 export const gapMap = kumi.gap
 export const directionMap = kumi.direction
@@ -11,3 +12,88 @@ export type FlexDirection = keyof typeof kumi.direction
 export type FlexAlign = keyof typeof kumi.align
 export type FlexJustify = keyof typeof kumi.justify
 export type FlexWidth = keyof typeof kumi.width
+
+export type ResponsiveDirection = Responsive<FlexDirection>
+
+const responsiveDirectionMap: Record<string, Record<FlexDirection, string>> = {
+	initial: directionMap,
+	sm: {
+		row: 'max-sm:flex-row',
+		column: 'max-sm:flex-col',
+		'row-reverse': 'max-sm:flex-row-reverse',
+		'column-reverse': 'max-sm:flex-col-reverse',
+	},
+	md: {
+		row: 'max-md:flex-row',
+		column: 'max-md:flex-col',
+		'row-reverse': 'max-md:flex-row-reverse',
+		'column-reverse': 'max-md:flex-col-reverse',
+	},
+	lg: {
+		row: 'max-lg:flex-row',
+		column: 'max-lg:flex-col',
+		'row-reverse': 'max-lg:flex-row-reverse',
+		'column-reverse': 'max-lg:flex-col-reverse',
+	},
+	xl: {
+		row: 'max-xl:flex-row',
+		column: 'max-xl:flex-col',
+		'row-reverse': 'max-xl:flex-row-reverse',
+		'column-reverse': 'max-xl:flex-col-reverse',
+	},
+	'2xl': {
+		row: 'max-2xl:flex-row',
+		column: 'max-2xl:flex-col',
+		'row-reverse': 'max-2xl:flex-row-reverse',
+		'column-reverse': 'max-2xl:flex-col-reverse',
+	},
+}
+
+export type ResponsiveAlign = Responsive<FlexAlign>
+
+const responsiveAlignMap: Record<string, Record<FlexAlign, string>> = {
+	initial: alignMap,
+	sm: {
+		start: 'max-sm:items-start',
+		center: 'max-sm:items-center',
+		end: 'max-sm:items-end',
+		stretch: 'max-sm:items-stretch',
+		baseline: 'max-sm:items-baseline',
+	},
+	md: {
+		start: 'max-md:items-start',
+		center: 'max-md:items-center',
+		end: 'max-md:items-end',
+		stretch: 'max-md:items-stretch',
+		baseline: 'max-md:items-baseline',
+	},
+	lg: {
+		start: 'max-lg:items-start',
+		center: 'max-lg:items-center',
+		end: 'max-lg:items-end',
+		stretch: 'max-lg:items-stretch',
+		baseline: 'max-lg:items-baseline',
+	},
+	xl: {
+		start: 'max-xl:items-start',
+		center: 'max-xl:items-center',
+		end: 'max-xl:items-end',
+		stretch: 'max-xl:items-stretch',
+		baseline: 'max-xl:items-baseline',
+	},
+	'2xl': {
+		start: 'max-2xl:items-start',
+		center: 'max-2xl:items-center',
+		end: 'max-2xl:items-end',
+		stretch: 'max-2xl:items-stretch',
+		baseline: 'max-2xl:items-baseline',
+	},
+}
+
+export function resolveDirection(value: ResponsiveDirection | undefined): string[] {
+	return resolveResponsive(value, (v, bp) => responsiveDirectionMap[bp ?? 'initial'][v])
+}
+
+export function resolveAlign(value: ResponsiveAlign | undefined): string[] {
+	return resolveResponsive(value, (v, bp) => responsiveAlignMap[bp ?? 'initial'][v])
+}

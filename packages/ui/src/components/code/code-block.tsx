@@ -39,6 +39,7 @@ export type CodeBlockProps = {
 	lang?: BundledLanguage
 	theme?: BundledTheme
 	inline?: boolean
+	copy?: boolean
 	className?: string
 }
 
@@ -47,6 +48,7 @@ export function CodeBlock({
 	lang = 'tsx',
 	theme = 'github-dark-default',
 	inline,
+	copy = true,
 	className,
 }: CodeBlockProps) {
 	const code = rawCode.trim()
@@ -93,17 +95,19 @@ export function CodeBlock({
 
 	return (
 		<div data-slot="code-block" className={cn(codeBlockVariants({ inline }), className)}>
-			<div className={cn(k.block.copyButtonWrapper)}>
-				<CopyButton value={code} className={cn(k.block.copyButton)} size="sm" />
-			</div>
+			{copy && (
+				<div className={cn(k.block.copyButtonWrapper)}>
+					<CopyButton value={code} className={cn(k.block.copyButton)} size="sm" />
+				</div>
+			)}
 			{html ? (
 				<div
-					className={cn(k.block.content)}
+					className={cn(k.block.content, copy && k.block.contentCopy)}
 					// biome-ignore lint/security/noDangerouslySetInnerHtml: shiki output is trusted
 					dangerouslySetInnerHTML={{ __html: html }}
 				/>
 			) : (
-				<pre className={cn(k.block.fallback)} tabIndex={-1}>
+				<pre className={cn(k.block.fallback, copy && k.block.fallbackCopy)} tabIndex={-1}>
 					<code>{code}</code>
 				</pre>
 			)}

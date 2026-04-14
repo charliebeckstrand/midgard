@@ -1,2 +1,2 @@
 export { Area, type AreaProps } from './component'
-export type { AreaBorder, AreaPadding } from './variants'
+export type { AreaBorder, AreaMargin, AreaPadding } from './variants'

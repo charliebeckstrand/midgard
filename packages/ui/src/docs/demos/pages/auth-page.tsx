@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { AspectRatio } from '../../../components/aspect-ratio'
 import { Button } from '../../../components/button'
 import { Field, Label } from '../../../components/fieldset'
 import { Heading } from '../../../components/heading'
@@ -28,84 +27,84 @@ export default function AuthPageDemo() {
 		<Example>
 			<Tabs defaultValue="login" variant="segment">
 				<TabList className="mb-4">
-					<Tab value="login">Login</Tab>
-					<Tab value="register">Register</Tab>
-					<Tab value="forgot-password">Forgot Password</Tab>
+					<Tab value="login" disabled={submitting}>
+						Login
+					</Tab>
+					<Tab value="register" disabled={submitting}>
+						Register
+					</Tab>
+					<Tab value="forgot-password" disabled={submitting}>
+						Forgot Password
+					</Tab>
 				</TabList>
 
 				<TabContents>
 					<TabContent value="login">
-						<AspectRatio ratio="16/9">
-							<AuthPage
-								heading={<Heading>Sign in to your account</Heading>}
-								onSubmit={handleSubmit}
-								submitting={submitting}
-								actions={
-									<Button type="submit" disabled={submitting}>
-										{submitting ? 'Signing in...' : 'Sign in'}
-									</Button>
-								}
-							>
-								<Field>
-									<Label>Email</Label>
-									<Input type="email" placeholder="you@example.com" />
-								</Field>
-								<Field>
-									<Label>Password</Label>
-									<PasswordInput placeholder="•••••••••" />
-								</Field>
-							</AuthPage>
-						</AspectRatio>
+						<AuthPage
+							heading={<Heading>Sign in to your account</Heading>}
+							onSubmit={handleSubmit}
+							submitting={submitting}
+							actions={
+								<Button type="submit" disabled={submitting}>
+									{submitting ? 'Signing in...' : 'Sign in'}
+								</Button>
+							}
+						>
+							<Field>
+								<Label>Email</Label>
+								<Input type="email" placeholder="you@example.com" />
+							</Field>
+							<Field>
+								<Label>Password</Label>
+								<PasswordInput placeholder="•••••••••" />
+							</Field>
+						</AuthPage>
 					</TabContent>
 					<TabContent value="register">
-						<AspectRatio ratio="16/9">
-							<AuthPage
-								heading={<Heading>Create your account</Heading>}
-								onSubmit={handleSubmit}
-								submitting={submitting}
-								actions={
-									<Button type="submit" disabled={submitting}>
-										{submitting ? 'Creating account...' : 'Create account'}
-									</Button>
-								}
-							>
-								<Field>
-									<Label>Name</Label>
-									<Input placeholder="Jane Smith" />
-								</Field>
-								<Field>
-									<Label>Email</Label>
-									<Input type="email" placeholder="you@example.com" />
-								</Field>
-								<Field>
-									<Label>Password</Label>
-									<PasswordInput placeholder="•••••••••" />
-								</Field>
-								<Field>
-									<Label>Confirm Password</Label>
-									<PasswordInput placeholder="•••••••••" />
-								</Field>
-							</AuthPage>
-						</AspectRatio>
+						<AuthPage
+							heading={<Heading>Create your account</Heading>}
+							onSubmit={handleSubmit}
+							submitting={submitting}
+							actions={
+								<Button type="submit" disabled={submitting}>
+									{submitting ? 'Creating account...' : 'Create account'}
+								</Button>
+							}
+						>
+							<Field>
+								<Label>Name</Label>
+								<Input placeholder="Jane Smith" />
+							</Field>
+							<Field>
+								<Label>Email</Label>
+								<Input type="email" placeholder="you@example.com" />
+							</Field>
+							<Field>
+								<Label>Password</Label>
+								<PasswordInput placeholder="•••••••••" />
+							</Field>
+							<Field>
+								<Label>Confirm Password</Label>
+								<PasswordInput placeholder="•••••••••" />
+							</Field>
+						</AuthPage>
 					</TabContent>
 					<TabContent value="forgot-password">
-						<AspectRatio ratio="16/9">
-							<AuthPage
-								heading={<Heading>Reset your password</Heading>}
-								onSubmit={handleSubmit}
-								submitting={submitting}
-								actions={
-									<Button type="submit" disabled={submitting}>
-										{submitting ? 'Sending reset link...' : 'Send reset link'}
-									</Button>
-								}
-							>
-								<Field>
-									<Label>Email</Label>
-									<Input type="email" placeholder="you@example.com" />
-								</Field>
-							</AuthPage>
-						</AspectRatio>
+						<AuthPage
+							heading={<Heading>Reset your password</Heading>}
+							onSubmit={handleSubmit}
+							submitting={submitting}
+							actions={
+								<Button type="submit" disabled={submitting}>
+									{submitting ? 'Sending reset link...' : 'Send reset link'}
+								</Button>
+							}
+						>
+							<Field>
+								<Label>Email</Label>
+								<Input type="email" placeholder="you@example.com" />
+							</Field>
+						</AuthPage>
 					</TabContent>
 				</TabContents>
 			</Tabs>

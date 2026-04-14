@@ -1,8 +1,10 @@
 import type React from 'react'
 import { cn } from '../../core'
 import {
+	alignMap,
 	gapMap,
 	ratioTuples,
+	type SplitAlign,
 	type SplitDirection,
 	type SplitGap,
 	type SplitRatio,
@@ -18,6 +20,8 @@ export type SplitProps = {
 	ratio?: SplitRatio
 	/** Gap between the two panes. Defaults to `4`. */
 	gap?: SplitGap
+	/** Cross-axis alignment of the panes. */
+	align?: SplitAlign
 	className?: string
 } & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
 
@@ -25,6 +29,7 @@ export function Split({
 	direction = 'horizontal',
 	ratio = '1/2',
 	gap = 4,
+	align,
 	className,
 	style,
 	children,
@@ -39,7 +44,7 @@ export function Split({
 	return (
 		<div
 			data-slot="split"
-			className={cn('grid', gapMap[gap], className)}
+			className={cn('grid', gapMap[gap], align && alignMap[align], className)}
 			style={{ ...ratioStyle, ...style }}
 			{...props}
 		>

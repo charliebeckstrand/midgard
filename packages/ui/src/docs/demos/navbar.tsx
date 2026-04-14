@@ -82,7 +82,7 @@ export default function NavbarDemo() {
 						</NavList>
 					</Navbar>
 
-					<Area>
+					<Area p={4}>
 						<NavContents>
 							<NavContent value="home">Home page</NavContent>
 							<NavContent value="about">About us</NavContent>
@@ -101,7 +101,7 @@ export default function NavbarDemo() {
 						</NavList>
 					</Navbar>
 
-					<Area>
+					<Area p={4}>
 						<NavContents>
 							<NavContent value="home">Home page</NavContent>
 							<NavContent value="about">About us</NavContent>

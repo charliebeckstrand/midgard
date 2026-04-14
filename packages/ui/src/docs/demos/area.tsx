@@ -24,15 +24,15 @@ export default function AreaDemo() {
 				code={code`
 					import { Area } from 'ui/area'
 
-					<Area padding="sm">Small</Area>
-					<Area padding="md">Medium</Area>
-					<Area padding="lg">Large</Area>
+					<Area p={2}>Small</Area>
+					<Area p={3}>Medium</Area>
+					<Area p={5}>Large</Area>
 				`}
 			>
 				<Stack gap={4}>
-					<Area padding="sm">Small</Area>
-					<Area padding="md">Medium</Area>
-					<Area padding="lg">Large</Area>
+					<Area p={2}>Small</Area>
+					<Area p={3}>Medium</Area>
+					<Area p={5}>Large</Area>
 				</Stack>
 			</Example>
 
@@ -41,15 +41,15 @@ export default function AreaDemo() {
 				code={code`
 					import { Area } from 'ui/area'
 
-					<Area border="dashed" padding="md">Dashed</Area>
-					<Area border="solid" padding="md">Solid</Area>
+					<Area border="dashed" p={3}>Dashed</Area>
+					<Area border="solid" p={3}>Solid</Area>
 				`}
 			>
 				<Stack gap={4}>
-					<Area border="dashed" padding="md">
+					<Area border="dashed" p={3}>
 						Dashed
 					</Area>
-					<Area border="solid" padding="md">
+					<Area border="solid" p={3}>
 						Solid
 					</Area>
 				</Stack>

@@ -4,6 +4,7 @@ import { compact } from './density'
 export const badge = {
 	base: maru.roundedMd,
 	size: {
+		xs: [compact.xs, 'w-10'],
 		sm: [compact.sm, 'w-12'],
 		md: [compact.md, 'w-14'],
 		lg: [compact.lg, 'w-16'],

@@ -13,12 +13,14 @@ export const tagInput = {
 		'dark:data-disabled:hover:border-white/15',
 	],
 	containerSize: {
+		xs: ['p-[calc(--spacing(1)-1px)]', text.xs],
 		sm: ['p-[calc(--spacing(1.5)-1px)]', text.sm],
 		md: ['p-[calc(--spacing(2)-1px)]', text.md],
 		lg: ['p-[calc(--spacing(2.5)-1px)]', text.lg],
 	},
 	base: ['flex flex-wrap items-center content-center gap-1 flex-1'],
 	size: {
+		xs: [text.xs],
 		sm: [text.sm],
 		md: [text.md],
 		lg: [text.lg],

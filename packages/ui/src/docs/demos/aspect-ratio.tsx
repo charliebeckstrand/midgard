@@ -39,9 +39,7 @@ function PresetsExample() {
 		>
 			<Sizer size="xl">
 				<AspectRatio ratio={ratio}>
-					<Area border="solid" center>
-						{ratio}
-					</Area>
+					<Area center>{ratio}</Area>
 				</AspectRatio>
 			</Sizer>
 		</Example>
@@ -65,9 +63,7 @@ export default function AspectRatioDemo() {
 			>
 				<Sizer size="xl">
 					<AspectRatio ratio={1.618}>
-						<Area border="solid" center>
-							Golden (1.618)
-						</Area>
+						<Area center>Golden (1.618)</Area>
 					</AspectRatio>
 				</Sizer>
 			</Example>

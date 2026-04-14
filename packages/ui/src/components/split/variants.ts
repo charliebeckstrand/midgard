@@ -1,8 +1,10 @@
 import { kumi } from '../../recipes'
 
 export const gapMap = kumi.gap
+export const alignMap = kumi.align
 
 export type SplitGap = keyof typeof kumi.gap
+export type SplitAlign = keyof typeof kumi.align
 
 export const ratioTuples = {
 	'1/4': [1, 3],

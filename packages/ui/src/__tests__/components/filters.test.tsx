@@ -1,57 +1,57 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
-import { Filter, FilterClear, FilterField, useFilter } from '../../components/filter'
+import { Filters, FiltersClear, FiltersField, useFilters } from '../../components/filters'
 import { Input } from '../../components/input'
 import { bySlot, renderUI, screen, userEvent } from '../helpers'
 
 describe('Filter', () => {
-	it('renders with data-slot="filter"', () => {
+	it('renders with data-slot="filters"', () => {
 		const { container } = renderUI(
-			<Filter>
+			<Filters>
 				<span>content</span>
-			</Filter>,
+			</Filters>,
 		)
-		expect(bySlot(container, 'filter')).toBeInTheDocument()
+		expect(bySlot(container, 'filters')).toBeInTheDocument()
 	})
 
 	it('renders children', () => {
 		renderUI(
-			<Filter>
+			<Filters>
 				<span>Hello</span>
-			</Filter>,
+			</Filters>,
 		)
 		expect(screen.getByText('Hello')).toBeInTheDocument()
 	})
 
 	it('applies custom className', () => {
 		const { container } = renderUI(
-			<Filter className="custom">
+			<Filters className="custom">
 				<span>content</span>
-			</Filter>,
+			</Filters>,
 		)
-		expect(bySlot(container, 'filter')?.className).toContain('custom')
+		expect(bySlot(container, 'filters')?.className).toContain('custom')
 	})
 })
 
-describe('FilterField', () => {
+describe('FiltersField', () => {
 	it('renders with data-slot="filter-field"', () => {
 		const { container } = renderUI(
-			<Filter value={{ name: '' }} onChange={() => {}}>
-				<FilterField name="name">
+			<Filters value={{ name: '' }} onChange={() => {}}>
+				<FiltersField name="name">
 					<Input />
-				</FilterField>
-			</Filter>,
+				</FiltersField>
+			</Filters>,
 		)
 		expect(bySlot(container, 'filter-field')).toBeInTheDocument()
 	})
 
 	it('injects value into child via cloneElement', () => {
 		const { container } = renderUI(
-			<Filter value={{ name: 'hello' }} onChange={() => {}}>
-				<FilterField name="name">
+			<Filters value={{ name: 'hello' }} onChange={() => {}}>
+				<FiltersField name="name">
 					<Input />
-				</FilterField>
-			</Filter>,
+				</FiltersField>
+			</Filters>,
 		)
 		const input = bySlot(container, 'input') as HTMLInputElement
 		expect(input.value).toBe('hello')
@@ -60,11 +60,11 @@ describe('FilterField', () => {
 	it('calls onChange when input changes (auto-binding)', async () => {
 		const onChange = vi.fn()
 		const { container } = renderUI(
-			<Filter value={{ name: '' }} onChange={onChange}>
-				<FilterField name="name">
+			<Filters value={{ name: '' }} onChange={onChange}>
+				<FiltersField name="name">
 					<Input />
-				</FilterField>
-			</Filter>,
+				</FiltersField>
+			</Filters>,
 		)
 		const input = bySlot(container, 'input') as HTMLInputElement
 		const user = userEvent.setup()
@@ -75,8 +75,8 @@ describe('FilterField', () => {
 	it('supports render prop children', async () => {
 		const onChange = vi.fn()
 		const { container } = renderUI(
-			<Filter value={{ name: '' }} onChange={onChange}>
-				<FilterField name="name">
+			<Filters value={{ name: '' }} onChange={onChange}>
+				<FiltersField name="name">
 					{({ value, onChange: fieldOnChange }) => (
 						<input
 							data-slot="raw-input"
@@ -84,8 +84,8 @@ describe('FilterField', () => {
 							onChange={(e) => fieldOnChange(e.target.value)}
 						/>
 					)}
-				</FilterField>
-			</Filter>,
+				</FiltersField>
+			</Filters>,
 		)
 		const input = bySlot(container, 'raw-input') as HTMLInputElement
 		const user = userEvent.setup()
@@ -95,28 +95,28 @@ describe('FilterField', () => {
 
 	it('applies custom className', () => {
 		const { container } = renderUI(
-			<Filter>
-				<FilterField name="name" className="custom-field">
+			<Filters>
+				<FiltersField name="name" className="custom-field">
 					<Input />
-				</FilterField>
-			</Filter>,
+				</FiltersField>
+			</Filters>,
 		)
 		expect(bySlot(container, 'filter-field')?.className).toContain('custom-field')
 	})
 })
 
-describe('FilterClear', () => {
+describe('FiltersClear', () => {
 	it('clears all filter values when clicked', async () => {
 		const onChange = vi.fn()
 		renderUI(
-			<Filter value={{ name: 'hello', status: 'active' }} onChange={onChange}>
-				<FilterField name="name">
+			<Filters value={{ name: 'hello', status: 'active' }} onChange={onChange}>
+				<FiltersField name="name">
 					<Input />
-				</FilterField>
-				<FilterClear>
+				</FiltersField>
+				<FiltersClear>
 					<Button>Clear</Button>
-				</FilterClear>
-			</Filter>,
+				</FiltersClear>
+			</Filters>,
 		)
 		const user = userEvent.setup()
 		await user.click(screen.getByText('Clear'))
@@ -127,18 +127,18 @@ describe('FilterClear', () => {
 		const onChange = vi.fn()
 		const defaults = { name: '', status: 'all' }
 		renderUI(
-			<Filter
+			<Filters
 				value={{ name: 'hello', status: 'active' }}
 				defaultValue={defaults}
 				onChange={onChange}
 			>
-				<FilterField name="name">
+				<FiltersField name="name">
 					<Input />
-				</FilterField>
-				<FilterClear>
+				</FiltersField>
+				<FiltersClear>
 					<Button>Clear</Button>
-				</FilterClear>
-			</Filter>,
+				</FiltersClear>
+			</Filters>,
 		)
 		const user = userEvent.setup()
 		await user.click(screen.getByText('Clear'))
@@ -146,17 +146,17 @@ describe('FilterClear', () => {
 	})
 })
 
-describe('useFilter', () => {
+describe('useFilters', () => {
 	function ActiveCount() {
-		const { activeCount } = useFilter()
+		const { activeCount } = useFilters()
 		return <span data-slot="count">{activeCount}</span>
 	}
 
 	it('reports activeCount correctly', () => {
 		const { container } = renderUI(
-			<Filter value={{ a: 'yes', b: '', c: undefined, d: [], e: [1] }}>
+			<Filters value={{ a: 'yes', b: '', c: undefined, d: [], e: [1] }}>
 				<ActiveCount />
-			</Filter>,
+			</Filters>,
 		)
 		// 'yes' and [1] are active, '' and undefined and [] are not
 		expect(bySlot(container, 'count')?.textContent).toBe('2')
@@ -164,9 +164,9 @@ describe('useFilter', () => {
 
 	it('reports 0 when all values are empty', () => {
 		const { container } = renderUI(
-			<Filter value={{ a: '', b: undefined, c: null }}>
+			<Filters value={{ a: '', b: undefined, c: null }}>
 				<ActiveCount />
-			</Filter>,
+			</Filters>,
 		)
 		expect(bySlot(container, 'count')?.textContent).toBe('0')
 	})
@@ -175,17 +175,17 @@ describe('useFilter', () => {
 describe('Filter (uncontrolled)', () => {
 	it('manages state internally with defaultValue', async () => {
 		function ActiveCount() {
-			const { activeCount } = useFilter()
+			const { activeCount } = useFilters()
 			return <span data-slot="count">{activeCount}</span>
 		}
 
 		const { container } = renderUI(
-			<Filter defaultValue={{ name: '' }}>
-				<FilterField name="name">
+			<Filters defaultValue={{ name: '' }}>
+				<FiltersField name="name">
 					<Input />
-				</FilterField>
+				</FiltersField>
 				<ActiveCount />
-			</Filter>,
+			</Filters>,
 		)
 		const input = bySlot(container, 'input') as HTMLInputElement
 		const user = userEvent.setup()

@@ -3,7 +3,6 @@ import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'
 import { Card } from '../../components/card'
 import { Stack } from '../../components/stack'
-import { code } from '../code'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Layout' }
@@ -11,18 +10,7 @@ export const meta = { category: 'Layout' }
 export default function StackDemo() {
 	return (
 		<Stack gap={8}>
-			<Example
-				title="Column (default)"
-				code={code`
-					import { Stack } from 'ui/stack'
-
-					<Stack gap={3}>
-						<Card>One</Card>
-						<Card>Two</Card>
-						<Card>Three</Card>
-					</Stack>
-				`}
-			>
+			<Example title="Column (default)">
 				<Stack gap={3}>
 					<Card>One</Card>
 					<Card>Two</Card>
@@ -30,18 +18,7 @@ export default function StackDemo() {
 				</Stack>
 			</Example>
 
-			<Example
-				title="Row"
-				code={code`
-					import { Stack } from 'ui/stack'
-
-					<Stack direction="row" gap={3}>
-						<Card>One</Card>
-						<Card>Two</Card>
-						<Card>Three</Card>
-					</Stack>
-				`}
-			>
+			<Example title="Row">
 				<Stack direction="row" gap={3}>
 					<Card>One</Card>
 					<Card>Two</Card>
@@ -49,20 +26,9 @@ export default function StackDemo() {
 				</Stack>
 			</Example>
 
-			<Example
-				title="Align and justify"
-				code={code`
-					import { Stack } from 'ui/stack'
-
-					<Stack direction="row" gap={3} justify="between" align="center" className="h-24">
-						<Card>Start</Card>
-						<Card>Middle</Card>
-						<Card>End</Card>
-					</Stack>
-				`}
-			>
-				<Area padding="md" className="h-24 w-full">
-					<Stack direction="row" gap={3} justify="between" align="center" className="h-full">
+			<Example title="Align and justify">
+				<Area p={3} className="h-24 w-full">
+					<Stack direction="row" gap={3} justify="between" align="center" width="full">
 						<Card>Start</Card>
 						<Card>Middle</Card>
 						<Card>End</Card>
@@ -70,20 +36,7 @@ export default function StackDemo() {
 				</Area>
 			</Example>
 
-			<Example
-				title="Wrap"
-				code={code`
-					import { Stack } from 'ui/stack'
-					import { Badge } from 'ui/badge'
-
-					<Stack direction="row" gap={2} wrap>
-						<Badge>design</Badge>
-						<Badge>engineering</Badge>
-						<Badge>product</Badge>
-						{/* … */}
-					</Stack>
-				`}
-			>
+			<Example title="Wrap">
 				<Stack direction="row" gap={2} wrap>
 					<Badge>design</Badge>
 					<Badge>engineering</Badge>
@@ -95,18 +48,7 @@ export default function StackDemo() {
 				</Stack>
 			</Example>
 
-			<Example
-				title="Composed with buttons"
-				code={code`
-					import { Stack } from 'ui/stack'
-					import { Button } from 'ui/button'
-
-					<Stack direction="row" gap={3} justify="end">
-						<Button variant="plain">Cancel</Button>
-						<Button>Save changes</Button>
-					</Stack>
-				`}
-			>
+			<Example title="Composed with buttons">
 				<Stack direction="row" gap={3} justify="end">
 					<Button variant="plain">Cancel</Button>
 					<Button>Save changes</Button>

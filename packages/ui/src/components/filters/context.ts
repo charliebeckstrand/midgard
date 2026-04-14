@@ -2,11 +2,11 @@
 
 import { createContext } from '../../core'
 
-export type FilterContextValue = {
+export type FiltersContextValue = {
 	value: Record<string, unknown>
 	setValue: (name: string, fieldValue: unknown) => void
 	clear: () => void
 	activeCount: number
 }
 
-export const [FilterProvider, useFilter] = createContext<FilterContextValue>('Filter')
+export const [FiltersProvider, useFilters] = createContext<FiltersContextValue>('Filters')

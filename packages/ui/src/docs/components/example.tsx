@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useState } from 'react'
+import { type ReactNode, useEffect, useState } from 'react'
 import { CodeBlock } from '../../components/code'
 import { Collapse, CollapsePanel, CollapseTrigger } from '../../components/collapse'
 import { Flex } from '../../components/flex'
@@ -28,19 +28,12 @@ export function Example({
 
 	const [open, setOpen] = useState(false)
 
-	function handleOpenChange(next: boolean) {
-		if (next && resolvedCode == null) {
-			deriveCode(children).then((result) => {
-				setResolvedCode(result)
+	// Eagerly derive code from children so we know whether to show the toggle.
+	useEffect(() => {
+		if (code != null) return
 
-				setOpen(true)
-			})
-
-			return
-		}
-
-		setOpen(next)
-	}
+		deriveCode(children).then(setResolvedCode)
+	}, [code, children])
 
 	return (
 		<Stack gap={2}>
@@ -58,21 +51,21 @@ export function Example({
 				{footer && (
 					<div className="border-t border-zinc-200 dark:border-zinc-800 p-4">{footer}</div>
 				)}
-				<Collapse animate="slide" open={open} onOpenChange={handleOpenChange}>
-					<div className="border-t border-zinc-200 dark:border-zinc-800">
-						<CollapseTrigger className="flex text-sm px-4 py-2 focus-visible:ring-inset">
-							{({ open }: { open: boolean }) => (open ? 'Hide code' : 'Show code')}
-						</CollapseTrigger>
-					</div>
-					<CollapsePanel>
-						{resolvedCode && (
+				{resolvedCode && (
+					<Collapse animate="slide" open={open} onOpenChange={setOpen}>
+						<div className="border-t border-zinc-200 dark:border-zinc-800">
+							<CollapseTrigger className="flex text-sm px-4 py-2 focus-visible:ring-inset">
+								{({ open }: { open: boolean }) => (open ? 'Hide code' : 'Show code')}
+							</CollapseTrigger>
+						</div>
+						<CollapsePanel>
 							<CodeBlock
 								code={resolvedCode}
 								className="rounded-t-none border-t border-zinc-200 dark:border-zinc-800"
 							/>
-						)}
-					</CollapsePanel>
-				</Collapse>
+						</CollapsePanel>
+					</Collapse>
+				)}
 			</div>
 		</Stack>
 	)
