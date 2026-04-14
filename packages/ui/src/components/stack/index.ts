@@ -4,4 +4,5 @@ export type {
 	StackDirection,
 	StackGap,
 	StackJustify,
+	StackWidth,
 } from './variants'

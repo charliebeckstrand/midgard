@@ -3,7 +3,9 @@
 import { type ReactNode, useState } from 'react'
 import { CodeBlock } from '../../components/code'
 import { Collapse, CollapsePanel, CollapseTrigger } from '../../components/collapse'
+import { Flex } from '../../components/flex'
 import { Heading } from '../../components/heading'
+import { Stack } from '../../components/stack'
 import { deriveCode } from '../derive-code'
 
 export function Example({
@@ -33,12 +35,12 @@ export function Example({
 	}
 
 	return (
-		<div className="space-y-2">
+		<Stack gap={2}>
 			{(title || actions) && (
-				<div className="flex items-center justify-between gap-2">
+				<Flex justify="between" gap={2}>
 					{title && <Heading level={3}>{title}</Heading>}
 					{actions}
-				</div>
+				</Flex>
 			)}
 			<div className="rounded-lg border border-zinc-200 dark:border-zinc-800">
 				<div className="overflow-x-auto p-4 space-y-4">{children}</div>
@@ -67,6 +69,6 @@ export function Example({
 					</CollapsePanel>
 				</Collapse>
 			</div>
-		</div>
+		</Stack>
 	)
 }

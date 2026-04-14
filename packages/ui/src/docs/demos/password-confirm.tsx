@@ -4,13 +4,14 @@ import { Field, Label } from '../../components/fieldset'
 import { PasswordConfirm, PasswordConfirmInput } from '../../components/password-confirm'
 import { PasswordInput } from '../../components/password-input'
 import { Sizer } from '../../components/sizer'
+import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
 
 export default function PasswordConfirmDemo() {
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example title="Default">
 				<Sizer>
 					<PasswordConfirm
@@ -50,6 +51,6 @@ export default function PasswordConfirmDemo() {
 					</PasswordConfirm>
 				</Sizer>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

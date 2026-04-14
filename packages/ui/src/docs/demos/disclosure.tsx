@@ -1,13 +1,14 @@
 'use client'
 
 import { Disclosure, DisclosureButton, DisclosurePanel } from '../../components/disclosure'
+import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Data Display' }
 
 export default function DisclosureDemo() {
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example title="Default">
 				<Disclosure>
 					<DisclosureButton>Toggle details</DisclosureButton>
@@ -29,6 +30,6 @@ export default function DisclosureDemo() {
 					</DisclosurePanel>
 				</Disclosure>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

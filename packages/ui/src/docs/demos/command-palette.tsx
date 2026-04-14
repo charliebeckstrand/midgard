@@ -24,6 +24,7 @@ import {
 } from '../../components/command-palette'
 import { Icon } from '../../components/icon'
 import { Kbd } from '../../components/kbd'
+import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Overlay' }
@@ -128,7 +129,7 @@ export default function CommandPaletteDemo() {
 	}, [])
 
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example title="Default">
 				<Button color="blue" variant="soft" onClick={() => setOpen(true)}>
 					Open command palette
@@ -166,6 +167,6 @@ export default function CommandPaletteDemo() {
 					}}
 				</CommandPalette>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

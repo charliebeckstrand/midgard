@@ -1,14 +1,16 @@
 import { ArrowDown, ArrowUp } from 'lucide-react'
 import { Card, CardBody } from '../../components/card'
+import { Flex } from '../../components/flex'
 import { Icon } from '../../components/icon'
 import { Stat, StatDelta, StatDescription, StatLabel, StatValue } from '../../components/stat'
+import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Data Display' }
 
 export default function StatDemo() {
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example title="Default">
 				<Stat>
 					<StatLabel>Monthly recurring revenue</StatLabel>
@@ -29,7 +31,7 @@ export default function StatDemo() {
 			</Example>
 
 			<Example title="Trends">
-				<div className="flex flex-col gap-2">
+				<Stack gap={2}>
 					<StatDelta trend="up">
 						<Icon icon={<ArrowUp />} size="xs" />
 						12.5%
@@ -39,18 +41,18 @@ export default function StatDemo() {
 						4.2%
 					</StatDelta>
 					<StatDelta trend="neutral">0.0%</StatDelta>
-				</div>
+				</Stack>
 			</Example>
 
 			<Example title="Value sizes">
-				<div className="flex flex-wrap items-end gap-8">
+				<Flex wrap align="end" gap={8}>
 					{(['sm', 'md', 'lg'] as const).map((s) => (
 						<Stat key={s}>
 							<StatLabel>Size {s}</StatLabel>
 							<StatValue size={s}>$1,234</StatValue>
 						</Stat>
 					))}
-				</div>
+				</Flex>
 			</Example>
 
 			<Example title="Dashboard grid">
@@ -93,6 +95,6 @@ export default function StatDemo() {
 					</Card>
 				</div>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

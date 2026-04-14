@@ -3,6 +3,7 @@ import { Field, Label } from '../../components/fieldset'
 import { Glass } from '../../components/glass'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 import { Sizer } from '../../components/sizer'
+import { Stack } from '../../components/stack'
 import { code } from '../code'
 import { Example } from '../components/example'
 
@@ -67,7 +68,7 @@ function MultiListbox() {
 
 export default function ListboxDemo() {
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example
 				title="Single"
 				code={code`
@@ -136,6 +137,6 @@ export default function ListboxDemo() {
 					</Sizer>
 				</Glass>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

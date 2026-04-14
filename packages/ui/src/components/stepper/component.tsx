@@ -3,6 +3,7 @@
 import { Children, isValidElement, useRef } from 'react'
 import { cn } from '../../core'
 import { useIsDesktop, useRovingFocus } from '../../hooks'
+import { Stack } from '../stack'
 import { ActiveIndicator, ActiveIndicatorScope } from '../../primitives'
 import { katachi } from '../../recipes'
 import {
@@ -90,10 +91,10 @@ export function Stepper({
 				{panelsChildren.length === 0 ? (
 					row
 				) : (
-					<div data-slot="stepper-root" className="flex flex-col gap-6">
+					<Stack gap={6} data-slot="stepper-root">
 						{row}
 						{panelsChildren}
-					</div>
+					</Stack>
 				)}
 			</ActiveIndicatorScope>
 		</StepperProvider>

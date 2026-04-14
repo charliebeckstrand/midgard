@@ -1,5 +1,6 @@
 import { File, Folder, Image, Music, Video } from 'lucide-react'
 import { Sizer } from '../../components/sizer'
+import { Stack } from '../../components/stack'
 import { Tree, TreeItem } from '../../components/tree'
 import { code } from '../code'
 import { Example } from '../components/example'
@@ -8,7 +9,7 @@ export const meta = { category: 'Data Display' }
 
 export default function TreeDemo() {
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example
 				title="Default"
 				code={code`
@@ -187,6 +188,6 @@ export default function TreeDemo() {
 					</Tree>
 				</Sizer>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

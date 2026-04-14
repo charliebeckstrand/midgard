@@ -7,6 +7,7 @@ import { DatePicker } from '../../components/datepicker'
 import { Dialog, DialogActions, DialogBody, DialogTitle } from '../../components/dialog'
 import { Drawer, DrawerActions, DrawerBody, DrawerTitle } from '../../components/drawer'
 import { Field, Label } from '../../components/fieldset'
+import { Flex } from '../../components/flex'
 import { Glass } from '../../components/glass'
 import { Input } from '../../components/input'
 import {
@@ -21,6 +22,7 @@ import { NumberInput } from '../../components/number-input'
 import { Select, SelectLabel, SelectOption } from '../../components/select'
 import { Sheet, SheetActions, SheetBody, SheetTitle } from '../../components/sheet'
 import { Sizer } from '../../components/sizer'
+import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
 import { Textarea } from '../../components/textarea'
 import { Example } from '../components/example'
@@ -39,7 +41,7 @@ export default function GlassDemo() {
 	const [date, setDate] = useState<Date | undefined>(undefined)
 
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example title="Glass wrapper">
 				<Glass>
 					<Sizer>
@@ -124,7 +126,7 @@ export default function GlassDemo() {
 
 			<Example title="Overlays">
 				<Glass>
-					<div className="flex gap-3">
+					<Flex gap={3}>
 						<Button variant="outline" onClick={() => setDialogOpen(true)}>
 							Dialog
 						</Button>
@@ -168,9 +170,9 @@ export default function GlassDemo() {
 								<Button onClick={() => setSheetOpen(false)}>Close</Button>
 							</SheetActions>
 						</Sheet>
-					</div>
+					</Flex>
 				</Glass>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

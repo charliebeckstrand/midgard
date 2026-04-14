@@ -5,6 +5,7 @@ import { Field, Label } from '../../components/fieldset'
 import { Glass } from '../../components/glass'
 import { NumberInput } from '../../components/number-input'
 import { Sizer } from '../../components/sizer'
+import { Stack } from '../../components/stack'
 import { code } from '../code'
 import { Example } from '../components/example'
 
@@ -37,7 +38,7 @@ function Controlled() {
 
 export default function NumberInputDemo() {
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example title="Variants">
 				<Sizer>
 					<Field>
@@ -106,6 +107,6 @@ export default function NumberInputDemo() {
 					</Field>
 				</Sizer>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

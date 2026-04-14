@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import { Avatar, AvatarGroup } from '../../components/avatar'
+import { Flex } from '../../components/flex'
+import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 import { SizeListbox } from '../components/size-listbox'
 import { VariantListbox } from '../components/variant-listbox'
@@ -25,13 +27,13 @@ export default function AvatarDemo() {
 	const [statusSize, setStatusSize] = useState<Size>('md')
 
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example title="Variants">
-				<div className="flex items-center gap-2">
+				<Flex gap={2}>
 					{variants.map((v) => (
 						<Avatar key={v} variant={v} initials="A" />
 					))}
-				</div>
+				</Flex>
 			</Example>
 			<Example
 				title="Colors"
@@ -39,11 +41,11 @@ export default function AvatarDemo() {
 					<VariantListbox variants={variants} value={colorVariant} onChange={setColorVariant} />
 				}
 			>
-				<div className="flex items-center gap-2">
+				<Flex gap={2}>
 					{colors.map((color) => (
 						<Avatar key={color} variant={colorVariant} color={color} initials={cap(color)[0]} />
 					))}
-				</div>
+				</Flex>
 			</Example>
 			<Example
 				title="Group"
@@ -59,13 +61,13 @@ export default function AvatarDemo() {
 				title="Status"
 				actions={<SizeListbox sizes={sizes} value={statusSize} onChange={setStatusSize} />}
 			>
-				<div className="flex items-center gap-3">
+				<Flex gap={3}>
 					<Avatar size={statusSize} initials="AB" status="inactive" />
 					<Avatar size={statusSize} initials="CD" status="active" />
 					<Avatar size={statusSize} initials="EF" status="warning" />
 					<Avatar size={statusSize} initials="GH" status="error" />
-				</div>
+				</Flex>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

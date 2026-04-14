@@ -10,13 +10,14 @@ import {
 	MenuSeparator,
 	MenuTrigger,
 } from '../../components/menu'
+import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Overlay' }
 
 export default function MenuDemo() {
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example title="Dropdown Menu">
 				<Menu placement="bottom-start">
 					<MenuTrigger>
@@ -93,6 +94,6 @@ export default function MenuDemo() {
 					</Menu>
 				</Glass>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

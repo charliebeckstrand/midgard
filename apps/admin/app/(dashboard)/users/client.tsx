@@ -8,6 +8,7 @@ import { Dialog, DialogActions, DialogBody, DialogTitle } from 'ui/dialog'
 import { Field, Fieldset, Label } from 'ui/fieldset'
 import { Heading } from 'ui/heading'
 import { Input } from 'ui/input'
+import { Flex } from 'ui/flex'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from 'ui/table'
 
 interface UsersClientProps {
@@ -123,14 +124,14 @@ export function UsersClient({ users, currentUser }: UsersClientProps) {
 								})}
 							</TableCell>
 							<TableCell>
-								<div className="flex gap-1">
+								<Flex gap={1}>
 									<Button variant="outline" onClick={() => setEditingUser(user)}>
 										Edit
 									</Button>
 									<Button variant="outline" disabled={user.id === currentUser?.id}>
 										Delete
 									</Button>
-								</div>
+								</Flex>
 							</TableCell>
 						</TableRow>
 					))}

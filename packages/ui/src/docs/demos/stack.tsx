@@ -10,7 +10,7 @@ export const meta = { category: 'Layout' }
 
 export default function StackDemo() {
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example
 				title="Column (default)"
 				code={code`
@@ -112,6 +112,6 @@ export default function StackDemo() {
 					<Button>Save changes</Button>
 				</Stack>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

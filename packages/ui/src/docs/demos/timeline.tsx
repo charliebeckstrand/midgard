@@ -1,3 +1,4 @@
+import { Stack } from '../../components/stack'
 import {
 	Timeline,
 	TimelineDescription,
@@ -11,7 +12,7 @@ export const meta = { category: 'Data Display' }
 
 export default function TimelineDemo() {
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example title="Vertical">
 				<Timeline>
 					<TimelineItem>
@@ -124,6 +125,6 @@ export default function TimelineDemo() {
 					</TimelineItem>
 				</Timeline>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

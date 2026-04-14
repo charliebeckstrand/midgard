@@ -1,5 +1,6 @@
 import { Card } from '../../components/card'
 import { Container } from '../../components/container'
+import { Stack } from '../../components/stack'
 import { code } from '../code'
 import { Example } from '../components/example'
 
@@ -7,7 +8,7 @@ export const meta = { category: 'Layout' }
 
 export default function ContainerDemo() {
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example
 				title="Default"
 				code={code`
@@ -33,7 +34,7 @@ export default function ContainerDemo() {
 					<Container padding="lg"><Card>Large padding</Card></Container>
 				`}
 			>
-				<div className="space-y-4">
+				<Stack gap={4}>
 					<Container padding="none">
 						<Card>No padding</Card>
 					</Container>
@@ -46,8 +47,8 @@ export default function ContainerDemo() {
 					<Container padding="lg">
 						<Card>Large padding</Card>
 					</Container>
-				</div>
+				</Stack>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

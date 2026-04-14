@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Calendar } from '../../components/calendar'
+import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
@@ -16,7 +17,7 @@ export default function CalendarDemo() {
 	max.setDate(max.getDate() + 30)
 
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example title="Default">
 				<Calendar value={date} onChange={setDate} />
 			</Example>
@@ -24,6 +25,6 @@ export default function CalendarDemo() {
 			<Example title="With min/max">
 				<Calendar min={min} max={max} />
 			</Example>
-		</div>
+		</Stack>
 	)
 }

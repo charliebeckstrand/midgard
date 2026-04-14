@@ -8,6 +8,7 @@ import {
 	AccordionPanel,
 } from '../../components/accordion'
 import { Sizer } from '../../components/sizer'
+import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 import { VariantListbox } from '../components/variant-listbox'
 
@@ -37,7 +38,7 @@ export default function AccordionDemo() {
 	const [variant, setVariant] = useState<(typeof variants)[number]>('separated')
 
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example
 				title="Default"
 				actions={<VariantListbox variants={variants} value={variant} onChange={setVariant} />}
@@ -81,6 +82,6 @@ export default function AccordionDemo() {
 					</Accordion>
 				</Sizer>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

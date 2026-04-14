@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import { Chip } from '../../components/chip'
+import { Flex } from '../../components/flex'
+import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 import { VariantListbox } from '../components/variant-listbox'
 
@@ -37,15 +39,15 @@ export default function ChipDemo() {
 		})
 
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example title="Variants">
-				<div className="flex flex-wrap gap-2">
+				<Flex wrap gap={2}>
 					{variants.map((variant) => (
 						<Chip key={variant} variant={variant}>
 							{variant}
 						</Chip>
 					))}
-				</div>
+				</Flex>
 			</Example>
 			<Example
 				title="Colors"
@@ -57,25 +59,25 @@ export default function ChipDemo() {
 					/>
 				}
 			>
-				<div className="flex flex-wrap gap-2">
+				<Flex wrap gap={2}>
 					{colors.map((color) => (
 						<Chip key={color} variant={colorVariant} color={color}>
 							{color}
 						</Chip>
 					))}
-				</div>
+				</Flex>
 			</Example>
 			<Example title="Sizes">
-				<div className="flex flex-wrap items-center gap-2">
+				<Flex wrap gap={2}>
 					{sizes.map(({ value, label }) => (
 						<Chip key={value} size={value}>
 							{label}
 						</Chip>
 					))}
-				</div>
+				</Flex>
 			</Example>
 			<Example title="Active">
-				<div className="flex flex-wrap items-center gap-2">
+				<Flex wrap gap={2}>
 					{labels.map((label) => (
 						<Chip
 							key={label}
@@ -86,8 +88,8 @@ export default function ChipDemo() {
 							{label}
 						</Chip>
 					))}
-				</div>
+				</Flex>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

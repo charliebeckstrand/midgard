@@ -1,3 +1,4 @@
+import { Stack } from '../../components/stack'
 import {
 	Table,
 	TableBody,
@@ -19,7 +20,7 @@ const users = [
 
 export default function TableDemo() {
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example title="Default">
 				<Table>
 					<TableHead>
@@ -58,6 +59,6 @@ export default function TableDemo() {
 					</TableBody>
 				</Table>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

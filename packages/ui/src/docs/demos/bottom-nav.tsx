@@ -3,6 +3,7 @@
 import { Home, MessageCircle, Search, Settings, User } from 'lucide-react'
 import { useState } from 'react'
 import { BottomNav, BottomNavItem } from '../../components/bottom-nav'
+import { Stack } from '../../components/stack'
 import { code } from '../code'
 import { Example } from '../components/example'
 
@@ -34,7 +35,7 @@ function BottomNavExample() {
 
 export default function BottomNavDemo() {
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example
 				title="Default"
 				code={code`
@@ -64,6 +65,6 @@ export default function BottomNavDemo() {
 					</BottomNav>
 				</div>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

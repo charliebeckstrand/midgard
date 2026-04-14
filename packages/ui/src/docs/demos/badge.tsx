@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import { Badge } from '../../components/badge'
+import { Flex } from '../../components/flex'
+import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 import { VariantListbox } from '../components/variant-listbox'
 
@@ -23,15 +25,15 @@ export default function BadgeDemo() {
 	const [colorVariant, setColorVariant] = useState<(typeof colorVariants)[number]>('solid')
 
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example title="Variants">
-				<div className="flex flex-wrap gap-2">
+				<Flex wrap gap={2}>
 					{variants.map((variant) => (
 						<Badge key={variant} variant={variant}>
 							{variant}
 						</Badge>
 					))}
-				</div>
+				</Flex>
 			</Example>
 			<Example
 				title="Colors"
@@ -43,23 +45,23 @@ export default function BadgeDemo() {
 					/>
 				}
 			>
-				<div className="flex flex-wrap gap-2">
+				<Flex wrap gap={2}>
 					{colors.map((color) => (
 						<Badge key={color} variant={colorVariant} color={color}>
 							{color}
 						</Badge>
 					))}
-				</div>
+				</Flex>
 			</Example>
 			<Example title="Sizes">
-				<div className="flex flex-wrap items-center gap-2">
+				<Flex wrap gap={2}>
 					{sizes.map(({ value, label }) => (
 						<Badge key={value} size={value}>
 							{label}
 						</Badge>
 					))}
-				</div>
+				</Flex>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

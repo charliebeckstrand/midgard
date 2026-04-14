@@ -3,13 +3,14 @@ import { Field, Label } from '../../components/fieldset'
 import { Icon } from '../../components/icon'
 import { PasswordInput } from '../../components/password-input'
 import { Sizer } from '../../components/sizer'
+import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
 
 export default function PasswordInputDemo() {
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example title="Variants">
 				<Sizer>
 					<Field>
@@ -102,6 +103,6 @@ export default function PasswordInputDemo() {
 					</Field>
 				</Sizer>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

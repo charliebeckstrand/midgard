@@ -1,16 +1,17 @@
 import { Placeholder } from '../../components/placeholder'
+import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Feedback' }
 
 export default function PlaceholderDemo() {
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example title="Default">
-				<div className="flex flex-col gap-2 sm:max-w-90">
+				<Stack gap={2} className="sm:max-w-90">
 					<Placeholder />
-				</div>
+				</Stack>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

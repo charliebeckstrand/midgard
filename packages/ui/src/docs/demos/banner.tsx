@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Banner } from '../../components/banner'
 import { Button } from '../../components/button'
+import { Stack } from '../../components/stack'
 import { code } from '../code'
 import { Example } from '../components/example'
 import { VariantListbox } from '../components/variant-listbox'
@@ -39,7 +40,7 @@ export default function BannerDemo() {
 	const [variant, setVariant] = useState<(typeof variants)[number]>('soft')
 
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example
 				title="Types"
 				code={code`
@@ -51,7 +52,7 @@ export default function BannerDemo() {
 					<Banner type="error" title="Error banner" />
 				`}
 			>
-				<div className="-mx-4 flex flex-col">
+				<Stack gap={0} className="-mx-4">
 					{types.map((type) => (
 						<Banner
 							key={type}
@@ -60,7 +61,7 @@ export default function BannerDemo() {
 							closable={false}
 						/>
 					))}
-				</div>
+				</Stack>
 			</Example>
 			<Example
 				title="Colors"
@@ -75,11 +76,11 @@ export default function BannerDemo() {
 					<Banner variant="soft" color="blue" title="Blue" />
 				`}
 			>
-				<div className="-mx-4 flex flex-col">
+				<Stack gap={0} className="-mx-4">
 					{colors.map((c) => (
 						<Banner key={c} variant={variant} color={c} title={cap(c)} closable={false} />
 					))}
-				</div>
+				</Stack>
 			</Example>
 			<Example
 				title="With description"
@@ -146,6 +147,6 @@ export default function BannerDemo() {
 					/>
 				</div>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

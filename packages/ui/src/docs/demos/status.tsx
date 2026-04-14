@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { Flex } from '../../components/flex'
+import { Stack } from '../../components/stack'
 import { StatusDot } from '../../components/status'
 import { Example } from '../components/example'
 import { SizeListbox } from '../components/size-listbox'
@@ -17,48 +19,48 @@ export default function StatusDemo() {
 	const [pulseSize, setPulseSize] = useState<(typeof sizes)[number]>('md')
 
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example title="Statuses">
-				<div className="flex flex-col gap-3">
+				<Stack gap={3}>
 					{statuses.map((s) => (
-						<div key={s} className="flex items-center gap-2">
+						<Flex key={s} gap={2}>
 							<StatusDot status={s} />
 							<span className="text-sm text-zinc-500 dark:text-zinc-400">{cap(s)}</span>
-						</div>
+						</Flex>
 					))}
-				</div>
+				</Stack>
 			</Example>
 			<Example title="Outline">
-				<div className="flex flex-col gap-3">
+				<Stack gap={3}>
 					{statuses.map((s) => (
-						<div key={s} className="flex items-center gap-2">
+						<Flex key={s} gap={2}>
 							<StatusDot variant="outline" status={s} />
 							<span className="text-sm text-zinc-500 dark:text-zinc-400">{cap(s)}</span>
-						</div>
+						</Flex>
 					))}
-				</div>
+				</Stack>
 			</Example>
 			<Example
 				title="Sizes"
 				actions={<VariantListbox variants={statuses} value={status} onChange={setStatus} />}
 			>
-				<div className="flex flex-col gap-3">
+				<Stack gap={3}>
 					{sizes.map((size) => (
-						<div key={size} className="flex items-center gap-2">
+						<Flex key={size} gap={2}>
 							<StatusDot status={status} size={size} />
 							<span className="text-sm text-zinc-500 dark:text-zinc-400">{size}</span>
-						</div>
+						</Flex>
 					))}
-				</div>
+				</Stack>
 			</Example>
 			<Example
 				title="Pulse"
 				actions={<SizeListbox sizes={sizes} value={pulseSize} onChange={setPulseSize} />}
 			>
-				<div className="flex items-center">
+				<Flex>
 					<StatusDot status="error" size={pulseSize} pulse />
-				</div>
+				</Flex>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

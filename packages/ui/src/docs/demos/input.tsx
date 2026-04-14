@@ -3,6 +3,7 @@ import { Field, Label } from '../../components/fieldset'
 import { Icon } from '../../components/icon'
 import { Input } from '../../components/input'
 import { Sizer } from '../../components/sizer'
+import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
@@ -11,7 +12,7 @@ const variants = ['default', 'outline', 'glass'] as const
 
 export default function InputDemo() {
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example title="Variants">
 				{variants.map((variant) => (
 					<Sizer key={variant}>
@@ -115,6 +116,6 @@ export default function InputDemo() {
 					</Field>
 				</Sizer>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

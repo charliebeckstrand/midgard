@@ -151,6 +151,10 @@
 			"types": "./src/components/file-upload/index.ts",
 			"default": "./src/components/file-upload/index.ts"
 		},
+		"./flex": {
+			"types": "./src/components/flex/index.ts",
+			"default": "./src/components/flex/index.ts"
+		},
 		"./heading": {
 			"types": "./src/components/heading/index.ts",
 			"default": "./src/components/heading/index.ts"

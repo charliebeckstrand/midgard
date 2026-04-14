@@ -9,6 +9,8 @@ import {
 	CardHeader,
 	CardTitle,
 } from '../../components/card'
+import { Flex } from '../../components/flex'
+import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
 import { code } from '../code'
 import { Example } from '../components/example'
@@ -17,7 +19,7 @@ export const meta = { category: 'Layout' }
 
 export default function CardDemo() {
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Alert type="info" closable>
 				<AlertTitle>Box</AlertTitle>
 				<AlertDescription>The Card component extends the Box component.</AlertDescription>
@@ -93,10 +95,10 @@ export default function CardDemo() {
 			<Example title="Composing with other components">
 				<Card>
 					<CardHeader>
-						<div className="flex items-center justify-between">
+						<Flex justify="between">
 							<CardTitle>Deployment</CardTitle>
 							<Badge color="green">Active</Badge>
-						</div>
+						</Flex>
 					</CardHeader>
 					<CardBody>
 						<Text>Last deployed 3 minutes ago to production.</Text>
@@ -106,6 +108,6 @@ export default function CardDemo() {
 					</CardFooter>
 				</Card>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

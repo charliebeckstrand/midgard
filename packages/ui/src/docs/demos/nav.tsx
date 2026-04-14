@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Area } from '../../components/area'
 import { NavContent, NavContents, NavItem, NavList, NavProvider } from '../../components/nav'
 import { Sizer } from '../../components/sizer'
+import { Stack } from '../../components/stack'
 import { code } from '../code'
 import { Example } from '../components/example'
 
@@ -13,7 +14,7 @@ export default function NavDemo() {
 	const [current, setCurrent] = useState('account')
 
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example title="Default">
 				<Sizer>
 					<NavList orientation="horizontal">
@@ -75,6 +76,6 @@ export default function NavDemo() {
 					</NavList>
 				</Sizer>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

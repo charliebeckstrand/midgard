@@ -1,8 +1,10 @@
 'use client'
 
 import { useState } from 'react'
+import { Flex } from '../../components/flex'
 import { ProgressBar, ProgressGauge } from '../../components/progress'
 import { Sizer } from '../../components/sizer'
+import { Stack } from '../../components/stack'
 import { code } from '../code'
 import { Example } from '../components/example'
 import { ValueStepper } from '../components/value-stepper'
@@ -57,41 +59,41 @@ function InteractiveGauge() {
 
 export default function ProgressDemo() {
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<InteractiveBar />
 			<Example title="Bar sizes">
 				<Sizer>
 					{barSizes.map((s) => (
-						<div key={s} className="flex items-center gap-3">
+						<Flex key={s} gap={3}>
 							<span className="w-6 text-xs text-zinc-500">{s}</span>
 							<ProgressBar size={s} value={60} className="flex-1" />
-						</div>
+						</Flex>
 					))}
 				</Sizer>
 			</Example>
 			<Example title="Bar colors">
 				<Sizer>
 					{colors.map((color) => (
-						<div key={color} className="flex items-center gap-3">
+						<Flex key={color} gap={3}>
 							<span className="w-10 text-xs text-zinc-500">{cap(color)}</span>
 							<ProgressBar color={color} value={60} className="flex-1" />
-						</div>
+						</Flex>
 					))}
 				</Sizer>
 			</Example>
 			<InteractiveGauge />
 			<Example title="Gauge sizes">
-				<div className="flex items-end gap-4">
+				<Flex gap={4} align="end">
 					{gaugeSizes.map((s) => (
-						<div key={s} className="flex flex-col items-center gap-2">
+						<Stack key={s} gap={2} align="center">
 							<ProgressGauge value={75} size={s} color="amber" />
 							<span className="text-xs text-zinc-500">{s}</span>
-						</div>
+						</Stack>
 					))}
-				</div>
+				</Flex>
 			</Example>
 			<Example title="Gauge with label">
-				<div className="flex items-end gap-4">
+				<Flex gap={4} align="end">
 					{gaugeSizes.map((s) => (
 						<ProgressGauge
 							key={s}
@@ -102,15 +104,15 @@ export default function ProgressDemo() {
 						/>
 					))}
 					<ProgressGauge value={100} size="xl" color="green" label />
-				</div>
+				</Flex>
 			</Example>
 			<Example title="Gauge colors">
-				<div className="flex items-center gap-4">
+				<Flex gap={4}>
 					{colors.map((color) => (
 						<ProgressGauge key={color} color={color} value={75} size="lg" />
 					))}
-				</div>
+				</Flex>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

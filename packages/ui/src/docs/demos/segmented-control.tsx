@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Segment, SegmentedControl } from '../../components/segmented-control'
+import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 import { SizeListbox } from '../components/size-listbox'
 
@@ -18,7 +19,7 @@ export default function SegmentedControlDemo() {
 	const [disabledView, setDisabledView] = useState<string | undefined>('List')
 
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example title="Default">
 				<SegmentedControl value={defaultView} onValueChange={setDefaultView}>
 					{views.map((v) => (
@@ -63,6 +64,6 @@ export default function SegmentedControlDemo() {
 					</Segment>
 				</SegmentedControl>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

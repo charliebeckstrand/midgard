@@ -1,4 +1,6 @@
 import { Button } from '../../components/button'
+import { Flex } from '../../components/flex'
+import { Stack } from '../../components/stack'
 import { Toast, useToast } from '../../components/toast'
 import { code } from '../code'
 import { Example } from '../components/example'
@@ -9,7 +11,7 @@ function ToastButtons() {
 	const { toast } = useToast()
 
 	return (
-		<div className="flex flex-wrap gap-2">
+		<Flex wrap gap={2}>
 			<Button variant="outline" onClick={() => toast({ title: 'Event created' })}>
 				Default
 			</Button>
@@ -49,7 +51,7 @@ function ToastButtons() {
 			>
 				Error
 			</Button>
-		</div>
+		</Flex>
 	)
 }
 
@@ -96,7 +98,7 @@ function ActionToastButton() {
 export default function ToastDemo() {
 	return (
 		<Toast>
-			<div className="space-y-8">
+			<Stack gap={8}>
 				<Example
 					title="Types"
 					code={code`
@@ -148,7 +150,7 @@ export default function ToastDemo() {
 				>
 					<ActionToastButton />
 				</Example>
-			</div>
+			</Stack>
 		</Toast>
 	)
 }

@@ -2,6 +2,7 @@ import { Description, Field, Fieldset, Label, Legend } from '../../components/fi
 import { Input } from '../../components/input'
 import { Select, SelectLabel, SelectOption } from '../../components/select'
 import { Sizer } from '../../components/sizer'
+import { Stack } from '../../components/stack'
 import { Textarea } from '../../components/textarea'
 import { Example } from '../components/example'
 
@@ -13,7 +14,7 @@ export default function FieldsetDemo() {
 			<Sizer size="lg">
 				<Fieldset>
 					<Legend>Profile</Legend>
-					<div className="space-y-4">
+					<Stack gap={4}>
 						<Field>
 							<Label htmlFor="fieldset-name">Full name</Label>
 							<Input id="fieldset-name" placeholder="Jane Smith" />
@@ -41,7 +42,7 @@ export default function FieldsetDemo() {
 							<Label htmlFor="fieldset-bio">Bio</Label>
 							<Textarea id="fieldset-bio" placeholder="Tell us about yourself" />
 						</Field>
-					</div>
+					</Stack>
 				</Fieldset>
 			</Sizer>
 		</Example>

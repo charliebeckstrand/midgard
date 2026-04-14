@@ -1,4 +1,6 @@
 import { Button } from '../../components/button'
+import { Flex } from '../../components/flex'
+import { Stack } from '../../components/stack'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { Example } from '../components/example'
 
@@ -8,7 +10,7 @@ const placements = ['left', 'top', 'bottom', 'right'] as const
 
 export default function TooltipDemo() {
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example title="Default">
 				<Tooltip>
 					<TooltipTrigger>
@@ -19,7 +21,7 @@ export default function TooltipDemo() {
 			</Example>
 
 			<Example title="Placement">
-				<div className="flex flex-wrap items-center justify-center gap-4 py-8">
+				<Flex wrap justify="center" gap={4} className="py-8">
 					{placements.map((placement) => (
 						<Tooltip key={placement} placement={placement}>
 							<TooltipTrigger>
@@ -28,7 +30,7 @@ export default function TooltipDemo() {
 							<TooltipContent>Tooltip on {placement}</TooltipContent>
 						</Tooltip>
 					))}
-				</div>
+				</Flex>
 			</Example>
 
 			<Example title="Interactive">
@@ -39,6 +41,6 @@ export default function TooltipDemo() {
 					<TooltipContent>This tooltip stays open when you hover over it.</TooltipContent>
 				</Tooltip>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

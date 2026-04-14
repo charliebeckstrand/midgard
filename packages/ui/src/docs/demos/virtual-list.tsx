@@ -3,6 +3,7 @@
 import { ArrowUp, CircleDashed, EllipsisVertical, Plus } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
 import { Button } from '../../components/button'
+import { Flex } from '../../components/flex'
 import { Icon } from '../../components/icon'
 import { Spacer } from '../../components/spacer'
 import { Spinner } from '../../components/spinner'
@@ -183,11 +184,11 @@ export default function VirtualListDemo() {
 	}
 
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example title="Chat with virtualized messages">
-				<div className="flex flex-col h-125 rounded-lg border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+				<Stack className="h-125 rounded-lg border border-zinc-200 dark:border-zinc-800 overflow-hidden">
 					{/* Header */}
-					<div className="flex items-center gap-3 border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
+					<Flex gap={3} className="border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
 						<div className="size-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-medium">
 							AI
 						</div>
@@ -203,7 +204,7 @@ export default function VirtualListDemo() {
 								<Icon icon={<EllipsisVertical />} />
 							</Button>
 						</div>
-					</div>
+					</Flex>
 
 					{/* Virtualized message list */}
 					<div className="flex-1 min-h-0">
@@ -265,8 +266,8 @@ export default function VirtualListDemo() {
 							}
 						/>
 					</div>
-				</div>
+				</Stack>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

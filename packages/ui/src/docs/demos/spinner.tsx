@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Button } from '../../components/button'
+import { Flex } from '../../components/flex'
 import { Spinner } from '../../components/spinner'
+import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 import { SizeListbox } from '../components/size-listbox'
 import { sizes as buttonSizes } from '../demos/button'
@@ -19,35 +21,35 @@ export default function SpinnerDemo() {
 	const [buttonSize, setButtonSize] = useState<ButtonSize>('md')
 
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example title="Default">
 				<Spinner />
 			</Example>
 			<Example title="Sizes">
 				<div className="flex items-end gap-4">
 					{sizes.map((s) => (
-						<div key={s} className="flex flex-col items-center gap-2">
+						<Stack key={s} gap={2} align="center">
 							<Spinner size={s} />
 							<span className="text-xs text-zinc-500">{s}</span>
-						</div>
+						</Stack>
 					))}
 				</div>
 			</Example>
 			<Example title="Colors">
-				<div className="flex items-center gap-4">
+				<Flex gap={4}>
 					{colors.map((c) => (
-						<div key={c} className="flex flex-col items-center gap-2">
+						<Stack key={c} gap={2} align="center">
 							<Spinner color={c} size="lg" />
 							<span className="text-xs text-zinc-500">{cap(c)}</span>
-						</div>
+						</Stack>
 					))}
-				</div>
+				</Flex>
 			</Example>
 			<Example
 				title="Inside a button"
 				actions={<SizeListbox sizes={buttonSizes} value={buttonSize} onChange={setButtonSize} />}
 			>
-				<div className="flex items-center gap-3">
+				<Flex gap={3}>
 					<Button disabled size={buttonSize}>
 						<Spinner />
 						Loading
@@ -56,8 +58,8 @@ export default function SpinnerDemo() {
 						<Spinner />
 						Saving
 					</Button>
-				</div>
+				</Flex>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

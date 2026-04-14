@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { FileUpload } from '../../components/file-upload'
 import { Icon } from '../../components/icon'
 import { Sizer } from '../../components/sizer'
+import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
 import { code } from '../code'
 import { Example } from '../components/example'
@@ -79,7 +80,7 @@ function DisabledDemo() {
 
 export default function FileUploadDemo() {
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example
 				title="Area (default)"
 				code={code`
@@ -152,6 +153,6 @@ export default function FileUploadDemo() {
 			>
 				<DisabledDemo />
 			</Example>
-		</div>
+		</Stack>
 	)
 }
