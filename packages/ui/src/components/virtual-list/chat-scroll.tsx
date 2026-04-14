@@ -1,7 +1,7 @@
 'use client'
 
 import type { Virtualizer } from '@tanstack/react-virtual'
-import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react'
+import { type ReactNode, useCallback, useEffect, useRef } from 'react'
 import { type ChatScrollContextValue, ChatScrollProvider } from './context'
 
 // ── Types ──────────────────────────────────────────────
@@ -29,9 +29,10 @@ export function ChatScroll({
 }: ChatScrollProps) {
 	const containerRef = useRef<HTMLDivElement | null>(null)
 	const virtualizerRef = useRef<Virtualizer<HTMLDivElement, Element> | null>(null)
-	const [isPinned, setIsPinned] = useState(true)
+	const isPinnedRef = useRef(true)
 	const prevCountRef = useRef(0)
 	const topReachedRef = useRef(false)
+	const bottomReachedRef = useRef(false)
 
 	// Called by VirtualList when it mounts, giving us access to its internals.
 	const register = useCallback(
@@ -53,7 +54,7 @@ export function ChatScroll({
 			const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight
 			const distanceFromTop = el.scrollTop
 
-			setIsPinned(distanceFromBottom < threshold)
+			isPinnedRef.current = distanceFromBottom < threshold
 
 			// Fire onTopReached when scrolled near the top (debounced per scroll direction).
 			if (distanceFromTop < threshold) {
@@ -65,9 +66,14 @@ export function ChatScroll({
 				topReachedRef.current = false
 			}
 
-			// Fire onBottomReached when scrolled near the bottom.
+			// Fire onBottomReached when scrolled near the bottom (debounced per scroll direction).
 			if (distanceFromBottom < threshold) {
-				onBottomReached?.()
+				if (!bottomReachedRef.current) {
+					bottomReachedRef.current = true
+					onBottomReached?.()
+				}
+			} else {
+				bottomReachedRef.current = false
 			}
 		}
 
@@ -87,7 +93,7 @@ export function ChatScroll({
 		if (prevCount === 0) return
 		if (count <= prevCount) return
 
-		if (isPinned && stickToBottom) {
+		if (isPinnedRef.current && stickToBottom) {
 			virtualizer.scrollToIndex(count - 1, { align: 'end' })
 		}
 	})
