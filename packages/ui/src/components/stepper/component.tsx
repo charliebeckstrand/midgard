@@ -3,9 +3,9 @@
 import { Children, isValidElement, useRef } from 'react'
 import { cn } from '../../core'
 import { useIsDesktop, useRovingFocus } from '../../hooks'
-import { Stack } from '../stack'
 import { ActiveIndicator, ActiveIndicatorScope } from '../../primitives'
 import { katachi } from '../../recipes'
+import { Stack } from '../stack'
 import {
 	type StepperOrientation,
 	StepperProvider,

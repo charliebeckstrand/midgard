@@ -212,14 +212,12 @@ export function Combobox<T>({
 
 			if (items.length === 1) items[0]?.setAttribute('data-active', '')
 		} else {
-			// On open, highlight the currently selected option (if any)
+			// On open, scroll to the currently selected option (if any)
 			const selected = container.querySelector<HTMLElement>(
 				'[role="option"]:not([data-disabled])[data-selected]',
 			)
 
 			if (selected) {
-				selected.setAttribute('data-active', '')
-
 				selected.scrollIntoView({ block: 'center' })
 			}
 		}

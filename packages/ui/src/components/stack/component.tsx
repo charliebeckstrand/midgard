@@ -5,12 +5,12 @@ import {
 	directionMap,
 	gapMap,
 	justifyMap,
-	widthMap,
 	type StackAlign,
 	type StackDirection,
 	type StackGap,
 	type StackJustify,
 	type StackWidth,
+	widthMap,
 } from './variants'
 
 export type StackProps = {

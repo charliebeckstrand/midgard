@@ -3,14 +3,14 @@ import { cn } from '../../core'
 import {
 	alignMap,
 	directionMap,
-	gapMap,
-	justifyMap,
-	widthMap,
 	type FlexAlign,
 	type FlexDirection,
 	type FlexGap,
 	type FlexJustify,
 	type FlexWidth,
+	gapMap,
+	justifyMap,
+	widthMap,
 } from './variants'
 
 export type FlexProps = {
