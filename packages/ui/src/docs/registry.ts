@@ -135,6 +135,14 @@ export function getLazyComponent(id: string): LazyExoticComponent<ComponentType>
 /** In-flight / resolved promise cache — ensures one import per demo. */
 const loadCache = new Map<string, Promise<ComponentType>>()
 
+/** Synchronous cache of already-resolved components. */
+const resolvedCache = new Map<string, ComponentType>()
+
+/** Return the component synchronously if its import has already resolved. */
+export function getResolvedDemo(id: string): ComponentType | null {
+	return resolvedCache.get(id) ?? null
+}
+
 /** Load a demo module and return the resolved component. */
 export function loadDemo(id: string): Promise<ComponentType> {
 	let pending = loadCache.get(id)
@@ -145,7 +153,10 @@ export function loadDemo(id: string): Promise<ComponentType> {
 
 	if (!loader) throw new Error(`No demo found for id: ${id}`)
 
-	pending = loader().then((mod) => mod.default)
+	pending = loader().then((mod) => {
+		resolvedCache.set(id, mod.default)
+		return mod.default
+	})
 
 	loadCache.set(id, pending)
 
@@ -330,6 +341,9 @@ export const sortedCategories = Object.entries(categories).sort(
 export const defaultDemo = sortedCategories[0]?.[1]?.[0]?.id || demos[0]?.id || ''
 
 // Eagerly preload the initial demo so it's ready before React mounts.
-preloadDemo(
-	typeof window !== 'undefined' ? window.location.hash.slice(1) || defaultDemo : defaultDemo,
-)
+const initialId =
+	typeof window !== 'undefined' ? window.location.hash.slice(1) || defaultDemo : defaultDemo
+
+export const initialPreload = loaderById.has(initialId)
+	? loadDemo(initialId)
+	: Promise.resolve(undefined as unknown as ComponentType)
