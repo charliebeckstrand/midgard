@@ -13,11 +13,6 @@ export type PlaceholderProps = {
  */
 export function Placeholder({ className, ...props }: PlaceholderProps) {
 	return (
-		<div
-			data-slot="placeholder"
-			aria-hidden="true"
-			className={cn(k.base, className)}
-			{...props}
-		/>
+		<div data-slot="placeholder" aria-hidden="true" className={cn(k.base, className)} {...props} />
 	)
 }

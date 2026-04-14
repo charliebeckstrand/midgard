@@ -1,8 +1,8 @@
 import { cn } from '../../core'
 import {
+	k,
 	type StatDeltaVariants,
 	type StatValueVariants,
-	k,
 	statDeltaVariants,
 	statValueVariants,
 } from './variants'

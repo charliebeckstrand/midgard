@@ -4,8 +4,8 @@ import { kokkaku } from '../../recipes'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
 import {
-	type RadioVariants,
 	k,
+	type RadioVariants,
 	radioColorVariants,
 	radioInputVariants,
 	radioVariants,

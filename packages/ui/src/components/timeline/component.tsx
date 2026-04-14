@@ -8,7 +8,7 @@ import {
 	type TimelineVariant,
 	useTimeline,
 } from './context'
-import { type TimelineVariants, k, timelineVariants } from './variants'
+import { k, type TimelineVariants, timelineVariants } from './variants'
 
 // ── Timeline ────────────────────────────────────────────
 

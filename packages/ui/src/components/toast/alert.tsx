@@ -3,9 +3,9 @@
 import { motion } from 'motion/react'
 import { cn } from '../../core'
 import { ugoki } from '../../recipes'
-import { k } from './variants'
 import { Alert } from '../alert'
 import type { ToastData, ToastPosition, ToastType } from './toast-context'
+import { k } from './variants'
 
 function getToastMotion(position: ToastPosition) {
 	if (position.startsWith('bottom')) return ugoki.toast.bottom

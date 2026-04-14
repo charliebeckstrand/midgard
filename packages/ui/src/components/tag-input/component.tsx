@@ -10,7 +10,7 @@ import { Button } from '../button'
 import { Chip } from '../chip'
 import { Icon } from '../icon'
 import { buttonSize, chipSize } from './utilities'
-import { type TagInputVariants, k, tagInputContainerVariants, tagInputVariants } from './variants'
+import { k, type TagInputVariants, tagInputContainerVariants, tagInputVariants } from './variants'
 
 export type TagInputProps = Omit<TagInputVariants, 'size'> & {
 	size?: 'sm' | 'md' | 'lg'

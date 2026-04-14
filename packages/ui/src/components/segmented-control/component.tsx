@@ -6,8 +6,8 @@ import { useControllable, useRovingFocus } from '../../hooks'
 import { ActiveIndicator, ActiveIndicatorScope, useActiveIndicator } from '../../primitives'
 import { SegmentedControlProvider, useSegmentedControl } from './context'
 import {
-	type SegmentedControlVariants,
 	k,
+	type SegmentedControlVariants,
 	segmentedControlVariants,
 	segmentVariants,
 } from './variants'

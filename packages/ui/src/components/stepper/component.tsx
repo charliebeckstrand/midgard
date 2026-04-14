@@ -14,8 +14,8 @@ import {
 	useStepperStep,
 } from './context'
 import {
-	type StepperVariants,
 	k,
+	type StepperVariants,
 	stepperSeparatorVariants,
 	stepperStepVariants,
 	stepperTitleVariants,

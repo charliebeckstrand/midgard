@@ -6,8 +6,8 @@ import { cn } from '../../core'
 import { useControllable } from '../../hooks'
 import { Button } from '../button'
 import { Icon } from '../icon'
-import { k } from './variants'
 import { Input, type InputProps } from '../input'
+import { k } from './variants'
 
 type Size = 'sm' | 'md' | 'lg'
 

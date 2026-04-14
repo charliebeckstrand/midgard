@@ -3,9 +3,9 @@ import { kokkaku, narabi } from '../../recipes'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
 import {
+	k,
 	type SwitchFieldVariants,
 	type SwitchVariants,
-	k,
 	switchColorVariants,
 	switchFieldVariants,
 	switchInputVariants,

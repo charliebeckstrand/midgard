@@ -29,7 +29,8 @@ export function Area({
 		<div
 			data-slot="area"
 			className={cn(
-				'flex', radius,
+				'flex',
+				radius,
 				grow && 'flex-1 h-full',
 				center && 'items-center justify-center',
 				paddingMap[padding],

@@ -26,12 +26,20 @@ export function Example({
 }) {
 	const [resolvedCode, setResolvedCode] = useState<string | null>(code ?? null)
 
-	function resolveCode() {
-		if (resolvedCode != null) return
+	const [open, setOpen] = useState(false)
 
-		deriveCode(children).then((result) => {
-			setResolvedCode(result)
-		})
+	function handleOpenChange(next: boolean) {
+		if (next && resolvedCode == null) {
+			deriveCode(children).then((result) => {
+				setResolvedCode(result)
+
+				setOpen(true)
+			})
+
+			return
+		}
+
+		setOpen(next)
 	}
 
 	return (
@@ -50,12 +58,9 @@ export function Example({
 				{footer && (
 					<div className="border-t border-zinc-200 dark:border-zinc-800 p-4">{footer}</div>
 				)}
-				<Collapse animate="slide">
+				<Collapse animate="slide" open={open} onOpenChange={handleOpenChange}>
 					<div className="border-t border-zinc-200 dark:border-zinc-800">
-						<CollapseTrigger
-							className="flex text-sm px-4 py-2 focus-visible:ring-inset"
-							onClick={resolveCode}
-						>
+						<CollapseTrigger className="flex text-sm px-4 py-2 focus-visible:ring-inset">
 							{({ open }: { open: boolean }) => (open ? 'Hide code' : 'Show code')}
 						</CollapseTrigger>
 					</div>

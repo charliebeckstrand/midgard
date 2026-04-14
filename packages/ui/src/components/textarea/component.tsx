@@ -4,7 +4,7 @@ import { kokkaku } from '../../recipes'
 import { useGlass } from '../glass/context'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
-import { type TextareaVariants, k, textareaVariants } from './variants'
+import { k, type TextareaVariants, textareaVariants } from './variants'
 
 export type TextareaProps = TextareaVariants & {
 	className?: string
