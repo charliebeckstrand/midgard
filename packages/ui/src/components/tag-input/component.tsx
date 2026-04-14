@@ -172,6 +172,7 @@ export const TagInput = forwardRef<HTMLInputElement, TagInputProps>(function Tag
 						ref={inputRef}
 						type="text"
 						value={inputValue}
+						aria-label={placeholder ?? 'Add tags'}
 						className={cn(k.input)}
 						placeholder={tags.length === 0 ? placeholder : undefined}
 						disabled={disabled || atMax}

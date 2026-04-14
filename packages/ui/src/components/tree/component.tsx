@@ -109,6 +109,7 @@ export function TreeItem({
 						<TreeProvider value={{ depth: depth + 1, color: resolvedColor }}>
 							<motion.div
 								role="group"
+								aria-label={typeof label === 'string' ? label : undefined}
 								data-slot="tree-group"
 								{...ugoki.collapse.fade}
 								className={k.group}
