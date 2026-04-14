@@ -4,12 +4,11 @@ import { ChevronRight } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { type ReactElement, type ReactNode, useState } from 'react'
 import { cn } from '../../core'
-import { katachi, ugoki } from '../../recipes'
+import { ugoki } from '../../recipes'
 import { type TreeColor, treeColorMap } from '../../recipes/katachi/tree'
 import { Icon } from '../icon'
 import { TreeProvider, useTreeContext } from './context'
-
-const k = katachi.tree
+import { k } from './variants'
 
 // ── Tree ───────────────────────────────────────────────
 

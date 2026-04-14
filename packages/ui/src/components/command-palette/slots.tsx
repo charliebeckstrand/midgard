@@ -1,8 +1,6 @@
 import type React from 'react'
 import { cn } from '../../core'
-import { katachi } from '../../recipes'
-
-const k = katachi.commandPalette
+import { k } from './variants'
 
 export type CommandPaletteGroupProps = React.ComponentPropsWithoutRef<'div'> & {
 	heading?: React.ReactNode

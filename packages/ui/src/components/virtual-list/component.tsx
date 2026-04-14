@@ -11,10 +11,8 @@ import {
 	useRef,
 } from 'react'
 import { cn } from '../../core/cn'
-import { katachi } from '../../recipes'
 import { useChatScrollContext } from './context'
-
-const k = katachi.virtualList
+import { k } from './variants'
 
 // ── Types ──────────────────────────────────────────────
 

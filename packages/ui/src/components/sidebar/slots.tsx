@@ -3,11 +3,9 @@
 import { X } from 'lucide-react'
 import { cn } from '../../core'
 import { useOffcanvas } from '../../core/offcanvas-context'
-import { katachi } from '../../recipes'
 import { Button } from '../button'
 import { Icon } from '../icon'
-
-const k = katachi.sidebar
+import { k } from './variants'
 
 export type SidebarHeaderProps = React.ComponentPropsWithoutRef<'div'> & {
 	closeIcon?: React.ReactNode

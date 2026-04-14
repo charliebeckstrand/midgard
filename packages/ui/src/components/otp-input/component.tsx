@@ -3,11 +3,9 @@
 import { useCallback, useEffect, useRef } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
-import { katachi } from '../../recipes'
 import { Input } from '../input'
 import { useInputEvents } from './use-input-events'
-
-const k = katachi.otpInput
+import { k } from './variants'
 
 export type OtpInputProps = {
 	/** Number of input cells. @default 6 */

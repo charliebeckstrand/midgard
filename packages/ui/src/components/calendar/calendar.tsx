@@ -13,12 +13,10 @@ import {
 import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { useRovingFocus } from '../../hooks/use-keyboard'
-import { katachi } from '../../recipes'
 import { Button, type ButtonVariants } from '../button'
 import { CalendarPicker } from './calendar-picker'
 import { getCalendarDays, isBeforeDay, isSameDay, WEEKDAYS } from './utilities'
-
-const k = katachi.calendar
+import { k } from './variants'
 
 export type CalendarActive =
 	| { zone: 'header'; index: 0 | 1 | 2 }

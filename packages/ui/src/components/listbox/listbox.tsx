@@ -21,10 +21,9 @@ import { cn, createContext } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { useSelect } from '../../hooks/use-select'
 import { FormControl, PopoverPanel } from '../../primitives'
-import { katachi, sumi } from '../../recipes'
+import { sumi } from '../../recipes'
 import { Icon } from '../icon'
-
-const k = katachi.listbox
+import { k, kPopover } from './variants'
 
 type ListboxContextValue<T = unknown> = {
 	value: T | T[] | undefined
@@ -206,7 +205,7 @@ export function Listbox<T>({
 						<div
 							ref={refs.setFloating}
 							style={floatingStyles}
-							className={katachi.popover.portal}
+							className={kPopover.portal}
 							{...getFloatingProps()}
 						>
 							<PopoverPanel role="listbox" className={cn(k.panel, k.options)}>

@@ -23,10 +23,8 @@ import { useRovingFocus } from '../../hooks/use-keyboard'
 import { useSelect } from '../../hooks/use-select'
 import { useVirtualKeyboardStable } from '../../hooks/use-virtual-keyboard-stable'
 import { FormControl, PopoverPanel } from '../../primitives'
-import { katachi } from '../../recipes'
 import { Icon } from '../icon'
-
-const k = katachi.combobox
+import { k, kPopover } from './variants'
 
 type ComboboxContextValue<T = unknown> = {
 	value: T | T[] | undefined
@@ -307,7 +305,7 @@ export function Combobox<T>({
 							<div
 								ref={refs.setFloating}
 								style={floatingStyles}
-								className={katachi.popover.portal}
+								className={kPopover.portal}
 								{...getFloatingProps()}
 							>
 								<PopoverPanel

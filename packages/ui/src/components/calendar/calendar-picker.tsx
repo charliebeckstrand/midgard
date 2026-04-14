@@ -4,12 +4,10 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useRovingFocus } from '../../hooks/use-keyboard'
-import { katachi } from '../../recipes'
 import { Button } from '../button'
 import { Popover, PopoverContent, PopoverTrigger } from '../popover'
 import { MONTHS } from './utilities'
-
-const k = katachi.calendar
+import { k } from './variants'
 
 type CalendarPickerProps = {
 	year: number

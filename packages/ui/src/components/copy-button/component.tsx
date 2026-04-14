@@ -3,8 +3,8 @@
 import { Check, Clipboard } from 'lucide-react'
 import { type ReactElement, useCallback, useEffect, useState } from 'react'
 import { cn } from '../../core'
-import { katachi } from '../../recipes'
 import { ToggleIconButton } from '../toggle-icon-button'
+import { k } from './variants'
 
 type Size = 'xs' | 'sm' | 'md' | 'lg'
 
@@ -52,7 +52,7 @@ export function CopyButton({
 			disabled={isCopied || disabled}
 			onClick={copy}
 			aria-label={isCopied ? 'Copied' : 'Copy to clipboard'}
-			className={cn(katachi.copyButton.base, className)}
+			className={cn(k.base, className)}
 		/>
 	)
 }

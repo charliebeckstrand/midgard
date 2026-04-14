@@ -4,12 +4,10 @@ import { useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useRovingFocus } from '../../hooks'
 import { ActiveIndicatorScope } from '../../primitives'
-import { katachi } from '../../recipes'
 import { useNavbar } from '../navbar/context'
 import { type NavContextValue, NavProvider, useNavContext } from './context'
 import { type NavItemProps as BaseNavItemProps, createNavItem } from './create-nav-item'
-
-const k = katachi.nav
+import { k } from './variants'
 
 // ── Nav ─────────────────────────────────────────────────
 

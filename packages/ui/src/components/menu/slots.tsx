@@ -1,8 +1,6 @@
 import type React from 'react'
 import { cn } from '../../core'
-import { katachi } from '../../recipes'
-
-const k = katachi.menu
+import { k } from './variants'
 
 export type MenuSectionProps = React.ComponentPropsWithoutRef<'fieldset'>
 

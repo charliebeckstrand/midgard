@@ -1,5 +1,6 @@
 import type React from 'react'
 import { cn } from '../../core'
+import { maru } from '../../recipes'
 import { type AreaBorder, type AreaPadding, borderMap, paddingMap } from './variants'
 
 export type AreaProps = {
@@ -29,7 +30,7 @@ export function Area({
 		<div
 			data-slot="area"
 			className={cn(
-				'flex rounded-lg',
+				'flex', maru.rounded,
 				grow && 'flex-1 h-full',
 				center && 'items-center justify-center',
 				paddingMap[padding],
