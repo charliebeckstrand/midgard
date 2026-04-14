@@ -1,6 +1,5 @@
 import { Children, isValidElement } from 'react'
 import { cn } from '../../core'
-import { katachi } from '../../recipes'
 import type { Color } from '../../recipes/nuri/palette'
 import { StatusDot, type StatusDotProps } from '../status'
 import {
@@ -9,9 +8,7 @@ import {
 	type TimelineVariant,
 	useTimeline,
 } from './context'
-import { type TimelineVariants, timelineVariants } from './variants'
-
-const k = katachi.timeline
+import { type TimelineVariants, k, timelineVariants } from './variants'
 
 // ── Timeline ────────────────────────────────────────────
 

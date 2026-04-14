@@ -5,7 +5,6 @@ import { cn } from '../../core'
 import { useIsDesktop, useRovingFocus } from '../../hooks'
 import { Stack } from '../stack'
 import { ActiveIndicator, ActiveIndicatorScope } from '../../primitives'
-import { katachi } from '../../recipes'
 import {
 	type StepperOrientation,
 	StepperProvider,
@@ -16,13 +15,12 @@ import {
 } from './context'
 import {
 	type StepperVariants,
+	k,
 	stepperSeparatorVariants,
 	stepperStepVariants,
 	stepperTitleVariants,
 	stepperVariants,
 } from './variants'
-
-const k = katachi.stepper
 
 // ── Stepper ─────────────────────────────────────────────
 

@@ -1,16 +1,15 @@
 import { cn } from '../../core'
 import { ToggleField, ToggleGroup } from '../../primitives'
-import { katachi, kokkaku } from '../../recipes'
+import { kokkaku } from '../../recipes'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
 import {
 	type RadioVariants,
+	k,
 	radioColorVariants,
 	radioInputVariants,
 	radioVariants,
 } from './variants'
-
-const k = katachi.radio
 
 export type RadioProps = RadioVariants & {
 	className?: string

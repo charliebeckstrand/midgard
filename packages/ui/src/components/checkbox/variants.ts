@@ -2,7 +2,7 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { colorCva } from '../../core'
 import { katachi } from '../../recipes'
 
-const k = katachi.checkbox
+export const k = katachi.checkbox
 
 export const checkboxColorVariants = colorCva('', k.color)
 

@@ -2,10 +2,7 @@
 
 import { motion } from 'motion/react'
 import { cn } from '../../core'
-import { katachi } from '../../recipes'
-import { progressGaugeVariants, progressTrackVariants } from './variants'
-
-const k = katachi.progress
+import { k, progressGaugeVariants, progressTrackVariants } from './variants'
 
 type ProgressColor = keyof typeof k.color
 

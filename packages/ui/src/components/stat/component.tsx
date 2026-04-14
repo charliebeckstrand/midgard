@@ -1,13 +1,11 @@
 import { cn } from '../../core'
-import { katachi } from '../../recipes'
 import {
 	type StatDeltaVariants,
 	type StatValueVariants,
+	k,
 	statDeltaVariants,
 	statValueVariants,
 } from './variants'
-
-const k = katachi.stat
 
 export type StatProps = {
 	className?: string

@@ -1,7 +1,7 @@
 import { Check } from 'lucide-react'
 import { cn } from '../../core'
 import { ToggleField, ToggleGroup } from '../../primitives'
-import { katachi, kokkaku } from '../../recipes'
+import { kokkaku } from '../../recipes'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
 import {
@@ -9,9 +9,8 @@ import {
 	checkboxColorVariants,
 	checkboxInputVariants,
 	checkboxVariants,
+	k,
 } from './variants'
-
-const k = katachi.checkbox
 
 export type CheckboxProps = CheckboxVariants & {
 	icon?: React.ReactNode

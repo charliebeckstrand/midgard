@@ -2,7 +2,8 @@
 
 import { motion } from 'motion/react'
 import { cn } from '../../core'
-import { katachi, ugoki } from '../../recipes'
+import { ugoki } from '../../recipes'
+import { k } from './variants'
 import { Alert } from '../alert'
 import type { ToastData, ToastPosition, ToastType } from './toast-context'
 
@@ -75,7 +76,7 @@ export function ToastAlert({
 					actions={t.actions}
 					closable={showCloseButton}
 					onClose={() => onDismiss(t.id)}
-					className={cn(katachi.toast.card)}
+					className={cn(k.card)}
 				/>
 			</motion.div>
 		</motion.div>

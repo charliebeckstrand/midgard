@@ -3,11 +3,8 @@
 import { useEffect, useState } from 'react'
 import type { BundledLanguage, BundledTheme } from 'shiki'
 import { cn } from '../../core'
-import { katachi } from '../../recipes'
 import { CopyButton } from '../copy-button'
-import { codeBlockVariants } from './variants'
-
-const k = katachi.code.block
+import { k, codeBlockVariants } from './variants'
 
 const MAX_CACHE_SIZE = 200
 
@@ -96,17 +93,17 @@ export function CodeBlock({
 
 	return (
 		<div data-slot="code-block" className={cn(codeBlockVariants({ inline }), className)}>
-			<div className={cn(k.copyButtonWrapper)}>
-				<CopyButton value={code} className={cn(k.copyButton)} size="sm" />
+			<div className={cn(k.block.copyButtonWrapper)}>
+				<CopyButton value={code} className={cn(k.block.copyButton)} size="sm" />
 			</div>
 			{html ? (
 				<div
-					className={cn(k.content)}
+					className={cn(k.block.content)}
 					// biome-ignore lint/security/noDangerouslySetInnerHtml: shiki output is trusted
 					dangerouslySetInnerHTML={{ __html: html }}
 				/>
 			) : (
-				<pre className={cn(k.fallback)} tabIndex={-1}>
+				<pre className={cn(k.block.fallback)} tabIndex={-1}>
 					<code>{code}</code>
 				</pre>
 			)}

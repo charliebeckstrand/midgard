@@ -1,4 +1,8 @@
-export { gapMap, type LayoutGap as SplitGap } from '../_layout'
+import { kumi } from '../../recipes'
+
+export const gapMap = kumi.gap
+
+export type SplitGap = keyof typeof kumi.gap
 
 export const ratioTuples = {
 	'1/4': [1, 3],

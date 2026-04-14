@@ -1,7 +1,7 @@
 import { cva, type VariantProps } from 'class-variance-authority'
 import { katachi } from '../../recipes'
 
-const k = katachi.segmentedControl
+export const k = katachi.segmentedControl
 
 const rootSize = Object.fromEntries(
 	Object.entries(k.size).map(([key, { root }]) => [key, root]),
