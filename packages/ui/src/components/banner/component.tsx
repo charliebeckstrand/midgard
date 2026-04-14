@@ -6,10 +6,7 @@ export type BannerProps = Omit<AlertProps, 'block'> & {
 	position?: 'static' | 'sticky'
 }
 
-/**
- * A full-width, page-level message bar. Built on Alert with rounded corners
- * removed and `block` always enabled. Closable by default.
- */
+/** Full-width page-level message bar. Built on Alert with block always enabled. */
 export function Banner({ position = 'static', closable = true, className, ...props }: BannerProps) {
 	return (
 		<Alert

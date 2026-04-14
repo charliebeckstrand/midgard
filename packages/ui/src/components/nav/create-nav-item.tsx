@@ -22,10 +22,7 @@ export type NavItemProps = {
 
 /**
  * Factory for navigation item components (NavbarItem, SidebarItem).
- *
- * Both share identical structure: animated active indicator + polymorphic
- * button/link + touch target. Only the data-slot prefix and variant
- * function differ.
+ * Both share identical structure; only the data-slot prefix and variant differ.
  */
 export function createNavItem(config: { slotPrefix: string; variants: () => string }) {
 	const innerSlot = `${config.slotPrefix}-item-inner`

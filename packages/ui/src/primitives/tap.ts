@@ -2,11 +2,7 @@
 
 import { ugoki } from '../recipes'
 
-/**
- * Tap feedback — returns spreadable motion props for press interactions.
- *
- * `<motion.button {...tap}>` or `<motion.span {...tap}>`
- */
+/** Spreadable motion props for tap-feedback scale on press. */
 export function useTap(enabled = true) {
 	if (!enabled) return {}
 

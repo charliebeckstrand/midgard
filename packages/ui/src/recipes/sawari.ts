@@ -1,11 +1,9 @@
 /**
  * Sawari (触り) — Touch response.
  *
- * How an element reacts to hover, press, and selection — the tactile
- * feedback that tells you something is alive under your finger.
+ * Hover, press, and selection feedback.
  *
- * Tier: 2
- * Concern: interaction
+ * Tier: 2 · Concern: interaction
  */
 
 import { ki } from './ki'

@@ -28,7 +28,7 @@ export function resolveResponsive<T>(
 	return [resolver(value as T)]
 }
 
-/** Factory for breakpoint-aware Tailwind class resolvers */
+/** Creates a breakpoint-aware Tailwind class resolver. */
 export function responsiveClass(prefix: string) {
 	return (value: number, bp?: string): string => {
 		const cls = `${prefix}-${value}`

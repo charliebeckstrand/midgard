@@ -8,13 +8,13 @@ import { type ChatScrollContextValue, ChatScrollProvider } from './context'
 
 export type ChatScrollProps = {
 	children: ReactNode
-	/** Called when the user scrolls near the top — use to load older items. */
+	/** Fires when scrolled near the top. */
 	onTopReached?: () => void
-	/** Called when the user scrolls near the bottom. */
+	/** Fires when scrolled near the bottom. */
 	onBottomReached?: () => void
-	/** Distance in pixels from the edge to trigger top/bottom callbacks. @default 100 */
+	/** Edge threshold in pixels. @default 100 */
 	threshold?: number
-	/** When true and the user is pinned to the bottom, auto-scrolls on new items. @default true */
+	/** Auto-scroll on new items when pinned to bottom. @default true */
 	stickToBottom?: boolean
 }
 
@@ -34,7 +34,7 @@ export function ChatScroll({
 	const topReachedRef = useRef(false)
 	const bottomReachedRef = useRef(false)
 
-	// Called by VirtualList when it mounts, giving us access to its internals.
+	// Register VirtualList internals on mount.
 	const register = useCallback(
 		(container: HTMLDivElement, virtualizer: Virtualizer<HTMLDivElement, Element>) => {
 			containerRef.current = container
@@ -43,7 +43,7 @@ export function ChatScroll({
 		[],
 	)
 
-	// Listen to scroll events on the registered container.
+	// Listen to scroll events on the container.
 	useEffect(() => {
 		const el = containerRef.current
 		if (!el) return
@@ -56,7 +56,7 @@ export function ChatScroll({
 
 			isPinnedRef.current = distanceFromBottom < threshold
 
-			// Fire onTopReached when scrolled near the top (debounced per scroll direction).
+			// Fire onTopReached near the top (debounced).
 			if (distanceFromTop < threshold) {
 				if (!topReachedRef.current) {
 					topReachedRef.current = true
@@ -66,7 +66,7 @@ export function ChatScroll({
 				topReachedRef.current = false
 			}
 
-			// Fire onBottomReached when scrolled near the bottom (debounced per scroll direction).
+			// Fire onBottomReached near the bottom (debounced).
 			if (distanceFromBottom < threshold) {
 				if (!bottomReachedRef.current) {
 					bottomReachedRef.current = true
@@ -81,7 +81,7 @@ export function ChatScroll({
 		return () => el.removeEventListener('scroll', handleScroll)
 	}, [onTopReached, onBottomReached, threshold])
 
-	// Auto-scroll to bottom when items are appended and user is pinned.
+	// Auto-scroll on append when pinned to bottom.
 	useEffect(() => {
 		const virtualizer = virtualizerRef.current
 		if (!virtualizer) return

@@ -1,11 +1,9 @@
 /**
  * Omote (面) — Surfaces.
  *
- * The face of a thing — backgrounds, chrome, backdrops. Everything that
- * establishes a visual plane for content to sit on.
+ * Backgrounds, chrome, backdrops — the visual plane content sits on.
  *
- * Tier: 2
- * Concern: surface
+ * Tier: 2 · Concern: surface
  */
 
 import { garasu } from './garasu'

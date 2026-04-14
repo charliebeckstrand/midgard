@@ -1,15 +1,10 @@
 /**
  * Katachi (形) — Component forms.
  *
- * The complete styling recipe for each component — base classes, variant maps,
- * slot styles, and defaults. Variant files become thin CVA plumbing that maps
- * katachi entries into cva() calls.
+ * Complete styling recipe per component — base classes, variant maps, slot styles,
+ * and defaults. Structure and visual styling only; sizing lives in take.
  *
- * Sizing, spacing, and gap belong in take — not here. Katachi handles
- * structure, visual styling, and composition of lower-tier recipes.
- *
- * Tier: 3
- * Concern: component form
+ * Tier: 3 · Concern: component form
  */
 
 import { accordion } from './accordion'

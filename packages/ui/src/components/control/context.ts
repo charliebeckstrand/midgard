@@ -19,11 +19,7 @@ const ControlContext = createContext<ControlContextValue | undefined>(undefined)
 
 export const ControlProvider = ControlContext.Provider
 
-/**
- * Returns the nearest Control context, or `undefined` when outside a `<Control>`.
- * Components call this to inherit id, disabled, invalid, readOnly, required,
- * size, and variant state from a parent Control wrapper.
- */
+/** Returns the nearest Control context, or undefined outside a Control. */
 export function useControl() {
 	return useContext(ControlContext)
 }

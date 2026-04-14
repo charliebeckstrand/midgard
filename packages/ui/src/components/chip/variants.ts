@@ -8,7 +8,7 @@ type Variant = keyof typeof k.variant
 type Color = keyof (typeof k.variant)['solid']['color']
 type ColorMap = Record<Color, string | readonly string[]>
 
-/** Generate compound variants for every variant × active × color combination. */
+/** Generates compound variants for every variant, active state, and color. */
 function chipCompoundColors() {
 	return (Object.keys(k.variant) as Variant[]).flatMap((variant) => {
 		const { color, active } = k.variant[variant]

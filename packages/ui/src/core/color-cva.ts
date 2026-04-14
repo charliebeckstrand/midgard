@@ -4,12 +4,7 @@ type ColorTokenValue = string | readonly (string | readonly string[])[]
 type ColorTokenMap = Record<string, ColorTokenValue>
 type MutableTokenMap = Record<string, string | string[]>
 
-/**
- * Creates a standalone CVA with a single `color` variant dimension.
- *
- * Used by Checkbox, Radio, and Switch where color is the only variant.
- * Defaults to `color: 'zinc'` when no color is specified.
- */
+/** Standalone CVA with a single `color` variant. Defaults to zinc. */
 export function colorCva(base: string | string[], tokenMap: ColorTokenMap) {
 	return cva(base, {
 		variants: { color: tokenMap as MutableTokenMap },
@@ -19,34 +14,12 @@ export function colorCva(base: string | string[], tokenMap: ColorTokenMap) {
 
 export type ColorCvaVariants = VariantProps<ReturnType<typeof colorCva>>
 
-/**
- * Creates empty CVA variant entries from a nuri color token map.
- *
- * Eliminates the `Object.fromEntries(Object.keys(nuri.X).map(k => [k, '']))` ceremony.
- *
- * @example
- * ```ts
- * cva(base, {
- *   variants: { variant: { solid: [...] }, color: colorKeys(nuri.button) },
- * })
- * ```
- */
+/** Derives empty CVA variant entries from a nuri color token map. */
 export function colorKeys<T extends ColorTokenMap>(tokenMap: T): { [K in keyof T]: '' } {
 	return Object.fromEntries(Object.keys(tokenMap).map((k) => [k, ''])) as { [K in keyof T]: '' }
 }
 
-/**
- * Generates CVA compound variant entries from nuri color token maps.
- *
- * @example
- * ```ts
- * // Single variant × color
- * compoundVariants: compoundColors('solid', nuri.button)
- *
- * // Multiple variants × color
- * compoundVariants: compoundColors({ solid: nuri.solid, soft: nuri.soft })
- * ```
- */
+/** Generates CVA compound variants from nuri color token maps. Accepts a single variant + map or a variant-to-map record. */
 export function compoundColors<V extends string, C extends string>(
 	variant: V,
 	tokenMap: Record<C, ColorTokenValue>,

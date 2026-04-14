@@ -1,9 +1,10 @@
 import { gap, text } from './density'
 
 /**
- * Compact density — shared by badge and chip (same form factor).
- * The md step intentionally diverges from the core density — tighter text size
- * (xs/5 vs sm/5), narrower gap (1.5 vs 1), and smaller icon (3.5 vs 5).
+ * Compact density — shared by badge and chip.
+ *
+ * The md step intentionally diverges from core density: tighter text,
+ * narrower gap, and smaller icon.
  */
 export const compact = {
 	xs: ['px-1 py-0.5', gap.xs, text.xs, '*:data-[slot=icon]:size-3'],

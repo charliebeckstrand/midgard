@@ -1,28 +1,15 @@
-/**
- * Shared navigation primitives for the keyboard hooks in this module.
- *
- * These helpers are pure — no React, no DOM mutation — so they can be reused
- * by both the focus-based and virtual-focus variants without coupling them.
- */
+/** Pure navigation primitives shared by the focus-based and virtual-focus keyboard hooks. */
 
 export type Orientation = 'horizontal' | 'vertical'
 
 export type RovingConfig = {
-	/**
-	 * Enable 2D grid navigation with this many columns. Up/Down move by a row;
-	 * Left/Right move by one item. Omit for 1D navigation along a single axis.
-	 */
+	/** Column count for 2D grid navigation. Omit for single-axis mode. */
 	cols?: number
-	/**
-	 * Axis for 1D navigation. Ignored when `cols` is set.
-	 * @default 'vertical'
-	 */
+	/** Axis for 1D navigation. Ignored when `cols` is set. */
 	orientation?: Orientation
 }
 
-/**
- * Query all items matching `selector` inside `container`.
- */
+/** All elements matching `selector` inside `container`. */
 export function queryItems<T extends HTMLElement = HTMLElement>(
 	container: HTMLElement | null,
 	selector: string,
@@ -33,14 +20,9 @@ export function queryItems<T extends HTMLElement = HTMLElement>(
 }
 
 /**
- * Compute the next roving index for a key press, or `null` if the key is not
- * handled. Passing `currentIndex === -1` means "nothing is active yet"; in
- * that case, any forward key lands on the first item and any back key lands
- * on the last.
- *
- * Indices wrap at both ends. Grid mode assumes a rectangular layout
- * (`itemCount % cols === 0`); non-rectangular grids are not currently used
- * and would need a richer helper.
+ * Next roving index for a key press, or null if unhandled.
+ * -1 means nothing is active; a forward key lands on the first item, back on the last.
+ * Indices wrap at both ends.
  */
 export function nextIndexForKey(
 	key: string,

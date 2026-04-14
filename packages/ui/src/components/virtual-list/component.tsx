@@ -31,22 +31,22 @@ export type VirtualListHandle = {
 }
 
 export type VirtualListProps<T> = {
-	/** The full list of items. Only visible items (plus overscan) are rendered. */
+	/** Items to virtualize. */
 	items: T[]
-	/** Render function called for each visible item. */
+	/** Renders each visible item. */
 	children: (item: T, index: number) => ReactNode
-	/** Estimated height in pixels for items that haven't been measured yet. */
+	/** Estimated item height before measurement. */
 	estimateSize: number | ((index: number) => number)
-	/** Number of items to render beyond the visible area. @default 5 */
+	/** Overscan count. @default 5 */
 	overscan?: number
 	/** Gap between items in pixels. @default 0 */
 	gap?: number
-	/** Stable key extractor for items. Helps TanStack track items across reorders and prepends. */
+	/** Stable key extractor. */
 	getItemKey?: (index: number) => string | number
-	/** Imperative handle ref for scrollToIndex, scrollToEnd, etc. */
+	/** Imperative handle for scroll control. */
 	ref?: Ref<VirtualListHandle>
 	className?: string
-	/** Called on every scroll event with current scroll state. */
+	/** Fires on scroll with current position. */
 	onScroll?: (info: { offset: number; size: number; totalSize: number }) => void
 }
 
@@ -98,7 +98,7 @@ export function VirtualList<T>({
 
 		hasScrolledRef.current = true
 
-		// Defer so the container has been laid out and the virtualizer can calculate positions.
+		// Defer until layout is complete.
 		requestAnimationFrame(() => {
 			virtualizer.scrollToIndex(items.length - 1, { align: 'end' })
 		})

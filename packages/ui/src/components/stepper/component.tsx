@@ -27,11 +27,7 @@ import {
 export type StepperProps = StepperVariants & {
 	value: number
 	onValueChange?: (value: number) => void
-	/**
-	 * When true, users can only click steps that are completed or current.
-	 * Upcoming steps are rendered as disabled buttons; advancing the stepper
-	 * has to happen via `onValueChange` (e.g. from a "Next" button).
-	 */
+	/** Restricts navigation to completed and current steps. */
 	linear?: boolean
 	orientation?: StepperOrientation
 	className?: string
@@ -48,8 +44,7 @@ export function Stepper({
 }: StepperProps) {
 	const isDesktop = useIsDesktop()
 
-	// When orientation isn't explicitly set, fall back to vertical on mobile so
-	// the steps stack instead of overflowing the viewport horizontally.
+	// Default to vertical on mobile to avoid horizontal overflow.
 	const resolvedOrientation: StepperOrientation =
 		orientation ?? (isDesktop ? 'horizontal' : 'vertical')
 
@@ -138,11 +133,8 @@ function partitionVerticalChildren(children: React.ReactNode): React.ReactNode {
 	)
 }
 
-// Auto-inject a default `<StepperIndicator />` when the consumer didn't supply
-// one, so the indicator slot is always present without forcing boilerplate.
-// Returns an array (not a Fragment) so downstream `Children.forEach` walks each
-// item — Fragments are opaque to `Children.forEach` and would hide the
-// auto-injected indicator from `partitionVerticalChildren`.
+// Injects a default StepperIndicator when the consumer omits one.
+// Returns an array, not a Fragment, so Children.forEach can walk each item.
 function ensureStepperIndicator(children: React.ReactNode): React.ReactNode {
 	const items = Children.toArray(children)
 
@@ -155,9 +147,7 @@ function ensureStepperIndicator(children: React.ReactNode): React.ReactNode {
 	return [<StepperIndicator key="__auto-stepper-indicator" />, ...items]
 }
 
-// Splits the children of `Stepper` into the row content (steps, separators,
-// anything not a panels group) and the panels group itself, so the two can be
-// stacked vertically when content panels are present.
+// Separates row content (steps, separators) from the panels group.
 function partitionStepperChildren(children: React.ReactNode): {
 	rowChildren: React.ReactNode[]
 	panelsChildren: React.ReactNode[]
@@ -184,11 +174,8 @@ export function StepperStep({ value, disabled, className, children }: StepperSte
 
 	const classes = cn(stepperStepVariants({ orientation }), className)
 
-	// In vertical mode the step is a flex row [indicator, content-column]. We split
-	// the children so the indicator stays as a flex sibling and everything else
-	// (title, description, ...) gets wrapped in a content span that lays out as a
-	// flex column. The wrapper's top offset (in the recipe) aligns the title's
-	// first line with the indicator's center.
+	// Vertical mode: split into [indicator, content-column] so the recipe
+	// can align the title baseline with the indicator center.
 	const childrenWithIndicator = ensureStepperIndicator(children)
 
 	const layoutChildren =
@@ -198,10 +185,7 @@ export function StepperStep({ value, disabled, className, children }: StepperSte
 
 	const inner = <StepperStepProvider value={{ value, state }}>{layoutChildren}</StepperStepProvider>
 
-	// Interactive when the parent provided an `onValueChange`. Linear mode forbids
-	// jumping to upcoming steps, so those render as `<button disabled>` — the
-	// browser blocks clicks, AT skips it, and the not-allowed cursor is automatic
-	// via the recipe's `disabled:cursor-not-allowed`.
+	// Interactive when onValueChange is set. Linear mode disables upcoming steps.
 	if (onValueChange !== undefined) {
 		const isDisabled = disabled === true || (linear && state === 'upcoming')
 

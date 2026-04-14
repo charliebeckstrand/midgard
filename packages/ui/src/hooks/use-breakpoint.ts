@@ -14,7 +14,7 @@ function getSnapshot() {
 	return smQuery?.matches ?? true
 }
 
-/** Returns `true` when viewport is ≥ sm (640px). SSR defaults to `true`. */
+/** True when the viewport is at least 640 px wide. Defaults to true during SSR. */
 export function useIsDesktop() {
 	return useSyncExternalStore(subscribe, getSnapshot, () => true)
 }

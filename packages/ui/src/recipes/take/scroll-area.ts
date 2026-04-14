@@ -1,7 +1,7 @@
 type ScrollAreaSize = 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'dvh' | 'dvw'
 type ScrollAreaOrientation = 'vertical' | 'horizontal' | 'both'
 
-/** Scroll area scale — keyed by orientation so the scroll axis is what gets constrained. */
+/** Scroll area dimensions keyed by orientation. */
 export const scrollArea = {
 	vertical: {
 		sm: 'h-24',

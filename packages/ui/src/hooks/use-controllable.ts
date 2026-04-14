@@ -4,11 +4,7 @@ import { useCallback, useRef, useState } from 'react'
 
 type SetValue<T> = T | undefined | ((prev: T | undefined) => T | undefined)
 
-/**
- * Manages controlled/uncontrolled value state.
- * When `value` is provided, the component is controlled.
- * When only `defaultValue` is provided, the component manages its own state.
- */
+/** Manages controlled / uncontrolled value state with a unified setter. */
 export function useControllable<T>(props: {
 	value?: T | null
 	defaultValue?: T

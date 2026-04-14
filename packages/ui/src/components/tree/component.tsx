@@ -15,7 +15,7 @@ import { k } from './variants'
 
 export type TreeProps = {
 	children: ReactNode
-	/** Default color applied to all item icons. */
+	/** Default icon color. */
 	color?: TreeColor
 	className?: string
 }
@@ -48,13 +48,13 @@ export function Tree({ children, color, className }: TreeProps) {
 export type TreeItemProps = {
 	/** The item label. */
 	label: ReactNode
-	/** Optional icon displayed before the label. */
+	/** Icon before the label. */
 	icon?: ReactElement
-	/** Whether the item is expanded by default. */
+	/** Initially expanded. */
 	defaultOpen?: boolean
-	/** Whether the item is the active/selected item. */
+	/** Active/selected state. */
 	active?: boolean
-	/** Color applied to the icon. */
+	/** Icon color. */
 	color?: TreeColor
 	/** Nested tree items. */
 	children?: ReactNode

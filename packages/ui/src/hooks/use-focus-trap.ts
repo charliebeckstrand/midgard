@@ -23,7 +23,7 @@ export function useFocusTrap(active: boolean) {
 
 		previouslyFocused.current = document.activeElement as HTMLElement
 
-		// Focus the first focusable element inside the trap, or the container itself
+		// Focus the first focusable child, or the container itself
 		const first = container.querySelector<HTMLElement>(focusableSelector)
 		if (first) {
 			first.focus()

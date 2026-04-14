@@ -14,11 +14,11 @@ import {
 } from './variants'
 
 export type FlexProps = {
-	/** Flex direction. Supports responsive breakpoints, e.g. `{ initial: 'col', md: 'row' }`. Defaults to `row`. */
+	/** Flex direction. Supports responsive breakpoints. Defaults to row. */
 	direction?: ResponsiveDirection
-	/** Gap between children, mapped to tailwind `gap-*`. */
+	/** Gap between children. */
 	gap?: FlexGap
-	/** Cross-axis alignment. Supports responsive breakpoints. Defaults to `center`. */
+	/** Cross-axis alignment. Supports responsive breakpoints. Defaults to center. */
 	align?: ResponsiveAlign
 	/** Main-axis alignment. */
 	justify?: FlexJustify
@@ -28,19 +28,14 @@ export type FlexProps = {
 	inline?: boolean
 	/** Optional width constraint. */
 	width?: FlexWidth
-	/** Apply `flex: 1 1 0%` so the element fills available space. */
+	/** Fills available space (flex: 1 1 0%). */
 	flex?: boolean
-	/** Stretch all children equally so they share the available space. */
+	/** Stretches all children equally. */
 	equal?: boolean
 	className?: string
 } & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
 
-/**
- * Horizontal flex container. Defaults to `direction="row"` and `align="center"`.
- *
- * Use `<Flex>` for rows (toolbars, headers, inline groups).
- * Use `<Stack>` for columns (page content, form fields, vertical lists).
- */
+/** Horizontal flex container. Use Flex for rows, Stack for columns. */
 export function Flex({
 	direction = 'row',
 	gap,

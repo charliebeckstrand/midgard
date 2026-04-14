@@ -20,7 +20,7 @@ export type SplitProps = {
 	ratio?: SplitRatio
 	/** Gap between the two panes. Defaults to `4`. */
 	gap?: SplitGap
-	/** Cross-axis alignment of the panes. */
+	/** Cross-axis alignment. */
 	align?: SplitAlign
 	className?: string
 } & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>

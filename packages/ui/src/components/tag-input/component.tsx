@@ -22,13 +22,13 @@ export type TagInputProps = Omit<TagInputVariants, 'size'> & {
 	defaultValue?: string[]
 	/** Called when the tag list changes. */
 	onChange?: (value: string[] | undefined) => void
-	/** Placeholder shown when the input is empty and there are no tags. */
+	/** Placeholder shown when empty. */
 	placeholder?: string
 	/** Prevent editing. */
 	disabled?: boolean
-	/** Maximum number of tags allowed. */
+	/** Maximum number of tags. */
 	max?: number
-	/** Validate a tag before adding. Return `false` to reject. */
+	/** Validates a tag before adding. Return false to reject. */
 	validate?: (tag: string) => boolean
 	className?: string
 }

@@ -1,11 +1,9 @@
 /**
  * Kumi (組) — Assembly.
  *
- * Structural scaffolding for flex and grid containers — gap, direction,
- * alignment, justification, and width. The frame that holds a layout together.
+ * Structural scaffolding for flex and grid containers — gap, direction, alignment, width.
  *
- * Tier: 1
- * Concern: layout scaffolding
+ * Tier: 1 · Concern: layout scaffolding
  */
 
 export const kumi = {

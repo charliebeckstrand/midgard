@@ -26,7 +26,7 @@ export const take = {
 	gap,
 	text,
 
-	// Icon slot (applies to data-slot="icon" children)
+	// Icon slot
 	iconSlot,
 
 	// Button
@@ -35,11 +35,11 @@ export const take = {
 	buttonWithKbd,
 	buttonWithIconSize,
 
-	// Badge and chip share the same compact density scale
+	// Badge and chip share compact density
 	badge: compact,
 	chip: compact,
 
-	// Inline code and kbd share the same mark density scale
+	// Inline code and kbd share mark density
 	code: mark,
 	kbd: mark,
 

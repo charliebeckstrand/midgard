@@ -43,11 +43,11 @@ type ComboboxBaseProps<T> = {
 	placement?: Placement
 	icon?: React.ReactNode
 	className?: string
-	/** When false, onChange still fires but the value is never stored or shown as selected. */
+	/** Fires onChange without storing the value. */
 	selectable?: boolean
-	/** When true, clicking the selected option again clears the selection. */
+	/** Clicking the selected option clears it. */
 	nullable?: boolean
-	/** Whether the menu closes after an option is selected. Defaults to true for single, false for multiple. */
+	/** Closes the menu on select. Defaults to true for single, false for multiple. */
 	closeOnSelect?: boolean
 	children: React.ReactNode | ((query: string) => React.ReactNode)
 }
@@ -195,8 +195,7 @@ export function Combobox<T>({
 
 	const rendered = typeof children === 'function' ? children(query) : children
 
-	// Mark the active option so it highlights without stealing focus from the input.
-	// Derive a key from rendered children so the effect re-runs as the list filters.
+	// Highlight the active option without stealing focus from the input.
 	const childCount = Array.isArray(rendered) ? rendered.length : rendered ? 1 : 0
 
 	useEffect(() => {
@@ -206,16 +205,15 @@ export function Combobox<T>({
 
 		if (!container) return
 
-		// Clear any previous active marker
 		for (const el of container.querySelectorAll('[data-active]')) el.removeAttribute('data-active')
 
 		if (editing) {
-			// During search, highlight the sole visible option so Enter can select it
+			// Single visible option gets highlighted so Enter can select it
 			const items = container.querySelectorAll<HTMLElement>('[role="option"]:not([data-disabled])')
 
 			if (items.length === 1) items[0]?.setAttribute('data-active', '')
 		} else {
-			// On open, scroll to the currently selected option (if any)
+			// Scroll the selected option into view on open
 			const selected = container.querySelector<HTMLElement>(
 				'[role="option"]:not([data-disabled])[data-selected]',
 			)

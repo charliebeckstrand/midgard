@@ -5,13 +5,8 @@ import { useCallback, useRef } from 'react'
 
 /**
  * Arrow-key navigation between a primary element and a secondary action.
- *
- * The action element is kept out of the tab order (`tabIndex={-1}`).
- * Pressing ArrowRight on the primary element focuses the action;
- * pressing ArrowLeft on the action returns focus to the primary element.
- *
- * For input elements, ArrowRight only triggers when the cursor is at the
- * end of the value.
+ * ArrowRight on the primary focuses the action; ArrowLeft returns.
+ * On inputs, the trigger only fires when the caret is at the end.
  */
 export function useArrowAction<A extends HTMLElement = HTMLElement>() {
 	const actionRef = useRef<A>(null)

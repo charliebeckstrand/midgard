@@ -1,4 +1,4 @@
-/** Hide browser-default number input spin buttons. */
+/** Hides browser-default number-input spin buttons. */
 export const number = [
 	'[appearance:textfield]',
 	'[&::-webkit-inner-spin-button]:m-0',

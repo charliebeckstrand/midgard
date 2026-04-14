@@ -16,7 +16,7 @@ import {
 export type StackProps = {
 	/** Flex direction. Defaults to `column`. */
 	direction?: StackDirection
-	/** Gap between children, mapped to tailwind `gap-*`. Defaults to `4`. */
+	/** Gap between children. Defaults to 4. */
 	gap?: StackGap
 	/** Cross-axis alignment. */
 	align?: StackAlign

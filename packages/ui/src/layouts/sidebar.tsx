@@ -81,7 +81,7 @@ export function SidebarLayout({
 				<div className="min-w-0 flex-1">{navbar}</div>
 			</header>
 
-			{/* Persistent actions (top-right on desktop) */}
+			{/* Persistent actions */}
 			{actions && <div className="fixed top-5 right-5 z-10 max-lg:hidden">{actions}</div>}
 
 			{/* Content */}

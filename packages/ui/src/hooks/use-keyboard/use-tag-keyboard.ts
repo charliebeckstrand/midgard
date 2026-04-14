@@ -5,22 +5,17 @@ import { type KeyboardEvent, useCallback } from 'react'
 export type UseTagKeyboardOptions = {
 	/** Current input value. */
 	inputValue: string
-	/** Attempt to add a tag. Returns `true` if successful. */
+	/** Attempt to add a tag. Returns true on success. */
 	addTag: (raw: string) => boolean
-	/** Remove the tag at the given index. */
+	/** Remove the tag at `index`. */
 	removeTag: (index: number) => void
-	/** Clear the input value. */
+	/** Clear the input. */
 	clearInput: () => void
 	/** Number of existing tags. */
 	tagCount: number
 }
 
-/**
- * Keyboard handler for tag-input fields.
- *
- * Handles Enter/comma to add, Backspace to remove the last tag.
- * Skips events during IME composition.
- */
+/** Keyboard handler for tag inputs — Enter / comma to add, Backspace to remove. Skips IME composition. */
 export function useTagKeyboard({
 	inputValue,
 	addTag,

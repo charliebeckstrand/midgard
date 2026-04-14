@@ -27,21 +27,11 @@ export type ControlProps = {
 }
 
 /**
- * Context wrapper for form fields and interactive groups.
+ * Context wrapper for form fields.
  *
- * Generates a stable id and propagates `disabled`, `invalid`, `readOnly`,
- * `required`, `size`, and `variant` state to control-aware children
- * (Label, Input, Textarea, Description, ErrorMessage, etc.).
- *
- * Supports nesting — a parent Control's `disabled` and `readOnly` cascade
- * to children (matching `<fieldset disabled>` semantics), while `size` and
- * `variant` inherit from the nearest ancestor unless explicitly overridden.
- *
- *     <Control required size="sm">
- *       <Label>Email</Label>
- *       <Input type="email" />
- *       <ErrorMessage>Required</ErrorMessage>
- *     </Control>
+ * Generates a stable id and propagates disabled, invalid, readOnly,
+ * required, size, and variant to control-aware children.
+ * Supports nesting — disabled/readOnly cascade, size/variant inherit.
  */
 export function Control({
 	id: idProp,
@@ -58,9 +48,7 @@ export function Control({
 
 	const scope = useIdScope({ id: idProp })
 
-	// Nesting: disabled/readOnly OR-merge with parent (parent wins).
-	// invalid/required are per-field — no inheritance.
-	// size/variant inherit from nearest ancestor unless explicitly set.
+	// disabled/readOnly OR-merge with parent; size/variant inherit unless overridden.
 	const mergedDisabled = disabled || parent?.disabled
 	const mergedReadOnly = readOnly || parent?.readOnly
 

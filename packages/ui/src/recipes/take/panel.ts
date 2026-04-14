@@ -12,7 +12,7 @@ type PanelSize =
 	| '7xl'
 	| 'full'
 
-/** Panel constraint scale (max-width for dialogs/sheets) */
+/** Panel max-width scale for dialogs and sheets. */
 export const panel = {
 	xs: 'sm:max-w-xs',
 	sm: 'sm:max-w-sm',

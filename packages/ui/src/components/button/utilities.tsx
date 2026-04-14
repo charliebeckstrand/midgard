@@ -4,14 +4,14 @@ import { Kbd } from '../kbd'
 import { Spinner } from '../spinner'
 import type { SpinnerProps } from '../spinner/component'
 
-/** True when the node is an <Icon> or <Spinner> — the two slots that affect button padding. */
+/** True when the node is an Icon or Spinner. */
 export function isIconLike(node: React.ReactNode): boolean {
 	if (!isValidElement(node)) return false
 
 	return node.type === Icon || node.type === Spinner
 }
 
-/** Which sides of an icon + text button hold an icon */
+/** Detects which sides of the button hold an icon. */
 export function iconSides(children: React.ReactNode): { start: boolean; end: boolean } {
 	const arr = Children.toArray(children)
 
@@ -23,14 +23,14 @@ export function iconSides(children: React.ReactNode): { start: boolean; end: boo
 	}
 }
 
-/** True when the node is a <Kbd> child. */
+/** True when the node is a Kbd. */
 export function isKbd(node: React.ReactNode): boolean {
 	if (!isValidElement(node)) return false
 
 	return node.type === Kbd
 }
 
-/** Which sides of a kbd + text button hold a Kbd */
+/** Detects which sides of the button hold a Kbd. */
 export function kbdSides(children: React.ReactNode): { start: boolean; end: boolean } {
 	const arr = Children.toArray(children)
 
@@ -42,14 +42,14 @@ export function kbdSides(children: React.ReactNode): { start: boolean; end: bool
 	}
 }
 
-/** A single icon child — treat as icon-only */
+/** True when the button has a single icon child. */
 export function isIconOnly(children: React.ReactNode): boolean {
 	const arr = Children.toArray(children)
 
 	return arr.length === 1 && isIconLike(arr[0])
 }
 
-/** Replace a leading icon with a Spinner, or prepend one if none exists */
+/** Replaces a leading icon with a Spinner, or prepends one. */
 export function withLoadingSpinner(
 	children: React.ReactNode,
 	options?: Pick<SpinnerProps, 'color' | 'size' | 'label'>,

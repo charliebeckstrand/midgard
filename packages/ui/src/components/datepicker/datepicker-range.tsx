@@ -113,8 +113,7 @@ export function DatePickerRange({
 
 				const range: [Date, Date] = start.getTime() <= end.getTime() ? [start, end] : [end, start]
 
-				// Pin both endpoints so the visual range stays stable through the exit animation,
-				// even when the second pick comes from the keyboard (no prior hoverDate).
+				// Pin both endpoints so the range stays stable through the exit animation.
 				setHoverDate(end)
 
 				pendingRef.current = { value: range }

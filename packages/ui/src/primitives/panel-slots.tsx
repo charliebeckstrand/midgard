@@ -31,18 +31,7 @@ export function usePanelA11y() {
 	return useContext(PanelA11yContext)
 }
 
-/**
- * Creates a set of named panel slot components for a given prefix.
- *
- * Dialog, Sheet, and any future panel-like component (Drawer, etc.)
- * can generate their Title, Description, Body, and Actions in one call.
- *
- * @example
- * ```ts
- * const { Title, Description, Body, Actions } = createPanelSlots('dialog')
- * // Title renders <h2 data-slot="dialog-title" ...>
- * ```
- */
+/** Creates Title, Description, Body, and Actions slot components for a panel prefix. */
 type PanelSlotVariants = {
 	title?: () => string
 	description?: () => string

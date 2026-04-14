@@ -81,7 +81,7 @@ export function useToastState({
 
 				sync()
 
-				// Remove on next frame so AnimatePresence captures the dismissed exit
+				// Remove next frame so AnimatePresence captures the exit.
 				requestAnimationFrame(() => {
 					toastsRef.current = toastsRef.current.filter((t) => t.id !== id)
 

@@ -8,10 +8,7 @@ import { katachi, ugoki } from '../recipes'
 
 const ActiveIndicatorContext = createContext<string | undefined>(undefined)
 
-/**
- * Creates a local scope for active indicators so multiple independent
- * nav/tab/sidebar groups can coexist on the same page.
- */
+/** Scopes active indicators so independent nav / tab groups can coexist. */
 export function ActiveIndicatorScope({ children, id }: React.PropsWithChildren<{ id?: string }>) {
 	const fallbackId = useId()
 
@@ -26,19 +23,7 @@ export function ActiveIndicatorScope({ children, id }: React.PropsWithChildren<{
 	)
 }
 
-/**
- * Animated active/current indicator that morphs between sibling items.
- *
- * Renders a full background pill that flows between positions using
- * layoutId with fluid spring physics. The low damping creates a
- * liquid, organic feel as it travels between items.
- *
- * Place inside the item's relative container. Content should be
- * positioned above with `relative z-10` so it renders on top.
- *
- * Returns `tapHandlers` to spread on the parent container so tapping
- * the active item triggers a springy scale pulse on the indicator.
- */
+/** Animated indicator that morphs between sibling items via layoutId spring physics. Returns a ref and tap handlers for the parent container. */
 export function useActiveIndicator() {
 	const [scope, animate] = useAnimate<HTMLSpanElement>()
 

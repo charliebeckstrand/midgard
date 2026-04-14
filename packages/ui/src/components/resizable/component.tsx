@@ -104,7 +104,7 @@ export function ResizableGroup({
 
 	constraintsRef.current = panelConfigs
 
-	// Initialize sizes from panel defaults, normalized to sum to 100
+	// Initialize sizes from panel defaults, normalized to 100%.
 	const [sizes, setSizes] = useState(() => {
 		const raw = panelConfigs.map((c) => c.defaultSize)
 
@@ -158,7 +158,7 @@ export function ResizableGroup({
 
 		const totalSize = dir === 'horizontal' ? rect.width : rect.height
 
-		// Subtract handle widths for accurate delta computation
+		// Subtract handle widths for accurate deltas.
 		let handleWidth = 0
 
 		group.querySelectorAll<HTMLElement>('[data-slot="resizable-handle"]').forEach((h) => {
@@ -229,7 +229,7 @@ export function ResizableGroup({
 		}
 	}, [])
 
-	// Cleanup document listeners on unmount
+	// Clean up document listeners on unmount.
 	useEffect(() => {
 		return () => cleanupRef.current?.()
 	}, [])

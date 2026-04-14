@@ -7,22 +7,15 @@ import { cn } from '../core'
 import { ugoki } from '../recipes'
 
 export type ContentRevealProps = {
-	/**
-	 * Controls which child is shown.
-	 * When `true`, animates in `children`; when `false`, shows `placeholder`.
-	 */
+	/** When true, reveals `children`; when false, shows `placeholder`. */
 	ready: boolean
-	/** Placeholder content shown while not ready */
+	/** Content shown while not ready. */
 	placeholder: React.ReactNode
-	/** Real content revealed when ready */
+	/** Content revealed once ready. */
 	children: React.ReactNode
-	/** Optional className for the outer container */
+	/** Outer container class. */
 	className?: string
-	/**
-	 * Animation mode:
-	 * - `crossfade` (default) — both children overlap in a grid cell, height = max(both)
-	 * - `wait` — crossfade with height animating to match the active child
-	 */
+	/** `crossfade` overlaps both children; `wait` animates height to the active child. */
 	mode?: 'crossfade' | 'wait'
 }
 
@@ -30,15 +23,7 @@ const hidden = { opacity: 0, filter: 'blur(4px)' }
 const visible = { opacity: 1, filter: 'blur(0px)' }
 const gridCell = { gridArea: '1 / 1' } as const
 
-/**
- * Animated transition wrapper that crossfades between a placeholder
- * and real content. The placeholder should mirror the content's layout
- * (a "carbon copy") so dimensions remain stable during the swap.
- *
- * Both children are always rendered in the same CSS grid cell.
- * In crossfade mode the container height is max(placeholder, content).
- * In wait mode the container height animates to match the active child.
- */
+/** Crossfade transition between a placeholder and real content. The placeholder should mirror the content layout so dimensions stay stable. */
 export function ContentReveal({
 	ready,
 	placeholder,

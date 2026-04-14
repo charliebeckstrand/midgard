@@ -41,7 +41,7 @@ type ListboxBaseProps = {
 	icon?: React.ReactNode
 	className?: string
 	inputId?: string
-	/** When true, clicking the selected option again clears the selection. */
+	/** Clicking the selected option clears it. */
 	nullable?: boolean
 	children: React.ReactNode
 }

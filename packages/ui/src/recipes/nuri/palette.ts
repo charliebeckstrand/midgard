@@ -1,14 +1,8 @@
-/**
- * Shared color foundations for solid, soft, and outline variants.
- *
- * Buttons, badges, and chips all use the same base colors.
- * This file centralizes the color definitions so each component
- * composes from one source of truth.
- */
+/** Shared colour foundations — solid, soft, and outline — composed by buttons, badges, and chips. */
 
 import { defineColors } from './define-colors'
 
-// ── Base color palette ──────────────────────────────────
+// ── Base colour palette ──────────────────────────────────
 
 export const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 
@@ -84,7 +78,7 @@ export const softHover = defineColors({
 	},
 })
 
-// ── Plain hover (soft bg on hover) ──────────────────────
+// ── Plain hover ──────────────────────────────────────────
 
 export const plainHover = defineColors({
 	zinc: {
@@ -120,7 +114,7 @@ export const outline = merge(outlineBorder, text)
 
 // ── Helpers ─────────────────────────────────────────────
 
-/** Merge two color maps with the same keys into one. */
+/** Merges two colour maps with matching keys. */
 export function merge<K extends string>(
 	a: Record<K, string[]>,
 	b: Record<K, string[]>,
