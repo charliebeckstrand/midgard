@@ -9,12 +9,10 @@ import {
 	TouchTarget,
 	useActiveIndicator,
 } from '../../primitives'
-import { katachi } from '../../recipes'
 import { Icon } from '../icon'
 import { Nav, NavList, type NavProps } from '../nav'
 import { useNavContext } from '../nav/context'
-
-const k = katachi.bottomNav
+import { k } from './variants'
 
 // ── BottomNav ───────────────────────────────────────────
 

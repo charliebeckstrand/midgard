@@ -3,16 +3,14 @@
 import { forwardRef } from 'react'
 import { cn } from '../../core'
 import { FormControl } from '../../primitives'
-import { katachi, kokkaku } from '../../recipes'
+import { kokkaku } from '../../recipes'
 import { useGlass } from '../glass/context'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
 import { InputSizeProvider } from './context'
-import { type InputVariants, inputDateVariants, inputVariants } from './variants'
+import { type InputVariants, inputDateVariants, inputVariants, k } from './variants'
 
 const DATE_TYPES = new Set(['date', 'datetime-local', 'month', 'time', 'week'])
-
-const k = katachi.input
 
 // Icon size is one step smaller than the input size.
 const iconSize = { sm: 'xs', md: 'sm', lg: 'md' } as const

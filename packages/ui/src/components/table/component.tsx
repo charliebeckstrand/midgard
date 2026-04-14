@@ -1,9 +1,7 @@
 'use client'
 
 import { cn, createContext } from '../../core'
-import { katachi } from '../../recipes'
-
-const k = katachi.table
+import { k } from './variants'
 
 export type TableVariants = {
 	dense?: boolean

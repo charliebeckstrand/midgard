@@ -17,7 +17,7 @@ import { useCallback, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { FormControl } from '../../primitives'
-import { kage, katachi, omote, ugoki } from '../../recipes'
+import { kage, omote, ugoki } from '../../recipes'
 import { sumi } from '../../recipes/sumi'
 import { Button } from '../button'
 import { type CalendarActive, type CalendarHandle, CalendarRange } from '../calendar'
@@ -26,8 +26,7 @@ import { Icon } from '../icon'
 import type { DatePickerBaseProps, DatePickerRangeProps } from './datepicker'
 import { type FooterButton, useDatePickerKeyDown } from './use-keyboard'
 import { addDays, clampDate, formatRange } from './utilities'
-
-const k = katachi.datepicker
+import { k, kCalendar, kPopover } from './variants'
 
 export function DatePickerRange({
 	value: valueProp,
@@ -226,7 +225,7 @@ export function DatePickerRange({
 						<div
 							ref={refs.setFloating}
 							style={floatingStyles}
-							className={katachi.popover.portal}
+							className={kPopover.portal}
 							{...getFloatingProps()}
 							tabIndex={-1}
 						>
@@ -234,7 +233,7 @@ export function DatePickerRange({
 								{...ugoki.popover}
 								data-slot="datepicker-content"
 								className={cn(
-									katachi.popover.content,
+									kPopover.content,
 									k.popoverContent,
 									glass && [omote.glass, kage.ring, 'bg-transparent dark:bg-transparent'],
 								)}
@@ -253,7 +252,7 @@ export function DatePickerRange({
 									onPickerOpenChange={handlePickerOpenChange}
 								/>
 								{showClear && (
-									<div data-slot="calendar-footer" className={cn(katachi.calendar.footer)}>
+									<div data-slot="calendar-footer" className={cn(kCalendar.footer)}>
 										<Button
 											variant="soft"
 											color="amber"
@@ -262,7 +261,7 @@ export function DatePickerRange({
 											className={cn(
 												active?.zone === 'footer' &&
 													footerButtons[active.index] === 'clear' &&
-													katachi.calendar.day.active,
+													kCalendar.day.active,
 											)}
 										>
 											Clear

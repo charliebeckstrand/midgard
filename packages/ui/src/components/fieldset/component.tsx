@@ -1,7 +1,5 @@
 import { cn } from '../../core'
-import { katachi } from '../../recipes'
-
-const k = katachi.fieldset
+import { k } from './variants'
 
 export type FieldsetProps = {
 	className?: string

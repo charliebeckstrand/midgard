@@ -3,11 +3,10 @@
 import { AlertTriangle, CheckCircle, Info, X, XCircle } from 'lucide-react'
 import { Children, isValidElement, type ReactNode, useState } from 'react'
 import { cn } from '../../core'
-import { katachi } from '../../recipes'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { AlertProvider } from './context'
-import { type AlertVariants, alertVariants } from './variants'
+import { type AlertVariants, alertVariants, k } from './variants'
 
 type AlertType = 'info' | 'success' | 'warning' | 'error'
 
@@ -33,8 +32,6 @@ const typeRoleMap: Record<AlertType, 'alert' | 'status'> = {
 	warning: 'alert',
 	error: 'alert',
 }
-
-const k = katachi.alert
 
 function hasChild(children: ReactNode, component: (...args: never[]) => ReactNode): boolean {
 	return Children.toArray(children).some(

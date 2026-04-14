@@ -4,10 +4,9 @@ import { AnimatePresence, motion } from 'motion/react'
 import type React from 'react'
 import { useCallback, useId, useState } from 'react'
 import { cn } from '../../core/cn'
-import { katachi, ugoki } from '../../recipes'
+import { ugoki } from '../../recipes'
 import { CollapseProvider, useCollapseContext } from './context'
-
-const k = katachi.collapse
+import { k } from './variants'
 
 // ── Root ────────────────────────────────────────────────
 

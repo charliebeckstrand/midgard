@@ -2,11 +2,9 @@
 
 import type React from 'react'
 import { cn, Link } from '../../core'
-import { katachi } from '../../recipes'
 import { Kbd, type KbdProps } from '../kbd'
 import { useMenuContext } from './menu'
-
-const k = katachi.menu
+import { k } from './variants'
 
 type MenuItemBaseProps = {
 	disabled?: boolean

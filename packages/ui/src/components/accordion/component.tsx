@@ -4,7 +4,6 @@ import { ChevronDown } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useMemo, useState } from 'react'
 import { cn } from '../../core'
-import { katachi } from '../../recipes'
 import { Icon } from '../icon'
 import {
 	AccordionItemProvider,
@@ -12,9 +11,7 @@ import {
 	useAccordionItem,
 	useAccordionRoot,
 } from './context'
-import { type AccordionVariants, accordionItemVariants, accordionVariants } from './variants'
-
-const k = katachi.accordion
+import { type AccordionVariants, accordionItemVariants, accordionVariants, k } from './variants'
 
 // ── Accordion (root) ────────────────────────────────────
 

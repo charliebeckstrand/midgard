@@ -4,15 +4,13 @@ import { useRef } from 'react'
 import { cn } from '../../core'
 import { useControllable, useRovingFocus } from '../../hooks'
 import { ActiveIndicator, ActiveIndicatorScope, useActiveIndicator } from '../../primitives'
-import { katachi } from '../../recipes'
 import { SegmentedControlProvider, useSegmentedControl } from './context'
 import {
 	type SegmentedControlVariants,
+	k,
 	segmentedControlVariants,
 	segmentVariants,
 } from './variants'
-
-const k = katachi.segmentedControl
 
 // ── SegmentedControl ───────────────────────────────────
 

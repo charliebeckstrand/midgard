@@ -2,11 +2,9 @@
 
 import type React from 'react'
 import { cn, Link } from '../../core'
-import { katachi } from '../../recipes'
 import { Kbd, type KbdProps } from '../kbd'
 import { useCommandPaletteContext } from './context'
-
-const k = katachi.commandPalette
+import { k } from './variants'
 
 type CommandPaletteItemBaseProps = {
 	disabled?: boolean

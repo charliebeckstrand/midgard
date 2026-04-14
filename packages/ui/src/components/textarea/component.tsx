@@ -1,12 +1,10 @@
 import { cn } from '../../core'
 import { FormControl } from '../../primitives'
-import { katachi, kokkaku } from '../../recipes'
+import { kokkaku } from '../../recipes'
 import { useGlass } from '../glass/context'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
-import { type TextareaVariants, textareaVariants } from './variants'
-
-const k = katachi.textarea
+import { type TextareaVariants, k, textareaVariants } from './variants'
 
 export type TextareaProps = TextareaVariants & {
 	className?: string

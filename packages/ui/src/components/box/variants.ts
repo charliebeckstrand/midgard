@@ -88,12 +88,12 @@ export const myMap = {
 } as const
 
 export const radiusMap = {
-	none: 'rounded-none',
-	sm: 'rounded-sm',
+	none: maru.roundedNone,
+	sm: maru.roundedSm,
 	md: maru.roundedMd,
 	lg: maru.rounded,
-	xl: 'rounded-xl',
-	'2xl': 'rounded-2xl',
+	xl: maru.roundedXl,
+	'2xl': maru.rounded2xl,
 	full: maru.roundedFull,
 } as const
 

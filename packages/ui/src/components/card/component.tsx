@@ -1,8 +1,6 @@
 import { cn } from '../../core'
-import { katachi } from '../../recipes'
 import { Box, type BoxProps } from '../box'
-
-const k = katachi.card
+import { k } from './variants'
 
 export type CardProps = BoxProps
 

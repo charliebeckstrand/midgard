@@ -11,10 +11,8 @@ import {
 	useState,
 } from 'react'
 import { cn } from '../../core'
-import { katachi } from '../../recipes'
 import { type ResizableDirection, ResizableProvider, useResizable } from './context'
-
-const k = katachi.resizable
+import { k } from './variants'
 
 type PanelConfig = {
 	defaultSize: number

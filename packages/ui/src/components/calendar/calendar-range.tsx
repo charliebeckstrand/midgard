@@ -2,7 +2,6 @@
 
 import { forwardRef, useCallback, useMemo } from 'react'
 import { cn } from '../../core'
-import { katachi } from '../../recipes'
 import {
 	Calendar,
 	type CalendarActive,
@@ -10,8 +9,7 @@ import {
 	type CalendarHandle,
 } from './calendar'
 import { isBeforeDay, isBetween, isSameDay } from './utilities'
-
-const k = katachi.calendar
+import { k } from './variants'
 
 export type CalendarRangeProps = {
 	onChange?: (date: Date) => void

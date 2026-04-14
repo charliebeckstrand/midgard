@@ -5,12 +5,11 @@ import { AnimatePresence, motion } from 'motion/react'
 import { type ReactElement, type ReactNode, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useRovingFocus } from '../../hooks'
-import { katachi, ugoki } from '../../recipes'
+import { ugoki } from '../../recipes'
 import { type TreeColor, treeColorMap } from '../../recipes/katachi/tree'
 import { Icon } from '../icon'
 import { TreeProvider, useTreeContext } from './context'
-
-const k = katachi.tree
+import { k } from './variants'
 
 // ── Tree ───────────────────────────────────────────────
 

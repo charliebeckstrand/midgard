@@ -1,4 +1,8 @@
-export { gapMap, type LayoutGap as SizerGap } from '../_layout'
+import { kumi } from '../../recipes'
+
+export const gapMap = kumi.gap
+
+export type SizerGap = keyof typeof kumi.gap
 
 export const sizeMap = {
 	xs: 'max-w-xs',

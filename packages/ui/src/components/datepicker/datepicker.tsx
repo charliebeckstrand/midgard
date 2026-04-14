@@ -19,7 +19,7 @@ import { useCallback, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { FormControl } from '../../primitives'
-import { kage, katachi, omote, ugoki } from '../../recipes'
+import { kage, omote, ugoki } from '../../recipes'
 import { sumi } from '../../recipes/sumi'
 import { Button } from '../button'
 import { Calendar, type CalendarActive, type CalendarHandle } from '../calendar'
@@ -28,8 +28,7 @@ import { Icon } from '../icon'
 import { DatePickerRange } from './datepicker-range'
 import { type FooterButton, useDatePickerKeyDown } from './use-keyboard'
 import { addDays, clampDate, formatDate } from './utilities'
-
-const k = katachi.datepicker
+import { k, kCalendar, kPopover } from './variants'
 
 export type DatePickerSingleProps = {
 	range?: false
@@ -231,14 +230,14 @@ function DatePickerSingle({
 						<div
 							ref={refs.setFloating}
 							style={floatingStyles}
-							className={katachi.popover.portal}
+							className={kPopover.portal}
 							{...getFloatingProps()}
 						>
 							<motion.div
 								{...ugoki.popover}
 								data-slot="datepicker-content"
 								className={cn(
-									katachi.popover.content,
+									kPopover.content,
 									k.popoverContent,
 									glass && [omote.glass, kage.ring, 'bg-transparent dark:bg-transparent'],
 								)}
@@ -253,7 +252,7 @@ function DatePickerSingle({
 									active={open ? active : null}
 									onPickerOpenChange={handlePickerOpenChange}
 								/>
-								<div data-slot="calendar-footer" className={cn(katachi.calendar.footer)}>
+								<div data-slot="calendar-footer" className={cn(kCalendar.footer)}>
 									{value != null && (
 										<Button
 											variant="soft"
@@ -263,7 +262,7 @@ function DatePickerSingle({
 											className={cn(
 												active?.zone === 'footer' &&
 													footerButtons[active.index] === 'clear' &&
-													katachi.calendar.day.active,
+													kCalendar.day.active,
 											)}
 										>
 											Clear
@@ -276,7 +275,7 @@ function DatePickerSingle({
 										className={cn(
 											active?.zone === 'footer' &&
 												footerButtons[active.index] === 'today' &&
-												katachi.calendar.day.active,
+												kCalendar.day.active,
 										)}
 									>
 										Today

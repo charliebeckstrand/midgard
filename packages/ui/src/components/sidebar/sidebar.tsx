@@ -2,9 +2,7 @@
 
 import { cn } from '../../core'
 import { ActiveIndicatorScope } from '../../primitives'
-import { katachi } from '../../recipes'
-
-const k = katachi.sidebar
+import { k } from './variants'
 
 export type SidebarProps = React.ComponentPropsWithoutRef<'nav'>
 

@@ -4,9 +4,9 @@ import { Minus, Plus } from 'lucide-react'
 import { forwardRef } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
-import { katachi } from '../../recipes'
 import { Button } from '../button'
 import { Icon } from '../icon'
+import { k } from './variants'
 import { Input, type InputProps } from '../input'
 
 type Size = 'sm' | 'md' | 'lg'
@@ -89,7 +89,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
 			min={min}
 			max={max}
 			step={step}
-			className={cn(padding[resolvedSize], katachi.input.number, className)}
+			className={cn(padding[resolvedSize], k.number, className)}
 			suffix={
 				<span className="pointer-events-auto flex items-center gap-0.5">
 					<Button

@@ -5,10 +5,9 @@ import { AnimatePresence } from 'motion/react'
 import type React from 'react'
 import { cn } from '../../core'
 import { PopoverPanel } from '../../primitives'
-import { katachi, maru, omote } from '../../recipes'
+import { maru, omote } from '../../recipes'
 import { useMenuContext } from './menu'
-
-const k = katachi.menu
+import { k } from './variants'
 
 export type MenuContentProps = {
 	className?: string

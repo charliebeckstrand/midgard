@@ -2,9 +2,7 @@
 
 import { cn } from '../../core'
 import { ActiveIndicator, ActiveIndicatorScope, useActiveIndicator } from '../../primitives'
-import { katachi } from '../../recipes'
-
-const k = katachi.tabs
+import { k } from './variants'
 
 export type TabGroupProps = React.ComponentPropsWithoutRef<'div'>
 

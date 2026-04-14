@@ -1,7 +1,7 @@
 import { cva, type VariantProps } from 'class-variance-authority'
 import { katachi } from '../../recipes'
 
-const k = katachi.toast
+export const k = katachi.toast
 
 export const toastViewportVariants = cva(k.viewport, {
 	variants: {

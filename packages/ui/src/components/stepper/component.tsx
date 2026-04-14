@@ -4,7 +4,6 @@ import { Children, isValidElement, useRef } from 'react'
 import { cn } from '../../core'
 import { useIsDesktop, useRovingFocus } from '../../hooks'
 import { ActiveIndicator, ActiveIndicatorScope } from '../../primitives'
-import { katachi } from '../../recipes'
 import { Stack } from '../stack'
 import {
 	type StepperOrientation,
@@ -16,13 +15,12 @@ import {
 } from './context'
 import {
 	type StepperVariants,
+	k,
 	stepperSeparatorVariants,
 	stepperStepVariants,
 	stepperTitleVariants,
 	stepperVariants,
 } from './variants'
-
-const k = katachi.stepper
 
 // ── Stepper ─────────────────────────────────────────────
 
