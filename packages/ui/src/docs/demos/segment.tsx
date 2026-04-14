@@ -7,13 +7,8 @@ import { Grid, GridCell } from '../../components/grid'
 import { Segment, SegmentControl, SegmentItem } from '../../components/segment'
 import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
-import { SizeListbox } from '../components/size-listbox'
 
 export const meta = { category: 'Forms' }
-
-const views = ['List', 'Grid', 'Map']
-
-const periods = ['Monthly', 'Annual']
 
 const items = [
 	{
@@ -38,10 +33,14 @@ const items = [
 	},
 ]
 
+type Size = 'sm' | 'md' | 'lg'
+
+const sizes: Size[] = ['sm', 'md', 'lg']
+
 const statusColor = { Active: 'green', Archived: 'zinc' } as const
 
 export default function SegmentDemo() {
-	const [size, setSize] = useState<'sm' | 'md' | 'lg'>('md')
+	const [sizeValues, setSizeValues] = useState<Record<Size, Size>>({ sm: 'sm', md: 'md', lg: 'lg' })
 
 	const [view, setView] = useState('List')
 
@@ -116,33 +115,21 @@ export default function SegmentDemo() {
 				</Stack>
 			</Example>
 
-			<Example title="Two options">
-				<Segment defaultValue="Monthly">
-					<SegmentControl>
-						{periods.map((p) => (
-							<SegmentItem key={p} value={p}>
-								{p}
-							</SegmentItem>
-						))}
-					</SegmentControl>
-				</Segment>
-			</Example>
-
-			<Example
-				title="Sizes"
-				actions={
-					<SizeListbox sizes={['sm', 'md', 'lg'] as const} value={size} onChange={setSize} />
-				}
-			>
-				<Segment defaultValue="List" size={size}>
-					<SegmentControl>
-						{views.map((v) => (
-							<SegmentItem key={v} value={v}>
-								{v}
-							</SegmentItem>
-						))}
-					</SegmentControl>
-				</Segment>
+			<Example title="Sizes">
+				{sizes.map((s) => (
+					<Segment
+						key={s}
+						value={sizeValues[s]}
+						size={s}
+						onValueChange={(v) => setSizeValues((prev) => ({ ...prev, [s]: (v ?? 'md') as Size }))}
+					>
+						<SegmentControl>
+							<SegmentItem value="sm">Small</SegmentItem>
+							<SegmentItem value="md">Medium</SegmentItem>
+							<SegmentItem value="lg">Large</SegmentItem>
+						</SegmentControl>
+					</Segment>
+				))}
 			</Example>
 
 			<Example title="With disabled segment">
