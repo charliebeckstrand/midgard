@@ -116,6 +116,7 @@ describe('VirtualList', () => {
 
 		expect(ref.current).not.toBeNull()
 		expect(typeof ref.current?.scrollToIndex).toBe('function')
+		expect(typeof ref.current?.scrollToOffset).toBe('function')
 		expect(typeof ref.current?.scrollToEnd).toBe('function')
 		expect(typeof ref.current?.scrollToStart).toBe('function')
 		expect(ref.current?.virtualizer).toBeDefined()
@@ -164,6 +165,30 @@ describe('VirtualList', () => {
 
 		expect(bySlot(container, 'virtual-list')).toBeInTheDocument()
 		expect(allBySlot(container, 'virtual-list-item')).toHaveLength(0)
+	})
+
+	it('uses semantic list elements for accessibility', async () => {
+		const ref = createRef<VirtualListHandle>()
+
+		const { container } = renderUI(
+			<VirtualList ref={ref} items={items} estimateSize={40}>
+				{(item) => <div>{item}</div>}
+			</VirtualList>,
+		)
+
+		await simulateLayout(ref)
+
+		const viewport = bySlot(container, 'virtual-list-viewport')
+
+		expect(viewport?.tagName).toBe('UL')
+
+		const renderedItems = allBySlot(container, 'virtual-list-item')
+
+		expect(renderedItems.length).toBeGreaterThan(0)
+
+		for (const item of renderedItems) {
+			expect(item.tagName).toBe('LI')
+		}
 	})
 })
 

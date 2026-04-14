@@ -7,6 +7,7 @@ import {
 	useCallback,
 	useEffect,
 	useImperativeHandle,
+	useMemo,
 	useRef,
 } from 'react'
 import { cn } from '../../core/cn'
@@ -20,6 +21,10 @@ const k = katachi.virtualList
 export type VirtualListHandle = {
 	scrollToIndex: (
 		index: number,
+		opts?: { align?: 'start' | 'center' | 'end'; behavior?: 'auto' | 'smooth' },
+	) => void
+	scrollToOffset: (
+		offset: number,
 		opts?: { align?: 'start' | 'center' | 'end'; behavior?: 'auto' | 'smooth' },
 	) => void
 	scrollToEnd: (opts?: { behavior?: 'auto' | 'smooth' }) => void
@@ -63,7 +68,10 @@ export function VirtualList<T>({
 	const scrollRef = useRef<HTMLDivElement>(null)
 	const chatContext = useChatScrollContext()
 
-	const estimateSizeFn = typeof estimateSize === 'function' ? estimateSize : () => estimateSize
+	const estimateSizeFn = useMemo(
+		() => (typeof estimateSize === 'function' ? estimateSize : () => estimateSize),
+		[estimateSize],
+	)
 
 	const virtualizer = useVirtualizer({
 		count: items.length,
@@ -116,6 +124,7 @@ export function VirtualList<T>({
 		ref,
 		() => ({
 			scrollToIndex: (index, opts) => virtualizer.scrollToIndex(index, opts),
+			scrollToOffset: (offset, opts) => virtualizer.scrollToOffset(offset, opts),
 			scrollToEnd: (opts) => virtualizer.scrollToIndex(items.length - 1, { align: 'end', ...opts }),
 			scrollToStart: (opts) => virtualizer.scrollToIndex(0, { align: 'start', ...opts }),
 			virtualizer,
@@ -132,13 +141,13 @@ export function VirtualList<T>({
 			onScroll={handleScroll}
 			className={cn(k.root, className)}
 		>
-			<div
+			<ul
 				data-slot="virtual-list-viewport"
 				className={k.viewport}
 				style={{ height: virtualizer.getTotalSize() }}
 			>
 				{virtualItems.map((virtualItem) => (
-					<div
+					<li
 						key={virtualItem.key}
 						ref={virtualizer.measureElement}
 						data-slot="virtual-list-item"
@@ -147,9 +156,9 @@ export function VirtualList<T>({
 						style={{ transform: `translateY(${virtualItem.start}px)` }}
 					>
 						{children(items[virtualItem.index] as T, virtualItem.index)}
-					</div>
+					</li>
 				))}
-			</div>
+			</ul>
 		</div>
 	)
 }
