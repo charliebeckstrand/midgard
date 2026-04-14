@@ -39,7 +39,7 @@ export type FlexProps = {
 export function Flex({
 	direction = 'row',
 	gap,
-	align = 'center',
+	align,
 	justify,
 	wrap,
 	inline,

@@ -5,7 +5,6 @@ import type React from 'react'
 import { useCallback, useEffect, useState } from 'react'
 import { Box } from '../components/box'
 import { Button } from '../components/button'
-import { Divider } from '../components/divider'
 import { Drawer } from '../components/drawer/drawer'
 import { Icon } from '../components/icon'
 import { Stack } from '../components/stack'
@@ -61,7 +60,7 @@ export function ChatLayout({ sidebar, navbar, children }: ChatLayoutProps) {
 			{/* Content */}
 			<Stack gap={0} className="flex-1 min-w-0 max-lg:h-dvh lg:py-2 lg:pr-2">
 				{/* Navbar on mobile */}
-				<Stack direction="row" align="center" gap={4} className="px-4 py-3 lg:hidden">
+				<Stack direction="row" align="center" gap={4} className="px-2 lg:hidden">
 					<Button variant="plain" onClick={() => setOpen(true)} aria-label="Open navigation">
 						<Icon icon={<Menu />} />
 					</Button>
@@ -81,10 +80,10 @@ export type ChatLayoutHeaderProps = React.PropsWithChildren<{ className?: string
 export function ChatLayoutHeader({ children, className }: ChatLayoutHeaderProps) {
 	return (
 		<>
-			<Box px={6} py={4} dataSlot="header" className={cn('shrink-0', className)}>
+			<Box py={4} px={6} dataSlot="header" className={cn('shrink-0', className)}>
 				{children}
 			</Box>
-			<Divider soft />
+			{/* <Divider /> */}
 		</>
 	)
 }
@@ -98,8 +97,8 @@ export function ChatLayoutBody({ ref, children, className }: ChatLayoutBodyProps
 	return (
 		<Box
 			ref={ref}
-			px={6}
-			py={4}
+			px={4}
+			py={0}
 			dataSlot="body"
 			className={cn('flex-1 min-h-0 overflow-y-auto', className)}
 		>
@@ -113,7 +112,7 @@ export type ChatLayoutFooterProps = React.PropsWithChildren<{ className?: string
 export function ChatLayoutFooter({ children, className }: ChatLayoutFooterProps) {
 	return (
 		<>
-			<Divider soft />
+			{/* <Divider /> */}
 			<Box px={6} py={4} dataSlot="footer" className={cn('shrink-0', className)}>
 				{children}
 			</Box>

@@ -1,10 +1,9 @@
 'use client'
 
-import { ArrowUp, CircleDashed, MessageSquare, Plus, Trash } from 'lucide-react'
+import { ArrowUp, CircleDashed, Plus, Trash } from 'lucide-react'
 import { useRef, useState } from 'react'
-import { Avatar } from '../../../components/avatar'
-import { Box } from '../../../components/box'
 import { Button } from '../../../components/button'
+import { ConfirmDialog } from '../../../components/dialog'
 import { Heading } from '../../../components/heading'
 import { Icon } from '../../../components/icon'
 import {
@@ -21,6 +20,7 @@ import { Text } from '../../../components/text'
 import { Textarea } from '../../../components/textarea'
 import { ChatMessage, ChatPage } from '../../../pages'
 import { Example } from '../../components/example'
+
 export const meta = { category: 'Pages' }
 
 type Message = {
@@ -108,84 +108,102 @@ export default function ChatPageDemo() {
 		})
 	}
 
+	const [confirmDialog, setConfirmDialog] = useState(false)
+
 	const sidebar = (
-		<Sidebar>
-			<SidebarHeader className="min-h-7">
-				<Stack direction="row" align="center" gap={2}>
-					<Icon icon={<MessageSquare />} />
-					<Heading level={4}>Messages</Heading>
-				</Stack>
-			</SidebarHeader>
-			<SidebarBody>
-				<SidebarSection>
-					{conversations.map((conv) => (
-						<SidebarItem key={conv.id} current={conv.active}>
-							<Stack direction="row" align="center" justify="center" gap={4} width="full">
-								<Stack gap={0}>
-									<SidebarLabel>{conv.title}</SidebarLabel>
-									<Text className="text-xs truncate" variant="muted">
-										{conv.preview}
-									</Text>
+		<>
+			<Sidebar>
+				<SidebarHeader>
+					<Stack direction="row" align="center" gap={2}>
+						<Heading level={3}>Messages</Heading>
+					</Stack>
+				</SidebarHeader>
+				<SidebarBody>
+					<SidebarSection>
+						{conversations.map((conv) => (
+							<SidebarItem key={conv.id} current={conv.active}>
+								<Stack direction="row" align="center" gap={4} width="full">
+									<Stack gap={0} width="full">
+										<SidebarLabel>{conv.title}</SidebarLabel>
+										<Text className="text-xs truncate" variant="muted">
+											{conv.preview}
+										</Text>
+									</Stack>
+									<Spacer />
+									{!conv.active && (
+										<Button
+											color="red"
+											variant="soft"
+											size="sm"
+											onClick={() => setConfirmDialog(true)}
+										>
+											<Icon icon={<Trash />} />
+										</Button>
+									)}
 								</Stack>
-								<Spacer />
-								{!conv.active && (
-									<Button color="red" variant="soft" size="sm">
-										<Icon icon={<Trash />} />
-									</Button>
-								)}
-							</Stack>
-						</SidebarItem>
-					))}
-				</SidebarSection>
-			</SidebarBody>
-		</Sidebar>
+							</SidebarItem>
+						))}
+					</SidebarSection>
+				</SidebarBody>
+			</Sidebar>
+
+			<ConfirmDialog
+				open={confirmDialog}
+				onClose={() => {
+					setConfirmDialog(false)
+				}}
+				onConfirm={() => {
+					setConfirmDialog(false)
+				}}
+				confirm={{ color: 'red' }}
+				title="Delete conversation"
+				description="Are you sure you want to delete this conversation? This action cannot be undone."
+			/>
+		</>
 	)
 
 	return (
 		<Example>
-			<Box>
-				<ChatPage
-					sidebar={sidebar}
-					bodyRef={bodyRef}
-					navbar={<Heading level={4}>Project kickoff</Heading>}
-					title={
-						<Stack direction="row" align="center" gap={3}>
-							<Avatar initials="PK" size="sm" />
-							<Heading level={3}>Project kickoff</Heading>
-						</Stack>
-					}
-					messages={messages.map((msg) => (
-						<ChatMessage key={msg.id} role={msg.role}>
-							{msg.content}
-						</ChatMessage>
-					))}
-					prompt={
-						<Textarea
-							id="textarea-actions"
-							value={input}
-							onChange={(e) => setInput(e.target.value)}
-							autoResize
-							rows={3}
-							className="max-h-48"
-							placeholder="Ask anything"
-							actions={
-								<>
-									<Button variant="plain" size="sm">
-										<Icon icon={<CircleDashed />} />
-										<span className="ml-1">Data Analyst</span>
-									</Button>
-									<Button variant="plain" size="sm" className="ml-auto">
-										<Icon icon={<Plus />} />
-									</Button>
-									<Button size="sm" color="amber" disabled={!input.trim()} onClick={send}>
-										<Icon icon={<ArrowUp />} />
-									</Button>
-								</>
-							}
-						/>
-					}
-				/>
-			</Box>
+			<ChatPage
+				sidebar={sidebar}
+				bodyRef={bodyRef}
+				navbar={<Heading level={4}>Project kickoff</Heading>}
+				title={
+					<Stack direction="row" align="center" gap={3}>
+						<Heading level={3}>Project kickoff</Heading>
+					</Stack>
+				}
+				messages={messages.map((msg) => (
+					<ChatMessage key={msg.id} role={msg.role}>
+						{msg.content}
+					</ChatMessage>
+				))}
+				prompt={
+					<Textarea
+						id="textarea-actions"
+						value={input}
+						onChange={(e) => setInput(e.target.value)}
+						autoResize
+						rows={3}
+						className="max-h-48"
+						placeholder="Ask anything"
+						actions={
+							<>
+								<Button variant="plain" size="sm">
+									<Icon icon={<CircleDashed />} />
+									<span className="ml-1">Data Analyst</span>
+								</Button>
+								<Button variant="plain" size="sm" className="ml-auto">
+									<Icon icon={<Plus />} />
+								</Button>
+								<Button size="sm" color="amber" disabled={!input.trim()} onClick={send}>
+									<Icon icon={<ArrowUp />} />
+								</Button>
+							</>
+						}
+					/>
+				}
+			/>
 		</Example>
 	)
 }

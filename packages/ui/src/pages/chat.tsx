@@ -1,4 +1,5 @@
 import type React from 'react'
+import { Flex } from '../components/flex'
 import { Spacer } from '../components/spacer'
 import { Stack } from '../components/stack'
 import { cn } from '../core'
@@ -18,8 +19,10 @@ export function ChatPage({ sidebar, navbar, title, messages, prompt, bodyRef }: 
 		<ChatLayout sidebar={sidebar} navbar={navbar}>
 			{title && <ChatLayoutHeader>{title}</ChatLayoutHeader>}
 
-			<ChatLayoutBody ref={bodyRef} className="flex flex-col gap-4">
-				{messages}
+			<ChatLayoutBody ref={bodyRef}>
+				<Flex direction="col" gap={4} width="full" flex>
+					{messages}
+				</Flex>
 			</ChatLayoutBody>
 
 			<ChatLayoutFooter>{prompt}</ChatLayoutFooter>
@@ -36,14 +39,12 @@ export type ChatMessageProps = {
 export function ChatMessage({ role, className, children }: ChatMessageProps) {
 	return (
 		<Stack direction="row" gap={0} data-slot="chat-message" data-role={role} className={className}>
-			{role === 'agent' && <Spacer />}
+			{role === 'user' && <Spacer />}
 
 			<div
 				className={cn(
-					'max-w-[80%] rounded-2xl px-4 py-3 text-sm whitespace-pre-wrap',
-					role === 'user'
-						? 'bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100'
-						: 'bg-blue-600 text-white dark:bg-blue-500',
+					'max-w-[80%] rounded-2xl px-4 py-3.5 whitespace-pre-wrap',
+					role === 'user' ? 'bg-blue-600 text-white' : '',
 				)}
 			>
 				{children}
