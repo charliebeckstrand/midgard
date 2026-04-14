@@ -22,6 +22,7 @@ export type IdScope = {
  */
 export function useIdScope(options?: { id?: string }): IdScope {
 	const generatedId = useId()
+
 	const id = options?.id ?? generatedId
 
 	const sub = useCallback((suffix: string) => `${id}-${suffix}`, [id])

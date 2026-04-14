@@ -55,6 +55,7 @@ export function Collapse({
 	}, [open, isControlled, onOpenChange])
 
 	const scope = useIdScope()
+
 	const triggerId = scope.sub('trigger')
 	const panelId = scope.sub('panel')
 

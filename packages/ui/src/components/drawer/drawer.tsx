@@ -24,9 +24,13 @@ export type DrawerProps = DrawerPanelVariants & {
 
 export function Drawer({ open, onClose, glass, className, children }: DrawerProps) {
 	const glassContext = useGlass()
+
 	const resolvedGlass = glass ?? glassContext
+
 	const scope = useIdScope()
+
 	const titleId = scope.sub('title')
+
 	const descriptionId = scope.sub('description')
 
 	return (

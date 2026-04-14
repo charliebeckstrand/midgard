@@ -55,6 +55,7 @@ export function Control({
 	children,
 }: ControlProps) {
 	const parent = useControl()
+
 	const scope = useIdScope({ id: idProp })
 
 	// Nesting: disabled/readOnly OR-merge with parent (parent wins).
@@ -62,7 +63,9 @@ export function Control({
 	// size/variant inherit from nearest ancestor unless explicitly set.
 	const mergedDisabled = disabled || parent?.disabled
 	const mergedReadOnly = readOnly || parent?.readOnly
+
 	const mergedSize = size ?? parent?.size
+
 	const mergedVariant = variant ?? parent?.variant
 
 	const value = useMemo<ControlContextValue>(

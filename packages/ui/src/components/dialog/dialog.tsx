@@ -34,10 +34,15 @@ export function Dialog({
 	children,
 }: DialogProps) {
 	const glassContext = useGlass()
+
 	const resolvedGlass = glass ?? glassContext
+
 	const isDesktop = useIsDesktop()
+
 	const scope = useIdScope()
+
 	const titleId = scope.sub('title')
+
 	const descriptionId = scope.sub('description')
 
 	return (
