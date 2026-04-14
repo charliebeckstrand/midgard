@@ -1,5 +1,5 @@
 export const divider = {
-	base: 'border-0',
+	base: ['border-0'],
 	orientation: {
 		horizontal: 'w-full border-t',
 		vertical: 'self-stretch border-l',

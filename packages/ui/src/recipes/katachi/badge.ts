@@ -3,7 +3,7 @@ import { nuri } from '../nuri'
 import { take } from '../take'
 
 export const badge = {
-	base: 'group inline-flex items-center font-medium',
+	base: ['group inline-flex items-center font-medium'],
 	variant: {
 		solid: {
 			base: ['border border-transparent', maru.roundedMd],

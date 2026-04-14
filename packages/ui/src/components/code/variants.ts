@@ -5,7 +5,7 @@ export const k = katachi.code
 
 export const codeVariants = cva(k.inline.base, {
 	variants: { size: k.inline.size },
-	defaultVariants: { size: 'md' },
+	defaultVariants: k.inline.defaults,
 })
 
 export type CodeVariants = VariantProps<typeof codeVariants>
