@@ -1,6 +1,6 @@
 import { sumi } from '../sumi'
 
-/** Panel slot arrangement (shared by dialog + sheet). */
+/** Panel slot layout shared by dialog and sheet. */
 export const panel = {
 	base: 'flex flex-col',
 	title: [sumi.text, 'text-lg/7 font-semibold leading-none'],

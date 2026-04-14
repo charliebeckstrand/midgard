@@ -1,12 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react'
 
-/**
- * Returns a function that delays its callback until the virtual keyboard
- * has finished animating (i.e. the visual viewport height stops changing
- * between frames).
- *
- * On desktop or when the keyboard is already visible, fires immediately.
- */
+/** Defers a callback until the virtual keyboard has settled. Fires immediately on desktop or when the keyboard is already visible. */
 export function useVirtualKeyboardStable() {
 	const rafRef = useRef<number | null>(null)
 
@@ -24,21 +18,21 @@ export function useVirtualKeyboardStable() {
 
 		const vv = window.visualViewport
 
-		// No visual viewport API or not a touch device — fire immediately
+		// No visual viewport API or not a touch device — fire now
 		if (!vv || !('ontouchstart' in window)) {
 			callback()
 
 			return
 		}
 
-		// Keyboard is already visible (viewport significantly smaller than window)
+		// Keyboard already visible
 		if (vv.height < window.innerHeight * 0.85) {
 			callback()
 
 			return
 		}
 
-		// Poll each frame until the viewport height stabilizes
+		// Poll until the viewport height stabilises
 		let lastHeight = vv.height
 
 		let stableFrames = 0
@@ -58,7 +52,7 @@ export function useVirtualKeyboardStable() {
 				lastHeight = currentHeight
 			}
 
-			// 5 consecutive stable frames (~83ms at 60fps) or bail after 1 second
+			// 5 stable frames (~83 ms at 60 fps), bail after 1 s
 			if (stableFrames >= 5 || totalFrames >= 60) {
 				rafRef.current = null
 

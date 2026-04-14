@@ -1,14 +1,10 @@
 /**
  * Ugoki (動き) — Movement.
  *
- * Deliberate motion — enter, exit, slide. Not passive transitions
- * (those live with their trigger), but choreographed animation.
+ * Choreographed enter / exit animation. Each config spreads directly
+ * onto a motion element — no inline overrides needed.
  *
- * Every motion config is a complete spread for motion.div:
- * `<motion.div {...ugoki.popover}>` — no inline overrides needed.
- *
- * Branch of: Ugoki (root)
- * Concern: animation
+ * Tier: 2 · Concern: animation
  */
 
 const slideTransition = { duration: 0.15 } as const
@@ -22,7 +18,7 @@ function slideConfig(axis: 'x' | 'y', value: string) {
 	}
 }
 
-/** Layout morph — fluid spring for layoutId transitions */
+/** Fluid spring for layoutId transitions. */
 const spring = {
 	type: 'spring' as const,
 	stiffness: 300,
@@ -35,7 +31,7 @@ const tween = {
 	ease: [0.3, 0.1, 0.3, 1] as const,
 }
 
-/** Reveal — placeholder-to-content crossfade with subtle vertical shift + blur */
+/** Placeholder-to-content crossfade with vertical shift and blur. */
 const reveal = {
 	initial: { opacity: 0, y: 4, filter: 'blur(4px)' },
 	animate: { opacity: 1, y: 0, filter: 'blur(0px)' },
@@ -47,7 +43,7 @@ export const ugoki = {
 	spring,
 	tween,
 	reveal,
-	/** Popover enter/exit — fade for dropdown menus */
+	/** Popover fade for dropdown menus. */
 	popover: {
 		initial: { opacity: 0, scale: 1 },
 		animate: { opacity: 1, scale: 1 },
@@ -55,7 +51,7 @@ export const ugoki = {
 		transition: { duration: 0.15, ease: 'easeOut' as const },
 	},
 
-	/** Backdrop fade — overlay for dialogs and sheets */
+	/** Overlay backdrop fade for dialogs and sheets. */
 	overlay: {
 		initial: { opacity: 0 },
 		animate: { opacity: 1 },
@@ -63,7 +59,7 @@ export const ugoki = {
 		transition: { duration: 0.15 },
 	},
 
-	/** Toast notification — slide from edge + fade, keyed by position side */
+	/** Toast slide from edge, keyed by position side. */
 	toast: {
 		right: {
 			initial: { x: '100%', opacity: 1 },
@@ -91,7 +87,7 @@ export const ugoki = {
 		},
 	},
 
-	/** Tooltip — fast fade + subtle scale */
+	/** Tooltip fade with subtle scale. */
 	tooltip: {
 		initial: { opacity: 0, scale: 0.95 },
 		animate: { opacity: 1, scale: 1 },
@@ -99,7 +95,7 @@ export const ugoki = {
 		transition: { duration: 0.1, ease: 'easeOut' as const },
 	},
 
-	/** Collapse — height reveal for disclosure panels */
+	/** Height reveal for disclosure panels. */
 	collapse: {
 		fade: {
 			initial: { height: 0, opacity: 0 },
@@ -115,7 +111,7 @@ export const ugoki = {
 		},
 	},
 
-	/** Slide panel — complete motion configs per direction */
+	/** Slide panel configs keyed by direction. */
 	panel: {
 		right: slideConfig('x', '100%'),
 		left: slideConfig('x', '-100%'),

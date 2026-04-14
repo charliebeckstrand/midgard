@@ -1,26 +1,12 @@
 import type React from 'react'
 import { Link } from '../core'
 
-/**
- * Discriminated union for components that render as either an interactive
- * element (button, span, etc.) or a Link when `href` is provided.
- *
- * Usage:
- * ```ts
- * type ButtonProps = BaseProps & PolymorphicProps<'button'>
- * type BadgeProps  = BaseProps & PolymorphicProps<'span'>
- * ```
- */
+/** Discriminated union — renders as a Link when `href` is provided, otherwise as the fallback element. */
 export type PolymorphicProps<Fallback extends keyof React.JSX.IntrinsicElements> =
 	| ({ href?: never } & Omit<React.ComponentPropsWithoutRef<Fallback>, 'className'>)
 	| ({ href: string } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
 
-/**
- * Renders children as a Link or a fallback element based on the presence of `href`.
- *
- * Extracts `href` from props, renders the appropriate element, and spreads
- * remaining props onto it. Keeps the polymorphic branching in one place.
- */
+/** Renders as a Link when `href` is present, otherwise as the fallback intrinsic element. */
 export function Polymorphic<Fallback extends keyof React.JSX.IntrinsicElements>({
 	as,
 	href,

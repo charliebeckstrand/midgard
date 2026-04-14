@@ -7,8 +7,7 @@ export const slider = {
 		yasumi.disabled,
 
 		// ── WebKit track ─────────────────────────────────
-		// `--slider-value` is set inline from the component (0%-100%),
-		// `--slider-fill` / `--slider-track` come from the color variant.
+		// --slider-value is set inline (0–100 %); --slider-fill / --slider-track come from the color variant.
 		'[&::-webkit-slider-runnable-track]:w-full',
 		'[&::-webkit-slider-runnable-track]:rounded-full',
 		'[&::-webkit-slider-runnable-track]:bg-[linear-gradient(to_right,var(--slider-fill)_0,var(--slider-fill)_var(--slider-value,0%),var(--slider-track)_var(--slider-value,0%),var(--slider-track)_100%)]',
@@ -47,9 +46,7 @@ export const slider = {
 		'dark:focus-visible:[&::-moz-range-thumb]:ring-blue-600',
 	],
 	size: {
-		// Vertical padding on the input element extends the native range's click /
-		// drag area above and below the track — the visible thumb size is unchanged,
-		// but the entire padded input surface grabs the thumb.
+		// Vertical padding extends the native hit area without changing the visible thumb size.
 		sm: [
 			'py-4',
 			'[&::-webkit-slider-runnable-track]:h-1',

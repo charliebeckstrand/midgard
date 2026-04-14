@@ -16,7 +16,7 @@ type FileUploadSharedProps = {
 	/** Allow selecting multiple files. */
 	multiple?: boolean
 	disabled?: boolean
-	/** Called with the selected files after a pick or drop. */
+	/** Fires with the selected files. */
 	className?: string
 	children?: React.ReactNode
 	onFiles?: (files: File[]) => void
@@ -32,7 +32,7 @@ type FileUploadInputProps = FileUploadSharedProps & {
 	variant: 'input'
 	/** Input field size. */
 	size?: 'sm' | 'md' | 'lg'
-	/** Placeholder text shown when no file is selected. */
+	/** Placeholder when empty. */
 	placeholder?: string
 }
 

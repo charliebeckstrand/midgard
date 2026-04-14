@@ -11,7 +11,7 @@ type CommandPaletteItemBaseProps = {
 	className?: string
 	children?: React.ReactNode
 	onAction?: () => void
-	/** Whether the palette should close after the action runs. Defaults to true. */
+	/** Closes the palette after the action. Defaults to true. */
 	closeOnAction?: boolean
 }
 

@@ -6,7 +6,7 @@ import { cn } from '../core'
 import { useControllable } from '../hooks'
 import { ugoki } from '../recipes'
 
-// ── Context ─────────────────────────────────────────────
+// ── Context ──────────────────────────────────────────────
 
 export type CurrentContextValue = {
 	value: string | undefined
@@ -21,7 +21,7 @@ export function useCurrentContext() {
 	return useContext(CurrentContext)
 }
 
-// ── useCurrent ──────────────────────────────────────────
+// ── useCurrent ───────────────────────────────────────────
 
 export function useCurrent(props: {
 	value?: string
@@ -39,7 +39,7 @@ export function useCurrent(props: {
 	return [ctx, value, setValue]
 }
 
-// ── createCurrentContent ────────────────────────────────
+// ── createCurrentContent ─────────────────────────────────
 
 const hidden = { opacity: 0 }
 const visible = { opacity: 1 }
@@ -68,7 +68,7 @@ export function createCurrentContent(slotPrefix: string) {
 				if (entry) setHeight(entry.contentRect.height)
 			})
 
-			// Observe the in-flow child (the active content)
+			// Observe the in-flow child (active content)
 			const observe = () => {
 				ro.disconnect()
 

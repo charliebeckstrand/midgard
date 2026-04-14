@@ -1,13 +1,10 @@
 /**
  * Kokkaku (骨格) — Skeletal frames.
  *
- * The bones beneath each component — the shape and size a skeleton
- * placeholder assumes, stripped of chrome, variant, and color. Skeleton-
- * aware components read from kokkaku to render themselves inside a
- * `<Skeleton>`, so placeholder dimensions track the real component.
+ * Skeleton placeholder dimensions per component — stripped of chrome, variant,
+ * and color so placeholders track the real component.
  *
- * Tier: 3
- * Concern: skeleton form
+ * Tier: 3 · Concern: skeleton form
  */
 
 import { avatar } from './avatar'

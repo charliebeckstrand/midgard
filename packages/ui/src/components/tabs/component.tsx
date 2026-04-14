@@ -86,7 +86,7 @@ export function TabList({ className, children, ...props }: TabListProps) {
 export type TabProps = {
 	value?: string
 	current?: boolean
-	/** Stable identifier linking this tab to its panel via aria-controls. */
+	/** Links this tab to its panel via aria-controls. */
 	id?: string
 	className?: string
 } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className' | 'id' | 'value'>
@@ -166,7 +166,7 @@ export function TabPanels({ className, ...props }: TabPanelsProps) {
 }
 
 export type TabPanelProps = {
-	/** Must match the corresponding Tab's id to link via aria-labelledby. */
+	/** Matches the corresponding Tab's id for aria-labelledby. */
 	id?: string
 } & Omit<React.ComponentPropsWithoutRef<'div'>, 'id'>
 

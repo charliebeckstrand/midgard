@@ -1,10 +1,9 @@
 /**
- * Sumi (墨) — The marks.
+ * Sumi (墨) — Ink.
  *
- * The ink, the pigment — what the eye reads.
+ * Text colour — what the eye reads.
  *
- * Tier: 1
- * Concern: color
+ * Tier: 1 · Concern: color
  */
 
 // ── Motoi (基) ──────────────────────────────────────────

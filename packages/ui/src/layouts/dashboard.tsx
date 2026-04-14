@@ -43,10 +43,10 @@ export function DashboardLayout({ header, filters, children }: DashboardLayoutPr
 
 			{filters && (
 				<>
-					{/* Filters visible on desktop */}
+					{/* Filters on desktop */}
 					<Box className="shrink-0 max-lg:hidden">{filters}</Box>
 
-					{/* Filters button on mobile */}
+					{/* Filter trigger on mobile */}
 					<Box className="shrink-0 lg:hidden">
 						<Button variant="outline" onClick={() => setOpen(true)}>
 							<Icon icon={<SlidersHorizontal />} />
@@ -54,7 +54,7 @@ export function DashboardLayout({ header, filters, children }: DashboardLayoutPr
 						</Button>
 					</Box>
 
-					{/* Filters drawer on mobile */}
+					{/* Filter drawer on mobile */}
 					<Drawer open={open} onClose={close}>
 						<DrawerTitle>Filters</DrawerTitle>
 						<DrawerBody>

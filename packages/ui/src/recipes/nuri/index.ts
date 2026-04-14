@@ -1,11 +1,10 @@
 /**
  * Nuri (塗り) — Painted fills.
  *
- * Deliberate application of color — the pigment chosen for a specific element.
- * Each child maps color names to CSS custom property values for CVA variants.
+ * Deliberate application of colour to a specific element. Each entry maps
+ * colour names to token values for CVA variants.
  *
- * Tier: 1
- * Concern: color
+ * Tier: 1 · Concern: color
  */
 
 import { outline, soft, solid } from './badge'

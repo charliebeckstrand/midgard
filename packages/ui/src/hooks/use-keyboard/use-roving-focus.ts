@@ -4,29 +4,13 @@ import { type KeyboardEvent, type RefObject, useCallback } from 'react'
 import { nextIndexForKey, queryItems, type RovingConfig } from './navigation'
 
 export type UseRovingFocusOptions = RovingConfig & {
-	/**
-	 * CSS selector for the focusable items inside the container. Results are
-	 * queried lazily on each keystroke, so callers don't have to memoize.
-	 */
+	/** CSS selector for focusable items. Queried lazily on each keystroke. */
 	itemSelector: string
-	/**
-	 * When no item inside the container currently has focus, should a
-	 * navigation key still focus the first/last item? Enable this when the
-	 * keydown handler is attached to an element outside the list itself
-	 * (e.g. a combobox input delegating to its popover). Disable — the
-	 * default — to keep the handler strictly a roving-focus helper.
-	 */
+	/** Focus the first / last item even when nothing in the container has focus. */
 	focusOnEmpty?: boolean
 }
 
-/**
- * Roving-focus navigation for arrow keys, Home, and End.
- *
- * Moves DOM focus between items matching `itemSelector` inside `containerRef`.
- * Supports 1D (`orientation`) and 2D (`cols`) layouts, wraps at both ends, and
- * skips items that can't receive focus (disabled buttons, elements outside the
- * tab order).
- */
+/** Roving-focus navigation for arrow keys, Home, and End. Wraps at both ends. */
 export function useRovingFocus<T extends HTMLElement = HTMLElement>(
 	containerRef: RefObject<HTMLElement | null>,
 	{ itemSelector, cols, orientation, focusOnEmpty = false }: UseRovingFocusOptions,

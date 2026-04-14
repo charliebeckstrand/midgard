@@ -1,4 +1,4 @@
-/** Reset browser-default padding on webkit date/time edit fields. */
+/** Resets browser-default padding on WebKit date/time fields. */
 export const date = [
 	'[&::-webkit-datetime-edit-fields-wrapper]:p-0',
 	'[&::-webkit-date-and-time-value]:min-h-[1.5em]',

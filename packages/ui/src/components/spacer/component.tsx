@@ -5,10 +5,7 @@ export type SpacerProps = {
 	className?: string
 } & Omit<React.ComponentPropsWithoutRef<'div'>, 'className' | 'children'>
 
-/**
- * Flexible spacer that fills available space inside a flex container.
- * Use inside `<Stack>` to push siblings apart.
- */
+/** Fills available space inside a flex container. */
 export function Spacer({ className, ...props }: SpacerProps) {
 	return (
 		<div

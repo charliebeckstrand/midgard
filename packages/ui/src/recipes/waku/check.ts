@@ -21,7 +21,7 @@ const yoru = [
 	'dark:not-has-[:disabled]:group-hover/field:border-white/30',
 ]
 
-/** Visually hidden native input that sits over a custom control (also used for switch). */
+/** Visually hidden native input overlaying a custom control. */
 export const hidden = motoi.check
 export const check = motoi.check
 export const checkSurface = [motoi.surface, hiru, yoru]

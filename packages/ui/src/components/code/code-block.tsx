@@ -8,7 +8,7 @@ import { codeBlockVariants, k } from './variants'
 
 const MAX_CACHE_SIZE = 200
 
-/** Shared cache keyed by `${theme}\u0000${lang}\u0000${code}`. Avoids re-tokenizing on remount. */
+/** Token cache keyed by theme + language + code. Avoids re-tokenizing on remount. */
 const htmlCache = new Map<string, string>()
 
 const cacheKey = (code: string, lang: string, theme: string) => `${theme}\u0000${lang}\u0000${code}`
@@ -23,7 +23,7 @@ function cacheSet(key: string, value: string) {
 	htmlCache.set(key, value)
 }
 
-// Lazy-load shiki on first use — avoids pulling the full bundle into the initial chunk.
+// Lazy-load shiki on first use to keep the initial bundle small.
 let shikiPromise: Promise<typeof import('shiki')> | null = null
 
 function loadShiki() {

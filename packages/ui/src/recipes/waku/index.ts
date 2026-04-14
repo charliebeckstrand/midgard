@@ -1,11 +1,9 @@
 /**
  * Waku (枠) — Form frames.
  *
- * The chrome around form inputs — borders, focus rings, disabled states,
- * and checkbox/radio surfaces. Everything that frames user input.
+ * Borders, focus rings, disabled states, and control surfaces that frame user input.
  *
- * Tier: 2
- * Concern: form
+ * Tier: 2 · Concern: form
  */
 
 import { check, checkSurface, hidden } from './check'

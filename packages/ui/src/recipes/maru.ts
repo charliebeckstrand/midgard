@@ -1,10 +1,9 @@
 /**
  * Maru (丸) — Roundness.
  *
- * The curvature of edges — a single source of truth for border-radius.
+ * Single source of truth for border-radius.
  *
- * Tier: 1
- * Concern: shape
+ * Tier: 1 · Concern: shape
  */
 
 // ── Motoi (基) ──────────────────────────────────────────

@@ -3,9 +3,9 @@ import { cn } from '../../core'
 import { type CenterMaxW, type CenterMinH, maxWMap, minHMap } from './variants'
 
 export type CenterProps = {
-	/** Minimum height constraint. Useful for fullscreen centering. */
+	/** Minimum height. */
 	minH?: CenterMinH
-	/** Constrain the centered content to a maximum width. */
+	/** Maximum width constraint. */
 	maxW?: CenterMaxW
 	/** Render as `inline-flex` instead of `flex`. */
 	inline?: boolean

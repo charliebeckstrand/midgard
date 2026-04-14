@@ -148,8 +148,7 @@ export function FiltersField({ name, children, className }: FiltersFieldProps) {
 		)
 	}
 
-	// Clone element pattern — inject value + onChange
-	// Pass null (not undefined) so children stay in controlled mode when cleared
+	// Clone element — null (not undefined) keeps children in controlled mode.
 	const child = Children.only(children)
 
 	if (isValidElement(child)) {

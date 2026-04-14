@@ -16,12 +16,7 @@ export type SelectLabelProps = React.ComponentPropsWithoutRef<'span'>
 
 export type SelectDescriptionProps = React.ComponentPropsWithoutRef<'span'>
 
-/**
- * Factory for select-like option components (ComboboxOption, ListboxOption).
- *
- * Both share identical structure: BaseOption + OptionLabel + OptionDescription.
- * Only the data-slot prefix and context hook differ.
- */
+/** Factory for select-like option components. Only the data-slot prefix and context hook differ. */
 export function createSelectOption(config: {
 	slotPrefix: string
 	useContext: () => {

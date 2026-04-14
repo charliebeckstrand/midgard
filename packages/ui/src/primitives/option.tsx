@@ -15,7 +15,7 @@ export type BaseOptionProps = {
 	onSelect: () => void
 } & Omit<React.ComponentPropsWithoutRef<'div'>, 'className' | 'onSelect'>
 
-/** Shared option primitive for Listbox and Combobox */
+/** Shared option row for select-like components. */
 export function BaseOption({
 	children,
 	className,
@@ -62,14 +62,14 @@ export function BaseOption({
 	)
 }
 
-/** Shared label for Listbox and Combobox options */
+/** Primary label for a select-like option. */
 export function OptionLabel({ className, ...props }: React.ComponentPropsWithoutRef<'span'>) {
 	return (
 		<span {...props} className={cn(k.label, 'group-data-selected/option:font-bold', className)} />
 	)
 }
 
-/** Shared description for Listbox and Combobox options */
+/** Secondary description for a select-like option. */
 export function OptionDescription({
 	className,
 	children,

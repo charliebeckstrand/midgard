@@ -2,9 +2,7 @@
 
 import { useCallback, useEffect, useRef } from 'react'
 
-/**
- * Manages overlay behavior: escape to close, click-outside to close, optional scroll lock.
- */
+/** Overlay dismiss behavior — Escape to close, click-outside to close, optional scroll lock. */
 export function useOverlay(
 	open: boolean,
 	onClose: () => void,

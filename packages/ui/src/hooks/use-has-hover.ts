@@ -14,7 +14,7 @@ function getSnapshot() {
 	return hoverQuery?.matches ?? true
 }
 
-/** Returns `true` when the device has a hover-capable pointer (e.g. mouse). SSR defaults to `true`. */
+/** True when the device has a hover-capable pointer. Defaults to true during SSR. */
 export function useHasHover() {
 	return useSyncExternalStore(subscribe, getSnapshot, () => true)
 }

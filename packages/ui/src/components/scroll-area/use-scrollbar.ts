@@ -19,12 +19,8 @@ type UseScrollbarOptions = {
 }
 
 /**
- * Manages the custom scrollbar state for a scroll area: thumb size/offset
- * computed from the viewport's scroll metrics, visibility fade during active
- * scrolling, and pointer-drag interaction to scroll by dragging the thumb.
- *
- * Returns refs to attach to the viewport and each track, the current thumb
- * state per axis, and the handlers to wire up onScroll / onPointerDown.
+ * Custom scrollbar state — thumb geometry, visibility fade, and drag-to-scroll.
+ * Returns viewport/track refs, per-axis thumb state, and event handlers.
  */
 export function useScrollbar({ orientation, scrollbar }: UseScrollbarOptions) {
 	const viewportRef = useRef<HTMLDivElement>(null)

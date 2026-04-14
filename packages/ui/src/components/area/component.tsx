@@ -17,15 +17,15 @@ import {
 export type AreaProps = {
 	/** Padding on all sides. */
 	p?: AreaPadding
-	/** Horizontal padding. Overrides `p` on the x-axis. */
+	/** Horizontal padding. Overrides p. */
 	px?: AreaPadding
-	/** Vertical padding. Overrides `p` on the y-axis. */
+	/** Vertical padding. Overrides p. */
 	py?: AreaPadding
 	/** Margin on all sides. */
 	m?: AreaMargin
-	/** Horizontal margin. Overrides `m` on the x-axis. */
+	/** Horizontal margin. Overrides m. */
 	mx?: AreaMargin
-	/** Vertical margin. Overrides `m` on the y-axis. */
+	/** Vertical margin. Overrides m. */
 	my?: AreaMargin
 	/** Border style. Defaults to `dashed`. */
 	border?: AreaBorder
@@ -34,10 +34,7 @@ export type AreaProps = {
 	className?: string
 } & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
 
-/**
- * A neutral, rounded outline used in demos and docs to visualize the bounds
- * of a layout primitive. Defaults to a dashed border with no padding.
- */
+/** Neutral outline for visualizing layout bounds in demos and docs. */
 export function Area({
 	p = 3,
 	px,

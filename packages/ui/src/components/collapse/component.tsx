@@ -21,10 +21,8 @@ export type CollapseProps = {
 	/** Animation style for the panel. `true` or `'fade'` for height + opacity, `'slide'` for height only, `false` to disable. @default 'fade' */
 	animate?: boolean | 'fade' | 'slide'
 	/**
-	 * Convenience trigger. When a string is passed it's rendered as muted
-	 * text that highlights on hover. Any other ReactNode is rendered inside
-	 * the toggle button with no special styling. Omit to use the compound
-	 * API with <CollapseTrigger> and <CollapsePanel>.
+	 * Convenience trigger. Strings render as muted hover-highlighted text;
+	 * other ReactNodes render unstyled. Omit for the compound API.
 	 */
 	trigger?: React.ReactNode
 	children: React.ReactNode

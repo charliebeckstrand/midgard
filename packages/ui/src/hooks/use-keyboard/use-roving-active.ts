@@ -7,31 +7,18 @@ import { nextIndexForKey, queryItems, type RovingConfig } from './navigation'
 const ACTIVE_ATTR = 'data-active'
 
 export type UseRovingActiveOptions = RovingConfig & {
-	/**
-	 * CSS selector for the items inside the list container.
-	 */
+	/** CSS selector for navigable items inside the list container. */
 	itemSelector: string
-	/**
-	 * Scroll the active item into view after each change.
-	 * @default true
-	 */
+	/** Scroll the active item into view after each move. */
 	scrollIntoView?: boolean
-	/**
-	 * Key that invokes `click()` on the currently active item. Pass `null` to
-	 * disable activation entirely.
-	 * @default 'Enter'
-	 */
+	/** Key that clicks the active item. Pass null to disable. */
 	activationKey?: string | null
 }
 
 /**
- * Virtual-focus roving navigation.
- *
- * Unlike {@link useRovingFocus}, this hook never moves DOM focus. Instead it
- * tracks the active item via a `data-active` attribute, so the handler can
- * stay attached to a separate input (e.g. a command palette search field)
- * while the visible list stays highlighted. Pressing the activation key
- * clicks the active item.
+ * Virtual-focus roving navigation. Tracks the active item via `data-active`
+ * without moving DOM focus, so the handler can live on a separate input
+ * while the list stays visually highlighted.
  */
 export function useRovingActive<L extends HTMLElement = HTMLElement>({
 	itemSelector,

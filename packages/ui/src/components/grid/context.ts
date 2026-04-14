@@ -12,7 +12,7 @@ const GridContext = reactCreateContext<GridContextValue | null>(null)
 
 export const GridProvider = GridContext.Provider as unknown as Provider<GridContextValue>
 
-/** Returns the grid context, or `null` when used outside a `<Grid>`. */
+/** Returns the grid context, or null outside a Grid. */
 export function useGrid(): GridContextValue | null {
 	return useContext(GridContext)
 }

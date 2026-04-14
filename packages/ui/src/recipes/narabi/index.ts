@@ -1,11 +1,9 @@
 /**
  * Narabi (並び) — Arrangement.
  *
- * How elements line up — the ordering, positioning, and slot relationships
- * between siblings. The choreography of a layout.
+ * Ordering, positioning, and slot relationships between siblings.
  *
- * Tier: 2
- * Concern: layout
+ * Tier: 2 · Concern: layout
  */
 
 import { field } from './field'

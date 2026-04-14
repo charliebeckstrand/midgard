@@ -1,11 +1,6 @@
 import { maru } from '../maru'
 
-/**
- * Mark density — shared by inline code and kbd.
- * Tighter than compact — inline text marks with monospace glyphs,
- * subtle tinted background, and uniform padding. Sized to sit
- * naturally within surrounding body text.
- */
+/** Mark density — shared by inline code and kbd. Sized to sit naturally within body text. */
 export const mark = {
 	base: ['min-w-6', 'font-mono', 'bg-current/15', maru.roundedMd],
 	size: {

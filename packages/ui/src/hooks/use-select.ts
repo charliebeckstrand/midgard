@@ -8,12 +8,7 @@ type UseSelectOptions<T> = {
 	setValue: (updater: (prev: T | T[] | undefined) => T | T[] | undefined) => void
 }
 
-/**
- * Shared select/toggle logic for Listbox and Combobox.
- *
- * Uses a functional updater so the toggle always operates on
- * React's guaranteed latest state, avoiding stale-closure issues.
- */
+/** Shared select / toggle logic for Listbox and Combobox. */
 export function useSelect<T>({ multiple, nullable, setValue }: UseSelectOptions<T>) {
 	return useCallback(
 		(newValue: T) => {

@@ -1,7 +1,5 @@
 /**
- * Skeleton height scales, mirroring the heights produced by the real
- * density grid (see take/density.ts) so placeholders stand in for
- * components at the same visual footprint.
+ * Skeleton heights mirroring the density grid (take/density.ts).
  *
  *   step   height
  *   ─────  ──────
@@ -18,7 +16,7 @@ export const control = {
 } as const
 
 /**
- * Compact density heights — shared by badge, chip, and switch.
+ * Compact skeleton heights — badge, chip, and switch.
  *
  *   step   height
  *   ─────  ──────

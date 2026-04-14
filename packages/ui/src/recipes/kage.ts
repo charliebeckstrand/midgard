@@ -1,10 +1,9 @@
 /**
- * Kage (影) — Shadow and edges.
+ * Kage (影) — Edges.
  *
  * Borders, dividers, rings, shadows — everything that creates depth.
  *
- * Tier: 1
- * Concern: edge
+ * Tier: 1 · Concern: edge
  */
 
 // ── Motoi (基) ──────────────────────────────────────────

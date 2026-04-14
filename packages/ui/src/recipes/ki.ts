@@ -1,10 +1,9 @@
 /**
  * Ki (気) — Energy.
  *
- * How an element signals focus — the spirit that says "I'm listening."
+ * How an element signals focus.
  *
- * Tier: 1
- * Concern: focus
+ * Tier: 1 · Concern: focus
  */
 
 // ── Motoi (基) ──────────────────────────────────────────

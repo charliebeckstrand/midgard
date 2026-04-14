@@ -1,10 +1,9 @@
 /**
  * Yasumi (休み) — Rest.
  *
- * When an element is dormant — greyed out, non-interactive, waiting.
+ * Dormant, non-interactive state.
  *
- * Tier: 1
- * Concern: disabled
+ * Tier: 1 · Concern: disabled
  */
 
 // ── Motoi (基) ──────────────────────────────────────────

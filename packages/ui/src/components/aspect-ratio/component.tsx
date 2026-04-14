@@ -3,10 +3,7 @@ import { cn } from '../../core'
 import { type AspectRatioPreset, ratioMap } from './variants'
 
 export type AspectRatioProps = {
-	/**
-	 * Aspect ratio. Accepts a preset (`square`, `video`, `16/9`, `4/3`, `3/2`,
-	 * `21/9`) or a numeric ratio (e.g. `1.618` for golden). Defaults to `square`.
-	 */
+	/** Preset name or numeric ratio. Defaults to square. */
 	ratio?: AspectRatioPreset | number
 	className?: string
 	children?: React.ReactNode

@@ -6,11 +6,7 @@ const GlassContext = createContext(false)
 
 export const GlassProvider = GlassContext.Provider
 
-/**
- * Returns `true` when the current subtree is rendering inside a `<Glass>`.
- * Components call this to swap their opaque surface for a translucent,
- * frosted-glass appearance.
- */
+/** Returns true inside a Glass subtree. */
 export function useGlass() {
 	return use(GlassContext)
 }

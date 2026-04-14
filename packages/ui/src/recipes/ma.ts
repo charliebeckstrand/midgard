@@ -1,11 +1,9 @@
 /**
- * Ma (間) — Interval / negative space.
+ * Ma (間) — Interval.
  *
- * Padding and margin tokens for controlling the inner and outer
- * breathing room of an element.
+ * Padding and margin tokens — the breathing room of an element.
  *
- * Tier: 1
- * Concern: spacing
+ * Tier: 1 · Concern: spacing
  */
 
 export const ma = {

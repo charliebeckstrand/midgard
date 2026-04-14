@@ -8,11 +8,7 @@ export const MIN_THUMB_SIZE = 20
 
 export const SCROLL_FADE_DELAY_MS = 800
 
-/**
- * Compute a thumb's size and offset along one axis from the viewport's scroll
- * metrics and the track's measured size. Returns `HIDDEN_THUMB` when the
- * content fits within the viewport or the track has no measurable size.
- */
+/** Computes thumb size and offset for one axis. Returns HIDDEN_THUMB when content fits. */
 export function computeThumb(
 	scrollPos: number,
 	viewportSize: number,
@@ -30,11 +26,7 @@ export function computeThumb(
 	return { size, offset, visible: true }
 }
 
-/**
- * Walk up the DOM from `start` looking for an element that is actually
- * scrollable on either axis. Returns `null` if nothing is found, in which case
- * callers should fall back to scrolling the window.
- */
+/** Walks up the DOM to find the nearest scrollable ancestor, or null. */
 export function findScrollableAncestor(start: HTMLElement | null): HTMLElement | null {
 	let current = start
 

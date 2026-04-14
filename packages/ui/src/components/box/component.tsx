@@ -20,15 +20,15 @@ import {
 type BoxBaseProps = {
 	/** Padding on all sides. */
 	p?: BoxPadding
-	/** Horizontal padding. Overrides `p` on the x-axis. */
+	/** Horizontal padding. Overrides p. */
 	px?: BoxPadding
-	/** Vertical padding. Overrides `p` on the y-axis. */
+	/** Vertical padding. Overrides p. */
 	py?: BoxPadding
 	/** Margin on all sides. */
 	m?: BoxMargin
-	/** Horizontal margin. Overrides `m` on the x-axis. */
+	/** Horizontal margin. Overrides m. */
 	mx?: BoxMargin
-	/** Vertical margin. Overrides `m` on the y-axis. */
+	/** Vertical margin. Overrides m. */
 	my?: BoxMargin
 	/** Border radius token. */
 	radius?: BoxRadius
@@ -36,7 +36,7 @@ type BoxBaseProps = {
 	bg?: BoxBg
 	/** Border. `true` uses the default token; pass `'subtle'` / `'strong'` to pick a weight. */
 	border?: BoxBorder
-	/** Override the `data-slot` attribute. Defaults to `"box"`. */
+	/** Overrides the data-slot attribute. Defaults to "box". */
 	dataSlot?: string
 	ref?: React.Ref<HTMLDivElement>
 	className?: string

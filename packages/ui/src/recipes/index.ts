@@ -1,10 +1,4 @@
-/**
- * Kata (型) — Design token recipes.
- *
- * Each recipe captures one concern of the design system as reusable
- * Tailwind class fragments. Components compose these rather than
- * hard-coding utility classes.
- */
+/** Kata (型) — Design token recipes. Each recipe captures one design concern as reusable Tailwind class fragments. */
 
 export { kage } from './kage'
 export { katachi } from './katachi'

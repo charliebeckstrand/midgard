@@ -142,7 +142,7 @@ function DatePickerSingle({
 
 	const handlePickerOpenChange = useCallback((pickerOpen: boolean) => {
 		if (!pickerOpen) {
-			// Defer past the inner Popover's own focus restore.
+			// Defer past the Popover's own focus restore.
 			requestAnimationFrame(() => triggerRef.current?.focus())
 		}
 	}, [])
