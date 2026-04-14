@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
+import { Button } from '../../components/button'
 import { Control } from '../../components/control'
-import { Description, ErrorMessage, Fieldset, Label, Legend } from '../../components/fieldset'
+import { ErrorMessage, Fieldset, Label, Legend } from '../../components/fieldset'
 import { Input } from '../../components/input'
 import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'
@@ -26,7 +27,6 @@ export default function ControlDemo() {
 
 					<Control>
 					  <Label>Email</Label>
-					  <Description>We'll use this for account notifications.</Description>
 					  <Input type="email" placeholder="jane@example.com" />
 					</Control>
 				`}
@@ -34,7 +34,6 @@ export default function ControlDemo() {
 				<Sizer>
 					<Control>
 						<Label>Email</Label>
-						<Description>We'll use this for account notifications.</Description>
 						<Input type="email" placeholder="jane@example.com" />
 					</Control>
 				</Sizer>
@@ -66,21 +65,30 @@ export default function ControlDemo() {
 			<Example
 				title="Required"
 				code={code`
+					import { Button } from 'ui/button'
 					import { Control } from 'ui/control'
 					import { Label } from 'ui/fieldset'
 					import { Input } from 'ui/input'
 
-					<Control required>
-					  <Label>Full name</Label>
-					  <Input placeholder="Jane Smith" />
-					</Control>
+					<form onSubmit={(e) => e.preventDefault()}>
+					  <Control required>
+					    <Label>Full name</Label>
+					    <Input placeholder="Jane Smith" />
+					  </Control>
+					  <Button type="submit">Submit</Button>
+					</form>
 				`}
 			>
 				<Sizer>
-					<Control required>
-						<Label>Full name</Label>
-						<Input placeholder="Jane Smith" />
-					</Control>
+					<form onSubmit={(e) => e.preventDefault()} className="flex flex-col gap-4">
+						<Control required>
+							<Label>Full name</Label>
+							<Input placeholder="Jane Smith" />
+						</Control>
+						<div>
+							<Button type="submit">Submit</Button>
+						</div>
+					</form>
 				</Sizer>
 			</Example>
 
@@ -114,9 +122,9 @@ export default function ControlDemo() {
 
 					<Fieldset>
 					  <Legend>Profile</Legend>
-					  <button onClick={() => setDisabled((d) => !d)}>
+					  <Button onClick={() => setDisabled((d) => !d)}>
 					    Toggle disabled
-					  </button>
+					  </Button>
 					  <Control disabled={disabled}>
 					    <Label>Name</Label>
 					    <Input placeholder="Jane Smith" />
@@ -132,13 +140,15 @@ export default function ControlDemo() {
 					<Fieldset>
 						<Legend>Profile</Legend>
 						<Stack gap={4}>
-							<button
-								type="button"
-								onClick={() => setDisabled((d) => !d)}
-								className="self-start text-sm underline text-blue-600"
-							>
-								{disabled ? 'Enable' : 'Disable'} fields
-							</button>
+							<div>
+								<Button
+									variant="soft"
+									color={disabled ? 'green' : 'red'}
+									onClick={() => setDisabled((d) => !d)}
+								>
+									{disabled ? 'Enable' : 'Disable'} fields
+								</Button>
+							</div>
 							<Control disabled={disabled}>
 								<Label>Name</Label>
 								<Input placeholder="Jane Smith" />
