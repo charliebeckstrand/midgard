@@ -78,7 +78,7 @@ export function CodeBlock({
 				transformers: [
 					{
 						pre(node) {
-							delete node.properties.tabindex
+							node.properties.tabindex = '-1'
 						},
 					},
 				],
@@ -106,7 +106,7 @@ export function CodeBlock({
 					dangerouslySetInnerHTML={{ __html: html }}
 				/>
 			) : (
-				<pre className={cn(k.fallback)}>
+				<pre className={cn(k.fallback)} tabIndex={-1}>
 					<code>{code}</code>
 				</pre>
 			)}

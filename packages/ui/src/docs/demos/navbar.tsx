@@ -1,6 +1,6 @@
 'use client'
 
-import { AtSignIcon, HomeIcon, InfoIcon } from 'lucide-react'
+import { AtSign, Home, Info } from 'lucide-react'
 import { useState } from 'react'
 import { Area } from '../../components/area'
 import { Nav, NavContent, NavContents, NavItem, NavList, NavProvider } from '../../components/nav'
@@ -115,20 +115,20 @@ export default function NavbarDemo() {
 				code={code`
 				import { Navbar } from 'ui/navbar'
 				import { NavList, NavItem } from 'ui/nav'
-				import { HomeIcon, InfoIcon, AtSignIcon } from 'lucide-react'
+				import { Home, Info, AtSign } from 'lucide-react'
 
 				<Navbar>
 					<NavList>
 						<NavItem value="home">
-							<HomeIcon className="me-2" />
+							<Home className="me-2" />
 							Home
 						</NavItem>
 						<NavItem value="about">
-							<InfoIcon className="me-2" />
+							<Info className="me-2" />
 							About
 						</NavItem>
 						<NavItem value="contact">
-							<AtSignIcon className="me-2" />
+							<AtSign className="me-2" />
 							Contact
 						</NavItem>
 					</NavList>
@@ -137,13 +137,13 @@ export default function NavbarDemo() {
 			>
 				<Navbar>
 					<NavList>
-						<NavItem value="home" icon={<HomeIcon />}>
+						<NavItem value="home" icon={<Home />}>
 							Home
 						</NavItem>
-						<NavItem value="about" icon={<InfoIcon />}>
+						<NavItem value="about" icon={<Info />}>
 							About
 						</NavItem>
-						<NavItem value="contact" icon={<AtSignIcon />}>
+						<NavItem value="contact" icon={<AtSign />}>
 							Contact
 						</NavItem>
 					</NavList>

@@ -94,7 +94,7 @@ export function TreeItem({
 							<motion.div
 								role="group"
 								data-slot="tree-group"
-								{...ugoki.collapse}
+								{...ugoki.collapse.fade}
 								className={k.group}
 							>
 								{children}

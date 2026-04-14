@@ -130,14 +130,27 @@ export function Listbox<T>({
 
 	const toggle = useSelect({ multiple, nullable, setValue })
 
+	const pendingRef = useRef<{ value: T } | null>(null)
+
 	const select = useCallback(
 		(newValue: T) => {
-			toggle(newValue)
-
-			if (!multiple) close()
+			if (!multiple) {
+				pendingRef.current = { value: newValue }
+				close()
+			} else {
+				toggle(newValue)
+			}
 		},
 		[multiple, toggle, close],
 	)
+
+	const flushPending = useCallback(() => {
+		if (pendingRef.current) {
+			toggle(pendingRef.current.value)
+
+			pendingRef.current = null
+		}
+	}, [toggle])
 
 	const label = (() => {
 		if (multiple) {
@@ -188,7 +201,7 @@ export function Listbox<T>({
 			</div>
 
 			<FloatingPortal>
-				<AnimatePresence>
+				<AnimatePresence onExitComplete={flushPending}>
 					{open && (
 						<div
 							ref={refs.setFloating}

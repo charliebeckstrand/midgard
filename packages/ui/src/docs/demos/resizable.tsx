@@ -1,17 +1,12 @@
 'use client'
 
+import { Area } from '../../components/area'
 import { ResizableGroup, ResizableHandle, ResizablePanel } from '../../components/resizable'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Layout' }
 
-function Pane({ children }: { children: React.ReactNode }) {
-	return (
-		<div className="flex h-full items-center justify-center rounded-lg bg-zinc-100 p-4 dark:bg-zinc-800">
-			<p className="text-sm text-zinc-500">{children}</p>
-		</div>
-	)
-}
+const Pane = () => <Area border="solid" />
 
 export default function ResizableDemo() {
 	return (
@@ -19,12 +14,12 @@ export default function ResizableDemo() {
 			<Example title="Horizontal">
 				<div className="h-48">
 					<ResizableGroup>
-						<ResizablePanel defaultSize={70} minSize={20}>
-							<Pane>Left (70%)</Pane>
+						<ResizablePanel defaultSize={50} minSize={20}>
+							<Pane />
 						</ResizablePanel>
 						<ResizableHandle />
-						<ResizablePanel defaultSize={30} minSize={20}>
-							<Pane>Right (30%)</Pane>
+						<ResizablePanel defaultSize={50} minSize={20}>
+							<Pane />
 						</ResizablePanel>
 					</ResizableGroup>
 				</div>
@@ -34,11 +29,11 @@ export default function ResizableDemo() {
 				<div className="h-64">
 					<ResizableGroup direction="vertical">
 						<ResizablePanel defaultSize={60} minSize={20}>
-							<Pane>Top (60%)</Pane>
+							<Pane />
 						</ResizablePanel>
 						<ResizableHandle />
 						<ResizablePanel defaultSize={40} minSize={20}>
-							<Pane>Bottom (40%)</Pane>
+							<Pane />
 						</ResizablePanel>
 					</ResizableGroup>
 				</div>
@@ -48,15 +43,15 @@ export default function ResizableDemo() {
 				<div className="h-48">
 					<ResizableGroup>
 						<ResizablePanel defaultSize={25} minSize={15}>
-							<Pane>Sidebar</Pane>
+							<Pane />
 						</ResizablePanel>
 						<ResizableHandle />
 						<ResizablePanel defaultSize={50} minSize={20}>
-							<Pane>Main</Pane>
+							<Pane />
 						</ResizablePanel>
 						<ResizableHandle />
 						<ResizablePanel defaultSize={25} minSize={15}>
-							<Pane>Details</Pane>
+							<Pane />
 						</ResizablePanel>
 					</ResizableGroup>
 				</div>

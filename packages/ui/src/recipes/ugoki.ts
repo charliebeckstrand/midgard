@@ -29,6 +29,12 @@ const spring = {
 	damping: 30,
 }
 
+const tween = {
+	type: 'tween' as const,
+	duration: 0.15,
+	ease: [0.3, 0.1, 0.3, 1] as const,
+}
+
 /** Reveal — placeholder-to-content crossfade with subtle vertical shift + blur */
 const reveal = {
 	initial: { opacity: 0, y: 4, filter: 'blur(4px)' },
@@ -39,6 +45,7 @@ const reveal = {
 
 export const ugoki = {
 	spring,
+	tween,
 	reveal,
 	/** Popover enter/exit — fade for dropdown menus */
 	popover: {
@@ -92,12 +99,20 @@ export const ugoki = {
 		transition: { duration: 0.1, ease: 'easeOut' as const },
 	},
 
-	/** Collapse — height + opacity reveal for disclosure panels */
+	/** Collapse — height reveal for disclosure panels */
 	collapse: {
-		initial: { height: 0, opacity: 0 },
-		animate: { height: 'auto', opacity: 1 },
-		exit: { height: 0, opacity: 0 },
-		transition: { duration: 0.2, ease: 'easeInOut' as const },
+		fade: {
+			initial: { height: 0, opacity: 0 },
+			animate: { height: 'auto', opacity: 1 },
+			exit: { height: 0, opacity: 0 },
+			transition: { duration: 0.2, ease: 'easeInOut' as const },
+		},
+		slide: {
+			initial: { height: 0 },
+			animate: { height: 'auto' },
+			exit: { height: 0 },
+			transition: { duration: 0.2, ease: 'easeInOut' as const },
+		},
 	},
 
 	/** Slide panel — complete motion configs per direction */

@@ -1,6 +1,6 @@
 'use client'
 
-import { PlusIcon, XIcon } from 'lucide-react'
+import { Plus, X } from 'lucide-react'
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useControllable, useTagKeyboard } from '../../hooks'
@@ -155,7 +155,7 @@ export const TagInput = forwardRef<HTMLInputElement, TagInputProps>(function Tag
 										removeTag(i)
 									}}
 								>
-									<Icon icon={<XIcon />} size="xs" />
+									<Icon icon={<X />} size="xs" />
 								</button>
 							)}
 						</Chip>
@@ -184,7 +184,7 @@ export const TagInput = forwardRef<HTMLInputElement, TagInputProps>(function Tag
 						onMouseDown={(e) => e.preventDefault()}
 						onClick={handleSubmit}
 					>
-						<PlusIcon className="size-4" />
+						<Plus className="size-4" />
 					</Button>
 				)} */}
 				<Button
@@ -196,7 +196,7 @@ export const TagInput = forwardRef<HTMLInputElement, TagInputProps>(function Tag
 					onMouseDown={(e) => e.preventDefault()}
 					onClick={handleSubmit}
 				>
-					<PlusIcon className="size-4" />
+					<Plus className="size-4" />
 				</Button>
 			</div>
 		</FormControl>

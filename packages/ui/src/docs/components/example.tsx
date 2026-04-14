@@ -1,8 +1,8 @@
 'use client'
 
-import { type ReactNode, useEffect, useState } from 'react'
+import { type ReactNode, useState } from 'react'
 import { CodeBlock } from '../../components/code'
-import { Disclosure, DisclosureButton, DisclosurePanel } from '../../components/disclosure'
+import { Collapse, CollapsePanel, CollapseTrigger } from '../../components/collapse'
 import { Heading } from '../../components/heading'
 import { deriveCode } from '../derive-code'
 
@@ -24,19 +24,13 @@ export function Example({
 }) {
 	const [resolvedCode, setResolvedCode] = useState<string | null>(code ?? null)
 
-	useEffect(() => {
-		if (code != null) return
-
-		let cancelled = false
+	function resolveCode() {
+		if (resolvedCode != null) return
 
 		deriveCode(children).then((result) => {
-			if (!cancelled) setResolvedCode(result)
+			setResolvedCode(result)
 		})
-
-		return () => {
-			cancelled = true
-		}
-	}, [code, children])
+	}
 
 	return (
 		<div className="space-y-2">
@@ -54,21 +48,24 @@ export function Example({
 				{footer && (
 					<div className="border-t border-zinc-200 dark:border-zinc-800 p-4">{footer}</div>
 				)}
-				{resolvedCode && (
-					<Disclosure>
-						<div className="border-t border-zinc-200 dark:border-zinc-800">
-							<DisclosureButton className="flex text-sm px-4 py-2">
-								{({ open }) => (open ? 'Hide code' : 'Show code')}
-							</DisclosureButton>
-						</div>
-						<DisclosurePanel>
+				<Collapse animate="slide">
+					<div className="border-t border-zinc-200 dark:border-zinc-800">
+						<CollapseTrigger
+							className="flex text-sm px-4 py-2 focus-visible:ring-inset"
+							onClick={resolveCode}
+						>
+							{({ open }: { open: boolean }) => (open ? 'Hide code' : 'Show code')}
+						</CollapseTrigger>
+					</div>
+					<CollapsePanel>
+						{resolvedCode && (
 							<CodeBlock
 								code={resolvedCode}
 								className="rounded-t-none border-t border-zinc-200 dark:border-zinc-800"
 							/>
-						</DisclosurePanel>
-					</Disclosure>
-				)}
+						)}
+					</CollapsePanel>
+				</Collapse>
 			</div>
 		</div>
 	)

@@ -7,6 +7,7 @@ export type AreaProps = {
 	padding?: AreaPadding
 	/** Border style. Defaults to `dashed`. */
 	border?: AreaBorder
+	grow?: boolean
 	className?: string
 } & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
 
@@ -17,6 +18,7 @@ export type AreaProps = {
 export function Area({
 	padding = 'md',
 	border = 'dashed',
+	grow = true,
 	className,
 	children,
 	...props
@@ -24,7 +26,13 @@ export function Area({
 	return (
 		<div
 			data-slot="area"
-			className={cn('rounded-lg', borderMap[border], padding && paddingMap[padding], className)}
+			className={cn(
+				'rounded-lg',
+				grow && 'h-full',
+				padding && paddingMap[padding],
+				borderMap[border],
+				className,
+			)}
 			{...props}
 		>
 			{children}

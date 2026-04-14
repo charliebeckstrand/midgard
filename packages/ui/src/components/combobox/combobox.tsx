@@ -149,10 +149,14 @@ export function Combobox<T>({
 
 	const toggle = useSelect({ multiple, nullable, setValue })
 
+	const pendingRef = useRef<{ value: T } | null>(null)
+
 	const select = useCallback(
 		(newValue: T) => {
 			if (!selectable) {
 				;(onChange as ((value: T) => void) | undefined)?.(newValue)
+			} else if (shouldClose) {
+				pendingRef.current = { value: newValue }
 			} else {
 				toggle(newValue)
 			}
@@ -168,6 +172,14 @@ export function Combobox<T>({
 		},
 		[selectable, shouldClose, toggle, onChange, close],
 	)
+
+	const flushPending = useCallback(() => {
+		if (pendingRef.current) {
+			toggle(pendingRef.current.value)
+
+			pendingRef.current = null
+		}
+	}, [toggle])
 
 	const inputDisplay = useMemo(() => {
 		if (editing) return query
@@ -290,7 +302,7 @@ export function Combobox<T>({
 
 			<FloatingPortal>
 				<div ref={optionsRef}>
-					<AnimatePresence>
+					<AnimatePresence onExitComplete={flushPending}>
 						{open && (
 							<div
 								ref={refs.setFloating}

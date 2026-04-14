@@ -1,6 +1,6 @@
 'use client'
 
-import { CopyIcon } from 'lucide-react'
+import { Copy } from 'lucide-react'
 import { CopyButton } from '../../components/copy-button'
 import { Example } from '../components/example'
 
@@ -21,7 +21,7 @@ export default function CopyButtonDemo() {
 				</div>
 			</Example>
 			<Example title="Custom icon">
-				<CopyButton value="https://example.com" icon={<CopyIcon />} />
+				<CopyButton value="https://example.com" icon={<Copy />} />
 			</Example>
 		</div>
 	)

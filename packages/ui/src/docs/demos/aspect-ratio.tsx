@@ -21,7 +21,7 @@ function PresetsExample() {
 			actions={
 				<Listbox
 					value={ratio}
-					onChange={setRatio}
+					onChange={(v) => v && setRatio(v)}
 					displayValue={(v: AspectRatioPreset) => v}
 					className="w-32"
 				>
@@ -52,9 +52,7 @@ function PresetsExample() {
 			`}
 		>
 			<Sizer size="xl">
-				<AspectRatio ratio={ratio} className={placeholder}>
-					{ratio}
-				</AspectRatio>
+				<AspectRatio ratio={ratio} className={placeholder}></AspectRatio>
 			</Sizer>
 		</Example>
 	)
@@ -77,7 +75,7 @@ export default function AspectRatioDemo() {
 			>
 				<Sizer size="xl">
 					<AspectRatio ratio={1.618} className={placeholder}>
-						golden (1.618)
+						Golden (1.618)
 					</AspectRatio>
 				</Sizer>
 			</Example>

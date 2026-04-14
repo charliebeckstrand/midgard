@@ -12,7 +12,7 @@ import {
 	useInteractions,
 	useRole,
 } from '@floating-ui/react'
-import { CalendarIcon } from 'lucide-react'
+import { Calendar as CalendarIcon } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useRef, useState } from 'react'
 

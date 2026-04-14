@@ -36,7 +36,9 @@ function clampPair(
 	constraints: PanelConfig[],
 ): number[] {
 	const result = [...sizes]
+
 	const total = sizes[leftIdx] + sizes[rightIdx]
+
 	const lc = constraints[leftIdx]
 	const rc = constraints[rightIdx]
 
@@ -45,11 +47,13 @@ function clampPair(
 
 	left = Math.max(lc.minSize, Math.min(lc.maxSize, left))
 	right = total - left
+
 	right = Math.max(rc.minSize, Math.min(rc.maxSize, right))
 	left = total - right
 
 	result[leftIdx] = left
 	result[rightIdx] = right
+
 	return result
 }
 
@@ -72,15 +76,18 @@ export function ResizableGroup({
 	const dragRef = useRef<DragState | null>(null)
 	const cleanupRef = useRef<(() => void) | null>(null)
 	const directionRef = useRef(direction)
+
 	directionRef.current = direction
 
 	// Extract panel configs from children
 	const childArray = Children.toArray(children)
+
 	const panelConfigs: PanelConfig[] = []
 
 	for (const child of childArray) {
 		if (isValidElement(child) && child.type === ResizablePanel) {
 			const p = child.props as ResizablePanelProps
+
 			panelConfigs.push({
 				defaultSize: p.defaultSize ?? 50,
 				minSize: p.minSize ?? 0,
@@ -90,21 +97,26 @@ export function ResizableGroup({
 	}
 
 	const constraintsRef = useRef(panelConfigs)
+
 	constraintsRef.current = panelConfigs
 
 	// Initialize sizes from panel defaults, normalized to sum to 100
 	const [sizes, setSizes] = useState(() => {
 		const raw = panelConfigs.map((c) => c.defaultSize)
+
 		const total = raw.reduce((sum, s) => sum + s, 0)
+
 		return total > 0 ? raw.map((s) => (s / total) * 100) : raw
 	})
 
 	const sizesRef = useRef(sizes)
+
 	sizesRef.current = sizes
 
 	const [dragging, setDragging] = useState<number | null>(null)
 
 	const onSizesChangeRef = useRef(onSizesChange)
+
 	onSizesChangeRef.current = onSizesChange
 
 	const resize = useCallback((handleIndex: number, delta: number) => {
@@ -115,29 +127,39 @@ export function ResizableGroup({
 			if (prev[leftIdx] === undefined || prev[rightIdx] === undefined) return prev
 
 			const next = [...prev]
+
 			next[leftIdx] = prev[leftIdx] + delta
 			next[rightIdx] = prev[rightIdx] - delta
+
 			const clamped = clampPair(next, leftIdx, rightIdx, constraintsRef.current)
+
 			sizesRef.current = clamped
+
 			onSizesChangeRef.current?.(clamped)
+
 			return clamped
 		})
 	}, [])
 
 	const startDrag = useCallback((handleIndex: number, e: React.PointerEvent) => {
 		const group = groupRef.current
-		if (!group) return
+
+		if (!group || e.button !== 0) return
 
 		e.preventDefault()
 
 		const dir = directionRef.current
+
 		const rect = group.getBoundingClientRect()
+
 		const totalSize = dir === 'horizontal' ? rect.width : rect.height
 
 		// Subtract handle widths for accurate delta computation
 		let handleWidth = 0
+
 		group.querySelectorAll<HTMLElement>('[data-slot="resizable-handle"]').forEach((h) => {
 			const hr = h.getBoundingClientRect()
+
 			handleWidth += dir === 'horizontal' ? hr.width : hr.height
 		})
 
@@ -149,42 +171,57 @@ export function ResizableGroup({
 			startSizes: [...sizesRef.current],
 			availableSize: totalSize - handleWidth,
 		}
+
 		setDragging(handleIndex)
 
 		const onMove = (event: PointerEvent) => {
 			const drag = dragRef.current
+
 			if (!drag) return
 
 			const currentDir = directionRef.current
+
 			const currentPos = currentDir === 'horizontal' ? event.clientX : event.clientY
+
 			const deltaPercent = ((currentPos - drag.startPos) / drag.availableSize) * 100
 
 			const leftIdx = drag.handleIndex
 			const rightIdx = drag.handleIndex + 1
 
 			const next = [...drag.startSizes]
+
 			next[leftIdx] = drag.startSizes[leftIdx] + deltaPercent
 			next[rightIdx] = drag.startSizes[rightIdx] - deltaPercent
 
 			const clamped = clampPair(next, leftIdx, rightIdx, constraintsRef.current)
+
 			sizesRef.current = clamped
+
 			setSizes(clamped)
+
 			onSizesChangeRef.current?.(clamped)
 		}
 
 		const onUp = () => {
 			dragRef.current = null
+
 			setDragging(null)
+
 			document.removeEventListener('pointermove', onMove)
 			document.removeEventListener('pointerup', onUp)
+			document.removeEventListener('contextmenu', onUp)
+
 			cleanupRef.current = null
 		}
 
 		document.addEventListener('pointermove', onMove)
 		document.addEventListener('pointerup', onUp)
+		document.addEventListener('contextmenu', onUp)
+
 		cleanupRef.current = () => {
 			document.removeEventListener('pointermove', onMove)
 			document.removeEventListener('pointerup', onUp)
+			document.removeEventListener('contextmenu', onUp)
 		}
 	}, [])
 
@@ -202,6 +239,7 @@ export function ResizableGroup({
 
 		if (child.type === ResizablePanel) {
 			const idx = panelIdx++
+
 			return cloneElement(child as ReactElement<Record<string, unknown>>, {
 				_size: sizes[idx],
 			})
@@ -209,6 +247,7 @@ export function ResizableGroup({
 
 		if (child.type === ResizableHandle) {
 			const idx = handleIdx++
+
 			return cloneElement(child as ReactElement<Record<string, unknown>>, {
 				_handleIndex: idx,
 			})
@@ -243,6 +282,7 @@ export type ResizablePanelProps = {
 
 export function ResizablePanel(props: ResizablePanelProps) {
 	const { defaultSize = 50, className, children } = props
+
 	const size = (props as Record<string, unknown>)._size ?? defaultSize
 
 	return (
@@ -264,15 +304,19 @@ export type ResizableHandleProps = {
 
 export function ResizableHandle(props: ResizableHandleProps) {
 	const { className } = props
+
 	const handleIndex: number = ((props as Record<string, unknown>)._handleIndex as number) ?? 0
+
 	const { direction, dragging, startDrag, resize } = useResizable()
 
 	const isHorizontal = direction === 'horizontal'
+
 	const isDragging = dragging === handleIndex
 
 	const onKeyDown = useCallback(
 		(e: React.KeyboardEvent) => {
 			const step = e.shiftKey ? 10 : 5
+
 			let delta = 0
 
 			if (isHorizontal) {
@@ -284,10 +328,12 @@ export function ResizableHandle(props: ResizableHandleProps) {
 			}
 
 			if (e.key === 'Home') delta = -100
+
 			if (e.key === 'End') delta = 100
 
 			if (delta !== 0) {
 				e.preventDefault()
+
 				resize(handleIndex, delta)
 			}
 		},

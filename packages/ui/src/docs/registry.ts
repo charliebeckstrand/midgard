@@ -132,6 +132,31 @@ export function getLazyComponent(id: string): LazyExoticComponent<ComponentType>
 	return component
 }
 
+/** In-flight / resolved promise cache — ensures one import per demo. */
+const loadCache = new Map<string, Promise<ComponentType>>()
+
+/** Load a demo module and return the resolved component. */
+export function loadDemo(id: string): Promise<ComponentType> {
+	let pending = loadCache.get(id)
+
+	if (pending) return pending
+
+	const loader = loaderById.get(id)
+
+	if (!loader) throw new Error(`No demo found for id: ${id}`)
+
+	pending = loader().then((mod) => mod.default)
+
+	loadCache.set(id, pending)
+
+	return pending
+}
+
+/** Kick off the dynamic import for a demo so it's cached before navigation. */
+export function preloadDemo(id: string) {
+	if (loaderById.has(id)) loadDemo(id)
+}
+
 // ---------------------------------------------------------------------------
 // Lazy component API extraction — deferred until a demo's API Reference opens
 // ---------------------------------------------------------------------------
@@ -303,3 +328,8 @@ export const sortedCategories = Object.entries(categories).sort(
 )
 
 export const defaultDemo = sortedCategories[0]?.[1]?.[0]?.id || demos[0]?.id || ''
+
+// Eagerly preload the initial demo so it's ready before React mounts.
+preloadDemo(
+	typeof window !== 'undefined' ? window.location.hash.slice(1) || defaultDemo : defaultDemo,
+)

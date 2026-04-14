@@ -11,7 +11,7 @@ import {
 	SidebarSection,
 } from '../../components/sidebar'
 import { useOffcanvas } from '../../core/offcanvas-context'
-import { demos, sortedCategories } from '../registry'
+import { demos, preloadDemo, sortedCategories } from '../registry'
 
 export function SidebarContent({ route }: { route: string }) {
 	const offcanvas = useOffcanvas()
@@ -69,7 +69,12 @@ export function SidebarContent({ route }: { route: string }) {
 					<SidebarSection key={category}>
 						<span className="px-2 text-xs/6 font-medium text-zinc-500">{category}</span>
 						{items.map((demo) => (
-							<SidebarItem key={demo.id} href={`#${demo.id}`} current={route === demo.id}>
+							<SidebarItem
+								key={demo.id}
+								href={`#${demo.id}`}
+								current={route === demo.id}
+								onClick={() => preloadDemo(demo.id)}
+							>
 								<SidebarLabel>{demo.name}</SidebarLabel>
 							</SidebarItem>
 						))}

@@ -25,6 +25,7 @@ describe('SegmentedControl', () => {
 		const segments = allBySlot(container, 'segment')
 
 		expect(segments).toHaveLength(2)
+
 		expect(segments[0]).toHaveAttribute('role', 'radio')
 		expect(segments[1]).toHaveAttribute('role', 'radio')
 	})

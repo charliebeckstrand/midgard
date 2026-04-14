@@ -18,6 +18,8 @@ export type CollapseProps = {
 	open?: boolean
 	/** Called when the open state changes. */
 	onOpenChange?: (open: boolean) => void
+	/** Animation style for the panel. `true` or `'fade'` for height + opacity, `'slide'` for height only, `false` to disable. @default 'fade' */
+	animate?: boolean | 'fade' | 'slide'
 	/**
 	 * Convenience trigger. When a string is passed it's rendered as muted
 	 * text that highlights on hover. Any other ReactNode is rendered inside
@@ -33,6 +35,7 @@ export function Collapse({
 	defaultOpen = false,
 	open: openProp,
 	onOpenChange,
+	animate: animateProp = 'fade',
 	trigger,
 	children,
 	className,
@@ -52,7 +55,7 @@ export function Collapse({
 	}, [open, isControlled, onOpenChange])
 
 	return (
-		<CollapseProvider value={{ open, toggle }}>
+		<CollapseProvider value={{ open, toggle, animate: animateProp }}>
 			<div data-slot="collapse" data-open={open || undefined} className={cn(k.root, className)}>
 				{trigger !== undefined ? (
 					<>
@@ -73,7 +76,7 @@ export type CollapseTriggerProps = Omit<React.ComponentProps<'button'>, 'childre
 	children: React.ReactNode | ((bag: { open: boolean }) => React.ReactNode)
 }
 
-export function CollapseTrigger({ className, children, ...props }: CollapseTriggerProps) {
+export function CollapseTrigger({ className, children, onClick, ...props }: CollapseTriggerProps) {
 	const { open, toggle } = useCollapseContext()
 
 	const rendered = typeof children === 'function' ? children({ open }) : children
@@ -83,7 +86,10 @@ export function CollapseTrigger({ className, children, ...props }: CollapseTrigg
 			type="button"
 			data-slot="collapse-trigger"
 			aria-expanded={open}
-			onClick={toggle}
+			onClick={(e) => {
+				toggle()
+				onClick?.(e)
+			}}
 			className={cn(k.trigger, className)}
 			{...props}
 		>
@@ -100,14 +106,24 @@ export type CollapsePanelProps = {
 }
 
 export function CollapsePanel({ children, className }: CollapsePanelProps) {
-	const { open } = useCollapseContext()
+	const { open, animate } = useCollapseContext()
+
+	if (animate === false) {
+		return open ? (
+			<div data-slot="collapse-panel" className={cn(k.panel, className)}>
+				{children}
+			</div>
+		) : null
+	}
+
+	const variant = animate === true || animate === 'fade' ? 'fade' : animate
 
 	return (
 		<AnimatePresence initial={false}>
 			{open && (
 				<motion.div
 					data-slot="collapse-panel"
-					{...ugoki.collapse}
+					{...ugoki.collapse[variant]}
 					className={cn(k.panel, className)}
 				>
 					{children}

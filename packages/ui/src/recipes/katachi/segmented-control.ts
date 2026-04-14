@@ -10,12 +10,12 @@ export const segmentedControl = {
 	segment: [
 		'relative z-10 flex items-center justify-center cursor-default outline-none',
 		'font-medium select-none whitespace-nowrap',
-		sumi.textMuted,
 		ki.indicator,
+		ki.ring,
 		yasumi.disabled,
 	],
 	segmentCurrent: sumi.text,
-	indicator: ['bg-white dark:bg-zinc-700', kage.shadow],
+	indicator: ['bg-white dark:bg-zinc-600', kage.shadow],
 	size: {
 		sm: { root: 'p-0.5 gap-0.5', segment: 'px-2.5 py-1 text-xs/4' },
 		md: { root: 'p-1 gap-0.5', segment: 'px-3 py-1.5 text-sm/5' },

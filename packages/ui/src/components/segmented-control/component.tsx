@@ -75,6 +75,7 @@ export function Segment({ value, disabled, className, children }: SegmentProps) 
 	const { value: selectedValue, onSelect, size } = useSegmentedControl()
 
 	const current = selectedValue === value
+
 	const indicator = useActiveIndicator()
 
 	return (
