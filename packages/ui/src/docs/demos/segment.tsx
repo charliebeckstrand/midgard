@@ -12,23 +12,23 @@ export const meta = { category: 'Forms' }
 
 const items = [
 	{
-		name: 'Analytics',
-		description: 'Track user behavior and engagement metrics',
+		name: 'Holiday Promo',
+		description: 'End-of-year discount campaign',
 		status: 'Active' as const,
 	},
 	{
-		name: 'Storage',
-		description: 'Manage file uploads and cloud storage',
+		name: 'Spring Launch',
+		description: 'New product line announcement',
+		status: 'Active' as const,
+	},
+	{
+		name: 'Beta Program',
+		description: 'Early access invite for select users',
 		status: 'Archived' as const,
 	},
 	{
-		name: 'Auth',
-		description: 'User authentication and access control',
-		status: 'Active' as const,
-	},
-	{
-		name: 'Messaging',
-		description: 'Real-time chat and notifications',
+		name: 'Referral Bonus',
+		description: 'Refer a friend and earn rewards',
 		status: 'Archived' as const,
 	},
 ]
