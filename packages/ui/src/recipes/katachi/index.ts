@@ -74,6 +74,7 @@ import { toast } from './toast'
 import { toggleIconButton } from './toggle-icon-button'
 import { tooltip } from './tooltip'
 import { tree } from './tree'
+import { virtualList } from './virtual-list'
 
 export const katachi = {
 	accordion,
@@ -138,4 +139,5 @@ export const katachi = {
 	toast,
 	tooltip,
 	tree,
+	virtualList,
 } as const
