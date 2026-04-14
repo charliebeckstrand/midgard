@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Area } from '../../components/area'
 import { AspectRatio, type AspectRatioPreset } from '../../components/aspect-ratio'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 import { Sizer } from '../../components/sizer'
@@ -6,9 +7,6 @@ import { code } from '../code'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Layout' }
-
-const placeholder =
-	'flex items-center justify-center rounded-lg bg-zinc-100 text-sm text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300'
 
 const presets: AspectRatioPreset[] = ['square', 'video', '4/3', '3/2', '16/9', '21/9']
 
@@ -33,26 +31,17 @@ function PresetsExample() {
 				</Listbox>
 			}
 			code={code`
-				import { useState } from 'react'
 				import { AspectRatio, type AspectRatioPreset } from 'ui/aspect-ratio'
-				import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
-
-				const presets: AspectRatioPreset[] = ['square', 'video', '4/3', '3/2', '16/9', '21/9']
-
-				const [ratio, setRatio] = useState<AspectRatioPreset>('video')
-
-				<Listbox value={ratio} onChange={setRatio} displayValue={(v) => v}>
-					{presets.map((preset) => (
-						<ListboxOption key={preset} value={preset}>
-							<ListboxLabel>{preset}</ListboxLabel>
-						</ListboxOption>
-					))}
-				</Listbox>
-				<AspectRatio ratio={ratio} />
+				
+				<AspectRatio ratio="16/9" />
 			`}
 		>
 			<Sizer size="xl">
-				<AspectRatio ratio={ratio} className={placeholder}></AspectRatio>
+				<AspectRatio ratio={ratio}>
+					<Area border="solid" center>
+						{ratio}
+					</Area>
+				</AspectRatio>
 			</Sizer>
 		</Example>
 	)
@@ -74,8 +63,10 @@ export default function AspectRatioDemo() {
 				`}
 			>
 				<Sizer size="xl">
-					<AspectRatio ratio={1.618} className={placeholder}>
-						Golden (1.618)
+					<AspectRatio ratio={1.618}>
+						<Area border="solid" center>
+							Golden (1.618)
+						</Area>
 					</AspectRatio>
 				</Sizer>
 			</Example>
