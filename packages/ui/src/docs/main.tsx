@@ -11,10 +11,12 @@ if (!root) throw new Error('Missing #root element')
 // The initial demo import is already in-flight (kicked off at registry
 // module-eval time). Wait for it so the first render has the component
 // synchronously available — no blank frame.
-initialPreload.catch(() => {}).then(() => {
-	createRoot(root).render(
-		<StrictMode>
-			<App />
-		</StrictMode>,
-	)
-})
+initialPreload
+	.catch(() => {})
+	.then(() => {
+		createRoot(root).render(
+			<StrictMode>
+				<App />
+			</StrictMode>,
+		)
+	})

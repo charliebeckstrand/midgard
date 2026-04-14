@@ -1,10 +1,11 @@
 'use client'
 
-import { ArrowDown, ArrowUp, Loader2 } from 'lucide-react'
+import { ArrowUp, CircleDashed, EllipsisVertical, Plus } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { Spacer } from '../../components/spacer'
+import { Spinner } from '../../components/spinner'
 import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
 import { Textarea } from '../../components/textarea'
@@ -67,8 +68,11 @@ function generateMessages(count: number, startTime: Date): Message[] {
 
 	for (let i = 0; i < count; i++) {
 		const isUser = i % 3 === 0
+
 		const pool = isUser ? userMessages : agentMessages
+
 		const content = pool[i % pool.length] as string
+
 		const timestamp = new Date(startTime.getTime() + i * 45_000)
 
 		messages.push({
@@ -90,6 +94,7 @@ const baseTime = new Date('2025-03-15T09:00:00')
 
 function ChatBubble({ message }: { message: Message }) {
 	const isUser = message.role === 'user'
+
 	const time = message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 
 	return (
@@ -101,7 +106,7 @@ function ChatBubble({ message }: { message: Message }) {
 					className={cn(
 						'rounded-2xl px-4 py-3 text-sm whitespace-pre-wrap',
 						isUser
-							? 'bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100'
+							? 'bg-zinc-100 text-zinc-900 dark:bg-zinc-600 dark:text-zinc-100'
 							: 'bg-blue-600 text-white dark:bg-blue-500',
 					)}
 				>
@@ -122,8 +127,11 @@ function ChatBubble({ message }: { message: Message }) {
 
 export default function VirtualListDemo() {
 	const [messages, setMessages] = useState(() => generateMessages(INITIAL_COUNT, baseTime))
+
 	const [input, setInput] = useState('')
+
 	const [loading, setLoading] = useState(false)
+
 	const listRef = useRef<VirtualListHandle>(null)
 
 	const loadOlder = useCallback(() => {
@@ -135,16 +143,20 @@ export default function VirtualListDemo() {
 		setTimeout(() => {
 			setMessages((prev) => {
 				const oldest = prev[0]?.timestamp ?? baseTime
+
 				const olderStart = new Date(oldest.getTime() - LOAD_MORE_COUNT * 45_000)
+
 				const olderMessages = generateMessages(LOAD_MORE_COUNT, olderStart)
+
 				return [...olderMessages, ...prev]
 			})
 			setLoading(false)
-		}, 600)
+		}, 2000)
 	}, [loading])
 
 	const send = () => {
 		const text = input.trim()
+
 		if (!text) return
 
 		const now = new Date()
@@ -167,13 +179,13 @@ export default function VirtualListDemo() {
 					timestamp: new Date(),
 				},
 			])
-		}, 800)
+		}, 1000)
 	}
 
 	return (
 		<div className="space-y-8">
-			<Example title="Chat with 120+ virtualized messages">
-				<div className="flex flex-col h-[500px] rounded-lg border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+			<Example title="Chat with virtualized messages">
+				<div className="flex flex-col h-125 rounded-lg border border-zinc-200 dark:border-zinc-800 overflow-hidden">
 					{/* Header */}
 					<div className="flex items-center gap-3 border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
 						<div className="size-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-medium">
@@ -181,19 +193,16 @@ export default function VirtualListDemo() {
 						</div>
 						<div>
 							<Text className="font-medium text-sm">Virtual Chat</Text>
-							<Text variant="muted" className="text-xs">
+							{/* <Text variant="muted" className="text-xs">
 								{messages.length} messages
-							</Text>
+							</Text> */}
 						</div>
 						<Spacer />
-						<Button
-							variant="outline"
-							size="sm"
-							onClick={() => listRef.current?.scrollToEnd({ behavior: 'smooth' })}
-						>
-							<Icon icon={<ArrowDown />} />
-							Jump to bottom
-						</Button>
+						<div className="-mr-1.5">
+							<Button variant="plain">
+								<Icon icon={<EllipsisVertical />} />
+							</Button>
+						</div>
 					</div>
 
 					{/* Virtualized message list */}
@@ -206,13 +215,13 @@ export default function VirtualListDemo() {
 								overscan={8}
 								gap={12}
 								getItemKey={(i) => messages[i]?.id ?? i}
-								className="h-full px-4 py-3"
+								className="h-full p-4"
 							>
 								{(message) => (
 									<>
 										{loading && message.id === messages[0]?.id && (
 											<div className="flex justify-center py-2">
-												<Icon icon={<Loader2 />} className="animate-spin text-zinc-400" />
+												<Icon icon={<Spinner />} />
 											</div>
 										)}
 										<ChatBubble message={message} />
@@ -225,22 +234,34 @@ export default function VirtualListDemo() {
 					{/* Input */}
 					<div className="border-t border-zinc-200 p-3 dark:border-zinc-800">
 						<Textarea
+							id="textarea-actions"
 							value={input}
 							onChange={(e) => setInput(e.target.value)}
 							autoResize
-							rows={1}
-							className="max-h-32"
-							placeholder="Type a message..."
+							rows={3}
+							className="max-h-48"
+							placeholder="Ask anything"
 							onKeyDown={(e) => {
 								if (e.key === 'Enter' && !e.shiftKey) {
 									e.preventDefault()
+
 									send()
 								}
 							}}
 							actions={
-								<Button size="sm" color="amber" disabled={!input.trim()} onClick={send}>
-									<Icon icon={<ArrowUp />} />
-								</Button>
+								<>
+									<Button size="sm" variant="plain">
+										<Icon icon={<CircleDashed />} />
+										<span className="ml-1">Data Analyst</span>
+									</Button>
+									<Spacer />
+									<Button size="sm" variant="plain">
+										<Icon icon={<Plus />} />
+									</Button>
+									<Button size="sm" color="amber" disabled={!input.trim()} onClick={send}>
+										<Icon icon={<ArrowUp />} />
+									</Button>
+								</>
 							}
 						/>
 					</div>

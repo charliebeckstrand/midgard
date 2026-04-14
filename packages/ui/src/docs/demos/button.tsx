@@ -3,7 +3,6 @@
 import { Plus } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../../components/button'
-import { Field, Label } from '../../components/fieldset'
 import { Glass } from '../../components/glass'
 import { Icon } from '../../components/icon'
 import { ColorListbox } from '../components/color-listbox'
@@ -25,25 +24,12 @@ export const sizes = ['xs', 'sm', 'md', 'lg'] as const
 
 type Size = (typeof sizes)[number]
 
-const spinnerColors = ['current', 'zinc', 'red', 'amber', 'green', 'blue'] as const
-
-type SpinnerColor = (typeof spinnerColors)[number]
-
-const spinnerSizes = ['xs', 'sm', 'md', 'lg', 'xl'] as const
-
-type SpinnerSize = (typeof spinnerSizes)[number]
-
 export default function ButtonDemo() {
 	const [colorVariant, setColorVariant] = useState<Variant>('solid')
 	const [rippleColor, setRippleColor] = useState<Color>('zinc')
 
 	const [iconSize, setIconSize] = useState<Size>('md')
 	const [iconOnlySize, setIconOnlySize] = useState<Size>('md')
-	const [loadingVariant, setLoadingVariant] = useState<Variant>('solid')
-	const [loadingColor, setLoadingColor] = useState<Color>('zinc')
-	const [loadingSize, setLoadingSize] = useState<Size>('md')
-	const [loadingSpinnerColor, setLoadingSpinnerColor] = useState<SpinnerColor>('current')
-	const [loadingSpinnerSize, setLoadingSpinnerSize] = useState<SpinnerSize>('md')
 
 	return (
 		<div className="space-y-8">
@@ -133,74 +119,8 @@ export default function ButtonDemo() {
 			<Example title="Disabled">
 				<Button disabled>Disabled</Button>
 			</Example>
-			<Example
-				title="Loading"
-				code={[
-					'<Button',
-					loadingVariant !== 'solid' && `  variant="${loadingVariant}"`,
-					loadingColor !== 'zinc' && `  color="${loadingColor}"`,
-					loadingSize !== 'md' && `  size="${loadingSize}"`,
-					loadingSpinnerColor !== 'current' || loadingSpinnerSize !== 'md'
-						? `  loading={{ ${[loadingSpinnerColor !== 'current' && `color: '${loadingSpinnerColor}'`, loadingSpinnerSize !== 'md' && `size: '${loadingSpinnerSize}'`].filter(Boolean).join(', ')} }}`
-						: '  loading',
-					'>',
-					'  Loading',
-					'</Button>',
-				]
-					.filter(Boolean)
-					.join('\n')}
-				preview={
-					<Button
-						variant={loadingVariant}
-						color={loadingColor}
-						size={loadingSize}
-						loading={{ color: loadingSpinnerColor, size: loadingSpinnerSize }}
-					>
-						Loading
-					</Button>
-				}
-			>
-				<div className="grid xl:grid-cols-5 lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2 gap-4">
-					<Field>
-						<Label>Variant</Label>
-						<VariantListbox
-							variants={variants}
-							value={loadingVariant}
-							onChange={setLoadingVariant}
-						/>
-					</Field>
-					<Field>
-						<Label>Size</Label>
-						<SizeListbox
-							sizes={sizes}
-							value={loadingSize}
-							onChange={(s) => {
-								setLoadingSize(s)
-								setLoadingSpinnerSize(s)
-							}}
-						/>
-					</Field>
-					<Field>
-						<Label>Color</Label>
-						<ColorListbox colors={colors} value={loadingColor} onChange={setLoadingColor} />
-					</Field>
-					<Field>
-						<Label>Spinner color</Label>
-						<ColorListbox
-							colors={spinnerColors}
-							value={loadingSpinnerColor}
-							onChange={setLoadingSpinnerColor}
-						/>
-					</Field>
-					<Field>
-						<Label>Spinner size</Label>
-						<SizeListbox
-							sizes={['xs', 'sm', 'md', 'lg', 'xl'] as const}
-							value={loadingSpinnerSize}
-							onChange={setLoadingSpinnerSize}
-						/>
-					</Field>
-				</div>
+			<Example title="Loading">
+				<Button loading>Loading</Button>
 			</Example>
 		</div>
 	)

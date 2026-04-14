@@ -91,7 +91,11 @@ export function VirtualList<T>({
 		if (items.length === 0) return
 
 		hasScrolledRef.current = true
-		virtualizer.scrollToIndex(items.length - 1, { align: 'end' })
+
+		// Defer so the container has been laid out and the virtualizer can calculate positions.
+		requestAnimationFrame(() => {
+			virtualizer.scrollToIndex(items.length - 1, { align: 'end' })
+		})
 	}, [chatContext, items.length, virtualizer])
 
 	// Forward scroll events.
