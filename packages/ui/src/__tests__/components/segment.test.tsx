@@ -86,6 +86,59 @@ describe('Segment', () => {
 		expect(onValueChange).not.toHaveBeenCalled()
 	})
 
+	it('sets data-current on the selected item', () => {
+		const { container } = renderUI(
+			<Segment value="b">
+				<SegmentControl>
+					<SegmentItem value="a">A</SegmentItem>
+					<SegmentItem value="b">B</SegmentItem>
+				</SegmentControl>
+			</Segment>,
+		)
+
+		const items = allBySlot(container, 'segment-item')
+
+		expect(items[0]).not.toHaveAttribute('data-current')
+		expect(items[1]).toHaveAttribute('data-current', '')
+	})
+
+	it('sets tabIndex=0 on the current item and -1 on others', () => {
+		const { container } = renderUI(
+			<Segment value="b">
+				<SegmentControl>
+					<SegmentItem value="a">A</SegmentItem>
+					<SegmentItem value="b">B</SegmentItem>
+				</SegmentControl>
+			</Segment>,
+		)
+
+		const items = allBySlot(container, 'segment-item')
+
+		expect(items[0]).toHaveAttribute('tabindex', '-1')
+		expect(items[1]).toHaveAttribute('tabindex', '0')
+	})
+
+	it('works as uncontrolled with defaultValue', () => {
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(
+			<Segment defaultValue="a" onValueChange={onValueChange}>
+				<SegmentControl>
+					<SegmentItem value="a">A</SegmentItem>
+					<SegmentItem value="b">B</SegmentItem>
+				</SegmentControl>
+			</Segment>,
+		)
+
+		const items = allBySlot(container, 'segment-item')
+
+		expect(items[0]).toHaveAttribute('aria-checked', 'true')
+
+		items[1]?.click()
+
+		expect(onValueChange).toHaveBeenCalledWith('b')
+	})
+
 	it('applies custom className to root', () => {
 		const { container } = renderUI(
 			<Segment value="a" className="custom">
@@ -96,6 +149,18 @@ describe('Segment', () => {
 		)
 
 		expect(bySlot(container, 'segment')?.className).toContain('custom')
+	})
+
+	it('applies custom className to segment control', () => {
+		const { container } = renderUI(
+			<Segment value="a">
+				<SegmentControl className="custom">
+					<SegmentItem value="a">A</SegmentItem>
+				</SegmentControl>
+			</Segment>,
+		)
+
+		expect(bySlot(container, 'segment-control')?.className).toContain('custom')
 	})
 
 	it('applies custom className to segment item', () => {

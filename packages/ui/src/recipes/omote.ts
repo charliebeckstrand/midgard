@@ -23,7 +23,7 @@ const motoi = {
 // ── Hiru (昼) ───────────────────────────────────────────
 const hiru = {
 	panel: 'bg-white',
-	content: ['lg:bg-white', 'lg:ring-1 lg:ring-zinc-950/5'],
+	content: ['lg:bg-white'],
 	backdrop: {
 		md: 'bg-white/50',
 		lg: 'bg-white/75',
@@ -38,7 +38,7 @@ const hiru = {
 // ── Yoru (夜) ───────────────────────────────────────────
 const yoru = {
 	panel: 'dark:bg-zinc-900',
-	content: ['dark:lg:bg-zinc-900', 'dark:lg:ring-white/10'],
+	content: ['dark:lg:bg-zinc-900'],
 	backdrop: {
 		md: 'dark:bg-zinc-950/50',
 		lg: 'dark:bg-zinc-950/75',

@@ -44,12 +44,12 @@ export function useFocusTrap(active: boolean) {
 			if (e.shiftKey) {
 				if (document.activeElement === firstEl) {
 					e.preventDefault()
-					lastEl.focus()
+					lastEl?.focus()
 				}
 			} else {
 				if (document.activeElement === lastEl) {
 					e.preventDefault()
-					firstEl.focus()
+					firstEl?.focus()
 				}
 			}
 		}

@@ -35,18 +35,24 @@ function clampPair(
 ): number[] {
 	const result = [...sizes]
 
-	const total = sizes[leftIdx] + sizes[rightIdx]
+	const total = (sizes[leftIdx] ?? 0) + (sizes[rightIdx] ?? 0)
 
 	const lc = constraints[leftIdx]
 	const rc = constraints[rightIdx]
 
-	let left = result[leftIdx]
-	let right = result[rightIdx]
+	let left = result[leftIdx] ?? 0
+	let right = result[rightIdx] ?? 0
 
-	left = Math.max(lc.minSize, Math.min(lc.maxSize, left))
+	if (lc) {
+		left = Math.max(lc.minSize, Math.min(lc.maxSize, left))
+	}
+
 	right = total - left
 
-	right = Math.max(rc.minSize, Math.min(rc.maxSize, right))
+	if (rc) {
+		right = Math.max(rc.minSize, Math.min(rc.maxSize, right))
+	}
+
 	left = total - right
 
 	result[leftIdx] = left
@@ -188,8 +194,8 @@ export function ResizableGroup({
 
 			const next = [...drag.startSizes]
 
-			next[leftIdx] = drag.startSizes[leftIdx] + deltaPercent
-			next[rightIdx] = drag.startSizes[rightIdx] - deltaPercent
+			next[leftIdx] = (drag.startSizes[leftIdx] ?? 0) + deltaPercent
+			next[rightIdx] = (drag.startSizes[rightIdx] ?? 0) - deltaPercent
 
 			const clamped = clampPair(next, leftIdx, rightIdx, constraintsRef.current)
 

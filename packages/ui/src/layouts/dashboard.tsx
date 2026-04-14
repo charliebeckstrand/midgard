@@ -8,6 +8,8 @@ import { Button } from '../components/button'
 import { Drawer, DrawerBody, DrawerTitle } from '../components/drawer'
 import { Icon } from '../components/icon'
 import { Stack } from '../components/stack'
+import { cn } from '../core'
+import { omote } from '../recipes/omote'
 
 export type DashboardLayoutProps = React.PropsWithChildren<{
 	header?: React.ReactNode
@@ -36,7 +38,7 @@ export function DashboardLayout({ header, filters, children }: DashboardLayoutPr
 	}, [])
 
 	return (
-		<Stack gap={4} className="w-full bg-white dark:bg-zinc-950">
+		<Stack gap={4} className={cn('w-full', omote.surface)}>
 			{header}
 
 			{filters && (
