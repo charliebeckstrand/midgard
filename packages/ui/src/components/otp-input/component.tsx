@@ -74,7 +74,11 @@ export function OtpInput({
 	})
 
 	return (
-		<div data-slot="otp-input" className={cn(k.root, k.gap[size], className)}>
+		<fieldset
+			data-slot="otp-input"
+			aria-label="One-time code"
+			className={cn(k.root, k.gap[size], className)}
+		>
 			{Array.from({ length }, (_, i) => {
 				const cellKey = `cell-${i}`
 
@@ -90,6 +94,7 @@ export function OtpInput({
 							maxLength={1}
 							value={val[i] ?? ''}
 							disabled={disabled}
+							aria-invalid={invalid || undefined}
 							data-invalid={invalid || undefined}
 							data-valid={valid || undefined}
 							autoComplete={i === 0 ? 'one-time-code' : undefined}
@@ -103,6 +108,6 @@ export function OtpInput({
 					</div>
 				)
 			})}
-		</div>
+		</fieldset>
 	)
 }

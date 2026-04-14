@@ -2,8 +2,9 @@
 
 import { motion } from 'motion/react'
 import type React from 'react'
+import { useId } from 'react'
 import { cn, createContext } from '../../core'
-import { Overlay } from '../../primitives'
+import { Overlay, PanelA11yProvider } from '../../primitives'
 import { ugoki } from '../../recipes'
 import { useGlass } from '../glass/context'
 import { type DrawerPanelVariants, drawerBackdropVariants, drawerPanelVariants } from './variants'
@@ -24,6 +25,10 @@ export type DrawerProps = DrawerPanelVariants & {
 export function Drawer({ open, onClose, glass, className, children }: DrawerProps) {
 	const glassContext = useGlass()
 	const resolvedGlass = glass ?? glassContext
+	const id = useId()
+	const titleId = `${id}-title`
+	const descriptionId = `${id}-description`
+
 	return (
 		<Overlay
 			open={open}
@@ -34,11 +39,15 @@ export function Drawer({ open, onClose, glass, className, children }: DrawerProp
 				{...ugoki.panel.bottom}
 				role="dialog"
 				aria-modal="true"
+				aria-labelledby={titleId}
+				aria-describedby={descriptionId}
 				data-slot="drawer"
 				onClick={(e) => e.stopPropagation()}
 				className={cn(drawerPanelVariants({ glass: resolvedGlass }), className)}
 			>
-				<DrawerProvider value={{ onClose }}>{children}</DrawerProvider>
+				<DrawerProvider value={{ onClose }}>
+					<PanelA11yProvider value={{ titleId, descriptionId }}>{children}</PanelA11yProvider>
+				</DrawerProvider>
 			</motion.div>
 		</Overlay>
 	)

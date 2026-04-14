@@ -107,57 +107,60 @@ export default function DialogDemo() {
 				>
 					<DialogBody>
 						<Stack gap={2}>
-						<Text>
-							Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
-							incididunt ut labore et dolore magna aliqua.
-						</Text>
-						<Text>
-							Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex
-							ea commodo consequat.
-						</Text>
-						<Text>
-							Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat
-							nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui
-							officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur
-							adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-						</Text>
-						<Text>
-							Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
-							incididunt ut labore et dolore magna aliqua.
-						</Text>
-						<Text>
-							Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex
-							ea commodo consequat.
-						</Text>
-						<Text>
-							Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat
-							nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui
-							officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur
-							adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-						</Text>
-						<Text>
-							Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
-							incididunt ut labore et dolore magna aliqua.
-						</Text>
-						<Text>
-							Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex
-							ea commodo consequat.
-						</Text>
-						<Text>
-							Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat
-							nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui
-							officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur
-							adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-						</Text>
-						<CheckboxField className="my-2">
-							<Checkbox
-								id="terms"
-								color="blue"
-								checked={accepted}
-								onChange={() => setAccepted(!accepted)}
-							/>
-							<Label htmlFor="terms">Accept terms and conditions</Label>
-						</CheckboxField>
+							<Text>
+								Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
+								incididunt ut labore et dolore magna aliqua.
+							</Text>
+							<Text>
+								Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
+								ex ea commodo consequat.
+							</Text>
+							<Text>
+								Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
+								fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa
+								qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet,
+								consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore
+								magna aliqua.
+							</Text>
+							<Text>
+								Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
+								incididunt ut labore et dolore magna aliqua.
+							</Text>
+							<Text>
+								Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
+								ex ea commodo consequat.
+							</Text>
+							<Text>
+								Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
+								fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa
+								qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet,
+								consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore
+								magna aliqua.
+							</Text>
+							<Text>
+								Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
+								incididunt ut labore et dolore magna aliqua.
+							</Text>
+							<Text>
+								Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
+								ex ea commodo consequat.
+							</Text>
+							<Text>
+								Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
+								fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa
+								qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet,
+								consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore
+								magna aliqua.
+							</Text>
+							<CheckboxField className="my-2">
+								<Checkbox
+									id="terms"
+									color="blue"
+									checked={accepted}
+									onChange={() => setAccepted(!accepted)}
+								/>
+								<Label htmlFor="terms">Accept terms and conditions</Label>
+							</CheckboxField>
 						</Stack>
 					</DialogBody>
 				</ConfirmDialog>

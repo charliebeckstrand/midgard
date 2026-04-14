@@ -27,7 +27,12 @@ export function Toast({
 		<ToastContext value={{ toast, dismiss }}>
 			{children}
 			{createPortal(
-				<div data-slot="toast-viewport" className={cn(toastViewportVariants({ position }))}>
+				<output
+					data-slot="toast-viewport"
+					aria-live="polite"
+					aria-atomic="false"
+					className={cn(toastViewportVariants({ position }))}
+				>
 					<div className={cn(k.scroll, isBottom && 'flex-col-reverse')}>
 						<AnimatePresence onExitComplete={handleExitComplete}>
 							{toasts.map((t) => (
@@ -43,7 +48,7 @@ export function Toast({
 							))}
 						</AnimatePresence>
 					</div>
-				</div>,
+				</output>,
 				document.body,
 			)}
 		</ToastContext>

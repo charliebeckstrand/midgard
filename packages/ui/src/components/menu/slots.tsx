@@ -8,10 +8,10 @@ export function MenuSection({ className, ...props }: MenuSectionProps) {
 	return <fieldset data-slot="menu-section" className={cn(k.section, className)} {...props} />
 }
 
-export type MenuHeadingProps = React.ComponentPropsWithoutRef<'div'>
+export type MenuHeadingProps = React.ComponentPropsWithoutRef<'legend'>
 
 export function MenuHeading({ className, ...props }: MenuHeadingProps) {
-	return <div data-slot="menu-heading" className={cn(k.heading, className)} {...props} />
+	return <legend data-slot="menu-heading" className={cn(k.heading, className)} {...props} />
 }
 
 export type MenuSeparatorProps = React.ComponentPropsWithoutRef<'hr'>

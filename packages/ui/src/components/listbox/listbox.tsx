@@ -16,7 +16,7 @@ import {
 import { ChevronsUpDown } from 'lucide-react'
 import { AnimatePresence } from 'motion/react'
 import type React from 'react'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useId, useRef, useState } from 'react'
 import { cn, createContext } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { useSelect } from '../../hooks/use-select'
@@ -93,6 +93,7 @@ export function Listbox<T>({
 	})
 
 	const [open, setOpen] = useState(false)
+	const listboxId = useId()
 
 	const triggerRef = useRef<HTMLButtonElement>(null)
 
@@ -185,6 +186,7 @@ export function Listbox<T>({
 						role="combobox"
 						aria-haspopup="listbox"
 						aria-expanded={open}
+						aria-controls={open ? listboxId : undefined}
 						data-slot="listbox-button"
 						onClick={() => setOpen(!open)}
 						className={cn(k.button)}
@@ -208,7 +210,7 @@ export function Listbox<T>({
 							className={kPopover.portal}
 							{...getFloatingProps()}
 						>
-							<PopoverPanel role="listbox" className={cn(k.panel, k.options)}>
+							<PopoverPanel id={listboxId} role="listbox" className={cn(k.panel, k.options)}>
 								{children}
 							</PopoverPanel>
 						</div>

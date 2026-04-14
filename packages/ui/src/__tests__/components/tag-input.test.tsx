@@ -208,4 +208,20 @@ describe('TagInput', () => {
 
 		expect(tagInput?.className).toContain('custom')
 	})
+
+	it('has aria-label on the input derived from placeholder', () => {
+		const { container } = renderUI(<TagInput placeholder="Add tags..." />)
+
+		const input = getInput(container)
+
+		expect(input).toHaveAttribute('aria-label', 'Add tags...')
+	})
+
+	it('has default aria-label on the input when no placeholder', () => {
+		const { container } = renderUI(<TagInput />)
+
+		const input = getInput(container)
+
+		expect(input).toHaveAttribute('aria-label', 'Add tags')
+	})
 })

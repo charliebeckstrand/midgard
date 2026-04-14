@@ -2,12 +2,12 @@
 
 import { Search, X } from 'lucide-react'
 import type React from 'react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { useRovingActive } from '../../hooks/use-keyboard'
 import { Button } from '../button'
 import { Dialog, DialogBody, type DialogPanelVariants } from '../dialog'
-import { Icon } from '../icon'
 import { Flex } from '../flex'
+import { Icon } from '../icon'
 import { Input } from '../input'
 import { CommandPaletteProvider } from './context'
 
@@ -32,6 +32,7 @@ export function CommandPalette({
 	children,
 }: CommandPaletteProps) {
 	const [query, setQuery] = useState('')
+	const listboxId = useId()
 
 	const inputRef = useRef<HTMLInputElement>(null)
 
@@ -70,7 +71,9 @@ export function CommandPalette({
 						ref={inputRef}
 						prefix={icon ?? <Icon icon={<Search />} />}
 						role="combobox"
-						aria-expanded="true"
+						aria-expanded={true}
+						aria-haspopup="listbox"
+						aria-controls={listboxId}
 						aria-autocomplete="list"
 						data-slot="command-palette-input"
 						placeholder={placeholder}
@@ -83,7 +86,7 @@ export function CommandPalette({
 					</Button>
 				</Flex>
 				<DialogBody className="mt-2">
-					<div ref={listRef} role="listbox" data-slot="command-palette-list">
+					<div ref={listRef} id={listboxId} role="listbox" data-slot="command-palette-list">
 						{rendered}
 					</div>
 				</DialogBody>

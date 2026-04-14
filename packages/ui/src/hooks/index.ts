@@ -1,6 +1,7 @@
 export { useArrowAction } from './use-arrow-action'
 export { useIsDesktop } from './use-breakpoint'
 export { useControllable } from './use-controllable'
+export { useFocusTrap } from './use-focus-trap'
 export { useHasHover } from './use-has-hover'
 export { useRovingActive, useRovingFocus, useTagKeyboard } from './use-keyboard'
 export { useOverlay } from './use-overlay'

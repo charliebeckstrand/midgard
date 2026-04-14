@@ -6,9 +6,9 @@ import { useEffect, useState } from 'react'
 import { Button } from 'ui/button'
 import { Dialog, DialogActions, DialogBody, DialogTitle } from 'ui/dialog'
 import { Field, Fieldset, Label } from 'ui/fieldset'
+import { Flex } from 'ui/flex'
 import { Heading } from 'ui/heading'
 import { Input } from 'ui/input'
-import { Flex } from 'ui/flex'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from 'ui/table'
 
 interface UsersClientProps {

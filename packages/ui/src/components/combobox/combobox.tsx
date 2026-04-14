@@ -16,7 +16,7 @@ import {
 import { ChevronsUpDown } from 'lucide-react'
 import { AnimatePresence } from 'motion/react'
 import type React from 'react'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { cn, createContext } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { useRovingFocus } from '../../hooks/use-keyboard'
@@ -101,6 +101,7 @@ export function Combobox<T>({
 	const [query, setQuery] = useState('')
 	const [open, setOpen] = useState(false)
 	const [editing, setEditing] = useState(false)
+	const listboxId = useId()
 
 	const inputRef = useRef<HTMLInputElement>(null)
 	const optionsRef = useRef<HTMLDivElement>(null)
@@ -209,14 +210,12 @@ export function Combobox<T>({
 
 			if (items.length === 1) items[0]?.setAttribute('data-active', '')
 		} else {
-			// On open, highlight the currently selected option (if any)
+			// On open, scroll to the currently selected option (if any)
 			const selected = container.querySelector<HTMLElement>(
 				'[role="option"]:not([data-disabled])[data-selected]',
 			)
 
 			if (selected) {
-				selected.setAttribute('data-active', '')
-
 				selected.scrollIntoView({ block: 'center' })
 			}
 		}
@@ -237,6 +236,7 @@ export function Combobox<T>({
 						role="combobox"
 						aria-haspopup="listbox"
 						aria-expanded={open}
+						aria-controls={open ? listboxId : undefined}
 						aria-autocomplete="list"
 						data-slot="combobox-input"
 						value={inputDisplay}
@@ -309,6 +309,7 @@ export function Combobox<T>({
 								{...getFloatingProps()}
 							>
 								<PopoverPanel
+									id={listboxId}
 									role="listbox"
 									autoFocus={false}
 									className={cn('relative', k.options)}
