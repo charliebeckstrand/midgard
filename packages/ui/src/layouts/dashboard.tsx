@@ -5,16 +5,16 @@ import type React from 'react'
 import { useCallback, useEffect, useState } from 'react'
 import { Box } from '../components/box'
 import { Button } from '../components/button'
-import { Divider } from '../components/divider'
 import { Drawer, DrawerBody, DrawerTitle } from '../components/drawer'
 import { Icon } from '../components/icon'
 import { Stack } from '../components/stack'
 
 export type DashboardLayoutProps = React.PropsWithChildren<{
+	header?: React.ReactNode
 	filters?: React.ReactNode
 }>
 
-export function DashboardLayout({ filters, children }: DashboardLayoutProps) {
+export function DashboardLayout({ header, filters, children }: DashboardLayoutProps) {
 	const [open, setOpen] = useState(false)
 
 	const close = useCallback(() => setOpen(false), [])
@@ -36,18 +36,16 @@ export function DashboardLayout({ filters, children }: DashboardLayoutProps) {
 	}, [])
 
 	return (
-		<Stack gap={0} className="w-full bg-white dark:bg-zinc-950">
+		<Stack gap={4} className="w-full bg-white dark:bg-zinc-950">
+			{header}
+
 			{filters && (
 				<>
 					{/* Filters visible on desktop */}
-					<Box p={6} className="shrink-0 max-lg:hidden">
-						{filters}
-					</Box>
-
-					<Divider soft className="max-lg:hidden" />
+					<Box className="shrink-0 max-lg:hidden">{filters}</Box>
 
 					{/* Filters button on mobile */}
-					<Box px={6} className="shrink-0 pt-6 lg:hidden">
+					<Box className="shrink-0 lg:hidden">
 						<Button variant="outline" onClick={() => setOpen(true)}>
 							<Icon icon={<SlidersHorizontal />} />
 							Filters
@@ -64,9 +62,7 @@ export function DashboardLayout({ filters, children }: DashboardLayoutProps) {
 				</>
 			)}
 
-			<Box p={6} className="flex-1">
-				{children}
-			</Box>
+			<Box className="flex-1">{children}</Box>
 		</Stack>
 	)
 }

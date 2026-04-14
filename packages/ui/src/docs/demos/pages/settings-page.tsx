@@ -12,17 +12,14 @@ import { Select, SelectLabel, SelectOption } from '../../../components/select'
 import { Sizer } from '../../../components/sizer'
 import { Stack } from '../../../components/stack'
 import { Switch, SwitchField } from '../../../components/switch'
-import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '../../../components/tabs'
+import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../components/tabs'
 import { Textarea } from '../../../components/textarea'
 import { SettingsPage } from '../../../pages'
 import { Example } from '../../components/example'
 
 export const meta = { category: 'Pages' }
 
-type TabId = 'profile' | 'notifications' | 'security'
-
 export default function SettingsPageDemo() {
-	const [tab, setTab] = useState<TabId>('profile')
 	const [submitting, setSubmitting] = useState(false)
 
 	const handleSubmit: React.ComponentProps<'form'>['onSubmit'] = (e) => {
@@ -33,38 +30,28 @@ export default function SettingsPageDemo() {
 		setTimeout(() => setSubmitting(false), 2000)
 	}
 
-	const tabs = (
-		<TabGroup>
-			<TabList>
-				<Tab current={tab === 'profile'} onClick={() => setTab('profile')}>
-					Profile
-				</Tab>
-				<Tab current={tab === 'notifications'} onClick={() => setTab('notifications')}>
-					Notifications
-				</Tab>
-				<Tab current={tab === 'security'} onClick={() => setTab('security')}>
-					Security
-				</Tab>
-			</TabList>
-		</TabGroup>
-	)
-
 	return (
 		<Example>
-			<SettingsPage
-				heading={<Heading>Settings</Heading>}
-				tabs={tabs}
-				onSubmit={handleSubmit}
-				submitting={submitting}
-				actions={
-					<Button type="submit" loading={submitting} color="blue" disabled={submitting}>
-						{submitting ? 'Saving' : 'Save changes'}
-					</Button>
-				}
-			>
-				<TabGroup>
-					<TabPanels>
-						<TabPanel hidden={tab !== 'profile'}>
+			<Tabs defaultValue="profile">
+				<SettingsPage
+					heading={<Heading>Settings</Heading>}
+					tabs={
+						<TabList>
+							<Tab value="profile">Profile</Tab>
+							<Tab value="notifications">Notifications</Tab>
+							<Tab value="security">Security</Tab>
+						</TabList>
+					}
+					onSubmit={handleSubmit}
+					submitting={submitting}
+					actions={
+						<Button type="submit" loading={submitting} color="blue" disabled={submitting}>
+							{submitting ? 'Saving' : 'Save changes'}
+						</Button>
+					}
+				>
+					<TabContents>
+						<TabContent value="profile">
 							<Sizer size="lg" gap={6}>
 								<Field>
 									<Label>Full name</Label>
@@ -106,9 +93,9 @@ export default function SettingsPageDemo() {
 									</Select>
 								</Field>
 							</Sizer>
-						</TabPanel>
+						</TabContent>
 
-						<TabPanel hidden={tab !== 'notifications'}>
+						<TabContent value="notifications">
 							<Sizer size="lg" gap={6}>
 								<CheckboxGroup>
 									<Label>Email notifications</Label>
@@ -144,9 +131,9 @@ export default function SettingsPageDemo() {
 									</Stack>
 								</div>
 							</Sizer>
-						</TabPanel>
+						</TabContent>
 
-						<TabPanel hidden={tab !== 'security'}>
+						<TabContent value="security">
 							<Sizer size="lg" gap={6}>
 								<Field>
 									<Label>Current password</Label>
@@ -172,10 +159,10 @@ export default function SettingsPageDemo() {
 									<Switch id="switch-2fa" />
 								</SwitchField>
 							</Sizer>
-						</TabPanel>
-					</TabPanels>
-				</TabGroup>
-			</SettingsPage>
+						</TabContent>
+					</TabContents>
+				</SettingsPage>
+			</Tabs>
 		</Example>
 	)
 }

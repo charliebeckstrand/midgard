@@ -1,7 +1,9 @@
 import type React from 'react'
+import { Center } from '../components/center'
 import { Fieldset } from '../components/fieldset/component'
 import { Text } from '../components/text'
-import { AuthLayout } from '../layouts/auth'
+import { cn } from '../core'
+import { omote } from '../recipes'
 
 export type AuthPageProps = {
 	onSubmit: React.ComponentProps<'form'>['onSubmit']
@@ -23,7 +25,7 @@ export function AuthPage({
 	footer,
 }: AuthPageProps) {
 	return (
-		<AuthLayout>
+		<Center className={cn('grow h-full p-6 lg:p-10', omote.surface, omote.content)}>
 			<form onSubmit={onSubmit} className="grid gap-8 w-full lg:max-w-sm">
 				{heading}
 
@@ -37,6 +39,6 @@ export function AuthPage({
 					{footer}
 				</Fieldset>
 			</form>
-		</AuthLayout>
+		</Center>
 	)
 }

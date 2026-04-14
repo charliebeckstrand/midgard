@@ -27,7 +27,7 @@ export default function SpacerDemo() {
 				`}
 			>
 				<Area padding="md" className="w-full">
-					<Stack direction="row" align="center">
+					<Stack direction="row" align="center" className="w-full">
 						<Heading level={3}>Title</Heading>
 						<Spacer />
 						<Button>Action</Button>
@@ -51,7 +51,7 @@ export default function SpacerDemo() {
 				`}
 			>
 				<Area padding="md" className="w-full">
-					<Stack direction="row" gap={3} align="center">
+					<Stack direction="row" gap={3} align="center" className="w-full">
 						<Button variant="plain">Back</Button>
 						<Spacer />
 						<Button variant="plain">Cancel</Button>

@@ -12,7 +12,7 @@ import { getComponentApi, getResolvedDemo, loadDemo } from './registry'
 export function DemoPage({ demo }: { demo: Demo }) {
 	const [Component, setComponent] = useState<ComponentType | null>(() => getResolvedDemo(demo.id))
 
-	const [api, setApi] = useState<ComponentApi[] | undefined>(undefined)
+	const [api, setApi] = useState<ComponentApi[] | undefined | null>(undefined)
 
 	const loadingId = useRef(demo.id)
 
@@ -26,7 +26,7 @@ export function DemoPage({ demo }: { demo: Demo }) {
 		})
 
 		getComponentApi(demo.id).then((result) => {
-			if (loadingId.current === demo.id) setApi(result)
+			if (loadingId.current === demo.id) setApi(result ?? null)
 		})
 	}, [demo.id])
 
@@ -46,10 +46,15 @@ export function DemoPage({ demo }: { demo: Demo }) {
 				>
 					<Heading>{demo.name}</Heading>
 					<Component />
-					<Heading level={2} className="leading-none">
-						API Reference
-					</Heading>
-					{api ? <ApiReference api={api} /> : <Spinner size="xl" />}
+					{api === undefined && <Spinner size="xl" />}
+					{api && (
+						<>
+							<Heading level={2} className="leading-none">
+								API Reference
+							</Heading>
+							<ApiReference api={api} />
+						</>
+					)}
 				</motion.div>
 			)}
 		</AnimatePresence>

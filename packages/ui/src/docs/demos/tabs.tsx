@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '../../components/tabs'
+import { Tab, TabContent, TabContents, TabList, Tabs } from '../../components/tabs'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Navigation' }
@@ -7,28 +6,24 @@ export const meta = { category: 'Navigation' }
 const tabs = ['Account', 'Notifications', 'Billing']
 
 export default function TabsDemo() {
-	const [current, setCurrent] = useState('Account')
-
 	return (
 		<Example>
-			<TabGroup>
+			<Tabs defaultValue="Account">
 				<TabList>
 					{tabs.map((tab) => (
-						<Tab key={tab} current={current === tab} onClick={() => setCurrent(tab)}>
+						<Tab key={tab} value={tab}>
 							{tab}
 						</Tab>
 					))}
 				</TabList>
-				<TabPanels>
+				<TabContents>
 					{tabs.map((tab) => (
-						<TabPanel key={tab}>
-							{current === tab && (
-								<div className="py-4 text-sm text-zinc-500">{tab} settings would go here.</div>
-							)}
-						</TabPanel>
+						<TabContent key={tab} value={tab}>
+							<div className="py-4 text-sm text-zinc-500">{tab} settings would go here.</div>
+						</TabContent>
 					))}
-				</TabPanels>
-			</TabGroup>
+				</TabContents>
+			</Tabs>
 		</Example>
 	)
 }

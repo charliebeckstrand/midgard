@@ -227,9 +227,9 @@
 			"types": "./src/components/scroll-area/index.ts",
 			"default": "./src/components/scroll-area/index.ts"
 		},
-		"./segmented-control": {
-			"types": "./src/components/segmented-control/index.ts",
-			"default": "./src/components/segmented-control/index.ts"
+		"./segment": {
+			"types": "./src/components/segment/index.ts",
+			"default": "./src/components/segment/index.ts"
 		},
 		"./select": {
 			"types": "./src/components/select/index.ts",

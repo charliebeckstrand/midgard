@@ -6,6 +6,7 @@ import { Suspense, useState } from 'react'
 import { Button } from 'ui/button'
 import { ErrorMessage, Field, Label } from 'ui/fieldset'
 import { Input } from 'ui/input'
+import { AuthLayout } from 'ui/layouts'
 import { AuthPage } from 'ui/pages'
 import { PasswordInput } from 'ui/password-input'
 import { ShinyText } from 'ui/shiny-text'
@@ -56,52 +57,58 @@ function LoginForm({ showRegisterLink }: { showRegisterLink: boolean }) {
 	})
 
 	return (
-		<AuthPage
-			onSubmit={handleSubmit}
-			serverError={serverError}
-			submitting={submitting}
-			actions={
-				<Button
-					type="submit"
-					className={`w-full ${submitting ? 'cursor-not-allowed pointer-events-none' : ''}`}
-				>
-					Sign in
-				</Button>
-			}
-			footer={
-				showRegisterLink ? (
-					<div className="text-center">
-						<Text>
-							Don't have an account?{' '}
-							<Link href="/register" className="font-medium hover:underline underline-offset-6">
-								Create one
-							</Link>
-						</Text>
-					</div>
-				) : undefined
-			}
-		>
-			{registered && (
-				<ShinyText
-					text="Account created successfully. Please sign in."
-					color="green"
-					shineColor="lime"
-					delay={5}
-				/>
-			)}
+		<AuthLayout>
+			<AuthPage
+				onSubmit={handleSubmit}
+				serverError={serverError}
+				submitting={submitting}
+				actions={
+					<Button
+						type="submit"
+						className={`w-full ${submitting ? 'cursor-not-allowed pointer-events-none' : ''}`}
+					>
+						Sign in
+					</Button>
+				}
+				footer={
+					showRegisterLink ? (
+						<div className="text-center">
+							<Text>
+								Don't have an account?{' '}
+								<Link href="/register" className="font-medium hover:underline underline-offset-6">
+									Create one
+								</Link>
+							</Text>
+						</div>
+					) : undefined
+				}
+			>
+				{registered && (
+					<ShinyText
+						text="Account created successfully. Please sign in."
+						color="green"
+						shineColor="lime"
+						delay={5}
+					/>
+				)}
 
-			<Field>
-				<Label>Email</Label>
-				<Input type="email" name="email" autoComplete="email" {...register('email')} />
-				{errors.email && <ErrorMessage>{errors.email}</ErrorMessage>}
-			</Field>
+				<Field>
+					<Label>Email</Label>
+					<Input type="email" name="email" autoComplete="email" {...register('email')} />
+					{errors.email && <ErrorMessage>{errors.email}</ErrorMessage>}
+				</Field>
 
-			<Field>
-				<Label>Password</Label>
-				<PasswordInput name="password" autoComplete="current-password" {...register('password')} />
-				{errors.password && <ErrorMessage>{errors.password}</ErrorMessage>}
-			</Field>
-		</AuthPage>
+				<Field>
+					<Label>Password</Label>
+					<PasswordInput
+						name="password"
+						autoComplete="current-password"
+						{...register('password')}
+					/>
+					{errors.password && <ErrorMessage>{errors.password}</ErrorMessage>}
+				</Field>
+			</AuthPage>
+		</AuthLayout>
 	)
 }
 

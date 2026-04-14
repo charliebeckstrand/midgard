@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Suspense, useState } from 'react'
 import { ErrorMessage, Field, Label } from 'ui/fieldset'
 import { Input } from 'ui/input'
+import { AuthLayout } from 'ui/layouts'
 import { AuthPage } from 'ui/pages'
 import { PasswordInput } from 'ui/password-input'
 import { Text } from 'ui/text'
@@ -54,45 +55,47 @@ function RegisterForm() {
 	})
 
 	return (
-		<AuthPage
-			onSubmit={handleSubmit}
-			serverError={serverError}
-			submitting={submitting}
-			footer={
-				<div className="text-center">
-					<Text>
-						Already have an account?{' '}
-						<Link href="/login" className="font-medium hover:underline underline-offset-6">
-							Sign in
-						</Link>
-					</Text>
-				</div>
-			}
-		>
-			<Field>
-				<Label>Email</Label>
-				<Input type="email" name="email" autoComplete="email" {...register('email')} />
-				{errors.email && <ErrorMessage>{errors.email}</ErrorMessage>}
-			</Field>
+		<AuthLayout>
+			<AuthPage
+				onSubmit={handleSubmit}
+				serverError={serverError}
+				submitting={submitting}
+				footer={
+					<div className="text-center">
+						<Text>
+							Already have an account?{' '}
+							<Link href="/login" className="font-medium hover:underline underline-offset-6">
+								Sign in
+							</Link>
+						</Text>
+					</div>
+				}
+			>
+				<Field>
+					<Label>Email</Label>
+					<Input type="email" name="email" autoComplete="email" {...register('email')} />
+					{errors.email && <ErrorMessage>{errors.email}</ErrorMessage>}
+				</Field>
 
-			<Field>
-				<Label>Full name</Label>
-				<Input name="name" {...register('name')} />
-				{errors.name && <ErrorMessage>{errors.name}</ErrorMessage>}
-			</Field>
+				<Field>
+					<Label>Full name</Label>
+					<Input name="name" {...register('name')} />
+					{errors.name && <ErrorMessage>{errors.name}</ErrorMessage>}
+				</Field>
 
-			<Field>
-				<Label>Password</Label>
-				<PasswordInput name="password" autoComplete="new-password" {...register('password')} />
-				{errors.password && <ErrorMessage>{errors.password}</ErrorMessage>}
-			</Field>
+				<Field>
+					<Label>Password</Label>
+					<PasswordInput name="password" autoComplete="new-password" {...register('password')} />
+					{errors.password && <ErrorMessage>{errors.password}</ErrorMessage>}
+				</Field>
 
-			<Field>
-				<Label>Confirm password</Label>
-				<PasswordInput name="confirmPassword" {...register('confirmPassword')} />
-				{errors.confirmPassword && <ErrorMessage>{errors.confirmPassword}</ErrorMessage>}
-			</Field>
-		</AuthPage>
+				<Field>
+					<Label>Confirm password</Label>
+					<PasswordInput name="confirmPassword" {...register('confirmPassword')} />
+					{errors.confirmPassword && <ErrorMessage>{errors.confirmPassword}</ErrorMessage>}
+				</Field>
+			</AuthPage>
+		</AuthLayout>
 	)
 }
 

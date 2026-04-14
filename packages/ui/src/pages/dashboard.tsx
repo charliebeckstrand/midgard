@@ -10,11 +10,8 @@ export type DashboardPageProps = {
 
 export function DashboardPage({ heading, filters, children }: DashboardPageProps) {
 	return (
-		<DashboardLayout filters={filters}>
-			<Stack gap={6}>
-				{heading}
-				{children}
-			</Stack>
+		<DashboardLayout header={heading} filters={filters}>
+			<Stack gap={6}>{children}</Stack>
 		</DashboardLayout>
 	)
 }

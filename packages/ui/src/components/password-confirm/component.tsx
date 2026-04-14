@@ -56,18 +56,20 @@ export function PasswordConfirm({
 		<PasswordConfirmProvider value={{ status, setConfirm }}>
 			<div data-slot="password-confirm" className={className} onInput={handleInput}>
 				{children}
-				<div aria-live="polite" aria-atomic="true">
-					{status === 'warning' && warning && (
-						<Text color="amber" className="text-sm">
-							{warning}
-						</Text>
-					)}
-					{status === 'valid' && valid && (
-						<Text color="green" className="text-sm">
-							{valid}
-						</Text>
-					)}
-				</div>
+				{(status === 'warning' || status === 'valid') && (
+					<div aria-live="polite" aria-atomic="true">
+						{status === 'warning' && warning && (
+							<Text color="amber" className="text-sm">
+								{warning}
+							</Text>
+						)}
+						{status === 'valid' && valid && (
+							<Text color="green" className="text-sm">
+								{valid}
+							</Text>
+						)}
+					</div>
+				)}
 			</div>
 		</PasswordConfirmProvider>
 	)

@@ -5,7 +5,7 @@ import { omote } from '../omote'
 import { sumi } from '../sumi'
 import { yasumi } from '../yasumi'
 
-export const segmentedControl = {
+export const segment = {
 	root: ['inline-flex items-center', maru.rounded, omote.tint],
 	segment: [
 		'relative z-10 flex items-center justify-center cursor-default outline-none',

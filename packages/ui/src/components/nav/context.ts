@@ -1,16 +1,11 @@
 'use client'
 
-import { createContext, useContext } from 'react'
+import { type CurrentContextValue, CurrentProvider, useCurrentContext } from '../../primitives'
 
-export type NavContextValue = {
-	value: string | undefined
-	onChange: ((value: string) => void) | undefined
-}
+export type NavContextValue = CurrentContextValue
 
-const NavContext = createContext<NavContextValue | undefined>(undefined)
-
-export const NavProvider = NavContext.Provider
+export const NavProvider = CurrentProvider
 
 export function useNavContext() {
-	return useContext(NavContext)
+	return useCurrentContext()
 }

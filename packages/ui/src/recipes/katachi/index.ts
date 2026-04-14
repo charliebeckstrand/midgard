@@ -53,7 +53,7 @@ import { progress } from './progress'
 import { radio } from './radio'
 import { resizable } from './resizable'
 import { scrollArea } from './scroll-area'
-import { segmentedControl } from './segmented-control'
+import { segment } from './segment'
 import { select } from './select'
 import { sheet } from './sheet'
 import { sidebar } from './sidebar'
@@ -117,7 +117,7 @@ export const katachi = {
 	radio,
 	resizable,
 	scrollArea,
-	segmentedControl,
+	segment,
 	select,
 	sheet,
 	sidebar,

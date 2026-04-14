@@ -1,7 +1,9 @@
 export {
 	Tab,
-	TabGroup,
-	type TabGroupProps,
+	TabContent,
+	type TabContentProps,
+	TabContents,
+	type TabContentsProps,
 	TabList,
 	type TabListProps,
 	TabPanel,
@@ -9,4 +11,7 @@ export {
 	TabPanels,
 	type TabPanelsProps,
 	type TabProps,
+	Tabs,
+	type TabsProps,
 } from './component'
+export type { TabsVariant } from './context'

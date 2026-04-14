@@ -93,7 +93,11 @@ export default function DashboardPageDemo() {
 							<CardTitle>Recent orders</CardTitle>
 							<Spacer />
 							<Sizer size="xs">
-								<Input placeholder="Search orders" prefix={<Icon icon={<Search />} />} />
+								<Input
+									placeholder="Search orders"
+									variant="outline"
+									prefix={<Icon icon={<Search />} />}
+								/>
 							</Sizer>
 						</CardHeader>
 						<CardBody>

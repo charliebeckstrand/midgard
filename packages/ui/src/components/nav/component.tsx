@@ -3,9 +3,14 @@
 import { useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useRovingFocus } from '../../hooks'
-import { ActiveIndicatorScope } from '../../primitives'
+import {
+	ActiveIndicatorScope,
+	type CurrentContextValue,
+	CurrentProvider,
+	createCurrentContent,
+	useCurrentContext,
+} from '../../primitives'
 import { useNavbar } from '../navbar/context'
-import { type NavContextValue, NavProvider, useNavContext } from './context'
 import { type NavItemProps as BaseNavItemProps, createNavItem } from './create-nav-item'
 import { k } from './variants'
 
@@ -17,14 +22,14 @@ export type NavProps = Omit<React.ComponentPropsWithoutRef<'nav'>, 'onChange'> &
 }
 
 export function Nav({ value, onChange, className, children, ...props }: NavProps) {
-	const ctx = useMemo<NavContextValue>(() => ({ value, onChange }), [value, onChange])
+	const ctx = useMemo<CurrentContextValue>(() => ({ value, onChange }), [value, onChange])
 
 	return (
-		<NavProvider value={ctx}>
+		<CurrentProvider value={ctx}>
 			<nav data-slot="nav" className={className} {...props}>
 				{children}
 			</nav>
-		</NavProvider>
+		</CurrentProvider>
 	)
 }
 
@@ -70,7 +75,7 @@ const BaseNavItem = createNavItem({ slotPrefix: 'nav', variants: () => cn(k.item
 export type NavItemProps = BaseNavItemProps & { value?: string }
 
 export function NavItem({ value, current, onClick, ...props }: NavItemProps) {
-	const ctx = useNavContext()
+	const ctx = useCurrentContext()
 
 	const isCurrent = current ?? (value !== undefined && ctx?.value === value)
 
@@ -85,26 +90,11 @@ export function NavItem({ value, current, onClick, ...props }: NavItemProps) {
 	return <BaseNavItem current={isCurrent} onClick={handleClick} {...props} />
 }
 
-// ── NavContents ─────────────────────────────────────────
+// ── NavContents / NavContent ────────────────────────────
 
-export type NavContentsProps = React.ComponentPropsWithoutRef<'div'>
+const { Contents: NavContents, Content: NavContent } = createCurrentContent('nav')
 
-export function NavContents({ className, ...props }: NavContentsProps) {
-	return <div data-slot="nav-contents" className={className} {...props} />
-}
+export { NavContents, NavContent }
 
-// ── NavContent ──────────────────────────────────────────
-
-export type NavContentProps = React.ComponentPropsWithoutRef<'div'> & {
-	value?: string
-}
-
-export function NavContent({ value, className, ...props }: NavContentProps) {
-	const ctx = useNavContext()
-
-	if (value !== undefined && ctx?.value !== undefined && ctx.value !== value) {
-		return null
-	}
-
-	return <div data-slot="nav-content" className={className} {...props} />
-}
+export type NavContentsProps = React.ComponentPropsWithoutRef<typeof NavContents>
+export type NavContentProps = React.ComponentPropsWithoutRef<typeof NavContent>
