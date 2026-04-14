@@ -11,6 +11,7 @@ export { BaseOption, OptionDescription, OptionLabel } from './option'
 export { Overlay, type OverlayProps } from './overlay'
 export {
 	createPanelSlots,
+	PanelA11yProvider,
 	type PanelActionsProps,
 	type PanelBodyProps,
 	type PanelDescriptionProps,

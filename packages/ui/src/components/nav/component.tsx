@@ -4,12 +4,10 @@ import { useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useRovingFocus } from '../../hooks'
 import { ActiveIndicatorScope } from '../../primitives'
-import { katachi } from '../../recipes'
 import { useNavbar } from '../navbar/context'
 import { type NavContextValue, NavProvider, useNavContext } from './context'
 import { type NavItemProps as BaseNavItemProps, createNavItem } from './create-nav-item'
-
-const k = katachi.nav
+import { k } from './variants'
 
 // ── Nav ─────────────────────────────────────────────────
 
@@ -50,9 +48,9 @@ export function NavList({ orientation, className, children, ...props }: NavListP
 
 	return (
 		<ActiveIndicatorScope>
+			{/* biome-ignore lint/a11y/noStaticElementInteractions: roving focus on nav items within a <nav> landmark */}
 			<div
 				ref={ref}
-				role="tablist"
 				data-slot="nav-list"
 				data-orientation={resolvedOrientation}
 				className={cn(k.list.base, k.list.orientation[resolvedOrientation], className)}

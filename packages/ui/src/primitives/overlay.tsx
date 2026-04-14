@@ -5,6 +5,7 @@ import type React from 'react'
 import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { cn } from '../core'
+import { useFocusTrap } from '../hooks/use-focus-trap'
 import { omote, ugoki } from '../recipes'
 
 export type OverlayProps = {
@@ -25,6 +26,8 @@ export function Overlay({
 	children,
 	...props
 }: OverlayProps) {
+	const focusTrapRef = useFocusTrap(open)
+
 	useEffect(() => {
 		if (!open) return
 
@@ -48,7 +51,7 @@ export function Overlay({
 	return createPortal(
 		<AnimatePresence>
 			{open && (
-				<div className="fixed inset-0 z-99" {...props}>
+				<div ref={focusTrapRef} className="fixed inset-0 z-99" {...props}>
 					<motion.div
 						{...ugoki.overlay}
 						className={

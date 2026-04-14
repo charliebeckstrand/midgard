@@ -2,11 +2,9 @@
 
 import type React from 'react'
 import { cn, Link } from '../../core'
-import { katachi } from '../../recipes'
 import { Kbd, type KbdProps } from '../kbd'
 import { useMenuContext } from './menu'
-
-const k = katachi.menu
+import { k } from './variants'
 
 type MenuItemBaseProps = {
 	disabled?: boolean
@@ -48,6 +46,7 @@ export function MenuItem({
 				href={href}
 				role="menuitem"
 				tabIndex={-1}
+				aria-disabled={disabled || undefined}
 				data-slot="menu-item"
 				data-disabled={disabled ? '' : undefined}
 				className={classes}
@@ -67,6 +66,7 @@ export function MenuItem({
 			type="button"
 			role="menuitem"
 			tabIndex={-1}
+			aria-disabled={disabled || undefined}
 			data-slot="menu-item"
 			data-disabled={disabled ? '' : undefined}
 			className={classes}

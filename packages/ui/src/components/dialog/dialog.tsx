@@ -2,9 +2,10 @@
 
 import { motion } from 'motion/react'
 import type React from 'react'
+import { useId } from 'react'
 import { cn } from '../../core'
 import { useIsDesktop } from '../../hooks'
-import { Overlay } from '../../primitives'
+import { Overlay, PanelA11yProvider } from '../../primitives'
 import { ugoki } from '../../recipes'
 import { useGlass } from '../glass/context'
 import { type DialogPanelVariants, dialogPanelVariants } from './variants'
@@ -36,6 +37,9 @@ export function Dialog({
 	const glassContext = useGlass()
 	const resolvedGlass = glass ?? glassContext
 	const isDesktop = useIsDesktop()
+	const id = useId()
+	const titleId = `${id}-title`
+	const descriptionId = `${id}-description`
 
 	return (
 		<Overlay open={open} onClose={onClose} outsideClick={outsideClick} glass={resolvedGlass}>
@@ -49,6 +53,8 @@ export function Dialog({
 					{...(isDesktop ? ugoki.popover : ugoki.panel.bottom)}
 					role="dialog"
 					aria-modal="true"
+					aria-labelledby={titleId}
+					aria-describedby={descriptionId}
 					data-slot="dialog"
 					className={cn(
 						'pointer-events-auto',
@@ -56,7 +62,7 @@ export function Dialog({
 						className,
 					)}
 				>
-					{children}
+					<PanelA11yProvider value={{ titleId, descriptionId }}>{children}</PanelA11yProvider>
 				</motion.div>
 			</div>
 		</Overlay>

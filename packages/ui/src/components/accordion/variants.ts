@@ -1,7 +1,7 @@
 import { cva, type VariantProps } from 'class-variance-authority'
 import { katachi } from '../../recipes'
 
-const k = katachi.accordion
+export const k = katachi.accordion
 
 export const accordionVariants = cva(k.base, {
 	variants: {

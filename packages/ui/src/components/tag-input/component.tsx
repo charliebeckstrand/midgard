@@ -5,15 +5,12 @@ import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useSta
 import { cn } from '../../core'
 import { useControllable, useTagKeyboard } from '../../hooks'
 import { FormControl } from '../../primitives'
-import { katachi } from '../../recipes'
 import type { Color } from '../../recipes/nuri/palette'
 import { Button } from '../button'
 import { Chip } from '../chip'
 import { Icon } from '../icon'
 import { buttonSize, chipSize } from './utilities'
-import { type TagInputVariants, tagInputContainerVariants, tagInputVariants } from './variants'
-
-const k = katachi.tagInput
+import { k, type TagInputVariants, tagInputContainerVariants, tagInputVariants } from './variants'
 
 export type TagInputProps = Omit<TagInputVariants, 'size'> & {
 	size?: 'sm' | 'md' | 'lg'
@@ -172,6 +169,7 @@ export const TagInput = forwardRef<HTMLInputElement, TagInputProps>(function Tag
 						ref={inputRef}
 						type="text"
 						value={inputValue}
+						aria-label={placeholder ?? 'Add tags'}
 						className={cn(k.input)}
 						placeholder={tags.length === 0 ? placeholder : undefined}
 						disabled={disabled || atMax}

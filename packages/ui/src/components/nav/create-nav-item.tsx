@@ -64,6 +64,7 @@ export function createNavItem(config: { slotPrefix: string; variants: () => stri
 					dataSlot={innerSlot}
 					href={href}
 					data-current={current ? '' : undefined}
+					aria-current={current ? 'page' : undefined}
 					className={cn(config.variants(), 'relative z-10', className)}
 					onClick={handleClick}
 					{...props}

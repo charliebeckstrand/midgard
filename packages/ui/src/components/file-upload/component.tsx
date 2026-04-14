@@ -2,16 +2,13 @@
 
 import { Upload } from 'lucide-react'
 import { cn } from '../../core'
-import { katachi } from '../../recipes'
 import { AspectRatio, type AspectRatioProps } from '../aspect-ratio'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { Input } from '../input'
 import { useFileHandlers } from './use-file-handlers'
 import { formatFileNames } from './utilities'
-import { fileUploadClasses } from './variants'
-
-const k = katachi.fileUpload
+import { fileUploadClasses, k } from './variants'
 
 type FileUploadSharedProps = {
 	/** Accepted file types (e.g. `"image/*"`, `".pdf,.doc"`). */

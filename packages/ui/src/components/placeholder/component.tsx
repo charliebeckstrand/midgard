@@ -1,5 +1,5 @@
 import { cn } from '../../core'
-import { katachi } from '../../recipes'
+import { k } from './variants'
 
 export type PlaceholderProps = {
 	className?: string
@@ -13,11 +13,6 @@ export type PlaceholderProps = {
  */
 export function Placeholder({ className, ...props }: PlaceholderProps) {
 	return (
-		<div
-			data-slot="placeholder"
-			aria-hidden="true"
-			className={cn(katachi.placeholder.base, className)}
-			{...props}
-		/>
+		<div data-slot="placeholder" aria-hidden="true" className={cn(k.base, className)} {...props} />
 	)
 }

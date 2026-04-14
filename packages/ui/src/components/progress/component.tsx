@@ -2,10 +2,7 @@
 
 import { motion } from 'motion/react'
 import { cn } from '../../core'
-import { katachi } from '../../recipes'
-import { progressGaugeVariants, progressTrackVariants } from './variants'
-
-const k = katachi.progress
+import { k, progressGaugeVariants, progressTrackVariants } from './variants'
 
 type ProgressColor = keyof typeof k.color
 
@@ -16,6 +13,8 @@ export type ProgressBarProps = {
 	max?: number
 	size?: 'sm' | 'md' | 'lg'
 	color?: ProgressColor
+	'aria-label'?: string
+	'aria-labelledby'?: string
 	className?: string
 }
 
@@ -24,6 +23,8 @@ export function ProgressBar({
 	max = 100,
 	size,
 	color = 'blue',
+	'aria-label': ariaLabel,
+	'aria-labelledby': ariaLabelledBy,
 	className,
 }: ProgressBarProps) {
 	const determinate = value != null
@@ -37,6 +38,8 @@ export function ProgressBar({
 			aria-valuenow={determinate ? value : undefined}
 			aria-valuemin={0}
 			aria-valuemax={max}
+			aria-label={ariaLabel}
+			aria-labelledby={ariaLabelledBy}
 			className={cn(progressTrackVariants({ size }), className)}
 		>
 			{determinate ? (
@@ -62,6 +65,8 @@ export type ProgressGaugeProps = {
 	color?: ProgressColor
 	label?: React.ReactNode | boolean
 	strokeWidth?: number
+	'aria-label'?: string
+	'aria-labelledby'?: string
 	className?: string
 }
 
@@ -76,6 +81,8 @@ export function ProgressGauge({
 	color = 'blue',
 	label,
 	strokeWidth = defaultStrokeWidth,
+	'aria-label': ariaLabel,
+	'aria-labelledby': ariaLabelledBy,
 	className,
 }: ProgressGaugeProps) {
 	const pct = Math.min(100, Math.max(0, (value / max) * 100))
@@ -97,6 +104,8 @@ export function ProgressGauge({
 			aria-valuenow={value}
 			aria-valuemin={0}
 			aria-valuemax={max}
+			aria-label={ariaLabel}
+			aria-labelledby={ariaLabelledBy}
 			className={cn(progressGaugeVariants({ size }), className)}
 		>
 			<svg

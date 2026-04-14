@@ -1,7 +1,7 @@
 import { cva, type VariantProps } from 'class-variance-authority'
 import { katachi } from '../../recipes'
 
-const k = katachi.progress
+export const k = katachi.progress
 
 export const progressTrackVariants = cva(k.bar.track, {
 	variants: {

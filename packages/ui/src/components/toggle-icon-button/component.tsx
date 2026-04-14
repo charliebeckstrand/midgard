@@ -2,9 +2,9 @@
 
 import type { ReactElement } from 'react'
 import { cn } from '../../core'
-import { katachi } from '../../recipes'
 import { Button } from '../button'
 import { Icon } from '../icon'
+import { k } from './variants'
 
 type Size = 'xs' | 'sm' | 'md' | 'lg'
 
@@ -16,8 +16,6 @@ export type ToggleIconButtonProps = {
 	size?: Size
 	className?: string
 } & Omit<React.ComponentPropsWithoutRef<'button'>, 'children' | 'type' | 'color'>
-
-const k = katachi.toggleIconButton
 
 export function ToggleIconButton({
 	pressed,

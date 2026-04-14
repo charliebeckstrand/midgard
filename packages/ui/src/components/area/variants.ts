@@ -1,3 +1,7 @@
+import { kage, maru } from '../../recipes'
+
+export const radius = maru.rounded
+
 export const paddingMap = {
 	sm: 'p-2',
 	md: 'p-3',
@@ -5,8 +9,8 @@ export const paddingMap = {
 } as const
 
 export const borderMap = {
-	solid: 'border border-zinc-300 dark:border-zinc-700',
-	dashed: 'border border-dashed border-zinc-300 dark:border-zinc-700',
+	solid: kage.border,
+	dashed: [kage.border, 'border-dashed'],
 } as const
 
 export type AreaPadding = keyof typeof paddingMap

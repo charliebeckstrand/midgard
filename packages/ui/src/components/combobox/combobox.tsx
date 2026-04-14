@@ -16,18 +16,16 @@ import {
 import { ChevronsUpDown } from 'lucide-react'
 import { AnimatePresence } from 'motion/react'
 import type React from 'react'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { cn, createContext } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { useRovingFocus } from '../../hooks/use-keyboard'
 import { useSelect } from '../../hooks/use-select'
 import { useVirtualKeyboardStable } from '../../hooks/use-virtual-keyboard-stable'
 import { FormControl, PopoverPanel } from '../../primitives'
-import { katachi } from '../../recipes'
 import { useControl } from '../control/context'
 import { Icon } from '../icon'
-
-const k = katachi.combobox
+import { k, kPopover } from './variants'
 
 type ComboboxContextValue<T = unknown> = {
 	value: T | T[] | undefined
@@ -108,6 +106,7 @@ export function Combobox<T>({
 	const [query, setQuery] = useState('')
 	const [open, setOpen] = useState(false)
 	const [editing, setEditing] = useState(false)
+	const listboxId = useId()
 
 	const inputRef = useRef<HTMLInputElement>(null)
 	const optionsRef = useRef<HTMLDivElement>(null)
@@ -216,14 +215,12 @@ export function Combobox<T>({
 
 			if (items.length === 1) items[0]?.setAttribute('data-active', '')
 		} else {
-			// On open, highlight the currently selected option (if any)
+			// On open, scroll to the currently selected option (if any)
 			const selected = container.querySelector<HTMLElement>(
 				'[role="option"]:not([data-disabled])[data-selected]',
 			)
 
 			if (selected) {
-				selected.setAttribute('data-active', '')
-
 				selected.scrollIntoView({ block: 'center' })
 			}
 		}
@@ -244,6 +241,7 @@ export function Combobox<T>({
 						role="combobox"
 						aria-haspopup="listbox"
 						aria-expanded={open}
+						aria-controls={open ? listboxId : undefined}
 						aria-autocomplete="list"
 						data-slot="combobox-input"
 						id={control?.id}
@@ -315,10 +313,11 @@ export function Combobox<T>({
 							<div
 								ref={refs.setFloating}
 								style={floatingStyles}
-								className={katachi.popover.portal}
+								className={kPopover.portal}
 								{...getFloatingProps()}
 							>
 								<PopoverPanel
+									id={listboxId}
 									role="listbox"
 									autoFocus={false}
 									className={cn('relative', k.options)}

@@ -1,7 +1,7 @@
 import { cva, type VariantProps } from 'class-variance-authority'
 import { katachi } from '../../recipes'
 
-const k = katachi.timeline
+export const k = katachi.timeline
 
 export const timelineVariants = cva(k.base, {
 	variants: {

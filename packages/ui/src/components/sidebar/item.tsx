@@ -1,10 +1,8 @@
 'use client'
 
 import { cn } from '../../core'
-import { katachi } from '../../recipes'
 import { type BaseNavItemProps, createNavItem } from '../nav'
-
-const k = katachi.sidebar
+import { k } from './variants'
 
 export type SidebarItemProps = BaseNavItemProps
 

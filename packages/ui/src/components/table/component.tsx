@@ -1,9 +1,7 @@
 'use client'
 
 import { cn, createContext } from '../../core'
-import { katachi } from '../../recipes'
-
-const k = katachi.table
+import { k } from './variants'
 
 export type TableVariants = {
 	dense?: boolean
@@ -59,11 +57,15 @@ export type TableHeaderProps = {
 	className?: string
 } & Omit<React.ComponentPropsWithoutRef<'th'>, 'className'>
 
-export function TableHeader({ className, children, ...props }: TableHeaderProps) {
+export function TableHeader({ className, children, scope = 'col', ...props }: TableHeaderProps) {
 	const { grid, dense } = useTable()
 
 	return (
-		<th className={cn(k.header, grid && k.grid, dense && 'py-1', className)} {...props}>
+		<th
+			scope={scope}
+			className={cn(k.header, grid && k.grid, dense && 'py-1', className)}
+			{...props}
+		>
 			{children}
 		</th>
 	)

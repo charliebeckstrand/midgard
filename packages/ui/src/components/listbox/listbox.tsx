@@ -16,16 +16,15 @@ import {
 import { ChevronsUpDown } from 'lucide-react'
 import { AnimatePresence } from 'motion/react'
 import type React from 'react'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useId, useRef, useState } from 'react'
 import { cn, createContext } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { useSelect } from '../../hooks/use-select'
 import { FormControl, PopoverPanel } from '../../primitives'
-import { katachi, sumi } from '../../recipes'
+import { sumi } from '../../recipes'
 import { useControl } from '../control/context'
 import { Icon } from '../icon'
-
-const k = katachi.listbox
+import { k, kPopover } from './variants'
 
 type ListboxContextValue<T = unknown> = {
 	value: T | T[] | undefined
@@ -99,6 +98,7 @@ export function Listbox<T>({
 	})
 
 	const [open, setOpen] = useState(false)
+	const listboxId = useId()
 
 	const triggerRef = useRef<HTMLButtonElement>(null)
 
@@ -191,6 +191,7 @@ export function Listbox<T>({
 						role="combobox"
 						aria-haspopup="listbox"
 						aria-expanded={open}
+						aria-controls={open ? listboxId : undefined}
 						disabled={resolvedDisabled}
 						data-slot="listbox-button"
 						{...(control?.invalid ? { 'data-invalid': '', 'aria-invalid': true } : {})}
@@ -213,10 +214,10 @@ export function Listbox<T>({
 						<div
 							ref={refs.setFloating}
 							style={floatingStyles}
-							className={katachi.popover.portal}
+							className={kPopover.portal}
 							{...getFloatingProps()}
 						>
-							<PopoverPanel role="listbox" className={cn(k.panel, k.options)}>
+							<PopoverPanel id={listboxId} role="listbox" className={cn(k.panel, k.options)}>
 								{children}
 							</PopoverPanel>
 						</div>

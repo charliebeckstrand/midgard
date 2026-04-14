@@ -11,10 +11,8 @@ import {
 	useState,
 } from 'react'
 import { cn } from '../../core'
-import { katachi } from '../../recipes'
 import { type ResizableDirection, ResizableProvider, useResizable } from './context'
-
-const k = katachi.resizable
+import { k } from './variants'
 
 type PanelConfig = {
 	defaultSize: number
@@ -250,6 +248,9 @@ export function ResizableGroup({
 
 			return cloneElement(child as ReactElement<Record<string, unknown>>, {
 				_handleIndex: idx,
+				_panelSize: Math.round(sizes[idx] ?? 0),
+				_panelMinSize: Math.round(panelConfigs[idx]?.minSize ?? 0),
+				_panelMaxSize: Math.round(panelConfigs[idx]?.maxSize ?? 100),
 			})
 		}
 
@@ -306,6 +307,9 @@ export function ResizableHandle(props: ResizableHandleProps) {
 	const { className } = props
 
 	const handleIndex: number = ((props as Record<string, unknown>)._handleIndex as number) ?? 0
+	const panelSize: number = ((props as Record<string, unknown>)._panelSize as number) ?? 0
+	const panelMinSize: number = ((props as Record<string, unknown>)._panelMinSize as number) ?? 0
+	const panelMaxSize: number = ((props as Record<string, unknown>)._panelMaxSize as number) ?? 100
 
 	const { direction, dragging, startDrag, resize } = useResizable()
 
@@ -347,7 +351,10 @@ export function ResizableHandle(props: ResizableHandleProps) {
 			data-dragging={isDragging ? '' : undefined}
 			role="separator"
 			aria-orientation={direction}
-			aria-valuenow={Math.round(handleIndex)}
+			aria-label="Resize"
+			aria-valuenow={panelSize}
+			aria-valuemin={panelMinSize}
+			aria-valuemax={panelMaxSize}
 			tabIndex={0}
 			onPointerDown={(e) => startDrag(handleIndex, e)}
 			onKeyDown={onKeyDown}

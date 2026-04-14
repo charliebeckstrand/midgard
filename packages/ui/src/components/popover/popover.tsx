@@ -17,10 +17,9 @@ import { AnimatePresence, motion } from 'motion/react'
 import type React from 'react'
 import { cloneElement, isValidElement, useCallback, useEffect, useRef, useState } from 'react'
 import { cn, createContext } from '../../core'
-import { kage, katachi, omote, ugoki } from '../../recipes'
+import { kage, omote, ugoki } from '../../recipes'
 import { useGlass } from '../glass/context'
-
-const k = katachi.popover
+import { k } from './variants'
 
 type PopoverContextValue = {
 	open: boolean

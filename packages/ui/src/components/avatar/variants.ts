@@ -2,7 +2,7 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { colorKeys, compoundColors } from '../../core'
 import { katachi } from '../../recipes'
 
-const k = katachi.avatar
+export const k = katachi.avatar
 
 type Variant = keyof typeof k.variant
 type Color = keyof (typeof k.variant)['solid']['color']

@@ -1,7 +1,7 @@
 import { cva, type VariantProps } from 'class-variance-authority'
 import { katachi } from '../../recipes'
 
-const k = katachi.tagInput
+export const k = katachi.tagInput
 
 export const tagInputContainerVariants = cva(k.container, {
 	variants: {

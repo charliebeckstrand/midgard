@@ -1,7 +1,5 @@
 import { cn } from '../../core'
-import { katachi } from '../../recipes'
-
-const k = katachi.dl
+import { k } from './variants'
 
 export type DescriptionListVariants = Record<string, never>
 

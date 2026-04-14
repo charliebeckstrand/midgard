@@ -2,9 +2,10 @@
 
 import { motion } from 'motion/react'
 import { cn } from '../../core'
-import { katachi, ugoki } from '../../recipes'
+import { ugoki } from '../../recipes'
 import { Alert } from '../alert'
 import type { ToastData, ToastPosition, ToastType } from './toast-context'
+import { k } from './variants'
 
 function getToastMotion(position: ToastPosition) {
 	if (position.startsWith('bottom')) return ugoki.toast.bottom
@@ -75,7 +76,7 @@ export function ToastAlert({
 					actions={t.actions}
 					closable={showCloseButton}
 					onClose={() => onDismiss(t.id)}
-					className={cn(katachi.toast.card)}
+					className={cn(k.card)}
 				/>
 			</motion.div>
 		</motion.div>

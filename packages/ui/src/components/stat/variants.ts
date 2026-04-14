@@ -1,7 +1,7 @@
 import { cva, type VariantProps } from 'class-variance-authority'
 import { katachi } from '../../recipes'
 
-const k = katachi.stat
+export const k = katachi.stat
 
 export const statValueVariants = cva(k.value.base, {
 	variants: {

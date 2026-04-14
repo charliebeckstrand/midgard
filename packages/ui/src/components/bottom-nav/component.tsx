@@ -9,12 +9,10 @@ import {
 	TouchTarget,
 	useActiveIndicator,
 } from '../../primitives'
-import { katachi } from '../../recipes'
 import { Icon } from '../icon'
 import { Nav, NavList, type NavProps } from '../nav'
 import { useNavContext } from '../nav/context'
-
-const k = katachi.bottomNav
+import { k } from './variants'
 
 // ── BottomNav ───────────────────────────────────────────
 
@@ -68,6 +66,7 @@ export function BottomNavItem({
 			dataSlot="bottom-nav-item"
 			href={href}
 			data-current={isCurrent ? '' : undefined}
+			aria-current={isCurrent ? 'page' : undefined}
 			className={cn(k.item, isCurrent && k.current, className)}
 			onClick={handleClick}
 			{...indicator.tapHandlers}

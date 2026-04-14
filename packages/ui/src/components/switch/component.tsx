@@ -1,11 +1,12 @@
 'use client'
 
 import { cn } from '../../core'
-import { katachi, kokkaku, narabi } from '../../recipes'
+import { kokkaku, narabi } from '../../recipes'
 import { useControl } from '../control/context'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
 import {
+	k,
 	type SwitchFieldVariants,
 	type SwitchVariants,
 	switchColorVariants,
@@ -14,8 +15,6 @@ import {
 	switchThumbVariants,
 	switchVariants,
 } from './variants'
-
-const k = katachi.switch
 
 export type SwitchProps = SwitchVariants & {
 	className?: string

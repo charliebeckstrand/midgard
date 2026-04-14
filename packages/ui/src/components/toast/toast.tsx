@@ -3,10 +3,9 @@
 import { AnimatePresence } from 'motion/react'
 import { createPortal } from 'react-dom'
 import { cn } from '../../core'
-import { katachi } from '../../recipes'
 import { ToastAlert } from './alert'
 import { ToastContext, type ToastContextProps, useToastState } from './toast-context'
-import { toastViewportVariants } from './variants'
+import { k, toastViewportVariants } from './variants'
 
 export function Toast({
 	position = 'bottom-right',
@@ -28,8 +27,13 @@ export function Toast({
 		<ToastContext value={{ toast, dismiss }}>
 			{children}
 			{createPortal(
-				<div data-slot="toast-viewport" className={cn(toastViewportVariants({ position }))}>
-					<div className={cn(katachi.toast.scroll, isBottom && 'flex-col-reverse')}>
+				<output
+					data-slot="toast-viewport"
+					aria-live="polite"
+					aria-atomic="false"
+					className={cn(toastViewportVariants({ position }))}
+				>
+					<div className={cn(k.scroll, isBottom && 'flex-col-reverse')}>
 						<AnimatePresence onExitComplete={handleExitComplete}>
 							{toasts.map((t) => (
 								<ToastAlert
@@ -44,7 +48,7 @@ export function Toast({
 							))}
 						</AnimatePresence>
 					</div>
-				</div>,
+				</output>,
 				document.body,
 			)}
 		</ToastContext>

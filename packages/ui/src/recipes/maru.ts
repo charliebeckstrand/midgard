@@ -9,7 +9,11 @@
 
 // ── Motoi (基) ──────────────────────────────────────────
 export const maru = {
-	rounded: 'rounded-lg',
+	roundedNone: 'rounded-none',
+	roundedSm: 'rounded-sm',
 	roundedMd: 'rounded-md',
+	rounded: 'rounded-lg',
+	roundedXl: 'rounded-xl',
+	rounded2xl: 'rounded-2xl',
 	roundedFull: 'rounded-full',
 } as const

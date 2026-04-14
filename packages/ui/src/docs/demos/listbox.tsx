@@ -124,6 +124,7 @@ export default function ListboxDemo() {
 						<Field>
 							<Label>Status</Label>
 							<Listbox<string>
+								nullable
 								displayValue={(v: string) => statuses.find((s) => s.value === v)?.label ?? v}
 								placeholder="Select status"
 							>

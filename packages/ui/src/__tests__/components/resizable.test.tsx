@@ -138,4 +138,45 @@ describe('Resizable', () => {
 		expect(container.textContent).toContain('Left content')
 		expect(container.textContent).toContain('Right content')
 	})
+
+	it('handle has aria-label="Resize"', () => {
+		const { container } = renderUI(
+			<ResizableGroup>
+				<ResizablePanel>A</ResizablePanel>
+				<ResizableHandle />
+				<ResizablePanel>B</ResizablePanel>
+			</ResizableGroup>,
+		)
+
+		expect(bySlot(container, 'resizable-handle')).toHaveAttribute('aria-label', 'Resize')
+	})
+
+	it('handle has aria-valuenow reflecting panel size', () => {
+		const { container } = renderUI(
+			<ResizableGroup>
+				<ResizablePanel defaultSize={70}>A</ResizablePanel>
+				<ResizableHandle />
+				<ResizablePanel defaultSize={30}>B</ResizablePanel>
+			</ResizableGroup>,
+		)
+
+		expect(bySlot(container, 'resizable-handle')).toHaveAttribute('aria-valuenow', '70')
+	})
+
+	it('handle has aria-valuemin and aria-valuemax', () => {
+		const { container } = renderUI(
+			<ResizableGroup>
+				<ResizablePanel defaultSize={50} minSize={20} maxSize={80}>
+					A
+				</ResizablePanel>
+				<ResizableHandle />
+				<ResizablePanel defaultSize={50}>B</ResizablePanel>
+			</ResizableGroup>,
+		)
+
+		const handle = bySlot(container, 'resizable-handle')
+
+		expect(handle).toHaveAttribute('aria-valuemin', '20')
+		expect(handle).toHaveAttribute('aria-valuemax', '80')
+	})
 })

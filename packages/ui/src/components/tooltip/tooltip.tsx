@@ -20,9 +20,8 @@ import type React from 'react'
 import { isValidElement, useState } from 'react'
 import { cn } from '../../core'
 import { useHasHover } from '../../hooks'
-import { katachi, ugoki } from '../../recipes'
-
-const k = katachi.tooltip
+import { ugoki } from '../../recipes'
+import { k } from './variants'
 
 export type TooltipProps = {
 	placement?: 'top' | 'bottom' | 'left' | 'right'
@@ -120,7 +119,7 @@ export function Tooltip({
 								...floatingStyles,
 								pointerEvents: interactive ? 'auto' : 'none',
 							}}
-							{...(interactive ? getFloatingProps() : {})}
+							{...getFloatingProps()}
 						>
 							<motion.div
 								{...ugoki.tooltip}
