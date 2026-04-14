@@ -1,1 +1,1 @@
-export { ShinyText, type ShinyTextProps } from './shiny-text'
+export { ShinyText, type ShinyTextProps } from './component'

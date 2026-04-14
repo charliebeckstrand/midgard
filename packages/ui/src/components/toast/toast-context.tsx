@@ -32,7 +32,7 @@ const [ToastContext, useToast] = createContext<ToastContextValue>('Toast')
 
 export { ToastContext, useToast }
 
-export type ToastContextProps = {
+export type ToastProps = {
 	children: React.ReactNode
 	position?: ToastPosition
 	duration?: number

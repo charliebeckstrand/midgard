@@ -1,8 +1,8 @@
 export { Toast } from './toast'
 export {
-	type ToastContextProps,
 	type ToastData,
 	type ToastPosition,
+	type ToastProps,
 	type ToastType,
 	useToast,
 } from './toast-context'
