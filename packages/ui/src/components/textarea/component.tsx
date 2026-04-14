@@ -34,7 +34,7 @@ export function Textarea({
 	const resolvedRequired = required ?? control?.required
 	const resolvedReadOnly = readOnly ?? control?.readOnly
 
-	const resolvedVariant = variant ?? (glass ? 'glass' : undefined)
+	const resolvedVariant = variant ?? control?.variant ?? (glass ? 'glass' : undefined)
 
 	const transparentControl =
 		(resolvedVariant === 'outline' || resolvedVariant === 'glass') &&

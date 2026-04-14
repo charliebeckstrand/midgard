@@ -2,8 +2,9 @@
 
 import { AnimatePresence, motion } from 'motion/react'
 import type React from 'react'
-import { useCallback, useId, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { cn } from '../../core/cn'
+import { useIdScope } from '../../hooks/use-id-scope'
 import { ugoki } from '../../recipes'
 import { CollapseProvider, useCollapseContext } from './context'
 import { k } from './variants'
@@ -53,9 +54,9 @@ export function Collapse({
 		onOpenChange?.(next)
 	}, [open, isControlled, onOpenChange])
 
-	const id = useId()
-	const triggerId = `${id}-trigger`
-	const panelId = `${id}-panel`
+	const scope = useIdScope()
+	const triggerId = scope.sub('trigger')
+	const panelId = scope.sub('panel')
 
 	return (
 		<CollapseProvider value={{ open, toggle, animate: animateProp, triggerId, panelId }}>

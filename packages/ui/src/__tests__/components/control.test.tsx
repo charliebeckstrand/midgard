@@ -2,8 +2,9 @@ import { describe, expect, it } from 'vitest'
 import { Control } from '../../components/control'
 import { Description, ErrorMessage, Label } from '../../components/fieldset'
 import { Input } from '../../components/input'
+import { Switch } from '../../components/switch'
 import { Textarea } from '../../components/textarea'
-import { bySlot, renderUI, screen } from '../helpers'
+import { allBySlot, bySlot, renderUI, screen } from '../helpers'
 
 describe('Control', () => {
 	it('renders with data-slot="field"', () => {
@@ -205,5 +206,219 @@ describe('Control + Textarea', () => {
 			</Control>,
 		)
 		expect(bySlot(container, 'textarea')).toHaveAttribute('data-invalid')
+	})
+})
+
+// ── Nesting ────────────────────────────────────────────────
+
+describe('Control nesting', () => {
+	it('parent disabled propagates to child Control input', () => {
+		const { container } = renderUI(
+			<Control disabled>
+				<Control id="child">
+					<Input />
+				</Control>
+			</Control>,
+		)
+		expect(bySlot(container, 'input')).toBeDisabled()
+	})
+
+	it('child disabled works independently when parent is not disabled', () => {
+		const { container } = renderUI(
+			<Control>
+				<Control disabled id="child">
+					<Input />
+				</Control>
+			</Control>,
+		)
+		expect(bySlot(container, 'input')).toBeDisabled()
+	})
+
+	it('parent disabled cannot be overridden by child disabled={false}', () => {
+		const { container } = renderUI(
+			<Control disabled>
+				<Control disabled={false} id="child">
+					<Input />
+				</Control>
+			</Control>,
+		)
+		// OR semantics: parent wins
+		expect(bySlot(container, 'input')).toBeDisabled()
+	})
+
+	it('parent readOnly propagates to child Control input', () => {
+		const { container } = renderUI(
+			<Control readOnly>
+				<Control id="child">
+					<Input />
+				</Control>
+			</Control>,
+		)
+		expect(bySlot(container, 'input')).toHaveAttribute('readonly')
+	})
+
+	it('parent invalid does NOT propagate to child', () => {
+		const { container } = renderUI(
+			<Control invalid>
+				<Control id="child">
+					<Input />
+				</Control>
+			</Control>,
+		)
+		expect(bySlot(container, 'input')).not.toHaveAttribute('data-invalid')
+	})
+
+	it('parent required does NOT propagate to child', () => {
+		const { container } = renderUI(
+			<Control required>
+				<Control id="child">
+					<Input />
+				</Control>
+			</Control>,
+		)
+		expect(bySlot(container, 'input')).not.toBeRequired()
+	})
+
+	it('each nested Control has its own unique id', () => {
+		const { container } = renderUI(
+			<Control id="parent">
+				<Input />
+				<Control id="child">
+					<Input />
+				</Control>
+			</Control>,
+		)
+		const inputs = allBySlot(container, 'input')
+		expect(inputs[0]).toHaveAttribute('id', 'parent')
+		expect(inputs[1]).toHaveAttribute('id', 'child')
+	})
+
+	it('child Label htmlFor points to child id, not parent id', () => {
+		const { container } = renderUI(
+			<Control id="parent">
+				<Control id="child">
+					<Label>Name</Label>
+					<Input />
+				</Control>
+			</Control>,
+		)
+		expect(bySlot(container, 'label')).toHaveAttribute('for', 'child')
+	})
+
+	it('parent disabled sets data-disabled on nested field wrapper', () => {
+		const { container } = renderUI(
+			<Control disabled>
+				<Control id="child">content</Control>
+			</Control>,
+		)
+		const fields = allBySlot(container, 'field')
+		// Both parent and child field wrappers should be marked disabled
+		expect(fields[0]).toHaveAttribute('data-disabled')
+		expect(fields[1]).toHaveAttribute('data-disabled')
+	})
+
+	it('three-level nesting: grandparent disabled propagates to leaf', () => {
+		const { container } = renderUI(
+			<Control disabled>
+				<Control id="mid">
+					<Control id="leaf">
+						<Input />
+					</Control>
+				</Control>
+			</Control>,
+		)
+		expect(bySlot(container, 'input')).toBeDisabled()
+	})
+})
+
+// ── Size / Variant ─────────────────────────────────────────
+
+describe('Control + size', () => {
+	it('Input inherits size from Control', () => {
+		const { container } = renderUI(
+			<Control size="lg">
+				<Input />
+			</Control>,
+		)
+		// The input element should have the lg size class applied via inputVariants
+		const input = bySlot(container, 'input')
+		expect(input).toBeInTheDocument()
+	})
+
+	it('Input explicit size overrides Control size', () => {
+		const { container } = renderUI(
+			<Control size="lg">
+				<Input size="sm" />
+			</Control>,
+		)
+		const input = bySlot(container, 'input')
+		expect(input).toBeInTheDocument()
+	})
+
+	it('Switch inherits size from Control', () => {
+		const { container } = renderUI(
+			<Control size="lg">
+				<Switch />
+			</Control>,
+		)
+		const sw = bySlot(container, 'switch')
+		expect(sw).toBeInTheDocument()
+	})
+
+	it('nested Control inherits parent size when not explicitly set', () => {
+		const { container } = renderUI(
+			<Control size="sm">
+				<Control id="child">
+					<Input />
+				</Control>
+			</Control>,
+		)
+		// Child Control inherits size="sm" from parent
+		const input = bySlot(container, 'input')
+		expect(input).toBeInTheDocument()
+	})
+
+	it('nested Control size overrides parent size', () => {
+		const { container } = renderUI(
+			<Control size="sm">
+				<Control size="lg" id="child">
+					<Input />
+				</Control>
+			</Control>,
+		)
+		const input = bySlot(container, 'input')
+		expect(input).toBeInTheDocument()
+	})
+})
+
+describe('Control + variant', () => {
+	it('Input inherits variant from Control', () => {
+		const { container } = renderUI(
+			<Control variant="outline">
+				<Input />
+			</Control>,
+		)
+		const input = bySlot(container, 'input')
+		expect(input).toBeInTheDocument()
+	})
+
+	it('Input explicit variant overrides Control variant', () => {
+		const { container } = renderUI(
+			<Control variant="outline">
+				<Input variant="glass" />
+			</Control>,
+		)
+		const input = bySlot(container, 'input')
+		expect(input).toBeInTheDocument()
+	})
+
+	it('Textarea inherits variant from Control', () => {
+		const { container } = renderUI(
+			<Control variant="outline">
+				<Textarea />
+			</Control>,
+		)
+		const textarea = bySlot(container, 'textarea')
+		expect(textarea).toBeInTheDocument()
 	})
 })

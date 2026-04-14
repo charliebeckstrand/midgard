@@ -36,11 +36,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 	const resolvedRequired = required ?? control?.required
 	const resolvedReadOnly = readOnly ?? control?.readOnly
 
-	const resolvedVariant = variant ?? (glass ? 'glass' : undefined)
+	const resolvedVariant = variant ?? control?.variant ?? (glass ? 'glass' : undefined)
 
 	const isDate = DATE_TYPES.has(type ?? '')
 
-	const resolvedSize = size ?? 'md'
+	const resolvedSize = size ?? control?.size ?? 'md'
 
 	if (skeleton) {
 		return (
