@@ -8,6 +8,7 @@ export type CollapseContextValue = {
 	open: boolean
 	toggle: () => void
 	animate: CollapseAnimation
+	panelId: string
 }
 
 export const [CollapseProvider, useCollapseContext] =

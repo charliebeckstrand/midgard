@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from 'motion/react'
 import type React from 'react'
-import { useCallback, useState } from 'react'
+import { useCallback, useId, useState } from 'react'
 import { cn } from '../../core/cn'
 import { katachi, ugoki } from '../../recipes'
 import { CollapseProvider, useCollapseContext } from './context'
@@ -54,8 +54,10 @@ export function Collapse({
 		onOpenChange?.(next)
 	}, [open, isControlled, onOpenChange])
 
+	const panelId = useId()
+
 	return (
-		<CollapseProvider value={{ open, toggle, animate: animateProp }}>
+		<CollapseProvider value={{ open, toggle, animate: animateProp, panelId }}>
 			<div data-slot="collapse" data-open={open || undefined} className={cn(k.root, className)}>
 				{trigger !== undefined ? (
 					<>
@@ -77,7 +79,7 @@ export type CollapseTriggerProps = Omit<React.ComponentProps<'button'>, 'childre
 }
 
 export function CollapseTrigger({ className, children, onClick, ...props }: CollapseTriggerProps) {
-	const { open, toggle } = useCollapseContext()
+	const { open, toggle, panelId } = useCollapseContext()
 
 	const rendered = typeof children === 'function' ? children({ open }) : children
 
@@ -86,6 +88,7 @@ export function CollapseTrigger({ className, children, onClick, ...props }: Coll
 			type="button"
 			data-slot="collapse-trigger"
 			aria-expanded={open}
+			aria-controls={panelId}
 			onClick={(e) => {
 				toggle()
 				onClick?.(e)
@@ -106,13 +109,13 @@ export type CollapsePanelProps = {
 }
 
 export function CollapsePanel({ children, className }: CollapsePanelProps) {
-	const { open, animate } = useCollapseContext()
+	const { open, animate, panelId } = useCollapseContext()
 
 	if (animate === false) {
 		return open ? (
-			<div data-slot="collapse-panel" className={cn(k.panel, className)}>
+			<section id={panelId} data-slot="collapse-panel" className={cn(k.panel, className)}>
 				{children}
-			</div>
+			</section>
 		) : null
 	}
 
@@ -121,13 +124,14 @@ export function CollapsePanel({ children, className }: CollapsePanelProps) {
 	return (
 		<AnimatePresence initial={false}>
 			{open && (
-				<motion.div
+				<motion.section
+					id={panelId}
 					data-slot="collapse-panel"
 					{...ugoki.collapse[variant]}
 					className={cn(k.panel, className)}
 				>
 					{children}
-				</motion.div>
+				</motion.section>
 			)}
 		</AnimatePresence>
 	)
