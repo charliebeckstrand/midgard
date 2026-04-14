@@ -14,7 +14,7 @@ import {
 } from './variants'
 
 export type StackProps = {
-	/** Flex direction. Defaults to `column`. */
+	/** Flex direction. Defaults to `col`. */
 	direction?: StackDirection
 	/** Gap between children. Defaults to 4. */
 	gap?: StackGap
@@ -32,7 +32,7 @@ export type StackProps = {
 } & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
 
 export function Stack({
-	direction = 'column',
+	direction = 'col',
 	gap = 4,
 	align,
 	justify,

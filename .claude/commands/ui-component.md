@@ -607,7 +607,7 @@ Run `pnpm test` from `packages/ui` to verify.
 
 ## Existing components (for reference and composition)
 
-alert, avatar, badge, breadcrumb, button, calendar, card, checkbox, chip, combobox, datepicker, dialog, disclosure, divider, dl, drawer, dropdown, fieldset, grid, heading, icon, input, listbox, navbar, pagination, placeholder, popover, progress, radio, select, sheet, shiny-text, sidebar, status, switch, table, tabs, text, textarea, timeline, toast, tooltip
+alert, avatar, badge, breadcrumb, button, calendar, card, checkbox, chip, combobox, datepicker, dialog, disclosure, divider, dl, drawer, dropdown, fieldset, grid, heading, icon, input, listbox, navbar, pagination, placeholder, popover, progress, radio, select, sheet, sidebar, status, switch, table, tabs, text, textarea, timeline, toast, tooltip
 
 ## Available primitives
 

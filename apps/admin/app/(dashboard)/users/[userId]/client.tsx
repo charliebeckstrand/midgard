@@ -9,6 +9,7 @@ import { Button } from 'ui/button'
 import { Dialog, DialogActions, DialogBody, DialogTitle } from 'ui/dialog'
 import { Flex } from 'ui/flex'
 import { Heading } from 'ui/heading'
+import { Icon } from 'ui/icon'
 import { Placeholder } from 'ui/placeholder'
 import { Sheet, SheetBody, SheetClose, SheetDescription, SheetTitle } from 'ui/sheet'
 import { Stack } from 'ui/stack'
@@ -29,6 +30,7 @@ export function UserDetailsClient({ details, chats: initialChats }: UserDetailsC
 
 	const fetchChatMessages = useCallback(async (chatId: string) => {
 		setLoadingMessages(true)
+
 		setChatMessages([])
 
 		const res = await fetch(`/api/chat/${chatId}`).catch(() => null)
@@ -109,18 +111,15 @@ export function UserDetailsClient({ details, chats: initialChats }: UserDetailsC
 			</Stack>
 
 			<Sheet open={viewChat !== null} onClose={() => setViewChat(null)} size="3xl">
-				<Flex justify="between">
+				<Flex justify="between" className="mr-2.5">
 					<Stack gap={0}>
 						<SheetTitle>Chat History</SheetTitle>
 						<SheetDescription>{viewChat}</SheetDescription>
 					</Stack>
 					<SheetClose>
-						<button
-							type="button"
-							className="rounded-md p-1 text-zinc-400 hover:text-zinc-500 dark:hover:text-zinc-300"
-						>
-							<XMarkIcon className="size-6" />
-						</button>
+						<Button variant="plain">
+							<Icon icon={<XMarkIcon />} />
+						</Button>
 					</SheetClose>
 				</Flex>
 				<SheetBody>

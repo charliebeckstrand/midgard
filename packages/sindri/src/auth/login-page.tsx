@@ -9,7 +9,6 @@ import { Input } from 'ui/input'
 import { AuthLayout } from 'ui/layouts'
 import { AuthPage } from 'ui/pages'
 import { PasswordInput } from 'ui/password-input'
-import { ShinyText } from 'ui/shiny-text'
 import { Text } from 'ui/text'
 import { useForm } from './use-form'
 import { email, required } from './use-form-validation'
@@ -84,12 +83,9 @@ function LoginForm({ showRegisterLink }: { showRegisterLink: boolean }) {
 				}
 			>
 				{registered && (
-					<ShinyText
-						text="Account created successfully. Please sign in."
-						color="green"
-						shineColor="lime"
-						delay={5}
-					/>
+					<Text className="text-green-600 dark:text-green-600">
+						Account created successfully. Please sign in.
+					</Text>
 				)}
 
 				<Field>

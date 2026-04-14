@@ -32,7 +32,7 @@ function EditUserDialog({ user, onClose }: EditUserDialogProps) {
 		<Dialog open={user !== null} onClose={onClose}>
 			<DialogTitle>Edit User</DialogTitle>
 			<DialogBody>
-				<Fieldset>
+				<Fieldset className="space-y-4">
 					<Field data-slot="control">
 						<Label htmlFor="user-id">ID</Label>
 						<Input id="user-id" value={user?.id ?? ''} readOnly />

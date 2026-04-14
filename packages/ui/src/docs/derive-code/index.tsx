@@ -7,16 +7,8 @@ import { renderNodes } from './walk'
 
 export type { ComponentInfo, ComponentMap } from './types'
 
-// Lazy singleton — built on first deriveCode call, then cached.
-let mapPromise: Promise<ComponentMap> | null = null
-
-function getDefaultMap(): Promise<ComponentMap> {
-	if (!mapPromise) {
-		mapPromise = buildComponentMap()
-	}
-
-	return mapPromise
-}
+// Built eagerly and synchronously at module load.
+const defaultMap = buildComponentMap()
 
 /**
  * Walk a React children tree and produce a simplified code block showing how
@@ -32,8 +24,8 @@ function getDefaultMap(): Promise<ComponentMap> {
  * caller should then either provide an explicit `code` override or omit the
  * code block entirely.
  */
-export async function deriveCode(children: ReactNode, map?: ComponentMap): Promise<string | null> {
-	const resolvedMap = map ?? (await getDefaultMap())
+export function deriveCode(children: ReactNode, map?: ComponentMap): string | null {
+	const resolvedMap = map ?? defaultMap
 
 	const ctx: Ctx = {
 		map: resolvedMap,

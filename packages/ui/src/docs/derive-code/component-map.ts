@@ -8,20 +8,15 @@ import type { ComponentMap } from './types'
  * Both `components/*` and `pages/*` are included so that demos that render
  * higher-level page compositions still get useful derivation.
  */
-export async function buildComponentMap(): Promise<ComponentMap> {
+export function buildComponentMap(): ComponentMap {
 	const map: ComponentMap = new Map()
 
-	const loaders = import.meta.glob<Record<string, unknown>>([
-		'../../components/*/index.ts',
-		'../../pages/index.ts',
-		'../../layouts/index.ts',
-	])
-
-	const entries = await Promise.all(
-		Object.entries(loaders).map(async ([path, loader]) => [path, await loader()] as const),
+	const modules = import.meta.glob<Record<string, unknown>>(
+		['../../components/*/index.ts', '../../pages/index.ts', '../../layouts/index.ts'],
+		{ eager: true },
 	)
 
-	for (const [path, mod] of entries) {
+	for (const [path, mod] of Object.entries(modules)) {
 		const moduleName =
 			path.match(/components\/([^/]+)\//)?.[1] ??
 			path.match(/(pages|layouts)\/index\.ts/)?.[1] ??

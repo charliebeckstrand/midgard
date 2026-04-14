@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useEffect, useState } from 'react'
+import { type ReactNode, useState } from 'react'
 import { CodeBlock } from '../../components/code'
 import { Collapse, CollapsePanel, CollapseTrigger } from '../../components/collapse'
 import { Flex } from '../../components/flex'
@@ -26,16 +26,9 @@ export function Example({
 	code?: string
 	children: ReactNode
 }) {
-	const [resolvedCode, setResolvedCode] = useState<string | null>(code ?? null)
+	const resolvedCode = code ?? deriveCode(children)
 
 	const [open, setOpen] = useState(false)
-
-	// Eagerly derive code from children so we know whether to show the toggle.
-	useEffect(() => {
-		if (code != null) return
-
-		deriveCode(children).then(setResolvedCode)
-	}, [code, children])
 
 	return (
 		<Stack gap={2}>

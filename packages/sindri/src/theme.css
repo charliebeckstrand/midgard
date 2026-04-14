@@ -1,5 +1,5 @@
 @theme {
-	--color-blue-100: oklch(22.17% 0.069 259.89);
+	/* --color-blue-100: oklch(22.17% 0.069 259.89);
 	--color-blue-200: oklch(25.45% 0.0811 255.8);
 	--color-blue-300: oklch(30.86% 0.1022 255.21);
 	--color-blue-400: oklch(34.1% 0.121 254.74);
@@ -41,7 +41,7 @@
 	--color-green-700: oklch(64.58% 0.199 147.27);
 	--color-green-800: oklch(57.81% 0.1776 147.5);
 	--color-green-900: oklch(73.1% 0.2158 148.29);
-	--color-green-1000: oklch(96.76% 0.056 154.18);
+	--color-green-1000: oklch(96.76% 0.056 154.18); */
 
 	--color-white: hsla(0, 0%, 98%, 1);
 	--color-black: var(--color-black-500);

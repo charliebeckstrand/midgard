@@ -23,9 +23,9 @@ export const kumi = {
 
 	direction: {
 		row: 'flex-row',
-		column: 'flex-col',
+		col: 'flex-col',
 		'row-reverse': 'flex-row-reverse',
-		'column-reverse': 'flex-col-reverse',
+		'col-reverse': 'flex-col-reverse',
 	},
 
 	align: {

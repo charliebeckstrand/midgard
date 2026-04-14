@@ -247,10 +247,6 @@
 			"types": "./src/components/sheet/index.ts",
 			"default": "./src/components/sheet/index.ts"
 		},
-		"./shiny-text": {
-			"types": "./src/components/shiny-text/index.ts",
-			"default": "./src/components/shiny-text/index.ts"
-		},
 		"./sidebar": {
 			"types": "./src/components/sidebar/index.ts",
 			"default": "./src/components/sidebar/index.ts"

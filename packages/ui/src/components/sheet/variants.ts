@@ -30,6 +30,6 @@ export const sheetActionsVariants = cva(k.actions)
 
 export const sheetBodyVariants = cva(k.body)
 
-export const sheetCloseVariants = cva(k.close)
+export const sheetCloseVariants = cva('')
 
 export type SheetPanelVariants = VariantProps<typeof sheetPanelVariants>

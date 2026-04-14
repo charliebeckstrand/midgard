@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Suspense, useState } from 'react'
+import { Button } from 'ui/button'
 import { ErrorMessage, Field, Label } from 'ui/fieldset'
 import { Input } from 'ui/input'
 import { AuthLayout } from 'ui/layouts'
@@ -60,6 +61,11 @@ function RegisterForm() {
 				onSubmit={handleSubmit}
 				serverError={serverError}
 				submitting={submitting}
+				actions={
+					<Button type="submit" disabled={submitting} size="lg" className="w-full">
+						Create account
+					</Button>
+				}
 				footer={
 					<div className="text-center">
 						<Text>

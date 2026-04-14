@@ -5,10 +5,11 @@ import type { User } from 'heimdall/user'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { type ReactNode, useCallback, useMemo } from 'react'
 import { useChat } from 'sindri/chat'
+import { Button } from 'ui/button'
 import { useArrowAction } from 'ui/hooks'
+import { Icon } from 'ui/icon'
 import { SidebarLayout } from 'ui/layouts'
 import { Navbar } from 'ui/navbar'
-import { ShinyText } from 'ui/shiny-text'
 import {
 	Sidebar,
 	SidebarBody,
@@ -19,6 +20,7 @@ import {
 	SidebarSection,
 } from 'ui/sidebar'
 import { Spacer } from 'ui/spacer'
+import { Text } from 'ui/text'
 import { ChatContext } from './context'
 import { SidebarUserMenu } from './sidebar-user-menu'
 import type { Chat } from './types'
@@ -32,27 +34,32 @@ function ChatItem({
 	current: boolean
 	onDelete: (id: string) => void
 }) {
-	const { actionRef, onPrimaryKeyDown, onActionKeyDown } = useArrowAction<HTMLButtonElement>()
+	const { onPrimaryKeyDown, onActionKeyDown } = useArrowAction<HTMLButtonElement>()
 
 	return (
 		<div className="group relative">
-			<SidebarItem href={`/${chat.id}`} current={current} onKeyDown={onPrimaryKeyDown}>
+			<SidebarItem
+				className="group-hover:pr-10"
+				href={`/${chat.id}`}
+				current={current}
+				onKeyDown={onPrimaryKeyDown}
+			>
 				<ChatBubbleLeftIcon />
-				<SidebarLabel className="group-hover:pr-6">{chat.id}</SidebarLabel>
+				<SidebarLabel>{chat.id}</SidebarLabel>
 			</SidebarItem>
-			<button
-				ref={actionRef}
-				type="button"
+			<Button
+				size="xs"
+				color="red"
+				className="opacity-0 group-hover:opacity-100 absolute right-2 top-1/2 z-10 -translate-y-1/2"
 				tabIndex={-1}
 				onKeyDown={onActionKeyDown}
 				onClick={(e) => {
 					e.preventDefault()
 					onDelete(chat.id)
 				}}
-				className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded p-0.75 opacity-0 transition-opacity focus:opacity-100 group-hover:opacity-100 group-hover:bg-zinc-700 bg-zinc-800 hover:bg-zinc-600"
 			>
-				<XMarkIcon className="size-4 fill-zinc-950 dark:fill-white" />
-			</button>
+				<Icon icon={<XMarkIcon />} />
+			</Button>
 		</div>
 	)
 }
@@ -115,7 +122,7 @@ export function ChatClient({
 						<SidebarItem href="/" current={pathname === '/'}>
 							<img src="/hexagon.png" alt="hexagon" width={24} height={24} />
 							<SidebarLabel>
-								<ShinyText text="Chat" className="font-black text-lg" delay={10} yoyo />
+								<Text className="font-black text-lg">Chat</Text>
 							</SidebarLabel>
 						</SidebarItem>
 					</SidebarHeader>

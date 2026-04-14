@@ -19,33 +19,33 @@ const responsiveDirectionMap: Record<string, Record<FlexDirection, string>> = {
 	initial: directionMap,
 	sm: {
 		row: 'max-sm:flex-row',
-		column: 'max-sm:flex-col',
+		col: 'max-sm:flex-col',
 		'row-reverse': 'max-sm:flex-row-reverse',
-		'column-reverse': 'max-sm:flex-col-reverse',
+		'col-reverse': 'max-sm:flex-col-reverse',
 	},
 	md: {
 		row: 'max-md:flex-row',
-		column: 'max-md:flex-col',
+		col: 'max-md:flex-col',
 		'row-reverse': 'max-md:flex-row-reverse',
-		'column-reverse': 'max-md:flex-col-reverse',
+		'col-reverse': 'max-md:flex-col-reverse',
 	},
 	lg: {
 		row: 'max-lg:flex-row',
-		column: 'max-lg:flex-col',
+		col: 'max-lg:flex-col',
 		'row-reverse': 'max-lg:flex-row-reverse',
-		'column-reverse': 'max-lg:flex-col-reverse',
+		'col-reverse': 'max-lg:flex-col-reverse',
 	},
 	xl: {
 		row: 'max-xl:flex-row',
-		column: 'max-xl:flex-col',
+		col: 'max-xl:flex-col',
 		'row-reverse': 'max-xl:flex-row-reverse',
-		'column-reverse': 'max-xl:flex-col-reverse',
+		'col-reverse': 'max-xl:flex-col-reverse',
 	},
 	'2xl': {
 		row: 'max-2xl:flex-row',
-		column: 'max-2xl:flex-col',
+		col: 'max-2xl:flex-col',
 		'row-reverse': 'max-2xl:flex-row-reverse',
-		'column-reverse': 'max-2xl:flex-col-reverse',
+		'col-reverse': 'max-2xl:flex-col-reverse',
 	},
 }
 
