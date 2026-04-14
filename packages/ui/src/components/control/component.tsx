@@ -40,6 +40,7 @@ export function Control({
 	children,
 }: ControlProps) {
 	const generatedId = useId()
+
 	const id = idProp ?? generatedId
 
 	const value = useMemo<ControlContextValue>(

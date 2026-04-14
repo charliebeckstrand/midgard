@@ -186,7 +186,10 @@ export default function VirtualListDemo() {
 	return (
 		<Stack gap={8}>
 			<Example title="Chat with virtualized messages">
-				<Stack className="h-125 rounded-lg border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+				<Stack
+					className="h-125 rounded-lg border border-zinc-200 dark:border-zinc-800 overflow-hidden"
+					gap={0}
+				>
 					{/* Header */}
 					<Flex gap={3} className="border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
 						<div className="size-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-medium">

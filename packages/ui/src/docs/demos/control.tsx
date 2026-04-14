@@ -140,15 +140,6 @@ export default function ControlDemo() {
 					<Fieldset>
 						<Legend>Profile</Legend>
 						<Stack gap={4}>
-							<div>
-								<Button
-									variant="soft"
-									color={disabled ? 'green' : 'red'}
-									onClick={() => setDisabled((d) => !d)}
-								>
-									{disabled ? 'Enable' : 'Disable'} fields
-								</Button>
-							</div>
 							<Control disabled={disabled}>
 								<Label>Name</Label>
 								<Input placeholder="Jane Smith" />
@@ -161,6 +152,15 @@ export default function ControlDemo() {
 								<Label>Bio</Label>
 								<Textarea placeholder="Tell us about yourself" />
 							</Control>
+							<div>
+								<Button
+									variant="soft"
+									color={disabled ? 'green' : 'red'}
+									onClick={() => setDisabled((d) => !d)}
+								>
+									{disabled ? 'Enable' : 'Disable'} fields
+								</Button>
+							</div>
 						</Stack>
 					</Fieldset>
 				</Sizer>
