@@ -212,6 +212,7 @@ export function StepperStep({ value, disabled, className, children }: StepperSte
 				type="button"
 				data-slot="stepper-step"
 				data-state={state}
+				aria-current={state === 'current' ? 'step' : undefined}
 				disabled={isDisabled}
 				onClick={() => onValueChange(value)}
 				className={cn(classes, 'cursor-pointer')}
@@ -225,6 +226,7 @@ export function StepperStep({ value, disabled, className, children }: StepperSte
 		<div
 			data-slot="stepper-step"
 			data-state={state}
+			aria-current={state === 'current' ? 'step' : undefined}
 			data-disabled={disabled ? '' : undefined}
 			className={classes}
 		>

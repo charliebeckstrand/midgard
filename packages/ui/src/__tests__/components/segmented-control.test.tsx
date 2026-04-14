@@ -107,4 +107,15 @@ describe('SegmentedControl', () => {
 
 		expect(bySlot(container, 'segmented-control')).toHaveAttribute('role', 'radiogroup')
 	})
+
+	it('passes aria-label to the radiogroup container', () => {
+		const { container } = renderUI(
+			<SegmentedControl value="a" aria-label="View mode">
+				<Segment value="a">A</Segment>
+				<Segment value="b">B</Segment>
+			</SegmentedControl>,
+		)
+
+		expect(bySlot(container, 'segmented-control')).toHaveAttribute('aria-label', 'View mode')
+	})
 })

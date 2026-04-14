@@ -48,6 +48,7 @@ export function MenuItem({
 				href={href}
 				role="menuitem"
 				tabIndex={-1}
+				aria-disabled={disabled || undefined}
 				data-slot="menu-item"
 				data-disabled={disabled ? '' : undefined}
 				className={classes}
@@ -67,6 +68,7 @@ export function MenuItem({
 			type="button"
 			role="menuitem"
 			tabIndex={-1}
+			aria-disabled={disabled || undefined}
 			data-slot="menu-item"
 			data-disabled={disabled ? '' : undefined}
 			className={classes}

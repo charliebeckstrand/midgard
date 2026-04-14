@@ -9,6 +9,7 @@ import { useRovingFocus } from '../hooks/use-keyboard'
 import { kage, maru, omote, ugoki } from '../recipes'
 
 export function PopoverPanel({
+	id,
 	className,
 	children,
 	role = 'listbox',
@@ -16,6 +17,7 @@ export function PopoverPanel({
 	autoFocus = true,
 	onKeyDown: onKeyDownProp,
 }: {
+	id?: string
 	className?: string
 	children: React.ReactNode
 	role?: string
@@ -46,6 +48,7 @@ export function PopoverPanel({
 	return (
 		<motion.div
 			ref={menuRef}
+			id={id}
 			role={role}
 			tabIndex={-1}
 			{...ugoki.popover}

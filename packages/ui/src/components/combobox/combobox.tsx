@@ -16,7 +16,7 @@ import {
 import { ChevronsUpDown } from 'lucide-react'
 import { AnimatePresence } from 'motion/react'
 import type React from 'react'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { cn, createContext } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { useRovingFocus } from '../../hooks/use-keyboard'
@@ -103,6 +103,7 @@ export function Combobox<T>({
 	const [query, setQuery] = useState('')
 	const [open, setOpen] = useState(false)
 	const [editing, setEditing] = useState(false)
+	const listboxId = useId()
 
 	const inputRef = useRef<HTMLInputElement>(null)
 	const optionsRef = useRef<HTMLDivElement>(null)
@@ -239,6 +240,7 @@ export function Combobox<T>({
 						role="combobox"
 						aria-haspopup="listbox"
 						aria-expanded={open}
+						aria-controls={open ? listboxId : undefined}
 						aria-autocomplete="list"
 						data-slot="combobox-input"
 						value={inputDisplay}
@@ -311,6 +313,7 @@ export function Combobox<T>({
 								{...getFloatingProps()}
 							>
 								<PopoverPanel
+									id={listboxId}
 									role="listbox"
 									autoFocus={false}
 									className={cn('relative', k.options)}

@@ -2,8 +2,9 @@
 
 import { ChevronRight } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import { type ReactElement, type ReactNode, useState } from 'react'
+import { type ReactElement, type ReactNode, useRef, useState } from 'react'
 import { cn } from '../../core'
+import { useRovingFocus } from '../../hooks'
 import { katachi, ugoki } from '../../recipes'
 import { type TreeColor, treeColorMap } from '../../recipes/katachi/tree'
 import { Icon } from '../icon'
@@ -21,9 +22,22 @@ export type TreeProps = {
 }
 
 export function Tree({ children, color, className }: TreeProps) {
+	const ref = useRef<HTMLDivElement>(null)
+
+	const handleKeyDown = useRovingFocus(ref, {
+		itemSelector: '[role="treeitem"]',
+		orientation: 'vertical',
+	})
+
 	return (
 		<TreeProvider value={{ depth: 0, color }}>
-			<div role="tree" data-slot="tree" className={cn(k.root, className)}>
+			<div
+				ref={ref}
+				role="tree"
+				data-slot="tree"
+				className={cn(k.root, className)}
+				onKeyDown={handleKeyDown}
+			>
 				{children}
 			</div>
 		</TreeProvider>
@@ -70,6 +84,8 @@ export function TreeItem({
 				type="button"
 				role="treeitem"
 				aria-expanded={hasChildren ? open : undefined}
+				aria-level={depth + 1}
+				tabIndex={-1}
 				data-slot="tree-item-content"
 				data-open={open || undefined}
 				className={cn('group/tree-item', k.itemContent, active && k.itemContentActive, className)}
@@ -93,6 +109,7 @@ export function TreeItem({
 						<TreeProvider value={{ depth: depth + 1, color: resolvedColor }}>
 							<motion.div
 								role="group"
+								aria-label={typeof label === 'string' ? label : undefined}
 								data-slot="tree-group"
 								{...ugoki.collapse.fade}
 								className={k.group}

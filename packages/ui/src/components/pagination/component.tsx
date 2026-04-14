@@ -117,10 +117,11 @@ function PaginationNavButton({
 
 export function PaginationPrevious({
 	children = <Icon icon={<ChevronLeft />} />,
+	'aria-label': ariaLabel = 'Previous page',
 	...props
 }: PaginationPreviousProps) {
 	return (
-		<PaginationNavButton slot="pagination-previous" {...props}>
+		<PaginationNavButton slot="pagination-previous" aria-label={ariaLabel} {...props}>
 			{children}
 		</PaginationNavButton>
 	)
@@ -128,10 +129,11 @@ export function PaginationPrevious({
 
 export function PaginationNext({
 	children = <Icon icon={<ChevronRight />} />,
+	'aria-label': ariaLabel = 'Next page',
 	...props
 }: PaginationNextProps) {
 	return (
-		<PaginationNavButton slot="pagination-next" {...props}>
+		<PaginationNavButton slot="pagination-next" aria-label={ariaLabel} {...props}>
 			{children}
 		</PaginationNavButton>
 	)

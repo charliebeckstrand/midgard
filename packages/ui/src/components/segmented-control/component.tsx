@@ -20,6 +20,7 @@ export type SegmentedControlProps = SegmentedControlVariants & {
 	value?: string
 	defaultValue?: string
 	onValueChange?: (value: string | undefined) => void
+	'aria-label'?: string
 	className?: string
 	children?: React.ReactNode
 }
@@ -28,6 +29,7 @@ export function SegmentedControl({
 	value: valueProp,
 	defaultValue,
 	onValueChange,
+	'aria-label': ariaLabel,
 	size = 'md',
 	className,
 	children,
@@ -52,6 +54,7 @@ export function SegmentedControl({
 					ref={containerRef}
 					data-slot="segmented-control"
 					role="radiogroup"
+					aria-label={ariaLabel}
 					onKeyDown={handleKeyDown}
 					className={cn(segmentedControlVariants({ size }), className)}
 				>
