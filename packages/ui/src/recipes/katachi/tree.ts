@@ -5,13 +5,13 @@ import { sumi } from '../sumi'
 export type TreeColor = 'sky' | 'lime' | 'rose' | 'amber' | 'violet'
 
 export const treeColorMap: Record<TreeColor, string> = {
-	sky: 'text-sky-600 group-hover/tree-item:text-sky-800 group-data-[open]/tree-item:text-sky-800 dark:text-sky-600 dark:group-hover/tree-item:text-sky-400 dark:group-data-[open]/tree-item:text-sky-400',
-	lime: 'text-lime-600 group-hover/tree-item:text-lime-800 group-data-[open]/tree-item:text-lime-800 dark:text-lime-600 dark:group-hover/tree-item:text-lime-400 dark:group-data-[open]/tree-item:text-lime-400',
-	rose: 'text-rose-600 group-hover/tree-item:text-rose-800 group-data-[open]/tree-item:text-rose-800 dark:text-rose-600 dark:group-hover/tree-item:text-rose-400 dark:group-data-[open]/tree-item:text-rose-400',
+	sky: 'text-sky-600 group-hover/tree-item:text-sky-800 dark:text-sky-600 dark:group-hover/tree-item:text-sky-400 dark:group-data-[open]/tree-item:text-sky-400',
+	lime: 'text-lime-600 group-hover/tree-item:text-lime-800 dark:text-lime-600 dark:group-hover/tree-item:text-lime-400 dark:group-data-[open]/tree-item:text-lime-400',
+	rose: 'text-rose-600 group-hover/tree-item:text-rose-800 dark:text-rose-600 dark:group-hover/tree-item:text-rose-400 dark:group-data-[open]/tree-item:text-rose-400',
 	amber:
-		'text-amber-600 group-hover/tree-item:text-amber-800 group-data-[open]/tree-item:text-amber-800 dark:text-amber-600 dark:group-hover/tree-item:text-amber-400 dark:group-data-[open]/tree-item:text-amber-400',
+		'text-amber-600 group-hover/tree-item:text-amber-800 dark:text-amber-600 dark:group-hover/tree-item:text-amber-400 dark:group-data-[open]/tree-item:text-amber-400',
 	violet:
-		'text-violet-600 group-hover/tree-item:text-violet-800 group-data-[open]/tree-item:text-violet-800 dark:text-violet-600 dark:group-hover/tree-item:text-violet-400 dark:group-data-[open]/tree-item:text-violet-400',
+		'text-violet-600 group-hover/tree-item:text-violet-800 dark:text-violet-600 dark:group-hover/tree-item:text-violet-400 dark:group-data-[open]/tree-item:text-violet-400',
 }
 
 export const tree = {
