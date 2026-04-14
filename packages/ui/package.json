@@ -19,10 +19,6 @@
 			"types": "./src/hooks/index.ts",
 			"default": "./src/hooks/index.ts"
 		},
-		"./icon": {
-			"types": "./src/components/icon/index.ts",
-			"default": "./src/components/icon/index.ts"
-		},
 		"./accordion": {
 			"types": "./src/components/accordion/index.ts",
 			"default": "./src/components/accordion/index.ts"
@@ -43,10 +39,6 @@
 			"types": "./src/components/avatar/index.ts",
 			"default": "./src/components/avatar/index.ts"
 		},
-		"./breadcrumb": {
-			"types": "./src/components/breadcrumb/index.ts",
-			"default": "./src/components/breadcrumb/index.ts"
-		},
 		"./badge": {
 			"types": "./src/components/badge/index.ts",
 			"default": "./src/components/badge/index.ts"
@@ -62,6 +54,10 @@
 		"./box": {
 			"types": "./src/components/box/index.ts",
 			"default": "./src/components/box/index.ts"
+		},
+		"./breadcrumb": {
+			"types": "./src/components/breadcrumb/index.ts",
+			"default": "./src/components/breadcrumb/index.ts"
 		},
 		"./button": {
 			"types": "./src/components/button/index.ts",
@@ -79,6 +75,10 @@
 			"types": "./src/components/center/index.ts",
 			"default": "./src/components/center/index.ts"
 		},
+		"./checkbox": {
+			"types": "./src/components/checkbox/index.ts",
+			"default": "./src/components/checkbox/index.ts"
+		},
 		"./chip": {
 			"types": "./src/components/chip/index.ts",
 			"default": "./src/components/chip/index.ts"
@@ -87,17 +87,9 @@
 			"types": "./src/components/code/index.ts",
 			"default": "./src/components/code/index.ts"
 		},
-		"./checkbox": {
-			"types": "./src/components/checkbox/index.ts",
-			"default": "./src/components/checkbox/index.ts"
-		},
 		"./collapse": {
 			"types": "./src/components/collapse/index.ts",
 			"default": "./src/components/collapse/index.ts"
-		},
-		"./copy-button": {
-			"types": "./src/components/copy-button/index.ts",
-			"default": "./src/components/copy-button/index.ts"
 		},
 		"./combobox": {
 			"types": "./src/components/combobox/index.ts",
@@ -115,13 +107,9 @@
 			"types": "./src/components/control/index.ts",
 			"default": "./src/components/control/index.ts"
 		},
-		"./disclosure": {
-			"types": "./src/components/disclosure/index.ts",
-			"default": "./src/components/disclosure/index.ts"
-		},
-		"./dl": {
-			"types": "./src/components/dl/index.ts",
-			"default": "./src/components/dl/index.ts"
+		"./copy-button": {
+			"types": "./src/components/copy-button/index.ts",
+			"default": "./src/components/copy-button/index.ts"
 		},
 		"./datepicker": {
 			"types": "./src/components/datepicker/index.ts",
@@ -131,13 +119,37 @@
 			"types": "./src/components/dialog/index.ts",
 			"default": "./src/components/dialog/index.ts"
 		},
-		"./drawer": {
-			"types": "./src/components/drawer/index.ts",
-			"default": "./src/components/drawer/index.ts"
+		"./disclosure": {
+			"types": "./src/components/disclosure/index.ts",
+			"default": "./src/components/disclosure/index.ts"
 		},
 		"./divider": {
 			"types": "./src/components/divider/index.ts",
 			"default": "./src/components/divider/index.ts"
+		},
+		"./dl": {
+			"types": "./src/components/dl/index.ts",
+			"default": "./src/components/dl/index.ts"
+		},
+		"./drawer": {
+			"types": "./src/components/drawer/index.ts",
+			"default": "./src/components/drawer/index.ts"
+		},
+		"./fieldset": {
+			"types": "./src/components/fieldset/index.ts",
+			"default": "./src/components/fieldset/index.ts"
+		},
+		"./file-upload": {
+			"types": "./src/components/file-upload/index.ts",
+			"default": "./src/components/file-upload/index.ts"
+		},
+		"./filters": {
+			"types": "./src/components/filters/index.ts",
+			"default": "./src/components/filters/index.ts"
+		},
+		"./flex": {
+			"types": "./src/components/flex/index.ts",
+			"default": "./src/components/flex/index.ts"
 		},
 		"./glass": {
 			"types": "./src/components/glass/index.ts",
@@ -147,25 +159,13 @@
 			"types": "./src/components/grid/index.ts",
 			"default": "./src/components/grid/index.ts"
 		},
-		"./fieldset": {
-			"types": "./src/components/fieldset/index.ts",
-			"default": "./src/components/fieldset/index.ts"
-		},
-		"./filters": {
-			"types": "./src/components/filters/index.ts",
-			"default": "./src/components/filters/index.ts"
-		},
-		"./file-upload": {
-			"types": "./src/components/file-upload/index.ts",
-			"default": "./src/components/file-upload/index.ts"
-		},
-		"./flex": {
-			"types": "./src/components/flex/index.ts",
-			"default": "./src/components/flex/index.ts"
-		},
 		"./heading": {
 			"types": "./src/components/heading/index.ts",
 			"default": "./src/components/heading/index.ts"
+		},
+		"./icon": {
+			"types": "./src/components/icon/index.ts",
+			"default": "./src/components/icon/index.ts"
 		},
 		"./input": {
 			"types": "./src/components/input/index.ts",
@@ -199,13 +199,17 @@
 			"types": "./src/components/pagination/index.ts",
 			"default": "./src/components/pagination/index.ts"
 		},
+		"./password-confirm": {
+			"types": "./src/components/password-confirm/index.ts",
+			"default": "./src/components/password-confirm/index.ts"
+		},
 		"./password-input": {
 			"types": "./src/components/password-input/index.ts",
 			"default": "./src/components/password-input/index.ts"
 		},
-		"./password-confirm": {
-			"types": "./src/components/password-confirm/index.ts",
-			"default": "./src/components/password-confirm/index.ts"
+		"./placeholder": {
+			"types": "./src/components/placeholder/index.ts",
+			"default": "./src/components/placeholder/index.ts"
 		},
 		"./popover": {
 			"types": "./src/components/popover/index.ts",
@@ -214,10 +218,6 @@
 		"./progress": {
 			"types": "./src/components/progress/index.ts",
 			"default": "./src/components/progress/index.ts"
-		},
-		"./placeholder": {
-			"types": "./src/components/placeholder/index.ts",
-			"default": "./src/components/placeholder/index.ts"
 		},
 		"./radio": {
 			"types": "./src/components/radio/index.ts",
@@ -246,6 +246,10 @@
 		"./sheet": {
 			"types": "./src/components/sheet/index.ts",
 			"default": "./src/components/sheet/index.ts"
+		},
+		"./shiny-text": {
+			"types": "./src/components/shiny-text/index.ts",
+			"default": "./src/components/shiny-text/index.ts"
 		},
 		"./sidebar": {
 			"types": "./src/components/sidebar/index.ts",
@@ -295,18 +299,6 @@
 			"types": "./src/components/switch/index.ts",
 			"default": "./src/components/switch/index.ts"
 		},
-		"./toast": {
-			"types": "./src/components/toast/index.ts",
-			"default": "./src/components/toast/index.ts"
-		},
-		"./toggle-icon-button": {
-			"types": "./src/components/toggle-icon-button/index.ts",
-			"default": "./src/components/toggle-icon-button/index.ts"
-		},
-		"./tooltip": {
-			"types": "./src/components/tooltip/index.ts",
-			"default": "./src/components/tooltip/index.ts"
-		},
 		"./table": {
 			"types": "./src/components/table/index.ts",
 			"default": "./src/components/table/index.ts"
@@ -331,6 +323,18 @@
 			"types": "./src/components/timeline/index.ts",
 			"default": "./src/components/timeline/index.ts"
 		},
+		"./toast": {
+			"types": "./src/components/toast/index.ts",
+			"default": "./src/components/toast/index.ts"
+		},
+		"./toggle-icon-button": {
+			"types": "./src/components/toggle-icon-button/index.ts",
+			"default": "./src/components/toggle-icon-button/index.ts"
+		},
+		"./tooltip": {
+			"types": "./src/components/tooltip/index.ts",
+			"default": "./src/components/tooltip/index.ts"
+		},
 		"./tree": {
 			"types": "./src/components/tree/index.ts",
 			"default": "./src/components/tree/index.ts"
@@ -346,10 +350,6 @@
 		"./pages": {
 			"types": "./src/pages/index.ts",
 			"default": "./src/pages/index.ts"
-		},
-		"./shiny-text": {
-			"types": "./src/components/shiny-text/index.ts",
-			"default": "./src/components/shiny-text/index.ts"
 		}
 	},
 	"scripts": {

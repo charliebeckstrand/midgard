@@ -7,7 +7,7 @@ import {
 	useMotionValue,
 	useTransform,
 } from 'motion/react'
-import { type FC, useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { cn } from '../../core'
 
 export interface ShinyTextProps {
@@ -24,7 +24,7 @@ export interface ShinyTextProps {
 	delay?: number
 }
 
-export const ShinyText: FC<ShinyTextProps> = ({
+export function ShinyText({
 	text,
 	disabled = false,
 	speed = 2,
@@ -36,7 +36,7 @@ export const ShinyText: FC<ShinyTextProps> = ({
 	pauseOnHover = false,
 	direction = 'left',
 	delay = 0,
-}) => {
+}: ShinyTextProps) {
 	const [isPaused, setIsPaused] = useState(false)
 	const progress = useMotionValue(0)
 	const elapsedRef = useRef(0)
@@ -117,6 +117,7 @@ export const ShinyText: FC<ShinyTextProps> = ({
 
 	return (
 		<motion.span
+			data-slot="shiny-text"
 			className={cn('inline-block', className)}
 			style={{ ...gradientStyle, backgroundPosition }}
 			onMouseEnter={handleMouseEnter}
