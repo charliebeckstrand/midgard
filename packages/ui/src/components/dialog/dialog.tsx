@@ -2,9 +2,8 @@
 
 import { motion } from 'motion/react'
 import type React from 'react'
-import { useId } from 'react'
 import { cn } from '../../core'
-import { useIsDesktop } from '../../hooks'
+import { useIdScope, useIsDesktop } from '../../hooks'
 import { Overlay, PanelA11yProvider } from '../../primitives'
 import { ugoki } from '../../recipes'
 import { useGlass } from '../glass/context'
@@ -37,9 +36,9 @@ export function Dialog({
 	const glassContext = useGlass()
 	const resolvedGlass = glass ?? glassContext
 	const isDesktop = useIsDesktop()
-	const id = useId()
-	const titleId = `${id}-title`
-	const descriptionId = `${id}-description`
+	const scope = useIdScope()
+	const titleId = scope.sub('title')
+	const descriptionId = scope.sub('description')
 
 	return (
 		<Overlay open={open} onClose={onClose} outsideClick={outsideClick} glass={resolvedGlass}>

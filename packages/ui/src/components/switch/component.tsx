@@ -26,11 +26,12 @@ export function Switch({ className, color, size, id, disabled, required, ...prop
 	const resolvedId = id ?? control?.id
 	const resolvedDisabled = disabled ?? control?.disabled
 	const resolvedRequired = required ?? control?.required
+	const resolvedSize = size ?? (control?.size as SwitchVariants['size'])
 
 	if (useSkeleton()) {
 		return (
 			<Placeholder
-				className={cn(kokkaku.switch.base, kokkaku.switch.size[size ?? 'md'], className)}
+				className={cn(kokkaku.switch.base, kokkaku.switch.size[resolvedSize ?? 'md'], className)}
 			/>
 		)
 	}
@@ -38,7 +39,11 @@ export function Switch({ className, color, size, id, disabled, required, ...prop
 	return (
 		<label
 			data-slot="control"
-			className={cn(k.wrapper, switchVariants({ size }), switchColorVariants({ color }))}
+			className={cn(
+				k.wrapper,
+				switchVariants({ size: resolvedSize }),
+				switchColorVariants({ color }),
+			)}
 		>
 			<input
 				type="checkbox"
