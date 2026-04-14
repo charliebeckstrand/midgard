@@ -7,6 +7,7 @@ import { useRovingActive } from '../../hooks/use-keyboard'
 import { Button } from '../button'
 import { Dialog, DialogBody, type DialogPanelVariants } from '../dialog'
 import { Icon } from '../icon'
+import { Flex } from '../flex'
 import { Input } from '../input'
 import { CommandPaletteProvider } from './context'
 
@@ -64,7 +65,7 @@ export function CommandPalette({
 			className={className}
 		>
 			<CommandPaletteProvider value={{ close: onClose, query }}>
-				<div className="flex items-center gap-2">
+				<Flex gap={2}>
 					<Input
 						ref={inputRef}
 						prefix={icon ?? <Icon icon={<Search />} />}
@@ -80,7 +81,7 @@ export function CommandPalette({
 					<Button variant="plain" aria-label="Close" onClick={onClose}>
 						<Icon icon={<X />} />
 					</Button>
-				</div>
+				</Flex>
 				<DialogBody className="mt-2">
 					<div ref={listRef} role="listbox" data-slot="command-palette-list">
 						{rendered}

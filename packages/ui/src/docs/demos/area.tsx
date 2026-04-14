@@ -1,4 +1,5 @@
 import { Area } from '../../components/area'
+import { Stack } from '../../components/stack'
 import { code } from '../code'
 import { Example } from '../components/example'
 
@@ -6,7 +7,7 @@ export const meta = { category: 'Layout' }
 
 export default function AreaDemo() {
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example
 				title="Default"
 				code={code`
@@ -28,11 +29,11 @@ export default function AreaDemo() {
 					<Area padding="lg">Large</Area>
 				`}
 			>
-				<div className="space-y-4">
+				<Stack gap={4}>
 					<Area padding="sm">Small</Area>
 					<Area padding="md">Medium</Area>
 					<Area padding="lg">Large</Area>
-				</div>
+				</Stack>
 			</Example>
 
 			<Example
@@ -44,15 +45,15 @@ export default function AreaDemo() {
 					<Area border="solid" padding="md">Solid</Area>
 				`}
 			>
-				<div className="space-y-4">
+				<Stack gap={4}>
 					<Area border="dashed" padding="md">
 						Dashed
 					</Area>
 					<Area border="solid" padding="md">
 						Solid
 					</Area>
-				</div>
+				</Stack>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

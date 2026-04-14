@@ -1,5 +1,6 @@
 import { Checkbox, CheckboxField, CheckboxGroup } from '../../components/checkbox'
 import { Description, Label } from '../../components/fieldset'
+import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
@@ -8,7 +9,7 @@ const colors = ['blue', 'green', 'red'] as const
 
 export default function CheckboxDemo() {
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example title="Default">
 				<CheckboxGroup>
 					<CheckboxField>
@@ -54,6 +55,6 @@ export default function CheckboxDemo() {
 					</CheckboxField>
 				</CheckboxGroup>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

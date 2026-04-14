@@ -1,6 +1,7 @@
 import { Area } from '../../components/area'
 import { Card } from '../../components/card'
 import { Center } from '../../components/center'
+import { Stack } from '../../components/stack'
 import { code } from '../code'
 import { Example } from '../components/example'
 
@@ -8,7 +9,7 @@ export const meta = { category: 'Layout' }
 
 export default function CenterDemo() {
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example
 				title="Default"
 				code={code`
@@ -57,6 +58,6 @@ export default function CenterDemo() {
 					OK
 				</Center>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

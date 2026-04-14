@@ -11,6 +11,8 @@ import { Heading } from 'ui/heading'
 import { Placeholder } from 'ui/placeholder'
 import { Sheet, SheetBody, SheetClose, SheetDescription, SheetTitle } from 'ui/sheet'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from 'ui/table'
+import { Flex } from 'ui/flex'
+import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
 
 interface UserDetailsClientProps {
@@ -56,10 +58,10 @@ export function UserDetailsClient({ details, chats: initialChats }: UserDetailsC
 
 	return (
 		<>
-			<div className="flex flex-col gap-6">
+			<Stack gap={6}>
 				<Heading>{details?.email}</Heading>
 
-				<div className="flex flex-col">
+				<Stack>
 					<Heading level={2}>Chats</Heading>
 
 					<Table>
@@ -90,28 +92,28 @@ export function UserDetailsClient({ details, chats: initialChats }: UserDetailsC
 										})}
 									</TableCell>
 									<TableCell>
-										<div className="flex items-center gap-1">
+										<Flex gap={1}>
 											<Button variant="outline" onClick={() => setViewChat(chat.id)}>
 												View
 											</Button>
 											<Button variant="outline" onClick={() => setConfirmDeleteChat(chat.id)}>
 												Delete
 											</Button>
-										</div>
+										</Flex>
 									</TableCell>
 								</TableRow>
 							))}
 						</TableBody>
 					</Table>
-				</div>
-			</div>
+				</Stack>
+			</Stack>
 
 			<Sheet open={viewChat !== null} onClose={() => setViewChat(null)} size="3xl">
-				<div className="flex items-center justify-between">
-					<div className="flex flex-col">
+				<Flex justify="between">
+					<Stack gap={0}>
 						<SheetTitle>Chat History</SheetTitle>
 						<SheetDescription>{viewChat}</SheetDescription>
-					</div>
+					</Stack>
 					<SheetClose>
 						<button
 							type="button"
@@ -120,7 +122,7 @@ export function UserDetailsClient({ details, chats: initialChats }: UserDetailsC
 							<XMarkIcon className="size-6" />
 						</button>
 					</SheetClose>
-				</div>
+				</Flex>
 				<SheetBody>
 					{loadingMessages ? (
 						<Placeholder />

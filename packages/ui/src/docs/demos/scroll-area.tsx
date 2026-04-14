@@ -3,7 +3,9 @@
 import { useState } from 'react'
 import { Badge } from '../../components/badge'
 import { Card, CardBody, CardHeader, CardTitle } from '../../components/card'
+import { Flex } from '../../components/flex'
 import { ScrollArea } from '../../components/scroll-area'
+import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
 import { Example } from '../components/example'
 import { SizeListbox } from '../components/size-listbox'
@@ -42,17 +44,17 @@ export default function ScrollAreaDemo() {
 	const [bothSize, setBothSize] = useState<Size>('md')
 
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example
 				title="Vertical with size"
 				actions={<SizeListbox sizes={sizes} value={verticalSize} onChange={setVerticalSize} />}
 			>
 				<ScrollArea size={verticalSize} rounded className="max-w-96">
-					<div className="space-y-4">
+					<Stack gap={4}>
 						{paragraphs.map((p) => (
 							<Text key={p.id}>{p.text}</Text>
 						))}
-					</div>
+					</Stack>
 				</ScrollArea>
 			</Example>
 
@@ -61,11 +63,11 @@ export default function ScrollAreaDemo() {
 				actions={<SizeListbox sizes={sizes} value={horizontalSize} onChange={setHorizontalSize} />}
 			>
 				<ScrollArea orientation="horizontal" size={horizontalSize} rounded>
-					<div className="flex w-max gap-2">
+					<Flex gap={2} className="w-max">
 						{tags.map((tag) => (
 							<Badge key={tag}>{tag}</Badge>
 						))}
-					</div>
+					</Flex>
 				</ScrollArea>
 			</Example>
 
@@ -74,33 +76,33 @@ export default function ScrollAreaDemo() {
 				actions={<SizeListbox sizes={sizes} value={bothSize} onChange={setBothSize} />}
 			>
 				<ScrollArea orientation="both" size={bothSize} rounded>
-					<div className="w-max space-y-4">
+					<Stack gap={4} className="w-max">
 						{paragraphs.map((p) => (
 							<Text key={p.id} className="whitespace-nowrap">
 								{p.text}
 							</Text>
 						))}
-					</div>
+					</Stack>
 				</ScrollArea>
 			</Example>
 
 			<Example title="Hidden scrollbar">
 				<ScrollArea size="md" scrollbar="hidden" rounded className="max-w-96">
-					<div className="space-y-4">
+					<Stack gap={4}>
 						{paragraphs.map((p) => (
 							<Text key={p.id}>{p.text}</Text>
 						))}
-					</div>
+					</Stack>
 				</ScrollArea>
 			</Example>
 
 			<Example title="Visible scrollbar">
 				<ScrollArea size="md" scrollbar="visible" rounded className="max-w-96">
-					<div className="space-y-4">
+					<Stack gap={4}>
 						{paragraphs.map((p) => (
 							<Text key={p.id}>{p.text}</Text>
 						))}
-					</div>
+					</Stack>
 				</ScrollArea>
 			</Example>
 
@@ -111,15 +113,15 @@ export default function ScrollAreaDemo() {
 					</CardHeader>
 					<CardBody>
 						<ScrollArea bare size="md">
-							<div className="space-y-4">
+							<Stack gap={4}>
 								{paragraphs.map((p) => (
 									<Text key={p.id}>{p.text}</Text>
 								))}
-							</div>
+							</Stack>
 						</ScrollArea>
 					</CardBody>
 				</Card>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

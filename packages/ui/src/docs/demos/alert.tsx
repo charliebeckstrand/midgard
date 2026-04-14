@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Alert } from '../../components/alert'
 import { Button } from '../../components/button'
+import { Stack } from '../../components/stack'
 import { code } from '../code'
 import { Example } from '../components/example'
 import { VariantListbox } from '../components/variant-listbox'
@@ -60,13 +61,13 @@ export default function AlertDemo() {
 	const [colorVariant, setColorVariant] = useState<(typeof colorVariants)[number]>('soft')
 
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example title="Variants">
-				<div className="flex flex-col gap-3">
+				<Stack gap={3}>
 					{variants.map((variant) => (
 						<Alert key={variant} variant={variant} title={`${cap(variant)} alert`} />
 					))}
-				</div>
+				</Stack>
 			</Example>
 			<Example
 				title="Colors"
@@ -78,21 +79,21 @@ export default function AlertDemo() {
 					/>
 				}
 			>
-				<div className="flex flex-col gap-3">
+				<Stack gap={3}>
 					{colors.map((color) => (
 						<Alert key={color} variant={colorVariant} color={color} title={cap(color)} />
 					))}
-				</div>
+				</Stack>
 			</Example>
 			<Example title="Types">
-				<div className="flex flex-col gap-3">
+				<Stack gap={3}>
 					{types.map((type) => (
 						<Alert key={type} type={type} title={`${cap(type)} alert`} />
 					))}
-				</div>
+				</Stack>
 			</Example>
 			<Example title="With description">
-				<div className="flex flex-col gap-3">
+				<Stack gap={3}>
 					{types.map((type) => (
 						<Alert
 							key={type}
@@ -101,7 +102,7 @@ export default function AlertDemo() {
 							description="This is a description providing more details about the alert."
 						/>
 					))}
-				</div>
+				</Stack>
 			</Example>
 			<Example
 				title="Closable"
@@ -140,6 +141,6 @@ export default function AlertDemo() {
 			>
 				<ClosableBlockDemo />
 			</Example>
-		</div>
+		</Stack>
 	)
 }

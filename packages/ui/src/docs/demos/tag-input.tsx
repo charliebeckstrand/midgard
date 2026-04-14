@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Field, Label } from '../../components/fieldset'
 import { Sizer } from '../../components/sizer'
+import { Stack } from '../../components/stack'
 import { TagInput } from '../../components/tag-input'
 import { code } from '../code'
 import { Example } from '../components/example'
@@ -61,7 +62,7 @@ function MaxTagInput() {
 
 export default function TagInputDemo() {
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example
 				title="Default"
 				code={code`
@@ -98,6 +99,6 @@ export default function TagInputDemo() {
 					</Field>
 				</Sizer>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

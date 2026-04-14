@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Code, CodeBlock } from '../../components/code'
+import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
 import { code } from '../code'
 import { Example } from '../components/example'
@@ -17,7 +18,7 @@ export default function CodeDemo() {
 	const [size, setSize] = useState<Size>('md')
 
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example
 				title="Default"
 				actions={<SizeListbox sizes={sizes} value={size} onChange={setSize} />}
@@ -62,6 +63,6 @@ export default function CodeDemo() {
 			>
 				<CodeBlock inline lang="bash" code="pnpm add ui" />
 			</Example>
-		</div>
+		</Stack>
 	)
 }

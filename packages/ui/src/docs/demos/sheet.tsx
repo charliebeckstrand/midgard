@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Button } from '../../components/button'
+import { Flex } from '../../components/flex'
 import { Sheet, SheetActions, SheetBody, SheetTitle } from '../../components/sheet'
+import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Overlay' }
@@ -12,9 +14,9 @@ export default function SheetDemo() {
 	const [glassRightOpen, setGlassRightOpen] = useState(false)
 
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example title="Default">
-				<div className="flex gap-3">
+				<Flex gap={3}>
 					<Button variant="outline" onClick={() => setLeftOpen(true)}>
 						Open Left
 					</Button>
@@ -40,11 +42,11 @@ export default function SheetDemo() {
 							<Button onClick={() => setRightOpen(false)}>Close</Button>
 						</SheetActions>
 					</Sheet>
-				</div>
+				</Flex>
 			</Example>
 
 			<Example title="Glass">
-				<div className="flex gap-3">
+				<Flex gap={3}>
 					<Button variant="outline" onClick={() => setGlassLeftOpen(true)}>
 						Open Left
 					</Button>
@@ -72,8 +74,8 @@ export default function SheetDemo() {
 							<Button onClick={() => setGlassRightOpen(false)}>Close</Button>
 						</SheetActions>
 					</Sheet>
-				</div>
+				</Flex>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

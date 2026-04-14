@@ -1,8 +1,10 @@
 'use client'
 
 import { useState } from 'react'
+import { Flex } from '../../components/flex'
 import { Sizer } from '../../components/sizer'
 import { Slider } from '../../components/slider'
+import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
 import { code } from '../code'
 import { Example } from '../components/example'
@@ -47,10 +49,10 @@ function RangeAndStep() {
 		<Example
 			title="Range and step"
 			actions={
-				<div className="flex flex-col items-end gap-1">
+				<Stack gap={1} align="end">
 					<ValueStepper value={ratio} onChange={setRatio} min={0} max={1} step={0.1} />
 					<ValueStepper value={signed} onChange={setSigned} min={-50} max={50} step={5} />
-				</div>
+				</Stack>
 			}
 			code={code`
 				import { Slider } from 'ui/slider'
@@ -69,25 +71,25 @@ function RangeAndStep() {
 
 export default function SliderDemo() {
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Interactive />
 			<Example title="Sizes">
 				<Sizer>
 					{sizes.map((s, i) => (
-						<div key={s} className="flex items-center gap-3">
+						<Flex key={s} gap={3}>
 							<span className="w-6 text-xs text-zinc-500">{s}</span>
 							<Slider size={s} defaultValue={40 + i * 20} className="flex-1" />
-						</div>
+						</Flex>
 					))}
 				</Sizer>
 			</Example>
 			<Example title="Colors">
 				<Sizer>
 					{colors.map((color) => (
-						<div key={color} className="flex items-center gap-3">
+						<Flex key={color} gap={3}>
 							<span className="w-10 text-xs text-zinc-500">{cap(color)}</span>
 							<Slider color={color} defaultValue={60} className="flex-1" />
-						</div>
+						</Flex>
 					))}
 				</Sizer>
 			</Example>
@@ -97,6 +99,6 @@ export default function SliderDemo() {
 					<Slider disabled defaultValue={40} />
 				</Sizer>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

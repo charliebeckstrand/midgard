@@ -3,6 +3,7 @@ import { Combobox, ComboboxLabel, ComboboxOption } from '../../components/combob
 import { Field, Label } from '../../components/fieldset'
 import { Glass } from '../../components/glass'
 import { Sizer } from '../../components/sizer'
+import { Stack } from '../../components/stack'
 import { code } from '../code'
 import { Example } from '../components/example'
 
@@ -77,7 +78,7 @@ function MultiCombobox() {
 
 export default function ComboboxDemo() {
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example
 				title="Single"
 				code={code`
@@ -140,6 +141,6 @@ export default function ComboboxDemo() {
 					<SingleCombobox />
 				</Glass>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

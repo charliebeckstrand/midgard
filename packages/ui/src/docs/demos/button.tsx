@@ -3,8 +3,10 @@
 import { Plus } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../../components/button'
+import { Flex } from '../../components/flex'
 import { Glass } from '../../components/glass'
 import { Icon } from '../../components/icon'
+import { Stack } from '../../components/stack'
 import { ColorListbox } from '../components/color-listbox'
 import { Example } from '../components/example'
 import { SizeListbox, sizeLabels } from '../components/size-listbox'
@@ -32,15 +34,15 @@ export default function ButtonDemo() {
 	const [iconOnlySize, setIconOnlySize] = useState<Size>('md')
 
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example title="Variants">
-				<div className="flex flex-wrap gap-2">
+				<Flex wrap gap={2}>
 					{variants.map((variant) => (
 						<Button key={variant} variant={variant}>
 							{variant}
 						</Button>
 					))}
-				</div>
+				</Flex>
 			</Example>
 			<Example
 				title="Colors"
@@ -48,72 +50,72 @@ export default function ButtonDemo() {
 					<VariantListbox variants={variants} value={colorVariant} onChange={setColorVariant} />
 				}
 			>
-				<div className="flex flex-wrap gap-2">
+				<Flex wrap gap={2}>
 					{colors.map((color) => (
 						<Button key={color} variant={colorVariant} color={color}>
 							{color}
 						</Button>
 					))}
-				</div>
+				</Flex>
 			</Example>
 			<Example title="Sizes">
-				<div className="flex flex-wrap items-center gap-2">
+				<Flex wrap gap={2}>
 					{sizes.map((s) => (
 						<Button key={s} size={s}>
 							{sizeLabels[s] ?? s}
 						</Button>
 					))}
-				</div>
+				</Flex>
 			</Example>
 			<Example
 				title="With icon"
 				actions={<SizeListbox sizes={sizes} value={iconSize} onChange={setIconSize} />}
 			>
-				<div className="flex flex-wrap gap-2">
+				<Flex wrap gap={2}>
 					{variants.map((variant) => (
 						<Button key={variant} variant={variant} size={iconSize}>
 							<Icon icon={<Plus />} />
 							{variant}
 						</Button>
 					))}
-				</div>
+				</Flex>
 			</Example>
 			<Example
 				title="Icon only"
 				actions={<SizeListbox sizes={sizes} value={iconOnlySize} onChange={setIconOnlySize} />}
 			>
-				<div className="flex flex-wrap gap-2">
+				<Flex wrap gap={2}>
 					{variants.map((variant) => (
 						<Button key={variant} variant={variant} size={iconOnlySize}>
 							<Icon icon={<Plus />} />
 						</Button>
 					))}
-				</div>
+				</Flex>
 			</Example>
 			<Example
 				title="Ripple"
 				actions={<ColorListbox colors={colors} value={rippleColor} onChange={setRippleColor} />}
 			>
-				<div className="flex flex-wrap gap-2">
+				<Flex wrap gap={2}>
 					{variants.map((variant) => (
 						<Button key={variant} variant={variant} color={rippleColor} ripple>
 							{variant}
 						</Button>
 					))}
-				</div>
+				</Flex>
 			</Example>
 			<Example title="Spring">
 				<Button spring>Spring</Button>
 			</Example>
 			<Example title="Glass">
 				<Glass>
-					<div className="flex flex-wrap gap-2">
+					<Flex wrap gap={2}>
 						<Button>Glass</Button>
 						<Button variant="glass">
 							<Icon icon={<Plus />} />
 							With icon
 						</Button>
-					</div>
+					</Flex>
 				</Glass>
 			</Example>
 			<Example title="Disabled">
@@ -122,6 +124,6 @@ export default function ButtonDemo() {
 			<Example title="Loading">
 				<Button loading>Loading</Button>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

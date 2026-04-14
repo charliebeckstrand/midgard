@@ -10,7 +10,7 @@ export const meta = { category: 'Layout' }
 
 export default function SpacerDemo() {
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example
 				title="Push apart"
 				code={code`
@@ -59,6 +59,6 @@ export default function SpacerDemo() {
 					</Stack>
 				</Area>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

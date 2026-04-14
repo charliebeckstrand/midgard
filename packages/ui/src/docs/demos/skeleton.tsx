@@ -16,6 +16,8 @@ import { Skeleton } from '../../components/skeleton'
 import { Switch } from '../../components/switch'
 import { Text } from '../../components/text'
 import { Textarea } from '../../components/textarea'
+import { Flex } from '../../components/flex'
+import { Stack } from '../../components/stack'
 import { code } from '../code'
 import { Example } from '../components/example'
 
@@ -88,13 +90,13 @@ function TransitionDemo() {
 				<Sizer>
 					<Card>
 						<CardHeader>
-							<div className="flex items-center gap-3">
+							<Flex gap={3}>
 								<Avatar initials="JD" />
 								<div className="flex-1 space-y-1">
 									<Heading level={5}>Jane Doe</Heading>
 									<Text>Senior Engineer</Text>
 								</div>
-							</div>
+							</Flex>
 						</CardHeader>
 						<CardBody>
 							<Text>Design systems & component libraries.</Text>
@@ -108,7 +110,7 @@ function TransitionDemo() {
 
 export default function SkeletonDemo() {
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<DynamicExample />
 
 			<Example title="Form">
@@ -133,6 +135,6 @@ export default function SkeletonDemo() {
 			>
 				<TransitionDemo />
 			</Example>
-		</div>
+		</Stack>
 	)
 }

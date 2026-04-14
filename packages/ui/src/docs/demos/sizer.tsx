@@ -1,5 +1,6 @@
 import { Input } from '../../components/input'
 import { Sizer } from '../../components/sizer'
+import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Layout' }
@@ -8,7 +9,7 @@ const sizes = ['xs', 'sm', 'md', 'lg', 'xl'] as const
 
 export default function SizerDemo() {
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example title="Sizes">
 				{sizes.map((size) => (
 					<Sizer key={size} size={size}>
@@ -16,6 +17,6 @@ export default function SizerDemo() {
 					</Sizer>
 				))}
 			</Example>
-		</div>
+		</Stack>
 	)
 }

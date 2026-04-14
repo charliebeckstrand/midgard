@@ -2,6 +2,7 @@
 
 import { Area } from '../../components/area'
 import { ResizableGroup, ResizableHandle, ResizablePanel } from '../../components/resizable'
+import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Layout' }
@@ -10,7 +11,7 @@ const Pane = () => <Area border="solid" />
 
 export default function ResizableDemo() {
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example title="Horizontal">
 				<div className="h-48">
 					<ResizableGroup>
@@ -56,6 +57,6 @@ export default function ResizableDemo() {
 					</ResizableGroup>
 				</div>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

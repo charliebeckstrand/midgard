@@ -1,8 +1,10 @@
 import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from 'lucide-react'
 import { Button } from '../../components/button'
+import { Flex } from '../../components/flex'
 import { Glass } from '../../components/glass'
 import { Icon } from '../../components/icon'
 import { Popover, PopoverContent, PopoverTrigger } from '../../components/popover'
+import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Overlay' }
@@ -25,7 +27,7 @@ const popoverContent = (
 
 export default function PopoverDemo() {
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example title="Default">
 				<Popover>
 					<PopoverTrigger>
@@ -54,7 +56,7 @@ export default function PopoverDemo() {
 
 			<Example title="Placement">
 				<div>
-					<div className="hidden items-center justify-center gap-4 sm:flex">
+					<Flex justify="center" gap={4} className="hidden sm:flex">
 						{placements.map((placement) => (
 							<Popover key={placement} placement={placement}>
 								<PopoverTrigger>
@@ -71,9 +73,9 @@ export default function PopoverDemo() {
 								<PopoverContent>Popover {placement}</PopoverContent>
 							</Popover>
 						))}
-					</div>
-					<div className="space-y-4 sm:hidden">
-						<div className="flex flex-col gap-4">
+					</Flex>
+					<Stack gap={4} className="sm:hidden">
+						<Stack gap={4}>
 							{(['right', 'bottom'] as const).map((placement) => (
 								<Popover key={placement} placement={placement}>
 									<PopoverTrigger>
@@ -85,8 +87,8 @@ export default function PopoverDemo() {
 									<PopoverContent>Popover {placement}</PopoverContent>
 								</Popover>
 							))}
-						</div>
-						<div className="flex flex-col items-end gap-4">
+						</Stack>
+						<Stack gap={4} align="end">
 							{(['top', 'left'] as const).map((placement) => (
 								<Popover key={placement} placement={placement}>
 									<PopoverTrigger>
@@ -98,10 +100,10 @@ export default function PopoverDemo() {
 									<PopoverContent>Popover {placement}</PopoverContent>
 								</Popover>
 							))}
-						</div>
-					</div>
+						</Stack>
+					</Stack>
 				</div>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

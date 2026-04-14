@@ -2,6 +2,7 @@
 
 import { Fragment, useState } from 'react'
 import { Alert, AlertDescription } from '../../components/alert'
+import { Stack } from '../../components/stack'
 import {
 	Stepper,
 	StepperPanel,
@@ -31,7 +32,7 @@ export default function StepperDemo() {
 	const [panelsValue, setPanelsValue] = useState(0)
 
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Alert type="info" closable>
 				<AlertDescription>
 					When <code>orientation</code> is not explicitly set, the stepper defaults to{' '}
@@ -136,6 +137,6 @@ export default function StepperDemo() {
 					))}
 				</Stepper>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

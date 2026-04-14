@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { DatePicker } from '../../components/datepicker'
 import { Glass } from '../../components/glass'
+import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
@@ -11,17 +12,17 @@ export default function DatePickerDemo() {
 	const [glassRange, setGlassRange] = useState<[Date, Date] | undefined>(undefined)
 
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example title="Default">
-				<div className="sm:max-w-72 space-y-2">
+				<Stack gap={2} className="sm:max-w-72">
 					<DatePicker value={date} onChange={setDate} />
-				</div>
+				</Stack>
 			</Example>
 
 			<Example title="Range">
-				<div className="sm:max-w-72 space-y-2">
+				<Stack gap={2} className="sm:max-w-72">
 					<DatePicker range value={range} onChange={setRange} />
-				</div>
+				</Stack>
 			</Example>
 
 			<Example title="Disabled">
@@ -37,6 +38,6 @@ export default function DatePickerDemo() {
 					</div>
 				</Glass>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

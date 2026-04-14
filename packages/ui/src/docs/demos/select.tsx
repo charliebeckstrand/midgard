@@ -2,13 +2,14 @@ import { Field, Label } from '../../components/fieldset'
 import { Glass } from '../../components/glass'
 import { Select, SelectLabel, SelectOption } from '../../components/select'
 import { Sizer } from '../../components/sizer'
+import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
 
 export default function SelectDemo() {
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example title="Default">
 				<Sizer>
 					<Field>
@@ -54,6 +55,6 @@ export default function SelectDemo() {
 					</Sizer>
 				</Glass>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

@@ -3,6 +3,7 @@ import { Area } from '../../components/area'
 import { AspectRatio, type AspectRatioPreset } from '../../components/aspect-ratio'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 import { Sizer } from '../../components/sizer'
+import { Stack } from '../../components/stack'
 import { code } from '../code'
 import { Example } from '../components/example'
 
@@ -49,7 +50,7 @@ function PresetsExample() {
 
 export default function AspectRatioDemo() {
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<PresetsExample />
 
 			<Example
@@ -70,6 +71,6 @@ export default function AspectRatioDemo() {
 					</AspectRatio>
 				</Sizer>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

@@ -1,5 +1,6 @@
 import { Card } from '../../components/card'
 import { Split } from '../../components/split'
+import { Stack } from '../../components/stack'
 import { code } from '../code'
 import { Example } from '../components/example'
 
@@ -7,7 +8,7 @@ export const meta = { category: 'Layout' }
 
 export default function SplitDemo() {
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example
 				title="Equal split"
 				code={code`
@@ -62,6 +63,6 @@ export default function SplitDemo() {
 					<Card>Body (3/4)</Card>
 				</Split>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

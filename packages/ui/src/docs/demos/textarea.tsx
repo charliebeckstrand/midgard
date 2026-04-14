@@ -5,6 +5,7 @@ import { Field, Label } from '../../components/fieldset'
 import { Icon } from '../../components/icon'
 import { Sizer } from '../../components/sizer'
 import { Spacer } from '../../components/spacer'
+import { Stack } from '../../components/stack'
 import { Textarea } from '../../components/textarea'
 import { code } from '../code'
 import { Example } from '../components/example'
@@ -16,7 +17,7 @@ export default function TextareaDemo() {
 	const [withActionsValue, setWithActionsValue] = useState('')
 
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example title="Default">
 				<Sizer>
 					<Field>
@@ -137,6 +138,6 @@ export default function TextareaDemo() {
 					</Field>
 				</Sizer>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

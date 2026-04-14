@@ -6,6 +6,7 @@ import { Area } from '../../components/area'
 import { Nav, NavContent, NavContents, NavItem, NavList, NavProvider } from '../../components/nav'
 import { Navbar } from '../../components/navbar'
 import { Spacer } from '../../components/spacer'
+import { Stack } from '../../components/stack'
 import { code } from '../code'
 import { Example } from '../components/example'
 
@@ -25,7 +26,7 @@ export default function NavbarDemo() {
 	const [current, setCurrent] = useState('home')
 
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example title="Default">
 				<Navbar variant="outline">
 					<Nav value="home">
@@ -149,6 +150,6 @@ export default function NavbarDemo() {
 					</NavList>
 				</Navbar>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

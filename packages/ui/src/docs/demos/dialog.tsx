@@ -11,6 +11,7 @@ import {
 } from '../../components/dialog'
 import { Field, Label } from '../../components/fieldset'
 import { Input } from '../../components/input'
+import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
 import { Textarea } from '../../components/textarea'
 import { Example } from '../components/example'
@@ -25,7 +26,7 @@ export default function DialogDemo() {
 	const [accepted, setAccepted] = useState(false)
 
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example title="Dialog">
 				<Button color="green" onClick={() => setOpen(true)}>
 					Create project
@@ -33,15 +34,17 @@ export default function DialogDemo() {
 				<Dialog open={open} onClose={() => setOpen(false)}>
 					<DialogTitle>Create project</DialogTitle>
 					<DialogDescription>Enter the details for your new project.</DialogDescription>
-					<DialogBody className="space-y-4">
-						<Field>
-							<Label>Project name</Label>
-							<Input placeholder="My Project" />
-						</Field>
-						<Field>
-							<Label>Project description</Label>
-							<Textarea placeholder="A short description of your project" />
-						</Field>
+					<DialogBody>
+						<Stack gap={4}>
+							<Field>
+								<Label>Project name</Label>
+								<Input placeholder="My Project" />
+							</Field>
+							<Field>
+								<Label>Project description</Label>
+								<Textarea placeholder="A short description of your project" />
+							</Field>
+						</Stack>
 					</DialogBody>
 					<DialogActions>
 						<Button variant="plain" onClick={() => setOpen(false)}>
@@ -57,11 +60,13 @@ export default function DialogDemo() {
 				<Button onClick={() => setGlassOpen(true)}>Open glass dialog</Button>
 				<Dialog glass open={glassOpen} onClose={() => setGlassOpen(false)}>
 					<DialogTitle>Glass dialog</DialogTitle>
-					<DialogBody className="space-y-4">
-						<Text>
-							The glass variant applies a backdrop blur with a transparent background, allowing
-							content behind the dialog to show through.
-						</Text>
+					<DialogBody>
+						<Stack gap={4}>
+							<Text>
+								The glass variant applies a backdrop blur with a transparent background, allowing
+								content behind the dialog to show through.
+							</Text>
+						</Stack>
 					</DialogBody>
 					<DialogActions>
 						<Button variant="plain" onClick={() => setGlassOpen(false)}>
@@ -100,7 +105,8 @@ export default function DialogDemo() {
 					title="Terms and Conditions"
 					confirm={{ label: 'Accept', color: 'blue', disabled: !accepted }}
 				>
-					<DialogBody className="flex flex-col gap-2">
+					<DialogBody>
+						<Stack gap={2}>
 						<Text>
 							Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
 							incididunt ut labore et dolore magna aliqua.
@@ -152,9 +158,10 @@ export default function DialogDemo() {
 							/>
 							<Label htmlFor="terms">Accept terms and conditions</Label>
 						</CheckboxField>
+						</Stack>
 					</DialogBody>
 				</ConfirmDialog>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

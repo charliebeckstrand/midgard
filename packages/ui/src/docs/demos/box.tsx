@@ -1,4 +1,5 @@
 import { Box } from '../../components/box'
+import { Stack } from '../../components/stack'
 import { code } from '../code'
 import { Example } from '../components/example'
 
@@ -6,7 +7,7 @@ export const meta = { category: 'Layout' }
 
 export default function BoxDemo() {
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example
 				title="Padding and radius"
 				code={code`
@@ -35,14 +36,14 @@ export default function BoxDemo() {
 					</Box>
 				`}
 			>
-				<div className="space-y-4">
+				<Stack gap={4}>
 					<Box p={6} radius="lg" bg="surface" border>
 						Surface with default border
 					</Box>
 					<Box p={6} radius="lg" bg="surface" border="subtle">
 						Subtle border
 					</Box>
-				</div>
+				</Stack>
 			</Example>
 
 			<Example
@@ -59,6 +60,6 @@ export default function BoxDemo() {
 					px=6 py=3
 				</Box>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

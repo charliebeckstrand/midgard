@@ -1,5 +1,6 @@
 import { Label } from '../../components/fieldset'
 import { Radio, RadioField, RadioGroup } from '../../components/radio'
+import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
@@ -9,7 +10,7 @@ const colors = ['blue', 'green', 'red'] as const
 
 export default function RadioDemo() {
 	return (
-		<div className="space-y-8">
+		<Stack gap={8}>
 			<Example title="Default">
 				<RadioGroup>
 					{plans.map((plan) => (
@@ -55,6 +56,6 @@ export default function RadioDemo() {
 					</RadioField>
 				</RadioGroup>
 			</Example>
-		</div>
+		</Stack>
 	)
 }

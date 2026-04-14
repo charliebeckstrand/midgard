@@ -2,6 +2,7 @@
 
 import type { ChatContent } from 'sindri/chat'
 import { ChatLayout, useSendMessage } from 'sindri/chat'
+import { Container } from 'ui/container'
 import { useChatContext } from './context'
 
 interface Props {
@@ -23,8 +24,8 @@ export function ChatView({ chatId, initialMessages, isDraft }: Props) {
 	})
 
 	return (
-		<div className="h-full w-full max-w-5xl mx-auto">
+		<Container size="md" padding="none" className="h-full">
 			<ChatLayout messages={messages} sending={sending} isDraft={draft} onSend={sendMessage} />
-		</div>
+		</Container>
 	)
 }
