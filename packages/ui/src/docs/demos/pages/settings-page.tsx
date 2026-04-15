@@ -31,7 +31,7 @@ export default function SettingsPageDemo() {
 
 	return (
 		<Example>
-			<Tabs defaultValue="profile" className="-mt-2">
+			<Tabs defaultValue="profile" className="-mt-3">
 				<SettingsPage
 					tabs={
 						<TabList>
