@@ -1,5 +1,5 @@
 import {
-	createPanelSlots,
+	createPanel,
 	type PanelActionsProps,
 	type PanelBodyProps,
 	type PanelDescriptionProps,
@@ -17,7 +17,7 @@ export type DrawerDescriptionProps = PanelDescriptionProps
 export type DrawerBodyProps = PanelBodyProps
 export type DrawerActionsProps = PanelActionsProps
 
-const { Title, Description, Body, Actions } = createPanelSlots('drawer', {
+const { Title, Description, Body, Actions } = createPanel('drawer', {
 	title: drawerTitleVariants,
 	description: drawerDescriptionVariants,
 	body: drawerBodyVariants,

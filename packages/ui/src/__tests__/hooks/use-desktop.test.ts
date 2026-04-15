@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import { useIsDesktop } from '../../hooks/use-breakpoint'
+import { useIsDesktop } from '../../hooks/use-desktop'
 
 describe('useIsDesktop', () => {
 	it('returns a boolean', () => {

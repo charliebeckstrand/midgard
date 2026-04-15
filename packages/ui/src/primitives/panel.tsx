@@ -58,7 +58,7 @@ type PanelSlotVariants = {
 	actions?: () => string
 }
 
-export function createPanelSlots(prefix: string, variants?: PanelSlotVariants) {
+export function createPanel(prefix: string, variants?: PanelSlotVariants) {
 	const titleCva = variants?.title ?? panelTitleVariants
 	const descriptionCva = variants?.description ?? panelDescriptionVariants
 	const bodyCva = variants?.body ?? panelBodyVariants

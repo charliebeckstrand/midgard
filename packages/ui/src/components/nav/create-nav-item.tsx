@@ -2,7 +2,7 @@
 
 import { type ReactElement, useLayoutEffect, useRef } from 'react'
 import { cn } from '../../core'
-import { useOffcanvas } from '../../core/offcanvas-context'
+import { useOffcanvas } from '../../primitives/offcanvas'
 import {
 	ActiveIndicator,
 	Polymorphic,

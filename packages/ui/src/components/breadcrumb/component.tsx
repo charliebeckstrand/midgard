@@ -1,4 +1,5 @@
-import { cn, Link } from '../../core'
+import { cn } from '../../core'
+import { Link } from '../../primitives/link'
 import {
 	breadcrumbItemVariants,
 	breadcrumbLinkVariants,
