@@ -19,8 +19,8 @@ import { useCallback, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { FormControl } from '../../primitives'
-import { kage, omote, ugoki } from '../../recipes'
-import { sumi } from '../../recipes/sumi'
+import { omote, sumi, ugoki } from '../../recipes'
+import { Box } from '../box'
 import { Button } from '../button'
 import { Calendar, type CalendarActive, type CalendarHandle } from '../calendar'
 import { useGlass } from '../glass/context'
@@ -83,6 +83,7 @@ function DatePickerSingle({
 	const [active, setActive] = useState<CalendarActive | null>(null)
 
 	const triggerRef = useRef<HTMLButtonElement>(null)
+
 	const calendarRef = useRef<CalendarHandle>(null)
 
 	const getInitialActiveDate = useCallback(
@@ -199,7 +200,7 @@ function DatePickerSingle({
 			>
 				<FormControl
 					data-open={open || undefined}
-					className={cn(glass && 'bg-transparent dark:bg-transparent before:shadow-none')}
+					className={cn(k.control[glass ? 'glass' : 'default'])}
 				>
 					<button
 						ref={triggerRef}
@@ -237,51 +238,49 @@ function DatePickerSingle({
 							<motion.div
 								{...ugoki.popover}
 								data-slot="datepicker-content"
-								className={cn(
-									kPopover.content,
-									k.popoverContent,
-									glass && [omote.glass, kage.ring, 'bg-transparent dark:bg-transparent'],
-								)}
+								className={cn('z-50', sumi.text, glass && omote.glass)}
 								onMouseDown={(e) => e.preventDefault()}
 							>
-								<Calendar
-									ref={calendarRef}
-									value={value ?? null}
-									onChange={handleSelect}
-									min={min}
-									max={max}
-									active={open ? active : null}
-									onPickerOpenChange={handlePickerOpenChange}
-								/>
-								<div data-slot="calendar-footer" className={cn(kCalendar.footer)}>
-									{value != null && (
+								<Box bg={glass ? 'none' : 'popover'} border={glass || undefined} radius="lg">
+									<Calendar
+										ref={calendarRef}
+										value={value ?? null}
+										onChange={handleSelect}
+										min={min}
+										max={max}
+										active={open ? active : null}
+										onPickerOpenChange={handlePickerOpenChange}
+									/>
+									<div data-slot="calendar-footer" className={cn(kCalendar.footer)}>
+										{value != null && (
+											<Button
+												variant="soft"
+												color="amber"
+												onClick={handleClear}
+												aria-label="Clear selection"
+												className={cn(
+													active?.zone === 'footer' &&
+														footerButtons[active.index] === 'clear' &&
+														kCalendar.day.active,
+												)}
+											>
+												Clear
+											</Button>
+										)}
 										<Button
 											variant="soft"
-											color="amber"
-											onClick={handleClear}
-											aria-label="Clear selection"
+											color="blue"
+											onClick={handleSelectToday}
 											className={cn(
 												active?.zone === 'footer' &&
-													footerButtons[active.index] === 'clear' &&
+													footerButtons[active.index] === 'today' &&
 													kCalendar.day.active,
 											)}
 										>
-											Clear
+											Today
 										</Button>
-									)}
-									<Button
-										variant="soft"
-										color="blue"
-										onClick={handleSelectToday}
-										className={cn(
-											active?.zone === 'footer' &&
-												footerButtons[active.index] === 'today' &&
-												kCalendar.day.active,
-										)}
-									>
-										Today
-									</Button>
-								</div>
+									</div>
+								</Box>
 							</motion.div>
 						</div>
 					)}

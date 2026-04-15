@@ -12,4 +12,11 @@ export const textareaVariants = cva(k.base, {
 	defaultVariants: k.defaults,
 })
 
+export const controlVariants = cva([], {
+	variants: {
+		variant: k.control,
+	},
+	defaultVariants: { variant: 'default' },
+})
+
 export type TextareaVariants = VariantProps<typeof textareaVariants>

@@ -11,6 +11,13 @@ export const inputVariants = cva(k.base, {
 	defaultVariants: k.defaults,
 })
 
+export const controlVariants = cva([], {
+	variants: {
+		variant: k.control,
+	},
+	defaultVariants: { variant: 'default' },
+})
+
 export const inputDateVariants = cva(k.date)
 
 export type InputVariants = VariantProps<typeof inputVariants>

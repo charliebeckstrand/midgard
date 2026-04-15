@@ -22,10 +22,12 @@ export const radiusMap = {
 } as const
 
 export const bgMap = {
-	none: '',
+	none: 'bg-transparent',
 	surface: omote.surface,
 	tint: omote.tint,
 	panel: omote.panel.bg,
+	popover: omote.popover,
+	glass: omote.glass,
 } as const
 
 export const borderMap = {

@@ -5,6 +5,10 @@ import { take } from '../take'
 import { waku } from '../waku'
 
 export const datepicker = {
+	control: {
+		default: waku.controlSurface,
+		glass: [],
+	},
 	button: [
 		...waku.inputBase,
 		'block',
@@ -22,5 +26,4 @@ export const datepicker = {
 		ki.inset,
 		...sumi.textHover,
 	],
-	popoverContent: 'p-0',
 }

@@ -9,6 +9,11 @@ export const textarea = {
 		outline: kage.borderEmphasis,
 		glass: omote.glass,
 	},
+	control: {
+		default: waku.controlSurface,
+		outline: [],
+		glass: [],
+	},
 	autoResize: 'field-sizing-content',
 	/** Strips textarea chrome when nested inside a framed container. */
 	bare: 'border-0 rounded-none pt-3 focus:outline-hidden',

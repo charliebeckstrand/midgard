@@ -12,8 +12,13 @@ export const input = {
 		outline: kage.borderEmphasis,
 		glass: omote.glass,
 	},
+	control: {
+		default: waku.controlSurface,
+		outline: [],
+		glass: [],
+	},
 	size: take.control,
-	affix: ['absolute inset-y-0 flex items-center', 'pointer-events-none', sumi.textMuted],
+	affix: ['z-10 absolute inset-y-0 flex items-center', 'pointer-events-none', sumi.textMuted],
 	prefix: {
 		base: 'left-0',
 		input: { sm: 'pl-8', md: 'pl-9', lg: 'pl-11' },

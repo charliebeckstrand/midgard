@@ -10,6 +10,8 @@ import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
 
+const placeholder = 'Search'
+
 function Controlled() {
 	const [value, setValue] = useState('')
 
@@ -22,7 +24,7 @@ function Controlled() {
 						value={value}
 						onChange={(e) => setValue(e.target.value)}
 						onClear={() => setValue('')}
-						placeholder="Search..."
+						placeholder={placeholder}
 					/>
 				</Field>
 			</Sizer>
@@ -37,7 +39,7 @@ export default function SearchInputDemo() {
 				<Sizer>
 					<Field>
 						<Label>Search</Label>
-						<SearchInput placeholder="Search..." />
+						<SearchInput placeholder={placeholder} />
 					</Field>
 				</Sizer>
 			</Example>
@@ -46,16 +48,16 @@ export default function SearchInputDemo() {
 				<Sizer>
 					<Field>
 						<Label>Default</Label>
-						<SearchInput placeholder="Search..." />
+						<SearchInput placeholder={placeholder} />
 					</Field>
 					<Field>
 						<Label>Outline</Label>
-						<SearchInput variant="outline" placeholder="Search..." />
+						<SearchInput variant="outline" placeholder={placeholder} />
 					</Field>
 					<Glass>
 						<Field>
 							<Label>Glass</Label>
-							<SearchInput placeholder="Search..." />
+							<SearchInput placeholder={placeholder} />
 						</Field>
 					</Glass>
 				</Sizer>
@@ -65,19 +67,19 @@ export default function SearchInputDemo() {
 				<Sizer size="sm">
 					<Field>
 						<Label>Small</Label>
-						<SearchInput size="sm" placeholder="Search..." />
+						<SearchInput size="sm" placeholder={placeholder} />
 					</Field>
 				</Sizer>
 				<Sizer size="md">
 					<Field>
 						<Label>Medium</Label>
-						<SearchInput size="md" placeholder="Search..." />
+						<SearchInput size="md" placeholder={placeholder} />
 					</Field>
 				</Sizer>
 				<Sizer size="lg">
 					<Field>
 						<Label>Large</Label>
-						<SearchInput size="lg" placeholder="Search..." />
+						<SearchInput size="lg" placeholder={placeholder} />
 					</Field>
 				</Sizer>
 			</Example>
@@ -97,7 +99,7 @@ export default function SearchInputDemo() {
 				<Sizer>
 					<Field>
 						<Label>Disabled</Label>
-						<SearchInput disabled placeholder="Search..." />
+						<SearchInput disabled placeholder={placeholder} />
 					</Field>
 				</Sizer>
 			</Example>

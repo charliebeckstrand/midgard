@@ -17,8 +17,8 @@ import { useCallback, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { FormControl } from '../../primitives'
-import { kage, omote, ugoki } from '../../recipes'
-import { sumi } from '../../recipes/sumi'
+import { omote, sumi, ugoki } from '../../recipes'
+import { Box } from '../box'
 import { Button } from '../button'
 import { type CalendarActive, type CalendarHandle, CalendarRange } from '../calendar'
 import { useGlass } from '../glass/context'
@@ -40,16 +40,21 @@ export function DatePickerRange({
 	disabled = false,
 }: DatePickerBaseProps & DatePickerRangeProps) {
 	const glass = useGlass()
+
 	const [value, setValue] = useControllable({ value: valueProp, defaultValue, onChange })
+
 	const [open, setOpen] = useState(false)
 
 	const [rangeStart, setRangeStart] = useState<Date | null>(null)
+
 	const [hoverDate, setHoverDate] = useState<Date | null>(null)
 
 	const [active, setActive] = useState<CalendarActive | null>(null)
 
 	const pendingRef = useRef<{ value: [Date, Date] | undefined } | null>(null)
+
 	const triggerRef = useRef<HTMLButtonElement>(null)
+
 	const calendarRef = useRef<CalendarHandle>(null)
 
 	const flushPending = useCallback(() => {
@@ -192,7 +197,7 @@ export function DatePickerRange({
 			>
 				<FormControl
 					data-open={open || undefined}
-					className={cn(glass && 'bg-transparent dark:bg-transparent before:shadow-none')}
+					className={cn(k.control[glass ? 'glass' : 'default'])}
 				>
 					<button
 						ref={triggerRef}
@@ -231,42 +236,40 @@ export function DatePickerRange({
 							<motion.div
 								{...ugoki.popover}
 								data-slot="datepicker-content"
-								className={cn(
-									kPopover.content,
-									k.popoverContent,
-									glass && [omote.glass, kage.ring, 'bg-transparent dark:bg-transparent'],
-								)}
+								className={cn('z-50', sumi.text, glass && omote.glass)}
 								onMouseDown={(e) => e.preventDefault()}
 							>
-								<CalendarRange
-									ref={calendarRef}
-									onChange={handleSelect}
-									min={min}
-									max={max}
-									rangeStart={rangeStart ?? (value ? value[0] : null)}
-									rangeEnd={rangeStart === null ? (value ? value[1] : null) : null}
-									hoverDate={rangeStart !== null ? hoverDate : null}
-									onHoverDate={setHoverDate}
-									active={open ? active : null}
-									onPickerOpenChange={handlePickerOpenChange}
-								/>
-								{showClear && (
-									<div data-slot="calendar-footer" className={cn(kCalendar.footer)}>
-										<Button
-											variant="soft"
-											color="amber"
-											onClick={handleClear}
-											aria-label="Clear selection"
-											className={cn(
-												active?.zone === 'footer' &&
-													footerButtons[active.index] === 'clear' &&
-													kCalendar.day.active,
-											)}
-										>
-											Clear
-										</Button>
-									</div>
-								)}
+								<Box bg={glass ? 'none' : 'popover'} border={glass || undefined} radius="lg">
+									<CalendarRange
+										ref={calendarRef}
+										onChange={handleSelect}
+										min={min}
+										max={max}
+										rangeStart={rangeStart ?? (value ? value[0] : null)}
+										rangeEnd={rangeStart === null ? (value ? value[1] : null) : null}
+										hoverDate={rangeStart !== null ? hoverDate : null}
+										onHoverDate={setHoverDate}
+										active={open ? active : null}
+										onPickerOpenChange={handlePickerOpenChange}
+									/>
+									{showClear && (
+										<div data-slot="calendar-footer" className={cn(kCalendar.footer)}>
+											<Button
+												variant="soft"
+												color="amber"
+												onClick={handleClear}
+												aria-label="Clear selection"
+												className={cn(
+													active?.zone === 'footer' &&
+														footerButtons[active.index] === 'clear' &&
+														kCalendar.day.active,
+												)}
+											>
+												Clear
+											</Button>
+										</div>
+									)}
+								</Box>
 							</motion.div>
 						</div>
 					)}

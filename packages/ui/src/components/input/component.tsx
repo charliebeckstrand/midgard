@@ -9,7 +9,13 @@ import { useGlass } from '../glass/context'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
 import { InputSizeProvider } from './context'
-import { type InputVariants, inputDateVariants, inputVariants, k } from './variants'
+import {
+	controlVariants,
+	type InputVariants,
+	inputDateVariants,
+	inputVariants,
+	k,
+} from './variants'
 
 const DATE_TYPES = new Set(['date', 'datetime-local', 'month', 'time', 'week'])
 
@@ -32,6 +38,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 	const control = useControl()
 
 	const resolvedId = id ?? control?.id
+
 	const resolvedDisabled = disabled ?? control?.disabled
 	const resolvedRequired = required ?? control?.required
 	const resolvedReadOnly = readOnly ?? control?.readOnly
@@ -52,13 +59,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 
 	const hasAffix = prefix !== undefined || suffix !== undefined
 
-	const transparentControl =
-		(resolvedVariant === 'outline' || resolvedVariant === 'glass') &&
-		'bg-transparent dark:bg-transparent before:shadow-none'
-
 	return (
 		<InputSizeProvider value={iconSize[resolvedSize]}>
-			<FormControl className={cn(transparentControl, hasAffix && 'relative')}>
+			<FormControl
+				className={cn(controlVariants({ variant: resolvedVariant }), hasAffix && 'relative')}
+			>
 				{prefix && (
 					<span className={cn(k.affix, k.prefix.base, k.prefix[resolvedSize])}>{prefix}</span>
 				)}

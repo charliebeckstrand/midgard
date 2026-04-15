@@ -1,7 +1,7 @@
 'use client'
 
 import { Search, X } from 'lucide-react'
-import { forwardRef, type Ref, useCallback } from 'react'
+import { forwardRef, type Ref, useCallback, useRef, useState } from 'react'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { Input, type InputProps, useInputSize } from '../input'
@@ -32,26 +32,54 @@ export const SearchInput = forwardRef(function SearchInput(
 	{ loading, onClear, value, defaultValue, onChange, ...props }: SearchInputProps,
 	ref: Ref<HTMLInputElement>,
 ) {
-	const hasValue = value !== undefined ? value !== '' : undefined
+	const inputRef = useRef<HTMLInputElement | null>(null)
+
+	const [internalValue, setInternalValue] = useState(defaultValue ?? '')
+
+	const currentValue = value !== undefined ? value : internalValue
+
+	const composedRef = useCallback(
+		(node: HTMLInputElement | null) => {
+			inputRef.current = node
+
+			if (typeof ref === 'function') ref(node)
+			else if (ref) (ref as React.RefObject<HTMLInputElement | null>).current = node
+		},
+		[ref],
+	)
 
 	const handleChange = useCallback(
 		(e: React.ChangeEvent<HTMLInputElement>) => {
+			setInternalValue(e.target.value)
+
 			onChange?.(e)
+
 			if (e.target.value === '') onClear?.()
 		},
 		[onChange, onClear],
 	)
 
+	const handleClear = useCallback(() => {
+		setInternalValue('')
+
+		onClear?.()
+
+		if (inputRef.current) {
+			inputRef.current.value = ''
+
+			inputRef.current.dispatchEvent(new Event('change', { bubbles: true }))
+		}
+	}, [onClear])
+
 	const suffix = loading ? (
 		<Spinner />
-	) : hasValue !== false && onClear ? (
-		<ClearButton onClear={onClear} />
+	) : currentValue !== '' ? (
+		<ClearButton onClear={handleClear} />
 	) : undefined
 
 	return (
 		<Input
-			ref={ref}
-			type="search"
+			ref={composedRef}
 			value={value}
 			defaultValue={defaultValue}
 			onChange={handleChange}

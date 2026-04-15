@@ -46,7 +46,9 @@ export type BoxProps = BoxBaseProps & PolymorphicProps<'div'>
 
 function resolveBorder(border: BoxBorder | undefined): string | readonly string[] | undefined {
 	if (!border) return undefined
+
 	if (border === true) return borderMap.default
+
 	return borderMap[border]
 }
 

@@ -13,14 +13,6 @@ describe('SearchInput', () => {
 		expect(input?.tagName).toBe('INPUT')
 	})
 
-	it('sets type to search', () => {
-		const { container } = renderUI(<SearchInput />)
-
-		const input = bySlot(container, 'input')
-
-		expect(input).toHaveAttribute('type', 'search')
-	})
-
 	it('renders a search icon prefix', () => {
 		const { container } = renderUI(<SearchInput />)
 

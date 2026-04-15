@@ -7,7 +7,7 @@ import { useControl } from '../control/context'
 import { useGlass } from '../glass/context'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
-import { k, type TextareaVariants, textareaVariants } from './variants'
+import { controlVariants, k, type TextareaVariants, textareaVariants } from './variants'
 
 export type TextareaProps = TextareaVariants & {
 	className?: string
@@ -36,10 +36,6 @@ export function Textarea({
 
 	const resolvedVariant = variant ?? control?.variant ?? (glass ? 'glass' : undefined)
 
-	const transparentControl =
-		(resolvedVariant === 'outline' || resolvedVariant === 'glass') &&
-		'bg-transparent dark:bg-transparent before:shadow-none'
-
 	if (useSkeleton()) {
 		return <Placeholder className={cn(kokkaku.textarea.base, className)} />
 	}
@@ -54,7 +50,7 @@ export function Textarea({
 
 	if (actions !== undefined) {
 		return (
-			<FormControl className={cn(k.frame, transparentControl)}>
+			<FormControl className={cn(k.frame, controlVariants({ variant: resolvedVariant }))}>
 				<textarea
 					data-slot="textarea"
 					{...controlProps}
@@ -73,7 +69,7 @@ export function Textarea({
 	}
 
 	return (
-		<FormControl className={cn(transparentControl)}>
+		<FormControl className={cn(controlVariants({ variant: resolvedVariant }))}>
 			<textarea
 				data-slot="textarea"
 				{...controlProps}

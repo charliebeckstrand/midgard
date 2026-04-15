@@ -25,7 +25,8 @@ import {
 	useState,
 } from 'react'
 import { cn, createContext } from '../../core'
-import { kage, omote, ugoki } from '../../recipes'
+import { omote, sumi, ugoki } from '../../recipes'
+import { Box, type BoxPadding } from '../box'
 import { useGlass } from '../glass/context'
 import { k } from './variants'
 
@@ -213,10 +214,16 @@ export function PopoverTrigger({ children, className, manual = false }: PopoverT
 export type PopoverContentProps = {
 	className?: string
 	autoFocus?: boolean
+	p?: BoxPadding
 	children: React.ReactNode
 }
 
-export function PopoverContent({ className, autoFocus = false, children }: PopoverContentProps) {
+export function PopoverContent({
+	className,
+	autoFocus = false,
+	p = 4,
+	children,
+}: PopoverContentProps) {
 	const { open, setFloating, floatingStyles, getFloatingProps, onExitComplete } =
 		usePopoverContext()
 
@@ -245,13 +252,17 @@ export function PopoverContent({ className, autoFocus = false, children }: Popov
 							ref={contentRef}
 							tabIndex={autoFocus ? -1 : undefined}
 							data-slot="popover-content"
-							className={cn(
-								k.content,
-								glass && [omote.glass, kage.ring, 'bg-transparent dark:bg-transparent'],
-								className,
-							)}
+							className={cn('z-50', sumi.text, glass && omote.glass)}
 						>
-							{children}
+							<Box
+								p={p}
+								bg={glass ? 'none' : 'popover'}
+								radius="lg"
+								border={glass || undefined}
+								className={className}
+							>
+								{children}
+							</Box>
 						</motion.div>
 					</div>
 				)}
