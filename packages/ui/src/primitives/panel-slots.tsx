@@ -1,5 +1,11 @@
 import { cva } from 'class-variance-authority'
-import { createContext as reactCreateContext, useContext } from 'react'
+import {
+	createContext as reactCreateContext,
+	useCallback,
+	useContext,
+	useEffect,
+	useState,
+} from 'react'
 import { cn } from '../core'
 import { katachi } from '../recipes'
 
@@ -21,6 +27,7 @@ export type PanelActionsProps = React.ComponentPropsWithoutRef<'div'>
 type PanelA11yContextValue = {
 	titleId?: string
 	descriptionId?: string
+	registerDescription?: () => () => void
 }
 
 const PanelA11yContext = reactCreateContext<PanelA11yContextValue>({})
@@ -29,6 +36,18 @@ export const PanelA11yProvider = PanelA11yContext.Provider
 
 export function usePanelA11y() {
 	return useContext(PanelA11yContext)
+}
+
+/** Hook for panel components to track whether a Description slot has been rendered. */
+export function useDescriptionRegistration() {
+	const [hasDescription, setHasDescription] = useState(false)
+
+	const registerDescription = useCallback(() => {
+		setHasDescription(true)
+		return () => setHasDescription(false)
+	}, [])
+
+	return { hasDescription, registerDescription }
 }
 
 /** Creates Title, Description, Body, and Actions slot components for a panel prefix. */
@@ -58,7 +77,10 @@ export function createPanelSlots(prefix: string, variants?: PanelSlotVariants) {
 	}
 
 	function Description({ className, id, ...props }: PanelDescriptionProps) {
-		const { descriptionId } = usePanelA11y()
+		const { descriptionId, registerDescription } = usePanelA11y()
+
+		useEffect(() => registerDescription?.(), [registerDescription])
+
 		return (
 			<p
 				id={id ?? descriptionId}

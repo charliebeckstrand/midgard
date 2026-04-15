@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowDown, ArrowUp, ArrowUpDown, Minus } from 'lucide-react'
+import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
 import { cn } from '../../core'
 import { Checkbox } from '../checkbox'
 import { Icon } from '../icon'
@@ -28,20 +28,10 @@ export function DataTableHead<T>({ columns }: DataTableHeadProps<T>) {
 								style={col.width ? { width: col.width } : undefined}
 							>
 								<Checkbox
-									checked={allSelected || someSelected}
+									checked={allSelected}
+									indeterminate={someSelected && !allSelected}
 									onChange={toggleAll}
-									icon={
-										someSelected && !allSelected ? (
-											<Minus
-												data-slot="checkbox-check"
-												aria-hidden="true"
-												className="pointer-events-none absolute size-3.5 stroke-(--checkbox-check) opacity-0"
-												strokeWidth={2}
-											/>
-										) : undefined
-									}
 									aria-label="Select all rows"
-									aria-checked={someSelected && !allSelected ? 'mixed' : undefined}
 								/>
 							</TableHeader>
 						)

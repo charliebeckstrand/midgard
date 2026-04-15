@@ -65,9 +65,12 @@ export const SearchInput = forwardRef(function SearchInput(
 		onClear?.()
 
 		if (inputRef.current) {
-			inputRef.current.value = ''
+			const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+				HTMLInputElement.prototype,
+				'value',
+			)?.set
 
-			inputRef.current.dispatchEvent(new Event('change', { bubbles: true }))
+			nativeInputValueSetter?.call(inputRef.current, '')
 		}
 	}, [onClear])
 

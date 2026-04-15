@@ -16,7 +16,9 @@ export type ResponsiveAlign = Responsive<FlexAlign>
 export type ResponsiveGap = Responsive<FlexGap>
 export type ResponsiveJustify = Responsive<FlexJustify>
 
-const responsiveDirectionMap: Record<string, Record<FlexDirection, string>> = {
+type Breakpoint = 'initial' | 'sm' | 'md' | 'lg' | 'xl' | '2xl'
+
+const responsiveDirectionMap: Record<Breakpoint, Record<FlexDirection, string>> = {
 	initial: directionMap,
 	sm: {
 		row: 'max-sm:flex-row',
@@ -50,7 +52,7 @@ const responsiveDirectionMap: Record<string, Record<FlexDirection, string>> = {
 	},
 }
 
-const responsiveAlignMap: Record<string, Record<FlexAlign, string>> = {
+const responsiveAlignMap: Record<Breakpoint, Record<FlexAlign, string>> = {
 	initial: alignMap,
 	sm: {
 		start: 'max-sm:items-start',
@@ -90,16 +92,20 @@ const responsiveAlignMap: Record<string, Record<FlexAlign, string>> = {
 }
 
 export function resolveDirection(value: ResponsiveDirection | undefined): string[] {
-	return resolveResponsive(value, (v, bp) => responsiveDirectionMap[bp ?? 'initial'][v])
+	return resolveResponsive(
+		value,
+		(v, bp) => responsiveDirectionMap[(bp ?? 'initial') as Breakpoint][v],
+	)
 }
 
 export function resolveAlign(value: ResponsiveAlign | undefined): string[] {
-	return resolveResponsive(value, (v, bp) => responsiveAlignMap[bp ?? 'initial'][v])
+	return resolveResponsive(value, (v, bp) => responsiveAlignMap[(bp ?? 'initial') as Breakpoint][v])
 }
 
 export function resolveGap(value: ResponsiveGap | undefined): string[] {
 	return resolveResponsive(value, (v, bp) => {
 		const cls = gapMap[v]
+
 		return bp ? `${bp}:${cls}` : cls
 	})
 }
@@ -107,6 +113,7 @@ export function resolveGap(value: ResponsiveGap | undefined): string[] {
 export function resolveJustify(value: ResponsiveJustify | undefined): string[] {
 	return resolveResponsive(value, (v, bp) => {
 		const cls = justifyMap[v]
+
 		return bp ? `${bp}:${cls}` : cls
 	})
 }
