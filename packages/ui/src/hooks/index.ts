@@ -1,6 +1,6 @@
 export { useArrowAction } from './use-arrow-action'
-export { useIsDesktop } from './use-desktop'
 export { useControllable } from './use-controllable'
+export { useIsDesktop } from './use-desktop'
 export { useFocusTrap } from './use-focus-trap'
 export { useHasHover } from './use-has-hover'
 export { type IdScope, useIdScope } from './use-id-scope'

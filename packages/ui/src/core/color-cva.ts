@@ -42,7 +42,7 @@ export function compoundColors(
 	}
 
 	const mapping = variantOrMap as Record<string, Record<string, ColorTokenValue>>
-	
+
 	return Object.entries(mapping).flatMap(([variant, map]) =>
 		Object.entries(map).map(([color, classes]) => ({
 			variant,

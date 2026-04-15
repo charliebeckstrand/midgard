@@ -1,6 +1,6 @@
 import { cn } from '../../core'
-import { Link } from '../../primitives/link'
 import type { PolymorphicProps } from '../../primitives'
+import { Link } from '../../primitives/link'
 import { kokkaku } from '../../recipes'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
