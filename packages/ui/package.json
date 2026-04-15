@@ -103,6 +103,10 @@
 			"types": "./src/components/copy-button/index.ts",
 			"default": "./src/components/copy-button/index.ts"
 		},
+		"./data-table": {
+			"types": "./src/components/data-table/index.ts",
+			"default": "./src/components/data-table/index.ts"
+		},
 		"./datepicker": {
 			"types": "./src/components/datepicker/index.ts",
 			"default": "./src/components/datepicker/index.ts"
