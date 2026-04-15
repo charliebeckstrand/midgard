@@ -18,6 +18,7 @@ import { useCallback, useRef, useState } from 'react'
 
 import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
+import { useFocusTrap } from '../../hooks/use-focus-trap'
 import { FormControl } from '../../primitives'
 import { omote, sumi, ugoki } from '../../recipes'
 import { Box } from '../box'
@@ -80,11 +81,15 @@ function DatePickerSingle({
 
 	const [open, setOpen] = useState(false)
 
+	const focusTrapRef = useFocusTrap(open)
+
 	const [active, setActive] = useState<CalendarActive | null>(null)
 
 	const triggerRef = useRef<HTMLButtonElement>(null)
 
 	const calendarRef = useRef<CalendarHandle>(null)
+
+	const footerRef = useRef<HTMLDivElement>(null)
 
 	const getInitialActiveDate = useCallback(
 		() => clampDate(value ?? min ?? new Date(), min, max),
@@ -236,6 +241,7 @@ function DatePickerSingle({
 							{...getFloatingProps()}
 						>
 							<motion.div
+								ref={focusTrapRef}
 								{...ugoki.popover}
 								data-slot="datepicker-content"
 								className={cn('z-50', sumi.text, glass && omote.glass)}
@@ -250,8 +256,15 @@ function DatePickerSingle({
 										max={max}
 										active={open ? active : null}
 										onPickerOpenChange={handlePickerOpenChange}
+										footerRef={footerRef}
 									/>
-									<div data-slot="calendar-footer" className={cn(kCalendar.footer)}>
+									<div
+										ref={footerRef}
+										role="toolbar"
+										data-slot="calendar-footer"
+										onKeyDown={(e) => calendarRef.current?.footerKeyDown(e)}
+										className={cn(kCalendar.footer)}
+									>
 										{value != null && (
 											<Button
 												variant="soft"

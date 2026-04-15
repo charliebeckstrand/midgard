@@ -1,6 +1,6 @@
 'use client'
 
-import { forwardRef, useCallback, useMemo } from 'react'
+import { forwardRef, type RefObject, useCallback, useMemo } from 'react'
 import { cn } from '../../core'
 import {
 	Calendar,
@@ -21,6 +21,7 @@ export type CalendarRangeProps = {
 	onHoverDate?: (date: Date | null) => void
 	active?: CalendarActive | null
 	onPickerOpenChange?: (open: boolean) => void
+	footerRef?: RefObject<HTMLElement | null>
 	className?: string
 }
 
@@ -35,6 +36,7 @@ export const CalendarRange = forwardRef<CalendarHandle, CalendarRangeProps>(func
 		onHoverDate,
 		active,
 		onPickerOpenChange,
+		footerRef,
 		className,
 	},
 	ref,
@@ -98,6 +100,7 @@ export const CalendarRange = forwardRef<CalendarHandle, CalendarRangeProps>(func
 			active={active}
 			onPickerOpenChange={onPickerOpenChange}
 			getDayProps={getDayProps}
+			footerRef={footerRef}
 			className={className}
 		/>
 	)

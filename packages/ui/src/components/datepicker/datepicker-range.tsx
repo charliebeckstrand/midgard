@@ -16,6 +16,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
+import { useFocusTrap } from '../../hooks/use-focus-trap'
 import { FormControl } from '../../primitives'
 import { omote, sumi, ugoki } from '../../recipes'
 import { Box } from '../box'
@@ -45,6 +46,8 @@ export function DatePickerRange({
 
 	const [open, setOpen] = useState(false)
 
+	const focusTrapRef = useFocusTrap(open)
+
 	const [rangeStart, setRangeStart] = useState<Date | null>(null)
 
 	const [hoverDate, setHoverDate] = useState<Date | null>(null)
@@ -56,6 +59,8 @@ export function DatePickerRange({
 	const triggerRef = useRef<HTMLButtonElement>(null)
 
 	const calendarRef = useRef<CalendarHandle>(null)
+
+	const footerRef = useRef<HTMLDivElement>(null)
 
 	const flushPending = useCallback(() => {
 		if (pendingRef.current) {
@@ -234,6 +239,7 @@ export function DatePickerRange({
 							tabIndex={-1}
 						>
 							<motion.div
+								ref={focusTrapRef}
 								{...ugoki.popover}
 								data-slot="datepicker-content"
 								className={cn('z-50', sumi.text, glass && omote.glass)}
@@ -251,9 +257,16 @@ export function DatePickerRange({
 										onHoverDate={setHoverDate}
 										active={open ? active : null}
 										onPickerOpenChange={handlePickerOpenChange}
+										footerRef={footerRef}
 									/>
 									{showClear && (
-										<div data-slot="calendar-footer" className={cn(kCalendar.footer)}>
+										<div
+											ref={footerRef}
+											role="toolbar"
+											data-slot="calendar-footer"
+											onKeyDown={(e) => calendarRef.current?.footerKeyDown(e)}
+											className={cn(kCalendar.footer)}
+										>
 											<Button
 												variant="soft"
 												color="amber"

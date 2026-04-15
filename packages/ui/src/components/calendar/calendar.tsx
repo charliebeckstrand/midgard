@@ -1,12 +1,20 @@
 'use client'
 
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState } from 'react'
+import {
+	forwardRef,
+	type RefObject,
+	useCallback,
+	useImperativeHandle,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
-import { useRovingFocus } from '../../hooks/use-keyboard'
 import { Button, type ButtonVariants } from '../button'
 import { CalendarPicker } from './calendar-picker'
+import { useCalendarZoneFocus } from './use-zone-focus'
 import { getCalendarDays, isBeforeDay, isSameDay, WEEKDAYS } from './utilities'
 import { k } from './variants'
 
@@ -19,6 +27,7 @@ export type CalendarHandle = {
 	prevMonth: () => void
 	nextMonth: () => void
 	openPicker: () => void
+	footerKeyDown: (e: React.KeyboardEvent) => void
 }
 
 export type CalendarDayContext = {
@@ -47,6 +56,7 @@ export type CalendarProps = {
 	active?: CalendarActive | null
 	onPickerOpenChange?: (open: boolean) => void
 	getDayProps?: (ctx: CalendarDayContext) => CalendarDayProps
+	footerRef?: RefObject<HTMLElement | null>
 	className?: string
 }
 
@@ -60,6 +70,7 @@ export const Calendar = forwardRef<CalendarHandle, CalendarProps>(function Calen
 		active,
 		onPickerOpenChange,
 		getDayProps,
+		footerRef,
 		className,
 	},
 	ref,
@@ -116,12 +127,6 @@ export const Calendar = forwardRef<CalendarHandle, CalendarProps>(function Calen
 		handlePickerOpenChange(true)
 	}, [handlePickerOpenChange])
 
-	useImperativeHandle(ref, () => ({ prevMonth, nextMonth, openPicker }), [
-		prevMonth,
-		nextMonth,
-		openPicker,
-	])
-
 	const isDisabled = useCallback(
 		(date: Date) => {
 			if (min && isBeforeDay(date, min)) return true
@@ -135,15 +140,17 @@ export const Calendar = forwardRef<CalendarHandle, CalendarProps>(function Calen
 	const headerRef = useRef<HTMLDivElement>(null)
 	const gridRef = useRef<HTMLDivElement>(null)
 
-	const handleHeaderKeyDown = useRovingFocus(headerRef, {
-		itemSelector: 'button',
-		orientation: 'horizontal',
+	const { handleHeaderKeyDown, handleGridKeyDown, handleFooterKeyDown } = useCalendarZoneFocus({
+		headerRef,
+		gridRef,
+		footerRef,
 	})
 
-	const handleGridKeyDown = useRovingFocus(gridRef, {
-		itemSelector: 'button',
-		cols: 7,
-	})
+	useImperativeHandle(
+		ref,
+		() => ({ prevMonth, nextMonth, openPicker, footerKeyDown: handleFooterKeyDown }),
+		[prevMonth, nextMonth, openPicker, handleFooterKeyDown],
+	)
 
 	const handlePickerNavigate = useCallback((y: number, m: number) => {
 		setViewDate(new Date(y, m, 1))
