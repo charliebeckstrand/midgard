@@ -1,8 +1,8 @@
 import { Children, isValidElement } from 'react'
 import { Icon } from '../icon'
 import { Kbd } from '../kbd'
+import type { SpinnerProps } from '../spinner'
 import { Spinner } from '../spinner'
-import type { SpinnerProps } from '../spinner/component'
 
 /** True when the node is an Icon or Spinner. */
 export function isIconLike(node: React.ReactNode): boolean {

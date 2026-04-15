@@ -9,6 +9,7 @@ export {
 	type AccordionProps,
 } from './component'
 export {
+	type AccordionItemVariants,
 	type AccordionVariants,
 	accordionItemVariants,
 	accordionVariants,

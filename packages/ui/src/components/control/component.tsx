@@ -72,7 +72,7 @@ export function Control({
 	return (
 		<ControlProvider value={value}>
 			<div
-				data-slot="field"
+				data-slot="control"
 				{...(mergedDisabled ? { 'data-disabled': true } : {})}
 				className={cn(k.field, className)}
 			>

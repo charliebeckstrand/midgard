@@ -1,4 +1,4 @@
-import { FlexBase, type FlexProps } from '../flex/component'
+import { FlexBase, type FlexProps } from '../flex'
 
 export type StackProps = FlexProps
 

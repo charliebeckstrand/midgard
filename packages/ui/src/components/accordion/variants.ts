@@ -26,3 +26,4 @@ export const accordionItemVariants = cva(k.item.base, {
 })
 
 export type AccordionVariants = VariantProps<typeof accordionVariants>
+export type AccordionItemVariants = VariantProps<typeof accordionItemVariants>
