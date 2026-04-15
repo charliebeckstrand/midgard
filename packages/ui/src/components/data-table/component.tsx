@@ -1,21 +1,15 @@
 'use client'
 
-import { ArrowDown, ArrowUp, ArrowUpDown, Minus } from 'lucide-react'
 import { type ReactNode, useCallback, useMemo } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
-import { Checkbox } from '../checkbox'
-import { Icon } from '../icon'
 import { Spinner } from '../spinner'
 import type { TableVariants } from '../table'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../table'
-import {
-	DataTableProvider,
-	type DataTableRowContextValue,
-	DataTableRowProvider,
-	type SortState,
-	useDataTable,
-} from './context'
+import { Table, TableBody } from '../table'
+import { DataTableBatchBar } from './batch-bar'
+import { DataTableProvider, type SortState } from './context'
+import { DataTableHead } from './head'
+import { DataTableRowInternal } from './row'
 import { k } from './variants'
 
 // ── Column definition ───────────────────────────────────
@@ -223,167 +217,5 @@ export function DataTable<T>({
 				)}
 			</div>
 		</DataTableProvider>
-	)
-}
-
-// ── Head ────────────────────────────────────────────────
-
-type DataTableHeadProps<T> = {
-	columns: DataTableColumn<T>[]
-}
-
-function DataTableHead<T>({ columns }: DataTableHeadProps<T>) {
-	const { allSelected, someSelected, toggleAll, sort, toggleSort, stickyHeader } = useDataTable()
-
-	return (
-		<TableHead>
-			<TableRow>
-				{columns.map((col) => {
-					if (col.selectable) {
-						return (
-							<TableHeader
-								key={col.id}
-								className={cn(k.selectCell, stickyHeader && k.stickyHead, col.headerClassName)}
-								style={col.width ? { width: col.width } : undefined}
-							>
-								<Checkbox
-									checked={allSelected || someSelected}
-									onChange={toggleAll}
-									icon={
-										someSelected && !allSelected ? (
-											<Minus
-												data-slot="checkbox-check"
-												aria-hidden="true"
-												className="pointer-events-none absolute size-3.5 stroke-(--checkbox-check) opacity-0"
-												strokeWidth={2}
-											/>
-										) : undefined
-									}
-									aria-label="Select all rows"
-									aria-checked={someSelected && !allSelected ? 'mixed' : undefined}
-								/>
-							</TableHeader>
-						)
-					}
-
-					const isSorted = sort?.column === col.id
-
-					return (
-						<TableHeader
-							key={col.id}
-							className={cn(stickyHeader && k.stickyHead, col.headerClassName)}
-							style={col.width ? { width: col.width } : undefined}
-						>
-							{col.sortable ? (
-								<button
-									type="button"
-									className={cn(k.sortButton)}
-									onClick={() => toggleSort(col.id)}
-									aria-label={`Sort by ${typeof col.title === 'string' ? col.title : col.id}`}
-								>
-									{col.title}
-									<Icon
-										icon={
-											isSorted ? (
-												sort.direction === 'asc' ? (
-													<ArrowUp />
-												) : (
-													<ArrowDown />
-												)
-											) : (
-												<ArrowUpDown />
-											)
-										}
-										className={cn(isSorted ? k.sortIconActive : k.sortIcon)}
-									/>
-								</button>
-							) : (
-								col.title
-							)}
-						</TableHeader>
-					)
-				})}
-			</TableRow>
-		</TableHead>
-	)
-}
-
-// ── Row ─────────────────────────────────────────────────
-
-type DataTableRowInternalProps<T> = {
-	row: T
-	rowKey: string | number
-	columns: DataTableColumn<T>[]
-	loading: boolean
-	className: string | undefined
-}
-
-function DataTableRowInternal<T>({
-	row,
-	rowKey,
-	columns,
-	loading,
-	className,
-}: DataTableRowInternalProps<T>) {
-	const { selection, toggleRow } = useDataTable()
-
-	const selected = selection.has(rowKey)
-
-	const rowCtx = useMemo<DataTableRowContextValue<T>>(
-		() => ({ row, rowKey, selected, loading }),
-		[row, rowKey, selected, loading],
-	)
-
-	return (
-		<DataTableRowProvider value={rowCtx as DataTableRowContextValue}>
-			<TableRow
-				data-selected={selected || undefined}
-				className={cn(loading && k.rowLoading, className)}
-			>
-				{columns.map((col) => {
-					if (col.selectable) {
-						return (
-							<TableCell key={col.id} className={cn(k.selectCell, col.className)}>
-								<Checkbox
-									checked={selected}
-									onChange={() => toggleRow(rowKey)}
-									aria-label={`Select row ${rowKey}`}
-								/>
-							</TableCell>
-						)
-					}
-
-					if (col.actions) {
-						return (
-							<TableCell key={col.id} className={cn(k.actionsCell, col.className)}>
-								{col.actions(row)}
-							</TableCell>
-						)
-					}
-
-					return (
-						<TableCell key={col.id} className={cn(col.className)}>
-							{col.cell ? col.cell(row) : null}
-						</TableCell>
-					)
-				})}
-			</TableRow>
-		</DataTableRowProvider>
-	)
-}
-
-// ── Batch bar ───────────────────────────────────────────
-
-type DataTableBatchBarProps = {
-	count: number
-	children: ReactNode
-}
-
-function DataTableBatchBar({ count, children }: DataTableBatchBarProps) {
-	return (
-		<div data-slot="data-table-batch-bar" className={cn(k.batchBar)}>
-			<span className={cn(k.batchCount)}>{count} selected</span>
-			{children}
-		</div>
 	)
 }
