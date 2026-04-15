@@ -9,6 +9,6 @@ export const table = {
 	header: ['font-bold', take.px.md, take.py.md, sumi.textMuted],
 	row: [],
 	cell: [take.px.md, take.py.md, sumi.text],
-	grid: ['border-l first:border-l-0', kage.borderSubtleColor],
+	grid: ['border', kage.borderSubtleColor],
 	striped: nuri.tableStriped,
 }

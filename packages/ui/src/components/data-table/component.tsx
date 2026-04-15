@@ -104,6 +104,7 @@ export function DataTable<T>({
 
 	const allSelected =
 		rowKeys.length > 0 && rowKeys.every((rk: string | number) => selection.has(rk))
+
 	const someSelected = rowKeys.some((rk: string | number) => selection.has(rk))
 
 	const toggleRow = useCallback(
@@ -175,8 +176,10 @@ export function DataTable<T>({
 			{loading ? (
 				<tbody>
 					<tr>
-						<td colSpan={columns.length} className={cn(k.loadingBody)}>
-							<Spinner size="lg" />
+						<td colSpan={columns.length}>
+							<div className={cn(k.loadingBody)}>
+								<Spinner size="lg" />
+							</div>
 						</td>
 					</tr>
 				</tbody>
@@ -205,8 +208,10 @@ export function DataTable<T>({
 	return (
 		<DataTableProvider value={ctx}>
 			<div data-slot="data-table" className={cn(k.wrapper)}>
-				{someSelected && batchActions && (
-					<DataTableBatchBar count={selection.size}>{batchActions(selection)}</DataTableBatchBar>
+				{batchActions && (
+					<DataTableBatchBar count={selection.size}>
+						{someSelected && batchActions(selection)}
+					</DataTableBatchBar>
 				)}
 
 				{stickyHeader ? (
@@ -321,6 +326,7 @@ function DataTableRowInternal<T>({
 	className,
 }: DataTableRowInternalProps<T>) {
 	const { selection, toggleRow } = useDataTable()
+
 	const selected = selection.has(rowKey)
 
 	const rowCtx = useMemo<DataTableRowContextValue<T>>(
