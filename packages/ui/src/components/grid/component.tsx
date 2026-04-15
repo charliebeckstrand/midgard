@@ -76,6 +76,7 @@ function resolveFullSpan(columns: Responsive<number> | undefined): string[] {
 
 	return resolveResponsive(columns, (n, bp) => {
 		const cls = `col-span-${n}`
+
 		return bp ? `${bp}:${cls}` : cls
 	})
 }

@@ -1,6 +1,8 @@
 import type React from 'react'
 import { cn } from '../../core'
 import {
+	type FlexAlign,
+	type FlexDirection,
 	type ResponsiveAlign,
 	type ResponsiveDirection,
 	type ResponsiveGap,
@@ -53,7 +55,6 @@ export function FlexBase({
 		<div
 			data-slot={dataSlot}
 			className={cn(
-				inline ? 'inline-flex' : 'flex',
 				resolveDirection(direction),
 				resolveAlign(align),
 				resolveGap(gap),
@@ -62,6 +63,7 @@ export function FlexBase({
 				full && 'w-full',
 				flex && 'flex-1',
 				equal && '*:flex-1',
+				inline ? 'inline-flex' : 'flex',
 				className,
 			)}
 			{...props}
@@ -71,7 +73,25 @@ export function FlexBase({
 	)
 }
 
+function alignForDirection(dir: FlexDirection): FlexAlign {
+	return dir === 'col' || dir === 'col-reverse' ? 'start' : 'center'
+}
+
+function defaultAlignFromDirection(direction: ResponsiveDirection): ResponsiveAlign {
+	if (typeof direction === 'string') return alignForDirection(direction)
+
+	const align: Record<string, FlexAlign> = {}
+
+	for (const [bp, dir] of Object.entries(direction)) {
+		if (dir !== undefined) align[bp] = alignForDirection(dir)
+	}
+
+	return align
+}
+
 /** Horizontal flex container. Use Flex for rows, Stack for columns. */
-export function Flex({ direction = 'row', align = 'center', ...props }: FlexProps) {
-	return <FlexBase dataSlot="flex" direction={direction} align={align} {...props} />
+export function Flex({ direction = 'row', align, ...props }: FlexProps) {
+	const resolvedAlign = align ?? defaultAlignFromDirection(direction)
+
+	return <FlexBase dataSlot="flex" direction={direction} align={resolvedAlign} {...props} />
 }

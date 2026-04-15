@@ -46,7 +46,7 @@ export default function GridDemo() {
 			</Example>
 
 			<Example title="Divider">
-				<Grid columns={1} gap={0}>
+				<Grid columns={1} gap={4}>
 					<Card>Row one</Card>
 					<GridDivider />
 					<Card>Row two</Card>
