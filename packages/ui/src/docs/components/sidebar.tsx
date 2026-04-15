@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useLayoutEffect } from 'react'
 import { Combobox, ComboboxOption } from '../../components/combobox'
 import { Heading } from '../../components/heading'
 import {
@@ -18,7 +18,7 @@ export function SidebarContent({ route }: { route: string }) {
 	const offcanvas = useOffcanvas()
 
 	// Scroll the active item into view when the mobile sidebar opens
-	useEffect(() => {
+	useLayoutEffect(() => {
 		if (!offcanvas) return
 
 		const sheet = document.querySelector('[data-slot="sheet"]')

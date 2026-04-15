@@ -36,16 +36,16 @@ export function PasswordConfirm({
 
 	const prevMatchState = useRef<'match' | 'mismatch' | null>(null)
 
+	const matchState = status === 'valid' ? 'match' : status === 'warning' ? 'mismatch' : null
+
 	useEffect(() => {
-		const current = status === 'valid' ? 'match' : status === 'warning' ? 'mismatch' : null
+		if (matchState === prevMatchState.current) return
 
-		if (current === prevMatchState.current) return
+		prevMatchState.current = matchState
 
-		prevMatchState.current = current
-
-		if (current === 'match') onMatchRef.current?.()
-		else if (current === 'mismatch') onMismatchRef.current?.()
-	}, [status])
+		if (matchState === 'match') onMatchRef.current?.()
+		else if (matchState === 'mismatch') onMismatchRef.current?.()
+	}, [matchState])
 
 	const handleInput = useCallback(
 		(e: React.SyntheticEvent<HTMLDivElement>) => handlePasswordInput(e, setPassword),

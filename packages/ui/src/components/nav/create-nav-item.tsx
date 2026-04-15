@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactElement, useEffect, useRef } from 'react'
+import { type ReactElement, useLayoutEffect, useRef } from 'react'
 import { cn } from '../../core'
 import { useOffcanvas } from '../../core/offcanvas-context'
 import {
@@ -44,7 +44,7 @@ export function createNavItem(config: { slotPrefix: string; variants: () => stri
 
 		const offcanvas = useOffcanvas()
 
-		useEffect(() => {
+		useLayoutEffect(() => {
 			if (current && itemRef.current) {
 				itemRef.current.scrollIntoView({ block: 'nearest' })
 			}

@@ -2,7 +2,7 @@
 
 import { Search, X } from 'lucide-react'
 import type React from 'react'
-import { useEffect, useId, useRef, useState } from 'react'
+import { useId, useLayoutEffect, useRef, useState } from 'react'
 import { useRovingActive } from '../../hooks/use-keyboard'
 import { Button } from '../button'
 import { Dialog, DialogBody, type DialogPanelVariants } from '../dialog'
@@ -40,18 +40,16 @@ export function CommandPalette({
 		itemSelector: '[data-slot="command-palette-item"]:not([data-disabled])',
 	})
 
-	// Reset query when closed
-	useEffect(() => {
+	// Reset query when closed (adjust during render to avoid extra cycle)
+	const prevOpenRef = useRef(open)
+	if (open !== prevOpenRef.current) {
+		prevOpenRef.current = open
 		if (!open) setQuery('')
-	}, [open])
+	}
 
 	// Focus input on open
-	useEffect(() => {
-		if (!open) return
-
-		const timer = setTimeout(() => inputRef.current?.focus(), 0)
-
-		return () => clearTimeout(timer)
+	useLayoutEffect(() => {
+		if (open) inputRef.current?.focus()
 	}, [open])
 
 	const rendered = typeof children === 'function' ? children(query) : children

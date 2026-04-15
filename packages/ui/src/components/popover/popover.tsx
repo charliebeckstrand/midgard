@@ -15,7 +15,15 @@ import {
 } from '@floating-ui/react'
 import { AnimatePresence, motion } from 'motion/react'
 import type React from 'react'
-import { cloneElement, isValidElement, useCallback, useEffect, useRef, useState } from 'react'
+import {
+	cloneElement,
+	isValidElement,
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useRef,
+	useState,
+} from 'react'
 import { cn, createContext } from '../../core'
 import { kage, omote, ugoki } from '../../recipes'
 import { useGlass } from '../glass/context'
@@ -216,7 +224,7 @@ export function PopoverContent({ className, autoFocus = false, children }: Popov
 
 	const glass = useGlass()
 
-	useEffect(() => {
+	useLayoutEffect(() => {
 		if (open && autoFocus) {
 			contentRef.current?.focus()
 		}

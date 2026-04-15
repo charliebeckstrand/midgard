@@ -2,7 +2,7 @@
 
 import { motion } from 'motion/react'
 import type React from 'react'
-import { useEffect, useRef } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 import { useGlass } from '../components/glass/context'
 import { cn } from '../core'
 import { useRovingFocus } from '../hooks/use-keyboard'
@@ -31,7 +31,7 @@ export function PopoverPanel({
 
 	const handleKeyDown = useRovingFocus(menuRef, { itemSelector, focusOnEmpty: true })
 
-	useEffect(() => {
+	useLayoutEffect(() => {
 		if (!autoFocus || !menuRef.current) return
 
 		const selected = menuRef.current.querySelector<HTMLElement>(`${itemSelector}[data-selected]`)
