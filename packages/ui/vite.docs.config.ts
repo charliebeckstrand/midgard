@@ -1,11 +1,12 @@
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
+import { componentApiPlugin } from './src/docs/vite-plugin-component-api'
 
 export default defineConfig({
 	base: '/',
 	root: 'src/docs',
-	plugins: [react(), tailwindcss()],
+	plugins: [react(), tailwindcss(), componentApiPlugin()],
 	server: { port: 3456 },
 	resolve: {
 		alias: [

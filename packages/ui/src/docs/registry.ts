@@ -1,5 +1,6 @@
+import apiData from 'virtual:component-api'
 import { type ComponentType, type LazyExoticComponent, lazy } from 'react'
-import type { ComponentApi, ResolutionContext } from './parse-props'
+import type { ComponentApi } from './parse-props'
 
 // ---------------------------------------------------------------------------
 // Lazy demo loaders (no demo code loaded until navigated to)
@@ -99,131 +100,12 @@ export function preloadDemo(id: string) {
 }
 
 // ---------------------------------------------------------------------------
-// Lazy component API extraction — deferred until a demo's API Reference opens
+// Component API — pre-computed at build time via virtual:component-api
 // ---------------------------------------------------------------------------
 
-// Raw source loaders (not loaded until getComponentApi is first called)
-const componentSources = import.meta.glob<string>(
-	[
-		'../components/**/*.{ts,tsx}',
-		'../layouts/*.{ts,tsx}',
-		'../pages/*.{ts,tsx}',
-		'../primitives/*.{ts,tsx}',
-		'../recipes/**/*.ts',
-		'../core/color-cva.ts',
-	],
-	{
-		query: '?raw',
-		import: 'default',
-	},
-)
-
-const indexSources = import.meta.glob<string>('../components/*/index.ts', {
-	query: '?raw',
-	import: 'default',
-})
-
-type SourceData = {
-	ctx: ResolutionContext
-	byDir: Record<string, string[]>
-	indexByDir: Record<string, string>
-}
-
-let sourceDataPromise: Promise<SourceData> | null = null
-
-/** Load all raw sources and build the shared resolution context (once). */
-function loadSourceData(): Promise<SourceData> {
-	if (!sourceDataPromise) {
-		sourceDataPromise = (async () => {
-			const { buildResolutionContext } = await import('./parse-props')
-
-			const [sourceEntries, indexEntries] = await Promise.all([
-				Promise.all(
-					Object.entries(componentSources).map(
-						async ([path, loader]) => [path, await loader()] as const,
-					),
-				),
-				Promise.all(
-					Object.entries(indexSources).map(
-						async ([path, loader]) => [path, await loader()] as const,
-					),
-				),
-			])
-
-			const byDir: Record<string, string[]> = {}
-			const allSources: string[] = []
-
-			for (const [path, source] of sourceEntries) {
-				allSources.push(source)
-
-				const match = path.match(/\.\.\/components\/([^/]+)\//)
-
-				if (!match?.[1]) continue
-
-				const dir = match[1]
-
-				if (!byDir[dir]) byDir[dir] = []
-
-				byDir[dir].push(source)
-			}
-
-			const ctx = buildResolutionContext(allSources)
-
-			const indexByDir: Record<string, string> = {}
-
-			for (const [path, source] of indexEntries) {
-				const match = path.match(/components\/([^/]+)\/index\.ts$/)
-
-				if (match?.[1]) indexByDir[match[1]] = source
-			}
-
-			return { ctx, byDir, indexByDir }
-		})()
-	}
-
-	return sourceDataPromise
-}
-
-const apiCache = new Map<string, ComponentApi[]>()
-
-/** Load and parse the API for a single component directory. */
-export async function getComponentApi(id: string): Promise<ComponentApi[] | undefined> {
-	const cached = apiCache.get(id)
-
-	if (cached) return cached
-
-	const [{ parseSource, parsePublicExports }, { ctx, byDir, indexByDir }] = await Promise.all([
-		import('./parse-props'),
-		loadSourceData(),
-	])
-
-	const sources = byDir[id]
-
-	if (!sources) return undefined
-
-	const combined = sources.join('\n')
-
-	const parsed = parseSource(combined, ctx)
-
-	const parsedByName = new Map(parsed.map((api) => [api.name, api]))
-
-	const indexSource = indexByDir[id]
-
-	const publicNames = indexSource ? parsePublicExports(indexSource) : parsed.map((api) => api.name)
-
-	const entries: ComponentApi[] = []
-
-	for (const name of publicNames) {
-		entries.push(parsedByName.get(name) ?? { name, props: [] })
-	}
-
-	if (entries.length > 0) {
-		apiCache.set(id, entries)
-
-		return entries
-	}
-
-	return undefined
+/** Return the pre-computed API for a component, or undefined if none exists. */
+export function getComponentApi(id: string): ComponentApi[] | undefined {
+	return apiData[id]
 }
 
 // ---------------------------------------------------------------------------
