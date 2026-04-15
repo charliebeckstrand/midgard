@@ -284,11 +284,9 @@ export const initialPreload = loaderById.has(initialId)
 	? loadDemo(initialId)
 	: Promise.resolve(undefined as unknown as ComponentType)
 
-// Pre-compute the API reference for the initial demo so it's ready before
-// React mounts — eliminates the Spinner on first paint.
-const initialIsPage = metaById.get(initialId)?.category === 'Pages'
-
-export const initialApiPreload =
-	!initialIsPage && loaderById.has(initialId)
-		? getComponentApi(initialId).catch(() => undefined)
-		: Promise.resolve(undefined)
+// Eagerly start loading source data and the initial demo's API so the heavy
+// work (fetching all raw sources + building the resolution context) runs in
+// parallel with the demo preload — not deferred until DemoPage mounts.
+if (loaderById.has(initialId) && metaById.get(initialId)?.category !== 'Pages') {
+	getComponentApi(initialId).catch(() => {})
+}

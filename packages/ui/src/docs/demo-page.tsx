@@ -3,7 +3,6 @@
 import { AnimatePresence, motion } from 'motion/react'
 import { type ComponentType, useEffect, useRef, useState } from 'react'
 import { Heading } from '../components/heading'
-import { Spinner } from '../components/spinner'
 import { ApiReference } from './components/api-reference'
 import type { ComponentApi } from './parse-props'
 import type { Demo } from './registry'
@@ -55,17 +54,12 @@ export function DemoPage({ demo }: { demo: Demo }) {
 				>
 					<Heading>{demo.name}</Heading>
 					<Component />
-					{!isPage && (
+					{!isPage && api && (
 						<>
-							{api === undefined && <Spinner size="xl" />}
-							{api && (
-								<>
-									<Heading level={2} className="leading-none">
-										API Reference
-									</Heading>
-									<ApiReference api={api} />
-								</>
-							)}
+							<Heading level={2} className="leading-none">
+								API Reference
+							</Heading>
+							<ApiReference api={api} />
 						</>
 					)}
 				</motion.div>
