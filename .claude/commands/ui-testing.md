@@ -377,6 +377,16 @@ Verify the test file has no type errors:
 pnpm turbo check-types --filter=ui
 ```
 
+### 6. Run code audit (REQUIRED — do this before committing)
+
+Run the `/ui-audit-code` skill scoped to the target:
+
+```
+/ui-audit-code <name>
+```
+
+This verifies that the test file follows established code patterns: naming, imports, formatting, and coverage conventions. Fix any issues it finds before committing.
+
 ---
 
 ## What NOT to test
@@ -400,3 +410,4 @@ Before finishing, verify:
 - [ ] No unused imports
 - [ ] Tests pass: `pnpm test` from `packages/ui`
 - [ ] Types check: `pnpm turbo check-types --filter=ui`
+- [ ] Code audit passed via `/ui-audit-code <name>` — all code patterns verified
