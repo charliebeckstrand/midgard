@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react'
 import { createElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { OffcanvasContext, useOffcanvas } from '../../core/offcanvas-context'
+import { OffcanvasContext, useOffcanvas } from '../../primitives/offcanvas'
 
 describe('useOffcanvas', () => {
 	it('returns null outside provider', () => {

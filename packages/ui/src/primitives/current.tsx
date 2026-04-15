@@ -62,7 +62,7 @@ export function createCurrentContent(slotPrefix: string) {
 
 		useEffect(() => {
 			const el = ref.current
-			
+
 			if (!el || !fade) return
 
 			const ro = new ResizeObserver(([entry]) => {

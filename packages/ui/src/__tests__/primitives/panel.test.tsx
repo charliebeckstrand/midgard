@@ -1,15 +1,15 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import {
-	createPanelSlots,
+	createPanel,
 	PanelA11yProvider,
 	useDescriptionRegistration,
 	usePanelA11y,
-} from '../../primitives/panel-slots'
+} from '../../primitives/panel'
 import { bySlot, renderUI } from '../helpers'
 
-describe('createPanelSlots', () => {
-	const { Title, Description, Body, Actions } = createPanelSlots('dialog')
+describe('createPanel', () => {
+	const { Title, Description, Body, Actions } = createPanel('dialog')
 
 	it('Title renders with correct data-slot', () => {
 		const { container } = renderUI(<Title>My Title</Title>)

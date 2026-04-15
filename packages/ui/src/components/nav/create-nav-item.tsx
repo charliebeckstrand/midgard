@@ -2,7 +2,6 @@
 
 import { type ReactElement, useLayoutEffect, useRef } from 'react'
 import { cn } from '../../core'
-import { useOffcanvas } from '../../primitives/offcanvas'
 import {
 	ActiveIndicator,
 	Polymorphic,
@@ -10,6 +9,7 @@ import {
 	TouchTarget,
 	useActiveIndicator,
 } from '../../primitives'
+import { useOffcanvas } from '../../primitives/offcanvas'
 import { Icon } from '../icon'
 
 export type NavItemProps = {

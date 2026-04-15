@@ -1,6 +1,6 @@
 import type React from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { createSelectOption } from '../../primitives/create-select-option'
+import { createSelectOption } from '../../primitives/select-option'
 import { bySlot, renderUI, screen } from '../helpers'
 
 const mockSelect = vi.fn()
