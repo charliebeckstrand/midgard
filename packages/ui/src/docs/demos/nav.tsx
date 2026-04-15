@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Box } from '../../components/box'
+import { Card } from '../../components/card'
 import { NavContent, NavContents, NavItem, NavList, NavProvider } from '../../components/nav'
 import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'
@@ -39,13 +39,13 @@ export default function NavDemo() {
 							<NavItem value="billing">Billing</NavItem>
 						</NavList>
 					</Navbar>
-					<Box p={3} border radius="lg">
+					<Card p={3}>
 						<NavContents>
 							<NavContent value="account">Account settings</NavContent>
 							<NavContent value="notifications">Notification preferences</NavContent>
 							<NavContent value="billing">Billing information</NavContent>
 						</NavContents>
-					</Box>
+					</Card>
 				</NavProvider>
 			`}
 			>
@@ -56,13 +56,13 @@ export default function NavDemo() {
 							<NavItem value="notifications">Notifications</NavItem>
 							<NavItem value="billing">Billing</NavItem>
 						</NavList>
-						<Box p={3} border radius="lg">
+						<Card p={3}>
 							<NavContents>
 								<NavContent value="account">Account settings</NavContent>
 								<NavContent value="notifications">Notification preferences</NavContent>
 								<NavContent value="billing">Billing information</NavContent>
 							</NavContents>
-						</Box>
+						</Card>
 					</NavProvider>
 				</Sizer>
 			</Example>

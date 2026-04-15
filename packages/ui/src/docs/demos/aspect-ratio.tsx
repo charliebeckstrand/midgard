@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Box } from '../../components/box'
+import { Card } from '../../components/card'
 import { AspectRatio, type AspectRatioPreset } from '../../components/aspect-ratio'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 import { Sizer } from '../../components/sizer'
@@ -39,9 +39,9 @@ function PresetsExample() {
 		>
 			<Sizer size="xl">
 				<AspectRatio ratio={ratio}>
-					<Box p={3} border radius="lg" className="flex flex-1 h-full items-center justify-center">
+					<Card className="flex flex-1 h-full items-center justify-center">
 						{ratio}
-					</Box>
+					</Card>
 				</AspectRatio>
 			</Sizer>
 		</Example>
@@ -65,9 +65,9 @@ export default function AspectRatioDemo() {
 			>
 				<Sizer size="xl">
 					<AspectRatio ratio={1.618}>
-						<Box p={3} border radius="lg" className="flex flex-1 h-full items-center justify-center">
+						<Card className="flex flex-1 h-full items-center justify-center">
 							Golden (1.618)
-						</Box>
+						</Card>
 					</AspectRatio>
 				</Sizer>
 			</Example>

@@ -1,4 +1,3 @@
-import { Box } from '../../components/box'
 import { Card } from '../../components/card'
 import { Flex } from '../../components/flex'
 import { Stack } from '../../components/stack'
@@ -18,11 +17,11 @@ export default function CenterDemo() {
 					</Flex>
 				`}
 			>
-				<Box p={3} border radius="lg" className="h-40 w-full">
+				<Card p={3} className="h-40 w-full">
 					<Flex justify="center" className="h-full">
 						<Card>Centered</Card>
 					</Flex>
-				</Box>
+				</Card>
 			</Example>
 
 			<Example

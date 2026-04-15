@@ -1,5 +1,5 @@
-import { Box } from '../../components/box'
 import { Button } from '../../components/button'
+import { Card } from '../../components/card'
 import { Heading } from '../../components/heading'
 import { Spacer } from '../../components/spacer'
 import { Stack } from '../../components/stack'
@@ -26,13 +26,13 @@ export default function SpacerDemo() {
 					</Stack>
 				`}
 			>
-				<Box p={3} border radius="lg" className="w-full">
+				<Card p={3} className="w-full">
 					<Stack direction="row" align="center" className="w-full">
 						<Heading level={3}>Title</Heading>
 						<Spacer />
 						<Button>Action</Button>
 					</Stack>
-				</Box>
+				</Card>
 			</Example>
 
 			<Example
@@ -50,14 +50,14 @@ export default function SpacerDemo() {
 					</Stack>
 				`}
 			>
-				<Box p={3} border radius="lg" className="w-full">
+				<Card p={3} className="w-full">
 					<Stack direction="row" gap={3} align="center" className="w-full">
 						<Button variant="plain">Back</Button>
 						<Spacer />
 						<Button variant="plain">Cancel</Button>
 						<Button>Save</Button>
 					</Stack>
-				</Box>
+				</Card>
 			</Example>
 		</Stack>
 	)
