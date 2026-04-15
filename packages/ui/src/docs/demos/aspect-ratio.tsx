@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Area } from '../components/area'
+import { Box } from '../../components/box'
 import { AspectRatio, type AspectRatioPreset } from '../../components/aspect-ratio'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 import { Sizer } from '../../components/sizer'
@@ -33,13 +33,15 @@ function PresetsExample() {
 			}
 			code={code`
 				import { AspectRatio, type AspectRatioPreset } from 'ui/aspect-ratio'
-				
+
 				<AspectRatio ratio="16/9" />
 			`}
 		>
 			<Sizer size="xl">
 				<AspectRatio ratio={ratio}>
-					<Area center>{ratio}</Area>
+					<Box p={3} border radius="lg" className="flex flex-1 h-full items-center justify-center">
+						{ratio}
+					</Box>
 				</AspectRatio>
 			</Sizer>
 		</Example>
@@ -63,7 +65,9 @@ export default function AspectRatioDemo() {
 			>
 				<Sizer size="xl">
 					<AspectRatio ratio={1.618}>
-						<Area center>Golden (1.618)</Area>
+						<Box p={3} border radius="lg" className="flex flex-1 h-full items-center justify-center">
+							Golden (1.618)
+						</Box>
 					</AspectRatio>
 				</Sizer>
 			</Example>

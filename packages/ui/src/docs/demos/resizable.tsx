@@ -1,13 +1,13 @@
 'use client'
 
-import { Area } from '../components/area'
+import { Box } from '../../components/box'
 import { ResizableGroup, ResizableHandle, ResizablePanel } from '../../components/resizable'
 import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Layout' }
 
-const Pane = () => <Area p={4} />
+const Pane = () => <Box p={4} border radius="lg" className="h-full" />
 
 export default function ResizableDemo() {
 	return (

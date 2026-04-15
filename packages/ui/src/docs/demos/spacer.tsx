@@ -1,4 +1,4 @@
-import { Area } from '../components/area'
+import { Box } from '../../components/box'
 import { Button } from '../../components/button'
 import { Heading } from '../../components/heading'
 import { Spacer } from '../../components/spacer'
@@ -26,13 +26,13 @@ export default function SpacerDemo() {
 					</Stack>
 				`}
 			>
-				<Area p={3} className="w-full">
+				<Box p={3} border radius="lg" className="w-full">
 					<Stack direction="row" align="center" className="w-full">
 						<Heading level={3}>Title</Heading>
 						<Spacer />
 						<Button>Action</Button>
 					</Stack>
-				</Area>
+				</Box>
 			</Example>
 
 			<Example
@@ -50,14 +50,14 @@ export default function SpacerDemo() {
 					</Stack>
 				`}
 			>
-				<Area p={3} className="w-full">
+				<Box p={3} border radius="lg" className="w-full">
 					<Stack direction="row" gap={3} align="center" className="w-full">
 						<Button variant="plain">Back</Button>
 						<Spacer />
 						<Button variant="plain">Cancel</Button>
 						<Button>Save</Button>
 					</Stack>
-				</Area>
+				</Box>
 			</Example>
 		</Stack>
 	)

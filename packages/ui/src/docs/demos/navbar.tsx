@@ -2,7 +2,7 @@
 
 import { AtSign, Home, Info } from 'lucide-react'
 import { useState } from 'react'
-import { Area } from '../components/area'
+import { Box } from '../../components/box'
 import { Nav, NavContent, NavContents, NavItem, NavList, NavProvider } from '../../components/nav'
 import { Navbar } from '../../components/navbar'
 import { Spacer } from '../../components/spacer'
@@ -82,13 +82,13 @@ export default function NavbarDemo() {
 						</NavList>
 					</Navbar>
 
-					<Area p={4}>
+					<Box p={4} border radius="lg">
 						<NavContents>
 							<NavContent value="home">Home page</NavContent>
 							<NavContent value="about">About us</NavContent>
 							<NavContent value="contact">Contact information</NavContent>
 						</NavContents>
-					</Area>
+					</Box>
 				</NavProvider>
 			`}
 			>
@@ -101,13 +101,13 @@ export default function NavbarDemo() {
 						</NavList>
 					</Navbar>
 
-					<Area p={4}>
+					<Box p={4} border radius="lg">
 						<NavContents>
 							<NavContent value="home">Home page</NavContent>
 							<NavContent value="about">About us</NavContent>
 							<NavContent value="contact">Contact information</NavContent>
 						</NavContents>
-					</Area>
+					</Box>
 				</NavProvider>
 			</Example>
 
