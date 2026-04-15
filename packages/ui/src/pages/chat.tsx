@@ -1,5 +1,4 @@
 import type React from 'react'
-import { Flex } from '../components/flex'
 import { Spacer } from '../components/spacer'
 import { Stack } from '../components/stack'
 import { cn } from '../core'
@@ -20,9 +19,9 @@ export function ChatPage({ sidebar, navbar, title, messages, prompt, bodyRef }: 
 			{title && <ChatLayoutHeader>{title}</ChatLayoutHeader>}
 
 			<ChatLayoutBody ref={bodyRef} className={!title ? 'pt-4' : undefined}>
-				<Flex direction="col" gap={4} width="full" flex>
+				<Stack gap={4} full flex>
 					{messages}
-				</Flex>
+				</Stack>
 			</ChatLayoutBody>
 
 			<ChatLayoutFooter>{prompt}</ChatLayoutFooter>

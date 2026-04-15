@@ -1,4 +1,4 @@
-import { kage, maru } from '../../recipes'
+import { kage, maru } from '../../../recipes'
 
 export const radius = maru.rounded
 
@@ -11,7 +11,7 @@ export {
 	paddingMap,
 	pxMap,
 	pyMap,
-} from '../../recipes/ma'
+} from '../../../recipes/ma'
 
 export const borderMap = {
 	solid: kage.border,

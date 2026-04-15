@@ -1,4 +1,4 @@
-import { Area } from '../../components/area'
+import { Area } from '../components/area'
 import { Stack } from '../../components/stack'
 import { code } from '../code'
 import { Example } from '../components/example'
@@ -11,8 +11,6 @@ export default function AreaDemo() {
 			<Example
 				title="Default"
 				code={code`
-					import { Area } from 'ui/area'
-
 					<Area className="h-24" />
 				`}
 			>
@@ -22,8 +20,6 @@ export default function AreaDemo() {
 			<Example
 				title="Padding"
 				code={code`
-					import { Area } from 'ui/area'
-
 					<Area p={2}>Small</Area>
 					<Area p={3}>Medium</Area>
 					<Area p={5}>Large</Area>
@@ -39,8 +35,6 @@ export default function AreaDemo() {
 			<Example
 				title="Border"
 				code={code`
-					import { Area } from 'ui/area'
-
 					<Area border="dashed" p={3}>Dashed</Area>
 					<Area border="solid" p={3}>Solid</Area>
 				`}

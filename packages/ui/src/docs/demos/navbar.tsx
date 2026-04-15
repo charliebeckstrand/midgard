@@ -2,7 +2,7 @@
 
 import { AtSign, Home, Info } from 'lucide-react'
 import { useState } from 'react'
-import { Area } from '../../components/area'
+import { Area } from '../components/area'
 import { Nav, NavContent, NavContents, NavItem, NavList, NavProvider } from '../../components/nav'
 import { Navbar } from '../../components/navbar'
 import { Spacer } from '../../components/spacer'

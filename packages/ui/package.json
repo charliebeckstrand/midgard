@@ -27,11 +27,7 @@
 			"types": "./src/components/alert/index.ts",
 			"default": "./src/components/alert/index.ts"
 		},
-		"./area": {
-			"types": "./src/components/area/index.ts",
-			"default": "./src/components/area/index.ts"
-		},
-		"./aspect-ratio": {
+"./aspect-ratio": {
 			"types": "./src/components/aspect-ratio/index.ts",
 			"default": "./src/components/aspect-ratio/index.ts"
 		},
@@ -70,10 +66,6 @@
 		"./card": {
 			"types": "./src/components/card/index.ts",
 			"default": "./src/components/card/index.ts"
-		},
-		"./center": {
-			"types": "./src/components/center/index.ts",
-			"default": "./src/components/center/index.ts"
 		},
 		"./checkbox": {
 			"types": "./src/components/checkbox/index.ts",

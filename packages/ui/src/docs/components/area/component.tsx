@@ -1,5 +1,5 @@
 import type React from 'react'
-import { cn } from '../../core'
+import { cn } from '../../../core'
 import {
 	type AreaBorder,
 	type AreaMargin,

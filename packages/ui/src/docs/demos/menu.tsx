@@ -1,4 +1,4 @@
-import { Area } from '../../components/area'
+import { Area } from '../components/area'
 import { Button } from '../../components/button'
 import { Glass } from '../../components/glass'
 import {

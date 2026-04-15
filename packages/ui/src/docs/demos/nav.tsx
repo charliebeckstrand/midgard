@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Area } from '../../components/area'
+import { Area } from '../components/area'
 import { NavContent, NavContents, NavItem, NavList, NavProvider } from '../../components/nav'
 import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'

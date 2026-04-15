@@ -5,15 +5,16 @@ export const gapMap = kumi.gap
 export const directionMap = kumi.direction
 export const alignMap = kumi.align
 export const justifyMap = kumi.justify
-export const widthMap = kumi.width
 
 export type FlexGap = keyof typeof kumi.gap
 export type FlexDirection = keyof typeof kumi.direction
 export type FlexAlign = keyof typeof kumi.align
 export type FlexJustify = keyof typeof kumi.justify
-export type FlexWidth = keyof typeof kumi.width
 
 export type ResponsiveDirection = Responsive<FlexDirection>
+export type ResponsiveAlign = Responsive<FlexAlign>
+export type ResponsiveGap = Responsive<FlexGap>
+export type ResponsiveJustify = Responsive<FlexJustify>
 
 const responsiveDirectionMap: Record<string, Record<FlexDirection, string>> = {
 	initial: directionMap,
@@ -48,8 +49,6 @@ const responsiveDirectionMap: Record<string, Record<FlexDirection, string>> = {
 		'col-reverse': 'max-2xl:flex-col-reverse',
 	},
 }
-
-export type ResponsiveAlign = Responsive<FlexAlign>
 
 const responsiveAlignMap: Record<string, Record<FlexAlign, string>> = {
 	initial: alignMap,
@@ -96,4 +95,18 @@ export function resolveDirection(value: ResponsiveDirection | undefined): string
 
 export function resolveAlign(value: ResponsiveAlign | undefined): string[] {
 	return resolveResponsive(value, (v, bp) => responsiveAlignMap[bp ?? 'initial'][v])
+}
+
+export function resolveGap(value: ResponsiveGap | undefined): string[] {
+	return resolveResponsive(value, (v, bp) => {
+		const cls = gapMap[v]
+		return bp ? `${bp}:${cls}` : cls
+	})
+}
+
+export function resolveJustify(value: ResponsiveJustify | undefined): string[] {
+	return resolveResponsive(value, (v, bp) => {
+		const cls = justifyMap[v]
+		return bp ? `${bp}:${cls}` : cls
+	})
 }

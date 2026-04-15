@@ -1,6 +1,6 @@
-import { Area } from '../../components/area'
+import { Area } from '../components/area'
 import { Card } from '../../components/card'
-import { Center } from '../../components/center'
+import { Flex } from '../../components/flex'
 import { Stack } from '../../components/stack'
 import { code } from '../code'
 import { Example } from '../components/example'
@@ -13,50 +13,29 @@ export default function CenterDemo() {
 			<Example
 				title="Default"
 				code={code`
-					import { Center } from 'ui/center'
-
-					<Center>
+					<Flex justify="center">
 						<Card>Centered</Card>
-					</Center>
+					</Flex>
 				`}
 			>
 				<Area className="h-40 w-full">
-					<Center className="h-full">
+					<Flex justify="center" className="h-full">
 						<Card>Centered</Card>
-					</Center>
-				</Area>
-			</Example>
-
-			<Example
-				title="With max width"
-				code={code`
-					import { Center } from 'ui/center'
-
-					<Center maxW="md">
-						<Card>Constrained to max-w-md</Card>
-					</Center>
-				`}
-			>
-				<Area className="h-40 w-full">
-					<Center maxW="md" className="h-full">
-						<Card>Constrained to max-w-md</Card>
-					</Center>
+					</Flex>
 				</Area>
 			</Example>
 
 			<Example
 				title="Inline"
 				code={code`
-					import { Center } from 'ui/center'
-
-					<Center inline className="size-20 rounded-full bg-zinc-100 dark:bg-zinc-800">
+					<Flex inline justify="center" className="size-20 rounded-full bg-zinc-100 dark:bg-zinc-800">
 						OK
-					</Center>
+					</Flex>
 				`}
 			>
-				<Center inline className="size-20 rounded-full bg-zinc-100 dark:bg-zinc-800">
+				<Flex inline justify="center" className="size-20 rounded-full bg-zinc-100 dark:bg-zinc-800">
 					OK
-				</Center>
+				</Flex>
 			</Example>
 		</Stack>
 	)

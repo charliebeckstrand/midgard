@@ -4,5 +4,8 @@ export type {
 	FlexDirection,
 	FlexGap,
 	FlexJustify,
-	FlexWidth,
+	ResponsiveAlign,
+	ResponsiveDirection,
+	ResponsiveGap,
+	ResponsiveJustify,
 } from './variants'

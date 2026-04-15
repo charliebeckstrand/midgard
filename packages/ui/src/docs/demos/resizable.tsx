@@ -1,6 +1,6 @@
 'use client'
 
-import { Area } from '../../components/area'
+import { Area } from '../components/area'
 import { ResizableGroup, ResizableHandle, ResizablePanel } from '../../components/resizable'
 import { Stack } from '../../components/stack'
 import { Example } from '../components/example'

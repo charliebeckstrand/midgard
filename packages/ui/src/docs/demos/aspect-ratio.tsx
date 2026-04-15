@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Area } from '../../components/area'
+import { Area } from '../components/area'
 import { AspectRatio, type AspectRatioPreset } from '../../components/aspect-ratio'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 import { Sizer } from '../../components/sizer'

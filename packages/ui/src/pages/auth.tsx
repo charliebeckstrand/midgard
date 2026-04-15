@@ -1,5 +1,5 @@
 import type React from 'react'
-import { Center } from '../components/center'
+import { Flex } from '../components/flex'
 import { Fieldset } from '../components/fieldset/component'
 import { Text } from '../components/text'
 import { cn } from '../core'
@@ -25,7 +25,7 @@ export function AuthPage({
 	footer,
 }: AuthPageProps) {
 	return (
-		<Center className={cn('grow p-6', omote.content)}>
+		<Flex justify="center" className={cn('grow p-6', omote.content)}>
 			<form onSubmit={onSubmit} className="grid gap-8 w-full lg:max-w-sm">
 				{heading}
 
@@ -39,6 +39,6 @@ export function AuthPage({
 					{footer}
 				</Fieldset>
 			</form>
-		</Center>
+		</Flex>
 	)
 }
