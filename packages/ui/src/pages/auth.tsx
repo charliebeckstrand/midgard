@@ -25,7 +25,7 @@ export function AuthPage({
 	footer,
 }: AuthPageProps) {
 	return (
-		<Center className={cn('grow h-full p-6 lg:p-10', omote.surface, omote.content)}>
+		<Center className={cn('grow p-6', omote.content)}>
 			<form onSubmit={onSubmit} className="grid gap-8 w-full lg:max-w-sm">
 				{heading}
 

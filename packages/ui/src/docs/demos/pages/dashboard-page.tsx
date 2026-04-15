@@ -1,9 +1,11 @@
 'use client'
 
 import { Search } from 'lucide-react'
+import { useState } from 'react'
+import { Button } from '../../../components/button'
 import { Card, CardBody, CardHeader, CardTitle } from '../../../components/card'
+import { Filters, FiltersClear, FiltersField, useFilters } from '../../../components/filters'
 import { Grid } from '../../../components/grid'
-import { Heading } from '../../../components/heading'
 import { Icon } from '../../../components/icon'
 import { Input } from '../../../components/input'
 import { Select, SelectLabel, SelectOption } from '../../../components/select'
@@ -39,40 +41,68 @@ const orders = [
 	{ id: 'ORD-7295', customer: 'Sofia Davis', status: 'Completed', amount: '$149.00' },
 ]
 
-function Filters() {
-	return (
-		<Stack direction="row" align="end" gap={4} wrap>
-			<Select placeholder="All statuses" displayValue={(v: string) => v}>
-				<SelectOption value="Completed">
-					<SelectLabel>Completed</SelectLabel>
-				</SelectOption>
-				<SelectOption value="Processing">
-					<SelectLabel>Processing</SelectLabel>
-				</SelectOption>
-				<SelectOption value="Pending">
-					<SelectLabel>Pending</SelectLabel>
-				</SelectOption>
-			</Select>
+type BasicFilters = {
+	status: string
+	category: string | undefined
+}
 
-			<Select placeholder="All categories" displayValue={(v: string) => v}>
-				<SelectOption value="Electronics">
-					<SelectLabel>Electronics</SelectLabel>
-				</SelectOption>
-				<SelectOption value="Clothing">
-					<SelectLabel>Clothing</SelectLabel>
-				</SelectOption>
-				<SelectOption value="Books">
-					<SelectLabel>Books</SelectLabel>
-				</SelectOption>
-			</Select>
-		</Stack>
+function FiltersClearButton() {
+	const { activeCount } = useFilters()
+
+	if (activeCount === 0) return null
+
+	return (
+		<FiltersClear>
+			<Button variant="soft" color="red">
+				Clear
+			</Button>
+		</FiltersClear>
+	)
+}
+
+function DashboardFilters() {
+	const [filters, setFilters] = useState<BasicFilters>({
+		status: '',
+		category: undefined,
+	})
+
+	return (
+		<Filters value={filters} clear={<FiltersClearButton />} onChange={setFilters}>
+			<FiltersField name="status">
+				<Select placeholder="All statuses" displayValue={(v: string) => v}>
+					<SelectOption value="Completed">
+						<SelectLabel>Completed</SelectLabel>
+					</SelectOption>
+					<SelectOption value="Processing">
+						<SelectLabel>Processing</SelectLabel>
+					</SelectOption>
+					<SelectOption value="Pending">
+						<SelectLabel>Pending</SelectLabel>
+					</SelectOption>
+				</Select>
+			</FiltersField>
+
+			<FiltersField name="category">
+				<Select placeholder="All categories" displayValue={(v: string) => v}>
+					<SelectOption value="Electronics">
+						<SelectLabel>Electronics</SelectLabel>
+					</SelectOption>
+					<SelectOption value="Clothing">
+						<SelectLabel>Clothing</SelectLabel>
+					</SelectOption>
+					<SelectOption value="Books">
+						<SelectLabel>Books</SelectLabel>
+					</SelectOption>
+				</Select>
+			</FiltersField>
+		</Filters>
 	)
 }
 
 export default function DashboardPageDemo() {
 	return (
 		<Example>
-			<DashboardPage heading={<Heading>Dashboard</Heading>} filters={<Filters />}>
+			<DashboardPage filters={<DashboardFilters />}>
 				<Stack gap={6}>
 					<Grid columns={{ initial: 1, sm: 2, lg: 4 }} gap={4}>
 						{stats.map((stat) => (

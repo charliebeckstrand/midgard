@@ -10,6 +10,7 @@ export const segment = {
 	segment: [
 		'relative z-10 flex items-center justify-center cursor-default outline-none',
 		'font-medium select-none whitespace-nowrap',
+		maru.rounded,
 		ki.indicator,
 		ki.ring,
 		yasumi.disabled,

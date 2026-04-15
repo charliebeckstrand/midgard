@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { Button } from '../../../components/button'
 import { Checkbox, CheckboxField, CheckboxGroup } from '../../../components/checkbox'
 import { Description, Field, Label } from '../../../components/fieldset'
-import { Heading } from '../../../components/heading'
 import { Input } from '../../../components/input'
 import { PasswordConfirm, PasswordConfirmInput } from '../../../components/password-confirm'
 import { PasswordInput } from '../../../components/password-input'
@@ -32,14 +31,19 @@ export default function SettingsPageDemo() {
 
 	return (
 		<Example>
-			<Tabs defaultValue="profile">
+			<Tabs defaultValue="profile" className="-mt-2">
 				<SettingsPage
-					heading={<Heading>Settings</Heading>}
 					tabs={
 						<TabList>
-							<Tab value="profile">Profile</Tab>
-							<Tab value="notifications">Notifications</Tab>
-							<Tab value="security">Security</Tab>
+							<Tab value="profile" disabled={submitting}>
+								Profile
+							</Tab>
+							<Tab value="notifications" disabled={submitting}>
+								Notifications
+							</Tab>
+							<Tab value="security" disabled={submitting}>
+								Security
+							</Tab>
 						</TabList>
 					}
 					onSubmit={handleSubmit}
@@ -156,7 +160,7 @@ export default function SettingsPageDemo() {
 								<SwitchField>
 									<Label htmlFor="switch-2fa">Two-factor authentication</Label>
 									<Description>Add an extra layer of security to your account</Description>
-									<Switch id="switch-2fa" />
+									<Switch id="switch-2fa" color="green" />
 								</SwitchField>
 							</Sizer>
 						</TabContent>

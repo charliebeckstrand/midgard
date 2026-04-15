@@ -19,7 +19,7 @@ export function ChatPage({ sidebar, navbar, title, messages, prompt, bodyRef }: 
 		<ChatLayout sidebar={sidebar} navbar={navbar}>
 			{title && <ChatLayoutHeader>{title}</ChatLayoutHeader>}
 
-			<ChatLayoutBody ref={bodyRef}>
+			<ChatLayoutBody ref={bodyRef} className={!title ? 'pt-4' : undefined}>
 				<Flex direction="col" gap={4} width="full" flex>
 					{messages}
 				</Flex>

@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactElement } from 'react'
+import { type ReactElement, useEffect, useRef } from 'react'
 import { cn } from '../../core'
 import { useOffcanvas } from '../../core/offcanvas-context'
 import {
@@ -38,9 +38,17 @@ export function createNavItem(config: { slotPrefix: string; variants: () => stri
 		onClick,
 		...props
 	}: NavItemProps) {
+		const itemRef = useRef<HTMLSpanElement>(null)
+
 		const indicator = useActiveIndicator()
 
 		const offcanvas = useOffcanvas()
+
+		useEffect(() => {
+			if (current && itemRef.current) {
+				itemRef.current.scrollIntoView({ block: 'nearest' })
+			}
+		}, [current])
 
 		function handleClick(e: React.MouseEvent<HTMLElement>) {
 			onClick?.(e as React.MouseEvent<HTMLButtonElement> & React.MouseEvent<HTMLAnchorElement>)
@@ -52,6 +60,7 @@ export function createNavItem(config: { slotPrefix: string; variants: () => stri
 
 		return (
 			<span
+				ref={itemRef}
 				data-slot={`${config.slotPrefix}-item`}
 				className="group relative"
 				{...(spring ? indicator.tapHandlers : {})}

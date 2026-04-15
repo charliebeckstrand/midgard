@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import { Combobox, ComboboxOption } from '../../components/combobox'
+import { Heading } from '../../components/heading'
 import {
 	Sidebar,
 	SidebarBody,
@@ -30,9 +31,7 @@ export function SidebarContent({ route }: { route: string }) {
 	return (
 		<Sidebar>
 			<SidebarHeader className="">
-				<SidebarItem href="#">
-					<SidebarLabel className="font-semibold">UI Components</SidebarLabel>
-				</SidebarItem>
+				<Heading level={3}>UI Components</Heading>
 			</SidebarHeader>
 			<Combobox<string>
 				placeholder="Search components"

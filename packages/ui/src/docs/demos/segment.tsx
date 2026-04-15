@@ -48,7 +48,7 @@ export default function SegmentDemo() {
 
 	return (
 		<Stack gap={8}>
-			<Example title="View toggle">
+			<Example title="Default">
 				<Stack gap={4}>
 					<Segment value={view} onValueChange={(v) => setView(v ?? 'List')}>
 						<SegmentControl>

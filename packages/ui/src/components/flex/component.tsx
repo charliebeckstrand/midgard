@@ -39,7 +39,7 @@ export type FlexProps = {
 export function Flex({
 	direction = 'row',
 	gap,
-	align,
+	align = 'center',
 	justify,
 	wrap,
 	inline,
@@ -57,8 +57,8 @@ export function Flex({
 				inline ? 'inline-flex' : 'flex',
 				width && widthMap[width],
 				resolveDirection(direction),
-				gap !== undefined && gapMap[gap],
 				resolveAlign(align),
+				gap !== undefined && gapMap[gap],
 				justify && justifyMap[justify],
 				wrap && 'flex-wrap',
 				flex && 'flex-1',
