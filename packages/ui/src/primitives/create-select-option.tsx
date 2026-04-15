@@ -38,7 +38,6 @@ export function createSelectOption(config: {
 				selected={selected}
 				disabled={disabled}
 				icon={icon}
-				checkPosition="end"
 				onSelect={() => select(value)}
 				data-slot={`${config.slotPrefix}-option`}
 				className={className}

@@ -1,30 +1,20 @@
 'use client'
 
-import {
-	autoUpdate,
-	FloatingPortal,
-	flip,
-	offset,
-	type Placement,
-	shift,
-	size,
-	useDismiss,
-	useFloating,
-	useInteractions,
-	useRole,
-} from '@floating-ui/react'
+import { FloatingPortal, type Placement } from '@floating-ui/react'
 import { ChevronsUpDown } from 'lucide-react'
 import { AnimatePresence } from 'motion/react'
 import type React from 'react'
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useCallback, useId, useRef } from 'react'
 import { cn, createContext } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
+import { useFloatingUI } from '../../hooks/use-floating-ui'
 import { useRovingFocus } from '../../hooks/use-keyboard'
-import { useSelect } from '../../hooks/use-select'
 import { useVirtualKeyboardStable } from '../../hooks/use-virtual-keyboard-stable'
 import { FormControl, PopoverPanel } from '../../primitives'
 import { useControl } from '../control/context'
 import { Icon } from '../icon'
+import { useComboboxSelection } from './use-combobox-selection'
+import { resolveInputDisplay, selectActiveOrSingleOption } from './utilities'
 import { k, kPopover } from './variants'
 
 type ComboboxContextValue<T = unknown> = {
@@ -79,7 +69,7 @@ export function Combobox<T>({
 	placement = 'bottom-start',
 	icon,
 	selectable = true,
-	nullable = false,
+	nullable = valueProp === undefined && defaultValue === undefined,
 	closeOnSelect,
 	className,
 	children,
@@ -103,13 +93,12 @@ export function Combobox<T>({
 		onChange: handleValueChange,
 	})
 
-	const [query, setQuery] = useState('')
-	const [open, setOpen] = useState(false)
-	const [editing, setEditing] = useState(false)
 	const listboxId = useId()
 
 	const inputRef = useRef<HTMLInputElement>(null)
+
 	const optionsRef = useRef<HTMLDivElement>(null)
+
 	const handleKeyDown = useRovingFocus(optionsRef, {
 		itemSelector: '[role="option"]:not([data-disabled])',
 		focusOnEmpty: true,
@@ -117,112 +106,34 @@ export function Combobox<T>({
 
 	const waitForKeyboard = useVirtualKeyboardStable()
 
-	const { refs, floatingStyles, context } = useFloating({
+	const { query, setQuery, open, setOpen, editing, setEditing, close, select, flushPending } =
+		useComboboxSelection<T>({
+			multiple,
+			nullable,
+			selectable,
+			closeOnSelect,
+			onChange: onChange as ((value: T) => void) | undefined,
+			setValue,
+			inputRef,
+		})
+
+	const { refs, floatingStyles, getReferenceProps, getFloatingProps } = useFloatingUI({
 		placement,
 		open,
 		onOpenChange: setOpen,
-		whileElementsMounted: autoUpdate,
-		middleware: [
-			offset(4),
-			flip(),
-			shift({ padding: 8 }),
-			size({
-				apply({ rects, elements }) {
-					Object.assign(elements.floating.style, {
-						minWidth: `${rects.reference.width}px`,
-					})
-				},
-			}),
-		],
 	})
 
-	const dismiss = useDismiss(context)
-	const role = useRole(context, { role: 'listbox' })
+	const inputDisplay = resolveInputDisplay({ editing, query, value, displayValue, multiple })
 
-	const { getReferenceProps, getFloatingProps } = useInteractions([dismiss, role])
+	const scrollToSelected = useCallback((node: HTMLDivElement | null) => {
+		if (!node) return
 
-	const close = useCallback(() => {
-		setOpen(false)
+		const selected = node.querySelector<HTMLElement>('[role="option"][data-selected]')
 
-		setQuery('')
-
-		setEditing(false)
+		selected?.scrollIntoView({ block: 'center' })
 	}, [])
 
-	const shouldClose = closeOnSelect ?? !multiple
-
-	const toggle = useSelect({ multiple, nullable, setValue })
-
-	const pendingRef = useRef<{ value: T } | null>(null)
-
-	const select = useCallback(
-		(newValue: T) => {
-			if (!selectable) {
-				;(onChange as ((value: T) => void) | undefined)?.(newValue)
-			} else if (shouldClose) {
-				pendingRef.current = { value: newValue }
-			} else {
-				toggle(newValue)
-			}
-
-			if (shouldClose) {
-				close()
-			} else {
-				setQuery('')
-				setEditing(false)
-
-				inputRef.current?.focus()
-			}
-		},
-		[selectable, shouldClose, toggle, onChange, close],
-	)
-
-	const flushPending = useCallback(() => {
-		if (pendingRef.current) {
-			toggle(pendingRef.current.value)
-
-			pendingRef.current = null
-		}
-	}, [toggle])
-
-	const inputDisplay = useMemo(() => {
-		if (editing) return query
-
-		if (!multiple && value !== undefined && displayValue) return displayValue(value as T)
-
-		return ''
-	}, [editing, query, value, displayValue, multiple])
-
 	const rendered = typeof children === 'function' ? children(query) : children
-
-	// Highlight the active option without stealing focus from the input.
-	const childCount = Array.isArray(rendered) ? rendered.length : rendered ? 1 : 0
-
-	useEffect(() => {
-		if (!open || !childCount) return
-
-		const container = optionsRef.current
-
-		if (!container) return
-
-		for (const el of container.querySelectorAll('[data-active]')) el.removeAttribute('data-active')
-
-		if (editing) {
-			// Single visible option gets highlighted so Enter can select it
-			const items = container.querySelectorAll<HTMLElement>('[role="option"]:not([data-disabled])')
-
-			if (items.length === 1) items[0]?.setAttribute('data-active', '')
-		} else {
-			// Scroll the selected option into view on open
-			const selected = container.querySelector<HTMLElement>(
-				'[role="option"]:not([data-disabled])[data-selected]',
-			)
-
-			if (selected) {
-				selected.scrollIntoView({ block: 'center' })
-			}
-		}
-	}, [editing, open, childCount])
 
 	return (
 		<ComboboxProvider value={{ value, multiple, select: select as (v: unknown) => void, query }}>
@@ -251,6 +162,7 @@ export function Combobox<T>({
 							setEditing(true)
 
 							setQuery(e.target.value)
+
 							setOpen(true)
 						}}
 						onFocus={() => waitForKeyboard(() => setOpen(true))}
@@ -268,32 +180,17 @@ export function Combobox<T>({
 
 								return
 							}
+
 							if (e.key === 'Enter') {
 								const container = optionsRef.current
 
-								const active = container?.querySelector<HTMLElement>('[data-active]')
-
-								if (active) {
+								if (container && selectActiveOrSingleOption(container)) {
 									e.preventDefault()
-
-									active.click()
-
-									return
-								}
-
-								// If there's exactly one visible option, select it
-								const items = container?.querySelectorAll<HTMLElement>(
-									'[role="option"]:not([data-disabled])',
-								)
-
-								if (items?.length === 1) {
-									e.preventDefault()
-
-									items[0]?.click()
 
 									return
 								}
 							}
+
 							handleKeyDown(e)
 						}}
 						className={cn(k.input)}
@@ -309,9 +206,14 @@ export function Combobox<T>({
 					<AnimatePresence onExitComplete={flushPending}>
 						{open && (
 							<div
-								ref={refs.setFloating}
+								ref={(node) => {
+									refs.setFloating(node)
+
+									scrollToSelected(node)
+								}}
+								data-editing={editing || undefined}
 								style={floatingStyles}
-								className={kPopover.portal}
+								className={cn('group/combobox', kPopover.portal)}
 								{...getFloatingProps()}
 							>
 								<PopoverPanel

@@ -7,7 +7,7 @@ import { Example } from '../components/example'
 
 export const meta = { category: 'Layout' }
 
-const Pane = () => <Card p={4} className="h-full" />
+const Pane = () => <Card className="h-full" />
 
 export default function ResizableDemo() {
 	return (

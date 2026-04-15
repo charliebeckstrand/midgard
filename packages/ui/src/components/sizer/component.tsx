@@ -15,9 +15,9 @@ export type SizerProps = {
 } & Omit<React.ComponentPropsWithoutRef<'div'>, 'className' | 'children'>
 
 export function Sizer({
-	size = 'sm',
-	direction = 'col',
+	size = 'md',
 	gap = 4,
+	direction = 'col',
 	className,
 	children,
 	...props
@@ -25,13 +25,7 @@ export function Sizer({
 	return (
 		<div
 			data-slot="sizer"
-			className={cn(
-				'flex',
-				directionMap[direction],
-				gapMap[gap],
-				size !== false && sizeMap[size],
-				className,
-			)}
+			className={cn('flex', directionMap[direction], gapMap[gap], sizeMap[size], className)}
 			{...props}
 		>
 			{children}

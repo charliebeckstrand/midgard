@@ -8,7 +8,7 @@ import { type NavbarVariants, navbarVariants } from './variants'
 export type NavbarProps = NavbarVariants & React.ComponentPropsWithoutRef<'nav'>
 
 export function Navbar({
-	variant = 'plain',
+	variant = 'outline',
 	'aria-label': ariaLabel = 'Main',
 	className,
 	children,

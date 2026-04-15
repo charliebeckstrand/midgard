@@ -8,9 +8,9 @@ export function Card({
 	p,
 	px,
 	py,
-	radius = 'lg',
 	bg = 'tint',
 	border = true,
+	radius = 'lg',
 	className,
 	...props
 }: CardProps) {
@@ -21,9 +21,9 @@ export function Card({
 			p={p}
 			px={px}
 			py={py}
-			radius={radius}
 			bg={bg}
 			border={border}
+			radius={radius}
 			className={cn(
 				'overflow-hidden',
 				noExplicitPadding && '[&:not(:has(>[data-slot^=card-]))]:p-5',

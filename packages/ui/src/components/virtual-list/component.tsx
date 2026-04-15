@@ -137,7 +137,7 @@ export function VirtualList<T>({
 			ref={scrollRef}
 			data-slot="virtual-list"
 			onScroll={handleScroll}
-			className={cn(k.root, className)}
+			className={cn(k.base, className)}
 		>
 			<ul
 				data-slot="virtual-list-viewport"

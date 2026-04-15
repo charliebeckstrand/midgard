@@ -34,7 +34,7 @@ export function Tree({ children, color, className }: TreeProps) {
 				ref={ref}
 				role="tree"
 				data-slot="tree"
-				className={cn(k.root, className)}
+				className={cn(k.base, className)}
 				onKeyDown={handleKeyDown}
 			>
 				{children}

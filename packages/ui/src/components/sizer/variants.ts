@@ -5,12 +5,12 @@ export const gapMap = kumi.gap
 export type SizerGap = keyof typeof kumi.gap
 
 export const sizeMap = {
-	xs: 'xs:min-w-xs',
-	sm: 'sm:min-w-sm',
-	md: 'md:min-w-md',
-	lg: 'lg:min-w-lg',
-	xl: 'xl:min-w-xl',
+	xs: 'sm:max-w-xs',
+	sm: 'sm:max-w-sm',
+	md: 'sm:max-w-md',
+	lg: 'sm:max-w-lg',
+	xl: 'sm:max-w-xl',
 	full: 'w-full',
 } as const
 
-export type SizerSize = keyof typeof sizeMap | false
+export type SizerSize = keyof typeof sizeMap

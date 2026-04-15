@@ -10,11 +10,16 @@ export const option = {
 		sawari.cursor,
 		sawari.item,
 		'data-active:bg-zinc-950/5 dark:data-active:bg-white/5',
+		[
+			'group-data-editing/combobox:only-of-type:bg-zinc-950/5',
+			'dark:group-data-editing/combobox:only-of-type:bg-white/5',
+		],
 	],
-	start:
-		'grid-cols-[--spacing(5)_1fr] pr-3.5 pl-2 sm:grid-cols-[--spacing(4)_1fr] sm:pr-3 sm:pl-1.5',
-	end: 'grid-cols-[1fr_--spacing(5)] pr-2 pl-3.5 sm:grid-cols-[1fr_--spacing(4)] sm:pr-2 sm:pl-3',
+	check: [
+		'grid-cols-[1fr_--spacing(5)] sm:grid-cols-[1fr_--spacing(4)]',
+		'pr-2 pl-3.5 sm:pr-2 sm:pl-3',
+	],
 	content: ['flex min-w-0 items-center', narabi.item],
-	label: 'ml-2.5 truncate first:ml-0 sm:ml-2 sm:first:ml-0',
+	label: 'ml-2.5 first:ml-0 sm:ml-2 sm:first:ml-0 truncate',
 	description: [narabi.description, sumi.textMuted, sawari.focusText],
 }

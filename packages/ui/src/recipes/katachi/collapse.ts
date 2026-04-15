@@ -2,7 +2,7 @@ import { ki } from '../ki'
 import { sumi } from '../sumi'
 
 export const collapse = {
-	root: 'group/collapse',
+	base: 'group/collapse',
 	trigger: [
 		'inline-flex items-center gap-1 text-sm font-medium',
 		sumi.textMuted,

@@ -8,57 +8,46 @@ export const meta = { category: 'Layout' }
 export default function BoxDemo() {
 	return (
 		<Stack gap={8}>
-			<Example
-				title="Padding and radius"
-				code={code`
-					import { Box } from 'ui/box'
+			<Example title="Default">
+				<Box>Content</Box>
+			</Example>
 
-					<Box p={4} radius="lg" bg="tint">
-						Content
-					</Box>
-				`}
-			>
-				<Box p={4} radius="lg" bg="tint">
+			<Example title="Background">
+				<Box p={4} bg="tint">
+					Content
+				</Box>
+				<Box p={4} bg="surface">
+					Content
+				</Box>
+			</Example>
+
+			<Example title="Radius">
+				<Box p={4} bg="tint" radius="lg">
 					Content
 				</Box>
 			</Example>
 
 			<Example
-				title="Bordered surface"
+				title="Bordered"
 				code={code`
 					import { Box } from 'ui/box'
 
-					<Box p={6} radius="lg" bg="surface" border>
+					<Box p={4} bg="surface" radius="lg" border>
 						Surface with default border
 					</Box>
-					<Box p={6} radius="lg" bg="surface" border="subtle">
+					<Box p={4} bg="surface" radius="lg" border="subtle">
 						Subtle border
 					</Box>
 				`}
 			>
 				<Stack gap={4}>
-					<Box p={6} radius="lg" bg="surface" border>
+					<Box p={4} bg="surface" radius="lg" border>
 						Surface with default border
 					</Box>
-					<Box p={6} radius="lg" bg="surface" border="subtle">
+					<Box p={4} bg="surface" radius="lg" border="subtle">
 						Subtle border
 					</Box>
 				</Stack>
-			</Example>
-
-			<Example
-				title="Asymmetric spacing"
-				code={code`
-					import { Box } from 'ui/box'
-
-					<Box px={6} py={3} radius="md" bg="tint">
-						px=6 py=3
-					</Box>
-				`}
-			>
-				<Box px={6} py={3} radius="md" bg="tint">
-					px=6 py=3
-				</Box>
 			</Example>
 		</Stack>
 	)

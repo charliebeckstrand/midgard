@@ -38,7 +38,7 @@ export function App() {
 				/>
 			}
 			navbar={
-				<Navbar>
+				<Navbar variant="plain">
 					<Spacer />
 					<ToggleIconButton
 						pressed={dark}

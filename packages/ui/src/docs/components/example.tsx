@@ -5,6 +5,7 @@ import { CodeBlock } from '../../components/code'
 import { Collapse, CollapsePanel, CollapseTrigger } from '../../components/collapse'
 import { Flex } from '../../components/flex'
 import { Heading } from '../../components/heading'
+import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'
 import { deriveCode } from '../derive-code'
 
@@ -42,7 +43,9 @@ export function Example({
 				{prefix && (
 					<div className="border-b border-zinc-200 dark:border-zinc-800 p-4">{prefix}</div>
 				)}
-				<div className="overflow-x-auto p-4 space-y-4">{children}</div>
+				<div className="overflow-x-auto p-4 space-y-4">
+					<Sizer>{children}</Sizer>
+				</div>
 				{preview && (
 					<div className="border-t border-zinc-200 dark:border-zinc-800 p-4">{preview}</div>
 				)}

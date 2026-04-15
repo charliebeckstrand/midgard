@@ -184,7 +184,7 @@ export const Calendar = forwardRef<CalendarHandle, CalendarProps>(function Calen
 	const headerActiveIndex = active?.zone === 'header' ? active.index : null
 
 	return (
-		<div data-slot="calendar" className={cn(k.root, className)}>
+		<div data-slot="calendar" className={cn(k.base, className)}>
 			<div ref={headerRef} role="toolbar" onKeyDown={handleHeaderKeyDown} className={k.header}>
 				<Button
 					variant="plain"

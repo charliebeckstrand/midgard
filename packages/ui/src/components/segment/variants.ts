@@ -4,14 +4,14 @@ import { katachi } from '../../recipes'
 export const k = katachi.segment
 
 const rootSize = Object.fromEntries(
-	Object.entries(k.size).map(([key, { root }]) => [key, root]),
+	Object.entries(k.size).map(([key, { base }]) => [key, base]),
 ) as Record<keyof typeof k.size, string>
 
 const segmentSize = Object.fromEntries(
 	Object.entries(k.size).map(([key, { segment }]) => [key, segment]),
 ) as Record<keyof typeof k.size, string>
 
-export const segmentControlVariants = cva(k.root, {
+export const segmentControlVariants = cva(k.base, {
 	variants: { size: rootSize },
 	defaultVariants: k.defaults,
 })

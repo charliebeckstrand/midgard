@@ -1,4 +1,4 @@
-import { Alert, AlertDescription, AlertTitle } from '../../components/alert'
+import { Alert, AlertDescription } from '../../components/alert'
 import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'
 import {
@@ -21,15 +21,14 @@ export default function CardDemo() {
 	return (
 		<Stack gap={8}>
 			<Alert type="info" closable>
-				<AlertTitle>Box</AlertTitle>
-				<AlertDescription>The Card component extends the Box component.</AlertDescription>
-				<Text className="py-2">
+				<AlertDescription>Card extends Box.</AlertDescription>
+				<AlertDescription>
 					See the{' '}
-					<a href="#box" className="underline underline-offset-4">
+					<a href="#box" className="text-white underline underline-offset-4">
 						Box documentation
 					</a>{' '}
-					for more details and examples of the Box API.
-				</Text>
+					for more details and examples.
+				</AlertDescription>
 			</Alert>
 
 			<Example
@@ -42,39 +41,6 @@ export default function CardDemo() {
 			>
 				<Card>Content</Card>
 			</Example>
-
-			{/* <Example
-				title="Box API"
-				code={code`
-					import { Card } from 'ui/card'
-
-					<Card p={4} radius="lg" bg="tint">Tint</Card>
-					<Card p={4} radius="lg" bg="surface">Surface</Card>
-					<Card p={4} radius="lg" bg="none">Outline</Card>
-				`}
-			>
-				<div className="space-y-4">
-					<Alert type="info" closable>
-						<AlertTitle>Box API</AlertTitle>
-						<AlertDescription>
-							The Card component extends the Box component, so you can use all of the Box props to
-							customize it.
-						</AlertDescription>
-					</Alert>
-
-					<div className="grid gap-4 sm:grid-cols-3">
-						<Card p={4} radius="lg" bg="tint">
-							Tint
-						</Card>
-						<Card p={4} radius="lg" bg="surface">
-							Surface
-						</Card>
-						<Card p={4} radius="lg" bg="none">
-							Outline
-						</Card>
-					</div>
-				</div>
-			</Example> */}
 
 			<Example title="With header and footer">
 				<Card>

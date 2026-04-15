@@ -1,7 +1,6 @@
 import { Card } from '../../components/card'
 import { Container } from '../../components/container'
 import { Stack } from '../../components/stack'
-import { code } from '../code'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Layout' }
@@ -9,31 +8,13 @@ export const meta = { category: 'Layout' }
 export default function ContainerDemo() {
 	return (
 		<Stack gap={8}>
-			<Example
-				title="Default"
-				code={code`
-					import { Container } from 'ui/container'
-
-					<Container>
-						<Card>Page content</Card>
-					</Container>
-				`}
-			>
+			<Example title="Default">
 				<Container>
 					<Card>Page content</Card>
 				</Container>
 			</Example>
 
-			<Example
-				title="Padding"
-				code={code`
-					import { Container } from 'ui/container'
-
-					<Container padding="none"><Card>No padding</Card></Container>
-					<Container padding="sm"><Card>Small padding</Card></Container>
-					<Container padding="lg"><Card>Large padding</Card></Container>
-				`}
-			>
+			<Example title="Padding">
 				<Stack gap={4}>
 					<Container padding="none">
 						<Card>No padding</Card>

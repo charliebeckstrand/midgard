@@ -1,29 +1,19 @@
 'use client'
 
-import {
-	autoUpdate,
-	FloatingPortal,
-	flip,
-	offset,
-	type Placement,
-	shift,
-	size,
-	useDismiss,
-	useFloating,
-	useInteractions,
-	useRole,
-} from '@floating-ui/react'
+import { FloatingPortal, type Placement } from '@floating-ui/react'
 import { ChevronsUpDown } from 'lucide-react'
 import { AnimatePresence } from 'motion/react'
 import type React from 'react'
-import { useCallback, useId, useRef, useState } from 'react'
+import { useCallback, useId, useRef } from 'react'
 import { cn, createContext } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
-import { useSelect } from '../../hooks/use-select'
+import { useFloatingUI } from '../../hooks/use-floating-ui'
 import { FormControl, PopoverPanel } from '../../primitives'
 import { sumi } from '../../recipes'
 import { useControl } from '../control/context'
 import { Icon } from '../icon'
+import { useListboxSelection } from './use-listbox-selection'
+import { resolveLabel } from './utilities'
 import { k, kPopover } from './variants'
 
 type ListboxContextValue<T = unknown> = {
@@ -70,7 +60,7 @@ export function Listbox<T>({
 	displayValue,
 	onChange,
 	multiple = false,
-	nullable = false,
+	nullable = valueProp === undefined && defaultValue === undefined,
 	placeholder = 'Select',
 	placement = 'bottom-start',
 	icon,
@@ -81,7 +71,9 @@ export function Listbox<T>({
 	const control = useControl()
 
 	const resolvedId = inputId ?? control?.id
+
 	const resolvedDisabled = control?.disabled
+
 	const handleValueChange = useCallback(
 		(nextValue: T | T[] | undefined) => {
 			if (nextValue === undefined && multiple) return
@@ -97,83 +89,24 @@ export function Listbox<T>({
 		onChange: handleValueChange,
 	})
 
-	const [open, setOpen] = useState(false)
 	const listboxId = useId()
 
 	const triggerRef = useRef<HTMLButtonElement>(null)
 
-	const { refs, floatingStyles, context } = useFloating({
+	const { open, setOpen, close, select, flushPending } = useListboxSelection<T>({
+		multiple,
+		nullable,
+		setValue,
+		triggerRef,
+	})
+
+	const { refs, floatingStyles, getReferenceProps, getFloatingProps } = useFloatingUI({
 		placement,
 		open,
 		onOpenChange: setOpen,
-		whileElementsMounted: autoUpdate,
-		middleware: [
-			offset(4),
-			flip(),
-			shift({ padding: 8 }),
-			size({
-				apply({ rects, elements }) {
-					Object.assign(elements.floating.style, {
-						minWidth: `${rects.reference.width}px`,
-					})
-				},
-			}),
-		],
 	})
 
-	const dismiss = useDismiss(context)
-
-	const role = useRole(context, { role: 'listbox' })
-
-	const { getReferenceProps, getFloatingProps } = useInteractions([dismiss, role])
-
-	const close = useCallback(() => {
-		setOpen(false)
-
-		triggerRef.current?.focus()
-	}, [])
-
-	const toggle = useSelect({ multiple, nullable, setValue })
-
-	const pendingRef = useRef<{ value: T } | null>(null)
-
-	const select = useCallback(
-		(newValue: T) => {
-			if (!multiple) {
-				pendingRef.current = { value: newValue }
-				close()
-			} else {
-				toggle(newValue)
-			}
-		},
-		[multiple, toggle, close],
-	)
-
-	const flushPending = useCallback(() => {
-		if (pendingRef.current) {
-			toggle(pendingRef.current.value)
-
-			pendingRef.current = null
-		}
-	}, [toggle])
-
-	const label = (() => {
-		if (multiple) {
-			const arr = Array.isArray(value) ? value : []
-
-			if (arr.length === 0) return undefined
-
-			if (arr.length > 3) return `${arr.length} selected`
-
-			if (displayValue) return arr.map((v) => displayValue(v as T)).join(', ')
-
-			return `${arr.length} selected`
-		}
-
-		if (value !== undefined && displayValue) return displayValue(value as T)
-
-		return undefined
-	})()
+	const label = resolveLabel({ value, displayValue, multiple })
 
 	return (
 		<ListboxProvider value={{ value, multiple, select: select as (v: unknown) => void, close }}>

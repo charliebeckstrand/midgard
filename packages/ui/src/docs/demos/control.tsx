@@ -17,13 +17,15 @@ export default function ControlDemo() {
 
 	return (
 		<Stack gap={8}>
-			<Alert type="info" variant="soft" color="blue">
-				<AlertDescription className="leading-relaxed">
-					The Control component generates a stable id and propagates state (disabled, readOnly,
-					size, variant) to control-aware children (Label, Input, Textarea, Description,
-					ErrorMessage). Parent state cascades to nested children — matching fieldset disabled
-					semantics — while size and variant inherit from the nearest ancestor unless explicitly
-					overridden.
+			<Alert type="info" variant="soft" color="blue" closable>
+				<AlertDescription>
+					Control generates a stable id and propagates state (disabled, readOnly, size, variant) to
+					control-aware children (Label, Input, Textarea, Description, ErrorMessage).
+				</AlertDescription>
+
+				<AlertDescription>
+					Parent state cascades to nested children — matching fieldset disabled semantics — while
+					size and variant inherit from the nearest ancestor unless explicitly overridden.
 				</AlertDescription>
 			</Alert>
 

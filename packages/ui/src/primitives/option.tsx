@@ -11,7 +11,6 @@ export type BaseOptionProps = {
 	icon?: React.ReactNode
 	selected: boolean
 	disabled?: boolean
-	checkPosition: 'start' | 'end'
 	onSelect: () => void
 } & Omit<React.ComponentPropsWithoutRef<'div'>, 'className' | 'onSelect'>
 
@@ -22,11 +21,9 @@ export function BaseOption({
 	icon,
 	selected,
 	disabled,
-	checkPosition,
 	onSelect,
 	...props
 }: BaseOptionProps) {
-	const isStart = checkPosition === 'start'
 	const sharedClasses = cn(k.content)
 
 	const checkIcon = icon ?? (
@@ -52,12 +49,11 @@ export function BaseOption({
 					if (!disabled) onSelect()
 				}
 			}}
-			className={cn(k.base, isStart ? k.start : k.end)}
+			className={cn(k.base, k.check)}
 			{...props}
 		>
-			{isStart && checkIcon}
-			<span className={cn(className, sharedClasses, isStart && 'col-start-2')}>{children}</span>
-			{!isStart && checkIcon}
+			<span className={cn(className, sharedClasses)}>{children}</span>
+			{checkIcon}
 		</div>
 	)
 }

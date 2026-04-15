@@ -28,7 +28,7 @@ export const treeColorMap: Record<TreeColor, string | string[]> = {
 }
 
 export const tree = {
-	root: '',
+	base: '',
 	itemContent: [
 		'flex w-full items-center gap-1.5 py-1 px-2 text-sm/6',
 		sumi.textMuted,

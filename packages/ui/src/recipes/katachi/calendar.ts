@@ -3,10 +3,10 @@ import { nuri } from '../nuri'
 import { sumi } from '../sumi'
 
 export const calendar = {
-	root: 'inline-flex flex-col min-w-72 p-3 [&:not(:has(+[data-slot=calendar-footer]))]:pb-4 select-none',
+	base: 'inline-flex flex-col w-72 p-4 select-none',
 	grid: 'grid grid-cols-7',
 	header: 'flex items-center justify-between mb-2',
-	footer: [narabi.position.center, 'gap-2 px-3 pb-3'],
+	footer: ['gap-2 pb-4', narabi.position.center],
 	nav: {
 		icon: 'size-4.5',
 	},
@@ -14,7 +14,7 @@ export const calendar = {
 		grid: 'grid grid-cols-3 gap-1 p-2',
 		cellCurrent: ['font-semibold', ...nuri.buttonSoft.blue],
 	},
-	weekday: [narabi.position.center, 'w-full aspect-square text-xs font-medium', sumi.textMuted],
+	weekday: ['w-full aspect-square text-xs font-medium', narabi.position.center, sumi.textMuted],
 	day: {
 		base: 'w-full aspect-square p-0 ring-inset',
 		active: 'ring-2 ring-inset ring-blue-600',

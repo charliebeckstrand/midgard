@@ -1,6 +1,6 @@
 import type React from 'react'
-import { Flex } from '../components/flex'
 import { Fieldset } from '../components/fieldset/component'
+import { Flex } from '../components/flex'
 import { Text } from '../components/text'
 import { cn } from '../core'
 import { omote } from '../recipes'

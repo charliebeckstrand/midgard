@@ -72,10 +72,6 @@ export function FlexBase({
 }
 
 /** Horizontal flex container. Use Flex for rows, Stack for columns. */
-export function Flex({
-	direction = 'row',
-	align = 'center',
-	...props
-}: FlexProps) {
+export function Flex({ direction = 'row', align = 'center', ...props }: FlexProps) {
 	return <FlexBase dataSlot="flex" direction={direction} align={align} {...props} />
 }

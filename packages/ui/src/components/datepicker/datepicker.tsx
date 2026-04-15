@@ -75,6 +75,7 @@ function DatePickerSingle({
 	disabled = false,
 }: DatePickerBaseProps & DatePickerSingleProps) {
 	const glass = useGlass()
+
 	const [value, setValue] = useControllable({ value: valueProp, defaultValue, onChange })
 
 	const [open, setOpen] = useState(false)
