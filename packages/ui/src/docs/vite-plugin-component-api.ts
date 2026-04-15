@@ -44,7 +44,9 @@ function generate(srcDir: string): Record<string, ComponentApi[]> {
 
 	// Group component sources by directory name
 	const componentsDir = path.join(srcDir, 'components')
+
 	const byDir: Record<string, string[]> = {}
+
 	const allSources: string[] = []
 
 	for (const file of files) {
@@ -54,10 +56,12 @@ function generate(srcDir: string): Record<string, ComponentApi[]> {
 
 		if (file.startsWith(componentsDir + path.sep)) {
 			const rel = path.relative(componentsDir, file)
+
 			const dir = rel.split(path.sep)[0]
 
 			if (dir) {
 				if (!byDir[dir]) byDir[dir] = []
+
 				byDir[dir].push(source)
 			}
 		}
@@ -81,10 +85,13 @@ function generate(srcDir: string): Record<string, ComponentApi[]> {
 
 	for (const [dir, sources] of Object.entries(byDir)) {
 		const combined = sources.join('\n')
+
 		const parsed = parseSource(combined, ctx)
+
 		const parsedByName = new Map(parsed.map((api) => [api.name, api]))
 
 		const indexSource = indexByDir[dir]
+
 		const publicNames = indexSource
 			? parsePublicExports(indexSource)
 			: parsed.map((api) => api.name)
@@ -110,6 +117,7 @@ function generate(srcDir: string): Record<string, ComponentApi[]> {
  */
 export function componentApiPlugin(): Plugin {
 	let srcDir: string
+
 	let cachedJson: string | null = null
 
 	return {
@@ -126,12 +134,14 @@ export function componentApiPlugin(): Plugin {
 		load(id) {
 			if (id === RESOLVED_ID) {
 				cachedJson ??= JSON.stringify(generate(srcDir))
+
 				return `export default ${cachedJson}`
 			}
 		},
 
 		handleHotUpdate({ file, server }) {
 			if (!file.startsWith(srcDir) || !/\.tsx?$/.test(file)) return
+
 			if (file.includes(`${path.sep}docs${path.sep}`)) return
 
 			cachedJson = null
@@ -140,6 +150,7 @@ export function componentApiPlugin(): Plugin {
 
 			if (mod) {
 				server.moduleGraph.invalidateModule(mod)
+
 				return [mod]
 			}
 		},

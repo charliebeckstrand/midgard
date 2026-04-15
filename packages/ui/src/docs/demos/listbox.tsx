@@ -4,7 +4,6 @@ import { Glass } from '../../components/glass'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'
-import { code } from '../code'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
@@ -69,52 +68,11 @@ function MultiListbox() {
 export default function ListboxDemo() {
 	return (
 		<Stack gap={8}>
-			<Example
-				title="Single"
-				code={code`
-					import { Field, Label } from 'ui/fieldset'
-					import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
-
-					const statuses = [
-					${statuses.map((s) => `  { value: '${s.value}', label: '${s.label}' },`)}
-					]
-
-					<Field>
-						<Label>Status</Label>
-						<Listbox value={value} onChange={setValue} placeholder="Select status">
-							{statuses.map((status) => (
-								<ListboxOption key={status.value} value={status.value}>
-									<ListboxLabel>{status.label}</ListboxLabel>
-								</ListboxOption>
-							))}
-						</Listbox>
-					</Field>
-				`}
-			>
+			<Example title="Single">
 				<SingleListbox />
 			</Example>
-			<Example
-				title="Multiple"
-				code={code`
-					import { Field, Label } from 'ui/fieldset'
-					import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
 
-					const statuses = [
-					${statuses.map((s) => `  { value: '${s.value}', label: '${s.label}' },`)}
-					]
-
-					<Field>
-						<Label>Statuses</Label>
-						<Listbox multiple value={values} onChange={setValues} placeholder="Select statuses">
-							{statuses.map((status) => (
-								<ListboxOption key={status.value} value={status.value}>
-									<ListboxLabel>{status.label}</ListboxLabel>
-								</ListboxOption>
-							))}
-						</Listbox>
-					</Field>
-				`}
-			>
+			<Example title="Multiple">
 				<MultiListbox />
 			</Example>
 

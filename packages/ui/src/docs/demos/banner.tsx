@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { Banner } from '../../components/banner'
 import { Button } from '../../components/button'
 import { Stack } from '../../components/stack'
-import { code } from '../code'
 import { Example } from '../components/example'
 import { VariantListbox } from '../components/variant-listbox'
 
@@ -41,17 +40,7 @@ export default function BannerDemo() {
 
 	return (
 		<Stack gap={8}>
-			<Example
-				title="Types"
-				code={code`
-					import { Banner } from 'ui/banner'
-
-					<Banner type="info" title="Info banner" />
-					<Banner type="success" title="Success banner" />
-					<Banner type="warning" title="Warning banner" />
-					<Banner type="error" title="Error banner" />
-				`}
-			>
+			<Example title="Types">
 				<Stack gap={0} className="-mx-4">
 					{types.map((type) => (
 						<Banner
@@ -63,18 +52,10 @@ export default function BannerDemo() {
 					))}
 				</Stack>
 			</Example>
+
 			<Example
 				title="Colors"
 				actions={<VariantListbox variants={variants} value={variant} onChange={setVariant} />}
-				code={code`
-					import { Banner } from 'ui/banner'
-
-					<Banner variant="soft" color="zinc" title="Zinc" />
-					<Banner variant="soft" color="red" title="Red" />
-					<Banner variant="soft" color="amber" title="Amber" />
-					<Banner variant="soft" color="green" title="Green" />
-					<Banner variant="soft" color="blue" title="Blue" />
-				`}
 			>
 				<Stack gap={0} className="-mx-4">
 					{colors.map((c) => (
@@ -82,18 +63,7 @@ export default function BannerDemo() {
 					))}
 				</Stack>
 			</Example>
-			<Example
-				title="With description"
-				code={code`
-					import { Banner } from 'ui/banner'
-
-					<Banner
-						type="warning"
-						title="Scheduled maintenance"
-						description="The system will be offline on Sunday from 2am to 4am."
-					/>
-				`}
-			>
+			<Example title="With description">
 				<div className="-mx-4">
 					<Banner
 						type="warning"
@@ -103,36 +73,12 @@ export default function BannerDemo() {
 					/>
 				</div>
 			</Example>
-			<Example
-				title="Closable"
-				code={code`
-					import { Banner } from 'ui/banner'
-
-					<Banner
-						type="info"
-						title="New version available"
-						description="Version 2.0 has been released."
-						onClose={() => setVisible(false)}
-					/>
-				`}
-			>
+			<Example title="Closable">
 				<div className="-mx-4">
 					<ClosableDemo />
 				</div>
 			</Example>
-			<Example
-				title="With actions"
-				code={code`
-					import { Banner } from 'ui/banner'
-					import { Button } from 'ui/button'
-
-					<Banner
-						type="info"
-						title="New version available"
-						actions={<Button size="sm" color="blue">Update now</Button>}
-					/>
-				`}
-			>
+			<Example title="With actions">
 				<div className="-mx-4">
 					<Banner
 						type="info"

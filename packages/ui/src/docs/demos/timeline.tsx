@@ -34,6 +34,7 @@ export default function TimelineDemo() {
 					</TimelineItem>
 				</Timeline>
 			</Example>
+
 			<Example title="Horizontal">
 				<Timeline orientation="horizontal">
 					<TimelineItem>
@@ -50,6 +51,7 @@ export default function TimelineDemo() {
 					</TimelineItem>
 				</Timeline>
 			</Example>
+
 			<Example title="Outline variant">
 				<Timeline variant="outline">
 					<TimelineItem>
@@ -71,6 +73,7 @@ export default function TimelineDemo() {
 					</TimelineItem>
 				</Timeline>
 			</Example>
+
 			<Example title="Pulse status">
 				<Timeline variant="outline">
 					<TimelineItem>
@@ -87,6 +90,7 @@ export default function TimelineDemo() {
 					</TimelineItem>
 				</Timeline>
 			</Example>
+
 			<Example title="Per-item variant">
 				<Timeline variant="outline">
 					<TimelineItem variant="solid" status="info">
@@ -106,6 +110,7 @@ export default function TimelineDemo() {
 					</TimelineItem>
 				</Timeline>
 			</Example>
+
 			<Example title="Custom color">
 				<Timeline>
 					<TimelineItem color="blue">

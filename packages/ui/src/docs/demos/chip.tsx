@@ -49,6 +49,7 @@ export default function ChipDemo() {
 					))}
 				</Flex>
 			</Example>
+
 			<Example
 				title="Colors"
 				actions={
@@ -67,6 +68,7 @@ export default function ChipDemo() {
 					))}
 				</Flex>
 			</Example>
+
 			<Example title="Sizes">
 				<Flex wrap gap={2}>
 					{sizes.map(({ value, label }) => (
@@ -76,6 +78,7 @@ export default function ChipDemo() {
 					))}
 				</Flex>
 			</Example>
+
 			<Example title="Active">
 				<Flex wrap gap={2}>
 					{labels.map((label) => (

@@ -56,6 +56,7 @@ export default function DialogDemo() {
 					</DialogActions>
 				</Dialog>
 			</Example>
+
 			<Example title="Glass">
 				<Button onClick={() => setGlassOpen(true)}>Open glass dialog</Button>
 				<Dialog glass open={glassOpen} onClose={() => setGlassOpen(false)}>
@@ -75,6 +76,7 @@ export default function DialogDemo() {
 					</DialogActions>
 				</Dialog>
 			</Example>
+
 			<Example title="Confirm dialog">
 				<Button color="amber" onClick={() => setDiscardOpen(true)}>
 					Discard changes
@@ -88,6 +90,7 @@ export default function DialogDemo() {
 					cancel={{ label: 'Keep editing' }}
 				/>
 			</Example>
+
 			<Example title="Confirm with body content">
 				<Button color="blue" onClick={() => setTermsConditionsOpen(true)}>
 					Accept terms and conditions

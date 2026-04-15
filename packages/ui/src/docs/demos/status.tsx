@@ -30,6 +30,7 @@ export default function StatusDemo() {
 					))}
 				</Stack>
 			</Example>
+
 			<Example title="Outline">
 				<Stack gap={3}>
 					{statuses.map((s) => (
@@ -40,6 +41,7 @@ export default function StatusDemo() {
 					))}
 				</Stack>
 			</Example>
+
 			<Example
 				title="Sizes"
 				actions={<VariantListbox variants={statuses} value={status} onChange={setStatus} />}
@@ -53,6 +55,7 @@ export default function StatusDemo() {
 					))}
 				</Stack>
 			</Example>
+
 			<Example
 				title="Pulse"
 				actions={<SizeListbox sizes={sizes} value={pulseSize} onChange={setPulseSize} />}

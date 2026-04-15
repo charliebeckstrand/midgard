@@ -12,6 +12,7 @@ export default function KbdDemo() {
 			<Example title="Default">
 				<Kbd>K</Kbd>
 			</Example>
+
 			<Example title="Modifier glyphs">
 				<Flex gap={3}>
 					<Kbd cmd>K</Kbd>
@@ -21,6 +22,7 @@ export default function KbdDemo() {
 					</Kbd>
 				</Flex>
 			</Example>
+
 			<Example title="Inside a button">
 				<Flex wrap gap={3}>
 					<Button>

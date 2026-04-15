@@ -26,11 +26,6 @@ function InteractiveBar() {
 		<Example
 			title="Default"
 			actions={<ValueStepper value={value} onChange={setValue} max={100} step={10} />}
-			code={code`
-				import { ProgressBar } from 'ui/progress'
-
-				<ProgressBar value={60} />
-			`}
 		>
 			<Sizer>
 				<ProgressBar value={value} />
@@ -61,6 +56,7 @@ export default function ProgressDemo() {
 	return (
 		<Stack gap={8}>
 			<InteractiveBar />
+
 			<Example title="Bar sizes">
 				<Sizer>
 					{barSizes.map((s) => (
@@ -71,6 +67,7 @@ export default function ProgressDemo() {
 					))}
 				</Sizer>
 			</Example>
+
 			<Example title="Bar colors">
 				<Sizer>
 					{colors.map((color) => (
@@ -81,7 +78,9 @@ export default function ProgressDemo() {
 					))}
 				</Sizer>
 			</Example>
+
 			<InteractiveGauge />
+
 			<Example title="Gauge sizes">
 				<Flex gap={4} align="end">
 					{gaugeSizes.map((s) => (
@@ -92,6 +91,7 @@ export default function ProgressDemo() {
 					))}
 				</Flex>
 			</Example>
+
 			<Example title="Gauge with label">
 				<Flex gap={4} align="end">
 					{gaugeSizes.map((s) => (
@@ -106,6 +106,7 @@ export default function ProgressDemo() {
 					<ProgressGauge value={100} size="xl" color="green" label />
 				</Flex>
 			</Example>
+
 			<Example title="Gauge colors">
 				<Flex gap={4}>
 					{colors.map((color) => (

@@ -24,6 +24,7 @@ export default function ToggleIconButtonDemo() {
 					aria-label="Toggle dark mode"
 				/>
 			</Example>
+
 			<Example title="Without animation">
 				<ToggleIconButton
 					pressed={noAnimation}
@@ -34,6 +35,7 @@ export default function ToggleIconButtonDemo() {
 					aria-label="Toggle heart"
 				/>
 			</Example>
+
 			<Example title="Mute toggle">
 				<ToggleIconButton
 					pressed={muted}

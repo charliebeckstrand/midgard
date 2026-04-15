@@ -54,6 +54,7 @@ export default function AccordionDemo() {
 					</Accordion>
 				</Sizer>
 			</Example>
+
 			<Example title="Multiple">
 				<Sizer size="md">
 					<Accordion type="multiple" variant="bordered" defaultValue={['shipping', 'returns']}>
@@ -66,6 +67,7 @@ export default function AccordionDemo() {
 					</Accordion>
 				</Sizer>
 			</Example>
+
 			<Example title="Disabled item">
 				<Sizer size="md">
 					<Accordion variant="plain" defaultValue="shipping">

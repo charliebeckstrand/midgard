@@ -12,7 +12,6 @@ import {
 import { Flex } from '../../components/flex'
 import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
-import { code } from '../code'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Layout' }
@@ -31,14 +30,7 @@ export default function CardDemo() {
 				</AlertDescription>
 			</Alert>
 
-			<Example
-				title="Default"
-				code={code`
-					import { Card } from 'ui/card'
-
-					<Card>Content</Card>
-				`}
-			>
+			<Example title="Default">
 				<Card>Content</Card>
 			</Example>
 

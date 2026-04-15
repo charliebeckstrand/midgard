@@ -22,6 +22,7 @@ export default function IconDemo() {
 					consistent interface for sizing and styling icons.
 				</AlertDescription>
 			</Alert>
+
 			<Example title="Default">
 				<Flex gap={4} className="dark:text-white">
 					<Icon icon={<Search />} />
@@ -29,6 +30,7 @@ export default function IconDemo() {
 					<Icon icon={<Star />} />
 				</Flex>
 			</Example>
+
 			<Example title="Sizes">
 				<Flex gap={4} className="dark:text-white">
 					{sizes.map((s) => (
@@ -39,6 +41,7 @@ export default function IconDemo() {
 					))}
 				</Flex>
 			</Example>
+
 			<Example title="Custom size">
 				<div className="dark:text-white">
 					<Icon icon={<Star />} size={32} />

@@ -21,6 +21,7 @@ export default function CollapseDemo() {
 					</p>
 				</Collapse>
 			</Example>
+
 			<Example title="Default open">
 				<Collapse defaultOpen trigger="Toggle details">
 					<p className="pt-2 text-sm text-zinc-500">
@@ -28,6 +29,7 @@ export default function CollapseDemo() {
 					</p>
 				</Collapse>
 			</Example>
+
 			<Example title="Compound API">
 				<Collapse>
 					<CollapseTrigger>{({ open }) => (open ? 'Hide code' : 'Show code')}</CollapseTrigger>
@@ -39,6 +41,7 @@ export default function CollapseDemo() {
 					</CollapsePanel>
 				</Collapse>
 			</Example>
+
 			<Example title="Controlled">
 				<Stack gap={2}>
 					<Button onClick={() => setOpen((o) => !o)}>{open ? 'Hide panel' : 'Show panel'}</Button>

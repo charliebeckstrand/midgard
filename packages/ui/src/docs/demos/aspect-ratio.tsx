@@ -4,7 +4,6 @@ import { Card } from '../../components/card'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'
-import { code } from '../code'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Layout' }
@@ -31,11 +30,6 @@ function PresetsExample() {
 					))}
 				</Listbox>
 			}
-			code={code`
-				import { AspectRatio, type AspectRatioPreset } from 'ui/aspect-ratio'
-
-				<AspectRatio ratio="16/9" />
-			`}
 		>
 			<Sizer size="xl">
 				<AspectRatio ratio={ratio}>
@@ -51,16 +45,7 @@ export default function AspectRatioDemo() {
 		<Stack gap={8}>
 			<PresetsExample />
 
-			<Example
-				title="Custom ratio"
-				code={code`
-					import { AspectRatio } from 'ui/aspect-ratio'
-
-					<AspectRatio ratio={1.618}>
-						Golden
-					</AspectRatio>
-				`}
-			>
+			<Example title="Custom ratio">
 				<Sizer size="xl">
 					<AspectRatio ratio={1.618}>
 						<Card className="flex flex-1 h-full items-center justify-center">Golden (1.618)</Card>

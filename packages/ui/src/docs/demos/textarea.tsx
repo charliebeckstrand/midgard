@@ -26,6 +26,7 @@ export default function TextareaDemo() {
 					</Field>
 				</Sizer>
 			</Example>
+
 			<Example title="Variants">
 				{variants.map((variant) => (
 					<Sizer key={variant}>
@@ -43,6 +44,7 @@ export default function TextareaDemo() {
 					</Sizer>
 				))}
 			</Example>
+
 			<Example title="Non-resizable">
 				<Sizer>
 					<Field>
@@ -51,6 +53,7 @@ export default function TextareaDemo() {
 					</Field>
 				</Sizer>
 			</Example>
+
 			<Example title="Auto resize">
 				<Sizer>
 					<Field>
@@ -64,6 +67,7 @@ export default function TextareaDemo() {
 					</Field>
 				</Sizer>
 			</Example>
+
 			<Example
 				title="With actions"
 				code={code`
@@ -126,6 +130,7 @@ export default function TextareaDemo() {
 					</Field>
 				</Sizer>
 			</Example>
+
 			<Example title="Invalid">
 				<Sizer>
 					<Field>

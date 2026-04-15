@@ -10,6 +10,7 @@ export default function DividerDemo() {
 			<Example title="Default">
 				<Divider />
 			</Example>
+
 			<Example title="Soft">
 				<Divider soft />
 			</Example>

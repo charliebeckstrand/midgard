@@ -18,7 +18,6 @@ import { Stack } from '../../components/stack'
 import { Switch } from '../../components/switch'
 import { Text } from '../../components/text'
 import { Textarea } from '../../components/textarea'
-import { code } from '../code'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Feedback' }
@@ -38,7 +37,7 @@ const dynamicComponents = [
 ]
 
 function DynamicExample() {
-	const [selected, setSelected] = useState<string>('Button')
+	const [selected, setSelected] = useState<string | undefined>('Button')
 
 	const active = dynamicComponents.find((c) => c.name === selected)
 
@@ -125,14 +124,7 @@ export default function SkeletonDemo() {
 				</Skeleton>
 			</Example>
 
-			<Example
-				title="Transition"
-				code={code`
-					<Skeleton ready={!loading}>
-						<UserCard user={user} />
-					</Skeleton>
-				`}
-			>
+			<Example title="Transition">
 				<TransitionDemo />
 			</Example>
 		</Stack>

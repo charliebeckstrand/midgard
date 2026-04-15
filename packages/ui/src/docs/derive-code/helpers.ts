@@ -76,6 +76,30 @@ export function hasTextContent(nodes: ReactNode[]): boolean {
 	return false
 }
 
+/**
+ * Collect the text/number leaves from a subtree into a single string,
+ * walking through pass-through wrappers. Returns the concatenated text
+ * or `null` if no text is found.
+ */
+export function extractTextContent(nodes: ReactNode[]): string | null {
+	const parts: string[] = []
+
+	for (const n of nodes) {
+		if (typeof n === 'string' && n.trim() !== '') {
+			parts.push(n.trim())
+		} else if (typeof n === 'number') {
+			parts.push(String(n))
+		} else if (isValidElement(n) && isPassThrough(n)) {
+			const children = Children.toArray((n.props as { children?: ReactNode }).children)
+			const nested = extractTextContent(children)
+
+			if (nested) parts.push(nested)
+		}
+	}
+
+	return parts.length > 0 ? parts.join(' ') : null
+}
+
 // ---------------------------------------------------------------------------
 // Naming
 // ---------------------------------------------------------------------------

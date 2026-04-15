@@ -7,7 +7,6 @@ import { Icon } from '../../components/icon'
 import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
-import { code } from '../code'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
@@ -81,76 +80,29 @@ function DisabledDemo() {
 export default function FileUploadDemo() {
 	return (
 		<Stack gap={8}>
-			<Example
-				title="Area (default)"
-				code={code`
-					import { FileUpload } from 'ui/file-upload'
-
-					<FileUpload accept="image/*" onFiles={setFiles} />
-				`}
-			>
+			<Example title="Area (default)">
 				<AreaDemo />
 			</Example>
-			<Example
-				title="Custom content"
-				code={code`
-					import { FileUpload } from 'ui/file-upload'
-					import { Icon } from 'ui/icon'
-					import { Text } from 'ui/text'
 
-					<FileUpload accept=".pdf,.doc,.docx">
-						<Icon icon={<FileText />} size="lg" />
-						<Text>Upload documents</Text>
-						<Text variant="muted">PDF, DOC up to 10MB</Text>
-					</FileUpload>
-				`}
-			>
+			<Example title="Custom content">
 				<CustomContentDemo />
 			</Example>
-			<Example
-				title="Input variant"
-				code={code`
-					import { FileUpload } from 'ui/file-upload'
 
-					<FileUpload variant="input" accept="image/*" />
-				`}
-			>
+			<Example title="Input variant">
 				<InputDemo />
 			</Example>
-			<Example
-				title="Button variant"
-				code={code`
-					import { FileUpload } from 'ui/file-upload'
 
-					<FileUpload variant="button" onFiles={setFiles} />
-				`}
-			>
+			<Example title="Button variant">
 				<ButtonDemo />
 			</Example>
-			<Example
-				title="Button variant with color"
-				code={code`
-					import { FileUpload } from 'ui/file-upload'
 
-					<FileUpload variant="button" color="blue">
-						Upload images
-					</FileUpload>
-				`}
-			>
+			<Example title="Button variant with color">
 				<FileUpload variant="button" color="blue">
 					Upload images
 				</FileUpload>
 			</Example>
-			<Example
-				title="Disabled"
-				code={code`
-					import { FileUpload } from 'ui/file-upload'
 
-					<FileUpload disabled />
-					<FileUpload variant="input" disabled />
-					<FileUpload variant="button" disabled />
-				`}
-			>
+			<Example title="Disabled">
 				<DisabledDemo />
 			</Example>
 		</Stack>

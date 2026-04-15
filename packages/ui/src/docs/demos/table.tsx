@@ -41,6 +41,7 @@ export default function TableDemo() {
 					</TableBody>
 				</Table>
 			</Example>
+
 			<Example title="Striped">
 				<Table striped>
 					<TableHead>

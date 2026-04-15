@@ -9,7 +9,7 @@ export const meta = { category: 'Layout' }
 export default function StackDemo() {
 	return (
 		<Stack gap={8}>
-			<Example title="Column (default)">
+			<Example title="Column">
 				<Stack gap={3}>
 					<Card>One</Card>
 					<Card>Two</Card>
@@ -26,7 +26,7 @@ export default function StackDemo() {
 			</Example>
 
 			<Example title="Align and justify">
-				<Card p={3} className="h-24 w-full">
+				<Card p={3} bg="none">
 					<Stack direction="row" gap={3} justify="between" align="center" full>
 						<Card>Start</Card>
 						<Card>Middle</Card>

@@ -6,7 +6,6 @@ import { Glass } from '../../components/glass'
 import { NumberInput } from '../../components/number-input'
 import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'
-import { code } from '../code'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
@@ -15,17 +14,7 @@ function Controlled() {
 	const [value, setValue] = useState<number | undefined>(3)
 
 	return (
-		<Example
-			title="Controlled"
-			code={code`
-				import { useState } from 'react'
-				import { NumberInput } from 'ui/number-input'
-
-				const [value, setValue] = useState<number | undefined>(3)
-
-				<NumberInput value={value} onChange={setValue} min={0} max={10} />
-			`}
-		>
+		<Example title="Controlled">
 			<Sizer>
 				<Field>
 					<Label>Quantity</Label>

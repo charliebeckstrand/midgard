@@ -7,7 +7,6 @@ import { Nav, NavContent, NavContents, NavItem, NavList, NavProvider } from '../
 import { Navbar } from '../../components/navbar'
 import { Spacer } from '../../components/spacer'
 import { Stack } from '../../components/stack'
-import { code } from '../code'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Navigation' }
@@ -35,19 +34,7 @@ export default function NavbarDemo() {
 				</Navbar>
 			</Example>
 
-			<Example
-				title="Variants"
-				code={code`
-					import { Navbar } from 'ui/navbar'
-
-					<Navbar variant="outline">
-						...content
-					</Navbar>
-					<Navbar variant="plain">
-						...content
-					</Navbar>
-				`}
-			>
+			<Example title="Variants">
 				<Navbar variant="outline">
 					<Nav value="home">
 						<NavItems />
@@ -61,37 +48,7 @@ export default function NavbarDemo() {
 				</Navbar>
 			</Example>
 
-			<Example
-				title="With NavProvider"
-				code={code`
-				import { Nav, NavList, NavItem, NavContent, NavContents, NavProvider } from 'ui/nav'
-				import { Navbar } from 'ui/navbar'
-
-				const [current, setCurrent] = useState('home')
-
-				<NavProvider value={{ value: current, onChange: setCurrent }}>
-					<Navbar>
-						<NavList>
-							<NavItem value="home">Home</NavItem>
-							<NavItem value="about">About</NavItem>
-							<NavItem value="contact">Contact</NavItem>
-						</NavList>
-						<Spacer />
-						<NavList>
-							<NavItem>Login</NavItem>
-						</NavList>
-					</Navbar>
-
-					<Card bg="surface">
-						<NavContents>
-							<NavContent value="home">Home page</NavContent>
-							<NavContent value="about">About us</NavContent>
-							<NavContent value="contact">Contact information</NavContent>
-						</NavContents>
-					</Card>
-				</NavProvider>
-			`}
-			>
+			<Example title="With NavProvider">
 				<NavProvider value={{ value: current, onChange: setCurrent }}>
 					<Navbar>
 						<NavItems />
@@ -111,31 +68,7 @@ export default function NavbarDemo() {
 				</NavProvider>
 			</Example>
 
-			<Example
-				title="With icons"
-				code={code`
-				import { Navbar } from 'ui/navbar'
-				import { NavList, NavItem } from 'ui/nav'
-				import { Home, Info, AtSign } from 'lucide-react'
-
-				<Navbar>
-					<NavList>
-						<NavItem value="home">
-							<Home className="me-2" />
-							Home
-						</NavItem>
-						<NavItem value="about">
-							<Info className="me-2" />
-							About
-						</NavItem>
-						<NavItem value="contact">
-							<AtSign className="me-2" />
-							Contact
-						</NavItem>
-					</NavList>
-				</Navbar>
-			`}
-			>
+			<Example title="With icons">
 				<Navbar>
 					<NavList>
 						<NavItem value="home" icon={<Home />}>

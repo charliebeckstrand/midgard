@@ -25,6 +25,7 @@ export default function SpinnerDemo() {
 			<Example title="Default">
 				<Spinner />
 			</Example>
+
 			<Example title="Sizes">
 				<div className="flex items-end gap-4">
 					{sizes.map((s) => (
@@ -35,6 +36,7 @@ export default function SpinnerDemo() {
 					))}
 				</div>
 			</Example>
+
 			<Example title="Colors">
 				<Flex gap={4}>
 					{colors.map((c) => (
@@ -45,6 +47,7 @@ export default function SpinnerDemo() {
 					))}
 				</Flex>
 			</Example>
+
 			<Example
 				title="Inside a button"
 				actions={<SizeListbox sizes={buttonSizes} value={buttonSize} onChange={setButtonSize} />}

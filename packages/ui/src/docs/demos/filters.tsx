@@ -46,26 +46,6 @@ function FiltersClearButton() {
 	)
 }
 
-// ── Demo ───────────────────────────────────────────
-
-export default function FilterDemo() {
-	return (
-		<Stack gap={8}>
-			<Example title="Basic">
-				<BasicDemo />
-			</Example>
-
-			<Example title="With DatePicker">
-				<DateDemo />
-			</Example>
-
-			<Example title="With NumberInput">
-				<RenderPropsDemo />
-			</Example>
-		</Stack>
-	)
-}
-
 function BasicDemo() {
 	const [filters, setFilters] = useState<BasicFilters>({
 		search: '',
@@ -200,5 +180,25 @@ function RenderPropsDemo() {
 				</FiltersField>
 			</Field>
 		</Filters>
+	)
+}
+
+// ── Demo ───────────────────────────────────────────
+
+export default function FilterDemo() {
+	return (
+		<Stack gap={8}>
+			<Example title="Basic">
+				<BasicDemo />
+			</Example>
+
+			<Example title="With DatePicker">
+				<DateDemo />
+			</Example>
+
+			<Example title="With NumberInput">
+				<RenderPropsDemo />
+			</Example>
+		</Stack>
 	)
 }

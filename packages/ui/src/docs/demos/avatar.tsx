@@ -35,6 +35,7 @@ export default function AvatarDemo() {
 					))}
 				</Flex>
 			</Example>
+
 			<Example
 				title="Colors"
 				actions={
@@ -47,6 +48,7 @@ export default function AvatarDemo() {
 					))}
 				</Flex>
 			</Example>
+
 			<Example
 				title="Group"
 				actions={<SizeListbox sizes={sizes} value={groupSize} onChange={setGroupSize} />}
@@ -57,6 +59,7 @@ export default function AvatarDemo() {
 					))}
 				</AvatarGroup>
 			</Example>
+
 			<Example
 				title="Status"
 				actions={<SizeListbox sizes={sizes} value={statusSize} onChange={setStatusSize} />}

@@ -3,7 +3,6 @@ import { Card } from '../../components/card'
 import { Heading } from '../../components/heading'
 import { Spacer } from '../../components/spacer'
 import { Stack } from '../../components/stack'
-import { code } from '../code'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Layout' }
@@ -11,22 +10,8 @@ export const meta = { category: 'Layout' }
 export default function SpacerDemo() {
 	return (
 		<Stack gap={8}>
-			<Example
-				title="Push apart"
-				code={code`
-					import { Stack } from 'ui/stack'
-					import { Spacer } from 'ui/spacer'
-					import { Button } from 'ui/button'
-					import { Heading } from 'ui/heading'
-
-					<Stack direction="row" align="center">
-						<Heading level={3}>Title</Heading>
-						<Spacer />
-						<Button>Action</Button>
-					</Stack>
-				`}
-			>
-				<Card p={3} className="w-full">
+			<Example title="Justify">
+				<Card p={3}>
 					<Stack direction="row" align="center" className="w-full">
 						<Heading level={3}>Title</Heading>
 						<Spacer />
@@ -35,22 +20,8 @@ export default function SpacerDemo() {
 				</Card>
 			</Example>
 
-			<Example
-				title="Between groups"
-				code={code`
-					import { Stack } from 'ui/stack'
-					import { Spacer } from 'ui/spacer'
-					import { Button } from 'ui/button'
-
-					<Stack direction="row" gap={3} align="center">
-						<Button variant="plain">Back</Button>
-						<Spacer />
-						<Button variant="plain">Cancel</Button>
-						<Button>Save</Button>
-					</Stack>
-				`}
-			>
-				<Card p={3} className="w-full">
+			<Example title="Between groups">
+				<Card p={3} bg="none">
 					<Stack direction="row" gap={3} align="center" className="w-full">
 						<Button variant="plain">Back</Button>
 						<Spacer />

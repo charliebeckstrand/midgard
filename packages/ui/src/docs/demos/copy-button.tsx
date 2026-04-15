@@ -14,6 +14,7 @@ export default function CopyButtonDemo() {
 			<Example title="Default">
 				<CopyButton value="Hello, world!" />
 			</Example>
+
 			<Example title="Sizes">
 				<Flex gap={4}>
 					<CopyButton value="Large" size="lg" />
@@ -22,6 +23,7 @@ export default function CopyButtonDemo() {
 					<CopyButton value="Extra small" size="xs" />
 				</Flex>
 			</Example>
+
 			<Example title="Custom icon">
 				<CopyButton value="https://example.com" icon={<Copy />} />
 			</Example>

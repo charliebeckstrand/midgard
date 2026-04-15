@@ -6,7 +6,6 @@ import { Sizer } from '../../components/sizer'
 import { Slider } from '../../components/slider'
 import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
-import { code } from '../code'
 import { Example } from '../components/example'
 import { ValueStepper } from '../components/value-stepper'
 
@@ -25,13 +24,6 @@ function Interactive() {
 		<Example
 			title="Default"
 			actions={<ValueStepper value={value} onChange={setValue} max={100} step={10} />}
-			code={code`
-				import { Slider } from 'ui/slider'
-
-				const [value, setValue] = useState(40)
-
-				<Slider value={value} onChange={setValue} />
-			`}
 		>
 			<Sizer gap={3}>
 				<Slider value={value} onChange={setValue} />
@@ -54,12 +46,6 @@ function RangeAndStep() {
 					<ValueStepper value={signed} onChange={setSigned} min={-50} max={50} step={5} />
 				</Stack>
 			}
-			code={code`
-				import { Slider } from 'ui/slider'
-
-				<Slider min={0} max={1} step={0.1} value={ratio} onChange={setRatio} />
-				<Slider min={-50} max={50} step={5} value={signed} onChange={setSigned} />
-			`}
 		>
 			<Sizer>
 				<Slider min={0} max={1} step={0.1} value={ratio} onChange={setRatio} color="green" />
@@ -73,6 +59,7 @@ export default function SliderDemo() {
 	return (
 		<Stack gap={8}>
 			<Interactive />
+
 			<Example title="Sizes">
 				<Sizer>
 					{sizes.map((s, i) => (
@@ -83,6 +70,7 @@ export default function SliderDemo() {
 					))}
 				</Sizer>
 			</Example>
+
 			<Example title="Colors">
 				<Sizer>
 					{colors.map((color) => (
@@ -93,7 +81,9 @@ export default function SliderDemo() {
 					))}
 				</Sizer>
 			</Example>
+
 			<RangeAndStep />
+
 			<Example title="Disabled">
 				<Sizer>
 					<Slider disabled defaultValue={40} />

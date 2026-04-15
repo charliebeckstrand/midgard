@@ -22,19 +22,12 @@ export default function CodeDemo() {
 			<Example
 				title="Default"
 				actions={<SizeListbox sizes={sizes} value={size} onChange={setSize} />}
-				code={code`
-					import { Code } from 'ui/code'
-					import { Text } from 'ui/text'
-
-					<Text>
-						Run <Code>pnpm install</Code> to install dependencies.
-					</Text>
-				`}
 			>
 				<Text>
 					Run <Code size={size}>pnpm install</Code> to install dependencies.
 				</Text>
 			</Example>
+
 			<Example
 				title="Code block"
 				code={code`
@@ -53,6 +46,7 @@ export default function CodeDemo() {
 					`}
 				/>
 			</Example>
+
 			<Example
 				title="Block with language"
 				code={code`

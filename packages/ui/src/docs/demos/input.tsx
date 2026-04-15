@@ -29,6 +29,7 @@ export default function InputDemo() {
 					</Sizer>
 				))}
 			</Example>
+
 			<Example title="Sizes">
 				<Sizer size="sm">
 					<Field>
@@ -49,6 +50,7 @@ export default function InputDemo() {
 					</Field>
 				</Sizer>
 			</Example>
+
 			<Example title="Prefix">
 				<Sizer>
 					<Input prefix={<Icon icon={<Search />} />} placeholder="Search" />
@@ -56,12 +58,14 @@ export default function InputDemo() {
 					<Input prefix={<Icon icon={<Hash />} />} placeholder="Channel name" />
 				</Sizer>
 			</Example>
+
 			<Example title="Suffix">
 				<Sizer>
 					<Input suffix={<Icon icon={<Check />} />} placeholder="Verified" />
 					<Input suffix={<Icon icon={<Share />} />} placeholder="Share" />
 				</Sizer>
 			</Example>
+
 			<Example title="Prefix and suffix">
 				<Sizer>
 					<Input
@@ -84,6 +88,7 @@ export default function InputDemo() {
 					/>
 				</Sizer>
 			</Example>
+
 			<Example title="Disabled">
 				<Sizer>
 					<Field>
@@ -92,6 +97,7 @@ export default function InputDemo() {
 					</Field>
 				</Sizer>
 			</Example>
+
 			<Example title="Readonly">
 				<Sizer>
 					<Field>
@@ -100,6 +106,7 @@ export default function InputDemo() {
 					</Field>
 				</Sizer>
 			</Example>
+
 			<Example title="Invalid">
 				<Sizer>
 					<Field>
@@ -108,6 +115,7 @@ export default function InputDemo() {
 					</Field>
 				</Sizer>
 			</Example>
+
 			<Example title="Valid">
 				<Sizer>
 					<Field>

@@ -5,7 +5,6 @@ import { Field, Label } from '../../components/fieldset'
 import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'
 import { TagInput } from '../../components/tag-input'
-import { code } from '../code'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
@@ -63,18 +62,7 @@ function MaxTagInput() {
 export default function TagInputDemo() {
 	return (
 		<Stack gap={8}>
-			<Example
-				title="Default"
-				code={code`
-					import { TagInput } from 'ui/tag-input'
-					import { Field, Label } from 'ui/fieldset'
-
-					<Field>
-						<Label>Tags</Label>
-						<TagInput value={tags} onChange={(v) => setTags(v ?? [])} placeholder="Add a tag" />
-					</Field>
-				`}
-			>
+			<Example title="Default">
 				<DefaultTagInput />
 			</Example>
 
@@ -82,12 +70,7 @@ export default function TagInputDemo() {
 				<SizedTagInputs />
 			</Example>
 
-			<Example
-				title="Max tags"
-				code={code`
-					<TagInput value={tags} onChange={(v) => setTags(v ?? [])} max={5} placeholder="Add up to 5 tags..." />
-				`}
-			>
+			<Example title="Max tags">
 				<MaxTagInput />
 			</Example>
 

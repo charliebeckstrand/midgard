@@ -69,6 +69,7 @@ export default function AlertDemo() {
 					))}
 				</Stack>
 			</Example>
+
 			<Example
 				title="Colors"
 				actions={
@@ -85,6 +86,7 @@ export default function AlertDemo() {
 					))}
 				</Stack>
 			</Example>
+
 			<Example title="Types">
 				<Stack gap={3}>
 					{types.map((type) => (
@@ -92,6 +94,7 @@ export default function AlertDemo() {
 					))}
 				</Stack>
 			</Example>
+
 			<Example title="With description">
 				<Stack gap={3}>
 					{types.map((type) => (
@@ -104,6 +107,7 @@ export default function AlertDemo() {
 					))}
 				</Stack>
 			</Example>
+
 			<Example
 				title="Closable"
 				code={code`
@@ -119,6 +123,7 @@ export default function AlertDemo() {
 			>
 				<ClosableDemo />
 			</Example>
+
 			<Example title="With actions">
 				<Alert
 					type="warning"
@@ -131,6 +136,7 @@ export default function AlertDemo() {
 					}
 				/>
 			</Example>
+
 			<Example
 				title="Block"
 				code={code`

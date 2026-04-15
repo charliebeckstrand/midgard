@@ -28,6 +28,7 @@ export default function SwitchDemo() {
 					<Switch id="switch-notifications" size={size} />
 				</SwitchField>
 			</Example>
+
 			<Example title="Sizes">
 				<SwitchField size="sm">
 					<Label htmlFor="switch-sm">Small</Label>
@@ -42,6 +43,7 @@ export default function SwitchDemo() {
 					<Switch id="switch-lg" size="lg" />
 				</SwitchField>
 			</Example>
+
 			<Example title="Colors">
 				<SwitchField>
 					<Label htmlFor="switch-purple">Blue</Label>
@@ -56,6 +58,7 @@ export default function SwitchDemo() {
 					<Switch id="switch-red" color="red" defaultChecked />
 				</SwitchField>
 			</Example>
+
 			<Example title="Disabled">
 				<SwitchField>
 					<Label htmlFor="switch-disabled">Disabled</Label>

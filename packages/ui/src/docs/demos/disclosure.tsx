@@ -20,6 +20,7 @@ export default function DisclosureDemo() {
 					</DisclosurePanel>
 				</Disclosure>
 			</Example>
+
 			<Example title="Default open">
 				<Disclosure defaultOpen>
 					<DisclosureButton>Toggle details</DisclosureButton>

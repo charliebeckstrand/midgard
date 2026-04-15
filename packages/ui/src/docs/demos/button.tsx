@@ -44,6 +44,7 @@ export default function ButtonDemo() {
 					))}
 				</Flex>
 			</Example>
+
 			<Example
 				title="Colors"
 				actions={
@@ -58,6 +59,7 @@ export default function ButtonDemo() {
 					))}
 				</Flex>
 			</Example>
+
 			<Example title="Sizes">
 				<Flex wrap gap={2}>
 					{sizes.map((s) => (
@@ -67,6 +69,7 @@ export default function ButtonDemo() {
 					))}
 				</Flex>
 			</Example>
+
 			<Example
 				title="With icon"
 				actions={<SizeListbox sizes={sizes} value={iconSize} onChange={setIconSize} />}
@@ -80,6 +83,7 @@ export default function ButtonDemo() {
 					))}
 				</Flex>
 			</Example>
+
 			<Example
 				title="Icon only"
 				actions={<SizeListbox sizes={sizes} value={iconOnlySize} onChange={setIconOnlySize} />}
@@ -92,6 +96,7 @@ export default function ButtonDemo() {
 					))}
 				</Flex>
 			</Example>
+
 			<Example
 				title="Ripple"
 				actions={<ColorListbox colors={colors} value={rippleColor} onChange={setRippleColor} />}
@@ -104,9 +109,11 @@ export default function ButtonDemo() {
 					))}
 				</Flex>
 			</Example>
+
 			<Example title="Spring">
 				<Button spring>Spring</Button>
 			</Example>
+
 			<Example title="Glass">
 				<Glass>
 					<Flex wrap gap={2}>
@@ -118,9 +125,11 @@ export default function ButtonDemo() {
 					</Flex>
 				</Glass>
 			</Example>
+
 			<Example title="Disabled">
 				<Button disabled>Disabled</Button>
 			</Example>
+
 			<Example title="Loading">
 				<Button loading>Loading</Button>
 			</Example>

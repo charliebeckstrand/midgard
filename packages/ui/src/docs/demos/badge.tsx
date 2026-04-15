@@ -35,6 +35,7 @@ export default function BadgeDemo() {
 					))}
 				</Flex>
 			</Example>
+
 			<Example
 				title="Colors"
 				actions={
@@ -53,6 +54,7 @@ export default function BadgeDemo() {
 					))}
 				</Flex>
 			</Example>
+
 			<Example title="Sizes">
 				<Flex wrap gap={2}>
 					{sizes.map(({ value, label }) => (

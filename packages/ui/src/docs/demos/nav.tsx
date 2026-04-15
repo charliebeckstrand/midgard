@@ -5,7 +5,6 @@ import { Card } from '../../components/card'
 import { NavContent, NavContents, NavItem, NavList, NavProvider } from '../../components/nav'
 import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'
-import { code } from '../code'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Navigation' }
@@ -24,31 +23,8 @@ export default function NavDemo() {
 					</NavList>
 				</Sizer>
 			</Example>
-			<Example
-				title="Value model with content"
-				code={code`
-				import { Nav, NavList, NavItem, NavContent, NavContents, NavProvider } from 'ui/nav'
 
-				const [current, setCurrent] = useState('Account')
-
-				<NavProvider value={{ value: current, onChange: setCurrent }}>
-					<Navbar>
-						<NavList orientation="horizontal">
-							<NavItem value="account">Account</NavItem>
-							<NavItem value="notifications">Notifications</NavItem>
-							<NavItem value="billing">Billing</NavItem>
-						</NavList>
-					</Navbar>
-					<Card p={3}>
-						<NavContents>
-							<NavContent value="account">Account settings</NavContent>
-							<NavContent value="notifications">Notification preferences</NavContent>
-							<NavContent value="billing">Billing information</NavContent>
-						</NavContents>
-					</Card>
-				</NavProvider>
-			`}
-			>
+			<Example title="Value model with content">
 				<Sizer>
 					<NavProvider value={{ value: current, onChange: setCurrent }}>
 						<NavList orientation="horizontal">
@@ -56,7 +32,7 @@ export default function NavDemo() {
 							<NavItem value="notifications">Notifications</NavItem>
 							<NavItem value="billing">Billing</NavItem>
 						</NavList>
-						<Card p={3}>
+						<Card bg="none">
 							<NavContents>
 								<NavContent value="account">Account settings</NavContent>
 								<NavContent value="notifications">Notification preferences</NavContent>

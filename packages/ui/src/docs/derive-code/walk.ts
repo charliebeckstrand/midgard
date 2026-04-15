@@ -1,14 +1,6 @@
-import { Children, type ReactElement, type ReactNode } from 'react'
-import { formatLiteral, formatProps, INDENT, renderOpenTag } from './format'
-import {
-	flattenPassThroughs,
-	hasTextContent,
-	isMeaningfulElement,
-	isPrimitive,
-	pluralize,
-	propsEqual,
-	uniqueConstName,
-} from './helpers'
+import { Children, isValidElement, type ReactElement, type ReactNode } from 'react'
+import { formatProps, INDENT, renderOpenTag } from './format'
+import { extractTextContent, flattenPassThroughs, isMeaningfulElement } from './helpers'
 import type { Ctx } from './types'
 
 // ---------------------------------------------------------------------------
@@ -31,16 +23,12 @@ export function renderNodes(nodes: ReactNode[], ctx: Ctx, indent: string): strin
 		return indent + renderElement(elements[0], ctx, indent)
 	}
 
-	const list = tryRenderAsList(elements, ctx, indent)
+	// Render each sibling, collapsing 3+ identical outputs (iterated rows)
+	// to a single representative while keeping structural duplicates (e.g.
+	// two ResizablePanel siblings) intact.
+	const lines: string[] = []
 
-	if (list !== null) return list
-
-	// Render each sibling, deduplicating identical outputs so N structurally
-	// identical rows (e.g. TableRow iterated over an array) collapse to a
-	// single representative.
-	const seen = new Set<string>()
-
-	const unique: string[] = []
+	const counts = new Map<string, number>()
 
 	for (const el of elements) {
 		const body = renderElement(el, ctx, indent)
@@ -49,14 +37,29 @@ export function renderNodes(nodes: ReactNode[], ctx: Ctx, indent: string): strin
 
 		const line = indent + body
 
-		if (seen.has(line)) continue
+		counts.set(line, (counts.get(line) ?? 0) + 1)
 
-		seen.add(line)
-
-		unique.push(line)
+		lines.push(line)
 	}
 
-	return unique.join('\n')
+	// Only deduplicate lines that appear 3+ times (true iteration pattern).
+	const emitted = new Map<string, number>()
+
+	const result: string[] = []
+
+	for (const line of lines) {
+		const total = counts.get(line) ?? 1
+
+		const seen = emitted.get(line) ?? 0
+
+		if (total >= 3 && seen >= 1) continue
+
+		emitted.set(line, seen + 1)
+
+		result.push(line)
+	}
+
+	return result.join('\n')
 }
 
 /**
@@ -69,11 +72,31 @@ export function renderElement(element: ReactElement, ctx: Ctx, indent: string): 
 	if (!info) {
 		// Unknown component (e.g. a locally-defined demo wrapper). Walk its
 		// children for whatever recognizable components they contain.
-		return renderNodes(
-			Children.toArray((element.props as { children?: ReactNode }).children),
-			ctx,
-			indent,
-		).trimStart()
+		const children = Children.toArray((element.props as { children?: ReactNode }).children)
+
+		if (children.length > 0) {
+			return renderNodes(children, ctx, indent).trimStart()
+		}
+
+		// No children prop — try calling the function to inline its output.
+		// This handles local helper components like `<NavItems />` that
+		// return JSX directly. Wrapped in try/catch because components
+		// using hooks or context will throw outside React.
+		if (typeof element.type === 'function') {
+			try {
+				const output = (element.type as (props: Record<string, unknown>) => ReactNode)(
+					element.props as Record<string, unknown>,
+				)
+
+				if (isValidElement(output)) {
+					return renderNodes(Children.toArray(output), ctx, indent).trimStart()
+				}
+			} catch {
+				// Component uses hooks/context — can't inline, skip gracefully.
+			}
+		}
+
+		return ''
 	}
 
 	if (info.module) {
@@ -96,94 +119,36 @@ export function renderElement(element: ReactElement, ctx: Ctx, indent: string): 
 
 	if (childrenStr === '') return open
 
-	if (childrenStr === '…') return `${open}…</${info.name}>`
+	// Inline short text children (e.g. <Card>Left</Card>) rather than
+	// breaking them across multiple lines.
+	if (!childrenStr.includes('\n') && !childrenStr.includes('<')) {
+		return `${open}${childrenStr}</${info.name}>`
+	}
 
 	return `${open}\n${childrenStr}\n${indent}</${info.name}>`
 }
 
 /**
- * Render the children of a recognized component. Combines text detection
+ * Render the children of a recognized component. Combines text extraction
  * with recursive walking so mixed bodies (e.g. `<Icon />` plus a label)
- * show both the nested component and a `…` placeholder for the text.
+ * show both the nested component and the text content.
  */
 export function renderChildrenContent(nodes: ReactNode[], ctx: Ctx, indent: string): string {
 	if (nodes.length === 0) return ''
 
-	const rendered = renderNodes(nodes, ctx, indent)
+	const rendered = renderNodes(nodes, ctx, indent).trimEnd()
 
-	const hasText = hasTextContent(nodes)
+	const text = extractTextContent(nodes)
 
 	if (rendered === '') {
-		return hasText ? '…' : ''
+		// Children exist but nothing was recognized — show a placeholder so
+		// the parent renders as `<Foo>…</Foo>` instead of `<Foo />`.
+		return text ?? '…'
 	}
 
-	if (hasText) {
-		return `${rendered}\n${indent}…`
+	if (text) {
+		return `${rendered}\n${indent}${text}`
 	}
 
 	return rendered
-}
-
-// ---------------------------------------------------------------------------
-// List detection
-// ---------------------------------------------------------------------------
-
-/**
- * Detect an iteration pattern in a sibling list: all elements share a type and
- * exactly one prop varies. When matched, emits a `const plural = [...]`
- * declaration and returns a single representative element using the current
- * state's first value. The rendered literal still reflects the live prop, so
- * dynamic demos (listbox toggles, etc.) stay accurate.
- */
-function tryRenderAsList(elements: ReactElement[], ctx: Ctx, indent: string): string | null {
-	if (elements.length < 2) return null
-
-	const firstType = elements[0].type
-
-	if (!elements.every((el) => el.type === firstType)) return null
-
-	const info = ctx.map.get(firstType) ?? null
-
-	if (!info) return null
-
-	const ignored = new Set(['children', 'className', 'key', 'ref'])
-
-	const allKeys = new Set<string>()
-
-	for (const el of elements) {
-		for (const key of Object.keys(el.props as Record<string, unknown>)) {
-			if (!ignored.has(key)) allKeys.add(key)
-		}
-	}
-
-	const varying: string[] = []
-
-	for (const key of allKeys) {
-		const first = (elements[0].props as Record<string, unknown>)[key]
-
-		const differs = elements.some(
-			(el) => !propsEqual(first, (el.props as Record<string, unknown>)[key]),
-		)
-
-		if (differs) varying.push(key)
-	}
-
-	// Require exactly one prop to vary across the list — and require its values
-	// to be primitives so the emitted `const` declaration actually reads well.
-	if (varying.length !== 1) return null
-
-	const prop = varying[0]
-
-	const values = elements.map((el) => (el.props as Record<string, unknown>)[prop])
-
-	if (!values.every(isPrimitive)) return null
-
-	const constName = uniqueConstName(ctx, pluralize(prop))
-
-	ctx.consts.push({
-		name: constName,
-		values: values.map((v) => formatLiteral(v as string | number | boolean)),
-	})
-
-	return indent + renderElement(elements[0], ctx, indent)
 }

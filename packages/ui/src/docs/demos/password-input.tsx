@@ -24,14 +24,6 @@ export default function PasswordInputDemo() {
 						<PasswordInput id="password-outline" variant="outline" placeholder="Enter password" />
 					</Field>
 				</Sizer>
-				{/* <Glass>
-					<Sizer>
-						<Field>
-							<Label>Glass</Label>
-							<PasswordInput placeholder="Enter password" />
-						</Field>
-					</Sizer>
-				</Glass> */}
 			</Example>
 
 			<Example title="Sizes">
