@@ -4,19 +4,15 @@ import { AnimatePresence, motion } from 'motion/react'
 import { type ComponentType, useEffect, useRef, useState } from 'react'
 import { Heading } from '../components/heading'
 import { ApiReference } from './components/api-reference'
-import type { ComponentApi } from './parse-props'
 import type { Demo } from './registry'
-import { getComponentApi, getResolvedApi, getResolvedDemo, loadDemo } from './registry'
+import { getComponentApi, getResolvedDemo, loadDemo } from './registry'
 
 export function DemoPage({ demo }: { demo: Demo }) {
 	const [Component, setComponent] = useState<ComponentType | null>(() => getResolvedDemo(demo.id))
 
 	const isPage = demo.category === 'Pages'
 
-	const [api, setApi] = useState<ComponentApi[] | undefined | null>(() => {
-		if (isPage) return null
-		return getResolvedApi(demo.id)
-	})
+	const api = isPage ? undefined : getComponentApi(demo.id)
 
 	const loadingId = useRef(demo.id)
 
@@ -28,15 +24,7 @@ export function DemoPage({ demo }: { demo: Demo }) {
 		loadDemo(demo.id).then((comp) => {
 			if (loadingId.current === demo.id) setComponent(() => comp)
 		})
-
-		if (!isPage) {
-			getComponentApi(demo.id).then((result) => {
-				if (loadingId.current === demo.id) setApi(result ?? null)
-			})
-		} else {
-			setApi(null)
-		}
-	}, [demo.id, isPage])
+	}, [demo.id])
 
 	return (
 		<AnimatePresence mode="wait">
@@ -54,7 +42,7 @@ export function DemoPage({ demo }: { demo: Demo }) {
 				>
 					<Heading>{demo.name}</Heading>
 					<Component />
-					{!isPage && api && (
+					{api && (
 						<>
 							<Heading level={2} className="leading-none">
 								API Reference
