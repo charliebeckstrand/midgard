@@ -12,7 +12,9 @@ import { getComponentApi, getResolvedDemo, loadDemo } from './registry'
 export function DemoPage({ demo }: { demo: Demo }) {
 	const [Component, setComponent] = useState<ComponentType | null>(() => getResolvedDemo(demo.id))
 
-	const [api, setApi] = useState<ComponentApi[] | undefined | null>(undefined)
+	const isPage = demo.category === 'Pages'
+
+	const [api, setApi] = useState<ComponentApi[] | undefined | null>(isPage ? null : undefined)
 
 	const loadingId = useRef(demo.id)
 
@@ -25,10 +27,14 @@ export function DemoPage({ demo }: { demo: Demo }) {
 			if (loadingId.current === demo.id) setComponent(() => comp)
 		})
 
-		getComponentApi(demo.id).then((result) => {
-			if (loadingId.current === demo.id) setApi(result ?? null)
-		})
-	}, [demo.id])
+		if (!isPage) {
+			getComponentApi(demo.id).then((result) => {
+				if (loadingId.current === demo.id) setApi(result ?? null)
+			})
+		} else {
+			setApi(null)
+		}
+	}, [demo.id, isPage])
 
 	return (
 		<AnimatePresence mode="wait">
@@ -46,13 +52,17 @@ export function DemoPage({ demo }: { demo: Demo }) {
 				>
 					<Heading>{demo.name}</Heading>
 					<Component />
-					{api === undefined && <Spinner size="xl" />}
-					{api && (
+					{!isPage && (
 						<>
-							<Heading level={2} className="leading-none">
-								API Reference
-							</Heading>
-							<ApiReference api={api} />
+							{api === undefined && <Spinner size="xl" />}
+							{api && (
+								<>
+									<Heading level={2} className="leading-none">
+										API Reference
+									</Heading>
+									<ApiReference api={api} />
+								</>
+							)}
 						</>
 					)}
 				</motion.div>

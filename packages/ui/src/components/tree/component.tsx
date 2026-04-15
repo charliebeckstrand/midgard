@@ -97,7 +97,11 @@ export function TreeItem({
 					</span>
 				)}
 				{icon && (
-					<Icon icon={icon} size="sm" className={resolvedColor && treeColorMap[resolvedColor]} />
+					<Icon
+						icon={icon}
+						size="sm"
+						className={resolvedColor ? cn(treeColorMap[resolvedColor]) : undefined}
+					/>
 				)}
 				<span className={k.label}>{label}</span>
 			</button>

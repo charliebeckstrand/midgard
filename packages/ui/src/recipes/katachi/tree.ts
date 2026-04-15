@@ -4,14 +4,27 @@ import { sumi } from '../sumi'
 
 export type TreeColor = 'sky' | 'lime' | 'rose' | 'amber' | 'violet'
 
-export const treeColorMap: Record<TreeColor, string> = {
-	sky: 'text-sky-600 group-hover/tree-item:text-sky-800 dark:text-sky-600 dark:group-hover/tree-item:text-sky-400 dark:group-data-[open]/tree-item:text-sky-400',
-	lime: 'text-lime-600 group-hover/tree-item:text-lime-800 dark:text-lime-600 dark:group-hover/tree-item:text-lime-400 dark:group-data-[open]/tree-item:text-lime-400',
-	rose: 'text-rose-600 group-hover/tree-item:text-rose-800 dark:text-rose-600 dark:group-hover/tree-item:text-rose-400 dark:group-data-[open]/tree-item:text-rose-400',
-	amber:
-		'text-amber-600 group-hover/tree-item:text-amber-800 dark:text-amber-600 dark:group-hover/tree-item:text-amber-400 dark:group-data-[open]/tree-item:text-amber-400',
-	violet:
-		'text-violet-600 group-hover/tree-item:text-violet-800 dark:text-violet-600 dark:group-hover/tree-item:text-violet-400 dark:group-data-[open]/tree-item:text-violet-400',
+export const treeColorMap: Record<TreeColor, string | string[]> = {
+	sky: [
+		'text-sky-600 group-hover/tree-item:text-sky-700',
+		'dark:text-sky-600 dark:group-hover/tree-item:text-sky-500',
+	],
+	lime: [
+		'text-lime-600 group-hover/tree-item:text-lime-700',
+		'dark:text-lime-600 dark:group-hover/tree-item:text-lime-500',
+	],
+	rose: [
+		'text-rose-600 group-hover/tree-item:text-rose-700',
+		'dark:text-rose-600 dark:group-hover/tree-item:text-rose-500',
+	],
+	amber: [
+		'text-amber-600 group-hover/tree-item:text-amber-700',
+		'dark:text-amber-600 dark:group-hover/tree-item:text-amber-500',
+	],
+	violet: [
+		'text-violet-600 group-hover/tree-item:text-violet-700',
+		'dark:text-violet-600 dark:group-hover/tree-item:text-violet-500',
+	],
 }
 
 export const tree = {
