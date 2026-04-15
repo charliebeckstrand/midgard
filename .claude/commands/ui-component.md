@@ -530,78 +530,13 @@ export default function <Name>Demo() {
 
 ### 10. Create the test file
 
-Add a test at `src/__tests__/components/<name>.test.tsx`. This is **required** for every new component.
+This is **required** for every new component. Use the `/ui-testing` skill to create the test file:
 
-Use the shared test helpers in `src/__tests__/helpers.tsx`:
-- **`renderUI(ui, options?)`** — renders with optional context wrappers (`skeleton`, `glass`, `inputSize`)
-- **`bySlot(container, name)`** — queries an element by its `data-slot` attribute
-- **`allBySlot(container, name)`** — queries all elements by `data-slot`
-- Re-exports: `screen`, `fireEvent`, `userEvent`, `act`, `waitFor` from testing-library
-
-**What to test (pick what applies):**
-1. **Renders with correct `data-slot`** — every component must have this
-2. **Renders the expected HTML element** (button, span, input, div, etc.)
-3. **Applies custom `className`** — verify `cn()` merge works
-4. **Renders children / content**
-5. **Passes through HTML attributes** (id, aria-*, data-*)
-6. **Polymorphic link behavior** — renders `<a>` when `href` is provided (if the component uses `Polymorphic` or accepts `href`)
-7. **Skeleton mode** — renders a placeholder when wrapped in `skeleton: true` context (if the component calls `useSkeleton()`)
-8. **Ref forwarding** — if the component uses `forwardRef`
-9. **Interactive behavior** — click handlers, onChange, keyboard interactions
-10. **Compound components** — test each sub-component's slot and className
-
-**Pattern — simple presentational component:**
-```tsx
-import { describe, expect, it } from 'vitest'
-import { <Name> } from '../../components/<name>'
-import { bySlot, renderUI, screen } from '../helpers'
-
-describe('<Name>', () => {
-  it('renders with data-slot="<name>"', () => {
-    const { container } = renderUI(<<Name>>content</<Name>>)
-    expect(bySlot(container, '<name>')).toBeInTheDocument()
-  })
-
-  it('applies custom className', () => {
-    const { container } = renderUI(<<Name> className="custom">content</<Name>>)
-    expect(bySlot(container, '<name>')?.className).toContain('custom')
-  })
-
-  it('renders children', () => {
-    renderUI(<<Name>>Hello</<Name>>)
-    expect(screen.getByText('Hello')).toBeInTheDocument()
-  })
-
-  it('renders a placeholder in skeleton mode', () => {
-    const { container } = renderUI(<<Name>>content</<Name>>, { skeleton: true })
-    expect(bySlot(container, '<name>')).not.toBeInTheDocument()
-    expect(bySlot(container, 'placeholder')).toBeInTheDocument()
-  })
-})
+```
+/ui-testing <name>
 ```
 
-**Pattern — interactive component:**
-```tsx
-import { describe, expect, it, vi } from 'vitest'
-import { <Name> } from '../../components/<name>'
-import { bySlot, renderUI, userEvent } from '../helpers'
-
-describe('<Name>', () => {
-  it('renders with data-slot="<name>"', () => {
-    const { container } = renderUI(<<Name> />)
-    expect(bySlot(container, '<name>')).toBeInTheDocument()
-  })
-
-  it('calls onChange when value changes', async () => {
-    const onChange = vi.fn()
-    const { container } = renderUI(<<Name> onChange={onChange} />)
-    const user = userEvent.setup()
-    // ... interact and assert onChange was called
-  })
-})
-```
-
-Run `pnpm test` from `packages/ui` to verify.
+The skill will create a test at `src/__tests__/components/<name>.test.tsx` following all established patterns and conventions. It reads the component source, determines which test patterns apply, writes the test, and verifies it passes.
 
 ---
 
@@ -675,7 +610,7 @@ Before finishing, verify:
 - [ ] `index.ts` barrel exports all public API (components, props types, variant types, variant functions)
 - [ ] `package.json` export entry added (alphabetical)
 - [ ] Demo page created at `src/docs/demos/<name>.tsx` with correct `meta.category`
-- [ ] Test file created at `src/__tests__/components/<name>.test.tsx` using shared helpers
+- [ ] Test file created via `/ui-testing` at `src/__tests__/components/<name>.test.tsx`
 - [ ] No unused imports or dead code
 - [ ] `'use client'` only added when actually needed (hooks, event handlers, motion)
 - [ ] Diff read as a reviewer: if the component is longer than the closest existing analog, justify why or shrink it by composing more
