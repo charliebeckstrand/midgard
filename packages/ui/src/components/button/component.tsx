@@ -10,7 +10,7 @@ import { useGlass } from '../glass/context'
 import { useInputSize } from '../input/context'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
-import type { SpinnerProps } from '../spinner/component'
+import type { SpinnerProps } from '../spinner'
 import { ButtonSizeProvider } from './context'
 import { iconSides, isIconOnly, kbdSides, withLoadingSpinner } from './utilities'
 import {

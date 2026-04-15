@@ -22,3 +22,4 @@ export const segmentItemVariants = cva(k.segment, {
 })
 
 export type SegmentControlVariants = VariantProps<typeof segmentControlVariants>
+export type SegmentItemVariants = VariantProps<typeof segmentItemVariants>

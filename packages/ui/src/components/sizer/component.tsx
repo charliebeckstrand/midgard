@@ -1,6 +1,6 @@
 import type React from 'react'
 import { cn } from '../../core'
-import { directionMap, type FlexDirection } from '../flex/variants'
+import { directionMap, type FlexDirection } from '../flex'
 import { gapMap, type SizerGap, type SizerSize, sizeMap } from './variants'
 
 export type SizerProps = {

@@ -1,5 +1,5 @@
 import { kumi } from '../../recipes'
-import { type Responsive, resolveResponsive } from '../grid/variants'
+import { type Responsive, resolveResponsive } from '../grid'
 
 export const gapMap = kumi.gap
 export const directionMap = kumi.direction

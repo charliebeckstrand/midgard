@@ -7,4 +7,9 @@ export {
 	type SegmentProps,
 } from './component'
 export { type SegmentContextValue, SegmentProvider, useSegmentContext } from './context'
-export { type SegmentControlVariants, segmentControlVariants } from './variants'
+export {
+	type SegmentControlVariants,
+	type SegmentItemVariants,
+	segmentControlVariants,
+	segmentItemVariants,
+} from './variants'

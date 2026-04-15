@@ -11,4 +11,5 @@ export {
 	type GridDividerVariants,
 	gridDividerVariants,
 	type Responsive,
+	resolveResponsive,
 } from './variants'

@@ -7,9 +7,9 @@ import { Textarea } from '../../components/textarea'
 import { allBySlot, bySlot, renderUI, screen } from '../helpers'
 
 describe('Control', () => {
-	it('renders with data-slot="field"', () => {
+	it('renders with data-slot="control"', () => {
 		const { container } = renderUI(<Control>content</Control>)
-		expect(bySlot(container, 'field')).toBeInTheDocument()
+		expect(bySlot(container, 'control')).toBeInTheDocument()
 	})
 
 	it('renders children', () => {
@@ -19,17 +19,17 @@ describe('Control', () => {
 
 	it('applies custom className', () => {
 		const { container } = renderUI(<Control className="custom">content</Control>)
-		expect(bySlot(container, 'field')?.className).toContain('custom')
+		expect(bySlot(container, 'control')?.className).toContain('custom')
 	})
 
 	it('sets data-disabled when disabled', () => {
 		const { container } = renderUI(<Control disabled>content</Control>)
-		expect(bySlot(container, 'field')).toHaveAttribute('data-disabled')
+		expect(bySlot(container, 'control')).toHaveAttribute('data-disabled')
 	})
 
 	it('does not set data-disabled when not disabled', () => {
 		const { container } = renderUI(<Control>content</Control>)
-		expect(bySlot(container, 'field')).not.toHaveAttribute('data-disabled')
+		expect(bySlot(container, 'control')).not.toHaveAttribute('data-disabled')
 	})
 })
 
@@ -311,10 +311,10 @@ describe('Control nesting', () => {
 				<Control id="child">content</Control>
 			</Control>,
 		)
-		const fields = allBySlot(container, 'field')
-		// Both parent and child field wrappers should be marked disabled
-		expect(fields[0]).toHaveAttribute('data-disabled')
-		expect(fields[1]).toHaveAttribute('data-disabled')
+		const controls = allBySlot(container, 'control')
+		// Both parent and child control wrappers should be marked disabled
+		expect(controls[0]).toHaveAttribute('data-disabled')
+		expect(controls[1]).toHaveAttribute('data-disabled')
 	})
 
 	it('three-level nesting: grandparent disabled propagates to leaf', () => {

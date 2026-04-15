@@ -36,3 +36,7 @@ export const stepperSeparatorVariants = cva(k.separator.base, {
 	},
 	defaultVariants: k.defaults,
 })
+
+export type StepperStepVariants = VariantProps<typeof stepperStepVariants>
+export type StepperTitleVariants = VariantProps<typeof stepperTitleVariants>
+export type StepperSeparatorVariants = VariantProps<typeof stepperSeparatorVariants>
