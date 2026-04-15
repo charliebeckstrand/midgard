@@ -94,7 +94,7 @@ export function NavItem({ value, current, onClick, ...props }: NavItemProps) {
 
 const { Contents: NavContents, Content: NavContent } = createCurrentContent('nav')
 
-export { NavContents, NavContent }
+export { NavContent, NavContents }
 
 export type NavContentsProps = React.ComponentPropsWithoutRef<typeof NavContents>
 export type NavContentProps = React.ComponentPropsWithoutRef<typeof NavContent>
