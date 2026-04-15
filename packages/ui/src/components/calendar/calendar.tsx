@@ -1,15 +1,7 @@
 'use client'
 
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import {
-	forwardRef,
-	useCallback,
-	useEffect,
-	useImperativeHandle,
-	useMemo,
-	useRef,
-	useState,
-} from 'react'
+import { forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { useRovingFocus } from '../../hooks/use-keyboard'
@@ -160,26 +152,28 @@ export const Calendar = forwardRef<CalendarHandle, CalendarProps>(function Calen
 
 	const activeGridDate = active?.zone === 'grid' ? active.date : null
 
-	useEffect(() => {
-		if (!activeGridDate) return
+	// Adjust viewDate during render when the driving prop changes (avoids an
+	// extra render cycle that the previous useEffect approach caused).
+	const prevActiveGridDateRef = useRef(activeGridDate)
+	const prevValueRef = useRef(value)
 
-		setViewDate((prev) => {
-			const next = new Date(activeGridDate.getFullYear(), activeGridDate.getMonth(), 1)
+	if (activeGridDate && activeGridDate !== prevActiveGridDateRef.current) {
+		const next = new Date(activeGridDate.getFullYear(), activeGridDate.getMonth(), 1)
+		if (next.getTime() !== viewDate.getTime()) {
+			setViewDate(next)
+		}
+	}
+	prevActiveGridDateRef.current = activeGridDate
 
-			return next.getTime() === prev.getTime() ? prev : next
-		})
-	}, [activeGridDate])
-
-	useEffect(() => {
-		if (!value) return
-
-		setViewDate((prev) => {
-			if (value.getFullYear() === prev.getFullYear() && value.getMonth() === prev.getMonth())
-				return prev
-
-			return new Date(value.getFullYear(), value.getMonth(), 1)
-		})
-	}, [value])
+	if (value && value !== prevValueRef.current) {
+		if (
+			value.getFullYear() !== viewDate.getFullYear() ||
+			value.getMonth() !== viewDate.getMonth()
+		) {
+			setViewDate(new Date(value.getFullYear(), value.getMonth(), 1))
+		}
+	}
+	prevValueRef.current = value
 
 	const headerActiveIndex = active?.zone === 'header' ? active.index : null
 

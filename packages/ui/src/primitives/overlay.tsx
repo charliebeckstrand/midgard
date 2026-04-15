@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from 'motion/react'
 import type React from 'react'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { cn } from '../core'
 import { useFocusTrap } from '../hooks/use-focus-trap'
@@ -28,11 +28,14 @@ export function Overlay({
 }: OverlayProps) {
 	const focusTrapRef = useFocusTrap(open)
 
+	const onCloseRef = useRef(onClose)
+	onCloseRef.current = onClose
+
 	useEffect(() => {
 		if (!open) return
 
 		function onKeyDown(e: KeyboardEvent) {
-			if (e.key === 'Escape') onClose()
+			if (e.key === 'Escape') onCloseRef.current()
 		}
 
 		document.addEventListener('keydown', onKeyDown)
@@ -44,7 +47,7 @@ export function Overlay({
 
 			document.body.style.overflow = ''
 		}
-	}, [open, onClose])
+	}, [open])
 
 	if (typeof document === 'undefined') return null
 
