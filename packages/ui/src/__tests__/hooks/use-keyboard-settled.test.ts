@@ -1,8 +1,8 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import { useVirtualKeyboardStable } from '../../hooks/use-virtual-keyboard-stable'
+import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
 
-describe('useVirtualKeyboardStable', () => {
+describe('useKeyboardSettled', () => {
 	it('fires callback immediately when visualViewport is not available', () => {
 		const original = window.visualViewport
 
@@ -12,7 +12,7 @@ describe('useVirtualKeyboardStable', () => {
 			configurable: true,
 		})
 
-		const { result } = renderHook(() => useVirtualKeyboardStable())
+		const { result } = renderHook(() => useKeyboardSettled())
 
 		const callback = vi.fn()
 
@@ -28,7 +28,7 @@ describe('useVirtualKeyboardStable', () => {
 	})
 
 	it('returns a stable function reference across re-renders', () => {
-		const { result, rerender } = renderHook(() => useVirtualKeyboardStable())
+		const { result, rerender } = renderHook(() => useKeyboardSettled())
 
 		const first = result.current
 

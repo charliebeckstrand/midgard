@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react'
 
 /** Defers a callback until the virtual keyboard has settled. Fires immediately on desktop or when the keyboard is already visible. */
-export function useVirtualKeyboardStable() {
+export function useKeyboardSettled() {
 	const rafRef = useRef<number | null>(null)
 
 	useEffect(
@@ -32,8 +32,12 @@ export function useVirtualKeyboardStable() {
 			return
 		}
 
-		// Poll until the viewport height stabilises
-		let lastHeight = vv.height
+		// Poll until the viewport height stabilises after the keyboard starts appearing
+		const initialHeight = vv.height
+
+		let lastHeight = initialHeight
+
+		let heightChanged = false
 
 		let stableFrames = 0
 
@@ -44,16 +48,21 @@ export function useVirtualKeyboardStable() {
 
 			const currentHeight = vv.height
 
+			if (!heightChanged && currentHeight !== initialHeight) {
+				heightChanged = true
+			}
+
 			if (currentHeight === lastHeight) {
-				stableFrames++
+				// Only count stable frames after the keyboard has started moving
+				if (heightChanged) stableFrames++
 			} else {
 				stableFrames = 0
 
 				lastHeight = currentHeight
 			}
 
-			// 5 stable frames (~83 ms at 60 fps), bail after 1 s
-			if (stableFrames >= 5 || totalFrames >= 60) {
+			// 5 stable frames (~83 ms at 60 fps) after keyboard moves, bail after 1 s
+			if ((heightChanged && stableFrames >= 5) || totalFrames >= 60) {
 				rafRef.current = null
 
 				callback()

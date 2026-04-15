@@ -8,7 +8,7 @@ export const fieldset = {
 	field: [
 		...narabi.field,
 		'data-disabled:border-zinc-950/20 data-disabled:cursor-not-allowed',
-		'dark:data-disabled:border-white/15 dark:data-disabled:bg-white/2.5',
+		'dark:data-disabled:border-white/15',
 	],
 	label: [sumi.text, 'text-base/6 select-none', yasumi.disabled],
 	description: ['text-base/6', sumi.textMuted, yasumi.disabled],

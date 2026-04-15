@@ -9,7 +9,7 @@ import { cn, createContext } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { useFloatingUI } from '../../hooks/use-floating-ui'
 import { useRovingFocus } from '../../hooks/use-keyboard'
-import { useVirtualKeyboardStable } from '../../hooks/use-virtual-keyboard-stable'
+import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
 import { FormControl, PopoverPanel } from '../../primitives'
 import { waku } from '../../recipes'
 import { useControl } from '../control/context'
@@ -107,7 +107,7 @@ export function Combobox<T>({
 		focusOnEmpty: true,
 	})
 
-	const waitForKeyboard = useVirtualKeyboardStable()
+	const waitForKeyboard = useKeyboardSettled()
 
 	const { query, setQuery, open, setOpen, editing, setEditing, close, select, flushPending } =
 		useComboboxSelection<T>({

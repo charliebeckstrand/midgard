@@ -33,11 +33,17 @@ export function nextIndexForKey(
 	if (itemCount === 0) return null
 
 	if (key === 'Home') return 0
+
 	if (key === 'End') return itemCount - 1
 
 	return config.cols === undefined
 		? nextIndexLinear(key, currentIndex, itemCount, config.orientation ?? 'vertical')
 		: nextIndexGrid(key, currentIndex, itemCount, config.cols)
+}
+
+/** Wraps `index` into `[0, count)`. */
+function wrap(index: number, count: number): number {
+	return ((index % count) + count) % count
 }
 
 function nextIndexLinear(
@@ -46,22 +52,18 @@ function nextIndexLinear(
 	itemCount: number,
 	orientation: Orientation,
 ): number | null {
-	const forward = orientation === 'vertical' ? 'ArrowDown' : 'ArrowRight'
-	const back = orientation === 'vertical' ? 'ArrowUp' : 'ArrowLeft'
+	const delta =
+		key === (orientation === 'vertical' ? 'ArrowDown' : 'ArrowRight')
+			? 1
+			: key === (orientation === 'vertical' ? 'ArrowUp' : 'ArrowLeft')
+				? -1
+				: null
 
-	if (key === forward) {
-		if (currentIndex === -1) return 0
+	if (delta === null) return null
 
-		return currentIndex === itemCount - 1 ? 0 : currentIndex + 1
-	}
+	if (currentIndex === -1) return delta === 1 ? 0 : itemCount - 1
 
-	if (key === back) {
-		if (currentIndex === -1) return itemCount - 1
-
-		return currentIndex === 0 ? itemCount - 1 : currentIndex - 1
-	}
-
-	return null
+	return wrap(currentIndex + delta, itemCount)
 }
 
 function nextIndexGrid(
@@ -72,6 +74,7 @@ function nextIndexGrid(
 ): number | null {
 	if (currentIndex === -1) {
 		if (key === 'ArrowRight' || key === 'ArrowDown') return 0
+
 		if (key === 'ArrowLeft' || key === 'ArrowUp') return itemCount - 1
 
 		return null
@@ -79,9 +82,9 @@ function nextIndexGrid(
 
 	switch (key) {
 		case 'ArrowRight':
-			return currentIndex < itemCount - 1 ? currentIndex + 1 : 0
+			return wrap(currentIndex + 1, itemCount)
 		case 'ArrowLeft':
-			return currentIndex > 0 ? currentIndex - 1 : itemCount - 1
+			return wrap(currentIndex - 1, itemCount)
 		case 'ArrowDown':
 			return currentIndex + cols < itemCount ? currentIndex + cols : currentIndex % cols
 		case 'ArrowUp':
