@@ -1,4 +1,5 @@
-import { cn, Link } from '../../core'
+import { cn } from '../../core'
+import { Link } from '../../primitives/link'
 import type { PolymorphicProps } from '../../primitives'
 import { kokkaku } from '../../recipes'
 import { Placeholder } from '../placeholder'

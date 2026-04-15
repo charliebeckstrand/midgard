@@ -4,8 +4,8 @@ import type {
 	SelectDescriptionProps,
 	SelectLabelProps,
 	SelectOptionProps,
-} from '../../primitives/create-select-option'
-import { createSelectOption } from '../../primitives/create-select-option'
+} from '../../primitives/select-option'
+import { createSelectOption } from '../../primitives/select-option'
 import { useListboxContext } from './listbox'
 
 export type ListboxOptionProps = SelectOptionProps

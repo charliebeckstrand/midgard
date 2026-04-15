@@ -1,12 +1,12 @@
 import {
-	createPanelSlots,
+	createPanel,
 	type PanelActionsProps,
 	type PanelBodyProps,
 	type PanelDescriptionProps,
 	type PanelTitleProps,
 } from '../../primitives'
 
-const { Title, Description, Body, Actions } = createPanelSlots('dialog')
+const { Title, Description, Body, Actions } = createPanel('dialog')
 
 export type DialogTitleProps = PanelTitleProps
 export type DialogDescriptionProps = PanelDescriptionProps

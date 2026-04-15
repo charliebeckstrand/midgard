@@ -2,7 +2,8 @@
 
 import { motion } from 'motion/react'
 import type { PointerEvent } from 'react'
-import { cn, Link } from '../../core'
+import { cn } from '../../core'
+import { Link } from '../../primitives/link'
 import { type PolymorphicProps, TouchTarget, useRipple, useTap } from '../../primitives'
 import { kokkaku } from '../../recipes'
 import { useAlertContext } from '../alert/context'

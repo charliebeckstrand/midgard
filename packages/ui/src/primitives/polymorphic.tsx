@@ -1,5 +1,5 @@
 import type React from 'react'
-import { Link } from '../core'
+import { Link } from './link'
 
 /** Discriminated union — renders as a Link when `href` is provided, otherwise as the fallback element. */
 export type PolymorphicProps<Fallback extends keyof React.JSX.IntrinsicElements> =

@@ -2,7 +2,7 @@
 
 import { X } from 'lucide-react'
 import { cn } from '../../core'
-import { useOffcanvas } from '../../core/offcanvas-context'
+import { useOffcanvas } from '../../primitives/offcanvas'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { k } from './variants'

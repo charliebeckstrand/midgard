@@ -7,7 +7,7 @@ import { Button } from '../components/button'
 import { Drawer } from '../components/drawer/drawer'
 import { Icon } from '../components/icon'
 import { cn } from '../core'
-import { OffcanvasContext } from '../core/offcanvas-context'
+import { OffcanvasContext } from '../primitives/offcanvas'
 import { narabi, omote } from '../recipes'
 export type SidebarLayoutProps = React.PropsWithChildren<{
 	navbar: React.ReactNode
