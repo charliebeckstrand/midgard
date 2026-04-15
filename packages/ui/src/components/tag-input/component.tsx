@@ -5,9 +5,11 @@ import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useSta
 import { cn } from '../../core'
 import { useControllable, useTagKeyboard } from '../../hooks'
 import { FormControl } from '../../primitives'
+import { waku } from '../../recipes'
 import type { Color } from '../../recipes/nuri/palette'
 import { Button } from '../button'
 import { Chip } from '../chip'
+import { useGlass } from '../glass/context'
 import { Icon } from '../icon'
 import { chipRemoveSize, chipSize } from './utilities'
 import { k, type TagInputVariants, tagInputContainerVariants, tagInputVariants } from './variants'
@@ -37,6 +39,8 @@ export const TagInput = forwardRef<HTMLInputElement, TagInputProps>(function Tag
 	{ size, tag, value, defaultValue, onChange, placeholder, disabled, max, validate, className },
 	ref,
 ) {
+	const glass = useGlass()
+
 	const [tags = [], setTags] = useControllable<string[]>({
 		value,
 		defaultValue: defaultValue ?? [],
@@ -46,6 +50,7 @@ export const TagInput = forwardRef<HTMLInputElement, TagInputProps>(function Tag
 	const [inputValue, setInputValue] = useState('')
 
 	const containerRef = useRef<HTMLDivElement>(null)
+
 	const inputRef = useRef<HTMLInputElement>(null)
 
 	useImperativeHandle(ref, () => inputRef.current as HTMLInputElement)
@@ -127,7 +132,7 @@ export const TagInput = forwardRef<HTMLInputElement, TagInputProps>(function Tag
 	}, [addTag, inputValue])
 
 	return (
-		<FormControl>
+		<FormControl className={cn(!glass && waku.control.surface)}>
 			<div
 				ref={containerRef}
 				data-slot="tag-input"

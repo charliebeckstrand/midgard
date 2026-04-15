@@ -20,8 +20,9 @@ const hiru = ['bg-white', 'has-[>:disabled]:before:bg-zinc-950/5']
 // ── Yoru (夜) ───────────────────────────────────────────
 const yoru = ['dark:bg-white/5', 'dark:before:hidden']
 
-/** Structural base — positioning, focus rings, disabled states. */
-export const control = motoi
-
-/** Surface chrome — background and inner shadow. Applied per variant. */
-export const controlSurface = ['before:shadow-sm', hiru, yoru]
+export const control = {
+	/** Structural base — positioning, focus rings, disabled states. */
+	base: motoi,
+	/** Surface chrome — background and inner shadow. */
+	surface: ['before:shadow-sm', hiru, yoru],
+}

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Field, Label } from '../../components/fieldset'
+import { Glass } from '../../components/glass'
 import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'
 import { TagInput } from '../../components/tag-input'
@@ -59,6 +60,21 @@ function MaxTagInput() {
 	)
 }
 
+function GlassTagInput() {
+	const [tags, setTags] = useState<string[]>(['React', 'TypeScript'])
+
+	return (
+		<Glass>
+			<Sizer>
+				<Field>
+					<Label>Tags</Label>
+					<TagInput value={tags} onChange={(v) => setTags(v ?? [])} placeholder="Add a tag" />
+				</Field>
+			</Sizer>
+		</Glass>
+	)
+}
+
 export default function TagInputDemo() {
 	return (
 		<Stack gap={8}>
@@ -81,6 +97,10 @@ export default function TagInputDemo() {
 						<TagInput defaultValue={['Locked', 'Tags']} disabled placeholder="Cannot edit" />
 					</Field>
 				</Sizer>
+			</Example>
+
+			<Example title="Glass">
+				<GlassTagInput />
 			</Example>
 		</Stack>
 	)

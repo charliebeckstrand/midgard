@@ -9,8 +9,9 @@ import { cn, createContext } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { useFloatingUI } from '../../hooks/use-floating-ui'
 import { FormControl, PopoverPanel } from '../../primitives'
-import { sumi } from '../../recipes'
+import { sumi, waku } from '../../recipes'
 import { useControl } from '../control/context'
+import { useGlass } from '../glass/context'
 import { Icon } from '../icon'
 import { useListboxSelection } from './use-listbox-selection'
 import { resolveLabel } from './utilities'
@@ -68,6 +69,7 @@ export function Listbox<T>({
 	inputId,
 	children,
 }: ListboxProps<T>) {
+	const glass = useGlass()
 	const control = useControl()
 
 	const resolvedId = inputId ?? control?.id
@@ -116,7 +118,7 @@ export function Listbox<T>({
 				className={cn(className)}
 				{...getReferenceProps()}
 			>
-				<FormControl data-open={open || undefined}>
+				<FormControl data-open={open || undefined} className={cn(!glass && waku.control.surface)}>
 					<button
 						ref={triggerRef}
 						id={resolvedId}

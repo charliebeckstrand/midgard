@@ -10,7 +10,7 @@ export const textarea = {
 		glass: omote.glass,
 	},
 	control: {
-		default: waku.controlSurface,
+		default: waku.control.surface,
 		outline: [],
 		glass: [],
 	},

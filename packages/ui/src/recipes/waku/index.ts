@@ -7,14 +7,13 @@
  */
 
 import { check, checkSurface, hidden } from './check'
-import { control, controlSurface } from './control'
+import { control } from './control'
 import { date } from './date'
 import { input, inputBase } from './input'
 import { number } from './number'
 
 export const waku = {
 	control,
-	controlSurface,
 	hidden,
 	check,
 	checkSurface,

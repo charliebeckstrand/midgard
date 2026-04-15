@@ -11,7 +11,9 @@ import { useFloatingUI } from '../../hooks/use-floating-ui'
 import { useRovingFocus } from '../../hooks/use-keyboard'
 import { useVirtualKeyboardStable } from '../../hooks/use-virtual-keyboard-stable'
 import { FormControl, PopoverPanel } from '../../primitives'
+import { waku } from '../../recipes'
 import { useControl } from '../control/context'
+import { useGlass } from '../glass/context'
 import { Icon } from '../icon'
 import { useComboboxSelection } from './use-combobox-selection'
 import { resolveInputDisplay, selectActiveOrSingleOption } from './utilities'
@@ -74,6 +76,7 @@ export function Combobox<T>({
 	className,
 	children,
 }: ComboboxProps<T>) {
+	const glass = useGlass()
 	const control = useControl()
 
 	const resolvedDisabled = control?.disabled
@@ -143,7 +146,7 @@ export function Combobox<T>({
 				className={cn(className)}
 				{...getReferenceProps()}
 			>
-				<FormControl data-open={open || undefined}>
+				<FormControl data-open={open || undefined} className={cn(!glass && waku.control.surface)}>
 					<input
 						ref={inputRef}
 						type="text"
