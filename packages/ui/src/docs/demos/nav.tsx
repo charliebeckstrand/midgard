@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Area } from '../../components/area'
+import { Card } from '../../components/card'
 import { NavContent, NavContents, NavItem, NavList, NavProvider } from '../../components/nav'
 import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'
@@ -30,7 +30,7 @@ export default function NavDemo() {
 				import { Nav, NavList, NavItem, NavContent, NavContents, NavProvider } from 'ui/nav'
 
 				const [current, setCurrent] = useState('Account')
-				
+
 				<NavProvider value={{ value: current, onChange: setCurrent }}>
 					<Navbar>
 						<NavList orientation="horizontal">
@@ -39,13 +39,13 @@ export default function NavDemo() {
 							<NavItem value="billing">Billing</NavItem>
 						</NavList>
 					</Navbar>
-					<Area>
+					<Card p={3}>
 						<NavContents>
 							<NavContent value="account">Account settings</NavContent>
 							<NavContent value="notifications">Notification preferences</NavContent>
 							<NavContent value="billing">Billing information</NavContent>
 						</NavContents>
-					</Area>
+					</Card>
 				</NavProvider>
 			`}
 			>
@@ -56,13 +56,13 @@ export default function NavDemo() {
 							<NavItem value="notifications">Notifications</NavItem>
 							<NavItem value="billing">Billing</NavItem>
 						</NavList>
-						<Area>
+						<Card p={3}>
 							<NavContents>
 								<NavContent value="account">Account settings</NavContent>
 								<NavContent value="notifications">Notification preferences</NavContent>
 								<NavContent value="billing">Billing information</NavContent>
 							</NavContents>
-						</Area>
+						</Card>
 					</NavProvider>
 				</Sizer>
 			</Example>

@@ -1,13 +1,13 @@
 'use client'
 
-import { Area } from '../../components/area'
+import { Card } from '../../components/card'
 import { ResizableGroup, ResizableHandle, ResizablePanel } from '../../components/resizable'
 import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Layout' }
 
-const Pane = () => <Area p={4} />
+const Pane = () => <Card p={4} className="h-full" />
 
 export default function ResizableDemo() {
 	return (

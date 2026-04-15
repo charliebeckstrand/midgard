@@ -1,5 +1,5 @@
-import { Area } from '../../components/area'
 import { Button } from '../../components/button'
+import { Card } from '../../components/card'
 import { Glass } from '../../components/glass'
 import {
 	Menu,
@@ -47,9 +47,9 @@ export default function MenuDemo() {
 
 			<Example title="Context Menu">
 				<Menu>
-					<Area className="flex h-40 items-center justify-center">
+					<Card p={3} className="flex h-40 items-center justify-center">
 						<span className="text-sm select-none">Right-click here</span>
-					</Area>
+					</Card>
 					<MenuContent>
 						<MenuSection>
 							<MenuItem>

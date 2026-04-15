@@ -1,33 +1,31 @@
 import type React from 'react'
 import { cn } from '../../core'
 import {
-	type FlexGap,
-	type FlexJustify,
-	type FlexWidth,
-	gapMap,
-	justifyMap,
 	type ResponsiveAlign,
 	type ResponsiveDirection,
+	type ResponsiveGap,
+	type ResponsiveJustify,
 	resolveAlign,
 	resolveDirection,
-	widthMap,
+	resolveGap,
+	resolveJustify,
 } from './variants'
 
 export type FlexProps = {
-	/** Flex direction. Supports responsive breakpoints. Defaults to row. */
+	/** Flex direction. Supports responsive breakpoints. */
 	direction?: ResponsiveDirection
-	/** Gap between children. */
-	gap?: FlexGap
-	/** Cross-axis alignment. Supports responsive breakpoints. Defaults to center. */
+	/** Gap between children. Supports responsive breakpoints. */
+	gap?: ResponsiveGap
+	/** Cross-axis alignment. Supports responsive breakpoints. */
 	align?: ResponsiveAlign
-	/** Main-axis alignment. */
-	justify?: FlexJustify
+	/** Main-axis alignment. Supports responsive breakpoints. */
+	justify?: ResponsiveJustify
 	/** Allow children to wrap onto multiple lines. */
 	wrap?: boolean
 	/** Render as `inline-flex` instead of `flex`. */
 	inline?: boolean
-	/** Optional width constraint. */
-	width?: FlexWidth
+	/** Spans full width of parent. */
+	full?: boolean
 	/** Fills available space (flex: 1 1 0%). */
 	flex?: boolean
 	/** Stretches all children equally. */
@@ -35,32 +33,33 @@ export type FlexProps = {
 	className?: string
 } & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
 
-/** Horizontal flex container. Use Flex for rows, Stack for columns. */
-export function Flex({
-	direction = 'row',
+/** @internal Shared flex implementation used by Flex and Stack. */
+export function FlexBase({
+	dataSlot,
+	direction,
 	gap,
-	align = 'center',
+	align,
 	justify,
 	wrap,
 	inline,
-	width,
+	full,
 	flex,
 	equal,
 	className,
 	children,
 	...props
-}: FlexProps) {
+}: FlexProps & { dataSlot?: string }) {
 	return (
 		<div
-			data-slot="flex"
+			data-slot={dataSlot}
 			className={cn(
 				inline ? 'inline-flex' : 'flex',
-				width && widthMap[width],
 				resolveDirection(direction),
 				resolveAlign(align),
-				gap !== undefined && gapMap[gap],
-				justify && justifyMap[justify],
+				resolveGap(gap),
+				resolveJustify(justify),
 				wrap && 'flex-wrap',
+				full && 'w-full',
 				flex && 'flex-1',
 				equal && '*:flex-1',
 				className,
@@ -70,4 +69,13 @@ export function Flex({
 			{children}
 		</div>
 	)
+}
+
+/** Horizontal flex container. Use Flex for rows, Stack for columns. */
+export function Flex({
+	direction = 'row',
+	align = 'center',
+	...props
+}: FlexProps) {
+	return <FlexBase dataSlot="flex" direction={direction} align={align} {...props} />
 }

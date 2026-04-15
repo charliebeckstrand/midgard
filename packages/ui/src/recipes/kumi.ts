@@ -44,11 +44,4 @@ export const kumi = {
 		around: 'justify-around',
 		evenly: 'justify-evenly',
 	},
-
-	width: {
-		full: 'w-full',
-		min: 'w-min',
-		max: 'w-max',
-		fit: 'w-fit',
-	},
 } as const

@@ -1,4 +1,3 @@
-import { Area } from '../../components/area'
 import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'
 import { Card } from '../../components/card'
@@ -27,13 +26,13 @@ export default function StackDemo() {
 			</Example>
 
 			<Example title="Align and justify">
-				<Area p={3} className="h-24 w-full">
-					<Stack direction="row" gap={3} justify="between" align="center" width="full">
+				<Card p={3} className="h-24 w-full">
+					<Stack direction="row" gap={3} justify="between" align="center" full>
 						<Card>Start</Card>
 						<Card>Middle</Card>
 						<Card>End</Card>
 					</Stack>
-				</Area>
+				</Card>
 			</Example>
 
 			<Example title="Wrap">
