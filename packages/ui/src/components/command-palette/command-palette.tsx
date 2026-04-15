@@ -32,6 +32,7 @@ export function CommandPalette({
 	children,
 }: CommandPaletteProps) {
 	const [query, setQuery] = useState('')
+
 	const listboxId = useId()
 
 	const inputRef = useRef<HTMLInputElement>(null)
@@ -42,8 +43,10 @@ export function CommandPalette({
 
 	// Reset query when closed (adjust during render to avoid extra cycle)
 	const prevOpenRef = useRef(open)
+
 	if (open !== prevOpenRef.current) {
 		prevOpenRef.current = open
+
 		if (!open) setQuery('')
 	}
 

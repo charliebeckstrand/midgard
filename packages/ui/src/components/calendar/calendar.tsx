@@ -139,6 +139,7 @@ export const Calendar = forwardRef<CalendarHandle, CalendarProps>(function Calen
 		itemSelector: 'button',
 		orientation: 'horizontal',
 	})
+
 	const handleGridKeyDown = useRovingFocus(gridRef, {
 		itemSelector: 'button',
 		cols: 7,
@@ -155,14 +156,17 @@ export const Calendar = forwardRef<CalendarHandle, CalendarProps>(function Calen
 	// Adjust viewDate during render when the driving prop changes (avoids an
 	// extra render cycle that the previous useEffect approach caused).
 	const prevActiveGridDateRef = useRef(activeGridDate)
+
 	const prevValueRef = useRef(value)
 
 	if (activeGridDate && activeGridDate !== prevActiveGridDateRef.current) {
 		const next = new Date(activeGridDate.getFullYear(), activeGridDate.getMonth(), 1)
+
 		if (next.getTime() !== viewDate.getTime()) {
 			setViewDate(next)
 		}
 	}
+
 	prevActiveGridDateRef.current = activeGridDate
 
 	if (value && value !== prevValueRef.current) {

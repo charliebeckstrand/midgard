@@ -29,6 +29,7 @@ export function Overlay({
 	const focusTrapRef = useFocusTrap(open)
 
 	const onCloseRef = useRef(onClose)
+
 	onCloseRef.current = onClose
 
 	useEffect(() => {

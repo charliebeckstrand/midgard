@@ -126,6 +126,10 @@ export default function ToastDemo() {
 				<Example
 					title="Persist"
 					code={code`
+						import { useToast } from 'ui/toast'
+						
+						const { toast } = useToast()
+
 						toast({
 							title: 'Attention:',
 							description: 'This toast will stay until dismissed.',
@@ -140,6 +144,9 @@ export default function ToastDemo() {
 					title="With action"
 					code={code`
 						import { Button } from 'ui/button'
+						import { useToast } from 'ui/toast'
+
+						const { toast } = useToast()
 
 						toast({
 							title: 'Message deleted',
