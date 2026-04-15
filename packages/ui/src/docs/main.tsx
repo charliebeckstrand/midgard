@@ -1,17 +1,17 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { App } from './app'
-import { initialPreload } from './registry'
+import { initialApiPreload, initialPreload } from './registry'
 import './app.css'
 
 const root = document.getElementById('root')
 
 if (!root) throw new Error('Missing #root element')
 
-// The initial demo import is already in-flight (kicked off at registry
-// module-eval time). Wait for it so the first render has the component
-// synchronously available — no blank frame.
-initialPreload
+// The initial demo and its API reference are already in-flight (kicked off at
+// registry module-eval time). Wait for both so the first render has everything
+// synchronously available — no blank frame, no Spinner.
+Promise.all([initialPreload, initialApiPreload])
 	.catch(() => {})
 	.then(() => {
 		createRoot(root).render(

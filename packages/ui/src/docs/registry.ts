@@ -271,6 +271,11 @@ export const sortedCategories = Object.entries(categories).sort(
 
 export const defaultDemo = sortedCategories[0]?.[1]?.[0]?.id || demos[0]?.id || ''
 
+/** Return the component API synchronously if it has already been computed. */
+export function getResolvedApi(id: string): ComponentApi[] | undefined {
+	return apiCache.get(id)
+}
+
 // Eagerly preload the initial demo so it's ready before React mounts.
 const initialId =
 	typeof window !== 'undefined' ? window.location.hash.slice(1) || defaultDemo : defaultDemo
@@ -278,3 +283,12 @@ const initialId =
 export const initialPreload = loaderById.has(initialId)
 	? loadDemo(initialId)
 	: Promise.resolve(undefined as unknown as ComponentType)
+
+// Pre-compute the API reference for the initial demo so it's ready before
+// React mounts — eliminates the Spinner on first paint.
+const initialIsPage = metaById.get(initialId)?.category === 'Pages'
+
+export const initialApiPreload =
+	!initialIsPage && loaderById.has(initialId)
+		? getComponentApi(initialId).catch(() => undefined)
+		: Promise.resolve(undefined)

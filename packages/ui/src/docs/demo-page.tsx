@@ -7,14 +7,17 @@ import { Spinner } from '../components/spinner'
 import { ApiReference } from './components/api-reference'
 import type { ComponentApi } from './parse-props'
 import type { Demo } from './registry'
-import { getComponentApi, getResolvedDemo, loadDemo } from './registry'
+import { getComponentApi, getResolvedApi, getResolvedDemo, loadDemo } from './registry'
 
 export function DemoPage({ demo }: { demo: Demo }) {
 	const [Component, setComponent] = useState<ComponentType | null>(() => getResolvedDemo(demo.id))
 
 	const isPage = demo.category === 'Pages'
 
-	const [api, setApi] = useState<ComponentApi[] | undefined | null>(isPage ? null : undefined)
+	const [api, setApi] = useState<ComponentApi[] | undefined | null>(() => {
+		if (isPage) return null
+		return getResolvedApi(demo.id)
+	})
 
 	const loadingId = useRef(demo.id)
 
