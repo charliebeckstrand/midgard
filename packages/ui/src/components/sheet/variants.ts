@@ -9,6 +9,10 @@ export const sheetPanelVariants = cva(k.panel.base, {
 		size: k.panel.size,
 		glass: k.panel.glass,
 	},
+	compoundVariants: [
+		{ side: 'right', size: 'full', class: 'sm:left-4' },
+		{ side: 'left', size: 'full', class: 'sm:right-4' },
+	],
 	defaultVariants: { ...k.panel.defaults, glass: false },
 })
 
