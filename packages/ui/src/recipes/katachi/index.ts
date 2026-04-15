@@ -24,6 +24,7 @@ import { collapse } from './collapse'
 import { combobox } from './combobox'
 import { commandPalette } from './command-palette'
 import { copyButton } from './copy-button'
+import { dataTable } from './data-table'
 import { datepicker } from './datepicker'
 import { dialog } from './dialog'
 import { divider } from './divider'
@@ -88,6 +89,7 @@ export const katachi = {
 	combobox,
 	commandPalette,
 	copyButton,
+	dataTable,
 	datepicker,
 	dialog,
 	divider,
