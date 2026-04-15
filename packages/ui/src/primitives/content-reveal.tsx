@@ -72,12 +72,15 @@ function WaitReveal({ ready, placeholder, children, className }: Omit<ContentRev
 
 	useEffect(() => {
 		const el = ready ? contentRef.current : placeholderRef.current
+		
 		if (!el) return
 
 		const ro = new ResizeObserver(([entry]) => {
 			if (entry) setHeight(entry.contentRect.height)
 		})
+		
 		ro.observe(el)
+		
 		return () => ro.disconnect()
 	}, [ready])
 
