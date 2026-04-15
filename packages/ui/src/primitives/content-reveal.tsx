@@ -67,7 +67,9 @@ const outOfFlow = { position: 'absolute' as const, top: 0, left: 0, right: 0 }
 
 function WaitReveal({ ready, placeholder, children, className }: Omit<ContentRevealProps, 'mode'>) {
 	const placeholderRef = useRef<HTMLDivElement>(null)
+	
 	const contentRef = useRef<HTMLDivElement>(null)
+	
 	const [height, setHeight] = useState<number | undefined>(undefined)
 
 	useEffect(() => {
