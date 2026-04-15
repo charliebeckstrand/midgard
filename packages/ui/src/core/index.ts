@@ -1,5 +1,3 @@
 export { cn } from './cn'
 export { type ColorCvaVariants, colorCva, colorKeys, compoundColors } from './color-cva'
 export { createContext } from './create-context'
-export { Link, LinkProvider, useLink } from './link-context'
-export { OffcanvasContext, type OffcanvasContextValue, useOffcanvas } from './offcanvas-context'

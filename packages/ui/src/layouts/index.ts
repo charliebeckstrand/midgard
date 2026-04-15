@@ -2,7 +2,7 @@ export {
 	OffcanvasContext,
 	type OffcanvasContextValue,
 	useOffcanvas,
-} from '../core/offcanvas-context'
+} from '../primitives/offcanvas'
 export { AuthLayout, type AuthLayoutProps } from './auth'
 export {
 	ChatLayout,

@@ -5,7 +5,5 @@ export {
 	colorKeys,
 	compoundColors,
 	createContext,
-	Link,
-	LinkProvider,
-	useLink,
 } from './core'
+export { Link, LinkProvider, useLink } from './primitives'

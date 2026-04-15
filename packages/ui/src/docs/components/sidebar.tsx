@@ -11,7 +11,7 @@ import {
 	SidebarLabel,
 	SidebarSection,
 } from '../../components/sidebar'
-import { useOffcanvas } from '../../core/offcanvas-context'
+import { useOffcanvas } from '../../primitives/offcanvas'
 import { demos, preloadDemo, sortedCategories } from '../registry'
 
 export function SidebarContent({ route }: { route: string }) {
