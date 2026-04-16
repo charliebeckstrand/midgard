@@ -252,7 +252,7 @@ function DirtyTouchedForm() {
 						username: (v) => (v.length < 3 ? 'At least 3 characters' : undefined),
 						bio: (v) => (v.length > 200 ? 'Too long' : undefined),
 					}}
-					onSubmit={() => {}}
+					onSubmit={async () => await simulateAsyncSubmission()}
 				>
 					<Stack gap={4}>
 						<Field>
