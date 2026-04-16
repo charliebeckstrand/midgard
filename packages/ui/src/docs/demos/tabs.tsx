@@ -7,7 +7,7 @@ const tabs = ['Account', 'Notifications', 'Billing']
 
 export default function TabsDemo() {
 	return (
-		<Example>
+		<Example title="Default">
 			<Tabs defaultValue="Account">
 				<TabList>
 					{tabs.map((tab) => (

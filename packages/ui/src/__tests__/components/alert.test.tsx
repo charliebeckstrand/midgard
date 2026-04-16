@@ -36,10 +36,10 @@ describe('Alert', () => {
 	})
 
 	it('dismisses when close button is clicked', () => {
-		const onClose = vi.fn()
+		const onOpenChange = vi.fn()
 
 		const { container } = renderUI(
-			<Alert closable onClose={onClose}>
+			<Alert closable onOpenChange={onOpenChange}>
 				content
 			</Alert>,
 		)
@@ -48,7 +48,7 @@ describe('Alert', () => {
 
 		closeButton?.click()
 
-		expect(onClose).toHaveBeenCalledOnce()
+		expect(onOpenChange).toHaveBeenCalledWith(false)
 	})
 })
 

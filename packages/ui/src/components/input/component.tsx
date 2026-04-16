@@ -85,7 +85,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 	if (skeleton) {
 		return (
 			<Placeholder
-				className={cn(kokkaku.input.base, kokkaku.input.size[resolvedSize], className)}
+				className={cn(kokkaku.formControl.base, kokkaku.formControl.size[resolvedSize], className)}
 			/>
 		)
 	}
