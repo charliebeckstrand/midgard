@@ -30,7 +30,7 @@ function ClosableDemo() {
 			type="info"
 			title="New version available"
 			description="Version 2.0 has been released with new features and improvements."
-			onClose={() => setVisible(false)}
+			onOpenChange={(open) => setVisible(open)}
 		/>
 	)
 }
