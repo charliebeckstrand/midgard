@@ -403,7 +403,11 @@ function ToggleForm() {
 					validate={{
 						terms: (v) => (!v ? 'You must accept the terms and conditions' : undefined),
 					}}
-					onSubmit={(values) => setResult(JSON.stringify(values, null, 2))}
+					onSubmit={async (values) => {
+						await simulateAsyncSubmission()
+
+						setResult(JSON.stringify(values, null, 2))
+					}}
 					onReset={() => setResult('')}
 				>
 					<Stack gap={4}>
