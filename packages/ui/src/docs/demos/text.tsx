@@ -5,7 +5,7 @@ export const meta = { category: 'Data Display' }
 
 export default function TextDemo() {
 	return (
-		<Example>
+		<Example title="Variants">
 			<Text>
 				This is a paragraph of text using the default variant with proper line height and color.
 			</Text>

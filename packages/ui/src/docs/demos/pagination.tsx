@@ -30,7 +30,7 @@ export default function PaginationDemo() {
 	const visible = getVisiblePages(page, totalPages)
 
 	return (
-		<Example>
+		<Example title="Default">
 			<Pagination>
 				<PaginationPrevious
 					onClick={() => setPage((p) => Math.max(1, p - 1))}

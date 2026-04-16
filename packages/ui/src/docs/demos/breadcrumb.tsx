@@ -11,7 +11,7 @@ export const meta = { category: 'Navigation' }
 
 export default function BreadcrumbDemo() {
 	return (
-		<Example>
+		<Example title="Default">
 			<Breadcrumb>
 				<BreadcrumbList>
 					<BreadcrumbItem>
