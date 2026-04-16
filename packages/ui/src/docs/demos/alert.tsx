@@ -61,7 +61,7 @@ export default function AlertDemo() {
 	const [colorVariant, setColorVariant] = useState<(typeof colorVariants)[number]>('soft')
 
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example title="Variants">
 				<Stack gap={3}>
 					{variants.map((variant) => (

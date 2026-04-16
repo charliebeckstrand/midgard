@@ -129,7 +129,7 @@ export default function CommandPaletteDemo() {
 	}, [])
 
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example title="Default">
 				<Button color="blue" variant="soft" onClick={() => setOpen(true)}>
 					Open command palette

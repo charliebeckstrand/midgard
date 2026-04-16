@@ -20,7 +20,7 @@ const users = [
 
 export default function TableDemo() {
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example title="Default">
 				<Table>
 					<TableHead>

@@ -54,7 +54,7 @@ function InteractiveGauge() {
 
 export default function ProgressDemo() {
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<InteractiveBar />
 
 			<Example title="Bar sizes">

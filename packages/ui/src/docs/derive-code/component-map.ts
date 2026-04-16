@@ -4,22 +4,19 @@ import type { ComponentMap } from './types'
  * Build a map from component reference to `{ name, module }` by lazily
  * importing every component entry point. The derivation walker uses this to
  * recognize a React element's `type` and emit the right import line.
- *
- * Both `components/*` and `pages/*` are included so that demos that render
- * higher-level page compositions still get useful derivation.
  */
 export function buildComponentMap(): ComponentMap {
 	const map: ComponentMap = new Map()
 
 	const modules = import.meta.glob<Record<string, unknown>>(
-		['../../components/*/index.ts', '../../pages/index.ts', '../../layouts/index.ts'],
+		['../../components/*/index.ts', '../../layouts/index.ts'],
 		{ eager: true },
 	)
 
 	for (const [path, mod] of Object.entries(modules)) {
 		const moduleName =
 			path.match(/components\/([^/]+)\//)?.[1] ??
-			path.match(/(pages|layouts)\/index\.ts/)?.[1] ??
+			(path.includes('layouts/index.ts') ? 'layouts' : null) ??
 			null
 
 		if (!moduleName) continue

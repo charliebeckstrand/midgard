@@ -67,7 +67,7 @@ function MultiListbox() {
 
 export default function ListboxDemo() {
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example title="Single">
 				<SingleListbox />
 			</Example>

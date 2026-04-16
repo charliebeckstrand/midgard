@@ -28,6 +28,7 @@ export function App() {
 
 	return (
 		<SidebarLayout
+			stickyHeader
 			actions={
 				<ToggleIconButton
 					pressed={dark}

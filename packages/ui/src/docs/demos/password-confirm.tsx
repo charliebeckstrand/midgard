@@ -11,7 +11,7 @@ export const meta = { category: 'Forms' }
 
 export default function PasswordConfirmDemo() {
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example title="Default">
 				<Sizer>
 					<PasswordConfirm

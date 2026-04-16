@@ -8,7 +8,7 @@ export const meta = { category: 'Data Display' }
 
 export default function TreeDemo() {
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example title="Default">
 				<Sizer>
 					<Tree>

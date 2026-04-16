@@ -12,7 +12,7 @@ export default function CollapseDemo() {
 	const [open, setOpen] = useState(false)
 
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example title="Default">
 				<Collapse trigger="Toggle details">
 					<p className="pt-2 text-sm text-zinc-500">

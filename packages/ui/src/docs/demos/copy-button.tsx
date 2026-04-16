@@ -10,7 +10,7 @@ export const meta = { category: 'Other' }
 
 export default function CopyButtonDemo() {
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example title="Default">
 				<CopyButton value="Hello, world!" />
 			</Example>

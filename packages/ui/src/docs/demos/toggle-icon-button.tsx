@@ -14,7 +14,7 @@ export default function ToggleIconButtonDemo() {
 	const [muted, setMuted] = useState(false)
 
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example title="Default">
 				<ToggleIconButton
 					pressed={dark}

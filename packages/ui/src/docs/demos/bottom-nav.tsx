@@ -35,7 +35,7 @@ function BottomNavExample() {
 
 export default function BottomNavDemo() {
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example
 				title="Default"
 				code={code`

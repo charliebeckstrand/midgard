@@ -26,7 +26,7 @@ export default function DialogDemo() {
 	const [accepted, setAccepted] = useState(false)
 
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example title="Dialog">
 				<Button color="green" onClick={() => setOpen(true)}>
 					Create project

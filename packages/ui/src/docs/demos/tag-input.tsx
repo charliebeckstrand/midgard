@@ -77,7 +77,7 @@ function GlassTagInput() {
 
 export default function TagInputDemo() {
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example title="Default">
 				<DefaultTagInput />
 			</Example>

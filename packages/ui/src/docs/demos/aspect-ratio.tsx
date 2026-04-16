@@ -42,7 +42,7 @@ function PresetsExample() {
 
 export default function AspectRatioDemo() {
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<PresetsExample />
 
 			<Example title="Custom ratio">

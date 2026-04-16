@@ -57,7 +57,7 @@ function RangeAndStep() {
 
 export default function SliderDemo() {
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Interactive />
 
 			<Example title="Sizes">

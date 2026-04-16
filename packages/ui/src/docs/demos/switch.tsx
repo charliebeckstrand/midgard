@@ -17,7 +17,7 @@ export default function SwitchDemo() {
 	const [size, setSize] = useState<Size>('md')
 
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example
 				title="Default"
 				actions={<SizeListbox sizes={sizes} value={size} onChange={setSize} />}

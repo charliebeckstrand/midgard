@@ -93,7 +93,7 @@ export function Filters<T extends FilterValue = FilterValue>({
 			<div data-slot="filters" className={cn('flex flex-col gap-4', className)}>
 				{affix && <div data-slot="filters-affix">{affix}</div>}
 				<Flex
-					direction={{ initial: 'row', md: 'col' }}
+					direction={{ initial: 'row', sm: 'col' }}
 					gap={2}
 					align={{ initial: 'end', md: 'start' }}
 				>

@@ -7,7 +7,7 @@ export const meta = { category: 'Layout' }
 
 export default function SplitDemo() {
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example title="Equal split">
 				<Split>
 					<Card>Left</Card>

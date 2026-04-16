@@ -8,7 +8,7 @@ export const meta = { category: 'Data Display' }
 
 export default function KbdDemo() {
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example title="Default">
 				<Kbd>K</Kbd>
 			</Example>

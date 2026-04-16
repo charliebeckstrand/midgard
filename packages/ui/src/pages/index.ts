@@ -1,8 +1,0 @@
-export type { AuthPageProps } from './auth'
-export { AuthPage } from './auth'
-export type { ChatMessageProps, ChatPageProps } from './chat'
-export { ChatMessage, ChatPage } from './chat'
-export type { DashboardPageProps } from './dashboard'
-export { DashboardPage } from './dashboard'
-export type { SettingsPageProps } from './settings'
-export { SettingsPage } from './settings'

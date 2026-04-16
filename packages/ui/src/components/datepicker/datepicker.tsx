@@ -147,11 +147,10 @@ function DatePickerSingle({
 		[closeCalendar, openCalendar],
 	)
 
-	const handlePickerOpenChange = useCallback((pickerOpen: boolean) => {
-		if (!pickerOpen) {
-			// Defer past the Popover's own focus restore.
-			requestAnimationFrame(() => triggerRef.current?.focus())
-		}
+	const handlePickerOpenChange = useCallback((_pickerOpen: boolean) => {
+		// The CalendarPicker's Popover restores focus to its own trigger
+		// (the month/year button inside the Calendar header) on close.
+		// We intentionally do nothing here to keep focus inside the focus trap.
 	}, [])
 
 	const handleFooterActivate = useCallback(

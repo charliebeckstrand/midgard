@@ -2,12 +2,12 @@
 
 import { useState } from 'react'
 import { Button } from '../../../components/button'
-import { Field, Label } from '../../../components/fieldset'
+import { Field, Fieldset, Label } from '../../../components/fieldset'
 import { Heading } from '../../../components/heading'
 import { Input } from '../../../components/input'
 import { PasswordInput } from '../../../components/password-input'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../components/tabs'
-import { AuthPage } from '../../../pages'
+import { AuthLayout } from '../../../layouts'
 import { Example } from '../../components/example'
 
 export const meta = { category: 'Pages' }
@@ -40,71 +40,74 @@ export default function AuthPageDemo() {
 
 				<TabContents>
 					<TabContent value="login">
-						<AuthPage
-							heading={<Heading>Sign in to your account</Heading>}
-							onSubmit={handleSubmit}
-							submitting={submitting}
-							actions={
-								<Button type="submit" disabled={submitting}>
-									{submitting ? 'Signing in...' : 'Sign in'}
-								</Button>
-							}
-						>
-							<Field>
-								<Label>Email</Label>
-								<Input type="email" placeholder="you@example.com" />
-							</Field>
-							<Field>
-								<Label>Password</Label>
-								<PasswordInput placeholder="•••••••••" />
-							</Field>
-						</AuthPage>
+						<AuthLayout>
+							<form onSubmit={handleSubmit} className="grid gap-8 w-full lg:max-w-sm">
+								<Heading>Sign in to your account</Heading>
+
+								<Fieldset disabled={submitting} className="grid gap-8">
+									<Field>
+										<Label>Email</Label>
+										<Input type="email" placeholder="you@example.com" />
+									</Field>
+									<Field>
+										<Label>Password</Label>
+										<PasswordInput placeholder="•••••••••" />
+									</Field>
+
+									<Button type="submit" disabled={submitting}>
+										{submitting ? 'Signing in...' : 'Sign in'}
+									</Button>
+								</Fieldset>
+							</form>
+						</AuthLayout>
 					</TabContent>
 					<TabContent value="register">
-						<AuthPage
-							heading={<Heading>Create your account</Heading>}
-							onSubmit={handleSubmit}
-							submitting={submitting}
-							actions={
-								<Button type="submit" disabled={submitting}>
-									{submitting ? 'Creating account...' : 'Create account'}
-								</Button>
-							}
-						>
-							<Field>
-								<Label>Name</Label>
-								<Input placeholder="Jane Smith" />
-							</Field>
-							<Field>
-								<Label>Email</Label>
-								<Input type="email" placeholder="you@example.com" />
-							</Field>
-							<Field>
-								<Label>Password</Label>
-								<PasswordInput placeholder="•••••••••" />
-							</Field>
-							<Field>
-								<Label>Confirm Password</Label>
-								<PasswordInput placeholder="•••••••••" />
-							</Field>
-						</AuthPage>
+						<AuthLayout>
+							<form onSubmit={handleSubmit} className="grid gap-8 w-full lg:max-w-sm">
+								<Heading>Create your account</Heading>
+
+								<Fieldset disabled={submitting} className="grid gap-8">
+									<Field>
+										<Label>Name</Label>
+										<Input placeholder="Jane Smith" />
+									</Field>
+									<Field>
+										<Label>Email</Label>
+										<Input type="email" placeholder="you@example.com" />
+									</Field>
+									<Field>
+										<Label>Password</Label>
+										<PasswordInput placeholder="•••••••••" />
+									</Field>
+									<Field>
+										<Label>Confirm Password</Label>
+										<PasswordInput placeholder="•••••••••" />
+									</Field>
+
+									<Button type="submit" disabled={submitting}>
+										{submitting ? 'Creating account...' : 'Create account'}
+									</Button>
+								</Fieldset>
+							</form>
+						</AuthLayout>
 					</TabContent>
 					<TabContent value="forgot-password">
-						<AuthPage
-							heading={<Heading>Reset your password</Heading>}
-							onSubmit={handleSubmit}
-							submitting={submitting}
-							actions={
-								<Button type="submit" disabled={submitting}>
-									{submitting ? 'Sending reset link...' : 'Send reset link'}
-								</Button>
-							}
-						>
-							<Field>
-								<Label>Email</Label>
-								<Input type="email" placeholder="you@example.com" />
-							</Field>
-						</AuthPage>
+						<AuthLayout>
+							<form onSubmit={handleSubmit} className="grid gap-8 w-full lg:max-w-sm">
+								<Heading>Reset your password</Heading>
+
+								<Fieldset disabled={submitting} className="grid gap-8">
+									<Field>
+										<Label>Email</Label>
+										<Input type="email" placeholder="you@example.com" />
+									</Field>
+
+									<Button type="submit" disabled={submitting}>
+										{submitting ? 'Sending reset link...' : 'Send reset link'}
+									</Button>
+								</Fieldset>
+							</form>
+						</AuthLayout>
 					</TabContent>
 				</TabContents>
 			</Tabs>

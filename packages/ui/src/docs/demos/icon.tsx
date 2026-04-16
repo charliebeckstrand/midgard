@@ -14,7 +14,7 @@ const sizes = ['xs', 'sm', 'md', 'lg'] as const
 
 export default function IconDemo() {
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Alert type="info" closable>
 				<AlertTitle>SVG support</AlertTitle>
 				<AlertDescription>

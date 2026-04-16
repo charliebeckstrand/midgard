@@ -84,7 +84,7 @@ export default function DataTableDemo() {
 	const [selection, setSelection] = useState<Set<string | number>>(new Set())
 
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example
 				title="Default"
 				code={code`

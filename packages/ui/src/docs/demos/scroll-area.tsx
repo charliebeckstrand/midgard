@@ -44,7 +44,7 @@ export default function ScrollAreaDemo() {
 	const [bothSize, setBothSize] = useState<Size>('md')
 
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example
 				title="Vertical with size"
 				actions={<SizeListbox sizes={sizes} value={verticalSize} onChange={setVerticalSize} />}

@@ -12,7 +12,7 @@ export const meta = { category: 'Data Display' }
 
 export default function TimelineDemo() {
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example title="Vertical">
 				<Timeline>
 					<TimelineItem>

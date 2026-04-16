@@ -39,7 +39,7 @@ export default function ChipDemo() {
 		})
 
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example title="Variants">
 				<Flex wrap gap={2}>
 					{variants.map((variant) => (

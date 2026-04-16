@@ -25,7 +25,7 @@ export default function BadgeDemo() {
 	const [colorVariant, setColorVariant] = useState<(typeof colorVariants)[number]>('solid')
 
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example title="Variants">
 				<Flex wrap gap={2}>
 					{variants.map((variant) => (

@@ -12,7 +12,7 @@ const variants = ['default', 'outline', 'glass'] as const
 
 export default function InputDemo() {
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example title="Variants">
 				{variants.map((variant) => (
 					<Sizer key={variant}>

@@ -6,12 +6,12 @@ export const meta = { category: 'Layout' }
 
 export default function BoxDemo() {
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example title="Default">
 				<Box>Content</Box>
 			</Example>
 
-			<Example title="Background">
+			<Example title="With background">
 				<Box p={4} bg="tint">
 					Content
 				</Box>
@@ -20,7 +20,7 @@ export default function BoxDemo() {
 				</Box>
 			</Example>
 
-			<Example title="Radius">
+			<Example title="With radius">
 				<Box p={4} bg="tint" radius="lg">
 					Content
 				</Box>

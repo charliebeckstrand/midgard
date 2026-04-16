@@ -79,7 +79,7 @@ function DisabledDemo() {
 
 export default function FileUploadDemo() {
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example title="Area (default)">
 				<AreaDemo />
 			</Example>

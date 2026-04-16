@@ -19,7 +19,7 @@ export default function StatusDemo() {
 	const [pulseSize, setPulseSize] = useState<(typeof sizes)[number]>('md')
 
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example title="Statuses">
 				<Stack gap={3}>
 					{statuses.map((s) => (

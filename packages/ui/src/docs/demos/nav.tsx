@@ -13,7 +13,7 @@ export default function NavDemo() {
 	const [current, setCurrent] = useState('account')
 
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example title="Default">
 				<Sizer>
 					<NavList orientation="horizontal">

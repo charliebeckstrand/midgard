@@ -16,7 +16,7 @@ export default function ControlDemo() {
 	const [disabled, setDisabled] = useState(false)
 
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Alert type="info" variant="soft" color="blue" closable>
 				<AlertDescription>
 					Control generates a stable ID and propagates state (disabled, readOnly, size, variant) to

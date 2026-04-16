@@ -27,7 +27,7 @@ export default function AvatarDemo() {
 	const [statusSize, setStatusSize] = useState<Size>('md')
 
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example title="Variants">
 				<Flex gap={2}>
 					{variants.map((v) => (

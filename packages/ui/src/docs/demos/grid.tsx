@@ -9,7 +9,7 @@ export const meta = { category: 'Layout' }
 
 export default function GridDemo() {
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example title="Columns">
 				<Grid columns={3} gap={4}>
 					<Card>One</Card>

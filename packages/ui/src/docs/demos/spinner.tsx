@@ -21,7 +21,7 @@ export default function SpinnerDemo() {
 	const [buttonSize, setButtonSize] = useState<ButtonSize>('md')
 
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example title="Default">
 				<Spinner />
 			</Example>

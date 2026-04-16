@@ -17,7 +17,7 @@ export default function TextareaDemo() {
 	const [withActionsValue, setWithActionsValue] = useState('')
 
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example title="Default">
 				<Sizer>
 					<Field>

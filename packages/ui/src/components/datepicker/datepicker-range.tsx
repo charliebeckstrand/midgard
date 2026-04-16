@@ -156,10 +156,10 @@ export function DatePickerRange({
 		[handleClear],
 	)
 
-	const handlePickerOpenChange = useCallback((pickerOpen: boolean) => {
-		if (!pickerOpen) {
-			requestAnimationFrame(() => triggerRef.current?.focus())
-		}
+	const handlePickerOpenChange = useCallback((_pickerOpen: boolean) => {
+		// The CalendarPicker's Popover restores focus to its own trigger
+		// (the month/year button inside the Calendar header) on close.
+		// We intentionally do nothing here to keep focus inside the focus trap.
 	}, [])
 
 	const displayValue = value ? formatRange(value[0], value[1]) : ''

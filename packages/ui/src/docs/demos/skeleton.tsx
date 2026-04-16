@@ -109,7 +109,7 @@ function TransitionDemo() {
 
 export default function SkeletonDemo() {
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<DynamicExample />
 
 			<Example title="Form">

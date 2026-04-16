@@ -338,10 +338,6 @@
 		"./layouts": {
 			"types": "./src/layouts/index.ts",
 			"default": "./src/layouts/index.ts"
-		},
-		"./pages": {
-			"types": "./src/pages/index.ts",
-			"default": "./src/pages/index.ts"
 		}
 	},
 	"scripts": {

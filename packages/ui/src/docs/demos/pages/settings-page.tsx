@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Button } from '../../../components/button'
 import { Checkbox, CheckboxField, CheckboxGroup } from '../../../components/checkbox'
-import { Description, Field, Label } from '../../../components/fieldset'
+import { Description, Field, Fieldset, Label } from '../../../components/fieldset'
 import { Input } from '../../../components/input'
 import { PasswordConfirm, PasswordConfirmInput } from '../../../components/password-confirm'
 import { PasswordInput } from '../../../components/password-input'
@@ -13,7 +13,12 @@ import { Stack } from '../../../components/stack'
 import { Switch, SwitchField } from '../../../components/switch'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../components/tabs'
 import { Textarea } from '../../../components/textarea'
-import { SettingsPage } from '../../../pages'
+import {
+	StackedLayout,
+	StackedLayoutBody,
+	StackedLayoutFooter,
+	StackedLayoutHeader,
+} from '../../../layouts'
 import { Example } from '../../components/example'
 
 export const meta = { category: 'Pages' }
@@ -31,141 +36,149 @@ export default function SettingsPageDemo() {
 
 	return (
 		<Example>
-			<Tabs defaultValue="profile" className="-mt-3">
-				<SettingsPage
-					tabs={
-						<TabList>
-							<Tab value="profile" disabled={submitting}>
-								Profile
-							</Tab>
-							<Tab value="notifications" disabled={submitting}>
-								Notifications
-							</Tab>
-							<Tab value="security" disabled={submitting}>
-								Security
-							</Tab>
-						</TabList>
-					}
-					onSubmit={handleSubmit}
-					submitting={submitting}
-					actions={
-						<Button type="submit" loading={submitting} color="blue" disabled={submitting}>
-							{submitting ? 'Saving' : 'Save changes'}
-						</Button>
-					}
-				>
-					<TabContents>
-						<TabContent value="profile">
-							<Sizer size="lg" gap={6}>
-								<Field>
-									<Label>Full name</Label>
-									<Input defaultValue="Jane Smith" />
-								</Field>
-								<Field>
-									<Label>Email</Label>
-									<Input type="email" defaultValue="jane@example.com" />
-								</Field>
-								<Field>
-									<Label>Bio</Label>
-									<Textarea defaultValue="Product designer based in San Francisco." rows={3} />
-								</Field>
-								<Field>
-									<Label>Timezone</Label>
-									<Select
-										defaultValue="America/Los_Angeles"
-										displayValue={(v: string) =>
-											({
-												'America/New_York': 'Eastern Time',
-												'America/Chicago': 'Central Time',
-												'America/Denver': 'Mountain Time',
-												'America/Los_Angeles': 'Pacific Time',
-											})[v] ?? v
-										}
-									>
-										<SelectOption value="America/New_York">
-											<SelectLabel>Eastern Time</SelectLabel>
-										</SelectOption>
-										<SelectOption value="America/Chicago">
-											<SelectLabel>Central Time</SelectLabel>
-										</SelectOption>
-										<SelectOption value="America/Denver">
-											<SelectLabel>Mountain Time</SelectLabel>
-										</SelectOption>
-										<SelectOption value="America/Los_Angeles">
-											<SelectLabel>Pacific Time</SelectLabel>
-										</SelectOption>
-									</Select>
-								</Field>
-							</Sizer>
-						</TabContent>
+			<Tabs defaultValue="profile">
+				<form onSubmit={handleSubmit}>
+					<StackedLayout>
+						<StackedLayoutHeader>
+							<TabList>
+								<Tab value="profile" disabled={submitting}>
+									Profile
+								</Tab>
+								<Tab value="notifications" disabled={submitting}>
+									Notifications
+								</Tab>
+								<Tab value="security" disabled={submitting}>
+									Security
+								</Tab>
+							</TabList>
+						</StackedLayoutHeader>
 
-						<TabContent value="notifications">
-							<Sizer size="lg" gap={6}>
-								<CheckboxGroup>
-									<Label>Email notifications</Label>
-									<CheckboxField>
-										<Checkbox id="notif-updates" defaultChecked />
-										<Label htmlFor="notif-updates">Product updates</Label>
-									</CheckboxField>
-									<CheckboxField>
-										<Checkbox id="notif-security" defaultChecked />
-										<Label htmlFor="notif-security">Security alerts</Label>
-									</CheckboxField>
-									<CheckboxField>
-										<Checkbox id="notif-marketing" />
-										<Label htmlFor="notif-marketing">Marketing emails</Label>
-									</CheckboxField>
-								</CheckboxGroup>
+						<StackedLayoutBody>
+							<Fieldset disabled={submitting} className="grid gap-6">
+								<TabContents>
+									<TabContent value="profile">
+										<Sizer size="lg" gap={6}>
+											<Field>
+												<Label>Full name</Label>
+												<Input defaultValue="Jane Smith" />
+											</Field>
+											<Field>
+												<Label>Email</Label>
+												<Input type="email" defaultValue="jane@example.com" />
+											</Field>
+											<Field>
+												<Label>Bio</Label>
+												<Textarea
+													defaultValue="Product designer based in San Francisco."
+													rows={3}
+												/>
+											</Field>
+											<Field>
+												<Label>Timezone</Label>
+												<Select
+													defaultValue="America/Los_Angeles"
+													displayValue={(v: string) =>
+														({
+															'America/New_York': 'Eastern Time',
+															'America/Chicago': 'Central Time',
+															'America/Denver': 'Mountain Time',
+															'America/Los_Angeles': 'Pacific Time',
+														})[v] ?? v
+													}
+												>
+													<SelectOption value="America/New_York">
+														<SelectLabel>Eastern Time</SelectLabel>
+													</SelectOption>
+													<SelectOption value="America/Chicago">
+														<SelectLabel>Central Time</SelectLabel>
+													</SelectOption>
+													<SelectOption value="America/Denver">
+														<SelectLabel>Mountain Time</SelectLabel>
+													</SelectOption>
+													<SelectOption value="America/Los_Angeles">
+														<SelectLabel>Pacific Time</SelectLabel>
+													</SelectOption>
+												</Select>
+											</Field>
+										</Sizer>
+									</TabContent>
 
-								<div>
-									<Label>Push notifications</Label>
-									<Stack gap={3} className="pt-4">
-										<SwitchField>
-											<Label htmlFor="push-dm">Direct messages</Label>
-											<Switch id="push-dm" defaultChecked />
-										</SwitchField>
-										<SwitchField>
-											<Label htmlFor="push-mentions">Mentions</Label>
-											<Switch id="push-mentions" defaultChecked />
-										</SwitchField>
-										<SwitchField>
-											<Label htmlFor="push-reminders">Reminders</Label>
-											<Switch id="push-reminders" />
-										</SwitchField>
-									</Stack>
-								</div>
-							</Sizer>
-						</TabContent>
+									<TabContent value="notifications">
+										<Sizer size="lg" gap={6}>
+											<CheckboxGroup>
+												<Label>Email notifications</Label>
+												<CheckboxField>
+													<Checkbox id="notif-updates" defaultChecked />
+													<Label htmlFor="notif-updates">Product updates</Label>
+												</CheckboxField>
+												<CheckboxField>
+													<Checkbox id="notif-security" defaultChecked />
+													<Label htmlFor="notif-security">Security alerts</Label>
+												</CheckboxField>
+												<CheckboxField>
+													<Checkbox id="notif-marketing" />
+													<Label htmlFor="notif-marketing">Marketing emails</Label>
+												</CheckboxField>
+											</CheckboxGroup>
 
-						<TabContent value="security">
-							<Sizer size="lg" gap={6}>
-								<Field>
-									<Label>Current password</Label>
-									<PasswordInput placeholder="Enter current password" />
-								</Field>
-								<PasswordConfirm
-									className="space-y-6"
-									valid="Passwords match"
-									warning="Passwords do not match"
-								>
-									<Field>
-										<Label>New password</Label>
-										<PasswordInput placeholder="Enter new password" />
-									</Field>
-									<Field>
-										<Label>Confirm new password</Label>
-										<PasswordConfirmInput placeholder="Confirm new password" />
-									</Field>
-								</PasswordConfirm>
-								<SwitchField>
-									<Label htmlFor="switch-2fa">Two-factor authentication</Label>
-									<Description>Add an extra layer of security to your account</Description>
-									<Switch id="switch-2fa" color="green" />
-								</SwitchField>
-							</Sizer>
-						</TabContent>
-					</TabContents>
-				</SettingsPage>
+											<div>
+												<Label>Push notifications</Label>
+												<Stack gap={3} className="pt-4">
+													<SwitchField>
+														<Label htmlFor="push-dm">Direct messages</Label>
+														<Switch id="push-dm" defaultChecked />
+													</SwitchField>
+													<SwitchField>
+														<Label htmlFor="push-mentions">Mentions</Label>
+														<Switch id="push-mentions" defaultChecked />
+													</SwitchField>
+													<SwitchField>
+														<Label htmlFor="push-reminders">Reminders</Label>
+														<Switch id="push-reminders" />
+													</SwitchField>
+												</Stack>
+											</div>
+										</Sizer>
+									</TabContent>
+
+									<TabContent value="security">
+										<Sizer size="lg" gap={6}>
+											<Field>
+												<Label>Current password</Label>
+												<PasswordInput placeholder="Enter current password" />
+											</Field>
+											<PasswordConfirm
+												className="space-y-6"
+												valid="Passwords match"
+												warning="Passwords do not match"
+											>
+												<Field>
+													<Label>New password</Label>
+													<PasswordInput placeholder="Enter new password" />
+												</Field>
+												<Field>
+													<Label>Confirm new password</Label>
+													<PasswordConfirmInput placeholder="Confirm new password" />
+												</Field>
+											</PasswordConfirm>
+											<SwitchField>
+												<Label htmlFor="switch-2fa">Two-factor authentication</Label>
+												<Description>Add an extra layer of security to your account</Description>
+												<Switch id="switch-2fa" color="green" />
+											</SwitchField>
+										</Sizer>
+									</TabContent>
+								</TabContents>
+							</Fieldset>
+						</StackedLayoutBody>
+
+						<StackedLayoutFooter>
+							<Button type="submit" loading={submitting} color="blue" disabled={submitting}>
+								{submitting ? 'Saving' : 'Save changes'}
+							</Button>
+						</StackedLayoutFooter>
+					</StackedLayout>
+				</form>
 			</Tabs>
 		</Example>
 	)

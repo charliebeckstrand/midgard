@@ -8,7 +8,7 @@ export const meta = { category: 'Layout' }
 
 export default function StackDemo() {
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example title="Column">
 				<Stack gap={3}>
 					<Card>One</Card>

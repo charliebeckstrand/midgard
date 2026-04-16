@@ -3,6 +3,8 @@
 import { AnimatePresence, motion } from 'motion/react'
 import { type ComponentType, useEffect, useRef, useState } from 'react'
 import { Heading } from '../components/heading'
+import { Stack } from '../components/stack'
+import { SidebarLayoutHeader } from '../layouts'
 import { ApiReference } from './components/api-reference'
 import type { Demo } from './registry'
 import { getComponentApi, getResolvedDemo, loadDemo } from './registry'
@@ -10,9 +12,7 @@ import { getComponentApi, getResolvedDemo, loadDemo } from './registry'
 export function DemoPage({ demo }: { demo: Demo }) {
 	const [Component, setComponent] = useState<ComponentType | null>(() => getResolvedDemo(demo.id))
 
-	const isPage = demo.category === 'Pages'
-
-	const api = isPage ? undefined : getComponentApi(demo.id)
+	const api = getComponentApi(demo.id)
 
 	const loadingId = useRef(demo.id)
 
@@ -38,18 +38,19 @@ export function DemoPage({ demo }: { demo: Demo }) {
 					onAnimationComplete={() => {
 						isFirstRender.current = false
 					}}
-					className="mx-auto w-full space-y-4 px-2 lg:p-6 lg:px-6"
 				>
-					<Heading>{demo.name}</Heading>
-					<Component />
-					{api && (
-						<>
-							<Heading level={2} className="leading-none">
-								API Reference
-							</Heading>
-							<ApiReference api={api} />
-						</>
-					)}
+					<SidebarLayoutHeader>
+						<Heading>{demo.name}</Heading>
+					</SidebarLayoutHeader>
+					<Stack gap={6}>
+						<Component />
+						{api && (
+							<Stack gap={2}>
+								<Heading level={2}>API Reference</Heading>
+								<ApiReference api={api} />
+							</Stack>
+						)}
+					</Stack>
 				</motion.div>
 			)}
 		</AnimatePresence>

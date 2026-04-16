@@ -27,7 +27,7 @@ function Controlled() {
 
 export default function NumberInputDemo() {
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example title="Variants">
 				<Sizer>
 					<Field>

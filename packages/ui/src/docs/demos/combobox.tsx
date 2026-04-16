@@ -78,7 +78,7 @@ function MultiCombobox() {
 
 export default function ComboboxDemo() {
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example
 				title="Single"
 				code={code`

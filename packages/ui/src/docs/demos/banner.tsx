@@ -39,7 +39,7 @@ export default function BannerDemo() {
 	const [variant, setVariant] = useState<(typeof variants)[number]>('soft')
 
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example title="Types">
 				<Stack gap={0} className="-mx-4">
 					{types.map((type) => (

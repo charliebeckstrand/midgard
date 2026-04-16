@@ -34,7 +34,7 @@ function Controlled() {
 
 export default function SearchInputDemo() {
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example title="Default">
 				<Sizer>
 					<Field>

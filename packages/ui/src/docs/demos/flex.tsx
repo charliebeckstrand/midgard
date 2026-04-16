@@ -9,7 +9,7 @@ export const meta = { category: 'Layout' }
 
 export default function FlexDemo() {
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example title="Default (row)">
 				<Flex gap={3}>
 					<Card>One</Card>

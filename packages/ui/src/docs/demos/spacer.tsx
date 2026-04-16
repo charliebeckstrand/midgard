@@ -9,7 +9,7 @@ export const meta = { category: 'Layout' }
 
 export default function SpacerDemo() {
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example title="Justify">
 				<Card p={3}>
 					<Stack direction="row" align="center" className="w-full">

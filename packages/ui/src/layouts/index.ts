@@ -4,18 +4,7 @@ export {
 	useOffcanvas,
 } from '../primitives/offcanvas'
 export { AuthLayout, type AuthLayoutProps } from './auth'
-export {
-	ChatLayout,
-	ChatLayoutBody,
-	type ChatLayoutBodyProps,
-	ChatLayoutFooter,
-	type ChatLayoutFooterProps,
-	ChatLayoutHeader,
-	type ChatLayoutHeaderProps,
-	type ChatLayoutProps,
-} from './chat'
 export { DashboardLayout, type DashboardLayoutProps } from './dashboard'
-export { SettingsLayout, type SettingsLayoutProps } from './settings'
 export {
 	SidebarLayout,
 	SidebarLayoutBody,
@@ -26,3 +15,13 @@ export {
 	type SidebarLayoutHeaderProps,
 	type SidebarLayoutProps,
 } from './sidebar'
+export {
+	StackedLayout,
+	StackedLayoutBody,
+	type StackedLayoutBodyProps,
+	StackedLayoutFooter,
+	type StackedLayoutFooterProps,
+	StackedLayoutHeader,
+	type StackedLayoutHeaderProps,
+	type StackedLayoutProps,
+} from './stacked'

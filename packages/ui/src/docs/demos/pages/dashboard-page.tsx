@@ -21,7 +21,7 @@ import {
 	TableHeader,
 	TableRow,
 } from '../../../components/table'
-import { DashboardPage } from '../../../pages'
+import { DashboardLayout, StackedLayoutBody } from '../../../layouts'
 import { Example } from '../../components/example'
 
 export const meta = { category: 'Pages' }
@@ -102,59 +102,61 @@ function DashboardFilters() {
 export default function DashboardPageDemo() {
 	return (
 		<Example>
-			<DashboardPage filters={<DashboardFilters />}>
-				<Stack gap={6}>
-					<Grid columns={{ initial: 1, sm: 2, lg: 4 }} gap={4}>
-						{stats.map((stat) => (
-							<Card key={stat.label}>
-								<CardBody>
-									<Stat>
-										<StatLabel>{stat.label}</StatLabel>
-										<StatValue>{stat.value}</StatValue>
-										<StatDelta trend={stat.trend}>{stat.delta}</StatDelta>
-									</Stat>
-								</CardBody>
-							</Card>
-						))}
-					</Grid>
+			<DashboardLayout filters={<DashboardFilters />}>
+				<StackedLayoutBody>
+					<Stack gap={4}>
+						<Grid columns={{ initial: 1, sm: 2, lg: 4 }} gap={4}>
+							{stats.map((stat) => (
+								<Card key={stat.label}>
+									<CardBody>
+										<Stat>
+											<StatLabel>{stat.label}</StatLabel>
+											<StatValue>{stat.value}</StatValue>
+											<StatDelta trend={stat.trend}>{stat.delta}</StatDelta>
+										</Stat>
+									</CardBody>
+								</Card>
+							))}
+						</Grid>
 
-					<Card>
-						<CardHeader className="flex items-center gap-4">
-							<CardTitle>Recent orders</CardTitle>
-							<Spacer />
-							<Sizer size="xs">
-								<Input
-									placeholder="Search orders"
-									variant="outline"
-									prefix={<Icon icon={<Search />} />}
-								/>
-							</Sizer>
-						</CardHeader>
-						<CardBody>
-							<Table>
-								<TableHead>
-									<TableRow>
-										<TableHeader>Order</TableHeader>
-										<TableHeader>Customer</TableHeader>
-										<TableHeader>Status</TableHeader>
-										<TableHeader className="text-right">Amount</TableHeader>
-									</TableRow>
-								</TableHead>
-								<TableBody>
-									{orders.map((order) => (
-										<TableRow key={order.id}>
-											<TableCell className="font-medium">{order.id}</TableCell>
-											<TableCell>{order.customer}</TableCell>
-											<TableCell>{order.status}</TableCell>
-											<TableCell className="text-right">{order.amount}</TableCell>
+						<Card>
+							<CardHeader className="flex items-center gap-4">
+								<CardTitle>Recent orders</CardTitle>
+								<Spacer />
+								<Sizer size="xs">
+									<Input
+										placeholder="Search orders"
+										variant="outline"
+										prefix={<Icon icon={<Search />} />}
+									/>
+								</Sizer>
+							</CardHeader>
+							<CardBody>
+								<Table>
+									<TableHead>
+										<TableRow>
+											<TableHeader>Order</TableHeader>
+											<TableHeader>Customer</TableHeader>
+											<TableHeader>Status</TableHeader>
+											<TableHeader className="text-right">Amount</TableHeader>
 										</TableRow>
-									))}
-								</TableBody>
-							</Table>
-						</CardBody>
-					</Card>
-				</Stack>
-			</DashboardPage>
+									</TableHead>
+									<TableBody>
+										{orders.map((order) => (
+											<TableRow key={order.id}>
+												<TableCell className="font-medium">{order.id}</TableCell>
+												<TableCell>{order.customer}</TableCell>
+												<TableCell>{order.status}</TableCell>
+												<TableCell className="text-right">{order.amount}</TableCell>
+											</TableRow>
+										))}
+									</TableBody>
+								</Table>
+							</CardBody>
+						</Card>
+					</Stack>
+				</StackedLayoutBody>
+			</DashboardLayout>
 		</Example>
 	)
 }

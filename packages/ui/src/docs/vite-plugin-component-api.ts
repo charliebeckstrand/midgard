@@ -33,7 +33,6 @@ function generate(srcDir: string): Record<string, ComponentApi[]> {
 	const files = [
 		...collectFiles(path.join(srcDir, 'components'), ts, true),
 		...collectFiles(path.join(srcDir, 'layouts'), ts, false),
-		...collectFiles(path.join(srcDir, 'pages'), ts, false),
 		...collectFiles(path.join(srcDir, 'primitives'), ts, false),
 		...collectFiles(path.join(srcDir, 'recipes'), tsOnly, true),
 	]

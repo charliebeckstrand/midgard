@@ -47,7 +47,7 @@ export default function SegmentDemo() {
 	const [filter, setFilter] = useState('All')
 
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example title="Default">
 				<Stack gap={4}>
 					<Segment value={view} onValueChange={(v) => setView(v ?? 'List')}>

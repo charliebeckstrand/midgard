@@ -6,7 +6,7 @@ export const meta = { category: 'Feedback' }
 
 export default function PlaceholderDemo() {
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example title="Default">
 				<Stack gap={2} className="sm:max-w-90">
 					<Placeholder />

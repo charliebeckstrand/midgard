@@ -41,7 +41,7 @@ export default function GlassDemo() {
 	const [date, setDate] = useState<Date | undefined>(undefined)
 
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example title="Glass wrapper">
 				<Glass>
 					<Sizer>

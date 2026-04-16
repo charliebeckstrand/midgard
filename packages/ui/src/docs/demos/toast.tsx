@@ -98,7 +98,7 @@ function ActionToastButton() {
 export default function ToastDemo() {
 	return (
 		<Toast>
-			<Stack gap={8}>
+			<Stack gap={6}>
 				<Example
 					title="Types"
 					code={code`

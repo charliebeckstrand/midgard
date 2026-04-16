@@ -18,7 +18,7 @@ export const meta = { category: 'Layout' }
 
 export default function CardDemo() {
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Alert type="info" closable>
 				<AlertDescription>Card extends Box.</AlertDescription>
 				<AlertDescription>

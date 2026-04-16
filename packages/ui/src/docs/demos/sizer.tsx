@@ -9,7 +9,7 @@ const sizes = ['xs', 'sm', 'md', 'lg', 'xl'] as const
 
 export default function SizerDemo() {
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example title="Sizes">
 				{sizes.map((size) => (
 					<Sizer key={size} size={size}>

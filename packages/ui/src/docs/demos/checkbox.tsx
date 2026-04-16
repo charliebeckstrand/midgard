@@ -9,7 +9,7 @@ const colors = ['blue', 'green', 'red'] as const
 
 export default function CheckboxDemo() {
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example title="Default">
 				<CheckboxGroup>
 					<CheckboxField>

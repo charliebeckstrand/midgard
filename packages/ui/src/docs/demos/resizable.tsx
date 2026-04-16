@@ -11,7 +11,7 @@ const Pane = () => <Card className="h-full" />
 
 export default function ResizableDemo() {
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example title="Horizontal">
 				<div className="h-48">
 					<ResizableGroup>

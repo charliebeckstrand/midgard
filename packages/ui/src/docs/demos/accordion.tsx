@@ -38,7 +38,7 @@ export default function AccordionDemo() {
 	const [variant, setVariant] = useState<(typeof variants)[number]>('separated')
 
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example
 				title="Default"
 				actions={<VariantListbox variants={variants} value={variant} onChange={setVariant} />}

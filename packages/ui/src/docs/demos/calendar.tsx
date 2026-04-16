@@ -17,7 +17,7 @@ export default function CalendarDemo() {
 	max.setDate(max.getDate() + 30)
 
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example title="Default">
 				<Calendar value={date} onChange={setDate} />
 			</Example>

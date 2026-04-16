@@ -17,7 +17,7 @@ export const meta = { category: 'Overlay' }
 
 export default function MenuDemo() {
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example title="Dropdown Menu">
 				<Menu placement="bottom-start">
 					<MenuTrigger>

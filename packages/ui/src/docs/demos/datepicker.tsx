@@ -12,7 +12,7 @@ export default function DatePickerDemo() {
 	const [glassRange, setGlassRange] = useState<[Date, Date] | undefined>(undefined)
 
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example title="Default">
 				<Stack gap={2} className="sm:max-w-72">
 					<DatePicker value={date} onChange={setDate} />

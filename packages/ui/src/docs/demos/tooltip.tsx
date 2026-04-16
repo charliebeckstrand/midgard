@@ -10,7 +10,7 @@ const placements = ['left', 'top', 'bottom', 'right'] as const
 
 export default function TooltipDemo() {
 	return (
-		<Stack gap={8}>
+		<Stack gap={6}>
 			<Example title="Default">
 				<Tooltip>
 					<TooltipTrigger>

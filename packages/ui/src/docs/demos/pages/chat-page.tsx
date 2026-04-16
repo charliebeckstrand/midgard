@@ -18,7 +18,13 @@ import { Spacer } from '../../../components/spacer'
 import { Stack } from '../../../components/stack'
 import { Text } from '../../../components/text'
 import { Textarea } from '../../../components/textarea'
-import { ChatMessage, ChatPage } from '../../../pages'
+import { cn } from '../../../core'
+import {
+	SidebarLayout,
+	SidebarLayoutBody,
+	SidebarLayoutFooter,
+	SidebarLayoutHeader,
+} from '../../../layouts'
 import { Example } from '../../components/example'
 
 export const meta = { category: 'Pages' }
@@ -69,6 +75,23 @@ const initialMessages: Message[] = [
 			'For the technical architecture section, I recommend covering:\n\n- Current system overview and pain points\n- Proposed microservices migration plan\n- API versioning strategy\n- Database scaling considerations\n- CI/CD pipeline improvements\n\nThis gives the team context on where we are and where we need to go.',
 	},
 ]
+
+function ChatMessage({ role, children }: { role: 'user' | 'agent'; children: React.ReactNode }) {
+	return (
+		<Stack direction="row" gap={0} data-slot="chat-message" data-role={role}>
+			{role === 'user' && <Spacer />}
+
+			<div
+				className={cn(
+					'max-w-[80%] rounded-2xl px-4 py-3.5 whitespace-pre-wrap',
+					role === 'user' ? 'bg-blue-600 text-white' : '',
+				)}
+			>
+				{children}
+			</div>
+		</Stack>
+	)
+}
 
 export default function ChatPageDemo() {
 	const [messages, setMessages] = useState(initialMessages)
@@ -123,7 +146,7 @@ export default function ChatPageDemo() {
 						{conversations.map((conv) => (
 							<SidebarItem key={conv.id} current={conv.active}>
 								<Stack direction="row" align="center" gap={4} full>
-									<Stack gap={0} full>
+									<Stack gap={0} full className="min-w-0">
 										<SidebarLabel>{conv.title}</SidebarLabel>
 										<Text className="text-xs truncate" variant="muted">
 											{conv.preview}
@@ -164,21 +187,24 @@ export default function ChatPageDemo() {
 
 	return (
 		<Example>
-			<ChatPage
-				sidebar={sidebar}
-				bodyRef={bodyRef}
-				navbar={<Heading level={4}>Project kickoff</Heading>}
-				title={
+			<SidebarLayout sidebar={sidebar}>
+				<SidebarLayoutHeader>
 					<Stack direction="row" align="center" gap={3}>
 						<Heading level={3}>Project kickoff</Heading>
 					</Stack>
-				}
-				messages={messages.map((msg) => (
-					<ChatMessage key={msg.id} role={msg.role}>
-						{msg.content}
-					</ChatMessage>
-				))}
-				prompt={
+				</SidebarLayoutHeader>
+
+				<SidebarLayoutBody ref={bodyRef}>
+					<Stack gap={4} full flex>
+						{messages.map((msg) => (
+							<ChatMessage key={msg.id} role={msg.role}>
+								{msg.content}
+							</ChatMessage>
+						))}
+					</Stack>
+				</SidebarLayoutBody>
+
+				<SidebarLayoutFooter>
 					<Textarea
 						id="textarea-actions"
 						value={input}
@@ -202,8 +228,8 @@ export default function ChatPageDemo() {
 							</>
 						}
 					/>
-				}
-			/>
+				</SidebarLayoutFooter>
+			</SidebarLayout>
 		</Example>
 	)
 }

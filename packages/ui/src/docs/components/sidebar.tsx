@@ -30,8 +30,8 @@ export function SidebarContent({ route }: { route: string }) {
 
 	return (
 		<Sidebar>
-			<SidebarHeader className="">
-				<Heading level={3}>UI Components</Heading>
+			<SidebarHeader>
+				<Heading level={2}>UI Components</Heading>
 			</SidebarHeader>
 			<Combobox<string>
 				placeholder="Search components"

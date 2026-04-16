@@ -4,10 +4,10 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useState } from 'react'
 import { Button } from 'ui/button'
-import { ErrorMessage, Field, Label } from 'ui/fieldset'
+import { ErrorMessage, Field, Fieldset, Label } from 'ui/fieldset'
+import { Heading } from 'ui/heading'
 import { Input } from 'ui/input'
 import { AuthLayout } from 'ui/layouts'
-import { AuthPage } from 'ui/pages'
 import { PasswordInput } from 'ui/password-input'
 import { Text } from 'ui/text'
 import { useForm } from './use-form'
@@ -57,53 +57,53 @@ function LoginForm({ showRegisterLink }: { showRegisterLink: boolean }) {
 
 	return (
 		<AuthLayout>
-			<AuthPage
-				onSubmit={handleSubmit}
-				serverError={serverError}
-				submitting={submitting}
-				actions={
-					<Button
-						type="submit"
-						className={`w-full ${submitting ? 'cursor-not-allowed pointer-events-none' : ''}`}
-					>
-						Sign in
-					</Button>
-				}
-				footer={
-					showRegisterLink ? (
-						<div className="text-center">
-							<Text>
-								Don't have an account?{' '}
-								<Link href="/register" className="font-medium hover:underline underline-offset-6">
-									Create one
-								</Link>
-							</Text>
-						</div>
-					) : undefined
-				}
-			>
+			<form onSubmit={handleSubmit} className="grid gap-8 w-full lg:max-w-sm">
+				<Heading className="text-center">Sign in to your account</Heading>
+
+				{serverError && <Text className="text-red-600 dark:text-red-600">{serverError}</Text>}
+
 				{registered && (
 					<Text className="text-green-600 dark:text-green-600">
 						Account created successfully. Please sign in.
 					</Text>
 				)}
 
-				<Field>
-					<Label>Email</Label>
-					<Input type="email" name="email" autoComplete="email" {...register('email')} />
-					{errors.email && <ErrorMessage>{errors.email}</ErrorMessage>}
-				</Field>
+				<Fieldset disabled={submitting} className="grid gap-8">
+					<Field>
+						<Label>Email</Label>
+						<Input type="email" name="email" autoComplete="email" {...register('email')} />
+						{errors.email && <ErrorMessage>{errors.email}</ErrorMessage>}
+					</Field>
 
-				<Field>
-					<Label>Password</Label>
-					<PasswordInput
-						name="password"
-						autoComplete="current-password"
-						{...register('password')}
-					/>
-					{errors.password && <ErrorMessage>{errors.password}</ErrorMessage>}
-				</Field>
-			</AuthPage>
+					<Field>
+						<Label>Password</Label>
+						<PasswordInput
+							name="password"
+							autoComplete="current-password"
+							{...register('password')}
+						/>
+						{errors.password && <ErrorMessage>{errors.password}</ErrorMessage>}
+					</Field>
+
+					<Button
+						type="submit"
+						className={`w-full ${submitting ? 'cursor-not-allowed pointer-events-none' : ''}`}
+					>
+						Sign in
+					</Button>
+				</Fieldset>
+
+				{showRegisterLink && (
+					<div className="text-center">
+						<Text>
+							Don't have an account?{' '}
+							<Link href="/register" className="font-medium hover:underline underline-offset-6">
+								Create one
+							</Link>
+						</Text>
+					</div>
+				)}
+			</form>
 		</AuthLayout>
 	)
 }
