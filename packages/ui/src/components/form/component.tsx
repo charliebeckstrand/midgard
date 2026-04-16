@@ -3,8 +3,9 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { type FormContextValue, FormProvider } from './context'
 
+type Errors = Record<string, string | undefined>
+type Touched = Record<string, boolean>
 type Validator<T, K extends keyof T> = (value: T[K], values: T) => string | undefined
-
 type ValidateOn = 'touched' | 'change' | 'submit'
 
 export type FormHelpers<T> = {
@@ -14,7 +15,7 @@ export type FormHelpers<T> = {
 
 export type FormProps<T extends Record<string, unknown>> = {
 	defaultValues: T
-	validate?: { [K in keyof T]?: (value: T[K], values: T) => string | undefined }
+	validate?: { [K in keyof T]?: Validator<T, K> }
 	validateOn?: ValidateOn
 	onSubmit?: (values: T, helpers: FormHelpers<T>) => void | Promise<void>
 	onReset?: () => void
@@ -35,8 +36,8 @@ export function Form<T extends Record<string, unknown>>({
 	...props
 }: FormProps<T>) {
 	const [values, setValues] = useState<T>(() => ({ ...defaultValues }))
-	const [errors, setErrors] = useState<Record<string, string | undefined>>({})
-	const [touched, setTouchedState] = useState<Record<string, boolean>>({})
+	const [errors, setErrors] = useState<Errors>({})
+	const [touched, setTouchedState] = useState<Touched>({})
 	const [submitting, setSubmitting] = useState(false)
 
 	const defaultsRef = useRef(defaultValues)
@@ -60,22 +61,21 @@ export function Form<T extends Record<string, unknown>>({
 	const isDirty = useMemo(() => Object.values(dirty).some(Boolean), [dirty])
 
 	const runValidation = useCallback(
-		(vals: T, touchedState: Record<string, boolean>, fields?: string[]) => {
+		(vals: T, touchedState: Touched, fields?: string[]) => {
 			const v = validateRef.current
 			if (!v) return {}
 
-			const result: Record<string, string | undefined> = {}
+			const result: Errors = {}
 			const keys = fields ?? Object.keys(v)
 
 			for (const key of keys) {
+				const forced = fields !== undefined
 				const shouldValidate =
 					validateOn === 'change' || (validateOn === 'touched' && touchedState[key])
 
-				if (shouldValidate || fields !== undefined) {
-					const validator = v[key as keyof T] as Validator<T, keyof T> | undefined
-					if (validator) {
-						result[key] = validator(vals[key as keyof T], vals)
-					}
+				if (forced || shouldValidate) {
+					const fn = v[key as keyof T] as Validator<T, keyof T> | undefined
+					if (fn) result[key] = fn(vals[key as keyof T], vals)
 				}
 			}
 
@@ -89,11 +89,8 @@ export function Form<T extends Record<string, unknown>>({
 		if (!v) return true
 
 		for (const key of Object.keys(v)) {
-			const validator = v[key as keyof T] as Validator<T, keyof T> | undefined
-			if (validator) {
-				const error = validator(values[key as keyof T], values)
-				if (error !== undefined) return false
-			}
+			const fn = v[key as keyof T] as Validator<T, keyof T> | undefined
+			if (fn?.(values[key as keyof T], values) !== undefined) return false
 		}
 
 		return true
@@ -108,12 +105,9 @@ export function Form<T extends Record<string, unknown>>({
 				valuesRef.current = next
 
 				if (validateOn !== 'submit') {
-					const validationErrors = runValidation(next, touchedRef.current)
-					if (Object.keys(validationErrors).length > 0) {
-						setErrors(
-							(prevErrors: Record<string, string | undefined>) =>
-								({ ...prevErrors, ...validationErrors }) as Record<string, string | undefined>,
-						)
+					const newErrors = runValidation(next, touchedRef.current)
+					if (Object.keys(newErrors).length > 0) {
+						setErrors((prev: Errors) => ({ ...prev, ...newErrors }))
 					}
 				}
 
@@ -125,17 +119,14 @@ export function Form<T extends Record<string, unknown>>({
 
 	const setTouched = useCallback(
 		(name: string) => {
-			setTouchedState((prev: Record<string, boolean>) => {
+			setTouchedState((prev: Touched) => {
 				if (prev[name]) return prev
 				const next = { ...prev, [name]: true }
 				touchedRef.current = next
 
 				if (validateOn === 'touched') {
-					const validationErrors = runValidation(valuesRef.current as T, next, [name])
-					setErrors(
-						(prevErrors: Record<string, string | undefined>) =>
-							({ ...prevErrors, ...validationErrors }) as Record<string, string | undefined>,
-					)
+					const newErrors = runValidation(valuesRef.current as T, next, [name])
+					setErrors((prev: Errors) => ({ ...prev, ...newErrors }))
 				}
 
 				return next
@@ -144,13 +135,9 @@ export function Form<T extends Record<string, unknown>>({
 		[validateOn, runValidation],
 	)
 
-	const setErrorsExternal = useCallback((errs: Record<string, string | undefined>) => {
-		setErrors(
-			(prev: Record<string, string | undefined>) =>
-				({ ...prev, ...errs }) as Record<string, string | undefined>,
-		)
-		// Mark fields with errors as touched so they display
-		setTouchedState((prev: Record<string, boolean>) => {
+	const setErrorsExternal = useCallback((errs: Errors) => {
+		setErrors((prev: Errors) => ({ ...prev, ...errs }))
+		setTouchedState((prev: Touched) => {
 			const next = { ...prev }
 			for (const key in errs) {
 				if (errs[key]) next[key] = true
@@ -173,44 +160,30 @@ export function Form<T extends Record<string, unknown>>({
 		async (e: React.FormEvent<HTMLFormElement>) => {
 			e.preventDefault()
 
-			// Mark all fields as touched
-			const allTouched: Record<string, boolean> = {}
-			for (const key in valuesRef.current) {
-				allTouched[key] = true
-			}
+			const allTouched: Touched = {}
+			for (const key in valuesRef.current) allTouched[key] = true
 			setTouchedState(allTouched)
 			touchedRef.current = allTouched
 
-			// Validate all fields
 			const v = validateRef.current
 			if (v) {
-				const validationErrors: Record<string, string | undefined> = {}
+				const result: Errors = {}
 				for (const key of Object.keys(v)) {
-					const validator = v[key as keyof T] as Validator<T, keyof T> | undefined
-					if (validator) {
-						validationErrors[key] = validator(
-							valuesRef.current[key as keyof T],
-							valuesRef.current as T,
-						)
-					}
+					const fn = v[key as keyof T] as Validator<T, keyof T> | undefined
+					if (fn) result[key] = fn(valuesRef.current[key as keyof T], valuesRef.current as T)
 				}
-
-				setErrors(validationErrors)
-
-				const hasErrors = Object.values(validationErrors).some((e) => e !== undefined)
-				if (hasErrors) return
+				setErrors(result)
+				if (Object.values(result).some((err) => err !== undefined)) return
 			}
 
 			if (!onSubmit) return
 
-			const helpers: FormHelpers<T> = {
-				setErrors: setErrorsExternal as FormHelpers<T>['setErrors'],
-				reset,
-			}
-
 			setSubmitting(true)
 			try {
-				await onSubmit(valuesRef.current as T, helpers)
+				await onSubmit(valuesRef.current as T, {
+					setErrors: setErrorsExternal as FormHelpers<T>['setErrors'],
+					reset,
+				})
 			} finally {
 				setSubmitting(false)
 			}
