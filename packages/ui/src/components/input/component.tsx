@@ -91,11 +91,12 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 	return (
 		<InputSizeProvider value={iconSize[resolvedSize]}>
 			<ControlFrame
-				className={cn(controlVariants({ variant: resolvedVariant }), hasAffix && 'relative')}
-			>
-				{prefix && (
-					<span className={cn(k.affix, k.prefix.base, k.prefix[resolvedSize])}>{prefix}</span>
+				className={cn(
+					controlVariants({ variant: resolvedVariant }),
+					hasAffix && 'flex flex-wrap items-center',
 				)}
+			>
+				{prefix && <span className={cn(k.affix, k.prefix[resolvedSize])}>{prefix}</span>}
 
 				<input
 					ref={ref}
@@ -114,17 +115,13 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 					className={cn(
 						inputVariants({ variant: resolvedVariant, size }),
 						isDate && inputDateVariants(),
-						prefix && k.prefix.input[resolvedSize],
-						resolvedSuffix && k.suffix.input[resolvedSize],
 						className,
 					)}
 					{...props}
 				/>
 
 				{resolvedSuffix && (
-					<span className={cn(k.affix, k.suffix.base, k.suffix[resolvedSize])}>
-						{resolvedSuffix}
-					</span>
+					<span className={cn(k.affix, k.suffix[resolvedSize])}>{resolvedSuffix}</span>
 				)}
 			</ControlFrame>
 		</InputSizeProvider>

@@ -6,12 +6,12 @@ export const textarea = {
 	base: [waku.input, 'min-h-9'],
 	variant: {
 		default: [],
-		outline: kage.borderEmphasis,
+		outline: [],
 		glass: omote.glass,
 	},
 	control: {
 		default: waku.control.surface,
-		outline: [],
+		outline: [kage.borderEmphasis, 'hover:border-zinc-950/30 dark:hover:border-white/30'],
 		glass: [],
 	},
 	autoResize: 'field-sizing-content',

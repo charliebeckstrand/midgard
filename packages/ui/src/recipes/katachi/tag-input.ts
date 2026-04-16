@@ -9,8 +9,7 @@ export const tagInput = {
 		'cursor-text',
 		...waku.inputBase,
 		maru.rounded,
-		'data-disabled:cursor-not-allowed data-disabled:**:!cursor-not-allowed data-disabled:hover:border-zinc-950/20',
-		'dark:data-disabled:hover:border-white/15',
+		'data-disabled:cursor-not-allowed data-disabled:**:!cursor-not-allowed',
 	],
 	containerSize: {
 		xs: ['p-[calc(--spacing(1)-1px)]', text.xs],

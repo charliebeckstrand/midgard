@@ -4,7 +4,7 @@ import { TagInput } from '../../components/tag-input'
 import { bySlot, renderUI, userEvent } from '../helpers'
 
 function getInput(container: HTMLElement) {
-	return container.querySelector('input[type="text"]') as HTMLInputElement
+	return bySlot(container, 'input') as HTMLInputElement
 }
 
 function getRemoveButtons(container: HTMLElement) {
@@ -12,19 +12,13 @@ function getRemoveButtons(container: HTMLElement) {
 }
 
 describe('TagInput', () => {
-	it('renders with data-slot="tag-input"', () => {
-		const { container } = renderUI(<TagInput />)
-
-		expect(bySlot(container, 'tag-input')).toBeInTheDocument()
-	})
-
-	it('renders a text input', () => {
+	it('renders an input', () => {
 		const { container } = renderUI(<TagInput />)
 
 		const input = getInput(container)
 
 		expect(input).toBeInTheDocument()
-		expect(input.type).toBe('text')
+		expect(input.tagName).toBe('INPUT')
 	})
 
 	it('forwards ref to the input', () => {
@@ -201,12 +195,10 @@ describe('TagInput', () => {
 		expect(removeButtons.length).toBe(0)
 	})
 
-	it('applies custom className', () => {
-		const { container } = renderUI(<TagInput className="custom" />)
+	it('renders tag-input slot when tags exist', () => {
+		const { container } = renderUI(<TagInput defaultValue={['react']} />)
 
-		const tagInput = bySlot(container, 'tag-input')
-
-		expect(tagInput?.className).toContain('custom')
+		expect(bySlot(container, 'tag-input')).toBeInTheDocument()
 	})
 
 	it('has aria-label on the input derived from placeholder', () => {

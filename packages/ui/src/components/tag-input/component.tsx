@@ -1,20 +1,17 @@
 'use client'
 
 import { CornerLeftDown, X } from 'lucide-react'
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
-import { cn } from '../../core'
+import { forwardRef, useCallback, useImperativeHandle, useRef, useState } from 'react'
 import { useControllable, useTagKeyboard } from '../../hooks'
-import { ControlFrame } from '../../primitives'
-import { waku } from '../../recipes'
 import type { Color } from '../../recipes/nuri/palette'
 import { Button } from '../button'
 import { Chip } from '../chip'
-import { useGlass } from '../glass/context'
 import { Icon } from '../icon'
+import { Input } from '../input'
 import { chipRemoveSize, chipSize } from './utilities'
-import { k, type TagInputVariants, tagInputContainerVariants, tagInputVariants } from './variants'
 
-export type TagInputProps = Omit<TagInputVariants, 'size'> & {
+export type TagInputProps = {
+	id?: string
 	size?: 'sm' | 'md' | 'lg'
 	/** Tag appearance. */
 	tag?: { color?: Color }
@@ -36,11 +33,9 @@ export type TagInputProps = Omit<TagInputVariants, 'size'> & {
 }
 
 export const TagInput = forwardRef<HTMLInputElement, TagInputProps>(function TagInput(
-	{ size, tag, value, defaultValue, onChange, placeholder, disabled, max, validate, className },
+	{ id, size, tag, value, defaultValue, onChange, placeholder, disabled, max, validate, className },
 	ref,
 ) {
-	const glass = useGlass()
-
 	const [tags = [], setTags] = useControllable<string[]>({
 		value,
 		defaultValue: defaultValue ?? [],
@@ -49,27 +44,9 @@ export const TagInput = forwardRef<HTMLInputElement, TagInputProps>(function Tag
 
 	const [inputValue, setInputValue] = useState('')
 
-	const containerRef = useRef<HTMLDivElement>(null)
-
 	const inputRef = useRef<HTMLInputElement>(null)
 
 	useImperativeHandle(ref, () => inputRef.current as HTMLInputElement)
-
-	useEffect(() => {
-		const el = containerRef.current
-
-		if (!el) return
-
-		const handler = (e: MouseEvent) => {
-			if ((e.target as HTMLElement).closest('button')) return
-
-			inputRef.current?.focus()
-		}
-
-		el.addEventListener('click', handler)
-
-		return () => el.removeEventListener('click', handler)
-	}, [])
 
 	const resolvedSize = size ?? 'md'
 
@@ -131,67 +108,64 @@ export const TagInput = forwardRef<HTMLInputElement, TagInputProps>(function Tag
 		}
 	}, [addTag, inputValue])
 
-	return (
-		<ControlFrame className={cn(!glass && waku.control.surface)}>
-			<div
-				ref={containerRef}
-				data-slot="tag-input"
-				data-disabled={disabled || undefined}
-				className={cn(tagInputContainerVariants({ size }), className)}
-			>
-				<div className={cn(tagInputVariants({ size }))}>
-					{tags.map((t, i) => (
-						<Chip
-							key={t}
-							size={chipSize[resolvedSize]}
-							variant="outline"
-							color={resolvedColor}
-							className="max-w-full"
-						>
-							<span className="truncate">{t}</span>
-							{!disabled && (
-								<Button
-									aria-label={`Remove ${t}`}
-									className={chipRemoveSize[resolvedSize]}
-									size="xs"
-									variant="plain"
-									onMouseDown={(e) => e.preventDefault()}
-									onClick={(e) => {
-										e.stopPropagation()
-
-										removeTag(i)
-									}}
-								>
-									<Icon icon={<X />} />
-								</Button>
-							)}
-						</Chip>
-					))}
-
-					<input
-						ref={inputRef}
-						type="text"
-						value={inputValue}
-						aria-label={placeholder ?? 'Add tags'}
-						className={cn(k.input)}
-						placeholder={tags.length === 0 ? placeholder : undefined}
-						disabled={disabled || atMax}
-						onChange={(e) => setInputValue(e.target.value)}
-						onKeyDown={handleKeyDown}
-						onBlur={handleBlur}
-					/>
-
-					<Button
-						size="xs"
-						color="blue"
-						disabled={disabled || atMax || inputValue.trim() === ''}
-						onMouseDown={(e) => e.preventDefault()}
-						onClick={handleSubmit}
+	const chips =
+		tags.length > 0 ? (
+			<span data-slot="tag-input" className="flex flex-wrap gap-1 min-w-0 cursor-text">
+				{tags.map((t, i) => (
+					<Chip
+						key={t}
+						size={chipSize[resolvedSize]}
+						variant="outline"
+						color={resolvedColor}
+						className="max-w-full"
 					>
-						<Icon icon={<CornerLeftDown />} />
-					</Button>
-				</div>
-			</div>
-		</ControlFrame>
+						<span className="truncate">{t}</span>
+						{!disabled && (
+							<Button
+								aria-label={`Remove ${t}`}
+								className={chipRemoveSize[resolvedSize]}
+								size="xs"
+								variant="plain"
+								onMouseDown={(e) => e.preventDefault()}
+								onClick={(e) => {
+									e.stopPropagation()
+
+									removeTag(i)
+								}}
+							>
+								<Icon icon={<X />} />
+							</Button>
+						)}
+					</Chip>
+				))}
+			</span>
+		) : undefined
+
+	return (
+		<Input
+			ref={inputRef}
+			id={id}
+			size={size}
+			disabled={disabled || atMax}
+			placeholder={tags.length === 0 ? placeholder : undefined}
+			aria-label={placeholder ?? 'Add tags'}
+			value={inputValue}
+			onChange={(e) => setInputValue(e.target.value)}
+			onKeyDown={handleKeyDown}
+			onBlur={handleBlur}
+			prefix={chips}
+			suffix={
+				<Button
+					size="xs"
+					color="blue"
+					disabled={disabled || atMax || inputValue.trim() === ''}
+					onMouseDown={(e) => e.preventDefault()}
+					onClick={handleSubmit}
+				>
+					<Icon icon={<CornerLeftDown />} />
+				</Button>
+			}
+			className={className}
+		/>
 	)
 })
