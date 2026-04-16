@@ -10,6 +10,7 @@ import { Flex } from '../../components/flex'
 import { Form, useFormContext } from '../../components/form'
 import { Input } from '../../components/input'
 import { NumberInput } from '../../components/number-input'
+import { PasswordInput } from '../../components/password-input'
 import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'
 import { Switch, SwitchField } from '../../components/switch'
@@ -108,6 +109,8 @@ function ValidationForm() {
 				import { Form } from 'ui/form'
 				import { Field, Label, ErrorMessage } from 'ui/fieldset'
 				import { Input } from 'ui/input'
+				import { PasswordInput } from 'ui/password-input'
+				import { PasswordConfirm, PasswordConfirmInput } from 'ui/password-confirm'
 				import { Button } from 'ui/button'
 				import { Stack } from 'ui/stack'
 
@@ -124,8 +127,11 @@ function ValidationForm() {
 							return undefined
 						},
 						password: (v) => (v.length < 8 ? 'Password must be at least 8 characters' : undefined),
-						confirmPassword: (v, vals) =>
-							v !== vals.password ? 'Passwords must match' : undefined,
+						confirmPassword: (_v, values) => {
+							if (values.password !== _v) return 'Passwords do not match'
+
+							return undefined
+						},
 					}}
 					onSubmit={async (values) => setResult(JSON.stringify(values, null, 2))}
 				>
@@ -135,16 +141,18 @@ function ValidationForm() {
 							<Input name="email" type="email" placeholder="jane@example.com" />
 							<ErrorMessage name="email" />
 						</Field>
-						<Field>
-							<Label>Password</Label>
-							<Input name="password" type="password" placeholder="Min 8 characters" />
-							<ErrorMessage name="password" />
-						</Field>
-						<Field>
-							<Label>Confirm password</Label>
-							<Input name="confirmPassword" type="password" placeholder="Re-enter password" />
-							<ErrorMessage name="confirmPassword" />
-						</Field>
+						<PasswordConfirm className="space-y-4" warning="Passwords do not match">
+							<Field>
+								<Label>Password</Label>
+								<PasswordInput name="password" placeholder="Min 8 characters" />
+								<ErrorMessage name="password" />
+							</Field>
+							<Field>
+								<Label>Confirm password</Label>
+								<PasswordConfirmInput name="confirmPassword" placeholder="Re-enter password" />
+								<ErrorMessage name="confirmPassword" />
+							</Field>
+						</PasswordConfirm>
 						<Button type="submit">Create account</Button>
 					</Stack>
 				</Form>
@@ -162,8 +170,11 @@ function ValidationForm() {
 							return undefined
 						},
 						password: (v) => (v.length < 8 ? 'Password must be at least 8 characters' : undefined),
-						confirmPassword: (v, vals) =>
-							v !== vals.password ? 'Passwords must match' : undefined,
+						confirmPassword: (_v, values) => {
+							if (values.password !== _v) return 'Passwords do not match'
+
+							return undefined
+						},
 					}}
 					onSubmit={async () => await simulateAsyncSubmission()}
 				>
@@ -175,12 +186,12 @@ function ValidationForm() {
 						</Field>
 						<Field autoComplete="new-password">
 							<Label>Password</Label>
-							<Input name="password" type="password" placeholder="Min 8 characters" />
+							<PasswordInput name="password" placeholder="Min 8 characters" />
 							<ErrorMessage name="password" />
 						</Field>
 						<Field autoComplete="new-password">
 							<Label>Confirm password</Label>
-							<Input name="confirmPassword" type="password" placeholder="Re-enter password" />
+							<PasswordInput name="confirmPassword" placeholder="Re-enter password" />
 							<ErrorMessage name="confirmPassword" />
 						</Field>
 						<Button type="submit">Create account</Button>

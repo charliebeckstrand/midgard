@@ -1,9 +1,12 @@
-type Status = 'idle' | 'valid' | 'warning'
+type Status = 'idle' | 'warning'
+type LastEdited = 'password' | 'confirm' | null
 
-export function deriveStatus(password: string, confirm: string): Status {
-	if (!password || !confirm || confirm.length < password.length) return 'idle'
+export function deriveStatus(password: string, confirm: string, lastEdited: LastEdited): Status {
+	if (!password || !confirm) return 'idle'
 
-	if (password === confirm) return 'valid'
+	if (lastEdited === 'confirm' && confirm.length < password.length) return 'idle'
+
+	if (password === confirm) return 'idle'
 
 	return 'warning'
 }
@@ -11,6 +14,8 @@ export function deriveStatus(password: string, confirm: string): Status {
 export function handlePasswordInput(
 	e: React.SyntheticEvent<HTMLDivElement>,
 	setPassword: (value: string) => void,
+	setPasswordName: (name: string | undefined) => void,
+	setLastEdited: (value: LastEdited) => void,
 ) {
 	const target = e.target
 
@@ -19,4 +24,6 @@ export function handlePasswordInput(
 	if ('passwordConfirmInput' in target.dataset) return
 
 	setPassword(target.value)
+	setPasswordName(target.name || undefined)
+	setLastEdited('password')
 }

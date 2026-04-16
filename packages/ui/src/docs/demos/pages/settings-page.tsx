@@ -147,11 +147,7 @@ export default function SettingsPageDemo() {
 												<Label>Current password</Label>
 												<PasswordInput placeholder="Enter current password" />
 											</Field>
-											<PasswordConfirm
-												className="space-y-6"
-												valid="Passwords match"
-												warning="Passwords do not match"
-											>
+											<PasswordConfirm className="space-y-6" warning="Passwords do not match">
 												<Field>
 													<Label>New password</Label>
 													<PasswordInput placeholder="Enter new password" />

@@ -1,13 +1,13 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useFormContext } from '../form/context'
 import { PasswordInput, type PasswordInputProps } from '../password-input'
 import { Text } from '../text'
 import { PasswordConfirmProvider, usePasswordConfirm } from './context'
 import { deriveStatus, handlePasswordInput } from './utilities'
 
 export type PasswordConfirmProps = {
-	valid?: React.ReactNode
 	warning?: React.ReactNode
 	className?: string
 	children?: React.ReactNode
@@ -18,15 +18,29 @@ export type PasswordConfirmProps = {
 export function PasswordConfirm({
 	onPasswordMatch,
 	onPasswordMismatch,
-	valid,
 	warning,
 	className,
 	children,
 }: PasswordConfirmProps) {
 	const [password, setPassword] = useState('')
-	const [confirm, setConfirm] = useState('')
+	const [passwordName, setPasswordName] = useState<string | undefined>(undefined)
 
-	const status = deriveStatus(password, confirm)
+	const [confirm, setConfirm] = useState('')
+	const [confirmName, setConfirmName] = useState<string | undefined>(undefined)
+
+	const [lastEdited, setLastEdited] = useState<'password' | 'confirm' | null>(null)
+
+	const form = useFormContext()
+
+	const passwordError = passwordName ? form?.errors[passwordName] : undefined
+	const confirmHasFormError = confirmName ? Boolean(form?.errors[confirmName]) : false
+
+	const handleSetConfirm = useCallback((value: string) => {
+		setConfirm(value)
+		setLastEdited('confirm')
+	}, [])
+
+	const status = passwordError ? 'idle' : deriveStatus(password, confirm, lastEdited)
 
 	const onMatchRef = useRef(onPasswordMatch)
 	const onMismatchRef = useRef(onPasswordMismatch)
@@ -36,7 +50,8 @@ export function PasswordConfirm({
 
 	const prevMatchState = useRef<'match' | 'mismatch' | null>(null)
 
-	const matchState = status === 'valid' ? 'match' : status === 'warning' ? 'mismatch' : null
+	const matchState =
+		status === 'warning' ? 'mismatch' : password && confirm && password === confirm ? 'match' : null
 
 	useEffect(() => {
 		if (matchState === prevMatchState.current) return
@@ -48,26 +63,20 @@ export function PasswordConfirm({
 	}, [matchState])
 
 	const handleInput = useCallback(
-		(e: React.SyntheticEvent<HTMLDivElement>) => handlePasswordInput(e, setPassword),
+		(e: React.SyntheticEvent<HTMLDivElement>) =>
+			handlePasswordInput(e, setPassword, setPasswordName, setLastEdited),
 		[],
 	)
 
 	return (
-		<PasswordConfirmProvider value={{ status, setConfirm }}>
+		<PasswordConfirmProvider
+			value={{ status, setConfirm: handleSetConfirm, setConfirmName, confirmHasFormError }}
+		>
 			<div data-slot="password-confirm" className={className} onInput={handleInput}>
 				{children}
-				{(status === 'warning' || status === 'valid') && (
+				{status === 'warning' && warning && !confirmHasFormError && (
 					<div aria-live="polite" aria-atomic="true">
-						{status === 'warning' && warning && (
-							<Text color="amber" className="text-sm">
-								{warning}
-							</Text>
-						)}
-						{status === 'valid' && valid && (
-							<Text color="green" className="text-sm">
-								{valid}
-							</Text>
-						)}
+						<Text color="amber">{warning}</Text>
 					</div>
 				)}
 			</div>
@@ -80,13 +89,18 @@ export type PasswordConfirmInputProps = Omit<PasswordInputProps, 'onChange'> & {
 }
 
 export function PasswordConfirmInput({ onChange, ...props }: PasswordConfirmInputProps) {
-	const { status, setConfirm } = usePasswordConfirm()
+	const { status, setConfirm, setConfirmName, confirmHasFormError } = usePasswordConfirm()
+
+	useEffect(() => {
+		setConfirmName(props.name)
+	}, [props.name, setConfirmName])
+
+	const showWarning = status === 'warning' && !confirmHasFormError
 
 	return (
 		<PasswordInput
 			data-password-confirm-input
-			{...(status === 'valid' ? { 'data-valid': true } : {})}
-			{...(status === 'warning' ? { 'data-warning': true } : {})}
+			{...(showWarning ? { 'data-warning': true } : {})}
 			{...props}
 			onChange={(e) => {
 				setConfirm(e.target.value)

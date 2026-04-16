@@ -3,8 +3,10 @@
 import { createContext } from '../../core'
 
 type PasswordConfirmContext = {
-	status: 'idle' | 'valid' | 'warning'
+	status: 'idle' | 'warning'
 	setConfirm: (value: string) => void
+	setConfirmName: (name: string | undefined) => void
+	confirmHasFormError: boolean
 }
 
 export const [PasswordConfirmProvider, usePasswordConfirm] =

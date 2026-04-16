@@ -14,11 +14,7 @@ export default function PasswordConfirmDemo() {
 		<Stack gap={6}>
 			<Example title="Default">
 				<Sizer>
-					<PasswordConfirm
-						className="space-y-4"
-						warning="Passwords do not match"
-						valid="Passwords match"
-					>
+					<PasswordConfirm className="space-y-4" warning="Passwords do not match">
 						<Field>
 							<Label>Password</Label>
 							<PasswordInput placeholder="Enter password" />
@@ -36,7 +32,6 @@ export default function PasswordConfirmDemo() {
 					<PasswordConfirm
 						className="space-y-4"
 						warning="Passwords do not match"
-						valid="Passwords match"
 						onPasswordMatch={() => console.log('Passwords match')}
 						onPasswordMismatch={() => console.log('Passwords do not match')}
 					>
