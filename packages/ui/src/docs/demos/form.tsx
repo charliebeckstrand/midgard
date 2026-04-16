@@ -262,7 +262,7 @@ function DirtyTouchedForm() {
 						</Field>
 						<Field>
 							<Label>Bio</Label>
-							<Textarea name="bio" placeholder="Tell us about yourself" />
+							<Textarea name="bio" placeholder="Tell us about yourself" rows={3} autoResize />
 							<ErrorMessage name="bio" />
 						</Field>
 

@@ -29,6 +29,8 @@ export function Textarea({
 	value,
 	onChange,
 	onBlur,
+	rows = 3,
+	style,
 	...props
 }: TextareaProps) {
 	const glass = useGlass()
@@ -60,12 +62,19 @@ export function Textarea({
 		...(resolvedInvalid ? { 'data-invalid': '', 'aria-invalid': true as const } : {}),
 	}
 
+	// When autoResize is enabled, field-sizing-content ignores the rows attribute.
+	// Set a min-height based on rows so it acts as a floor.
+	const autoResizeStyle =
+		autoResize && rows ? { minHeight: `calc(${rows}lh + 1rem)`, ...style } : style
+
 	if (actions !== undefined) {
 		return (
 			<FormControl className={cn(k.frame, controlVariants({ variant: resolvedVariant }))}>
 				<textarea
 					data-slot="textarea"
 					{...controlProps}
+					rows={rows}
+					style={autoResizeStyle}
 					className={cn(
 						textareaVariants({ variant: resolvedVariant, resize: 'none', autoResize }),
 						k.bare,
@@ -85,6 +94,8 @@ export function Textarea({
 			<textarea
 				data-slot="textarea"
 				{...controlProps}
+				rows={rows}
+				style={autoResizeStyle}
 				className={cn(
 					textareaVariants({ variant: resolvedVariant, resize, autoResize }),
 					className,
