@@ -151,6 +151,10 @@
 			"types": "./src/components/form/index.ts",
 			"default": "./src/components/form/index.ts"
 		},
+		"./frame": {
+			"types": "./src/components/frame/index.ts",
+			"default": "./src/components/frame/index.ts"
+		},
 		"./glass": {
 			"types": "./src/components/glass/index.ts",
 			"default": "./src/components/glass/index.ts"
