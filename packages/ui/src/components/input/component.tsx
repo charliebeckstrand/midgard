@@ -5,6 +5,7 @@ import { cn } from '../../core'
 import { FormControl } from '../../primitives'
 import { kokkaku } from '../../recipes'
 import { useControl } from '../control/context'
+import { useFormText } from '../form/context'
 import { useGlass } from '../glass/context'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
@@ -30,12 +31,29 @@ export type InputProps = Omit<InputVariants, 'size'> & {
 } & Omit<React.ComponentPropsWithoutRef<'input'>, 'className' | 'size' | 'prefix'>
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
-	{ className, type, variant, size, prefix, suffix, id, disabled, required, readOnly, ...props },
+	{
+		className,
+		type,
+		variant,
+		size,
+		prefix,
+		suffix,
+		id,
+		disabled,
+		required,
+		readOnly,
+		name,
+		value,
+		onChange,
+		onBlur,
+		...props
+	},
 	ref,
 ) {
 	const glass = useGlass()
 	const skeleton = useSkeleton()
 	const control = useControl()
+	const binding = useFormText(name, { onChange, onBlur })
 
 	const resolvedId = id ?? control?.id
 
@@ -44,6 +62,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 	const resolvedReadOnly = readOnly ?? control?.readOnly
 
 	const resolvedVariant = variant ?? control?.variant ?? (glass ? 'glass' : undefined)
+
+	const resolvedInvalid = control?.invalid || binding?.invalid
 
 	const isDate = DATE_TYPES.has(type ?? '')
 
@@ -73,10 +93,14 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 					data-slot="input"
 					type={type}
 					id={resolvedId}
+					name={name}
 					disabled={resolvedDisabled}
 					required={resolvedRequired}
 					readOnly={resolvedReadOnly}
-					{...(control?.invalid ? { 'data-invalid': '', 'aria-invalid': true } : {})}
+					value={binding?.value ?? value}
+					onChange={binding?.onChange ?? onChange}
+					onBlur={binding?.onBlur ?? onBlur}
+					{...(resolvedInvalid ? { 'data-invalid': '', 'aria-invalid': true } : {})}
 					className={cn(
 						inputVariants({ variant: resolvedVariant, size }),
 						isDate && inputDateVariants(),

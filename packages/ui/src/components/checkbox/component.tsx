@@ -6,6 +6,7 @@ import { cn } from '../../core'
 import { ToggleField, ToggleGroup } from '../../primitives'
 import { kokkaku } from '../../recipes'
 import { useControl } from '../control/context'
+import { useFormToggle } from '../form/context'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
 import {
@@ -31,9 +32,13 @@ export function Checkbox({
 	disabled,
 	required,
 	ref,
+	name,
+	checked,
+	onChange,
 	...props
 }: CheckboxProps) {
 	const control = useControl()
+	const binding = useFormToggle(name, { onChange })
 
 	const internalRef = useRef<HTMLInputElement>(null)
 
@@ -41,6 +46,8 @@ export function Checkbox({
 
 	const resolvedDisabled = disabled ?? control?.disabled
 	const resolvedRequired = required ?? control?.required
+
+	const resolvedInvalid = control?.invalid || binding?.invalid
 
 	const setRef = useCallback(
 		(el: HTMLInputElement | null) => {
@@ -66,9 +73,12 @@ export function Checkbox({
 				data-slot="checkbox"
 				ref={setRef}
 				id={resolvedId}
+				name={name}
 				disabled={resolvedDisabled}
 				required={resolvedRequired}
-				{...(control?.invalid ? { 'data-invalid': '', 'aria-invalid': true } : {})}
+				checked={binding?.checked ?? checked}
+				onChange={binding?.onChange ?? onChange}
+				{...(resolvedInvalid ? { 'data-invalid': '', 'aria-invalid': true } : {})}
 				className={cn(checkboxInputVariants(), className)}
 				{...props}
 			/>

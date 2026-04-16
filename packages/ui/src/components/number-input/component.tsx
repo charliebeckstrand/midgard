@@ -5,6 +5,7 @@ import { forwardRef } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
 import { Button } from '../button'
+import { useFormField } from '../form/context'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
 import { k } from './variants'
@@ -30,10 +31,21 @@ export type NumberInputProps = Omit<
 }
 
 export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(function NumberInput(
-	{ value, defaultValue, onChange, min, max, step = 1, disabled, size, className, ...props },
+	{ value, defaultValue, onChange, min, max, step = 1, disabled, size, className, name, ...props },
 	ref,
 ) {
-	const [current, setValue] = useControllable<number>({ value, defaultValue, onChange })
+	const field = useFormField(name)
+
+	const [current, setCurrent] = useControllable<number>({
+		value: field ? (field.value as number) : value,
+		defaultValue,
+		onChange: field
+			? (v) => {
+					field.setValue(v)
+					onChange?.(v)
+				}
+			: onChange,
+	})
 
 	const resolvedSize: Size = size ?? 'md'
 
@@ -51,7 +63,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
 	const change = (delta: number) => {
 		const base = current ?? clamp(0)
 
-		setValue(round(clamp(base + delta)))
+		setCurrent(round(clamp(base + delta)))
 	}
 
 	const atMin = min !== undefined && current !== undefined && current <= min
@@ -64,7 +76,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
 		const v = e.target.value
 
 		if (v === '') {
-			setValue(undefined)
+			setCurrent(undefined)
 
 			return
 		}
@@ -73,7 +85,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
 
 		if (Number.isNaN(n)) return
 
-		setValue(clamp(n))
+		setCurrent(clamp(n))
 	}
 
 	return (
@@ -82,10 +94,12 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
 			type="number"
 			inputMode="decimal"
 			data-slot="number-input"
+			name={field ? undefined : name}
 			disabled={disabled}
 			size={resolvedSize}
 			value={current ?? ''}
 			onChange={handleChange}
+			onBlur={field ? () => field.setTouched() : undefined}
 			min={min}
 			max={max}
 			step={step}

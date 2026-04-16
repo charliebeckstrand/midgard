@@ -147,6 +147,10 @@
 			"types": "./src/components/flex/index.ts",
 			"default": "./src/components/flex/index.ts"
 		},
+		"./form": {
+			"types": "./src/components/form/index.ts",
+			"default": "./src/components/form/index.ts"
+		},
 		"./glass": {
 			"types": "./src/components/glass/index.ts",
 			"default": "./src/components/glass/index.ts"
