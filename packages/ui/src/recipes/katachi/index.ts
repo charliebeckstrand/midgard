@@ -71,6 +71,7 @@ import { textarea } from './textarea'
 import { timeline } from './timeline'
 import { toast } from './toast'
 import { toggleIconButton } from './toggle-icon-button'
+import { toolbar } from './toolbar'
 import { tooltip } from './tooltip'
 import { tree } from './tree'
 import { virtualList } from './virtual-list'
@@ -140,6 +141,7 @@ export const katachi = {
 	timeline,
 	toast,
 	toggleIconButton,
+	toolbar,
 	tooltip,
 	tree,
 	virtualList,

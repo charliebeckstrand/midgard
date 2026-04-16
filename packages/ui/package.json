@@ -327,6 +327,10 @@
 			"types": "./src/components/toggle-icon-button/index.ts",
 			"default": "./src/components/toggle-icon-button/index.ts"
 		},
+		"./toolbar": {
+			"types": "./src/components/toolbar/index.ts",
+			"default": "./src/components/toolbar/index.ts"
+		},
 		"./tooltip": {
 			"types": "./src/components/tooltip/index.ts",
 			"default": "./src/components/tooltip/index.ts"
