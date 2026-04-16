@@ -339,10 +339,6 @@
 			"types": "./src/components/tree/index.ts",
 			"default": "./src/components/tree/index.ts"
 		},
-		"./virtual-list": {
-			"types": "./src/components/virtual-list/index.ts",
-			"default": "./src/components/virtual-list/index.ts"
-		},
 		"./layouts": {
 			"types": "./src/layouts/index.ts",
 			"default": "./src/layouts/index.ts"
