@@ -27,7 +27,7 @@ function lastButton(container: HTMLElement | null): HTMLElement | null {
 
 	if (!buttons?.length) return null
 
-	return buttons[buttons.length - 1] ?? null
+	return buttons.item(buttons.length - 1)
 }
 
 function isTopRow(container: HTMLElement | null, cols: number): boolean {
