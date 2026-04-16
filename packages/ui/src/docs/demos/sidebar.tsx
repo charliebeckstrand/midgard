@@ -1,0 +1,216 @@
+'use client'
+
+import { ChartBar, Cog, Folder, Home, Inbox, Plus, Search, Users } from 'lucide-react'
+import { useState } from 'react'
+import { Avatar } from '../../components/avatar'
+import { Badge } from '../../components/badge'
+import { Button } from '../../components/button'
+import { Heading } from '../../components/heading'
+import { Icon } from '../../components/icon'
+import {
+	Sidebar,
+	SidebarBody,
+	SidebarDivider,
+	SidebarFooter,
+	SidebarHeader,
+	SidebarItem,
+	SidebarItemActions,
+	SidebarLabel,
+	SidebarSection,
+	SidebarSpacer,
+} from '../../components/sidebar'
+import { Stack } from '../../components/stack'
+import { Text } from '../../components/text'
+import { Example } from '../components/example'
+
+export const meta = { category: 'Navigation' }
+
+const primary = [
+	{ value: 'home', label: 'Home', icon: <Home /> },
+	{ value: 'inbox', label: 'Inbox', icon: <Inbox /> },
+	{ value: 'team', label: 'Team', icon: <Users /> },
+	{ value: 'reports', label: 'Reports', icon: <ChartBar /> },
+]
+
+const projects = [
+	{ value: 'midgard', label: 'Midgard' },
+	{ value: 'asgard', label: 'Asgard' },
+	{ value: 'vanaheim', label: 'Vanaheim' },
+]
+
+function SidebarFrame({ children }: { children: React.ReactNode }) {
+	return (
+		<div className="h-96 w-72 overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800">
+			{children}
+		</div>
+	)
+}
+
+function DefaultSidebar() {
+	const [active, setActive] = useState('home')
+
+	return (
+		<SidebarFrame>
+			<Sidebar>
+				<SidebarBody>
+					<SidebarSection>
+						{primary.map(({ value, label, icon }) => (
+							<SidebarItem
+								key={value}
+								icon={icon}
+								current={active === value}
+								onClick={() => setActive(value)}
+							>
+								<SidebarLabel>{label}</SidebarLabel>
+							</SidebarItem>
+						))}
+					</SidebarSection>
+				</SidebarBody>
+			</Sidebar>
+		</SidebarFrame>
+	)
+}
+
+function HeaderFooterSidebar() {
+	const [active, setActive] = useState('home')
+
+	return (
+		<SidebarFrame>
+			<Sidebar>
+				<SidebarHeader>
+					<Heading level={3}>Acme Inc.</Heading>
+				</SidebarHeader>
+				<SidebarBody>
+					<SidebarSection>
+						{primary.map(({ value, label, icon }) => (
+							<SidebarItem
+								key={value}
+								icon={icon}
+								current={active === value}
+								onClick={() => setActive(value)}
+							>
+								<SidebarLabel>{label}</SidebarLabel>
+							</SidebarItem>
+						))}
+					</SidebarSection>
+				</SidebarBody>
+				<SidebarFooter>
+					<SidebarItem>
+						<Avatar size="sm" initials="WC" />
+						<SidebarLabel>Wade Cooper</SidebarLabel>
+					</SidebarItem>
+				</SidebarFooter>
+			</Sidebar>
+		</SidebarFrame>
+	)
+}
+
+function SectionedSidebar() {
+	const [active, setActive] = useState('home')
+
+	return (
+		<SidebarFrame>
+			<Sidebar>
+				<SidebarHeader>
+					<Heading level={3}>Workspace</Heading>
+				</SidebarHeader>
+				<SidebarBody>
+					<SidebarSection>
+						{primary.slice(0, 2).map(({ value, label, icon }) => (
+							<SidebarItem
+								key={value}
+								icon={icon}
+								current={active === value}
+								onClick={() => setActive(value)}
+							>
+								<SidebarLabel>{label}</SidebarLabel>
+							</SidebarItem>
+						))}
+					</SidebarSection>
+
+					<SidebarDivider />
+
+					<SidebarSection>
+						<Stack direction="row" align="center" gap={2} className="px-2">
+							<Text variant="muted" className="text-xs uppercase tracking-wide flex-1">
+								Projects
+							</Text>
+							<Button variant="plain" size="xs" aria-label="New project">
+								<Icon icon={<Plus />} />
+							</Button>
+						</Stack>
+						{projects.map(({ value, label }) => (
+							<SidebarItem
+								key={value}
+								icon={<Folder />}
+								current={active === value}
+								onClick={() => setActive(value)}
+							>
+								<SidebarLabel>{label}</SidebarLabel>
+							</SidebarItem>
+						))}
+					</SidebarSection>
+
+					<SidebarSpacer />
+
+					<SidebarSection>
+						<SidebarItem icon={<Cog />}>
+							<SidebarLabel>Settings</SidebarLabel>
+						</SidebarItem>
+					</SidebarSection>
+				</SidebarBody>
+			</Sidebar>
+		</SidebarFrame>
+	)
+}
+
+function ItemActionsSidebar() {
+	return (
+		<SidebarFrame>
+			<Sidebar>
+				<SidebarBody>
+					<SidebarSection>
+						<SidebarItem icon={<Search />} preventClose>
+							<SidebarLabel>Search</SidebarLabel>
+							<SidebarItemActions>
+								<Badge color="zinc" size="sm">
+									⌘K
+								</Badge>
+							</SidebarItemActions>
+						</SidebarItem>
+						<SidebarItem icon={<Inbox />}>
+							<SidebarLabel>Inbox</SidebarLabel>
+							<SidebarItemActions>
+								<Badge color="blue" size="sm">
+									12
+								</Badge>
+							</SidebarItemActions>
+						</SidebarItem>
+					</SidebarSection>
+				</SidebarBody>
+			</Sidebar>
+		</SidebarFrame>
+	)
+}
+
+export default function SidebarDemo() {
+	return (
+		<Stack gap={6}>
+			<Example title="Default">
+				<DefaultSidebar />
+			</Example>
+
+			<Example title="With header and footer">
+				<HeaderFooterSidebar />
+			</Example>
+
+			<Example title="Sections, divider, and spacer">
+				<SectionedSidebar />
+			</Example>
+
+			<Example title="With item actions">
+				<ItemActionsSidebar />
+			</Example>
+		</Stack>
+	)
+}
