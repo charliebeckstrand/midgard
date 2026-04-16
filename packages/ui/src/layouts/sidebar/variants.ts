@@ -51,7 +51,7 @@ export const sidebarHeaderVariants = cva('flex items-center shrink-0 lg:pt-6 pb-
 
 export const sidebarBodyVariants = cva('flex-1 min-h-0 overflow-y-auto')
 
-export const sidebarFooterVariants = cva('shrink-0 py-6')
+export const sidebarFooterVariants = cva('shrink-0')
 
 export type SidebarPanelVariants = VariantProps<typeof sidebarPanelVariants>
 export type SidebarLayoutVariants = VariantProps<typeof sidebarLayoutVariants>

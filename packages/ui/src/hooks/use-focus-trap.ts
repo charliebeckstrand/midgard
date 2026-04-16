@@ -25,8 +25,10 @@ export function useFocusTrap(active: boolean) {
 
 		previouslyFocused.current = document.activeElement as HTMLElement
 
-		// Focus the first focusable child, or the container itself
-		const first = container.querySelector<HTMLElement>(focusableSelector)
+		// Prefer an explicitly marked element, else the first focusable child, else the container
+		const preferred = container.querySelector<HTMLElement>('[data-autofocus]')
+
+		const first = preferred ?? container.querySelector<HTMLElement>(focusableSelector)
 
 		if (first) {
 			first.focus()
