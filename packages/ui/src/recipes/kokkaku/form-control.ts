@@ -1,7 +1,7 @@
 import { maru } from '../maru'
 import { control } from './density'
 
-export const input = {
+export const formControl = {
 	base: ['w-full', maru.rounded],
 	size: {
 		sm: control.sm,
