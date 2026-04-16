@@ -46,16 +46,9 @@ function getDaysInMonth(year: number, month: number): number {
 }
 
 export function getCalendarDays(year: number, month: number): Date[] {
-	const firstDay = new Date(year, month, 1).getDay()
-
 	const daysInMonth = getDaysInMonth(year, month)
 
 	const days: Date[] = []
-
-	// Padding days from previous month
-	for (let i = firstDay - 1; i >= 0; i--) {
-		days.push(new Date(year, month, -i))
-	}
 
 	for (let d = 1; d <= daysInMonth; d++) {
 		days.push(new Date(year, month, d))
