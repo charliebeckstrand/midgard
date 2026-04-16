@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useFormContext } from '../form/context'
 import { PasswordInput, type PasswordInputProps } from '../password-input'
 import { Text } from '../text'
@@ -68,10 +68,13 @@ export function PasswordConfirm({
 		[],
 	)
 
+	const ctx = useMemo(
+		() => ({ status, setConfirm: handleSetConfirm, setConfirmName, confirmHasFormError }),
+		[status, handleSetConfirm, confirmHasFormError],
+	)
+
 	return (
-		<PasswordConfirmProvider
-			value={{ status, setConfirm: handleSetConfirm, setConfirmName, confirmHasFormError }}
-		>
+		<PasswordConfirmProvider value={ctx}>
 			<div data-slot="password-confirm" className={className} onInput={handleInput}>
 				{children}
 				{status === 'warning' && warning && !confirmHasFormError && (

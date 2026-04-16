@@ -74,7 +74,7 @@ export function createCurrentContent(slotPrefix: string) {
 				ro.disconnect()
 
 				for (const child of el.children) {
-					if ((child as HTMLElement).style.position !== 'absolute') {
+					if ((child as HTMLElement).hasAttribute('data-current')) {
 						ro.observe(child)
 
 						break
@@ -86,11 +86,13 @@ export function createCurrentContent(slotPrefix: string) {
 
 			const mo = new MutationObserver(observe)
 
+			// Watch only the dedicated data-current attribute — not `style`,
+			// which would fire on every framer-motion animation frame.
 			mo.observe(el, {
 				childList: true,
 				subtree: true,
 				attributes: true,
-				attributeFilter: ['style'],
+				attributeFilter: ['data-current'],
 			})
 
 			return () => {
@@ -139,6 +141,7 @@ export function createCurrentContent(slotPrefix: string) {
 			return (
 				<motion.div
 					data-slot={`${slotPrefix}-content`}
+					data-current={current ? '' : undefined}
 					animate={current ? visible : hidden}
 					initial={false}
 					transition={ugoki.reveal.transition}

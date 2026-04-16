@@ -3,6 +3,7 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import {
 	forwardRef,
+	memo,
 	type RefObject,
 	useCallback,
 	useImperativeHandle,
@@ -46,6 +47,60 @@ export type CalendarDayProps = {
 	onMouseEnter?: () => void
 	onMouseLeave?: () => void
 }
+
+type DayCellProps = {
+	date: Date
+	disabled: boolean
+	isToday: boolean
+	isActive: boolean
+	selected: boolean
+	variant?: ButtonVariants['variant']
+	color?: ButtonVariants['color']
+	customClassName?: string
+	gridColumnStart?: number
+	onSelect: (date: Date) => void
+	onMouseEnter?: () => void
+	onMouseLeave?: () => void
+}
+
+const DayCell = memo(function DayCell({
+	date,
+	disabled,
+	isToday,
+	isActive,
+	selected,
+	variant,
+	color,
+	customClassName,
+	gridColumnStart,
+	onSelect,
+	onMouseEnter,
+	onMouseLeave,
+}: DayCellProps) {
+	const handleClick = () => {
+		if (!disabled) onSelect(date)
+	}
+
+	return (
+		<Button
+			variant={variant ?? (selected ? 'solid' : isToday ? 'soft' : 'plain')}
+			color={color ?? (selected || isToday ? 'blue' : undefined)}
+			aria-pressed={selected}
+			disabled={disabled}
+			onClick={handleClick}
+			onMouseEnter={onMouseEnter}
+			onMouseLeave={onMouseLeave}
+			style={gridColumnStart ? { gridColumnStart } : undefined}
+			className={cn(
+				k.day.base,
+				isActive && (selected ? k.day.activeSelected : k.day.active),
+				customClassName,
+			)}
+		>
+			{date.getDate()}
+		</Button>
+	)
+})
 
 export type CalendarProps = {
 	value?: Date | null
@@ -156,6 +211,15 @@ export const Calendar = forwardRef<CalendarHandle, CalendarProps>(function Calen
 		setViewDate(new Date(y, m, 1))
 	}, [])
 
+	const handleSelect = useCallback(
+		(date: Date) => {
+			setValue(date)
+		},
+		[setValue],
+	)
+
+	const firstDayColumn = new Date(year, month, 1).getDay() + 1
+
 	const monthLabel = viewDate.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
 
 	const activeGridDate = active?.zone === 'grid' ? active.date : null
@@ -245,31 +309,24 @@ export const Calendar = forwardRef<CalendarHandle, CalendarProps>(function Calen
 
 						const selected = dayProps?.selected ?? isSelected
 
-						const isFirst = date.getDate() === 1
+						const gridColumnStart = date.getDate() === 1 ? firstDayColumn : undefined
 
 						return (
-							<Button
+							<DayCell
 								key={date.toISOString()}
-								variant={dayProps?.variant ?? (selected ? 'solid' : isToday ? 'soft' : 'plain')}
-								color={dayProps?.color ?? (selected || isToday ? 'blue' : undefined)}
-								aria-pressed={selected}
+								date={date}
 								disabled={disabled}
-								onClick={() => {
-									if (!disabled) setValue(date)
-								}}
+								isToday={isToday}
+								isActive={isActive}
+								selected={selected}
+								variant={dayProps?.variant}
+								color={dayProps?.color}
+								customClassName={dayProps?.className}
+								gridColumnStart={gridColumnStart}
+								onSelect={handleSelect}
 								onMouseEnter={dayProps?.onMouseEnter}
 								onMouseLeave={dayProps?.onMouseLeave}
-								style={
-									isFirst ? { gridColumnStart: new Date(year, month, 1).getDay() + 1 } : undefined
-								}
-								className={cn(
-									k.day.base,
-									isActive && (selected ? k.day.activeSelected : k.day.active),
-									dayProps?.className,
-								)}
-							>
-								{date.getDate()}
-							</Button>
+							/>
 						)
 					})}
 				</div>

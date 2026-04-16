@@ -4,7 +4,7 @@ import { FloatingPortal, type Placement } from '@floating-ui/react'
 import { ChevronsUpDown } from 'lucide-react'
 import { AnimatePresence } from 'motion/react'
 import type React from 'react'
-import { useCallback, useId, useRef } from 'react'
+import { useCallback, useId, useMemo, useRef } from 'react'
 import { cn, createContext } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { useFloatingUI } from '../../hooks/use-floating-ui'
@@ -145,6 +145,11 @@ export function Combobox<T>({
 
 	const rendered = typeof children === 'function' ? children(query) : children
 
+	const contextValue = useMemo<ComboboxContextValue>(
+		() => ({ value, multiple, select: select as (v: unknown) => void, query }),
+		[value, multiple, select, query],
+	)
+
 	if (skeleton) {
 		return (
 			<Placeholder
@@ -154,7 +159,7 @@ export function Combobox<T>({
 	}
 
 	return (
-		<ComboboxProvider value={{ value, multiple, select: select as (v: unknown) => void, query }}>
+		<ComboboxProvider value={contextValue}>
 			<div
 				data-slot="control"
 				ref={refs.setReference}
