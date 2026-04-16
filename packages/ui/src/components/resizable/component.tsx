@@ -7,6 +7,7 @@ import {
 	isValidElement,
 	useCallback,
 	useEffect,
+	useMemo,
 	useRef,
 	useState,
 } from 'react'
@@ -263,8 +264,13 @@ export function ResizableGroup({
 		return child
 	})
 
+	const contextValue = useMemo(
+		() => ({ direction, dragging, startDrag, resize }),
+		[direction, dragging, startDrag, resize],
+	)
+
 	return (
-		<ResizableProvider value={{ direction, dragging, startDrag, resize }}>
+		<ResizableProvider value={contextValue}>
 			<div
 				ref={groupRef}
 				data-slot="resizable-group"

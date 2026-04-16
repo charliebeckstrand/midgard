@@ -4,7 +4,7 @@ import { FloatingPortal, type Placement } from '@floating-ui/react'
 import { ChevronsUpDown } from 'lucide-react'
 import { AnimatePresence } from 'motion/react'
 import type React from 'react'
-import { useCallback, useId, useRef } from 'react'
+import { useCallback, useId, useMemo, useRef } from 'react'
 import { cn, createContext } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { useFloatingUI } from '../../hooks/use-floating-ui'
@@ -110,8 +110,13 @@ export function Listbox<T>({
 
 	const label = resolveLabel({ value, displayValue, multiple })
 
+	const contextValue = useMemo<ListboxContextValue>(
+		() => ({ value, multiple, select: select as (v: unknown) => void, close }),
+		[value, multiple, select, close],
+	)
+
 	return (
-		<ListboxProvider value={{ value, multiple, select: select as (v: unknown) => void, close }}>
+		<ListboxProvider value={contextValue}>
 			<div
 				data-slot="control"
 				ref={refs.setReference}

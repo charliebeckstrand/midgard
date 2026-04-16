@@ -21,6 +21,7 @@ import {
 	useCallback,
 	useEffect,
 	useLayoutEffect,
+	useMemo,
 	useRef,
 	useState,
 } from 'react'
@@ -29,6 +30,8 @@ import { omote, sumi, ugoki } from '../../recipes'
 import { Box, type BoxPadding } from '../box'
 import { useGlass } from '../glass/context'
 import { k } from './variants'
+
+const popoverMiddleware = [offset(8), flip(), shift({ padding: 8 })]
 
 type PopoverContextValue = {
 	open: boolean
@@ -81,7 +84,7 @@ export function Popover({
 		open,
 		onOpenChange: setOpen,
 		whileElementsMounted: autoUpdate,
-		middleware: [offset(8), flip(), shift({ padding: 8 })],
+		middleware: popoverMiddleware,
 	})
 
 	const click = useClick(context)
@@ -106,21 +109,34 @@ export function Popover({
 		setOpen(false)
 	}, [setOpen])
 
+	const contextValue = useMemo<PopoverContextValue>(
+		() => ({
+			open,
+			setOpen,
+			close,
+			triggerRef,
+			setReference: refs.setReference,
+			setFloating: refs.setFloating,
+			floatingStyles,
+			getReferenceProps,
+			getFloatingProps,
+			onExitComplete,
+		}),
+		[
+			open,
+			setOpen,
+			close,
+			refs.setReference,
+			refs.setFloating,
+			floatingStyles,
+			getReferenceProps,
+			getFloatingProps,
+			onExitComplete,
+		],
+	)
+
 	return (
-		<PopoverProvider
-			value={{
-				open,
-				setOpen,
-				close,
-				triggerRef,
-				setReference: refs.setReference,
-				setFloating: refs.setFloating,
-				floatingStyles,
-				getReferenceProps,
-				getFloatingProps,
-				onExitComplete,
-			}}
-		>
+		<PopoverProvider value={contextValue}>
 			<div data-slot="popover" className={cn(className)}>
 				{children}
 			</div>

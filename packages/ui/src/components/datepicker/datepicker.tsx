@@ -33,6 +33,8 @@ import { type FooterButton, useDatePickerKeyDown } from './use-keyboard'
 import { addDays, clampDate, formatDate } from './utilities'
 import { k, kCalendar, kPopover } from './variants'
 
+const datepickerMiddleware = [offset(8), flip(), shift({ padding: 8 })]
+
 export type DatePickerSingleProps = {
 	range?: false
 	value?: Date
@@ -189,7 +191,7 @@ function DatePickerSingle({
 		open,
 		onOpenChange: handleOpenChange,
 		whileElementsMounted: autoUpdate,
-		middleware: [offset(8), flip(), shift({ padding: 8 })],
+		middleware: datepickerMiddleware,
 	})
 
 	const dismiss = useDismiss(context)
