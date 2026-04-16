@@ -1,7 +1,7 @@
 'use client'
 
-import { type ReactNode, useState } from 'react'
-import { CodeBlock } from '../../components/code'
+import { type ReactNode, useEffect, useState } from 'react'
+import { CodeBlock, loadShiki } from '../../components/code'
 import { Collapse, CollapsePanel, CollapseTrigger } from '../../components/collapse'
 import { Flex } from '../../components/flex'
 import { Heading } from '../../components/heading'
@@ -29,6 +29,11 @@ export function Example({
 	const resolvedCode = code ?? deriveCode(children)
 
 	const [open, setOpen] = useState(false)
+
+	// Pre-load the Shiki highlighter so it's ready when "Show code" is tapped.
+	useEffect(() => {
+		if (resolvedCode) loadShiki()
+	}, [resolvedCode])
 
 	return (
 		<Stack gap={2}>

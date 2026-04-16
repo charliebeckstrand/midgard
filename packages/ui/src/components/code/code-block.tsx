@@ -26,7 +26,7 @@ function cacheSet(key: string, value: string) {
 // Lazy-load shiki on first use to keep the initial bundle small.
 let shikiPromise: Promise<typeof import('shiki')> | null = null
 
-function loadShiki() {
+export function loadShiki() {
 	if (!shikiPromise) {
 		shikiPromise = import('shiki')
 	}

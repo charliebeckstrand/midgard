@@ -27,6 +27,7 @@ import {
 export type LoadingOptions = Pick<SpinnerProps, 'color' | 'size' | 'label'>
 
 type ButtonBaseProps = ButtonVariants & {
+	block?: boolean
 	ripple?: boolean
 	spring?: boolean
 	loading?: boolean | LoadingOptions
@@ -39,6 +40,7 @@ export function Button({
 	variant,
 	color,
 	size,
+	block = false,
 	className,
 	children,
 	href,
@@ -85,11 +87,12 @@ export function Button({
 
 	const classes = cn(
 		buttonVariants({ variant: resolvedVariant, color, size: resolvedSize }),
-		iconOnly && iconOnlySize({ size: resolvedSize }),
 		sides.start && !sides.end && withIconStartSize({ size: resolvedSize }),
 		sides.end && !sides.start && withIconEndSize({ size: resolvedSize }),
 		kbds.start && !kbds.end && withKbdStartSize({ size: resolvedSize }),
 		kbds.end && !kbds.start && withKbdEndSize({ size: resolvedSize }),
+		iconOnly && iconOnlySize({ size: resolvedSize }),
+		block && 'w-full',
 		className,
 	)
 

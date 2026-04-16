@@ -9,6 +9,7 @@ import { useFormText } from '../form/context'
 import { useGlass } from '../glass/context'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
+import { Spinner } from '../spinner'
 import { InputSizeProvider } from './context'
 import {
 	controlVariants,
@@ -25,6 +26,7 @@ const iconSize = { sm: 'xs', md: 'sm', lg: 'md' } as const
 
 export type InputProps = Omit<InputVariants, 'size'> & {
 	size?: 'sm' | 'md' | 'lg'
+	loading?: boolean
 	prefix?: React.ReactNode
 	suffix?: React.ReactNode
 	className?: string
@@ -36,6 +38,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 		type,
 		variant,
 		size,
+		loading,
 		prefix,
 		suffix,
 		id,
@@ -77,7 +80,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 		)
 	}
 
-	const hasAffix = prefix !== undefined || suffix !== undefined
+	const resolvedSuffix = loading ? <Spinner /> : suffix
+
+	const hasAffix = prefix !== undefined || resolvedSuffix !== undefined
 
 	return (
 		<InputSizeProvider value={iconSize[resolvedSize]}>
@@ -105,14 +110,16 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 						inputVariants({ variant: resolvedVariant, size }),
 						isDate && inputDateVariants(),
 						prefix && k.prefix.input[resolvedSize],
-						suffix && k.suffix.input[resolvedSize],
+						resolvedSuffix && k.suffix.input[resolvedSize],
 						className,
 					)}
 					{...props}
 				/>
 
-				{suffix && (
-					<span className={cn(k.affix, k.suffix.base, k.suffix[resolvedSize])}>{suffix}</span>
+				{resolvedSuffix && (
+					<span className={cn(k.affix, k.suffix.base, k.suffix[resolvedSize])}>
+						{resolvedSuffix}
+					</span>
 				)}
 			</FormControl>
 		</InputSizeProvider>

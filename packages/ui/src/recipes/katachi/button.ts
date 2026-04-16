@@ -12,6 +12,7 @@ export const button = {
 	base: [
 		narabi.position.centerInline,
 		narabi.position.isolate,
+		'w-fit',
 		'shrink-0',
 		'font-semibold',
 		'border',

@@ -38,6 +38,7 @@ export type FormFieldState = {
 /** Returns form-bound state for a named field, or undefined if not inside a Form or name is absent. */
 export function useFormField(name: string | undefined): FormFieldState | undefined {
 	const ctx = useFormContext()
+
 	if (!name || !ctx) return undefined
 
 	return {
@@ -59,6 +60,7 @@ export type FormStatus = {
 /** Returns form-level status, or undefined outside a Form. */
 export function useFormStatus(): FormStatus | undefined {
 	const ctx = useFormContext()
+
 	if (!ctx) return undefined
 
 	return {
@@ -90,6 +92,7 @@ export function useFormText<E extends HTMLElement = HTMLElement>(
 	},
 ): FormTextBinding<E> | undefined {
 	const field = useFormField(name)
+
 	if (!field) return undefined
 
 	return {
@@ -118,6 +121,7 @@ export function useFormToggle(
 	handlers?: { onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void },
 ): FormToggleBinding | undefined {
 	const field = useFormField(name)
+
 	if (!field) return undefined
 
 	return {
