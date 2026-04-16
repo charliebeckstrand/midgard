@@ -21,13 +21,15 @@ import { useControllable } from '../../hooks/use-controllable'
 import { useFocusTrap } from '../../hooks/use-focus-trap'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { ControlFrame } from '../../primitives'
-import { omote, sumi, ugoki } from '../../recipes'
+import { kokkaku, omote, sumi, ugoki } from '../../recipes'
 import { Box } from '../box'
 import { Button } from '../button'
 import { Calendar, type CalendarActive, type CalendarHandle } from '../calendar'
 import { useControl } from '../control/context'
 import { useGlass } from '../glass/context'
 import { Icon } from '../icon'
+import { Placeholder } from '../placeholder'
+import { useSkeleton } from '../skeleton/context'
 import { DatePickerRange } from './datepicker-range'
 import { type FooterButton, useDatePickerKeyDown } from './use-keyboard'
 import { addDays, clampDate, formatDate } from './utilities'
@@ -61,6 +63,19 @@ export type DatePickerBaseProps = {
 export type DatePickerProps = DatePickerBaseProps & (DatePickerSingleProps | DatePickerRangeProps)
 
 export function DatePicker(props: DatePickerProps) {
+	const control = useControl()
+	const skeleton = useSkeleton()
+
+	if (skeleton) {
+		const size = control?.size ?? 'md'
+
+		return (
+			<Placeholder
+				className={cn(kokkaku.formControl.base, kokkaku.formControl.size[size], props.className)}
+			/>
+		)
+	}
+
 	if (props.range) {
 		return <DatePickerRange {...props} />
 	}

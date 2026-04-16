@@ -27,7 +27,7 @@
 			"types": "./src/components/alert/index.ts",
 			"default": "./src/components/alert/index.ts"
 		},
-"./aspect-ratio": {
+		"./aspect-ratio": {
 			"types": "./src/components/aspect-ratio/index.ts",
 			"default": "./src/components/aspect-ratio/index.ts"
 		},
@@ -150,6 +150,10 @@
 		"./form": {
 			"types": "./src/components/form/index.ts",
 			"default": "./src/components/form/index.ts"
+		},
+		"./frame": {
+			"types": "./src/components/frame/index.ts",
+			"default": "./src/components/frame/index.ts"
 		},
 		"./glass": {
 			"types": "./src/components/glass/index.ts",
@@ -338,10 +342,6 @@
 		"./tree": {
 			"types": "./src/components/tree/index.ts",
 			"default": "./src/components/tree/index.ts"
-		},
-		"./virtual-list": {
-			"types": "./src/components/virtual-list/index.ts",
-			"default": "./src/components/virtual-list/index.ts"
 		},
 		"./layouts": {
 			"types": "./src/layouts/index.ts",

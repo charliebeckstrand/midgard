@@ -44,15 +44,12 @@ import { numberInput } from './number-input'
 import { option } from './option'
 import { pagination } from './pagination'
 import { panel } from './panel'
-import { passwordConfirm } from './password-confirm'
-import { passwordInput } from './password-input'
 import { placeholder } from './placeholder'
 import { popover } from './popover'
 import { progress } from './progress'
 import { radio } from './radio'
 import { resizable } from './resizable'
 import { scrollArea } from './scroll-area'
-import { searchInput } from './search-input'
 import { segment } from './segment'
 import { select } from './select'
 import { sheet } from './sheet'
@@ -74,7 +71,6 @@ import { toggleIconButton } from './toggle-icon-button'
 import { toolbar } from './toolbar'
 import { tooltip } from './tooltip'
 import { tree } from './tree'
-import { virtualList } from './virtual-list'
 
 export const katachi = {
 	accordion,
@@ -114,15 +110,12 @@ export const katachi = {
 	option,
 	pagination,
 	panel,
-	passwordConfirm,
-	passwordInput,
 	placeholder,
 	popover,
 	progress,
 	radio,
 	resizable,
 	scrollArea,
-	searchInput,
 	segment,
 	select,
 	sheet,
@@ -144,5 +137,4 @@ export const katachi = {
 	toolbar,
 	tooltip,
 	tree,
-	virtualList,
 } as const

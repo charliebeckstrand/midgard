@@ -9,10 +9,12 @@ import { cn, createContext } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { useFloatingUI } from '../../hooks/use-floating-ui'
 import { ControlFrame, PopoverPanel } from '../../primitives'
-import { sumi, waku } from '../../recipes'
+import { kokkaku, sumi, waku } from '../../recipes'
 import { useControl } from '../control/context'
 import { useGlass } from '../glass/context'
 import { Icon } from '../icon'
+import { Placeholder } from '../placeholder'
+import { useSkeleton } from '../skeleton/context'
 import { useListboxSelection } from './use-listbox-selection'
 import { resolveLabel } from './utilities'
 import { k, kPopover } from './variants'
@@ -71,10 +73,13 @@ export function Listbox<T>({
 }: ListboxProps<T>) {
 	const glass = useGlass()
 	const control = useControl()
+	const skeleton = useSkeleton()
 
 	const resolvedId = inputId ?? control?.id
 
 	const resolvedDisabled = control?.disabled
+
+	const resolvedSize = control?.size ?? 'md'
 
 	const handleValueChange = useCallback(
 		(nextValue: T | T[] | undefined) => {
@@ -114,6 +119,14 @@ export function Listbox<T>({
 		() => ({ value, multiple, select: select as (v: unknown) => void, close }),
 		[value, multiple, select, close],
 	)
+
+	if (skeleton) {
+		return (
+			<Placeholder
+				className={cn(kokkaku.formControl.base, kokkaku.formControl.size[resolvedSize], className)}
+			/>
+		)
+	}
 
 	return (
 		<ListboxProvider value={contextValue}>

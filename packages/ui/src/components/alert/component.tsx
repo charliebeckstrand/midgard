@@ -1,7 +1,7 @@
 'use client'
 
 import { AlertTriangle, CheckCircle, Info, X, XCircle } from 'lucide-react'
-import { Children, isValidElement, type ReactNode, useState } from 'react'
+import { Children, isValidElement, type ReactNode, useCallback, useState } from 'react'
 import { cn } from '../../core'
 import { Button } from '../button'
 import { Icon } from '../icon'
@@ -48,7 +48,12 @@ export type AlertProps = Omit<AlertVariants, 'color'> & {
 	actions?: React.ReactNode
 	block?: boolean
 	closable?: boolean
-	onClose?: () => void
+	/** Initial open state — uncontrolled. @default true */
+	defaultOpen?: boolean
+	/** Controlled open state. */
+	open?: boolean
+	/** Called when the open state changes. */
+	onOpenChange?: (open: boolean) => void
 	className?: string
 	children?: React.ReactNode
 }
@@ -63,13 +68,25 @@ export function Alert({
 	actions,
 	block,
 	closable,
-	onClose,
+	defaultOpen = true,
+	open: openProp,
+	onOpenChange,
 	className,
 	children,
 }: AlertProps) {
-	const [dismissed, setDismissed] = useState(false)
+	const [uncontrolled, setUncontrolled] = useState(defaultOpen)
 
-	if (dismissed) return null
+	const isControlled = openProp !== undefined
+
+	const open = isControlled ? openProp : uncontrolled
+
+	const close = useCallback(() => {
+		if (!isControlled) setUncontrolled(false)
+
+		onOpenChange?.(false)
+	}, [isControlled, onOpenChange])
+
+	if (!open) return null
 
 	const resolvedVariant = variant ?? 'soft'
 
@@ -117,10 +134,7 @@ export function Alert({
 						variant="plain"
 						aria-label="Dismiss"
 						className={cn(k.close, 'self-center')}
-						onClick={() => {
-							if (onClose) onClose()
-							else setDismissed(true)
-						}}
+						onClick={close}
 					>
 						<Icon icon={<X />} />
 					</Button>

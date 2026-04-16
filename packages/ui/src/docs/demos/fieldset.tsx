@@ -10,7 +10,7 @@ export const meta = { category: 'Forms' }
 
 export default function FieldsetDemo() {
 	return (
-		<Example>
+		<Example title="Default">
 			<Sizer size="lg">
 				<Fieldset>
 					<Legend>Profile</Legend>
