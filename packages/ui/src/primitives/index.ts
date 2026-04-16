@@ -1,5 +1,6 @@
 export { ActiveIndicator, ActiveIndicatorScope, useActiveIndicator } from './active-indicator'
 export { ContentReveal, type ContentRevealProps } from './content-reveal'
+export { ControlFrame, type ControlFrameProps } from './control-frame'
 export {
 	type CurrentContextValue,
 	CurrentProvider,
@@ -7,7 +8,6 @@ export {
 	useCurrent,
 	useCurrentContext,
 } from './current'
-export { FormControl, type FormControlProps } from './form-control'
 export { Link, type LinkProps, LinkProvider, useLink } from './link'
 export { OffcanvasContext, type OffcanvasContextValue, useOffcanvas } from './offcanvas'
 export { BaseOption, OptionDescription, OptionLabel } from './option'

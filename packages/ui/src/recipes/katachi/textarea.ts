@@ -17,7 +17,7 @@ export const textarea = {
 	autoResize: 'field-sizing-content',
 	/** Strips textarea chrome when nested inside a framed container. */
 	bare: 'border-0 rounded-none pt-3 focus:outline-hidden',
-	/** FormControl border when an actions slot is present. */
+	/** ControlFrame border when an actions slot is present. */
 	frame: kage.border,
 	/** Actions row beneath the textarea. */
 	actions: 'flex items-center gap-2 px-1.5 pb-1.5',

@@ -2,7 +2,7 @@
 
 import { forwardRef } from 'react'
 import { cn } from '../../core'
-import { FormControl } from '../../primitives'
+import { ControlFrame } from '../../primitives'
 import { kokkaku } from '../../recipes'
 import { useControl } from '../control/context'
 import { useFormText } from '../form/context'
@@ -86,7 +86,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 
 	return (
 		<InputSizeProvider value={iconSize[resolvedSize]}>
-			<FormControl
+			<ControlFrame
 				className={cn(controlVariants({ variant: resolvedVariant }), hasAffix && 'relative')}
 			>
 				{prefix && (
@@ -121,7 +121,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 						{resolvedSuffix}
 					</span>
 				)}
-			</FormControl>
+			</ControlFrame>
 		</InputSizeProvider>
 	)
 })

@@ -147,7 +147,7 @@ Evaluate whether components follow accessibility best practices.
 - Missing keyboard interaction support on interactive components
 - Focus management issues in overlay/modal components
 - Missing `disabled` prop forwarding on interactive components
-- Form components not using `FormControl` primitive or not associated with labels
+- Form components not using `ControlFrame` primitive or not associated with labels
 
 ---
 

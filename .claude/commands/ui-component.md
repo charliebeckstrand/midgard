@@ -19,7 +19,7 @@ packages/ui/
   src/
     index.ts                  # Re-exports core utilities only
     core/                     # cn, colorCva, colorKeys, compoundColors, createContext, Link
-    primitives/               # Reusable building blocks (Polymorphic, Overlay, FormControl, etc.)
+    primitives/               # Reusable building blocks (Polymorphic, Overlay, ControlFrame, etc.)
     recipes/                  # Design token layers (katachi, nuri, take, kage, etc.)
     hooks/                    # Shared hooks (useControllable, useOverlay, useIsDesktop, etc.)
     components/<name>/        # Each component lives here
@@ -50,7 +50,7 @@ For components with multiple distinct sub-components (e.g. dialog has `dialog.ts
 Follow this reuse hierarchy — always prefer the highest level that applies:
 
 1. **Compose existing components** (`Dialog`, `Input`, `Button`, `Popover`, `Listbox`, `Sheet`, `Drawer`, …) — the full list is under *Existing components* below
-2. **Use primitives** (`Overlay`, `FormControl`, `Polymorphic`, `TouchTarget`, `createPanelSlots`, …) only when no component fits
+2. **Use primitives** (`Overlay`, `ControlFrame`, `Polymorphic`, `TouchTarget`, `createPanelSlots`, …) only when no component fits
 3. **Use recipes/hooks** (`katachi`, `ugoki`, `useIsDesktop`, `useOverlay`, …) only when no primitive fits
 4. **Write raw markup + Tailwind** only as a last resort
 
@@ -212,7 +212,7 @@ export type <Name>Variants = ColorCvaVariants
 Follow these conventions:
 - Import `cn` from `../../core`
 - Import recipes from `../../recipes` when accessing slot classes directly (e.g., `katachi.<name>.header`)
-- Import primitives from `../../primitives` as needed (`Polymorphic`, `FormControl`, `Overlay`, `TouchTarget`, etc.)
+- Import primitives from `../../primitives` as needed (`Polymorphic`, `ControlFrame`, `Overlay`, `TouchTarget`, etc.)
 - Import variant functions from `./variants`
 - Use `data-slot="<name>"` on the root element (kebab-case for compound slots like `card-header`)
 - Accept `className?: string` and merge with `cn(variantFn({ ...variants }), className)`
@@ -557,7 +557,7 @@ alert, avatar, badge, breadcrumb, button, calendar, card, checkbox, chip, combob
 ## Available primitives
 
 - **Polymorphic** — renders as `<Link>` when `href` is provided, otherwise as the fallback element
-- **FormControl** — shared wrapper for form inputs (border, focus ring, disabled)
+- **ControlFrame** — shared wrapper for form inputs (border, focus ring, disabled)
 - **Overlay** — portal + backdrop + escape-key + scroll-lock for modals
 - **TouchTarget** — invisible touch-area expander for small interactive elements
 - **ToggleField / ToggleGroup** — layout wrappers for checkbox/radio/switch fields
