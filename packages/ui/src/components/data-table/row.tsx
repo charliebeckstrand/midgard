@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { memo, useMemo } from 'react'
 import { cn } from '../../core'
 import { Checkbox } from '../checkbox'
 import { TableCell, TableRow } from '../table'
@@ -16,7 +16,7 @@ type DataTableRowInternalProps<T> = {
 	className: string | undefined
 }
 
-export function DataTableRowInternal<T>({
+function DataTableRowInternalImpl<T>({
 	row,
 	rowKey,
 	columns,
@@ -69,3 +69,7 @@ export function DataTableRowInternal<T>({
 		</DataTableRowProvider>
 	)
 }
+
+export const DataTableRowInternal = memo(
+	DataTableRowInternalImpl,
+) as typeof DataTableRowInternalImpl
