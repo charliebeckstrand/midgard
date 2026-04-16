@@ -66,11 +66,12 @@ export function SidebarLayout({
 			</Drawer>
 
 			{/* Navbar on mobile */}
-			<Flex gap={4} align="center" className="lg:p-0 px-6 py-2 lg:hidden">
+			<Flex gap={4} align="center" className="lg:p-0 p-6 lg:hidden">
 				<Button variant="plain" onClick={() => setOpen(true)} aria-label="Open navigation">
 					{menuIcon ?? <Icon icon={<Menu />} />}
 				</Button>
-				<div className="min-w-0 flex-1">{navbar}</div>
+				{navbar && <div className="min-w-0 flex-1">{navbar}</div>}
+				{actions && <div className="shrink-0 ml-auto">{actions}</div>}
 			</Flex>
 
 			{/* Content */}
