@@ -19,10 +19,10 @@ import {
 
 const TOOLBAR_ITEM_SELECTOR = [
 	'button:not(:disabled)',
-	'a[href]',
 	'[role="button"]:not([aria-disabled="true"])',
 	'[role="checkbox"]:not([aria-disabled="true"])',
 	'[role="radio"]:not([aria-disabled="true"])',
+	'a[href]',
 	'[tabindex="0"]',
 ].join(',')
 
