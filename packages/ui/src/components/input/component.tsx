@@ -61,7 +61,13 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 	const scope = useIdScope({ id: id ?? control?.id })
 	const binding = useFormText(name, { onChange, onBlur })
 
+	// Wrappers take ownership of value/onChange by passing them explicitly.
+	// In that case we still emit `name` to the DOM and surface `invalid`
+	// from the form, but we don't override the wrapper's controlled state.
+	const bound = value === undefined && binding !== undefined
+
 	const resolvedId = scope.id
+
 	const resolvedAutoComplete = props.autoComplete ?? control?.autoComplete
 
 	const resolvedDisabled = disabled ?? control?.disabled
@@ -108,9 +114,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 					disabled={resolvedDisabled}
 					required={resolvedRequired}
 					readOnly={resolvedReadOnly}
-					value={binding?.value ?? value}
-					onChange={binding?.onChange ?? onChange}
-					onBlur={binding?.onBlur ?? onBlur}
+					value={bound ? binding.value : value}
+					onChange={bound ? binding.onChange : onChange}
+					onBlur={bound ? binding.onBlur : onBlur}
 					{...(resolvedInvalid ? { 'data-invalid': '', 'aria-invalid': true } : {})}
 					className={cn(
 						inputVariants({ variant: resolvedVariant, size }),
