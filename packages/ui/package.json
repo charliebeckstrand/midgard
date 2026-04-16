@@ -27,7 +27,7 @@
 			"types": "./src/components/alert/index.ts",
 			"default": "./src/components/alert/index.ts"
 		},
-"./aspect-ratio": {
+		"./aspect-ratio": {
 			"types": "./src/components/aspect-ratio/index.ts",
 			"default": "./src/components/aspect-ratio/index.ts"
 		},
