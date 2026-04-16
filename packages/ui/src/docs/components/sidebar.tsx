@@ -34,6 +34,7 @@ export function SidebarContent({ route }: { route: string }) {
 				<Heading level={2}>UI Components</Heading>
 			</SidebarHeader>
 			<Combobox<string>
+				id="component-search"
 				placeholder="Search components"
 				selectable={false}
 				onChange={(id) => {

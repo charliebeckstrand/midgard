@@ -7,6 +7,7 @@ export type ControlVariant = 'default' | 'outline' | 'glass'
 
 export type ControlContextValue = {
 	id: string
+	autoComplete?: string
 	disabled?: boolean
 	invalid?: boolean
 	readOnly?: boolean

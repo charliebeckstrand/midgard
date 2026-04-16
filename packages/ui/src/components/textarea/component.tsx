@@ -38,6 +38,7 @@ export function Textarea({
 	const binding = useFormText(name, { onChange, onBlur })
 
 	const resolvedId = id ?? control?.id
+	const resolvedAutoComplete = props.autoComplete ?? control?.autoComplete
 	const resolvedDisabled = disabled ?? control?.disabled
 	const resolvedRequired = required ?? control?.required
 	const resolvedReadOnly = readOnly ?? control?.readOnly
@@ -53,6 +54,7 @@ export function Textarea({
 	const controlProps = {
 		id: resolvedId,
 		name,
+		autoComplete: resolvedAutoComplete,
 		disabled: resolvedDisabled,
 		required: resolvedRequired,
 		readOnly: resolvedReadOnly,

@@ -2,6 +2,7 @@
 
 import { forwardRef } from 'react'
 import { cn } from '../../core'
+import { useIdScope } from '../../hooks/use-id-scope'
 import { ControlFrame } from '../../primitives'
 import { kokkaku } from '../../recipes'
 import { useControl } from '../control/context'
@@ -56,9 +57,12 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 	const glass = useGlass()
 	const skeleton = useSkeleton()
 	const control = useControl()
+
+	const scope = useIdScope({ id: id ?? control?.id })
 	const binding = useFormText(name, { onChange, onBlur })
 
-	const resolvedId = id ?? control?.id
+	const resolvedId = scope.id
+	const resolvedAutoComplete = props.autoComplete ?? control?.autoComplete
 
 	const resolvedDisabled = disabled ?? control?.disabled
 	const resolvedRequired = required ?? control?.required
@@ -99,6 +103,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 					type={type}
 					id={resolvedId}
 					name={name}
+					autoComplete={resolvedAutoComplete}
 					disabled={resolvedDisabled}
 					required={resolvedRequired}
 					readOnly={resolvedReadOnly}

@@ -22,7 +22,7 @@ describe('useSelect', () => {
 
 		expect(setValue).toHaveBeenCalledOnce()
 
-		const updater = setValue.mock.calls[0][0]
+		const updater = setValue.mock.calls[0]?.[0]
 
 		expect(updater(undefined)).toBe('a')
 	})
@@ -36,7 +36,7 @@ describe('useSelect', () => {
 			result.current('a')
 		})
 
-		const updater = setValue.mock.calls[0][0]
+		const updater = setValue.mock.calls[0]?.[0]
 
 		expect(updater('a')).toBeUndefined()
 	})
@@ -50,7 +50,7 @@ describe('useSelect', () => {
 			result.current('b')
 		})
 
-		const updater = setValue.mock.calls[0][0]
+		const updater = setValue.mock.calls[0]?.[0]
 
 		expect(updater(['a'])).toEqual(['a', 'b'])
 	})
@@ -64,7 +64,7 @@ describe('useSelect', () => {
 			result.current('a')
 		})
 
-		const updater = setValue.mock.calls[0][0]
+		const updater = setValue.mock.calls[0]?.[0]
 
 		expect(updater(['a', 'b'])).toEqual(['b'])
 	})

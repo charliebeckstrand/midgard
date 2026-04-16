@@ -17,11 +17,13 @@ import { useCallback, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { useFocusTrap } from '../../hooks/use-focus-trap'
+import { useIdScope } from '../../hooks/use-id-scope'
 import { ControlFrame } from '../../primitives'
 import { omote, sumi, ugoki } from '../../recipes'
 import { Box } from '../box'
 import { Button } from '../button'
 import { type CalendarActive, type CalendarHandle, CalendarRange } from '../calendar'
+import { useControl } from '../control/context'
 import { useGlass } from '../glass/context'
 import { Icon } from '../icon'
 import type { DatePickerBaseProps, DatePickerRangeProps } from './datepicker'
@@ -41,6 +43,8 @@ export function DatePickerRange({
 	disabled = false,
 }: DatePickerBaseProps & DatePickerRangeProps) {
 	const glass = useGlass()
+	const control = useControl()
+	const scope = useIdScope({ id: control?.id })
 
 	const [value, setValue] = useControllable({ value: valueProp, defaultValue, onChange })
 
@@ -207,6 +211,7 @@ export function DatePickerRange({
 					<button
 						ref={triggerRef}
 						type="button"
+						id={scope.id}
 						aria-haspopup="dialog"
 						aria-expanded={open}
 						disabled={disabled}

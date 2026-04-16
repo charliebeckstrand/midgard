@@ -1,4 +1,4 @@
-import { ArrowUp, CircleDashed, Plus } from 'lucide-react'
+import { ArrowUp, CircleDashed, Paperclip } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../../components/button'
 import { Field, Label } from '../../components/fieldset'
@@ -91,7 +91,7 @@ export default function TextareaDemo() {
 								</Button>
 								<Spacer />
 								<Button variant="plain" size="sm">
-									<Icon icon={<Plus />} />
+									<Icon icon={<Paperclip />} />
 								</Button>
 								<Button size="sm" color="blue" disabled={!value.trim()}>
 									<Icon icon={<ArrowUp />} />
@@ -119,7 +119,7 @@ export default function TextareaDemo() {
 									</Button>
 									<Spacer />
 									<Button variant="plain" size="sm">
-										<Icon icon={<Plus />} />
+										<Icon icon={<Paperclip />} />
 									</Button>
 									<Button size="sm" color="blue" disabled={!withActionsValue.trim()}>
 										<Icon icon={<ArrowUp />} />

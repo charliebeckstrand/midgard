@@ -71,11 +71,11 @@ function BoundFieldsForm() {
 						onReset={() => setResult('')}
 					>
 						<Stack gap={4}>
-							<Field>
+							<Field autoComplete="name">
 								<Label>Name</Label>
 								<Input name="name" placeholder="Jane Doe" />
 							</Field>
-							<Field>
+							<Field autoComplete="email">
 								<Label>Email</Label>
 								<Input name="email" type="email" placeholder="jane@example.com" />
 							</Field>
@@ -168,17 +168,17 @@ function ValidationForm() {
 					onSubmit={async () => await simulateAsyncSubmission()}
 				>
 					<Stack gap={4}>
-						<Field>
+						<Field autoComplete="email">
 							<Label>Email</Label>
 							<Input name="email" type="email" placeholder="jane@example.com" />
 							<ErrorMessage name="email" />
 						</Field>
-						<Field>
+						<Field autoComplete="new-password">
 							<Label>Password</Label>
 							<Input name="password" type="password" placeholder="Min 8 characters" />
 							<ErrorMessage name="password" />
 						</Field>
-						<Field>
+						<Field autoComplete="new-password">
 							<Label>Confirm password</Label>
 							<Input name="confirmPassword" type="password" placeholder="Re-enter password" />
 							<ErrorMessage name="confirmPassword" />
@@ -255,7 +255,7 @@ function DirtyTouchedForm() {
 					onSubmit={async () => await simulateAsyncSubmission()}
 				>
 					<Stack gap={4}>
-						<Field>
+						<Field autoComplete="username">
 							<Label>Username</Label>
 							<Input name="username" />
 							<ErrorMessage name="username" />
@@ -335,7 +335,7 @@ function ServerErrorForm() {
 					}}
 				>
 					<Stack gap={4}>
-						<Field>
+						<Field autoComplete="username">
 							<Label>Username</Label>
 							<Input name="username" placeholder="Pick a username" loading={loading} />
 							<ErrorMessage name="username" />

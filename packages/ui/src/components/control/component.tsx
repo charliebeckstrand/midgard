@@ -16,6 +16,7 @@ const k = katachi.fieldset
 
 export type ControlProps = {
 	id?: string
+	autoComplete?: string
 	disabled?: boolean
 	invalid?: boolean
 	readOnly?: boolean
@@ -35,6 +36,7 @@ export type ControlProps = {
  */
 export function Control({
 	id: idProp,
+	autoComplete,
 	disabled,
 	invalid,
 	readOnly,
@@ -56,9 +58,12 @@ export function Control({
 
 	const mergedVariant = variant ?? parent?.variant
 
+	const mergedAutoComplete = autoComplete ?? parent?.autoComplete
+
 	const value = useMemo<ControlContextValue>(
 		() => ({
 			id: scope.id,
+			autoComplete: mergedAutoComplete,
 			disabled: mergedDisabled,
 			invalid,
 			readOnly: mergedReadOnly,
@@ -66,7 +71,16 @@ export function Control({
 			size: mergedSize,
 			variant: mergedVariant,
 		}),
-		[scope.id, mergedDisabled, invalid, mergedReadOnly, required, mergedSize, mergedVariant],
+		[
+			scope.id,
+			mergedAutoComplete,
+			mergedDisabled,
+			invalid,
+			mergedReadOnly,
+			required,
+			mergedSize,
+			mergedVariant,
+		],
 	)
 
 	return (

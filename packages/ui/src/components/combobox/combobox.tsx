@@ -30,6 +30,7 @@ export const [ComboboxProvider, useComboboxContext] =
 	createContext<ComboboxContextValue>('Combobox')
 
 type ComboboxBaseProps<T> = {
+	id?: string
 	placeholder?: string
 	displayValue?: (value: T) => string
 	placement?: Placement
@@ -62,6 +63,7 @@ export type ComboboxProps<T> = ComboboxBaseProps<T> &
 	(ComboboxSingleProps<T> | ComboboxMultipleProps<T>)
 
 export function Combobox<T>({
+	id,
 	value: valueProp,
 	defaultValue,
 	displayValue,
@@ -156,7 +158,7 @@ export function Combobox<T>({
 						aria-controls={open ? listboxId : undefined}
 						aria-autocomplete="list"
 						data-slot="combobox-input"
-						id={control?.id}
+						id={id ?? control?.id}
 						disabled={resolvedDisabled}
 						{...(control?.invalid ? { 'data-invalid': '', 'aria-invalid': true } : {})}
 						value={inputDisplay}
