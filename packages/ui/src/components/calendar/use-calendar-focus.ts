@@ -4,10 +4,12 @@ import { type KeyboardEvent, type RefObject, useCallback } from 'react'
 
 import { useRovingFocus } from '../../hooks/use-keyboard'
 
-type ZoneRefs = {
+type CalendarFocusOptions = {
 	headerRef: RefObject<HTMLElement | null>
 	gridRef: RefObject<HTMLElement | null>
 	footerRef?: RefObject<HTMLElement | null>
+	cols?: number
+	stopPropagation?: boolean
 }
 
 function firstButton(container: HTMLElement | null): HTMLElement | null {
@@ -28,25 +30,31 @@ function lastButton(container: HTMLElement | null): HTMLElement | null {
 	return buttons[buttons.length - 1]
 }
 
-function isTopRow(container: HTMLElement | null): boolean {
+function isTopRow(container: HTMLElement | null, cols: number): boolean {
 	const buttons = Array.from(container?.querySelectorAll<HTMLElement>('button') ?? [])
 
 	const index = buttons.indexOf(document.activeElement as HTMLElement)
 
-	return index >= 0 && index < 7
+	return index >= 0 && index < cols
 }
 
-function isBottomRow(container: HTMLElement | null): boolean {
+function isBottomRow(container: HTMLElement | null, cols: number): boolean {
 	const buttons = Array.from(container?.querySelectorAll<HTMLElement>('button') ?? [])
 
 	const index = buttons.indexOf(document.activeElement as HTMLElement)
 
 	if (index < 0) return false
 
-	return index + 7 >= buttons.length
+	return index + cols >= buttons.length
 }
 
-export function useCalendarZoneFocus({ headerRef, gridRef, footerRef }: ZoneRefs) {
+export function useCalendarFocus({
+	headerRef,
+	gridRef,
+	footerRef,
+	cols = 7,
+	stopPropagation = false,
+}: CalendarFocusOptions) {
 	const headerRoving = useRovingFocus(headerRef, {
 		itemSelector: 'button',
 		orientation: 'horizontal',
@@ -54,7 +62,7 @@ export function useCalendarZoneFocus({ headerRef, gridRef, footerRef }: ZoneRefs
 
 	const gridRoving = useRovingFocus(gridRef, {
 		itemSelector: 'button',
-		cols: 7,
+		cols,
 	})
 
 	const handleHeaderKeyDown = useCallback(
@@ -62,31 +70,39 @@ export function useCalendarZoneFocus({ headerRef, gridRef, footerRef }: ZoneRefs
 			if (e.key === 'ArrowDown') {
 				e.preventDefault()
 
+				if (stopPropagation) e.stopPropagation()
+
 				firstButton(gridRef.current)?.focus()
 
 				return
 			}
 
 			headerRoving(e)
+
+			if (stopPropagation && e.defaultPrevented) e.stopPropagation()
 		},
-		[gridRef, headerRoving],
+		[gridRef, headerRoving, stopPropagation],
 	)
 
 	const handleGridKeyDown = useCallback(
 		(e: KeyboardEvent) => {
-			if (e.key === 'ArrowUp' && isTopRow(gridRef.current)) {
+			if (e.key === 'ArrowUp' && isTopRow(gridRef.current, cols)) {
 				e.preventDefault()
+
+				if (stopPropagation) e.stopPropagation()
 
 				middleButton(headerRef.current)?.focus()
 
 				return
 			}
 
-			if (e.key === 'ArrowDown' && isBottomRow(gridRef.current)) {
+			if (e.key === 'ArrowDown' && isBottomRow(gridRef.current, cols)) {
 				const target = firstButton(footerRef?.current ?? null)
 
 				if (target) {
 					e.preventDefault()
+
+					if (stopPropagation) e.stopPropagation()
 
 					target.focus()
 
@@ -95,14 +111,18 @@ export function useCalendarZoneFocus({ headerRef, gridRef, footerRef }: ZoneRefs
 			}
 
 			gridRoving(e)
+
+			if (stopPropagation && e.defaultPrevented) e.stopPropagation()
 		},
-		[gridRef, headerRef, footerRef, gridRoving],
+		[gridRef, headerRef, footerRef, cols, gridRoving, stopPropagation],
 	)
 
 	const handleFooterKeyDown = useCallback(
 		(e: KeyboardEvent) => {
 			if (e.key === 'ArrowUp') {
 				e.preventDefault()
+
+				if (stopPropagation) e.stopPropagation()
 
 				lastButton(gridRef.current)?.focus()
 
@@ -126,11 +146,13 @@ export function useCalendarZoneFocus({ headerRef, gridRef, footerRef }: ZoneRefs
 				if (next) {
 					e.preventDefault()
 
+					if (stopPropagation) e.stopPropagation()
+
 					next.focus()
 				}
 			}
 		},
-		[gridRef, footerRef],
+		[gridRef, footerRef, stopPropagation],
 	)
 
 	return { handleHeaderKeyDown, handleGridKeyDown, handleFooterKeyDown }

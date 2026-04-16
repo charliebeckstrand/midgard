@@ -1,11 +1,12 @@
 'use client'
 
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { type KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { cn } from '../../core'
-import { useRovingFocus } from '../../hooks/use-keyboard'
+import { useControllable } from '../../hooks/use-controllable'
 import { Button } from '../button'
 import { Popover, PopoverContent, PopoverTrigger } from '../popover'
+import { useCalendarFocus } from './use-calendar-focus'
 import { MONTHS } from './utilities'
 import { k } from './variants'
 
@@ -32,7 +33,18 @@ export function CalendarPicker({
 }: CalendarPickerProps) {
 	const [pickerView, setPickerView] = useState<'months' | 'years'>('months')
 
-	const [internalOpen, setInternalOpen] = useState(false)
+	const handleOpenChange = useCallback(
+		(value: boolean | undefined) => {
+			if (value !== undefined) onOpenChange?.(value)
+		},
+		[onOpenChange],
+	)
+
+	const [pickerOpen, setPickerOpen] = useControllable({
+		value: openProp,
+		defaultValue: false,
+		onChange: handleOpenChange,
+	})
 
 	const [pickerYear, setPickerYear] = useState(year)
 	const [decadeYear, setDecadeYear] = useState(year)
@@ -42,73 +54,12 @@ export function CalendarPicker({
 	const pickerHeaderRef = useRef<HTMLDivElement>(null)
 	const pickerGridRef = useRef<HTMLDivElement>(null)
 
-	const pickerOpen = openProp !== undefined ? openProp : internalOpen
-
-	const setPickerOpen = useCallback(
-		(value: boolean) => {
-			if (openProp === undefined) setInternalOpen(value)
-			onOpenChange?.(value)
-		},
-		[openProp, onOpenChange],
-	)
-
-	const headerRoving = useRovingFocus(pickerHeaderRef, {
-		itemSelector: 'button',
-		orientation: 'horizontal',
-	})
-
-	const gridRoving = useRovingFocus(pickerGridRef, {
-		itemSelector: 'button',
+	const { handleHeaderKeyDown, handleGridKeyDown } = useCalendarFocus({
+		headerRef: pickerHeaderRef,
+		gridRef: pickerGridRef,
 		cols: 3,
+		stopPropagation: true,
 	})
-
-	const handleHeaderKeyDown = useCallback(
-		(e: KeyboardEvent) => {
-			if (e.key === 'ArrowDown') {
-				e.stopPropagation()
-				e.preventDefault()
-
-				pickerGridRef.current?.querySelector<HTMLElement>('button')?.focus()
-
-				return
-			}
-
-			headerRoving(e)
-
-			if (e.defaultPrevented) e.stopPropagation()
-		},
-		[headerRoving],
-	)
-
-	const handleGridKeyDown = useCallback(
-		(e: KeyboardEvent) => {
-			if (e.key === 'ArrowUp') {
-				const buttons = Array.from(
-					pickerGridRef.current?.querySelectorAll<HTMLElement>('button') ?? [],
-				)
-
-				const index = buttons.indexOf(document.activeElement as HTMLElement)
-
-				if (index >= 0 && index < 3) {
-					e.preventDefault()
-					e.stopPropagation()
-
-					const headerButtons = Array.from(
-						pickerHeaderRef.current?.querySelectorAll<HTMLElement>('button') ?? [],
-					)
-
-					headerButtons[Math.floor(headerButtons.length / 2)]?.focus()
-
-					return
-				}
-			}
-
-			gridRoving(e)
-
-			if (e.defaultPrevented) e.stopPropagation()
-		},
-		[gridRoving],
-	)
 
 	const focusPickerGrid = useCallback(() => {
 		requestAnimationFrame(() => {

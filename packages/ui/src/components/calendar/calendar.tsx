@@ -14,7 +14,7 @@ import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { Button, type ButtonVariants } from '../button'
 import { CalendarPicker } from './calendar-picker'
-import { useCalendarZoneFocus } from './use-zone-focus'
+import { useCalendarFocus } from './use-calendar-focus'
 import { getCalendarDays, isBeforeDay, isSameDay, WEEKDAYS } from './utilities'
 import { k } from './variants'
 
@@ -140,7 +140,7 @@ export const Calendar = forwardRef<CalendarHandle, CalendarProps>(function Calen
 	const headerRef = useRef<HTMLDivElement>(null)
 	const gridRef = useRef<HTMLDivElement>(null)
 
-	const { handleHeaderKeyDown, handleGridKeyDown, handleFooterKeyDown } = useCalendarZoneFocus({
+	const { handleHeaderKeyDown, handleGridKeyDown, handleFooterKeyDown } = useCalendarFocus({
 		headerRef,
 		gridRef,
 		footerRef,
@@ -233,8 +233,6 @@ export const Calendar = forwardRef<CalendarHandle, CalendarProps>(function Calen
 					className="col-span-7 grid grid-cols-7"
 				>
 					{days.map((date) => {
-						if (date.getMonth() !== month) return null
-
 						const disabled = isDisabled(date)
 
 						const isToday = isSameDay(date, today)
