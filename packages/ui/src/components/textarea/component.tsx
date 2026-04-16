@@ -4,6 +4,7 @@ import { cn } from '../../core'
 import { FormControl } from '../../primitives'
 import { kokkaku } from '../../recipes'
 import { useControl } from '../control/context'
+import { useFormText } from '../form/context'
 import { useGlass } from '../glass/context'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
@@ -24,10 +25,15 @@ export function Textarea({
 	disabled,
 	required,
 	readOnly,
+	name,
+	value,
+	onChange,
+	onBlur,
 	...props
 }: TextareaProps) {
 	const glass = useGlass()
 	const control = useControl()
+	const binding = useFormText(name, { onChange, onBlur })
 
 	const resolvedId = id ?? control?.id
 	const resolvedDisabled = disabled ?? control?.disabled
@@ -36,16 +42,22 @@ export function Textarea({
 
 	const resolvedVariant = variant ?? control?.variant ?? (glass ? 'glass' : undefined)
 
+	const resolvedInvalid = control?.invalid || binding?.invalid
+
 	if (useSkeleton()) {
 		return <Placeholder className={cn(kokkaku.textarea.base, className)} />
 	}
 
 	const controlProps = {
 		id: resolvedId,
+		name,
 		disabled: resolvedDisabled,
 		required: resolvedRequired,
 		readOnly: resolvedReadOnly,
-		...(control?.invalid ? { 'data-invalid': '', 'aria-invalid': true as const } : {}),
+		value: binding?.value ?? value,
+		onChange: binding?.onChange ?? onChange,
+		onBlur: binding?.onBlur ?? onBlur,
+		...(resolvedInvalid ? { 'data-invalid': '', 'aria-invalid': true as const } : {}),
 	}
 
 	if (actions !== undefined) {

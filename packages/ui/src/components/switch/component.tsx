@@ -3,6 +3,7 @@
 import { cn } from '../../core'
 import { kokkaku, narabi } from '../../recipes'
 import { useControl } from '../control/context'
+import { useFormToggle } from '../form/context'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
 import {
@@ -20,13 +21,27 @@ export type SwitchProps = SwitchVariants & {
 	className?: string
 } & Omit<React.ComponentPropsWithoutRef<'input'>, 'className' | 'type' | 'size'>
 
-export function Switch({ className, color, size, id, disabled, required, ...props }: SwitchProps) {
+export function Switch({
+	className,
+	color,
+	size,
+	id,
+	disabled,
+	required,
+	name,
+	checked,
+	onChange,
+	...props
+}: SwitchProps) {
 	const control = useControl()
+	const binding = useFormToggle(name, { onChange })
 
 	const resolvedId = id ?? control?.id
 	const resolvedDisabled = disabled ?? control?.disabled
 	const resolvedRequired = required ?? control?.required
 	const resolvedSize = size ?? (control?.size as SwitchVariants['size'])
+
+	const resolvedInvalid = control?.invalid || binding?.invalid
 
 	if (useSkeleton()) {
 		return (
@@ -49,9 +64,12 @@ export function Switch({ className, color, size, id, disabled, required, ...prop
 				type="checkbox"
 				data-slot="switch"
 				id={resolvedId}
+				name={name}
 				disabled={resolvedDisabled}
 				required={resolvedRequired}
-				{...(control?.invalid ? { 'data-invalid': '', 'aria-invalid': true } : {})}
+				checked={binding?.checked ?? checked}
+				onChange={binding?.onChange ?? onChange}
+				{...(resolvedInvalid ? { 'data-invalid': '', 'aria-invalid': true } : {})}
 				className={cn(switchInputVariants(), className)}
 				{...props}
 			/>
