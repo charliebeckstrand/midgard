@@ -10,7 +10,7 @@ import { useControllable } from '../../hooks/use-controllable'
 import { useFloatingUI } from '../../hooks/use-floating-ui'
 import { useRovingFocus } from '../../hooks/use-keyboard'
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
-import { FormControl, PopoverPanel } from '../../primitives'
+import { ControlFrame, PopoverPanel } from '../../primitives'
 import { waku } from '../../recipes'
 import { useControl } from '../control/context'
 import { useGlass } from '../glass/context'
@@ -146,7 +146,7 @@ export function Combobox<T>({
 				className={cn(className)}
 				{...getReferenceProps()}
 			>
-				<FormControl data-open={open || undefined} className={cn(!glass && waku.control.surface)}>
+				<ControlFrame data-open={open || undefined} className={cn(!glass && waku.control.surface)}>
 					<input
 						ref={inputRef}
 						type="text"
@@ -201,7 +201,7 @@ export function Combobox<T>({
 					<span data-slot="icon" className={cn(k.chevron)}>
 						{icon ?? <Icon icon={<ChevronsUpDown />} size="sm" />}
 					</span>
-				</FormControl>
+				</ControlFrame>
 			</div>
 
 			<FloatingPortal>

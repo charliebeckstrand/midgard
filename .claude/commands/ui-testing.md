@@ -59,7 +59,7 @@ This determines which test patterns apply.
 
 Parse `$ARGUMENTS` to identify:
 
-- **The target name** (e.g., "button", "use-controllable", "form-control")
+- **The target name** (e.g., "button", "use-controllable", "control-frame")
 - **The target type** — component, primitive, or hook
 
 If ambiguous, scan the source directories to locate the target.

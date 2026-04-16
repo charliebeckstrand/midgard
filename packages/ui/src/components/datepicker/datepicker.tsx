@@ -19,7 +19,7 @@ import { useCallback, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { useFocusTrap } from '../../hooks/use-focus-trap'
-import { FormControl } from '../../primitives'
+import { ControlFrame } from '../../primitives'
 import { omote, sumi, ugoki } from '../../recipes'
 import { Box } from '../box'
 import { Button } from '../button'
@@ -202,7 +202,7 @@ function DatePickerSingle({
 				className={cn(className)}
 				{...getReferenceProps()}
 			>
-				<FormControl
+				<ControlFrame
 					data-open={open || undefined}
 					className={cn(k.control[glass ? 'glass' : 'default'])}
 				>
@@ -227,7 +227,7 @@ function DatePickerSingle({
 					<span className={cn(k.icon)}>
 						<Icon icon={<CalendarIcon />} size="sm" />
 					</span>
-				</FormControl>
+				</ControlFrame>
 			</div>
 
 			<FloatingPortal>

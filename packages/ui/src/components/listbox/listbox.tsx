@@ -8,7 +8,7 @@ import { useCallback, useId, useRef } from 'react'
 import { cn, createContext } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { useFloatingUI } from '../../hooks/use-floating-ui'
-import { FormControl, PopoverPanel } from '../../primitives'
+import { ControlFrame, PopoverPanel } from '../../primitives'
 import { sumi, waku } from '../../recipes'
 import { useControl } from '../control/context'
 import { useGlass } from '../glass/context'
@@ -118,7 +118,7 @@ export function Listbox<T>({
 				className={cn(className)}
 				{...getReferenceProps()}
 			>
-				<FormControl data-open={open || undefined} className={cn(!glass && waku.control.surface)}>
+				<ControlFrame data-open={open || undefined} className={cn(!glass && waku.control.surface)}>
 					<button
 						ref={triggerRef}
 						id={resolvedId}
@@ -140,7 +140,7 @@ export function Listbox<T>({
 							{icon ?? <Icon icon={<ChevronsUpDown />} size="sm" />}
 						</span>
 					</button>
-				</FormControl>
+				</ControlFrame>
 			</div>
 
 			<FloatingPortal>

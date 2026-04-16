@@ -4,7 +4,7 @@ import { CornerLeftDown, X } from 'lucide-react'
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useControllable, useTagKeyboard } from '../../hooks'
-import { FormControl } from '../../primitives'
+import { ControlFrame } from '../../primitives'
 import { waku } from '../../recipes'
 import type { Color } from '../../recipes/nuri/palette'
 import { Button } from '../button'
@@ -132,7 +132,7 @@ export const TagInput = forwardRef<HTMLInputElement, TagInputProps>(function Tag
 	}, [addTag, inputValue])
 
 	return (
-		<FormControl className={cn(!glass && waku.control.surface)}>
+		<ControlFrame className={cn(!glass && waku.control.surface)}>
 			<div
 				ref={containerRef}
 				data-slot="tag-input"
@@ -192,6 +192,6 @@ export const TagInput = forwardRef<HTMLInputElement, TagInputProps>(function Tag
 					</Button>
 				</div>
 			</div>
-		</FormControl>
+		</ControlFrame>
 	)
 })

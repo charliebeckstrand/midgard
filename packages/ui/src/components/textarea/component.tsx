@@ -1,7 +1,7 @@
 'use client'
 
 import { cn } from '../../core'
-import { FormControl } from '../../primitives'
+import { ControlFrame } from '../../primitives'
 import { kokkaku } from '../../recipes'
 import { useControl } from '../control/context'
 import { useFormText } from '../form/context'
@@ -69,7 +69,7 @@ export function Textarea({
 
 	if (actions !== undefined) {
 		return (
-			<FormControl className={cn(k.frame, controlVariants({ variant: resolvedVariant }))}>
+			<ControlFrame className={cn(k.frame, controlVariants({ variant: resolvedVariant }))}>
 				<textarea
 					data-slot="textarea"
 					{...controlProps}
@@ -85,12 +85,12 @@ export function Textarea({
 				<div data-slot="textarea-actions" className={cn(k.actions)}>
 					{actions}
 				</div>
-			</FormControl>
+			</ControlFrame>
 		)
 	}
 
 	return (
-		<FormControl className={cn(controlVariants({ variant: resolvedVariant }))}>
+		<ControlFrame className={cn(controlVariants({ variant: resolvedVariant }))}>
 			<textarea
 				data-slot="textarea"
 				{...controlProps}
@@ -102,6 +102,6 @@ export function Textarea({
 				)}
 				{...props}
 			/>
-		</FormControl>
+		</ControlFrame>
 	)
 }
