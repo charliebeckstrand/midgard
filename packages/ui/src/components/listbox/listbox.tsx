@@ -4,15 +4,17 @@ import { FloatingPortal, type Placement } from '@floating-ui/react'
 import { ChevronsUpDown } from 'lucide-react'
 import { AnimatePresence } from 'motion/react'
 import type React from 'react'
-import { useCallback, useId, useRef } from 'react'
+import { useCallback, useId, useMemo, useRef } from 'react'
 import { cn, createContext } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { useFloatingUI } from '../../hooks/use-floating-ui'
 import { ControlFrame, PopoverPanel } from '../../primitives'
-import { sumi, waku } from '../../recipes'
+import { kokkaku, sumi, waku } from '../../recipes'
 import { useControl } from '../control/context'
 import { useGlass } from '../glass/context'
 import { Icon } from '../icon'
+import { Placeholder } from '../placeholder'
+import { useSkeleton } from '../skeleton/context'
 import { useListboxSelection } from './use-listbox-selection'
 import { resolveLabel } from './utilities'
 import { k, kPopover } from './variants'
@@ -71,10 +73,13 @@ export function Listbox<T>({
 }: ListboxProps<T>) {
 	const glass = useGlass()
 	const control = useControl()
+	const skeleton = useSkeleton()
 
 	const resolvedId = inputId ?? control?.id
 
 	const resolvedDisabled = control?.disabled
+
+	const resolvedSize = control?.size ?? 'md'
 
 	const handleValueChange = useCallback(
 		(nextValue: T | T[] | undefined) => {
@@ -110,8 +115,21 @@ export function Listbox<T>({
 
 	const label = resolveLabel({ value, displayValue, multiple })
 
+	const contextValue = useMemo<ListboxContextValue>(
+		() => ({ value, multiple, select: select as (v: unknown) => void, close }),
+		[value, multiple, select, close],
+	)
+
+	if (skeleton) {
+		return (
+			<Placeholder
+				className={cn(kokkaku.formControl.base, kokkaku.formControl.size[resolvedSize], className)}
+			/>
+		)
+	}
+
 	return (
-		<ListboxProvider value={{ value, multiple, select: select as (v: unknown) => void, close }}>
+		<ListboxProvider value={contextValue}>
 			<div
 				data-slot="control"
 				ref={refs.setReference}

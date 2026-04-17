@@ -14,7 +14,7 @@ import {
 	useRole,
 } from '@floating-ui/react'
 import type React from 'react'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { cn, createContext } from '../../core'
 
 type MenuContextValue = {
@@ -105,21 +105,33 @@ export function Menu({ defaultOpen = false, placement, className, children }: Me
 		setOpen(true)
 	}, [])
 
+	const ctx = useMemo<MenuContextValue>(
+		() => ({
+			open,
+			setOpen,
+			close,
+			static: isStatic,
+			triggerRef,
+			setReference: refs.setReference,
+			setFloating: refs.setFloating,
+			floatingStyles,
+			getReferenceProps,
+			getFloatingProps,
+		}),
+		[
+			open,
+			close,
+			isStatic,
+			refs.setReference,
+			refs.setFloating,
+			floatingStyles,
+			getReferenceProps,
+			getFloatingProps,
+		],
+	)
+
 	return (
-		<MenuProvider
-			value={{
-				open,
-				setOpen,
-				close,
-				static: isStatic,
-				triggerRef,
-				setReference: refs.setReference,
-				setFloating: refs.setFloating,
-				floatingStyles,
-				getReferenceProps,
-				getFloatingProps,
-			}}
-		>
+		<MenuProvider value={ctx}>
 			<div
 				data-slot="menu"
 				className={cn(className)}

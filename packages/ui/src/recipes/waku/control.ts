@@ -3,7 +3,8 @@ import { maru } from '../maru'
 
 // ── Motoi (基) ──────────────────────────────────────────
 const motoi = [
-	'relative block w-full',
+	'relative block',
+	'w-full',
 	kage.border,
 	'before:absolute before:inset-px before:rounded-[calc(var(--radius-lg)-1px)]',
 	'after:absolute after:-inset-px after:rounded-lg after:ring-transparent after:ring-inset after:pointer-events-none',

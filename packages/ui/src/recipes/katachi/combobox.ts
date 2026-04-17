@@ -7,15 +7,20 @@ import { waku } from '../waku'
 
 export const combobox = {
 	input: [
-		...waku.inputBase,
 		'block',
+		'truncate',
+		...waku.inputBase,
 		take.control.md,
 		take.combobox.padding,
 		maru.rounded,
-		'truncate',
 	],
 	chevron: [take.control.icon, take.combobox.icon, sumi.textMuted],
 	options: take.popup,
 	option: [...sawari.item, ...narabi.item],
-	empty: ['hidden p-2 text-sm only:block', sumi.textMuted],
+	empty: [
+		'hidden only:block',
+		'p-2',
+		'text-sm',
+		sumi.textMuted,
+	],
 }

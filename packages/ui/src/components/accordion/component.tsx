@@ -2,7 +2,7 @@
 
 import { ChevronDown } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { Icon } from '../icon'
 import {
@@ -47,6 +47,8 @@ export function Accordion(props: AccordionProps) {
 
 	const type = props.type ?? 'single'
 
+	const collapsible = type === 'single' ? ((props as SingleProps).collapsible ?? true) : true
+
 	const isControlled =
 		type === 'multiple'
 			? (props as MultipleProps).value !== undefined
@@ -64,17 +66,23 @@ export function Accordion(props: AccordionProps) {
 			: toArray((props as SingleProps).value)
 		: internal
 
+	const onValueChangeRef = useRef(props.onValueChange)
+
+	onValueChangeRef.current = props.onValueChange
+
 	const setCurrent = useCallback(
 		(next: string[]) => {
 			if (!isControlled) setInternal(next)
 
+			const onValueChange = onValueChangeRef.current
+
 			if (type === 'multiple') {
-				;(props as MultipleProps).onValueChange?.(next)
+				;(onValueChange as MultipleProps['onValueChange'])?.(next)
 			} else {
-				;(props as SingleProps).onValueChange?.(next[0] ?? null)
+				;(onValueChange as SingleProps['onValueChange'])?.(next[0] ?? null)
 			}
 		},
-		[isControlled, type, props],
+		[isControlled, type],
 	)
 
 	const isOpen = useCallback((value: string) => current.includes(value), [current])
@@ -91,15 +99,13 @@ export function Accordion(props: AccordionProps) {
 				return
 			}
 
-			const collapsible = (props as SingleProps).collapsible ?? true
-
 			if (current.includes(value)) {
 				if (collapsible) setCurrent([])
 			} else {
 				setCurrent([value])
 			}
 		},
-		[current, props, setCurrent, type],
+		[current, collapsible, setCurrent, type],
 	)
 
 	const ctx = useMemo(

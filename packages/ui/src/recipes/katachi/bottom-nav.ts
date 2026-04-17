@@ -15,13 +15,18 @@ export const bottomNav = {
 	],
 	item: [
 		'group relative',
-		'flex flex-1 flex-col items-center justify-center gap-0.5',
-		'py-3',
+		'flex flex-1 flex-col items-center justify-center',
+		'gap-0.5 py-3',
 		'text-xs/4 font-medium',
 		sumi.textMuted,
 		ki.inset,
 		take.iconSlot.md,
 	],
 	current: [sumi.text],
-	indicator: ['inset-x-3 bottom-auto top-0 h-0.5', maru.roundedFull, nuri.tabIndicator],
+	indicator: [
+		'inset-x-3 bottom-auto top-0',
+		'h-0.5',
+		maru.roundedFull,
+		nuri.tabIndicator,
+	],
 }

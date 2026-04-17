@@ -22,6 +22,7 @@ export const hiru = {
 	] as const,
 	textHover: 'hover:not-disabled:text-zinc-950',
 	textFocus: 'focus-visible:not-disabled:text-zinc-950',
+	tab: ['data-current:text-zinc-950', 'not-data-current:not-disabled:hover:text-zinc-700'],
 }
 
 // ── Yoru (夜) ───────────────────────────────────────────
@@ -34,6 +35,7 @@ export const yoru = {
 	] as const,
 	textHover: 'dark:hover:not-disabled:text-white',
 	textFocus: 'dark:focus-visible:not-disabled:text-white',
+	tab: ['dark:data-current:text-white', 'dark:not-data-current:not-disabled:hover:text-zinc-200'],
 }
 
 // ── Export ───────────────────────────────────────────────
@@ -45,4 +47,8 @@ export const sumi = {
 	textDisabled: [hiru.textDisabled, yoru.textDisabled],
 	textHover: [hiru.textHover, yoru.textHover],
 	textFocus: [hiru.textFocus, yoru.textFocus],
+	/** Current-tab text colour with hover on non-current siblings. */
+	tab: [hiru.textMuted, yoru.textMuted, hiru.tab, yoru.tab],
+	/** Text inside a focused option — used for description slots. */
+	focusText: 'group-focus/option:text-white',
 } as const

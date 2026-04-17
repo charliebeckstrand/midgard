@@ -1,10 +1,15 @@
+import { kumi } from '../kumi'
 import { maru } from '../maru'
-import { narabi } from '../narabi'
 import { sumi } from '../sumi'
 
 export const progress = {
 	bar: {
-		track: ['overflow-hidden', maru.roundedFull, 'bg-zinc-200 dark:bg-zinc-700'],
+		track: [
+			'overflow-hidden',
+			maru.roundedFull,
+			'bg-zinc-200',
+			'dark:bg-zinc-700',
+		],
 		fill: ['h-full', maru.roundedFull],
 		indeterminate: 'w-1/3 animate-[progress-indeterminate_1.5s_ease-in-out_infinite]',
 		size: {
@@ -15,7 +20,7 @@ export const progress = {
 		defaults: { size: 'md' as const },
 	},
 	gauge: {
-		wrapper: [narabi.position.centerInline, 'relative'],
+		base: [kumi.center.inline, 'relative'],
 		size: {
 			xs: 'size-6',
 			sm: 'size-8',
@@ -23,7 +28,11 @@ export const progress = {
 			lg: 'size-16',
 			xl: 'size-20',
 		},
-		label: ['absolute', sumi.text, 'font-semibold'],
+		label: [
+			'absolute',
+			'font-semibold',
+			sumi.text,
+		],
 		labelSize: {
 			xs: 'text-[6px]',
 			sm: 'text-[8px]',

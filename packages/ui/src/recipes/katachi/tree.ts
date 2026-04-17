@@ -1,5 +1,6 @@
 import { ki } from '../ki'
 import { maru } from '../maru'
+import { nagare } from '../nagare'
 import { sumi } from '../sumi'
 
 export type TreeColor = 'sky' | 'lime' | 'rose' | 'amber' | 'violet'
@@ -30,16 +31,18 @@ export const treeColorMap: Record<TreeColor, string | string[]> = {
 export const tree = {
 	base: '',
 	itemContent: [
-		'flex w-full items-center gap-1.5 py-1 px-2 text-sm/6',
+		'flex w-full items-center gap-1.5',
+		'py-1 px-2',
+		'text-sm/6',
 		sumi.textMuted,
 		sumi.textHover,
-		'data-[open]:text-zinc-950 dark:data-[open]:text-white',
-		'data-[open]:cursor-pointer',
 		maru.rounded,
 		ki.inset,
+		'data-[open]:text-zinc-950 dark:data-[open]:text-white',
+		'data-[open]:cursor-pointer',
 	],
 	itemContentActive: sumi.text,
-	chevron: 'flex-none transition-transform duration-150',
+	chevron: ['flex-none', nagare.transform],
 	label: 'flex-1 truncate text-left',
 	group: 'overflow-hidden',
 }

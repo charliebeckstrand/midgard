@@ -5,11 +5,13 @@ import { sumi } from '../sumi'
 
 export const option = {
 	base: [
-		'group/option grid w-full items-baseline gap-x-2',
+		'group/option grid w-full items-baseline',
+		'gap-x-2',
 		maru.rounded,
 		sawari.cursor,
 		sawari.item,
-		'data-active:bg-zinc-950/5 dark:data-active:bg-white/5',
+		'data-active:bg-zinc-950/5',
+		'dark:data-active:bg-white/5',
 		[
 			'group-data-editing/combobox:only-of-type:bg-zinc-950/5',
 			'dark:group-data-editing/combobox:only-of-type:bg-white/5',
@@ -21,5 +23,5 @@ export const option = {
 	],
 	content: ['flex min-w-0 items-center', narabi.item],
 	label: 'ml-2.5 first:ml-0 sm:ml-2 sm:first:ml-0 truncate',
-	description: [narabi.description, sumi.textMuted, sawari.focusText],
+	description: [narabi.description, sumi.textMuted, sumi.focusText],
 }

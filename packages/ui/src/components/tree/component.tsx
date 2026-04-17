@@ -92,7 +92,7 @@ export function TreeItem({
 				onClick={() => hasChildren && setOpen((prev) => !prev)}
 			>
 				{hasChildren && (
-					<span className={k.chevron} aria-hidden="true">
+					<span className={cn(k.chevron)} aria-hidden="true">
 						<Icon icon={<ChevronRight />} size="sm" className={cn(open && 'rotate-90')} />
 					</span>
 				)}

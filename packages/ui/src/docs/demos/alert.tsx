@@ -33,7 +33,7 @@ function ClosableDemo() {
 			title="Changes saved"
 			description="Your changes have been saved successfully."
 			closable
-			onClose={() => setVisible(false)}
+			onOpenChange={(open) => setVisible(open)}
 		/>
 	)
 }
@@ -52,7 +52,7 @@ function ClosableBlockDemo() {
 			title="Full-width alert"
 			description="This alert stretches to fill its container."
 			closable
-			onClose={() => setVisible(false)}
+			onOpenChange={(open) => setVisible(open)}
 		/>
 	)
 }
@@ -117,7 +117,7 @@ export default function AlertDemo() {
 						type="success"
 						title="Changes saved"
 						closable
-						onClose={() => {}}
+						onOpenChange={() => {}}
 					/>
 				`}
 			>

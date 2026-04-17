@@ -1,5 +1,6 @@
 import { kage } from '../kage'
 import { maru } from '../maru'
+import { nagare } from '../nagare'
 import { take } from '../take'
 
 export const scrollArea = {
@@ -28,7 +29,10 @@ export const scrollArea = {
 		},
 	},
 	scrollbar: {
-		base: ['absolute touch-none select-none transition-opacity duration-150'],
+		base: [
+			'absolute touch-none select-none',
+			nagare.opacity,
+		],
 		orientation: {
 			vertical: 'right-0 w-1.5',
 			horizontal: 'bottom-0 h-1.5',

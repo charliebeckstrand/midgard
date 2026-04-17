@@ -7,7 +7,12 @@ import { take } from '../take'
 
 export const sheet = {
 	panel: {
-		base: [omote.panel.chrome, narabi.panel.base, 'fixed overflow-y-auto rounded-xl'],
+		base: [
+			omote.panel.chrome,
+			narabi.panel.base,
+			'fixed overflow-y-auto',
+			'rounded-xl',
+		],
 		glass: {
 			true: omote.glass,
 			false: omote.panel.bg,
@@ -18,7 +23,11 @@ export const sheet = {
 				'max-sm:rounded-r-none',
 				'sm:top-4 sm:right-4 sm:bottom-4',
 			],
-			left: ['inset-y-0 left-0 w-full', 'max-sm:rounded-l-none', 'sm:top-4 sm:left-4 sm:bottom-4'],
+			left: [
+				'inset-y-0 left-0 w-full',
+				'max-sm:rounded-l-none',
+				'sm:top-4 sm:left-4 sm:bottom-4',
+			],
 			top: narabi.slide.top,
 			bottom: narabi.slide.bottom,
 		},
@@ -29,5 +38,11 @@ export const sheet = {
 	description: [...narabi.panel.description, 'px-6'],
 	actions: [narabi.panel.actions, 'px-6 pb-6'],
 	body: [narabi.panel.body, 'flex-1 overflow-y-auto px-6'],
-	close: [sumi.textMuted, ki.inset, 'absolute right-5 top-5', maru.roundedMd, 'p-1'],
+	close: [
+		sumi.textMuted,
+		ki.inset,
+		maru.roundedMd,
+		'absolute right-5 top-5',
+		'p-1',
+	],
 }

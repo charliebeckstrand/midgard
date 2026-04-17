@@ -5,7 +5,7 @@ export const meta = { name: 'DL', category: 'Data Display' }
 
 export default function DLDemo() {
 	return (
-		<Example>
+		<Example title="Default">
 			<DescriptionList>
 				<DescriptionTerm>Name</DescriptionTerm>
 				<DescriptionDetails>Wade Cooper</DescriptionDetails>

@@ -1,9 +1,14 @@
 export const toast = {
 	viewport: [
-		'fixed z-[100] top-0 bottom-0 flex flex-col p-4 pointer-events-none max-sm:inset-x-0 max-sm:justify-end',
+		'fixed z-[100] top-0 bottom-0 flex flex-col',
+		'max-sm:inset-x-0 max-sm:justify-end',
+		'p-4',
+		'pointer-events-none',
 	],
 	scroll: [
-		'flex flex-col max-h-full overflow-y-auto overscroll-contain pointer-events-auto w-fit max-sm:w-full',
+		'flex flex-col max-h-full overflow-y-auto overscroll-contain',
+		'w-fit max-sm:w-full',
+		'pointer-events-auto',
 	],
 	position: {
 		'top-right': 'justify-start right-0',

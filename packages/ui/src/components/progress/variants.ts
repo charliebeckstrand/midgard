@@ -10,7 +10,7 @@ export const progressTrackVariants = cva(k.bar.track, {
 	defaultVariants: k.bar.defaults,
 })
 
-export const progressGaugeVariants = cva(k.gauge.wrapper, {
+export const progressGaugeVariants = cva(k.gauge.base, {
 	variants: {
 		size: k.gauge.size,
 	},

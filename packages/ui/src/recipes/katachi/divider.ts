@@ -1,3 +1,5 @@
+import { kage } from '../kage'
+
 export const divider = {
 	base: ['border-0'],
 	orientation: {
@@ -5,8 +7,8 @@ export const divider = {
 		vertical: 'self-stretch border-l',
 	},
 	soft: {
-		true: ['border-zinc-950/5', 'dark:border-white/5'],
-		false: ['border-zinc-950/10', 'dark:border-white/10'],
+		true: kage.borderSubtleColor,
+		false: kage.borderColor,
 	},
 	defaults: { orientation: 'horizontal' as const, soft: false as const },
 }

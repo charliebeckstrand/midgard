@@ -4,17 +4,19 @@ import { FloatingPortal, type Placement } from '@floating-ui/react'
 import { ChevronsUpDown } from 'lucide-react'
 import { AnimatePresence } from 'motion/react'
 import type React from 'react'
-import { useCallback, useId, useRef } from 'react'
+import { useCallback, useId, useMemo, useRef } from 'react'
 import { cn, createContext } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { useFloatingUI } from '../../hooks/use-floating-ui'
 import { useRovingFocus } from '../../hooks/use-keyboard'
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
 import { ControlFrame, PopoverPanel } from '../../primitives'
-import { waku } from '../../recipes'
+import { kokkaku, waku } from '../../recipes'
 import { useControl } from '../control/context'
 import { useGlass } from '../glass/context'
 import { Icon } from '../icon'
+import { Placeholder } from '../placeholder'
+import { useSkeleton } from '../skeleton/context'
 import { useComboboxSelection } from './use-combobox-selection'
 import { resolveInputDisplay, selectActiveOrSingleOption } from './utilities'
 import { k, kPopover } from './variants'
@@ -80,8 +82,11 @@ export function Combobox<T>({
 }: ComboboxProps<T>) {
 	const glass = useGlass()
 	const control = useControl()
+	const skeleton = useSkeleton()
 
 	const resolvedDisabled = control?.disabled
+
+	const resolvedSize = control?.size ?? 'md'
 
 	const handleValueChange = useCallback(
 		(nextValue: T | T[] | undefined) => {
@@ -140,8 +145,21 @@ export function Combobox<T>({
 
 	const rendered = typeof children === 'function' ? children(query) : children
 
+	const contextValue = useMemo<ComboboxContextValue>(
+		() => ({ value, multiple, select: select as (v: unknown) => void, query }),
+		[value, multiple, select, query],
+	)
+
+	if (skeleton) {
+		return (
+			<Placeholder
+				className={cn(kokkaku.formControl.base, kokkaku.formControl.size[resolvedSize], className)}
+			/>
+		)
+	}
+
 	return (
-		<ComboboxProvider value={{ value, multiple, select: select as (v: unknown) => void, query }}>
+		<ComboboxProvider value={contextValue}>
 			<div
 				data-slot="control"
 				ref={refs.setReference}

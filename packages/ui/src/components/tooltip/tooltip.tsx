@@ -23,6 +23,8 @@ import { useHasHover } from '../../hooks'
 import { ugoki } from '../../recipes'
 import { k } from './variants'
 
+const tooltipMiddleware = [offset(8), flip(), shift({ padding: 8 })]
+
 export type TooltipProps = {
 	placement?: 'top' | 'bottom' | 'left' | 'right'
 	delay?: number
@@ -67,7 +69,7 @@ export function Tooltip({
 		open,
 		onOpenChange: setOpen,
 		whileElementsMounted: autoUpdate,
-		middleware: [offset(8), flip(), shift({ padding: 8 })],
+		middleware: tooltipMiddleware,
 	})
 
 	const hasHover = useHasHover()

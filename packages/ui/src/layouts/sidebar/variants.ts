@@ -1,8 +1,8 @@
 import { cva, type VariantProps } from 'class-variance-authority'
-import { narabi, omote } from '../../recipes'
+import { omote } from '../../recipes'
 
 export const sidebarLayoutVariants = cva([
-	narabi.position.isolate,
+	'relative isolate',
 	'h-svh w-full max-lg:flex-col',
 	'bg-white lg:bg-zinc-100',
 	'dark:bg-zinc-950',

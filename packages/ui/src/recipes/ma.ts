@@ -93,6 +93,12 @@ export const ma = {
 		16: 'my-16',
 		auto: 'my-auto',
 	},
+
+	/** Density-aware padding keyed to the take density grid. */
+	density: {
+		px: { sm: 'px-1.5', md: 'px-2', lg: 'px-3' },
+		py: { sm: 'py-1.5', md: 'py-2', lg: 'py-2.5' },
+	},
 } as const
 
 export type Padding = keyof typeof ma.p

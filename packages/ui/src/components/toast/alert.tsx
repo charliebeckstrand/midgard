@@ -75,7 +75,9 @@ export function ToastAlert({
 					description={t.description}
 					actions={t.actions}
 					closable={showCloseButton}
-					onClose={() => onDismiss(t.id)}
+					onOpenChange={(open) => {
+						if (!open) onDismiss(t.id)
+					}}
 					className={cn(k.card)}
 				/>
 			</motion.div>

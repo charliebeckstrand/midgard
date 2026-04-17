@@ -6,6 +6,13 @@ import { katachi } from '../recipes'
 
 const k = katachi.option
 
+const defaultCheckIcon = (
+	<Icon
+		icon={<Check />}
+		className="relative hidden self-center text-green-600 group-data-selected/option:inline"
+	/>
+)
+
 export type BaseOptionProps = {
 	className?: string
 	icon?: React.ReactNode
@@ -26,12 +33,7 @@ export function BaseOption({
 }: BaseOptionProps) {
 	const sharedClasses = cn(k.content)
 
-	const checkIcon = icon ?? (
-		<Icon
-			icon={<Check />}
-			className="relative hidden self-center text-green-600 group-data-selected/option:inline"
-		/>
-	)
+	const checkIcon = icon ?? defaultCheckIcon
 
 	return (
 		<div

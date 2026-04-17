@@ -44,4 +44,10 @@ export const kumi = {
 		around: 'justify-around',
 		evenly: 'justify-evenly',
 	},
+
+	/** Centered flex container preset. */
+	center: {
+		block: 'flex items-center justify-center',
+		inline: 'inline-flex items-center justify-center',
+	},
 } as const

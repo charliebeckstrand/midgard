@@ -10,9 +10,10 @@ export const nav = {
 		},
 	},
 	item: [
-		...sawari.navItem,
-		'group relative flex w-full items-center gap-1.5 p-2',
+		'group relative flex w-full items-center',
+		'gap-1.5 p-2',
 		'text-left text-sm/5 font-medium',
+		...sawari.navItem,
 		maru.rounded,
 		sawari.cursor,
 	],

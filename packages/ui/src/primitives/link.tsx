@@ -1,7 +1,7 @@
 'use client'
 
 import type React from 'react'
-import { createContext as reactCreateContext, useContext } from 'react'
+import { createContext as reactCreateContext, useContext, useMemo } from 'react'
 
 export type LinkProps = {
 	href: string
@@ -24,7 +24,9 @@ export function LinkProvider({
 	component: LinkComponent
 	children: React.ReactNode
 }) {
-	return <LinkContext.Provider value={{ component }}>{children}</LinkContext.Provider>
+	const value = useMemo<LinkContextValue>(() => ({ component }), [component])
+
+	return <LinkContext.Provider value={value}>{children}</LinkContext.Provider>
 }
 
 export function useLink() {

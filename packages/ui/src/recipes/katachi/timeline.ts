@@ -19,12 +19,28 @@ export const timeline = {
 	connector: {
 		base: 'absolute',
 		vertical: {
-			solid: ['left-[6px] top-[39px] -bottom-[25px] w-0.5', 'bg-zinc-200 dark:bg-zinc-700'],
-			outline: ['left-[6.5px] top-[39px] -bottom-[25px] w-px', 'bg-zinc-950/10 dark:bg-white/10'],
+			solid: [
+				'left-[6px] top-[39px] -bottom-[25px] w-0.5',
+				'bg-zinc-200',
+				'dark:bg-zinc-700',
+			],
+			outline: [
+				'left-[6.5px] top-[39px] -bottom-[25px] w-px',
+				'bg-zinc-950/10',
+				'dark:bg-white/10',
+			],
 		},
 		horizontal: {
-			solid: ['top-[6px] left-[20.5px] -right-[6.5px] h-0.5', 'bg-zinc-200 dark:bg-zinc-700'],
-			outline: ['top-[6.5px] left-[20.5px] -right-[6.5px] h-px', 'bg-zinc-950/10 dark:bg-white/10'],
+			solid: [
+				'top-[6px] left-[20.5px] -right-[6.5px] h-0.5',
+				'bg-zinc-200',
+				'dark:bg-zinc-700',
+			],
+			outline: [
+				'top-[6.5px] left-[20.5px] -right-[6.5px] h-px',
+				'bg-zinc-950/10',
+				'dark:bg-white/10',
+			],
 		},
 	},
 	marker: {
