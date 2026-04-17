@@ -1,5 +1,6 @@
 'use client'
 
+import { DatePicker } from '../datepicker'
 import { Input } from '../input'
 import { ListboxOption } from '../listbox'
 import { Select } from '../select'
@@ -46,12 +47,13 @@ export function QueryRuleValue({ field, value, onChange }: QueryRuleValueProps) 
 	}
 
 	if (field.type === 'date') {
+		const dateValue = value ? new Date(value as string) : undefined
+
 		return (
-			<Input
-				type="date"
-				value={(value as string | undefined) ?? ''}
+			<DatePicker
+				value={dateValue}
 				placeholder="Value"
-				onChange={(e) => onChange(e.target.value)}
+				onChange={(d) => onChange(d ? d.toISOString().slice(0, 10) : '')}
 			/>
 		)
 	}
