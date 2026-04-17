@@ -43,7 +43,9 @@ export const switchRecipe = {
 	disabled: sumi.textDisabled,
 	thumb: [
 		'absolute top-1 left-1 inline-block',
-		'transition-[left] duration-200 ease-in-out',
+		'transition-[left]',
+		'duration-200',
+		'ease-in-out',
 		'pointer-events-none',
 		maru.roundedFull,
 		nuri.switchThumb,
