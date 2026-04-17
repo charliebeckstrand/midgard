@@ -18,7 +18,7 @@ const sizes = ['sm', 'md', 'lg'] as const
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
 function Interactive() {
-	const [value, setValue] = useState(40)
+	const [value, setValue] = useState(50)
 
 	return (
 		<Example
