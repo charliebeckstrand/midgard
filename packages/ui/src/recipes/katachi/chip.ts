@@ -6,7 +6,8 @@ import { take } from '../take'
 
 export const chip = {
 	base: [
-		'group inline-flex w-fit items-center font-medium select-none',
+		'group inline-flex w-fit items-center select-none',
+		'font-medium',
 		maru.roundedFull,
 		sawari.cursor,
 		ki.ring,

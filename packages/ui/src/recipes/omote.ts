@@ -8,12 +8,13 @@
 
 import { garasu } from './garasu'
 import { kage } from './kage'
+import { kyousei } from './kyousei'
 
 // ── Motoi (基) ──────────────────────────────────────────
 const motoi = {
-	panel: ['shadow-lg', 'forced-colors:outline'],
-	content: 'lg:rounded-lg lg:shadow-xs',
-	popover: 'backdrop-blur',
+	panel: ['shadow-lg', kyousei.outline],
+	content: ['lg:rounded-lg', 'lg:shadow-xs'],
+	popover: garasu.md,
 	skeleton: 'animate-pulse',
 	glass: ['bg-transparent', garasu.md],
 }
@@ -26,7 +27,7 @@ const hiru = {
 		md: 'bg-white/50',
 		lg: 'bg-white/75',
 	},
-	popover: ['bg-white/90', 'ring-1 ring-zinc-950/10'],
+	popover: ['bg-white/90', 'ring-1', 'ring-zinc-950/10'],
 	surface: 'bg-white',
 	tint: 'bg-zinc-950/5',
 	tintBefore: 'before:bg-zinc-950/5',
@@ -41,7 +42,7 @@ const yoru = {
 		md: 'dark:bg-zinc-950/50',
 		lg: 'dark:bg-zinc-950/75',
 	},
-	popover: ['dark:bg-zinc-800/75', 'dark:ring-white/10 dark:ring-inset'],
+	popover: ['dark:bg-zinc-800/75', 'dark:ring-white/10', 'dark:ring-inset'],
 	surface: 'dark:bg-zinc-900',
 	tint: 'dark:bg-white/10',
 	tintBefore: 'dark:before:bg-white/10',

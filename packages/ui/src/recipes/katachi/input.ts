@@ -6,7 +6,11 @@ import { take } from '../take'
 import { waku } from '../waku'
 
 export const input = {
-	base: [...waku.inputBase, 'block', maru.rounded],
+	base: [
+		...waku.inputBase,
+		'block',
+		maru.rounded,
+	],
 	variant: {
 		default: [],
 		outline: [],
@@ -14,11 +18,19 @@ export const input = {
 	},
 	control: {
 		default: waku.control.surface,
-		outline: [kage.borderEmphasis, 'hover:border-zinc-950/30 dark:hover:border-white/30'],
+		outline: [
+			kage.borderEmphasis,
+			'hover:border-zinc-950/30',
+			'dark:hover:border-white/30',
+		],
 		glass: [],
 	},
 	size: take.control,
-	affix: ['flex items-center min-w-0', '*:data-[slot=icon]:pointer-events-none', sumi.textMuted],
+	affix: [
+		'flex items-center min-w-0',
+		'*:data-[slot=icon]:pointer-events-none',
+		sumi.textMuted,
+	],
 	prefix: {
 		sm: 'pl-[calc(--spacing(2.5)-1px)] py-[calc(--spacing(0.5)-1px)] has-[button]:pl-1',
 		md: 'pl-[calc(--spacing(3)-1px)] py-[calc(--spacing(1)-1px)] has-[button]:pl-1.5',

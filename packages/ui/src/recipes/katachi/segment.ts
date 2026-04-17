@@ -6,17 +6,27 @@ import { sumi } from '../sumi'
 import { yasumi } from '../yasumi'
 
 export const segment = {
-	base: ['inline-flex items-center', maru.rounded, omote.tint],
+	base: [
+		'inline-flex items-center',
+		maru.rounded,
+		omote.tint,
+	],
 	segment: [
-		'relative z-10 flex items-center justify-center cursor-default outline-none',
+		'relative z-10 flex items-center justify-center',
 		'font-medium select-none whitespace-nowrap',
 		maru.rounded,
 		ki.indicator,
 		ki.ring,
 		yasumi.disabled,
+		'cursor-default',
+		'outline-none',
 	],
 	segmentCurrent: sumi.text,
-	indicator: ['bg-white dark:bg-zinc-600', kage.shadow],
+	indicator: [
+		'bg-white',
+		'dark:bg-zinc-600',
+		kage.shadow,
+	],
 	size: {
 		sm: { base: 'p-0.5 gap-0.5', segment: 'px-2.5 py-1 text-xs/4' },
 		md: { base: 'p-1 gap-0.5', segment: 'px-3 py-1.5 text-sm/5' },

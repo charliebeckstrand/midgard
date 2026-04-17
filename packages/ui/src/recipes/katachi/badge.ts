@@ -6,19 +6,19 @@ export const badge = {
 	base: ['group inline-flex w-fit items-center font-medium'],
 	variant: {
 		solid: {
-			base: ['border border-transparent', maru.roundedMd],
+			base: [maru.roundedMd, 'border border-transparent'],
 			color: nuri.solid,
 		},
 		soft: {
-			base: ['border border-transparent', maru.roundedMd],
+			base: [maru.roundedMd, 'border border-transparent'],
 			color: nuri.soft,
 		},
 		outline: {
-			base: ['border', maru.roundedMd],
+			base: [maru.roundedMd, 'border'],
 			color: nuri.outline,
 		},
 		plain: {
-			base: ['border border-transparent', maru.roundedMd],
+			base: [maru.roundedMd, 'border border-transparent'],
 			color: nuri.text,
 		},
 	},

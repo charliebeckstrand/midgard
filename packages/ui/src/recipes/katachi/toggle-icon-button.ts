@@ -1,16 +1,15 @@
+import { kumi } from '../kumi'
 import { maru } from '../maru'
-import { narabi } from '../narabi'
 import { sumi } from '../sumi'
 import { take } from '../take'
 
 export const toggleIconButton = {
 	base: [
 		'relative',
-		narabi.position.center,
+		kumi.center.block,
 		maru.rounded,
 		sumi.textMuted,
 		sumi.textHover,
-		'dark:hover:not-disabled:text-white',
 		'focus-visible:not-disabled:text-white',
 	],
 	size: take.buttonWithIconSize,

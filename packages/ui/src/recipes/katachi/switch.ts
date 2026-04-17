@@ -7,11 +7,12 @@ import { waku } from '../waku'
 
 export const switchRecipe = {
 	wrapper: [
-		'relative inline-flex shrink-0 items-center cursor-pointer',
+		'relative inline-flex shrink-0 items-center',
+		ki.outline,
+		'cursor-pointer',
 		'has-checked:*:data-[slot=switch-thumb]:bg-(--switch)',
 		'has-checked:*:data-[slot=switch-thumb]:shadow-(--switch-shadow)',
 		'has-checked:*:data-[slot=switch-thumb]:ring-(--switch-ring)',
-		ki.outline,
 	],
 	color: nuri.switch,
 	base: [
@@ -43,11 +44,11 @@ export const switchRecipe = {
 	disabled: sumi.textDisabled,
 	thumb: [
 		'absolute top-1 left-1 inline-block',
-		'transition-[left] duration-200 ease-in-out',
-		'pointer-events-none',
 		maru.roundedFull,
 		nuri.switchThumb,
 		kage.shadow,
+		'pointer-events-none',
+		'transition-[left] duration-200 ease-in-out',
 	],
 	field: {
 		base: '*:data-[slot=control]:row-span-2 *:data-[slot=control]:mt-0',

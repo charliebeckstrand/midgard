@@ -3,7 +3,12 @@ import { maru } from '../maru'
 import { sawari } from '../sawari'
 
 export const sidebar = {
-	base: ['flex flex-col gap-y-4', 'h-full', 'px-4 py-6', 'overflow-y-auto overscroll-none'],
+	base: [
+		'flex flex-col gap-y-4',
+		'h-full',
+		'px-4 py-6',
+		'overflow-y-auto overscroll-none',
+	],
 	item: [
 		...sawari.navItem,
 		maru.rounded,
@@ -16,7 +21,14 @@ export const sidebar = {
 	section: 'flex flex-col gap-0.5',
 	label: ['truncate'],
 	header: 'flex items-center gap-2',
-	body: ['flex flex-1 flex-col gap-4', 'overflow-y-auto'],
+	body: [
+		'flex flex-1 flex-col gap-4',
+		'overflow-y-auto',
+	],
 	divider: kage.divider,
-	footer: ['sticky bottom-0', 'flex flex-col gap-0.5', 'mt-auto'],
+	footer: [
+		'sticky bottom-0',
+		'flex flex-col gap-0.5',
+		'mt-auto',
+	],
 }
