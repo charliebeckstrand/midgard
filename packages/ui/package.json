@@ -179,6 +179,10 @@
 			"types": "./src/components/input/index.ts",
 			"default": "./src/components/input/index.ts"
 		},
+		"./json-tree": {
+			"types": "./src/components/json-tree/index.ts",
+			"default": "./src/components/json-tree/index.ts"
+		},
 		"./kbd": {
 			"types": "./src/components/kbd/index.ts",
 			"default": "./src/components/kbd/index.ts"

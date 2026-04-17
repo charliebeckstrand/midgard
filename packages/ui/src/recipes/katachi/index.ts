@@ -34,6 +34,7 @@ import { fileUpload } from './file-upload'
 import { grid } from './grid'
 import { heading } from './heading'
 import { input } from './input'
+import { jsonTree } from './json-tree'
 import { kbd } from './kbd'
 import { listbox } from './listbox'
 import { menu } from './menu'
@@ -101,6 +102,7 @@ export const katachi = {
 	grid,
 	heading,
 	input,
+	jsonTree,
 	kbd,
 	listbox,
 	menu,
