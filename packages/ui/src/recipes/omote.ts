@@ -8,10 +8,11 @@
 
 import { garasu } from './garasu'
 import { kage } from './kage'
+import { kyousei } from './kyousei'
 
 // ── Motoi (基) ──────────────────────────────────────────
 const motoi = {
-	panel: ['shadow-lg', 'forced-colors:outline'],
+	panel: ['shadow-lg', kyousei.outline],
 	content: 'lg:rounded-lg lg:shadow-xs',
 	popover: garasu.md,
 	skeleton: 'animate-pulse',

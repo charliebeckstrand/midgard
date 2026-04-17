@@ -8,6 +8,7 @@
 
 import { garasu } from './garasu'
 import { ki } from './ki'
+import { kyousei } from './kyousei'
 import { maru } from './maru'
 import { sumi } from './sumi'
 import { take } from './take'
@@ -18,8 +19,8 @@ const motoi = {
 	item: [
 		'cursor-default sm:py-1.5 py-2.5 outline-hidden',
 		'text-base/6',
-		'forced-color-adjust-none forced-colors:text-[CanvasText]',
-		'forced-colors:focus:bg-[Highlight] forced-colors:focus:text-[HighlightText]',
+		kyousei.text,
+		kyousei.focus,
 		yasumi.disabled,
 	],
 	nav: [take.iconSlot.md, '*:data-[slot=avatar]:-m-0.5 *:data-[slot=avatar]:size-7'],

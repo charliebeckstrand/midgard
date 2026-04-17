@@ -1,9 +1,8 @@
+import { kyousei } from '../kyousei'
+
 // ── Motoi (基) ──────────────────────────────────────────
 const motoi = {
-	check: [
-		'absolute inset-0 opacity-0 cursor-pointer',
-		'forced-colors:opacity-100 forced-colors:appearance-auto forced-colors:checked:appearance-auto',
-	],
+	check: ['absolute inset-0 opacity-0 cursor-pointer', kyousei.control],
 	surface: ['border shadow-xs', 'has-[:disabled]:opacity-50 has-[:disabled]:cursor-not-allowed'],
 }
 
