@@ -36,6 +36,7 @@ export function SidebarContent({ route }: { route: string }) {
 			<Combobox<string>
 				id="component-search"
 				placeholder="Search components"
+				autoComplete="off"
 				selectable={false}
 				onChange={(id) => {
 					if (!id) return

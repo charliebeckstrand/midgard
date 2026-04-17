@@ -38,6 +38,7 @@ type ComboboxBaseProps<T> = {
 	placement?: Placement
 	icon?: React.ReactNode
 	className?: string
+	autoComplete?: React.InputHTMLAttributes<HTMLInputElement>['autoComplete']
 	/** Fires onChange without storing the value. */
 	selectable?: boolean
 	/** Clicking the selected option clears it. */
@@ -78,6 +79,7 @@ export function Combobox<T>({
 	nullable = valueProp === undefined && defaultValue === undefined,
 	closeOnSelect,
 	className,
+	autoComplete,
 	children,
 }: ComboboxProps<T>) {
 	const glass = useGlass()
@@ -179,6 +181,7 @@ export function Combobox<T>({
 						data-slot="combobox-input"
 						id={id ?? control?.id}
 						disabled={resolvedDisabled}
+						autoComplete={autoComplete}
 						{...(control?.invalid ? { 'data-invalid': '', 'aria-invalid': true } : {})}
 						value={inputDisplay}
 						placeholder={placeholder}

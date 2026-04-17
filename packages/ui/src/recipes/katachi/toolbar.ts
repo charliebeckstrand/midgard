@@ -11,7 +11,7 @@ export const toolbar = {
 	variant: {
 		plain: '',
 		outline: [kage.border, maru.rounded, 'p-1'],
-		solid: [omote.surface, kage.border, maru.rounded, 'p-1'],
+		solid: [omote.tint, 'border border-transparent', maru.rounded, 'p-1'],
 	},
 	group: {
 		base: 'flex items-center',

@@ -41,7 +41,7 @@ export function useRangePointer(opts: {
 			const d1 = Math.abs(raw - current[1])
 
 			// Prefer the higher thumb when equidistant so the lower handle isn't trapped
-			return d0 <= d1 ? 0 : 1
+			return d0 < d1 ? 0 : 1
 		},
 		[valueFromPointer, current],
 	)
