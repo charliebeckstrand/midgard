@@ -17,8 +17,10 @@ import { yasumi } from './yasumi'
 // ── Motoi (基) ──────────────────────────────────────────
 const motoi = {
 	item: [
-		'cursor-default sm:py-1.5 py-2.5 outline-hidden',
+		'sm:py-1.5 py-2.5',
 		'text-base/6',
+		'outline-hidden',
+		'cursor-default',
 		kyousei.text,
 		kyousei.focus,
 		yasumi.disabled,
@@ -28,13 +30,19 @@ const motoi = {
 
 // ── Hiru (昼) ───────────────────────────────────────────
 const hiru = {
-	item: 'not-disabled:not-data-disabled:hover:bg-zinc-950/5 not-disabled:not-data-disabled:focus:bg-zinc-950/5',
+	item: [
+		'not-disabled:not-data-disabled:hover:bg-zinc-950/5',
+		'not-disabled:not-data-disabled:focus:bg-zinc-950/5',
+	],
 	nav: ['group-hover:bg-zinc-950/5'],
 }
 
 // ── Yoru (夜) ───────────────────────────────────────────
 const yoru = {
-	item: 'dark:not-disabled:not-data-disabled:hover:bg-white/5 dark:not-disabled:not-data-disabled:focus:bg-white/5',
+	item: [
+		'dark:not-disabled:not-data-disabled:hover:bg-white/5',
+		'dark:not-disabled:not-data-disabled:focus:bg-white/5',
+	],
 	nav: ['dark:text-white', 'dark:group-hover:bg-white/5'],
 }
 
