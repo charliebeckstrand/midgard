@@ -54,6 +54,7 @@ import { select } from './select'
 import { sheet } from './sheet'
 import { sidebar } from './sidebar'
 import { slider } from './slider'
+import { sliderRange } from './slider-range'
 import { spinner } from './spinner'
 import { stat } from './stat'
 import { status } from './status'
@@ -119,6 +120,7 @@ export const katachi = {
 	sheet,
 	sidebar,
 	slider,
+	sliderRange,
 	spinner,
 	stat,
 	status,
