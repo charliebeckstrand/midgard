@@ -1,8 +1,10 @@
 'use client'
 
 import { UsersIcon } from '@heroicons/react/20/solid'
+import type { User } from 'heimdall/user'
 import { usePathname } from 'next/navigation'
 import type { ReactNode } from 'react'
+import { SidebarUserMenu } from 'sindri/auth'
 import { SidebarLayout } from 'ui/layouts'
 import { Navbar } from 'ui/navbar'
 import {
@@ -16,9 +18,6 @@ import {
 } from 'ui/sidebar'
 import { Spacer } from 'ui/spacer'
 import { Text } from 'ui/text'
-import { SidebarUserMenu } from './sidebar-user-menu'
-
-type User = { email: string; name?: string }
 
 export function DashboardClient({ user, children }: { user?: User; children: ReactNode }) {
 	const pathname = usePathname()

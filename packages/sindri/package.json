@@ -30,6 +30,7 @@
 	},
 	"dependencies": {
 		"@heroicons/react": "^2.2.0",
+		"heimdall": "workspace:*",
 		"ui": "workspace:*",
 		"eventsource-parser": "^3.0.6",
 		"react-textarea-autosize": "^8.5.9"

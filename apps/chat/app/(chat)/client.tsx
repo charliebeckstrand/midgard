@@ -4,6 +4,7 @@ import { ChatBubbleLeftIcon, PlusIcon, XMarkIcon } from '@heroicons/react/20/sol
 import type { User } from 'heimdall/user'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { type ReactNode, useCallback, useMemo } from 'react'
+import { SidebarUserMenu } from 'sindri/auth'
 import { useChat } from 'sindri/chat'
 import { Button } from 'ui/button'
 import { useArrowAction } from 'ui/hooks'
@@ -22,7 +23,6 @@ import {
 import { Spacer } from 'ui/spacer'
 import { Text } from 'ui/text'
 import { ChatContext } from './context'
-import { SidebarUserMenu } from './sidebar-user-menu'
 import type { Chat } from './types'
 
 function ChatItem({
