@@ -45,7 +45,9 @@ export const kumi = {
 		evenly: 'justify-evenly',
 	},
 
-	/** Container presets — the small set of flex configurations used repeatedly. */
-	center: 'flex items-center justify-center',
-	centerInline: 'inline-flex items-center justify-center',
+	/** Centered flex container preset. */
+	center: {
+		block: 'flex items-center justify-center',
+		inline: 'inline-flex items-center justify-center',
+	},
 } as const

@@ -10,7 +10,7 @@ import { yasumi } from '../yasumi'
 
 export const button = {
 	base: [
-		kumi.centerInline,
+		kumi.center.inline,
 		'relative isolate',
 		'w-fit',
 		'shrink-0',

@@ -12,7 +12,7 @@ export const pagination = {
 		base: [
 			ki.ring,
 			maru.rounded,
-			kumi.centerInline,
+			kumi.center.inline,
 			'relative min-w-9',
 			'text-sm/6 font-medium',
 			'px-2 py-1.5',
@@ -24,9 +24,9 @@ export const pagination = {
 		},
 		defaults: { current: false as const },
 	},
-	gap: [sumi.textMuted, kumi.centerInline, 'min-w-9 text-sm/6', 'select-none'],
+	gap: [sumi.textMuted, kumi.center.inline, 'min-w-9 text-sm/6', 'select-none'],
 	nav: [
-		kumi.centerInline,
+		kumi.center.inline,
 		'text-sm/6 font-medium',
 		sumi.textMuted,
 		sumi.textHover,
