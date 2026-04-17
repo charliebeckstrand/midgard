@@ -32,15 +32,16 @@ const seed: QueryGroupNode = {
 	combinator: 'and',
 	children: [
 		{ id: 'r1', type: 'rule', field: 'name', operator: 'contains', value: 'ada' },
-		{
-			id: 'g1',
-			type: 'group',
-			combinator: 'or',
-			children: [
-				{ id: 'r2', type: 'rule', field: 'status', operator: 'equals', value: 'active' },
-				{ id: 'r3', type: 'rule', field: 'status', operator: 'equals', value: 'pending' },
-			],
-		},
+		{ id: 'r2', type: 'rule', field: 'status', operator: 'equals', value: 'active' },
+		// {
+		// 	id: 'g1',
+		// 	type: 'group',
+		// 	combinator: 'or',
+		// 	children: [
+		// 		{ id: 'r2', type: 'rule', field: 'status', operator: 'equals', value: 'active' },
+		// 		{ id: 'r3', type: 'rule', field: 'status', operator: 'equals', value: 'pending' },
+		// 	],
+		// },
 	],
 }
 

@@ -31,7 +31,7 @@ export function QueryGroup({ group, root, className }: QueryGroupProps) {
 		>
 			<div className={k.group}>
 				{group.children.length === 0 ? (
-					<Alert type="warning" variant="soft" description="No rules defined." block />
+					<Alert type="warning" variant="soft" title="No rules added" block />
 				) : (
 					group.children.map((child, index) => (
 						<div key={child.id} className="flex flex-col gap-3">
