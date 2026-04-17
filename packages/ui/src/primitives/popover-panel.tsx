@@ -5,7 +5,7 @@ import type React from 'react'
 import { useLayoutEffect, useRef } from 'react'
 import { useGlass } from '../components/glass/context'
 import { cn } from '../core'
-import { useRovingFocus } from '../hooks/use-keyboard'
+import { useRoving } from '../hooks/use-keyboard'
 import { kage, maru, omote, ugoki } from '../recipes'
 
 export function PopoverPanel({
@@ -29,7 +29,7 @@ export function PopoverPanel({
 
 	const glass = useGlass()
 
-	const handleKeyDown = useRovingFocus(menuRef, { itemSelector, focusOnEmpty: true })
+	const handleKeyDown = useRoving(menuRef, { itemSelector, focusOnEmpty: true })
 
 	useLayoutEffect(() => {
 		if (!autoFocus || !menuRef.current) return

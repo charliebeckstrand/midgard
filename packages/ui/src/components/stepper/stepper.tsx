@@ -2,7 +2,7 @@
 
 import { Children, isValidElement, useRef } from 'react'
 import { cn } from '../../core'
-import { useIsDesktop, useRovingFocus } from '../../hooks'
+import { useIsDesktop, useRoving } from '../../hooks'
 import { ActiveIndicatorScope } from '../../primitives'
 import { Stack } from '../stack'
 import { type StepperOrientation, StepperProvider } from './context'
@@ -57,7 +57,7 @@ export function Stepper({
 
 	const rowRef = useRef<HTMLDivElement>(null)
 
-	const handleKeyDown = useRovingFocus(rowRef, {
+	const handleKeyDown = useRoving(rowRef, {
 		itemSelector: 'button[data-slot="stepper-step"]:not(:disabled)',
 		orientation: resolvedOrientation,
 	})

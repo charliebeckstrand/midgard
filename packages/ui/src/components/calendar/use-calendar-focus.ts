@@ -2,7 +2,7 @@
 
 import { type KeyboardEvent, type RefObject, useCallback } from 'react'
 
-import { useRovingFocus } from '../../hooks/use-keyboard'
+import { useRoving } from '../../hooks/use-keyboard'
 
 type CalendarFocusOptions = {
 	headerRef: RefObject<HTMLElement | null>
@@ -55,12 +55,12 @@ export function useCalendarFocus({
 	cols = 7,
 	stopPropagation = false,
 }: CalendarFocusOptions) {
-	const headerRoving = useRovingFocus(headerRef, {
+	const headerRoving = useRoving(headerRef, {
 		itemSelector: 'button',
 		orientation: 'horizontal',
 	})
 
-	const gridRoving = useRovingFocus(gridRef, {
+	const gridRoving = useRoving(gridRef, {
 		itemSelector: 'button',
 		cols,
 	})
