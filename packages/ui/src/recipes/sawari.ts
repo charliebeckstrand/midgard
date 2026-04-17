@@ -6,6 +6,7 @@
  * Tier: 2 · Concern: interaction
  */
 
+import { garasu } from './garasu'
 import { ki } from './ki'
 import { maru } from './maru'
 import { sumi } from './sumi'
@@ -34,16 +35,6 @@ const hiru = {
 const yoru = {
 	item: 'dark:not-disabled:not-data-disabled:hover:bg-white/5 dark:not-disabled:not-data-disabled:focus:bg-white/5',
 	nav: ['dark:text-white', 'dark:group-hover:bg-white/5'],
-}
-
-// ── Garasu (ガラス) — Glass overrides ───────────────────
-const garasu = {
-	item: [
-		'group-data-[glass]/glass:not-disabled:not-data-disabled:hover:bg-zinc-950/10',
-		'group-data-[glass]/glass:not-disabled:not-data-disabled:focus:bg-zinc-950/10',
-		'dark:group-data-[glass]/glass:not-disabled:not-data-disabled:hover:bg-white/10',
-		'dark:group-data-[glass]/glass:not-disabled:not-data-disabled:focus:bg-white/10',
-	],
 }
 
 // ── Composed (internal) ─────────────────────────────────
