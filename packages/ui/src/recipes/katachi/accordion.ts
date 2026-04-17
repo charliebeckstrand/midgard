@@ -1,5 +1,6 @@
 import { kage } from '../kage'
 import { maru } from '../maru'
+import { nagare } from '../nagare'
 import { sumi } from '../sumi'
 
 export const accordion = {
@@ -32,7 +33,8 @@ export const accordion = {
 		'disabled:opacity-50 disabled:cursor-not-allowed',
 	],
 	indicator: [
-		'shrink-0 transition-transform duration-200',
+		'shrink-0',
+		nagare.transform,
 		'group-data-[open]/accordion-item:rotate-180',
 	],
 	panel: 'overflow-hidden',

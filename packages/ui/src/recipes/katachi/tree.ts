@@ -1,5 +1,6 @@
 import { ki } from '../ki'
 import { maru } from '../maru'
+import { nagare } from '../nagare'
 import { sumi } from '../sumi'
 
 export type TreeColor = 'sky' | 'lime' | 'rose' | 'amber' | 'violet'
@@ -39,7 +40,7 @@ export const tree = {
 		ki.inset,
 	],
 	itemContentActive: sumi.text,
-	chevron: 'flex-none transition-transform duration-150',
+	chevron: ['flex-none', nagare.transform],
 	label: 'flex-1 truncate text-left',
 	group: 'overflow-hidden',
 }
