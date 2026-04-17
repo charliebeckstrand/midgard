@@ -14,7 +14,7 @@ export const menu = {
 	section: 'first:pt-0 last:pb-0',
 	heading: [sumi.textMuted, 'px-3.5 pb-1 pt-2 text-xs/5 font-medium sm:px-3'],
 	label: 'truncate',
-	description: [sumi.textMuted, sawari.focusText, narabi.description],
+	description: [sumi.textMuted, sumi.focusText, narabi.description],
 	shortcut: 'ml-auto',
 	separator: kage.divider,
 }

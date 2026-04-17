@@ -28,14 +28,12 @@ const motoi = {
 const hiru = {
 	item: 'not-disabled:not-data-disabled:hover:bg-zinc-950/5 not-disabled:not-data-disabled:focus:bg-zinc-950/5',
 	nav: ['group-hover:bg-zinc-950/5'],
-	tab: ['data-current:text-zinc-950', 'not-data-current:not-disabled:hover:text-zinc-700'],
 }
 
 // ── Yoru (夜) ───────────────────────────────────────────
 const yoru = {
 	item: 'dark:not-disabled:not-data-disabled:hover:bg-white/5 dark:not-disabled:not-data-disabled:focus:bg-white/5',
 	nav: ['dark:text-white', 'dark:group-hover:bg-white/5'],
-	tab: ['dark:data-current:text-white', 'dark:not-data-current:not-disabled:hover:text-zinc-200'],
 }
 
 // ── Garasu (ガラス) — Glass overrides ───────────────────
@@ -56,9 +54,6 @@ const nav = [motoi.nav, hiru.nav, yoru.nav]
 export const sawari = {
 	item,
 	nav,
-	tab: [sumi.textMuted, hiru.tab, yoru.tab],
 	navItem: [...nav, ki.inset],
 	cursor: 'cursor-default',
-	focusText: 'group-focus/option:text-white',
-	focusTextMuted: 'group-focus/option:text-white/75',
 }

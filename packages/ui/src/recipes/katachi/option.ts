@@ -21,5 +21,5 @@ export const option = {
 	],
 	content: ['flex min-w-0 items-center', narabi.item],
 	label: 'ml-2.5 first:ml-0 sm:ml-2 sm:first:ml-0 truncate',
-	description: [narabi.description, sumi.textMuted, sawari.focusText],
+	description: [narabi.description, sumi.textMuted, sumi.focusText],
 }
