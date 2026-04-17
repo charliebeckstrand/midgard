@@ -1,3 +1,4 @@
+import { ma } from '../ma'
 import { maru } from '../maru'
 import { omote } from '../omote'
 import { sumi } from '../sumi'
@@ -9,8 +10,8 @@ export const tooltip = {
 		omote.popover,
 		maru.rounded,
 		sumi.text,
-		take.px.md,
-		take.py.md,
+		ma.density.px.md,
+		ma.density.py.md,
 		take.text.md,
 		'z-50',
 		'font-medium',

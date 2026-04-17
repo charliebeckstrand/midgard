@@ -12,7 +12,7 @@ import { button, buttonWithIcon, buttonWithIconSize, buttonWithKbd } from './but
 import { combobox } from './combobox'
 import { compact } from './compact'
 import { control } from './control'
-import { gap, iconSlot, px, py, text } from './density'
+import { gap, iconSlot, text } from './density'
 import { listbox } from './listbox'
 import { mark } from './mark'
 import { panel } from './panel'
@@ -21,8 +21,6 @@ import { scrollArea } from './scroll-area'
 
 export const take = {
 	// Core density tokens
-	px,
-	py,
 	gap,
 	text,
 

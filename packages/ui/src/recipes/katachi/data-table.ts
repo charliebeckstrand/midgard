@@ -1,8 +1,8 @@
 import { kage } from '../kage'
+import { ma } from '../ma'
 import { maru } from '../maru'
 import { omote } from '../omote'
 import { sumi } from '../sumi'
-import { take } from '../take'
 
 export const dataTable = {
 	wrapper: 'relative flex flex-col gap-2',
@@ -10,8 +10,8 @@ export const dataTable = {
 	stickyHead: ['sticky top-0 z-10', omote.surface],
 	batchBar: [
 		'flex items-center gap-3 min-h-12',
-		take.px.md,
-		take.py.sm,
+		ma.density.px.md,
+		ma.density.py.sm,
 		kage.borderSubtle,
 		maru.rounded,
 		'border-b',
