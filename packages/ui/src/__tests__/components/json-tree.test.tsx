@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { JsonTree } from '../../components/json-tree'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
@@ -60,41 +60,5 @@ describe('JsonTree', () => {
 		renderUI(<JsonTree data={{ items: [1, 2, 3] }} defaultExpandDepth={1} />)
 
 		expect(screen.getByText('3 items')).toBeInTheDocument()
-	})
-
-	it('renders copy buttons only when copyPath is enabled', () => {
-		const { container, rerender } = renderUI(
-			<JsonTree data={{ name: 'Ada' }} defaultExpandDepth={1} />,
-		)
-
-		expect(container.querySelector('[data-slot="toggle-icon-button"]')).toBeNull()
-
-		rerender(<JsonTree data={{ name: 'Ada' }} defaultExpandDepth={1} copyPath />)
-
-		expect(container.querySelector('[data-slot="toggle-icon-button"]')).toBeInTheDocument()
-	})
-
-	it('invokes onCopyPath with the node path', () => {
-		Object.defineProperty(navigator, 'clipboard', {
-			configurable: true,
-			value: { writeText: vi.fn() },
-		})
-
-		const onCopyPath = vi.fn()
-
-		const { container } = renderUI(
-			<JsonTree
-				data={{ user: { name: 'Ada' } }}
-				defaultExpandDepth={Number.POSITIVE_INFINITY}
-				copyPath
-				onCopyPath={onCopyPath}
-			/>,
-		)
-
-		const copyButtons = container.querySelectorAll<HTMLElement>('[data-slot="toggle-icon-button"]')
-
-		fireEvent.click(copyButtons[copyButtons.length - 1])
-
-		expect(onCopyPath).toHaveBeenCalledWith(['user', 'name'])
 	})
 })

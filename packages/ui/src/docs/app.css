@@ -29,3 +29,19 @@ table > thead tr > :is(th, td):first-child:nth-last-child(3) ~ :is(th, td) {
 :focus:not(:focus-visible) {
 	outline: none !important;
 }
+
+/* JsonTree: merge adjacent highlighted rows into one visual block.
+   Rows merge when the previous sibling is a highlighted leaf (no data-slot).
+   Branches keep bottom rounding because their children create a visual break. */
+
+/* Remove top rounding when preceded by a highlighted leaf */
+[data-highlighted]:not([data-slot]) + [data-highlighted] > .group\/json-node {
+	border-top-left-radius: 0;
+	border-top-right-radius: 0;
+}
+
+/* Remove bottom rounding for leaves when followed by any highlighted sibling */
+[data-highlighted]:not([data-slot]):has(+ [data-highlighted]) > .group\/json-node {
+	border-bottom-left-radius: 0;
+	border-bottom-right-radius: 0;
+}

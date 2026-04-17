@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useDeferredValue, useState } from 'react'
+import { Button } from '../../components/button'
 import { JsonTree } from '../../components/json-tree'
+import { SearchInput } from '../../components/search-input'
 import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'
-import { Text } from '../../components/text'
-import { code } from '../code'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Data Display' }
@@ -27,80 +27,93 @@ const sample = {
 	],
 }
 
-export default function JsonTreeDemo() {
-	const [lastCopied, setLastCopied] = useState<string | null>(null)
+function ExpandAllExample() {
+	const [expanded, setExpanded] = useState(true)
 
 	return (
+		<Example title="Expand all levels">
+			<Stack gap={3}>
+				<div>
+					<Button size="sm" variant="outline" onClick={() => setExpanded((v) => !v)}>
+						{expanded ? 'Collapse all' : 'Expand all'}
+					</Button>
+				</div>
+				<JsonTree
+					key={String(expanded)}
+					data={sample}
+					defaultExpandDepth={expanded ? Number.POSITIVE_INFINITY : 0}
+				/>
+			</Stack>
+		</Example>
+	)
+}
+
+function SearchExample() {
+	const [search, setSearch] = useState('')
+
+	const deferredSearch = useDeferredValue(search)
+
+	return (
+		<Example title="Search">
+			<Stack gap={4}>
+				<SearchInput
+					id="json-tree-search"
+					placeholder="Search tree"
+					value={search}
+					onChange={(e) => setSearch(e.target.value)}
+					onClear={() => setSearch('')}
+				/>
+				<JsonTree data={sample} search={deferredSearch} defaultExpandDepth={1} />
+			</Stack>
+		</Example>
+	)
+}
+
+function FilterExample() {
+	const [search, setSearch] = useState('')
+
+	const deferredSearch = useDeferredValue(search)
+
+	return (
+		<Example title="Search with filter">
+			<Stack gap={4}>
+				<SearchInput
+					id="json-tree-filter-search"
+					placeholder="Filter tree"
+					value={search}
+					onChange={(e) => setSearch(e.target.value)}
+					onClear={() => setSearch('')}
+				/>
+				<JsonTree
+					data={sample}
+					search={{ value: deferredSearch, filter: true }}
+					defaultExpandDepth={1}
+				/>
+			</Stack>
+		</Example>
+	)
+}
+
+export default function JsonTreeDemo() {
+	return (
 		<Stack gap={6}>
-			<Example
-				title="Default"
-				code={code`
-					import { JsonTree } from 'ui/json-tree'
-
-					<JsonTree data={data} />
-				`}
-			>
-				<Sizer>
-					<JsonTree data={sample} />
-				</Sizer>
+			<Example title="Default">
+				<JsonTree data={sample} />
 			</Example>
 
-			<Example
-				title="Expand all levels"
-				code={code`
-					import { JsonTree } from 'ui/json-tree'
+			<ExpandAllExample />
 
-					<JsonTree data={data} defaultExpandDepth={Infinity} />
-				`}
-			>
-				<Sizer>
-					<JsonTree data={sample} defaultExpandDepth={Number.POSITIVE_INFINITY} />
-				</Sizer>
-			</Example>
-
-			<Example
-				title="Collapsed by default"
-				code={code`
-					import { JsonTree } from 'ui/json-tree'
-
-					<JsonTree data={data} defaultExpandDepth={0} />
-				`}
-			>
+			<Example title="Collapsed by default">
 				<Sizer>
 					<JsonTree data={sample} defaultExpandDepth={0} />
 				</Sizer>
 			</Example>
 
-			<Example
-				title="Copy path"
-				code={code`
-					import { JsonTree } from 'ui/json-tree'
+			<SearchExample />
 
-					<JsonTree
-						data={data}
-						onCopyPath={(path) => console.log(path)}
-					/>
-				`}
-			>
-				<Sizer>
-					<Stack gap={3}>
-						<JsonTree
-							data={sample}
-							onCopyPath={(path) => setLastCopied(path.join('.') || '<root>')}
-						/>
-						{lastCopied && <Text size="sm">Last copied: {lastCopied}</Text>}
-					</Stack>
-				</Sizer>
-			</Example>
+			<FilterExample />
 
-			<Example
-				title="Arrays of primitives"
-				code={code`
-					import { JsonTree } from 'ui/json-tree'
-
-					<JsonTree data={['alpha', 'beta', 'gamma']} />
-				`}
-			>
+			<Example title="Arrays of primitives">
 				<Sizer>
 					<JsonTree
 						data={['alpha', 'beta', 'gamma', 1, 2, 3, true, false, null]}

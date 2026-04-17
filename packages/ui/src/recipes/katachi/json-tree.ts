@@ -40,8 +40,5 @@ export const jsonTree = {
 	punctuation: sumi.textMuted,
 	summary: sumi.textMuted,
 	group: 'overflow-hidden',
-	copyAction: [
-		'ml-1 inline-flex opacity-0 group-hover/json-node:opacity-100 focus-within:opacity-100',
-		nagare.opacity,
-	],
+	highlight: ['bg-amber-100/60', 'dark:bg-amber-500/15', maru.rounded],
 }
