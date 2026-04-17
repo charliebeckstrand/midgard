@@ -13,7 +13,7 @@ import { kage } from './kage'
 const motoi = {
 	panel: ['shadow-lg', 'forced-colors:outline'],
 	content: 'lg:rounded-lg lg:shadow-xs',
-	popover: 'backdrop-blur',
+	popover: garasu.md,
 	skeleton: 'animate-pulse',
 	glass: ['bg-transparent', garasu.md],
 }
