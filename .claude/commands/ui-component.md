@@ -506,13 +506,13 @@ export default function <Name>Demo() {
           import { Button } from 'ui/button'
 
           <Button onClick={() => setOpen(true)}>Open <Name></Button>
-          <<Name> open={open} onClose={() => setOpen(false)}>
+          <<Name> open={open} onOpenChange={setOpen}>
             ...
           </<Name>>
         `}
       >
         <Button onClick={() => setOpen(true)}>Open <Name></Button>
-        <<Name> open={open} onClose={() => setOpen(false)}>
+        <<Name> open={open} onOpenChange={setOpen}>
           ...
         </<Name>>
       </Example>

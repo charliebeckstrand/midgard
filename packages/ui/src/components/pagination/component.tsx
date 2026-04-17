@@ -71,18 +71,19 @@ export function PaginationPage({
 
 	return (
 		<li>
-			<Polymorphic
-				as="button"
-				dataSlot="pagination-page"
-				href={href}
-				aria-current={current ? 'page' : undefined}
-				className={cn(pageButtonVariants({ current }), className)}
-				{...indicator.tapHandlers}
-				{...props}
-			>
-				<span className="relative z-10">{children}</span>
+			<span className="group relative" {...indicator.tapHandlers}>
+				<Polymorphic
+					as="button"
+					dataSlot="pagination-page"
+					href={href}
+					aria-current={current ? 'page' : undefined}
+					className={cn(pageButtonVariants({ current }), 'relative z-1', className)}
+					{...props}
+				>
+					{children}
+				</Polymorphic>
 				{current && <ActiveIndicator ref={indicator.ref} />}
-			</Polymorphic>
+			</span>
 		</li>
 	)
 }

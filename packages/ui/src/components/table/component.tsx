@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo } from 'react'
 import { cn, createContext } from '../../core'
 import { k } from './variants'
 
@@ -25,15 +26,18 @@ export type TableProps = TableVariants & {
 }
 
 export function Table({ bleed, dense, grid, striped, className, children }: TableProps) {
+	const ctx = useMemo<TableContextValue>(
+		() => ({
+			bleed: bleed ?? false,
+			dense: dense ?? false,
+			grid: grid ?? false,
+			striped: striped ?? false,
+		}),
+		[bleed, dense, grid, striped],
+	)
+
 	return (
-		<TableProvider
-			value={{
-				bleed: bleed ?? false,
-				dense: dense ?? false,
-				grid: grid ?? false,
-				striped: striped ?? false,
-			}}
-		>
+		<TableProvider value={ctx}>
 			<div data-slot="table" className={cn('overflow-x-auto', bleed && '-mx-4 sm:-mx-6')}>
 				<table className={cn(k.base, className)}>{children}</table>
 			</div>

@@ -4,9 +4,11 @@ import {
 	useCallback,
 	useContext,
 	useEffect,
+	useMemo,
 	useState,
 } from 'react'
 import { cn } from '../core'
+import { useIdScope } from '../hooks/use-id-scope'
 import { katachi } from '../recipes'
 
 const k = katachi.panel
@@ -48,6 +50,34 @@ export function useDescriptionRegistration() {
 	}, [])
 
 	return { hasDescription, registerDescription }
+}
+
+/**
+ * Sets up the a11y scaffolding required by modal panel roots (dialog, drawer, sheet):
+ * generates title/description ids, tracks whether a Description slot is rendered,
+ * and returns ready-to-spread ARIA props and a memoized provider value.
+ */
+export function usePanelA11yScope() {
+	const scope = useIdScope()
+
+	const titleId = scope.sub('title')
+	const descriptionId = scope.sub('description')
+
+	const { hasDescription, registerDescription } = useDescriptionRegistration()
+
+	const panelAriaProps = {
+		role: 'dialog' as const,
+		'aria-modal': true,
+		'aria-labelledby': titleId,
+		'aria-describedby': hasDescription ? descriptionId : undefined,
+	}
+
+	const providerValue = useMemo<PanelA11yContextValue>(
+		() => ({ titleId, descriptionId, registerDescription }),
+		[titleId, descriptionId, registerDescription],
+	)
+
+	return { panelAriaProps, providerValue }
 }
 
 /** Creates Title, Description, Body, and Actions slot components for a panel prefix. */

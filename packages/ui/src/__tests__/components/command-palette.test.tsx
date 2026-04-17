@@ -5,7 +5,7 @@ import { renderUI, screen } from '../helpers'
 describe('CommandPalette', () => {
 	it('renders input when open', () => {
 		renderUI(
-			<CommandPalette open onClose={() => {}}>
+			<CommandPalette open onOpenChange={() => {}}>
 				<div>Items</div>
 			</CommandPalette>,
 		)
@@ -17,7 +17,7 @@ describe('CommandPalette', () => {
 
 	it('renders command list when open', () => {
 		renderUI(
-			<CommandPalette open onClose={() => {}}>
+			<CommandPalette open onOpenChange={() => {}}>
 				<div>Items</div>
 			</CommandPalette>,
 		)
@@ -31,7 +31,7 @@ describe('CommandPalette', () => {
 
 	it('renders children', () => {
 		renderUI(
-			<CommandPalette open onClose={() => {}}>
+			<CommandPalette open onOpenChange={() => {}}>
 				<div>My items</div>
 			</CommandPalette>,
 		)
@@ -41,7 +41,7 @@ describe('CommandPalette', () => {
 
 	it('does not render when closed', () => {
 		renderUI(
-			<CommandPalette open={false} onClose={() => {}}>
+			<CommandPalette open={false} onOpenChange={() => {}}>
 				<div>Items</div>
 			</CommandPalette>,
 		)
@@ -51,7 +51,7 @@ describe('CommandPalette', () => {
 
 	it('renders close button', () => {
 		renderUI(
-			<CommandPalette open onClose={() => {}}>
+			<CommandPalette open onOpenChange={() => {}}>
 				<div>Items</div>
 			</CommandPalette>,
 		)
@@ -61,7 +61,7 @@ describe('CommandPalette', () => {
 
 	it('applies placeholder to input', () => {
 		renderUI(
-			<CommandPalette open onClose={() => {}} placeholder="Search commands">
+			<CommandPalette open onOpenChange={() => {}} placeholder="Search commands">
 				<div>Items</div>
 			</CommandPalette>,
 		)

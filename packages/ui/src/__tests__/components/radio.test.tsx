@@ -21,12 +21,12 @@ describe('Radio', () => {
 		expect(el.type).toBe('radio')
 	})
 
-	it('applies custom className', () => {
+	it('applies custom className to the wrapper', () => {
 		const { container } = renderUI(<Radio className="custom" />)
 
-		const el = bySlot(container, 'radio')
+		const wrapper = bySlot(container, 'control')
 
-		expect(el?.className).toContain('custom')
+		expect(wrapper?.className).toContain('custom')
 	})
 
 	it('renders a placeholder in skeleton mode', () => {

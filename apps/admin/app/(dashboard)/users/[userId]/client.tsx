@@ -110,7 +110,11 @@ export function UserDetailsClient({ details, chats: initialChats }: UserDetailsC
 				</Stack>
 			</Stack>
 
-			<Sheet open={viewChat !== null} onClose={() => setViewChat(null)} size="3xl">
+			<Sheet
+				open={viewChat !== null}
+				onOpenChange={(open) => !open && setViewChat(null)}
+				size="3xl"
+			>
 				<Flex justify="between" className="mr-2.5">
 					<Stack gap={0}>
 						<SheetTitle>Chat History</SheetTitle>
@@ -133,7 +137,10 @@ export function UserDetailsClient({ details, chats: initialChats }: UserDetailsC
 				</SheetBody>
 			</Sheet>
 
-			<Dialog open={confirmDeleteChat !== null} onClose={() => setConfirmDeleteChat(null)}>
+			<Dialog
+				open={confirmDeleteChat !== null}
+				onOpenChange={(open) => !open && setConfirmDeleteChat(null)}
+			>
 				<DialogTitle>Delete Chat</DialogTitle>
 				<DialogBody>
 					Are you sure you want to delete{' '}

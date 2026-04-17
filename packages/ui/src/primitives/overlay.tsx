@@ -10,7 +10,7 @@ import { omote, ugoki } from '../recipes'
 
 export type OverlayProps = {
 	open: boolean
-	onClose: () => void
+	onOpenChange: (open: boolean) => void
 	outsideClick?: boolean
 	glass?: boolean
 	className?: string
@@ -19,7 +19,7 @@ export type OverlayProps = {
 
 export function Overlay({
 	open,
-	onClose,
+	onOpenChange,
 	outsideClick = true,
 	glass,
 	className,
@@ -28,15 +28,15 @@ export function Overlay({
 }: OverlayProps) {
 	const focusTrapRef = useFocusTrap(open)
 
-	const onCloseRef = useRef(onClose)
+	const onOpenChangeRef = useRef(onOpenChange)
 
-	onCloseRef.current = onClose
+	onOpenChangeRef.current = onOpenChange
 
 	useEffect(() => {
 		if (!open) return
 
 		function onKeyDown(e: KeyboardEvent) {
-			if (e.key === 'Escape') onCloseRef.current()
+			if (e.key === 'Escape') onOpenChangeRef.current(false)
 		}
 
 		document.addEventListener('keydown', onKeyDown)
@@ -62,7 +62,7 @@ export function Overlay({
 							className ??
 							cn('absolute inset-0', glass ? omote.backdrop.glass : omote.backdrop.base)
 						}
-						onClick={outsideClick ? onClose : undefined}
+						onClick={outsideClick ? () => onOpenChange(false) : undefined}
 						aria-hidden="true"
 					/>
 					{children}

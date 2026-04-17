@@ -1,3 +1,3 @@
 import { katachi } from '../../recipes'
 
-export const k = katachi.numberInput
+export const k = katachi.input

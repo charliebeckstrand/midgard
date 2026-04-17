@@ -14,7 +14,7 @@ export default function DrawerDemo() {
 		<Stack gap={6}>
 			<Example title="Default">
 				<Button onClick={() => setOpen(true)}>Open Drawer</Button>
-				<Drawer open={open} onClose={() => setOpen(false)}>
+				<Drawer open={open} onOpenChange={setOpen}>
 					<DrawerTitle>Drawer</DrawerTitle>
 					<DrawerBody>
 						<p className="text-sm text-zinc-500">Slides up from the bottom.</p>
@@ -29,7 +29,7 @@ export default function DrawerDemo() {
 				<Button variant="outline" onClick={() => setGlassOpen(true)}>
 					Open Glass Drawer
 				</Button>
-				<Drawer glass open={glassOpen} onClose={() => setGlassOpen(false)}>
+				<Drawer glass open={glassOpen} onOpenChange={setGlassOpen}>
 					<DrawerTitle>Glass Drawer</DrawerTitle>
 					<DrawerBody>
 						<p className="text-sm dark:text-zinc-500">Transparent panel from the bottom.</p>

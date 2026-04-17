@@ -24,6 +24,7 @@ export {
 	panelDescriptionVariants,
 	panelTitleVariants,
 	useDescriptionRegistration,
+	usePanelA11yScope,
 } from './panel'
 export { Polymorphic, type PolymorphicProps } from './polymorphic'
 export { PopoverPanel } from './popover-panel'

@@ -22,7 +22,6 @@ import { code } from './code'
 import { collapse } from './collapse'
 import { combobox } from './combobox'
 import { commandPalette } from './command-palette'
-import { copyButton } from './copy-button'
 import { dataTable } from './data-table'
 import { datepicker } from './datepicker'
 import { dialog } from './dialog'
@@ -35,18 +34,20 @@ import { grid } from './grid'
 import { heading } from './heading'
 import { input } from './input'
 import { jsonTree } from './json-tree'
+import { kanban } from './kanban'
 import { kbd } from './kbd'
+import { list } from './list'
 import { listbox } from './listbox'
 import { menu } from './menu'
 import { nav } from './nav'
 import { navbar } from './navbar'
-import { numberInput } from './number-input'
 import { option } from './option'
 import { pagination } from './pagination'
 import { panel } from './panel'
 import { placeholder } from './placeholder'
 import { popover } from './popover'
 import { progress } from './progress'
+import { queryBuilder } from './query-builder'
 import { radio } from './radio'
 import { resizable } from './resizable'
 import { scrollArea } from './scroll-area'
@@ -54,6 +55,7 @@ import { segment } from './segment'
 import { select } from './select'
 import { sheet } from './sheet'
 import { sidebar } from './sidebar'
+import { signaturePad } from './signature-pad'
 import { slider } from './slider'
 import { sliderRange } from './slider-range'
 import { spinner } from './spinner'
@@ -90,7 +92,6 @@ export const katachi = {
 	collapse,
 	combobox,
 	commandPalette,
-	copyButton,
 	dataTable,
 	datepicker,
 	dialog,
@@ -103,18 +104,20 @@ export const katachi = {
 	heading,
 	input,
 	jsonTree,
+	kanban,
 	kbd,
+	list,
 	listbox,
 	menu,
 	nav,
 	navbar,
-	numberInput,
 	option,
 	pagination,
 	panel,
 	placeholder,
 	popover,
 	progress,
+	queryBuilder,
 	radio,
 	resizable,
 	scrollArea,
@@ -122,6 +125,7 @@ export const katachi = {
 	select,
 	sheet,
 	sidebar,
+	signaturePad,
 	slider,
 	sliderRange,
 	spinner,

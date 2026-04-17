@@ -3,15 +3,15 @@
 import { motion } from 'motion/react'
 import type React from 'react'
 import { cn } from '../../core'
-import { useIdScope, useIsDesktop } from '../../hooks'
-import { Overlay, PanelA11yProvider, useDescriptionRegistration } from '../../primitives'
+import { useIsDesktop } from '../../hooks'
+import { Overlay, PanelA11yProvider, usePanelA11yScope } from '../../primitives'
 import { ugoki } from '../../recipes'
 import { useGlass } from '../glass/context'
 import { type DialogPanelVariants, dialogPanelVariants } from './variants'
 
 export type DialogProps = DialogPanelVariants & {
 	open: boolean
-	onClose: () => void
+	onOpenChange: (open: boolean) => void
 	align?: 'center' | 'start'
 	outsideClick?: boolean
 	className?: string
@@ -25,7 +25,7 @@ const alignClasses = {
 
 export function Dialog({
 	open,
-	onClose,
+	onOpenChange,
 	align = 'center',
 	outsideClick = true,
 	glass,
@@ -39,16 +39,15 @@ export function Dialog({
 
 	const isDesktop = useIsDesktop()
 
-	const scope = useIdScope()
-
-	const titleId = scope.sub('title')
-
-	const descriptionId = scope.sub('description')
-
-	const { hasDescription, registerDescription } = useDescriptionRegistration()
+	const { panelAriaProps, providerValue } = usePanelA11yScope()
 
 	return (
-		<Overlay open={open} onClose={onClose} outsideClick={outsideClick} glass={resolvedGlass}>
+		<Overlay
+			open={open}
+			onOpenChange={onOpenChange}
+			outsideClick={outsideClick}
+			glass={resolvedGlass}
+		>
 			<div
 				className={cn(
 					'pointer-events-none fixed inset-0 flex min-h-full items-end sm:justify-center sm:p-4',
@@ -57,10 +56,7 @@ export function Dialog({
 			>
 				<motion.div
 					{...(isDesktop ? ugoki.popover : ugoki.panel.bottom)}
-					role="dialog"
-					aria-modal="true"
-					aria-labelledby={titleId}
-					aria-describedby={hasDescription ? descriptionId : undefined}
+					{...panelAriaProps}
 					data-slot="dialog"
 					className={cn(
 						'pointer-events-auto',
@@ -68,9 +64,7 @@ export function Dialog({
 						className,
 					)}
 				>
-					<PanelA11yProvider value={{ titleId, descriptionId, registerDescription }}>
-						{children}
-					</PanelA11yProvider>
+					<PanelA11yProvider value={providerValue}>{children}</PanelA11yProvider>
 				</motion.div>
 			</div>
 		</Overlay>

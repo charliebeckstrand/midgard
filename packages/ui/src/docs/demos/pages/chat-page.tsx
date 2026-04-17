@@ -172,9 +172,7 @@ export default function ChatPageDemo() {
 
 			<ConfirmDialog
 				open={confirmDialog}
-				onClose={() => {
-					setConfirmDialog(false)
-				}}
+				onOpenChange={setConfirmDialog}
 				onConfirm={() => {
 					setConfirmDialog(false)
 				}}

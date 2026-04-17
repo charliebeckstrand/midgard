@@ -31,7 +31,7 @@ export default function DialogDemo() {
 				<Button color="green" onClick={() => setOpen(true)}>
 					Create project
 				</Button>
-				<Dialog open={open} onClose={() => setOpen(false)}>
+				<Dialog open={open} onOpenChange={setOpen}>
 					<DialogTitle>Create project</DialogTitle>
 					<DialogDescription>Enter the details for your new project.</DialogDescription>
 					<DialogBody>
@@ -59,7 +59,7 @@ export default function DialogDemo() {
 
 			<Example title="Glass">
 				<Button onClick={() => setGlassOpen(true)}>Open glass dialog</Button>
-				<Dialog glass open={glassOpen} onClose={() => setGlassOpen(false)}>
+				<Dialog glass open={glassOpen} onOpenChange={setGlassOpen}>
 					<DialogTitle>Glass dialog</DialogTitle>
 					<DialogBody>
 						<Stack gap={4}>
@@ -83,7 +83,7 @@ export default function DialogDemo() {
 				</Button>
 				<ConfirmDialog
 					open={discardOpen}
-					onClose={() => setDiscardOpen(false)}
+					onOpenChange={setDiscardOpen}
 					onConfirm={() => setDiscardOpen(false)}
 					description="You have unsaved changes that will be lost."
 					confirm={{ label: 'Discard changes', color: 'amber' }}
@@ -97,9 +97,9 @@ export default function DialogDemo() {
 				</Button>
 				<ConfirmDialog
 					open={termsConditionsOpen}
-					onClose={() => {
-						setTermsConditionsOpen(false)
-						setAccepted(false)
+					onOpenChange={(open) => {
+						setTermsConditionsOpen(open)
+						if (!open) setAccepted(false)
 					}}
 					onConfirm={() => {
 						setTermsConditionsOpen(false)

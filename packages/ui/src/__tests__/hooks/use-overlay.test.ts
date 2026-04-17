@@ -9,30 +9,31 @@ describe('useOverlay', () => {
 		expect(result.current).toHaveProperty('current')
 	})
 
-	it('calls onClose when Escape is pressed while open', () => {
-		const onClose = vi.fn()
+	it('calls onOpenChange(false) when Escape is pressed while open', () => {
+		const onOpenChange = vi.fn()
 
-		renderHook(() => useOverlay(true, onClose))
-
-		document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
-
-		expect(onClose).toHaveBeenCalledOnce()
-	})
-
-	it('does not call onClose on Escape when closed', () => {
-		const onClose = vi.fn()
-
-		renderHook(() => useOverlay(false, onClose))
+		renderHook(() => useOverlay(true, onOpenChange))
 
 		document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
 
-		expect(onClose).not.toHaveBeenCalled()
+		expect(onOpenChange).toHaveBeenCalledOnce()
+		expect(onOpenChange).toHaveBeenCalledWith(false)
 	})
 
-	it('calls onClose on pointer down outside the container', () => {
-		const onClose = vi.fn()
+	it('does not call onOpenChange on Escape when closed', () => {
+		const onOpenChange = vi.fn()
 
-		const { result, rerender } = renderHook(() => useOverlay(true, onClose))
+		renderHook(() => useOverlay(false, onOpenChange))
+
+		document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+
+		expect(onOpenChange).not.toHaveBeenCalled()
+	})
+
+	it('calls onOpenChange(false) on pointer down outside the container', () => {
+		const onOpenChange = vi.fn()
+
+		const { result, rerender } = renderHook(() => useOverlay(true, onOpenChange))
 
 		// Simulate a container element
 		const container = document.createElement('div')
@@ -47,7 +48,7 @@ describe('useOverlay', () => {
 		// Click outside
 		document.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }))
 
-		expect(onClose).toHaveBeenCalled()
+		expect(onOpenChange).toHaveBeenCalledWith(false)
 
 		document.body.removeChild(container)
 	})

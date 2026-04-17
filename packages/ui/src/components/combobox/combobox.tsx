@@ -6,8 +6,8 @@ import { AnimatePresence } from 'motion/react'
 import type React from 'react'
 import { useCallback, useId, useMemo, useRef } from 'react'
 import { cn, createContext } from '../../core'
+import { useFloatingUI } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
-import { useFloatingUI } from '../../hooks/use-floating-ui'
 import { useRovingFocus } from '../../hooks/use-keyboard'
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
 import { ControlFrame, PopoverPanel } from '../../primitives'
@@ -131,6 +131,7 @@ export function Combobox<T>({
 		placement,
 		open,
 		onOpenChange: setOpen,
+		matchReferenceWidth: true,
 	})
 
 	const inputDisplay = resolveInputDisplay({ editing, query, value, displayValue, multiple })

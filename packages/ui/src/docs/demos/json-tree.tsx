@@ -60,6 +60,7 @@ function SearchExample() {
 				<SearchInput
 					id="json-tree-search"
 					placeholder="Search tree"
+					autoComplete="off"
 					value={search}
 					onChange={(e) => setSearch(e.target.value)}
 					onClear={() => setSearch('')}
@@ -83,6 +84,7 @@ function FilterExample() {
 				<SearchInput
 					id="json-tree-filter-search"
 					placeholder="Filter tree"
+					autoComplete="off"
 					value={search}
 					onChange={(e) => setSearch(e.target.value)}
 					onClear={() => setSearch('')}

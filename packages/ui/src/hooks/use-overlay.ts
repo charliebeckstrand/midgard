@@ -5,23 +5,23 @@ import { useCallback, useEffect, useRef } from 'react'
 /** Overlay dismiss behavior — Escape to close, click-outside to close, optional scroll lock. */
 export function useOverlay(
 	open: boolean,
-	onClose: () => void,
+	onOpenChange: (open: boolean) => void,
 	options: { scrollLock?: boolean } = {},
 ) {
 	const containerRef = useRef<HTMLDivElement>(null)
 
-	const stableClose = useCallback(() => onClose(), [onClose])
+	const close = useCallback(() => onOpenChange(false), [onOpenChange])
 
 	useEffect(() => {
 		if (!open) return
 
 		function onKeyDown(e: KeyboardEvent) {
-			if (e.key === 'Escape') stableClose()
+			if (e.key === 'Escape') close()
 		}
 
 		function onPointerDown(e: PointerEvent) {
 			if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-				stableClose()
+				close()
 			}
 		}
 
@@ -40,7 +40,7 @@ export function useOverlay(
 				document.body.style.overflow = ''
 			}
 		}
-	}, [open, stableClose, options.scrollLock])
+	}, [open, close, options.scrollLock])
 
 	return containerRef
 }

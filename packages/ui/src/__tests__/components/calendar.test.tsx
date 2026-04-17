@@ -11,6 +11,7 @@ vi.mock('@floating-ui/react', () => {
 		flip: () => ({}),
 		offset: () => ({}),
 		shift: () => ({}),
+		size: () => ({}),
 		useClick: () => ({}),
 		useDismiss: () => ({}),
 		useFloating: () => ({

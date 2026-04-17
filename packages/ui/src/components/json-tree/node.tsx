@@ -44,6 +44,17 @@ export const JsonNode = memo(function JsonNode({ keyName, value }: JsonNodeProps
 
 	const empty = visibleEntries.length === 0
 
+	const childContextValue = useMemo(
+		() => ({
+			depth: depth + 1,
+			defaultExpandDepth,
+			search,
+			filter,
+			searchIndex,
+		}),
+		[depth, defaultExpandDepth, search, filter, searchIndex],
+	)
+
 	useEffect(() => {
 		if (!search) {
 			setOpen(depth < defaultExpandDepth)
@@ -117,15 +128,7 @@ export const JsonNode = memo(function JsonNode({ keyName, value }: JsonNodeProps
 			<AnimatePresence initial={false}>
 				{open && (
 					<motion.div data-slot="json-group" {...ugoki.collapse.fade} className={k.group}>
-						<JsonTreeProvider
-							value={{
-								depth: depth + 1,
-								defaultExpandDepth,
-								search,
-								filter,
-								searchIndex,
-							}}
-						>
+						<JsonTreeProvider value={childContextValue}>
 							{visibleEntries.map(([childKey, childValue]) => (
 								<JsonNode key={String(childKey)} keyName={childKey} value={childValue} />
 							))}

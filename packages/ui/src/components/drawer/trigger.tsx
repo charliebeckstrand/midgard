@@ -22,12 +22,12 @@ export function DrawerOpen({ children, onClick }: DrawerOpenProps) {
 }
 
 export function DrawerClose({ children }: DrawerCloseProps) {
-	const { onClose } = useDrawerContext()
+	const { close } = useDrawerContext()
 
 	return React.cloneElement(children, {
 		onClick: (e: React.MouseEvent) => {
 			children.props.onClick?.(e)
-			onClose()
+			close()
 		},
 	})
 }

@@ -5,7 +5,7 @@ import { renderUI, screen } from '../helpers'
 describe('Dialog', () => {
 	it('renders with role="dialog" when open', () => {
 		renderUI(
-			<Dialog open onClose={() => {}}>
+			<Dialog open onOpenChange={() => {}}>
 				Dialog content
 			</Dialog>,
 		)
@@ -19,7 +19,7 @@ describe('Dialog', () => {
 
 	it('renders children when open', () => {
 		renderUI(
-			<Dialog open onClose={() => {}}>
+			<Dialog open onOpenChange={() => {}}>
 				Hello World
 			</Dialog>,
 		)
@@ -29,7 +29,7 @@ describe('Dialog', () => {
 
 	it('does not render when closed', () => {
 		renderUI(
-			<Dialog open={false} onClose={() => {}}>
+			<Dialog open={false} onOpenChange={() => {}}>
 				Hidden content
 			</Dialog>,
 		)

@@ -14,7 +14,7 @@ type ConfirmDialogAction = {
 
 export type ConfirmDialogProps = Pick<DialogPanelVariants, 'size'> & {
 	open: boolean
-	onClose: () => void
+	onOpenChange: (open: boolean) => void
 	onConfirm: () => void
 	title?: React.ReactNode
 	description?: React.ReactNode
@@ -26,7 +26,7 @@ export type ConfirmDialogProps = Pick<DialogPanelVariants, 'size'> & {
 
 export function ConfirmDialog({
 	open,
-	onClose,
+	onOpenChange,
 	onConfirm,
 	title = 'Are you sure?',
 	description,
@@ -36,13 +36,15 @@ export function ConfirmDialog({
 	size,
 	className,
 }: ConfirmDialogProps) {
+	const close = () => onOpenChange(false)
+
 	return (
-		<Dialog open={open} onClose={onClose} size={size} className={className}>
+		<Dialog open={open} onOpenChange={onOpenChange} size={size} className={className}>
 			{title && <DialogTitle>{title}</DialogTitle>}
 			{description && <DialogDescription>{description}</DialogDescription>}
 			{children}
 			<DialogActions>
-				<Button variant="plain" color={cancel?.color} disabled={cancel?.disabled} onClick={onClose}>
+				<Button variant="plain" color={cancel?.color} disabled={cancel?.disabled} onClick={close}>
 					{cancel?.label ?? 'Cancel'}
 				</Button>
 				<Button color={confirm?.color} disabled={confirm?.disabled} onClick={onConfirm}>

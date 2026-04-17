@@ -2,13 +2,12 @@ import { kage } from '../kage'
 import { ki } from '../ki'
 import { maru } from '../maru'
 import { omote } from '../omote'
-import { sumi } from '../sumi'
 import { yasumi } from '../yasumi'
 
 export const segment = {
 	base: ['inline-flex items-center', maru.rounded, omote.tint],
 	segment: [
-		'relative z-10 flex items-center justify-center',
+		'flex items-center justify-center',
 		'font-medium select-none whitespace-nowrap',
 		maru.rounded,
 		ki.indicator,
@@ -17,7 +16,6 @@ export const segment = {
 		'cursor-default',
 		'outline-none',
 	],
-	segmentCurrent: sumi.text,
 	indicator: ['bg-white', 'dark:bg-zinc-600', kage.shadow],
 	size: {
 		sm: { base: 'p-0.5 gap-0.5', segment: 'px-2.5 py-1 text-xs/4' },

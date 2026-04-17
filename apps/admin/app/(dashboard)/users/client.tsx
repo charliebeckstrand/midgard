@@ -18,10 +18,10 @@ interface UsersClientProps {
 
 interface EditUserDialogProps {
 	user: User | null
-	onClose: () => void
+	onOpenChange: (open: boolean) => void
 }
 
-function EditUserDialog({ user, onClose }: EditUserDialogProps) {
+function EditUserDialog({ user, onOpenChange }: EditUserDialogProps) {
 	const [email, setEmail] = useState(user?.email ?? '')
 
 	useEffect(() => {
@@ -29,7 +29,7 @@ function EditUserDialog({ user, onClose }: EditUserDialogProps) {
 	}, [user])
 
 	return (
-		<Dialog open={user !== null} onClose={onClose}>
+		<Dialog open={user !== null} onOpenChange={onOpenChange}>
 			<DialogTitle>Edit User</DialogTitle>
 			<DialogBody>
 				<Fieldset className="space-y-4">
@@ -74,7 +74,7 @@ function EditUserDialog({ user, onClose }: EditUserDialogProps) {
 				</Fieldset>
 			</DialogBody>
 			<DialogActions>
-				<Button variant="plain" onClick={onClose}>
+				<Button variant="plain" onClick={() => onOpenChange(false)}>
 					Cancel
 				</Button>
 				<Button color="blue">Save</Button>
@@ -138,7 +138,7 @@ export function UsersClient({ users, currentUser }: UsersClientProps) {
 				</TableBody>
 			</Table>
 
-			<EditUserDialog user={editingUser} onClose={() => setEditingUser(null)} />
+			<EditUserDialog user={editingUser} onOpenChange={(open) => !open && setEditingUser(null)} />
 		</>
 	)
 }

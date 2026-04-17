@@ -22,12 +22,12 @@ export function SheetOpen({ children, onClick }: SheetOpenProps) {
 }
 
 export function SheetClose({ children }: SheetCloseProps) {
-	const { onClose } = useSheetContext()
+	const { close } = useSheetContext()
 
 	return React.cloneElement(children, {
 		onClick: (e: React.MouseEvent) => {
 			children.props.onClick?.(e)
-			onClose()
+			close()
 		},
 	})
 }

@@ -32,7 +32,7 @@ export function Radio({ className, color, id, disabled, required, ...props }: Ra
 	return (
 		<label
 			data-slot="control"
-			className={cn(k.wrapper, radioVariants(), radioColorVariants({ color }))}
+			className={cn(k.wrapper, radioVariants(), radioColorVariants({ color }), className)}
 		>
 			<input
 				type="radio"
@@ -41,7 +41,7 @@ export function Radio({ className, color, id, disabled, required, ...props }: Ra
 				disabled={resolvedDisabled}
 				required={resolvedRequired}
 				{...(control?.invalid ? { 'data-invalid': '', 'aria-invalid': true } : {})}
-				className={cn(radioInputVariants(), className)}
+				className={radioInputVariants()}
 				{...props}
 			/>
 			<span

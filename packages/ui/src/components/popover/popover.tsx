@@ -1,15 +1,10 @@
 'use client'
 
 import {
-	autoUpdate,
 	FloatingPortal,
-	flip,
-	offset,
 	type Placement,
-	shift,
 	useClick,
 	useDismiss,
-	useFloating,
 	useInteractions,
 	useRole,
 } from '@floating-ui/react'
@@ -26,12 +21,11 @@ import {
 	useState,
 } from 'react'
 import { cn, createContext } from '../../core'
+import { useFloatingPanel } from '../../hooks'
 import { omote, sumi, ugoki } from '../../recipes'
 import { Box, type BoxPadding } from '../box'
 import { useGlass } from '../glass/context'
 import { k } from './variants'
-
-const popoverMiddleware = [offset(8), flip(), shift({ padding: 8 })]
 
 type PopoverContextValue = {
 	open: boolean
@@ -79,12 +73,11 @@ export function Popover({
 
 	const triggerRef = useRef<HTMLButtonElement>(null)
 
-	const { refs, floatingStyles, context } = useFloating({
+	const { refs, floatingStyles, context } = useFloatingPanel({
 		placement,
 		open,
 		onOpenChange: setOpen,
-		whileElementsMounted: autoUpdate,
-		middleware: popoverMiddleware,
+		offset: 8,
 	})
 
 	const click = useClick(context)

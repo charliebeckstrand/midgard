@@ -6,8 +6,8 @@ import { AnimatePresence } from 'motion/react'
 import type React from 'react'
 import { useCallback, useId, useMemo, useRef } from 'react'
 import { cn, createContext } from '../../core'
+import { useFloatingUI } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
-import { useFloatingUI } from '../../hooks/use-floating-ui'
 import { ControlFrame, PopoverPanel } from '../../primitives'
 import { kokkaku, sumi, waku } from '../../recipes'
 import { useControl } from '../control/context'
@@ -32,6 +32,7 @@ type ListboxBaseProps = {
 	placeholder?: string
 	placement?: Placement
 	icon?: React.ReactNode
+	disabled?: boolean
 	className?: string
 	inputId?: string
 	/** Clicking the selected option clears it. */
@@ -67,6 +68,7 @@ export function Listbox<T>({
 	placeholder = 'Select',
 	placement = 'bottom-start',
 	icon,
+	disabled,
 	className,
 	inputId,
 	children,
@@ -77,7 +79,7 @@ export function Listbox<T>({
 
 	const resolvedId = inputId ?? control?.id
 
-	const resolvedDisabled = control?.disabled
+	const resolvedDisabled = disabled ?? control?.disabled
 
 	const resolvedSize = control?.size ?? 'md'
 
@@ -111,6 +113,7 @@ export function Listbox<T>({
 		placement,
 		open,
 		onOpenChange: setOpen,
+		matchReferenceWidth: true,
 	})
 
 	const label = resolveLabel({ value, displayValue, multiple })

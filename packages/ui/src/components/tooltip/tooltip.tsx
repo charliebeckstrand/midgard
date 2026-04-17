@@ -1,15 +1,10 @@
 'use client'
 
 import {
-	autoUpdate,
 	FloatingPortal,
-	flip,
-	offset,
 	safePolygon,
-	shift,
 	useClick,
 	useDismiss,
-	useFloating,
 	useFocus,
 	useHover,
 	useInteractions,
@@ -19,11 +14,9 @@ import { AnimatePresence, motion } from 'motion/react'
 import type React from 'react'
 import { isValidElement, useState } from 'react'
 import { cn } from '../../core'
-import { useHasHover } from '../../hooks'
+import { useFloatingPanel, useHasHover } from '../../hooks'
 import { ugoki } from '../../recipes'
 import { k } from './variants'
-
-const tooltipMiddleware = [offset(8), flip(), shift({ padding: 8 })]
 
 export type TooltipProps = {
 	placement?: 'top' | 'bottom' | 'left' | 'right'
@@ -64,12 +57,11 @@ export function Tooltip({
 		}
 	}
 
-	const { refs, floatingStyles, context } = useFloating({
+	const { refs, floatingStyles, context } = useFloatingPanel({
 		placement,
 		open,
 		onOpenChange: setOpen,
-		whileElementsMounted: autoUpdate,
-		middleware: tooltipMiddleware,
+		offset: 8,
 	})
 
 	const hasHover = useHasHover()

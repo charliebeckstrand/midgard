@@ -33,12 +33,12 @@ describe('Checkbox', () => {
 		expect(bySlot(container, 'checkbox-check')).not.toBeInTheDocument()
 	})
 
-	it('applies custom className to the input', () => {
+	it('applies custom className to the wrapper', () => {
 		const { container } = renderUI(<Checkbox className="my-check" />)
 
-		const input = bySlot(container, 'checkbox')
+		const wrapper = bySlot(container, 'control')
 
-		expect(input?.className).toContain('my-check')
+		expect(wrapper?.className).toContain('my-check')
 	})
 
 	it('forwards checked and onChange', () => {

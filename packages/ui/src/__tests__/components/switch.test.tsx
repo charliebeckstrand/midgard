@@ -25,12 +25,12 @@ describe('Switch', () => {
 		expect(thumb).toHaveAttribute('aria-hidden', 'true')
 	})
 
-	it('applies custom className to the input', () => {
+	it('applies custom className to the wrapper', () => {
 		const { container } = renderUI(<Switch className="custom" />)
 
-		const input = bySlot(container, 'switch')
+		const wrapper = bySlot(container, 'control')
 
-		expect(input?.className).toContain('custom')
+		expect(wrapper?.className).toContain('custom')
 	})
 
 	it('forwards checked and onChange', () => {

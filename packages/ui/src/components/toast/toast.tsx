@@ -1,6 +1,7 @@
 'use client'
 
 import { AnimatePresence } from 'motion/react'
+import { useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { cn } from '../../core'
 import { ToastAlert } from './alert'
@@ -19,12 +20,14 @@ export function Toast({
 		maxToasts,
 	})
 
+	const ctx = useMemo(() => ({ toast, dismiss }), [toast, dismiss])
+
 	if (typeof document === 'undefined') {
-		return <ToastContext value={{ toast, dismiss }}>{children}</ToastContext>
+		return <ToastContext value={ctx}>{children}</ToastContext>
 	}
 
 	return (
-		<ToastContext value={{ toast, dismiss }}>
+		<ToastContext value={ctx}>
 			{children}
 			{createPortal(
 				<output

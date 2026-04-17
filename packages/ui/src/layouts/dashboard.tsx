@@ -15,7 +15,7 @@ export type DashboardLayoutProps = React.PropsWithChildren<{
 }>
 
 export function DashboardLayout({ filters, children }: DashboardLayoutProps) {
-	const { open, setOpen, close } = useOffcanvas()
+	const { open, setOpen } = useOffcanvas()
 
 	return (
 		<StackedLayout>
@@ -34,7 +34,7 @@ export function DashboardLayout({ filters, children }: DashboardLayoutProps) {
 						</Box>
 
 						{/* Filter drawer on mobile */}
-						<Drawer open={open} onClose={close}>
+						<Drawer open={open} onOpenChange={setOpen}>
 							<DrawerTitle>Filters</DrawerTitle>
 							<DrawerBody>
 								<Stack gap={4}>{filters}</Stack>

@@ -21,7 +21,7 @@ export default function SheetDemo() {
 						Open Left
 					</Button>
 
-					<Sheet side="left" open={leftOpen} onClose={() => setLeftOpen(false)}>
+					<Sheet side="left" open={leftOpen} onOpenChange={setLeftOpen}>
 						<SheetTitle>Left Sheet</SheetTitle>
 						<SheetBody>
 							<p className="text-sm text-zinc-500">Slides from the left.</p>
@@ -33,7 +33,7 @@ export default function SheetDemo() {
 
 					<Button onClick={() => setRightOpen(true)}>Open Right</Button>
 
-					<Sheet open={rightOpen} onClose={() => setRightOpen(false)}>
+					<Sheet open={rightOpen} onOpenChange={setRightOpen}>
 						<SheetTitle>Right Sheet</SheetTitle>
 						<SheetBody>
 							<p className="text-sm text-zinc-500">Slides from the right.</p>
@@ -51,7 +51,7 @@ export default function SheetDemo() {
 						Open Left
 					</Button>
 
-					<Sheet glass side="left" open={glassLeftOpen} onClose={() => setGlassLeftOpen(false)}>
+					<Sheet glass side="left" open={glassLeftOpen} onOpenChange={setGlassLeftOpen}>
 						<SheetTitle>Glass Sheet</SheetTitle>
 						<SheetBody>
 							<p className="text-sm dark:text-zinc-500">Transparent panel from the left.</p>
@@ -65,7 +65,7 @@ export default function SheetDemo() {
 						Open Right
 					</Button>
 
-					<Sheet glass open={glassRightOpen} onClose={() => setGlassRightOpen(false)}>
+					<Sheet glass open={glassRightOpen} onOpenChange={setGlassRightOpen}>
 						<SheetTitle>Glass Sheet</SheetTitle>
 						<SheetBody>
 							<p className="text-sm dark:text-zinc-500">Transparent panel from the right.</p>

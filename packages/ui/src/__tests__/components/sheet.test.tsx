@@ -5,7 +5,7 @@ import { renderUI, screen } from '../helpers'
 describe('Sheet', () => {
 	it('renders with role="dialog" when open', () => {
 		renderUI(
-			<Sheet open onClose={() => {}}>
+			<Sheet open onOpenChange={() => {}}>
 				content
 			</Sheet>,
 		)
@@ -19,7 +19,7 @@ describe('Sheet', () => {
 
 	it('renders children when open', () => {
 		renderUI(
-			<Sheet open onClose={() => {}}>
+			<Sheet open onOpenChange={() => {}}>
 				Sheet content
 			</Sheet>,
 		)
@@ -29,7 +29,7 @@ describe('Sheet', () => {
 
 	it('does not render when closed', () => {
 		renderUI(
-			<Sheet open={false} onClose={() => {}}>
+			<Sheet open={false} onOpenChange={() => {}}>
 				Hidden
 			</Sheet>,
 		)

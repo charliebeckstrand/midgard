@@ -2,8 +2,9 @@
 
 import { AnimatePresence, motion } from 'motion/react'
 import type React from 'react'
-import { useCallback, useState } from 'react'
+import { useCallback } from 'react'
 import { cn } from '../../core/cn'
+import { useControllable } from '../../hooks/use-controllable'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { ugoki } from '../../recipes'
 import { CollapseProvider, useCollapseContext } from './context'
@@ -38,19 +39,20 @@ export function Collapse({
 	children,
 	className,
 }: CollapseProps) {
-	const [uncontrolled, setUncontrolled] = useState(defaultOpen)
+	const [currentOpen, setCurrentOpen] = useControllable<boolean>({
+		value: openProp,
+		defaultValue: defaultOpen,
+	})
 
-	const isControlled = openProp !== undefined
-
-	const open = isControlled ? openProp : uncontrolled
+	const open = currentOpen ?? false
 
 	const toggle = useCallback(() => {
 		const next = !open
 
-		if (!isControlled) setUncontrolled(next)
+		setCurrentOpen(next)
 
 		onOpenChange?.(next)
-	}, [open, isControlled, onOpenChange])
+	}, [open, setCurrentOpen, onOpenChange])
 
 	const scope = useIdScope()
 

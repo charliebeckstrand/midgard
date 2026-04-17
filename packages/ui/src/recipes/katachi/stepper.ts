@@ -50,6 +50,6 @@ export const stepper = {
 		},
 	},
 
-	activeIndicator: ['z-30', 'bg-blue-600 dark:bg-blue-600'],
+	activeIndicator: ['z-10', 'bg-blue-600 dark:bg-blue-600'],
 	defaults: { orientation: 'horizontal' as const },
 }

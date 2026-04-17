@@ -5,7 +5,7 @@ import { fireEvent, renderUI, screen } from '../helpers'
 describe('Overlay', () => {
 	it('renders children when open', () => {
 		renderUI(
-			<Overlay open onClose={() => {}}>
+			<Overlay open onOpenChange={() => {}}>
 				<span>Overlay content</span>
 			</Overlay>,
 		)
@@ -15,7 +15,7 @@ describe('Overlay', () => {
 
 	it('does not render when closed', () => {
 		renderUI(
-			<Overlay open={false} onClose={() => {}}>
+			<Overlay open={false} onOpenChange={() => {}}>
 				<span>Hidden</span>
 			</Overlay>,
 		)
@@ -23,23 +23,23 @@ describe('Overlay', () => {
 		expect(screen.queryByText('Hidden')).not.toBeInTheDocument()
 	})
 
-	it('calls onClose on Escape key', () => {
-		const onClose = vi.fn()
+	it('calls onOpenChange(false) on Escape key', () => {
+		const onOpenChange = vi.fn()
 
 		renderUI(
-			<Overlay open onClose={onClose}>
+			<Overlay open onOpenChange={onOpenChange}>
 				<span>content</span>
 			</Overlay>,
 		)
 
 		fireEvent.keyDown(document, { key: 'Escape' })
 
-		expect(onClose).toHaveBeenCalled()
+		expect(onOpenChange).toHaveBeenCalledWith(false)
 	})
 
 	it('hides body overflow when open', () => {
 		renderUI(
-			<Overlay open onClose={() => {}}>
+			<Overlay open onOpenChange={() => {}}>
 				<span>content</span>
 			</Overlay>,
 		)
@@ -49,7 +49,7 @@ describe('Overlay', () => {
 
 	it('restores body overflow on unmount', () => {
 		const { unmount } = renderUI(
-			<Overlay open onClose={() => {}}>
+			<Overlay open onOpenChange={() => {}}>
 				<span>content</span>
 			</Overlay>,
 		)

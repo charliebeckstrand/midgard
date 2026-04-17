@@ -5,7 +5,7 @@ import { renderUI, screen } from '../helpers'
 describe('Drawer', () => {
 	it('renders with role="dialog" when open', () => {
 		renderUI(
-			<Drawer open onClose={() => {}}>
+			<Drawer open onOpenChange={() => {}}>
 				content
 			</Drawer>,
 		)
@@ -19,7 +19,7 @@ describe('Drawer', () => {
 
 	it('renders children when open', () => {
 		renderUI(
-			<Drawer open onClose={() => {}}>
+			<Drawer open onOpenChange={() => {}}>
 				Drawer content
 			</Drawer>,
 		)
@@ -29,7 +29,7 @@ describe('Drawer', () => {
 
 	it('does not render when closed', () => {
 		renderUI(
-			<Drawer open={false} onClose={() => {}}>
+			<Drawer open={false} onOpenChange={() => {}}>
 				Hidden
 			</Drawer>,
 		)

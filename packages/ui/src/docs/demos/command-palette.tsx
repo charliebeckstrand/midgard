@@ -136,7 +136,7 @@ export default function CommandPaletteDemo() {
 					<Kbd cmd>K</Kbd>
 				</Button>
 
-				<CommandPalette open={open} onClose={() => setOpen(false)}>
+				<CommandPalette open={open} onOpenChange={setOpen}>
 					{(query) => {
 						const results = filterCommands(query)
 

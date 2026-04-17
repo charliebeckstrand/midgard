@@ -2,7 +2,7 @@
 
 import { ChevronRight } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import { type ReactElement, type ReactNode, useRef, useState } from 'react'
+import { type ReactElement, type ReactNode, useMemo, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useRovingFocus } from '../../hooks'
 import { ugoki } from '../../recipes'
@@ -28,8 +28,10 @@ export function Tree({ children, color, className }: TreeProps) {
 		orientation: 'vertical',
 	})
 
+	const rootContextValue = useMemo(() => ({ depth: 0, color }), [color])
+
 	return (
-		<TreeProvider value={{ depth: 0, color }}>
+		<TreeProvider value={rootContextValue}>
 			<div
 				ref={ref}
 				role="tree"
@@ -77,6 +79,11 @@ export function TreeItem({
 
 	const hasChildren = children != null
 
+	const childContextValue = useMemo(
+		() => ({ depth: depth + 1, color: resolvedColor }),
+		[depth, resolvedColor],
+	)
+
 	return (
 		<div data-slot="tree-item">
 			<button
@@ -109,7 +116,7 @@ export function TreeItem({
 			{hasChildren && (
 				<AnimatePresence initial={false}>
 					{open && (
-						<TreeProvider value={{ depth: depth + 1, color: resolvedColor }}>
+						<TreeProvider value={childContextValue}>
 							<motion.div
 								role="group"
 								aria-label={typeof label === 'string' ? label : undefined}

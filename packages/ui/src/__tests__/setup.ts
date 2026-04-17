@@ -84,7 +84,18 @@ vi.mock('motion/react', async () => {
 		return [{ current: null }, vi.fn()]
 	}
 
-	return { motion, AnimatePresence, LayoutGroup, useAnimate }
+	function useMotionValue<T>(initial: T) {
+		let value = initial
+		return {
+			get: () => value,
+			set: (next: T) => {
+				value = next
+			},
+			on: () => () => {},
+		}
+	}
+
+	return { motion, AnimatePresence, LayoutGroup, useAnimate, useMotionValue }
 })
 
 // ── Browser API stubs ───────────────────────────────

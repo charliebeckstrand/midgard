@@ -183,9 +183,17 @@
 			"types": "./src/components/json-tree/index.ts",
 			"default": "./src/components/json-tree/index.ts"
 		},
+		"./kanban": {
+			"types": "./src/components/kanban/index.ts",
+			"default": "./src/components/kanban/index.ts"
+		},
 		"./kbd": {
 			"types": "./src/components/kbd/index.ts",
 			"default": "./src/components/kbd/index.ts"
+		},
+		"./list": {
+			"types": "./src/components/list/index.ts",
+			"default": "./src/components/list/index.ts"
 		},
 		"./listbox": {
 			"types": "./src/components/listbox/index.ts",
@@ -231,6 +239,10 @@
 			"types": "./src/components/progress/index.ts",
 			"default": "./src/components/progress/index.ts"
 		},
+		"./query-builder": {
+			"types": "./src/components/query-builder/index.ts",
+			"default": "./src/components/query-builder/index.ts"
+		},
 		"./radio": {
 			"types": "./src/components/radio/index.ts",
 			"default": "./src/components/radio/index.ts"
@@ -262,6 +274,10 @@
 		"./sidebar": {
 			"types": "./src/components/sidebar/index.ts",
 			"default": "./src/components/sidebar/index.ts"
+		},
+		"./signature-pad": {
+			"types": "./src/components/signature-pad/index.ts",
+			"default": "./src/components/signature-pad/index.ts"
 		},
 		"./sizer": {
 			"types": "./src/components/sizer/index.ts",
@@ -371,6 +387,9 @@
 		"lint:fix": "biome check --write --config-path=../.. ."
 	},
 	"dependencies": {
+		"@dnd-kit/core": "^6.3.1",
+		"@dnd-kit/sortable": "^10.0.0",
+		"@dnd-kit/utilities": "^3.2.2",
 		"@floating-ui/react": "^0.27.19",
 		"@tanstack/react-virtual": "^3.13.23",
 		"class-variance-authority": "^0.7.1",

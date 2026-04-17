@@ -48,7 +48,7 @@ export function SidebarLayout({
 			<div className={sidebarPanelVariants()}>{sidebar}</div>
 
 			{/* Sidebar on mobile */}
-			<Drawer open={open} onClose={close}>
+			<Drawer open={open} onOpenChange={setOpen}>
 				<OffcanvasContext.Provider value={{ close }}>
 					<div
 						ref={(node) => {

@@ -1,22 +1,12 @@
 'use client'
 
-import {
-	autoUpdate,
-	FloatingPortal,
-	flip,
-	offset,
-	type Placement,
-	shift,
-	useDismiss,
-	useFloating,
-	useInteractions,
-	useRole,
-} from '@floating-ui/react'
+import { FloatingPortal, type Placement } from '@floating-ui/react'
 import { Calendar as CalendarIcon } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useRef, useState } from 'react'
 
 import { cn } from '../../core'
+import { useFloatingUI } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { useFocusTrap } from '../../hooks/use-focus-trap'
 import { useIdScope } from '../../hooks/use-id-scope'
@@ -34,8 +24,6 @@ import { DatePickerRange } from './datepicker-range'
 import { type FooterButton, useDatePickerKeyDown } from './use-keyboard'
 import { addDays, clampDate, formatDate } from './utilities'
 import { k, kCalendar, kPopover } from './variants'
-
-const datepickerMiddleware = [offset(8), flip(), shift({ padding: 8 })]
 
 export type DatePickerSingleProps = {
 	range?: false
@@ -201,19 +189,13 @@ function DatePickerSingle({
 		onFooterActivate: handleFooterActivate,
 	})
 
-	const { refs, floatingStyles, context } = useFloating({
+	const { refs, floatingStyles, getReferenceProps, getFloatingProps } = useFloatingUI({
 		placement,
 		open,
 		onOpenChange: handleOpenChange,
-		whileElementsMounted: autoUpdate,
-		middleware: datepickerMiddleware,
+		offset: 8,
+		role: 'dialog',
 	})
-
-	const dismiss = useDismiss(context)
-
-	const role = useRole(context, { role: 'dialog' })
-
-	const { getReferenceProps, getFloatingProps } = useInteractions([dismiss, role])
 
 	return (
 		<>

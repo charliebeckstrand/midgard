@@ -66,7 +66,7 @@ export function Checkbox({
 	return (
 		<label
 			data-slot="control"
-			className={cn(k.wrapper, checkboxVariants(), checkboxColorVariants({ color }))}
+			className={cn(k.wrapper, checkboxVariants(), checkboxColorVariants({ color }), className)}
 		>
 			<input
 				type="checkbox"
@@ -79,7 +79,7 @@ export function Checkbox({
 				checked={binding?.checked ?? checked}
 				onChange={binding?.onChange ?? onChange}
 				{...(resolvedInvalid ? { 'data-invalid': '', 'aria-invalid': true } : {})}
-				className={cn(checkboxInputVariants(), className)}
+				className={checkboxInputVariants()}
 				{...props}
 			/>
 			{indeterminate

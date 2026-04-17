@@ -1,5 +1,5 @@
-import { type RefObject, useCallback, useRef, useState } from 'react'
-import { useSelect } from '../../hooks/use-select'
+import { type RefObject, useCallback, useState } from 'react'
+import { useDeferredToggle } from '../../hooks/use-deferred-toggle'
 
 type UseComboboxSelectionParams<T> = {
 	multiple: boolean
@@ -38,16 +38,14 @@ export function useComboboxSelection<T>({
 
 	const shouldClose = closeOnSelect ?? !multiple
 
-	const toggle = useSelect({ multiple, nullable, setValue })
-
-	const pendingRef = useRef<{ value: T } | null>(null)
+	const { toggle, enqueue, flushPending } = useDeferredToggle<T>({ multiple, nullable, setValue })
 
 	const select = useCallback(
 		(newValue: T) => {
 			if (!selectable) {
 				onChange?.(newValue)
 			} else if (shouldClose) {
-				pendingRef.current = { value: newValue }
+				enqueue(newValue)
 			} else {
 				toggle(newValue)
 			}
@@ -62,16 +60,8 @@ export function useComboboxSelection<T>({
 				inputRef.current?.focus()
 			}
 		},
-		[selectable, shouldClose, toggle, onChange, close, inputRef],
+		[selectable, shouldClose, toggle, enqueue, onChange, close, inputRef],
 	)
-
-	const flushPending = useCallback(() => {
-		if (pendingRef.current) {
-			toggle(pendingRef.current.value)
-
-			pendingRef.current = null
-		}
-	}, [toggle])
 
 	return { query, setQuery, open, setOpen, editing, setEditing, close, select, flushPending }
 }

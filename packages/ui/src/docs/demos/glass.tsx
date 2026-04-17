@@ -131,7 +131,7 @@ export default function GlassDemo() {
 							Dialog
 						</Button>
 
-						<Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
+						<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
 							<DialogTitle>Glass dialog</DialogTitle>
 							<DialogBody>
 								<Text>This dialog inherits glass mode from the Glass wrapper.</Text>
@@ -147,7 +147,7 @@ export default function GlassDemo() {
 							Drawer
 						</Button>
 
-						<Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)}>
+						<Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
 							<DrawerTitle>Glass drawer</DrawerTitle>
 							<DrawerBody>
 								<Text>Inherits glass mode from context.</Text>
@@ -161,7 +161,7 @@ export default function GlassDemo() {
 							Sheet
 						</Button>
 
-						<Sheet side="left" open={sheetOpen} onClose={() => setSheetOpen(false)}>
+						<Sheet side="left" open={sheetOpen} onOpenChange={setSheetOpen}>
 							<SheetTitle>Glass sheet</SheetTitle>
 							<SheetBody>
 								<Text>Inherits glass mode from context.</Text>

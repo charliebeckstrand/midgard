@@ -1,5 +1,5 @@
-import { type RefObject, useCallback, useRef, useState } from 'react'
-import { useSelect } from '../../hooks/use-select'
+import { type RefObject, useCallback, useState } from 'react'
+import { useDeferredToggle } from '../../hooks/use-deferred-toggle'
 
 type UseListboxSelectionParams<T> = {
 	multiple: boolean
@@ -24,29 +24,19 @@ export function useListboxSelection<T>({
 		triggerRef.current?.focus()
 	}, [triggerRef])
 
-	const toggle = useSelect({ multiple, nullable, setValue })
-
-	const pendingRef = useRef<{ value: T } | null>(null)
+	const { toggle, enqueue, flushPending } = useDeferredToggle<T>({ multiple, nullable, setValue })
 
 	const select = useCallback(
 		(newValue: T) => {
 			if (!multiple) {
-				pendingRef.current = { value: newValue }
+				enqueue(newValue)
 				close()
 			} else {
 				toggle(newValue)
 			}
 		},
-		[multiple, toggle, close],
+		[multiple, toggle, enqueue, close],
 	)
-
-	const flushPending = useCallback(() => {
-		if (pendingRef.current) {
-			toggle(pendingRef.current.value)
-
-			pendingRef.current = null
-		}
-	}, [toggle])
 
 	return { open, setOpen, close, select, flushPending }
 }

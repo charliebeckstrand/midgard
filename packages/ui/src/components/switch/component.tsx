@@ -58,6 +58,7 @@ export function Switch({
 				k.wrapper,
 				switchVariants({ size: resolvedSize }),
 				switchColorVariants({ color }),
+				className,
 			)}
 		>
 			<input
@@ -70,7 +71,7 @@ export function Switch({
 				checked={binding?.checked ?? checked}
 				onChange={binding?.onChange ?? onChange}
 				{...(resolvedInvalid ? { 'data-invalid': '', 'aria-invalid': true } : {})}
-				className={cn(switchInputVariants(), className)}
+				className={switchInputVariants()}
 				{...props}
 			/>
 			<span data-slot="switch-thumb" aria-hidden="true" className={switchThumbVariants()} />

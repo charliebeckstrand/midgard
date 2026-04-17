@@ -42,31 +42,28 @@ export function Tab({
 	}
 
 	return (
-		<button
-			data-slot="tab"
-			data-current={current ? '' : undefined}
-			role="tab"
-			id={id}
-			aria-selected={current ?? false}
-			aria-controls={id ? `${id}-panel` : undefined}
-			tabIndex={current ? 0 : -1}
-			type="button"
-			className={cn(
-				isSegment ? segmentItemVariants() : k.tab,
-				isSegment && current && ks.segmentCurrent,
-				className,
-			)}
-			onClick={handleClick}
-			{...indicator.tapHandlers}
-			{...props}
-		>
-			<span className="relative z-10">{children}</span>
+		<span className="group relative" {...indicator.tapHandlers}>
+			<button
+				data-slot="tab"
+				data-current={current ? '' : undefined}
+				role="tab"
+				id={id}
+				aria-selected={current ?? false}
+				aria-controls={id ? `${id}-panel` : undefined}
+				tabIndex={current ? 0 : -1}
+				type="button"
+				className={cn(isSegment ? segmentItemVariants() : k.tab, 'relative z-1', className)}
+				onClick={handleClick}
+				{...props}
+			>
+				{children}
+			</button>
 			{current && (
 				<ActiveIndicator
 					ref={indicator.ref}
 					className={cn(isSegment ? ks.indicator : k.indicator)}
 				/>
 			)}
-		</button>
+		</span>
 	)
 }

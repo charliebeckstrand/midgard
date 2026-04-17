@@ -1,21 +1,16 @@
 'use client'
 
 import {
-	autoUpdate,
-	flip,
-	offset,
 	type Placement,
-	shift,
-	size,
 	useClientPoint,
 	useDismiss,
-	useFloating,
 	useInteractions,
 	useRole,
 } from '@floating-ui/react'
 import type React from 'react'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { cn, createContext } from '../../core'
+import { useFloatingPanel } from '../../hooks'
 
 type MenuContextValue = {
 	open: boolean
@@ -50,27 +45,11 @@ export function Menu({ defaultOpen = false, placement, className, children }: Me
 
 	const isStatic = defaultOpen && !isDropdown
 
-	const { refs, floatingStyles, context } = useFloating({
+	const { refs, floatingStyles, context } = useFloatingPanel({
 		placement: placement ?? 'bottom-start',
 		open,
 		onOpenChange: setOpen,
-		whileElementsMounted: autoUpdate,
-		middleware: [
-			offset(4),
-			flip(),
-			shift({ padding: 8 }),
-			...(isDropdown
-				? [
-						size({
-							apply({ rects, elements }) {
-								Object.assign(elements.floating.style, {
-									minWidth: `${rects.reference.width}px`,
-								})
-							},
-						}),
-					]
-				: []),
-		],
+		matchReferenceWidth: isDropdown,
 	})
 
 	const clientPoint = useClientPoint(context, {

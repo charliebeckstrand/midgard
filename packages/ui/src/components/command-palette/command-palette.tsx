@@ -2,7 +2,7 @@
 
 import { Search, X } from 'lucide-react'
 import type React from 'react'
-import { useId, useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useRovingActive } from '../../hooks/use-keyboard'
 import { Button } from '../button'
 import { Dialog, DialogBody, type DialogPanelVariants } from '../dialog'
@@ -13,7 +13,7 @@ import { CommandPaletteProvider } from './context'
 
 export type CommandPaletteProps = Pick<DialogPanelVariants, 'size'> & {
 	open: boolean
-	onClose: () => void
+	onOpenChange: (open: boolean) => void
 	placeholder?: string
 	icon?: React.ReactNode
 	outsideClick?: boolean
@@ -23,7 +23,7 @@ export type CommandPaletteProps = Pick<DialogPanelVariants, 'size'> & {
 
 export function CommandPalette({
 	open,
-	onClose,
+	onOpenChange,
 	placeholder = 'Type a command or search',
 	icon,
 	outsideClick = true,
@@ -57,16 +57,20 @@ export function CommandPalette({
 
 	const rendered = typeof children === 'function' ? children(query) : children
 
+	const close = useCallback(() => onOpenChange(false), [onOpenChange])
+
+	const ctx = useMemo(() => ({ close, query }), [close, query])
+
 	return (
 		<Dialog
 			open={open}
-			onClose={onClose}
+			onOpenChange={onOpenChange}
 			align="start"
 			outsideClick={outsideClick}
 			size={size}
 			className={className}
 		>
-			<CommandPaletteProvider value={{ close: onClose, query }}>
+			<CommandPaletteProvider value={ctx}>
 				<Flex gap={2}>
 					<Input
 						ref={inputRef}
@@ -82,7 +86,7 @@ export function CommandPalette({
 						onChange={(e) => setQuery(e.target.value)}
 						onKeyDown={onKeyDown}
 					/>
-					<Button variant="plain" aria-label="Close" onClick={onClose}>
+					<Button variant="plain" aria-label="Close" onClick={close}>
 						<Icon icon={<X />} />
 					</Button>
 				</Flex>

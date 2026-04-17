@@ -2,9 +2,9 @@
 
 import { motion } from 'motion/react'
 import type React from 'react'
+import { useCallback, useMemo } from 'react'
 import { cn, createContext } from '../../core'
-import { useIdScope } from '../../hooks/use-id-scope'
-import { Overlay, PanelA11yProvider, useDescriptionRegistration } from '../../primitives'
+import { Overlay, PanelA11yProvider, usePanelA11yScope } from '../../primitives'
 import { ugoki } from '../../recipes'
 import { useGlass } from '../glass/context'
 import { type SheetPanelVariants, sheetBackdropVariants, sheetPanelVariants } from './variants'
@@ -12,21 +12,21 @@ import { type SheetPanelVariants, sheetBackdropVariants, sheetPanelVariants } fr
 type SheetSide = 'right' | 'left' | 'top' | 'bottom'
 
 type SheetContextValue = {
-	onClose: () => void
+	close: () => void
 }
 
 export const [SheetProvider, useSheetContext] = createContext<SheetContextValue>('Sheet')
 
 export type SheetProps = SheetPanelVariants & {
 	open: boolean
-	onClose: () => void
+	onOpenChange: (open: boolean) => void
 	className?: string
 	children: React.ReactNode
 }
 
 export function Sheet({
 	open,
-	onClose,
+	onOpenChange,
 	side = 'right',
 	size,
 	glass,
@@ -39,34 +39,27 @@ export function Sheet({
 
 	const resolvedSide = (side ?? 'right') as SheetSide
 
-	const scope = useIdScope()
+	const { panelAriaProps, providerValue } = usePanelA11yScope()
 
-	const titleId = scope.sub('title')
+	const close = useCallback(() => onOpenChange(false), [onOpenChange])
 
-	const descriptionId = scope.sub('description')
-
-	const { hasDescription, registerDescription } = useDescriptionRegistration()
+	const contextValue = useMemo(() => ({ close }), [close])
 
 	return (
 		<Overlay
 			open={open}
-			onClose={onClose}
+			onOpenChange={onOpenChange}
 			className={sheetBackdropVariants({ glass: resolvedGlass })}
 		>
 			<motion.div
 				{...ugoki.panel[resolvedSide]}
-				role="dialog"
-				aria-modal="true"
-				aria-labelledby={titleId}
-				aria-describedby={hasDescription ? descriptionId : undefined}
+				{...panelAriaProps}
 				data-slot="sheet"
 				onClick={(e) => e.stopPropagation()}
 				className={cn(sheetPanelVariants({ side, size, glass: resolvedGlass }), className)}
 			>
-				<SheetProvider value={{ onClose }}>
-					<PanelA11yProvider value={{ titleId, descriptionId, registerDescription }}>
-						{children}
-					</PanelA11yProvider>
+				<SheetProvider value={contextValue}>
+					<PanelA11yProvider value={providerValue}>{children}</PanelA11yProvider>
 				</SheetProvider>
 			</motion.div>
 		</Overlay>
