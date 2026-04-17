@@ -4,7 +4,16 @@ import { sumi } from '../sumi'
 
 export const progress = {
 	bar: {
-		track: ['overflow-hidden', maru.roundedFull, 'bg-zinc-200 dark:bg-zinc-700'],
+		track: [
+			// ── Layout ──────────────────────────────────────
+			'overflow-hidden',
+			// ── Tokens ──────────────────────────────────────
+			maru.roundedFull,
+			// ── Color (light) ───────────────────────────────
+			'bg-zinc-200',
+			// ── Color (dark) ────────────────────────────────
+			'dark:bg-zinc-700',
+		],
 		fill: ['h-full', maru.roundedFull],
 		indeterminate: 'w-1/3 animate-[progress-indeterminate_1.5s_ease-in-out_infinite]',
 		size: {
@@ -23,7 +32,14 @@ export const progress = {
 			lg: 'size-16',
 			xl: 'size-20',
 		},
-		label: ['absolute', sumi.text, 'font-semibold'],
+		label: [
+			// ── Layout ──────────────────────────────────────
+			'absolute',
+			// ── Typography ──────────────────────────────────
+			'font-semibold',
+			// ── Tokens ──────────────────────────────────────
+			sumi.text,
+		],
 		labelSize: {
 			xs: 'text-[6px]',
 			sm: 'text-[8px]',

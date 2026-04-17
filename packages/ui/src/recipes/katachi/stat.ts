@@ -4,7 +4,12 @@ export const stat = {
 	base: 'flex flex-col gap-1',
 	label: ['text-sm/5 font-medium', sumi.textMuted],
 	value: {
-		base: [sumi.text, 'font-semibold tracking-tight tabular-nums'],
+		base: [
+			// ── Typography ──────────────────────────────────
+			'font-semibold tracking-tight tabular-nums',
+			// ── Tokens ──────────────────────────────────────
+			sumi.text,
+		],
 		size: {
 			sm: 'text-2xl/8',
 			md: 'text-3xl/9',
