@@ -54,6 +54,7 @@ export function RangeSlider({
 	})
 
 	const current = range ?? [min, max]
+
 	const trackRef = useRef<HTMLDivElement>(null)
 
 	const { onPointerDown, onPointerMove, onPointerUp } = useRangePointer({
@@ -70,6 +71,7 @@ export function RangeSlider({
 
 	const lo = pct(current[0], min, max)
 	const hi = pct(current[1], min, max)
+
 	const sizeClasses = k.size[size]
 
 	return (
