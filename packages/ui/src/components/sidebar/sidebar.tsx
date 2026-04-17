@@ -2,7 +2,7 @@
 
 import { useRef } from 'react'
 import { cn } from '../../core'
-import { useRovingFocus } from '../../hooks'
+import { useRoving } from '../../hooks'
 import { ActiveIndicatorScope } from '../../primitives'
 import { k } from './variants'
 
@@ -16,7 +16,7 @@ export function Sidebar({
 }: SidebarProps) {
 	const ref = useRef<HTMLElement>(null)
 
-	const handleKeyDown = useRovingFocus(ref, {
+	const handleKeyDown = useRoving(ref, {
 		itemSelector: '[data-slot="sidebar-item-inner"]:not(:disabled)',
 	})
 

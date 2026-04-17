@@ -2,6 +2,7 @@ export { useArrowAction } from './use-arrow-action'
 export { useControllable } from './use-controllable'
 export { useDeferredToggle } from './use-deferred-toggle'
 export { useIsDesktop } from './use-desktop'
+export { type UseDismissableOptions, useDismissable } from './use-dismissable'
 export {
 	type UseFloatingPanelOptions,
 	type UseFloatingPanelReturn,
@@ -13,10 +14,9 @@ export {
 export { useFocusTrap } from './use-focus-trap'
 export { useHasHover } from './use-has-hover'
 export { type IdScope, useIdScope } from './use-id-scope'
-export { useRovingActive, useRovingFocus, useTagKeyboard } from './use-keyboard'
+export { useRoving, useTagKeyboard } from './use-keyboard'
 export { useKeyboardSettled } from './use-keyboard-settled'
 export { useOffcanvas } from './use-offcanvas'
-export { useOverlay } from './use-overlay'
 export { useSelect } from './use-select'
 export {
 	type UseSortableItemOptions,

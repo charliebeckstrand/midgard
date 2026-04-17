@@ -2,7 +2,7 @@
 
 import { type ReactNode, useMemo, useRef } from 'react'
 import { cn } from '../../core'
-import { useRovingFocus } from '../../hooks'
+import { useRoving } from '../../hooks'
 import type { TreeColor } from '../../recipes/katachi/tree'
 import { TreeProvider } from './context'
 import { k } from './variants'
@@ -19,7 +19,7 @@ export type TreeProps = {
 export function Tree({ children, color, className }: TreeProps) {
 	const ref = useRef<HTMLDivElement>(null)
 
-	const handleKeyDown = useRovingFocus(ref, {
+	const handleKeyDown = useRoving(ref, {
 		itemSelector: '[role="treeitem"]',
 		orientation: 'vertical',
 	})

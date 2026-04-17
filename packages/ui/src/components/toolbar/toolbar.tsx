@@ -2,7 +2,7 @@
 
 import { useRef } from 'react'
 import { cn } from '../../core'
-import { useRovingFocus } from '../../hooks'
+import { useRoving } from '../../hooks'
 import { type ToolbarContextValue, type ToolbarOrientation, ToolbarProvider } from './context'
 import { type ToolbarVariants, toolbarVariants } from './variants'
 
@@ -33,7 +33,7 @@ export function Toolbar({
 }: ToolbarProps) {
 	const ref = useRef<HTMLDivElement>(null)
 
-	const handleKeyDown = useRovingFocus(ref, {
+	const handleKeyDown = useRoving(ref, {
 		itemSelector: TOOLBAR_ITEM_SELECTOR,
 		orientation,
 	})

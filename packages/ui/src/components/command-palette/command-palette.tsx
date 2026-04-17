@@ -3,7 +3,7 @@
 import { Search, X } from 'lucide-react'
 import type React from 'react'
 import { useCallback, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { useRovingActive } from '../../hooks/use-keyboard'
+import { useRoving } from '../../hooks/use-keyboard'
 import { Button } from '../button'
 import { Dialog, DialogBody, type DialogPanelVariants } from '../dialog'
 import { Flex } from '../flex'
@@ -37,7 +37,10 @@ export function CommandPalette({
 
 	const inputRef = useRef<HTMLInputElement>(null)
 
-	const { listRef, onKeyDown } = useRovingActive<HTMLDivElement>({
+	const listRef = useRef<HTMLDivElement>(null)
+
+	const onKeyDown = useRoving(listRef, {
+		mode: 'virtual',
 		itemSelector: '[data-slot="command-palette-item"]:not([data-disabled])',
 	})
 

@@ -2,9 +2,9 @@
 
 import { AnimatePresence, motion } from 'motion/react'
 import type React from 'react'
-import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { cn } from '../core'
+import { useDismissable } from '../hooks/use-dismissable'
 import { useFocusTrap } from '../hooks/use-focus-trap'
 import { omote, ugoki } from '../recipes'
 
@@ -28,27 +28,12 @@ export function Overlay({
 }: OverlayProps) {
 	const focusTrapRef = useFocusTrap(open)
 
-	const onOpenChangeRef = useRef(onOpenChange)
-
-	onOpenChangeRef.current = onOpenChange
-
-	useEffect(() => {
-		if (!open) return
-
-		function onKeyDown(e: KeyboardEvent) {
-			if (e.key === 'Escape') onOpenChangeRef.current(false)
-		}
-
-		document.addEventListener('keydown', onKeyDown)
-
-		document.body.style.overflow = 'hidden'
-
-		return () => {
-			document.removeEventListener('keydown', onKeyDown)
-
-			document.body.style.overflow = ''
-		}
-	}, [open])
+	useDismissable({
+		open,
+		onDismiss: () => onOpenChange(false),
+		outsidePointer: false,
+		scrollLock: true,
+	})
 
 	if (typeof document === 'undefined') return null
 

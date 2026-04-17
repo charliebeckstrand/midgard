@@ -2,7 +2,7 @@
 
 import { useRef } from 'react'
 import { cn } from '../../core'
-import { useRovingFocus } from '../../hooks'
+import { useRoving } from '../../hooks'
 import { ActiveIndicatorScope } from '../../primitives'
 import { useSegmentContext } from './context'
 import { type SegmentControlVariants, segmentControlVariants } from './variants'
@@ -27,7 +27,7 @@ export function SegmentControl({
 
 	const containerRef = useRef<HTMLDivElement>(null)
 
-	const handleKeyDown = useRovingFocus(containerRef, {
+	const handleKeyDown = useRoving(containerRef, {
 		itemSelector: 'button[data-slot="segment-item"]:not(:disabled)',
 		orientation: 'horizontal',
 	})

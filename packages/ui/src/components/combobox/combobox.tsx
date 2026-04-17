@@ -8,7 +8,7 @@ import { useCallback, useId, useMemo, useRef } from 'react'
 import { cn, createContext } from '../../core'
 import { useFloatingUI } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
-import { useRovingFocus } from '../../hooks/use-keyboard'
+import { useRoving } from '../../hooks/use-keyboard'
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
 import { ControlFrame, PopoverPanel } from '../../primitives'
 import { kokkaku, waku } from '../../recipes'
@@ -111,7 +111,7 @@ export function Combobox<T>({
 
 	const optionsRef = useRef<HTMLDivElement>(null)
 
-	const handleKeyDown = useRovingFocus(optionsRef, {
+	const handleKeyDown = useRoving(optionsRef, {
 		itemSelector: '[role="option"]:not([data-disabled])',
 		focusOnEmpty: true,
 	})
