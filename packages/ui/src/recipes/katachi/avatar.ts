@@ -16,7 +16,10 @@ export const avatar = {
 	},
 	statusRing: 'ring-2 ring-white dark:ring-zinc-900',
 	base: [
-		'inline-grid place-items-center overflow-hidden align-middle *:col-start-1 *:row-start-1',
+		// ── Layout ──────────────────────────────────────
+		'inline-grid place-items-center overflow-hidden align-middle',
+		'*:col-start-1 *:row-start-1',
+		// ── Tokens ──────────────────────────────────────
 		maru.roundedFull,
 	],
 	variant: {

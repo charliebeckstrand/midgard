@@ -8,20 +8,34 @@ import { take } from '../take'
 
 export const bottomNav = {
 	base: [
+		// ── Layout ──────────────────────────────────────
 		'fixed inset-x-0 bottom-0 z-40',
 		'flex items-stretch justify-around',
+		// ── Tokens ──────────────────────────────────────
 		kage.divider,
 		omote.surface,
 	],
 	item: [
+		// ── Layout ──────────────────────────────────────
 		'group relative',
-		'flex flex-1 flex-col items-center justify-center gap-0.5',
-		'py-3',
+		'flex flex-1 flex-col items-center justify-center',
+		// ── Spacing ─────────────────────────────────────
+		'gap-0.5 py-3',
+		// ── Typography ──────────────────────────────────
 		'text-xs/4 font-medium',
+		// ── Tokens ──────────────────────────────────────
 		sumi.textMuted,
 		ki.inset,
 		take.iconSlot.md,
 	],
 	current: [sumi.text],
-	indicator: ['inset-x-3 bottom-auto top-0 h-0.5', maru.roundedFull, nuri.tabIndicator],
+	indicator: [
+		// ── Layout ──────────────────────────────────────
+		'inset-x-3 bottom-auto top-0',
+		// ── Sizing ──────────────────────────────────────
+		'h-0.5',
+		// ── Tokens ──────────────────────────────────────
+		maru.roundedFull,
+		nuri.tabIndicator,
+	],
 }
