@@ -15,7 +15,7 @@ export const progress = {
 		defaults: { size: 'md' as const },
 	},
 	gauge: {
-		wrapper: [kumi.center.inline, 'relative'],
+		base: [kumi.center.inline, 'relative'],
 		size: {
 			xs: 'size-6',
 			sm: 'size-8',

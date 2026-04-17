@@ -5,7 +5,7 @@ import { omote } from '../omote'
 import { sumi } from '../sumi'
 
 export const dataTable = {
-	wrapper: 'relative flex flex-col gap-2',
+	base: 'relative flex flex-col gap-2',
 	stickyWrapper: 'overflow-auto [&>[data-slot=table]]:!overflow-visible',
 	stickyHead: ['sticky top-0 z-10', omote.surface],
 	batchBar: [

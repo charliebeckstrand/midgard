@@ -4,14 +4,14 @@ import { text } from '../take/density'
 import { waku } from '../waku'
 
 export const tagInput = {
-	container: [
+	wrapper: [
 		'flex items-center gap-4',
 		'cursor-text',
 		...waku.inputBase,
 		maru.rounded,
 		'data-disabled:cursor-not-allowed data-disabled:**:!cursor-not-allowed',
 	],
-	containerSize: {
+	wrapperSize: {
 		xs: ['p-[calc(--spacing(1)-1px)]', text.xs],
 		sm: ['p-[calc(--spacing(1.5)-1px)]', text.sm],
 		md: ['p-[calc(--spacing(2)-1px)]', text.md],

@@ -201,7 +201,7 @@ export function DataTable<T>({
 
 	return (
 		<DataTableProvider value={ctx}>
-			<div data-slot="data-table" className={cn(k.wrapper)}>
+			<div data-slot="data-table" className={cn(k.base)}>
 				{batchActions && (
 					<DataTableBatchBar count={selection.size}>
 						{someSelected && batchActions(selection)}
