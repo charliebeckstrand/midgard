@@ -1,5 +1,5 @@
+import { kumi } from '../kumi'
 import { maru } from '../maru'
-import { narabi } from '../narabi'
 import { sumi } from '../sumi'
 
 export const progress = {
@@ -15,7 +15,7 @@ export const progress = {
 		defaults: { size: 'md' as const },
 	},
 	gauge: {
-		wrapper: [narabi.position.centerInline, 'relative'],
+		wrapper: [kumi.centerInline, 'relative'],
 		size: {
 			xs: 'size-6',
 			sm: 'size-8',

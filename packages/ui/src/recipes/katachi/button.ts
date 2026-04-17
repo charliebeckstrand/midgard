@@ -1,7 +1,7 @@
 import { kage } from '../kage'
 import { ki } from '../ki'
+import { kumi } from '../kumi'
 import { maru } from '../maru'
-import { narabi } from '../narabi'
 import { nuri } from '../nuri'
 import { omote } from '../omote'
 import { sawari } from '../sawari'
@@ -10,8 +10,8 @@ import { yasumi } from '../yasumi'
 
 export const button = {
 	base: [
-		narabi.position.centerInline,
-		narabi.position.isolate,
+		kumi.centerInline,
+		'relative isolate',
 		'w-fit',
 		'shrink-0',
 		'font-semibold',

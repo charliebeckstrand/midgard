@@ -1,6 +1,6 @@
 import { ki } from '../ki'
+import { kumi } from '../kumi'
 import { maru } from '../maru'
-import { narabi } from '../narabi'
 import { sawari } from '../sawari'
 import { sumi } from '../sumi'
 import { yasumi } from '../yasumi'
@@ -12,7 +12,7 @@ export const pagination = {
 		base: [
 			ki.ring,
 			maru.rounded,
-			narabi.position.centerInline,
+			kumi.centerInline,
 			'relative min-w-9',
 			'text-sm/6 font-medium',
 			'px-2 py-1.5',
@@ -24,9 +24,9 @@ export const pagination = {
 		},
 		defaults: { current: false as const },
 	},
-	gap: [sumi.textMuted, narabi.position.centerInline, 'min-w-9 text-sm/6', 'select-none'],
+	gap: [sumi.textMuted, kumi.centerInline, 'min-w-9 text-sm/6', 'select-none'],
 	nav: [
-		narabi.position.centerInline,
+		kumi.centerInline,
 		'text-sm/6 font-medium',
 		sumi.textMuted,
 		sumi.textHover,
