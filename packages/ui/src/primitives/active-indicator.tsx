@@ -4,7 +4,7 @@ import { LayoutGroup, type MotionStyle, motion, useAnimate } from 'motion/react'
 import type React from 'react'
 import { createContext, useCallback, useContext, useId, useMemo } from 'react'
 import { cn } from '../core'
-import { katachi, ugoki } from '../recipes'
+import { maru, ugoki } from '../recipes'
 
 const ActiveIndicatorContext = createContext<string | undefined>(undefined)
 
@@ -59,7 +59,7 @@ export function ActiveIndicator({
 		<motion.span
 			ref={ref}
 			layoutId={resolvedLayoutId}
-			className={cn(katachi.activeIndicator, className)}
+			className={cn('absolute inset-0', 'bg-zinc-300 dark:bg-zinc-600', maru.rounded, className)}
 			style={{ borderRadius: 8, ...style }}
 			transition={ugoki.spring}
 		>

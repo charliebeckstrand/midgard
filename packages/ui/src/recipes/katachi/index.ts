@@ -8,7 +8,6 @@
  */
 
 import { accordion } from './accordion'
-import { activeIndicator } from './active-indicator'
 import { alert } from './alert'
 import { avatar } from './avatar'
 import { badge } from './badge'
@@ -74,7 +73,6 @@ import { tree } from './tree'
 
 export const katachi = {
 	accordion,
-	activeIndicator,
 	alert,
 	avatar,
 	badge,
