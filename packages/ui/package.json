@@ -167,6 +167,10 @@
 			"types": "./src/components/heading/index.ts",
 			"default": "./src/components/heading/index.ts"
 		},
+		"./hold-button": {
+			"types": "./src/components/hold-button/index.ts",
+			"default": "./src/components/hold-button/index.ts"
+		},
 		"./icon": {
 			"types": "./src/components/icon/index.ts",
 			"default": "./src/components/icon/index.ts"
