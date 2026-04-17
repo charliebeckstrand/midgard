@@ -10,7 +10,7 @@ export const toggleIconButton = {
 		maru.rounded,
 		sumi.textMuted,
 		sumi.textHover,
-		'focus-visible:not-disabled:text-white',
+		sumi.textFocus,
 	],
 	size: take.buttonWithIconSize,
 	transition:

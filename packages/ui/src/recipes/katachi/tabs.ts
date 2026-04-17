@@ -19,6 +19,7 @@ export const tabs = {
 		'outline-none',
 		'after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:rounded-full',
 		'after:bg-transparent',
+		'focus-visible:after:bg-blue-500',
 	],
 	indicator: ['inset-x-0 -bottom-px top-auto h-0.5', maru.roundedFull, nuri.tabIndicator],
 }

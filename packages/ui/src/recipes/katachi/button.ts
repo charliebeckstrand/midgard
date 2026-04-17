@@ -16,7 +16,7 @@ export const button = {
 		'shrink-0',
 		'font-semibold',
 		maru.rounded,
-		ki.ring,
+		ki.inset,
 		yasumi.disabled,
 		sawari.cursor,
 		'border',
