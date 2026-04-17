@@ -11,7 +11,7 @@ export default function SpacerDemo() {
 	return (
 		<Stack gap={6}>
 			<Example title="Justify">
-				<Card p={3}>
+				<Card p={3} bg="none">
 					<Stack direction="row" align="center" className="w-full">
 						<Heading level={3}>Title</Heading>
 						<Spacer />
