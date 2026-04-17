@@ -7,7 +7,7 @@ import { Stack } from '../../components/stack'
 import { ZipcodeInput } from '../../components/zipcode-input'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Forms' }
+export const meta = { category: 'Inputs' }
 
 function Controlled() {
 	const [value, setValue] = useState('')

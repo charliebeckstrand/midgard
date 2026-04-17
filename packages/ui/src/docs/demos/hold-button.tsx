@@ -11,7 +11,7 @@ import { Text } from '../../components/text'
 import { Example } from '../components/example'
 import { VariantListbox } from '../components/variant-listbox'
 
-export const meta = { category: 'Forms' }
+export const meta = { category: 'Buttons' }
 
 const variants = ['solid', 'soft', 'outline', 'plain', 'ghost'] as const
 
