@@ -4,8 +4,10 @@ import { take } from '../take'
 
 // ── Motoi (基) ──────────────────────────────────────────
 const motoi = [
-	'relative w-full min-w-0 flex-1',
-	'bg-transparent border-0',
+	'relative',
+	'w-full min-w-0 flex-1',
+	'border-0',
+	'bg-transparent',
 	'focus:outline-hidden',
 	'read-only:bg-transparent',
 ]

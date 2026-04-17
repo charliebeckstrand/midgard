@@ -15,7 +15,7 @@ export const density = {
 	lg: ['px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)]', text.lg],
 }
 
-const icon = 'flex items-center pointer-events-none pr-2'
+const icon = ['flex items-center', 'pr-2', 'pointer-events-none']
 
 export const control = {
 	icon,
