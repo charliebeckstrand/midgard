@@ -14,9 +14,18 @@ export const code = {
 		inline: 'w-fit max-w-full',
 		content: '[&_pre]:overflow-x-auto [&_pre]:p-4 [&_pre]:text-sm/6',
 		contentCopy: '[&_pre]:pr-14',
-		fallback: ['p-4', 'text-sm/6 text-zinc-400', 'overflow-x-auto'],
+		fallback: [
+			// ── Layout ──────────────────────────────────────
+			'overflow-x-auto',
+			// ── Spacing ─────────────────────────────────────
+			'p-4',
+			// ── Typography ──────────────────────────────────
+			'text-sm/6',
+			// ── Color ───────────────────────────────────────
+			'text-zinc-400',
+		],
 		fallbackCopy: 'pr-14',
 		copyButton: ['text-zinc-400', 'hover:not-disabled:text-white', 'p-2 m-2'],
-		copyButtonWrapper: ['absolute top-0 right-0', 'z-10', blockBg],
+		copyButtonWrapper: ['absolute top-0 right-0 z-10', blockBg],
 	},
 }

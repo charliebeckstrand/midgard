@@ -10,16 +10,21 @@ import { yasumi } from '../yasumi'
 
 export const button = {
 	base: [
+		// ── Layout ──────────────────────────────────────
 		kumi.center.inline,
 		'relative isolate',
+		// ── Sizing ──────────────────────────────────────
 		'w-fit',
 		'shrink-0',
+		// ── Typography ──────────────────────────────────
 		'font-semibold',
-		'border',
+		// ── Tokens ──────────────────────────────────────
 		maru.rounded,
 		ki.ring,
 		yasumi.disabled,
 		sawari.cursor,
+		// ── Border ──────────────────────────────────────
+		'border',
 	],
 	variant: {
 		solid: {

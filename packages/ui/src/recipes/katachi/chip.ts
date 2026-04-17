@@ -6,7 +6,11 @@ import { take } from '../take'
 
 export const chip = {
 	base: [
-		'group inline-flex w-fit items-center font-medium select-none',
+		// ── Layout ──────────────────────────────────────
+		'group inline-flex w-fit items-center select-none',
+		// ── Typography ──────────────────────────────────
+		'font-medium',
+		// ── Tokens ──────────────────────────────────────
 		maru.roundedFull,
 		sawari.cursor,
 		ki.ring,
