@@ -9,8 +9,13 @@ import { Icon } from '../../components/icon'
 import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
 import { Example } from '../components/example'
+import { VariantListbox } from '../components/variant-listbox'
 
 export const meta = { category: 'Forms' }
+
+const variants = ['solid', 'soft', 'outline', 'plain', 'ghost'] as const
+
+type Variant = (typeof variants)[number]
 
 function DestructiveHoldButton() {
 	const [deleted, setDeleted] = useState(false)
@@ -39,13 +44,20 @@ function DestructiveHoldButton() {
 export default function HoldButtonDemo() {
 	const [count, setCount] = useState(0)
 
+	const [variant, setVariant] = useState<Variant>('solid')
+
 	const [status, setStatus] = useState<'idle' | 'holding' | 'cancelled' | 'confirmed'>('idle')
 
 	return (
 		<Stack gap={6}>
-			<Example title="Default">
+			<Example
+				title="Default"
+				actions={<VariantListbox variants={variants} value={variant} onChange={setVariant} />}
+			>
 				<Flex direction="col" gap={4}>
-					<HoldButton onComplete={() => setCount((c) => c + 1)}>Hold to confirm</HoldButton>
+					<HoldButton variant={variant} onComplete={() => setCount((c) => c + 1)}>
+						Hold to confirm
+					</HoldButton>
 					<Text variant="muted">Confirmed {count} times</Text>
 				</Flex>
 			</Example>
@@ -64,20 +76,6 @@ export default function HoldButtonDemo() {
 					</HoldButton>
 					<HoldButton duration={3000} onComplete={() => {}}>
 						Slow
-					</HoldButton>
-				</Flex>
-			</Example>
-
-			<Example title="Variants">
-				<Flex wrap gap={2}>
-					<HoldButton variant="solid" color="red" onComplete={() => {}}>
-						Solid
-					</HoldButton>
-					<HoldButton variant="soft" color="red" onComplete={() => {}}>
-						Soft
-					</HoldButton>
-					<HoldButton variant="outline" color="red" onComplete={() => {}}>
-						Outline
 					</HoldButton>
 				</Flex>
 			</Example>

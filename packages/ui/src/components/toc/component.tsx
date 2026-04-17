@@ -71,10 +71,15 @@ export function Toc({
 			return
 		}
 
+		const scrollTarget: HTMLElement | Window = container?.current ?? window
+
 		let frame: number | null = null
 
 		const update = () => {
 			frame = null
+
+			const containerTop =
+				scrollTarget === window ? 0 : (scrollTarget as HTMLElement).getBoundingClientRect().top
 
 			let current: string | undefined
 
@@ -83,7 +88,7 @@ export function Toc({
 
 				if (!el) continue
 
-				if (el.getBoundingClientRect().top - offsetTop <= 0) {
+				if (el.getBoundingClientRect().top - containerTop - offsetTop <= 0) {
 					current = h.id
 				} else {
 					break
@@ -109,16 +114,18 @@ export function Toc({
 
 		update()
 
-		window.addEventListener('scroll', onScroll, { passive: true })
+		scrollTarget.addEventListener('scroll', onScroll, { passive: true })
+
 		window.addEventListener('resize', onScroll)
 
 		return () => {
 			if (frame !== null) cancelAnimationFrame(frame)
 
-			window.removeEventListener('scroll', onScroll)
+			scrollTarget.removeEventListener('scroll', onScroll)
+
 			window.removeEventListener('resize', onScroll)
 		}
-	}, [headings, offsetTop, activeIdProp, onActiveChange])
+	}, [container, headings, offsetTop, activeIdProp, onActiveChange])
 
 	const minLevel = useMemo(
 		() => headings.reduce((m, h) => Math.min(m, h.level), Number.POSITIVE_INFINITY),

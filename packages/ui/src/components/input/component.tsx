@@ -124,7 +124,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 					onChange={bound ? binding.onChange : onChange}
 					onBlur={bound ? binding.onBlur : onBlur}
 					className={cn(
-						inputVariants({ variant: resolvedVariant, size }),
+						inputVariants({ variant: resolvedVariant, size: resolvedSize }),
 						resolvedPrefix && k.autofill.prefix[resolvedSize],
 						resolvedSuffix && k.autofill.suffix[resolvedSize],
 						isDate && inputDateVariants(),
