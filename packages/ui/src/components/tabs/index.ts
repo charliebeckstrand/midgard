@@ -1,17 +1,11 @@
+export type { TabsVariant } from './context'
+export { Tab, type TabProps } from './tab'
 export {
-	Tab,
 	TabContent,
 	type TabContentProps,
 	TabContents,
 	type TabContentsProps,
-	TabList,
-	type TabListProps,
-	TabPanel,
-	type TabPanelProps,
-	TabPanels,
-	type TabPanelsProps,
-	type TabProps,
-	Tabs,
-	type TabsProps,
-} from './component'
-export type { TabsVariant } from './context'
+} from './tab-contents'
+export { TabList, type TabListProps } from './tab-list'
+export { TabPanel, type TabPanelProps, TabPanels, type TabPanelsProps } from './tab-panel'
+export { Tabs, type TabsProps } from './tabs'

@@ -7,10 +7,10 @@ import { sumi } from '../sumi'
 import { yasumi } from '../yasumi'
 
 export const tabs = {
-	list: ['flex gap-4', 'border-b', kage.borderSubtleColor],
+	list: ['flex gap-4', 'border-b', '-mt-4', kage.borderSubtleColor],
 	tab: [
 		'relative flex items-center gap-2',
-		'px-1 py-3',
+		'px-1 py-4',
 		'font-medium',
 		...sumi.tab,
 		ki.indicator,

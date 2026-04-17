@@ -1,9 +1,5 @@
-export {
-	ProgressBar,
-	type ProgressBarProps,
-	ProgressGauge,
-	type ProgressGaugeProps,
-} from './component'
+export { ProgressBar, type ProgressBarProps } from './bar'
+export { ProgressGauge, type ProgressGaugeProps } from './gauge'
 export {
 	type ProgressGaugeVariants,
 	type ProgressTrackVariants,
