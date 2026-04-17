@@ -30,6 +30,7 @@ export function JsonTree({
 	className,
 }: JsonTreeProps) {
 	const ref = useRef<HTMLDivElement>(null)
+
 	const { value: searchValue, filter } = normalizeSearch(search)
 
 	const searchIndex = useMemo(() => buildSearchIndex(data, searchValue), [data, searchValue])

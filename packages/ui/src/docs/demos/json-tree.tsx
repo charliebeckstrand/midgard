@@ -54,8 +54,9 @@ function SearchExample() {
 	const deferredSearch = useDeferredValue(search)
 
 	return (
-		<Example title="Search">
-			<Stack gap={4}>
+		<Example
+			title="Search"
+			prefix={
 				<SearchInput
 					id="json-tree-search"
 					placeholder="Search tree"
@@ -63,8 +64,9 @@ function SearchExample() {
 					onChange={(e) => setSearch(e.target.value)}
 					onClear={() => setSearch('')}
 				/>
-				<JsonTree data={sample} search={deferredSearch} defaultExpandDepth={1} />
-			</Stack>
+			}
+		>
+			<JsonTree data={sample} search={deferredSearch} defaultExpandDepth={1} />
 		</Example>
 	)
 }
@@ -75,8 +77,9 @@ function FilterExample() {
 	const deferredSearch = useDeferredValue(search)
 
 	return (
-		<Example title="Search with filter">
-			<Stack gap={4}>
+		<Example
+			title="Search with filter"
+			prefix={
 				<SearchInput
 					id="json-tree-filter-search"
 					placeholder="Filter tree"
@@ -84,12 +87,13 @@ function FilterExample() {
 					onChange={(e) => setSearch(e.target.value)}
 					onClear={() => setSearch('')}
 				/>
-				<JsonTree
-					data={sample}
-					search={{ value: deferredSearch, filter: true }}
-					defaultExpandDepth={1}
-				/>
-			</Stack>
+			}
+		>
+			<JsonTree
+				data={sample}
+				search={{ value: deferredSearch, filter: true }}
+				defaultExpandDepth={1}
+			/>
 		</Example>
 	)
 }

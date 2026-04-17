@@ -59,6 +59,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 	const control = useControl()
 
 	const scope = useIdScope({ id: id ?? control?.id })
+
 	const binding = useFormText(name, { onChange, onBlur })
 
 	// Wrappers take ownership of value/onChange by passing them explicitly.
@@ -78,9 +79,14 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 
 	const resolvedInvalid = control?.invalid || binding?.invalid
 
-	const isDate = DATE_TYPES.has(type ?? '')
-
 	const resolvedSize = size ?? control?.size ?? 'md'
+
+	const resolvedPrefix = prefix
+	const resolvedSuffix = loading ? <Spinner /> : suffix
+
+	const hasAffix = resolvedPrefix !== undefined || resolvedSuffix !== undefined
+
+	const isDate = DATE_TYPES.has(type ?? '')
 
 	if (skeleton) {
 		return (
@@ -90,19 +96,19 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 		)
 	}
 
-	const resolvedSuffix = loading ? <Spinner /> : suffix
-
-	const hasAffix = prefix !== undefined || resolvedSuffix !== undefined
-
 	return (
 		<InputSizeProvider value={iconSize[resolvedSize]}>
 			<ControlFrame
 				className={cn(
 					controlVariants({ variant: resolvedVariant }),
-					hasAffix && 'flex flex-wrap items-center',
+					hasAffix && 'group/control flex flex-wrap items-center',
 				)}
 			>
-				{prefix && <span className={cn(k.affix, k.prefix[resolvedSize])}>{prefix}</span>}
+				{resolvedPrefix && (
+					<span className={cn('peer/prefix', k.affix, k.prefix[resolvedSize])}>
+						{resolvedPrefix}
+					</span>
+				)}
 
 				<input
 					ref={ref}
@@ -117,17 +123,21 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 					value={bound ? binding.value : value}
 					onChange={bound ? binding.onChange : onChange}
 					onBlur={bound ? binding.onBlur : onBlur}
-					{...(resolvedInvalid ? { 'data-invalid': '', 'aria-invalid': true } : {})}
 					className={cn(
 						inputVariants({ variant: resolvedVariant, size }),
+						resolvedPrefix && k.autofill.prefix[resolvedSize],
+						resolvedSuffix && k.autofill.suffix[resolvedSize],
 						isDate && inputDateVariants(),
 						className,
 					)}
+					{...(resolvedInvalid ? { 'data-invalid': '', 'aria-invalid': true } : {})}
 					{...props}
 				/>
 
 				{resolvedSuffix && (
-					<span className={cn(k.affix, k.suffix[resolvedSize])}>{resolvedSuffix}</span>
+					<span data-slot="suffix" className={cn(k.affix, k.suffix[resolvedSize])}>
+						{resolvedSuffix}
+					</span>
 				)}
 			</ControlFrame>
 		</InputSizeProvider>
