@@ -19,6 +19,7 @@ import {
 	SidebarSection,
 	SidebarSpacer,
 } from '../../components/sidebar'
+import { Spacer } from '../../components/spacer'
 import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
 import { Example } from '../components/example'
@@ -172,6 +173,7 @@ function ItemActionsSidebar() {
 					<SidebarSection>
 						<SidebarItem icon={<Search />} preventClose>
 							<SidebarLabel>Search</SidebarLabel>
+							<Spacer />
 							<SidebarItemActions>
 								<Badge color="zinc" size="sm">
 									⌘K
@@ -180,6 +182,7 @@ function ItemActionsSidebar() {
 						</SidebarItem>
 						<SidebarItem icon={<Inbox />}>
 							<SidebarLabel>Inbox</SidebarLabel>
+							<Spacer />
 							<SidebarItemActions>
 								<Badge color="blue" size="sm">
 									12

@@ -4,10 +4,7 @@ export const stat = {
 	base: 'flex flex-col gap-1',
 	label: ['text-sm/5 font-medium', sumi.textMuted],
 	value: {
-		base: [
-			'font-semibold tracking-tight tabular-nums',
-			sumi.text,
-		],
+		base: ['font-semibold tracking-tight tabular-nums', sumi.text],
 		size: {
 			sm: 'text-2xl/8',
 			md: 'text-3xl/9',

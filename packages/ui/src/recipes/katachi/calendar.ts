@@ -14,12 +14,7 @@ export const calendar = {
 		grid: 'grid grid-cols-3 gap-1 p-2',
 		cellCurrent: ['font-semibold', ...nuri.buttonSoft.blue],
 	},
-	weekday: [
-		'w-full aspect-square',
-		'text-xs font-medium',
-		kumi.center.block,
-		sumi.textMuted,
-	],
+	weekday: ['w-full aspect-square', 'text-xs font-medium', kumi.center.block, sumi.textMuted],
 	day: {
 		base: 'w-full aspect-square p-0 ring-inset',
 		active: 'ring-2 ring-inset ring-blue-600',

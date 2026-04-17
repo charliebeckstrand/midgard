@@ -34,7 +34,7 @@ export const sidebarContentVariants = cva(
 				true: [
 					'**:data-[slot=header]:sticky',
 					'**:data-[slot=header]:top-0',
-					'**:data-[slot=header]:z-10',
+					'**:data-[slot=header]:z-20',
 					'**:data-[slot=header]:bg-white',
 					'**:data-[slot=header]:dark:bg-zinc-950',
 					'**:data-[slot=header]:dark:lg:bg-zinc-900',

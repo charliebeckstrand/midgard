@@ -7,10 +7,7 @@ import { sumi } from '../sumi'
 export const dataTable = {
 	wrapper: 'relative flex flex-col gap-2',
 	stickyWrapper: 'overflow-auto [&>[data-slot=table]]:!overflow-visible',
-	stickyHead: [
-		'sticky top-0 z-10',
-		omote.surface,
-	],
+	stickyHead: ['sticky top-0 z-10', omote.surface],
 	batchBar: [
 		'flex items-center',
 		'min-h-12',
@@ -22,10 +19,7 @@ export const dataTable = {
 		'border-b',
 		omote.tint,
 	],
-	batchCount: [
-		'text-sm font-medium whitespace-nowrap',
-		sumi.textMuted,
-	],
+	batchCount: ['text-sm font-medium whitespace-nowrap', sumi.textMuted],
 	loadingBody: 'flex items-center justify-center py-16',
 	selectCell: 'w-px align-middle [line-height:0]',
 	actionsCell: 'w-px whitespace-nowrap',

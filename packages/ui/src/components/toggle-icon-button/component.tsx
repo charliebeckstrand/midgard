@@ -11,7 +11,7 @@ type Size = 'xs' | 'sm' | 'md' | 'lg'
 export type ToggleIconButtonProps = {
 	pressed: boolean
 	icon: ReactElement
-	activeIcon: ReactElement
+	activeIcon?: ReactElement
 	animate?: boolean
 	size?: Size
 	className?: string
@@ -20,7 +20,7 @@ export type ToggleIconButtonProps = {
 export function ToggleIconButton({
 	pressed,
 	icon,
-	activeIcon,
+	activeIcon = icon,
 	animate = true,
 	size = 'md',
 	className,

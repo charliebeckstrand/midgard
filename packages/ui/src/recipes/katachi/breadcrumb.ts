@@ -16,12 +16,7 @@ export const breadcrumb = {
 		base: '',
 		current: {
 			true: [sumi.text, 'font-normal'],
-			false: [
-				sumi.textMuted,
-				sawari.cursor,
-				'hover:text-zinc-950',
-				'dark:hover:text-white',
-			],
+			false: [sumi.textMuted, sawari.cursor, 'hover:text-zinc-950', 'dark:hover:text-white'],
 		},
 		defaults: { current: false as const },
 	},

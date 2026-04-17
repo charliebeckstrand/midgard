@@ -29,10 +29,7 @@ export const scrollArea = {
 		},
 	},
 	scrollbar: {
-		base: [
-			'absolute touch-none select-none',
-			nagare.opacity,
-		],
+		base: ['absolute touch-none select-none', nagare.opacity],
 		orientation: {
 			vertical: 'right-0 w-1.5',
 			horizontal: 'bottom-0 h-1.5',

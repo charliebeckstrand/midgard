@@ -13,11 +13,7 @@ export const menu = {
 		...narabi.item,
 	],
 	section: 'first:pt-0 last:pb-0',
-	heading: [
-		'px-3.5 pb-1 pt-2 sm:px-3',
-		'text-xs/5 font-medium',
-		sumi.textMuted,
-	],
+	heading: ['px-3.5 pb-1 pt-2 sm:px-3', 'text-xs/5 font-medium', sumi.textMuted],
 	label: 'truncate',
 	description: [sumi.textMuted, sumi.focusText, narabi.description],
 	shortcut: 'ml-auto',

@@ -3,11 +3,7 @@ import { kyousei } from '../kyousei'
 // ── Motoi (基) ──────────────────────────────────────────
 const motoi = {
 	check: ['absolute inset-0', 'opacity-0', 'cursor-pointer', kyousei.control],
-	surface: [
-		'border',
-		'shadow-xs',
-		'has-[:disabled]:opacity-50 has-[:disabled]:cursor-not-allowed',
-	],
+	surface: ['border', 'shadow-xs', 'has-[:disabled]:opacity-50 has-[:disabled]:cursor-not-allowed'],
 }
 
 // ── Hiru (昼) ───────────────────────────────────────────

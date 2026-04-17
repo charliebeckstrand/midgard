@@ -22,16 +22,6 @@ export const drawer = {
 	title: [...narabi.panel.title, 'px-6 pt-6'],
 	description: [...narabi.panel.description, 'px-6'],
 	actions: [narabi.panel.actions, 'px-6 pb-6'],
-	body: [
-		narabi.panel.body,
-		'flex-1 overflow-y-auto overscroll-y-contain',
-		'px-6 last:mb-6',
-	],
-	close: [
-		'absolute right-4 top-4',
-		'p-1',
-		sumi.textMuted,
-		ki.inset,
-		maru.roundedMd,
-	],
+	body: [narabi.panel.body, 'flex-1 overflow-y-auto overscroll-y-contain', 'px-6 last:mb-6'],
+	close: ['absolute right-4 top-4', 'p-1', sumi.textMuted, ki.inset, maru.roundedMd],
 }

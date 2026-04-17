@@ -20,13 +20,7 @@ export const datepicker = {
 		'cursor-pointer',
 	],
 	value: 'block truncate',
-	icon: [
-		take.listbox.icon,
-		'flex items-center',
-		'pr-3',
-		sumi.textMuted,
-		'pointer-events-none',
-	],
+	icon: [take.listbox.icon, 'flex items-center', 'pr-3', sumi.textMuted, 'pointer-events-none'],
 	clearButton: [
 		'p-1 -m-1',
 		'rounded-md',

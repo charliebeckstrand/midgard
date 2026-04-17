@@ -6,7 +6,7 @@ export const toolbar = {
 	base: 'flex items-center',
 	orientation: {
 		horizontal: 'flex-row flex-wrap gap-1',
-		vertical: 'flex-col items-stretch gap-1',
+		vertical: 'flex-col w-fit gap-1',
 	},
 	variant: {
 		plain: '',

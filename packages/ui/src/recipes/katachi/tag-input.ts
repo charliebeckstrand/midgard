@@ -24,11 +24,6 @@ export const tagInput = {
 		md: [text.md],
 		lg: [text.lg],
 	},
-	input: [
-		'flex-1 min-w-20',
-		sumi.text,
-		'bg-transparent border-none p-0',
-		'focus:outline-none',
-	],
+	input: ['flex-1 min-w-20', sumi.text, 'bg-transparent border-none p-0', 'focus:outline-none'],
 	defaults: { size: 'md' as const },
 }

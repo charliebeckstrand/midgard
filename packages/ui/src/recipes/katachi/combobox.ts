@@ -17,10 +17,5 @@ export const combobox = {
 	chevron: [take.control.icon, take.combobox.icon, sumi.textMuted],
 	options: take.popup,
 	option: [...sawari.item, ...narabi.item],
-	empty: [
-		'hidden only:block',
-		'p-2',
-		'text-sm',
-		sumi.textMuted,
-	],
+	empty: ['hidden only:block', 'p-2', 'text-sm', sumi.textMuted],
 }

@@ -23,10 +23,5 @@ export const bottomNav = {
 		take.iconSlot.md,
 	],
 	current: [sumi.text],
-	indicator: [
-		'inset-x-3 bottom-auto top-0',
-		'h-0.5',
-		maru.roundedFull,
-		nuri.tabIndicator,
-	],
+	indicator: ['inset-x-3 bottom-auto top-0', 'h-0.5', maru.roundedFull, nuri.tabIndicator],
 }

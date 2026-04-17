@@ -25,13 +25,7 @@ export const pagination = {
 		},
 		defaults: { current: false as const },
 	},
-	gap: [
-		kumi.center.inline,
-		'min-w-9',
-		'text-sm/6',
-		sumi.textMuted,
-		'select-none',
-	],
+	gap: [kumi.center.inline, 'min-w-9', 'text-sm/6', sumi.textMuted, 'select-none'],
 	nav: [
 		kumi.center.inline,
 		'gap-1 px-2 py-1.5',
