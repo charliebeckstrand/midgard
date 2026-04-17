@@ -30,9 +30,7 @@ export const scrollArea = {
 	},
 	scrollbar: {
 		base: [
-			// ── Layout ──────────────────────────────────────
 			'absolute touch-none select-none',
-			// ── Tokens ──────────────────────────────────────
 			nagare.opacity,
 		],
 		orientation: {
@@ -56,11 +54,8 @@ export const scrollArea = {
 	},
 	thumb: {
 		base: [
-			// ── Layout ──────────────────────────────────────
 			'absolute rounded-full',
-			// ── Color (light) ───────────────────────────────
 			'bg-zinc-950/20 hover:bg-zinc-950/30 active:bg-zinc-950/40',
-			// ── Color (dark) ────────────────────────────────
 			'dark:bg-white/20 dark:hover:bg-white/30 dark:active:bg-white/40',
 		],
 		orientation: {

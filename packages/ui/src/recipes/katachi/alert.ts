@@ -5,21 +5,15 @@ import { sawari } from '../sawari'
 
 export const alert = {
 	base: [
-		// ── Layout ──────────────────────────────────────
 		'flex w-fit',
-		// ── Spacing ─────────────────────────────────────
 		'gap-3 p-3',
-		// ── Typography ──────────────────────────────────
 		'text-sm/5',
-		// ── Tokens ──────────────────────────────────────
 		maru.rounded,
 	],
 	variant: {
 		solid: {
 			base: [
-				// ── Border ──────────────────────────────────────
 				'border border-transparent',
-				// ── Tokens ──────────────────────────────────────
 				kage.shadow,
 			],
 			color: nuri.solid,
@@ -43,11 +37,8 @@ export const alert = {
 	description: 'leading-loose',
 	actions: 'mt-2 flex items-center gap-1',
 	close: [
-		// ── Layout ──────────────────────────────────────
 		'shrink-0',
-		// ── Spacing ─────────────────────────────────────
 		'-m-1 p-1',
-		// ── Tokens ──────────────────────────────────────
 		maru.roundedMd,
 		sawari.cursor,
 	],

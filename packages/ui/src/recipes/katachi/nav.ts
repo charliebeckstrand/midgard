@@ -10,13 +10,9 @@ export const nav = {
 		},
 	},
 	item: [
-		// ── Layout ──────────────────────────────────────
 		'group relative flex w-full items-center',
-		// ── Spacing ─────────────────────────────────────
 		'gap-1.5 p-2',
-		// ── Typography ──────────────────────────────────
 		'text-left text-sm/5 font-medium',
-		// ── Tokens ──────────────────────────────────────
 		...sawari.navItem,
 		maru.rounded,
 		sawari.cursor,

@@ -15,11 +15,8 @@ export const calendar = {
 		cellCurrent: ['font-semibold', ...nuri.buttonSoft.blue],
 	},
 	weekday: [
-		// ── Sizing ──────────────────────────────────────
 		'w-full aspect-square',
-		// ── Typography ──────────────────────────────────
 		'text-xs font-medium',
-		// ── Tokens ──────────────────────────────────────
 		kumi.center.block,
 		sumi.textMuted,
 	],

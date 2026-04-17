@@ -7,16 +7,12 @@ import { waku } from '../waku'
 
 export const listbox = {
 	button: [
-		// ── Layout ──────────────────────────────────────
 		'block',
-		// ── Typography ──────────────────────────────────
 		'text-left',
-		// ── Tokens ──────────────────────────────────────
 		...waku.inputBase,
 		take.control.md,
 		take.listbox.padding,
 		maru.rounded,
-		// ── Effects ─────────────────────────────────────
 		'appearance-none',
 	],
 	options: take.popup,

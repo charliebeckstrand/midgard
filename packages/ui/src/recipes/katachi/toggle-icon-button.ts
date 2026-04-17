@@ -5,14 +5,11 @@ import { take } from '../take'
 
 export const toggleIconButton = {
 	base: [
-		// ── Layout ──────────────────────────────────────
 		'relative',
-		// ── Tokens ──────────────────────────────────────
 		kumi.center.block,
 		maru.rounded,
 		sumi.textMuted,
 		sumi.textHover,
-		// ── Focus ───────────────────────────────────────
 		'focus-visible:not-disabled:text-white',
 	],
 	size: take.buttonWithIconSize,

@@ -8,9 +8,7 @@ import { waku } from '../waku'
 export const input = {
 	base: [
 		...waku.inputBase,
-		// ── Layout ──────────────────────────────────────
 		'block',
-		// ── Tokens ──────────────────────────────────────
 		maru.rounded,
 	],
 	variant: {
@@ -21,9 +19,7 @@ export const input = {
 	control: {
 		default: waku.control.surface,
 		outline: [
-			// ── Tokens ──────────────────────────────────────
 			kage.borderEmphasis,
-			// ── Hover ───────────────────────────────────────
 			'hover:border-zinc-950/30',
 			'dark:hover:border-white/30',
 		],
@@ -31,11 +27,8 @@ export const input = {
 	},
 	size: take.control,
 	affix: [
-		// ── Layout ──────────────────────────────────────
 		'flex items-center min-w-0',
-		// ── Slots ───────────────────────────────────────
 		'*:data-[slot=icon]:pointer-events-none',
-		// ── Tokens ──────────────────────────────────────
 		sumi.textMuted,
 	],
 	prefix: {

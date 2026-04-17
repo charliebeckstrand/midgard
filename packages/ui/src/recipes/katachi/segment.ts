@@ -7,34 +7,24 @@ import { yasumi } from '../yasumi'
 
 export const segment = {
 	base: [
-		// ── Layout ──────────────────────────────────────
 		'inline-flex items-center',
-		// ── Tokens ──────────────────────────────────────
 		maru.rounded,
 		omote.tint,
 	],
 	segment: [
-		// ── Layout ──────────────────────────────────────
 		'relative z-10 flex items-center justify-center',
-		// ── Typography ──────────────────────────────────
 		'font-medium select-none whitespace-nowrap',
-		// ── Tokens ──────────────────────────────────────
 		maru.rounded,
 		ki.indicator,
 		ki.ring,
 		yasumi.disabled,
-		// ── Cursor ──────────────────────────────────────
 		'cursor-default',
-		// ── Focus ───────────────────────────────────────
 		'outline-none',
 	],
 	segmentCurrent: sumi.text,
 	indicator: [
-		// ── Color (light) ───────────────────────────────
 		'bg-white',
-		// ── Color (dark) ────────────────────────────────
 		'dark:bg-zinc-600',
-		// ── Tokens ──────────────────────────────────────
 		kage.shadow,
 	],
 	size: {

@@ -2,26 +2,18 @@ import { yasumi } from '../yasumi'
 
 export const slider = {
 	base: [
-		// ── Sizing ──────────────────────────────────────
 		'w-full',
-		// ── Layout ──────────────────────────────────────
 		'appearance-none',
-		// ── Color ───────────────────────────────────────
 		'bg-transparent',
-		// ── Cursor ──────────────────────────────────────
 		'cursor-pointer',
-		// ── Focus ───────────────────────────────────────
 		'outline-none',
-		// ── Tokens ──────────────────────────────────────
 		yasumi.disabled,
 
-		// ── WebKit track ─────────────────────────────────
 		// --slider-value is set inline (0–100 %); --slider-fill / --slider-track come from the color variant.
 		'[&::-webkit-slider-runnable-track]:w-full',
 		'[&::-webkit-slider-runnable-track]:rounded-full',
 		'[&::-webkit-slider-runnable-track]:bg-[linear-gradient(to_right,var(--slider-fill)_0,var(--slider-fill)_var(--slider-value,0%),var(--slider-track)_var(--slider-value,0%),var(--slider-track)_100%)]',
 
-		// ── WebKit thumb ─────────────────────────────────
 		// Layout
 		'[&::-webkit-slider-thumb]:appearance-none',
 		'[&::-webkit-slider-thumb]:rounded-full',
@@ -43,12 +35,10 @@ export const slider = {
 		'focus-visible:[&::-webkit-slider-thumb]:ring-blue-600',
 		'dark:focus-visible:[&::-webkit-slider-thumb]:ring-blue-600',
 
-		// ── Firefox track ────────────────────────────────
 		'[&::-moz-range-track]:w-full',
 		'[&::-moz-range-track]:rounded-full',
 		'[&::-moz-range-track]:bg-[linear-gradient(to_right,var(--slider-fill)_0,var(--slider-fill)_var(--slider-value,0%),var(--slider-track)_var(--slider-value,0%),var(--slider-track)_100%)]',
 
-		// ── Firefox thumb ────────────────────────────────
 		// Layout
 		'[&::-moz-range-thumb]:rounded-full',
 		// Color (light)

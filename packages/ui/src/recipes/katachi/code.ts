@@ -15,13 +15,9 @@ export const code = {
 		content: '[&_pre]:overflow-x-auto [&_pre]:p-4 [&_pre]:text-sm/6',
 		contentCopy: '[&_pre]:pr-14',
 		fallback: [
-			// ── Layout ──────────────────────────────────────
 			'overflow-x-auto',
-			// ── Spacing ─────────────────────────────────────
 			'p-4',
-			// ── Typography ──────────────────────────────────
 			'text-sm/6',
-			// ── Color ───────────────────────────────────────
 			'text-zinc-400',
 		],
 		fallbackCopy: 'pr-14',

@@ -20,37 +20,25 @@ export const timeline = {
 		base: 'absolute',
 		vertical: {
 			solid: [
-				// ── Layout ──────────────────────────────────────
 				'left-[6px] top-[39px] -bottom-[25px] w-0.5',
-				// ── Color (light) ───────────────────────────────
 				'bg-zinc-200',
-				// ── Color (dark) ────────────────────────────────
 				'dark:bg-zinc-700',
 			],
 			outline: [
-				// ── Layout ──────────────────────────────────────
 				'left-[6.5px] top-[39px] -bottom-[25px] w-px',
-				// ── Color (light) ───────────────────────────────
 				'bg-zinc-950/10',
-				// ── Color (dark) ────────────────────────────────
 				'dark:bg-white/10',
 			],
 		},
 		horizontal: {
 			solid: [
-				// ── Layout ──────────────────────────────────────
 				'top-[6px] left-[20.5px] -right-[6.5px] h-0.5',
-				// ── Color (light) ───────────────────────────────
 				'bg-zinc-200',
-				// ── Color (dark) ────────────────────────────────
 				'dark:bg-zinc-700',
 			],
 			outline: [
-				// ── Layout ──────────────────────────────────────
 				'top-[6.5px] left-[20.5px] -right-[6.5px] h-px',
-				// ── Color (light) ───────────────────────────────
 				'bg-zinc-950/10',
-				// ── Color (dark) ────────────────────────────────
 				'dark:bg-white/10',
 			],
 		},

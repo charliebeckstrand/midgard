@@ -7,11 +7,8 @@ import { waku } from '../waku'
 
 export const combobox = {
 	input: [
-		// ── Layout ──────────────────────────────────────
 		'block',
-		// ── Typography ──────────────────────────────────
 		'truncate',
-		// ── Tokens ──────────────────────────────────────
 		...waku.inputBase,
 		take.control.md,
 		take.combobox.padding,
@@ -21,13 +18,9 @@ export const combobox = {
 	options: take.popup,
 	option: [...sawari.item, ...narabi.item],
 	empty: [
-		// ── Layout ──────────────────────────────────────
 		'hidden only:block',
-		// ── Spacing ─────────────────────────────────────
 		'p-2',
-		// ── Typography ──────────────────────────────────
 		'text-sm',
-		// ── Tokens ──────────────────────────────────────
 		sumi.textMuted,
 	],
 }

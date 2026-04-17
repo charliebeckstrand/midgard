@@ -12,9 +12,7 @@ export const textarea = {
 	control: {
 		default: waku.control.surface,
 		outline: [
-			// ── Tokens ──────────────────────────────────────
 			kage.borderEmphasis,
-			// ── Hover ───────────────────────────────────────
 			'hover:border-zinc-950/30',
 			'dark:hover:border-white/30',
 		],

@@ -5,9 +5,7 @@ export const stat = {
 	label: ['text-sm/5 font-medium', sumi.textMuted],
 	value: {
 		base: [
-			// ── Typography ──────────────────────────────────
 			'font-semibold tracking-tight tabular-nums',
-			// ── Tokens ──────────────────────────────────────
 			sumi.text,
 		],
 		size: {

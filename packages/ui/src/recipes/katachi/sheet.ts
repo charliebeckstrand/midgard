@@ -8,12 +8,9 @@ import { take } from '../take'
 export const sheet = {
 	panel: {
 		base: [
-			// ── Tokens ──────────────────────────────────────
 			omote.panel.chrome,
 			narabi.panel.base,
-			// ── Layout ──────────────────────────────────────
 			'fixed overflow-y-auto',
-			// ── Border ──────────────────────────────────────
 			'rounded-xl',
 		],
 		glass: {
@@ -22,19 +19,13 @@ export const sheet = {
 		},
 		side: {
 			right: [
-				// ── Layout ──────────────────────────────────────
 				'inset-y-0 right-0 w-full',
-				// ── Border ──────────────────────────────────────
 				'max-sm:rounded-r-none',
-				// ── Responsive ──────────────────────────────────
 				'sm:top-4 sm:right-4 sm:bottom-4',
 			],
 			left: [
-				// ── Layout ──────────────────────────────────────
 				'inset-y-0 left-0 w-full',
-				// ── Border ──────────────────────────────────────
 				'max-sm:rounded-l-none',
-				// ── Responsive ──────────────────────────────────
 				'sm:top-4 sm:left-4 sm:bottom-4',
 			],
 			top: narabi.slide.top,
@@ -48,13 +39,10 @@ export const sheet = {
 	actions: [narabi.panel.actions, 'px-6 pb-6'],
 	body: [narabi.panel.body, 'flex-1 overflow-y-auto px-6'],
 	close: [
-		// ── Tokens ──────────────────────────────────────
 		sumi.textMuted,
 		ki.inset,
 		maru.roundedMd,
-		// ── Layout ──────────────────────────────────────
 		'absolute right-5 top-5',
-		// ── Spacing ─────────────────────────────────────
 		'p-1',
 	],
 }

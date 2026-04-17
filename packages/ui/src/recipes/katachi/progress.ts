@@ -5,13 +5,9 @@ import { sumi } from '../sumi'
 export const progress = {
 	bar: {
 		track: [
-			// ── Layout ──────────────────────────────────────
 			'overflow-hidden',
-			// ── Tokens ──────────────────────────────────────
 			maru.roundedFull,
-			// ── Color (light) ───────────────────────────────
 			'bg-zinc-200',
-			// ── Color (dark) ────────────────────────────────
 			'dark:bg-zinc-700',
 		],
 		fill: ['h-full', maru.roundedFull],
@@ -33,11 +29,8 @@ export const progress = {
 			xl: 'size-20',
 		},
 		label: [
-			// ── Layout ──────────────────────────────────────
 			'absolute',
-			// ── Typography ──────────────────────────────────
 			'font-semibold',
-			// ── Tokens ──────────────────────────────────────
 			sumi.text,
 		],
 		labelSize: {
