@@ -16,12 +16,13 @@ function nextId(): string {
 	return `q${counter}_${Math.random().toString(36).slice(2, 8)}`
 }
 
-export function createRule(field?: QueryField): QueryRule {
+export function createRule(field?: QueryField, combinator: QueryCombinator = 'and'): QueryRule {
 	const operators = field ? getOperators(field) : []
 
 	return {
 		id: nextId(),
 		type: 'rule',
+		combinator,
 		field: field?.name ?? '',
 		operator: operators[0]?.value ?? '',
 		value: defaultValueFor(field),
@@ -82,6 +83,11 @@ const DEFAULT_OPERATORS: Record<QueryFieldType, QueryOperator[]> = {
 
 export function getOperators(field: QueryField): QueryOperator[] {
 	return field.operators ?? DEFAULT_OPERATORS[field.type] ?? []
+}
+
+/** Returns true when the group (or any nested group) contains at least one rule. */
+export function hasRules(group: QueryGroup): boolean {
+	return group.children.some((child) => (child.type === 'rule' ? true : hasRules(child)))
 }
 
 // ── Immutable tree helpers ─────────────────────────────

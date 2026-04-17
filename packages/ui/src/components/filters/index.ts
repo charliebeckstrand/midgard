@@ -1,10 +1,14 @@
+export { type FiltersContextValue, useFilters } from './context'
 export {
 	Filters,
+	type FiltersProps,
+} from './filters'
+export {
 	FiltersClear,
 	type FiltersClearProps,
+} from './filters-clear'
+export {
 	FiltersField,
 	type FiltersFieldProps,
 	type FiltersFieldRenderProps,
-	type FiltersProps,
-} from './component'
-export { type FiltersContextValue, useFilters } from './context'
+} from './filters-field'

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Badge } from '../../components/badge'
-import { Card, CardBody, CardTitle } from '../../components/card'
+import { Card, CardBody, CardDescription, CardTitle } from '../../components/card'
 import { Grid, GridCell } from '../../components/grid'
 import { Segment, SegmentControl, SegmentItem } from '../../components/segment'
 import { Stack } from '../../components/stack'
@@ -62,8 +62,8 @@ export default function SegmentDemo() {
 							{items.map((item) => (
 								<Card key={item.name}>
 									<CardBody className="flex items-center justify-between py-3">
-										<span className="font-medium text-sm">{item.name}</span>
-										<span className="text-sm text-zinc-500">{item.description}</span>
+										<CardTitle>{item.name}</CardTitle>
+										<CardDescription>{item.description}</CardDescription>
 									</CardBody>
 								</Card>
 							))}
@@ -71,11 +71,11 @@ export default function SegmentDemo() {
 					) : (
 						<Grid columns={{ initial: 2 }} gap={3}>
 							{items.map((item) => (
-								<GridCell key={item.name}>
-									<Card>
+								<GridCell key={item.name} className="flex">
+									<Card className="grow">
 										<CardBody>
 											<CardTitle>{item.name}</CardTitle>
-											<p className="text-sm text-zinc-500 mt-1">{item.description}</p>
+											<CardDescription>{item.description}</CardDescription>
 										</CardBody>
 									</Card>
 								</GridCell>
@@ -104,7 +104,7 @@ export default function SegmentDemo() {
 							.map((item) => (
 								<Card key={item.name}>
 									<CardBody className="flex items-center justify-between py-3">
-										<span className="font-medium text-sm">{item.name}</span>
+										<CardTitle>{item.name}</CardTitle>
 										<Badge color={statusColor[item.status]} size="sm">
 											{item.status}
 										</Badge>

@@ -1,4 +1,5 @@
-export { Avatar, AvatarGroup, type AvatarGroupProps, type AvatarProps } from './component'
+export { Avatar, type AvatarProps } from './avatar'
+export { AvatarGroup, type AvatarGroupProps } from './avatar-group'
 
 export {
 	type AvatarVariants,

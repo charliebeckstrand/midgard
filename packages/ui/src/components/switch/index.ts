@@ -1,9 +1,11 @@
 export {
 	Switch,
+	type SwitchProps,
+} from './switch'
+export {
 	SwitchField,
 	type SwitchFieldProps,
-	type SwitchProps,
-} from './component'
+} from './switch-field'
 export {
 	type SwitchFieldVariants,
 	type SwitchVariants,

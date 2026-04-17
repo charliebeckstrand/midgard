@@ -1,2 +1,3 @@
 export type { TreeColor } from '../../recipes/katachi/tree'
-export { Tree, TreeItem, type TreeItemProps, type TreeProps } from './component'
+export { Tree, type TreeProps } from './tree'
+export { TreeItem, type TreeItemProps } from './tree-item'

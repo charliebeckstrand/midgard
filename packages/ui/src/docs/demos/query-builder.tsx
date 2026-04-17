@@ -48,7 +48,7 @@ function Controlled() {
 	const [query, setQuery] = useState<QueryGroupNode>(seed)
 
 	return (
-		<Example title="Controlled with nested groups">
+		<Example title="Controlled">
 			<Sizer size="lg">
 				<Stack gap={3}>
 					<QueryBuilder fields={fields} value={query} onChange={setQuery} />

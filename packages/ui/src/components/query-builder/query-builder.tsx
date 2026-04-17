@@ -55,11 +55,7 @@ export function QueryBuilder({
 
 	const updateCombinator = useCallback<QueryBuilderContextValue['updateCombinator']>(
 		(id, combinator) => {
-			setState((prev) =>
-				mapNode(prev ?? initial, id, (node) =>
-					node.type === 'group' ? { ...node, combinator } : node,
-				),
-			)
+			setState((prev) => mapNode(prev ?? initial, id, (node) => ({ ...node, combinator })))
 		},
 		[setState, initial],
 	)

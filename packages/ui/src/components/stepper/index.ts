@@ -1,22 +1,12 @@
-export {
-	Stepper,
-	StepperDescription,
-	type StepperDescriptionProps,
-	StepperIndicator,
-	type StepperIndicatorProps,
-	StepperPanel,
-	type StepperPanelProps,
-	StepperPanels,
-	type StepperPanelsProps,
-	type StepperProps,
-	StepperSeparator,
-	type StepperSeparatorProps,
-	StepperStep,
-	type StepperStepProps,
-	StepperTitle,
-	type StepperTitleProps,
-} from './component'
 export type { StepperOrientation, StepState } from './context'
+export { Stepper, type StepperProps } from './stepper'
+export { StepperDescription, type StepperDescriptionProps } from './stepper-description'
+export { StepperIndicator, type StepperIndicatorProps } from './stepper-indicator'
+export { StepperPanel, type StepperPanelProps } from './stepper-panel'
+export { StepperPanels, type StepperPanelsProps } from './stepper-panels'
+export { StepperSeparator, type StepperSeparatorProps } from './stepper-separator'
+export { StepperStep, type StepperStepProps } from './stepper-step'
+export { StepperTitle, type StepperTitleProps } from './stepper-title'
 export {
 	type StepperSeparatorVariants,
 	type StepperStepVariants,

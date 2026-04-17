@@ -1,14 +1,6 @@
-export {
-	Card,
-	CardBody,
-	type CardBodyProps,
-	CardDescription,
-	type CardDescriptionProps,
-	CardFooter,
-	type CardFooterProps,
-	CardHeader,
-	type CardHeaderProps,
-	type CardProps,
-	CardTitle,
-	type CardTitleProps,
-} from './component'
+export { Card, type CardProps } from './card'
+export { CardBody, type CardBodyProps } from './card-body'
+export { CardDescription, type CardDescriptionProps } from './card-description'
+export { CardFooter, type CardFooterProps } from './card-footer'
+export { CardHeader, type CardHeaderProps } from './card-header'
+export { CardTitle, type CardTitleProps } from './card-title'

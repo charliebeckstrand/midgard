@@ -28,6 +28,8 @@ export type FlexProps = {
 	inline?: boolean
 	/** Spans full width of parent. */
 	full?: boolean
+	/** Fills available space (flex: 1 1 auto). */
+	grow?: boolean
 	/** Fills available space (flex: 1 1 0%). */
 	flex?: boolean
 	/** Stretches all children equally. */
@@ -45,6 +47,7 @@ export function FlexBase({
 	wrap,
 	inline,
 	full,
+	grow,
 	flex,
 	equal,
 	className,
@@ -61,6 +64,7 @@ export function FlexBase({
 				resolveJustify(justify),
 				wrap && 'flex-wrap',
 				full && 'w-full',
+				grow && 'grow',
 				flex && 'flex-1',
 				equal && '*:flex-1',
 				inline ? 'inline-flex' : 'flex',

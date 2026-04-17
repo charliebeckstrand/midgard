@@ -1,15 +1,6 @@
-export {
-	Table,
-	TableBody,
-	type TableBodyProps,
-	TableCell,
-	type TableCellProps,
-	TableHead,
-	TableHeader,
-	type TableHeaderProps,
-	type TableHeadProps,
-	type TableProps,
-	TableRow,
-	type TableRowProps,
-	type TableVariants,
-} from './component'
+export { Table, type TableProps, type TableVariants } from './table'
+export { TableBody, type TableBodyProps } from './table-body'
+export { TableCell, type TableCellProps } from './table-cell'
+export { TableHead, type TableHeadProps } from './table-head'
+export { TableHeader, type TableHeaderProps } from './table-header'
+export { TableRow, type TableRowProps } from './table-row'

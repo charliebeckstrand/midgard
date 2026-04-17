@@ -1,10 +1,5 @@
-export {
-	Alert,
-	AlertDescription,
-	type AlertDescriptionProps,
-	type AlertProps,
-	AlertTitle,
-	type AlertTitleProps,
-} from './component'
+export { Alert, type AlertProps } from './alert'
+export { AlertDescription, type AlertDescriptionProps } from './alert-description'
+export { AlertTitle, type AlertTitleProps } from './alert-title'
 export { type AlertContextValue, useAlertContext } from './context'
 export { type AlertVariants, alertVariants } from './variants'

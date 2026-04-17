@@ -4,3 +4,5 @@ import type { take } from '../../recipes/take'
 type AvatarSize = take.AvatarSize
 
 export const AvatarSizeContext = createContext<AvatarSize | null>(null)
+
+export const AvatarGroupSizeContext = createContext<AvatarSize | null>(null)

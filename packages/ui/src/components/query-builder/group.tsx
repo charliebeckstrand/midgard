@@ -1,10 +1,10 @@
 'use client'
 
-import { X } from 'lucide-react'
 import { cn } from '../../core'
+import { Alert } from '../alert'
 import { Button } from '../button'
 import { Flex } from '../flex'
-import { Icon } from '../icon'
+import { HoldButton } from '../hold-button'
 import { Segment, SegmentControl, SegmentItem } from '../segment'
 import { useQueryBuilderContext } from './context'
 import { QueryRule } from './rule'
@@ -29,49 +29,59 @@ export function QueryGroup({ group, root, className }: QueryGroupProps) {
 			data-combinator={group.combinator}
 			className={cn(k.group, !root && k.groupNested, className)}
 		>
-			<Flex gap={2}>
-				<Flex flex gap={2}>
-					<Segment
-						value={group.combinator}
-						onValueChange={(v) => v && updateCombinator(group.id, v as QueryCombinator)}
-					>
-						<SegmentControl size="sm" aria-label="Combinator">
-							<SegmentItem value="and">AND</SegmentItem>
-							<SegmentItem value="or">OR</SegmentItem>
-						</SegmentControl>
-					</Segment>
-				</Flex>
-				{!root && (
+			<div className={k.group}>
+				{group.children.length === 0 ? (
+					<Alert type="warning" variant="soft" description="No rules defined." block />
+				) : (
+					group.children.map((child, index) => (
+						<div key={child.id} className="flex flex-col gap-3">
+							{index > 0 && (
+								<Segment
+									value={child.combinator ?? 'and'}
+									onValueChange={(v) => v && updateCombinator(child.id, v as QueryCombinator)}
+								>
+									<SegmentControl size="sm" aria-label="Combinator">
+										<SegmentItem value="and">AND</SegmentItem>
+										<SegmentItem value="or">OR</SegmentItem>
+									</SegmentControl>
+								</Segment>
+							)}
+							{child.type === 'group' ? <QueryGroup group={child} /> : <QueryRule rule={child} />}
+						</div>
+					))
+				)}
+			</div>
+
+			<Flex gap={2} className={k.actions}>
+				{root && (
 					<Button
-						variant="plain"
-						aria-label="Remove group"
+						variant="soft"
+						color="blue"
 						disabled={disabled}
-						className={k.rowRemove}
-						onClick={() => remove(group.id)}
+						onClick={() => addGroup(group.id)}
 					>
-						<Icon icon={<X />} />
+						Add group
 					</Button>
 				)}
-			</Flex>
-
-			<div className={k.group}>
-				{group.children.map((child) =>
-					child.type === 'group' ? (
-						<QueryGroup key={child.id} group={child} />
-					) : (
-						<QueryRule key={child.id} rule={child} />
-					),
-				)}
-			</div>
-
-			<div className={k.actions}>
-				<Button size="sm" variant="outline" disabled={disabled} onClick={() => addRule(group.id)}>
+				<Button variant="plain" disabled={disabled} onClick={() => addRule(group.id)}>
 					Add rule
 				</Button>
-				<Button size="sm" variant="outline" disabled={disabled} onClick={() => addGroup(group.id)}>
-					Add group
-				</Button>
-			</div>
+				{!root && (
+					<Flex justify="end">
+						<HoldButton
+							variant="soft"
+							color="red"
+							aria-label="Remove group"
+							disabled={disabled}
+							className={k.rowRemove}
+							duration={500}
+							onComplete={() => remove(group.id)}
+						>
+							Remove group
+						</HoldButton>
+					</Flex>
+				)}
+			</Flex>
 		</div>
 	)
 }

@@ -3,6 +3,7 @@ export type QueryCombinator = 'and' | 'or'
 export type QueryRule = {
 	id: string
 	type: 'rule'
+	combinator?: QueryCombinator
 	field: string
 	operator: string
 	value: unknown
@@ -11,7 +12,7 @@ export type QueryRule = {
 export type QueryGroup = {
 	id: string
 	type: 'group'
-	combinator: QueryCombinator
+	combinator?: QueryCombinator
 	children: QueryNode[]
 }
 

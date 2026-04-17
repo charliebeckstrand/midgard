@@ -1,6 +1,8 @@
 export {
 	PasswordConfirm,
+	type PasswordConfirmProps,
+} from './password-confirm'
+export {
 	PasswordConfirmInput,
 	type PasswordConfirmInputProps,
-	type PasswordConfirmProps,
-} from './component'
+} from './password-confirm-input'

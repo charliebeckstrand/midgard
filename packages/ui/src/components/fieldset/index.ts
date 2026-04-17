@@ -1,14 +1,6 @@
-export {
-	Description,
-	type DescriptionProps,
-	ErrorMessage,
-	type ErrorMessageProps,
-	Field,
-	type FieldProps,
-	Fieldset,
-	type FieldsetProps,
-	Label,
-	type LabelProps,
-	Legend,
-	type LegendProps,
-} from './component'
+export { Description, type DescriptionProps } from './description'
+export { ErrorMessage, type ErrorMessageProps } from './error-message'
+export { Field, type FieldProps } from './field'
+export { Fieldset, type FieldsetProps } from './fieldset'
+export { Label, type LabelProps } from './label'
+export { Legend, type LegendProps } from './legend'
