@@ -14,6 +14,7 @@ export default defineConfig({
 		'next',
 		'react',
 		'react-dom',
+		'heimdall',
 		'ui',
 		'@heroicons/react',
 		'react-textarea-autosize',
