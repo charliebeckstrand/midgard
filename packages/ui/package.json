@@ -179,6 +179,10 @@
 			"types": "./src/components/input/index.ts",
 			"default": "./src/components/input/index.ts"
 		},
+		"./inspector": {
+			"types": "./src/components/inspector/index.ts",
+			"default": "./src/components/inspector/index.ts"
+		},
 		"./json-tree": {
 			"types": "./src/components/json-tree/index.ts",
 			"default": "./src/components/json-tree/index.ts"
@@ -226,6 +230,10 @@
 		"./password-input": {
 			"types": "./src/components/password-input/index.ts",
 			"default": "./src/components/password-input/index.ts"
+		},
+		"./phone-input": {
+			"types": "./src/components/phone-input/index.ts",
+			"default": "./src/components/phone-input/index.ts"
 		},
 		"./placeholder": {
 			"types": "./src/components/placeholder/index.ts",
@@ -370,6 +378,10 @@
 		"./tree": {
 			"types": "./src/components/tree/index.ts",
 			"default": "./src/components/tree/index.ts"
+		},
+		"./zipcode-input": {
+			"types": "./src/components/zipcode-input/index.ts",
+			"default": "./src/components/zipcode-input/index.ts"
 		},
 		"./layouts": {
 			"types": "./src/layouts/index.ts",

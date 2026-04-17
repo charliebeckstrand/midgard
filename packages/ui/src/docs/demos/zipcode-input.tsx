@@ -2,48 +2,64 @@
 
 import { useState } from 'react'
 import { Field, Label } from '../../components/fieldset'
-import { Glass } from '../../components/glass'
-import { NumberInput } from '../../components/number-input'
 import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'
+import { ZipcodeInput } from '../../components/zipcode-input'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Inputs' }
 
 function Controlled() {
-	const [value, setValue] = useState<number | undefined>(3)
+	const [value, setValue] = useState('')
 
 	return (
 		<Example title="Controlled">
 			<Sizer>
 				<Field>
-					<Label>Quantity</Label>
-					<NumberInput value={value} onChange={setValue} min={0} max={10} />
+					<Label>ZIP</Label>
+					<ZipcodeInput value={value} onChange={setValue} />
 				</Field>
 			</Sizer>
 		</Example>
 	)
 }
 
-export default function NumberInputDemo() {
+export default function ZipcodeInputDemo() {
 	return (
 		<Stack gap={6}>
-			<Example title="Variants">
+			<Example title="US">
 				<Sizer>
 					<Field>
-						<Label htmlFor="num-default">Default</Label>
-						<NumberInput id="num-default" defaultValue={1} />
+						<Label>ZIP</Label>
+						<ZipcodeInput country="US" />
 					</Field>
+				</Sizer>
+			</Example>
+
+			<Example title="Canada">
+				<Sizer>
 					<Field>
-						<Label>Outline</Label>
-						<NumberInput variant="outline" defaultValue={1} />
+						<Label>Postal code</Label>
+						<ZipcodeInput country="CA" />
 					</Field>
-					<Glass>
-						<Field>
-							<Label>Glass</Label>
-							<NumberInput defaultValue={1} />
-						</Field>
-					</Glass>
+				</Sizer>
+			</Example>
+
+			<Example title="United Kingdom">
+				<Sizer>
+					<Field>
+						<Label>Postcode</Label>
+						<ZipcodeInput country="GB" />
+					</Field>
+				</Sizer>
+			</Example>
+
+			<Example title="International">
+				<Sizer>
+					<Field>
+						<Label>Postal code</Label>
+						<ZipcodeInput country="international" placeholder="Postal code" />
+					</Field>
 				</Sizer>
 			</Example>
 
@@ -51,19 +67,19 @@ export default function NumberInputDemo() {
 				<Sizer size="sm">
 					<Field>
 						<Label>Small</Label>
-						<NumberInput size="sm" defaultValue={1} />
+						<ZipcodeInput size="sm" />
 					</Field>
 				</Sizer>
 				<Sizer size="md">
 					<Field>
 						<Label>Medium</Label>
-						<NumberInput size="md" defaultValue={1} />
+						<ZipcodeInput size="md" />
 					</Field>
 				</Sizer>
 				<Sizer size="lg">
 					<Field>
 						<Label>Large</Label>
-						<NumberInput size="lg" defaultValue={1} />
+						<ZipcodeInput size="lg" />
 					</Field>
 				</Sizer>
 			</Example>
@@ -74,7 +90,7 @@ export default function NumberInputDemo() {
 				<Sizer>
 					<Field>
 						<Label>Disabled</Label>
-						<NumberInput disabled defaultValue={1} />
+						<ZipcodeInput disabled defaultValue="94103" />
 					</Field>
 				</Sizer>
 			</Example>
@@ -83,16 +99,7 @@ export default function NumberInputDemo() {
 				<Sizer>
 					<Field>
 						<Label>Invalid</Label>
-						<NumberInput data-invalid defaultValue={1} />
-					</Field>
-				</Sizer>
-			</Example>
-
-			<Example title="Valid">
-				<Sizer>
-					<Field>
-						<Label>Valid</Label>
-						<NumberInput data-valid defaultValue={1} />
+						<ZipcodeInput data-invalid />
 					</Field>
 				</Sizer>
 			</Example>

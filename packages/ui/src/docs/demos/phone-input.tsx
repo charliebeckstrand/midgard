@@ -2,8 +2,7 @@
 
 import { useState } from 'react'
 import { Field, Label } from '../../components/fieldset'
-import { Glass } from '../../components/glass'
-import { NumberInput } from '../../components/number-input'
+import { PhoneInput } from '../../components/phone-input'
 import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
@@ -11,39 +10,38 @@ import { Example } from '../components/example'
 export const meta = { category: 'Inputs' }
 
 function Controlled() {
-	const [value, setValue] = useState<number | undefined>(3)
+	const [value, setValue] = useState('')
 
 	return (
 		<Example title="Controlled">
 			<Sizer>
 				<Field>
-					<Label>Quantity</Label>
-					<NumberInput value={value} onChange={setValue} min={0} max={10} />
+					<Label>Phone</Label>
+					<PhoneInput value={value} onChange={setValue} placeholder="(555) 555-5555" />
 				</Field>
 			</Sizer>
 		</Example>
 	)
 }
 
-export default function NumberInputDemo() {
+export default function PhoneInputDemo() {
 	return (
 		<Stack gap={6}>
-			<Example title="Variants">
+			<Example title="Default (US)">
 				<Sizer>
 					<Field>
-						<Label htmlFor="num-default">Default</Label>
-						<NumberInput id="num-default" defaultValue={1} />
+						<Label>Phone</Label>
+						<PhoneInput placeholder="(555) 555-5555" />
 					</Field>
+				</Sizer>
+			</Example>
+
+			<Example title="International">
+				<Sizer>
 					<Field>
-						<Label>Outline</Label>
-						<NumberInput variant="outline" defaultValue={1} />
+						<Label>Phone</Label>
+						<PhoneInput country="international" placeholder="+14155551234" />
 					</Field>
-					<Glass>
-						<Field>
-							<Label>Glass</Label>
-							<NumberInput defaultValue={1} />
-						</Field>
-					</Glass>
 				</Sizer>
 			</Example>
 
@@ -51,19 +49,19 @@ export default function NumberInputDemo() {
 				<Sizer size="sm">
 					<Field>
 						<Label>Small</Label>
-						<NumberInput size="sm" defaultValue={1} />
+						<PhoneInput size="sm" placeholder="(555) 555-5555" />
 					</Field>
 				</Sizer>
 				<Sizer size="md">
 					<Field>
 						<Label>Medium</Label>
-						<NumberInput size="md" defaultValue={1} />
+						<PhoneInput size="md" placeholder="(555) 555-5555" />
 					</Field>
 				</Sizer>
 				<Sizer size="lg">
 					<Field>
 						<Label>Large</Label>
-						<NumberInput size="lg" defaultValue={1} />
+						<PhoneInput size="lg" placeholder="(555) 555-5555" />
 					</Field>
 				</Sizer>
 			</Example>
@@ -74,7 +72,7 @@ export default function NumberInputDemo() {
 				<Sizer>
 					<Field>
 						<Label>Disabled</Label>
-						<NumberInput disabled defaultValue={1} />
+						<PhoneInput disabled defaultValue="5555551234" />
 					</Field>
 				</Sizer>
 			</Example>
@@ -83,16 +81,7 @@ export default function NumberInputDemo() {
 				<Sizer>
 					<Field>
 						<Label>Invalid</Label>
-						<NumberInput data-invalid defaultValue={1} />
-					</Field>
-				</Sizer>
-			</Example>
-
-			<Example title="Valid">
-				<Sizer>
-					<Field>
-						<Label>Valid</Label>
-						<NumberInput data-valid defaultValue={1} />
+						<PhoneInput data-invalid placeholder="(555) 555-5555" />
 					</Field>
 				</Sizer>
 			</Example>

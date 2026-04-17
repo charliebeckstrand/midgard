@@ -33,6 +33,7 @@ import { fileUpload } from './file-upload'
 import { grid } from './grid'
 import { heading } from './heading'
 import { input } from './input'
+import { inspector } from './inspector'
 import { jsonTree } from './json-tree'
 import { kanban } from './kanban'
 import { kbd } from './kbd'
@@ -103,6 +104,7 @@ export const katachi = {
 	grid,
 	heading,
 	input,
+	inspector,
 	jsonTree,
 	kanban,
 	kbd,
