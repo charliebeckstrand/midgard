@@ -11,19 +11,43 @@ export const datepicker = {
 	},
 	button: [
 		...waku.inputBase,
+		// ── Layout ──────────────────────────────────────
 		'block',
+		// ── Sizing ──────────────────────────────────────
 		take.control.md,
+		// ── Spacing ─────────────────────────────────────
 		take.listbox.padding,
-		maru.rounded,
+		// ── Typography ──────────────────────────────────
 		'text-left',
+		// ── Tokens ──────────────────────────────────────
+		maru.rounded,
+		// ── Appearance ──────────────────────────────────
 		'appearance-none',
+		// ── Cursor ──────────────────────────────────────
 		'cursor-pointer',
 	],
 	value: 'block truncate',
-	icon: [take.listbox.icon, 'flex items-center pr-3 pointer-events-none', sumi.textMuted],
+	icon: [
+		take.listbox.icon,
+		// ── Layout ──────────────────────────────────────
+		'flex items-center',
+		// ── Spacing ─────────────────────────────────────
+		'pr-3',
+		// ── Tokens ──────────────────────────────────────
+		sumi.textMuted,
+		// ── Pointer ─────────────────────────────────────
+		'pointer-events-none',
+	],
 	clearButton: [
-		'pointer-events-auto cursor-pointer p-1 -m-1 rounded-md',
+		// ── Spacing ─────────────────────────────────────
+		'p-1 -m-1',
+		// ── Tokens ──────────────────────────────────────
+		'rounded-md',
 		ki.inset,
 		...sumi.textHover,
+		// ── Pointer ─────────────────────────────────────
+		'pointer-events-auto',
+		// ── Cursor ──────────────────────────────────────
+		'cursor-pointer',
 	],
 }

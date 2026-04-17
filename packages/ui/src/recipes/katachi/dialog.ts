@@ -5,10 +5,18 @@ import { take } from '../take'
 export const dialog = {
 	panel: {
 		base: [
+			// ── Tokens ──────────────────────────────────────
 			omote.panel.chrome,
 			narabi.panel.base,
-			'relative w-full p-6',
+			// ── Layout ──────────────────────────────────────
+			'relative',
+			// ── Sizing ──────────────────────────────────────
+			'w-full',
+			// ── Spacing ─────────────────────────────────────
+			'p-6',
+			// ── Mobile ──────────────────────────────────────
 			'max-sm:rounded-t-2xl max-sm:rounded-b-none max-sm:max-h-[calc(85dvh)] max-sm:overflow-y-auto',
+			// ── Desktop ─────────────────────────────────────
 			'sm:rounded-2xl sm:max-h-[calc(100dvh-2rem)]',
 		],
 		glass: {

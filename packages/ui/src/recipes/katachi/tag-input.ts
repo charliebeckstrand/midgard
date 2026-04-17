@@ -5,10 +5,14 @@ import { waku } from '../waku'
 
 export const tagInput = {
 	wrapper: [
+		// ── Layout ──────────────────────────────────────
 		'flex items-center gap-4',
-		'cursor-text',
+		// ── Tokens ──────────────────────────────────────
 		...waku.inputBase,
 		maru.rounded,
+		// ── Cursor ──────────────────────────────────────
+		'cursor-text',
+		// ── Disabled ────────────────────────────────────
 		'data-disabled:cursor-not-allowed data-disabled:**:!cursor-not-allowed',
 	],
 	wrapperSize: {
@@ -24,6 +28,15 @@ export const tagInput = {
 		md: [text.md],
 		lg: [text.lg],
 	},
-	input: ['flex-1 min-w-20', 'bg-transparent border-none p-0', 'focus:outline-none', sumi.text],
+	input: [
+		// ── Layout ──────────────────────────────────────
+		'flex-1 min-w-20',
+		// ── Tokens ──────────────────────────────────────
+		sumi.text,
+		// ── Border ──────────────────────────────────────
+		'bg-transparent border-none p-0',
+		// ── Focus ───────────────────────────────────────
+		'focus:outline-none',
+	],
 	defaults: { size: 'md' as const },
 }

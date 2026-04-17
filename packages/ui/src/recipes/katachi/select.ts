@@ -1,5 +1,14 @@
 import { waku } from '../waku'
 
 export const select = {
-	base: [...waku.input, 'appearance-none', 'pr-[calc(--spacing(10))]', 'dark:[color-scheme:dark]'],
+	base: [
+		// ── Tokens ──────────────────────────────────────
+		...waku.input,
+		// ── Layout ──────────────────────────────────────
+		'appearance-none',
+		// ── Spacing ─────────────────────────────────────
+		'pr-[calc(--spacing(10))]',
+		// ── Color (dark) ────────────────────────────────
+		'dark:[color-scheme:dark]',
+	],
 }

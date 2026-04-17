@@ -2,7 +2,17 @@ import { kage } from '../kage'
 import { maru } from '../maru'
 
 export const navbar = {
-	base: ['flex items-center gap-4', 'px-4 py-2.5', 'border', 'overflow-x-auto', maru.rounded],
+	base: [
+		// ── Layout ──────────────────────────────────────
+		'flex items-center gap-4',
+		'overflow-x-auto',
+		// ── Spacing ─────────────────────────────────────
+		'px-4 py-2.5',
+		// ── Tokens ──────────────────────────────────────
+		maru.rounded,
+		// ── Border ──────────────────────────────────────
+		'border',
+	],
 	variant: {
 		outline: [kage.borderColor],
 		plain: [kage.borderTransparent],
