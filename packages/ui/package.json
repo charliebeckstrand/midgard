@@ -167,6 +167,10 @@
 			"types": "./src/components/heading/index.ts",
 			"default": "./src/components/heading/index.ts"
 		},
+		"./hold-button": {
+			"types": "./src/components/hold-button/index.ts",
+			"default": "./src/components/hold-button/index.ts"
+		},
 		"./icon": {
 			"types": "./src/components/icon/index.ts",
 			"default": "./src/components/icon/index.ts"
@@ -326,6 +330,10 @@
 		"./toast": {
 			"types": "./src/components/toast/index.ts",
 			"default": "./src/components/toast/index.ts"
+		},
+		"./toc": {
+			"types": "./src/components/toc/index.ts",
+			"default": "./src/components/toc/index.ts"
 		},
 		"./toggle-icon-button": {
 			"types": "./src/components/toggle-icon-button/index.ts",
