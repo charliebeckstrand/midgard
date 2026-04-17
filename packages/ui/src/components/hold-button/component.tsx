@@ -40,6 +40,7 @@ export function HoldButton({
 
 	const setFill = (target: number, ms: number) => {
 		const fill = fillRef.current
+
 		if (!fill) return
 
 		fill.style.transition = `transform ${ms}ms linear`
@@ -49,6 +50,7 @@ export function HoldButton({
 	const clearTimer = () => {
 		if (timerRef.current !== null) {
 			clearTimeout(timerRef.current)
+
 			timerRef.current = null
 		}
 	}
@@ -64,8 +66,11 @@ export function HoldButton({
 
 		timerRef.current = setTimeout(() => {
 			timerRef.current = null
+
 			holdingRef.current = false
+
 			setFill(0, RESET_DURATION)
+
 			onComplete?.()
 		}, duration)
 
@@ -99,26 +104,32 @@ export function HoldButton({
 			className={cn('relative overflow-hidden', className)}
 			onPointerDown={(e: PointerEvent<HTMLButtonElement>) => {
 				start()
+
 				onPointerDown?.(e)
 			}}
 			onPointerUp={(e: PointerEvent<HTMLButtonElement>) => {
 				cancel()
+
 				onPointerUp?.(e)
 			}}
 			onPointerCancel={(e: PointerEvent<HTMLButtonElement>) => {
 				cancel()
+
 				onPointerCancel?.(e)
 			}}
 			onPointerLeave={(e: PointerEvent<HTMLButtonElement>) => {
 				cancel()
+
 				onPointerLeave?.(e)
 			}}
 			onKeyDown={(e: KeyboardEvent<HTMLButtonElement>) => {
 				if (!e.repeat && (e.key === ' ' || e.key === 'Enter')) start()
+
 				onKeyDown?.(e)
 			}}
 			onKeyUp={(e: KeyboardEvent<HTMLButtonElement>) => {
 				if (e.key === ' ' || e.key === 'Enter') cancel()
+
 				onKeyUp?.(e)
 			}}
 		>

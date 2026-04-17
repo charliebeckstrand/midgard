@@ -1,10 +1,10 @@
 'use client'
 
 import { useState } from 'react'
+import { Alert } from '../../components/alert'
 import { Button } from '../../components/button'
 import { Flex } from '../../components/flex'
 import { Stack } from '../../components/stack'
-import { Text } from '../../components/text'
 import { Toc, type TocItem } from '../../components/toc'
 import { Example } from '../components/example'
 
@@ -20,45 +20,60 @@ const items: TocItem[] = [
 	{ id: 'api', label: 'API reference', level: 2 },
 ]
 
-export default function TocDemo() {
+function DefaultExample() {
 	const [activeId, setActiveId] = useState('usage')
 
 	return (
+		<Example title="Default">
+			<Toc items={items} activeId={activeId} onActiveChange={setActiveId} />
+		</Example>
+	)
+}
+
+function InteractiveExample() {
+	const [activeId, setActiveId] = useState('usage')
+
+	return (
+		<Example title="Interactive">
+			<Stack gap={4}>
+				<Flex gap={2} wrap>
+					{items.map((i) => (
+						<Button key={i.id} variant="outline" size="sm" onClick={() => setActiveId(i.id)}>
+							{i.label}
+						</Button>
+					))}
+				</Flex>
+				<Toc items={items} activeId={activeId} />
+			</Stack>
+		</Example>
+	)
+}
+
+function SingleLevelExample() {
+	const [activeId, setActiveId] = useState('install')
+
+	return (
+		<Example title="Single level">
+			<Toc
+				items={items.filter((i) => i.level === 2)}
+				activeId={activeId}
+				onActiveChange={setActiveId}
+			/>
+		</Example>
+	)
+}
+
+export default function TocDemo() {
+	return (
 		<Stack gap={6}>
-			<Example title="Default">
-				<div className="max-w-xs">
-					<Toc items={items} activeId={activeId} onActiveChange={setActiveId} />
-				</div>
-			</Example>
+			<Alert type="info" closable>
+				When used without items, Toc scans its container (or the document) for headings with ids and
+				highlights the one closest to the top of the viewport as the page scrolls.
+			</Alert>
 
-			<Example title="Interactive">
-				<Stack gap={3}>
-					<Flex gap={2} wrap>
-						{items.map((i) => (
-							<Button key={i.id} variant="outline" size="sm" onClick={() => setActiveId(i.id)}>
-								{i.label}
-							</Button>
-						))}
-					</Flex>
-					<div className="max-w-xs">
-						<Toc items={items} activeId={activeId} />
-					</div>
-				</Stack>
-			</Example>
-
-			<Example title="Single level">
-				<div className="max-w-xs">
-					<Toc items={items.filter((i) => i.level === 2)} activeId="install" />
-				</div>
-			</Example>
-
-			<Example title="Auto scroll-spy">
-				<Text color="muted">
-					When used without <code>items</code>, <code>Toc</code> scans its <code>container</code>{' '}
-					(or the document) for headings with ids and highlights the one closest to the top of the
-					viewport as the page scrolls.
-				</Text>
-			</Example>
+			<DefaultExample />
+			<InteractiveExample />
+			<SingleLevelExample />
 		</Stack>
 	)
 }

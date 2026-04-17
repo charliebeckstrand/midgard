@@ -7,7 +7,7 @@ export const toc = {
 	item: 'relative',
 	link: {
 		base: [
-			'relative z-10 block py-1.5 pr-2 transition-colors',
+			'relative z-10 block py-1.5 pr-2',
 			ki.inset,
 			sumi.textMuted,
 			'hover:not-data-current:text-zinc-950 dark:hover:not-data-current:text-white',

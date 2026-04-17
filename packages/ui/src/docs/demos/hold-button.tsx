@@ -2,6 +2,7 @@
 
 import { Trash2 } from 'lucide-react'
 import { useState } from 'react'
+import { Button } from '../../components/button'
 import { Flex } from '../../components/flex'
 import { HoldButton } from '../../components/hold-button'
 import { Icon } from '../../components/icon'
@@ -11,41 +12,58 @@ import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
 
+function DestructiveHoldButton() {
+	const [deleted, setDeleted] = useState(false)
+
+	return deleted ? (
+		<>
+			<Text color="green">Item deleted!</Text>
+
+			<Button variant="soft" color="red" onClick={() => setDeleted(false)}>
+				Reset
+			</Button>
+		</>
+	) : (
+		<HoldButton
+			color="red"
+			duration={2000}
+			onComplete={() => setDeleted(true)}
+			aria-label="Hold to delete"
+		>
+			<Icon icon={<Trash2 />} />
+			Hold to delete
+		</HoldButton>
+	)
+}
+
 export default function HoldButtonDemo() {
 	const [count, setCount] = useState(0)
+
 	const [status, setStatus] = useState<'idle' | 'holding' | 'cancelled' | 'confirmed'>('idle')
 
 	return (
 		<Stack gap={6}>
 			<Example title="Default">
-				<Flex align="center" gap={3}>
+				<Flex direction="col" gap={4}>
 					<HoldButton onComplete={() => setCount((c) => c + 1)}>Hold to confirm</HoldButton>
-					<Text color="muted">Confirmed {count} times</Text>
+					<Text variant="muted">Confirmed {count} times</Text>
 				</Flex>
 			</Example>
 
 			<Example title="Destructive">
-				<HoldButton
-					color="red"
-					duration={2000}
-					onComplete={() => alert('Deleted')}
-					aria-label="Hold to delete"
-				>
-					<Icon icon={<Trash2 />} />
-					Hold to delete
-				</HoldButton>
+				<DestructiveHoldButton />
 			</Example>
 
 			<Example title="Durations">
 				<Flex wrap gap={2}>
 					<HoldButton duration={500} onComplete={() => {}}>
-						Fast (0.5s)
+						Fast
 					</HoldButton>
 					<HoldButton duration={1500} onComplete={() => {}}>
-						Default (1.5s)
+						Default
 					</HoldButton>
 					<HoldButton duration={3000} onComplete={() => {}}>
-						Slow (3s)
+						Slow
 					</HoldButton>
 				</Flex>
 			</Example>
@@ -65,7 +83,7 @@ export default function HoldButtonDemo() {
 			</Example>
 
 			<Example title="Lifecycle callbacks">
-				<Flex align="center" gap={3}>
+				<Flex direction="col" gap={4}>
 					<HoldButton
 						color="amber"
 						onHoldStart={() => setStatus('holding')}
@@ -74,7 +92,7 @@ export default function HoldButtonDemo() {
 					>
 						Hold me
 					</HoldButton>
-					<Text color="muted">Status: {status}</Text>
+					<Text variant="muted">Status: {status}</Text>
 				</Flex>
 			</Example>
 

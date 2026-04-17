@@ -27,6 +27,7 @@ export type TocProps = Omit<React.ComponentPropsWithoutRef<'nav'>, 'aria-label'>
 
 function scanHeadings(container: HTMLElement, levels: readonly number[]): TocItem[] {
 	const selector = levels.map((l) => `h${l}[id]`).join(',')
+
 	const nodes = container.querySelectorAll<HTMLElement>(selector)
 
 	return Array.from(nodes, (node) => ({
@@ -59,6 +60,7 @@ export function Toc({
 		if (items) return
 
 		const root = container?.current ?? (typeof document !== 'undefined' ? document.body : null)
+
 		if (!root) return
 
 		setScanned(scanHeadings(root, levels))
@@ -75,8 +77,10 @@ export function Toc({
 			frame = null
 
 			let current: string | undefined
+
 			for (const h of headings) {
 				const el = document.getElementById(h.id)
+
 				if (!el) continue
 
 				if (el.getBoundingClientRect().top - offsetTop <= 0) {
@@ -90,13 +94,16 @@ export function Toc({
 
 			setInternalActiveId((prev) => {
 				if (prev === current) return prev
+
 				if (current !== undefined) onActiveChange?.(current)
+
 				return current
 			})
 		}
 
 		const onScroll = () => {
 			if (frame !== null) return
+
 			frame = requestAnimationFrame(update)
 		}
 
@@ -107,6 +114,7 @@ export function Toc({
 
 		return () => {
 			if (frame !== null) cancelAnimationFrame(frame)
+
 			window.removeEventListener('scroll', onScroll)
 			window.removeEventListener('resize', onScroll)
 		}
@@ -125,6 +133,7 @@ export function Toc({
 				<ol data-slot="toc-list" className={tocListVariants()}>
 					{headings.map((h) => {
 						const depth = Math.max(0, h.level - minLevel)
+
 						const current = activeId === h.id
 
 						return (
