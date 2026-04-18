@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'
 import { DataTable, type DataTableColumn, type SortState } from '../../components/data-table'
+import { HoldButton } from '../../components/hold-button'
 import { Stack } from '../../components/stack'
 import { code } from '../code'
 import { Example } from '../components/example'
@@ -54,7 +55,7 @@ const baseColumns: DataTableColumn<Person>[] = [
 // ── Sortable example ───────────────────────────────────
 
 const sortableColumns: DataTableColumn<Person>[] = baseColumns.map((col) =>
-	col.id === 'name' || col.id === 'role' ? { ...col, sortable: true } : col,
+	col.id === 'name' || col.id === 'email' || col.id === 'role' ? { ...col, sortable: true } : col,
 )
 
 function SortableExample() {
@@ -62,8 +63,11 @@ function SortableExample() {
 
 	const sortedPeople = useMemo(() => {
 		if (!sort) return people
+
 		const key = sort.column as keyof Person
+
 		const dir = sort.direction === 'asc' ? 1 : -1
+
 		return [...people].sort((a, b) => (a[key] < b[key] ? -dir : a[key] > b[key] ? dir : 0))
 	}, [sort])
 
@@ -112,8 +116,11 @@ export default function DataTableDemo() {
 
 					const sortedRows = useMemo(() => {
 						if (!sort) return rows
+
 						const key = sort.column as keyof Row
+
 						const dir = sort.direction === 'asc' ? 1 : -1
+
 						return [...rows].sort((a, b) =>
 							a[key] < b[key] ? -dir : a[key] > b[key] ? dir : 0
 						)
@@ -182,9 +189,17 @@ export default function DataTableDemo() {
 					rows={people}
 					getRowKey={(row) => row.id}
 					batchActions={(selected) => (
-						<Button size="sm" color="red" onClick={() => alert(`${selected.size} selected`)}>
+						<HoldButton
+							size="sm"
+							color="red"
+							onComplete={() => {
+								alert(`${selected.size} selected`)
+
+								setSelection(new Set())
+							}}
+						>
 							Delete
-						</Button>
+						</HoldButton>
 					)}
 				/>
 			</Example>

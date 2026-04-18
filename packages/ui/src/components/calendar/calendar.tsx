@@ -254,7 +254,7 @@ export const Calendar = forwardRef<CalendarHandle, CalendarProps>(function Calen
 
 	return (
 		<div data-slot="calendar" className={cn(k.base, className)}>
-			<div ref={headerRef} role="toolbar" onKeyDown={handleHeaderKeyDown} className={k.header}>
+			<div ref={headerRef} role="toolbar" onKeyDown={handleHeaderKeyDown} className={cn(k.header)}>
 				<Button
 					variant="plain"
 					onClick={prevMonth}

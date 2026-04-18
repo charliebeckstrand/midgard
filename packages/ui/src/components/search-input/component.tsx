@@ -1,13 +1,19 @@
 'use client'
 
 import { Search, X } from 'lucide-react'
-import { forwardRef, type Ref, useCallback, useRef, useState } from 'react'
+import { forwardRef, type Ref, useCallback, useRef } from 'react'
+import { useControllable } from '../../hooks/use-controllable'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { Input, type InputProps, useInputSize } from '../input'
 import { Spinner } from '../spinner'
 
-export type SearchInputProps = Omit<InputProps, 'type' | 'prefix' | 'suffix'> & {
+export type SearchInputProps = Omit<
+	InputProps,
+	'type' | 'prefix' | 'suffix' | 'value' | 'defaultValue'
+> & {
+	value?: string
+	defaultValue?: string
 	loading?: boolean
 	onClear?: () => void
 }
@@ -34,9 +40,10 @@ export const SearchInput = forwardRef(function SearchInput(
 ) {
 	const inputRef = useRef<HTMLInputElement | null>(null)
 
-	const [internalValue, setInternalValue] = useState(defaultValue ?? '')
-
-	const currentValue = value !== undefined ? value : internalValue
+	const [currentValue = '', setCurrentValue] = useControllable<string>({
+		value,
+		defaultValue: defaultValue ?? '',
+	})
 
 	const composedRef = useCallback(
 		(node: HTMLInputElement | null) => {
@@ -50,17 +57,17 @@ export const SearchInput = forwardRef(function SearchInput(
 
 	const handleChange = useCallback(
 		(e: React.ChangeEvent<HTMLInputElement>) => {
-			setInternalValue(e.target.value)
+			setCurrentValue(e.target.value)
 
 			onChange?.(e)
 
 			if (e.target.value === '') onClear?.()
 		},
-		[onChange, onClear],
+		[onChange, onClear, setCurrentValue],
 	)
 
 	const handleClear = useCallback(() => {
-		setInternalValue('')
+		setCurrentValue('')
 
 		onClear?.()
 
@@ -72,7 +79,7 @@ export const SearchInput = forwardRef(function SearchInput(
 
 			nativeInputValueSetter?.call(inputRef.current, '')
 		}
-	}, [onClear])
+	}, [onClear, setCurrentValue])
 
 	const suffix = loading ? (
 		<Spinner />

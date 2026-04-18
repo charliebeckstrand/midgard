@@ -117,7 +117,7 @@ export function CalendarPicker({
 							ref={pickerHeaderRef}
 							role="toolbar"
 							onKeyDown={handleHeaderKeyDown}
-							className={k.header}
+							className={cn(k.header)}
 						>
 							<Button
 								variant="plain"
@@ -177,7 +177,7 @@ export function CalendarPicker({
 							ref={pickerHeaderRef}
 							role="toolbar"
 							onKeyDown={handleHeaderKeyDown}
-							className={k.header}
+							className={cn(k.header)}
 						>
 							<Button
 								variant="plain"

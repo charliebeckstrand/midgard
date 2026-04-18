@@ -5,8 +5,8 @@ import { sumi } from '../sumi'
 export const calendar = {
 	base: 'inline-flex flex-col w-72 p-4 select-none',
 	grid: 'grid grid-cols-7',
-	header: 'flex items-center justify-between mb-2',
-	footer: ['gap-2 pb-4', kumi.center.block],
+	header: ['flex items-center justify-between', 'mb-2'],
+	footer: ['flex', kumi.center, 'gap-2 pb-4'],
 	nav: {
 		icon: 'size-4.5',
 	},
@@ -14,7 +14,7 @@ export const calendar = {
 		grid: 'grid grid-cols-3 gap-1 p-2',
 		cellCurrent: ['font-semibold', ...nuri.buttonSoft.blue],
 	},
-	weekday: ['w-full aspect-square', 'text-xs font-medium', kumi.center.block, sumi.textMuted],
+	weekday: ['flex', kumi.center, 'w-full aspect-square', 'text-xs font-medium', sumi.textMuted],
 	day: {
 		base: 'w-full aspect-square p-0 ring-inset',
 		active: 'ring-2 ring-inset ring-blue-600',

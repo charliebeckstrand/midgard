@@ -17,7 +17,7 @@ export type HoldButtonProps = Omit<
 }
 
 export function HoldButton({
-	duration = 1500,
+	duration = 1000,
 	onComplete,
 	onHoldStart,
 	onHoldCancel,
@@ -44,6 +44,7 @@ export function HoldButton({
 		if (!fill) return
 
 		fill.style.transition = `transform ${ms}ms linear`
+
 		fill.style.transform = `scaleX(${target})`
 	}
 
@@ -101,7 +102,7 @@ export function HoldButton({
 			{...props}
 			disabled={disabled}
 			data-slot="hold-button"
-			className={cn('relative overflow-hidden', className)}
+			className={cn('relative overflow-hidden select-none', className)}
 			onPointerDown={(e: PointerEvent<HTMLButtonElement>) => {
 				start()
 

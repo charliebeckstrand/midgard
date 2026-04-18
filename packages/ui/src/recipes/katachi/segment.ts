@@ -1,5 +1,6 @@
 import { kage } from '../kage'
 import { ki } from '../ki'
+import { kumi } from '../kumi'
 import { maru } from '../maru'
 import { omote } from '../omote'
 import { yasumi } from '../yasumi'
@@ -7,7 +8,8 @@ import { yasumi } from '../yasumi'
 export const segment = {
 	base: ['inline-flex items-center', maru.rounded, omote.tint],
 	segment: [
-		'flex items-center justify-center',
+		'flex',
+		kumi.center,
 		'font-medium select-none whitespace-nowrap',
 		maru.rounded,
 		ki.indicator,

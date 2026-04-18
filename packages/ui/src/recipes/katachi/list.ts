@@ -1,5 +1,6 @@
 import { kage } from '../kage'
 import { ki } from '../ki'
+import { kumi } from '../kumi'
 import { maru } from '../maru'
 import { sumi } from '../sumi'
 import { yasumi } from '../yasumi'
@@ -21,7 +22,8 @@ export const list = {
 	itemActive: 'shadow-lg ring-1 ring-zinc-300 dark:ring-zinc-700 relative z-10',
 	itemGrabbed: 'ring-2 ring-blue-600 dark:ring-blue-500',
 	handle: [
-		'flex-none inline-flex items-center justify-center',
+		'inline-flex flex-none',
+		kumi.center,
 		'size-6 -m-1',
 		'cursor-grab touch-none select-none',
 		'text-zinc-400 not-disabled:hover:text-zinc-700',

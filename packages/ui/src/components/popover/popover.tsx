@@ -18,10 +18,10 @@ import {
 	useLayoutEffect,
 	useMemo,
 	useRef,
-	useState,
 } from 'react'
 import { cn, createContext } from '../../core'
 import { useFloatingPanel } from '../../hooks'
+import { useControllable } from '../../hooks/use-controllable'
 import { omote, sumi, ugoki } from '../../recipes'
 import { Box, type BoxPadding } from '../box'
 import { useGlass } from '../glass/context'
@@ -59,17 +59,11 @@ export function Popover({
 	className,
 	children,
 }: PopoverProps) {
-	const [internalOpen, setInternalOpen] = useState(false)
-
-	const open = openProp !== undefined ? openProp : internalOpen
-
-	const setOpen = useCallback(
-		(value: boolean) => {
-			if (openProp === undefined) setInternalOpen(value)
-			onOpenChange?.(value)
-		},
-		[openProp, onOpenChange],
-	)
+	const [open = false, setOpen] = useControllable<boolean>({
+		value: openProp,
+		defaultValue: false,
+		onChange: (next) => onOpenChange?.(next ?? false),
+	})
 
 	const triggerRef = useRef<HTMLButtonElement>(null)
 

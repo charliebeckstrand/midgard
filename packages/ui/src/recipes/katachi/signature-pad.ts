@@ -1,5 +1,6 @@
 import { kage } from '../kage'
 import { ki } from '../ki'
+import { kumi } from '../kumi'
 import { maru } from '../maru'
 import { sumi } from '../sumi'
 import { yasumi } from '../yasumi'
@@ -16,7 +17,9 @@ export const signaturePad = {
 	],
 	canvas: ['block w-full h-full', 'cursor-crosshair touch-none select-none'],
 	placeholder: [
-		'absolute inset-0 flex items-center justify-center',
+		'absolute inset-0',
+		'flex',
+		kumi.center,
 		'pointer-events-none',
 		'text-sm/5',
 		sumi.textMuted,

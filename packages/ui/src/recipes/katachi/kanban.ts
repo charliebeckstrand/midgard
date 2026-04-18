@@ -1,5 +1,6 @@
 import { kage } from '../kage'
 import { ki } from '../ki'
+import { kumi } from '../kumi'
 import { maru } from '../maru'
 import { sumi } from '../sumi'
 export const kanban = {
@@ -15,12 +16,7 @@ export const kanban = {
 	columnHeader: ['flex items-center gap-2', 'px-3 pt-3 pb-2', 'text-sm/5 font-medium', sumi.text],
 	columnTitle: 'flex-1 min-w-0 truncate',
 	columnBody: ['flex flex-col gap-2 flex-1', 'px-3 pb-3 pt-1', 'overflow-y-auto'],
-	columnEmpty: [
-		'flex items-center justify-center',
-		'min-h-16 px-3 py-4',
-		'text-sm/5',
-		sumi.textMuted,
-	],
+	columnEmpty: ['flex', kumi.center, 'min-h-16 px-3 py-4', 'text-sm/5', sumi.textMuted],
 	card: [
 		'group/kanban-card',
 		'flex flex-col gap-1',

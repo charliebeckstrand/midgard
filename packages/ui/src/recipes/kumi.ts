@@ -45,9 +45,6 @@ export const kumi = {
 		evenly: 'justify-evenly',
 	},
 
-	/** Centered flex container preset. */
-	center: {
-		block: 'flex items-center justify-center',
-		inline: 'inline-flex items-center justify-center',
-	},
+	/** Cross- and main-axis centering. Combine with `flex` or `inline-flex` at the call site. */
+	center: 'items-center justify-center',
 } as const

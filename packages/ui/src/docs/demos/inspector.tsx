@@ -21,12 +21,12 @@ export const meta = { category: 'Overlay' }
 function InspectorShell({
 	open,
 	onOpenChange,
-	side = 'right',
+	side = 'left',
 	size = 'md',
 }: {
 	open: boolean
 	onOpenChange: (open: boolean) => void
-	side?: 'right' | 'left'
+	side?: 'left' | 'right'
 	size?: 'sm' | 'md' | 'lg' | 'xl'
 }) {
 	return (
@@ -79,8 +79,8 @@ function InspectorShell({
 }
 
 export default function InspectorDemo() {
-	const [right, setRight] = useState(true)
 	const [left, setLeft] = useState(false)
+	const [right, setRight] = useState(true)
 
 	return (
 		<Stack gap={6}>
@@ -120,13 +120,13 @@ export default function InspectorDemo() {
 			`}
 			>
 				<Stack gap={3}>
-					<Button onClick={() => setRight((v) => !v)}>{right ? 'Close' : 'Open'}</Button>
-					<InspectorShell open={right} onOpenChange={setRight} side="right" size="md" />
+					<Button onClick={() => setLeft((v) => !v)}>{left ? 'Close' : 'Open'}</Button>
+					<InspectorShell open={left} onOpenChange={setLeft} side="left" size="md" />
 				</Stack>
 			</Example>
 
 			<Example
-				title="Left"
+				title="Right"
 				code={code`
 				import { useState } from 'react'
 				import { Button } from 'ui/button'
@@ -161,8 +161,8 @@ export default function InspectorDemo() {
 			`}
 			>
 				<Stack gap={3}>
-					<Button onClick={() => setLeft((v) => !v)}>{left ? 'Close' : 'Open'}</Button>
-					<InspectorShell open={left} onOpenChange={setLeft} side="left" size="md" />
+					<Button onClick={() => setRight((v) => !v)}>{right ? 'Close' : 'Open'}</Button>
+					<InspectorShell open={right} onOpenChange={setRight} side="right" size="md" />
 				</Stack>
 			</Example>
 		</Stack>

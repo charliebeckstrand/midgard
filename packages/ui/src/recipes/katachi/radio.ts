@@ -7,7 +7,8 @@ import { waku } from '../waku'
 
 export const radio = {
 	wrapper: [
-		kumi.center.inline,
+		'inline-flex',
+		kumi.center,
 		'relative',
 		'size-4.5',
 		ki.outline,
