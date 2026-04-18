@@ -12,7 +12,6 @@ export {
 } from './radio-group'
 export {
 	type RadioVariants,
-	radioColorVariants,
 	radioInputVariants,
 	radioVariants,
 } from './variants'
