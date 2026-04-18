@@ -28,6 +28,7 @@ import { dialogPanel as dialog } from './dialog'
 import { divider } from './divider'
 import { dl } from './dl'
 import { drawer } from './drawer'
+import { editableGrid } from './editable-grid'
 import { fieldset } from './fieldset'
 import { fileUpload } from './file-upload'
 import { grid } from './grid'
@@ -99,6 +100,7 @@ export const katachi = {
 	divider,
 	dl,
 	drawer,
+	editableGrid,
 	fieldset,
 	fileUpload,
 	grid,
