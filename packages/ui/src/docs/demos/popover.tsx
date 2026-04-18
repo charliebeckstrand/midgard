@@ -5,6 +5,7 @@ import { Glass } from '../../components/glass'
 import { Icon } from '../../components/icon'
 import { Popover, PopoverContent, PopoverTrigger } from '../../components/popover'
 import { Stack } from '../../components/stack'
+import { Text } from '../../components/text'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Overlay' }
@@ -20,8 +21,8 @@ const iconMap = {
 
 const popoverContent = (
 	<>
-		<p className="text-sm font-medium">Popover content</p>
-		<p className="mt-1 text-sm text-zinc-500">This is a general-purpose floating container.</p>
+		<Text>Popover content</Text>
+		<Text variant="muted">This is a general-purpose floating container.</Text>
 	</>
 )
 

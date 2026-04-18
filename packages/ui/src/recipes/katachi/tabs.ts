@@ -4,12 +4,14 @@ import { maru } from '../maru'
 import { nuri } from '../nuri'
 import { sawari } from '../sawari'
 import { sumi } from '../sumi'
+import { take } from '../take'
 import { yasumi } from '../yasumi'
 
 export const tabs = {
 	list: ['flex gap-4', 'border-b', '-mt-4', kage.borderSubtleColor],
 	tab: [
-		'relative flex items-center gap-2',
+		'relative flex items-center',
+		take.gap.md,
 		'px-1 py-4',
 		'font-medium',
 		...sumi.tab,

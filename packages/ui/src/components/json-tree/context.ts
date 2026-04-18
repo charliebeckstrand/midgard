@@ -9,6 +9,9 @@ type JsonTreeContext = {
 	search: string
 	filter: boolean
 	searchIndex: SearchIndex
+	path: string
+	expanded?: Set<string>
+	onExpandedChange?: (expanded: Set<string>) => void
 }
 
 export const [JsonTreeProvider, useJsonTreeContext] = createContext<JsonTreeContext>('JsonTree')

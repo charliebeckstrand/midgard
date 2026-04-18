@@ -30,6 +30,7 @@ export function useKanbanDrag<T, C extends KanbanColumnShape<T>>({
 	const findColumn = useCallback(
 		(id: string) => {
 			const direct = columns.find((c) => c.id === id)
+
 			return direct ?? findColumnByCardId(id)
 		},
 		[columns, findColumnByCardId],

@@ -3,16 +3,17 @@ import { ki } from '../ki'
 import { kumi } from '../kumi'
 import { maru } from '../maru'
 import { sumi } from '../sumi'
+import { take } from '../take'
 import { yasumi } from '../yasumi'
 
 export const list = {
-	base: ['flex flex-col gap-1', 'list-none m-0 p-0'],
+	base: ['flex flex-col', take.gap.sm, 'list-none m-0 p-0'],
 	horizontal: 'flex-row',
 	item: [
 		'group/list-item',
-		'flex items-center gap-2',
+		['flex items-center', take.gap.md],
 		'px-3 py-2',
-		'text-sm/6',
+		take.text.sm,
 		sumi.text,
 		'bg-white dark:bg-zinc-900',
 		kage.border,

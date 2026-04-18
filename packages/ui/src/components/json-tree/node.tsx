@@ -25,7 +25,20 @@ type JsonNodeProps = {
 }
 
 export const JsonNode = memo(function JsonNode({ keyName, value }: JsonNodeProps) {
-	const { depth, defaultExpandDepth, search, filter, searchIndex } = useJsonTreeContext()
+	const {
+		depth,
+		defaultExpandDepth,
+		search,
+		filter,
+		searchIndex,
+		path,
+		expanded,
+		onExpandedChange,
+	} = useJsonTreeContext()
+
+	const nodePath = path ? `${path}.${keyName ?? '$'}` : String(keyName ?? '$')
+
+	const controlled = expanded !== undefined
 
 	const branch = isBranch(value)
 
@@ -35,7 +48,9 @@ export const JsonNode = memo(function JsonNode({ keyName, value }: JsonNodeProps
 
 	const hasMatch = branch && search ? searchIndex.get(value as object) === true : false
 
-	const [open, setOpen] = useState(depth < defaultExpandDepth)
+	const [localOpen, setLocalOpen] = useState(depth < defaultExpandDepth)
+
+	const open = controlled ? expanded.has(nodePath) : localOpen
 
 	const visibleEntries = useMemo(
 		() => (filter && search ? filterEntries(entries, search, searchIndex) : entries),
@@ -51,21 +66,26 @@ export const JsonNode = memo(function JsonNode({ keyName, value }: JsonNodeProps
 			search,
 			filter,
 			searchIndex,
+			path: nodePath,
+			expanded,
+			onExpandedChange,
 		}),
-		[depth, defaultExpandDepth, search, filter, searchIndex],
+		[depth, defaultExpandDepth, search, filter, searchIndex, nodePath, expanded, onExpandedChange],
 	)
 
 	useEffect(() => {
+		if (controlled) return
+
 		if (!search) {
-			setOpen(depth < defaultExpandDepth)
+			setLocalOpen(depth < defaultExpandDepth)
 
 			return
 		}
 
-		if (hasMatch && !empty) setOpen(true)
+		if (hasMatch && !empty) setLocalOpen(true)
 
-		if (filter && empty) setOpen(false)
-	}, [search, hasMatch, filter, empty, depth, defaultExpandDepth])
+		if (filter && empty) setLocalOpen(false)
+	}, [search, hasMatch, filter, empty, depth, defaultExpandDepth, controlled])
 
 	if (filter && search && !branch && !highlighted) return null
 
@@ -94,7 +114,18 @@ export const JsonNode = memo(function JsonNode({ keyName, value }: JsonNodeProps
 		)
 	}
 
-	const toggle = () => setOpen((prev) => !prev)
+	const toggle = () => {
+		if (controlled && onExpandedChange) {
+			const next = new Set(expanded)
+
+			if (next.has(nodePath)) next.delete(nodePath)
+			else next.add(nodePath)
+
+			onExpandedChange(next)
+		} else {
+			setLocalOpen((prev) => !prev)
+		}
+	}
 
 	return (
 		<div data-slot="json-node" data-highlighted={highlighted || undefined}>

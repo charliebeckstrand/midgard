@@ -8,11 +8,11 @@
  */
 
 import { avatar } from './avatar'
-import { button, buttonWithIcon, buttonWithIconSize, buttonWithKbd } from './button'
+import { button, buttonWithIcon, buttonWithKbd } from './button'
 import { combobox } from './combobox'
 import { compact } from './compact'
 import { control } from './control'
-import { gap, iconSlot, text } from './density'
+import { gap, icon, text } from './density'
 import { listbox } from './listbox'
 import { mark } from './mark'
 import { panel } from './panel'
@@ -25,13 +25,12 @@ export const take = {
 	text,
 
 	// Icon slot
-	iconSlot,
+	icon,
 
 	// Button
 	button,
 	buttonWithIcon,
 	buttonWithKbd,
-	buttonWithIconSize,
 
 	// Badge and chip share compact density
 	badge: compact,

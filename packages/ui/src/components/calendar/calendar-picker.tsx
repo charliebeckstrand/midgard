@@ -150,7 +150,7 @@ export function CalendarPicker({
 							ref={pickerGridRef}
 							role="listbox"
 							onKeyDown={handleGridKeyDown}
-							className={k.picker.grid}
+							className={cn(k.picker.grid)}
 						>
 							{MONTHS.map((label, i) => {
 								const isCurrent = i === today.getMonth() && pickerYear === today.getFullYear()
@@ -208,7 +208,7 @@ export function CalendarPicker({
 							ref={pickerGridRef}
 							role="listbox"
 							onKeyDown={handleGridKeyDown}
-							className={k.picker.grid}
+							className={cn(k.picker.grid)}
 						>
 							{Array.from({ length: 12 }, (_, i) => {
 								const y = decadeStart - 1 + i

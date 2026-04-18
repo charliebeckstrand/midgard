@@ -98,6 +98,33 @@ export function filterEntries(
 	)
 }
 
+/** Collect paths for all expandable (branch) nodes, optionally limited to a max depth. */
+export function collectPaths(
+	data: JsonValue,
+	rootKey?: string,
+	maxDepth = Number.POSITIVE_INFINITY,
+): Set<string> {
+	const paths = new Set<string>()
+
+	function walk(value: JsonValue, path: string, depth: number) {
+		if (!isBranch(value) || depth >= maxDepth) return
+
+		paths.add(path)
+
+		for (const [childKey, childValue] of getEntries(value)) {
+			walk(childValue, `${path}.${childKey}`, depth + 1)
+		}
+	}
+
+	if (isBranch(data)) {
+		const rootPath = String(rootKey ?? '$')
+
+		walk(data, rootPath, 0)
+	}
+
+	return paths
+}
+
 export function valueType(value: JsonValue): JsonValueType {
 	if (value === null) return 'null'
 

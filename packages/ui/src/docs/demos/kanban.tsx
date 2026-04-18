@@ -49,16 +49,20 @@ const initialColumns: Column[] = [
 	},
 ]
 
+function NoItems() {
+	return (
+		<Alert color="amber" variant="soft" block>
+			No items
+		</Alert>
+	)
+}
+
 function Default() {
 	const [columns, setColumns] = useState(initialColumns)
 
 	return (
 		<Example title="Default">
 			<Stack gap={2}>
-				<Alert type="info">
-					Press and drag a card between columns, or focus one and press Space, then use the arrow
-					keys (↑/↓ to reorder, ←/→ to move columns, Escape to cancel).
-				</Alert>
 				<Kanban
 					columns={columns}
 					getItemKey={(load: Load) => load.id}
@@ -69,9 +73,9 @@ function Default() {
 						<KanbanColumn key={column.id} columnId={column.id} aria-label={column.title}>
 							<KanbanColumnHeader>
 								<KanbanColumnTitle>{column.title}</KanbanColumnTitle>
-								<Badge>{column.items.length}</Badge>
+								<Badge className="tabular-nums">{column.items.length}</Badge>
 							</KanbanColumnHeader>
-							<KanbanColumnBody empty="No loads">
+							<KanbanColumnBody empty={<NoItems />}>
 								{column.items.map((load) => (
 									<KanbanCard key={load.id} cardId={load.id} aria-label={load.code}>
 										<span className="font-medium">{load.code}</span>
@@ -98,7 +102,7 @@ function ReadOnly() {
 							<KanbanColumnTitle>{column.title}</KanbanColumnTitle>
 							<Badge>{column.items.length}</Badge>
 						</KanbanColumnHeader>
-						<KanbanColumnBody empty="No loads">
+						<KanbanColumnBody empty={<NoItems />}>
 							{column.items.map((load) => (
 								<KanbanCard key={load.id} cardId={load.id}>
 									<span className="font-medium">{load.code}</span>
@@ -125,7 +129,7 @@ function Disabled() {
 							<KanbanColumnTitle>{column.title}</KanbanColumnTitle>
 							<Badge>{column.items.length}</Badge>
 						</KanbanColumnHeader>
-						<KanbanColumnBody empty="No loads">
+						<KanbanColumnBody empty={<NoItems />}>
 							{column.items.map((load) => (
 								<KanbanCard key={load.id} cardId={load.id}>
 									<span className="font-medium">{load.code}</span>

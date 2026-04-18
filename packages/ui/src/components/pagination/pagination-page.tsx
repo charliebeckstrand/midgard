@@ -27,7 +27,7 @@ export function PaginationPage({
 
 	return (
 		<li>
-			<span className="group relative" {...indicator.tapHandlers}>
+			<span className="group relative inline-flex" {...indicator.tapHandlers}>
 				<Polymorphic
 					as="button"
 					dataSlot="pagination-page"

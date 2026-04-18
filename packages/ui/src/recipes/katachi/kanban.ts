@@ -3,35 +3,40 @@ import { ki } from '../ki'
 import { kumi } from '../kumi'
 import { maru } from '../maru'
 import { sumi } from '../sumi'
+import { take } from '../take'
+
 export const kanban = {
-	base: ['flex gap-4 items-stretch', 'min-h-0'],
+	base: ['overflow-x-auto flex gap-4 items-stretch', 'min-h-0'],
 	column: [
 		'flex flex-col min-w-0',
+		take.gap.md,
 		'w-72 shrink-0',
+		'p-4',
 		'bg-zinc-50 dark:bg-zinc-900/50',
 		kage.border,
 		maru.rounded,
 	],
-	columnOver: 'ring-2 ring-blue-600 dark:ring-blue-500',
-	columnHeader: ['flex items-center gap-2', 'px-3 pt-3 pb-2', 'text-sm/5 font-medium', sumi.text],
+	columnOver: '',
+	columnHeader: ['flex items-center', take.gap.md, take.text.md, sumi.text, 'font-semibold'],
 	columnTitle: 'flex-1 min-w-0 truncate',
-	columnBody: ['flex flex-col gap-2 flex-1', 'px-3 pb-3 pt-1', 'overflow-y-auto'],
-	columnEmpty: ['flex', kumi.center, 'min-h-16 px-3 py-4', 'text-sm/5', sumi.textMuted],
+	columnBody: ['flex flex-col flex-1', take.gap.sm, 'overflow-y-auto'],
+	columnEmpty: ['flex', kumi.center, 'min-h-16', take.text.sm, sumi.textMuted],
 	card: [
 		'group/kanban-card',
-		'flex flex-col gap-1',
-		'px-3 py-2',
-		'text-sm/5',
-		sumi.text,
+		'flex flex-col',
+		take.gap.sm,
+		'p-2',
 		'bg-white dark:bg-zinc-950',
 		kage.border,
+		take.text.sm,
+		sumi.text,
 		maru.roundedMd,
 		'transition-shadow',
-		ki.ring,
+		ki.inset,
 		'data-disabled:opacity-75 data-disabled:cursor-not-allowed',
 	],
 	cardDraggable: 'cursor-grab touch-none select-none',
-	cardActive: 'shadow-lg ring-1 ring-zinc-300 dark:ring-zinc-700 relative z-10 opacity-95',
-	cardGrabbed: 'ring-2 ring-blue-600 dark:ring-blue-500',
+	cardLifted: 'shadow-md z-10 focus-visible:ring-violet-600',
+	cardActive: 'shadow-lg relative z-10 opacity-95',
 	cardDragging: 'cursor-grabbing',
 }

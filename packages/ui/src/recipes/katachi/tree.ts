@@ -2,6 +2,7 @@ import { ki } from '../ki'
 import { maru } from '../maru'
 import { nagare } from '../nagare'
 import { sumi } from '../sumi'
+import { take } from '../take'
 
 export type TreeColor = 'sky' | 'lime' | 'rose' | 'amber' | 'violet'
 
@@ -33,7 +34,7 @@ export const tree = {
 	itemContent: [
 		'flex w-full items-center gap-1.5',
 		'py-1 px-2',
-		'text-sm/6',
+		take.text.sm,
 		sumi.textMuted,
 		sumi.textHover,
 		maru.rounded,

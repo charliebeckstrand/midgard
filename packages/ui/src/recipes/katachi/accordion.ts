@@ -3,12 +3,13 @@ import { kage } from '../kage'
 import { maru } from '../maru'
 import { nagare } from '../nagare'
 import { sumi } from '../sumi'
+import { take } from '../take'
 
 export const accordion = tv({
 	base: 'flex flex-col',
 	variants: {
 		variant: {
-			separated: 'gap-2',
+			separated: take.gap.sm,
 			bordered: [
 				'overflow-hidden',
 				maru.rounded,
@@ -37,10 +38,12 @@ export const accordionItem = tv({
 export const slots = {
 	button: [
 		'w-full flex items-center justify-between',
-		'gap-3 px-4 py-3',
-		'text-left text-sm/6 font-medium',
+		'p-4',
+		take.gap.md,
+		take.text.sm,
 		sumi.textMuted,
 		sumi.textHover,
+		'text-left font-medium',
 		'group-data-[open]/accordion-item:text-zinc-950',
 		'dark:group-data-[open]/accordion-item:text-white',
 		'group-data-[open]/accordion-item:cursor-pointer',
@@ -49,7 +52,7 @@ export const slots = {
 	],
 	indicator: ['shrink-0', nagare.transform, 'group-data-[open]/accordion-item:rotate-180'],
 	panel: 'overflow-hidden',
-	body: ['px-4 pb-3 pt-0', 'text-sm/6', sumi.textMuted],
+	body: ['px-4 pb-4 pt-0', take.text.sm, sumi.textMuted],
 }
 
 export type AccordionVariants = VariantProps<typeof accordion>

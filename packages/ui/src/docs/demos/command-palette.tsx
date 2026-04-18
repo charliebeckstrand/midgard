@@ -12,11 +12,11 @@ import {
 	User,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { Alert, AlertTitle } from '../../components/alert'
 import { Button } from '../../components/button'
 import {
 	CommandPalette,
 	CommandPaletteDescription,
-	CommandPaletteEmpty,
 	CommandPaletteGroup,
 	CommandPaletteItem,
 	CommandPaletteLabel,
@@ -141,7 +141,11 @@ export default function CommandPaletteDemo() {
 						const results = filterCommands(query)
 
 						if (!results.length) {
-							return <CommandPaletteEmpty>No commands found.</CommandPaletteEmpty>
+							return (
+								<Alert type="warning" block>
+									<AlertTitle>No commands found</AlertTitle>
+								</Alert>
+							)
 						}
 
 						return groups.map((group) => {

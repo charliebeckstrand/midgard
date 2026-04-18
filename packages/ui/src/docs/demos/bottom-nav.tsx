@@ -3,6 +3,7 @@
 import { Home, MessageCircle, Search, Settings, User } from 'lucide-react'
 import { useState } from 'react'
 import { BottomNav, BottomNavItem } from '../../components/bottom-nav'
+import { Card } from '../../components/card'
 import { Stack } from '../../components/stack'
 import { code } from '../code'
 import { Example } from '../components/example'
@@ -21,15 +22,33 @@ function BottomNavExample() {
 	const [active, setActive] = useState('home')
 
 	return (
-		<div className="relative h-20 overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-700">
-			<BottomNav value={active} onChange={setActive} className="absolute rounded-none">
+		<Card bg="none" className="relative">
+			<BottomNav value={active} onChange={setActive}>
 				{items.map(({ value, label, icon }) => (
 					<BottomNavItem key={value} value={value} icon={icon}>
 						{label}
 					</BottomNavItem>
 				))}
 			</BottomNav>
-		</div>
+		</Card>
+	)
+}
+
+function WithLinksExample() {
+	return (
+		<Card bg="none" className="relative">
+			<BottomNav>
+				<BottomNavItem icon={<Home />} href="/" current>
+					Home
+				</BottomNavItem>
+				<BottomNavItem icon={<Search />} href="/search">
+					Search
+				</BottomNavItem>
+				<BottomNavItem icon={<User />} href="/profile">
+					Profile
+				</BottomNavItem>
+			</BottomNav>
+		</Card>
 	)
 }
 
@@ -51,19 +70,7 @@ export default function BottomNavDemo() {
 			</Example>
 
 			<Example title="With links">
-				<div className="relative h-20 overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-700">
-					<BottomNav className="absolute rounded-none">
-						<BottomNavItem icon={<Home />} href="/" current>
-							Home
-						</BottomNavItem>
-						<BottomNavItem icon={<Search />} href="/search">
-							Search
-						</BottomNavItem>
-						<BottomNavItem icon={<User />} href="/profile">
-							Profile
-						</BottomNavItem>
-					</BottomNav>
-				</div>
+				<WithLinksExample />
 			</Example>
 		</Stack>
 	)

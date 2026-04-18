@@ -1,9 +1,10 @@
 import { sumi } from '../sumi'
+import { take } from '../take'
 
 export const card = {
-	header: ['px-5 pt-5 pb-0', sumi.text],
-	title: 'text-base/6 font-semibold',
-	description: ['mt-1 text-sm/5', sumi.textMuted],
-	body: 'px-5 py-5',
-	footer: ['px-5 pt-0 pb-5', 'flex items-center gap-3'],
+	header: ['px-4 pt-4 pb-0', sumi.text],
+	title: ['font-semibold', take.text.md],
+	description: [take.text.sm, sumi.textMuted],
+	body: 'p-4',
+	footer: ['px-4 pb-4 pt-0', 'flex items-center', take.gap.md],
 }

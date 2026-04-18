@@ -17,6 +17,10 @@ export type JsonTreeProps = {
 	rootKey?: string
 	/** Nested levels open by default. Pass `Infinity` to expand everything. */
 	defaultExpandDepth?: number
+	/** Controlled set of expanded node paths. When provided, the tree becomes controlled and `onExpandedChange` fires on toggle. */
+	expanded?: Set<string>
+	/** Called when the expanded set changes (controlled mode). */
+	onExpandedChange?: (expanded: Set<string>) => void
 	/** Search term to highlight and auto-expand matching nodes. Pass a string or `{ value, filter }` to also hide non-matching nodes. */
 	search?: Search
 	className?: string
@@ -26,6 +30,8 @@ export function JsonTree({
 	data,
 	rootKey,
 	defaultExpandDepth = 1,
+	expanded,
+	onExpandedChange,
 	search,
 	className,
 }: JsonTreeProps) {
@@ -42,7 +48,16 @@ export function JsonTree({
 
 	return (
 		<JsonTreeProvider
-			value={{ depth: 0, defaultExpandDepth, search: searchValue, filter, searchIndex }}
+			value={{
+				depth: 0,
+				defaultExpandDepth,
+				search: searchValue,
+				filter,
+				searchIndex,
+				path: '',
+				expanded,
+				onExpandedChange,
+			}}
 		>
 			<div
 				ref={ref}

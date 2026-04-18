@@ -2,6 +2,7 @@ import { ki } from '../ki'
 import { maru } from '../maru'
 import { nagare } from '../nagare'
 import { sumi } from '../sumi'
+import { take } from '../take'
 
 export type JsonValueType = 'string' | 'number' | 'boolean' | 'null' | 'key'
 
@@ -15,18 +16,20 @@ export const jsonValueColor: Record<JsonValueType, readonly string[] | string> =
 
 const rowBase = [
 	'group/json-node',
-	'flex w-full items-center gap-1.5',
+	'flex w-full items-center',
+	take.gap.sm,
 	'py-0.5 px-2',
-	'text-sm/6',
+	take.text.sm,
 	maru.rounded,
 ]
 
 export const jsonTree = {
 	base: 'font-mono',
 	row: rowBase,
-	leaf: ['flex flex-1 items-center gap-1.5 min-w-0', ki.inset],
+	leaf: ['flex flex-1 items-center min-w-0', take.gap.sm, ki.inset],
 	toggle: [
-		'flex flex-1 items-center gap-1.5 min-w-0 text-left cursor-pointer',
+		'flex flex-1 items-center min-w-0 text-left cursor-pointer',
+		take.gap.sm,
 		sumi.textMuted,
 		sumi.textHover,
 		'data-[open]:text-zinc-950 dark:data-[open]:text-white',

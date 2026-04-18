@@ -4,9 +4,10 @@ import { kage } from '../kage'
 import { maru } from '../maru'
 import { nuri } from '../nuri'
 import { sawari } from '../sawari'
+import { take } from '../take'
 
 export const alert = tv({
-	base: ['flex w-fit', 'gap-3 p-3', 'text-sm/5', maru.rounded],
+	base: ['flex w-fit', 'px-4 py-3.5', take.gap.md, take.text.md, maru.rounded],
 	variants: {
 		variant: {
 			solid: ['border border-transparent', kage.shadow],
@@ -28,10 +29,10 @@ export const alert = tv({
 /** Slot classes for sub-elements. */
 export const slots = {
 	icon: 'shrink-0',
-	content: 'flex flex-col flex-1 gap-1 min-w-0',
-	title: 'text-base/6 font-semibold',
+	content: 'flex flex-col flex-1 min-w-0',
+	title: [take.text.md, 'font-semibold'],
 	description: 'leading-loose',
-	actions: 'mt-2 flex items-center gap-1',
+	actions: ['mt-2 flex items-center', take.gap.sm],
 	close: ['shrink-0', '-m-1 p-1', maru.roundedMd, sawari.cursor],
 }
 

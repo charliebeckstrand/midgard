@@ -1,8 +1,8 @@
 'use client'
 
-import { useDeferredValue, useState } from 'react'
+import { useDeferredValue, useMemo, useState } from 'react'
 import { Button } from '../../components/button'
-import { JsonTree } from '../../components/json-tree'
+import { collectJsonTreePaths, JsonTree } from '../../components/json-tree'
 import { SearchInput } from '../../components/search-input'
 import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'
@@ -28,21 +28,25 @@ const sample = {
 }
 
 function ExpandAllExample() {
-	const [expanded, setExpanded] = useState(true)
+	const allPaths = useMemo(() => collectJsonTreePaths(sample), [])
+
+	const [expanded, setExpanded] = useState<Set<string>>(allPaths)
+
+	const allExpanded = expanded.size === allPaths.size
 
 	return (
 		<Example title="Expand all levels">
-			<Stack gap={3}>
+			<Stack gap={4}>
 				<div>
-					<Button size="sm" variant="outline" onClick={() => setExpanded((v) => !v)}>
-						{expanded ? 'Collapse all' : 'Expand all'}
+					<Button
+						size="sm"
+						variant="outline"
+						onClick={() => setExpanded(allExpanded ? new Set() : allPaths)}
+					>
+						{allExpanded ? 'Collapse all' : 'Expand all'}
 					</Button>
 				</div>
-				<JsonTree
-					key={String(expanded)}
-					data={sample}
-					defaultExpandDepth={expanded ? Number.POSITIVE_INFINITY : 0}
-				/>
+				<JsonTree data={sample} expanded={expanded} onExpandedChange={setExpanded} />
 			</Stack>
 		</Example>
 	)

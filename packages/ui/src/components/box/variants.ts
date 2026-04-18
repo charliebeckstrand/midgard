@@ -11,16 +11,6 @@ export {
 	pyMap,
 } from '../../recipes/ma'
 
-export const radiusMap = {
-	none: maru.roundedNone,
-	sm: maru.roundedSm,
-	md: maru.roundedMd,
-	lg: maru.rounded,
-	xl: maru.roundedXl,
-	'2xl': maru.rounded2xl,
-	full: maru.roundedFull,
-} as const
-
 export const bgMap = {
 	none: 'bg-transparent',
 	surface: omote.surface,
@@ -36,6 +26,16 @@ export const borderMap = {
 	strong: kage.borderStrong,
 } as const
 
-export type BoxRadius = keyof typeof radiusMap
+export const radiusMap = {
+	none: maru.roundedNone,
+	sm: maru.roundedSm,
+	md: maru.roundedMd,
+	lg: maru.rounded,
+	xl: maru.roundedXl,
+	'2xl': maru.rounded2xl,
+	full: maru.roundedFull,
+} as const
+
 export type BoxBg = keyof typeof bgMap
 export type BoxBorder = boolean | keyof typeof borderMap
+export type BoxRadius = keyof typeof radiusMap

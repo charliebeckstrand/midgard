@@ -45,23 +45,19 @@ export function useFocusTrap(active: boolean) {
 
 			if (focusable.length === 0) return
 
-			const firstEl = focusable[0]
+			e.preventDefault()
 
-			const lastEl = focusable[focusable.length - 1]
+			const currentIndex = focusable.indexOf(document.activeElement as HTMLElement)
+
+			let nextIndex: number
 
 			if (e.shiftKey) {
-				if (document.activeElement === firstEl) {
-					e.preventDefault()
-
-					lastEl?.focus()
-				}
+				nextIndex = currentIndex <= 0 ? focusable.length - 1 : currentIndex - 1
 			} else {
-				if (document.activeElement === lastEl) {
-					e.preventDefault()
-
-					firstEl?.focus()
-				}
+				nextIndex = currentIndex >= focusable.length - 1 ? 0 : currentIndex + 1
 			}
+
+			focusable[nextIndex]?.focus()
 		}
 
 		document.addEventListener('keydown', onKeyDown)

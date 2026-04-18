@@ -93,7 +93,7 @@ export function CommandPalette({
 						<Icon icon={<X />} />
 					</Button>
 				</Flex>
-				<DialogBody className="mt-2">
+				<DialogBody>
 					<div ref={listRef} id={listboxId} role="listbox" data-slot="command-palette-list">
 						{rendered}
 					</div>

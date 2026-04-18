@@ -1,7 +1,6 @@
 export {
 	type ButtonVariants,
 	button as buttonVariants,
-	iconOnlySize,
 	withIconEndSize,
 	withIconStartSize,
 	withKbdEndSize,

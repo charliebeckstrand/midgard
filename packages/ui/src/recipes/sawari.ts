@@ -18,14 +18,14 @@ import { yasumi } from './yasumi'
 const motoi = {
 	item: [
 		'sm:py-1.5 py-2.5',
-		'text-base/6',
 		'outline-hidden',
 		'cursor-default',
+		take.text.md,
 		kyousei.text,
 		kyousei.focus,
 		yasumi.disabled,
 	],
-	nav: [take.iconSlot.md, '*:data-[slot=avatar]:-m-0.5 *:data-[slot=avatar]:size-7'],
+	nav: [take.icon.md, '*:data-[slot=avatar]:-m-0.5 *:data-[slot=avatar]:size-7'],
 }
 
 // ── Hiru (昼) ───────────────────────────────────────────

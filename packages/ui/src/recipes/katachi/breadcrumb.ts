@@ -1,15 +1,16 @@
 import { tv, type VariantProps } from 'tailwind-variants'
 import { sawari } from '../sawari'
 import { sumi } from '../sumi'
+import { take } from '../take'
 
 export const breadcrumb = tv({ base: '' })
 
 export const breadcrumbList = tv({
-	base: 'flex flex-wrap items-center gap-1.5 break-words text-sm/5',
+	base: ['flex flex-wrap items-center', take.gap.md, 'break-words', take.text.sm],
 })
 
 export const breadcrumbItem = tv({
-	base: 'inline-flex items-center gap-1.5',
+	base: ['inline-flex items-center', take.gap.md],
 	variants: {
 		current: {
 			true: [sumi.text, 'font-normal'],

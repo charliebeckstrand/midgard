@@ -5,7 +5,7 @@ import { nuri } from '../nuri'
 import { take } from '../take'
 
 export const badge = tv({
-	base: ['group inline-flex w-fit items-center font-medium'],
+	base: ['group inline-flex w-fit items-center', 'font-medium'],
 	variants: {
 		variant: {
 			solid: [maru.roundedMd, 'border border-transparent'],

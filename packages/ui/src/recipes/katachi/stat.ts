@@ -1,20 +1,21 @@
 import { tv, type VariantProps } from 'tailwind-variants'
 import { sumi } from '../sumi'
+import { take } from '../take'
 
 export const statValue = tv({
 	base: ['font-semibold tracking-tight tabular-nums', ...sumi.text],
 	variants: {
 		size: {
-			sm: 'text-2xl/8',
-			md: 'text-3xl/9',
-			lg: 'text-4xl/10',
+			sm: take.text['2xl'],
+			md: take.text['3xl'],
+			lg: take.text['4xl'],
 		},
 	},
 	defaultVariants: { size: 'md' },
 })
 
 export const statDelta = tv({
-	base: 'inline-flex items-center gap-1 text-sm/5 font-medium tabular-nums',
+	base: ['inline-flex items-center', take.text.sm, take.gap.sm, 'font-medium tabular-nums'],
 	variants: {
 		trend: {
 			up: 'text-green-600 dark:text-green-500',
@@ -29,9 +30,9 @@ export type StatValueVariants = VariantProps<typeof statValue>
 export type StatDeltaVariants = VariantProps<typeof statDelta>
 
 export const slots = {
-	base: 'flex flex-col gap-1',
-	label: ['text-sm/5 font-medium', ...sumi.textMuted],
-	description: ['text-sm/5', ...sumi.textMuted],
+	base: ['flex flex-col', take.gap.sm],
+	label: [take.text.sm, ...sumi.textMuted, 'font-medium'],
+	description: [take.text.sm, ...sumi.textMuted],
 }
 
 /** Kept for the `katachi` barrel — not consumed directly. */

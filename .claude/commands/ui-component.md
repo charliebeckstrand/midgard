@@ -18,7 +18,7 @@ packages/ui/
   tsup.config.ts
   src/
     index.ts                  # Re-exports core utilities only
-    core/                     # cn, colorCva, colorKeys, compoundColors, createContext, Link
+    core/                     # cn, colorMatrix, createContext, Link
     primitives/               # Reusable building blocks (Polymorphic, Overlay, ControlFrame, etc.)
     recipes/                  # Design token layers (katachi, nuri, take, kage, etc.)
     hooks/                    # Shared hooks (useControllable, useOverlay, useIsDesktop, etc.)
@@ -32,7 +32,7 @@ Every component lives in `src/components/<name>/` with these files:
 | File | Purpose | Required |
 |------|---------|----------|
 | `component.tsx` | The React component(s) | Always |
-| `variants.ts` | CVA variant definitions using recipes | When the component has visual variants |
+| `variants.ts` | Re-exports recipe, variant types, and slots from katachi | When the component has visual variants |
 | `index.ts` | Barrel file re-exporting everything | Always |
 | `context.ts` | React context (createContext or raw) | Only when sub-components need shared state |
 | `slots.tsx` | Panel slot components via `createPanelSlots` | Only for panel-like components (dialog, sheet, drawer) |
@@ -87,48 +87,99 @@ Add a new file at `src/recipes/katachi/<name>.ts`.
 - **`narabi`** (Tier 2) — layout arrangement (`field`, `toggle`, `panel`, `placement`)
 - **`katachi`** (Tier 3) — the component forms you are building
 
-Example (simple component with variant + color + size):
+Example (component with variant + color + size — uses `tv()` + `colorMatrix`):
 ```ts
+import { tv, type VariantProps } from 'tailwind-variants'
+import { colorMatrix } from '../../core/recipe'
 import { maru } from '../maru'
 import { nuri } from '../nuri'
 import { take } from '../take'
 
-export const badge = {
-  base: 'group inline-flex items-center font-medium',
-  variant: {
-    solid: {
-      base: ['border border-transparent', maru.roundedMd],
-      color: nuri.solid,
+export const badge = tv({
+  base: ['group inline-flex w-fit items-center', 'font-medium'],
+  variants: {
+    variant: {
+      solid: [maru.roundedMd, 'border border-transparent'],
+      soft: [maru.roundedMd, 'border border-transparent'],
+      outline: [maru.roundedMd, 'border'],
+      plain: [maru.roundedMd, 'border border-transparent'],
     },
-    soft: {
-      base: ['border border-transparent', maru.roundedMd],
-      color: nuri.soft,
-    },
+    color: { zinc: '', red: '', amber: '', green: '', blue: '' },
+    size: take.badge,
   },
-  size: take.badge,
-  defaults: { variant: 'soft' as const, color: 'zinc' as const, size: 'md' as const },
-}
+  compoundVariants: [
+    ...colorMatrix('solid', nuri.solid),
+    ...colorMatrix('soft', nuri.soft),
+    ...colorMatrix('outline', nuri.outline),
+    ...colorMatrix('plain', nuri.text),
+  ],
+  defaultVariants: { variant: 'soft', color: 'zinc', size: 'md' },
+})
+
+export type BadgeVariants = VariantProps<typeof badge>
 ```
 
-Example (simple component without color variants):
+Example (component with variant but no color — uses `tv()` directly):
 ```ts
+import { tv, type VariantProps } from 'tailwind-variants'
 import { kage } from '../kage'
 import { maru } from '../maru'
-import { sumi } from '../sumi'
 
-export const card = {
-  base: ['overflow-hidden', maru.rounded],
-  variant: {
-    solid: ['bg-zinc-100 dark:bg-zinc-800', kage.border],
-    outline: [kage.border],
+export const accordion = tv({
+  base: 'flex flex-col',
+  variants: {
+    variant: {
+      separated: 'gap-2',
+      bordered: ['overflow-hidden', maru.rounded, ...kage.border, 'divide-y divide-zinc-950/10', 'dark:divide-white/10'],
+      plain: ['divide-y divide-zinc-950/10', 'dark:divide-white/10'],
+    },
   },
-  header: ['px-5 pt-5 pb-0', sumi.text],
+  defaultVariants: { variant: 'separated' },
+})
+
+export type AccordionVariants = VariantProps<typeof accordion>
+```
+
+Example (component with slots — separate `tv()` recipes + a plain `slots` object):
+```ts
+import { tv, type VariantProps } from 'tailwind-variants'
+import { colorMatrix } from '../../core/recipe'
+import { kage } from '../kage'
+import { maru } from '../maru'
+import { nuri } from '../nuri'
+import { sumi } from '../sumi'
+import { take } from '../take'
+
+export const alert = tv({
+  base: ['flex w-fit', 'gap-2 px-4 py-3.5', take.text.sm, maru.rounded],
+  variants: {
+    variant: {
+      solid: ['border border-transparent', kage.shadow],
+      soft: ['border border-transparent'],
+      outline: ['border'],
+      plain: ['border border-transparent'],
+    },
+    color: { zinc: '', red: '', amber: '', green: '', blue: '' },
+  },
+  compoundVariants: [
+    ...colorMatrix('solid', nuri.solid),
+    ...colorMatrix('soft', nuri.soft),
+    ...colorMatrix('outline', nuri.outline),
+    ...colorMatrix('plain', nuri.text),
+  ],
+  defaultVariants: { variant: 'soft', color: 'zinc' },
+})
+
+/** Slot classes for sub-elements — plain object, not tv(). */
+export const slots = {
+  icon: 'shrink-0',
+  content: 'flex flex-col flex-1 min-w-0',
   title: 'text-base/6 font-semibold',
-  description: ['mt-1 text-sm/5', sumi.textMuted],
-  body: 'px-5 py-5',
-  footer: ['px-5 pt-0 pb-5', 'flex items-center gap-3'],
-  defaults: { variant: 'solid' as const },
+  description: 'leading-loose',
+  actions: 'mt-2 flex items-center gap-1',
 }
+
+export type AlertVariants = VariantProps<typeof alert>
 ```
 
 Then register it in `src/recipes/katachi/index.ts`:
@@ -145,73 +196,41 @@ If your component needs a unique color palette not covered by existing `nuri` en
 
 ### 4. Create `variants.ts`
 
-Use CVA (`class-variance-authority`) to wire katachi tokens into variant functions.
+The `variants.ts` file is a thin re-export layer. All variant logic lives in the katachi recipe (which uses `tv()` from `tailwind-variants`). The variants file re-exports the recipe function, its type, and any slot objects under convenient aliases.
 
-**Pattern for components with variant + color**:
+**Pattern for components with variants (with or without color)**:
 ```ts
-import { cva, type VariantProps } from 'class-variance-authority'
-import { colorKeys, compoundColors } from '../../core'
-import { katachi } from '../../recipes'
-
-const k = katachi.<name>
-
-type Variant = keyof typeof k.variant
-type Color = keyof (typeof k.variant)['solid']['color']
-
-const variantBase = Object.fromEntries(
-  Object.entries(k.variant).map(([key, { base }]) => [key, base]),
-) as unknown as Record<Variant, string | string[]>
-
-const variantColors = Object.fromEntries(
-  Object.entries(k.variant).map(([key, { color }]) => [key, color]),
-) as Record<Variant, Record<Color, string | string[]>>
-
-export const <name>Variants = cva(k.base, {
-  variants: {
-    variant: variantBase,
-    color: colorKeys(k.variant.solid.color),
-    size: k.size,
-  },
-  compoundVariants: compoundColors(variantColors),
-  defaultVariants: k.defaults,
-})
-
-export type <Name>Variants = VariantProps<typeof <name>Variants>
+export {
+  type <Name>Variants,
+  <name> as <name>Variants,
+} from '../../recipes/katachi/<name>'
 ```
 
-**Pattern for components with simple variants (no color)**:
+**Pattern for components with slots**:
 ```ts
-import { cva, type VariantProps } from 'class-variance-authority'
-import { katachi } from '../../recipes'
-
-const k = katachi.<name>
-
-export const <name>Variants = cva(k.base, {
-  variants: {
-    variant: k.variant,
-  },
-  defaultVariants: k.defaults,
-})
-
-export type <Name>Variants = VariantProps<typeof <name>Variants>
+export {
+  type <Name>Variants,
+  <name> as <name>Variants,
+  slots as k,
+} from '../../recipes/katachi/<name>'
 ```
 
-**Pattern for color-only components** (like checkbox, switch):
+**Pattern for components with multiple tv() recipes** (e.g. accordion with `accordion` + `accordionItem`):
 ```ts
-import { colorCva, type ColorCvaVariants } from '../../core'
-import { katachi } from '../../recipes'
-
-const k = katachi.<name>
-
-export const <name>Variants = colorCva(k.base, nuri.<name>)
-export type <Name>Variants = ColorCvaVariants
+export {
+  type AccordionVariants,
+  accordion as accordionVariants,
+  type AccordionItemVariants,
+  accordionItem as accordionItemVariants,
+  slots as k,
+} from '../../recipes/katachi/accordion'
 ```
 
 ### 5. Create `component.tsx`
 
 Follow these conventions:
 - Import `cn` from `../../core`
-- Import recipes from `../../recipes` when accessing slot classes directly (e.g., `katachi.<name>.header`)
+- Import slot classes as `k` from `./variants` (which re-exports the `slots` object from the katachi recipe)
 - Import primitives from `../../primitives` as needed (`Polymorphic`, `ControlFrame`, `Overlay`, `TouchTarget`, etc.)
 - Import variant functions from `./variants`
 - Use `data-slot="<name>"` on the root element (kebab-case for compound slots like `card-header`)
@@ -256,13 +275,10 @@ export function <Name>({
 }
 ```
 
-**Compound component** (with sub-components using slot classes from katachi):
+**Compound component** (with sub-components using slot classes):
 ```tsx
 import { cn } from '../../core'
-import { katachi } from '../../recipes'
-import { type <Name>Variants, <name>Variants } from './variants'
-
-const k = katachi.<name>
+import { type <Name>Variants, <name>Variants, k } from './variants'
 
 export type <Name>Props = <Name>Variants & {
   className?: string
@@ -601,9 +617,7 @@ Lower tiers never import from higher tiers. Katachi (Tier 3) composes everything
 ## Core utilities
 
 - **`cn(...inputs)`** — `clsx` + `tailwind-merge` for class composition
-- **`colorKeys(tokenMap)`** — creates empty CVA variant entries from a nuri color token map
-- **`compoundColors(mapping)`** — generates CVA compound variant entries for variant x color
-- **`colorCva(base, tokenMap)`** — standalone CVA with a single color dimension
+- **`colorMatrix(variant, map, extra?)`** — generates `compoundVariants` entries for a (variant × color) pair from a nuri color map; used in `tv()` recipes
 - **`createContext(name)`** — typed context factory that throws on missing provider
 - **`Link` / `LinkProvider`** — polymorphic link component (defaults to `<a>`, configurable via provider)
 
@@ -615,7 +629,7 @@ Before finishing, verify:
 - [ ] **Composition audit done (Step 0).** Every existing component that could have been composed was composed. No duplicated `Overlay` + `motion` + `ugoki` wrappers, no raw `<input>`/`<button>` where `Input`/`Button` fit, no re-implementations of keyboard nav that `Listbox`/`Combobox`/`Menu` already provide.
 - [ ] **No parallel panel variants.** If the component renders in a dialog/sheet/drawer/popover, it reuses that component's `*PanelVariants` (e.g. `DialogPanelVariants`) rather than defining its own size/surface recipe.
 - [ ] Katachi recipe created and registered in `katachi/index.ts` (alphabetical) — **only if the component introduces genuinely new styling not available through composition**
-- [ ] `variants.ts` uses CVA with correct pattern for the variant type
+- [ ] `variants.ts` re-exports from the katachi recipe (variant function aliased as `<name>Variants`, slots aliased as `k`)
 - [ ] `component.tsx` follows conventions (data-slot, cn, className merge, prop spreading)
 - [ ] `index.ts` barrel exports all public API (components, props types, variant types, variant functions)
 - [ ] `package.json` export entry added (alphabetical)

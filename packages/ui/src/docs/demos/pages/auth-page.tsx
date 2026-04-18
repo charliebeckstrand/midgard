@@ -54,7 +54,7 @@ export default function AuthPageDemo() {
 										<PasswordInput placeholder="•••••••••" />
 									</Field>
 
-									<Button type="submit" disabled={submitting}>
+									<Button type="submit" block disabled={submitting}>
 										{submitting ? 'Signing in...' : 'Sign in'}
 									</Button>
 								</Fieldset>
@@ -84,7 +84,7 @@ export default function AuthPageDemo() {
 										<PasswordInput placeholder="•••••••••" />
 									</Field>
 
-									<Button type="submit" disabled={submitting}>
+									<Button type="submit" block disabled={submitting}>
 										{submitting ? 'Creating account...' : 'Create account'}
 									</Button>
 								</Fieldset>
@@ -102,7 +102,7 @@ export default function AuthPageDemo() {
 										<Input type="email" placeholder="you@example.com" />
 									</Field>
 
-									<Button type="submit" disabled={submitting}>
+									<Button type="submit" block disabled={submitting}>
 										{submitting ? 'Sending reset link...' : 'Send reset link'}
 									</Button>
 								</Fieldset>

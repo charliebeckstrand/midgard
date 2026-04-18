@@ -1,22 +1,25 @@
 import { kage } from '../kage'
 import { maru } from '../maru'
 import { sawari } from '../sawari'
+import { take } from '../take'
 
 export const sidebar = {
-	base: ['flex flex-col gap-y-4', 'h-full', 'px-4 py-6', 'overflow-y-auto overscroll-none'],
+	base: ['overflow-y-auto overscroll-none', 'flex flex-col gap-y-4', 'h-full', 'px-4 py-6'],
 	item: [
 		...sawari.navItem,
-		maru.rounded,
 		'group relative',
-		'flex w-full items-center gap-3',
+		'flex w-full items-center',
+		take.gap.md,
 		'px-2 py-2',
-		'text-left text-sm/5 font-medium',
+		maru.rounded,
+		take.text.md,
+		'text-left font-medium',
 		sawari.cursor,
 	],
-	section: 'flex flex-col gap-0.5',
+	section: ['flex flex-col', take.gap.xs],
 	label: ['truncate'],
-	header: 'flex items-center gap-2',
-	body: ['flex flex-1 flex-col gap-4', 'overflow-y-auto'],
+	header: ['flex items-center', take.gap.md],
+	body: ['overflow-y-auto', 'flex flex-1 flex-col', take.gap.base],
 	divider: kage.divider,
-	footer: ['sticky bottom-0', 'flex flex-col gap-0.5', 'mt-auto'],
+	footer: ['sticky bottom-0', 'flex flex-col', take.gap.xs, 'mt-auto'],
 }

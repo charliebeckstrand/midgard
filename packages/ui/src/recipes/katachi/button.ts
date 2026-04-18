@@ -12,9 +12,9 @@ import { yasumi } from '../yasumi'
 
 export const button = tv({
 	base: [
+		'relative isolate',
 		'inline-flex',
 		kumi.center,
-		'relative isolate',
 		'w-fit',
 		'shrink-0',
 		'font-semibold',
@@ -64,12 +64,6 @@ export const withKbdStartSize = tv({
 
 export const withKbdEndSize = tv({
 	variants: { size: take.buttonWithKbd.end },
-	defaultVariants: { size: 'md' },
-})
-
-export const iconOnlySize = tv({
-	base: 'p-0 gap-0',
-	variants: { size: take.buttonWithIconSize },
 	defaultVariants: { size: 'md' },
 })
 

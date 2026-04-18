@@ -5,6 +5,7 @@ import { maru } from '../maru'
 import { narabi } from '../narabi'
 import { omote } from '../omote'
 import { sumi } from '../sumi'
+import { take } from '../take'
 
 export const inspectorPanel = tv({
 	base: [...omote.panel.bg, narabi.panel.base, 'relative h-full'],
@@ -23,7 +24,9 @@ export const inspectorPanel = tv({
 	defaultVariants: { side: 'right', size: 'md' },
 })
 
-export const inspectorHeader = tv({ base: 'flex items-center justify-between gap-2 px-6 pt-6' })
+export const inspectorHeader = tv({
+	base: ['flex items-center justify-between', take.gap.md, 'px-6 pt-6'],
+})
 export const inspectorTitle = tv({ base: [...narabi.panel.title] })
 export const inspectorDescription = tv({ base: [...narabi.panel.description] })
 export const inspectorActions = tv({ base: [narabi.panel.actions, 'px-6 pb-6'] })

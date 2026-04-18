@@ -2,8 +2,8 @@
 
 import { Trash } from 'lucide-react'
 import { cn } from '../../core'
+import { Button } from '../button'
 import { Flex } from '../flex'
-import { HoldButton } from '../hold-button'
 import { Icon } from '../icon'
 import { ListboxOption } from '../listbox'
 import { Select } from '../select'
@@ -81,16 +81,15 @@ export function QueryRule({ rule, className }: QueryRuleProps) {
 				)}
 			</Flex>
 
-			<HoldButton
+			<Button
 				variant="plain"
 				aria-label="Remove rule"
 				disabled={disabled}
 				className={k.rowRemove}
-				duration={500}
-				onComplete={() => remove(rule.id)}
+				onClick={() => remove(rule.id)}
 			>
 				<Icon icon={<Trash />} />
-			</HoldButton>
+			</Button>
 		</Flex>
 	)
 }

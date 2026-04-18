@@ -17,7 +17,6 @@ import { iconSides, isIconOnly, kbdSides, withLoadingSpinner } from './utilities
 import {
 	type ButtonVariants,
 	buttonVariants,
-	iconOnlySize,
 	withIconEndSize,
 	withIconStartSize,
 	withKbdEndSize,
@@ -50,6 +49,7 @@ export function Button({
 	...props
 }: ButtonProps) {
 	const loading = !!loadingProp
+
 	const loadingOptions = typeof loadingProp === 'object' ? loadingProp : undefined
 
 	const alert = useAlertContext()
@@ -91,7 +91,6 @@ export function Button({
 		sides.end && !sides.start && withIconEndSize({ size: resolvedSize }),
 		kbds.start && !kbds.end && withKbdStartSize({ size: resolvedSize }),
 		kbds.end && !kbds.start && withKbdEndSize({ size: resolvedSize }),
-		iconOnly && iconOnlySize({ size: resolvedSize }),
 		block && 'w-full',
 		className,
 	)

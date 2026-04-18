@@ -6,7 +6,7 @@ import { take } from '../take'
 
 export const avatar = tv({
 	base: [
-		'inline-grid place-items-center overflow-hidden align-middle',
+		'inline-grid place-items-center align-middle overflow-hidden',
 		'*:col-start-1 *:row-start-1',
 		maru.roundedFull,
 	],

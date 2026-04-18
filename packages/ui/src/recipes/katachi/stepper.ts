@@ -2,6 +2,7 @@ import { tv, type VariantProps } from 'tailwind-variants'
 import { kage } from '../kage'
 import { maru } from '../maru'
 import { sumi } from '../sumi'
+import { take } from '../take'
 import { yasumi } from '../yasumi'
 
 export const stepper = tv({
@@ -69,6 +70,6 @@ export const slots = {
 			'group-focus-visible:outline-2 group-focus-visible:outline-blue-600',
 		],
 	},
-	description: ['text-xs/4', ...sumi.textMuted],
+	description: [take.text.sm, ...sumi.textMuted],
 	activeIndicator: ['z-10', 'bg-blue-600 dark:bg-blue-600'],
 }

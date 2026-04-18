@@ -6,6 +6,7 @@ import { Button } from '../button'
 import { Flex } from '../flex'
 import { HoldButton } from '../hold-button'
 import { Segment, SegmentControl, SegmentItem } from '../segment'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 import { useQueryBuilderContext } from './context'
 import { QueryRule } from './rule'
 import type { QueryCombinator, QueryGroup as QueryGroupNode } from './types'
@@ -68,17 +69,22 @@ export function QueryGroup({ group, root, className }: QueryGroupProps) {
 				)}
 				{!root && (
 					<Flex justify="end">
-						<HoldButton
-							variant="soft"
-							color="red"
-							aria-label="Remove group"
-							disabled={disabled}
-							className={k.rowRemove}
-							duration={500}
-							onComplete={() => remove(group.id)}
-						>
-							Remove group
-						</HoldButton>
+						<Tooltip>
+							<TooltipTrigger>
+								<HoldButton
+									variant="soft"
+									color="red"
+									aria-label="Remove group"
+									disabled={disabled}
+									className={k.rowRemove}
+									duration={500}
+									onComplete={() => remove(group.id)}
+								>
+									Remove group
+								</HoldButton>
+							</TooltipTrigger>
+							<TooltipContent>Hold to remove group</TooltipContent>
+						</Tooltip>
 					</Flex>
 				)}
 			</Flex>

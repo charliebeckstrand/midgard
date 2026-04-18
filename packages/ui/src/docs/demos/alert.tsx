@@ -130,9 +130,14 @@ export default function AlertDemo() {
 					title="Storage is almost full"
 					description="You have used 90% of your available storage."
 					actions={
-						<Button size="sm" color="amber">
-							Upgrade
-						</Button>
+						<>
+							<Button size="sm" color="amber">
+								Upgrade
+							</Button>
+							<Button size="sm" color="amber">
+								Upgrade
+							</Button>
+						</>
 					}
 				/>
 			</Example>

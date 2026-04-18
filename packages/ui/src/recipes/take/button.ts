@@ -1,4 +1,4 @@
-import { gap, iconSlot, text } from './density'
+import { gap, icon, text } from './density'
 
 /** Asymmetric padding opposite the icon to balance visual weight. */
 export const buttonWithIcon = {
@@ -15,9 +15,6 @@ export const buttonWithIcon = {
 		lg: 'pl-[calc(--spacing(4)-1px)]',
 	},
 }
-
-/** Icon-only button dimensions. */
-export const buttonWithIconSize = { xs: 'size-6', sm: 'size-7', md: 'size-9', lg: 'size-11' }
 
 /** Asymmetric padding opposite a Kbd child — half the icon offset. */
 export const buttonWithKbd = {
@@ -49,28 +46,28 @@ export const button = {
 		'px-[calc(--spacing(1)-1px)] py-[calc(--spacing(1)-1px)]',
 		gap.xs,
 		text.xs,
-		iconSlot.xs,
+		icon.xs,
 		buttonWithSpinner.xs,
 	],
 	sm: [
 		'px-[calc(--spacing(1.5)-1px)] py-[calc(--spacing(1.5)-1px)]',
 		gap.sm,
 		text.sm,
-		iconSlot.sm,
+		icon.sm,
 		buttonWithSpinner.sm,
 	],
 	md: [
 		'px-[calc(--spacing(2)-1px)] py-[calc(--spacing(2)-1px)]',
 		gap.md,
 		text.md,
-		iconSlot.md,
+		icon.md,
 		buttonWithSpinner.md,
 	],
 	lg: [
-		'px-[calc(--spacing(3)-1px)] py-[calc(--spacing(2.5)-1px)]',
+		'px-[calc(--spacing(2.5)-1px)] py-[calc(--spacing(2.5)-1px)]',
 		gap.lg,
 		text.lg,
-		iconSlot.lg,
+		icon.lg,
 		buttonWithSpinner.lg,
 	],
 }

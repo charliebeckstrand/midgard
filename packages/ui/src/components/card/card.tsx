@@ -14,6 +14,7 @@ export function Card({
 	...props
 }: CardProps) {
 	const noExplicitPadding = p === undefined && px === undefined && py === undefined
+
 	return (
 		<Box
 			dataSlot="card"
@@ -25,7 +26,7 @@ export function Card({
 			radius={radius}
 			className={cn(
 				'overflow-hidden',
-				noExplicitPadding && '[&:not(:has(>[data-slot^=card-]))]:p-5',
+				noExplicitPadding && '[&:not(:has(>[data-slot^=card-]))]:p-4',
 				className,
 			)}
 			{...props}

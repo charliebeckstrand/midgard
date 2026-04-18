@@ -1,12 +1,18 @@
 'use client'
 
-import { closestCorners, DndContext, DragOverlay } from '@dnd-kit/core'
-import type { ReactNode } from 'react'
-import { useMemo } from 'react'
+import {
+	closestCorners,
+	DndContext,
+	DragOverlay,
+	PointerSensor,
+	useSensor,
+	useSensors,
+} from '@dnd-kit/core'
+import { type ReactNode, useCallback, useMemo } from 'react'
 import { cn } from '../../core'
-import { useSortableSensors } from '../../hooks'
 import { type KanbanColumnShape, KanbanProvider } from './context'
 import { useKanbanDrag } from './use-kanban-drag'
+import { useKanbanKeyboard } from './use-kanban-keyboard'
 import { k } from './variants'
 
 export type { KanbanColumnShape }
@@ -36,21 +42,44 @@ export function Kanban<T, C extends KanbanColumnShape<T>>({
 }: KanbanProps<T, C>) {
 	const interactive = !disabled && !!onChange
 
-	const sensors = useSortableSensors()
+	const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 3 } }))
 
 	const {
 		activeId,
 		overlayMap,
 		columnItemIds,
-		handleDragStart,
+		handleDragStart: rawDragStart,
 		handleDragOver,
 		handleDragEnd,
 		handleDragCancel,
 	} = useKanbanDrag({ columns, getItemKey, onChange })
 
+	const { liftedCardId, setLiftedCardId, onCardKeyDown, onCardBlur } = useKanbanKeyboard({
+		columns,
+		getItemKey,
+		onChange,
+	})
+
+	// Clear keyboard-lifted state when a pointer drag begins.
+	const handleDragStart = useCallback(
+		(event: Parameters<typeof rawDragStart>[0]) => {
+			setLiftedCardId(null)
+			rawDragStart(event)
+		},
+		[rawDragStart, setLiftedCardId],
+	)
+
 	const ctxValue = useMemo(
-		() => ({ interactive, activeId, columnItemIds, overlayMap }),
-		[interactive, activeId, columnItemIds, overlayMap],
+		() => ({
+			interactive,
+			activeId,
+			liftedCardId,
+			columnItemIds,
+			overlayMap,
+			onCardKeyDown,
+			onCardBlur,
+		}),
+		[interactive, activeId, liftedCardId, columnItemIds, overlayMap, onCardKeyDown, onCardBlur],
 	)
 
 	return (

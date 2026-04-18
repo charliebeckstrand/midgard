@@ -4,15 +4,16 @@ import { ki } from '../ki'
 import { kumi } from '../kumi'
 import { maru } from '../maru'
 import { omote } from '../omote'
+import { take } from '../take'
 import { yasumi } from '../yasumi'
 
 export const segmentControl = tv({
 	base: ['inline-flex items-center', maru.rounded, ...omote.tint],
 	variants: {
 		size: {
-			sm: 'p-0.5 gap-0.5',
-			md: 'p-1 gap-0.5',
-			lg: 'p-1 gap-1',
+			sm: ['p-0.5', ...take.gap.sm],
+			md: ['p-1', ...take.gap.md],
+			lg: ['p-1', ...take.gap.lg],
 		},
 	},
 	defaultVariants: { size: 'md' },
@@ -32,9 +33,9 @@ export const segmentItem = tv({
 	],
 	variants: {
 		size: {
-			sm: 'px-2.5 py-1 text-xs/4',
-			md: 'px-3 py-1.5 text-sm/5',
-			lg: 'px-4 py-2 text-base/6',
+			sm: ['px-2.5 py-1', ...take.text.xs],
+			md: ['px-3 py-1.5', ...take.text.sm],
+			lg: ['px-4 py-2', ...take.text.md],
 		},
 	},
 	defaultVariants: { size: 'md' },

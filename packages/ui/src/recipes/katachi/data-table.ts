@@ -4,15 +4,16 @@ import { ma } from '../ma'
 import { maru } from '../maru'
 import { omote } from '../omote'
 import { sumi } from '../sumi'
+import { take } from '../take'
 
 export const dataTable = {
-	wrapper: 'relative flex flex-col gap-2',
+	wrapper: ['relative flex flex-col', take.gap.md],
 	stickyWrapper: 'overflow-auto [&>[data-slot=table]]:!overflow-visible',
 	stickyHead: ['sticky top-0 z-10', omote.surface],
 	batchBar: [
 		'flex items-center',
 		'min-h-12',
-		'gap-3',
+		take.gap.md,
 		ma.density.px.md,
 		ma.density.py.sm,
 		kage.borderSubtle,
@@ -20,16 +21,16 @@ export const dataTable = {
 		'border-b',
 		omote.tint,
 	],
-	batchCount: ['text-sm font-medium whitespace-nowrap', sumi.textMuted],
+	batchCount: ['font-medium whitespace-nowrap', take.text.sm, sumi.textMuted],
 	loadingBody: ['flex', kumi.center, 'py-16'],
 	selectCell: 'w-px align-middle [line-height:0]',
 	actionsCell: 'w-px whitespace-nowrap',
 	sortButton: [
 		'inline-flex items-center',
-		'gap-1',
-		'select-none',
+		take.gap.sm,
 		sumi.textMuted,
 		sumi.textHover,
+		'select-none',
 		'cursor-pointer',
 	],
 	sortIcon: sumi.textMuted,

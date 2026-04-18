@@ -21,7 +21,7 @@ export function KanbanCard({
 	children,
 	className,
 }: KanbanCardProps) {
-	const { interactive, overlayMap } = useKanbanContext()
+	const { interactive, liftedCardId, overlayMap, onCardKeyDown, onCardBlur } = useKanbanContext()
 
 	// Surface referenced for narrowing — column scope is maintained for future use.
 	useKanbanColumnContext()
@@ -31,25 +31,32 @@ export function KanbanCard({
 		disabled: !interactive,
 	})
 
+	const lifted = liftedCardId === cardId
+
 	// Keep the drag-overlay content in sync with the card's latest children.
 	if (interactive) overlayMap.current.set(cardId, children)
 
 	return (
 		// biome-ignore lint/a11y/useAriaPropsSupportedByRole: role is provided by dnd-kit's spread attributes
+		// biome-ignore lint/a11y/noStaticElementInteractions: role="button" is provided by dnd-kit's spread attributes
 		<div
 			ref={interactive ? setNodeRef : undefined}
 			style={interactive ? style : undefined}
 			{...(interactive ? attributes : {})}
 			{...(interactive ? listeners : {})}
+			onKeyDown={interactive ? (e) => onCardKeyDown(cardId, e) : undefined}
+			onBlur={interactive ? onCardBlur : undefined}
 			aria-label={interactive ? ariaLabel : undefined}
 			data-slot="kanban-card"
 			data-card-id={cardId}
 			data-active={isDragging || undefined}
+			data-lifted={lifted || undefined}
 			data-disabled={!interactive || undefined}
 			className={cn(
 				k.card,
 				interactive && k.cardDraggable,
 				isDragging && k.cardDragging,
+				lifted && k.cardLifted,
 				className,
 			)}
 		>

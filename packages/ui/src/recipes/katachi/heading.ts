@@ -1,16 +1,17 @@
 import { tv, type VariantProps } from 'tailwind-variants'
 import { sumi } from '../sumi'
+import { take } from '../take'
 
 export const heading = tv({
 	base: [...sumi.text],
 	variants: {
 		level: {
-			1: 'text-3xl/9 font-bold tracking-tight',
-			2: 'text-2xl/8 font-semibold tracking-tight',
-			3: 'text-xl/7 font-semibold tracking-tight',
-			4: 'text-lg/6 font-semibold',
-			5: 'text-base/6 font-medium',
-			6: 'text-sm/5 font-medium',
+			1: ['font-bold tracking-tight', take.text['3xl']],
+			2: ['font-semibold tracking-tight', take.text['2xl']],
+			3: ['font-semibold tracking-tight', take.text.xl],
+			4: ['font-medium', take.text.lg],
+			5: ['font-medium', take.text.md],
+			6: ['font-medium', take.text.sm],
 		},
 	},
 	defaultVariants: { level: 1 },

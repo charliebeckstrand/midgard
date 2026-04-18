@@ -1,18 +1,21 @@
 import { maru } from '../maru'
 import { sawari } from '../sawari'
+import { take } from '../take'
 
 export const nav = {
 	list: {
 		base: 'flex',
 		orientation: {
-			vertical: 'flex-col gap-0.5',
-			horizontal: 'flex-row gap-1',
+			vertical: ['flex-col', take.gap.xs],
+			horizontal: ['flex-row', take.gap.sm],
 		},
 	},
 	item: [
 		'group relative flex w-full items-center',
-		'gap-1.5 p-2',
-		'text-left text-sm/5 font-medium',
+		'p-2',
+		take.gap.md,
+		take.text.sm,
+		'text-left font-medium',
 		...sawari.navItem,
 		maru.rounded,
 		sawari.cursor,
