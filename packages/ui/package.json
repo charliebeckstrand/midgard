@@ -131,6 +131,10 @@
 			"types": "./src/components/drawer/index.ts",
 			"default": "./src/components/drawer/index.ts"
 		},
+		"./editable-grid": {
+			"types": "./src/components/editable-grid/index.ts",
+			"default": "./src/components/editable-grid/index.ts"
+		},
 		"./fieldset": {
 			"types": "./src/components/fieldset/index.ts",
 			"default": "./src/components/fieldset/index.ts"
