@@ -1,7 +1,10 @@
 import { useState } from 'react'
+import { Button } from '../../components/button'
 import { DatePicker } from '../../components/datepicker'
 import { Glass } from '../../components/glass'
+import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'
+import { Text } from '../../components/text'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
@@ -14,28 +17,53 @@ export default function DatePickerDemo() {
 	return (
 		<Stack gap={6}>
 			<Example title="Default">
-				<Stack gap={2} className="sm:max-w-72">
+				<Sizer size="sm">
 					<DatePicker value={date} onChange={setDate} />
-				</Stack>
+					{date && (
+						<Stack gap={2}>
+							<Text variant="muted">Selected date: {date.toLocaleDateString()}</Text>
+							<Button variant="soft" color="red" onClick={() => setDate(undefined)}>
+								Clear
+							</Button>
+						</Stack>
+					)}
+				</Sizer>
 			</Example>
 
 			<Example title="Range">
-				<Stack gap={2} className="sm:max-w-72">
+				<Sizer size="sm">
 					<DatePicker range value={range} onChange={setRange} />
-				</Stack>
+				</Sizer>
+				{range && (
+					<Stack gap={2}>
+						<Text variant="muted">
+							Selected date range: {range[0].toLocaleDateString()} - {range[1].toLocaleDateString()}
+						</Text>
+						<Button variant="soft" color="red" onClick={() => setRange(undefined)}>
+							Clear
+						</Button>
+					</Stack>
+				)}
 			</Example>
 
 			<Example title="Disabled">
-				<div className="sm:max-w-72">
-					<DatePicker disabled placeholder="Cannot select" />
-				</div>
+				<DatePicker disabled placeholder="Cannot select" />
 			</Example>
 
 			<Example title="Glass">
 				<Glass>
-					<div className="sm:max-w-72">
-						<DatePicker range value={glassRange} onChange={setGlassRange} />
-					</div>
+					<DatePicker range value={glassRange} onChange={setGlassRange} />
+					{glassRange && (
+						<Stack gap={2}>
+							<Text variant="muted">
+								Selected date range: {glassRange[0].toLocaleDateString()} -{' '}
+								{glassRange[1].toLocaleDateString()}
+							</Text>
+							<Button variant="soft" color="red" onClick={() => setGlassRange(undefined)}>
+								Clear
+							</Button>
+						</Stack>
+					)}
 				</Glass>
 			</Example>
 		</Stack>

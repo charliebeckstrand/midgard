@@ -4,7 +4,7 @@ import { sumi } from '../sumi'
 import { take } from '../take'
 
 export const calendar = {
-	base: ['inline-flex flex-col w-72 p-4', 'select-none'],
+	base: ['inline-flex flex-col w-80 p-4', 'select-none'],
 	grid: 'grid grid-cols-7',
 	header: ['flex items-center justify-between', 'mb-2'],
 	footer: ['flex', kumi.center, take.gap.md, 'pb-4'],

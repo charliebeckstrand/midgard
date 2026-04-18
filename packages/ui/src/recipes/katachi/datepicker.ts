@@ -6,7 +6,7 @@ import { waku } from '../waku'
 
 export const datepicker = {
 	control: {
-		default: waku.control.surface,
+		default: ['waku.control.surface'],
 		glass: [],
 	},
 	button: [
