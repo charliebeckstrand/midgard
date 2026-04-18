@@ -1,20 +1,10 @@
-import { cva, type VariantProps } from 'class-variance-authority'
-import { katachi } from '../../recipes'
-
-const k = katachi.dialog
-const p = katachi.panel
-
-export const dialogPanelVariants = cva(k.panel.base, {
-	variants: {
-		glass: k.panel.glass,
-		size: k.panel.size,
-	},
-	defaultVariants: { ...k.panel.defaults, glass: false },
-})
-
-export const dialogTitleVariants = cva(p.title)
-export const dialogDescriptionVariants = cva(p.description)
-export const dialogBodyVariants = cva(p.body)
-export const dialogActionsVariants = cva(p.actions)
-
-export type DialogPanelVariants = VariantProps<typeof dialogPanelVariants>
+export {
+	type DialogPanelVariants,
+	dialogPanel as dialogPanelVariants,
+} from '../../recipes/katachi/dialog'
+export {
+	panelActions as dialogActionsVariants,
+	panelBody as dialogBodyVariants,
+	panelDescription as dialogDescriptionVariants,
+	panelTitle as dialogTitleVariants,
+} from '../../recipes/katachi/panel'

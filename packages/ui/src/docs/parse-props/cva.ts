@@ -20,8 +20,8 @@ export function collectCvaVariants(source: string, fullSource?: string): Map<str
 	// `variantBase`) are found before identically-named ones in other files.
 	const resolvePool = fullSource ? `${source}\n${fullSource}` : source
 
-	// Direct cva() calls: const X = cva(...)
-	const cvaRegex = /const\s+(\w+)\s*=\s*cva\s*\(/g
+	// Direct cva() or tv() calls: const X = cva(...) / const X = tv(...)
+	const cvaRegex = /const\s+(\w+)\s*=\s*(?:cva|tv)\s*\(/g
 
 	for (let m = cvaRegex.exec(source); m !== null; m = cvaRegex.exec(source)) {
 		const name = m[1]
@@ -50,8 +50,8 @@ export function collectCvaVariants(source: string, fullSource?: string): Map<str
 
 		if (!varName || !funcName) continue
 
-		// Skip direct cva calls (already handled) and known non-cva functions
-		if (funcName === 'cva' || result.has(varName)) continue
+		// Skip direct cva/tv calls (already handled) and known non-wrapper functions
+		if (funcName === 'cva' || funcName === 'tv' || result.has(varName)) continue
 
 		const parenStart = m.index + m[0].length - 1
 

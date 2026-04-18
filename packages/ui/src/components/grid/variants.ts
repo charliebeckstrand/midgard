@@ -1,6 +1,3 @@
-import { cva, type VariantProps } from 'class-variance-authority'
-import { katachi } from '../../recipes'
-
 // ─── Responsive utility ─────────────────────────────────────────────────────
 
 export type Responsive<T> = T | { initial?: T; sm?: T; md?: T; lg?: T; xl?: T; '2xl'?: T }
@@ -61,11 +58,7 @@ export const justifyMap = {
 
 // ─── Divider variants ────────────────────────────────────────────────────────
 
-const k = katachi.grid
-
-export const gridDividerVariants = cva(k.divider.base, {
-	variants: { soft: k.divider.soft },
-	defaultVariants: k.divider.defaults,
-})
-
-export type GridDividerVariants = VariantProps<typeof gridDividerVariants>
+export {
+	type GridDividerVariants,
+	gridDivider as gridDividerVariants,
+} from '../../recipes/katachi/grid'

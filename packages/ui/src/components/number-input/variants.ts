@@ -1,3 +1,1 @@
-import { katachi } from '../../recipes'
-
-export const k = katachi.input
+export { slots as k } from '../../recipes/katachi/input'

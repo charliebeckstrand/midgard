@@ -18,6 +18,6 @@ const hiru = ['placeholder:text-zinc-500', 'disabled:cursor-not-allowed']
 // ── Yoru (夜) ───────────────────────────────────────────
 const yoru = ['dark:placeholder:text-zinc-400']
 
-export const inputBase = [sumi.text, motoi, hiru, yoru]
+export const inputBase = [...sumi.text, ...motoi, ...hiru, ...yoru]
 
-export const input = [...inputBase, 'block', take.control.md, maru.rounded]
+export const input = [...inputBase, 'block', ...take.control.md, maru.rounded]

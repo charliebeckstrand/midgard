@@ -4,7 +4,7 @@ import { type RefObject, useEffect, useMemo, useState } from 'react'
 import { cn } from '../../core'
 import { ActiveIndicator, ActiveIndicatorScope } from '../../primitives'
 import { Link } from '../../primitives/link'
-import { katachi } from '../../recipes'
+import { slots as k } from '../../recipes/katachi/toc'
 import { tocItemVariants, tocLinkVariants, tocListVariants, tocVariants } from './variants'
 
 const DEFAULT_LEVELS = [2, 3] as const
@@ -147,7 +147,7 @@ export function Toc({
 							<li key={h.id} data-slot="toc-item" className={tocItemVariants()}>
 								{current && (
 									<ActiveIndicator
-										className={cn('w-px', katachi.toc.activeIndicator)}
+										className={cn('w-px', k.activeIndicator)}
 										style={{ borderRadius: 0 }}
 									/>
 								)}

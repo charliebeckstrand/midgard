@@ -1,4 +1,3 @@
-import { cva } from 'class-variance-authority'
 import {
 	createContext as reactCreateContext,
 	useCallback,
@@ -9,17 +8,14 @@ import {
 } from 'react'
 import { cn } from '../core'
 import { useIdScope } from '../hooks/use-id-scope'
-import { katachi } from '../recipes'
+import {
+	panelActions as panelActionsVariants,
+	panelBody as panelBodyVariants,
+	panelDescription as panelDescriptionVariants,
+	panelTitle as panelTitleVariants,
+} from '../recipes/katachi/panel'
 
-const k = katachi.panel
-
-export const panelTitleVariants = cva(k.title)
-
-export const panelDescriptionVariants = cva(k.description)
-
-export const panelBodyVariants = cva(k.body)
-
-export const panelActionsVariants = cva(k.actions)
+export { panelActionsVariants, panelBodyVariants, panelDescriptionVariants, panelTitleVariants }
 
 export type PanelTitleProps = React.ComponentPropsWithoutRef<'h2'>
 export type PanelDescriptionProps = React.ComponentPropsWithoutRef<'p'>

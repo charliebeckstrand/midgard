@@ -1,27 +1,28 @@
+import { tv, type VariantProps } from 'tailwind-variants'
+import { colorMatrix } from '../../core/recipe'
 import { maru } from '../maru'
 import { nuri } from '../nuri'
 import { take } from '../take'
 
-export const badge = {
+export const badge = tv({
 	base: ['group inline-flex w-fit items-center font-medium'],
-	variant: {
-		solid: {
-			base: [maru.roundedMd, 'border border-transparent'],
-			color: nuri.solid,
+	variants: {
+		variant: {
+			solid: [maru.roundedMd, 'border border-transparent'],
+			soft: [maru.roundedMd, 'border border-transparent'],
+			outline: [maru.roundedMd, 'border'],
+			plain: [maru.roundedMd, 'border border-transparent'],
 		},
-		soft: {
-			base: [maru.roundedMd, 'border border-transparent'],
-			color: nuri.soft,
-		},
-		outline: {
-			base: [maru.roundedMd, 'border'],
-			color: nuri.outline,
-		},
-		plain: {
-			base: [maru.roundedMd, 'border border-transparent'],
-			color: nuri.text,
-		},
+		color: { zinc: '', red: '', amber: '', green: '', blue: '' },
+		size: take.badge,
 	},
-	size: take.badge,
-	defaults: { variant: 'soft' as const, color: 'zinc' as const, size: 'md' as const },
-}
+	compoundVariants: [
+		...colorMatrix('solid', nuri.solid),
+		...colorMatrix('soft', nuri.soft),
+		...colorMatrix('outline', nuri.outline),
+		...colorMatrix('plain', nuri.text),
+	],
+	defaultVariants: { variant: 'soft', color: 'zinc', size: 'md' },
+})
+
+export type BadgeVariants = VariantProps<typeof badge>

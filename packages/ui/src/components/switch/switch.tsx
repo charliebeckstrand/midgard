@@ -7,9 +7,7 @@ import { useFormToggle } from '../form/context'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
 import {
-	k,
 	type SwitchVariants,
-	switchColorVariants,
 	switchInputVariants,
 	switchThumbVariants,
 	switchVariants,
@@ -52,12 +50,7 @@ export function Switch({
 	return (
 		<label
 			data-slot="control"
-			className={cn(
-				k.wrapper,
-				switchVariants({ size: resolvedSize }),
-				switchColorVariants({ color }),
-				className,
-			)}
+			className={cn(switchVariants({ size: resolvedSize, color }), className)}
 		>
 			<input
 				type="checkbox"

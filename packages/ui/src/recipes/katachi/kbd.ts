@@ -1,7 +1,13 @@
+import { tv, type VariantProps } from 'tailwind-variants'
 import { kumi } from '../kumi'
 import { take } from '../take'
 
-export const kbd = {
-	base: ['inline-flex', kumi.center, take.kbd.base, take.kbd.margin],
-	size: take.kbd.size,
-}
+export const kbd = tv({
+	base: ['inline-flex', kumi.center, ...take.kbd.base, take.kbd.margin],
+	variants: {
+		size: take.kbd.size,
+	},
+	defaultVariants: { size: 'md' },
+})
+
+export type KbdVariants = VariantProps<typeof kbd>

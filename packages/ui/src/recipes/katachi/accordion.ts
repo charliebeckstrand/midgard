@@ -1,27 +1,40 @@
+import { tv, type VariantProps } from 'tailwind-variants'
 import { kage } from '../kage'
 import { maru } from '../maru'
 import { nagare } from '../nagare'
 import { sumi } from '../sumi'
 
-export const accordion = {
+export const accordion = tv({
 	base: 'flex flex-col',
-	variant: {
-		separated: ['gap-2'],
-		bordered: [
-			'overflow-hidden',
-			maru.rounded,
-			kage.border,
-			'divide-y divide-zinc-950/10',
-			'dark:divide-white/10',
-		],
-		plain: ['divide-y divide-zinc-950/10', 'dark:divide-white/10'],
+	variants: {
+		variant: {
+			separated: 'gap-2',
+			bordered: [
+				'overflow-hidden',
+				maru.rounded,
+				...kage.border,
+				'divide-y divide-zinc-950/10',
+				'dark:divide-white/10',
+			],
+			plain: ['divide-y divide-zinc-950/10', 'dark:divide-white/10'],
+		},
 	},
-	item: {
-		base: 'group/accordion-item',
-		separated: ['overflow-hidden', maru.rounded, kage.border],
-		bordered: '',
-		plain: '',
+	defaultVariants: { variant: 'separated' },
+})
+
+export const accordionItem = tv({
+	base: 'group/accordion-item',
+	variants: {
+		variant: {
+			separated: ['overflow-hidden', maru.rounded, ...kage.border],
+			bordered: '',
+			plain: '',
+		},
 	},
+	defaultVariants: { variant: 'separated' },
+})
+
+export const slots = {
 	button: [
 		'w-full flex items-center justify-between',
 		'gap-3 px-4 py-3',
@@ -37,5 +50,7 @@ export const accordion = {
 	indicator: ['shrink-0', nagare.transform, 'group-data-[open]/accordion-item:rotate-180'],
 	panel: 'overflow-hidden',
 	body: ['px-4 pb-3 pt-0', 'text-sm/6', sumi.textMuted],
-	defaults: { variant: 'separated' as const },
 }
+
+export type AccordionVariants = VariantProps<typeof accordion>
+export type AccordionItemVariants = VariantProps<typeof accordionItem>

@@ -5,13 +5,7 @@ import { kokkaku } from '../../recipes'
 import { useControl } from '../control/context'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
-import {
-	k,
-	type RadioVariants,
-	radioColorVariants,
-	radioInputVariants,
-	radioVariants,
-} from './variants'
+import { type RadioVariants, radioInputVariants, radioVariants } from './variants'
 
 export type RadioProps = RadioVariants & {
 	className?: string
@@ -29,10 +23,7 @@ export function Radio({ className, color, id, disabled, required, ...props }: Ra
 	}
 
 	return (
-		<label
-			data-slot="control"
-			className={cn(k.wrapper, radioVariants(), radioColorVariants({ color }), className)}
-		>
+		<label data-slot="control" className={cn(radioVariants({ color }), className)}>
 			<input
 				type="radio"
 				data-slot="radio"

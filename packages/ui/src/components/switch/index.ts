@@ -9,7 +9,6 @@ export {
 export {
 	type SwitchFieldVariants,
 	type SwitchVariants,
-	switchColorVariants,
 	switchFieldVariants,
 	switchInputVariants,
 	switchThumbVariants,

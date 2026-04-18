@@ -8,13 +8,7 @@ import { useControl } from '../control/context'
 import { useFormToggle } from '../form/context'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
-import {
-	type CheckboxVariants,
-	checkboxColorVariants,
-	checkboxInputVariants,
-	checkboxVariants,
-	k,
-} from './variants'
+import { type CheckboxVariants, checkboxInputVariants, checkboxVariants } from './variants'
 
 export type CheckboxProps = CheckboxVariants & {
 	indeterminate?: boolean
@@ -63,10 +57,7 @@ export function Checkbox({
 	}
 
 	return (
-		<label
-			data-slot="control"
-			className={cn(k.wrapper, checkboxVariants(), checkboxColorVariants({ color }), className)}
-		>
+		<label data-slot="control" className={cn(checkboxVariants({ color }), className)}>
 			<input
 				type="checkbox"
 				data-slot="checkbox"

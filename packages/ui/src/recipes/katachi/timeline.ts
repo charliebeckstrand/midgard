@@ -1,15 +1,24 @@
+import { tv, type VariantProps } from 'tailwind-variants'
 import { sumi } from '../sumi'
 
-export const timeline = {
+export const timeline = tv({
 	base: ['list-none p-0 m-0'],
-	orientation: {
-		vertical: 'flex flex-col',
-		horizontal: 'flex flex-row overflow-x-auto',
+	variants: {
+		orientation: {
+			vertical: 'flex flex-col',
+			horizontal: 'flex flex-row overflow-x-auto',
+		},
+		variant: {
+			solid: '',
+			outline: '',
+		},
 	},
-	variant: {
-		solid: '',
-		outline: '',
-	},
+	defaultVariants: { orientation: 'vertical', variant: 'solid' },
+})
+
+export type TimelineVariants = VariantProps<typeof timeline>
+
+export const slots = {
 	item: {
 		base: 'relative last:[&>[data-slot=timeline-connector]]:hidden',
 		vertical: 'grid grid-cols-[0.875rem_1fr] gap-x-4 pb-8 last:pb-0',
@@ -47,8 +56,7 @@ export const timeline = {
 			blue: 'text-blue-500 dark:text-blue-500',
 		},
 	},
-	heading: ['col-start-2 row-start-2 text-sm/6 font-semibold', sumi.text],
-	description: ['col-start-2 row-start-3 mt-0.5 text-sm/5', sumi.textMuted],
-	timestamp: ['col-start-2 row-start-1 text-xs/5', sumi.textMuted],
-	defaults: { orientation: 'vertical' as const, variant: 'solid' as const },
+	heading: ['col-start-2 row-start-2 text-sm/6 font-semibold', ...sumi.text],
+	description: ['col-start-2 row-start-3 mt-0.5 text-sm/5', ...sumi.textMuted],
+	timestamp: ['col-start-2 row-start-1 text-xs/5', ...sumi.textMuted],
 }
