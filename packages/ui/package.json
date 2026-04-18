@@ -203,6 +203,10 @@
 			"types": "./src/components/listbox/index.ts",
 			"default": "./src/components/listbox/index.ts"
 		},
+		"./map": {
+			"types": "./src/components/map/index.ts",
+			"default": "./src/components/map/index.ts"
+		},
 		"./menu": {
 			"types": "./src/components/menu/index.ts",
 			"default": "./src/components/menu/index.ts"
@@ -407,6 +411,7 @@
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.0.0",
 		"lucide-react": "^1.7.0",
+		"maplibre-gl": "^5.23.0",
 		"motion": "^12.0.0",
 		"shiki": "^3.23.0",
 		"tailwind-merge": "^3.5.0",

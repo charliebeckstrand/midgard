@@ -39,6 +39,7 @@ import { kanban } from './kanban'
 import { kbd } from './kbd'
 import { list } from './list'
 import { listbox } from './listbox'
+import { map } from './map'
 import { menu } from './menu'
 import { nav } from './nav'
 import { navbar } from './navbar'
@@ -110,6 +111,7 @@ export const katachi = {
 	kbd,
 	list,
 	listbox,
+	map,
 	menu,
 	nav,
 	navbar,
