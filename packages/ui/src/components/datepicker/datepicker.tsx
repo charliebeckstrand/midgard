@@ -84,6 +84,7 @@ function DatePickerSingle({
 }: DatePickerBaseProps & DatePickerSingleProps) {
 	const glass = useGlass()
 	const control = useControl()
+
 	const scope = useIdScope({ id: control?.id })
 
 	const [value, setValue] = useControllable({ value: valueProp, defaultValue, onChange })

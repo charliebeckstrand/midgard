@@ -104,7 +104,12 @@ export const JsonNode = memo(function JsonNode({ keyName, value }: JsonNodeProps
 		return (
 			<div data-highlighted={highlighted || undefined}>
 				<div className={cn(k.row, highlighted && k.highlight)} style={{ paddingLeft }}>
-					<div role="treeitem" tabIndex={-1} data-slot="json-node" className={cn(k.leaf)}>
+					<div
+						role="treeitem"
+						tabIndex={depth === 0 ? 0 : -1}
+						data-slot="json-node"
+						className={cn(k.leaf)}
+					>
 						<span className={k.chevronSpacer} aria-hidden="true" />
 						<NodeKey keyName={keyName} />
 						<PrimitiveValue value={value} />
@@ -135,7 +140,7 @@ export const JsonNode = memo(function JsonNode({ keyName, value }: JsonNodeProps
 					role="treeitem"
 					aria-expanded={open}
 					aria-level={depth + 1}
-					tabIndex={-1}
+					tabIndex={depth === 0 ? 0 : -1}
 					data-slot="json-node-toggle"
 					data-open={open || undefined}
 					className={cn(k.toggle)}

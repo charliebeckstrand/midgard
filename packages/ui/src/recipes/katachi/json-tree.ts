@@ -1,4 +1,3 @@
-import { ki } from '../ki'
 import { maru } from '../maru'
 import { nagare } from '../nagare'
 import { sumi } from '../sumi'
@@ -21,20 +20,20 @@ const rowBase = [
 	'py-0.5 px-2',
 	take.text.sm,
 	maru.rounded,
+	'has-focus-visible:bg-blue-100/60 dark:has-focus-visible:bg-blue-600/30',
 ]
 
 export const jsonTree = {
-	base: 'font-mono',
+	base: 'inline-flex flex-col font-mono',
 	row: rowBase,
-	leaf: ['flex flex-1 items-center min-w-0', take.gap.sm, ki.inset],
+	leaf: ['flex flex-1 items-center min-w-0 outline-none', take.gap.sm],
 	toggle: [
-		'flex flex-1 items-center min-w-0 text-left cursor-pointer',
+		'flex flex-1 items-center min-w-0 text-left cursor-pointer outline-none',
 		take.gap.sm,
 		sumi.textMuted,
 		sumi.textHover,
 		'data-[open]:text-zinc-950 dark:data-[open]:text-white',
 		maru.rounded,
-		ki.inset,
 	],
 	chevron: ['flex-none', nagare.transform],
 	chevronSpacer: 'inline-block w-4 flex-none',

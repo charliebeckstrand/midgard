@@ -6,6 +6,7 @@ import { DatePicker } from '../../components/datepicker'
 import { Field, Label } from '../../components/fieldset'
 import { Filters, FiltersClear, FiltersField, useFilters } from '../../components/filters'
 import { Input } from '../../components/input'
+import { JsonTree } from '../../components/json-tree'
 import { NumberInput } from '../../components/number-input'
 import { Select, SelectLabel, SelectOption } from '../../components/select'
 import { Stack } from '../../components/stack'
@@ -23,13 +24,9 @@ type BasicFilters = {
 // ── Shared output component ────────────────────────
 
 function FilterOutput() {
-	const { value, activeCount } = useFilters()
+	const { value } = useFilters()
 
-	return (
-		<div className={activeCount > 0 ? 'whitespace-pre-wrap' : ''}>
-			{JSON.stringify(value, null, 2)}
-		</div>
-	)
+	return <JsonTree data={JSON.parse(JSON.stringify(value))} />
 }
 
 function FiltersClearButton() {
