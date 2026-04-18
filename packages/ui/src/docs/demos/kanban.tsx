@@ -100,7 +100,7 @@ function ReadOnly() {
 					<KanbanColumn key={column.id} columnId={column.id}>
 						<KanbanColumnHeader>
 							<KanbanColumnTitle>{column.title}</KanbanColumnTitle>
-							<Badge>{column.items.length}</Badge>
+							<Badge className="tabular-nums">{column.items.length}</Badge>
 						</KanbanColumnHeader>
 						<KanbanColumnBody empty={<NoItems />}>
 							{column.items.map((load) => (
@@ -127,7 +127,7 @@ function Disabled() {
 					<KanbanColumn key={column.id} columnId={column.id}>
 						<KanbanColumnHeader>
 							<KanbanColumnTitle>{column.title}</KanbanColumnTitle>
-							<Badge>{column.items.length}</Badge>
+							<Badge className="tabular-nums">{column.items.length}</Badge>
 						</KanbanColumnHeader>
 						<KanbanColumnBody empty={<NoItems />}>
 							{column.items.map((load) => (
