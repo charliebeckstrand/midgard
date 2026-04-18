@@ -1,8 +1,39 @@
+import { tv, type VariantProps } from 'tailwind-variants'
+import { colorMatrix } from '../../core/recipe'
 import { maru } from '../maru'
 import { nuri } from '../nuri'
 import { take } from '../take'
 
-export const avatar = {
+export const avatar = tv({
+	base: [
+		'inline-grid place-items-center overflow-hidden align-middle',
+		'*:col-start-1 *:row-start-1',
+		maru.roundedFull,
+	],
+	variants: {
+		variant: {
+			solid: 'border border-transparent text-white',
+			soft: 'border border-transparent',
+			outline: 'border',
+		},
+		color: { zinc: '', red: '', amber: '', green: '', blue: '' },
+		size: take.avatar,
+	},
+	compoundVariants: [
+		...colorMatrix('solid', nuri.solid),
+		...colorMatrix('soft', nuri.soft),
+		...colorMatrix('outline', nuri.outline),
+	],
+	defaultVariants: { variant: 'solid', color: 'zinc', size: 'md' },
+})
+
+export const avatarInitials = tv({
+	base: 'select-none fill-current text-[48px] font-medium uppercase',
+})
+export const avatarImage = tv({ base: 'size-full object-cover' })
+
+/** Slot classes for avatar group and status ring. */
+export const slots = {
 	group: {
 		base: 'flex items-center',
 		ring: '*:ring-2 *:ring-white dark:*:ring-zinc-900',
@@ -15,27 +46,6 @@ export const avatar = {
 		},
 	},
 	statusRing: 'ring-2 ring-white dark:ring-zinc-900',
-	base: [
-		'inline-grid place-items-center overflow-hidden align-middle',
-		'*:col-start-1 *:row-start-1',
-		maru.roundedFull,
-	],
-	variant: {
-		solid: {
-			base: 'border border-transparent text-white',
-			color: nuri.solid,
-		},
-		soft: {
-			base: 'border border-transparent',
-			color: nuri.soft,
-		},
-		outline: {
-			base: 'border',
-			color: nuri.outline,
-		},
-	},
-	size: take.avatar,
-	defaults: { variant: 'solid' as const, color: 'zinc' as const, size: 'md' as const },
-	initials: 'select-none fill-current text-[48px] font-medium uppercase',
-	image: 'size-full object-cover',
 }
+
+export type AvatarVariants = VariantProps<typeof avatar>
