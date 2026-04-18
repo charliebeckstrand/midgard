@@ -3,7 +3,6 @@
 import {
 	type ClipboardEvent,
 	type KeyboardEvent,
-	type ReactNode,
 	useCallback,
 	useMemo,
 	useRef,
@@ -17,32 +16,13 @@ import { EditableGridCellContent } from './cell'
 import {
 	type CellChange,
 	type Coord,
+	type EditableGridColumn,
 	type EditableGridContextValue,
 	EditableGridProvider,
 } from './context'
+import { useEditableGridMutations } from './use-editable-grid-mutations'
+import { useEditableGridNavigation } from './use-editable-grid-navigation'
 import { k } from './variants'
-
-// ── Column definition ───────────────────────────────────
-
-export type EditableGridColumn<T> = {
-	id: string | number
-	title?: ReactNode
-	/** Read/write field on the row. */
-	field?: keyof T
-	/** Format a cell value for display. Defaults to `String(row[field] ?? '')`. */
-	format?: (row: T) => string
-	/** Parse the raw editor string. Defaults to the raw string. */
-	parse?: (raw: string, row: T) => unknown
-	/** Cells in this column can't be edited. Nav still visits them. */
-	readOnly?: boolean
-	align?: 'left' | 'center' | 'right'
-	sortable?: boolean
-	selectable?: boolean
-	actions?: (row: T) => ReactNode
-	width?: string
-	className?: string
-	headerClassName?: string
-}
 
 // ── EditableGrid ───────────────────────────────────────
 
@@ -102,13 +82,18 @@ export function EditableGrid<T>({
 
 	const selection = selectionRaw ?? new Set<string | number>()
 
-	const [active, setActive] = useState<Coord | null>(null)
 	const [editing, setEditing] = useState(false)
+
 	const [draft, setDraft] = useState('')
 
 	// Guards the commit-on-blur that fires when the input unmounts after an
 	// explicit Enter / Tab / Escape commit. Ensures a single commit per session.
 	const sessionClosedRef = useRef(false)
+
+	// The cell's formatted display value when editing began. Used to skip no-op
+	// commits so a lossy format→parse round-trip (e.g. "$2.35" → NaN) never
+	// overwrites an unchanged cell.
+	const originalFormattedRef = useRef('')
 
 	// Stable refs so callbacks don't rebuild every render.
 	const rowsRef = useRef(rows)
@@ -153,103 +138,97 @@ export function EditableGrid<T>({
 		return raw
 	}, [])
 
-	// ── Emit changes ───────────────────────────────────────
-
-	const applyCellWrite = useCallback(
-		(rowIdx: number, editableColIdx: number, raw: string) => {
-			const col = editableCols[editableColIdx]
-
-			if (!col || col.readOnly) return
-
-			const currentRows = rowsRef.current
-			const currentRow = currentRows[rowIdx]
-
-			if (!currentRow) return
-
-			const rowKey = getRowKey(currentRow, rowIdx)
-
-			const value = parseValue(raw, currentRow, col)
-
-			// If this row is part of a multi-row selection, fill the column.
-			const sel = selectionRef.current
-			const inSel = sel.has(rowKey) && sel.size > 1
-
-			const changes: CellChange[] = []
-
-			if (inSel) {
-				currentRows.forEach((r, i) => {
-					const rk = getRowKey(r, i)
-
-					if (sel.has(rk)) changes.push({ rowKey: rk, columnId: col.id, value })
-				})
-			} else {
-				changes.push({ rowKey, columnId: col.id, value })
-			}
-
-			onChange(changes)
-		},
-		[editableCols, getRowKey, parseValue, onChange],
-	)
-
 	// ── Navigation ─────────────────────────────────────────
 
-	const clampCoord = useCallback(
-		(row: number, col: number): Coord => ({
-			row: Math.max(0, Math.min(rowsRef.current.length - 1, row)),
-			col: Math.max(0, Math.min(editableCols.length - 1, col)),
-		}),
-		[editableCols.length],
-	)
+	const {
+		active,
+		anchor,
+		extraCells,
+		activeRef,
+		anchorRef,
+		extraCellsRef,
+		setActive,
+		setAnchor,
+		setExtraCells,
+		moveActiveTo,
+		moveActive,
+		moveActiveTab,
+		addCellToSelection,
+	} = useEditableGridNavigation<T>({ rowsRef, editableColCount: editableCols.length })
 
-	const moveActive = useCallback(
-		(dRow: number, dCol: number) => {
-			setActive((prev) => {
-				if (rowsRef.current.length === 0 || editableCols.length === 0) return null
+	// ── Mutations ──────────────────────────────────────────
 
-				const base = prev ?? { row: 0, col: 0 }
+	const { applyCellWrite, applyBulkFill } = useEditableGridMutations<T>({
+		editableCols,
+		rowsRef,
+		selectionRef,
+		activeRef,
+		anchorRef,
+		extraCellsRef,
+		getRowKey,
+		parseValue,
+		onChange,
+		setSelection: setSelectionRaw,
+	})
 
-				return clampCoord(base.row + dRow, base.col + dCol)
-			})
-		},
-		[clampCoord, editableCols.length],
-	)
+	const hasMultiSelection = !!anchor || extraCells.size > 0
 
 	// ── Edit lifecycle ─────────────────────────────────────
 
 	const beginEdit = useCallback(
-		(coord: Coord, initial?: string) => {
+		(coord: Coord, initial?: string, original?: string) => {
 			const col = editableCols[coord.col]
 
 			if (!col || col.readOnly) return
 
+			const initialDraft = initial ?? ''
+
 			sessionClosedRef.current = false
+
+			originalFormattedRef.current = original ?? initialDraft
 
 			setActive(coord)
 
-			setDraft(initial ?? '')
+			setDraft(initialDraft)
 
 			setEditing(true)
 		},
-		[editableCols],
+		[editableCols, setActive],
 	)
 
 	const commitEdit = useCallback(
 		(advance: 'down' | 'right' | 'left' | 'none') => {
-			if (sessionClosedRef.current) return
+			if (sessionClosedRef.current) return true
 
 			sessionClosedRef.current = true
 
 			setEditing(false)
 
-			if (active) applyCellWrite(active.row, active.col, draft)
+			if (active && draft !== originalFormattedRef.current) {
+				if (anchorRef.current || extraCellsRef.current.size > 0) applyBulkFill(draft)
+				else applyCellWrite(active.row, active.col, draft)
+			}
+
+			let stayedInGrid = true
 
 			if (advance === 'down') moveActive(1, 0)
-			else if (advance === 'right') moveActive(0, 1)
-			else if (advance === 'left') moveActive(0, -1)
+			else if (advance === 'right') stayedInGrid = moveActiveTab(1)
+			else if (advance === 'left') stayedInGrid = moveActiveTab(-1)
 
-			wrapperRef.current?.focus()
+			if (stayedInGrid) wrapperRef.current?.focus()
+
+			return stayedInGrid
 		},
-		[active, draft, applyCellWrite, moveActive],
+		[
+			active,
+			draft,
+			anchorRef,
+			extraCellsRef,
+			applyCellWrite,
+			applyBulkFill,
+			moveActive,
+			moveActiveTab,
+		],
 	)
 
 	const cancelEdit = useCallback(() => {
@@ -276,45 +255,55 @@ export function EditableGrid<T>({
 				case 'ArrowUp':
 					e.preventDefault()
 
-					moveActive(-1, 0)
+					moveActive(-1, 0, e.shiftKey)
 
 					return
 				case 'ArrowDown':
 					e.preventDefault()
 
-					moveActive(1, 0)
+					moveActive(1, 0, e.shiftKey)
 
 					return
 				case 'ArrowLeft':
 					e.preventDefault()
 
-					moveActive(0, -1)
+					moveActive(0, -1, e.shiftKey)
 
 					return
 				case 'ArrowRight':
+					e.preventDefault()
+
+					moveActive(0, 1, e.shiftKey)
+
+					return
 				case 'Tab':
-					e.preventDefault()
-
-					moveActive(0, e.shiftKey ? -1 : 1)
+					if (moveActiveTab(e.shiftKey ? -1 : 1)) e.preventDefault()
 
 					return
-				case 'Home':
+				case 'Home': {
 					e.preventDefault()
 
-					setActive((p) => ({ row: p?.row ?? 0, col: 0 }))
+					const prev = activeRef.current ?? { row: 0, col: 0 }
+
+					moveActiveTo({ row: prev.row, col: 0 }, e.shiftKey)
 
 					return
-				case 'End':
+				}
+				case 'End': {
 					e.preventDefault()
 
-					setActive((p) => ({ row: p?.row ?? 0, col: editableCols.length - 1 }))
+					const prev = activeRef.current ?? { row: 0, col: 0 }
+
+					moveActiveTo({ row: prev.row, col: editableCols.length - 1 }, e.shiftKey)
 
 					return
+				}
 				case 'Enter':
 				case 'F2': {
 					if (!active) return
 
 					const row = rowsRef.current[active.row]
+
 					const col = editableCols[active.col]
 
 					if (!row || !col) return
@@ -331,19 +320,58 @@ export function EditableGrid<T>({
 
 					e.preventDefault()
 
-					applyCellWrite(active.row, active.col, '')
+					if (hasMultiSelection) applyBulkFill('')
+					else applyCellWrite(active.row, active.col, '')
+
+					return
+				case 'Escape':
+					if (!active) return
+
+					e.preventDefault()
+
+					if (hasMultiSelection) {
+						if (anchor) setAnchor(null)
+
+						if (extraCells.size > 0) setExtraCells(new Set())
+					} else {
+						setActive(null)
+					}
 
 					return
 			}
 
 			// Printable single character starts edit and replaces the value.
 			if (active && key.length === 1 && !e.metaKey && !e.ctrlKey && !e.altKey) {
+				const row = rowsRef.current[active.row]
+
+				const col = editableCols[active.col]
+
+				if (!row || !col) return
+
 				e.preventDefault()
 
-				beginEdit(active, key)
+				beginEdit(active, key, formatCell(row, col))
 			}
 		},
-		[editing, active, editableCols, moveActive, beginEdit, formatCell, applyCellWrite],
+		[
+			editing,
+			active,
+			anchor,
+			extraCells,
+			hasMultiSelection,
+			editableCols,
+			activeRef,
+			moveActive,
+			moveActiveTo,
+			moveActiveTab,
+			setActive,
+			setAnchor,
+			setExtraCells,
+			beginEdit,
+			formatCell,
+			applyCellWrite,
+			applyBulkFill,
+		],
 	)
 
 	const onWrapperPaste = useCallback(
@@ -361,9 +389,13 @@ export function EditableGrid<T>({
 				.split('\n')
 				.map((r) => r.split('\t'))
 
-			// Single cell → write to active (may bulk-fill by selection).
+			// Single cell → fill all selected cells if there's a multi-selection,
+			// else write to active (which may still bulk-fill by row selection).
 			if (matrix.length === 1 && (matrix[0]?.length ?? 0) === 1) {
-				applyCellWrite(active.row, active.col, matrix[0]?.[0] ?? '')
+				const raw = matrix[0]?.[0] ?? ''
+
+				if (hasMultiSelection) applyBulkFill(raw)
+				else applyCellWrite(active.row, active.col, raw)
 
 				return
 			}
@@ -375,7 +407,9 @@ export function EditableGrid<T>({
 				cells.forEach((raw, c) => {
 					const rowIdx = active.row + r
 					const colIdx = active.col + c
+
 					const col = editableCols[colIdx]
+
 					const row = rowsRef.current[rowIdx]
 
 					if (!col || !row || col.readOnly) return
@@ -388,9 +422,24 @@ export function EditableGrid<T>({
 				})
 			})
 
-			if (changes.length) onChange(changes)
+			if (changes.length) {
+				onChange(changes)
+
+				if (selectionRef.current.size > 0) setSelectionRaw(new Set())
+			}
 		},
-		[editing, active, editableCols, getRowKey, parseValue, onChange, applyCellWrite],
+		[
+			editing,
+			active,
+			hasMultiSelection,
+			editableCols,
+			getRowKey,
+			parseValue,
+			onChange,
+			applyCellWrite,
+			applyBulkFill,
+			setSelectionRaw,
+		],
 	)
 
 	// ── Column augmentation ────────────────────────────────
@@ -413,7 +462,9 @@ export function EditableGrid<T>({
 			}
 
 			const colIdx = editableColIdx++
+
 			const align = col.align ?? 'left'
+
 			const readOnly = col.readOnly ?? false
 
 			return {
@@ -425,6 +476,7 @@ export function EditableGrid<T>({
 				headerClassName: col.headerClassName,
 				cell: (row: T) => {
 					const rowIdx = rowIndexMap.get(row) ?? -1
+
 					const formatted = formatCell(row, col)
 
 					return (
@@ -444,15 +496,29 @@ export function EditableGrid<T>({
 	const ctx = useMemo<EditableGridContextValue>(
 		() => ({
 			active,
+			anchor,
+			extraCells,
 			editing,
 			draft,
 			setDraft,
-			setActive,
+			setActive: moveActiveTo,
+			addCellToSelection,
 			beginEdit,
 			commitEdit,
 			cancelEdit,
 		}),
-		[active, editing, draft, beginEdit, commitEdit, cancelEdit],
+		[
+			active,
+			anchor,
+			extraCells,
+			editing,
+			draft,
+			moveActiveTo,
+			addCellToSelection,
+			beginEdit,
+			commitEdit,
+			cancelEdit,
+		],
 	)
 
 	return (
@@ -466,6 +532,38 @@ export function EditableGrid<T>({
 				className={cn('outline-none', className)}
 				onKeyDown={onWrapperKeyDown}
 				onPaste={onWrapperPaste}
+				onFocus={(e) => {
+					const wrapper = wrapperRef.current
+
+					if (!wrapper || e.target !== wrapper) return
+
+					if (activeRef.current) return
+
+					const rel = e.relatedTarget
+
+					if (rel instanceof Node && wrapper.contains(rel)) return
+
+					if (rowsRef.current.length === 0 || editableCols.length === 0) return
+
+					const cameFromAfter =
+						rel instanceof Node &&
+						!!(wrapper.compareDocumentPosition(rel) & Node.DOCUMENT_POSITION_FOLLOWING)
+
+					moveActiveTo(
+						cameFromAfter
+							? { row: rowsRef.current.length - 1, col: editableCols.length - 1 }
+							: { row: 0, col: 0 },
+					)
+				}}
+				onBlur={(e) => {
+					const next = e.relatedTarget
+
+					if (next instanceof Node && wrapperRef.current?.contains(next)) return
+
+					setActive(null)
+
+					setAnchor(null)
+				}}
 			>
 				<DataTable
 					columns={augmentedColumns}

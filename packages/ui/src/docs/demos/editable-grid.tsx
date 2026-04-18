@@ -1,13 +1,13 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { Alert } from '../../components/alert'
 import {
 	type CellChange,
 	EditableGrid,
 	type EditableGridColumn,
 } from '../../components/editable-grid'
 import { Stack } from '../../components/stack'
-import { Text } from '../../components/text'
 import { code } from '../code'
 import { Example } from '../components/example'
 
@@ -74,11 +74,13 @@ function applyChanges<T extends { id: number }>(rows: T[], changes: CellChange[]
 
 export default function EditableGridDemo() {
 	const [rates, setRates] = useState<LaneRate[]>(initialRates)
+
+	const [bulkRates, setBulkRates] = useState<LaneRate[]>(initialRates)
+
 	const [selection, setSelection] = useState<Set<string | number>>(new Set())
 
 	const columns = useMemo<EditableGridColumn<LaneRate>[]>(
 		() => [
-			{ id: 'select', selectable: true, width: '48px' },
 			{ id: 'state', title: 'State', field: 'state', readOnly: true, width: '80px' },
 			numericColumn({
 				id: 'perMile',
@@ -102,16 +104,53 @@ export default function EditableGridDemo() {
 		[],
 	)
 
+	const bulkColumns = useMemo<EditableGridColumn<LaneRate>[]>(
+		() => [{ id: 'select', selectable: true, width: '48px' }, ...columns],
+		[columns],
+	)
+
 	return (
 		<Stack gap={6}>
 			<Example
-				title="Bulk update rates by state"
+				title="Default"
 				prefix={
-					<Text variant="muted" className="text-sm">
-						Click a cell to activate it, double-click or Enter to edit. Select multiple rows with
-						the checkboxes and commit an edit — the same value will be applied across every selected
-						row.
-					</Text>
+					<Alert type="info" block closable>
+						Click to activate a cell, double-click or press Enter to edit. Press Tab or Enter to
+						commit and move, or Escape to cancel.
+					</Alert>
+				}
+				code={code`
+					import { EditableGrid, type EditableGridColumn } from 'ui/editable-grid'
+
+					const columns: EditableGridColumn<LaneRate>[] = [
+						{ id: 'state', title: 'State', field: 'state', readOnly: true },
+						{ id: 'perMile', title: 'Per-mile', field: 'perMile', align: 'right' },
+						{ id: 'minCharge', title: 'Min charge', field: 'minCharge', align: 'right' },
+						{ id: 'fuelPct', title: 'Fuel %', field: 'fuelPct', align: 'right' },
+					]
+
+					<EditableGrid
+						columns={columns}
+						rows={rates}
+						getRowKey={(row) => row.id}
+						onChange={(changes) => setRates(applyChanges(rates, changes))}
+					/>
+				`}
+			>
+				<EditableGrid
+					grid
+					columns={columns}
+					rows={rates}
+					getRowKey={(row) => row.id}
+					onChange={(changes) => setRates((prev) => applyChanges(prev, changes))}
+				/>
+			</Example>
+			<Example
+				title="Bulk update"
+				prefix={
+					<Alert type="info" block closable>
+						Select rows with the checkboxes to apply a single edit across all of them at once.
+					</Alert>
 				}
 				code={code`
 					import { EditableGrid, type EditableGridColumn } from 'ui/editable-grid'
@@ -136,31 +175,12 @@ export default function EditableGridDemo() {
 			>
 				<EditableGrid
 					grid
-					columns={columns}
-					rows={rates}
+					columns={bulkColumns}
+					rows={bulkRates}
 					getRowKey={(row) => row.id}
 					selection={selection}
 					onSelectionChange={(s) => setSelection(s ?? new Set())}
-					onChange={(changes) => setRates((prev) => applyChanges(prev, changes))}
-				/>
-			</Example>
-
-			<Example
-				title="Keyboard navigation"
-				prefix={
-					<Text variant="muted" className="text-sm">
-						Arrow keys move the active cell. Enter or F2 begins editing the current value. Typing a
-						printable character replaces the value. Tab and Shift+Tab commit and move horizontally.
-						Delete clears a cell. Escape cancels an edit.
-					</Text>
-				}
-			>
-				<EditableGrid
-					grid
-					columns={columns.filter((c) => c.id !== 'select')}
-					rows={rates}
-					getRowKey={(row) => row.id}
-					onChange={(changes) => setRates((prev) => applyChanges(prev, changes))}
+					onChange={(changes) => setBulkRates((prev) => applyChanges(prev, changes))}
 				/>
 			</Example>
 		</Stack>

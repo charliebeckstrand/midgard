@@ -9,8 +9,8 @@ export const editableGrid = {
 		ma.density.px.md,
 		ma.density.py.md,
 		ki.inset,
-		'data-[active]:bg-blue-500/10',
-		'dark:data-[active]:bg-blue-400/15',
+		'data-[active]:bg-blue-500/10 data-[in-range]:bg-blue-500/10',
+		'dark:data-[active]:bg-blue-400/15 dark:data-[in-range]:bg-blue-400/15',
 	],
 	cellActive: [
 		'after:pointer-events-none after:absolute after:inset-0',
@@ -23,5 +23,17 @@ export const editableGrid = {
 		center: 'justify-center text-center',
 		right: 'justify-end text-right',
 	},
-	editInput: ['w-full bg-transparent outline-none', sumi.text],
+	editInput: [
+		'absolute inset-0 bg-transparent outline-none',
+		ma.density.px.md,
+		ma.density.py.md,
+		// 'selection:bg-lime-300 selection:text-lime-950',
+		// 'dark:selection:bg-lime-500/40 dark:selection:text-lime-50',
+		sumi.text,
+	],
+	editInputAlign: {
+		left: 'text-left',
+		center: 'text-center',
+		right: 'text-right',
+	},
 }
