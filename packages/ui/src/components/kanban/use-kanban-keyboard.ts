@@ -35,6 +35,73 @@ export function useKanbanKeyboard<T, C extends KanbanColumnShape<T>>({
 		[columns, getItemKey],
 	)
 
+	const focusCard = useCallback((cardId: string) => {
+		const el = document.querySelector(
+			`[data-slot="kanban-card"][data-card-id="${CSS.escape(cardId)}"]`,
+		) as HTMLElement | null
+
+		el?.focus()
+	}, [])
+
+	const focusNeighbor = useCallback(
+		(
+			cardId: string,
+			key: 'ArrowUp' | 'ArrowDown' | 'ArrowLeft' | 'ArrowRight' | 'Home' | 'End',
+		) => {
+			const colIdx = columns.findIndex((c) => c.items.some((i) => getItemKey(i) === cardId))
+
+			if (colIdx === -1) return false
+
+			const col = columns[colIdx]
+
+			const itemIdx = col.items.findIndex((i) => getItemKey(i) === cardId)
+
+			let targetCol = col
+
+			let targetIdx = itemIdx
+
+			switch (key) {
+				case 'ArrowUp':
+					targetIdx = itemIdx - 1
+
+					break
+				case 'ArrowDown':
+					targetIdx = itemIdx + 1
+
+					break
+				case 'Home':
+					targetIdx = 0
+
+					break
+				case 'End':
+					targetIdx = col.items.length - 1
+
+					break
+				case 'ArrowLeft':
+				case 'ArrowRight': {
+					const nextColIdx = colIdx + (key === 'ArrowLeft' ? -1 : 1)
+
+					if (nextColIdx < 0 || nextColIdx >= columns.length) return false
+
+					targetCol = columns[nextColIdx]
+
+					if (targetCol.items.length === 0) return false
+
+					targetIdx = Math.min(itemIdx, targetCol.items.length - 1)
+
+					break
+				}
+			}
+
+			if (targetIdx < 0 || targetIdx >= targetCol.items.length) return false
+
+			focusCard(getItemKey(targetCol.items[targetIdx]))
+
+			return true
+		},
+		[columns, getItemKey, focusCard],
+	)
+
 	const moveWithinColumn = useCallback(
 		(cardId: string, direction: -1 | 1) => {
 			if (!onChange) return
@@ -101,6 +168,8 @@ export function useKanbanKeyboard<T, C extends KanbanColumnShape<T>>({
 
 	const onCardKeyDown = useCallback(
 		(cardId: string, event: KeyboardEvent) => {
+			if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return
+
 			if (event.key === ' ') {
 				event.preventDefault()
 
@@ -109,7 +178,21 @@ export function useKanbanKeyboard<T, C extends KanbanColumnShape<T>>({
 				return
 			}
 
-			if (liftedCardId !== cardId) return
+			if (liftedCardId !== cardId) {
+				switch (event.key) {
+					case 'ArrowUp':
+					case 'ArrowDown':
+					case 'ArrowLeft':
+					case 'ArrowRight':
+					case 'Home':
+					case 'End':
+						if (focusNeighbor(cardId, event.key)) event.preventDefault()
+
+						break
+				}
+
+				return
+			}
 
 			switch (event.key) {
 				case 'Escape':
@@ -145,7 +228,7 @@ export function useKanbanKeyboard<T, C extends KanbanColumnShape<T>>({
 					break
 			}
 		},
-		[liftedCardId, moveWithinColumn, moveToColumn],
+		[liftedCardId, moveWithinColumn, moveToColumn, focusNeighbor],
 	)
 
 	const onCardBlur = useCallback(() => {
