@@ -1,11 +1,16 @@
+import { tv, type VariantProps } from 'tailwind-variants'
 import { kage } from '../kage'
 import { maru } from '../maru'
 
-export const navbar = {
+export const navbar = tv({
 	base: ['flex items-center gap-4', 'overflow-x-auto', 'px-4 py-2.5', maru.rounded, 'border'],
-	variant: {
-		outline: [kage.borderColor],
-		plain: [kage.borderTransparent],
+	variants: {
+		variant: {
+			outline: [...kage.borderColor],
+			plain: [...kage.borderTransparent],
+		},
 	},
-	defaults: { variant: 'outline' as const },
-}
+	defaultVariants: { variant: 'outline' },
+})
+
+export type NavbarVariants = VariantProps<typeof navbar>

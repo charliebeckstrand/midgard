@@ -1,21 +1,23 @@
+import { tv, type VariantProps } from 'tailwind-variants'
 import { kumi } from '../kumi'
 import { maru } from '../maru'
 import { sumi } from '../sumi'
 
-export const progress = {
-	bar: {
-		track: ['overflow-hidden', maru.roundedFull, 'bg-zinc-200', 'dark:bg-zinc-700'],
-		fill: ['h-full', maru.roundedFull],
-		indeterminate: 'w-1/3 animate-[progress-indeterminate_1.5s_ease-in-out_infinite]',
+export const progressTrack = tv({
+	base: ['overflow-hidden', maru.roundedFull, 'bg-zinc-200', 'dark:bg-zinc-700'],
+	variants: {
 		size: {
 			sm: 'h-1',
 			md: 'h-2',
 			lg: 'h-3',
 		},
-		defaults: { size: 'md' as const },
 	},
-	gauge: {
-		base: ['inline-flex', kumi.center, 'relative'],
+	defaultVariants: { size: 'md' },
+})
+
+export const progressGauge = tv({
+	base: ['inline-flex', kumi.center, 'relative'],
+	variants: {
 		size: {
 			xs: 'size-6',
 			sm: 'size-8',
@@ -23,7 +25,20 @@ export const progress = {
 			lg: 'size-16',
 			xl: 'size-20',
 		},
-		label: ['absolute', 'font-semibold', sumi.text],
+	},
+	defaultVariants: { size: 'md' },
+})
+
+export type ProgressTrackVariants = VariantProps<typeof progressTrack>
+export type ProgressGaugeVariants = VariantProps<typeof progressGauge>
+
+export const slots = {
+	bar: {
+		fill: ['h-full', maru.roundedFull],
+		indeterminate: 'w-1/3 animate-[progress-indeterminate_1.5s_ease-in-out_infinite]',
+	},
+	gauge: {
+		label: ['absolute', 'font-semibold', ...sumi.text],
 		labelSize: {
 			xs: 'text-[6px]',
 			sm: 'text-[8px]',
@@ -31,7 +46,6 @@ export const progress = {
 			lg: 'text-sm',
 			xl: 'text-base',
 		},
-		defaults: { size: 'md' as const },
 	},
 	color: {
 		zinc: {
@@ -63,4 +77,12 @@ export const progress = {
 	track: {
 		stroke: 'stroke-zinc-200 dark:stroke-zinc-700',
 	},
+}
+
+/** Kept for the `katachi` barrel — not consumed directly. */
+export const progress = {
+	bar: { track: progressTrack, ...slots.bar },
+	gauge: { base: progressGauge, ...slots.gauge },
+	color: slots.color,
+	track: slots.track,
 }

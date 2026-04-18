@@ -1,13 +1,14 @@
+import { tv, type VariantProps } from 'tailwind-variants'
 import { yasumi } from '../yasumi'
 
-export const slider = {
+export const slider = tv({
 	base: [
 		'w-full',
 		'appearance-none',
 		'bg-transparent',
 		'cursor-pointer',
 		'outline-none',
-		yasumi.disabled,
+		...yasumi.disabled,
 
 		// --slider-value is set inline (0–100 %); --slider-fill / --slider-track come from the color variant.
 		'[&::-webkit-slider-runnable-track]:w-full',
@@ -60,38 +61,42 @@ export const slider = {
 		'focus-visible:[&::-moz-range-thumb]:ring-blue-600',
 		'dark:focus-visible:[&::-moz-range-thumb]:ring-blue-600',
 	],
-	size: {
-		// Vertical padding extends the native hit area without changing the visible thumb size.
-		sm: [
-			'py-4',
-			'[&::-webkit-slider-runnable-track]:h-1',
-			'[&::-webkit-slider-thumb]:size-3 [&::-webkit-slider-thumb]:-mt-1',
-			'[&::-moz-range-track]:h-1',
-			'[&::-moz-range-thumb]:size-3',
-		],
-		md: [
-			'py-5',
-			'[&::-webkit-slider-runnable-track]:h-1.5',
-			'[&::-webkit-slider-thumb]:size-4 [&::-webkit-slider-thumb]:-mt-[5px]',
-			'[&::-moz-range-track]:h-1.5',
-			'[&::-moz-range-thumb]:size-4',
-		],
-		lg: [
-			'py-6',
-			'[&::-webkit-slider-runnable-track]:h-2',
-			'[&::-webkit-slider-thumb]:size-5 [&::-webkit-slider-thumb]:-mt-[6px]',
-			'[&::-moz-range-track]:h-2',
-			'[&::-moz-range-thumb]:size-5',
-		],
+	variants: {
+		size: {
+			// Vertical padding extends the native hit area without changing the visible thumb size.
+			sm: [
+				'py-4',
+				'[&::-webkit-slider-runnable-track]:h-1',
+				'[&::-webkit-slider-thumb]:size-3 [&::-webkit-slider-thumb]:-mt-1',
+				'[&::-moz-range-track]:h-1',
+				'[&::-moz-range-thumb]:size-3',
+			],
+			md: [
+				'py-5',
+				'[&::-webkit-slider-runnable-track]:h-1.5',
+				'[&::-webkit-slider-thumb]:size-4 [&::-webkit-slider-thumb]:-mt-[5px]',
+				'[&::-moz-range-track]:h-1.5',
+				'[&::-moz-range-thumb]:size-4',
+			],
+			lg: [
+				'py-6',
+				'[&::-webkit-slider-runnable-track]:h-2',
+				'[&::-webkit-slider-thumb]:size-5 [&::-webkit-slider-thumb]:-mt-[6px]',
+				'[&::-moz-range-track]:h-2',
+				'[&::-moz-range-thumb]:size-5',
+			],
+		},
+		color: {
+			zinc: '[--slider-fill:var(--color-zinc-600)] [--slider-track:var(--color-zinc-200)] dark:[--slider-fill:var(--color-zinc-400)] dark:[--slider-track:var(--color-zinc-700)]',
+			red: '[--slider-fill:var(--color-red-600)] [--slider-track:var(--color-zinc-200)] dark:[--slider-fill:var(--color-red-500)] dark:[--slider-track:var(--color-zinc-700)]',
+			amber:
+				'[--slider-fill:var(--color-amber-500)] [--slider-track:var(--color-zinc-200)] dark:[--slider-fill:var(--color-amber-500)] dark:[--slider-track:var(--color-zinc-700)]',
+			green:
+				'[--slider-fill:var(--color-green-600)] [--slider-track:var(--color-zinc-200)] dark:[--slider-fill:var(--color-green-500)] dark:[--slider-track:var(--color-zinc-700)]',
+			blue: '[--slider-fill:var(--color-blue-600)] [--slider-track:var(--color-zinc-200)] dark:[--slider-fill:var(--color-blue-500)] dark:[--slider-track:var(--color-zinc-700)]',
+		},
 	},
-	color: {
-		zinc: '[--slider-fill:var(--color-zinc-600)] [--slider-track:var(--color-zinc-200)] dark:[--slider-fill:var(--color-zinc-400)] dark:[--slider-track:var(--color-zinc-700)]',
-		red: '[--slider-fill:var(--color-red-600)] [--slider-track:var(--color-zinc-200)] dark:[--slider-fill:var(--color-red-500)] dark:[--slider-track:var(--color-zinc-700)]',
-		amber:
-			'[--slider-fill:var(--color-amber-500)] [--slider-track:var(--color-zinc-200)] dark:[--slider-fill:var(--color-amber-500)] dark:[--slider-track:var(--color-zinc-700)]',
-		green:
-			'[--slider-fill:var(--color-green-600)] [--slider-track:var(--color-zinc-200)] dark:[--slider-fill:var(--color-green-500)] dark:[--slider-track:var(--color-zinc-700)]',
-		blue: '[--slider-fill:var(--color-blue-600)] [--slider-track:var(--color-zinc-200)] dark:[--slider-fill:var(--color-blue-500)] dark:[--slider-track:var(--color-zinc-700)]',
-	},
-	defaults: { size: 'md' as const, color: 'blue' as const },
-}
+	defaultVariants: { size: 'md', color: 'blue' },
+})
+
+export type SliderVariants = VariantProps<typeof slider>

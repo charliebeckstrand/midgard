@@ -1,6 +1,8 @@
-export const status = {
-	dot: {
-		base: 'inline-block rounded-full',
+import { tv, type VariantProps } from 'tailwind-variants'
+
+export const statusDot = tv({
+	base: 'inline-block rounded-full',
+	variants: {
 		variant: {
 			solid: 'bg-current',
 			outline: 'border-2 border-current bg-white dark:bg-zinc-900',
@@ -23,10 +25,15 @@ export const status = {
 			lg: 'size-3',
 			xl: 'size-4',
 		},
-		defaults: {
-			variant: 'solid' as const,
-			status: 'inactive' as const,
-			size: 'md' as const,
-		},
 	},
-}
+	defaultVariants: {
+		variant: 'solid',
+		status: 'inactive',
+		size: 'md',
+	},
+})
+
+export type StatusDotVariants = VariantProps<typeof statusDot>
+
+/** Kept for the `katachi` barrel — not consumed directly. */
+export const status = { dot: statusDot }
