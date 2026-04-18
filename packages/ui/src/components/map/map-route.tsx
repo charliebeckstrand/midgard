@@ -54,6 +54,16 @@ export function MapRoute({
 
 	const [open, setOpen] = useState(false)
 
+	const handleSelectRef = useRef(() => {
+		if (handlersRef.current.disableInteraction) return
+
+		const result = handlersRef.current.onSelect?.(handlersRef.current.data)
+
+		if (result === false) return
+
+		setOpen(true)
+	})
+
 	const resolvedColors: Record<SegmentStatus, string> = useMemo(
 		() => ({
 			pending: colors?.pending ?? DEFAULT_PENDING_COLOR,
@@ -114,11 +124,7 @@ export function MapRoute({
 
 				event.originalEvent.stopPropagation()
 
-				const result = handlersRef.current.onSelect?.(handlersRef.current.data)
-
-				if (result === false) return
-
-				setOpen(true)
+				handleSelectRef.current()
 			}
 
 			const handleEnter = () => {
@@ -181,7 +187,11 @@ export function MapRoute({
 		<>
 			{showStops &&
 				data.stops.map((stop) => (
-					<MapMarker key={stop.id} position={stop.position}>
+					<MapMarker
+						key={stop.id}
+						position={stop.position}
+						onClick={disableInteraction ? undefined : () => handleSelectRef.current()}
+					>
 						<StopDot status={stop.status} colors={resolvedColors} />
 					</MapMarker>
 				))}
@@ -297,14 +307,17 @@ function StopDot({
 	status?: SegmentStatus
 	colors: Record<SegmentStatus, string>
 }) {
-	const fill =
+	const base =
 		status === 'done' ? colors.done : status === 'active' ? colors.active : colors.pending
 
 	return (
 		<div
 			aria-hidden="true"
-			className="size-3 rounded-full border-2 border-white shadow dark:border-zinc-950"
-			style={{ backgroundColor: fill }}
+			className="size-4 rounded-full border-2 shadow"
+			style={{
+				backgroundColor: base,
+				borderColor: `color-mix(in oklab, ${base} 60%, black)`,
+			}}
 		/>
 	)
 }

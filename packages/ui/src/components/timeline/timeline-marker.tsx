@@ -32,7 +32,7 @@ export function TimelineMarker({
 			pulse={pulse}
 			className={cn(
 				k.marker.base,
-				orientation === 'vertical' ? k.marker.vertical : k.marker.horizontal,
+				orientation === 'vertical' ? k.marker.vertical[variant] : k.marker.horizontal[variant],
 				color && k.marker.color[color],
 				className,
 			)}

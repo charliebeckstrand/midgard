@@ -21,34 +21,54 @@ export type TimelineVariants = VariantProps<typeof timeline>
 
 export const slots = {
 	item: {
-		base: 'relative last:[&>[data-slot=timeline-connector]]:hidden',
+		base: 'relative overflow-hidden',
 		vertical: 'grid grid-cols-[0.875rem_1fr] gap-x-4 pb-8 last:pb-0',
 		horizontal: 'pl-[6.5px] pt-8 pr-8 last:pr-0',
 		active: '',
 	},
-	connector: {
-		base: 'absolute',
+	marker: {
+		base: [
+			'relative z-10 size-3.5',
+			// Line segments anchor to the marker and are clipped to the item
+			// via overflow-hidden, so adjacent items meet at the shared edge.
+			'before:content-[""] before:absolute',
+			'after:content-[""] after:absolute',
+			// First item has no inbound line; last item has no outbound line.
+			'[li:first-child_&]:before:hidden',
+			'[li:last-child_&]:after:hidden',
+		],
 		vertical: {
-			solid: ['left-[6px] top-[39px] -bottom-[25px] w-0.5', 'bg-zinc-200', 'dark:bg-zinc-700'],
+			solid: [
+				'col-start-1 row-start-2 self-center justify-self-center',
+				'before:bottom-full before:left-1/2 before:-translate-x-1/2',
+				'before:h-[100vh] before:w-0.5 before:bg-zinc-200 dark:before:bg-zinc-700',
+				'after:top-full after:left-1/2 after:-translate-x-1/2',
+				'after:h-[100vh] after:w-0.5 after:bg-zinc-200 dark:after:bg-zinc-700',
+			],
 			outline: [
-				'left-[6.5px] top-[39px] -bottom-[25px] w-px',
-				'bg-zinc-950/10',
-				'dark:bg-white/10',
+				'col-start-1 row-start-2 self-center justify-self-center',
+				'before:bottom-full before:left-1/2 before:-translate-x-1/2',
+				'before:h-[100vh] before:w-px before:bg-zinc-950/10 dark:before:bg-white/10',
+				'after:top-full after:left-1/2 after:-translate-x-1/2',
+				'after:h-[100vh] after:w-px after:bg-zinc-950/10 dark:after:bg-white/10',
 			],
 		},
 		horizontal: {
-			solid: ['top-[6px] left-[20.5px] -right-[6.5px] h-0.5', 'bg-zinc-200', 'dark:bg-zinc-700'],
+			solid: [
+				'absolute top-0 left-[6.5px]',
+				'before:right-full before:top-1/2 before:-translate-y-1/2',
+				'before:h-0.5 before:w-[100vw] before:bg-zinc-200 dark:before:bg-zinc-700',
+				'after:left-full after:top-1/2 after:-translate-y-1/2',
+				'after:h-0.5 after:w-[100vw] after:bg-zinc-200 dark:after:bg-zinc-700',
+			],
 			outline: [
-				'top-[6.5px] left-[20.5px] -right-[6.5px] h-px',
-				'bg-zinc-950/10',
-				'dark:bg-white/10',
+				'absolute top-0 left-[6.5px]',
+				'before:right-full before:top-1/2 before:-translate-y-1/2',
+				'before:h-px before:w-[100vw] before:bg-zinc-950/10 dark:before:bg-white/10',
+				'after:left-full after:top-1/2 after:-translate-y-1/2',
+				'after:h-px after:w-[100vw] after:bg-zinc-950/10 dark:after:bg-white/10',
 			],
 		},
-	},
-	marker: {
-		base: 'z-10 size-3.5',
-		vertical: 'col-start-1 row-start-2 self-center justify-self-center',
-		horizontal: 'absolute top-0 left-[6.5px]',
 		color: {
 			zinc: 'text-zinc-500 dark:text-zinc-400',
 			red: 'text-red-500 dark:text-red-500',

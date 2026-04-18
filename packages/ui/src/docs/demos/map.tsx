@@ -70,14 +70,14 @@ function Default() {
 				import { Map, MapRoute } from 'ui/map'
 
 				<div className="h-96">
-					<Map center={[-122.25, 37.55]} zoom={9}>
+					<Map center={[-122.18, 37.57]} zoom={8.5}>
 						<MapRoute data={route} />
 					</Map>
 				</div>
 			`}
 		>
 			<div className="h-96">
-				<MapView center={[-122.25, 37.55]} zoom={9}>
+				<MapView center={[-122.18, 37.57]} zoom={8.5}>
 					<MapRoute data={route} />
 				</MapView>
 			</div>
@@ -88,7 +88,7 @@ function Default() {
 function Geofences() {
 	return (
 		<Example
-			title="Geofences + markers"
+			title="Geofences"
 			code={code`
 				import { Map, MapMarker, MapGeofence } from 'ui/map'
 
@@ -126,7 +126,7 @@ function Shipments() {
 
 	return (
 		<Example
-			title="Shipment with Info + Chat"
+			title="Shipment info"
 			code={code`
 				import { Map, MapShipment } from 'ui/map'
 
@@ -186,6 +186,11 @@ function InfoOnly() {
 								label: 'Truck 17',
 								position: [-122.47, 37.6879],
 								status: 'Loading',
+								eta: '2026-04-17T16:30:00',
+								info: [
+									{ label: 'Driver', value: 'A. Chen' },
+									{ label: 'Load', value: '8 pallets' },
+								],
 							}}
 						/>
 					</Map>
@@ -200,6 +205,11 @@ function InfoOnly() {
 							label: 'Truck 17',
 							position: [-122.47, 37.6879],
 							status: 'Loading',
+							eta: '2026-04-17T16:30:00',
+							info: [
+								{ label: 'Driver', value: 'A. Chen' },
+								{ label: 'Load', value: '8 pallets' },
+							],
 						}}
 					/>
 				</MapView>

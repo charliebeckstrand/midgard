@@ -1,15 +1,17 @@
 'use client'
 
-import { Send, Truck } from 'lucide-react'
+import { ArrowUp, Truck } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { cn } from '../../core'
+import { Alert, AlertTitle } from '../alert'
 import { Button } from '../button'
-import { Dialog, DialogBody, DialogTitle } from '../dialog'
+import { Dialog, DialogActions, DialogBody, DialogTitle } from '../dialog'
 import { DescriptionDetails, DescriptionList, DescriptionTerm } from '../dl'
 import { Icon } from '../icon'
 import { Input } from '../input'
 import { Stack } from '../stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../tabs'
+import { Text } from '../text'
 import { MapMarker } from './map-marker'
 import type { ChatMessage, ShipmentData } from './types'
 
@@ -59,6 +61,9 @@ export function MapShipment({ data, onSendMessage, onSelect }: MapShipmentProps)
 					) : (
 						<ShipmentInfo data={data} />
 					)}
+					<DialogActions>
+						<Button onClick={() => setOpen(false)}>Close</Button>
+					</DialogActions>
 				</DialogBody>
 			</Dialog>
 		</>
@@ -67,17 +72,9 @@ export function MapShipment({ data, onSendMessage, onSelect }: MapShipmentProps)
 
 function ShipmentPin({ label }: { label: string }) {
 	return (
-		<div
-			title={label}
-			className={cn(
-				'flex size-8 items-center justify-center',
-				'rounded-full border-2 border-white bg-zinc-900 text-white shadow-md',
-				'cursor-pointer transition-transform hover:scale-110',
-				'dark:border-zinc-950',
-			)}
-		>
-			<Icon icon={<Truck />} size="xs" />
-		</div>
+		<Button title={label} className="rounded-full hover:scale-110 transition cursor-pointer">
+			<Icon icon={<Truck />} size="sm" />
+		</Button>
 	)
 }
 
@@ -105,7 +102,7 @@ function ShipmentInfo({ data }: { data: ShipmentData }) {
 	if (data.info) rows.push(...data.info)
 
 	if (rows.length === 0) {
-		return <p className="text-sm text-zinc-500">No shipment details available.</p>
+		return <Text variant="muted">No shipment details available.</Text>
 	}
 
 	return (
@@ -132,6 +129,10 @@ function ShipmentChat({ messages, onSend }: ShipmentChatProps) {
 
 	const scrollerRef = useRef<HTMLDivElement>(null)
 
+	const inputRef = useRef<HTMLInputElement>(null)
+
+	const refocusRef = useRef(false)
+
 	const lastMessageId = messages[messages.length - 1]?.id
 
 	useEffect(() => {
@@ -141,6 +142,13 @@ function ShipmentChat({ messages, onSend }: ShipmentChatProps) {
 
 		el.scrollTop = el.scrollHeight
 	}, [lastMessageId])
+
+	useEffect(() => {
+		if (pending || !refocusRef.current) return
+
+		refocusRef.current = false
+		inputRef.current?.focus()
+	}, [pending])
 
 	async function handleSend(event: React.FormEvent<HTMLFormElement>) {
 		event.preventDefault()
@@ -156,23 +164,26 @@ function ShipmentChat({ messages, onSend }: ShipmentChatProps) {
 
 			setDraft('')
 		} finally {
+			refocusRef.current = true
 			setPending(false)
 		}
 	}
 
 	return (
-		<Stack gap={3}>
+		<Stack gap={4}>
 			<div
 				ref={scrollerRef}
 				data-slot="map-shipment-chat"
 				className={cn(
 					'flex flex-col gap-2',
-					'max-h-80 min-h-40 overflow-y-auto',
-					'rounded-lg bg-zinc-50 p-3 dark:bg-zinc-900',
+					'max-h-80 overflow-y-auto',
+					'rounded-lg bg-zinc-50 dark:bg-zinc-900',
 				)}
 			>
 				{messages.length === 0 ? (
-					<p className="m-auto text-sm text-zinc-500">No messages yet.</p>
+					<Alert type="info">
+						<AlertTitle>No messages yet</AlertTitle>
+					</Alert>
 				) : (
 					messages.map((m) => <ChatBubble key={m.id} message={m} />)
 				)}
@@ -180,6 +191,7 @@ function ShipmentChat({ messages, onSend }: ShipmentChatProps) {
 			{onSend && (
 				<form onSubmit={handleSend} className="flex items-center gap-2">
 					<Input
+						ref={inputRef}
 						aria-label="Message"
 						placeholder="Message…"
 						value={draft}
@@ -187,8 +199,7 @@ function ShipmentChat({ messages, onSend }: ShipmentChatProps) {
 						onChange={(e) => setDraft(e.target.value)}
 					/>
 					<Button type="submit" color="blue" disabled={pending || draft.trim().length === 0}>
-						<Icon icon={<Send />} size="xs" />
-						Send
+						<Icon icon={<ArrowUp />} size="xs" />
 					</Button>
 				</form>
 			)}

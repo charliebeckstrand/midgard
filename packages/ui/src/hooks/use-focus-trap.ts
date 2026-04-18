@@ -31,11 +31,11 @@ export function useFocusTrap(active: boolean) {
 		const first = preferred ?? container.querySelector<HTMLElement>(focusableSelector)
 
 		if (first) {
-			first.focus()
+			first.focus({ preventScroll: true })
 		} else {
 			container.tabIndex = -1
 
-			container.focus()
+			container.focus({ preventScroll: true })
 		}
 
 		function onKeyDown(e: KeyboardEvent) {
@@ -65,7 +65,7 @@ export function useFocusTrap(active: boolean) {
 		return () => {
 			document.removeEventListener('keydown', onKeyDown)
 
-			previouslyFocused.current?.focus()
+			previouslyFocused.current?.focus({ preventScroll: true })
 		}
 	}, [active])
 

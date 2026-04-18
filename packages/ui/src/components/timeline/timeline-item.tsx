@@ -1,11 +1,6 @@
 import { Children, isValidElement } from 'react'
 import { cn } from '../../core'
-import {
-	type TimelineOrientation,
-	TimelineProvider,
-	type TimelineVariant,
-	useTimeline,
-} from './context'
+import { TimelineProvider, type TimelineVariant, useTimeline } from './context'
 import type { TimelineMarkerConfig } from './timeline-marker'
 import { TimelineMarker, type TimelineMarkerProps } from './timeline-marker'
 import { k } from './variants'
@@ -47,30 +42,9 @@ export function TimelineItem({
 			)}
 		>
 			<TimelineProvider value={{ orientation, variant }}>
-				<TimelineConnector orientation={orientation} variant={variant} />
 				{!hasMarker && <TimelineMarker {...({ status, color, pulse } as TimelineMarkerProps)} />}
 				{children}
 			</TimelineProvider>
 		</li>
-	)
-}
-
-// ── TimelineConnector (internal) ────────────────────────
-
-function TimelineConnector({
-	orientation,
-	variant,
-}: {
-	orientation: TimelineOrientation
-	variant: TimelineVariant
-}) {
-	const styles = k.connector[orientation][variant]
-
-	return (
-		<div
-			data-slot="timeline-connector"
-			className={cn(k.connector.base, styles)}
-			aria-hidden="true"
-		/>
 	)
 }

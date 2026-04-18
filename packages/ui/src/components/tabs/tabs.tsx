@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
+import { cn } from '../../core'
 import { CurrentProvider, useCurrent } from '../../primitives'
 import { TabsProvider, type TabsVariant } from './context'
 
@@ -27,7 +28,7 @@ export function Tabs({
 	return (
 		<CurrentProvider value={ctx}>
 			<TabsProvider value={tabsCtx}>
-				<div data-slot="tab-group" className={className} {...props}>
+				<div data-slot="tab-group" className={cn('space-y-4', className)} {...props}>
 					{children}
 				</div>
 			</TabsProvider>

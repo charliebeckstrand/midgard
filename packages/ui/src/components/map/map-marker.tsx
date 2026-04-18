@@ -109,7 +109,7 @@ function DefaultPin() {
 	return (
 		<div
 			aria-hidden="true"
-			className="size-3 rounded-full border-2 border-white bg-blue-600 shadow-md"
+			className="size-4 rounded-full border-2 border-white bg-blue-600 shadow-md"
 		/>
 	)
 }

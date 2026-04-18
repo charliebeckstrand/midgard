@@ -54,9 +54,20 @@ export function Map({
 	useEffect(() => {
 		if (!containerRef.current || mapRef.current) return
 
+		const container = containerRef.current
+
 		let cancelled = false
 
 		let instance: MapLibreMap | null = null
+
+		// Require Shift+wheel to zoom; plain wheel passes through to page scroll.
+		// Capture phase fires before MapLibre's handler on the inner canvas container,
+		// so stopImmediatePropagation prevents the event from reaching it.
+		const wheelHandler = (e: WheelEvent) => {
+			if (!e.shiftKey) e.stopImmediatePropagation()
+		}
+
+		container.addEventListener('wheel', wheelHandler, { capture: true })
 
 		loadMapLibre().then(({ Map: MapLibreMapCtor }) => {
 			if (cancelled || !containerRef.current) return
@@ -90,6 +101,8 @@ export function Map({
 
 		return () => {
 			cancelled = true
+
+			container.removeEventListener('wheel', wheelHandler, { capture: true })
 
 			instance?.remove()
 
