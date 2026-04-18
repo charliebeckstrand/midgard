@@ -223,7 +223,7 @@ export function Combobox<T>({
 						className={cn(k.input)}
 					/>
 					<span data-slot="icon" className={cn(k.chevron)}>
-						{icon ?? <Icon icon={<ChevronsUpDown />} size="sm" />}
+						{icon ?? <Icon icon={<ChevronsUpDown />} />}
 					</span>
 				</ControlFrame>
 			</div>

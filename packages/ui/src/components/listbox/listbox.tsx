@@ -157,9 +157,7 @@ export function Listbox<T>({
 						<span className={k.value}>
 							{label || <span className={cn(sumi.textMuted)}>{placeholder}</span>}
 						</span>
-						<span className={cn(k.chevron)}>
-							{icon ?? <Icon icon={<ChevronsUpDown />} size="sm" />}
-						</span>
+						<span className={cn(k.chevron)}>{icon ?? <Icon icon={<ChevronsUpDown />} />}</span>
 					</button>
 				</ControlFrame>
 			</div>
