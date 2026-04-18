@@ -1,4 +1,10 @@
-export { Inspector, type InspectorProps, useInspectorContext } from './component'
+export {
+	Inspector,
+	InspectorContent,
+	type InspectorContentProps,
+	type InspectorProps,
+	useInspectorContext,
+} from './component'
 export {
 	InspectorActions,
 	type InspectorActionsProps,
@@ -8,6 +14,8 @@ export {
 	type InspectorCloseProps,
 	InspectorDescription,
 	type InspectorDescriptionProps,
+	InspectorHeader,
+	type InspectorHeaderProps,
 	InspectorTitle,
 	type InspectorTitleProps,
 } from './slots'
@@ -17,6 +25,7 @@ export {
 	inspectorBodyVariants,
 	inspectorCloseVariants,
 	inspectorDescriptionVariants,
+	inspectorHeaderVariants,
 	inspectorPanelVariants,
 	inspectorTitleVariants,
 } from './variants'

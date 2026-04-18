@@ -16,6 +16,7 @@ export { useHasHover } from './use-has-hover'
 export { type IdScope, useIdScope } from './use-id-scope'
 export { useRoving, useTagKeyboard } from './use-keyboard'
 export { useKeyboardSettled } from './use-keyboard-settled'
+export { useMinWidth } from './use-min-width'
 export { useOffcanvas } from './use-offcanvas'
 export { useSelect } from './use-select'
 export {

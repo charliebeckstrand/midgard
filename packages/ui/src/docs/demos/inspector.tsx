@@ -2,17 +2,20 @@
 
 import { useState } from 'react'
 import { Button } from '../../components/button'
+import { Card } from '../../components/card'
 import {
 	Inspector,
 	InspectorActions,
 	InspectorBody,
-	InspectorClose,
+	InspectorContent,
 	InspectorDescription,
+	InspectorHeader,
 	InspectorTitle,
 } from '../../components/inspector'
 import { Stack } from '../../components/stack'
+import { Text } from '../../components/text'
+import { code } from '../code'
 import { Example } from '../components/example'
-
 export const meta = { category: 'Overlay' }
 
 function InspectorShell({
@@ -27,77 +30,139 @@ function InspectorShell({
 	size?: 'sm' | 'md' | 'lg' | 'xl'
 }) {
 	return (
-		<div className="flex h-72 overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800">
-			{side === 'left' && (
-				<Inspector open={open} onOpenChange={onOpenChange} side="left" size={size}>
-					<InspectorTitle>Load #4821</InspectorTitle>
-					<InspectorDescription>Tendered to carrier Acme Freight.</InspectorDescription>
-					<InspectorBody>
-						<p className="text-sm">Pickup Chicago, IL → Delivery Dallas, TX.</p>
-					</InspectorBody>
-					<InspectorActions>
-						<Button variant="outline" onClick={() => onOpenChange(false)}>
-							Close
-						</Button>
-					</InspectorActions>
-					<InspectorClose />
-				</Inspector>
-			)}
-			<div className="flex-1 p-4 text-sm text-zinc-500">
-				<p>Main content area. The inspector pushes this region instead of overlaying it.</p>
-			</div>
-			{side === 'right' && (
-				<Inspector open={open} onOpenChange={onOpenChange} side="right" size={size}>
-					<InspectorTitle>Load #4821</InspectorTitle>
-					<InspectorDescription>Tendered to carrier Acme Freight.</InspectorDescription>
-					<InspectorBody>
-						<p className="text-sm">Pickup Chicago, IL → Delivery Dallas, TX.</p>
-					</InspectorBody>
-					<InspectorActions>
-						<Button variant="outline" onClick={() => onOpenChange(false)}>
-							Close
-						</Button>
-					</InspectorActions>
-					<InspectorClose />
-				</Inspector>
-			)}
-		</div>
+		<Card bg="none" p={0}>
+			<InspectorContent side={side} className="h-72">
+				{side === 'left' && (
+					<Inspector open={open} onOpenChange={onOpenChange} side="left" size={size}>
+						<InspectorHeader>
+							<Stack gap={0}>
+								<InspectorTitle>Load #4821</InspectorTitle>
+								<InspectorDescription>Tendered to carrier Acme Freight.</InspectorDescription>
+							</Stack>
+						</InspectorHeader>
+						<InspectorBody>
+							<Text variant="muted">Pickup Chicago, IL → Delivery Dallas, TX.</Text>
+						</InspectorBody>
+						<InspectorActions>
+							<Button variant="outline" onClick={() => onOpenChange(false)}>
+								Close
+							</Button>
+						</InspectorActions>
+					</Inspector>
+				)}
+				<div className="flex-1 p-4 text-sm text-zinc-500">
+					<Text variant="muted">
+						Main content area. The inspector pushes this region instead of overlaying it.
+					</Text>
+				</div>
+				{side === 'right' && (
+					<Inspector open={open} onOpenChange={onOpenChange} side="right" size={size}>
+						<InspectorHeader>
+							<Stack gap={0}>
+								<InspectorTitle>Load #4821</InspectorTitle>
+								<InspectorDescription>Tendered to carrier Acme Freight.</InspectorDescription>
+							</Stack>
+						</InspectorHeader>
+						<InspectorBody>
+							<Text variant="muted">Pickup Chicago, IL → Delivery Dallas, TX.</Text>
+						</InspectorBody>
+						<InspectorActions>
+							<Button variant="outline" onClick={() => onOpenChange(false)}>
+								Close
+							</Button>
+						</InspectorActions>
+					</Inspector>
+				)}
+			</InspectorContent>
+		</Card>
 	)
 }
 
 export default function InspectorDemo() {
 	const [right, setRight] = useState(true)
 	const [left, setLeft] = useState(false)
-	const [small, setSmall] = useState(true)
-	const [large, setLarge] = useState(true)
 
 	return (
 		<Stack gap={6}>
-			<Example title="Default (right)">
+			<Example
+				title="Default"
+				code={code`
+				import { useState } from 'react'
+				import { Button } from 'ui/button'
+				import { 
+					Inspector, 
+					InspectorContent, 
+					InspectorHeader, 
+					InspectorTitle, 
+					InspectorDescription, 
+					InspectorBody, 
+					InspectorActions 
+				} from 'ui/inspector'
+
+				const [open, setOpen] = useState(false)
+
+				<Inspector open={open} onOpenChange={setOpen}>
+					<InspectorHeader>
+						<Stack gap={0}>
+							<InspectorTitle>Load #4821</InspectorTitle>
+							<InspectorDescription>Tendered to carrier Acme Freight.</InspectorDescription>
+						</Stack>
+					</InspectorHeader>
+					<InspectorBody>
+						<Text variant="muted">Pickup Chicago, IL → Delivery Dallas, TX.</Text>
+					</InspectorBody>
+					<InspectorActions>
+						<Button variant="outline" onClick={() => setOpen(false)}>
+							Close
+						</Button>
+					</InspectorActions>
+				</Inspector>
+			`}
+			>
 				<Stack gap={3}>
 					<Button onClick={() => setRight((v) => !v)}>{right ? 'Close' : 'Open'}</Button>
 					<InspectorShell open={right} onOpenChange={setRight} side="right" size="md" />
 				</Stack>
 			</Example>
 
-			<Example title="Left side">
+			<Example
+				title="Left"
+				code={code`
+				import { useState } from 'react'
+				import { Button } from 'ui/button'
+				import { 
+					Inspector, 
+					InspectorContent, 
+					InspectorHeader, 
+					InspectorTitle, 
+					InspectorDescription, 
+					InspectorBody, 
+					InspectorActions 
+				} from 'ui/inspector'
+
+				const [open, setOpen] = useState(false)
+
+				<Inspector open={open} onOpenChange={setOpen} side="left">
+					<InspectorHeader>
+						<Stack gap={0}>
+							<InspectorTitle>Load #4821</InspectorTitle>
+							<InspectorDescription>Tendered to carrier Acme Freight.</InspectorDescription>
+						</Stack>
+					</InspectorHeader>
+					<InspectorBody>
+						<Text variant="muted">Pickup Chicago, IL → Delivery Dallas, TX.</Text>
+					</InspectorBody>
+					<InspectorActions>
+						<Button variant="outline" onClick={() => setOpen(false)}>
+							Close
+						</Button>
+					</InspectorActions>
+				</Inspector>
+			`}
+			>
 				<Stack gap={3}>
 					<Button onClick={() => setLeft((v) => !v)}>{left ? 'Close' : 'Open'}</Button>
 					<InspectorShell open={left} onOpenChange={setLeft} side="left" size="md" />
-				</Stack>
-			</Example>
-
-			<Example title="Small">
-				<Stack gap={3}>
-					<Button onClick={() => setSmall((v) => !v)}>{small ? 'Close' : 'Open'}</Button>
-					<InspectorShell open={small} onOpenChange={setSmall} side="right" size="sm" />
-				</Stack>
-			</Example>
-
-			<Example title="Large">
-				<Stack gap={3}>
-					<Button onClick={() => setLarge((v) => !v)}>{large ? 'Close' : 'Open'}</Button>
-					<InspectorShell open={large} onOpenChange={setLarge} side="right" size="lg" />
 				</Stack>
 			</Example>
 		</Stack>

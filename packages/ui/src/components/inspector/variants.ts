@@ -11,6 +11,8 @@ export const inspectorPanelVariants = cva(k.panel.base, {
 	defaultVariants: k.panel.defaults,
 })
 
+export const inspectorHeaderVariants = cva(k.header)
+
 export const inspectorTitleVariants = cva(k.title)
 
 export const inspectorDescriptionVariants = cva(k.description)

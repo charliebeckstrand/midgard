@@ -18,6 +18,7 @@ import {
 	inspectorBodyVariants,
 	inspectorCloseVariants,
 	inspectorDescriptionVariants,
+	inspectorHeaderVariants,
 	inspectorTitleVariants,
 } from './variants'
 
@@ -38,6 +39,19 @@ export {
 	Body as InspectorBody,
 	Description as InspectorDescription,
 	Title as InspectorTitle,
+}
+
+export type InspectorHeaderProps = {
+	className?: string
+	children: React.ReactNode
+}
+
+export function InspectorHeader({ className, children }: InspectorHeaderProps) {
+	return (
+		<div data-slot="inspector-header" className={cn(inspectorHeaderVariants(), className)}>
+			{children}
+		</div>
+	)
 }
 
 export type InspectorCloseProps = {

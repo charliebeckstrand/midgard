@@ -6,18 +6,49 @@ import { useCallback, useMemo } from 'react'
 import { cn, createContext } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { PanelA11yProvider, useDescriptionRegistration } from '../../primitives'
+import { ugoki } from '../../recipes'
 import { type InspectorPanelVariants, inspectorPanelVariants } from './variants'
 
-const SIZE_PX = { sm: 320, md: 384, lg: 448, xl: 512 } as const
+// ---------------------------------------------------------------------------
+// Layout wrapper — flex container that pushes content off-screen
+// ---------------------------------------------------------------------------
 
-type InspectorSize = keyof typeof SIZE_PX
+export type InspectorContentProps = {
+	side?: 'left' | 'right'
+	className?: string
+	children: React.ReactNode
+}
 
-type InspectorContextValue = {
+export function InspectorContent({ side = 'right', className, children }: InspectorContentProps) {
+	return (
+		<div
+			data-slot="inspector-content"
+			className={cn(
+				'flex overflow-hidden',
+				'[&>:not([data-slot=inspector])]:min-w-full',
+				side === 'right' && 'justify-end',
+				className,
+			)}
+		>
+			{children}
+		</div>
+	)
+}
+
+// ---------------------------------------------------------------------------
+// Panel-level context (close action)
+// ---------------------------------------------------------------------------
+
+type InspectorPanelContextValue = {
 	close: () => void
 }
 
-export const [InspectorProvider, useInspectorContext] =
-	createContext<InspectorContextValue>('Inspector')
+export const [InspectorPanelProvider, useInspectorContext] =
+	createContext<InspectorPanelContextValue>('Inspector')
+
+// ---------------------------------------------------------------------------
+// Inspector panel
+// ---------------------------------------------------------------------------
 
 export type InspectorProps = InspectorPanelVariants & {
 	open: boolean
@@ -34,15 +65,12 @@ export function Inspector({
 	className,
 	children,
 }: InspectorProps) {
-	const resolvedSize = (size ?? 'md') as InspectorSize
-
-	const width = SIZE_PX[resolvedSize]
-
 	const close = useCallback(() => onOpenChange(false), [onOpenChange])
 
 	const scope = useIdScope()
 
 	const titleId = scope.sub('title')
+
 	const descriptionId = scope.sub('description')
 
 	const { hasDescription, registerDescription } = useDescriptionRegistration()
@@ -52,25 +80,26 @@ export function Inspector({
 		[titleId, descriptionId, registerDescription],
 	)
 
-	const contextValue = useMemo<InspectorContextValue>(() => ({ close }), [close])
+	const contextValue = useMemo<InspectorPanelContextValue>(() => ({ close }), [close])
+
+	const ariaProps = {
+		'aria-labelledby': titleId,
+		'aria-describedby': hasDescription ? descriptionId : undefined,
+	}
 
 	return (
 		<AnimatePresence initial={false}>
 			{open && (
 				<motion.aside
-					initial={{ width: 0 }}
-					animate={{ width }}
-					exit={{ width: 0 }}
-					transition={{ duration: 0.2, ease: [0.3, 0.1, 0.3, 1] }}
+					{...ugoki.inspector}
+					{...ariaProps}
 					data-slot="inspector"
-					aria-labelledby={titleId}
-					aria-describedby={hasDescription ? descriptionId : undefined}
 					className={cn('shrink-0 overflow-hidden', className)}
 				>
 					<div className={cn(inspectorPanelVariants({ side, size }))}>
-						<InspectorProvider value={contextValue}>
+						<InspectorPanelProvider value={contextValue}>
 							<PanelA11yProvider value={a11yValue}>{children}</PanelA11yProvider>
-						</InspectorProvider>
+						</InspectorPanelProvider>
 					</div>
 				</motion.aside>
 			)}
