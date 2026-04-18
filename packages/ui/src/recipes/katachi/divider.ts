@@ -1,14 +1,19 @@
+import { tv, type VariantProps } from 'tailwind-variants'
 import { kage } from '../kage'
 
-export const divider = {
+export const divider = tv({
 	base: ['border-0'],
-	orientation: {
-		horizontal: 'w-full border-t',
-		vertical: 'self-stretch border-l',
+	variants: {
+		orientation: {
+			horizontal: 'w-full border-t',
+			vertical: 'self-stretch border-l',
+		},
+		soft: {
+			true: [...kage.borderSubtleColor],
+			false: [...kage.borderColor],
+		},
 	},
-	soft: {
-		true: kage.borderSubtleColor,
-		false: kage.borderColor,
-	},
-	defaults: { orientation: 'horizontal' as const, soft: false as const },
-}
+	defaultVariants: { orientation: 'horizontal', soft: false },
+})
+
+export type DividerVariants = VariantProps<typeof divider>
