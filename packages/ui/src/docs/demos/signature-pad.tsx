@@ -99,7 +99,7 @@ function ImperativeHandle() {
 							</Button>
 						</Flex>
 					)}
-					{saved && <Text variant="muted">Saved {saved.length} chars of data URL.</Text>}
+					{saved && <Text color="green">Saved {saved.length} characters</Text>}
 				</Stack>
 			</Sizer>
 		</Example>
