@@ -1,8 +1,13 @@
-import type { Map as MapLibreMap, Marker as MapLibreMarker } from 'maplibre-gl'
+import type {
+	AttributionControl as MapLibreAttributionControl,
+	Map as MapLibreMap,
+	Marker as MapLibreMarker,
+} from 'maplibre-gl'
 
 type MapLibreModule = {
 	Map: typeof MapLibreMap
 	Marker: typeof MapLibreMarker
+	AttributionControl: typeof MapLibreAttributionControl
 }
 
 let promise: Promise<MapLibreModule> | null = null

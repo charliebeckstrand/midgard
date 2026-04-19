@@ -166,6 +166,13 @@ vi.mock('maplibre-gl', () => {
 
 		setPaintProperty() {}
 		jumpTo() {}
+		setStyle() {}
+		addControl() {
+			return this
+		}
+		removeControl() {
+			return this
+		}
 		getCanvas() {
 			return { style: {} as CSSStyleDeclaration }
 		}
@@ -199,7 +206,14 @@ vi.mock('maplibre-gl', () => {
 		}
 	}
 
-	return { Map: FakeMap, Marker: FakeMarker, default: { Map: FakeMap, Marker: FakeMarker } }
+	class FakeAttributionControl {}
+
+	return {
+		Map: FakeMap,
+		Marker: FakeMarker,
+		AttributionControl: FakeAttributionControl,
+		default: { Map: FakeMap, Marker: FakeMarker, AttributionControl: FakeAttributionControl },
+	}
 })
 
 // ── Browser API stubs ───────────────────────────────

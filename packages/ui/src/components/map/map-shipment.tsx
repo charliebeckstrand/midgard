@@ -177,7 +177,7 @@ function ShipmentChat({ messages, onSend }: ShipmentChatProps) {
 				className={cn(
 					'flex flex-col gap-2',
 					'max-h-80 overflow-y-auto',
-					'rounded-lg bg-zinc-50 dark:bg-zinc-900',
+					'rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 p-4',
 				)}
 			>
 				{messages.length === 0 ? (
@@ -193,7 +193,7 @@ function ShipmentChat({ messages, onSend }: ShipmentChatProps) {
 					<Input
 						ref={inputRef}
 						aria-label="Message"
-						placeholder="Message…"
+						placeholder="Send message"
 						value={draft}
 						disabled={pending}
 						onChange={(e) => setDraft(e.target.value)}
@@ -227,7 +227,7 @@ function ChatBubble({ message }: { message: ChatMessage }) {
 					'max-w-[80%] rounded-2xl px-3 py-2 text-sm',
 					mine
 						? 'rounded-br-sm bg-blue-600 text-white'
-						: 'rounded-bl-sm bg-white text-zinc-900 shadow-sm dark:bg-zinc-800 dark:text-zinc-100',
+						: 'rounded-bl-sm bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-zinc-100',
 				)}
 			>
 				{message.body}

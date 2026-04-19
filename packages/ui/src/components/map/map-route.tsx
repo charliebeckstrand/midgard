@@ -313,7 +313,7 @@ function StopDot({
 	return (
 		<div
 			aria-hidden="true"
-			className="size-4 rounded-full border-2 shadow"
+			className="size-4.5 rounded-full border-2 shadow hover:scale-120"
 			style={{
 				backgroundColor: base,
 				borderColor: `color-mix(in oklab, ${base} 60%, black)`,

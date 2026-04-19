@@ -1,10 +1,10 @@
 'use client'
 
 import { useState } from 'react'
+import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 import {
 	type ChatMessage,
-	MapGeofence,
-	MapMarker,
+	type MapPreset,
 	MapRoute,
 	MapShipment,
 	Map as MapView,
@@ -62,7 +62,51 @@ const seedMessages: ChatMessage[] = [
 	{ id: 'm2', author: 'me', body: 'Got it — door code is 4421.', timestamp: '2026-04-17T11:12:00' },
 ]
 
-function Default() {
+const presets: { value: MapPreset; label: string }[] = [
+	{ value: 'demo', label: 'MapLibre' },
+	{ value: 'osm', label: 'OpenStreetMap' },
+	{ value: 'positron', label: 'Carto Positron' },
+	{ value: 'dark-matter', label: 'Carto Dark Matter' },
+	{ value: 'satellite', label: 'Esri Satellite' },
+]
+
+function Presets() {
+	const [preset, setPreset] = useState<MapPreset>('demo')
+
+	return (
+		<Example
+			title="Rendering presets"
+			code={code`
+				import { Map, type MapPreset } from 'ui/map'
+
+				const [preset, setPreset] = useState<MapPreset>('demo')
+
+				<Map preset={preset} center={[-95, 33]} zoom={0} />
+			`}
+			actions={
+				<Listbox<MapPreset>
+					value={preset}
+					onChange={(v) => {
+						if (v) setPreset(v)
+					}}
+					displayValue={(v) => presets.find((p) => p.value === v)?.label ?? v}
+				>
+					{presets.map((p) => (
+						<ListboxOption key={p.value} value={p.value}>
+							<ListboxLabel>{p.label}</ListboxLabel>
+						</ListboxOption>
+					))}
+				</Listbox>
+			}
+		>
+			<div className="h-96">
+				<MapView preset={preset} center={[-95, 33]} zoom={0} />
+			</div>
+		</Example>
+	)
+}
+
+function InteractiveRoute() {
 	return (
 		<Example
 			title="Interactive route"
@@ -70,44 +114,15 @@ function Default() {
 				import { Map, MapRoute } from 'ui/map'
 
 				<div className="h-96">
-					<Map center={[-122.18, 37.57]} zoom={8.5}>
+					<Map center={[-122.18, 37.57]} zoom={7.5}>
 						<MapRoute data={route} />
 					</Map>
 				</div>
 			`}
 		>
 			<div className="h-96">
-				<MapView center={[-122.18, 37.57]} zoom={8.5}>
+				<MapView center={[-122.18, 37.65]} zoom={7.5}>
 					<MapRoute data={route} />
-				</MapView>
-			</div>
-		</Example>
-	)
-}
-
-function Geofences() {
-	return (
-		<Example
-			title="Geofences"
-			code={code`
-				import { Map, MapMarker, MapGeofence } from 'ui/map'
-
-				<div className="h-96">
-					<Map center={[-122.4194, 37.7749]} zoom={11}>
-						<MapGeofence
-							shape={{ kind: 'circle', center: [-122.4194, 37.7749], radiusMeters: 3000 }}
-						/>
-						<MapMarker position={[-122.4194, 37.7749]} />
-					</Map>
-				</div>
-			`}
-		>
-			<div className="h-96">
-				<MapView center={[-122.4194, 37.7749]} zoom={11}>
-					<MapGeofence
-						shape={{ kind: 'circle', center: [-122.4194, 37.7749], radiusMeters: 3000 }}
-					/>
-					<MapMarker position={[-122.4194, 37.7749]} />
 				</MapView>
 			</div>
 		</Example>
@@ -221,8 +236,8 @@ function InfoOnly() {
 export default function MapDemo() {
 	return (
 		<Stack gap={6}>
-			<Default />
-			<Geofences />
+			<Presets />
+			<InteractiveRoute />
 			<Shipments />
 			<InfoOnly />
 		</Stack>

@@ -5,16 +5,17 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { MapProvider } from './context'
 import { loadMapLibre } from './loader'
+import { MAP_PRESETS, type MapPreset } from './styles'
 import type { LngLat } from './types'
 import { k } from './variants'
-
-const DEFAULT_STYLE = 'https://demotiles.maplibre.org/style.json'
 
 export type MapProps = {
 	center?: LngLat
 	zoom?: number
 	bearing?: number
 	pitch?: number
+	/** Preset visual style. Takes precedence over `style` when provided. */
+	preset?: MapPreset
 	style?: string | StyleSpecification
 	interactive?: boolean
 	className?: string
@@ -28,12 +29,15 @@ export function Map({
 	zoom = 2,
 	bearing = 0,
 	pitch = 0,
-	style = DEFAULT_STYLE,
+	preset,
+	style,
 	interactive = true,
 	className,
 	children,
 	onLoad,
 }: MapProps) {
+	const resolvedStyle = preset ? MAP_PRESETS[preset] : (style ?? MAP_PRESETS.demo)
+
 	const containerRef = useRef<HTMLDivElement>(null)
 
 	const mapRef = useRef<MapLibreMap | null>(null)
@@ -47,9 +51,25 @@ export function Map({
 	// Keep a ref of the props the mount-effect needs so the effect itself can
 	// run once (the MapLibre instance is expensive to recreate) while still
 	// reading the latest values.
-	const mountPropsRef = useRef({ center, zoom, bearing, pitch, style, interactive, onLoad })
+	const mountPropsRef = useRef({
+		center,
+		zoom,
+		bearing,
+		pitch,
+		style: resolvedStyle,
+		interactive,
+		onLoad,
+	})
 
-	mountPropsRef.current = { center, zoom, bearing, pitch, style, interactive, onLoad }
+	mountPropsRef.current = {
+		center,
+		zoom,
+		bearing,
+		pitch,
+		style: resolvedStyle,
+		interactive,
+		onLoad,
+	}
 
 	useEffect(() => {
 		if (!containerRef.current || mapRef.current) return
@@ -69,7 +89,7 @@ export function Map({
 
 		container.addEventListener('wheel', wheelHandler, { capture: true })
 
-		loadMapLibre().then(({ Map: MapLibreMapCtor }) => {
+		loadMapLibre().then(({ Map: MapLibreMapCtor, AttributionControl }) => {
 			if (cancelled || !containerRef.current) return
 
 			const init = mountPropsRef.current
@@ -82,12 +102,15 @@ export function Map({
 				bearing: init.bearing,
 				pitch: init.pitch,
 				interactive: init.interactive,
+				attributionControl: false,
 			})
 
 			mapRef.current = instance
 
 			instance.on('load', () => {
 				if (!instance) return
+
+				instance.addControl(new AttributionControl({ compact: true }))
 
 				readyRef.current = true
 
@@ -123,6 +146,20 @@ export function Map({
 
 		map.jumpTo({ center, zoom, bearing, pitch })
 	}, [center, zoom, bearing, pitch, ready])
+
+	const appliedStyleRef = useRef(resolvedStyle)
+
+	useEffect(() => {
+		const map = mapRef.current
+
+		if (!map || !ready) return
+
+		if (appliedStyleRef.current === resolvedStyle) return
+
+		appliedStyleRef.current = resolvedStyle
+
+		map.setStyle(resolvedStyle)
+	}, [resolvedStyle, ready])
 
 	// Stable context — getMap and onReady read from refs, so the value
 	// identity never changes across renders.
