@@ -27,6 +27,10 @@
 			"types": "./src/components/alert/index.ts",
 			"default": "./src/components/alert/index.ts"
 		},
+		"./array-field": {
+			"types": "./src/components/array-field/index.ts",
+			"default": "./src/components/array-field/index.ts"
+		},
 		"./aspect-ratio": {
 			"types": "./src/components/aspect-ratio/index.ts",
 			"default": "./src/components/aspect-ratio/index.ts"
@@ -102,6 +106,10 @@
 		"./copy-button": {
 			"types": "./src/components/copy-button/index.ts",
 			"default": "./src/components/copy-button/index.ts"
+		},
+		"./currency-input": {
+			"types": "./src/components/currency-input/index.ts",
+			"default": "./src/components/currency-input/index.ts"
 		},
 		"./data-table": {
 			"types": "./src/components/data-table/index.ts",
