@@ -63,7 +63,7 @@ const seedMessages: ChatMessage[] = [
 ]
 
 const presets: { value: MapPreset; label: string }[] = [
-	{ value: 'demo', label: 'MapLibre' },
+	{ value: 'demo', label: 'MapLibre Demo' },
 	{ value: 'osm', label: 'OpenStreetMap' },
 	{ value: 'positron', label: 'Carto Positron' },
 	{ value: 'dark-matter', label: 'Carto Dark Matter' },
