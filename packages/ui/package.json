@@ -247,6 +247,10 @@
 			"types": "./src/components/phone-input/index.ts",
 			"default": "./src/components/phone-input/index.ts"
 		},
+		"./pivot-table": {
+			"types": "./src/components/pivot-table/index.ts",
+			"default": "./src/components/pivot-table/index.ts"
+		},
 		"./placeholder": {
 			"types": "./src/components/placeholder/index.ts",
 			"default": "./src/components/placeholder/index.ts"
