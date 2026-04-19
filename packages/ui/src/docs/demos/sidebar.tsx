@@ -1,8 +1,19 @@
 'use client'
 
-import { ChartBar, Cog, Folder, Home, Inbox, Plus, Search, Users } from 'lucide-react'
+import {
+	ChartBar,
+	Cog,
+	Folder,
+	Home,
+	Inbox,
+	LogOut,
+	MessageCircle,
+	Plus,
+	Search,
+	UserCircle2,
+	Users,
+} from 'lucide-react'
 import { useState } from 'react'
-import { Avatar } from '../../components/avatar'
 import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'
 import { Heading } from '../../components/heading'
@@ -39,9 +50,16 @@ const projects = [
 	{ value: 'vanaheim', label: 'Vanaheim' },
 ]
 
+const chats = [
+	{ value: 'general', label: 'General' },
+	{ value: 'random', label: 'Random' },
+	{ value: 'design', label: 'Design' },
+	{ value: 'development', label: 'Development' },
+]
+
 function SidebarFrame({ children }: { children: React.ReactNode }) {
 	return (
-		<div className="h-96 w-72 overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800">
+		<div className="h-108 w-72 overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800">
 			{children}
 		</div>
 	)
@@ -96,9 +114,9 @@ function HeaderFooterSidebar() {
 					</SidebarSection>
 				</SidebarBody>
 				<SidebarFooter>
-					<SidebarItem>
-						<Avatar size="sm" initials="WC" />
+					<SidebarItem icon={<UserCircle2 />}>
 						<SidebarLabel>Wade Cooper</SidebarLabel>
+						<Spacer />
 					</SidebarItem>
 				</SidebarFooter>
 			</Sidebar>
@@ -132,11 +150,11 @@ function SectionedSidebar() {
 					<SidebarDivider />
 
 					<SidebarSection>
-						<Stack direction="row" align="center" gap={2} className="px-2">
+						<Stack direction="row" align="center" gap={2}>
 							<Text variant="muted" className="text-xs uppercase tracking-wide flex-1">
 								Projects
 							</Text>
-							<Button variant="plain" size="xs" aria-label="New project">
+							<Button variant="plain" size="sm" aria-label="New project">
 								<Icon icon={<Plus />} />
 							</Button>
 						</Stack>
@@ -152,11 +170,38 @@ function SectionedSidebar() {
 						))}
 					</SidebarSection>
 
+					<SidebarSection>
+						<Stack direction="row" align="center" gap={2}>
+							<Text variant="muted" className="text-xs uppercase tracking-wide flex-1">
+								Chats
+							</Text>
+							<Button variant="plain" size="sm" aria-label="New project">
+								<Icon icon={<Plus />} />
+							</Button>
+						</Stack>
+						{chats.map(({ value, label }) => (
+							<SidebarItem
+								key={value}
+								icon={<MessageCircle />}
+								current={active === value}
+								onClick={() => setActive(value)}
+							>
+								<SidebarLabel>{label}</SidebarLabel>
+							</SidebarItem>
+						))}
+					</SidebarSection>
+
 					<SidebarSpacer />
 
 					<SidebarSection>
+						<Text variant="muted" className="text-xs uppercase tracking-wide flex-1 py-2">
+							Wade Cooper
+						</Text>
 						<SidebarItem icon={<Cog />}>
 							<SidebarLabel>Settings</SidebarLabel>
+						</SidebarItem>
+						<SidebarItem icon={<LogOut />}>
+							<SidebarLabel>Log Out</SidebarLabel>
 						</SidebarItem>
 					</SidebarSection>
 				</SidebarBody>
