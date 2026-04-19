@@ -19,14 +19,6 @@ export default function DatePickerDemo() {
 			<Example title="Default">
 				<Sizer size="sm">
 					<DatePicker value={date} onChange={setDate} />
-					{date && (
-						<Stack gap={2}>
-							<Text variant="muted">Selected date: {date.toLocaleDateString()}</Text>
-							<Button variant="soft" color="red" onClick={() => setDate(undefined)}>
-								Clear
-							</Button>
-						</Stack>
-					)}
 				</Sizer>
 			</Example>
 
@@ -34,16 +26,6 @@ export default function DatePickerDemo() {
 				<Sizer size="sm">
 					<DatePicker range value={range} onChange={setRange} />
 				</Sizer>
-				{range && (
-					<Stack gap={2}>
-						<Text variant="muted">
-							Selected date range: {range[0].toLocaleDateString()} - {range[1].toLocaleDateString()}
-						</Text>
-						<Button variant="soft" color="red" onClick={() => setRange(undefined)}>
-							Clear
-						</Button>
-					</Stack>
-				)}
 			</Example>
 
 			<Example title="Disabled">
