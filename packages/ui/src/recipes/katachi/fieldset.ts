@@ -3,7 +3,7 @@ import { sumi } from '../sumi'
 import { yasumi } from '../yasumi'
 
 export const fieldset = {
-	base: ['[&>legend+*]:pt-6', yasumi.disabled],
+	base: ['[&>legend+*]:pt-4', yasumi.disabled],
 	legend: ['text-base/6 font-semibold', sumi.text, yasumi.disabled],
 	field: [
 		...narabi.field,

@@ -192,13 +192,12 @@ export default function DataTableDemo() {
 						<HoldButton
 							size="sm"
 							color="red"
+							variant="soft"
 							onComplete={() => {
-								alert(`${selected.size} selected`)
-
 								setSelection(new Set())
 							}}
 						>
-							Delete
+							Delete {selected.size > 0 && selected.size} items
 						</HoldButton>
 					)}
 				/>

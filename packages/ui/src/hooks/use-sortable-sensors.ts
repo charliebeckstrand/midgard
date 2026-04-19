@@ -6,6 +6,8 @@ import { sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 export type UseSortableSensorsOptions = {
 	/** Pointer travel distance (px) before a drag activates. Defaults to 3. */
 	activationDistance?: number
+	/** Include dnd-kit's keyboard sensor. Disable when the caller handles keyboard reordering itself. Defaults to true. */
+	keyboard?: boolean
 }
 
 /**
@@ -13,9 +15,16 @@ export type UseSortableSensorsOptions = {
  * Pairs a low-threshold pointer sensor with a keyboard sensor using
  * `sortableKeyboardCoordinates` for arrow-key reordering.
  */
-export function useSortableSensors({ activationDistance = 3 }: UseSortableSensorsOptions = {}) {
-	return useSensors(
-		useSensor(PointerSensor, { activationConstraint: { distance: activationDistance } }),
-		useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
-	)
+export function useSortableSensors({
+	activationDistance = 3,
+	keyboard = true,
+}: UseSortableSensorsOptions = {}) {
+	const pointer = useSensor(PointerSensor, {
+		activationConstraint: { distance: activationDistance },
+	})
+	const keyboardSensor = useSensor(KeyboardSensor, {
+		coordinateGetter: sortableKeyboardCoordinates,
+	})
+
+	return useSensors(pointer, keyboard ? keyboardSensor : null)
 }

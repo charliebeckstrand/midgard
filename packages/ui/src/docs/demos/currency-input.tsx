@@ -27,7 +27,7 @@ function Controlled() {
 export default function CurrencyInputDemo() {
 	return (
 		<Stack gap={6}>
-			<Example title="Default (USD)">
+			<Example title="USD">
 				<Sizer>
 					<Field>
 						<Label>Amount</Label>
@@ -36,7 +36,7 @@ export default function CurrencyInputDemo() {
 				</Sizer>
 			</Example>
 
-			<Example title="Euro (en-IE)">
+			<Example title="Currency and locale">
 				<Sizer>
 					<Field>
 						<Label>Invoice total</Label>
@@ -45,7 +45,7 @@ export default function CurrencyInputDemo() {
 				</Sizer>
 			</Example>
 
-			<Example title="Yen (no fraction digits)">
+			<Example title="No fraction digits">
 				<Sizer>
 					<Field>
 						<Label>Accessorial fee</Label>
@@ -59,27 +59,6 @@ export default function CurrencyInputDemo() {
 					<Field>
 						<Label>Per-mile rate</Label>
 						<CurrencyInput precision={4} defaultValue={2.4567} />
-					</Field>
-				</Sizer>
-			</Example>
-
-			<Example title="Sizes">
-				<Sizer size="sm">
-					<Field>
-						<Label>Small</Label>
-						<CurrencyInput size="sm" defaultValue={42} />
-					</Field>
-				</Sizer>
-				<Sizer size="md">
-					<Field>
-						<Label>Medium</Label>
-						<CurrencyInput size="md" defaultValue={42} />
-					</Field>
-				</Sizer>
-				<Sizer size="lg">
-					<Field>
-						<Label>Large</Label>
-						<CurrencyInput size="lg" defaultValue={42} />
 					</Field>
 				</Sizer>
 			</Example>

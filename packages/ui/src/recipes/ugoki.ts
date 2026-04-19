@@ -95,7 +95,7 @@ export const ugoki = {
 		transition: { duration: 0.1, ease: 'easeOut' as const },
 	},
 
-	/** Height reveal for disclosure panels. */
+	/** Height reveal for collapse panels. */
 	collapse: {
 		fade: {
 			initial: { height: 0, opacity: 0 },

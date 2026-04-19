@@ -8,35 +8,30 @@ import { useListContext, useListItemContext } from './context'
 import { k } from './variants'
 
 // ── ListHandle ─────────────────────────────────────────
+// Decorative pointer affordance. Focus and keyboard reorder live on the
+// parent `<li>` so users tab to the item itself, not the grip.
 
 export type ListHandleProps = {
-	/** Accessible label announced by screen readers. */
-	'aria-label'?: string
 	children?: ReactNode
 	className?: string
 }
 
-export function ListHandle({
-	'aria-label': ariaLabel = 'Drag to reorder',
-	children,
-	className,
-}: ListHandleProps) {
-	const { interactive } = useListContext()
+export function ListHandle({ children, className }: ListHandleProps) {
+	const { interactive, itemCount } = useListContext()
 
-	const { attributes, listeners, setActivatorNodeRef } = useListItemContext()
+	const { listeners } = useListItemContext()
+
+	if (itemCount <= 1) return null
 
 	return (
-		<button
-			ref={setActivatorNodeRef}
-			type="button"
-			disabled={!interactive}
+		<span
+			aria-hidden="true"
 			data-slot="list-handle"
-			aria-label={ariaLabel}
+			data-disabled={!interactive || undefined}
 			className={cn(k.handle, className)}
-			{...attributes}
-			{...listeners}
+			{...(interactive ? listeners : {})}
 		>
-			{children ?? <Icon icon={<GripVertical />} size="sm" />}
-		</button>
+			{children ?? <Icon icon={<GripVertical />} />}
+		</span>
 	)
 }

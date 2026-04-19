@@ -27,10 +27,6 @@
 			"types": "./src/components/alert/index.ts",
 			"default": "./src/components/alert/index.ts"
 		},
-		"./array-field": {
-			"types": "./src/components/array-field/index.ts",
-			"default": "./src/components/array-field/index.ts"
-		},
 		"./aspect-ratio": {
 			"types": "./src/components/aspect-ratio/index.ts",
 			"default": "./src/components/aspect-ratio/index.ts"
@@ -122,10 +118,6 @@
 		"./dialog": {
 			"types": "./src/components/dialog/index.ts",
 			"default": "./src/components/dialog/index.ts"
-		},
-		"./disclosure": {
-			"types": "./src/components/disclosure/index.ts",
-			"default": "./src/components/disclosure/index.ts"
 		},
 		"./divider": {
 			"types": "./src/components/divider/index.ts",

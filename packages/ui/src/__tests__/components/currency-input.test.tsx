@@ -38,12 +38,13 @@ describe('CurrencyInput', () => {
 		expect(input).toHaveAttribute('inputmode', 'decimal')
 	})
 
-	it('formats defaultValue as currency on initial render', () => {
+	it('renders the currency symbol as a prefix alongside the grouped value', () => {
 		const { container } = renderUI(<CurrencyInput defaultValue={1234.56} />)
 
 		const input = bySlot(container, 'input') as HTMLInputElement
 
-		expect(input.value).toBe('$1,234.56')
+		expect(input.value).toBe('1,234.56')
+		expect(container.textContent).toContain('$')
 	})
 
 	it('respects the currency prop', () => {
@@ -53,8 +54,8 @@ describe('CurrencyInput', () => {
 
 		const input = bySlot(container, 'input') as HTMLInputElement
 
-		expect(input.value).toContain('1,000')
-		expect(input.value).toContain('€')
+		expect(input.value).toBe('1,000.00')
+		expect(container.textContent).toContain('€')
 	})
 
 	it('respects the precision prop', () => {
@@ -62,10 +63,28 @@ describe('CurrencyInput', () => {
 
 		const input = bySlot(container, 'input') as HTMLInputElement
 
-		expect(input.value).toBe('$2.5000')
+		expect(input.value).toBe('2.5000')
 	})
 
-	it('shows raw numeric value while focused', async () => {
+	it('preserves grouping while editing', async () => {
+		const { container } = renderUI(<CurrencyInput />)
+
+		const input = bySlot(container, 'input') as HTMLInputElement
+
+		const user = userEvent.setup()
+
+		await user.click(input)
+
+		await user.type(input, '1234567')
+
+		expect(input.value).toBe('1,234,567')
+
+		await user.type(input, '.89')
+
+		expect(input.value).toBe('1,234,567.89')
+	})
+
+	it('keeps grouping when focusing a prefilled value', async () => {
 		const { container } = renderUI(<CurrencyInput defaultValue={1234.5} />)
 
 		const input = bySlot(container, 'input') as HTMLInputElement
@@ -74,7 +93,7 @@ describe('CurrencyInput', () => {
 
 		await user.click(input)
 
-		expect(input.value).toBe('1234.5')
+		expect(input.value).toBe('1,234.50')
 	})
 
 	it('reformats and emits the parsed number on blur', async () => {
@@ -93,7 +112,7 @@ describe('CurrencyInput', () => {
 		await user.tab()
 
 		expect(onChange).toHaveBeenLastCalledWith(750.5)
-		expect(input.value).toBe('$750.50')
+		expect(input.value).toBe('750.50')
 	})
 
 	it('emits undefined when cleared', async () => {
@@ -120,11 +139,11 @@ describe('CurrencyInput', () => {
 
 		const input = bySlot(container, 'input') as HTMLInputElement
 
-		expect(input.value).toBe('$10.00')
+		expect(input.value).toBe('10.00')
 
 		rerender(<CurrencyInput value={42} onChange={() => {}} />)
 
-		expect(input.value).toBe('$42.00')
+		expect(input.value).toBe('42.00')
 	})
 
 	it('disables the input when disabled', () => {

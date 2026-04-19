@@ -1,5 +1,4 @@
 import { kage } from '../kage'
-import { kumi } from '../kumi'
 import { ma } from '../ma'
 import { maru } from '../maru'
 import { omote } from '../omote'
@@ -22,7 +21,6 @@ export const dataTable = {
 		omote.tint,
 	],
 	batchCount: ['font-medium whitespace-nowrap', take.text.sm, sumi.textMuted],
-	loadingBody: ['flex', kumi.center, 'py-16'],
 	selectCell: 'w-px align-middle [line-height:0]',
 	actionsCell: 'w-px whitespace-nowrap',
 	sortButton: [

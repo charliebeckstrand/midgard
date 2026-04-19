@@ -1,8 +1,17 @@
 'use client'
 
-import { forwardRef, useEffect, useMemo, useState } from 'react'
+import {
+	forwardRef,
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { useControllable } from '../../hooks'
 import { Input, type InputProps } from '../input'
+import { countMeaningful, cursorForCount, formatEditing, parseEditing } from './utilities'
 
 export type CurrencyInputProps = Omit<
 	InputProps,
@@ -19,16 +28,6 @@ export type CurrencyInputProps = Omit<
 	precision?: number
 }
 
-function parseNumber(text: string): number | undefined {
-	const cleaned = text.replace(/[^\d.-]/g, '')
-
-	if (cleaned === '' || cleaned === '-' || cleaned === '.') return undefined
-
-	const n = Number(cleaned)
-
-	return Number.isNaN(n) ? undefined : n
-}
-
 export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
 	function CurrencyInput(
 		{
@@ -38,8 +37,11 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
 			currency = 'USD',
 			locale,
 			precision,
+			prefix,
+			suffix,
 			onFocus,
 			onBlur,
+			onKeyDown,
 			...props
 		},
 		ref,
@@ -59,41 +61,126 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
 			[locale, currency, precision],
 		)
 
-		const [focused, setFocused] = useState(false)
-		const [text, setText] = useState(() => (num === undefined ? '' : formatter.format(num)))
+		const { symbol, symbolIsPrefix, group, decimal, maxFractionDigits } = useMemo(() => {
+			const parts = formatter.formatToParts(0)
+
+			const currencyPart = parts.find((p) => p.type === 'currency')
+
+			const groupPart = parts.find((p) => p.type === 'group')
+
+			const decimalPart = parts.find((p) => p.type === 'decimal')
+
+			const currencyIdx = parts.findIndex((p) => p.type === 'currency')
+
+			const integerIdx = parts.findIndex((p) => p.type === 'integer')
+
+			const options = formatter.resolvedOptions()
+
+			return {
+				symbol: currencyPart?.value ?? '',
+				symbolIsPrefix: currencyIdx < integerIdx,
+				group: groupPart?.value ?? ',',
+				decimal: decimalPart?.value ?? '.',
+				maxFractionDigits: options.maximumFractionDigits ?? 2,
+			}
+		}, [formatter])
+
+		const displayFormatter = useMemo(() => {
+			const options = formatter.resolvedOptions()
+
+			return new Intl.NumberFormat(locale, {
+				style: 'decimal',
+				useGrouping: true,
+				minimumFractionDigits: options.minimumFractionDigits,
+				maximumFractionDigits: options.maximumFractionDigits,
+			})
+		}, [formatter, locale])
+
+		const editingRef = useRef(false)
+
+		const [text, setText] = useState(() => (num === undefined ? '' : displayFormatter.format(num)))
 
 		// Reflect external numeric changes when the field is not being edited.
 		useEffect(() => {
-			if (focused) return
+			if (editingRef.current) return
 
-			setText(num === undefined ? '' : formatter.format(num))
-		}, [num, focused, formatter])
+			setText(num === undefined ? '' : displayFormatter.format(num))
+		}, [num, displayFormatter])
+
+		const inputRef = useRef<HTMLInputElement | null>(null)
+
+		const pendingCursorRef = useRef<number | null>(null)
+
+		const setRefs = useCallback(
+			(node: HTMLInputElement | null) => {
+				inputRef.current = node
+
+				if (typeof ref === 'function') ref(node)
+				else if (ref) ref.current = node
+			},
+			[ref],
+		)
+
+		useLayoutEffect(() => {
+			const target = pendingCursorRef.current
+
+			if (target === null) return
+
+			pendingCursorRef.current = null
+
+			const el = inputRef.current
+
+			if (el && document.activeElement === el) {
+				el.setSelectionRange(target, target)
+			}
+		})
 
 		return (
 			<Input
-				ref={ref}
+				ref={setRefs}
 				type="text"
 				inputMode="decimal"
+				prefix={prefix ?? (symbolIsPrefix ? symbol : undefined)}
+				suffix={suffix ?? (symbolIsPrefix ? undefined : symbol)}
+				className="tabular-nums"
 				value={text}
 				onFocus={(e) => {
-					setFocused(true)
-					setText(num === undefined ? '' : String(num))
+					editingRef.current = true
+
 					onFocus?.(e)
 				}}
-				onChange={(e) => {
-					const v = e.target.value
+				onKeyDown={(e) => {
+					onKeyDown?.(e)
 
-					setText(v)
-					setNum(parseNumber(v))
+					if (!e.defaultPrevented && e.key === 'Enter') {
+						e.currentTarget.blur()
+					}
+				}}
+				onChange={(e) => {
+					editingRef.current = true
+
+					const raw = e.target.value
+
+					const cursor = e.target.selectionStart ?? raw.length
+
+					const meaningfulBefore = countMeaningful(raw, cursor, decimal)
+
+					const formatted = formatEditing(raw, locale, decimal, maxFractionDigits)
+
+					pendingCursorRef.current = cursorForCount(formatted, meaningfulBefore, decimal)
+
+					setText(formatted)
+
+					setNum(parseEditing(formatted, group, decimal))
 				}}
 				onBlur={(e) => {
-					setFocused(false)
+					editingRef.current = false
 
-					const parsed = parseNumber(text)
+					const parsed = parseEditing(text, group, decimal)
 
 					if (parsed !== num) setNum(parsed)
 
-					setText(parsed === undefined ? '' : formatter.format(parsed))
+					setText(parsed === undefined ? '' : displayFormatter.format(parsed))
 
 					onBlur?.(e)
 				}}

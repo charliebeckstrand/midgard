@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
+import { ArrowDown, ArrowUp } from 'lucide-react'
 import { cn } from '../../core'
 import { Checkbox } from '../checkbox'
 import { Icon } from '../icon'
@@ -53,20 +53,11 @@ export function DataTableHead<T>({ columns }: DataTableHeadProps<T>) {
 									aria-label={`Sort by ${typeof col.title === 'string' ? col.title : col.id}`}
 								>
 									{col.title}
-									<Icon
-										icon={
-											isSorted ? (
-												sort.direction === 'asc' ? (
-													<ArrowUp />
-												) : (
-													<ArrowDown />
-												)
-											) : (
-												<ArrowUpDown />
-											)
-										}
-										className={cn(isSorted ? k.sortIconActive : k.sortIcon)}
-									/>
+									{isSorted && sort?.direction === 'asc' ? (
+										<Icon icon={<ArrowUp />} className={cn(k.sortIconActive)} />
+									) : isSorted && sort?.direction === 'desc' ? (
+										<Icon icon={<ArrowDown />} className={cn(k.sortIconActive)} />
+									) : null}
 								</button>
 							) : (
 								col.title

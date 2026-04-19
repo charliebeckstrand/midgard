@@ -1,11 +1,12 @@
 'use client'
 
-import { DndContext, DragOverlay } from '@dnd-kit/core'
+import { DndContext, DragOverlay, type DragStartEvent } from '@dnd-kit/core'
 import { SortableContext } from '@dnd-kit/sortable'
-import type { ReactNode } from 'react'
+import { type ReactNode, useCallback, useMemo } from 'react'
 import { cn } from '../../core'
 import { type SortableOrientation, useSortableItem, useSortableList } from '../../hooks'
 import { ListItemProvider, ListProvider } from './context'
+import { useListKeyboard } from './use-list-keyboard'
 import { k } from './variants'
 
 const noop = () => {}
@@ -23,6 +24,8 @@ export type ListProps<T> = {
 	orientation?: SortableOrientation
 	/** Disable all drag / keyboard reorder interaction. */
 	disabled?: boolean
+	/** Auto-insert a `<ListHandle>` as the first child of each `<ListItem>`. */
+	sortable?: boolean
 	/** Render function for each item. */
 	children: (item: T, index: number) => ReactNode
 	className?: string
@@ -35,6 +38,7 @@ export function List<T>({
 	onReorder,
 	orientation = 'vertical',
 	disabled,
+	sortable = true,
 	children,
 	className,
 	'aria-label': ariaLabel,
@@ -45,15 +49,45 @@ export function List<T>({
 		onReorder,
 		orientation,
 		disabled,
+		keyboardSensor: false,
 	})
+
+	const { liftedId, setLiftedId, onItemKeyDown, onItemBlur } = useListKeyboard({
+		items,
+		getKey,
+		orientation,
+		onReorder,
+	})
+
+	// Clear keyboard-lifted state when a pointer drag begins.
+	const handleDragStart = useCallback(
+		(event: DragStartEvent) => {
+			setLiftedId(null)
+			dndContextProps.onDragStart(event)
+		},
+		[dndContextProps, setLiftedId],
+	)
 
 	const activeItem = activeId ? items.find((item) => getKey(item) === activeId) : null
 
 	const activeIndex = activeItem ? items.indexOf(activeItem) : -1
 
+	const ctxValue = useMemo(
+		() => ({
+			interactive,
+			activeId,
+			liftedId,
+			itemCount: items.length,
+			sortable,
+			onItemKeyDown,
+			onItemBlur,
+		}),
+		[interactive, activeId, liftedId, items.length, sortable, onItemKeyDown, onItemBlur],
+	)
+
 	return (
-		<ListProvider value={{ interactive, activeId }}>
-			<DndContext {...dndContextProps}>
+		<ListProvider value={ctxValue}>
+			<DndContext {...dndContextProps} onDragStart={handleDragStart}>
 				<SortableContext items={itemIds} strategy={strategy}>
 					<ul
 						aria-label={ariaLabel}

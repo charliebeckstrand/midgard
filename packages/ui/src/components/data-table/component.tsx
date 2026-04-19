@@ -3,10 +3,9 @@
 import { type ReactNode, useCallback, useMemo } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
-import { Spinner } from '../spinner'
 import type { TableVariants } from '../table'
-import { Table, TableBody } from '../table'
-import { DataTableBatchBar } from './batch-bar'
+import { Table, TableBody, TableLoading } from '../table'
+import { Toolbar } from '../toolbar'
 import { DataTableProvider, type SortState } from './context'
 import { DataTableHead } from './head'
 import { DataTableRowInternal } from './row'
@@ -168,19 +167,12 @@ export function DataTable<T>({
 			<DataTableHead columns={columns} />
 
 			{loading ? (
-				<tbody>
-					<tr>
-						<td colSpan={columns.length}>
-							<div className={cn(k.loadingBody)}>
-								<Spinner size="lg" />
-							</div>
-						</td>
-					</tr>
-				</tbody>
+				<TableLoading columns={columns.length} />
 			) : (
 				<TableBody>
 					{rows.map((row, index) => {
 						const key = rowKeys[index] as string | number
+
 						const isLoading = rowLoading?.(row) ?? false
 
 						return (
@@ -202,11 +194,7 @@ export function DataTable<T>({
 	return (
 		<DataTableProvider value={ctx}>
 			<div data-slot="data-table" className={cn(k.wrapper)}>
-				{batchActions && (
-					<DataTableBatchBar count={selection.size}>
-						{someSelected && batchActions(selection)}
-					</DataTableBatchBar>
-				)}
+				{batchActions && <Toolbar>{someSelected && batchActions(selection)}</Toolbar>}
 
 				{stickyHeader ? (
 					<div className={cn(k.stickyWrapper)} style={maxHeight ? { maxHeight } : undefined}>

@@ -5,6 +5,7 @@ import {
 	TableCell,
 	TableHead,
 	TableHeader,
+	TableLoading,
 	TableRow,
 } from '../../components/table'
 import { Example } from '../components/example'
@@ -58,6 +59,19 @@ export default function TableDemo() {
 							</TableRow>
 						))}
 					</TableBody>
+				</Table>
+			</Example>
+
+			<Example title="Loading">
+				<Table>
+					<TableHead>
+						<TableRow>
+							<TableHeader>Name</TableHeader>
+							<TableHeader>Email</TableHeader>
+							<TableHeader>Role</TableHeader>
+						</TableRow>
+					</TableHead>
+					<TableLoading columns={3} />
 				</Table>
 			</Example>
 		</Stack>

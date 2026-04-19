@@ -2,7 +2,7 @@
 
 import type { DraggableAttributes } from '@dnd-kit/core'
 import type { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities'
-import type { CSSProperties } from 'react'
+import type { CSSProperties, KeyboardEvent } from 'react'
 import { createContext } from '../../core/create-context'
 
 export type ListContext = {
@@ -10,6 +10,16 @@ export type ListContext = {
 	interactive: boolean
 	/** Id of the item currently being dragged, if any. */
 	activeId: string | null
+	/** Id of the item "lifted" via keyboard (Space), if any. */
+	liftedId: string | null
+	/** Number of items in the list. */
+	itemCount: number
+	/** Whether `<ListItem>` should auto-insert a `<ListHandle>`. */
+	sortable: boolean
+	/** Keyboard handler for list items — Space lifts, arrows move / navigate. */
+	onItemKeyDown: (id: string, event: KeyboardEvent) => void
+	/** Blur handler that drops any active keyboard lift. */
+	onItemBlur: () => void
 }
 
 export const [ListProvider, useListContext] = createContext<ListContext>('List')

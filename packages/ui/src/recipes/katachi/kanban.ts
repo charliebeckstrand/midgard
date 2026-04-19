@@ -36,7 +36,7 @@ export const kanban = {
 		'data-disabled:opacity-75 data-disabled:cursor-not-allowed',
 	],
 	cardDraggable: 'cursor-grab touch-none select-none',
-	cardLifted: 'shadow-md z-10 focus-visible:ring-violet-600',
-	cardActive: 'shadow-lg relative z-10 opacity-95',
+	cardLifted: ki.lifted,
+	cardActive: 'z-10 shadow-lg relative opacity-95',
 	cardDragging: 'cursor-grabbing',
 }

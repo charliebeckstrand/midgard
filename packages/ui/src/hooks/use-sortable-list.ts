@@ -22,6 +22,8 @@ export type UseSortableListOptions<T> = {
 	orientation?: SortableOrientation
 	/** Disable pointer + keyboard interaction. */
 	disabled?: boolean
+	/** Register dnd-kit's keyboard sensor. Disable when the caller handles keyboard reordering itself. Defaults to true. */
+	keyboardSensor?: boolean
 }
 
 export type UseSortableListReturn = {
@@ -56,11 +58,12 @@ export function useSortableList<T>({
 	onReorder,
 	orientation = 'vertical',
 	disabled = false,
+	keyboardSensor = true,
 }: UseSortableListOptions<T>): UseSortableListReturn {
 	const interactive = !disabled && !!onReorder
 
 	const [activeId, setActiveId] = useState<string | null>(null)
-	const sensors = useSortableSensors()
+	const sensors = useSortableSensors({ keyboard: keyboardSensor })
 
 	const itemIds = useMemo(() => items.map(getKey), [items, getKey])
 

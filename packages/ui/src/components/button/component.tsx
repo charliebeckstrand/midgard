@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
-import type { PointerEvent } from 'react'
+import type { PointerEvent, Ref } from 'react'
 import { cn } from '../../core'
 import { type PolymorphicProps, TouchTarget, useRipple, useTap } from '../../primitives'
 import { Link } from '../../primitives/link'
@@ -33,7 +33,8 @@ type ButtonBaseProps = ButtonVariants & {
 	className?: string
 }
 
-export type ButtonProps = ButtonBaseProps & PolymorphicProps<'button'>
+export type ButtonProps = ButtonBaseProps &
+	(PolymorphicProps<'button'> & { ref?: Ref<HTMLButtonElement> })
 
 export function Button({
 	variant,
@@ -43,6 +44,7 @@ export function Button({
 	className,
 	children,
 	href,
+	ref,
 	ripple = false,
 	spring = false,
 	loading: loadingProp = false,
@@ -132,6 +134,7 @@ export function Button({
 	return (
 		<motion.button
 			{...tap}
+			ref={ref}
 			data-slot="button"
 			type="button"
 			className={classes}

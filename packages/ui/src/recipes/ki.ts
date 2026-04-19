@@ -15,6 +15,7 @@ const motoi = {
 	outline:
 		'has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-blue-600',
 	indicator: 'not-data-current:focus-visible:after:bg-blue-600',
+	lifted: 'shadow-md z-10 focus-visible:ring-violet-600',
 }
 
 // ── Export ───────────────────────────────────────────────
