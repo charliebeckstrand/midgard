@@ -27,8 +27,6 @@ export const editableGrid = {
 		'absolute inset-0 bg-transparent outline-none',
 		ma.density.px.md,
 		ma.density.py.md,
-		// 'selection:bg-lime-300 selection:text-lime-950',
-		// 'dark:selection:bg-lime-500/40 dark:selection:text-lime-50',
 		sumi.text,
 	],
 	editInputAlign: {

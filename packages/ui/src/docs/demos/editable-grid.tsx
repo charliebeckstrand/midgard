@@ -39,7 +39,6 @@ const numericColumn = (
 ): EditableGridColumn<LaneRate> => ({
 	id: col.id as string,
 	title: col.title,
-	align: 'right',
 	parse: (raw) => {
 		const n = Number(raw)
 
@@ -124,9 +123,9 @@ export default function EditableGridDemo() {
 
 					const columns: EditableGridColumn<LaneRate>[] = [
 						{ id: 'state', title: 'State', field: 'state', readOnly: true },
-						{ id: 'perMile', title: 'Per-mile', field: 'perMile', align: 'right' },
-						{ id: 'minCharge', title: 'Min charge', field: 'minCharge', align: 'right' },
-						{ id: 'fuelPct', title: 'Fuel %', field: 'fuelPct', align: 'right' },
+						{ id: 'perMile', title: 'Per-mile', field: 'perMile' },
+						{ id: 'minCharge', title: 'Min charge', field: 'minCharge' },
+						{ id: 'fuelPct', title: 'Fuel %', field: 'fuelPct' },
 					]
 
 					<EditableGrid
@@ -158,9 +157,9 @@ export default function EditableGridDemo() {
 					const columns: EditableGridColumn<LaneRate>[] = [
 						{ id: 'select', selectable: true, width: '48px' },
 						{ id: 'state', title: 'State', field: 'state', readOnly: true },
-						{ id: 'perMile', title: 'Per-mile', field: 'perMile', align: 'right' },
-						{ id: 'minCharge', title: 'Min charge', field: 'minCharge', align: 'right' },
-						{ id: 'fuelPct', title: 'Fuel %', field: 'fuelPct', align: 'right' },
+						{ id: 'perMile', title: 'Per-mile', field: 'perMile' },
+						{ id: 'minCharge', title: 'Min charge', field: 'minCharge' },
+						{ id: 'fuelPct', title: 'Fuel %', field: 'fuelPct' },
 					]
 
 					<EditableGrid
