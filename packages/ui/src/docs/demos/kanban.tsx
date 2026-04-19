@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { Alert } from '../../components/alert'
 import { Badge } from '../../components/badge'
 import {
 	Kanban,
@@ -49,14 +48,6 @@ const initialColumns: Column[] = [
 	},
 ]
 
-function NoItems() {
-	return (
-		<Alert color="amber" variant="soft" block>
-			No items
-		</Alert>
-	)
-}
-
 function Default() {
 	const [columns, setColumns] = useState(initialColumns)
 
@@ -73,9 +64,11 @@ function Default() {
 						<KanbanColumn key={column.id} columnId={column.id} aria-label={column.title}>
 							<KanbanColumnHeader>
 								<KanbanColumnTitle>{column.title}</KanbanColumnTitle>
-								<Badge className="tabular-nums">{column.items.length}</Badge>
+								<Badge variant="outline" size="sm" className="tabular-nums">
+									{column.items.length}
+								</Badge>
 							</KanbanColumnHeader>
-							<KanbanColumnBody empty={<NoItems />}>
+							<KanbanColumnBody>
 								{column.items.map((load) => (
 									<KanbanCard key={load.id} cardId={load.id} aria-label={load.code}>
 										<span className="font-medium">{load.code}</span>
@@ -102,7 +95,7 @@ function ReadOnly() {
 							<KanbanColumnTitle>{column.title}</KanbanColumnTitle>
 							<Badge className="tabular-nums">{column.items.length}</Badge>
 						</KanbanColumnHeader>
-						<KanbanColumnBody empty={<NoItems />}>
+						<KanbanColumnBody>
 							{column.items.map((load) => (
 								<KanbanCard key={load.id} cardId={load.id}>
 									<span className="font-medium">{load.code}</span>
@@ -129,7 +122,7 @@ function Disabled() {
 							<KanbanColumnTitle>{column.title}</KanbanColumnTitle>
 							<Badge className="tabular-nums">{column.items.length}</Badge>
 						</KanbanColumnHeader>
-						<KanbanColumnBody empty={<NoItems />}>
+						<KanbanColumnBody>
 							{column.items.map((load) => (
 								<KanbanCard key={load.id} cardId={load.id}>
 									<span className="font-medium">{load.code}</span>
