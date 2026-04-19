@@ -48,6 +48,16 @@ const initialColumns: Column[] = [
 	},
 ]
 
+function ColumnTotalBadge({ items }: { items: Load[] }) {
+	const total = items.length
+
+	return (
+		<Badge variant="outline" size="sm" className="tabular-nums">
+			{total}
+		</Badge>
+	)
+}
+
 function Default() {
 	const [columns, setColumns] = useState(initialColumns)
 
@@ -64,9 +74,7 @@ function Default() {
 						<KanbanColumn key={column.id} columnId={column.id} aria-label={column.title}>
 							<KanbanColumnHeader>
 								<KanbanColumnTitle>{column.title}</KanbanColumnTitle>
-								<Badge variant="outline" size="sm" className="tabular-nums">
-									{column.items.length}
-								</Badge>
+								<ColumnTotalBadge items={column.items} />
 							</KanbanColumnHeader>
 							<KanbanColumnBody>
 								{column.items.map((load) => (
@@ -93,7 +101,7 @@ function ReadOnly() {
 					<KanbanColumn key={column.id} columnId={column.id}>
 						<KanbanColumnHeader>
 							<KanbanColumnTitle>{column.title}</KanbanColumnTitle>
-							<Badge className="tabular-nums">{column.items.length}</Badge>
+							<ColumnTotalBadge items={column.items} />
 						</KanbanColumnHeader>
 						<KanbanColumnBody>
 							{column.items.map((load) => (
@@ -120,7 +128,7 @@ function Disabled() {
 					<KanbanColumn key={column.id} columnId={column.id}>
 						<KanbanColumnHeader>
 							<KanbanColumnTitle>{column.title}</KanbanColumnTitle>
-							<Badge className="tabular-nums">{column.items.length}</Badge>
+							<ColumnTotalBadge items={column.items} />
 						</KanbanColumnHeader>
 						<KanbanColumnBody>
 							{column.items.map((load) => (
