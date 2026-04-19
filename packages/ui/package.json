@@ -71,10 +71,6 @@
 			"types": "./src/components/checkbox/index.ts",
 			"default": "./src/components/checkbox/index.ts"
 		},
-		"./checklist": {
-			"types": "./src/components/checklist/index.ts",
-			"default": "./src/components/checklist/index.ts"
-		},
 		"./chip": {
 			"types": "./src/components/chip/index.ts",
 			"default": "./src/components/chip/index.ts"

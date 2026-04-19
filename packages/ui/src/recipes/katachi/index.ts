@@ -17,7 +17,6 @@ import { button } from './button'
 import { calendar } from './calendar'
 import { card } from './card'
 import { checkbox } from './checkbox'
-import { checklist } from './checklist'
 import { chip } from './chip'
 import { code } from './code'
 import { collapse } from './collapse'
@@ -91,7 +90,6 @@ export const katachi = {
 	calendar,
 	card,
 	checkbox,
-	checklist,
 	chip,
 	code,
 	collapse,

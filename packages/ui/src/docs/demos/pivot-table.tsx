@@ -31,7 +31,7 @@ const currency = (value: number) =>
 export default function PivotTableDemo() {
 	return (
 		<Stack gap={6}>
-			<Example title="Loads by lane × period">
+			<Example title="Loads by lane">
 				<PivotTable
 					data={loads}
 					rowKey="lane"
@@ -42,7 +42,7 @@ export default function PivotTableDemo() {
 				/>
 			</Example>
 
-			<Example title="Cost by lane × carrier (currency formatted)">
+			<Example title="Cost by lane">
 				<PivotTable
 					data={loads}
 					rowKey="lane"

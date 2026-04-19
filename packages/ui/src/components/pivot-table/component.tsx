@@ -65,6 +65,7 @@ export function PivotTable<T>({
 	const formatValue = format ?? defaultFormat
 
 	const colTotals = columns.map((col) => aggregateColumn(groups, rows, col, aggregation))
+
 	const grandTotal = aggregateAll(groups, aggregation)
 
 	return (
@@ -144,6 +145,7 @@ function resolveAxis<T>(
 		for (const value of explicit) {
 			if (!seen.has(value)) {
 				seen.add(value)
+
 				result.push(value)
 			}
 		}
@@ -154,6 +156,7 @@ function resolveAxis<T>(
 
 		if (!seen.has(value)) {
 			seen.add(value)
+
 			result.push(value)
 		}
 	}
@@ -172,7 +175,9 @@ function groupValues<T>(
 	for (const entry of data) {
 		const r = String(entry[rowKey])
 		const c = String(entry[columnKey])
+
 		const raw = entry[valueKey]
+
 		const value = typeof raw === 'number' ? raw : Number(raw)
 
 		if (!Number.isFinite(value)) continue
