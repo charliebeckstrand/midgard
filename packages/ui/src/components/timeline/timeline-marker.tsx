@@ -22,20 +22,26 @@ export function TimelineMarker({
 	active: _active,
 	className,
 }: TimelineMarkerProps) {
-	const { orientation, variant } = useTimeline()
+	const { orientation, variant, rootVariant } = useTimeline()
 
 	return (
-		<StatusDot
+		<span
 			data-slot="timeline-marker"
-			variant={variant}
-			status={status}
-			pulse={pulse}
 			className={cn(
 				k.marker.base,
-				orientation === 'vertical' ? k.marker.vertical[variant] : k.marker.horizontal[variant],
+				orientation === 'vertical'
+					? k.marker.vertical[rootVariant]
+					: k.marker.horizontal[rootVariant],
 				color && k.marker.color[color],
 				className,
 			)}
-		/>
+		>
+			<StatusDot
+				variant={variant}
+				status={status}
+				pulse={pulse}
+				className="z-10 relative size-full"
+			/>
+		</span>
 	)
 }

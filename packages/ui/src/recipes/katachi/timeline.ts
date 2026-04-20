@@ -28,7 +28,7 @@ export const slots = {
 	},
 	marker: {
 		base: [
-			'relative z-10 size-3.5',
+			'z-10 relative inline-flex size-3.5 items-center justify-center',
 			// Line segments anchor to the marker and are clipped to the item
 			// via overflow-hidden, so adjacent items meet at the shared edge.
 			'before:content-[""] before:absolute',

@@ -23,7 +23,7 @@ export function TimelineItem({
 	color,
 	pulse,
 }: TimelineItemProps) {
-	const { orientation, variant: contextVariant } = useTimeline()
+	const { orientation, variant: contextVariant, rootVariant } = useTimeline()
 
 	const variant = variantProp ?? contextVariant
 
@@ -41,7 +41,7 @@ export function TimelineItem({
 				className,
 			)}
 		>
-			<TimelineProvider value={{ orientation, variant }}>
+			<TimelineProvider value={{ orientation, variant, rootVariant }}>
 				{!hasMarker && <TimelineMarker {...({ status, color, pulse } as TimelineMarkerProps)} />}
 				{children}
 			</TimelineProvider>
