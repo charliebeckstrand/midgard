@@ -245,6 +245,12 @@ function toSegmentCollection(data: RouteData) {
 	}> = []
 
 	for (let i = 0; i < path.length - 1; i++) {
+		const fromPoint = path[i]
+
+		const toPoint = path[i + 1]
+
+		if (!fromPoint || !toPoint) continue
+
 		const from = data.stops[i]?.status
 
 		const to = data.stops[i + 1]?.status
@@ -257,7 +263,7 @@ function toSegmentCollection(data: RouteData) {
 
 		segments.push({
 			type: 'Feature',
-			geometry: { type: 'LineString', coordinates: [path[i], path[i + 1]] },
+			geometry: { type: 'LineString', coordinates: [fromPoint, toPoint] },
 			properties: { status, index: i },
 		})
 	}

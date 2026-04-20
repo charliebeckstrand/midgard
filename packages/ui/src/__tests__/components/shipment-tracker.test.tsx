@@ -85,4 +85,66 @@ describe('ShipmentTracker', () => {
 
 		expect(container.querySelectorAll('[data-slot="timeline-item"][data-active]')).toHaveLength(1)
 	})
+
+	it('uses solid markers for completed and current steps, outline for upcoming', () => {
+		const { container } = renderUI(<ShipmentTracker steps={steps} currentIndex={1} />)
+
+		const markers = allBySlot(container, 'status-dot')
+
+		expect(markers[0]?.className).toContain('bg-current')
+
+		expect(markers[1]?.className).toContain('bg-current')
+
+		expect(markers[2]?.className).toContain('border-2')
+
+		expect(markers[3]?.className).toContain('border-2')
+	})
+
+	it('applies info status and pulse to a non-final current step', () => {
+		const { container } = renderUI(<ShipmentTracker steps={steps} currentIndex={1} />)
+
+		const currentMarker = allBySlot(container, 'status-dot')[1]
+
+		expect(currentMarker?.className).toContain('text-blue-500')
+
+		expect(currentMarker?.className).toContain('animate-pulse')
+	})
+
+	it('applies active status and no pulse when currentIndex is the final step', () => {
+		const { container } = renderUI(
+			<ShipmentTracker steps={steps} currentIndex={steps.length - 1} />,
+		)
+
+		const finalMarker = allBySlot(container, 'status-dot')[steps.length - 1]
+
+		expect(finalMarker?.className).toContain('text-green-500')
+
+		expect(finalMarker?.className).not.toContain('animate-pulse')
+	})
+
+	it('applies inactive status to upcoming steps', () => {
+		const { container } = renderUI(<ShipmentTracker steps={steps} currentIndex={0} />)
+
+		const markers = allBySlot(container, 'status-dot')
+
+		expect(markers[2]?.className).toContain('text-zinc-300')
+
+		expect(markers[3]?.className).toContain('text-zinc-300')
+	})
+
+	it('forwards orientation to the timeline', () => {
+		const { container } = renderUI(
+			<ShipmentTracker steps={steps} currentIndex={1} orientation="horizontal" />,
+		)
+
+		expect(bySlot(container, 'timeline')?.className).toContain('flex-row')
+	})
+
+	it('falls back to the array index for the key when step.id is missing', () => {
+		const unkeyed = [{ label: 'A' }, { label: 'B' }, { label: 'C' }]
+
+		const { container } = renderUI(<ShipmentTracker steps={unkeyed} currentIndex={0} />)
+
+		expect(allBySlot(container, 'timeline-item')).toHaveLength(3)
+	})
 })

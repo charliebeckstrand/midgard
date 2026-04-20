@@ -1,6 +1,7 @@
 'use client'
 
 import { cn } from '../../core'
+import { useResizable, useResizableIndex } from './context'
 import { k } from './variants'
 
 export type ResizablePanelProps = {
@@ -14,7 +15,11 @@ export type ResizablePanelProps = {
 export function ResizablePanel(props: ResizablePanelProps) {
 	const { defaultSize = 50, className, children } = props
 
-	const size = (props as Record<string, unknown>)._size ?? defaultSize
+	const { sizes } = useResizable()
+
+	const { panelIndex } = useResizableIndex()
+
+	const size = panelIndex !== undefined ? (sizes[panelIndex] ?? defaultSize) : defaultSize
 
 	return (
 		<div

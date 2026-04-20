@@ -46,7 +46,7 @@ export function useCanvasSizing({
 
 			const dpr = window.devicePixelRatio || 1
 
-			const snapshot = canvas.toDataURL()
+			const snapshot = currentEmpty ? null : canvas.toDataURL()
 
 			canvas.width = Math.round(width * dpr)
 			canvas.height = Math.round(height * dpr)
@@ -62,7 +62,7 @@ export function useCanvasSizing({
 
 			configureStroke(ctx, color, lineWidth)
 
-			if (!currentEmpty && snapshot) {
+			if (snapshot) {
 				drawSnapshot(canvas, snapshot)
 			}
 		}

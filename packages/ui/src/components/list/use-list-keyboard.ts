@@ -56,7 +56,11 @@ export function useListKeyboard<T>({ items, getKey, orientation, onReorder }: Op
 
 			if (targetIdx < 0 || targetIdx >= items.length || targetIdx === idx) return false
 
-			focusItem(getKey(items[targetIdx]))
+			const target = items[targetIdx]
+
+			if (target === undefined) return false
+
+			focusItem(getKey(target))
 
 			return true
 		},
@@ -78,6 +82,8 @@ export function useListKeyboard<T>({ items, getKey, orientation, onReorder }: Op
 			const next = [...items]
 
 			const [item] = next.splice(idx, 1)
+
+			if (item === undefined) return
 
 			next.splice(newIdx, 0, item)
 

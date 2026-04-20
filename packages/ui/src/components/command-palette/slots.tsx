@@ -1,6 +1,6 @@
 import type React from 'react'
 import { cn } from '../../core'
-import { Alert } from '../alert'
+import { Alert, type AlertProps } from '../alert'
 import { k } from './variants'
 
 export type CommandPaletteGroupProps = React.ComponentPropsWithoutRef<'div'> & {
@@ -25,8 +25,12 @@ export function CommandPaletteGroup({
 	)
 }
 
-export type CommandPaletteEmptyProps = React.ComponentPropsWithoutRef<'div'>
+export type CommandPaletteEmptyProps = AlertProps
 
-export function CommandPaletteEmpty({ children }: CommandPaletteEmptyProps) {
-	return <Alert data-slot="command-palette-empty">{children}</Alert>
+export function CommandPaletteEmpty({ children, ...props }: CommandPaletteEmptyProps) {
+	return (
+		<Alert data-slot="command-palette-empty" {...props}>
+			{children}
+		</Alert>
+	)
 }

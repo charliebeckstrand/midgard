@@ -4,9 +4,17 @@ import { createContext, useContext } from 'react'
 
 export type ResizableDirection = 'horizontal' | 'vertical'
 
+export type PanelConfig = {
+	defaultSize: number
+	minSize: number
+	maxSize: number
+}
+
 type ResizableContextType = {
 	direction: ResizableDirection
 	dragging: number | null
+	sizes: number[]
+	panelConfigs: PanelConfig[]
 	startDrag: (handleIndex: number, event: React.PointerEvent) => void
 	resize: (handleIndex: number, delta: number) => void
 }
@@ -23,4 +31,17 @@ export function useResizable() {
 	}
 
 	return ctx
+}
+
+type ResizableIndexContextType = {
+	panelIndex?: number
+	handleIndex?: number
+}
+
+const ResizableIndexContext = createContext<ResizableIndexContextType>({})
+
+export const ResizableIndexProvider = ResizableIndexContext.Provider
+
+export function useResizableIndex() {
+	return useContext(ResizableIndexContext)
 }

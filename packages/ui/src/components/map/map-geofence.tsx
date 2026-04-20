@@ -114,12 +114,16 @@ function toPolygon(shape: GeofenceShape) {
 	const coords =
 		shape.kind === 'circle' ? circlePolygon(shape.center, shape.radiusMeters) : shape.coordinates
 
-	const closed =
-		coords.length > 0 &&
-		coords[0][0] === coords[coords.length - 1][0] &&
-		coords[0][1] === coords[coords.length - 1][1]
+	const first = coords[0]
+
+	const last = coords[coords.length - 1]
+
+	const closed: LngLat[] =
+		first && last && first[0] === last[0] && first[1] === last[1]
 			? coords
-			: [...coords, coords[0]]
+			: first
+				? [...coords, first]
+				: coords
 
 	return {
 		type: 'Feature' as const,

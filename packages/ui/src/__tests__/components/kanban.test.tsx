@@ -110,7 +110,8 @@ describe('KanbanColumn', () => {
 	})
 
 	it('renders an empty fallback when the column has no items', () => {
-		const empty: Column[] = [{ id: 'empty', title: 'Empty', items: [] }]
+		const emptyColumn: Column = { id: 'empty', title: 'Empty', items: [] }
+		const empty: Column[] = [emptyColumn]
 
 		renderUI(
 			<Kanban columns={empty} getItemKey={(item: Item) => item.id}>
@@ -119,7 +120,7 @@ describe('KanbanColumn', () => {
 						<KanbanColumnTitle>Empty</KanbanColumnTitle>
 					</KanbanColumnHeader>
 					<KanbanColumnBody empty="No cards">
-						{empty[0].items.map((item) => (
+						{emptyColumn.items.map((item) => (
 							<KanbanCard key={item.id} cardId={item.id}>
 								{item.title}
 							</KanbanCard>

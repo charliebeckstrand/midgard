@@ -68,6 +68,8 @@ export function useKanbanDrag<T, C extends KanbanColumnShape<T>>({
 
 		const item = activeCol.items[activeIdx]
 
+		if (item === undefined) return
+
 		const overIsColumn = columns.some((c) => c.id === overId)
 
 		const overCardIdx = overCol.items.findIndex((i) => getItemKey(i) === overId)
@@ -124,6 +126,8 @@ export function useKanbanDrag<T, C extends KanbanColumnShape<T>>({
 		const nextItems = [...activeCol.items]
 
 		const [moving] = nextItems.splice(oldIdx, 1)
+
+		if (moving === undefined) return
 
 		nextItems.splice(newIdx, 0, moving)
 

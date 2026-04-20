@@ -71,7 +71,7 @@ export function ChatPrompt({
 				<>
 					{actions}
 					<Spacer />
-					<Button variant="plain" size="sm">
+					<Button variant="plain" size="sm" aria-label="Add attachment">
 						<Icon icon={<Paperclip />} />
 					</Button>
 					{streaming ? (

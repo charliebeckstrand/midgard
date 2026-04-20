@@ -2,7 +2,7 @@
 
 import { useCallback } from 'react'
 import { cn } from '../../core'
-import { useResizable } from './context'
+import { useResizable, useResizableIndex } from './context'
 import { k } from './variants'
 
 export type ResizableHandleProps = {
@@ -12,12 +12,12 @@ export type ResizableHandleProps = {
 export function ResizableHandle(props: ResizableHandleProps) {
 	const { className } = props
 
-	const handleIndex: number = ((props as Record<string, unknown>)._handleIndex as number) ?? 0
-	const panelSize: number = ((props as Record<string, unknown>)._panelSize as number) ?? 0
-	const panelMinSize: number = ((props as Record<string, unknown>)._panelMinSize as number) ?? 0
-	const panelMaxSize: number = ((props as Record<string, unknown>)._panelMaxSize as number) ?? 100
+	const { direction, dragging, sizes, panelConfigs, startDrag, resize } = useResizable()
+	const { handleIndex = 0 } = useResizableIndex()
 
-	const { direction, dragging, startDrag, resize } = useResizable()
+	const panelSize = Math.round(sizes[handleIndex] ?? 0)
+	const panelMinSize = Math.round(panelConfigs[handleIndex]?.minSize ?? 0)
+	const panelMaxSize = Math.round(panelConfigs[handleIndex]?.maxSize ?? 100)
 
 	const isHorizontal = direction === 'horizontal'
 

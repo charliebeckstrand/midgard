@@ -1,27 +1,16 @@
 'use client'
 
-import type { ReactElement } from 'react'
-import {
-	Children,
-	cloneElement,
-	isValidElement,
-	useCallback,
-	useEffect,
-	useMemo,
-	useRef,
-	useState,
-} from 'react'
+import { Children, isValidElement, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { cn } from '../../core'
-import { type ResizableDirection, ResizableProvider } from './context'
+import {
+	type PanelConfig,
+	type ResizableDirection,
+	ResizableIndexProvider,
+	ResizableProvider,
+} from './context'
 import { ResizableHandle } from './resizable-handle'
 import { ResizablePanel, type ResizablePanelProps } from './resizable-panel'
 import { k } from './variants'
-
-type PanelConfig = {
-	defaultSize: number
-	minSize: number
-	maxSize: number
-}
 
 type DragState = {
 	handleIndex: number
@@ -85,21 +74,23 @@ export function ResizableGroup({
 	directionRef.current = direction
 
 	// Extract panel configs from children
-	const childArray = Children.toArray(children)
+	const panelConfigs = useMemo<PanelConfig[]>(() => {
+		const configs: PanelConfig[] = []
 
-	const panelConfigs: PanelConfig[] = []
+		for (const child of Children.toArray(children)) {
+			if (isValidElement(child) && child.type === ResizablePanel) {
+				const p = child.props as ResizablePanelProps
 
-	for (const child of childArray) {
-		if (isValidElement(child) && child.type === ResizablePanel) {
-			const p = child.props as ResizablePanelProps
-
-			panelConfigs.push({
-				defaultSize: p.defaultSize ?? 50,
-				minSize: p.minSize ?? 0,
-				maxSize: p.maxSize ?? 100,
-			})
+				configs.push({
+					defaultSize: p.defaultSize ?? 50,
+					minSize: p.minSize ?? 0,
+					maxSize: p.maxSize ?? 100,
+				})
+			}
 		}
-	}
+
+		return configs
+	}, [children])
 
 	const constraintsRef = useRef(panelConfigs)
 
@@ -235,38 +226,31 @@ export function ResizableGroup({
 		return () => cleanupRef.current?.()
 	}, [])
 
-	// Inject sizes and indices into children
+	// Wrap each panel/handle in an index provider so they can read their position from context.
 	let panelIdx = 0
 	let handleIdx = 0
 
-	const mapped = Children.map(children, (child) => {
+	const wrapped = Children.map(children, (child) => {
 		if (!isValidElement(child)) return child
 
 		if (child.type === ResizablePanel) {
 			const idx = panelIdx++
 
-			return cloneElement(child as ReactElement<Record<string, unknown>>, {
-				_size: sizes[idx],
-			})
+			return <ResizableIndexProvider value={{ panelIndex: idx }}>{child}</ResizableIndexProvider>
 		}
 
 		if (child.type === ResizableHandle) {
 			const idx = handleIdx++
 
-			return cloneElement(child as ReactElement<Record<string, unknown>>, {
-				_handleIndex: idx,
-				_panelSize: Math.round(sizes[idx] ?? 0),
-				_panelMinSize: Math.round(panelConfigs[idx]?.minSize ?? 0),
-				_panelMaxSize: Math.round(panelConfigs[idx]?.maxSize ?? 100),
-			})
+			return <ResizableIndexProvider value={{ handleIndex: idx }}>{child}</ResizableIndexProvider>
 		}
 
 		return child
 	})
 
 	const contextValue = useMemo(
-		() => ({ direction, dragging, startDrag, resize }),
-		[direction, dragging, startDrag, resize],
+		() => ({ direction, dragging, sizes, panelConfigs, startDrag, resize }),
+		[direction, dragging, sizes, panelConfigs, startDrag, resize],
 	)
 
 	return (
@@ -277,7 +261,7 @@ export function ResizableGroup({
 				data-direction={direction}
 				className={cn(k.group, direction === 'horizontal' ? 'flex-row' : 'flex-col', className)}
 			>
-				{mapped}
+				{wrapped}
 			</div>
 		</ResizableProvider>
 	)

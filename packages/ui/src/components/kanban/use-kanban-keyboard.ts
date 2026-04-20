@@ -54,9 +54,11 @@ export function useKanbanKeyboard<T, C extends KanbanColumnShape<T>>({
 
 			const col = columns[colIdx]
 
+			if (!col) return false
+
 			const itemIdx = col.items.findIndex((i) => getItemKey(i) === cardId)
 
-			let targetCol = col
+			let targetCol: C = col
 
 			let targetIdx = itemIdx
 
@@ -83,9 +85,11 @@ export function useKanbanKeyboard<T, C extends KanbanColumnShape<T>>({
 
 					if (nextColIdx < 0 || nextColIdx >= columns.length) return false
 
-					targetCol = columns[nextColIdx]
+					const nextCol = columns[nextColIdx]
 
-					if (targetCol.items.length === 0) return false
+					if (!nextCol || nextCol.items.length === 0) return false
+
+					targetCol = nextCol
 
 					targetIdx = Math.min(itemIdx, targetCol.items.length - 1)
 
@@ -95,7 +99,11 @@ export function useKanbanKeyboard<T, C extends KanbanColumnShape<T>>({
 
 			if (targetIdx < 0 || targetIdx >= targetCol.items.length) return false
 
-			focusCard(getItemKey(targetCol.items[targetIdx]))
+			const targetItem = targetCol.items[targetIdx]
+
+			if (targetItem === undefined) return false
+
+			focusCard(getItemKey(targetItem))
 
 			return true
 		},
@@ -119,6 +127,8 @@ export function useKanbanKeyboard<T, C extends KanbanColumnShape<T>>({
 			const nextItems = [...col.items]
 
 			const [item] = nextItems.splice(idx, 1)
+
+			if (item === undefined) return
 
 			nextItems.splice(newIdx, 0, item)
 
@@ -145,11 +155,15 @@ export function useKanbanKeyboard<T, C extends KanbanColumnShape<T>>({
 
 			const targetCol = columns[targetIdx]
 
+			if (!targetCol) return
+
 			const itemIdx = col.items.findIndex((i) => getItemKey(i) === cardId)
 
 			if (itemIdx === -1) return
 
 			const item = col.items[itemIdx]
+
+			if (item === undefined) return
 
 			const next = columns.map((c) => {
 				if (c.id === col.id) return { ...c, items: c.items.filter((_, i) => i !== itemIdx) }

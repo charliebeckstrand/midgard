@@ -80,7 +80,8 @@ export function PasswordStrength({
 	const activeCount = level === 'empty' ? 0 : strengthLevels.findIndex((l) => l.id === level) + 1
 
 	const label =
-		labels?.[level] ?? (activeCount === 0 ? 'Empty' : strengthLevels[activeCount - 1].label)
+		labels?.[level] ??
+		(activeCount === 0 ? 'Empty' : (strengthLevels[activeCount - 1]?.label ?? ''))
 
 	const onChangeRef = useRef(onStrengthChange)
 

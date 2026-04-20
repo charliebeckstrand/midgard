@@ -8,6 +8,7 @@ import {
 } from '../timeline'
 
 export type ShipmentTrackerStep = {
+	id?: string
 	label: string
 	timestamp?: string
 	description?: React.ReactNode
@@ -40,7 +41,7 @@ export function ShipmentTracker({
 
 					return (
 						<TimelineItem
-							key={step.label}
+							key={step.id ?? index}
 							active={isCurrent}
 							variant={isReached ? 'solid' : 'outline'}
 							status={isFinal ? 'active' : isCurrent ? 'info' : 'inactive'}
