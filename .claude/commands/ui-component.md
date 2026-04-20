@@ -18,6 +18,7 @@ The following components are explicitly out of scope for this library. If the us
 - **color-picker** — color selection UI is not needed.
 - **otp** — one-time-password / PIN input is not needed.
 - **avatar-group** — already expressible through composing `Avatar`; no dedicated component.
+- **gauge** — already expressible through `Progress`; no dedicated component.
 
 Keep this list in sync here; `/ui-component-recommend` references it so excluded components never surface as suggestions.
 
