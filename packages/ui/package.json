@@ -227,6 +227,10 @@
 			"types": "./src/components/number-input/index.ts",
 			"default": "./src/components/number-input/index.ts"
 		},
+		"./odometer": {
+			"types": "./src/components/odometer/index.ts",
+			"default": "./src/components/odometer/index.ts"
+		},
 		"./pagination": {
 			"types": "./src/components/pagination/index.ts",
 			"default": "./src/components/pagination/index.ts"
