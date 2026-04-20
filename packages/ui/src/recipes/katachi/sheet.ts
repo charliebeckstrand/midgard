@@ -7,7 +7,7 @@ import { sumi } from '../sumi'
 import { take } from '../take'
 
 export const sheetPanel = tv({
-	base: [...omote.panel.chrome.flat(), narabi.panel.base, 'fixed overflow-y-auto', 'rounded-xl'],
+	base: [...omote.panel.chrome.flat(), narabi.panel.base, 'absolute overflow-y-auto', 'rounded-xl'],
 	variants: {
 		side: {
 			right: [

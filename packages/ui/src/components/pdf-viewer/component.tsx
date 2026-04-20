@@ -1,14 +1,10 @@
 'use client'
 
-import { Download, GalleryVertical, Printer, RotateCw, ZoomIn, ZoomOut } from 'lucide-react'
-import { useCallback, useId, useMemo, useState } from 'react'
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useControllable, useIsDesktop } from '../../hooks'
-import { Button } from '../button'
-import { Icon } from '../icon'
-import { Input } from '../input'
-import { Sheet, SheetBody, SheetTitle } from '../sheet'
-import { Toolbar, ToolbarGroup, ToolbarSeparator } from '../toolbar'
+import { PdfViewerThumbnails } from './thumbnails'
+import { PdfViewerToolbar } from './toolbar'
 import { k } from './variants'
 
 export type PdfViewerPage = {
@@ -82,13 +78,72 @@ export function PdfViewer({
 
 	const [zoom, setZoom] = useState(defaultZoom)
 	const [rotation, setRotation] = useState(defaultRotation)
-	const [pageDraft, setPageDraft] = useState<string | null>(null)
 	const [thumbsOpen, setThumbsOpen] = useState(false)
 
-	const pageInputId = useId()
+	const rootRef = useRef<HTMLElement>(null)
+	const viewportRef = useRef<HTMLDivElement>(null)
+
+	const [viewportSize, setViewportSize] = useState<{ width: number; height: number } | null>(null)
+	const [naturalSize, setNaturalSize] = useState<{ width: number; height: number } | null>(null)
 
 	const safePage = total > 0 ? clamp(currentPage, 1, total) : 0
+
 	const activePage = total > 0 ? pages[safePage - 1] : undefined
+
+	useLayoutEffect(() => {
+		const el = viewportRef.current
+
+		if (!el) return
+
+		const measure = () => {
+			const styles = window.getComputedStyle(el)
+
+			const padX = Number.parseFloat(styles.paddingLeft) + Number.parseFloat(styles.paddingRight)
+			const padY = Number.parseFloat(styles.paddingTop) + Number.parseFloat(styles.paddingBottom)
+
+			setViewportSize({
+				width: el.clientWidth - padX,
+				height: el.clientHeight - padY,
+			})
+		}
+
+		measure()
+
+		const observer = new ResizeObserver(() => measure())
+
+		observer.observe(el)
+
+		return () => observer.disconnect()
+	}, [])
+
+	const normalizedRotation = ((rotation % 360) + 360) % 360
+
+	const isSideways = normalizedRotation === 90 || normalizedRotation === 270
+
+	const fitScale = useMemo(() => {
+		if (!viewportSize || !naturalSize) return 1
+
+		const visW = isSideways ? naturalSize.height : naturalSize.width
+		const visH = isSideways ? naturalSize.width : naturalSize.height
+
+		if (visW === 0 || visH === 0) return 1
+
+		return Math.min(viewportSize.width / visW, viewportSize.height / visH)
+	}, [viewportSize, naturalSize, isSideways])
+
+	const scale = fitScale * zoom
+
+	const imageW = naturalSize ? naturalSize.width * scale : undefined
+	const imageH = naturalSize ? naturalSize.height * scale : undefined
+
+	const frameW = isSideways ? imageH : imageW
+	const frameH = isSideways ? imageW : imageH
+
+	const handleImageLoad = (event: React.SyntheticEvent<HTMLImageElement>) => {
+		const img = event.currentTarget
+
+		setNaturalSize({ width: img.naturalWidth, height: img.naturalHeight })
+	}
 
 	const goToPage = useCallback(
 		(next: number) => {
@@ -99,227 +154,68 @@ export function PdfViewer({
 		[setCurrentPage, total],
 	)
 
-	const handlePageInputFocus = () => {
-		if (total > 0) setPageDraft(String(safePage))
-	}
-
-	const handlePageInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-		setPageDraft(event.target.value)
-	}
-
-	const commitPageInput = () => {
-		if (pageDraft !== null) {
-			const parsed = Number.parseInt(pageDraft, 10)
-
-			if (!Number.isNaN(parsed)) goToPage(parsed)
-		}
-
-		setPageDraft(null)
-	}
-
-	const handlePageInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-		if (event.key === 'Enter') {
-			event.preventDefault()
-			commitPageInput()
-		} else if (event.key === 'Escape') {
-			event.preventDefault()
-			setPageDraft(null)
-			event.currentTarget.blur()
-		}
-	}
-
-	const zoomIn = () => setZoom((z) => clamp(z * zoomStep, minZoom, maxZoom))
-	const zoomOut = () => setZoom((z) => clamp(z / zoomStep, minZoom, maxZoom))
-
-	const rotate = () => setRotation((r) => (r + 90) % 360)
-
-	const download = () => {
-		if (!src) return
-
-		const link = document.createElement('a')
-
-		link.href = src
-		link.download = filename ?? ''
-		link.rel = 'noopener'
-		link.click()
-	}
-
-	const print = () => {
-		if (!src) return
-
-		const win = window.open(src, '_blank', 'noopener,noreferrer')
-
-		win?.addEventListener('load', () => win.print())
-	}
-
-	const thumbnailList = useMemo(
-		() =>
-			pages.map((p, index) => {
-				const pageNumber = index + 1
-
-				return {
-					key: p.id ?? index,
-					pageNumber,
-					label: p.label ?? `Page ${pageNumber}`,
-					thumbnail: p.thumbnail ?? p.src,
-				}
-			}),
-		[pages],
-	)
-
-	const renderThumbnails = (onSelect?: () => void) => (
-		<ul data-slot="pdf-viewer-thumbnails" className={cn(k.thumbnails)}>
-			{thumbnailList.map((item) => {
-				const isActive = item.pageNumber === safePage
-
-				return (
-					<li key={item.key}>
-						<button
-							type="button"
-							data-slot="pdf-viewer-thumbnail"
-							data-active={isActive || undefined}
-							aria-label={`Go to ${item.label}`}
-							aria-current={isActive ? 'page' : undefined}
-							className={cn(k.thumbnail)}
-							onClick={() => {
-								goToPage(item.pageNumber)
-								onSelect?.()
-							}}
-						>
-							<span className={cn(k.thumbnailFrame)}>
-								{item.thumbnail ? (
-									<img
-										src={item.thumbnail}
-										alt=""
-										loading="lazy"
-										className={cn(k.thumbnailImage)}
-									/>
-								) : (
-									<span className={cn(k.thumbnailFallback)}>{item.pageNumber}</span>
-								)}
-							</span>
-							<span className={cn(k.thumbnailLabel)}>{item.pageNumber}</span>
-						</button>
-					</li>
-				)
-			})}
-		</ul>
-	)
-
-	const pageInputValue = pageDraft ?? (safePage > 0 ? String(safePage) : '')
-
 	return (
-		<section data-slot="pdf-viewer" aria-label={ariaLabel} className={cn(k.base, className)}>
-			<Toolbar aria-label="PDF controls" className={cn(k.toolbar)}>
-				<div className={cn(k.toolbarSection)}>
-					{!isDesktop && (
-						<>
-							<Button
-								variant="plain"
-								aria-label="Show thumbnails"
-								aria-expanded={thumbsOpen}
-								onClick={() => setThumbsOpen(true)}
-							>
-								<Icon icon={<GalleryVertical />} />
-							</Button>
-							<ToolbarSeparator />
-						</>
-					)}
-					<ToolbarGroup aria-label="Page navigation">
-						<label htmlFor={pageInputId} className="sr-only">
-							Page number
-						</label>
-						<Input
-							id={pageInputId}
-							type="text"
-							inputMode="numeric"
-							size="sm"
-							aria-label="Current page"
-							className={cn(k.pageInput)}
-							value={pageInputValue}
-							disabled={total === 0}
-							onFocus={handlePageInputFocus}
-							onChange={handlePageInputChange}
-							onKeyDown={handlePageInputKeyDown}
-							onBlur={commitPageInput}
-						/>
-						<span data-slot="pdf-viewer-page-status" className={cn(k.pageStatus)}>
-							/ {total}
-						</span>
-					</ToolbarGroup>
-				</div>
-
-				<div className={cn(k.toolbarSection)}>
-					<ToolbarGroup aria-label="Zoom">
-						<Button
-							variant="plain"
-							aria-label="Zoom out"
-							disabled={zoom <= minZoom}
-							onClick={zoomOut}
-						>
-							<Icon icon={<ZoomOut />} />
-						</Button>
-						<span data-slot="pdf-viewer-zoom" className={cn(k.zoomLabel)}>
-							{Math.round(zoom * 100)}%
-						</span>
-						<Button
-							variant="plain"
-							aria-label="Zoom in"
-							disabled={zoom >= maxZoom}
-							onClick={zoomIn}
-						>
-							<Icon icon={<ZoomIn />} />
-						</Button>
-					</ToolbarGroup>
-					<ToolbarSeparator />
-					<Button variant="plain" aria-label="Rotate" onClick={rotate}>
-						<Icon icon={<RotateCw />} />
-					</Button>
-					{src && (
-						<>
-							<ToolbarSeparator />
-							<ToolbarGroup aria-label="Document">
-								<Button variant="plain" aria-label="Download" onClick={download}>
-									<Icon icon={<Download />} />
-								</Button>
-								<Button variant="plain" aria-label="Print" onClick={print}>
-									<Icon icon={<Printer />} />
-								</Button>
-							</ToolbarGroup>
-						</>
-					)}
-				</div>
-			</Toolbar>
+		<section
+			ref={rootRef}
+			data-slot="pdf-viewer"
+			aria-label={ariaLabel}
+			className={cn(k.base, className)}
+		>
+			<PdfViewerToolbar
+				pages={pages}
+				total={total}
+				safePage={safePage}
+				goToPage={goToPage}
+				zoom={zoom}
+				setZoom={setZoom}
+				minZoom={minZoom}
+				maxZoom={maxZoom}
+				zoomStep={zoomStep}
+				setRotation={setRotation}
+				src={src}
+				filename={filename}
+				isDesktop={isDesktop}
+				thumbsOpen={thumbsOpen}
+				onThumbsOpen={() => setThumbsOpen(true)}
+			/>
 
 			<div className={cn(k.body)}>
-				<aside data-slot="pdf-viewer-sidebar" className={cn(k.sidebar)}>
-					<div className={cn(k.sidebarHeader)}>Pages</div>
-					{renderThumbnails()}
-				</aside>
+				<PdfViewerThumbnails
+					pages={pages}
+					safePage={safePage}
+					goToPage={goToPage}
+					isDesktop={isDesktop}
+					thumbsOpen={thumbsOpen}
+					onThumbsOpenChange={setThumbsOpen}
+					container={rootRef.current}
+				/>
 
-				<div data-slot="pdf-viewer-viewport" className={cn(k.viewport)}>
+				<div ref={viewportRef} data-slot="pdf-viewer-viewport" className={cn(k.viewport)}>
 					{activePage ? (
-						<img
-							key={activePage.id ?? safePage}
-							src={activePage.src}
-							alt={activePage.label ?? `Page ${safePage}`}
-							className={cn(k.page)}
-							style={{ transform: `rotate(${rotation}deg) scale(${zoom})` }}
-						/>
+						<div
+							data-slot="pdf-viewer-page-frame"
+							className={cn(k.pageFrame)}
+							style={{ width: frameW, height: frameH }}
+						>
+							<img
+								key={activePage.id ?? safePage}
+								src={activePage.src}
+								alt={activePage.label ?? `Page ${safePage}`}
+								className={cn(k.page)}
+								style={{
+									width: imageW,
+									height: imageH,
+									transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
+									visibility: viewportSize && naturalSize ? 'visible' : 'hidden',
+								}}
+								onLoad={handleImageLoad}
+							/>
+						</div>
 					) : (
 						<div className={cn(k.pageEmpty)}>No pages to display</div>
 					)}
 				</div>
 			</div>
-
-			{!isDesktop && (
-				<Sheet side="left" open={thumbsOpen} onOpenChange={setThumbsOpen}>
-					<SheetTitle>Pages</SheetTitle>
-					<SheetBody className={cn(k.sheetThumbnails)}>
-						{renderThumbnails(() => setThumbsOpen(false))}
-					</SheetBody>
-				</Sheet>
-			)}
 		</section>
 	)
 }

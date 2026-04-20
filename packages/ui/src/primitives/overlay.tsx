@@ -15,6 +15,13 @@ export type OverlayProps = {
 	glass?: boolean
 	className?: string
 	children: React.ReactNode
+	/**
+	 * Optional element to portal into. When provided, the overlay is scoped to this
+	 * element (rendered with `absolute` positioning, no body scroll lock). The container
+	 * must establish a positioning context (e.g. `position: relative`).
+	 * Defaults to `document.body` with full-viewport `fixed` positioning.
+	 */
+	container?: HTMLElement | null
 } & Omit<React.HTMLAttributes<HTMLDivElement>, 'className' | 'children'>
 
 export function Overlay({
@@ -24,15 +31,18 @@ export function Overlay({
 	glass,
 	className,
 	children,
+	container,
 	...props
 }: OverlayProps) {
 	const focusTrapRef = useFocusTrap(open)
+
+	const scoped = container != null
 
 	useDismissable({
 		open,
 		onDismiss: () => onOpenChange(false),
 		outsidePointer: false,
-		scrollLock: true,
+		scrollLock: !scoped,
 	})
 
 	if (typeof document === 'undefined') return null
@@ -40,7 +50,11 @@ export function Overlay({
 	return createPortal(
 		<AnimatePresence>
 			{open && (
-				<div ref={focusTrapRef} className="fixed inset-0 z-99" {...props}>
+				<div
+					ref={focusTrapRef}
+					className={cn(scoped ? 'absolute inset-0 z-99' : 'fixed inset-0 z-99')}
+					{...props}
+				>
 					<motion.div
 						{...ugoki.overlay}
 						className={
@@ -54,6 +68,6 @@ export function Overlay({
 				</div>
 			)}
 		</AnimatePresence>,
-		document.body,
+		container ?? document.body,
 	)
 }

@@ -54,7 +54,7 @@ function Controlled() {
 				<PdfViewer pages={pages} page={page} onPageChange={setPage} />
 			`}
 		>
-			<Stack gap={2}>
+			<Stack gap={4}>
 				<Text>Current page: {page}</Text>
 				<PdfViewer pages={samplePages} page={page} onPageChange={setPage} />
 			</Stack>

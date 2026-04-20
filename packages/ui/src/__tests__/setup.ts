@@ -241,3 +241,7 @@ if (typeof window.ResizeObserver !== 'function') {
 		disconnect() {}
 	} as unknown as typeof window.ResizeObserver
 }
+
+if (typeof Element.prototype.scrollIntoView !== 'function') {
+	Element.prototype.scrollIntoView = vi.fn()
+}

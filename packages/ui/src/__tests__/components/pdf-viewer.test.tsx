@@ -40,7 +40,7 @@ describe('PdfViewer', () => {
 	it('shows the total page count', () => {
 		const { container } = renderUI(<PdfViewer pages={pages} />)
 
-		expect(bySlot(container, 'pdf-viewer-page-status')).toHaveTextContent('/ 3')
+		expect(bySlot(container, 'pdf-viewer-page-status')).toHaveTextContent('3')
 	})
 
 	it('renders a thumbnail per page in the sidebar', () => {
@@ -71,56 +71,16 @@ describe('PdfViewer', () => {
 		expect(onPageChange).toHaveBeenCalledWith(3)
 	})
 
-	it('navigates to a typed page on Enter', async () => {
-		const onPageChange = vi.fn()
+	it('shows the current page in the page selector', () => {
+		const { container } = renderUI(<PdfViewer pages={pages} defaultPage={2} />)
 
-		renderUI(<PdfViewer pages={pages} onPageChange={onPageChange} />)
-
-		const input = screen.getByLabelText('Current page') as HTMLInputElement
-
-		const user = userEvent.setup()
-
-		await user.clear(input)
-
-		await user.type(input, '2{Enter}')
-
-		expect(onPageChange).toHaveBeenLastCalledWith(2)
+		expect(bySlot(container, 'listbox-button')).toHaveTextContent('2')
 	})
 
-	it('clamps the page input to the available range', async () => {
-		const onPageChange = vi.fn()
+	it('disables zoom in at the maximum', () => {
+		renderUI(<PdfViewer pages={pages} defaultZoom={4} maxZoom={4} />)
 
-		renderUI(<PdfViewer pages={pages} onPageChange={onPageChange} />)
-
-		const input = screen.getByLabelText('Current page') as HTMLInputElement
-
-		const user = userEvent.setup()
-
-		await user.clear(input)
-
-		await user.type(input, '99{Enter}')
-
-		expect(onPageChange).toHaveBeenLastCalledWith(3)
-	})
-
-	it('zooms in and out within bounds', async () => {
-		const { container } = renderUI(<PdfViewer pages={pages} defaultZoom={1} />)
-
-		const zoomLabel = bySlot(container, 'pdf-viewer-zoom') as HTMLElement
-
-		const user = userEvent.setup()
-
-		expect(zoomLabel).toHaveTextContent('100%')
-
-		await user.click(screen.getByLabelText('Zoom in'))
-
-		expect(zoomLabel).toHaveTextContent('125%')
-
-		await user.click(screen.getByLabelText('Zoom out'))
-
-		await user.click(screen.getByLabelText('Zoom out'))
-
-		expect(zoomLabel).toHaveTextContent('80%')
+		expect(screen.getByLabelText('Zoom in')).toBeDisabled()
 	})
 
 	it('disables zoom out at the minimum', () => {
@@ -163,8 +123,6 @@ describe('PdfViewer', () => {
 		const { container } = renderUI(<PdfViewer pages={[]} />)
 
 		expect(bySlot(container, 'pdf-viewer-viewport')).toHaveTextContent('No pages to display')
-
-		expect(bySlot(container, 'pdf-viewer-page-status')).toHaveTextContent('/ 0')
 	})
 
 	it('opens the mobile thumbnails sheet when toggled', async () => {

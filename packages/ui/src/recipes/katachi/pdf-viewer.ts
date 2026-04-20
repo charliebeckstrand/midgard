@@ -1,5 +1,4 @@
 import { kage } from '../kage'
-import { ki } from '../ki'
 import { kumi } from '../kumi'
 import { maru } from '../maru'
 import { omote } from '../omote'
@@ -7,7 +6,14 @@ import { sumi } from '../sumi'
 import { take } from '../take'
 
 export const pdfViewer = {
-	base: ['flex flex-col', 'overflow-hidden', 'h-[600px]', omote.surface, kage.border, maru.rounded],
+	base: [
+		'relative flex flex-col',
+		'overflow-hidden',
+		'h-[600px]',
+		omote.surface,
+		kage.border,
+		maru.rounded,
+	],
 	toolbar: [
 		'flex items-center justify-between',
 		take.gap.sm,
@@ -17,23 +23,24 @@ export const pdfViewer = {
 		'shrink-0',
 	],
 	toolbarSection: ['flex items-center', take.gap.sm, 'min-w-0'],
-	pageInput: ['w-12 text-center'],
 	pageStatus: [take.text.sm, sumi.textMuted, 'tabular-nums select-none whitespace-nowrap'],
 	zoomLabel: [take.text.sm, sumi.textMuted, 'tabular-nums w-12 text-center select-none'],
 	body: ['flex flex-1 min-h-0'],
-	sidebar: ['hidden sm:flex flex-col', 'w-44 shrink-0', 'border-r', kage.borderColor, omote.tint],
+	sidebar: ['hidden sm:flex flex-col', 'w-48 shrink-0', 'border-r', kage.borderColor],
 	sidebarHeader: [
 		'flex items-center',
 		take.gap.sm,
 		'px-3 py-2',
-		take.text.sm,
+		take.text.md,
 		sumi.textMuted,
-		'border-b',
-		kage.borderColor,
+		'font-semibold',
+		// 'border-b',
+		// kage.borderColor,
 		'shrink-0',
 		'select-none',
 	],
-	thumbnails: ['flex flex-col', take.gap.sm, 'overflow-y-auto p-3'],
+	thumbnails: ['flex flex-col', take.gap.sm, 'overflow-y-auto px-3 pb-3'],
+	thumbnailsGrid: ['grid grid-cols-2', take.gap.sm, 'p-3'],
 	thumbnail: [
 		'group/thumb',
 		'flex flex-col items-center',
@@ -42,19 +49,15 @@ export const pdfViewer = {
 		maru.roundedMd,
 		'bg-transparent',
 		'cursor-pointer',
-		ki.ring,
-		'transition-colors',
-		'hover:bg-zinc-950/5 dark:hover:bg-white/5',
-		'data-active:bg-blue-600/10 dark:data-active:bg-blue-500/15',
+		'outline-none',
 	],
 	thumbnailFrame: [
 		'block w-full aspect-[3/4]',
 		'overflow-hidden',
-		maru.roundedSm,
+		maru.rounded,
 		'bg-white dark:bg-zinc-950',
-		kage.border,
-		'group-data-active/thumb:border-blue-600 dark:group-data-active/thumb:border-blue-500',
-		'group-data-active/thumb:ring-1 group-data-active/thumb:ring-blue-600 dark:group-data-active/thumb:ring-blue-500',
+		'group-focus-visible/thumb:ring-4 group-focus-visible/thumb:ring-blue-600',
+		'group-data-active/thumb:ring-4 group-data-active/thumb:ring-blue-600 dark:group-data-active/thumb:ring-blue-500',
 	],
 	thumbnailImage: ['block w-full h-full object-contain'],
 	thumbnailFallback: ['flex h-full w-full', kumi.center, take.text.sm, sumi.textMuted],
@@ -72,7 +75,7 @@ export const pdfViewer = {
 		kumi.center,
 		'p-6',
 	],
-	page: ['block max-w-none origin-center', 'shadow-lg', 'bg-white', 'transition-transform'],
+	pageFrame: ['relative shrink-0'],
+	page: ['absolute top-1/2 left-1/2 origin-center', 'shadow-lg', 'bg-white'],
 	pageEmpty: ['flex w-full h-full', kumi.center, take.text.sm, sumi.textMuted],
-	sheetThumbnails: ['flex flex-col', take.gap.sm, 'p-2'],
 }

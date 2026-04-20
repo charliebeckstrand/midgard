@@ -37,6 +37,8 @@ type ListboxBaseProps = {
 	inputId?: string
 	/** Clicking the selected option clears it. */
 	nullable?: boolean
+	/** Render the selected value with tabular numerals so digit changes don't shift layout. */
+	tabularNums?: boolean
 	children: React.ReactNode
 }
 
@@ -71,6 +73,7 @@ export function Listbox<T>({
 	disabled,
 	className,
 	inputId,
+	tabularNums,
 	children,
 }: ListboxProps<T>) {
 	const glass = useGlass()
@@ -154,7 +157,7 @@ export function Listbox<T>({
 						onClick={() => setOpen(!open)}
 						className={cn(k.button)}
 					>
-						<span className={k.value}>
+						<span className={cn(k.value, tabularNums && 'tabular-nums')}>
 							{label || <span className={cn(sumi.textMuted)}>{placeholder}</span>}
 						</span>
 						<span className={cn(k.chevron)}>{icon ?? <Icon icon={<ChevronsUpDown />} />}</span>

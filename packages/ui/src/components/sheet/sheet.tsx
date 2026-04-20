@@ -22,6 +22,12 @@ export type SheetProps = SheetPanelVariants & {
 	onOpenChange: (open: boolean) => void
 	className?: string
 	children: React.ReactNode
+	/**
+	 * Optional element to scope the sheet to. When provided, the sheet renders within
+	 * that element using absolute positioning. The container must be positioned
+	 * (e.g. `position: relative`). Defaults to full viewport.
+	 */
+	container?: HTMLElement | null
 }
 
 export function Sheet({
@@ -32,6 +38,7 @@ export function Sheet({
 	glass,
 	className,
 	children,
+	container,
 }: SheetProps) {
 	const glassContext = useGlass()
 
@@ -49,6 +56,7 @@ export function Sheet({
 		<Overlay
 			open={open}
 			onOpenChange={onOpenChange}
+			container={container}
 			className={sheetBackdropVariants({ glass: resolvedGlass })}
 		>
 			<motion.div
