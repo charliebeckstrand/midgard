@@ -10,6 +10,19 @@ $ARGUMENTS
 
 ---
 
+## Skip recommend
+
+The following components are explicitly out of scope for this library. If the user asks to create one, stop and explain that it is on the skip-recommend list rather than scaffolding it. Do not propose them in related workflows (e.g. `/ui-component-recommend`).
+
+- **rating** — star/score inputs are not needed.
+- **color-picker** — color selection UI is not needed.
+- **otp** — one-time-password / PIN input is not needed.
+- **avatar-group** — already expressible through composing `Avatar`; no dedicated component.
+
+Keep this list in sync here; `/ui-component-recommend` references it so excluded components never surface as suggestions.
+
+---
+
 ## Package structure
 
 ```
