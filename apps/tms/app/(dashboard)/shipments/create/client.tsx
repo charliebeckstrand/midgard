@@ -3,7 +3,7 @@
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import { Fragment, useState } from 'react'
 import { Button } from 'ui/button'
-import { Collapse, CollapsePanel, CollapseTrigger } from 'ui/collapse'
+import { Collapse, CollapsePanel } from 'ui/collapse'
 import { Flex } from 'ui/flex'
 import { Heading } from 'ui/heading'
 import { Icon } from 'ui/icon'

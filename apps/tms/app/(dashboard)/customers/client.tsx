@@ -3,9 +3,5 @@
 import { Heading } from 'ui/heading'
 
 export default function CustomersClient() {
-	return (
-		<>
-			<Heading>Customers</Heading>
-		</>
-	)
+	return <Heading>Customers</Heading>
 }

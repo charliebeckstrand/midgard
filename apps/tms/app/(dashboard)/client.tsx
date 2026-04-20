@@ -11,7 +11,6 @@ import {
 import type { User } from 'heimdall/user'
 import { usePathname, useRouter } from 'next/navigation'
 import type { ReactNode } from 'react'
-import { Heading } from 'ui/heading'
 import { SidebarLayout } from 'ui/layouts'
 import {
 	Sidebar,
