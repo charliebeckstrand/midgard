@@ -56,7 +56,17 @@ export function Filters<T extends FilterValue = FilterValue>({
 
 	const setValue = useCallback(
 		(name: string, fieldValue: unknown) => {
-			setState((prev) => ({ ...(prev ?? ({} as T)), [name]: fieldValue }) as T)
+			setState((prev) => {
+				const next = { ...(prev ?? {}) } as Record<string, unknown>
+
+				if (isActive(fieldValue)) {
+					next[name] = fieldValue
+				} else {
+					delete next[name]
+				}
+
+				return next as T
+			})
 		},
 		[setState],
 	)

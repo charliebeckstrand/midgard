@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { Button } from '../../components/button'
 import { DatePicker } from '../../components/datepicker'
 import { Label } from '../../components/fieldset'
@@ -30,17 +30,7 @@ type FilterOutputProps = {
 }
 
 function FilterOutput({ expanded, onExpandedChange }: FilterOutputProps) {
-	const { value, activeCount } = useFilters()
-
-	const prevActiveRef = useRef(activeCount)
-
-	useEffect(() => {
-		if (prevActiveRef.current === 0 && activeCount > 0) {
-			onExpandedChange(new Set(['$']))
-		}
-
-		prevActiveRef.current = activeCount
-	}, [activeCount, onExpandedChange])
+	const { value } = useFilters()
 
 	return (
 		<JsonTree
