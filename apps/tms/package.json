@@ -1,0 +1,34 @@
+{
+	"name": "tms",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "next dev --port 3002 --turbopack",
+		"build": "next build",
+		"start": "next start --port 3002",
+		"lint": "biome check --config-path=../.. .",
+		"lint:fix": "biome check --config-path=../.. --write .",
+		"format": "biome format --config-path=../.. --write .",
+		"check-types": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@heroicons/react": "^2.2.0",
+		"heimdall": "workspace:*",
+		"lucide-react": "^1.7.0",
+		"next": "^16.1.0",
+		"react": "^19.1.0",
+		"react-dom": "^19.1.0",
+		"sindri": "workspace:*",
+		"ui": "workspace:*"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.4.6",
+		"@tailwindcss/postcss": "^4.1.0",
+		"@types/node": "^25.3.3",
+		"@types/react": "^19.1.6",
+		"@types/react-dom": "^19.1.6",
+		"tailwindcss": "^4.1.0",
+		"typescript": "^5.9.3"
+	}
+}

@@ -6,6 +6,12 @@
       "runtimeExecutable": "/bin/sh",
       "runtimeArgs": ["-c", "export PATH=/opt/homebrew/bin:$PATH && pnpm --filter ui docs"],
       "port": 3456
+    },
+    {
+      "name": "tms",
+      "runtimeExecutable": "/bin/sh",
+      "runtimeArgs": ["-c", "export PATH=/opt/homebrew/bin:$PATH && pnpm --filter tms dev"],
+      "port": 3002
     }
   ]
 }

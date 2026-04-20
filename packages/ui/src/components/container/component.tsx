@@ -11,7 +11,7 @@ export type ContainerProps = {
 } & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
 
 export function Container({
-	size = 'xl',
+	size = 'md',
 	padding = 'md',
 	className,
 	children,
@@ -20,7 +20,7 @@ export function Container({
 	return (
 		<div
 			data-slot="container"
-			className={cn('mx-auto w-full', sizeMap[size], paddingMap[padding], className)}
+			className={cn('mx-auto w-full h-full', sizeMap[size], paddingMap[padding], className)}
 			{...props}
 		>
 			{children}

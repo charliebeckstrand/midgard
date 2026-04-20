@@ -24,6 +24,7 @@ export const sidebarContentVariants = tv({
 		...omote.content,
 		'overflow-y-auto',
 		'px-6 pb-6 grow min-h-0',
+		'lg:not-has-[[data-slot=header]]:pt-6',
 		'[&:has([data-slot=footer])>[data-slot=body]]:pb-0',
 	],
 	variants: {

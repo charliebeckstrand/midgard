@@ -16,6 +16,7 @@ import { breadcrumb } from './breadcrumb'
 import { button } from './button'
 import { calendar } from './calendar'
 import { card } from './card'
+import { chatMessage } from './chat-message'
 import { checkbox } from './checkbox'
 import { chip } from './chip'
 import { code } from './code'
@@ -89,6 +90,7 @@ export const katachi = {
 	button,
 	calendar,
 	card,
+	chatMessage,
 	checkbox,
 	chip,
 	code,

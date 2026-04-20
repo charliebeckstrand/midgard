@@ -25,7 +25,7 @@ export function Sizer({
 	return (
 		<div
 			data-slot="sizer"
-			className={cn('flex', directionMap[direction], gapMap[gap], sizeMap[size], className)}
+			className={cn('flex w-full', directionMap[direction], gapMap[gap], sizeMap[size], className)}
 			{...props}
 		>
 			{children}

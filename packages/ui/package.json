@@ -67,6 +67,14 @@
 			"types": "./src/components/card/index.ts",
 			"default": "./src/components/card/index.ts"
 		},
+		"./chat-message": {
+			"types": "./src/components/chat-message/index.ts",
+			"default": "./src/components/chat-message/index.ts"
+		},
+		"./chat-prompt": {
+			"types": "./src/components/chat-prompt/index.ts",
+			"default": "./src/components/chat-prompt/index.ts"
+		},
 		"./checkbox": {
 			"types": "./src/components/checkbox/index.ts",
 			"default": "./src/components/checkbox/index.ts"

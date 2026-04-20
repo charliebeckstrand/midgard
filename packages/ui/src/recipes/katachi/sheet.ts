@@ -46,7 +46,7 @@ export const sheetBackdrop = tv({
 export const sheetTitle = tv({ base: [...narabi.panel.title, 'px-6 pt-6'] })
 export const sheetDescription = tv({ base: [...narabi.panel.description, 'px-6'] })
 export const sheetActions = tv({ base: [narabi.panel.actions, 'px-6 pb-6'] })
-export const sheetBody = tv({ base: [narabi.panel.body, 'flex-1 overflow-y-auto px-6'] })
+export const sheetBody = tv({ base: [narabi.panel.body, 'flex-1 overflow-y-auto px-6 first:pt-6'] })
 export const sheetClose = tv({
 	base: [...sumi.textMuted, ki.inset, maru.roundedMd, 'absolute right-5 top-5', 'p-1'],
 })

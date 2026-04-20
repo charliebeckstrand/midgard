@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Button } from '../../components/button'
 import { Collapse, CollapsePanel, CollapseTrigger } from '../../components/collapse'
 import { Stack } from '../../components/stack'
+import { Text } from '../../components/text'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Data Display' }
@@ -15,18 +16,18 @@ export default function CollapseDemo() {
 		<Stack gap={6}>
 			<Example title="Default">
 				<Collapse trigger="Toggle details">
-					<p className="pt-2 text-sm text-zinc-500">
+					<Text variant="muted">
 						When the trigger is a string, Collapse renders it as muted text that highlights on
 						hover. The panel animates open with a smooth height transition.
-					</p>
+					</Text>
 				</Collapse>
 			</Example>
 
 			<Example title="Default open">
 				<Collapse defaultOpen trigger="Toggle details">
-					<p className="pt-2 text-sm text-zinc-500">
+					<Text variant="muted">
 						This content is visible by default because the collapse starts open.
-					</p>
+					</Text>
 				</Collapse>
 			</Example>
 
@@ -34,10 +35,10 @@ export default function CollapseDemo() {
 				<Collapse>
 					<CollapseTrigger>{({ open }) => (open ? 'Hide code' : 'Show code')}</CollapseTrigger>
 					<CollapsePanel>
-						<p className="pt-2 text-sm text-zinc-500">
+						<Text variant="muted">
 							Use the compound API when you need a render-prop trigger that reacts to the open
 							state.
-						</p>
+						</Text>
 					</CollapsePanel>
 				</Collapse>
 			</Example>
@@ -47,10 +48,10 @@ export default function CollapseDemo() {
 					<Button onClick={() => setOpen((o) => !o)}>{open ? 'Hide panel' : 'Show panel'}</Button>
 					<Collapse open={open} onOpenChange={setOpen}>
 						<CollapsePanel>
-							<p className="pt-2 text-sm text-zinc-500">
+							<Text variant="muted">
 								Pass <code>open</code> and <code>onOpenChange</code> to drive Collapse from parent
 								state. Any external button can toggle the panel.
-							</p>
+							</Text>
 						</CollapsePanel>
 					</Collapse>
 				</Stack>
