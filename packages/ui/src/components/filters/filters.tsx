@@ -29,6 +29,7 @@ export type FiltersProps<T extends FilterValue = FilterValue> = {
 	clear?: React.ReactNode
 	affix?: React.ReactNode
 	suffix?: React.ReactNode
+	equal?: boolean
 	children: React.ReactNode
 	className?: string
 }
@@ -41,6 +42,7 @@ export function Filters<T extends FilterValue = FilterValue>({
 	clear,
 	affix,
 	suffix,
+	equal = true,
 	children,
 	className,
 }: FiltersProps<T>) {
@@ -92,9 +94,19 @@ export function Filters<T extends FilterValue = FilterValue>({
 					direction={{ initial: 'row', sm: 'col' }}
 					gap={2}
 					align={{ initial: 'end', md: 'start' }}
+					full
 				>
-					{children}
-					{clear && <Flex>{clear}</Flex>}
+					<Flex
+						direction={{ initial: 'row', sm: 'col' }}
+						gap={2}
+						align={{ initial: 'end', md: 'start' }}
+						equal={equal}
+						full
+						grow
+					>
+						{children}
+					</Flex>
+					{clear && clear}
 				</Flex>
 				{suffix && <div data-slot="filters-suffix">{suffix}</div>}
 			</div>

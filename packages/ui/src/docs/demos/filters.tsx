@@ -5,6 +5,7 @@ import { Button } from '../../components/button'
 import { DatePicker } from '../../components/datepicker'
 import { Label } from '../../components/fieldset'
 import { Filters, FiltersClear, FiltersField, useFilters } from '../../components/filters'
+import { Flex } from '../../components/flex'
 import { Input } from '../../components/input'
 import { JsonTree } from '../../components/json-tree'
 import { NumberInput } from '../../components/number-input'
@@ -51,15 +52,19 @@ function FilterOutput({ expanded, onExpandedChange }: FilterOutputProps) {
 }
 
 function FiltersClearButton() {
-	const { activeCount } = useFilters()
+	const { value } = useFilters()
 
-	if (activeCount === 0) return null
+	const hasValue = Object.values(value).some((v) => v !== undefined && v !== null)
+
+	if (!hasValue) return null
 
 	return (
 		<FiltersClear>
-			<Button variant="soft" color="red">
-				Clear
-			</Button>
+			<Flex>
+				<Button variant="soft" color="red">
+					Clear
+				</Button>
+			</Flex>
 		</FiltersClear>
 	)
 }

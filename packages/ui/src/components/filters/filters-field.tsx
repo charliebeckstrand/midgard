@@ -2,6 +2,7 @@
 
 import type React from 'react'
 import { Children, cloneElement, isValidElement, useCallback } from 'react'
+import { cn } from '../../core'
 import { Description, ErrorMessage, Field, Label } from '../fieldset'
 import { useFilters } from './context'
 
@@ -53,7 +54,7 @@ export function FiltersField({ name, children, className }: FiltersFieldProps) {
 		const renderProps: FiltersFieldRenderProps = { value: fieldValue, onChange: handleChange }
 
 		return (
-			<Field data-slot="filter-field" className={className}>
+			<Field data-slot="filter-field" className={cn('w-full', className)}>
 				{children(renderProps)}
 			</Field>
 		)
@@ -66,7 +67,9 @@ export function FiltersField({ name, children, className }: FiltersFieldProps) {
 
 	const processed = Children.map(children, (child) => {
 		if (!isValidElement(child)) return child
+
 		if (isDecoration(child)) return child
+
 		if (controlCloned) return child
 
 		controlCloned = true
@@ -78,7 +81,7 @@ export function FiltersField({ name, children, className }: FiltersFieldProps) {
 	})
 
 	return (
-		<Field data-slot="filter-field" className={className}>
+		<Field data-slot="filter-field" className={cn('w-full', className)}>
 			{processed}
 		</Field>
 	)
