@@ -6,6 +6,7 @@ import {
 	type AddressProvider,
 	type AddressSuggestion,
 } from '../../components/address-input'
+import { Alert } from '../../components/alert'
 import { Field, Label } from '../../components/fieldset'
 import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'
@@ -133,6 +134,22 @@ function CustomProvider() {
 export default function AddressInputDemo() {
 	return (
 		<Stack gap={6}>
+			<Alert type="info" closable>
+				<Text>
+					AddressInput uses the{' '}
+					<a
+						href="https://photon.komoot.io/"
+						target="_blank"
+						rel="noopener noreferrer"
+						className="hover:underline underline:offset-4"
+					>
+						Photon geocoding API
+					</a>{' '}
+					by default, however, you can use any provider that matches the{' '}
+					<code>AddressProvider</code> interface, such as Google Places.
+				</Text>
+			</Alert>
+
 			<Example
 				title="Default"
 				code={code`
