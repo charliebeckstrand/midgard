@@ -6,7 +6,7 @@ import { Stack } from '../../components/stack'
 import { ToggleIconButton } from '../../components/toggle-icon-button'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Buttons' }
+export const meta = { category: 'Button' }
 
 export default function ToggleIconButtonDemo() {
 	const [dark, setDark] = useState(false)

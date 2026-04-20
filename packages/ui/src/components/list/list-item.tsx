@@ -9,14 +9,16 @@ import { k } from './variants'
 // ── ListItem ───────────────────────────────────────────
 
 export type ListItemProps = {
+	/** Content rendered before the main content — replaces the auto-inserted `<ListHandle>` when provided. */
+	leading?: ReactNode
 	children?: ReactNode
 	className?: string
 }
 
-export function ListItem({ children, className }: ListItemProps) {
+export function ListItem({ leading, children, className }: ListItemProps) {
 	const { id, setNodeRef, attributes, style, isDragging } = useListItemContext()
 
-	const { sortable, interactive, liftedId, onItemKeyDown, onItemBlur } = useListContext()
+	const { variant, sortable, interactive, liftedId, onItemKeyDown, onItemBlur } = useListContext()
 
 	const lifted = liftedId === id
 
@@ -40,9 +42,9 @@ export function ListItem({ children, className }: ListItemProps) {
 			data-item-id={id}
 			data-active={isDragging || undefined}
 			data-lifted={lifted || undefined}
-			className={cn(k.item, isDragging && k.itemActive, lifted && k.itemLifted, className)}
+			className={cn(k.item(variant), isDragging && k.itemActive, lifted && k.itemLifted, className)}
 		>
-			{sortable ? <ListHandle /> : null}
+			{leading ?? (sortable ? <ListHandle /> : null)}
 			<div className={k.content}>{children}</div>
 		</li>
 	)

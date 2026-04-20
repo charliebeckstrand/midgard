@@ -31,16 +31,20 @@ export function ShipmentTracker({
 			<Timeline orientation={orientation}>
 				{steps.map((step, index) => {
 					const isCompleted = index < currentIndex
+
 					const isCurrent = index === currentIndex
+
 					const isReached = isCompleted || isCurrent
+
+					const isFinal = isCurrent && index === steps.length - 1
 
 					return (
 						<TimelineItem
 							key={step.label}
 							active={isCurrent}
 							variant={isReached ? 'solid' : 'outline'}
-							status={isReached ? 'active' : 'inactive'}
-							pulse={isCurrent}
+							status={isFinal ? 'active' : isCurrent ? 'info' : 'inactive'}
+							pulse={isCurrent && !isFinal}
 						>
 							{step.timestamp && <TimelineTimestamp>{step.timestamp}</TimelineTimestamp>}
 							<TimelineHeading>{step.label}</TimelineHeading>

@@ -138,14 +138,17 @@ const categories = demos.reduce<Record<string, typeof demos>>((acc, demo) => {
 
 const categoryOrder = [
 	'Forms',
-	'Buttons',
-	'Inputs',
+	'Button',
+	'Input',
+	'Password',
 	'Data Display',
 	'Feedback',
 	'Overlay',
 	'Navigation',
 	'Layout',
 	'Pages',
+	'Chat',
+	'Shipments',
 	'Other',
 ]
 

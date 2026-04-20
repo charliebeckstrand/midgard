@@ -7,7 +7,7 @@ import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Inputs' }
+export const meta = { category: 'Input' }
 
 function Controlled() {
 	const [value, setValue] = useState<number | undefined>(1234.56)

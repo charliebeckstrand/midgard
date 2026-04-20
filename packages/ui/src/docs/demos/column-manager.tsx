@@ -1,14 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import {
-	ColumnManager,
-	type ColumnManagerItem,
-	type ColumnManagerPreset,
-} from '../../components/column-manager'
+import { ColumnManager, type ColumnManagerItem } from '../../components/column-manager'
 import { DataTable, type DataTableColumn } from '../../components/data-table'
 import { Stack } from '../../components/stack'
-import { Text } from '../../components/text'
 import { code } from '../code'
 import { Example } from '../components/example'
 
@@ -105,28 +100,6 @@ function IntegratedExample() {
 	)
 }
 
-function PresetExample() {
-	const [preset, setPreset] = useState<ColumnManagerPreset | null>(null)
-
-	return (
-		<Stack gap={3}>
-			<DataTable
-				manageColumns
-				columns={tableColumns}
-				rows={people}
-				getRowKey={(row) => row.id}
-				onSavePreset={setPreset}
-			/>
-			{preset && (
-				<Text>
-					<strong>Saved preset:</strong> order = {preset.order.join(', ')} · hidden ={' '}
-					{preset.hidden.length > 0 ? preset.hidden.join(', ') : '(none)'}
-				</Text>
-			)}
-		</Stack>
-	)
-}
-
 export default function ColumnManagerDemo() {
 	return (
 		<Stack gap={6}>
@@ -162,23 +135,6 @@ export default function ColumnManagerDemo() {
 				`}
 			>
 				<StandaloneExample />
-			</Example>
-
-			<Example
-				title="Save as preset"
-				code={code`
-					import { DataTable } from 'ui/data-table'
-
-					<DataTable
-						manageColumns
-						onSavePreset={(preset) => saveView(preset)}
-						columns={columns}
-						rows={rows}
-						getRowKey={(row) => row.id}
-					/>
-				`}
-			>
-				<PresetExample />
 			</Example>
 		</Stack>
 	)

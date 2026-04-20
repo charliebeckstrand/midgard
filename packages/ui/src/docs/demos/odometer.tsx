@@ -22,7 +22,7 @@ function Counter() {
 			`}
 		>
 			<Stack gap={3} align="start">
-				<div className="text-3xl font-semibold">
+				<div className="text-2xl font-semibold">
 					<Odometer value={value} />
 				</div>
 				<Button onClick={() => setValue(Math.floor(Math.random() * 100_000))}>Randomize</Button>
@@ -48,7 +48,7 @@ function Currency() {
 			`}
 		>
 			<Stack gap={3} align="start">
-				<div className="text-3xl font-semibold">
+				<div className="text-2xl font-semibold">
 					<Odometer value={value} format={format} />
 				</div>
 				<Button onClick={() => setValue(Math.random() * 100_000)}>Randomize</Button>
@@ -58,6 +58,8 @@ function Currency() {
 }
 
 export default function OdometerDemo() {
+	const [value, setValue] = useState(1284)
+
 	return (
 		<Stack gap={6}>
 			<Counter />
@@ -66,12 +68,13 @@ export default function OdometerDemo() {
 			<Example
 				title="Instant (duration=0)"
 				code={code`
-					<Odometer value={42} duration={0} />
+					<Odometer value={value} duration={0} />
 				`}
 			>
-				<div className="text-3xl font-semibold">
-					<Odometer value={42} duration={0} />
+				<div className="text-2xl font-semibold">
+					<Odometer value={value} duration={0} />
 				</div>
+				<Button onClick={() => setValue(Math.random() * 100_000)}>Randomize</Button>
 			</Example>
 		</Stack>
 	)

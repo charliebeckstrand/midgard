@@ -14,7 +14,7 @@ import { Text } from '../../components/text'
 import { code } from '../code'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Inputs' }
+export const meta = { category: 'Input' }
 
 const places = [
 	{

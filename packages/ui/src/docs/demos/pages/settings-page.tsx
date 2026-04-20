@@ -7,6 +7,7 @@ import { Description, Field, Fieldset, Label } from '../../../components/fieldse
 import { Input } from '../../../components/input'
 import { PasswordConfirm, PasswordConfirmInput } from '../../../components/password-confirm'
 import { PasswordInput } from '../../../components/password-input'
+import { PasswordStrength } from '../../../components/password-strength'
 import { Select, SelectLabel, SelectOption } from '../../../components/select'
 import { Sizer } from '../../../components/sizer'
 import { Stack } from '../../../components/stack'
@@ -24,6 +25,7 @@ import { Example } from '../../components/example'
 export const meta = { category: 'Pages' }
 
 export default function SettingsPageDemo() {
+	const [password, setPassword] = useState('')
 	const [submitting, setSubmitting] = useState(false)
 
 	const handleSubmit: React.ComponentProps<'form'>['onSubmit'] = (e) => {
@@ -150,7 +152,12 @@ export default function SettingsPageDemo() {
 											<PasswordConfirm className="space-y-6" warning="Passwords do not match">
 												<Field>
 													<Label>New password</Label>
-													<PasswordInput placeholder="Enter new password" />
+													<PasswordInput
+														value={password}
+														onChange={(e) => setPassword(e.target.value)}
+														placeholder="Enter new password"
+													/>
+													<PasswordStrength value={password} />
 												</Field>
 												<Field>
 													<Label>Confirm new password</Label>

@@ -1,15 +1,15 @@
 'use client'
 
-import { DndContext } from '@dnd-kit/core'
-import { SortableContext } from '@dnd-kit/sortable'
-import { GripVertical, Pin } from 'lucide-react'
+import { Pin } from 'lucide-react'
 import { type ReactNode, useCallback, useMemo } from 'react'
 import { cn } from '../../core'
-import { useSortableItem, useSortableList } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { Button } from '../button'
-import { Checkbox } from '../checkbox'
+import { Checkbox, CheckboxField, CheckboxGroup } from '../checkbox'
+import { Control } from '../control'
+import { Label } from '../fieldset'
 import { Icon } from '../icon'
+import { List, ListItem } from '../list'
 import { k } from './variants'
 
 export type ColumnManagerItem = {
@@ -127,41 +127,63 @@ export function ColumnManager({
 		[order, byId, setOrder],
 	)
 
-	const { itemIds, strategy, dndContextProps } = useSortableList({
-		items: orderableColumns,
-		getKey,
-		onReorder: handleReorder,
-	})
-
 	const handleSavePreset = useCallback(() => {
 		onSavePreset?.({ order, hidden: Array.from(hidden) })
 	}, [onSavePreset, order, hidden])
 
 	return (
 		<div data-slot="column-manager" className={cn(k.root, className)}>
-			<div className={cn(k.list)}>
-				{pinnedColumns.map((col) => (
-					<div key={col.id} data-slot="column-manager-item" data-pinned="" className={cn(k.item)}>
-						<span aria-hidden="true" className={cn(k.handle)}>
-							<Icon icon={<Pin />} className={cn(k.handleIcon)} />
-						</span>
-						<Checkbox checked disabled aria-label={`${titleText(col.title, col.id)} (pinned)`} />
-						<span className={cn(k.title)}>{col.title}</span>
-					</div>
-				))}
-				<DndContext {...dndContextProps}>
-					<SortableContext items={itemIds} strategy={strategy}>
-						{orderableColumns.map((col) => (
-							<ColumnManagerRow
-								key={col.id}
-								column={col}
-								checked={!hidden.has(col.id)}
-								onToggle={() => toggle(col.id)}
-							/>
-						))}
-					</SortableContext>
-				</DndContext>
-			</div>
+			{pinnedColumns.length > 0 && (
+				<List items={pinnedColumns} getKey={getKey} variant="plain" sortable={false}>
+					{(col) => (
+						<ListItem
+							leading={
+								<span aria-hidden="true" className={cn(k.pin)}>
+									<Icon icon={<Pin />} />
+								</span>
+							}
+						>
+							<Control>
+								<CheckboxGroup>
+									<CheckboxField>
+										<Checkbox
+											checked
+											disabled
+											aria-label={`${titleText(col.title, col.id)} (pinned)`}
+										/>
+										<Label>{col.title}</Label>
+									</CheckboxField>
+								</CheckboxGroup>
+							</Control>
+						</ListItem>
+					)}
+				</List>
+			)}
+			<List
+				items={orderableColumns}
+				getKey={getKey}
+				onReorder={handleReorder}
+				variant="plain"
+				aria-label="Reorder columns"
+			>
+				{(col) => (
+					<ListItem>
+						<Control>
+							<CheckboxGroup>
+								<CheckboxField>
+									<Checkbox
+										checked={!hidden.has(col.id)}
+										disabled={col.hideable === false}
+										onChange={() => toggle(col.id)}
+										aria-label={`Show ${titleText(col.title, col.id)}`}
+									/>
+									<Label>{col.title}</Label>
+								</CheckboxField>
+							</CheckboxGroup>
+						</Control>
+					</ListItem>
+				)}
+			</List>
 			{onSavePreset && (
 				<div className={cn(k.footer)}>
 					<Button variant="soft" size="sm" onClick={handleSavePreset}>
@@ -175,47 +197,4 @@ export function ColumnManager({
 
 function titleText(title: ReactNode, id: string | number): string {
 	return typeof title === 'string' ? title : String(id)
-}
-
-type ColumnManagerRowProps = {
-	column: ColumnManagerItem
-	checked: boolean
-	onToggle: () => void
-}
-
-function ColumnManagerRow({ column, checked, onToggle }: ColumnManagerRowProps) {
-	const { setNodeRef, setActivatorNodeRef, attributes, listeners, style, isDragging } =
-		useSortableItem({ id: String(column.id) })
-
-	const hideable = column.hideable !== false
-
-	const label = titleText(column.title, column.id)
-
-	return (
-		<div
-			ref={setNodeRef}
-			style={style}
-			data-slot="column-manager-item"
-			data-dragging={isDragging || undefined}
-			className={cn(k.item)}
-		>
-			<button
-				type="button"
-				ref={setActivatorNodeRef}
-				aria-label={`Drag ${label} to reorder`}
-				className={cn(k.handle)}
-				{...attributes}
-				{...listeners}
-			>
-				<Icon icon={<GripVertical />} className={cn(k.handleIcon)} />
-			</button>
-			<Checkbox
-				checked={checked}
-				disabled={!hideable}
-				onChange={onToggle}
-				aria-label={`Show ${label}`}
-			/>
-			<span className={cn(k.title)}>{column.title}</span>
-		</div>
-	)
 }

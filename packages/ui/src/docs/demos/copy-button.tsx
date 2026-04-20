@@ -6,7 +6,7 @@ import { Flex } from '../../components/flex'
 import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Buttons' }
+export const meta = { category: 'Button' }
 
 export default function CopyButtonDemo() {
 	return (

@@ -7,7 +7,7 @@ import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Forms' }
+export const meta = { category: 'Password' }
 
 export default function PasswordConfirmDemo() {
 	return (

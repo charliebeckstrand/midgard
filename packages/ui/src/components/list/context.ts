@@ -4,8 +4,11 @@ import type { DraggableAttributes } from '@dnd-kit/core'
 import type { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities'
 import type { CSSProperties, KeyboardEvent } from 'react'
 import { createContext } from '../../core/create-context'
+import type { ListVariant } from './variants'
 
 export type ListContext = {
+	/** Visual variant — `outline` renders bordered cards, `plain` renders flush rows. */
+	variant: ListVariant
 	/** Whether the list allows drag / keyboard reorder. */
 	interactive: boolean
 	/** Id of the item currently being dragged, if any. */

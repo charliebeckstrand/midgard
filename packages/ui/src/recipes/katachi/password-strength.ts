@@ -3,14 +3,14 @@ import { sumi } from '../sumi'
 import { take } from '../take'
 
 export const passwordStrength = {
-	root: ['flex flex-col', take.gap.sm],
-	meter: ['flex items-center', 'gap-1'],
-	segment: ['flex-1 h-1', maru.roundedFull, 'bg-zinc-200 dark:bg-zinc-700', 'transition-colors'],
+	root: ['flex flex-col', take.gap.md],
+	meter: ['flex items-center', take.gap.sm],
+	segment: ['flex-1 h-1', maru.roundedFull, 'bg-zinc-200 dark:bg-zinc-700'],
 	level: {
-		weak: 'bg-red-500',
-		fair: 'bg-amber-500',
-		good: 'bg-blue-500',
-		strong: 'bg-green-500',
+		weak: 'bg-red-600 dark:bg-red-500',
+		fair: 'bg-amber-600 dark:bg-amber-500',
+		good: 'bg-blue-600 dark:bg-blue-500',
+		strong: 'bg-green-600 dark:bg-green-500',
 	},
 	label: [take.text.sm, 'font-medium'],
 	labelLevel: {
@@ -20,7 +20,7 @@ export const passwordStrength = {
 		strong: 'text-green-600 dark:text-green-500',
 		empty: sumi.textMuted,
 	},
-	rules: ['flex flex-col', 'gap-1', 'mt-1'],
+	rules: ['flex flex-col', take.gap.xs],
 	rule: ['inline-flex items-center', take.gap.sm, take.text.sm],
 	ruleIcon: 'size-4 shrink-0',
 	ruleIconPass: 'text-green-600 dark:text-green-500',

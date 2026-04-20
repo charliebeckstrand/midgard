@@ -7,7 +7,7 @@ import { cn } from '../../core'
 import { type SortableOrientation, useSortableItem, useSortableList } from '../../hooks'
 import { ListItemProvider, ListProvider } from './context'
 import { useListKeyboard } from './use-list-keyboard'
-import { k } from './variants'
+import { k, type ListVariant } from './variants'
 
 const noop = () => {}
 
@@ -20,6 +20,8 @@ export type ListProps<T> = {
 	getKey: (item: T) => string
 	/** Called with the next ordering. Omit to render a non-reorderable list. */
 	onReorder?: (next: T[]) => void
+	/** Visual variant. `outline` renders bordered cards; `plain` renders flush rows. */
+	variant?: ListVariant
 	/** Layout axis. Defaults to vertical. */
 	orientation?: SortableOrientation
 	/** Disable all drag / keyboard reorder interaction. */
@@ -36,6 +38,7 @@ export function List<T>({
 	items,
 	getKey,
 	onReorder,
+	variant = 'outline',
 	orientation = 'vertical',
 	disabled,
 	sortable = true,
@@ -74,6 +77,7 @@ export function List<T>({
 
 	const ctxValue = useMemo(
 		() => ({
+			variant,
 			interactive,
 			activeId,
 			liftedId,
@@ -82,7 +86,7 @@ export function List<T>({
 			onItemKeyDown,
 			onItemBlur,
 		}),
-		[interactive, activeId, liftedId, items.length, sortable, onItemKeyDown, onItemBlur],
+		[variant, interactive, activeId, liftedId, items.length, sortable, onItemKeyDown, onItemBlur],
 	)
 
 	return (

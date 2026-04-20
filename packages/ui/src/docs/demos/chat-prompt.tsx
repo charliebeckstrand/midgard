@@ -10,7 +10,7 @@ import { Stack } from '../../components/stack'
 import { code } from '../code'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Forms' }
+export const meta = { category: 'Chat' }
 
 function DefaultDemo() {
 	const [value, setValue] = useState('')

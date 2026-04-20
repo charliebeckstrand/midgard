@@ -1,4 +1,4 @@
-import { ArrowUp, CircleDashed, Paperclip } from 'lucide-react'
+import { ArrowUp, Paperclip } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../../components/button'
 import { Field, Label } from '../../components/fieldset'
@@ -71,7 +71,7 @@ export default function TextareaDemo() {
 			<Example
 				title="With actions"
 				code={code`
-					import { ArrowUp, CircleDashed, Plus } from 'lucide-react'
+					import { ArrowUp, Plus } from 'lucide-react'
 					import { Button } from 'ui'
 					import { Icon } from 'ui'
 					import { Spacer } from 'ui'
@@ -84,26 +84,16 @@ export default function TextareaDemo() {
 						rows={3}
 						placeholder="Ask anything"
 						actions={
-							<>
-								<Button variant="plain" size="sm">
-									<Icon icon={<CircleDashed />} />
-									<span className="ml-1">Data Analyst</span>
-								</Button>
-								<Spacer />
-								<Button variant="plain" size="sm">
-									<Icon icon={<Paperclip />} />
-								</Button>
-								<Button size="sm" color="blue" disabled={!value.trim()}>
-									<Icon icon={<ArrowUp />} />
-								</Button>
-							</>
+							<Button size="sm" color="blue" disabled={!value.trim()}>
+								<Icon icon={<ArrowUp />} />
+							</Button>
 						}
 					/>
 				`}
 			>
 				<Sizer>
 					<Field>
-						<Label htmlFor="textarea-actions">Prompt</Label>
+						<Label htmlFor="textarea-actions">With actions</Label>
 						<Textarea
 							id="textarea-actions"
 							value={withActionsValue}
@@ -113,10 +103,6 @@ export default function TextareaDemo() {
 							placeholder="Ask anything"
 							actions={
 								<>
-									<Button variant="plain" size="sm">
-										<Icon icon={<CircleDashed />} />
-										<span className="ml-1">Data Analyst</span>
-									</Button>
 									<Spacer />
 									<Button variant="plain" size="sm">
 										<Icon icon={<Paperclip />} />

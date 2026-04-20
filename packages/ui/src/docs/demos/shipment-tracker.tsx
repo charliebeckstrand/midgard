@@ -3,7 +3,7 @@ import { Stack } from '../../components/stack'
 import { code } from '../code'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Data Display' }
+export const meta = { category: 'Shipments' }
 
 const steps = [
 	{ label: 'Ordered', timestamp: 'Mar 12, 9:12 AM' },

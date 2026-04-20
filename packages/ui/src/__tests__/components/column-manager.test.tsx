@@ -20,16 +20,7 @@ describe('ColumnManager', () => {
 	it('renders one item per column', () => {
 		const { container } = renderUI(<ColumnManager columns={columns} />)
 
-		expect(allBySlot(container, 'column-manager-item')).toHaveLength(3)
-	})
-
-	it('marks pinned columns with data-pinned', () => {
-		const { container } = renderUI(<ColumnManager columns={columns} />)
-
-		const items = allBySlot(container, 'column-manager-item')
-
-		expect(items[0]).toHaveAttribute('data-pinned')
-		expect(items[1]).not.toHaveAttribute('data-pinned')
+		expect(allBySlot(container, 'list-item')).toHaveLength(3)
 	})
 
 	it('toggles a column visibility when its checkbox is clicked', async () => {

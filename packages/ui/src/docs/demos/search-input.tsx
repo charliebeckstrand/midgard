@@ -8,7 +8,7 @@ import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Inputs' }
+export const meta = { category: 'Input' }
 
 const placeholder = 'Search'
 

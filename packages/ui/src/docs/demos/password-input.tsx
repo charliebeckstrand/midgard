@@ -6,7 +6,7 @@ import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Inputs' }
+export const meta = { category: 'Password' }
 
 export default function PasswordInputDemo() {
 	return (

@@ -13,7 +13,7 @@ import { Stack } from '../../components/stack'
 import { code } from '../code'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Inputs' }
+export const meta = { category: 'Password' }
 
 function BasicExample() {
 	const [value, setValue] = useState('')

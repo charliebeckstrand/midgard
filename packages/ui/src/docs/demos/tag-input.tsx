@@ -8,7 +8,7 @@ import { Stack } from '../../components/stack'
 import { TagInput } from '../../components/tag-input'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Inputs' }
+export const meta = { category: 'Input' }
 
 function DefaultTagInput() {
 	const [tags, setTags] = useState<string[]>(['React', 'TypeScript'])

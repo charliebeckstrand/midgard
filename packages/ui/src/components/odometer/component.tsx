@@ -22,18 +22,23 @@ export function Odometer({
 	...props
 }: OdometerProps) {
 	const [display, setDisplay] = useState(value)
+
 	const fromRef = useRef(value)
+
 	const rafRef = useRef<number | null>(null)
 
 	useEffect(() => {
 		const from = fromRef.current
+
 		const to = value
 
 		if (from === to) return
 
 		if (duration <= 0) {
 			fromRef.current = to
+
 			setDisplay(to)
+
 			return
 		}
 
@@ -41,6 +46,7 @@ export function Odometer({
 
 		const tick = () => {
 			const t = Math.min(1, (performance.now() - start) / duration)
+
 			const eased = 1 - (1 - t) ** 3
 
 			setDisplay(from + (to - from) * eased)
@@ -58,6 +64,7 @@ export function Odometer({
 		return () => {
 			if (rafRef.current != null) {
 				cancelAnimationFrame(rafRef.current)
+
 				rafRef.current = null
 			}
 

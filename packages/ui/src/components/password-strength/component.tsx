@@ -1,6 +1,6 @@
 'use client'
 
-import { Check, X } from 'lucide-react'
+import { Check, Dot } from 'lucide-react'
 import { type ReactNode, useEffect, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { Icon } from '../icon'
@@ -19,17 +19,14 @@ export const defaultPasswordRules: PasswordRule[] = [
 	{ id: 'symbol', label: 'One symbol', test: (v) => /[^A-Za-z0-9]/.test(v) },
 ]
 
-type StrengthLevel = 'empty' | 'weak' | 'fair' | 'good' | 'strong'
+const strengthLevels = [
+	{ id: 'weak', label: 'Weak' },
+	{ id: 'fair', label: 'Fair' },
+	{ id: 'good', label: 'Good' },
+	{ id: 'strong', label: 'Strong' },
+] as const
 
-const SEGMENT_COUNT = 4
-
-const levelLabels: Record<StrengthLevel, string> = {
-	empty: 'Empty',
-	weak: 'Weak',
-	fair: 'Fair',
-	good: 'Good',
-	strong: 'Strong',
-}
+type StrengthLevel = 'empty' | (typeof strengthLevels)[number]['id']
 
 function deriveLevel(passed: number, total: number): StrengthLevel {
 	if (total === 0) return 'empty'
@@ -39,22 +36,8 @@ function deriveLevel(passed: number, total: number): StrengthLevel {
 	if (ratio <= 0.25) return 'weak'
 	if (ratio <= 0.5) return 'fair'
 	if (ratio < 1) return 'good'
-	return 'strong'
-}
 
-function levelToSegments(level: StrengthLevel): number {
-	switch (level) {
-		case 'empty':
-			return 0
-		case 'weak':
-			return 1
-		case 'fair':
-			return 2
-		case 'good':
-			return 3
-		case 'strong':
-			return SEGMENT_COUNT
-	}
+	return 'strong'
 }
 
 export type PasswordStrengthChange = {
@@ -94,9 +77,10 @@ export function PasswordStrength({
 
 	const level: StrengthLevel = value.length === 0 ? 'empty' : deriveLevel(passedCount, rules.length)
 
-	const segments = levelToSegments(level)
+	const activeCount = level === 'empty' ? 0 : strengthLevels.findIndex((l) => l.id === level) + 1
 
-	const label = labels?.[level] ?? levelLabels[level]
+	const label =
+		labels?.[level] ?? (activeCount === 0 ? 'Empty' : strengthLevels[activeCount - 1].label)
 
 	const onChangeRef = useRef(onStrengthChange)
 
@@ -120,18 +104,17 @@ export function PasswordStrength({
 			<div
 				className={cn(k.meter)}
 				role="progressbar"
-				aria-valuenow={segments}
+				aria-valuenow={activeCount}
 				aria-valuemin={0}
-				aria-valuemax={SEGMENT_COUNT}
+				aria-valuemax={strengthLevels.length}
 				aria-label={`Password strength: ${label}`}
 			>
-				{Array.from({ length: SEGMENT_COUNT }).map((_, i) => (
+				{strengthLevels.map((strengthLevel, i) => (
 					<div
-						// biome-ignore lint/suspicious/noArrayIndexKey: fixed-length segmented meter
-						key={i}
+						key={strengthLevel.id}
 						data-slot="password-strength-segment"
-						data-active={i < segments || undefined}
-						className={cn(k.segment, i < segments && levelClass)}
+						data-active={i < activeCount || undefined}
+						className={cn(k.segment, i < activeCount && levelClass)}
 					/>
 				))}
 			</div>
@@ -150,7 +133,7 @@ export function PasswordStrength({
 							className={cn(k.rule)}
 						>
 							<Icon
-								icon={passed ? <Check /> : <X />}
+								icon={passed ? <Check /> : <Dot />}
 								className={cn(k.ruleIcon, passed ? k.ruleIconPass : k.ruleIconFail)}
 							/>
 							<span className={cn(passed ? k.ruleTextPass : k.ruleText)}>{rule.label}</span>

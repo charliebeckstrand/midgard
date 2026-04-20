@@ -6,7 +6,7 @@ import { ToggleIconButton } from '../../components/toggle-icon-button'
 import { code } from '../code'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Data Display' }
+export const meta = { category: 'Chat' }
 
 export default function ChatMessageDemo() {
 	return (
