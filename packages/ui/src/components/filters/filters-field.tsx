@@ -2,12 +2,19 @@
 
 import type React from 'react'
 import { Children, cloneElement, isValidElement, useCallback } from 'react'
+import { Description, ErrorMessage, Field, Label } from '../fieldset'
 import { useFilters } from './context'
 
 // ── Helpers ────────────────────────────────────────
 
 function isSyntheticEvent(v: unknown): v is React.SyntheticEvent<HTMLInputElement> {
 	return v !== null && typeof v === 'object' && 'target' in v && 'nativeEvent' in v
+}
+
+const DECORATION_TYPES = new Set<React.ElementType>([Label, Description, ErrorMessage])
+
+function isDecoration(child: React.ReactElement): boolean {
+	return DECORATION_TYPES.has(child.type as React.ElementType)
 }
 
 // ── FiltersField ───────────────────────────────────
@@ -41,34 +48,38 @@ export function FiltersField({ name, children, className }: FiltersFieldProps) {
 		[name, setValue],
 	)
 
-	const renderProps: FiltersFieldRenderProps = { value: fieldValue, onChange: handleChange }
-
 	// Render prop pattern
 	if (typeof children === 'function') {
+		const renderProps: FiltersFieldRenderProps = { value: fieldValue, onChange: handleChange }
+
 		return (
-			<div data-slot="filter-field" className={className}>
+			<Field data-slot="filter-field" className={className}>
 				{children(renderProps)}
-			</div>
+			</Field>
 		)
 	}
 
-	// Clone element — null (not undefined) keeps children in controlled mode.
-	const child = Children.only(children)
+	// Clone the first non-decoration child as the control; pass through
+	// Label/Description/ErrorMessage siblings untouched. null (not undefined)
+	// signals "explicit empty" to components that distinguish controlled state.
+	let controlCloned = false
 
-	if (isValidElement(child)) {
-		return (
-			<div data-slot="filter-field" className={className}>
-				{cloneElement(child as React.ReactElement<Record<string, unknown>>, {
-					value: fieldValue ?? null,
-					onChange: handleChange,
-				})}
-			</div>
-		)
-	}
+	const processed = Children.map(children, (child) => {
+		if (!isValidElement(child)) return child
+		if (isDecoration(child)) return child
+		if (controlCloned) return child
+
+		controlCloned = true
+
+		return cloneElement(child as React.ReactElement<Record<string, unknown>>, {
+			value: fieldValue ?? null,
+			onChange: handleChange,
+		})
+	})
 
 	return (
-		<div data-slot="filter-field" className={className}>
-			{children}
-		</div>
+		<Field data-slot="filter-field" className={className}>
+			{processed}
+		</Field>
 	)
 }

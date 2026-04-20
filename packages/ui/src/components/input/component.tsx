@@ -33,8 +33,10 @@ export type InputProps = Omit<InputVariants, 'size'> & {
 	className?: string
 } & Omit<React.ComponentPropsWithoutRef<'input'>, 'className' | 'size' | 'prefix'>
 
-export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
-	{
+export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(props, ref) {
+	const hasValueProp = 'value' in props
+
+	const {
 		className,
 		type,
 		variant,
@@ -50,10 +52,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 		value,
 		onChange,
 		onBlur,
-		...props
-	},
-	ref,
-) {
+		...rest
+	} = props
+
 	const glass = useGlass()
 	const skeleton = useSkeleton()
 	const control = useControl()
@@ -65,7 +66,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 	// Wrappers take ownership of value/onChange by passing them explicitly.
 	// In that case we still emit `name` to the DOM and surface `invalid`
 	// from the form, but we don't override the wrapper's controlled state.
-	const bound = value === undefined && binding !== undefined
+	const bound = !hasValueProp && binding !== undefined
+
+	// When a wrapper passes value={null} or value={undefined} to signal "empty",
+	// coerce to '' so the native input stays controlled instead of flipping uncontrolled.
+	const controlledValue = hasValueProp ? (value ?? '') : value
 
 	const resolvedId = scope.id
 
@@ -120,7 +125,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 					disabled={resolvedDisabled}
 					required={resolvedRequired}
 					readOnly={resolvedReadOnly}
-					value={bound ? binding.value : value}
+					value={bound ? binding.value : controlledValue}
 					onChange={bound ? binding.onChange : onChange}
 					onBlur={bound ? binding.onBlur : onBlur}
 					className={cn(
@@ -131,7 +136,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 						className,
 					)}
 					{...(resolvedInvalid ? { 'data-invalid': '', 'aria-invalid': true } : {})}
-					{...props}
+					{...rest}
 				/>
 
 				{resolvedSuffix && (
