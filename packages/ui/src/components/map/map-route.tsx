@@ -3,13 +3,7 @@
 import type { MapLayerMouseEvent } from 'maplibre-gl'
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Sheet, SheetBody, SheetDescription, SheetTitle } from '../sheet'
-import {
-	Timeline,
-	TimelineDescription,
-	TimelineHeading,
-	TimelineItem,
-	TimelineTimestamp,
-} from '../timeline'
+import { ShipmentTracker, type ShipmentTrackerStep } from '../shipment-tracker'
 import { useMapContext } from './context'
 import { MapMarker } from './map-marker'
 import type { LngLat, RouteData } from './types'
@@ -203,25 +197,15 @@ export function MapRoute({
 					</SheetDescription>
 				)}
 				<SheetBody>
-					<Timeline>
-						{data.stops.map((stop) => {
-							const formatted = formatTimestamp(stop.timestamp)
-
-							return (
-								<TimelineItem
-									key={stop.id}
-									color={stopStatusColor(stop.status)}
-									pulse={stop.status === 'active'}
-								>
-									<TimelineHeading>{stop.name}</TimelineHeading>
-									{formatted && <TimelineTimestamp>{formatted}</TimelineTimestamp>}
-									{stop.description && (
-										<TimelineDescription>{stop.description}</TimelineDescription>
-									)}
-								</TimelineItem>
-							)
-						})}
-					</Timeline>
+					<ShipmentTracker
+						steps={data.stops.map<ShipmentTrackerStep>((stop) => ({
+							id: stop.id,
+							label: stop.name,
+							timestamp: formatTimestamp(stop.timestamp) ?? undefined,
+							description: stop.description,
+						}))}
+						currentIndex={resolveCurrentIndex(data.stops)}
+					/>
 				</SheetBody>
 			</Sheet>
 		</>
@@ -298,12 +282,14 @@ function formatTimestamp(ts?: string | Date) {
 	})
 }
 
-function stopStatusColor(status?: string) {
-	if (status === 'done') return 'green'
+function resolveCurrentIndex(stops: RouteData['stops']) {
+	const activeIndex = stops.findIndex((s) => s.status === 'active')
 
-	if (status === 'active') return 'blue'
+	if (activeIndex !== -1) return activeIndex
 
-	return 'zinc'
+	const doneCount = stops.filter((s) => s.status === 'done').length
+
+	return Math.min(doneCount, Math.max(stops.length - 1, 0))
 }
 
 function StopDot({
