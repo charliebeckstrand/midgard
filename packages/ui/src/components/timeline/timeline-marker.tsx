@@ -22,16 +22,14 @@ export function TimelineMarker({
 	active: _active,
 	className,
 }: TimelineMarkerProps) {
-	const { orientation, variant, rootVariant } = useTimeline()
+	const { orientation, variant } = useTimeline()
 
 	return (
 		<span
 			data-slot="timeline-marker"
 			className={cn(
 				k.marker.base,
-				orientation === 'vertical'
-					? k.marker.vertical[rootVariant]
-					: k.marker.horizontal[rootVariant],
+				orientation === 'vertical' ? k.marker.vertical : k.marker.horizontal,
 				color && k.marker.color[color],
 				className,
 			)}

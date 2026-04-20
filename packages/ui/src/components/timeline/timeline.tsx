@@ -22,13 +22,7 @@ export function Timeline({
 	const resolvedVariant = variant ?? 'solid'
 
 	return (
-		<TimelineProvider
-			value={{
-				orientation: resolvedOrientation,
-				variant: resolvedVariant,
-				rootVariant: resolvedVariant,
-			}}
-		>
+		<TimelineProvider value={{ orientation: resolvedOrientation, variant: resolvedVariant }}>
 			<ol
 				data-slot="timeline"
 				className={cn(timelineVariants({ orientation, variant }), className)}
