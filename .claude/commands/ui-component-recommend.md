@@ -71,6 +71,7 @@ After presenting recommendations, ask the user which components they'd like to c
 
 - Always scan the filesystem for the current state — do not assume the component list is static.
 - Do not recommend components that already exist.
+- Do not recommend components on the skip-recommend list in `/ui-component` (see *Skip recommend*). Treat that list as authoritative — if a candidate appears there, drop it silently.
 - Do not recommend components that are trivial wrappers around a single HTML element with no meaningful abstraction.
 - Consider what the existing components reveal about the library's design philosophy — it favors composable primitives over monolithic widgets.
 - If the user asks for recommendations in a specific area (e.g., "recommend form components"), focus on that area.

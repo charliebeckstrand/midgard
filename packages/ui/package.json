@@ -239,6 +239,10 @@
 			"types": "./src/components/number-input/index.ts",
 			"default": "./src/components/number-input/index.ts"
 		},
+		"./odometer": {
+			"types": "./src/components/odometer/index.ts",
+			"default": "./src/components/odometer/index.ts"
+		},
 		"./pagination": {
 			"types": "./src/components/pagination/index.ts",
 			"default": "./src/components/pagination/index.ts"
@@ -302,6 +306,10 @@
 		"./sheet": {
 			"types": "./src/components/sheet/index.ts",
 			"default": "./src/components/sheet/index.ts"
+		},
+		"./shipment-tracker": {
+			"types": "./src/components/shipment-tracker/index.ts",
+			"default": "./src/components/shipment-tracker/index.ts"
 		},
 		"./sidebar": {
 			"types": "./src/components/sidebar/index.ts",
