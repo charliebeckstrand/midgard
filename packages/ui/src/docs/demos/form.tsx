@@ -9,6 +9,7 @@ import { ErrorMessage, Field, Label } from '../../components/fieldset'
 import { Flex } from '../../components/flex'
 import { Form, useFormContext } from '../../components/form'
 import { Input } from '../../components/input'
+import { JsonTree } from '../../components/json-tree'
 import { NumberInput } from '../../components/number-input'
 import { PasswordInput } from '../../components/password-input'
 import { Sizer } from '../../components/sizer'
@@ -17,7 +18,6 @@ import { Switch, SwitchField } from '../../components/switch'
 import { Textarea } from '../../components/textarea'
 import { code } from '../code'
 import { Example } from '../components/example'
-import { Pre } from '../components/pre'
 
 export const meta = { category: 'Forms' }
 
@@ -94,7 +94,7 @@ function BoundFieldsForm() {
 							</Flex>
 						</Stack>
 					</Form>
-					{result && <Pre>{result}</Pre>}
+					{result && <JsonTree data={JSON.parse(result)} />}
 				</Stack>
 			</Sizer>
 		</Example>
@@ -451,7 +451,7 @@ function ToggleForm() {
 						</Flex>
 					</Stack>
 				</Form>
-				{result && <Pre>{result}</Pre>}
+				{result && <JsonTree data={JSON.parse(result)} />}
 			</Sizer>
 		</Example>
 	)

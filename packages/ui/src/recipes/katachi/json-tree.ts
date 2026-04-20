@@ -17,7 +17,7 @@ const rowBase = [
 	'group/json-node',
 	'flex w-full items-center',
 	take.gap.sm,
-	'py-0.5 px-2',
+	'py-0.5',
 	take.text.sm,
 	maru.rounded,
 	'has-focus-visible:bg-blue-100/60 dark:has-focus-visible:bg-blue-600/30',

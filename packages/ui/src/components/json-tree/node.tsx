@@ -9,7 +9,6 @@ import { Icon } from '../icon'
 import { JsonTreeProvider, useJsonTreeContext } from './context'
 import { NodeKey, PrimitiveValue } from './helpers'
 import {
-	BASE_PAD_REM,
 	filterEntries,
 	getEntries,
 	INDENT_REM,
@@ -98,7 +97,7 @@ export const JsonNode = memo(function JsonNode({ keyName, value }: JsonNodeProps
 
 	const summary = count === 0 ? '' : count === 1 ? '1 item' : `${count} items`
 
-	const paddingLeft = `${depth * INDENT_REM + BASE_PAD_REM}rem`
+	const paddingLeft = `${depth * INDENT_REM}rem`
 
 	if (!branch) {
 		return (
