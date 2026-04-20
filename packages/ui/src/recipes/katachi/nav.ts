@@ -14,7 +14,7 @@ export const nav = {
 		'group relative flex w-full items-center',
 		'p-2',
 		take.gap.md,
-		take.text.sm,
+		take.text.md,
 		'text-left font-medium',
 		...sawari.navItem,
 		maru.rounded,

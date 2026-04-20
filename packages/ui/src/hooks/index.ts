@@ -18,6 +18,10 @@ export { useRoving, useTagKeyboard } from './use-keyboard'
 export { useKeyboardSettled } from './use-keyboard-settled'
 export { useMinWidth } from './use-min-width'
 export { useOffcanvas } from './use-offcanvas'
+export {
+	type ScrollIntoContainerOptions,
+	useScrollIntoContainer,
+} from './use-scroll-into-container'
 export { useSelect } from './use-select'
 export {
 	type UseSortableItemOptions,

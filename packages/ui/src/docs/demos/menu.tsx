@@ -1,5 +1,4 @@
 import { Button } from '../../components/button'
-import { Card } from '../../components/card'
 import { Glass } from '../../components/glass'
 import {
 	Menu,
@@ -47,9 +46,9 @@ export default function MenuDemo() {
 
 			<Example title="Context Menu">
 				<Menu>
-					<Card p={3} className="flex h-40 items-center justify-center">
-						<span className="text-sm select-none">Right-click here</span>
-					</Card>
+					<div className="flex items-center justify-center p-3 h-48 border border-dashed border-zinc-300 dark:border-zinc-700 rounded-md">
+						<span className="text-sm select-none">Or right-click here</span>
+					</div>
 					<MenuContent>
 						<MenuSection>
 							<MenuItem>

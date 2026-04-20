@@ -5,6 +5,7 @@ import type React from 'react'
 import { useLayoutEffect, useRef } from 'react'
 import { useGlass } from '../components/glass/context'
 import { cn } from '../core'
+import { useScrollIntoContainer } from '../hooks'
 import { useRoving } from '../hooks/use-keyboard'
 import { kage, maru, omote, ugoki } from '../recipes'
 
@@ -31,6 +32,8 @@ export function PopoverPanel({
 
 	const handleKeyDown = useRoving(menuRef, { itemSelector, focusOnEmpty: true })
 
+	const scrollIntoContainer = useScrollIntoContainer()
+
 	useLayoutEffect(() => {
 		if (!autoFocus || !menuRef.current) return
 
@@ -39,11 +42,11 @@ export function PopoverPanel({
 		if (selected) {
 			selected.focus()
 
-			selected.scrollIntoView({ block: 'center' })
+			scrollIntoContainer(selected, { block: 'nearest' })
 		} else {
 			menuRef.current.focus()
 		}
-	}, [autoFocus, itemSelector])
+	}, [autoFocus, itemSelector, scrollIntoContainer])
 
 	return (
 		<motion.div

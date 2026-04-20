@@ -39,7 +39,7 @@ export const pdfViewer = {
 		'shrink-0',
 		'select-none',
 	],
-	thumbnails: ['flex flex-col', take.gap.sm, 'overflow-y-auto px-3 pb-3'],
+	thumbnails: ['flex flex-col flex-1 min-h-0', take.gap.sm, 'overflow-y-auto px-3 pb-3'],
 	thumbnailsGrid: ['grid grid-cols-2', take.gap.sm, 'p-3'],
 	thumbnail: [
 		'group/thumb',

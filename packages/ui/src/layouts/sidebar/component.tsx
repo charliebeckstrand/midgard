@@ -10,6 +10,7 @@ import { Flex } from '../../components/flex'
 import { Frame } from '../../components/frame'
 import { Icon } from '../../components/icon'
 import { cn } from '../../core'
+import { useScrollIntoContainer } from '../../hooks'
 import { useOffcanvas } from '../../hooks/use-offcanvas'
 import { OffcanvasContext } from '../../primitives/offcanvas'
 import {
@@ -42,6 +43,8 @@ export function SidebarLayout({
 }: SidebarLayoutProps) {
 	const { open, setOpen, close } = useOffcanvas()
 
+	const scrollIntoContainer = useScrollIntoContainer()
+
 	return (
 		<Frame className={sidebarLayoutVariants()}>
 			{/* Sidebar on desktop */}
@@ -54,9 +57,9 @@ export function SidebarLayout({
 						ref={(node) => {
 							if (!node) return
 
-							const current = node.querySelector('[data-current]')
+							const current = node.querySelector<HTMLElement>('[data-current]')
 
-							current?.scrollIntoView({ block: 'center' })
+							if (current) scrollIntoContainer(current, { block: 'center' })
 						}}
 						className="contents"
 					>

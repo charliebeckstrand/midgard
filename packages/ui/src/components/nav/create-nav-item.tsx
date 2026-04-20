@@ -2,6 +2,7 @@
 
 import { type ReactElement, useLayoutEffect, useRef } from 'react'
 import { cn } from '../../core'
+import { useScrollIntoContainer } from '../../hooks'
 import {
 	ActiveIndicator,
 	Polymorphic,
@@ -44,11 +45,13 @@ export function createNavItem(config: { slotPrefix: string; variants: () => stri
 
 		const offcanvas = useOffcanvas()
 
+		const scrollIntoContainer = useScrollIntoContainer()
+
 		useLayoutEffect(() => {
 			if (current && itemRef.current) {
-				itemRef.current.scrollIntoView({ block: 'nearest' })
+				scrollIntoContainer(itemRef.current, { block: 'nearest' })
 			}
-		}, [current])
+		}, [current, scrollIntoContainer])
 
 		function handleClick(e: React.MouseEvent<HTMLElement>) {
 			onClick?.(e as React.MouseEvent<HTMLButtonElement> & React.MouseEvent<HTMLAnchorElement>)

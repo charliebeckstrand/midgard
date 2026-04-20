@@ -1,8 +1,9 @@
 'use client'
 
 import { X } from 'lucide-react'
-import { useCallback, useMemo } from 'react'
+import { useMemo } from 'react'
 import { cn } from '../../core'
+import { useScrollIntoContainer } from '../../hooks'
 import { Button } from '../button'
 import { Flex } from '../flex/component'
 import { Glass } from '../glass'
@@ -30,9 +31,7 @@ export function PdfViewerThumbnails({
 	onThumbsOpenChange,
 	container,
 }: PdfViewerThumbnailsProps) {
-	const scrollActiveIntoView = useCallback((node: HTMLButtonElement | null) => {
-		node?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
-	}, [])
+	const scrollActiveIntoView = useScrollIntoContainer()
 
 	const thumbnailList = useMemo(
 		() =>

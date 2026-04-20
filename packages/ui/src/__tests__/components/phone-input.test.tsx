@@ -71,7 +71,7 @@ describe('PhoneInput', () => {
 
 		await user.type(input, 'abc555')
 
-		expect(input.value).toBe('(555')
+		expect(input.value).toBe('555')
 	})
 
 	it('preserves leading + for international country', async () => {

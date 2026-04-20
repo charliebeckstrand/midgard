@@ -1,6 +1,7 @@
 'use client'
 
 import { type KeyboardEvent, type RefObject, useCallback } from 'react'
+import { useScrollIntoContainer } from '../use-scroll-into-container'
 import { nextIndexForKey, queryItems, type RovingConfig } from './navigation'
 
 const ACTIVE_ATTR = 'data-active'
@@ -35,6 +36,8 @@ export function useRoving<T extends HTMLElement = HTMLElement>(
 		activationKey = 'Enter',
 	}: UseRovingOptions,
 ) {
+	const scrollIntoContainer = useScrollIntoContainer()
+
 	return useCallback(
 		(e: KeyboardEvent) => {
 			const items = queryItems<T>(containerRef.current, itemSelector)
@@ -80,7 +83,11 @@ export function useRoving<T extends HTMLElement = HTMLElement>(
 				else el.removeAttribute(ACTIVE_ATTR)
 			}
 
-			if (scrollIntoView) items[nextIndex]?.scrollIntoView({ block: 'center' })
+			if (scrollIntoView) {
+				const item = items[nextIndex]
+
+				if (item) scrollIntoContainer(item, { block: 'nearest' })
+			}
 		},
 		[
 			containerRef,
@@ -91,6 +98,7 @@ export function useRoving<T extends HTMLElement = HTMLElement>(
 			focusOnEmpty,
 			scrollIntoView,
 			activationKey,
+			scrollIntoContainer,
 		],
 	)
 }

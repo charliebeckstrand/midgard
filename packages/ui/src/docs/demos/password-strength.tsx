@@ -28,6 +28,7 @@ function BasicExample() {
 						value={value}
 						onChange={(e) => setValue(e.target.value)}
 						placeholder="Enter password"
+						autoComplete="new-password"
 					/>
 				</Field>
 				<PasswordStrength value={value} />
@@ -49,6 +50,7 @@ function MeterOnlyExample() {
 						value={value}
 						onChange={(e) => setValue(e.target.value)}
 						placeholder="Enter password"
+						autoComplete="new-password"
 					/>
 				</Field>
 				<PasswordStrength value={value} showRules={false} />
@@ -75,6 +77,7 @@ function CustomRulesExample() {
 						value={value}
 						onChange={(e) => setValue(e.target.value)}
 						placeholder="Enter password"
+						autoComplete="new-password"
 					/>
 				</Field>
 				<PasswordStrength value={value} rules={customRules} />
