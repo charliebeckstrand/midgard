@@ -1,7 +1,7 @@
 'use client'
 
 import { Search, X } from 'lucide-react'
-import { forwardRef, type Ref, useCallback, useRef } from 'react'
+import { forwardRef, type Ref, useCallback } from 'react'
 import { useControllable } from '../../hooks/use-controllable'
 import { Button } from '../button'
 import { Icon } from '../icon'
@@ -38,22 +38,10 @@ export const SearchInput = forwardRef(function SearchInput(
 	{ loading, onClear, value, defaultValue, onChange, ...props }: SearchInputProps,
 	ref: Ref<HTMLInputElement>,
 ) {
-	const inputRef = useRef<HTMLInputElement | null>(null)
-
 	const [currentValue = '', setCurrentValue] = useControllable<string>({
 		value,
 		defaultValue: defaultValue ?? '',
 	})
-
-	const composedRef = useCallback(
-		(node: HTMLInputElement | null) => {
-			inputRef.current = node
-
-			if (typeof ref === 'function') ref(node)
-			else if (ref) (ref as React.RefObject<HTMLInputElement | null>).current = node
-		},
-		[ref],
-	)
 
 	const handleChange = useCallback(
 		(e: React.ChangeEvent<HTMLInputElement>) => {
@@ -70,15 +58,6 @@ export const SearchInput = forwardRef(function SearchInput(
 		setCurrentValue('')
 
 		onClear?.()
-
-		if (inputRef.current) {
-			const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-				HTMLInputElement.prototype,
-				'value',
-			)?.set
-
-			nativeInputValueSetter?.call(inputRef.current, '')
-		}
 	}, [onClear, setCurrentValue])
 
 	const suffix = loading ? (
@@ -89,9 +68,8 @@ export const SearchInput = forwardRef(function SearchInput(
 
 	return (
 		<Input
-			ref={composedRef}
-			value={value}
-			defaultValue={defaultValue}
+			ref={ref}
+			value={currentValue}
 			onChange={handleChange}
 			prefix={<Icon icon={<Search />} />}
 			suffix={suffix}
