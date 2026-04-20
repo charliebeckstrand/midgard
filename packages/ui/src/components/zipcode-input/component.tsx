@@ -1,7 +1,7 @@
 'use client'
 
 import { forwardRef } from 'react'
-import { useControllable } from '../../hooks'
+import { useMaskedInput } from '../../hooks'
 import { Input, type InputProps } from '../input'
 
 export type ZipcodeInputCountry = 'US' | 'CA' | 'GB' | 'international'
@@ -72,13 +72,7 @@ export const ZipcodeInput = forwardRef<HTMLInputElement, ZipcodeInputProps>(func
 	{ country = 'US', value, defaultValue, onChange, placeholder, ...props },
 	ref,
 ) {
-	const format = formatters[country]
-
-	const [current, setCurrent] = useControllable<string>({
-		value,
-		defaultValue: defaultValue !== undefined ? format(defaultValue) : '',
-		onChange: onChange ? (v) => onChange(v ?? '') : undefined,
-	})
+	const masked = useMaskedInput({ value, defaultValue, onChange, format: formatters[country] })
 
 	return (
 		<Input
@@ -87,8 +81,8 @@ export const ZipcodeInput = forwardRef<HTMLInputElement, ZipcodeInputProps>(func
 			inputMode={inputModes[country]}
 			autoComplete="postal-code"
 			placeholder={placeholder ?? placeholders[country]}
-			value={current ?? ''}
-			onChange={(e) => setCurrent(format(e.target.value))}
+			value={masked.value}
+			onChange={masked.onChange}
 			{...props}
 		/>
 	)
