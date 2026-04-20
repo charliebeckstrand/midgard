@@ -15,20 +15,50 @@ import { Example } from '../components/example'
 
 export const meta = { category: 'Inputs' }
 
-const mockGooglePlaces: AddressProvider = async (query) => {
-	const places = [
-		{ label: '1600 Amphitheatre Parkway', description: 'Mountain View, CA, USA' },
-		{ label: '1 Infinite Loop', description: 'Cupertino, CA, USA' },
-		{ label: '350 5th Ave', description: 'New York, NY, USA' },
-		{ label: '221B Baker Street', description: 'London, UK' },
-		{ label: '10 Downing Street', description: 'London, UK' },
-	]
+const places = [
+	{
+		id: '1',
+		label: '1600 Amphitheatre Parkway',
+		description: 'Mountain View, CA, USA',
+		latitude: 37.422,
+		longitude: -122.084,
+	},
+	{
+		id: '2',
+		label: '1 Infinite Loop',
+		description: 'Cupertino, CA, USA',
+		latitude: 37.331,
+		longitude: -122.031,
+	},
+	{
+		id: '3',
+		label: '350 5th Ave',
+		description: 'New York, NY, USA',
+		latitude: 40.748,
+		longitude: -73.985,
+	},
+	{
+		id: '4',
+		label: '221B Baker Street',
+		description: 'London, UK',
+		latitude: 51.523,
+		longitude: -0.158,
+	},
+	{
+		id: '5',
+		label: '10 Downing Street',
+		description: 'London, UK',
+		latitude: 51.503,
+		longitude: -0.127,
+	},
+]
 
+const mockGooglePlaces: AddressProvider = async (query) => {
 	const q = query.toLowerCase()
 
-	return places
-		.filter((p) => p.label.toLowerCase().includes(q) || p.description.toLowerCase().includes(q))
-		.map((p, i) => ({ id: `mock-${i}`, ...p }))
+	return places.filter(
+		(p) => p.label.toLowerCase().includes(q) || p.description.toLowerCase().includes(q),
+	)
 }
 
 function Default() {
@@ -49,13 +79,40 @@ function Default() {
 	)
 }
 
+function WithInitialOptions() {
+	const [address, setAddress] = useState<AddressSuggestion | undefined>(undefined)
+
+	return (
+		<Sizer>
+			<Field>
+				<Label>Address</Label>
+				<AddressInput
+					value={address}
+					onChange={setAddress}
+					minQueryLength={0}
+					provider={async (query) => {
+						if (!query) return places
+
+						return []
+					}}
+				/>
+				{address?.latitude != null ? (
+					<Text>
+						{address.latitude.toFixed(4)}, {address.longitude?.toFixed(4)}
+					</Text>
+				) : null}
+			</Field>
+		</Sizer>
+	)
+}
+
 function CustomProvider() {
 	const [address, setAddress] = useState<AddressSuggestion | undefined>(undefined)
 
 	return (
 		<Sizer>
 			<Field>
-				<Label>Address (mock provider)</Label>
+				<Label>Address</Label>
 				<AddressInput
 					value={address}
 					onChange={setAddress}
@@ -63,6 +120,11 @@ function CustomProvider() {
 					minQueryLength={1}
 					placeholder="Try 'amph' or 'baker'"
 				/>
+				{address?.latitude != null ? (
+					<Text>
+						{address.latitude.toFixed(4)}, {address.longitude?.toFixed(4)}
+					</Text>
+				) : null}
 			</Field>
 		</Sizer>
 	)
@@ -72,7 +134,7 @@ export default function AddressInputDemo() {
 	return (
 		<Stack gap={6}>
 			<Example
-				title="Default (Photon)"
+				title="Default"
 				code={code`
 					import { AddressInput, type AddressSuggestion } from 'ui/address-input'
 					import { Field, Label } from 'ui/fieldset'
@@ -89,12 +151,53 @@ export default function AddressInputDemo() {
 			</Example>
 
 			<Example
+				title="With initial options"
+				code={code`
+					import { AddressInput, type AddressSuggestion } from 'ui/address-input'
+					import { Field, Label } from 'ui/fieldset'
+
+					const [address, setAddress] = useState<AddressSuggestion | undefined>()
+
+					<AddressInput
+						value={address}
+						onChange={setAddress}
+						minQueryLength={0}
+						provider={async (query) => {
+							if (!query) {
+								return [
+									{
+										id: '1',
+										label: 'Eiffel Tower',
+										description: 'Paris, France',
+										latitude: 48.8584,
+										longitude: 2.2945,
+									},
+									{
+										id: '2',
+										label: 'Statue of Liberty',
+										description: 'New York, USA',
+										latitude: 40.6892,
+										longitude: -74.0444,
+									},
+								]
+							}
+
+							return []
+						}}
+					/>
+				`}
+			>
+				<WithInitialOptions />
+			</Example>
+
+			<Example
 				title="Custom provider"
 				code={code`
 					import { AddressInput, type AddressProvider } from 'ui/address-input'
 
 					const googlePlaces: AddressProvider = async (query, { signal }) => {
 						const response = await fetch(\`/api/places?q=\${query}\`, { signal })
+						
 						const data = await response.json()
 
 						return data.predictions.map((p) => ({

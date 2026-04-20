@@ -34,13 +34,17 @@ export const photonProvider: AddressProvider = async (query, { signal }) => {
 
 function featureToSuggestion(feature: PhotonFeature): AddressSuggestion {
 	const p = feature.properties
+
 	const [longitude, latitude] = feature.geometry.coordinates
 
 	const street = [p.housenumber, p.street].filter(Boolean).join(' ')
+
 	const primary = street || p.name || ''
+
 	const secondary = [p.city, p.state, p.postcode, p.country].filter(Boolean).join(', ')
 
 	const label = primary || secondary
+
 	const description = primary ? secondary || undefined : undefined
 
 	return {

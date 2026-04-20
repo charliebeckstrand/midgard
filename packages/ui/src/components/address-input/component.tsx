@@ -5,6 +5,7 @@ import type React from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { Combobox, ComboboxDescription, ComboboxLabel, ComboboxOption } from '../combobox'
 import { Icon } from '../icon'
+import { Spinner } from '../spinner'
 import { photonProvider } from './photon'
 import type { AddressProvider, AddressSuggestion } from './types'
 
@@ -23,75 +24,94 @@ export type AddressInputProps = {
 
 export function AddressInput({
 	provider = photonProvider,
-	debounceMs = 250,
+	debounceMs = 500,
 	minQueryLength = 3,
 	placeholder = 'Enter an address',
 	autoComplete = 'off',
 	...props
 }: AddressInputProps) {
+	const [query, setQuery] = useState('')
+
+	const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([])
+
+	const [loading, setLoading] = useState(false)
+
+	const [ready, setReady] = useState(false)
+
+	const [menuRequested, setMenuRequested] = useState(false)
+
+	const abortRef = useRef<AbortController | null>(null)
+
+	useEffect(() => {
+		if (!menuRequested) return
+
+		if (query.length < minQueryLength) {
+			abortRef.current?.abort()
+
+			setSuggestions([])
+
+			setLoading(false)
+
+			setReady(false)
+
+			return
+		}
+
+		setLoading(true)
+
+		setReady(false)
+
+		const delay = query.length === 0 ? 0 : debounceMs
+
+		const timeout = setTimeout(() => {
+			abortRef.current?.abort()
+
+			const controller = new AbortController()
+
+			abortRef.current = controller
+
+			provider(query, { signal: controller.signal })
+				.then((results) => {
+					if (controller.signal.aborted) return
+
+					setSuggestions(results)
+
+					setLoading(false)
+
+					setReady(true)
+				})
+				.catch((error: unknown) => {
+					if (controller.signal.aborted) return
+
+					if (error instanceof DOMException && error.name === 'AbortError') return
+
+					setSuggestions([])
+
+					setLoading(false)
+
+					setReady(true)
+				})
+		}, delay)
+
+		return () => {
+			clearTimeout(timeout)
+
+			abortRef.current?.abort()
+		}
+	}, [query, menuRequested, provider, debounceMs, minQueryLength])
+
 	return (
 		<Combobox<AddressSuggestion>
 			{...props}
 			placeholder={placeholder}
 			autoComplete={autoComplete}
 			displayValue={(s) => s.label}
-			icon={<Icon icon={<MapPin />} />}
+			icon={loading ? <Spinner /> : <Icon icon={<MapPin />} />}
+			clearOnEmpty
+			open={ready && menuRequested}
+			onOpenChange={setMenuRequested}
+			onQueryChange={setQuery}
 		>
-			{(query) => (
-				<AddressOptions
-					query={query}
-					provider={provider}
-					debounceMs={debounceMs}
-					minQueryLength={minQueryLength}
-				/>
-			)}
-		</Combobox>
-	)
-}
-
-type AddressOptionsProps = {
-	query: string
-	provider: AddressProvider
-	debounceMs: number
-	minQueryLength: number
-}
-
-function AddressOptions({ query, provider, debounceMs, minQueryLength }: AddressOptionsProps) {
-	const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([])
-	const abortRef = useRef<AbortController | null>(null)
-
-	useEffect(() => {
-		if (query.length < minQueryLength) {
-			abortRef.current?.abort()
-			setSuggestions([])
-			return
-		}
-
-		const timeout = setTimeout(() => {
-			abortRef.current?.abort()
-
-			const controller = new AbortController()
-			abortRef.current = controller
-
-			provider(query, { signal: controller.signal })
-				.then((results) => {
-					if (!controller.signal.aborted) setSuggestions(results)
-				})
-				.catch((error: unknown) => {
-					if (controller.signal.aborted) return
-					if (error instanceof DOMException && error.name === 'AbortError') return
-					setSuggestions([])
-				})
-		}, debounceMs)
-
-		return () => {
-			clearTimeout(timeout)
-			abortRef.current?.abort()
-		}
-	}, [query, provider, debounceMs, minQueryLength])
-
-	return (
-		<>
 			{suggestions.map((suggestion) => (
 				<ComboboxOption key={suggestion.id} value={suggestion}>
 					<ComboboxLabel>{suggestion.label}</ComboboxLabel>
@@ -100,6 +120,6 @@ function AddressOptions({ query, provider, debounceMs, minQueryLength }: Address
 					) : null}
 				</ComboboxOption>
 			))}
-		</>
+		</Combobox>
 	)
 }

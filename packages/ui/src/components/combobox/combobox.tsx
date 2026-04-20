@@ -38,6 +38,7 @@ type ComboboxBaseProps<T> = {
 	placement?: Placement
 	icon?: React.ReactNode
 	className?: string
+	inputType?: React.InputHTMLAttributes<HTMLInputElement>['type']
 	autoComplete?: React.InputHTMLAttributes<HTMLInputElement>['autoComplete']
 	/** Fires onChange without storing the value. */
 	selectable?: boolean
@@ -45,6 +46,14 @@ type ComboboxBaseProps<T> = {
 	nullable?: boolean
 	/** Closes the menu on select. Defaults to true for single, false for multiple. */
 	closeOnSelect?: boolean
+	/** Clears the value when the user empties the input while editing. */
+	clearOnEmpty?: boolean
+	/** Controlled menu open state. */
+	open?: boolean
+	/** Fires when the menu open state changes. */
+	onOpenChange?: (open: boolean) => void
+	/** Fires when the input query changes. */
+	onQueryChange?: (query: string) => void
 	children: React.ReactNode | ((query: string) => React.ReactNode)
 }
 
@@ -78,8 +87,13 @@ export function Combobox<T>({
 	selectable = true,
 	nullable = valueProp === undefined && defaultValue === undefined,
 	closeOnSelect,
+	clearOnEmpty = false,
+	open: openProp,
+	onOpenChange,
+	onQueryChange,
 	className,
 	autoComplete,
+	inputType = 'text',
 	children,
 }: ComboboxProps<T>) {
 	const glass = useGlass()
@@ -124,6 +138,9 @@ export function Combobox<T>({
 			nullable,
 			selectable,
 			closeOnSelect,
+			open: openProp,
+			onOpenChange,
+			onQueryChange,
 			onChange: onChange as ((value: T) => void) | undefined,
 			setValue,
 			inputRef,
@@ -172,7 +189,7 @@ export function Combobox<T>({
 				<ControlFrame data-open={open || undefined} className={cn(!glass && waku.control.surface)}>
 					<input
 						ref={inputRef}
-						type="text"
+						type={inputType}
 						role="combobox"
 						aria-haspopup="listbox"
 						aria-expanded={open}
@@ -186,11 +203,17 @@ export function Combobox<T>({
 						value={inputDisplay}
 						placeholder={placeholder}
 						onChange={(e) => {
+							const next = e.target.value
+
 							setEditing(true)
 
-							setQuery(e.target.value)
+							setQuery(next)
 
 							setOpen(true)
+
+							if (clearOnEmpty && next === '' && !multiple && value !== undefined) {
+								setValue(undefined)
+							}
 						}}
 						onFocus={() => waitForKeyboard(() => setOpen(true))}
 						onBlur={(e) => {
