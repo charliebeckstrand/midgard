@@ -21,6 +21,7 @@ import { checkbox } from './checkbox'
 import { chip } from './chip'
 import { code } from './code'
 import { collapse } from './collapse'
+import { columnManager } from './column-manager'
 import { combobox } from './combobox'
 import { commandPalette } from './command-palette'
 import { dataTable } from './data-table'
@@ -48,6 +49,7 @@ import { navbar } from './navbar'
 import { option } from './option'
 import { pagination } from './pagination'
 import { panel } from './panel'
+import { passwordStrength } from './password-strength'
 import { placeholder } from './placeholder'
 import { popover } from './popover'
 import { progress } from './progress'
@@ -95,6 +97,7 @@ export const katachi = {
 	chip,
 	code,
 	collapse,
+	columnManager,
 	combobox,
 	commandPalette,
 	dataTable,
@@ -122,6 +125,7 @@ export const katachi = {
 	option,
 	pagination,
 	panel,
+	passwordStrength,
 	placeholder,
 	popover,
 	progress,

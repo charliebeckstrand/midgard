@@ -1,4 +1,5 @@
 export {
+	type ColumnManagerPreset,
 	DataTable,
 	type DataTableColumn,
 	type DataTableProps,

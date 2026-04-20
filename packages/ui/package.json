@@ -95,6 +95,10 @@
 			"types": "./src/components/collapse/index.ts",
 			"default": "./src/components/collapse/index.ts"
 		},
+		"./column-manager": {
+			"types": "./src/components/column-manager/index.ts",
+			"default": "./src/components/column-manager/index.ts"
+		},
 		"./combobox": {
 			"types": "./src/components/combobox/index.ts",
 			"default": "./src/components/combobox/index.ts"
@@ -254,6 +258,10 @@
 		"./password-input": {
 			"types": "./src/components/password-input/index.ts",
 			"default": "./src/components/password-input/index.ts"
+		},
+		"./password-strength": {
+			"types": "./src/components/password-strength/index.ts",
+			"default": "./src/components/password-strength/index.ts"
 		},
 		"./phone-input": {
 			"types": "./src/components/phone-input/index.ts",
