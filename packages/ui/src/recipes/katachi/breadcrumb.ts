@@ -6,7 +6,7 @@ import { take } from '../take'
 export const breadcrumb = tv({ base: '' })
 
 export const breadcrumbList = tv({
-	base: ['flex flex-wrap items-center', take.gap.md, 'break-words', take.text.sm],
+	base: ['flex flex-wrap items-center', take.gap.md, 'break-words', take.text.md],
 })
 
 export const breadcrumbItem = tv({

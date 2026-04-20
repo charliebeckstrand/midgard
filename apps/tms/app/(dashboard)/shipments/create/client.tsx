@@ -2,6 +2,13 @@
 
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import { Fragment, useState } from 'react'
+import {
+	Breadcrumb,
+	BreadcrumbItem,
+	BreadcrumbLink,
+	BreadcrumbList,
+	BreadcrumbSeparator,
+} from 'ui/breadcrumb'
 import { Button } from 'ui/button'
 import { Collapse, CollapsePanel } from 'ui/collapse'
 import { Flex } from 'ui/flex'
@@ -51,7 +58,7 @@ export default function ShipmentsCreateClient() {
 	}
 
 	return (
-		<Stack gap={4}>
+		<Stack gap={6}>
 			<Flex gap={2}>
 				<Heading>Create Shipment</Heading>
 				<Spacer />
@@ -59,6 +66,18 @@ export default function ShipmentsCreateClient() {
 					Select account
 				</Button>
 			</Flex>
+
+			<Breadcrumb>
+				<BreadcrumbList>
+					<BreadcrumbItem>
+						<BreadcrumbLink href="/shipments">Shipments</BreadcrumbLink>
+					</BreadcrumbItem>
+					<BreadcrumbSeparator />
+					<BreadcrumbItem>
+						<BreadcrumbLink current>Create</BreadcrumbLink>
+					</BreadcrumbItem>
+				</BreadcrumbList>
+			</Breadcrumb>
 
 			<Sheet open={selectAccountOpen} onOpenChange={setSelectAccountOpen}>
 				<SheetTitle>Select account</SheetTitle>
