@@ -267,6 +267,10 @@
 			"types": "./src/components/password-strength/index.ts",
 			"default": "./src/components/password-strength/index.ts"
 		},
+		"./pdf-viewer": {
+			"types": "./src/components/pdf-viewer/index.ts",
+			"default": "./src/components/pdf-viewer/index.ts"
+		},
 		"./phone-input": {
 			"types": "./src/components/phone-input/index.ts",
 			"default": "./src/components/phone-input/index.ts"
