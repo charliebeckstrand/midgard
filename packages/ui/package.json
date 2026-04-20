@@ -119,6 +119,10 @@
 			"types": "./src/components/copy-button/index.ts",
 			"default": "./src/components/copy-button/index.ts"
 		},
+		"./credit-card-input": {
+			"types": "./src/components/credit-card-input/index.ts",
+			"default": "./src/components/credit-card-input/index.ts"
+		},
 		"./currency-input": {
 			"types": "./src/components/currency-input/index.ts",
 			"default": "./src/components/currency-input/index.ts"
