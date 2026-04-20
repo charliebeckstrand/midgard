@@ -1,10 +1,13 @@
 'use client'
 
+import { CircleDashed } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
+import { Button } from 'ui/button'
 import { ChatMessage } from 'ui/chat-message'
 import { ChatPrompt } from 'ui/chat-prompt'
 import { Heading } from 'ui/heading'
+import { Icon } from 'ui/icon'
 import { Stack } from 'ui/stack'
 
 type Message = {
@@ -80,7 +83,17 @@ export default function ChatIdClient({ chatId }: { chatId: string }) {
 					</ChatMessage>
 				))}
 			</Stack>
-			<ChatPrompt value={value} onValueChange={setValue} onSubmit={handleSubmit} />
+			<ChatPrompt
+				value={value}
+				onValueChange={setValue}
+				onSubmit={handleSubmit}
+				actions={
+					<Button variant="plain" size="sm">
+						<Icon icon={<CircleDashed />} />
+						<span className="ml-1">Data Analyst</span>
+					</Button>
+				}
+			/>
 		</Stack>
 	)
 }

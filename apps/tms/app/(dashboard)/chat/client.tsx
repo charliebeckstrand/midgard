@@ -1,11 +1,12 @@
 'use client'
 
-import { PaperClipIcon } from '@heroicons/react/20/solid'
+import { CircleDashed } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { Button } from 'ui/button'
 import { ChatPrompt } from 'ui/chat-prompt'
 import { Flex } from 'ui/flex'
+import { Icon } from 'ui/icon'
 import { Sizer } from 'ui/sizer'
 
 export default function ChatClient() {
@@ -33,8 +34,9 @@ export default function ChatClient() {
 					onValueChange={setValue}
 					onSubmit={handleSubmit}
 					actions={
-						<Button size="sm">
-							<PaperClipIcon />
+						<Button variant="plain" size="sm">
+							<Icon icon={<CircleDashed />} />
+							<span className="ml-1">Data Analyst</span>
 						</Button>
 					}
 				/>

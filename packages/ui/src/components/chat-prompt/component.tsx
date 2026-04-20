@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowUp, Square } from 'lucide-react'
+import { ArrowUp, Paperclip, Square } from 'lucide-react'
 import { type KeyboardEvent, useCallback } from 'react'
 import { cn } from '../../core'
 import { Button } from '../button'
@@ -66,11 +66,14 @@ export function ChatPrompt({
 			autoResize
 			rows={rows}
 			placeholder={placeholder}
-			className={cn(className)}
+			className={cn('max-h-64', className)}
 			actions={
 				<>
 					{actions}
 					<Spacer />
+					<Button variant="plain" size="sm">
+						<Icon icon={<Paperclip />} />
+					</Button>
 					{streaming ? (
 						<Button size="sm" color="blue" aria-label="Stop generating" onClick={() => onStop?.()}>
 							<Icon icon={<Square />} />

@@ -1,6 +1,6 @@
 'use client'
 
-import { CircleDashed, Paperclip } from 'lucide-react'
+import { CircleDashed } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../../components/button'
 import { ChatPrompt } from '../../components/chat-prompt'
@@ -32,15 +32,10 @@ function WithActionsDemo() {
 				onValueChange={setValue}
 				onSubmit={() => setValue('')}
 				actions={
-					<>
-						<Button variant="plain" size="sm">
-							<Icon icon={<CircleDashed />} />
-							<span className="ml-1">Data Analyst</span>
-						</Button>
-						<Button variant="plain" size="sm">
-							<Icon icon={<Paperclip />} />
-						</Button>
-					</>
+					<Button variant="plain" size="sm">
+						<Icon icon={<CircleDashed />} />
+						<span className="ml-1">Data Analyst</span>
+					</Button>
 				}
 			/>
 		</Sizer>
