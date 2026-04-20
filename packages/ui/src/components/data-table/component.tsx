@@ -1,8 +1,13 @@
 'use client'
 
-import { type ReactNode, useCallback, useMemo } from 'react'
+import { SlidersHorizontal } from 'lucide-react'
+import { type ReactNode, useCallback, useMemo, useState } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
+import { Button } from '../button'
+import { ColumnManager, type ColumnManagerItem, type ColumnManagerPreset } from '../column-manager'
+import { Dialog, DialogActions, DialogBody, DialogTitle } from '../dialog'
+import { Icon } from '../icon'
 import type { TableVariants } from '../table'
 import { Table, TableBody, TableLoading } from '../table'
 import { Toolbar } from '../toolbar'
@@ -10,6 +15,8 @@ import { DataTableProvider, type SortState } from './context'
 import { DataTableHead } from './head'
 import { DataTableRowInternal } from './row'
 import { k } from './variants'
+
+export type { ColumnManagerPreset } from '../column-manager'
 
 // ── Column definition ───────────────────────────────────
 
@@ -23,6 +30,10 @@ export type DataTableColumn<T> = {
 	className?: string
 	headerClassName?: string
 	width?: string
+	/** Shown in the column manager but cannot be reordered or hidden. */
+	pinned?: boolean
+	/** When false, the column cannot be hidden from the column manager. Defaults to true. */
+	hideable?: boolean
 }
 
 // ── DataTable ───────────────────────────────────────────
@@ -50,6 +61,20 @@ export type DataTableProps<T> = TableVariants & {
 	loading?: boolean
 	rowLoading?: (row: T) => boolean
 
+	/** When true, shows a button that opens a dialog for managing column order and visibility. */
+	manageColumns?: boolean
+	manageColumnsLabel?: ReactNode
+
+	columnOrder?: (string | number)[]
+	defaultColumnOrder?: (string | number)[]
+	onColumnOrderChange?: (order: (string | number)[]) => void
+
+	hiddenColumns?: Set<string | number>
+	defaultHiddenColumns?: Set<string | number>
+	onHiddenColumnsChange?: (hidden: Set<string | number>) => void
+
+	onSavePreset?: (preset: ColumnManagerPreset) => void
+
 	className?: string
 	children?: never
 }
@@ -70,6 +95,15 @@ export function DataTable<T>({
 	maxHeight,
 	loading = false,
 	rowLoading,
+	manageColumns = false,
+	manageColumnsLabel = 'Columns',
+	columnOrder: columnOrderProp,
+	defaultColumnOrder,
+	onColumnOrderChange,
+	hiddenColumns: hiddenColumnsProp,
+	defaultHiddenColumns,
+	onHiddenColumnsChange,
+	onSavePreset,
 	dense,
 	bleed,
 	grid,
@@ -89,6 +123,78 @@ export function DataTable<T>({
 	})
 
 	const selection = selectionRaw ?? new Set<string | number>()
+
+	const defaultOrder = useMemo(() => columns.map((c) => c.id), [columns])
+
+	const [columnOrder = defaultOrder, setColumnOrder] = useControllable<(string | number)[]>({
+		value: columnOrderProp,
+		defaultValue: defaultColumnOrder ?? defaultOrder,
+		onChange: (next) => onColumnOrderChange?.(next ?? []),
+	})
+
+	const [hiddenColumns = defaultHiddenColumns ?? new Set<string | number>(), setHiddenColumns] =
+		useControllable<Set<string | number>>({
+			value: hiddenColumnsProp,
+			defaultValue: defaultHiddenColumns ?? new Set<string | number>(),
+			onChange: (next) => onHiddenColumnsChange?.(next ?? new Set<string | number>()),
+		})
+
+	const columnById = useMemo(() => {
+		const map = new Map<string | number, DataTableColumn<T>>()
+
+		for (const col of columns) map.set(col.id, col)
+
+		return map
+	}, [columns])
+
+	const visibleColumns = useMemo(() => {
+		const ordered: DataTableColumn<T>[] = []
+
+		const seen = new Set<string | number>()
+
+		for (const id of columnOrder) {
+			const col = columnById.get(id)
+
+			if (!col) continue
+
+			seen.add(col.id)
+
+			if (col.selectable || col.actions || col.pinned) {
+				ordered.push(col)
+				continue
+			}
+
+			if (hiddenColumns.has(col.id)) continue
+
+			ordered.push(col)
+		}
+
+		// Append any column not represented in the stored order (e.g. added after mount).
+		for (const col of columns) {
+			if (seen.has(col.id)) continue
+
+			if (!col.selectable && !col.actions && !col.pinned && hiddenColumns.has(col.id)) continue
+
+			ordered.push(col)
+		}
+
+		return ordered
+	}, [columns, columnById, columnOrder, hiddenColumns])
+
+	const managerItems = useMemo<ColumnManagerItem[]>(
+		() =>
+			columns
+				.filter((c) => !c.selectable && !c.actions)
+				.map((c) => ({
+					id: c.id,
+					title: c.title ?? String(c.id),
+					pinned: c.pinned,
+					hideable: c.hideable,
+				})),
+		[columns],
+	)
+
+	const [manageOpen, setManageOpen] = useState(false)
 
 	const rowKeys = useMemo<(string | number)[]>(
 		() => rows.map((row, i) => getRowKey(row, i)),
@@ -164,10 +270,10 @@ export function DataTable<T>({
 
 	const tableContent = (
 		<Table dense={dense} bleed={bleed} grid={grid} striped={striped} className={className}>
-			<DataTableHead columns={columns} />
+			<DataTableHead columns={visibleColumns} />
 
 			{loading ? (
-				<TableLoading columns={columns.length} />
+				<TableLoading columns={visibleColumns.length} />
 			) : (
 				<TableBody>
 					{rows.map((row, index) => {
@@ -180,7 +286,7 @@ export function DataTable<T>({
 								key={key}
 								row={row}
 								rowKey={key}
-								columns={columns}
+								columns={visibleColumns}
 								loading={isLoading}
 								className={rowClassName?.(row)}
 							/>
@@ -194,6 +300,20 @@ export function DataTable<T>({
 	return (
 		<DataTableProvider value={ctx}>
 			<div data-slot="data-table" className={cn(k.wrapper)}>
+				{manageColumns && (
+					<Toolbar aria-label="Column management">
+						<Button
+							variant="plain"
+							size="sm"
+							onClick={() => setManageOpen(true)}
+							aria-haspopup="dialog"
+						>
+							<Icon icon={<SlidersHorizontal />} />
+							{manageColumnsLabel}
+						</Button>
+					</Toolbar>
+				)}
+
 				{batchActions && <Toolbar>{someSelected && batchActions(selection)}</Toolbar>}
 
 				{stickyHeader ? (
@@ -202,6 +322,27 @@ export function DataTable<T>({
 					</div>
 				) : (
 					tableContent
+				)}
+
+				{manageColumns && (
+					<Dialog open={manageOpen} onOpenChange={setManageOpen}>
+						<DialogTitle>{manageColumnsLabel}</DialogTitle>
+						<DialogBody>
+							<ColumnManager
+								columns={managerItems}
+								order={columnOrder}
+								onOrderChange={setColumnOrder}
+								hidden={hiddenColumns}
+								onHiddenChange={setHiddenColumns}
+								onSavePreset={onSavePreset}
+							/>
+						</DialogBody>
+						<DialogActions>
+							<Button variant="plain" onClick={() => setManageOpen(false)}>
+								Done
+							</Button>
+						</DialogActions>
+					</Dialog>
 				)}
 			</div>
 		</DataTableProvider>
