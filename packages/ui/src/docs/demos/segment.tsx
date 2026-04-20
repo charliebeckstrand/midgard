@@ -4,11 +4,12 @@ import { useState } from 'react'
 import { Badge } from '../../components/badge'
 import { Card, CardBody, CardDescription, CardTitle } from '../../components/card'
 import { Grid, GridCell } from '../../components/grid'
+import { List, ListItem, ListLabel } from '../../components/list'
 import { Segment, SegmentControl, SegmentItem } from '../../components/segment'
 import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Forms' }
+export const meta = { category: 'Layout' }
 
 const items = [
 	{
@@ -58,16 +59,23 @@ export default function SegmentDemo() {
 					</Segment>
 
 					{view === 'List' ? (
-						<Stack gap={2}>
-							{items.map((item) => (
-								<Card key={item.name}>
-									<CardBody className="flex items-center justify-between py-3">
-										<CardTitle>{item.name}</CardTitle>
-										<CardDescription>{item.description}</CardDescription>
-									</CardBody>
-								</Card>
-							))}
-						</Stack>
+						// <Stack gap={2}>
+						// 	{items.map((item) => (
+						// 		<Card key={item.name}>
+						// 			<CardBody className="flex items-center justify-between">
+						// 				<CardTitle>{item.name}</CardTitle>
+						// 				<CardDescription>{item.description}</CardDescription>
+						// 			</CardBody>
+						// 		</Card>
+						// 	))}
+						// </Stack>
+						<List items={items} getKey={(item) => item.name} variant="solid" sortable={false}>
+							{(item) => (
+								<ListItem>
+									<ListLabel>{item.name}</ListLabel>
+								</ListItem>
+							)}
+						</List>
 					) : (
 						<Grid columns={{ initial: 2 }} gap={3}>
 							{items.map((item) => (

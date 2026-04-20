@@ -55,10 +55,16 @@ export function ActiveIndicator({
 
 	const resolvedLayoutId = layoutId ?? scopedLayoutId ?? 'current-indicator'
 
+	// Unique per instance, stable per render — gates willUpdate so external
+	// reflow doesn't animate the indicator, while still differing from the
+	// previous instance so Motion's promote() runs the shared-element transition.
+	const instanceId = useId()
+
 	return (
 		<motion.span
 			ref={ref}
 			layoutId={resolvedLayoutId}
+			layoutDependency={instanceId}
 			className={cn('absolute inset-0', 'bg-zinc-300 dark:bg-zinc-600', maru.rounded, className)}
 			style={{ borderRadius: 8, ...style }}
 			transition={ugoki.spring}

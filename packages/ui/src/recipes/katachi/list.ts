@@ -2,11 +2,12 @@ import { kage } from '../kage'
 import { ki } from '../ki'
 import { kumi } from '../kumi'
 import { maru } from '../maru'
+import { omote } from '../omote'
 import { sumi } from '../sumi'
 import { take } from '../take'
 import { yasumi } from '../yasumi'
 
-export type ListVariant = 'outline' | 'plain'
+export type ListVariant = 'outline' | 'solid' | 'plain'
 
 const itemBase = [
 	'group/list-item',
@@ -22,11 +23,12 @@ const itemBase = [
 
 const itemVariant = {
 	outline: ['p-3', 'bg-white dark:bg-zinc-900', kage.border],
+	solid: ['p-3', ...omote.tint, kage.border],
 	plain: ['px-2 py-1.5'],
 } satisfies Record<ListVariant, unknown>
 
 export const list = {
-	base: ['flex flex-col', take.gap.sm, 'list-none m-0 p-0'],
+	base: ['flex flex-col', take.gap.md, 'list-none m-0 p-0'],
 	horizontal: 'flex-row',
 	item: (variant: ListVariant = 'outline') => [...itemBase, ...itemVariant[variant]],
 	itemActive: 'z-10 relative bg-white dark:bg-zinc-900 rounded-md',
