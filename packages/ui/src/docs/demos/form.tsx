@@ -102,6 +102,8 @@ function BoundFieldsForm() {
 }
 
 function ValidationForm() {
+	const [result, setResult] = useState<string>('')
+
 	return (
 		<Example
 			title="Validation"
@@ -176,7 +178,12 @@ function ValidationForm() {
 							return undefined
 						},
 					}}
-					onSubmit={async () => await simulateAsyncSubmission()}
+					onSubmit={async (values) => {
+						await simulateAsyncSubmission()
+
+						setResult(JSON.stringify(values, null, 2))
+					}}
+					onReset={() => setResult('')}
 				>
 					<Stack gap={4}>
 						<Field autoComplete="email">
@@ -194,9 +201,17 @@ function ValidationForm() {
 							<PasswordInput name="confirmPassword" placeholder="Re-enter password" />
 							<ErrorMessage name="confirmPassword" />
 						</Field>
-						<Button type="submit">Create account</Button>
+						<Flex gap={2}>
+							<Button type="submit">Create account</Button>
+							{result && (
+								<Button type="reset" variant="soft" color="red">
+									Reset
+								</Button>
+							)}
+						</Flex>
 					</Stack>
 				</Form>
+				{result && <JsonTree data={JSON.parse(result)} />}
 			</Sizer>
 		</Example>
 	)
@@ -220,6 +235,8 @@ function FormStatusDisplay() {
 }
 
 function DirtyTouchedForm() {
+	const [result, setResult] = useState<string>('')
+
 	return (
 		<Example
 			title="Dirty + touched tracking"
@@ -263,7 +280,12 @@ function DirtyTouchedForm() {
 						username: (v) => (v.length < 3 ? 'At least 3 characters' : undefined),
 						bio: (v) => (v.length > 200 ? 'Too long' : undefined),
 					}}
-					onSubmit={async () => await simulateAsyncSubmission()}
+					onSubmit={async (values) => {
+						await simulateAsyncSubmission()
+
+						setResult(JSON.stringify(values, null, 2))
+					}}
+					onReset={() => setResult('')}
 				>
 					<Stack gap={4}>
 						<Field autoComplete="username">
@@ -279,9 +301,17 @@ function DirtyTouchedForm() {
 
 						<FormStatusDisplay />
 
-						<Button type="submit">Save</Button>
+						<Flex gap={2}>
+							<Button type="submit">Save</Button>
+							{result && (
+								<Button type="reset" variant="soft" color="red">
+									Reset
+								</Button>
+							)}
+						</Flex>
 					</Stack>
 				</Form>
+				{result && <JsonTree data={JSON.parse(result)} />}
 			</Sizer>
 		</Example>
 	)
