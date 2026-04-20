@@ -19,6 +19,7 @@ export type CreditCardInputProps = Omit<
 > & {
 	value?: string
 	defaultValue?: string
+	placeholder?: string
 	onChange?: (value: string) => void
 	onBrandChange?: (brand: CreditCardBrand | undefined) => void
 	prefix?: React.ReactNode
@@ -26,7 +27,7 @@ export type CreditCardInputProps = Omit<
 
 export const CreditCardInput = forwardRef<HTMLInputElement, CreditCardInputProps>(
 	function CreditCardInput(
-		{ value, defaultValue, onChange, onBrandChange, prefix, suffix, ...props },
+		{ value, defaultValue, placeholder, onChange, onBrandChange, prefix, suffix, ...props },
 		ref,
 	) {
 		const [current, setCurrent] = useControllable<string>({
@@ -43,6 +44,7 @@ export const CreditCardInput = forwardRef<HTMLInputElement, CreditCardInputProps
 				type="text"
 				inputMode="numeric"
 				autoComplete="cc-number"
+				placeholder={placeholder ?? '1234 1234 1234 1234'}
 				prefix={prefix ?? <Icon icon={<CreditCard />} />}
 				suffix={suffix ?? (brand ? brand.label : undefined)}
 				value={current ?? ''}
@@ -65,11 +67,12 @@ export type CreditCardExpiryInputProps = Omit<
 > & {
 	value?: string
 	defaultValue?: string
+	placeholder?: string
 	onChange?: (value: string) => void
 }
 
 export const CreditCardExpiryInput = forwardRef<HTMLInputElement, CreditCardExpiryInputProps>(
-	function CreditCardExpiryInput({ value, defaultValue, onChange, placeholder, ...props }, ref) {
+	function CreditCardExpiryInput({ value, defaultValue, placeholder, onChange, ...props }, ref) {
 		const [current, setCurrent] = useControllable<string>({
 			value,
 			defaultValue: defaultValue !== undefined ? formatExpiry(defaultValue) : '',
@@ -84,7 +87,19 @@ export const CreditCardExpiryInput = forwardRef<HTMLInputElement, CreditCardExpi
 				autoComplete="cc-exp"
 				placeholder={placeholder ?? 'MM/YY'}
 				value={current ?? ''}
-				onChange={(e) => setCurrent(formatExpiry(e.target.value))}
+				onChange={(e) => {
+					const raw = e.target.value
+
+					// Backspace over the auto-inserted "/" should delete the preceding digit,
+					// otherwise the formatter would re-append "/" and trap the caret.
+					if (current?.endsWith('/') && raw === current.slice(0, -1)) {
+						setCurrent(formatExpiry(raw.slice(0, -1)))
+
+						return
+					}
+
+					setCurrent(formatExpiry(raw))
+				}}
 				{...props}
 			/>
 		)
@@ -97,6 +112,7 @@ export type CreditCardCvvInputProps = Omit<
 > & {
 	value?: string
 	defaultValue?: string
+	placeholder?: string
 	onChange?: (value: string) => void
 	/** Brand controls the CVV length (Amex accepts 4 digits; others accept 3). */
 	brand?: CreditCardBrand | CreditCardBrandInfo

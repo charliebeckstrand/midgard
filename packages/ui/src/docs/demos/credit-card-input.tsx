@@ -8,11 +8,12 @@ import {
 	CreditCardInput,
 } from '../../components/credit-card-input'
 import { Field, Label } from '../../components/fieldset'
+import { Flex } from '../../components/flex'
 import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Inputs' }
+export const meta = { category: 'Input' }
 
 function Controlled() {
 	const [value, setValue] = useState('')
@@ -33,21 +34,29 @@ function Composed() {
 	const [brand, setBrand] = useState<CreditCardBrand | undefined>(undefined)
 
 	return (
-		<Example title="Composed (number + expiry + CVV)">
+		<Example title="Composed">
 			<Sizer>
 				<Stack gap={3}>
 					<Field>
 						<Label>Card number</Label>
 						<CreditCardInput onBrandChange={setBrand} />
 					</Field>
-					<Field>
-						<Label>Expiry</Label>
-						<CreditCardExpiryInput />
-					</Field>
-					<Field>
-						<Label>CVV</Label>
-						<CreditCardCvvInput brand={brand} />
-					</Field>
+					<Flex
+						gap={2}
+						direction={{
+							initial: 'row',
+							sm: 'col',
+						}}
+					>
+						<Field className="w-full">
+							<Label>Expiry</Label>
+							<CreditCardExpiryInput />
+						</Field>
+						<Field className="w-full">
+							<Label>CVV</Label>
+							<CreditCardCvvInput brand={brand} />
+						</Field>
+					</Flex>
 				</Stack>
 			</Sizer>
 		</Example>
@@ -61,7 +70,7 @@ export default function CreditCardInputDemo() {
 				<Sizer>
 					<Field>
 						<Label>Card number</Label>
-						<CreditCardInput placeholder="1234 1234 1234 1234" />
+						<CreditCardInput />
 					</Field>
 				</Sizer>
 			</Example>
