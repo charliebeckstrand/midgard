@@ -291,6 +291,10 @@
 			"types": "./src/components/sheet/index.ts",
 			"default": "./src/components/sheet/index.ts"
 		},
+		"./shipment-tracker": {
+			"types": "./src/components/shipment-tracker/index.ts",
+			"default": "./src/components/shipment-tracker/index.ts"
+		},
 		"./sidebar": {
 			"types": "./src/components/sidebar/index.ts",
 			"default": "./src/components/sidebar/index.ts"
