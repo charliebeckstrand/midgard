@@ -80,15 +80,15 @@ export default function CreditCardInputDemo() {
 					<Stack gap={3}>
 						<Field>
 							<Label>Visa</Label>
-							<CreditCardInput defaultValue="4242424242424242" />
+							<CreditCardInput defaultValue="4242424242424242" readOnly />
 						</Field>
 						<Field>
 							<Label>Amex</Label>
-							<CreditCardInput defaultValue="378282246310005" />
+							<CreditCardInput defaultValue="378282246310005" readOnly />
 						</Field>
 						<Field>
 							<Label>Mastercard</Label>
-							<CreditCardInput defaultValue="5555555555554444" />
+							<CreditCardInput defaultValue="5555555555554444" readOnly />
 						</Field>
 					</Stack>
 				</Sizer>
