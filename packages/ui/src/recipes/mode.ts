@@ -1,4 +1,10 @@
-/** Helpers for colocating light / dark mode values per colour token. */
+/**
+ * Mode helpers — colocate light ("hiru", 昼) and dark ("yoru", 夜) values for a token.
+ *
+ * Used by Tier 1 recipes whose shape splits motoi (基) / hiru / yoru. Replaces the
+ * manual three-object split with a single call that fuses both modes into the
+ * flat `string[]` shape tailwind-variants expects.
+ */
 
 type ModeValue = string | readonly (string | readonly string[])[]
 type ColorEntry = ModeValue | { light: ModeValue; dark: ModeValue }

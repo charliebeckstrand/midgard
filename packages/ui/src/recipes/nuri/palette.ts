@@ -1,6 +1,6 @@
 /** Shared colour foundations — solid, soft, and outline — composed by buttons, badges, and chips. */
 
-import { defineColors } from './define-colors'
+import { defineColors } from '../mode'
 
 // ── Base colour palette ──────────────────────────────────
 

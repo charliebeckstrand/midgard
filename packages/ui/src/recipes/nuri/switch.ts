@@ -1,4 +1,4 @@
-import { defineColors } from './define-colors'
+import { defineColors } from '../mode'
 
 export const switchColor = defineColors({
 	zinc: {
