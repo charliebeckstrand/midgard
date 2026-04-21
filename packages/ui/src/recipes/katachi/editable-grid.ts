@@ -1,13 +1,13 @@
+import { iro } from '../iro'
 import { ki } from '../ki'
 import { ma } from '../ma'
-import { sumi } from '../sumi'
 
 export const editableGrid = {
 	cellTd: 'relative p-0 align-middle',
 	cell: [
 		'relative flex h-full w-full items-center cursor-cell select-none outline-none',
-		ma.density.px.md,
-		ma.density.py.md,
+		ma.px.md,
+		ma.py.md,
 		ki.inset,
 		'data-[active]:bg-blue-500/10 data-[in-range]:bg-blue-500/10',
 		'dark:data-[active]:bg-blue-400/15 dark:data-[in-range]:bg-blue-400/15',
@@ -17,18 +17,13 @@ export const editableGrid = {
 		'after:ring-2 after:ring-inset after:ring-blue-600',
 		'dark:after:ring-blue-500',
 	],
-	cellReadOnly: ['cursor-default', sumi.textMuted],
+	cellReadOnly: ['cursor-default', iro.text.muted],
 	cellAlign: {
 		left: 'justify-start text-left',
 		center: 'justify-center text-center',
 		right: 'justify-end text-right',
 	},
-	editInput: [
-		'absolute inset-0 bg-transparent outline-none',
-		ma.density.px.md,
-		ma.density.py.md,
-		sumi.text,
-	],
+	editInput: ['absolute inset-0 bg-transparent outline-none', ma.px.md, ma.py.md, iro.text.default],
 	editInputAlign: {
 		left: 'text-left',
 		center: 'text-center',

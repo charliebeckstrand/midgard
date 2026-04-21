@@ -1,9 +1,9 @@
 import { tv, type VariantProps } from 'tailwind-variants'
+import { iro } from '../iro'
 import { ki } from '../ki'
 import { kumi } from '../kumi'
 import { maru } from '../maru'
 import { nuri } from '../nuri'
-import { sumi } from '../sumi'
 import { waku } from '../waku'
 
 export const radio = tv({
@@ -29,6 +29,6 @@ export const radio = tv({
 
 export const radioInput = tv({ base: waku.check })
 
-export const slots = { disabled: sumi.textDisabled }
+export const slots = { disabled: iro.text.disabled }
 
 export type RadioVariants = VariantProps<typeof radio>

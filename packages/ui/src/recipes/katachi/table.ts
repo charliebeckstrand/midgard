@@ -1,14 +1,14 @@
-import { kage } from '../kage'
+import { iro } from '../iro'
 import { ma } from '../ma'
 import { nuri } from '../nuri'
-import { sumi } from '../sumi'
+import { sen } from '../sen'
 
 export const table = {
 	base: 'w-full text-left text-base/6',
-	head: [sumi.textMuted, kage.borderSubtleColor],
-	header: ['font-bold', ma.density.px.md, ma.density.py.md, sumi.textMuted],
+	head: [iro.text.muted, sen.borderSubtleColor],
+	header: ['font-bold', ma.px.md, ma.py.md, iro.text.muted],
 	row: [],
-	cell: [ma.density.px.md, ma.density.py.md, sumi.text],
-	grid: ['border', kage.borderSubtleColor],
+	cell: [ma.px.md, ma.py.md, iro.text.default],
+	grid: ['border', sen.borderSubtleColor],
 	striped: nuri.tableStriped,
 }

@@ -1,7 +1,9 @@
 /**
  * Kumi (組) — Assembly.
  *
- * Structural scaffolding for flex and grid containers — gap, direction, alignment, width.
+ * Structural scaffolding for flex and grid containers — direction, alignment,
+ * justification, and gap. Gap exposes both a numeric scale and named density
+ * steps (xs · sm · md · lg) for composition from density presets.
  *
  * Tier: 1 · Concern: layout scaffolding
  */
@@ -9,8 +11,11 @@
 export const kumi = {
 	gap: {
 		0: 'gap-0',
+		0.5: 'gap-0.5',
 		1: 'gap-1',
+		1.5: 'gap-1.5',
 		2: 'gap-2',
+		2.5: 'gap-2.5',
 		3: 'gap-3',
 		4: 'gap-4',
 		5: 'gap-5',
@@ -19,6 +24,11 @@ export const kumi = {
 		10: 'gap-10',
 		12: 'gap-12',
 		16: 'gap-16',
+		xs: 'gap-0.5',
+		sm: 'gap-1',
+		md: 'gap-2',
+		lg: 'gap-3',
+		base: 'gap-4',
 	},
 
 	direction: {

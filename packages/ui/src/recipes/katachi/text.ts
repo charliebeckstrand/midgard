@@ -1,12 +1,12 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { sumi } from '../sumi'
+import { iro } from '../iro'
 
 export const text = tv({
 	variants: {
 		variant: {
-			default: [...sumi.text],
-			muted: [...sumi.textMuted],
-			error: sumi.textError,
+			default: [...iro.text.default],
+			muted: [...iro.text.muted],
+			error: iro.text.error,
 		},
 		color: {
 			current: 'text-current dark:text-current',

@@ -7,10 +7,11 @@
  */
 
 import { garasu } from './garasu'
+import { iro } from './iro'
+import { ji } from './ji'
 import { ki } from './ki'
 import { kyousei } from './kyousei'
 import { maru } from './maru'
-import { sumi } from './sumi'
 import { take } from './take'
 import { yasumi } from './yasumi'
 
@@ -20,7 +21,7 @@ const motoi = {
 		'sm:py-1.5 py-2.5',
 		'outline-hidden',
 		'cursor-default',
-		take.text.md,
+		ji.size.md,
 		kyousei.text,
 		kyousei.focus,
 		yasumi.disabled,
@@ -47,7 +48,7 @@ const yoru = {
 }
 
 // ── Composed (internal) ─────────────────────────────────
-const item = [sumi.text, maru.rounded, motoi.item, hiru.item, yoru.item, garasu.item]
+const item = [iro.text.default, maru.rounded, motoi.item, hiru.item, yoru.item, garasu.item]
 const nav = [motoi.nav, hiru.nav, yoru.nav]
 
 // ── Export ───────────────────────────────────────────────

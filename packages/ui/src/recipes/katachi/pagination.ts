@@ -1,14 +1,14 @@
 import { tv, type VariantProps } from 'tailwind-variants'
+import { iro } from '../iro'
+import { ji } from '../ji'
 import { ki } from '../ki'
 import { kumi } from '../kumi'
 import { maru } from '../maru'
 import { sawari } from '../sawari'
-import { sumi } from '../sumi'
-import { take } from '../take'
 import { yasumi } from '../yasumi'
 
-export const pagination = tv({ base: ['flex items-center list-none', take.gap.sm] })
-export const paginationList = tv({ base: ['flex list-none items-center', take.gap.sm, 'm-0 p-0'] })
+export const pagination = tv({ base: ['flex items-center list-none', kumi.gap.sm] })
+export const paginationList = tv({ base: ['flex list-none items-center', kumi.gap.sm, 'm-0 p-0'] })
 
 export const pageButton = tv({
 	base: [
@@ -17,7 +17,7 @@ export const pageButton = tv({
 		'relative',
 		'min-w-9',
 		'p-2',
-		take.text.sm,
+		ji.size.sm,
 		'font-medium',
 		ki.ring,
 		maru.rounded,
@@ -25,8 +25,8 @@ export const pageButton = tv({
 	],
 	variants: {
 		current: {
-			true: [...sumi.text],
-			false: [...sumi.textMuted, ...sumi.textHover],
+			true: [...iro.text.default],
+			false: [...iro.text.muted, ...iro.text.hover],
 		},
 	},
 	defaultVariants: { current: false },
@@ -35,7 +35,7 @@ export const pageButton = tv({
 export type PageButtonVariants = VariantProps<typeof pageButton>
 
 export const paginationGap = tv({
-	base: ['inline-flex', kumi.center, 'min-w-9', take.text.sm, ...sumi.textMuted, 'select-none'],
+	base: ['inline-flex', kumi.center, 'min-w-9', ji.size.sm, ...iro.text.muted, 'select-none'],
 })
 
 export const slots = {
@@ -43,11 +43,11 @@ export const slots = {
 		'inline-flex',
 		kumi.center,
 		'p-2',
-		take.gap.sm,
-		take.text.sm,
+		kumi.gap.sm,
+		ji.size.sm,
 		'font-medium',
-		...sumi.textMuted,
-		...sumi.textHover,
+		...iro.text.muted,
+		...iro.text.hover,
 		ki.ring,
 		...yasumi.disabled,
 		maru.rounded,

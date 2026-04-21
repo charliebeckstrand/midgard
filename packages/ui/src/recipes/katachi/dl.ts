@@ -1,16 +1,21 @@
-import { kage } from '../kage'
-import { sumi } from '../sumi'
-import { take } from '../take'
+import { iro } from '../iro'
+import { ji } from '../ji'
+import { sen } from '../sen'
 
 export const dl = {
-	base: ['grid grid-cols-1 sm:grid-cols-[min(50%,--spacing(56))_auto]', take.text.sm],
+	base: ['grid grid-cols-1 sm:grid-cols-[min(50%,--spacing(56))_auto]', ji.size.sm],
 	term: [
 		'col-start-1',
-		sumi.textMuted,
+		iro.text.muted,
 		'font-medium',
 		'border-t first:border-none',
-		kage.borderSubtleColor,
+		sen.borderSubtleColor,
 		'sm:py-2 pt-2',
 	],
-	details: [sumi.text, kage.borderSubtleColor, 'sm:border-t sm:py-2 pb-2', 'sm:nth-2:border-none'],
+	details: [
+		iro.text.default,
+		sen.borderSubtleColor,
+		'sm:border-t sm:py-2 pb-2',
+		'sm:nth-2:border-none',
+	],
 }

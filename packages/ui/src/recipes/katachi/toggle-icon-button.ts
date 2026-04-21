@@ -1,6 +1,6 @@
+import { iro } from '../iro'
 import { kumi } from '../kumi'
 import { maru } from '../maru'
-import { sumi } from '../sumi'
 
 export const toggleIconButton = {
 	base: [
@@ -8,9 +8,9 @@ export const toggleIconButton = {
 		'flex',
 		kumi.center,
 		maru.rounded,
-		sumi.textMuted,
-		sumi.textHover,
-		sumi.textFocus,
+		iro.text.muted,
+		iro.text.hover,
+		iro.text.focus,
 	],
 	transition:
 		'transition-[opacity,filter,scale] duration-300 ease-in-out will-change-[opacity,filter,scale]',

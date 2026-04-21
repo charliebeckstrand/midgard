@@ -1,37 +1,38 @@
-import { kage } from '../kage'
+import { iro } from '../iro'
+import { ji } from '../ji'
+import { kumi } from '../kumi'
 import { ma } from '../ma'
 import { maru } from '../maru'
 import { omote } from '../omote'
-import { sumi } from '../sumi'
-import { take } from '../take'
+import { sen } from '../sen'
 
 export const dataTable = {
-	wrapper: ['relative flex flex-col', take.gap.md],
+	wrapper: ['relative flex flex-col', kumi.gap.md],
 	stickyWrapper: 'overflow-auto [&>[data-slot=table]]:!overflow-visible',
 	stickyHead: ['sticky top-0 z-10', omote.surface],
 	batchBar: [
 		'flex items-center',
 		'min-h-12',
-		take.gap.md,
-		ma.density.px.md,
-		ma.density.py.sm,
-		kage.borderSubtle,
+		kumi.gap.md,
+		ma.px.md,
+		ma.py.sm,
+		sen.borderSubtle,
 		maru.rounded,
 		'border-b',
 		omote.tint,
 	],
-	batchCount: ['font-medium whitespace-nowrap', take.text.sm, sumi.textMuted],
+	batchCount: ['font-medium whitespace-nowrap', ji.size.sm, iro.text.muted],
 	selectCell: 'w-px align-middle [line-height:0]',
 	actionsCell: 'w-px whitespace-nowrap',
 	sortButton: [
 		'inline-flex items-center',
-		take.gap.sm,
-		sumi.textMuted,
-		sumi.textHover,
+		kumi.gap.sm,
+		iro.text.muted,
+		iro.text.hover,
 		'select-none',
 		'cursor-pointer',
 	],
-	sortIcon: sumi.textMuted,
-	sortIconActive: sumi.text,
+	sortIcon: iro.text.muted,
+	sortIconActive: iro.text.default,
 	rowLoading: 'animate-pulse opacity-60',
 }

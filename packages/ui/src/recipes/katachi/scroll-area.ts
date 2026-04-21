@@ -1,7 +1,7 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { kage } from '../kage'
 import { maru } from '../maru'
 import { nagare } from '../nagare'
+import { sen } from '../sen'
 import { take } from '../take'
 
 type Orientation = 'vertical' | 'horizontal' | 'both'
@@ -27,7 +27,7 @@ export const scrollAreaWrapper = tv({
 		},
 		bare: {
 			true: '',
-			false: [...kage.border],
+			false: [...sen.border],
 		},
 		orientation: {
 			vertical: '',

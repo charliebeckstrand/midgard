@@ -1,20 +1,20 @@
-import { kage } from '../kage'
+import { iro } from '../iro'
 import { ki } from '../ki'
+import { kumi } from '../kumi'
 import { maru } from '../maru'
 import { nuri } from '../nuri'
 import { sawari } from '../sawari'
-import { sumi } from '../sumi'
-import { take } from '../take'
+import { sen } from '../sen'
 import { yasumi } from '../yasumi'
 
 export const tabs = {
-	list: ['flex gap-4', 'border-b', '-mt-4', kage.borderSubtleColor],
+	list: ['flex gap-4', 'border-b', '-mt-4', sen.borderSubtleColor],
 	tab: [
 		'relative flex items-center',
-		take.gap.md,
+		kumi.gap.md,
 		'px-1 py-4',
 		'font-medium',
-		...sumi.tab,
+		...iro.text.tab,
 		ki.indicator,
 		sawari.cursor,
 		yasumi.disabled,

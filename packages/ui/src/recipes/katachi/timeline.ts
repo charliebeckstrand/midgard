@@ -1,6 +1,6 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { sumi } from '../sumi'
-import { take } from '../take'
+import { iro } from '../iro'
+import { ji } from '../ji'
 
 export const timeline = tv({
 	base: ['list-none p-0 m-0'],
@@ -60,17 +60,17 @@ export const slots = {
 		},
 	},
 	heading: {
-		base: ['font-semibold', take.text.lg, ...sumi.text],
+		base: ['font-semibold', ji.size.lg, ...iro.text.default],
 		vertical: 'col-start-2 row-start-1',
 		horizontal: 'order-1',
 	},
 	description: {
-		base: ['my-1', take.text.md],
+		base: ['my-1', ji.size.md],
 		vertical: 'col-start-2 row-start-2',
 		horizontal: 'order-2',
 	},
 	timestamp: {
-		base: [take.text.sm, ...sumi.textMuted],
+		base: [ji.size.sm, ...iro.text.muted],
 		vertical: 'col-start-2 row-start-3 mt-1',
 		horizontal: 'order-3 mt-1',
 	},

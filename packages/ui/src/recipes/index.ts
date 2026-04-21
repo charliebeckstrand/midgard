@@ -1,5 +1,8 @@
 /** Kata (型) — Design token recipes. Each recipe captures one design concern as reusable Tailwind class fragments. */
 
+export { garasu } from './garasu'
+export { iro } from './iro'
+export { ji } from './ji'
 export { kage } from './kage'
 export { katachi } from './katachi'
 export { ki } from './ki'
@@ -13,7 +16,7 @@ export { narabi } from './narabi'
 export { nuri } from './nuri'
 export { omote } from './omote'
 export { sawari } from './sawari'
-export { sumi } from './sumi'
+export { sen } from './sen'
 export { take } from './take'
 export { ugoki } from './ugoki'
 export { waku } from './waku'

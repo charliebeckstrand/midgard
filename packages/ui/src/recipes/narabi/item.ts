@@ -1,9 +1,9 @@
+import { iro } from '../iro'
 import { kyousei } from '../kyousei'
-import { sumi } from '../sumi'
 import { take } from '../take'
 
 export const item = [
-	sumi.textIcon,
+	iro.text.icon,
 	take.icon.md,
 	kyousei.icon,
 	'*:data-[slot=avatar]:-mx-0.5 *:data-[slot=avatar]:size-6',

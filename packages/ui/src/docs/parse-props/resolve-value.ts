@@ -133,8 +133,8 @@ function resolveMemberChain(
 
 /**
  * Walk into an object literal body to find a nested property.
- * For `{ variant: { solid: {...}, ... }, size: take.button }` and path ["size"],
- * returns the keys of `take.button`.
+ * For `{ variant: { solid: {...}, ... }, size: { sm: [...], md: [...] } }` and
+ * path ["size"], returns the keys of the `size` object literal.
  */
 function walkObjectProperties(
 	objectBody: string,

@@ -1,5 +1,5 @@
 /**
- * Iro (色) — Colour axis helper.
+ * Colour-axis helper.
  *
  * Turns a `{ variant → palette }` map into the two pieces `tv()` needs:
  *
@@ -12,10 +12,10 @@
  * button palette that adds `inherit`) work without extra wiring.
  *
  * Pass `extra` to attach additional discriminators (e.g. `{ active: true }`) to
- * every generated compound. Call `iro()` twice and concat the results when a
- * recipe needs more than one compound matrix along another axis.
+ * every generated compound. Call twice and concat the results when a recipe
+ * needs more than one compound matrix along another axis.
  */
-export function iro<V extends string, C extends string>(
+export function colorVariants<V extends string, C extends string>(
 	map: Record<V, Record<C, string | string[]>>,
 	extra: Record<string, unknown> = {},
 ) {

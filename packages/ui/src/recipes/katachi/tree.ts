@@ -1,8 +1,8 @@
+import { iro } from '../iro'
+import { ji } from '../ji'
 import { ki } from '../ki'
 import { maru } from '../maru'
 import { nagare } from '../nagare'
-import { sumi } from '../sumi'
-import { take } from '../take'
 
 export type TreeColor = 'sky' | 'lime' | 'rose' | 'amber' | 'violet'
 
@@ -34,15 +34,15 @@ export const tree = {
 	itemContent: [
 		'flex w-full items-center gap-1.5',
 		'py-1 px-2',
-		take.text.sm,
-		sumi.textMuted,
-		sumi.textHover,
+		ji.size.sm,
+		iro.text.muted,
+		iro.text.hover,
 		maru.rounded,
 		ki.inset,
 		'data-[open]:text-zinc-950 dark:data-[open]:text-white',
 		'data-[open]:cursor-pointer',
 	],
-	itemContentActive: sumi.text,
+	itemContentActive: iro.text.default,
 	chevron: ['flex-none', nagare.transform],
 	label: 'flex-1 truncate text-left',
 	group: 'overflow-hidden',

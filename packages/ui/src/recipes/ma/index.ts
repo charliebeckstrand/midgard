@@ -1,12 +1,12 @@
 /**
  * Ma (間) — Interval.
  *
- * Padding and margin tokens — the breathing room of an element.
+ * Padding and margin tokens — the breathing room of an element. Numeric keys
+ * give a raw Tailwind spacing scale; named keys (xs · sm · md · lg · xl) map
+ * to density steps shared across components.
  *
  * Tier: 1 · Concern: spacing
  */
-
-import { pb, pl, pr, pt, px, py } from './density'
 
 export const ma = {
 	p: {
@@ -35,6 +35,11 @@ export const ma = {
 		10: 'px-10',
 		12: 'px-12',
 		16: 'px-16',
+		xs: 'px-0.5',
+		sm: 'px-1',
+		md: 'px-2',
+		lg: 'px-3',
+		xl: 'px-4',
 	},
 
 	py: {
@@ -49,7 +54,17 @@ export const ma = {
 		10: 'py-10',
 		12: 'py-12',
 		16: 'py-16',
+		xs: 'py-0.5',
+		sm: 'py-1',
+		md: 'py-2',
+		lg: 'py-3',
+		xl: 'py-4',
 	},
+
+	pt: { xs: 'pt-0.5', sm: 'pt-1', md: 'pt-2', lg: 'pt-3', xl: 'pt-4' },
+	pr: { xs: 'pr-0.5', sm: 'pr-1', md: 'pr-2', lg: 'pr-3', xl: 'pr-4' },
+	pb: { xs: 'pb-0.5', sm: 'pb-1', md: 'pb-2', lg: 'pb-3', xl: 'pb-4' },
+	pl: { xs: 'pl-0.5', sm: 'pl-1', md: 'pl-2', lg: 'pl-3', xl: 'pl-4' },
 
 	m: {
 		0: 'm-0',
@@ -95,9 +110,6 @@ export const ma = {
 		16: 'my-16',
 		auto: 'my-auto',
 	},
-
-	/** Density-aware padding keyed to the take density grid. */
-	density: { pt, pr, pb, pl, px, py },
 } as const
 
 export type Padding = keyof typeof ma.p

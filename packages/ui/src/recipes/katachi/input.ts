@@ -1,10 +1,10 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { kage } from '../kage'
+import { iro } from '../iro'
 import { maru } from '../maru'
 import { omote } from '../omote'
-import { sumi } from '../sumi'
-import { take } from '../take'
+import { sen } from '../sen'
 import { waku } from '../waku'
+import { controlSize } from './_control-size'
 
 export const input = tv({
 	base: [...waku.inputBase, 'block', maru.rounded],
@@ -14,7 +14,7 @@ export const input = tv({
 			outline: [],
 			glass: [...omote.glass],
 		},
-		size: take.control,
+		size: controlSize,
 	},
 	defaultVariants: { variant: 'default', size: 'md' },
 })
@@ -23,7 +23,7 @@ export const inputControl = tv({
 	variants: {
 		variant: {
 			default: [...waku.control.surface],
-			outline: [...kage.borderEmphasis, 'hover:border-zinc-950/30', 'dark:hover:border-white/30'],
+			outline: [...sen.borderEmphasis, 'hover:border-zinc-950/30', 'dark:hover:border-white/30'],
 			glass: [],
 		},
 	},
@@ -33,7 +33,7 @@ export const inputControl = tv({
 export const inputDate = tv({ base: [...waku.date] })
 
 export const slots = {
-	affix: ['flex items-center min-w-0', '*:data-[slot=icon]:pointer-events-none', ...sumi.textMuted],
+	affix: ['flex items-center min-w-0', '*:data-[slot=icon]:pointer-events-none', ...iro.text.muted],
 	prefix: {
 		sm: 'pl-[calc(--spacing(2.5)-1px)] py-[calc(--spacing(0.5)-1px)] has-[button]:pl-1',
 		md: 'pl-[calc(--spacing(3)-1px)] py-[calc(--spacing(1)-1px)] has-[button]:pl-1.5',

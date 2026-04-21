@@ -1,19 +1,19 @@
 import { tv, type VariantProps } from 'tailwind-variants'
+import { ji } from '../ji'
 import { kage } from '../kage'
 import { ki } from '../ki'
 import { kumi } from '../kumi'
 import { maru } from '../maru'
 import { omote } from '../omote'
-import { take } from '../take'
 import { yasumi } from '../yasumi'
 
 export const segmentControl = tv({
 	base: ['inline-flex items-center', maru.rounded, ...omote.tint],
 	variants: {
 		size: {
-			sm: ['p-0.5', ...take.gap.sm],
-			md: ['p-1', ...take.gap.md],
-			lg: ['p-1', ...take.gap.lg],
+			sm: ['p-0.5', ...kumi.gap.sm],
+			md: ['p-1', ...kumi.gap.md],
+			lg: ['p-1', ...kumi.gap.lg],
 		},
 	},
 	defaultVariants: { size: 'md' },
@@ -33,9 +33,9 @@ export const segmentItem = tv({
 	],
 	variants: {
 		size: {
-			sm: ['px-2.5 py-1', ...take.text.xs],
-			md: ['px-3 py-1.5', ...take.text.sm],
-			lg: ['px-4 py-2', ...take.text.md],
+			sm: ['px-2.5 py-1', ...ji.size.xs],
+			md: ['px-3 py-1.5', ...ji.size.sm],
+			lg: ['px-4 py-2', ...ji.size.md],
 		},
 	},
 	defaultVariants: { size: 'md' },
@@ -45,7 +45,7 @@ export type SegmentControlVariants = VariantProps<typeof segmentControl>
 export type SegmentItemVariants = VariantProps<typeof segmentItem>
 
 export const slots = {
-	indicator: ['bg-white', 'dark:bg-zinc-600', kage.shadow],
+	indicator: ['bg-white', 'dark:bg-zinc-600', kage.sm],
 }
 
 /** Kept for the `katachi` barrel — read by `tabs` and other consumers. */

@@ -11,7 +11,7 @@ import { useControllable } from '../../hooks/use-controllable'
 import { useFocusTrap } from '../../hooks/use-focus-trap'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { ControlFrame } from '../../primitives'
-import { kokkaku, omote, sumi, ugoki } from '../../recipes'
+import { iro, kokkaku, omote, ugoki } from '../../recipes'
 import { Box } from '../box'
 import { Button } from '../button'
 import { Calendar, type CalendarActive, type CalendarHandle } from '../calendar'
@@ -226,7 +226,7 @@ function DatePickerSingle({
 						className={cn(k.button)}
 					>
 						<span className={k.value}>
-							{displayValue || <span className={cn(sumi.textMuted)}>{placeholder}</span>}
+							{displayValue || <span className={cn(iro.text.muted)}>{placeholder}</span>}
 						</span>
 					</button>
 					<span className={cn(k.icon)}>
@@ -248,7 +248,7 @@ function DatePickerSingle({
 								ref={focusTrapRef}
 								{...ugoki.popover}
 								data-slot="datepicker-content"
-								className={cn('z-50', sumi.text, glass && omote.glass)}
+								className={cn('z-50', iro.text.default, glass && omote.glass)}
 								onMouseDown={(e) => e.preventDefault()}
 							>
 								<Box bg={glass ? 'none' : 'popover'} border={glass || undefined} radius="lg">

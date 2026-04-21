@@ -1,8 +1,8 @@
 import { tv, type VariantProps } from 'tailwind-variants'
+import { iro } from '../iro'
 import { ki } from '../ki'
 import { kumi } from '../kumi'
 import { nuri } from '../nuri'
-import { sumi } from '../sumi'
 import { waku } from '../waku'
 
 export const checkbox = tv({
@@ -28,6 +28,6 @@ export const checkbox = tv({
 
 export const checkboxInput = tv({ base: waku.check })
 
-export const slots = { disabled: sumi.textDisabled }
+export const slots = { disabled: iro.text.disabled }
 
 export type CheckboxVariants = VariantProps<typeof checkbox>

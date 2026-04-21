@@ -1,6 +1,6 @@
+import { iro } from '../iro'
 import { ki } from '../ki'
 import { maru } from '../maru'
-import { sumi } from '../sumi'
 
 export const fileUpload = {
 	dropzone: [
@@ -9,7 +9,7 @@ export const fileUpload = {
 		'text-sm',
 		maru.rounded,
 		ki.ring,
-		sumi.textMuted,
+		iro.text.muted,
 		'border border-dashed',
 		'border-zinc-300',
 		'dark:border-zinc-700',
@@ -21,5 +21,5 @@ export const fileUpload = {
 		'disabled:opacity-50 disabled:cursor-not-allowed',
 	],
 	icon: 'shrink-0',
-	label: ['font-medium', sumi.text],
+	label: ['font-medium', iro.text.default],
 }

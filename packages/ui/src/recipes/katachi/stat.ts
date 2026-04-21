@@ -1,26 +1,27 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { sumi } from '../sumi'
-import { take } from '../take'
+import { iro } from '../iro'
+import { ji } from '../ji'
+import { kumi } from '../kumi'
 
 export const statValue = tv({
-	base: ['font-semibold tracking-tight tabular-nums', ...sumi.text],
+	base: ['font-semibold tracking-tight tabular-nums', ...iro.text.default],
 	variants: {
 		size: {
-			sm: take.text['2xl'],
-			md: take.text['3xl'],
-			lg: take.text['4xl'],
+			sm: ji.size['2xl'],
+			md: ji.size['3xl'],
+			lg: ji.size['4xl'],
 		},
 	},
 	defaultVariants: { size: 'md' },
 })
 
 export const statDelta = tv({
-	base: ['inline-flex items-center', take.text.sm, take.gap.sm, 'font-medium tabular-nums'],
+	base: ['inline-flex items-center', ji.size.sm, kumi.gap.sm, 'font-medium tabular-nums'],
 	variants: {
 		trend: {
 			up: 'text-green-600 dark:text-green-500',
 			down: 'text-red-600 dark:text-red-500',
-			neutral: [...sumi.textMuted],
+			neutral: [...iro.text.muted],
 		},
 	},
 	defaultVariants: { trend: 'neutral' },
@@ -30,9 +31,9 @@ export type StatValueVariants = VariantProps<typeof statValue>
 export type StatDeltaVariants = VariantProps<typeof statDelta>
 
 export const slots = {
-	base: ['flex flex-col', take.gap.sm],
-	label: [take.text.sm, ...sumi.textMuted, 'font-medium'],
-	description: [take.text.sm, ...sumi.textMuted],
+	base: ['flex flex-col', kumi.gap.sm],
+	label: [ji.size.sm, ...iro.text.muted, 'font-medium'],
+	description: [ji.size.sm, ...iro.text.muted],
 }
 
 /** Kept for the `katachi` barrel — not consumed directly. */

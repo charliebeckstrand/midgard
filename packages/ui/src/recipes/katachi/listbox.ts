@@ -1,16 +1,17 @@
+import { iro } from '../iro'
 import { maru } from '../maru'
 import { narabi } from '../narabi'
 import { sawari } from '../sawari'
-import { sumi } from '../sumi'
 import { take } from '../take'
 import { waku } from '../waku'
+import { controlIcon, controlSize } from './_control-size'
 
 export const listbox = {
 	button: [
 		'block',
 		'text-left',
 		...waku.inputBase,
-		take.control.md,
+		controlSize.md,
 		take.listbox.padding,
 		maru.rounded,
 		'appearance-none',
@@ -18,6 +19,6 @@ export const listbox = {
 	options: take.popup,
 	panel: 'relative min-w-full',
 	value: 'block truncate',
-	chevron: [take.control.icon, take.listbox.icon, sumi.textMuted],
+	chevron: [controlIcon, take.listbox.icon, iro.text.muted],
 	option: [...sawari.item, ...narabi.item],
 }

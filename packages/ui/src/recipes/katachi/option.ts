@@ -1,7 +1,7 @@
+import { iro } from '../iro'
 import { maru } from '../maru'
 import { narabi } from '../narabi'
 import { sawari } from '../sawari'
-import { sumi } from '../sumi'
 
 export const option = {
 	base: [
@@ -23,5 +23,5 @@ export const option = {
 	],
 	content: ['flex min-w-0 items-center', narabi.item],
 	label: 'ml-2.5 first:ml-0 sm:ml-2 sm:first:ml-0 truncate',
-	description: [narabi.description, sumi.textMuted, sumi.focusText],
+	description: [narabi.description, iro.text.muted, iro.text.focusGroup],
 }

@@ -1,10 +1,10 @@
-import { kage } from '../kage'
+import { iro } from '../iro'
+import { ji } from '../ji'
 import { ki } from '../ki'
 import { kumi } from '../kumi'
 import { maru } from '../maru'
 import { omote } from '../omote'
-import { sumi } from '../sumi'
-import { take } from '../take'
+import { sen } from '../sen'
 import { yasumi } from '../yasumi'
 
 export type ListVariant = 'outline' | 'solid' | 'plain'
@@ -12,23 +12,23 @@ export type ListVariant = 'outline' | 'solid' | 'plain'
 const itemBase = [
 	'group/list-item',
 	'flex items-center',
-	take.gap.md,
+	kumi.gap.md,
 	'gap-y-0',
-	take.text.md,
-	sumi.text,
+	ji.size.md,
+	iro.text.default,
 	ki.inset,
 	maru.rounded,
 	'transition-shadow',
 ]
 
 const itemVariant = {
-	outline: ['p-3', 'bg-white dark:bg-zinc-900', kage.border],
-	solid: ['p-3', ...omote.tint, kage.border],
+	outline: ['p-3', 'bg-white dark:bg-zinc-900', sen.border],
+	solid: ['p-3', ...omote.tint, sen.border],
 	plain: ['px-2 py-1.5'],
 } satisfies Record<ListVariant, unknown>
 
 export const list = {
-	base: ['flex flex-col', take.gap.md, 'list-none m-0 p-0'],
+	base: ['flex flex-col', kumi.gap.md, 'list-none m-0 p-0'],
 	horizontal: 'flex-row',
 	item: (variant: ListVariant = 'outline') => [...itemBase, ...itemVariant[variant]],
 	itemActive: 'z-10 relative bg-white dark:bg-zinc-900 rounded-md',
@@ -45,5 +45,5 @@ export const list = {
 	],
 	content: 'flex flex-col flex-1 min-w-0',
 	label: 'min-w-0 truncate',
-	description: ['min-w-0 truncate', take.text.sm, sumi.textMuted],
+	description: ['min-w-0 truncate', ji.size.sm, iro.text.muted],
 }
