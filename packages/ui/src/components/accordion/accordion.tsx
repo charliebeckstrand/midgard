@@ -1,7 +1,8 @@
 'use client'
 
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef } from 'react'
 import { cn } from '../../core'
+import { useControllable } from '../../hooks'
 import { AccordionRootProvider } from './context'
 import { type AccordionVariants, accordionVariants } from './variants'
 
@@ -39,49 +40,50 @@ export function Accordion(props: AccordionProps) {
 
 	const type = props.type ?? 'single'
 
-	const collapsible = type === 'single' ? ((props as SingleProps).collapsible ?? true) : true
+	const isMultiple = type === 'multiple'
 
-	const isControlled =
-		type === 'multiple'
-			? (props as MultipleProps).value !== undefined
-			: (props as SingleProps).value !== undefined
+	const collapsible = isMultiple ? true : ((props as SingleProps).collapsible ?? true)
 
-	const [internal, setInternal] = useState<string[]>(() =>
-		type === 'multiple'
-			? ((props as MultipleProps).defaultValue ?? [])
-			: toArray((props as SingleProps).defaultValue ?? null),
-	)
+	const controlledValue = isMultiple
+		? (props as MultipleProps).value
+		: (props as SingleProps).value !== undefined
+			? toArray((props as SingleProps).value)
+			: undefined
 
-	const current = isControlled
-		? type === 'multiple'
-			? ((props as MultipleProps).value ?? [])
-			: toArray((props as SingleProps).value)
-		: internal
+	const defaultValue = isMultiple
+		? ((props as MultipleProps).defaultValue ?? [])
+		: toArray((props as SingleProps).defaultValue ?? null)
 
 	const onValueChangeRef = useRef(props.onValueChange)
 
 	onValueChangeRef.current = props.onValueChange
 
-	const setCurrent = useCallback(
-		(next: string[]) => {
-			if (!isControlled) setInternal(next)
+	const onControllableChange = useCallback(
+		(next: string[] | undefined) => {
+			const resolved = next ?? []
 
 			const onValueChange = onValueChangeRef.current
 
-			if (type === 'multiple') {
-				;(onValueChange as MultipleProps['onValueChange'])?.(next)
+			if (isMultiple) {
+				;(onValueChange as MultipleProps['onValueChange'])?.(resolved)
 			} else {
-				;(onValueChange as SingleProps['onValueChange'])?.(next[0] ?? null)
+				;(onValueChange as SingleProps['onValueChange'])?.(resolved[0] ?? null)
 			}
 		},
-		[isControlled, type],
+		[isMultiple],
 	)
+
+	const [current = [], setCurrent] = useControllable<string[]>({
+		value: controlledValue,
+		defaultValue,
+		onChange: onControllableChange,
+	})
 
 	const isOpen = useCallback((value: string) => current.includes(value), [current])
 
 	const toggle = useCallback(
 		(value: string) => {
-			if (type === 'multiple') {
+			if (isMultiple) {
 				const next = current.includes(value)
 					? current.filter((v) => v !== value)
 					: [...current, value]
@@ -97,7 +99,7 @@ export function Accordion(props: AccordionProps) {
 				setCurrent([value])
 			}
 		},
-		[current, collapsible, setCurrent, type],
+		[current, collapsible, setCurrent, isMultiple],
 	)
 
 	const ctx = useMemo(
