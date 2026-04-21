@@ -1,6 +1,6 @@
+import { iro } from '../iro'
+import { ji } from '../ji'
 import { maru } from '../maru'
-import { sumi } from '../sumi'
-import { text } from '../take/density'
 import { waku } from '../waku'
 
 export const tagInput = {
@@ -12,18 +12,23 @@ export const tagInput = {
 		'data-disabled:cursor-not-allowed data-disabled:**:!cursor-not-allowed',
 	],
 	wrapperSize: {
-		xs: ['p-[calc(--spacing(1)-1px)]', text.xs],
-		sm: ['p-[calc(--spacing(1.5)-1px)]', text.sm],
-		md: ['p-[calc(--spacing(2)-1px)]', text.md],
-		lg: ['p-[calc(--spacing(2.5)-1px)]', text.lg],
+		xs: ['p-[calc(--spacing(1)-1px)]', ji.size.xs],
+		sm: ['p-[calc(--spacing(1.5)-1px)]', ji.size.sm],
+		md: ['p-[calc(--spacing(2)-1px)]', ji.size.md],
+		lg: ['p-[calc(--spacing(2.5)-1px)]', ji.size.lg],
 	},
 	base: ['flex flex-wrap items-center content-center gap-1 flex-1'],
 	size: {
-		xs: [text.xs],
-		sm: [text.sm],
-		md: [text.md],
-		lg: [text.lg],
+		xs: [ji.size.xs],
+		sm: [ji.size.sm],
+		md: [ji.size.md],
+		lg: [ji.size.lg],
 	},
-	input: ['flex-1 min-w-20', sumi.text, 'bg-transparent border-none p-0', 'focus:outline-none'],
+	input: [
+		'flex-1 min-w-20',
+		iro.text.default,
+		'bg-transparent border-none p-0',
+		'focus:outline-none',
+	],
 	defaults: { size: 'md' as const },
 }

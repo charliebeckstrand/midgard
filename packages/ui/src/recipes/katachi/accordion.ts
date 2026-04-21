@@ -1,19 +1,20 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { kage } from '../kage'
+import { iro } from '../iro'
+import { ji } from '../ji'
+import { kumi } from '../kumi'
 import { maru } from '../maru'
 import { nagare } from '../nagare'
-import { sumi } from '../sumi'
-import { take } from '../take'
+import { sen } from '../sen'
 
 export const accordion = tv({
 	base: 'flex flex-col',
 	variants: {
 		variant: {
-			separated: take.gap.sm,
+			separated: kumi.gap.sm,
 			bordered: [
 				'overflow-hidden',
 				maru.rounded,
-				...kage.border,
+				...sen.border,
 				'divide-y divide-zinc-950/10',
 				'dark:divide-white/10',
 			],
@@ -27,7 +28,7 @@ export const accordionItem = tv({
 	base: 'group/accordion-item',
 	variants: {
 		variant: {
-			separated: ['overflow-hidden', maru.rounded, ...kage.border],
+			separated: ['overflow-hidden', maru.rounded, ...sen.border],
 			bordered: '',
 			plain: '',
 		},
@@ -39,10 +40,10 @@ export const slots = {
 	button: [
 		'w-full flex items-center justify-between',
 		'p-4',
-		take.gap.md,
-		take.text.sm,
-		sumi.textMuted,
-		sumi.textHover,
+		kumi.gap.md,
+		ji.size.sm,
+		iro.text.muted,
+		iro.text.hover,
 		'text-left font-medium',
 		'group-data-[open]/accordion-item:text-zinc-950',
 		'dark:group-data-[open]/accordion-item:text-white',
@@ -52,7 +53,7 @@ export const slots = {
 	],
 	indicator: ['shrink-0', nagare.transform, 'group-data-[open]/accordion-item:rotate-180'],
 	panel: 'overflow-hidden',
-	body: ['px-4 pb-4 pt-0', take.text.sm, sumi.textMuted],
+	body: ['px-4 pb-4 pt-0', ji.size.sm, iro.text.muted],
 }
 
 export type AccordionVariants = VariantProps<typeof accordion>

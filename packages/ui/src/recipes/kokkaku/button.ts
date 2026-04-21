@@ -1,13 +1,12 @@
 import { maru } from '../maru'
-import { control } from './density'
 
 export const button = {
 	base: maru.rounded,
 	size: {
-		xs: [control.xs, 'w-16'],
-		sm: [control.sm, 'w-20'],
-		md: [control.md, 'w-24'],
-		lg: [control.lg, 'w-28'],
+		xs: ['h-6', 'w-16'],
+		sm: ['h-7', 'w-20'],
+		md: ['h-9', 'w-24'],
+		lg: ['h-11', 'w-28'],
 	},
 	defaults: { size: 'md' as const },
 }

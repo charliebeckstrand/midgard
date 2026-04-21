@@ -1,12 +1,13 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { iro } from '../../core/recipe'
+import { colorVariants } from '../../core/recipe'
+import { ji } from '../ji'
 import { kage } from '../kage'
+import { kumi } from '../kumi'
 import { maru } from '../maru'
 import { nuri } from '../nuri'
 import { sawari } from '../sawari'
-import { take } from '../take'
 
-const { color, compoundVariants } = iro({
+const { color, compoundVariants } = colorVariants({
 	solid: nuri.solid,
 	soft: nuri.soft,
 	outline: nuri.outline,
@@ -14,10 +15,10 @@ const { color, compoundVariants } = iro({
 })
 
 export const alert = tv({
-	base: ['flex w-fit', 'px-4 py-3.5', take.gap.md, take.text.md, maru.rounded],
+	base: ['flex w-fit', 'px-4 py-3.5', kumi.gap.md, ji.size.md, maru.rounded],
 	variants: {
 		variant: {
-			solid: ['border border-transparent', kage.shadow],
+			solid: ['border border-transparent', kage.sm],
 			soft: ['border border-transparent'],
 			outline: ['border'],
 			plain: ['border border-transparent'],
@@ -32,9 +33,9 @@ export const alert = tv({
 export const slots = {
 	icon: 'shrink-0',
 	content: 'flex flex-col flex-1 min-w-0',
-	title: [take.text.md, 'font-semibold'],
+	title: [ji.size.md, 'font-semibold'],
 	description: 'leading-loose',
-	actions: ['mt-2 flex items-center', take.gap.sm],
+	actions: ['mt-2 flex items-center', kumi.gap.sm],
 	close: ['shrink-0', '-m-1 p-1', maru.roundedMd, sawari.cursor],
 }
 

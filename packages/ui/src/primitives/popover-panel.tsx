@@ -7,7 +7,7 @@ import { useGlass } from '../components/glass/context'
 import { cn } from '../core'
 import { useScrollIntoContainer } from '../hooks'
 import { useRoving } from '../hooks/use-keyboard'
-import { kage, maru, omote, ugoki } from '../recipes'
+import { maru, omote, sen, ugoki } from '../recipes'
 
 export function PopoverPanel({
 	id,
@@ -61,7 +61,7 @@ export function PopoverPanel({
 			}}
 			data-glass={glass ? '' : undefined}
 			className={cn(
-				glass ? [omote.glass, kage.ring, 'group/glass'] : omote.popover,
+				glass ? [omote.glass, sen.ring, 'group/glass'] : omote.popover,
 				maru.rounded,
 				'isolate absolute min-w-full',
 				'p-1 space-y-0.5',

@@ -1,5 +1,5 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { kage } from '../kage'
+import { sen } from '../sen'
 
 export const divider = tv({
 	base: ['border-0'],
@@ -9,8 +9,8 @@ export const divider = tv({
 			vertical: 'self-stretch border-l',
 		},
 		soft: {
-			true: [...kage.borderSubtleColor],
-			false: [...kage.borderColor],
+			true: [...sen.borderSubtleColor],
+			false: [...sen.borderColor],
 		},
 	},
 	defaultVariants: { orientation: 'horizontal', soft: false },

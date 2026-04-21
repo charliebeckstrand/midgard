@@ -1,12 +1,12 @@
-import { kage } from '../kage'
 import { maru } from '../maru'
+import { sen } from '../sen'
 import { yasumi } from '../yasumi'
 
 export const map = {
 	base: [
 		'relative isolate overflow-hidden',
 		'w-full h-full',
-		kage.border,
+		sen.border,
 		maru.rounded,
 		yasumi.disabled,
 	],

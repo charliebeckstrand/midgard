@@ -1,15 +1,16 @@
+import { iro } from '../iro'
+import { ji } from '../ji'
 import { ki } from '../ki'
-import { sumi } from '../sumi'
-import { take } from '../take'
+import { kumi } from '../kumi'
 
 export const collapse = {
 	base: 'group/collapse',
 	trigger: [
 		'inline-flex items-center',
-		take.gap.sm,
-		take.text.sm,
-		sumi.textMuted,
-		sumi.textHover,
+		kumi.gap.sm,
+		ji.size.sm,
+		iro.text.muted,
+		iro.text.hover,
 		'font-medium',
 		ki.ring,
 		'group-data-[open]/collapse:text-zinc-950',

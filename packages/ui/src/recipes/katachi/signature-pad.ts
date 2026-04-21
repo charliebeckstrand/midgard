@@ -1,9 +1,9 @@
-import { kage } from '../kage'
+import { iro } from '../iro'
+import { ji } from '../ji'
 import { ki } from '../ki'
 import { kumi } from '../kumi'
 import { maru } from '../maru'
-import { sumi } from '../sumi'
-import { take } from '../take'
+import { sen } from '../sen'
 import { yasumi } from '../yasumi'
 
 export const signaturePad = {
@@ -11,7 +11,7 @@ export const signaturePad = {
 		'overflow-hidden',
 		'relative isolate',
 		'bg-white',
-		kage.border,
+		sen.border,
 		maru.rounded,
 		ki.ring,
 		yasumi.disabled,
@@ -21,9 +21,9 @@ export const signaturePad = {
 		'absolute inset-0',
 		'flex',
 		kumi.center,
-		take.text.sm,
-		sumi.textMuted,
+		ji.size.sm,
+		iro.text.muted,
 		'pointer-events-none',
 	],
-	actions: ['absolute right-2 bottom-2', 'flex items-center', take.gap.sm],
+	actions: ['absolute right-2 bottom-2', 'flex items-center', kumi.gap.sm],
 }

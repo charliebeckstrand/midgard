@@ -1,9 +1,8 @@
-import { kage } from '../kage'
 import { kumi } from '../kumi'
-import { take } from '../take'
+import { sen } from '../sen'
 
 export const columnManager = {
-	root: ['flex flex-col', take.gap.md],
+	root: ['flex flex-col', kumi.gap.md],
 	pin: [
 		'inline-flex flex-none',
 		kumi.center,
@@ -12,9 +11,9 @@ export const columnManager = {
 	],
 	footer: [
 		'flex items-center justify-end',
-		take.gap.sm,
+		kumi.gap.sm,
 		'pt-2',
 		'border-t',
-		...kage.borderSubtleColor,
+		...sen.borderSubtleColor,
 	],
 }

@@ -1,10 +1,10 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { iro } from '../../core/recipe'
+import { colorVariants } from '../../core/recipe'
 import { maru } from '../maru'
 import { nuri } from '../nuri'
 import { take } from '../take'
 
-const { color, compoundVariants } = iro({
+const { color, compoundVariants } = colorVariants({
 	solid: nuri.solid,
 	soft: nuri.soft,
 	outline: nuri.outline,

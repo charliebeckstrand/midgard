@@ -1,13 +1,12 @@
 import { maru } from '../maru'
-import { compact } from './density'
 
 export const chip = {
 	base: maru.roundedFull,
 	size: {
-		xs: [compact.xs, 'w-12'],
-		sm: [compact.sm, 'w-16'],
-		md: [compact.md, 'w-20'],
-		lg: [compact.lg, 'w-24'],
+		xs: ['h-4', 'w-12'],
+		sm: ['h-5', 'w-16'],
+		md: ['h-6', 'w-20'],
+		lg: ['h-7', 'w-24'],
 	},
 	defaults: { size: 'md' as const },
 }

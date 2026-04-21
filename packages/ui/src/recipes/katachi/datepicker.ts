@@ -1,8 +1,9 @@
+import { iro } from '../iro'
 import { ki } from '../ki'
 import { maru } from '../maru'
-import { sumi } from '../sumi'
 import { take } from '../take'
 import { waku } from '../waku'
+import { controlSize } from './_control-size'
 
 export const datepicker = {
 	control: {
@@ -12,7 +13,7 @@ export const datepicker = {
 	button: [
 		...waku.inputBase,
 		'block',
-		take.control.md,
+		controlSize.md,
 		take.listbox.padding,
 		'text-left',
 		maru.rounded,
@@ -20,12 +21,12 @@ export const datepicker = {
 		'cursor-pointer',
 	],
 	value: 'block truncate',
-	icon: [take.listbox.icon, 'flex items-center', 'pr-3', sumi.textMuted, 'pointer-events-none'],
+	icon: [take.listbox.icon, 'flex items-center', 'pr-3', iro.text.muted, 'pointer-events-none'],
 	clearButton: [
 		'p-1 -m-1',
 		'rounded-md',
 		ki.inset,
-		...sumi.textHover,
+		...iro.text.hover,
 		'pointer-events-auto',
 		'cursor-pointer',
 	],

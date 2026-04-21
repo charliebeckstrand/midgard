@@ -1,7 +1,8 @@
-import { kage } from '../kage'
+import { ji } from '../ji'
+import { kumi } from '../kumi'
 import { maru } from '../maru'
 import { sawari } from '../sawari'
-import { take } from '../take'
+import { sen } from '../sen'
 
 export const sidebar = {
 	base: ['overflow-y-auto overscroll-none', 'flex flex-col gap-y-4', 'h-full', 'px-4 py-6'],
@@ -9,17 +10,17 @@ export const sidebar = {
 		...sawari.navItem,
 		'group relative',
 		'flex w-full items-center',
-		take.gap.md,
+		kumi.gap.md,
 		'px-2 py-2',
 		maru.rounded,
-		take.text.md,
+		ji.size.md,
 		'text-left font-medium',
 		sawari.cursor,
 	],
-	section: ['flex flex-col', take.gap.xs],
+	section: ['flex flex-col', kumi.gap.xs],
 	label: ['truncate'],
-	header: ['flex items-center', take.gap.md],
-	body: ['overflow-y-auto', 'flex flex-1 flex-col', take.gap.base],
-	divider: kage.divider,
-	footer: ['sticky bottom-0', 'flex flex-col', take.gap.xs, 'mt-auto'],
+	header: ['flex items-center', kumi.gap.md],
+	body: ['overflow-y-auto', 'flex flex-1 flex-col', kumi.gap.base],
+	divider: sen.divider,
+	footer: ['sticky bottom-0', 'flex flex-col', kumi.gap.xs, 'mt-auto'],
 }

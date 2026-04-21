@@ -1,70 +1,47 @@
 /**
  * Take (丈) — Measure.
  *
- * The proportions of a thing — how compact or generous, what scale.
+ * Pure dimension scales — width, height, and the icon-slot size grid.
+ * Typography lives in `ji`; gaps live in `kumi`; padding lives in `ma`.
+ * Density presets (button / compact / control) live with their component in
+ * `katachi`, composed from these primitives.
  *
- * Tier: 1
- * Concern: sizing
+ * Tier: 1 · Concern: sizing
  */
 
 import { avatar } from './avatar'
-import { button, buttonWithIcon, buttonWithKbd } from './button'
 import { combobox } from './combobox'
-import { compact } from './compact'
-import { control } from './control'
-import { gap, icon, text } from './density'
 import { listbox } from './listbox'
 import { mark } from './mark'
 import { panel } from './panel'
 import { popup } from './popup'
 import { scrollArea } from './scroll-area'
 
+/** Icon slot — sizes `data-slot="icon"` children per density step. */
+export const icon = {
+	xs: '*:data-[slot=icon]:size-3 *:data-[slot=icon]:shrink-0',
+	sm: '*:data-[slot=icon]:size-4 *:data-[slot=icon]:shrink-0',
+	md: '*:data-[slot=icon]:size-5 *:data-[slot=icon]:shrink-0',
+	lg: '*:data-[slot=icon]:size-6 *:data-[slot=icon]:shrink-0',
+}
+
 export const take = {
-	// Core density tokens
-	gap,
-	text,
-
-	// Icon slot
 	icon,
-
-	// Button
-	button,
-	buttonWithIcon,
-	buttonWithKbd,
-
-	// Badge and chip share compact density
-	badge: compact,
-	chip: compact,
-
-	// Inline code and kbd share mark density
-	code: mark,
-	kbd: mark,
-
-	// Form controls
-	control,
+	avatar,
+	panel,
+	popup,
+	scrollArea,
 	combobox,
 	listbox,
-
-	// Avatar
-	avatar,
-
-	// Popup
-	popup,
-
-	// Panel
-	panel,
-
-	// Scroll area
-	scrollArea,
+	/** Inline-code / kbd sizing — base + size map. */
+	code: mark,
+	kbd: mark,
 } as const
 
 export namespace take {
-	export type BadgeSize = keyof typeof take.badge
-	export type ChipSize = keyof typeof take.chip
+	export type IconSize = keyof typeof take.icon
 	export type CodeSize = keyof typeof take.code.size
 	export type KbdSize = keyof typeof take.kbd.size
-	export type ButtonSize = keyof typeof take.button
-	export type ControlSize = keyof typeof take.control
 	export type AvatarSize = keyof typeof take.avatar
 	export type PanelSize =
 		| 'xs'

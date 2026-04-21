@@ -1,4 +1,4 @@
-import { kage, maru, omote } from '../../recipes'
+import { maru, omote, sen } from '../../recipes'
 
 export {
 	type Margin as BoxMargin,
@@ -21,9 +21,9 @@ export const bgMap = {
 } as const
 
 export const borderMap = {
-	subtle: kage.borderSubtle,
-	default: kage.border,
-	strong: kage.borderStrong,
+	subtle: sen.borderSubtle,
+	default: sen.border,
+	strong: sen.borderStrong,
 } as const
 
 export const radiusMap = {

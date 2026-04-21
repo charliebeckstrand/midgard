@@ -1,8 +1,8 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { kage } from '../kage'
+import { iro } from '../iro'
+import { ji } from '../ji'
 import { maru } from '../maru'
-import { sumi } from '../sumi'
-import { take } from '../take'
+import { sen } from '../sen'
 import { yasumi } from '../yasumi'
 
 export const stepper = tv({
@@ -21,7 +21,7 @@ export const stepperStep = tv({
 	variants: {
 		orientation: {
 			horizontal: 'flex shrink-0 flex-col items-center w-32 gap-0.5 text-center',
-			vertical: ['flex w-full items-center gap-4 py-1 first:pt-0', ...kage.borderSubtleColor],
+			vertical: ['flex w-full items-center gap-4 py-1 first:pt-0', ...sen.borderSubtleColor],
 		},
 	},
 	defaultVariants: { orientation: 'horizontal' },
@@ -49,7 +49,7 @@ export const stepperSeparator = tv({
 	base: 'shrink-0',
 	variants: {
 		orientation: {
-			horizontal: ['-mx-12 mt-2 flex-1 self-start', 'border-t', ...kage.borderColor],
+			horizontal: ['-mx-12 mt-2 flex-1 self-start', 'border-t', ...sen.borderColor],
 			vertical: 'hidden',
 		},
 	},
@@ -70,6 +70,6 @@ export const slots = {
 			'group-focus-visible:outline-2 group-focus-visible:outline-blue-600',
 		],
 	},
-	description: [take.text.sm, ...sumi.textMuted],
+	description: [ji.size.sm, ...iro.text.muted],
 	activeIndicator: ['z-10', 'bg-blue-600 dark:bg-blue-600'],
 }

@@ -1,29 +1,30 @@
-import { kage } from '../kage'
+import { iro } from '../iro'
+import { ji } from '../ji'
 import { ki } from '../ki'
+import { kumi } from '../kumi'
 import { maru } from '../maru'
 import { nuri } from '../nuri'
 import { omote } from '../omote'
-import { sumi } from '../sumi'
-import { take } from '../take'
+import { sen } from '../sen'
 
 export const bottomNav = {
 	base: [
 		'sticky inset-x-0 bottom-0 z-40',
 		'flex items-stretch justify-around',
-		kage.divider,
+		sen.divider,
 		omote.surface,
 	],
 	item: [
 		'group relative',
 		'flex flex-1 flex-col items-center justify-center',
 		'py-4',
-		take.gap.sm,
-		take.text.sm,
-		sumi.textMuted,
-		sumi.textHover,
+		kumi.gap.sm,
+		ji.size.sm,
+		iro.text.muted,
+		iro.text.hover,
 		'font-medium',
 		ki.inset,
 	],
-	current: [sumi.text],
+	current: [iro.text.default],
 	indicator: ['inset-x-4 bottom-auto top-0', 'h-0.5', maru.roundedFull, nuri.tabIndicator],
 }

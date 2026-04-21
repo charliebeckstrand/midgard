@@ -1,7 +1,7 @@
-import { kage } from '../kage'
+import { iro } from '../iro'
 import { narabi } from '../narabi'
 import { sawari } from '../sawari'
-import { sumi } from '../sumi'
+import { sen } from '../sen'
 import { take } from '../take'
 
 export const menu = {
@@ -13,9 +13,9 @@ export const menu = {
 		...narabi.item,
 	],
 	section: 'first:pt-0 last:pb-0',
-	heading: ['px-3.5 pb-1 pt-2 sm:px-3', 'text-xs/5 font-medium', sumi.textMuted],
+	heading: ['px-3.5 pb-1 pt-2 sm:px-3', 'text-xs/5 font-medium', iro.text.muted],
 	label: 'truncate',
-	description: [sumi.textMuted, sumi.focusText, narabi.description],
+	description: [iro.text.muted, iro.text.focusGroup, narabi.description],
 	shortcut: 'ml-auto',
-	separator: kage.divider,
+	separator: sen.divider,
 }

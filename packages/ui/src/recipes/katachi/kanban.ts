@@ -1,35 +1,35 @@
-import { kage } from '../kage'
+import { iro } from '../iro'
+import { ji } from '../ji'
 import { ki } from '../ki'
 import { kumi } from '../kumi'
 import { maru } from '../maru'
-import { sumi } from '../sumi'
-import { take } from '../take'
+import { sen } from '../sen'
 
 export const kanban = {
 	base: ['overflow-x-auto flex gap-4 items-stretch', 'min-h-0'],
 	column: [
 		'flex flex-col min-w-0',
-		take.gap.md,
+		kumi.gap.md,
 		'w-72 shrink-0',
 		'p-4',
 		'bg-zinc-50 dark:bg-zinc-900/50',
-		kage.border,
+		sen.border,
 		maru.rounded,
 	],
 	columnOver: '',
-	columnHeader: ['flex items-center', take.gap.md, take.text.md, sumi.text, 'font-semibold'],
+	columnHeader: ['flex items-center', kumi.gap.md, ji.size.md, iro.text.default, 'font-semibold'],
 	columnTitle: 'flex-1 min-w-0 truncate',
-	columnBody: ['flex flex-col flex-1', take.gap.sm, 'overflow-y-auto'],
-	columnEmpty: ['flex', kumi.center, 'min-h-16', take.text.sm, sumi.textMuted],
+	columnBody: ['flex flex-col flex-1', kumi.gap.sm, 'overflow-y-auto'],
+	columnEmpty: ['flex', kumi.center, 'min-h-16', ji.size.sm, iro.text.muted],
 	card: [
 		'group/kanban-card',
 		'flex flex-col',
-		take.gap.sm,
+		kumi.gap.sm,
 		'p-2',
 		'bg-white dark:bg-zinc-950',
-		kage.border,
-		take.text.sm,
-		sumi.text,
+		sen.border,
+		ji.size.sm,
+		iro.text.default,
 		maru.roundedMd,
 		'transition-shadow',
 		ki.inset,

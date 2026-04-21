@@ -1,6 +1,6 @@
+import { iro } from '../iro'
+import { ji } from '../ji'
 import { maru } from '../maru'
-import { sumi } from '../sumi'
-import { take } from '../take'
 
 // ── Motoi (基) ──────────────────────────────────────────
 const motoi = [
@@ -18,6 +18,9 @@ const hiru = ['placeholder:text-zinc-500', 'disabled:cursor-not-allowed']
 // ── Yoru (夜) ───────────────────────────────────────────
 const yoru = ['dark:placeholder:text-zinc-400']
 
-export const inputBase = [...sumi.text, ...motoi, ...hiru, ...yoru]
+export const inputBase = [...iro.text.default, ...motoi, ...hiru, ...yoru]
 
-export const input = [...inputBase, 'block', ...take.control.md, maru.rounded]
+// Default control density — used by `textarea` and `select` whose size isn't variable.
+const controlMd = ['px-[calc(--spacing(3)-1px)] py-[calc(--spacing(2)-1px)]', ji.size.md]
+
+export const input = [...inputBase, 'block', ...controlMd, maru.rounded]

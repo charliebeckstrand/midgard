@@ -1,7 +1,7 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { kage } from '../kage'
 import { maru } from '../maru'
 import { omote } from '../omote'
+import { sen } from '../sen'
 
 export const toolbar = tv({
 	base: 'flex items-center',
@@ -12,7 +12,7 @@ export const toolbar = tv({
 		},
 		variant: {
 			plain: '',
-			outline: [...kage.border, maru.rounded, 'p-1'],
+			outline: [...sen.border, maru.rounded, 'p-1'],
 			solid: [...omote.tint, 'border border-transparent', maru.rounded, 'p-1'],
 		},
 	},

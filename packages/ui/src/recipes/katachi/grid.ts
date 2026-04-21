@@ -1,12 +1,12 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { kage } from '../kage'
+import { sen } from '../sen'
 
 export const gridDivider = tv({
 	base: 'border-0 border-t col-span-full',
 	variants: {
 		soft: {
-			true: [...kage.borderSubtle],
-			false: [...kage.border],
+			true: [...sen.borderSubtle],
+			false: [...sen.border],
 		},
 	},
 	defaultVariants: { soft: false },

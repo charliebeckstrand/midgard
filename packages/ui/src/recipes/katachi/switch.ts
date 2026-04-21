@@ -1,9 +1,9 @@
 import { tv, type VariantProps } from 'tailwind-variants'
+import { iro } from '../iro'
 import { kage } from '../kage'
 import { ki } from '../ki'
 import { maru } from '../maru'
 import { nuri } from '../nuri'
-import { sumi } from '../sumi'
 import { waku } from '../waku'
 
 export const switchRecipe = tv({
@@ -51,7 +51,7 @@ export const switchThumb = tv({
 		'absolute top-1 left-1 inline-block',
 		maru.roundedFull,
 		...nuri.switchThumb,
-		kage.shadow,
+		kage.sm,
 		'pointer-events-none',
 		'transition-[left] duration-200 ease-in-out',
 	],
@@ -69,7 +69,7 @@ export const switchField = tv({
 	defaultVariants: { size: 'md' },
 })
 
-export const slots = { disabled: sumi.textDisabled }
+export const slots = { disabled: iro.text.disabled }
 
 export type SwitchVariants = VariantProps<typeof switchRecipe>
 export type SwitchFieldVariants = VariantProps<typeof switchField>

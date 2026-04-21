@@ -9,7 +9,7 @@ import { cn, createContext } from '../../core'
 import { useFloatingUI } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { ControlFrame, PopoverPanel } from '../../primitives'
-import { kokkaku, sumi, waku } from '../../recipes'
+import { iro, kokkaku, waku } from '../../recipes'
 import { useControl } from '../control/context'
 import { useGlass } from '../glass/context'
 import { Icon } from '../icon'
@@ -158,7 +158,7 @@ export function Listbox<T>({
 						className={cn(k.button)}
 					>
 						<span className={cn(k.value, tabularNums && 'tabular-nums')}>
-							{label || <span className={cn(sumi.textMuted)}>{placeholder}</span>}
+							{label || <span className={cn(iro.text.muted)}>{placeholder}</span>}
 						</span>
 						<span className={cn(k.chevron)}>{icon ?? <Icon icon={<ChevronsUpDown />} />}</span>
 					</button>

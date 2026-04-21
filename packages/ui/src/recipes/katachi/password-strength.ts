@@ -1,10 +1,11 @@
+import { iro } from '../iro'
+import { ji } from '../ji'
+import { kumi } from '../kumi'
 import { maru } from '../maru'
-import { sumi } from '../sumi'
-import { take } from '../take'
 
 export const passwordStrength = {
-	root: ['flex flex-col', take.gap.md],
-	meter: ['flex items-center', take.gap.sm],
+	root: ['flex flex-col', kumi.gap.md],
+	meter: ['flex items-center', kumi.gap.sm],
 	segment: ['flex-1 h-1', maru.roundedFull, 'bg-zinc-200 dark:bg-zinc-700'],
 	level: {
 		weak: 'bg-red-600 dark:bg-red-500',
@@ -12,19 +13,19 @@ export const passwordStrength = {
 		good: 'bg-blue-600 dark:bg-blue-500',
 		strong: 'bg-green-600 dark:bg-green-500',
 	},
-	label: [take.text.sm, 'font-medium'],
+	label: [ji.size.sm, 'font-medium'],
 	labelLevel: {
 		weak: 'text-red-600 dark:text-red-500',
 		fair: 'text-amber-600 dark:text-amber-500',
 		good: 'text-blue-600 dark:text-blue-500',
 		strong: 'text-green-600 dark:text-green-500',
-		empty: sumi.textMuted,
+		empty: iro.text.muted,
 	},
-	rules: ['flex flex-col', take.gap.xs],
-	rule: ['inline-flex items-center', take.gap.sm, take.text.sm],
+	rules: ['flex flex-col', kumi.gap.xs],
+	rule: ['inline-flex items-center', kumi.gap.sm, ji.size.sm],
 	ruleIcon: 'size-4 shrink-0',
 	ruleIconPass: 'text-green-600 dark:text-green-500',
-	ruleIconFail: sumi.textMuted,
-	ruleText: sumi.textMuted,
-	ruleTextPass: sumi.text,
+	ruleIconFail: iro.text.muted,
+	ruleText: iro.text.muted,
+	ruleTextPass: iro.text.default,
 }

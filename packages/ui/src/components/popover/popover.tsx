@@ -22,7 +22,7 @@ import {
 import { cn, createContext } from '../../core'
 import { useFloatingPanel } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
-import { omote, sumi, ugoki } from '../../recipes'
+import { iro, omote, ugoki } from '../../recipes'
 import { Box, type BoxPadding } from '../box'
 import { useGlass } from '../glass/context'
 import { k } from './variants'
@@ -255,7 +255,7 @@ export function PopoverContent({
 							ref={contentRef}
 							tabIndex={autoFocus ? -1 : undefined}
 							data-slot="popover-content"
-							className={cn('z-50', sumi.text, glass && omote.glass)}
+							className={cn('z-50', iro.text.default, glass && omote.glass)}
 						>
 							<Box
 								p={p}

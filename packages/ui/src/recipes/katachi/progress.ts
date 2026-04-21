@@ -1,7 +1,7 @@
 import { tv, type VariantProps } from 'tailwind-variants'
+import { iro } from '../iro'
 import { kumi } from '../kumi'
 import { maru } from '../maru'
-import { sumi } from '../sumi'
 
 export const progressTrack = tv({
 	base: ['overflow-hidden', maru.roundedFull, 'bg-zinc-200', 'dark:bg-zinc-700'],
@@ -38,7 +38,7 @@ export const slots = {
 		indeterminate: 'w-1/3 animate-[progress-indeterminate_1.5s_ease-in-out_infinite]',
 	},
 	gauge: {
-		label: ['absolute', 'font-semibold', ...sumi.text],
+		label: ['absolute', 'font-semibold', ...iro.text.default],
 		labelSize: {
 			xs: 'text-[6px]',
 			sm: 'text-[8px]',
