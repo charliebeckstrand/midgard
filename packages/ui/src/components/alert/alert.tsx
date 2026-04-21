@@ -1,8 +1,9 @@
 'use client'
 
 import { AlertTriangle, CheckCircle, Info, X, XCircle } from 'lucide-react'
-import { Children, isValidElement, type ReactNode, useCallback, useState } from 'react'
+import { Children, isValidElement, type ReactNode, useCallback } from 'react'
 import { cn } from '../../core'
+import { useControllable } from '../../hooks'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { AlertDescription } from './alert-description'
@@ -76,17 +77,13 @@ export function Alert({
 	className,
 	children,
 }: AlertProps) {
-	const [uncontrolled, setUncontrolled] = useState(defaultOpen)
+	const [open = true, setOpen] = useControllable<boolean>({
+		value: openProp,
+		defaultValue: defaultOpen,
+		onChange: onOpenChange ? (next) => onOpenChange(next ?? false) : undefined,
+	})
 
-	const isControlled = openProp !== undefined
-
-	const open = isControlled ? openProp : uncontrolled
-
-	const close = useCallback(() => {
-		if (!isControlled) setUncontrolled(false)
-
-		onOpenChange?.(false)
-	}, [isControlled, onOpenChange])
+	const close = useCallback(() => setOpen(false), [setOpen])
 
 	if (!open) return null
 
