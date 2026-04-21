@@ -1,10 +1,30 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { colorMatrix } from '../../core/recipe'
+import { iro } from '../../core/recipe'
 import { ki } from '../ki'
 import { maru } from '../maru'
 import { nuri } from '../nuri'
 import { sawari } from '../sawari'
 import { take } from '../take'
+
+const inactive = iro(
+	{
+		solid: nuri.solid,
+		soft: nuri.soft,
+		outline: nuri.outline,
+		plain: nuri.text,
+	},
+	{ active: false },
+)
+
+const active = iro(
+	{
+		solid: nuri.solid,
+		soft: nuri.solid,
+		outline: nuri.chipOutlineActive,
+		plain: nuri.soft,
+	},
+	{ active: true },
+)
 
 export const chip = tv({
 	base: [
@@ -21,20 +41,11 @@ export const chip = tv({
 			outline: 'border',
 			plain: 'border border-transparent',
 		},
-		color: { zinc: '', red: '', amber: '', green: '', blue: '' },
+		color: inactive.color,
 		active: { true: '', false: '' },
 		size: take.chip,
 	},
-	compoundVariants: [
-		...colorMatrix('solid', nuri.solid, { active: false }),
-		...colorMatrix('solid', nuri.solid, { active: true }),
-		...colorMatrix('soft', nuri.soft, { active: false }),
-		...colorMatrix('soft', nuri.solid, { active: true }),
-		...colorMatrix('outline', nuri.outline, { active: false }),
-		...colorMatrix('outline', nuri.chipOutlineActive, { active: true }),
-		...colorMatrix('plain', nuri.text, { active: false }),
-		...colorMatrix('plain', nuri.soft, { active: true }),
-	],
+	compoundVariants: [...inactive.compoundVariants, ...active.compoundVariants],
 	defaultVariants: { variant: 'outline', color: 'zinc', size: 'md', active: false },
 })
 

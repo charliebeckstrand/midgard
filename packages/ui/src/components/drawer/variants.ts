@@ -1,10 +1,11 @@
-export {
-	type DrawerPanelVariants,
-	drawerActions as drawerActionsVariants,
-	drawerBackdrop as drawerBackdropVariants,
-	drawerBody as drawerBodyVariants,
-	drawerClose as drawerCloseVariants,
-	drawerDescription as drawerDescriptionVariants,
-	drawerPanel as drawerPanelVariants,
-	drawerTitle as drawerTitleVariants,
-} from '../../recipes/katachi/drawer'
+import { drawer } from '../../recipes/katachi/drawer'
+
+export type { DrawerPanelVariants } from '../../recipes/katachi/drawer'
+
+export const drawerPanelVariants = drawer.panel
+export const drawerBackdropVariants = drawer.backdrop
+export const drawerTitleVariants = drawer.title
+export const drawerDescriptionVariants = drawer.description
+export const drawerBodyVariants = drawer.body
+export const drawerActionsVariants = drawer.actions
+export const drawerCloseVariants = drawer.close

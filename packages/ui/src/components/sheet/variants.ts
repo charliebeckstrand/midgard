@@ -1,10 +1,11 @@
-export {
-	type SheetPanelVariants,
-	sheetActions as sheetActionsVariants,
-	sheetBackdrop as sheetBackdropVariants,
-	sheetBody as sheetBodyVariants,
-	sheetClose as sheetCloseVariants,
-	sheetDescription as sheetDescriptionVariants,
-	sheetPanel as sheetPanelVariants,
-	sheetTitle as sheetTitleVariants,
-} from '../../recipes/katachi/sheet'
+import { sheet } from '../../recipes/katachi/sheet'
+
+export type { SheetPanelVariants } from '../../recipes/katachi/sheet'
+
+export const sheetPanelVariants = sheet.panel
+export const sheetBackdropVariants = sheet.backdrop
+export const sheetTitleVariants = sheet.title
+export const sheetDescriptionVariants = sheet.description
+export const sheetBodyVariants = sheet.body
+export const sheetActionsVariants = sheet.actions
+export const sheetCloseVariants = sheet.close
