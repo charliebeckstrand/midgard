@@ -25,9 +25,7 @@ function Default() {
 					{value && (
 						<>
 							<Text color="green">Captured!</Text>
-							<Button variant="outline" color="zinc" onClick={() => setPreviewOpen(true)}>
-								Preview
-							</Button>
+							<Button onClick={() => setPreviewOpen(true)}>Preview</Button>
 							<Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
 								<DialogTitle>Signature Preview</DialogTitle>
 								<DialogBody>
@@ -89,7 +87,7 @@ function ImperativeHandle() {
 							</Button>
 							<Button
 								variant="soft"
-								color="red"
+								color="amber"
 								onClick={() => {
 									ref.current?.clear()
 									setSaved(null)

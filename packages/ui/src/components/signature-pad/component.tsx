@@ -169,6 +169,7 @@ export const SignaturePad = forwardRef<SignaturePadHandle, SignaturePadProps>(fu
 				<div data-slot="signature-pad-actions" className={cn(k.actions)}>
 					<Button
 						size="sm"
+						color="amber"
 						data-slot="signature-pad-clear"
 						aria-label="Clear signature"
 						onPointerDown={(event) => {

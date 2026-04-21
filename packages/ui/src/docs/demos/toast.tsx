@@ -12,11 +12,10 @@ function ToastButtons() {
 
 	return (
 		<Flex wrap gap={2}>
-			<Button variant="outline" onClick={() => toast({ title: 'Event created' })}>
+			<Button color="blue" onClick={() => toast({ title: 'Event created' })}>
 				Default
 			</Button>
 			<Button
-				variant="outline"
 				onClick={() =>
 					toast({
 						title: 'Draft saved',
@@ -28,7 +27,7 @@ function ToastButtons() {
 				Secondary
 			</Button>
 			<Button
-				variant="outline"
+				color="green"
 				onClick={() =>
 					toast({ title: 'Saved', description: 'Your changes have been saved.', type: 'success' })
 				}
@@ -36,7 +35,7 @@ function ToastButtons() {
 				Success
 			</Button>
 			<Button
-				variant="outline"
+				color="amber"
 				onClick={() =>
 					toast({ title: 'Warning', description: 'Storage is almost full.', type: 'warning' })
 				}
@@ -44,7 +43,7 @@ function ToastButtons() {
 				Warning
 			</Button>
 			<Button
-				variant="outline"
+				color="red"
 				onClick={() =>
 					toast({ title: 'Error', description: 'Something went wrong.', type: 'error' })
 				}
@@ -60,7 +59,7 @@ function PersistToastButton() {
 
 	return (
 		<Button
-			variant="outline"
+			color="blue"
 			onClick={() =>
 				toast({
 					title: 'Attention:',
@@ -79,7 +78,7 @@ function ActionToastButton() {
 
 	return (
 		<Button
-			variant="outline"
+			color="green"
 			onClick={() =>
 				toast({
 					title: 'Message deleted',

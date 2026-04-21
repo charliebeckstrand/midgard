@@ -52,7 +52,7 @@ function FiltersClearButton() {
 		<FiltersClear>
 			<Flex>
 				<Button variant="soft" color="red">
-					Clear
+					Reset
 				</Button>
 			</Flex>
 		</FiltersClear>

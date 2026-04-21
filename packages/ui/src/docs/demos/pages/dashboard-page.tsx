@@ -54,7 +54,7 @@ function FiltersClearButton() {
 	return (
 		<FiltersClear>
 			<Button variant="soft" color="red">
-				Clear
+				Reset
 			</Button>
 		</FiltersClear>
 	)
