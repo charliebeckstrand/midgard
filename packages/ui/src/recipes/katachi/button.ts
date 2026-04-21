@@ -41,7 +41,7 @@ const size = {
 		take.icon.sm,
 		kumi.gap[0.75],
 		'p-[calc(--spacing(1.5)-1px)]',
-		'data-[has-children]:px-[calc(--spacing(2.25)-1px)]',
+		'data-[has-children]:px-[calc(--spacing(2)-1px)]',
 		'not-data-[has-children]:p-[calc(--spacing(2)-1px)]',
 	],
 	md: [
@@ -49,7 +49,7 @@ const size = {
 		take.icon.md,
 		kumi.gap[1],
 		'p-[calc(--spacing(2)-1px)]',
-		'data-[has-children]:px-[calc(--spacing(3)-1px)]',
+		'data-[has-children]:px-[calc(--spacing(2.5)-1px)]',
 		'not-data-[has-children]:p-[calc(--spacing(2.5)-1px)]',
 	],
 	lg: [
@@ -57,7 +57,7 @@ const size = {
 		take.icon.lg,
 		kumi.gap[1.25],
 		'p-[calc(--spacing(2.5)-1px)]',
-		'data-[has-children]:px-[calc(--spacing(3.75)-1px)]',
+		'data-[has-children]:px-[calc(--spacing(3)-1px)]',
 		'not-data-[has-children]:p-[calc(--spacing(3)-1px)]',
 	],
 }
