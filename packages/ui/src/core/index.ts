@@ -1,3 +1,3 @@
 export { cn } from './cn'
 export { createContext } from './create-context'
-export { definePanelRecipe, iro } from './recipe'
+export { defineColors, definePanelRecipe, iro, mode } from './recipe'

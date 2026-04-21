@@ -1,5 +1,5 @@
+import { mode } from '../../core/recipe/mode'
 import { kage } from '../kage'
-import { mode } from '../mode'
 
 export const avatar = mode('bg-zinc-600', 'dark:bg-zinc-700')
 
