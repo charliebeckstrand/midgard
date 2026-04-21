@@ -18,7 +18,6 @@ import { calendar } from './calendar'
 import { card } from './card'
 import { chatMessage } from './chat-message'
 import { checkbox } from './checkbox'
-import { chip } from './chip'
 import { code } from './code'
 import { collapse } from './collapse'
 import { columnManager } from './column-manager'
@@ -95,7 +94,6 @@ export const katachi = {
 	card,
 	chatMessage,
 	checkbox,
-	chip,
 	code,
 	collapse,
 	columnManager,

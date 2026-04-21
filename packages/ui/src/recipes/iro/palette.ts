@@ -1,4 +1,4 @@
-/** Palette-keyed variant matrices — composed by buttons, badges, and chips. */
+/** Palette-keyed variant matrices — composed by buttons and badges. */
 
 import { defineColors } from '../../core/recipe/mode'
 

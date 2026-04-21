@@ -6,7 +6,6 @@ import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'
 import { Card, CardBody, CardHeader } from '../../components/card'
 import { Checkbox } from '../../components/checkbox'
-import { Chip } from '../../components/chip'
 import { Combobox, ComboboxLabel, ComboboxOption } from '../../components/combobox'
 import { Flex } from '../../components/flex'
 import { Heading } from '../../components/heading'
@@ -27,7 +26,6 @@ const dynamicComponents = [
 	{ name: 'Badge', render: () => <Badge>New</Badge> },
 	{ name: 'Button', render: () => <Button>Submit</Button> },
 	{ name: 'Checkbox', render: () => <Checkbox /> },
-	{ name: 'Chip', render: () => <Chip>Filter</Chip> },
 	{ name: 'Heading', render: () => <Heading level={3}>The quick brown fox</Heading> },
 	{ name: 'Input', render: () => <Input placeholder="Email" /> },
 	{ name: 'Radio', render: () => <Radio /> },

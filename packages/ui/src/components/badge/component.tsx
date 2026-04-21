@@ -15,6 +15,7 @@ export function Badge({
 	variant = 'solid',
 	color,
 	size,
+	rounded,
 	className,
 	children,
 	href,
@@ -33,7 +34,7 @@ export function Badge({
 			as="span"
 			dataSlot="badge"
 			href={href}
-			className={cn(badgeVariants({ variant, color, size }), className)}
+			className={cn(badgeVariants({ variant, color, size, rounded }), className)}
 			{...props}
 		>
 			{children}

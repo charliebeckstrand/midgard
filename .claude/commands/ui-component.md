@@ -203,7 +203,7 @@ Then register it in `src/recipes/katachi/index.ts`:
 
 ### 2. Add sizing tokens to `take` (if needed)
 
-If your component needs size variants not covered by existing `take` entries (`button`, `badge`/`chip` via `compact`, `control`, `avatar`, `panel`, `popup`), add a new size map in `src/recipes/take/` and export it from the `take` object.
+If your component needs size variants not covered by existing `take` entries (`button`, `badge` via `compact`, `control`, `avatar`, `panel`, `popup`), add a new size map in `src/recipes/take/` and export it from the `take` object.
 
 ### 3. Add color tokens to `nuri` (if needed)
 
@@ -583,7 +583,7 @@ This verifies that all files created in the previous steps follow established co
 
 ## Existing components (for reference and composition)
 
-alert, avatar, badge, breadcrumb, button, calendar, card, checkbox, chip, combobox, datepicker, dialog, divider, dl, drawer, dropdown, fieldset, grid, heading, icon, input, listbox, navbar, pagination, placeholder, popover, progress, radio, select, sheet, sidebar, status, switch, table, tabs, text, textarea, timeline, toast, tooltip
+alert, avatar, badge, breadcrumb, button, calendar, card, checkbox, combobox, datepicker, dialog, divider, dl, drawer, dropdown, fieldset, grid, heading, icon, input, listbox, navbar, pagination, placeholder, popover, progress, radio, select, sheet, sidebar, status, switch, table, tabs, text, textarea, timeline, toast, tooltip
 
 ## Available primitives
 

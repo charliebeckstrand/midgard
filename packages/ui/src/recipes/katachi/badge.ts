@@ -3,7 +3,6 @@ import { colorVariants } from '../../core/recipe'
 import { iro, merge } from '../iro'
 import { ji } from '../ji'
 import { kumi } from '../kumi'
-import { maru } from '../maru'
 
 const { solid, soft, outline, plain } = iro.palette
 
@@ -22,7 +21,7 @@ const size = {
 }
 
 export const badge = tv({
-	base: ['group inline-flex w-fit items-center', 'font-medium', maru.rounded.md],
+	base: ['group inline-flex w-fit items-center', 'font-medium'],
 	variants: {
 		variant: {
 			solid: '',
@@ -32,9 +31,17 @@ export const badge = tv({
 		},
 		color,
 		size,
+		rounded: {
+			none: 'rounded-none',
+			sm: 'rounded-sm',
+			md: 'rounded-md',
+			lg: 'rounded-lg',
+			xl: 'rounded-xl',
+			full: 'rounded-full',
+		},
 	},
 	compoundVariants,
-	defaultVariants: { variant: 'soft', color: 'zinc', size: 'md' },
+	defaultVariants: { variant: 'soft', color: 'zinc', size: 'md', rounded: 'md' },
 })
 
 export type BadgeVariants = VariantProps<typeof badge>

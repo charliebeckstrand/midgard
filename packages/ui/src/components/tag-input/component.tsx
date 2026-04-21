@@ -4,11 +4,11 @@ import { CornerLeftDown, X } from 'lucide-react'
 import { forwardRef, useCallback, useImperativeHandle, useRef, useState } from 'react'
 import { useControllable, useTagKeyboard } from '../../hooks'
 import type { Color } from '../../recipes/iro'
+import { Badge } from '../badge'
 import { Button } from '../button'
-import { Chip } from '../chip'
 import { Icon } from '../icon'
 import { Input } from '../input'
-import { chipRemoveSize, chipSize } from './utilities'
+import { tagRemoveSize, tagSize } from './utilities'
 
 export type TagInputProps = {
 	id?: string
@@ -108,22 +108,22 @@ export const TagInput = forwardRef<HTMLInputElement, TagInputProps>(function Tag
 		}
 	}, [addTag, inputValue])
 
-	const chips =
+	const badges =
 		tags.length > 0 ? (
 			<span data-slot="tag-input" className="flex flex-wrap gap-1 min-w-0 cursor-text">
 				{tags.map((t, i) => (
-					<Chip
+					<Badge
 						key={t}
-						size={chipSize[resolvedSize]}
+						size={tagSize[resolvedSize]}
 						variant="outline"
+						rounded="full"
 						color={resolvedColor}
-						className="max-w-full"
 					>
 						<span className="truncate">{t}</span>
 						{!disabled && (
 							<Button
 								aria-label={`Remove ${t}`}
-								className={chipRemoveSize[resolvedSize]}
+								className={tagRemoveSize[resolvedSize]}
 								size="xs"
 								variant="plain"
 								prefix={<Icon icon={<X />} />}
@@ -135,7 +135,7 @@ export const TagInput = forwardRef<HTMLInputElement, TagInputProps>(function Tag
 								}}
 							/>
 						)}
-					</Chip>
+					</Badge>
 				))}
 			</span>
 		) : undefined
@@ -152,7 +152,7 @@ export const TagInput = forwardRef<HTMLInputElement, TagInputProps>(function Tag
 			onChange={(e) => setInputValue(e.target.value)}
 			onKeyDown={handleKeyDown}
 			onBlur={handleBlur}
-			prefix={chips}
+			prefix={badges}
 			suffix={
 				<Button
 					size="xs"

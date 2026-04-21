@@ -1,1 +1,1 @@
-export { chipRemoveSize, chipSize } from './utilities'
+export { tagRemoveSize, tagSize } from './utilities'

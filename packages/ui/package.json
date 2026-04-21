@@ -83,10 +83,6 @@
 			"types": "./src/components/checkbox/index.ts",
 			"default": "./src/components/checkbox/index.ts"
 		},
-		"./chip": {
-			"types": "./src/components/chip/index.ts",
-			"default": "./src/components/chip/index.ts"
-		},
 		"./code": {
 			"types": "./src/components/code/index.ts",
 			"default": "./src/components/code/index.ts"
