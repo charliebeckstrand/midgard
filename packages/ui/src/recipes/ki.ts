@@ -6,8 +6,7 @@
  * Tier: 1 · Concern: focus
  */
 
-// ── Motoi (基) ──────────────────────────────────────────
-const motoi = {
+export const ki = {
 	ring: 'outline-none focus-visible:ring-2 focus-visible:ring-blue-600',
 	inset: 'outline-none focus-visible:ring-2 ring-inset focus-visible:ring-blue-600',
 	offset:
@@ -17,6 +16,3 @@ const motoi = {
 	indicator: 'not-data-current:focus-visible:after:bg-blue-600',
 	lifted: 'shadow-md z-10 focus-visible:ring-violet-600',
 }
-
-// ── Export ───────────────────────────────────────────────
-export const ki = motoi

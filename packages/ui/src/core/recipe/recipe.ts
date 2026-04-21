@@ -20,11 +20,13 @@ export function iro<V extends string, C extends string>(
 	extra: Record<string, unknown> = {},
 ) {
 	const colorKeys = new Set<C>()
+
 	const compoundVariants: Array<Record<string, unknown>> = []
 
 	for (const [variant, palette] of Object.entries(map) as [V, Record<C, string | string[]>][]) {
 		for (const [color, cls] of Object.entries(palette) as [C, string | string[]][]) {
 			colorKeys.add(color)
+
 			compoundVariants.push({ variant, color, class: cls, ...extra })
 		}
 	}

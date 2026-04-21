@@ -6,7 +6,6 @@
  * Tier: 1 · Concern: shape
  */
 
-// ── Motoi (基) ──────────────────────────────────────────
 export const maru = {
 	roundedNone: 'rounded-none',
 	roundedSm: 'rounded-sm',

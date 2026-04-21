@@ -8,7 +8,6 @@
 
 import { nagare } from './nagare'
 
-// ── Motoi (基) ──────────────────────────────────────────
 export const yasumi = {
 	disabled: [
 		nagare.opacity,
