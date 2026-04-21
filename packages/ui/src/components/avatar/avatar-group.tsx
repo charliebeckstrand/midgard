@@ -18,7 +18,7 @@ export function AvatarGroup({ extra, size = 'md', className, children }: AvatarG
 		<AvatarGroupSizeContext value={size}>
 			<div
 				data-slot="avatar-group"
-				className={cn(k.group.base, k.group.ring, k.group.spacing[size], className)}
+				className={cn(k.groupBase, k.groupRing, k.groupSpacing[size], className)}
 			>
 				{children}
 				{extra != null && extra > 0 && <Avatar size={size} initials={`+${extra}`} />}

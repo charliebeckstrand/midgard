@@ -130,8 +130,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(pro
 					onBlur={bound ? binding.onBlur : onBlur}
 					className={cn(
 						inputVariants({ variant: resolvedVariant, size: resolvedSize }),
-						resolvedPrefix && k.autofill.prefix[resolvedSize],
-						resolvedSuffix && k.autofill.suffix[resolvedSize],
+						resolvedPrefix && k.autofillPrefix[resolvedSize],
+						resolvedSuffix && k.autofillSuffix[resolvedSize],
 						isDate && inputDateVariants(),
 						className,
 					)}

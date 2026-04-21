@@ -131,3 +131,7 @@ export const withKbdEndSize = tv({
 })
 
 export type ButtonVariants = VariantProps<typeof button>
+export type WithIconStartSizeVariants = VariantProps<typeof withIconStartSize>
+export type WithIconEndSizeVariants = VariantProps<typeof withIconEndSize>
+export type WithKbdStartSizeVariants = VariantProps<typeof withKbdStartSize>
+export type WithKbdEndSizeVariants = VariantProps<typeof withKbdEndSize>

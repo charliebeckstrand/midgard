@@ -29,5 +29,5 @@ export const slots = {
 	card: 'w-80 max-sm:w-full',
 }
 
-/** Kept for the `katachi` barrel — not consumed directly. */
-export const toast = { viewport: toastViewport, ...slots }
+/** Barrel entry — no single recipe dominates. */
+export const toast = { viewport: toastViewport, slots } as const

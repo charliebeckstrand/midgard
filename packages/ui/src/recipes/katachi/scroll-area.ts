@@ -97,6 +97,8 @@ export const scrollAreaThumb = tv({
 
 export type ScrollAreaWrapperVariants = VariantProps<typeof scrollAreaWrapper>
 export type ScrollAreaViewportVariants = VariantProps<typeof scrollAreaViewport>
+export type ScrollAreaScrollbarVariants = VariantProps<typeof scrollAreaScrollbar>
+export type ScrollAreaThumbVariants = VariantProps<typeof scrollAreaThumb>
 
 /** Kept for the `katachi` barrel — not consumed directly. */
 export const scrollArea = {

@@ -7,7 +7,7 @@ import { maru } from '../maru'
 import { sawari } from '../sawari'
 import { yasumi } from '../yasumi'
 
-export const pagination = tv({ base: ['flex items-center list-none', kumi.gap.sm] })
+export const paginationNav = tv({ base: ['flex items-center list-none', kumi.gap.sm] })
 export const paginationList = tv({ base: ['flex list-none items-center', kumi.gap.sm, 'm-0 p-0'] })
 
 export const pageButton = tv({
@@ -32,8 +32,6 @@ export const pageButton = tv({
 	defaultVariants: { current: false },
 })
 
-export type PageButtonVariants = VariantProps<typeof pageButton>
-
 export const paginationGap = tv({
 	base: ['inline-flex', kumi.center, 'min-w-9', ji.size.sm, ...iro.text.muted, 'select-none'],
 })
@@ -54,3 +52,14 @@ export const slots = {
 		sawari.cursor,
 	],
 }
+
+export type PageButtonVariants = VariantProps<typeof pageButton>
+
+/** Barrel entry — no single recipe dominates. */
+export const pagination = {
+	nav: paginationNav,
+	list: paginationList,
+	button: pageButton,
+	gap: paginationGap,
+	slots,
+} as const

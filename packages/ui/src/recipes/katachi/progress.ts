@@ -29,60 +29,55 @@ export const progressGauge = tv({
 	defaultVariants: { size: 'md' },
 })
 
+export const progressColors = {
+	zinc: {
+		fill: 'fill-zinc-600 dark:fill-zinc-400',
+		bg: 'bg-zinc-600 dark:bg-zinc-400',
+		stroke: 'stroke-zinc-600 dark:stroke-zinc-400',
+	},
+	red: {
+		fill: 'fill-red-600 dark:fill-red-500',
+		bg: 'bg-red-600 dark:bg-red-500',
+		stroke: 'stroke-red-600 dark:stroke-red-500',
+	},
+	amber: {
+		fill: 'fill-amber-500',
+		bg: 'bg-amber-500',
+		stroke: 'stroke-amber-500',
+	},
+	green: {
+		fill: 'fill-green-600 dark:fill-green-500',
+		bg: 'bg-green-600 dark:bg-green-500',
+		stroke: 'stroke-green-600 dark:stroke-green-500',
+	},
+	blue: {
+		fill: 'fill-blue-600 dark:fill-blue-500',
+		bg: 'bg-blue-600 dark:bg-blue-500',
+		stroke: 'stroke-blue-600 dark:stroke-blue-500',
+	},
+} as const
+
+export const slots = {
+	barFill: ['h-full', maru.roundedFull],
+	barIndeterminate: 'w-1/3 animate-[progress-indeterminate_1.5s_ease-in-out_infinite]',
+	gaugeLabel: ['absolute', 'font-semibold', ...iro.text.default],
+	gaugeLabelSize: {
+		xs: 'text-[6px]',
+		sm: 'text-[8px]',
+		md: 'text-xs',
+		lg: 'text-sm',
+		xl: 'text-base',
+	},
+	trackStroke: 'stroke-zinc-200 dark:stroke-zinc-700',
+}
+
 export type ProgressTrackVariants = VariantProps<typeof progressTrack>
 export type ProgressGaugeVariants = VariantProps<typeof progressGauge>
 
-export const slots = {
-	bar: {
-		fill: ['h-full', maru.roundedFull],
-		indeterminate: 'w-1/3 animate-[progress-indeterminate_1.5s_ease-in-out_infinite]',
-	},
-	gauge: {
-		label: ['absolute', 'font-semibold', ...iro.text.default],
-		labelSize: {
-			xs: 'text-[6px]',
-			sm: 'text-[8px]',
-			md: 'text-xs',
-			lg: 'text-sm',
-			xl: 'text-base',
-		},
-	},
-	color: {
-		zinc: {
-			fill: 'fill-zinc-600 dark:fill-zinc-400',
-			bg: 'bg-zinc-600 dark:bg-zinc-400',
-			stroke: 'stroke-zinc-600 dark:stroke-zinc-400',
-		},
-		red: {
-			fill: 'fill-red-600 dark:fill-red-500',
-			bg: 'bg-red-600 dark:bg-red-500',
-			stroke: 'stroke-red-600 dark:stroke-red-500',
-		},
-		amber: {
-			fill: 'fill-amber-500',
-			bg: 'bg-amber-500',
-			stroke: 'stroke-amber-500',
-		},
-		green: {
-			fill: 'fill-green-600 dark:fill-green-500',
-			bg: 'bg-green-600 dark:bg-green-500',
-			stroke: 'stroke-green-600 dark:stroke-green-500',
-		},
-		blue: {
-			fill: 'fill-blue-600 dark:fill-blue-500',
-			bg: 'bg-blue-600 dark:bg-blue-500',
-			stroke: 'stroke-blue-600 dark:stroke-blue-500',
-		},
-	},
-	track: {
-		stroke: 'stroke-zinc-200 dark:stroke-zinc-700',
-	},
-}
-
-/** Kept for the `katachi` barrel — not consumed directly. */
+/** Barrel entry — no single recipe dominates. */
 export const progress = {
-	bar: { track: progressTrack, ...slots.bar },
-	gauge: { base: progressGauge, ...slots.gauge },
-	color: slots.color,
-	track: slots.track,
-}
+	track: progressTrack,
+	gauge: progressGauge,
+	colors: progressColors,
+	slots,
+} as const

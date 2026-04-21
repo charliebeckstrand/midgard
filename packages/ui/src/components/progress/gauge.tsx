@@ -2,9 +2,9 @@
 
 import { motion } from 'motion/react'
 import { cn } from '../../core'
-import { k, progressGaugeVariants } from './variants'
+import { k, progressColors, progressGaugeVariants } from './variants'
 
-type ProgressColor = keyof typeof k.color
+type ProgressColor = keyof typeof progressColors
 
 export type ProgressGaugeProps = {
 	value?: number
@@ -68,7 +68,7 @@ export function ProgressGauge({
 					r={radius}
 					fill="none"
 					strokeWidth={strokeWidth}
-					className={cn(k.track.stroke)}
+					className={cn(k.trackStroke)}
 					strokeLinecap="round"
 				/>
 
@@ -81,7 +81,7 @@ export function ProgressGauge({
 					strokeWidth={strokeWidth}
 					strokeLinecap="round"
 					strokeDasharray={circumference}
-					className={cn(k.color[color].stroke)}
+					className={cn(progressColors[color].stroke)}
 					initial={{ strokeDashoffset: circumference }}
 					animate={{ strokeDashoffset: offset }}
 					transition={{ type: 'spring', stiffness: 100, damping: 20 }}
@@ -89,7 +89,7 @@ export function ProgressGauge({
 			</svg>
 
 			{resolvedLabel != null && (
-				<span className={cn(k.gauge.label, k.gauge.labelSize[resolvedSize])}>{resolvedLabel}</span>
+				<span className={cn(k.gaugeLabel, k.gaugeLabelSize[resolvedSize])}>{resolvedLabel}</span>
 			)}
 		</div>
 	)

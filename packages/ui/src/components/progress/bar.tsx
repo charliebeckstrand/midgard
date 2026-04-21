@@ -2,9 +2,9 @@
 
 import { motion } from 'motion/react'
 import { cn } from '../../core'
-import { k, progressTrackVariants } from './variants'
+import { k, progressColors, progressTrackVariants } from './variants'
 
-type ProgressColor = keyof typeof k.color
+type ProgressColor = keyof typeof progressColors
 
 // ── ProgressBar ─────────────────────────────────────────
 
@@ -44,13 +44,13 @@ export function ProgressBar({
 		>
 			{determinate ? (
 				<motion.div
-					className={cn(k.bar.fill, k.color[color].bg)}
+					className={cn(k.barFill, progressColors[color].bg)}
 					initial={{ width: 0 }}
 					animate={{ width: `${pct}%` }}
 					transition={{ type: 'spring', stiffness: 100, damping: 20 }}
 				/>
 			) : (
-				<div className={cn(k.bar.fill, k.color[color].bg, k.bar.indeterminate)} />
+				<div className={cn(k.barFill, progressColors[color].bg, k.barIndeterminate)} />
 			)}
 		</div>
 	)
