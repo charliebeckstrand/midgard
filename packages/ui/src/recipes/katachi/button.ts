@@ -33,28 +33,28 @@ const size = {
 		take.icon.xs,
 		kumi.gap[0.5],
 		'py-[calc(--spacing(1)-1px)]',
-		'px-[calc(--spacing(1.5)-1px)]',
+		'px-[calc(--spacing(1)-1px)] not-data-[icon-only]:px-[calc(--spacing(1.5)-1px)]',
 	],
 	sm: [
 		ji.size.sm,
 		take.icon.sm,
 		kumi.gap[0.75],
 		'py-[calc(--spacing(1.5)-1px)]',
-		'px-[calc(--spacing(2.25)-1px)]',
+		'px-[calc(--spacing(1.5)-1px)] not-data-[icon-only]:px-[calc(--spacing(2.25)-1px)]',
 	],
 	md: [
 		ji.size.md,
 		take.icon.md,
 		kumi.gap.sm,
 		'py-[calc(--spacing(2)-1px)]',
-		'px-[calc(--spacing(3)-1px)]',
+		'px-[calc(--spacing(2)-1px)] not-data-[icon-only]:px-[calc(--spacing(3)-1px)]',
 	],
 	lg: [
 		ji.size.lg,
 		take.icon.lg,
 		kumi.gap[1.5],
 		'py-[calc(--spacing(2.5)-1px)]',
-		'px-[calc(--spacing(3.75)-1px)]',
+		'px-[calc(--spacing(2.5)-1px)] not-data-[icon-only]:px-[calc(--spacing(3.75)-1px)]',
 	],
 }
 

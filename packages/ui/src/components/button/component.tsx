@@ -100,13 +100,16 @@ export function Button({
 		</ButtonSizeProvider>
 	)
 
+	const iconOnly = !children && !!(prefix || suffix)
+
 	if (href !== undefined) {
 		return (
 			<motion.span {...tap} className="inline-flex">
 				<Link
 					data-slot="button"
-					data-slot-prefix={!!prefix}
-					data-slot-suffix={!!suffix}
+					data-has-prefix={!!prefix}
+					data-has-suffix={!!suffix}
+					data-icon-only={iconOnly || undefined}
 					href={href}
 					className={classes}
 					{...(props as Omit<React.ComponentPropsWithoutRef<typeof Link>, 'href' | 'className'>)}
@@ -130,8 +133,9 @@ export function Button({
 			{...tap}
 			ref={ref}
 			data-slot="button"
-			data-slot-prefix={!!prefix}
-			data-slot-suffix={!!suffix}
+			data-has-prefix={!!prefix}
+			data-has-suffix={!!suffix}
+			data-icon-only={iconOnly || undefined}
 			type="button"
 			className={classes}
 			{...buttonProps}
