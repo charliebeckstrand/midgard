@@ -6,7 +6,7 @@
  * Tier: 1 · Concern: color
  */
 
-import { mode } from './mode'
+import { mode } from '../core/recipe/mode'
 
 // ── Export ───────────────────────────────────────────────
 export const sumi = {
