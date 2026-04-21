@@ -7,7 +7,7 @@ export const fileUpload = {
 		'flex flex-col items-center justify-center',
 		'gap-3',
 		'text-sm',
-		maru.rounded,
+		maru.rounded.lg,
 		ki.ring,
 		iro.text.muted,
 		'border border-dashed',

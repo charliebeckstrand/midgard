@@ -25,11 +25,10 @@ export function SidebarHeader({ className, children, closeIcon, ...props }: Side
 				<Button
 					variant="plain"
 					aria-label="Close navigation"
-					onClick={offcanvas.close}
 					className="ml-auto"
-				>
-					{closeIcon ?? <Icon icon={<X />} />}
-				</Button>
+					prefix={closeIcon ?? <Icon icon={<X />} />}
+					onClick={offcanvas.close}
+				/>
 			)}
 		</div>
 	)

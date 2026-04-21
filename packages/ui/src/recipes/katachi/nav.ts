@@ -18,7 +18,7 @@ export const nav = {
 		ji.size.md,
 		'text-left font-medium',
 		...sawari.navItem,
-		maru.rounded,
+		maru.rounded.lg,
 		sawari.cursor,
 	],
 }

@@ -96,10 +96,9 @@ export function PdfViewerToolbar({
 									variant="plain"
 									aria-label="Show thumbnails"
 									aria-expanded={thumbsOpen}
+									prefix={<Icon icon={<GalleryVertical />} />}
 									onClick={onThumbsOpen}
-								>
-									<Icon icon={<GalleryVertical />} />
-								</Button>
+								/>
 								<ToolbarSeparator />
 							</>
 						)}
@@ -138,40 +137,49 @@ export function PdfViewerToolbar({
 						variant="plain"
 						aria-label="Zoom out"
 						disabled={isEmpty || zoom <= minZoom}
+						prefix={<Icon icon={<ZoomOut />} />}
 						onClick={zoomOut}
-					>
-						<Icon icon={<ZoomOut />} />
-					</Button>
+					/>
 					<Button
 						variant="plain"
 						aria-label="Zoom in"
 						disabled={isEmpty || zoom >= maxZoom}
+						prefix={<Icon icon={<ZoomIn />} />}
 						onClick={zoomIn}
-					>
-						<Icon icon={<ZoomIn />} />
-					</Button>
+					/>
 					<Button
 						variant="plain"
 						aria-label="Fit to page"
 						disabled={isEmpty || zoom === 1}
+						prefix={<Icon icon={<Maximize2 />} />}
 						onClick={fit}
-					>
-						<Icon icon={<Maximize2 />} />
-					</Button>
-					<Button variant="plain" aria-label="Rotate" disabled={isEmpty} onClick={rotate}>
-						<Icon icon={<RotateCw />} />
-					</Button>
+					/>
+					<Button
+						variant="plain"
+						aria-label="Rotate"
+						disabled={isEmpty}
+						prefix={<Icon icon={<RotateCw />} />}
+						onClick={rotate}
+					/>
 				</ToolbarGroup>
 				{src && (
 					<>
 						<ToolbarSeparator />
 						<ToolbarGroup aria-label="Document">
-							<Button variant="plain" aria-label="Download" disabled={isEmpty} onClick={download}>
-								<Icon icon={<Download />} />
-							</Button>
-							<Button variant="plain" aria-label="Print" disabled={isEmpty} onClick={print}>
-								<Icon icon={<Printer />} />
-							</Button>
+							<Button
+								variant="plain"
+								aria-label="Download"
+								disabled={isEmpty}
+								prefix={<Icon icon={<Download />} />}
+								onClick={download}
+							/>
+							<Button
+								variant="plain"
+								aria-label="Print"
+								disabled={isEmpty}
+								prefix={<Icon icon={<Printer />} />}
+								onClick={print}
+							/>
 						</ToolbarGroup>
 					</>
 				)}

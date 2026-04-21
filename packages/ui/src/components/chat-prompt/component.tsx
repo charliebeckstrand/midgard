@@ -71,23 +71,29 @@ export function ChatPrompt({
 				<>
 					{actions}
 					<Spacer />
-					<Button variant="plain" size="sm" aria-label="Add attachment">
-						<Icon icon={<Paperclip />} />
-					</Button>
+					<Button
+						variant="plain"
+						size="sm"
+						aria-label="Add attachment"
+						prefix={<Icon icon={<Paperclip />} />}
+					/>
 					{streaming ? (
-						<Button size="sm" color="blue" aria-label="Stop generating" onClick={() => onStop?.()}>
-							<Icon icon={<Square />} />
-						</Button>
+						<Button
+							size="sm"
+							color="blue"
+							aria-label="Stop generating"
+							prefix={<Icon icon={<Square />} />}
+							onClick={() => onStop?.()}
+						/>
 					) : (
 						<Button
 							size="sm"
 							color="blue"
 							aria-label="Send message"
 							disabled={!canSubmit}
+							prefix={<Icon icon={<ArrowUp />} />}
 							onClick={() => canSubmit && onSubmit()}
-						>
-							<Icon icon={<ArrowUp />} />
-						</Button>
+						/>
 					)}
 				</>
 			}

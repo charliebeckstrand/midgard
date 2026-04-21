@@ -1,9 +1,23 @@
 import { tv, type VariantProps } from 'tailwind-variants'
+import { defineColors } from '../../core/recipe/mode'
 import { iro } from '../iro'
 import { ki } from '../ki'
 import { kumi } from '../kumi'
-import { nuri } from '../nuri'
 import { waku } from '../waku'
+
+const color = defineColors({
+	zinc: {
+		light:
+			'[--checkbox-check:var(--color-white)] [--checkbox-checked-bg:var(--color-zinc-900)] [--checkbox-checked-border:var(--color-zinc-950)]/90',
+		dark: 'dark:[--checkbox-checked-bg:var(--color-zinc-600)] dark:[--checkbox-checked-border:var(--color-zinc-700)]/90',
+	},
+	red: '[--checkbox-check:var(--color-white)] [--checkbox-checked-bg:var(--color-red-600)] [--checkbox-checked-border:var(--color-red-800)]/90',
+	amber:
+		'[--checkbox-check:var(--color-amber-100)] [--checkbox-checked-bg:var(--color-amber-700)] [--checkbox-checked-border:var(--color-amber-600)]/80',
+	green:
+		'[--checkbox-check:var(--color-white)] [--checkbox-checked-bg:var(--color-green-600)] [--checkbox-checked-border:var(--color-green-800)]/90',
+	blue: '[--checkbox-check:var(--color-white)] [--checkbox-checked-bg:var(--color-blue-600)] [--checkbox-checked-border:var(--color-blue-800)]/90',
+})
 
 export const checkbox = tv({
 	base: [
@@ -21,7 +35,7 @@ export const checkbox = tv({
 		'not-has-[:disabled]:has-checked:hover:opacity-90',
 	],
 	variants: {
-		color: nuri.checkbox,
+		color,
 	},
 	defaultVariants: { color: 'zinc' },
 })

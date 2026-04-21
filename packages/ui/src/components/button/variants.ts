@@ -1,8 +1,1 @@
-export {
-	type ButtonVariants,
-	button as buttonVariants,
-	withIconEndSize,
-	withIconStartSize,
-	withKbdEndSize,
-	withKbdStartSize,
-} from '../../recipes/katachi/button'
+export { type ButtonVariants, button as buttonVariants } from '../../recipes/katachi/button'

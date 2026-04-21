@@ -88,9 +88,8 @@ export default function ChatIdClient({ chatId }: { chatId: string }) {
 				onValueChange={setValue}
 				onSubmit={handleSubmit}
 				actions={
-					<Button variant="plain" size="sm">
-						<Icon icon={<CircleDashed />} />
-						<span className="ml-1">Data Analyst</span>
+					<Button variant="plain" size="sm" prefix={<Icon icon={<CircleDashed />} />}>
+						Data Analyst
 					</Button>
 				}
 			/>

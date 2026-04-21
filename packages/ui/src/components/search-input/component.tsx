@@ -27,10 +27,9 @@ function ClearButton({ onClear }: { onClear: () => void }) {
 			size={size}
 			className="pointer-events-auto"
 			aria-label="Clear search"
+			prefix={<Icon icon={<X />} />}
 			onClick={onClear}
-		>
-			<Icon icon={<X />} />
-		</Button>
+		/>
 	)
 }
 

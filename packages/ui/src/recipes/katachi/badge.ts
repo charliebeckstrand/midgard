@@ -1,18 +1,19 @@
 import { tv, type VariantProps } from 'tailwind-variants'
 import { colorVariants } from '../../core/recipe'
+import { iro, merge } from '../iro'
 import { ji } from '../ji'
 import { kumi } from '../kumi'
 import { maru } from '../maru'
-import { nuri } from '../nuri'
+
+const { solid, soft, outline, plain } = iro.palette
 
 const { color, compoundVariants } = colorVariants({
-	solid: nuri.solid,
-	soft: nuri.soft,
-	outline: nuri.outline,
-	plain: nuri.text,
+	solid: merge(solid.bg, solid.text),
+	soft: merge(soft.bg, soft.text),
+	outline: merge(outline.ring, outline.text),
+	plain: plain.text,
 })
 
-// Compact density — tighter padding + smaller icon than core density.
 const size = {
 	xs: ['px-1 py-0.5', kumi.gap.xs, ji.size.xs, '*:data-[slot=icon]:size-3'],
 	sm: ['px-1.5 py-0.5', kumi.gap.sm, ji.size.sm, '*:data-[slot=icon]:size-4'],
@@ -21,13 +22,13 @@ const size = {
 }
 
 export const badge = tv({
-	base: ['group inline-flex w-fit items-center', 'font-medium'],
+	base: ['group inline-flex w-fit items-center', 'font-medium', maru.rounded.md],
 	variants: {
 		variant: {
-			solid: [maru.roundedMd, 'border border-transparent'],
-			soft: [maru.roundedMd, 'border border-transparent'],
-			outline: [maru.roundedMd, 'border'],
-			plain: [maru.roundedMd, 'border border-transparent'],
+			solid: '',
+			soft: '',
+			outline: 'ring-1 ring-inset',
+			plain: '',
 		},
 		color,
 		size,

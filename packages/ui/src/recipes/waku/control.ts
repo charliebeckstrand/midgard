@@ -18,7 +18,7 @@ const motoi = [
 	'has-[[data-valid]]:border-green-600 has-[[data-valid]]:hover:border-green-600',
 	'has-[[data-valid]]:not-focus-within:after:ring-1 has-[[data-valid]]:not-focus-within:after:ring-green-600',
 	'has-[>:disabled]:opacity-50 has-[>:disabled]:border-zinc-950/20 has-[>:disabled]:before:shadow-none has-[>:disabled]:cursor-not-allowed has-[>:disabled]:**:cursor-not-allowed',
-	maru.rounded,
+	maru.rounded.lg,
 ]
 
 // ── Hiru (昼) ───────────────────────────────────────────

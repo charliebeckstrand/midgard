@@ -16,7 +16,7 @@ export const datepicker = {
 		controlSize.md,
 		take.listbox.padding,
 		'text-left',
-		maru.rounded,
+		maru.rounded.lg,
 		'appearance-none',
 		'cursor-pointer',
 	],

@@ -12,7 +12,7 @@ export const signaturePad = {
 		'relative isolate',
 		'bg-white',
 		sen.border,
-		maru.rounded,
+		maru.rounded.lg,
 		ki.ring,
 		yasumi.disabled,
 	],

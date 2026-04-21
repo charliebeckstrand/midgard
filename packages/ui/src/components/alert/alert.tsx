@@ -133,10 +133,9 @@ export function Alert({
 						variant="plain"
 						aria-label="Dismiss"
 						className={cn(k.close, 'self-center')}
+						prefix={<Icon icon={<X />} />}
 						onClick={close}
-					>
-						<Icon icon={<X />} />
-					</Button>
+					/>
 				)}
 			</div>
 		</AlertProvider>

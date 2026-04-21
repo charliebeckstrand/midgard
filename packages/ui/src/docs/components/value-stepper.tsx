@@ -18,17 +18,15 @@ export function ValueStepper({ value, onChange, min = 0, max, step = 1 }: ValueS
 			<Button
 				variant="plain"
 				disabled={value <= min}
+				prefix={<Icon icon={<Minus />} />}
 				onClick={() => onChange(Math.max(min, value - step))}
-			>
-				<Icon icon={<Minus />} />
-			</Button>
+			/>
 			<Button
 				variant="plain"
 				disabled={value >= max}
+				prefix={<Icon icon={<Plus />} />}
 				onClick={() => onChange(Math.min(max, value + step))}
-			>
-				<Icon icon={<Plus />} />
-			</Button>
+			/>
 		</div>
 	)
 }

@@ -13,7 +13,7 @@ export const listbox = {
 		...waku.inputBase,
 		controlSize.md,
 		take.listbox.padding,
-		maru.rounded,
+		maru.rounded.lg,
 		'appearance-none',
 	],
 	options: take.popup,

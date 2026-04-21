@@ -14,7 +14,7 @@ export const code = tv({
 })
 
 export const codeBlock = tv({
-	base: ['relative overflow-hidden', maru.rounded, blockBg],
+	base: ['relative overflow-hidden', maru.rounded.lg, blockBg],
 	variants: {
 		inline: {
 			true: 'w-fit max-w-full',

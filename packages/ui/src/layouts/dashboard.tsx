@@ -27,8 +27,11 @@ export function DashboardLayout({ filters, children }: DashboardLayoutProps) {
 
 						{/* Filter trigger on mobile */}
 						<Box className="shrink-0 lg:hidden">
-							<Button variant="outline" onClick={() => setOpen(true)}>
-								<Icon icon={<SlidersHorizontal />} />
+							<Button
+								variant="outline"
+								prefix={<Icon icon={<SlidersHorizontal />} />}
+								onClick={() => setOpen(true)}
+							>
 								Filters
 							</Button>
 						</Box>

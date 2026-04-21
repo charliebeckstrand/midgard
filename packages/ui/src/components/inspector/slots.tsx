@@ -75,12 +75,11 @@ export function InspectorClose({
 			aria-label={ariaLabel}
 			data-slot="inspector-close"
 			className={cn(inspectorCloseVariants(), className)}
+			prefix={icon ?? <Icon icon={<X />} />}
 			onClick={(e) => {
 				onClick?.(e)
 				close()
 			}}
-		>
-			{icon ?? <Icon icon={<X />} />}
-		</Button>
+		/>
 	)
 }

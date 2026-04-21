@@ -7,7 +7,7 @@ export const option = {
 	base: [
 		'group/option grid w-full items-baseline',
 		'gap-x-2',
-		maru.rounded,
+		maru.rounded.lg,
 		sawari.cursor,
 		sawari.item,
 		'data-active:bg-zinc-950/5',

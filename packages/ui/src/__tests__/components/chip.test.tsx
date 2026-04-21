@@ -27,18 +27,6 @@ describe('Chip', () => {
 		expect(el?.className).toContain('custom')
 	})
 
-	it('renders as a link when href is provided', () => {
-		const { container } = renderUI(<Chip href="/tags">Tag</Chip>)
-
-		const el = bySlot(container, 'chip')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('A')
-
-		expect(el).toHaveAttribute('href', '/tags')
-	})
-
 	it('passes through HTML attributes', () => {
 		const { container } = renderUI(<Chip id="test">Tag</Chip>)
 

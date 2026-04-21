@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
-import type { PointerEvent, Ref } from 'react'
+import type { PointerEvent, ReactNode, Ref } from 'react'
 import { cn } from '../../core'
 import { type PolymorphicProps, TouchTarget, useRipple, useTap } from '../../primitives'
 import { Link } from '../../primitives/link'
@@ -11,30 +11,26 @@ import { useGlass } from '../glass/context'
 import { useInputSize } from '../input/context'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
-import type { SpinnerProps } from '../spinner'
+import { Spinner, type SpinnerProps } from '../spinner'
 import { ButtonSizeProvider } from './context'
-import { iconSides, isIconOnly, kbdSides, withLoadingSpinner } from './utilities'
-import {
-	type ButtonVariants,
-	buttonVariants,
-	withIconEndSize,
-	withIconStartSize,
-	withKbdEndSize,
-	withKbdStartSize,
-} from './variants'
+import { type ButtonVariants, buttonVariants } from './variants'
 
 export type LoadingOptions = Pick<SpinnerProps, 'color' | 'size' | 'label'>
+
+type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never
 
 type ButtonBaseProps = ButtonVariants & {
 	block?: boolean
 	ripple?: boolean
 	spring?: boolean
 	loading?: boolean | LoadingOptions
+	prefix?: ReactNode
+	suffix?: ReactNode
 	className?: string
 }
 
 export type ButtonProps = ButtonBaseProps &
-	(PolymorphicProps<'button'> & { ref?: Ref<HTMLButtonElement> })
+	(DistributiveOmit<PolymorphicProps<'button'>, 'prefix'> & { ref?: Ref<HTMLButtonElement> })
 
 export function Button({
 	variant,
@@ -48,6 +44,8 @@ export function Button({
 	ripple = false,
 	spring = false,
 	loading: loadingProp = false,
+	prefix,
+	suffix,
 	...props
 }: ButtonProps) {
 	const loading = !!loadingProp
@@ -56,46 +54,16 @@ export function Button({
 
 	const alert = useAlertContext()
 	const glass = useGlass()
-
 	const inputSize = useInputSize()
 	const skeleton = useSkeleton()
+
+	const resolvedVariant = variant ?? (glass ? 'glass' : undefined)
+
+	const resolvedSize = size ?? inputSize
 
 	const { onPointerDown: handleRipple, element: rippleElement } = useRipple()
 
 	const tap = useTap(spring)
-
-	const resolvedVariant = variant ?? (glass ? 'glass' : undefined)
-
-	if (!color && alert) {
-		color = alert.variant === 'solid' ? 'inherit' : alert.color
-	}
-
-	const resolvedSize = size ?? inputSize
-
-	if (skeleton) {
-		return (
-			<Placeholder
-				className={cn(kokkaku.button.base, kokkaku.button.size[resolvedSize ?? 'md'], className)}
-			/>
-		)
-	}
-
-	const renderedChildren = loading ? withLoadingSpinner(children, loadingOptions) : children
-
-	const iconOnly = isIconOnly(renderedChildren)
-
-	const sides = iconOnly ? { start: false, end: false } : iconSides(renderedChildren)
-	const kbds = iconOnly ? { start: false, end: false } : kbdSides(renderedChildren)
-
-	const classes = cn(
-		buttonVariants({ variant: resolvedVariant, color, size: resolvedSize }),
-		sides.start && !sides.end && withIconStartSize({ size: resolvedSize }),
-		sides.end && !sides.start && withIconEndSize({ size: resolvedSize }),
-		kbds.start && !kbds.end && withKbdStartSize({ size: resolvedSize }),
-		kbds.end && !kbds.start && withKbdEndSize({ size: resolvedSize }),
-		block && 'w-full',
-		className,
-	)
 
 	const pointerDown = (e: PointerEvent<HTMLElement>) => {
 		if (ripple) handleRipple(e)
@@ -106,21 +74,47 @@ export function Button({
 		consumerHandler?.(e)
 	}
 
+	if (!color && alert) {
+		color = alert.variant === 'solid' ? 'inherit' : alert.color
+	}
+
+	const classes = cn(
+		buttonVariants({ variant: resolvedVariant, color, size: resolvedSize }),
+		block && 'w-full',
+		className,
+	)
+
+	if (skeleton) {
+		return (
+			<Placeholder
+				className={cn(kokkaku.button.base, kokkaku.button.size[resolvedSize ?? 'md'], className)}
+			/>
+		)
+	}
+
+	const content = (
+		<ButtonSizeProvider value={resolvedSize ?? 'md'}>
+			{loading ? <Spinner {...loadingOptions} /> : prefix}
+			{children}
+			{suffix && suffix}
+		</ButtonSizeProvider>
+	)
+
 	if (href !== undefined) {
 		return (
 			<motion.span {...tap} className="inline-flex">
 				<Link
 					data-slot="button"
+					data-slot-prefix={!!prefix}
+					data-slot-suffix={!!suffix}
 					href={href}
 					className={classes}
 					{...(props as Omit<React.ComponentPropsWithoutRef<typeof Link>, 'href' | 'className'>)}
-					{...(loading && { 'aria-disabled': true, 'data-disabled': '', 'aria-busy': true })}
+					{...(loading && { 'aria-disabled': true, 'data-disabled': true, 'aria-busy': true })}
 					onPointerDown={pointerDown}
 				>
 					{ripple && rippleElement}
-					<TouchTarget>
-						<ButtonSizeProvider value={resolvedSize ?? 'md'}>{renderedChildren}</ButtonSizeProvider>
-					</TouchTarget>
+					<TouchTarget>{content}</TouchTarget>
 				</Link>
 			</motion.span>
 		)
@@ -136,6 +130,8 @@ export function Button({
 			{...tap}
 			ref={ref}
 			data-slot="button"
+			data-slot-prefix={!!prefix}
+			data-slot-suffix={!!suffix}
 			type="button"
 			className={classes}
 			{...buttonProps}
@@ -144,9 +140,7 @@ export function Button({
 			onPointerDown={pointerDown}
 		>
 			{ripple && rippleElement}
-			<TouchTarget>
-				<ButtonSizeProvider value={resolvedSize ?? 'md'}>{renderedChildren}</ButtonSizeProvider>
-			</TouchTarget>
+			<TouchTarget>{content}</TouchTarget>
 		</motion.button>
 	)
 }

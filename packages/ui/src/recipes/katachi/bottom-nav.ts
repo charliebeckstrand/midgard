@@ -3,9 +3,9 @@ import { ji } from '../ji'
 import { ki } from '../ki'
 import { kumi } from '../kumi'
 import { maru } from '../maru'
-import { nuri } from '../nuri'
 import { omote } from '../omote'
 import { sen } from '../sen'
+import { tabIndicator } from './tabs'
 
 export const bottomNav = {
 	base: [
@@ -26,5 +26,5 @@ export const bottomNav = {
 		ki.inset,
 	],
 	current: [iro.text.default],
-	indicator: ['inset-x-4 bottom-auto top-0', 'h-0.5', maru.roundedFull, nuri.tabIndicator],
+	indicator: ['inset-x-4 bottom-auto top-0', 'h-0.5', maru.rounded.full, tabIndicator],
 }

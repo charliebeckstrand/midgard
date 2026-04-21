@@ -4,7 +4,7 @@ import { kumi } from '../kumi'
 import { maru } from '../maru'
 
 export const progressTrack = tv({
-	base: ['overflow-hidden', maru.roundedFull, 'bg-zinc-200', 'dark:bg-zinc-700'],
+	base: ['overflow-hidden', maru.rounded.full, 'bg-zinc-200', 'dark:bg-zinc-700'],
 	variants: {
 		size: {
 			sm: 'h-1',
@@ -34,7 +34,7 @@ export type ProgressGaugeVariants = VariantProps<typeof progressGauge>
 
 export const slots = {
 	bar: {
-		fill: ['h-full', maru.roundedFull],
+		fill: ['h-full', maru.rounded.full],
 		indeterminate: 'w-1/3 animate-[progress-indeterminate_1.5s_ease-in-out_infinite]',
 	},
 	gauge: {

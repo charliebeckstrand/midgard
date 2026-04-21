@@ -3,7 +3,7 @@
 import { CornerLeftDown, X } from 'lucide-react'
 import { forwardRef, useCallback, useImperativeHandle, useRef, useState } from 'react'
 import { useControllable, useTagKeyboard } from '../../hooks'
-import type { Color } from '../../recipes/nuri/palette'
+import type { Color } from '../../recipes/iro'
 import { Button } from '../button'
 import { Chip } from '../chip'
 import { Icon } from '../icon'
@@ -126,15 +126,14 @@ export const TagInput = forwardRef<HTMLInputElement, TagInputProps>(function Tag
 								className={chipRemoveSize[resolvedSize]}
 								size="xs"
 								variant="plain"
+								prefix={<Icon icon={<X />} />}
 								onMouseDown={(e) => e.preventDefault()}
 								onClick={(e) => {
 									e.stopPropagation()
 
 									removeTag(i)
 								}}
-							>
-								<Icon icon={<X />} />
-							</Button>
+							/>
 						)}
 					</Chip>
 				))}
@@ -159,11 +158,10 @@ export const TagInput = forwardRef<HTMLInputElement, TagInputProps>(function Tag
 					size="xs"
 					color="blue"
 					disabled={disabled || atMax || inputValue.trim() === ''}
+					prefix={<Icon icon={<CornerLeftDown />} />}
 					onMouseDown={(e) => e.preventDefault()}
 					onClick={handleSubmit}
-				>
-					<Icon icon={<CornerLeftDown />} />
-				</Button>
+				/>
 			}
 			className={className}
 		/>

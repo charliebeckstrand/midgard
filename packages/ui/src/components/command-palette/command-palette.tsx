@@ -89,9 +89,12 @@ export function CommandPalette({
 						onChange={(e) => setQuery(e.target.value)}
 						onKeyDown={onKeyDown}
 					/>
-					<Button variant="plain" aria-label="Close" onClick={close}>
-						<Icon icon={<X />} />
-					</Button>
+					<Button
+						variant="plain"
+						aria-label="Close"
+						prefix={<Icon icon={<X />} />}
+						onClick={close}
+					/>
 				</Flex>
 				<DialogBody>
 					<div ref={listRef} id={listboxId} role="listbox" data-slot="command-palette-list">

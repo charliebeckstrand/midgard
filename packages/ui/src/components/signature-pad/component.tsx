@@ -172,13 +172,13 @@ export const SignaturePad = forwardRef<SignaturePadHandle, SignaturePadProps>(fu
 						color="amber"
 						data-slot="signature-pad-clear"
 						aria-label="Clear signature"
+						prefix={<Icon icon={<X />} size="xs" />}
 						onPointerDown={(event) => {
 							// Prevent the canvas pointerdown from firing.
 							event.stopPropagation()
 						}}
 						onClick={clear}
 					>
-						<Icon icon={<X />} size="xs" />
 						Clear
 					</Button>
 				</div>

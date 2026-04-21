@@ -70,9 +70,12 @@ export function SidebarLayout({
 
 			{/* Navbar on mobile */}
 			<Flex gap={4} align="center" className="lg:p-0 p-6 lg:hidden">
-				<Button variant="plain" onClick={() => setOpen(true)} aria-label="Open navigation">
-					{menuIcon ?? <Icon icon={<Menu />} />}
-				</Button>
+				<Button
+					variant="plain"
+					aria-label="Open navigation"
+					prefix={menuIcon ?? <Icon icon={<Menu />} />}
+					onClick={() => setOpen(true)}
+				/>
 				{navbar && <div className="min-w-0 flex-1">{navbar}</div>}
 				{actions && <div className="shrink-0 ml-auto">{actions}</div>}
 			</Flex>

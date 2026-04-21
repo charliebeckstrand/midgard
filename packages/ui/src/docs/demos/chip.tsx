@@ -85,6 +85,7 @@ export default function ChipDemo() {
 						<Chip
 							key={label}
 							variant="outline"
+							interactive
 							active={active.has(label)}
 							onClick={() => toggle(label)}
 						>

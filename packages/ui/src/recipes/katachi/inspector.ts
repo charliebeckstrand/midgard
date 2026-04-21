@@ -28,7 +28,7 @@ export const inspector = definePanelRecipe({
 	header: { base: ['flex items-center justify-between', kumi.gap.md, 'px-6 pt-6'] },
 	actions: { extra: 'px-6 pb-6' },
 	body: { extra: ['flex-1 overflow-y-auto px-6'] },
-	close: { base: [...iro.text.muted, ki.inset, maru.roundedMd, 'shrink-0', 'p-1'] },
+	close: { base: [...iro.text.muted, ki.inset, maru.rounded.md, 'shrink-0', 'p-1'] },
 })
 
 export type InspectorPanelVariants = VariantProps<typeof inspector.panel>

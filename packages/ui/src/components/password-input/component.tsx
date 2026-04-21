@@ -25,10 +25,9 @@ function VisibilityToggle({ visible, onToggle }: ToggleProps) {
 					size={size}
 					className="pointer-events-auto"
 					aria-label={visible ? 'Hide password' : 'Show password'}
+					prefix={<Icon icon={visible ? <EyeOff /> : <Eye />} />}
 					onClick={onToggle}
-				>
-					<Icon icon={visible ? <EyeOff /> : <Eye />} />
-				</Button>
+				/>
 			</TooltipTrigger>
 			<TooltipContent>{visible ? 'Hide password' : 'Show password'}</TooltipContent>
 		</Tooltip>

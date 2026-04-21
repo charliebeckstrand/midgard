@@ -37,7 +37,7 @@ export const tree = {
 		ji.size.sm,
 		iro.text.muted,
 		iro.text.hover,
-		maru.rounded,
+		maru.rounded.lg,
 		ki.inset,
 		'data-[open]:text-zinc-950 dark:data-[open]:text-white',
 		'data-[open]:cursor-pointer',

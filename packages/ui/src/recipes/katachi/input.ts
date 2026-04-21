@@ -7,7 +7,7 @@ import { waku } from '../waku'
 import { controlSize } from './_control-size'
 
 export const input = tv({
-	base: [...waku.inputBase, 'block', maru.rounded],
+	base: [...waku.inputBase, 'block', maru.rounded.lg],
 	variants: {
 		variant: {
 			default: [],

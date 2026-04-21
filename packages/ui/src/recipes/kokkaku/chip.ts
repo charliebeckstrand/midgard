@@ -1,7 +1,7 @@
 import { maru } from '../maru'
 
 export const chip = {
-	base: maru.roundedFull,
+	base: maru.rounded.full,
 	size: {
 		xs: ['h-4', 'w-12'],
 		sm: ['h-5', 'w-16'],

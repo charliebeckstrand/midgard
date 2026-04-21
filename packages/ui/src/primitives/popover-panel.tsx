@@ -62,7 +62,7 @@ export function PopoverPanel({
 			data-glass={glass ? '' : undefined}
 			className={cn(
 				glass ? [omote.glass, sen.ring, 'group/glass'] : omote.popover,
-				maru.rounded,
+				maru.rounded.lg,
 				'isolate absolute min-w-full',
 				'p-1 space-y-0.5',
 				'outline outline-transparent focus:outline-hidden',

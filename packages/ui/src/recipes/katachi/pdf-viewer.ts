@@ -12,7 +12,7 @@ export const pdfViewer = {
 		'h-[600px]',
 		omote.surface,
 		sen.border,
-		maru.rounded,
+		maru.rounded.lg,
 	],
 	toolbar: [
 		'flex items-center justify-between',
@@ -46,7 +46,7 @@ export const pdfViewer = {
 		'flex flex-col items-center',
 		kumi.gap.sm,
 		'p-1.5',
-		maru.roundedMd,
+		maru.rounded.lg,
 		'bg-transparent',
 		'cursor-pointer',
 		'outline-none',
@@ -54,7 +54,7 @@ export const pdfViewer = {
 	thumbnailFrame: [
 		'block w-full aspect-[3/4]',
 		'overflow-hidden',
-		maru.rounded,
+		maru.rounded.lg,
 		'bg-white dark:bg-zinc-950',
 		'group-focus-visible/thumb:ring-4 group-focus-visible/thumb:ring-blue-600',
 		'group-data-active/thumb:ring-4 group-data-active/thumb:ring-blue-600 dark:group-data-active/thumb:ring-blue-500',

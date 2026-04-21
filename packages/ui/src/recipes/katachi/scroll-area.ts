@@ -22,7 +22,7 @@ export const scrollAreaWrapper = tv({
 	base: ['group relative overflow-hidden'],
 	variants: {
 		rounded: {
-			true: maru.rounded,
+			true: maru.rounded.lg,
 			false: '',
 		},
 		bare: {

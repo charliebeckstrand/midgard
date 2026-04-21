@@ -1,15 +1,16 @@
 /**
  * Iro (色) — Colour.
  *
- * Semantic colour tokens, keyed by role. Text colour lives under `iro.text`;
- * background colour lives under `iro.bg`. Border- and ring-colour composites
- * (which also carry width / variant) live in `sen`; palette-level variant ×
- * colour matrices live in `nuri`.
+ * Semantic colour tokens (`text`, `bg`) keyed by role, plus palette-keyed
+ * variant matrices (`palette.solid`, `palette.soft`, `palette.outline`,
+ * `palette.plain`) — each exposing slots (`bg`, `text`, `hover`, `border`,
+ * `ring`) that compose into component variants via `merge`.
  *
  * Tier: 1 · Concern: color
  */
 
 import { mode } from '../../core/recipe/mode'
+import { outline, plain, soft, solid } from './palette'
 
 // ── Text ────────────────────────────────────────────────
 const text = {
@@ -26,6 +27,10 @@ const text = {
 		'focus-visible:not-disabled:text-zinc-950',
 		'dark:focus-visible:not-disabled:text-white',
 	),
+	/** Text inside a focused option — used for description slots. */
+	focusGroup: 'group-focus/option:text-white',
+	/** Inherit text colour with hover effect on non-disabled elements. */
+	inherit: ['text-inherit', 'not-disabled:hover:bg-current/15'],
 	/** Current-tab text colour with hover on non-current siblings. */
 	tab: mode(
 		[
@@ -39,8 +44,6 @@ const text = {
 			'dark:not-data-current:not-disabled:hover:text-zinc-200',
 		],
 	),
-	/** Text inside a focused option — used for description slots. */
-	focusGroup: 'group-focus/option:text-white',
 }
 
 // ── Background ──────────────────────────────────────────
@@ -57,4 +60,10 @@ const bg = {
 	},
 }
 
-export const iro = { text, bg } as const
+// ── Palette ─────────────────────────────────────────────
+const palette = { solid, soft, outline, plain }
+
+export const iro = { bg, text, palette } as const
+
+export type { Color } from './palette'
+export { colors, merge } from './palette'

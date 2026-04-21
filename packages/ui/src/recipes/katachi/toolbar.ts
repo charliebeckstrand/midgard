@@ -12,8 +12,8 @@ export const toolbar = tv({
 		},
 		variant: {
 			plain: '',
-			outline: [...sen.border, maru.rounded, 'p-1'],
-			solid: [...omote.tint, 'border border-transparent', maru.rounded, 'p-1'],
+			outline: [...sen.border, maru.rounded.lg, 'p-1'],
+			solid: [...omote.tint, 'border border-transparent', maru.rounded.lg, 'p-1'],
 		},
 	},
 	defaultVariants: { orientation: 'horizontal', variant: 'plain' },

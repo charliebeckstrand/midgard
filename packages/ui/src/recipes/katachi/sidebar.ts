@@ -12,7 +12,7 @@ export const sidebar = {
 		'flex w-full items-center',
 		kumi.gap.md,
 		'px-2 py-2',
-		maru.rounded,
+		maru.rounded.lg,
 		ji.size.md,
 		'text-left font-medium',
 		sawari.cursor,

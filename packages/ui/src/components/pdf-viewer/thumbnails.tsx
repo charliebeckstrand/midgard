@@ -114,10 +114,9 @@ export function PdfViewerThumbnails({
 								<Button
 									variant="plain"
 									aria-label="Close thumbnails"
+									prefix={<Icon icon={<X />} />}
 									onClick={() => onThumbsOpenChange(false)}
-								>
-									<Icon icon={<X />} />
-								</Button>
+								/>
 							</Flex>
 						</SheetTitle>
 						<SheetBody>{renderList(() => onThumbsOpenChange(false), 'grid')}</SheetBody>

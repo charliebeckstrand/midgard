@@ -1,5 +1,5 @@
 import { cn } from '../../core'
-import type { Color } from '../../recipes/nuri/palette'
+import type { Color } from '../../recipes/iro'
 import { StatusDot, type StatusDotProps } from '../status'
 import { useTimeline } from './context'
 import { k } from './variants'

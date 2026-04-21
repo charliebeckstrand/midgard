@@ -131,9 +131,8 @@ export default function CommandPaletteDemo() {
 	return (
 		<Stack gap={6}>
 			<Example title="Default">
-				<Button color="blue" variant="soft" onClick={() => setOpen(true)}>
+				<Button color="blue" variant="soft" suffix={<Kbd cmd>K</Kbd>} onClick={() => setOpen(true)}>
 					Open command palette
-					<Kbd cmd>K</Kbd>
 				</Button>
 
 				<CommandPalette open={open} onOpenChange={setOpen}>

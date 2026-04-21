@@ -105,15 +105,11 @@ export function FileUpload(props: FileUploadProps) {
 					size={size}
 					color={color}
 					disabled={disabled}
-					onClick={openPicker}
+					prefix={<Icon icon={<Upload />} />}
 					className={disabled ? undefined : 'cursor-pointer'}
+					onClick={openPicker}
 				>
-					{children ?? (
-						<>
-							<Icon icon={<Upload />} />
-							Upload
-						</>
-					)}
+					{children ?? 'Upload'}
 				</Button>
 			</div>
 		)

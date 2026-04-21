@@ -23,4 +23,4 @@ export const inputBase = [...iro.text.default, ...motoi, ...hiru, ...yoru]
 // Default control density — used by `textarea` and `select` whose size isn't variable.
 const controlMd = ['px-[calc(--spacing(3)-1px)] py-[calc(--spacing(2)-1px)]', ji.size.md]
 
-export const input = [...inputBase, 'block', ...controlMd, maru.rounded]
+export const input = [...inputBase, 'block', ...controlMd, maru.rounded.lg]

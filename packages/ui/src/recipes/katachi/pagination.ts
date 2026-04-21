@@ -20,7 +20,7 @@ export const pageButton = tv({
 		ji.size.sm,
 		'font-medium',
 		ki.ring,
-		maru.rounded,
+		maru.rounded.lg,
 		sawari.cursor,
 	],
 	variants: {
@@ -50,7 +50,7 @@ export const slots = {
 		...iro.text.hover,
 		ki.ring,
 		...yasumi.disabled,
-		maru.rounded,
+		maru.rounded.lg,
 		sawari.cursor,
 	],
 }

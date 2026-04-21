@@ -1,7 +1,7 @@
 import { maru } from '../maru'
 
 export const badge = {
-	base: maru.roundedMd,
+	base: maru.rounded.md,
 	size: {
 		xs: ['h-4', 'w-10'],
 		sm: ['h-5', 'w-12'],

@@ -6,7 +6,7 @@ import { maru } from '../maru'
 export const passwordStrength = {
 	root: ['flex flex-col', kumi.gap.md],
 	meter: ['flex items-center', kumi.gap.sm],
-	segment: ['flex-1 h-1', maru.roundedFull, 'bg-zinc-200 dark:bg-zinc-700'],
+	segment: ['flex-1 h-1', maru.rounded.full, 'bg-zinc-200 dark:bg-zinc-700'],
 	level: {
 		weak: 'bg-red-600 dark:bg-red-500',
 		fair: 'bg-amber-600 dark:bg-amber-500',

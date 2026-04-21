@@ -65,7 +65,7 @@ export function ActiveIndicator({
 			ref={ref}
 			layoutId={resolvedLayoutId}
 			layoutDependency={instanceId}
-			className={cn('absolute inset-0', 'bg-zinc-300 dark:bg-zinc-600', maru.rounded, className)}
+			className={cn('absolute inset-0', 'bg-zinc-300 dark:bg-zinc-600', maru.rounded.lg, className)}
 			style={{ borderRadius: 8, ...style }}
 			transition={ugoki.spring}
 		>

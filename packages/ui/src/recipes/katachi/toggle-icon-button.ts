@@ -7,7 +7,7 @@ export const toggleIconButton = {
 		'relative',
 		'flex',
 		kumi.center,
-		maru.rounded,
+		maru.rounded.lg,
 		iro.text.muted,
 		iro.text.hover,
 		iro.text.focus,

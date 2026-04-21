@@ -1,6 +1,5 @@
 import { cn } from '../../core'
 import type { PolymorphicProps } from '../../primitives'
-import { Link } from '../../primitives/link'
 import { kokkaku } from '../../recipes'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
@@ -15,11 +14,11 @@ export type ChipProps = ChipBaseProps & PolymorphicProps<'span'>
 export function Chip({
 	variant,
 	color,
+	interactive,
 	active,
 	size,
 	className,
 	children,
-	href,
 	...props
 }: ChipProps) {
 	if (useSkeleton()) {
@@ -30,16 +29,36 @@ export function Chip({
 
 	const classes = cn(chipVariants({ variant, color, active, size }), className)
 
-	if (href !== undefined) {
+	if (interactive) {
+		const userOnKeyDown = props.onKeyDown as React.KeyboardEventHandler<HTMLSpanElement> | undefined
+
 		return (
-			<Link data-slot="chip" href={href} className={classes} {...props}>
+			// biome-ignore lint/a11y/useSemanticElements: Chip is a polymorphic span; using <button> would break the element type and nesting inside buttons/links
+			<span
+				data-slot="chip"
+				role="button"
+				tabIndex={0}
+				className={classes}
+				{...props}
+				onKeyDown={(e) => {
+					userOnKeyDown?.(e)
+
+					if (e.defaultPrevented) return
+
+					if (e.key !== 'Enter' && e.key !== ' ') return
+
+					e.preventDefault()
+
+					e.currentTarget.click()
+				}}
+			>
 				{children}
-			</Link>
+			</span>
 		)
 	}
 
 	return (
-		<span data-slot="chip" className={classes} {...props}>
+		<span data-slot="chip" tabIndex={-1} className={classes} {...props}>
 			{children}
 		</span>
 	)

@@ -52,14 +52,13 @@ function ChatItem({
 				color="red"
 				className="opacity-0 group-hover:opacity-100 absolute right-2 top-1/2 z-10 -translate-y-1/2"
 				tabIndex={-1}
+				prefix={<Icon icon={<XMarkIcon />} />}
 				onKeyDown={onActionKeyDown}
 				onClick={(e) => {
 					e.preventDefault()
 					onDelete(chat.id)
 				}}
-			>
-				<Icon icon={<XMarkIcon />} />
-			</Button>
+			/>
 		</div>
 	)
 }

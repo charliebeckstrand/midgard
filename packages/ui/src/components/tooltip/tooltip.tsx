@@ -2,6 +2,7 @@
 
 import {
 	FloatingPortal,
+	type Placement,
 	safePolygon,
 	useClick,
 	useDismiss,
@@ -19,7 +20,7 @@ import { ugoki } from '../../recipes'
 import { k } from './variants'
 
 export type TooltipProps = {
-	placement?: 'top' | 'bottom' | 'left' | 'right'
+	placement?: Placement
 	delay?: number
 	interactive?: boolean
 	children: React.ReactNode

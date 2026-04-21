@@ -305,10 +305,10 @@ export function DataTable<T>({
 						<Button
 							variant="plain"
 							size="sm"
-							onClick={() => setManageOpen(true)}
 							aria-haspopup="dialog"
+							prefix={<Icon icon={<SlidersHorizontal />} />}
+							onClick={() => setManageOpen(true)}
 						>
-							<Icon icon={<SlidersHorizontal />} />
 							{manageColumnsLabel}
 						</Button>
 					</Toolbar>

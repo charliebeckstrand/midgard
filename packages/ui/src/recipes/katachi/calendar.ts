@@ -1,6 +1,6 @@
 import { iro } from '../iro'
 import { kumi } from '../kumi'
-import { nuri } from '../nuri'
+import { buttonSoft } from './button'
 
 export const calendar = {
 	base: ['inline-flex flex-col w-80 p-4', 'select-none'],
@@ -12,7 +12,7 @@ export const calendar = {
 	},
 	picker: {
 		grid: ['grid grid-cols-3 p-2', kumi.gap.sm],
-		cellCurrent: ['font-semibold', ...nuri.buttonSoft.blue],
+		cellCurrent: ['font-semibold', ...buttonSoft.blue],
 	},
 	weekday: ['flex', kumi.center, 'w-full aspect-square', 'text-xs font-medium', iro.text.muted],
 	day: {

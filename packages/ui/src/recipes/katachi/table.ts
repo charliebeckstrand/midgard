@@ -1,6 +1,6 @@
+import { mode } from '../../core/recipe/mode'
 import { iro } from '../iro'
 import { ma } from '../ma'
-import { nuri } from '../nuri'
 import { sen } from '../sen'
 
 export const table = {
@@ -10,5 +10,5 @@ export const table = {
 	row: [],
 	cell: [ma.px.md, ma.py.md, iro.text.default],
 	grid: ['border', sen.borderSubtleColor],
-	striped: nuri.tableStriped,
+	striped: mode('*:even:bg-zinc-950/2.5', 'dark:*:even:bg-white/2.5'),
 }

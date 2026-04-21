@@ -7,7 +7,7 @@ export const tagInput = {
 	wrapper: [
 		'flex items-center gap-4',
 		...waku.inputBase,
-		maru.rounded,
+		maru.rounded.lg,
 		'cursor-text',
 		'data-disabled:cursor-not-allowed data-disabled:**:!cursor-not-allowed',
 	],

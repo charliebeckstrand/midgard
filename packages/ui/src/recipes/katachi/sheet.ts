@@ -57,7 +57,7 @@ export const sheet = definePanelRecipe({
 	actions: { extra: 'px-6 pb-6' },
 	body: { extra: ['flex-1 overflow-y-auto px-6 first:pt-6'] },
 	close: {
-		base: [...iro.text.muted, ki.inset, maru.roundedMd, 'absolute right-5 top-5', 'p-1'],
+		base: [...iro.text.muted, ki.inset, maru.rounded.md, 'absolute right-5 top-5', 'p-1'],
 	},
 })
 

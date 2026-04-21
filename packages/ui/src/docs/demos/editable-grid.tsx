@@ -1,13 +1,16 @@
 'use client'
 
+import { Info } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { Alert } from '../../components/alert'
 import {
 	type CellChange,
 	EditableGrid,
 	type EditableGridColumn,
 } from '../../components/editable-grid'
+import { Flex } from '../../components/flex/component'
+import { Icon } from '../../components/icon'
 import { Stack } from '../../components/stack'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { code } from '../code'
 import { Example } from '../components/example'
 
@@ -111,12 +114,19 @@ export default function EditableGridDemo() {
 	return (
 		<Stack gap={6}>
 			<Example
-				title="Default"
-				prefix={
-					<Alert type="info" block closable>
-						Click to activate a cell, double-click or press Enter to edit. Press Tab or Enter to
-						commit and move, or Escape to cancel.
-					</Alert>
+				title={
+					<Flex gap={2}>
+						<div>Default</div>
+						<Tooltip placement="top-start">
+							<TooltipTrigger>
+								<Icon icon={<Info />} />
+							</TooltipTrigger>
+							<TooltipContent>
+								Double click a cell to or press Enter to edit. Press Enter or blur to save, Escape
+								to cancel.
+							</TooltipContent>
+						</Tooltip>
+					</Flex>
 				}
 				code={code`
 					import { EditableGrid, type EditableGridColumn } from 'ui/editable-grid'
@@ -145,11 +155,19 @@ export default function EditableGridDemo() {
 				/>
 			</Example>
 			<Example
-				title="Bulk update"
-				prefix={
-					<Alert type="info" block closable>
-						Select rows with the checkboxes to apply a single edit across all of them at once.
-					</Alert>
+				title={
+					<Flex gap={2}>
+						<div>Bulk update</div>
+						<Tooltip placement="top-start">
+							<TooltipTrigger>
+								<Icon icon={<Info />} />
+							</TooltipTrigger>
+							<TooltipContent>
+								Check the boxes to select multiple rows, then edit a cell to apply the change to all
+								selected rows.
+							</TooltipContent>
+						</Tooltip>
+					</Flex>
 				}
 				code={code`
 					import { EditableGrid, type EditableGridColumn } from 'ui/editable-grid'

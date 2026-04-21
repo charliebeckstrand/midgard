@@ -154,9 +154,12 @@ function SectionedSidebar() {
 							<Text variant="muted" className="text-xs uppercase tracking-wide flex-1">
 								Projects
 							</Text>
-							<Button variant="plain" size="sm" aria-label="New project">
-								<Icon icon={<Plus />} />
-							</Button>
+							<Button
+								variant="plain"
+								size="sm"
+								aria-label="New project"
+								prefix={<Icon icon={<Plus />} />}
+							/>
 						</Stack>
 						{projects.map(({ value, label }) => (
 							<SidebarItem
@@ -175,9 +178,12 @@ function SectionedSidebar() {
 							<Text variant="muted" className="text-xs uppercase tracking-wide flex-1">
 								Chats
 							</Text>
-							<Button variant="plain" size="sm" aria-label="New project">
-								<Icon icon={<Plus />} />
-							</Button>
+							<Button
+								variant="plain"
+								size="sm"
+								aria-label="New project"
+								prefix={<Icon icon={<Plus />} />}
+							/>
 						</Stack>
 						{chats.map(({ value, label }) => (
 							<SidebarItem

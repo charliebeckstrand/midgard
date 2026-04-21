@@ -20,7 +20,7 @@ const rowBase = [
 	kumi.gap.sm,
 	'py-0.5',
 	ji.size.sm,
-	maru.rounded,
+	maru.rounded.lg,
 	'has-focus-visible:bg-blue-100/60 dark:has-focus-visible:bg-blue-600/30',
 ]
 
@@ -34,7 +34,7 @@ export const jsonTree = {
 		iro.text.muted,
 		iro.text.hover,
 		'data-[open]:text-zinc-950 dark:data-[open]:text-white',
-		maru.rounded,
+		maru.rounded.lg,
 	],
 	chevron: ['flex-none', nagare.transform],
 	chevronSpacer: 'inline-block w-4 flex-none',
@@ -43,5 +43,5 @@ export const jsonTree = {
 	punctuation: iro.text.muted,
 	summary: iro.text.muted,
 	group: 'overflow-hidden',
-	highlight: ['bg-amber-100/60', 'dark:bg-amber-500/15', maru.rounded],
+	highlight: ['bg-amber-100/60', 'dark:bg-amber-500/15', maru.rounded.lg],
 }

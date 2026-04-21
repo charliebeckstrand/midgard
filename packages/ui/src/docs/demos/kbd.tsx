@@ -25,17 +25,15 @@ export default function KbdDemo() {
 
 			<Example title="Inside a button">
 				<Flex wrap gap={3}>
-					<Button>
-						Open <Kbd cmd>O</Kbd>
+					<Button suffix={<Kbd cmd>O</Kbd>}>Open</Button>
+					<Button variant="soft" color="blue" suffix={<Kbd cmd>S</Kbd>}>
+						Save
 					</Button>
-					<Button variant="soft" color="blue">
-						Save <Kbd cmd>S</Kbd>
+					<Button variant="outline" color="green" suffix={<Kbd cmd>R</Kbd>}>
+						Run
 					</Button>
-					<Button variant="outline" color="green">
-						Run <Kbd cmd>R</Kbd>
-					</Button>
-					<Button variant="plain" color="red">
-						Delete <Kbd cmd>D</Kbd>
+					<Button variant="plain" color="red" suffix={<Kbd cmd>D</Kbd>}>
+						Delete
 					</Button>
 				</Flex>
 			</Example>

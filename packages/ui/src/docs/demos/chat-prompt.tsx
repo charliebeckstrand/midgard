@@ -32,9 +32,8 @@ function WithActionsDemo() {
 				onValueChange={setValue}
 				onSubmit={() => setValue('')}
 				actions={
-					<Button variant="plain" size="sm">
-						<Icon icon={<CircleDashed />} />
-						<span className="ml-1">Data Analyst</span>
+					<Button variant="plain" size="sm" prefix={<Icon icon={<CircleDashed />} />}>
+						Data Analyst
 					</Button>
 				}
 			/>
@@ -67,13 +66,10 @@ export default function ChatPromptDemo() {
 						onSubmit={() => setValue('')}
 						actions={
 							<>
-								<Button variant="plain" size="sm">
-									<Icon icon={<CircleDashed />} />
-									<span className="ml-1">Data Analyst</span>
+								<Button variant="plain" size="sm" prefix={<Icon icon={<CircleDashed />} />}>
+									Data Analyst
 								</Button>
-								<Button variant="plain" size="sm">
-									<Icon icon={<Paperclip />} />
-								</Button>
+								<Button variant="plain" size="sm" prefix={<Icon icon={<Paperclip />} />} />
 							</>
 						}
 					/>

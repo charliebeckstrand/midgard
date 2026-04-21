@@ -29,7 +29,7 @@ export function MenuContent({ className, children }: MenuContentProps) {
 			<PopoverPanel
 				role="menu"
 				itemSelector='[role="menuitem"]:not([data-disabled])'
-				className={cn(omote.popover, maru.rounded, 'p-1 space-y-0.5', k.content, className)}
+				className={cn(omote.popover, maru.rounded.lg, 'p-1 space-y-0.5', k.content, className)}
 			>
 				{children}
 			</PopoverPanel>

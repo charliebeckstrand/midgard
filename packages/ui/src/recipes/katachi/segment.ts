@@ -8,7 +8,7 @@ import { omote } from '../omote'
 import { yasumi } from '../yasumi'
 
 export const segmentControl = tv({
-	base: ['inline-flex items-center', maru.rounded, ...omote.tint],
+	base: ['inline-flex items-center', maru.rounded.lg, ...omote.tint],
 	variants: {
 		size: {
 			sm: ['p-0.5', ...kumi.gap.sm],
@@ -24,7 +24,7 @@ export const segmentItem = tv({
 		'flex',
 		kumi.center,
 		'font-medium select-none whitespace-nowrap',
-		maru.rounded,
+		maru.rounded.lg,
 		ki.indicator,
 		ki.ring,
 		...yasumi.disabled,

@@ -17,7 +17,7 @@ const itemBase = [
 	ji.size.md,
 	iro.text.default,
 	ki.inset,
-	maru.rounded,
+	maru.rounded.lg,
 	'transition-shadow',
 ]
 

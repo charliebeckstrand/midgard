@@ -114,10 +114,10 @@ export const badge = tv({
   base: ['group inline-flex w-fit items-center', 'font-medium'],
   variants: {
     variant: {
-      solid: [maru.roundedMd, 'border border-transparent'],
-      soft: [maru.roundedMd, 'border border-transparent'],
-      outline: [maru.roundedMd, 'border'],
-      plain: [maru.roundedMd, 'border border-transparent'],
+      solid: [maru.rounded.md, 'border border-transparent'],
+      soft: [maru.rounded.md, 'border border-transparent'],
+      outline: [maru.rounded.md, 'border'],
+      plain: [maru.rounded.md, 'border border-transparent'],
     },
     color: { zinc: '', red: '', amber: '', green: '', blue: '' },
     size: take.badge,
@@ -145,7 +145,7 @@ export const accordion = tv({
   variants: {
     variant: {
       separated: 'gap-2',
-      bordered: ['overflow-hidden', maru.rounded, ...kage.border, 'divide-y divide-zinc-950/10', 'dark:divide-white/10'],
+      bordered: ['overflow-hidden', maru.rounded.lg, ...kage.border, 'divide-y divide-zinc-950/10', 'dark:divide-white/10'],
       plain: ['divide-y divide-zinc-950/10', 'dark:divide-white/10'],
     },
   },
@@ -166,7 +166,7 @@ import { sumi } from '../sumi'
 import { take } from '../take'
 
 export const alert = tv({
-  base: ['flex w-fit', 'gap-2 px-4 py-3.5', take.text.sm, maru.rounded],
+  base: ['flex w-fit', 'gap-2 px-4 py-3.5', take.text.sm, maru.rounded.lg],
   variants: {
     variant: {
       solid: ['border border-transparent', kage.shadow],

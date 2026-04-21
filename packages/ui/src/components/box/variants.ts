@@ -27,13 +27,13 @@ export const borderMap = {
 } as const
 
 export const radiusMap = {
-	none: maru.roundedNone,
-	sm: maru.roundedSm,
-	md: maru.roundedMd,
-	lg: maru.rounded,
-	xl: maru.roundedXl,
-	'2xl': maru.rounded2xl,
-	full: maru.roundedFull,
+	none: maru.rounded.none,
+	sm: maru.rounded.sm,
+	md: maru.rounded.md,
+	lg: maru.rounded.lg,
+	xl: maru.rounded.xl,
+	'2xl': maru.rounded['2xl'],
+	full: maru.rounded.full,
 } as const
 
 export type BoxBg = keyof typeof bgMap

@@ -1,83 +1,61 @@
 import { tv, type VariantProps } from 'tailwind-variants'
 import { colorVariants } from '../../core/recipe'
+import { iro, merge } from '../iro'
 import { ji } from '../ji'
 import { ki } from '../ki'
 import { kumi } from '../kumi'
 import { maru } from '../maru'
-import { nuri } from '../nuri'
-import { omote } from '../omote'
 import { sawari } from '../sawari'
-import { sen } from '../sen'
 import { take } from '../take'
 import { yasumi } from '../yasumi'
 
+const { solid, soft, outline, plain } = iro.palette
+const { inherit } = iro.text
+
+export const buttonSolid = { ...merge(solid.bg, solid.text, solid.hover), inherit }
+export const buttonSoft = { ...merge(soft.bg, soft.text, soft.hover), inherit }
+export const buttonOutline = { ...merge(outline.ring, outline.text, outline.hover), inherit }
+export const buttonPlain = { ...merge(plain.text, plain.hover), inherit }
+export const buttonGhost = { ...plain.text, inherit }
+
 const { color, compoundVariants } = colorVariants({
-	solid: nuri.buttonSolid,
-	soft: nuri.buttonSoft,
-	outline: nuri.buttonOutline,
-	plain: nuri.buttonPlain,
-	ghost: nuri.buttonGhost,
-	glass: nuri.buttonPlain,
+	solid: buttonSolid,
+	soft: buttonSoft,
+	outline: buttonOutline,
+	plain: buttonPlain,
+	ghost: buttonGhost,
+	glass: buttonPlain,
 })
 
-// Button size — border-compensated padding + gap + text + icon + spinner gap per step.
 const size = {
 	xs: [
-		'px-[calc(--spacing(1)-1px)] py-[calc(--spacing(1)-1px)]',
-		kumi.gap.xs,
 		ji.size.xs,
 		take.icon.xs,
-		'has-[[data-slot=spinner]]:gap-1',
+		kumi.gap[0.5],
+		'py-[calc(--spacing(1)-1px)]',
+		'px-[calc(--spacing(1.5)-1px)]',
 	],
 	sm: [
-		'px-[calc(--spacing(1.5)-1px)] py-[calc(--spacing(1.5)-1px)]',
-		kumi.gap.sm,
 		ji.size.sm,
 		take.icon.sm,
-		'has-[[data-slot=spinner]]:gap-1.5',
+		kumi.gap[0.75],
+		'py-[calc(--spacing(1.5)-1px)]',
+		'px-[calc(--spacing(2.25)-1px)]',
 	],
 	md: [
-		'px-[calc(--spacing(2)-1px)] py-[calc(--spacing(2)-1px)]',
-		kumi.gap.md,
 		ji.size.md,
 		take.icon.md,
-		'has-[[data-slot=spinner]]:gap-2',
+		kumi.gap.sm,
+		'py-[calc(--spacing(2)-1px)]',
+		'px-[calc(--spacing(3)-1px)]',
 	],
 	lg: [
-		'px-[calc(--spacing(2.5)-1px)] py-[calc(--spacing(2.5)-1px)]',
-		kumi.gap.lg,
 		ji.size.lg,
 		take.icon.lg,
-		'has-[[data-slot=spinner]]:gap-2.5',
+		kumi.gap[1.5],
+		'py-[calc(--spacing(2.5)-1px)]',
+		'px-[calc(--spacing(3.75)-1px)]',
 	],
-}
-
-// Asymmetric padding opposite the icon to balance visual weight.
-const withIconStart = {
-	xs: 'pr-[calc(--spacing(1.5)-1px)]',
-	sm: 'pr-[calc(--spacing(2)-1px)]',
-	md: 'pr-[calc(--spacing(3)-1px)]',
-	lg: 'pr-[calc(--spacing(4)-1px)]',
-}
-const withIconEnd = {
-	xs: 'pl-[calc(--spacing(1.5)-1px)]',
-	sm: 'pl-[calc(--spacing(2)-1px)]',
-	md: 'pl-[calc(--spacing(3)-1px)]',
-	lg: 'pl-[calc(--spacing(4)-1px)]',
-}
-
-// Asymmetric padding opposite a Kbd child — half the icon offset.
-const withKbdStart = {
-	xs: 'pr-[calc(--spacing(1)-1px)]',
-	sm: 'pr-[calc(--spacing(1.5)-1px)]',
-	md: 'pr-[calc(--spacing(2)-1px)]',
-	lg: 'pr-[calc(--spacing(3)-1px)]',
-}
-const withKbdEnd = {
-	xs: 'pl-[calc(--spacing(1)-1px)]',
-	sm: 'pl-[calc(--spacing(1.5)-1px)]',
-	md: 'pl-[calc(--spacing(2)-1px)]',
-	lg: 'pl-[calc(--spacing(3)-1px)]',
 }
 
 export const button = tv({
@@ -85,49 +63,29 @@ export const button = tv({
 		'relative isolate',
 		'inline-flex',
 		kumi.center,
+		kumi.gap.sm,
 		'w-fit',
 		'shrink-0',
 		'font-semibold',
-		maru.rounded,
+		maru.rounded.lg,
 		ki.inset,
 		...yasumi.disabled,
 		sawari.cursor,
-		'border',
 	],
 	variants: {
 		variant: {
-			solid: [...sen.borderTransparent],
-			soft: [...sen.borderTransparent],
-			outline: [...sen.borderStrong],
-			plain: [...sen.borderTransparent],
-			ghost: [...sen.borderTransparent],
-			glass: [...sen.borderTransparent, ...omote.glass],
+			solid: '',
+			soft: '',
+			outline: 'ring-1 ring-inset',
+			plain: '',
+			ghost: '',
+			glass: '',
 		},
 		color,
 		size,
 	},
 	compoundVariants,
 	defaultVariants: { variant: 'solid', color: 'zinc', size: 'md' },
-})
-
-export const withIconStartSize = tv({
-	variants: { size: withIconStart },
-	defaultVariants: { size: 'md' },
-})
-
-export const withIconEndSize = tv({
-	variants: { size: withIconEnd },
-	defaultVariants: { size: 'md' },
-})
-
-export const withKbdStartSize = tv({
-	variants: { size: withKbdStart },
-	defaultVariants: { size: 'md' },
-})
-
-export const withKbdEndSize = tv({
-	variants: { size: withKbdEnd },
-	defaultVariants: { size: 'md' },
 })
 
 export type ButtonVariants = VariantProps<typeof button>

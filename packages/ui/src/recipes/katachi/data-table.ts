@@ -17,7 +17,7 @@ export const dataTable = {
 		ma.px.md,
 		ma.py.sm,
 		sen.borderSubtle,
-		maru.rounded,
+		maru.rounded.lg,
 		'border-b',
 		omote.tint,
 	],

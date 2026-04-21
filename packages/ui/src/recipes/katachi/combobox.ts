@@ -14,7 +14,7 @@ export const combobox = {
 		...waku.inputBase,
 		controlSize.md,
 		take.combobox.padding,
-		maru.rounded,
+		maru.rounded.lg,
 	],
 	chevron: [controlIcon, take.combobox.icon, iro.text.muted],
 	options: take.popup,

@@ -36,9 +36,8 @@ export function ToggleIconButton({
 				data-slot="toggle-icon-button"
 				aria-pressed={pressed}
 				className={cn(k.base, className)}
-			>
-				<Icon icon={pressed ? activeIcon : icon} />
-			</Button>
+				prefix={<Icon icon={pressed ? activeIcon : icon} />}
+			/>
 		)
 	}
 
@@ -50,21 +49,24 @@ export function ToggleIconButton({
 			data-slot="toggle-icon-button"
 			aria-pressed={pressed}
 			className={cn(k.base, className)}
-		>
-			<span className={cn(k.transition, pressed ? k.inactive : k.active)}>
-				<Icon icon={icon} />
-			</span>
-			<span
-				className={cn(
-					'absolute inset-0',
-					'flex',
-					kumi.center,
-					k.transition,
-					pressed ? k.active : k.inactive,
-				)}
-			>
-				<Icon icon={activeIcon} />
-			</span>
-		</Button>
+			prefix={
+				<>
+					<span className={cn(k.transition, pressed ? k.inactive : k.active)}>
+						<Icon icon={icon} />
+					</span>
+					<span
+						className={cn(
+							'absolute inset-0',
+							'flex',
+							kumi.center,
+							k.transition,
+							pressed ? k.active : k.inactive,
+						)}
+					>
+						<Icon icon={activeIcon} />
+					</span>
+				</>
+			}
+		/>
 	)
 }

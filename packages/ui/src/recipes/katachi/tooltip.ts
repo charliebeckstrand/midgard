@@ -14,7 +14,7 @@ export const tooltip = {
 		'font-medium',
 		'whitespace-nowrap',
 		omote.popover,
-		maru.rounded,
+		maru.rounded.lg,
 		iro.text.default,
 		'pointer-events-none',
 	],

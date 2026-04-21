@@ -32,9 +32,8 @@ export default function PopoverDemo() {
 			<Example title="Default">
 				<Popover>
 					<PopoverTrigger>
-						<Button variant="outline">
+						<Button variant="outline" suffix={<Icon icon={<ChevronDown />} />}>
 							Open popover
-							<Icon icon={<ChevronDown />} />
 						</Button>
 					</PopoverTrigger>
 					<PopoverContent>{popoverContent}</PopoverContent>
@@ -45,9 +44,8 @@ export default function PopoverDemo() {
 				<Glass>
 					<Popover>
 						<PopoverTrigger>
-							<Button variant="outline">
+							<Button variant="outline" suffix={<Icon icon={<ChevronDown />} />}>
 								Open popover
-								<Icon icon={<ChevronDown />} />
 							</Button>
 						</PopoverTrigger>
 						<PopoverContent>{popoverContent}</PopoverContent>
@@ -58,31 +56,37 @@ export default function PopoverDemo() {
 			<Example title="Placement">
 				<div>
 					<Flex justify="center" gap={4} className="hidden sm:flex">
-						{placements.map((placement) => (
-							<Popover key={placement} placement={placement}>
-								<PopoverTrigger>
-									<Button variant="outline">
-										{(placement === 'left' || placement === 'top') && (
-											<Icon icon={iconMap[placement]} />
-										)}
-										{placement}
-										{(placement === 'right' || placement === 'bottom') && (
-											<Icon icon={iconMap[placement]} />
-										)}
-									</Button>
-								</PopoverTrigger>
-								<PopoverContent>Popover {placement}</PopoverContent>
-							</Popover>
-						))}
+						{placements.map((placement) => {
+							const isLeading = placement === 'left' || placement === 'top'
+							const iconNode = <Icon icon={iconMap[placement]} />
+
+							return (
+								<Popover key={placement} placement={placement}>
+									<PopoverTrigger>
+										<Button
+											variant="outline"
+											prefix={isLeading ? iconNode : undefined}
+											suffix={isLeading ? undefined : iconNode}
+										>
+											{placement}
+										</Button>
+									</PopoverTrigger>
+									<PopoverContent>Popover {placement}</PopoverContent>
+								</Popover>
+							)
+						})}
 					</Flex>
 					<Stack gap={4} className="sm:hidden">
 						<Stack gap={4}>
 							{(['right', 'bottom'] as const).map((placement) => (
 								<Popover key={placement} placement={placement}>
 									<PopoverTrigger>
-										<Button variant="outline" className="self-start">
+										<Button
+											variant="outline"
+											className="self-start"
+											suffix={<Icon icon={iconMap[placement]} />}
+										>
 											{placement}
-											<Icon icon={iconMap[placement]} />
 										</Button>
 									</PopoverTrigger>
 									<PopoverContent>Popover {placement}</PopoverContent>
@@ -93,8 +97,11 @@ export default function PopoverDemo() {
 							{(['top', 'left'] as const).map((placement) => (
 								<Popover key={placement} placement={placement}>
 									<PopoverTrigger>
-										<Button variant="outline" className="self-end">
-											<Icon icon={iconMap[placement]} />
+										<Button
+											variant="outline"
+											className="self-end"
+											prefix={<Icon icon={iconMap[placement]} />}
+										>
 											{placement}
 										</Button>
 									</PopoverTrigger>

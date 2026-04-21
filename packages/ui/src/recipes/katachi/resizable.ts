@@ -10,7 +10,7 @@ export const resizable = {
 	handleHorizontal: 'px-2 cursor-col-resize',
 	handleVertical: 'py-2 cursor-row-resize',
 	grip: [
-		maru.roundedFull,
+		maru.rounded.full,
 		'bg-zinc-300 group-hover/handle:bg-zinc-400',
 		'dark:bg-zinc-600 dark:group-hover/handle:bg-zinc-500',
 		'group-focus-visible/handle:bg-blue-500 dark:group-focus-visible/handle:bg-blue-500',

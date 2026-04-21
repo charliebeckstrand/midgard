@@ -7,7 +7,7 @@ export const map = {
 		'relative isolate overflow-hidden',
 		'w-full h-full',
 		sen.border,
-		maru.rounded,
+		maru.rounded.lg,
 		yasumi.disabled,
 	],
 	canvas: ['absolute inset-0'],
