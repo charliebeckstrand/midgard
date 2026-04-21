@@ -1,7 +1,9 @@
-export {
-	type DialogPanelVariants,
-	dialogPanel as dialogPanelVariants,
-} from '../../recipes/katachi/dialog'
+import { dialog } from '../../recipes/katachi/dialog'
+
+export type { DialogPanelVariants } from '../../recipes/katachi/dialog'
+
+export const dialogPanelVariants = dialog.panel
+
 export {
 	panelActions as dialogActionsVariants,
 	panelBody as dialogBodyVariants,
