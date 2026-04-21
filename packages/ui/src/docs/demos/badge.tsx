@@ -64,6 +64,16 @@ export default function BadgeDemo() {
 					))}
 				</Flex>
 			</Example>
+
+			<Example title="Rounded">
+				<Flex wrap gap={2}>
+					{sizes.map(({ value, label }) => (
+						<Badge key={value} size={value} rounded="full" variant="outline">
+							{label}
+						</Badge>
+					))}
+				</Flex>
+			</Example>
 		</Stack>
 	)
 }
