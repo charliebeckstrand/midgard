@@ -1,8 +1,15 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { colorMatrix } from '../../core/recipe'
+import { iro } from '../../core/recipe'
 import { maru } from '../maru'
 import { nuri } from '../nuri'
 import { take } from '../take'
+
+const { color, compoundVariants } = iro({
+	solid: nuri.solid,
+	soft: nuri.soft,
+	outline: nuri.outline,
+	plain: nuri.text,
+})
 
 export const badge = tv({
 	base: ['group inline-flex w-fit items-center', 'font-medium'],
@@ -13,15 +20,10 @@ export const badge = tv({
 			outline: [maru.roundedMd, 'border'],
 			plain: [maru.roundedMd, 'border border-transparent'],
 		},
-		color: { zinc: '', red: '', amber: '', green: '', blue: '' },
+		color,
 		size: take.badge,
 	},
-	compoundVariants: [
-		...colorMatrix('solid', nuri.solid),
-		...colorMatrix('soft', nuri.soft),
-		...colorMatrix('outline', nuri.outline),
-		...colorMatrix('plain', nuri.text),
-	],
+	compoundVariants,
 	defaultVariants: { variant: 'soft', color: 'zinc', size: 'md' },
 })
 

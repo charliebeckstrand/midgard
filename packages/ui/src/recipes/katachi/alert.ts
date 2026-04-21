@@ -1,10 +1,17 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { colorMatrix } from '../../core/recipe'
+import { iro } from '../../core/recipe'
 import { kage } from '../kage'
 import { maru } from '../maru'
 import { nuri } from '../nuri'
 import { sawari } from '../sawari'
 import { take } from '../take'
+
+const { color, compoundVariants } = iro({
+	solid: nuri.solid,
+	soft: nuri.soft,
+	outline: nuri.outline,
+	plain: nuri.text,
+})
 
 export const alert = tv({
 	base: ['flex w-fit', 'px-4 py-3.5', take.gap.md, take.text.md, maru.rounded],
@@ -15,14 +22,9 @@ export const alert = tv({
 			outline: ['border'],
 			plain: ['border border-transparent'],
 		},
-		color: { zinc: '', red: '', amber: '', green: '', blue: '' },
+		color,
 	},
-	compoundVariants: [
-		...colorMatrix('solid', nuri.solid),
-		...colorMatrix('soft', nuri.soft),
-		...colorMatrix('outline', nuri.outline),
-		...colorMatrix('plain', nuri.text),
-	],
+	compoundVariants,
 	defaultVariants: { variant: 'soft', color: 'zinc' },
 })
 

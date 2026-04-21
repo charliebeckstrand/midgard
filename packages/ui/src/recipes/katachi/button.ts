@@ -1,5 +1,5 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { colorMatrix } from '../../core/recipe'
+import { iro } from '../../core/recipe'
 import { kage } from '../kage'
 import { ki } from '../ki'
 import { kumi } from '../kumi'
@@ -9,6 +9,15 @@ import { omote } from '../omote'
 import { sawari } from '../sawari'
 import { take } from '../take'
 import { yasumi } from '../yasumi'
+
+const { color, compoundVariants } = iro({
+	solid: nuri.buttonSolid,
+	soft: nuri.buttonSoft,
+	outline: nuri.buttonOutline,
+	plain: nuri.buttonPlain,
+	ghost: nuri.buttonGhost,
+	glass: nuri.buttonPlain,
+})
 
 export const button = tv({
 	base: [
@@ -33,17 +42,10 @@ export const button = tv({
 			ghost: [...kage.borderTransparent],
 			glass: [...kage.borderTransparent, ...omote.glass],
 		},
-		color: { zinc: '', red: '', amber: '', green: '', blue: '', inherit: '' },
+		color,
 		size: take.button,
 	},
-	compoundVariants: [
-		...colorMatrix('solid', nuri.buttonSolid),
-		...colorMatrix('soft', nuri.buttonSoft),
-		...colorMatrix('outline', nuri.buttonOutline),
-		...colorMatrix('plain', nuri.buttonPlain),
-		...colorMatrix('ghost', nuri.buttonGhost),
-		...colorMatrix('glass', nuri.buttonPlain),
-	],
+	compoundVariants,
 	defaultVariants: { variant: 'solid', color: 'zinc', size: 'md' },
 })
 

@@ -1,8 +1,14 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { colorMatrix } from '../../core/recipe'
+import { iro } from '../../core/recipe'
 import { maru } from '../maru'
 import { nuri } from '../nuri'
 import { take } from '../take'
+
+const { color, compoundVariants } = iro({
+	solid: nuri.solid,
+	soft: nuri.soft,
+	outline: nuri.outline,
+})
 
 export const avatar = tv({
 	base: [
@@ -16,14 +22,10 @@ export const avatar = tv({
 			soft: 'border border-transparent',
 			outline: 'border',
 		},
-		color: { zinc: '', red: '', amber: '', green: '', blue: '' },
+		color,
 		size: take.avatar,
 	},
-	compoundVariants: [
-		...colorMatrix('solid', nuri.solid),
-		...colorMatrix('soft', nuri.soft),
-		...colorMatrix('outline', nuri.outline),
-	],
+	compoundVariants,
 	defaultVariants: { variant: 'solid', color: 'zinc', size: 'md' },
 })
 
