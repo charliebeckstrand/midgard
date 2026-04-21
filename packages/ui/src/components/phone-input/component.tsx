@@ -2,7 +2,7 @@
 
 import { Phone } from 'lucide-react'
 import { forwardRef } from 'react'
-import { useControllable } from '../../hooks'
+import { useMaskedInput } from '../../hooks'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
 
@@ -55,13 +55,7 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
 	{ country = 'US', value, defaultValue, onChange, prefix, ...props },
 	ref,
 ) {
-	const format = formatters[country]
-
-	const [current, setCurrent] = useControllable<string>({
-		value,
-		defaultValue: defaultValue !== undefined ? format(defaultValue) : '',
-		onChange: onChange ? (v) => onChange(v ?? '') : undefined,
-	})
+	const masked = useMaskedInput({ value, defaultValue, onChange, format: formatters[country] })
 
 	return (
 		<Input
@@ -70,8 +64,8 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
 			inputMode="tel"
 			autoComplete="tel"
 			prefix={prefix ?? <Icon icon={<Phone />} />}
-			value={current ?? ''}
-			onChange={(e) => setCurrent(format(e.target.value))}
+			value={masked.value}
+			onChange={masked.onChange}
 			{...props}
 		/>
 	)

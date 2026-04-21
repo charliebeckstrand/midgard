@@ -1,7 +1,8 @@
 'use client'
 
-import { type RefObject, useEffect, useMemo, useState } from 'react'
+import { type RefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { cn } from '../../core'
+import { useControllable } from '../../hooks'
 import { ActiveIndicator, ActiveIndicatorScope } from '../../primitives'
 import { Link } from '../../primitives/link'
 import { slots as k } from '../../recipes/katachi/toc'
@@ -50,11 +51,26 @@ export function Toc({
 }: TocProps) {
 	const [scanned, setScanned] = useState<readonly TocItem[]>([])
 
-	const [internalActiveId, setInternalActiveId] = useState<string | undefined>(undefined)
+	const onActiveChangeRef = useRef(onActiveChange)
+
+	onActiveChangeRef.current = onActiveChange
+
+	const onControllableChange = useCallback((next: string | undefined) => {
+		const fn = onActiveChangeRef.current
+
+		if (fn && next !== undefined) fn(next)
+	}, [])
+
+	const [activeId, setActiveId] = useControllable<string>({
+		value: activeIdProp,
+		onChange: onControllableChange,
+	})
+
+	const activeIdRef = useRef(activeId)
+
+	activeIdRef.current = activeId
 
 	const headings = items ?? scanned
-
-	const activeId = activeIdProp ?? internalActiveId
 
 	useEffect(() => {
 		if (items) return
@@ -97,13 +113,7 @@ export function Toc({
 
 			current ??= headings[0]?.id
 
-			setInternalActiveId((prev) => {
-				if (prev === current) return prev
-
-				if (current !== undefined) onActiveChange?.(current)
-
-				return current
-			})
+			if (current !== undefined && activeIdRef.current !== current) setActiveId(current)
 		}
 
 		const onScroll = () => {
@@ -125,7 +135,7 @@ export function Toc({
 
 			window.removeEventListener('resize', onScroll)
 		}
-	}, [container, headings, offsetTop, activeIdProp, onActiveChange])
+	}, [container, headings, offsetTop, activeIdProp, setActiveId])
 
 	const minLevel = useMemo(
 		() => headings.reduce((m, h) => Math.min(m, h.level), Number.POSITIVE_INFINITY),

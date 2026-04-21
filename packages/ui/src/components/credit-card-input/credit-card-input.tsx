@@ -2,7 +2,7 @@
 
 import { CreditCard } from 'lucide-react'
 import { forwardRef, useMemo } from 'react'
-import { useControllable } from '../../hooks'
+import { useMaskedInput } from '../../hooks'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
 import { type CreditCardBrand, formatCardNumber } from './utilities'
@@ -24,13 +24,14 @@ export const CreditCardInput = forwardRef<HTMLInputElement, CreditCardInputProps
 		{ value, defaultValue, placeholder, onChange, onBrandChange, prefix, suffix, ...props },
 		ref,
 	) {
-		const [current, setCurrent] = useControllable<string>({
+		const masked = useMaskedInput({
 			value,
-			defaultValue: defaultValue !== undefined ? formatCardNumber(defaultValue).formatted : '',
-			onChange: onChange ? (v) => onChange(v ?? '') : undefined,
+			defaultValue,
+			onChange,
+			format: (raw) => formatCardNumber(raw).formatted,
 		})
 
-		const { brand } = useMemo(() => formatCardNumber(current ?? ''), [current])
+		const { brand } = useMemo(() => formatCardNumber(masked.value), [masked.value])
 
 		return (
 			<Input
@@ -41,13 +42,11 @@ export const CreditCardInput = forwardRef<HTMLInputElement, CreditCardInputProps
 				placeholder={placeholder ?? '1234 1234 1234 1234'}
 				prefix={prefix ?? <Icon icon={<CreditCard />} />}
 				suffix={suffix ?? (brand ? brand.label : undefined)}
-				value={current ?? ''}
+				value={masked.value}
 				onChange={(e) => {
-					const next = formatCardNumber(e.target.value)
+					masked.setValue(e.target.value)
 
-					setCurrent(next.formatted)
-
-					onBrandChange?.(next.brand?.brand)
+					onBrandChange?.(formatCardNumber(e.target.value).brand?.brand)
 				}}
 				{...props}
 			/>

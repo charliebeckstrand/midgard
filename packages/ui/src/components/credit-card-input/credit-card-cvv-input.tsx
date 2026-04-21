@@ -1,7 +1,7 @@
 'use client'
 
 import { forwardRef } from 'react'
-import { useControllable } from '../../hooks'
+import { useMaskedInput } from '../../hooks'
 import { Input, type InputProps } from '../input'
 import { type CreditCardBrand, type CreditCardBrandInfo, formatCvv } from './utilities'
 
@@ -42,10 +42,11 @@ export const CreditCardCvvInput = forwardRef<HTMLInputElement, CreditCardCvvInpu
 	) {
 		const maxLength = resolveCvvLength(brand)
 
-		const [current, setCurrent] = useControllable<string>({
+		const masked = useMaskedInput({
 			value,
-			defaultValue: defaultValue !== undefined ? formatCvv(defaultValue, maxLength) : '',
-			onChange: onChange ? (v) => onChange(v ?? '') : undefined,
+			defaultValue,
+			onChange,
+			format: (raw) => formatCvv(raw, maxLength),
 		})
 
 		return (
@@ -56,8 +57,8 @@ export const CreditCardCvvInput = forwardRef<HTMLInputElement, CreditCardCvvInpu
 				autoComplete="cc-csc"
 				maxLength={maxLength}
 				placeholder={placeholder ?? (maxLength === 4 ? '1234' : '123')}
-				value={current ?? ''}
-				onChange={(e) => setCurrent(formatCvv(e.target.value, maxLength))}
+				value={masked.value}
+				onChange={masked.onChange}
 				{...props}
 			/>
 		)

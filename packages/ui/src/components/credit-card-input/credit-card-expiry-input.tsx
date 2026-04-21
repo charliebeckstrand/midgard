@@ -1,7 +1,7 @@
 'use client'
 
 import { forwardRef } from 'react'
-import { useControllable } from '../../hooks'
+import { useMaskedInput } from '../../hooks'
 import { Input, type InputProps } from '../input'
 import { formatExpiry } from './utilities'
 
@@ -17,11 +17,7 @@ export type CreditCardExpiryInputProps = Omit<
 
 export const CreditCardExpiryInput = forwardRef<HTMLInputElement, CreditCardExpiryInputProps>(
 	function CreditCardExpiryInput({ value, defaultValue, placeholder, onChange, ...props }, ref) {
-		const [current, setCurrent] = useControllable<string>({
-			value,
-			defaultValue: defaultValue !== undefined ? formatExpiry(defaultValue) : '',
-			onChange: onChange ? (v) => onChange(v ?? '') : undefined,
-		})
+		const masked = useMaskedInput({ value, defaultValue, onChange, format: formatExpiry })
 
 		return (
 			<Input
@@ -30,19 +26,19 @@ export const CreditCardExpiryInput = forwardRef<HTMLInputElement, CreditCardExpi
 				inputMode="numeric"
 				autoComplete="cc-exp"
 				placeholder={placeholder ?? 'MM/YY'}
-				value={current ?? ''}
+				value={masked.value}
 				onChange={(e) => {
 					const raw = e.target.value
 
 					// Backspace over the auto-inserted "/" should delete the preceding digit,
 					// otherwise the formatter would re-append "/" and trap the caret.
-					if (current?.endsWith('/') && raw === current.slice(0, -1)) {
-						setCurrent(formatExpiry(raw.slice(0, -1)))
+					if (masked.value.endsWith('/') && raw === masked.value.slice(0, -1)) {
+						masked.setValue(raw.slice(0, -1))
 
 						return
 					}
 
-					setCurrent(formatExpiry(raw))
+					masked.setValue(raw)
 				}}
 				{...props}
 			/>
