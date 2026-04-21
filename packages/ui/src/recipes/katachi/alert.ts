@@ -32,9 +32,9 @@ export const alert = tv({
 /** Slot classes for sub-elements. */
 export const slots = {
 	icon: 'shrink-0',
-	content: 'flex flex-col flex-1 min-w-0',
 	title: [ji.size.md, 'font-semibold'],
 	description: 'leading-loose',
+	content: 'flex flex-col flex-1 min-w-0',
 	actions: ['mt-2 flex items-center', kumi.gap.sm],
 	close: ['shrink-0', '-m-1 p-1', maru.roundedMd, sawari.cursor],
 }
