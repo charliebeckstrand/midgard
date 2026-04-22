@@ -1,7 +1,7 @@
 'use client'
 
 import { X } from 'lucide-react'
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import { type Ref, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
 import { Button } from '../button'
@@ -35,25 +35,24 @@ export type SignaturePadProps = {
 	/** Hide the built-in clear button. */
 	hideClear?: boolean
 	'aria-label'?: string
+	ref?: Ref<SignaturePadHandle>
 	className?: string
 }
 
-export const SignaturePad = forwardRef<SignaturePadHandle, SignaturePadProps>(function SignaturePad(
-	{
-		value,
-		defaultValue,
-		onChange,
-		disabled,
-		readOnly,
-		placeholder = 'Sign here',
-		strokeColor = '#18181b',
-		strokeWidth = 2,
-		hideClear,
-		'aria-label': ariaLabel = 'Signature',
-		className,
-	},
+export function SignaturePad({
+	value,
+	defaultValue,
+	onChange,
+	disabled,
+	readOnly,
+	placeholder = 'Sign here',
+	strokeColor = '#18181b',
+	strokeWidth = 2,
+	hideClear,
+	'aria-label': ariaLabel = 'Signature',
 	ref,
-) {
+	className,
+}: SignaturePadProps) {
 	const [current, setCurrent] = useControllable<string | null>({
 		value,
 		defaultValue: defaultValue ?? null,
@@ -185,4 +184,4 @@ export const SignaturePad = forwardRef<SignaturePadHandle, SignaturePadProps>(fu
 			)}
 		</div>
 	)
-})
+}

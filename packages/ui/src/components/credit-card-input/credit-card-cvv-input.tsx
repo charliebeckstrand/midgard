@@ -1,6 +1,5 @@
 'use client'
 
-import { forwardRef } from 'react'
 import { useMaskedInput } from '../../hooks'
 import { Input, type InputProps } from '../input'
 import { type CreditCardBrand, type CreditCardBrandInfo, formatCvv } from './utilities'
@@ -35,32 +34,35 @@ function resolveCvvLength(brand: CreditCardCvvInputProps['brand']): number {
 	return brand.cvvLength
 }
 
-export const CreditCardCvvInput = forwardRef<HTMLInputElement, CreditCardCvvInputProps>(
-	function CreditCardCvvInput(
-		{ value, defaultValue, onChange, brand, placeholder, ...props },
-		ref,
-	) {
-		const maxLength = resolveCvvLength(brand)
+export function CreditCardCvvInput({
+	value,
+	defaultValue,
+	onChange,
+	brand,
+	placeholder,
+	ref,
+	...props
+}: CreditCardCvvInputProps) {
+	const maxLength = resolveCvvLength(brand)
 
-		const masked = useMaskedInput({
-			value,
-			defaultValue,
-			onChange,
-			format: (raw) => formatCvv(raw, maxLength),
-		})
+	const masked = useMaskedInput({
+		value,
+		defaultValue,
+		onChange,
+		format: (raw) => formatCvv(raw, maxLength),
+	})
 
-		return (
-			<Input
-				ref={ref}
-				type="text"
-				inputMode="numeric"
-				autoComplete="cc-csc"
-				maxLength={maxLength}
-				placeholder={placeholder ?? (maxLength === 4 ? '1234' : '123')}
-				value={masked.value}
-				onChange={masked.onChange}
-				{...props}
-			/>
-		)
-	},
-)
+	return (
+		<Input
+			ref={ref}
+			type="text"
+			inputMode="numeric"
+			autoComplete="cc-csc"
+			maxLength={maxLength}
+			placeholder={placeholder ?? (maxLength === 4 ? '1234' : '123')}
+			value={masked.value}
+			onChange={masked.onChange}
+			{...props}
+		/>
+	)
+}

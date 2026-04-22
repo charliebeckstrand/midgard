@@ -1,7 +1,7 @@
 'use client'
 
 import { CreditCard } from 'lucide-react'
-import { forwardRef, useMemo } from 'react'
+import { useMemo } from 'react'
 import { useMaskedInput } from '../../hooks'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
@@ -19,37 +19,42 @@ export type CreditCardInputProps = Omit<
 	prefix?: React.ReactNode
 }
 
-export const CreditCardInput = forwardRef<HTMLInputElement, CreditCardInputProps>(
-	function CreditCardInput(
-		{ value, defaultValue, placeholder, onChange, onBrandChange, prefix, suffix, ...props },
-		ref,
-	) {
-		const masked = useMaskedInput({
-			value,
-			defaultValue,
-			onChange,
-			format: (raw) => formatCardNumber(raw).formatted,
-		})
+export function CreditCardInput({
+	value,
+	defaultValue,
+	placeholder,
+	onChange,
+	onBrandChange,
+	prefix,
+	suffix,
+	ref,
+	...props
+}: CreditCardInputProps) {
+	const masked = useMaskedInput({
+		value,
+		defaultValue,
+		onChange,
+		format: (raw) => formatCardNumber(raw).formatted,
+	})
 
-		const { brand } = useMemo(() => formatCardNumber(masked.value), [masked.value])
+	const { brand } = useMemo(() => formatCardNumber(masked.value), [masked.value])
 
-		return (
-			<Input
-				ref={ref}
-				type="text"
-				inputMode="numeric"
-				autoComplete="cc-number"
-				placeholder={placeholder ?? '1234 1234 1234 1234'}
-				prefix={prefix ?? <Icon icon={<CreditCard />} />}
-				suffix={suffix ?? (brand ? brand.label : undefined)}
-				value={masked.value}
-				onChange={(e) => {
-					masked.setValue(e.target.value)
+	return (
+		<Input
+			ref={ref}
+			type="text"
+			inputMode="numeric"
+			autoComplete="cc-number"
+			placeholder={placeholder ?? '1234 1234 1234 1234'}
+			prefix={prefix ?? <Icon icon={<CreditCard />} />}
+			suffix={suffix ?? (brand ? brand.label : undefined)}
+			value={masked.value}
+			onChange={(e) => {
+				masked.setValue(e.target.value)
 
-					onBrandChange?.(formatCardNumber(e.target.value).brand?.brand)
-				}}
-				{...props}
-			/>
-		)
-	},
-)
+				onBrandChange?.(formatCardNumber(e.target.value).brand?.brand)
+			}}
+			{...props}
+		/>
+	)
+}

@@ -1,7 +1,7 @@
 'use client'
 
 import { CornerLeftDown, X } from 'lucide-react'
-import { forwardRef, useCallback, useImperativeHandle, useRef, useState } from 'react'
+import { type Ref, useCallback, useImperativeHandle, useRef, useState } from 'react'
 import { useControllable, useTagKeyboard } from '../../hooks'
 import type { Color } from '../../recipes/iro'
 import { Badge } from '../badge'
@@ -29,13 +29,24 @@ export type TagInputProps = {
 	max?: number
 	/** Validates a tag before adding. Return false to reject. */
 	validate?: (tag: string) => boolean
+	ref?: Ref<HTMLInputElement>
 	className?: string
 }
 
-export const TagInput = forwardRef<HTMLInputElement, TagInputProps>(function TagInput(
-	{ id, size, tag, value, defaultValue, onChange, placeholder, disabled, max, validate, className },
+export function TagInput({
+	id,
+	size,
+	tag,
+	value,
+	defaultValue,
+	onChange,
+	placeholder,
+	disabled,
+	max,
+	validate,
 	ref,
-) {
+	className,
+}: TagInputProps) {
 	const [tags = [], setTags] = useControllable<string[]>({
 		value,
 		defaultValue: defaultValue ?? [],
@@ -166,4 +177,4 @@ export const TagInput = forwardRef<HTMLInputElement, TagInputProps>(function Tag
 			className={className}
 		/>
 	)
-})
+}
