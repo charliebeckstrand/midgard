@@ -6,7 +6,7 @@ import type React from 'react'
 import { cn } from '../../core'
 import { PopoverPanel } from '../../primitives'
 import { maru, omote } from '../../recipes'
-import { useMenuContext } from './menu'
+import { useMenuActions, useMenuState } from './menu'
 import { k } from './variants'
 
 export type MenuContentProps = {
@@ -15,14 +15,8 @@ export type MenuContentProps = {
 }
 
 export function MenuContent({ className, children }: MenuContentProps) {
-	const {
-		open,
-		close,
-		static: isStatic,
-		setFloating,
-		floatingStyles,
-		getFloatingProps,
-	} = useMenuContext()
+	const { open, floatingStyles, getFloatingProps } = useMenuState()
+	const { close, static: isStatic, setFloating } = useMenuActions()
 
 	if (isStatic) {
 		return (

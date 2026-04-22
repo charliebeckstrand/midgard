@@ -12,20 +12,36 @@ import { useCallback, useMemo, useRef, useState } from 'react'
 import { cn, createContext } from '../../core'
 import { useFloatingPanel } from '../../hooks'
 
-type MenuContextValue = {
+type MenuStateValue = {
 	open: boolean
+	floatingStyles: React.CSSProperties
+	getReferenceProps: () => Record<string, unknown>
+	getFloatingProps: () => Record<string, unknown>
+}
+
+type MenuActionsValue = {
 	setOpen: (open: boolean) => void
 	close: () => void
 	static: boolean
 	triggerRef: React.RefObject<HTMLButtonElement | null>
 	setReference: (node: HTMLElement | null) => void
 	setFloating: (node: HTMLElement | null) => void
-	floatingStyles: React.CSSProperties
-	getReferenceProps: () => Record<string, unknown>
-	getFloatingProps: () => Record<string, unknown>
 }
 
-export const [MenuProvider, useMenuContext] = createContext<MenuContextValue>('Menu')
+export type MenuContextValue = MenuStateValue & MenuActionsValue
+
+const [MenuStateProvider, useMenuState] = createContext<MenuStateValue>('Menu')
+const [MenuActionsProvider, useMenuActions] = createContext<MenuActionsValue>('Menu')
+
+export { useMenuActions, useMenuState }
+
+/** Returns combined state + actions. Prefer `useMenuActions` in leaves that only need `close`. */
+export function useMenuContext(): MenuContextValue {
+	const state = useMenuState()
+	const actions = useMenuActions()
+
+	return { ...state, ...actions }
+}
 
 export type MenuProps = {
 	defaultOpen?: boolean
@@ -84,40 +100,39 @@ export function Menu({ defaultOpen = false, placement, className, children }: Me
 		setOpen(true)
 	}, [])
 
-	const ctx = useMemo<MenuContextValue>(
+	const state = useMemo<MenuStateValue>(
 		() => ({
 			open,
+			floatingStyles,
+			getReferenceProps,
+			getFloatingProps,
+		}),
+		[open, floatingStyles, getReferenceProps, getFloatingProps],
+	)
+
+	const actions = useMemo<MenuActionsValue>(
+		() => ({
 			setOpen,
 			close,
 			static: isStatic,
 			triggerRef,
 			setReference: refs.setReference,
 			setFloating: refs.setFloating,
-			floatingStyles,
-			getReferenceProps,
-			getFloatingProps,
 		}),
-		[
-			open,
-			close,
-			isStatic,
-			refs.setReference,
-			refs.setFloating,
-			floatingStyles,
-			getReferenceProps,
-			getFloatingProps,
-		],
+		[close, isStatic, refs.setReference, refs.setFloating],
 	)
 
 	return (
-		<MenuProvider value={ctx}>
-			<div
-				data-slot="menu"
-				className={cn(className)}
-				{...(!isDropdown && { role: 'application', onContextMenu: handleContextMenu })}
-			>
-				{children}
-			</div>
-		</MenuProvider>
+		<MenuActionsProvider value={actions}>
+			<MenuStateProvider value={state}>
+				<div
+					data-slot="menu"
+					className={cn(className)}
+					{...(!isDropdown && { role: 'application', onContextMenu: handleContextMenu })}
+				>
+					{children}
+				</div>
+			</MenuStateProvider>
+		</MenuActionsProvider>
 	)
 }

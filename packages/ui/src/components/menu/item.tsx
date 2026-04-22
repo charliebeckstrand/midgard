@@ -4,7 +4,7 @@ import type React from 'react'
 import { cn } from '../../core'
 import { Link } from '../../primitives/link'
 import { Kbd, type KbdProps } from '../kbd'
-import { useMenuContext } from './menu'
+import { useMenuActions } from './menu'
 import { k } from './variants'
 
 type MenuItemBaseProps = {
@@ -31,7 +31,7 @@ export function MenuItem({
 	href,
 	...props
 }: MenuItemProps) {
-	const { close } = useMenuContext()
+	const { close } = useMenuActions()
 
 	function handleSelect() {
 		if (disabled) return
