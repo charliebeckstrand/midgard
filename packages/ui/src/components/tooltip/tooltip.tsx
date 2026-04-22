@@ -13,7 +13,7 @@ import {
 } from '@floating-ui/react'
 import { AnimatePresence, motion } from 'motion/react'
 import type React from 'react'
-import { isValidElement, useState } from 'react'
+import { isValidElement, useMemo, useState } from 'react'
 import { cn } from '../../core'
 import { useFloatingPanel, useHasHover } from '../../hooks'
 import { ugoki } from '../../recipes'
@@ -43,20 +43,28 @@ export function Tooltip({
 }: TooltipProps) {
 	const [open, setOpen] = useState(false)
 
-	let contentClassName: string | undefined
+	const { trigger, contentClassName, contentChildren } = useMemo(() => {
+		const arr = Array.isArray(children) ? children : [children]
 
-	let contentChildren: React.ReactNode = null
+		let trigger: React.ReactNode = null
+		let contentClassName: string | undefined
+		let contentChildren: React.ReactNode = null
 
-	const childArray = Array.isArray(children) ? children : [children]
+		for (const child of arr) {
+			if (!isValidElement(child)) continue
 
-	for (const child of childArray) {
-		if (isValidElement(child) && child.type === TooltipContent) {
-			const contentProps = child.props as TooltipContentProps
+			if (child.type === TooltipTrigger) {
+				trigger = child
+			} else if (child.type === TooltipContent) {
+				const contentProps = child.props as TooltipContentProps
 
-			contentClassName = contentProps.className
-			contentChildren = contentProps.children
+				contentClassName = contentProps.className
+				contentChildren = contentProps.children
+			}
 		}
-	}
+
+		return { trigger, contentClassName, contentChildren }
+	}, [children])
 
 	const { refs, floatingStyles, context } = useFloatingPanel({
 		placement,
@@ -88,14 +96,6 @@ export function Tooltip({
 		dismiss,
 		role,
 	])
-
-	let trigger: React.ReactNode = null
-
-	for (const child of childArray) {
-		if (isValidElement(child) && child.type === TooltipTrigger) {
-			trigger = child
-		}
-	}
 
 	return (
 		<div
