@@ -92,7 +92,13 @@ export function hasRules(group: QueryGroup): boolean {
 
 // ── Immutable tree helpers ─────────────────────────────
 
-/** Apply a transform to the node matching `id`, walking recursively. */
+/**
+ * Apply a transform to the node matching `id`, walking recursively.
+ *
+ * Returns the same `tree` reference when `id` is not found — this keeps
+ * unrelated subtrees referentially equal so memoized descendants can skip
+ * re-renders.
+ */
 export function mapNode(
 	tree: QueryGroup,
 	id: string,
@@ -100,34 +106,83 @@ export function mapNode(
 ): QueryGroup {
 	if (tree.id === id) return fn(tree) as QueryGroup
 
-	return {
-		...tree,
-		children: tree.children.map((child) => {
-			if (child.id === id) return fn(child)
+	const { children } = tree
 
-			if (child.type === 'group') return mapNode(child, id, fn)
+	for (let i = 0; i < children.length; i++) {
+		const child = children[i] as QueryNode
 
-			return child
-		}),
+		let nextChild: QueryNode | undefined
+
+		if (child.id === id) {
+			nextChild = fn(child)
+		} else if (child.type === 'group') {
+			const mapped = mapNode(child, id, fn)
+
+			if (mapped !== child) nextChild = mapped
+		}
+
+		if (nextChild !== undefined) {
+			const nextChildren = children.slice()
+
+			nextChildren[i] = nextChild
+
+			return { ...tree, children: nextChildren }
+		}
 	}
+
+	return tree
 }
 
 export function addChild(tree: QueryGroup, parentId: string, node: QueryNode): QueryGroup {
 	if (tree.id === parentId) return { ...tree, children: [...tree.children, node] }
 
-	return {
-		...tree,
-		children: tree.children.map((child) =>
-			child.type === 'group' ? addChild(child, parentId, node) : child,
-		),
+	const { children } = tree
+
+	for (let i = 0; i < children.length; i++) {
+		const child = children[i] as QueryNode
+
+		if (child.type !== 'group') continue
+
+		const mapped = addChild(child, parentId, node)
+
+		if (mapped !== child) {
+			const nextChildren = children.slice()
+
+			nextChildren[i] = mapped
+
+			return { ...tree, children: nextChildren }
+		}
 	}
+
+	return tree
 }
 
 export function removeChild(tree: QueryGroup, id: string): QueryGroup {
-	return {
-		...tree,
-		children: tree.children
-			.filter((child) => child.id !== id)
-			.map((child) => (child.type === 'group' ? removeChild(child, id) : child)),
+	const { children } = tree
+
+	for (let i = 0; i < children.length; i++) {
+		const child = children[i] as QueryNode
+
+		if (child.id === id) {
+			const nextChildren = children.slice()
+
+			nextChildren.splice(i, 1)
+
+			return { ...tree, children: nextChildren }
+		}
+
+		if (child.type === 'group') {
+			const mapped = removeChild(child, id)
+
+			if (mapped !== child) {
+				const nextChildren = children.slice()
+
+				nextChildren[i] = mapped
+
+				return { ...tree, children: nextChildren }
+			}
+		}
 	}
+
+	return tree
 }

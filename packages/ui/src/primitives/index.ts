@@ -43,3 +43,4 @@ export {
 	type ToggleGroupProps,
 } from './toggle'
 export { TouchTarget } from './touch-target'
+export { VirtualOptions, type VirtualOptionsProps } from './virtual-options'

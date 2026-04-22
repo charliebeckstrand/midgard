@@ -284,4 +284,27 @@ describe('EditableGrid', () => {
 
 		expect(onChange).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'rate', value: '' }])
 	})
+
+	it('renders only a subset of rows when virtualized', () => {
+		const manyRows: Row[] = Array.from({ length: 500 }, (_, i) => ({
+			id: i,
+			state: 'CA',
+			rate: i,
+		}))
+
+		const { container } = renderUI(
+			<EditableGrid
+				columns={columns}
+				rows={manyRows}
+				getRowKey={(row) => row.id}
+				onChange={() => {}}
+				virtualize
+				maxHeight="300px"
+			/>,
+		)
+
+		const rendered = container.querySelectorAll('tbody tr:not([data-slot="data-table-spacer"])')
+
+		expect(rendered.length).toBeLessThan(manyRows.length)
+	})
 })

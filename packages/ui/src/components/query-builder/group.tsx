@@ -7,7 +7,7 @@ import { Flex } from '../flex'
 import { HoldButton } from '../hold-button'
 import { Segment, SegmentControl, SegmentItem } from '../segment'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
-import { useQueryBuilderContext } from './context'
+import { useQueryBuilderActions, useQueryBuilderState } from './context'
 import { QueryRule } from './rule'
 import type { QueryCombinator, QueryGroup as QueryGroupNode } from './types'
 import { k } from './variants'
@@ -22,7 +22,8 @@ export type QueryGroupProps = {
 }
 
 export function QueryGroup({ group, root, className }: QueryGroupProps) {
-	const { updateCombinator, addRule, addGroup, remove, disabled } = useQueryBuilderContext()
+	const { disabled } = useQueryBuilderState()
+	const { updateCombinator, addRule, addGroup, remove } = useQueryBuilderActions()
 
 	return (
 		<div

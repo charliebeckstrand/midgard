@@ -1,14 +1,14 @@
 'use client'
 
 import { Trash } from 'lucide-react'
-import { useCallback, useMemo } from 'react'
+import { memo, useCallback, useMemo } from 'react'
 import { cn } from '../../core'
 import { Button } from '../button'
 import { Flex } from '../flex'
 import { Icon } from '../icon'
 import { ListboxOption } from '../listbox'
 import { Select } from '../select'
-import { useQueryBuilderContext } from './context'
+import { useQueryBuilderActions, useQueryBuilderState } from './context'
 import { QueryRuleValue } from './rule-value'
 import type { QueryRule as QueryRuleNode } from './types'
 import { getOperators } from './utilities'
@@ -21,8 +21,9 @@ export type QueryRuleProps = {
 	className?: string
 }
 
-export function QueryRule({ rule, className }: QueryRuleProps) {
-	const { fields, getField, updateRule, remove, disabled } = useQueryBuilderContext()
+function QueryRuleImpl({ rule, className }: QueryRuleProps) {
+	const { fields, getField, disabled } = useQueryBuilderState()
+	const { updateRule, remove } = useQueryBuilderActions()
 
 	const field = getField(rule.field)
 
@@ -116,3 +117,5 @@ export function QueryRule({ rule, className }: QueryRuleProps) {
 		</Flex>
 	)
 }
+
+export const QueryRule = memo(QueryRuleImpl)

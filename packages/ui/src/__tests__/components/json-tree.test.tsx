@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { JsonTree } from '../../components/json-tree'
+import {
+	buildSearchIndex,
+	flattenTree,
+	normalizeSearch,
+} from '../../components/json-tree/utilities'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('JsonTree', () => {
@@ -60,5 +65,99 @@ describe('JsonTree', () => {
 		renderUI(<JsonTree data={{ items: [1, 2, 3] }} defaultExpandDepth={1} />)
 
 		expect(screen.getByText('3 items')).toBeInTheDocument()
+	})
+
+	describe('virtualize', () => {
+		it('throws when virtualize is set without maxHeight', () => {
+			expect(() => renderUI(<JsonTree data={{}} virtualize />)).toThrow(/requires `maxHeight`/)
+		})
+
+		it('mounts with data-slot="json-tree" when virtualized', () => {
+			const { container } = renderUI(
+				<JsonTree data={{ a: 1, b: 2 }} virtualize maxHeight="200px" />,
+			)
+
+			expect(bySlot(container, 'json-tree')).toBeInTheDocument()
+		})
+
+		it('never renders more rows than the flattened node count', () => {
+			const data = Object.fromEntries(Array.from({ length: 100 }, (_, i) => [`key_${i}`, i]))
+			const { container } = renderUI(
+				<JsonTree data={data} virtualize maxHeight="400px" defaultExpandDepth={1} />,
+			)
+
+			// jsdom reports zero viewport, so react-virtual renders 0 items plus
+			// any initial overscan. The assertion is that the row count is
+			// bounded — real-browser windowing is covered by the benchmarks.
+			const rows = container.querySelectorAll('[data-slot="json-node"], [data-slot="json-close"]')
+
+			expect(rows.length).toBeLessThanOrEqual(101) // 100 leaves + 1 close
+		})
+	})
+})
+
+describe('json-tree: flattenTree', () => {
+	const empty = new Set<string>()
+
+	function flatten(
+		data: Parameters<typeof flattenTree>[0],
+		expanded: Set<string>,
+		rootKey = 'root',
+	) {
+		const searchIndex = buildSearchIndex(data, '')
+		const { value, filter } = normalizeSearch(undefined)
+
+		return flattenTree(data, rootKey, expanded, value, filter, searchIndex)
+	}
+
+	it('emits a single branch-open row for an unopened root', () => {
+		const out = flatten({ a: 1, b: 2 }, empty)
+
+		expect(out).toHaveLength(1)
+		expect(out[0]?.kind).toBe('branch-open')
+	})
+
+	it('emits branch-open + children + branch-close when a branch is open', () => {
+		const out = flatten({ a: 1, b: 2 }, new Set(['root']))
+
+		expect(out.map((n) => n.kind)).toEqual(['branch-open', 'leaf', 'leaf', 'branch-close'])
+	})
+
+	it('recurses into open nested branches', () => {
+		const data = { outer: { inner: { leaf: 1 } } }
+		const out = flatten(data, new Set(['root', 'root.outer', 'root.outer.inner']))
+
+		const kinds = out.map((n) => n.kind)
+
+		expect(kinds).toEqual([
+			'branch-open',
+			'branch-open',
+			'branch-open',
+			'leaf',
+			'branch-close',
+			'branch-close',
+			'branch-close',
+		])
+	})
+
+	it('tracks depth correctly as it descends', () => {
+		const data = { outer: { inner: { leaf: 1 } } }
+		const out = flatten(data, new Set(['root', 'root.outer', 'root.outer.inner']))
+
+		expect(out.find((n) => n.kind === 'leaf')?.depth).toBe(3)
+	})
+
+	it('filters leaves when search is active with filter=true', () => {
+		const searchIndex = buildSearchIndex({ a: 'yes', b: 'no' }, 'yes')
+		const out = flattenTree(
+			{ a: 'yes', b: 'no' },
+			'root',
+			new Set(['root']),
+			'yes',
+			true,
+			searchIndex,
+		)
+
+		expect(out.filter((n) => n.kind === 'leaf')).toHaveLength(1)
 	})
 })

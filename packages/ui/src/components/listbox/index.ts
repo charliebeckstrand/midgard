@@ -7,3 +7,7 @@ export {
 	ListboxOption,
 	type ListboxOptionProps,
 } from './option'
+export {
+	ListboxVirtualOptions,
+	type ListboxVirtualOptionsProps,
+} from './virtual-options'

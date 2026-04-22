@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { Listbox } from '../../components/listbox'
+import { Listbox, ListboxVirtualOptions } from '../../components/listbox'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Listbox', () => {
@@ -73,5 +73,26 @@ describe('Listbox', () => {
 
 		expect(bySlot(container, 'listbox-button')).not.toBeInTheDocument()
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
+	})
+
+	it('ListboxVirtualOptions is exported and mounts', () => {
+		// Listbox opens on click; exercise the virtualization helper by mounting
+		// it inside a matching role="listbox" container.
+		const items = Array.from({ length: 500 }, (_, i) => ({ value: `v${i}`, label: `L${i}` }))
+
+		const { container } = renderUI(
+			<div role="listbox" style={{ maxHeight: '200px', overflow: 'auto' }}>
+				<ListboxVirtualOptions items={items} estimateSize={32}>
+					{(o) => (
+						<div key={o.value} role="option" tabIndex={-1}>
+							{o.label}
+						</div>
+					)}
+				</ListboxVirtualOptions>
+			</div>,
+		)
+
+		expect(bySlot(container, 'virtual-options')).toBeInTheDocument()
+		expect(container.querySelectorAll('[role="option"]').length).toBeLessThanOrEqual(items.length)
 	})
 })

@@ -56,4 +56,49 @@ describe('DataTable', () => {
 
 		expect(screen.queryByText('Alice')).not.toBeInTheDocument()
 	})
+
+	describe('virtualize', () => {
+		const manyRows = Array.from({ length: 500 }, (_, i) => ({
+			name: `Person ${i}`,
+			age: i,
+		}))
+
+		it('throws when virtualize is set without maxHeight', () => {
+			expect(() =>
+				renderUI(<DataTable columns={columns} rows={manyRows} getRowKey={getRowKey} virtualize />),
+			).toThrow(/requires `maxHeight`/)
+		})
+
+		it('renders only a subset of rows when virtualized', () => {
+			const { container } = renderUI(
+				<DataTable
+					columns={columns}
+					rows={manyRows}
+					getRowKey={getRowKey}
+					virtualize
+					maxHeight="300px"
+				/>,
+			)
+
+			// jsdom reports zero viewport size, so react-virtual renders roughly
+			// `overscan` rows. The point is that it's far fewer than 500.
+			const rendered = container.querySelectorAll('tbody tr:not([data-slot="data-table-spacer"])')
+
+			expect(rendered.length).toBeLessThan(manyRows.length)
+		})
+
+		it('accepts an options object', () => {
+			const { container } = renderUI(
+				<DataTable
+					columns={columns}
+					rows={manyRows}
+					getRowKey={getRowKey}
+					virtualize={{ estimateSize: 32, overscan: 5 }}
+					maxHeight="300px"
+				/>,
+			)
+
+			expect(bySlot(container, 'data-table')).toBeInTheDocument()
+		})
+	})
 })

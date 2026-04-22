@@ -89,24 +89,39 @@ export function List<T>({
 		[variant, interactive, activeId, liftedId, items.length, sortable, onItemKeyDown, onItemBlur],
 	)
 
+	const ul = (
+		<ul
+			aria-label={ariaLabel}
+			data-slot="list"
+			data-orientation={orientation}
+			className={cn(k.base, orientation === 'horizontal' && k.horizontal, className)}
+		>
+			{items.map((item, index) => {
+				const id = getKey(item)
+
+				// Skip the sortable-item registration entirely for read-only lists —
+				// `useSortableItem` does non-trivial per-item work (ref wiring, dnd
+				// context reads) even when `disabled: true`.
+				return interactive ? (
+					<ListItemSortable key={id} id={id}>
+						{children(item, index)}
+					</ListItemSortable>
+				) : (
+					<ListItemStatic key={id} id={id}>
+						{children(item, index)}
+					</ListItemStatic>
+				)
+			})}
+		</ul>
+	)
+
 	return (
 		<ListProvider value={ctxValue}>
-			<DndContext {...dndContextProps} onDragStart={handleDragStart}>
-				<SortableContext items={itemIds} strategy={strategy}>
-					<ul
-						aria-label={ariaLabel}
-						data-slot="list"
-						data-orientation={orientation}
-						className={cn(k.base, orientation === 'horizontal' && k.horizontal, className)}
-					>
-						{items.map((item, index) => (
-							<ListItemSortable key={getKey(item)} id={getKey(item)} interactive={interactive}>
-								{children(item, index)}
-							</ListItemSortable>
-						))}
-					</ul>
-				</SortableContext>
-				{interactive ? (
+			{interactive ? (
+				<DndContext {...dndContextProps} onDragStart={handleDragStart}>
+					<SortableContext items={itemIds} strategy={strategy}>
+						{ul}
+					</SortableContext>
 					<DragOverlay dropAnimation={null}>
 						{activeItem != null ? (
 							<ListItemProvider
@@ -124,8 +139,10 @@ export function List<T>({
 							</ListItemProvider>
 						) : null}
 					</DragOverlay>
-				) : null}
-			</DndContext>
+				</DndContext>
+			) : (
+				ul
+			)}
 		</ListProvider>
 	)
 }
@@ -136,13 +153,12 @@ export function List<T>({
 
 type ListItemSortableProps = {
 	id: string
-	interactive: boolean
 	children: ReactNode
 }
 
-function ListItemSortable({ id, interactive, children }: ListItemSortableProps) {
+function ListItemSortable({ id, children }: ListItemSortableProps) {
 	const { setNodeRef, setActivatorNodeRef, attributes, listeners, style, isDragging } =
-		useSortableItem({ id, disabled: !interactive })
+		useSortableItem({ id })
 
 	return (
 		<ListItemProvider
@@ -151,9 +167,37 @@ function ListItemSortable({ id, interactive, children }: ListItemSortableProps) 
 				setNodeRef,
 				setActivatorNodeRef,
 				attributes,
-				listeners: interactive ? listeners : undefined,
-				style: interactive ? style : {},
+				listeners,
+				style,
 				isDragging,
+			}}
+		>
+			{children}
+		</ListItemProvider>
+	)
+}
+
+// ── ListItemStatic (internal) ──────────────────────────
+// Read-only passthrough — no sortable-item registration, no dnd context reads.
+// Provides the same ListItemProvider shape so ListItem / ListHandle don't have
+// to branch on interactivity.
+
+type ListItemStaticProps = {
+	id: string
+	children: ReactNode
+}
+
+function ListItemStatic({ id, children }: ListItemStaticProps) {
+	return (
+		<ListItemProvider
+			value={{
+				id,
+				setNodeRef: noop,
+				setActivatorNodeRef: noop,
+				attributes: {} as never,
+				listeners: undefined,
+				style: {},
+				isDragging: false,
 			}}
 		>
 			{children}
