@@ -22,19 +22,20 @@ export function useControllable<T>(props: {
 
 	valueRef.current = currentValue
 
-	const setValue = useCallback(
-		(next: SetValue<T>) => {
-			const resolved =
-				typeof next === 'function'
-					? (next as (prev: T | undefined) => T | undefined)(valueRef.current)
-					: next
+	const onChangeRef = useRef(onChange)
 
-			setInternalValue(resolved)
+	onChangeRef.current = onChange
 
-			onChange?.(resolved)
-		},
-		[onChange],
-	)
+	const setValue = useCallback((next: SetValue<T>) => {
+		const resolved =
+			typeof next === 'function'
+				? (next as (prev: T | undefined) => T | undefined)(valueRef.current)
+				: next
+
+		setInternalValue(resolved)
+
+		onChangeRef.current?.(resolved)
+	}, [])
 
 	return [currentValue, setValue]
 }

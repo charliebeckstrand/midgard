@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { type ReactNode, useMemo } from 'react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../table'
 
 export type PivotAggregation = 'sum' | 'count' | 'avg' | 'min' | 'max'
@@ -54,19 +54,28 @@ export function PivotTable<T>({
 	striped,
 	className,
 }: PivotTableProps<T>) {
-	const rows = resolveAxis(data, rowKey, rowOrder)
-	const columns = resolveAxis(data, columnKey, columnOrder)
+	const rows = useMemo(() => resolveAxis(data, rowKey, rowOrder), [data, rowKey, rowOrder])
+	const columns = useMemo(
+		() => resolveAxis(data, columnKey, columnOrder),
+		[data, columnKey, columnOrder],
+	)
 
-	const groups = groupValues(data, rowKey, columnKey, valueKey)
+	const groups = useMemo(
+		() => groupValues(data, rowKey, columnKey, valueKey),
+		[data, rowKey, columnKey, valueKey],
+	)
 
 	const showRowTotals = totals === 'row' || totals === 'both'
 	const showColTotals = totals === 'col' || totals === 'both'
 
 	const formatValue = format ?? defaultFormat
 
-	const colTotals = columns.map((col) => aggregateColumn(groups, rows, col, aggregation))
+	const colTotals = useMemo(
+		() => columns.map((col) => aggregateColumn(groups, rows, col, aggregation)),
+		[columns, groups, rows, aggregation],
+	)
 
-	const grandTotal = aggregateAll(groups, aggregation)
+	const grandTotal = useMemo(() => aggregateAll(groups, aggregation), [groups, aggregation])
 
 	return (
 		<Table className={className} dense={dense} grid={grid} striped={striped}>

@@ -24,21 +24,23 @@ export function isSameDay(a: Date, b: Date): boolean {
 }
 
 export function isBeforeDay(a: Date, b: Date): boolean {
-	const ac = new Date(a.getFullYear(), a.getMonth(), a.getDate())
-	const bc = new Date(b.getFullYear(), b.getMonth(), b.getDate())
+	const ay = a.getFullYear()
+	const by = b.getFullYear()
 
-	return ac.getTime() < bc.getTime()
+	if (ay !== by) return ay < by
+
+	const am = a.getMonth()
+	const bm = b.getMonth()
+
+	if (am !== bm) return am < bm
+
+	return a.getDate() < b.getDate()
 }
 
 export function isBetween(date: Date, start: Date, end: Date): boolean {
-	const d = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime()
-	const s = new Date(start.getFullYear(), start.getMonth(), start.getDate()).getTime()
-	const e = new Date(end.getFullYear(), end.getMonth(), end.getDate()).getTime()
+	const [lo, hi] = isBeforeDay(start, end) ? [start, end] : [end, start]
 
-	const lo = Math.min(s, e)
-	const hi = Math.max(s, e)
-
-	return d > lo && d < hi
+	return isBeforeDay(lo, date) && isBeforeDay(date, hi)
 }
 
 function getDaysInMonth(year: number, month: number): number {

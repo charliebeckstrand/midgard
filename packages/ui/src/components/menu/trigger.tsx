@@ -2,14 +2,15 @@
 
 import { cloneElement, isValidElement, type ReactElement, useCallback } from 'react'
 import { cn } from '../../core'
-import { useMenuContext } from './menu'
+import { useMenuActions, useMenuState } from './menu'
 
 export type MenuTriggerProps =
 	| ({ children: ReactElement } & { className?: string })
 	| React.ComponentPropsWithoutRef<'button'>
 
 export function MenuTrigger({ children, className, ...props }: MenuTriggerProps) {
-	const { open, setOpen, triggerRef, setReference, getReferenceProps } = useMenuContext()
+	const { open, getReferenceProps } = useMenuState()
+	const { setOpen, triggerRef, setReference } = useMenuActions()
 
 	const mergeRefs = useCallback(
 		(node: HTMLElement | null) => {

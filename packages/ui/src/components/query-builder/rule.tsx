@@ -1,6 +1,7 @@
 'use client'
 
 import { Trash } from 'lucide-react'
+import { useCallback, useMemo } from 'react'
 import { cn } from '../../core'
 import { Button } from '../button'
 import { Flex } from '../flex'
@@ -25,23 +26,50 @@ export function QueryRule({ rule, className }: QueryRuleProps) {
 
 	const field = getField(rule.field)
 
-	const operators = field ? getOperators(field) : []
+	const operators = useMemo(() => (field ? getOperators(field) : []), [field])
 
 	const selectedOperator = operators.find((o) => o.value === rule.operator)
 
-	const onFieldChange = (nextFieldName: string | undefined) => {
-		if (!nextFieldName) return
+	const onFieldChange = useCallback(
+		(nextFieldName: string | undefined) => {
+			if (!nextFieldName) return
 
-		const nextField = fields.find((f) => f.name === nextFieldName)
+			const nextField = fields.find((f) => f.name === nextFieldName)
 
-		const nextOps = nextField ? getOperators(nextField) : []
+			const nextOps = nextField ? getOperators(nextField) : []
 
-		updateRule(rule.id, {
-			field: nextFieldName,
-			operator: nextOps[0]?.value ?? '',
-			value: '',
-		})
-	}
+			updateRule(rule.id, {
+				field: nextFieldName,
+				operator: nextOps[0]?.value ?? '',
+				value: '',
+			})
+		},
+		[fields, rule.id, updateRule],
+	)
+
+	const onOperatorChange = useCallback(
+		(v: string | undefined) => {
+			if (v) updateRule(rule.id, { operator: v })
+		},
+		[rule.id, updateRule],
+	)
+
+	const onValueChange = useCallback(
+		(v: unknown) => updateRule(rule.id, { value: v }),
+		[rule.id, updateRule],
+	)
+
+	const onRemove = useCallback(() => remove(rule.id), [remove, rule.id])
+
+	const displayField = useCallback(
+		(v: string) => fields.find((f) => f.name === v)?.label ?? '',
+		[fields],
+	)
+
+	const displayOperator = useCallback(
+		(v: string) => operators.find((o) => o.value === v)?.label ?? '',
+		[operators],
+	)
 
 	return (
 		<Flex data-slot="query-rule" gap={2} className={cn(k.rule, className)}>
@@ -50,7 +78,7 @@ export function QueryRule({ rule, className }: QueryRuleProps) {
 					value={rule.field}
 					onChange={onFieldChange}
 					placeholder="Field"
-					displayValue={(v: string) => fields.find((f) => f.name === v)?.label ?? ''}
+					displayValue={displayField}
 				>
 					{fields.map((f) => (
 						<ListboxOption key={f.name} value={f.name}>
@@ -61,9 +89,9 @@ export function QueryRule({ rule, className }: QueryRuleProps) {
 
 				<Select
 					value={rule.operator}
-					onChange={(v: string | undefined) => v && updateRule(rule.id, { operator: v })}
+					onChange={onOperatorChange}
 					placeholder="Operator"
-					displayValue={(v: string) => operators.find((o) => o.value === v)?.label ?? ''}
+					displayValue={displayOperator}
 				>
 					{operators.map((op) => (
 						<ListboxOption key={op.value} value={op.value}>
@@ -73,11 +101,7 @@ export function QueryRule({ rule, className }: QueryRuleProps) {
 				</Select>
 
 				{field && !selectedOperator?.noValue && (
-					<QueryRuleValue
-						field={field}
-						value={rule.value}
-						onChange={(v) => updateRule(rule.id, { value: v })}
-					/>
+					<QueryRuleValue field={field} value={rule.value} onChange={onValueChange} />
 				)}
 			</Flex>
 
@@ -87,7 +111,7 @@ export function QueryRule({ rule, className }: QueryRuleProps) {
 				disabled={disabled}
 				className={k.rowRemove}
 				prefix={<Icon icon={<Trash />} />}
-				onClick={() => remove(rule.id)}
+				onClick={onRemove}
 			/>
 		</Flex>
 	)

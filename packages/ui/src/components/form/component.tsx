@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useMemo, useRef, useState } from 'react'
-import { type FormContextValue, FormProvider } from './context'
+import { type FormActions, FormProvider, type FormStateValue } from './context'
 
 type Errors = Record<string, string | undefined>
 type Touched = Record<string, boolean>
@@ -238,39 +238,32 @@ export function Form<T extends Record<string, unknown>>({
 		[reset],
 	)
 
-	const context = useMemo<FormContextValue>(
+	const state = useMemo<FormStateValue>(
 		() => ({
 			values: values as Record<string, unknown>,
-			getValue,
-			setValue,
 			errors,
-			setErrors: setErrorsExternal,
 			touched,
-			setTouched,
 			dirty,
 			isDirty,
 			isValid,
 			submitting,
+		}),
+		[values, errors, touched, dirty, isDirty, isValid, submitting],
+	)
+
+	const actions = useMemo<FormActions>(
+		() => ({
+			getValue,
+			setValue,
+			setErrors: setErrorsExternal,
+			setTouched,
 			reset,
 		}),
-		[
-			values,
-			getValue,
-			setValue,
-			errors,
-			setErrorsExternal,
-			touched,
-			setTouched,
-			dirty,
-			isDirty,
-			isValid,
-			submitting,
-			reset,
-		],
+		[getValue, setValue, setErrorsExternal, setTouched, reset],
 	)
 
 	return (
-		<FormProvider value={context}>
+		<FormProvider state={state} actions={actions}>
 			<form
 				data-slot="form"
 				onSubmit={handleSubmit}

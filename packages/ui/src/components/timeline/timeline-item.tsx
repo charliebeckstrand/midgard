@@ -1,4 +1,4 @@
-import { Children, isValidElement } from 'react'
+import { Children, isValidElement, useMemo } from 'react'
 import { cn } from '../../core'
 import { TimelineProvider, type TimelineVariant, useTimeline } from './context'
 import type { TimelineMarkerConfig } from './timeline-marker'
@@ -27,9 +27,15 @@ export function TimelineItem({
 
 	const variant = variantProp ?? contextVariant
 
-	const hasMarker = Children.toArray(children).some(
-		(child) => isValidElement(child) && child.type === TimelineMarker,
+	const hasMarker = useMemo(
+		() =>
+			Children.toArray(children).some(
+				(child) => isValidElement(child) && child.type === TimelineMarker,
+			),
+		[children],
 	)
+
+	const providerValue = useMemo(() => ({ orientation, variant }), [orientation, variant])
 
 	return (
 		<li
@@ -41,7 +47,7 @@ export function TimelineItem({
 				className,
 			)}
 		>
-			<TimelineProvider value={{ orientation, variant }}>
+			<TimelineProvider value={providerValue}>
 				{!hasMarker && <TimelineMarker {...({ status, color, pulse } as TimelineMarkerProps)} />}
 				{children}
 			</TimelineProvider>

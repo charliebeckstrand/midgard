@@ -2,12 +2,19 @@
 
 import { ugoki } from '../recipes'
 
-/** Spreadable motion props for tap-feedback scale on press. */
-export function useTap(enabled = true) {
-	if (!enabled) return {}
+type TapProps = {
+	whileTap?: { readonly scale: number }
+	transition?: typeof ugoki.spring
+}
 
-	return {
-		whileTap: { scale: 0.95 } as const,
-		transition: ugoki.spring,
-	}
+const tapProps: TapProps = {
+	whileTap: { scale: 0.95 },
+	transition: ugoki.spring,
+}
+
+const empty: TapProps = {}
+
+/** Spreadable motion props for tap-feedback scale on press. */
+export function useTap(enabled = true): TapProps {
+	return enabled ? tapProps : empty
 }

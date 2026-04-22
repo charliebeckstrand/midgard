@@ -86,19 +86,23 @@ export function MapMarker({
 		markerRef.current?.setLngLat(position)
 	}, [position])
 
+	const onClickRef = useRef(onClick)
+
+	onClickRef.current = onClick
+
 	useEffect(() => {
 		if (!element) return
 
 		const handle = (event: MouseEvent) => {
 			event.stopPropagation()
 
-			onClick?.()
+			onClickRef.current?.()
 		}
 
 		element.addEventListener('click', handle)
 
 		return () => element.removeEventListener('click', handle)
-	}, [element, onClick])
+	}, [element])
 
 	if (!element) return null
 

@@ -3,7 +3,7 @@
 import { FloatingPortal, type Placement } from '@floating-ui/react'
 import { Calendar as CalendarIcon } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 
 import { cn } from '../../core'
 import { useFloatingUI } from '../../hooks'
@@ -171,7 +171,10 @@ function DatePickerSingle({
 		[handleClear, handleSelectToday],
 	)
 
-	const footerButtons: FooterButton[] = value != null ? ['clear', 'today'] : ['today']
+	const footerButtons = useMemo<FooterButton[]>(
+		() => (value != null ? ['clear', 'today'] : ['today']),
+		[value],
+	)
 
 	const displayValue = value ? formatDate(value) : ''
 

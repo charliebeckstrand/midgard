@@ -3,7 +3,7 @@
 import { FloatingPortal } from '@floating-ui/react'
 import { Calendar as CalendarIcon } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useFloatingUI } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
@@ -142,7 +142,7 @@ export function DatePickerRange({
 
 	const showClear = rangeStart === null && value != null
 
-	const footerButtons: FooterButton[] = showClear ? ['clear'] : []
+	const footerButtons = useMemo<FooterButton[]>(() => (showClear ? ['clear'] : []), [showClear])
 
 	const handleFooterActivate = useCallback(
 		(kind: FooterButton) => {

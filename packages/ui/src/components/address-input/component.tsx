@@ -42,6 +42,10 @@ export function AddressInput({
 
 	const abortRef = useRef<AbortController | null>(null)
 
+	const providerRef = useRef(provider)
+
+	providerRef.current = provider
+
 	useEffect(() => {
 		if (!menuRequested) return
 
@@ -70,7 +74,8 @@ export function AddressInput({
 
 			abortRef.current = controller
 
-			provider(query, { signal: controller.signal })
+			providerRef
+				.current(query, { signal: controller.signal })
 				.then((results) => {
 					if (controller.signal.aborted) return
 
@@ -98,7 +103,7 @@ export function AddressInput({
 
 			abortRef.current?.abort()
 		}
-	}, [query, menuRequested, provider, debounceMs, minQueryLength])
+	}, [query, menuRequested, debounceMs, minQueryLength])
 
 	return (
 		<Combobox<AddressSuggestion>
