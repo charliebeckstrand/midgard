@@ -3,6 +3,7 @@ export {
 	DataTable,
 	type DataTableColumn,
 	type DataTableProps,
+	type DataTableVirtualize,
 } from './component'
 export {
 	type DataTableContextValue,

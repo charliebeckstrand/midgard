@@ -19,6 +19,7 @@ const getKey = (row: Shipment) => row.id
 const rows100 = makeShipments(100)
 const rows500 = makeShipments(500)
 const rows1k = makeShipments(1_000)
+const rows10k = makeShipments(10_000)
 
 describe('EditableGrid · initial render', () => {
 	bench('100 rows × 8 cols', () => {
@@ -56,6 +57,38 @@ describe('EditableGrid · with selection', () => {
 				getRowKey={getKey}
 				onChange={noop}
 				selection={selection}
+			/>,
+		)
+
+		cleanup()
+	})
+})
+
+describe('EditableGrid · virtualized initial render', () => {
+	bench('1,000 rows × 8 cols · virtualize', () => {
+		render(
+			<EditableGrid
+				columns={COLUMNS}
+				rows={rows1k}
+				getRowKey={getKey}
+				onChange={noop}
+				virtualize
+				maxHeight="600px"
+			/>,
+		)
+
+		cleanup()
+	})
+
+	bench('10,000 rows × 8 cols · virtualize', () => {
+		render(
+			<EditableGrid
+				columns={COLUMNS}
+				rows={rows10k}
+				getRowKey={getKey}
+				onChange={noop}
+				virtualize
+				maxHeight="600px"
 			/>,
 		)
 

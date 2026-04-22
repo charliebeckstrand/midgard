@@ -10,7 +10,12 @@ import {
 } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
-import { DataTable, type DataTableColumn, type SortState } from '../data-table'
+import {
+	DataTable,
+	type DataTableColumn,
+	type DataTableVirtualize,
+	type SortState,
+} from '../data-table'
 import type { TableVariants } from '../table'
 import { EditableGridCellContent } from './cell'
 import {
@@ -50,6 +55,14 @@ export type EditableGridProps<T> = TableVariants & {
 	maxHeight?: string
 	rowClassName?: (row: T) => string | undefined
 
+	/**
+	 * Enables row virtualization via DataTable. Only rows in the scroll viewport
+	 * (plus overscan) render to the DOM. Requires `maxHeight`.
+	 *
+	 * Pass `true` for defaults, or an object to tune. See DataTable for details.
+	 */
+	virtualize?: DataTableVirtualize
+
 	className?: string
 	children?: never
 }
@@ -68,6 +81,7 @@ export function EditableGrid<T>({
 	stickyHeader,
 	maxHeight,
 	rowClassName,
+	virtualize,
 	dense,
 	bleed,
 	grid,
@@ -577,6 +591,7 @@ export function EditableGrid<T>({
 					rowClassName={rowClassName}
 					stickyHeader={stickyHeader}
 					maxHeight={maxHeight}
+					virtualize={virtualize}
 					dense={dense}
 					bleed={bleed}
 					grid={grid}
