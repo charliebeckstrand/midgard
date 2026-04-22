@@ -6,28 +6,22 @@ import { omote } from '../omote'
 import { sen } from '../sen'
 
 export const pdfViewer = {
-	base: [
-		'relative flex flex-col',
-		'overflow-hidden',
-		'h-[100svh]',
-		omote.surface,
-		sen.border,
-		maru.rounded.xl,
-	],
+	base: ['relative flex flex-col', 'overflow-hidden', omote.surface, sen.border, maru.rounded.xl],
 	toolbar: [
-		'flex items-center justify-between',
+		'flex flex-nowrap items-center justify-between',
+		'overflow-x-auto',
 		kumi.gap.sm,
 		'px-2 py-1.5',
 		'border-b',
 		sen.borderColor,
 		'shrink-0',
 	],
-	toolbarSection: ['flex items-center', kumi.gap.sm, 'min-w-0'],
+	toolbarSection: ['flex items-center shrink-0', kumi.gap.sm],
 	pageStatus: [ji.size.sm, iro.text.muted, 'tabular-nums select-none whitespace-nowrap'],
-	zoomLabel: [ji.size.sm, iro.text.muted, 'tabular-nums w-12 text-center select-none'],
 	body: ['flex flex-1 min-h-0'],
 	sidebar: [
-		'flex flex-col shrink-0 w-56',
+		'flex flex-col shrink-0 w-56 min-h-0',
+		'overflow-hidden',
 		'border-r',
 		sen.borderColor,
 		'transition-[margin] duration-150 ease-in-out',
@@ -43,7 +37,11 @@ export const pdfViewer = {
 		'shrink-0',
 		'select-none',
 	],
-	thumbnails: ['flex flex-col flex-1 min-h-0', kumi.gap.md, 'overflow-y-auto px-4 pb-4'],
+	thumbnails: [
+		'flex flex-col basis-0 grow shrink min-h-0',
+		kumi.gap.md,
+		'overflow-y-auto px-4 pb-4',
+	],
 	thumbnailsGrid: ['grid grid-cols-2', kumi.gap.md, 'sm:p-3'],
 	thumbnail: [
 		'group/thumb',
@@ -74,11 +72,11 @@ export const pdfViewer = {
 	],
 	viewport: [
 		'flex-1 min-w-0',
+		'max-h-[min(1280px)]',
 		'overflow-auto',
 		'bg-zinc-100 dark:bg-zinc-900',
-		'flex',
-		kumi.center,
-		'p-6',
+		'flex items-safe-center justify-safe-center',
+		'p-4',
 	],
 	pageFrame: ['relative shrink-0'],
 	page: ['absolute top-1/2 left-1/2 origin-center', 'shadow-lg', 'bg-white'],

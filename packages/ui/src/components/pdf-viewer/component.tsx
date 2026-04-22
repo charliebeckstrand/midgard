@@ -18,6 +18,10 @@ export type PdfViewerPage = {
 	thumbnail?: string
 	/** Optional accessible label for the page. Falls back to `Page N`. */
 	label?: string
+	/** Intrinsic width in pixels. Used to size the viewport before the image loads. */
+	width?: number
+	/** Intrinsic height in pixels. Used to size the viewport before the image loads. */
+	height?: number
 }
 
 export type PdfViewerProps = {
@@ -113,6 +117,14 @@ export function PdfViewer({
 
 	const activePage = total > 0 ? pages[safePage - 1] : undefined
 
+	// Prefer dimensions supplied by the caller (or the pdf.js hook) so the viewport
+	// can establish its aspect ratio before the image paints. Fall back to the
+	// image's natural size, then US Letter (8.5 × 11) for the pre-load state.
+	const pageSize =
+		activePage?.width && activePage.height
+			? { width: activePage.width, height: activePage.height }
+			: naturalSize
+
 	useLayoutEffect(() => {
 		const el = viewportRef.current
 
@@ -144,23 +156,36 @@ export function PdfViewer({
 	const isSideways = normalizedRotation === 90 || normalizedRotation === 270
 
 	const fitScale = useMemo(() => {
-		if (!viewportSize || !naturalSize) return 1
+		if (!viewportSize || !pageSize) return 1
 
-		const visW = isSideways ? naturalSize.height : naturalSize.width
-		const visH = isSideways ? naturalSize.width : naturalSize.height
+		const visW = isSideways ? pageSize.height : pageSize.width
+		const visH = isSideways ? pageSize.width : pageSize.height
 
 		if (visW === 0 || visH === 0) return 1
 
 		return Math.min(viewportSize.width / visW, viewportSize.height / visH)
-	}, [viewportSize, naturalSize, isSideways])
+	}, [viewportSize, pageSize, isSideways])
 
 	const scale = fitScale * zoom
 
-	const imageW = naturalSize ? naturalSize.width * scale : undefined
-	const imageH = naturalSize ? naturalSize.height * scale : undefined
+	const imageW = pageSize ? pageSize.width * scale : undefined
+	const imageH = pageSize ? pageSize.height * scale : undefined
 
 	const frameW = isSideways ? imageH : imageW
 	const frameH = isSideways ? imageW : imageH
+
+	// Aspect ratio drives the viewport height. US Letter (8.5 × 11) is the pre-load
+	// fallback — close to most documents and stable while the first page resolves.
+	// Leave it unset when there's nothing to display so the viewer can collapse.
+	const hasContent = !!src || total > 0
+
+	const aspectRatio = !hasContent
+		? undefined
+		: pageSize
+			? isSideways
+				? `${pageSize.height} / ${pageSize.width}`
+				: `${pageSize.width} / ${pageSize.height}`
+			: '8.5 / 11'
 
 	const handleImageLoad = (event: React.SyntheticEvent<HTMLImageElement>) => {
 		const img = event.currentTarget
@@ -216,8 +241,13 @@ export function PdfViewer({
 					container={rootRef.current}
 				/>
 
-				<div ref={viewportRef} data-slot="pdf-viewer-viewport" className={cn(k.viewport)}>
-					{activePage ? (
+				<div
+					ref={viewportRef}
+					data-slot="pdf-viewer-viewport"
+					className={cn(k.viewport)}
+					style={{ aspectRatio }}
+				>
+					{activePage && !isLoading ? (
 						<div
 							data-slot="pdf-viewer-page-frame"
 							className={cn(k.pageFrame)}
@@ -232,7 +262,7 @@ export function PdfViewer({
 									width: imageW,
 									height: imageH,
 									transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
-									visibility: viewportSize && naturalSize ? 'visible' : 'hidden',
+									visibility: viewportSize && pageSize ? 'visible' : 'hidden',
 								}}
 								onLoad={handleImageLoad}
 							/>

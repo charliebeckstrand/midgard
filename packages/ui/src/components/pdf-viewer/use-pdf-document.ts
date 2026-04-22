@@ -118,7 +118,13 @@ export function usePdfDocument(src: string | undefined): UsePdfDocumentResult {
 
 					createdUrls.push(url)
 
-					next.push({ id: i, src: url, label: `Page ${i}` })
+					next.push({
+						id: i,
+						src: url,
+						label: `Page ${i}`,
+						width: viewport.width,
+						height: viewport.height,
+					})
 
 					setPages([...next])
 				}

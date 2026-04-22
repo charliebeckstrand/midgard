@@ -16,6 +16,7 @@ import { Icon } from '../icon'
 import { Listbox, ListboxLabel, ListboxOption } from '../listbox'
 import { Toolbar, ToolbarGroup, ToolbarSeparator } from '../toolbar'
 import type { PdfViewerPage } from './component'
+import { downloadPdf, printPdf } from './utilities'
 import { k } from './variants'
 
 const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n))
@@ -71,70 +72,13 @@ export function PdfViewerToolbar({
 	const download = () => {
 		if (!src) return
 
-		const link = document.createElement('a')
-
-		link.href = src
-		link.download = filename ?? ''
-		link.rel = 'noopener'
-		link.target = '_blank'
-
-		document.body.appendChild(link)
-		link.click()
-		link.remove()
+		downloadPdf(src, filename)
 	}
 
 	const print = () => {
 		if (!src) return
 
-		const iframe = document.createElement('iframe')
-
-		iframe.style.position = 'fixed'
-		iframe.style.right = '0'
-		iframe.style.bottom = '0'
-		iframe.style.width = '0'
-		iframe.style.height = '0'
-		iframe.style.border = '0'
-		iframe.setAttribute('aria-hidden', 'true')
-
-		let cleaned = false
-
-		const cleanup = () => {
-			if (cleaned) return
-
-			cleaned = true
-
-			iframe.remove()
-		}
-
-		iframe.addEventListener('load', () => {
-			const win = iframe.contentWindow
-
-			if (!win) {
-				cleanup()
-
-				return
-			}
-
-			try {
-				win.addEventListener('afterprint', cleanup)
-				win.focus()
-				win.print()
-			} catch {
-				// Same-origin blob URL should not throw; if it does (e.g. pages + remote src),
-				// fall back to opening the PDF in a new tab so the user can print manually.
-				window.open(src, '_blank', 'noopener,noreferrer')
-				cleanup()
-			}
-		})
-
-		iframe.addEventListener('error', () => {
-			window.open(src, '_blank', 'noopener,noreferrer')
-			cleanup()
-		})
-
-		iframe.src = src
-
-		document.body.appendChild(iframe)
+		printPdf(src)
 	}
 
 	return (
@@ -143,28 +87,23 @@ export function PdfViewerToolbar({
 				{total > 0 && (
 					<>
 						{isDesktop ? (
-							<>
-								<Button
-									variant="plain"
-									aria-label={sidebarOpen ? 'Hide pages' : 'Show pages'}
-									aria-expanded={sidebarOpen}
-									prefix={<Icon icon={sidebarOpen ? <PanelLeftClose /> : <PanelLeftOpen />} />}
-									onClick={onSidebarToggle}
-								/>
-								<ToolbarSeparator />
-							</>
+							<Button
+								variant="plain"
+								aria-label={sidebarOpen ? 'Hide pages' : 'Show pages'}
+								aria-expanded={sidebarOpen}
+								prefix={<Icon icon={sidebarOpen ? <PanelLeftClose /> : <PanelLeftOpen />} />}
+								onClick={onSidebarToggle}
+							/>
 						) : (
-							<>
-								<Button
-									variant="plain"
-									aria-label="Show thumbnails"
-									aria-expanded={thumbsOpen}
-									prefix={<Icon icon={thumbsOpen ? <PanelLeftClose /> : <PanelLeftOpen />} />}
-									onClick={onThumbsOpen}
-								/>
-								<ToolbarSeparator />
-							</>
+							<Button
+								variant="plain"
+								aria-label="Show thumbnails"
+								aria-expanded={thumbsOpen}
+								prefix={<Icon icon={thumbsOpen ? <PanelLeftClose /> : <PanelLeftOpen />} />}
+								onClick={onThumbsOpen}
+							/>
 						)}
+
 						<ToolbarGroup aria-label="Page navigation">
 							<Listbox<number>
 								aria-label="Current page"
@@ -193,6 +132,8 @@ export function PdfViewerToolbar({
 					</>
 				)}
 			</div>
+
+			<ToolbarSeparator />
 
 			<div className={cn(k.toolbarSection)}>
 				<ToolbarGroup aria-label="Zoom">
