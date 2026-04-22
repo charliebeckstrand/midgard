@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Field, Label } from '../../components/fieldset'
-import { Glass } from '../../components/glass'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'
@@ -74,27 +73,6 @@ export default function ListboxDemo() {
 
 			<Example title="Multiple">
 				<MultiListbox />
-			</Example>
-
-			<Example title="Glass">
-				<Glass>
-					<Sizer>
-						<Field>
-							<Label>Status</Label>
-							<Listbox<string>
-								nullable
-								displayValue={(v: string) => statuses.find((s) => s.value === v)?.label ?? v}
-								placeholder="Select status"
-							>
-								{statuses.map((status) => (
-									<ListboxOption key={status.value} value={status.value}>
-										<ListboxLabel>{status.label}</ListboxLabel>
-									</ListboxOption>
-								))}
-							</Listbox>
-						</Field>
-					</Sizer>
-				</Glass>
 			</Example>
 		</Stack>
 	)

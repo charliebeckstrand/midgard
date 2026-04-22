@@ -2,7 +2,6 @@ import { tv, type VariantProps } from 'tailwind-variants'
 import { iro } from '../iro'
 import { maru } from '../maru'
 import { omote } from '../omote'
-import { sen } from '../sen'
 import { waku } from '../waku'
 import { controlSize } from './_control-size'
 
@@ -12,7 +11,7 @@ export const input = tv({
 		variant: {
 			default: [],
 			outline: [],
-			glass: [...omote.glass],
+			glass: [],
 		},
 		size: controlSize,
 	},
@@ -23,8 +22,8 @@ export const inputControl = tv({
 	variants: {
 		variant: {
 			default: [...waku.control.surface],
-			outline: [...sen.borderEmphasis, 'hover:border-zinc-950/30', 'dark:hover:border-white/30'],
-			glass: [],
+			outline: [],
+			glass: [...omote.glass],
 		},
 	},
 	defaultVariants: { variant: 'default' },

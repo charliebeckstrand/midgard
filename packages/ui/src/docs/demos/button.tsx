@@ -4,7 +4,6 @@ import { Plus } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../../components/button'
 import { Flex } from '../../components/flex'
-import { Glass } from '../../components/glass'
 import { Icon } from '../../components/icon'
 import { Stack } from '../../components/stack'
 import { ColorListbox } from '../components/color-listbox'
@@ -119,17 +118,6 @@ export default function ButtonDemo() {
 
 			<Example title="Spring">
 				<Button spring>Spring</Button>
-			</Example>
-
-			<Example title="Glass">
-				<Glass>
-					<Flex wrap gap={2}>
-						<Button>Glass</Button>
-						<Button variant="glass" prefix={<Icon icon={<Plus />} />}>
-							With icon
-						</Button>
-					</Flex>
-				</Glass>
 			</Example>
 
 			<Example title="Disabled">

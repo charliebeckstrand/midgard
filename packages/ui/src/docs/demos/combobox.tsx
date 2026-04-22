@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Combobox, ComboboxLabel, ComboboxOption } from '../../components/combobox'
 import { Field, Label } from '../../components/fieldset'
-import { Glass } from '../../components/glass'
 import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'
 import { code } from '../code'
@@ -134,12 +133,6 @@ export default function ComboboxDemo() {
 				`}
 			>
 				<MultiCombobox />
-			</Example>
-
-			<Example title="Glass">
-				<Glass>
-					<SingleCombobox />
-				</Glass>
 			</Example>
 		</Stack>
 	)
