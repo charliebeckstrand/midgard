@@ -33,15 +33,6 @@ const seed: QueryGroupNode = {
 	children: [
 		{ id: 'r1', type: 'rule', field: 'name', operator: 'contains', value: 'ada' },
 		{ id: 'r2', type: 'rule', field: 'status', operator: 'equals', value: 'active' },
-		// {
-		// 	id: 'g1',
-		// 	type: 'group',
-		// 	combinator: 'or',
-		// 	children: [
-		// 		{ id: 'r2', type: 'rule', field: 'status', operator: 'equals', value: 'active' },
-		// 		{ id: 'r3', type: 'rule', field: 'status', operator: 'equals', value: 'pending' },
-		// 	],
-		// },
 	],
 }
 
@@ -55,24 +46,6 @@ function Controlled() {
 					<QueryBuilder fields={fields} value={query} onChange={setQuery} />
 					<JsonTree data={query as unknown as JsonValue} defaultExpandDepth={Infinity} />
 				</Stack>
-			</Sizer>
-		</Example>
-	)
-}
-
-function Uncontrolled() {
-	return (
-		<Example title="Uncontrolled">
-			<Sizer size="lg">
-				<QueryBuilder
-					fields={fields}
-					defaultValue={{
-						id: 'root',
-						type: 'group',
-						combinator: 'and',
-						children: [],
-					}}
-				/>
 			</Sizer>
 		</Example>
 	)
@@ -92,7 +65,6 @@ export default function QueryBuilderDemo() {
 	return (
 		<Stack gap={6}>
 			<Controlled />
-			<Uncontrolled />
 			<Disabled />
 		</Stack>
 	)
