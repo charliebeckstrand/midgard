@@ -41,7 +41,7 @@ export const JsonNode = memo(function JsonNode({ keyName, value }: JsonNodeProps
 
 	const branch = isBranch(value)
 
-	const entries = getEntries(value)
+	const entries = useMemo(() => getEntries(value), [value])
 
 	const highlighted = matchesSearch(keyName, value, search)
 
