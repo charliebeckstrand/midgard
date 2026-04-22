@@ -227,26 +227,28 @@ export function ResizableGroup({
 	}, [])
 
 	// Wrap each panel/handle in an index provider so they can read their position from context.
-	let panelIdx = 0
-	let handleIdx = 0
+	const wrapped = useMemo(() => {
+		let panelIdx = 0
+		let handleIdx = 0
 
-	const wrapped = Children.map(children, (child) => {
-		if (!isValidElement(child)) return child
+		return Children.map(children, (child) => {
+			if (!isValidElement(child)) return child
 
-		if (child.type === ResizablePanel) {
-			const idx = panelIdx++
+			if (child.type === ResizablePanel) {
+				const idx = panelIdx++
 
-			return <ResizableIndexProvider value={{ panelIndex: idx }}>{child}</ResizableIndexProvider>
-		}
+				return <ResizableIndexProvider value={{ panelIndex: idx }}>{child}</ResizableIndexProvider>
+			}
 
-		if (child.type === ResizableHandle) {
-			const idx = handleIdx++
+			if (child.type === ResizableHandle) {
+				const idx = handleIdx++
 
-			return <ResizableIndexProvider value={{ handleIndex: idx }}>{child}</ResizableIndexProvider>
-		}
+				return <ResizableIndexProvider value={{ handleIndex: idx }}>{child}</ResizableIndexProvider>
+			}
 
-		return child
-	})
+			return child
+		})
+	}, [children])
 
 	const contextValue = useMemo(
 		() => ({ direction, dragging, sizes, panelConfigs, startDrag, resize }),
