@@ -9,7 +9,7 @@ export const pdfViewer = {
 	base: [
 		'relative flex flex-col',
 		'overflow-hidden',
-		'h-164',
+		'h-[100svh]',
 		omote.surface,
 		sen.border,
 		maru.rounded.xl,
@@ -27,12 +27,12 @@ export const pdfViewer = {
 	zoomLabel: [ji.size.sm, iro.text.muted, 'tabular-nums w-12 text-center select-none'],
 	body: ['flex flex-1 min-h-0'],
 	sidebar: [
-		'flex flex-col shrink-0 w-48',
+		'flex flex-col shrink-0 w-56',
 		'border-r',
 		sen.borderColor,
 		'transition-[margin] duration-150 ease-in-out',
 	],
-	sidebarClosed: '-ml-48',
+	sidebarClosed: '-ml-56',
 	sidebarHeader: [
 		'flex items-center',
 		kumi.gap.sm,
@@ -43,7 +43,7 @@ export const pdfViewer = {
 		'shrink-0',
 		'select-none',
 	],
-	thumbnails: ['flex flex-col flex-1 min-h-0', kumi.gap.md, 'overflow-y-auto px-3 pb-3'],
+	thumbnails: ['flex flex-col flex-1 min-h-0', kumi.gap.md, 'overflow-y-auto px-4 pb-4'],
 	thumbnailsGrid: ['grid grid-cols-2', kumi.gap.md, 'sm:p-3'],
 	thumbnail: [
 		'group/thumb',

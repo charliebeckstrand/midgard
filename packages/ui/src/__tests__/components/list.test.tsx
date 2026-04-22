@@ -63,7 +63,7 @@ describe('List', () => {
 describe('ListItem', () => {
 	it('renders with data-slot="list-item"', () => {
 		const { container } = renderUI(
-			<List items={[items[0]]} getKey={(i) => i.id}>
+			<List items={items.slice(0, 1)} getKey={(i) => i.id}>
 				{(item) => <ListItem>{item.label}</ListItem>}
 			</List>,
 		)
@@ -77,7 +77,7 @@ describe('ListItem', () => {
 
 	it('exposes the stable item id via data-item-id', () => {
 		const { container } = renderUI(
-			<List items={[items[0]]} getKey={(i) => i.id}>
+			<List items={items.slice(0, 1)} getKey={(i) => i.id}>
 				{(item) => <ListItem>{item.label}</ListItem>}
 			</List>,
 		)
@@ -89,7 +89,7 @@ describe('ListItem', () => {
 
 	it('applies custom className', () => {
 		const { container } = renderUI(
-			<List items={[items[0]]} getKey={(i) => i.id}>
+			<List items={items.slice(0, 1)} getKey={(i) => i.id}>
 				{(item) => <ListItem className="custom">{item.label}</ListItem>}
 			</List>,
 		)

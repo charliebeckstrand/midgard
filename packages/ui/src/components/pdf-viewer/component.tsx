@@ -3,8 +3,10 @@
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useControllable, useIsDesktop } from '../../hooks'
+import { Spinner } from '../spinner'
 import { PdfViewerThumbnails } from './thumbnails'
 import { PdfViewerToolbar } from './toolbar'
+import { usePdfDocument } from './use-pdf-document'
 import { k } from './variants'
 
 export type PdfViewerPage = {
@@ -19,11 +21,14 @@ export type PdfViewerPage = {
 }
 
 export type PdfViewerProps = {
-	/** Pre-rendered page images, in order. */
-	pages: PdfViewerPage[]
 	/**
-	 * Source URL for the underlying PDF. Used for download and print.
-	 * When omitted, those toolbar actions are hidden.
+	 * Pre-rendered page images, in order.
+	 * When omitted and `src` is provided, pages are rendered from the PDF via pdf.js.
+	 */
+	pages?: PdfViewerPage[]
+	/**
+	 * Source URL for the PDF document. Drives the viewport when `pages` is not provided,
+	 * and powers the download and print toolbar actions.
 	 */
 	src?: string
 	/** Filename used for the download attribute. */
@@ -50,7 +55,7 @@ export type PdfViewerProps = {
 const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n))
 
 export function PdfViewer({
-	pages,
+	pages: pagesProp,
 	src,
 	filename,
 	page,
@@ -64,6 +69,22 @@ export function PdfViewer({
 	className,
 	'aria-label': ariaLabel = 'PDF viewer',
 }: PdfViewerProps) {
+	const shouldLoadFromSrc = !pagesProp && !!src
+
+	const {
+		pages: loadedPages,
+		documentUrl,
+		isLoading,
+		error,
+	} = usePdfDocument(shouldLoadFromSrc ? src : undefined)
+
+	const pages = pagesProp ?? loadedPages
+
+	// Prefer the same-origin blob URL from the hook so download/print stay in-page.
+	// Falling back to the original `src` works for same-origin docs but will navigate
+	// to the browser's PDF viewer for cross-origin docs.
+	const documentSrc = documentUrl ?? src
+
 	const total = pages.length
 
 	const isDesktop = useIsDesktop()
@@ -78,6 +99,7 @@ export function PdfViewer({
 
 	const [zoom, setZoom] = useState(defaultZoom)
 	const [rotation, setRotation] = useState(defaultRotation)
+
 	const [thumbsOpen, setThumbsOpen] = useState(false)
 	const [sidebarOpen, setSidebarOpen] = useState(true)
 
@@ -173,7 +195,7 @@ export function PdfViewer({
 				maxZoom={maxZoom}
 				zoomStep={zoomStep}
 				setRotation={setRotation}
-				src={src}
+				src={documentSrc}
 				filename={filename}
 				isDesktop={isDesktop}
 				thumbsOpen={thumbsOpen}
@@ -214,6 +236,12 @@ export function PdfViewer({
 								}}
 								onLoad={handleImageLoad}
 							/>
+						</div>
+					) : error ? (
+						<div className={cn(k.pageEmpty)}>Failed to load PDF: {error.message}</div>
+					) : isLoading ? (
+						<div className={cn(k.pageEmpty)}>
+							<Spinner size="lg" label="Loading PDF" />
 						</div>
 					) : (
 						<div className={cn(k.pageEmpty)}>No pages to display</div>
