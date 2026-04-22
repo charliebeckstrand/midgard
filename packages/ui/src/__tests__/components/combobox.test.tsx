@@ -64,4 +64,16 @@ describe('Combobox', () => {
 
 		expect(icon).toBeInTheDocument()
 	})
+
+	it('renders a placeholder in skeleton mode', () => {
+		const { container } = renderUI(
+			<Combobox>
+				<div>Option</div>
+			</Combobox>,
+			{ skeleton: true },
+		)
+
+		expect(bySlot(container, 'combobox-input')).not.toBeInTheDocument()
+		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
+	})
 })

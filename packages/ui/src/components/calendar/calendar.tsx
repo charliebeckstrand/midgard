@@ -2,8 +2,8 @@
 
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import {
-	forwardRef,
 	memo,
+	type Ref,
 	type RefObject,
 	useCallback,
 	useImperativeHandle,
@@ -112,24 +112,23 @@ export type CalendarProps = {
 	onPickerOpenChange?: (open: boolean) => void
 	getDayProps?: (ctx: CalendarDayContext) => CalendarDayProps
 	footerRef?: RefObject<HTMLElement | null>
+	ref?: Ref<CalendarHandle>
 	className?: string
 }
 
-export const Calendar = forwardRef<CalendarHandle, CalendarProps>(function Calendar(
-	{
-		value: valueProp,
-		defaultValue,
-		onChange,
-		min,
-		max,
-		active,
-		onPickerOpenChange,
-		getDayProps,
-		footerRef,
-		className,
-	},
+export function Calendar({
+	value: valueProp,
+	defaultValue,
+	onChange,
+	min,
+	max,
+	active,
+	onPickerOpenChange,
+	getDayProps,
+	footerRef,
 	ref,
-) {
+	className,
+}: CalendarProps) {
 	const handleValueChange = useCallback(
 		(nextValue: Date | undefined) => {
 			if (nextValue) onChange?.(nextValue)
@@ -333,4 +332,4 @@ export const Calendar = forwardRef<CalendarHandle, CalendarProps>(function Calen
 			</div>
 		</div>
 	)
-})
+}

@@ -1,5 +1,3 @@
-'use client'
-
 import {
 	ListboxDescription as SelectDescription,
 	type ListboxDescriptionProps as SelectDescriptionComponentProps,

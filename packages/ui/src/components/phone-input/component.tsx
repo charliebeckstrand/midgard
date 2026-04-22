@@ -1,7 +1,6 @@
 'use client'
 
 import { Phone } from 'lucide-react'
-import { forwardRef } from 'react'
 import { useMaskedInput } from '../../hooks'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
@@ -51,10 +50,15 @@ const formatters: Record<PhoneInputCountry, (raw: string) => string> = {
 	international: formatInternational,
 }
 
-export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function PhoneInput(
-	{ country = 'US', value, defaultValue, onChange, prefix, ...props },
+export function PhoneInput({
+	country = 'US',
+	value,
+	defaultValue,
+	onChange,
+	prefix,
 	ref,
-) {
+	...props
+}: PhoneInputProps) {
 	const masked = useMaskedInput({ value, defaultValue, onChange, format: formatters[country] })
 
 	return (
@@ -69,4 +73,4 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
 			{...props}
 		/>
 	)
-})
+}

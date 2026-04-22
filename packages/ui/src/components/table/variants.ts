@@ -1,3 +1,1 @@
-import { katachi } from '../../recipes'
-
-export const k = katachi.table
+export { table as k } from '../../recipes/katachi/table'

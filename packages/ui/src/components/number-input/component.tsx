@@ -1,7 +1,6 @@
 'use client'
 
 import { Minus, Plus } from 'lucide-react'
-import { forwardRef } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
 import { Button } from '../button'
@@ -30,10 +29,20 @@ export type NumberInputProps = Omit<
 	step?: number
 }
 
-export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(function NumberInput(
-	{ value, defaultValue, onChange, min, max, step = 1, disabled, size, className, name, ...props },
+export function NumberInput({
+	value,
+	defaultValue,
+	onChange,
+	min,
+	max,
+	step = 1,
+	disabled,
+	size,
+	className,
+	name,
 	ref,
-) {
+	...props
+}: NumberInputProps) {
 	const field = useFormField(name)
 
 	const [current, setCurrent] = useControllable<number>({
@@ -129,4 +138,4 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
 			{...props}
 		/>
 	)
-})
+}

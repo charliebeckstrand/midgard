@@ -1,5 +1,3 @@
-'use client'
-
 import { cn } from '../../core'
 import { type BaseNavItemProps, createNavItem } from '../nav'
 import { k } from './variants'

@@ -1,6 +1,5 @@
 'use client'
 
-import { forwardRef } from 'react'
 import { useMaskedInput } from '../../hooks'
 import { Input, type InputProps } from '../input'
 
@@ -68,10 +67,15 @@ const placeholders: Record<ZipcodeInputCountry, string> = {
 	international: '',
 }
 
-export const ZipcodeInput = forwardRef<HTMLInputElement, ZipcodeInputProps>(function ZipcodeInput(
-	{ country = 'US', value, defaultValue, onChange, placeholder, ...props },
+export function ZipcodeInput({
+	country = 'US',
+	value,
+	defaultValue,
+	onChange,
+	placeholder,
 	ref,
-) {
+	...props
+}: ZipcodeInputProps) {
 	const masked = useMaskedInput({ value, defaultValue, onChange, format: formatters[country] })
 
 	return (
@@ -86,4 +90,4 @@ export const ZipcodeInput = forwardRef<HTMLInputElement, ZipcodeInputProps>(func
 			{...props}
 		/>
 	)
-})
+}

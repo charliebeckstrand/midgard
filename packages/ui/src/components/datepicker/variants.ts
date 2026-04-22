@@ -1,5 +1,3 @@
-import { katachi } from '../../recipes'
-
-export const k = katachi.datepicker
-export const kPopover = katachi.popover
-export const kCalendar = katachi.calendar
+export { calendar as kCalendar } from '../../recipes/katachi/calendar'
+export { datepicker as k } from '../../recipes/katachi/datepicker'
+export { popover as kPopover } from '../../recipes/katachi/popover'

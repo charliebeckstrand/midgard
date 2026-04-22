@@ -1,13 +1,33 @@
+import { readdirSync, statSync } from 'node:fs'
+import { join } from 'node:path'
 import { defineConfig } from 'tsup'
-import pkg from './package.json'
 
-/** Derive entry points from package.json exports — single source of truth */
-const entry = Object.fromEntries(
-	Object.entries(pkg.exports).map(([key, value]) => [
-		key === '.' ? 'index' : key.slice(2),
-		(value as { default: string }).default,
-	]),
+/**
+ * Discover build entries from the filesystem. Each component dir that has an
+ * `index.ts` becomes a named entry; plus the package root, hooks, and layouts.
+ */
+const componentsDir = 'src/components'
+
+const componentEntries = Object.fromEntries(
+	readdirSync(componentsDir)
+		.filter((name) => {
+			const indexPath = join(componentsDir, name, 'index.ts')
+
+			try {
+				return statSync(indexPath).isFile()
+			} catch {
+				return false
+			}
+		})
+		.map((name) => [name, `${componentsDir}/${name}/index.ts`]),
 )
+
+const entry = {
+	index: 'src/index.ts',
+	hooks: 'src/hooks/index.ts',
+	layouts: 'src/layouts/index.ts',
+	...componentEntries,
+}
 
 export default defineConfig({
 	entry,

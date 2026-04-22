@@ -93,7 +93,7 @@ describe('TableHead', () => {
 })
 
 describe('TableHeader', () => {
-	it('renders a th element with scope="col"', () => {
+	it('renders with data-slot="table-header"', () => {
 		const { container } = renderUI(
 			<Table>
 				<TableHead>
@@ -109,13 +109,35 @@ describe('TableHeader', () => {
 			</Table>,
 		)
 
-		const th = container.querySelector('th')
+		const header = bySlot(container, 'table-header')
 
-		expect(th).toBeInTheDocument()
+		expect(header).toBeInTheDocument()
 
-		expect(th).toHaveAttribute('scope', 'col')
+		expect(header?.tagName).toBe('TH')
+
+		expect(header).toHaveAttribute('scope', 'col')
 
 		expect(screen.getByText('Name')).toBeInTheDocument()
+	})
+})
+
+describe('TableBody', () => {
+	it('renders with data-slot="table-body"', () => {
+		const { container } = renderUI(
+			<Table>
+				<TableBody>
+					<TableRow>
+						<TableCell>cell</TableCell>
+					</TableRow>
+				</TableBody>
+			</Table>,
+		)
+
+		const body = bySlot(container, 'table-body')
+
+		expect(body).toBeInTheDocument()
+
+		expect(body?.tagName).toBe('TBODY')
 	})
 })
 

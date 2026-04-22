@@ -1,5 +1,3 @@
-'use client'
-
 import { createCurrentContent } from '../../primitives'
 
 // ── NavContents / NavContent ────────────────────────────

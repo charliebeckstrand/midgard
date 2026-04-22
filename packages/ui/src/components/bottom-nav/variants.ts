@@ -1,3 +1,1 @@
-import { katachi } from '../../recipes'
-
-export const k = katachi.bottomNav
+export { bottomNav as k } from '../../recipes/katachi/bottom-nav'

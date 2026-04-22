@@ -1,3 +1,1 @@
-import { katachi } from '../../recipes'
-
-export const k = katachi.collapse
+export { collapse as k } from '../../recipes/katachi/collapse'

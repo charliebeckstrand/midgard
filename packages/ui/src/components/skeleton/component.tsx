@@ -1,5 +1,3 @@
-'use client'
-
 import type React from 'react'
 import { cn } from '../../core'
 import { ContentReveal } from '../../primitives/content-reveal'

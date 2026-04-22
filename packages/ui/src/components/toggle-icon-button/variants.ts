@@ -1,3 +1,1 @@
-import { katachi } from '../../recipes'
-
-export const k = katachi.toggleIconButton
+export { toggleIconButton as k } from '../../recipes/katachi/toggle-icon-button'

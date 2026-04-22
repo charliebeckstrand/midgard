@@ -1,7 +1,7 @@
 'use client'
 
 import { Search, X } from 'lucide-react'
-import { forwardRef, type Ref, useCallback } from 'react'
+import { useCallback } from 'react'
 import { useControllable } from '../../hooks/use-controllable'
 import { Button } from '../button'
 import { Icon } from '../icon'
@@ -33,10 +33,15 @@ function ClearButton({ onClear }: { onClear: () => void }) {
 	)
 }
 
-export const SearchInput = forwardRef(function SearchInput(
-	{ loading, onClear, value, defaultValue, onChange, ...props }: SearchInputProps,
-	ref: Ref<HTMLInputElement>,
-) {
+export function SearchInput({
+	loading,
+	onClear,
+	value,
+	defaultValue,
+	onChange,
+	ref,
+	...props
+}: SearchInputProps) {
 	const [currentValue = '', setCurrentValue] = useControllable<string>({
 		value,
 		defaultValue: defaultValue ?? '',
@@ -75,4 +80,4 @@ export const SearchInput = forwardRef(function SearchInput(
 			{...props}
 		/>
 	)
-})
+}

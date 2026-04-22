@@ -26,7 +26,9 @@ describe('PasswordStrength', () => {
 	it('marks passing rules with data-passed', () => {
 		const { container } = renderUI(<PasswordStrength value="Abcdefg1" />)
 
-		const passed = container.querySelectorAll('[data-slot="password-strength-rule"][data-passed]')
+		const passed = allBySlot(container, 'password-strength-rule').filter((el) =>
+			el.hasAttribute('data-passed'),
+		)
 
 		// length 8+, has uppercase, has number — 3 rules pass, symbol does not
 		expect(passed).toHaveLength(3)
@@ -35,8 +37,8 @@ describe('PasswordStrength', () => {
 	it('activates meter segments based on strength', () => {
 		const { container } = renderUI(<PasswordStrength value="Abcdefgh1!" />)
 
-		const active = container.querySelectorAll(
-			'[data-slot="password-strength-segment"][data-active]',
+		const active = allBySlot(container, 'password-strength-segment').filter((el) =>
+			el.hasAttribute('data-active'),
 		)
 
 		// all 4 default rules pass
@@ -46,8 +48,8 @@ describe('PasswordStrength', () => {
 	it('shows no active segments when value is empty', () => {
 		const { container } = renderUI(<PasswordStrength value="" />)
 
-		const active = container.querySelectorAll(
-			'[data-slot="password-strength-segment"][data-active]',
+		const active = allBySlot(container, 'password-strength-segment').filter((el) =>
+			el.hasAttribute('data-active'),
 		)
 
 		expect(active).toHaveLength(0)

@@ -62,4 +62,16 @@ describe('Listbox', () => {
 
 		expect(button?.tagName).toBe('BUTTON')
 	})
+
+	it('renders a placeholder in skeleton mode', () => {
+		const { container } = renderUI(
+			<Listbox>
+				<div>Option</div>
+			</Listbox>,
+			{ skeleton: true },
+		)
+
+		expect(bySlot(container, 'listbox-button')).not.toBeInTheDocument()
+		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
+	})
 })

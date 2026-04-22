@@ -1,7 +1,8 @@
-import { katachi } from '../../recipes'
-
-const base = katachi.toggleIconButton
+import { toggleIconButton } from '../../recipes/katachi/toggle-icon-button'
 
 export const k = {
-	base: [...base.base, 'disabled:text-green-600 disabled:opacity-100 disabled:cursor-default'],
+	base: [
+		...toggleIconButton.base,
+		'disabled:text-green-600 disabled:opacity-100 disabled:cursor-default',
+	],
 }

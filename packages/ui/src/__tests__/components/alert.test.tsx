@@ -53,6 +53,16 @@ describe('Alert', () => {
 })
 
 describe('AlertTitle', () => {
+	it('renders with data-slot="alert-title"', () => {
+		const { container } = renderUI(
+			<Alert>
+				<AlertTitle>My Title</AlertTitle>
+			</Alert>,
+		)
+
+		expect(bySlot(container, 'alert-title')).toBeInTheDocument()
+	})
+
 	it('renders title content', () => {
 		renderUI(
 			<Alert>
@@ -65,6 +75,16 @@ describe('AlertTitle', () => {
 })
 
 describe('AlertDescription', () => {
+	it('renders with data-slot="alert-description"', () => {
+		const { container } = renderUI(
+			<Alert>
+				<AlertDescription>My Description</AlertDescription>
+			</Alert>,
+		)
+
+		expect(bySlot(container, 'alert-description')).toBeInTheDocument()
+	})
+
 	it('renders description content', () => {
 		renderUI(
 			<Alert>

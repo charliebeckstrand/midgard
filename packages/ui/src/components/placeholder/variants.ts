@@ -1,3 +1,1 @@
-import { katachi } from '../../recipes'
-
-export const k = katachi.placeholder
+export { placeholder as k } from '../../recipes/katachi/placeholder'

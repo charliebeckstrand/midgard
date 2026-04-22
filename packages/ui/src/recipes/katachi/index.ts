@@ -47,7 +47,6 @@ import { nav } from './nav'
 import { navbar } from './navbar'
 import { option } from './option'
 import { pagination } from './pagination'
-import { panel } from './panel'
 import { passwordStrength } from './password-strength'
 import { pdfViewer } from './pdf-viewer'
 import { placeholder } from './placeholder'
@@ -123,7 +122,6 @@ export const katachi = {
 	navbar,
 	option,
 	pagination,
-	panel,
 	passwordStrength,
 	pdfViewer,
 	placeholder,

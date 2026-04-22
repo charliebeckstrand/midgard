@@ -12,7 +12,7 @@ export function TableBody({ className, children, ...props }: TableBodyProps) {
 	const { striped } = useTable()
 
 	return (
-		<tbody className={cn(striped && k.striped, className)} {...props}>
+		<tbody data-slot="table-body" className={cn(striped && k.striped, className)} {...props}>
 			{children}
 		</tbody>
 	)

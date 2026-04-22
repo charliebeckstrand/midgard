@@ -1,6 +1,6 @@
 'use client'
 
-import { forwardRef } from 'react'
+import type { Ref } from 'react'
 import { cn } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { ControlFrame } from '../../primitives'
@@ -30,10 +30,11 @@ export type InputProps = Omit<InputVariants, 'size'> & {
 	loading?: boolean
 	prefix?: React.ReactNode
 	suffix?: React.ReactNode
+	ref?: Ref<HTMLInputElement>
 	className?: string
 } & Omit<React.ComponentPropsWithoutRef<'input'>, 'className' | 'size' | 'prefix'>
 
-export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(props, ref) {
+export function Input(props: InputProps) {
 	const hasValueProp = 'value' in props
 
 	const {
@@ -52,6 +53,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(pro
 		value,
 		onChange,
 		onBlur,
+		ref,
 		...rest
 	} = props
 
@@ -147,4 +149,4 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(pro
 			</ControlFrame>
 		</InputSizeProvider>
 	)
-})
+}

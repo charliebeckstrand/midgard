@@ -1,5 +1,3 @@
-'use client'
-
 import { cn } from '../../core'
 import { Nav, NavList, type NavProps } from '../nav'
 import { k } from './variants'
