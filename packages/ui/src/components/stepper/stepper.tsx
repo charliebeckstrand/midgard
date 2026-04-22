@@ -1,6 +1,6 @@
 'use client'
 
-import { Children, isValidElement, useRef } from 'react'
+import { Children, isValidElement, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useIsDesktop, useRoving } from '../../hooks'
 import { ActiveIndicatorScope } from '../../primitives'
@@ -53,7 +53,10 @@ export function Stepper({
 	const resolvedOrientation: StepperOrientation =
 		orientation ?? (isDesktop ? 'horizontal' : 'vertical')
 
-	const { rowChildren, panelsChildren } = partitionStepperChildren(children)
+	const { rowChildren, panelsChildren } = useMemo(
+		() => partitionStepperChildren(children),
+		[children],
+	)
 
 	const rowRef = useRef<HTMLDivElement>(null)
 
@@ -61,6 +64,16 @@ export function Stepper({
 		itemSelector: 'button[data-slot="stepper-step"]:not(:disabled)',
 		orientation: resolvedOrientation,
 	})
+
+	const contextValue = useMemo(
+		() => ({
+			value,
+			onValueChange,
+			orientation: resolvedOrientation,
+			linear,
+		}),
+		[value, onValueChange, resolvedOrientation, linear],
+	)
 
 	const row = (
 		<div
@@ -77,14 +90,7 @@ export function Stepper({
 	)
 
 	return (
-		<StepperProvider
-			value={{
-				value,
-				onValueChange,
-				orientation: resolvedOrientation,
-				linear,
-			}}
-		>
+		<StepperProvider value={contextValue}>
 			<ActiveIndicatorScope>
 				{panelsChildren.length === 0 ? (
 					row

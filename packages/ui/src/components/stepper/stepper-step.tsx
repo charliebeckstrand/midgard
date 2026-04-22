@@ -1,6 +1,6 @@
 'use client'
 
-import { Children, isValidElement } from 'react'
+import { Children, isValidElement, useMemo } from 'react'
 import { cn } from '../../core'
 import { StepperStepProvider, type StepState, useStepper } from './context'
 import { StepperIndicator } from './stepper-indicator'
@@ -66,14 +66,15 @@ export function StepperStep({ value, disabled, className, children }: StepperSte
 
 	// Vertical mode: split into [indicator, content-column] so the recipe
 	// can align the title baseline with the indicator center.
-	const childrenWithIndicator = ensureStepperIndicator(children)
+	const layoutChildren = useMemo(() => {
+		const withIndicator = ensureStepperIndicator(children)
 
-	const layoutChildren =
-		orientation === 'vertical'
-			? partitionVerticalChildren(childrenWithIndicator)
-			: childrenWithIndicator
+		return orientation === 'vertical' ? partitionVerticalChildren(withIndicator) : withIndicator
+	}, [children, orientation])
 
-	const inner = <StepperStepProvider value={{ value, state }}>{layoutChildren}</StepperStepProvider>
+	const providerValue = useMemo(() => ({ value, state }), [value, state])
+
+	const inner = <StepperStepProvider value={providerValue}>{layoutChildren}</StepperStepProvider>
 
 	// Interactive when onValueChange is set. Linear mode disables upcoming steps.
 	if (onValueChange !== undefined) {
