@@ -271,10 +271,12 @@ function aggregateAll(
 	return values.length > 0 ? aggregate(values, op) : undefined
 }
 
+// Cache formatters — `Number.prototype.toLocaleString` constructs a fresh
+// Intl.NumberFormat on every call, which becomes measurable in a pivot with
+// hundreds of numeric cells.
+const integerFormatter = new Intl.NumberFormat()
+const fractionFormatter = new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 })
+
 function defaultFormat(value: number): ReactNode {
-	return Number.isInteger(value)
-		? value.toLocaleString()
-		: value.toLocaleString(undefined, {
-				maximumFractionDigits: 2,
-			})
+	return Number.isInteger(value) ? integerFormatter.format(value) : fractionFormatter.format(value)
 }
