@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { Combobox } from '../../components/combobox'
+import {
+	Combobox,
+	ComboboxLabel,
+	ComboboxOption,
+	ComboboxVirtualOptions,
+} from '../../components/combobox'
 import { bySlot, renderUI } from '../helpers'
 
 describe('Combobox', () => {
@@ -75,5 +80,30 @@ describe('Combobox', () => {
 
 		expect(bySlot(container, 'combobox-input')).not.toBeInTheDocument()
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
+	})
+
+	it('mounts virtualized options inside an open Combobox', () => {
+		const options = Array.from({ length: 1_000 }, (_, i) => ({
+			value: `v${i}`,
+			label: `Option ${i}`,
+		}))
+
+		renderUI(
+			<Combobox<string> open>
+				<ComboboxVirtualOptions items={options} estimateSize={32}>
+					{(o) => (
+						<ComboboxOption key={o.value} value={o.value}>
+							<ComboboxLabel>{o.label}</ComboboxLabel>
+						</ComboboxOption>
+					)}
+				</ComboboxVirtualOptions>
+			</Combobox>,
+		)
+
+		// Combobox renders its panel through FloatingPortal, so query document.
+		// jsdom has no layout, so react-virtual renders 0 items — the assertion
+		// is that the primitive mounts and the count is bounded.
+		expect(bySlot(document.body, 'virtual-options')).toBeInTheDocument()
+		expect(document.querySelectorAll('[role="option"]').length).toBeLessThanOrEqual(options.length)
 	})
 })

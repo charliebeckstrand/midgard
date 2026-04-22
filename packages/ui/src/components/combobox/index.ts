@@ -7,3 +7,7 @@ export {
 	ComboboxOption,
 	type ComboboxOptionProps,
 } from './option'
+export {
+	ComboboxVirtualOptions,
+	type ComboboxVirtualOptionsProps,
+} from './virtual-options'

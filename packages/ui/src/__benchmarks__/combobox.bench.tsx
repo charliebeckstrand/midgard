@@ -1,5 +1,6 @@
 import { cleanup, render } from '@testing-library/react'
 import { bench, describe } from 'vitest'
+import { ComboboxVirtualOptions } from '../components/combobox'
 import { Combobox } from '../components/combobox/combobox'
 import { ComboboxLabel, ComboboxOption } from '../components/combobox/option'
 import { makeComboboxOptions } from './fixtures'
@@ -75,6 +76,41 @@ describe('Combobox · open (options rendered)', () => {
 				{(query) => <OptionsFor options={options2k} query={query} />}
 			</Combobox>,
 		)
+
+		cleanup()
+	})
+})
+
+describe('Combobox · open · virtualized', () => {
+	function virtRender(opts: { value: string; label: string }[]) {
+		return (
+			<Combobox<string> open>
+				{(query) => {
+					const q = query.toLowerCase()
+					const filtered = q ? opts.filter((o) => o.label.toLowerCase().includes(q)) : opts
+
+					return (
+						<ComboboxVirtualOptions items={filtered} estimateSize={36}>
+							{(o) => (
+								<ComboboxOption key={o.value} value={o.value}>
+									<ComboboxLabel>{o.label}</ComboboxLabel>
+								</ComboboxOption>
+							)}
+						</ComboboxVirtualOptions>
+					)
+				}}
+			</Combobox>
+		)
+	}
+
+	bench('500 options · virtualized', () => {
+		render(virtRender(options500))
+
+		cleanup()
+	})
+
+	bench('2,000 options · virtualized', () => {
+		render(virtRender(options2k))
 
 		cleanup()
 	})
