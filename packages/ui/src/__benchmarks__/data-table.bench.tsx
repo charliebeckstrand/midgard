@@ -96,3 +96,52 @@ describe('DataTable · column-order logic (visibleColumns memo)', () => {
 		cleanup()
 	})
 })
+
+describe('DataTable · virtualized initial render', () => {
+	bench('1,000 rows × 8 cols · virtualize', () => {
+		render(
+			<DataTable columns={COLUMNS} rows={rows1k} getRowKey={getKey} virtualize maxHeight="600px" />,
+		)
+
+		cleanup()
+	})
+
+	bench('10,000 rows × 8 cols · virtualize', () => {
+		render(
+			<DataTable
+				columns={COLUMNS}
+				rows={rows10k}
+				getRowKey={getKey}
+				virtualize
+				maxHeight="600px"
+			/>,
+		)
+
+		cleanup()
+	})
+})
+
+describe('DataTable · rerender after selection toggle (1,000 rows)', () => {
+	bench('5 toggles/iter', () => {
+		const cols: DataTableColumn<Shipment>[] = [
+			{ id: '__select', title: '', selectable: true },
+			...COLUMNS,
+		]
+
+		let selection = new Set<string | number>()
+		const { rerender } = render(
+			<DataTable columns={cols} rows={rows1k} getRowKey={getKey} selection={selection} />,
+		)
+
+		for (let i = 0; i < 5; i++) {
+			const key = getKey(rows1k[i * 100] as Shipment)
+
+			selection = new Set(selection)
+			selection.add(key)
+
+			rerender(<DataTable columns={cols} rows={rows1k} getRowKey={getKey} selection={selection} />)
+		}
+
+		cleanup()
+	})
+})

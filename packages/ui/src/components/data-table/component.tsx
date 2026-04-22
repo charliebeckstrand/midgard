@@ -1,7 +1,8 @@
 'use client'
 
+import { useVirtualizer } from '@tanstack/react-virtual'
 import { SlidersHorizontal } from 'lucide-react'
-import { type ReactNode, useCallback, useMemo, useState } from 'react'
+import { type ReactNode, useCallback, useMemo, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
 import { Button } from '../button'
@@ -36,6 +37,11 @@ export type DataTableColumn<T> = {
 	hideable?: boolean
 }
 
+export type DataTableVirtualize = boolean | { estimateSize?: number; overscan?: number }
+
+const DEFAULT_ROW_HEIGHT = 44
+const DEFAULT_OVERSCAN = 10
+
 // ── DataTable ───────────────────────────────────────────
 
 export type DataTableProps<T> = TableVariants & {
@@ -60,6 +66,16 @@ export type DataTableProps<T> = TableVariants & {
 
 	loading?: boolean
 	rowLoading?: (row: T) => boolean
+
+	/**
+	 * Enables row virtualization via `@tanstack/react-virtual`. Only rows in
+	 * the scroll viewport (plus overscan) render to the DOM. Requires
+	 * `maxHeight` — virtualization needs a scroll container of known size.
+	 *
+	 * Pass `true` for defaults (44px row height, 10 overscan), or an object
+	 * to tune. Assumes uniform row heights.
+	 */
+	virtualize?: DataTableVirtualize
 
 	/** When true, shows a button that opens a dialog for managing column order and visibility. */
 	manageColumns?: boolean
@@ -95,6 +111,7 @@ export function DataTable<T>({
 	maxHeight,
 	loading = false,
 	rowLoading,
+	virtualize,
 	manageColumns = false,
 	manageColumnsLabel = 'Columns',
 	columnOrder: columnOrderProp,
@@ -110,6 +127,16 @@ export function DataTable<T>({
 	striped,
 	className,
 }: DataTableProps<T>) {
+	if (process.env.NODE_ENV !== 'production' && virtualize && !maxHeight) {
+		throw new Error(
+			'<DataTable virtualize> requires `maxHeight` — virtualization needs a scroll container of known size.',
+		)
+	}
+
+	const virtualizeEnabled = virtualize != null && virtualize !== false
+	const virtOpts = typeof virtualize === 'object' ? virtualize : null
+	const estimateSize = virtOpts?.estimateSize ?? DEFAULT_ROW_HEIGHT
+	const overscan = virtOpts?.overscan ?? DEFAULT_OVERSCAN
 	const [sort, setSort] = useControllable<SortState>({
 		value: sortProp,
 		defaultValue: defaultSort,
@@ -206,41 +233,45 @@ export function DataTable<T>({
 
 	const someSelected = rowKeys.some((rk: string | number) => selection.has(rk))
 
+	// Mirror rowKeys in a ref so toggleAll stays stable across selection edits.
+	const rowKeysRef = useRef(rowKeys)
+	rowKeysRef.current = rowKeys
+
 	const toggleRow = useCallback(
 		(key: string | number) => {
-			const next = new Set(selection)
+			setSelectionRaw((prev) => {
+				const next = new Set(prev ?? [])
 
-			if (next.has(key)) {
-				next.delete(key)
-			} else {
-				next.add(key)
-			}
+				if (next.has(key)) next.delete(key)
+				else next.add(key)
 
-			setSelectionRaw(next)
+				return next
+			})
 		},
-		[selection, setSelectionRaw],
+		[setSelectionRaw],
 	)
 
 	const toggleAll = useCallback(() => {
-		if (allSelected) {
-			setSelectionRaw(new Set())
-		} else {
-			setSelectionRaw(new Set(rowKeys))
-		}
-	}, [allSelected, rowKeys, setSelectionRaw])
+		setSelectionRaw((prev) => {
+			const keys = rowKeysRef.current
+			const current = prev ?? new Set<string | number>()
+			const every = keys.length > 0 && keys.every((k) => current.has(k))
+
+			return every ? new Set() : new Set(keys)
+		})
+	}, [setSelectionRaw])
 
 	const toggleSort = useCallback(
 		(column: string | number) => {
-			if (sort?.column === column) {
-				setSort({
-					column,
-					direction: sort.direction === 'asc' ? 'desc' : 'asc',
-				})
-			} else {
-				setSort({ column, direction: 'asc' })
-			}
+			setSort((prev) => {
+				if (prev?.column === column) {
+					return { column, direction: prev.direction === 'asc' ? 'desc' : 'asc' }
+				}
+
+				return { column, direction: 'asc' }
+			})
 		},
-		[sort, setSort],
+		[setSort],
 	)
 
 	const ctx = useMemo(
@@ -268,31 +299,69 @@ export function DataTable<T>({
 		],
 	)
 
+	// Virtualization. `useVirtualizer` is always called to satisfy the Rules of
+	// Hooks; when `virtualize` is off, count=0 makes it a no-op.
+	const scrollRef = useRef<HTMLDivElement>(null)
+
+	const virtualizer = useVirtualizer({
+		count: virtualizeEnabled && !loading ? rows.length : 0,
+		getScrollElement: () => scrollRef.current,
+		estimateSize: () => estimateSize,
+		overscan,
+	})
+
+	const virtualItems = virtualizeEnabled ? virtualizer.getVirtualItems() : []
+	const totalSize = virtualizeEnabled ? virtualizer.getTotalSize() : 0
+	const topSpacer = virtualItems[0]?.start ?? 0
+	const lastItem = virtualItems[virtualItems.length - 1]
+	const bottomSpacer = lastItem ? totalSize - lastItem.end : 0
+
+	const needsScrollWrapper = stickyHeader || virtualizeEnabled
+
+	function renderRow(row: T, index: number) {
+		const key = rowKeys[index] as string | number
+		const isLoading = rowLoading?.(row) ?? false
+
+		return (
+			<DataTableRowInternal<T>
+				key={key}
+				row={row}
+				rowKey={key}
+				columns={visibleColumns}
+				loading={isLoading}
+				className={rowClassName?.(row)}
+			/>
+		)
+	}
+
 	const tableContent = (
 		<Table dense={dense} bleed={bleed} grid={grid} striped={striped} className={className}>
 			<DataTableHead columns={visibleColumns} />
 
 			{loading ? (
 				<TableLoading columns={visibleColumns.length} />
-			) : (
+			) : virtualizeEnabled ? (
 				<TableBody>
-					{rows.map((row, index) => {
-						const key = rowKeys[index] as string | number
-
-						const isLoading = rowLoading?.(row) ?? false
-
-						return (
-							<DataTableRowInternal<T>
-								key={key}
-								row={row}
-								rowKey={key}
-								columns={visibleColumns}
-								loading={isLoading}
-								className={rowClassName?.(row)}
+					{topSpacer > 0 && (
+						<tr data-slot="data-table-spacer">
+							<td
+								colSpan={visibleColumns.length}
+								style={{ height: topSpacer, padding: 0, border: 0 }}
 							/>
-						)
-					})}
+						</tr>
+					)}
+					{virtualItems.map((vr) => renderRow(rows[vr.index] as T, vr.index))}
+					{bottomSpacer > 0 && (
+						<tr data-slot="data-table-spacer">
+							<td
+								colSpan={visibleColumns.length}
+								style={{ height: bottomSpacer, padding: 0, border: 0 }}
+							/>
+						</tr>
+					)}
 				</TableBody>
+			) : (
+				<TableBody>{rows.map(renderRow)}</TableBody>
 			)}
 		</Table>
 	)
@@ -316,8 +385,12 @@ export function DataTable<T>({
 
 				{batchActions && <Toolbar>{someSelected && batchActions(selection)}</Toolbar>}
 
-				{stickyHeader ? (
-					<div className={cn(k.stickyWrapper)} style={maxHeight ? { maxHeight } : undefined}>
+				{needsScrollWrapper ? (
+					<div
+						ref={scrollRef}
+						className={cn(k.stickyWrapper)}
+						style={maxHeight ? { maxHeight } : undefined}
+					>
 						{tableContent}
 					</div>
 				) : (
