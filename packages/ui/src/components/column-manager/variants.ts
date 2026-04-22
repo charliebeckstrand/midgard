@@ -1,3 +1,1 @@
-import { katachi } from '../../recipes'
-
-export const k = katachi.columnManager
+export { columnManager as k } from '../../recipes/katachi/column-manager'

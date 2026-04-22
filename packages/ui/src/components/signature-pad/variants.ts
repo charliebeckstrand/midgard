@@ -1,3 +1,1 @@
-import { katachi } from '../../recipes'
-
-export const k = katachi.signaturePad
+export { signaturePad as k } from '../../recipes/katachi/signature-pad'

@@ -1,5 +1,1 @@
-import { katachi } from '../../recipes'
-
-export type { ListVariant } from '../../recipes/katachi/list'
-
-export const k = katachi.list
+export { type ListVariant, list as k } from '../../recipes/katachi/list'

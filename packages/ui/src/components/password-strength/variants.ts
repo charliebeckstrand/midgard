@@ -1,3 +1,1 @@
-import { katachi } from '../../recipes'
-
-export const k = katachi.passwordStrength
+export { passwordStrength as k } from '../../recipes/katachi/password-strength'

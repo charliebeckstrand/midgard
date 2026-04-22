@@ -1,3 +1,1 @@
-import { katachi } from '../../recipes'
-
-export const k = katachi.tooltip
+export { tooltip as k } from '../../recipes/katachi/tooltip'

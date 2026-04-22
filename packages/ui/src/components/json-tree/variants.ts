@@ -1,3 +1,1 @@
-import { katachi } from '../../recipes'
-
-export const k = katachi.jsonTree
+export { jsonTree as k } from '../../recipes/katachi/json-tree'

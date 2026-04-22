@@ -1,3 +1,1 @@
-import { katachi } from '../../recipes'
-
-export const k = katachi.pdfViewer
+export { pdfViewer as k } from '../../recipes/katachi/pdf-viewer'

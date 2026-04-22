@@ -1,3 +1,1 @@
-import { katachi } from '../../recipes'
-
-export const k = katachi.resizable
+export { resizable as k } from '../../recipes/katachi/resizable'

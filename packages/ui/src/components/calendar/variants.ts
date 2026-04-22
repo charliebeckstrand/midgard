@@ -1,3 +1,1 @@
-import { katachi } from '../../recipes'
-
-export const k = katachi.calendar
+export { calendar as k } from '../../recipes/katachi/calendar'

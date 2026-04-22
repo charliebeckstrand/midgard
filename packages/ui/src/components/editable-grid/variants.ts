@@ -1,3 +1,1 @@
-import { katachi } from '../../recipes'
-
-export const k = katachi.editableGrid
+export { editableGrid as k } from '../../recipes/katachi/editable-grid'

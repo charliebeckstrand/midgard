@@ -1,3 +1,1 @@
-import { katachi } from '../../recipes'
-
-export const k = katachi.commandPalette
+export { commandPalette as k } from '../../recipes/katachi/command-palette'

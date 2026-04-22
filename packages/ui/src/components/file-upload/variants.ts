@@ -1,5 +1,5 @@
-import { katachi } from '../../recipes'
+import { fileUpload } from '../../recipes/katachi/file-upload'
 
-export const k = katachi.fileUpload
+export { fileUpload as k }
 
-export const fileUploadClasses = k.dropzone
+export const fileUploadClasses = fileUpload.dropzone

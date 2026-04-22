@@ -1,3 +1,1 @@
-import { katachi } from '../../recipes'
-
-export const k = katachi.queryBuilder
+export { queryBuilder as k } from '../../recipes/katachi/query-builder'
