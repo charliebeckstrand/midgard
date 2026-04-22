@@ -2,28 +2,66 @@
 
 import { createContext, useContext } from 'react'
 
-export type FormContextValue = {
+export type FormStateValue = {
 	values: Record<string, unknown>
-	getValue: (name: string) => unknown
-	setValue: (name: string, value: unknown) => void
 	errors: Record<string, string | undefined>
-	setErrors: (errors: Record<string, string | undefined>) => void
 	touched: Record<string, boolean>
-	setTouched: (name: string) => void
 	dirty: Record<string, boolean>
 	isDirty: boolean
 	isValid: boolean
 	submitting: boolean
+}
+
+export type FormActions = {
+	getValue: (name: string) => unknown
+	setValue: (name: string, value: unknown) => void
+	setErrors: (errors: Record<string, string | undefined>) => void
+	setTouched: (name: string) => void
 	reset: () => void
 }
 
-const FormContext = createContext<FormContextValue | undefined>(undefined)
+/** Combined shape for consumers that need both state and actions. */
+export type FormContextValue = FormStateValue & FormActions
 
-export const FormProvider = FormContext.Provider
+const FormStateContext = createContext<FormStateValue | undefined>(undefined)
 
-/** Returns the nearest Form context, or undefined outside a Form. */
+const FormActionsContext = createContext<FormActions | undefined>(undefined)
+
+/** Internal — the component-level provider wires both contexts. */
+export function FormProvider({
+	state,
+	actions,
+	children,
+}: {
+	state: FormStateValue
+	actions: FormActions
+	children: React.ReactNode
+}) {
+	return (
+		<FormActionsContext.Provider value={actions}>
+			<FormStateContext.Provider value={state}>{children}</FormStateContext.Provider>
+		</FormActionsContext.Provider>
+	)
+}
+
+/** Returns combined state + actions. Re-renders on any state change — prefer `useFormActions` if you only need actions. */
 export function useFormContext(): FormContextValue | undefined {
-	return useContext(FormContext)
+	const state = useContext(FormStateContext)
+	const actions = useContext(FormActionsContext)
+
+	if (!state || !actions) return undefined
+
+	return { ...state, ...actions }
+}
+
+/** Form actions. Stable reference — consumers skip re-renders on field changes. */
+export function useFormActions(): FormActions | undefined {
+	return useContext(FormActionsContext)
+}
+
+/** Form state. Re-renders on every field change. */
+export function useFormState(): FormStateValue | undefined {
+	return useContext(FormStateContext)
 }
 
 export type FormFieldState = {
