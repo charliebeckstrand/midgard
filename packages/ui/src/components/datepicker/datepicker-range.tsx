@@ -236,7 +236,7 @@ export function DatePickerRange({
 								className={cn('z-50', iro.text.default, glass && omote.glass)}
 								onMouseDown={(e) => e.preventDefault()}
 							>
-								<Box bg={glass ? 'none' : 'popover'} border={glass || undefined} radius="lg">
+								<Box bg={glass ? 'none' : 'popover'} outline={glass || undefined} radius="lg">
 									<CalendarRange
 										ref={calendarRef}
 										onChange={handleSelect}

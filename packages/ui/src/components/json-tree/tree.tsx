@@ -21,7 +21,7 @@ export type { JsonValue }
 
 export type JsonTreeVirtualize = boolean | { estimateSize?: number; overscan?: number }
 
-const DEFAULT_ROW_HEIGHT = 28
+const DEFAULT_ROW_HEIGHT = 24
 const DEFAULT_OVERSCAN = 20
 
 export type JsonTreeProps = {
@@ -72,7 +72,7 @@ export function JsonTree({
 		orientation: 'vertical',
 	})
 
-	if (process.env.NODE_ENV !== 'production' && virtualize && !maxHeight) {
+	if (virtualize && !maxHeight) {
 		throw new Error(
 			'<JsonTree virtualize> requires `maxHeight` — virtualization needs a scroll container of known size.',
 		)
@@ -211,8 +211,11 @@ function VirtualizedJsonTree({
 
 	const virtualItems = virtualizer.getVirtualItems()
 	const totalSize = virtualizer.getTotalSize()
+
 	const topSpacer = virtualItems[0]?.start ?? 0
+
 	const lastItem = virtualItems[virtualItems.length - 1]
+
 	const bottomSpacer = lastItem ? totalSize - lastItem.end : 0
 
 	return (

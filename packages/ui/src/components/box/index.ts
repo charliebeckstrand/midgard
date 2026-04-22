@@ -1,8 +1,8 @@
 export { Box, type BoxProps } from './component'
 export type {
 	BoxBg,
-	BoxBorder,
 	BoxMargin,
+	BoxOutline,
 	BoxPadding,
 	BoxRadius,
 } from './variants'

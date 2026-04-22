@@ -203,6 +203,7 @@ export function flattenTree(
 			filter && search ? filterEntries(getEntries(value), search, searchIndex) : getEntries(value)
 
 		const open = expanded.has(path)
+
 		const count = entries.length
 
 		out.push({

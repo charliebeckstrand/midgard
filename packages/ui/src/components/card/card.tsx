@@ -8,7 +8,7 @@ export function Card({
 	px,
 	py,
 	bg = 'tint',
-	border = true,
+	outline = true,
 	radius = 'lg',
 	className,
 	...props
@@ -22,7 +22,7 @@ export function Card({
 			px={px}
 			py={py}
 			bg={bg}
-			border={border}
+			outline={outline}
 			radius={radius}
 			className={cn(
 				'overflow-hidden',

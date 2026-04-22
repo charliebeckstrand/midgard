@@ -127,16 +127,20 @@ export function DataTable<T>({
 	striped,
 	className,
 }: DataTableProps<T>) {
-	if (process.env.NODE_ENV !== 'production' && virtualize && !maxHeight) {
+	if (virtualize && !maxHeight) {
 		throw new Error(
 			'<DataTable virtualize> requires `maxHeight` — virtualization needs a scroll container of known size.',
 		)
 	}
 
 	const virtualizeEnabled = virtualize != null && virtualize !== false
+
 	const virtOpts = typeof virtualize === 'object' ? virtualize : null
+
 	const estimateSize = virtOpts?.estimateSize ?? DEFAULT_ROW_HEIGHT
+
 	const overscan = virtOpts?.overscan ?? DEFAULT_OVERSCAN
+
 	const [sort, setSort] = useControllable<SortState>({
 		value: sortProp,
 		defaultValue: defaultSort,
@@ -188,6 +192,7 @@ export function DataTable<T>({
 
 			if (col.selectable || col.actions || col.pinned) {
 				ordered.push(col)
+
 				continue
 			}
 
@@ -235,6 +240,7 @@ export function DataTable<T>({
 
 	// Mirror rowKeys in a ref so toggleAll stays stable across selection edits.
 	const rowKeysRef = useRef(rowKeys)
+
 	rowKeysRef.current = rowKeys
 
 	const toggleRow = useCallback(
@@ -254,7 +260,9 @@ export function DataTable<T>({
 	const toggleAll = useCallback(() => {
 		setSelectionRaw((prev) => {
 			const keys = rowKeysRef.current
+
 			const current = prev ?? new Set<string | number>()
+
 			const every = keys.length > 0 && keys.every((k) => current.has(k))
 
 			return every ? new Set() : new Set(keys)
@@ -311,15 +319,20 @@ export function DataTable<T>({
 	})
 
 	const virtualItems = virtualizeEnabled ? virtualizer.getVirtualItems() : []
+
 	const totalSize = virtualizeEnabled ? virtualizer.getTotalSize() : 0
+
 	const topSpacer = virtualItems[0]?.start ?? 0
+
 	const lastItem = virtualItems[virtualItems.length - 1]
+
 	const bottomSpacer = lastItem ? totalSize - lastItem.end : 0
 
 	const needsScrollWrapper = stickyHeader || virtualizeEnabled
 
 	function renderRow(row: T, index: number) {
 		const key = rowKeys[index] as string | number
+
 		const isLoading = rowLoading?.(row) ?? false
 
 		return (

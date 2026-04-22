@@ -102,7 +102,7 @@ export const JsonNode = memo(function JsonNode({ keyName, value }: JsonNodeProps
 	if (!branch) {
 		return (
 			<div data-highlighted={highlighted || undefined}>
-				<div className={cn(k.row, highlighted && k.highlight)} style={{ paddingLeft }}>
+				<div className={cn(k.row)} style={{ paddingLeft }}>
 					<div
 						role="treeitem"
 						tabIndex={depth === 0 ? 0 : -1}
@@ -110,8 +110,10 @@ export const JsonNode = memo(function JsonNode({ keyName, value }: JsonNodeProps
 						className={cn(k.leaf)}
 					>
 						<span className={k.chevronSpacer} aria-hidden="true" />
-						<NodeKey keyName={keyName} />
-						<PrimitiveValue value={value} />
+						<span className={cn(k.content, highlighted && k.highlight)}>
+							<NodeKey keyName={keyName} />
+							<PrimitiveValue value={value} />
+						</span>
 					</div>
 				</div>
 			</div>
@@ -133,7 +135,7 @@ export const JsonNode = memo(function JsonNode({ keyName, value }: JsonNodeProps
 
 	return (
 		<div data-slot="json-node" data-highlighted={highlighted || undefined}>
-			<div className={cn(k.row, highlighted && k.highlight)} style={{ paddingLeft }}>
+			<div className={cn(k.row)} style={{ paddingLeft }}>
 				<button
 					type="button"
 					role="treeitem"
@@ -148,15 +150,17 @@ export const JsonNode = memo(function JsonNode({ keyName, value }: JsonNodeProps
 					<span className={cn(k.chevron)} aria-hidden="true">
 						<Icon icon={<ChevronRight />} size="sm" className={cn(open && 'rotate-90')} />
 					</span>
-					<NodeKey keyName={keyName} />
-					<span className={cn(k.punctuation)}>{openBracket}</span>
-					{!open && count > 0 && (
-						<>
-							<span className={cn(k.summary)}>{summary}</span>
-							<span className={cn(k.punctuation)}>{closeBracket}</span>
-						</>
-					)}
-					{!open && count === 0 && <span className={cn(k.punctuation)}>{closeBracket}</span>}
+					<span className={cn(k.content, highlighted && k.highlight)}>
+						<NodeKey keyName={keyName} />
+						<span className={cn(k.punctuation)}>{openBracket}</span>
+						{!open && count > 0 && (
+							<>
+								<span className={cn(k.summary)}>{summary}</span>
+								<span className={cn(k.punctuation)}>{closeBracket}</span>
+							</>
+						)}
+						{!open && count === 0 && <span className={cn(k.punctuation)}>{closeBracket}</span>}
+					</span>
 				</button>
 			</div>
 

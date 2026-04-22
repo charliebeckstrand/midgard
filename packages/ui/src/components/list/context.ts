@@ -7,7 +7,7 @@ import { createContext } from '../../core/create-context'
 import type { ListVariant } from './variants'
 
 export type ListContext = {
-	/** Visual variant — `outline` renders bordered cards, `plain` renders flush rows. */
+	/** Visual variant — see `List.variant` for semantics. */
 	variant: ListVariant
 	/** Whether the list allows drag / keyboard reorder. */
 	interactive: boolean

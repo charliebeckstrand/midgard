@@ -14,7 +14,7 @@ import { VariantListbox } from '../components/variant-listbox'
 
 export const meta = { category: 'Data Display' }
 
-const variants = ['separated', 'bordered', 'plain'] as const
+const variants = ['separated', 'outline', 'plain'] as const
 
 const items = [
 	{
@@ -57,7 +57,7 @@ export default function AccordionDemo() {
 
 			<Example title="Multiple">
 				<Sizer size="md">
-					<Accordion type="multiple" variant="bordered" defaultValue={['shipping', 'returns']}>
+					<Accordion type="multiple" variant="outline" defaultValue={['shipping', 'returns']}>
 						{items.map((item) => (
 							<AccordionItem key={item.value} value={item.value}>
 								<AccordionButton>{item.title}</AccordionButton>

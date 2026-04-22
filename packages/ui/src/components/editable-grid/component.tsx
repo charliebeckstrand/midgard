@@ -1,13 +1,6 @@
 'use client'
 
-import {
-	type ClipboardEvent,
-	type KeyboardEvent,
-	useCallback,
-	useMemo,
-	useRef,
-	useState,
-} from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
 import {
@@ -27,6 +20,7 @@ import {
 } from './context'
 import { useEditableGridMutations } from './use-editable-grid-mutations'
 import { useEditableGridNavigation } from './use-editable-grid-navigation'
+import { useEditableGridWrapper } from './use-editable-grid-wrapper'
 import { k } from './variants'
 
 // ── EditableGrid ───────────────────────────────────────
@@ -255,126 +249,20 @@ export function EditableGrid<T>({
 		wrapperRef.current?.focus()
 	}, [])
 
-	// ── Keyboard & paste on the wrapper ────────────────────
+	// ── Wrapper handlers ───────────────────────────────────
 
-	const onWrapperKeyDown = useCallback(
-		(e: KeyboardEvent<HTMLDivElement>) => {
-			if (editing) return
-
-			if (rowsRef.current.length === 0 || editableCols.length === 0) return
-
-			const key = e.key
-
-			switch (key) {
-				case 'ArrowUp':
-					e.preventDefault()
-
-					moveActive(-1, 0, e.shiftKey)
-
-					return
-				case 'ArrowDown':
-					e.preventDefault()
-
-					moveActive(1, 0, e.shiftKey)
-
-					return
-				case 'ArrowLeft':
-					e.preventDefault()
-
-					moveActive(0, -1, e.shiftKey)
-
-					return
-				case 'ArrowRight':
-					e.preventDefault()
-
-					moveActive(0, 1, e.shiftKey)
-
-					return
-				case 'Tab':
-					if (moveActiveTab(e.shiftKey ? -1 : 1)) e.preventDefault()
-
-					return
-				case 'Home': {
-					e.preventDefault()
-
-					const prev = activeRef.current ?? { row: 0, col: 0 }
-
-					moveActiveTo({ row: prev.row, col: 0 }, e.shiftKey)
-
-					return
-				}
-				case 'End': {
-					e.preventDefault()
-
-					const prev = activeRef.current ?? { row: 0, col: 0 }
-
-					moveActiveTo({ row: prev.row, col: editableCols.length - 1 }, e.shiftKey)
-
-					return
-				}
-				case 'Enter':
-				case 'F2': {
-					if (!active) return
-
-					const row = rowsRef.current[active.row]
-
-					const col = editableCols[active.col]
-
-					if (!row || !col) return
-
-					e.preventDefault()
-
-					beginEdit(active, formatCell(row, col))
-
-					return
-				}
-				case 'Delete':
-				case 'Backspace':
-					if (!active) return
-
-					e.preventDefault()
-
-					if (hasMultiSelection) applyBulkFill('')
-					else applyCellWrite(active.row, active.col, '')
-
-					return
-				case 'Escape':
-					if (!active) return
-
-					e.preventDefault()
-
-					if (hasMultiSelection) {
-						if (anchor) setAnchor(null)
-
-						if (extraCells.size > 0) setExtraCells(new Set())
-					} else {
-						setActive(null)
-					}
-
-					return
-			}
-
-			// Printable single character starts edit and replaces the value.
-			if (active && key.length === 1 && !e.metaKey && !e.ctrlKey && !e.altKey) {
-				const row = rowsRef.current[active.row]
-
-				const col = editableCols[active.col]
-
-				if (!row || !col) return
-
-				e.preventDefault()
-
-				beginEdit(active, key, formatCell(row, col))
-			}
-		},
-		[
+	const { onWrapperKeyDown, onWrapperPaste, onWrapperFocus, onWrapperBlur } =
+		useEditableGridWrapper<T>({
 			editing,
 			active,
 			anchor,
 			extraCells,
 			hasMultiSelection,
 			editableCols,
+			wrapperRef,
+			rowsRef,
 			activeRef,
+			selectionRef,
 			moveActive,
 			moveActiveTo,
 			moveActiveTab,
@@ -383,78 +271,13 @@ export function EditableGrid<T>({
 			setExtraCells,
 			beginEdit,
 			formatCell,
-			applyCellWrite,
-			applyBulkFill,
-		],
-	)
-
-	const onWrapperPaste = useCallback(
-		(e: ClipboardEvent<HTMLDivElement>) => {
-			if (editing || !active) return
-
-			const text = e.clipboardData.getData('text/plain')
-
-			if (!text) return
-
-			e.preventDefault()
-
-			const matrix = text
-				.replace(/\r\n/g, '\n')
-				.split('\n')
-				.map((r) => r.split('\t'))
-
-			// Single cell → fill all selected cells if there's a multi-selection,
-			// else write to active (which may still bulk-fill by row selection).
-			if (matrix.length === 1 && (matrix[0]?.length ?? 0) === 1) {
-				const raw = matrix[0]?.[0] ?? ''
-
-				if (hasMultiSelection) applyBulkFill(raw)
-				else applyCellWrite(active.row, active.col, raw)
-
-				return
-			}
-
-			// Matrix paste: fill from active cell, row-major, without bulk-fill.
-			const changes: CellChange[] = []
-
-			matrix.forEach((cells, r) => {
-				cells.forEach((raw, c) => {
-					const rowIdx = active.row + r
-					const colIdx = active.col + c
-
-					const col = editableCols[colIdx]
-
-					const row = rowsRef.current[rowIdx]
-
-					if (!col || !row || col.readOnly) return
-
-					changes.push({
-						rowKey: getRowKey(row, rowIdx),
-						columnId: col.id,
-						value: parseValue(raw, row, col),
-					})
-				})
-			})
-
-			if (changes.length) {
-				onChange(changes)
-
-				if (selectionRef.current.size > 0) setSelectionRaw(new Set())
-			}
-		},
-		[
-			editing,
-			active,
-			hasMultiSelection,
-			editableCols,
-			getRowKey,
 			parseValue,
-			onChange,
+			getRowKey,
 			applyCellWrite,
 			applyBulkFill,
-			setSelectionRaw,
-		],
-	)
+			onChange,
+			setSelection: setSelectionRaw,
+		})
 
 	// ── Column augmentation ────────────────────────────────
 
@@ -546,38 +369,8 @@ export function EditableGrid<T>({
 				className={cn('outline-none', className)}
 				onKeyDown={onWrapperKeyDown}
 				onPaste={onWrapperPaste}
-				onFocus={(e) => {
-					const wrapper = wrapperRef.current
-
-					if (!wrapper || e.target !== wrapper) return
-
-					if (activeRef.current) return
-
-					const rel = e.relatedTarget
-
-					if (rel instanceof Node && wrapper.contains(rel)) return
-
-					if (rowsRef.current.length === 0 || editableCols.length === 0) return
-
-					const cameFromAfter =
-						rel instanceof Node &&
-						!!(wrapper.compareDocumentPosition(rel) & Node.DOCUMENT_POSITION_FOLLOWING)
-
-					moveActiveTo(
-						cameFromAfter
-							? { row: rowsRef.current.length - 1, col: editableCols.length - 1 }
-							: { row: 0, col: 0 },
-					)
-				}}
-				onBlur={(e) => {
-					const next = e.relatedTarget
-
-					if (next instanceof Node && wrapperRef.current?.contains(next)) return
-
-					setActive(null)
-
-					setAnchor(null)
-				}}
+				onFocus={onWrapperFocus}
+				onBlur={onWrapperBlur}
 			>
 				<DataTable
 					columns={augmentedColumns}

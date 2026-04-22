@@ -7,7 +7,22 @@ import { omote } from '../omote'
 import { sen } from '../sen'
 import { yasumi } from '../yasumi'
 
-export type ListVariant = 'outline' | 'solid' | 'plain'
+export type ListVariant = 'separated' | 'outline' | 'plain' | 'solid'
+
+const rootBase = ['flex flex-col', 'list-none m-0 p-0']
+
+const rootVariant = {
+	separated: [kumi.gap.md],
+	outline: [
+		'overflow-hidden',
+		maru.rounded.lg,
+		...sen.border,
+		'divide-y divide-zinc-950/10',
+		'dark:divide-white/10',
+	],
+	plain: ['divide-y divide-zinc-950/10', 'dark:divide-white/10'],
+	solid: [kumi.gap.md],
+} satisfies Record<ListVariant, unknown>
 
 const itemBase = [
 	'group/list-item',
@@ -17,20 +32,21 @@ const itemBase = [
 	ji.size.md,
 	iro.text.default,
 	ki.inset,
-	maru.rounded.lg,
 	'transition-shadow',
 ]
 
 const itemVariant = {
-	outline: ['p-3', 'bg-white dark:bg-zinc-900', sen.border],
-	solid: ['p-3', ...omote.tint, sen.border],
+	separated: ['p-3', 'bg-white dark:bg-zinc-900', sen.border, maru.rounded.lg],
+	outline: ['p-3'],
 	plain: ['px-2 py-1.5'],
+	solid: ['p-3', ...omote.tint, sen.border, maru.rounded.lg],
 } satisfies Record<ListVariant, unknown>
 
 export const list = {
-	base: ['flex flex-col', kumi.gap.md, 'list-none m-0 p-0'],
+	base: rootBase,
+	root: (variant: ListVariant = 'separated') => [...rootBase, ...rootVariant[variant]],
 	horizontal: 'flex-row',
-	item: (variant: ListVariant = 'outline') => [...itemBase, ...itemVariant[variant]],
+	item: (variant: ListVariant = 'separated') => [...itemBase, ...itemVariant[variant]],
 	itemActive: 'z-10 relative bg-white dark:bg-zinc-900 rounded-md',
 	itemLifted: ki.lifted,
 	handle: [

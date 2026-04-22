@@ -11,6 +11,7 @@
 // ── Motoi (基) — structure only ─────────────────────────
 const motoi = {
 	border: 'border',
+	outline: 'outline',
 	ring: 'ring-1',
 	divider: 'border-t',
 }
@@ -22,6 +23,10 @@ const hiru = {
 	borderEmphasis: 'border-zinc-950/20',
 	borderSubtle: 'border-zinc-950/5',
 	borderTransparent: 'border-transparent',
+	outline: 'outline-1 outline-zinc-950/10',
+	outlineStrong: 'outline-1 outline-zinc-950/15',
+	outlineEmphasis: 'outline-1 outline-zinc-950/20',
+	outlineSubtle: 'outline-1 outline-zinc-950/5',
 	ring: 'ring-zinc-950/10',
 	ringStrong: 'ring-zinc-950/20',
 	ringSubtle: 'ring-zinc-950/5',
@@ -34,6 +39,10 @@ const yoru = {
 	borderEmphasis: 'dark:border-white/20',
 	borderSubtle: 'dark:border-white/5',
 	borderTransparent: 'dark:border-transparent',
+	outline: 'dark:outline-1 dark:outline-white/10',
+	outlineStrong: 'dark:outline-1 dark:outline-white/15',
+	outlineEmphasis: 'dark:outline-1 dark:outline-white/20',
+	outlineSubtle: 'dark:outline-1 dark:outline-white/5',
 	ring: 'dark:ring-white/10',
 	ringStrong: 'dark:ring-white/15',
 	ringSubtle: 'dark:ring-white/5',
@@ -55,6 +64,16 @@ export const sen = {
 	borderSubtleColor: [hiru.borderSubtle, yoru.borderSubtle],
 	/** Transparent border — reserves layout space without a visible edge. */
 	borderTransparent: [hiru.borderTransparent, yoru.borderTransparent],
+
+	/** Default outline — 1 px outline-style line. */
+	outline: [motoi.outline, hiru.outline, yoru.outline],
+	/** Stronger outline — for emphasis on dark backgrounds. */
+	outlineStrong: [motoi.outline, hiru.outlineStrong, yoru.outlineStrong],
+	/** Emphasis outline — hover / active states. */
+	outlineEmphasis: [motoi.outline, hiru.outlineEmphasis, yoru.outlineEmphasis],
+	/** Subtle outline — secondary separators. */
+	outlineSubtle: [motoi.outline, hiru.outlineSubtle, yoru.outlineSubtle],
+
 	/** Default ring — 1 px outline-style line. */
 	ring: [motoi.ring, hiru.ring, yoru.ring],
 	/** Inset ring — sits inside the element, subtle in light / stronger in dark. */

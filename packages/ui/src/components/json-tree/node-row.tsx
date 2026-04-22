@@ -24,7 +24,7 @@ export function JsonNodeRow({ node, onToggle }: JsonNodeRowProps) {
 	if (node.kind === 'leaf') {
 		return (
 			<div data-highlighted={node.highlighted || undefined}>
-				<div className={cn(k.row, node.highlighted && k.highlight)} style={{ paddingLeft }}>
+				<div className={cn(k.row)} style={{ paddingLeft }}>
 					<div
 						role="treeitem"
 						tabIndex={node.depth === 0 ? 0 : -1}
@@ -32,8 +32,10 @@ export function JsonNodeRow({ node, onToggle }: JsonNodeRowProps) {
 						className={cn(k.leaf)}
 					>
 						<span className={k.chevronSpacer} aria-hidden="true" />
-						<NodeKey keyName={node.keyName} />
-						<PrimitiveValue value={node.value} />
+						<span className={cn(k.content, node.highlighted && k.highlight)}>
+							<NodeKey keyName={node.keyName} />
+							<PrimitiveValue value={node.value} />
+						</span>
 					</div>
 				</div>
 			</div>
@@ -52,6 +54,7 @@ export function JsonNodeRow({ node, onToggle }: JsonNodeRowProps) {
 	}
 
 	const isArray = Array.isArray(node.value)
+
 	const openBracket = isArray ? '[' : '{'
 	const closeBracket = isArray ? ']' : '}'
 
@@ -59,7 +62,7 @@ export function JsonNodeRow({ node, onToggle }: JsonNodeRowProps) {
 
 	return (
 		<div data-slot="json-node" data-highlighted={node.highlighted || undefined}>
-			<div className={cn(k.row, node.highlighted && k.highlight)} style={{ paddingLeft }}>
+			<div className={cn(k.row)} style={{ paddingLeft }}>
 				<button
 					type="button"
 					role="treeitem"
@@ -74,17 +77,19 @@ export function JsonNodeRow({ node, onToggle }: JsonNodeRowProps) {
 					<span className={cn(k.chevron)} aria-hidden="true">
 						<Icon icon={<ChevronRight />} size="sm" className={cn(node.open && 'rotate-90')} />
 					</span>
-					<NodeKey keyName={node.keyName} />
-					<span className={cn(k.punctuation)}>{openBracket}</span>
-					{!node.open && node.count > 0 && (
-						<>
-							<span className={cn(k.summary)}>{summary}</span>
+					<span className={cn(k.content, node.highlighted && k.highlight)}>
+						<NodeKey keyName={node.keyName} />
+						<span className={cn(k.punctuation)}>{openBracket}</span>
+						{!node.open && node.count > 0 && (
+							<>
+								<span className={cn(k.summary)}>{summary}</span>
+								<span className={cn(k.punctuation)}>{closeBracket}</span>
+							</>
+						)}
+						{!node.open && node.count === 0 && (
 							<span className={cn(k.punctuation)}>{closeBracket}</span>
-						</>
-					)}
-					{!node.open && node.count === 0 && (
-						<span className={cn(k.punctuation)}>{closeBracket}</span>
-					)}
+						)}
+					</span>
 				</button>
 			</div>
 		</div>

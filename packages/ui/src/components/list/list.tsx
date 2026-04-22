@@ -13,32 +13,43 @@ const noop = () => {}
 
 // ── List ───────────────────────────────────────────────
 
-export type ListProps<T> = {
+type BaseListProps<T> = {
 	/** Ordered items. */
 	items: T[]
-	/** Stable key extractor — required for reconciliation and DnD tracking. */
-	getKey: (item: T) => string
 	/** Called with the next ordering. Omit to render a non-reorderable list. */
 	onReorder?: (next: T[]) => void
-	/** Visual variant. `outline` renders bordered cards; `plain` renders flush rows. */
+	/** Visual variant. `separated` spaces cards apart; `outline` draws one border around the whole list with dividers; `plain` uses dividers only; `solid` renders tinted cards. */
 	variant?: ListVariant
 	/** Layout axis. Defaults to vertical. */
 	orientation?: SortableOrientation
 	/** Disable all drag / keyboard reorder interaction. */
 	disabled?: boolean
-	/** Auto-insert a `<ListHandle>` as the first child of each `<ListItem>`. */
-	sortable?: boolean
 	/** Render function for each item. */
 	children: (item: T, index: number) => ReactNode
 	className?: string
 	'aria-label'?: string
 }
 
+export type ListProps<T> = BaseListProps<T> &
+	(
+		| {
+				/** Auto-insert a `<ListHandle>` as the first child of each `<ListItem>`. */
+				sortable?: true
+				/** Stable key extractor — required for DnD tracking. */
+				getKey: (item: T) => string
+		  }
+		| {
+				sortable: false
+				/** Stable key extractor. Optional when the list is read-only; falls back to item index. */
+				getKey?: (item: T) => string
+		  }
+	)
+
 export function List<T>({
 	items,
 	getKey,
 	onReorder,
-	variant = 'outline',
+	variant = 'separated',
 	orientation = 'vertical',
 	disabled,
 	sortable = true,
@@ -46,9 +57,21 @@ export function List<T>({
 	className,
 	'aria-label': ariaLabel,
 }: ListProps<T>) {
+	const effectiveGetKey = useMemo<(item: T) => string>(() => {
+		if (getKey) return getKey
+
+		const indexByItem = new Map<T, number>()
+
+		items.forEach((item, index) => {
+			indexByItem.set(item, index)
+		})
+
+		return (item: T) => String(indexByItem.get(item) ?? -1)
+	}, [getKey, items])
+
 	const { itemIds, strategy, interactive, activeId, dndContextProps } = useSortableList({
 		items,
-		getKey,
+		getKey: effectiveGetKey,
 		onReorder,
 		orientation,
 		disabled,
@@ -57,7 +80,7 @@ export function List<T>({
 
 	const { liftedId, setLiftedId, onItemKeyDown, onItemBlur } = useListKeyboard({
 		items,
-		getKey,
+		getKey: effectiveGetKey,
 		orientation,
 		onReorder,
 	})
@@ -71,7 +94,7 @@ export function List<T>({
 		[dndContextProps, setLiftedId],
 	)
 
-	const activeItem = activeId ? items.find((item) => getKey(item) === activeId) : null
+	const activeItem = activeId ? items.find((item) => effectiveGetKey(item) === activeId) : null
 
 	const activeIndex = activeItem ? items.indexOf(activeItem) : -1
 
@@ -94,10 +117,10 @@ export function List<T>({
 			aria-label={ariaLabel}
 			data-slot="list"
 			data-orientation={orientation}
-			className={cn(k.base, orientation === 'horizontal' && k.horizontal, className)}
+			className={cn(k.root(variant), orientation === 'horizontal' && k.horizontal, className)}
 		>
 			{items.map((item, index) => {
-				const id = getKey(item)
+				const id = effectiveGetKey(item)
 
 				// Skip the sortable-item registration entirely for read-only lists —
 				// `useSortableItem` does non-trivial per-item work (ref wiring, dnd
@@ -126,7 +149,7 @@ export function List<T>({
 						{activeItem != null ? (
 							<ListItemProvider
 								value={{
-									id: getKey(activeItem),
+									id: effectiveGetKey(activeItem),
 									setNodeRef: noop,
 									setActivatorNodeRef: noop,
 									attributes: {} as never,

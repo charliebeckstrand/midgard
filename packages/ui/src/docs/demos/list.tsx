@@ -5,8 +5,11 @@ import { List, ListDescription, ListItem, ListLabel } from '../../components/lis
 import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
+import { VariantListbox } from '../components/variant-listbox'
 
 export const meta = { category: 'Data Display' }
+
+const variants = ['separated', 'outline', 'plain', 'solid'] as const
 
 type Task = { id: string; label: string; description?: string }
 
@@ -35,6 +38,29 @@ const describedTasks: Task[] = [
 	},
 	{ id: 'd', label: 'Ship docs and tests', description: 'Vertical, horizontal, disabled states' },
 ]
+
+function Default() {
+	const [variant, setVariant] = useState<(typeof variants)[number]>('separated')
+
+	return (
+		<Example
+			title="Default"
+			actions={<VariantListbox variants={variants} value={variant} onChange={setVariant} />}
+		>
+			<Sizer>
+				<Stack gap={2}>
+					<List variant={variant} sortable={false} items={initialTasks} aria-label="Tasks">
+						{(task) => (
+							<ListItem>
+								<ListLabel>{task.label}</ListLabel>
+							</ListItem>
+						)}
+					</List>
+				</Stack>
+			</Sizer>
+		</Example>
+	)
+}
 
 function Vertical() {
 	const [tasks, setTasks] = useState(initialTasks)
@@ -142,9 +168,10 @@ function Disabled() {
 export default function ListDemo() {
 	return (
 		<Stack gap={6}>
+			<Default />
 			<Vertical />
-			<WithDescriptions />
 			<Horizontal />
+			<WithDescriptions />
 			<ReadOnly />
 			<Disabled />
 		</Stack>

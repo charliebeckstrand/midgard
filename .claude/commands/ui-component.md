@@ -199,7 +199,7 @@ export const accordion = tv({
   variants: {
     variant: {
       separated: kumi.gap.sm,
-      bordered: ['overflow-hidden', maru.rounded.lg, ...sen.border, 'divide-y divide-zinc-950/10', 'dark:divide-white/10'],
+      outline: ['overflow-hidden', maru.rounded.lg, ...sen.border, 'divide-y divide-zinc-950/10', 'dark:divide-white/10'],
       plain: ['divide-y divide-zinc-950/10', 'dark:divide-white/10'],
     },
   },

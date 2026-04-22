@@ -26,13 +26,16 @@ export default function BoxDemo() {
 				</Box>
 			</Example>
 
-			<Example title="Bordered">
+			<Example title="Outline">
 				<Stack gap={4}>
-					<Box p={4} bg="surface" radius="lg" border>
-						Surface with default border
+					<Box p={4} bg="surface" radius="lg" outline>
+						Default outline
 					</Box>
-					<Box p={4} bg="surface" radius="lg" border="subtle">
-						Subtle border
+					<Box p={4} bg="surface" radius="lg" outline="subtle">
+						Subtle outline
+					</Box>
+					<Box p={4} bg="surface" radius="lg" outline="strong">
+						Strong outline
 					</Box>
 				</Stack>
 			</Example>

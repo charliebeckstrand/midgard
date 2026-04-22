@@ -1,6 +1,6 @@
 'use client'
 
-import { Trash2 } from 'lucide-react'
+import { Trash } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../../components/button'
 import { Flex } from '../../components/flex'
@@ -29,13 +29,8 @@ function DestructiveHoldButton() {
 			</Button>
 		</>
 	) : (
-		<HoldButton
-			color="red"
-			duration={2000}
-			onComplete={() => setDeleted(true)}
-			aria-label="Hold to delete"
-		>
-			<Icon icon={<Trash2 />} />
+		<HoldButton color="red" onComplete={() => setDeleted(true)} aria-label="Hold to delete">
+			<Icon icon={<Trash />} />
 			Hold to delete
 		</HoldButton>
 	)

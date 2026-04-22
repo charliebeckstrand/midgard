@@ -11,7 +11,7 @@ export const accordion = tv({
 	variants: {
 		variant: {
 			separated: kumi.gap.sm,
-			bordered: [
+			outline: [
 				'overflow-hidden',
 				maru.rounded.lg,
 				...sen.border,
@@ -29,7 +29,7 @@ export const accordionItem = tv({
 	variants: {
 		variant: {
 			separated: ['overflow-hidden', maru.rounded.lg, ...sen.border],
-			bordered: '',
+			outline: '',
 			plain: '',
 		},
 	},

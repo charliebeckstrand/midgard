@@ -19,14 +19,8 @@ export default function ControlDemo() {
 		<Stack gap={6}>
 			<Alert type="info" variant="soft" color="blue" closable>
 				<AlertDescription>
-					Control generates a stable ID and propagates state (disabled, readOnly, size, variant) to
-					control-aware children.
+					Control generates a stable ID and propagates state to control-aware children.
 				</AlertDescription>
-
-				{/* <AlertDescription>
-					Parent state cascades to nested children — matching fieldset disabled semantics — while
-					size and variant inherit from the nearest ancestor unless explicitly overridden.
-				</AlertDescription> */}
 			</Alert>
 
 			<Example title="Default">

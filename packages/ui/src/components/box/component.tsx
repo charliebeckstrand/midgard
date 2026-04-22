@@ -2,15 +2,15 @@ import { cn } from '../../core'
 import { Polymorphic, type PolymorphicProps } from '../../primitives'
 import {
 	type BoxBg,
-	type BoxBorder,
 	type BoxMargin,
+	type BoxOutline,
 	type BoxPadding,
 	type BoxRadius,
 	bgMap,
-	borderMap,
 	marginMap,
 	mxMap,
 	myMap,
+	outlineMap,
 	paddingMap,
 	pxMap,
 	pyMap,
@@ -34,8 +34,8 @@ type BoxBaseProps = {
 	radius?: BoxRadius
 	/** Background surface token. */
 	bg?: BoxBg
-	/** Border. `true` uses the default token; pass `'subtle'` / `'strong'` to pick a weight. */
-	border?: BoxBorder
+	/** Outline. `true` uses the default token; pass `'subtle'` / `'strong'` to pick a weight. */
+	outline?: BoxOutline
 	/** Overrides the data-slot attribute. Defaults to "box". */
 	dataSlot?: string
 	ref?: React.Ref<HTMLDivElement>
@@ -44,12 +44,12 @@ type BoxBaseProps = {
 
 export type BoxProps = BoxBaseProps & PolymorphicProps<'div'>
 
-function resolveBorder(border: BoxBorder | undefined): string | readonly string[] | undefined {
-	if (!border) return undefined
+function resolveOutline(outline: BoxOutline | undefined): string | readonly string[] | undefined {
+	if (!outline) return undefined
 
-	if (border === true) return borderMap.default
+	if (outline === true) return outlineMap.default
 
-	return borderMap[border]
+	return outlineMap[outline]
 }
 
 export function Box({
@@ -61,7 +61,7 @@ export function Box({
 	my,
 	radius,
 	bg,
-	border,
+	outline,
 	dataSlot = 'box',
 	ref,
 	className,
@@ -84,7 +84,7 @@ export function Box({
 				my !== undefined && myMap[my],
 				radius && radiusMap[radius],
 				bg && bgMap[bg],
-				resolveBorder(border),
+				resolveOutline(outline),
 				className,
 			)}
 			{...props}

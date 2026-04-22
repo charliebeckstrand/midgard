@@ -261,7 +261,7 @@ export function PopoverContent({
 								p={p}
 								bg={glass ? 'none' : 'popover'}
 								radius="lg"
-								border={glass || undefined}
+								outline={glass || undefined}
 								className={className}
 							>
 								{children}

@@ -20,10 +20,10 @@ export const bgMap = {
 	glass: omote.glass,
 } as const
 
-export const borderMap = {
-	subtle: sen.borderSubtle,
-	default: sen.border,
-	strong: sen.borderStrong,
+export const outlineMap = {
+	default: sen.outline,
+	subtle: sen.outlineSubtle,
+	strong: sen.outlineStrong,
 } as const
 
 export const radiusMap = {
@@ -36,5 +36,5 @@ export const radiusMap = {
 } as const
 
 export type BoxBg = keyof typeof bgMap
-export type BoxBorder = boolean | keyof typeof borderMap
+export type BoxOutline = boolean | keyof typeof outlineMap
 export type BoxRadius = keyof typeof radiusMap

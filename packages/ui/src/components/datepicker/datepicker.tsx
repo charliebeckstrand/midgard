@@ -254,7 +254,7 @@ function DatePickerSingle({
 								className={cn('z-50', iro.text.default, glass && omote.glass)}
 								onMouseDown={(e) => e.preventDefault()}
 							>
-								<Box bg={glass ? 'none' : 'popover'} border={glass || undefined} radius="lg">
+								<Box bg={glass ? 'none' : 'popover'} outline={glass || undefined} radius="lg">
 									<Calendar
 										ref={calendarRef}
 										value={value ?? null}
