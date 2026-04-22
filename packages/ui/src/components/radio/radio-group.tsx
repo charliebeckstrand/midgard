@@ -1,5 +1,3 @@
-'use client'
-
 import { ToggleGroup } from '../../primitives'
 
 export type RadioGroupProps = React.ComponentPropsWithoutRef<'div'>

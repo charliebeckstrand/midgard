@@ -1,5 +1,3 @@
-'use client'
-
 import { cn } from '../../core'
 import { ActiveIndicatorScope } from '../../primitives'
 import { paginationListVariants } from './variants'

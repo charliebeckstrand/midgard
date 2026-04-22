@@ -1,5 +1,3 @@
-'use client'
-
 import { cn } from '../../core'
 import { ToggleField } from '../../primitives'
 import { k } from './variants'

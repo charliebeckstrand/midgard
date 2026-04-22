@@ -1,5 +1,3 @@
-'use client'
-
 import { Skeleton } from '../skeleton'
 import { Text } from '../text'
 import { TableBody } from './table-body'

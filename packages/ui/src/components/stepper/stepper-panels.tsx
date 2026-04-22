@@ -1,5 +1,3 @@
-'use client'
-
 export type StepperPanelsProps = {
 	className?: string
 } & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>

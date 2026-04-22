@@ -1,5 +1,3 @@
-'use client'
-
 import { Button, type ButtonProps } from '../button'
 
 export function PaginationNavButton({ slot, children, ...props }: { slot: string } & ButtonProps) {

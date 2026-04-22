@@ -1,5 +1,3 @@
-'use client'
-
 import { use } from 'react'
 import { cn } from '../../core'
 import { AvatarSizeContext } from '../avatar/context'

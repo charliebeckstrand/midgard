@@ -1,5 +1,3 @@
-'use client'
-
 import type { ReactElement } from 'react'
 import { cn } from '../../core'
 import { kumi } from '../../recipes'

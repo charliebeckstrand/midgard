@@ -1,5 +1,3 @@
-'use client'
-
 import { cn } from '../../core'
 import { narabi } from '../../recipes'
 import { k, type SwitchFieldVariants, switchFieldVariants } from './variants'
