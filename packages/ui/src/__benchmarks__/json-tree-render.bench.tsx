@@ -67,3 +67,31 @@ describe('JsonTree · render with active search', () => {
 		cleanup()
 	})
 })
+
+describe('JsonTree · virtualized render', () => {
+	bench('medium (d4×b5) · depth=Infinity · virtualize', () => {
+		render(
+			<JsonTree
+				data={medium}
+				defaultExpandDepth={Number.POSITIVE_INFINITY}
+				virtualize
+				maxHeight="600px"
+			/>,
+		)
+
+		cleanup()
+	})
+
+	bench('large (d5×b5) · depth=Infinity · virtualize', () => {
+		render(
+			<JsonTree
+				data={large}
+				defaultExpandDepth={Number.POSITIVE_INFINITY}
+				virtualize
+				maxHeight="600px"
+			/>,
+		)
+
+		cleanup()
+	})
+})

@@ -135,3 +135,99 @@ export function valueType(value: JsonValue): JsonValueType {
 
 	return 'boolean'
 }
+
+// ── Tree flattening (for virtualized rendering) ───────
+
+export type FlatNode =
+	| {
+			kind: 'leaf'
+			path: string
+			keyName: string | number | undefined
+			value: JsonValue
+			depth: number
+			highlighted: boolean
+	  }
+	| {
+			kind: 'branch-open'
+			path: string
+			keyName: string | number | undefined
+			value: JsonValue[] | { [key: string]: JsonValue }
+			depth: number
+			open: boolean
+			count: number
+			highlighted: boolean
+	  }
+	| {
+			kind: 'branch-close'
+			path: string
+			depth: number
+			value: JsonValue[] | { [key: string]: JsonValue }
+	  }
+
+/**
+ * Walk a tree following `expanded` paths and return a flat list of rows in
+ * render order. Each open branch emits a `branch-open` row, its (possibly
+ * filtered) children, and a `branch-close` row.
+ *
+ * When `search` is set and `filter` is true, non-matching leaves are omitted
+ * and branches that don't contain a match collapse to a single `branch-open`
+ * row with `open=false` (caller can render a summary).
+ */
+export function flattenTree(
+	data: JsonValue,
+	rootKey: string | undefined,
+	expanded: Set<string>,
+	search: string,
+	filter: boolean,
+	searchIndex: SearchIndex,
+): FlatNode[] {
+	const out: FlatNode[] = []
+
+	function walk(
+		value: JsonValue,
+		keyName: string | number | undefined,
+		path: string,
+		depth: number,
+	) {
+		const highlighted = search ? matchesSearch(keyName, value, search) : false
+
+		if (!isBranch(value)) {
+			if (filter && search && !highlighted) return
+
+			out.push({ kind: 'leaf', path, keyName, value, depth, highlighted })
+
+			return
+		}
+
+		const entries =
+			filter && search ? filterEntries(getEntries(value), search, searchIndex) : getEntries(value)
+
+		const open = expanded.has(path)
+		const count = entries.length
+
+		out.push({
+			kind: 'branch-open',
+			path,
+			keyName,
+			value,
+			depth,
+			open,
+			count,
+			highlighted,
+		})
+
+		if (!open) return
+
+		for (const [childKey, childValue] of entries) {
+			const childPath = `${path}.${childKey}`
+
+			walk(childValue, childKey, childPath, depth + 1)
+		}
+
+		out.push({ kind: 'branch-close', path, depth, value })
+	}
+
+	walk(data, rootKey, String(rootKey ?? '$'), 0)
+
+	return out
+}
