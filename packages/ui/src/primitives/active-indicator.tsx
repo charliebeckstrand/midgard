@@ -35,7 +35,13 @@ export function useActiveIndicator() {
 		animate(scope.current, { scale: 1 }, ugoki.spring)
 	}, [animate, scope])
 
-	return { ref: scope, tapHandlers: { onPointerDown, onPointerUp, onPointerLeave: onPointerUp } }
+	return useMemo(
+		() => ({
+			ref: scope,
+			tapHandlers: { onPointerDown, onPointerUp, onPointerLeave: onPointerUp },
+		}),
+		[scope, onPointerDown, onPointerUp],
+	)
 }
 
 export function ActiveIndicator({
