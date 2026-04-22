@@ -16,7 +16,7 @@ const { color, compoundVariants } = colorVariants({
 })
 
 export const alert = tv({
-	base: ['flex w-fit', 'px-4 py-3', kumi.gap.md, ji.size.md, maru.rounded.lg],
+	base: ['flex w-fit', 'px-4 py-3.5', kumi.gap.md, ji.size.md, maru.rounded.lg],
 	variants: {
 		variant: {
 			solid: '',

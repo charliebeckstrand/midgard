@@ -1,7 +1,6 @@
 import { tv, type VariantProps } from 'tailwind-variants'
 import { defineColors, mode } from '../../core/recipe/mode'
 import { iro } from '../iro'
-import { kage } from '../kage'
 import { ki } from '../ki'
 import { maru } from '../maru'
 import { sen } from '../sen'
@@ -93,9 +92,9 @@ export const switchInput = tv({ base: waku.hidden })
 export const switchThumb = tv({
 	base: [
 		'absolute top-1 left-1 inline-block',
-		maru.rounded.full,
 		'bg-white ring-1 ring-zinc-950/5',
-		kage.sm,
+		'shadow-sm',
+		maru.rounded.full,
 		'pointer-events-none',
 		'transition-[left] duration-200 ease-in-out',
 	],

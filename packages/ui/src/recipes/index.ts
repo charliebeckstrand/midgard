@@ -3,7 +3,6 @@
 export { garasu } from './garasu'
 export { iro } from './iro'
 export { ji } from './ji'
-export { kage } from './kage'
 export { katachi } from './katachi'
 export { ki } from './ki'
 export { kokkaku } from './kokkaku'

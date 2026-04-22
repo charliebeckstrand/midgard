@@ -3,7 +3,6 @@
 import { type ReactNode, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useRoving } from '../../hooks'
-import type { TreeColor } from '../../recipes/katachi/tree'
 import { TreeProvider } from './context'
 import { k } from './variants'
 
@@ -11,12 +10,10 @@ import { k } from './variants'
 
 export type TreeProps = {
 	children: ReactNode
-	/** Default icon color. */
-	color?: TreeColor
 	className?: string
 }
 
-export function Tree({ children, color, className }: TreeProps) {
+export function Tree({ children, className }: TreeProps) {
 	const ref = useRef<HTMLDivElement>(null)
 
 	const handleKeyDown = useRoving(ref, {
@@ -24,7 +21,7 @@ export function Tree({ children, color, className }: TreeProps) {
 		orientation: 'vertical',
 	})
 
-	const rootContextValue = useMemo(() => ({ depth: 0, color }), [color])
+	const rootContextValue = useMemo(() => ({ depth: 0 }), [])
 
 	return (
 		<TreeProvider value={rootContextValue}>

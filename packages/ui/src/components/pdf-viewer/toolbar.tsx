@@ -2,8 +2,9 @@
 
 import {
 	Download,
-	GalleryVertical,
 	Maximize2,
+	PanelLeftClose,
+	PanelLeftOpen,
 	Printer,
 	RotateCw,
 	ZoomIn,
@@ -35,6 +36,8 @@ export type PdfViewerToolbarProps = {
 	isDesktop: boolean
 	thumbsOpen: boolean
 	onThumbsOpen: () => void
+	sidebarOpen: boolean
+	onSidebarToggle: () => void
 }
 
 export function PdfViewerToolbar({
@@ -53,6 +56,8 @@ export function PdfViewerToolbar({
 	isDesktop,
 	thumbsOpen,
 	onThumbsOpen,
+	sidebarOpen,
+	onSidebarToggle,
 }: PdfViewerToolbarProps) {
 	const isEmpty = total === 0
 
@@ -90,13 +95,24 @@ export function PdfViewerToolbar({
 			<div className={cn(k.toolbarSection)}>
 				{total > 0 && (
 					<>
-						{!isDesktop && (
+						{isDesktop ? (
+							<>
+								<Button
+									variant="plain"
+									aria-label={sidebarOpen ? 'Hide pages' : 'Show pages'}
+									aria-expanded={sidebarOpen}
+									prefix={<Icon icon={sidebarOpen ? <PanelLeftClose /> : <PanelLeftOpen />} />}
+									onClick={onSidebarToggle}
+								/>
+								<ToolbarSeparator />
+							</>
+						) : (
 							<>
 								<Button
 									variant="plain"
 									aria-label="Show thumbnails"
 									aria-expanded={thumbsOpen}
-									prefix={<Icon icon={<GalleryVertical />} />}
+									prefix={<Icon icon={thumbsOpen ? <PanelLeftClose /> : <PanelLeftOpen />} />}
 									onClick={onThumbsOpen}
 								/>
 								<ToolbarSeparator />

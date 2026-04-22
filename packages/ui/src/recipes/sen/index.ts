@@ -18,10 +18,12 @@ const motoi = {
 // ── Hiru (昼) — light palette ───────────────────────────
 const hiru = {
 	border: 'border-zinc-950/10',
+	borderStrong: 'border-zinc-950/15',
 	borderEmphasis: 'border-zinc-950/20',
 	borderSubtle: 'border-zinc-950/5',
 	borderTransparent: 'border-transparent',
 	ring: 'ring-zinc-950/10',
+	ringStrong: 'ring-zinc-950/20',
 	ringSubtle: 'ring-zinc-950/5',
 }
 
@@ -56,7 +58,7 @@ export const sen = {
 	/** Default ring — 1 px outline-style line. */
 	ring: [motoi.ring, hiru.ring, yoru.ring],
 	/** Inset ring — sits inside the element, subtle in light / stronger in dark. */
-	ringInset: [motoi.ring, hiru.ringSubtle, yoru.ringStrong, 'ring-inset'],
+	ringInset: [motoi.ring, hiru.ringSubtle, yoru.ringSubtle, 'ring-inset'],
 	/** Subtle ring — secondary outlines. */
 	ringSubtle: [motoi.ring, hiru.ringSubtle, yoru.ringSubtle],
 	/** Top divider — `border-t` with subtle colour. */

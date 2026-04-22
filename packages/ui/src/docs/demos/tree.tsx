@@ -59,28 +59,6 @@ export default function TreeDemo() {
 				</Sizer>
 			</Example>
 
-			<Example title="Colored icons">
-				<Sizer>
-					<Tree>
-						<TreeItem label="Media" icon={<Folder />} color="amber" defaultOpen>
-							<TreeItem label="Images" icon={<Image />} color="sky">
-								<TreeItem label="photo-001.png" icon={<Image />} color="sky" />
-								<TreeItem label="photo-002.png" icon={<Image />} color="sky" />
-							</TreeItem>
-							<TreeItem label="Music" icon={<Music />} color="rose">
-								<TreeItem label="track-01.mp3" icon={<Music />} color="rose" />
-							</TreeItem>
-							<TreeItem label="Videos" icon={<Video />} color="violet">
-								<TreeItem label="clip.mp4" icon={<Video />} color="violet" />
-							</TreeItem>
-							<TreeItem label="Documents" icon={<File />} color="lime">
-								<TreeItem label="notes.txt" icon={<File />} color="lime" />
-							</TreeItem>
-						</TreeItem>
-					</Tree>
-				</Sizer>
-			</Example>
-
 			<Example title="Without icons">
 				<Sizer>
 					<Tree>

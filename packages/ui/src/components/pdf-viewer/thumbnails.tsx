@@ -1,9 +1,9 @@
 'use client'
 
 import { X } from 'lucide-react'
-import { useMemo } from 'react'
+import { useMemo, useRef } from 'react'
 import { cn } from '../../core'
-import { useScrollIntoContainer } from '../../hooks'
+import { useRoving, useScrollIntoContainer } from '../../hooks'
 import { Button } from '../button'
 import { Flex } from '../flex/component'
 import { Glass } from '../glass'
@@ -19,6 +19,7 @@ export type PdfViewerThumbnailsProps = {
 	isDesktop: boolean
 	thumbsOpen: boolean
 	onThumbsOpenChange: (open: boolean) => void
+	sidebarOpen: boolean
 	container: HTMLElement | null
 }
 
@@ -29,9 +30,17 @@ export function PdfViewerThumbnails({
 	isDesktop,
 	thumbsOpen,
 	onThumbsOpenChange,
+	sidebarOpen,
 	container,
 }: PdfViewerThumbnailsProps) {
 	const scrollActiveIntoView = useScrollIntoContainer()
+
+	const sidebarRef = useRef<HTMLElement>(null)
+
+	const handleSidebarKeyDown = useRoving(sidebarRef, {
+		itemSelector: '[data-slot="pdf-viewer-thumbnail"]',
+		orientation: 'vertical',
+	})
 
 	const thumbnailList = useMemo(
 		() =>
@@ -95,10 +104,19 @@ export function PdfViewerThumbnails({
 
 	return (
 		<>
-			<aside data-slot="pdf-viewer-sidebar" className={cn(k.sidebar)}>
-				<div className={cn(k.sidebarHeader)}>Pages</div>
-				{renderList()}
-			</aside>
+			{isDesktop && (
+				<aside
+					ref={sidebarRef}
+					data-slot="pdf-viewer-sidebar"
+					data-state={sidebarOpen ? 'open' : 'closed'}
+					className={cn(k.sidebar, !sidebarOpen && k.sidebarClosed)}
+					inert={!sidebarOpen}
+					onKeyDown={handleSidebarKeyDown}
+				>
+					<div className={cn(k.sidebarHeader)}>Pages</div>
+					{renderList()}
+				</aside>
+			)}
 
 			{!isDesktop && (
 				<Glass>

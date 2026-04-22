@@ -45,7 +45,7 @@ function Controlled() {
 
 	return (
 		<Example
-			title="Controlled page"
+			title="Controlled"
 			code={code`
 				import { PdfViewer } from 'ui/pdf-viewer'
 

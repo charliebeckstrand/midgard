@@ -8,6 +8,7 @@
  */
 
 export const nagare = {
-	opacity: 'transition-opacity duration-150',
-	transform: 'transition-transform duration-200',
+	opacity: 'transition-opacity',
+	transform: 'transition-transform',
+	duration: 'duration-150',
 } as const

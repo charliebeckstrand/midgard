@@ -51,7 +51,12 @@ export const slots = {
 		'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-inset',
 		'disabled:opacity-50 disabled:cursor-not-allowed',
 	],
-	indicator: ['shrink-0', nagare.transform, 'group-data-[open]/accordion-item:rotate-180'],
+	indicator: [
+		'shrink-0',
+		nagare.transform,
+		nagare.duration,
+		'group-data-[open]/accordion-item:rotate-180',
+	],
 	panel: 'overflow-hidden',
 	body: ['px-4 pb-4 pt-0', ji.size.sm, iro.text.muted],
 }

@@ -32,7 +32,6 @@ export const radiusMap = {
 	md: maru.rounded.md,
 	lg: maru.rounded.lg,
 	xl: maru.rounded.xl,
-	'2xl': maru.rounded['2xl'],
 	full: maru.rounded.full,
 } as const
 

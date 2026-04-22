@@ -92,41 +92,21 @@ export default function TimelineDemo() {
 			</Example>
 
 			<Example title="Per-item variant">
-				<Timeline variant="outline">
+				<Timeline>
 					<TimelineItem variant="solid" status="info">
 						<TimelineTimestamp>Step 1</TimelineTimestamp>
 						<TimelineHeading>Account created</TimelineHeading>
 						<TimelineDescription>Highlighted with a solid marker override.</TimelineDescription>
 					</TimelineItem>
-					<TimelineItem>
+					<TimelineItem variant="outline">
 						<TimelineTimestamp>Step 2</TimelineTimestamp>
 						<TimelineHeading>Email verified</TimelineHeading>
 						<TimelineDescription>Inherits the outline variant from Timeline.</TimelineDescription>
 					</TimelineItem>
-					<TimelineItem>
+					<TimelineItem variant="outline">
 						<TimelineTimestamp>Step 3</TimelineTimestamp>
 						<TimelineHeading>Profile completed</TimelineHeading>
 						<TimelineDescription>Inherits the outline variant from Timeline.</TimelineDescription>
-					</TimelineItem>
-				</Timeline>
-			</Example>
-
-			<Example title="Custom color">
-				<Timeline>
-					<TimelineItem color="blue">
-						<TimelineTimestamp>09:00 AM</TimelineTimestamp>
-						<TimelineHeading>Build started</TimelineHeading>
-						<TimelineDescription>CI pipeline triggered on push to main.</TimelineDescription>
-					</TimelineItem>
-					<TimelineItem color="amber">
-						<TimelineTimestamp>09:12 AM</TimelineTimestamp>
-						<TimelineHeading>Deploying</TimelineHeading>
-						<TimelineDescription>Rolling out to staging environment.</TimelineDescription>
-					</TimelineItem>
-					<TimelineItem color="green">
-						<TimelineTimestamp>09:18 AM</TimelineTimestamp>
-						<TimelineHeading>Live</TimelineHeading>
-						<TimelineDescription>Deployment healthy, all probes passing.</TimelineDescription>
 					</TimelineItem>
 				</Timeline>
 			</Example>

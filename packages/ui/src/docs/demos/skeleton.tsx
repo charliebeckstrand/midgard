@@ -85,7 +85,7 @@ function TransitionDemo() {
 
 			<Skeleton ready={ready}>
 				<Sizer>
-					<Card>
+					<Card bg="none">
 						<CardHeader>
 							<Flex gap={3}>
 								<Avatar initials="JD" />

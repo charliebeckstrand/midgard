@@ -1,6 +1,5 @@
 import { tv, type VariantProps } from 'tailwind-variants'
 import { ji } from '../ji'
-import { kage } from '../kage'
 import { ki } from '../ki'
 import { kumi } from '../kumi'
 import { maru } from '../maru'
@@ -45,7 +44,7 @@ export type SegmentControlVariants = VariantProps<typeof segmentControl>
 export type SegmentItemVariants = VariantProps<typeof segmentItem>
 
 export const slots = {
-	indicator: ['bg-white', 'dark:bg-zinc-600', kage.sm],
+	indicator: ['bg-white', 'dark:bg-zinc-600'],
 }
 
 /** Kept for the `katachi` barrel — read by `tabs` and other consumers. */

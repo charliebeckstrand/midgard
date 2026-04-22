@@ -5,7 +5,6 @@ import { AnimatePresence, motion } from 'motion/react'
 import { type ReactElement, type ReactNode, useMemo, useState } from 'react'
 import { cn } from '../../core'
 import { ugoki } from '../../recipes'
-import { type TreeColor, treeColorMap } from '../../recipes/katachi/tree'
 import { Icon } from '../icon'
 import { TreeProvider, useTreeContext } from './context'
 import { k } from './variants'
@@ -21,8 +20,6 @@ export type TreeItemProps = {
 	defaultOpen?: boolean
 	/** Active/selected state. */
 	active?: boolean
-	/** Icon color. */
-	color?: TreeColor
 	/** Nested tree items. */
 	children?: ReactNode
 	className?: string
@@ -33,20 +30,19 @@ export function TreeItem({
 	icon,
 	defaultOpen = false,
 	active,
-	color,
 	children,
 	className,
 }: TreeItemProps) {
-	const { depth, color: contextColor } = useTreeContext()
+	const { depth } = useTreeContext()
 
-	const resolvedColor = color ?? contextColor
 	const [open, setOpen] = useState(defaultOpen)
 
 	const hasChildren = children != null
 
 	const childContextValue = useMemo(
-		() => ({ depth: depth + 1, color: resolvedColor }),
-		[depth, resolvedColor],
+		() => ({ depth: depth + 1 }),
+
+		[depth],
 	)
 
 	return (
@@ -68,13 +64,7 @@ export function TreeItem({
 						<Icon icon={<ChevronRight />} size="sm" className={cn(open && 'rotate-90')} />
 					</span>
 				)}
-				{icon && (
-					<Icon
-						icon={icon}
-						size="sm"
-						className={resolvedColor ? cn(treeColorMap[resolvedColor]) : undefined}
-					/>
-				)}
+				{icon && <Icon icon={icon} size="sm" />}
 				<span className={k.label}>{label}</span>
 			</button>
 

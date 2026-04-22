@@ -14,5 +14,6 @@ export const yasumi = {
 		'data-disabled:opacity-50 data-disabled:cursor-not-allowed',
 		'group-disabled:opacity-50',
 		nagare.opacity,
+		nagare.duration,
 	],
 } as const

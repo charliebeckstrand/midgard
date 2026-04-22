@@ -114,20 +114,7 @@ export default function EditableGridDemo() {
 	return (
 		<Stack gap={6}>
 			<Example
-				title={
-					<Flex gap={2}>
-						<div>Default</div>
-						<Tooltip placement="top-start">
-							<TooltipTrigger>
-								<Icon icon={<Info />} />
-							</TooltipTrigger>
-							<TooltipContent>
-								Double click a cell to or press Enter to edit. Press Enter or blur to save, Escape
-								to cancel.
-							</TooltipContent>
-						</Tooltip>
-					</Flex>
-				}
+				title="Default"
 				code={code`
 					import { EditableGrid, type EditableGridColumn } from 'ui/editable-grid'
 
@@ -146,6 +133,17 @@ export default function EditableGridDemo() {
 					/>
 				`}
 			>
+				<Flex justify="end">
+					<Tooltip placement="left">
+						<TooltipTrigger>
+							<Icon icon={<Info />} />
+						</TooltipTrigger>
+						<TooltipContent>
+							Double click a cell to or press Enter to edit. Press Enter or blur to save, Escape to
+							cancel.
+						</TooltipContent>
+					</Tooltip>
+				</Flex>
 				<EditableGrid
 					grid
 					columns={columns}
@@ -155,20 +153,7 @@ export default function EditableGridDemo() {
 				/>
 			</Example>
 			<Example
-				title={
-					<Flex gap={2}>
-						<div>Bulk update</div>
-						<Tooltip placement="top-start">
-							<TooltipTrigger>
-								<Icon icon={<Info />} />
-							</TooltipTrigger>
-							<TooltipContent>
-								Check the boxes to select multiple rows, then edit a cell to apply the change to all
-								selected rows.
-							</TooltipContent>
-						</Tooltip>
-					</Flex>
-				}
+				title="Bulk update"
 				code={code`
 					import { EditableGrid, type EditableGridColumn } from 'ui/editable-grid'
 
@@ -190,6 +175,17 @@ export default function EditableGridDemo() {
 					/>
 				`}
 			>
+				<Flex justify="end">
+					<Tooltip placement="left">
+						<TooltipTrigger>
+							<Icon icon={<Info />} />
+						</TooltipTrigger>
+						<TooltipContent>
+							Check the boxes to select multiple rows, then edit a cell to apply the change to all
+							selected rows.
+						</TooltipContent>
+					</Tooltip>
+				</Flex>
 				<EditableGrid
 					grid
 					columns={bulkColumns}

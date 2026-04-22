@@ -36,7 +36,7 @@ export const jsonTree = {
 		'data-[open]:text-zinc-950 dark:data-[open]:text-white',
 		maru.rounded.lg,
 	],
-	chevron: ['flex-none', nagare.transform],
+	chevron: ['flex-none', nagare.transform, nagare.duration],
 	chevronSpacer: 'inline-block w-4 flex-none',
 	key: jsonValueColor.key,
 	index: iro.text.muted,

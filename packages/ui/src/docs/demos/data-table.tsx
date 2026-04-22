@@ -9,7 +9,7 @@ import { Stack } from '../../components/stack'
 import { code } from '../code'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Data Display' }
+export const meta = { category: 'Table' }
 
 // ── Sample data ────────────────────────────────────────
 
@@ -258,6 +258,23 @@ export default function DataTableDemo() {
 
 			<Example title="Loading">
 				<DataTable loading columns={baseColumns} rows={[]} getRowKey={(row) => row.id} />
+			</Example>
+
+			<Example
+				title="Column Manager"
+				code={code`
+					import { DataTable } from 'ui/data-table'
+
+					<DataTable
+						manageColumns
+						columns={columns}
+						defaultHiddenColumns={new Set(['location'])}
+						rows={rows}
+						getRowKey={(row) => row.id}
+					/>
+				`}
+			>
+				<DataTable manageColumns columns={baseColumns} rows={people} getRowKey={(row) => row.id} />
 			</Example>
 		</Stack>
 	)

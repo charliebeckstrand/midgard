@@ -79,6 +79,7 @@ export function PdfViewer({
 	const [zoom, setZoom] = useState(defaultZoom)
 	const [rotation, setRotation] = useState(defaultRotation)
 	const [thumbsOpen, setThumbsOpen] = useState(false)
+	const [sidebarOpen, setSidebarOpen] = useState(true)
 
 	const rootRef = useRef<HTMLElement>(null)
 	const viewportRef = useRef<HTMLDivElement>(null)
@@ -177,6 +178,8 @@ export function PdfViewer({
 				isDesktop={isDesktop}
 				thumbsOpen={thumbsOpen}
 				onThumbsOpen={() => setThumbsOpen(true)}
+				sidebarOpen={sidebarOpen}
+				onSidebarToggle={() => setSidebarOpen((v) => !v)}
 			/>
 
 			<div className={cn(k.body)}>
@@ -187,6 +190,7 @@ export function PdfViewer({
 					isDesktop={isDesktop}
 					thumbsOpen={thumbsOpen}
 					onThumbsOpenChange={setThumbsOpen}
+					sidebarOpen={sidebarOpen}
 					container={rootRef.current}
 				/>
 

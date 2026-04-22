@@ -7,15 +7,6 @@
  */
 
 export const maru = {
-	// roundedNone: 'rounded-none',
-	// roundedXs: 'rounded-xs',
-	// roundedSm: 'rounded-sm',
-	// roundedMd: 'rounded-md',
-	// roundedLg: 'rounded-lg',
-	// roundedXl: 'rounded-xl',
-	// rounded2xl: 'rounded-2xl',
-	// roundedFull: 'rounded-full',
-
 	rounded: {
 		none: 'rounded-none',
 		xs: 'rounded-xs',
@@ -23,7 +14,6 @@ export const maru = {
 		md: 'rounded-md',
 		lg: 'rounded-lg',
 		xl: 'rounded-xl',
-		'2xl': 'rounded-2xl',
 		full: 'rounded-full',
 	},
 } as const

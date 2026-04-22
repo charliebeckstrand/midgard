@@ -12,7 +12,6 @@
 
 import { garasu } from './garasu'
 import { iro } from './iro'
-import { kage } from './kage'
 import { kyousei } from './kyousei'
 import { sen } from './sen'
 
@@ -24,9 +23,9 @@ export const omote = {
 		/** Background fill only. */
 		bg: iro.bg.panel,
 		/** Chrome only — ring + shadow + forced-colour outline, no fill. */
-		chrome: [sen.ring, kage.lg, kyousei.outline],
+		chrome: [sen.ring, kyousei.outline],
 		/** Fill + chrome, everything a floating panel needs. */
-		base: [sen.ring, kage.lg, kyousei.outline, iro.bg.panel],
+		base: [sen.ring, kyousei.outline, iro.bg.panel],
 	},
 	/** Floating popover surface — translucent fill + ring + blur. */
 	popover: [garasu.md, iro.bg.popover, sen.ring, 'dark:ring-inset'],

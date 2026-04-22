@@ -2,7 +2,7 @@ import { PivotTable } from '../../components/pivot-table'
 import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Data Display' }
+export const meta = { category: 'Table' }
 
 type LoadRow = {
 	lane: string

@@ -142,6 +142,7 @@ const categoryOrder = [
 	'Input',
 	'Password',
 	'Data Display',
+	'Table',
 	'Feedback',
 	'Overlay',
 	'Navigation',

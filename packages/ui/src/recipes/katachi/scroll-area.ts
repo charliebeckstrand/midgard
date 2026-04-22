@@ -57,7 +57,7 @@ export const scrollAreaViewport = tv({
 })
 
 export const scrollAreaScrollbar = tv({
-	base: ['absolute touch-none select-none', nagare.opacity],
+	base: ['absolute touch-none select-none', nagare.opacity, nagare.duration],
 	variants: {
 		orientation: {
 			vertical: 'right-0 w-1.5',
