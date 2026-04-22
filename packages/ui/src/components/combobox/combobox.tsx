@@ -92,7 +92,7 @@ export function Combobox<T>({
 	onOpenChange,
 	onQueryChange,
 	className,
-	autoComplete,
+	autoComplete = 'off',
 	inputType = 'text',
 	children,
 }: ComboboxProps<T>) {
