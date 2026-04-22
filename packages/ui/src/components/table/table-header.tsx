@@ -14,6 +14,7 @@ export function TableHeader({ className, children, scope = 'col', ...props }: Ta
 	return (
 		<th
 			scope={scope}
+			data-slot="table-header"
 			className={cn(k.header, grid && k.grid, dense && 'py-1', className)}
 			{...props}
 		>

@@ -9,7 +9,7 @@ export type AlertDescriptionProps = {
 
 export function AlertDescription({ className, children, ...props }: AlertDescriptionProps) {
 	return (
-		<div className={cn(k.description, className)} {...props}>
+		<div data-slot="alert-description" className={cn(k.description, className)} {...props}>
 			{children}
 		</div>
 	)
