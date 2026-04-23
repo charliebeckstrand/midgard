@@ -17,7 +17,11 @@ describe('useHasHover', () => {
 			})),
 		})
 
-		// Dynamic import so the module picks up the updated matchMedia mock
+		// The module reads matchMedia at top-level import, so reset the module
+		// cache to force re-evaluation against the mock defined above. Another
+		// test file may have already imported the hook via the barrel.
+		vi.resetModules()
+
 		const { useHasHover } = await import('../../hooks/use-has-hover')
 
 		const { result } = renderHook(() => useHasHover())
