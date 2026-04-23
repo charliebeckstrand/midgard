@@ -13,7 +13,7 @@ export const sheet = definePanelRecipe({
 			...omote.panel.chrome.flat(),
 			narabi.panel.base,
 			'absolute overflow-y-auto',
-			maru.rounded.xl,
+			'sm:rounded-xl',
 		],
 		variants: {
 			side: {
