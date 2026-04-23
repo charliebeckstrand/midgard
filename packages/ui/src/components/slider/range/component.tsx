@@ -3,12 +3,10 @@
 import { type CSSProperties, useRef } from 'react'
 import { cn } from '../../../core'
 import { useControllable } from '../../../hooks/use-controllable'
-import { katachi } from '../../../recipes'
+import { sliderRange as k } from '../../../recipes/katachi/slider-range'
 import { useRangeKeyboard } from './use-range-keyboard'
 import { useRangePointer } from './use-range-pointer'
 import { pct } from './utilities'
-
-const k = katachi.sliderRange
 
 type RangeSliderSize = keyof typeof k.size
 type RangeSliderColor = keyof typeof k.color
