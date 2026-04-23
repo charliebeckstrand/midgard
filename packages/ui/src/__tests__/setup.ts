@@ -48,6 +48,7 @@ vi.mock('motion/react', async () => {
 		'whileInView',
 		'layout',
 		'layoutId',
+		'layoutDependency',
 		'onAnimationComplete',
 		'onAnimationStart',
 	])
