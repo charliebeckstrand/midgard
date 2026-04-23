@@ -1,6 +1,6 @@
-import { sheet } from '../../recipes/katachi/sheet'
+import { sheet } from '../../recipes/kata/sheet'
 
-export type { SheetPanelVariants } from '../../recipes/katachi/sheet'
+export type { SheetPanelVariants } from '../../recipes/kata/sheet'
 
 export const sheetPanelVariants = sheet.panel
 export const sheetBackdropVariants = sheet.backdrop

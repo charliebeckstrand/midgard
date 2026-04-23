@@ -2,4 +2,4 @@ export {
 	type AlertVariants,
 	alert as alertVariants,
 	slots as k,
-} from '../../recipes/katachi/alert'
+} from '../../recipes/kata/alert'

@@ -2,4 +2,4 @@ export {
 	slots as k,
 	type ToastViewportVariants,
 	toastViewport as toastViewportVariants,
-} from '../../recipes/katachi/toast'
+} from '../../recipes/kata/toast'

@@ -4,4 +4,4 @@ export {
 	avatarImage as avatarImageVariants,
 	avatarInitials as avatarInitialsVariants,
 	slots as k,
-} from '../../recipes/katachi/avatar'
+} from '../../recipes/kata/avatar'

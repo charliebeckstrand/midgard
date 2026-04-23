@@ -1,1 +1,1 @@
-export { jsonTree as k } from '../../recipes/katachi/json-tree'
+export { jsonTree as k } from '../../recipes/kata/json-tree'

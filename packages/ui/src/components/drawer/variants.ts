@@ -1,6 +1,6 @@
-import { drawer } from '../../recipes/katachi/drawer'
+import { drawer } from '../../recipes/kata/drawer'
 
-export type { DrawerPanelVariants } from '../../recipes/katachi/drawer'
+export type { DrawerPanelVariants } from '../../recipes/kata/drawer'
 
 export const drawerPanelVariants = drawer.panel
 export const drawerBackdropVariants = drawer.backdrop

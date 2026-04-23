@@ -1,1 +1,1 @@
-export { kanban as k } from '../../recipes/katachi/kanban'
+export { kanban as k } from '../../recipes/kata/kanban'

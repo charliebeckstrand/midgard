@@ -1,1 +1,1 @@
-export { sidebar as k } from '../../recipes/katachi/sidebar'
+export { sidebar as k } from '../../recipes/kata/sidebar'

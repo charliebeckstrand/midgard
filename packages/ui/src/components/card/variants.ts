@@ -1,1 +1,1 @@
-export { card as k } from '../../recipes/katachi/card'
+export { card as k } from '../../recipes/kata/card'

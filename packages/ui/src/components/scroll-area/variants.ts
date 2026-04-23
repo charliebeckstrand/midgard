@@ -5,4 +5,4 @@ export {
 	scrollAreaThumb as scrollAreaThumbVariants,
 	scrollAreaViewport as scrollAreaViewportVariants,
 	scrollAreaWrapper as scrollAreaWrapperVariants,
-} from '../../recipes/katachi/scroll-area'
+} from '../../recipes/kata/scroll-area'

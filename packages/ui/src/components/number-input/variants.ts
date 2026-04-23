@@ -1,1 +1,1 @@
-export { slots as k } from '../../recipes/katachi/input'
+export { slots as k } from '../../recipes/kata/input'

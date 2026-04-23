@@ -1,1 +1,1 @@
-export { toggleIconButton as k } from '../../recipes/katachi/toggle-icon-button'
+export { toggleIconButton as k } from '../../recipes/kata/toggle-icon-button'

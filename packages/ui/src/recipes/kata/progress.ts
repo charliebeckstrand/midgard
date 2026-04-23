@@ -79,7 +79,7 @@ export const slots = {
 	},
 }
 
-/** Kept for the `katachi` barrel — not consumed directly. */
+/** Kept for the `kata` barrel — not consumed directly. */
 export const progress = {
 	bar: { track: progressTrack, ...slots.bar },
 	gauge: { base: progressGauge, ...slots.gauge },

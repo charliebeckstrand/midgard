@@ -1,1 +1,1 @@
-export { map as k } from '../../recipes/katachi/map'
+export { map as k } from '../../recipes/kata/map'

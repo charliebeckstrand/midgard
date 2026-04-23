@@ -1,1 +1,1 @@
-export { dataTable as k } from '../../recipes/katachi/data-table'
+export { dataTable as k } from '../../recipes/kata/data-table'

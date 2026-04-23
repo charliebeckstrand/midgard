@@ -1,4 +1,4 @@
-import { fileUpload } from '../../recipes/katachi/file-upload'
+import { fileUpload } from '../../recipes/kata/file-upload'
 
 export { fileUpload as k }
 

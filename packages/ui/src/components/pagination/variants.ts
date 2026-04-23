@@ -4,4 +4,4 @@ export {
 	pagination as paginationVariants,
 	paginationGap as paginationGapVariants,
 	paginationList as paginationListVariants,
-} from '../../recipes/katachi/pagination'
+} from '../../recipes/kata/pagination'

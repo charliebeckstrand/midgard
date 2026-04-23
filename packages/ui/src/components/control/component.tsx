@@ -3,7 +3,7 @@
 import { useMemo } from 'react'
 import { cn } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
-import { fieldset as k } from '../../recipes/katachi/fieldset'
+import { fieldset as k } from '../../recipes/kata/fieldset'
 import {
 	type ControlContextValue,
 	ControlProvider,

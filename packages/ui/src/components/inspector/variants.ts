@@ -1,6 +1,6 @@
-import { inspector } from '../../recipes/katachi/inspector'
+import { inspector } from '../../recipes/kata/inspector'
 
-export type { InspectorPanelVariants } from '../../recipes/katachi/inspector'
+export type { InspectorPanelVariants } from '../../recipes/kata/inspector'
 
 export const inspectorPanelVariants = inspector.panel
 export const inspectorHeaderVariants = inspector.header

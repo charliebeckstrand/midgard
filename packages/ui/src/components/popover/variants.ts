@@ -1,1 +1,1 @@
-export { popover as k } from '../../recipes/katachi/popover'
+export { popover as k } from '../../recipes/kata/popover'

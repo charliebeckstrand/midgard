@@ -1,1 +1,1 @@
-export { type KbdVariants, kbd as kbdVariants } from '../../recipes/katachi/kbd'
+export { type KbdVariants, kbd as kbdVariants } from '../../recipes/kata/kbd'

@@ -61,4 +61,4 @@ export const justifyMap = {
 export {
 	type GridDividerVariants,
 	gridDivider as gridDividerVariants,
-} from '../../recipes/katachi/grid'
+} from '../../recipes/kata/grid'

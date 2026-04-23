@@ -1,1 +1,1 @@
-export { resizable as k } from '../../recipes/katachi/resizable'
+export { resizable as k } from '../../recipes/kata/resizable'

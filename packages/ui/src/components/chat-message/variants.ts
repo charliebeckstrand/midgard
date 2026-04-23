@@ -4,4 +4,4 @@ export {
 	chatMessage as chatMessageVariants,
 	chatMessageBubble as chatMessageBubbleVariants,
 	slots as k,
-} from '../../recipes/katachi/chat-message'
+} from '../../recipes/kata/chat-message'

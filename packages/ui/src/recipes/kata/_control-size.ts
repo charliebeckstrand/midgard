@@ -1,7 +1,7 @@
 /**
  * Shared size density for form-control components (input, listbox, combobox,
  * datepicker) — border-compensated padding + font size per density step.
- * Not part of the Katachi public barrel.
+ * Not part of the Kata public barrel.
  */
 
 import { ji } from '../ji'

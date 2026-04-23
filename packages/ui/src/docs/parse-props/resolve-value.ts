@@ -83,7 +83,7 @@ function resolveVariable(
 }
 
 /**
- * Resolve a dotted member expression like `katachi.button.variant`.
+ * Resolve a dotted member expression like `kata.button.variant`.
  * Walks the chain one segment at a time, resolving each step through
  * const assignments and object property lookups.
  */
@@ -110,7 +110,7 @@ function resolveMemberChain(
 	// Try each definition of root — multiple files may define the same name
 	for (const { rhs: rootRhs, position } of matches) {
 		// If root resolves to another member expression, prepend and recurse
-		// e.g. k = katachi.button → k.size becomes katachi.button.size
+		// e.g. k = kata.button → k.size becomes kata.button.size
 		if (/^[\w.]+$/.test(rootRhs) && !rootRhs.startsWith('{')) {
 			const expanded = `${rootRhs}.${rest.join('.')}`
 			const keys = resolveObjectKeys(expanded, source, visited, position)

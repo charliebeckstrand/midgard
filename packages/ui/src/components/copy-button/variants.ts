@@ -1,4 +1,4 @@
-import { toggleIconButton } from '../../recipes/katachi/toggle-icon-button'
+import { toggleIconButton } from '../../recipes/kata/toggle-icon-button'
 
 export const k = {
 	base: [

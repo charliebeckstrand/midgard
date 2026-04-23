@@ -47,7 +47,7 @@ export const slots = {
 	indicator: ['bg-white', 'dark:bg-zinc-600'],
 }
 
-/** Kept for the `katachi` barrel — read by `tabs` and other consumers. */
+/** Kept for the `kata` barrel — read by `tabs` and other consumers. */
 export const segment = {
 	control: segmentControl,
 	item: segmentItem,

@@ -4,4 +4,4 @@ export {
 	tocItem as tocItemVariants,
 	tocLink as tocLinkVariants,
 	tocList as tocListVariants,
-} from '../../recipes/katachi/toc'
+} from '../../recipes/kata/toc'

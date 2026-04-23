@@ -1,1 +1,1 @@
-export { dl as k } from '../../recipes/katachi/dl'
+export { dl as k } from '../../recipes/kata/dl'

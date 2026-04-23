@@ -1,1 +1,1 @@
-export { pdfViewer as k } from '../../recipes/katachi/pdf-viewer'
+export { pdfViewer as k } from '../../recipes/kata/pdf-viewer'

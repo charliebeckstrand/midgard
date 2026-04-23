@@ -1,1 +1,1 @@
-export { type DividerVariants, divider as dividerVariants } from '../../recipes/katachi/divider'
+export { type DividerVariants, divider as dividerVariants } from '../../recipes/kata/divider'

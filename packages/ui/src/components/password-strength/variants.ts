@@ -1,1 +1,1 @@
-export { passwordStrength as k } from '../../recipes/katachi/password-strength'
+export { passwordStrength as k } from '../../recipes/kata/password-strength'

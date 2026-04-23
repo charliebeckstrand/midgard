@@ -1,1 +1,1 @@
-export { queryBuilder as k } from '../../recipes/katachi/query-builder'
+export { queryBuilder as k } from '../../recipes/kata/query-builder'

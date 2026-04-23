@@ -5,7 +5,7 @@ import { cn } from '../../core'
 import { useControllable } from '../../hooks'
 import { ActiveIndicator, ActiveIndicatorScope } from '../../primitives'
 import { Link } from '../../primitives/link'
-import { slots as k } from '../../recipes/katachi/toc'
+import { slots as k } from '../../recipes/kata/toc'
 import { tocItemVariants, tocLinkVariants, tocListVariants, tocVariants } from './variants'
 
 const DEFAULT_LEVELS = [2, 3] as const

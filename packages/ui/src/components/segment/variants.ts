@@ -4,4 +4,4 @@ export {
 	segmentControl as segmentControlVariants,
 	segmentItem as segmentItemVariants,
 	slots as k,
-} from '../../recipes/katachi/segment'
+} from '../../recipes/kata/segment'

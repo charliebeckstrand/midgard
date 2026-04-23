@@ -1,1 +1,1 @@
-export { calendar as k } from '../../recipes/katachi/calendar'
+export { calendar as k } from '../../recipes/kata/calendar'

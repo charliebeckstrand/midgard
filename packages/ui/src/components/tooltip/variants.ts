@@ -1,1 +1,1 @@
-export { tooltip as k } from '../../recipes/katachi/tooltip'
+export { tooltip as k } from '../../recipes/kata/tooltip'

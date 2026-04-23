@@ -8,7 +8,7 @@ import { cn } from '../core'
 import { useScrollIntoContainer } from '../hooks'
 import { useRoving } from '../hooks/use-keyboard'
 import { omote, sen, ugoki } from '../recipes'
-import { popover } from '../recipes/katachi/popover'
+import { popover } from '../recipes/kata/popover'
 
 export function PopoverPanel({
 	id,

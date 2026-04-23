@@ -2,7 +2,7 @@ import { Check } from 'lucide-react'
 import type React from 'react'
 import { Icon } from '../components/icon'
 import { cn } from '../core'
-import { option as k } from '../recipes/katachi/option'
+import { option as k } from '../recipes/kata/option'
 
 const defaultCheckIcon = (
 	<Icon

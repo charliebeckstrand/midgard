@@ -1,1 +1,1 @@
-export { columnManager as k } from '../../recipes/katachi/column-manager'
+export { columnManager as k } from '../../recipes/kata/column-manager'

@@ -4,4 +4,4 @@ export {
 	progressGauge as progressGaugeVariants,
 	progressTrack as progressTrackVariants,
 	slots as k,
-} from '../../recipes/katachi/progress'
+} from '../../recipes/kata/progress'

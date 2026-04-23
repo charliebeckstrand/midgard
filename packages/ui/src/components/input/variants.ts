@@ -4,4 +4,4 @@ export {
 	inputControl as controlVariants,
 	inputDate as inputDateVariants,
 	slots as k,
-} from '../../recipes/katachi/input'
+} from '../../recipes/kata/input'

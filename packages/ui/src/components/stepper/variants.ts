@@ -8,4 +8,4 @@ export {
 	stepperSeparator as stepperSeparatorVariants,
 	stepperStep as stepperStepVariants,
 	stepperTitle as stepperTitleVariants,
-} from '../../recipes/katachi/stepper'
+} from '../../recipes/kata/stepper'

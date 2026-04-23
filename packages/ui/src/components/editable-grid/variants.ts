@@ -1,1 +1,1 @@
-export { editableGrid as k } from '../../recipes/katachi/editable-grid'
+export { editableGrid as k } from '../../recipes/kata/editable-grid'

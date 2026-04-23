@@ -4,7 +4,7 @@
  * Pure dimension scales — width, height, and the icon-slot size grid.
  * Typography lives in `ji`; gaps live in `kumi`; padding lives in `ma`.
  * Density presets (button / compact / control) live with their component in
- * `katachi`, composed from these primitives.
+ * `kata`, composed from these primitives.
  *
  * Tier: 1 · Concern: sizing
  */

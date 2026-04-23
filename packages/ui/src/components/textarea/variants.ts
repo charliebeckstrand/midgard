@@ -3,4 +3,4 @@ export {
 	type TextareaVariants,
 	textarea as textareaVariants,
 	textareaControl as controlVariants,
-} from '../../recipes/katachi/textarea'
+} from '../../recipes/kata/textarea'

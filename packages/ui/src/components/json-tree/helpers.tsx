@@ -1,5 +1,5 @@
 import { cn } from '../../core'
-import { jsonValueColor } from '../../recipes/katachi/json-tree'
+import { jsonValueColor } from '../../recipes/kata/json-tree'
 import { type JsonValue, valueType } from './utilities'
 import { k } from './variants'
 

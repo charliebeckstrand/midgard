@@ -1,2 +1,2 @@
-export { segment as ks } from '../../recipes/katachi/segment'
-export { tabs as k } from '../../recipes/katachi/tabs'
+export { segment as ks } from '../../recipes/kata/segment'
+export { tabs as k } from '../../recipes/kata/tabs'

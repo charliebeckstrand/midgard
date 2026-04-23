@@ -1,1 +1,1 @@
-export { placeholder as k } from '../../recipes/katachi/placeholder'
+export { placeholder as k } from '../../recipes/kata/placeholder'

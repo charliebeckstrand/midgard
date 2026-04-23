@@ -3,4 +3,4 @@ export {
 	type ToolbarVariants,
 	toolbar as toolbarVariants,
 	toolbarGroup as toolbarGroupVariants,
-} from '../../recipes/katachi/toolbar'
+} from '../../recipes/kata/toolbar'

@@ -1,1 +1,1 @@
-export { commandPalette as k } from '../../recipes/katachi/command-palette'
+export { commandPalette as k } from '../../recipes/kata/command-palette'

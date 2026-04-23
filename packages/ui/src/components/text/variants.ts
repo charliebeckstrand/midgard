@@ -1,1 +1,1 @@
-export { type TextVariants, text as textVariants } from '../../recipes/katachi/text'
+export { type TextVariants, text as textVariants } from '../../recipes/kata/text'

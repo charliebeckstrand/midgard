@@ -6,4 +6,4 @@ export {
 	switchInput as switchInputVariants,
 	switchRecipe as switchVariants,
 	switchThumb as switchThumbVariants,
-} from '../../recipes/katachi/switch'
+} from '../../recipes/kata/switch'

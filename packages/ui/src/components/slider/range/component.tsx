@@ -3,7 +3,7 @@
 import { type CSSProperties, useRef } from 'react'
 import { cn } from '../../../core'
 import { useControllable } from '../../../hooks/use-controllable'
-import { sliderRange as k } from '../../../recipes/katachi/slider-range'
+import { sliderRange as k } from '../../../recipes/kata/slider-range'
 import { useRangeKeyboard } from './use-range-keyboard'
 import { useRangePointer } from './use-range-pointer'
 import { pct } from './utilities'

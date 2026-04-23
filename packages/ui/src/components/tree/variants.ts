@@ -1,1 +1,1 @@
-export { tree as k } from '../../recipes/katachi/tree'
+export { tree as k } from '../../recipes/kata/tree'

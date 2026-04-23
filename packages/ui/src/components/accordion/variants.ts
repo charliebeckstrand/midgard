@@ -4,4 +4,4 @@ export {
 	accordion as accordionVariants,
 	accordionItem as accordionItemVariants,
 	slots as k,
-} from '../../recipes/katachi/accordion'
+} from '../../recipes/kata/accordion'

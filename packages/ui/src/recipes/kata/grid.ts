@@ -14,5 +14,5 @@ export const gridDivider = tv({
 
 export type GridDividerVariants = VariantProps<typeof gridDivider>
 
-/** Kept for the `katachi` barrel — not consumed directly. */
+/** Kept for the `kata` barrel — not consumed directly. */
 export const grid = { divider: gridDivider }

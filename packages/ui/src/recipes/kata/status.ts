@@ -35,5 +35,5 @@ export const statusDot = tv({
 
 export type StatusDotVariants = VariantProps<typeof statusDot>
 
-/** Kept for the `katachi` barrel — not consumed directly. */
+/** Kept for the `kata` barrel — not consumed directly. */
 export const status = { dot: statusDot }

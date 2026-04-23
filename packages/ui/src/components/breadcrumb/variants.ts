@@ -6,4 +6,4 @@ export {
 	breadcrumbLink as breadcrumbLinkVariants,
 	breadcrumbList as breadcrumbListVariants,
 	breadcrumbSeparator as breadcrumbSeparatorVariants,
-} from '../../recipes/katachi/breadcrumb'
+} from '../../recipes/kata/breadcrumb'

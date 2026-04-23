@@ -4,4 +4,4 @@ export {
 	code as codeVariants,
 	codeBlock as codeBlockVariants,
 	slots as k,
-} from '../../recipes/katachi/code'
+} from '../../recipes/kata/code'

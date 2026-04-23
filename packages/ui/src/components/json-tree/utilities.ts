@@ -1,4 +1,4 @@
-import type { JsonValueType } from '../../recipes/katachi/json-tree'
+import type { JsonValueType } from '../../recipes/kata/json-tree'
 
 export type JsonValue =
 	| string

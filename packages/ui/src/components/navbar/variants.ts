@@ -1,1 +1,1 @@
-export { type NavbarVariants, navbar as navbarVariants } from '../../recipes/katachi/navbar'
+export { type NavbarVariants, navbar as navbarVariants } from '../../recipes/kata/navbar'

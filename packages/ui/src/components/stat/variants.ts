@@ -4,4 +4,4 @@ export {
 	slots as k,
 	statDelta as statDeltaVariants,
 	statValue as statValueVariants,
-} from '../../recipes/katachi/stat'
+} from '../../recipes/kata/stat'
