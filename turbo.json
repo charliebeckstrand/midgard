@@ -15,6 +15,17 @@
     },
     "lint": {
       "inputs": ["src/**", "app/**", "../../biome.json"]
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "inputs": [
+        "src/**",
+        "app/**",
+        "vitest.config.ts",
+        "tsconfig.json",
+        "../../tsconfig.base.json"
+      ],
+      "outputs": ["coverage/**", "test-results/**"]
     }
   }
 }
