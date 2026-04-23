@@ -58,6 +58,20 @@ export const slots = {
 			green: 'text-green-500 dark:text-green-500',
 			blue: 'text-blue-500 dark:text-blue-500',
 		},
+		lineBefore: {
+			zinc: 'before:bg-zinc-200 dark:before:bg-zinc-700',
+			red: 'before:bg-red-500 dark:before:bg-red-500',
+			amber: 'before:bg-amber-500 dark:before:bg-amber-500',
+			green: 'before:bg-green-500 dark:before:bg-green-500',
+			blue: 'before:bg-blue-500 dark:before:bg-blue-500',
+		},
+		lineAfter: {
+			zinc: 'after:bg-zinc-200 dark:after:bg-zinc-700',
+			red: 'after:bg-red-500 dark:after:bg-red-500',
+			amber: 'after:bg-amber-500 dark:after:bg-amber-500',
+			green: 'after:bg-green-500 dark:after:bg-green-500',
+			blue: 'after:bg-blue-500 dark:after:bg-blue-500',
+		},
 	},
 	heading: {
 		base: ['font-semibold', ji.size.lg, ...iro.text.default],

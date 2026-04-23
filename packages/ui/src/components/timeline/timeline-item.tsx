@@ -22,6 +22,8 @@ export function TimelineItem({
 	status,
 	color,
 	pulse,
+	lineBefore,
+	lineAfter,
 }: TimelineItemProps) {
 	const { orientation, variant: contextVariant } = useTimeline()
 
@@ -48,7 +50,11 @@ export function TimelineItem({
 			)}
 		>
 			<TimelineProvider value={providerValue}>
-				{!hasMarker && <TimelineMarker {...({ status, color, pulse } as TimelineMarkerProps)} />}
+				{!hasMarker && (
+					<TimelineMarker
+						{...({ status, color, pulse, lineBefore, lineAfter } as TimelineMarkerProps)}
+					/>
+				)}
 				{children}
 			</TimelineProvider>
 		</li>
