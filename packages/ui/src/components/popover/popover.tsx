@@ -9,10 +9,10 @@ import {
 	useRole,
 } from '@floating-ui/react'
 import { AnimatePresence, motion } from 'motion/react'
-import type React from 'react'
 import {
 	cloneElement,
 	isValidElement,
+	type RefObject,
 	useCallback,
 	useEffect,
 	useLayoutEffect,
@@ -140,11 +140,21 @@ export type PopoverTriggerProps = {
 export function PopoverTrigger({ children, className, manual = false }: PopoverTriggerProps) {
 	const { open, triggerRef, setReference, getReferenceProps } = usePopoverContext()
 
+	// Return a cleanup from the ref callback so React 19 won't call it with
+	// null on unmount. That avoids `setReference(null)` firing a state update
+	// during deletion effects, which can otherwise cascade into a "Maximum
+	// update depth" error when ancestor state is still in flux.
 	const mergeRefs = useCallback(
 		(node: HTMLElement | null) => {
-			;(triggerRef as React.MutableRefObject<HTMLButtonElement | null>).current =
-				node as HTMLButtonElement | null
+			const triggerMutableRef = triggerRef as RefObject<HTMLButtonElement | null>
+
+			triggerMutableRef.current = node as HTMLButtonElement | null
+
 			setReference(node)
+
+			return () => {
+				triggerMutableRef.current = null
+			}
 		},
 		[triggerRef, setReference],
 	)

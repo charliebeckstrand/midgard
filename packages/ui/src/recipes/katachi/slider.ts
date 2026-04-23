@@ -32,7 +32,7 @@ export const slider = tv({
 		// Active
 		'active:not-disabled:[&::-webkit-slider-thumb]:scale-110',
 		// Focus
-		'focus-visible:[&::-webkit-slider-thumb]:ring-3',
+		'focus-visible:[&::-webkit-slider-thumb]:ring-4',
 		'focus-visible:[&::-webkit-slider-thumb]:ring-blue-600',
 		'dark:focus-visible:[&::-webkit-slider-thumb]:ring-blue-600',
 
@@ -57,7 +57,7 @@ export const slider = tv({
 		// Active
 		'active:not-disabled:[&::-moz-range-thumb]:scale-110',
 		// Focus
-		'focus-visible:[&::-moz-range-thumb]:ring-3',
+		'focus-visible:[&::-moz-range-thumb]:ring-4',
 		'focus-visible:[&::-moz-range-thumb]:ring-blue-600',
 		'dark:focus-visible:[&::-moz-range-thumb]:ring-blue-600',
 	],
