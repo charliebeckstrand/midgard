@@ -33,7 +33,6 @@ const frame = [
 	'relative block',
 	'w-full',
 	sen.ringInset,
-	sen.ringHover,
 	'before:absolute before:inset-px before:rounded-[calc(var(--radius-lg)-1px)]',
 	'after:absolute after:inset-0 after:rounded-lg after:ring-transparent after:ring-inset after:pointer-events-none',
 	'focus-within:after:ring-2',
@@ -59,10 +58,11 @@ const frame = [
 	'has-[[data-valid]]:hover:ring-green-600',
 	'has-[[data-valid]]:data-open:after:ring-green-600',
 	'has-[>:disabled]:opacity-50',
-	'has-[>:disabled]:ring-zinc-950/20',
 	'has-[>:disabled]:before:shadow-none',
 	'has-[>:disabled]:cursor-not-allowed',
 	'has-[>:disabled]:**:cursor-not-allowed',
+	'not-has-[>:disabled]:hover:ring-zinc-950/20',
+	'not-has-[>:disabled]:dark:hover:ring-white/20',
 	maru.rounded.lg,
 ]
 
@@ -88,7 +88,7 @@ const field = [
 	'focus:outline-hidden',
 	'read-only:bg-transparent',
 	'placeholder:text-zinc-500',
-	'disabled:cursor-not-allowed',
+	// 'disabled:cursor-not-allowed',
 	'dark:placeholder:text-zinc-400',
 ]
 

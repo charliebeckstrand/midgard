@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { Field, Label } from '../../components/fieldset'
-import { Glass } from '../../components/glass'
 import { SearchInput } from '../../components/search-input'
 import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'
@@ -54,12 +53,6 @@ export default function SearchInputDemo() {
 						<Label>Outline</Label>
 						<SearchInput variant="outline" placeholder={placeholder} />
 					</Field>
-					<Glass>
-						<Field>
-							<Label>Glass</Label>
-							<SearchInput placeholder={placeholder} />
-						</Field>
-					</Glass>
 				</Sizer>
 			</Example>
 

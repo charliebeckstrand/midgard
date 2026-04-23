@@ -31,7 +31,6 @@ const hiru = {
 	ring: 'ring-zinc-950/10',
 	ringStrong: 'ring-zinc-950/20',
 	ringSubtle: 'ring-zinc-950/5',
-	ringHover: 'hover:ring-zinc-950/20',
 }
 
 // ── Yoru (夜) — dark palette ────────────────────────────
@@ -48,7 +47,6 @@ const yoru = {
 	ring: 'dark:ring-white/10',
 	ringStrong: 'dark:ring-white/15',
 	ringSubtle: 'dark:ring-white/5',
-	ringHover: 'dark:hover:ring-white/20',
 }
 
 // ── Export ──────────────────────────────────────────────
@@ -83,8 +81,7 @@ export const sen = {
 	ringInset: [motoi.ring, hiru.ring, yoru.ring, 'ring-inset'],
 	/** Subtle ring — secondary outlines. */
 	ringSubtle: [motoi.ring, hiru.ringSubtle, yoru.ringSubtle],
-	/** Hover ring — hover state outlines. */
-	ringHover: [motoi.ring, hiru.ringHover, yoru.ringHover],
+
 	/** Top divider — `border-t` with subtle colour. */
 	divider: [motoi.divider, hiru.borderSubtle, yoru.borderSubtle],
 

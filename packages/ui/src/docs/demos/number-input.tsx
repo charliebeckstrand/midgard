@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { Field, Label } from '../../components/fieldset'
-import { Glass } from '../../components/glass'
 import { NumberInput } from '../../components/number-input'
 import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'
@@ -38,12 +37,6 @@ export default function NumberInputDemo() {
 						<Label>Outline</Label>
 						<NumberInput variant="outline" defaultValue={1} />
 					</Field>
-					<Glass>
-						<Field>
-							<Label>Glass</Label>
-							<NumberInput defaultValue={1} />
-						</Field>
-					</Glass>
 				</Sizer>
 			</Example>
 
