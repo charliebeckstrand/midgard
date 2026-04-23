@@ -1,11 +1,12 @@
 'use client'
 
+import type { ComponentPropsWithoutRef } from 'react'
 import { useStepper } from './context'
 
 export type StepperPanelProps = {
 	value: number
 	className?: string
-} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
+} & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
 
 export function StepperPanel({ value, className, children, ...props }: StepperPanelProps) {
 	const { value: currentValue } = useStepper()

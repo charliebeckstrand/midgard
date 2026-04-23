@@ -1,21 +1,29 @@
 'use client'
 
-import type React from 'react'
-import { Children, cloneElement, isValidElement, useCallback } from 'react'
+import {
+	Children,
+	cloneElement,
+	type ElementType,
+	isValidElement,
+	type ReactElement,
+	type ReactNode,
+	type SyntheticEvent,
+	useCallback,
+} from 'react'
 import { cn } from '../../core'
 import { Description, ErrorMessage, Field, Label } from '../fieldset'
 import { useFilters } from './context'
 
 // ── Helpers ────────────────────────────────────────
 
-function isSyntheticEvent(v: unknown): v is React.SyntheticEvent<HTMLInputElement> {
+function isSyntheticEvent(v: unknown): v is SyntheticEvent<HTMLInputElement> {
 	return v !== null && typeof v === 'object' && 'target' in v && 'nativeEvent' in v
 }
 
-const DECORATION_TYPES = new Set<React.ElementType>([Label, Description, ErrorMessage])
+const DECORATION_TYPES = new Set<ElementType>([Label, Description, ErrorMessage])
 
-function isDecoration(child: React.ReactElement): boolean {
-	return DECORATION_TYPES.has(child.type as React.ElementType)
+function isDecoration(child: ReactElement): boolean {
+	return DECORATION_TYPES.has(child.type as ElementType)
 }
 
 // ── FiltersField ───────────────────────────────────
@@ -27,7 +35,7 @@ export type FiltersFieldRenderProps = {
 
 export type FiltersFieldProps = {
 	name: string
-	children: React.ReactNode | ((field: FiltersFieldRenderProps) => React.ReactNode)
+	children: ReactNode | ((field: FiltersFieldRenderProps) => ReactNode)
 	className?: string
 }
 
@@ -74,7 +82,7 @@ export function FiltersField({ name, children, className }: FiltersFieldProps) {
 
 		controlCloned = true
 
-		return cloneElement(child as React.ReactElement<Record<string, unknown>>, {
+		return cloneElement(child as ReactElement<Record<string, unknown>>, {
 			value: fieldValue ?? null,
 			onChange: handleChange,
 		})

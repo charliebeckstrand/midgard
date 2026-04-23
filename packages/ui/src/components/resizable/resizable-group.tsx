@@ -1,6 +1,16 @@
 'use client'
 
-import { Children, isValidElement, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import {
+	Children,
+	isValidElement,
+	type ReactNode,
+	type PointerEvent as ReactPointerEvent,
+	useCallback,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { cn } from '../../core'
 import {
 	type PanelConfig,
@@ -57,7 +67,7 @@ export type ResizableGroupProps = {
 	direction?: ResizableDirection
 	onSizesChange?: (sizes: number[]) => void
 	className?: string
-	children?: React.ReactNode
+	children?: ReactNode
 }
 
 export function ResizableGroup({
@@ -137,7 +147,7 @@ export function ResizableGroup({
 		})
 	}, [])
 
-	const startDrag = useCallback((handleIndex: number, e: React.PointerEvent) => {
+	const startDrag = useCallback((handleIndex: number, e: ReactPointerEvent) => {
 		const group = groupRef.current
 
 		if (!group || e.button !== 0) return

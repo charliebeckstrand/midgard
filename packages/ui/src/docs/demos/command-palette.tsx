@@ -11,7 +11,7 @@ import {
 	Trash2,
 	User,
 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { type ReactElement, useEffect, useState } from 'react'
 import { Alert, AlertTitle } from '../../components/alert'
 import { Button } from '../../components/button'
 import {
@@ -34,7 +34,7 @@ type Command = {
 	label: string
 	description?: string
 	shortcut?: string
-	icon: React.ReactElement
+	icon: ReactElement
 	group: 'Files' | 'Edit' | 'Application'
 }
 

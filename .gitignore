@@ -15,6 +15,9 @@ dist/
 
 # test coverage
 coverage/
+test-results/
+packages/ui/coverage/
+packages/ui/test-results/
 
 # env
 .env
@@ -29,7 +32,3 @@ npm-debug.log*
 # Claude
 .claude/plans
 .claude/settings.json
-
-# Vitest
-packages/ui/coverage
-packages/ui/test-results

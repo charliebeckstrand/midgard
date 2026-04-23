@@ -1,4 +1,4 @@
-import type React from 'react'
+import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { cn } from '../../core'
 import { GridProvider } from './context'
 import {
@@ -18,8 +18,8 @@ export type GridProps = {
 	align?: 'start' | 'center' | 'end' | 'stretch'
 	justify?: 'start' | 'center' | 'end' | 'stretch'
 	className?: string
-	children?: React.ReactNode
-} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className' | 'children'>
+	children?: ReactNode
+} & Omit<ComponentPropsWithoutRef<'div'>, 'className' | 'children'>
 
 export function Grid({
 	columns,

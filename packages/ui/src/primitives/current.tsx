@@ -1,7 +1,15 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import {
+	type ComponentPropsWithoutRef,
+	createContext,
+	useContext,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { cn } from '../core'
 import { useControllable } from '../hooks'
 import { ugoki } from '../recipes'
@@ -55,7 +63,7 @@ export function createCurrentContent(slotPrefix: string) {
 		className,
 		children,
 		...props
-	}: React.ComponentPropsWithoutRef<'div'> & { fade?: boolean }) {
+	}: ComponentPropsWithoutRef<'div'> & { fade?: boolean }) {
 		const ref = useRef<HTMLDivElement>(null)
 
 		const [height, setHeight] = useState<number | undefined>(undefined)
@@ -130,7 +138,7 @@ export function createCurrentContent(slotPrefix: string) {
 		className,
 		children,
 		...props
-	}: React.ComponentPropsWithoutRef<'div'> & { value?: string }) {
+	}: ComponentPropsWithoutRef<'div'> & { value?: string }) {
 		const ctx = useCurrentContext()
 
 		const fade = useContext(FadeContext)

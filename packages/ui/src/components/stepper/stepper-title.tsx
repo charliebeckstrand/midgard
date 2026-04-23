@@ -1,10 +1,11 @@
 'use client'
 
+import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { useStepper } from './context'
 import { stepperTitleVariants } from './variants'
 
-export type StepperTitleProps = React.ComponentPropsWithoutRef<'span'>
+export type StepperTitleProps = ComponentPropsWithoutRef<'span'>
 
 export function StepperTitle({ className, ...props }: StepperTitleProps) {
 	const { orientation, onValueChange } = useStepper()

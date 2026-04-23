@@ -1,7 +1,6 @@
 'use client'
 
-import type React from 'react'
-import { useCallback, useRef, useState } from 'react'
+import { type ReactNode, useCallback, useRef, useState } from 'react'
 import { createContext } from '../../core'
 import { useDrain } from './use-drain'
 import { useTimer } from './use-timer'
@@ -15,7 +14,7 @@ export type ToastData = {
 	title: string
 	description?: string
 	type?: ToastType
-	actions?: React.ReactNode
+	actions?: ReactNode
 	showCloseButton?: boolean
 	persist?: boolean
 	dismissed?: boolean
@@ -33,7 +32,7 @@ const [ToastContext, useToast] = createContext<ToastContextValue>('Toast')
 export { ToastContext, useToast }
 
 export type ToastProps = {
-	children: React.ReactNode
+	children: ReactNode
 	position?: ToastPosition
 	duration?: number
 	maxToasts?: number

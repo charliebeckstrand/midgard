@@ -1,4 +1,4 @@
-import type React from 'react'
+import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { type ContainerPadding, type ContainerSize, paddingMap, sizeMap } from './variants'
 
@@ -8,7 +8,7 @@ export type ContainerProps = {
 	/** Responsive horizontal padding. Defaults to `md`. Pass `none` to disable. */
 	padding?: ContainerPadding
 	className?: string
-} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
+} & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
 
 export function Container({
 	size = 'md',

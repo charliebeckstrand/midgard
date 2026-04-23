@@ -1,5 +1,6 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { type ToolbarOrientation, useToolbarContext } from './context'
 import { type ToolbarGroupVariants, toolbarGroupVariants } from './variants'
@@ -8,7 +9,7 @@ export type ToolbarGroupProps = Omit<ToolbarGroupVariants, 'orientation'> & {
 	orientation?: ToolbarOrientation
 	'aria-label'?: string
 	className?: string
-	children?: React.ReactNode
+	children?: ReactNode
 }
 
 export function ToolbarGroup({

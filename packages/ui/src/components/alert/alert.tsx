@@ -1,7 +1,7 @@
 'use client'
 
 import { AlertTriangle, CheckCircle, Info, X, XCircle } from 'lucide-react'
-import { Children, isValidElement, type ReactNode, useCallback } from 'react'
+import { Children, isValidElement, type ReactElement, type ReactNode, useCallback } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
 import { Button } from '../button'
@@ -22,7 +22,7 @@ const typeColorMap: Record<AlertType, AlertColor> = {
 	error: 'red',
 }
 
-const typeIconMap: Record<AlertType, React.ReactElement> = {
+const typeIconMap: Record<AlertType, ReactElement> = {
 	info: <Info />,
 	success: <CheckCircle />,
 	warning: <AlertTriangle />,
@@ -45,10 +45,10 @@ function hasChild(children: ReactNode, component: (...args: never[]) => ReactNod
 export type AlertProps = Omit<AlertVariants, 'color'> & {
 	type?: AlertType
 	color?: AlertColor
-	icon?: React.ReactElement
-	title?: React.ReactNode
-	description?: React.ReactNode
-	actions?: React.ReactNode
+	icon?: ReactElement
+	title?: ReactNode
+	description?: ReactNode
+	actions?: ReactNode
 	block?: boolean
 	closable?: boolean
 	/** Initial open state — uncontrolled. @default true */
@@ -58,7 +58,7 @@ export type AlertProps = Omit<AlertVariants, 'color'> & {
 	/** Called when the open state changes. */
 	onOpenChange?: (open: boolean) => void
 	className?: string
-	children?: React.ReactNode
+	children?: ReactNode
 }
 
 export function Alert({

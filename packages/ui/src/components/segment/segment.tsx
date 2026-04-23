@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { type ReactNode, useMemo } from 'react'
 import { CurrentProvider, useCurrent } from '../../primitives'
 import { SegmentProvider } from './context'
 import type { SegmentControlVariants } from './variants'
@@ -12,7 +12,7 @@ export type SegmentProps = SegmentControlVariants & {
 	defaultValue?: string
 	onValueChange?: (value: string | undefined) => void
 	className?: string
-	children?: React.ReactNode
+	children?: ReactNode
 }
 
 export function Segment({

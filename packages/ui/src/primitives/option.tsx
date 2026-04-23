@@ -1,7 +1,7 @@
 'use client'
 
 import { Check } from 'lucide-react'
-import type React from 'react'
+import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { Icon } from '../components/icon'
 import { cn } from '../core'
 import { option as k } from '../recipes/kata/option'
@@ -15,11 +15,11 @@ const defaultCheckIcon = (
 
 export type BaseOptionProps = {
 	className?: string
-	icon?: React.ReactNode
+	icon?: ReactNode
 	selected: boolean
 	disabled?: boolean
 	onSelect: () => void
-} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className' | 'onSelect'>
+} & Omit<ComponentPropsWithoutRef<'div'>, 'className' | 'onSelect'>
 
 /** Shared option row for select-like components. */
 export function BaseOption({
@@ -61,7 +61,7 @@ export function BaseOption({
 }
 
 /** Primary label for a select-like option. */
-export function OptionLabel({ className, ...props }: React.ComponentPropsWithoutRef<'span'>) {
+export function OptionLabel({ className, ...props }: ComponentPropsWithoutRef<'span'>) {
 	return <span {...props} className={cn(k.label, className)} />
 }
 
@@ -70,7 +70,7 @@ export function OptionDescription({
 	className,
 	children,
 	...props
-}: React.ComponentPropsWithoutRef<'span'>) {
+}: ComponentPropsWithoutRef<'span'>) {
 	return (
 		<span {...props} className={cn(k.description, className)}>
 			<span className="flex-1 truncate">{children}</span>
@@ -81,14 +81,14 @@ export function OptionDescription({
 export type SelectOptionProps = {
 	value: unknown
 	disabled?: boolean
-	icon?: React.ReactNode
+	icon?: ReactNode
 	className?: string
-	children?: React.ReactNode
+	children?: ReactNode
 }
 
-export type SelectLabelProps = React.ComponentPropsWithoutRef<'span'>
+export type SelectLabelProps = ComponentPropsWithoutRef<'span'>
 
-export type SelectDescriptionProps = React.ComponentPropsWithoutRef<'span'>
+export type SelectDescriptionProps = ComponentPropsWithoutRef<'span'>
 
 /** Factory for select-like option components. Only the data-slot prefix and context hook differ. */
 export function createSelectOption(config: {

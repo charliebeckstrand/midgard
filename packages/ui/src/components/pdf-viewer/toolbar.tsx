@@ -1,6 +1,7 @@
 'use client'
 
 import { Download, Maximize2, PanelLeft, Printer, RotateCw, ZoomIn, ZoomOut } from 'lucide-react'
+import type { Dispatch, SetStateAction } from 'react'
 import { cn } from '../../core'
 import { Button } from '../button'
 import { Icon } from '../icon'
@@ -18,11 +19,11 @@ export type PdfViewerToolbarProps = {
 	safePage: number
 	goToPage: (page: number) => void
 	zoom: number
-	setZoom: React.Dispatch<React.SetStateAction<number>>
+	setZoom: Dispatch<SetStateAction<number>>
 	minZoom: number
 	maxZoom: number
 	zoomStep: number
-	setRotation: React.Dispatch<React.SetStateAction<number>>
+	setRotation: Dispatch<SetStateAction<number>>
 	src?: string
 	filename?: string
 	isLoading: boolean

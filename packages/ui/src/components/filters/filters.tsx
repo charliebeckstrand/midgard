@@ -1,7 +1,6 @@
 'use client'
 
-import type React from 'react'
-import { useCallback, useMemo } from 'react'
+import { type ReactNode, useCallback, useMemo } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { Flex } from '../flex'
@@ -26,11 +25,11 @@ export type FiltersProps<T extends FilterValue = FilterValue> = {
 	defaultValue?: T
 	onChange?: (value: T) => void
 	onClear?: () => void
-	clear?: React.ReactNode
-	affix?: React.ReactNode
-	suffix?: React.ReactNode
+	clear?: ReactNode
+	affix?: ReactNode
+	suffix?: ReactNode
 	equal?: boolean
-	children: React.ReactNode
+	children: ReactNode
 	className?: string
 }
 

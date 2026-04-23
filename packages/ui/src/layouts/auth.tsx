@@ -1,6 +1,5 @@
-import type React from 'react'
-
-export type AuthLayoutProps = { children: React.ReactNode }
+import type { ReactNode } from 'react'
+export type AuthLayoutProps = { children: ReactNode }
 
 export function AuthLayout({ children }: AuthLayoutProps) {
 	return (

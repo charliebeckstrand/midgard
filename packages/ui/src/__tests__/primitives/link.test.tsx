@@ -1,4 +1,5 @@
 import { renderHook } from '@testing-library/react'
+import type { ReactNode } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Link, LinkProvider, useLink } from '../../primitives/link'
 import { renderUI, screen } from '../helpers'
@@ -21,14 +22,7 @@ describe('Link', () => {
 	})
 
 	it('renders custom component from LinkProvider', () => {
-		function CustomLink({
-			href,
-			children,
-			...props
-		}: {
-			href: string
-			children?: React.ReactNode
-		}) {
+		function CustomLink({ href, children, ...props }: { href: string; children?: ReactNode }) {
 			return (
 				<span data-href={href} {...props}>
 					{children}

@@ -1,4 +1,4 @@
-import { Children, isValidElement, useMemo } from 'react'
+import { Children, isValidElement, type ReactNode, useMemo } from 'react'
 import { cn } from '../../core'
 import { TimelineProvider, type TimelineVariant, useTimeline } from './context'
 import type { TimelineMarkerConfig } from './timeline-marker'
@@ -11,7 +11,7 @@ export type TimelineItemProps = {
 	active?: boolean
 	variant?: TimelineVariant
 	className?: string
-	children?: React.ReactNode
+	children?: ReactNode
 } & TimelineMarkerConfig
 
 export function TimelineItem({

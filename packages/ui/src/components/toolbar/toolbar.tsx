@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef } from 'react'
+import { type ReactNode, useRef } from 'react'
 import { cn } from '../../core'
 import { useRoving } from '../../hooks'
 import { type ToolbarContextValue, type ToolbarOrientation, ToolbarProvider } from './context'
@@ -20,7 +20,7 @@ export type ToolbarProps = Omit<ToolbarVariants, 'orientation'> & {
 	'aria-label'?: string
 	'aria-labelledby'?: string
 	className?: string
-	children?: React.ReactNode
+	children?: ReactNode
 }
 
 export function Toolbar({

@@ -1,3 +1,5 @@
+import type { SyntheticEvent } from 'react'
+
 type Status = 'idle' | 'warning'
 type LastEdited = 'password' | 'confirm' | null
 
@@ -12,7 +14,7 @@ export function deriveStatus(password: string, confirm: string, lastEdited: Last
 }
 
 export function handlePasswordInput(
-	e: React.SyntheticEvent<HTMLDivElement>,
+	e: SyntheticEvent<HTMLDivElement>,
 	setPassword: (value: string) => void,
 	setPasswordName: (name: string | undefined) => void,
 	setLastEdited: (value: LastEdited) => void,

@@ -1,11 +1,11 @@
 'use client'
 
-import { useMemo } from 'react'
+import { type ComponentPropsWithoutRef, useMemo } from 'react'
 import { cn } from '../../core'
 import { CurrentProvider, useCurrent } from '../../primitives'
 import { TabsProvider, type TabsVariant } from './context'
 
-export type TabsProps = React.ComponentPropsWithoutRef<'div'> & {
+export type TabsProps = ComponentPropsWithoutRef<'div'> & {
 	value?: string
 	defaultValue?: string
 	onValueChange?: (value: string | undefined) => void

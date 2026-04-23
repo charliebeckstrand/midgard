@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect } from 'react'
+import { type ChangeEvent, useEffect } from 'react'
 import { PasswordInput, type PasswordInputProps } from '../password-input'
 import { usePasswordConfirm } from './context'
 
 export type PasswordConfirmInputProps = Omit<PasswordInputProps, 'onChange'> & {
-	onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
+	onChange?: (e: ChangeEvent<HTMLInputElement>) => void
 }
 
 export function PasswordConfirmInput({ onChange, ...props }: PasswordConfirmInputProps) {

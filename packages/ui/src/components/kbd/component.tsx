@@ -1,8 +1,8 @@
-import type React from 'react'
+import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { type KbdVariants, kbdVariants } from './variants'
 
-export type KbdProps = React.ComponentPropsWithoutRef<'kbd'> & {
+export type KbdProps = ComponentPropsWithoutRef<'kbd'> & {
 	size?: KbdVariants['size']
 	/** Prepend the Command (⌘) modifier glyph. */
 	cmd?: boolean

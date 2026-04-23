@@ -1,4 +1,4 @@
-import { use } from 'react'
+import { type ComponentPropsWithoutRef, use } from 'react'
 import { cn } from '../../core'
 import { AvatarSizeContext } from '../avatar/context'
 import { type StatusDotVariants, statusDotVariants } from './variants'
@@ -16,7 +16,7 @@ const avatarToStatusSize: Record<AvatarSize, StatusDotSize> = {
 
 export type StatusDotProps = StatusDotVariants & {
 	className?: string
-} & Omit<React.ComponentPropsWithoutRef<'span'>, 'className'>
+} & Omit<ComponentPropsWithoutRef<'span'>, 'className'>
 
 export function StatusDot({ variant, status, size, pulse, className, ...props }: StatusDotProps) {
 	const avatarSize = use(AvatarSizeContext)

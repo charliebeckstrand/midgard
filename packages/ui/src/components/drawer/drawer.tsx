@@ -1,8 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
-import type React from 'react'
-import { useCallback, useMemo } from 'react'
+import { type ReactNode, useCallback, useMemo } from 'react'
 import { cn, createContext } from '../../core'
 import { Overlay, PanelA11yProvider, usePanelA11yScope } from '../../primitives'
 import { ugoki } from '../../recipes'
@@ -19,7 +18,7 @@ export type DrawerProps = DrawerPanelVariants & {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	className?: string
-	children: React.ReactNode
+	children: ReactNode
 }
 
 export function Drawer({ open, onOpenChange, glass, className, children }: DrawerProps) {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { type SyntheticEvent, useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useControllable, useMinWidth } from '../../hooks'
 import { PdfViewerThumbnails } from './thumbnails'
@@ -185,7 +185,7 @@ export function PdfViewer({
 				: `${pageSize.width} / ${pageSize.height}`
 			: '8.5 / 11'
 
-	const handleImageLoad = (event: React.SyntheticEvent<HTMLImageElement>) => {
+	const handleImageLoad = (event: SyntheticEvent<HTMLImageElement>) => {
 		const img = event.currentTarget
 
 		setNaturalSize({ width: img.naturalWidth, height: img.naturalHeight })

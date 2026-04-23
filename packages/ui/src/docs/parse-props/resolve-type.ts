@@ -64,7 +64,7 @@ export function resolveTypeBodies(
 			continue
 		}
 
-		// Pass-through: React.ComponentPropsWithoutRef<'element'> (optionally wrapped in Omit/Pick)
+		// Pass-through: ComponentPropsWithoutRef<'element'> (optionally wrapped in Omit/Pick)
 		const pt = detectPassThrough(p)
 
 		if (pt) {
@@ -153,14 +153,14 @@ export function resolveTypeBodies(
 }
 
 function detectPassThrough(part: string): PassThrough | null {
-	// React.ComponentPropsWithoutRef<'span'> or ComponentPropsWithoutRef<'button'>
+	// ComponentPropsWithoutRef<'span'> or ComponentPropsWithoutRef<'button'>
 	const cpr = part.match(
 		/^(?:React\.)?Component(?:Props(?:WithoutRef|WithRef)?|PropsWithRef|PropsWithoutRef)\s*<\s*['"](\w+)['"]\s*>$/,
 	)
 
 	if (cpr) return { element: cpr[1] ?? '' }
 
-	// React.HTMLAttributes<HTMLButtonElement> / React.ButtonHTMLAttributes<HTMLButtonElement>
+	// HTMLAttributes<HTMLButtonElement> / ButtonHTMLAttributes<HTMLButtonElement>
 	const htmlAttrs = part.match(/^(?:React\.)?\w*HTMLAttributes\s*<\s*HTML(\w+)Element\s*>$/)
 
 	if (htmlAttrs) {

@@ -1,4 +1,4 @@
-import type React from 'react'
+import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { cn } from '../../core'
 import { type AspectRatioPreset, ratioMap } from './variants'
 
@@ -6,8 +6,8 @@ export type AspectRatioProps = {
 	/** Preset name or numeric ratio. Defaults to square. */
 	ratio?: AspectRatioPreset | number
 	className?: string
-	children?: React.ReactNode
-} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className' | 'children'>
+	children?: ReactNode
+} & Omit<ComponentPropsWithoutRef<'div'>, 'className' | 'children'>
 
 export function AspectRatio({
 	ratio = 'square',

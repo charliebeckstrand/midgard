@@ -1,12 +1,20 @@
 'use client'
 
-import { cloneElement, isValidElement, type ReactElement, useCallback } from 'react'
+import {
+	type ComponentPropsWithoutRef,
+	cloneElement,
+	isValidElement,
+	type MouseEvent,
+	type MutableRefObject,
+	type ReactElement,
+	useCallback,
+} from 'react'
 import { cn } from '../../core'
 import { useMenuActions, useMenuState } from './menu'
 
 export type MenuTriggerProps =
 	| ({ children: ReactElement } & { className?: string })
-	| React.ComponentPropsWithoutRef<'button'>
+	| ComponentPropsWithoutRef<'button'>
 
 export function MenuTrigger({ children, className, ...props }: MenuTriggerProps) {
 	const { open, getReferenceProps } = useMenuState()
@@ -14,7 +22,7 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 
 	const mergeRefs = useCallback(
 		(node: HTMLElement | null) => {
-			;(triggerRef as React.MutableRefObject<HTMLButtonElement | null>).current =
+			;(triggerRef as MutableRefObject<HTMLButtonElement | null>).current =
 				node as HTMLButtonElement | null
 			setReference(node)
 		},
@@ -31,9 +39,9 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 			'aria-expanded': open,
 			'data-slot': 'menu-trigger',
 			...referenceProps,
-			onClick: (e: React.MouseEvent) => {
+			onClick: (e: MouseEvent) => {
 				const childOnClick = (children as ReactElement<Record<string, unknown>>).props?.onClick as
-					| ((e: React.MouseEvent) => void)
+					| ((e: MouseEvent) => void)
 					| undefined
 				childOnClick?.(e)
 				setOpen(!open)

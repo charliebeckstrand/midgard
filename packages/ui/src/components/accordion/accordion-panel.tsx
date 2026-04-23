@@ -1,6 +1,7 @@
 'use client'
 
 import { AnimatePresence, motion } from 'motion/react'
+import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { useAccordionItem } from './context'
 import { k } from './variants'
@@ -9,7 +10,7 @@ import { k } from './variants'
 
 export type AccordionPanelProps = {
 	className?: string
-	children: React.ReactNode
+	children: ReactNode
 }
 
 export function AccordionPanel({ className, children }: AccordionPanelProps) {

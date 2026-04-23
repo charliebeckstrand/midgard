@@ -1,7 +1,7 @@
 'use client'
 
 import { X } from 'lucide-react'
-import type React from 'react'
+import type { MouseEventHandler, ReactNode } from 'react'
 import { cn } from '../../core'
 import {
 	createPanel,
@@ -43,7 +43,7 @@ export {
 
 export type InspectorHeaderProps = {
 	className?: string
-	children: React.ReactNode
+	children: ReactNode
 }
 
 export function InspectorHeader({ className, children }: InspectorHeaderProps) {
@@ -56,9 +56,9 @@ export function InspectorHeader({ className, children }: InspectorHeaderProps) {
 
 export type InspectorCloseProps = {
 	className?: string
-	icon?: React.ReactNode
+	icon?: ReactNode
 	'aria-label'?: string
-	onClick?: React.MouseEventHandler<HTMLButtonElement>
+	onClick?: MouseEventHandler<HTMLButtonElement>
 }
 
 export function InspectorClose({

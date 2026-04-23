@@ -1,20 +1,21 @@
 'use client'
 
-import React from 'react'
+import type { MouseEvent, MouseEventHandler, ReactElement } from 'react'
+import { cloneElement } from 'react'
 import { useDrawerContext } from './drawer'
 
 export type DrawerOpenProps = {
-	children: React.ReactElement<{ onClick?: React.MouseEventHandler }>
+	children: ReactElement<{ onClick?: MouseEventHandler }>
 	onClick?: () => void
 }
 
 export type DrawerCloseProps = {
-	children: React.ReactElement<{ onClick?: React.MouseEventHandler }>
+	children: ReactElement<{ onClick?: MouseEventHandler }>
 }
 
 export function DrawerOpen({ children, onClick }: DrawerOpenProps) {
-	return React.cloneElement(children, {
-		onClick: (e: React.MouseEvent) => {
+	return cloneElement(children, {
+		onClick: (e: MouseEvent) => {
 			children.props.onClick?.(e)
 			onClick?.()
 		},
@@ -24,8 +25,8 @@ export function DrawerOpen({ children, onClick }: DrawerOpenProps) {
 export function DrawerClose({ children }: DrawerCloseProps) {
 	const { close } = useDrawerContext()
 
-	return React.cloneElement(children, {
-		onClick: (e: React.MouseEvent) => {
+	return cloneElement(children, {
+		onClick: (e: MouseEvent) => {
 			children.props.onClick?.(e)
 			close()
 		},

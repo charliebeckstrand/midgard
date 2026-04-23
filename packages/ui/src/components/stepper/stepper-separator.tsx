@@ -1,12 +1,13 @@
 'use client'
 
+import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { useStepper } from './context'
 import { stepperSeparatorVariants } from './variants'
 
 export type StepperSeparatorProps = {
 	className?: string
-} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
+} & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
 
 export function StepperSeparator({ className, ...props }: StepperSeparatorProps) {
 	const { orientation } = useStepper()

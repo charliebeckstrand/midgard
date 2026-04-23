@@ -1,7 +1,7 @@
 'use client'
 
 import { Check, Minus } from 'lucide-react'
-import { useCallback, useRef } from 'react'
+import { type ComponentPropsWithRef, type ReactNode, useCallback, useRef } from 'react'
 import { cn } from '../../core'
 import { kokkaku } from '../../recipes'
 import { useControl } from '../control/context'
@@ -12,9 +12,9 @@ import { type CheckboxVariants, checkboxInputVariants, checkboxVariants } from '
 
 export type CheckboxProps = CheckboxVariants & {
 	indeterminate?: boolean
-	icon?: React.ReactNode
+	icon?: ReactNode
 	className?: string
-} & Omit<React.ComponentPropsWithRef<'input'>, 'className' | 'type'>
+} & Omit<ComponentPropsWithRef<'input'>, 'className' | 'type'>
 
 export function Checkbox({
 	className,

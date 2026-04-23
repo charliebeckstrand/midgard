@@ -1,4 +1,4 @@
-import type React from 'react'
+import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { cn } from '../../core'
 import { directionMap, type FlexDirection } from '../flex'
 import { gapMap, type SizerGap, type SizerSize, sizeMap } from './variants'
@@ -11,8 +11,8 @@ export type SizerProps = {
 	/** Flex-column gap in Tailwind spacing units. Defaults to `4`. */
 	gap?: SizerGap
 	className?: string
-	children?: React.ReactNode
-} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className' | 'children'>
+	children?: ReactNode
+} & Omit<ComponentPropsWithoutRef<'div'>, 'className' | 'children'>
 
 export function Sizer({
 	size = 'md',

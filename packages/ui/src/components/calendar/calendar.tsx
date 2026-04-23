@@ -2,6 +2,7 @@
 
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import {
+	type KeyboardEvent,
 	memo,
 	type Ref,
 	type RefObject,
@@ -28,7 +29,7 @@ export type CalendarHandle = {
 	prevMonth: () => void
 	nextMonth: () => void
 	openPicker: () => void
-	footerKeyDown: (e: React.KeyboardEvent) => void
+	footerKeyDown: (e: KeyboardEvent) => void
 }
 
 export type CalendarDayContext = {

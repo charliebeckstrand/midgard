@@ -1,7 +1,14 @@
 'use client'
 
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { useCallback, useMemo, useRef, useState } from 'react'
+import {
+	type KeyboardEventHandler,
+	type RefObject,
+	useCallback,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { cn } from '../../core'
 import { useRoving } from '../../hooks'
 import { JsonTreeProvider } from './context'
@@ -129,7 +136,7 @@ export function JsonTree({
 // ── Virtualized path ───────────────────────────────────
 
 type VirtualizedJsonTreeProps = {
-	ref: React.RefObject<HTMLDivElement | null>
+	ref: RefObject<HTMLDivElement | null>
 	data: JsonValue
 	rootKey: string | undefined
 	defaultExpandDepth: number
@@ -140,7 +147,7 @@ type VirtualizedJsonTreeProps = {
 	searchIndex: ReturnType<typeof buildSearchIndex>
 	virtualize: { estimateSize?: number; overscan?: number }
 	maxHeight: string
-	onKeyDown: React.KeyboardEventHandler<HTMLDivElement>
+	onKeyDown: KeyboardEventHandler<HTMLDivElement>
 	className?: string
 }
 

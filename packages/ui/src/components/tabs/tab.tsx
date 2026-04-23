@@ -1,5 +1,6 @@
 'use client'
 
+import type { ComponentPropsWithoutRef, MouseEvent } from 'react'
 import { cn } from '../../core'
 import { ActiveIndicator, useActiveIndicator, useCurrentContext } from '../../primitives'
 import { segmentItemVariants } from '../segment/variants'
@@ -12,7 +13,7 @@ export type TabProps = {
 	/** Links this tab to its panel via aria-controls. */
 	id?: string
 	className?: string
-} & Omit<React.ComponentPropsWithoutRef<'button'>, 'className' | 'id' | 'value'>
+} & Omit<ComponentPropsWithoutRef<'button'>, 'className' | 'id' | 'value'>
 
 export function Tab({
 	value,
@@ -33,7 +34,7 @@ export function Tab({
 
 	const current = currentProp ?? (value !== undefined && ctx?.value === value)
 
-	function handleClick(e: React.MouseEvent<HTMLButtonElement>) {
+	function handleClick(e: MouseEvent<HTMLButtonElement>) {
 		onClick?.(e)
 
 		if (value !== undefined) {

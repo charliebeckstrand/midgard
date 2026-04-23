@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback } from 'react'
+import { type ReactNode, useCallback } from 'react'
 import { cn } from '../../core/cn'
 import { useControllable } from '../../hooks/use-controllable'
 import { useIdScope } from '../../hooks/use-id-scope'
@@ -22,8 +22,8 @@ export type CollapseProps = {
 	 * Convenience trigger. Strings render as muted hover-highlighted text;
 	 * other ReactNodes render unstyled. Omit for the compound API.
 	 */
-	trigger?: React.ReactNode
-	children: React.ReactNode
+	trigger?: ReactNode
+	children: ReactNode
 	className?: string
 }
 

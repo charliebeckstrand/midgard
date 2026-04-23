@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef } from 'react'
+import { type ReactNode, useRef } from 'react'
 import { cn } from '../../core'
 import { useRoving } from '../../hooks'
 import { ActiveIndicatorScope } from '../../primitives'
@@ -12,7 +12,7 @@ import { type SegmentControlVariants, segmentControlVariants } from './variants'
 export type SegmentControlProps = SegmentControlVariants & {
 	'aria-label'?: string
 	className?: string
-	children?: React.ReactNode
+	children?: ReactNode
 }
 
 export function SegmentControl({

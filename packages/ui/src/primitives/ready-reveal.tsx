@@ -1,8 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
-import type React from 'react'
-import { useEffect, useRef, useState } from 'react'
+import { type ReactNode, useEffect, useRef, useState } from 'react'
 import { cn } from '../core'
 import { ugoki } from '../recipes'
 
@@ -10,9 +9,9 @@ export type ReadyRevealProps = {
 	/** When true, reveals `children`; when false, shows `placeholder`. */
 	ready: boolean
 	/** Content shown while not ready. */
-	placeholder: React.ReactNode
+	placeholder: ReactNode
 	/** Content revealed once ready. */
-	children: React.ReactNode
+	children: ReactNode
 	/** Outer container class. */
 	className?: string
 	/** `crossfade` overlaps both children; `wait` animates height to the active child. */

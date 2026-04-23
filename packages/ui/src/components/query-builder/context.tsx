@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext } from 'react'
+import { createContext, type ReactNode, useContext } from 'react'
 import type { QueryCombinator, QueryField, QueryGroup, QueryRule } from './types'
 
 export type QueryBuilderStateValue = {
@@ -41,7 +41,7 @@ export function QueryBuilderProvider({
 	state: QueryBuilderStateValue
 	actions: QueryBuilderActions
 	root: QueryGroup
-	children: React.ReactNode
+	children: ReactNode
 }) {
 	return (
 		<QueryBuilderActionsContext.Provider value={actions}>

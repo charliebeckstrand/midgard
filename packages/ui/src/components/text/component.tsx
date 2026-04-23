@@ -1,3 +1,4 @@
+import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { kokkaku } from '../../recipes'
 import { Placeholder } from '../placeholder'
@@ -6,7 +7,7 @@ import { type TextVariants, textVariants } from './variants'
 
 export type TextProps = TextVariants & {
 	className?: string
-} & Omit<React.ComponentPropsWithoutRef<'p'>, 'className' | 'color'>
+} & Omit<ComponentPropsWithoutRef<'p'>, 'className' | 'color'>
 
 export function Text({ variant, color, className, ...props }: TextProps) {
 	if (useSkeleton()) {

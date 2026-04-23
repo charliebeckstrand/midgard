@@ -1,6 +1,7 @@
 'use client'
 
 import { ChevronDown } from 'lucide-react'
+import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { cn } from '../../core'
 import { Icon } from '../icon'
 import { useAccordionItem } from './context'
@@ -8,8 +9,8 @@ import { k } from './variants'
 
 // ── AccordionButton ─────────────────────────────────────
 
-export type AccordionButtonProps = Omit<React.ComponentPropsWithoutRef<'button'>, 'children'> & {
-	children: React.ReactNode | ((bag: { open: boolean }) => React.ReactNode)
+export type AccordionButtonProps = Omit<ComponentPropsWithoutRef<'button'>, 'children'> & {
+	children: ReactNode | ((bag: { open: boolean }) => ReactNode)
 }
 
 export function AccordionButton({ className, children, ...props }: AccordionButtonProps) {

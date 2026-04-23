@@ -1,20 +1,21 @@
 'use client'
 
-import React from 'react'
+import type { MouseEvent, MouseEventHandler, ReactElement } from 'react'
+import { cloneElement } from 'react'
 import { useSheetContext } from './sheet'
 
 export type SheetOpenProps = {
-	children: React.ReactElement<{ onClick?: React.MouseEventHandler }>
+	children: ReactElement<{ onClick?: MouseEventHandler }>
 	onClick?: () => void
 }
 
 export type SheetCloseProps = {
-	children: React.ReactElement<{ onClick?: React.MouseEventHandler }>
+	children: ReactElement<{ onClick?: MouseEventHandler }>
 }
 
 export function SheetOpen({ children, onClick }: SheetOpenProps) {
-	return React.cloneElement(children, {
-		onClick: (e: React.MouseEvent) => {
+	return cloneElement(children, {
+		onClick: (e: MouseEvent) => {
 			children.props.onClick?.(e)
 			onClick?.()
 		},
@@ -24,8 +25,8 @@ export function SheetOpen({ children, onClick }: SheetOpenProps) {
 export function SheetClose({ children }: SheetCloseProps) {
 	const { close } = useSheetContext()
 
-	return React.cloneElement(children, {
-		onClick: (e: React.MouseEvent) => {
+	return cloneElement(children, {
+		onClick: (e: MouseEvent) => {
 			children.props.onClick?.(e)
 			close()
 		},

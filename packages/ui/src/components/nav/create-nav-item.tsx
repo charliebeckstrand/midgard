@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactElement, useLayoutEffect, useRef } from 'react'
+import { type MouseEvent, type ReactElement, useLayoutEffect, useRef } from 'react'
 import { cn } from '../../core'
 import { useScrollWithin } from '../../hooks'
 import {
@@ -53,8 +53,8 @@ export function createNavItem(config: { slotPrefix: string; variants: () => stri
 			}
 		}, [current, scrollWithin])
 
-		function handleClick(e: React.MouseEvent<HTMLElement>) {
-			onClick?.(e as React.MouseEvent<HTMLButtonElement> & React.MouseEvent<HTMLAnchorElement>)
+		function handleClick(e: MouseEvent<HTMLElement>) {
+			onClick?.(e as MouseEvent<HTMLButtonElement> & MouseEvent<HTMLAnchorElement>)
 
 			if (!preventClose) {
 				offcanvas?.close()

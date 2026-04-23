@@ -1,7 +1,7 @@
 'use client'
 
 import { ArrowUpIcon } from '@heroicons/react/20/solid'
-import { useState } from 'react'
+import { type KeyboardEvent, useState } from 'react'
 import { Button } from 'ui/button'
 import { Textarea } from 'ui/textarea'
 
@@ -24,7 +24,7 @@ export function ChatComposer({ disabled, onSend, className }: Props) {
 		setInput('')
 	}
 
-	function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+	function handleKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
 		if (e.key === 'Enter' && !e.shiftKey) {
 			e.preventDefault()
 

@@ -1,12 +1,13 @@
 'use client'
 
+import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { useControl } from '../control/context'
 import { k } from './variants'
 
 export type DescriptionProps = {
 	className?: string
-} & Omit<React.ComponentPropsWithoutRef<'p'>, 'className'>
+} & Omit<ComponentPropsWithoutRef<'p'>, 'className'>
 
 export function Description({ className, id, ...props }: DescriptionProps) {
 	const control = useControl()

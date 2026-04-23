@@ -1,4 +1,4 @@
-import type React from 'react'
+import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { ReadyReveal } from '../../primitives/ready-reveal'
 import { SkeletonProvider } from './context'
@@ -9,7 +9,7 @@ export type SkeletonProps = {
 	/** Animation mode forwarded to ReadyReveal. */
 	mode?: 'crossfade' | 'wait'
 	className?: string
-	children: React.ReactNode
+	children: ReactNode
 }
 
 /**

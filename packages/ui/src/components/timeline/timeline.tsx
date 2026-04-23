@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import type { TimelineOrientation, TimelineVariant } from './context'
 import { TimelineProvider } from './context'
@@ -9,7 +10,7 @@ export type TimelineProps = TimelineVariants & {
 	orientation?: TimelineOrientation
 	variant?: TimelineVariant
 	className?: string
-	children?: React.ReactNode
+	children?: ReactNode
 }
 
 export function Timeline({

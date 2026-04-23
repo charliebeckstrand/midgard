@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { type ChangeEvent, type SubmitEvent, useState } from 'react'
 
 import { type FormConfig, validate } from './use-form-validation'
 
@@ -51,13 +51,13 @@ export function useForm<T extends string>(config: FormConfig<T>) {
 	function register(field: T) {
 		return {
 			value: state.values[field],
-			onChange: (e: React.ChangeEvent<HTMLInputElement>) => setValue(field, e.target.value),
+			onChange: (e: ChangeEvent<HTMLInputElement>) => setValue(field, e.target.value),
 			onBlur: () => touch(field),
 		}
 	}
 
 	function submit(handler: (values: Record<T, string>) => void | Promise<void>) {
-		return async (e: React.FormEvent<HTMLFormElement>) => {
+		return async (e: SubmitEvent<HTMLFormElement>) => {
 			e.preventDefault()
 
 			const errors = validate(fields, state.values, config)

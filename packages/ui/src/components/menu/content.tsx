@@ -2,7 +2,7 @@
 
 import { FloatingPortal } from '@floating-ui/react'
 import { AnimatePresence } from 'motion/react'
-import type React from 'react'
+import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { PopoverPanel } from '../../primitives'
 import { maru, omote } from '../../recipes'
@@ -11,7 +11,7 @@ import { k } from './variants'
 
 export type MenuContentProps = {
 	className?: string
-	children: React.ReactNode
+	children: ReactNode
 }
 
 export function MenuContent({ className, children }: MenuContentProps) {

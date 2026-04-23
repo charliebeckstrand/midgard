@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { type ComponentProps, useState } from 'react'
 import { Button } from '../../../components/button'
 import { Checkbox, CheckboxField, CheckboxGroup } from '../../../components/checkbox'
 import { Description, Field, Fieldset, Label } from '../../../components/fieldset'
@@ -28,7 +28,7 @@ export default function SettingsPageDemo() {
 	const [password, setPassword] = useState('')
 	const [submitting, setSubmitting] = useState(false)
 
-	const handleSubmit: React.ComponentProps<'form'>['onSubmit'] = (e) => {
+	const handleSubmit: ComponentProps<'form'>['onSubmit'] = (e) => {
 		e.preventDefault()
 
 		setSubmitting(true)

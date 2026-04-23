@@ -1,9 +1,10 @@
+import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { k } from './variants'
 
 export type CardDescriptionProps = {
 	className?: string
-} & Omit<React.ComponentPropsWithoutRef<'p'>, 'className'>
+} & Omit<ComponentPropsWithoutRef<'p'>, 'className'>
 
 export function CardDescription({ className, children, ...props }: CardDescriptionProps) {
 	return (

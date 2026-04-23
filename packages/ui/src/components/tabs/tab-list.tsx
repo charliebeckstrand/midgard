@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { type ComponentPropsWithoutRef, useEffect, useRef } from 'react'
 import { cn } from '../../core'
 import { useRoving } from '../../hooks'
 import { ActiveIndicatorScope } from '../../primitives'
@@ -10,7 +10,7 @@ import { k } from './variants'
 
 const TAB_SELECTOR = 'button[data-slot="tab"]:not(:disabled)'
 
-export type TabListProps = React.ComponentPropsWithoutRef<'div'>
+export type TabListProps = ComponentPropsWithoutRef<'div'>
 
 export function TabList({ className, children, ...props }: TabListProps) {
 	const tabsCtx = useTabsContext()

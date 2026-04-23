@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { type ComponentPropsWithoutRef, useEffect, useRef, useState } from 'react'
 import { cn } from '../../core'
 
 export type OdometerProps = {
@@ -8,7 +8,7 @@ export type OdometerProps = {
 	duration?: number
 	format?: (value: number) => string
 	className?: string
-} & Omit<React.ComponentPropsWithoutRef<'span'>, 'className' | 'children'>
+} & Omit<ComponentPropsWithoutRef<'span'>, 'className' | 'children'>
 
 function defaultFormat(value: number) {
 	return Math.round(value).toLocaleString()

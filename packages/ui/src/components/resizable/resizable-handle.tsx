@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback } from 'react'
+import { type KeyboardEvent, useCallback } from 'react'
 import { cn } from '../../core'
 import { useResizable, useResizableIndex } from './context'
 import { k } from './variants'
@@ -24,7 +24,7 @@ export function ResizableHandle(props: ResizableHandleProps) {
 	const isDragging = dragging === handleIndex
 
 	const onKeyDown = useCallback(
-		(e: React.KeyboardEvent) => {
+		(e: KeyboardEvent) => {
 			const step = e.shiftKey ? 10 : 5
 
 			let delta = 0

@@ -1,7 +1,6 @@
 'use client'
 
-import type React from 'react'
-import { useCallback, useRef } from 'react'
+import { type KeyboardEvent, useCallback, useRef } from 'react'
 
 /**
  * Arrow-key navigation between a primary element and a secondary action.
@@ -13,7 +12,7 @@ export function useArrowAction<A extends HTMLElement = HTMLElement>() {
 
 	const primaryElRef = useRef<HTMLElement>(null)
 
-	const onPrimaryKeyDown = useCallback((e: React.KeyboardEvent) => {
+	const onPrimaryKeyDown = useCallback((e: KeyboardEvent) => {
 		if (e.key !== 'ArrowRight') return
 
 		const el = e.currentTarget
@@ -29,7 +28,7 @@ export function useArrowAction<A extends HTMLElement = HTMLElement>() {
 		actionRef.current?.focus()
 	}, [])
 
-	const onActionKeyDown = useCallback((e: React.KeyboardEvent) => {
+	const onActionKeyDown = useCallback((e: KeyboardEvent) => {
 		if (e.key !== 'ArrowLeft') return
 
 		e.preventDefault()

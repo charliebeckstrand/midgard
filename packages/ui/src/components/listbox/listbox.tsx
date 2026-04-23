@@ -3,8 +3,7 @@
 import { FloatingPortal, type Placement } from '@floating-ui/react'
 import { ChevronsUpDown } from 'lucide-react'
 import { AnimatePresence } from 'motion/react'
-import type React from 'react'
-import { useCallback, useId, useMemo, useRef } from 'react'
+import { type ReactNode, useCallback, useId, useMemo, useRef } from 'react'
 import { cn, createContext } from '../../core'
 import { useFloatingUI } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
@@ -32,7 +31,7 @@ export const [ListboxProvider, useListboxContext] = createContext<ListboxContext
 type ListboxBaseProps = {
 	placeholder?: string
 	placement?: Placement
-	icon?: React.ReactNode
+	icon?: ReactNode
 	disabled?: boolean
 	className?: string
 	inputId?: string
@@ -40,7 +39,7 @@ type ListboxBaseProps = {
 	nullable?: boolean
 	/** Render the selected value with tabular numerals so digit changes don't shift layout. */
 	tabularNums?: boolean
-	children: React.ReactNode
+	children: ReactNode
 }
 
 type ListboxSingleProps<T> = {

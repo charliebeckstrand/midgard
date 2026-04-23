@@ -1,6 +1,6 @@
 'use client'
 
-import { Children, isValidElement, useMemo, useRef } from 'react'
+import { Children, isValidElement, type ReactNode, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useMinWidth, useRoving } from '../../hooks'
 import { ActiveIndicatorScope } from '../../primitives'
@@ -16,17 +16,17 @@ export type StepperProps = StepperVariants & {
 	linear?: boolean
 	orientation?: StepperOrientation
 	className?: string
-	children?: React.ReactNode
+	children?: ReactNode
 }
 
 // Separates row content (steps, separators) from the panels group.
-function partitionStepperChildren(children: React.ReactNode): {
-	rowChildren: React.ReactNode[]
-	panelsChildren: React.ReactNode[]
+function partitionStepperChildren(children: ReactNode): {
+	rowChildren: ReactNode[]
+	panelsChildren: ReactNode[]
 } {
-	const rowChildren: React.ReactNode[] = []
+	const rowChildren: ReactNode[] = []
 
-	const panelsChildren: React.ReactNode[] = []
+	const panelsChildren: ReactNode[] = []
 
 	Children.forEach(children, (child) => {
 		if (isValidElement(child) && child.type === StepperPanels) {

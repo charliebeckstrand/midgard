@@ -1,5 +1,6 @@
 'use client'
 
+import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { kokkaku } from '../../recipes'
 import { useControl } from '../control/context'
@@ -15,7 +16,7 @@ import {
 
 export type SwitchProps = SwitchVariants & {
 	className?: string
-} & Omit<React.ComponentPropsWithoutRef<'input'>, 'className' | 'type' | 'size'>
+} & Omit<ComponentPropsWithoutRef<'input'>, 'className' | 'type' | 'size'>
 
 export function Switch({
 	className,

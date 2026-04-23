@@ -1,8 +1,8 @@
-import { useCallback, useRef } from 'react'
+import { type MutableRefObject, useCallback, useRef } from 'react'
 import type { ToastData } from './toast-context'
 
 export function useTimer(
-	toastsRef: React.MutableRefObject<ToastData[]>,
+	toastsRef: MutableRefObject<ToastData[]>,
 	duration: number,
 	startDrain: () => void,
 	stopDrain: () => void,

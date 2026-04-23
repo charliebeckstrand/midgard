@@ -1,4 +1,4 @@
-import { type RefObject, useCallback, useRef } from 'react'
+import { type PointerEvent, type RefObject, useCallback, useRef } from 'react'
 import { type ThumbIndex, useRangeUpdate } from './use-range-update'
 import { clamp } from './utilities'
 
@@ -47,7 +47,7 @@ export function useRangePointer(opts: {
 	)
 
 	const onPointerDown = useCallback(
-		(event: React.PointerEvent) => {
+		(event: PointerEvent) => {
 			if (disabled) return
 
 			event.preventDefault()
@@ -66,7 +66,7 @@ export function useRangePointer(opts: {
 	)
 
 	const onPointerMove = useCallback(
-		(event: React.PointerEvent) => {
+		(event: PointerEvent) => {
 			if (draggingRef.current === null) return
 
 			update(draggingRef.current, valueFromPointer(event.clientX))

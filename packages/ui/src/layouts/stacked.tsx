@@ -1,10 +1,10 @@
-import type React from 'react'
+import type { PropsWithChildren, Ref } from 'react'
 import { Box } from '../components/box'
 import type { ResponsiveGap } from '../components/flex/variants'
 import { Stack } from '../components/stack'
 import { cn } from '../core'
 
-export type StackedLayoutProps = React.PropsWithChildren<{
+export type StackedLayoutProps = PropsWithChildren<{
 	className?: string
 	gap?: ResponsiveGap
 }>
@@ -17,7 +17,7 @@ export function StackedLayout({ gap = 6, children, className }: StackedLayoutPro
 	)
 }
 
-export type StackedLayoutHeaderProps = React.PropsWithChildren<{ className?: string }>
+export type StackedLayoutHeaderProps = PropsWithChildren<{ className?: string }>
 
 export function StackedLayoutHeader({ children, className }: StackedLayoutHeaderProps) {
 	return (
@@ -27,9 +27,9 @@ export function StackedLayoutHeader({ children, className }: StackedLayoutHeader
 	)
 }
 
-export type StackedLayoutBodyProps = React.PropsWithChildren<{
+export type StackedLayoutBodyProps = PropsWithChildren<{
 	className?: string
-	ref?: React.Ref<HTMLDivElement>
+	ref?: Ref<HTMLDivElement>
 }>
 
 export function StackedLayoutBody({ ref, children, className }: StackedLayoutBodyProps) {
@@ -40,7 +40,7 @@ export function StackedLayoutBody({ ref, children, className }: StackedLayoutBod
 	)
 }
 
-export type StackedLayoutFooterProps = React.PropsWithChildren<{ className?: string }>
+export type StackedLayoutFooterProps = PropsWithChildren<{ className?: string }>
 
 export function StackedLayoutFooter({ children, className }: StackedLayoutFooterProps) {
 	return (

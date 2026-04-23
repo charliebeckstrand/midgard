@@ -1,4 +1,5 @@
 import { renderHook } from '@testing-library/react'
+import type { KeyboardEvent } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { useInputTagKeyboard } from '../../hooks/use-input-tag-keyboard'
 
@@ -8,7 +9,7 @@ function createKeyEvent(key: string, overrides = {}) {
 		preventDefault: vi.fn(),
 		nativeEvent: { isComposing: false },
 		...overrides,
-	} as unknown as React.KeyboardEvent<HTMLInputElement>
+	} as unknown as KeyboardEvent<HTMLInputElement>
 }
 
 describe('useInputTagKeyboard', () => {

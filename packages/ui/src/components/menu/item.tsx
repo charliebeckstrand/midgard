@@ -1,6 +1,6 @@
 'use client'
 
-import type React from 'react'
+import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { cn } from '../../core'
 import { Link } from '../../primitives/link'
 import { Kbd, type KbdProps } from '../kbd'
@@ -10,17 +10,14 @@ import { k } from './variants'
 type MenuItemBaseProps = {
 	disabled?: boolean
 	className?: string
-	children?: React.ReactNode
+	children?: ReactNode
 	onAction?: () => void
 }
 
 export type MenuItemProps = MenuItemBaseProps &
 	(
-		| ({ href: string } & Omit<
-				React.ComponentPropsWithoutRef<typeof Link>,
-				keyof MenuItemBaseProps
-		  >)
-		| ({ href?: never } & Omit<React.ComponentPropsWithoutRef<'button'>, keyof MenuItemBaseProps>)
+		| ({ href: string } & Omit<ComponentPropsWithoutRef<typeof Link>, keyof MenuItemBaseProps>)
+		| ({ href?: never } & Omit<ComponentPropsWithoutRef<'button'>, keyof MenuItemBaseProps>)
 	)
 
 export function MenuItem({
@@ -53,7 +50,7 @@ export function MenuItem({
 				className={classes}
 				onClick={handleSelect}
 				{...(props as Omit<
-					React.ComponentPropsWithoutRef<typeof Link>,
+					ComponentPropsWithoutRef<typeof Link>,
 					keyof MenuItemBaseProps | 'href'
 				>)}
 			>
@@ -78,20 +75,20 @@ export function MenuItem({
 					handleSelect()
 				}
 			}}
-			{...(props as Omit<React.ComponentPropsWithoutRef<'button'>, keyof MenuItemBaseProps>)}
+			{...(props as Omit<ComponentPropsWithoutRef<'button'>, keyof MenuItemBaseProps>)}
 		>
 			{children}
 		</button>
 	)
 }
 
-export type MenuLabelProps = React.ComponentPropsWithoutRef<'span'>
+export type MenuLabelProps = ComponentPropsWithoutRef<'span'>
 
 export function MenuLabel({ className, ...props }: MenuLabelProps) {
 	return <span data-slot="menu-label" className={cn(k.label, className)} {...props} />
 }
 
-export type MenuDescriptionProps = React.ComponentPropsWithoutRef<'span'>
+export type MenuDescriptionProps = ComponentPropsWithoutRef<'span'>
 
 export function MenuDescription({ className, ...props }: MenuDescriptionProps) {
 	return <span data-slot="menu-description" className={cn(k.description, className)} {...props} />

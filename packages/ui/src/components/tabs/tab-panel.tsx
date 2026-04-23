@@ -1,4 +1,5 @@
-export type TabPanelsProps = React.ComponentPropsWithoutRef<'div'>
+import type { ComponentPropsWithoutRef } from 'react'
+export type TabPanelsProps = ComponentPropsWithoutRef<'div'>
 
 export function TabPanels({ className, ...props }: TabPanelsProps) {
 	return <div data-slot="tab-panels" className={className} {...props} />
@@ -7,7 +8,7 @@ export function TabPanels({ className, ...props }: TabPanelsProps) {
 export type TabPanelProps = {
 	/** Matches the corresponding Tab's id for aria-labelledby. */
 	id?: string
-} & Omit<React.ComponentPropsWithoutRef<'div'>, 'id'>
+} & Omit<ComponentPropsWithoutRef<'div'>, 'id'>
 
 export function TabPanel({ id, className, ...props }: TabPanelProps) {
 	return (

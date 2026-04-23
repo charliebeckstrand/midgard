@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react'
-import type React from 'react'
+import type { ReactNode } from 'react'
 import { describe, expect, it } from 'vitest'
 import { createContext } from '../../core/create-context'
 
@@ -8,7 +8,7 @@ describe('createContext', () => {
 		const [Provider, useValue] = createContext<string>('Test')
 
 		const { result } = renderHook(() => useValue(), {
-			wrapper: ({ children }: { children: React.ReactNode }) => (
+			wrapper: ({ children }: { children: ReactNode }) => (
 				<Provider value="hello">{children}</Provider>
 			),
 		})

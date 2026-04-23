@@ -1,8 +1,15 @@
 'use client'
 
 import { Search, X } from 'lucide-react'
-import type React from 'react'
-import { useCallback, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import {
+	type ReactNode,
+	useCallback,
+	useId,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { useRoving } from '../../hooks'
 import { Button } from '../button'
 import { Dialog, DialogBody, type DialogPanelVariants } from '../dialog'
@@ -15,10 +22,10 @@ export type CommandPaletteProps = Pick<DialogPanelVariants, 'size'> & {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	placeholder?: string
-	icon?: React.ReactNode
+	icon?: ReactNode
 	outsideClick?: boolean
 	className?: string
-	children: React.ReactNode | ((query: string) => React.ReactNode)
+	children: ReactNode | ((query: string) => ReactNode)
 }
 
 export function CommandPalette({

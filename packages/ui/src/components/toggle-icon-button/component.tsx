@@ -1,4 +1,4 @@
-import type { ReactElement } from 'react'
+import type { ComponentPropsWithoutRef, ReactElement } from 'react'
 import { cn } from '../../core'
 import { kumi } from '../../recipes'
 import { Button } from '../button'
@@ -14,7 +14,7 @@ export type ToggleIconButtonProps = {
 	animate?: boolean
 	size?: Size
 	className?: string
-} & Omit<React.ComponentPropsWithoutRef<'button'>, 'children' | 'type' | 'color'>
+} & Omit<ComponentPropsWithoutRef<'button'>, 'children' | 'type' | 'color'>
 
 export function ToggleIconButton({
 	pressed,

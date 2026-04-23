@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { useTimeline } from './context'
 import { k } from './variants'
@@ -6,7 +7,7 @@ import { k } from './variants'
 
 export type TimelineTimestampProps = {
 	className?: string
-	children?: React.ReactNode
+	children?: ReactNode
 	dateTime?: string
 }
 

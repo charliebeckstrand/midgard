@@ -1,6 +1,7 @@
 'use client'
 
 import { Minus, Plus } from 'lucide-react'
+import type { ChangeEvent } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
 import { Button } from '../button'
@@ -81,7 +82,7 @@ export function NumberInput({
 	const decrease = () => change(-step)
 	const increase = () => change(step)
 
-	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+	const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
 		const v = e.target.value
 
 		if (v === '') {

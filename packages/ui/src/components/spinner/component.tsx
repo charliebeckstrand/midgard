@@ -1,3 +1,4 @@
+import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { useButtonSize } from '../button/context'
 import { useInputSize } from '../input/context'
@@ -7,7 +8,7 @@ export type SpinnerProps = SpinnerVariants & {
 	label?: string
 	size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
 	className?: string
-} & Omit<React.ComponentPropsWithoutRef<'output'>, 'className' | 'color'>
+} & Omit<ComponentPropsWithoutRef<'output'>, 'className' | 'color'>
 
 export function Spinner({ size, color, label = 'Loading', className, ...props }: SpinnerProps) {
 	const buttonSize = useButtonSize()

@@ -13,7 +13,7 @@ import {
 	UserCircle2,
 	Users,
 } from 'lucide-react'
-import { useState } from 'react'
+import { type ReactNode, useState } from 'react'
 import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'
 import { Heading } from '../../components/heading'
@@ -57,7 +57,7 @@ const chats = [
 	{ value: 'development', label: 'Development' },
 ]
 
-function SidebarFrame({ children }: { children: React.ReactNode }) {
+function SidebarFrame({ children }: { children: ReactNode }) {
 	return (
 		<div className="h-108 w-72 overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800">
 			{children}

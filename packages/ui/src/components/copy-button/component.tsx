@@ -1,7 +1,13 @@
 'use client'
 
 import { Check, Clipboard } from 'lucide-react'
-import { type ReactElement, useCallback, useEffect, useState } from 'react'
+import {
+	type ComponentPropsWithoutRef,
+	type ReactElement,
+	useCallback,
+	useEffect,
+	useState,
+} from 'react'
 import { cn } from '../../core'
 import { ToggleIconButton } from '../toggle-icon-button'
 import { k } from './variants'
@@ -14,7 +20,7 @@ export type CopyButtonProps = {
 	size?: Size
 	timeout?: number
 	className?: string
-} & Omit<React.ComponentPropsWithoutRef<'button'>, 'children' | 'type' | 'color'>
+} & Omit<ComponentPropsWithoutRef<'button'>, 'children' | 'type' | 'color'>
 
 export function CopyButton({
 	value,

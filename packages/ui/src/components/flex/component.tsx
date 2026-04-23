@@ -1,4 +1,4 @@
-import type React from 'react'
+import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import {
 	type FlexAlign,
@@ -35,7 +35,7 @@ export type FlexProps = {
 	/** Stretches all children equally. */
 	equal?: boolean
 	className?: string
-} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
+} & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
 
 /** @internal Shared flex implementation used by Flex and Stack. */
 export function FlexBase({

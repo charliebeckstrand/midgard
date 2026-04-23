@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import type { take } from '../../recipes/take'
 import { Avatar } from './avatar'
@@ -10,7 +11,7 @@ export type AvatarGroupProps = {
 	size?: AvatarSize
 	extra?: number
 	className?: string
-	children: React.ReactNode
+	children: ReactNode
 }
 
 export function AvatarGroup({ extra, size = 'md', className, children }: AvatarGroupProps) {

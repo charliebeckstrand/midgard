@@ -1,19 +1,20 @@
 'use client'
 
 import { X } from 'lucide-react'
+import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { cn } from '../../core'
 import { useOffcanvas } from '../../primitives/offcanvas'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { k } from './variants'
 
-export type SidebarHeaderProps = React.ComponentPropsWithoutRef<'div'> & {
-	closeIcon?: React.ReactNode
+export type SidebarHeaderProps = ComponentPropsWithoutRef<'div'> & {
+	closeIcon?: ReactNode
 }
 
-export type SidebarBodyProps = React.ComponentPropsWithoutRef<'div'>
+export type SidebarBodyProps = ComponentPropsWithoutRef<'div'>
 
-export type SidebarFooterProps = React.ComponentPropsWithoutRef<'div'>
+export type SidebarFooterProps = ComponentPropsWithoutRef<'div'>
 
 export function SidebarHeader({ className, children, closeIcon, ...props }: SidebarHeaderProps) {
 	const offcanvas = useOffcanvas()

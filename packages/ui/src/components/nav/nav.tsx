@@ -1,11 +1,11 @@
 'use client'
 
-import { useMemo } from 'react'
+import { type ComponentPropsWithoutRef, useMemo } from 'react'
 import { type CurrentContextValue, CurrentProvider } from '../../primitives'
 
 // ── Nav ─────────────────────────────────────────────
 
-export type NavProps = Omit<React.ComponentPropsWithoutRef<'nav'>, 'onChange'> & {
+export type NavProps = Omit<ComponentPropsWithoutRef<'nav'>, 'onChange'> & {
 	value?: string
 	onChange?: (value: string) => void
 }

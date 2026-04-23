@@ -1,7 +1,12 @@
 'use client'
 
-import type React from 'react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import {
+	type PointerEvent as ReactPointerEvent,
+	useCallback,
+	useEffect,
+	useRef,
+	useState,
+} from 'react'
 import {
 	computeThumb,
 	findScrollableAncestor,
@@ -113,7 +118,7 @@ export function useScrollbar({ orientation, scrollbar }: UseScrollbarOptions) {
 		}
 	}, [scrollbar, updateThumbs])
 
-	const startDrag = (axis: 'x' | 'y') => (event: React.PointerEvent<HTMLDivElement>) => {
+	const startDrag = (axis: 'x' | 'y') => (event: ReactPointerEvent<HTMLDivElement>) => {
 		const el = viewportRef.current
 
 		const track = axis === 'y' ? verticalTrackRef.current : horizontalTrackRef.current

@@ -1,4 +1,4 @@
-import type React from 'react'
+import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import {
 	alignMap,
@@ -23,7 +23,7 @@ export type SplitProps = {
 	/** Cross-axis alignment. */
 	align?: SplitAlign
 	className?: string
-} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
+} & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
 
 export function Split({
 	direction = 'horizontal',

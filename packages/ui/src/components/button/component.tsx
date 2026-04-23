@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
-import type { PointerEvent, ReactNode, Ref } from 'react'
+import type { ComponentPropsWithoutRef, PointerEvent, ReactNode, Ref } from 'react'
 import { cn } from '../../core'
 import { type PolymorphicProps, springProps, TouchTarget, useRipple } from '../../primitives'
 import { Link } from '../../primitives/link'
@@ -110,7 +110,7 @@ export function Button({
 					data-has-suffix={!!suffix || undefined}
 					href={href}
 					className={classes}
-					{...(props as Omit<React.ComponentPropsWithoutRef<typeof Link>, 'href' | 'className'>)}
+					{...(props as Omit<ComponentPropsWithoutRef<typeof Link>, 'href' | 'className'>)}
 					{...(loading && { 'aria-disabled': true, 'data-disabled': true, 'aria-busy': true })}
 					onPointerDown={pointerDown}
 				>
@@ -122,7 +122,7 @@ export function Button({
 	}
 
 	const buttonProps = props as Omit<
-		React.ComponentPropsWithoutRef<'button'>,
+		ComponentPropsWithoutRef<'button'>,
 		'className' | 'onDrag' | 'onDragStart' | 'onDragEnd' | 'onAnimationStart'
 	>
 

@@ -1,10 +1,11 @@
+import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { k } from './variants'
 
 export type TableRowProps = {
 	className?: string
 	href?: string
-} & Omit<React.ComponentPropsWithoutRef<'tr'>, 'className'>
+} & Omit<ComponentPropsWithoutRef<'tr'>, 'className'>
 
 export function TableRow({ className, children, ...props }: TableRowProps) {
 	return (

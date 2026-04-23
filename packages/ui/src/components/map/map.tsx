@@ -1,7 +1,7 @@
 'use client'
 
 import type { Map as MapLibreMap, StyleSpecification } from 'maplibre-gl'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { MapProvider } from './context'
 import { loadMapLibre } from './loader'
@@ -19,7 +19,7 @@ export type MapProps = {
 	style?: string | StyleSpecification
 	interactive?: boolean
 	className?: string
-	children?: React.ReactNode
+	children?: ReactNode
 	onLoad?: (map: MapLibreMap) => void
 }
 

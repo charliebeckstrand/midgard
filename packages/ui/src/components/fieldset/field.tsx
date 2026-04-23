@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { type ComponentPropsWithoutRef, useMemo } from 'react'
 import { cn } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { type ControlContextValue, ControlProvider, useControl } from '../control/context'
@@ -11,7 +11,7 @@ export type FieldProps = {
 	className?: string
 	disabled?: boolean
 	htmlFor?: string
-} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
+} & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
 
 export function Field({ autoComplete, className, disabled, htmlFor, ...props }: FieldProps) {
 	const parent = useControl()

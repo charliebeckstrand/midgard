@@ -1,8 +1,7 @@
 'use client'
 
 import { Menu } from 'lucide-react'
-import type React from 'react'
-import { createContext, useContext } from 'react'
+import { createContext, type PropsWithChildren, type ReactNode, type Ref, useContext } from 'react'
 import { Box } from '../../components/box'
 import { Button } from '../../components/button'
 import { Drawer } from '../../components/drawer/drawer'
@@ -23,13 +22,13 @@ import {
 	sidebarPanelVariants,
 } from './variants'
 
-const SidebarLayoutContext = createContext<{ actions?: React.ReactNode }>({})
+const SidebarLayoutContext = createContext<{ actions?: ReactNode }>({})
 
-export type SidebarLayoutProps = React.PropsWithChildren<{
-	navbar?: React.ReactNode
-	sidebar: React.ReactNode
-	actions?: React.ReactNode
-	menuIcon?: React.ReactNode
+export type SidebarLayoutProps = PropsWithChildren<{
+	navbar?: ReactNode
+	sidebar: ReactNode
+	actions?: ReactNode
+	menuIcon?: ReactNode
 	stickyHeader?: boolean
 }>
 
@@ -92,7 +91,7 @@ export function SidebarLayout({
 	)
 }
 
-export type SidebarLayoutHeaderProps = React.PropsWithChildren<{ className?: string }>
+export type SidebarLayoutHeaderProps = PropsWithChildren<{ className?: string }>
 
 export function SidebarLayoutHeader({ children, className }: SidebarLayoutHeaderProps) {
 	const { actions } = useContext(SidebarLayoutContext)
@@ -105,9 +104,9 @@ export function SidebarLayoutHeader({ children, className }: SidebarLayoutHeader
 	)
 }
 
-export type SidebarLayoutBodyProps = React.PropsWithChildren<{
+export type SidebarLayoutBodyProps = PropsWithChildren<{
 	className?: string
-	ref?: React.Ref<HTMLDivElement>
+	ref?: Ref<HTMLDivElement>
 }>
 
 export function SidebarLayoutBody({ ref, children, className }: SidebarLayoutBodyProps) {
@@ -118,7 +117,7 @@ export function SidebarLayoutBody({ ref, children, className }: SidebarLayoutBod
 	)
 }
 
-export type SidebarLayoutFooterProps = React.PropsWithChildren
+export type SidebarLayoutFooterProps = PropsWithChildren
 
 export function SidebarLayoutFooter({ children }: SidebarLayoutFooterProps) {
 	return (

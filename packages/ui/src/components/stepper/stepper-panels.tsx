@@ -1,6 +1,7 @@
+import type { ComponentPropsWithoutRef } from 'react'
 export type StepperPanelsProps = {
 	className?: string
-} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
+} & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
 
 export function StepperPanels({ className, children, ...props }: StepperPanelsProps) {
 	return (

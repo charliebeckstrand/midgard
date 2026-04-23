@@ -1,9 +1,9 @@
-import type React from 'react'
+import type { ReactNode } from 'react'
 import { GlassProvider } from './context'
 
 export type GlassProps = {
 	className?: string
-	children: React.ReactNode
+	children: ReactNode
 }
 
 /** Enables glass mode for all glass-aware descendants. */

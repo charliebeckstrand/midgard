@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { type ReactNode, useMemo } from 'react'
 import { cn } from '../../core'
 import { type TableContextValue, TableProvider } from './context'
 import { k } from './variants'
@@ -14,7 +14,7 @@ export type TableVariants = {
 
 export type TableProps = TableVariants & {
 	className?: string
-	children?: React.ReactNode
+	children?: ReactNode
 }
 
 export function Table({ bleed, dense, grid, striped, className, children }: TableProps) {

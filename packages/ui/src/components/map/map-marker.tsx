@@ -1,7 +1,7 @@
 'use client'
 
 import type { Marker as MapLibreMarker } from 'maplibre-gl'
-import { useEffect, useRef, useState } from 'react'
+import { type ReactNode, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useMapContext } from './context'
 import { loadMapLibre } from './loader'
@@ -21,7 +21,7 @@ export type MapMarkerProps = {
 		| 'bottom-right'
 	onClick?: () => void
 	className?: string
-	children?: React.ReactNode
+	children?: ReactNode
 }
 
 export function MapMarker({

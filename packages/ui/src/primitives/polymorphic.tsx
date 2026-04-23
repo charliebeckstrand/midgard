@@ -1,13 +1,13 @@
-import type React from 'react'
+import type { ComponentPropsWithoutRef, ElementType, JSX, ReactNode, Ref } from 'react'
 import { Link } from './link'
 
 /** Discriminated union — renders as a Link when `href` is provided, otherwise as the fallback element. */
-export type PolymorphicProps<Fallback extends keyof React.JSX.IntrinsicElements> =
-	| ({ href?: never } & Omit<React.ComponentPropsWithoutRef<Fallback>, 'className'>)
-	| ({ href: string } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
+export type PolymorphicProps<Fallback extends keyof JSX.IntrinsicElements> =
+	| ({ href?: never } & Omit<ComponentPropsWithoutRef<Fallback>, 'className'>)
+	| ({ href: string } & Omit<ComponentPropsWithoutRef<typeof Link>, 'className'>)
 
 /** Renders as a Link when `href` is present, otherwise as the fallback intrinsic element. */
-export function Polymorphic<Fallback extends keyof React.JSX.IntrinsicElements>({
+export function Polymorphic<Fallback extends keyof JSX.IntrinsicElements>({
 	as,
 	href,
 	ref,
@@ -18,10 +18,10 @@ export function Polymorphic<Fallback extends keyof React.JSX.IntrinsicElements>(
 }: {
 	as: Fallback
 	href: string | undefined
-	ref?: React.Ref<Element>
+	ref?: Ref<Element>
 	dataSlot: string
 	className: string
-	children: React.ReactNode
+	children: ReactNode
 } & Record<string, unknown>) {
 	if (href !== undefined) {
 		return (
@@ -29,14 +29,14 @@ export function Polymorphic<Fallback extends keyof React.JSX.IntrinsicElements>(
 				data-slot={dataSlot}
 				href={href}
 				className={className}
-				{...(rest as Omit<React.ComponentPropsWithoutRef<typeof Link>, 'href' | 'className'>)}
+				{...(rest as Omit<ComponentPropsWithoutRef<typeof Link>, 'href' | 'className'>)}
 			>
 				{children}
 			</Link>
 		)
 	}
 
-	const Element = as as React.ElementType
+	const Element = as as ElementType
 
 	return (
 		<Element
@@ -44,7 +44,7 @@ export function Polymorphic<Fallback extends keyof React.JSX.IntrinsicElements>(
 			data-slot={dataSlot}
 			type={as === 'button' ? 'button' : undefined}
 			className={className}
-			{...(rest as React.ComponentPropsWithoutRef<Fallback>)}
+			{...(rest as ComponentPropsWithoutRef<Fallback>)}
 		>
 			{children}
 		</Element>

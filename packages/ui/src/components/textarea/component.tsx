@@ -1,5 +1,6 @@
 'use client'
 
+import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { cn } from '../../core'
 import { ControlFrame } from '../../primitives'
 import { kokkaku } from '../../recipes'
@@ -12,8 +13,8 @@ import { controlVariants, k, type TextareaVariants, textareaVariants } from './v
 
 export type TextareaProps = TextareaVariants & {
 	className?: string
-	actions?: React.ReactNode
-} & Omit<React.ComponentPropsWithoutRef<'textarea'>, 'className'>
+	actions?: ReactNode
+} & Omit<ComponentPropsWithoutRef<'textarea'>, 'className'>
 
 export function Textarea({
 	className,

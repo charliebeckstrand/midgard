@@ -1,5 +1,6 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { useResizable, useResizableIndex } from './context'
 import { k } from './variants'
@@ -9,7 +10,7 @@ export type ResizablePanelProps = {
 	minSize?: number
 	maxSize?: number
 	className?: string
-	children?: React.ReactNode
+	children?: ReactNode
 }
 
 export function ResizablePanel(props: ResizablePanelProps) {

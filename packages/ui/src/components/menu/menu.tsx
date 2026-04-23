@@ -7,14 +7,22 @@ import {
 	useInteractions,
 	useRole,
 } from '@floating-ui/react'
-import type React from 'react'
-import { useCallback, useMemo, useRef, useState } from 'react'
+import {
+	type CSSProperties,
+	type MouseEvent,
+	type ReactNode,
+	type RefObject,
+	useCallback,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { cn, createContext } from '../../core'
 import { useFloatingPanel } from '../../hooks'
 
 type MenuStateValue = {
 	open: boolean
-	floatingStyles: React.CSSProperties
+	floatingStyles: CSSProperties
 	getReferenceProps: () => Record<string, unknown>
 	getFloatingProps: () => Record<string, unknown>
 }
@@ -23,7 +31,7 @@ type MenuActionsValue = {
 	setOpen: (open: boolean) => void
 	close: () => void
 	static: boolean
-	triggerRef: React.RefObject<HTMLButtonElement | null>
+	triggerRef: RefObject<HTMLButtonElement | null>
 	setReference: (node: HTMLElement | null) => void
 	setFloating: (node: HTMLElement | null) => void
 }
@@ -47,7 +55,7 @@ export type MenuProps = {
 	defaultOpen?: boolean
 	placement?: Placement
 	className?: string
-	children: React.ReactNode
+	children: ReactNode
 }
 
 export function Menu({ defaultOpen = false, placement, className, children }: MenuProps) {
@@ -92,7 +100,7 @@ export function Menu({ defaultOpen = false, placement, className, children }: Me
 		}
 	}, [isDropdown])
 
-	const handleContextMenu = useCallback((e: React.MouseEvent) => {
+	const handleContextMenu = useCallback((e: MouseEvent) => {
 		e.preventDefault()
 
 		setPoint({ x: e.clientX, y: e.clientY })

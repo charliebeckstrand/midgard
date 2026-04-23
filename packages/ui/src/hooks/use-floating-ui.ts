@@ -14,7 +14,7 @@ import {
 	useInteractions,
 	useRole,
 } from '@floating-ui/react'
-import { useMemo } from 'react'
+import { type CSSProperties, type HTMLProps, useMemo } from 'react'
 
 const matchReferenceWidthMiddleware = size({
 	apply({ rects, elements }) {
@@ -46,7 +46,7 @@ export type UseFloatingPanelOptions = {
 
 export type UseFloatingPanelReturn = {
 	refs: ExtendedRefs<ReferenceType>
-	floatingStyles: React.CSSProperties
+	floatingStyles: CSSProperties
 	context: FloatingRootContext
 }
 
@@ -87,8 +87,8 @@ export type UseFloatingUIOptions = UseFloatingPanelOptions & {
 }
 
 export type UseFloatingUIReturn = UseFloatingPanelReturn & {
-	getReferenceProps: (userProps?: React.HTMLProps<Element>) => Record<string, unknown>
-	getFloatingProps: (userProps?: React.HTMLProps<HTMLElement>) => Record<string, unknown>
+	getReferenceProps: (userProps?: HTMLProps<Element>) => Record<string, unknown>
+	getFloatingProps: (userProps?: HTMLProps<HTMLElement>) => Record<string, unknown>
 }
 
 /**

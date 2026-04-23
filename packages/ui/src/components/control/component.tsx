@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { type ReactNode, useMemo } from 'react'
 import { cn } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { fieldset as k } from '../../recipes/kata/fieldset'
@@ -22,7 +22,7 @@ export type ControlProps = {
 	size?: ControlSize
 	variant?: ControlVariant
 	className?: string
-	children: React.ReactNode
+	children: ReactNode
 }
 
 /**

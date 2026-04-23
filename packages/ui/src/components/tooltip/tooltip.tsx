@@ -12,8 +12,7 @@ import {
 	useRole,
 } from '@floating-ui/react'
 import { AnimatePresence, motion } from 'motion/react'
-import type React from 'react'
-import { isValidElement, useMemo, useState } from 'react'
+import { type HTMLAttributes, isValidElement, type ReactNode, useMemo, useState } from 'react'
 import { cn } from '../../core'
 import { useFloatingPanel, useHasHover } from '../../hooks'
 import { ugoki } from '../../recipes'
@@ -23,16 +22,16 @@ export type TooltipProps = {
 	placement?: Placement
 	delay?: number
 	interactive?: boolean
-	children: React.ReactNode
+	children: ReactNode
 }
 
 export type TooltipTriggerProps = {
-	children: React.ReactNode
+	children: ReactNode
 }
 
 export type TooltipContentProps = {
 	className?: string
-	children: React.ReactNode
+	children: ReactNode
 }
 
 export function Tooltip({
@@ -46,9 +45,9 @@ export function Tooltip({
 	const { trigger, contentClassName, contentChildren } = useMemo(() => {
 		const arr = Array.isArray(children) ? children : [children]
 
-		let trigger: React.ReactNode = null
+		let trigger: ReactNode = null
 		let contentClassName: string | undefined
-		let contentChildren: React.ReactNode = null
+		let contentChildren: ReactNode = null
 
 		for (const child of arr) {
 			if (!isValidElement(child)) continue
@@ -102,7 +101,7 @@ export function Tooltip({
 			ref={refs.setReference}
 			data-slot="tooltip"
 			className={k.trigger}
-			{...(getReferenceProps() as React.HTMLAttributes<HTMLDivElement>)}
+			{...(getReferenceProps() as HTMLAttributes<HTMLDivElement>)}
 		>
 			{trigger}
 			<FloatingPortal>

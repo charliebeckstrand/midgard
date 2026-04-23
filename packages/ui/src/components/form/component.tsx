@@ -1,6 +1,14 @@
 'use client'
 
-import { useCallback, useMemo, useRef, useState } from 'react'
+import {
+	type ComponentPropsWithoutRef,
+	type ReactNode,
+	type SyntheticEvent,
+	useCallback,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { type FormActions, FormProvider, type FormStateValue } from './context'
 
 type Errors = Record<string, string | undefined>
@@ -21,8 +29,8 @@ export type FormProps<T extends Record<string, unknown>> = {
 	onReset?: () => void
 	disabled?: boolean
 	className?: string
-	children: React.ReactNode
-} & Omit<React.ComponentPropsWithoutRef<'form'>, 'onSubmit' | 'onReset' | 'children' | 'className'>
+	children: ReactNode
+} & Omit<ComponentPropsWithoutRef<'form'>, 'onSubmit' | 'onReset' | 'children' | 'className'>
 
 export function Form<T extends Record<string, unknown>>({
 	defaultValues,
@@ -186,7 +194,7 @@ export function Form<T extends Record<string, unknown>>({
 	}, [onReset])
 
 	const handleSubmit = useCallback(
-		async (e: React.SyntheticEvent<HTMLFormElement>) => {
+		async (e: SyntheticEvent<HTMLFormElement>) => {
 			e.preventDefault()
 
 			const allTouched: Touched = {}
@@ -230,7 +238,7 @@ export function Form<T extends Record<string, unknown>>({
 	)
 
 	const handleReset = useCallback(
-		(e: React.SyntheticEvent<HTMLFormElement>) => {
+		(e: SyntheticEvent<HTMLFormElement>) => {
 			e.preventDefault()
 
 			reset()

@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useMemo } from 'react'
+import { type ReactNode, useCallback, useMemo } from 'react'
 import { cn } from '../../core'
 import { AccordionItemProvider, useAccordionRoot } from './context'
 import { accordionItemVariants } from './variants'
@@ -11,7 +11,7 @@ export type AccordionItemProps = {
 	value: string
 	disabled?: boolean
 	className?: string
-	children: React.ReactNode
+	children: ReactNode
 }
 
 export function AccordionItem({

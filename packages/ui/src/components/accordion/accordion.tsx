@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useMemo, useRef } from 'react'
+import { type ReactNode, useCallback, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
 import { AccordionRootProvider } from './context'
@@ -26,7 +26,7 @@ type MultipleProps = {
 export type AccordionProps = (SingleProps | MultipleProps) &
 	AccordionVariants & {
 		className?: string
-		children: React.ReactNode
+		children: ReactNode
 	}
 
 function toArray(value: string | string[] | null | undefined): string[] {

@@ -1,6 +1,7 @@
 'use client'
 
 import { Phone } from 'lucide-react'
+import type { ReactNode } from 'react'
 import { useMaskedInput } from '../../hooks'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
@@ -15,7 +16,7 @@ export type PhoneInputProps = Omit<
 	defaultValue?: string
 	onChange?: (value: string) => void
 	country?: PhoneInputCountry
-	prefix?: React.ReactNode
+	prefix?: ReactNode
 }
 
 function formatNANP(raw: string) {

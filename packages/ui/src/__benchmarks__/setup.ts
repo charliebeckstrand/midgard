@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { vi } from 'vitest'
 
 // motion/react shim — strips animation props so components mount cleanly
@@ -42,11 +43,11 @@ vi.mock('motion/react', async () => {
 
 	const motion = new Proxy({}, handler)
 
-	function AnimatePresence({ children }: { children: React.ReactNode }) {
+	function AnimatePresence({ children }: { children: ReactNode }) {
 		return children
 	}
 
-	function LayoutGroup({ children }: { children: React.ReactNode }) {
+	function LayoutGroup({ children }: { children: ReactNode }) {
 		return children
 	}
 

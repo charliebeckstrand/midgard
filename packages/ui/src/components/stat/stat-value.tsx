@@ -1,9 +1,10 @@
+import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { type StatValueVariants, statValueVariants } from './variants'
 
 export type StatValueProps = StatValueVariants & {
 	className?: string
-} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
+} & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
 
 export function StatValue({ size, className, children, ...props }: StatValueProps) {
 	return (

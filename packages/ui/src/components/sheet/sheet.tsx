@@ -1,8 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
-import type React from 'react'
-import { useCallback, useMemo } from 'react'
+import { type ReactNode, useCallback, useMemo } from 'react'
 import { cn, createContext } from '../../core'
 import { Overlay, PanelA11yProvider, usePanelA11yScope } from '../../primitives'
 import { ugoki } from '../../recipes'
@@ -21,7 +20,7 @@ export type SheetProps = SheetPanelVariants & {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	className?: string
-	children: React.ReactNode
+	children: ReactNode
 	/**
 	 * Optional element to scope the sheet to. When provided, the sheet renders within
 	 * that element using absolute positioning. The container must be positioned

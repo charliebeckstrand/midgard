@@ -1,7 +1,7 @@
 'use client'
 
 import { SlidersHorizontal } from 'lucide-react'
-import type React from 'react'
+import type { PropsWithChildren, ReactNode } from 'react'
 import { Box } from '../components/box'
 import { Button } from '../components/button'
 import { Drawer, DrawerBody, DrawerTitle } from '../components/drawer'
@@ -10,8 +10,8 @@ import { Stack } from '../components/stack'
 import { useOffcanvas } from '../hooks/use-offcanvas'
 import { StackedLayout } from './stacked'
 
-export type DashboardLayoutProps = React.PropsWithChildren<{
-	filters?: React.ReactNode
+export type DashboardLayoutProps = PropsWithChildren<{
+	filters?: ReactNode
 }>
 
 export function DashboardLayout({ filters, children }: DashboardLayoutProps) {

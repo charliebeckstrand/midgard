@@ -1,5 +1,6 @@
 'use client'
 
+import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { useControl } from '../control/context'
 import { k } from './variants'
@@ -7,7 +8,7 @@ import { k } from './variants'
 export type LabelProps = {
 	className?: string
 	htmlFor?: string
-} & Omit<React.ComponentPropsWithoutRef<'label'>, 'className'>
+} & Omit<ComponentPropsWithoutRef<'label'>, 'className'>
 
 export function Label({ className, htmlFor, ...props }: LabelProps) {
 	const control = useControl()

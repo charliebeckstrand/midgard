@@ -1,6 +1,6 @@
 'use client'
 
-import { Children, isValidElement, useMemo } from 'react'
+import { Children, isValidElement, type ReactNode, useMemo } from 'react'
 import { cn } from '../../core'
 import { StepperStepProvider, type StepState, useStepper } from './context'
 import { StepperIndicator } from './stepper-indicator'
@@ -10,7 +10,7 @@ export type StepperStepProps = {
 	value: number
 	disabled?: boolean
 	className?: string
-	children?: React.ReactNode
+	children?: ReactNode
 }
 
 function computeState(stepValue: number, value: number): StepState {
@@ -20,10 +20,10 @@ function computeState(stepValue: number, value: number): StepState {
 	return 'upcoming'
 }
 
-function partitionVerticalChildren(children: React.ReactNode): React.ReactNode {
-	const indicators: React.ReactNode[] = []
+function partitionVerticalChildren(children: ReactNode): ReactNode {
+	const indicators: ReactNode[] = []
 
-	const rest: React.ReactNode[] = []
+	const rest: ReactNode[] = []
 
 	Children.forEach(children, (child) => {
 		if (isValidElement(child) && child.type === StepperIndicator) {
@@ -45,7 +45,7 @@ function partitionVerticalChildren(children: React.ReactNode): React.ReactNode {
 
 // Injects a default StepperIndicator when the consumer omits one.
 // Returns an array, not a Fragment, so Children.forEach can walk each item.
-function ensureStepperIndicator(children: React.ReactNode): React.ReactNode {
+function ensureStepperIndicator(children: ReactNode): ReactNode {
 	const items = Children.toArray(children)
 
 	const hasIndicator = items.some(

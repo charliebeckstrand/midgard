@@ -1,12 +1,12 @@
 'use client'
 
-import { Children, cloneElement, isValidElement, type MouseEvent } from 'react'
+import { Children, cloneElement, isValidElement, type MouseEvent, type ReactNode } from 'react'
 import { useFilters } from './context'
 
 // ── FiltersClear ───────────────────────────────────
 
 export type FiltersClearProps = {
-	children: React.ReactNode
+	children: ReactNode
 	className?: string
 }
 

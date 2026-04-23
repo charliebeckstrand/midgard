@@ -1,3 +1,4 @@
+import type { Ref } from 'react'
 import { cn } from '../../core'
 import { Polymorphic, type PolymorphicProps } from '../../primitives'
 import {
@@ -38,7 +39,7 @@ type BoxBaseProps = {
 	outline?: BoxOutline
 	/** Overrides the data-slot attribute. Defaults to "box". */
 	dataSlot?: string
-	ref?: React.Ref<HTMLDivElement>
+	ref?: Ref<HTMLDivElement>
 	className?: string
 }
 

@@ -1,6 +1,5 @@
-import type React from 'react'
-
-export function TouchTarget({ children }: { children: React.ReactNode }) {
+import type { ReactNode } from 'react'
+export function TouchTarget({ children }: { children: ReactNode }) {
 	return (
 		<>
 			<span

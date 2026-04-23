@@ -1,9 +1,10 @@
+import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { k } from './variants'
 
 export type StatLabelProps = {
 	className?: string
-} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
+} & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
 
 export function StatLabel({ className, children, ...props }: StatLabelProps) {
 	return (

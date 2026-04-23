@@ -1,7 +1,7 @@
 'use client'
 
 import { AnimatePresence, motion } from 'motion/react'
-import type React from 'react'
+import type { HTMLAttributes, ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { cn } from '../core'
 import { useDismissable } from '../hooks/use-dismissable'
@@ -14,7 +14,7 @@ export type OverlayProps = {
 	outsideClick?: boolean
 	glass?: boolean
 	className?: string
-	children: React.ReactNode
+	children: ReactNode
 	/**
 	 * Optional element to portal into. When provided, the overlay is scoped to this
 	 * element (rendered with `absolute` positioning, no body scroll lock). The container
@@ -22,7 +22,7 @@ export type OverlayProps = {
 	 * Defaults to `document.body` with full-viewport `fixed` positioning.
 	 */
 	container?: HTMLElement | null
-} & Omit<React.HTMLAttributes<HTMLDivElement>, 'className' | 'children'>
+} & Omit<HTMLAttributes<HTMLDivElement>, 'className' | 'children'>
 
 export function Overlay({
 	open,

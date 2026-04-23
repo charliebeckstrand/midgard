@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext } from 'react'
+import { type ChangeEvent, createContext, type FocusEvent, type ReactNode, useContext } from 'react'
 
 export type FormStateValue = {
 	values: Record<string, unknown>
@@ -35,7 +35,7 @@ export function FormProvider({
 }: {
 	state: FormStateValue
 	actions: FormActions
-	children: React.ReactNode
+	children: ReactNode
 }) {
 	return (
 		<FormActionsContext.Provider value={actions}>
@@ -116,8 +116,8 @@ export function useFormStatus(): FormStatus | undefined {
 
 export type FormTextBinding<E extends HTMLElement = HTMLElement> = {
 	value: string
-	onChange: (e: React.ChangeEvent<E>) => void
-	onBlur: (e: React.FocusEvent<E>) => void
+	onChange: (e: ChangeEvent<E>) => void
+	onBlur: (e: FocusEvent<E>) => void
 	invalid: boolean
 }
 
@@ -125,8 +125,8 @@ export type FormTextBinding<E extends HTMLElement = HTMLElement> = {
 export function useFormText<E extends HTMLElement = HTMLElement>(
 	name: string | undefined,
 	handlers?: {
-		onChange?: (e: React.ChangeEvent<E>) => void
-		onBlur?: (e: React.FocusEvent<E>) => void
+		onChange?: (e: ChangeEvent<E>) => void
+		onBlur?: (e: FocusEvent<E>) => void
 	},
 ): FormTextBinding<E> | undefined {
 	const field = useFormField(name)
@@ -149,14 +149,14 @@ export function useFormText<E extends HTMLElement = HTMLElement>(
 
 export type FormToggleBinding = {
 	checked: boolean
-	onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+	onChange: (e: ChangeEvent<HTMLInputElement>) => void
 	invalid: boolean
 }
 
 /** Binding for boolean-value controls (Checkbox, Switch). */
 export function useFormToggle(
 	name: string | undefined,
-	handlers?: { onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void },
+	handlers?: { onChange?: (e: ChangeEvent<HTMLInputElement>) => void },
 ): FormToggleBinding | undefined {
 	const field = useFormField(name)
 

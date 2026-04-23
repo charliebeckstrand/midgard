@@ -1,6 +1,6 @@
 'use client'
 
-import type React from 'react'
+import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { cn } from '../../core'
 import { Link } from '../../primitives/link'
 import { Kbd, type KbdProps } from '../kbd'
@@ -10,7 +10,7 @@ import { k } from './variants'
 type CommandPaletteItemBaseProps = {
 	disabled?: boolean
 	className?: string
-	children?: React.ReactNode
+	children?: ReactNode
 	onAction?: () => void
 	/** Closes the palette after the action. Defaults to true. */
 	closeOnAction?: boolean
@@ -19,11 +19,11 @@ type CommandPaletteItemBaseProps = {
 export type CommandPaletteItemProps = CommandPaletteItemBaseProps &
 	(
 		| ({ href: string } & Omit<
-				React.ComponentPropsWithoutRef<typeof Link>,
+				ComponentPropsWithoutRef<typeof Link>,
 				keyof CommandPaletteItemBaseProps
 		  >)
 		| ({ href?: never } & Omit<
-				React.ComponentPropsWithoutRef<'button'>,
+				ComponentPropsWithoutRef<'button'>,
 				keyof CommandPaletteItemBaseProps
 		  >)
 	)
@@ -60,7 +60,7 @@ export function CommandPaletteItem({
 				className={classes}
 				onClick={handleSelect}
 				{...(props as Omit<
-					React.ComponentPropsWithoutRef<typeof Link>,
+					ComponentPropsWithoutRef<typeof Link>,
 					keyof CommandPaletteItemBaseProps | 'href'
 				>)}
 			>
@@ -78,23 +78,20 @@ export function CommandPaletteItem({
 			data-disabled={disabled ? '' : undefined}
 			className={classes}
 			onClick={handleSelect}
-			{...(props as Omit<
-				React.ComponentPropsWithoutRef<'button'>,
-				keyof CommandPaletteItemBaseProps
-			>)}
+			{...(props as Omit<ComponentPropsWithoutRef<'button'>, keyof CommandPaletteItemBaseProps>)}
 		>
 			{children}
 		</button>
 	)
 }
 
-export type CommandPaletteLabelProps = React.ComponentPropsWithoutRef<'span'>
+export type CommandPaletteLabelProps = ComponentPropsWithoutRef<'span'>
 
 export function CommandPaletteLabel({ className, ...props }: CommandPaletteLabelProps) {
 	return <span data-slot="command-palette-label" className={cn(k.label, className)} {...props} />
 }
 
-export type CommandPaletteDescriptionProps = React.ComponentPropsWithoutRef<'span'>
+export type CommandPaletteDescriptionProps = ComponentPropsWithoutRef<'span'>
 
 export function CommandPaletteDescription({ className, ...props }: CommandPaletteDescriptionProps) {
 	return (

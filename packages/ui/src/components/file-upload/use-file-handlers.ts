@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { type ChangeEvent, type DragEvent, useCallback, useRef, useState } from 'react'
 import { fileListToArray } from './utilities'
 
 type UseFileHandlersOptions = {
@@ -31,13 +31,13 @@ export function useFileHandlers({ disabled, onFiles }: UseFileHandlersOptions) {
 	)
 
 	const handleChange = useCallback(
-		(e: React.ChangeEvent<HTMLInputElement>) => {
+		(e: ChangeEvent<HTMLInputElement>) => {
 			handleFiles(e.target.files)
 		},
 		[handleFiles],
 	)
 
-	const handleDragOver = useCallback((e: React.DragEvent) => {
+	const handleDragOver = useCallback((e: DragEvent) => {
 		e.preventDefault()
 
 		e.stopPropagation()
@@ -45,7 +45,7 @@ export function useFileHandlers({ disabled, onFiles }: UseFileHandlersOptions) {
 		setDragOver(true)
 	}, [])
 
-	const handleDragLeave = useCallback((e: React.DragEvent) => {
+	const handleDragLeave = useCallback((e: DragEvent) => {
 		e.preventDefault()
 
 		e.stopPropagation()
@@ -54,7 +54,7 @@ export function useFileHandlers({ disabled, onFiles }: UseFileHandlersOptions) {
 	}, [])
 
 	const handleDrop = useCallback(
-		(e: React.DragEvent) => {
+		(e: DragEvent) => {
 			e.preventDefault()
 
 			e.stopPropagation()

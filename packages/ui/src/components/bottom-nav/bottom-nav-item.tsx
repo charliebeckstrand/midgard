@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactElement } from 'react'
+import type { MouseEvent, ReactElement } from 'react'
 import { cn } from '../../core'
 import {
 	ActiveIndicator,
@@ -35,8 +35,8 @@ export function BottomNavItem({
 
 	const isCurrent = current ?? (value !== undefined && ctx?.value === value)
 
-	function handleClick(e: React.MouseEvent<HTMLElement>) {
-		onClick?.(e as React.MouseEvent<HTMLButtonElement> & React.MouseEvent<HTMLAnchorElement>)
+	function handleClick(e: MouseEvent<HTMLElement>) {
+		onClick?.(e as MouseEvent<HTMLButtonElement> & MouseEvent<HTMLAnchorElement>)
 
 		if (value !== undefined) {
 			ctx?.onChange?.(value)

@@ -3,8 +3,14 @@
 import { FloatingPortal, type Placement } from '@floating-ui/react'
 import { ChevronsUpDown } from 'lucide-react'
 import { AnimatePresence } from 'motion/react'
-import type React from 'react'
-import { useCallback, useId, useMemo, useRef } from 'react'
+import {
+	type InputHTMLAttributes,
+	type ReactNode,
+	useCallback,
+	useId,
+	useMemo,
+	useRef,
+} from 'react'
 import { cn, createContext } from '../../core'
 import { useFloatingUI, useRoving, useScrollWithin } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
@@ -36,10 +42,10 @@ type ComboboxBaseProps<T> = {
 	placeholder?: string
 	displayValue?: (value: T) => string
 	placement?: Placement
-	icon?: React.ReactNode
+	icon?: ReactNode
 	className?: string
-	inputType?: React.InputHTMLAttributes<HTMLInputElement>['type']
-	autoComplete?: React.InputHTMLAttributes<HTMLInputElement>['autoComplete']
+	inputType?: InputHTMLAttributes<HTMLInputElement>['type']
+	autoComplete?: InputHTMLAttributes<HTMLInputElement>['autoComplete']
 	/** Fires onChange without storing the value. */
 	selectable?: boolean
 	/** Clicking the selected option clears it. */
@@ -54,7 +60,7 @@ type ComboboxBaseProps<T> = {
 	onOpenChange?: (open: boolean) => void
 	/** Fires when the input query changes. */
 	onQueryChange?: (query: string) => void
-	children: React.ReactNode | ((query: string) => React.ReactNode)
+	children: ReactNode | ((query: string) => ReactNode)
 }
 
 type ComboboxSingleProps<T> = {

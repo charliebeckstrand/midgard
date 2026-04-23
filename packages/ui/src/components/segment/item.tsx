@@ -1,5 +1,6 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { ActiveIndicator, useActiveIndicator, useCurrentContext } from '../../primitives'
 import { useSegmentContext } from './context'
@@ -11,7 +12,7 @@ export type SegmentItemProps = {
 	value: string
 	disabled?: boolean
 	className?: string
-	children?: React.ReactNode
+	children?: ReactNode
 }
 
 export function SegmentItem({ value, disabled, className, children }: SegmentItemProps) {

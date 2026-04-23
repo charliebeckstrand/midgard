@@ -1,10 +1,10 @@
-import type React from 'react'
+import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { cn } from '../../core'
 import { Alert, type AlertProps } from '../alert'
 import { k } from './variants'
 
-export type CommandPaletteGroupProps = React.ComponentPropsWithoutRef<'div'> & {
-	heading?: React.ReactNode
+export type CommandPaletteGroupProps = ComponentPropsWithoutRef<'div'> & {
+	heading?: ReactNode
 }
 
 export function CommandPaletteGroup({

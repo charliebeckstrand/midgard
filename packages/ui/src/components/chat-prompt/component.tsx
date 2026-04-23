@@ -1,7 +1,7 @@
 'use client'
 
 import { ArrowUp, Paperclip, Square } from 'lucide-react'
-import { type KeyboardEvent, useCallback } from 'react'
+import { type KeyboardEvent, type ReactNode, useCallback } from 'react'
 import { cn } from '../../core'
 import { Button } from '../button'
 import { Icon } from '../icon'
@@ -24,7 +24,7 @@ export type ChatPromptProps = {
 	/** Disables send without disabling the textarea (e.g. empty input). */
 	disabled?: boolean
 	/** Attachments, model picker, slash-command trigger, etc. rendered on the left of the action row. */
-	actions?: React.ReactNode
+	actions?: ReactNode
 	className?: string
 }
 

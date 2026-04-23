@@ -1,15 +1,23 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import {
+	type ReactNode,
+	type SyntheticEvent,
+	useCallback,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { useFormContext } from '../form/context'
 import { Text } from '../text'
 import { PasswordConfirmProvider } from './context'
 import { deriveStatus, handlePasswordInput } from './utilities'
 
 export type PasswordConfirmProps = {
-	warning?: React.ReactNode
+	warning?: ReactNode
 	className?: string
-	children?: React.ReactNode
+	children?: ReactNode
 	onPasswordMatch?: () => void
 	onPasswordMismatch?: () => void
 }
@@ -62,7 +70,7 @@ export function PasswordConfirm({
 	}, [matchState])
 
 	const handleInput = useCallback(
-		(e: React.SyntheticEvent<HTMLDivElement>) =>
+		(e: SyntheticEvent<HTMLDivElement>) =>
 			handlePasswordInput(e, setPassword, setPasswordName, setLastEdited),
 		[],
 	)

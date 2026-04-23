@@ -1,4 +1,4 @@
-import type React from 'react'
+import type { FC, ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { BaseOption, createSelectOption, OptionDescription, OptionLabel } from '../../primitives'
 import { bySlot, renderUI, screen } from '../helpers'
@@ -111,7 +111,7 @@ describe('OptionDescription', () => {
 
 const mockSelect = vi.fn()
 
-const TestContext: React.FC<{ children: React.ReactNode; value?: unknown; multiple?: boolean }> = ({
+const TestContext: FC<{ children: ReactNode; value?: unknown; multiple?: boolean }> = ({
 	children,
 	value,
 	multiple,

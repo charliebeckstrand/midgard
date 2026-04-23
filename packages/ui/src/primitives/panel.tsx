@@ -1,4 +1,5 @@
 import {
+	type ComponentPropsWithoutRef,
 	createContext as reactCreateContext,
 	useCallback,
 	useContext,
@@ -15,10 +16,10 @@ const panelDescriptionVariants = () => cn(narabi.panel.description)
 const panelBodyVariants = () => cn(narabi.panel.body)
 const panelActionsVariants = () => cn(narabi.panel.actions)
 
-export type PanelTitleProps = React.ComponentPropsWithoutRef<'h2'>
-export type PanelDescriptionProps = React.ComponentPropsWithoutRef<'p'>
-export type PanelBodyProps = React.ComponentPropsWithoutRef<'div'>
-export type PanelActionsProps = React.ComponentPropsWithoutRef<'div'>
+export type PanelTitleProps = ComponentPropsWithoutRef<'h2'>
+export type PanelDescriptionProps = ComponentPropsWithoutRef<'p'>
+export type PanelBodyProps = ComponentPropsWithoutRef<'div'>
+export type PanelActionsProps = ComponentPropsWithoutRef<'div'>
 
 type PanelA11yContextValue = {
 	titleId?: string

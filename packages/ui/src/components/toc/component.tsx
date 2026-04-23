@@ -1,6 +1,14 @@
 'use client'
 
-import { type RefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import {
+	type ComponentPropsWithoutRef,
+	type RefObject,
+	useCallback,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
 import { ActiveIndicator, ActiveIndicatorScope } from '../../primitives'
@@ -16,7 +24,7 @@ export type TocItem = {
 	level: number
 }
 
-export type TocProps = Omit<React.ComponentPropsWithoutRef<'nav'>, 'aria-label'> & {
+export type TocProps = Omit<ComponentPropsWithoutRef<'nav'>, 'aria-label'> & {
 	container?: RefObject<HTMLElement | null>
 	levels?: readonly number[]
 	items?: readonly TocItem[]

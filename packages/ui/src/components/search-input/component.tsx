@@ -1,7 +1,7 @@
 'use client'
 
 import { Search, X } from 'lucide-react'
-import { useCallback } from 'react'
+import { type ChangeEvent, useCallback } from 'react'
 import { useControllable } from '../../hooks/use-controllable'
 import { Button } from '../button'
 import { Icon } from '../icon'
@@ -48,7 +48,7 @@ export function SearchInput({
 	})
 
 	const handleChange = useCallback(
-		(e: React.ChangeEvent<HTMLInputElement>) => {
+		(e: ChangeEvent<HTMLInputElement>) => {
 			setCurrentValue(e.target.value)
 
 			onChange?.(e)

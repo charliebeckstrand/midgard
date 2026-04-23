@@ -1,6 +1,7 @@
 'use client'
 
 import { Upload } from 'lucide-react'
+import type { ComponentProps, ReactNode } from 'react'
 import { cn } from '../../core'
 import { AspectRatio, type AspectRatioProps } from '../aspect-ratio'
 import { Button } from '../button'
@@ -18,7 +19,7 @@ type FileUploadSharedProps = {
 	disabled?: boolean
 	/** Fires with the selected files. */
 	className?: string
-	children?: React.ReactNode
+	children?: ReactNode
 	onFiles?: (files: File[]) => void
 }
 
@@ -41,7 +42,7 @@ type FileUploadButtonProps = FileUploadSharedProps & {
 	/** Button size. */
 	size?: 'sm' | 'md' | 'lg'
 	/** Button color. */
-	color?: React.ComponentProps<typeof Button>['color']
+	color?: ComponentProps<typeof Button>['color']
 }
 
 export type FileUploadProps = FileUploadAreaProps | FileUploadInputProps | FileUploadButtonProps

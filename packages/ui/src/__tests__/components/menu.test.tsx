@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 vi.mock('@floating-ui/react', () => {
@@ -6,7 +7,7 @@ vi.mock('@floating-ui/react', () => {
 
 	return {
 		autoUpdate: noop,
-		FloatingPortal: ({ children }: { children: React.ReactNode }) => children,
+		FloatingPortal: ({ children }: { children: ReactNode }) => children,
 		flip: () => ({}),
 		offset: () => ({}),
 		shift: () => ({}),

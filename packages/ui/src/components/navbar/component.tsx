@@ -1,9 +1,10 @@
+import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { ActiveIndicatorScope } from '../../primitives'
 import { NavbarProvider } from './context'
 import { type NavbarVariants, navbarVariants } from './variants'
 
-export type NavbarProps = NavbarVariants & React.ComponentPropsWithoutRef<'nav'>
+export type NavbarProps = NavbarVariants & ComponentPropsWithoutRef<'nav'>
 
 export function Navbar({
 	variant = 'outline',

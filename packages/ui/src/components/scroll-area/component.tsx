@@ -1,5 +1,6 @@
 'use client'
 
+import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { useScrollbar } from './use-scrollbar'
 import type { ScrollbarMode } from './utilities'
@@ -16,7 +17,7 @@ export type ScrollAreaProps = ScrollAreaWrapperVariants &
 	ScrollAreaViewportVariants & {
 		scrollbar?: ScrollbarMode
 		className?: string
-	} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
+	} & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
 
 export function ScrollArea({
 	orientation = 'vertical',

@@ -1,5 +1,6 @@
 'use client'
 
+import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { kokkaku } from '../../recipes'
 import { useControl } from '../control/context'
@@ -9,7 +10,7 @@ import { type RadioVariants, radioInputVariants, radioVariants } from './variant
 
 export type RadioProps = RadioVariants & {
 	className?: string
-} & Omit<React.ComponentPropsWithoutRef<'input'>, 'className' | 'type'>
+} & Omit<ComponentPropsWithoutRef<'input'>, 'className' | 'type'>
 
 export function Radio({ className, color, id, disabled, required, ...props }: RadioProps) {
 	const control = useControl()

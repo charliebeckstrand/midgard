@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { type ComponentProps, useState } from 'react'
 import { Button } from '../../../components/button'
 import { Field, Fieldset, Label } from '../../../components/fieldset'
 import { Heading } from '../../../components/heading'
@@ -15,7 +15,7 @@ export const meta = { category: 'Pages' }
 export default function AuthPageDemo() {
 	const [submitting, setSubmitting] = useState(false)
 
-	const handleSubmit: React.ComponentProps<'form'>['onSubmit'] = (e) => {
+	const handleSubmit: ComponentProps<'form'>['onSubmit'] = (e) => {
 		e.preventDefault()
 
 		setSubmitting(true)

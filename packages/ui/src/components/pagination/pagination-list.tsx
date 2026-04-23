@@ -1,8 +1,9 @@
+import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { ActiveIndicatorScope } from '../../primitives'
 import { paginationListVariants } from './variants'
 
-export type PaginationListProps = React.ComponentPropsWithoutRef<'ol'>
+export type PaginationListProps = ComponentPropsWithoutRef<'ol'>
 
 export function PaginationList({ className, children, ...props }: PaginationListProps) {
 	return (

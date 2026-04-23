@@ -1,5 +1,6 @@
 'use client'
 
+import type { MouseEvent } from 'react'
 import { cn } from '../../core'
 import { useCurrentContext } from '../../primitives'
 import { type NavItemProps as BaseNavItemProps, createNavItem } from './create-nav-item'
@@ -16,8 +17,8 @@ export function NavItem({ value, current, onClick, ...props }: NavItemProps) {
 
 	const isCurrent = current ?? (value !== undefined && ctx?.value === value)
 
-	function handleClick(e: React.MouseEvent<HTMLElement>) {
-		onClick?.(e as React.MouseEvent<HTMLButtonElement> & React.MouseEvent<HTMLAnchorElement>)
+	function handleClick(e: MouseEvent<HTMLElement>) {
+		onClick?.(e as MouseEvent<HTMLButtonElement> & MouseEvent<HTMLAnchorElement>)
 
 		if (value !== undefined) {
 			ctx?.onChange?.(value)

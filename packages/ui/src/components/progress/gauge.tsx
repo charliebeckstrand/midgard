@@ -1,6 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
+import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { k, progressGaugeVariants } from './variants'
 
@@ -11,7 +12,7 @@ export type ProgressGaugeProps = {
 	max?: number
 	size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
 	color?: ProgressColor
-	label?: React.ReactNode | boolean
+	label?: ReactNode | boolean
 	strokeWidth?: number
 	'aria-label'?: string
 	'aria-labelledby'?: string

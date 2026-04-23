@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import {
 	Timeline,
 	TimelineDescription,
@@ -11,7 +12,7 @@ export type ShipmentTrackerStep = {
 	id?: string
 	label: string
 	timestamp?: string
-	description?: React.ReactNode
+	description?: ReactNode
 }
 
 export type ShipmentTrackerProps = {

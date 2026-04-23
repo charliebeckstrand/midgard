@@ -1,6 +1,6 @@
 'use client'
 
-import type React from 'react'
+import type { ChangeEvent } from 'react'
 import { useControllable } from './use-controllable'
 
 export type UseMaskedInputOptions = {
@@ -13,7 +13,7 @@ export type UseMaskedInputOptions = {
 export type UseMaskedInputReturn = {
 	value: string
 	setValue: (raw: string) => void
-	onChange: (event: React.ChangeEvent<HTMLInputElement>) => void
+	onChange: (event: ChangeEvent<HTMLInputElement>) => void
 }
 
 /**

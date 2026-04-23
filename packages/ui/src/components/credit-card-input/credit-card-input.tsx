@@ -1,7 +1,7 @@
 'use client'
 
 import { CreditCard } from 'lucide-react'
-import { useMemo } from 'react'
+import { type ReactNode, useMemo } from 'react'
 import { useMaskedInput } from '../../hooks'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
@@ -16,7 +16,7 @@ export type CreditCardInputProps = Omit<
 	placeholder?: string
 	onChange?: (value: string) => void
 	onBrandChange?: (brand: CreditCardBrand | undefined) => void
-	prefix?: React.ReactNode
+	prefix?: ReactNode
 }
 
 export function CreditCardInput({

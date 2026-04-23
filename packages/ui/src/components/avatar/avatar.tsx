@@ -1,4 +1,4 @@
-import { use } from 'react'
+import { type ComponentPropsWithoutRef, use } from 'react'
 import { cn } from '../../core'
 import { kokkaku } from '../../recipes'
 import { Placeholder } from '../placeholder'
@@ -21,7 +21,7 @@ export type AvatarProps = AvatarVariants & {
 	initials?: string
 	status?: Status
 	className?: string
-} & Omit<React.ComponentPropsWithoutRef<'span'>, 'className'>
+} & Omit<ComponentPropsWithoutRef<'span'>, 'className'>
 
 export function Avatar({
 	src,

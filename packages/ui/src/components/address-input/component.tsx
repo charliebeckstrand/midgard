@@ -1,8 +1,7 @@
 'use client'
 
 import { MapPin } from 'lucide-react'
-import type React from 'react'
-import { useEffect, useRef, useState } from 'react'
+import { type InputHTMLAttributes, useEffect, useRef, useState } from 'react'
 import { Combobox, ComboboxDescription, ComboboxLabel, ComboboxOption } from '../combobox'
 import { Icon } from '../icon'
 import { Spinner } from '../spinner'
@@ -19,7 +18,7 @@ export type AddressInputProps = {
 	debounceMs?: number
 	minQueryLength?: number
 	className?: string
-	autoComplete?: React.InputHTMLAttributes<HTMLInputElement>['autoComplete']
+	autoComplete?: InputHTMLAttributes<HTMLInputElement>['autoComplete']
 }
 
 export function AddressInput({

@@ -1,7 +1,8 @@
+import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { breadcrumbSeparatorVariants } from './variants'
 
-export type BreadcrumbSeparatorProps = React.ComponentPropsWithoutRef<'li'>
+export type BreadcrumbSeparatorProps = ComponentPropsWithoutRef<'li'>
 
 export function BreadcrumbSeparator({ children, className, ...props }: BreadcrumbSeparatorProps) {
 	return (

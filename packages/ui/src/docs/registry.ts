@@ -42,7 +42,7 @@ for (const [path, meta] of Object.entries(metas)) {
 }
 
 // ---------------------------------------------------------------------------
-// Lazy React.lazy cache
+// Lazy lazy cache
 // ---------------------------------------------------------------------------
 
 const lazyCache = new Map<string, LazyExoticComponent<ComponentType>>()

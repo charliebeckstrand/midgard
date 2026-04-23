@@ -1,5 +1,6 @@
 'use client'
 
+import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { ActiveIndicator } from '../../primitives'
 import { useStepper, useStepperStep } from './context'
@@ -7,7 +8,7 @@ import { k } from './variants'
 
 export type StepperIndicatorProps = {
 	className?: string
-} & Omit<React.ComponentPropsWithoutRef<'span'>, 'className'>
+} & Omit<ComponentPropsWithoutRef<'span'>, 'className'>
 
 export function StepperIndicator({ className, ...props }: StepperIndicatorProps) {
 	const { onValueChange } = useStepper()

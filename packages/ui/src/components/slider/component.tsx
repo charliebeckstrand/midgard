@@ -1,6 +1,6 @@
 'use client'
 
-import type { CSSProperties } from 'react'
+import type { ComponentPropsWithoutRef, CSSProperties } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { type SliderVariants, sliderVariants } from './variants'
@@ -16,7 +16,7 @@ type SliderBaseProps = SliderVariants & {
 
 export type SliderProps = SliderBaseProps &
 	Omit<
-		React.ComponentPropsWithoutRef<'input'>,
+		ComponentPropsWithoutRef<'input'>,
 		'value' | 'defaultValue' | 'onChange' | 'min' | 'max' | 'step' | 'type' | 'size' | 'color'
 	>
 

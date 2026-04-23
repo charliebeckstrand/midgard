@@ -351,8 +351,9 @@ export function <Name>({
 // card-header.tsx
 import { cn } from '../../core'
 import { k } from './variants'
+import type { ComponentPropsWithoutRef } from 'react'
 
-export type CardHeaderProps = { className?: string } & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>
+export type CardHeaderProps = { className?: string } & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
 
 export function CardHeader({ className, children, ...props }: CardHeaderProps) {
   return (

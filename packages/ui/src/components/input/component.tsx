@@ -1,6 +1,6 @@
 'use client'
 
-import type { Ref } from 'react'
+import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
 import { cn } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { ControlFrame } from '../../primitives'
@@ -28,11 +28,11 @@ const iconSize = { sm: 'xs', md: 'sm', lg: 'md' } as const
 export type InputProps = Omit<InputVariants, 'size'> & {
 	size?: 'sm' | 'md' | 'lg'
 	loading?: boolean
-	prefix?: React.ReactNode
-	suffix?: React.ReactNode
+	prefix?: ReactNode
+	suffix?: ReactNode
 	ref?: Ref<HTMLInputElement>
 	className?: string
-} & Omit<React.ComponentPropsWithoutRef<'input'>, 'className' | 'size' | 'prefix'>
+} & Omit<ComponentPropsWithoutRef<'input'>, 'className' | 'size' | 'prefix'>
 
 export function Input(props: InputProps) {
 	const hasValueProp = 'value' in props

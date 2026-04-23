@@ -1,7 +1,7 @@
 'use client'
 
 import { ArrowUp, Truck } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { type FormEvent, useEffect, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { Alert, AlertTitle } from '../alert'
 import { Button } from '../button'
@@ -152,7 +152,7 @@ function ShipmentChat({ messages, onSend }: ShipmentChatProps) {
 		inputRef.current?.focus()
 	}, [pending])
 
-	async function handleSend(event: React.FormEvent<HTMLFormElement>) {
+	async function handleSend(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault()
 
 		const body = draft.trim()

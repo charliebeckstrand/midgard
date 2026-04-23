@@ -1,8 +1,7 @@
 'use client'
 
 import { AnimatePresence, motion } from 'motion/react'
-import type React from 'react'
-import { useCallback, useMemo } from 'react'
+import { type ReactNode, useCallback, useMemo } from 'react'
 import { cn, createContext } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { PanelA11yProvider, useDescriptionRegistration } from '../../primitives'
@@ -16,7 +15,7 @@ import { type InspectorPanelVariants, inspectorPanelVariants } from './variants'
 export type InspectorContentProps = {
 	side?: 'left' | 'right'
 	className?: string
-	children: React.ReactNode
+	children: ReactNode
 }
 
 export function InspectorContent({ side = 'right', className, children }: InspectorContentProps) {
@@ -54,7 +53,7 @@ export type InspectorProps = InspectorPanelVariants & {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	className?: string
-	children: React.ReactNode
+	children: ReactNode
 }
 
 export function Inspector({

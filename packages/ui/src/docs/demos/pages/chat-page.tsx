@@ -1,7 +1,7 @@
 'use client'
 
 import { ArrowUp, CircleDashed, Plus, Trash } from 'lucide-react'
-import { useRef, useState } from 'react'
+import { type ReactNode, useRef, useState } from 'react'
 import { Button } from '../../../components/button'
 import { ConfirmDialog } from '../../../components/dialog'
 import { Heading } from '../../../components/heading'
@@ -76,7 +76,7 @@ const initialMessages: Message[] = [
 	},
 ]
 
-function ChatMessage({ role, children }: { role: 'user' | 'agent'; children: React.ReactNode }) {
+function ChatMessage({ role, children }: { role: 'user' | 'agent'; children: ReactNode }) {
 	return (
 		<Stack direction="row" gap={0} data-slot="chat-message" data-role={role}>
 			{role === 'user' && <Spacer />}

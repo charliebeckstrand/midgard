@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react'
-import type { ReactNode } from 'react'
+import type { ChangeEvent, FocusEvent, ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import {
 	Form,
@@ -412,7 +412,7 @@ describe('useFormText', () => {
 		act(() => {
 			result.current?.onChange({
 				target: { value: 'hello' },
-			} as unknown as React.ChangeEvent<HTMLInputElement>)
+			} as unknown as ChangeEvent<HTMLInputElement>)
 		})
 
 		expect(result.current?.value).toBe('hello')
@@ -430,7 +430,7 @@ describe('useFormText', () => {
 		})
 
 		act(() => {
-			result.current?.onBlur({} as React.FocusEvent<HTMLInputElement>)
+			result.current?.onBlur({} as FocusEvent<HTMLInputElement>)
 		})
 
 		expect(onBlur).toHaveBeenCalledOnce()
@@ -456,7 +456,7 @@ describe('useFormToggle', () => {
 		act(() => {
 			result.current?.onChange({
 				target: { checked: true },
-			} as unknown as React.ChangeEvent<HTMLInputElement>)
+			} as unknown as ChangeEvent<HTMLInputElement>)
 		})
 
 		expect(result.current?.checked).toBe(true)

@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef } from 'react'
+import { type ComponentPropsWithoutRef, useRef } from 'react'
 import { cn } from '../../core'
 import { useRoving } from '../../hooks'
 import { ActiveIndicatorScope } from '../../primitives'
@@ -9,7 +9,7 @@ import { k } from './variants'
 
 // ── NavList ─────────────────────────────────────────────
 
-export type NavListProps = React.ComponentPropsWithoutRef<'div'> & {
+export type NavListProps = ComponentPropsWithoutRef<'div'> & {
 	orientation?: 'vertical' | 'horizontal'
 }
 

@@ -1,15 +1,21 @@
 'use client'
 
-import type React from 'react'
-import { createContext as reactCreateContext, useContext, useMemo } from 'react'
+import {
+	type AnchorHTMLAttributes,
+	type ComponentType,
+	type ReactNode,
+	createContext as reactCreateContext,
+	useContext,
+	useMemo,
+} from 'react'
 
 export type LinkProps = {
 	href: string
-	children?: React.ReactNode
+	children?: ReactNode
 	className?: string
-} & Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, 'href'>
+} & Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href'>
 
-type LinkComponent = React.ComponentType<LinkProps> | 'a'
+type LinkComponent = ComponentType<LinkProps> | 'a'
 
 interface LinkContextValue {
 	component: LinkComponent
@@ -22,7 +28,7 @@ export function LinkProvider({
 	children,
 }: {
 	component: LinkComponent
-	children: React.ReactNode
+	children: ReactNode
 }) {
 	const value = useMemo<LinkContextValue>(() => ({ component }), [component])
 

@@ -1,5 +1,6 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import type { ButtonVariants } from '../button'
 import { Button } from '../button'
 import { Dialog } from './dialog'
@@ -16,9 +17,9 @@ export type ConfirmDialogProps = Pick<DialogPanelVariants, 'size'> & {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	onConfirm: () => void
-	title?: React.ReactNode
-	description?: React.ReactNode
-	children?: React.ReactNode
+	title?: ReactNode
+	description?: ReactNode
+	children?: ReactNode
 	confirm?: ConfirmDialogAction
 	cancel?: ConfirmDialogAction
 	className?: string

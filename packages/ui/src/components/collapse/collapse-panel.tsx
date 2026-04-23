@@ -1,13 +1,14 @@
 'use client'
 
 import { AnimatePresence, motion } from 'motion/react'
+import type { ReactNode } from 'react'
 import { cn } from '../../core/cn'
 import { ugoki } from '../../recipes'
 import { useCollapseContext } from './context'
 import { k } from './variants'
 
 export type CollapsePanelProps = {
-	children: React.ReactNode
+	children: ReactNode
 	className?: string
 }
 

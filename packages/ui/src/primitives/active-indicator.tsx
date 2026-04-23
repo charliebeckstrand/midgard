@@ -1,15 +1,23 @@
 'use client'
 
 import { LayoutGroup, type MotionStyle, motion, useAnimate } from 'motion/react'
-import type React from 'react'
-import { createContext, useCallback, useContext, useId, useMemo } from 'react'
+import {
+	createContext,
+	type PropsWithChildren,
+	type ReactNode,
+	type Ref,
+	useCallback,
+	useContext,
+	useId,
+	useMemo,
+} from 'react'
 import { cn } from '../core'
 import { maru, ugoki } from '../recipes'
 
 const ActiveIndicatorContext = createContext<string | undefined>(undefined)
 
 /** Scopes active indicators so independent nav / tab groups can coexist. */
-export function ActiveIndicatorScope({ children, id }: React.PropsWithChildren<{ id?: string }>) {
+export function ActiveIndicatorScope({ children, id }: PropsWithChildren<{ id?: string }>) {
 	const fallbackId = useId()
 
 	const scopeId = id ?? fallbackId
@@ -51,11 +59,11 @@ export function ActiveIndicator({
 	style,
 	children,
 }: {
-	ref?: React.Ref<HTMLSpanElement>
+	ref?: Ref<HTMLSpanElement>
 	layoutId?: string
 	className?: string
 	style?: MotionStyle
-	children?: React.ReactNode
+	children?: ReactNode
 }) {
 	const scopedLayoutId = useContext(ActiveIndicatorContext)
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext } from 'react'
+import { createContext, type PointerEvent as ReactPointerEvent, useContext } from 'react'
 
 export type ResizableDirection = 'horizontal' | 'vertical'
 
@@ -15,7 +15,7 @@ type ResizableContextType = {
 	dragging: number | null
 	sizes: number[]
 	panelConfigs: PanelConfig[]
-	startDrag: (handleIndex: number, event: React.PointerEvent) => void
+	startDrag: (handleIndex: number, event: ReactPointerEvent) => void
 	resize: (handleIndex: number, delta: number) => void
 }
 

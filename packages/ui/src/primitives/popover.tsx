@@ -1,8 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
-import type React from 'react'
-import { useLayoutEffect, useRef } from 'react'
+import { type KeyboardEventHandler, type ReactNode, useLayoutEffect, useRef } from 'react'
 import { useGlass } from '../components/glass/context'
 import { cn } from '../core'
 import { useRoving, useScrollWithin } from '../hooks'
@@ -20,11 +19,11 @@ export function PopoverPanel({
 }: {
 	id?: string
 	className?: string
-	children: React.ReactNode
+	children: ReactNode
 	role?: string
 	itemSelector?: string
 	autoFocus?: boolean
-	onKeyDown?: React.KeyboardEventHandler
+	onKeyDown?: KeyboardEventHandler
 }) {
 	const menuRef = useRef<HTMLDivElement>(null)
 

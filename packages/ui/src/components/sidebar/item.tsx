@@ -1,18 +1,19 @@
+import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { type BaseNavItemProps, createNavItem } from '../nav'
 import { k } from './variants'
 
 export type SidebarItemProps = BaseNavItemProps
 
-export type SidebarLabelProps = React.ComponentPropsWithoutRef<'span'>
+export type SidebarLabelProps = ComponentPropsWithoutRef<'span'>
 
-export type SidebarSectionProps = React.ComponentPropsWithoutRef<'div'>
+export type SidebarSectionProps = ComponentPropsWithoutRef<'div'>
 
-export type SidebarSpacerProps = React.ComponentPropsWithoutRef<'div'>
+export type SidebarSpacerProps = ComponentPropsWithoutRef<'div'>
 
-export type SidebarDividerProps = React.ComponentPropsWithoutRef<'hr'>
+export type SidebarDividerProps = ComponentPropsWithoutRef<'hr'>
 
-export type SidebarItemActionsProps = React.ComponentPropsWithoutRef<'div'>
+export type SidebarItemActionsProps = ComponentPropsWithoutRef<'div'>
 
 export const sidebarItemVariants = () => cn(k.item)
 

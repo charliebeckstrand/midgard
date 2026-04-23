@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import {
 	type ChatMessageVariants,
@@ -8,13 +9,13 @@ import {
 
 export type ChatMessageProps = ChatMessageVariants & {
 	/** Wall-clock label shown below the bubble. */
-	timestamp?: React.ReactNode
+	timestamp?: ReactNode
 	/** Shows a blinking cursor glyph at the end of the bubble for streaming responses. */
 	streaming?: boolean
 	/** Action rail below the bubble (copy, retry, edit, …). */
-	actions?: React.ReactNode
+	actions?: ReactNode
 	className?: string
-	children?: React.ReactNode
+	children?: ReactNode
 }
 
 export function ChatMessage({

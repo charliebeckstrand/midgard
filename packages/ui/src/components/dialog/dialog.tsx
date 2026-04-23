@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
-import type React from 'react'
+import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { useMinWidth } from '../../hooks'
 import { Overlay, PanelA11yProvider, usePanelA11yScope } from '../../primitives'
@@ -15,7 +15,7 @@ export type DialogProps = DialogPanelVariants & {
 	align?: 'center' | 'start'
 	outsideClick?: boolean
 	className?: string
-	children: React.ReactNode
+	children: ReactNode
 }
 
 const alignClasses = {
