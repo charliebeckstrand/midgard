@@ -24,5 +24,4 @@ const yoru = [
 
 /** Visually hidden native input overlaying a custom control. */
 export const hidden = motoi.check
-export const check = motoi.check
 export const checkSurface = [motoi.surface, hiru, yoru]

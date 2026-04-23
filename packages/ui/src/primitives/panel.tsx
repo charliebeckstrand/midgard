@@ -8,14 +8,12 @@ import {
 } from 'react'
 import { cn } from '../core'
 import { useIdScope } from '../hooks/use-id-scope'
-import {
-	panelActions as panelActionsVariants,
-	panelBody as panelBodyVariants,
-	panelDescription as panelDescriptionVariants,
-	panelTitle as panelTitleVariants,
-} from '../recipes/katachi/panel'
+import { narabi } from '../recipes/narabi'
 
-export { panelActionsVariants, panelBodyVariants, panelDescriptionVariants, panelTitleVariants }
+const panelTitleVariants = () => cn(narabi.panel.title)
+const panelDescriptionVariants = () => cn(narabi.panel.description)
+const panelBodyVariants = () => cn(narabi.panel.body)
+const panelActionsVariants = () => cn(narabi.panel.actions)
 
 export type PanelTitleProps = React.ComponentPropsWithoutRef<'h2'>
 export type PanelDescriptionProps = React.ComponentPropsWithoutRef<'p'>

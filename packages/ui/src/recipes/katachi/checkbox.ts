@@ -40,7 +40,7 @@ export const checkbox = tv({
 	defaultVariants: { color: 'zinc' },
 })
 
-export const checkboxInput = tv({ base: waku.check })
+export const checkboxInput = tv({ base: waku.hidden })
 
 export const slots = { disabled: iro.text.disabled }
 

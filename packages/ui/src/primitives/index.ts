@@ -19,10 +19,6 @@ export {
 	type PanelBodyProps,
 	type PanelDescriptionProps,
 	type PanelTitleProps,
-	panelActionsVariants,
-	panelBodyVariants,
-	panelDescriptionVariants,
-	panelTitleVariants,
 	useDescriptionRegistration,
 	usePanelA11yScope,
 } from './panel'

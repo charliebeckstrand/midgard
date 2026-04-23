@@ -3,7 +3,7 @@
 import { useMemo } from 'react'
 import { cn } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
-import { katachi } from '../../recipes'
+import { fieldset as k } from '../../recipes/katachi/fieldset'
 import {
 	type ControlContextValue,
 	ControlProvider,
@@ -11,8 +11,6 @@ import {
 	type ControlVariant,
 	useControl,
 } from './context'
-
-const k = katachi.fieldset
 
 export type ControlProps = {
 	id?: string

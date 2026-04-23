@@ -41,7 +41,7 @@ export const radio = tv({
 	defaultVariants: { color: 'zinc' },
 })
 
-export const radioInput = tv({ base: waku.check })
+export const radioInput = tv({ base: waku.hidden })
 
 export const slots = { disabled: iro.text.disabled }
 

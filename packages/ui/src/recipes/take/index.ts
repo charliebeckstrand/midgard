@@ -34,25 +34,12 @@ export const take = {
 	combobox,
 	listbox,
 	/** Inline-code / kbd sizing — base + size map. */
-	code: mark,
-	kbd: mark,
+	mark,
 } as const
 
 export namespace take {
 	export type IconSize = keyof typeof take.icon
-	export type CodeSize = keyof typeof take.code.size
-	export type KbdSize = keyof typeof take.kbd.size
+	export type MarkSize = keyof typeof take.mark.size
 	export type AvatarSize = keyof typeof take.avatar
-	export type PanelSize =
-		| 'xs'
-		| 'sm'
-		| 'md'
-		| 'lg'
-		| 'xl'
-		| '2xl'
-		| '3xl'
-		| '4xl'
-		| '5xl'
-		| '6xl'
-		| '7xl'
+	export type PanelSize = keyof typeof take.panel
 }
