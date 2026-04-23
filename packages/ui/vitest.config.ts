@@ -7,7 +7,6 @@ export default defineConfig({
 		setupFiles: ['./src/__tests__/setup.ts'],
 		include: ['src/__tests__/**/*.test.{ts,tsx}'],
 		css: false,
-		pool: 'vmThreads',
 		reporters: process.env.CI ? ['default', 'junit'] : ['default'],
 		outputFile: {
 			junit: 'test-results/junit.xml',
