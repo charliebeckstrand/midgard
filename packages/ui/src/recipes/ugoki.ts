@@ -42,7 +42,7 @@ const reveal = {
 export const ugoki = {
 	/**
 	 * CSS transition fragments — for state changes that don't warrant Framer
-	 * Motion. Was previously the standalone `nagare` recipe.
+	 * Motion.
 	 */
 	css: {
 		opacity: 'transition-opacity',

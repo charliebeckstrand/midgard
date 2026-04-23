@@ -1,7 +1,7 @@
 import { iro } from '../iro'
 import { ji } from '../ji'
-import { ki } from '../ki'
 import { kumi } from '../kumi'
+import { sen } from '../sen'
 
 export const collapse = {
 	base: 'group/collapse',
@@ -14,7 +14,7 @@ export const collapse = {
 		'font-medium',
 		'group-data-[open]/collapse:text-zinc-950',
 		'dark:group-data-[open]/collapse:text-white',
-		ki.ring,
+		sen.focus.ring,
 		'disabled:opacity-50 disabled:cursor-not-allowed',
 		'cursor-pointer',
 	],

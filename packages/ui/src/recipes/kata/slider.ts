@@ -1,5 +1,5 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { yasumi } from '../yasumi'
+import { sawari } from '../sawari'
 
 export const slider = tv({
 	base: [
@@ -8,7 +8,7 @@ export const slider = tv({
 		'bg-transparent',
 		'cursor-pointer',
 		'outline-none',
-		...yasumi.disabled,
+		...sawari.disabled,
 
 		// --slider-value is set inline (0–100 %); --slider-fill / --slider-track come from the color variant.
 		'[&::-webkit-slider-runnable-track]:w-full',

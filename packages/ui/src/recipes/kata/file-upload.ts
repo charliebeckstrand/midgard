@@ -1,6 +1,6 @@
 import { iro } from '../iro'
-import { ki } from '../ki'
 import { maru } from '../maru'
+import { sen } from '../sen'
 
 export const fileUpload = {
 	dropzone: [
@@ -8,7 +8,7 @@ export const fileUpload = {
 		'gap-3',
 		'text-sm',
 		maru.rounded.lg,
-		ki.ring,
+		sen.focus.ring,
 		iro.text.muted,
 		'border border-dashed',
 		'border-zinc-300',

@@ -1,9 +1,9 @@
 import { iro } from '../iro'
 import { ji } from '../ji'
-import { ki } from '../ki'
 import { kumi } from '../kumi'
 import { maru } from '../maru'
-import { nagare } from '../nagare'
+import { sen } from '../sen'
+import { ugoki } from '../ugoki'
 
 export const tree = {
 	base: ['flex flex-col', kumi.gap.xs],
@@ -15,12 +15,12 @@ export const tree = {
 		iro.text.muted,
 		iro.text.hover,
 		maru.rounded.lg,
-		ki.inset,
+		sen.focus.inset,
 		'cursor-pointer',
 		'data-[open]:text-zinc-950 dark:data-[open]:text-white',
 	],
 	itemContentActive: iro.text.default,
-	chevron: ['flex-none', nagare.transform, nagare.duration],
+	chevron: ['flex-none', ugoki.css.transform, ugoki.css.duration],
 	label: 'flex-1 truncate text-left',
 	group: 'overflow-hidden',
 }

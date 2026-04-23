@@ -1,10 +1,9 @@
 import { iro } from '../iro'
 import { ji } from '../ji'
-import { ki } from '../ki'
 import { kumi } from '../kumi'
 import { maru } from '../maru'
+import { sawari } from '../sawari'
 import { sen } from '../sen'
-import { yasumi } from '../yasumi'
 
 export const signaturePad = {
 	base: [
@@ -13,8 +12,8 @@ export const signaturePad = {
 		'bg-white',
 		sen.border,
 		maru.rounded.lg,
-		ki.ring,
-		yasumi.disabled,
+		sen.focus.ring,
+		sawari.disabled,
 	],
 	canvas: ['block w-full h-full', 'cursor-crosshair touch-none select-none'],
 	placeholder: [

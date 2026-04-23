@@ -1,8 +1,8 @@
 import { tv, type VariantProps } from 'tailwind-variants'
 import { maru } from '../maru'
-import { nagare } from '../nagare'
 import { sen } from '../sen'
 import { take } from '../take'
+import { ugoki } from '../ugoki'
 
 type Orientation = 'vertical' | 'horizontal' | 'both'
 type Size = keyof (typeof take.scrollArea)['vertical']
@@ -57,7 +57,7 @@ export const scrollAreaViewport = tv({
 })
 
 export const scrollAreaScrollbar = tv({
-	base: ['absolute touch-none select-none', nagare.opacity, nagare.duration],
+	base: ['absolute touch-none select-none', ugoki.css.opacity, ugoki.css.duration],
 	variants: {
 		orientation: {
 			vertical: 'right-0 w-1.5',

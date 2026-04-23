@@ -1,8 +1,8 @@
 import { iro } from '../iro'
-import { kyousei } from '../kyousei'
+import { sen } from '../sen'
 import { take } from '../take'
 
-export const item = [take.icon.md, iro.text.icon, kyousei.icon]
+export const item = [take.icon.md, iro.text.icon, sen.forced.icon]
 
 /** Truncated description with a spacer pseudo-element for overflow. */
 export const description = [

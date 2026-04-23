@@ -1,7 +1,7 @@
 import { tv, type VariantProps } from 'tailwind-variants'
 import { iro } from '../iro'
 import { ji } from '../ji'
-import { ki } from '../ki'
+import { sen } from '../sen'
 
 export const toc = tv({ base: ji.size.sm })
 
@@ -16,7 +16,7 @@ export const tocLink = tv({
 		'z-10',
 		'relative block py-1.5 pr-2',
 		...iro.text.muted,
-		ki.inset,
+		sen.focus.inset,
 		'hover:not-data-current:text-zinc-950 dark:hover:not-data-current:text-white',
 	],
 	variants: {

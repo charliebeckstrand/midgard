@@ -1,10 +1,9 @@
 import { mode } from '../../core/recipe/mode'
 import { iro } from '../iro'
-import { ki } from '../ki'
 import { kumi } from '../kumi'
 import { maru } from '../maru'
+import { sawari } from '../sawari'
 import { sen } from '../sen'
-import { yasumi } from '../yasumi'
 
 export const tabIndicator = mode('bg-zinc-950', 'dark:bg-white')
 
@@ -16,8 +15,8 @@ export const tabs = {
 		'px-1 py-4',
 		'font-medium',
 		...iro.text.tab,
-		ki.indicator,
-		yasumi.disabled,
+		sen.focus.indicator,
+		sawari.disabled,
 		'outline-none',
 		'after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:rounded-full',
 		'after:bg-transparent',

@@ -2,8 +2,8 @@ import { tv, type VariantProps } from 'tailwind-variants'
 import { iro } from '../iro'
 import { ji } from '../ji'
 import { maru } from '../maru'
+import { sawari } from '../sawari'
 import { sen } from '../sen'
-import { yasumi } from '../yasumi'
 
 export const stepper = tv({
 	base: 'flex w-full',
@@ -17,7 +17,7 @@ export const stepper = tv({
 })
 
 export const stepperStep = tv({
-	base: ['group relative text-left', 'outline-none', ...yasumi.disabled],
+	base: ['group relative text-left', 'outline-none', ...sawari.disabled],
 	variants: {
 		orientation: {
 			horizontal: 'flex shrink-0 flex-col items-center w-32 gap-0.5 text-center',

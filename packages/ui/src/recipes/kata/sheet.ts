@@ -1,10 +1,10 @@
 import { tv, type VariantProps } from 'tailwind-variants'
 import { definePanelRecipe } from '../../core/recipe'
 import { iro } from '../iro'
-import { ki } from '../ki'
 import { maru } from '../maru'
 import { narabi } from '../narabi'
 import { omote } from '../omote'
+import { sen } from '../sen'
 import { take } from '../take'
 
 export const sheet = definePanelRecipe({
@@ -57,7 +57,7 @@ export const sheet = definePanelRecipe({
 	actions: { extra: 'px-6 pb-6' },
 	body: { extra: ['flex-1 overflow-y-auto px-6 first:pt-6'] },
 	close: {
-		base: [...iro.text.muted, ki.inset, maru.rounded.md, 'absolute right-5 top-5', 'p-1'],
+		base: [...iro.text.muted, sen.focus.inset, maru.rounded.md, 'absolute right-5 top-5', 'p-1'],
 	},
 })
 

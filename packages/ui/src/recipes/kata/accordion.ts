@@ -3,8 +3,8 @@ import { iro } from '../iro'
 import { ji } from '../ji'
 import { kumi } from '../kumi'
 import { maru } from '../maru'
-import { nagare } from '../nagare'
 import { sen } from '../sen'
+import { ugoki } from '../ugoki'
 
 export const accordion = tv({
 	base: 'flex flex-col',
@@ -53,8 +53,8 @@ export const slots = {
 	],
 	indicator: [
 		'shrink-0',
-		nagare.transform,
-		nagare.duration,
+		ugoki.css.transform,
+		ugoki.css.duration,
 		'group-data-[open]/accordion-item:rotate-180',
 	],
 	panel: 'overflow-hidden',

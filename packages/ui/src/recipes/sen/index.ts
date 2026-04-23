@@ -88,10 +88,7 @@ export const sen = {
 	/** Top divider — `border-t` with subtle colour. */
 	divider: [motoi.divider, hiru.borderSubtle, yoru.borderSubtle],
 
-	/**
-	 * Focus indicators — how an element signals keyboard focus.
-	 * Was previously the standalone `ki` recipe.
-	 */
+	/** Focus indicators — how an element signals keyboard focus. */
 	focus: {
 		ring: 'outline-none focus-visible:ring-2 focus-visible:ring-blue-600',
 		inset: 'outline-none focus-visible:ring-2 ring-inset focus-visible:ring-blue-600',
@@ -106,7 +103,6 @@ export const sen = {
 	/**
 	 * Forced-colors (Windows High Contrast Mode) safety nets — restore visible
 	 * edges and semantic colour when the browser strips author colours.
-	 * Was previously the standalone `kyousei` recipe.
 	 */
 	forced: {
 		/** Panel outline — restores a visible edge when backgrounds are stripped. */

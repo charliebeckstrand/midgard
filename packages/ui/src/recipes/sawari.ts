@@ -14,9 +14,8 @@ import { take } from './take'
 import { ugoki } from './ugoki'
 
 // ── Glass-container item feedback ────────────────────────
-// Hover/focus highlight for items inside a glass parent. Was the `item` half of
-// the standalone `garasu` recipe; relocated here because it's a state concern,
-// not a surface concern.
+// Hover/focus highlight for items inside a glass parent. Lives here as a state
+// concern, even though the surface chrome that triggers it lives in `omote`.
 const glassItem = [
 	'group-data-[glass]/glass:not-disabled:not-data-disabled:hover:bg-zinc-950/10',
 	'group-data-[glass]/glass:not-disabled:not-data-disabled:focus:bg-zinc-950/10',
@@ -24,7 +23,7 @@ const glassItem = [
 	'dark:group-data-[glass]/glass:not-disabled:not-data-disabled:focus:bg-white/10',
 ]
 
-// ── Disabled state (was the standalone `yasumi` recipe) ──
+// ── Disabled state ──────────────────────────────────────
 const disabled = [
 	'disabled:opacity-50 disabled:cursor-not-allowed',
 	'data-disabled:opacity-50 data-disabled:cursor-not-allowed',
@@ -71,8 +70,8 @@ const item = [iro.text.default, maru.rounded.lg, motoi.item, hiru.item, yoru.ite
 export const sawari = {
 	item,
 	nav: [motoi.nav, hiru.nav, yoru.nav, sen.focus.inset],
-	/** Disabled / dormant state. Was the standalone `yasumi` recipe. */
+	/** Disabled / dormant state. */
 	disabled,
-	/** Hover/focus feedback for items inside a glass container. Was `garasu.item`. */
+	/** Hover/focus feedback for items inside a glass container. */
 	glassItem,
 }

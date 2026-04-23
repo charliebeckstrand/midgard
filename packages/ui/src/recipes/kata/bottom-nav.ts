@@ -1,6 +1,5 @@
 import { iro } from '../iro'
 import { ji } from '../ji'
-import { ki } from '../ki'
 import { kumi } from '../kumi'
 import { maru } from '../maru'
 import { omote } from '../omote'
@@ -23,7 +22,7 @@ export const bottomNav = {
 		iro.text.muted,
 		iro.text.hover,
 		'font-medium',
-		ki.inset,
+		sen.focus.inset,
 	],
 	current: [iro.text.default],
 	indicator: ['inset-x-4 bottom-auto top-0', 'h-0.5', maru.rounded.full, tabIndicator],

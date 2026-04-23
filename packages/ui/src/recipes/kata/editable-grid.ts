@@ -1,6 +1,6 @@
 import { iro } from '../iro'
-import { ki } from '../ki'
 import { ma } from '../ma'
+import { sen } from '../sen'
 
 export const editableGrid = {
 	cellTd: 'relative p-0 align-middle',
@@ -8,7 +8,7 @@ export const editableGrid = {
 		'relative flex h-full w-full items-center cursor-cell select-none outline-none',
 		ma.px.md,
 		ma.py.md,
-		ki.inset,
+		sen.focus.inset,
 		'data-[active]:bg-blue-500/10 data-[in-range]:bg-blue-500/10',
 		'dark:data-[active]:bg-blue-400/15 dark:data-[in-range]:bg-blue-400/15',
 	],

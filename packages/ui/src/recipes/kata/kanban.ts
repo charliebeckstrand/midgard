@@ -1,6 +1,5 @@
 import { iro } from '../iro'
 import { ji } from '../ji'
-import { ki } from '../ki'
 import { kumi } from '../kumi'
 import { maru } from '../maru'
 import { sen } from '../sen'
@@ -32,11 +31,11 @@ export const kanban = {
 		iro.text.default,
 		maru.rounded.md,
 		'transition-shadow',
-		ki.inset,
+		sen.focus.inset,
 		'data-disabled:opacity-75 data-disabled:cursor-not-allowed',
 	],
 	cardDraggable: 'cursor-grab touch-none select-none',
-	cardLifted: ki.lifted,
+	cardLifted: sen.focus.lifted,
 	cardActive: 'z-10 shadow-lg relative opacity-95',
 	cardDragging: 'cursor-grabbing',
 }

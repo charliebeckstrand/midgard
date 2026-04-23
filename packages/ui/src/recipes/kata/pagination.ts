@@ -1,10 +1,10 @@
 import { tv, type VariantProps } from 'tailwind-variants'
 import { iro } from '../iro'
 import { ji } from '../ji'
-import { ki } from '../ki'
 import { kumi } from '../kumi'
 import { maru } from '../maru'
-import { yasumi } from '../yasumi'
+import { sawari } from '../sawari'
+import { sen } from '../sen'
 
 export const pagination = tv({ base: ['flex items-center list-none', kumi.gap.sm] })
 export const paginationList = tv({ base: ['flex list-none items-center', kumi.gap.sm, 'm-0 p-0'] })
@@ -19,7 +19,7 @@ export const pageButton = tv({
 		ji.size.sm,
 		'font-medium',
 		maru.rounded.lg,
-		ki.ring,
+		sen.focus.ring,
 	],
 	variants: {
 		current: {
@@ -46,8 +46,8 @@ export const slots = {
 		'font-medium',
 		...iro.text.muted,
 		...iro.text.hover,
-		ki.ring,
-		...yasumi.disabled,
+		sen.focus.ring,
+		...sawari.disabled,
 		maru.rounded.lg,
 	],
 }

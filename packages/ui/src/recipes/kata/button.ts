@@ -2,11 +2,11 @@ import { tv, type VariantProps } from 'tailwind-variants'
 import { colorVariants } from '../../core/recipe'
 import { iro, merge } from '../iro'
 import { ji } from '../ji'
-import { ki } from '../ki'
 import { kumi } from '../kumi'
 import { maru } from '../maru'
+import { sawari } from '../sawari'
+import { sen } from '../sen'
 import { take } from '../take'
-import { yasumi } from '../yasumi'
 
 const { solid, soft, outline, plain } = iro.palette
 const { inherit } = iro.text
@@ -67,8 +67,8 @@ export const button = tv({
 		'shrink-0',
 		'font-semibold',
 		maru.rounded.lg,
-		ki.inset,
-		...yasumi.disabled,
+		sen.focus.inset,
+		...sawari.disabled,
 		'cursor-pointer',
 	],
 	variants: {

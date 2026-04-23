@@ -2,7 +2,7 @@ import { iro } from '../iro'
 import { ji } from '../ji'
 import { kumi } from '../kumi'
 import { maru } from '../maru'
-import { nagare } from '../nagare'
+import { ugoki } from '../ugoki'
 
 export type JsonValueType = 'string' | 'number' | 'boolean' | 'null' | 'key'
 
@@ -37,7 +37,7 @@ export const jsonTree = {
 		maru.rounded.lg,
 	],
 	content: ['inline-flex items-center min-w-0', kumi.gap.sm],
-	chevron: ['flex-none', nagare.transform, nagare.duration],
+	chevron: ['flex-none', ugoki.css.transform, ugoki.css.duration],
 	chevronSpacer: 'inline-block w-4 flex-none',
 	key: jsonValueColor.key,
 	index: iro.text.muted,

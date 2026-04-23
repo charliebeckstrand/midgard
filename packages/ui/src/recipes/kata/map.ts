@@ -1,6 +1,6 @@
 import { maru } from '../maru'
+import { sawari } from '../sawari'
 import { sen } from '../sen'
-import { yasumi } from '../yasumi'
 
 export const map = {
 	base: [
@@ -8,7 +8,7 @@ export const map = {
 		'w-full h-full',
 		sen.border,
 		maru.rounded.lg,
-		yasumi.disabled,
+		sawari.disabled,
 	],
 	canvas: ['absolute inset-0'],
 }

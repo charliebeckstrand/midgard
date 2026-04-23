@@ -1,11 +1,10 @@
 import { iro } from '../iro'
 import { ji } from '../ji'
-import { ki } from '../ki'
 import { kumi } from '../kumi'
 import { maru } from '../maru'
 import { omote } from '../omote'
+import { sawari } from '../sawari'
 import { sen } from '../sen'
-import { yasumi } from '../yasumi'
 
 export type ListVariant = 'separated' | 'outline' | 'plain' | 'solid'
 
@@ -31,7 +30,7 @@ const itemBase = [
 	'gap-y-0',
 	ji.size.md,
 	iro.text.default,
-	ki.inset,
+	sen.focus.inset,
 	'transition-shadow',
 ]
 
@@ -48,7 +47,7 @@ export const list = {
 	horizontal: 'flex-row',
 	item: (variant: ListVariant = 'separated') => [...itemBase, ...itemVariant[variant]],
 	itemActive: 'z-10 relative bg-white dark:bg-zinc-900 rounded-md',
-	itemLifted: ki.lifted,
+	itemLifted: sen.focus.lifted,
 	handle: [
 		'inline-flex flex-none',
 		kumi.center,
@@ -57,7 +56,7 @@ export const list = {
 		'text-zinc-400 not-data-disabled:hover:text-zinc-700',
 		'dark:text-zinc-500 dark:not-data-disabled:hover:text-zinc-200',
 		'active:cursor-grabbing',
-		yasumi.disabled,
+		sawari.disabled,
 	],
 	content: 'flex flex-col flex-1 min-w-0',
 	label: 'min-w-0 truncate',

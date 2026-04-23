@@ -1,10 +1,10 @@
 import { tv, type VariantProps } from 'tailwind-variants'
 import { ji } from '../ji'
-import { ki } from '../ki'
 import { kumi } from '../kumi'
 import { maru } from '../maru'
 import { omote } from '../omote'
-import { yasumi } from '../yasumi'
+import { sawari } from '../sawari'
+import { sen } from '../sen'
 
 export const segmentControl = tv({
 	base: ['inline-flex items-center', maru.rounded.lg, ...omote.tint],
@@ -24,9 +24,9 @@ export const segmentItem = tv({
 		kumi.center,
 		'font-medium select-none whitespace-nowrap',
 		maru.rounded.lg,
-		ki.indicator,
-		ki.ring,
-		...yasumi.disabled,
+		sen.focus.indicator,
+		sen.focus.ring,
+		...sawari.disabled,
 		'cursor-default',
 		'outline-none',
 	],

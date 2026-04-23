@@ -6,16 +6,13 @@
  * Surfaces exist as a composite layer because popovers, panels, and backdrops
  * each have a coherent multi-property chrome that is always applied together.
  *
- * Backdrop blur fragments (was the standalone `garasu` recipe) live under
- * `omote.blur`.
- *
  * Tier: 3 · Concern: surface
  */
 
 import { iro } from './iro'
 import { sen } from './sen'
 
-// Backdrop-blur fragments — was the size half of the standalone `garasu` recipe.
+// Backdrop-blur fragments.
 const blur = {
 	sm: 'backdrop-blur-sm',
 	md: 'backdrop-blur',
@@ -49,6 +46,6 @@ export const omote = {
 	tint: iro.bg.tint,
 	/** Loading skeleton background. */
 	skeleton: [iro.bg.skeleton, 'animate-pulse'],
-	/** Backdrop blur fragments. Was the standalone `garasu` recipe. */
+	/** Backdrop blur fragments. */
 	blur,
 } as const
