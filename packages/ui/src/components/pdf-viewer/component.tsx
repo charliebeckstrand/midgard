@@ -2,8 +2,7 @@
 
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { cn } from '../../core'
-import { useControllable, useIsDesktop } from '../../hooks'
-import { Spinner } from '../spinner'
+import { useControllable, useMinWidth } from '../../hooks'
 import { PdfViewerThumbnails } from './thumbnails'
 import { PdfViewerToolbar } from './toolbar'
 import { usePdfDocument } from './use-pdf-document'
@@ -91,7 +90,7 @@ export function PdfViewer({
 
 	const total = pages.length
 
-	const isDesktop = useIsDesktop()
+	const isDesktop = useMinWidth(1024)
 
 	const [currentPage = defaultPage, setCurrentPage] = useControllable<number>({
 		value: page,
@@ -105,7 +104,6 @@ export function PdfViewer({
 	const [rotation, setRotation] = useState(defaultRotation)
 
 	const [thumbsOpen, setThumbsOpen] = useState(false)
-	const [sidebarOpen, setSidebarOpen] = useState(true)
 
 	const rootRef = useRef<HTMLElement>(null)
 	const viewportRef = useRef<HTMLDivElement>(null)
@@ -225,8 +223,6 @@ export function PdfViewer({
 				isDesktop={isDesktop}
 				thumbsOpen={thumbsOpen}
 				onThumbsOpen={() => setThumbsOpen(true)}
-				sidebarOpen={sidebarOpen}
-				onSidebarToggle={() => setSidebarOpen((v) => !v)}
 			/>
 
 			<div className={cn(k.body)}>
@@ -234,10 +230,10 @@ export function PdfViewer({
 					pages={pages}
 					safePage={safePage}
 					goToPage={goToPage}
+					isLoading={isLoading}
 					isDesktop={isDesktop}
 					thumbsOpen={thumbsOpen}
 					onThumbsOpenChange={setThumbsOpen}
-					sidebarOpen={sidebarOpen}
 					container={rootRef.current}
 				/>
 
@@ -270,9 +266,11 @@ export function PdfViewer({
 					) : error ? (
 						<div className={cn(k.pageEmpty)}>Failed to load PDF: {error.message}</div>
 					) : isLoading ? (
-						<div className={cn(k.pageEmpty)}>
-							<Spinner size="lg" label="Loading PDF" />
-						</div>
+						<output
+							data-slot="pdf-viewer-page-frame"
+							aria-label="Loading PDF"
+							className={cn(k.pagePlaceholder)}
+						/>
 					) : (
 						<div className={cn(k.pageEmpty)}>No pages to display</div>
 					)}

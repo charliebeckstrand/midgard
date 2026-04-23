@@ -1,12 +1,11 @@
 import { iro } from '../iro'
 import { ji } from '../ji'
 import { kumi } from '../kumi'
-import { maru } from '../maru'
 import { omote } from '../omote'
 import { sen } from '../sen'
 
 export const pdfViewer = {
-	base: ['relative flex flex-col', 'overflow-hidden', omote.surface, sen.border, maru.rounded.xl],
+	base: ['relative flex flex-col', 'overflow-hidden', omote.surface, sen.border],
 	toolbar: [
 		'flex flex-nowrap items-center justify-between',
 		'overflow-x-auto',
@@ -42,12 +41,11 @@ export const pdfViewer = {
 		kumi.gap.md,
 		'overflow-y-auto px-4 pb-4',
 	],
-	thumbnailsGrid: ['grid grid-cols-2', kumi.gap.md, 'sm:p-3'],
+	thumbnailsGrid: ['grid grid-cols-2', kumi.gap.md],
 	thumbnail: [
 		'group/thumb',
 		'flex flex-col items-center',
 		kumi.gap.md,
-		maru.rounded.lg,
 		'bg-transparent',
 		'cursor-pointer',
 		'outline-none',
@@ -55,15 +53,14 @@ export const pdfViewer = {
 	thumbnailFrame: [
 		'relative block w-full aspect-[3/4]',
 		'overflow-hidden',
-		maru.rounded.lg,
-		'bg-white dark:bg-zinc-950',
 		'opacity-50',
-		'after:pointer-events-none after:absolute after:inset-0 after:rounded-lg after:ring-inset',
+		'after:pointer-events-none after:absolute after:inset-0 after:ring-inset',
 		'group-focus-visible/thumb:after:ring-4 group-focus-visible/thumb:after:ring-blue-600',
 		'group-data-active/thumb:opacity-100 dark:group-data-active/thumb:opacity-100',
 	],
 	thumbnailImage: ['block w-full h-full object-contain'],
 	thumbnailFallback: ['flex h-full w-full', kumi.center, ji.size.sm, iro.text.muted],
+	thumbnailPlaceholder: ['block w-full aspect-[3/4]', omote.skeleton],
 	thumbnailLabel: [
 		ji.size.sm,
 		iro.text.muted,
@@ -71,14 +68,15 @@ export const pdfViewer = {
 		'tabular-nums select-none',
 	],
 	viewport: [
+		'overflow-auto',
+		'flex items-safe-center justify-safe-center',
 		'flex-1 min-w-0',
 		'max-h-[min(1280px)]',
-		'overflow-auto',
+		'box-content p-4',
 		'bg-zinc-100 dark:bg-zinc-900',
-		'flex items-safe-center justify-safe-center',
-		'p-4',
 	],
 	pageFrame: ['relative shrink-0'],
 	page: ['absolute top-1/2 left-1/2 origin-center', 'shadow-lg', 'bg-white'],
-	pageEmpty: ['flex w-full h-full', kumi.center, ji.size.sm, iro.text.muted],
+	pagePlaceholder: ['w-full h-full', omote.skeleton],
+	pageEmpty: ['flex w-full h-full', kumi.center, 'py-2', ji.size.sm, iro.text.muted],
 }

@@ -1,16 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { PdfViewer, type PdfViewerPage } from '../../components/pdf-viewer'
-import { useIsDesktop } from '../../hooks'
+import { useMinWidth } from '../../hooks'
 import { allBySlot, bySlot, renderUI, screen, userEvent, waitFor } from '../helpers'
 
 vi.mock('../../hooks', async (importOriginal) => {
 	const actual = await importOriginal<typeof import('../../hooks')>()
 
-	return { ...actual, useIsDesktop: vi.fn(() => true) }
+	return { ...actual, useMinWidth: vi.fn(() => true) }
 })
 
 beforeEach(() => {
-	vi.mocked(useIsDesktop).mockReturnValue(true)
+	vi.mocked(useMinWidth).mockReturnValue(true)
 })
 
 const pages: PdfViewerPage[] = [
@@ -137,7 +137,7 @@ describe('PdfViewer', () => {
 	})
 
 	it('opens the mobile thumbnails sheet when toggled', async () => {
-		vi.mocked(useIsDesktop).mockReturnValue(false)
+		vi.mocked(useMinWidth).mockReturnValue(false)
 
 		renderUI(<PdfViewer pages={pages} />)
 

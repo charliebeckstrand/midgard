@@ -6,7 +6,6 @@ import { cn } from '../../core'
 import { useRoving, useScrollIntoContainer } from '../../hooks'
 import { Button } from '../button'
 import { Flex } from '../flex/component'
-import { Glass } from '../glass'
 import { Icon } from '../icon'
 import { Sheet, SheetBody, SheetTitle } from '../sheet'
 import type { PdfViewerPage } from './component'
@@ -16,10 +15,10 @@ export type PdfViewerThumbnailsProps = {
 	pages: PdfViewerPage[]
 	safePage: number
 	goToPage: (page: number) => void
+	isLoading: boolean
 	isDesktop: boolean
 	thumbsOpen: boolean
 	onThumbsOpenChange: (open: boolean) => void
-	sidebarOpen: boolean
 	container: HTMLElement | null
 }
 
@@ -27,10 +26,10 @@ export function PdfViewerThumbnails({
 	pages,
 	safePage,
 	goToPage,
+	isLoading,
 	isDesktop,
 	thumbsOpen,
 	onThumbsOpenChange,
-	sidebarOpen,
 	container,
 }: PdfViewerThumbnailsProps) {
 	const scrollActiveIntoView = useScrollIntoContainer()
@@ -62,6 +61,18 @@ export function PdfViewerThumbnails({
 			data-slot="pdf-viewer-thumbnails"
 			className={cn(layout === 'grid' ? k.thumbnailsGrid : k.thumbnails)}
 		>
+			{isLoading && thumbnailList.length === 0
+				? ['a', 'b', 'c', 'd', 'e', 'f'].map((key) => (
+						<li key={`placeholder-${key}`}>
+							<span
+								aria-hidden="true"
+								data-slot="pdf-viewer-thumbnail-placeholder"
+								className={cn(k.thumbnailPlaceholder)}
+							/>
+						</li>
+					))
+				: null}
+
 			{thumbnailList.map((item) => {
 				const isActive = item.pageNumber === safePage
 
@@ -100,7 +111,7 @@ export function PdfViewerThumbnails({
 		</ul>
 	)
 
-	if (pages.length === 0) return null
+	if (pages.length === 0 && !isLoading) return null
 
 	return (
 		<>
@@ -108,9 +119,7 @@ export function PdfViewerThumbnails({
 				<aside
 					ref={sidebarRef}
 					data-slot="pdf-viewer-sidebar"
-					data-state={sidebarOpen ? 'open' : 'closed'}
-					className={cn(k.sidebar, !sidebarOpen && k.sidebarClosed)}
-					inert={!sidebarOpen}
+					className={cn(k.sidebar)}
 					onKeyDown={handleSidebarKeyDown}
 				>
 					<div className={cn(k.sidebarHeader)}>Pages</div>
@@ -119,27 +128,25 @@ export function PdfViewerThumbnails({
 			)}
 
 			{!isDesktop && (
-				<Glass>
-					<Sheet
-						side="left"
-						open={thumbsOpen}
-						onOpenChange={onThumbsOpenChange}
-						container={container}
-					>
-						<SheetTitle>
-							<Flex gap={2} justify="between" align="center">
-								<div>Pages</div>
-								<Button
-									variant="plain"
-									aria-label="Close thumbnails"
-									prefix={<Icon icon={<X />} />}
-									onClick={() => onThumbsOpenChange(false)}
-								/>
-							</Flex>
-						</SheetTitle>
-						<SheetBody>{renderList(() => onThumbsOpenChange(false), 'grid')}</SheetBody>
-					</Sheet>
-				</Glass>
+				<Sheet
+					side="left"
+					open={thumbsOpen}
+					onOpenChange={onThumbsOpenChange}
+					container={container}
+				>
+					<SheetTitle>
+						<Flex gap={2} justify="between" align="center">
+							<div>Pages</div>
+							<Button
+								variant="plain"
+								aria-label="Close thumbnails"
+								prefix={<Icon icon={<X />} />}
+								onClick={() => onThumbsOpenChange(false)}
+							/>
+						</Flex>
+					</SheetTitle>
+					<SheetBody>{renderList(() => onThumbsOpenChange(false), 'grid')}</SheetBody>
+				</Sheet>
 			)}
 		</>
 	)
