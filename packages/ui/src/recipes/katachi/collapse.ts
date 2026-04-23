@@ -12,11 +12,11 @@ export const collapse = {
 		iro.text.muted,
 		iro.text.hover,
 		'font-medium',
-		ki.ring,
 		'group-data-[open]/collapse:text-zinc-950',
 		'dark:group-data-[open]/collapse:text-white',
-		'group-data-[open]/collapse:cursor-pointer',
+		ki.ring,
 		'disabled:opacity-50 disabled:cursor-not-allowed',
+		'cursor-pointer',
 	],
 	panel: 'overflow-hidden',
 }

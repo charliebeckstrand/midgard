@@ -15,6 +15,7 @@ export const listbox = {
 		take.listbox.padding,
 		maru.rounded.lg,
 		'appearance-none',
+		'cursor-pointer',
 	],
 	options: take.popup,
 	panel: 'relative min-w-full',

@@ -11,6 +11,7 @@ export const menu = {
 		'gap-3 px-3.5 py-2.5 sm:px-3 sm:py-1.5',
 		...sawari.item,
 		...narabi.item,
+		'cursor-pointer',
 	],
 	section: 'first:pt-0 last:pb-0',
 	heading: ['px-3.5 pb-1 pt-2 sm:px-3', 'text-xs/5 font-medium', iro.text.muted],

@@ -47,7 +47,6 @@ export const pdfViewer = {
 		'flex flex-col items-center',
 		kumi.gap.md,
 		'bg-transparent',
-		'cursor-pointer',
 		'outline-none',
 	],
 	thumbnailFrame: [

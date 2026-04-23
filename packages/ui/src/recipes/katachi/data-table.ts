@@ -30,7 +30,6 @@ export const dataTable = {
 		iro.text.muted,
 		iro.text.hover,
 		'select-none',
-		'cursor-pointer',
 	],
 	sortIcon: iro.text.muted,
 	sortIconActive: iro.text.default,

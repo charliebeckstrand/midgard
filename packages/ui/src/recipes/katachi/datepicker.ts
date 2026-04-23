@@ -18,16 +18,8 @@ export const datepicker = {
 		'text-left',
 		maru.rounded.lg,
 		'appearance-none',
-		'cursor-pointer',
 	],
 	value: 'block truncate',
 	icon: [take.listbox.icon, 'flex items-center', 'pr-3', iro.text.muted, 'pointer-events-none'],
-	clearButton: [
-		'p-1 -m-1',
-		'rounded-md',
-		ki.inset,
-		...iro.text.hover,
-		'pointer-events-auto',
-		'cursor-pointer',
-	],
+	clearButton: ['p-1 -m-1', 'rounded-md', ki.inset, ...iro.text.hover, 'pointer-events-auto'],
 }

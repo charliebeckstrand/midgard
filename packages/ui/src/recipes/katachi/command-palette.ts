@@ -15,6 +15,7 @@ export const commandPalette = {
 		...narabi.item,
 		'data-active:bg-zinc-950/5',
 		'dark:data-active:bg-white/5',
+		'cursor-pointer',
 	],
 	label: 'truncate',
 	description: [narabi.description, ji.size.xs, iro.text.muted],

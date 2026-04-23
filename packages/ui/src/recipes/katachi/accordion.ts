@@ -47,9 +47,9 @@ export const slots = {
 		'text-left font-medium',
 		'group-data-[open]/accordion-item:text-zinc-950',
 		'dark:group-data-[open]/accordion-item:text-white',
-		'group-data-[open]/accordion-item:cursor-pointer',
 		'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-inset',
 		'disabled:opacity-50 disabled:cursor-not-allowed',
+		'cursor-pointer',
 	],
 	indicator: [
 		'shrink-0',
