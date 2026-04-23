@@ -25,6 +25,7 @@ export type PdfViewerToolbarProps = {
 	setRotation: React.Dispatch<React.SetStateAction<number>>
 	src?: string
 	filename?: string
+	isLoading: boolean
 	isDesktop: boolean
 	thumbsOpen: boolean
 	onThumbsOpen: () => void
@@ -43,6 +44,7 @@ export function PdfViewerToolbar({
 	setRotation,
 	src,
 	filename,
+	isLoading,
 	isDesktop,
 	thumbsOpen,
 	onThumbsOpen,
@@ -79,6 +81,7 @@ export function PdfViewerToolbar({
 								aria-label="Show thumbnails"
 								aria-expanded={thumbsOpen}
 								prefix={<Icon icon={<PanelLeft />} />}
+								disabled={isLoading}
 								onClick={onThumbsOpen}
 							/>
 						)}
@@ -91,6 +94,7 @@ export function PdfViewerToolbar({
 									if (next !== undefined) goToPage(next)
 								}}
 								displayValue={(v) => String(v)}
+								disabled={isLoading}
 								tabularNums
 							>
 								{pages.map((p, index) => {
@@ -119,28 +123,28 @@ export function PdfViewerToolbar({
 					<Button
 						variant="plain"
 						aria-label="Zoom out"
-						disabled={isEmpty || zoom <= minZoom}
+						disabled={isLoading || isEmpty || zoom <= minZoom}
 						prefix={<Icon icon={<ZoomOut />} />}
 						onClick={zoomOut}
 					/>
 					<Button
 						variant="plain"
 						aria-label="Zoom in"
-						disabled={isEmpty || zoom >= maxZoom}
+						disabled={isLoading || isEmpty || zoom >= maxZoom}
 						prefix={<Icon icon={<ZoomIn />} />}
 						onClick={zoomIn}
 					/>
 					<Button
 						variant="plain"
 						aria-label="Fit to page"
-						disabled={isEmpty || zoom === 1}
+						disabled={isLoading || isEmpty || zoom === 1}
 						prefix={<Icon icon={<Maximize2 />} />}
 						onClick={fit}
 					/>
 					<Button
 						variant="plain"
 						aria-label="Rotate"
-						disabled={isEmpty}
+						disabled={isLoading || isEmpty}
 						prefix={<Icon icon={<RotateCw />} />}
 						onClick={rotate}
 					/>
@@ -152,14 +156,14 @@ export function PdfViewerToolbar({
 							<Button
 								variant="plain"
 								aria-label="Download"
-								disabled={isEmpty}
+								disabled={isLoading || isEmpty}
 								prefix={<Icon icon={<Download />} />}
 								onClick={download}
 							/>
 							<Button
 								variant="plain"
 								aria-label="Print"
-								disabled={isEmpty}
+								disabled={isLoading || isEmpty}
 								prefix={<Icon icon={<Printer />} />}
 								onClick={print}
 							/>

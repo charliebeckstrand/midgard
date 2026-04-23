@@ -220,6 +220,7 @@ export function PdfViewer({
 				setRotation={setRotation}
 				src={documentSrc}
 				filename={filename}
+				isLoading={isLoading}
 				isDesktop={isDesktop}
 				thumbsOpen={thumbsOpen}
 				onThumbsOpen={() => setThumbsOpen(true)}
