@@ -10,7 +10,7 @@ export const fieldset = {
 		'data-disabled:border-zinc-950/20 data-disabled:cursor-not-allowed',
 		'dark:data-disabled:border-white/15',
 	],
-	label: ['text-base/6 select-none', iro.text.default, yasumi.disabled],
+	label: ['text-base/6 select-none cursor-pointer', iro.text.default, yasumi.disabled],
 	description: ['text-base/6', iro.text.muted, yasumi.disabled],
 	error: ['text-base/6', iro.text.error, yasumi.disabled],
 }

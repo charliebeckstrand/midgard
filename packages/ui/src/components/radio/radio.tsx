@@ -15,6 +15,7 @@ export function Radio({ className, color, id, disabled, required, ...props }: Ra
 	const control = useControl()
 
 	const resolvedId = id ?? control?.id
+
 	const resolvedDisabled = disabled ?? control?.disabled
 	const resolvedRequired = required ?? control?.required
 
