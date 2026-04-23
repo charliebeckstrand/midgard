@@ -57,20 +57,17 @@ import { radio } from './radio'
 import { resizable } from './resizable'
 import { scrollArea } from './scroll-area'
 import { segment } from './segment'
-import { select } from './select'
 import { sheet } from './sheet'
 import { sidebar } from './sidebar'
 import { signaturePad } from './signature-pad'
 import { slider } from './slider'
 import { sliderRange } from './slider-range'
 import { spinner } from './spinner'
-import { stat } from './stat'
 import { status } from './status'
 import { stepper } from './stepper'
 import { switchRecipe } from './switch'
 import { table } from './table'
 import { tabs } from './tabs'
-import { tagInput } from './tag-input'
 import { text } from './text'
 import { textarea } from './textarea'
 import { timeline } from './timeline'
@@ -132,20 +129,17 @@ export const katachi = {
 	resizable,
 	scrollArea,
 	segment,
-	select,
 	sheet,
 	sidebar,
 	signaturePad,
 	slider,
 	sliderRange,
 	spinner,
-	stat,
 	status,
 	stepper,
 	switch: switchRecipe,
 	table,
 	tabs,
-	tagInput,
 	text,
 	textarea,
 	timeline,

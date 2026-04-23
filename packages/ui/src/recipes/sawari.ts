@@ -49,12 +49,10 @@ const yoru = {
 
 // ── Composed (internal) ─────────────────────────────────
 const item = [iro.text.default, maru.rounded.lg, motoi.item, hiru.item, yoru.item, garasu.item]
-const nav = [motoi.nav, hiru.nav, yoru.nav]
 
 // ── Export ───────────────────────────────────────────────
 export const sawari = {
 	item,
-	nav,
-	navItem: [...nav, ki.inset],
+	navItem: [motoi.nav, hiru.nav, yoru.nav, ki.inset],
 	cursor: 'cursor-default',
 }

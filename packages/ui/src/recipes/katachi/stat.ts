@@ -35,10 +35,3 @@ export const slots = {
 	label: [ji.size.sm, ...iro.text.muted, 'font-medium'],
 	description: [ji.size.sm, ...iro.text.muted],
 }
-
-/** Kept for the `katachi` barrel — not consumed directly. */
-export const stat = {
-	value: statValue,
-	delta: statDelta,
-	...slots,
-}
