@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { nextIndexForKey, queryItems } from '../../hooks/use-keyboard/navigation'
+import { nextIndexForKey, queryItems } from '../../hooks/use-roving'
 
 describe('nextIndexForKey', () => {
 	it('returns null for empty item count', () => {

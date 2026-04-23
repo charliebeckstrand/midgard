@@ -72,6 +72,4 @@ export const sawari = {
 	nav: [motoi.nav, hiru.nav, yoru.nav, sen.focus.inset],
 	/** Disabled / dormant state. */
 	disabled,
-	/** Hover/focus feedback for items inside a glass container. */
-	glassItem,
 }

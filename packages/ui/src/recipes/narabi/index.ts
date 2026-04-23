@@ -9,13 +9,11 @@
 import { field } from './field'
 import { description, item } from './item'
 import { panel } from './panel'
-import { placement } from './placement'
 import { slide } from './slide'
 import { group, toggle } from './toggle'
 
 export const narabi = {
 	field,
-	placement,
 	slide,
 	toggle,
 	group,

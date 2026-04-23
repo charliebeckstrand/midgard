@@ -1,16 +1,16 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import { useScrollIntoContainer } from '../../hooks/use-scroll-into-container'
+import { useScrollWithin } from '../../hooks/use-scroll-within'
 
-describe('useScrollIntoContainer', () => {
+describe('useScrollWithin', () => {
 	it('returns a function', () => {
-		const { result } = renderHook(() => useScrollIntoContainer())
+		const { result } = renderHook(() => useScrollWithin())
 
 		expect(typeof result.current).toBe('function')
 	})
 
 	it('returns the same function across renders', () => {
-		const { result, rerender } = renderHook(() => useScrollIntoContainer())
+		const { result, rerender } = renderHook(() => useScrollWithin())
 
 		const first = result.current
 
@@ -20,13 +20,13 @@ describe('useScrollIntoContainer', () => {
 	})
 
 	it('is a no-op when called with null', () => {
-		const { result } = renderHook(() => useScrollIntoContainer())
+		const { result } = renderHook(() => useScrollWithin())
 
 		expect(() => result.current(null)).not.toThrow()
 	})
 
 	it('is a no-op when the node has no scrollable ancestor', () => {
-		const { result } = renderHook(() => useScrollIntoContainer())
+		const { result } = renderHook(() => useScrollWithin())
 
 		const node = document.createElement('div')
 

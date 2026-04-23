@@ -1,7 +1,6 @@
 'use client'
 
 import { useCallback, useRef } from 'react'
-import { useSelect } from './use-select'
 
 type UseDeferredToggleOptions<T> = {
 	multiple: boolean
@@ -10,9 +9,10 @@ type UseDeferredToggleOptions<T> = {
 }
 
 /**
- * Wraps `useSelect` with a pending-value queue so a toggle can be deferred
- * until a panel finishes its exit animation — avoiding the jarring flicker
- * where the selected item visibly updates before the panel collapses.
+ * Toggle logic for Listbox / Combobox selection, wrapped with a pending-value
+ * queue so a toggle can be deferred until a panel finishes its exit animation —
+ * avoiding the jarring flicker where the selected item visibly updates before
+ * the panel collapses.
  *
  * Call `enqueue(value)` to queue a toggle, then wire `flushPending` to
  * `AnimatePresence`'s `onExitComplete` (or equivalent). Use `toggle` directly
@@ -23,7 +23,22 @@ export function useDeferredToggle<T>({
 	nullable,
 	setValue,
 }: UseDeferredToggleOptions<T>) {
-	const toggle = useSelect({ multiple, nullable, setValue })
+	const toggle = useCallback(
+		(newValue: T) => {
+			setValue((prev) => {
+				if (multiple) {
+					const arr = (Array.isArray(prev) ? prev : []) as T[]
+
+					return arr.includes(newValue) ? arr.filter((v) => v !== newValue) : [...arr, newValue]
+				}
+
+				if (nullable && prev === newValue) return undefined
+
+				return newValue as T | T[]
+			})
+		},
+		[multiple, nullable, setValue],
+	)
 
 	const pendingRef = useRef<{ value: T } | null>(null)
 

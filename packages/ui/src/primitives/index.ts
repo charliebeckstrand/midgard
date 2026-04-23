@@ -1,6 +1,5 @@
 export { ActiveIndicator, ActiveIndicatorScope, useActiveIndicator } from './active-indicator'
-export { ContentReveal, type ContentRevealProps } from './content-reveal'
-export { ControlFrame, type ControlFrameProps } from './control-frame'
+export { ControlFrame, type ControlFrameProps } from './control'
 export {
 	type CurrentContextValue,
 	CurrentProvider,
@@ -9,8 +8,22 @@ export {
 	useCurrentContext,
 } from './current'
 export { Link, type LinkProps, LinkProvider, useLink } from './link'
-export { OffcanvasContext, type OffcanvasContextValue, useOffcanvas } from './offcanvas'
-export { BaseOption, OptionDescription, OptionLabel } from './option'
+export {
+	OffcanvasContext,
+	type OffcanvasContextValue,
+	OffcanvasProvider,
+	useOffcanvas,
+} from './offcanvas'
+export {
+	BaseOption,
+	type BaseOptionProps,
+	createSelectOption,
+	OptionDescription,
+	OptionLabel,
+	type SelectDescriptionProps,
+	type SelectLabelProps,
+	type SelectOptionProps,
+} from './option'
 export { Overlay, type OverlayProps } from './overlay'
 export {
 	createPanel,
@@ -23,15 +36,10 @@ export {
 	usePanelA11yScope,
 } from './panel'
 export { Polymorphic, type PolymorphicProps } from './polymorphic'
-export { PopoverPanel } from './popover-panel'
+export { PopoverPanel } from './popover'
+export { ReadyReveal, type ReadyRevealProps } from './ready-reveal'
 export { useRipple } from './ripple'
-export {
-	createSelectOption,
-	type SelectDescriptionProps,
-	type SelectLabelProps,
-	type SelectOptionProps,
-} from './select-option'
-export { useTap } from './tap'
+export { springProps } from './spring'
 export {
 	ToggleField,
 	type ToggleFieldProps,

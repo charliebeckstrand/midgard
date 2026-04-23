@@ -2,7 +2,7 @@
 
 import { CornerLeftDown, X } from 'lucide-react'
 import { type Ref, useCallback, useImperativeHandle, useRef, useState } from 'react'
-import { useControllable, useTagKeyboard } from '../../hooks'
+import { useControllable, useInputTagKeyboard } from '../../hooks'
 import type { Color } from '../../recipes/iro'
 import { Badge } from '../badge'
 import { Button } from '../button'
@@ -97,7 +97,7 @@ export function TagInput({
 
 	const clearInput = useCallback(() => setInputValue(''), [])
 
-	const handleKeyDown = useTagKeyboard({
+	const handleKeyDown = useInputTagKeyboard({
 		inputValue,
 		addTag,
 		removeTag,

@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import { useTagKeyboard } from '../../hooks/use-keyboard/use-tag-keyboard'
+import { useInputTagKeyboard } from '../../hooks/use-input-tag-keyboard'
 
 function createKeyEvent(key: string, overrides = {}) {
 	return {
@@ -11,14 +11,14 @@ function createKeyEvent(key: string, overrides = {}) {
 	} as unknown as React.KeyboardEvent<HTMLInputElement>
 }
 
-describe('useTagKeyboard', () => {
+describe('useInputTagKeyboard', () => {
 	it('Enter key calls addTag and clearInput on success', () => {
 		const addTag = vi.fn(() => true)
 		const removeTag = vi.fn()
 		const clearInput = vi.fn()
 
 		const { result } = renderHook(() =>
-			useTagKeyboard({ inputValue: 'hello', addTag, removeTag, clearInput, tagCount: 0 }),
+			useInputTagKeyboard({ inputValue: 'hello', addTag, removeTag, clearInput, tagCount: 0 }),
 		)
 
 		result.current(createKeyEvent('Enter'))
@@ -32,7 +32,13 @@ describe('useTagKeyboard', () => {
 		const clearInput = vi.fn()
 
 		const { result } = renderHook(() =>
-			useTagKeyboard({ inputValue: 'dup', addTag, removeTag: vi.fn(), clearInput, tagCount: 0 }),
+			useInputTagKeyboard({
+				inputValue: 'dup',
+				addTag,
+				removeTag: vi.fn(),
+				clearInput,
+				tagCount: 0,
+			}),
 		)
 
 		result.current(createKeyEvent('Enter'))
@@ -46,7 +52,13 @@ describe('useTagKeyboard', () => {
 		const clearInput = vi.fn()
 
 		const { result } = renderHook(() =>
-			useTagKeyboard({ inputValue: 'tag', addTag, removeTag: vi.fn(), clearInput, tagCount: 0 }),
+			useInputTagKeyboard({
+				inputValue: 'tag',
+				addTag,
+				removeTag: vi.fn(),
+				clearInput,
+				tagCount: 0,
+			}),
 		)
 
 		result.current(createKeyEvent(','))
@@ -59,7 +71,7 @@ describe('useTagKeyboard', () => {
 		const removeTag = vi.fn()
 
 		const { result } = renderHook(() =>
-			useTagKeyboard({
+			useInputTagKeyboard({
 				inputValue: '',
 				addTag: vi.fn(),
 				removeTag,
@@ -77,7 +89,7 @@ describe('useTagKeyboard', () => {
 		const removeTag = vi.fn()
 
 		const { result } = renderHook(() =>
-			useTagKeyboard({
+			useInputTagKeyboard({
 				inputValue: '',
 				addTag: vi.fn(),
 				removeTag,
@@ -95,7 +107,7 @@ describe('useTagKeyboard', () => {
 		const removeTag = vi.fn()
 
 		const { result } = renderHook(() =>
-			useTagKeyboard({
+			useInputTagKeyboard({
 				inputValue: 'text',
 				addTag: vi.fn(),
 				removeTag,

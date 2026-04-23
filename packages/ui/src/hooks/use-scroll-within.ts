@@ -1,11 +1,11 @@
 'use client'
 
-export type ScrollIntoContainerOptions = {
+export type ScrollWithinOptions = {
 	behavior?: ScrollBehavior
 	block?: 'start' | 'center' | 'end' | 'nearest'
 }
 
-function scrollIntoContainer(node: HTMLElement | null, options: ScrollIntoContainerOptions = {}) {
+function scrollWithin(node: HTMLElement | null, options: ScrollWithinOptions = {}) {
 	if (!node) return
 
 	const { behavior = 'auto', block = 'nearest' } = options
@@ -57,6 +57,6 @@ function scrollIntoContainer(node: HTMLElement | null, options: ScrollIntoContai
  * scrollable ancestor, without affecting any outer scroll containers.
  * Mirrors the `block`/`behavior` options of native `scrollIntoView`.
  */
-export function useScrollIntoContainer() {
-	return scrollIntoContainer
+export function useScrollWithin() {
+	return scrollWithin
 }

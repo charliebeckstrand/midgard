@@ -3,7 +3,7 @@
 import { motion } from 'motion/react'
 import type React from 'react'
 import { cn } from '../../core'
-import { useIsDesktop } from '../../hooks'
+import { useMinWidth } from '../../hooks'
 import { Overlay, PanelA11yProvider, usePanelA11yScope } from '../../primitives'
 import { ugoki } from '../../recipes'
 import { useGlass } from '../glass/context'
@@ -37,7 +37,7 @@ export function Dialog({
 
 	const resolvedGlass = glass ?? glassContext
 
-	const isDesktop = useIsDesktop()
+	const isDesktop = useMinWidth(640)
 
 	const { panelAriaProps, providerValue } = usePanelA11yScope()
 

@@ -33,7 +33,7 @@ packages/ui/
   tsup.config.ts
   src/
     index.ts                  # Re-exports cn, colorVariants, createContext, Link, LinkProvider, useLink
-    core/                     # cn, createContext, recipe helpers (colorVariants, defineColors, definePanelRecipe, mode)
+    core/                     # cn, createContext, recipe helpers (colorVariants, defineColors, mode)
     primitives/               # Reusable building blocks (Polymorphic, Overlay, ControlFrame, createPanel, Link, etc.)
     recipes/                  # Design token layers (Tier 1 atoms → Tier 2 behaviours → Tier 3 surfaces → Tier 4 kata)
     hooks/                    # Shared hooks (useControllable, useFloatingUI, useRoving, etc.)
@@ -113,16 +113,16 @@ Tier 1 (atomic tokens):
 - **`take`** — dimension scales (`take.icon.*`, `take.avatar.*`, `take.panel.*`, `take.popup.*`, …) — **density presets (button/compact/etc) now live inside their component's kata recipe, not `take`**
 
 Tier 2 (behaviours):
-- **`narabi`** — sibling arrangement (`narabi.field`, `narabi.toggle`, `narabi.panel`, `narabi.placement`, `narabi.slide`)
-- **`sawari`** — interaction feedback (`sawari.item`, `sawari.nav`, `sawari.disabled`, `sawari.glassItem`)
-- **`ugoki`** — motion: CSS transitions + Framer Motion configs (`ugoki.css.{opacity,transform,duration}`, `ugoki.spring`, `ugoki.tween`, `ugoki.popover`, `ugoki.overlay`, `ugoki.toast`, `ugoki.tooltip`, `ugoki.collapse`, `ugoki.panel`, …)
+- **`narabi`** — sibling arrangement (`narabi.field`, `narabi.toggle`, `narabi.group`, `narabi.item`, `narabi.description`, `narabi.panel`, `narabi.slide`)
+- **`sawari`** — interaction feedback (`sawari.item`, `sawari.nav`, `sawari.disabled`)
+- **`ugoki`** — motion: CSS transitions + Framer Motion configs (`ugoki.css.{opacity,transform,duration}`, `ugoki.spring`, `ugoki.reveal`, `ugoki.popover`, `ugoki.overlay`, `ugoki.toast`, `ugoki.tooltip`, `ugoki.collapse`, `ugoki.panel`, `ugoki.inspector`)
 
 Tier 3 (surfaces):
 - **`omote`** — surface chromes (`omote.surface`, `omote.panel.{bg,chrome,base}`, `omote.popover`, `omote.glass`, `omote.backdrop.{base,glass}`, `omote.content`, `omote.tint`, `omote.skeleton`, `omote.blur.{sm,md,lg}`)
 - **`kokkaku`** — skeleton placeholder dimensions per component
 
 Tier 4 (components):
-- **`kata`** — per-component styling (the recipes you are building). The control family (input, textarea, listbox, combobox, datepicker, checkbox, radio, switch, ControlFrame) shares `kata/_control` as the single source of truth for frame, surface, field, size, icon, affix, resets, and check styles.
+- **`kata`** — per-component styling (the recipes you are building). The control family (input, textarea, listbox, combobox, datepicker, checkbox, radio, switch, ControlFrame) shares `kata/_control` as the single source of truth for frame, surface, field, size, icon, affix, resets, and check styles. The panel family (dialog, drawer, sheet, inspector) shares `kata/_panel` (`definePanelRecipe`) for the slot surface (title, description, header, body, actions, close).
 
 Lower tiers never import from higher tiers.
 
@@ -606,11 +606,11 @@ accordion, address-input, alert, aspect-ratio, avatar, badge, banner, bottom-nav
 - **PopoverPanel** — pre-styled popover panel surface
 - **BaseOption / OptionLabel / OptionDescription / createSelectOption** — building blocks for listbox/combobox/select options
 - **ActiveIndicator / ActiveIndicatorScope / useActiveIndicator** — layout-animated active state indicator
-- **ContentReveal** — animated content reveal with motion
+- **ReadyReveal** — crossfade from a placeholder to real content once `ready` flips
 - **CurrentProvider / useCurrent / useCurrentContext / createCurrentContent** — "current item" context for tabs / navs / steppers
-- **OffcanvasContext / useOffcanvas** — shared context for offcanvas surfaces
+- **OffcanvasContext / OffcanvasProvider / useOffcanvas** — shared context for offcanvas surfaces
 - **useRipple** — tap ripple effect
-- **useTap** — tap/press motion config
+- **springProps** — spreadable motion props for a press-scale spring effect
 
 ## Available hooks (from `src/hooks`)
 
@@ -621,15 +621,13 @@ accordion, address-input, alert, aspect-ratio, avatar, badge, banner, bottom-nav
 - **useFocusTrap** — focus trap for modal surfaces
 - **useHasHover** — hover-capability detection
 - **useIdScope** — ID generation for a11y relationships
-- **useIsDesktop** — desktop breakpoint detection
-- **useArrowAction** — arrow-key action binding
-- **useRoving / useTagKeyboard** — roving-focus keyboard navigation (replaces older `useRovingFocus`/`useRovingActive`)
+- **useRoving / useInputTagKeyboard** — roving-focus keyboard navigation (replaces older `useRovingFocus`/`useRovingActive`)
 - **useKeyboardSettled** — wait for keyboard activity to settle
 - **useMaskedInput** — masked text input
-- **useMinWidth** — min-width container queries
+- **useMediaQuery** — subscribe to a CSS media query
+- **useMinWidth** — min-width viewport query (thin wrapper over `useMediaQuery`)
 - **useOffcanvas** — offcanvas surface state
 - **useScrollIntoContainer** — scroll an item into its container
-- **useSelect** — select state machine
 - **useSortableItem / useSortableList / useSortableSensors** — drag-and-drop sorting
 
 ## Recipe tier system
@@ -648,7 +646,7 @@ accordion, address-input, alert, aspect-ratio, avatar, badge, banner, bottom-nav
 | 2 | `ugoki` | motion (CSS transitions + Framer Motion) |
 | 3 | `omote` | surface chromes (incl. backdrop blur) |
 | 3 | `kokkaku` | skeleton placeholder dimensions |
-| 4 | `kata` | per-component styling (control family shares `kata/_control`) |
+| 4 | `kata` | per-component styling (control family shares `kata/_control`, panel family shares `kata/_panel`) |
 
 Lower tiers never import from higher tiers.
 
@@ -658,7 +656,6 @@ Lower tiers never import from higher tiers.
 - **`createContext<T>(name)`** — typed context factory that throws on missing provider
 - **`colorVariants(map, extra?)`** — from `core/recipe`. Turns a `{ variant → palette }` map into the `color` scaffold and `compoundVariants` that `tv()` needs. Palette color keys are inferred, so passing `iro.palette.solid.*` composed via `merge` just works.
 - **`defineColors(map)`** — from `core/recipe`. Builds a color-keyed class map with automatic dark-mode composition via `mode()`.
-- **`definePanelRecipe(...)`** — from `core/recipe`. Shared panel recipe builder used by dialog / sheet / drawer.
 - **`mode(light, dark)`** — from `core/recipe`. Composes light + dark class fragments.
 - **`merge(...maps)`** (from `recipes/iro`) — merges multiple palette slot maps into one per-color class list.
 

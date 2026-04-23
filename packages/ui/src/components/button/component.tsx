@@ -3,7 +3,7 @@
 import { motion } from 'motion/react'
 import type { PointerEvent, ReactNode, Ref } from 'react'
 import { cn } from '../../core'
-import { type PolymorphicProps, TouchTarget, useRipple, useTap } from '../../primitives'
+import { type PolymorphicProps, springProps, TouchTarget, useRipple } from '../../primitives'
 import { Link } from '../../primitives/link'
 import { kokkaku } from '../../recipes'
 import { useAlertContext } from '../alert/context'
@@ -63,7 +63,7 @@ export function Button({
 
 	const { onPointerDown: handleRipple, element: rippleElement } = useRipple()
 
-	const tap = useTap(spring)
+	const springMotion = springProps(spring)
 
 	const pointerDown = (e: PointerEvent<HTMLElement>) => {
 		if (ripple) handleRipple(e)
@@ -102,7 +102,7 @@ export function Button({
 
 	if (href !== undefined) {
 		return (
-			<motion.span {...tap} className="inline-flex">
+			<motion.span {...springMotion} className="inline-flex">
 				<Link
 					data-slot="button"
 					data-has-prefix={!!prefix || undefined}
@@ -128,7 +128,7 @@ export function Button({
 
 	return (
 		<motion.button
-			{...tap}
+			{...springMotion}
 			ref={ref}
 			data-slot="button"
 			data-has-prefix={!!prefix || undefined}

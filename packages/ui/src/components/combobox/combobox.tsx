@@ -6,9 +6,8 @@ import { AnimatePresence } from 'motion/react'
 import type React from 'react'
 import { useCallback, useId, useMemo, useRef } from 'react'
 import { cn, createContext } from '../../core'
-import { useFloatingUI, useScrollIntoContainer } from '../../hooks'
+import { useFloatingUI, useRoving, useScrollWithin } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
-import { useRoving } from '../../hooks/use-keyboard'
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
 import { ControlFrame, PopoverPanel } from '../../primitives'
 import { kokkaku } from '../../recipes'
@@ -156,7 +155,7 @@ export function Combobox<T>({
 
 	const inputDisplay = resolveInputDisplay({ editing, query, value, displayValue, multiple })
 
-	const scrollIntoContainer = useScrollIntoContainer()
+	const scrollWithin = useScrollWithin()
 
 	const scrollToSelected = useCallback(
 		(node: HTMLDivElement | null) => {
@@ -164,9 +163,9 @@ export function Combobox<T>({
 
 			const selected = node.querySelector<HTMLElement>('[role="option"][data-selected]')
 
-			if (selected) scrollIntoContainer(selected, { block: 'nearest' })
+			if (selected) scrollWithin(selected, { block: 'nearest' })
 		},
-		[scrollIntoContainer],
+		[scrollWithin],
 	)
 
 	const rendered = typeof children === 'function' ? children(query) : children

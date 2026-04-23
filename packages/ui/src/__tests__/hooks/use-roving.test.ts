@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react'
 import { useRef } from 'react'
 import { describe, expect, it } from 'vitest'
-import { useRoving } from '../../hooks/use-keyboard/use-roving'
+import { useRoving } from '../../hooks/use-roving'
 
 describe('useRoving', () => {
 	it('returns a function in focus mode', () => {

@@ -3,7 +3,7 @@
 import { Search, X } from 'lucide-react'
 import type React from 'react'
 import { useCallback, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { useRoving } from '../../hooks/use-keyboard'
+import { useRoving } from '../../hooks'
 import { Button } from '../button'
 import { Dialog, DialogBody, type DialogPanelVariants } from '../dialog'
 import { Flex } from '../flex'

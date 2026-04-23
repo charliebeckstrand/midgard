@@ -3,7 +3,7 @@
 import { X } from 'lucide-react'
 import { useMemo, useRef } from 'react'
 import { cn } from '../../core'
-import { useRoving, useScrollIntoContainer } from '../../hooks'
+import { useRoving, useScrollWithin } from '../../hooks'
 import { Button } from '../button'
 import { Flex } from '../flex/component'
 import { Icon } from '../icon'
@@ -32,7 +32,7 @@ export function PdfViewerThumbnails({
 	onThumbsOpenChange,
 	container,
 }: PdfViewerThumbnailsProps) {
-	const scrollActiveIntoView = useScrollIntoContainer()
+	const scrollActiveIntoView = useScrollWithin()
 
 	const sidebarRef = useRef<HTMLElement>(null)
 

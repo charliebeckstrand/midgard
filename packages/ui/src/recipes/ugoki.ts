@@ -25,12 +25,6 @@ const spring = {
 	damping: 30,
 }
 
-const tween = {
-	type: 'tween' as const,
-	duration: 0.15,
-	ease: [0.3, 0.1, 0.3, 1] as const,
-}
-
 /** Placeholder-to-content crossfade with vertical shift and blur. */
 const reveal = {
 	initial: { opacity: 0, y: 4, filter: 'blur(4px)' },
@@ -51,7 +45,6 @@ export const ugoki = {
 	},
 
 	spring,
-	tween,
 	reveal,
 	/** Popover fade for dropdown menus. */
 	popover: {

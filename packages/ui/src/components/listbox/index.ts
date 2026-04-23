@@ -1,3 +1,7 @@
+export {
+	VirtualOptions as ListboxVirtualOptions,
+	type VirtualOptionsProps as ListboxVirtualOptionsProps,
+} from '../../primitives/virtual-options'
 export { Listbox, type ListboxProps } from './listbox'
 export {
 	ListboxDescription,
@@ -7,7 +11,3 @@ export {
 	ListboxOption,
 	type ListboxOptionProps,
 } from './option'
-export {
-	ListboxVirtualOptions,
-	type ListboxVirtualOptionsProps,
-} from './virtual-options'

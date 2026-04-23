@@ -40,6 +40,7 @@ export function VirtualOptions<T>({
 	})
 
 	const virtualItems = virtualizer.getVirtualItems()
+
 	const totalSize = virtualizer.getTotalSize()
 
 	const topSpacer = virtualItems[0]?.start ?? 0

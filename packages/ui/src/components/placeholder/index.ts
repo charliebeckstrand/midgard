@@ -1,2 +1,2 @@
-export { ContentReveal, type ContentRevealProps } from '../../primitives/content-reveal'
+export { ReadyReveal, type ReadyRevealProps } from '../../primitives/ready-reveal'
 export { Placeholder, type PlaceholderProps } from './component'

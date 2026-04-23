@@ -10,7 +10,7 @@ interface RippleEntry {
 	size: number
 }
 
-export function useRipple() {
+export function useRipple({ duration = 0.5 }: { duration?: number } = {}) {
 	const [ripples, setRipples] = useState<RippleEntry[]>([])
 
 	const counter = useRef(0)
@@ -53,7 +53,7 @@ export function useRipple() {
 						}}
 						initial={{ scale: 0, opacity: 0.25 }}
 						animate={{ scale: 1, opacity: 0 }}
-						transition={{ duration: 0.25, ease: 'easeOut' }}
+						transition={{ duration }}
 						onAnimationComplete={() => remove(r.key)}
 					/>
 				))}

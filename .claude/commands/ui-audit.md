@@ -84,7 +84,7 @@ Evaluate whether components properly reuse existing building blocks instead of r
 **Flag:**
 - Components that render raw `<input>`, `<button>`, or `<select>` when `Input`, `Button`, or `Select` components exist
 - Components that implement their own overlay/backdrop/escape-key logic when `Overlay` primitive exists
-- Components that re-implement keyboard navigation when `useRovingFocus`, `useRovingActive`, or `useArrowAction` hooks exist
+- Components that re-implement keyboard navigation when `useRoving` or `useInputTagKeyboard` hooks exist
 - Components that duplicate panel slot logic (title, description, body, actions) when `createPanelSlots` exists
 - Components that re-implement controlled/uncontrolled state when `useControllable` exists
 - Components that render raw `<a>` with conditional logic when `Polymorphic` handles this

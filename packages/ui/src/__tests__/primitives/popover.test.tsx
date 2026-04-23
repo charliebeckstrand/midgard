@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { PopoverPanel } from '../../primitives/popover-panel'
+import { PopoverPanel } from '../../primitives/popover'
 import { renderUI, screen } from '../helpers'
 
 describe('PopoverPanel', () => {

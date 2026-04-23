@@ -8,6 +8,8 @@ export interface OffcanvasContextValue {
 
 export const OffcanvasContext = createContext<OffcanvasContextValue | null>(null)
 
+export const OffcanvasProvider = OffcanvasContext.Provider
+
 export function useOffcanvas(): OffcanvasContextValue | null {
 	return useContext(OffcanvasContext)
 }

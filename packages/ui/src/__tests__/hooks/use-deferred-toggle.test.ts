@@ -110,4 +110,68 @@ describe('useDeferredToggle', () => {
 		// The updater applied the enqueued 'b', not 'a'
 		expect(setValue.mock.results[0]?.value).toBe('b')
 	})
+
+	it('toggle sets the new value in single mode', () => {
+		const setValue = vi.fn()
+
+		const { result } = renderHook(() =>
+			useDeferredToggle<string>({ multiple: false, nullable: false, setValue }),
+		)
+
+		act(() => {
+			result.current.toggle('a')
+		})
+
+		const updater = setValue.mock.calls[0]?.[0]
+
+		expect(updater(undefined)).toBe('a')
+	})
+
+	it('toggle returns undefined when reselecting the same value in nullable mode', () => {
+		const setValue = vi.fn()
+
+		const { result } = renderHook(() =>
+			useDeferredToggle<string>({ multiple: false, nullable: true, setValue }),
+		)
+
+		act(() => {
+			result.current.toggle('a')
+		})
+
+		const updater = setValue.mock.calls[0]?.[0]
+
+		expect(updater('a')).toBeUndefined()
+	})
+
+	it('toggle adds an unselected value to the array in multiple mode', () => {
+		const setValue = vi.fn()
+
+		const { result } = renderHook(() =>
+			useDeferredToggle<string>({ multiple: true, nullable: false, setValue }),
+		)
+
+		act(() => {
+			result.current.toggle('b')
+		})
+
+		const updater = setValue.mock.calls[0]?.[0]
+
+		expect(updater(['a'])).toEqual(['a', 'b'])
+	})
+
+	it('toggle removes an already-selected value from the array in multiple mode', () => {
+		const setValue = vi.fn()
+
+		const { result } = renderHook(() =>
+			useDeferredToggle<string>({ multiple: true, nullable: false, setValue }),
+		)
+
+		act(() => {
+			result.current.toggle('a')
+		})
+
+		const updater = setValue.mock.calls[0]?.[0]
+
+		expect(updater(['a', 'b'])).toEqual(['b'])
+	})
 })

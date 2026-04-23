@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from 'react'
 import { cn } from '../core'
 import { ugoki } from '../recipes'
 
-export type ContentRevealProps = {
+export type ReadyRevealProps = {
 	/** When true, reveals `children`; when false, shows `placeholder`. */
 	ready: boolean
 	/** Content shown while not ready. */
@@ -27,7 +27,7 @@ const gridCell = { gridArea: '1 / 1' } as const
 const inFlow = { position: 'relative' as const, top: 'auto' as const }
 const outOfFlow = { position: 'absolute' as const, top: 0, left: 0, right: 0 }
 
-function WaitReveal({ ready, placeholder, children, className }: Omit<ContentRevealProps, 'mode'>) {
+function WaitReveal({ ready, placeholder, children, className }: Omit<ReadyRevealProps, 'mode'>) {
 	const placeholderRef = useRef<HTMLDivElement>(null)
 
 	const contentRef = useRef<HTMLDivElement>(null)
@@ -82,13 +82,13 @@ function WaitReveal({ ready, placeholder, children, className }: Omit<ContentRev
  * Crossfade transition between a placeholder and real content.
  * The placeholder should mirror the content layout so dimensions stay stable.
  * */
-export function ContentReveal({
+export function ReadyReveal({
 	ready,
 	placeholder,
 	children,
 	className,
 	mode = 'crossfade',
-}: ContentRevealProps) {
+}: ReadyRevealProps) {
 	if (mode === 'wait') {
 		return (
 			<WaitReveal ready={ready} placeholder={placeholder} className={className}>

@@ -10,9 +10,9 @@ import { Flex } from '../../components/flex'
 import { Frame } from '../../components/frame'
 import { Icon } from '../../components/icon'
 import { cn } from '../../core'
-import { useScrollIntoContainer } from '../../hooks'
+import { useScrollWithin } from '../../hooks'
 import { useOffcanvas } from '../../hooks/use-offcanvas'
-import { OffcanvasContext } from '../../primitives/offcanvas'
+import { OffcanvasProvider } from '../../primitives/offcanvas'
 import {
 	sidebarBodyVariants,
 	sidebarContentVariants,
@@ -43,7 +43,7 @@ export function SidebarLayout({
 }: SidebarLayoutProps) {
 	const { open, setOpen, close } = useOffcanvas()
 
-	const scrollIntoContainer = useScrollIntoContainer()
+	const scrollWithin = useScrollWithin()
 
 	return (
 		<Frame className={sidebarLayoutVariants()}>
@@ -52,20 +52,20 @@ export function SidebarLayout({
 
 			{/* Sidebar on mobile */}
 			<Drawer open={open} onOpenChange={setOpen}>
-				<OffcanvasContext.Provider value={{ close }}>
+				<OffcanvasProvider value={{ close }}>
 					<div
 						ref={(node) => {
 							if (!node) return
 
 							const current = node.querySelector<HTMLElement>('[data-current]')
 
-							if (current) scrollIntoContainer(current, { block: 'center' })
+							if (current) scrollWithin(current, { block: 'center' })
 						}}
 						className="contents"
 					>
 						{sidebar}
 					</div>
-				</OffcanvasContext.Provider>
+				</OffcanvasProvider>
 			</Drawer>
 
 			{/* Navbar on mobile */}

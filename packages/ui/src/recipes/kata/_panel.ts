@@ -1,5 +1,5 @@
 import { tv } from 'tailwind-variants'
-import { narabi } from '../../recipes/narabi'
+import { narabi } from '../narabi'
 
 type Slot = {
 	/** Classes appended after the narabi.panel.* default for this slot. */

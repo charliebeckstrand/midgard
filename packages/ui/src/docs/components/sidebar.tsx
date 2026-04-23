@@ -11,14 +11,14 @@ import {
 	SidebarLabel,
 	SidebarSection,
 } from '../../components/sidebar'
-import { useScrollIntoContainer } from '../../hooks'
+import { useScrollWithin } from '../../hooks'
 import { useOffcanvas } from '../../primitives/offcanvas'
 import { demos, preloadDemo, sortedCategories } from '../registry'
 
 export function SidebarContent({ route }: { route: string }) {
 	const offcanvas = useOffcanvas()
 
-	const scrollIntoContainer = useScrollIntoContainer()
+	const scrollWithin = useScrollWithin()
 
 	// Scroll the active item into view when the mobile sidebar opens
 	useLayoutEffect(() => {
@@ -28,8 +28,8 @@ export function SidebarContent({ route }: { route: string }) {
 
 		const current = sheet?.querySelector<HTMLElement>('[data-current]')
 
-		if (current) scrollIntoContainer(current, { block: 'nearest' })
-	}, [offcanvas, scrollIntoContainer])
+		if (current) scrollWithin(current, { block: 'nearest' })
+	}, [offcanvas, scrollWithin])
 
 	return (
 		<Sidebar>
@@ -51,7 +51,7 @@ export function SidebarContent({ route }: { route: string }) {
 
 					const item = sidebar?.querySelector<HTMLElement>(`[href="#${id}"]`)
 
-					if (item) scrollIntoContainer(item, { block: 'center', behavior: 'smooth' })
+					if (item) scrollWithin(item, { block: 'center', behavior: 'smooth' })
 
 					offcanvas?.close()
 				}}

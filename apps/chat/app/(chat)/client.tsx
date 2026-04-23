@@ -7,7 +7,6 @@ import { type ReactNode, useCallback, useMemo } from 'react'
 import { SidebarUserMenu } from 'sindri/auth'
 import { useChat } from 'sindri/chat'
 import { Button } from 'ui/button'
-import { useArrowAction } from 'ui/hooks'
 import { Icon } from 'ui/icon'
 import { SidebarLayout } from 'ui/layouts'
 import { Navbar } from 'ui/navbar'
@@ -24,6 +23,7 @@ import { Spacer } from 'ui/spacer'
 import { Text } from 'ui/text'
 import { ChatContext } from './context'
 import type { Chat } from './types'
+import { useArrowAction } from './use-arrow-action'
 
 function ChatItem({
 	chat,

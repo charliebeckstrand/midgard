@@ -1,23 +1,23 @@
 import { describe, expect, it } from 'vitest'
-import { useTap } from '../../primitives/tap'
+import { springProps } from '../../primitives/spring'
 
-describe('useTap', () => {
+describe('springProps', () => {
 	it('returns whileTap and transition when enabled', () => {
-		const result = useTap(true)
+		const result = springProps(true)
 
 		expect(result).toHaveProperty('whileTap')
 		expect(result).toHaveProperty('transition')
-		expect(result.whileTap).toEqual({ scale: 0.95 })
+		expect(result).toHaveProperty('whileTap', { scale: 0.95 })
 	})
 
 	it('returns empty object when disabled', () => {
-		const result = useTap(false)
+		const result = springProps(false)
 
 		expect(result).toEqual({})
 	})
 
 	it('defaults to enabled', () => {
-		const result = useTap()
+		const result = springProps()
 
 		expect(result).toHaveProperty('whileTap')
 		expect(result).toHaveProperty('transition')

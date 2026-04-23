@@ -2,7 +2,7 @@
 
 import { Children, isValidElement, useMemo, useRef } from 'react'
 import { cn } from '../../core'
-import { useIsDesktop, useRoving } from '../../hooks'
+import { useMinWidth, useRoving } from '../../hooks'
 import { ActiveIndicatorScope } from '../../primitives'
 import { Stack } from '../stack'
 import { type StepperOrientation, StepperProvider } from './context'
@@ -47,7 +47,7 @@ export function Stepper({
 	className,
 	children,
 }: StepperProps) {
-	const isDesktop = useIsDesktop()
+	const isDesktop = useMinWidth(640)
 
 	// Default to vertical on mobile to avoid horizontal overflow.
 	const resolvedOrientation: StepperOrientation =

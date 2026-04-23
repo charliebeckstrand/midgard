@@ -1,12 +1,12 @@
 import type React from 'react'
 import { cn } from '../../core'
-import { ContentReveal } from '../../primitives/content-reveal'
+import { ReadyReveal } from '../../primitives/ready-reveal'
 import { SkeletonProvider } from './context'
 
 export type SkeletonProps = {
 	/** When provided, crossfades from skeleton to real content as ready flips. */
 	ready?: boolean
-	/** Animation mode forwarded to ContentReveal. */
+	/** Animation mode forwarded to ReadyReveal. */
 	mode?: 'crossfade' | 'wait'
 	className?: string
 	children: React.ReactNode
@@ -28,13 +28,13 @@ export function Skeleton({ ready, mode = 'crossfade', className, children }: Ske
 	}
 
 	return (
-		<ContentReveal
+		<ReadyReveal
 			ready={ready}
 			mode={mode}
 			className={className}
 			placeholder={<SkeletonProvider value={true}>{children}</SkeletonProvider>}
 		>
 			<SkeletonProvider value={false}>{children}</SkeletonProvider>
-		</ContentReveal>
+		</ReadyReveal>
 	)
 }

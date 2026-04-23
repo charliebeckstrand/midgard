@@ -2,7 +2,7 @@
 
 import { type KeyboardEvent, type RefObject, useCallback } from 'react'
 
-import { useRoving } from '../../hooks/use-keyboard'
+import { useRoving } from '../../hooks'
 
 type CalendarFocusOptions = {
 	headerRef: RefObject<HTMLElement | null>
