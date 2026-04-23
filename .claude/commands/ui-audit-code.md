@@ -37,7 +37,7 @@ Before checking anything, read the codebase to establish what "correct" looks li
 |------|-------|-----|
 | Component inventory | `packages/ui/src/components/` | Know every component that exists |
 | Package exports | `packages/ui/package.json` → `"exports"` field | Know what's exposed to consumers |
-| Katachi registry | `packages/ui/src/recipes/katachi/index.ts` | Know which components have recipes |
+| Kata registry | `packages/ui/src/recipes/kata/index.ts` | Know which components have recipes |
 | Test inventory | `packages/ui/src/__tests__/components/` | Know which components have tests |
 
 **Identify the majority pattern for each convention** by reading 3-5 representative components (e.g., badge, button, input, card, dialog). The majority pattern is the standard — not what any single component does.
@@ -65,11 +65,11 @@ Read every `variants.ts` file and compare against the established pattern.
 
 **Flag:**
 - Not importing from `class-variance-authority`
-- Not using `katachi` reference (`const k = katachi.<name>`)
+- Not using `kata` reference (`const k = kata.<name>`)
 - Hardcoded class strings instead of recipe references
 - Missing `VariantProps` type export
 - Inconsistent naming: variant instance should be `<camelCaseName>Variants`, type should be `<PascalCaseName>Variants`
-- Missing `defaultVariants` when the katachi recipe defines `defaults`
+- Missing `defaultVariants` when the kata recipe defines `defaults`
 
 #### Check C: Component file patterns
 

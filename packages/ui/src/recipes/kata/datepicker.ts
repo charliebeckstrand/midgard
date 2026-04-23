@@ -17,6 +17,7 @@ export const datepicker = {
 		'text-left',
 		maru.rounded.lg,
 		'appearance-none',
+		'cursor-pointer',
 	],
 	value: 'block truncate',
 	icon: [take.listbox.icon, 'flex items-center', 'pr-3', iro.text.muted, 'pointer-events-none'],

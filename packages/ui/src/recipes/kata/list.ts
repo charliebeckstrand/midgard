@@ -31,7 +31,6 @@ const itemBase = [
 	ji.size.md,
 	iro.text.default,
 	sen.focus.inset,
-	'transition-shadow',
 ]
 
 const itemVariant = {
@@ -55,7 +54,6 @@ export const list = {
 		'cursor-grab touch-none select-none',
 		'text-zinc-400 not-data-disabled:hover:text-zinc-700',
 		'dark:text-zinc-500 dark:not-data-disabled:hover:text-zinc-200',
-		'active:cursor-grabbing',
 		sawari.disabled,
 	],
 	content: 'flex flex-col flex-1 min-w-0',

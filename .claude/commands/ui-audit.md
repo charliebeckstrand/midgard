@@ -37,7 +37,7 @@ Before checking anything, read the codebase to establish what "correct" looks li
 |------|-------|-----|
 | Component inventory | `packages/ui/src/components/` | Know every component that exists |
 | Package exports | `packages/ui/package.json` → `"exports"` field | Know what's exposed to consumers |
-| Katachi registry | `packages/ui/src/recipes/katachi/index.ts` | Know which components have recipes |
+| Kata registry | `packages/ui/src/recipes/kata/index.ts` | Know which components have recipes |
 | Kokkaku registry | `packages/ui/src/recipes/kokkaku/index.ts` | Know which components have skeleton recipes |
 | Take registry | `packages/ui/src/recipes/take/` | Know which components have sizing tokens |
 | Primitives | `packages/ui/src/primitives/` | Know what building blocks are available |
@@ -60,11 +60,11 @@ Every component directory under `src/components/<name>/` must have:
 |------|----------|-----------|
 | `index.ts` | Always | Barrel file re-exporting public API |
 | `component.tsx` (or named file) | Always | The React component(s) |
-| `variants.ts` | When katachi recipe exists with `variant` or `size` | CVA wiring |
+| `variants.ts` | When kata recipe exists with `variant` or `size` | CVA wiring |
 
 **Flag:**
 - Missing `index.ts` barrel file
-- Missing `variants.ts` when the component's katachi recipe defines variants/sizes
+- Missing `variants.ts` when the component's kata recipe defines variants/sizes
 - Empty or stub files that export nothing
 
 #### Check B: Package.json exports
@@ -94,12 +94,13 @@ Evaluate whether components properly reuse existing building blocks instead of r
 Evaluate whether recipes follow the tier system and compose correctly.
 
 **Flag:**
-- Katachi recipes that hardcode Tailwind classes available through lower-tier recipes (kage, ki, maru, sumi, nuri, take, etc.)
-- Katachi recipes that import from other katachi recipes (Tier 3 should only compose Tier 1-2)
-- Missing katachi recipe when a component introduces genuinely new styling
-- Unnecessary katachi recipe when a component is purely compositional (wraps other components)
-- Recipe file exists at `src/recipes/katachi/<name>.ts` but is not registered in katachi index
-- Katachi index entries not in alphabetical order
+- Kata recipes that hardcode Tailwind classes available through lower-tier recipes (`iro`, `ji`, `ma`, `maru`, `sen`, `take`, etc.)
+- Kata recipes that import from other kata recipes (Tier 4 should only compose Tier 1-3, except via shared internal kata files prefixed with `_`)
+- Missing kata recipe when a component introduces genuinely new styling
+- Unnecessary kata recipe when a component is purely compositional (wraps other components)
+- Control-family components (input, textarea, listbox, combobox, datepicker, checkbox, radio, switch) that redefine frame/surface/field/size/check styles instead of composing from `kata/_control`
+- Recipe file exists at `src/recipes/kata/<name>.ts` but is not registered in kata index
+- Kata index entries not in alphabetical order
 - Take sizing tokens that duplicate an existing size map
 
 #### Check E: API design consistency

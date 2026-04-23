@@ -35,7 +35,7 @@ packages/ui/
     index.ts                  # Re-exports cn, colorVariants, createContext, Link, LinkProvider, useLink
     core/                     # cn, createContext, recipe helpers (colorVariants, defineColors, definePanelRecipe, mode)
     primitives/               # Reusable building blocks (Polymorphic, Overlay, ControlFrame, createPanel, Link, etc.)
-    recipes/                  # Design token layers (Tier 1 atoms → Tier 2 composites → Tier 3 katachi)
+    recipes/                  # Design token layers (Tier 1 atoms → Tier 2 behaviours → Tier 3 surfaces → Tier 4 kata)
     hooks/                    # Shared hooks (useControllable, useFloatingUI, useRoving, etc.)
     components/<name>/        # Each component lives here
     docs/                     # Demo system (docs/demos/<name>.tsx, docs/components/example.tsx, etc.)
@@ -49,7 +49,7 @@ Every component lives in `src/components/<name>/` with these files:
 | File | Purpose | Required |
 |------|---------|----------|
 | `<name>.tsx` | The React component(s) — named after the component (`badge.tsx`, `alert.tsx`, `tree.tsx`) | Always |
-| `variants.ts` | Re-exports recipe, variant types, and slot object from katachi | When the component has visual variants or slot classes |
+| `variants.ts` | Re-exports recipe, variant types, and slot object from kata | When the component has visual variants or slot classes |
 | `index.ts` | Barrel file re-exporting all public API | Always |
 | `context.ts` | Shared state via the typed `createContext` helper from `core` | Only when sub-components need shared state |
 | `<name>-<slot>.tsx` | Sub-component files (e.g. `card-header.tsx`, `alert-title.tsx`) | For compound components with multiple sub-components |
@@ -69,7 +69,7 @@ Follow this reuse hierarchy — always prefer the highest level that applies:
 
 1. **Compose existing components** (`Dialog`, `Input`, `Button`, `Popover`, `Listbox`, `Sheet`, `Drawer`, `Box`, `Stack`, `Flex`, …) — the full list is under *Existing components* below
 2. **Use primitives** (`Overlay`, `ControlFrame`, `Polymorphic`, `TouchTarget`, `createPanel`, …) only when no component fits
-3. **Use recipes/hooks** (`katachi`, `ugoki`, `useFloatingPanel`, `useRoving`, …) only when no primitive fits
+3. **Use recipes/hooks** (`kata`, `ugoki`, `useFloatingPanel`, `useRoving`, …) only when no primitive fits
 4. **Write raw markup + Tailwind** only as a last resort
 
 **Mandatory composition audit.** Before Step 1, answer these in your head (or out loud if non-obvious):
@@ -84,49 +84,45 @@ Follow this reuse hierarchy — always prefer the highest level that applies:
 - Does it need a controlled/uncontrolled state pair? → **Use `useControllable`.**
 - Does it need floating positioning (popovers, menus, tooltips)? → **Use `useFloatingUI` / `useFloatingPanel`.**
 
-If the answer to any of the above is yes and you find yourself writing `<Overlay>`, `motion.div`, `role="dialog"`, raw `<input>`, raw `<button>`, or a new katachi recipe that mirrors an existing one — **stop and compose the existing component instead**.
+If the answer to any of the above is yes and you find yourself writing `<Overlay>`, `motion.div`, `role="dialog"`, raw `<input>`, raw `<button>`, or a new kata recipe that mirrors an existing one — **stop and compose the existing component instead**.
 
 **Worked example — CommandPalette.** A command palette is "a dialog that contains a search input and a list". The correct implementation is ~80 lines that wrap `<Dialog>` + `<DialogBody>` + `<Input>` and layer keyboard navigation on top. Do not duplicate `Dialog`'s overlay, motion, or panel recipe.
 
-**When a new katachi recipe is NOT needed.** If every visual element comes from a composed component, you do not need a new recipe, variants file, or katachi registration. Skip Steps 1–4 and go straight to the component file. Only introduce a recipe when the component owns genuinely new styling (a new surface, a new layout arrangement, a new slot) that no existing recipe covers.
+**When a new kata recipe is NOT needed.** If every visual element comes from a composed component, you do not need a new recipe, variants file, or kata registration. Skip Steps 1–4 and go straight to the component file. Only introduce a recipe when the component owns genuinely new styling (a new surface, a new layout arrangement, a new slot) that no existing recipe covers.
 
-### 1. Create the katachi recipe (if the component needs styling)
+### 1. Create the kata recipe (if the component needs styling)
 
-Add a new file at `src/recipes/katachi/<name>.ts`.
+Add a new file at `src/recipes/kata/<name>.ts`.
 
 **Three shapes exist in the codebase — pick the simplest that fits:**
 
-- **Plain slots object** (no variants) — e.g. `katachi/card.ts`, `katachi/tree.ts`. Just export a `const <name> = { ... }` where each key is a slot (`base`, `header`, `title`, etc.). No `tv()`, no types.
+- **Plain slots object** (no variants) — e.g. `kata/card.ts`, `kata/tree.ts`. Just export a `const <name> = { ... }` where each key is a slot (`base`, `header`, `title`, etc.). No `tv()`, no types.
 - **Single `tv()` recipe** — when the component has variants (and optionally color/size). Export the `tv()` call plus its `VariantProps` type.
-- **`tv()` + slots object** — when a component has both variants and additional slot classes (e.g. `katachi/alert.ts`). Export both the `tv()` recipe and a plain `slots` object.
-- **Multiple `tv()` recipes** — when root + sub-components each have their own variants (e.g. `katachi/accordion.ts` exports `accordion` + `accordionItem`).
+- **`tv()` + slots object** — when a component has both variants and additional slot classes (e.g. `kata/alert.ts`). Export both the `tv()` recipe and a plain `slots` object.
+- **Multiple `tv()` recipes** — when root + sub-components each have their own variants (e.g. `kata/accordion.ts` exports `accordion` + `accordionItem`).
 
 **Compose from lower-tier recipes:**
 
-Tier 1 (atomic):
-- **`garasu`** — glass / backdrop-blur
+Tier 1 (atomic tokens):
 - **`iro`** — color (`iro.text.*`, `iro.bg.*`, `iro.palette.{solid,soft,outline,plain}` — each palette exposes `bg`, `text`, `hover`, `ring` slots keyed by color)
 - **`ji`** — typography (`ji.size.*`, `ji.weight.*`, `ji.tracking.*`, `ji.family.*`)
-- **`ki`** — focus (`ki.ring`, `ki.inset`, `ki.offset`, `ki.outline`, `ki.indicator`, `ki.lifted`)
 - **`kumi`** — layout scaffolding (`kumi.gap.*`, `kumi.direction.*`, `kumi.align.*`, `kumi.justify.*`, `kumi.center`)
 - **`ma`** — padding / margin (`ma.p.*`, `ma.px.*`, `ma.py.*`, `ma.m.*`, …)
 - **`maru`** — border-radius (`maru.rounded.{none,xs,sm,md,lg,xl,full}`)
-- **`nagare`** — CSS transitions (`nagare.opacity`, `nagare.transform`, `nagare.duration`)
-- **`sen`** — borders / rings / dividers (`sen.border`, `sen.ring`, `sen.ringInset`, `sen.borderSubtle`, `sen.divider`, …)
-- **`take`** — dimension scales (`take.icon.*`, `take.avatar.*`, `take.panel.*`, `take.popup.*`, …) — **density presets (button/compact/etc) now live inside their component's katachi recipe, not `take`**
-- **`yasumi`** — disabled states
+- **`sen`** — lines: borders / rings / dividers / focus / forced-colors (`sen.border`, `sen.ring`, `sen.ringInset`, `sen.borderSubtle`, `sen.divider`, `sen.focus.{ring,inset,offset,outline,indicator,lifted}`, `sen.forced.{outline,text,focus,control,icon}`)
+- **`take`** — dimension scales (`take.icon.*`, `take.avatar.*`, `take.panel.*`, `take.popup.*`, …) — **density presets (button/compact/etc) now live inside their component's kata recipe, not `take`**
 
-Tier 2 (composite):
-- **`kyousei`** — Windows forced-colors defensive classes
+Tier 2 (behaviours):
 - **`narabi`** — sibling arrangement (`narabi.field`, `narabi.toggle`, `narabi.panel`, `narabi.placement`, `narabi.slide`)
-- **`omote`** — surface chromes (`omote.surface`, `omote.panel.{bg,chrome,base}`, `omote.popover`, `omote.glass`, `omote.backdrop.{base,glass}`, `omote.content`, `omote.tint`, `omote.skeleton`)
-- **`sawari`** — hover / press / selection feedback (`sawari.item`, `sawari.nav`, `sawari.nav`)
-- **`ugoki`** — Framer Motion choreography configs
-- **`waku`** — form frames (`waku.control`, `waku.input`, `waku.inputBase`, `waku.check`, `waku.checkSurface`, `waku.hidden`, `waku.date`, `waku.number`)
+- **`sawari`** — interaction feedback (`sawari.item`, `sawari.nav`, `sawari.disabled`, `sawari.glassItem`)
+- **`ugoki`** — motion: CSS transitions + Framer Motion configs (`ugoki.css.{opacity,transform,duration}`, `ugoki.spring`, `ugoki.tween`, `ugoki.popover`, `ugoki.overlay`, `ugoki.toast`, `ugoki.tooltip`, `ugoki.collapse`, `ugoki.panel`, …)
 
-Tier 3:
-- **`katachi`** — per-component styling (the recipes you are building)
+Tier 3 (surfaces):
+- **`omote`** — surface chromes (`omote.surface`, `omote.panel.{bg,chrome,base}`, `omote.popover`, `omote.glass`, `omote.backdrop.{base,glass}`, `omote.content`, `omote.tint`, `omote.skeleton`, `omote.blur.{sm,md,lg}`)
 - **`kokkaku`** — skeleton placeholder dimensions per component
+
+Tier 4 (components):
+- **`kata`** — per-component styling (the recipes you are building). The control family (input, textarea, listbox, combobox, datepicker, checkbox, radio, switch, ControlFrame) shares `kata/_control` as the single source of truth for frame, surface, field, size, icon, affix, resets, and check styles.
 
 Lower tiers never import from higher tiers.
 
@@ -254,9 +250,9 @@ export const slots = {
 export type AlertVariants = VariantProps<typeof alert>
 ```
 
-Then register in `src/recipes/katachi/index.ts`:
+Then register in `src/recipes/kata/index.ts`:
 - Import the new recipe
-- Add it to the `katachi` object (alphabetical order)
+- Add it to the `kata` object (alphabetical order)
 
 ### 2. Extend Tier 1 / Tier 2 recipes only if strictly needed
 
@@ -264,17 +260,17 @@ Most components only need to compose existing atoms. Only add a new entry to a T
 
 - Need a dimension not covered by `take.icon/avatar/panel/popup/scrollArea/combobox/listbox`? Add a new submodule under `src/recipes/take/` and expose it in `take`.
 - Need a new palette variant not in `iro.palette.{solid,soft,outline,plain}`? Discuss before adding — the palette shape is load-bearing.
-- Component-local sizing presets (e.g. `button`'s `xs/sm/md/lg` density) now live **inside that component's katachi recipe**, not in `take`.
+- Component-local sizing presets (e.g. `button`'s `xs/sm/md/lg` density) now live **inside that component's kata recipe**, not in `take`.
 
 ### 3. Create `variants.ts`
 
-The `variants.ts` file is a thin re-export layer. All variant logic lives in the katachi recipe. Two common shapes:
+The `variants.ts` file is a thin re-export layer. All variant logic lives in the kata recipe. Two common shapes:
 
 **Pattern A — slots-only recipe (plain object).** Use when the recipe is just a slot map.
 ```ts
-import { katachi } from '../../recipes'
+import { kata } from '../../recipes'
 
-export const k = katachi.<name>
+export const k = kata.<name>
 ```
 
 **Pattern B — single `tv()` recipe (with optional slots).**
@@ -283,7 +279,7 @@ export {
   type <Name>Variants,
   <name> as <name>Variants,
   slots as k,  // omit if the recipe has no `slots` export
-} from '../../recipes/katachi/<name>'
+} from '../../recipes/kata/<name>'
 ```
 
 **Pattern C — multiple `tv()` recipes** (root + sub-component — e.g. accordion):
@@ -294,7 +290,7 @@ export {
   accordion as accordionVariants,
   accordionItem as accordionItemVariants,
   slots as k,
-} from '../../recipes/katachi/accordion'
+} from '../../recipes/kata/accordion'
 ```
 
 ### 4. Create the component file
@@ -640,25 +636,19 @@ accordion, address-input, alert, aspect-ratio, avatar, badge, banner, bottom-nav
 
 | Tier | Recipe | Concern |
 |------|--------|---------|
-| 1 | `garasu` | glass / backdrop blur |
 | 1 | `iro` | color (text, bg, palette) |
 | 1 | `ji` | typography |
-| 1 | `ki` | focus rings |
 | 1 | `kumi` | layout scaffolding (gap / direction / align / justify) |
 | 1 | `ma` | padding / margin |
 | 1 | `maru` | border radius |
-| 1 | `nagare` | CSS transitions |
-| 1 | `sen` | borders / rings / dividers |
+| 1 | `sen` | lines: borders / rings / dividers / focus / forced-colors |
 | 1 | `take` | dimension scales |
-| 1 | `yasumi` | disabled states |
-| 2 | `kyousei` | forced-colors defensive classes |
 | 2 | `narabi` | sibling arrangement |
-| 2 | `omote` | surface chromes |
-| 2 | `sawari` | hover / press / selection |
-| 2 | `ugoki` | Framer Motion choreography |
-| 2 | `waku` | form frames |
-| 3 | `katachi` | per-component styling |
+| 2 | `sawari` | interaction feedback (hover, press, selection, disabled, glass-item) |
+| 2 | `ugoki` | motion (CSS transitions + Framer Motion) |
+| 3 | `omote` | surface chromes (incl. backdrop blur) |
 | 3 | `kokkaku` | skeleton placeholder dimensions |
+| 4 | `kata` | per-component styling (control family shares `kata/_control`) |
 
 Lower tiers never import from higher tiers.
 
@@ -679,8 +669,8 @@ Lower tiers never import from higher tiers.
 Before finishing, verify:
 - [ ] **Composition audit done (Step 0).** Every existing component that could have been composed was composed. No duplicated `Overlay` + `motion` + `ugoki` wrappers, no raw `<input>`/`<button>` where `Input`/`Button` fit, no reimplementations of keyboard nav that `Listbox`/`Combobox`/`Menu` already provide.
 - [ ] **No parallel panel recipes.** If the component renders inside a dialog/sheet/drawer/popover, it reuses `createPanel` + the shared panel variant exports rather than defining its own panel recipe.
-- [ ] Katachi recipe created and registered in `katachi/index.ts` (alphabetical) — **only if the component introduces genuinely new styling not available through composition**
-- [ ] `variants.ts` re-exports from the katachi recipe (variant function aliased as `<name>Variants`, slots aliased as `k`). For slots-only recipes, `variants.ts` pulls from the top-level `katachi` barrel: `export const k = katachi.<name>`.
+- [ ] Kata recipe created and registered in `kata/index.ts` (alphabetical) — **only if the component introduces genuinely new styling not available through composition**
+- [ ] `variants.ts` re-exports from the kata recipe (variant function aliased as `<name>Variants`, slots aliased as `k`). For slots-only recipes, `variants.ts` pulls from the top-level `kata` barrel: `export const k = kata.<name>`.
 - [ ] Component file is named `<name>.tsx` (not `component.tsx`); compound sub-components each live in `<name>-<slot>.tsx`
 - [ ] Component follows conventions (`data-slot`, `cn`, `className` merge, prop spreading, named exports, explicit prop types)
 - [ ] `index.ts` barrel exports all public API (components, prop types, variant types, variant functions, context types/hooks if public)

@@ -2,11 +2,11 @@ import { tv, type VariantProps } from 'tailwind-variants'
 import { sen } from '../sen'
 
 export const gridDivider = tv({
-	base: 'border-0 border-t col-span-full',
+	base: 'border-t col-span-full',
 	variants: {
 		soft: {
-			true: [...sen.borderSubtle],
-			false: [...sen.border],
+			true: [...sen.borderSubtleColor],
+			false: [...sen.borderColor],
 		},
 	},
 	defaultVariants: { soft: false },

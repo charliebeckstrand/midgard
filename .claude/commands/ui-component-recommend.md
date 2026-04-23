@@ -18,7 +18,7 @@ Scan `packages/ui/src/components/` to get the up-to-date list of existing compon
 
 ### 2. Read the existing recipes
 
-Scan `packages/ui/src/recipes/katachi/` to understand what styling recipes already exist — some recipes may exist without a corresponding component, indicating planned or partially built work.
+Scan `packages/ui/src/recipes/kata/` to understand what styling recipes already exist — some recipes may exist without a corresponding component, indicating planned or partially built work.
 
 ### 3. Read the existing primitives and hooks
 
