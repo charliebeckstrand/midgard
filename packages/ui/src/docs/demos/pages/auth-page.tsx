@@ -41,7 +41,7 @@ export default function AuthPageDemo() {
 				<TabContents>
 					<TabContent value="login">
 						<AuthLayout>
-							<form onSubmit={handleSubmit} className="grid gap-8 w-full lg:max-w-sm">
+							<form onSubmit={handleSubmit} className="grid gap-8 w-full sm:max-w-sm px-4">
 								<Heading>Sign in to your account</Heading>
 
 								<Fieldset disabled={submitting} className="grid gap-8">
@@ -63,7 +63,7 @@ export default function AuthPageDemo() {
 					</TabContent>
 					<TabContent value="register">
 						<AuthLayout>
-							<form onSubmit={handleSubmit} className="grid gap-8 w-full lg:max-w-sm">
+							<form onSubmit={handleSubmit} className="grid gap-8 w-full sm:max-w-sm px-4">
 								<Heading>Create your account</Heading>
 
 								<Fieldset disabled={submitting} className="grid gap-8">
@@ -93,7 +93,7 @@ export default function AuthPageDemo() {
 					</TabContent>
 					<TabContent value="forgot-password">
 						<AuthLayout>
-							<form onSubmit={handleSubmit} className="grid gap-8 w-full lg:max-w-sm">
+							<form onSubmit={handleSubmit} className="grid gap-8 w-full sm:max-w-sm px-4">
 								<Heading>Reset your password</Heading>
 
 								<Fieldset disabled={submitting} className="grid gap-8">

@@ -57,7 +57,7 @@ function LoginForm({ showRegisterLink }: { showRegisterLink: boolean }) {
 
 	return (
 		<AuthLayout>
-			<form onSubmit={handleSubmit} className="grid gap-8 w-full lg:max-w-sm">
+			<form onSubmit={handleSubmit} className="grid gap-8 w-full sm:max-w-sm px-4">
 				<Heading className="text-center">Sign in to your account</Heading>
 
 				{serverError && <Text className="text-red-600 dark:text-red-600">{serverError}</Text>}

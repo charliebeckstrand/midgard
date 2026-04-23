@@ -57,7 +57,7 @@ function RegisterForm() {
 
 	return (
 		<AuthLayout>
-			<form onSubmit={handleSubmit} className="grid gap-8 w-full lg:max-w-sm">
+			<form onSubmit={handleSubmit} className="grid gap-8 w-full sm:max-w-sm px-4">
 				<Heading className="text-center">Create your account</Heading>
 
 				{serverError && <Text className="text-red-600 dark:text-red-600">{serverError}</Text>}
