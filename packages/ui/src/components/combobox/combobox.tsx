@@ -11,7 +11,8 @@ import { useControllable } from '../../hooks/use-controllable'
 import { useRoving } from '../../hooks/use-keyboard'
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
 import { ControlFrame, PopoverPanel } from '../../primitives'
-import { kokkaku, waku } from '../../recipes'
+import { kokkaku } from '../../recipes'
+import { control as controlRecipe } from '../../recipes/kata/_control'
 import { useControl } from '../control/context'
 import { useGlass } from '../glass/context'
 import { Icon } from '../icon'
@@ -191,7 +192,10 @@ export function Combobox<T>({
 				className={cn(className)}
 				{...getReferenceProps()}
 			>
-				<ControlFrame data-open={open || undefined} className={cn(!glass && waku.control.surface)}>
+				<ControlFrame
+					data-open={open || undefined}
+					className={cn(!glass && controlRecipe.surface.default)}
+				>
 					<input
 						ref={inputRef}
 						type={inputType}

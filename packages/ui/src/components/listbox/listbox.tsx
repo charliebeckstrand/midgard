@@ -9,7 +9,8 @@ import { cn, createContext } from '../../core'
 import { useFloatingUI } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { ControlFrame, PopoverPanel } from '../../primitives'
-import { iro, kokkaku, waku } from '../../recipes'
+import { iro, kokkaku } from '../../recipes'
+import { control as controlRecipe } from '../../recipes/kata/_control'
 import { useControl } from '../control/context'
 import { useGlass } from '../glass/context'
 import { Icon } from '../icon'
@@ -142,7 +143,10 @@ export function Listbox<T>({
 				className={cn(className)}
 				{...getReferenceProps()}
 			>
-				<ControlFrame data-open={open || undefined} className={cn(!glass && waku.control.surface)}>
+				<ControlFrame
+					data-open={open || undefined}
+					className={cn(!glass && controlRecipe.surface.default)}
+				>
 					<button
 						ref={triggerRef}
 						id={resolvedId}

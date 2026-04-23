@@ -1,15 +1,19 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { omote } from '../omote'
+import { ji } from '../ji'
+import { maru } from '../maru'
 import { sen } from '../sen'
-import { waku } from '../waku'
+import { control } from './_control'
+
+// Default control density for textarea (size isn't variable here).
+const density = ['px-[calc(--spacing(3)-1px)] py-[calc(--spacing(2)-1px)]', ji.size.md]
 
 export const textarea = tv({
-	base: [waku.input, 'min-h-9'],
+	base: ['block', ...control.field, ...density, maru.rounded.lg, 'min-h-9'],
 	variants: {
 		variant: {
 			default: [],
 			outline: [],
-			glass: [...omote.glass],
+			glass: control.surface.glass,
 		},
 		resize: {
 			none: 'resize-none',
@@ -24,8 +28,8 @@ export const textarea = tv({
 export const textareaControl = tv({
 	variants: {
 		variant: {
-			default: [...waku.control.surface],
-			outline: [...sen.borderEmphasis, 'hover:border-zinc-950/30', 'dark:hover:border-white/30'],
+			default: control.surface.default,
+			outline: control.surface.outline,
 			glass: [],
 		},
 	},

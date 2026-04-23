@@ -1,10 +1,9 @@
 import { tv, type VariantProps } from 'tailwind-variants'
 import { defineColors, mode } from '../../core/recipe/mode'
 import { iro } from '../iro'
-import { ki } from '../ki'
 import { maru } from '../maru'
 import { sen } from '../sen'
-import { waku } from '../waku'
+import { control } from './_control'
 
 const color = defineColors({
 	zinc: {
@@ -52,7 +51,7 @@ const track = [...mode('bg-zinc-200', 'dark:bg-white/10'), ...sen.ringInset]
 export const switchRecipe = tv({
 	base: [
 		'relative inline-flex shrink-0 items-center',
-		ki.outline,
+		sen.focus.outline,
 		'cursor-pointer',
 		'has-checked:*:data-[slot=switch-thumb]:bg-(--switch)',
 		'has-checked:*:data-[slot=switch-thumb]:shadow-(--switch-shadow)',
@@ -87,7 +86,7 @@ export const switchRecipe = tv({
 	defaultVariants: { color: 'zinc', size: 'md' },
 })
 
-export const switchInput = tv({ base: waku.hidden })
+export const switchInput = tv({ base: control.check.hidden })
 
 export const switchThumb = tv({
 	base: [

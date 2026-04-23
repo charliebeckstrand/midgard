@@ -1,9 +1,9 @@
 import { tv, type VariantProps } from 'tailwind-variants'
 import { defineColors } from '../../core/recipe/mode'
 import { iro } from '../iro'
-import { ki } from '../ki'
 import { kumi } from '../kumi'
-import { waku } from '../waku'
+import { sen } from '../sen'
+import { control } from './_control'
 
 const color = defineColors({
 	zinc: {
@@ -25,10 +25,10 @@ export const checkbox = tv({
 		kumi.center,
 		'relative',
 		'size-4.5',
-		ki.outline,
+		sen.focus.outline,
 		'cursor-pointer',
 		'has-checked:*:data-[slot=checkbox-check]:opacity-100',
-		...waku.checkSurface,
+		...control.check.surface,
 		'rounded-[--spacing(1)]',
 		'[--checkbox-checked-border:transparent]',
 		'has-checked:bg-(--checkbox-checked-bg) has-checked:border-(--checkbox-checked-border)',
@@ -40,7 +40,7 @@ export const checkbox = tv({
 	defaultVariants: { color: 'zinc' },
 })
 
-export const checkboxInput = tv({ base: waku.hidden })
+export const checkboxInput = tv({ base: control.check.hidden })
 
 export const slots = { disabled: iro.text.disabled }
 

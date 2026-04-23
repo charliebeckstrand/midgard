@@ -1,10 +1,10 @@
 import { tv, type VariantProps } from 'tailwind-variants'
 import { defineColors } from '../../core/recipe/mode'
 import { iro } from '../iro'
-import { ki } from '../ki'
 import { kumi } from '../kumi'
 import { maru } from '../maru'
-import { waku } from '../waku'
+import { sen } from '../sen'
+import { control } from './_control'
 
 const color = defineColors({
 	zinc: {
@@ -26,10 +26,10 @@ export const radio = tv({
 		kumi.center,
 		'relative',
 		'size-4.5',
-		ki.outline,
+		sen.focus.outline,
 		'cursor-pointer',
 		'has-checked:*:data-[slot=radio-indicator]:opacity-100',
-		...waku.checkSurface,
+		...control.check.surface,
 		maru.rounded.full,
 		'[--radio-checked-border:transparent]',
 		'has-checked:bg-(--radio-checked-bg) has-checked:border-(--radio-checked-border)',
@@ -41,7 +41,7 @@ export const radio = tv({
 	defaultVariants: { color: 'zinc' },
 })
 
-export const radioInput = tv({ base: waku.hidden })
+export const radioInput = tv({ base: control.check.hidden })
 
 export const slots = { disabled: iro.text.disabled }
 
