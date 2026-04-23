@@ -5,6 +5,10 @@ vi.mock('@floating-ui/react', () => {
 	const noop = () => {}
 	const identity = <T,>(x: T) => x
 
+	type MockContext = { open?: boolean; onOpenChange?: (open: boolean) => void }
+
+	type MockInteraction = { reference?: { onClick?: (e: unknown) => void } }
+
 	return {
 		autoUpdate: noop,
 		FloatingPortal: ({ children }: { children: React.ReactNode }) => children,
@@ -12,9 +16,13 @@ vi.mock('@floating-ui/react', () => {
 		offset: () => ({}),
 		shift: () => ({}),
 		size: () => ({}),
-		useClick: () => ({}),
-		useDismiss: () => ({}),
-		useFloating: () => ({
+		useClick: (ctx: MockContext): MockInteraction => ({
+			reference: {
+				onClick: () => ctx?.onOpenChange?.(!ctx?.open),
+			},
+		}),
+		useDismiss: (): MockInteraction => ({}),
+		useFloating: (opts: MockContext) => ({
 			refs: {
 				setReference: noop,
 				setFloating: noop,
@@ -22,7 +30,7 @@ vi.mock('@floating-ui/react', () => {
 				floating: { current: null },
 			},
 			floatingStyles: {},
-			context: {},
+			context: { open: opts?.open, onOpenChange: opts?.onOpenChange } as MockContext,
 			x: 0,
 			y: 0,
 			strategy: 'absolute',
@@ -31,12 +39,25 @@ vi.mock('@floating-ui/react', () => {
 			isPositioned: true,
 			update: noop,
 		}),
-		useInteractions: () => ({
-			getReferenceProps: identity,
+		useInteractions: (interactions: MockInteraction[] = []) => ({
+			getReferenceProps: (userProps: Record<string, unknown> = {}) => {
+				const merged: Record<string, unknown> = { ...userProps }
+				for (const interaction of interactions) {
+					const onClick = interaction?.reference?.onClick
+					if (typeof onClick === 'function') {
+						const existing = merged.onClick as ((e: unknown) => void) | undefined
+						merged.onClick = (e: unknown) => {
+							existing?.(e)
+							onClick(e)
+						}
+					}
+				}
+				return merged
+			},
 			getFloatingProps: identity,
 			getItemProps: identity,
 		}),
-		useRole: () => ({}),
+		useRole: (): MockInteraction => ({}),
 	}
 })
 
@@ -115,5 +136,116 @@ describe('Calendar', () => {
 		expect(typeof ref.current?.nextMonth).toBe('function')
 
 		expect(typeof ref.current?.openPicker).toBe('function')
+	})
+
+	it('changes the month when the previous / next nav buttons are clicked', async () => {
+		const user = userEvent.setup()
+
+		const defaultValue = new Date(2025, 5, 15)
+
+		renderUI(<Calendar defaultValue={defaultValue} />)
+
+		const heading = screen.getByRole('button', { name: /June 2025/ })
+
+		expect(heading).toBeInTheDocument()
+
+		await user.click(screen.getByLabelText('Next month'))
+
+		expect(screen.getByRole('button', { name: /July 2025/ })).toBeInTheDocument()
+
+		await user.click(screen.getByLabelText('Previous month'))
+
+		expect(screen.getByRole('button', { name: /June 2025/ })).toBeInTheDocument()
+	})
+})
+
+describe('Calendar month/year picker', () => {
+	function openPicker(label: RegExp) {
+		const monthButton = screen.getByRole('button', { name: label })
+
+		return monthButton
+	}
+
+	it('opens the month picker when the header label is clicked', async () => {
+		const user = userEvent.setup()
+
+		const defaultValue = new Date(2025, 5, 15)
+
+		renderUI(<Calendar defaultValue={defaultValue} />)
+
+		await user.click(openPicker(/June 2025/))
+
+		expect(screen.getByRole('button', { name: 'Previous year' })).toBeInTheDocument()
+
+		expect(screen.getByRole('button', { name: 'Next year' })).toBeInTheDocument()
+	})
+
+	it('navigates years inside the month picker', async () => {
+		const user = userEvent.setup()
+
+		const defaultValue = new Date(2025, 5, 15)
+
+		renderUI(<Calendar defaultValue={defaultValue} />)
+
+		await user.click(openPicker(/June 2025/))
+
+		await user.click(screen.getByRole('button', { name: 'Next year' }))
+
+		expect(screen.getByRole('button', { name: '2026' })).toBeInTheDocument()
+
+		await user.click(screen.getByRole('button', { name: 'Previous year' }))
+
+		expect(screen.getByRole('button', { name: '2025' })).toBeInTheDocument()
+	})
+
+	it('switches the calendar month when a month cell is selected', async () => {
+		const user = userEvent.setup()
+
+		const defaultValue = new Date(2025, 5, 15)
+
+		renderUI(<Calendar defaultValue={defaultValue} />)
+
+		await user.click(openPicker(/June 2025/))
+
+		await user.click(screen.getByRole('button', { name: 'Mar' }))
+
+		expect(screen.getByRole('button', { name: /March 2025/ })).toBeInTheDocument()
+	})
+
+	it('opens the year picker from the month picker and navigates decades', async () => {
+		const user = userEvent.setup()
+
+		const defaultValue = new Date(2025, 5, 15)
+
+		renderUI(<Calendar defaultValue={defaultValue} />)
+
+		await user.click(openPicker(/June 2025/))
+
+		await user.click(screen.getByRole('button', { name: '2025' }))
+
+		expect(screen.getByRole('button', { name: 'Previous decade' })).toBeInTheDocument()
+
+		await user.click(screen.getByRole('button', { name: 'Next decade' }))
+
+		expect(screen.getByRole('button', { name: /2030\s*–\s*2039/ })).toBeInTheDocument()
+	})
+
+	it('selects a year and returns to the month picker', async () => {
+		const user = userEvent.setup()
+
+		const defaultValue = new Date(2025, 5, 15)
+
+		renderUI(<Calendar defaultValue={defaultValue} />)
+
+		await user.click(openPicker(/June 2025/))
+
+		await user.click(screen.getByRole('button', { name: '2025' }))
+
+		await user.click(screen.getByRole('button', { name: '2028' }))
+
+		// Back in month picker with the newly selected year
+		expect(screen.getByRole('button', { name: '2028' })).toBeInTheDocument()
+
+		expect(screen.getByRole('button', { name: 'Jan' })).toBeInTheDocument()
 	})
 })

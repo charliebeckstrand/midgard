@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
 	MapGeofence,
 	MapMarker,
@@ -169,6 +169,249 @@ describe('MapShipment', () => {
 		await user.click(pin)
 
 		expect(screen.getByRole('tab', { name: 'Chat' })).toBeInTheDocument()
+	})
+
+	it('renders ETA when supplied', async () => {
+		const user = userEvent.setup()
+
+		const withEta: ShipmentData = {
+			...shipment,
+			eta: new Date(2025, 0, 15, 10, 30).toISOString(),
+		}
+
+		const { container } = renderUI(
+			<MapView>
+				<MapShipment data={withEta} />
+			</MapView>,
+		)
+
+		await waitFor(() => expect(allBySlot(container, 'map-marker').length).toBe(1))
+
+		const pin = bySlot(container, 'map-marker')
+
+		if (!pin) throw new Error('pin missing')
+
+		await user.click(pin)
+
+		expect(screen.getByText('ETA')).toBeInTheDocument()
+	})
+
+	it('falls back to raw ETA when unparsable', async () => {
+		const user = userEvent.setup()
+
+		const withBadEta: ShipmentData = {
+			...shipment,
+			eta: 'not-a-date',
+		}
+
+		const { container } = renderUI(
+			<MapView>
+				<MapShipment data={withBadEta} />
+			</MapView>,
+		)
+
+		await waitFor(() => expect(allBySlot(container, 'map-marker').length).toBe(1))
+
+		const pin = bySlot(container, 'map-marker')
+
+		if (!pin) throw new Error('pin missing')
+
+		await user.click(pin)
+
+		expect(screen.getByText('not-a-date')).toBeInTheDocument()
+	})
+
+	it('shows the empty-details alert when no info rows are present', async () => {
+		const user = userEvent.setup()
+
+		const empty: ShipmentData = { id: 'e', label: 'Empty', position: [0, 0] }
+
+		const { container } = renderUI(
+			<MapView>
+				<MapShipment data={empty} />
+			</MapView>,
+		)
+
+		await waitFor(() => expect(allBySlot(container, 'map-marker').length).toBe(1))
+
+		const pin = bySlot(container, 'map-marker')
+
+		if (!pin) throw new Error('pin missing')
+
+		await user.click(pin)
+
+		expect(screen.getByText('No shipment details available.')).toBeInTheDocument()
+	})
+
+	it('skips the default dialog when onSelect returns false', async () => {
+		const user = userEvent.setup()
+
+		const onSelect = vi.fn(() => false)
+
+		const { container } = renderUI(
+			<MapView>
+				<MapShipment data={shipment} onSelect={onSelect} />
+			</MapView>,
+		)
+
+		await waitFor(() => expect(allBySlot(container, 'map-marker').length).toBe(1))
+
+		const pin = bySlot(container, 'map-marker')
+
+		if (!pin) throw new Error('pin missing')
+
+		await user.click(pin)
+
+		expect(onSelect).toHaveBeenCalledWith(shipment)
+
+		expect(screen.queryByText('Truck 7')).not.toBeInTheDocument()
+	})
+
+	it('closes the dialog via the Close button', async () => {
+		const user = userEvent.setup()
+
+		const { container } = renderUI(
+			<MapView>
+				<MapShipment data={shipment} />
+			</MapView>,
+		)
+
+		await waitFor(() => expect(allBySlot(container, 'map-marker').length).toBe(1))
+
+		const pin = bySlot(container, 'map-marker')
+
+		if (!pin) throw new Error('pin missing')
+
+		await user.click(pin)
+
+		expect(screen.getByText('Truck 7')).toBeInTheDocument()
+
+		await user.click(screen.getByRole('button', { name: 'Close' }))
+
+		await waitFor(() => expect(screen.queryByText('Driver')).not.toBeInTheDocument())
+	})
+
+	it('renders an empty-chat alert when the chat tab has no messages', async () => {
+		const user = userEvent.setup()
+
+		const { container } = renderUI(
+			<MapView>
+				<MapShipment data={shipment} onSendMessage={() => {}} />
+			</MapView>,
+		)
+
+		await waitFor(() => expect(allBySlot(container, 'map-marker').length).toBe(1))
+
+		const pin = bySlot(container, 'map-marker')
+
+		if (!pin) throw new Error('pin missing')
+
+		await user.click(pin)
+
+		await user.click(screen.getByRole('tab', { name: 'Chat' }))
+
+		expect(screen.getByText('No messages yet')).toBeInTheDocument()
+	})
+
+	it('renders existing chat messages with author and timestamp', async () => {
+		const user = userEvent.setup()
+
+		const withMessages: ShipmentData = {
+			...shipment,
+			messages: [
+				{
+					id: 'm1',
+					author: 'me',
+					body: 'Hello driver',
+					timestamp: new Date(2025, 0, 1, 9, 0),
+				},
+				{
+					id: 'm2',
+					author: 'them',
+					body: 'Reply from driver',
+				},
+			],
+		}
+
+		const { container } = renderUI(
+			<MapView>
+				<MapShipment data={withMessages} />
+			</MapView>,
+		)
+
+		await waitFor(() => expect(allBySlot(container, 'map-marker').length).toBe(1))
+
+		const pin = bySlot(container, 'map-marker')
+
+		if (!pin) throw new Error('pin missing')
+
+		await user.click(pin)
+
+		await user.click(screen.getByRole('tab', { name: 'Chat' }))
+
+		expect(screen.getByText('Hello driver')).toBeInTheDocument()
+
+		expect(screen.getByText('Reply from driver')).toBeInTheDocument()
+	})
+
+	it('sends a message via the chat composer', async () => {
+		const user = userEvent.setup()
+
+		const onSendMessage = vi.fn()
+
+		const { container } = renderUI(
+			<MapView>
+				<MapShipment data={shipment} onSendMessage={onSendMessage} />
+			</MapView>,
+		)
+
+		await waitFor(() => expect(allBySlot(container, 'map-marker').length).toBe(1))
+
+		const pin = bySlot(container, 'map-marker')
+
+		if (!pin) throw new Error('pin missing')
+
+		await user.click(pin)
+
+		await user.click(screen.getByRole('tab', { name: 'Chat' }))
+
+		const input = screen.getByLabelText('Message') as HTMLInputElement
+
+		await user.type(input, 'ping')
+
+		await user.type(input, '{Enter}')
+
+		expect(onSendMessage).toHaveBeenCalledWith('ping')
+	})
+
+	it('does not send when the draft is blank', async () => {
+		const user = userEvent.setup()
+
+		const onSendMessage = vi.fn()
+
+		const { container } = renderUI(
+			<MapView>
+				<MapShipment data={shipment} onSendMessage={onSendMessage} />
+			</MapView>,
+		)
+
+		await waitFor(() => expect(allBySlot(container, 'map-marker').length).toBe(1))
+
+		const pin = bySlot(container, 'map-marker')
+
+		if (!pin) throw new Error('pin missing')
+
+		await user.click(pin)
+
+		await user.click(screen.getByRole('tab', { name: 'Chat' }))
+
+		const input = screen.getByLabelText('Message') as HTMLInputElement
+
+		await user.type(input, '   ')
+
+		await user.type(input, '{Enter}')
+
+		expect(onSendMessage).not.toHaveBeenCalled()
 	})
 })
 
