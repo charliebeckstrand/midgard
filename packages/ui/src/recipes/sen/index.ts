@@ -1,9 +1,10 @@
 /**
  * Sen (線) — Lines.
  *
- * Borders, rings, and dividers — how an element draws its edges.
- * Each entry bundles line structure (width / orientation) with its default
- * colour; colour-only variants live alongside for overrides.
+ * Borders, rings, dividers, focus indicators, and forced-colors safety nets —
+ * how an element draws its edges. Each entry bundles line structure
+ * (width / orientation) with its default colour; colour-only variants live
+ * alongside for overrides.
  *
  * Tier: 1 · Concern: lines
  */
@@ -86,4 +87,38 @@ export const sen = {
 	ringHover: [motoi.ring, hiru.ringHover, yoru.ringHover],
 	/** Top divider — `border-t` with subtle colour. */
 	divider: [motoi.divider, hiru.borderSubtle, yoru.borderSubtle],
+
+	/**
+	 * Focus indicators — how an element signals keyboard focus.
+	 * Was previously the standalone `ki` recipe.
+	 */
+	focus: {
+		ring: 'outline-none focus-visible:ring-2 focus-visible:ring-blue-600',
+		inset: 'outline-none focus-visible:ring-2 ring-inset focus-visible:ring-blue-600',
+		offset:
+			'outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-600',
+		outline:
+			'has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-blue-600',
+		indicator: 'not-data-current:focus-visible:after:bg-blue-600',
+		lifted: 'z-10 shadow-md focus-visible:ring-violet-600',
+	},
+
+	/**
+	 * Forced-colors (Windows High Contrast Mode) safety nets — restore visible
+	 * edges and semantic colour when the browser strips author colours.
+	 * Was previously the standalone `kyousei` recipe.
+	 */
+	forced: {
+		/** Panel outline — restores a visible edge when backgrounds are stripped. */
+		outline: 'forced-colors:outline',
+		/** Item text — preserves semantic foreground colour. */
+		text: 'forced-color-adjust-none forced-colors:text-[CanvasText]',
+		/** Focus state — maps to system highlight colours. */
+		focus: 'forced-colors:focus:bg-[Highlight] forced-colors:focus:text-[HighlightText]',
+		/** Form control — restores native appearance and checked-state visibility. */
+		control:
+			'forced-colors:opacity-100 forced-colors:appearance-auto forced-colors:checked:appearance-auto',
+		/** Icon slot — keeps data-slot=icon children on CanvasText. */
+		icon: 'forced-colors:*:data-[slot=icon]:text-[CanvasText]',
+	},
 } as const

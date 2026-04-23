@@ -1,23 +1,9 @@
 /**
- * Kyousei (強制) — Forced.
- *
- * Defensive classes for Windows High Contrast Mode (the `forced-colors:` media
- * query), where the browser overrides author colours with system colours.
- * Each key maps one affordance to the class fragment that preserves it.
- *
- * Tier: 1 · Concern: forced-colors
+ * @deprecated Use `sen.forced` instead. This shim exists only to keep existing
+ * imports working during the recipe-system migration; it will be removed in
+ * the cleanup phase.
  */
 
-export const kyousei = {
-	/** Panel outline — restores a visible edge when backgrounds are stripped. */
-	outline: 'forced-colors:outline',
-	/** Item text — preserves semantic foreground colour. */
-	text: 'forced-color-adjust-none forced-colors:text-[CanvasText]',
-	/** Focus state — maps to system highlight colours. */
-	focus: 'forced-colors:focus:bg-[Highlight] forced-colors:focus:text-[HighlightText]',
-	/** Form control — restores native appearance and checked-state visibility. */
-	control:
-		'forced-colors:opacity-100 forced-colors:appearance-auto forced-colors:checked:appearance-auto',
-	/** Icon slot — keeps data-slot=icon children on CanvasText. */
-	icon: 'forced-colors:*:data-[slot=icon]:text-[CanvasText]',
-} as const
+import { sen } from './sen'
+
+export const kyousei = sen.forced
