@@ -2,12 +2,7 @@ import { iro } from '../iro'
 import { kyousei } from '../kyousei'
 import { take } from '../take'
 
-export const item = [
-	iro.text.icon,
-	take.icon.md,
-	kyousei.icon,
-	'*:data-[slot=avatar]:-mx-0.5 *:data-[slot=avatar]:size-6',
-]
+export const item = [take.icon.md, iro.text.icon, kyousei.icon]
 
 /** Truncated description with a spacer pseudo-element for overflow. */
 export const description = [

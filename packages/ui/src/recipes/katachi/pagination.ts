@@ -4,7 +4,6 @@ import { ji } from '../ji'
 import { ki } from '../ki'
 import { kumi } from '../kumi'
 import { maru } from '../maru'
-import { sawari } from '../sawari'
 import { yasumi } from '../yasumi'
 
 export const pagination = tv({ base: ['flex items-center list-none', kumi.gap.sm] })
@@ -19,9 +18,8 @@ export const pageButton = tv({
 		'p-2',
 		ji.size.sm,
 		'font-medium',
-		ki.ring,
 		maru.rounded.lg,
-		sawari.cursor,
+		ki.ring,
 	],
 	variants: {
 		current: {
@@ -51,6 +49,5 @@ export const slots = {
 		ki.ring,
 		...yasumi.disabled,
 		maru.rounded.lg,
-		sawari.cursor,
 	],
 }

@@ -15,7 +15,7 @@ export const menu = {
 	section: 'first:pt-0 last:pb-0',
 	heading: ['px-3.5 pb-1 pt-2 sm:px-3', 'text-xs/5 font-medium', iro.text.muted],
 	label: 'truncate',
-	description: [iro.text.muted, iro.text.focusGroup, narabi.description],
+	description: [narabi.description, iro.text.muted, 'group-focus/option:text-white'],
 	shortcut: 'ml-auto',
 	separator: sen.divider,
 }

@@ -3,7 +3,6 @@ import { iro } from '../iro'
 import { ki } from '../ki'
 import { kumi } from '../kumi'
 import { maru } from '../maru'
-import { sawari } from '../sawari'
 import { sen } from '../sen'
 import { yasumi } from '../yasumi'
 
@@ -18,7 +17,6 @@ export const tabs = {
 		'font-medium',
 		...iro.text.tab,
 		ki.indicator,
-		sawari.cursor,
 		yasumi.disabled,
 		'outline-none',
 		'after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:rounded-full',

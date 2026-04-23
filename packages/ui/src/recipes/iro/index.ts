@@ -27,8 +27,6 @@ const text = {
 		'focus-visible:not-disabled:text-zinc-950',
 		'dark:focus-visible:not-disabled:text-white',
 	),
-	/** Text inside a focused option — used for description slots. */
-	focusGroup: 'group-focus/option:text-white',
 	/** Inherit text colour with hover effect on non-disabled elements. */
 	inherit: ['text-inherit', 'not-disabled:hover:bg-current/15'],
 	/** Current-tab text colour with hover on non-current siblings. */
@@ -52,7 +50,6 @@ const bg = {
 	panel: mode('bg-white', 'dark:bg-zinc-900'),
 	popover: mode('bg-white/90', 'dark:bg-zinc-800/75'),
 	tint: mode('bg-zinc-950/5', 'dark:bg-white/10'),
-	tintBefore: mode('before:bg-zinc-950/5', 'dark:before:bg-white/10'),
 	skeleton: mode('bg-zinc-200', 'dark:bg-zinc-700'),
 	backdrop: {
 		md: mode('bg-white/50', 'dark:bg-zinc-950/50'),
@@ -65,5 +62,6 @@ const palette = { solid, soft, outline, plain }
 
 export const iro = { bg, text, palette } as const
 
-export type { Color } from './palette'
-export { colors, merge } from './palette'
+export { merge } from './helpers'
+
+export { type Color, colors } from './palette'

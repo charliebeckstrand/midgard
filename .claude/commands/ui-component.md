@@ -120,7 +120,7 @@ Tier 2 (composite):
 - **`kyousei`** — Windows forced-colors defensive classes
 - **`narabi`** — sibling arrangement (`narabi.field`, `narabi.toggle`, `narabi.panel`, `narabi.placement`, `narabi.slide`)
 - **`omote`** — surface chromes (`omote.surface`, `omote.panel.{bg,chrome,base}`, `omote.popover`, `omote.glass`, `omote.backdrop.{base,glass}`, `omote.content`, `omote.tint`, `omote.skeleton`)
-- **`sawari`** — hover / press / selection feedback (`sawari.item`, `sawari.nav`, `sawari.navItem`, `sawari.cursor`)
+- **`sawari`** — hover / press / selection feedback (`sawari.item`, `sawari.nav`, `sawari.nav`)
 - **`ugoki`** — Framer Motion choreography configs
 - **`waku`** — form frames (`waku.control`, `waku.input`, `waku.inputBase`, `waku.check`, `waku.checkSurface`, `waku.hidden`, `waku.date`, `waku.number`)
 

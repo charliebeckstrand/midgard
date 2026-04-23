@@ -2,7 +2,6 @@ import { tv, type VariantProps } from 'tailwind-variants'
 import { iro } from '../iro'
 import { ji } from '../ji'
 import { kumi } from '../kumi'
-import { sawari } from '../sawari'
 
 export const breadcrumb = tv({ base: '' })
 
@@ -26,7 +25,7 @@ export const breadcrumbLink = tv({
 	variants: {
 		current: {
 			true: [iro.text.default, 'font-normal'],
-			false: [iro.text.muted, sawari.cursor, 'hover:text-zinc-950', 'dark:hover:text-white'],
+			false: [iro.text.muted, 'hover:text-zinc-950', 'dark:hover:text-white'],
 		},
 	},
 	defaultVariants: { current: false },

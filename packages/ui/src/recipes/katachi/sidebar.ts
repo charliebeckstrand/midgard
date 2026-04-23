@@ -7,15 +7,14 @@ import { sen } from '../sen'
 export const sidebar = {
 	base: ['overflow-y-auto overscroll-none', 'flex flex-col gap-y-4', 'h-full', 'px-4 py-6'],
 	item: [
-		...sawari.navItem,
+		...sawari.nav,
 		'group relative',
 		'flex w-full items-center',
 		kumi.gap.md,
-		'px-2 py-2',
+		'p-2',
 		maru.rounded.lg,
 		ji.size.md,
 		'text-left font-medium',
-		sawari.cursor,
 	],
 	section: ['flex flex-col', kumi.gap.xs],
 	label: ['truncate'],

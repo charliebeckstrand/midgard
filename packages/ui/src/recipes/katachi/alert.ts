@@ -4,7 +4,6 @@ import { iro, merge } from '../iro'
 import { ji } from '../ji'
 import { kumi } from '../kumi'
 import { maru } from '../maru'
-import { sawari } from '../sawari'
 
 const { solid, soft, outline, plain } = iro.palette
 
@@ -37,7 +36,7 @@ export const slots = {
 	description: '',
 	content: 'flex flex-col flex-1 min-w-0',
 	actions: ['mt-2 flex items-center', kumi.gap.sm],
-	close: ['shrink-0', maru.rounded.md, sawari.cursor],
+	close: ['shrink-0', maru.rounded.md],
 }
 
 export type AlertVariants = VariantProps<typeof alert>

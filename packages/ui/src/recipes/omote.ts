@@ -28,7 +28,7 @@ export const omote = {
 		base: [sen.ring, kyousei.outline, iro.bg.panel],
 	},
 	/** Floating popover surface — translucent fill + ring + blur. */
-	popover: [garasu.md, iro.bg.popover, sen.ring, 'dark:ring-inset'],
+	popover: [garasu.md, iro.bg.popover, sen.ring],
 	/** Fully transparent glass surface — blur only. */
 	glass: ['bg-transparent', garasu.md],
 	/** Backdrop fills (modal / sheet overlays). */
@@ -40,8 +40,6 @@ export const omote = {
 	content: ['lg:rounded-lg', 'lg:shadow-xs', 'lg:bg-white', 'dark:lg:bg-zinc-900'],
 	/** Subtle tinted overlay — used for raised / striped rows. */
 	tint: iro.bg.tint,
-	/** Tint applied via `::before` — for overlays that shouldn't stack children. */
-	tintBefore: iro.bg.tintBefore,
-	/** Loading skeleton background — pulse + muted fill. */
-	skeleton: ['animate-pulse', iro.bg.skeleton],
+	/** Loading skeleton background. */
+	skeleton: [iro.bg.skeleton, 'animate-pulse'],
 } as const

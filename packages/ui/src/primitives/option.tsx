@@ -49,7 +49,7 @@ export function BaseOption({
 					if (!disabled) onSelect()
 				}
 			}}
-			className={cn(k.base, k.check)}
+			className={cn(k.base)}
 			{...props}
 		>
 			<span className={cn(className, sharedClasses)}>{children}</span>
@@ -60,9 +60,7 @@ export function BaseOption({
 
 /** Primary label for a select-like option. */
 export function OptionLabel({ className, ...props }: React.ComponentPropsWithoutRef<'span'>) {
-	return (
-		<span {...props} className={cn(k.label, 'group-data-selected/option:font-bold', className)} />
-	)
+	return <span {...props} className={cn(k.label, className)} />
 }
 
 /** Secondary description for a select-like option. */

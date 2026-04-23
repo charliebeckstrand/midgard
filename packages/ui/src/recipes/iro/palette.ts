@@ -1,8 +1,4 @@
-/** Palette-keyed variant matrices — composed by buttons and badges. */
-
 import { defineColors } from '../../core/recipe/mode'
-
-// ── Base colour palette ──────────────────────────────────
 
 export const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 
@@ -10,20 +6,23 @@ export type Color = (typeof colors)[number]
 
 // ── Shared slots ────────────────────────────────────────
 
-const paletteText = defineColors({
-	zinc: { light: 'text-zinc-700', dark: 'dark:text-zinc-300' },
+const text = defineColors({
+	zinc: { light: 'text-zinc-700', dark: 'dark:text-zinc-400' },
 	red: { light: 'text-red-700', dark: 'dark:text-red-400' },
 	amber: { light: 'text-amber-700', dark: 'dark:text-amber-400' },
 	green: { light: 'text-green-700', dark: 'dark:text-green-400' },
 	blue: { light: 'text-blue-700', dark: 'dark:text-blue-400' },
 })
 
-const subtleHover = defineColors({
+const hover = defineColors({
 	zinc: {
 		light: 'not-disabled:hover:bg-zinc-600/15',
 		dark: 'dark:not-disabled:hover:bg-zinc-500/15',
 	},
-	red: { light: 'not-disabled:hover:bg-red-600/15', dark: 'dark:not-disabled:hover:bg-red-500/15' },
+	red: {
+		light: 'not-disabled:hover:bg-red-600/15',
+		dark: 'dark:not-disabled:hover:bg-red-500/15',
+	},
 	amber: {
 		light: 'not-disabled:hover:bg-amber-500/15',
 		dark: 'dark:not-disabled:hover:bg-amber-500/15',
@@ -68,35 +67,14 @@ export const solid = {
 
 export const soft = {
 	bg: defineColors({
-		zinc: 'bg-zinc-600/10',
-		red: 'bg-red-600/10',
-		amber: 'bg-amber-500/10',
-		green: 'bg-green-600/10',
-		blue: 'bg-blue-600/10',
+		zinc: 'bg-zinc-600/15',
+		red: 'bg-red-600/15',
+		amber: 'bg-amber-500/15',
+		green: 'bg-green-600/15',
+		blue: 'bg-blue-600/15',
 	}),
-	text: paletteText,
-	hover: defineColors({
-		zinc: {
-			light: 'not-disabled:hover:bg-zinc-600/30',
-			dark: 'dark:not-disabled:hover:bg-zinc-500/30',
-		},
-		red: {
-			light: 'not-disabled:hover:bg-red-600/30',
-			dark: 'dark:not-disabled:hover:bg-red-500/30',
-		},
-		amber: {
-			light: 'not-disabled:hover:bg-amber-500/30',
-			dark: 'dark:not-disabled:hover:bg-amber-500/30',
-		},
-		green: {
-			light: 'not-disabled:hover:bg-green-600/30',
-			dark: 'dark:not-disabled:hover:bg-green-500/30',
-		},
-		blue: {
-			light: 'not-disabled:hover:bg-blue-600/30',
-			dark: 'dark:not-disabled:hover:bg-blue-500/30',
-		},
-	}),
+	text,
+	hover,
 }
 
 // ── Outline ─────────────────────────────────────────────
@@ -116,26 +94,13 @@ export const outline = {
 		green: { light: 'ring-green-600', dark: 'dark:ring-green-700' },
 		blue: { light: 'ring-blue-600', dark: 'dark:ring-blue-700' },
 	}),
-	text: paletteText,
-	hover: subtleHover,
+	text,
+	hover,
 }
 
 // ── Plain ───────────────────────────────────────────────
 
 export const plain = {
-	text: paletteText,
-	hover: subtleHover,
-}
-
-// ── Helpers ─────────────────────────────────────────────
-
-/** Merges two or more colour maps with matching keys. */
-export function merge<K extends string>(
-	...maps: [Record<K, string[]>, ...Record<K, string[]>[]]
-): Record<K, string[]> {
-	const [first] = maps
-
-	return Object.fromEntries(
-		(Object.keys(first) as K[]).map((k) => [k, maps.flatMap((m) => m[k])]),
-	) as Record<K, string[]>
+	text,
+	hover,
 }

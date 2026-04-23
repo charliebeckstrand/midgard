@@ -20,13 +20,12 @@ const motoi = {
 	item: [
 		'sm:py-1.5 py-2.5',
 		'outline-hidden',
-		'cursor-default',
 		ji.size.md,
 		kyousei.text,
 		kyousei.focus,
 		yasumi.disabled,
 	],
-	nav: [take.icon.md, '*:data-[slot=avatar]:-m-0.5 *:data-[slot=avatar]:size-7'],
+	nav: [take.icon.md],
 }
 
 // ── Hiru (昼) ───────────────────────────────────────────
@@ -53,6 +52,5 @@ const item = [iro.text.default, maru.rounded.lg, motoi.item, hiru.item, yoru.ite
 // ── Export ───────────────────────────────────────────────
 export const sawari = {
 	item,
-	navItem: [motoi.nav, hiru.nav, yoru.nav, ki.inset],
-	cursor: 'cursor-default',
+	nav: [motoi.nav, hiru.nav, yoru.nav, ki.inset],
 }

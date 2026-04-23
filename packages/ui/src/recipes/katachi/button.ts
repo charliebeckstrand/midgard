@@ -5,7 +5,6 @@ import { ji } from '../ji'
 import { ki } from '../ki'
 import { kumi } from '../kumi'
 import { maru } from '../maru'
-import { sawari } from '../sawari'
 import { take } from '../take'
 import { yasumi } from '../yasumi'
 
@@ -70,7 +69,7 @@ export const button = tv({
 		maru.rounded.lg,
 		ki.inset,
 		...yasumi.disabled,
-		sawari.cursor,
+		'cursor-pointer',
 	],
 	variants: {
 		variant: {
