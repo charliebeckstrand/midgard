@@ -1,6 +1,12 @@
+import type { PointerEvent as ReactPointerEvent } from 'react'
 import { createRef } from 'react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { SignaturePad, type SignaturePadHandle } from '../../components/signature-pad'
+import {
+	configureStroke,
+	drawSnapshot,
+	getCanvasPoint,
+} from '../../components/signature-pad/utilities'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('SignaturePad', () => {
@@ -85,5 +91,96 @@ describe('SignaturePad', () => {
 			'aria-label',
 			'Customer signature',
 		)
+	})
+})
+
+describe('getCanvasPoint', () => {
+	it('returns null when the canvas is missing', () => {
+		const event = { clientX: 10, clientY: 20 } as ReactPointerEvent
+
+		expect(getCanvasPoint(null, event)).toBeNull()
+	})
+
+	it('returns a canvas-relative point when the canvas is provided', () => {
+		const canvas = document.createElement('canvas')
+
+		canvas.getBoundingClientRect = () => ({
+			x: 5,
+			y: 10,
+			left: 5,
+			top: 10,
+			right: 105,
+			bottom: 110,
+			width: 100,
+			height: 100,
+			toJSON: () => ({}),
+		})
+
+		const event = { clientX: 25, clientY: 30 } as ReactPointerEvent
+
+		expect(getCanvasPoint(canvas, event)).toEqual({ x: 20, y: 20 })
+	})
+})
+
+describe('configureStroke', () => {
+	it('assigns stroke properties to the context', () => {
+		const ctx = {
+			lineCap: '',
+			lineJoin: '',
+			strokeStyle: '',
+			lineWidth: 0,
+		} as unknown as CanvasRenderingContext2D
+
+		configureStroke(ctx, '#ff0000', 3)
+
+		expect(ctx.lineCap).toBe('round')
+
+		expect(ctx.lineJoin).toBe('round')
+
+		expect(ctx.strokeStyle).toBe('#ff0000')
+
+		expect(ctx.lineWidth).toBe(3)
+	})
+})
+
+describe('drawSnapshot', () => {
+	it('is a no-op when the canvas has no 2d context', () => {
+		const canvas = document.createElement('canvas')
+
+		canvas.getContext = () => null
+
+		expect(() => drawSnapshot(canvas, 'data:,')).not.toThrow()
+	})
+
+	it('draws the loaded image onto the canvas at its CSS dimensions', () => {
+		const canvas = document.createElement('canvas')
+
+		const drawImage = vi.fn()
+
+		canvas.getContext = (() =>
+			({
+				drawImage,
+			}) as unknown as CanvasRenderingContext2D) as unknown as HTMLCanvasElement['getContext']
+
+		canvas.getBoundingClientRect = () => ({ width: 200, height: 80 }) as DOMRect
+
+		let captured: HTMLImageElement | null = null
+
+		const Original = window.Image
+
+		window.Image = class extends Original {
+			constructor() {
+				super()
+				captured = this as unknown as HTMLImageElement
+			}
+		} as typeof Image
+
+		drawSnapshot(canvas, 'data:,hello')
+
+		window.Image = Original
+
+		;(captured as HTMLImageElement | null)?.onload?.(new Event('load'))
+
+		expect(drawImage).toHaveBeenCalled()
 	})
 })

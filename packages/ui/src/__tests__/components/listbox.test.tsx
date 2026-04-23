@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Listbox, ListboxVirtualOptions } from '../../components/listbox'
+import { resolveLabel } from '../../components/listbox/utilities'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Listbox', () => {
@@ -94,5 +95,53 @@ describe('Listbox', () => {
 
 		expect(bySlot(container, 'virtual-options')).toBeInTheDocument()
 		expect(container.querySelectorAll('[role="option"]').length).toBeLessThanOrEqual(items.length)
+	})
+})
+
+describe('resolveLabel', () => {
+	it('returns undefined when value is undefined in single-select mode', () => {
+		expect(resolveLabel({ value: undefined, multiple: false })).toBeUndefined()
+	})
+
+	it('returns the displayValue result in single-select mode', () => {
+		expect(
+			resolveLabel({
+				value: { id: 1, name: 'Alice' },
+				displayValue: (v) => v.name,
+				multiple: false,
+			}),
+		).toBe('Alice')
+	})
+
+	it('returns undefined when the multi-select array is empty', () => {
+		expect(resolveLabel({ value: [], multiple: true })).toBeUndefined()
+	})
+
+	it('joins displayValue results with commas when multi-select has up to three items', () => {
+		expect(
+			resolveLabel({
+				value: ['a', 'b'],
+				displayValue: (v) => v.toUpperCase(),
+				multiple: true,
+			}),
+		).toBe('A, B')
+	})
+
+	it('falls back to the count label when no displayValue is provided', () => {
+		expect(resolveLabel({ value: ['a', 'b'], multiple: true })).toBe('2 selected')
+	})
+
+	it('uses the count label when more than three items are selected', () => {
+		expect(
+			resolveLabel({
+				value: ['a', 'b', 'c', 'd'],
+				displayValue: (v) => v,
+				multiple: true,
+			}),
+		).toBe('4 selected')
+	})
+
+	it('treats a non-array value as empty in multi-select mode', () => {
+		expect(resolveLabel({ value: 'a', multiple: true })).toBeUndefined()
 	})
 })

@@ -13,6 +13,9 @@ next-env.d.ts
 # build
 dist/
 
+# test coverage
+coverage/
+
 # env
 .env
 .env*.local

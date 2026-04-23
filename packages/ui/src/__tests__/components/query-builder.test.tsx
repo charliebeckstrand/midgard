@@ -3,13 +3,16 @@ import {
 	addChild,
 	createGroup,
 	createRule,
+	getOperators,
 	mapNode,
 	QueryBuilder,
 	type QueryField,
 	type QueryGroupNode,
+	QueryRuleValue,
 	removeChild,
 } from '../../components/query-builder'
-import { bySlot, renderUI, screen } from '../helpers'
+import { hasRules } from '../../components/query-builder/utilities'
+import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 const fields: QueryField[] = [
 	{ name: 'name', label: 'Name', type: 'text' },
@@ -185,6 +188,240 @@ describe('query-builder utilities', () => {
 			const innerNext = next.children[1] as QueryGroupNode
 
 			expect(innerNext.children).toHaveLength(0)
+		})
+	})
+
+	describe('createRule', () => {
+		it('builds an empty rule when no field is supplied', () => {
+			const rule = createRule()
+
+			expect(rule.type).toBe('rule')
+
+			expect(rule.combinator).toBe('and')
+
+			expect(rule.field).toBe('')
+
+			expect(rule.operator).toBe('')
+
+			expect(rule.value).toBe('')
+		})
+
+		it('derives the default operator from the field type', () => {
+			const rule = createRule({ name: 'age', label: 'Age', type: 'number' })
+
+			expect(rule.field).toBe('age')
+
+			expect(rule.operator).toBe('equals')
+		})
+
+		it('uses the first option value as default for select fields', () => {
+			const rule = createRule({
+				name: 'status',
+				label: 'Status',
+				type: 'select',
+				options: [
+					{ value: 'open', label: 'Open' },
+					{ value: 'closed', label: 'Closed' },
+				],
+			})
+
+			expect(rule.value).toBe('open')
+		})
+
+		it('defaults boolean fields to null', () => {
+			const rule = createRule({ name: 'active', label: 'Active', type: 'boolean' })
+
+			expect(rule.value).toBeNull()
+		})
+
+		it('respects the provided combinator', () => {
+			const rule = createRule(undefined, 'or')
+
+			expect(rule.combinator).toBe('or')
+		})
+	})
+
+	describe('createGroup', () => {
+		it('builds a group with default combinator "and"', () => {
+			const group = createGroup()
+
+			expect(group.type).toBe('group')
+
+			expect(group.combinator).toBe('and')
+
+			expect(group.children).toEqual([])
+		})
+
+		it('preserves children and a custom combinator', () => {
+			const child = createRule()
+
+			const group = createGroup('or', [child])
+
+			expect(group.combinator).toBe('or')
+
+			expect(group.children).toEqual([child])
+		})
+	})
+
+	describe('getOperators', () => {
+		it('returns field-defined operators when provided', () => {
+			const field: QueryField = {
+				name: 'x',
+				label: 'X',
+				type: 'text',
+				operators: [{ value: 'custom', label: 'custom' }],
+			}
+
+			expect(getOperators(field)).toHaveLength(1)
+
+			expect(getOperators(field)[0]?.value).toBe('custom')
+		})
+
+		it('falls back to the default operators for the field type', () => {
+			const field: QueryField = { name: 'age', label: 'Age', type: 'number' }
+
+			const ops = getOperators(field)
+
+			expect(ops.map((o) => o.value)).toContain('gte')
+		})
+	})
+
+	describe('QueryRuleValue', () => {
+		it('renders a text Input for text fields and emits string changes', () => {
+			const field: QueryField = { name: 'name', label: 'Name', type: 'text' }
+
+			const onChange = vi.fn()
+
+			const { container } = renderUI(
+				<QueryRuleValue field={field} value="hi" onChange={onChange} />,
+			)
+
+			const input = container.querySelector('input') as HTMLInputElement
+
+			expect(input).toHaveAttribute('type', 'text')
+
+			expect(input.value).toBe('hi')
+
+			fireEvent.change(input, { target: { value: 'bye' } })
+
+			expect(onChange).toHaveBeenCalledWith('bye')
+		})
+
+		it('renders a number Input and emits numeric changes', () => {
+			const field: QueryField = { name: 'age', label: 'Age', type: 'number' }
+
+			const onChange = vi.fn()
+
+			const { container } = renderUI(
+				<QueryRuleValue field={field} value={10} onChange={onChange} />,
+			)
+
+			const input = container.querySelector('input') as HTMLInputElement
+
+			expect(input).toHaveAttribute('type', 'number')
+
+			expect(input.value).toBe('10')
+
+			fireEvent.change(input, { target: { value: '42' } })
+
+			expect(onChange).toHaveBeenCalledWith(42)
+		})
+
+		it('emits empty string for empty numeric input', () => {
+			const field: QueryField = { name: 'age', label: 'Age', type: 'number' }
+
+			const onChange = vi.fn()
+
+			const { container } = renderUI(<QueryRuleValue field={field} value={3} onChange={onChange} />)
+
+			const input = container.querySelector('input') as HTMLInputElement
+
+			fireEvent.change(input, { target: { value: '' } })
+
+			expect(onChange).toHaveBeenCalledWith('')
+		})
+
+		it('renders empty number input when value is null', () => {
+			const field: QueryField = { name: 'age', label: 'Age', type: 'number' }
+
+			const { container } = renderUI(
+				<QueryRuleValue field={field} value={null} onChange={() => {}} />,
+			)
+
+			const input = container.querySelector('input') as HTMLInputElement
+
+			expect(input.value).toBe('')
+		})
+
+		it('renders a Select for select fields', () => {
+			const field: QueryField = {
+				name: 'status',
+				label: 'Status',
+				type: 'select',
+				options: [
+					{ value: 'open', label: 'Open' },
+					{ value: 'closed', label: 'Closed' },
+				],
+			}
+
+			const { container } = renderUI(
+				<QueryRuleValue field={field} value="open" onChange={() => {}} />,
+			)
+
+			const button = container.querySelector('button[aria-haspopup="listbox"]')
+
+			expect(button).toBeInTheDocument()
+		})
+
+		it('does not render a text input for date fields', () => {
+			const field: QueryField = { name: 'start', label: 'Start', type: 'date' }
+
+			const { container } = renderUI(
+				<QueryRuleValue field={field} value="2024-03-05" onChange={() => {}} />,
+			)
+
+			const textInput = container.querySelector('input[type="text"]')
+
+			expect(textInput).not.toBeInTheDocument()
+		})
+
+		it('falls back to a text input for unknown field types', () => {
+			const field: QueryField = { name: 'x', label: 'X', type: 'boolean' }
+
+			const { container } = renderUI(
+				<QueryRuleValue field={field} value={undefined} onChange={() => {}} />,
+			)
+
+			const input = container.querySelector('input') as HTMLInputElement
+
+			expect(input).toHaveAttribute('type', 'text')
+
+			expect(input.value).toBe('')
+		})
+	})
+
+	describe('hasRules', () => {
+		it('returns false for an empty group', () => {
+			expect(hasRules(createGroup())).toBe(false)
+		})
+
+		it('returns true when a direct child is a rule', () => {
+			const group = createGroup('and', [createRule()])
+
+			expect(hasRules(group)).toBe(true)
+		})
+
+		it('returns true when a rule is nested in a subgroup', () => {
+			const inner = createGroup('and', [createRule()])
+			const outer = createGroup('and', [inner])
+
+			expect(hasRules(outer)).toBe(true)
+		})
+
+		it('returns false when only empty subgroups are present', () => {
+			const outer = createGroup('and', [createGroup()])
+
+			expect(hasRules(outer)).toBe(false)
 		})
 	})
 })

@@ -1,9 +1,17 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { JsonTree } from '../../components/json-tree'
+import { JsonNodeRow } from '../../components/json-tree/node-row'
 import {
 	buildSearchIndex,
+	collectPaths,
+	filterEntries,
 	flattenTree,
+	getEntries,
+	isBranch,
+	matchesSearch,
 	normalizeSearch,
+	treeContainsMatch,
+	valueType,
 } from '../../components/json-tree/utilities'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
@@ -159,5 +167,369 @@ describe('json-tree: flattenTree', () => {
 		)
 
 		expect(out.filter((n) => n.kind === 'leaf')).toHaveLength(1)
+	})
+})
+
+describe('json-tree: normalizeSearch', () => {
+	it('returns empty defaults when search is undefined', () => {
+		expect(normalizeSearch(undefined)).toEqual({ value: '', filter: false })
+	})
+
+	it('wraps a string search without enabling filter', () => {
+		expect(normalizeSearch('hello')).toEqual({ value: 'hello', filter: false })
+	})
+
+	it('preserves filter when provided as an object', () => {
+		expect(normalizeSearch({ value: 'x', filter: true })).toEqual({ value: 'x', filter: true })
+	})
+
+	it('defaults object filter to false when omitted', () => {
+		expect(normalizeSearch({ value: 'x' })).toEqual({ value: 'x', filter: false })
+	})
+})
+
+describe('json-tree: isBranch', () => {
+	it('returns true for plain objects', () => {
+		expect(isBranch({ a: 1 })).toBe(true)
+	})
+
+	it('returns true for arrays', () => {
+		expect(isBranch([1, 2])).toBe(true)
+	})
+
+	it('returns false for primitives', () => {
+		expect(isBranch('x')).toBe(false)
+
+		expect(isBranch(1)).toBe(false)
+
+		expect(isBranch(null)).toBe(false)
+	})
+})
+
+describe('json-tree: getEntries', () => {
+	it('returns indexed pairs for arrays', () => {
+		expect(getEntries([10, 20])).toEqual([
+			[0, 10],
+			[1, 20],
+		])
+	})
+
+	it('returns key/value pairs for objects', () => {
+		expect(getEntries({ a: 1, b: 2 })).toEqual([
+			['a', 1],
+			['b', 2],
+		])
+	})
+
+	it('returns an empty array for primitives', () => {
+		expect(getEntries(42)).toEqual([])
+	})
+})
+
+describe('json-tree: matchesSearch', () => {
+	it('returns false when the term is empty', () => {
+		expect(matchesSearch('key', 'value', '')).toBe(false)
+	})
+
+	it('matches on the key', () => {
+		expect(matchesSearch('name', 'Alice', 'NAM')).toBe(true)
+	})
+
+	it('matches on primitive values', () => {
+		expect(matchesSearch('k', 'hello world', 'WORLD')).toBe(true)
+	})
+
+	it('does not match branch values directly', () => {
+		expect(matchesSearch('k', { nested: 'x' }, 'nested')).toBe(false)
+	})
+})
+
+describe('json-tree: treeContainsMatch', () => {
+	it('returns false when the term is empty', () => {
+		expect(treeContainsMatch({ a: 1 }, '')).toBe(false)
+	})
+
+	it('finds matches deep inside nested branches', () => {
+		expect(treeContainsMatch({ outer: { inner: 'needle' } }, 'needle')).toBe(true)
+	})
+
+	it('returns false when nothing matches', () => {
+		expect(treeContainsMatch({ a: 'alpha', b: 'beta' }, 'zzz')).toBe(false)
+	})
+})
+
+describe('json-tree: filterEntries', () => {
+	it('keeps only branches that contain a match when no index is supplied', () => {
+		const entries = getEntries({ a: 1, b: { deep: 'match' } })
+
+		const result = filterEntries(entries, 'match')
+
+		expect(result).toHaveLength(1)
+
+		expect(result[0]?.[0]).toBe('b')
+	})
+
+	it('uses the supplied search index to decide branch inclusion', () => {
+		const data = { a: 1, b: { deep: 'match' } }
+
+		const index = buildSearchIndex(data, 'match')
+
+		const result = filterEntries(getEntries(data), 'match', index)
+
+		expect(result).toHaveLength(1)
+	})
+})
+
+describe('json-tree: collectPaths', () => {
+	it('returns an empty set for primitives', () => {
+		expect(collectPaths('x')).toEqual(new Set())
+	})
+
+	it('collects all branch paths using the default root key', () => {
+		const paths = collectPaths({ outer: { inner: { leaf: 1 } } })
+
+		expect(paths.has('$')).toBe(true)
+
+		expect(paths.has('$.outer')).toBe(true)
+
+		expect(paths.has('$.outer.inner')).toBe(true)
+	})
+
+	it('honors the max depth limit', () => {
+		const paths = collectPaths({ outer: { inner: { leaf: 1 } } }, 'root', 1)
+
+		expect(paths.has('root')).toBe(true)
+
+		expect(paths.has('root.outer')).toBe(false)
+	})
+
+	it('uses the provided root key', () => {
+		const paths = collectPaths({ a: { b: 1 } }, 'top')
+
+		expect(paths.has('top')).toBe(true)
+
+		expect(paths.has('top.a')).toBe(true)
+	})
+})
+
+describe('json-tree: valueType', () => {
+	it('returns "null" for null', () => {
+		expect(valueType(null)).toBe('null')
+	})
+
+	it('returns "string" for strings', () => {
+		expect(valueType('x')).toBe('string')
+	})
+
+	it('returns "number" for numbers', () => {
+		expect(valueType(1)).toBe('number')
+	})
+
+	it('returns "boolean" for booleans', () => {
+		expect(valueType(true)).toBe('boolean')
+	})
+})
+
+describe('JsonNodeRow', () => {
+	it('renders a leaf node with its key and value', () => {
+		const { container } = renderUI(
+			<JsonNodeRow
+				node={{
+					kind: 'leaf',
+					path: 'root.a',
+					keyName: 'a',
+					value: 1,
+					depth: 1,
+					highlighted: false,
+				}}
+				onToggle={() => {}}
+			/>,
+		)
+
+		expect(bySlot(container, 'json-node')).toBeInTheDocument()
+
+		expect(screen.getByText('"a"')).toBeInTheDocument()
+
+		expect(screen.getByText('1')).toBeInTheDocument()
+	})
+
+	it('marks the root leaf as focusable', () => {
+		const { container } = renderUI(
+			<JsonNodeRow
+				node={{
+					kind: 'leaf',
+					path: 'root',
+					keyName: undefined,
+					value: 1,
+					depth: 0,
+					highlighted: false,
+				}}
+				onToggle={() => {}}
+			/>,
+		)
+
+		const node = bySlot(container, 'json-node')
+
+		expect(node).toHaveAttribute('tabindex', '0')
+	})
+
+	it('marks deeper leaves as not tab-navigable', () => {
+		const { container } = renderUI(
+			<JsonNodeRow
+				node={{
+					kind: 'leaf',
+					path: 'root.a',
+					keyName: 'a',
+					value: 1,
+					depth: 1,
+					highlighted: false,
+				}}
+				onToggle={() => {}}
+			/>,
+		)
+
+		expect(bySlot(container, 'json-node')).toHaveAttribute('tabindex', '-1')
+	})
+
+	it('renders a branch-close row with the matching bracket for an array', () => {
+		const { container } = renderUI(
+			<JsonNodeRow
+				node={{ kind: 'branch-close', path: 'root.a', depth: 1, value: [1, 2] }}
+				onToggle={() => {}}
+			/>,
+		)
+
+		const close = bySlot(container, 'json-close')
+
+		expect(close).toBeInTheDocument()
+
+		expect(close?.textContent).toContain(']')
+	})
+
+	it('renders a branch-close row with the matching bracket for an object', () => {
+		const { container } = renderUI(
+			<JsonNodeRow
+				node={{ kind: 'branch-close', path: 'root.a', depth: 1, value: { x: 1 } }}
+				onToggle={() => {}}
+			/>,
+		)
+
+		expect(bySlot(container, 'json-close')?.textContent).toContain('}')
+	})
+
+	it('renders a closed branch-open row with summary and closing bracket when count > 0', () => {
+		const { container } = renderUI(
+			<JsonNodeRow
+				node={{
+					kind: 'branch-open',
+					path: 'root',
+					keyName: undefined,
+					value: [1, 2, 3],
+					depth: 0,
+					open: false,
+					count: 3,
+					highlighted: false,
+				}}
+				onToggle={() => {}}
+			/>,
+		)
+
+		const toggle = bySlot(container, 'json-node-toggle')
+
+		expect(toggle).toHaveAttribute('aria-expanded', 'false')
+
+		expect(screen.getByText('3 items')).toBeInTheDocument()
+
+		expect(container.textContent).toContain(']')
+	})
+
+	it('renders a closed branch-open row without a summary when count = 0', () => {
+		const { container } = renderUI(
+			<JsonNodeRow
+				node={{
+					kind: 'branch-open',
+					path: 'root',
+					keyName: undefined,
+					value: {},
+					depth: 0,
+					open: false,
+					count: 0,
+					highlighted: false,
+				}}
+				onToggle={() => {}}
+			/>,
+		)
+
+		expect(screen.queryByText(/item/)).not.toBeInTheDocument()
+
+		expect(container.textContent).toContain('}')
+	})
+
+	it('pluralises the summary for exactly one item', () => {
+		renderUI(
+			<JsonNodeRow
+				node={{
+					kind: 'branch-open',
+					path: 'root',
+					keyName: undefined,
+					value: [1],
+					depth: 0,
+					open: false,
+					count: 1,
+					highlighted: false,
+				}}
+				onToggle={() => {}}
+			/>,
+		)
+
+		expect(screen.getByText('1 item')).toBeInTheDocument()
+	})
+
+	it('calls onToggle with the node path when the toggle is clicked', () => {
+		const onToggle = vi.fn()
+
+		const { container } = renderUI(
+			<JsonNodeRow
+				node={{
+					kind: 'branch-open',
+					path: 'root.a',
+					keyName: 'a',
+					value: { x: 1 },
+					depth: 1,
+					open: false,
+					count: 1,
+					highlighted: false,
+				}}
+				onToggle={onToggle}
+			/>,
+		)
+
+		const toggle = bySlot(container, 'json-node-toggle') as HTMLButtonElement
+
+		fireEvent.click(toggle)
+
+		expect(onToggle).toHaveBeenCalledWith('root.a')
+	})
+
+	it('sets data-open when the branch is open and omits the summary', () => {
+		const { container } = renderUI(
+			<JsonNodeRow
+				node={{
+					kind: 'branch-open',
+					path: 'root',
+					keyName: undefined,
+					value: { a: 1 },
+					depth: 0,
+					open: true,
+					count: 1,
+					highlighted: false,
+				}}
+				onToggle={() => {}}
+			/>,
+		)
+
+		expect(bySlot(container, 'json-node-toggle')).toHaveAttribute('data-open')
+
+		expect(screen.queryByText('1 item')).not.toBeInTheDocument()
 	})
 })

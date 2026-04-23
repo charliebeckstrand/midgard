@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { List, ListDescription, ListItem, ListLabel } from '../../components/list'
-import { allBySlot, bySlot, renderUI, screen } from '../helpers'
+import { allBySlot, bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 type Item = { id: string; label: string }
 
@@ -133,5 +133,107 @@ describe('ListDescription', () => {
 		const el = bySlot(container, 'list-description')
 
 		expect(el?.className).toContain('custom')
+	})
+})
+
+describe('List keyboard reordering', () => {
+	function renderList(onReorder: (next: Item[]) => void = () => {}) {
+		return renderUI(
+			<List items={items} getKey={(i) => i.id} sortable onReorder={onReorder}>
+				{(item) => <ListItem>{item.label}</ListItem>}
+			</List>,
+		)
+	}
+
+	it('focuses the next item on ArrowDown when not lifted', () => {
+		const { container } = renderList()
+
+		const [first, second] = allBySlot(container, 'list-item')
+
+		first?.focus()
+
+		fireEvent.keyDown(first as HTMLElement, { key: 'ArrowDown' })
+
+		expect(document.activeElement).toBe(second)
+	})
+
+	it('focuses the previous item on ArrowUp when not lifted', () => {
+		const { container } = renderList()
+
+		const listItems = allBySlot(container, 'list-item')
+
+		listItems[1]?.focus()
+
+		fireEvent.keyDown(listItems[1] as HTMLElement, { key: 'ArrowUp' })
+
+		expect(document.activeElement).toBe(listItems[0])
+	})
+
+	it('jumps to the first item on Home', () => {
+		const { container } = renderList()
+
+		const listItems = allBySlot(container, 'list-item')
+
+		listItems[2]?.focus()
+
+		fireEvent.keyDown(listItems[2] as HTMLElement, { key: 'Home' })
+
+		expect(document.activeElement).toBe(listItems[0])
+	})
+
+	it('jumps to the last item on End', () => {
+		const { container } = renderList()
+
+		const listItems = allBySlot(container, 'list-item')
+
+		listItems[0]?.focus()
+
+		fireEvent.keyDown(listItems[0] as HTMLElement, { key: 'End' })
+
+		expect(document.activeElement).toBe(listItems[2])
+	})
+
+	it('moves a lifted item down with ArrowDown and calls onReorder', () => {
+		const onReorder = vi.fn()
+
+		const { container } = renderList(onReorder)
+
+		const first = allBySlot(container, 'list-item')[0] as HTMLElement
+
+		first.focus()
+
+		fireEvent.keyDown(first, { key: ' ' })
+		fireEvent.keyDown(first, { key: 'ArrowDown' })
+
+		expect(onReorder).toHaveBeenCalledOnce()
+
+		expect(onReorder.mock.calls[0]?.[0].map((i: Item) => i.id)).toEqual(['b', 'a', 'c'])
+	})
+
+	it('moves a lifted item up with ArrowUp and calls onReorder', () => {
+		const onReorder = vi.fn()
+
+		const { container } = renderList(onReorder)
+
+		const last = allBySlot(container, 'list-item')[2] as HTMLElement
+
+		last.focus()
+
+		fireEvent.keyDown(last, { key: ' ' })
+		fireEvent.keyDown(last, { key: 'ArrowUp' })
+
+		expect(onReorder.mock.calls[0]?.[0].map((i: Item) => i.id)).toEqual(['a', 'c', 'b'])
+	})
+
+	it('ignores navigation when modifier keys are pressed', () => {
+		const { container } = renderList()
+
+		const first = allBySlot(container, 'list-item')[0] as HTMLElement
+
+		first.focus()
+
+		fireEvent.keyDown(first, { key: 'ArrowDown', shiftKey: true })
+
+		expect(document.activeElement).toBe(first)
 	})
 })

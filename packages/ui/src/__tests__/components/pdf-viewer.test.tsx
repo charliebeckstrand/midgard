@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { PdfViewer, type PdfViewerPage } from '../../components/pdf-viewer'
+import { downloadPdf, printPdf } from '../../components/pdf-viewer/utilities'
 import { useMinWidth } from '../../hooks'
 import { allBySlot, bySlot, renderUI, screen, userEvent, waitFor } from '../helpers'
 
@@ -130,6 +131,42 @@ describe('PdfViewer', () => {
 		expect(screen.getByLabelText('Print')).toBeInTheDocument()
 	})
 
+	it('triggers a download when the Download button is clicked', () => {
+		const appendChild = vi.spyOn(document.body, 'appendChild')
+
+		renderUI(<PdfViewer pages={pages} src="/sample.pdf" filename="doc.pdf" />)
+
+		screen.getByLabelText('Download').click()
+
+		const anchor = appendChild.mock.calls.find((c) => (c[0] as HTMLElement).tagName === 'A')?.[0] as
+			| HTMLAnchorElement
+			| undefined
+
+		expect(anchor?.href).toContain('/sample.pdf')
+
+		expect(anchor?.download).toBe('doc.pdf')
+
+		appendChild.mockRestore()
+	})
+
+	it('triggers a print iframe when the Print button is clicked', () => {
+		const appendChild = vi.spyOn(document.body, 'appendChild')
+
+		renderUI(<PdfViewer pages={pages} src="/sample.pdf" />)
+
+		screen.getByLabelText('Print').click()
+
+		const iframe = appendChild.mock.calls.find(
+			(c) => (c[0] as HTMLElement).tagName === 'IFRAME',
+		)?.[0] as HTMLIFrameElement | undefined
+
+		expect(iframe?.src).toContain('/sample.pdf')
+
+		iframe?.remove()
+
+		appendChild.mockRestore()
+	})
+
 	it('renders an empty state when there are no pages', () => {
 		const { container } = renderUI(<PdfViewer pages={[]} />)
 
@@ -158,5 +195,94 @@ describe('PdfViewer', () => {
 		const { container } = renderUI(<PdfViewer pages={pages} aria-label="Invoice viewer" />)
 
 		expect(bySlot(container, 'pdf-viewer')).toHaveAttribute('aria-label', 'Invoice viewer')
+	})
+})
+
+describe('downloadPdf', () => {
+	it('creates an anchor with the src, clicks it, and removes it', () => {
+		const createElement = vi.spyOn(document, 'createElement')
+		const appendChild = vi.spyOn(document.body, 'appendChild')
+
+		downloadPdf('/doc.pdf', 'doc.pdf')
+
+		expect(createElement).toHaveBeenCalledWith('a')
+
+		const anchor = appendChild.mock.calls.at(-1)?.[0] as HTMLAnchorElement
+
+		expect(anchor.href).toContain('/doc.pdf')
+
+		expect(anchor.download).toBe('doc.pdf')
+
+		expect(anchor.rel).toBe('noopener')
+
+		expect(anchor.target).toBe('_blank')
+
+		expect(anchor.parentNode).toBeNull()
+
+		createElement.mockRestore()
+		appendChild.mockRestore()
+	})
+
+	it('defaults the download attribute to an empty string when no filename is provided', () => {
+		const appendChild = vi.spyOn(document.body, 'appendChild')
+
+		downloadPdf('/doc.pdf')
+
+		const anchor = appendChild.mock.calls.at(-1)?.[0] as HTMLAnchorElement
+
+		expect(anchor.download).toBe('')
+
+		appendChild.mockRestore()
+	})
+})
+
+describe('printPdf', () => {
+	it('appends a hidden iframe pointing at the src', () => {
+		const appendChild = vi.spyOn(document.body, 'appendChild')
+
+		printPdf('/doc.pdf')
+
+		const iframe = appendChild.mock.calls.at(-1)?.[0] as HTMLIFrameElement
+
+		expect(iframe.tagName).toBe('IFRAME')
+
+		expect(iframe.src).toContain('/doc.pdf')
+
+		expect(iframe.getAttribute('aria-hidden')).toBe('true')
+
+		iframe.remove()
+		appendChild.mockRestore()
+	})
+
+	it('opens the pdf in a new tab when the iframe fails to load', () => {
+		const open = vi.spyOn(window, 'open').mockImplementation(() => null)
+		const appendChild = vi.spyOn(document.body, 'appendChild')
+
+		printPdf('/fail.pdf')
+
+		const iframe = appendChild.mock.calls.at(-1)?.[0] as HTMLIFrameElement
+
+		iframe.dispatchEvent(new Event('error'))
+
+		expect(open).toHaveBeenCalledWith('/fail.pdf', '_blank', 'noopener,noreferrer')
+
+		open.mockRestore()
+		appendChild.mockRestore()
+	})
+
+	it('cleans up the iframe on load when contentWindow is unavailable', () => {
+		const appendChild = vi.spyOn(document.body, 'appendChild')
+
+		printPdf('/doc.pdf')
+
+		const iframe = appendChild.mock.calls.at(-1)?.[0] as HTMLIFrameElement
+
+		Object.defineProperty(iframe, 'contentWindow', { value: null, configurable: true })
+
+		iframe.dispatchEvent(new Event('load'))
+
+		expect(iframe.parentNode).toBeNull()
+
+		appendChild.mockRestore()
 	})
 })

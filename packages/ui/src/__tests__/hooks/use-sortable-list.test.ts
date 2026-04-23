@@ -1,5 +1,6 @@
+import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
 import { horizontalListSortingStrategy, verticalListSortingStrategy } from '@dnd-kit/sortable'
-import { renderHook } from '@testing-library/react'
+import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { useSortableList } from '../../hooks/use-sortable-list'
 
@@ -60,5 +61,83 @@ describe('useSortableList', () => {
 		const { result } = renderHook(() => useSortableList({ items, getKey: (i) => i.id }))
 
 		expect(result.current.activeId).toBeNull()
+	})
+
+	it('sets activeId on drag start and clears it on drag cancel', () => {
+		const { result } = renderHook(() =>
+			useSortableList({ items, getKey: (i) => i.id, onReorder: vi.fn() }),
+		)
+
+		act(() => {
+			result.current.dndContextProps.onDragStart({ active: { id: 'b' } } as DragStartEvent)
+		})
+
+		expect(result.current.activeId).toBe('b')
+
+		act(() => {
+			result.current.dndContextProps.onDragCancel()
+		})
+
+		expect(result.current.activeId).toBeNull()
+	})
+
+	it('calls onReorder with a new ordering when drag ends on a different item', () => {
+		const onReorder = vi.fn()
+
+		const { result } = renderHook(() => useSortableList({ items, getKey: (i) => i.id, onReorder }))
+
+		act(() => {
+			result.current.dndContextProps.onDragEnd({
+				active: { id: 'a' },
+				over: { id: 'c' },
+			} as DragEndEvent)
+		})
+
+		expect(onReorder).toHaveBeenCalledOnce()
+
+		expect(onReorder.mock.calls[0]?.[0].map((i: Item) => i.id)).toEqual(['b', 'c', 'a'])
+	})
+
+	it('does not call onReorder when drag ends over the same item', () => {
+		const onReorder = vi.fn()
+
+		const { result } = renderHook(() => useSortableList({ items, getKey: (i) => i.id, onReorder }))
+
+		act(() => {
+			result.current.dndContextProps.onDragEnd({
+				active: { id: 'a' },
+				over: { id: 'a' },
+			} as DragEndEvent)
+		})
+
+		expect(onReorder).not.toHaveBeenCalled()
+	})
+
+	it('does not call onReorder when drag ends without an over target', () => {
+		const onReorder = vi.fn()
+
+		const { result } = renderHook(() => useSortableList({ items, getKey: (i) => i.id, onReorder }))
+
+		act(() => {
+			result.current.dndContextProps.onDragEnd({
+				active: { id: 'a' },
+				over: null,
+			} as DragEndEvent)
+		})
+
+		expect(onReorder).not.toHaveBeenCalled()
+	})
+
+	it('does not throw on drag end when onReorder is not provided', () => {
+		const { result } = renderHook(() => useSortableList({ items, getKey: (i) => i.id }))
+
+		expect(() =>
+			act(() => {
+				result.current.dndContextProps.onDragEnd({
+					active: { id: 'a' },
+					over: { id: 'b' },
+				} as DragEndEvent)
+			}),
+		).not.toThrow()
 	})
 })

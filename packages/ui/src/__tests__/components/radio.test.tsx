@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { Radio } from '../../components/radio'
-import { bySlot, renderUI } from '../helpers'
+import { Radio, RadioField, RadioGroup } from '../../components/radio'
+import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Radio', () => {
 	it('renders with data-slot="radio"', () => {
@@ -44,5 +44,49 @@ describe('Radio', () => {
 		expect(el.name).toBe('choice')
 
 		expect(el.value).toBe('a')
+	})
+})
+
+describe('RadioField', () => {
+	it('renders with data-slot="field"', () => {
+		const { container } = renderUI(<RadioField>content</RadioField>)
+
+		const el = bySlot(container, 'field')
+
+		expect(el).toBeInTheDocument()
+	})
+
+	it('renders children', () => {
+		renderUI(<RadioField>Hello</RadioField>)
+
+		expect(screen.getByText('Hello')).toBeInTheDocument()
+	})
+
+	it('applies custom className', () => {
+		const { container } = renderUI(<RadioField className="custom">content</RadioField>)
+
+		const el = bySlot(container, 'field')
+
+		expect(el?.className).toContain('custom')
+	})
+})
+
+describe('RadioGroup', () => {
+	it('renders with role="radiogroup"', () => {
+		renderUI(<RadioGroup>content</RadioGroup>)
+
+		expect(screen.getByRole('radiogroup')).toBeInTheDocument()
+	})
+
+	it('renders children', () => {
+		renderUI(<RadioGroup>Hello</RadioGroup>)
+
+		expect(screen.getByText('Hello')).toBeInTheDocument()
+	})
+
+	it('applies custom className', () => {
+		renderUI(<RadioGroup className="custom">content</RadioGroup>)
+
+		expect(screen.getByRole('radiogroup').className).toContain('custom')
 	})
 })

@@ -132,3 +132,91 @@ describe('AddressInput', () => {
 		expect(typeof photonProvider).toBe('function')
 	})
 })
+
+describe('photonProvider', () => {
+	function makeFeature(
+		properties: Record<string, unknown>,
+		coordinates: [number, number] = [10, 20],
+	) {
+		return {
+			type: 'Feature',
+			geometry: { type: 'Point', coordinates },
+			properties: { osm_id: 1, osm_type: 'N', ...properties },
+		}
+	}
+
+	it('maps features with street + housenumber into a primary + secondary label', async () => {
+		global.fetch = vi.fn(
+			async () =>
+				({
+					ok: true,
+					json: async () => ({
+						features: [
+							makeFeature({
+								housenumber: '10',
+								street: 'Main St',
+								city: 'Springfield',
+								state: 'IL',
+								country: 'USA',
+								postcode: '62701',
+							}),
+						],
+					}),
+				}) as Response,
+		)
+
+		const results = await photonProvider('query', { signal: new AbortController().signal })
+
+		expect(results[0]?.label).toBe('10 Main St')
+
+		expect(results[0]?.description).toBe('Springfield, IL, 62701, USA')
+
+		expect(results[0]?.latitude).toBe(20)
+
+		expect(results[0]?.longitude).toBe(10)
+	})
+
+	it('falls back to the feature name when no street is present', async () => {
+		global.fetch = vi.fn(
+			async () =>
+				({
+					ok: true,
+					json: async () => ({
+						features: [makeFeature({ name: 'Central Park', city: 'NY' })],
+					}),
+				}) as Response,
+		)
+
+		const results = await photonProvider('q', { signal: new AbortController().signal })
+
+		expect(results[0]?.label).toBe('Central Park')
+
+		expect(results[0]?.description).toBe('NY')
+	})
+
+	it('uses the secondary as label and omits description when primary is missing', async () => {
+		global.fetch = vi.fn(
+			async () =>
+				({
+					ok: true,
+					json: async () => ({
+						features: [makeFeature({ city: 'NY', country: 'USA' })],
+					}),
+				}) as Response,
+		)
+
+		const results = await photonProvider('q', { signal: new AbortController().signal })
+
+		expect(results[0]?.label).toBe('NY, USA')
+
+		expect(results[0]?.description).toBeUndefined()
+	})
+
+	it('throws when the response is not ok', async () => {
+		global.fetch = vi.fn(async () => ({ ok: false, status: 500 }) as Response)
+
+		await expect(photonProvider('q', { signal: new AbortController().signal })).rejects.toThrow(
+			/Photon request failed: 500/,
+		)
+	})
+})
