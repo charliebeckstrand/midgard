@@ -6,9 +6,9 @@ import { take } from '../take'
 const blockBg = 'bg-[#0d1117]'
 
 export const code = tv({
-	base: [...take.code.base, take.code.margin],
+	base: [...take.mark.base, take.mark.margin],
 	variants: {
-		size: take.code.size,
+		size: take.mark.size,
 	},
 	defaultVariants: { size: 'md' },
 })

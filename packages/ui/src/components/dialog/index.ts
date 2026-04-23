@@ -10,11 +10,4 @@ export {
 	DialogTitle,
 	type DialogTitleProps,
 } from './slots'
-export {
-	type DialogPanelVariants,
-	dialogActionsVariants,
-	dialogBodyVariants,
-	dialogDescriptionVariants,
-	dialogPanelVariants,
-	dialogTitleVariants,
-} from './variants'
+export { type DialogPanelVariants, dialogPanelVariants } from './variants'
