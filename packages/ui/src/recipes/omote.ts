@@ -2,18 +2,25 @@
  * Omote (面) — Surfaces.
  *
  * Named surface chromes — the visual plane content sits on. Each entry is a
- * composition of atomic primitives (`iro` colour, `sen` lines, `garasu` blur,
- * `kage` shadow, `kyousei` forced-colours). Surfaces exist as a composite
- * layer because popovers, panels, and backdrops each have a coherent
- * multi-property chrome that is always applied together.
+ * composition of atomic primitives (`iro` colour, `sen` lines + forced-colors).
+ * Surfaces exist as a composite layer because popovers, panels, and backdrops
+ * each have a coherent multi-property chrome that is always applied together.
  *
- * Tier: 2 · Concern: surface
+ * Backdrop blur fragments (was the standalone `garasu` recipe) live under
+ * `omote.blur`.
+ *
+ * Tier: 3 · Concern: surface
  */
 
-import { garasu } from './garasu'
 import { iro } from './iro'
-import { kyousei } from './kyousei'
 import { sen } from './sen'
+
+// Backdrop-blur fragments — was the size half of the standalone `garasu` recipe.
+const blur = {
+	sm: 'backdrop-blur-sm',
+	md: 'backdrop-blur',
+	lg: 'backdrop-blur-lg',
+}
 
 export const omote = {
 	/** Solid surface background (cards, sidebars, navbars). */
@@ -23,17 +30,17 @@ export const omote = {
 		/** Background fill only. */
 		bg: iro.bg.panel,
 		/** Chrome only — ring + shadow + forced-colour outline, no fill. */
-		chrome: [sen.ring, kyousei.outline],
+		chrome: [sen.ring, sen.forced.outline],
 		/** Fill + chrome, everything a floating panel needs. */
-		base: [sen.ring, kyousei.outline, iro.bg.panel],
+		base: [sen.ring, sen.forced.outline, iro.bg.panel],
 	},
 	/** Floating popover surface — translucent fill + ring + blur. */
-	popover: [garasu.md, iro.bg.popover, sen.ring],
+	popover: [blur.md, iro.bg.popover, sen.ring],
 	/** Fully transparent glass surface — blur only. */
-	glass: ['bg-transparent', garasu.md],
+	glass: ['bg-transparent', blur.md],
 	/** Backdrop fills (modal / sheet overlays). */
 	backdrop: {
-		base: [iro.bg.backdrop.md, garasu.sm],
+		base: [iro.bg.backdrop.md, blur.sm],
 		glass: iro.bg.backdrop.lg,
 	},
 	/** Card content block with viewport-dependent chrome. */
@@ -42,4 +49,6 @@ export const omote = {
 	tint: iro.bg.tint,
 	/** Loading skeleton background. */
 	skeleton: [iro.bg.skeleton, 'animate-pulse'],
+	/** Backdrop blur fragments. Was the standalone `garasu` recipe. */
+	blur,
 } as const
