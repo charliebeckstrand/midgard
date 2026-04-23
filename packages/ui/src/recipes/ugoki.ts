@@ -1,8 +1,8 @@
 /**
  * Ugoki (動き) — Movement.
  *
- * Choreographed enter / exit animation. Each config spreads directly
- * onto a motion element — no inline overrides needed.
+ * All motion concerns. CSS transition fragments live under `css`; Framer
+ * Motion enter / exit configs spread directly onto motion elements.
  *
  * Tier: 2 · Concern: animation
  */
@@ -40,6 +40,16 @@ const reveal = {
 }
 
 export const ugoki = {
+	/**
+	 * CSS transition fragments — for state changes that don't warrant Framer
+	 * Motion. Was previously the standalone `nagare` recipe.
+	 */
+	css: {
+		opacity: 'transition-opacity',
+		transform: 'transition-transform',
+		duration: 'duration-150',
+	},
+
 	spring,
 	tween,
 	reveal,

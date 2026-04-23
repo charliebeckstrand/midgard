@@ -1,19 +1,9 @@
 /**
- * Yasumi (休み) — Rest.
- *
- * Dormant, non-interactive state.
- *
- * Tier: 1 · Concern: disabled
+ * @deprecated Use `sawari.disabled` instead. This shim exists only to keep
+ * existing imports working during the recipe-system migration; it will be
+ * removed in the cleanup phase.
  */
 
-import { nagare } from './nagare'
+import { sawari } from './sawari'
 
-export const yasumi = {
-	disabled: [
-		'disabled:opacity-50 disabled:cursor-not-allowed',
-		'data-disabled:opacity-50 data-disabled:cursor-not-allowed',
-		'group-disabled:opacity-50',
-		nagare.opacity,
-		nagare.duration,
-	],
-} as const
+export const yasumi = { disabled: sawari.disabled } as const

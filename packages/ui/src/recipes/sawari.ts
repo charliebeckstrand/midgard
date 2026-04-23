@@ -1,7 +1,7 @@
 /**
  * Sawari (触り) — Touch response.
  *
- * Hover, press, and selection feedback.
+ * Interaction feedback — hover, press, selection, and disabled (dormant) state.
  *
  * Tier: 2 · Concern: interaction
  */
@@ -9,11 +9,19 @@
 import { garasu } from './garasu'
 import { iro } from './iro'
 import { ji } from './ji'
-import { ki } from './ki'
-import { kyousei } from './kyousei'
 import { maru } from './maru'
+import { sen } from './sen'
 import { take } from './take'
-import { yasumi } from './yasumi'
+import { ugoki } from './ugoki'
+
+// ── Disabled state (was the standalone `yasumi` recipe) ──
+const disabled = [
+	'disabled:opacity-50 disabled:cursor-not-allowed',
+	'data-disabled:opacity-50 data-disabled:cursor-not-allowed',
+	'group-disabled:opacity-50',
+	ugoki.css.opacity,
+	ugoki.css.duration,
+]
 
 // ── Motoi (基) ──────────────────────────────────────────
 const motoi = {
@@ -21,9 +29,9 @@ const motoi = {
 		'sm:py-1.5 py-2.5',
 		'outline-hidden',
 		ji.size.md,
-		kyousei.text,
-		kyousei.focus,
-		yasumi.disabled,
+		sen.forced.text,
+		sen.forced.focus,
+		disabled,
 	],
 	nav: [take.icon.md],
 }
@@ -52,5 +60,7 @@ const item = [iro.text.default, maru.rounded.lg, motoi.item, hiru.item, yoru.ite
 // ── Export ───────────────────────────────────────────────
 export const sawari = {
 	item,
-	nav: [motoi.nav, hiru.nav, yoru.nav, ki.inset],
+	nav: [motoi.nav, hiru.nav, yoru.nav, sen.focus.inset],
+	/** Disabled / dormant state. Was previously the standalone `yasumi` recipe. */
+	disabled,
 }
