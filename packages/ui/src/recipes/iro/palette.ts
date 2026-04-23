@@ -74,7 +74,28 @@ export const soft = {
 		blue: 'bg-blue-600/15',
 	}),
 	text,
-	hover,
+	hover: defineColors({
+		zinc: {
+			light: 'not-disabled:hover:bg-zinc-600/30',
+			dark: 'dark:not-disabled:hover:bg-zinc-500/30',
+		},
+		red: {
+			light: 'not-disabled:hover:bg-red-600/30',
+			dark: 'dark:not-disabled:hover:bg-red-500/30',
+		},
+		amber: {
+			light: 'not-disabled:hover:bg-amber-500/30',
+			dark: 'dark:not-disabled:hover:bg-amber-500/30',
+		},
+		green: {
+			light: 'not-disabled:hover:bg-green-600/30',
+			dark: 'dark:not-disabled:hover:bg-green-500/30',
+		},
+		blue: {
+			light: 'not-disabled:hover:bg-blue-600/30',
+			dark: 'dark:not-disabled:hover:bg-blue-500/30',
+		},
+	}),
 }
 
 // ── Outline ─────────────────────────────────────────────
