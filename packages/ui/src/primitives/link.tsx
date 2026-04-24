@@ -4,6 +4,7 @@ import {
 	type AnchorHTMLAttributes,
 	type ComponentType,
 	type ReactNode,
+	type Ref,
 	createContext as reactCreateContext,
 	useContext,
 	useMemo,
@@ -11,6 +12,7 @@ import {
 
 export type LinkProps = {
 	href: string
+	ref?: Ref<HTMLAnchorElement>
 	children?: ReactNode
 	className?: string
 } & Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href'>

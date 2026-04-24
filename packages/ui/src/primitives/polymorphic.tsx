@@ -26,6 +26,7 @@ export function Polymorphic<Fallback extends keyof JSX.IntrinsicElements>({
 	if (href !== undefined) {
 		return (
 			<Link
+				ref={ref as Ref<HTMLAnchorElement>}
 				data-slot={dataSlot}
 				href={href}
 				className={className}
