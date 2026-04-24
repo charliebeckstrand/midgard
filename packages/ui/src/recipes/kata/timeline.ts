@@ -79,7 +79,7 @@ export const slots = {
 		horizontal: 'order-1',
 	},
 	description: {
-		base: ['my-1', ji.size.md],
+		base: [ji.size.md],
 		vertical: 'col-start-2 row-start-2',
 		horizontal: 'order-2',
 	},

@@ -53,7 +53,7 @@ export function ShipmentTracker({
 							lineAfter={isCompleted ? 'green' : undefined}
 						>
 							{step.marker != null && <TimelineMarker>{step.marker}</TimelineMarker>}
-							<TimelineTimestamp>{step.timestamp ?? '—'}</TimelineTimestamp>
+							{step.timestamp && <TimelineTimestamp>{step.timestamp}</TimelineTimestamp>}
 							<TimelineHeading>{step.label}</TimelineHeading>
 							{step.description && <TimelineDescription>{step.description}</TimelineDescription>}
 						</TimelineItem>

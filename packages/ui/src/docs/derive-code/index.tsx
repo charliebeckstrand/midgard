@@ -46,7 +46,11 @@ function assemble(ctx: Ctx, jsx: string): string {
 
 	const imports = [...ctx.imports.entries()]
 		.sort(([a], [b]) => a.localeCompare(b))
-		.map(([mod, names]) => `import { ${[...names].sort().join(', ')} } from 'ui/${mod}'`)
+		.map(([mod, names]) => {
+			const specifier = mod === 'react' ? 'react' : `ui/${mod}`
+
+			return `import { ${[...names].sort().join(', ')} } from '${specifier}'`
+		})
 
 	sections.push(imports.join('\n'))
 

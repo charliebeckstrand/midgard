@@ -80,7 +80,7 @@ function DisabledDemo() {
 export default function FileUploadDemo() {
 	return (
 		<Stack gap={6}>
-			<Example title="Area (default)">
+			<Example title="Default">
 				<AreaDemo />
 			</Example>
 

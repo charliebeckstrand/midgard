@@ -52,14 +52,12 @@ describe('ShipmentTracker', () => {
 		expect(screen.getByText('Mar 13, 2:45 PM')).toBeInTheDocument()
 	})
 
-	it('renders a timestamp slot for every step, with a placeholder when missing', () => {
+	it('omits the timestamp slot when a step has no timestamp', () => {
 		const { container } = renderUI(<ShipmentTracker steps={steps} currentIndex={1} />)
 
 		const timestamps = allBySlot(container, 'timeline-timestamp')
 
-		expect(timestamps).toHaveLength(steps.length)
-
-		expect(timestamps[steps.length - 1]).toHaveTextContent('—')
+		expect(timestamps).toHaveLength(steps.length - 1)
 	})
 
 	it('renders descriptions when provided', () => {

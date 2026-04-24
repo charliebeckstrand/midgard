@@ -202,7 +202,7 @@ export default function FilterDemo() {
 				<DateDemo />
 			</Example>
 
-			<Example title="With NumberInput">
+			<Example title="Render Props">
 				<RenderPropsDemo />
 			</Example>
 		</Stack>
