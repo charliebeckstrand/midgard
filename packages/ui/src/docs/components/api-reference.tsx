@@ -87,17 +87,18 @@ function TypeBadges({ type }: { type: string }) {
 }
 
 /**
- * Renders the Type cell of the props table. When the prop has no breakdown
- * it's shown as plain badges; when a breakdown exists the cell becomes a
- * toggle button that reveals the expanded form on click.
+ * Renders the Type cell of the props table. Simple types (primitives, literals,
+ * and unions thereof) render as plain badges. Anything that references a named
+ * component type — at any nesting depth — becomes a toggle that reveals each
+ * referenced type's shape on click.
  */
 function TypeCell({
 	type,
-	breakdown,
+	references,
 	externalFrom,
 }: {
 	type: string
-	breakdown?: string
+	references?: Record<string, string>
 	externalFrom?: string
 }) {
 	const [expanded, setExpanded] = useState(false)
@@ -115,7 +116,9 @@ function TypeCell({
 		)
 	}
 
-	if (!breakdown) {
+	const refEntries = references ? Object.entries(references) : []
+
+	if (refEntries.length === 0) {
 		return <TypeBadges type={type} />
 	}
 
@@ -136,8 +139,14 @@ function TypeCell({
 				/>
 			</button>
 			{expanded && (
-				<div className="flex items-start gap-1.5 border-zinc-200 border-l pl-2 text-xs dark:border-zinc-800">
-					<TypeBadges type={breakdown} />
+				<div className="space-y-1.5 border-zinc-200 border-l pl-2 text-xs dark:border-zinc-800">
+					{refEntries.map(([name, def]) => (
+						<div key={name} className="flex flex-wrap items-baseline gap-1.5">
+							<span className="font-mono font-medium text-zinc-700 dark:text-zinc-300">{name}</span>
+							<span className="text-zinc-400 dark:text-zinc-500">=</span>
+							<TypeBadges type={def} />
+						</div>
+					))}
 				</div>
 			)}
 		</div>
@@ -161,7 +170,7 @@ function PropRowsTable({ rows }: { rows: PropDef[] }) {
 						<TableCell>
 							<TypeCell
 								type={prop.type}
-								breakdown={prop.breakdown}
+								references={prop.references}
 								externalFrom={prop.externalFrom}
 							/>
 						</TableCell>
