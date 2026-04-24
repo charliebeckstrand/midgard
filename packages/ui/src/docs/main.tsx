@@ -3,7 +3,6 @@ import { createRoot } from 'react-dom/client'
 import { App } from './app'
 import { initialPreload } from './registry'
 import './app.css'
-import 'maplibre-gl/dist/maplibre-gl.css'
 
 const root = document.getElementById('root')
 

@@ -1,4 +1,5 @@
 import apiData from 'virtual:component-api'
+import demoMetas from 'virtual:demo-metas'
 import { type ComponentType, type LazyExoticComponent, lazy } from 'react'
 import type { ComponentApi } from './parse-props'
 
@@ -15,11 +16,6 @@ type DemoModule = {
 
 const loaders = import.meta.glob<DemoModule>(['./demos/*.tsx', './demos/pages/*.tsx'])
 
-const metas = import.meta.glob<DemoMeta>(['./demos/*.tsx', './demos/pages/*.tsx'], {
-	eager: true,
-	import: 'meta',
-})
-
 function pathToId(path: string) {
 	return path
 		.replace(/^\.\/demos\//, '')
@@ -34,10 +30,12 @@ for (const [path, loader] of Object.entries(loaders)) {
 	loaderById.set(pathToId(path), loader)
 }
 
-// Map glob paths to { id → meta }
+// Metas are pulled from a build-time virtual module — reading them from the
+// demo files directly (via `import.meta.glob({ eager: true })`) would force
+// Vite to bundle every demo into the main chunk, defeating the lazy loaders.
 const metaById = new Map<string, DemoMeta>()
 
-for (const [path, meta] of Object.entries(metas)) {
+for (const [path, meta] of Object.entries(demoMetas)) {
 	metaById.set(pathToId(path), meta)
 }
 

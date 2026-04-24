@@ -2,6 +2,7 @@
 
 import { Moon, Sun } from 'lucide-react'
 import { useEffect, useRef } from 'react'
+import { loadShiki } from '../components/code'
 import { Heading } from '../components/heading'
 import { ToggleIconButton } from '../components/toggle-icon-button'
 import { SidebarLayout } from '../layouts'
@@ -9,7 +10,7 @@ import { SidebarContent } from './components/sidebar'
 import { DemoPage } from './demo-page'
 import { useHash } from './hooks/use-hash'
 import { useTheme } from './hooks/use-theme'
-import { demos } from './registry'
+import { demos, preloadDemo } from './registry'
 
 export function App() {
 	const route = useHash()
@@ -23,6 +24,40 @@ export function App() {
 	useEffect(() => {
 		if (route != null) contentRef.current?.closest('[class*="overflow-y"]')?.scrollTo(0, 0)
 	}, [route])
+
+	// On idle, warm Shiki and prefetch every demo chunk so navigation never
+	// waits on the network. One demo per idle tick keeps the main thread
+	// responsive; hover/focus prefetch in the sidebar covers demos the user
+	// reaches for before the idle sweep finishes.
+	useEffect(() => {
+		const ric = window.requestIdleCallback ?? ((cb: IdleRequestCallback) => setTimeout(cb, 1))
+
+		const cic = window.cancelIdleCallback ?? clearTimeout
+
+		let cancelled = false
+
+		let handle: number = 0
+
+		const queue = [() => loadShiki(), ...demos.map((d) => () => preloadDemo(d.id))]
+
+		let i = 0
+
+		const pump = () => {
+			if (cancelled || i >= queue.length) return
+
+			queue[i++]?.()
+
+			handle = ric(pump) as number
+		}
+
+		handle = ric(pump) as number
+
+		return () => {
+			cancelled = true
+
+			cic(handle)
+		}
+	}, [])
 
 	return (
 		<SidebarLayout
@@ -40,7 +75,7 @@ export function App() {
 		>
 			<div ref={contentRef}>
 				{current ? (
-					<DemoPage key={current.id} demo={current} />
+					<DemoPage demo={current} />
 				) : (
 					<div className="p-6">
 						<Heading>Select a component</Heading>
