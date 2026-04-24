@@ -2,6 +2,7 @@
 
 import { Moon, Sun } from 'lucide-react'
 import { useEffect, useRef } from 'react'
+import { loadShiki } from '../components/code'
 import { Heading } from '../components/heading'
 import { ToggleIconButton } from '../components/toggle-icon-button'
 import { SidebarLayout } from '../layouts'
@@ -23,6 +24,22 @@ export function App() {
 	useEffect(() => {
 		if (route != null) contentRef.current?.closest('[class*="overflow-y"]')?.scrollTo(0, 0)
 	}, [route])
+
+	// Warm the Shiki highlighter once the main thread is idle, so the first
+	// "Show code" tap is instant instead of waiting for a dynamic import.
+	useEffect(() => {
+		const ric = window.requestIdleCallback ?? ((cb: IdleRequestCallback) => setTimeout(cb, 1))
+
+		const id = ric(() => {
+			loadShiki()
+		})
+
+		return () => {
+			const cic = window.cancelIdleCallback ?? clearTimeout
+
+			cic(id as number)
+		}
+	}, [])
 
 	return (
 		<SidebarLayout
