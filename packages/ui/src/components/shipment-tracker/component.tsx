@@ -4,6 +4,7 @@ import {
 	TimelineDescription,
 	TimelineHeading,
 	TimelineItem,
+	TimelineMarker,
 	type TimelineProps,
 	TimelineTimestamp,
 } from '../timeline'
@@ -13,6 +14,7 @@ export type ShipmentTrackerStep = {
 	label: string
 	timestamp?: string
 	description?: ReactNode
+	marker?: ReactNode
 }
 
 export type ShipmentTrackerProps = {
@@ -45,10 +47,13 @@ export function ShipmentTracker({
 							key={step.id ?? index}
 							active={isCurrent}
 							variant={isReached ? 'solid' : 'outline'}
-							status={isFinal ? 'active' : isCurrent ? 'info' : 'inactive'}
+							status={isCompleted || isFinal ? 'active' : isCurrent ? 'info' : 'inactive'}
 							pulse={isCurrent && !isFinal}
+							lineBefore={isReached ? 'green' : undefined}
+							lineAfter={isCompleted ? 'green' : undefined}
 						>
-							{step.timestamp && <TimelineTimestamp>{step.timestamp}</TimelineTimestamp>}
+							{step.marker != null && <TimelineMarker>{step.marker}</TimelineMarker>}
+							<TimelineTimestamp>{step.timestamp ?? '—'}</TimelineTimestamp>
 							<TimelineHeading>{step.label}</TimelineHeading>
 							{step.description && <TimelineDescription>{step.description}</TimelineDescription>}
 						</TimelineItem>

@@ -4,9 +4,10 @@ import type { MapLayerMouseEvent } from 'maplibre-gl'
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Sheet, SheetBody, SheetDescription, SheetTitle } from '../sheet'
 import { ShipmentTracker, type ShipmentTrackerStep } from '../shipment-tracker'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 import { useMapContext } from './context'
 import { MapMarker } from './map-marker'
-import type { LngLat, RouteData } from './types'
+import type { LngLat, RouteData, RouteStop } from './types'
 
 type SegmentStatus = 'pending' | 'active' | 'done'
 
@@ -186,7 +187,7 @@ export function MapRoute({
 						position={stop.position}
 						onClick={disableInteraction ? undefined : () => handleSelectRef.current()}
 					>
-						<StopDot status={stop.status} colors={resolvedColors} />
+						<StopMarker stop={stop} colors={resolvedColors} />
 					</MapMarker>
 				))}
 			<Sheet open={open} onOpenChange={setOpen} size="sm">
@@ -292,24 +293,28 @@ function resolveCurrentIndex(stops: RouteData['stops']) {
 	return Math.min(doneCount, Math.max(stops.length - 1, 0))
 }
 
-function StopDot({
-	status,
-	colors,
-}: {
-	status?: SegmentStatus
-	colors: Record<SegmentStatus, string>
-}) {
+function StopMarker({ stop, colors }: { stop: RouteStop; colors: Record<SegmentStatus, string> }) {
 	const base =
-		status === 'done' ? colors.done : status === 'active' ? colors.active : colors.pending
+		stop.status === 'done' ? colors.done : stop.status === 'active' ? colors.active : colors.pending
 
 	return (
-		<div
-			aria-hidden="true"
-			className="size-4.5 rounded-full border-2 shadow hover:scale-120"
-			style={{
-				backgroundColor: base,
-				borderColor: `color-mix(in oklab, ${base} 60%, black)`,
-			}}
-		/>
+		<Tooltip>
+			<TooltipTrigger>
+				<div
+					aria-hidden="true"
+					className="size-4.5 rounded-full border-2 shadow hover:scale-110"
+					style={{
+						backgroundColor: base,
+						borderColor: `color-mix(in oklab, ${base} 60%, black)`,
+					}}
+				/>
+			</TooltipTrigger>
+			<TooltipContent className="max-w-xs whitespace-normal">
+				<div className="font-medium">{stop.name}</div>
+				{stop.description && (
+					<div className="text-muted-foreground mt-0.5 text-xs">{stop.description}</div>
+				)}
+			</TooltipContent>
+		</Tooltip>
 	)
 }

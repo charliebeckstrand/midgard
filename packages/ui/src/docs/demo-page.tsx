@@ -1,6 +1,5 @@
 'use client'
 
-import { AnimatePresence, motion } from 'motion/react'
 import { type ComponentType, useEffect, useRef, useState } from 'react'
 import { Heading } from '../components/heading'
 import { Stack } from '../components/stack'
@@ -9,50 +8,56 @@ import { ApiReference } from './components/api-reference'
 import type { Demo } from './registry'
 import { getComponentApi, getResolvedDemo, loadDemo } from './registry'
 
+type Displayed = { demo: Demo; Component: ComponentType }
+
 export function DemoPage({ demo }: { demo: Demo }) {
-	const [Component, setComponent] = useState<ComponentType | null>(() => getResolvedDemo(demo.id))
+	// Keep the last successfully-loaded demo on screen while the next one's
+	// chunk is in flight. Swapping only once the new module resolves avoids
+	// a blank frame during navigation.
+	const [displayed, setDisplayed] = useState<Displayed | null>(() => {
+		const Component = getResolvedDemo(demo.id)
 
-	const api = getComponentApi(demo.id)
+		return Component ? { demo, Component } : null
+	})
 
-	const loadingId = useRef(demo.id)
-
-	const isFirstRender = useRef(true)
+	const targetId = useRef(demo.id)
 
 	useEffect(() => {
-		loadingId.current = demo.id
+		targetId.current = demo.id
 
-		loadDemo(demo.id).then((comp) => {
-			if (loadingId.current === demo.id) setComponent(() => comp)
+		const cached = getResolvedDemo(demo.id)
+
+		if (cached) {
+			setDisplayed({ demo, Component: cached })
+
+			return
+		}
+
+		loadDemo(demo.id).then((Component) => {
+			if (targetId.current === demo.id) setDisplayed({ demo, Component })
 		})
-	}, [demo.id])
+	}, [demo])
+
+	if (!displayed) return null
+
+	const { demo: shown, Component } = displayed
+
+	const api = getComponentApi(shown.id)
 
 	return (
-		<AnimatePresence mode="wait">
-			{Component && (
-				<motion.div
-					key={demo.id}
-					initial={isFirstRender.current ? false : { opacity: 0 }}
-					animate={{ opacity: 1 }}
-					exit={{ opacity: 0 }}
-					transition={{ duration: 0.15 }}
-					onAnimationComplete={() => {
-						isFirstRender.current = false
-					}}
-				>
-					<SidebarLayoutHeader>
-						<Heading>{demo.name}</Heading>
-					</SidebarLayoutHeader>
-					<Stack gap={6}>
-						<Component />
-						{api && (
-							<Stack gap={2}>
-								<Heading level={2}>API Reference</Heading>
-								<ApiReference api={api} />
-							</Stack>
-						)}
+		<>
+			<SidebarLayoutHeader>
+				<Heading>{shown.name}</Heading>
+			</SidebarLayoutHeader>
+			<Stack gap={6}>
+				<Component />
+				{api && (
+					<Stack gap={2}>
+						<Heading level={2}>API Reference</Heading>
+						<ApiReference api={api} />
 					</Stack>
-				</motion.div>
-			)}
-		</AnimatePresence>
+				)}
+			</Stack>
+		</>
 	)
 }

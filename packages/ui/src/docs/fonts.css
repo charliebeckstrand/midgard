@@ -2,14 +2,14 @@
     font-family: 'Google Sans Flex';
     font-weight: 100 1000;
     font-display: swap;
-    src: url('./fonts/GoogleSansFlex-VariableFont_GRAD,ROND,opsz,slnt,wdth,wght.ttf') format('truetype');
+    src: url('./fonts/GoogleSansFlex-VariableFont_GRAD,ROND,opsz,slnt,wdth,wght.woff2') format('woff2-variations');
 }
 
 @font-face {
     font-family: 'Google Sans Code';
     font-weight: 100 800;
     font-display: swap;
-    src: url('./fonts/GoogleSansCode-VariableFont_wght.ttf') format('truetype');
+    src: url('./fonts/GoogleSansCode-VariableFont_wght.woff2') format('woff2-variations');
 }
 
 :root {
