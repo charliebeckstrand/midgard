@@ -1,6 +1,7 @@
 'use client'
 
 import { Children, cloneElement, isValidElement, type MouseEvent, type ReactNode } from 'react'
+import { Button } from '../button'
 import { useFilters } from './context'
 
 // ── FiltersClear ───────────────────────────────────
@@ -31,8 +32,8 @@ export function FiltersClear({ children, className }: FiltersClearProps) {
 	}
 
 	return (
-		<button data-slot="filter-clear" type="button" onClick={handleClear} className={className}>
+		<Button data-slot="filter-clear" onClick={handleClear} className={className}>
 			{children}
-		</button>
+		</Button>
 	)
 }
