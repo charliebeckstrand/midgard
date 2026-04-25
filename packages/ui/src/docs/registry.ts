@@ -1,7 +1,7 @@
 import apiData from 'virtual:component-api'
 import demoMetas from 'virtual:demo-metas'
 import { type ComponentType, type LazyExoticComponent, lazy } from 'react'
-import type { ComponentApi } from './parse-props'
+import type { ComponentApi } from './component-api'
 
 // ---------------------------------------------------------------------------
 // Lazy demo loaders (no demo code loaded until navigated to)

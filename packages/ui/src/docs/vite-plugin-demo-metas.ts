@@ -3,6 +3,7 @@ import path from 'node:path'
 import type { Plugin } from 'vite'
 
 const VIRTUAL_ID = 'virtual:demo-metas'
+
 const RESOLVED_ID = `\0${VIRTUAL_ID}`
 
 type DemoMeta = { name?: string; category?: string }

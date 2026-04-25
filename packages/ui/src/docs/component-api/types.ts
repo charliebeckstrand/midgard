@@ -27,17 +27,3 @@ export type ComponentApi = {
 	props: PropDef[]
 	passThrough?: PassThrough[]
 }
-
-export type CvaVariant = {
-	name: string
-	options: string[]
-	defaultValue?: string
-}
-
-/** Shared resolution context passed across files so cross-module refs resolve. */
-export type ResolutionContext = {
-	typeDefs: Map<string, string>
-	cvaVariants: Map<string, CvaVariant[]>
-	/** Type name → external package name (e.g. "Placement" → "@floating-ui/react") */
-	externalImports: Map<string, string>
-}

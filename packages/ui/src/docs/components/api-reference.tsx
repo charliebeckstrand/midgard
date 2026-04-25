@@ -21,7 +21,7 @@ import {
 	TableRow,
 } from '../../components/table'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
-import type { ComponentApi, PropDef } from '../parse-props'
+import type { ComponentApi, PropDef } from '../component-api'
 
 /** Split a type expression on top-level `|`, respecting nesting and strings. */
 function splitUnion(type: string): string[] {

@@ -1,5 +1,5 @@
 declare module 'virtual:component-api' {
-	import type { ComponentApi } from './parse-props'
+	import type { ComponentApi } from './component-api'
 
 	const data: Record<string, ComponentApi[]>
 
