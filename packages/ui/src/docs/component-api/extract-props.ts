@@ -17,11 +17,11 @@ const IGNORED_PROPS = new Set(['className', 'children', 'ref', 'key'])
  * separately detects HTML pass-through.
  */
 export function buildComponentApi(decl: ComponentDecl, checker: ts.TypeChecker): ComponentApi {
-	const propsType = getPropsType(decl, checker)
-
-	const passThrough = detectPassThroughs(decl, checker)
+	const propsType = getPropsType(decl.callable, checker)
 
 	const annotation = getPropsAnnotation(decl.callable)
+
+	const passThrough = annotation ? detectPassThroughs(annotation, checker) : []
 
 	const projectNames = annotation ? collectProjectPropNames(annotation, checker) : null
 
@@ -30,7 +30,9 @@ export function buildComponentApi(decl: ComponentDecl, checker: ts.TypeChecker):
 	if (propsType) {
 		// Inline destructured defaults take priority over CVA `defaultVariants`
 		// (the inline form is the value the component actually applies).
-		const cvaDefaults = annotation ? extractCvaDefaults(annotation, checker) : new Map()
+		const cvaDefaults = annotation
+			? extractCvaDefaults(annotation, checker)
+			: new Map<string, string>()
 
 		const inlineDefaults = extractDefaults(decl.callable)
 
@@ -50,7 +52,7 @@ export function buildComponentApi(decl: ComponentDecl, checker: ts.TypeChecker):
 				continue
 			}
 
-			props.push(buildPropDef(name, symbol, decl, checker, defaults))
+			props.push(buildPropDef(name, symbol, decl.callable, checker, defaults))
 		}
 	}
 
@@ -100,8 +102,8 @@ function collectAllProperties(type: ts.Type): ts.Symbol[] {
 }
 
 /** Resolve the props type from the component's callable signature. */
-function getPropsType(decl: ComponentDecl, checker: ts.TypeChecker): ts.Type | null {
-	const type = checker.getTypeAtLocation(decl.callable)
+function getPropsType(callable: ts.Node, checker: ts.TypeChecker): ts.Type | null {
+	const type = checker.getTypeAtLocation(callable)
 
 	const signatures = type.getCallSignatures()
 
@@ -111,26 +113,26 @@ function getPropsType(decl: ComponentDecl, checker: ts.TypeChecker): ts.Type | n
 
 	if (!param) return null
 
-	return checker.getTypeOfSymbolAtLocation(param, decl.callable)
+	return checker.getTypeOfSymbolAtLocation(param, callable)
 }
 
 function buildPropDef(
 	name: string,
 	symbol: ts.Symbol,
-	decl: ComponentDecl,
+	callable: ts.Node,
 	checker: ts.TypeChecker,
 	defaults: Map<string, string>,
 ): PropDef {
-	const propType = checker.getTypeOfSymbolAtLocation(symbol, decl.callable)
+	const propType = checker.getTypeOfSymbolAtLocation(symbol, callable)
 
 	const inline = inlineSourceType(symbol)
 
 	const prop: PropDef = {
 		name,
-		type: inline ?? formatPropType(propType, checker, decl.callable),
+		type: inline ?? formatPropType(propType, checker, callable),
 	}
 
-	const references = extractReferences(prop.type, decl.callable, checker)
+	const references = extractReferences(prop.type, callable, checker)
 
 	if (references) prop.references = references
 

@@ -1,7 +1,5 @@
 import ts from 'typescript'
-import type { ComponentDecl } from './find-components'
 import {
-	getPropsAnnotation,
 	resolveTypeAliasTarget,
 	STRING_LITERAL_PASS_THROUGHS,
 	stringLiteralKeys,
@@ -10,17 +8,16 @@ import {
 import type { PassThrough } from './types'
 
 /**
- * Walk a component's props type AST to detect HTML pass-through. A component
- * passes through `<tag>` attrs when its props type contains:
+ * Walk a component's props-type annotation to detect HTML pass-through. A
+ * component passes through `<tag>` attrs when its annotation contains:
  *   - `ComponentPropsWithRef<'tag'>` / `ComponentPropsWithoutRef<'tag'>`
  *   - `*HTMLAttributes<HTMLTagElement>`
  *   - `PolymorphicProps<'tag'>` (project-specific helper)
  */
-export function detectPassThroughs(decl: ComponentDecl, checker: ts.TypeChecker): PassThrough[] {
-	const annotation = getPropsAnnotation(decl.callable)
-
-	if (!annotation) return []
-
+export function detectPassThroughs(
+	annotation: ts.TypeNode,
+	checker: ts.TypeChecker,
+): PassThrough[] {
 	const found: PassThrough[] = []
 
 	const visited = new Set<ts.Node>()
