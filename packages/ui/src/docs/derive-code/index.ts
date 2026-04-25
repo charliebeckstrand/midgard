@@ -1,9 +1,10 @@
 'use client'
 
 import { Children, type ReactNode } from 'react'
+import { assemble } from './imports'
 import { buildComponentRegistry, registryFromMap } from './registry'
 import type { ComponentMap, Ctx } from './types'
-import { assemble, renderNodes } from './walk'
+import { renderNodes } from './walk'
 
 export type { ComponentInfo, ComponentMap } from './types'
 

@@ -1,3 +1,4 @@
+import { addImport } from './imports'
 import type { Ctx } from './types'
 
 /**
@@ -96,25 +97,13 @@ export function collectSnippetImports(snippet: string, ctx: Ctx): void {
 
 			const info = ctx.registry.byName.get(name)
 
-			if (info?.module) {
-				const set = ctx.imports.get(info.module) ?? new Set<string>()
-
-				set.add(info.name)
-
-				ctx.imports.set(info.module, set)
-			}
+			if (info?.module) addImport(ctx, info.module, info.name)
 		}
 
 		match = tagRe.exec(snippet)
 	}
 
 	for (const hook of REACT_HOOKS) {
-		if (new RegExp(`\\b${hook}\\b`).test(snippet)) {
-			const set = ctx.imports.get('react') ?? new Set<string>()
-
-			set.add(hook)
-
-			ctx.imports.set('react', set)
-		}
+		if (new RegExp(`\\b${hook}\\b`).test(snippet)) addImport(ctx, 'react', hook)
 	}
 }

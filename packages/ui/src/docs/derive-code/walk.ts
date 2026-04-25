@@ -1,5 +1,6 @@
 import { Children, isValidElement, type ReactElement, type ReactNode } from 'react'
 import { formatProps, INDENT, renderOpenTag } from './format'
+import { addImport } from './imports'
 import { collectSnippetImports, readSnippet, reindent } from './snippet'
 import { extractTextContent, flattenPassThroughs } from './tree'
 import type { Ctx } from './types'
@@ -93,13 +94,7 @@ export function renderElement(element: ReactElement, ctx: Ctx, indent: string): 
 		return ''
 	}
 
-	if (info.module) {
-		const set = ctx.imports.get(info.module) ?? new Set<string>()
-
-		set.add(info.name)
-
-		ctx.imports.set(info.module, set)
-	}
+	if (info.module) addImport(ctx, info.module, info.name)
 
 	const props = element.props as Record<string, unknown>
 
@@ -145,26 +140,4 @@ export function renderChildrenContent(nodes: ReactNode[], ctx: Ctx, indent: stri
 	}
 
 	return rendered
-}
-
-// ---------------------------------------------------------------------------
-// Output assembly
-// ---------------------------------------------------------------------------
-
-/**
- * Combine the imports accumulated on `ctx` with the rendered JSX into the
- * final code block. Imports are sorted by module and emitted with `react`
- * kept as a bare specifier; everything else uses the `ui/*` package layout.
- */
-export function assemble(ctx: Ctx, jsx: string): string {
-	const imports = [...ctx.imports.entries()]
-		.sort(([a], [b]) => a.localeCompare(b))
-		.map(([mod, names]) => {
-			const specifier = mod === 'react' ? 'react' : `ui/${mod}`
-
-			return `import { ${[...names].sort().join(', ')} } from '${specifier}'`
-		})
-		.join('\n')
-
-	return jsx ? `${imports}\n\n${jsx}` : imports
 }
