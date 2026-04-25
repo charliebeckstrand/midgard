@@ -1,5 +1,5 @@
 import { isValidElement } from 'react'
-import { getElementName, isPrimitive } from './helpers'
+import { getElementName, isPrimitive } from './tree'
 import type { Ctx } from './types'
 
 export const INDENT = '  '

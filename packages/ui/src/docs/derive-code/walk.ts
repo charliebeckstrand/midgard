@@ -1,6 +1,6 @@
 import { Children, type ReactElement, type ReactNode } from 'react'
 import { formatProps, INDENT, renderOpenTag } from './format'
-import { extractTextContent, flattenPassThroughs, isMeaningfulElement } from './helpers'
+import { extractTextContent, flattenPassThroughs, isMeaningfulElement } from './tree'
 import type { Ctx } from './types'
 
 // ---------------------------------------------------------------------------
