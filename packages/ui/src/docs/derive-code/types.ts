@@ -5,15 +5,9 @@
 export type ComponentInfo = { name: string; module: string }
 
 /**
- * Component reference → info lookup. The key is the React element `type` value
- * (function, forwardRef object, etc.), matched by identity.
- */
-export type ComponentMap = Map<unknown, ComponentInfo>
-
-/**
  * Resolve a React element `type` to its `ComponentInfo`. `Map<unknown, _>`
- * satisfies this structurally, so callers can pass a plain Map; the default
- * registry uses a tag-based reader instead of a Map.
+ * satisfies this structurally, but the default registry uses a tag-based
+ * reader rather than a Map.
  */
 export type ComponentLookup = {
 	get(type: unknown): ComponentInfo | undefined

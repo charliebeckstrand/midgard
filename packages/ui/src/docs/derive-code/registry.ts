@@ -1,7 +1,7 @@
 /// <reference path="../virtual-modules.d.ts" />
 
 import componentModules from 'virtual:component-modules'
-import type { ComponentInfo, ComponentMap, ComponentRegistry } from './types'
+import type { ComponentInfo, ComponentRegistry } from './types'
 
 type Tagged = { __module?: string; __name?: string }
 
@@ -25,23 +25,12 @@ const byName = new Map<string, ComponentInfo>(
 )
 
 /**
- * Default registry — `byType` reads tags lazily from each element's type,
- * so components only load when the demos that use them load. `byName` is a
- * static map computed at build time for snippet-import resolution.
+ * Default (and only) registry. `byType` reads tags lazily off each element's
+ * type, so components load with the demos that use them. `byName` is the
+ * build-time module map used to resolve JSX tag names found in raw `__code`
+ * snippets back to their import paths.
  */
 export const defaultRegistry: ComponentRegistry = {
 	byType: { get: readTag },
 	byName,
-}
-
-/**
- * Derive a registry from a caller-supplied `ComponentMap`. Used when a custom
- * map is passed to `deriveCode` instead of the default registry.
- */
-export function registryFromMap(map: ComponentMap): ComponentRegistry {
-	const byName = new Map<string, ComponentInfo>()
-
-	for (const info of map.values()) byName.set(info.name, info)
-
-	return { byType: map, byName }
 }
