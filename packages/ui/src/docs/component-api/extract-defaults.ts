@@ -1,4 +1,5 @@
 import ts from 'typescript'
+import { unwrapFunctionLike } from './ts-utils'
 
 /**
  * Walk a component's callable expression to find destructured default values
@@ -11,11 +12,11 @@ import ts from 'typescript'
 export function extractDefaults(callable: ts.Node): Map<string, string> {
 	const defaults = new Map<string, string>()
 
-	const params = getFirstParamPattern(callable)
+	const param = unwrapFunctionLike(callable)?.parameters[0]
 
-	if (!params) return defaults
+	if (!param || !ts.isObjectBindingPattern(param.name)) return defaults
 
-	for (const element of params.elements) {
+	for (const element of param.name.elements) {
 		if (!ts.isBindingElement(element)) continue
 
 		if (!element.initializer) continue
@@ -29,30 +30,4 @@ export function extractDefaults(callable: ts.Node): Map<string, string> {
 	}
 
 	return defaults
-}
-
-/** Get the destructured object pattern from a function/arrow expression's first parameter. */
-function getFirstParamPattern(callable: ts.Node): ts.ObjectBindingPattern | null {
-	if (
-		ts.isFunctionDeclaration(callable) ||
-		ts.isArrowFunction(callable) ||
-		ts.isFunctionExpression(callable)
-	) {
-		const param = callable.parameters[0]
-
-		if (param && ts.isObjectBindingPattern(param.name)) return param.name
-
-		return null
-	}
-
-	// forwardRef(<inner>), memo(<inner>): unwrap to find the actual function expression
-	if (ts.isCallExpression(callable)) {
-		for (const arg of callable.arguments) {
-			const pattern = getFirstParamPattern(arg)
-
-			if (pattern) return pattern
-		}
-	}
-
-	return null
 }
