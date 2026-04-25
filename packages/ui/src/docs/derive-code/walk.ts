@@ -1,7 +1,7 @@
-import { Children, type ReactElement, type ReactNode } from 'react'
+import { Children, isValidElement, type ReactElement, type ReactNode } from 'react'
 import { formatProps, INDENT, renderOpenTag } from './format'
 import { collectSnippetImports, readSnippet, reindent } from './snippet'
-import { extractTextContent, flattenPassThroughs, isMeaningfulElement } from './tree'
+import { extractTextContent, flattenPassThroughs } from './tree'
 import type { Ctx } from './types'
 
 // ---------------------------------------------------------------------------
@@ -16,7 +16,7 @@ import type { Ctx } from './types'
 export function renderNodes(nodes: ReactNode[], ctx: Ctx, indent: string): string {
 	// Flattening at every level lets list detection see the real components
 	// that were wrapped in styling divs/spans.
-	const elements = flattenPassThroughs(nodes.filter(isMeaningfulElement))
+	const elements = flattenPassThroughs(nodes.filter(isValidElement))
 
 	if (elements.length === 0) return ''
 
@@ -68,7 +68,7 @@ export function renderNodes(nodes: ReactNode[], ctx: Ctx, indent: string): strin
  * transparently unwrapped so their internal composition can still contribute.
  */
 export function renderElement(element: ReactElement, ctx: Ctx, indent: string): string {
-	const info = ctx.registry.byType.get(element.type) ?? null
+	const info = ctx.registry.byType.get(element.type)
 
 	if (!info) {
 		// Unknown component (e.g. a locally-defined demo wrapper). Walk its

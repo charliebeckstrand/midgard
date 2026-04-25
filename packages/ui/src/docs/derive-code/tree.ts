@@ -5,21 +5,13 @@ import type { Ctx } from './types'
 // Type guards
 // ---------------------------------------------------------------------------
 
-export function isMeaningfulElement(node: ReactNode): node is ReactElement {
-	return isValidElement(node)
-}
-
 /**
  * Fragment and intrinsic HTML elements are transparent — they're used for
  * styling or grouping in the demo but aren't part of the API surface we want
  * to document.
  */
 export function isPassThrough(element: ReactElement): boolean {
-	if (element.type === Fragment) return true
-
-	if (typeof element.type === 'string') return true
-
-	return false
+	return element.type === Fragment || typeof element.type === 'string'
 }
 
 export function isPrimitive(value: unknown): value is string | number | boolean {
@@ -29,6 +21,10 @@ export function isPrimitive(value: unknown): value is string | number | boolean 
 // ---------------------------------------------------------------------------
 // Tree inspection
 // ---------------------------------------------------------------------------
+
+function elementChildren(element: ReactElement): ReactNode[] {
+	return Children.toArray((element.props as { children?: ReactNode }).children)
+}
 
 /**
  * Flatten Fragments and HTML wrappers, keeping only meaningful component
@@ -40,11 +36,7 @@ export function flattenPassThroughs(elements: ReactElement[]): ReactElement[] {
 
 	for (const el of elements) {
 		if (isPassThrough(el)) {
-			const children = Children.toArray((el.props as { children?: ReactNode }).children).filter(
-				isMeaningfulElement,
-			)
-
-			result.push(...flattenPassThroughs(children))
+			result.push(...flattenPassThroughs(elementChildren(el).filter(isValidElement)))
 
 			continue
 		}
@@ -69,8 +61,7 @@ export function extractTextContent(nodes: ReactNode[]): string | null {
 		} else if (typeof n === 'number') {
 			parts.push(String(n))
 		} else if (isValidElement(n) && isPassThrough(n)) {
-			const children = Children.toArray((n.props as { children?: ReactNode }).children)
-			const nested = extractTextContent(children)
+			const nested = extractTextContent(elementChildren(n))
 
 			if (nested) parts.push(nested)
 		}
@@ -83,29 +74,16 @@ export function extractTextContent(nodes: ReactNode[]): string | null {
 // Naming
 // ---------------------------------------------------------------------------
 
+/**
+ * Resolve a name for a nested element prop. Registered components win; bare
+ * intrinsic strings (e.g. `<div />` as an icon) pass through. Anything else
+ * returns `null` so the caller drops the prop rather than emitting a name
+ * that wouldn't have a matching import.
+ */
 export function getElementName(element: ReactElement, ctx: Ctx): string | null {
 	const info = ctx.registry.byType.get(element.type)
 
 	if (info) return info.name
 
-	const type = element.type as
-		| string
-		| { displayName?: string; name?: string; render?: { displayName?: string; name?: string } }
-
-	if (typeof type === 'string') return type
-
-	if (typeof type === 'function')
-		return (
-			(type as { displayName?: string; name?: string }).displayName ??
-			(type as { name?: string }).name ??
-			null
-		)
-
-	if (typeof type === 'object' && type !== null) {
-		if (type.displayName) return type.displayName
-
-		if (type.render) return type.render.displayName ?? type.render.name ?? null
-	}
-
-	return null
+	return typeof element.type === 'string' ? element.type : null
 }
