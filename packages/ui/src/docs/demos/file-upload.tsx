@@ -96,12 +96,6 @@ export default function FileUploadDemo() {
 				<ButtonDemo />
 			</Example>
 
-			<Example title="Button variant with color">
-				<FileUpload variant="button" color="blue">
-					Upload images
-				</FileUpload>
-			</Example>
-
 			<Example title="Disabled">
 				<DisabledDemo />
 			</Example>
