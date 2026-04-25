@@ -1,6 +1,6 @@
 import apiData from 'virtual:component-api'
 import demoMetas from 'virtual:demo-metas'
-import { type ComponentType, type LazyExoticComponent, lazy } from 'react'
+import type { ComponentType } from 'react'
 import type { ComponentApi } from './component-api'
 
 // ---------------------------------------------------------------------------
@@ -40,26 +40,8 @@ for (const [path, meta] of Object.entries(demoMetas)) {
 }
 
 // ---------------------------------------------------------------------------
-// Lazy lazy cache
+// Demo loading
 // ---------------------------------------------------------------------------
-
-const lazyCache = new Map<string, LazyExoticComponent<ComponentType>>()
-
-export function getLazyComponent(id: string): LazyExoticComponent<ComponentType> {
-	let component = lazyCache.get(id)
-
-	if (!component) {
-		const loader = loaderById.get(id)
-
-		if (!loader) throw new Error(`No demo found for id: ${id}`)
-
-		component = lazy(loader)
-
-		lazyCache.set(id, component)
-	}
-
-	return component
-}
 
 /** In-flight / resolved promise cache — ensures one import per demo. */
 const loadCache = new Map<string, Promise<ComponentType>>()

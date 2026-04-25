@@ -1,6 +1,8 @@
 import { defineConfig } from 'vitest/config'
+import { componentTagsPlugin } from './src/docs/plugins'
 
 export default defineConfig({
+	plugins: [componentTagsPlugin()],
 	test: {
 		environment: 'jsdom',
 		globals: true,

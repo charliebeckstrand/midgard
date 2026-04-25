@@ -2,14 +2,11 @@
 
 import { Children, type ReactNode } from 'react'
 import { assemble } from './imports'
-import { buildComponentRegistry, registryFromMap } from './registry'
-import type { ComponentMap, Ctx } from './types'
+import { defaultRegistry } from './registry'
+import type { Ctx } from './types'
 import { renderNodes } from './walk'
 
-export type { ComponentInfo, ComponentMap } from './types'
-
-// Built eagerly and synchronously at module load.
-const defaultRegistry = buildComponentRegistry()
+export type { ComponentInfo } from './types'
 
 /**
  * Walk a React children tree and produce a simplified code block showing how
@@ -19,15 +16,15 @@ const defaultRegistry = buildComponentRegistry()
  * - Pure text/number children collapse to `…`.
  * - Runs of 3+ identical sibling renders collapse to a single representative
  *   so loops don't dominate the output.
- * - Imports are collected automatically from the component map.
+ * - Imports are collected automatically from build-time component tags.
  *
  * Returns `null` when the subtree contains no recognized components — the
  * caller should then either provide an explicit `code` override or omit the
  * code block entirely.
  */
-export function deriveCode(children: ReactNode, map?: ComponentMap): string | null {
+export function deriveCode(children: ReactNode): string | null {
 	const ctx: Ctx = {
-		registry: map ? registryFromMap(map) : defaultRegistry,
+		registry: defaultRegistry,
 		imports: new Map(),
 	}
 
