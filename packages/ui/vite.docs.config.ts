@@ -1,9 +1,7 @@
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
-import { componentApiPlugin } from './src/docs/vite-plugin-component-api'
-import { demoMetasPlugin } from './src/docs/vite-plugin-demo-metas'
-import { derivedCodePlugin } from './src/docs/vite-plugin-derived-code'
+import { componentApiPlugin, demoMetasPlugin, derivedCodePlugin } from './src/docs/plugins'
 
 export default defineConfig({
 	base: '/',

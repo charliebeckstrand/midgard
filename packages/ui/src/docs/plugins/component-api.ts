@@ -1,6 +1,6 @@
 import path from 'node:path'
 import type { Plugin } from 'vite'
-import { parsePackage } from './component-api'
+import { parsePackage } from '../component-api'
 
 const VIRTUAL_ID = 'virtual:component-api'
 const RESOLVED_ID = `\0${VIRTUAL_ID}`
