@@ -153,7 +153,8 @@ export function createCurrentContent(slotPrefix: string) {
 					animate={current ? visible : hidden}
 					initial={false}
 					transition={ugoki.reveal.transition}
-					style={{ ...(current ? inFlow : outOfFlow), pointerEvents: current ? undefined : 'none' }}
+					style={current ? inFlow : outOfFlow}
+					inert={!current}
 					className={className}
 				>
 					{children}

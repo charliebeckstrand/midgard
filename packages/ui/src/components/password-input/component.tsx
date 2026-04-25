@@ -23,7 +23,6 @@ function VisibilityToggle({ visible, onToggle }: ToggleProps) {
 				<Button
 					variant="plain"
 					size={size}
-					className="pointer-events-auto"
 					aria-label={visible ? 'Hide password' : 'Show password'}
 					prefix={<Icon icon={visible ? <EyeOff /> : <Eye />} />}
 					onClick={onToggle}
