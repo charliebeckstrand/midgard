@@ -6,6 +6,7 @@ import type { ComponentDecl } from './find-components'
 import { formatPropType } from './format-type'
 import { detectPassThroughs } from './passthrough'
 import { collectProjectPropNames } from './project-props'
+import { getPropsAnnotation } from './ts-utils'
 import type { ComponentApi, PropDef } from './types'
 
 const IGNORED_PROPS = new Set(['className', 'children', 'ref', 'key'])
@@ -58,33 +59,6 @@ export function buildComponentApi(decl: ComponentDecl, checker: ts.TypeChecker):
 	if (passThrough.length > 0) api.passThrough = passThrough
 
 	return api
-}
-
-/** Get the props parameter's type annotation node, if any. */
-function getPropsAnnotation(callable: ts.Node): ts.TypeNode | null {
-	const fn = unwrapFunctionLike(callable)
-
-	if (!fn) return null
-
-	const param = fn.parameters[0]
-
-	return param?.type ?? null
-}
-
-function unwrapFunctionLike(node: ts.Node): ts.SignatureDeclaration | null {
-	if (ts.isFunctionDeclaration(node) || ts.isFunctionExpression(node) || ts.isArrowFunction(node)) {
-		return node
-	}
-
-	if (ts.isCallExpression(node)) {
-		for (const arg of node.arguments) {
-			const fn = unwrapFunctionLike(arg)
-
-			if (fn) return fn
-		}
-	}
-
-	return null
 }
 
 /**

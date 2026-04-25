@@ -1,4 +1,5 @@
 import ts from 'typescript'
+import { unaliasSymbol } from './ts-utils'
 
 const TYPE_NAME_RE = /\b([A-Z][A-Za-z0-9_]*)\b/g
 
@@ -115,7 +116,7 @@ function resolveAliasDefinition(
 
 	if (!symbol) return null
 
-	const aliased = symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol
+	const aliased = unaliasSymbol(symbol, checker)
 
 	for (const decl of aliased.getDeclarations() ?? []) {
 		if (decl.getSourceFile().fileName.includes('/node_modules/')) continue

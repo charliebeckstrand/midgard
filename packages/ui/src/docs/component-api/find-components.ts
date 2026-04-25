@@ -1,4 +1,5 @@
 import ts from 'typescript'
+import { unaliasSymbol } from './ts-utils'
 
 export type ComponentDecl = {
 	name: string
@@ -77,11 +78,7 @@ export function findComponent(
  * `const Foo = memo(...)`, and re-exports through aliasing.
  */
 function resolveCallable(symbol: ts.Symbol, checker: ts.TypeChecker): ts.Node | null {
-	let current = symbol
-
-	if (current.flags & ts.SymbolFlags.Alias) {
-		current = checker.getAliasedSymbol(current)
-	}
+	const current = unaliasSymbol(symbol, checker)
 
 	const declarations = current.getDeclarations() ?? []
 

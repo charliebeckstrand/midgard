@@ -1,4 +1,10 @@
 import ts from 'typescript'
+import {
+	isPassThroughTypeName,
+	resolveTypeAliasTarget,
+	stringLiteralKeys,
+	typeRefName,
+} from './ts-utils'
 
 /**
  * Walk a props-type annotation and collect the set of property names that
@@ -137,46 +143,4 @@ function isSplittable(node: ts.TypeNode): boolean {
 		ts.isParenthesizedTypeNode(node) ||
 		ts.isTypeLiteralNode(node)
 	)
-}
-
-/** Follow a type-name reference to its `type X = …` RHS, if any. */
-function resolveTypeAliasTarget(name: ts.EntityName, checker: ts.TypeChecker): ts.TypeNode | null {
-	const symbol = checker.getSymbolAtLocation(ts.isIdentifier(name) ? name : name.right)
-
-	if (!symbol) return null
-
-	const aliased = symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol
-
-	for (const decl of aliased.getDeclarations() ?? []) {
-		if (ts.isTypeAliasDeclaration(decl)) return decl.type
-	}
-
-	return null
-}
-
-function isPassThroughTypeName(name: string): boolean {
-	return (
-		name === 'ComponentPropsWithRef' ||
-		name === 'ComponentPropsWithoutRef' ||
-		name === 'ComponentProps' ||
-		name === 'PropsWithRef' ||
-		name === 'PropsWithoutRef' ||
-		name === 'PolymorphicProps' ||
-		name.endsWith('HTMLAttributes')
-	)
-}
-
-function typeRefName(name: ts.EntityName): string {
-	if (ts.isIdentifier(name)) return name.text
-	return `${typeRefName(name.left)}.${name.right.text}`
-}
-
-function stringLiteralKeys(node: ts.TypeNode | undefined): string[] {
-	if (!node) return []
-
-	if (ts.isLiteralTypeNode(node) && ts.isStringLiteral(node.literal)) return [node.literal.text]
-
-	if (ts.isUnionTypeNode(node)) return node.types.flatMap((t) => stringLiteralKeys(t))
-
-	return []
 }
