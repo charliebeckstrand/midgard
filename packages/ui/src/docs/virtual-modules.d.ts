@@ -6,6 +6,12 @@ declare module 'virtual:component-api' {
 	export default data
 }
 
+declare module 'virtual:component-modules' {
+	const data: Record<string, string>
+
+	export default data
+}
+
 declare module 'virtual:demo-metas' {
 	const data: Record<string, { name?: string; category?: string }>
 

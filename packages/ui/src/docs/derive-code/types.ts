@@ -11,12 +11,21 @@ export type ComponentInfo = { name: string; module: string }
 export type ComponentMap = Map<unknown, ComponentInfo>
 
 /**
+ * Resolve a React element `type` to its `ComponentInfo`. `Map<unknown, _>`
+ * satisfies this structurally, so callers can pass a plain Map; the default
+ * registry uses a tag-based reader instead of a Map.
+ */
+export type ComponentLookup = {
+	get(type: unknown): ComponentInfo | undefined
+}
+
+/**
  * Two views over the same set of components: identity-keyed for matching
  * rendered elements, and name-keyed for resolving JSX tag names found inside
  * raw `__code` snippets.
  */
 export type ComponentRegistry = {
-	byType: ComponentMap
+	byType: ComponentLookup
 	byName: Map<string, ComponentInfo>
 }
 

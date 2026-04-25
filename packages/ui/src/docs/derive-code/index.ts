@@ -2,14 +2,11 @@
 
 import { Children, type ReactNode } from 'react'
 import { assemble } from './imports'
-import { buildComponentRegistry, registryFromMap } from './registry'
+import { defaultRegistry, registryFromMap } from './registry'
 import type { ComponentMap, Ctx } from './types'
 import { renderNodes } from './walk'
 
 export type { ComponentInfo, ComponentMap } from './types'
-
-// Built eagerly and synchronously at module load.
-const defaultRegistry = buildComponentRegistry()
 
 /**
  * Walk a React children tree and produce a simplified code block showing how

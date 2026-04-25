@@ -1,49 +1,42 @@
-/// <reference types="vite/client" />
+/// <reference path="../virtual-modules.d.ts" />
 
+import componentModules from 'virtual:component-modules'
 import type { ComponentInfo, ComponentMap, ComponentRegistry } from './types'
 
+type Tagged = { __module?: string; __name?: string }
+
 /**
- * Build a registry from component reference to `{ name, module }` by eagerly
- * importing every component entry point. Returns both an identity-keyed view
- * (for matching rendered React elements) and a name-keyed view (for resolving
- * JSX tag names found inside `__code` snippets).
+ * Read the `__module` / `__name` decoration attached by the `component-tags`
+ * Vite plugin. Returns `undefined` for built-ins, demo-local helpers, or any
+ * function that wasn't tagged at build time.
  */
-export function buildComponentRegistry(): ComponentRegistry {
-	const byType: ComponentMap = new Map()
-	const byName = new Map<string, ComponentInfo>()
+function readTag(type: unknown): ComponentInfo | undefined {
+	if (type == null) return undefined
 
-	const modules = import.meta.glob<Record<string, unknown>>(
-		['../../components/*/index.ts', '../../layouts/index.ts'],
-		{ eager: true },
-	)
+	const { __module, __name } = type as Tagged
 
-	for (const [path, mod] of Object.entries(modules)) {
-		const moduleName =
-			path.match(/components\/([^/]+)\//)?.[1] ??
-			(path.includes('layouts/index.ts') ? 'layouts' : null)
+	if (typeof __module !== 'string' || typeof __name !== 'string') return undefined
 
-		if (!moduleName) continue
+	return { name: __name, module: __module }
+}
 
-		for (const [name, value] of Object.entries(mod)) {
-			if (value == null) continue
+const byName = new Map<string, ComponentInfo>(
+	Object.entries(componentModules).map(([name, module]) => [name, { name, module }] as const),
+)
 
-			if (!/^[A-Z]/.test(name)) continue
-
-			if (typeof value !== 'function' && typeof value !== 'object') continue
-
-			const info: ComponentInfo = { name, module: moduleName }
-
-			byType.set(value, info)
-			byName.set(name, info)
-		}
-	}
-
-	return { byType, byName }
+/**
+ * Default registry — `byType` reads tags lazily from each element's type,
+ * so components only load when the demos that use them load. `byName` is a
+ * static map computed at build time for snippet-import resolution.
+ */
+export const defaultRegistry: ComponentRegistry = {
+	byType: { get: readTag },
+	byName,
 }
 
 /**
  * Derive a registry from a caller-supplied `ComponentMap`. Used when a custom
- * map is passed to `deriveCode` instead of the eagerly-built default registry.
+ * map is passed to `deriveCode` instead of the default registry.
  */
 export function registryFromMap(map: ComponentMap): ComponentRegistry {
 	const byName = new Map<string, ComponentInfo>()
