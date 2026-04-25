@@ -16,8 +16,8 @@ const defaultMap = buildComponentMap()
  *
  * - Styling wrappers (divs, spans, Fragments) are transparently skipped.
  * - Pure text/number children collapse to `…`.
- * - Iterated siblings surface as a `const plural = [...]` declaration plus a
- *   single representative element, so loops disappear from the output.
+ * - Runs of 3+ identical sibling renders collapse to a single representative
+ *   so loops don't dominate the output.
  * - Imports are collected automatically from the component map.
  *
  * Returns `null` when the subtree contains no recognized components — the
@@ -30,8 +30,6 @@ export function deriveCode(children: ReactNode, map?: ComponentMap): string | nu
 	const ctx: Ctx = {
 		map: resolvedMap,
 		imports: new Map(),
-		consts: [],
-		constNames: new Set(),
 	}
 
 	const jsx = renderNodes(Children.toArray(children), ctx, '')
@@ -42,8 +40,6 @@ export function deriveCode(children: ReactNode, map?: ComponentMap): string | nu
 }
 
 function assemble(ctx: Ctx, jsx: string): string {
-	const sections: string[] = []
-
 	const imports = [...ctx.imports.entries()]
 		.sort(([a], [b]) => a.localeCompare(b))
 		.map(([mod, names]) => {
@@ -51,16 +47,7 @@ function assemble(ctx: Ctx, jsx: string): string {
 
 			return `import { ${[...names].sort().join(', ')} } from '${specifier}'`
 		})
+		.join('\n')
 
-	sections.push(imports.join('\n'))
-
-	if (ctx.consts.length > 0) {
-		sections.push(
-			ctx.consts.map(({ name, values }) => `const ${name} = [${values.join(', ')}]`).join('\n'),
-		)
-	}
-
-	if (jsx) sections.push(jsx)
-
-	return sections.join('\n\n')
+	return jsx ? `${imports}\n\n${jsx}` : imports
 }

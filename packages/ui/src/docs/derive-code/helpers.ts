@@ -56,27 +56,6 @@ export function flattenPassThroughs(elements: ReactElement[]): ReactElement[] {
 }
 
 /**
- * Detects whether a subtree contains any text/number leaf — including text
- * buried inside pass-through wrappers. Used to decide whether a component
- * should render `<Foo>…</Foo>` or `<Foo />`.
- */
-export function hasTextContent(nodes: ReactNode[]): boolean {
-	for (const n of nodes) {
-		if (typeof n === 'string' && n.trim() !== '') return true
-
-		if (typeof n === 'number') return true
-
-		if (isValidElement(n) && isPassThrough(n)) {
-			const children = Children.toArray((n.props as { children?: ReactNode }).children)
-
-			if (hasTextContent(children)) return true
-		}
-	}
-
-	return false
-}
-
-/**
  * Collect the text/number leaves from a subtree into a single string,
  * walking through pass-through wrappers. Returns the concatenated text
  * or `null` if no text is found.
@@ -129,74 +108,4 @@ export function getElementName(element: ReactElement, ctx: Ctx): string | null {
 	}
 
 	return null
-}
-
-export function pluralize(word: string): string {
-	if (word.endsWith('s')) return word
-
-	if (word.endsWith('y')) return `${word.slice(0, -1)}ies`
-
-	return `${word}s`
-}
-
-export function uniqueConstName(ctx: Ctx, base: string): string {
-	if (!ctx.constNames.has(base)) {
-		ctx.constNames.add(base)
-
-		return base
-	}
-
-	let i = 2
-
-	while (ctx.constNames.has(`${base}${i}`)) i++
-
-	const name = `${base}${i}`
-
-	ctx.constNames.add(name)
-
-	return name
-}
-
-// ---------------------------------------------------------------------------
-// Structural equality
-// ---------------------------------------------------------------------------
-
-/**
- * Compare two prop values for "sameness" across a list of siblings. Handles
- * primitives, arrays, and nested React elements — the last is important
- * because a prop like `icon={<Plus />}` produces a fresh element per render,
- * so identity comparison would incorrectly mark them as varying.
- */
-export function propsEqual(a: unknown, b: unknown): boolean {
-	if (Object.is(a, b)) return true
-
-	if (isValidElement(a) && isValidElement(b)) {
-		if (a.type !== b.type) return false
-
-		const aProps = a.props as Record<string, unknown>
-		const bProps = b.props as Record<string, unknown>
-
-		const aKeys = Object.keys(aProps).filter((k) => k !== 'key' && k !== 'ref')
-		const bKeys = Object.keys(bProps).filter((k) => k !== 'key' && k !== 'ref')
-
-		if (aKeys.length !== bKeys.length) return false
-
-		for (const k of aKeys) {
-			if (!propsEqual(aProps[k], bProps[k])) return false
-		}
-
-		return true
-	}
-
-	if (Array.isArray(a) && Array.isArray(b)) {
-		if (a.length !== b.length) return false
-
-		for (let i = 0; i < a.length; i++) {
-			if (!propsEqual(a[i], b[i])) return false
-		}
-
-		return true
-	}
-
-	return false
 }
