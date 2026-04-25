@@ -1,8 +1,8 @@
-import { Children, isValidElement, type ReactElement, type ReactNode } from 'react'
+import { isValidElement, type ReactElement, type ReactNode } from 'react'
 import { formatProps, INDENT, renderOpenTag } from './format'
 import { addImport } from './imports'
 import { collectSnippetImports, readSnippet, reindent } from './snippet'
-import { extractTextContent, flattenPassThroughs } from './tree'
+import { elementChildren, extractTextContent, flattenPassThroughs } from './tree'
 import type { Ctx } from './types'
 
 // ---------------------------------------------------------------------------
@@ -10,9 +10,9 @@ import type { Ctx } from './types'
 // ---------------------------------------------------------------------------
 
 /**
- * Render a list of React children as a JSX snippet. The heart of the
- * derivation: flattens noise, detects iteration patterns, and falls back to a
- * deduplicated sibling render when no higher-level pattern matches.
+ * Render a list of React children as a JSX snippet. Flattens pass-through
+ * wrappers, then collapses runs of 3+ identical sibling renders to a single
+ * representative so iterated content doesn't dominate the output.
  */
 export function renderNodes(nodes: ReactNode[], ctx: Ctx, indent: string): string {
 	// Flattening at every level lets list detection see the real components
@@ -74,7 +74,7 @@ export function renderElement(element: ReactElement, ctx: Ctx, indent: string): 
 	if (!info) {
 		// Unknown component (e.g. a locally-defined demo wrapper). Walk its
 		// children for whatever recognizable components they contain.
-		const children = Children.toArray((element.props as { children?: ReactNode }).children)
+		const children = elementChildren(element)
 
 		if (children.length > 0) {
 			return renderNodes(children, ctx, indent).trimStart()
@@ -96,13 +96,9 @@ export function renderElement(element: ReactElement, ctx: Ctx, indent: string): 
 
 	if (info.module) addImport(ctx, info.module, info.name)
 
-	const props = element.props as Record<string, unknown>
+	const propParts = formatProps(element.props as Record<string, unknown>, ctx)
 
-	const propParts = formatProps(props, ctx)
-
-	const childNodes = Children.toArray(props.children as ReactNode)
-
-	const childrenStr = renderChildrenContent(childNodes, ctx, indent + INDENT)
+	const childrenStr = renderChildrenContent(elementChildren(element), ctx, indent + INDENT)
 
 	const open = renderOpenTag(info.name, propParts, indent, childrenStr !== '')
 

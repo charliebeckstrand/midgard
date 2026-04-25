@@ -22,7 +22,7 @@ export function isPrimitive(value: unknown): value is string | number | boolean 
 // Tree inspection
 // ---------------------------------------------------------------------------
 
-function elementChildren(element: ReactElement): ReactNode[] {
+export function elementChildren(element: ReactElement): ReactNode[] {
 	return Children.toArray((element.props as { children?: ReactNode }).children)
 }
 

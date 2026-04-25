@@ -20,8 +20,7 @@ export function buildComponentRegistry(): ComponentRegistry {
 	for (const [path, mod] of Object.entries(modules)) {
 		const moduleName =
 			path.match(/components\/([^/]+)\//)?.[1] ??
-			(path.includes('layouts/index.ts') ? 'layouts' : null) ??
-			null
+			(path.includes('layouts/index.ts') ? 'layouts' : null)
 
 		if (!moduleName) continue
 
