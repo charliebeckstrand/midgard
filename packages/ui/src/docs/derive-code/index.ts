@@ -1,14 +1,15 @@
 'use client'
 
 import { Children, type ReactNode } from 'react'
-import { buildComponentMap } from './component-map'
+import { assemble } from './imports'
+import { buildComponentRegistry, registryFromMap } from './registry'
 import type { ComponentMap, Ctx } from './types'
 import { renderNodes } from './walk'
 
 export type { ComponentInfo, ComponentMap } from './types'
 
 // Built eagerly and synchronously at module load.
-const defaultMap = buildComponentMap()
+const defaultRegistry = buildComponentRegistry()
 
 /**
  * Walk a React children tree and produce a simplified code block showing how
@@ -16,8 +17,8 @@ const defaultMap = buildComponentMap()
  *
  * - Styling wrappers (divs, spans, Fragments) are transparently skipped.
  * - Pure text/number children collapse to `…`.
- * - Iterated siblings surface as a `const plural = [...]` declaration plus a
- *   single representative element, so loops disappear from the output.
+ * - Runs of 3+ identical sibling renders collapse to a single representative
+ *   so loops don't dominate the output.
  * - Imports are collected automatically from the component map.
  *
  * Returns `null` when the subtree contains no recognized components — the
@@ -25,13 +26,9 @@ const defaultMap = buildComponentMap()
  * code block entirely.
  */
 export function deriveCode(children: ReactNode, map?: ComponentMap): string | null {
-	const resolvedMap = map ?? defaultMap
-
 	const ctx: Ctx = {
-		map: resolvedMap,
+		registry: map ? registryFromMap(map) : defaultRegistry,
 		imports: new Map(),
-		consts: [],
-		constNames: new Set(),
 	}
 
 	const jsx = renderNodes(Children.toArray(children), ctx, '')
@@ -39,28 +36,4 @@ export function deriveCode(children: ReactNode, map?: ComponentMap): string | nu
 	if (ctx.imports.size === 0) return null
 
 	return assemble(ctx, jsx)
-}
-
-function assemble(ctx: Ctx, jsx: string): string {
-	const sections: string[] = []
-
-	const imports = [...ctx.imports.entries()]
-		.sort(([a], [b]) => a.localeCompare(b))
-		.map(([mod, names]) => {
-			const specifier = mod === 'react' ? 'react' : `ui/${mod}`
-
-			return `import { ${[...names].sort().join(', ')} } from '${specifier}'`
-		})
-
-	sections.push(imports.join('\n'))
-
-	if (ctx.consts.length > 0) {
-		sections.push(
-			ctx.consts.map(({ name, values }) => `const ${name} = [${values.join(', ')}]`).join('\n'),
-		)
-	}
-
-	if (jsx) sections.push(jsx)
-
-	return sections.join('\n\n')
 }
