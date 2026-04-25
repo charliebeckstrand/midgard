@@ -94,8 +94,9 @@ function walk(
 	//     so we keep honoring pass-through arms instead of inlining HTML attrs.
 	//   • Single TypeReference RHS — peek at it: if it's a pass-through (e.g.
 	//     `type FooProps = ComponentPropsWithoutRef<'div'>`), skip the whole
-	//     branch. Otherwise fall through to resolved-type properties on the
-	//     original node (avoids losing type-arg context across alias hops).
+	//     branch. If it's another project alias (`BottomNavProps = NavProps`),
+	//     keep following the chain so we eventually reach a splittable shape
+	//     and don't fall back to expanding every HTML attr inline.
 	//   • Anything else (mapped / conditional / fn) — resolved-type fallback.
 	const aliasTarget = resolveTypeAliasTarget(node.typeName, checker)
 
@@ -106,10 +107,11 @@ function walk(
 			return
 		}
 
-		if (
-			ts.isTypeReferenceNode(aliasTarget) &&
-			isPassThroughTypeName(typeRefName(aliasTarget.typeName))
-		) {
+		if (ts.isTypeReferenceNode(aliasTarget)) {
+			if (isPassThroughTypeName(typeRefName(aliasTarget.typeName))) return
+
+			walk(aliasTarget, names, visited, checker)
+
 			return
 		}
 	}
