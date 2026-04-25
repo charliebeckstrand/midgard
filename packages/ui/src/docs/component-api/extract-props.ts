@@ -149,7 +149,12 @@ function buildPropDef(
 ): PropDef {
 	const propType = checker.getTypeOfSymbolAtLocation(symbol, decl.callable)
 
-	const prop: PropDef = { name, type: formatPropType(propType, checker, decl.callable) }
+	const inline = inlineSourceType(symbol)
+
+	const prop: PropDef = {
+		name,
+		type: inline ?? formatPropType(propType, checker, decl.callable),
+	}
 
 	const references = extractReferences(prop.type, decl.callable, checker)
 
@@ -164,6 +169,28 @@ function buildPropDef(
 	if (defaultVal !== undefined) prop.default = defaultVal
 
 	return prop
+}
+
+/**
+ * Use the prop's source-text annotation when its declaration carries an
+ * inline structural shape (mapped types, object literals) — TS otherwise
+ * expands these into uglier forms like
+ * `{ [K in keyof T]?: Validator<T, K> | undefined; }`. The bare TypeNode
+ * source preserves what the user wrote.
+ *
+ * Only used as a targeted override; type references and primitives still
+ * flow through the formatter so they pick up alias / generic resolution.
+ */
+function inlineSourceType(symbol: ts.Symbol): string | null {
+	const decl = symbol.getDeclarations()?.[0]
+
+	if (!decl || !ts.isPropertySignature(decl) || !decl.type) return null
+
+	const node = decl.type
+
+	if (ts.isMappedTypeNode(node)) return node.getText()
+
+	return null
 }
 
 /**
