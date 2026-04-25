@@ -3,7 +3,7 @@
 import { Children, type ReactNode } from 'react'
 import { buildComponentRegistry, registryFromMap } from './registry'
 import type { ComponentMap, Ctx } from './types'
-import { renderNodes } from './walk'
+import { assemble, renderNodes } from './walk'
 
 export type { ComponentInfo, ComponentMap } from './types'
 
@@ -35,17 +35,4 @@ export function deriveCode(children: ReactNode, map?: ComponentMap): string | nu
 	if (ctx.imports.size === 0) return null
 
 	return assemble(ctx, jsx)
-}
-
-function assemble(ctx: Ctx, jsx: string): string {
-	const imports = [...ctx.imports.entries()]
-		.sort(([a], [b]) => a.localeCompare(b))
-		.map(([mod, names]) => {
-			const specifier = mod === 'react' ? 'react' : `ui/${mod}`
-
-			return `import { ${[...names].sort().join(', ')} } from '${specifier}'`
-		})
-		.join('\n')
-
-	return jsx ? `${imports}\n\n${jsx}` : imports
 }

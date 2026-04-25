@@ -146,3 +146,25 @@ export function renderChildrenContent(nodes: ReactNode[], ctx: Ctx, indent: stri
 
 	return rendered
 }
+
+// ---------------------------------------------------------------------------
+// Output assembly
+// ---------------------------------------------------------------------------
+
+/**
+ * Combine the imports accumulated on `ctx` with the rendered JSX into the
+ * final code block. Imports are sorted by module and emitted with `react`
+ * kept as a bare specifier; everything else uses the `ui/*` package layout.
+ */
+export function assemble(ctx: Ctx, jsx: string): string {
+	const imports = [...ctx.imports.entries()]
+		.sort(([a], [b]) => a.localeCompare(b))
+		.map(([mod, names]) => {
+			const specifier = mod === 'react' ? 'react' : `ui/${mod}`
+
+			return `import { ${[...names].sort().join(', ')} } from '${specifier}'`
+		})
+		.join('\n')
+
+	return jsx ? `${imports}\n\n${jsx}` : imports
+}
