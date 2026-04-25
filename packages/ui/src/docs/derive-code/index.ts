@@ -1,14 +1,14 @@
 'use client'
 
 import { Children, type ReactNode } from 'react'
-import { buildComponentMap } from './component-map'
+import { buildComponentRegistry, registryFromMap } from './registry'
 import type { ComponentMap, Ctx } from './types'
 import { renderNodes } from './walk'
 
 export type { ComponentInfo, ComponentMap } from './types'
 
 // Built eagerly and synchronously at module load.
-const defaultMap = buildComponentMap()
+const defaultRegistry = buildComponentRegistry()
 
 /**
  * Walk a React children tree and produce a simplified code block showing how
@@ -25,10 +25,8 @@ const defaultMap = buildComponentMap()
  * code block entirely.
  */
 export function deriveCode(children: ReactNode, map?: ComponentMap): string | null {
-	const resolvedMap = map ?? defaultMap
-
 	const ctx: Ctx = {
-		map: resolvedMap,
+		registry: map ? registryFromMap(map) : defaultRegistry,
 		imports: new Map(),
 	}
 

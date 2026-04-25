@@ -84,7 +84,7 @@ export function extractTextContent(nodes: ReactNode[]): string | null {
 // ---------------------------------------------------------------------------
 
 export function getElementName(element: ReactElement, ctx: Ctx): string | null {
-	const info = ctx.map.get(element.type)
+	const info = ctx.registry.byType.get(element.type)
 
 	if (info) return info.name
 

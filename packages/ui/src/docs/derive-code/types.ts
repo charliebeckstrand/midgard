@@ -11,10 +11,20 @@ export type ComponentInfo = { name: string; module: string }
 export type ComponentMap = Map<unknown, ComponentInfo>
 
 /**
- * Per-call state threaded through the traversal. Carries the component map
- * and accumulates imports as we discover them.
+ * Two views over the same set of components: identity-keyed for matching
+ * rendered elements, and name-keyed for resolving JSX tag names found inside
+ * raw `__code` snippets.
+ */
+export type ComponentRegistry = {
+	byType: ComponentMap
+	byName: Map<string, ComponentInfo>
+}
+
+/**
+ * Per-call state threaded through the traversal. Carries the registry and
+ * accumulates imports as we discover them.
  */
 export type Ctx = {
-	map: ComponentMap
+	registry: ComponentRegistry
 	imports: Map<string, Set<string>>
 }

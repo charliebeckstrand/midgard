@@ -67,7 +67,7 @@ export function renderNodes(nodes: ReactNode[], ctx: Ctx, indent: string): strin
  * transparently unwrapped so their internal composition can still contribute.
  */
 export function renderElement(element: ReactElement, ctx: Ctx, indent: string): string {
-	const info = ctx.map.get(element.type) ?? null
+	const info = ctx.registry.byType.get(element.type) ?? null
 
 	if (!info) {
 		// Unknown component (e.g. a locally-defined demo wrapper). Walk its
@@ -223,16 +223,14 @@ function collectImportsFromSnippet(snippet: string, ctx: Ctx): void {
 		if (!seen.has(name)) {
 			seen.add(name)
 
-			for (const info of ctx.map.values()) {
-				if (info.name === name && info.module) {
-					const set = ctx.imports.get(info.module) ?? new Set<string>()
+			const info = ctx.registry.byName.get(name)
 
-					set.add(info.name)
+			if (info?.module) {
+				const set = ctx.imports.get(info.module) ?? new Set<string>()
 
-					ctx.imports.set(info.module, set)
+				set.add(info.name)
 
-					break
-				}
+				ctx.imports.set(info.module, set)
 			}
 		}
 
