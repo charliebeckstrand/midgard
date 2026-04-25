@@ -131,6 +131,7 @@ export function extractTypeRhs(source: string, start: number): string | null {
 		else if (ch === '>' && source[i - 1] !== '=') depth--
 
 		if (ch === '\n' && depth === 0) {
+			// Continuation: next line begins with `|`/`&`, or current line ends with one.
 			let j = i + 1
 
 			while (j < source.length && (source[j] === ' ' || source[j] === '\t')) j++
@@ -138,6 +139,14 @@ export function extractTypeRhs(source: string, start: number): string | null {
 			const next = source[j]
 
 			if (next === '|' || next === '&') continue
+
+			let k = i - 1
+
+			while (k >= start && (source[k] === ' ' || source[k] === '\t')) k--
+
+			const prev = source[k]
+
+			if (prev === '|' || prev === '&') continue
 
 			const rhs = source.slice(start, i).trim()
 

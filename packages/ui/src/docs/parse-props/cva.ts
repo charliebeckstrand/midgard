@@ -188,14 +188,16 @@ function parseCvaVariants(cvaArgs: string, fullSource: string): CvaVariant[] {
 
 		if (!trimmed) continue
 
-		// Match `variantName: value`
+		// `name: value` or shorthand `name` (treated as `name: name`).
 		const kvMatch = trimmed.match(/^(\w+)\s*:\s*([\s\S]+)$/)
 
-		if (!kvMatch) continue
+		const shorthandMatch = !kvMatch && trimmed.match(/^(\w+)$/)
 
-		const variantName = kvMatch[1]
+		if (!kvMatch && !shorthandMatch) continue
 
-		const valueExpr = stripAsCast(kvMatch[2].trim())
+		const variantName = (kvMatch?.[1] ?? shorthandMatch?.[1]) as string
+
+		const valueExpr = stripAsCast((kvMatch?.[2] ?? variantName).trim())
 
 		let options: string[]
 

@@ -70,11 +70,17 @@ export function resolveTypeBodies(
 		if (pt) {
 			passThrough.push(pt)
 
+			// PolymorphicProps<'X'> additionally contributes a synthesized
+			// `href?: string` prop — the discriminator that toggles the
+			// component into Link mode. Without this synthesis, components
+			// that destructure `href` show it as `unknown`.
+			if (/^PolymorphicProps\s*</.test(p)) bodies.push('{ href?: string }')
+
 			continue
 		}
 
-		// Omit<Ref, keys> — resolve Ref, then filter the omitted keys from its body
-		const omitMatch = p.match(/^Omit\s*<\s*([\s\S]+?)\s*,\s*([\s\S]+)\s*>$/)
+		// Omit<Ref, keys> / DistributiveOmit<Ref, keys> — resolve Ref, then filter the omitted keys
+		const omitMatch = p.match(/^(?:Distributive)?Omit\s*<\s*([\s\S]+?)\s*,\s*([\s\S]+)\s*>$/)
 
 		if (omitMatch) {
 			const [, innerType, rawKeys] = omitMatch
