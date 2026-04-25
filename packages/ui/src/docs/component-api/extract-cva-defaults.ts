@@ -1,4 +1,5 @@
 import ts from 'typescript'
+import { resolveTypeAliasTarget, typeRefName, unaliasSymbol } from './ts-utils'
 
 /**
  * Walk a props-type annotation looking for `VariantProps<typeof recipe>`
@@ -81,7 +82,7 @@ function collectFromVariantProps(
 
 	if (!symbol) return
 
-	const aliased = symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol
+	const aliased = unaliasSymbol(symbol, checker)
 
 	for (const decl of aliased.getDeclarations() ?? []) {
 		if (!ts.isVariableDeclaration(decl) || !decl.initializer) continue
@@ -125,25 +126,6 @@ function readDefaultVariants(node: ts.Expression): Map<string, string> | null {
 
 			return map
 		}
-	}
-
-	return null
-}
-
-function typeRefName(name: ts.EntityName): string {
-	if (ts.isIdentifier(name)) return name.text
-	return `${typeRefName(name.left)}.${name.right.text}`
-}
-
-function resolveTypeAliasTarget(name: ts.EntityName, checker: ts.TypeChecker): ts.TypeNode | null {
-	const symbol = checker.getSymbolAtLocation(ts.isIdentifier(name) ? name : name.right)
-
-	if (!symbol) return null
-
-	const aliased = symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol
-
-	for (const decl of aliased.getDeclarations() ?? []) {
-		if (ts.isTypeAliasDeclaration(decl)) return decl.type
 	}
 
 	return null

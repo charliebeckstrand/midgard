@@ -1,13 +1,10 @@
 import ts from 'typescript'
+import { unaliasSymbol } from './ts-utils'
 
 export type ComponentDecl = {
 	name: string
 	/** The function/forwardRef/memo expression whose call signature gives us the props. */
 	callable: ts.Node
-	/** The symbol exported from the file (so we can read its type). */
-	symbol: ts.Symbol
-	/** Source file the export lives in — used to attribute defaults from the same file. */
-	sourceFile: ts.SourceFile
 }
 
 /**
@@ -65,7 +62,7 @@ export function findComponent(
 
 		if (!decl) continue
 
-		return { name, callable: decl, symbol: match, sourceFile: file }
+		return { name, callable: decl }
 	}
 
 	return null
@@ -77,11 +74,7 @@ export function findComponent(
  * `const Foo = memo(...)`, and re-exports through aliasing.
  */
 function resolveCallable(symbol: ts.Symbol, checker: ts.TypeChecker): ts.Node | null {
-	let current = symbol
-
-	if (current.flags & ts.SymbolFlags.Alias) {
-		current = checker.getAliasedSymbol(current)
-	}
+	const current = unaliasSymbol(symbol, checker)
 
 	const declarations = current.getDeclarations() ?? []
 

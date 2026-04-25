@@ -6,6 +6,7 @@ import type { ComponentDecl } from './find-components'
 import { formatPropType } from './format-type'
 import { detectPassThroughs } from './passthrough'
 import { collectProjectPropNames } from './project-props'
+import { getPropsAnnotation } from './ts-utils'
 import type { ComponentApi, PropDef } from './types'
 
 const IGNORED_PROPS = new Set(['className', 'children', 'ref', 'key'])
@@ -16,11 +17,11 @@ const IGNORED_PROPS = new Set(['className', 'children', 'ref', 'key'])
  * separately detects HTML pass-through.
  */
 export function buildComponentApi(decl: ComponentDecl, checker: ts.TypeChecker): ComponentApi {
-	const propsType = getPropsType(decl, checker)
-
-	const passThrough = detectPassThroughs(decl, checker)
+	const propsType = getPropsType(decl.callable, checker)
 
 	const annotation = getPropsAnnotation(decl.callable)
+
+	const passThrough = annotation ? detectPassThroughs(annotation, checker) : []
 
 	const projectNames = annotation ? collectProjectPropNames(annotation, checker) : null
 
@@ -29,7 +30,9 @@ export function buildComponentApi(decl: ComponentDecl, checker: ts.TypeChecker):
 	if (propsType) {
 		// Inline destructured defaults take priority over CVA `defaultVariants`
 		// (the inline form is the value the component actually applies).
-		const cvaDefaults = annotation ? extractCvaDefaults(annotation, checker) : new Map()
+		const cvaDefaults = annotation
+			? extractCvaDefaults(annotation, checker)
+			: new Map<string, string>()
 
 		const inlineDefaults = extractDefaults(decl.callable)
 
@@ -49,7 +52,7 @@ export function buildComponentApi(decl: ComponentDecl, checker: ts.TypeChecker):
 				continue
 			}
 
-			props.push(buildPropDef(name, symbol, decl, checker, defaults))
+			props.push(buildPropDef(name, symbol, decl.callable, checker, defaults))
 		}
 	}
 
@@ -58,33 +61,6 @@ export function buildComponentApi(decl: ComponentDecl, checker: ts.TypeChecker):
 	if (passThrough.length > 0) api.passThrough = passThrough
 
 	return api
-}
-
-/** Get the props parameter's type annotation node, if any. */
-function getPropsAnnotation(callable: ts.Node): ts.TypeNode | null {
-	const fn = unwrapFunctionLike(callable)
-
-	if (!fn) return null
-
-	const param = fn.parameters[0]
-
-	return param?.type ?? null
-}
-
-function unwrapFunctionLike(node: ts.Node): ts.SignatureDeclaration | null {
-	if (ts.isFunctionDeclaration(node) || ts.isFunctionExpression(node) || ts.isArrowFunction(node)) {
-		return node
-	}
-
-	if (ts.isCallExpression(node)) {
-		for (const arg of node.arguments) {
-			const fn = unwrapFunctionLike(arg)
-
-			if (fn) return fn
-		}
-	}
-
-	return null
 }
 
 /**
@@ -126,8 +102,8 @@ function collectAllProperties(type: ts.Type): ts.Symbol[] {
 }
 
 /** Resolve the props type from the component's callable signature. */
-function getPropsType(decl: ComponentDecl, checker: ts.TypeChecker): ts.Type | null {
-	const type = checker.getTypeAtLocation(decl.callable)
+function getPropsType(callable: ts.Node, checker: ts.TypeChecker): ts.Type | null {
+	const type = checker.getTypeAtLocation(callable)
 
 	const signatures = type.getCallSignatures()
 
@@ -137,26 +113,26 @@ function getPropsType(decl: ComponentDecl, checker: ts.TypeChecker): ts.Type | n
 
 	if (!param) return null
 
-	return checker.getTypeOfSymbolAtLocation(param, decl.callable)
+	return checker.getTypeOfSymbolAtLocation(param, callable)
 }
 
 function buildPropDef(
 	name: string,
 	symbol: ts.Symbol,
-	decl: ComponentDecl,
+	callable: ts.Node,
 	checker: ts.TypeChecker,
 	defaults: Map<string, string>,
 ): PropDef {
-	const propType = checker.getTypeOfSymbolAtLocation(symbol, decl.callable)
+	const propType = checker.getTypeOfSymbolAtLocation(symbol, callable)
 
 	const inline = inlineSourceType(symbol)
 
 	const prop: PropDef = {
 		name,
-		type: inline ?? formatPropType(propType, checker, decl.callable),
+		type: inline ?? formatPropType(propType, checker, callable),
 	}
 
-	const references = extractReferences(prop.type, decl.callable, checker)
+	const references = extractReferences(prop.type, callable, checker)
 
 	if (references) prop.references = references
 

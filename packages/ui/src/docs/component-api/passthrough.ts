@@ -1,19 +1,23 @@
 import ts from 'typescript'
-import type { ComponentDecl } from './find-components'
+import {
+	resolveTypeAliasTarget,
+	STRING_LITERAL_PASS_THROUGHS,
+	stringLiteralKeys,
+	typeRefName,
+} from './ts-utils'
 import type { PassThrough } from './types'
 
 /**
- * Walk a component's props type AST to detect HTML pass-through. A component
- * passes through `<tag>` attrs when its props type contains:
+ * Walk a component's props-type annotation to detect HTML pass-through. A
+ * component passes through `<tag>` attrs when its annotation contains:
  *   - `ComponentPropsWithRef<'tag'>` / `ComponentPropsWithoutRef<'tag'>`
  *   - `*HTMLAttributes<HTMLTagElement>`
  *   - `PolymorphicProps<'tag'>` (project-specific helper)
  */
-export function detectPassThroughs(decl: ComponentDecl, checker: ts.TypeChecker): PassThrough[] {
-	const annotation = getPropsTypeNode(decl.callable)
-
-	if (!annotation) return []
-
+export function detectPassThroughs(
+	annotation: ts.TypeNode,
+	checker: ts.TypeChecker,
+): PassThrough[] {
 	const found: PassThrough[] = []
 
 	const visited = new Set<ts.Node>()
@@ -91,23 +95,10 @@ function matchDirectPassThrough(
 	typeArgs: readonly ts.TypeNode[],
 	checker: ts.TypeChecker,
 ): string | null {
-	// ComponentPropsWith[out]Ref<'tag'>
-	if (
-		name === 'ComponentPropsWithRef' ||
-		name === 'ComponentPropsWithoutRef' ||
-		name === 'ComponentProps' ||
-		name === 'PropsWithRef' ||
-		name === 'PropsWithoutRef'
-	) {
+	if (STRING_LITERAL_PASS_THROUGHS.has(name)) {
 		return extractStringLiteral(typeArgs[0], checker)
 	}
 
-	// PolymorphicProps<'tag'> — project-specific
-	if (name === 'PolymorphicProps') {
-		return extractStringLiteral(typeArgs[0], checker)
-	}
-
-	// *HTMLAttributes<HTMLXElement>
 	if (name.endsWith('HTMLAttributes')) {
 		return extractHtmlElementTag(typeArgs[0], checker)
 	}
@@ -153,70 +144,6 @@ function extractHtmlElementTag(
 	const match = symbolName.match(/^HTML(\w+)Element$/)
 
 	return match?.[1]?.toLowerCase() ?? null
-}
-
-/** Get the dot-separated name from a TypeName — `Foo` or `Foo.Bar`. */
-function typeRefName(name: ts.EntityName): string {
-	if (ts.isIdentifier(name)) return name.text
-
-	return `${typeRefName(name.left)}.${name.right.text}`
-}
-
-function stringLiteralKeys(node: ts.TypeNode | undefined): string[] {
-	if (!node) return []
-
-	if (ts.isLiteralTypeNode(node) && ts.isStringLiteral(node.literal)) return [node.literal.text]
-
-	if (ts.isUnionTypeNode(node)) {
-		return node.types.flatMap((t) => stringLiteralKeys(t))
-	}
-
-	return []
-}
-
-/** Resolve a type alias reference to the AST node of its definition's RHS. */
-function resolveTypeAliasTarget(name: ts.EntityName, checker: ts.TypeChecker): ts.TypeNode | null {
-	const symbol = checker.getSymbolAtLocation(ts.isIdentifier(name) ? name : name.right)
-
-	if (!symbol) return null
-
-	const aliased = symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol
-
-	for (const decl of aliased.getDeclarations() ?? []) {
-		if (ts.isTypeAliasDeclaration(decl)) return decl.type
-
-		// For interfaces, walking members is more complex; pass-through is rare in interfaces
-		// and we don't surface them yet. Could add later.
-	}
-
-	return null
-}
-
-/** Get the type annotation node of the first parameter of a component callable. */
-function getPropsTypeNode(callable: ts.Node): ts.TypeNode | null {
-	const fn = unwrapToFunctionLike(callable)
-
-	if (!fn) return null
-
-	const param = fn.parameters[0]
-
-	return param?.type ?? null
-}
-
-function unwrapToFunctionLike(node: ts.Node): ts.SignatureDeclaration | null {
-	if (ts.isFunctionDeclaration(node) || ts.isFunctionExpression(node) || ts.isArrowFunction(node)) {
-		return node
-	}
-
-	if (ts.isCallExpression(node)) {
-		for (const arg of node.arguments) {
-			const fn = unwrapToFunctionLike(arg)
-
-			if (fn) return fn
-		}
-	}
-
-	return null
 }
 
 function dedupe(items: PassThrough[]): PassThrough[] {
