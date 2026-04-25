@@ -18,10 +18,6 @@ export function formatProps(props: Record<string, unknown>, ctx: Ctx): string[] 
 	for (const [key, value] of Object.entries(props)) {
 		if (IGNORED_PROPS.has(key)) continue
 
-		// Event handlers are always elided — the rendered JSX would be full of
-		// `onClick={() => {}}` closures that obscure the real API.
-		if (key.startsWith('on') && typeof value === 'function') continue
-
 		const formatted = formatProp(key, value, ctx)
 
 		if (formatted !== null) parts.push(formatted)
@@ -39,6 +35,7 @@ function formatProp(key: string, value: unknown, ctx: Ctx): string | null {
 
 	if (typeof value === 'number') return `${key}={${value}}`
 
+	// Event handlers and other callbacks would render as opaque closures.
 	if (typeof value === 'function') return null
 
 	if (isValidElement(value)) {
@@ -54,7 +51,7 @@ function formatProp(key: string, value: unknown, ctx: Ctx): string | null {
 	}
 
 	if (Array.isArray(value) && value.every(isPrimitive)) {
-		return `${key}={[${value.map((v) => formatLiteral(v as string | number | boolean)).join(', ')}]}`
+		return `${key}={[${value.map(formatLiteral).join(', ')}]}`
 	}
 
 	return null
@@ -64,15 +61,15 @@ function formatProp(key: string, value: unknown, ctx: Ctx): string | null {
 // Literal formatting
 // ---------------------------------------------------------------------------
 
-export function jsxString(value: string): string {
-	// Prefer double-quoted JSX attributes; fall back to braces + JSON when the
-	// value contains characters that would need escaping.
+// Prefer double-quoted JSX attributes; fall back to braces + JSON when the
+// value contains characters that would need escaping.
+function jsxString(value: string): string {
 	if (!value.includes('"') && !value.includes('\n')) return `"${value}"`
 
 	return `{${JSON.stringify(value)}}`
 }
 
-export function formatLiteral(value: string | number | boolean): string {
+function formatLiteral(value: string | number | boolean): string {
 	if (typeof value === 'string') return `'${value}'`
 
 	return String(value)

@@ -31,21 +31,9 @@ export function reindent(code: string, targetIndent: string): string {
 
 	if (lines.length === 1) return lines[0]
 
-	let minIndent = Infinity
+	const indents = lines.slice(1).flatMap((line) => (line.trim() ? [leadingSpace(line)] : []))
 
-	for (let i = 1; i < lines.length; i += 1) {
-		const line = lines[i]
-
-		if (!line.trim()) continue
-
-		const match = line.match(/^[\t ]*/)
-
-		const len = match ? match[0].length : 0
-
-		if (len < minIndent) minIndent = len
-	}
-
-	if (!Number.isFinite(minIndent)) minIndent = 0
+	const minIndent = indents.length === 0 ? 0 : Math.min(...indents)
 
 	return lines
 		.map((line, i) => {
@@ -56,6 +44,10 @@ export function reindent(code: string, targetIndent: string): string {
 			return targetIndent + line.slice(minIndent)
 		})
 		.join('\n')
+}
+
+function leadingSpace(line: string): number {
+	return line.length - line.trimStart().length
 }
 
 // Curated list — we don't want to import every `useFoo`-looking custom hook
