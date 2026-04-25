@@ -1,9 +1,13 @@
 export type PropDef = {
 	name: string
-	/** Type expression as written in source, e.g. "ButtonSize | 'inherit'" */
+	/** Type expression as written in source, e.g. "DataTableColumn<T>[]" */
 	type: string
-	/** Expanded form when `type` contains named references, e.g. "'sm' | 'md' | 'lg' | 'inherit'" */
-	breakdown?: string
+	/**
+	 * Definitions of named types appearing anywhere in the type expression —
+	 * including those nested inside generics, arrays, function params/returns,
+	 * and tuples. Object bodies are summarized to their key list for display.
+	 */
+	references?: Record<string, string>
 	default?: string
 	/** Package name when the type is imported from an external library (e.g. "@floating-ui/react") */
 	externalFrom?: string

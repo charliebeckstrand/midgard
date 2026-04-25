@@ -29,13 +29,13 @@ export function parseTypeBody(
 
 		const cleanType = (type ?? '').replace(/;?\s*$/, '').trim()
 
-		const breakdown = expandBreakdown(cleanType, ctx)
+		const references = collectReferences(cleanType, ctx)
 
 		const defaultVal = defaults.get(name)
 
 		const prop: PropDef = { name, type: cleanType }
 
-		if (breakdown && breakdown !== cleanType) prop.breakdown = breakdown
+		if (references) prop.references = references
 
 		if (defaultVal !== undefined) prop.default = defaultVal
 
@@ -46,119 +46,137 @@ export function parseTypeBody(
 }
 
 /**
- * Expand a prop's type by substituting any named references with their
- * resolved definitions. Returns the fully expanded form if it differs from
- * the original, otherwise undefined. Inline object members are summarized
- * to their key list so the output stays readable.
+ * Walk a type expression and collect definitions for every named type it
+ * references — at any depth (inside generics, arrays, function params/returns,
+ * tuples, etc.). Primitive-like names (TS built-ins, common React/DOM types,
+ * utility types) are skipped. Returns undefined when nothing resolves.
  */
-function expandBreakdown(
+function collectReferences(
 	type: string,
 	ctx: ResolutionContext,
-	visited: Set<string> = new Set(),
-	depth = 0,
-): string | undefined {
-	if (depth > 3) return undefined
+): Record<string, string> | undefined {
+	const refs: Record<string, string> = {}
 
-	const parts = splitUnionMembers(type)
+	const visited = new Set<string>()
 
-	let changed = false
+	function visit(expression: string, depth: number) {
+		if (depth > 4) return
 
-	const expanded: string[] = []
+		// VariantProps<typeof X> — resolve via the CVA registry.
+		for (const match of expression.matchAll(/VariantProps<typeof\s+(\w+)>/g)) {
+			const constName = match[1] ?? ''
 
-	for (const part of parts) {
-		// Inline object literal — summarize to its key list
-		if (part.startsWith('{') && part.endsWith('}')) {
-			const summary = summarizeBody(part)
+			const key = `VariantProps<typeof ${constName}>`
 
-			if (summary) {
-				expanded.push(summary)
+			if (visited.has(key)) continue
 
-				if (summary !== part) changed = true
-			} else {
-				expanded.push(part)
-			}
+			visited.add(key)
 
-			continue
+			const variants = ctx.cvaVariants.get(constName)
+
+			if (!variants) continue
+
+			const body = cvaVariantsToTypeBody(variants)
+
+			refs[key] = summarize(body)
 		}
 
-		const nameMatch = part.match(/^(\w+)(?:<[^>]*>)?$/)
+		for (const name of collectTypeNames(expression)) {
+			if (PRIMITIVE_TYPES.has(name) || visited.has(name)) continue
 
-		if (!nameMatch) {
-			expanded.push(part)
+			const typeDef = ctx.typeDefs.get(name)
 
-			continue
+			if (!typeDef) continue
+
+			visited.add(name)
+
+			const normalized = normalizeWhitespace(typeDef)
+
+			refs[name] = summarize(normalized)
+
+			visit(normalized, depth + 1)
 		}
-
-		const refName = nameMatch[1] ?? ''
-
-		if (visited.has(refName)) {
-			expanded.push(part)
-
-			continue
-		}
-
-		// VariantProps<typeof X>
-		const vpInline = part.match(/^VariantProps<typeof\s+(\w+)>$/)
-
-		if (vpInline) {
-			const variants = ctx.cvaVariants.get(vpInline[1])
-
-			if (variants) {
-				expanded.push(summarizeBody(cvaVariantsToTypeBody(variants)) ?? part)
-
-				changed = true
-
-				continue
-			}
-		}
-
-		const typeDef = ctx.typeDefs.get(refName)
-
-		if (!typeDef) {
-			expanded.push(part)
-
-			continue
-		}
-
-		const nextVisited = new Set(visited)
-
-		nextVisited.add(refName)
-
-		const defTrim = normalizeWhitespace(typeDef)
-
-		// Object body — summarize as inline keys: "{ zone, index }"
-		if (defTrim.startsWith('{') && defTrim.endsWith('}')) {
-			const summary = summarizeBody(defTrim)
-
-			if (summary) {
-				expanded.push(summary)
-
-				changed = true
-
-				continue
-			}
-		}
-
-		// Otherwise recurse into the definition (handles nested unions / refs)
-		const inner = expandBreakdown(defTrim, ctx, nextVisited, depth + 1) ?? defTrim
-
-		expanded.push(inner)
-
-		if (inner !== part) changed = true
 	}
 
-	if (!changed) return undefined
+	visit(type, 0)
 
-	return expanded.join(' | ')
+	if (Object.keys(refs).length === 0) return undefined
+
+	return refs
 }
 
-/** Split a union into top-level members, dropping a leading `|` and empty parts. */
-function splitUnionMembers(type: string): string[] {
-	const normalized = normalizeWhitespace(type).replace(/^\|\s*/, '')
+/**
+ * Extract identifier tokens that could be type references — PascalCase words
+ * not preceded by `.` (which would be property access) and not inside string
+ * literals. Single-letter names like `T` are included; lookup decides whether
+ * they resolve.
+ */
+function collectTypeNames(type: string): string[] {
+	const names: string[] = []
 
-	return splitAtTopLevel(normalized, '|')
-		.map((p) => p.trim())
-		.filter(Boolean)
+	let inString: string | null = null
+
+	let i = 0
+
+	while (i < type.length) {
+		const ch = type[i] ?? ''
+
+		if (inString) {
+			if (ch === inString && type[i - 1] !== '\\') inString = null
+
+			i++
+
+			continue
+		}
+
+		if (ch === "'" || ch === '"' || ch === '`') {
+			inString = ch
+
+			i++
+
+			continue
+		}
+
+		if (/[A-Z]/.test(ch)) {
+			const prev = type[i - 1]
+
+			// Skip member access (Foo.Bar) and mid-identifier positions
+			if (prev && /[\w$.]/.test(prev)) {
+				i++
+
+				continue
+			}
+
+			let end = i
+
+			while (end < type.length && /[\w$]/.test(type[end] ?? '')) end++
+
+			names.push(type.slice(i, end))
+
+			i = end
+
+			continue
+		}
+
+		i++
+	}
+
+	return names
+}
+
+/** Object bodies collapse to their key list, both at the top level and within unions. */
+function summarize(def: string): string {
+	const parts = splitAtTopLevel(def, '|').map((p) => p.trim())
+
+	const summarized = parts.map((part) => {
+		if (part.startsWith('{') && part.endsWith('}')) {
+			return summarizeBody(part) ?? part
+		}
+
+		return part
+	})
+
+	return summarized.join(' | ')
 }
 
 /** Collapse whitespace to single spaces so multi-line type defs render cleanly. */
@@ -184,3 +202,145 @@ function summarizeBody(body: string): string | undefined {
 
 	return `{ ${keys.join(', ')} }`
 }
+
+/**
+ * Names we never want to expand — primitives, TS utility types, and common
+ * React/DOM types. Substantive component-level types will always live outside
+ * this set.
+ */
+const PRIMITIVE_TYPES = new Set([
+	// TS primitives / top types
+	'string',
+	'number',
+	'boolean',
+	'bigint',
+	'symbol',
+	'undefined',
+	'null',
+	'void',
+	'any',
+	'unknown',
+	'never',
+	'object',
+	// TS utility types
+	'Array',
+	'ReadonlyArray',
+	'Record',
+	'Partial',
+	'Required',
+	'Readonly',
+	'Pick',
+	'Omit',
+	'Extract',
+	'Exclude',
+	'NonNullable',
+	'ReturnType',
+	'Parameters',
+	'Awaited',
+	'InstanceType',
+	'ConstructorParameters',
+	'ThisParameterType',
+	'OmitThisParameter',
+	// Common JS built-ins
+	'Set',
+	'Map',
+	'WeakSet',
+	'WeakMap',
+	'Promise',
+	'Date',
+	'RegExp',
+	'Error',
+	'Iterable',
+	'Iterator',
+	'IterableIterator',
+	'AsyncIterable',
+	'ArrayLike',
+	// React
+	'ReactNode',
+	'ReactElement',
+	'ReactFragment',
+	'ReactChild',
+	'ReactChildren',
+	'ReactPortal',
+	'JSX',
+	'ComponentType',
+	'FC',
+	'FunctionComponent',
+	'ForwardRefExoticComponent',
+	'MemoExoticComponent',
+	'LazyExoticComponent',
+	'CSSProperties',
+	'Ref',
+	'RefObject',
+	'MutableRefObject',
+	'ForwardedRef',
+	'ElementRef',
+	'ComponentRef',
+	'ComponentProps',
+	'ComponentPropsWithRef',
+	'ComponentPropsWithoutRef',
+	'HTMLAttributes',
+	'AriaAttributes',
+	'DOMAttributes',
+	'ButtonHTMLAttributes',
+	'InputHTMLAttributes',
+	'LabelHTMLAttributes',
+	'SelectHTMLAttributes',
+	'TextareaHTMLAttributes',
+	'AnchorHTMLAttributes',
+	'FormHTMLAttributes',
+	'ImgHTMLAttributes',
+	'Dispatch',
+	'SetStateAction',
+	'Key',
+	'PropsWithChildren',
+	// React synthetic events
+	'SyntheticEvent',
+	'MouseEvent',
+	'KeyboardEvent',
+	'ChangeEvent',
+	'FormEvent',
+	'FocusEvent',
+	'DragEvent',
+	'TouchEvent',
+	'PointerEvent',
+	'WheelEvent',
+	'ClipboardEvent',
+	'UIEvent',
+	'AnimationEvent',
+	'TransitionEvent',
+	'CompositionEvent',
+	// DOM
+	'HTMLElement',
+	'HTMLDivElement',
+	'HTMLButtonElement',
+	'HTMLInputElement',
+	'HTMLTextAreaElement',
+	'HTMLSelectElement',
+	'HTMLFormElement',
+	'HTMLAnchorElement',
+	'HTMLLabelElement',
+	'HTMLImageElement',
+	'HTMLSpanElement',
+	'HTMLUListElement',
+	'HTMLOListElement',
+	'HTMLLIElement',
+	'HTMLParagraphElement',
+	'HTMLHeadingElement',
+	'HTMLTableElement',
+	'HTMLTableRowElement',
+	'HTMLTableCellElement',
+	'HTMLTableSectionElement',
+	'Element',
+	'Node',
+	'Document',
+	'Window',
+	'EventTarget',
+	'File',
+	'FileList',
+	'Blob',
+	'FormData',
+	'URLSearchParams',
+	// TS reserved-ish keywords that can appear capitalized in generics
+	'VariantProps',
+])
