@@ -139,11 +139,9 @@ function TypeCell({
 				/>
 			</button>
 			{expanded && (
-				<div className="space-y-1.5 border-zinc-200 border-l pl-2 text-xs dark:border-zinc-800">
+				<div className="space-y-1.5 border-zinc-200 border-l pl-2 text-sm dark:border-zinc-800">
 					{refEntries.map(([name, def]) => (
-						<div key={name} className="flex flex-wrap items-baseline gap-1.5">
-							<span className="font-mono font-medium text-zinc-700 dark:text-zinc-300">{name}</span>
-							<span className="text-zinc-400 dark:text-zinc-500">=</span>
+						<div key={name} className="flex flex-wrap items-baseline gap-2">
 							<TypeBadges type={def} />
 						</div>
 					))}
