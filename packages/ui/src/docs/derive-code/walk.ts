@@ -1,5 +1,6 @@
 import { Children, type ReactElement, type ReactNode } from 'react'
 import { formatProps, INDENT, renderOpenTag } from './format'
+import { collectSnippetImports, readSnippet, reindent } from './snippet'
 import { extractTextContent, flattenPassThroughs, isMeaningfulElement } from './tree'
 import type { Ctx } from './types'
 
@@ -81,14 +82,12 @@ export function renderElement(element: ReactElement, ctx: Ctx, indent: string): 
 		// Self-closing helper with a build-time snippet attached by the
 		// derived-code Vite plugin. Use the raw JSX verbatim so users see
 		// the actual composition rather than an opaque `<HelperDemo />`.
-		if (typeof element.type === 'function') {
-			const snippet = (element.type as { __code?: unknown }).__code
+		const snippet = readSnippet(element.type)
 
-			if (typeof snippet === 'string') {
-				collectImportsFromSnippet(snippet, ctx)
+		if (snippet !== null) {
+			collectSnippetImports(snippet, ctx)
 
-				return reindent(snippet, indent)
-			}
+			return reindent(snippet, indent)
 		}
 
 		return ''
@@ -146,104 +145,4 @@ export function renderChildrenContent(nodes: ReactNode[], ctx: Ctx, indent: stri
 	}
 
 	return rendered
-}
-
-/**
- * Dedent a raw snippet (extracted straight from source by the Vite plugin)
- * and re-indent subsequent lines to match the current walker depth. Line 1
- * is returned as-is — the caller always prefixes the first line with its
- * own indent, matching the convention used by `renderElement`.
- */
-function reindent(code: string, targetIndent: string): string {
-	const lines = code.split('\n')
-
-	if (lines.length === 1) return lines[0]
-
-	let minIndent = Infinity
-
-	for (let i = 1; i < lines.length; i += 1) {
-		const line = lines[i]
-
-		if (!line.trim()) continue
-
-		const match = line.match(/^[\t ]*/)
-
-		const len = match ? match[0].length : 0
-
-		if (len < minIndent) minIndent = len
-	}
-
-	if (!Number.isFinite(minIndent)) minIndent = 0
-
-	return lines
-		.map((line, i) => {
-			if (i === 0) return line
-
-			if (!line.trim()) return ''
-
-			return targetIndent + line.slice(minIndent)
-		})
-		.join('\n')
-}
-
-const REACT_HOOKS = [
-	'useCallback',
-	'useContext',
-	'useDebugValue',
-	'useDeferredValue',
-	'useEffect',
-	'useId',
-	'useImperativeHandle',
-	'useInsertionEffect',
-	'useLayoutEffect',
-	'useMemo',
-	'useReducer',
-	'useRef',
-	'useState',
-	'useSyncExternalStore',
-	'useTransition',
-]
-
-/**
- * Register imports for anything the snippet references: UI components via
- * JSX opening tags, and React hooks via bare identifier use. Names are
- * resolved against the component map; React hook names come from a small
- * curated list so we don't import every `useFoo`-looking custom hook.
- */
-function collectImportsFromSnippet(snippet: string, ctx: Ctx): void {
-	const tagRe = /<([A-Z][\w]*)/g
-
-	const seen = new Set<string>()
-
-	let match: RegExpExecArray | null = tagRe.exec(snippet)
-
-	while (match) {
-		const name = match[1]
-
-		if (!seen.has(name)) {
-			seen.add(name)
-
-			const info = ctx.registry.byName.get(name)
-
-			if (info?.module) {
-				const set = ctx.imports.get(info.module) ?? new Set<string>()
-
-				set.add(info.name)
-
-				ctx.imports.set(info.module, set)
-			}
-		}
-
-		match = tagRe.exec(snippet)
-	}
-
-	for (const hook of REACT_HOOKS) {
-		if (new RegExp(`\\b${hook}\\b`).test(snippet)) {
-			const set = ctx.imports.get('react') ?? new Set<string>()
-
-			set.add(hook)
-
-			ctx.imports.set('react', set)
-		}
-	}
 }
