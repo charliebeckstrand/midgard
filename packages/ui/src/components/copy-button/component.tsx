@@ -33,10 +33,15 @@ export function CopyButton({
 }: CopyButtonProps) {
 	const [isCopied, setIsCopied] = useState(false)
 
-	const copy = useCallback(() => {
-		navigator.clipboard.writeText(value)
+	const copy = useCallback(async () => {
+		try {
+			await navigator.clipboard.writeText(value)
 
-		setIsCopied(true)
+			setIsCopied(true)
+		} catch {
+			// Clipboard write failed (denied permission, insecure context, missing
+			// API). Don't flip into the success state — the button must not lie.
+		}
 	}, [value])
 
 	useEffect(() => {
