@@ -118,6 +118,8 @@ export function useScrollbar({ orientation, scrollbar }: UseScrollbarOptions) {
 		}
 	}, [scrollbar, updateThumbs])
 
+	const dragCleanupRef = useRef<(() => void) | null>(null)
+
 	const startDrag = (axis: 'x' | 'y') => (event: ReactPointerEvent<HTMLDivElement>) => {
 		const el = viewportRef.current
 
@@ -140,6 +142,9 @@ export function useScrollbar({ orientation, scrollbar }: UseScrollbarOptions) {
 
 		const scale = maxOffset > 0 ? maxScroll / maxOffset : 0
 
+		// Clean up any prior drag — defensive; pointerup normally clears it.
+		dragCleanupRef.current?.()
+
 		const onMove = (ev: PointerEvent) => {
 			const delta = (axis === 'y' ? ev.clientY : ev.clientX) - startClient
 
@@ -149,14 +154,24 @@ export function useScrollbar({ orientation, scrollbar }: UseScrollbarOptions) {
 			else el.scrollLeft = next
 		}
 
-		const onUp = () => {
+		const cleanup = () => {
 			window.removeEventListener('pointermove', onMove)
 			window.removeEventListener('pointerup', onUp)
+
+			dragCleanupRef.current = null
 		}
+
+		const onUp = () => cleanup()
 
 		window.addEventListener('pointermove', onMove)
 		window.addEventListener('pointerup', onUp)
+
+		dragCleanupRef.current = cleanup
 	}
+
+	// If the component unmounts mid-drag (modal closes, route change, etc.)
+	// pointerup never fires, so the global listeners would otherwise leak.
+	useEffect(() => () => dragCleanupRef.current?.(), [])
 
 	return {
 		viewportRef,
