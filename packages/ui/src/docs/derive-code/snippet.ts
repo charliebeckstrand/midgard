@@ -50,52 +50,26 @@ function leadingSpace(line: string): number {
 	return line.length - line.trimStart().length
 }
 
-// Curated list — we don't want to import every `useFoo`-looking custom hook
-// the snippet might reference, only React's own.
-const REACT_HOOKS = [
-	'useCallback',
-	'useContext',
-	'useDebugValue',
-	'useDeferredValue',
-	'useEffect',
-	'useId',
-	'useImperativeHandle',
-	'useInsertionEffect',
-	'useLayoutEffect',
-	'useMemo',
-	'useReducer',
-	'useRef',
-	'useState',
-	'useSyncExternalStore',
-	'useTransition',
-]
+// Curated alternation — we don't want to import every `useFoo`-looking custom
+// hook the snippet might reference, only React's own.
+const HOOK_RE =
+	/\b(useCallback|useContext|useDebugValue|useDeferredValue|useEffect|useId|useImperativeHandle|useInsertionEffect|useLayoutEffect|useMemo|useReducer|useRef|useState|useSyncExternalStore|useTransition)\b/g
+
+const TAG_RE = /<([A-Z][\w]*)/g
 
 /**
  * Register imports for anything the snippet references: UI components via
- * JSX opening tags, and React hooks via bare identifier use.
+ * JSX opening tags, and React hooks via bare identifier use. `addImport`
+ * dedupes per-(module,name), so repeated matches are harmless.
  */
 export function collectSnippetImports(snippet: string, ctx: Ctx): void {
-	const tagRe = /<([A-Z][\w]*)/g
+	for (const [, name] of snippet.matchAll(TAG_RE)) {
+		const info = ctx.registry.byName.get(name)
 
-	const seen = new Set<string>()
-
-	let match: RegExpExecArray | null = tagRe.exec(snippet)
-
-	while (match) {
-		const name = match[1]
-
-		if (!seen.has(name)) {
-			seen.add(name)
-
-			const info = ctx.registry.byName.get(name)
-
-			if (info?.module) addImport(ctx, info.module, info.name)
-		}
-
-		match = tagRe.exec(snippet)
+		if (info?.module) addImport(ctx, info.module, info.name)
 	}
 
-	for (const hook of REACT_HOOKS) {
-		if (new RegExp(`\\b${hook}\\b`).test(snippet)) addImport(ctx, 'react', hook)
+	for (const [, hook] of snippet.matchAll(HOOK_RE)) {
+		addImport(ctx, 'react', hook)
 	}
 }
