@@ -44,7 +44,9 @@ export function Toast({
 									toast={t}
 									position={position}
 									showCloseButton={t.showCloseButton}
-									onDismiss={dismiss}
+									onOpenChange={(open, id) => {
+										if (!open) dismiss(id)
+									}}
 									onPause={pause}
 									onResume={resume}
 								/>

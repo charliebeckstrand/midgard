@@ -1,6 +1,7 @@
 import { iro } from '../iro'
 import { ji } from '../ji'
 import { kumi } from '../kumi'
+import { ma } from '../ma'
 import { maru } from '../maru'
 import { omote } from '../omote'
 import { sawari } from '../sawari'
@@ -34,10 +35,10 @@ const itemBase = [
 ]
 
 const itemVariant = {
-	separated: ['p-3', 'bg-white dark:bg-zinc-900', sen.border, maru.rounded.lg],
-	outline: ['p-3'],
-	plain: ['px-2 py-1.5'],
-	solid: ['p-3', ...omote.tint, sen.border, maru.rounded.lg],
+	separated: [ma.p[3], 'bg-white dark:bg-zinc-900', sen.border, maru.rounded.lg],
+	outline: [ma.p[3]],
+	plain: [ma.px[2], 'py-1.5'],
+	solid: [ma.p[3], ...omote.tint, sen.border, maru.rounded.lg],
 } satisfies Record<ListVariant, unknown>
 
 export const list = {
@@ -45,7 +46,7 @@ export const list = {
 	root: (variant: ListVariant = 'separated') => [...rootBase, ...rootVariant[variant]],
 	horizontal: 'flex-row',
 	item: (variant: ListVariant = 'separated') => [...itemBase, ...itemVariant[variant]],
-	itemActive: 'z-10 relative bg-white dark:bg-zinc-900 rounded-md',
+	itemActive: ['z-10 relative bg-white dark:bg-zinc-900', maru.rounded.md],
 	itemLifted: sen.focus.lifted,
 	handle: [
 		'inline-flex flex-none',

@@ -3,6 +3,7 @@ import { colorVariants } from '../../core/recipe'
 import { iro, merge } from '../iro'
 import { ji } from '../ji'
 import { kumi } from '../kumi'
+import { maru } from '../maru'
 
 const { solid, soft, outline, plain } = iro.palette
 
@@ -32,12 +33,12 @@ export const badge = tv({
 		color,
 		size,
 		rounded: {
-			none: 'rounded-none',
-			sm: 'rounded-sm',
-			md: 'rounded-md',
-			lg: 'rounded-lg',
-			xl: 'rounded-xl',
-			full: 'rounded-full',
+			none: maru.rounded.none,
+			sm: maru.rounded.sm,
+			md: maru.rounded.md,
+			lg: maru.rounded.lg,
+			xl: maru.rounded.xl,
+			full: maru.rounded.full,
 		},
 	},
 	compoundVariants,

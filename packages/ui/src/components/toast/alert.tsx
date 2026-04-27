@@ -30,7 +30,7 @@ type ToastAlertProps = {
 	toast: ToastData
 	position: ToastPosition
 	showCloseButton?: boolean
-	onDismiss: (id: string) => void
+	onOpenChange: (open: boolean, id: string) => void
 	onPause: () => void
 	onResume: () => void
 }
@@ -39,7 +39,7 @@ export function ToastAlert({
 	toast: t,
 	position,
 	showCloseButton = true,
-	onDismiss,
+	onOpenChange,
 	onPause,
 	onResume,
 }: ToastAlertProps) {
@@ -75,9 +75,7 @@ export function ToastAlert({
 					description={t.description}
 					actions={t.actions}
 					closable={showCloseButton}
-					onOpenChange={(open) => {
-						if (!open) onDismiss(t.id)
-					}}
+					onOpenChange={(open) => onOpenChange(open, t.id)}
 					className={cn(k.card)}
 				/>
 			</motion.div>

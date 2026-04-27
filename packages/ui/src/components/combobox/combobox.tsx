@@ -21,6 +21,7 @@ import { control as controlRecipe } from '../../recipes/kata/_control'
 import { useControl } from '../control/context'
 import { useGlass } from '../glass/context'
 import { Icon } from '../icon'
+import { HeadlessInput } from '../input'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
 import { useComboboxSelection } from './use-combobox-selection'
@@ -105,8 +106,6 @@ export function Combobox<T>({
 	const glass = useGlass()
 	const control = useControl()
 	const skeleton = useSkeleton()
-
-	const resolvedDisabled = control?.disabled
 
 	const resolvedSize = control?.size ?? 'md'
 
@@ -201,7 +200,7 @@ export function Combobox<T>({
 					data-open={open || undefined}
 					className={cn(!glass && controlRecipe.surface.default)}
 				>
-					<input
+					<HeadlessInput
 						ref={inputRef}
 						type={inputType}
 						role="combobox"
@@ -210,10 +209,8 @@ export function Combobox<T>({
 						aria-controls={open ? listboxId : undefined}
 						aria-autocomplete="list"
 						data-slot="combobox-input"
-						id={id ?? control?.id}
-						disabled={resolvedDisabled}
+						id={id}
 						autoComplete={autoComplete}
-						{...(control?.invalid ? { 'data-invalid': '', 'aria-invalid': true } : {})}
 						value={inputDisplay}
 						placeholder={placeholder}
 						onChange={(e) => {
