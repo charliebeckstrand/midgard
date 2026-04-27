@@ -179,6 +179,44 @@ describe('HoldButton', () => {
 		vi.useRealTimers()
 	})
 
+	it('cancels an in-flight hold when disabled flips true mid-hold', () => {
+		vi.useFakeTimers()
+
+		const onComplete = vi.fn()
+
+		const onHoldCancel = vi.fn()
+
+		const { container, rerender } = renderUI(
+			<HoldButton duration={1000} onComplete={onComplete} onHoldCancel={onHoldCancel}>
+				Hold
+			</HoldButton>,
+		)
+
+		const el = bySlot(container, 'hold-button') as HTMLElement
+
+		fireEvent.pointerDown(el)
+
+		act(() => {
+			vi.advanceTimersByTime(500)
+		})
+
+		rerender(
+			<HoldButton duration={1000} disabled onComplete={onComplete} onHoldCancel={onHoldCancel}>
+				Hold
+			</HoldButton>,
+		)
+
+		act(() => {
+			vi.advanceTimersByTime(1000)
+		})
+
+		expect(onHoldCancel).toHaveBeenCalledOnce()
+
+		expect(onComplete).not.toHaveBeenCalled()
+
+		vi.useRealTimers()
+	})
+
 	it('does not fire onComplete when released before duration elapses', () => {
 		vi.useFakeTimers()
 
