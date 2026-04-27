@@ -161,6 +161,23 @@ export function Map({
 		map.setStyle(resolvedStyle)
 	}, [resolvedStyle, ready])
 
+	// MapLibre measures the container at construction and won't reflow when the
+	// container resizes (responsive layout, sidebar collapse, etc.) without a
+	// nudge — so the canvas would stay at its initial size and clip or stretch.
+	useEffect(() => {
+		const map = mapRef.current
+
+		const container = containerRef.current
+
+		if (!map || !container || !ready) return
+
+		const observer = new ResizeObserver(() => map.resize())
+
+		observer.observe(container)
+
+		return () => observer.disconnect()
+	}, [ready])
+
 	// Stable context — getMap and onReady read from refs, so the value
 	// identity never changes across renders.
 	const contextValue = useMemo(
