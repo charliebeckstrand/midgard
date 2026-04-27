@@ -50,11 +50,12 @@ export function CreditCardCvvInput({
 		defaultValue,
 		onChange,
 		format: (raw) => formatCvv(raw, maxLength),
+		ref,
 	})
 
 	return (
 		<Input
-			ref={ref}
+			ref={masked.ref}
 			type="text"
 			inputMode="numeric"
 			autoComplete="cc-csc"

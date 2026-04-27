@@ -22,11 +22,11 @@ export function CreditCardExpiryInput({
 	ref,
 	...props
 }: CreditCardExpiryInputProps) {
-	const masked = useMaskedInput({ value, defaultValue, onChange, format: formatExpiry })
+	const masked = useMaskedInput({ value, defaultValue, onChange, format: formatExpiry, ref })
 
 	return (
 		<Input
-			ref={ref}
+			ref={masked.ref}
 			type="text"
 			inputMode="numeric"
 			autoComplete="cc-exp"
@@ -43,7 +43,7 @@ export function CreditCardExpiryInput({
 					return
 				}
 
-				masked.setValue(raw)
+				masked.onChange(e)
 			}}
 			{...props}
 		/>

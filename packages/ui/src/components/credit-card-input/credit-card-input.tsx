@@ -35,13 +35,14 @@ export function CreditCardInput({
 		defaultValue,
 		onChange,
 		format: (raw) => formatCardNumber(raw).formatted,
+		ref,
 	})
 
 	const { brand } = useMemo(() => formatCardNumber(masked.value), [masked.value])
 
 	return (
 		<Input
-			ref={ref}
+			ref={masked.ref}
 			type="text"
 			inputMode="numeric"
 			autoComplete="cc-number"
@@ -50,7 +51,7 @@ export function CreditCardInput({
 			suffix={suffix ?? (brand ? brand.label : undefined)}
 			value={masked.value}
 			onChange={(e) => {
-				masked.setValue(e.target.value)
+				masked.onChange(e)
 
 				onBrandChange?.(formatCardNumber(e.target.value).brand?.brand)
 			}}
