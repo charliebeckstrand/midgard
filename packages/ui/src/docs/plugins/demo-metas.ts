@@ -1,32 +1,9 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import type { Plugin } from 'vite'
-
-const VIRTUAL_ID = 'virtual:demo-metas'
-
-const RESOLVED_ID = `\0${VIRTUAL_ID}`
+import { virtualJsonHooks } from './virtual-json'
 
 type DemoMeta = { name?: string; category?: string }
-
-function collectDemos(dir: string, prefix = ''): string[] {
-	if (!fs.existsSync(dir)) return []
-
-	const result: string[] = []
-
-	for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-		const rel = prefix ? `${prefix}/${entry.name}` : entry.name
-
-		const full = path.join(dir, entry.name)
-
-		if (entry.isFile() && entry.name.endsWith('.tsx')) {
-			result.push(rel)
-		} else if (entry.isDirectory()) {
-			result.push(...collectDemos(full, rel))
-		}
-	}
-
-	return result
-}
 
 /**
  * Parse `export const meta = { name?: '...', category?: '...' }` out of a
@@ -54,16 +31,18 @@ function parseMeta(source: string): DemoMeta {
 }
 
 function generate(demosDir: string): Record<string, DemoMeta> {
-	const files = collectDemos(demosDir)
+	if (!fs.existsSync(demosDir)) return {}
 
 	const result: Record<string, DemoMeta> = {}
 
-	for (const rel of files) {
-		const full = path.join(demosDir, rel)
+	for (const entry of fs.readdirSync(demosDir, { recursive: true, withFileTypes: true })) {
+		if (!entry.isFile() || !entry.name.endsWith('.tsx')) continue
 
-		const source = fs.readFileSync(full, 'utf-8')
+		const full = path.join(entry.parentPath, entry.name)
 
-		result[`./demos/${rel}`] = parseMeta(source)
+		const rel = path.relative(demosDir, full).replaceAll(path.sep, '/')
+
+		result[`./demos/${rel}`] = parseMeta(fs.readFileSync(full, 'utf-8'))
 	}
 
 	return result
@@ -77,9 +56,7 @@ function generate(demosDir: string): Record<string, DemoMeta> {
  * keeping the dynamic `import.meta.glob` loaders as true per-route chunks.
  */
 export function demoMetasPlugin(): Plugin {
-	let demosDir: string
-
-	let cachedJson: string | null = null
+	let demosDir = ''
 
 	return {
 		name: 'demo-metas',
@@ -88,30 +65,10 @@ export function demoMetasPlugin(): Plugin {
 			demosDir = path.resolve(config.root, 'demos')
 		},
 
-		resolveId(id) {
-			if (id === VIRTUAL_ID) return RESOLVED_ID
-		},
-
-		load(id) {
-			if (id === RESOLVED_ID) {
-				cachedJson ??= JSON.stringify(generate(demosDir))
-
-				return `export default ${cachedJson}`
-			}
-		},
-
-		handleHotUpdate({ file, server }) {
-			if (!file.startsWith(demosDir) || !file.endsWith('.tsx')) return
-
-			cachedJson = null
-
-			const mod = server.moduleGraph.getModuleById(RESOLVED_ID)
-
-			if (mod) {
-				server.moduleGraph.invalidateModule(mod)
-
-				return [mod]
-			}
-		},
+		...virtualJsonHooks({
+			id: 'virtual:demo-metas',
+			generate: () => generate(demosDir),
+			shouldInvalidate: (file) => file.startsWith(demosDir) && file.endsWith('.tsx'),
+		}),
 	}
 }
