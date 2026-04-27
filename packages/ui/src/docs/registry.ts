@@ -23,7 +23,6 @@ function pathToId(path: string) {
 		.replace(/\//g, '-')
 }
 
-// Map glob paths to { id → loader }
 const loaderById = new Map<string, () => Promise<DemoModule>>()
 
 for (const [path, loader] of Object.entries(loaders)) {
@@ -40,23 +39,14 @@ for (const [path, meta] of Object.entries(demoMetas)) {
 }
 
 // ---------------------------------------------------------------------------
-// Demo loading
+// Demo loading — one cached promise per id, consumed via React's `use()` hook.
 // ---------------------------------------------------------------------------
 
-/** In-flight / resolved promise cache — ensures one import per demo. */
-const loadCache = new Map<string, Promise<ComponentType>>()
+const promiseCache = new Map<string, Promise<ComponentType>>()
 
-/** Synchronous cache of already-resolved components. */
-const resolvedCache = new Map<string, ComponentType>()
-
-/** Return the component synchronously if its import has already resolved. */
-export function getResolvedDemo(id: string): ComponentType | null {
-	return resolvedCache.get(id) ?? null
-}
-
-/** Load a demo module and return the resolved component. */
+/** Return a cached promise for the demo's component, kicking off the import on first call. */
 export function loadDemo(id: string): Promise<ComponentType> {
-	let pending = loadCache.get(id)
+	let pending = promiseCache.get(id)
 
 	if (pending) return pending
 
@@ -64,12 +54,9 @@ export function loadDemo(id: string): Promise<ComponentType> {
 
 	if (!loader) throw new Error(`No demo found for id: ${id}`)
 
-	pending = loader().then((mod) => {
-		resolvedCache.set(id, mod.default)
-		return mod.default
-	})
+	pending = loader().then((mod) => mod.default)
 
-	loadCache.set(id, pending)
+	promiseCache.set(id, pending)
 
 	return pending
 }
@@ -139,10 +126,11 @@ export const sortedCategories = Object.entries(categories).sort(
 
 export const defaultDemo = sortedCategories[0]?.[1]?.[0]?.id || demos[0]?.id || ''
 
-// Eagerly preload the initial demo so it's ready before React mounts.
-const initialId =
-	typeof window !== 'undefined' ? window.location.hash.slice(1) || defaultDemo : defaultDemo
+// Eagerly start the initial demo's import at module-eval time so its promise
+// is settled by the time React mounts — avoids a Suspense fallback flash on
+// first paint.
+if (typeof window !== 'undefined') {
+	const initialId = window.location.hash.slice(1) || defaultDemo
 
-export const initialPreload = loaderById.has(initialId)
-	? loadDemo(initialId)
-	: Promise.resolve(undefined as unknown as ComponentType)
+	if (loaderById.has(initialId)) loadDemo(initialId)
+}

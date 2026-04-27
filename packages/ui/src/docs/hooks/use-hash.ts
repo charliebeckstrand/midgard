@@ -1,16 +1,14 @@
-import { useEffect, useState } from 'react'
+import { useSyncExternalStore } from 'react'
 import { defaultDemo } from '../registry'
 
+const subscribe = (notify: () => void) => {
+	window.addEventListener('hashchange', notify)
+
+	return () => window.removeEventListener('hashchange', notify)
+}
+
+const getSnapshot = () => window.location.hash.slice(1) || defaultDemo
+
 export function useHash() {
-	const [hash, setHash] = useState(() => window.location.hash.slice(1) || defaultDemo)
-
-	useEffect(() => {
-		const onHashChange = () => setHash(window.location.hash.slice(1) || defaultDemo)
-
-		window.addEventListener('hashchange', onHashChange)
-
-		return () => window.removeEventListener('hashchange', onHashChange)
-	}, [])
-
-	return hash
+	return useSyncExternalStore(subscribe, getSnapshot)
 }
