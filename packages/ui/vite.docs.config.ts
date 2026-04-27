@@ -30,25 +30,5 @@ export default defineConfig({
 	},
 	build: {
 		target: 'esnext',
-		rollupOptions: {
-			output: {
-				manualChunks(id) {
-					if (id.includes('node_modules/react-dom') || id.includes('node_modules/react/')) {
-						return 'vendor-react'
-					}
-
-					if (
-						id.includes('node_modules/motion') ||
-						id.includes('node_modules/@floating-ui') ||
-						id.includes('node_modules/lucide-react')
-					) {
-						return 'vendor-ui'
-					}
-				},
-			},
-		},
-	},
-	optimizeDeps: {
-		include: ['react', 'react-dom', 'lucide-react', 'motion', '@floating-ui/react', 'shiki'],
 	},
 })

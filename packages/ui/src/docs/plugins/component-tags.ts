@@ -2,9 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import ts from 'typescript'
 import type { Plugin } from 'vite'
-
-const VIRTUAL_ID = 'virtual:component-modules'
-const RESOLVED_ID = `\0${VIRTUAL_ID}`
+import { virtualJsonHooks } from './virtual-json'
 
 type ReExport = { source: string; localName: string; exportedName: string; isType: boolean }
 
@@ -121,23 +119,19 @@ function buildTagSuffix(reExports: ReExport[], moduleName: string): string {
 	return `\n${imports}\n${tag}\n${calls}\n`
 }
 
-function findSrcDir(start: string): string {
-	const isSrcDir = (dir: string) =>
-		fs.existsSync(path.join(dir, 'components')) && fs.existsSync(path.join(dir, 'layouts'))
+/**
+ * Locate the `src/` directory containing `components/` and `layouts/`.
+ * Docs build runs with `root = src/docs` (so `..` is `src`); vitest runs
+ * with `root = packages/ui` (so `src` is one level down). Try both.
+ */
+function findSrcDir(root: string): string {
+	const candidates = [path.resolve(root, '..'), path.join(root, 'src')]
 
-	let dir = path.resolve(start)
+	const dir = candidates.find((c) => fs.existsSync(path.join(c, 'components')))
 
-	while (dir !== path.dirname(dir)) {
-		if (isSrcDir(dir)) return dir
+	if (!dir) throw new Error(`component-tags: could not locate src dir from ${root}`)
 
-		const nested = path.join(dir, 'src')
-
-		if (isSrcDir(nested)) return nested
-
-		dir = path.dirname(dir)
-	}
-
-	throw new Error(`component-tags: could not locate src dir from ${start}`)
+	return dir
 }
 
 /**
@@ -155,9 +149,7 @@ function findSrcDir(start: string): string {
  * load as their demos import them, not all upfront.
  */
 export function componentTagsPlugin(): Plugin {
-	let srcDir: string
-
-	let cachedJson: string | null = null
+	let srcDir = ''
 
 	return {
 		name: 'component-tags',
@@ -166,17 +158,11 @@ export function componentTagsPlugin(): Plugin {
 			srcDir = findSrcDir(config.root)
 		},
 
-		resolveId(id) {
-			if (id === VIRTUAL_ID) return RESOLVED_ID
-		},
-
-		load(id) {
-			if (id === RESOLVED_ID) {
-				cachedJson ??= JSON.stringify(buildNameMap(srcDir))
-
-				return `export default ${cachedJson}`
-			}
-		},
+		...virtualJsonHooks({
+			id: 'virtual:component-modules',
+			generate: () => buildNameMap(srcDir),
+			shouldInvalidate: (file) => file.startsWith(srcDir),
+		}),
 
 		transform(code, id) {
 			const cleanId = id.split('?')[0]
@@ -190,24 +176,6 @@ export function componentTagsPlugin(): Plugin {
 			if (!suffix) return
 
 			return { code: code + suffix, map: null }
-		},
-
-		handleHotUpdate({ file, server }) {
-			if (!file.startsWith(srcDir)) return
-
-			const moduleName = moduleNameFor(file, srcDir)
-
-			if (!moduleName) return
-
-			cachedJson = null
-
-			const mod = server.moduleGraph.getModuleById(RESOLVED_ID)
-
-			if (mod) {
-				server.moduleGraph.invalidateModule(mod)
-
-				return [mod]
-			}
 		},
 	}
 }

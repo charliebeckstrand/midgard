@@ -1,7 +1,7 @@
 'use client'
 
 import { Moon, Sun } from 'lucide-react'
-import { useEffect, useRef } from 'react'
+import { Suspense, useDeferredValue, useEffect, useRef } from 'react'
 import { loadShiki } from '../components/code'
 import { Heading } from '../components/heading'
 import { ToggleIconButton } from '../components/toggle-icon-button'
@@ -15,9 +15,14 @@ import { demos, preloadDemo } from './registry'
 export function App() {
 	const route = useHash()
 
+	// Defers the route while the next demo's chunk is in flight, so the
+	// previous demo stays on screen instead of flashing to a Suspense
+	// fallback during navigation.
+	const deferredRoute = useDeferredValue(route)
+
 	const [dark, toggleDark] = useTheme()
 
-	const current = demos.find((d) => d.id === route)
+	const current = demos.find((d) => d.id === deferredRoute)
 
 	const contentRef = useRef<HTMLDivElement>(null)
 
@@ -75,7 +80,9 @@ export function App() {
 		>
 			<div ref={contentRef}>
 				{current ? (
-					<DemoPage demo={current} />
+					<Suspense fallback={null}>
+						<DemoPage demo={current} />
+					</Suspense>
 				) : (
 					<div className="p-6">
 						<Heading>Select a component</Heading>

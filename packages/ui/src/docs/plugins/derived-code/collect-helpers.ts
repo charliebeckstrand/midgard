@@ -1,5 +1,4 @@
 import ts from 'typescript'
-import { arrowReturnsJsx, returnsJsx } from './jsx-detect'
 
 export type Helper = { name: string; code: string }
 
@@ -16,6 +15,12 @@ function isDefaultExport(modifiers: readonly ts.ModifierLike[] | undefined): boo
 
 	return hasExport && hasDefault
 }
+
+// Matches `return <Tag`, `return (<Tag`, `return <>`, `=> <Tag`, `=> (<Tag`, `=> <>`.
+// Identifier-prefixed `<` (e.g. `useState<string>()`) doesn't match because
+// the lookbehind requires `return` or `=>` immediately before the optional
+// paren and `<`.
+const JSX_RETURN = /(?:return|=>)\s*\(?\s*<[A-Za-z>]/
 
 /**
  * Find every PascalCase top-level function/const that returns JSX. The default
@@ -37,9 +42,11 @@ export function collectHelpers(source: string): Helper[] {
 		if (ts.isFunctionDeclaration(stmt) && stmt.name && /^[A-Z]/.test(stmt.name.text) && stmt.body) {
 			if (isDefaultExport(stmt.modifiers)) continue
 
-			if (!returnsJsx(stmt.body)) continue
+			const code = source.slice(stmt.getStart(sf), stmt.getEnd())
 
-			helpers.push({ name: stmt.name.text, code: source.slice(stmt.getStart(sf), stmt.getEnd()) })
+			if (!JSX_RETURN.test(code)) continue
+
+			helpers.push({ name: stmt.name.text, code })
 
 			continue
 		}
@@ -54,14 +61,13 @@ export function collectHelpers(source: string): Helper[] {
 
 				if (!init) continue
 
-				let returns = false
+				if (!ts.isArrowFunction(init) && !ts.isFunctionExpression(init)) continue
 
-				if (ts.isArrowFunction(init)) returns = arrowReturnsJsx(init)
-				else if (ts.isFunctionExpression(init) && init.body) returns = returnsJsx(init.body)
+				const code = source.slice(stmt.getStart(sf), stmt.getEnd())
 
-				if (!returns) continue
+				if (!JSX_RETURN.test(code)) continue
 
-				helpers.push({ name: decl.name.text, code: source.slice(stmt.getStart(sf), stmt.getEnd()) })
+				helpers.push({ name: decl.name.text, code })
 			}
 		}
 	}
