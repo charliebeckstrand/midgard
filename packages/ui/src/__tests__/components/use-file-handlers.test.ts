@@ -108,7 +108,23 @@ describe('useFileHandlers', () => {
 		expect(onFiles).not.toHaveBeenCalled()
 	})
 
-	it('handleDragOver sets dragOver and prevents default', () => {
+	it('handleDragEnter sets dragOver and prevents default', () => {
+		const { result } = renderHook(() => useFileHandlers({}))
+
+		const event = makeDragEvent()
+
+		act(() => {
+			result.current.handleDragEnter(event)
+		})
+
+		expect(event.preventDefault).toHaveBeenCalled()
+
+		expect(event.stopPropagation).toHaveBeenCalled()
+
+		expect(result.current.dragOver).toBe(true)
+	})
+
+	it('handleDragOver only prevents default and does not toggle dragOver', () => {
 		const { result } = renderHook(() => useFileHandlers({}))
 
 		const event = makeDragEvent()
@@ -121,15 +137,41 @@ describe('useFileHandlers', () => {
 
 		expect(event.stopPropagation).toHaveBeenCalled()
 
-		expect(result.current.dragOver).toBe(true)
+		expect(result.current.dragOver).toBe(false)
 	})
 
-	it('handleDragLeave clears dragOver', () => {
+	it('handleDragLeave clears dragOver after a single enter', () => {
 		const { result } = renderHook(() => useFileHandlers({}))
 
 		act(() => {
-			result.current.handleDragOver(makeDragEvent())
+			result.current.handleDragEnter(makeDragEvent())
 		})
+
+		act(() => {
+			result.current.handleDragLeave(makeDragEvent())
+		})
+
+		expect(result.current.dragOver).toBe(false)
+	})
+
+	it('keeps dragOver true while a child boundary fires bubbled enter/leave pairs', () => {
+		const { result } = renderHook(() => useFileHandlers({}))
+
+		// Cursor enters dropzone, then crosses into a child: dragenter on the
+		// child bubbles before dragleave on the parent. dragOver must stay true.
+		act(() => {
+			result.current.handleDragEnter(makeDragEvent())
+		})
+
+		act(() => {
+			result.current.handleDragEnter(makeDragEvent())
+		})
+
+		act(() => {
+			result.current.handleDragLeave(makeDragEvent())
+		})
+
+		expect(result.current.dragOver).toBe(true)
 
 		act(() => {
 			result.current.handleDragLeave(makeDragEvent())
@@ -146,7 +188,7 @@ describe('useFileHandlers', () => {
 		const file = makeFile('drop.txt')
 
 		act(() => {
-			result.current.handleDragOver(makeDragEvent())
+			result.current.handleDragEnter(makeDragEvent())
 		})
 
 		act(() => {

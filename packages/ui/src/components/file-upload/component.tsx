@@ -56,6 +56,7 @@ export function FileUpload(props: FileUploadProps) {
 		files,
 		openPicker,
 		handleChange,
+		handleDragEnter,
 		handleDragOver,
 		handleDragLeave,
 		handleDrop,
@@ -128,7 +129,7 @@ export function FileUpload(props: FileUploadProps) {
 				disabled={disabled}
 				onClick={openPicker}
 				onDragOver={handleDragOver}
-				onDragEnter={handleDragOver}
+				onDragEnter={handleDragEnter}
 				onDragLeave={handleDragLeave}
 				onDrop={handleDrop}
 				className={cn(fileUploadClasses, 'size-full', className)}

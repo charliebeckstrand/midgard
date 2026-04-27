@@ -9,9 +9,14 @@ type UseFileHandlersOptions = {
 export function useFileHandlers({ disabled, onFiles }: UseFileHandlersOptions) {
 	const inputRef = useRef<HTMLInputElement>(null)
 
-	const [dragOver, setDragOver] = useState(false)
+	// Counter, not boolean — dragleave bubbles when the cursor crosses into a
+	// child element of the dropzone, so a single boolean would flicker false on
+	// every child boundary. Track enter/leave depth and treat depth > 0 as over.
+	const [dragDepth, setDragDepth] = useState(0)
 
 	const [files, setFiles] = useState<File[]>([])
+
+	const dragOver = dragDepth > 0
 
 	const openPicker = useCallback(() => {
 		if (!disabled) inputRef.current?.click()
@@ -37,12 +42,20 @@ export function useFileHandlers({ disabled, onFiles }: UseFileHandlersOptions) {
 		[handleFiles],
 	)
 
-	const handleDragOver = useCallback((e: DragEvent) => {
+	const handleDragEnter = useCallback((e: DragEvent) => {
 		e.preventDefault()
 
 		e.stopPropagation()
 
-		setDragOver(true)
+		setDragDepth((d) => d + 1)
+	}, [])
+
+	// dragover must preventDefault for the browser to permit a drop, but doesn't
+	// change state — dragenter/dragleave own the counter.
+	const handleDragOver = useCallback((e: DragEvent) => {
+		e.preventDefault()
+
+		e.stopPropagation()
 	}, [])
 
 	const handleDragLeave = useCallback((e: DragEvent) => {
@@ -50,7 +63,7 @@ export function useFileHandlers({ disabled, onFiles }: UseFileHandlersOptions) {
 
 		e.stopPropagation()
 
-		setDragOver(false)
+		setDragDepth((d) => Math.max(0, d - 1))
 	}, [])
 
 	const handleDrop = useCallback(
@@ -59,7 +72,7 @@ export function useFileHandlers({ disabled, onFiles }: UseFileHandlersOptions) {
 
 			e.stopPropagation()
 
-			setDragOver(false)
+			setDragDepth(0)
 
 			handleFiles(e.dataTransfer.files)
 		},
@@ -72,6 +85,7 @@ export function useFileHandlers({ disabled, onFiles }: UseFileHandlersOptions) {
 		files,
 		openPicker,
 		handleChange,
+		handleDragEnter,
 		handleDragOver,
 		handleDragLeave,
 		handleDrop,
