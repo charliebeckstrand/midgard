@@ -16,7 +16,7 @@
     "tsup": "^8.5.1",
     "turbo": "^2.8.14"
   },
-  "packageManager": "pnpm@10.33.0",
+  "packageManager": "pnpm@10.33.2",
   "dependencies": {
     "hlidskjalf": "0.2.8"
   }

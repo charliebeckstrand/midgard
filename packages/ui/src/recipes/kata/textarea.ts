@@ -8,7 +8,7 @@ import { control } from './_control'
 const density = ['px-[calc(--spacing(3)-1px)] py-[calc(--spacing(2)-1px)]', ji.size.md]
 
 export const textarea = tv({
-	base: ['block', ...control.field, ...density, maru.rounded.lg, 'min-h-9'],
+	base: ['block', ...control.field, ...density, maru.rounded.lg, 'min-h-10'],
 	variants: {
 		variant: {
 			default: [],

@@ -42,23 +42,46 @@ for (const [path, meta] of Object.entries(demoMetas)) {
 // Demo loading — one cached promise per id, consumed via React's `use()` hook.
 // ---------------------------------------------------------------------------
 
-const promiseCache = new Map<string, Promise<ComponentType>>()
+// React's `use()` only returns synchronously when a promise is tagged with
+// `status`/`value`/`reason` — otherwise the first read suspends even if the
+// promise is already settled. Tagging here lets the initial demo render
+// without a Suspense fallback flash.
+type TrackedPromise<T> = Promise<T> & {
+	status?: 'pending' | 'fulfilled' | 'rejected'
+	value?: T
+	reason?: unknown
+}
+
+const promiseCache = new Map<string, TrackedPromise<ComponentType>>()
 
 /** Return a cached promise for the demo's component, kicking off the import on first call. */
 export function loadDemo(id: string): Promise<ComponentType> {
-	let pending = promiseCache.get(id)
+	const cached = promiseCache.get(id)
 
-	if (pending) return pending
+	if (cached) return cached
 
 	const loader = loaderById.get(id)
 
 	if (!loader) throw new Error(`No demo found for id: ${id}`)
 
-	pending = loader().then((mod) => mod.default)
+	const tracked = loader().then((mod) => mod.default) as TrackedPromise<ComponentType>
 
-	promiseCache.set(id, pending)
+	tracked.status = 'pending'
 
-	return pending
+	tracked.then(
+		(value) => {
+			tracked.status = 'fulfilled'
+			tracked.value = value
+		},
+		(reason) => {
+			tracked.status = 'rejected'
+			tracked.reason = reason
+		},
+	)
+
+	promiseCache.set(id, tracked)
+
+	return tracked
 }
 
 /** Kick off the dynamic import for a demo so it's cached before navigation. */
@@ -126,11 +149,13 @@ export const sortedCategories = Object.entries(categories).sort(
 
 export const defaultDemo = sortedCategories[0]?.[1]?.[0]?.id || demos[0]?.id || ''
 
-// Eagerly start the initial demo's import at module-eval time so its promise
-// is settled by the time React mounts — avoids a Suspense fallback flash on
-// first paint.
-if (typeof window !== 'undefined') {
+// Eagerly start the initial demo's import at module-eval time and expose the
+// promise so main.tsx can await it before mounting — avoids a Suspense
+// fallback flash on first paint.
+export const initialPreload: Promise<unknown> = (() => {
+	if (typeof window === 'undefined') return Promise.resolve()
+
 	const initialId = window.location.hash.slice(1) || defaultDemo
 
-	if (loaderById.has(initialId)) loadDemo(initialId)
-}
+	return loaderById.has(initialId) ? loadDemo(initialId) : Promise.resolve()
+})()

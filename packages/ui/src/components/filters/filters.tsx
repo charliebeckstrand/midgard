@@ -41,7 +41,7 @@ export function Filters<T extends FilterValue = FilterValue>({
 	clear,
 	affix,
 	suffix,
-	equal = true,
+	equal,
 	children,
 	className,
 }: FiltersProps<T>) {

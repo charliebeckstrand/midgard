@@ -81,7 +81,7 @@ export function App() {
 			<div ref={contentRef}>
 				{current ? (
 					<Suspense fallback={null}>
-						<DemoPage demo={current} />
+						<DemoPage key={current.id} demo={current} />
 					</Suspense>
 				) : (
 					<div className="p-6">

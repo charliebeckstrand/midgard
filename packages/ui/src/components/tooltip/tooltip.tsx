@@ -12,7 +12,15 @@ import {
 	useRole,
 } from '@floating-ui/react'
 import { AnimatePresence, motion } from 'motion/react'
-import { type HTMLAttributes, isValidElement, type ReactNode, useMemo, useState } from 'react'
+import {
+	type HTMLAttributes,
+	isValidElement,
+	type ReactNode,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { cn } from '../../core'
 import { useFloatingPanel, useHasHover } from '../../hooks'
 import { ugoki } from '../../recipes'
@@ -68,8 +76,30 @@ export function Tooltip({
 	const { refs, floatingStyles, context } = useFloatingPanel({
 		placement,
 		open,
-		onOpenChange: setOpen,
+		onOpenChange: (next) => {
+			const reference = refs.reference.current
+
+			if (next && reference instanceof Element && reference.querySelector(':disabled')) return
+
+			setOpen(next)
+		},
 		offset: 8,
+	})
+
+	const wasDisabledRef = useRef(false)
+
+	useEffect(() => {
+		const reference = refs.reference.current
+
+		if (!(reference instanceof Element)) return
+
+		const isDisabled = !!reference.querySelector(':disabled')
+
+		if (wasDisabledRef.current && !isDisabled && reference.matches(':hover')) {
+			setOpen(true)
+		}
+
+		wasDisabledRef.current = isDisabled
 	})
 
 	const hasHover = useHasHover()
