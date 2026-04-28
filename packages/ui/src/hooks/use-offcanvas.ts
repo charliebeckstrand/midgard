@@ -16,6 +16,11 @@ export function useOffcanvas() {
 			.getPropertyValue('--breakpoint-lg')
 			.trim()
 
+		// Bail when the design token isn't defined — `matchMedia('(min-width: )')`
+		// is an invalid query, so the listener would never fire and the
+		// auto-close-on-resize behavior would silently break.
+		if (!breakpoint) return
+
 		const mql = window.matchMedia(`(min-width: ${breakpoint})`)
 
 		const handler = () => {

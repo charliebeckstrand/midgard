@@ -94,6 +94,26 @@ describe('PhoneInput', () => {
 		expect(input.value).toBe('(555) 123-4567')
 	})
 
+	it('keeps the caret next to the typed digit when format inserts separators', async () => {
+		const { container } = renderUI(<PhoneInput defaultValue="5556789" />)
+
+		const input = bySlot(container, 'input') as HTMLInputElement
+
+		expect(input.value).toBe('555-6789')
+
+		input.focus()
+
+		input.setSelectionRange(2, 2)
+
+		const user = userEvent.setup()
+
+		await user.keyboard('1')
+
+		expect(input.value).toBe('(551) 567-89')
+
+		expect(input.selectionStart).toBe(4)
+	})
+
 	it('disables the input when disabled', () => {
 		const { container } = renderUI(<PhoneInput disabled />)
 

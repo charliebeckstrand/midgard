@@ -60,11 +60,17 @@ export function PhoneInput({
 	ref,
 	...props
 }: PhoneInputProps) {
-	const masked = useMaskedInput({ value, defaultValue, onChange, format: formatters[country] })
+	const masked = useMaskedInput({
+		value,
+		defaultValue,
+		onChange,
+		format: formatters[country],
+		ref,
+	})
 
 	return (
 		<Input
-			ref={ref}
+			ref={masked.ref}
 			type="tel"
 			inputMode="tel"
 			autoComplete="tel"

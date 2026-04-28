@@ -97,6 +97,35 @@ export function HoldButton({
 		[],
 	)
 
+	// If the button is disabled mid-hold, the pending timer would still fire
+	// and call onComplete on a button the consumer just turned off. Cancel
+	// the in-flight hold so the visual fill resets and onHoldCancel runs.
+	const onHoldCancelRef = useRef(onHoldCancel)
+
+	onHoldCancelRef.current = onHoldCancel
+
+	useEffect(() => {
+		if (!disabled || !holdingRef.current) return
+
+		holdingRef.current = false
+
+		if (timerRef.current !== null) {
+			clearTimeout(timerRef.current)
+
+			timerRef.current = null
+		}
+
+		const fill = fillRef.current
+
+		if (fill) {
+			fill.style.transition = `transform ${RESET_DURATION}ms linear`
+
+			fill.style.transform = 'scaleX(0)'
+		}
+
+		onHoldCancelRef.current?.()
+	}, [disabled])
+
 	return (
 		<Button
 			{...props}
