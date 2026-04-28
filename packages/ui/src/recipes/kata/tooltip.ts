@@ -7,7 +7,7 @@ import { omote } from '../omote'
 export const tooltip = {
 	trigger: 'inline-flex cursor-help *:cursor-help',
 	content: [
-		'z-50',
+		'z-100',
 		ma.px.md,
 		ma.py.md,
 		ji.size.md,
