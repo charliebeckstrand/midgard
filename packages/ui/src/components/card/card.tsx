@@ -25,7 +25,7 @@ export function Card({
 			outline={outline}
 			radius={radius}
 			className={cn(
-				'overflow-hidden',
+				'overflow-hidden outline-offset-[-1px]',
 				noExplicitPadding && '[&:not(:has(>[data-slot^=card-]))]:p-4',
 				className,
 			)}
