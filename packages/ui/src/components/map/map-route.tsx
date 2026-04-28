@@ -3,7 +3,13 @@
 import type { MapLayerMouseEvent } from 'maplibre-gl'
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Sheet, SheetBody, SheetDescription, SheetTitle } from '../sheet'
-import { ShipmentTracker, type ShipmentTrackerStep } from '../shipment-tracker'
+import {
+	Timeline,
+	TimelineDescription,
+	TimelineHeading,
+	TimelineItem,
+	TimelineTimestamp,
+} from '../timeline'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 import { useMapContext } from './context'
 import { MapMarker } from './map-marker'
@@ -178,6 +184,8 @@ export function MapRoute({
 		map.setPaintProperty(layerId, 'line-width', width)
 	}, [resolvedColors, width, layerId, getMap])
 
+	const currentIndex = resolveCurrentIndex(data.stops)
+
 	return (
 		<>
 			{showStops &&
@@ -198,15 +206,37 @@ export function MapRoute({
 					</SheetDescription>
 				)}
 				<SheetBody>
-					<ShipmentTracker
-						steps={data.stops.map<ShipmentTrackerStep>((stop) => ({
-							id: stop.id,
-							label: stop.name,
-							timestamp: formatTimestamp(stop.timestamp) ?? undefined,
-							description: stop.description,
-						}))}
-						currentIndex={resolveCurrentIndex(data.stops)}
-					/>
+					<Timeline>
+						{data.stops.map((stop, index) => {
+							const isCompleted = index < currentIndex
+
+							const isCurrent = index === currentIndex
+
+							const isReached = isCompleted || isCurrent
+
+							const isFinal = isCurrent && index === data.stops.length - 1
+
+							const timestamp = formatTimestamp(stop.timestamp)
+
+							return (
+								<TimelineItem
+									key={stop.id}
+									active={isCurrent}
+									variant={isReached ? 'solid' : 'outline'}
+									status={isCompleted || isFinal ? 'active' : isCurrent ? 'info' : 'inactive'}
+									pulse={isCurrent && !isFinal}
+									lineBefore={isReached ? 'green' : undefined}
+									lineAfter={isCompleted ? 'green' : undefined}
+								>
+									{timestamp && <TimelineTimestamp>{timestamp}</TimelineTimestamp>}
+									<TimelineHeading>{stop.name}</TimelineHeading>
+									{stop.description && (
+										<TimelineDescription>{stop.description}</TimelineDescription>
+									)}
+								</TimelineItem>
+							)
+						})}
+					</Timeline>
 				</SheetBody>
 			</Sheet>
 		</>
