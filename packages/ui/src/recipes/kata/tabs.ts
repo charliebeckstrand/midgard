@@ -28,6 +28,7 @@ export const tabItem = tv({
 		sen.focus.indicator,
 		...sawari.disabled,
 		'outline-none',
+		'cursor-pointer',
 		'after:absolute after:rounded-full',
 		'after:bg-transparent',
 		'focus-visible:after:bg-blue-500',
