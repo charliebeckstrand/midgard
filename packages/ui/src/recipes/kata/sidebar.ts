@@ -10,6 +10,7 @@ export const sidebar = {
 		...sawari.nav,
 		'group relative',
 		'flex w-full items-center',
+		'cursor-pointer',
 		kumi.gap.md,
 		'p-2',
 		maru.rounded.lg,
