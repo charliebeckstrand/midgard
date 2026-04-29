@@ -67,17 +67,25 @@ export function TimeAgo({
 
 	const then = date instanceof Date ? date : new Date(date)
 
-	const diffMs = then.getTime() - now.getTime()
+	const isValid = !Number.isNaN(then.getTime())
+
+	const diffMs = isValid ? then.getTime() - now.getTime() : 0
 
 	const absMs = Math.abs(diffMs)
 
 	const adaptiveMs = interval === 'auto' ? adaptiveInterval(absMs) : interval
 
 	useEffect(() => {
+		if (!isValid) return
+
 		const id = window.setInterval(() => setNow(new Date()), adaptiveMs)
 
 		return () => window.clearInterval(id)
-	}, [adaptiveMs])
+	}, [adaptiveMs, isValid])
+
+	if (!isValid) {
+		return <time data-slot="time-ago" {...props} />
+	}
 
 	let text: string
 
@@ -91,13 +99,11 @@ export function TimeAgo({
 		text = formatter.format(Math.round(diffMs > 0 ? value : -value), unit)
 	}
 
-	const dateTime = Number.isNaN(then.getTime()) ? undefined : then.toISOString()
-
 	const resolvedTitle =
 		title === true ? then.toLocaleString(locale) : title === false ? undefined : title
 
 	return (
-		<time data-slot="time-ago" dateTime={dateTime} title={resolvedTitle} {...props}>
+		<time data-slot="time-ago" dateTime={then.toISOString()} title={resolvedTitle} {...props}>
 			{text}
 		</time>
 	)
