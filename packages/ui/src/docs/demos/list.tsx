@@ -66,7 +66,7 @@ function Vertical() {
 	const [tasks, setTasks] = useState(initialTasks)
 
 	return (
-		<Example title="Vertical">
+		<Example title="Sortable">
 			<Sizer>
 				<Stack gap={2}>
 					<List items={tasks} getKey={(t) => t.id} onReorder={setTasks} aria-label="Tasks">

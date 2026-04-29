@@ -114,14 +114,6 @@ export const ugoki = {
 		},
 	},
 
-	/** Width reveal for inline inspector panels. */
-	inspector: {
-		initial: { width: 0 },
-		animate: { width: 'auto' },
-		exit: { width: 0 },
-		transition: slideTransition,
-	},
-
 	/** Slide panel configs keyed by direction. */
 	panel: {
 		right: slideConfig('x', '100%'),

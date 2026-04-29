@@ -47,7 +47,7 @@ export default function RadioDemo() {
 			<Example title="Disabled">
 				<RadioGroup>
 					<RadioField>
-						<Radio id="radio-enabled" name="option" value="enabled" defaultChecked />
+						<Radio id="radio-enabled" name="option" value="enabled" defaultChecked disabled />
 						<Label htmlFor="radio-enabled">Enabled option</Label>
 					</RadioField>
 					<RadioField>

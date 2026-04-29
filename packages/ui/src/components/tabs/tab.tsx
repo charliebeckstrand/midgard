@@ -32,6 +32,8 @@ export function Tab({
 
 	const isSegment = tabsCtx?.variant === 'segment'
 
+	const orientation = tabsCtx?.orientation ?? 'horizontal'
+
 	const current = currentProp ?? (value !== undefined && ctx?.value === value)
 
 	function handleClick(e: MouseEvent<HTMLButtonElement>) {
@@ -53,7 +55,11 @@ export function Tab({
 				aria-controls={id ? `${id}-panel` : undefined}
 				tabIndex={current ? 0 : -1}
 				type="button"
-				className={cn(isSegment ? segmentItemVariants() : k.tab, 'relative z-1', className)}
+				className={cn(
+					isSegment ? segmentItemVariants() : k.tab({ orientation }),
+					'relative z-1',
+					className,
+				)}
 				onClick={handleClick}
 				{...props}
 			>
@@ -62,7 +68,7 @@ export function Tab({
 			{current && (
 				<ActiveIndicator
 					ref={indicator.ref}
-					className={cn(isSegment ? ks.indicator : k.indicator)}
+					className={cn(isSegment ? ks.indicator : k.indicator({ orientation }))}
 				/>
 			)}
 		</span>

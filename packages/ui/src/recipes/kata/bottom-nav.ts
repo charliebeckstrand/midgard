@@ -17,6 +17,7 @@ export const bottomNav = {
 		'group relative',
 		'flex flex-1 flex-col items-center justify-center',
 		'py-4',
+		'cursor-pointer',
 		kumi.gap.sm,
 		ji.size.sm,
 		iro.text.muted,

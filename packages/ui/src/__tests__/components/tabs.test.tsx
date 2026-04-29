@@ -59,6 +59,27 @@ describe('TabList', () => {
 
 		expect(el).toHaveAttribute('role', 'tablist')
 	})
+
+	it('reflects vertical orientation on tab-group and tab-list', () => {
+		const { container } = renderUI(
+			<Tabs defaultValue="a" orientation="vertical">
+				<TabList>
+					<Tab value="a">Tab A</Tab>
+				</TabList>
+				<TabPanels>
+					<TabPanel>Panel A</TabPanel>
+				</TabPanels>
+			</Tabs>,
+		)
+
+		expect(bySlot(container, 'tab-group')).toHaveAttribute('data-orientation', 'vertical')
+
+		const list = bySlot(container, 'tab-list')
+
+		expect(list).toHaveAttribute('data-orientation', 'vertical')
+
+		expect(list).toHaveAttribute('aria-orientation', 'vertical')
+	})
 })
 
 describe('Tab', () => {

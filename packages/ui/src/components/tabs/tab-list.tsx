@@ -17,11 +17,13 @@ export function TabList({ className, children, ...props }: TabListProps) {
 
 	const isSegment = tabsCtx?.variant === 'segment'
 
+	const orientation = tabsCtx?.orientation ?? 'horizontal'
+
 	const ref = useRef<HTMLDivElement>(null)
 
 	const handleKeyDown = useRoving(ref, {
 		itemSelector: TAB_SELECTOR,
-		orientation: 'horizontal',
+		orientation,
 	})
 
 	useEffect(() => {
@@ -58,9 +60,11 @@ export function TabList({ className, children, ...props }: TabListProps) {
 			<div
 				ref={ref}
 				data-slot="tab-list"
+				data-orientation={orientation}
 				role="tablist"
+				aria-orientation={orientation}
 				onKeyDown={handleKeyDown}
-				className={cn(isSegment ? segmentControlVariants() : k.list, className)}
+				className={cn(isSegment ? segmentControlVariants() : k.list({ orientation }), className)}
 				{...props}
 			>
 				{children}

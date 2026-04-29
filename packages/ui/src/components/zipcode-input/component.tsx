@@ -1,17 +1,13 @@
 'use client'
 
-import { useMaskedInput } from '../../hooks'
-import { Input, type InputProps } from '../input'
+import { MaskInput, type MaskInputProps } from '../mask-input'
 
 export type ZipcodeInputCountry = 'US' | 'CA' | 'GB' | 'international'
 
 export type ZipcodeInputProps = Omit<
-	InputProps,
-	'type' | 'inputMode' | 'value' | 'defaultValue' | 'onChange'
+	MaskInputProps,
+	'format' | 'type' | 'inputMode' | 'autoComplete'
 > & {
-	value?: string
-	defaultValue?: string
-	onChange?: (value: string) => void
 	country?: ZipcodeInputCountry
 }
 
@@ -53,7 +49,7 @@ const formatters: Record<ZipcodeInputCountry, (raw: string) => string> = {
 	international: formatInternational,
 }
 
-const inputModes: Record<ZipcodeInputCountry, InputProps['inputMode']> = {
+const inputModes: Record<ZipcodeInputCountry, MaskInputProps['inputMode']> = {
 	US: 'numeric',
 	CA: 'text',
 	GB: 'text',
@@ -67,32 +63,14 @@ const placeholders: Record<ZipcodeInputCountry, string> = {
 	international: '',
 }
 
-export function ZipcodeInput({
-	country = 'US',
-	value,
-	defaultValue,
-	onChange,
-	placeholder,
-	ref,
-	...props
-}: ZipcodeInputProps) {
-	const masked = useMaskedInput({
-		value,
-		defaultValue,
-		onChange,
-		format: formatters[country],
-		ref,
-	})
-
+export function ZipcodeInput({ country = 'US', placeholder, ...props }: ZipcodeInputProps) {
 	return (
-		<Input
-			ref={masked.ref}
+		<MaskInput
 			type="text"
 			inputMode={inputModes[country]}
 			autoComplete="postal-code"
 			placeholder={placeholder ?? placeholders[country]}
-			value={masked.value}
-			onChange={masked.onChange}
+			format={formatters[country]}
 			{...props}
 		/>
 	)
