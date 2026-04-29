@@ -2,19 +2,15 @@
 
 import { Phone } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { useMaskedInput } from '../../hooks'
 import { Icon } from '../icon'
-import { Input, type InputProps } from '../input'
+import { MaskInput, type MaskInputProps } from '../mask-input'
 
 export type PhoneInputCountry = 'US' | 'CA' | 'international'
 
 export type PhoneInputProps = Omit<
-	InputProps,
-	'type' | 'inputMode' | 'value' | 'defaultValue' | 'onChange' | 'prefix'
+	MaskInputProps,
+	'format' | 'type' | 'inputMode' | 'autoComplete' | 'prefix'
 > & {
-	value?: string
-	defaultValue?: string
-	onChange?: (value: string) => void
 	country?: PhoneInputCountry
 	prefix?: ReactNode
 }
@@ -51,32 +47,14 @@ const formatters: Record<PhoneInputCountry, (raw: string) => string> = {
 	international: formatInternational,
 }
 
-export function PhoneInput({
-	country = 'US',
-	value,
-	defaultValue,
-	onChange,
-	prefix,
-	ref,
-	...props
-}: PhoneInputProps) {
-	const masked = useMaskedInput({
-		value,
-		defaultValue,
-		onChange,
-		format: formatters[country],
-		ref,
-	})
-
+export function PhoneInput({ country = 'US', prefix, ...props }: PhoneInputProps) {
 	return (
-		<Input
-			ref={masked.ref}
+		<MaskInput
 			type="tel"
 			inputMode="tel"
 			autoComplete="tel"
 			prefix={prefix ?? <Icon icon={<Phone />} />}
-			value={masked.value}
-			onChange={masked.onChange}
+			format={formatters[country]}
 			{...props}
 		/>
 	)
