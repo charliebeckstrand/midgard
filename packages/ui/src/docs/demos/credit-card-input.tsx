@@ -11,6 +11,7 @@ import { Field, Label } from '../../components/fieldset'
 import { Flex } from '../../components/flex'
 import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'
+import { code } from '../code'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Input' }
@@ -19,7 +20,21 @@ function Controlled() {
 	const [value, setValue] = useState('')
 
 	return (
-		<Example title="Controlled">
+		<Example
+			title="Controlled"
+			code={code`
+				import { useState } from 'react'
+				import { Field, Label } from 'ui/fieldset'
+				import { CreditCardInput } from 'ui/credit-card-input'
+
+				const [value, setValue] = useState('')
+				
+				<Field>
+					<Label>Card number</Label>
+					<CreditCardInput value={value} onChange={setValue} />
+				</Field>
+			`}
+		>
 			<Sizer>
 				<Field>
 					<Label>Card number</Label>
