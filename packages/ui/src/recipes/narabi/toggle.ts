@@ -6,6 +6,8 @@ export const toggle = [
 	'*:data-[slot=description]:col-start-2 *:data-[slot=description]:row-start-2',
 	'has-data-[slot=description]:**:data-[slot=label]:font-medium',
 	'has-disabled:**:data-[slot=label]:cursor-not-allowed',
+	'has-disabled:**:data-[slot=checkbox]:cursor-not-allowed',
+	'has-disabled:**:data-[slot=radio]:cursor-not-allowed',
 ]
 
 export const group = [

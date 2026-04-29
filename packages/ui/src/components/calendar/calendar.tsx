@@ -259,10 +259,9 @@ export function Calendar({
 					variant="plain"
 					onClick={prevMonth}
 					aria-label="Previous month"
+					prefix={<ChevronLeft className={k.nav.icon} />}
 					className={cn(headerActiveIndex === 0 && k.day.active)}
-				>
-					<ChevronLeft className={k.nav.icon} />
-				</Button>
+				/>
 				<CalendarPicker
 					year={year}
 					month={month}
@@ -277,10 +276,9 @@ export function Calendar({
 					variant="plain"
 					onClick={nextMonth}
 					aria-label="Next month"
+					prefix={<ChevronRight className={k.nav.icon} />}
 					className={cn(headerActiveIndex === 2 && k.day.active)}
-				>
-					<ChevronRight className={k.nav.icon} />
-				</Button>
+				/>
 			</div>
 
 			<div className={k.grid}>

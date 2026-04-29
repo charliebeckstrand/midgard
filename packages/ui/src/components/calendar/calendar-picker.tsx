@@ -123,9 +123,8 @@ export function CalendarPicker({
 								variant="plain"
 								onClick={() => setPickerYear((y) => y - 1)}
 								aria-label="Previous year"
-							>
-								<ChevronLeft className={k.nav.icon} />
-							</Button>
+								prefix={<ChevronLeft className={k.nav.icon} />}
+							/>
 							<Button
 								variant="plain"
 								onClick={() => {
@@ -142,9 +141,8 @@ export function CalendarPicker({
 								variant="plain"
 								onClick={() => setPickerYear((y) => y + 1)}
 								aria-label="Next year"
-							>
-								<ChevronRight className={k.nav.icon} />
-							</Button>
+								prefix={<ChevronRight className={k.nav.icon} />}
+							/>
 						</div>
 						<div
 							ref={pickerGridRef}
