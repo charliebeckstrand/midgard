@@ -95,36 +95,36 @@ export default function ToolbarDemo() {
 				<FormattingToolbar />
 			</Example>
 
-			<Example title="Outline variant">
-				<Toolbar variant="outline" aria-label="File actions">
-					<Button variant="plain" aria-label="New">
-						New
-					</Button>
-					<Button variant="plain" aria-label="Open">
-						Open
-					</Button>
-					<ToolbarSeparator />
-					<Button variant="plain" aria-label="Save">
-						Save
-					</Button>
-					<Button variant="plain" aria-label="Export">
-						Export
-					</Button>
-				</Toolbar>
-			</Example>
+			<Example title="Variants">
+				<Stack gap={4}>
+					<Toolbar variant="outline" aria-label="File actions">
+						<Button variant="plain" aria-label="New">
+							New
+						</Button>
+						<Button variant="plain" aria-label="Open">
+							Open
+						</Button>
+						<ToolbarSeparator />
+						<Button variant="plain" aria-label="Save">
+							Save
+						</Button>
+						<Button variant="plain" aria-label="Export">
+							Export
+						</Button>
+					</Toolbar>
 
-			<Example title="Solid variant">
-				<Toolbar variant="solid" aria-label="Clipboard">
-					<Button variant="plain" aria-label="Copy">
-						Copy
-					</Button>
-					<Button variant="plain" aria-label="Cut">
-						Cut
-					</Button>
-					<Button variant="plain" aria-label="Paste">
-						Paste
-					</Button>
-				</Toolbar>
+					<Toolbar variant="solid" aria-label="Clipboard">
+						<Button variant="plain" aria-label="Copy">
+							Copy
+						</Button>
+						<Button variant="plain" aria-label="Cut">
+							Cut
+						</Button>
+						<Button variant="plain" aria-label="Paste">
+							Paste
+						</Button>
+					</Toolbar>
+				</Stack>
 			</Example>
 
 			<Example title="Vertical">
