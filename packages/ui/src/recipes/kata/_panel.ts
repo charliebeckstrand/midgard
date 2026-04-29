@@ -19,7 +19,7 @@ type PanelRecipeInput<P, B> = {
 	title?: Slot
 	/** Extra padding / layout for the Description slot. */
 	description?: Slot
-	/** Classes for the Header strip (inspector-style panels). */
+	/** Classes for the Header strip. */
 	header?: Base
 	/** Extra padding / layout for the Body slot. */
 	body?: Slot
