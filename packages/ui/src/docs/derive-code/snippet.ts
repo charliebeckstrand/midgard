@@ -29,7 +29,7 @@ export function readSnippet(type: unknown): string | null {
 export function reindent(code: string, targetIndent: string): string {
 	const lines = code.split('\n')
 
-	if (lines.length === 1) return lines[0]
+	if (lines.length === 1) return code
 
 	const indents = lines.slice(1).flatMap((line) => (line.trim() ? [leadingSpace(line)] : []))
 
@@ -64,12 +64,16 @@ const TAG_RE = /<([A-Z][\w]*)/g
  */
 export function collectSnippetImports(snippet: string, ctx: Ctx): void {
 	for (const [, name] of snippet.matchAll(TAG_RE)) {
+		if (!name) continue
+
 		const info = ctx.registry.byName.get(name)
 
 		if (info?.module) addImport(ctx, info.module, info.name)
 	}
 
 	for (const [, hook] of snippet.matchAll(HOOK_RE)) {
+		if (!hook) continue
+
 		addImport(ctx, 'react', hook)
 	}
 }

@@ -21,7 +21,7 @@ export function renderNodes(nodes: ReactNode[], ctx: Ctx, indent: string): strin
 
 	if (elements.length === 0) return ''
 
-	if (elements.length === 1) {
+	if (elements.length === 1 && elements[0]) {
 		return indent + renderElement(elements[0], ctx, indent)
 	}
 
