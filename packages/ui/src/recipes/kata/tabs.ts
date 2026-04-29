@@ -1,3 +1,4 @@
+import { tv, type VariantProps } from 'tailwind-variants'
 import { mode } from '../../core/recipe/mode'
 import { iro } from '../iro'
 import { kumi } from '../kumi'
@@ -7,20 +8,54 @@ import { sen } from '../sen'
 
 export const tabIndicator = mode('bg-zinc-950', 'dark:bg-white')
 
-export const tabs = {
-	list: ['flex gap-4', 'border-b', '-mt-4', sen.borderSubtleColor],
-	tab: [
+export const tabList = tv({
+	base: ['flex', ...sen.borderSubtleColor],
+	variants: {
+		orientation: {
+			horizontal: ['gap-4', 'border-b', '-mt-4'],
+			vertical: ['flex-col', 'border-l'],
+		},
+	},
+	defaultVariants: { orientation: 'horizontal' },
+})
+
+export const tabItem = tv({
+	base: [
 		'relative flex items-center',
 		kumi.gap.md,
-		'px-1 py-4',
 		'font-medium',
 		...iro.text.tab,
 		sen.focus.indicator,
-		sawari.disabled,
+		...sawari.disabled,
 		'outline-none',
-		'after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:rounded-full',
+		'after:absolute after:rounded-full',
 		'after:bg-transparent',
 		'focus-visible:after:bg-blue-500',
 	],
-	indicator: ['inset-x-0 -bottom-px top-auto h-0.5', maru.rounded.full, tabIndicator],
+	variants: {
+		orientation: {
+			horizontal: ['px-1 py-4', 'after:inset-x-0 after:-bottom-px after:h-0.5'],
+			vertical: ['px-4 py-2', 'after:inset-y-0 after:-left-px after:w-0.5'],
+		},
+	},
+	defaultVariants: { orientation: 'horizontal' },
+})
+
+export const tabIndicatorBar = tv({
+	base: [maru.rounded.full, tabIndicator],
+	variants: {
+		orientation: {
+			horizontal: 'inset-x-0 -bottom-px top-auto h-0.5',
+			vertical: 'inset-y-0 -left-px right-auto w-0.5',
+		},
+	},
+	defaultVariants: { orientation: 'horizontal' },
+})
+
+export const tabs = {
+	list: tabList,
+	tab: tabItem,
+	indicator: tabIndicatorBar,
 }
+
+export type TabsVariants = VariantProps<typeof tabList>
