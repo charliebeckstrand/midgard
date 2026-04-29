@@ -54,7 +54,9 @@ export function Tooltip({
 		const arr = Array.isArray(children) ? children : [children]
 
 		let trigger: ReactNode = null
+
 		let contentClassName: string | undefined
+
 		let contentChildren: ReactNode = null
 
 		for (const child of arr) {
@@ -143,6 +145,7 @@ export function Tooltip({
 								...floatingStyles,
 								pointerEvents: interactive ? 'auto' : 'none',
 							}}
+							className={k.portal}
 							{...getFloatingProps()}
 						>
 							<motion.div

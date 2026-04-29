@@ -10,7 +10,7 @@ export const dl = {
 		'font-medium',
 		'border-t first:border-none',
 		sen.borderSubtleColor,
-		'sm:py-2 pt-2',
+		'sm:py-2 pt-2 pr-2',
 	],
 	details: [
 		iro.text.default,
