@@ -32,6 +32,8 @@ type ListboxBaseProps = {
 	placeholder?: string
 	placement?: Placement
 	icon?: ReactNode
+	prefix?: ReactNode
+	suffix?: ReactNode
 	disabled?: boolean
 	className?: string
 	inputId?: string
@@ -70,6 +72,8 @@ export function Listbox<T>({
 	placeholder = 'Select',
 	placement = 'bottom-start',
 	icon,
+	prefix,
+	suffix,
 	disabled,
 	className,
 	inputId,
@@ -134,6 +138,8 @@ export function Listbox<T>({
 		)
 	}
 
+	const hasAffix = prefix !== undefined || suffix !== undefined
+
 	return (
 		<ListboxProvider value={contextValue}>
 			<div
@@ -144,8 +150,16 @@ export function Listbox<T>({
 			>
 				<ControlFrame
 					data-open={open || undefined}
-					className={cn(!glass && controlRecipe.surface.default)}
+					className={cn(
+						!glass && controlRecipe.surface.default,
+						hasAffix && 'group/control flex items-center',
+					)}
 				>
+					{prefix && (
+						<span data-slot="prefix" className={cn('peer/prefix', k.affix, k.prefix[resolvedSize])}>
+							{prefix}
+						</span>
+					)}
 					<button
 						ref={triggerRef}
 						id={resolvedId}
@@ -163,6 +177,11 @@ export function Listbox<T>({
 						<span className={cn(k.value, tabularNums && 'tabular-nums')}>
 							{label || <span className={cn(iro.text.muted)}>{placeholder}</span>}
 						</span>
+						{suffix && (
+							<span data-slot="suffix" className={cn(k.affix, k.suffix[resolvedSize])}>
+								{suffix}
+							</span>
+						)}
 						<span className={cn(k.chevron)}>{icon ?? <Icon icon={<ChevronsUpDown />} />}</span>
 					</button>
 				</ControlFrame>

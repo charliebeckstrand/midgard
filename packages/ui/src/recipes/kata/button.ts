@@ -69,7 +69,7 @@ export const button = tv({
 		maru.rounded.lg,
 		sen.focus.inset,
 		...sawari.disabled,
-		'cursor-pointer',
+		...sawari.cursor,
 	],
 	variants: {
 		variant: {

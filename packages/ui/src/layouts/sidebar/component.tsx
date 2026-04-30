@@ -30,6 +30,8 @@ export type SidebarLayoutProps = PropsWithChildren<{
 	actions?: ReactNode
 	menuIcon?: ReactNode
 	stickyHeader?: boolean
+	mini?: boolean
+	panelClassName?: string
 }>
 
 export function SidebarLayout({
@@ -38,6 +40,8 @@ export function SidebarLayout({
 	actions,
 	menuIcon,
 	stickyHeader,
+	mini,
+	panelClassName,
 	children,
 }: SidebarLayoutProps) {
 	const { open, setOpen, close } = useOffcanvas()
@@ -47,7 +51,7 @@ export function SidebarLayout({
 	return (
 		<Frame className={sidebarLayoutVariants()}>
 			{/* Sidebar on desktop */}
-			<div className={sidebarPanelVariants()}>{sidebar}</div>
+			<div className={cn(sidebarPanelVariants({ mini }), panelClassName)}>{sidebar}</div>
 
 			{/* Sidebar on mobile */}
 			<Drawer open={open} onOpenChange={setOpen}>

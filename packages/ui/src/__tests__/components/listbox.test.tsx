@@ -64,6 +64,43 @@ describe('Listbox', () => {
 		expect(button?.tagName).toBe('BUTTON')
 	})
 
+	it('renders prefix and suffix slots and keeps trigger clickable', () => {
+		const { container } = renderUI(
+			<Listbox
+				prefix={<span data-testid="prefix">$</span>}
+				suffix={<span data-testid="suffix">USD</span>}
+			>
+				<div>Option</div>
+			</Listbox>,
+		)
+
+		const prefix = bySlot(container, 'prefix')
+		const suffix = bySlot(container, 'suffix')
+		const button = bySlot(container, 'listbox-button')
+
+		expect(prefix).toBeInTheDocument()
+		expect(prefix?.querySelector('[data-testid="prefix"]')).toBeInTheDocument()
+
+		expect(suffix).toBeInTheDocument()
+		expect(suffix?.querySelector('[data-testid="suffix"]')).toBeInTheDocument()
+
+		expect(button).toBeInTheDocument()
+		expect(button?.tagName).toBe('BUTTON')
+		expect(button).toHaveAttribute('role', 'combobox')
+		expect(button).not.toBeDisabled()
+	})
+
+	it('omits prefix and suffix slots when not provided', () => {
+		const { container } = renderUI(
+			<Listbox>
+				<div>Option</div>
+			</Listbox>,
+		)
+
+		expect(bySlot(container, 'prefix')).not.toBeInTheDocument()
+		expect(bySlot(container, 'suffix')).not.toBeInTheDocument()
+	})
+
 	it('renders a placeholder in skeleton mode', () => {
 		const { container } = renderUI(
 			<Listbox>

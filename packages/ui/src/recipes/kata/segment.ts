@@ -27,7 +27,7 @@ export const segmentItem = tv({
 		sen.focus.indicator,
 		sen.focus.ring,
 		...sawari.disabled,
-		'cursor-default',
+		...sawari.cursor,
 		'outline-none',
 	],
 	variants: {

@@ -3,6 +3,7 @@ import { iro } from '../iro'
 import { ji } from '../ji'
 import { kumi } from '../kumi'
 import { maru } from '../maru'
+import { sawari } from '../sawari'
 import { sen } from '../sen'
 import { ugoki } from '../ugoki'
 
@@ -49,7 +50,7 @@ export const slots = {
 		'dark:group-data-[open]/accordion-item:text-white',
 		'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-inset',
 		'disabled:opacity-50 disabled:cursor-not-allowed',
-		'cursor-pointer',
+		...sawari.cursor,
 	],
 	indicator: [
 		'shrink-0',

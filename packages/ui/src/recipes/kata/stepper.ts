@@ -17,7 +17,7 @@ export const stepper = tv({
 })
 
 export const stepperStep = tv({
-	base: ['group relative text-left', 'outline-none', ...sawari.disabled],
+	base: ['group relative text-left', 'outline-none', ...sawari.disabled, ...sawari.cursor],
 	variants: {
 		orientation: {
 			horizontal: 'flex shrink-0 flex-col items-center w-32 gap-0.5 text-center',

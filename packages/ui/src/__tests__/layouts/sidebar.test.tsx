@@ -74,6 +74,40 @@ describe('SidebarLayout', () => {
 		// Sidebar content appears twice after opening (desktop + mobile mount).
 		expect(screen.getAllByText('drawer-sidebar').length).toBeGreaterThanOrEqual(1)
 	})
+
+	it('applies the default width class to the desktop panel', () => {
+		const { container } = renderUI(<SidebarLayout sidebar={<div>sidebar</div>}>body</SidebarLayout>)
+
+		const desktopPanel = container.querySelector('.max-lg\\:hidden')
+
+		expect(desktopPanel?.className).toContain('w-64')
+	})
+
+	it('applies the mini width class to the desktop panel when mini is true', () => {
+		const { container } = renderUI(
+			<SidebarLayout sidebar={<div>sidebar</div>} mini>
+				body
+			</SidebarLayout>,
+		)
+
+		const desktopPanel = container.querySelector('.max-lg\\:hidden')
+
+		expect(desktopPanel?.className).toContain('w-auto')
+		expect(desktopPanel?.className).not.toContain('w-64')
+	})
+
+	it('applies panelClassName to the desktop panel wrapper', () => {
+		const { container } = renderUI(
+			<SidebarLayout sidebar={<div>sidebar</div>} panelClassName="custom-panel">
+				body
+			</SidebarLayout>,
+		)
+
+		const desktopPanel = container.querySelector('.custom-panel')
+
+		expect(desktopPanel).toBeInTheDocument()
+		expect(desktopPanel?.className).toContain('max-lg:hidden')
+	})
 })
 
 describe('SidebarLayoutHeader', () => {

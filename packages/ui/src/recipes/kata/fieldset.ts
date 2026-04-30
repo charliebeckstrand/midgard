@@ -10,7 +10,14 @@ export const fieldset = {
 		'data-disabled:border-zinc-950/20 data-disabled:cursor-not-allowed',
 		'dark:data-disabled:border-white/15',
 	],
-	label: ['text-base/6 select-none cursor-pointer', iro.text.default, sawari.disabled],
+	label: [
+		'text-base/6 select-none',
+		sawari.cursor,
+		'[[data-slot=field]:has(:disabled)_&]:cursor-not-allowed',
+		'[[data-slot=field]:has([data-disabled])_&]:cursor-not-allowed',
+		iro.text.default,
+		sawari.disabled,
+	],
 	description: ['text-base/6', iro.text.muted, sawari.disabled],
 	error: ['text-base/6', iro.text.error, sawari.disabled],
 }

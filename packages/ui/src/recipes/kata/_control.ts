@@ -26,6 +26,7 @@ import { iro } from '../iro'
 import { ji } from '../ji'
 import { maru } from '../maru'
 import { omote } from '../omote'
+import { sawari } from '../sawari'
 import { sen } from '../sen'
 
 // ── Outer frame chrome ──────────────────────────────────
@@ -153,7 +154,7 @@ const resets = {
 // ── Checkbox / radio: hidden native input + custom surface ──
 const check = {
 	/** Visually hidden native input overlaying the custom check surface. */
-	hidden: ['absolute inset-0', 'opacity-0', 'cursor-pointer', sen.forced.control],
+	hidden: ['absolute inset-0', 'opacity-0', ...sawari.cursor, sen.forced.control],
 	/** Custom check surface (the visible box / circle). */
 	surface: [
 		'border',

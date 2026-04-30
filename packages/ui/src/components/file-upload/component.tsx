@@ -3,6 +3,7 @@
 import { Upload } from 'lucide-react'
 import type { ComponentProps, ReactNode } from 'react'
 import { cn } from '../../core'
+import { sawari } from '../../recipes'
 import { AspectRatio, type AspectRatioProps } from '../aspect-ratio'
 import { Button } from '../button'
 import { Icon } from '../icon'
@@ -90,7 +91,7 @@ export function FileUpload(props: FileUploadProps) {
 					value={label ?? ''}
 					placeholder={placeholder ?? 'Choose a file'}
 					onClick={openPicker}
-					className={cn('file:hidden', disabled ? 'cursor-not-allowed' : 'cursor-pointer')}
+					className={cn('file:hidden', sawari.cursor)}
 					suffix={<Icon icon={<Upload />} />}
 				/>
 			</div>
@@ -108,7 +109,7 @@ export function FileUpload(props: FileUploadProps) {
 					color={color}
 					disabled={disabled}
 					prefix={<Icon icon={<Upload />} />}
-					className={disabled ? undefined : 'cursor-pointer'}
+					className={cn(sawari.cursor)}
 					onClick={openPicker}
 				>
 					{children ?? 'Upload'}

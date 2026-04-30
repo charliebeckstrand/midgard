@@ -2,6 +2,7 @@ import { tv, type VariantProps } from 'tailwind-variants'
 import { defineColors, mode } from '../../core/recipe/mode'
 import { iro } from '../iro'
 import { maru } from '../maru'
+import { sawari } from '../sawari'
 import { sen } from '../sen'
 import { control } from './_control'
 
@@ -52,7 +53,7 @@ export const switchRecipe = tv({
 	base: [
 		'relative inline-flex shrink-0 items-center',
 		sen.focus.outline,
-		'cursor-pointer',
+		...sawari.cursor,
 		'has-checked:*:data-[slot=switch-thumb]:bg-(--switch)',
 		'has-checked:*:data-[slot=switch-thumb]:shadow-(--switch-shadow)',
 		'has-checked:*:data-[slot=switch-thumb]:ring-(--switch-ring)',

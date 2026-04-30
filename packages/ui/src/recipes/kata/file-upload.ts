@@ -2,6 +2,7 @@ import { iro } from '../iro'
 import { ji } from '../ji'
 import { kumi } from '../kumi'
 import { maru } from '../maru'
+import { sawari } from '../sawari'
 import { sen } from '../sen'
 
 export const fileUpload = {
@@ -15,7 +16,7 @@ export const fileUpload = {
 		'border border-dashed',
 		'border-zinc-300',
 		'dark:border-zinc-700',
-		'cursor-pointer',
+		...sawari.cursor,
 		'hover:not-disabled:border-zinc-400',
 		'dark:hover:not-disabled:border-zinc-500',
 		'data-[drag-over]:border-blue-500 data-[drag-over]:bg-blue-50/50',

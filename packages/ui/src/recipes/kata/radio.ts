@@ -3,6 +3,7 @@ import { defineColors } from '../../core/recipe/mode'
 import { iro } from '../iro'
 import { kumi } from '../kumi'
 import { maru } from '../maru'
+import { sawari } from '../sawari'
 import { sen } from '../sen'
 import { control } from './_control'
 
@@ -27,7 +28,7 @@ export const radio = tv({
 		'relative',
 		'size-4.5',
 		sen.focus.outline,
-		'cursor-pointer',
+		...sawari.cursor,
 		'has-checked:*:data-[slot=radio-indicator]:opacity-100',
 		...control.check.surface,
 		maru.rounded.full,

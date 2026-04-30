@@ -6,7 +6,7 @@ export const slider = tv({
 		'w-full',
 		'appearance-none',
 		'bg-transparent',
-		'cursor-pointer',
+		...sawari.cursor,
 		'outline-none',
 		...sawari.disabled,
 

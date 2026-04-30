@@ -25,11 +25,26 @@ const glassItem = [
 
 // ── Disabled state ──────────────────────────────────────
 const disabled = [
-	'disabled:opacity-50 disabled:cursor-not-allowed',
-	'data-disabled:opacity-50 data-disabled:cursor-not-allowed',
+	'disabled:opacity-50',
+	'data-disabled:opacity-50',
 	'group-disabled:opacity-50',
 	ugoki.css.opacity,
 	ugoki.css.duration,
+]
+
+// ── Cursor (interactive when enabled, not-allowed when disabled) ───
+// Single source of truth for cursor feedback. `cursor-pointer` is the base;
+// the four `cursor-not-allowed` variants win on specificity when the element
+// itself is disabled (`:disabled` / `data-disabled`) or wraps a disabled
+// descendant (`has-[:disabled]` / `has-[data-disabled]`). Keeping the base
+// at one-class specificity also lets parent overrides like
+// `has-disabled:**:cursor-not-allowed` win for sibling-label patterns.
+const cursor = [
+	'cursor-pointer',
+	'disabled:cursor-not-allowed',
+	'data-disabled:cursor-not-allowed',
+	'has-[:disabled]:cursor-not-allowed',
+	'has-[data-disabled]:cursor-not-allowed',
 ]
 
 // ── Motoi (基) ──────────────────────────────────────────
@@ -41,6 +56,7 @@ const motoi = {
 		sen.forced.text,
 		sen.forced.focus,
 		disabled,
+		cursor,
 	],
 	nav: [take.icon.md],
 }
@@ -72,4 +88,6 @@ export const sawari = {
 	nav: [motoi.nav, hiru.nav, yoru.nav, sen.focus.inset],
 	/** Disabled / dormant state. */
 	disabled,
+	/** Cursor feedback — pointer when interactive, not-allowed when disabled. */
+	cursor,
 }

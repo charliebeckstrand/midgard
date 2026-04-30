@@ -6,11 +6,14 @@ import { useRoving } from '../../hooks'
 import { ActiveIndicatorScope } from '../../primitives'
 import { k } from './variants'
 
-export type SidebarProps = ComponentPropsWithoutRef<'nav'>
+export type SidebarProps = ComponentPropsWithoutRef<'nav'> & {
+	mini?: boolean
+}
 
 export function Sidebar({
 	'aria-label': ariaLabel = 'Sidebar',
 	className,
+	mini,
 	children,
 	...props
 }: SidebarProps) {
@@ -26,7 +29,7 @@ export function Sidebar({
 				ref={ref}
 				data-slot="sidebar"
 				aria-label={ariaLabel}
-				className={cn(k.base, className)}
+				className={cn(k.base({ mini }), className)}
 				onKeyDown={handleKeyDown}
 				{...props}
 			>

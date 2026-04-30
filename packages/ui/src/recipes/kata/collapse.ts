@@ -1,6 +1,7 @@
 import { iro } from '../iro'
 import { ji } from '../ji'
 import { kumi } from '../kumi'
+import { sawari } from '../sawari'
 import { sen } from '../sen'
 
 export const collapse = {
@@ -16,7 +17,7 @@ export const collapse = {
 		'dark:group-data-[open]/collapse:text-white',
 		sen.focus.ring,
 		'disabled:opacity-50 disabled:cursor-not-allowed',
-		'cursor-pointer',
+		...sawari.cursor,
 	],
 	panel: 'overflow-hidden',
 }

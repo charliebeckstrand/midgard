@@ -69,27 +69,29 @@ export function SidebarContent({ route }: { route: string }) {
 				}}
 			</Combobox>
 			<SidebarBody>
-				{sortedCategories.map(([category, items]) => (
-					<SidebarSection key={category}>
-						<span className="px-2 text-xs/6 font-medium text-zinc-500">{category}</span>
-						{items.map((demo) => {
-							const prefetch = () => preloadDemo(demo.id)
+				<div className="flex flex-col gap-2">
+					{sortedCategories.map(([category, items]) => (
+						<SidebarSection key={category}>
+							<span className="px-2 text-zinc-500 mb-2">{category}</span>
+							{items.map((demo) => {
+								const prefetch = () => preloadDemo(demo.id)
 
-							return (
-								<SidebarItem
-									key={demo.id}
-									href={`#${demo.id}`}
-									current={route === demo.id}
-									onClick={prefetch}
-									onMouseEnter={prefetch}
-									onFocus={prefetch}
-								>
-									<SidebarLabel>{demo.name}</SidebarLabel>
-								</SidebarItem>
-							)
-						})}
-					</SidebarSection>
-				))}
+								return (
+									<SidebarItem
+										key={demo.id}
+										href={`#${demo.id}`}
+										current={route === demo.id}
+										onClick={prefetch}
+										onMouseEnter={prefetch}
+										onFocus={prefetch}
+									>
+										<SidebarLabel>{demo.name}</SidebarLabel>
+									</SidebarItem>
+								)
+							})}
+						</SidebarSection>
+					))}
+				</div>
 			</SidebarBody>
 		</Sidebar>
 	)

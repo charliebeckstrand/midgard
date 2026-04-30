@@ -48,6 +48,7 @@ export const slots = {
 		...iro.text.hover,
 		sen.focus.ring,
 		...sawari.disabled,
+		...sawari.cursor,
 		maru.rounded.lg,
 	],
 }

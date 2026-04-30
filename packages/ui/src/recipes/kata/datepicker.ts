@@ -1,5 +1,6 @@
 import { iro } from '../iro'
 import { maru } from '../maru'
+import { sawari } from '../sawari'
 import { sen } from '../sen'
 import { take } from '../take'
 import { control } from './_control'
@@ -17,7 +18,7 @@ export const datepicker = {
 		'text-left',
 		maru.rounded.lg,
 		'appearance-none',
-		'cursor-pointer',
+		...sawari.cursor,
 	],
 	value: 'block truncate',
 	icon: [take.listbox.icon, 'flex items-center', 'pr-3', iro.text.muted, 'pointer-events-none'],

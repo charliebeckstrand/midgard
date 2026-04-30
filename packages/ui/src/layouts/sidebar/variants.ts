@@ -12,7 +12,16 @@ export const sidebarLayoutVariants = tv({
 })
 
 export const sidebarPanelVariants = tv({
-	base: ['w-64 shrink-0 min-w-0', 'overflow-x-hidden overflow-y-auto', 'max-lg:hidden'],
+	base: ['shrink-0 min-w-0', 'overflow-x-hidden overflow-y-auto', 'max-lg:hidden'],
+	variants: {
+		mini: {
+			false: 'w-64',
+			true: 'w-auto',
+		},
+	},
+	defaultVariants: {
+		mini: false,
+	},
 })
 
 export const sidebarContentWrapperVariants = tv({

@@ -1,7 +1,7 @@
 import { sawari } from '../sawari'
 
 export const sliderRange = {
-	root: ['relative', 'w-full', 'cursor-pointer', 'select-none', 'touch-none', sawari.disabled],
+	root: ['relative', 'w-full', ...sawari.cursor, 'select-none', 'touch-none', sawari.disabled],
 	track: ['absolute', 'left-0', 'right-0', 'rounded-full', 'bg-[var(--slider-track)]'],
 	fill: ['absolute', 'rounded-full', 'bg-[var(--slider-fill)]'],
 	thumb: [

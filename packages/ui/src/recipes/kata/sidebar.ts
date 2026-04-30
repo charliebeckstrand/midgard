@@ -1,11 +1,25 @@
+import { tv } from 'tailwind-variants'
 import { ji } from '../ji'
 import { kumi } from '../kumi'
 import { maru } from '../maru'
 import { sawari } from '../sawari'
 import { sen } from '../sen'
 
+export const sidebarBase = tv({
+	base: ['overflow-y-auto overscroll-none', 'flex flex-col gap-y-4', 'h-full', 'py-6'],
+	variants: {
+		mini: {
+			false: 'px-4',
+			true: 'pl-4 pr-2',
+		},
+	},
+	defaultVariants: {
+		mini: false,
+	},
+})
+
 export const sidebar = {
-	base: ['overflow-y-auto overscroll-none', 'flex flex-col gap-y-4', 'h-full', 'px-4 py-6'],
+	base: sidebarBase,
 	item: [
 		...sawari.nav,
 		'group relative',
