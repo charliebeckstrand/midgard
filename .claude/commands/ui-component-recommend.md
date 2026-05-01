@@ -18,7 +18,7 @@ Scan `packages/ui/src/components/` to get the up-to-date list of existing compon
 
 ### 2. Read the existing recipes
 
-Scan `packages/ui/src/recipes/kata/` to understand what styling recipes already exist — some recipes may exist without a corresponding component, indicating planned or partially built work.
+Scan `packages/ui/src/recipes/kata/` to understand what styling recipes already exist — some recipes may exist without a corresponding component, indicating planned or partially built work. Also scan `recipes/ryu/` (cross-cutting tokens — `sun`, `iro`, `ji`, `omote`, etc.) and `recipes/waku/` (`kasane`, `control`, `panel`) so a recommendation can call out which existing primitives a new component would compose. Recommendations should prefer composing `<Concentric>` / `<Attached>` over inventing layout primitives, and consuming `sun` for any size variants.
 
 ### 3. Read the existing primitives and hooks
 

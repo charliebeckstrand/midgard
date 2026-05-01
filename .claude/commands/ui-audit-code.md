@@ -37,7 +37,9 @@ Before checking anything, read the codebase to establish what "correct" looks li
 |------|-------|-----|
 | Component inventory | `packages/ui/src/components/` | Know every component that exists |
 | Package exports | `packages/ui/package.json` → `"exports"` field | Know what's exposed to consumers |
-| Kata registry | `packages/ui/src/recipes/kata/index.ts` | Know which components have recipes |
+| Kata registry | `packages/ui/src/recipes/kata/` | Know which components have recipes |
+| Ryu (cross-cutting) | `packages/ui/src/recipes/ryu/` | The size system (`sun`), palettes, type scales, surfaces, motion, etc. |
+| Waku (frame archetypes) | `packages/ui/src/recipes/waku/` | `kasane` (the layered chrome), `control`, `panel` |
 | Test inventory | `packages/ui/src/__tests__/components/` | Know which components have tests |
 
 **Identify the majority pattern for each convention** by reading 3-5 representative components (e.g., badge, button, input, card, dialog). The majority pattern is the standard — not what any single component does.
@@ -67,6 +69,9 @@ Read every `variants.ts` file and compare against the established pattern.
 - Not importing from `class-variance-authority`
 - Not using `kata` reference (`const k = kata.<name>`)
 - Hardcoded class strings instead of recipe references
+- Hardcoded text/padding/gap/rounded triplets instead of consuming `sun` (via `classes(step)` from `recipes/ryu/sun`)
+- Imports from removed paths: `recipes/iro` / `recipes/sen` / etc. without the `ryu/` segment; `kata/_control` (now `waku/control`); `kata/_panel` (now `waku/panel`)
+- Imports from deleted entries: `kumi.direction`, `kumi.align`, `kumi.justify`, `kumi.center` (use raw Tailwind utilities instead)
 - Missing `VariantProps` type export
 - Inconsistent naming: variant instance should be `<camelCaseName>Variants`, type should be `<PascalCaseName>Variants`
 - Missing `defaultVariants` when the kata recipe defines `defaults`
