@@ -4,6 +4,7 @@ import { iro, merge } from '../iro'
 import { ji } from '../ji'
 import { kumi } from '../kumi'
 import { maru } from '../maru'
+import { tsunagi } from '../ryu/tsunagi'
 import { sawari } from '../sawari'
 import { sen } from '../sen'
 import { take } from '../take'
@@ -70,6 +71,7 @@ export const button = tv({
 		sen.focus.inset,
 		...sawari.disabled,
 		...sawari.cursor,
+		...tsunagi.base,
 	],
 	variants: {
 		variant: {
