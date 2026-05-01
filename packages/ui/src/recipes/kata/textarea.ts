@@ -2,7 +2,7 @@ import { tv, type VariantProps } from 'tailwind-variants'
 import { ji } from '../ryu/ji'
 import { maru } from '../ryu/maru'
 import { sen } from '../ryu/sen'
-import { control } from './_control'
+import { control } from '../waku/control'
 
 // Default control density for textarea (size isn't variable here).
 const density = ['px-[calc(--spacing(3)-1px)] py-[calc(--spacing(2)-1px)]', ji.size.md]

@@ -2,7 +2,7 @@ import { tv, type VariantProps } from 'tailwind-variants'
 import { narabi } from '../ryu/narabi'
 import { omote } from '../ryu/omote'
 import { take } from '../ryu/take'
-import { definePanelRecipe } from './_panel'
+import { definePanelRecipe } from '../waku/panel'
 
 export const dialog = definePanelRecipe({
 	panel: tv({

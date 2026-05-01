@@ -4,7 +4,7 @@ import { iro } from '../ryu/iro'
 import { maru } from '../ryu/maru'
 import { sawari } from '../ryu/sawari'
 import { sen } from '../ryu/sen'
-import { control } from './_control'
+import { control } from '../waku/control'
 
 const color = defineColors({
 	zinc: {

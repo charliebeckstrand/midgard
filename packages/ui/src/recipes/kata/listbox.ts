@@ -3,7 +3,7 @@ import { maru } from '../ryu/maru'
 import { narabi } from '../ryu/narabi'
 import { sawari } from '../ryu/sawari'
 import { take } from '../ryu/take'
-import { control } from './_control'
+import { control } from '../waku/control'
 
 export const listbox = {
 	button: [

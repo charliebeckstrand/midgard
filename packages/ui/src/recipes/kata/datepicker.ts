@@ -3,7 +3,7 @@ import { maru } from '../ryu/maru'
 import { sawari } from '../ryu/sawari'
 import { sen } from '../ryu/sen'
 import { take } from '../ryu/take'
-import { control } from './_control'
+import { control } from '../waku/control'
 
 export const datepicker = {
 	control: {
