@@ -25,7 +25,6 @@ export const radio = tv({
 		'inline-flex',
 		'items-center justify-center',
 		'relative',
-		'size-4.5',
 		sen.focus.outline,
 		...sawari.cursor,
 		'has-checked:*:data-[slot=radio-indicator]:opacity-100',
@@ -37,9 +36,21 @@ export const radio = tv({
 	],
 	variants: {
 		color,
+		size: {
+			sm: 'size-4',
+			md: 'size-4.5',
+			lg: 'size-5',
+		},
 	},
-	defaultVariants: { color: 'zinc' },
+	defaultVariants: { color: 'zinc', size: 'md' },
 })
+
+/** Indicator dot size class per radio size step. Read by the component. */
+export const radioIndicatorSize = {
+	sm: 'size-1',
+	md: 'size-1.5',
+	lg: 'size-2',
+} as const
 
 export const radioInput = tv({ base: control.check.hidden })
 

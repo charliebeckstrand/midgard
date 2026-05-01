@@ -28,14 +28,16 @@ export function Dialog({
 	onOpenChange,
 	align = 'center',
 	outsideClick = true,
-	glass,
+	surface,
 	size,
 	className,
 	children,
 }: DialogProps) {
 	const glassContext = useGlass()
 
-	const resolvedGlass = glass ?? glassContext
+	// Resolve the surface from explicit prop, then any enclosing <GlassProvider>
+	// (boolean context translated to the equivalent surface enum).
+	const resolvedSurface = surface ?? (glassContext ? 'glass' : undefined)
 
 	const isDesktop = useMinWidth(640)
 
@@ -46,7 +48,7 @@ export function Dialog({
 			open={open}
 			onOpenChange={onOpenChange}
 			outsideClick={outsideClick}
-			glass={resolvedGlass}
+			glass={resolvedSurface === 'glass'}
 		>
 			<div
 				className={cn(
@@ -60,7 +62,7 @@ export function Dialog({
 					data-slot="dialog"
 					className={cn(
 						'pointer-events-auto',
-						dialogPanelVariants({ glass: resolvedGlass, size }),
+						dialogPanelVariants({ surface: resolvedSurface, size }),
 						className,
 					)}
 				>

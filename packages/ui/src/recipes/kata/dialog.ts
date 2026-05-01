@@ -16,13 +16,13 @@ export const dialog = definePanelRecipe({
 			'sm:rounded-2xl sm:max-h-[calc(100dvh-2rem)]',
 		],
 		variants: {
-			glass: {
-				true: [...omote.glass],
-				false: [...omote.panel.bg],
+			surface: {
+				glass: [...omote.glass],
+				flat: [...omote.panel.bg],
 			},
 			size: take.panel,
 		},
-		defaultVariants: { size: 'lg', glass: false },
+		defaultVariants: { size: 'lg', surface: 'flat' },
 	}),
 })
 

@@ -31,26 +31,26 @@ export const sheet = definePanelRecipe({
 				bottom: narabi.slide.bottom,
 			},
 			size: take.panel,
-			glass: {
-				true: [...omote.glass],
-				false: [...omote.panel.bg],
+			surface: {
+				glass: [...omote.glass],
+				flat: [...omote.panel.bg],
 			},
 		},
 		compoundVariants: [
 			{ side: 'right', size: 'full', class: 'sm:left-4' },
 			{ side: 'left', size: 'full', class: 'sm:right-4' },
 		],
-		defaultVariants: { side: 'right', size: 'md', glass: false },
+		defaultVariants: { side: 'right', size: 'md', surface: 'flat' },
 	}),
 	backdrop: tv({
 		base: 'absolute inset-0',
 		variants: {
-			glass: {
-				true: [...omote.backdrop.glass],
-				false: [...omote.backdrop.base],
+			surface: {
+				glass: [...omote.backdrop.glass],
+				flat: [...omote.backdrop.base],
 			},
 		},
-		defaultVariants: { glass: false },
+		defaultVariants: { surface: 'flat' },
 	}),
 	title: { extra: 'px-6 pt-6' },
 	description: { extra: 'px-6' },

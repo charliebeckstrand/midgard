@@ -34,14 +34,14 @@ export function Sheet({
 	onOpenChange,
 	side = 'right',
 	size,
-	glass,
+	surface,
 	className,
 	children,
 	container,
 }: SheetProps) {
 	const glassContext = useGlass()
 
-	const resolvedGlass = glass ?? glassContext
+	const resolvedSurface = surface ?? (glassContext ? 'glass' : undefined)
 
 	const resolvedSide = (side ?? 'right') as SheetSide
 
@@ -56,14 +56,14 @@ export function Sheet({
 			open={open}
 			onOpenChange={onOpenChange}
 			container={container}
-			className={sheetBackdropVariants({ glass: resolvedGlass })}
+			className={sheetBackdropVariants({ surface: resolvedSurface })}
 		>
 			<motion.div
 				{...ugoki.panel[resolvedSide]}
 				{...panelAriaProps}
 				data-slot="sheet"
 				onClick={(e) => e.stopPropagation()}
-				className={cn(sheetPanelVariants({ side, size, glass: resolvedGlass }), className)}
+				className={cn(sheetPanelVariants({ side, size, surface: resolvedSurface }), className)}
 			>
 				<SheetProvider value={contextValue}>
 					<PanelA11yProvider value={providerValue}>{children}</PanelA11yProvider>

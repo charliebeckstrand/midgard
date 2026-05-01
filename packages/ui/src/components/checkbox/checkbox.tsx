@@ -4,21 +4,28 @@ import { Check, Minus } from 'lucide-react'
 import { type ComponentPropsWithRef, type ReactNode, useCallback, useRef } from 'react'
 import { cn } from '../../core'
 import { kokkaku } from '../../recipes'
+import { useConcentric } from '../concentric'
 import { useControl } from '../control/context'
 import { useFormToggle } from '../form/context'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
-import { type CheckboxVariants, checkboxInputVariants, checkboxVariants } from './variants'
+import {
+	type CheckboxVariants,
+	checkboxCheckSize,
+	checkboxInputVariants,
+	checkboxVariants,
+} from './variants'
 
 export type CheckboxProps = CheckboxVariants & {
 	indeterminate?: boolean
 	icon?: ReactNode
 	className?: string
-} & Omit<ComponentPropsWithRef<'input'>, 'className' | 'type'>
+} & Omit<ComponentPropsWithRef<'input'>, 'className' | 'type' | 'size'>
 
 export function Checkbox({
 	className,
 	color,
+	size,
 	icon,
 	indeterminate,
 	id,
@@ -30,6 +37,7 @@ export function Checkbox({
 	onChange,
 	...props
 }: CheckboxProps) {
+	const concentric = useConcentric()
 	const control = useControl()
 	const binding = useFormToggle(name, { onChange })
 
@@ -39,6 +47,7 @@ export function Checkbox({
 
 	const resolvedDisabled = disabled ?? control?.disabled
 	const resolvedRequired = required ?? control?.required
+	const resolvedSize = size ?? concentric?.size ?? 'md'
 
 	const resolvedInvalid = control?.invalid || binding?.invalid
 
@@ -56,8 +65,16 @@ export function Checkbox({
 		return <Placeholder className={cn(kokkaku.checkbox.base, className)} />
 	}
 
+	const checkClass = cn(
+		'pointer-events-none absolute stroke-(--checkbox-check) opacity-0',
+		checkboxCheckSize[resolvedSize],
+	)
+
 	return (
-		<label data-slot="control" className={cn(checkboxVariants({ color }), className)}>
+		<label
+			data-slot="control"
+			className={cn(checkboxVariants({ color, size: resolvedSize }), className)}
+		>
 			<input
 				type="checkbox"
 				data-slot="checkbox"
@@ -77,7 +94,7 @@ export function Checkbox({
 						<Minus
 							data-slot="checkbox-check"
 							aria-hidden="true"
-							className="pointer-events-none absolute size-3.5 stroke-(--checkbox-check) opacity-0"
+							className={checkClass}
 							strokeWidth={2}
 						/>
 					))
@@ -85,7 +102,7 @@ export function Checkbox({
 						<Check
 							data-slot="checkbox-check"
 							aria-hidden="true"
-							className="pointer-events-none absolute size-3.5 stroke-(--checkbox-check) opacity-0"
+							className={checkClass}
 							strokeWidth={2}
 						/>
 					))}

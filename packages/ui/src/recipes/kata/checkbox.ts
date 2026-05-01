@@ -23,11 +23,9 @@ export const checkbox = tv({
 		'inline-flex',
 		'items-center justify-center',
 		'relative',
-		'size-4.5',
 		sen.focus.outline,
 		'has-checked:*:data-[slot=checkbox-check]:opacity-100',
 		...control.check.surface,
-		'rounded-[--spacing(1)]',
 		'[--checkbox-checked-border:transparent]',
 		'has-checked:bg-(--checkbox-checked-bg) has-checked:border-(--checkbox-checked-border)',
 		'not-has-[:disabled]:has-checked:hover:opacity-90',
@@ -35,9 +33,21 @@ export const checkbox = tv({
 	],
 	variants: {
 		color,
+		size: {
+			sm: ['size-4', 'rounded-[--spacing(0.75)]'],
+			md: ['size-4.5', 'rounded-[--spacing(1)]'],
+			lg: ['size-5', 'rounded-[--spacing(1.25)]'],
+		},
 	},
-	defaultVariants: { color: 'zinc' },
+	defaultVariants: { color: 'zinc', size: 'md' },
 })
+
+/** Check-icon size class per checkbox size step. Read by the component. */
+export const checkboxCheckSize = {
+	sm: 'size-3',
+	md: 'size-3.5',
+	lg: 'size-4',
+} as const
 
 export const checkboxInput = tv({ base: control.check.hidden })
 
