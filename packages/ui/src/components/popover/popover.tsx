@@ -23,7 +23,9 @@ import { cn, createContext } from '../../core'
 import { useFloatingPanel } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { iro, omote, ugoki } from '../../recipes'
+import type { Step } from '../../recipes/ryu/sun'
 import { Box, type BoxPadding } from '../box'
+import { ConcentricContext } from '../concentric/context'
 import { useGlass } from '../glass/context'
 import { k } from './variants'
 
@@ -228,6 +230,8 @@ export type PopoverContentProps = {
 	className?: string
 	autoFocus?: boolean
 	p?: BoxPadding
+	/** Size step that propagates to descendants via the concentric context. */
+	size?: Step
 	children: React.ReactNode
 }
 
@@ -235,6 +239,7 @@ export function PopoverContent({
 	className,
 	autoFocus = false,
 	p = 4,
+	size = 'md',
 	children,
 }: PopoverContentProps) {
 	const { open, setFloating, floatingStyles, getFloatingProps, onExitComplete } =
@@ -243,6 +248,8 @@ export function PopoverContent({
 	const contentRef = useRef<HTMLDivElement | null>(null)
 
 	const glass = useGlass()
+
+	const concentricValue = useMemo(() => ({ size }), [size])
 
 	useLayoutEffect(() => {
 		if (open && autoFocus) {
@@ -265,17 +272,20 @@ export function PopoverContent({
 							ref={contentRef}
 							tabIndex={autoFocus ? -1 : undefined}
 							data-slot="popover-content"
+							data-step={size}
 							className={cn('z-50', iro.text.default, glass && omote.glass)}
 						>
-							<Box
-								p={p}
-								bg={glass ? 'none' : 'popover'}
-								radius="lg"
-								outline={glass || undefined}
-								className={className}
-							>
-								{children}
-							</Box>
+							<ConcentricContext.Provider value={concentricValue}>
+								<Box
+									p={p}
+									bg={glass ? 'none' : 'popover'}
+									radius="lg"
+									outline={glass || undefined}
+									className={className}
+								>
+									{children}
+								</Box>
+							</ConcentricContext.Provider>
 						</motion.div>
 					</div>
 				)}
