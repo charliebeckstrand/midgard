@@ -194,15 +194,26 @@ describe('Card size system', () => {
 		expect(bySlot(container, 'card-header')?.className).toContain(`pt-${space}`)
 	})
 
-	it('CardTitle text size tracks the Card size', () => {
+	it('CardTitle text size tracks the Card size, bumped one step up', () => {
 		const { container } = renderUI(
 			<Card size="lg">
 				<CardTitle>Title</CardTitle>
 			</Card>,
 		)
 
-		// sun.lg.text = 'lg' → ji.size.lg = 'text-lg/7'
-		expect(bySlot(container, 'card-title')?.className).toContain('text-lg/7')
+		// Card size "lg" → CardTitle bumps to ji.size.xl = 'text-xl/8'
+		expect(bySlot(container, 'card-title')?.className).toContain('text-xl/8')
+	})
+
+	it('CardTitle size prop overrides the inherited Card size', () => {
+		const { container } = renderUI(
+			<Card size="lg">
+				<CardTitle size="sm">Title</CardTitle>
+			</Card>,
+		)
+
+		// CardTitle size "sm" → bumps to ji.size.md = 'text-base/6'
+		expect(bySlot(container, 'card-title')?.className).toContain('text-base/6')
 	})
 
 	it('Buttons inside a Card inherit the Card size', () => {

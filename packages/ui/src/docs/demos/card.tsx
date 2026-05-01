@@ -1,5 +1,4 @@
 import { Alert, AlertDescription } from '../../components/alert'
-import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'
 import {
 	Card,
@@ -9,7 +8,6 @@ import {
 	CardHeader,
 	CardTitle,
 } from '../../components/card'
-import { Flex } from '../../components/flex'
 import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
 import { Example } from '../components/example'
@@ -50,24 +48,7 @@ export default function CardDemo() {
 				</Card>
 			</Example>
 
-			<Example title="Composing with other components">
-				<Card>
-					<CardHeader>
-						<Flex justify="between">
-							<CardTitle>Deployment</CardTitle>
-							<Badge color="green">Active</Badge>
-						</Flex>
-					</CardHeader>
-					<CardBody>
-						<Text>Last deployed 3 minutes ago to production.</Text>
-					</CardBody>
-					<CardFooter>
-						<Button variant="plain">View logs</Button>
-					</CardFooter>
-				</Card>
-			</Example>
-
-			<Example title="Sizes — concentric corners scale with padding">
+			<Example title="Sizes">
 				<Stack gap={4}>
 					<Card size="sm">
 						<CardHeader>
@@ -80,7 +61,7 @@ export default function CardDemo() {
 					</Card>
 					<Card size="md">
 						<CardHeader>
-							<CardTitle>Medium (default)</CardTitle>
+							<CardTitle>Medium</CardTitle>
 							<CardDescription>Balanced padding and radius.</CardDescription>
 						</CardHeader>
 						<CardBody>
