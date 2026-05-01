@@ -1,8 +1,8 @@
-import { iro } from '../iro'
-import { ji } from '../ji'
-import { kumi } from '../kumi'
-import { narabi } from '../narabi'
-import { sawari } from '../sawari'
+import { iro } from '../ryu/iro'
+import { ji } from '../ryu/ji'
+import { kumi } from '../ryu/kumi'
+import { narabi } from '../ryu/narabi'
+import { sawari } from '../ryu/sawari'
 
 export const commandPalette = {
 	group: 'py-1 first:pt-0 last:pb-0',

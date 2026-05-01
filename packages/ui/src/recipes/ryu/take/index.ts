@@ -14,7 +14,6 @@ import { combobox } from './combobox'
 import { listbox } from './listbox'
 import { mark } from './mark'
 import { panel } from './panel'
-import { popup } from './popup'
 import { scrollArea } from './scroll-area'
 
 /** Icon slot — sizes `data-slot="icon"` children per density step. */
@@ -29,7 +28,6 @@ export const take = {
 	icon,
 	avatar,
 	panel,
-	popup,
 	scrollArea,
 	combobox,
 	listbox,

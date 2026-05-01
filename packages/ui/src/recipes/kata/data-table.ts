@@ -1,10 +1,10 @@
-import { iro } from '../iro'
-import { ji } from '../ji'
-import { kumi } from '../kumi'
-import { ma } from '../ma'
-import { maru } from '../maru'
-import { omote } from '../omote'
-import { sen } from '../sen'
+import { iro } from '../ryu/iro'
+import { ji } from '../ryu/ji'
+import { kumi } from '../ryu/kumi'
+import { ma } from '../ryu/ma'
+import { maru } from '../ryu/maru'
+import { omote } from '../ryu/omote'
+import { sen } from '../ryu/sen'
 
 export const dataTable = {
 	wrapper: ['relative flex flex-col', kumi.gap.md],

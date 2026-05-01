@@ -1,9 +1,9 @@
-import { iro } from '../iro'
-import { ji } from '../ji'
-import { kumi } from '../kumi'
-import { maru } from '../maru'
-import { sen } from '../sen'
-import { ugoki } from '../ugoki'
+import { iro } from '../ryu/iro'
+import { ji } from '../ryu/ji'
+import { kumi } from '../ryu/kumi'
+import { maru } from '../ryu/maru'
+import { sen } from '../ryu/sen'
+import { ugoki } from '../ryu/ugoki'
 
 export const tree = {
 	base: ['flex flex-col', kumi.gap.xs],

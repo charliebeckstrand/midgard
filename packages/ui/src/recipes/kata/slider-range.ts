@@ -1,4 +1,4 @@
-import { sawari } from '../sawari'
+import { sawari } from '../ryu/sawari'
 
 export const sliderRange = {
 	root: ['relative', 'w-full', ...sawari.cursor, 'select-none', 'touch-none', sawari.disabled],

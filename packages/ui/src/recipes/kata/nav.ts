@@ -1,7 +1,7 @@
-import { ji } from '../ji'
-import { kumi } from '../kumi'
-import { maru } from '../maru'
-import { sawari } from '../sawari'
+import { ji } from '../ryu/ji'
+import { kumi } from '../ryu/kumi'
+import { maru } from '../ryu/maru'
+import { sawari } from '../ryu/sawari'
 
 export const nav = {
 	list: {

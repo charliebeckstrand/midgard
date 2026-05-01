@@ -1,21 +1,23 @@
 import { tv, type VariantProps } from 'tailwind-variants'
 import { colorVariants } from '../../core/recipe'
-import { iro, merge } from '../iro'
-import { ji } from '../ji'
-import { kumi } from '../kumi'
-import { maru } from '../maru'
-import { sawari } from '../sawari'
-import { sen } from '../sen'
-import { take } from '../take'
+import { iro, merge } from '../ryu/iro'
+import { ji } from '../ryu/ji'
+import { kumi } from '../ryu/kumi'
+import { maru } from '../ryu/maru'
+import { sawari } from '../ryu/sawari'
+import { sen } from '../ryu/sen'
+import { take } from '../ryu/take'
+import { tsunagi } from '../ryu/tsunagi'
 
 const { solid, soft, outline, plain } = iro.palette
 const { inherit } = iro.text
 
-export const buttonSolid = { ...merge(solid.bg, solid.text, solid.hover), inherit }
+const buttonSolid = { ...merge(solid.bg, solid.text, solid.hover), inherit }
+// Re-exported for the calendar kata, which reuses the soft button colour matrix.
 export const buttonSoft = { ...merge(soft.bg, soft.text, soft.hover), inherit }
-export const buttonOutline = { ...merge(outline.ring, outline.text, outline.hover), inherit }
-export const buttonPlain = { ...merge(plain.text, plain.hover), inherit }
-export const buttonGhost = { ...plain.text, inherit }
+const buttonOutline = { ...merge(outline.ring, outline.text, outline.hover), inherit }
+const buttonPlain = { ...merge(plain.text, plain.hover), inherit }
+const buttonGhost = { ...plain.text, inherit }
 
 const { color, compoundVariants } = colorVariants({
 	solid: buttonSolid,
@@ -70,6 +72,7 @@ export const button = tv({
 		sen.focus.inset,
 		...sawari.disabled,
 		...sawari.cursor,
+		...tsunagi.base,
 	],
 	variants: {
 		variant: {

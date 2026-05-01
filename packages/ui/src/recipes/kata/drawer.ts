@@ -1,10 +1,10 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { iro } from '../iro'
-import { maru } from '../maru'
-import { narabi } from '../narabi'
-import { omote } from '../omote'
-import { sen } from '../sen'
-import { definePanelRecipe } from './_panel'
+import { iro } from '../ryu/iro'
+import { maru } from '../ryu/maru'
+import { narabi } from '../ryu/narabi'
+import { omote } from '../ryu/omote'
+import { sen } from '../ryu/sen'
+import { definePanelRecipe } from '../waku/panel'
 
 export const drawer = definePanelRecipe({
 	panel: tv({
@@ -17,22 +17,22 @@ export const drawer = definePanelRecipe({
 			'rounded-t-xl',
 		],
 		variants: {
-			glass: {
-				true: [...omote.glass],
-				false: [...omote.panel.bg],
+			surface: {
+				glass: [...omote.glass],
+				flat: [...omote.panel.bg],
 			},
 		},
-		defaultVariants: { glass: false },
+		defaultVariants: { surface: 'flat' },
 	}),
 	backdrop: tv({
 		base: 'absolute inset-0',
 		variants: {
-			glass: {
-				true: [...omote.backdrop.glass],
-				false: [...omote.backdrop.base],
+			surface: {
+				glass: [...omote.backdrop.glass],
+				flat: [...omote.backdrop.base],
 			},
 		},
-		defaultVariants: { glass: false },
+		defaultVariants: { surface: 'flat' },
 	}),
 	title: { extra: 'px-6 pt-6' },
 	description: { extra: 'px-6' },

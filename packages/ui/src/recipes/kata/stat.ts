@@ -1,7 +1,7 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { iro } from '../iro'
-import { ji } from '../ji'
-import { kumi } from '../kumi'
+import { iro } from '../ryu/iro'
+import { ji } from '../ryu/ji'
+import { kumi } from '../ryu/kumi'
 
 export const statValue = tv({
 	base: ['font-semibold tracking-tight tabular-nums', ...iro.text.default],

@@ -1,11 +1,11 @@
 import { tv, type VariantProps } from 'tailwind-variants'
 import { defineColors } from '../../core/recipe/mode'
-import { iro } from '../iro'
-import { kumi } from '../kumi'
-import { maru } from '../maru'
-import { sawari } from '../sawari'
-import { sen } from '../sen'
-import { control } from './_control'
+import { iro } from '../ryu/iro'
+import { kumi } from '../ryu/kumi'
+import { maru } from '../ryu/maru'
+import { sawari } from '../ryu/sawari'
+import { sen } from '../ryu/sen'
+import { control } from '../waku/control'
 
 const color = defineColors({
 	zinc: {
@@ -26,7 +26,6 @@ export const radio = tv({
 		'inline-flex',
 		kumi.center,
 		'relative',
-		'size-4.5',
 		sen.focus.outline,
 		...sawari.cursor,
 		'has-checked:*:data-[slot=radio-indicator]:opacity-100',
@@ -38,9 +37,21 @@ export const radio = tv({
 	],
 	variants: {
 		color,
+		size: {
+			sm: 'size-4',
+			md: 'size-4.5',
+			lg: 'size-5',
+		},
 	},
-	defaultVariants: { color: 'zinc' },
+	defaultVariants: { color: 'zinc', size: 'md' },
 })
+
+/** Indicator dot size class per radio size step. Read by the component. */
+export const radioIndicatorSize = {
+	sm: 'size-1',
+	md: 'size-1.5',
+	lg: 'size-2',
+} as const
 
 export const radioInput = tv({ base: control.check.hidden })
 

@@ -1,10 +1,10 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { iro } from '../iro'
-import { ji } from '../ji'
-import { kumi } from '../kumi'
-import { maru } from '../maru'
-import { sawari } from '../sawari'
-import { sen } from '../sen'
+import { iro } from '../ryu/iro'
+import { ji } from '../ryu/ji'
+import { kumi } from '../ryu/kumi'
+import { maru } from '../ryu/maru'
+import { sawari } from '../ryu/sawari'
+import { sen } from '../ryu/sen'
 
 export const pagination = tv({ base: ['flex items-center list-none', kumi.gap.sm] })
 export const paginationList = tv({ base: ['flex list-none items-center', kumi.gap.sm, 'm-0 p-0'] })

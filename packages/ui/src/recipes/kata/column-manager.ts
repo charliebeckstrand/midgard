@@ -1,5 +1,5 @@
-import { kumi } from '../kumi'
-import { sen } from '../sen'
+import { kumi } from '../ryu/kumi'
+import { sen } from '../ryu/sen'
 
 export const columnManager = {
 	root: ['flex flex-col', kumi.gap.md],

@@ -1,7 +1,7 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { iro } from '../iro'
-import { kumi } from '../kumi'
-import { maru } from '../maru'
+import { iro } from '../ryu/iro'
+import { kumi } from '../ryu/kumi'
+import { maru } from '../ryu/maru'
 
 export const progressTrack = tv({
 	base: ['overflow-hidden', maru.rounded.full, 'bg-zinc-200', 'dark:bg-zinc-700'],

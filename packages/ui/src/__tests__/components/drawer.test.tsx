@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
+import { Button } from '../../components/button'
 import { Drawer, DrawerClose, DrawerOpen } from '../../components/drawer'
-import { fireEvent, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Drawer', () => {
 	it('renders with role="dialog" when open', () => {
@@ -103,5 +104,43 @@ describe('DrawerClose', () => {
 		fireEvent.click(screen.getByText('Close'))
 
 		expect(childClick).toHaveBeenCalled()
+	})
+})
+
+describe('Drawer size context', () => {
+	// Drawer panels render through Overlay's portal, so they live on
+	// document.body rather than under the test container.
+	const drawerPanel = () => document.querySelector<HTMLElement>('[data-slot="drawer"]')
+	const buttonInDrawer = () => document.querySelector<HTMLElement>('[data-slot="button"]')
+
+	it('defaults to size="md" and exposes data-step on the panel', () => {
+		renderUI(
+			<Drawer open onOpenChange={() => {}}>
+				content
+			</Drawer>,
+		)
+
+		expect(drawerPanel()).toHaveAttribute('data-step', 'md')
+	})
+
+	it('reflects an explicit size prop on data-step', () => {
+		renderUI(
+			<Drawer open onOpenChange={() => {}} size="lg">
+				content
+			</Drawer>,
+		)
+
+		expect(drawerPanel()).toHaveAttribute('data-step', 'lg')
+	})
+
+	it('descendant Buttons inherit the Drawer size', () => {
+		renderUI(
+			<Drawer open onOpenChange={() => {}} size="lg">
+				<Button>Save</Button>
+			</Drawer>,
+		)
+
+		// sun.lg.text = 'lg' → ji.size.lg = 'text-lg/7'
+		expect(buttonInDrawer()?.className).toContain('text-lg/7')
 	})
 })

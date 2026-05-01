@@ -1,8 +1,8 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { narabi } from '../narabi'
-import { omote } from '../omote'
-import { take } from '../take'
-import { definePanelRecipe } from './_panel'
+import { narabi } from '../ryu/narabi'
+import { omote } from '../ryu/omote'
+import { take } from '../ryu/take'
+import { definePanelRecipe } from '../waku/panel'
 
 export const dialog = definePanelRecipe({
 	panel: tv({
@@ -16,13 +16,13 @@ export const dialog = definePanelRecipe({
 			'sm:rounded-2xl sm:max-h-[calc(100dvh-2rem)]',
 		],
 		variants: {
-			glass: {
-				true: [...omote.glass],
-				false: [...omote.panel.bg],
+			surface: {
+				glass: [...omote.glass],
+				flat: [...omote.panel.bg],
 			},
 			size: take.panel,
 		},
-		defaultVariants: { size: 'lg', glass: false },
+		defaultVariants: { size: 'lg', surface: 'flat' },
 	}),
 })
 

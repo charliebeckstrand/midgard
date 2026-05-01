@@ -1,5 +1,5 @@
-import { iro } from '../iro'
-import { kumi } from '../kumi'
+import { iro } from '../ryu/iro'
+import { kumi } from '../ryu/kumi'
 import { buttonSoft } from './button'
 
 export const calendar = {

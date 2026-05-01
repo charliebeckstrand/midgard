@@ -90,6 +90,73 @@ If the answer to any of the above is yes and you find yourself writing `<Overlay
 
 **When a new kata recipe is NOT needed.** If every visual element comes from a composed component, you do not need a new recipe, variants file, or kata registration. Skip Steps 1–4 and go straight to the component file. Only introduce a recipe when the component owns genuinely new styling (a new surface, a new layout arrangement, a new slot) that no existing recipe covers.
 
+### Size system (sun) and the Concentric / Attached wrappers
+
+**Architecture in progress.** The recipe system is migrating from a 4-tier model to a 3-layer one (`ryū → waku → kata`). The legacy tier docs further down still apply to existing kata; new components and migrated kata should use the new pieces below.
+
+**`sun` (寸) — the size spine.** Lives in `src/recipes/ryu/sun.ts`. A single recipe that bundles every property scaling together (text + leading, padding, gap, inner radius, icon size) per step `sm` / `md` / `lg`. Each field is a Tailwind 4 token *name* — never a classname or `var()` string.
+
+```ts
+import { classes, sun } from '../ryu/sun'
+
+// In a kata's `tv()`, spread the helper's output per size variant:
+const size = {
+  sm: [classes('sm').text, classes('sm').padding, classes('sm').gap, classes('sm').rounded, classes('sm').icon],
+  md: [classes('md').text, classes('md').padding, classes('md').gap, classes('md').rounded, classes('md').icon],
+  lg: [classes('lg').text, classes('lg').padding, classes('lg').gap, classes('lg').rounded, classes('lg').icon],
+}
+```
+
+Domain overrides are allowed when geometry constrains them (a checkbox is square, a slider has hit-area padding) — pull from `sun` where possible, override what doesn't fit.
+
+**`<Concentric>` — the nested-radius wrapper.** Lives in `src/components/concentric/`. Wraps a child container and renders the outer radius via the formula `outer = inner + padding`, exposed as CSS variables (`--ui-radius-inner`, `--ui-padding`). Use it in container components (Card, Dialog, Sheet, Drawer, Popover) so children automatically get visually-balanced corners.
+
+```tsx
+import { Concentric, useConcentric } from 'ui/concentric'
+
+<Concentric size="md">
+  <Button>Inner content</Button>
+</Concentric>
+```
+
+`<Concentric>` also provides a size context. Descendants — buttons, inputs, badges — that read `useConcentric()` will default their `size` prop to the wrapper's size unless an explicit prop is passed. The DOM marker is `data-step={sm|md|lg}`.
+
+**`<Attached>` — the attached-items wrapper.** Lives in `src/components/attached/`. Stamps `data-attached={start|middle|end|only}` and `data-attached-orientation={horizontal|vertical}` onto each child. Participating kata read these attributes via `tsunagi.base` (in `src/recipes/ryu/tsunagi.ts`) to drop their inner radii and overlap by 1 px so adjacent borders don't double. Provides the same size context as `<Concentric>` (one mental model: size flows down the tree). Composes with `<Concentric>` (size inherits when omitted). Uses Tailwind 4 logical properties (`rounded-s-*` / `rounded-e-*`) for RTL safety.
+
+```tsx
+import { Attached } from 'ui/attached'
+import { tsunagi } from '../ryu/tsunagi'
+
+// In a participating kata's tv() base array:
+const button = tv({ base: [..., ...tsunagi.base], variants: { ... } })
+
+// In a consumer — buttons inherit the wrapper's size, no per-child prop needed:
+<Attached size="lg">
+  <Button>Cut</Button>
+  <Button>Copy</Button>
+  <Button>Paste</Button>
+</Attached>
+```
+
+For group components that own additional concerns (keyboard nav, roving tabindex), import the `useAttached(children, orientation)` hook directly instead of the wrapper. Stamp the size context manually with `<ConcentricContext.Provider>` from `'../concentric/context'` if you want descendants to inherit.
+
+**Size resolution order in size-aware components.** Components like Button consume `useConcentric()` as a size fallback, then any component-specific context (`useInputSize()`), then the kata's `defaultVariants.size`:
+
+```tsx
+const concentric = useConcentric()
+const resolvedSize = size ?? concentric?.size ?? inputSize  // ?? kata default
+```
+
+When migrating an existing component to participate in size inheritance, follow this same pattern.
+
+**When to reach for which:**
+
+- New kata with a `size` variant → consume `sun` via `classes()`.
+- Component with a `size` prop → wire `useConcentric()` as a fallback so it inherits from `<Concentric>` / `<Attached>`.
+- Container component that wraps rounded children with padding → use `<Concentric>` for the outer.
+- Group of adjacent items meant to read as one shape → use `<Attached>` and add `tsunagi.base` to the participating kata's base array.
+- One-off corner radius, one-off padding, one-off `flex-row` → write Tailwind directly. Don't reach for `maru`/`ma`/`kumi` for single-utility lookups.
+
 ### 1. Create the kata recipe (if the component needs styling)
 
 Add a new file at `src/recipes/kata/<name>.ts`.

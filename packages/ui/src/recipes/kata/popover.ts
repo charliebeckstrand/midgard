@@ -1,4 +1,4 @@
-import { maru } from '../maru'
+import { maru } from '../ryu/maru'
 
 export const popover = {
 	trigger: 'inline-flex',

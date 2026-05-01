@@ -1,10 +1,10 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { ji } from '../ji'
-import { kumi } from '../kumi'
-import { maru } from '../maru'
-import { omote } from '../omote'
-import { sawari } from '../sawari'
-import { sen } from '../sen'
+import { ji } from '../ryu/ji'
+import { kumi } from '../ryu/kumi'
+import { maru } from '../ryu/maru'
+import { omote } from '../ryu/omote'
+import { sawari } from '../ryu/sawari'
+import { sen } from '../ryu/sen'
 
 export const segmentControl = tv({
 	base: ['inline-flex items-center', maru.rounded.lg, ...omote.tint],

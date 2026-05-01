@@ -1,6 +1,6 @@
-import { maru } from '../maru'
-import { sawari } from '../sawari'
-import { sen } from '../sen'
+import { maru } from '../ryu/maru'
+import { sawari } from '../ryu/sawari'
+import { sen } from '../ryu/sen'
 
 export const map = {
 	base: [

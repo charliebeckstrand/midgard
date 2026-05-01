@@ -1,7 +1,7 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { ji } from '../ji'
-import { maru } from '../maru'
-import { take } from '../take'
+import { ji } from '../ryu/ji'
+import { maru } from '../ryu/maru'
+import { take } from '../ryu/take'
 
 const blockBg = 'bg-[#0d1117]'
 

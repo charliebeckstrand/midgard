@@ -9,7 +9,7 @@ export {
 	paddingMap,
 	pxMap,
 	pyMap,
-} from '../../recipes/ma'
+} from '../../recipes/ryu/ma'
 
 export const bgMap = {
 	none: 'bg-transparent',

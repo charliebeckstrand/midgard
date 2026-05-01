@@ -9,7 +9,7 @@ import {
 } from 'react'
 import { cn } from '../core'
 import { useIdScope } from '../hooks/use-id-scope'
-import { narabi } from '../recipes/narabi'
+import { narabi } from '../recipes/ryu/narabi'
 
 const panelTitleVariants = () => cn(narabi.panel.title)
 const panelDescriptionVariants = () => cn(narabi.panel.description)

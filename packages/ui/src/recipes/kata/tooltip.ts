@@ -1,8 +1,8 @@
-import { iro } from '../iro'
-import { ji } from '../ji'
-import { ma } from '../ma'
-import { maru } from '../maru'
-import { omote } from '../omote'
+import { iro } from '../ryu/iro'
+import { ji } from '../ryu/ji'
+import { ma } from '../ryu/ma'
+import { maru } from '../ryu/maru'
+import { omote } from '../ryu/omote'
 
 export const tooltip = {
 	trigger: 'inline-flex cursor-help *:cursor-help',

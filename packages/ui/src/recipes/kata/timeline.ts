@@ -1,6 +1,6 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { iro } from '../iro'
-import { ji } from '../ji'
+import { iro } from '../ryu/iro'
+import { ji } from '../ryu/ji'
 
 export const timeline = tv({
 	base: ['list-none p-0 m-0'],

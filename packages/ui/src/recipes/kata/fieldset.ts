@@ -1,6 +1,6 @@
-import { iro } from '../iro'
-import { narabi } from '../narabi'
-import { sawari } from '../sawari'
+import { iro } from '../ryu/iro'
+import { narabi } from '../ryu/narabi'
+import { sawari } from '../ryu/sawari'
 
 export const fieldset = {
 	base: ['[&>legend+*]:pt-4', sawari.disabled],

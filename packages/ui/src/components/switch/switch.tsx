@@ -3,6 +3,7 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { kokkaku } from '../../recipes'
+import { useConcentric } from '../concentric'
 import { useControl } from '../control/context'
 import { useFormToggle } from '../form/context'
 import { Placeholder } from '../placeholder'
@@ -30,13 +31,16 @@ export function Switch({
 	onChange,
 	...props
 }: SwitchProps) {
+	const concentric = useConcentric()
 	const control = useControl()
 	const binding = useFormToggle(name, { onChange })
 
 	const resolvedId = id ?? control?.id
 	const resolvedDisabled = disabled ?? control?.disabled
 	const resolvedRequired = required ?? control?.required
-	const resolvedSize = size ?? (control?.size as SwitchVariants['size'])
+	// Resolution order: explicit prop, then any wrapping <Field> control
+	// context, then ambient <Concentric> / <Attached> / <Card> size.
+	const resolvedSize = size ?? (control?.size as SwitchVariants['size']) ?? concentric?.size ?? 'md'
 
 	const resolvedInvalid = control?.invalid || binding?.invalid
 

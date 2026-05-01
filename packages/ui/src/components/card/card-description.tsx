@@ -1,6 +1,7 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { k } from './variants'
+import { iro } from '../../recipes/ryu/iro'
+import { ji } from '../../recipes/ryu/ji'
 
 export type CardDescriptionProps = {
 	className?: string
@@ -8,7 +9,11 @@ export type CardDescriptionProps = {
 
 export function CardDescription({ className, children, ...props }: CardDescriptionProps) {
 	return (
-		<p data-slot="card-description" className={cn(k.description, className)} {...props}>
+		<p
+			data-slot="card-description"
+			className={cn(ji.size.sm, iro.text.muted, className)}
+			{...props}
+		>
 			{children}
 		</p>
 	)

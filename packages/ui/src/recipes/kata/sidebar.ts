@@ -1,11 +1,11 @@
 import { tv } from 'tailwind-variants'
-import { ji } from '../ji'
-import { kumi } from '../kumi'
-import { maru } from '../maru'
-import { sawari } from '../sawari'
-import { sen } from '../sen'
+import { ji } from '../ryu/ji'
+import { kumi } from '../ryu/kumi'
+import { maru } from '../ryu/maru'
+import { sawari } from '../ryu/sawari'
+import { sen } from '../ryu/sen'
 
-export const sidebarBase = tv({
+const sidebarBase = tv({
 	base: ['overflow-y-auto overscroll-none', 'flex flex-col gap-y-4', 'h-full', 'py-6'],
 	variants: {
 		mini: {

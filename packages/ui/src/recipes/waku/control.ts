@@ -7,7 +7,8 @@
  * of these concerns. If a new shared control concern emerges, add it here.
  *
  * Owns:
- *   - `frame`     — outer chrome: border, ring, focus, validation, disabled.
+ *   - `frame`     — outer chrome: composes `kasane` (the 4-layer signature) +
+ *                   block layout.
  *   - `surface`   — surface chrome variants (default / outline / glass).
  *   - `field`     — inner field reset: transparent bg, no native outline,
  *                   placeholder colour, disabled cursor.
@@ -20,52 +21,19 @@
  * Not exposed as a `tv()` recipe — consumers vary in whether they use tv,
  * raw class arrays, or both, so this file exposes plain class fragments and
  * lets each consumer compose them in whatever shape it needs.
+ *
+ * Layer: waku · Concern: control field archetype
  */
 
-import { iro } from '../iro'
-import { ji } from '../ji'
-import { maru } from '../maru'
-import { omote } from '../omote'
-import { sawari } from '../sawari'
-import { sen } from '../sen'
+import { iro } from '../ryu/iro'
+import { ji } from '../ryu/ji'
+import { omote } from '../ryu/omote'
+import { sawari } from '../ryu/sawari'
+import { sen } from '../ryu/sen'
+import { kasane } from './kasane'
 
 // ── Outer frame chrome ──────────────────────────────────
-const frame = [
-	'relative block',
-	'w-full',
-	sen.ringInset,
-	'before:absolute before:inset-px before:rounded-[calc(var(--radius-lg)-1px)]',
-	'after:absolute after:inset-0 after:rounded-lg after:ring-transparent after:ring-inset after:pointer-events-none',
-	'focus-within:after:ring-2',
-	'data-open:after:ring-2',
-	'not-has-[[data-invalid]]:not-has-[[data-valid]]:not-has-[[data-warning]]:focus-within:after:ring-blue-600',
-	'not-has-[[data-invalid]]:not-has-[[data-valid]]:not-has-[[data-warning]]:data-open:after:ring-blue-600',
-	'has-[[data-invalid]]:focus-within:after:ring-red-600',
-	'has-[[data-warning]]:focus-within:after:ring-amber-500',
-	'has-[[data-valid]]:focus-within:after:ring-green-600',
-	'has-[[data-invalid]]:data-open:after:ring-red-600',
-	'has-[[data-warning]]:data-open:after:ring-amber-500',
-	'has-[[data-invalid]]:ring-red-600',
-	'has-[[data-invalid]]:not-focus-within:after:ring-1',
-	'has-[[data-invalid]]:not-focus-within:after:ring-red-600',
-	'has-[[data-invalid]]:hover:ring-red-600',
-	'has-[[data-warning]]:ring-amber-500',
-	'has-[[data-warning]]:not-focus-within:after:ring-1',
-	'has-[[data-warning]]:not-focus-within:after:ring-amber-500',
-	'has-[[data-warning]]:hover:ring-amber-500',
-	'has-[[data-valid]]:ring-green-600',
-	'has-[[data-valid]]:not-focus-within:after:ring-1',
-	'has-[[data-valid]]:not-focus-within:after:ring-green-600',
-	'has-[[data-valid]]:hover:ring-green-600',
-	'has-[[data-valid]]:data-open:after:ring-green-600',
-	'has-[>:disabled]:opacity-50',
-	'has-[>:disabled]:before:shadow-none',
-	'has-[>:disabled]:cursor-not-allowed',
-	'has-[>:disabled]:**:cursor-not-allowed',
-	'not-has-[>:disabled]:hover:ring-zinc-950/20',
-	'not-has-[>:disabled]:dark:hover:ring-white/20',
-	maru.rounded.lg,
-]
+const frame = ['relative block w-full', ...kasane.all]
 
 // ── Surface variants for the frame ──────────────────────
 const surface = {
@@ -89,7 +57,6 @@ const field = [
 	'focus:outline-hidden',
 	'read-only:bg-transparent',
 	'placeholder:text-zinc-500',
-	// 'disabled:cursor-not-allowed',
 	'dark:placeholder:text-zinc-400',
 ]
 

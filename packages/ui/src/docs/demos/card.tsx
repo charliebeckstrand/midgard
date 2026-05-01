@@ -66,6 +66,38 @@ export default function CardDemo() {
 					</CardFooter>
 				</Card>
 			</Example>
+
+			<Example title="Three sizes — concentric corners scale with padding; descendants inherit">
+				<Stack gap={4}>
+					<Card size="sm">
+						<CardHeader>
+							<CardTitle>Small</CardTitle>
+							<CardDescription>Tighter padding, sharper inner radius.</CardDescription>
+						</CardHeader>
+						<CardBody>
+							<Button>Inherits sm</Button>
+						</CardBody>
+					</Card>
+					<Card size="md">
+						<CardHeader>
+							<CardTitle>Medium (default)</CardTitle>
+							<CardDescription>Balanced padding and radius.</CardDescription>
+						</CardHeader>
+						<CardBody>
+							<Button>Inherits md</Button>
+						</CardBody>
+					</Card>
+					<Card size="lg">
+						<CardHeader>
+							<CardTitle>Large</CardTitle>
+							<CardDescription>Generous padding, softer inner radius.</CardDescription>
+						</CardHeader>
+						<CardBody>
+							<Button>Inherits lg</Button>
+						</CardBody>
+					</Card>
+				</Stack>
+			</Example>
 		</Stack>
 	)
 }

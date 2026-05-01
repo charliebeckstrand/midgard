@@ -1,9 +1,9 @@
-import { iro } from '../iro'
-import { maru } from '../maru'
-import { narabi } from '../narabi'
-import { sawari } from '../sawari'
-import { take } from '../take'
-import { control } from './_control'
+import { iro } from '../ryu/iro'
+import { maru } from '../ryu/maru'
+import { narabi } from '../ryu/narabi'
+import { sawari } from '../ryu/sawari'
+import { take } from '../ryu/take'
+import { control } from '../waku/control'
 
 export const listbox = {
 	button: [
@@ -15,7 +15,7 @@ export const listbox = {
 		'appearance-none',
 		...sawari.cursor,
 	],
-	options: take.popup,
+	options: 'max-h-60',
 	panel: 'relative min-w-full',
 	value: 'flex-1 min-w-0 truncate',
 	chevron: ['flex items-center pointer-events-none', iro.text.muted],

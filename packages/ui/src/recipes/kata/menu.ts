@@ -1,11 +1,11 @@
-import { iro } from '../iro'
-import { narabi } from '../narabi'
-import { sawari } from '../sawari'
-import { sen } from '../sen'
-import { take } from '../take'
+import { iro } from '../ryu/iro'
+import { narabi } from '../ryu/narabi'
+import { sawari } from '../ryu/sawari'
+import { sen } from '../ryu/sen'
+import { take } from '../ryu/take'
 
 export const menu = {
-	content: ['min-w-48', take.popup],
+	content: ['min-w-48', 'max-h-60'],
 	item: [
 		'group/option flex w-full items-center',
 		'gap-3 px-3.5 py-2.5 sm:px-3 sm:py-1.5',

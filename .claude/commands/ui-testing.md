@@ -253,6 +253,53 @@ it('renders <SubName> with data-slot="<sub-name>"', () => {
 })
 ```
 
+**L. Size resolution** (when the component has a `size` prop and reads `useConcentric()`)
+
+Components like Button / Checkbox / Radio default their `size` from
+`useConcentric()`. Cover the resolution order: explicit prop, then
+`<Concentric>` / `<Attached>` inheritance, then the kata default. Match
+against a class the kata uniquely emits at each step (e.g. `text-sm/5`
+for sm, `text-base/6` for md, `text-lg/7` for lg via `ji.size`).
+
+```tsx
+import { Concentric } from '../../components/concentric'
+
+it('inherits size from <Concentric>', () => {
+	const { container } = renderUI(
+		<Concentric size="lg">
+			<<Name>>content</<Name>>
+		</Concentric>,
+	)
+
+	expect(bySlot(container, '<name>')?.className).toContain('text-lg/7')
+})
+
+it('explicit size overrides Concentric inheritance', () => {
+	const { container } = renderUI(
+		<Concentric size="lg">
+			<<Name> size="sm">content</<Name>>
+		</Concentric>,
+	)
+
+	expect(bySlot(container, '<name>')?.className).toContain('text-sm/5')
+})
+```
+
+**M. Concentric / Attached wrappers** (when testing a wrapper itself)
+
+Both wrappers stamp `data-step` on their root and provide a context
+context descendants can read. SVG children expose `.className` as an
+`SVGAnimatedString`, not a string — use `getAttribute('class')` for
+those assertions.
+
+```tsx
+it('reflects the size prop on data-step', () => {
+	const { container } = renderUI(<Concentric size="lg">content</Concentric>)
+
+	expect(bySlot(container, 'concentric')).toHaveAttribute('data-step', 'lg')
+})
+```
+
 ---
 
 #### Primitive test patterns

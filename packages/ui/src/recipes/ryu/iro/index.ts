@@ -9,7 +9,7 @@
  * Tier: 1 · Concern: color
  */
 
-import { mode } from '../../core/recipe/mode'
+import { mode } from '../../../core/recipe/mode'
 import { outline, plain, soft, solid } from './palette'
 
 // ── Text ────────────────────────────────────────────────
@@ -17,7 +17,6 @@ const text = {
 	default: mode('text-zinc-950', 'dark:text-white'),
 	muted: mode('text-zinc-500', 'dark:text-zinc-400'),
 	error: 'text-red-600',
-	icon: 'text-inherit',
 	disabled: mode(
 		['has-disabled:text-zinc-500', 'has-disabled:**:data-[slot=label]:text-zinc-500'],
 		['dark:has-disabled:text-zinc-400', 'dark:has-disabled:**:data-[slot=label]:text-zinc-400'],

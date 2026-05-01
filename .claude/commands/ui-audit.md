@@ -37,9 +37,9 @@ Before checking anything, read the codebase to establish what "correct" looks li
 |------|-------|-----|
 | Component inventory | `packages/ui/src/components/` | Know every component that exists |
 | Package exports | `packages/ui/package.json` → `"exports"` field | Know what's exposed to consumers |
-| Kata registry | `packages/ui/src/recipes/kata/index.ts` | Know which components have recipes |
-| Kokkaku registry | `packages/ui/src/recipes/kokkaku/index.ts` | Know which components have skeleton recipes |
-| Take registry | `packages/ui/src/recipes/take/` | Know which components have sizing tokens |
+| Kata registry | `packages/ui/src/recipes/kata/` | Know which components have recipes |
+| Ryu (cross-cutting) | `packages/ui/src/recipes/ryu/` | Know what tokens / compounds are available (sun, iro, ji, omote, sawari, ugoki, kokkaku, narabi, tsunagi, maru, ma, kumi, sen, take) |
+| Waku (frame archetypes) | `packages/ui/src/recipes/waku/` | The kasane signature primitive plus the control + panel field/panel archetypes |
 | Primitives | `packages/ui/src/primitives/` | Know what building blocks are available |
 | Hooks | `packages/ui/src/hooks/` | Know what shared hooks exist |
 | Demo inventory | `packages/ui/src/docs/demos/` | Know which components have demos |
@@ -91,17 +91,19 @@ Evaluate whether components properly reuse existing building blocks instead of r
 
 #### Check D: Recipe design
 
-Evaluate whether recipes follow the tier system and compose correctly.
+Evaluate whether recipes follow the 3-layer model (`ryū → waku → kata`) and compose correctly.
 
 **Flag:**
-- Kata recipes that hardcode Tailwind classes available through lower-tier recipes (`iro`, `ji`, `ma`, `maru`, `sen`, `take`, etc.)
-- Kata recipes that import from other kata recipes (Tier 4 should only compose Tier 1-3, except via shared internal kata files prefixed with `_`)
+- Kata recipes that hardcode Tailwind classes available through `ryu/` modules (`iro`, `ji`, `omote`, `sawari`, `ugoki`, `sen`, etc.)
+- Kata recipes that hand-roll a `size` variant grid instead of consuming `sun` (via `classes(step)` or by spreading `sun[step]` fields into the kata's tv variants)
+- Container kata that wraps rounded children with padding but doesn't use `<Concentric>` for its outer (so the corners can't be visually concentric with the children)
+- Group kata that hand-rolls attached corners instead of using `<Attached>` + `tsunagi.base` (so RTL breaks and the join math drifts from `sun[size].radius`)
+- Control-family components (input, textarea, listbox, combobox, datepicker, checkbox, radio, switch, ControlFrame) that redefine frame/surface/field/size/check styles instead of composing `waku/control`
+- Panel-family components (dialog, drawer, sheet) that hand-roll panel slot styling instead of `definePanelRecipe` from `waku/panel`
+- Components that redefine the layered ::before / ::after chrome instead of spreading `kasane.all` (or specific layers) from `waku/kasane`
+- Kata recipes that import from other kata recipes directly (composition flows through `waku/` shared archetypes; sideways kata imports are only allowed via shared files prefixed with `_`)
 - Missing kata recipe when a component introduces genuinely new styling
 - Unnecessary kata recipe when a component is purely compositional (wraps other components)
-- Control-family components (input, textarea, listbox, combobox, datepicker, checkbox, radio, switch) that redefine frame/surface/field/size/check styles instead of composing from `kata/_control`
-- Recipe file exists at `src/recipes/kata/<name>.ts` but is not registered in kata index
-- Kata index entries not in alphabetical order
-- Take sizing tokens that duplicate an existing size map
 
 #### Check E: API design consistency
 
@@ -109,9 +111,11 @@ Evaluate whether component prop interfaces follow established patterns.
 
 **Flag:**
 - Components that accept `variant` without using the established CVA pattern
-- Components with `color` prop that don't use `nuri` color tokens
-- Components with `size` prop that don't use `take` sizing tokens
-- Inconsistent prop naming across similar components (e.g., `onClose` vs `onDismiss` vs `onOpenChange`)
+- Components with `color` prop that don't use `iro` palette colors
+- Components with a `size` prop that don't read `useConcentric()` for the fallback before falling back to the kata default (so they break out of the size context that `<Concentric>` and `<Attached>` provide)
+- Container components that wrap rounded children with padding but don't use `<Concentric>` for the outer (concentric corners get out of sync with their content)
+- Adjacent-item group components (toolbar, button group, segmented control) that don't use `<Attached>` (or `useAttached`) for stamping positions on children
+- Inconsistent prop naming across similar components (e.g., `onClose` vs `onDismiss` vs `onOpenChange`; `glass: boolean` vs `surface: 'flat' | 'glass'` — surface is the consensus)
 - Missing `className` prop on components that render a DOM element
 - Components that don't spread remaining props onto the root element
 - Props types not exported alongside the component

@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
+import { Attached } from '../../components/attached'
 import { Button } from '../../components/button'
+import { Concentric } from '../../components/concentric'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Button', () => {
@@ -82,5 +84,51 @@ describe('Button', () => {
 		renderUI(<Button>Hello World</Button>)
 
 		expect(screen.getByText('Hello World')).toBeInTheDocument()
+	})
+
+	describe('size resolution', () => {
+		// Each size variant brings a distinct text class via ji.size; matching
+		// it confirms which size the kata actually rendered.
+		const textClassFor = {
+			sm: 'text-sm/5',
+			md: 'text-base/6',
+			lg: 'text-lg/7',
+		} as const
+
+		it('inherits size from <Attached> when no explicit size prop is set', () => {
+			const { container } = renderUI(
+				<Attached size="lg">
+					<Button>Inherit</Button>
+				</Attached>,
+			)
+
+			expect(bySlot(container, 'button')?.className).toContain(textClassFor.lg)
+		})
+
+		it('inherits size from <Concentric> when no explicit size prop is set', () => {
+			const { container } = renderUI(
+				<Concentric size="sm">
+					<Button>Inherit</Button>
+				</Concentric>,
+			)
+
+			expect(bySlot(container, 'button')?.className).toContain(textClassFor.sm)
+		})
+
+		it('explicit size prop overrides <Attached> inheritance', () => {
+			const { container } = renderUI(
+				<Attached size="lg">
+					<Button size="sm">Override</Button>
+				</Attached>,
+			)
+
+			expect(bySlot(container, 'button')?.className).toContain(textClassFor.sm)
+		})
+
+		it('falls back to its own default when no wrapper provides a size', () => {
+			const { container } = renderUI(<Button>Bare</Button>)
+
+			expect(bySlot(container, 'button')?.className).toContain(textClassFor.md)
+		})
 	})
 })

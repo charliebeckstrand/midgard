@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
-import type { Color } from '../../recipes/iro'
+import type { Color } from '../../recipes/ryu/iro'
 import { StatusDot, type StatusDotProps } from '../status'
 import { useTimeline } from './context'
 import { k } from './variants'
