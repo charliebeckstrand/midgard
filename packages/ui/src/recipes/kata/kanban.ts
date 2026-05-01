@@ -19,7 +19,7 @@ export const kanban = {
 	columnHeader: ['flex items-center', kumi.gap.md, ji.size.md, iro.text.default, 'font-semibold'],
 	columnTitle: 'flex-1 min-w-0 truncate',
 	columnBody: ['flex flex-col flex-1', kumi.gap.sm, 'overflow-y-auto'],
-	columnEmpty: ['flex', kumi.center, 'min-h-16', ji.size.sm, iro.text.muted],
+	columnEmpty: ['flex', 'items-center justify-center', 'min-h-16', ji.size.sm, iro.text.muted],
 	card: [
 		'group/kanban-card',
 		'flex flex-col',

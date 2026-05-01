@@ -63,7 +63,12 @@ export const pdfViewer = {
 		'group-data-active/thumb:hover:opacity-100',
 	],
 	thumbnailImage: ['block w-full h-full object-contain'],
-	thumbnailFallback: ['flex h-full w-full', kumi.center, ji.size.sm, iro.text.muted],
+	thumbnailFallback: [
+		'flex h-full w-full',
+		'items-center justify-center',
+		ji.size.sm,
+		iro.text.muted,
+	],
 	thumbnailPlaceholder: ['block w-full aspect-[3/4]', omote.skeleton],
 	thumbnailLabel: [
 		ji.size.sm,
@@ -82,5 +87,11 @@ export const pdfViewer = {
 	pageFrame: ['relative shrink-0'],
 	page: ['absolute top-1/2 left-1/2 origin-center', 'shadow-lg', 'bg-white'],
 	pagePlaceholder: ['w-full h-full', omote.skeleton],
-	pageEmpty: ['flex w-full h-full', kumi.center, 'py-2', ji.size.sm, iro.text.muted],
+	pageEmpty: [
+		'flex w-full h-full',
+		'items-center justify-center',
+		'py-2',
+		ji.size.sm,
+		iro.text.muted,
+	],
 }

@@ -19,7 +19,7 @@ export const signaturePad = {
 	placeholder: [
 		'absolute inset-0',
 		'flex',
-		kumi.center,
+		'items-center justify-center',
 		ji.size.sm,
 		iro.text.muted,
 		'pointer-events-none',

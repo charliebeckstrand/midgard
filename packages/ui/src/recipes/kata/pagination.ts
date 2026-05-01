@@ -12,7 +12,7 @@ export const paginationList = tv({ base: ['flex list-none items-center', kumi.ga
 export const pageButton = tv({
 	base: [
 		'inline-flex',
-		kumi.center,
+		'items-center justify-center',
 		'relative',
 		'min-w-9',
 		'p-2',
@@ -33,13 +33,20 @@ export const pageButton = tv({
 export type PageButtonVariants = VariantProps<typeof pageButton>
 
 export const paginationGap = tv({
-	base: ['inline-flex', kumi.center, 'min-w-9', ji.size.sm, ...iro.text.muted, 'select-none'],
+	base: [
+		'inline-flex',
+		'items-center justify-center',
+		'min-w-9',
+		ji.size.sm,
+		...iro.text.muted,
+		'select-none',
+	],
 })
 
 export const slots = {
 	nav: [
 		'inline-flex',
-		kumi.center,
+		'items-center justify-center',
 		'p-2',
 		kumi.gap.sm,
 		ji.size.sm,

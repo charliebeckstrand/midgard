@@ -1,6 +1,5 @@
 import type { ComponentPropsWithoutRef, ReactElement } from 'react'
 import { cn } from '../../core'
-import { kumi } from '../../recipes'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { k } from './variants'
@@ -56,7 +55,7 @@ export function ToggleIconButton({
 						className={cn(
 							'absolute inset-0',
 							'flex',
-							kumi.center,
+							'items-center justify-center',
 							k.transition,
 							pressed ? k.active : k.inactive,
 						)}

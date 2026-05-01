@@ -2,14 +2,35 @@ import { kumi } from '../../recipes'
 import { type Responsive, resolveResponsive } from '../grid'
 
 export const gapMap = kumi.gap
-export const directionMap = kumi.direction
-export const alignMap = kumi.align
-export const justifyMap = kumi.justify
+
+export const directionMap = {
+	row: 'flex-row',
+	col: 'flex-col',
+	'row-reverse': 'flex-row-reverse',
+	'col-reverse': 'flex-col-reverse',
+} as const
+
+export const alignMap = {
+	start: 'items-start',
+	center: 'items-center',
+	end: 'items-end',
+	stretch: 'items-stretch',
+	baseline: 'items-baseline',
+} as const
+
+export const justifyMap = {
+	start: 'justify-start',
+	center: 'justify-center',
+	end: 'justify-end',
+	between: 'justify-between',
+	around: 'justify-around',
+	evenly: 'justify-evenly',
+} as const
 
 export type FlexGap = keyof typeof kumi.gap
-export type FlexDirection = keyof typeof kumi.direction
-export type FlexAlign = keyof typeof kumi.align
-export type FlexJustify = keyof typeof kumi.justify
+export type FlexDirection = keyof typeof directionMap
+export type FlexAlign = keyof typeof alignMap
+export type FlexJustify = keyof typeof justifyMap
 
 export type ResponsiveDirection = Responsive<FlexDirection>
 export type ResponsiveAlign = Responsive<FlexAlign>

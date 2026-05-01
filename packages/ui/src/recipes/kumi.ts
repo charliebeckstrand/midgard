@@ -1,11 +1,14 @@
 /**
  * Kumi (組) — Assembly.
  *
- * Structural scaffolding for flex and grid containers — direction, alignment,
- * justification, and gap. Gap exposes both a numeric scale and named density
- * steps (xs · sm · md · lg) for composition from density presets.
+ * Gap scale used by `<Flex>` / `<Stack>` / `<Split>` and a handful of kata
+ * size variants. Direction / alignment / justification utilities used to
+ * live here too — they were 1:1 aliases of Tailwind classes (`flex-row`,
+ * `items-center`, `justify-between`) so consumers now write Tailwind
+ * directly. The maps that remained needed for type-derivation were inlined
+ * into the relevant component's `variants.ts`.
  *
- * Tier: 1 · Concern: layout scaffolding
+ * Tier: 1 · Concern: layout gap
  */
 
 export const kumi = {
@@ -34,31 +37,4 @@ export const kumi = {
 		lg: 'gap-3',
 		base: 'gap-4',
 	},
-
-	direction: {
-		row: 'flex-row',
-		col: 'flex-col',
-		'row-reverse': 'flex-row-reverse',
-		'col-reverse': 'flex-col-reverse',
-	},
-
-	align: {
-		start: 'items-start',
-		center: 'items-center',
-		end: 'items-end',
-		stretch: 'items-stretch',
-		baseline: 'items-baseline',
-	},
-
-	justify: {
-		start: 'justify-start',
-		center: 'justify-center',
-		end: 'justify-end',
-		between: 'justify-between',
-		around: 'justify-around',
-		evenly: 'justify-evenly',
-	},
-
-	/** Cross- and main-axis centering. Combine with `flex` or `inline-flex` at the call site. */
-	center: 'items-center justify-center',
 } as const

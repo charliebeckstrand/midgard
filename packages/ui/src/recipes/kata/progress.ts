@@ -1,6 +1,5 @@
 import { tv, type VariantProps } from 'tailwind-variants'
 import { iro } from '../iro'
-import { kumi } from '../kumi'
 import { maru } from '../maru'
 
 export const progressTrack = tv({
@@ -16,7 +15,7 @@ export const progressTrack = tv({
 })
 
 export const progressGauge = tv({
-	base: ['inline-flex', kumi.center, 'relative'],
+	base: ['inline-flex', 'items-center justify-center', 'relative'],
 	variants: {
 		size: {
 			xs: 'size-6',

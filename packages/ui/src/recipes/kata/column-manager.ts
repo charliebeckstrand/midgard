@@ -5,7 +5,7 @@ export const columnManager = {
 	root: ['flex flex-col', kumi.gap.md],
 	pin: [
 		'inline-flex flex-none',
-		kumi.center,
+		'items-center justify-center',
 		'px-3 -ml-3 -mr-3',
 		'text-zinc-400 dark:text-zinc-500',
 	],
