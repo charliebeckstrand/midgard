@@ -27,8 +27,8 @@ export function App() {
 	const contentRef = useRef<HTMLDivElement>(null)
 
 	useEffect(() => {
-		if (route != null) contentRef.current?.closest('[class*="overflow-y"]')?.scrollTo(0, 0)
-	}, [route])
+		if (deferredRoute != null) contentRef.current?.closest('[class*="overflow-y"]')?.scrollTo(0, 0)
+	}, [deferredRoute])
 
 	// On idle, warm Shiki and prefetch every demo chunk so navigation never
 	// waits on the network. One demo per idle tick keeps the main thread

@@ -13,6 +13,7 @@ import {
 } from '../../components/sidebar'
 import { useScrollWithin } from '../../hooks'
 import { useOffcanvas } from '../../primitives/offcanvas'
+import { navigate } from '../hooks/use-hash'
 import { demos, preloadDemo, sortedCategories } from '../registry'
 
 export function SidebarContent({ route }: { route: string }) {
@@ -44,7 +45,7 @@ export function SidebarContent({ route }: { route: string }) {
 				onChange={(id) => {
 					if (!id) return
 
-					window.location.hash = id
+					navigate(id)
 
 					// Scroll the matching sidebar item into view
 					const sidebar = document.querySelector('[data-slot="sidebar"]')
@@ -81,7 +82,16 @@ export function SidebarContent({ route }: { route: string }) {
 										key={demo.id}
 										href={`#${demo.id}`}
 										current={route === demo.id}
-										onClick={prefetch}
+										onClick={(e) => {
+											// Prevent the browser's default hash-link scroll;
+											// our deferredRoute effect handles scroll-to-top
+											// after the new demo commits.
+											e.preventDefault()
+
+											prefetch()
+
+											navigate(demo.id)
+										}}
 										onMouseEnter={prefetch}
 										onFocus={prefetch}
 									>
