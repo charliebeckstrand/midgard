@@ -16,13 +16,13 @@ describe('Concentric', () => {
 	it('defaults to size="md" when no size prop is provided', () => {
 		const { container } = renderUI(<Concentric>content</Concentric>)
 
-		expect(bySlot(container, 'concentric')).toHaveAttribute('data-sun-step', 'md')
+		expect(bySlot(container, 'concentric')).toHaveAttribute('data-step', 'md')
 	})
 
-	it('reflects the size prop on data-sun-step', () => {
+	it('reflects the size prop on data-step', () => {
 		const { container } = renderUI(<Concentric size="lg">content</Concentric>)
 
-		expect(bySlot(container, 'concentric')).toHaveAttribute('data-sun-step', 'lg')
+		expect(bySlot(container, 'concentric')).toHaveAttribute('data-step', 'lg')
 	})
 
 	it('exposes --ui-radius-inner and --ui-padding inline for the concentric formula', () => {

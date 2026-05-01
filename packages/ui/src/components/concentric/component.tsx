@@ -1,29 +1,8 @@
-import {
-	type CSSProperties,
-	createContext,
-	type ReactNode,
-	type Ref,
-	useContext,
-	useMemo,
-} from 'react'
+import { type CSSProperties, type ReactNode, type Ref, useMemo } from 'react'
 import { cn } from '../../core'
 import { Polymorphic, type PolymorphicProps } from '../../primitives'
 import { type Step, sun } from '../../recipes/ryu/sun'
-
-type ConcentricContextValue = {
-	/** The size step active at this point in the tree. */
-	size: Step
-}
-
-const ConcentricContext = createContext<ConcentricContextValue | null>(null)
-
-/**
- * Read the active concentric context. Returns `null` outside any `<Concentric>`
- * ancestor — descendants that need a fallback should provide one explicitly.
- */
-export function useConcentric(): ConcentricContextValue | null {
-	return useContext(ConcentricContext)
-}
+import { ConcentricContext } from './context'
 
 type ConcentricBaseProps = {
 	/** Size step that drives padding, inner radius, and the concentric outer radius. */
@@ -81,7 +60,7 @@ export function Concentric({
 			ref={ref}
 			dataSlot={dataSlot}
 			href={href}
-			data-sun-step={size}
+			data-step={size}
 			className={cn(
 				!flush && `p-${sun[size].space}`,
 				'rounded-[calc(var(--ui-radius-inner)+var(--ui-padding))]',

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Attached } from '../../components/attached'
-import { Concentric } from '../../components/concentric'
+import { Concentric, useConcentric } from '../../components/concentric'
 import { allBySlot, bySlot, renderUI } from '../helpers'
 
 describe('Attached', () => {
@@ -120,14 +120,14 @@ describe('Attached', () => {
 		}
 	})
 
-	it('applies the explicit size prop to data-sun-step', () => {
+	it('applies the explicit size prop to data-step', () => {
 		const { container } = renderUI(
 			<Attached size="lg">
 				<button type="button">A</button>
 			</Attached>,
 		)
 
-		expect(bySlot(container, 'attached')).toHaveAttribute('data-sun-step', 'lg')
+		expect(bySlot(container, 'attached')).toHaveAttribute('data-step', 'lg')
 	})
 
 	it('inherits size from an enclosing Concentric when size is omitted', () => {
@@ -139,7 +139,7 @@ describe('Attached', () => {
 			</Concentric>,
 		)
 
-		expect(bySlot(container, 'attached')).toHaveAttribute('data-sun-step', 'sm')
+		expect(bySlot(container, 'attached')).toHaveAttribute('data-step', 'sm')
 	})
 
 	it('explicit size overrides Concentric inheritance', () => {
@@ -151,7 +151,7 @@ describe('Attached', () => {
 			</Concentric>,
 		)
 
-		expect(bySlot(container, 'attached')).toHaveAttribute('data-sun-step', 'lg')
+		expect(bySlot(container, 'attached')).toHaveAttribute('data-step', 'lg')
 	})
 
 	it('falls back to "md" outside Concentric and without explicit size', () => {
@@ -161,6 +161,44 @@ describe('Attached', () => {
 			</Attached>,
 		)
 
-		expect(bySlot(container, 'attached')).toHaveAttribute('data-sun-step', 'md')
+		expect(bySlot(container, 'attached')).toHaveAttribute('data-step', 'md')
+	})
+
+	it('provides the same size context to descendants as <Concentric>', () => {
+		let observed: string | undefined
+
+		function Probe() {
+			observed = useConcentric()?.size
+
+			return null
+		}
+
+		renderUI(
+			<Attached size="lg">
+				<Probe />
+			</Attached>,
+		)
+
+		expect(observed).toBe('lg')
+	})
+
+	it('descendants see the resolved size when Attached inherits from Concentric', () => {
+		let observed: string | undefined
+
+		function Probe() {
+			observed = useConcentric()?.size
+
+			return null
+		}
+
+		renderUI(
+			<Concentric size="sm">
+				<Attached>
+					<Probe />
+				</Attached>
+			</Concentric>,
+		)
+
+		expect(observed).toBe('sm')
 	})
 })

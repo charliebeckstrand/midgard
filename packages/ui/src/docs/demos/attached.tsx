@@ -38,45 +38,37 @@ export default function AttachedDemo() {
 				</Attached>
 			</Example>
 
-			<Example title="Three sizes — explicit size prop drives end-cap radii">
+			<Example title="Three sizes — buttons inherit size from <Attached>, no per-child prop needed">
 				<Stack gap={4}>
 					<Attached size="sm">
-						<Button variant="outline" size="sm">
-							sm
-						</Button>
-						<Button variant="outline" size="sm">
-							sm
-						</Button>
-						<Button variant="outline" size="sm">
-							sm
-						</Button>
+						<Button variant="outline">sm</Button>
+						<Button variant="outline">sm</Button>
+						<Button variant="outline">sm</Button>
 					</Attached>
 					<Attached size="md">
-						<Button variant="outline" size="md">
-							md
-						</Button>
-						<Button variant="outline" size="md">
-							md
-						</Button>
-						<Button variant="outline" size="md">
-							md
-						</Button>
+						<Button variant="outline">md</Button>
+						<Button variant="outline">md</Button>
+						<Button variant="outline">md</Button>
 					</Attached>
 					<Attached size="lg">
-						<Button variant="outline" size="lg">
-							lg
-						</Button>
-						<Button variant="outline" size="lg">
-							lg
-						</Button>
-						<Button variant="outline" size="lg">
-							lg
-						</Button>
+						<Button variant="outline">lg</Button>
+						<Button variant="outline">lg</Button>
+						<Button variant="outline">lg</Button>
 					</Attached>
 				</Stack>
 			</Example>
 
-			<Example title="Inside Concentric — Attached inherits size when omitted">
+			<Example title="Per-child override — explicit size on a Button beats inherited size">
+				<Attached size="md">
+					<Button variant="outline">md</Button>
+					<Button variant="outline" size="lg">
+						lg (explicit)
+					</Button>
+					<Button variant="outline">md</Button>
+				</Attached>
+			</Example>
+
+			<Example title="Inside Concentric — both wrappers and buttons share one inherited size">
 				<Concentric size="lg" className="bg-zinc-100 dark:bg-zinc-800/50">
 					<Attached>
 						<Button variant="outline">First</Button>

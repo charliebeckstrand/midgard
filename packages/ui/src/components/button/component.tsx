@@ -7,6 +7,7 @@ import { type PolymorphicProps, springProps, TouchTarget, useRipple } from '../.
 import { Link } from '../../primitives/link'
 import { kokkaku } from '../../recipes'
 import { useAlertContext } from '../alert/context'
+import { useConcentric } from '../concentric'
 import { useGlass } from '../glass/context'
 import { useInputSize } from '../input/context'
 import { Placeholder } from '../placeholder'
@@ -53,13 +54,17 @@ export function Button({
 	const loadingOptions = typeof loadingProp === 'object' ? loadingProp : undefined
 
 	const alert = useAlertContext()
+	const concentric = useConcentric()
 	const glass = useGlass()
 	const inputSize = useInputSize()
 	const skeleton = useSkeleton()
 
 	const resolvedVariant = variant ?? (glass ? 'glass' : undefined)
 
-	const resolvedSize = size ?? inputSize
+	// Resolution order: explicit prop, then enclosing <Attached>/<Concentric>
+	// size, then any <Input> grouping context. Component's own default kicks
+	// in only when all of these are absent.
+	const resolvedSize = size ?? concentric?.size ?? inputSize
 
 	const { onPointerDown: handleRipple, element: rippleElement } = useRipple()
 

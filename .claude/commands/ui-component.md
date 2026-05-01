@@ -119,9 +119,9 @@ import { Concentric, useConcentric } from 'ui/concentric'
 </Concentric>
 ```
 
-Descendants can read the active size via `useConcentric()` and adjust their own appearance.
+`<Concentric>` also provides a size context. Descendants — buttons, inputs, badges — that read `useConcentric()` will default their `size` prop to the wrapper's size unless an explicit prop is passed. The DOM marker is `data-step={sm|md|lg}`.
 
-**`<Attached>` — the attached-items wrapper.** Lives in `src/components/attached/`. Stamps `data-attached={start|middle|end|only}` and `data-attached-orientation={horizontal|vertical}` onto each child. Participating kata read these attributes via `tsunagi.base` (in `src/recipes/ryu/tsunagi.ts`) to drop their inner radii and overlap by 1 px so adjacent borders don't double. Composes with `<Concentric>` (size inherits when omitted). Uses Tailwind 4 logical properties (`rounded-s-*` / `rounded-e-*`) for RTL safety.
+**`<Attached>` — the attached-items wrapper.** Lives in `src/components/attached/`. Stamps `data-attached={start|middle|end|only}` and `data-attached-orientation={horizontal|vertical}` onto each child. Participating kata read these attributes via `tsunagi.base` (in `src/recipes/ryu/tsunagi.ts`) to drop their inner radii and overlap by 1 px so adjacent borders don't double. Provides the same size context as `<Concentric>` (one mental model: size flows down the tree). Composes with `<Concentric>` (size inherits when omitted). Uses Tailwind 4 logical properties (`rounded-s-*` / `rounded-e-*`) for RTL safety.
 
 ```tsx
 import { Attached } from 'ui/attached'
@@ -130,19 +130,29 @@ import { tsunagi } from '../ryu/tsunagi'
 // In a participating kata's tv() base array:
 const button = tv({ base: [..., ...tsunagi.base], variants: { ... } })
 
-// In a consumer:
-<Attached>
+// In a consumer — buttons inherit the wrapper's size, no per-child prop needed:
+<Attached size="lg">
   <Button>Cut</Button>
   <Button>Copy</Button>
   <Button>Paste</Button>
 </Attached>
 ```
 
-For group components that own additional concerns (keyboard nav, roving tabindex), import the `useAttached(children, orientation)` hook directly instead of the wrapper.
+For group components that own additional concerns (keyboard nav, roving tabindex), import the `useAttached(children, orientation)` hook directly instead of the wrapper. Stamp the size context manually with `<ConcentricContext.Provider>` from `'../concentric/context'` if you want descendants to inherit.
+
+**Size resolution order in size-aware components.** Components like Button consume `useConcentric()` as a size fallback, then any component-specific context (`useInputSize()`), then the kata's `defaultVariants.size`:
+
+```tsx
+const concentric = useConcentric()
+const resolvedSize = size ?? concentric?.size ?? inputSize  // ?? kata default
+```
+
+When migrating an existing component to participate in size inheritance, follow this same pattern.
 
 **When to reach for which:**
 
 - New kata with a `size` variant → consume `sun` via `classes()`.
+- Component with a `size` prop → wire `useConcentric()` as a fallback so it inherits from `<Concentric>` / `<Attached>`.
 - Container component that wraps rounded children with padding → use `<Concentric>` for the outer.
 - Group of adjacent items meant to read as one shape → use `<Attached>` and add `tsunagi.base` to the participating kata's base array.
 - One-off corner radius, one-off padding, one-off `flex-row` → write Tailwind directly. Don't reach for `maru`/`ma`/`kumi` for single-utility lookups.
