@@ -1,8 +1,8 @@
-import { iro } from '../iro'
-import { ji } from '../ji'
-import { kumi } from '../kumi'
-import { maru } from '../maru'
-import { sen } from '../sen'
+import { iro } from '../ryu/iro'
+import { ji } from '../ryu/ji'
+import { kumi } from '../ryu/kumi'
+import { maru } from '../ryu/maru'
+import { sen } from '../ryu/sen'
 
 export const kanban = {
 	base: ['overflow-x-auto flex gap-4 items-stretch', 'min-h-0'],

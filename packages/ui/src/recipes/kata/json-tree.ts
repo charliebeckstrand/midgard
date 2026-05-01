@@ -1,8 +1,8 @@
-import { iro } from '../iro'
-import { ji } from '../ji'
-import { kumi } from '../kumi'
-import { maru } from '../maru'
-import { ugoki } from '../ugoki'
+import { iro } from '../ryu/iro'
+import { ji } from '../ryu/ji'
+import { kumi } from '../ryu/kumi'
+import { maru } from '../ryu/maru'
+import { ugoki } from '../ryu/ugoki'
 
 export type JsonValueType = 'string' | 'number' | 'boolean' | 'null' | 'key'
 

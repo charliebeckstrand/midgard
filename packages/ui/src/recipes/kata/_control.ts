@@ -22,12 +22,12 @@
  * lets each consumer compose them in whatever shape it needs.
  */
 
-import { iro } from '../iro'
-import { ji } from '../ji'
-import { maru } from '../maru'
-import { omote } from '../omote'
-import { sawari } from '../sawari'
-import { sen } from '../sen'
+import { iro } from '../ryu/iro'
+import { ji } from '../ryu/ji'
+import { maru } from '../ryu/maru'
+import { omote } from '../ryu/omote'
+import { sawari } from '../ryu/sawari'
+import { sen } from '../ryu/sen'
 
 // ── Outer frame chrome ──────────────────────────────────
 const frame = [

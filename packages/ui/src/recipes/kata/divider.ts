@@ -1,5 +1,5 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { sen } from '../sen'
+import { sen } from '../ryu/sen'
 
 export const divider = tv({
 	base: ['border-0'],

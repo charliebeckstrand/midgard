@@ -1,10 +1,10 @@
 import { tv, type VariantProps } from 'tailwind-variants'
 import { mode } from '../../core/recipe/mode'
-import { iro } from '../iro'
-import { kumi } from '../kumi'
-import { maru } from '../maru'
-import { sawari } from '../sawari'
-import { sen } from '../sen'
+import { iro } from '../ryu/iro'
+import { kumi } from '../ryu/kumi'
+import { maru } from '../ryu/maru'
+import { sawari } from '../ryu/sawari'
+import { sen } from '../ryu/sen'
 
 export const tabIndicator = mode('bg-zinc-950', 'dark:bg-white')
 

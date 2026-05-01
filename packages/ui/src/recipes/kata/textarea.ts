@@ -1,7 +1,7 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { ji } from '../ji'
-import { maru } from '../maru'
-import { sen } from '../sen'
+import { ji } from '../ryu/ji'
+import { maru } from '../ryu/maru'
+import { sen } from '../ryu/sen'
 import { control } from './_control'
 
 // Default control density for textarea (size isn't variable here).

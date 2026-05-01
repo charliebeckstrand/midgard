@@ -1,9 +1,9 @@
-import { iro } from '../iro'
-import { ji } from '../ji'
-import { kumi } from '../kumi'
-import { maru } from '../maru'
-import { omote } from '../omote'
-import { sen } from '../sen'
+import { iro } from '../ryu/iro'
+import { ji } from '../ryu/ji'
+import { kumi } from '../ryu/kumi'
+import { maru } from '../ryu/maru'
+import { omote } from '../ryu/omote'
+import { sen } from '../ryu/sen'
 import { tabIndicator } from './tabs'
 
 export const bottomNav = {

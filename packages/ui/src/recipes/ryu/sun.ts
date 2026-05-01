@@ -18,7 +18,7 @@
  * Layer: ryū · Concern: size
  */
 
-import { ji } from '../ji'
+import { ji } from './ji'
 
 export const steps = ['sm', 'md', 'lg'] as const
 export type Step = (typeof steps)[number]

@@ -1,6 +1,6 @@
-import { iro } from '../iro'
-import { ma } from '../ma'
-import { sen } from '../sen'
+import { iro } from '../ryu/iro'
+import { ma } from '../ryu/ma'
+import { sen } from '../ryu/sen'
 
 export const editableGrid = {
 	cellTd: 'relative p-0 align-middle',

@@ -1,8 +1,8 @@
-import { iro } from '../iro'
-import { ji } from '../ji'
-import { kumi } from '../kumi'
-import { omote } from '../omote'
-import { sen } from '../sen'
+import { iro } from '../ryu/iro'
+import { ji } from '../ryu/ji'
+import { kumi } from '../ryu/kumi'
+import { omote } from '../ryu/omote'
+import { sen } from '../ryu/sen'
 
 export const pdfViewer = {
 	base: ['relative flex flex-col', 'overflow-hidden', omote.surface, sen.border],

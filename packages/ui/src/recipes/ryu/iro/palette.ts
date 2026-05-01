@@ -1,4 +1,4 @@
-import { defineColors } from '../../core/recipe/mode'
+import { defineColors } from '../../../core/recipe/mode'
 
 export const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 

@@ -1,8 +1,8 @@
-import { iro } from '../iro'
-import { ji } from '../ji'
-import { kumi } from '../kumi'
-import { sawari } from '../sawari'
-import { sen } from '../sen'
+import { iro } from '../ryu/iro'
+import { ji } from '../ryu/ji'
+import { kumi } from '../ryu/kumi'
+import { sawari } from '../ryu/sawari'
+import { sen } from '../ryu/sen'
 
 export const collapse = {
 	base: 'group/collapse',

@@ -3,7 +3,7 @@
 import { CornerLeftDown, X } from 'lucide-react'
 import { type Ref, useCallback, useImperativeHandle, useRef, useState } from 'react'
 import { useControllable, useInputTagKeyboard } from '../../hooks'
-import type { Color } from '../../recipes/iro'
+import type { Color } from '../../recipes/ryu/iro'
 import { Badge } from '../badge'
 import { Button } from '../button'
 import { Icon } from '../icon'

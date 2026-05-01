@@ -1,5 +1,5 @@
-import { maru } from '../maru'
-import { sen } from '../sen'
+import { maru } from '../ryu/maru'
+import { sen } from '../ryu/sen'
 
 export const queryBuilder = {
 	base: ['flex flex-col gap-3 p-3', sen.border, maru.rounded.lg],

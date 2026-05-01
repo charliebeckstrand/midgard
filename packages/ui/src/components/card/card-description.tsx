@@ -1,7 +1,7 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { iro } from '../../recipes/iro'
-import { ji } from '../../recipes/ji'
+import { iro } from '../../recipes/ryu/iro'
+import { ji } from '../../recipes/ryu/ji'
 
 export type CardDescriptionProps = {
 	className?: string

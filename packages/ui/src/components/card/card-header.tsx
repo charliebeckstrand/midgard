@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { iro } from '../../recipes/iro'
+import { iro } from '../../recipes/ryu/iro'
 import { sun } from '../../recipes/ryu/sun'
 import { useConcentric } from '../concentric'
 

@@ -1,6 +1,6 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { iro } from '../iro'
-import { maru } from '../maru'
+import { iro } from '../ryu/iro'
+import { maru } from '../ryu/maru'
 import { control } from './_control'
 
 export const input = tv({

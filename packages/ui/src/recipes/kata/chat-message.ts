@@ -1,6 +1,6 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { ji } from '../ji'
-import { kumi } from '../kumi'
+import { ji } from '../ryu/ji'
+import { kumi } from '../ryu/kumi'
 
 export const chatMessage = tv({
 	base: 'flex flex-col',

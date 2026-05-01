@@ -1,8 +1,8 @@
-import { iro } from '../iro'
-import { maru } from '../maru'
-import { sawari } from '../sawari'
-import { sen } from '../sen'
-import { take } from '../take'
+import { iro } from '../ryu/iro'
+import { maru } from '../ryu/maru'
+import { sawari } from '../ryu/sawari'
+import { sen } from '../ryu/sen'
+import { take } from '../ryu/take'
 import { control } from './_control'
 
 export const datepicker = {

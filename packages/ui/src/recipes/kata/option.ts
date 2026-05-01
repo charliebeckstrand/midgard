@@ -1,8 +1,8 @@
-import { iro } from '../iro'
-import { kumi } from '../kumi'
-import { maru } from '../maru'
-import { narabi } from '../narabi'
-import { sawari } from '../sawari'
+import { iro } from '../ryu/iro'
+import { kumi } from '../ryu/kumi'
+import { maru } from '../ryu/maru'
+import { narabi } from '../ryu/narabi'
+import { sawari } from '../ryu/sawari'
 
 export const option = {
 	base: [

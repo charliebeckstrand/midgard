@@ -1,8 +1,8 @@
-import { iro } from '../iro'
-import { maru } from '../maru'
-import { narabi } from '../narabi'
-import { sawari } from '../sawari'
-import { take } from '../take'
+import { iro } from '../ryu/iro'
+import { maru } from '../ryu/maru'
+import { narabi } from '../ryu/narabi'
+import { sawari } from '../ryu/sawari'
+import { take } from '../ryu/take'
 import { control } from './_control'
 
 export const listbox = {

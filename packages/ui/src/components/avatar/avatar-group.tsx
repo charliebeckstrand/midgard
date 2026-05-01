@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
-import type { take } from '../../recipes/take'
+import type { take } from '../../recipes/ryu/take'
 import { Avatar } from './avatar'
 import { AvatarGroupSizeContext } from './context'
 import { k } from './variants'

@@ -1,6 +1,6 @@
-import { iro } from '../iro'
-import { ji } from '../ji'
-import { sen } from '../sen'
+import { iro } from '../ryu/iro'
+import { ji } from '../ryu/ji'
+import { sen } from '../ryu/sen'
 
 export const dl = {
 	base: ['grid grid-cols-1 sm:grid-cols-[min(50%,--spacing(56))_auto]', ji.size.sm],

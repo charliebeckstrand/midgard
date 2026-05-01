@@ -1,7 +1,7 @@
 import { mode } from '../../core/recipe/mode'
-import { iro } from '../iro'
-import { ma } from '../ma'
-import { sen } from '../sen'
+import { iro } from '../ryu/iro'
+import { ma } from '../ryu/ma'
+import { sen } from '../ryu/sen'
 
 export const table = {
 	base: 'w-full text-left text-base/6',

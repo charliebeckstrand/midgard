@@ -1,5 +1,5 @@
-import { iro } from '../iro'
-import { maru } from '../maru'
+import { iro } from '../ryu/iro'
+import { maru } from '../ryu/maru'
 
 export const toggleIconButton = {
 	base: [

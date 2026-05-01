@@ -1,8 +1,8 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { maru } from '../maru'
-import { sen } from '../sen'
-import { take } from '../take'
-import { ugoki } from '../ugoki'
+import { maru } from '../ryu/maru'
+import { sen } from '../ryu/sen'
+import { take } from '../ryu/take'
+import { ugoki } from '../ryu/ugoki'
 
 type Orientation = 'vertical' | 'horizontal' | 'both'
 type Size = keyof (typeof take.scrollArea)['vertical']

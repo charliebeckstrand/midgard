@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ji } from '../../recipes/ji'
+import { ji } from '../../recipes/ryu/ji'
 import { classes, type Step, steps, sun } from '../../recipes/ryu/sun'
 
 describe('sun', () => {
