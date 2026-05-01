@@ -16,7 +16,7 @@ export const combobox = {
 		maru.rounded.lg,
 	],
 	chevron: [control.icon, take.combobox.icon, iro.text.muted],
-	options: take.popup,
+	options: 'max-h-60',
 	option: [...sawari.item, ...narabi.item],
 	empty: ['hidden only:block', 'p-2', ji.size.sm, iro.text.muted],
 }

@@ -15,7 +15,7 @@ export const listbox = {
 		'appearance-none',
 		...sawari.cursor,
 	],
-	options: take.popup,
+	options: 'max-h-60',
 	panel: 'relative min-w-full',
 	value: 'flex-1 min-w-0 truncate',
 	chevron: ['flex items-center pointer-events-none', iro.text.muted],
