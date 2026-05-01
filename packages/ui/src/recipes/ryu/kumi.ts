@@ -8,7 +8,12 @@
  * directly. The maps that remained needed for type-derivation were inlined
  * into the relevant component's `variants.ts`.
  *
- * Tier: 1 · Concern: layout gap
+ * `kumi.center` is the one named compound that survived: it pairs
+ * `items-center` and `justify-center` as a single fragment and is used by
+ * 14+ kata. The caller still picks `flex` / `inline-flex` separately so
+ * the entry stays small but DRY.
+ *
+ * Layer: ryū · Concern: layout gap
  */
 
 export const kumi = {
@@ -37,4 +42,9 @@ export const kumi = {
 		lg: 'gap-3',
 		base: 'gap-4',
 	},
+	/**
+	 * Cross- and main-axis centring. Combine with `flex` or `inline-flex` at
+	 * the call site.
+	 */
+	center: 'items-center justify-center',
 } as const

@@ -64,7 +64,7 @@ export const button = tv({
 	base: [
 		'relative isolate',
 		'inline-flex',
-		'items-center justify-center',
+		kumi.center,
 		'w-fit',
 		'shrink-0',
 		'font-semibold',

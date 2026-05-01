@@ -1,6 +1,7 @@
 import { tv, type VariantProps } from 'tailwind-variants'
 import { defineColors } from '../../core/recipe/mode'
 import { iro } from '../ryu/iro'
+import { kumi } from '../ryu/kumi'
 import { maru } from '../ryu/maru'
 import { sawari } from '../ryu/sawari'
 import { sen } from '../ryu/sen'
@@ -23,7 +24,7 @@ const color = defineColors({
 export const radio = tv({
 	base: [
 		'inline-flex',
-		'items-center justify-center',
+		kumi.center,
 		'relative',
 		sen.focus.outline,
 		...sawari.cursor,

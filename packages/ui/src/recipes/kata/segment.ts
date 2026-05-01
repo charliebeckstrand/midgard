@@ -21,7 +21,7 @@ export const segmentControl = tv({
 export const segmentItem = tv({
 	base: [
 		'flex',
-		'items-center justify-center',
+		kumi.center,
 		'font-medium select-none whitespace-nowrap',
 		maru.rounded.lg,
 		sen.focus.indicator,

@@ -50,7 +50,7 @@ export const list = {
 	itemLifted: sen.focus.lifted,
 	handle: [
 		'inline-flex flex-none',
-		'items-center justify-center',
+		kumi.center,
 		'px-3 -mx-3',
 		'cursor-grab touch-none select-none',
 		'text-zinc-400 not-data-disabled:hover:text-zinc-700',
