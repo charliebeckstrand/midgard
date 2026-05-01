@@ -4,6 +4,7 @@ import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
 import { cn } from '../../core'
 import { ControlFrame } from '../../primitives'
 import { kokkaku } from '../../recipes'
+import { useConcentric } from '../concentric'
 import { useControl } from '../control/context'
 import { useFormText } from '../form/context'
 import { useGlass } from '../glass/context'
@@ -58,6 +59,7 @@ export function Input(props: InputProps) {
 		...rest
 	} = props
 
+	const concentric = useConcentric()
 	const glass = useGlass()
 	const skeleton = useSkeleton()
 	const control = useControl()
@@ -77,7 +79,9 @@ export function Input(props: InputProps) {
 
 	const resolvedInvalid = (control?.invalid || binding?.invalid) ?? undefined
 
-	const resolvedSize = size ?? control?.size ?? 'md'
+	// Resolution order: explicit prop, then any wrapping <Field> control
+	// context, then ambient <Concentric> / <Attached> / <Card> size.
+	const resolvedSize = size ?? control?.size ?? concentric?.size ?? 'md'
 
 	const resolvedPrefix = prefix
 	const resolvedSuffix = loading ? <Spinner /> : suffix

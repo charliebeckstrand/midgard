@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+import { Concentric } from '../../components/concentric'
 import { Switch, SwitchField } from '../../components/switch'
 import { bySlot, renderUI } from '../helpers'
 
@@ -72,5 +73,29 @@ describe('SwitchField', () => {
 		const field = bySlot(container, 'field')
 
 		expect(field?.className).toContain('extra')
+	})
+})
+
+describe('Switch size resolution', () => {
+	it('inherits size from <Concentric> when no explicit prop is set', () => {
+		const { container } = renderUI(
+			<Concentric size="lg">
+				<Switch />
+			</Concentric>,
+		)
+
+		// switchVariants size="lg" brings *:data-[slot=switch-thumb]:size-5.
+		expect(bySlot(container, 'control')?.className).toContain('*:data-[slot=switch-thumb]:size-5')
+	})
+
+	it('explicit size prop overrides <Concentric> inheritance', () => {
+		const { container } = renderUI(
+			<Concentric size="lg">
+				<Switch size="sm" />
+			</Concentric>,
+		)
+
+		// switchVariants size="sm" brings *:data-[slot=switch-thumb]:size-3.
+		expect(bySlot(container, 'control')?.className).toContain('*:data-[slot=switch-thumb]:size-3')
 	})
 })

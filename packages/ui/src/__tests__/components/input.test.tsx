@@ -1,5 +1,6 @@
 import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
+import { Concentric } from '../../components/concentric'
 import { Input } from '../../components/input'
 import { bySlot, renderUI, userEvent } from '../helpers'
 
@@ -79,5 +80,41 @@ describe('Input', () => {
 
 		expect(bySlot(container, 'input')).not.toBeInTheDocument()
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
+	})
+})
+
+describe('Input size resolution', () => {
+	// Each size variant brings a unique text class via ji.size; matching it
+	// confirms which size the kata actually rendered.
+	const textClassFor = {
+		sm: 'text-sm/5',
+		md: 'text-base/6',
+		lg: 'text-lg/7',
+	} as const
+
+	it('inherits size from <Concentric> when no explicit prop is set', () => {
+		const { container } = renderUI(
+			<Concentric size="lg">
+				<Input />
+			</Concentric>,
+		)
+
+		expect(bySlot(container, 'input')?.className).toContain(textClassFor.lg)
+	})
+
+	it('explicit size prop overrides <Concentric> inheritance', () => {
+		const { container } = renderUI(
+			<Concentric size="lg">
+				<Input size="sm" />
+			</Concentric>,
+		)
+
+		expect(bySlot(container, 'input')?.className).toContain(textClassFor.sm)
+	})
+
+	it('falls back to "md" outside any size context', () => {
+		const { container } = renderUI(<Input />)
+
+		expect(bySlot(container, 'input')?.className).toContain(textClassFor.md)
 	})
 })
