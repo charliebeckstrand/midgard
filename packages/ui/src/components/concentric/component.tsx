@@ -49,9 +49,9 @@ export function Concentric({
 		() =>
 			({
 				'--ui-radius-inner': `var(--radius-${sun[size].radius})`,
-				'--ui-padding': `calc(var(--spacing) * ${sun[size].space})`,
+				'--ui-padding': flush ? '0px' : `calc(var(--spacing) * ${sun[size].space})`,
 			}) as CSSProperties,
-		[size],
+		[size, flush],
 	)
 
 	return (

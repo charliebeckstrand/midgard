@@ -26,6 +26,7 @@ export function Radio({ className, color, size, id, disabled, required, ...props
 
 	const resolvedDisabled = disabled ?? control?.disabled
 	const resolvedRequired = required ?? control?.required
+
 	const resolvedSize = size ?? concentric?.size ?? 'md'
 
 	if (useSkeleton()) {

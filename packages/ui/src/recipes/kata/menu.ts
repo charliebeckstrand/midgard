@@ -2,7 +2,6 @@ import { iro } from '../ryu/iro'
 import { narabi } from '../ryu/narabi'
 import { sawari } from '../ryu/sawari'
 import { sen } from '../ryu/sen'
-import { take } from '../ryu/take'
 
 export const menu = {
 	content: ['min-w-48', 'max-h-60'],

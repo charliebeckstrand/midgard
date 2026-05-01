@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Attached } from '../../components/attached'
 import { Button } from '../../components/button'
-import { Concentric } from '../../components/concentric'
+import { Concentric } from '../../components/concentric/component'
+import { Group } from '../../components/group'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Button', () => {
@@ -95,11 +95,11 @@ describe('Button', () => {
 			lg: 'text-lg/7',
 		} as const
 
-		it('inherits size from <Attached> when no explicit size prop is set', () => {
+		it('inherits size from <Group> when no explicit size prop is set', () => {
 			const { container } = renderUI(
-				<Attached size="lg">
+				<Group size="lg">
 					<Button>Inherit</Button>
-				</Attached>,
+				</Group>,
 			)
 
 			expect(bySlot(container, 'button')?.className).toContain(textClassFor.lg)
@@ -115,11 +115,11 @@ describe('Button', () => {
 			expect(bySlot(container, 'button')?.className).toContain(textClassFor.sm)
 		})
 
-		it('explicit size prop overrides <Attached> inheritance', () => {
+		it('explicit size prop overrides <Group> inheritance', () => {
 			const { container } = renderUI(
-				<Attached size="lg">
+				<Group size="lg">
 					<Button size="sm">Override</Button>
-				</Attached>,
+				</Group>,
 			)
 
 			expect(bySlot(container, 'button')?.className).toContain(textClassFor.sm)

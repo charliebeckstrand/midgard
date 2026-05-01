@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Drawer, DrawerClose, DrawerOpen } from '../../components/drawer'
-import { bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { fireEvent, renderUI, screen } from '../helpers'
 
 describe('Drawer', () => {
 	it('renders with role="dialog" when open', () => {

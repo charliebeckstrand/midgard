@@ -13,18 +13,7 @@ import { useSkeleton } from '../skeleton/context'
 import { Spinner } from '../spinner'
 import { InputSizeProvider } from './context'
 import { HeadlessInput } from './headless'
-import {
-	controlVariants,
-	type InputVariants,
-	inputDateVariants,
-	inputVariants,
-	k,
-} from './variants'
-
-const DATE_TYPES = new Set(['date', 'datetime-local', 'month', 'time', 'week'])
-
-// Icon size is one step smaller than the input size.
-const iconSize = { sm: 'xs', md: 'sm', lg: 'md' } as const
+import { controlVariants, type InputVariants, inputVariants, k } from './variants'
 
 export type InputProps = Omit<InputVariants, 'size'> & {
 	size?: 'sm' | 'md' | 'lg'
@@ -33,7 +22,12 @@ export type InputProps = Omit<InputVariants, 'size'> & {
 	suffix?: ReactNode
 	ref?: Ref<HTMLInputElement>
 	className?: string
+	'data-group'?: string
+	'data-group-orientation'?: string
 } & Omit<ComponentPropsWithoutRef<'input'>, 'className' | 'size' | 'prefix'>
+
+// Icon size is one step smaller than the input size.
+const iconSize = { sm: 'xs', md: 'sm', lg: 'md' } as const
 
 export function Input(props: InputProps) {
 	const hasValueProp = 'value' in props
@@ -56,13 +50,15 @@ export function Input(props: InputProps) {
 		onChange,
 		onBlur,
 		ref,
+		'data-group': dataGroup,
+		'data-group-orientation': dataGroupOrientation,
 		...rest
 	} = props
 
 	const concentric = useConcentric()
+	const control = useControl()
 	const glass = useGlass()
 	const skeleton = useSkeleton()
-	const control = useControl()
 
 	const binding = useFormText(name, { onChange, onBlur })
 
@@ -80,15 +76,13 @@ export function Input(props: InputProps) {
 	const resolvedInvalid = (control?.invalid || binding?.invalid) ?? undefined
 
 	// Resolution order: explicit prop, then any wrapping <Field> control
-	// context, then ambient <Concentric> / <Attached> / <Card> size.
+	// context, then ambient <Concentric> / <Group> / <Card> size.
 	const resolvedSize = size ?? control?.size ?? concentric?.size ?? 'md'
 
 	const resolvedPrefix = prefix
 	const resolvedSuffix = loading ? <Spinner /> : suffix
 
 	const hasAffix = resolvedPrefix !== undefined || resolvedSuffix !== undefined
-
-	const isDate = DATE_TYPES.has(type ?? '')
 
 	if (skeleton) {
 		return (
@@ -101,6 +95,8 @@ export function Input(props: InputProps) {
 	return (
 		<InputSizeProvider value={iconSize[resolvedSize]}>
 			<ControlFrame
+				data-group={dataGroup}
+				data-group-orientation={dataGroupOrientation}
 				className={cn(
 					controlVariants({ variant: resolvedVariant }),
 					hasAffix && 'group/control flex flex-wrap items-center',
@@ -129,7 +125,6 @@ export function Input(props: InputProps) {
 						inputVariants({ variant: resolvedVariant, size: resolvedSize }),
 						resolvedPrefix && k.autofill.prefix[resolvedSize],
 						resolvedSuffix && k.autofill.suffix[resolvedSize],
-						isDate && inputDateVariants(),
 						className,
 					)}
 					{...rest}

@@ -33,10 +33,10 @@ describe('sun', () => {
 
 	it('scales the radius monotonically across steps', () => {
 		// Concentric integrity depends on each step's radius being a coherent
-		// rung on the maru.rounded scale — md→lg→xl in this case.
-		expect(sun.sm.radius).toBe('md')
-		expect(sun.md.radius).toBe('lg')
-		expect(sun.lg.radius).toBe('xl')
+		// rung on the maru.rounded scale — sm→md→lg in this case.
+		expect(sun.sm.radius).toBe('sm')
+		expect(sun.md.radius).toBe('md')
+		expect(sun.lg.radius).toBe('lg')
 	})
 
 	it('Step type unions only the canonical steps', () => {

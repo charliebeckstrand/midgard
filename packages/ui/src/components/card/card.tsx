@@ -4,7 +4,9 @@ import { type Step, sun } from '../../recipes/ryu/sun'
 import { Box, type BoxProps } from '../box'
 import { ConcentricContext } from '../concentric/context'
 
-export type CardProps = Omit<BoxProps, 'radius'> & {
+type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never
+
+export type CardProps = DistributiveOmit<BoxProps, 'radius'> & {
 	/** Size step that drives padding, inner radius, and the concentric outer radius. */
 	size?: Step
 }
@@ -20,13 +22,15 @@ export function Card({
 	children,
 	...props
 }: CardProps) {
-	const noExplicitPadding = p === undefined && px === undefined && py === undefined
-	const step = sun[size]
 	const ctx = useMemo(() => ({ size }), [size])
 
+	const noExplicitPadding = p === undefined && px === undefined && py === undefined
+
+	const step = sun[size]
+
 	const style: CSSProperties = {
-		'--ui-radius-inner': `var(--radius-${step.radius})`,
 		'--ui-padding': `calc(var(--spacing) * ${step.space})`,
+		'--ui-radius-inner': `var(--radius-${step.radius})`,
 	} as CSSProperties
 
 	return (
@@ -40,9 +44,9 @@ export function Card({
 				outline={outline}
 				data-step={size}
 				className={cn(
-					'overflow-hidden outline-offset-[-1px]',
-					'rounded-[calc(var(--ui-radius-inner)+var(--ui-padding))]',
 					noExplicitPadding && `[&:not(:has(>[data-slot^=card-]))]:p-${step.space}`,
+					'overflow-hidden -outline-offset-1',
+					`rounded-${step.radius}`,
 					className,
 				)}
 				style={style}

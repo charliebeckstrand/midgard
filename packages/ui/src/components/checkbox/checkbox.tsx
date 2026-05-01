@@ -39,6 +39,7 @@ export function Checkbox({
 }: CheckboxProps) {
 	const concentric = useConcentric()
 	const control = useControl()
+
 	const binding = useFormToggle(name, { onChange })
 
 	const internalRef = useRef<HTMLInputElement>(null)
@@ -47,6 +48,7 @@ export function Checkbox({
 
 	const resolvedDisabled = disabled ?? control?.disabled
 	const resolvedRequired = required ?? control?.required
+
 	const resolvedSize = size ?? concentric?.size ?? 'md'
 
 	const resolvedInvalid = control?.invalid || binding?.invalid

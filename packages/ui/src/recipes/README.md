@@ -10,7 +10,7 @@ Recipe-layer modules use Japanese names — each name covers exactly one
 concern (`iro` is colour, `ji` is typography, `ma` is spacing, and so on)
 so that consumers don't have to ask "where do I look for this?". This
 naming rule is **internal-only**: client-facing components, hooks, and
-props use English (`<Concentric>`, `useAttached`, `size`).
+props use English (`<Concentric>`, `useGroup`, `size`).
 
 ## Layout
 
@@ -39,7 +39,7 @@ into. Lives in `ryu/`.
 | `ugoki`   | motion (CSS transitions + Framer Motion presets) |
 | `kokkaku` | per-component skeleton placeholder shapes |
 | `narabi`  | sibling/slot layout (panel slots, list items, toggle/group, field) |
-| `tsunagi` | attached-group join selectors (used by `<Attached>`) |
+| `tsunagi` | group join selectors (used by `<Group>`) |
 | `maru`    | radius scale (substrate, used mainly via `sun`) |
 | `ma`      | spacing scale (substrate) |
 | `kumi`    | gap scale (substrate; direction/align/justify removed — use Tailwind directly) |
@@ -71,8 +71,8 @@ Two client-facing wrappers compose with the recipe layer:
   and renders an outer container whose border-radius follows the
   concentric formula `outer = inner + padding`. Descendants inherit the
   size via `useConcentric()`.
-- `<Attached>` (in `components/attached/`) — joins adjacent children by
-  stamping `data-attached={start|middle|end|only}`. Participating kata
+- `<Group>` (in `components/group/`) — joins adjacent children by
+  stamping `data-group={start|middle|end|only}`. Participating kata
   consume `tsunagi.base` to drop their inner radii. Composes with
   `<Concentric>` (size inherits).
 

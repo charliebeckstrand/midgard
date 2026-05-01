@@ -23,10 +23,14 @@
  */
 
 import { maru } from '../ryu/maru'
-import { sen } from '../ryu/sen'
 
-/** Base ring + radius that the layers are applied on top of. */
-const base = [sen.ringInset, maru.rounded.lg]
+/**
+ * Base ring + radius that the layers are applied on top of. The ring uses
+ * solid colours (not translucent like `sen.ringInset`) so adjacent rings in
+ * a group can overlap by 1 px without alpha-stacking into a darker line at
+ * the join.
+ */
+const base = ['ring-1 ring-inset ring-zinc-300 dark:ring-zinc-700', maru.rounded.lg]
 
 /** `::before` inset fill — paints the surface inside the 1 px outer ring. */
 const inset = ['before:absolute before:inset-px before:rounded-[calc(var(--radius-lg)-1px)]']
@@ -36,10 +40,10 @@ const overlay = [
 	'after:absolute after:inset-0 after:rounded-lg after:ring-transparent after:ring-inset after:pointer-events-none',
 ]
 
-/** Outer ring colour on hover (subdued zinc / white tint). */
+/** Outer ring colour on hover — one shade darker / lighter than resting. */
 const hover = [
-	'not-has-[>:disabled]:hover:ring-zinc-950/20',
-	'not-has-[>:disabled]:dark:hover:ring-white/20',
+	'not-has-[>:disabled]:hover:ring-zinc-400',
+	'not-has-[>:disabled]:dark:hover:ring-zinc-600',
 ]
 
 /** `::after` 2 px focus ring — blue when no validation state is active. */
@@ -48,6 +52,11 @@ const focus = [
 	'data-open:after:ring-2',
 	'not-has-[[data-invalid]]:not-has-[[data-valid]]:not-has-[[data-warning]]:focus-within:after:ring-blue-600',
 	'not-has-[[data-invalid]]:not-has-[[data-valid]]:not-has-[[data-warning]]:data-open:after:ring-blue-600',
+	// Lift the focused element above its attached-group siblings so the join
+	// doesn't overpaint the joined-side focus ring with the neighbour's resting
+	// ring. `relative` already in `control.frame` provides the stacking context.
+	'focus-within:z-10',
+	'data-open:z-10',
 ]
 
 /** Validation ring on the outer ring + `::after` — red / amber / green per data-* attribute. */

@@ -31,15 +31,15 @@ export type SunStep = {
 	/** Tailwind spacing token (numeric) for gap between children. */
 	gap: '1' | '2' | '3'
 	/** Key into `maru.rounded` — the inner radius. <Concentric> derives outer = inner + padding. */
-	radius: 'md' | 'lg' | 'xl'
+	radius: 'sm' | 'md' | 'lg'
 	/** Tailwind size token for `data-slot="icon"` children. */
 	icon: '4' | '5' | '6'
 }
 
 export const sun = {
-	sm: { text: 'sm', space: '2', gap: '1', radius: 'md', icon: '4' },
-	md: { text: 'md', space: '3', gap: '2', radius: 'lg', icon: '5' },
-	lg: { text: 'lg', space: '4', gap: '3', radius: 'xl', icon: '6' },
+	sm: { text: 'sm', space: '2', gap: '1', radius: 'sm', icon: '4' },
+	md: { text: 'md', space: '3', gap: '2', radius: 'md', icon: '5' },
+	lg: { text: 'lg', space: '4', gap: '3', radius: 'lg', icon: '6' },
 } as const satisfies Record<Step, SunStep>
 
 /**

@@ -15,7 +15,7 @@ describe('tsunagi', () => {
 		] as const
 
 		for (const [orientation, position] of cases) {
-			const selector = `data-[attached-orientation=${orientation}]:data-[attached=${position}]:`
+			const selector = `data-[group-orientation=${orientation}]:data-[group=${position}]:`
 
 			expect(base, `missing rule for ${orientation}/${position}`).toContain(selector)
 		}
@@ -28,9 +28,9 @@ describe('tsunagi', () => {
 		expect(base).toContain('rounded-s-none')
 		expect(base).toContain('-ms-px')
 
-		expect(base).not.toMatch(/data-\[attached-orientation=horizontal\][^\s]*rounded-l-none/)
-		expect(base).not.toMatch(/data-\[attached-orientation=horizontal\][^\s]*rounded-r-none/)
-		expect(base).not.toMatch(/data-\[attached-orientation=horizontal\][^\s]*-ml-px/)
+		expect(base).not.toMatch(/data-\[group-orientation=horizontal\][^\s]*rounded-l-none/)
+		expect(base).not.toMatch(/data-\[group-orientation=horizontal\][^\s]*rounded-r-none/)
+		expect(base).not.toMatch(/data-\[group-orientation=horizontal\][^\s]*-ml-px/)
 	})
 
 	it('uses physical top/bottom for vertical joins (no RTL mirroring needed)', () => {
@@ -40,9 +40,9 @@ describe('tsunagi', () => {
 	})
 
 	it('emits negative-margin overlap on middle and end items', () => {
-		expect(base).toContain('data-[attached=middle]:-ms-px')
-		expect(base).toContain('data-[attached=end]:-ms-px')
-		expect(base).toContain('data-[attached=middle]:-mt-px')
-		expect(base).toContain('data-[attached=end]:-mt-px')
+		expect(base).toContain('data-[group=middle]:-ms-px')
+		expect(base).toContain('data-[group=end]:-ms-px')
+		expect(base).toContain('data-[group=middle]:-mt-px')
+		expect(base).toContain('data-[group=end]:-mt-px')
 	})
 })

@@ -2,31 +2,31 @@ import { type ReactNode, type Ref, useMemo } from 'react'
 import { cn } from '../../core'
 import { Polymorphic, type PolymorphicProps } from '../../primitives'
 import type { Step } from '../../recipes/ryu/sun'
-import type { AttachedOrientation } from '../../recipes/ryu/tsunagi'
+import type { GroupOrientation } from '../../recipes/ryu/tsunagi'
 import { useConcentric } from '../concentric'
 import { ConcentricContext } from '../concentric/context'
-import { useAttached } from './hook'
+import { useGroup } from './hook'
 
-type AttachedBaseProps = {
+type GroupBaseProps = {
 	/** Axis the group lays out on. Defaults to horizontal. */
-	orientation?: AttachedOrientation
+	orientation?: GroupOrientation
 	/**
 	 * Size step that drives end-cap radii on participating children. Resolution
 	 * order: explicit prop, then enclosing `<Concentric>` size, then `'md'`.
 	 */
 	size?: Step
-	/** Override the data-slot attribute. Defaults to "attached". */
+	/** Override the data-slot attribute. Defaults to "group". */
 	dataSlot?: string
 	ref?: Ref<HTMLDivElement>
 	className?: string
 	children?: ReactNode
 }
 
-export type AttachedProps = AttachedBaseProps & PolymorphicProps<'div'>
+export type GroupProps = GroupBaseProps & PolymorphicProps<'div'>
 
 /**
- * Attached — a wrapper that joins adjacent children visually by stamping
- * `data-attached` position attributes (`start` | `middle` | `end` | `only`)
+ * Group — a wrapper that joins adjacent children visually by stamping
+ * `data-group` position attributes (`start` | `middle` | `end` | `only`)
  * onto each child. Participating kata read these attributes via
  * `tsunagi.base` to drop their inner radii and overlap by 1 px so adjacent
  * borders don't double.
@@ -40,25 +40,27 @@ export type AttachedProps = AttachedBaseProps & PolymorphicProps<'div'>
  * hierarchy visually consistent without prop drilling.
  *
  * @example
- *   <Attached>
+ *   <Group>
  *     <Button>Cut</Button>
  *     <Button>Copy</Button>
  *     <Button>Paste</Button>
- *   </Attached>
+ *   </Group>
  */
-export function Attached({
+export function Group({
 	orientation = 'horizontal',
 	size,
-	dataSlot = 'attached',
+	dataSlot = 'group',
 	ref,
 	className,
 	href,
 	children,
 	...props
-}: AttachedProps) {
+}: GroupProps) {
 	const ctx = useConcentric()
+
 	const resolvedSize = size ?? ctx?.size ?? 'md'
-	const stamped = useAttached(children, orientation)
+
+	const stamped = useGroup(children, orientation)
 
 	const contextValue = useMemo(() => ({ size: resolvedSize }), [resolvedSize])
 
@@ -69,7 +71,7 @@ export function Attached({
 			dataSlot={dataSlot}
 			href={href}
 			data-step={resolvedSize}
-			data-attached-orientation={orientation}
+			data-group-orientation={orientation}
 			className={cn('inline-flex', orientation === 'vertical' ? 'flex-col' : 'flex-row', className)}
 			{...props}
 		>

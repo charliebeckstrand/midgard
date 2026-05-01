@@ -31,7 +31,7 @@ export default function CardDemo() {
 			</Alert>
 
 			<Example title="Default">
-				<Card>Content</Card>
+				<Card p={4}>Content</Card>
 			</Example>
 
 			<Example title="With header and footer">
@@ -67,7 +67,7 @@ export default function CardDemo() {
 				</Card>
 			</Example>
 
-			<Example title="Three sizes — concentric corners scale with padding; descendants inherit">
+			<Example title="Sizes — concentric corners scale with padding">
 				<Stack gap={4}>
 					<Card size="sm">
 						<CardHeader>

@@ -33,13 +33,16 @@ export function Switch({
 }: SwitchProps) {
 	const concentric = useConcentric()
 	const control = useControl()
+
 	const binding = useFormToggle(name, { onChange })
 
 	const resolvedId = id ?? control?.id
+
 	const resolvedDisabled = disabled ?? control?.disabled
 	const resolvedRequired = required ?? control?.required
+
 	// Resolution order: explicit prop, then any wrapping <Field> control
-	// context, then ambient <Concentric> / <Attached> / <Card> size.
+	// context, then ambient <Concentric> / <Group> / <Card> size.
 	const resolvedSize = size ?? (control?.size as SwitchVariants['size']) ?? concentric?.size ?? 'md'
 
 	const resolvedInvalid = control?.invalid || binding?.invalid

@@ -61,7 +61,7 @@ export function Button({
 
 	const resolvedVariant = variant ?? (glass ? 'glass' : undefined)
 
-	// Resolution order: explicit prop, then enclosing <Attached>/<Concentric>
+	// Resolution order: explicit prop, then enclosing <Group>/<Concentric>
 	// size, then any <Input> grouping context. Component's own default kicks
 	// in only when all of these are absent.
 	const resolvedSize = size ?? concentric?.size ?? inputSize

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { Concentric } from '../../components/concentric'
+import { Concentric } from '../../components/concentric/component'
 import { Radio, RadioField, RadioGroup } from '../../components/radio'
 import { bySlot, renderUI, screen } from '../helpers'
 

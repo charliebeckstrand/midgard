@@ -3,7 +3,7 @@ import type { Step } from '../../recipes/ryu/sun'
 
 /**
  * The active size step in this region of the tree. Provided by `<Concentric>`,
- * `<Attached>`, or any wrapper that wants size-aware children to default their
+ * `<Group>`, or any wrapper that wants size-aware children to default their
  * `size` prop. Components consume it via `useConcentric()` and use it as a
  * fallback before their kata's `defaultVariants.size`.
  */

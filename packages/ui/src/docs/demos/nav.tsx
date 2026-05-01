@@ -32,7 +32,7 @@ export default function NavDemo() {
 							<NavItem value="notifications">Notifications</NavItem>
 							<NavItem value="billing">Billing</NavItem>
 						</NavList>
-						<Card bg="none">
+						<Card bg="none" p={4}>
 							<NavContents>
 								<NavContent value="account">Account settings</NavContent>
 								<NavContent value="notifications">Notification preferences</NavContent>

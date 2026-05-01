@@ -1,6 +1,7 @@
 import { tv, type VariantProps } from 'tailwind-variants'
 import { iro } from '../ryu/iro'
 import { maru } from '../ryu/maru'
+import { tsunagi } from '../ryu/tsunagi'
 import { control } from '../waku/control'
 
 export const input = tv({
@@ -17,6 +18,7 @@ export const input = tv({
 })
 
 export const inputControl = tv({
+	base: [...tsunagi.base],
 	variants: {
 		variant: {
 			default: control.surface.default,
@@ -26,8 +28,6 @@ export const inputControl = tv({
 	},
 	defaultVariants: { variant: 'default' },
 })
-
-export const inputDate = tv({ base: control.resets.date })
 
 export const slots = {
 	affix: ['flex items-center min-w-0', '*:data-[slot=icon]:pointer-events-none', ...iro.text.muted],

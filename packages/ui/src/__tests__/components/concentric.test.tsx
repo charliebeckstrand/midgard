@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { Concentric, useConcentric } from '../../components/concentric'
+import { useConcentric } from '../../components/concentric'
+import { Concentric } from '../../components/concentric/component'
 import { sun } from '../../recipes/ryu/sun'
 import { bySlot, renderUI, screen } from '../helpers'
 

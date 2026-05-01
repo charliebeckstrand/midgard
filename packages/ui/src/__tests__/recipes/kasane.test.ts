@@ -67,8 +67,8 @@ describe('kasane', () => {
 			expect(rule, `${rule} should guard against disabled`).toContain('not-has-[>:disabled]')
 		}
 
-		expect(hover).toContain('hover:ring-zinc-950/20')
-		expect(hover).toContain('dark:hover:ring-white/20')
+		expect(hover).toContain('hover:ring-zinc-400')
+		expect(hover).toContain('dark:hover:ring-zinc-600')
 	})
 
 	it('disabled layer dims and locks pointer when the wrapped element is :disabled', () => {
