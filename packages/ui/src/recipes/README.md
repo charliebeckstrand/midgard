@@ -33,7 +33,7 @@ into. Lives in `ryu/`.
 | ------ | ------- |
 | `sun`     | size system: text + leading, padding, gap, inner radius, icon — by step (sm/md/lg). The spine. |
 | `iro`     | colour palettes (`palette.{solid,soft,outline,plain}`) plus semantic text/bg roles |
-| `ji`      | typography (size+leading bundled, weight, tracking, family) |
+| `ji`      | typography size scale (font-size with line-height bundled; weight/tracking/family use Tailwind directly) |
 | `omote`   | surface chromes (panel/popover/glass/backdrop bundles) |
 | `sawari`  | interaction states (hover/press/disabled compounds with motion) |
 | `ugoki`   | motion (CSS transitions + Framer Motion presets) |
@@ -44,7 +44,7 @@ into. Lives in `ryu/`.
 | `ma`      | spacing scale (substrate) |
 | `kumi`    | gap scale (substrate; direction/align/justify removed — use Tailwind directly) |
 | `sen`     | lines (borders, rings, dividers, focus, forced-colors compounds) |
-| `take`    | dimension scales (icon, avatar, panel, popup, …) |
+| `take`    | dimension scales (icon, avatar, panel, scrollArea, combobox, listbox, mark) |
 
 Composition flows freely within `ryu/`. The ordering above is rough — `sun`
 is the most common entry point for size-aware kata.

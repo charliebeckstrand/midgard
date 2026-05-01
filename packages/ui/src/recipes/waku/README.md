@@ -17,7 +17,7 @@ Most libraries build a single ring around a control and swap its colour for
 focus / validation. kasane uses a four-layer stack on a single element so the
 states compose without conflict:
 
-1. **Outer ring** (`ring-1` from `sen.ringInset`) — the resting border.
+1. **Outer ring** (`kasane.base` — a solid `ring-1 ring-inset ring-zinc-300 dark:ring-zinc-700`) — the resting border. Hard-coded rather than composed from `sen.ringInset` so adjacent rings in a group can overlap by 1 px without alpha-stacking into a darker join.
 2. **`::before` inset fill** — paints the surface 1 px inside the outer ring.
 3. **`::after` overlay** — invisible at rest; gains a 2 px ring on focus
    (`focus-within` / `data-open`).

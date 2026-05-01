@@ -44,9 +44,8 @@ export function Card({
 				outline={outline}
 				data-step={size}
 				className={cn(
-					noExplicitPadding && `[&:not(:has(>[data-slot^=card-]))]:p-${step.space}`,
-					'overflow-hidden -outline-offset-1',
-					`rounded-${step.radius}`,
+					noExplicitPadding && '[&:not(:has(>[data-slot^=card-]))]:p-(--ui-padding)',
+					'overflow-hidden -outline-offset-1 rounded-(--ui-radius-inner)',
 					className,
 				)}
 				style={style}

@@ -1,6 +1,6 @@
 import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { Concentric } from '../../components/concentric/component'
+import { Concentric } from '../../components/concentric'
 import { Input } from '../../components/input'
 import { bySlot, renderUI, userEvent } from '../helpers'
 

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Checkbox, CheckboxField, CheckboxGroup } from '../../components/checkbox'
-import { Concentric } from '../../components/concentric/component'
+import { Concentric } from '../../components/concentric'
 import { bySlot, renderUI } from '../helpers'
 
 describe('Checkbox', () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Concentric } from '../../components/concentric/component'
+import { Concentric } from '../../components/concentric'
 import { Switch, SwitchField } from '../../components/switch'
 import { bySlot, renderUI } from '../helpers'
 

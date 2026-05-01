@@ -1,11 +1,16 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { k } from './variants'
+import { useDlOrientation } from './context'
+import { dlTermVariants } from './variants'
 
 export type DescriptionTermProps = {
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'dt'>, 'className'>
 
 export function DescriptionTerm({ className, ...props }: DescriptionTermProps) {
-	return <dt data-slot="dl-term" className={cn(k.term, className)} {...props} />
+	const orientation = useDlOrientation()
+
+	return (
+		<dt data-slot="dl-term" className={cn(dlTermVariants({ orientation }), className)} {...props} />
+	)
 }

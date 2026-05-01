@@ -165,10 +165,10 @@ describe('Card size system', () => {
 		)
 	})
 
-	it('renders the radius class for its size step', () => {
+	it('renders the radius class sourced from the inner-radius CSS variable', () => {
 		const { container } = renderUI(<Card>content</Card>)
 
-		expect(bySlot(container, 'card')?.className).toContain(`rounded-${sun.md.radius}`)
+		expect(bySlot(container, 'card')?.className).toContain('rounded-(--ui-radius-inner)')
 	})
 
 	it('CardBody padding tracks the Card size', () => {

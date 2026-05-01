@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
-import { Concentric } from '../../components/concentric/component'
+import { Concentric } from '../../components/concentric'
 import { Group } from '../../components/group'
 import { bySlot, renderUI, screen } from '../helpers'
 
