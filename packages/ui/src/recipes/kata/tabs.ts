@@ -1,4 +1,4 @@
-import { tv, type VariantProps } from 'tailwind-variants'
+import { tv } from 'tailwind-variants'
 import { mode } from '../../core/recipe/mode'
 import { iro } from '../ryu/iro'
 import { kumi } from '../ryu/kumi'
@@ -8,7 +8,7 @@ import { sen } from '../ryu/sen'
 
 export const tabIndicator = mode('bg-zinc-950', 'dark:bg-white')
 
-export const tabList = tv({
+const tabList = tv({
 	base: ['flex', ...sen.borderSubtleColor],
 	variants: {
 		orientation: {
@@ -19,7 +19,7 @@ export const tabList = tv({
 	defaultVariants: { orientation: 'horizontal' },
 })
 
-export const tabItem = tv({
+const tabItem = tv({
 	base: [
 		'relative flex items-center',
 		kumi.gap.md,
@@ -42,7 +42,7 @@ export const tabItem = tv({
 	defaultVariants: { orientation: 'horizontal' },
 })
 
-export const tabIndicatorBar = tv({
+const tabIndicatorBar = tv({
 	base: [maru.rounded.full, tabIndicator],
 	variants: {
 		orientation: {
@@ -58,5 +58,3 @@ export const tabs = {
 	tab: tabItem,
 	indicator: tabIndicatorBar,
 }
-
-export type TabsVariants = VariantProps<typeof tabList>

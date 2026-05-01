@@ -5,7 +5,7 @@ import { maru } from '../ryu/maru'
 import { sawari } from '../ryu/sawari'
 import { sen } from '../ryu/sen'
 
-export const sidebarBase = tv({
+const sidebarBase = tv({
 	base: ['overflow-y-auto overscroll-none', 'flex flex-col gap-y-4', 'h-full', 'py-6'],
 	variants: {
 		mini: {
