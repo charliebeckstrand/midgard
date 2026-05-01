@@ -11,8 +11,10 @@ import type { Ctx } from './types'
 
 /**
  * Render a list of React children as a JSX snippet. Flattens pass-through
- * wrappers, then collapses runs of 3+ identical sibling renders to a single
- * representative so iterated content doesn't dominate the output.
+ * wrappers, then — when the siblings look like the output of a `.map()` —
+ * collapses runs of 3+ identical renders so iterated content doesn't dominate.
+ * Authored siblings (e.g. three buttons inside a `<Group>` to demonstrate
+ * border joining) are kept intact, since their multiplicity is the demo.
  */
 export function renderNodes(nodes: ReactNode[], ctx: Ctx, indent: string): string {
 	// Flattening at every level lets list detection see the real components
@@ -25,9 +27,6 @@ export function renderNodes(nodes: ReactNode[], ctx: Ctx, indent: string): strin
 		return indent + renderElement(elements[0], ctx, indent)
 	}
 
-	// Render each sibling, collapsing 3+ identical outputs (iterated rows)
-	// to a single representative while keeping structural duplicates (e.g.
-	// two ResizablePanel siblings) intact.
 	const lines: string[] = []
 
 	const counts = new Map<string, number>()
@@ -44,7 +43,14 @@ export function renderNodes(nodes: ReactNode[], ctx: Ctx, indent: string): strin
 		lines.push(line)
 	}
 
-	// Only deduplicate lines that appear 3+ times (true iteration pattern).
+	// Only collapse duplicates when the siblings clearly came from iteration.
+	// `Children.toArray` formats user-supplied keys as `.$<key>` and assigns
+	// positional keys (`.0`, `.1`) to inline siblings, so an explicit key on
+	// every sibling is the cleanest signal that this is `.map()` output.
+	const isIteration = elements.length >= 2 && elements.every(hasExplicitKey)
+
+	if (!isIteration) return lines.join('\n')
+
 	const emitted = new Map<string, number>()
 
 	const result: string[] = []
@@ -62,6 +68,10 @@ export function renderNodes(nodes: ReactNode[], ctx: Ctx, indent: string): strin
 	}
 
 	return result.join('\n')
+}
+
+function hasExplicitKey(element: ReactElement): boolean {
+	return typeof element.key === 'string' && element.key.includes('$')
 }
 
 /**
