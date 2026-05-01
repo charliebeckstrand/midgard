@@ -16,7 +16,6 @@ import { sen } from './sen'
 const blur = {
 	sm: 'backdrop-blur-sm',
 	md: 'backdrop-blur',
-	lg: 'backdrop-blur-lg',
 }
 
 export const omote = {

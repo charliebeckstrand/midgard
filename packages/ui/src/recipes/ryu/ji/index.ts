@@ -1,9 +1,13 @@
 /**
  * Ji (字) — Type.
  *
- * Typography — size (with line-height), weight, tracking, family.
+ * Typography size scale (font-size with line-height bundled).
  *
- * Tier: 1 · Concern: typography
+ * Weight / tracking / family helpers were removed after audit — every
+ * consumer used the Tailwind utility directly (`font-semibold`,
+ * `tracking-tight`, etc.) instead of routing through the recipe.
+ *
+ * Layer: ryū · Concern: typography
  */
 
 export const ji = {
@@ -17,25 +21,6 @@ export const ji = {
 		'3xl': 'text-3xl/10',
 		'4xl': 'text-4xl/11',
 	},
-
-	weight: {
-		normal: 'font-normal',
-		medium: 'font-medium',
-		semibold: 'font-semibold',
-		bold: 'font-bold',
-	},
-
-	tracking: {
-		tight: 'tracking-tight',
-		normal: 'tracking-normal',
-		wide: 'tracking-wide',
-	},
-
-	family: {
-		sans: 'font-sans',
-		mono: 'font-mono',
-	},
 } as const
 
 export type JiSize = keyof typeof ji.size
-export type JiWeight = keyof typeof ji.weight

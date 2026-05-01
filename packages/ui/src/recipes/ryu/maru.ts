@@ -1,15 +1,15 @@
 /**
  * Maru (丸) — Roundness.
  *
- * Single source of truth for border-radius.
+ * Border-radius scale. Substrate for `sun.radius` and the few kata that
+ * step outside the size system.
  *
- * Tier: 1 · Concern: shape
+ * Layer: ryū · Concern: shape
  */
 
 export const maru = {
 	rounded: {
 		none: 'rounded-none',
-		xs: 'rounded-xs',
 		sm: 'rounded-sm',
 		md: 'rounded-md',
 		lg: 'rounded-lg',
