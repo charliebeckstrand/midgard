@@ -19,6 +19,7 @@ export const [SheetProvider, useSheetContext] = createContext<SheetContextValue>
 export type SheetProps = SheetPanelVariants & {
 	open: boolean
 	onOpenChange: (open: boolean) => void
+	glass?: boolean
 	className?: string
 	children: ReactNode
 	/**
@@ -35,15 +36,16 @@ export function Sheet({
 	side = 'right',
 	size,
 	surface,
+	glass,
 	className,
 	children,
 	container,
 }: SheetProps) {
 	const glassContext = useGlass()
 
-	const resolvedSurface = surface ?? (glassContext ? 'glass' : undefined)
-
 	const resolvedSide = (side ?? 'right') as SheetSide
+
+	const resolvedSurface = surface ?? (glass || glassContext ? 'glass' : undefined)
 
 	const { panelAriaProps, providerValue } = usePanelA11yScope()
 

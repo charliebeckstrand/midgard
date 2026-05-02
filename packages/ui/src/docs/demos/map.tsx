@@ -87,10 +87,11 @@ function Presets() {
 			actions={
 				<Listbox<MapPreset>
 					value={preset}
+					displayValue={(v) => presets.find((p) => p.value === v)?.label ?? v}
+					placement="bottom-end"
 					onChange={(v) => {
 						if (v) setPreset(v)
 					}}
-					displayValue={(v) => presets.find((p) => p.value === v)?.label ?? v}
 				>
 					{presets.map((p) => (
 						<ListboxOption key={p.value} value={p.value}>

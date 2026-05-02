@@ -14,6 +14,7 @@ export type DialogProps = DialogPanelVariants & {
 	onOpenChange: (open: boolean) => void
 	align?: 'center' | 'start'
 	outsideClick?: boolean
+	glass?: boolean
 	className?: string
 	children: ReactNode
 }
@@ -30,14 +31,15 @@ export function Dialog({
 	outsideClick = true,
 	surface,
 	size,
+	glass,
 	className,
 	children,
 }: DialogProps) {
 	const glassContext = useGlass()
 
-	// Resolve the surface from explicit prop, then any enclosing <GlassProvider>
-	// (boolean context translated to the equivalent surface enum).
-	const resolvedSurface = surface ?? (glassContext ? 'glass' : undefined)
+	// Resolve the surface from explicit prop, then the `glass` shorthand, then any
+	// enclosing <GlassProvider> (boolean context translated to the surface enum).
+	const resolvedSurface = surface ?? (glass || glassContext ? 'glass' : undefined)
 
 	const isDesktop = useMinWidth(640)
 

@@ -21,6 +21,7 @@ export type DrawerProps = DrawerPanelVariants & {
 	onOpenChange: (open: boolean) => void
 	/** Size step that propagates to descendants via the concentric context. */
 	size?: Step
+	glass?: boolean
 	className?: string
 	children: ReactNode
 }
@@ -30,12 +31,13 @@ export function Drawer({
 	onOpenChange,
 	surface,
 	size = 'md',
+	glass,
 	className,
 	children,
 }: DrawerProps) {
 	const glassContext = useGlass()
 
-	const resolvedSurface = surface ?? (glassContext ? 'glass' : undefined)
+	const resolvedSurface = surface ?? (glass || glassContext ? 'glass' : undefined)
 
 	const { panelAriaProps, providerValue } = usePanelA11yScope()
 
