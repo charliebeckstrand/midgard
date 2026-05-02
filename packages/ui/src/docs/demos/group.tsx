@@ -2,6 +2,7 @@ import { Heading1, Heading2, Heading3 } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../../components/button'
 import { Control } from '../../components/control'
+import { Flex } from '../../components/flex'
 import { Group } from '../../components/group'
 import { Icon } from '../../components/icon'
 import { Input } from '../../components/input'
@@ -25,19 +26,21 @@ export default function GroupDemo() {
 
 	return (
 		<Stack gap={6}>
-			<Control className="max-w-32">
-				<Listbox<ChildType>
-					value={child}
-					onChange={(v) => v && setChild(v)}
-					displayValue={(v) => childOptions.find((o) => o.value === v)?.label ?? v}
-				>
-					{childOptions.map((option) => (
-						<ListboxOption key={option.value} value={option.value}>
-							<ListboxLabel>{option.label}</ListboxLabel>
-						</ListboxOption>
-					))}
-				</Listbox>
-			</Control>
+			<Flex gap={2}>
+				<Control>
+					<Listbox<ChildType>
+						value={child}
+						onChange={(v) => v && setChild(v)}
+						displayValue={(v) => childOptions.find((o) => o.value === v)?.label ?? v}
+					>
+						{childOptions.map((option) => (
+							<ListboxOption key={option.value} value={option.value}>
+								<ListboxLabel>{option.label}</ListboxLabel>
+							</ListboxOption>
+						))}
+					</Listbox>
+				</Control>
+			</Flex>
 
 			<Example title="Default">
 				<Stack gap={4}>

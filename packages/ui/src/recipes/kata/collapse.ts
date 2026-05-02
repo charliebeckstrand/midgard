@@ -12,7 +12,6 @@ export const collapse = {
 		ji.size.sm,
 		iro.text.muted,
 		iro.text.hover,
-		'font-medium',
 		'group-data-[open]/collapse:text-zinc-950',
 		'dark:group-data-[open]/collapse:text-white',
 		sen.focus.ring,

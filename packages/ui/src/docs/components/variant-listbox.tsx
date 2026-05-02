@@ -20,10 +20,10 @@ export function VariantListbox<T extends string>({
 	return (
 		<Listbox
 			value={value}
+			displayValue={(v: string) => cap(v)}
 			placement={placement}
 			onChange={onChange as (value: T | undefined) => void}
-			className="sm:min-w-30 capitalize"
-			displayValue={(v: string) => cap(v)}
+			className="capitalize"
 		>
 			{variants.map((v) => (
 				<ListboxOption key={v} value={v}>

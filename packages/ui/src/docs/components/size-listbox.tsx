@@ -13,18 +13,23 @@ export const sizeLabels: Record<string, string> = {
 interface SizeListboxProps<T extends string> {
 	sizes: readonly T[]
 	value: T
+	placement?: 'bottom-start' | 'bottom-end'
 	onChange: (value: T) => void
 }
 
-export function SizeListbox<T extends string>({ sizes, value, onChange }: SizeListboxProps<T>) {
-	const wide = sizes.some((s) => s === 'xs' || s === 'xl')
-
+export function SizeListbox<T extends string>({
+	sizes,
+	value,
+	placement = 'bottom-end',
+	onChange,
+}: SizeListboxProps<T>) {
 	return (
 		<Listbox
 			value={value}
-			onChange={onChange}
-			className={`${wide ? 'min-w-36' : 'min-w-30'} capitalize`}
 			displayValue={(v: string) => sizeLabels[v] ?? v}
+			placement={placement}
+			onChange={onChange as (value: T | undefined) => void}
+			className="capitalize"
 		>
 			{sizes.map((s) => (
 				<ListboxOption key={s} value={s}>
