@@ -1,6 +1,5 @@
 import { tv, type VariantProps } from 'tailwind-variants'
 import { ji } from '../ryu/ji'
-import { maru } from '../ryu/maru'
 import { take } from '../ryu/take'
 
 const blockBg = 'bg-[#0d1117]'
@@ -14,7 +13,7 @@ export const code = tv({
 })
 
 export const codeBlock = tv({
-	base: ['relative overflow-hidden', maru.rounded.lg, blockBg],
+	base: ['relative overflow-hidden', 'rounded-lg', blockBg],
 	variants: {
 		inline: {
 			true: 'w-fit max-w-full',

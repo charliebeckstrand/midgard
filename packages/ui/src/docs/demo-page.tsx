@@ -18,10 +18,10 @@ export function DemoPage({ demo }: { demo: Demo }) {
 			<SidebarLayoutHeader>
 				<Heading>{demo.name}</Heading>
 			</SidebarLayoutHeader>
-			<Stack gap={6}>
+			<Stack gap="xl">
 				<Component />
 				{api && (
-					<Stack gap={2}>
+					<Stack gap="sm">
 						<Heading level={2}>API Reference</Heading>
 						<ApiReference api={api} />
 					</Stack>

@@ -1,8 +1,6 @@
 import { tv } from 'tailwind-variants'
 import { mode } from '../../core/recipe/mode'
 import { iro } from '../ryu/iro'
-import { kumi } from '../ryu/kumi'
-import { maru } from '../ryu/maru'
 import { sawari } from '../ryu/sawari'
 import { sen } from '../ryu/sen'
 
@@ -22,7 +20,7 @@ const tabList = tv({
 const tabItem = tv({
 	base: [
 		'relative flex items-center',
-		kumi.gap.md,
+		'gap-sm',
 		'font-medium',
 		...iro.text.tab,
 		sen.focus.indicator,
@@ -43,7 +41,7 @@ const tabItem = tv({
 })
 
 const tabIndicatorBar = tv({
-	base: [maru.rounded.full, tabIndicator],
+	base: ['rounded-full', tabIndicator],
 	variants: {
 		orientation: {
 			horizontal: 'inset-x-0 -bottom-px top-auto h-0.5',

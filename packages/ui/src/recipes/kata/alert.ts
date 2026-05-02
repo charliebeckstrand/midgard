@@ -2,8 +2,6 @@ import { tv, type VariantProps } from 'tailwind-variants'
 import { colorVariants } from '../../core/recipe'
 import { iro, merge } from '../ryu/iro'
 import { ji } from '../ryu/ji'
-import { kumi } from '../ryu/kumi'
-import { maru } from '../ryu/maru'
 
 const { solid, soft, outline, plain } = iro.palette
 
@@ -15,7 +13,7 @@ const { color, compoundVariants } = colorVariants({
 })
 
 export const alert = tv({
-	base: ['flex w-fit', 'px-4 py-3.5', kumi.gap.md, ji.size.md, maru.rounded.lg],
+	base: ['flex w-fit', 'px-4 py-3.5', 'gap-sm', ji.size.md, 'rounded-lg'],
 	variants: {
 		variant: {
 			solid: '',
@@ -35,8 +33,8 @@ export const slots = {
 	title: [ji.size.lg, 'font-semibold'],
 	description: '',
 	content: 'flex flex-col flex-1 min-w-0',
-	actions: ['mt-2 flex items-center', kumi.gap.sm],
-	close: ['shrink-0', maru.rounded.md],
+	actions: ['mt-2 flex items-center', 'gap-xs'],
+	close: ['shrink-0', 'rounded-md'],
 }
 
 export type AlertVariants = VariantProps<typeof alert>

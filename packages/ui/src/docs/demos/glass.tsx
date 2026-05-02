@@ -21,7 +21,6 @@ import {
 import { NumberInput } from '../../components/number-input'
 import { Select, SelectLabel, SelectOption } from '../../components/select'
 import { Sheet, SheetActions, SheetBody, SheetTitle } from '../../components/sheet'
-import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
 import { Textarea } from '../../components/textarea'
@@ -41,63 +40,59 @@ export default function GlassDemo() {
 	const [date, setDate] = useState<Date | undefined>(undefined)
 
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Example title="Glass wrapper">
 				<Glass>
-					<Sizer>
-						<Field>
-							<Label>Input</Label>
-							<Input placeholder="Glass input" />
-						</Field>
-						<Field>
-							<Label>Textarea</Label>
-							<Textarea placeholder="Glass textarea" />
-						</Field>
-						<Field>
-							<Label>Number</Label>
-							<NumberInput defaultValue={1} />
-						</Field>
-					</Sizer>
+					<Field>
+						<Label>Input</Label>
+						<Input placeholder="Glass input" />
+					</Field>
+					<Field>
+						<Label>Textarea</Label>
+						<Textarea placeholder="Glass textarea" />
+					</Field>
+					<Field>
+						<Label>Number</Label>
+						<NumberInput defaultValue={1} />
+					</Field>
 				</Glass>
 			</Example>
 
 			<Example title="Form controls">
 				<Glass>
-					<Sizer>
-						<Field>
-							<Label>Select</Label>
-							<Select placeholder="Select a person" displayValue={(v: string) => v}>
-								{people.map((p) => (
-									<SelectOption key={p} value={p}>
-										<SelectLabel>{p}</SelectLabel>
-									</SelectOption>
-								))}
-							</Select>
-						</Field>
-						<Field>
-							<Label>Combobox</Label>
-							<Combobox
-								value={comboboxValue}
-								onChange={setComboboxValue}
-								displayValue={(v: string) => v}
-								placeholder="Search people"
-							>
-								{(query) =>
-									people
-										.filter((p) => !query || p.toLowerCase().includes(query.toLowerCase()))
-										.map((p) => (
-											<ComboboxOption key={p} value={p}>
-												<ComboboxLabel>{p}</ComboboxLabel>
-											</ComboboxOption>
-										))
-								}
-							</Combobox>
-						</Field>
-						<Field>
-							<Label>Date</Label>
-							<DatePicker value={date} onChange={setDate} />
-						</Field>
-					</Sizer>
+					<Field>
+						<Label>Select</Label>
+						<Select placeholder="Select a person" displayValue={(v: string) => v}>
+							{people.map((p) => (
+								<SelectOption key={p} value={p}>
+									<SelectLabel>{p}</SelectLabel>
+								</SelectOption>
+							))}
+						</Select>
+					</Field>
+					<Field>
+						<Label>Combobox</Label>
+						<Combobox
+							value={comboboxValue}
+							onChange={setComboboxValue}
+							displayValue={(v: string) => v}
+							placeholder="Search people"
+						>
+							{(query) =>
+								people
+									.filter((p) => !query || p.toLowerCase().includes(query.toLowerCase()))
+									.map((p) => (
+										<ComboboxOption key={p} value={p}>
+											<ComboboxLabel>{p}</ComboboxLabel>
+										</ComboboxOption>
+									))
+							}
+						</Combobox>
+					</Field>
+					<Field>
+						<Label>Date</Label>
+						<DatePicker value={date} onChange={setDate} />
+					</Field>
 				</Glass>
 			</Example>
 
@@ -126,7 +121,7 @@ export default function GlassDemo() {
 
 			<Example title="Overlays">
 				<Glass>
-					<Flex gap={3}>
+					<Flex gap="md">
 						<Button variant="outline" onClick={() => setDialogOpen(true)}>
 							Dialog
 						</Button>

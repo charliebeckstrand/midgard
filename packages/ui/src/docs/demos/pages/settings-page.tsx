@@ -3,13 +3,12 @@
 import { type ComponentProps, useState } from 'react'
 import { Button } from '../../../components/button'
 import { Checkbox, CheckboxField, CheckboxGroup } from '../../../components/checkbox'
-import { Description, Field, Fieldset, Label } from '../../../components/fieldset'
+import { Description, Field, Fieldset, Label, Legend } from '../../../components/fieldset'
 import { Input } from '../../../components/input'
 import { PasswordConfirm, PasswordConfirmInput } from '../../../components/password-confirm'
 import { PasswordInput } from '../../../components/password-input'
 import { PasswordStrength } from '../../../components/password-strength'
 import { Select, SelectLabel, SelectOption } from '../../../components/select'
-import { Sizer } from '../../../components/sizer'
 import { Stack } from '../../../components/stack'
 import { Switch, SwitchField } from '../../../components/switch'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../components/tabs'
@@ -56,10 +55,10 @@ export default function SettingsPageDemo() {
 						</StackedLayoutHeader>
 
 						<StackedLayoutBody>
-							<Fieldset disabled={submitting} className="grid gap-6">
+							<Fieldset disabled={submitting}>
 								<TabContents>
 									<TabContent value="profile">
-										<Sizer size="lg" gap={6}>
+										<Stack gap="lg">
 											<Field>
 												<Label>Full name</Label>
 												<Input defaultValue="Jane Smith" />
@@ -102,13 +101,13 @@ export default function SettingsPageDemo() {
 													</SelectOption>
 												</Select>
 											</Field>
-										</Sizer>
+										</Stack>
 									</TabContent>
 
 									<TabContent value="notifications">
-										<Sizer size="lg" gap={6}>
+										<Stack gap="lg">
+											<Legend>Email notifications</Legend>
 											<CheckboxGroup>
-												<Label>Email notifications</Label>
 												<CheckboxField>
 													<Checkbox id="notif-updates" defaultChecked />
 													<Label htmlFor="notif-updates">Product updates</Label>
@@ -123,9 +122,10 @@ export default function SettingsPageDemo() {
 												</CheckboxField>
 											</CheckboxGroup>
 
+											<Legend>Push notifications</Legend>
+
 											<div>
-												<Label>Push notifications</Label>
-												<Stack gap={3} className="pt-4">
+												<Stack gap="md">
 													<SwitchField>
 														<Label htmlFor="push-dm">Direct messages</Label>
 														<Switch id="push-dm" defaultChecked />
@@ -140,11 +140,11 @@ export default function SettingsPageDemo() {
 													</SwitchField>
 												</Stack>
 											</div>
-										</Sizer>
+										</Stack>
 									</TabContent>
 
 									<TabContent value="security">
-										<Sizer size="lg" gap={6}>
+										<Stack gap="lg">
 											<Field>
 												<Label>Current password</Label>
 												<PasswordInput placeholder="Enter current password" />
@@ -169,7 +169,7 @@ export default function SettingsPageDemo() {
 												<Description>Add an extra layer of security to your account</Description>
 												<Switch id="switch-2fa" color="green" />
 											</SwitchField>
-										</Sizer>
+										</Stack>
 									</TabContent>
 								</TabContents>
 							</Fieldset>

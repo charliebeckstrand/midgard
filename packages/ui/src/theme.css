@@ -1,0 +1,113 @@
+@theme {
+	--step-xs: calc(var(--spacing) * 1);
+	--step-sm: calc(var(--spacing) * 2);
+	--step-md: calc(var(--spacing) * 3);
+	--step-lg: calc(var(--spacing) * 4);
+	--step-xl: calc(var(--spacing) * 6);
+}
+
+/* The `ma` spacing scale is exposed as static `@utility` rules rather than
+   `--spacing-*` tokens because the t-shirt names (xs/sm/md/lg/xl) collide with
+   `--container-*` and would otherwise shadow `max-w-sm`, `w-md`, etc. */
+
+@utility p-xs { padding: var(--step-xs); }
+@utility p-sm { padding: var(--step-sm); }
+@utility p-md { padding: var(--step-md); }
+@utility p-lg { padding: var(--step-lg); }
+@utility p-xl { padding: var(--step-xl); }
+
+@utility px-xs { padding-inline: var(--step-xs); }
+@utility px-sm { padding-inline: var(--step-sm); }
+@utility px-md { padding-inline: var(--step-md); }
+@utility px-lg { padding-inline: var(--step-lg); }
+@utility px-xl { padding-inline: var(--step-xl); }
+
+@utility py-xs { padding-block: var(--step-xs); }
+@utility py-sm { padding-block: var(--step-sm); }
+@utility py-md { padding-block: var(--step-md); }
+@utility py-lg { padding-block: var(--step-lg); }
+@utility py-xl { padding-block: var(--step-xl); }
+
+@utility pt-xs { padding-top: var(--step-xs); }
+@utility pt-sm { padding-top: var(--step-sm); }
+@utility pt-md { padding-top: var(--step-md); }
+@utility pt-lg { padding-top: var(--step-lg); }
+@utility pt-xl { padding-top: var(--step-xl); }
+
+@utility pb-xs { padding-bottom: var(--step-xs); }
+@utility pb-sm { padding-bottom: var(--step-sm); }
+@utility pb-md { padding-bottom: var(--step-md); }
+@utility pb-lg { padding-bottom: var(--step-lg); }
+@utility pb-xl { padding-bottom: var(--step-xl); }
+
+@utility pl-xs { padding-left: var(--step-xs); }
+@utility pl-sm { padding-left: var(--step-sm); }
+@utility pl-md { padding-left: var(--step-md); }
+@utility pl-lg { padding-left: var(--step-lg); }
+@utility pl-xl { padding-left: var(--step-xl); }
+
+@utility pr-xs { padding-right: var(--step-xs); }
+@utility pr-sm { padding-right: var(--step-sm); }
+@utility pr-md { padding-right: var(--step-md); }
+@utility pr-lg { padding-right: var(--step-lg); }
+@utility pr-xl { padding-right: var(--step-xl); }
+
+@utility m-xs { margin: var(--step-xs); }
+@utility m-sm { margin: var(--step-sm); }
+@utility m-md { margin: var(--step-md); }
+@utility m-lg { margin: var(--step-lg); }
+@utility m-xl { margin: var(--step-xl); }
+
+@utility mx-xs { margin-inline: var(--step-xs); }
+@utility mx-sm { margin-inline: var(--step-sm); }
+@utility mx-md { margin-inline: var(--step-md); }
+@utility mx-lg { margin-inline: var(--step-lg); }
+@utility mx-xl { margin-inline: var(--step-xl); }
+
+@utility my-xs { margin-block: var(--step-xs); }
+@utility my-sm { margin-block: var(--step-sm); }
+@utility my-md { margin-block: var(--step-md); }
+@utility my-lg { margin-block: var(--step-lg); }
+@utility my-xl { margin-block: var(--step-xl); }
+
+@utility mt-xs { margin-top: var(--step-xs); }
+@utility mt-sm { margin-top: var(--step-sm); }
+@utility mt-md { margin-top: var(--step-md); }
+@utility mt-lg { margin-top: var(--step-lg); }
+@utility mt-xl { margin-top: var(--step-xl); }
+
+@utility mb-xs { margin-bottom: var(--step-xs); }
+@utility mb-sm { margin-bottom: var(--step-sm); }
+@utility mb-md { margin-bottom: var(--step-md); }
+@utility mb-lg { margin-bottom: var(--step-lg); }
+@utility mb-xl { margin-bottom: var(--step-xl); }
+
+@utility ml-xs { margin-left: var(--step-xs); }
+@utility ml-sm { margin-left: var(--step-sm); }
+@utility ml-md { margin-left: var(--step-md); }
+@utility ml-lg { margin-left: var(--step-lg); }
+@utility ml-xl { margin-left: var(--step-xl); }
+
+@utility mr-xs { margin-right: var(--step-xs); }
+@utility mr-sm { margin-right: var(--step-sm); }
+@utility mr-md { margin-right: var(--step-md); }
+@utility mr-lg { margin-right: var(--step-lg); }
+@utility mr-xl { margin-right: var(--step-xl); }
+
+@utility gap-xs { gap: var(--step-xs); }
+@utility gap-sm { gap: var(--step-sm); }
+@utility gap-md { gap: var(--step-md); }
+@utility gap-lg { gap: var(--step-lg); }
+@utility gap-xl { gap: var(--step-xl); }
+
+@utility gap-x-xs { column-gap: var(--step-xs); }
+@utility gap-x-sm { column-gap: var(--step-sm); }
+@utility gap-x-md { column-gap: var(--step-md); }
+@utility gap-x-lg { column-gap: var(--step-lg); }
+@utility gap-x-xl { column-gap: var(--step-xl); }
+
+@utility gap-y-xs { row-gap: var(--step-xs); }
+@utility gap-y-sm { row-gap: var(--step-sm); }
+@utility gap-y-md { row-gap: var(--step-md); }
+@utility gap-y-lg { row-gap: var(--step-lg); }
+@utility gap-y-xl { row-gap: var(--step-xl); }

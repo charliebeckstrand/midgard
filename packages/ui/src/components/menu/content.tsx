@@ -5,7 +5,7 @@ import { AnimatePresence } from 'motion/react'
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { PopoverPanel } from '../../primitives'
-import { maru, omote } from '../../recipes'
+import { omote } from '../../recipes'
 import { useMenuActions, useMenuState } from './menu'
 import { k } from './variants'
 
@@ -23,7 +23,7 @@ export function MenuContent({ className, children }: MenuContentProps) {
 			<PopoverPanel
 				role="menu"
 				itemSelector='[role="menuitem"]:not([data-disabled])'
-				className={cn(omote.popover, maru.rounded.lg, 'p-1 space-y-0.5', k.content, className)}
+				className={cn(omote.popover, 'rounded-lg', 'p-1 space-y-0.5', k.content, className)}
 			>
 				{children}
 			</PopoverPanel>

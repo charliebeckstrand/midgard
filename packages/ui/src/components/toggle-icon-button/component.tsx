@@ -1,10 +1,9 @@
 import type { ComponentPropsWithoutRef, ReactElement } from 'react'
 import { cn } from '../../core'
+import type { Size } from '../../types'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { k } from './variants'
-
-type Size = 'xs' | 'sm' | 'md' | 'lg'
 
 export type ToggleIconButtonProps = {
 	pressed: boolean
@@ -54,8 +53,7 @@ export function ToggleIconButton({
 					<span
 						className={cn(
 							'absolute inset-0',
-							'flex',
-							'items-center justify-center',
+							'flex items-center justify-center',
 							k.transition,
 							pressed ? k.active : k.inactive,
 						)}

@@ -172,7 +172,7 @@ function ShipmentChat({ messages, onSend }: ShipmentChatProps) {
 	}
 
 	return (
-		<Stack gap={4}>
+		<Stack gap="lg">
 			<div
 				ref={scrollerRef}
 				data-slot="map-shipment-chat"

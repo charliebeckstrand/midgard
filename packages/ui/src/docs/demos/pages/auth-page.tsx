@@ -12,6 +12,18 @@ import { Example } from '../../components/example'
 
 export const meta = { category: 'Pages' }
 
+const Form = ({
+	onSubmit,
+	children,
+}: {
+	onSubmit: ComponentProps<'form'>['onSubmit']
+	children: React.ReactNode
+}) => (
+	<form onSubmit={onSubmit} className="grid gap-6 w-full sm:max-w-sm px-4">
+		{children}
+	</form>
+)
+
 export default function AuthPageDemo() {
 	const [submitting, setSubmitting] = useState(false)
 
@@ -43,8 +55,8 @@ export default function AuthPageDemo() {
 						<AuthLayout>
 							<Heading className="text-center">Sign in to your account</Heading>
 
-							<form onSubmit={handleSubmit} className="grid gap-8 w-full sm:max-w-sm px-4">
-								<Fieldset disabled={submitting} className="grid gap-8">
+							<Form onSubmit={handleSubmit}>
+								<Fieldset disabled={submitting} className="grid gap-6">
 									<Field>
 										<Label>Email</Label>
 										<Input type="email" placeholder="you@example.com" />
@@ -58,15 +70,15 @@ export default function AuthPageDemo() {
 										{submitting ? 'Signing in...' : 'Sign in'}
 									</Button>
 								</Fieldset>
-							</form>
+							</Form>
 						</AuthLayout>
 					</TabContent>
 					<TabContent value="register">
 						<AuthLayout>
 							<Heading className="text-center">Create your account</Heading>
 
-							<form onSubmit={handleSubmit} className="grid gap-8 w-full sm:max-w-sm px-4">
-								<Fieldset disabled={submitting} className="grid gap-8">
+							<Form onSubmit={handleSubmit}>
+								<Fieldset disabled={submitting} className="grid gap-6">
 									<Field>
 										<Label>Name</Label>
 										<Input placeholder="Jane Smith" />
@@ -88,15 +100,15 @@ export default function AuthPageDemo() {
 										{submitting ? 'Creating account...' : 'Create account'}
 									</Button>
 								</Fieldset>
-							</form>
+							</Form>
 						</AuthLayout>
 					</TabContent>
 					<TabContent value="forgot-password">
 						<AuthLayout>
 							<Heading className="text-center">Reset your password</Heading>
 
-							<form onSubmit={handleSubmit} className="grid gap-8 w-full sm:max-w-sm px-4">
-								<Fieldset disabled={submitting} className="grid gap-8">
+							<Form onSubmit={handleSubmit}>
+								<Fieldset disabled={submitting} className="grid gap-6">
 									<Field>
 										<Label>Email</Label>
 										<Input type="email" placeholder="you@example.com" />
@@ -106,7 +118,7 @@ export default function AuthPageDemo() {
 										{submitting ? 'Sending reset link...' : 'Send reset link'}
 									</Button>
 								</Fieldset>
-							</form>
+							</Form>
 						</AuthLayout>
 					</TabContent>
 				</TabContents>

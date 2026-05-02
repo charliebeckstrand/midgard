@@ -88,7 +88,7 @@ describe('PopoverContent size context', () => {
 			</Popover>,
 		)
 
-		// sun.sm.text = 'sm' → ji.size.sm = 'text-sm/5'
-		expect(buttonInPopover()?.className).toContain('text-sm/5')
+		// sun.sm.text = 'sm' → ji.size.sm = 'text-sm'
+		expect(buttonInPopover()?.className).toContain('text-sm')
 	})
 })

@@ -54,7 +54,7 @@ function WithLinksExample() {
 
 export default function BottomNavDemo() {
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Example
 				title="Default"
 				code={code`

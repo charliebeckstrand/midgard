@@ -1,11 +1,10 @@
 import { tv, type VariantProps } from 'tailwind-variants'
 import { iro } from '../ryu/iro'
-import { maru } from '../ryu/maru'
 import { tsunagi } from '../ryu/tsunagi'
 import { control } from '../waku/control'
 
 export const input = tv({
-	base: [...control.field, 'block', maru.rounded.lg],
+	base: [...control.field, 'block', 'rounded-lg'],
 	variants: {
 		variant: {
 			default: [],

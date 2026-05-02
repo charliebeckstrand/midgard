@@ -2,8 +2,6 @@ import { tv, type VariantProps } from 'tailwind-variants'
 import { colorVariants } from '../../core/recipe'
 import { iro, merge } from '../ryu/iro'
 import { ji } from '../ryu/ji'
-import { kumi } from '../ryu/kumi'
-import { maru } from '../ryu/maru'
 
 const { solid, soft, outline, plain } = iro.palette
 
@@ -15,14 +13,38 @@ const { color, compoundVariants } = colorVariants({
 })
 
 const size = {
-	xs: ['px-1 py-0.5', kumi.gap.xs, ji.size.xs, '*:data-[slot=icon]:size-3'],
-	sm: ['px-1.5 py-0.5', kumi.gap.sm, ji.size.sm, '*:data-[slot=icon]:size-4'],
-	md: ['px-2 py-0.5', kumi.gap.md, ji.size.md, '*:data-[slot=icon]:size-3.5'],
-	lg: ['px-2.5 py-1', kumi.gap.lg, ji.size.lg, '*:data-[slot=icon]:size-4'],
+	xs: [
+		'px-1 py-0.25',
+		'gap-0.5',
+		ji.size.xs,
+		'data-[has-prefix]:has-[button]:pr-2',
+		'data-[has-suffix]:has-[button]:pl-2',
+	],
+	sm: [
+		'px-1.5 py-0.5',
+		'gap-1',
+		ji.size.sm,
+		'data-[has-prefix]:has-[button]:pr-2.5',
+		'data-[has-suffix]:has-[button]:pl-2.5',
+	],
+	md: [
+		'px-2 py-1',
+		'gap-1.5',
+		ji.size.md,
+		'data-[has-prefix]:has-[button]:pr-3',
+		'data-[has-suffix]:has-[button]:pl-3',
+	],
+	lg: [
+		'px-2.5 py-1.5',
+		'gap-2',
+		ji.size.lg,
+		'data-[has-prefix]:has-[button]:pr-3.5',
+		'data-[has-suffix]:has-[button]:pl-3.5',
+	],
 }
 
 export const badge = tv({
-	base: ['group inline-flex w-fit items-center', 'font-medium'],
+	base: ['group', 'inline-flex w-fit items-center', 'font-medium'],
 	variants: {
 		variant: {
 			solid: '',
@@ -33,12 +55,12 @@ export const badge = tv({
 		color,
 		size,
 		rounded: {
-			none: maru.rounded.none,
-			sm: maru.rounded.sm,
-			md: maru.rounded.md,
-			lg: maru.rounded.lg,
-			xl: maru.rounded.xl,
-			full: maru.rounded.full,
+			none: 'rounded-none',
+			sm: 'rounded-sm',
+			md: 'rounded-md',
+			lg: 'rounded-lg',
+			xl: 'rounded-xl',
+			full: 'rounded-full',
 		},
 	},
 	compoundVariants,

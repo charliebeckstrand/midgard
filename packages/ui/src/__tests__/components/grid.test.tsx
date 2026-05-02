@@ -59,14 +59,17 @@ describe('GridCell', () => {
 		expect(el?.className).toContain('custom')
 	})
 
-	it('emits col-span-<n> for numeric span', () => {
+	it('routes a numeric span through the --span CSS variable', () => {
 		const { container } = renderUI(
 			<Grid>
 				<GridCell span={3}>cell</GridCell>
 			</Grid>,
 		)
 
-		expect(bySlot(container, 'grid-cell')?.className).toContain('col-span-3')
+		const cell = bySlot(container, 'grid-cell')
+
+		expect(cell?.className).toContain('col-span-(--span)')
+		expect(cell?.style.getPropertyValue('--span')).toBe('3')
 	})
 
 	it('emits col-span-full for span="full" when Grid has no columns', () => {
@@ -79,17 +82,20 @@ describe('GridCell', () => {
 		expect(bySlot(container, 'grid-cell')?.className).toContain('col-span-full')
 	})
 
-	it('emits col-span-<columns> for span="full" when Grid columns is provided', () => {
+	it('mirrors the parent column count for span="full" when Grid columns is provided', () => {
 		const { container } = renderUI(
 			<Grid columns={4}>
 				<GridCell span="full">cell</GridCell>
 			</Grid>,
 		)
 
-		expect(bySlot(container, 'grid-cell')?.className).toContain('col-span-4')
+		const cell = bySlot(container, 'grid-cell')
+
+		expect(cell?.className).toContain('col-span-(--span)')
+		expect(cell?.style.getPropertyValue('--span')).toBe('4')
 	})
 
-	it('emits row-span, col-start, and row-start classes', () => {
+	it('routes rowSpan, start, and rowStart through CSS variables', () => {
 		const { container } = renderUI(
 			<Grid>
 				<GridCell rowSpan={2} start={2} rowStart={3}>
@@ -98,21 +104,26 @@ describe('GridCell', () => {
 			</Grid>,
 		)
 
-		const cn = bySlot(container, 'grid-cell')?.className ?? ''
+		const cell = bySlot(container, 'grid-cell')
+		const cls = cell?.className ?? ''
 
-		expect(cn).toContain('row-span-2')
-		expect(cn).toContain('col-start-2')
-		expect(cn).toContain('row-start-3')
+		expect(cls).toContain('row-span-(--row-span)')
+		expect(cls).toContain('col-start-(--col-start)')
+		expect(cls).toContain('row-start-(--row-start)')
+
+		expect(cell?.style.getPropertyValue('--row-span')).toBe('2')
+		expect(cell?.style.getPropertyValue('--col-start')).toBe('2')
+		expect(cell?.style.getPropertyValue('--row-start')).toBe('3')
 	})
 
-	it('emits a grid-area class when area is provided', () => {
+	it('sets gridArea inline when area is provided', () => {
 		const { container } = renderUI(
 			<Grid>
 				<GridCell area="header">cell</GridCell>
 			</Grid>,
 		)
 
-		expect(bySlot(container, 'grid-cell')?.className).toContain('[grid-area:header]')
+		expect(bySlot(container, 'grid-cell')?.style.gridArea).toBe('header')
 	})
 
 	it('passes through HTML attributes', () => {

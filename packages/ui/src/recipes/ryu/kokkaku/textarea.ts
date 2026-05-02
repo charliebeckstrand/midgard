@@ -1,5 +1,3 @@
-import { maru } from '../maru'
-
 export const textarea = {
-	base: ['h-28', 'w-full', maru.rounded.lg],
+	base: ['h-28', 'w-full', 'rounded-lg'],
 }

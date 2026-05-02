@@ -8,7 +8,6 @@ import {
 	type PasswordRule,
 	PasswordStrength,
 } from '../../components/password-strength'
-import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'
 import { code } from '../code'
 import { Example } from '../components/example'
@@ -19,21 +18,19 @@ function BasicExample() {
 	const [value, setValue] = useState('')
 
 	return (
-		<Sizer>
-			<Stack gap={3}>
-				<Field>
-					<Label htmlFor="password-strength-basic">Password</Label>
-					<PasswordInput
-						id="password-strength-basic"
-						value={value}
-						onChange={(e) => setValue(e.target.value)}
-						placeholder="Enter password"
-						autoComplete="new-password"
-					/>
-				</Field>
-				<PasswordStrength value={value} />
-			</Stack>
-		</Sizer>
+		<Stack gap="md">
+			<Field>
+				<Label htmlFor="password-strength-basic">Password</Label>
+				<PasswordInput
+					id="password-strength-basic"
+					value={value}
+					onChange={(e) => setValue(e.target.value)}
+					placeholder="Enter password"
+					autoComplete="new-password"
+				/>
+			</Field>
+			<PasswordStrength value={value} />
+		</Stack>
 	)
 }
 
@@ -41,21 +38,19 @@ function MeterOnlyExample() {
 	const [value, setValue] = useState('')
 
 	return (
-		<Sizer>
-			<Stack gap={3}>
-				<Field>
-					<Label htmlFor="password-strength-meter">Password</Label>
-					<PasswordInput
-						id="password-strength-meter"
-						value={value}
-						onChange={(e) => setValue(e.target.value)}
-						placeholder="Enter password"
-						autoComplete="new-password"
-					/>
-				</Field>
-				<PasswordStrength value={value} showRules={false} />
-			</Stack>
-		</Sizer>
+		<Stack gap="md">
+			<Field>
+				<Label htmlFor="password-strength-meter">Password</Label>
+				<PasswordInput
+					id="password-strength-meter"
+					value={value}
+					onChange={(e) => setValue(e.target.value)}
+					placeholder="Enter password"
+					autoComplete="new-password"
+				/>
+			</Field>
+			<PasswordStrength value={value} showRules={false} />
+		</Stack>
 	)
 }
 
@@ -68,27 +63,25 @@ function CustomRulesExample() {
 	const [value, setValue] = useState('')
 
 	return (
-		<Sizer>
-			<Stack gap={3}>
-				<Field>
-					<Label htmlFor="password-strength-custom">Password</Label>
-					<PasswordInput
-						id="password-strength-custom"
-						value={value}
-						onChange={(e) => setValue(e.target.value)}
-						placeholder="Enter password"
-						autoComplete="new-password"
-					/>
-				</Field>
-				<PasswordStrength value={value} rules={customRules} />
-			</Stack>
-		</Sizer>
+		<Stack gap="md">
+			<Field>
+				<Label htmlFor="password-strength-custom">Password</Label>
+				<PasswordInput
+					id="password-strength-custom"
+					value={value}
+					onChange={(e) => setValue(e.target.value)}
+					placeholder="Enter password"
+					autoComplete="new-password"
+				/>
+			</Field>
+			<PasswordStrength value={value} rules={customRules} />
+		</Stack>
 	)
 }
 
 export default function PasswordStrengthDemo() {
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Example
 				title="With password input"
 				code={code`

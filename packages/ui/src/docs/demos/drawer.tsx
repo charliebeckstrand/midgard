@@ -11,7 +11,7 @@ export default function DrawerDemo() {
 	const [glassOpen, setGlassOpen] = useState(false)
 
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Example title="Default">
 				<Button onClick={() => setOpen(true)}>Open Drawer</Button>
 				<Drawer open={open} onOpenChange={setOpen}>

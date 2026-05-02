@@ -2,7 +2,7 @@
  * Take (丈) — Measure.
  *
  * Pure dimension scales — width, height, and the icon-slot size grid.
- * Typography lives in `ji`; gaps live in `kumi`; padding lives in `ma`.
+ * Typography lives in `ji`; padding, margin, and gap live in `ma`.
  * Density presets (button / compact / control) live with their component in
  * `kata`, composed from these primitives.
  *

@@ -28,7 +28,7 @@ const popoverContent = (
 
 export default function PopoverDemo() {
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Example title="Default">
 				<Popover>
 					<PopoverTrigger>
@@ -55,7 +55,7 @@ export default function PopoverDemo() {
 
 			<Example title="Placement">
 				<div>
-					<Flex justify="center" gap={4} className="hidden sm:flex">
+					<Flex justify="center" gap="lg" className="hidden sm:flex">
 						{placements.map((placement) => {
 							const isLeading = placement === 'left' || placement === 'top'
 							const iconNode = <Icon icon={iconMap[placement]} />
@@ -76,8 +76,8 @@ export default function PopoverDemo() {
 							)
 						})}
 					</Flex>
-					<Stack gap={4} className="sm:hidden">
-						<Stack gap={4}>
+					<Stack gap="lg" className="sm:hidden">
+						<Stack gap="lg">
 							{(['right', 'bottom'] as const).map((placement) => (
 								<Popover key={placement} placement={placement}>
 									<PopoverTrigger>
@@ -93,7 +93,7 @@ export default function PopoverDemo() {
 								</Popover>
 							))}
 						</Stack>
-						<Stack gap={4} align="end">
+						<Stack gap="lg" align="end">
 							{(['top', 'left'] as const).map((placement) => (
 								<Popover key={placement} placement={placement}>
 									<PopoverTrigger>

@@ -25,16 +25,16 @@ describe('Concentric', () => {
 		expect(bySlot(container, 'concentric')).toHaveAttribute('data-step', 'lg')
 	})
 
-	it('exposes --ui-radius-inner and --ui-padding inline for the concentric formula', () => {
+	it('exposes --ui-radius-inner, --ui-padding, and --ui-gap inline for the concentric formula', () => {
 		const { container } = renderUI(<Concentric size="md">content</Concentric>)
 
 		const root = bySlot(container, 'concentric')
 
-		// var(--radius-lg) for md.
 		expect(root?.style.getPropertyValue('--ui-radius-inner')).toBe(`var(--radius-${sun.md.radius})`)
 		expect(root?.style.getPropertyValue('--ui-padding')).toBe(
 			`calc(var(--spacing) * ${sun.md.space})`,
 		)
+		expect(root?.style.getPropertyValue('--ui-gap')).toBe(`calc(var(--spacing) * ${sun.md.gap})`)
 	})
 
 	it('applies the concentric outer-radius class derived from the formula', () => {
@@ -45,10 +45,10 @@ describe('Concentric', () => {
 		)
 	})
 
-	it('applies the step padding class by default', () => {
+	it('applies the padding utility sourced from --ui-padding by default', () => {
 		const { container } = renderUI(<Concentric size="md">content</Concentric>)
 
-		expect(bySlot(container, 'concentric')?.className).toContain(`p-${sun.md.space}`)
+		expect(bySlot(container, 'concentric')?.className).toContain('p-(--ui-padding)')
 	})
 
 	it('omits the padding class when flush is set', () => {
@@ -58,7 +58,7 @@ describe('Concentric', () => {
 			</Concentric>,
 		)
 
-		expect(bySlot(container, 'concentric')?.className).not.toContain(`p-${sun.md.space}`)
+		expect(bySlot(container, 'concentric')?.className).not.toContain('p-(--ui-padding)')
 	})
 
 	it('forwards children', () => {

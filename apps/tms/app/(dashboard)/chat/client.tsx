@@ -7,7 +7,6 @@ import { Button } from 'ui/button'
 import { ChatPrompt } from 'ui/chat-prompt'
 import { Flex } from 'ui/flex'
 import { Icon } from 'ui/icon'
-import { Sizer } from 'ui/sizer'
 
 export default function ChatClient() {
 	const router = useRouter()
@@ -28,18 +27,16 @@ export default function ChatClient() {
 
 	return (
 		<Flex align="center" justify="center" className="h-full w-full">
-			<Sizer size="md">
-				<ChatPrompt
-					value={value}
-					onValueChange={setValue}
-					onSubmit={handleSubmit}
-					actions={
-						<Button variant="plain" size="sm" prefix={<Icon icon={<CircleDashed />} />}>
-							Data Analyst
-						</Button>
-					}
-				/>
-			</Sizer>
+			<ChatPrompt
+				value={value}
+				onValueChange={setValue}
+				onSubmit={handleSubmit}
+				actions={
+					<Button variant="plain" size="sm" prefix={<Icon icon={<CircleDashed />} />}>
+						Data Analyst
+					</Button>
+				}
+			/>
 		</Flex>
 	)
 }

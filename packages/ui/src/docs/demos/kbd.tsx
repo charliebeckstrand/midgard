@@ -8,13 +8,13 @@ export const meta = { category: 'Data Display' }
 
 export default function KbdDemo() {
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Example title="Default">
 				<Kbd>K</Kbd>
 			</Example>
 
 			<Example title="Modifier glyphs">
-				<Flex gap={3}>
+				<Flex gap="md">
 					<Kbd cmd>K</Kbd>
 					<Kbd ctrl>K</Kbd>
 					<Kbd ctrl cmd>
@@ -24,7 +24,7 @@ export default function KbdDemo() {
 			</Example>
 
 			<Example title="Inside a button">
-				<Flex wrap gap={3}>
+				<Flex wrap gap="md">
 					<Button suffix={<Kbd cmd>O</Kbd>}>Open</Button>
 					<Button variant="soft" color="blue" suffix={<Kbd cmd>S</Kbd>}>
 						Save

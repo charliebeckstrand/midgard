@@ -14,9 +14,9 @@ export default function SheetDemo() {
 	const [glassRightOpen, setGlassRightOpen] = useState(false)
 
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Example title="Default">
-				<Flex gap={3}>
+				<Flex gap="md">
 					<Button variant="outline" onClick={() => setLeftOpen(true)}>
 						Open Left
 					</Button>
@@ -46,7 +46,7 @@ export default function SheetDemo() {
 			</Example>
 
 			<Example title="Glass">
-				<Flex gap={3}>
+				<Flex gap="md">
 					<Button variant="outline" onClick={() => setGlassLeftOpen(true)}>
 						Open Left
 					</Button>

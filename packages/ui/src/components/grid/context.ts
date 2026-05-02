@@ -5,7 +5,6 @@ import type { Responsive } from './variants'
 
 export type GridContextValue = {
 	columns: Responsive<number> | undefined
-	gap: Responsive<number> | undefined
 }
 
 const GridContext = reactCreateContext<GridContextValue | null>(null)

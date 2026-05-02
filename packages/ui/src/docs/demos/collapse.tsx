@@ -13,7 +13,7 @@ export default function CollapseDemo() {
 	const [open, setOpen] = useState(false)
 
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Example title="Default">
 				<Collapse trigger="Toggle details">
 					<Text variant="muted">
@@ -44,7 +44,7 @@ export default function CollapseDemo() {
 			</Example>
 
 			<Example title="Controlled">
-				<Stack gap={2}>
+				<Stack gap="sm">
 					<Button onClick={() => setOpen((o) => !o)}>{open ? 'Hide panel' : 'Show panel'}</Button>
 					<Collapse open={open} onOpenChange={setOpen}>
 						<CollapsePanel>

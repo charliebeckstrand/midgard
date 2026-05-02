@@ -44,12 +44,12 @@ export default function HoldButtonDemo() {
 	const [status, setStatus] = useState<'idle' | 'holding' | 'cancelled' | 'confirmed'>('idle')
 
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Example
 				title="Default"
 				actions={<VariantListbox variants={variants} value={variant} onChange={setVariant} />}
 			>
-				<Flex direction="col" gap={4}>
+				<Flex direction="col" gap="lg">
 					<HoldButton variant={variant} onComplete={() => setCount((c) => c + 1)}>
 						Hold to confirm
 					</HoldButton>
@@ -62,7 +62,7 @@ export default function HoldButtonDemo() {
 			</Example>
 
 			<Example title="Durations">
-				<Flex wrap gap={2}>
+				<Flex wrap gap="sm">
 					<HoldButton duration={500} onComplete={() => {}}>
 						Fast
 					</HoldButton>
@@ -76,7 +76,7 @@ export default function HoldButtonDemo() {
 			</Example>
 
 			<Example title="Lifecycle callbacks">
-				<Flex direction="col" gap={4}>
+				<Flex direction="col" gap="lg">
 					<HoldButton
 						color="amber"
 						onHoldStart={() => setStatus('holding')}

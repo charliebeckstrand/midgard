@@ -16,7 +16,7 @@ export default function TimeAgoDemo() {
 	const now = Date.now()
 
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Example
 				title="Recent"
 				code={code`
@@ -41,7 +41,7 @@ export default function TimeAgoDemo() {
 					<TimeAgo date={new Date(Date.now() - 5 * 365 * 24 * 60 * 60 * 1000)} />
 				`}
 			>
-				<Stack gap={1}>
+				<Stack gap="xs">
 					<TimeAgo date={new Date(now - 5 * MIN)} />
 					<TimeAgo date={new Date(now - 2 * HOUR)} />
 					<TimeAgo date={new Date(now - 3 * DAY)} />
@@ -60,7 +60,7 @@ export default function TimeAgoDemo() {
 					<TimeAgo date={new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)} />
 				`}
 			>
-				<Stack gap={1}>
+				<Stack gap="xs">
 					<TimeAgo date={new Date(now + 10 * MIN)} />
 					<TimeAgo date={new Date(now + 4 * HOUR)} />
 					<TimeAgo date={new Date(now + 7 * DAY)} />
@@ -107,20 +107,20 @@ export default function TimeAgoDemo() {
 					<TimeAgo date={new Date(Date.now() - 5 * 60 * 1000)} locale="en-US" />
 				`}
 			>
-				<Stack gap={1}>
-					<Flex gap={2}>
+				<Stack gap="xs">
+					<Flex gap="sm">
 						<Text variant="muted" className="font-mono">
 							fr-FR
 						</Text>
 						<TimeAgo date={new Date(now - 5 * MIN)} locale="fr-FR" />
 					</Flex>
-					<Flex gap={2}>
+					<Flex gap="sm">
 						<Text variant="muted" className="font-mono">
 							it-IT
 						</Text>
 						<TimeAgo date={new Date(now - 5 * MIN)} locale="it-IT" />
 					</Flex>
-					<Flex gap={2}>
+					<Flex gap="sm">
 						<Text variant="muted" className="font-mono">
 							en-US
 						</Text>

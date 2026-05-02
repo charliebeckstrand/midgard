@@ -50,6 +50,7 @@ export function Drawer({
 	const style: CSSProperties = {
 		'--ui-radius-inner': `var(--radius-${sun[size].radius})`,
 		'--ui-padding': `calc(var(--spacing) * ${sun[size].space})`,
+		'--ui-gap': `calc(var(--spacing) * ${sun[size].gap})`,
 	} as CSSProperties
 
 	return (

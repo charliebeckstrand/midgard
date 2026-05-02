@@ -1,8 +1,9 @@
 'use client'
 
 import { createContext, useContext } from 'react'
+import type { Orientation } from '../../types'
 
-export type DlOrientation = 'horizontal' | 'vertical'
+export type DlOrientation = Orientation
 
 const DlContext = createContext<DlOrientation | undefined>(undefined)
 

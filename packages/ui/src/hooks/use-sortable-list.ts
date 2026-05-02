@@ -7,9 +7,10 @@ import {
 	verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { useCallback, useMemo, useState } from 'react'
+import type { Orientation } from '../types'
 import { useSortableSensors } from './use-sortable-sensors'
 
-export type SortableOrientation = 'vertical' | 'horizontal'
+export type SortableOrientation = Orientation
 
 export type UseSortableListOptions<T> = {
 	/** Ordered items. */

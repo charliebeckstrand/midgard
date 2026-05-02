@@ -1,17 +1,19 @@
-import { kumi } from '../../recipes'
+import type { Ma } from '../../recipes/ryu/ma'
+import { alignMap, type FlexAlign } from '../flex/variants'
 
-export const gapMap = kumi.gap
+export { alignMap }
 
-export const alignMap = {
-	start: 'items-start',
-	center: 'items-center',
-	end: 'items-end',
-	stretch: 'items-stretch',
-	baseline: 'items-baseline',
-} as const
+export type SplitAlign = FlexAlign
 
-export type SplitGap = keyof typeof kumi.gap
-export type SplitAlign = keyof typeof alignMap
+export type SplitGap = Ma
+
+export const gapMap = {
+	xs: 'gap-xs',
+	sm: 'gap-sm',
+	md: 'gap-md',
+	lg: 'gap-lg',
+	xl: 'gap-xl',
+} as const satisfies Record<SplitGap, string>
 
 export const ratioTuples = {
 	'1/4': [1, 3],

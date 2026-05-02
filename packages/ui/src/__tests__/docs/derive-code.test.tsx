@@ -76,9 +76,9 @@ describe('deriveCode + __code', () => {
 			'\tconst [files, setFiles] = useState<File[]>([])',
 			'',
 			'\treturn (',
-			'\t\t<Sizer>',
+			'\t\t<Stack>',
 			'\t\t\t<FileUpload accept="image/*" onFiles={setFiles} />',
-			'\t\t</Sizer>',
+			'\t\t</Stack>',
 			'\t)',
 			'}',
 		].join('\n')
@@ -94,7 +94,7 @@ describe('deriveCode + __code', () => {
 		expect(result).toContain('<FileUpload accept="image/*" onFiles={setFiles} />')
 
 		// UI component imports scanned from the JSX.
-		expect(result).toMatch(/import \{.*Sizer.*\} from 'ui\/sizer'/)
+		expect(result).toMatch(/import \{.*Stack.*\} from 'ui\/stack'/)
 		expect(result).toMatch(/import \{.*FileUpload.*\} from 'ui\/file-upload'/)
 
 		// React hook imports scanned from the body.

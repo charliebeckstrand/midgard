@@ -12,6 +12,8 @@
  * Layer: ryū · Concern: group joins
  */
 
+import type { Orientation } from '../../types'
+
 export const tsunagi = {
 	/**
 	 * Spread into a kata's `tv()` base array to opt the component into the
@@ -53,4 +55,4 @@ export const tsunagi = {
 } as const
 
 export type GroupPosition = 'start' | 'middle' | 'end' | 'only'
-export type GroupOrientation = 'horizontal' | 'vertical'
+export type GroupOrientation = Orientation

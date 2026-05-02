@@ -10,7 +10,7 @@ export const meta = { category: 'Data Display' }
 
 export default function StatDemo() {
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Example title="Default">
 				<Stat>
 					<StatLabel>Monthly recurring revenue</StatLabel>
@@ -31,7 +31,7 @@ export default function StatDemo() {
 			</Example>
 
 			<Example title="Trends">
-				<Stack gap={2}>
+				<Stack gap="sm">
 					<StatDelta trend="up">
 						<Icon icon={<ArrowUp />} size="xs" />
 						12.5%
@@ -45,7 +45,7 @@ export default function StatDemo() {
 			</Example>
 
 			<Example title="Value sizes">
-				<Flex wrap align="end" gap={6}>
+				<Flex wrap align="end" gap="xl">
 					{(['sm', 'md', 'lg'] as const).map((s) => (
 						<Stat key={s}>
 							<StatLabel>Size {s}</StatLabel>

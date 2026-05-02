@@ -18,7 +18,7 @@ export type SplitProps = {
 	 * (equal split).
 	 */
 	ratio?: SplitRatio
-	/** Gap between the two panes. Defaults to `4`. */
+	/** Gap between the two panes. Defaults to `lg`. */
 	gap?: SplitGap
 	/** Cross-axis alignment. */
 	align?: SplitAlign
@@ -28,7 +28,7 @@ export type SplitProps = {
 export function Split({
 	direction = 'horizontal',
 	ratio = '1/2',
-	gap = 4,
+	gap = 'lg',
 	align,
 	className,
 	style,

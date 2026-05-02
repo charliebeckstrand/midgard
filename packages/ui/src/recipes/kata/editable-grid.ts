@@ -1,13 +1,12 @@
 import { iro } from '../ryu/iro'
-import { ma } from '../ryu/ma'
 import { sen } from '../ryu/sen'
 
 export const editableGrid = {
 	cellTd: 'relative p-0 align-middle',
 	cell: [
 		'relative flex h-full w-full items-center cursor-cell select-none outline-none',
-		ma.px.md,
-		ma.py.md,
+		'px-sm',
+		'py-sm',
 		sen.focus.inset,
 		'data-[active]:bg-blue-500/10 data-[in-range]:bg-blue-500/10',
 		'dark:data-[active]:bg-blue-400/15 dark:data-[in-range]:bg-blue-400/15',
@@ -23,7 +22,7 @@ export const editableGrid = {
 		center: 'justify-center text-center',
 		right: 'justify-end text-right',
 	},
-	editInput: ['absolute inset-0 bg-transparent outline-none', ma.px.md, ma.py.md, iro.text.default],
+	editInput: ['absolute inset-0 bg-transparent outline-none', 'px-sm', 'py-sm', iro.text.default],
 	editInputAlign: {
 		left: 'text-left',
 		center: 'text-center',

@@ -1,7 +1,5 @@
-import { maru } from '../maru'
-
 export const switchRecipe = {
-	base: maru.rounded.full,
+	base: 'rounded-full',
 	size: {
 		sm: ['h-5', 'w-8'],
 		md: ['h-6', 'w-10'],

@@ -9,9 +9,9 @@ export const meta = { category: 'Layout' }
 
 export default function FlexDemo() {
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Example title="Default (row)">
-				<Flex gap={3}>
+				<Flex gap="md">
 					<Card>One</Card>
 					<Card>Two</Card>
 					<Card>Three</Card>
@@ -19,7 +19,7 @@ export default function FlexDemo() {
 			</Example>
 
 			<Example title="Column">
-				<Flex direction="col" gap={3}>
+				<Flex direction="col" gap="md">
 					<Card>One</Card>
 					<Card>Two</Card>
 					<Card>Three</Card>
@@ -27,8 +27,8 @@ export default function FlexDemo() {
 			</Example>
 
 			<Example title="Align and justify">
-				<Card p={3} bg="none">
-					<Flex gap={3} justify="between" align="center" full>
+				<Card p="md" bg="none">
+					<Flex gap="md" justify="between" align="center" full>
 						<Card>Start</Card>
 						<Card>Middle</Card>
 						<Card>End</Card>
@@ -37,7 +37,7 @@ export default function FlexDemo() {
 			</Example>
 
 			<Example title="Wrap">
-				<Flex gap={2} wrap>
+				<Flex gap="sm" wrap>
 					<Badge>design</Badge>
 					<Badge>engineering</Badge>
 					<Badge>product</Badge>
@@ -49,7 +49,7 @@ export default function FlexDemo() {
 			</Example>
 
 			<Example title="Equal">
-				<Flex gap={3} equal>
+				<Flex gap="md" equal>
 					<Card>Narrow</Card>
 					<Card>Wider content here</Card>
 					<Card>Even wider content in this card</Card>
@@ -57,7 +57,7 @@ export default function FlexDemo() {
 			</Example>
 
 			<Example title="Responsive direction">
-				<Flex direction={{ initial: 'col', md: 'row' }} gap={3}>
+				<Flex direction={{ initial: 'col', md: 'row' }} gap="md">
 					<Card>One</Card>
 					<Card>Two</Card>
 					<Card>Three</Card>
@@ -65,7 +65,7 @@ export default function FlexDemo() {
 			</Example>
 
 			<Example title="Composed with buttons">
-				<Flex gap={3} justify="end">
+				<Flex gap="md" justify="end">
 					<Button variant="plain">Cancel</Button>
 					<Button>Save changes</Button>
 				</Flex>

@@ -23,6 +23,7 @@ export type QueryRuleProps = {
 
 function QueryRuleImpl({ rule, className }: QueryRuleProps) {
 	const { fields, getField, disabled } = useQueryBuilderState()
+
 	const { updateRule, remove } = useQueryBuilderActions()
 
 	const field = getField(rule.field)
@@ -73,13 +74,14 @@ function QueryRuleImpl({ rule, className }: QueryRuleProps) {
 	)
 
 	return (
-		<Flex data-slot="query-rule" gap={2} className={cn(k.rule, className)}>
-			<Flex equal flex gap={2}>
+		<Flex data-slot="query-rule" gap="sm" full className={cn(k.rule, className)}>
+			<Flex equal flex gap="sm" direction={{ initial: 'row', sm: 'col' }}>
 				<Select
 					value={rule.field}
+					displayValue={displayField}
 					onChange={onFieldChange}
 					placeholder="Field"
-					displayValue={displayField}
+					className="w-full"
 				>
 					{fields.map((f) => (
 						<ListboxOption key={f.name} value={f.name}>
@@ -90,9 +92,10 @@ function QueryRuleImpl({ rule, className }: QueryRuleProps) {
 
 				<Select
 					value={rule.operator}
+					displayValue={displayOperator}
 					onChange={onOperatorChange}
 					placeholder="Operator"
-					displayValue={displayOperator}
+					className="w-full"
 				>
 					{operators.map((op) => (
 						<ListboxOption key={op.value} value={op.value}>
@@ -102,7 +105,12 @@ function QueryRuleImpl({ rule, className }: QueryRuleProps) {
 				</Select>
 
 				{field && !selectedOperator?.noValue && (
-					<QueryRuleValue field={field} value={rule.value} onChange={onValueChange} />
+					<QueryRuleValue
+						field={field}
+						value={rule.value}
+						onChange={onValueChange}
+						className="w-full"
+					/>
 				)}
 			</Flex>
 

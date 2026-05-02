@@ -63,7 +63,7 @@ function Default() {
 
 	return (
 		<Example title="Default">
-			<Stack gap={2}>
+			<Stack gap="sm">
 				<Kanban
 					columns={columns}
 					getItemKey={(load: Load) => load.id}
@@ -146,7 +146,7 @@ function Disabled() {
 
 export default function KanbanDemo() {
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Default />
 			<ReadOnly />
 			<Disabled />

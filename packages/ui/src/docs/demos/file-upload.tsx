@@ -4,12 +4,15 @@ import { Upload } from 'lucide-react'
 import { useState } from 'react'
 import { FileUpload } from '../../components/file-upload'
 import { Icon } from '../../components/icon'
-import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
+
+function Sizer({ children, className }: { children: React.ReactNode; className?: string }) {
+	return <div className={`sm:max-w-sm ${className}`}>{children}</div>
+}
 
 function AreaDemo() {
 	const [files, setFiles] = useState<File[]>([])
@@ -69,7 +72,7 @@ function ButtonDemo() {
 
 function DisabledDemo() {
 	return (
-		<Sizer>
+		<Sizer className="flex flex-col gap-4">
 			<FileUpload disabled />
 			<FileUpload variant="input" disabled />
 			<FileUpload variant="button" disabled />
@@ -79,7 +82,7 @@ function DisabledDemo() {
 
 export default function FileUploadDemo() {
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Example title="Default">
 				<AreaDemo />
 			</Example>

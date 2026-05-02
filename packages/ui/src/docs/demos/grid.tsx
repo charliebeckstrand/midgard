@@ -9,9 +9,9 @@ export const meta = { category: 'Layout' }
 
 export default function GridDemo() {
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Example title="Columns">
-				<Grid columns={3} gap={4}>
+				<Grid columns={3} gap="lg">
 					<Card>One</Card>
 					<Card>Two</Card>
 					<Card>Three</Card>
@@ -22,7 +22,7 @@ export default function GridDemo() {
 			</Example>
 
 			<Example title="Cell span">
-				<Grid columns={4} gap={4}>
+				<Grid columns={4} gap="lg">
 					<GridCell span={2}>
 						<Card>Span 2</Card>
 					</GridCell>
@@ -35,7 +35,7 @@ export default function GridDemo() {
 			</Example>
 
 			<Example title="Responsive columns">
-				<Grid columns={{ initial: 1, sm: 2, lg: 3 }} gap={4}>
+				<Grid columns={{ initial: 1, sm: 2, lg: 3 }} gap="lg">
 					<Card>One</Card>
 					<Card>Two</Card>
 					<Card>Three</Card>
@@ -46,7 +46,7 @@ export default function GridDemo() {
 			</Example>
 
 			<Example title="Divider">
-				<Grid columns={1} gap={4}>
+				<Grid columns={1} gap="lg">
 					<Card>Row one</Card>
 					<GridDivider />
 					<Card>Row two</Card>
@@ -56,7 +56,7 @@ export default function GridDemo() {
 			</Example>
 
 			<Example title="Alignment">
-				<Grid columns={3} gap={4} align="center" justify="center">
+				<Grid columns={3} gap="lg" align="center" justify="center">
 					<Card>Short</Card>
 					<Card>
 						Taller

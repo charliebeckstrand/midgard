@@ -1,7 +1,6 @@
 import { tv, type VariantProps } from 'tailwind-variants'
 import { colorVariants } from '../../core/recipe'
 import { iro, merge } from '../ryu/iro'
-import { maru } from '../ryu/maru'
 import { take } from '../ryu/take'
 
 const { solid, soft, outline } = iro.palette
@@ -16,7 +15,7 @@ export const avatar = tv({
 	base: [
 		'inline-grid place-items-center align-middle overflow-hidden',
 		'*:col-start-1 *:row-start-1',
-		maru.rounded.full,
+		'rounded-full',
 	],
 	variants: {
 		variant: {

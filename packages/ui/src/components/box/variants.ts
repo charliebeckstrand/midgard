@@ -1,15 +1,59 @@
-import { maru, omote, sen } from '../../recipes'
+import { omote, sen } from '../../recipes'
+import type { Ma } from '../../recipes/ryu/ma'
 
-export {
-	type Margin as BoxMargin,
-	marginMap,
-	mxMap,
-	myMap,
-	type Padding as BoxPadding,
-	paddingMap,
-	pxMap,
-	pyMap,
-} from '../../recipes/ryu/ma'
+export type BoxPadding = Ma
+export type BoxMargin = Ma | 'auto'
+
+export const paddingMap = {
+	xs: 'p-xs',
+	sm: 'p-sm',
+	md: 'p-md',
+	lg: 'p-lg',
+	xl: 'p-xl',
+} as const satisfies Record<BoxPadding, string>
+
+export const pxMap = {
+	xs: 'px-xs',
+	sm: 'px-sm',
+	md: 'px-md',
+	lg: 'px-lg',
+	xl: 'px-xl',
+} as const satisfies Record<BoxPadding, string>
+
+export const pyMap = {
+	xs: 'py-xs',
+	sm: 'py-sm',
+	md: 'py-md',
+	lg: 'py-lg',
+	xl: 'py-xl',
+} as const satisfies Record<BoxPadding, string>
+
+export const marginMap = {
+	xs: 'm-xs',
+	sm: 'm-sm',
+	md: 'm-md',
+	lg: 'm-lg',
+	xl: 'm-xl',
+	auto: 'm-auto',
+} as const satisfies Record<BoxMargin, string>
+
+export const mxMap = {
+	xs: 'mx-xs',
+	sm: 'mx-sm',
+	md: 'mx-md',
+	lg: 'mx-lg',
+	xl: 'mx-xl',
+	auto: 'mx-auto',
+} as const satisfies Record<BoxMargin, string>
+
+export const myMap = {
+	xs: 'my-xs',
+	sm: 'my-sm',
+	md: 'my-md',
+	lg: 'my-lg',
+	xl: 'my-xl',
+	auto: 'my-auto',
+} as const satisfies Record<BoxMargin, string>
 
 export const bgMap = {
 	none: 'bg-transparent',
@@ -27,12 +71,12 @@ export const outlineMap = {
 } as const
 
 export const radiusMap = {
-	none: maru.rounded.none,
-	sm: maru.rounded.sm,
-	md: maru.rounded.md,
-	lg: maru.rounded.lg,
-	xl: maru.rounded.xl,
-	full: maru.rounded.full,
+	none: 'rounded-none',
+	sm: 'rounded-sm',
+	md: 'rounded-md',
+	lg: 'rounded-lg',
+	xl: 'rounded-xl',
+	full: 'rounded-full',
 } as const
 
 export type BoxBg = keyof typeof bgMap

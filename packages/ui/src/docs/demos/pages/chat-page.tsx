@@ -78,7 +78,7 @@ const initialMessages: Message[] = [
 
 function ChatMessage({ role, children }: { role: 'user' | 'agent'; children: ReactNode }) {
 	return (
-		<Stack direction="row" gap={0} data-slot="chat-message" data-role={role}>
+		<Stack direction="row" className="gap-0" data-slot="chat-message" data-role={role}>
 			{role === 'user' && <Spacer />}
 
 			<div
@@ -137,7 +137,7 @@ export default function ChatPageDemo() {
 		<>
 			<Sidebar>
 				<SidebarHeader>
-					<Stack direction="row" align="center" gap={2}>
+					<Stack direction="row" align="center" gap="sm">
 						<Heading level={3}>Messages</Heading>
 					</Stack>
 				</SidebarHeader>
@@ -145,8 +145,8 @@ export default function ChatPageDemo() {
 					<SidebarSection>
 						{conversations.map((conv) => (
 							<SidebarItem key={conv.id} current={conv.active}>
-								<Stack direction="row" align="center" gap={4} full>
-									<Stack gap={0} full className="min-w-0">
+								<Stack direction="row" align="center" gap="lg" full>
+									<Stack full className="gap-0 min-w-0">
 										<SidebarLabel>{conv.title}</SidebarLabel>
 										<Text className="text-xs truncate" variant="muted">
 											{conv.preview}
@@ -186,13 +186,13 @@ export default function ChatPageDemo() {
 		<Example>
 			<SidebarLayout sidebar={sidebar}>
 				<SidebarLayoutHeader>
-					<Stack direction="row" align="center" gap={3}>
+					<Stack direction="row" align="center" gap="md">
 						<Heading level={3}>Project kickoff</Heading>
 					</Stack>
 				</SidebarLayoutHeader>
 
 				<SidebarLayoutBody ref={bodyRef}>
-					<Stack gap={4} full flex>
+					<Stack gap="lg" full flex>
 						{messages.map((msg) => (
 							<ChatMessage key={msg.id} role={msg.role}>
 								{msg.content}

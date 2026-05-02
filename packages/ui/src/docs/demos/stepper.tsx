@@ -32,7 +32,7 @@ export default function StepperDemo() {
 	const [panelsValue, setPanelsValue] = useState(0)
 
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Alert type="info" closable>
 				<AlertDescription>
 					When <code>orientation</code> is not explicitly set, the stepper defaults to{' '}

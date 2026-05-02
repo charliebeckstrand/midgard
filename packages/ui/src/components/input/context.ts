@@ -1,13 +1,12 @@
 'use client'
 
 import { createContext, useContext } from 'react'
+import type { Size } from '../../types'
 
-type InputSize = 'xs' | 'sm' | 'md' | 'lg'
-
-const InputSizeContext = createContext<InputSize | undefined>(undefined)
+const InputSizeContext = createContext<Size | undefined>(undefined)
 
 export const InputSizeProvider = InputSizeContext.Provider
 
-export function useInputSize(): InputSize | undefined {
+export function useInputSize(): Size | undefined {
 	return useContext(InputSizeContext)
 }

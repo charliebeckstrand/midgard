@@ -9,7 +9,7 @@ export type StackedLayoutProps = PropsWithChildren<{
 	gap?: ResponsiveGap
 }>
 
-export function StackedLayout({ gap = 6, children, className }: StackedLayoutProps) {
+export function StackedLayout({ gap = 'lg', children, className }: StackedLayoutProps) {
 	return (
 		<Stack direction="col" gap={gap} className={cn('min-h-0', className)}>
 			{children}

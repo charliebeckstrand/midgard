@@ -90,13 +90,13 @@ function FormattingToolbar() {
 
 export default function ToolbarDemo() {
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Example title="Default">
 				<FormattingToolbar />
 			</Example>
 
 			<Example title="Variants">
-				<Stack gap={4}>
+				<Stack gap="lg">
 					<Toolbar variant="outline" aria-label="File actions">
 						<Button variant="plain" aria-label="New">
 							New

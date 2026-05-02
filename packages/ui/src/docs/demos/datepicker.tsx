@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { DatePicker } from '../../components/datepicker'
 import { Glass } from '../../components/glass'
-import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
@@ -13,31 +12,23 @@ export default function DatePickerDemo() {
 	const [glassRange, setGlassRange] = useState<[Date, Date] | undefined>(undefined)
 
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Example title="Default">
-				<Sizer>
-					<DatePicker value={date} onChange={setDate} />
-				</Sizer>
+				<DatePicker value={date} onChange={setDate} />
 			</Example>
 
 			<Example title="Range">
-				<Sizer>
-					<DatePicker range value={range} onChange={setRange} />
-				</Sizer>
+				<DatePicker range value={range} onChange={setRange} />
 			</Example>
 
 			<Example title="Disabled">
-				<Sizer>
-					<DatePicker disabled placeholder="Cannot select" />
-				</Sizer>
+				<DatePicker disabled placeholder="Cannot select" />
 			</Example>
 
 			<Example title="Glass">
-				<Sizer>
-					<Glass>
-						<DatePicker range value={glassRange} onChange={setGlassRange} />
-					</Glass>
-				</Sizer>
+				<Glass>
+					<DatePicker range value={glassRange} onChange={setGlassRange} />
+				</Glass>
 			</Example>
 		</Stack>
 	)

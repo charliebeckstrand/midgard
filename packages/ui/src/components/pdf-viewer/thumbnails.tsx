@@ -135,7 +135,7 @@ export function PdfViewerThumbnails({
 					container={container}
 				>
 					<SheetTitle>
-						<Flex gap={2} justify="between" align="center">
+						<Flex gap="sm" justify="between" align="center">
 							<div>Pages</div>
 							<Button
 								variant="plain"

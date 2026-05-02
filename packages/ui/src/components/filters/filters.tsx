@@ -101,13 +101,13 @@ export function Filters<T extends FilterValue = FilterValue>({
 				{affix && <div data-slot="filters-affix">{affix}</div>}
 				<Flex
 					direction={{ initial: 'row', sm: 'col' }}
-					gap={2}
+					gap="sm"
 					align={{ initial: 'end', md: 'start' }}
 					full
 				>
 					<Flex
 						direction={{ initial: 'row', sm: 'col' }}
-						gap={2}
+						gap="sm"
 						align={{ initial: 'end', md: 'start' }}
 						equal={equal}
 						full

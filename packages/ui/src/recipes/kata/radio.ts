@@ -1,8 +1,6 @@
 import { tv, type VariantProps } from 'tailwind-variants'
 import { defineColors } from '../../core/recipe/mode'
 import { iro } from '../ryu/iro'
-import { kumi } from '../ryu/kumi'
-import { maru } from '../ryu/maru'
 import { sawari } from '../ryu/sawari'
 import { sen } from '../ryu/sen'
 import { control } from '../waku/control'
@@ -23,14 +21,13 @@ const color = defineColors({
 
 export const radio = tv({
 	base: [
-		'inline-flex',
-		kumi.center,
 		'relative',
+		'inline-flex items-center justify-center',
 		sen.focus.outline,
 		...sawari.cursor,
 		'has-checked:*:data-[slot=radio-indicator]:opacity-100',
 		...control.check.surface,
-		maru.rounded.full,
+		'rounded-full',
 		'[--radio-checked-border:transparent]',
 		'has-checked:bg-(--radio-checked-bg) has-checked:border-(--radio-checked-border)',
 		'not-has-[:disabled]:has-checked:hover:opacity-90',

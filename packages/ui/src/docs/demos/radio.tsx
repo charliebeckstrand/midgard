@@ -10,7 +10,7 @@ const colors = ['blue', 'green', 'red'] as const
 
 export default function RadioDemo() {
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Example title="Default">
 				<RadioGroup>
 					{plans.map((plan) => (

@@ -21,7 +21,7 @@ const users = [
 
 export default function TableDemo() {
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Example title="Default">
 				<Table>
 					<TableHead>

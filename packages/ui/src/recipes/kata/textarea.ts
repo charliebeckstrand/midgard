@@ -1,6 +1,5 @@
 import { tv, type VariantProps } from 'tailwind-variants'
 import { ji } from '../ryu/ji'
-import { maru } from '../ryu/maru'
 import { sen } from '../ryu/sen'
 import { control } from '../waku/control'
 
@@ -8,7 +7,7 @@ import { control } from '../waku/control'
 const density = ['px-[calc(--spacing(3)-1px)] py-[calc(--spacing(2)-1px)]', ji.size.md]
 
 export const textarea = tv({
-	base: ['block', ...control.field, ...density, maru.rounded.lg, 'min-h-10'],
+	base: ['block', ...control.field, ...density, 'rounded-lg', 'min-h-10'],
 	variants: {
 		variant: {
 			default: [],
@@ -38,7 +37,7 @@ export const textareaControl = tv({
 
 export const slots = {
 	/** Strips textarea chrome when nested inside a framed container. */
-	bare: ['border-0', maru.rounded.none, 'pt-3 focus:outline-hidden'],
+	bare: ['border-0', 'rounded-none', 'pt-3 focus:outline-hidden'],
 	/** ControlFrame border when an actions slot is present. */
 	frame: [...sen.border],
 	/** Actions row beneath the textarea. */

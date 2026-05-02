@@ -1,7 +1,6 @@
 import { tv, type VariantProps } from 'tailwind-variants'
 import { defineColors, mode } from '../../core/recipe/mode'
 import { iro } from '../ryu/iro'
-import { maru } from '../ryu/maru'
 import { sawari } from '../ryu/sawari'
 import { sen } from '../ryu/sen'
 import { control } from '../waku/control'
@@ -57,7 +56,7 @@ export const switchRecipe = tv({
 		'has-checked:*:data-[slot=switch-thumb]:bg-(--switch)',
 		'has-checked:*:data-[slot=switch-thumb]:shadow-(--switch-shadow)',
 		'has-checked:*:data-[slot=switch-thumb]:ring-(--switch-ring)',
-		maru.rounded.full,
+		'rounded-full',
 		...track,
 		'has-checked:bg-(--switch-bg) has-checked:ring-(--switch-bg-ring) has-checked:ring-inset',
 		'not-has-[:disabled]:not-has-[:checked]:hover:bg-zinc-300',
@@ -94,7 +93,7 @@ export const switchThumb = tv({
 		'absolute top-1 left-1 inline-block',
 		'bg-white ring-1 ring-zinc-950/5',
 		'shadow-sm',
-		maru.rounded.full,
+		'rounded-full',
 		'pointer-events-none',
 		'transition-[left] duration-200 ease-in-out',
 	],

@@ -1,9 +1,10 @@
 'use client'
 
 import { createContext, useContext } from 'react'
+import type { Orientation } from '../../types'
 
 export type TabsVariant = 'tab' | 'segment'
-export type TabsOrientation = 'horizontal' | 'vertical'
+export type TabsOrientation = Orientation
 
 export type TabsContextValue = {
 	variant: TabsVariant

@@ -21,7 +21,7 @@ function Counter() {
 				<Odometer value={value} />
 			`}
 		>
-			<Stack gap={3} align="start">
+			<Stack gap="md" align="start">
 				<div className="text-2xl font-semibold">
 					<Odometer value={value} />
 				</div>
@@ -47,7 +47,7 @@ function Currency() {
 				<Odometer value={value} format={format} />
 			`}
 		>
-			<Stack gap={3} align="start">
+			<Stack gap="md" align="start">
 				<div className="text-2xl font-semibold">
 					<Odometer value={value} format={format} />
 				</div>
@@ -61,7 +61,7 @@ export default function OdometerDemo() {
 	const [value, setValue] = useState(1284)
 
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Counter />
 			<Currency />
 

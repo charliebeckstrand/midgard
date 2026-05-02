@@ -95,7 +95,7 @@ export function Stepper({
 				{panelsChildren.length === 0 ? (
 					row
 				) : (
-					<Stack gap={6} data-slot="stepper-root">
+					<Stack gap="xl" data-slot="stepper-root">
 						{row}
 						{panelsChildren}
 					</Stack>

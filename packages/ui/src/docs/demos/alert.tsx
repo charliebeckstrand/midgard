@@ -61,9 +61,9 @@ export default function AlertDemo() {
 	const [colorVariant, setColorVariant] = useState<(typeof colorVariants)[number]>('soft')
 
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Example title="Variants">
-				<Stack gap={3}>
+				<Stack gap="md">
 					{variants.map((variant) => (
 						<Alert key={variant} variant={variant} title={`${cap(variant)} alert`} />
 					))}
@@ -80,7 +80,7 @@ export default function AlertDemo() {
 					/>
 				}
 			>
-				<Stack gap={3}>
+				<Stack gap="md">
 					{colors.map((color) => (
 						<Alert key={color} variant={colorVariant} color={color} title={cap(color)} />
 					))}
@@ -88,7 +88,7 @@ export default function AlertDemo() {
 			</Example>
 
 			<Example title="Types">
-				<Stack gap={3}>
+				<Stack gap="md">
 					{types.map((type) => (
 						<Alert key={type} type={type} title={`${cap(type)} alert`} />
 					))}
@@ -96,7 +96,7 @@ export default function AlertDemo() {
 			</Example>
 
 			<Example title="With description">
-				<Stack gap={3}>
+				<Stack gap="md">
 					{types.map((type) => (
 						<Alert
 							key={type}

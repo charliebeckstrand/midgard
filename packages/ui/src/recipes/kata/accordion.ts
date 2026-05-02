@@ -1,8 +1,6 @@
 import { tv, type VariantProps } from 'tailwind-variants'
 import { iro } from '../ryu/iro'
 import { ji } from '../ryu/ji'
-import { kumi } from '../ryu/kumi'
-import { maru } from '../ryu/maru'
 import { sawari } from '../ryu/sawari'
 import { sen } from '../ryu/sen'
 import { ugoki } from '../ryu/ugoki'
@@ -11,10 +9,10 @@ export const accordion = tv({
 	base: 'flex flex-col',
 	variants: {
 		variant: {
-			separated: kumi.gap.sm,
+			separated: 'gap-xs',
 			outline: [
 				'overflow-hidden',
-				maru.rounded.lg,
+				'rounded-lg',
 				...sen.border,
 				'divide-y divide-zinc-950/10',
 				'dark:divide-white/10',
@@ -29,7 +27,7 @@ export const accordionItem = tv({
 	base: 'group/accordion-item',
 	variants: {
 		variant: {
-			separated: ['overflow-hidden', maru.rounded.lg, ...sen.border],
+			separated: ['overflow-hidden', 'rounded-lg', ...sen.border],
 			outline: '',
 			plain: '',
 		},
@@ -41,7 +39,7 @@ export const slots = {
 	button: [
 		'w-full flex items-center justify-between',
 		'p-4',
-		kumi.gap.md,
+		'gap-sm',
 		ji.size.sm,
 		iro.text.muted,
 		iro.text.hover,

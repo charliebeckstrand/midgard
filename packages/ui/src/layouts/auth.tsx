@@ -3,7 +3,7 @@ export type AuthLayoutProps = { children: ReactNode }
 
 export function AuthLayout({ children }: AuthLayoutProps) {
 	return (
-		<main className="flex min-h-dvh w-full flex-col items-center justify-center gap-8 p-2">
+		<main className="flex min-h-dvh w-full flex-col items-center justify-center gap-6 p-2">
 			{children}
 		</main>
 	)

@@ -238,7 +238,7 @@ export type PopoverContentProps = {
 export function PopoverContent({
 	className,
 	autoFocus = false,
-	p = 4,
+	p = 'lg',
 	size = 'md',
 	children,
 }: PopoverContentProps) {

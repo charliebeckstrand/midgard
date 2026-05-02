@@ -72,7 +72,7 @@ export function SidebarLayout({
 			</Drawer>
 
 			{/* Navbar on mobile */}
-			<Flex gap={4} align="center" className="lg:p-0 p-6 lg:hidden">
+			<Flex gap="lg" align="center" className="lg:p-0 p-6 lg:hidden">
 				<Button
 					variant="plain"
 					aria-label="Open navigation"

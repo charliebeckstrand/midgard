@@ -1,5 +1,4 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { maru } from '../ryu/maru'
 import { omote } from '../ryu/omote'
 import { sen } from '../ryu/sen'
 
@@ -12,8 +11,8 @@ export const toolbar = tv({
 		},
 		variant: {
 			plain: '',
-			outline: [...sen.border, maru.rounded.lg, 'p-1'],
-			solid: [...omote.tint, 'border border-transparent', maru.rounded.lg, 'p-1'],
+			outline: [...sen.border, 'rounded-lg', 'p-1'],
+			solid: [...omote.tint, 'border border-transparent', 'rounded-lg', 'p-1'],
 		},
 	},
 	defaultVariants: { orientation: 'horizontal', variant: 'plain' },

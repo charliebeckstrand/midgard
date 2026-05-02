@@ -25,8 +25,8 @@ export default function GroupDemo() {
 	const isInput = child === 'input'
 
 	return (
-		<Stack gap={6}>
-			<Flex gap={2}>
+		<Stack gap="xl">
+			<Flex gap="sm">
 				<Control>
 					<Listbox<ChildType>
 						value={child}
@@ -43,7 +43,7 @@ export default function GroupDemo() {
 			</Flex>
 
 			<Example title="Default">
-				<Stack gap={4}>
+				<Stack gap="lg">
 					<Group>
 						{isInput ? (
 							<>
@@ -95,7 +95,7 @@ export default function GroupDemo() {
 			)}
 
 			<Example title="Sizes">
-				<Stack gap={4}>
+				<Stack gap="lg">
 					<Group size="sm">
 						{isInput ? (
 							<>

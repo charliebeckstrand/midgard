@@ -44,13 +44,13 @@ export default function ScrollAreaDemo() {
 	const [bothSize, setBothSize] = useState<Size>('md')
 
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Example
 				title="Vertical with size"
 				actions={<SizeListbox sizes={sizes} value={verticalSize} onChange={setVerticalSize} />}
 			>
 				<ScrollArea size={verticalSize} rounded className="max-w-96">
-					<Stack gap={4}>
+					<Stack gap="lg">
 						{paragraphs.map((p) => (
 							<Text key={p.id}>{p.text}</Text>
 						))}
@@ -63,7 +63,7 @@ export default function ScrollAreaDemo() {
 				actions={<SizeListbox sizes={sizes} value={horizontalSize} onChange={setHorizontalSize} />}
 			>
 				<ScrollArea orientation="horizontal" size={horizontalSize} rounded>
-					<Flex gap={2} className="w-max">
+					<Flex gap="sm" className="w-max">
 						{tags.map((tag) => (
 							<Badge key={tag}>{tag}</Badge>
 						))}
@@ -76,7 +76,7 @@ export default function ScrollAreaDemo() {
 				actions={<SizeListbox sizes={sizes} value={bothSize} onChange={setBothSize} />}
 			>
 				<ScrollArea orientation="both" size={bothSize} rounded>
-					<Stack gap={4} className="w-max">
+					<Stack gap="lg" className="w-max">
 						{paragraphs.map((p) => (
 							<Text key={p.id} className="whitespace-nowrap">
 								{p.text}
@@ -88,7 +88,7 @@ export default function ScrollAreaDemo() {
 
 			<Example title="Hidden scrollbar">
 				<ScrollArea size="md" scrollbar="hidden" rounded className="max-w-96">
-					<Stack gap={4}>
+					<Stack gap="lg">
 						{paragraphs.map((p) => (
 							<Text key={p.id}>{p.text}</Text>
 						))}
@@ -98,7 +98,7 @@ export default function ScrollAreaDemo() {
 
 			<Example title="Visible scrollbar">
 				<ScrollArea size="md" scrollbar="visible" rounded className="max-w-96">
-					<Stack gap={4}>
+					<Stack gap="lg">
 						{paragraphs.map((p) => (
 							<Text key={p.id}>{p.text}</Text>
 						))}
@@ -113,7 +113,7 @@ export default function ScrollAreaDemo() {
 					</CardHeader>
 					<CardBody>
 						<ScrollArea bare size="md">
-							<Stack gap={4}>
+							<Stack gap="lg">
 								{paragraphs.map((p) => (
 									<Text key={p.id}>{p.text}</Text>
 								))}

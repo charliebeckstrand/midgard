@@ -10,7 +10,7 @@ const placements = ['left', 'top', 'bottom', 'right'] as const
 
 export default function TooltipDemo() {
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Example title="Default">
 				<Tooltip>
 					<TooltipTrigger>
@@ -21,7 +21,7 @@ export default function TooltipDemo() {
 			</Example>
 
 			<Example title="Placement">
-				<Flex wrap justify="center" gap={4} className="py-8">
+				<Flex wrap justify="center" gap="lg" className="py-8">
 					{placements.map((placement) => (
 						<Tooltip key={placement} placement={placement}>
 							<TooltipTrigger>

@@ -1,8 +1,9 @@
 'use client'
 
 import { createContext, type PointerEvent as ReactPointerEvent, useContext } from 'react'
+import type { Orientation } from '../../types'
 
-export type ResizableDirection = 'horizontal' | 'vertical'
+export type ResizableDirection = Orientation
 
 export type PanelConfig = {
 	defaultSize: number

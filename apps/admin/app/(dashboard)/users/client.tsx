@@ -124,7 +124,7 @@ export function UsersClient({ users, currentUser }: UsersClientProps) {
 								})}
 							</TableCell>
 							<TableCell>
-								<Flex gap={1}>
+								<Flex gap="xs">
 									<Button variant="outline" onClick={() => setEditingUser(user)}>
 										Edit
 									</Button>

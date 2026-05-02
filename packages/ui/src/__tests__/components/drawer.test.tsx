@@ -140,7 +140,7 @@ describe('Drawer size context', () => {
 			</Drawer>,
 		)
 
-		// sun.lg.text = 'lg' → ji.size.lg = 'text-lg/7'
-		expect(buttonInDrawer()?.className).toContain('text-lg/7')
+		// sun.lg.text = 'lg' → ji.size.lg = 'text-lg'
+		expect(buttonInDrawer()?.className).toContain('text-lg')
 	})
 })

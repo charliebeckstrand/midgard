@@ -7,6 +7,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
+import type { ScrollOrientation } from '../../types'
 import {
 	computeThumb,
 	findScrollableAncestor,
@@ -16,7 +17,7 @@ import {
 	type ThumbState,
 } from './utilities'
 
-type Orientation = 'vertical' | 'horizontal' | 'both'
+type Orientation = ScrollOrientation
 
 type UseScrollbarOptions = {
 	orientation: Orientation

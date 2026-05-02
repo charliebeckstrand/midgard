@@ -6,7 +6,7 @@ export const meta = { category: 'Layout' }
 
 export default function DividerDemo() {
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Example title="Default">
 				<Divider />
 			</Example>

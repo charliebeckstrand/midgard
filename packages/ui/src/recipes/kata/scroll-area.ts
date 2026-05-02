@@ -1,10 +1,10 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { maru } from '../ryu/maru'
+import type { ScrollOrientation } from '../../types'
 import { sen } from '../ryu/sen'
 import { take } from '../ryu/take'
 import { ugoki } from '../ryu/ugoki'
 
-type Orientation = 'vertical' | 'horizontal' | 'both'
+type Orientation = ScrollOrientation
 type Size = keyof (typeof take.scrollArea)['vertical']
 
 const orientationKeys: Orientation[] = ['vertical', 'horizontal', 'both']
@@ -22,7 +22,7 @@ export const scrollAreaWrapper = tv({
 	base: ['group relative overflow-hidden'],
 	variants: {
 		rounded: {
-			true: maru.rounded.lg,
+			true: 'rounded-lg',
 			false: '',
 		},
 		bare: {

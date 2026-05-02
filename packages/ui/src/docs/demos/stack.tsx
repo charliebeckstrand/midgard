@@ -8,9 +8,9 @@ export const meta = { category: 'Layout' }
 
 export default function StackDemo() {
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Example title="Column">
-				<Stack gap={3}>
+				<Stack gap="md">
 					<Card>One</Card>
 					<Card>Two</Card>
 					<Card>Three</Card>
@@ -18,7 +18,7 @@ export default function StackDemo() {
 			</Example>
 
 			<Example title="Row">
-				<Stack direction="row" gap={3}>
+				<Stack direction="row" gap="md">
 					<Card>One</Card>
 					<Card>Two</Card>
 					<Card>Three</Card>
@@ -26,8 +26,8 @@ export default function StackDemo() {
 			</Example>
 
 			<Example title="Align and justify">
-				<Card p={3} bg="none">
-					<Stack direction="row" gap={3} justify="between" align="center" full>
+				<Card p="md" bg="none">
+					<Stack direction="row" gap="md" justify="between" align="center" full>
 						<Card>Start</Card>
 						<Card>Middle</Card>
 						<Card>End</Card>
@@ -36,7 +36,7 @@ export default function StackDemo() {
 			</Example>
 
 			<Example title="Wrap">
-				<Stack direction="row" gap={2} wrap>
+				<Stack direction="row" gap="sm" wrap>
 					<Badge>design</Badge>
 					<Badge>engineering</Badge>
 					<Badge>product</Badge>
@@ -48,7 +48,7 @@ export default function StackDemo() {
 			</Example>
 
 			<Example title="Composed with buttons">
-				<Stack direction="row" gap={3} justify="end">
+				<Stack direction="row" gap="md" justify="end">
 					<Button variant="plain">Cancel</Button>
 					<Button>Save changes</Button>
 				</Stack>

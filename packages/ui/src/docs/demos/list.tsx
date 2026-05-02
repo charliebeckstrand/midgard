@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { List, ListDescription, ListItem, ListLabel } from '../../components/list'
-import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 import { VariantListbox } from '../components/variant-listbox'
@@ -47,17 +46,15 @@ function Default() {
 			title="Default"
 			actions={<VariantListbox variants={variants} value={variant} onChange={setVariant} />}
 		>
-			<Sizer>
-				<Stack gap={2}>
-					<List variant={variant} sortable={false} items={initialTasks} aria-label="Tasks">
-						{(task) => (
-							<ListItem>
-								<ListLabel>{task.label}</ListLabel>
-							</ListItem>
-						)}
-					</List>
-				</Stack>
-			</Sizer>
+			<Stack gap="sm">
+				<List variant={variant} sortable={false} items={initialTasks} aria-label="Tasks">
+					{(task) => (
+						<ListItem>
+							<ListLabel>{task.label}</ListLabel>
+						</ListItem>
+					)}
+				</List>
+			</Stack>
 		</Example>
 	)
 }
@@ -67,18 +64,16 @@ function Vertical() {
 
 	return (
 		<Example title="Sortable">
-			<Sizer>
-				<Stack gap={2}>
-					<List items={tasks} getKey={(t) => t.id} onReorder={setTasks} aria-label="Tasks">
-						{(task) => (
-							<ListItem>
-								<ListLabel>{task.label}</ListLabel>
-								<ListDescription>{task.description}</ListDescription>
-							</ListItem>
-						)}
-					</List>
-				</Stack>
-			</Sizer>
+			<Stack gap="sm">
+				<List items={tasks} getKey={(t) => t.id} onReorder={setTasks} aria-label="Tasks">
+					{(task) => (
+						<ListItem>
+							<ListLabel>{task.label}</ListLabel>
+							<ListDescription>{task.description}</ListDescription>
+						</ListItem>
+					)}
+				</List>
+			</Stack>
 		</Example>
 	)
 }
@@ -93,21 +88,19 @@ function Horizontal() {
 
 	return (
 		<Example title="Horizontal">
-			<Sizer>
-				<List
-					items={items}
-					getKey={(i) => i.id}
-					onReorder={setItems}
-					orientation="horizontal"
-					aria-label="Columns"
-				>
-					{(item) => (
-						<ListItem>
-							<ListLabel>{item.label}</ListLabel>
-						</ListItem>
-					)}
-				</List>
-			</Sizer>
+			<List
+				items={items}
+				getKey={(i) => i.id}
+				onReorder={setItems}
+				orientation="horizontal"
+				aria-label="Columns"
+			>
+				{(item) => (
+					<ListItem>
+						<ListLabel>{item.label}</ListLabel>
+					</ListItem>
+				)}
+			</List>
 		</Example>
 	)
 }
@@ -115,15 +108,13 @@ function Horizontal() {
 function ReadOnly() {
 	return (
 		<Example title="Read-only">
-			<Sizer>
-				<List items={initialTasks} getKey={(t) => t.id}>
-					{(task) => (
-						<ListItem>
-							<ListLabel>{task.label}</ListLabel>
-						</ListItem>
-					)}
-				</List>
-			</Sizer>
+			<List items={initialTasks} getKey={(t) => t.id}>
+				{(task) => (
+					<ListItem>
+						<ListLabel>{task.label}</ListLabel>
+					</ListItem>
+				)}
+			</List>
 		</Example>
 	)
 }
@@ -133,16 +124,14 @@ function WithDescriptions() {
 
 	return (
 		<Example title="With descriptions">
-			<Sizer>
-				<List items={tasks} getKey={(t) => t.id} onReorder={setTasks} aria-label="Tasks">
-					{(task) => (
-						<ListItem>
-							<ListLabel>{task.label}</ListLabel>
-							{task.description ? <ListDescription>{task.description}</ListDescription> : null}
-						</ListItem>
-					)}
-				</List>
-			</Sizer>
+			<List items={tasks} getKey={(t) => t.id} onReorder={setTasks} aria-label="Tasks">
+				{(task) => (
+					<ListItem>
+						<ListLabel>{task.label}</ListLabel>
+						{task.description ? <ListDescription>{task.description}</ListDescription> : null}
+					</ListItem>
+				)}
+			</List>
 		</Example>
 	)
 }
@@ -152,22 +141,20 @@ function Disabled() {
 
 	return (
 		<Example title="Disabled">
-			<Sizer>
-				<List items={tasks} getKey={(t) => t.id} onReorder={setTasks} disabled>
-					{(task) => (
-						<ListItem>
-							<ListLabel>{task.label}</ListLabel>
-						</ListItem>
-					)}
-				</List>
-			</Sizer>
+			<List items={tasks} getKey={(t) => t.id} onReorder={setTasks} disabled>
+				{(task) => (
+					<ListItem>
+						<ListLabel>{task.label}</ListLabel>
+					</ListItem>
+				)}
+			</List>
 		</Example>
 	)
 }
 
 export default function ListDemo() {
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Default />
 			<Vertical />
 			<Horizontal />

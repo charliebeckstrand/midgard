@@ -12,16 +12,18 @@ export type QueryRuleValueProps = {
 	field: QueryField
 	value: unknown
 	onChange: (value: unknown) => void
+	className?: string
 }
 
-export function QueryRuleValue({ field, value, onChange }: QueryRuleValueProps) {
+export function QueryRuleValue({ field, value, onChange, className }: QueryRuleValueProps) {
 	if (field.type === 'select') {
 		return (
 			<Select
 				value={(value as string | undefined) ?? ''}
+				displayValue={(v: string) => field.options?.find((o) => o.value === v)?.label ?? ''}
 				onChange={(v: string | undefined) => onChange(v ?? '')}
 				placeholder="Value"
-				displayValue={(v: string) => field.options?.find((o) => o.value === v)?.label ?? ''}
+				className={className}
 			>
 				{field.options?.map((o) => (
 					<ListboxOption key={o.value} value={o.value}>

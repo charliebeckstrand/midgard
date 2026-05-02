@@ -1,9 +1,8 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { kumi } from '../ryu/kumi'
 import { take } from '../ryu/take'
 
 export const kbd = tv({
-	base: ['inline-flex', kumi.center, ...take.mark.base],
+	base: ['inline-flex items-center justify-center', ...take.mark.base],
 	variants: {
 		size: take.mark.size,
 	},

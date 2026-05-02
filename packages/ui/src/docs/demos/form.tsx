@@ -12,7 +12,6 @@ import { Input } from '../../components/input'
 import { JsonTree } from '../../components/json-tree'
 import { NumberInput } from '../../components/number-input'
 import { PasswordInput } from '../../components/password-input'
-import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'
 import { Switch, SwitchField } from '../../components/switch'
 import { Textarea } from '../../components/textarea'
@@ -60,43 +59,41 @@ function BoundFieldsForm() {
 				</Form>
 			`}
 		>
-			<Sizer>
-				<Stack gap={4}>
-					<Form
-						defaultValues={{ name: '', email: '', age: 0 }}
-						onSubmit={async (values) => {
-							await simulateAsyncSubmission()
+			<Stack gap="lg">
+				<Form
+					defaultValues={{ name: '', email: '', age: 0 }}
+					onSubmit={async (values) => {
+						await simulateAsyncSubmission()
 
-							setResult(JSON.stringify(values, null, 2))
-						}}
-						onReset={() => setResult('')}
-					>
-						<Stack gap={4}>
-							<Field autoComplete="name">
-								<Label>Name</Label>
-								<Input name="name" placeholder="Jane Doe" />
-							</Field>
-							<Field autoComplete="email">
-								<Label>Email</Label>
-								<Input name="email" type="email" placeholder="jane@example.com" />
-							</Field>
-							<Field>
-								<Label>Age</Label>
-								<NumberInput name="age" min={0} max={150} />
-							</Field>
-							<Flex gap={2}>
-								<Button type="submit">Submit</Button>
-								{result && (
-									<Button type="reset" variant="soft" color="red">
-										Reset
-									</Button>
-								)}
-							</Flex>
-						</Stack>
-					</Form>
-					{result && <JsonTree data={JSON.parse(result)} />}
-				</Stack>
-			</Sizer>
+						setResult(JSON.stringify(values, null, 2))
+					}}
+					onReset={() => setResult('')}
+				>
+					<Stack gap="lg">
+						<Field autoComplete="name">
+							<Label>Name</Label>
+							<Input name="name" placeholder="Jane Doe" />
+						</Field>
+						<Field autoComplete="email">
+							<Label>Email</Label>
+							<Input name="email" type="email" placeholder="jane@example.com" />
+						</Field>
+						<Field>
+							<Label>Age</Label>
+							<NumberInput name="age" min={0} max={150} />
+						</Field>
+						<Flex gap="sm">
+							<Button type="submit">Submit</Button>
+							{result && (
+								<Button type="reset" variant="soft" color="red">
+									Reset
+								</Button>
+							)}
+						</Flex>
+					</Stack>
+				</Form>
+				{result && <JsonTree data={JSON.parse(result)} />}
+			</Stack>
 		</Example>
 	)
 }
@@ -137,7 +134,7 @@ function ValidationForm() {
 					}}
 					onSubmit={async (values) => setResult(JSON.stringify(values, null, 2))}
 				>
-					<Stack gap={4}>
+					<Stack gap="lg">
 						<Field>
 							<Label>Email</Label>
 							<Input name="email" type="email" placeholder="jane@example.com" />
@@ -160,59 +157,57 @@ function ValidationForm() {
 				</Form>
 			`}
 		>
-			<Sizer>
-				<Form
-					defaultValues={{ email: '', password: '', confirmPassword: '' }}
-					validate={{
-						email: (v) => {
-							if (!v) return 'Email is required'
+			<Form
+				defaultValues={{ email: '', password: '', confirmPassword: '' }}
+				validate={{
+					email: (v) => {
+						if (!v) return 'Email is required'
 
-							if (!v.includes('@')) return 'Must be a valid email'
+						if (!v.includes('@')) return 'Must be a valid email'
 
-							return undefined
-						},
-						password: (v) => (v.length < 8 ? 'Password must be at least 8 characters' : undefined),
-						confirmPassword: (_v, values) => {
-							if (values.password !== _v) return 'Passwords do not match'
+						return undefined
+					},
+					password: (v) => (v.length < 8 ? 'Password must be at least 8 characters' : undefined),
+					confirmPassword: (_v, values) => {
+						if (values.password !== _v) return 'Passwords do not match'
 
-							return undefined
-						},
-					}}
-					onSubmit={async (values) => {
-						await simulateAsyncSubmission()
+						return undefined
+					},
+				}}
+				onSubmit={async (values) => {
+					await simulateAsyncSubmission()
 
-						setResult(JSON.stringify(values, null, 2))
-					}}
-					onReset={() => setResult('')}
-				>
-					<Stack gap={4}>
-						<Field autoComplete="email">
-							<Label>Email</Label>
-							<Input name="email" type="email" placeholder="jane@example.com" />
-							<ErrorMessage name="email" />
-						</Field>
-						<Field autoComplete="new-password">
-							<Label>Password</Label>
-							<PasswordInput name="password" placeholder="Min 8 characters" />
-							<ErrorMessage name="password" />
-						</Field>
-						<Field autoComplete="new-password">
-							<Label>Confirm password</Label>
-							<PasswordInput name="confirmPassword" placeholder="Re-enter password" />
-							<ErrorMessage name="confirmPassword" />
-						</Field>
-						<Flex gap={2}>
-							<Button type="submit">Create account</Button>
-							{result && (
-								<Button type="reset" variant="soft" color="red">
-									Reset
-								</Button>
-							)}
-						</Flex>
-					</Stack>
-				</Form>
-				{result && <JsonTree data={JSON.parse(result)} />}
-			</Sizer>
+					setResult(JSON.stringify(values, null, 2))
+				}}
+				onReset={() => setResult('')}
+			>
+				<Stack gap="lg">
+					<Field autoComplete="email">
+						<Label>Email</Label>
+						<Input name="email" type="email" placeholder="jane@example.com" />
+						<ErrorMessage name="email" />
+					</Field>
+					<Field autoComplete="new-password">
+						<Label>Password</Label>
+						<PasswordInput name="password" placeholder="Min 8 characters" />
+						<ErrorMessage name="password" />
+					</Field>
+					<Field autoComplete="new-password">
+						<Label>Confirm password</Label>
+						<PasswordInput name="confirmPassword" placeholder="Re-enter password" />
+						<ErrorMessage name="confirmPassword" />
+					</Field>
+					<Flex gap="sm">
+						<Button type="submit">Create account</Button>
+						{result && (
+							<Button type="reset" variant="soft" color="red">
+								Reset
+							</Button>
+						)}
+					</Flex>
+				</Stack>
+			</Form>
+			{result && <JsonTree data={JSON.parse(result)} />}
 		</Example>
 	)
 }
@@ -223,7 +218,7 @@ function FormStatusDisplay() {
 	if (!form) return null
 
 	return (
-		<Flex gap={2} align="start">
+		<Flex gap="sm" align="start">
 			<Badge variant="outline" color={form.isDirty ? 'green' : 'red'}>
 				dirty: {form.isDirty ? 'yes' : 'no'}
 			</Badge>
@@ -273,46 +268,44 @@ function DirtyTouchedForm() {
 				</Form>
 			`}
 		>
-			<Sizer>
-				<Form
-					defaultValues={{ username: 'admin', bio: '' }}
-					validate={{
-						username: (v) => (v.length < 3 ? 'At least 3 characters' : undefined),
-						bio: (v) => (v.length > 200 ? 'Too long' : undefined),
-					}}
-					onSubmit={async (values) => {
-						await simulateAsyncSubmission()
+			<Form
+				defaultValues={{ username: 'admin', bio: '' }}
+				validate={{
+					username: (v) => (v.length < 3 ? 'At least 3 characters' : undefined),
+					bio: (v) => (v.length > 200 ? 'Too long' : undefined),
+				}}
+				onSubmit={async (values) => {
+					await simulateAsyncSubmission()
 
-						setResult(JSON.stringify(values, null, 2))
-					}}
-					onReset={() => setResult('')}
-				>
-					<Stack gap={4}>
-						<Field autoComplete="username">
-							<Label>Username</Label>
-							<Input name="username" />
-							<ErrorMessage name="username" />
-						</Field>
-						<Field>
-							<Label>Bio</Label>
-							<Textarea name="bio" placeholder="Tell us about yourself" rows={3} autoResize />
-							<ErrorMessage name="bio" />
-						</Field>
+					setResult(JSON.stringify(values, null, 2))
+				}}
+				onReset={() => setResult('')}
+			>
+				<Stack gap="lg">
+					<Field autoComplete="username">
+						<Label>Username</Label>
+						<Input name="username" />
+						<ErrorMessage name="username" />
+					</Field>
+					<Field>
+						<Label>Bio</Label>
+						<Textarea name="bio" placeholder="Tell us about yourself" rows={3} autoResize />
+						<ErrorMessage name="bio" />
+					</Field>
 
-						<FormStatusDisplay />
+					<FormStatusDisplay />
 
-						<Flex gap={2}>
-							<Button type="submit">Save</Button>
-							{result && (
-								<Button type="reset" variant="soft" color="red">
-									Reset
-								</Button>
-							)}
-						</Flex>
-					</Stack>
-				</Form>
-				{result && <JsonTree data={JSON.parse(result)} />}
-			</Sizer>
+					<Flex gap="sm">
+						<Button type="submit">Save</Button>
+						{result && (
+							<Button type="reset" variant="soft" color="red">
+								Reset
+							</Button>
+						)}
+					</Flex>
+				</Stack>
+			</Form>
+			{result && <JsonTree data={JSON.parse(result)} />}
 		</Example>
 	)
 }
@@ -348,7 +341,7 @@ function ServerErrorForm() {
 						setLoading(false)
 					}}
 				>
-					<Stack gap={4}>
+					<Stack gap="lg">
 						<Field>
 							<Label>Username</Label>
 							<Input name="username" placeholder="Pick a username" loading={loading} />
@@ -359,32 +352,30 @@ function ServerErrorForm() {
 				</Form>
 			`}
 		>
-			<Sizer>
-				<Form
-					defaultValues={{ username: '' }}
-					validate={{
-						username: (v) => (!v ? 'Username is required' : undefined),
-					}}
-					onSubmit={async (_values, ctx) => {
-						setLoading(true)
+			<Form
+				defaultValues={{ username: '' }}
+				validate={{
+					username: (v) => (!v ? 'Username is required' : undefined),
+				}}
+				onSubmit={async (_values, ctx) => {
+					setLoading(true)
 
-						await simulateAsyncSubmission()
+					await simulateAsyncSubmission()
 
-						ctx.setErrors({ username: 'This username is already taken' })
+					ctx.setErrors({ username: 'This username is already taken' })
 
-						setLoading(false)
-					}}
-				>
-					<Stack gap={4}>
-						<Field autoComplete="username">
-							<Label>Username</Label>
-							<Input name="username" placeholder="Pick a username" loading={loading} />
-							<ErrorMessage name="username" />
-						</Field>
-						<Button type="submit">Register</Button>
-					</Stack>
-				</Form>
-			</Sizer>
+					setLoading(false)
+				}}
+			>
+				<Stack gap="lg">
+					<Field autoComplete="username">
+						<Label>Username</Label>
+						<Input name="username" placeholder="Pick a username" loading={loading} />
+						<ErrorMessage name="username" />
+					</Field>
+					<Button type="submit">Register</Button>
+				</Stack>
+			</Form>
 		</Example>
 	)
 }
@@ -413,7 +404,7 @@ function ToggleForm() {
 					}}
 					onSubmit={(values) => setResult(JSON.stringify(values, null, 2))}
 				>
-					<Stack gap={4}>
+					<Stack gap="lg">
 						<Control>
 							<CheckboxField>
 								<Checkbox name="terms" />
@@ -438,58 +429,56 @@ function ToggleForm() {
 				</Form>
 			`}
 		>
-			<Sizer>
-				<Form
-					defaultValues={{ terms: false, newsletter: false, darkMode: false }}
-					validate={{
-						terms: (v) => (!v ? 'You must accept the terms and conditions' : undefined),
-					}}
-					onSubmit={async (values) => {
-						await simulateAsyncSubmission()
+			<Form
+				defaultValues={{ terms: false, newsletter: false, darkMode: false }}
+				validate={{
+					terms: (v) => (!v ? 'You must accept the terms and conditions' : undefined),
+				}}
+				onSubmit={async (values) => {
+					await simulateAsyncSubmission()
 
-						setResult(JSON.stringify(values, null, 2))
-					}}
-					onReset={() => setResult('')}
-				>
-					<Stack gap={4}>
-						<Control>
-							<CheckboxField>
-								<Checkbox name="terms" />
-								<Label>Accept terms and conditions</Label>
-							</CheckboxField>
-							<ErrorMessage name="terms" />
-						</Control>
-						<Control>
-							<CheckboxField>
-								<Checkbox name="newsletter" />
-								<Label>Subscribe to newsletter</Label>
-							</CheckboxField>
-						</Control>
-						<Control>
-							<SwitchField>
-								<Switch name="darkMode" />
-								<Label>Dark mode</Label>
-							</SwitchField>
-						</Control>
-						<Flex gap={2}>
-							<Button type="submit">Submit</Button>
-							{result && (
-								<Button type="reset" variant="soft" color="red">
-									Reset
-								</Button>
-							)}
-						</Flex>
-					</Stack>
-				</Form>
-				{result && <JsonTree data={JSON.parse(result)} />}
-			</Sizer>
+					setResult(JSON.stringify(values, null, 2))
+				}}
+				onReset={() => setResult('')}
+			>
+				<Stack gap="lg">
+					<Control>
+						<CheckboxField>
+							<Checkbox name="terms" />
+							<Label>Accept terms and conditions</Label>
+						</CheckboxField>
+						<ErrorMessage name="terms" />
+					</Control>
+					<Control>
+						<CheckboxField>
+							<Checkbox name="newsletter" />
+							<Label>Subscribe to newsletter</Label>
+						</CheckboxField>
+					</Control>
+					<Control>
+						<SwitchField>
+							<Switch name="darkMode" />
+							<Label>Dark mode</Label>
+						</SwitchField>
+					</Control>
+					<Flex gap="sm">
+						<Button type="submit">Submit</Button>
+						{result && (
+							<Button type="reset" variant="soft" color="red">
+								Reset
+							</Button>
+						)}
+					</Flex>
+				</Stack>
+			</Form>
+			{result && <JsonTree data={JSON.parse(result)} />}
 		</Example>
 	)
 }
 
 export default function FormDemo() {
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<BoundFieldsForm />
 			<ValidationForm />
 			<DirtyTouchedForm />

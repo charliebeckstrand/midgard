@@ -1,8 +1,9 @@
 'use client'
 
 import { createContext } from '../../core'
+import type { Orientation } from '../../types'
 
-export type ToolbarOrientation = 'horizontal' | 'vertical'
+export type ToolbarOrientation = Orientation
 
 export type ToolbarContextValue = {
 	orientation: ToolbarOrientation

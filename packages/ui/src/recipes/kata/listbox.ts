@@ -1,5 +1,4 @@
 import { iro } from '../ryu/iro'
-import { maru } from '../ryu/maru'
 import { narabi } from '../ryu/narabi'
 import { sawari } from '../ryu/sawari'
 import { control } from '../waku/control'
@@ -7,10 +6,11 @@ import { control } from '../waku/control'
 export const listbox = {
 	button: [
 		'flex items-center',
+		'w-full',
 		'text-left',
 		...control.field,
 		control.size.md,
-		maru.rounded.lg,
+		'rounded-lg',
 		'appearance-none',
 		...sawari.cursor,
 	],

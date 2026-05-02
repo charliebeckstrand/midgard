@@ -163,6 +163,7 @@ describe('Card size system', () => {
 		expect(card?.style.getPropertyValue('--ui-padding')).toBe(
 			`calc(var(--spacing) * ${sun.md.space})`,
 		)
+		expect(card?.style.getPropertyValue('--ui-gap')).toBe(`calc(var(--spacing) * ${sun.md.gap})`)
 	})
 
 	it('renders the radius class sourced from the inner-radius CSS variable', () => {
@@ -171,27 +172,27 @@ describe('Card size system', () => {
 		expect(bySlot(container, 'card')?.className).toContain('rounded-(--ui-radius-inner)')
 	})
 
-	it('CardBody padding tracks the Card size', () => {
+	it('CardBody reads its padding from --ui-padding', () => {
 		const { container } = renderUI(
 			<Card size="sm">
 				<CardBody>body</CardBody>
 			</Card>,
 		)
 
-		expect(bySlot(container, 'card-body')?.className).toContain(`p-${sun.sm.space}`)
+		expect(bySlot(container, 'card-body')?.className).toContain('p-(--ui-padding)')
 	})
 
-	it('CardHeader padding tracks the Card size', () => {
+	it('CardHeader reads its padding from --ui-padding', () => {
 		const { container } = renderUI(
 			<Card size="lg">
 				<CardHeader>header</CardHeader>
 			</Card>,
 		)
 
-		const space = sun.lg.space
+		const cls = bySlot(container, 'card-header')?.className ?? ''
 
-		expect(bySlot(container, 'card-header')?.className).toContain(`px-${space}`)
-		expect(bySlot(container, 'card-header')?.className).toContain(`pt-${space}`)
+		expect(cls).toContain('px-(--ui-padding)')
+		expect(cls).toContain('pt-(--ui-padding)')
 	})
 
 	it('CardTitle text size tracks the Card size, bumped one step up', () => {
@@ -201,8 +202,8 @@ describe('Card size system', () => {
 			</Card>,
 		)
 
-		// Card size "lg" → CardTitle bumps to ji.size.xl = 'text-xl/8'
-		expect(bySlot(container, 'card-title')?.className).toContain('text-xl/8')
+		// Card size "lg" → CardTitle bumps to ji.size.xl = 'text-xl'
+		expect(bySlot(container, 'card-title')?.className).toContain('text-xl')
 	})
 
 	it('CardTitle size prop overrides the inherited Card size', () => {
@@ -212,8 +213,8 @@ describe('Card size system', () => {
 			</Card>,
 		)
 
-		// CardTitle size "sm" → bumps to ji.size.md = 'text-base/6'
-		expect(bySlot(container, 'card-title')?.className).toContain('text-base/6')
+		// CardTitle size "sm" → bumps to ji.size.md = 'text-base'
+		expect(bySlot(container, 'card-title')?.className).toContain('text-base')
 	})
 
 	it('Buttons inside a Card inherit the Card size', () => {
@@ -225,7 +226,7 @@ describe('Card size system', () => {
 			</Card>,
 		)
 
-		// sun.sm.text = 'sm' → ji.size.sm = 'text-sm/5'
-		expect(bySlot(container, 'button')?.className).toContain('text-sm/5')
+		// sun.sm.text = 'sm' → ji.size.sm = 'text-sm'
+		expect(bySlot(container, 'button')?.className).toContain('text-sm')
 	})
 })

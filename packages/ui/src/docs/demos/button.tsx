@@ -33,9 +33,9 @@ export default function ButtonDemo() {
 	const [iconOnlySize, setIconOnlySize] = useState<Size>('md')
 
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Example title="Variants">
-				<Flex wrap gap={2}>
+				<Flex wrap gap="sm">
 					{variants.map((variant) => (
 						<Button key={variant} variant={variant}>
 							{variant}
@@ -50,7 +50,7 @@ export default function ButtonDemo() {
 					<VariantListbox variants={variants} value={colorVariant} onChange={setColorVariant} />
 				}
 			>
-				<Flex wrap gap={2}>
+				<Flex wrap gap="sm">
 					{colors.map((color) => (
 						<Button key={color} variant={colorVariant} color={color}>
 							{color}
@@ -60,7 +60,7 @@ export default function ButtonDemo() {
 			</Example>
 
 			<Example title="Sizes">
-				<Flex wrap gap={2}>
+				<Flex wrap gap="sm">
 					{sizes.map((s) => (
 						<Button key={s} size={s}>
 							{sizeLabels[s] ?? s}
@@ -73,7 +73,7 @@ export default function ButtonDemo() {
 				title="With icon"
 				actions={<SizeListbox sizes={sizes} value={iconSize} onChange={setIconSize} />}
 			>
-				<Flex wrap gap={2}>
+				<Flex wrap gap="sm">
 					{variants.map((variant) => (
 						<Button
 							key={variant}
@@ -91,7 +91,7 @@ export default function ButtonDemo() {
 				title="Icon only"
 				actions={<SizeListbox sizes={sizes} value={iconOnlySize} onChange={setIconOnlySize} />}
 			>
-				<Flex wrap gap={2}>
+				<Flex wrap gap="sm">
 					{variants.map((variant) => (
 						<Button
 							key={variant}
@@ -107,7 +107,7 @@ export default function ButtonDemo() {
 				title="Ripple"
 				actions={<ColorListbox colors={colors} value={rippleColor} onChange={setRippleColor} />}
 			>
-				<Flex wrap gap={2}>
+				<Flex wrap gap="sm">
 					{variants.map((variant) => (
 						<Button key={variant} variant={variant} color={rippleColor} ripple>
 							{variant}

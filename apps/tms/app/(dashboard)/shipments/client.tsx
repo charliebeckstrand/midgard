@@ -7,7 +7,7 @@ import { Spacer } from 'ui/spacer'
 
 export default function ShipmentsClient() {
 	return (
-		<Flex gap={2}>
+		<Flex gap="sm">
 			<Heading>Shipments</Heading>
 			<Spacer />
 			<Button color="green" href="/shipments/create">

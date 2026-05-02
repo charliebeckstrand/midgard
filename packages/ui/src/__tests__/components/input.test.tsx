@@ -87,9 +87,9 @@ describe('Input size resolution', () => {
 	// Each size variant brings a unique text class via ji.size; matching it
 	// confirms which size the kata actually rendered.
 	const textClassFor = {
-		sm: 'text-sm/5',
-		md: 'text-base/6',
-		lg: 'text-lg/7',
+		sm: 'text-sm',
+		md: 'text-base',
+		lg: 'text-lg',
 	} as const
 
 	it('inherits size from <Concentric> when no explicit prop is set', () => {

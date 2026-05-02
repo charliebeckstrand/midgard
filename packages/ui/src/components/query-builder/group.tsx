@@ -54,7 +54,7 @@ export function QueryGroup({ group, root, className }: QueryGroupProps) {
 				)}
 			</div>
 
-			<Flex gap={2} className={k.actions}>
+			<Flex gap="sm" className={k.actions}>
 				<Button variant="plain" disabled={disabled} onClick={() => addRule(group.id)}>
 					Add rule
 				</Button>

@@ -6,35 +6,35 @@ export const meta = { category: 'Layout' }
 
 export default function BoxDemo() {
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Example title="Default">
 				<Box>Content</Box>
 			</Example>
 
 			<Example title="With background">
-				<Box p={4} bg="tint">
+				<Box p="lg" bg="tint">
 					Content
 				</Box>
-				<Box p={4} bg="surface">
+				<Box p="lg" bg="surface">
 					Content
 				</Box>
 			</Example>
 
 			<Example title="With radius">
-				<Box p={4} bg="tint" radius="lg">
+				<Box p="lg" bg="tint" radius="lg">
 					Content
 				</Box>
 			</Example>
 
 			<Example title="Outline">
-				<Stack gap={4}>
-					<Box p={4} bg="surface" radius="lg" outline>
+				<Stack gap="lg">
+					<Box p="lg" bg="surface" radius="lg" outline>
 						Default outline
 					</Box>
-					<Box p={4} bg="surface" radius="lg" outline="subtle">
+					<Box p="lg" bg="surface" radius="lg" outline="subtle">
 						Subtle outline
 					</Box>
-					<Box p={4} bg="surface" radius="lg" outline="strong">
+					<Box p="lg" bg="surface" radius="lg" outline="strong">
 						Strong outline
 					</Box>
 				</Stack>

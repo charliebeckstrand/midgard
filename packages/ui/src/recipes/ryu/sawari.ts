@@ -8,7 +8,6 @@
 
 import { iro } from './iro'
 import { ji } from './ji'
-import { maru } from './maru'
 import { sen } from './sen'
 import { take } from './take'
 import { ugoki } from './ugoki'
@@ -80,7 +79,7 @@ const yoru = {
 }
 
 // ── Composed (internal) ─────────────────────────────────
-const item = [iro.text.default, maru.rounded.lg, motoi.item, hiru.item, yoru.item, glassItem]
+const item = [iro.text.default, 'rounded-lg', motoi.item, hiru.item, yoru.item, glassItem]
 
 // ── Export ───────────────────────────────────────────────
 export const sawari = {

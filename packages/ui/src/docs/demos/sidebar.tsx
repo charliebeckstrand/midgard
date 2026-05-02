@@ -150,7 +150,7 @@ function SectionedSidebar() {
 					<SidebarDivider />
 
 					<SidebarSection>
-						<Stack direction="row" align="center" gap={2}>
+						<Stack direction="row" align="center" gap="sm">
 							<Text variant="muted" className="text-xs uppercase tracking-wide flex-1">
 								Projects
 							</Text>
@@ -174,7 +174,7 @@ function SectionedSidebar() {
 					</SidebarSection>
 
 					<SidebarSection>
-						<Stack direction="row" align="center" gap={2}>
+						<Stack direction="row" align="center" gap="sm">
 							<Text variant="muted" className="text-xs uppercase tracking-wide flex-1">
 								Chats
 							</Text>
@@ -249,7 +249,7 @@ function ItemActionsSidebar() {
 
 export default function SidebarDemo() {
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Example title="Default">
 				<DefaultSidebar />
 			</Example>

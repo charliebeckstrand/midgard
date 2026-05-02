@@ -7,7 +7,6 @@ import {
 	AccordionItem,
 	AccordionPanel,
 } from '../../components/accordion'
-import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 import { VariantListbox } from '../components/variant-listbox'
@@ -38,51 +37,41 @@ export default function AccordionDemo() {
 	const [variant, setVariant] = useState<(typeof variants)[number]>('separated')
 
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Example
 				title="Default"
 				actions={<VariantListbox variants={variants} value={variant} onChange={setVariant} />}
 			>
-				<Sizer size="md">
-					<Accordion variant={variant} defaultValue="shipping">
-						{items.map((item) => (
-							<AccordionItem key={item.value} value={item.value}>
-								<AccordionButton>{item.title}</AccordionButton>
-								<AccordionPanel>{item.body}</AccordionPanel>
-							</AccordionItem>
-						))}
-					</Accordion>
-				</Sizer>
+				<Accordion variant={variant} defaultValue="shipping">
+					{items.map((item) => (
+						<AccordionItem key={item.value} value={item.value}>
+							<AccordionButton>{item.title}</AccordionButton>
+							<AccordionPanel>{item.body}</AccordionPanel>
+						</AccordionItem>
+					))}
+				</Accordion>
 			</Example>
 
 			<Example title="Multiple">
-				<Sizer size="md">
-					<Accordion type="multiple" variant="outline" defaultValue={['shipping', 'returns']}>
-						{items.map((item) => (
-							<AccordionItem key={item.value} value={item.value}>
-								<AccordionButton>{item.title}</AccordionButton>
-								<AccordionPanel>{item.body}</AccordionPanel>
-							</AccordionItem>
-						))}
-					</Accordion>
-				</Sizer>
+				<Accordion type="multiple" variant="outline" defaultValue={['shipping', 'returns']}>
+					{items.map((item) => (
+						<AccordionItem key={item.value} value={item.value}>
+							<AccordionButton>{item.title}</AccordionButton>
+							<AccordionPanel>{item.body}</AccordionPanel>
+						</AccordionItem>
+					))}
+				</Accordion>
 			</Example>
 
 			<Example title="Disabled item">
-				<Sizer size="md">
-					<Accordion variant="plain" defaultValue="shipping">
-						{items.map((item) => (
-							<AccordionItem
-								key={item.value}
-								value={item.value}
-								disabled={item.value === 'support'}
-							>
-								<AccordionButton>{item.title}</AccordionButton>
-								<AccordionPanel>{item.body}</AccordionPanel>
-							</AccordionItem>
-						))}
-					</Accordion>
-				</Sizer>
+				<Accordion variant="plain" defaultValue="shipping">
+					{items.map((item) => (
+						<AccordionItem key={item.value} value={item.value} disabled={item.value === 'support'}>
+							<AccordionButton>{item.title}</AccordionButton>
+							<AccordionPanel>{item.body}</AccordionPanel>
+						</AccordionItem>
+					))}
+				</Accordion>
 			</Example>
 		</Stack>
 	)

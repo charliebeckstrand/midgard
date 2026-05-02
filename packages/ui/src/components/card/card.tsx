@@ -31,6 +31,7 @@ export function Card({
 	const style: CSSProperties = {
 		'--ui-padding': `calc(var(--spacing) * ${step.space})`,
 		'--ui-radius-inner': `var(--radius-${step.radius})`,
+		'--ui-gap': `calc(var(--spacing) * ${step.gap})`,
 	} as CSSProperties
 
 	return (

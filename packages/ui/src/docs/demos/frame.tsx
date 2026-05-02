@@ -8,16 +8,16 @@ export const meta = { category: 'Layout' }
 
 export default function FrameDemo() {
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Example title="Default">
-				<Frame gap={2}>
+				<Frame gap="sm">
 					<Card className="w-64">Sidebar</Card>
 					<Card className="flex-1">Content</Card>
 				</Frame>
 			</Example>
 
 			<Example title="Column direction">
-				<Frame gap={2} direction="col">
+				<Frame gap="sm" direction="col">
 					<Card className="shrink-0">Header</Card>
 					<Card className="flex-1">Body</Card>
 					<Card className="shrink-0">Footer</Card>
@@ -25,9 +25,9 @@ export default function FrameDemo() {
 			</Example>
 
 			<Example title="Nested layout shell">
-				<Frame gap={2}>
+				<Frame gap="sm">
 					<Card className="w-64">Sidebar</Card>
-					<Frame gap={2} direction="col" className="flex-1 min-w-0">
+					<Frame gap="sm" direction="col" className="flex-1 min-w-0">
 						<Card className="shrink-0">Toolbar</Card>
 						<Card className="flex-1">
 							<Text>Main content area</Text>
@@ -37,7 +37,7 @@ export default function FrameDemo() {
 			</Example>
 
 			<Example title="Responsive direction">
-				<Frame gap={2} direction={{ initial: 'row', lg: 'col' }}>
+				<Frame gap="sm" direction={{ initial: 'row', lg: 'col' }}>
 					<Card className="shrink-0 w-64">Sidebar</Card>
 					<Card className="flex-1">Content</Card>
 				</Frame>

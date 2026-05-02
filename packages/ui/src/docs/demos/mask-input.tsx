@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { Field, Label } from '../../components/fieldset'
 import { MaskInput } from '../../components/mask-input'
-import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'
 import { code } from '../code'
 import { Example } from '../components/example'
@@ -75,24 +74,22 @@ function Controlled() {
 			</Field>
 		`}
 		>
-			<Sizer>
-				<Field>
-					<Label>License plate</Label>
-					<MaskInput
-						value={value}
-						onChange={setValue}
-						format={formatLicensePlate}
-						placeholder="ABC-1234"
-					/>
-				</Field>
-			</Sizer>
+			<Field>
+				<Label>License plate</Label>
+				<MaskInput
+					value={value}
+					onChange={setValue}
+					format={formatLicensePlate}
+					placeholder="ABC-1234"
+				/>
+			</Field>
 		</Example>
 	)
 }
 
 export default function MaskInputDemo() {
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Example
 				title="License plate"
 				code={code`
@@ -116,12 +113,10 @@ export default function MaskInputDemo() {
 					</Field>
 				`}
 			>
-				<Sizer>
-					<Field>
-						<Label>Plate</Label>
-						<MaskInput format={formatLicensePlate} placeholder="ABC-1234" />
-					</Field>
-				</Sizer>
+				<Field>
+					<Label>Plate</Label>
+					<MaskInput format={formatLicensePlate} placeholder="ABC-1234" />
+				</Field>
 			</Example>
 
 			<Example
@@ -146,12 +141,10 @@ export default function MaskInputDemo() {
 					</Field>
 				`}
 			>
-				<Sizer>
-					<Field>
-						<Label>Social security number</Label>
-						<MaskInput format={formatSsn} inputMode="numeric" placeholder="123-45-6789" />
-					</Field>
-				</Sizer>
+				<Field>
+					<Label>Social security number</Label>
+					<MaskInput format={formatSsn} inputMode="numeric" placeholder="123-45-6789" />
+				</Field>
 			</Example>
 
 			<Example
@@ -175,12 +168,10 @@ export default function MaskInputDemo() {
 					</Field>
 				`}
 			>
-				<Sizer>
-					<Field>
-						<Label>IBAN</Label>
-						<MaskInput format={formatIban} placeholder="GB29 NWBK 6016 1331 9268 19" />
-					</Field>
-				</Sizer>
+				<Field>
+					<Label>IBAN</Label>
+					<MaskInput format={formatIban} placeholder="GB29 NWBK 6016 1331 9268 19" />
+				</Field>
 			</Example>
 
 			<Controlled />
@@ -207,12 +198,10 @@ export default function MaskInputDemo() {
 					</Field>
 				`}
 			>
-				<Sizer>
-					<Field>
-						<Label>Disabled</Label>
-						<MaskInput disabled format={formatSsn} defaultValue="123456789" />
-					</Field>
-				</Sizer>
+				<Field>
+					<Label>Disabled</Label>
+					<MaskInput disabled format={formatSsn} defaultValue="123456789" />
+				</Field>
 			</Example>
 		</Stack>
 	)

@@ -1,16 +1,15 @@
 import { tv, type VariantProps } from 'tailwind-variants'
 import { iro } from '../ryu/iro'
 import { ji } from '../ryu/ji'
-import { kumi } from '../ryu/kumi'
 
 export const breadcrumb = tv({ base: '' })
 
 export const breadcrumbList = tv({
-	base: ['flex flex-wrap items-center', kumi.gap.md, 'break-words', ji.size.md],
+	base: ['flex flex-wrap items-center', 'gap-sm', 'break-words', ji.size.md],
 })
 
 export const breadcrumbItem = tv({
-	base: ['inline-flex items-center', kumi.gap.md],
+	base: ['inline-flex items-center', 'gap-sm'],
 	variants: {
 		current: {
 			true: [iro.text.default, 'font-normal'],

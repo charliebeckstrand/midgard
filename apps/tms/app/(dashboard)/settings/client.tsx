@@ -28,7 +28,7 @@ function AccountTab() {
 				console.log('account settings', values)
 			}}
 		>
-			<Stack gap={4}>
+			<Stack gap="lg">
 				<Field autoComplete="name">
 					<Label>Name</Label>
 					<Input name="name" placeholder="Jane Doe" />
@@ -69,7 +69,7 @@ function PreferencesTab() {
 
 export default function SettingsClient() {
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Heading>Settings</Heading>
 			<Tabs defaultValue="account">
 				<TabList>

@@ -1,7 +1,5 @@
 import { tv } from 'tailwind-variants'
 import { ji } from '../ryu/ji'
-import { kumi } from '../ryu/kumi'
-import { maru } from '../ryu/maru'
 import { sawari } from '../ryu/sawari'
 import { sen } from '../ryu/sen'
 
@@ -25,16 +23,16 @@ export const sidebar = {
 		'group relative',
 		'flex w-full items-center',
 		'cursor-pointer',
-		kumi.gap.md,
+		'gap-sm',
 		'p-2',
-		maru.rounded.lg,
+		'rounded-lg',
 		ji.size.md,
 		'text-left font-medium',
 	],
-	section: ['flex flex-col', kumi.gap.xs],
+	section: ['flex flex-col', 'gap-0.5'],
 	label: ['truncate'],
-	header: ['flex items-center', kumi.gap.md],
-	body: ['overflow-y-auto', 'flex flex-1 flex-col', kumi.gap.base],
+	header: ['flex items-center', 'gap-sm'],
+	body: ['overflow-y-auto', 'flex flex-1 flex-col', 'gap-lg'],
 	divider: sen.divider,
-	footer: ['sticky bottom-0', 'flex flex-col', kumi.gap.xs, 'mt-auto'],
+	footer: ['sticky bottom-0', 'flex flex-col', 'gap-0.5', 'mt-auto'],
 }

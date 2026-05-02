@@ -1,17 +1,15 @@
 import { iro } from '../ryu/iro'
 import { ji } from '../ryu/ji'
-import { kumi } from '../ryu/kumi'
-import { maru } from '../ryu/maru'
 import { sawari } from '../ryu/sawari'
 import { sen } from '../ryu/sen'
 
 export const fileUpload = {
 	dropzone: [
 		'flex flex-col items-center justify-center',
-		kumi.gap.sm,
+		'gap-xs',
 		ji.size.md,
 		iro.text.muted,
-		maru.rounded.lg,
+		'rounded-lg',
 		sen.focus.ring,
 		'border border-dashed',
 		'border-zinc-300',

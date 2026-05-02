@@ -11,7 +11,7 @@ function ToastButtons() {
 	const { toast } = useToast()
 
 	return (
-		<Flex wrap gap={2}>
+		<Flex wrap gap="sm">
 			<Button color="blue" onClick={() => toast({ title: 'Event created' })}>
 				Default
 			</Button>
@@ -97,7 +97,7 @@ function ActionToastButton() {
 export default function ToastDemo() {
 	return (
 		<Toast>
-			<Stack gap={6}>
+			<Stack gap="xl">
 				<Example
 					title="Types"
 					code={code`

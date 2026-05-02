@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { JsonTree, type JsonValue } from '../../components/json-tree'
 import { QueryBuilder, type QueryField, type QueryGroupNode } from '../../components/query-builder'
-import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
@@ -41,12 +40,10 @@ function Controlled() {
 
 	return (
 		<Example title="Controlled">
-			<Sizer size="lg">
-				<Stack gap={3}>
-					<QueryBuilder fields={fields} value={query} onChange={setQuery} />
-					<JsonTree data={query as unknown as JsonValue} defaultExpandDepth={Infinity} />
-				</Stack>
-			</Sizer>
+			<Stack gap="md">
+				<QueryBuilder fields={fields} value={query} onChange={setQuery} />
+				<JsonTree data={query as unknown as JsonValue} defaultExpandDepth={Infinity} />
+			</Stack>
 		</Example>
 	)
 }
@@ -54,16 +51,14 @@ function Controlled() {
 function Disabled() {
 	return (
 		<Example title="Disabled">
-			<Sizer size="lg">
-				<QueryBuilder fields={fields} defaultValue={seed} disabled />
-			</Sizer>
+			<QueryBuilder fields={fields} defaultValue={seed} disabled />
 		</Example>
 	)
 }
 
 export default function QueryBuilderDemo() {
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Controlled />
 			<Disabled />
 		</Stack>

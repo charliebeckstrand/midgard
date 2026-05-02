@@ -1,6 +1,5 @@
 import { iro } from '../ryu/iro'
 import { ji } from '../ryu/ji'
-import { maru } from '../ryu/maru'
 import { narabi } from '../ryu/narabi'
 import { sawari } from '../ryu/sawari'
 import { take } from '../ryu/take'
@@ -13,7 +12,7 @@ export const combobox = {
 		...control.field,
 		control.size.md,
 		take.combobox.padding,
-		maru.rounded.lg,
+		'rounded-lg',
 	],
 	chevron: [control.icon, take.combobox.icon, iro.text.muted],
 	options: 'max-h-60',

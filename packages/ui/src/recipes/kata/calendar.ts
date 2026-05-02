@@ -1,20 +1,24 @@
 import { iro } from '../ryu/iro'
-import { kumi } from '../ryu/kumi'
 import { buttonSoft } from './button'
 
 export const calendar = {
 	base: ['inline-flex flex-col w-80 p-4', 'select-none'],
 	grid: 'grid grid-cols-7',
 	header: ['flex items-center justify-between', 'mb-2'],
-	footer: ['flex', kumi.center, kumi.gap.md, 'pb-4'],
+	footer: ['flex items-center justify-center', 'gap-sm', 'pb-4'],
 	nav: {
 		icon: 'size-4.5',
 	},
 	picker: {
-		grid: ['grid grid-cols-3 p-2', kumi.gap.sm],
+		grid: ['grid grid-cols-3 p-2', 'gap-xs'],
 		cellCurrent: ['font-semibold', ...buttonSoft.blue],
 	},
-	weekday: ['flex', kumi.center, 'w-full aspect-square', 'text-xs font-medium', iro.text.muted],
+	weekday: [
+		'flex items-center justify-center',
+		'w-full aspect-square',
+		'text-xs font-medium',
+		iro.text.muted,
+	],
 	day: {
 		base: 'w-full aspect-square p-0 ring-inset',
 		active: 'ring-2 ring-inset ring-blue-600',

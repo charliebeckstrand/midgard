@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { Flex } from '../../components/flex'
-import { Sizer } from '../../components/sizer'
 import { RangeSlider, Slider } from '../../components/slider'
 import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
@@ -25,10 +24,8 @@ function Interactive() {
 			title="Default"
 			actions={<ValueStepper value={value} onChange={setValue} max={100} step={10} />}
 		>
-			<Sizer gap={3}>
-				<Slider value={value} onChange={setValue} />
-				<Text className="tabular-nums">{value}</Text>
-			</Sizer>
+			<Slider value={value} onChange={setValue} />
+			<Text className="tabular-nums">{value}</Text>
 		</Example>
 	)
 }
@@ -38,10 +35,8 @@ function StepSliderDemo() {
 
 	return (
 		<Example title="Step">
-			<Sizer>
-				<Slider min={0} max={1} step={0.1} value={ratio} onChange={setRatio} color="red" />
-				<Text className="tabular-nums">{ratio.toFixed(1)}</Text>
-			</Sizer>
+			<Slider min={0} max={1} step={0.1} value={ratio} onChange={setRatio} color="red" />
+			<Text className="tabular-nums">{ratio.toFixed(1)}</Text>
 		</Example>
 	)
 }
@@ -51,12 +46,10 @@ function RangeSliderDemo() {
 
 	return (
 		<Example title="Range">
-			<Sizer gap={3}>
-				<RangeSlider value={range} onChange={setRange} color="amber" />
-				<Text className="tabular-nums">
-					{range[0]} – {range[1]}
-				</Text>
-			</Sizer>
+			<RangeSlider value={range} onChange={setRange} color="amber" />
+			<Text className="tabular-nums">
+				{range[0]} – {range[1]}
+			</Text>
 		</Example>
 	)
 }
@@ -66,41 +59,35 @@ function RangeStepSliderDemo() {
 
 	return (
 		<Example title="Range with steps">
-			<Sizer gap={3}>
-				<RangeSlider min={0} max={1} step={0.1} value={range} onChange={setRange} color="green" />
-				<Text className="tabular-nums">
-					{range[0].toFixed(1)} – {range[1].toFixed(1)}
-				</Text>
-			</Sizer>
+			<RangeSlider min={0} max={1} step={0.1} value={range} onChange={setRange} color="green" />
+			<Text className="tabular-nums">
+				{range[0].toFixed(1)} – {range[1].toFixed(1)}
+			</Text>
 		</Example>
 	)
 }
 
 export default function SliderDemo() {
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Interactive />
 
 			<Example title="Sizes">
-				<Sizer>
-					{sizes.map((s, i) => (
-						<Flex key={s} gap={3}>
-							<span className="w-6 text-xs text-zinc-500">{s}</span>
-							<Slider size={s} defaultValue={40 + i * 20} className="flex-1" />
-						</Flex>
-					))}
-				</Sizer>
+				{sizes.map((s, i) => (
+					<Flex key={s} gap="md">
+						<span className="w-6 text-xs text-zinc-500">{s}</span>
+						<Slider size={s} defaultValue={40 + i * 20} className="flex-1" />
+					</Flex>
+				))}
 			</Example>
 
 			<Example title="Colors">
-				<Sizer>
-					{colors.map((color, index) => (
-						<Flex key={color} gap={3}>
-							<span className="w-10 text-xs text-zinc-500">{cap(color)}</span>
-							<Slider color={color} defaultValue={40 + index * 10} className="flex-1" />
-						</Flex>
-					))}
-				</Sizer>
+				{colors.map((color, index) => (
+					<Flex key={color} gap="md">
+						<span className="w-10 text-xs text-zinc-500">{cap(color)}</span>
+						<Slider color={color} defaultValue={40 + index * 10} className="flex-1" />
+					</Flex>
+				))}
 			</Example>
 
 			<StepSliderDemo />
@@ -110,9 +97,7 @@ export default function SliderDemo() {
 			<RangeStepSliderDemo />
 
 			<Example title="Disabled">
-				<Sizer>
-					<Slider disabled defaultValue={40} />
-				</Sizer>
+				<Slider disabled defaultValue={40} />
 			</Example>
 		</Stack>
 	)

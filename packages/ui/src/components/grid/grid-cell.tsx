@@ -1,9 +1,15 @@
 'use client'
 
-import type { ComponentPropsWithoutRef, ReactNode } from 'react'
+import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from 'react'
 import { cn } from '../../core'
 import { useGrid } from './context'
-import { type Responsive, resolveResponsive, responsiveClass } from './variants'
+import {
+	type Responsive,
+	resolveColStart,
+	resolveRowSpan,
+	resolveRowStart,
+	resolveSpan,
+} from './variants'
 
 export type GridCellProps = {
 	span?: Responsive<number | 'full'>
@@ -12,29 +18,9 @@ export type GridCellProps = {
 	rowStart?: Responsive<number>
 	area?: string
 	className?: string
+	style?: CSSProperties
 	children?: ReactNode
-} & Omit<ComponentPropsWithoutRef<'div'>, 'className' | 'children'>
-
-function resolveFullSpan(columns: Responsive<number> | undefined): string[] {
-	if (!columns) return ['col-span-full']
-
-	return resolveResponsive(columns, (n, bp) => {
-		const cls = `col-span-${n}`
-
-		return bp ? `${bp}:${cls}` : cls
-	})
-}
-
-function resolveSpan(
-	value: Responsive<number | 'full'> | undefined,
-	columns: Responsive<number> | undefined,
-): string[] {
-	if (value === undefined) return []
-
-	if (value === 'full') return resolveFullSpan(columns)
-
-	return resolveResponsive(value as Responsive<number>, responsiveClass('col-span'))
-}
+} & Omit<ComponentPropsWithoutRef<'div'>, 'className' | 'children' | 'style'>
 
 export function GridCell({
 	span,
@@ -43,24 +29,29 @@ export function GridCell({
 	rowStart,
 	area,
 	className,
+	style,
 	children,
 	...props
 }: GridCellProps) {
 	const ctx = useGrid()
 
-	const columns = ctx?.columns
+	const sp = resolveSpan(span, ctx?.columns)
+	const rs = resolveRowSpan(rowSpan)
+	const cs = resolveColStart(start)
+	const rss = resolveRowStart(rowStart)
 
 	return (
 		<div
 			data-slot="grid-cell"
-			className={cn(
-				...resolveSpan(span, columns),
-				...resolveResponsive(rowSpan, responsiveClass('row-span')),
-				...resolveResponsive(start, responsiveClass('col-start')),
-				...resolveResponsive(rowStart, responsiveClass('row-start')),
-				area && `[grid-area:${area}]`,
-				className,
-			)}
+			className={cn(...sp.classes, ...rs.classes, ...cs.classes, ...rss.classes, className)}
+			style={{
+				...sp.style,
+				...rs.style,
+				...cs.style,
+				...rss.style,
+				...(area !== undefined && { gridArea: area }),
+				...style,
+			}}
 			{...props}
 		>
 			{children}

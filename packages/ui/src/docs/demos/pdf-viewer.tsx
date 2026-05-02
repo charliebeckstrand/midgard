@@ -42,7 +42,7 @@ function Empty() {
 
 export default function PdfViewerDemo() {
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Default />
 			<Empty />
 		</Stack>

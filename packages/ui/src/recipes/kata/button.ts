@@ -2,8 +2,6 @@ import { tv, type VariantProps } from 'tailwind-variants'
 import { colorVariants } from '../../core/recipe'
 import { iro, merge } from '../ryu/iro'
 import { ji } from '../ryu/ji'
-import { kumi } from '../ryu/kumi'
-import { maru } from '../ryu/maru'
 import { sawari } from '../ryu/sawari'
 import { sen } from '../ryu/sen'
 import { take } from '../ryu/take'
@@ -32,21 +30,21 @@ const size = {
 	xs: [
 		ji.size.xs,
 		take.icon.xs,
-		kumi.gap[0.5],
+		'gap-0.5',
 		'p-[calc(--spacing(1.5)-1px)]',
 		'data-[has-children]:py-[calc(--spacing(1)-1px)]',
 	],
 	sm: [
 		ji.size.sm,
 		take.icon.sm,
-		kumi.gap[0.75],
+		'gap-0.75',
 		'p-[calc(--spacing(2)-1px)]',
 		'data-[has-children]:py-[calc(--spacing(1.5)-1px)]',
 	],
 	md: [
 		ji.size.md,
 		take.icon.md,
-		kumi.gap[1],
+		'gap-xs',
 		'p-[calc(--spacing(2.5)-1px)]',
 		'data-[has-children]:py-[calc(--spacing(2)-1px)]',
 	],
@@ -54,7 +52,7 @@ const size = {
 	lg: [
 		ji.size.lg,
 		take.icon.lg,
-		kumi.gap[1.25],
+		'gap-1.25',
 		'p-[calc(--spacing(3)-1px)]',
 		'data-[has-children]:py-[calc(--spacing(2.5)-1px)]',
 	],
@@ -63,12 +61,11 @@ const size = {
 export const button = tv({
 	base: [
 		'relative isolate',
-		'inline-flex',
-		kumi.center,
+		'inline-flex items-center justify-center',
 		'w-fit',
 		'shrink-0',
 		'font-semibold',
-		maru.rounded.lg,
+		'rounded-lg',
 		sen.focus.inset,
 		...sawari.disabled,
 		...sawari.cursor,

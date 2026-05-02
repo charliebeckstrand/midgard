@@ -58,8 +58,8 @@ export default function ShipmentsCreateClient() {
 	}
 
 	return (
-		<Stack gap={6}>
-			<Flex gap={2}>
+		<Stack gap="xl">
+			<Flex gap="sm">
 				<Heading>Create Shipment</Heading>
 				<Spacer />
 				<Button color="blue" onClick={() => setSelectAccountOpen(true)}>
@@ -82,7 +82,7 @@ export default function ShipmentsCreateClient() {
 			<Sheet open={selectAccountOpen} onOpenChange={setSelectAccountOpen}>
 				<SheetTitle>Select account</SheetTitle>
 				<SheetBody>
-					<Stack gap={2}>
+					<Stack gap="sm">
 						{accounts.map((account) => {
 							const isOpen = openIds.has(account.id)
 

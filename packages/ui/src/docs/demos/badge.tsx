@@ -25,9 +25,9 @@ export default function BadgeDemo() {
 	const [colorVariant, setColorVariant] = useState<(typeof colorVariants)[number]>('solid')
 
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Example title="Variants">
-				<Flex wrap gap={2}>
+				<Flex wrap gap="sm">
 					{variants.map((variant) => (
 						<Badge key={variant} variant={variant}>
 							{variant}
@@ -46,7 +46,7 @@ export default function BadgeDemo() {
 					/>
 				}
 			>
-				<Flex wrap gap={2}>
+				<Flex wrap gap="sm">
 					{colors.map((color) => (
 						<Badge key={color} variant={colorVariant} color={color}>
 							{color}
@@ -56,7 +56,7 @@ export default function BadgeDemo() {
 			</Example>
 
 			<Example title="Sizes">
-				<Flex wrap gap={2}>
+				<Flex wrap gap="sm">
 					{sizes.map(({ value, label }) => (
 						<Badge key={value} size={value}>
 							{label}
@@ -66,7 +66,7 @@ export default function BadgeDemo() {
 			</Example>
 
 			<Example title="Rounded">
-				<Flex wrap gap={2}>
+				<Flex wrap gap="sm">
 					{sizes.map(({ value, label }) => (
 						<Badge key={value} size={value} rounded="full" variant="outline">
 							{label}

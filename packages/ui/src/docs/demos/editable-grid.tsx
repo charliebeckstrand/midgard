@@ -112,7 +112,7 @@ export default function EditableGridDemo() {
 	)
 
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Example
 				title="Default"
 				code={code`

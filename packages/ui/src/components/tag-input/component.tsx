@@ -129,23 +129,25 @@ export function TagInput({
 						variant="outline"
 						rounded="full"
 						color={resolvedColor}
+						suffix={
+							!disabled && (
+								<Button
+									aria-label={`Remove ${t}`}
+									className={tagRemoveSize[resolvedSize]}
+									size="xs"
+									variant="plain"
+									prefix={<Icon icon={<X />} />}
+									onMouseDown={(e) => e.preventDefault()}
+									onClick={(e) => {
+										e.stopPropagation()
+
+										removeTag(i)
+									}}
+								/>
+							)
+						}
 					>
 						<span className="truncate">{t}</span>
-						{!disabled && (
-							<Button
-								aria-label={`Remove ${t}`}
-								className={tagRemoveSize[resolvedSize]}
-								size="xs"
-								variant="plain"
-								prefix={<Icon icon={<X />} />}
-								onMouseDown={(e) => e.preventDefault()}
-								onClick={(e) => {
-									e.stopPropagation()
-
-									removeTag(i)
-								}}
-							/>
-						)}
 					</Badge>
 				))}
 			</span>

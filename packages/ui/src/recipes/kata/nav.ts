@@ -1,24 +1,22 @@
 import { ji } from '../ryu/ji'
-import { kumi } from '../ryu/kumi'
-import { maru } from '../ryu/maru'
 import { sawari } from '../ryu/sawari'
 
 export const nav = {
 	list: {
 		base: 'flex',
 		orientation: {
-			vertical: ['flex-col', kumi.gap.xs],
-			horizontal: ['flex-row', kumi.gap.sm],
+			vertical: ['flex-col', 'gap-0.5'],
+			horizontal: ['flex-row', 'gap-xs'],
 		},
 	},
 	item: [
 		'group relative flex w-full items-center',
 		'p-2',
 		...sawari.nav,
-		kumi.gap.md,
+		'gap-sm',
 		ji.size.md,
 		'text-left font-medium',
-		maru.rounded.lg,
+		'rounded-lg',
 		'cursor-pointer',
 	],
 }

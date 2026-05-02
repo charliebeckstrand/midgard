@@ -6,7 +6,7 @@ export const meta = { category: 'Data Display' }
 
 export default function TextDemo() {
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Example title="Variants">
 				<Text>The lazy dog jumps over the quick brown fox.</Text>
 			</Example>

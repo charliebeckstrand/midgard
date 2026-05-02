@@ -21,7 +21,7 @@ export default function SpinnerDemo() {
 	const [buttonSize, setButtonSize] = useState<ButtonSize>('md')
 
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Example title="Default">
 				<Spinner />
 			</Example>
@@ -29,7 +29,7 @@ export default function SpinnerDemo() {
 			<Example title="Sizes">
 				<div className="flex items-end gap-4">
 					{sizes.map((s) => (
-						<Stack key={s} gap={2} align="center">
+						<Stack key={s} gap="sm" align="center">
 							<Spinner size={s} />
 							<span className="text-xs text-zinc-500">{s}</span>
 						</Stack>
@@ -38,9 +38,9 @@ export default function SpinnerDemo() {
 			</Example>
 
 			<Example title="Colors">
-				<Flex gap={4}>
+				<Flex gap="lg">
 					{colors.map((c) => (
-						<Stack key={c} gap={2} align="center">
+						<Stack key={c} gap="sm" align="center">
 							<Spinner color={c} size="lg" />
 							<span className="text-xs text-zinc-500">{cap(c)}</span>
 						</Stack>
@@ -52,7 +52,7 @@ export default function SpinnerDemo() {
 				title="Inside a button"
 				actions={<SizeListbox sizes={buttonSizes} value={buttonSize} onChange={setButtonSize} />}
 			>
-				<Flex gap={3}>
+				<Flex gap="md">
 					<Button disabled size={buttonSize} prefix={<Spinner />}>
 						Loading
 					</Button>

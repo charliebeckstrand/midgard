@@ -1,8 +1,9 @@
 'use client'
 
 import { createContext, useContext } from 'react'
+import type { Orientation } from '../../types'
 
-type TimelineOrientation = 'vertical' | 'horizontal'
+type TimelineOrientation = Orientation
 type TimelineVariant = 'solid' | 'outline'
 
 type TimelineContextValue = {

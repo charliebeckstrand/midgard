@@ -4,7 +4,6 @@ import { useDeferredValue, useMemo, useState } from 'react'
 import { Button } from '../../components/button'
 import { collectJsonTreePaths, JsonTree } from '../../components/json-tree'
 import { SearchInput } from '../../components/search-input'
-import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
@@ -36,7 +35,7 @@ function ExpandAllExample() {
 
 	return (
 		<Example title="Expand all levels">
-			<Stack gap={4}>
+			<Stack gap="lg">
 				<div>
 					<Button
 						size="sm"
@@ -106,7 +105,7 @@ function FilterExample() {
 
 export default function JsonTreeDemo() {
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Example title="Default">
 				<JsonTree data={sample} />
 			</Example>
@@ -114,9 +113,7 @@ export default function JsonTreeDemo() {
 			<ExpandAllExample />
 
 			<Example title="Collapsed by default">
-				<Sizer>
-					<JsonTree data={sample} defaultExpandDepth={0} />
-				</Sizer>
+				<JsonTree data={sample} defaultExpandDepth={0} />
 			</Example>
 
 			<SearchExample />
@@ -124,12 +121,10 @@ export default function JsonTreeDemo() {
 			<FilterExample />
 
 			<Example title="Arrays of primitives">
-				<Sizer>
-					<JsonTree
-						data={['alpha', 'beta', 'gamma', 1, 2, 3, true, false, null]}
-						defaultExpandDepth={Number.POSITIVE_INFINITY}
-					/>
-				</Sizer>
+				<JsonTree
+					data={['alpha', 'beta', 'gamma', 1, 2, 3, true, false, null]}
+					defaultExpandDepth={Number.POSITIVE_INFINITY}
+				/>
 			</Example>
 		</Stack>
 	)

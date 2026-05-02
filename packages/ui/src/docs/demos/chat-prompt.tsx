@@ -5,7 +5,6 @@ import { useState } from 'react'
 import { Button } from '../../components/button'
 import { ChatPrompt } from '../../components/chat-prompt'
 import { Icon } from '../../components/icon'
-import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'
 import { code } from '../code'
 import { Example } from '../components/example'
@@ -15,29 +14,23 @@ export const meta = { category: 'Chat' }
 function DefaultDemo() {
 	const [value, setValue] = useState('')
 
-	return (
-		<Sizer>
-			<ChatPrompt value={value} onValueChange={setValue} onSubmit={() => setValue('')} />
-		</Sizer>
-	)
+	return <ChatPrompt value={value} onValueChange={setValue} onSubmit={() => setValue('')} />
 }
 
 function WithActionsDemo() {
 	const [value, setValue] = useState('')
 
 	return (
-		<Sizer>
-			<ChatPrompt
-				value={value}
-				onValueChange={setValue}
-				onSubmit={() => setValue('')}
-				actions={
-					<Button variant="plain" size="sm" prefix={<Icon icon={<CircleDashed />} />}>
-						Data Analyst
-					</Button>
-				}
-			/>
-		</Sizer>
+		<ChatPrompt
+			value={value}
+			onValueChange={setValue}
+			onSubmit={() => setValue('')}
+			actions={
+				<Button variant="plain" size="sm" prefix={<Icon icon={<CircleDashed />} />}>
+					Data Analyst
+				</Button>
+			}
+		/>
 	)
 }
 
@@ -47,7 +40,7 @@ export default function ChatPromptDemo() {
 	const [streaming, setStreaming] = useState(false)
 
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Example title="Default">
 				<DefaultDemo />
 			</Example>
@@ -96,19 +89,17 @@ export default function ChatPromptDemo() {
 					/>
 				`}
 			>
-				<Sizer>
-					<ChatPrompt
-						value={streamingValue}
-						onValueChange={setStreamingValue}
-						onSubmit={() => {
-							setStreamingValue('')
+				<ChatPrompt
+					value={streamingValue}
+					onValueChange={setStreamingValue}
+					onSubmit={() => {
+						setStreamingValue('')
 
-							setStreaming(true)
-						}}
-						onStop={() => setStreaming(false)}
-						streaming={streaming}
-					/>
-				</Sizer>
+						setStreaming(true)
+					}}
+					onStop={() => setStreaming(false)}
+					streaming={streaming}
+				/>
 			</Example>
 		</Stack>
 	)

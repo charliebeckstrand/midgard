@@ -81,7 +81,7 @@ export function CommandPalette({
 			className={className}
 		>
 			<CommandPaletteProvider value={ctx}>
-				<Flex gap={2}>
+				<Flex gap="sm">
 					<Input
 						ref={inputRef}
 						prefix={icon ?? <Icon icon={<Search />} />}

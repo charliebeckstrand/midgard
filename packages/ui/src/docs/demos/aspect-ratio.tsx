@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { AspectRatio, type AspectRatioPreset } from '../../components/aspect-ratio'
 import { Card } from '../../components/card'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
-import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
@@ -31,26 +30,22 @@ function PresetsExample() {
 				</Listbox>
 			}
 		>
-			<Sizer size="xl">
-				<AspectRatio ratio={ratio}>
-					<Card className="flex flex-1 h-full items-center justify-center">{ratio}</Card>
-				</AspectRatio>
-			</Sizer>
+			<AspectRatio ratio={ratio}>
+				<Card className="flex flex-1 h-full items-center justify-center">{ratio}</Card>
+			</AspectRatio>
 		</Example>
 	)
 }
 
 export default function AspectRatioDemo() {
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<PresetsExample />
 
 			<Example title="Custom ratio">
-				<Sizer size="xl">
-					<AspectRatio ratio={1.618}>
-						<Card className="flex flex-1 h-full items-center justify-center">Golden (1.618)</Card>
-					</AspectRatio>
-				</Sizer>
+				<AspectRatio ratio={1.618}>
+					<Card className="flex flex-1 h-full items-center justify-center">Golden (1.618)</Card>
+				</AspectRatio>
 			</Example>
 		</Stack>
 	)

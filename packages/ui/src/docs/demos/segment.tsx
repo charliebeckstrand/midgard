@@ -48,9 +48,9 @@ export default function SegmentDemo() {
 	const [filter, setFilter] = useState('All')
 
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Example title="Default">
-				<Stack gap={4}>
+				<Stack gap="lg">
 					<Segment value={view} onValueChange={(v) => setView(v ?? 'List')}>
 						<SegmentControl>
 							<SegmentItem value="List">List</SegmentItem>
@@ -59,7 +59,7 @@ export default function SegmentDemo() {
 					</Segment>
 
 					{view === 'List' ? (
-						// <Stack gap={2}>
+						// <Stack gap="sm">
 						// 	{items.map((item) => (
 						// 		<Card key={item.name}>
 						// 			<CardBody className="flex items-center justify-between">
@@ -77,7 +77,7 @@ export default function SegmentDemo() {
 							)}
 						</List>
 					) : (
-						<Grid columns={{ initial: 2 }} gap={3}>
+						<Grid columns={{ initial: 2 }} gap="md">
 							{items.map((item) => (
 								<GridCell key={item.name} className="flex">
 									<Card className="grow">
@@ -94,7 +94,7 @@ export default function SegmentDemo() {
 			</Example>
 
 			<Example title="Filter">
-				<Stack gap={4}>
+				<Stack gap="lg">
 					<Segment value={filter} onValueChange={(v) => setFilter(v ?? 'All')}>
 						<SegmentControl>
 							<SegmentItem value="All">All</SegmentItem>
@@ -103,7 +103,7 @@ export default function SegmentDemo() {
 						</SegmentControl>
 					</Segment>
 
-					<Stack gap={2}>
+					<Stack gap="sm">
 						{items
 							.filter((item) => {
 								if (filter === 'All') return true

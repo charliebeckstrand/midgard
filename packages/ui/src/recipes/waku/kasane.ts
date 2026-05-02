@@ -22,15 +22,13 @@
  * Layer: waku · Concern: layered chrome
  */
 
-import { maru } from '../ryu/maru'
-
 /**
  * Base ring + radius that the layers are applied on top of. The ring uses
  * solid colours (not translucent like `sen.ringInset`) so adjacent rings in
  * a group can overlap by 1 px without alpha-stacking into a darker line at
  * the join.
  */
-const base = ['ring-1 ring-inset ring-zinc-300 dark:ring-zinc-700', maru.rounded.lg]
+const base = ['ring-1 ring-inset ring-zinc-300 dark:ring-zinc-700', 'rounded-lg']
 
 /** `::before` inset fill — paints the surface inside the 1 px outer ring. */
 const inset = ['before:absolute before:inset-px before:rounded-[calc(var(--radius-lg)-1px)]']

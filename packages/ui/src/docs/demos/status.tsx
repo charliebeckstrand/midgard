@@ -19,11 +19,11 @@ export default function StatusDemo() {
 	const [pulseSize, setPulseSize] = useState<(typeof sizes)[number]>('md')
 
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Example title="Statuses">
-				<Stack gap={3}>
+				<Stack gap="md">
 					{statuses.map((s) => (
-						<Flex key={s} gap={2}>
+						<Flex key={s} gap="sm">
 							<StatusDot status={s} />
 							<span className="text-sm text-zinc-500 dark:text-zinc-400">{cap(s)}</span>
 						</Flex>
@@ -32,9 +32,9 @@ export default function StatusDemo() {
 			</Example>
 
 			<Example title="Outline">
-				<Stack gap={3}>
+				<Stack gap="md">
 					{statuses.map((s) => (
-						<Flex key={s} gap={2}>
+						<Flex key={s} gap="sm">
 							<StatusDot variant="outline" status={s} />
 							<span className="text-sm text-zinc-500 dark:text-zinc-400">{cap(s)}</span>
 						</Flex>
@@ -46,9 +46,9 @@ export default function StatusDemo() {
 				title="Sizes"
 				actions={<VariantListbox variants={statuses} value={status} onChange={setStatus} />}
 			>
-				<Stack gap={3}>
+				<Stack gap="md">
 					{sizes.map((size) => (
-						<Flex key={size} gap={2}>
+						<Flex key={size} gap="sm">
 							<StatusDot status={status} size={size} />
 							<span className="text-sm text-zinc-500 dark:text-zinc-400">{size}</span>
 						</Flex>

@@ -9,9 +9,9 @@ export const meta = { category: 'Layout' }
 
 export default function SpacerDemo() {
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Example title="Justify">
-				<Card p={3} bg="none">
+				<Card p="md" bg="none">
 					<Stack direction="row" align="center" className="w-full">
 						<Heading level={3}>Title</Heading>
 						<Spacer />
@@ -21,8 +21,8 @@ export default function SpacerDemo() {
 			</Example>
 
 			<Example title="Between groups">
-				<Card p={3} bg="none">
-					<Stack direction="row" gap={3} align="center" className="w-full">
+				<Card p="md" bg="none">
+					<Stack direction="row" gap="md" align="center" className="w-full">
 						<Button variant="plain">Back</Button>
 						<Spacer />
 						<Button variant="plain">Cancel</Button>

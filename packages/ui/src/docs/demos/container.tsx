@@ -7,7 +7,7 @@ export const meta = { category: 'Layout' }
 
 export default function ContainerDemo() {
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Example title="Default">
 				<Container>
 					<Card>Page content</Card>
@@ -15,7 +15,7 @@ export default function ContainerDemo() {
 			</Example>
 
 			<Example title="Padding">
-				<Stack gap={4}>
+				<Stack gap="lg">
 					<Container padding="none">
 						<Card>No padding</Card>
 					</Container>

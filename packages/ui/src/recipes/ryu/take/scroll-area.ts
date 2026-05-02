@@ -1,5 +1,7 @@
+import type { ScrollOrientation } from '../../../types'
+
 type ScrollAreaSize = 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'dvh' | 'dvw'
-type ScrollAreaOrientation = 'vertical' | 'horizontal' | 'both'
+type ScrollAreaOrientation = ScrollOrientation
 
 /** Scroll area dimensions keyed by orientation. */
 export const scrollArea = {

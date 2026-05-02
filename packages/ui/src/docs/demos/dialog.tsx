@@ -26,7 +26,7 @@ export default function DialogDemo() {
 	const [accepted, setAccepted] = useState(false)
 
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Example title="Dialog">
 				<Button color="green" onClick={() => setOpen(true)}>
 					Create project
@@ -35,7 +35,7 @@ export default function DialogDemo() {
 					<DialogTitle>Create project</DialogTitle>
 					<DialogDescription>Enter the details for your new project.</DialogDescription>
 					<DialogBody>
-						<Stack gap={4}>
+						<Stack gap="lg">
 							<Field>
 								<Label>Project name</Label>
 								<Input placeholder="My Project" />
@@ -62,7 +62,7 @@ export default function DialogDemo() {
 				<Dialog glass open={glassOpen} onOpenChange={setGlassOpen}>
 					<DialogTitle>Glass dialog</DialogTitle>
 					<DialogBody>
-						<Stack gap={4}>
+						<Stack gap="lg">
 							<Text>
 								The glass variant applies a backdrop blur with a transparent background, allowing
 								content behind the dialog to show through.
@@ -109,7 +109,7 @@ export default function DialogDemo() {
 					confirm={{ label: 'Accept', color: 'blue', disabled: !accepted }}
 				>
 					<DialogBody>
-						<Stack gap={2}>
+						<Stack gap="sm">
 							<Text>
 								Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
 								incididunt ut labore et dolore magna aliqua.

@@ -237,7 +237,7 @@ function InfoOnly() {
 
 export default function MapDemo() {
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Presets />
 			<InteractiveRoute />
 			<Shipments />

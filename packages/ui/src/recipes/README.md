@@ -40,9 +40,7 @@ into. Lives in `ryu/`.
 | `kokkaku` | per-component skeleton placeholder shapes |
 | `narabi`  | sibling/slot layout (panel slots, list items, toggle/group, field) |
 | `tsunagi` | group join selectors (used by `<Group>`) |
-| `maru`    | radius scale (substrate, used mainly via `sun`) |
-| `ma`      | spacing scale (substrate) |
-| `kumi`    | gap scale (substrate; direction/align/justify removed — use Tailwind directly) |
+| `ma`      | spacing vocabulary — `xs/sm/md/lg/xl` token names. Padding, margin, and gap classes (`p-md`, `gap-lg`, `mt-xs`, …) are first-class Tailwind v4 utilities projected from `--step-*` tokens in `theme.css` via `@utility`; write them inline. |
 | `sen`     | lines (borders, rings, dividers, focus, forced-colors compounds) |
 | `take`    | dimension scales (icon, avatar, panel, scrollArea, combobox, listbox, mark) |
 
@@ -87,7 +85,12 @@ their `size` prop. The resolution order is: explicit prop, then
   with two consumers earns a shared module; with one, it stays inline.
 - **A new shared concern = a new entry in an existing module.** Only add
   a brand-new module when the concern doesn't fit any existing one.
-- **One-off utilities go inline.** Don't reach for `maru`/`ma`/`kumi` to
-  look up a single Tailwind class. Use Tailwind directly. The substrate
-  scales exist to be referenced *systematically* (via `sun` or by kata
-  size variants), not as a name layer over Tailwind.
+- **Spacing and radius have no recipe maps.** `ma` is the named spacing
+  vocabulary (`xs/sm/md/lg/xl`); radius uses Tailwind's built-in scale
+  (`rounded-{none,sm,md,lg,xl,full}`). Both are real Tailwind v4
+  utilities — for spacing they are backed by `--step-*` theme tokens
+  in `theme.css`, projected through static `@utility` rules so the
+  t-shirt names don't shadow `--container-*` utilities like `max-w-sm`.
+  Inside `tv()` recipes write `'p-md'`, `'gap-lg'`, `'rounded-lg'`
+  directly — same as any other utility. Off-scale values go inline too
+  (e.g. `'gap-0.5'`, `'p-3.5'`, `'rounded-2xl'`).

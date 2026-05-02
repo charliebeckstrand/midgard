@@ -1,10 +1,8 @@
 import { tv, type VariantProps } from 'tailwind-variants'
 import { iro } from '../ryu/iro'
-import { kumi } from '../ryu/kumi'
-import { maru } from '../ryu/maru'
 
 export const progressTrack = tv({
-	base: ['overflow-hidden', maru.rounded.full, 'bg-zinc-200', 'dark:bg-zinc-700'],
+	base: ['overflow-hidden', 'rounded-full', 'bg-zinc-200', 'dark:bg-zinc-700'],
 	variants: {
 		size: {
 			sm: 'h-1',
@@ -16,7 +14,7 @@ export const progressTrack = tv({
 })
 
 export const progressGauge = tv({
-	base: ['inline-flex', kumi.center, 'relative'],
+	base: ['relative', 'inline-flex items-center justify-center'],
 	variants: {
 		size: {
 			xs: 'size-6',
@@ -34,7 +32,7 @@ export type ProgressGaugeVariants = VariantProps<typeof progressGauge>
 
 export const slots = {
 	bar: {
-		fill: ['h-full', maru.rounded.full],
+		fill: ['h-full', 'rounded-full'],
 		indeterminate: 'w-1/3 animate-[progress-indeterminate_1.5s_ease-in-out_infinite]',
 	},
 	gauge: {

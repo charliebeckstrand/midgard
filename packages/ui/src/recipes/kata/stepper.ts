@@ -1,7 +1,6 @@
 import { tv, type VariantProps } from 'tailwind-variants'
 import { iro } from '../ryu/iro'
 import { ji } from '../ryu/ji'
-import { maru } from '../ryu/maru'
 import { sawari } from '../ryu/sawari'
 import { sen } from '../ryu/sen'
 
@@ -64,7 +63,7 @@ export type StepperSeparatorVariants = VariantProps<typeof stepperSeparator>
 export const slots = {
 	content: 'flex flex-1 flex-col gap-1',
 	indicator: {
-		base: ['relative', 'size-3.5 shrink-0', maru.rounded.full, 'bg-zinc-400', 'dark:bg-zinc-600'],
+		base: ['relative', 'size-3.5 shrink-0', 'rounded-full', 'bg-zinc-400', 'dark:bg-zinc-600'],
 		interactive: [
 			'group-enabled:group-hover:bg-zinc-500',
 			'group-focus-visible:outline-2 group-focus-visible:outline-blue-600',

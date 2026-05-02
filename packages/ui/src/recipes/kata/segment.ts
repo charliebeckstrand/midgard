@@ -1,18 +1,16 @@
 import { tv, type VariantProps } from 'tailwind-variants'
 import { ji } from '../ryu/ji'
-import { kumi } from '../ryu/kumi'
-import { maru } from '../ryu/maru'
 import { omote } from '../ryu/omote'
 import { sawari } from '../ryu/sawari'
 import { sen } from '../ryu/sen'
 
 export const segmentControl = tv({
-	base: ['inline-flex items-center', maru.rounded.lg, ...omote.tint],
+	base: ['inline-flex items-center', 'rounded-lg', ...omote.tint],
 	variants: {
 		size: {
-			sm: ['p-0.5', ...kumi.gap.sm],
-			md: ['p-1', ...kumi.gap.md],
-			lg: ['p-1', ...kumi.gap.lg],
+			sm: ['p-0.5', ...'gap-xs'],
+			md: ['p-1', ...'gap-sm'],
+			lg: ['p-1', ...'gap-md'],
 		},
 	},
 	defaultVariants: { size: 'md' },
@@ -20,10 +18,10 @@ export const segmentControl = tv({
 
 export const segmentItem = tv({
 	base: [
-		'flex',
-		kumi.center,
-		'font-medium select-none whitespace-nowrap',
-		maru.rounded.lg,
+		'flex items-center justify-center',
+		'font-medium select-none',
+		'whitespace-nowrap',
+		'rounded-lg',
 		sen.focus.indicator,
 		sen.focus.ring,
 		...sawari.disabled,

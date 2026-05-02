@@ -10,13 +10,13 @@ export const meta = { category: 'Button' }
 
 export default function CopyButtonDemo() {
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Example title="Default">
 				<CopyButton value="Hello, world!" />
 			</Example>
 
 			<Example title="Sizes">
-				<Flex gap={4}>
+				<Flex gap="lg">
 					<CopyButton value="Large" size="lg" />
 					<CopyButton value="Medium" size="md" />
 					<CopyButton value="Small" size="sm" />

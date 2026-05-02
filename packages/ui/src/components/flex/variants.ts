@@ -1,7 +1,16 @@
-import { kumi } from '../../recipes'
-import { type Responsive, resolveResponsive } from '../grid'
+import type { Ma } from '../../recipes/ryu/ma'
+import type { Breakpoint, Responsive } from '../../types'
+import { resolveResponsive } from '../grid'
 
-export const gapMap = kumi.gap
+export type FlexGap = Ma
+
+export const gapMap = {
+	xs: 'gap-xs',
+	sm: 'gap-sm',
+	md: 'gap-md',
+	lg: 'gap-lg',
+	xl: 'gap-xl',
+} as const satisfies Record<FlexGap, string>
 
 export const directionMap = {
 	row: 'flex-row',
@@ -27,7 +36,6 @@ export const justifyMap = {
 	evenly: 'justify-evenly',
 } as const
 
-export type FlexGap = keyof typeof kumi.gap
 export type FlexDirection = keyof typeof directionMap
 export type FlexAlign = keyof typeof alignMap
 export type FlexJustify = keyof typeof justifyMap
@@ -36,8 +44,6 @@ export type ResponsiveDirection = Responsive<FlexDirection>
 export type ResponsiveAlign = Responsive<FlexAlign>
 export type ResponsiveGap = Responsive<FlexGap>
 export type ResponsiveJustify = Responsive<FlexJustify>
-
-type Breakpoint = 'initial' | 'sm' | 'md' | 'lg' | 'xl' | '2xl'
 
 const responsiveDirectionMap: Record<Breakpoint, Record<FlexDirection, string>> = {
 	initial: directionMap,

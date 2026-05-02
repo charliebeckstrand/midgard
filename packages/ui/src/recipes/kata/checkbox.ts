@@ -1,7 +1,6 @@
 import { tv, type VariantProps } from 'tailwind-variants'
 import { defineColors } from '../../core/recipe/mode'
 import { iro } from '../ryu/iro'
-import { kumi } from '../ryu/kumi'
 import { sen } from '../ryu/sen'
 import { control } from '../waku/control'
 
@@ -21,9 +20,8 @@ const color = defineColors({
 
 export const checkbox = tv({
 	base: [
-		'inline-flex',
-		kumi.center,
 		'relative',
+		'inline-flex items-center justify-center',
 		sen.focus.outline,
 		'has-checked:*:data-[slot=checkbox-check]:opacity-100',
 		...control.check.surface,

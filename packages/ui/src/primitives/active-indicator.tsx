@@ -12,7 +12,7 @@ import {
 	useMemo,
 } from 'react'
 import { cn } from '../core'
-import { maru, ugoki } from '../recipes'
+import { ugoki } from '../recipes'
 
 const ActiveIndicatorContext = createContext<string | undefined>(undefined)
 
@@ -79,7 +79,7 @@ export function ActiveIndicator({
 			ref={ref}
 			layoutId={resolvedLayoutId}
 			layoutDependency={instanceId}
-			className={cn('absolute inset-0', 'bg-zinc-300 dark:bg-zinc-600', maru.rounded.lg, className)}
+			className={cn('absolute inset-0', 'bg-zinc-300 dark:bg-zinc-600', 'rounded-lg', className)}
 			style={{ borderRadius: 8, ...style }}
 			transition={ugoki.spring}
 		>

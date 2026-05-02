@@ -1,6 +1,5 @@
 import { iro } from '../ryu/iro'
 import { ji } from '../ryu/ji'
-import { kumi } from '../ryu/kumi'
 import { omote } from '../ryu/omote'
 import { sen } from '../ryu/sen'
 
@@ -9,13 +8,13 @@ export const pdfViewer = {
 	toolbar: [
 		'flex flex-nowrap items-center justify-between',
 		'overflow-x-auto',
-		kumi.gap.sm,
+		'gap-xs',
 		'px-2 py-1.5',
 		'border-b',
 		sen.borderColor,
 		'shrink-0',
 	],
-	toolbarSection: ['flex items-center shrink-0', kumi.gap.sm],
+	toolbarSection: ['flex items-center shrink-0', 'gap-xs'],
 	pageStatus: [ji.size.sm, iro.text.muted, 'tabular-nums select-none whitespace-nowrap'],
 	body: ['flex flex-1 min-h-0'],
 	sidebar: [
@@ -28,7 +27,7 @@ export const pdfViewer = {
 	sidebarClosed: '-ml-56',
 	sidebarHeader: [
 		'flex items-center',
-		kumi.gap.sm,
+		'gap-xs',
 		'px-3 py-2',
 		ji.size.md,
 		iro.text.muted,
@@ -36,16 +35,12 @@ export const pdfViewer = {
 		'shrink-0',
 		'select-none',
 	],
-	thumbnails: [
-		'flex flex-col basis-0 grow shrink min-h-0',
-		kumi.gap.md,
-		'overflow-y-auto px-4 pb-4',
-	],
-	thumbnailsGrid: ['grid grid-cols-2', kumi.gap.md],
+	thumbnails: ['flex flex-col basis-0 grow shrink min-h-0', 'gap-sm', 'overflow-y-auto px-4 pb-4'],
+	thumbnailsGrid: ['grid grid-cols-2', 'gap-sm'],
 	thumbnail: [
 		'group/thumb',
 		'flex flex-col items-center',
-		kumi.gap.md,
+		'gap-sm',
 		'bg-transparent',
 		'outline-none',
 		'cursor-pointer',
@@ -63,7 +58,7 @@ export const pdfViewer = {
 		'group-data-active/thumb:hover:opacity-100',
 	],
 	thumbnailImage: ['block w-full h-full object-contain'],
-	thumbnailFallback: ['flex h-full w-full', kumi.center, ji.size.sm, iro.text.muted],
+	thumbnailFallback: ['flex items-center justify-center h-full w-full', ji.size.sm, iro.text.muted],
 	thumbnailPlaceholder: ['block w-full aspect-[3/4]', omote.skeleton],
 	thumbnailLabel: [
 		ji.size.sm,
@@ -82,5 +77,5 @@ export const pdfViewer = {
 	pageFrame: ['relative shrink-0'],
 	page: ['absolute top-1/2 left-1/2 origin-center', 'shadow-lg', 'bg-white'],
 	pagePlaceholder: ['w-full h-full', omote.skeleton],
-	pageEmpty: ['flex w-full h-full', kumi.center, 'py-2', ji.size.sm, iro.text.muted],
+	pageEmpty: ['flex items-center justify-center w-full h-full', 'py-2', ji.size.sm, iro.text.muted],
 }

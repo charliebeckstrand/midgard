@@ -1,6 +1,5 @@
 import { iro } from '../ryu/iro'
 import { ji } from '../ryu/ji'
-import { kumi } from '../ryu/kumi'
 import { sawari } from '../ryu/sawari'
 import { sen } from '../ryu/sen'
 
@@ -8,7 +7,7 @@ export const collapse = {
 	base: 'group/collapse',
 	trigger: [
 		'inline-flex items-center',
-		kumi.gap.sm,
+		'gap-xs',
 		ji.size.sm,
 		iro.text.muted,
 		iro.text.hover,

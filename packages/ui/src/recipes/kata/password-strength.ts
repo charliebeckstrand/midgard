@@ -1,12 +1,10 @@
 import { iro } from '../ryu/iro'
 import { ji } from '../ryu/ji'
-import { kumi } from '../ryu/kumi'
-import { maru } from '../ryu/maru'
 
 export const passwordStrength = {
-	root: ['flex flex-col', kumi.gap.md],
-	meter: ['flex items-center', kumi.gap.sm],
-	segment: ['flex-1 h-1', maru.rounded.full, 'bg-zinc-200 dark:bg-zinc-700'],
+	root: ['flex flex-col', 'gap-sm'],
+	meter: ['flex items-center', 'gap-xs'],
+	segment: ['flex-1 h-1', 'rounded-full', 'bg-zinc-200 dark:bg-zinc-700'],
 	level: {
 		weak: 'bg-red-600 dark:bg-red-500',
 		fair: 'bg-amber-600 dark:bg-amber-500',
@@ -21,8 +19,8 @@ export const passwordStrength = {
 		strong: 'text-green-600 dark:text-green-500',
 		empty: iro.text.muted,
 	},
-	rules: ['flex flex-col', kumi.gap.xs],
-	rule: ['inline-flex items-center', kumi.gap.sm, ji.size.sm],
+	rules: ['flex flex-col', 'gap-0.5'],
+	rule: ['inline-flex items-center', 'gap-xs', ji.size.sm],
 	ruleIcon: 'size-4 shrink-0',
 	ruleIconPass: 'text-green-600 dark:text-green-500',
 	ruleIconFail: iro.text.muted,

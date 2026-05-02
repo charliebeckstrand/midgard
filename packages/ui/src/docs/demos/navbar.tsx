@@ -25,7 +25,7 @@ export default function NavbarDemo() {
 	const [current, setCurrent] = useState('home')
 
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Example title="Default">
 				<Navbar variant="outline">
 					<Nav value="home">

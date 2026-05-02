@@ -1,7 +1,5 @@
 import { iro } from '../ryu/iro'
 import { ji } from '../ryu/ji'
-import { kumi } from '../ryu/kumi'
-import { maru } from '../ryu/maru'
 import { omote } from '../ryu/omote'
 import { sen } from '../ryu/sen'
 import { tabIndicator } from './tabs'
@@ -18,7 +16,7 @@ export const bottomNav = {
 		'flex flex-1 flex-col items-center justify-center',
 		'py-4',
 		'cursor-pointer',
-		kumi.gap.sm,
+		'gap-xs',
 		ji.size.sm,
 		iro.text.muted,
 		iro.text.hover,
@@ -26,5 +24,5 @@ export const bottomNav = {
 		sen.focus.inset,
 	],
 	current: [iro.text.default],
-	indicator: ['inset-x-4 bottom-auto top-0', 'h-0.5', maru.rounded.full, tabIndicator],
+	indicator: ['inset-x-4 bottom-auto top-0', 'h-0.5', 'rounded-full', tabIndicator],
 }

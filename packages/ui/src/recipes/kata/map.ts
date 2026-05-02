@@ -1,4 +1,3 @@
-import { maru } from '../ryu/maru'
 import { sawari } from '../ryu/sawari'
 import { sen } from '../ryu/sen'
 
@@ -7,7 +6,7 @@ export const map = {
 		'relative isolate overflow-hidden',
 		'w-full h-full',
 		sen.border,
-		maru.rounded.lg,
+		'rounded-lg',
 		sawari.disabled,
 	],
 	canvas: ['absolute inset-0'],

@@ -27,7 +27,6 @@
 
 import { iro } from '../ryu/iro'
 import { ji } from '../ryu/ji'
-import { kumi } from '../ryu/kumi'
 import { omote } from '../ryu/omote'
 import { sawari } from '../ryu/sawari'
 import { sen } from '../ryu/sen'
@@ -51,7 +50,7 @@ const surface = {
 // ── Inner field reset (placeholder, transparent bg, no outline) ──
 const field = [
 	...iro.text.default,
-	kumi.gap.md,
+	'gap-sm',
 	'relative',
 	'w-full min-w-0 flex-1',
 	'border-0',

@@ -1,11 +1,12 @@
 'use client'
 
 import { type KeyboardEvent, type RefObject, useCallback } from 'react'
+import type { Orientation } from '../types'
 import { useScrollWithin } from './use-scroll-within'
 
 const ACTIVE_ATTR = 'data-active'
 
-export type Orientation = 'horizontal' | 'vertical'
+export type { Orientation }
 
 export type RovingConfig = {
 	/** Column count for 2D grid navigation. Omit for single-axis mode. */

@@ -1,6 +1,5 @@
 import { iro } from '../ryu/iro'
 import { ji } from '../ryu/ji'
-import { kumi } from '../ryu/kumi'
 import { narabi } from '../ryu/narabi'
 import { sawari } from '../ryu/sawari'
 
@@ -10,7 +9,7 @@ export const commandPalette = {
 	item: [
 		'group/option flex w-full items-center',
 		'px-2',
-		kumi.gap.md,
+		'gap-sm',
 		...sawari.item,
 		...narabi.item,
 		'data-active:bg-zinc-950/5',

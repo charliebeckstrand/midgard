@@ -60,7 +60,7 @@ export function UserDetailsClient({ details, chats: initialChats }: UserDetailsC
 
 	return (
 		<>
-			<Stack gap={6}>
+			<Stack gap="xl">
 				<Heading>{details?.email}</Heading>
 
 				<Stack>
@@ -94,7 +94,7 @@ export function UserDetailsClient({ details, chats: initialChats }: UserDetailsC
 										})}
 									</TableCell>
 									<TableCell>
-										<Flex gap={1}>
+										<Flex gap="xs">
 											<Button variant="outline" onClick={() => setViewChat(chat.id)}>
 												View
 											</Button>
@@ -116,7 +116,7 @@ export function UserDetailsClient({ details, chats: initialChats }: UserDetailsC
 				size="3xl"
 			>
 				<Flex justify="between" className="mr-2.5">
-					<Stack gap={0}>
+					<Stack className="gap-0">
 						<SheetTitle>Chat History</SheetTitle>
 						<SheetDescription>{viewChat}</SheetDescription>
 					</Stack>

@@ -1,7 +1,5 @@
-import { maru } from '../maru'
-
 export const button = {
-	base: maru.rounded.lg,
+	base: 'rounded-lg',
 	size: {
 		xs: ['h-6', 'w-16'],
 		sm: ['h-7', 'w-20'],

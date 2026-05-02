@@ -23,6 +23,10 @@
 			"types": "./src/layouts/index.ts",
 			"default": "./src/layouts/index.ts"
 		},
+		"./types": {
+			"types": "./src/types/index.ts",
+			"default": "./src/types/index.ts"
+		},
 		"./*": {
 			"types": "./src/components/*/index.ts",
 			"default": "./src/components/*/index.ts"

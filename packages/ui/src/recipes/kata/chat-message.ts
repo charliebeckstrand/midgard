@@ -1,6 +1,5 @@
 import { tv, type VariantProps } from 'tailwind-variants'
 import { ji } from '../ryu/ji'
-import { kumi } from '../ryu/kumi'
 
 export const chatMessage = tv({
 	base: 'flex flex-col',
@@ -39,7 +38,7 @@ export const slots = {
 		'bg-current',
 		'motion-safe:animate-pulse',
 	],
-	actions: ['mt-1 flex items-center', kumi.gap.xs],
+	actions: ['mt-1 flex items-center', 'gap-0.5'],
 }
 
 export type ChatMessageVariants = VariantProps<typeof chatMessage>

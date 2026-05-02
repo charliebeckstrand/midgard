@@ -1,6 +1,4 @@
 import { iro } from '../ryu/iro'
-import { kumi } from '../ryu/kumi'
-import { maru } from '../ryu/maru'
 import { narabi } from '../ryu/narabi'
 import { sawari } from '../ryu/sawari'
 
@@ -9,8 +7,8 @@ export const option = {
 		'group/option grid w-full items-baseline',
 		'grid-cols-[1fr_--spacing(5)] sm:grid-cols-[1fr_--spacing(4)]',
 		'px-2',
-		kumi.gap.md,
-		maru.rounded.lg,
+		'gap-sm',
+		'rounded-lg',
 		sawari.item,
 		'data-active:bg-zinc-950/5',
 		'dark:data-active:bg-white/5',

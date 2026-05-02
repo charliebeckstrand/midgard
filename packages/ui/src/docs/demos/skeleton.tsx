@@ -11,7 +11,6 @@ import { Flex } from '../../components/flex'
 import { Heading } from '../../components/heading'
 import { Input } from '../../components/input'
 import { Radio } from '../../components/radio'
-import { Sizer } from '../../components/sizer'
 import { Skeleton } from '../../components/skeleton'
 import { Stack } from '../../components/stack'
 import { Switch } from '../../components/switch'
@@ -62,9 +61,7 @@ function DynamicExample() {
 				</Combobox>
 			}
 		>
-			<Sizer>
-				<Skeleton>{active?.render()}</Skeleton>
-			</Sizer>
+			<Skeleton>{active?.render()}</Skeleton>
 		</Example>
 	)
 }
@@ -84,22 +81,20 @@ function TransitionDemo() {
 			</Button>
 
 			<Skeleton ready={ready}>
-				<Sizer>
-					<Card bg="none">
-						<CardHeader>
-							<Flex gap={3}>
-								<Avatar initials="JD" />
-								<div className="flex-1 space-y-1">
-									<Heading level={5}>Jane Doe</Heading>
-									<Text>Senior Engineer</Text>
-								</div>
-							</Flex>
-						</CardHeader>
-						<CardBody>
-							<Text>Design systems & component libraries.</Text>
-						</CardBody>
-					</Card>
-				</Sizer>
+				<Card bg="none">
+					<CardHeader>
+						<Flex gap="md">
+							<Avatar initials="JD" />
+							<div className="flex-1 space-y-1">
+								<Heading level={5}>Jane Doe</Heading>
+								<Text>Senior Engineer</Text>
+							</div>
+						</Flex>
+					</CardHeader>
+					<CardBody>
+						<Text>Design systems & component libraries.</Text>
+					</CardBody>
+				</Card>
 			</Skeleton>
 		</>
 	)
@@ -107,18 +102,16 @@ function TransitionDemo() {
 
 export default function SkeletonDemo() {
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<DynamicExample />
 
 			<Example title="Form">
 				<Skeleton>
-					<Sizer gap={3}>
-						<Heading level={3}>Create account</Heading>
-						<Input placeholder="Email" />
-						<Input placeholder="Password" type="password" />
-						<Textarea placeholder="Bio" />
-						<Button>Sign up</Button>
-					</Sizer>
+					<Heading level={3}>Create account</Heading>
+					<Input placeholder="Email" />
+					<Input placeholder="Password" type="password" />
+					<Textarea placeholder="Bio" />
+					<Button>Sign up</Button>
 				</Skeleton>
 			</Example>
 

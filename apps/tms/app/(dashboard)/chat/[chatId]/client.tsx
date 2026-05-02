@@ -70,9 +70,9 @@ export default function ChatIdClient({ chatId }: { chatId: string }) {
 	}
 
 	return (
-		<Stack gap={4} className="h-full">
+		<Stack gap="lg" className="h-full">
 			<Heading>Chat {chatId.slice(0, 8)}</Heading>
-			<Stack gap={3} className="flex-1 min-h-0 overflow-y-auto">
+			<Stack gap="md" className="flex-1 min-h-0 overflow-y-auto">
 				{messages.map((message) => (
 					<ChatMessage
 						key={message.id}

@@ -14,7 +14,7 @@ const sizes = ['xs', 'sm', 'md', 'lg'] as const
 
 export default function IconDemo() {
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Alert type="info" closable>
 				<AlertTitle>SVG support</AlertTitle>
 				<AlertDescription>
@@ -24,7 +24,7 @@ export default function IconDemo() {
 			</Alert>
 
 			<Example title="Default">
-				<Flex gap={4} className="dark:text-white">
+				<Flex gap="lg" className="dark:text-white">
 					<Icon icon={<Search />} />
 					<Icon icon={<Heart />} />
 					<Icon icon={<Star />} />
@@ -32,9 +32,9 @@ export default function IconDemo() {
 			</Example>
 
 			<Example title="Sizes">
-				<Flex gap={4} className="dark:text-white">
+				<Flex gap="lg" className="dark:text-white">
 					{sizes.map((s) => (
-						<Stack key={s} gap={2} align="center">
+						<Stack key={s} gap="sm" align="center">
 							<Icon icon={<Plus />} size={s} />
 							<span className="text-xs text-zinc-500">{s}</span>
 						</Stack>

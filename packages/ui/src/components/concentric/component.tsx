@@ -50,6 +50,7 @@ export function Concentric({
 			({
 				'--ui-radius-inner': `var(--radius-${sun[size].radius})`,
 				'--ui-padding': flush ? '0px' : `calc(var(--spacing) * ${sun[size].space})`,
+				'--ui-gap': `calc(var(--spacing) * ${sun[size].gap})`,
 			}) as CSSProperties,
 		[size, flush],
 	)
@@ -62,7 +63,7 @@ export function Concentric({
 			href={href}
 			data-step={size}
 			className={cn(
-				!flush && `p-${sun[size].space}`,
+				!flush && 'p-(--ui-padding)',
 				'rounded-[calc(var(--ui-radius-inner)+var(--ui-padding))]',
 				className,
 			)}

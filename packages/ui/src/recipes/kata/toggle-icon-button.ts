@@ -1,13 +1,10 @@
 import { iro } from '../ryu/iro'
-import { kumi } from '../ryu/kumi'
-import { maru } from '../ryu/maru'
 
 export const toggleIconButton = {
 	base: [
 		'relative',
-		'flex',
-		kumi.center,
-		maru.rounded.lg,
+		'flex items-center justify-center',
+		'rounded-lg',
 		iro.text.muted,
 		iro.text.hover,
 		iro.text.focus,

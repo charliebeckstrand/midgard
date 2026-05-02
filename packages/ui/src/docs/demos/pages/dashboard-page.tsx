@@ -9,7 +9,6 @@ import { Grid } from '../../../components/grid'
 import { Icon } from '../../../components/icon'
 import { Input } from '../../../components/input'
 import { Select, SelectLabel, SelectOption } from '../../../components/select'
-import { Sizer } from '../../../components/sizer'
 import { Spacer } from '../../../components/spacer'
 import { Stack } from '../../../components/stack'
 import { Stat, StatDelta, StatLabel, StatValue } from '../../../components/stat'
@@ -104,8 +103,8 @@ export default function DashboardPageDemo() {
 		<Example>
 			<DashboardLayout filters={<DashboardFilters />}>
 				<StackedLayoutBody>
-					<Stack gap={4}>
-						<Grid columns={{ initial: 1, sm: 2, lg: 4 }} gap={4}>
+					<Stack gap="lg">
+						<Grid columns={{ initial: 1, sm: 2, lg: 4 }} gap="lg">
 							{stats.map((stat) => (
 								<Card key={stat.label}>
 									<CardBody>
@@ -123,13 +122,11 @@ export default function DashboardPageDemo() {
 							<CardHeader className="flex items-center gap-4">
 								<CardTitle>Recent orders</CardTitle>
 								<Spacer />
-								<Sizer size="xs">
-									<Input
-										placeholder="Search orders"
-										variant="outline"
-										prefix={<Icon icon={<Search />} />}
-									/>
-								</Sizer>
+								<Input
+									placeholder="Search orders"
+									variant="outline"
+									prefix={<Icon icon={<Search />} />}
+								/>
 							</CardHeader>
 							<CardBody>
 								<Table>

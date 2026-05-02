@@ -27,9 +27,9 @@ export default function AvatarDemo() {
 	const [statusSize, setStatusSize] = useState<Size>('md')
 
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Example title="Variants">
-				<Flex gap={2}>
+				<Flex gap="sm">
 					{variants.map((v) => (
 						<Avatar key={v} variant={v} initials="A" />
 					))}
@@ -42,7 +42,7 @@ export default function AvatarDemo() {
 					<VariantListbox variants={variants} value={colorVariant} onChange={setColorVariant} />
 				}
 			>
-				<Flex gap={2}>
+				<Flex gap="sm">
 					{colors.map((color) => (
 						<Avatar key={color} variant={colorVariant} color={color} initials={cap(color)[0]} />
 					))}
@@ -64,7 +64,7 @@ export default function AvatarDemo() {
 				title="Status"
 				actions={<SizeListbox sizes={sizes} value={statusSize} onChange={setStatusSize} />}
 			>
-				<Flex gap={3}>
+				<Flex gap="md">
 					<Avatar size={statusSize} initials="AB" status="inactive" />
 					<Avatar size={statusSize} initials="CD" status="active" />
 					<Avatar size={statusSize} initials="EF" status="warning" />

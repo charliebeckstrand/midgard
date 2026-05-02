@@ -39,9 +39,9 @@ export default function BannerDemo() {
 	const [variant, setVariant] = useState<(typeof variants)[number]>('soft')
 
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Example title="Types">
-				<Stack gap={0} className="-mx-4">
+				<Stack className="gap-0 -mx-4">
 					{types.map((type) => (
 						<Banner
 							key={type}
@@ -57,7 +57,7 @@ export default function BannerDemo() {
 				title="Colors"
 				actions={<VariantListbox variants={variants} value={variant} onChange={setVariant} />}
 			>
-				<Stack gap={0} className="-mx-4">
+				<Stack className="gap-0 -mx-4">
 					{colors.map((c) => (
 						<Banner key={c} variant={variant} color={c} title={cap(c)} closable={false} />
 					))}

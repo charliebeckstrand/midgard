@@ -33,9 +33,9 @@ export function Example({
 	const [open, setOpen] = useState(false)
 
 	return (
-		<Stack gap={2}>
+		<Stack gap="sm">
 			{(title || actions) && (
-				<Flex justify="between" gap={2}>
+				<Flex justify="between" gap="sm">
 					{title && <Heading level={3}>{title}</Heading>}
 					{actions}
 				</Flex>

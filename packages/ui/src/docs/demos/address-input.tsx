@@ -8,7 +8,6 @@ import {
 } from '../../components/address-input'
 import { Alert } from '../../components/alert'
 import { Field, Label } from '../../components/fieldset'
-import { Sizer } from '../../components/sizer'
 import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
 import { code } from '../code'
@@ -66,17 +65,15 @@ function Default() {
 	const [address, setAddress] = useState<AddressSuggestion | undefined>(undefined)
 
 	return (
-		<Sizer>
-			<Field>
-				<Label>Address</Label>
-				<AddressInput value={address} onChange={setAddress} />
-				{address?.latitude != null ? (
-					<Text>
-						{address.latitude.toFixed(4)}, {address.longitude?.toFixed(4)}
-					</Text>
-				) : null}
-			</Field>
-		</Sizer>
+		<Field>
+			<Label>Address</Label>
+			<AddressInput value={address} onChange={setAddress} />
+			{address?.latitude != null ? (
+				<Text>
+					{address.latitude.toFixed(4)}, {address.longitude?.toFixed(4)}
+				</Text>
+			) : null}
+		</Field>
 	)
 }
 
@@ -84,26 +81,26 @@ function WithInitialOptions() {
 	const [address, setAddress] = useState<AddressSuggestion | undefined>(undefined)
 
 	return (
-		<Sizer>
-			<Field>
-				<Label>Address</Label>
-				<AddressInput
-					value={address}
-					onChange={setAddress}
-					minQueryLength={0}
-					provider={async (query) => {
-						if (!query) return places
+		<Field>
+			<Label>Address</Label>
+			<AddressInput
+				value={address}
+				onChange={setAddress}
+				minQueryLength={0}
+				provider={async (query) => {
+					const q = query.toLowerCase()
 
-						return []
-					}}
-				/>
-				{address?.latitude != null ? (
-					<Text>
-						{address.latitude.toFixed(4)}, {address.longitude?.toFixed(4)}
-					</Text>
-				) : null}
-			</Field>
-		</Sizer>
+					return places.filter(
+						(p) => p.label.toLowerCase().includes(q) || p.description.toLowerCase().includes(q),
+					)
+				}}
+			/>
+			{address?.latitude != null ? (
+				<Text>
+					{address.latitude.toFixed(4)}, {address.longitude?.toFixed(4)}
+				</Text>
+			) : null}
+		</Field>
 	)
 }
 
@@ -111,29 +108,27 @@ function CustomProvider() {
 	const [address, setAddress] = useState<AddressSuggestion | undefined>(undefined)
 
 	return (
-		<Sizer>
-			<Field>
-				<Label>Address</Label>
-				<AddressInput
-					value={address}
-					onChange={setAddress}
-					provider={mockGooglePlaces}
-					minQueryLength={1}
-					placeholder="Try 'amph' or 'baker'"
-				/>
-				{address?.latitude != null ? (
-					<Text>
-						{address.latitude.toFixed(4)}, {address.longitude?.toFixed(4)}
-					</Text>
-				) : null}
-			</Field>
-		</Sizer>
+		<Field>
+			<Label>Address</Label>
+			<AddressInput
+				value={address}
+				onChange={setAddress}
+				provider={mockGooglePlaces}
+				minQueryLength={1}
+				placeholder="Try 'amph' or 'baker'"
+			/>
+			{address?.latitude != null ? (
+				<Text>
+					{address.latitude.toFixed(4)}, {address.longitude?.toFixed(4)}
+				</Text>
+			) : null}
+		</Field>
 	)
 }
 
 export default function AddressInputDemo() {
 	return (
-		<Stack gap={6}>
+		<Stack gap="xl">
 			<Alert type="info" closable>
 				<Text>
 					AddressInput uses the{' '}
@@ -175,31 +170,35 @@ export default function AddressInputDemo() {
 
 					const [address, setAddress] = useState<AddressSuggestion | undefined>()
 
+					const places = [
+						{
+							id: '1',
+							label: 'Eiffel Tower',
+							description: 'Paris, France',
+							latitude: 48.8584,
+							longitude: 2.2945,
+						},
+						{
+							id: '2',
+							label: 'Statue of Liberty',
+							description: 'New York, USA',
+							latitude: 40.6892,
+							longitude: -74.0444,
+						},
+					]
+
 					<AddressInput
 						value={address}
 						onChange={setAddress}
 						minQueryLength={0}
 						provider={async (query) => {
-							if (!query) {
-								return [
-									{
-										id: '1',
-										label: 'Eiffel Tower',
-										description: 'Paris, France',
-										latitude: 48.8584,
-										longitude: 2.2945,
-									},
-									{
-										id: '2',
-										label: 'Statue of Liberty',
-										description: 'New York, USA',
-										latitude: 40.6892,
-										longitude: -74.0444,
-									},
-								]
-							}
+							const q = query.toLowerCase()
 
-							return []
+							return places.filter(
+								(p) =>
+									p.label.toLowerCase().includes(q) ||
+									p.description.toLowerCase().includes(q),
+							)
 						}}
 					/>
 				`}
