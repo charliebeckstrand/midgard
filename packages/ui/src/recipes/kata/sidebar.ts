@@ -6,7 +6,7 @@ import { sawari } from '../ryu/sawari'
 import { sen } from '../ryu/sen'
 
 const sidebarBase = tv({
-	base: ['overflow-y-auto overscroll-none', 'flex flex-col gap-y-4', 'h-full', 'py-6'],
+	base: ['overflow-y-auto', 'flex flex-col gap-y-4', 'h-full', 'py-6'],
 	variants: {
 		mini: {
 			false: 'px-4',

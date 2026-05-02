@@ -41,9 +41,9 @@ export default function AuthPageDemo() {
 				<TabContents>
 					<TabContent value="login">
 						<AuthLayout>
-							<form onSubmit={handleSubmit} className="grid gap-8 w-full sm:max-w-sm px-4">
-								<Heading>Sign in to your account</Heading>
+							<Heading className="text-center">Sign in to your account</Heading>
 
+							<form onSubmit={handleSubmit} className="grid gap-8 w-full sm:max-w-sm px-4">
 								<Fieldset disabled={submitting} className="grid gap-8">
 									<Field>
 										<Label>Email</Label>
@@ -63,9 +63,9 @@ export default function AuthPageDemo() {
 					</TabContent>
 					<TabContent value="register">
 						<AuthLayout>
-							<form onSubmit={handleSubmit} className="grid gap-8 w-full sm:max-w-sm px-4">
-								<Heading>Create your account</Heading>
+							<Heading className="text-center">Create your account</Heading>
 
+							<form onSubmit={handleSubmit} className="grid gap-8 w-full sm:max-w-sm px-4">
 								<Fieldset disabled={submitting} className="grid gap-8">
 									<Field>
 										<Label>Name</Label>
@@ -93,9 +93,9 @@ export default function AuthPageDemo() {
 					</TabContent>
 					<TabContent value="forgot-password">
 						<AuthLayout>
-							<form onSubmit={handleSubmit} className="grid gap-8 w-full sm:max-w-sm px-4">
-								<Heading>Reset your password</Heading>
+							<Heading className="text-center">Reset your password</Heading>
 
+							<form onSubmit={handleSubmit} className="grid gap-8 w-full sm:max-w-sm px-4">
 								<Fieldset disabled={submitting} className="grid gap-8">
 									<Field>
 										<Label>Email</Label>
