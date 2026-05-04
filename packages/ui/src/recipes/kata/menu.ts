@@ -12,7 +12,7 @@ export const menu = {
 		...narabi.item,
 	],
 	section: 'first:pt-0 last:pb-0',
-	heading: ['px-3.5 pb-1 pt-2 sm:px-3', 'text-xs/5 font-medium', iro.text.muted],
+	heading: ['px-3.5 pb-1 pt-2 sm:px-3', 'text-xs font-medium', iro.text.muted],
 	label: 'truncate',
 	description: [narabi.description, iro.text.muted, 'group-focus/option:text-white'],
 	shortcut: 'ml-auto',
