@@ -49,7 +49,6 @@ const surface = {
 
 // ── Inner field reset (placeholder, transparent bg, no outline) ──
 const field = [
-	...iro.text.default,
 	'gap-sm',
 	'relative',
 	'w-full min-w-0 flex-1',
@@ -57,6 +56,7 @@ const field = [
 	'bg-transparent',
 	'focus:outline-hidden',
 	'read-only:bg-transparent',
+	...iro.text.default,
 	'placeholder:text-zinc-500',
 	'dark:placeholder:text-zinc-400',
 ]
@@ -73,14 +73,14 @@ const icon = ['flex items-center', 'pr-2', 'pointer-events-none']
 
 const affix = {
 	prefix: {
-		sm: 'pl-[calc(--spacing(2.5)-1px)] py-[calc(--spacing(0.5)-1px)] has-[button]:pl-1',
-		md: 'pl-[calc(--spacing(3)-1px)] py-[calc(--spacing(1)-1px)] has-[button]:pl-1.5',
-		lg: 'pl-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(1.5)-1px)] has-[button]:pl-1.5',
+		sm: 'pl-[calc(--spacing(2.5)-1px)] py-[calc(--spacing(0.5)-1px)]',
+		md: 'pl-[calc(--spacing(3)-1px)] py-[calc(--spacing(1)-1px)]',
+		lg: 'pl-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(1.5)-1px)]',
 	},
 	suffix: {
-		sm: 'pr-[calc(--spacing(2.5)-1px)] py-[calc(--spacing(0.5)-1px)] has-[button]:pr-1',
-		md: 'pr-[calc(--spacing(3)-1px)] py-[calc(--spacing(1)-1px)] has-[button]:pr-1.5',
-		lg: 'pr-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(1.5)-1px)] has-[button]:pr-1.5',
+		sm: 'pr-[calc(--spacing(2.5)-1px)] py-[calc(--spacing(0.5)-1px)]',
+		md: 'pr-[calc(--spacing(3)-1px)] py-[calc(--spacing(1)-1px)]',
+		lg: 'pr-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(1.5)-1px)]',
 	},
 	autofill: {
 		prefix: {

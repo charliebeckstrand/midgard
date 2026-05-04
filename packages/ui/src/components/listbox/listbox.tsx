@@ -178,7 +178,7 @@ export function Listbox<T>({
 							{label || <span className={cn(iro.text.muted)}>{placeholder}</span>}
 						</span>
 						{suffix && (
-							<span data-slot="suffix" className={cn(k.affix, k.suffix[resolvedSize])}>
+							<span data-slot="suffix" className={cn(k.affix)}>
 								{suffix}
 							</span>
 						)}

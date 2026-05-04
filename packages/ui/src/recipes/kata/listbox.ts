@@ -21,5 +21,4 @@ export const listbox = {
 	option: [...sawari.item, ...narabi.item],
 	affix: ['flex items-center min-w-0', '*:data-[slot=icon]:pointer-events-none', ...iro.text.muted],
 	prefix: control.affix.prefix,
-	suffix: control.affix.suffix,
 }

@@ -6,6 +6,7 @@ import {
 	type ReactElement,
 	useCallback,
 	useEffect,
+	useRef,
 	useState,
 } from 'react'
 import { cn } from '../../core'
@@ -19,6 +20,7 @@ export type CopyButtonProps = {
 	size?: Size
 	timeout?: number
 	className?: string
+	onCopiedChange?: (copied: boolean) => void
 } & Omit<ComponentPropsWithoutRef<'button'>, 'children' | 'type' | 'color'>
 
 export function CopyButton({
@@ -28,25 +30,46 @@ export function CopyButton({
 	timeout = 2000,
 	className,
 	disabled,
+	onClick,
+	onCopiedChange,
 	...props
 }: CopyButtonProps) {
 	const [isCopied, setIsCopied] = useState(false)
+
+	const onCopiedChangeRef = useRef(onCopiedChange)
+
+	useEffect(() => {
+		onCopiedChangeRef.current = onCopiedChange
+	})
 
 	const copy = useCallback(async () => {
 		try {
 			await navigator.clipboard.writeText(value)
 
 			setIsCopied(true)
+
+			onCopiedChangeRef.current?.(true)
 		} catch {
 			// Clipboard write failed (denied permission, insecure context, missing
 			// API). Don't flip into the success state — the button must not lie.
 		}
 	}, [value])
 
+	const handleClick = useCallback<NonNullable<CopyButtonProps['onClick']>>(
+		(event) => {
+			onClick?.(event)
+			void copy()
+		},
+		[onClick, copy],
+	)
+
 	useEffect(() => {
 		if (!isCopied) return
 
-		const timer = setTimeout(() => setIsCopied(false), timeout)
+		const timer = setTimeout(() => {
+			setIsCopied(false)
+			onCopiedChangeRef.current?.(false)
+		}, timeout)
 
 		return () => clearTimeout(timer)
 	}, [isCopied, timeout])
@@ -60,7 +83,7 @@ export function CopyButton({
 			size={size}
 			data-slot="copy-button"
 			disabled={isCopied || disabled}
-			onClick={copy}
+			onClick={handleClick}
 			aria-label={isCopied ? 'Copied' : 'Copy to clipboard'}
 			className={cn(k.base, className)}
 		/>
