@@ -12,7 +12,7 @@ export default function PasswordConfirmDemo() {
 	return (
 		<Stack gap="xl">
 			<Example title="Default">
-				<PasswordConfirm className="space-y-4" warning="Passwords do not match">
+				<PasswordConfirm warning="Passwords do not match">
 					<Field>
 						<Label>Password</Label>
 						<PasswordInput placeholder="Enter password" />
@@ -26,7 +26,6 @@ export default function PasswordConfirmDemo() {
 
 			<Example title="Events">
 				<PasswordConfirm
-					className="space-y-4"
 					warning="Passwords do not match"
 					onPasswordMatch={() => console.log('Passwords match')}
 					onPasswordMismatch={() => console.log('Passwords do not match')}

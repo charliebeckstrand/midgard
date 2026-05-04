@@ -83,9 +83,9 @@ export function PasswordConfirm({
 	return (
 		<PasswordConfirmProvider value={ctx}>
 			<div data-slot="password-confirm" className={className} onInput={handleInput}>
-				{children}
+				<div className="space-y-4">{children}</div>
 				{status === 'warning' && warning && !confirmHasFormError && (
-					<div aria-live="polite" aria-atomic="true">
+					<div aria-live="polite" aria-atomic="true" className="pt-2">
 						<Text color="amber">{warning}</Text>
 					</div>
 				)}

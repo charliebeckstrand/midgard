@@ -27,6 +27,7 @@
 			"types": "./src/types/index.ts",
 			"default": "./src/types/index.ts"
 		},
+		"./theme.css": "./src/theme.css",
 		"./*": {
 			"types": "./src/components/*/index.ts",
 			"default": "./src/components/*/index.ts"

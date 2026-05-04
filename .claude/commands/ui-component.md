@@ -511,7 +511,7 @@ export const meta = { category: '<Category>' }
 
 export default function <Name>Demo() {
   return (
-    <Stack gap={6}>
+    <Stack gap="xl">
       <Example title="Default">
         <<Name>>Example</<Name>>
       </Example>
@@ -540,9 +540,9 @@ export default function <Name>Demo() {
   const [variant, setVariant] = useState<(typeof variants)[number]>('solid')
 
   return (
-    <Stack gap={6}>
+    <Stack gap="xl">
       <Example title="Variants">
-        <Flex wrap gap={2}>
+        <Flex wrap gap="sm">
           {variants.map((v) => (
             <<Name> key={v} variant={v}>{v}</<Name>>
           ))}
@@ -553,7 +553,7 @@ export default function <Name>Demo() {
         title="Colors"
         actions={<VariantListbox variants={variants} value={variant} onChange={setVariant} />}
       >
-        <Flex wrap gap={2}>
+        <Flex wrap gap="sm">
           {colors.map((c) => (
             <<Name> key={c} variant={variant} color={c}>{c}</<Name>>
           ))}
@@ -574,7 +574,7 @@ export const meta = { category: '<Category>' }
 
 export default function <Name>Demo() {
   return (
-    <Stack gap={6}>
+    <Stack gap="xl">
       <Example title="Default">
         <<Name>>
           <<Name>Header>Title</<Name>Header>
@@ -612,7 +612,7 @@ function <Name>Demo() {
 
 export default function Demo() {
   return (
-    <Stack gap={6}>
+    <Stack gap="xl">
       <Example
         title="Default"
         code={code`
