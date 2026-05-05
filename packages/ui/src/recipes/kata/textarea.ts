@@ -28,7 +28,7 @@ export const textareaControl = tv({
 	variants: {
 		variant: {
 			default: control.surface.default,
-			outline: control.surface.outline,
+			outline: [],
 			glass: [],
 		},
 	},

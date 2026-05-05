@@ -34,10 +34,11 @@ function StepSliderDemo() {
 	const [ratio, setRatio] = useState(0.5)
 
 	return (
-		<Example title="Step">
+		<>
+			{' '}
 			<Slider min={0} max={1} step={0.1} value={ratio} onChange={setRatio} color="red" />
 			<Text className="tabular-nums">{ratio.toFixed(1)}</Text>
-		</Example>
+		</>
 	)
 }
 
@@ -45,25 +46,57 @@ function RangeSliderDemo() {
 	const [range, setRange] = useState<[number, number]>([25, 75])
 
 	return (
-		<Example title="Range">
+		<>
 			<RangeSlider value={range} onChange={setRange} color="amber" />
 			<Text className="tabular-nums">
 				{range[0]} – {range[1]}
 			</Text>
-		</Example>
+		</>
 	)
 }
 
 function RangeStepSliderDemo() {
-	const [range, setRange] = useState<[number, number]>([0.25, 0.75])
+	const [rangeClamped, setRangeClamped] = useState<[number, number]>([0.3, 0.7])
+	const [rangeSwap, setRangeSwap] = useState<[number, number]>([0.3, 0.7])
 
 	return (
-		<Example title="Range with steps">
-			<RangeSlider min={0} max={1} step={0.1} value={range} onChange={setRange} color="green" />
-			<Text className="tabular-nums">
-				{range[0].toFixed(1)} – {range[1].toFixed(1)}
-			</Text>
-		</Example>
+		<>
+			<Stack gap="sm">
+				<Text>Clamped</Text>
+
+				<RangeSlider
+					min={0}
+					max={1}
+					step={0.1}
+					value={rangeClamped}
+					allowCross={false}
+					onChange={setRangeClamped}
+					color="green"
+				/>
+
+				<Text className="tabular-nums">
+					{rangeClamped[0].toFixed(1)} – {rangeClamped[1].toFixed(1)}
+				</Text>
+			</Stack>
+
+			<Stack gap="sm">
+				<Text className="mt-lg">Swap</Text>
+
+				<RangeSlider
+					min={0}
+					max={1}
+					step={0.1}
+					value={rangeSwap}
+					allowCross={true}
+					onChange={setRangeSwap}
+					color="green"
+				/>
+
+				<Text className="tabular-nums">
+					{rangeSwap[0].toFixed(1)} – {rangeSwap[1].toFixed(1)}
+				</Text>
+			</Stack>
+		</>
 	)
 }
 
@@ -90,14 +123,20 @@ export default function SliderDemo() {
 				))}
 			</Example>
 
-			<StepSliderDemo />
+			<Example title="Step">
+				<StepSliderDemo />
+			</Example>
 
-			<RangeSliderDemo />
+			<Example title="Range">
+				<RangeSliderDemo />
+			</Example>
 
-			<RangeStepSliderDemo />
+			<Example title="Range with steps">
+				<RangeStepSliderDemo />
+			</Example>
 
 			<Example title="Disabled">
-				<Slider disabled defaultValue={40} />
+				<Slider disabled defaultValue={50} />
 			</Example>
 		</Stack>
 	)

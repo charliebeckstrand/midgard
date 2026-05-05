@@ -24,7 +24,9 @@ function makeEvent(overrides: Partial<ReactPointerEvent> = {}) {
 	} as unknown as ReactPointerEvent
 }
 
-function setup(options: { disabled?: boolean; current?: [number, number] } = {}) {
+function setup(
+	options: { disabled?: boolean; current?: [number, number]; overlap?: 'clamp' | 'swap' } = {},
+) {
 	const track = makeTrack()
 
 	const setRange = vi.fn()
@@ -38,6 +40,7 @@ function setup(options: { disabled?: boolean; current?: [number, number] } = {})
 			current: options.current ?? [20, 80],
 			trackRef: { current: track },
 			setRange,
+			overlap: options.overlap ?? 'clamp',
 		}),
 	)
 

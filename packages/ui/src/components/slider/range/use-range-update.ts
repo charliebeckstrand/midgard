@@ -3,13 +3,16 @@ import { clamp, snapToStep } from './utilities'
 
 export type ThumbIndex = 0 | 1
 
+export type OverlapMode = 'clamp' | 'swap'
+
 export function useRangeUpdate(opts: {
 	min: number
 	max: number
 	step: number
 	setRange: (fn: (prev: [number, number] | undefined) => [number, number]) => void
+	overlap?: OverlapMode
 }) {
-	const { min, max, step, setRange } = opts
+	const { min, max, step, setRange, overlap = 'clamp' } = opts
 
 	return useCallback(
 		(index: ThumbIndex, raw: number) => {
@@ -23,6 +26,8 @@ export function useRangeUpdate(opts: {
 				next[index] = rounded
 
 				if (next[0] > next[1]) {
+					if (overlap === 'swap') return [next[1], next[0]] as [number, number]
+
 					if (index === 0) next[0] = next[1]
 					else next[1] = next[0]
 				}
@@ -30,6 +35,6 @@ export function useRangeUpdate(opts: {
 				return next
 			})
 		},
-		[min, max, step, setRange],
+		[min, max, step, setRange, overlap],
 	)
 }

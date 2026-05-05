@@ -148,11 +148,11 @@ describe('RangeSlider', () => {
 		expect(onChange).not.toHaveBeenCalled()
 	})
 
-	it('prevents the low thumb from crossing the high thumb', () => {
+	it('prevents the low thumb from crossing the high thumb when allowCross is false', () => {
 		const onChange = vi.fn()
 
 		const { container } = renderUI(
-			<RangeSlider defaultValue={[48, 50]} step={5} onChange={onChange} />,
+			<RangeSlider defaultValue={[48, 50]} step={5} allowCross={false} onChange={onChange} />,
 		)
 
 		const [lo] = allBySlot(container, 'slider-range-thumb')
@@ -160,6 +160,24 @@ describe('RangeSlider', () => {
 		fireEvent.keyDown(lo as HTMLElement, { key: 'ArrowRight' })
 
 		expect(onChange).toHaveBeenCalledWith([50, 50])
+	})
+
+	it('swaps thumbs and shifts focus when the low thumb crosses the high thumb', () => {
+		const onChange = vi.fn()
+
+		const { container } = renderUI(
+			<RangeSlider defaultValue={[50, 50]} step={5} onChange={onChange} />,
+		)
+
+		const [lo, hi] = allBySlot(container, 'slider-range-thumb')
+
+		;(lo as HTMLElement).focus()
+
+		fireEvent.keyDown(lo as HTMLElement, { key: 'ArrowRight' })
+
+		expect(onChange).toHaveBeenCalledWith([50, 55])
+
+		expect(document.activeElement).toBe(hi)
 	})
 
 	it('disables thumbs when disabled', () => {

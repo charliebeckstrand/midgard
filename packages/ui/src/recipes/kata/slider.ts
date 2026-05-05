@@ -65,21 +65,21 @@ export const slider = tv({
 		size: {
 			// Vertical padding extends the native hit area without changing the visible thumb size.
 			sm: [
-				'py-4',
+				'py-3',
 				'[&::-webkit-slider-runnable-track]:h-1',
 				'[&::-webkit-slider-thumb]:size-3 [&::-webkit-slider-thumb]:-mt-1',
 				'[&::-moz-range-track]:h-1',
 				'[&::-moz-range-thumb]:size-3',
 			],
 			md: [
-				'py-5',
+				'py-4',
 				'[&::-webkit-slider-runnable-track]:h-1.5',
 				'[&::-webkit-slider-thumb]:size-4 [&::-webkit-slider-thumb]:-mt-[5px]',
 				'[&::-moz-range-track]:h-1.5',
 				'[&::-moz-range-thumb]:size-4',
 			],
 			lg: [
-				'py-6',
+				'py-5',
 				'[&::-webkit-slider-runnable-track]:h-2',
 				'[&::-webkit-slider-thumb]:size-5 [&::-webkit-slider-thumb]:-mt-[6px]',
 				'[&::-moz-range-track]:h-2',

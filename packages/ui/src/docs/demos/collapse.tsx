@@ -9,9 +9,39 @@ import { Example } from '../components/example'
 
 export const meta = { category: 'Data Display' }
 
-export default function CollapseDemo() {
+function CompoundCollapse() {
+	return (
+		<Collapse>
+			<CollapseTrigger>{({ open }) => (open ? 'Hide details' : 'Show details')}</CollapseTrigger>
+			<CollapsePanel>
+				<Text variant="muted">
+					The compound API gives you access to the open state in the trigger, so you can change the
+					trigger text or style based on whether the panel is open.
+				</Text>
+			</CollapsePanel>
+		</Collapse>
+	)
+}
+
+function ControlledCollapse() {
 	const [open, setOpen] = useState(false)
 
+	return (
+		<Stack gap="sm">
+			<Button onClick={() => setOpen((o) => !o)}>{open ? 'Hide panel' : 'Show panel'}</Button>
+			<Collapse open={open} onOpenChange={setOpen}>
+				<CollapsePanel>
+					<Text variant="muted">
+						Pass <code>open</code> and <code>onOpenChange</code> to drive Collapse from parent
+						state. Any external button can toggle the panel.
+					</Text>
+				</CollapsePanel>
+			</Collapse>
+		</Stack>
+	)
+}
+
+export default function CollapseDemo() {
 	return (
 		<Stack gap="xl">
 			<Example title="Default">
@@ -32,29 +62,11 @@ export default function CollapseDemo() {
 			</Example>
 
 			<Example title="Compound API">
-				<Collapse>
-					<CollapseTrigger>{({ open }) => (open ? 'Hide code' : 'Show code')}</CollapseTrigger>
-					<CollapsePanel>
-						<Text variant="muted">
-							Use the compound API when you need a render-prop trigger that reacts to the open
-							state.
-						</Text>
-					</CollapsePanel>
-				</Collapse>
+				<CompoundCollapse />
 			</Example>
 
 			<Example title="Controlled">
-				<Stack gap="sm">
-					<Button onClick={() => setOpen((o) => !o)}>{open ? 'Hide panel' : 'Show panel'}</Button>
-					<Collapse open={open} onOpenChange={setOpen}>
-						<CollapsePanel>
-							<Text variant="muted">
-								Pass <code>open</code> and <code>onOpenChange</code> to drive Collapse from parent
-								state. Any external button can toggle the panel.
-							</Text>
-						</CollapsePanel>
-					</Collapse>
-				</Stack>
+				<ControlledCollapse />
 			</Example>
 		</Stack>
 	)

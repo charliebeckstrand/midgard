@@ -10,7 +10,7 @@ import { code } from '../code'
 import { Example } from '../components/example'
 export const meta = { category: 'Forms' }
 
-const variants = ['default', 'outline', 'glass'] as const
+const variants = ['default', 'outline'] as const
 
 export default function TextareaDemo() {
 	const [withActionsValue, setWithActionsValue] = useState('')

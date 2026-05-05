@@ -61,6 +61,7 @@ export const switchRecipe = tv({
 		'has-checked:bg-(--switch-bg) has-checked:ring-(--switch-bg-ring) has-checked:ring-inset',
 		'not-has-[:disabled]:not-has-[:checked]:hover:bg-zinc-300',
 		'dark:not-has-[:disabled]:not-has-[:checked]:hover:bg-white/15',
+		'not-has-[:disabled]:has-checked:hover:opacity-90',
 		'has-[:disabled]:opacity-50 has-[:disabled]:cursor-not-allowed',
 	],
 	variants: {

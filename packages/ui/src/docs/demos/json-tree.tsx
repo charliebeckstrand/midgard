@@ -26,7 +26,7 @@ const sample = {
 	],
 }
 
-function ExpandAllExample() {
+function ExpandAllDemo() {
 	const allPaths = useMemo(() => collectJsonTreePaths(sample), [])
 
 	const [expanded, setExpanded] = useState<Set<string>>(allPaths)
@@ -34,72 +34,63 @@ function ExpandAllExample() {
 	const allExpanded = expanded.size === allPaths.size
 
 	return (
-		<Example title="Expand all levels">
-			<Stack gap="lg">
-				<div>
-					<Button
-						size="sm"
-						variant="outline"
-						onClick={() => setExpanded(allExpanded ? new Set() : allPaths)}
-					>
-						{allExpanded ? 'Collapse all' : 'Expand all'}
-					</Button>
-				</div>
-				<JsonTree data={sample} expanded={expanded} onExpandedChange={setExpanded} />
-			</Stack>
-		</Example>
+		<Stack gap="lg">
+			<div>
+				<Button
+					size="sm"
+					variant="outline"
+					onClick={() => setExpanded(allExpanded ? new Set() : allPaths)}
+				>
+					{allExpanded ? 'Collapse all' : 'Expand all'}
+				</Button>
+			</div>
+			<JsonTree data={sample} expanded={expanded} onExpandedChange={setExpanded} />
+		</Stack>
 	)
 }
 
-function SearchExample() {
+function SearchDemo() {
 	const [search, setSearch] = useState('')
 
 	const deferredSearch = useDeferredValue(search)
 
 	return (
-		<Example
-			title="Search"
-			prefix={
-				<SearchInput
-					id="json-tree-search"
-					placeholder="Search tree"
-					autoComplete="off"
-					value={search}
-					onChange={(e) => setSearch(e.target.value)}
-					onClear={() => setSearch('')}
-				/>
-			}
-		>
+		<>
+			<SearchInput
+				id="json-tree-search"
+				placeholder="Search tree"
+				autoComplete="off"
+				value={search}
+				onChange={(e) => setSearch(e.target.value)}
+				onClear={() => setSearch('')}
+			/>
+
 			<JsonTree data={sample} search={deferredSearch} defaultExpandDepth={1} />
-		</Example>
+		</>
 	)
 }
 
-function FilterExample() {
+function FilterDemo() {
 	const [search, setSearch] = useState('')
 
 	const deferredSearch = useDeferredValue(search)
 
 	return (
-		<Example
-			title="Search with filter"
-			prefix={
-				<SearchInput
-					id="json-tree-filter-search"
-					placeholder="Filter tree"
-					autoComplete="off"
-					value={search}
-					onChange={(e) => setSearch(e.target.value)}
-					onClear={() => setSearch('')}
-				/>
-			}
-		>
+		<>
+			<SearchInput
+				id="json-tree-filter-search"
+				placeholder="Filter tree"
+				autoComplete="off"
+				value={search}
+				onChange={(e) => setSearch(e.target.value)}
+				onClear={() => setSearch('')}
+			/>
 			<JsonTree
 				data={sample}
 				search={{ value: deferredSearch, filter: true }}
 				defaultExpandDepth={1}
 			/>
-		</Example>
+		</>
 	)
 }
 
@@ -110,15 +101,21 @@ export default function JsonTreeDemo() {
 				<JsonTree data={sample} />
 			</Example>
 
-			<ExpandAllExample />
+			<Example title="Expand all levels">
+				<ExpandAllDemo />
+			</Example>
 
 			<Example title="Collapsed by default">
 				<JsonTree data={sample} defaultExpandDepth={0} />
 			</Example>
 
-			<SearchExample />
+			<Example title="Search">
+				<SearchDemo />
+			</Example>
 
-			<FilterExample />
+			<Example title="Search with filter">
+				<FilterDemo />
+			</Example>
 
 			<Example title="Arrays of primitives">
 				<JsonTree

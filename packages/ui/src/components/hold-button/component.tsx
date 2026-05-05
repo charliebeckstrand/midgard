@@ -131,7 +131,7 @@ export function HoldButton({
 			{...props}
 			disabled={disabled}
 			data-slot="hold-button"
-			className={cn('relative overflow-hidden', className)}
+			className={cn('relative overflow-hidden select-none [-webkit-touch-callout:none]', className)}
 			onPointerDown={(e: PointerEvent<HTMLButtonElement>) => {
 				if (e.button === 0) start()
 
@@ -169,9 +169,7 @@ export function HoldButton({
 				style={{ transform: 'scaleX(0)' }}
 				className="pointer-events-none absolute inset-0 origin-left bg-black/15 dark:bg-white/20"
 			/>
-			<span className="relative inline-flex items-center gap-[inherit] select-none">
-				{children}
-			</span>
+			<span className="relative inline-flex items-center gap-[inherit]">{children}</span>
 		</Button>
 	)
 }

@@ -1,6 +1,6 @@
 import { type PointerEvent, type RefObject, useCallback, useRef } from 'react'
-import { type ThumbIndex, useRangeUpdate } from './use-range-update'
-import { clamp } from './utilities'
+import { type OverlapMode, type ThumbIndex, useRangeUpdate } from './use-range-update'
+import { clamp, snapToStep } from './utilities'
 
 export function useRangePointer(opts: {
 	min: number
@@ -10,12 +10,16 @@ export function useRangePointer(opts: {
 	current: [number, number]
 	trackRef: RefObject<HTMLDivElement | null>
 	setRange: (fn: (prev: [number, number] | undefined) => [number, number]) => void
+	overlap: OverlapMode
 }) {
-	const { min, max, step, disabled, current, trackRef, setRange } = opts
+	const { min, max, step, disabled, current, trackRef, setRange, overlap } = opts
 
-	const update = useRangeUpdate({ min, max, step, setRange })
+	const update = useRangeUpdate({ min, max, step, setRange, overlap })
 
 	const draggingRef = useRef<ThumbIndex | null>(null)
+	// When pointer goes down on stacked thumbs, defer thumb selection until the
+	// first move reveals direction. Stores the clientX of pointerdown.
+	const pendingStackedRef = useRef<number | null>(null)
 
 	const valueFromPointer = useCallback(
 		(clientX: number) => {
@@ -52,30 +56,79 @@ export function useRangePointer(opts: {
 
 			event.preventDefault()
 
-			const thumb = closestThumb(event.clientX)
-
-			draggingRef.current = thumb
-
-			update(thumb, valueFromPointer(event.clientX))
-
 			const target = event.currentTarget as HTMLElement
-
 			target.setPointerCapture(event.pointerId)
+
+			const raw = valueFromPointer(event.clientX)
+
+			if (current[0] === current[1]) {
+				const snapped = snapToStep(clamp(raw, min, max), min, step)
+
+				// Pointer landed off the stack — pick the thumb on that side and jump it.
+				if (snapped < current[0]) {
+					draggingRef.current = 0
+					update(0, raw)
+					return
+				}
+
+				if (snapped > current[0]) {
+					draggingRef.current = 1
+					update(1, raw)
+					return
+				}
+
+				// Pointer landed on the stack — defer until the first move shows direction.
+				pendingStackedRef.current = event.clientX
+				return
+			}
+
+			const thumb = closestThumb(event.clientX)
+			draggingRef.current = thumb
+			update(thumb, raw)
 		},
-		[disabled, closestThumb, update, valueFromPointer],
+		[disabled, closestThumb, update, valueFromPointer, current, min, max, step],
 	)
 
 	const onPointerMove = useCallback(
 		(event: PointerEvent) => {
-			if (draggingRef.current === null) return
+			if (draggingRef.current === null) {
+				if (pendingStackedRef.current === null) return
 
-			update(draggingRef.current, valueFromPointer(event.clientX))
+				const dx = event.clientX - pendingStackedRef.current
+				if (dx === 0) return
+
+				// At the min/max boundary, the matching thumb has nowhere to go.
+				// Keep waiting in case the user reverses direction.
+				const stacked = current[0]
+				if (dx < 0 && stacked <= min) return
+				if (dx > 0 && stacked >= max) return
+
+				draggingRef.current = dx < 0 ? 0 : 1
+				pendingStackedRef.current = null
+			}
+
+			const raw = valueFromPointer(event.clientX)
+			const dragging = draggingRef.current
+
+			// Always pass the index that was active when this move began. useRangeUpdate
+			// rewrites that slot then re-sorts when overlap='swap', which preserves the
+			// non-dragged thumb's value. After the update, point draggingRef at the new
+			// slot of the value we just wrote so subsequent moves track the same finger.
+			if (overlap === 'swap') {
+				const snapped = snapToStep(clamp(raw, min, max), min, step)
+
+				if (dragging === 0 && snapped > current[1]) draggingRef.current = 1
+				else if (dragging === 1 && snapped < current[0]) draggingRef.current = 0
+			}
+
+			update(dragging, raw)
 		},
-		[update, valueFromPointer],
+		[update, valueFromPointer, current, min, max, step, overlap],
 	)
 
 	const onPointerUp = useCallback(() => {
 		draggingRef.current = null
+		pendingStackedRef.current = null
 	}, [])
 
 	return { onPointerDown, onPointerMove, onPointerUp }

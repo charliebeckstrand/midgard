@@ -23,23 +23,23 @@ export const sliderRange = {
 		'active:scale-110',
 		// Focus
 		'focus-visible:outline-none',
-		'focus-visible:ring-2',
+		'focus-visible:ring-4',
 		'focus-visible:ring-blue-600',
 		'dark:focus-visible:ring-blue-600',
 	],
 	size: {
 		sm: {
-			root: 'py-4',
+			root: 'py-3',
 			track: 'h-1',
 			thumb: 'size-3',
 		},
 		md: {
-			root: 'py-5',
+			root: 'py-4',
 			track: 'h-1.5',
 			thumb: 'size-4',
 		},
 		lg: {
-			root: 'py-6',
+			root: 'py-5',
 			track: 'h-2',
 			thumb: 'size-5',
 		},

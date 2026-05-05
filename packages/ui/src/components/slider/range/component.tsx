@@ -21,6 +21,12 @@ export type RangeSliderProps = {
 	size?: RangeSliderSize
 	color?: RangeSliderColor
 	disabled?: boolean
+	/**
+	 * Whether moving a thumb past the other swaps their roles. When `false`,
+	 * each thumb is clamped at the other's value. On a keyboard swap, focus
+	 * follows the moving value to the other thumb button. Defaults to `true`.
+	 */
+	allowCross?: boolean
 	className?: string
 	style?: CSSProperties
 }
@@ -35,6 +41,7 @@ export function RangeSlider({
 	size: sizeProp,
 	color: colorProp,
 	disabled = false,
+	allowCross = true,
 	className,
 	style,
 }: RangeSliderProps) {
@@ -54,6 +61,10 @@ export function RangeSlider({
 	const current = range ?? [min, max]
 
 	const trackRef = useRef<HTMLDivElement>(null)
+	const loThumbRef = useRef<HTMLButtonElement>(null)
+	const hiThumbRef = useRef<HTMLButtonElement>(null)
+
+	const overlap = allowCross ? 'swap' : 'clamp'
 
 	const { onPointerDown, onPointerMove, onPointerUp } = useRangePointer({
 		min,
@@ -63,9 +74,18 @@ export function RangeSlider({
 		current,
 		trackRef,
 		setRange,
+		overlap,
 	})
 
-	const handleKeyDown = useRangeKeyboard({ min, max, step, current, setRange })
+	const handleKeyDown = useRangeKeyboard({
+		min,
+		max,
+		step,
+		current,
+		setRange,
+		overlap,
+		thumbRefs: [loThumbRef, hiThumbRef],
+	})
 
 	const lo = pct(current[0], min, max)
 	const hi = pct(current[1], min, max)
@@ -98,6 +118,7 @@ export function RangeSlider({
 
 			{/* Low thumb */}
 			<button
+				ref={loThumbRef}
 				type="button"
 				role="slider"
 				tabIndex={disabled ? -1 : 0}
@@ -114,6 +135,7 @@ export function RangeSlider({
 
 			{/* High thumb */}
 			<button
+				ref={hiThumbRef}
 				type="button"
 				role="slider"
 				tabIndex={disabled ? -1 : 0}

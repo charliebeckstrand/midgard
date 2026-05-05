@@ -29,11 +29,14 @@ export default function AvatarDemo() {
 	return (
 		<Stack gap="xl">
 			<Example title="Variants">
-				<Flex gap="sm">
+				<Stack gap="sm">
 					{variants.map((v) => (
-						<Avatar key={v} variant={v} initials="A" />
+						<Flex key={v} gap="sm">
+							<span className="w-12 text-xs text-zinc-500">{v}</span>
+							<Avatar variant={v} initials="A" />
+						</Flex>
 					))}
-				</Flex>
+				</Stack>
 			</Example>
 
 			<Example

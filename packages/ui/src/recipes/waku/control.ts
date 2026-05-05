@@ -39,8 +39,8 @@ const frame = ['relative block w-full', ...kasane.all]
 const surface = {
 	default: [
 		'bg-white',
-		'has-[>:disabled]:before:bg-zinc-950/5',
 		'dark:bg-white/5',
+		'has-[>:disabled]:before:bg-zinc-950/5',
 		'dark:before:hidden',
 	],
 	outline: [...sen.borderEmphasis, 'hover:border-zinc-950/30', 'dark:hover:border-white/30'],
@@ -78,9 +78,9 @@ const affix = {
 		lg: 'pl-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(1.5)-1px)]',
 	},
 	suffix: {
-		sm: 'pr-[calc(--spacing(2.5)-1px)] py-[calc(--spacing(0.5)-1px)]',
-		md: 'pr-[calc(--spacing(3)-1px)] py-[calc(--spacing(1)-1px)]',
-		lg: 'pr-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(1.5)-1px)]',
+		sm: 'pr-[calc(--spacing(2.5)-1px)] has-[button]:pr-[calc(--spacing(1.5)-1px)] py-[calc(--spacing(0.5)-1px)]',
+		md: 'pr-[calc(--spacing(3)-1px)] has-[button]:pr-[calc(--spacing(2)-1px)] py-[calc(--spacing(1)-1px)]',
+		lg: 'pr-[calc(--spacing(3.5)-1px)] has-[button]:pr-[calc(--spacing(2.5)-1px)] py-[calc(--spacing(1.5)-1px)]',
 	},
 	autofill: {
 		prefix: {
@@ -112,17 +112,17 @@ const check = {
 	hidden: ['absolute inset-0', 'opacity-0', ...sawari.cursor, sen.forced.control],
 	/** Custom check surface (the visible box / circle). */
 	surface: [
-		'border',
 		'shadow-xs',
-		'has-[:disabled]:opacity-50 has-[:disabled]:cursor-not-allowed',
-		'border-zinc-950/15',
 		'bg-white',
+		'border',
+		'border-zinc-950/15',
 		'not-has-[:disabled]:hover:border-zinc-950/30',
 		'not-has-[:disabled]:group-hover/field:border-zinc-950/30',
-		'dark:border-white/15',
 		'dark:bg-white/5',
+		'dark:border-white/15',
 		'dark:not-has-[:disabled]:hover:border-white/30',
 		'dark:not-has-[:disabled]:group-hover/field:border-white/30',
+		'has-[:disabled]:opacity-50 has-[:disabled]:cursor-not-allowed',
 	],
 }
 
