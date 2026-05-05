@@ -73,7 +73,7 @@ export function SidebarContent({ route }: { route: string }) {
 				<div className="flex flex-col gap-2">
 					{sortedCategories.map(([category, items]) => (
 						<SidebarSection key={category}>
-							<span className="px-2 text-zinc-500 mb-2">{category}</span>
+							<span className="text-zinc-500 px-2 my-2 first:mt-0">{category}</span>
 							{items.map((demo) => {
 								const prefetch = () => preloadDemo(demo.id)
 

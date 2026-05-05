@@ -26,6 +26,30 @@ export const statDelta = tv({
 	defaultVariants: { trend: 'neutral' },
 })
 
+/**
+ * Skeleton placeholder dimensions for each Stat slot. Heights are tuned to the
+ * text line-height of the live element so wrapping a `<Stat>` in `<Skeleton>`
+ * doesn't shift layout. Widths are sensible defaults — caller can override via
+ * `className`.
+ */
+export const statValuePlaceholder = tv({
+	base: '',
+	variants: {
+		size: {
+			sm: 'h-8 w-16',
+			md: 'h-9 w-20',
+			lg: 'h-10 w-24',
+		},
+	},
+	defaultVariants: { size: 'md' },
+})
+
+export const statPlaceholder = {
+	label: 'h-5 w-24',
+	description: 'h-5 w-20',
+	delta: 'h-5 w-12',
+}
+
 export type StatValueVariants = VariantProps<typeof statValue>
 export type StatDeltaVariants = VariantProps<typeof statDelta>
 
