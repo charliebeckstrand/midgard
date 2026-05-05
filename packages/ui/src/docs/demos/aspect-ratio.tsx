@@ -9,6 +9,10 @@ export const meta = { category: 'Layout' }
 
 const presets: AspectRatioPreset[] = ['square', 'video', '4/3', '3/2', '16/9', '21/9']
 
+function Sizer({ children, className }: { children: React.ReactNode; className?: string }) {
+	return <div className={`sm:max-w-sm ${className}`}>{children}</div>
+}
+
 function PresetsExample() {
 	const [ratio, setRatio] = useState<AspectRatioPreset>('video')
 
@@ -30,9 +34,11 @@ function PresetsExample() {
 				</Listbox>
 			}
 		>
-			<AspectRatio ratio={ratio}>
-				<Card className="flex flex-1 h-full items-center justify-center">{ratio}</Card>
-			</AspectRatio>
+			<Sizer>
+				<AspectRatio ratio={ratio}>
+					<Card className="flex flex-1 h-full items-center justify-center">{ratio}</Card>
+				</AspectRatio>
+			</Sizer>
 		</Example>
 	)
 }
@@ -43,9 +49,11 @@ export default function AspectRatioDemo() {
 			<PresetsExample />
 
 			<Example title="Custom ratio">
-				<AspectRatio ratio={1.618}>
-					<Card className="flex flex-1 h-full items-center justify-center">Golden (1.618)</Card>
-				</AspectRatio>
+				<Sizer>
+					<AspectRatio ratio={1.618}>
+						<Card className="flex flex-1 h-full items-center justify-center">Golden (1.618)</Card>
+					</AspectRatio>
+				</Sizer>
 			</Example>
 		</Stack>
 	)
