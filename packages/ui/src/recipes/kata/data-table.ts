@@ -19,7 +19,7 @@ export const dataTable = {
 		omote.tint,
 	],
 	batchCount: ['font-medium whitespace-nowrap', ji.size.sm, iro.text.muted],
-	selectCell: 'w-px align-middle [line-height:0]',
+	selectCell: 'w-px text-center align-middle [line-height:0]',
 	actionsCell: 'w-px whitespace-nowrap',
 	sortButton: ['inline-flex items-center', 'gap-xs', iro.text.muted, iro.text.hover, 'select-none'],
 	sortIcon: iro.text.muted,

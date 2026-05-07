@@ -85,7 +85,7 @@ function TransitionDemo() {
 					<CardHeader>
 						<Flex gap="md">
 							<Avatar initials="JD" />
-							<div className="flex-1 space-y-2">
+							<div className="flex-1 space-y-1">
 								<Heading level={5}>Jane Doe</Heading>
 								<Text>Senior Engineer</Text>
 							</div>
@@ -106,7 +106,7 @@ export default function SkeletonDemo() {
 			<DynamicExample />
 
 			<Example title="Form">
-				<Skeleton className="flex flex-col gap-2">
+				<Skeleton>
 					<Heading level={3}>Create account</Heading>
 					<Input placeholder="Email" />
 					<Input placeholder="Password" type="password" />
