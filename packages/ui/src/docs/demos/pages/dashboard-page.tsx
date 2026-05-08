@@ -9,7 +9,6 @@ import { Grid } from '../../../components/grid'
 import { Icon } from '../../../components/icon'
 import { Input } from '../../../components/input'
 import { Select, SelectLabel, SelectOption } from '../../../components/select'
-import { Spacer } from '../../../components/spacer'
 import { Stack } from '../../../components/stack'
 import { Stat, StatDelta, StatLabel, StatValue } from '../../../components/stat'
 import {
@@ -119,14 +118,15 @@ export default function DashboardPageDemo() {
 						</Grid>
 
 						<Card>
-							<CardHeader className="flex items-center gap-4">
+							<CardHeader className="flex sm:flex-row flex-col sm:items-center gap-4 justify-between">
 								<CardTitle>Recent orders</CardTitle>
-								<Spacer />
-								<Input
-									placeholder="Search orders"
-									variant="outline"
-									prefix={<Icon icon={<Search />} />}
-								/>
+								<div className="sm:max-w-md">
+									<Input
+										placeholder="Search orders"
+										variant="outline"
+										prefix={<Icon icon={<Search />} />}
+									/>
+								</div>
 							</CardHeader>
 							<CardBody>
 								<Table>

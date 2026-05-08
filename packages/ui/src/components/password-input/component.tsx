@@ -7,15 +7,27 @@ import { Icon } from '../icon'
 import { Input, type InputProps, useInputSize } from '../input'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 
-export type PasswordInputProps = Omit<InputProps, 'type' | 'suffix'>
+export type PasswordInputProps = Omit<InputProps, 'type' | 'suffix'> & {
+	toggleButton?: {
+		visible?: boolean
+		label?: {
+			show?: string
+			hide?: string
+		}
+	}
+}
 
 type ToggleProps = {
 	visible: boolean
 	onToggle: () => void
+	showLabel: string
+	hideLabel: string
 }
 
-function VisibilityToggle({ visible, onToggle }: ToggleProps) {
+function VisibilityToggle({ visible, onToggle, showLabel, hideLabel }: ToggleProps) {
 	const size = useInputSize()
+
+	const text = visible ? hideLabel : showLabel
 
 	return (
 		<Tooltip>
@@ -23,24 +35,35 @@ function VisibilityToggle({ visible, onToggle }: ToggleProps) {
 				<Button
 					variant="plain"
 					size={size}
-					aria-label={visible ? 'Hide password' : 'Show password'}
+					aria-label={text}
 					prefix={<Icon icon={visible ? <EyeOff /> : <Eye />} />}
 					onClick={onToggle}
 				/>
 			</TooltipTrigger>
-			<TooltipContent>{visible ? 'Hide password' : 'Show password'}</TooltipContent>
+			<TooltipContent>{text}</TooltipContent>
 		</Tooltip>
 	)
 }
 
-export function PasswordInput(props: PasswordInputProps) {
+export function PasswordInput({ toggleButton, ...props }: PasswordInputProps) {
 	const [visible, setVisible] = useState(false)
+
+	const showToggle = toggleButton?.visible ?? true
 
 	return (
 		<Input
 			{...props}
 			type={visible ? 'text' : 'password'}
-			suffix={<VisibilityToggle visible={visible} onToggle={() => setVisible((v) => !v)} />}
+			suffix={
+				showToggle ? (
+					<VisibilityToggle
+						visible={visible}
+						onToggle={() => setVisible((v) => !v)}
+						showLabel={toggleButton?.label?.show ?? 'Show password'}
+						hideLabel={toggleButton?.label?.hide ?? 'Hide password'}
+					/>
+				) : undefined
+			}
 		/>
 	)
 }

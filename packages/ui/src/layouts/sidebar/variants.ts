@@ -54,7 +54,9 @@ export const sidebarContentVariants = tv({
 	},
 })
 
-export const sidebarHeaderVariants = tv({ base: 'flex items-center shrink-0 lg:pt-6 pb-6' })
+export const sidebarHeaderVariants = tv({
+	base: ['flex items-center shrink-0 lg:pt-6 pb-6', '**:data-[slot=heading]:leading-none'],
+})
 
 export const sidebarBodyVariants = tv({ base: 'flex-1 min-h-0 overflow-y-auto' })
 

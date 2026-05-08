@@ -10,7 +10,7 @@ const tabList = tv({
 	base: ['flex', ...sen.borderSubtleColor],
 	variants: {
 		orientation: {
-			horizontal: ['gap-4', 'border-b', '-mt-4'],
+			horizontal: ['gap-4', 'border-b'],
 			vertical: ['flex-col', 'border-l'],
 		},
 	},
@@ -33,7 +33,7 @@ const tabItem = tv({
 	],
 	variants: {
 		orientation: {
-			horizontal: ['px-1 py-4', 'after:inset-x-0 after:-bottom-px after:h-0.5'],
+			horizontal: ['px-1 pb-4', 'after:inset-x-0 after:-bottom-px after:h-0.5'],
 			vertical: ['px-4 py-2', 'after:inset-y-0 after:-left-px after:w-0.5'],
 		},
 	},
