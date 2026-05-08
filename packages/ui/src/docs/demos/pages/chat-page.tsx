@@ -146,7 +146,7 @@ export default function ChatPageDemo() {
 						{conversations.map((conv) => (
 							<SidebarItem key={conv.id} current={conv.active}>
 								<Stack direction="row" align="center" full>
-									<Stack full gap="xs" className="gap-0 min-w-0">
+									<Stack full className="gap-0 min-w-0">
 										<SidebarLabel>{conv.title}</SidebarLabel>
 										<Text className="text-xs truncate" variant="muted">
 											{conv.preview}
