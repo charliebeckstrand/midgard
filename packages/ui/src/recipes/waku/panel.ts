@@ -1,4 +1,3 @@
-import { tv } from 'tailwind-variants'
 import { narabi } from '../ryu/narabi'
 
 type Slot = {
@@ -7,8 +6,6 @@ type Slot = {
 }
 
 type Base = { base: string | string[] }
-
-type TVResult = ReturnType<typeof tv>
 
 type PanelRecipeInput<P, B> = {
 	/** tv() result for the panel root element. Defines positioning, size, glass, etc. */
@@ -36,38 +33,34 @@ function toArray(v?: string | string[]): string[] {
 
 /**
  * Factory for defining a panel recipe.
- * Narabi provides the panel root and backdrop (if applicable) slots, and the caller defines
- * the title, description, header, body, actions, and close slots via thin overrides.
- * This pattern allows for maximum reuse of the underlying panel structure
- * while enabling flexible customization of the individual slots.
  *
- * Each panel shares the same slot surface (title, description, body, actions, close)
- * backed by narabi.panel. The factory builds those slots from a thin override shape
- * and forwards caller-supplied tv() results for the unique parts (panel root + optional
- * backdrop). Callers keep full tv() type inference via `VariantProps<typeof result.panel>`.
+ * The `panel` and (optional) `backdrop` slots are caller-supplied `tv()` results
+ * — they carry real variants (size, surface, side) and stay callable so consumers
+ * keep `VariantProps<typeof result.panel>` inference. The other slots (title,
+ * description, header, body, actions, close) are zero-variant class fragments
+ * built from `narabi.panel` plus optional caller-supplied extras; they are
+ * returned as `string[]` and applied via `cn(...)` at the call site.
  */
 export function definePanelRecipe<P, B = undefined>(
 	input: PanelRecipeInput<P, B>,
 ): {
 	panel: P
 	backdrop: B
-	title: TVResult
-	description: TVResult
-	header: TVResult
-	body: TVResult
-	actions: TVResult
-	close: TVResult
+	title: string[]
+	description: string[]
+	header: string[]
+	body: string[]
+	actions: string[]
+	close: string[]
 } {
 	return {
 		panel: input.panel,
 		backdrop: input.backdrop as B,
-		title: tv({ base: [...narabi.panel.title, ...toArray(input.title?.extra)] }),
-		description: tv({
-			base: [...narabi.panel.description, ...toArray(input.description?.extra)],
-		}),
-		header: tv({ base: input.header?.base ?? '' }),
-		body: tv({ base: [...narabi.panel.body, ...toArray(input.body?.extra)] }),
-		actions: tv({ base: [...narabi.panel.actions, ...toArray(input.actions?.extra)] }),
-		close: tv({ base: input.close?.base ?? '' }),
+		title: [...narabi.panel.title, ...toArray(input.title?.extra)],
+		description: [...narabi.panel.description, ...toArray(input.description?.extra)],
+		header: toArray(input.header?.base),
+		body: [...narabi.panel.body, ...toArray(input.body?.extra)],
+		actions: [...narabi.panel.actions, ...toArray(input.actions?.extra)],
+		close: toArray(input.close?.base),
 	}
 }

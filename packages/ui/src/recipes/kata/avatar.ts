@@ -1,14 +1,14 @@
 import { tv, type VariantProps } from 'tailwind-variants'
 import { colorVariants } from '../../core/recipe'
-import { iro, merge } from '../ryu/iro'
+import { iro, pickSlots } from '../ryu/iro'
 import { take } from '../ryu/take'
 
 const { solid, soft, outline } = iro.palette
 
 const { color, compoundVariants } = colorVariants({
-	solid: merge(solid.bg, solid.text),
-	soft: merge(soft.bg, soft.text),
-	outline: merge(outline.ring, outline.text),
+	solid: pickSlots(solid, 'bg', 'text'),
+	soft: pickSlots(soft, 'bg', 'text'),
+	outline: pickSlots(outline, 'ring', 'text'),
 })
 
 export const avatar = tv({

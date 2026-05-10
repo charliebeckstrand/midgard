@@ -1,12 +1,7 @@
 export {
 	type DrawerPanelVariants,
-	drawerActionsVariants,
 	drawerBackdropVariants,
-	drawerBodyVariants,
-	drawerCloseVariants,
-	drawerDescriptionVariants,
 	drawerPanelVariants,
-	drawerTitleVariants,
 } from '../../recipes/kata/drawer'
 export { Drawer, type DrawerProps } from './drawer'
 export {
