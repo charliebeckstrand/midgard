@@ -3,9 +3,9 @@
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { cn } from '../../core'
 import { Link } from '../../primitives/link'
+import { k } from '../../recipes/kata/command-palette'
 import { Kbd, type KbdProps } from '../kbd'
 import { useCommandPaletteContext } from './context'
-import { k } from './variants'
 
 type CommandPaletteItemBaseProps = {
 	disabled?: boolean

@@ -4,8 +4,8 @@ import { type ComponentPropsWithoutRef, useRef } from 'react'
 import { cn } from '../../core'
 import { useRoving } from '../../hooks'
 import { ActiveIndicatorScope } from '../../primitives'
+import { k } from '../../recipes/kata/nav'
 import { useNavbar } from '../navbar/context'
-import { k } from './variants'
 
 // ── NavList ─────────────────────────────────────────────
 

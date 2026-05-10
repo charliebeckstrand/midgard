@@ -3,8 +3,8 @@
 import { type ReactNode, useCallback, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
+import { type AccordionVariants, accordionVariants } from '../../recipes/kata/accordion'
 import { AccordionRootProvider } from './context'
-import { type AccordionVariants, accordionVariants } from './variants'
 
 // ── Accordion (root) ────────────────────────────────────
 

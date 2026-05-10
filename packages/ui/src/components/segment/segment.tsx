@@ -2,8 +2,8 @@
 
 import { type ReactNode, useMemo } from 'react'
 import { CurrentProvider, useCurrent } from '../../primitives'
+import type { SegmentControlVariants } from '../../recipes/kata/segment'
 import { SegmentProvider } from './context'
-import type { SegmentControlVariants } from './variants'
 
 // ── Segment ─────────────────────────────────────────────
 

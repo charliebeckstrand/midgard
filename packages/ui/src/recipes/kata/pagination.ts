@@ -54,3 +54,10 @@ export const slots = {
 		'rounded-lg',
 	],
 }
+
+export {
+	pageButton as pageButtonVariants,
+	pagination as paginationVariants,
+	paginationGap as paginationGapVariants,
+	paginationList as paginationListVariants,
+}

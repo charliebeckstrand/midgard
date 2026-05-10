@@ -24,7 +24,7 @@ import {
 import { cn } from '../../core'
 import { useFloatingPanel, useHasHover } from '../../hooks'
 import { ugoki } from '../../recipes'
-import { k } from './variants'
+import { k } from '../../recipes/kata/tooltip'
 
 export type TooltipProps = {
 	placement?: Placement

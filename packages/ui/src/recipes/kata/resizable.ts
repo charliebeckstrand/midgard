@@ -17,3 +17,5 @@ export const resizable = {
 	gripHorizontal: 'h-6 w-0.5',
 	gripVertical: 'w-6 h-0.5',
 }
+
+export { resizable as k }

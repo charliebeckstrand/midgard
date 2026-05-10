@@ -2,8 +2,8 @@
 
 import { type KeyboardEvent, useCallback } from 'react'
 import { cn } from '../../core'
+import { k } from '../../recipes/kata/resizable'
 import { useResizable, useResizableIndex } from './context'
-import { k } from './variants'
 
 export type ResizableHandleProps = {
 	className?: string

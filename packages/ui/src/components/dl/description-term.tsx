@@ -1,7 +1,7 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
+import { dlTermVariants } from '../../recipes/kata/dl'
 import { useDlOrientation } from './context'
-import { dlTermVariants } from './variants'
 
 export type DescriptionTermProps = {
 	className?: string

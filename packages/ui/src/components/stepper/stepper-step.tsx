@@ -2,9 +2,9 @@
 
 import { Children, isValidElement, type ReactNode, useMemo } from 'react'
 import { cn } from '../../core'
+import { k, stepperStepVariants } from '../../recipes/kata/stepper'
 import { StepperStepProvider, type StepState, useStepper } from './context'
 import { StepperIndicator } from './stepper-indicator'
-import { k, stepperStepVariants } from './variants'
 
 export type StepperStepProps = {
 	value: number

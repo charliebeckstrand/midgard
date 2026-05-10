@@ -10,3 +10,5 @@ export const kbd = tv({
 })
 
 export type KbdVariants = VariantProps<typeof kbd>
+
+export { kbd as kbdVariants }

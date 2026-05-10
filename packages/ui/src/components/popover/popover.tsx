@@ -23,11 +23,11 @@ import { cn, createContext } from '../../core'
 import { useFloatingPanel } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { iro, omote, ugoki } from '../../recipes'
+import { k } from '../../recipes/kata/popover'
 import type { Step } from '../../recipes/ryu/sun'
 import { Box, type BoxPadding } from '../box'
 import { ConcentricContext } from '../concentric/context'
 import { useGlass } from '../glass/context'
-import { k } from './variants'
 
 type PopoverContextValue = {
 	open: boolean

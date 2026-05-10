@@ -2,9 +2,9 @@
 
 import type { KeyboardEvent, ReactNode } from 'react'
 import { cn } from '../../core'
+import { k } from '../../recipes/kata/list'
 import { useListContext, useListItemContext } from './context'
 import { ListHandle } from './list-handle'
-import { k } from './variants'
 
 // ── ListItem ───────────────────────────────────────────
 

@@ -10,3 +10,5 @@ export const popover = {
 		'cursor-pointer select-none',
 	],
 }
+
+export { popover as k }

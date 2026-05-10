@@ -1,4 +1,9 @@
 export {
+	type RadioVariants,
+	radioInputVariants,
+	radioVariants,
+} from '../../recipes/kata/radio'
+export {
 	Radio,
 	type RadioProps,
 } from './radio'
@@ -10,8 +15,3 @@ export {
 	RadioGroup,
 	type RadioGroupProps,
 } from './radio-group'
-export {
-	type RadioVariants,
-	radioInputVariants,
-	radioVariants,
-} from './variants'

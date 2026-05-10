@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
+import { k } from '../../recipes/kata/timeline'
 import { useTimeline } from './context'
-import { k } from './variants'
 
 // ── TimelineDescription ─────────────────────────────────
 

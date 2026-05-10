@@ -26,3 +26,5 @@ export const bottomNav = {
 	current: [iro.text.default],
 	indicator: ['inset-x-4 bottom-auto top-0', 'h-0.5', 'rounded-full', tabIndicator],
 }
+
+export { bottomNav as k }

@@ -4,12 +4,12 @@ import { X } from 'lucide-react'
 import { useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useRoving, useScrollWithin } from '../../hooks'
+import { k } from '../../recipes/kata/pdf-viewer'
 import { Button } from '../button'
 import { Flex } from '../flex/component'
 import { Icon } from '../icon'
 import { Sheet, SheetBody, SheetTitle } from '../sheet'
 import type { PdfViewerPage } from './component'
-import { k } from './variants'
 
 export type PdfViewerThumbnailsProps = {
 	pages: PdfViewerPage[]

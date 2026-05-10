@@ -3,8 +3,8 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { ActiveIndicator } from '../../primitives'
+import { k } from '../../recipes/kata/stepper'
 import { useStepper, useStepperStep } from './context'
-import { k } from './variants'
 
 export type StepperIndicatorProps = {
 	className?: string

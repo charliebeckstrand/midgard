@@ -51,3 +51,5 @@ export const segment = {
 	item: segmentItem,
 	indicator: slots.indicator,
 }
+
+export { segmentControl as segmentControlVariants, segmentItem as segmentItemVariants, slots as k }

@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { type CodeVariants, codeVariants } from './variants'
+import { type CodeVariants, codeVariants } from '../../recipes/kata/code'
 
 export type CodeProps = ComponentPropsWithoutRef<'code'> & {
 	size?: CodeVariants['size']

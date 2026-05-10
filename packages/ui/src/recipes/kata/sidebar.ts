@@ -36,3 +36,5 @@ export const sidebar = {
 	divider: sen.divider,
 	footer: ['sticky bottom-0', 'flex flex-col', 'gap-0.5', 'mt-auto'],
 }
+
+export { sidebar as k }

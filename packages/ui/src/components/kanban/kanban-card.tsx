@@ -3,8 +3,8 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { useSortableItem } from '../../hooks'
+import { k } from '../../recipes/kata/kanban'
 import { useKanbanColumnContext, useKanbanContext } from './context'
-import { k } from './variants'
 
 export type KanbanCardProps = {
 	/** Stable id matching an entry in the parent column's `items`. */

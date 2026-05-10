@@ -72,3 +72,11 @@ export const slots = {
 	description: [ji.size.sm, ...iro.text.muted],
 	activeIndicator: ['z-10', 'bg-blue-600 dark:bg-blue-600'],
 }
+
+export {
+	stepper as stepperVariants,
+	stepperSeparator as stepperSeparatorVariants,
+	stepperStep as stepperStepVariants,
+	stepperTitle as stepperTitleVariants,
+	slots as k,
+}

@@ -10,7 +10,7 @@ import {
 	drawerBodyVariants,
 	drawerDescriptionVariants,
 	drawerTitleVariants,
-} from './variants'
+} from '../../recipes/kata/drawer'
 
 export type DrawerTitleProps = PanelTitleProps
 export type DrawerDescriptionProps = PanelDescriptionProps

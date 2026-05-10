@@ -4,11 +4,11 @@ import { Minus, Plus } from 'lucide-react'
 import type { ChangeEvent } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
+import { k } from '../../recipes/kata/input'
 import { Button } from '../button'
 import { useFormField } from '../form/context'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
-import { k } from './variants'
 
 type Size = 'sm' | 'md' | 'lg'
 

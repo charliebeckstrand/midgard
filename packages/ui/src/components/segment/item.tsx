@@ -3,8 +3,8 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { ActiveIndicator, useActiveIndicator, useCurrentContext } from '../../primitives'
+import { k, segmentItemVariants } from '../../recipes/kata/segment'
 import { useSegmentContext } from './context'
-import { k, segmentItemVariants } from './variants'
 
 // ── SegmentItem ─────────────────────────────────────────
 

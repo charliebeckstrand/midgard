@@ -19,3 +19,5 @@ export const combobox = {
 	option: [...sawari.item, ...narabi.item],
 	empty: ['hidden only:block', 'p-2', ji.size.sm, iro.text.muted],
 }
+
+export { combobox as k }

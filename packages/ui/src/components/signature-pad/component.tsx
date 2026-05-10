@@ -4,12 +4,12 @@ import { X } from 'lucide-react'
 import { type Ref, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
+import { k } from '../../recipes/kata/signature-pad'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { useCanvasSizing } from './use-canvas-sizing'
 import { useSignatureDrawing } from './use-signature-drawing'
 import { drawSnapshot } from './utilities'
-import { k } from './variants'
 
 export type SignaturePadHandle = {
 	clear: () => void

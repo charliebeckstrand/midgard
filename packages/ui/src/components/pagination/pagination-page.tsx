@@ -7,7 +7,7 @@ import {
 	type PolymorphicProps,
 	useActiveIndicator,
 } from '../../primitives'
-import { pageButtonVariants } from './variants'
+import { pageButtonVariants } from '../../recipes/kata/pagination'
 
 type PaginationPageBaseProps = {
 	current?: boolean

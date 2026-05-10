@@ -1,7 +1,7 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
+import { dlDetailsVariants } from '../../recipes/kata/dl'
 import { useDlOrientation } from './context'
-import { dlDetailsVariants } from './variants'
 
 export type DescriptionDetailsProps = {
 	className?: string

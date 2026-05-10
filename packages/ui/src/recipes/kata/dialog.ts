@@ -27,3 +27,5 @@ export const dialog = definePanelRecipe({
 })
 
 export type DialogPanelVariants = VariantProps<typeof dialog.panel>
+
+export const dialogPanelVariants = dialog.panel

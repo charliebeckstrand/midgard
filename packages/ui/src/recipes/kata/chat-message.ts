@@ -43,3 +43,9 @@ export const slots = {
 
 export type ChatMessageVariants = VariantProps<typeof chatMessage>
 export type ChatMessageBubbleVariants = VariantProps<typeof chatMessageBubble>
+
+export {
+	chatMessage as chatMessageVariants,
+	chatMessageBubble as chatMessageBubbleVariants,
+	slots as k,
+}

@@ -1,2 +1,2 @@
+export { type TextVariants, textVariants } from '../../recipes/kata/text'
 export { Text, type TextProps } from './component'
-export { type TextVariants, textVariants } from './variants'

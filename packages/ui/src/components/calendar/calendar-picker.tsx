@@ -4,11 +4,11 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
+import { k } from '../../recipes/kata/calendar'
 import { Button } from '../button'
 import { Popover, PopoverContent, PopoverTrigger } from '../popover'
 import { useCalendarFocus } from './use-calendar-focus'
 import { MONTHS } from './utilities'
-import { k } from './variants'
 
 type CalendarPickerProps = {
 	year: number

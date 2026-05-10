@@ -18,3 +18,5 @@ export const menu = {
 	shortcut: 'ml-auto',
 	separator: sen.divider,
 }
+
+export { menu as k }

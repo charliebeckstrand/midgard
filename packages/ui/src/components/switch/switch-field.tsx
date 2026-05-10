@@ -1,7 +1,7 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { narabi } from '../../recipes'
-import { k, type SwitchFieldVariants, switchFieldVariants } from './variants'
+import { k, type SwitchFieldVariants, switchFieldVariants } from '../../recipes/kata/switch'
 
 export type SwitchFieldProps = SwitchFieldVariants & {
 	className?: string

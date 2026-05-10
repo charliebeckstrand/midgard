@@ -2,8 +2,8 @@
 
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
+import { stepperTitleVariants } from '../../recipes/kata/stepper'
 import { useStepper } from './context'
-import { stepperTitleVariants } from './variants'
 
 export type StepperTitleProps = ComponentPropsWithoutRef<'span'>
 

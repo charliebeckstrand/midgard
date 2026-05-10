@@ -20,3 +20,5 @@ export const nav = {
 		'cursor-pointer',
 	],
 }
+
+export { nav as k }

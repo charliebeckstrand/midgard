@@ -13,3 +13,5 @@ export const navbar = tv({
 })
 
 export type NavbarVariants = VariantProps<typeof navbar>
+
+export { navbar as navbarVariants }

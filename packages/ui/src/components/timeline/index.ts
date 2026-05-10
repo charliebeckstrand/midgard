@@ -1,7 +1,7 @@
+export { type TimelineVariants, timelineVariants } from '../../recipes/kata/timeline'
 export { Timeline, type TimelineProps } from './timeline'
 export { TimelineDescription, type TimelineDescriptionProps } from './timeline-description'
 export { TimelineHeading, type TimelineHeadingProps } from './timeline-heading'
 export { TimelineItem, type TimelineItemProps } from './timeline-item'
 export { TimelineMarker, type TimelineMarkerProps } from './timeline-marker'
 export { TimelineTimestamp, type TimelineTimestampProps } from './timeline-timestamp'
-export { type TimelineVariants, timelineVariants } from './variants'

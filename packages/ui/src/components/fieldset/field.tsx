@@ -3,8 +3,8 @@
 import { type ComponentPropsWithoutRef, useMemo } from 'react'
 import { cn } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
+import { k } from '../../recipes/kata/fieldset'
 import { type ControlContextValue, ControlProvider, useControl } from '../control/context'
-import { k } from './variants'
 
 export type FieldProps = {
 	autoComplete?: string

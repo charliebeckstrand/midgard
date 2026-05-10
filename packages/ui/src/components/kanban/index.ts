@@ -1,3 +1,4 @@
+export { k as kanbanVariants } from '../../recipes/kata/kanban'
 export {
 	type KanbanColumnContext,
 	type KanbanColumnShape,
@@ -18,4 +19,3 @@ export {
 	KanbanColumnTitle,
 	type KanbanColumnTitleProps,
 } from './kanban-column-header'
-export { k as kanbanVariants } from './variants'

@@ -36,3 +36,11 @@ export const breadcrumbSeparator = tv({
 
 export type BreadcrumbItemVariants = VariantProps<typeof breadcrumbItem>
 export type BreadcrumbLinkVariants = VariantProps<typeof breadcrumbLink>
+
+export {
+	breadcrumb as breadcrumbVariants,
+	breadcrumbItem as breadcrumbItemVariants,
+	breadcrumbLink as breadcrumbLinkVariants,
+	breadcrumbList as breadcrumbListVariants,
+	breadcrumbSeparator as breadcrumbSeparatorVariants,
+}

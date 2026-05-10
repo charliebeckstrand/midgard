@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
-import { k } from './variants'
+import { k } from '../../recipes/kata/data-table'
 
 type DataTableBatchBarProps = {
 	count: number

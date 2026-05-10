@@ -3,8 +3,8 @@
 import { type ReactNode, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useRoving } from '../../hooks'
+import { k } from '../../recipes/kata/tree'
 import { TreeProvider } from './context'
-import { k } from './variants'
 
 // ── Tree ───────────────────────────────────────────────
 

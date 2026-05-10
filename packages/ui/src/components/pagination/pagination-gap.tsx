@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { paginationGapVariants } from './variants'
+import { paginationGapVariants } from '../../recipes/kata/pagination'
 
 export type PaginationGapProps = ComponentPropsWithoutRef<'span'>
 

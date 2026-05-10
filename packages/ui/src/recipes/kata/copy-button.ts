@@ -1,8 +1,10 @@
-import { toggleIconButton } from '../../recipes/kata/toggle-icon-button'
+import { toggleIconButton } from './toggle-icon-button'
 
-export const k = {
+export const copyButton = {
 	base: [
 		...toggleIconButton.base,
 		'disabled:text-green-600 disabled:opacity-100 disabled:cursor-default',
 	],
 }
+
+export { copyButton as k }

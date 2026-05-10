@@ -11,3 +11,5 @@ export const table = {
 	grid: ['border', sen.borderSubtleColor],
 	striped: mode('*:even:bg-zinc-950/2.5', 'dark:*:even:bg-white/2.5'),
 }
+
+export { table as k }

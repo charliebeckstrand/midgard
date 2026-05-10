@@ -1,6 +1,7 @@
 'use client'
 
 import { cn } from '../../core'
+import { k } from '../../recipes/kata/query-builder'
 import { Alert } from '../alert'
 import { Button } from '../button'
 import { Flex } from '../flex'
@@ -10,7 +11,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 import { useQueryBuilderActions, useQueryBuilderState } from './context'
 import { QueryRule } from './rule'
 import type { QueryCombinator, QueryGroup as QueryGroupNode } from './types'
-import { k } from './variants'
 
 // ── QueryGroup ─────────────────────────────────────────
 

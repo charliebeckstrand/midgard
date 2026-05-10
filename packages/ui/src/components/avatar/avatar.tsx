@@ -1,17 +1,17 @@
 import { type ComponentPropsWithoutRef, use } from 'react'
 import { cn } from '../../core'
 import { kokkaku } from '../../recipes'
-import { Placeholder } from '../placeholder'
-import { useSkeleton } from '../skeleton/context'
-import { StatusDot } from '../status'
-import { AvatarGroupSizeContext, AvatarSizeContext } from './context'
 import {
 	type AvatarVariants,
 	avatarImageVariants,
 	avatarInitialsVariants,
 	avatarVariants,
 	k,
-} from './variants'
+} from '../../recipes/kata/avatar'
+import { Placeholder } from '../placeholder'
+import { useSkeleton } from '../skeleton/context'
+import { StatusDot } from '../status'
+import { AvatarGroupSizeContext, AvatarSizeContext } from './context'
 
 type Status = 'inactive' | 'active' | 'warning' | 'error'
 

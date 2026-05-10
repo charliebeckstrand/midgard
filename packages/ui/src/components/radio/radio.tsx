@@ -3,16 +3,16 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { kokkaku } from '../../recipes'
-import { useConcentric } from '../concentric'
-import { useControl } from '../control/context'
-import { Placeholder } from '../placeholder'
-import { useSkeleton } from '../skeleton/context'
 import {
 	type RadioVariants,
 	radioIndicatorSize,
 	radioInputVariants,
 	radioVariants,
-} from './variants'
+} from '../../recipes/kata/radio'
+import { useConcentric } from '../concentric'
+import { useControl } from '../control/context'
+import { Placeholder } from '../placeholder'
+import { useSkeleton } from '../skeleton/context'
 
 export type RadioProps = RadioVariants & {
 	className?: string

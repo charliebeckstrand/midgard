@@ -1,7 +1,7 @@
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { cn } from '../../core'
+import { k } from '../../recipes/kata/command-palette'
 import { Alert, type AlertProps } from '../alert'
-import { k } from './variants'
 
 export type CommandPaletteGroupProps = ComponentPropsWithoutRef<'div'> & {
 	heading?: ReactNode

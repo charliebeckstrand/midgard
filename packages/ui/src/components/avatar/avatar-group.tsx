@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
+import { k } from '../../recipes/kata/avatar'
 import type { take } from '../../recipes/ryu/take'
 import { Avatar } from './avatar'
 import { AvatarGroupSizeContext } from './context'
-import { k } from './variants'
 
 type AvatarSize = take.AvatarSize
 

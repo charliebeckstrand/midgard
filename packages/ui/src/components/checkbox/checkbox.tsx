@@ -4,17 +4,17 @@ import { Check, Minus } from 'lucide-react'
 import { type ComponentPropsWithRef, type ReactNode, useCallback, useRef } from 'react'
 import { cn } from '../../core'
 import { kokkaku } from '../../recipes'
-import { useConcentric } from '../concentric'
-import { useControl } from '../control/context'
-import { useFormToggle } from '../form/context'
-import { Placeholder } from '../placeholder'
-import { useSkeleton } from '../skeleton/context'
 import {
 	type CheckboxVariants,
 	checkboxCheckSize,
 	checkboxInputVariants,
 	checkboxVariants,
-} from './variants'
+} from '../../recipes/kata/checkbox'
+import { useConcentric } from '../concentric'
+import { useControl } from '../control/context'
+import { useFormToggle } from '../form/context'
+import { Placeholder } from '../placeholder'
+import { useSkeleton } from '../skeleton/context'
 
 export type CheckboxProps = CheckboxVariants & {
 	indeterminate?: boolean

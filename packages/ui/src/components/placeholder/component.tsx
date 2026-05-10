@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { k } from './variants'
+import { k } from '../../recipes/kata/placeholder'
 
 export type PlaceholderProps = {
 	className?: string

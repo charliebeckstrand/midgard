@@ -4,7 +4,7 @@ import type { DraggableAttributes } from '@dnd-kit/core'
 import type { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities'
 import type { CSSProperties, KeyboardEvent } from 'react'
 import { createContext } from '../../core/create-context'
-import type { ListVariant } from './variants'
+import type { ListVariant } from '../../recipes/kata/list'
 
 export type ListContext = {
 	/** Visual variant — see `List.variant` for semantics. */

@@ -56,3 +56,5 @@ export const tabs = {
 	tab: tabItem,
 	indicator: tabIndicatorBar,
 }
+
+export { tabs as k }

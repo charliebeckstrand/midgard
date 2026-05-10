@@ -1,7 +1,7 @@
 import { type ComponentPropsWithoutRef, use } from 'react'
 import { cn } from '../../core'
+import { type StatusDotVariants, statusDotVariants } from '../../recipes/kata/status'
 import { AvatarSizeContext } from '../avatar/context'
-import { type StatusDotVariants, statusDotVariants } from './variants'
 
 type AvatarSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl'
 type StatusDotSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl'

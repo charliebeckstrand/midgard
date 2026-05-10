@@ -4,12 +4,17 @@ import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { cn } from '../../core'
 import { ControlFrame } from '../../primitives'
 import { kokkaku } from '../../recipes'
+import {
+	controlVariants,
+	k,
+	type TextareaVariants,
+	textareaVariants,
+} from '../../recipes/kata/textarea'
 import { useControl } from '../control/context'
 import { useFormText } from '../form/context'
 import { useGlass } from '../glass/context'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
-import { controlVariants, k, type TextareaVariants, textareaVariants } from './variants'
 
 export type TextareaProps = TextareaVariants & {
 	className?: string

@@ -89,3 +89,5 @@ export const slots = {
 		horizontal: 'order-3 mt-1',
 	},
 }
+
+export { timeline as timelineVariants, slots as k }

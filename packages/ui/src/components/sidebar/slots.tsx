@@ -4,9 +4,9 @@ import { X } from 'lucide-react'
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { cn } from '../../core'
 import { useOffcanvas } from '../../primitives/offcanvas'
+import { k } from '../../recipes/kata/sidebar'
 import { Button } from '../button'
 import { Icon } from '../icon'
-import { k } from './variants'
 
 export type SidebarHeaderProps = ComponentPropsWithoutRef<'div'> & {
 	closeIcon?: ReactNode

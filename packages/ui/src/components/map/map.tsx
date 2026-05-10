@@ -3,11 +3,11 @@
 import type { Map as MapLibreMap, StyleSpecification } from 'maplibre-gl'
 import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { cn } from '../../core'
+import { k } from '../../recipes/kata/map'
 import { MapProvider } from './context'
 import { loadMapLibre } from './loader'
 import { MAP_PRESETS, type MapPreset } from './styles'
 import type { LngLat } from './types'
-import { k } from './variants'
 
 export type MapProps = {
 	center?: LngLat

@@ -14,11 +14,11 @@ import {
 } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
+import { k } from '../../recipes/kata/calendar'
 import { Button, type ButtonVariants } from '../button'
 import { CalendarPicker } from './calendar-picker'
 import { useCalendarFocus } from './use-calendar-focus'
 import { getCalendarDays, isBeforeDay, isSameDay, WEEKDAYS } from './utilities'
-import { k } from './variants'
 
 export type CalendarActive =
 	| { zone: 'header'; index: 0 | 1 | 2 }

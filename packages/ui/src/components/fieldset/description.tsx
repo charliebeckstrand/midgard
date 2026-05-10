@@ -2,8 +2,8 @@
 
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
+import { k } from '../../recipes/kata/fieldset'
 import { useControl } from '../control/context'
-import { k } from './variants'
 
 export type DescriptionProps = {
 	className?: string

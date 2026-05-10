@@ -22,3 +22,5 @@ export const tree = {
 	label: 'flex-1 truncate text-left',
 	group: 'overflow-hidden',
 }
+
+export { tree as k }

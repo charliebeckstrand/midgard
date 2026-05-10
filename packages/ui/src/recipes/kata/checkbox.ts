@@ -53,3 +53,5 @@ export const checkboxInput = tv({ base: control.check.hidden })
 export const slots = { disabled: iro.text.disabled }
 
 export type CheckboxVariants = VariantProps<typeof checkbox>
+
+export { checkbox as checkboxVariants, checkboxInput as checkboxInputVariants, slots as k }

@@ -10,7 +10,7 @@ import {
 	sheetBodyVariants,
 	sheetDescriptionVariants,
 	sheetTitleVariants,
-} from './variants'
+} from '../../recipes/kata/sheet'
 
 export type SheetTitleProps = PanelTitleProps
 export type SheetDescriptionProps = PanelDescriptionProps

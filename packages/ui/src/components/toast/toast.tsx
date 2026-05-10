@@ -4,9 +4,9 @@ import { AnimatePresence } from 'motion/react'
 import { useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { cn } from '../../core'
+import { k, toastViewportVariants } from '../../recipes/kata/toast'
 import { ToastAlert } from './alert'
 import { ToastContext, type ToastProps, useToastState } from './toast-context'
-import { k, toastViewportVariants } from './variants'
 
 export function Toast({
 	position = 'bottom-right',

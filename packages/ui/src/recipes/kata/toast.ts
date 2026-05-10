@@ -31,3 +31,5 @@ export const slots = {
 
 /** Kept for the `kata` barrel — not consumed directly. */
 export const toast = { viewport: toastViewport, ...slots }
+
+export { toastViewport as toastViewportVariants, slots as k }

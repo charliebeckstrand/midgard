@@ -14,3 +14,5 @@ export const toggleIconButton = {
 	active: 'scale-100 opacity-100 blur-0',
 	inactive: 'blur-xs scale-[0.25] opacity-0',
 }
+
+export { toggleIconButton as k }

@@ -19,3 +19,5 @@ export const commandPalette = {
 	description: [narabi.description, ji.size.xs, iro.text.muted],
 	shortcut: 'ml-auto',
 }
+
+export { commandPalette as k }

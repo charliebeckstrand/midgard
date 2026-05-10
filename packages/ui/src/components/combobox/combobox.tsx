@@ -17,6 +17,8 @@ import { useControllable } from '../../hooks/use-controllable'
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
 import { ControlFrame, PopoverPanel } from '../../primitives'
 import { kokkaku } from '../../recipes'
+import { k } from '../../recipes/kata/combobox'
+import { popover as kPopover } from '../../recipes/kata/popover'
 import { control as controlRecipe } from '../../recipes/waku/control'
 import { useControl } from '../control/context'
 import { useGlass } from '../glass/context'
@@ -26,7 +28,6 @@ import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
 import { useComboboxSelection } from './use-combobox-selection'
 import { resolveInputDisplay, selectActiveOrSingleOption } from './utilities'
-import { k, kPopover } from './variants'
 
 type ComboboxContextValue<T = unknown> = {
 	value: T | T[] | undefined

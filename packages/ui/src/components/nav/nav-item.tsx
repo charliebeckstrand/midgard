@@ -3,8 +3,8 @@
 import type { MouseEvent } from 'react'
 import { cn } from '../../core'
 import { useCurrentContext } from '../../primitives'
+import { k } from '../../recipes/kata/nav'
 import { type NavItemProps as BaseNavItemProps, createNavItem } from './create-nav-item'
-import { k } from './variants'
 
 // ── NavItem ─────────────────────────────────────────────
 

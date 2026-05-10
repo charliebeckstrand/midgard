@@ -9,3 +9,5 @@ export const columnManager = {
 	],
 	footer: ['flex items-center justify-end', 'gap-xs', 'pt-2', 'border-t', ...sen.borderSubtleColor],
 }
+
+export { columnManager as k }

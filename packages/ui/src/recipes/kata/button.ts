@@ -88,3 +88,5 @@ export const button = tv({
 })
 
 export type ButtonVariants = VariantProps<typeof button>
+
+export { button as buttonVariants }

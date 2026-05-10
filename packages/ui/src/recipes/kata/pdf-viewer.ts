@@ -79,3 +79,5 @@ export const pdfViewer = {
 	pagePlaceholder: ['w-full h-full', omote.skeleton],
 	pageEmpty: ['flex items-center justify-center w-full h-full', 'py-2', ji.size.sm, iro.text.muted],
 }
+
+export { pdfViewer as k }

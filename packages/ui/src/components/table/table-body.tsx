@@ -2,8 +2,8 @@
 
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
+import { k } from '../../recipes/kata/table'
 import { useTable } from './context'
-import { k } from './variants'
 
 export type TableBodyProps = {
 	className?: string

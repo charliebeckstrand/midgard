@@ -9,6 +9,8 @@ import { useFloatingUI } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { ControlFrame, PopoverPanel } from '../../primitives'
 import { iro, kokkaku } from '../../recipes'
+import { k } from '../../recipes/kata/listbox'
+import { popover as kPopover } from '../../recipes/kata/popover'
 import { control as controlRecipe } from '../../recipes/waku/control'
 import { useControl } from '../control/context'
 import { useGlass } from '../glass/context'
@@ -17,7 +19,6 @@ import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
 import { useListboxSelection } from './use-listbox-selection'
 import { resolveLabel } from './utilities'
-import { k, kPopover } from './variants'
 
 type ListboxContextValue<T = unknown> = {
 	value: T | T[] | undefined

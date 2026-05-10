@@ -9,9 +9,9 @@ import {
 	TouchTarget,
 	useActiveIndicator,
 } from '../../primitives'
+import { k } from '../../recipes/kata/bottom-nav'
 import { Icon } from '../icon'
 import { useNavContext } from '../nav/context'
-import { k } from './variants'
 
 export type BottomNavItemProps = {
 	value?: string

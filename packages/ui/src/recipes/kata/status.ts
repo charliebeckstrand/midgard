@@ -37,3 +37,5 @@ export type StatusDotVariants = VariantProps<typeof statusDot>
 
 /** Kept for the `kata` barrel — not consumed directly. */
 export const status = { dot: statusDot }
+
+export { statusDot as statusDotVariants }

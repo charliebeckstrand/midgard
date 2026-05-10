@@ -5,10 +5,14 @@ import { type CSSProperties, type ReactNode, useCallback, useMemo } from 'react'
 import { cn, createContext } from '../../core'
 import { Overlay, PanelA11yProvider, usePanelA11yScope } from '../../primitives'
 import { ugoki } from '../../recipes'
+import {
+	type DrawerPanelVariants,
+	drawerBackdropVariants,
+	drawerPanelVariants,
+} from '../../recipes/kata/drawer'
 import { type Step, sun } from '../../recipes/ryu/sun'
 import { ConcentricContext } from '../concentric/context'
 import { useGlass } from '../glass/context'
-import { type DrawerPanelVariants, drawerBackdropVariants, drawerPanelVariants } from './variants'
 
 type DrawerContextValue = {
 	close: () => void

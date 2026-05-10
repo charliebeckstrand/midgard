@@ -58,3 +58,5 @@ export const slots = {
 	label: [ji.size.sm, ...iro.text.muted, 'font-medium'],
 	description: [ji.size.sm, ...iro.text.muted],
 }
+
+export { statDelta as statDeltaVariants, statValue as statValueVariants, slots as k }

@@ -1,3 +1,4 @@
+export { k as mapVariants } from '../../recipes/kata/map'
 export { Map, type MapProps } from './map'
 export { MapGeofence, type MapGeofenceProps } from './map-geofence'
 export { MapMarker, type MapMarkerProps } from './map-marker'
@@ -18,4 +19,3 @@ export type {
 	RouteStop,
 	ShipmentData,
 } from './types'
-export { k as mapVariants } from './variants'

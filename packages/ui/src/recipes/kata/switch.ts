@@ -116,3 +116,11 @@ export const slots = { disabled: iro.text.disabled }
 
 export type SwitchVariants = VariantProps<typeof switchRecipe>
 export type SwitchFieldVariants = VariantProps<typeof switchField>
+
+export {
+	switchField as switchFieldVariants,
+	switchInput as switchInputVariants,
+	switchRecipe as switchVariants,
+	switchThumb as switchThumbVariants,
+	slots as k,
+}

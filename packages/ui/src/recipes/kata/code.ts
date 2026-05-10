@@ -36,3 +36,5 @@ export const slots = {
 
 export type CodeVariants = VariantProps<typeof code>
 export type CodeBlockVariants = VariantProps<typeof codeBlock>
+
+export { code as codeVariants, codeBlock as codeBlockVariants, slots as k }

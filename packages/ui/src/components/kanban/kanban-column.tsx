@@ -4,8 +4,8 @@ import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
+import { k } from '../../recipes/kata/kanban'
 import { KanbanColumnProvider, useKanbanContext } from './context'
-import { k } from './variants'
 
 export type KanbanColumnProps = {
 	/** Stable id matching an entry in the `columns` prop. */

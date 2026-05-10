@@ -2,8 +2,8 @@
 
 import type { ComponentProps, ReactNode } from 'react'
 import { cn } from '../../core/cn'
+import { k } from '../../recipes/kata/collapse'
 import { useCollapseContext } from './context'
-import { k } from './variants'
 
 export type CollapseTriggerProps = Omit<ComponentProps<'button'>, 'children'> & {
 	children: ReactNode | ((bag: { open: boolean }) => ReactNode)

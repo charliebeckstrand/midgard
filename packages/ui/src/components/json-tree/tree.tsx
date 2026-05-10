@@ -11,6 +11,7 @@ import {
 } from 'react'
 import { cn } from '../../core'
 import { useRoving } from '../../hooks'
+import { k } from '../../recipes/kata/json-tree'
 import { JsonTreeProvider } from './context'
 import { JsonNode } from './node'
 import { JsonNodeRow } from './node-row'
@@ -22,7 +23,6 @@ import {
 	normalizeSearch,
 	type Search,
 } from './utilities'
-import { k } from './variants'
 
 export type { JsonValue }
 

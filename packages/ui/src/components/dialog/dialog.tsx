@@ -6,8 +6,8 @@ import { cn } from '../../core'
 import { useMinWidth } from '../../hooks'
 import { Overlay, PanelA11yProvider, usePanelA11yScope } from '../../primitives'
 import { ugoki } from '../../recipes'
+import { type DialogPanelVariants, dialogPanelVariants } from '../../recipes/kata/dialog'
 import { useGlass } from '../glass/context'
-import { type DialogPanelVariants, dialogPanelVariants } from './variants'
 
 export type DialogProps = DialogPanelVariants & {
 	open: boolean

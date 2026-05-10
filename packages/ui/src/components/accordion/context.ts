@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext } from '../../core/create-context'
-import type { AccordionVariants } from './variants'
+import type { AccordionVariants } from '../../recipes/kata/accordion'
 
 export type AccordionRootContextValue = {
 	variant: NonNullable<AccordionVariants['variant']>

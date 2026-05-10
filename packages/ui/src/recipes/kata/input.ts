@@ -37,3 +37,5 @@ export const slots = {
 }
 
 export type InputVariants = VariantProps<typeof input>
+
+export { input as inputVariants, inputControl as controlVariants, slots as k }

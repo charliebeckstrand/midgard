@@ -3,10 +3,10 @@
 import { type SyntheticEvent, useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useControllable, useMinWidth } from '../../hooks'
+import { k } from '../../recipes/kata/pdf-viewer'
 import { PdfViewerThumbnails } from './thumbnails'
 import { PdfViewerToolbar } from './toolbar'
 import { usePdfDocument } from './use-pdf-document'
-import { k } from './variants'
 
 export type PdfViewerPage = {
 	/** Stable key. Falls back to the array index when omitted. */

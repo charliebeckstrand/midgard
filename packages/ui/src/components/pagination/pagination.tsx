@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { paginationVariants } from './variants'
+import { paginationVariants } from '../../recipes/kata/pagination'
 
 export type PaginationProps = ComponentPropsWithoutRef<'nav'>
 

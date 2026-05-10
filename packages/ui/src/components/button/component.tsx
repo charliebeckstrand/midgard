@@ -6,6 +6,7 @@ import { cn } from '../../core'
 import { type PolymorphicProps, springProps, TouchTarget, useRipple } from '../../primitives'
 import { Link } from '../../primitives/link'
 import { kokkaku } from '../../recipes'
+import { type ButtonVariants, buttonVariants } from '../../recipes/kata/button'
 import { useAlertContext } from '../alert/context'
 import { useConcentric } from '../concentric'
 import { useGlass } from '../glass/context'
@@ -14,7 +15,6 @@ import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
 import { Spinner, type SpinnerProps } from '../spinner'
 import { ButtonSizeProvider } from './context'
-import { type ButtonVariants, buttonVariants } from './variants'
 
 export type LoadingOptions = Pick<SpinnerProps, 'color' | 'size' | 'label'>
 

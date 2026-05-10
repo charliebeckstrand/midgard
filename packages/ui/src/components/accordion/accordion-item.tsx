@@ -2,8 +2,8 @@
 
 import { type ReactNode, useCallback, useMemo } from 'react'
 import { cn } from '../../core'
+import { accordionItemVariants } from '../../recipes/kata/accordion'
 import { AccordionItemProvider, useAccordionRoot } from './context'
-import { accordionItemVariants } from './variants'
 
 // ── AccordionItem ───────────────────────────────────────
 

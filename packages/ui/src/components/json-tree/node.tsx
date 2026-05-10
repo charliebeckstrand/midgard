@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { memo, useEffect, useMemo, useState } from 'react'
 import { cn } from '../../core'
 import { ugoki } from '../../recipes'
+import { k } from '../../recipes/kata/json-tree'
 import { Icon } from '../icon'
 import { JsonTreeProvider, useJsonTreeContext } from './context'
 import { NodeKey, PrimitiveValue } from './helpers'
@@ -16,7 +17,6 @@ import {
 	type JsonValue,
 	matchesSearch,
 } from './utilities'
-import { k } from './variants'
 
 type JsonNodeProps = {
 	keyName?: string | number

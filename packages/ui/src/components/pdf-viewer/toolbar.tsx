@@ -3,13 +3,13 @@
 import { Download, Maximize2, PanelLeft, Printer, RotateCw, ZoomIn, ZoomOut } from 'lucide-react'
 import type { Dispatch, SetStateAction } from 'react'
 import { cn } from '../../core'
+import { k } from '../../recipes/kata/pdf-viewer'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { Listbox, ListboxLabel, ListboxOption } from '../listbox'
 import { Toolbar, ToolbarGroup, ToolbarSeparator } from '../toolbar'
 import type { PdfViewerPage } from './component'
 import { downloadPdf, printPdf } from './utilities'
-import { k } from './variants'
 
 const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n))
 

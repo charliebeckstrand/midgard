@@ -4,12 +4,12 @@ import { AlertTriangle, CheckCircle, Info, X, XCircle } from 'lucide-react'
 import { Children, isValidElement, type ReactElement, type ReactNode, useCallback } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
+import { type AlertVariants, alertVariants, k } from '../../recipes/kata/alert'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { AlertDescription } from './alert-description'
 import { AlertTitle } from './alert-title'
 import { AlertProvider } from './context'
-import { type AlertVariants, alertVariants, k } from './variants'
 
 type AlertType = 'info' | 'success' | 'warning' | 'error'
 

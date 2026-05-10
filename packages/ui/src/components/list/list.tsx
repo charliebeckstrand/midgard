@@ -5,9 +5,9 @@ import { SortableContext } from '@dnd-kit/sortable'
 import { type ReactNode, useCallback, useMemo } from 'react'
 import { cn } from '../../core'
 import { type SortableOrientation, useSortableItem, useSortableList } from '../../hooks'
+import { k, type ListVariant } from '../../recipes/kata/list'
 import { ListItemProvider, ListProvider } from './context'
 import { useListKeyboard } from './use-list-keyboard'
-import { k, type ListVariant } from './variants'
 
 const noop = () => {}
 

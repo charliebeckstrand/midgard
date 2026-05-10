@@ -11,3 +11,5 @@ export const map = {
 	],
 	canvas: ['absolute inset-0'],
 }
+
+export { map as k }

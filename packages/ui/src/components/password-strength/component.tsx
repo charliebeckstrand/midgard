@@ -3,8 +3,8 @@
 import { Check, Dot } from 'lucide-react'
 import { type ReactNode, useEffect, useMemo, useRef } from 'react'
 import { cn } from '../../core'
+import { k } from '../../recipes/kata/password-strength'
 import { Icon } from '../icon'
-import { k } from './variants'
 
 export type PasswordRule = {
 	id: string
