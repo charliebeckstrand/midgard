@@ -2,7 +2,6 @@
 
 import { motion } from 'motion/react'
 import { type KeyboardEventHandler, type ReactNode, useLayoutEffect, useRef } from 'react'
-import { useGlass } from '../components/glass/context'
 import { cn } from '../core'
 import { useRoving, useScrollWithin } from '../hooks'
 import { omote, sen, ugoki } from '../recipes'
@@ -15,6 +14,7 @@ export function PopoverPanel({
 	role = 'listbox',
 	itemSelector = '[role="option"]:not([data-disabled])',
 	autoFocus = true,
+	glass = false,
 	onKeyDown: onKeyDownProp,
 }: {
 	id?: string
@@ -23,11 +23,11 @@ export function PopoverPanel({
 	role?: string
 	itemSelector?: string
 	autoFocus?: boolean
+	/** Apply glass surface chrome instead of the default popover surface. */
+	glass?: boolean
 	onKeyDown?: KeyboardEventHandler
 }) {
 	const menuRef = useRef<HTMLDivElement>(null)
-
-	const glass = useGlass()
 
 	const handleKeyDown = useRoving(menuRef, { itemSelector, focusOnEmpty: true })
 

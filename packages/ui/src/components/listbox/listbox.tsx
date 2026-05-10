@@ -197,7 +197,12 @@ export function Listbox<T>({
 							className={kPopover.portal}
 							{...getFloatingProps()}
 						>
-							<PopoverPanel id={listboxId} role="listbox" className={cn(k.panel, k.options)}>
+							<PopoverPanel
+								id={listboxId}
+								role="listbox"
+								glass={glass}
+								className={cn(k.panel, k.options)}
+							>
 								{children}
 							</PopoverPanel>
 						</div>

@@ -282,6 +282,7 @@ export function Combobox<T>({
 									id={listboxId}
 									role="listbox"
 									autoFocus={false}
+									glass={glass}
 									className={cn('relative', k.options)}
 									onKeyDown={(e) => {
 										if (e.key === 'Escape') close()
