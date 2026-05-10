@@ -1,7 +1,7 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { Link } from '../../primitives/link'
 import { breadcrumbLinkVariants } from '../../recipes/kata/breadcrumb'
+import { Link } from '../link'
 
 export type BreadcrumbLinkProps = { current?: boolean } & (
 	| ({ href: string } & Omit<ComponentPropsWithoutRef<typeof Link>, 'className'>)

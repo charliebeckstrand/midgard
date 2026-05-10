@@ -1,12 +1,6 @@
 'use client'
 
-import {
-	type AnchorHTMLAttributes,
-	type ComponentType,
-	type ReactNode,
-	type Ref,
-	useMemo,
-} from 'react'
+import type { AnchorHTMLAttributes, ComponentType, ReactNode, Ref } from 'react'
 import { createContext } from '../core'
 
 export type LinkProps = {
@@ -16,32 +10,18 @@ export type LinkProps = {
 	className?: string
 } & Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href'>
 
-type LinkComponent = ComponentType<LinkProps> | 'a'
+export type LinkComponent = ComponentType<LinkProps> | 'a'
 
-interface LinkContextValue {
+export interface LinkContextValue {
 	component: LinkComponent
 }
 
-const [LinkValueProvider, useLink] = createContext<LinkContextValue>('Link', {
+/**
+ * Link context — exposes the framework-specific link component an app has
+ * registered (e.g. `next/link`). The user-facing `Link` and `LinkProvider`
+ * components live in `components/link`; primitives consume the context to
+ * render links without depending on the component layer.
+ */
+export const [LinkValueProvider, useLink] = createContext<LinkContextValue>('Link', {
 	default: { component: 'a' },
 })
-
-export { useLink }
-
-export function LinkProvider({
-	component,
-	children,
-}: {
-	component: LinkComponent
-	children: ReactNode
-}) {
-	const value = useMemo<LinkContextValue>(() => ({ component }), [component])
-
-	return <LinkValueProvider value={value}>{children}</LinkValueProvider>
-}
-
-export function Link({ href, ...props }: LinkProps) {
-	const { component: LinkComponent } = useLink()
-
-	return <LinkComponent href={href} {...props} />
-}

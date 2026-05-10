@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { describe, expect, it } from 'vitest'
-import { Link, LinkProvider, useLink } from '../../primitives/link'
+import { Link, LinkProvider, useLink } from '../../components/link'
 import { renderUI, screen } from '../helpers'
 
 describe('Link', () => {

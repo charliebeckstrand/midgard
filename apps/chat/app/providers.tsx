@@ -2,7 +2,7 @@
 
 import NextLink from 'next/link'
 import type { ReactNode } from 'react'
-import { LinkProvider } from 'ui'
+import { LinkProvider } from 'ui/link'
 
 export function Providers({ children }: { children: ReactNode }) {
 	return <LinkProvider component={NextLink}>{children}</LinkProvider>
