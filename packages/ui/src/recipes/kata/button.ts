@@ -1,6 +1,6 @@
 import { tv, type VariantProps } from 'tailwind-variants'
 import { colorVariants } from '../../core/recipe'
-import { iro, pickSlots } from '../ryu/iro'
+import { iro, merge } from '../ryu/iro'
 import { ji } from '../ryu/ji'
 import { sawari } from '../ryu/sawari'
 import { sen } from '../ryu/sen'
@@ -10,11 +10,11 @@ import { tsunagi } from '../ryu/tsunagi'
 const { solid, soft, outline, plain } = iro.palette
 const { inherit } = iro.text
 
-const buttonSolid = { ...pickSlots(solid, 'bg', 'text', 'hover'), inherit }
+const buttonSolid = { ...merge(solid.bg, solid.text, solid.hover), inherit }
 // Re-exported for the calendar kata, which reuses the soft button colour matrix.
-export const buttonSoft = { ...pickSlots(soft, 'bg', 'text', 'hover'), inherit }
-const buttonOutline = { ...pickSlots(outline, 'ring', 'text', 'hover'), inherit }
-const buttonPlain = { ...pickSlots(plain, 'text', 'hover'), inherit }
+export const buttonSoft = { ...merge(soft.bg, soft.text, soft.hover), inherit }
+const buttonOutline = { ...merge(outline.ring, outline.text, outline.hover), inherit }
+const buttonPlain = { ...merge(plain.text, plain.hover), inherit }
 const buttonGhost = { ...plain.text, inherit }
 
 const { color, compoundVariants } = colorVariants({
