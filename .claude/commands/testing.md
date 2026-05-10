@@ -1,8 +1,8 @@
-# Create UI Tests
+# Create Tests
 
-TRIGGER when: the user asks to create, add, write, or scaffold tests for a component, primitive, or hook in `packages/ui` — or when the `/ui-component` skill finishes creating a new component.
+TRIGGER when: the user asks to create, add, write, or scaffold tests for a target anywhere in this monorepo — components, primitives, hooks, utilities, modules — in `packages/ui`, `packages/heimdall`, `packages/sindri`, or any app under `apps/`. Also runs automatically when `/ui-component` finishes creating a new component.
 
-You are creating tests for a UI target (component, primitive, or hook) inside `packages/ui`. Follow the conventions, patterns, and formatting described below exactly.
+You are creating tests for a target somewhere in this monorepo. Detect the target's package and type first, then apply the patterns that match. Follow the conventions, formatting, and rules below exactly.
 
 ## Arguments
 
@@ -12,29 +12,39 @@ $ARGUMENTS
 
 ## Test infrastructure
 
-**Framework:** Vitest with jsdom environment, globals enabled.
+**Framework:** Vitest. The only package currently configured for tests is `packages/ui` — it uses jsdom, globals enabled, and ships custom helpers. Other packages (`heimdall`, `sindri`, apps) have no test infrastructure yet.
 
-**Config:** `packages/ui/vitest.config.ts`
+**`packages/ui` specifics:**
 
-**Setup:** `src/__tests__/setup.ts` — mocks `motion/react`, stubs `matchMedia` and `ResizeObserver`, runs `cleanup()` after each test.
+- **Config:** `packages/ui/vitest.config.ts`
+- **Setup:** `src/__tests__/setup.ts` — mocks `motion/react`, stubs `matchMedia` and `ResizeObserver`, runs `cleanup()` after each test.
+- **Custom helpers** (`src/__tests__/helpers.tsx`):
+	- **`renderUI(ui, options?)`** — renders with optional context wrappers (`skeleton`, `glass`, `inputSize`)
+	- **`bySlot(container, name)`** — queries a single element by its `data-slot` attribute
+	- **`allBySlot(container, name)`** — queries all elements by `data-slot`
+	- Re-exports: `screen`, `fireEvent`, `userEvent`, `act`, `waitFor`, `within` from testing-library
 
-**Custom helpers** (`src/__tests__/helpers.tsx`):
-- **`renderUI(ui, options?)`** — renders with optional context wrappers (`skeleton`, `glass`, `inputSize`)
-- **`bySlot(container, name)`** — queries a single element by its `data-slot` attribute
-- **`allBySlot(container, name)`** — queries all elements by `data-slot`
-- Re-exports: `screen`, `fireEvent`, `userEvent`, `act`, `waitFor`, `within` from testing-library
+**Other packages:** if the target lives outside `packages/ui` and the package has no `vitest.config.*`, **stop and ask the user** whether to scaffold test infrastructure before continuing. Do not silently add vitest, jsdom, or test scripts to a package that doesn't already use them.
 
 ---
 
 ## File placement
 
 | Target type | Source location | Test file |
-|-------------|----------------|-----------|
-| Component | `src/components/<name>/` | `src/__tests__/components/<name>.test.tsx` |
-| Primitive | `src/primitives/<name>.tsx` | `src/__tests__/primitives/<name>.test.tsx` |
-| Hook | `src/hooks/<name>.ts` | `src/__tests__/hooks/<name>.test.ts` |
+|-------------|-----------------|-----------|
+| UI component | `packages/ui/src/components/<name>/` | `packages/ui/src/__tests__/components/<name>.test.tsx` |
+| UI primitive | `packages/ui/src/primitives/<name>.tsx` | `packages/ui/src/__tests__/primitives/<name>.test.tsx` |
+| UI hook | `packages/ui/src/hooks/<name>.ts` | `packages/ui/src/__tests__/hooks/<name>.test.ts` |
+| UI core utility | `packages/ui/src/core/<name>.ts` | `packages/ui/src/__tests__/core/<name>.test.ts` |
+| UI recipe | `packages/ui/src/recipes/<tier>/<name>.ts` | `packages/ui/src/__tests__/recipes/<name>.test.ts` |
+| Non-UI utility / module | `packages/<pkg>/src/<path>.ts` or `apps/<app>/<path>.ts` | co-located `<path>.test.ts` (or `.test.tsx` if it renders JSX) |
+| Non-UI hook | `packages/<pkg>/src/<path>.ts` | co-located `<path>.test.ts` |
 
-Note: hook tests use `.test.ts` (no JSX). Component and primitive tests use `.test.tsx`.
+**Rules:**
+
+- In `packages/ui`, tests mirror the source tree under `src/__tests__/`. Do not co-locate tests with source files in `packages/ui`.
+- Outside `packages/ui`, co-locate `*.test.ts(x)` next to the source file — there is no `__tests__/` convention to follow.
+- Hook tests use `.test.ts` (no JSX). Component / primitive / JSX-rendering tests use `.test.tsx`.
 
 ---
 
@@ -44,35 +54,31 @@ Note: hook tests use `.test.ts` (no JSX). Component and primitive tests use `.te
 
 Before writing any test, read the target's source code thoroughly. Understand:
 
-- What element it renders and what `data-slot` value it uses
-- What props it accepts (variants, className, children, ref, event handlers)
-- Whether it uses `forwardRef`
-- Whether it supports skeleton mode (`useSkeleton()` / `Placeholder`)
-- Whether it supports glass mode (`useGlass()`)
-- Whether it is polymorphic (accepts `href` and renders as a link)
-- Whether it has sub-components (compound component)
-- Whether it is a hook (uses `renderHook` pattern instead of `renderUI`)
+- **For components / primitives:** what element it renders and its `data-slot` value; what props it accepts (variants, className, children, ref, event handlers); whether it uses `forwardRef`; whether it supports skeleton mode (`useSkeleton()` / `Placeholder`); whether it supports glass mode (`useGlass()`); whether it is polymorphic (accepts `href` and renders as a link); whether it has sub-components (compound component).
+- **For hooks:** the input/output shape, whether it manages state, accepts callbacks, has side effects, returns memoized values, or reads browser APIs at module load.
+- **For utilities / modules:** the public API, edge cases the function handles, and any external dependencies that need mocking.
 
 This determines which test patterns apply.
 
-### 1. Determine the target type
+### 1. Determine the target
 
 Parse `$ARGUMENTS` to identify:
 
-- **The target name** (e.g., "button", "use-controllable", "control-frame")
-- **The target type** — component, primitive, or hook
+- **The target name** (e.g., `button`, `use-controllable`, `cn`, `fetch`)
+- **The target type** — UI component, UI primitive, UI hook, UI core utility, UI recipe, non-UI utility/module, or non-UI hook
+- **The package** — `packages/ui`, `packages/heimdall`, `packages/sindri`, or an app under `apps/`
 
 If ambiguous, scan the source directories to locate the target.
 
 ### 2. Write the test file
 
-Create the test file at the correct path per the file placement table above.
+Create the test file at the correct path per the file placement table.
 
 Follow these **formatting rules exactly** — consistency with existing tests is non-negotiable:
 
 - Import `describe`, `expect`, `it` (and `vi` only if mocking) from `vitest`
-- Import the target from its source using relative paths (`../../components/<name>`, `../../primitives`, `../../hooks/<name>`)
-- Import helpers from `../helpers` — use `renderUI` and `bySlot` (never raw `render` or manual `querySelector` for `data-slot`)
+- Import the target via a relative path from the test file
+- In `packages/ui` tests, import helpers from `../helpers` — use `renderUI` and `bySlot` (never raw `render` or manual `querySelector` for `data-slot`)
 - For hooks, import `renderHook` (and `act` if needed) from `@testing-library/react`
 - Use **tabs** for indentation
 - Use **blank lines** between logical sections within each `it` block (setup, action, assertion)
@@ -86,7 +92,7 @@ Pick the patterns that apply to the target. Every applicable pattern **must** be
 
 ---
 
-#### Component test patterns
+#### Component test patterns (UI)
 
 **A. Renders with correct data-slot** (REQUIRED for every component)
 
@@ -302,7 +308,7 @@ it('reflects the size prop on data-step', () => {
 
 ---
 
-#### Primitive test patterns
+#### Primitive test patterns (UI)
 
 Primitives follow the same patterns as components (A through J), but import from `../../primitives` instead:
 
@@ -313,6 +319,8 @@ import { <PrimitiveName> } from '../../primitives'
 ---
 
 #### Hook test patterns
+
+These apply to any hook — UI or otherwise. In `packages/ui`, hook tests live under `src/__tests__/hooks/`; elsewhere, co-locate them next to the source.
 
 **A. Initial state** (REQUIRED for every hook)
 
@@ -406,13 +414,96 @@ it('handles the mocked environment', async () => {
 })
 ```
 
+---
+
+#### Utility / pure-function patterns
+
+For pure functions (formatters, parsers, helpers, recipe builders, `cn`-style utilities). Existing examples: `packages/ui/src/__tests__/core/cn.test.ts`, `packages/ui/src/__tests__/recipes/sun.test.ts`.
+
+**A. Happy path** (REQUIRED)
+
+```ts
+it('<does the expected thing for typical input>', () => {
+	const result = <fn>(<input>)
+
+	expect(result).toBe(<expected>)
+})
+```
+
+**B. Edge cases**
+
+Cover the documented edge cases the function actually handles — empty input, falsy values, conflicting inputs, boundary values. One `it` per behavior; do not bundle unrelated assertions. Skip cases the function does not promise to handle.
+
+```ts
+it('returns <result> for empty input', () => {
+	expect(<fn>()).toBe(<expected>)
+})
+
+it('handles <conflict / boundary case>', () => {
+	expect(<fn>(<input>)).toBe(<expected>)
+})
+```
+
+**C. Throws on invalid input** (when the function throws by contract)
+
+```ts
+it('throws when <invalid condition>', () => {
+	expect(() => <fn>(<bad input>)).toThrow(<message or matcher>)
+})
+```
+
+---
+
+#### Module patterns (with mocking)
+
+For modules that depend on external services, environment, network, or other modules — common in `heimdall`, `sindri`, and apps. Apply the smallest mock that isolates the unit under test.
+
+**A. Mock a dependency module**
+
+```ts
+import { vi } from 'vitest'
+
+vi.mock('<module-path>', () => ({
+	<exportName>: vi.fn(),
+}))
+```
+
+**B. Mock `fetch` / network**
+
+```ts
+import { afterEach, beforeEach, expect, it, vi, type Mock } from 'vitest'
+
+beforeEach(() => {
+	vi.stubGlobal('fetch', vi.fn())
+})
+
+afterEach(() => {
+	vi.unstubAllGlobals()
+})
+
+it('calls fetch with the expected URL', async () => {
+	;(fetch as Mock).mockResolvedValueOnce(new Response(JSON.stringify({ ok: true })))
+
+	await <fn>()
+
+	expect(fetch).toHaveBeenCalledWith('<expected-url>', expect.anything())
+})
+```
+
+**C. Reset mocks between tests**
+
+When mocks are stateful, reset them in `beforeEach` (or use `vi.resetAllMocks()` in `setup.ts`) — never let one test's mock state leak into another.
+
 ### 4. Verify
 
-Run the tests from the `packages/ui` directory:
+Run the tests for the target package:
 
-```bash
-pnpm test
-```
+| Package | Command (run from repo root) |
+|---------|------------------------------|
+| `packages/ui` | `pnpm --filter ui test` |
+| `packages/heimdall` | `pnpm --filter heimdall test` |
+| `packages/sindri` | `pnpm --filter sindri test` |
+| `apps/<app>` | `pnpm --filter <app> test` |
 
 If any test fails, read the error, fix the test, and re-run. Do not leave failing tests.
 
@@ -421,29 +512,30 @@ If any test fails, read the error, fix the test, and re-run. Do not leave failin
 Verify the test file has no type errors:
 
 ```bash
-pnpm turbo check-types --filter=ui
+pnpm turbo check-types --filter=<package>
 ```
 
 ---
 
 ## What NOT to test
 
-- **Visual appearance** — do not assert specific Tailwind classes or computed styles. Test behavior, not styling.
+- **Visual appearance** — do not assert specific Tailwind classes or computed styles. Test behavior, not styling. (UI exception: `data-slot`, `className` merge, and size-resolution checks that intentionally probe a single deterministic class.)
 - **Internal implementation details** — do not test internal state variables, private methods, or recipe token values.
-- **Animation behavior** — motion is mocked in the test setup. Do not test animation timing or motion props.
+- **Animation behavior** — motion is mocked in the `packages/ui` test setup. Do not test animation timing or motion props.
 - **Snapshot tests** — this codebase does not use snapshot testing. Do not introduce them.
 - **Every variant permutation** — test that the variant system works (className contains expected class), not every combination of variant × color × size.
+- **Third-party library internals** — trust the library; test your usage, not its behavior.
 
 ---
 
 ## Checklist
 
 Before finishing, verify:
-- [ ] Test file is at the correct path (`src/__tests__/components/`, `src/__tests__/hooks/`, or `src/__tests__/primitives/`)
-- [ ] File extension matches target type (`.test.tsx` for components/primitives, `.test.ts` for hooks)
-- [ ] Imports use `renderUI` and `bySlot` from helpers (not raw `render` or manual `querySelector`)
+- [ ] Test file is at the correct path per the file placement table (mirrored under `src/__tests__/` for `packages/ui`; co-located elsewhere)
+- [ ] File extension matches target type (`.test.tsx` for components/primitives/JSX-rendering tests, `.test.ts` for hooks and pure modules)
+- [ ] In `packages/ui`, imports use `renderUI` and `bySlot` from helpers (not raw `render` or manual `querySelector`)
 - [ ] Every applicable pattern from Step 3 is included
 - [ ] Formatting matches existing tests: tabs, blank lines between sections, lowercase descriptions
 - [ ] No unused imports
-- [ ] Tests pass: `pnpm test` from `packages/ui`
-- [ ] Types check: `pnpm turbo check-types --filter=ui`
+- [ ] Tests pass for the target package (`pnpm --filter <package> test`)
+- [ ] Types check (`pnpm turbo check-types --filter=<package>`)
