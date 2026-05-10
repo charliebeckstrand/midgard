@@ -1,6 +1,11 @@
 'use client'
 
-import { type Provider, createContext as reactCreateContext, useContext } from 'react'
+import {
+	type Provider,
+	type Context as ReactContext,
+	createContext as reactCreateContext,
+	useContext,
+} from 'react'
 
 const MISSING = Symbol('createContext.missing')
 
@@ -10,13 +15,16 @@ type Options<T> = {
 }
 
 /**
- * Creates a typed context with a Provider and a consumer hook.
+ * Creates a typed context with a Provider, a consumer hook, and the raw Context.
  *
  * - Without options, the hook throws when used outside a provider — for
  *   required context (Menu, Tabs, Dialog, etc.).
  * - With `{ default }`, the hook returns the default when used outside a
  *   provider — for optional / ambient context (Glass, Skeleton, Concentric,
- *   Alert, Control, etc.).
+ *   Control, etc.).
+ *
+ * The third tuple element is the raw React Context, for thin cases where a
+ * named hook would be empty sugar — consumers can `use(Context)` directly.
  *
  * @example
  *   // Required:
@@ -25,13 +33,19 @@ type Options<T> = {
  *   // Optional with a value default:
  *   export const [GlassProvider, useGlass] = createContext('Glass', { default: false })
  *
- *   // Optional, undefined outside a provider:
- *   export const [ControlProvider, useControl] =
- *     createContext<ControlContext | undefined>('Control', { default: undefined })
+ *   // Thin: skip the hook, consumers use(Context) directly:
+ *   const [OffcanvasProvider, , OffcanvasContext] =
+ *     createContext<OffcanvasValue | null>('Offcanvas', { default: null })
  */
-export function createContext<T>(name: string): [Provider<T>, () => T]
-export function createContext<T>(name: string, options: Options<T>): [Provider<T>, () => T]
-export function createContext<T>(name: string, options?: Options<T>): [Provider<T>, () => T] {
+export function createContext<T>(name: string): [Provider<T>, () => T, ReactContext<T>]
+export function createContext<T>(
+	name: string,
+	options: Options<T>,
+): [Provider<T>, () => T, ReactContext<T>]
+export function createContext<T>(
+	name: string,
+	options?: Options<T>,
+): [Provider<T>, () => T, ReactContext<T>] {
 	const hasDefault = options !== undefined
 
 	const Context = reactCreateContext<T>(hasDefault ? options.default : (MISSING as unknown as T))
@@ -46,5 +60,5 @@ export function createContext<T>(name: string, options?: Options<T>): [Provider<
 		return value
 	}
 
-	return [Context.Provider as unknown as Provider<T>, useContextValue]
+	return [Context.Provider as unknown as Provider<T>, useContextValue, Context]
 }

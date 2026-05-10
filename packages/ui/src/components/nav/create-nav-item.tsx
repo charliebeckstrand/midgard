@@ -1,6 +1,6 @@
 'use client'
 
-import { type MouseEvent, type ReactElement, useLayoutEffect, useRef } from 'react'
+import { type MouseEvent, type ReactElement, use, useLayoutEffect, useRef } from 'react'
 import { cn } from '../../core'
 import { useScrollWithin } from '../../hooks'
 import {
@@ -10,7 +10,7 @@ import {
 	TouchTarget,
 	useActiveIndicator,
 } from '../../primitives'
-import { useOffcanvasClose } from '../../primitives/offcanvas'
+import { OffcanvasContext } from '../../primitives/offcanvas'
 import { Icon } from '../icon'
 
 export type NavItemProps = {
@@ -43,7 +43,7 @@ export function createNavItem(config: { slotPrefix: string; variants: () => stri
 
 		const indicator = useActiveIndicator()
 
-		const offcanvas = useOffcanvasClose()
+		const offcanvas = use(OffcanvasContext)
 
 		const scrollWithin = useScrollWithin()
 
