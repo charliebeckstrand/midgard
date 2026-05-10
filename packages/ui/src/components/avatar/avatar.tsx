@@ -1,4 +1,4 @@
-import { type ComponentPropsWithoutRef, use } from 'react'
+import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { kokkaku } from '../../recipes'
 import {
@@ -11,7 +11,7 @@ import {
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
 import { StatusDot } from '../status'
-import { AvatarGroupSizeContext, AvatarSizeContext } from './context'
+import { AvatarSizeProvider, useAvatarGroupSize } from './context'
 
 type Status = 'inactive' | 'active' | 'warning' | 'error'
 
@@ -34,18 +34,18 @@ export function Avatar({
 	className,
 	...props
 }: AvatarProps) {
-	const groupSize = use(AvatarGroupSizeContext)
+	const groupSize = useAvatarGroupSize()
 	const skeleton = useSkeleton()
 
 	const resolvedSize = size ?? groupSize ?? 'md'
 
 	if (skeleton) {
 		return (
-			<AvatarSizeContext value={resolvedSize}>
+			<AvatarSizeProvider value={resolvedSize}>
 				<Placeholder
 					className={cn(kokkaku.avatar.base, kokkaku.avatar.size[resolvedSize], className)}
 				/>
-			</AvatarSizeContext>
+			</AvatarSizeProvider>
 		)
 	}
 
@@ -80,15 +80,15 @@ export function Avatar({
 	)
 
 	if (!status) {
-		return <AvatarSizeContext value={resolvedSize}>{avatarEl}</AvatarSizeContext>
+		return <AvatarSizeProvider value={resolvedSize}>{avatarEl}</AvatarSizeProvider>
 	}
 
 	return (
-		<AvatarSizeContext value={resolvedSize}>
+		<AvatarSizeProvider value={resolvedSize}>
 			<span data-slot="avatar-with-status" className={cn('relative inline-flex', className)}>
 				{avatarEl}
 				<StatusDot status={status} className={cn('absolute top-0 right-0', k.statusRing)} />
 			</span>
-		</AvatarSizeContext>
+		</AvatarSizeProvider>
 	)
 }

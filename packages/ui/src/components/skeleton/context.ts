@@ -1,12 +1,8 @@
 'use client'
 
-import { createContext, use } from 'react'
-
-const SkeletonContext = createContext(false)
-
-export const SkeletonProvider = SkeletonContext.Provider
+import { createContext } from '../../core'
 
 /** Returns true inside a Skeleton subtree. */
-export function useSkeleton() {
-	return use(SkeletonContext)
-}
+export const [SkeletonProvider, useSkeleton] = createContext<boolean>('Skeleton', {
+	default: false,
+})

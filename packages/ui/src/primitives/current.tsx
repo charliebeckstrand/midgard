@@ -1,16 +1,8 @@
 'use client'
 
 import { motion } from 'motion/react'
-import {
-	type ComponentPropsWithoutRef,
-	createContext,
-	useContext,
-	useEffect,
-	useMemo,
-	useRef,
-	useState,
-} from 'react'
-import { cn } from '../core'
+import { type ComponentPropsWithoutRef, useEffect, useMemo, useRef, useState } from 'react'
+import { cn, createContext } from '../core'
 import { useControllable } from '../hooks'
 import { ugoki } from '../recipes'
 
@@ -21,13 +13,10 @@ export type CurrentContextValue = {
 	onChange: ((value: string) => void) | undefined
 }
 
-const CurrentContext = createContext<CurrentContextValue | undefined>(undefined)
-
-export const CurrentProvider = CurrentContext.Provider
-
-export function useCurrentContext() {
-	return useContext(CurrentContext)
-}
+export const [CurrentProvider, useCurrentContext] = createContext<CurrentContextValue | undefined>(
+	'Current',
+	{ default: undefined },
+)
 
 // ── useCurrent ───────────────────────────────────────────
 
@@ -56,7 +45,7 @@ const inFlow = { position: 'relative' as const }
 const outOfFlow = { position: 'absolute' as const, top: 0, left: 0, right: 0 }
 
 export function createCurrentContent(slotPrefix: string) {
-	const FadeContext = createContext(false)
+	const [FadeProvider, useFade] = createContext<boolean>('Fade', { default: false })
 
 	function Contents({
 		fade = true,
@@ -118,7 +107,7 @@ export function createCurrentContent(slotPrefix: string) {
 		}
 
 		return (
-			<FadeContext.Provider value>
+			<FadeProvider value>
 				<motion.div
 					ref={ref}
 					data-slot={`${slotPrefix}-contents`}
@@ -129,7 +118,7 @@ export function createCurrentContent(slotPrefix: string) {
 				>
 					{children}
 				</motion.div>
-			</FadeContext.Provider>
+			</FadeProvider>
 		)
 	}
 
@@ -141,7 +130,7 @@ export function createCurrentContent(slotPrefix: string) {
 	}: ComponentPropsWithoutRef<'div'> & { value?: string }) {
 		const ctx = useCurrentContext()
 
-		const fade = useContext(FadeContext)
+		const fade = useFade()
 
 		const current = value === undefined || ctx?.value === undefined || ctx.value === value
 

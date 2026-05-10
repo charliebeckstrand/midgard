@@ -1,14 +1,14 @@
 'use client'
 
 import { Menu } from 'lucide-react'
-import { createContext, type PropsWithChildren, type ReactNode, type Ref, useContext } from 'react'
+import type { PropsWithChildren, ReactNode, Ref } from 'react'
 import { Box } from '../../components/box'
 import { Button } from '../../components/button'
 import { Drawer } from '../../components/drawer/drawer'
 import { Flex } from '../../components/flex'
 import { Frame } from '../../components/frame'
 import { Icon } from '../../components/icon'
-import { cn } from '../../core'
+import { cn, createContext } from '../../core'
 import { useScrollWithin } from '../../hooks'
 import { useOffcanvas } from '../../hooks/use-offcanvas'
 import { OffcanvasProvider } from '../../primitives/offcanvas'
@@ -22,7 +22,9 @@ import {
 	sidebarPanelVariants,
 } from './variants'
 
-const SidebarLayoutContext = createContext<{ actions?: ReactNode }>({})
+const [SidebarLayoutContextProvider, useSidebarLayoutContext] = createContext<{
+	actions?: ReactNode
+}>('SidebarLayout', { default: {} })
 
 export type SidebarLayoutProps = PropsWithChildren<{
 	navbar?: ReactNode
@@ -84,13 +86,13 @@ export function SidebarLayout({
 			</Flex>
 
 			{/* Content */}
-			<SidebarLayoutContext.Provider value={{ actions }}>
+			<SidebarLayoutContextProvider value={{ actions }}>
 				<Frame direction="col" className={sidebarContentWrapperVariants()}>
 					<Frame direction="col" className={sidebarContentVariants({ stickyHeader })}>
 						{children}
 					</Frame>
 				</Frame>
-			</SidebarLayoutContext.Provider>
+			</SidebarLayoutContextProvider>
 		</Frame>
 	)
 }
@@ -98,7 +100,7 @@ export function SidebarLayout({
 export type SidebarLayoutHeaderProps = PropsWithChildren<{ className?: string }>
 
 export function SidebarLayoutHeader({ children, className }: SidebarLayoutHeaderProps) {
-	const { actions } = useContext(SidebarLayoutContext)
+	const { actions } = useSidebarLayoutContext()
 
 	return (
 		<Box dataSlot="header" className={cn(sidebarHeaderVariants(), className)}>

@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext } from 'react'
+import { createContext } from '../../core'
 
 export type ControlSize = 'sm' | 'md' | 'lg'
 export type ControlVariant = 'default' | 'outline' | 'glass'
@@ -16,11 +16,8 @@ export type ControlContextValue = {
 	variant?: ControlVariant
 }
 
-const ControlContext = createContext<ControlContextValue | undefined>(undefined)
-
-export const ControlProvider = ControlContext.Provider
-
 /** Returns the nearest Control context, or undefined outside a Control. */
-export function useControl() {
-	return useContext(ControlContext)
-}
+export const [ControlProvider, useControl] = createContext<ControlContextValue | undefined>(
+	'Control',
+	{ default: undefined },
+)

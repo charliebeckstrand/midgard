@@ -1,6 +1,7 @@
 'use client'
 
-import { type ChangeEvent, createContext, type FocusEvent, type ReactNode, useContext } from 'react'
+import type { ChangeEvent, FocusEvent, ReactNode } from 'react'
+import { createContext } from '../../core'
 
 export type FormStateValue = {
 	values: Record<string, unknown>
@@ -23,9 +24,16 @@ export type FormActions = {
 /** Combined shape for consumers that need both state and actions. */
 export type FormContextValue = FormStateValue & FormActions
 
-const FormStateContext = createContext<FormStateValue | undefined>(undefined)
+const [FormStateProvider, useFormState] = createContext<FormStateValue | undefined>('FormState', {
+	default: undefined,
+})
 
-const FormActionsContext = createContext<FormActions | undefined>(undefined)
+const [FormActionsProvider, useFormActions] = createContext<FormActions | undefined>(
+	'FormActions',
+	{ default: undefined },
+)
+
+export { useFormActions, useFormState }
 
 /** Internal — the component-level provider wires both contexts. */
 export function FormProvider({
@@ -38,30 +46,20 @@ export function FormProvider({
 	children: ReactNode
 }) {
 	return (
-		<FormActionsContext.Provider value={actions}>
-			<FormStateContext.Provider value={state}>{children}</FormStateContext.Provider>
-		</FormActionsContext.Provider>
+		<FormActionsProvider value={actions}>
+			<FormStateProvider value={state}>{children}</FormStateProvider>
+		</FormActionsProvider>
 	)
 }
 
 /** Returns combined state + actions. Re-renders on any state change — prefer `useFormActions` if you only need actions. */
 export function useFormContext(): FormContextValue | undefined {
-	const state = useContext(FormStateContext)
-	const actions = useContext(FormActionsContext)
+	const state = useFormState()
+	const actions = useFormActions()
 
 	if (!state || !actions) return undefined
 
 	return { ...state, ...actions }
-}
-
-/** Form actions. Stable reference — consumers skip re-renders on field changes. */
-export function useFormActions(): FormActions | undefined {
-	return useContext(FormActionsContext)
-}
-
-/** Form state. Re-renders on every field change. */
-export function useFormState(): FormStateValue | undefined {
-	return useContext(FormStateContext)
 }
 
 export type FormFieldState = {

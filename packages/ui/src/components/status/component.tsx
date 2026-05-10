@@ -1,7 +1,7 @@
-import { type ComponentPropsWithoutRef, use } from 'react'
+import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { type StatusDotVariants, statusDotVariants } from '../../recipes/kata/status'
-import { AvatarSizeContext } from '../avatar/context'
+import { useAvatarSize } from '../avatar/context'
 
 type AvatarSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl'
 type StatusDotSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl'
@@ -19,7 +19,7 @@ export type StatusDotProps = StatusDotVariants & {
 } & Omit<ComponentPropsWithoutRef<'span'>, 'className'>
 
 export function StatusDot({ variant, status, size, pulse, className, ...props }: StatusDotProps) {
-	const avatarSize = use(AvatarSizeContext)
+	const avatarSize = useAvatarSize()
 
 	const resolvedSize = size ?? (avatarSize ? avatarToStatusSize[avatarSize] : undefined)
 

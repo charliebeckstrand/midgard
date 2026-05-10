@@ -1,5 +1,4 @@
 export {
-	OffcanvasContext,
 	type OffcanvasContextValue,
 	OffcanvasProvider,
 	useOffcanvas,

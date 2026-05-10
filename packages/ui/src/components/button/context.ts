@@ -1,12 +1,8 @@
 'use client'
 
-import { createContext, useContext } from 'react'
+import { createContext } from '../../core'
 import type { Size } from '../../types'
 
-const ButtonSizeContext = createContext<Size | undefined>(undefined)
-
-export const ButtonSizeProvider = ButtonSizeContext.Provider
-
-export function useButtonSize(): Size | undefined {
-	return useContext(ButtonSizeContext)
-}
+export const [ButtonSizeProvider, useButtonSize] = createContext<Size | undefined>('ButtonSize', {
+	default: undefined,
+})

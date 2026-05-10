@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react'
 import { createElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { OffcanvasContext, useOffcanvas } from '../../primitives/offcanvas'
+import { OffcanvasProvider, useOffcanvas } from '../../primitives/offcanvas'
 
 describe('useOffcanvas', () => {
 	it('returns null outside provider', () => {
@@ -14,8 +14,7 @@ describe('useOffcanvas', () => {
 		const close = vi.fn()
 
 		const { result } = renderHook(() => useOffcanvas(), {
-			wrapper: ({ children }) =>
-				createElement(OffcanvasContext.Provider, { value: { close } }, children),
+			wrapper: ({ children }) => createElement(OffcanvasProvider, { value: { close } }, children),
 		})
 
 		expect(result.current).toEqual({ close })

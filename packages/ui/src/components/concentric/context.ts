@@ -1,4 +1,4 @@
-import { createContext, useContext } from 'react'
+import { createContext } from '../../core'
 import type { Step } from '../../recipes/ryu/sun'
 
 /**
@@ -11,13 +11,12 @@ export type ConcentricContextValue = {
 	size: Step
 }
 
-export const ConcentricContext = createContext<ConcentricContextValue | null>(null)
-
 /**
- * Read the active size context. Returns `null` outside any size-providing
+ * Returns the active size context, or `null` outside any size-providing
  * ancestor — components reading this should treat `null` as "no contextual
  * size, use my own default".
  */
-export function useConcentric(): ConcentricContextValue | null {
-	return useContext(ConcentricContext)
-}
+export const [ConcentricProvider, useConcentric] = createContext<ConcentricContextValue | null>(
+	'Concentric',
+	{ default: null },
+)

@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext } from 'react'
+import { createContext } from '../../core'
 import type { Orientation } from '../../types'
 
 export type TabsVariant = 'tab' | 'segment'
@@ -11,10 +11,6 @@ export type TabsContextValue = {
 	orientation: TabsOrientation
 }
 
-const TabsContext = createContext<TabsContextValue | undefined>(undefined)
-
-export const TabsProvider = TabsContext.Provider
-
-export function useTabsContext() {
-	return useContext(TabsContext)
-}
+export const [TabsProvider, useTabsContext] = createContext<TabsContextValue | undefined>('Tabs', {
+	default: undefined,
+})

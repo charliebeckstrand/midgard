@@ -1,13 +1,5 @@
-import {
-	type ComponentPropsWithoutRef,
-	createContext as reactCreateContext,
-	useCallback,
-	useContext,
-	useEffect,
-	useMemo,
-	useState,
-} from 'react'
-import { cn } from '../core'
+import { type ComponentPropsWithoutRef, useCallback, useEffect, useMemo, useState } from 'react'
+import { cn, createContext } from '../core'
 import { useIdScope } from '../hooks/use-id-scope'
 import { narabi } from '../recipes/ryu/narabi'
 
@@ -27,13 +19,9 @@ type PanelA11yContextValue = {
 	registerDescription?: () => () => void
 }
 
-const PanelA11yContext = reactCreateContext<PanelA11yContextValue>({})
-
-export const PanelA11yProvider = PanelA11yContext.Provider
-
-export function usePanelA11y() {
-	return useContext(PanelA11yContext)
-}
+export const [PanelA11yProvider, usePanelA11y] = createContext<PanelA11yContextValue>('PanelA11y', {
+	default: {},
+})
 
 /** Hook for panel components to track whether a Description slot has been rendered. */
 export function useDescriptionRegistration() {

@@ -11,7 +11,7 @@ import {
 	drawerPanelVariants,
 } from '../../recipes/kata/drawer'
 import { type Step, sun } from '../../recipes/ryu/sun'
-import { ConcentricContext } from '../concentric/context'
+import { ConcentricProvider } from '../concentric/context'
 import { useGlass } from '../glass/context'
 
 type DrawerContextValue = {
@@ -74,9 +74,7 @@ export function Drawer({
 			>
 				<DrawerProvider value={contextValue}>
 					<PanelA11yProvider value={providerValue}>
-						<ConcentricContext.Provider value={concentricValue}>
-							{children}
-						</ConcentricContext.Provider>
+						<ConcentricProvider value={concentricValue}>{children}</ConcentricProvider>
 					</PanelA11yProvider>
 				</DrawerProvider>
 			</motion.div>

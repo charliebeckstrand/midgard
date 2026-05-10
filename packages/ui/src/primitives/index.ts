@@ -9,7 +9,6 @@ export {
 } from './current'
 export { Link, type LinkProps, LinkProvider, useLink } from './link'
 export {
-	OffcanvasContext,
 	type OffcanvasContextValue,
 	OffcanvasProvider,
 	useOffcanvas,

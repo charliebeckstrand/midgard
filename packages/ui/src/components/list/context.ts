@@ -3,7 +3,7 @@
 import type { DraggableAttributes } from '@dnd-kit/core'
 import type { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities'
 import type { CSSProperties, KeyboardEvent } from 'react'
-import { createContext } from '../../core/create-context'
+import { createContext } from '../../core'
 import type { ListVariant } from '../../recipes/kata/list'
 
 export type ListContext = {

@@ -2,7 +2,7 @@ import { type CSSProperties, useMemo } from 'react'
 import { cn } from '../../core'
 import { type Step, sun } from '../../recipes/ryu/sun'
 import { Box, type BoxProps } from '../box'
-import { ConcentricContext } from '../concentric/context'
+import { ConcentricProvider } from '../concentric/context'
 
 type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never
 
@@ -35,7 +35,7 @@ export function Card({
 	} as CSSProperties
 
 	return (
-		<ConcentricContext.Provider value={ctx}>
+		<ConcentricProvider value={ctx}>
 			<Box
 				dataSlot="card"
 				p={p}
@@ -54,6 +54,6 @@ export function Card({
 			>
 				{children}
 			</Box>
-		</ConcentricContext.Provider>
+		</ConcentricProvider>
 	)
 }

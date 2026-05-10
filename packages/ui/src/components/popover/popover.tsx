@@ -26,7 +26,7 @@ import { iro, omote, ugoki } from '../../recipes'
 import { k } from '../../recipes/kata/popover'
 import type { Step } from '../../recipes/ryu/sun'
 import { Box, type BoxPadding } from '../box'
-import { ConcentricContext } from '../concentric/context'
+import { ConcentricProvider } from '../concentric/context'
 import { useGlass } from '../glass/context'
 
 type PopoverContextValue = {
@@ -275,7 +275,7 @@ export function PopoverContent({
 							data-step={size}
 							className={cn('z-50', iro.text.default, glass && omote.glass)}
 						>
-							<ConcentricContext.Provider value={concentricValue}>
+							<ConcentricProvider value={concentricValue}>
 								<Box
 									p={p}
 									bg={glass ? 'none' : 'popover'}
@@ -285,7 +285,7 @@ export function PopoverContent({
 								>
 									{children}
 								</Box>
-							</ConcentricContext.Provider>
+							</ConcentricProvider>
 						</motion.div>
 					</div>
 				)}

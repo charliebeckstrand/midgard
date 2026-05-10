@@ -5,10 +5,9 @@ import {
 	type ComponentType,
 	type ReactNode,
 	type Ref,
-	createContext as reactCreateContext,
-	useContext,
 	useMemo,
 } from 'react'
+import { createContext } from '../core'
 
 export type LinkProps = {
 	href: string
@@ -23,7 +22,11 @@ interface LinkContextValue {
 	component: LinkComponent
 }
 
-const LinkContext = reactCreateContext<LinkContextValue>({ component: 'a' })
+const [LinkValueProvider, useLink] = createContext<LinkContextValue>('Link', {
+	default: { component: 'a' },
+})
+
+export { useLink }
 
 export function LinkProvider({
 	component,
@@ -34,11 +37,7 @@ export function LinkProvider({
 }) {
 	const value = useMemo<LinkContextValue>(() => ({ component }), [component])
 
-	return <LinkContext.Provider value={value}>{children}</LinkContext.Provider>
-}
-
-export function useLink() {
-	return useContext(LinkContext)
+	return <LinkValueProvider value={value}>{children}</LinkValueProvider>
 }
 
 export function Link({ href, ...props }: LinkProps) {

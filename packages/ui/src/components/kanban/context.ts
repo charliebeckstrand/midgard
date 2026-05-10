@@ -1,7 +1,7 @@
 'use client'
 
 import type { KeyboardEvent, ReactNode, RefObject } from 'react'
-import { createContext } from '../../core/create-context'
+import { createContext } from '../../core'
 
 export type KanbanColumnShape<T> = { id: string; items: T[] }
 
