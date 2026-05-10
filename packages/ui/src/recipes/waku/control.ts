@@ -18,9 +18,9 @@
  *   - `resets`    — browser-default resets keyed by input type.
  *   - `check`     — visually hidden native input + custom check surface.
  *
- * Not exposed as a `tv()` recipe — consumers vary in whether they use tv,
- * raw class arrays, or both, so this file exposes plain class fragments and
- * lets each consumer compose them in whatever shape it needs.
+ * Exposes plain class fragments (`string[]`) and fragment maps. Per the
+ * waku wire-format contract, `tv()` is invoked only at the kata public
+ * surface; consumers compose these fragments into whatever shape they need.
  *
  * Layer: waku · Concern: control field archetype
  */
