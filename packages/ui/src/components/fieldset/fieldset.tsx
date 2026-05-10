@@ -1,11 +1,7 @@
-import type { ComponentPropsWithoutRef } from 'react'
-import { cn } from '../../core'
+import { createSlot } from '../../core'
+import type { SlotProps } from '../../core/create-slot'
 import { k } from '../../recipes/kata/fieldset'
 
-export type FieldsetProps = {
-	className?: string
-} & Omit<ComponentPropsWithoutRef<'fieldset'>, 'className'>
+export type FieldsetProps = SlotProps<'fieldset'>
 
-export function Fieldset({ className, ...props }: FieldsetProps) {
-	return <fieldset data-slot="fieldset" className={cn(k.base, className)} {...props} />
-}
+export const Fieldset = createSlot('fieldset', 'fieldset', k.base)

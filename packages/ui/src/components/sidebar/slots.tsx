@@ -1,20 +1,21 @@
 'use client'
 
 import { X } from 'lucide-react'
-import { type ComponentPropsWithoutRef, type ReactNode, use } from 'react'
-import { cn } from '../../core'
+import { type ReactNode, use } from 'react'
+import { cn, createSlot } from '../../core'
+import type { SlotProps } from '../../core/create-slot'
 import { OffcanvasContext } from '../../primitives/offcanvas'
 import { k } from '../../recipes/kata/sidebar'
 import { Button } from '../button'
 import { Icon } from '../icon'
 
-export type SidebarHeaderProps = ComponentPropsWithoutRef<'div'> & {
+export type SidebarHeaderProps = SlotProps<'div'> & {
 	closeIcon?: ReactNode
 }
 
-export type SidebarBodyProps = ComponentPropsWithoutRef<'div'>
+export type SidebarBodyProps = SlotProps<'div'>
 
-export type SidebarFooterProps = ComponentPropsWithoutRef<'div'>
+export type SidebarFooterProps = SlotProps<'div'>
 
 export function SidebarHeader({ className, children, closeIcon, ...props }: SidebarHeaderProps) {
 	const offcanvas = use(OffcanvasContext)
@@ -35,10 +36,6 @@ export function SidebarHeader({ className, children, closeIcon, ...props }: Side
 	)
 }
 
-export function SidebarBody({ className, ...props }: SidebarBodyProps) {
-	return <div data-slot="sidebar-body" className={cn(k.body, className)} {...props} />
-}
+export const SidebarBody = createSlot('div', 'sidebar-body', k.body)
 
-export function SidebarFooter({ className, ...props }: SidebarFooterProps) {
-	return <div data-slot="sidebar-footer" className={cn(k.footer, className)} {...props} />
-}
+export const SidebarFooter = createSlot('div', 'sidebar-footer', k.footer)

@@ -3,6 +3,7 @@
 import type { ComponentPropsWithoutRef, Ref } from 'react'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { useControl } from '../control/context'
+import { invalidAttrs } from '../control/invalid-attrs'
 
 export type HeadlessInputProps = {
 	ref?: Ref<HTMLInputElement>
@@ -44,7 +45,7 @@ export function HeadlessInput({
 			required={resolvedRequired}
 			readOnly={resolvedReadOnly}
 			autoComplete={resolvedAutoComplete}
-			{...(resolvedInvalid ? { 'data-invalid': '', 'aria-invalid': true } : {})}
+			{...invalidAttrs(resolvedInvalid)}
 			{...props}
 		/>
 	)

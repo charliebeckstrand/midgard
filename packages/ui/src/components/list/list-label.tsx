@@ -1,18 +1,7 @@
-import type { ReactNode } from 'react'
-import { cn } from '../../core'
+import { createSlot } from '../../core'
+import type { SlotProps } from '../../core/create-slot'
 import { k } from '../../recipes/kata/list'
 
-// ── ListLabel ──────────────────────────────────────────
+export type ListLabelProps = SlotProps<'span'>
 
-export type ListLabelProps = {
-	children?: ReactNode
-	className?: string
-}
-
-export function ListLabel({ children, className }: ListLabelProps) {
-	return (
-		<span data-slot="list-label" className={cn(k.label, className)}>
-			{children}
-		</span>
-	)
-}
+export const ListLabel = createSlot('span', 'list-label', k.label)

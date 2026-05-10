@@ -1,9 +1,10 @@
 import type { ComponentPropsWithoutRef } from 'react'
-export type TabPanelsProps = ComponentPropsWithoutRef<'div'>
+import { createSlot } from '../../core'
+import type { SlotProps } from '../../core/create-slot'
 
-export function TabPanels({ className, ...props }: TabPanelsProps) {
-	return <div data-slot="tab-panels" className={className} {...props} />
-}
+export type TabPanelsProps = SlotProps<'div'>
+
+export const TabPanels = createSlot('div', 'tab-panels')
 
 export type TabPanelProps = {
 	/** Matches the corresponding Tab's id for aria-labelledby. */

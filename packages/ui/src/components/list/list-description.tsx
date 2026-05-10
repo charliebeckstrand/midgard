@@ -1,18 +1,7 @@
-import type { ReactNode } from 'react'
-import { cn } from '../../core'
+import { createSlot } from '../../core'
+import type { SlotProps } from '../../core/create-slot'
 import { k } from '../../recipes/kata/list'
 
-// ── ListDescription ────────────────────────────────────
+export type ListDescriptionProps = SlotProps<'span'>
 
-export type ListDescriptionProps = {
-	children?: ReactNode
-	className?: string
-}
-
-export function ListDescription({ children, className }: ListDescriptionProps) {
-	return (
-		<span data-slot="list-description" className={cn(k.description, className)}>
-			{children}
-		</span>
-	)
-}
+export const ListDescription = createSlot('span', 'list-description', k.description)

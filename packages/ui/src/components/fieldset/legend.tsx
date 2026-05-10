@@ -1,11 +1,7 @@
-import type { ComponentPropsWithoutRef } from 'react'
-import { cn } from '../../core'
+import { createSlot } from '../../core'
+import type { SlotProps } from '../../core/create-slot'
 import { k } from '../../recipes/kata/fieldset'
 
-export type LegendProps = {
-	className?: string
-} & Omit<ComponentPropsWithoutRef<'legend'>, 'className'>
+export type LegendProps = SlotProps<'legend'>
 
-export function Legend({ className, ...props }: LegendProps) {
-	return <legend data-slot="legend" className={cn(k.legend, className)} {...props} />
-}
+export const Legend = createSlot('legend', 'legend', k.legend)

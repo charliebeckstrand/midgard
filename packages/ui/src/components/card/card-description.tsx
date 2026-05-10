@@ -1,20 +1,8 @@
-import type { ComponentPropsWithoutRef } from 'react'
-import { cn } from '../../core'
+import { createSlot } from '../../core'
+import type { SlotProps } from '../../core/create-slot'
 import { iro } from '../../recipes/ryu/iro'
 import { ji } from '../../recipes/ryu/ji'
 
-export type CardDescriptionProps = {
-	className?: string
-} & Omit<ComponentPropsWithoutRef<'p'>, 'className'>
+export type CardDescriptionProps = SlotProps<'p'>
 
-export function CardDescription({ className, children, ...props }: CardDescriptionProps) {
-	return (
-		<p
-			data-slot="card-description"
-			className={cn(ji.size.sm, iro.text.muted, className)}
-			{...props}
-		>
-			{children}
-		</p>
-	)
-}
+export const CardDescription = createSlot('p', 'card-description', ji.size.sm, iro.text.muted)

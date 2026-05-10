@@ -11,6 +11,8 @@ import {
 } from '../../recipes/kata/switch'
 import { useConcentric } from '../concentric'
 import { useControl } from '../control/context'
+import { invalidAttrs } from '../control/invalid-attrs'
+import { useFieldProps } from '../control/use-field-props'
 import { useFormToggle } from '../form/context'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
@@ -36,16 +38,16 @@ export function Switch({
 
 	const binding = useFormToggle(name, { onChange })
 
-	const resolvedId = id ?? control?.id
-
-	const resolvedDisabled = disabled ?? control?.disabled
-	const resolvedRequired = required ?? control?.required
+	const {
+		id: resolvedId,
+		disabled: resolvedDisabled,
+		required: resolvedRequired,
+		invalid: resolvedInvalid,
+	} = useFieldProps({ id, disabled, required, binding })
 
 	// Resolution order: explicit prop, then any wrapping <Field> control
 	// context, then ambient <Concentric> / <Group> / <Card> size.
 	const resolvedSize = size ?? (control?.size as SwitchVariants['size']) ?? concentric?.size ?? 'md'
-
-	const resolvedInvalid = control?.invalid || binding?.invalid
 
 	if (useSkeleton()) {
 		return (
@@ -69,7 +71,7 @@ export function Switch({
 				required={resolvedRequired}
 				checked={binding?.checked ?? checked}
 				onChange={binding?.onChange ?? onChange}
-				{...(resolvedInvalid ? { 'data-invalid': '', 'aria-invalid': true } : {})}
+				{...invalidAttrs(resolvedInvalid)}
 				className={switchInputVariants()}
 				{...props}
 			/>

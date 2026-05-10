@@ -1,11 +1,7 @@
-import type { ComponentPropsWithoutRef } from 'react'
-import { cn } from '../../core'
+import { createSlot } from '../../core'
+import type { SlotProps } from '../../core/create-slot'
 import { k } from '../../recipes/kata/stepper'
 
-export type StepperDescriptionProps = ComponentPropsWithoutRef<'span'>
+export type StepperDescriptionProps = SlotProps<'span'>
 
-export function StepperDescription({ className, ...props }: StepperDescriptionProps) {
-	return (
-		<span data-slot="stepper-description" className={cn(k.description, className)} {...props} />
-	)
-}
+export const StepperDescription = createSlot('span', 'stepper-description', k.description)

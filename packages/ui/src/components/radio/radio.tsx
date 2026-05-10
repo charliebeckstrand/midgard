@@ -10,7 +10,8 @@ import {
 	radioVariants,
 } from '../../recipes/kata/radio'
 import { useConcentric } from '../concentric'
-import { useControl } from '../control/context'
+import { invalidAttrs } from '../control/invalid-attrs'
+import { useFieldProps } from '../control/use-field-props'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
 
@@ -20,12 +21,13 @@ export type RadioProps = RadioVariants & {
 
 export function Radio({ className, color, size, id, disabled, required, ...props }: RadioProps) {
 	const concentric = useConcentric()
-	const control = useControl()
 
-	const resolvedId = id ?? control?.id
-
-	const resolvedDisabled = disabled ?? control?.disabled
-	const resolvedRequired = required ?? control?.required
+	const {
+		id: resolvedId,
+		disabled: resolvedDisabled,
+		required: resolvedRequired,
+		invalid: resolvedInvalid,
+	} = useFieldProps({ id, disabled, required })
 
 	const resolvedSize = size ?? concentric?.size ?? 'md'
 
@@ -44,7 +46,7 @@ export function Radio({ className, color, size, id, disabled, required, ...props
 				id={resolvedId}
 				disabled={resolvedDisabled}
 				required={resolvedRequired}
-				{...(control?.invalid ? { 'data-invalid': '', 'aria-invalid': true } : {})}
+				{...invalidAttrs(resolvedInvalid)}
 				className={radioInputVariants()}
 				{...props}
 			/>
