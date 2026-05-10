@@ -11,6 +11,7 @@ import {
 } from '../../recipes/kata/switch'
 import { useConcentric } from '../concentric'
 import { useControl } from '../control/context'
+import { invalidAttrs } from '../control/invalid-attrs'
 import { useFieldProps } from '../control/use-field-props'
 import { useFormToggle } from '../form/context'
 import { Placeholder } from '../placeholder'
@@ -70,7 +71,7 @@ export function Switch({
 				required={resolvedRequired}
 				checked={binding?.checked ?? checked}
 				onChange={binding?.onChange ?? onChange}
-				{...(resolvedInvalid ? { 'data-invalid': '', 'aria-invalid': true } : {})}
+				{...invalidAttrs(resolvedInvalid)}
 				className={switchInputVariants()}
 				{...props}
 			/>

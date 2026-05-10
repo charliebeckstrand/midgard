@@ -13,6 +13,7 @@ import { k } from '../../recipes/kata/listbox'
 import { popover as kPopover } from '../../recipes/kata/popover'
 import { control as controlRecipe } from '../../recipes/waku/control'
 import { type ControlSize, useControl } from '../control/context'
+import { invalidAttrs } from '../control/invalid-attrs'
 import { useGlass } from '../glass/context'
 import { Icon } from '../icon'
 import { Placeholder } from '../placeholder'
@@ -173,7 +174,7 @@ export function Listbox<T>({
 						aria-controls={open ? listboxId : undefined}
 						disabled={resolvedDisabled}
 						data-slot="listbox-button"
-						{...(control?.invalid ? { 'data-invalid': '', 'aria-invalid': true } : {})}
+						{...invalidAttrs(control?.invalid)}
 						onClick={() => setOpen(!open)}
 						className={cn(k.button)}
 					>

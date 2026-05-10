@@ -11,6 +11,7 @@ import {
 	checkboxVariants,
 } from '../../recipes/kata/checkbox'
 import { useConcentric } from '../concentric'
+import { invalidAttrs } from '../control/invalid-attrs'
 import { useFieldProps } from '../control/use-field-props'
 import { useFormToggle } from '../form/context'
 import { Placeholder } from '../placeholder'
@@ -86,7 +87,7 @@ export function Checkbox({
 				required={resolvedRequired}
 				checked={binding?.checked ?? checked}
 				onChange={binding?.onChange ?? onChange}
-				{...(resolvedInvalid ? { 'data-invalid': '', 'aria-invalid': true } : {})}
+				{...invalidAttrs(resolvedInvalid)}
 				className={checkboxInputVariants()}
 				{...props}
 			/>

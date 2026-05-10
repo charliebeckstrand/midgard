@@ -11,6 +11,7 @@ import {
 	textareaVariants,
 } from '../../recipes/kata/textarea'
 import { useControl } from '../control/context'
+import { invalidAttrs } from '../control/invalid-attrs'
 import { useFieldProps } from '../control/use-field-props'
 import { useFormText } from '../form/context'
 import { useGlass } from '../glass/context'
@@ -70,7 +71,7 @@ export function Textarea({
 		value: binding?.value ?? value,
 		onChange: binding?.onChange ?? onChange,
 		onBlur: binding?.onBlur ?? onBlur,
-		...(resolvedInvalid ? { 'data-invalid': '', 'aria-invalid': true as const } : {}),
+		...invalidAttrs(resolvedInvalid),
 	}
 
 	// When autoResize is enabled, field-sizing-content ignores the rows attribute.

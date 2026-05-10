@@ -5,6 +5,7 @@ export {
 	type ControlVariant,
 	useControl,
 } from './context'
+export { type InvalidAttrs, invalidAttrs } from './invalid-attrs'
 export {
 	type UseFieldPropsInput,
 	type UseFieldPropsResult,

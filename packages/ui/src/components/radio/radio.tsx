@@ -10,6 +10,7 @@ import {
 	radioVariants,
 } from '../../recipes/kata/radio'
 import { useConcentric } from '../concentric'
+import { invalidAttrs } from '../control/invalid-attrs'
 import { useFieldProps } from '../control/use-field-props'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
@@ -45,7 +46,7 @@ export function Radio({ className, color, size, id, disabled, required, ...props
 				id={resolvedId}
 				disabled={resolvedDisabled}
 				required={resolvedRequired}
-				{...(resolvedInvalid ? { 'data-invalid': '', 'aria-invalid': true } : {})}
+				{...invalidAttrs(resolvedInvalid)}
 				className={radioInputVariants()}
 				{...props}
 			/>
