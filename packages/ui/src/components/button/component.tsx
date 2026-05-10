@@ -31,15 +31,20 @@ export type LoadingOptions = Pick<SpinnerProps, 'color' | 'size' | 'label'>
 // as children is treated as a textual label for sizing purposes.
 function isIconElement(node: unknown): boolean {
 	if (!isValidElement(node)) return false
+
 	if (node.type === Icon || node.type === 'svg') return true
+
 	const props = node.props as { 'data-slot'?: unknown }
+
 	return props['data-slot'] === 'icon'
 }
 
 function hasLabelContent(children: ReactNode): boolean {
 	return Children.toArray(children).some((child) => {
 		if (typeof child === 'string') return child.trim().length > 0
+
 		if (typeof child === 'number' || typeof child === 'bigint') return true
+
 		return isValidElement(child) && !isIconElement(child)
 	})
 }
