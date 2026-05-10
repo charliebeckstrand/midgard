@@ -1,13 +1,13 @@
 ---
-name: llm-council
-description: "Run any question, idea, or decision through a council of 5 AI advisors who independently analyze it, peer-review each other anonymously, and synthesize a final verdict. Based on Karpathy's LLM Council methodology. MANDATORY TRIGGERS: 'council this', 'run the council', 'war room this', 'pressure-test this', 'stress-test this', 'debate this'. STRONG TRIGGERS (use when combined with a real decision or tradeoff): 'should I X or Y', 'which option', 'what would you do', 'is this the right move', 'validate this', 'get multiple perspectives', 'I can't decide', 'I'm torn between'. Do NOT trigger on simple yes/no questions, factual lookups, or casual 'should I' without a meaningful tradeoff (e.g. 'should I use markdown' is not a council question). DO trigger when the user presents a genuine decision with stakes, multiple options, and context that suggests they want it pressure-tested from multiple angles."
+name: council
+description: "Run any question, idea, or decision through a council of 5 AI advisors who independently analyze it, peer-review each other anonymously, and synthesize a final verdict. Based on Karpathy's LLM Council methodology. MANDATORY TRIGGERS: 'council this', 'run the council', 'war room this', 'pressure-test this', 'stress-test this', 'debate this'; any request to 'audit', 'review', or 'critique' a system, design, plan, or decision; any time plan mode is active for non-trivial work (3+ steps, multiple viable approaches, or meaningful tradeoffs). STRONG TRIGGERS (use when combined with a real decision or tradeoff): 'should I X or Y', 'which option', 'what would you do', 'is this the right move', 'validate this', 'get multiple perspectives', 'I can't decide', 'I'm torn between'. Do NOT trigger on simple yes/no questions, factual lookups, casual 'should I' without a meaningful tradeoff (e.g. 'should I use markdown' is not a council question), or straightforward plan mode tasks where the path is obvious and uncontroversial (single-file edits, mechanical refactors, well-scoped bug fixes). DO trigger when the user presents a genuine decision with stakes, multiple options, and context that suggests they want it pressure-tested from multiple angles."
 ---
 
-# LLM Council
+# Council
 
 Run a high-stakes question through 5 independent advisors, have them peer-review each other anonymously, then synthesize a verdict. Adapted from Karpathy's LLM Council using sub-agents instead of separate models.
 
-Use only when there's genuine uncertainty and a wrong answer is expensive. Skip for trivia, creation tasks, or processing tasks.
+Use when there's genuine uncertainty and a wrong answer is expensive: audits, non-trivial plans, architectural decisions. Skip for trivia, creation tasks, processing tasks, or planning where the path is obvious.
 
 ## Advisors
 
@@ -32,7 +32,7 @@ If the question is too vague, ask one clarifying question, then proceed.
 Spawn all 5 advisors in parallel. Each gets:
 
 ```
-You are [Advisor Name] on an LLM Council.
+You are [Advisor Name] on a Council.
 Thinking style: [description above]
 
 Question:
@@ -74,7 +74,7 @@ Answer, referencing responses by letter:
 One agent gets the framed question, all 5 de-anonymized advisor responses, and all 5 peer reviews:
 
 ```
-You are Chairman of an LLM Council.
+You are Chairman of a Council.
 
 Question:
 ---

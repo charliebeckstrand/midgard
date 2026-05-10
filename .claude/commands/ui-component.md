@@ -645,16 +645,6 @@ This is **required** for every new component. Use the `/ui-testing` skill:
 
 The skill creates `src/__tests__/components/<name>.test.tsx` following all established patterns and verifies it passes.
 
-### 10. Run code audit (REQUIRED — do this before committing)
-
-Run `/ui-audit-code` scoped to the new component:
-
-```
-/ui-audit-code <name>
-```
-
-This verifies all files follow established code patterns: barrel exports, variant wiring, component conventions, naming, imports, and test coverage. Fix any issues it finds before committing.
-
 ---
 
 ## Existing components (for reference and composition)
@@ -742,7 +732,6 @@ Before finishing, verify:
 - [ ] `package.json` export entry added (alphabetical)
 - [ ] Demo page created at `src/docs/demos/<name>.tsx` with correct `meta.category`, uses `Stack`/`Flex` (not raw divs), lets `Example` auto-derive code by default
 - [ ] Test file created via `/ui-testing` at `src/__tests__/components/<name>.test.tsx`
-- [ ] Code audit passed via `/ui-audit-code <name>`
 - [ ] No unused imports or dead code
 - [ ] `'use client'` only added when actually needed (hooks, event handlers, motion)
 - [ ] Diff read as a reviewer: if the component is longer than the closest existing analog, justify why or shrink it by composing more
