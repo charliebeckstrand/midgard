@@ -1,7 +1,9 @@
+import { Search } from 'lucide-react'
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Concentric } from '../../components/concentric'
 import { Group } from '../../components/group'
+import { Icon } from '../../components/icon'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Button', () => {
@@ -84,6 +86,75 @@ describe('Button', () => {
 		renderUI(<Button>Hello World</Button>)
 
 		expect(screen.getByText('Hello World')).toBeInTheDocument()
+	})
+
+	describe('label detection', () => {
+		// data-has-label drives the icon-only vs labelled padding in the recipe.
+		// Text children produce a labelled button; icon-only children do not, so
+		// <Button><Icon /></Button> matches <Button prefix={<Icon />} />.
+
+		it('marks the button as labelled when children contain text', () => {
+			const { container } = renderUI(<Button>Save</Button>)
+
+			expect(bySlot(container, 'button')).toHaveAttribute('data-has-label', 'true')
+		})
+
+		it('does not mark the button as labelled when the only child is an <Icon>', () => {
+			const { container } = renderUI(
+				<Button>
+					<Icon icon={<Search />} />
+				</Button>,
+			)
+
+			expect(bySlot(container, 'button')).not.toHaveAttribute('data-has-label')
+		})
+
+		it('does not mark the button as labelled when the only child is a raw <svg>', () => {
+			const { container } = renderUI(
+				<Button>
+					<svg aria-hidden />
+				</Button>,
+			)
+
+			expect(bySlot(container, 'button')).not.toHaveAttribute('data-has-label')
+		})
+
+		it('does not mark the button as labelled when the only child opts in via data-slot="icon"', () => {
+			const { container } = renderUI(
+				<Button>
+					<span data-slot="icon" />
+				</Button>,
+			)
+
+			expect(bySlot(container, 'button')).not.toHaveAttribute('data-has-label')
+		})
+
+		it('marks the button as labelled when children mix an icon and text', () => {
+			const { container } = renderUI(
+				<Button>
+					<Icon icon={<Search />} />
+					Search
+				</Button>,
+			)
+
+			expect(bySlot(container, 'button')).toHaveAttribute('data-has-label', 'true')
+		})
+
+		it('produces equivalent attributes for icon-as-child and icon-as-prefix', () => {
+			const child = renderUI(
+				<Button>
+					<Icon icon={<Search />} />
+				</Button>,
+			)
+			const prefix = renderUI(<Button prefix={<Icon icon={<Search />} />} />)
+
+			const childButton = bySlot(child.container, 'button')
+			const prefixButton = bySlot(prefix.container, 'button')
+
+			expect(childButton?.className).toBe(prefixButton?.className)
+			expect(childButton?.hasAttribute('data-has-label')).toBe(false)
+			expect(prefixButton?.hasAttribute('data-has-label')).toBe(false)
+		})
 	})
 
 	describe('size resolution', () => {
