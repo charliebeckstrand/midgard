@@ -9,7 +9,6 @@ import { Button } from '../button'
 import { Icon } from '../icon'
 import { AlertDescription } from './alert-description'
 import { AlertTitle } from './alert-title'
-import { AlertProvider } from './context'
 
 type AlertType = 'info' | 'success' | 'warning' | 'error'
 
@@ -102,42 +101,39 @@ export function Alert({
 	const center = !(hasTitle && hasDescription)
 
 	return (
-		<AlertProvider value={{ variant: resolvedVariant, color: resolvedColor }}>
-			<div
-				data-slot="alert"
-				role={role}
-				className={cn(
-					alertVariants({ variant, color: resolvedColor }),
-					center ? 'items-center' : 'items-start',
-					block && 'w-full',
-					type && !closable && 'pr-6',
-					className,
-				)}
-			>
-				{resolvedIcon && (
-					<Icon icon={resolvedIcon} className={cn('shrink-0', !center && 'mt-0.5')} />
-				)}
+		<div
+			data-slot="alert"
+			role={role}
+			className={cn(
+				alertVariants({ variant, color: resolvedColor }),
+				center ? 'items-center' : 'items-start',
+				block && 'w-full',
+				type && !closable && 'pr-6',
+				className,
+			)}
+		>
+			{resolvedIcon && <Icon icon={resolvedIcon} className={cn('shrink-0', !center && 'mt-0.5')} />}
 
-				<div className={cn(k.content)}>
-					{title && <div className={cn(k.title)}>{title}</div>}
+			<div className={cn(k.content)}>
+				{title && <div className={cn(k.title)}>{title}</div>}
 
-					{description && <div className={cn(k.description)}>{description}</div>}
+				{description && <div className={cn(k.description)}>{description}</div>}
 
-					{children}
+				{children}
 
-					{actions && <div className={cn(k.actions)}>{actions}</div>}
-				</div>
-
-				{closable && (
-					<Button
-						variant="plain"
-						aria-label="Dismiss"
-						className={cn(k.close, 'self-center')}
-						prefix={<Icon icon={<X />} />}
-						onClick={close}
-					/>
-				)}
+				{actions && <div className={cn(k.actions)}>{actions}</div>}
 			</div>
-		</AlertProvider>
+
+			{closable && (
+				<Button
+					variant="plain"
+					color={resolvedVariant === 'solid' ? 'inherit' : resolvedColor}
+					aria-label="Dismiss"
+					className={cn(k.close, 'self-center')}
+					prefix={<Icon icon={<X />} />}
+					onClick={close}
+				/>
+			)}
+		</div>
 	)
 }

@@ -26,8 +26,8 @@ type Options<T> = {
  *   export const [GlassProvider, useGlass] = createContext('Glass', { default: false })
  *
  *   // Optional, undefined outside a provider:
- *   export const [AlertProvider, useAlert] =
- *     createContext<AlertContext | undefined>('Alert', { default: undefined })
+ *   export const [ControlProvider, useControl] =
+ *     createContext<ControlContext | undefined>('Control', { default: undefined })
  */
 export function createContext<T>(name: string): [Provider<T>, () => T]
 export function createContext<T>(name: string, options: Options<T>): [Provider<T>, () => T]

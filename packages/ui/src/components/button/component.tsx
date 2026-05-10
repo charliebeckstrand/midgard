@@ -7,7 +7,6 @@ import { type PolymorphicProps, springProps, TouchTarget, useRipple } from '../.
 import { Link } from '../../primitives/link'
 import { kokkaku } from '../../recipes'
 import { type ButtonVariants, buttonVariants } from '../../recipes/kata/button'
-import { useAlertContext } from '../alert/context'
 import { useConcentric } from '../concentric'
 import { useGlass } from '../glass/context'
 import { useInputSize } from '../input/context'
@@ -53,7 +52,6 @@ export function Button({
 
 	const loadingOptions = typeof loadingProp === 'object' ? loadingProp : undefined
 
-	const alert = useAlertContext()
 	const concentric = useConcentric()
 	const glass = useGlass()
 	const inputSize = useInputSize()
@@ -77,10 +75,6 @@ export function Button({
 			.onPointerDown
 
 		consumerHandler?.(e)
-	}
-
-	if (!color && alert) {
-		color = alert.variant === 'solid' ? 'inherit' : alert.color
 	}
 
 	const classes = cn(
