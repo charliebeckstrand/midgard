@@ -20,7 +20,7 @@ import { kokkaku } from '../../recipes'
 import { k } from '../../recipes/kata/combobox'
 import { popover as kPopover } from '../../recipes/kata/popover'
 import { control as controlRecipe } from '../../recipes/waku/control'
-import { useControl } from '../control/context'
+import { type ControlSize, useControl } from '../control/context'
 import { useGlass } from '../glass/context'
 import { Icon } from '../icon'
 import { HeadlessInput } from '../input'
@@ -45,6 +45,7 @@ type ComboboxBaseProps<T> = {
 	displayValue?: (value: T) => string
 	placement?: Placement
 	icon?: ReactNode
+	size?: ControlSize
 	className?: string
 	inputType?: InputHTMLAttributes<HTMLInputElement>['type']
 	autoComplete?: InputHTMLAttributes<HTMLInputElement>['autoComplete']
@@ -92,6 +93,7 @@ export function Combobox<T>({
 	placeholder = 'Search',
 	placement = 'bottom-start',
 	icon,
+	size,
 	selectable = true,
 	nullable = valueProp === undefined && defaultValue === undefined,
 	closeOnSelect,
@@ -108,7 +110,7 @@ export function Combobox<T>({
 	const control = useControl()
 	const skeleton = useSkeleton()
 
-	const resolvedSize = control?.size ?? 'md'
+	const resolvedSize = size ?? control?.size ?? 'md'
 
 	const handleValueChange = useCallback(
 		(nextValue: T | T[] | undefined) => {

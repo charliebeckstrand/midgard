@@ -12,7 +12,7 @@ import { iro, kokkaku } from '../../recipes'
 import { k } from '../../recipes/kata/listbox'
 import { popover as kPopover } from '../../recipes/kata/popover'
 import { control as controlRecipe } from '../../recipes/waku/control'
-import { useControl } from '../control/context'
+import { type ControlSize, useControl } from '../control/context'
 import { useGlass } from '../glass/context'
 import { Icon } from '../icon'
 import { Placeholder } from '../placeholder'
@@ -35,6 +35,7 @@ type ListboxBaseProps = {
 	icon?: ReactNode
 	prefix?: ReactNode
 	suffix?: ReactNode
+	size?: ControlSize
 	disabled?: boolean
 	className?: string
 	inputId?: string
@@ -75,6 +76,7 @@ export function Listbox<T>({
 	icon,
 	prefix,
 	suffix,
+	size,
 	disabled,
 	className,
 	inputId,
@@ -89,7 +91,7 @@ export function Listbox<T>({
 
 	const resolvedDisabled = disabled ?? control?.disabled
 
-	const resolvedSize = control?.size ?? 'md'
+	const resolvedSize = size ?? control?.size ?? 'md'
 
 	const handleValueChange = useCallback(
 		(nextValue: T | T[] | undefined) => {
