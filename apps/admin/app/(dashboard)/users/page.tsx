@@ -7,7 +7,9 @@ async function getUsers() {
 
 	if (!res.ok) return []
 
-	return res.json()
+	const { data } = await res.json()
+
+	return data
 }
 
 export default async function UsersPage() {

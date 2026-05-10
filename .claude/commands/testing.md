@@ -1,6 +1,6 @@
 # Create Tests
 
-TRIGGER when: the user asks to create, add, write, or scaffold tests for a target anywhere in this monorepo — components, primitives, hooks, utilities, modules — in `packages/ui`, `packages/heimdall`, `packages/sindri`, or any app under `apps/`. Also runs automatically when `/ui-component` finishes creating a new component.
+TRIGGER when: the user asks to create, add, write, or scaffold tests for a target anywhere in this monorepo — components, primitives, hooks, utilities, modules — in `packages/`, or any app under `apps/`. Also runs automatically when `/ui-component` finishes creating a new component.
 
 You are creating tests for a target somewhere in this monorepo. Detect the target's package and type first, then apply the patterns that match. Follow the conventions, formatting, and rules below exactly.
 
@@ -66,7 +66,7 @@ Parse `$ARGUMENTS` to identify:
 
 - **The target name** (e.g., `button`, `use-controllable`, `cn`, `fetch`)
 - **The target type** — UI component, UI primitive, UI hook, UI core utility, UI recipe, non-UI utility/module, or non-UI hook
-- **The package** — `packages/ui`, `packages/heimdall`, `packages/sindri`, or an app under `apps/`
+- **The package** — `packages/`, or an app under `apps/`
 
 If ambiguous, scan the source directories to locate the target.
 
