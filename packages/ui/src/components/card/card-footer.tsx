@@ -1,23 +1,12 @@
-import type { ComponentPropsWithoutRef } from 'react'
-import { cn } from '../../core'
+import { createSlot } from '../../core'
+import type { SlotProps } from '../../core/create-slot'
 
-export type CardFooterProps = {
-	className?: string
-} & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
+export type CardFooterProps = SlotProps<'div'>
 
-export function CardFooter({ className, children, ...props }: CardFooterProps) {
-	return (
-		<div
-			data-slot="card-footer"
-			className={cn(
-				'px-(--ui-padding) pb-(--ui-padding) pt-0',
-				'flex items-center',
-				'gap-(--ui-gap)',
-				className,
-			)}
-			{...props}
-		>
-			{children}
-		</div>
-	)
-}
+export const CardFooter = createSlot(
+	'div',
+	'card-footer',
+	'px-(--ui-padding) pb-(--ui-padding) pt-0',
+	'flex items-center',
+	'gap-(--ui-gap)',
+)

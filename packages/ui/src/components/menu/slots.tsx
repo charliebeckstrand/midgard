@@ -1,21 +1,15 @@
-import type { ComponentPropsWithoutRef } from 'react'
-import { cn } from '../../core'
+import { createSlot } from '../../core'
+import type { SlotProps } from '../../core/create-slot'
 import { k } from '../../recipes/kata/menu'
 
-export type MenuSectionProps = ComponentPropsWithoutRef<'fieldset'>
+export type MenuSectionProps = SlotProps<'fieldset'>
 
-export function MenuSection({ className, ...props }: MenuSectionProps) {
-	return <fieldset data-slot="menu-section" className={cn(k.section, className)} {...props} />
-}
+export const MenuSection = createSlot('fieldset', 'menu-section', k.section)
 
-export type MenuHeadingProps = ComponentPropsWithoutRef<'legend'>
+export type MenuHeadingProps = SlotProps<'legend'>
 
-export function MenuHeading({ className, ...props }: MenuHeadingProps) {
-	return <legend data-slot="menu-heading" className={cn(k.heading, className)} {...props} />
-}
+export const MenuHeading = createSlot('legend', 'menu-heading', k.heading)
 
-export type MenuSeparatorProps = ComponentPropsWithoutRef<'hr'>
+export type MenuSeparatorProps = SlotProps<'hr'>
 
-export function MenuSeparator({ className, ...props }: MenuSeparatorProps) {
-	return <hr data-slot="menu-separator" className={cn(k.separator, className)} {...props} />
-}
+export const MenuSeparator = createSlot('hr', 'menu-separator', k.separator)
