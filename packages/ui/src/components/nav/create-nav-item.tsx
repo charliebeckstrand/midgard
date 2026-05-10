@@ -10,7 +10,7 @@ import {
 	TouchTarget,
 	useActiveIndicator,
 } from '../../primitives'
-import { useOffcanvas } from '../../primitives/offcanvas'
+import { useOffcanvasClose } from '../../primitives/offcanvas'
 import { Icon } from '../icon'
 
 export type NavItemProps = {
@@ -43,7 +43,7 @@ export function createNavItem(config: { slotPrefix: string; variants: () => stri
 
 		const indicator = useActiveIndicator()
 
-		const offcanvas = useOffcanvas()
+		const offcanvas = useOffcanvasClose()
 
 		const scrollWithin = useScrollWithin()
 

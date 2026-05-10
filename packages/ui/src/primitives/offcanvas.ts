@@ -6,7 +6,12 @@ export interface OffcanvasContextValue {
 	close: () => void
 }
 
-export const [OffcanvasProvider, useOffcanvas] = createContext<OffcanvasContextValue | null>(
+/**
+ * Returns the offcanvas close handle when rendered inside an `<OffcanvasProvider>`,
+ * or `null` outside one. Distinct from the state hook in `ui/hooks/use-offcanvas`,
+ * which manages an offcanvas's open/close state.
+ */
+export const [OffcanvasProvider, useOffcanvasClose] = createContext<OffcanvasContextValue | null>(
 	'Offcanvas',
 	{ default: null },
 )

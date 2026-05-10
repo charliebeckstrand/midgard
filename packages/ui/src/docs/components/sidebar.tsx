@@ -12,12 +12,12 @@ import {
 	SidebarSection,
 } from '../../components/sidebar'
 import { useScrollWithin } from '../../hooks'
-import { useOffcanvas } from '../../primitives/offcanvas'
+import { useOffcanvasClose } from '../../primitives/offcanvas'
 import { navigate } from '../hooks/use-hash'
 import { demos, preloadDemo, sortedCategories } from '../registry'
 
 export function SidebarContent({ route }: { route: string }) {
-	const offcanvas = useOffcanvas()
+	const offcanvas = useOffcanvasClose()
 
 	const scrollWithin = useScrollWithin()
 

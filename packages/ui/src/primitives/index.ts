@@ -11,7 +11,7 @@ export { Link, type LinkProps, LinkProvider, useLink } from './link'
 export {
 	type OffcanvasContextValue,
 	OffcanvasProvider,
-	useOffcanvas,
+	useOffcanvasClose,
 } from './offcanvas'
 export {
 	BaseOption,
