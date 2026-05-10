@@ -2,10 +2,12 @@ import { createContext } from '../../core'
 import type { Step } from '../../recipes/ryu/sun'
 
 /**
- * The active size step in this region of the tree. Provided by `<Concentric>`,
- * `<Group>`, or any wrapper that wants size-aware children to default their
- * `size` prop. Components consume it via `useConcentric()` and use it as a
- * fallback before their kata's `defaultVariants.size`.
+ * Top-level ambient size cascade. Provided by `<Concentric>`, `<Group>`,
+ * `<Card>`, or any wrapper that wants size-aware descendants to default
+ * their `size` prop.
+ *
+ * Read by form fields and concentric participants as a fallback before
+ * the component's own default. See `src/CASCADES.md` for the full chain.
  */
 export type ConcentricContextValue = {
 	size: Step

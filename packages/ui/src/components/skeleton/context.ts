@@ -2,7 +2,11 @@
 
 import { createContext } from '../../core'
 
-/** Returns true inside a Skeleton subtree. */
+/**
+ * Ambient flag — true inside `<Skeleton>`. Sized leaf controls short-circuit
+ * to render a `<Placeholder>` shaped from `kokkaku` instead of their real
+ * markup. See `src/CASCADES.md`.
+ */
 export const [SkeletonProvider, useSkeleton] = createContext<boolean>('Skeleton', {
 	default: false,
 })

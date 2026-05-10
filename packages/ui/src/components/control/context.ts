@@ -16,7 +16,14 @@ export type ControlContextValue = {
 	variant?: ControlVariant
 }
 
-/** Returns the nearest Control context, or undefined outside a Control. */
+/**
+ * Form-field cascade. Provided by `<Control>` (and `<Field>` on its behalf).
+ * Carries id, autoComplete, disabled, invalid, readOnly, required, size,
+ * variant — every prop a nested form field can inherit.
+ *
+ * Read by input, textarea, switch, listbox, combobox, datepicker, checkbox,
+ * radio. See `src/CASCADES.md` for the full chain.
+ */
 export const [ControlProvider, useControl] = createContext<ControlContextValue | undefined>(
 	'Control',
 	{ default: undefined },
