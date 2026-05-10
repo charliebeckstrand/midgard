@@ -5,3 +5,8 @@ export {
 	type ControlVariant,
 	useControl,
 } from './context'
+export {
+	type UseFieldPropsInput,
+	type UseFieldPropsResult,
+	useFieldProps,
+} from './use-field-props'

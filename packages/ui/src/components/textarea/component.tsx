@@ -11,6 +11,7 @@ import {
 	textareaVariants,
 } from '../../recipes/kata/textarea'
 import { useControl } from '../control/context'
+import { useFieldProps } from '../control/use-field-props'
 import { useFormText } from '../form/context'
 import { useGlass } from '../glass/context'
 import { Placeholder } from '../placeholder'
@@ -28,6 +29,7 @@ export function Textarea({
 	autoResize,
 	actions,
 	id,
+	autoComplete,
 	disabled,
 	required,
 	readOnly,
@@ -43,15 +45,16 @@ export function Textarea({
 	const control = useControl()
 	const binding = useFormText(name, { onChange, onBlur })
 
-	const resolvedId = id ?? control?.id
-	const resolvedAutoComplete = props.autoComplete ?? control?.autoComplete
-	const resolvedDisabled = disabled ?? control?.disabled
-	const resolvedRequired = required ?? control?.required
-	const resolvedReadOnly = readOnly ?? control?.readOnly
+	const {
+		id: resolvedId,
+		autoComplete: resolvedAutoComplete,
+		disabled: resolvedDisabled,
+		required: resolvedRequired,
+		readOnly: resolvedReadOnly,
+		invalid: resolvedInvalid,
+	} = useFieldProps({ id, autoComplete, disabled, required, readOnly, binding })
 
 	const resolvedVariant = variant ?? control?.variant ?? (glass ? 'glass' : undefined)
-
-	const resolvedInvalid = control?.invalid || binding?.invalid
 
 	if (useSkeleton()) {
 		return <Placeholder className={cn(kokkaku.textarea.base, className)} />

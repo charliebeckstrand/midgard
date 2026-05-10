@@ -11,7 +11,7 @@ import {
 	checkboxVariants,
 } from '../../recipes/kata/checkbox'
 import { useConcentric } from '../concentric'
-import { useControl } from '../control/context'
+import { useFieldProps } from '../control/use-field-props'
 import { useFormToggle } from '../form/context'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
@@ -38,20 +38,19 @@ export function Checkbox({
 	...props
 }: CheckboxProps) {
 	const concentric = useConcentric()
-	const control = useControl()
 
 	const binding = useFormToggle(name, { onChange })
 
+	const {
+		id: resolvedId,
+		disabled: resolvedDisabled,
+		required: resolvedRequired,
+		invalid: resolvedInvalid,
+	} = useFieldProps({ id, disabled, required, binding })
+
 	const internalRef = useRef<HTMLInputElement>(null)
 
-	const resolvedId = id ?? control?.id
-
-	const resolvedDisabled = disabled ?? control?.disabled
-	const resolvedRequired = required ?? control?.required
-
 	const resolvedSize = size ?? concentric?.size ?? 'md'
-
-	const resolvedInvalid = control?.invalid || binding?.invalid
 
 	const setRef = useCallback(
 		(el: HTMLInputElement | null) => {
