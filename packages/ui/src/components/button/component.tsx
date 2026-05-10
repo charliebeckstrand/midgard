@@ -1,7 +1,14 @@
 'use client'
 
 import { motion } from 'motion/react'
-import type { ComponentPropsWithoutRef, PointerEvent, ReactNode, Ref } from 'react'
+import {
+	Children,
+	type ComponentPropsWithoutRef,
+	isValidElement,
+	type PointerEvent,
+	type ReactNode,
+	type Ref,
+} from 'react'
 import { cn } from '../../core'
 import { type PolymorphicProps, springProps, TouchTarget, useRipple } from '../../primitives'
 import { Link } from '../../primitives/link'
@@ -9,6 +16,7 @@ import { kokkaku } from '../../recipes'
 import { useAlertContext } from '../alert/context'
 import { useConcentric } from '../concentric'
 import { useGlass } from '../glass/context'
+import { Icon } from '../icon'
 import { useInputSize } from '../input/context'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
@@ -17,6 +25,24 @@ import { ButtonSizeProvider } from './context'
 import { type ButtonVariants, buttonVariants } from './variants'
 
 export type LoadingOptions = Pick<SpinnerProps, 'color' | 'size' | 'label'>
+
+// An "icon" child is the library's <Icon>, a raw <svg>, or any element that
+// opts into the convention by carrying data-slot="icon". Anything else passed
+// as children is treated as a textual label for sizing purposes.
+function isIconElement(node: unknown): boolean {
+	if (!isValidElement(node)) return false
+	if (node.type === Icon || node.type === 'svg') return true
+	const props = node.props as { 'data-slot'?: unknown }
+	return props['data-slot'] === 'icon'
+}
+
+function hasLabelContent(children: ReactNode): boolean {
+	return Children.toArray(children).some((child) => {
+		if (typeof child === 'string') return child.trim().length > 0
+		if (typeof child === 'number' || typeof child === 'bigint') return true
+		return isValidElement(child) && !isIconElement(child)
+	})
+}
 
 type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never
 
@@ -83,6 +109,8 @@ export function Button({
 		color = alert.variant === 'solid' ? 'inherit' : alert.color
 	}
 
+	const labelled = hasLabelContent(children)
+
 	const classes = cn(
 		buttonVariants({ variant: resolvedVariant, color, size: resolvedSize }),
 		block && 'w-full',
@@ -111,7 +139,7 @@ export function Button({
 				<Link
 					data-slot="button"
 					data-has-prefix={!!prefix || undefined}
-					data-has-children={!!children || undefined}
+					data-has-label={labelled || undefined}
 					data-has-suffix={!!suffix || undefined}
 					href={href}
 					className={classes}
@@ -137,7 +165,7 @@ export function Button({
 			ref={ref}
 			data-slot="button"
 			data-has-prefix={!!prefix || undefined}
-			data-has-children={!!children || undefined}
+			data-has-label={labelled || undefined}
 			data-has-suffix={!!suffix || undefined}
 			type="button"
 			className={classes}
