@@ -46,6 +46,7 @@ type ComboboxBaseProps<T> = {
 	placement?: Placement
 	icon?: ReactNode
 	size?: ControlSize
+	disabled?: boolean
 	className?: string
 	inputType?: InputHTMLAttributes<HTMLInputElement>['type']
 	autoComplete?: InputHTMLAttributes<HTMLInputElement>['autoComplete']
@@ -94,6 +95,7 @@ export function Combobox<T>({
 	placement = 'bottom-start',
 	icon,
 	size,
+	disabled,
 	selectable = true,
 	nullable = valueProp === undefined && defaultValue === undefined,
 	closeOnSelect,
@@ -111,6 +113,8 @@ export function Combobox<T>({
 	const skeleton = useSkeleton()
 
 	const resolvedSize = size ?? control?.size ?? 'md'
+
+	const resolvedDisabled = disabled ?? control?.disabled
 
 	const handleValueChange = useCallback(
 		(nextValue: T | T[] | undefined) => {
@@ -214,6 +218,7 @@ export function Combobox<T>({
 						data-slot="combobox-input"
 						id={id}
 						autoComplete={autoComplete}
+						disabled={resolvedDisabled}
 						value={inputDisplay}
 						placeholder={placeholder}
 						onChange={(e) => {
