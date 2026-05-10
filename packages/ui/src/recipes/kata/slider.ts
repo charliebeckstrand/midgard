@@ -100,3 +100,5 @@ export const slider = tv({
 })
 
 export type SliderVariants = VariantProps<typeof slider>
+
+export { slider as sliderVariants }

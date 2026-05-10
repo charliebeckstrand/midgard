@@ -3,6 +3,7 @@
 import { Trash } from 'lucide-react'
 import { memo, useCallback, useMemo } from 'react'
 import { cn } from '../../core'
+import { k } from '../../recipes/kata/query-builder'
 import { Button } from '../button'
 import { Flex } from '../flex'
 import { Icon } from '../icon'
@@ -12,7 +13,6 @@ import { useQueryBuilderActions, useQueryBuilderState } from './context'
 import { QueryRuleValue } from './rule-value'
 import type { QueryRule as QueryRuleNode } from './types'
 import { getOperators } from './utilities'
-import { k } from './variants'
 
 // ── QueryRule ──────────────────────────────────────────
 

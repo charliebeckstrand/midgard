@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { type DividerVariants, dividerVariants } from './variants'
+import { type DividerVariants, dividerVariants } from '../../recipes/kata/divider'
 
 export type DividerProps = DividerVariants & {
 	className?: string

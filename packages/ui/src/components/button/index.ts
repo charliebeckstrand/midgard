@@ -1,2 +1,2 @@
+export { type ButtonVariants, buttonVariants } from '../../recipes/kata/button'
 export { Button, type ButtonProps } from './component'
-export { type ButtonVariants, buttonVariants } from './variants'

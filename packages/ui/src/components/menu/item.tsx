@@ -2,10 +2,10 @@
 
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { cn } from '../../core'
-import { Link } from '../../primitives/link'
+import { k } from '../../recipes/kata/menu'
 import { Kbd, type KbdProps } from '../kbd'
+import { Link } from '../link'
 import { useMenuActions } from './menu'
-import { k } from './variants'
 
 type MenuItemBaseProps = {
 	disabled?: boolean

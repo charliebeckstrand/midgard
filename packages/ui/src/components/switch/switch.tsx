@@ -3,17 +3,17 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { kokkaku } from '../../recipes'
-import { useConcentric } from '../concentric'
-import { useControl } from '../control/context'
-import { useFormToggle } from '../form/context'
-import { Placeholder } from '../placeholder'
-import { useSkeleton } from '../skeleton/context'
 import {
 	type SwitchVariants,
 	switchInputVariants,
 	switchThumbVariants,
 	switchVariants,
-} from './variants'
+} from '../../recipes/kata/switch'
+import { useConcentric } from '../concentric'
+import { useControl } from '../control/context'
+import { useFormToggle } from '../form/context'
+import { Placeholder } from '../placeholder'
+import { useSkeleton } from '../skeleton/context'
 
 export type SwitchProps = SwitchVariants & {
 	className?: string

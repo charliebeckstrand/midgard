@@ -1,8 +1,8 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { ActiveIndicatorScope } from '../../primitives'
+import { type NavbarVariants, navbarVariants } from '../../recipes/kata/navbar'
 import { NavbarProvider } from './context'
-import { type NavbarVariants, navbarVariants } from './variants'
 
 export type NavbarProps = NavbarVariants & ComponentPropsWithoutRef<'nav'>
 

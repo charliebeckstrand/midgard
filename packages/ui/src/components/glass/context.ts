@@ -1,12 +1,10 @@
 'use client'
 
-import { createContext, use } from 'react'
+import { createContext } from '../../core'
 
-const GlassContext = createContext(false)
-
-export const GlassProvider = GlassContext.Provider
-
-/** Returns true inside a Glass subtree. */
-export function useGlass() {
-	return use(GlassContext)
-}
+/**
+ * Ambient flag — true inside `<Glass>`. Form fields and Button switch to the
+ * glass variant when no explicit variant is set; surface chrome takes a
+ * `glass` prop and consumers pass `useGlass()` through. See `src/CASCADES.md`.
+ */
+export const [GlassProvider, useGlass] = createContext<boolean>('Glass', { default: false })

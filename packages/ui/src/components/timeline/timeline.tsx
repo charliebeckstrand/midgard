@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
+import { type TimelineVariants, timelineVariants } from '../../recipes/kata/timeline'
 import type { TimelineOrientation, TimelineVariant } from './context'
 import { TimelineProvider } from './context'
-import { type TimelineVariants, timelineVariants } from './variants'
 
 // ── Timeline ────────────────────────────────────────────
 

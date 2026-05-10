@@ -1,7 +1,7 @@
-export { Stack, type StackProps } from './component'
 export type {
-	StackAlign,
-	StackDirection,
-	StackGap,
-	StackJustify,
-} from './variants'
+	FlexAlign as StackAlign,
+	FlexDirection as StackDirection,
+	FlexGap as StackGap,
+	FlexJustify as StackJustify,
+} from '../flex/variants'
+export { Stack, type StackProps } from './component'

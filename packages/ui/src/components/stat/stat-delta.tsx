@@ -1,8 +1,8 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
+import { type StatDeltaVariants, statDeltaVariants, statPlaceholder } from '../../recipes/kata/stat'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
-import { type StatDeltaVariants, statDeltaVariants, statPlaceholder } from './variants'
 
 export type StatDeltaProps = StatDeltaVariants & {
 	className?: string

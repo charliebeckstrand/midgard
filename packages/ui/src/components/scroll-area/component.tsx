@@ -2,8 +2,6 @@
 
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { useScrollbar } from './use-scrollbar'
-import type { ScrollbarMode } from './utilities'
 import {
 	type ScrollAreaViewportVariants,
 	type ScrollAreaWrapperVariants,
@@ -11,7 +9,9 @@ import {
 	scrollAreaThumbVariants,
 	scrollAreaViewportVariants,
 	scrollAreaWrapperVariants,
-} from './variants'
+} from '../../recipes/kata/scroll-area'
+import { useScrollbar } from './use-scrollbar'
+import type { ScrollbarMode } from './utilities'
 
 export type ScrollAreaProps = ScrollAreaWrapperVariants &
 	ScrollAreaViewportVariants & {

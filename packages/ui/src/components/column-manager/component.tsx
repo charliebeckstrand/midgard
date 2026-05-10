@@ -4,13 +4,13 @@ import { Pin } from 'lucide-react'
 import { type ReactNode, useCallback, useMemo } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
+import { k } from '../../recipes/kata/column-manager'
 import { Button } from '../button'
 import { Checkbox, CheckboxField, CheckboxGroup } from '../checkbox'
 import { Control } from '../control'
 import { Label } from '../fieldset'
 import { Icon } from '../icon'
 import { List, ListItem } from '../list'
-import { k } from './variants'
 
 export type ColumnManagerItem = {
 	id: string | number

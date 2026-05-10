@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
+import { k } from '../../recipes/kata/editable-grid'
 import {
 	DataTable,
 	type DataTableColumn,
@@ -21,7 +22,6 @@ import {
 import { useEditableGridMutations } from './use-editable-grid-mutations'
 import { useEditableGridNavigation } from './use-editable-grid-navigation'
 import { useEditableGridWrapper } from './use-editable-grid-wrapper'
-import { k } from './variants'
 
 // ── EditableGrid ───────────────────────────────────────
 

@@ -62,3 +62,5 @@ export const slots = {
 
 export type AccordionVariants = VariantProps<typeof accordion>
 export type AccordionItemVariants = VariantProps<typeof accordionItem>
+
+export { accordion as accordionVariants, accordionItem as accordionItemVariants, slots as k }

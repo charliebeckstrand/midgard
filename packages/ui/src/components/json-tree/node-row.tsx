@@ -2,10 +2,10 @@
 
 import { ChevronRight } from 'lucide-react'
 import { cn } from '../../core'
+import { k } from '../../recipes/kata/json-tree'
 import { Icon } from '../icon'
 import { NodeKey, PrimitiveValue } from './helpers'
 import { type FlatNode, INDENT_REM } from './utilities'
-import { k } from './variants'
 
 export type JsonNodeRowProps = {
 	node: FlatNode

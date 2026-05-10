@@ -12,6 +12,7 @@ import {
 	useState,
 } from 'react'
 import { cn } from '../../core'
+import { k } from '../../recipes/kata/resizable'
 import {
 	type PanelConfig,
 	type ResizableDirection,
@@ -20,7 +21,6 @@ import {
 } from './context'
 import { ResizableHandle } from './resizable-handle'
 import { ResizablePanel, type ResizablePanelProps } from './resizable-panel'
-import { k } from './variants'
 
 type DragState = {
 	handleIndex: number

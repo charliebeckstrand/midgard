@@ -23,3 +23,5 @@ export const signaturePad = {
 	],
 	actions: ['absolute right-2 bottom-2', 'flex items-center', 'gap-xs'],
 }
+
+export { signaturePad as k }

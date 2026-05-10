@@ -2,19 +2,20 @@
 
 import { LayoutGroup, type MotionStyle, motion, useAnimate } from 'motion/react'
 import {
-	createContext,
 	type PropsWithChildren,
 	type ReactNode,
 	type Ref,
 	useCallback,
-	useContext,
 	useId,
 	useMemo,
 } from 'react'
-import { cn } from '../core'
+import { cn, createContext } from '../core'
 import { ugoki } from '../recipes'
 
-const ActiveIndicatorContext = createContext<string | undefined>(undefined)
+const [ActiveIndicatorScopeProvider, useActiveIndicatorScope] = createContext<string | undefined>(
+	'ActiveIndicatorScope',
+	{ default: undefined },
+)
 
 /** Scopes active indicators so independent nav / tab groups can coexist. */
 export function ActiveIndicatorScope({ children, id }: PropsWithChildren<{ id?: string }>) {
@@ -25,9 +26,9 @@ export function ActiveIndicatorScope({ children, id }: PropsWithChildren<{ id?: 
 	const layoutId = useMemo(() => `current-indicator-${scopeId}`, [scopeId])
 
 	return (
-		<ActiveIndicatorContext.Provider value={layoutId}>
+		<ActiveIndicatorScopeProvider value={layoutId}>
 			<LayoutGroup id={layoutId}>{children}</LayoutGroup>
-		</ActiveIndicatorContext.Provider>
+		</ActiveIndicatorScopeProvider>
 	)
 }
 
@@ -65,7 +66,7 @@ export function ActiveIndicator({
 	style?: MotionStyle
 	children?: ReactNode
 }) {
-	const scopedLayoutId = useContext(ActiveIndicatorContext)
+	const scopedLayoutId = useActiveIndicatorScope()
 
 	const resolvedLayoutId = layoutId ?? scopedLayoutId ?? 'current-indicator'
 

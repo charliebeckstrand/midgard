@@ -38,3 +38,5 @@ export const slots = {
 }
 
 export type AlertVariants = VariantProps<typeof alert>
+
+export { alert as alertVariants, slots as k }

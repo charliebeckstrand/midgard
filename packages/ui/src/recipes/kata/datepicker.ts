@@ -29,3 +29,5 @@ export const datepicker = {
 		'pointer-events-auto',
 	],
 }
+
+export { datepicker as k }

@@ -4,7 +4,7 @@ import { Polymorphic, type PolymorphicProps } from '../../primitives'
 import type { Step } from '../../recipes/ryu/sun'
 import type { GroupOrientation } from '../../recipes/ryu/tsunagi'
 import { useConcentric } from '../concentric'
-import { ConcentricContext } from '../concentric/context'
+import { ConcentricProvider } from '../concentric/context'
 import { useGroup } from './hook'
 
 type GroupBaseProps = {
@@ -75,7 +75,7 @@ export function Group({
 			className={cn('inline-flex', orientation === 'vertical' ? 'flex-col' : 'flex-row', className)}
 			{...props}
 		>
-			<ConcentricContext.Provider value={contextValue}>{stamped}</ConcentricContext.Provider>
+			<ConcentricProvider value={contextValue}>{stamped}</ConcentricProvider>
 		</Polymorphic>
 	)
 }

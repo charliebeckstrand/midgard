@@ -1,12 +1,13 @@
 'use client'
 
-import { createContext, useContext } from 'react'
+import { createContext } from '../../core'
 import type { Size } from '../../types'
 
-const ButtonSizeContext = createContext<Size | undefined>(undefined)
-
-export const ButtonSizeProvider = ButtonSizeContext.Provider
-
-export function useButtonSize(): Size | undefined {
-	return useContext(ButtonSizeContext)
-}
+/**
+ * Broadcast of `<Button>`'s resolved size to its descendants — Spinner / Icon
+ * placed inside the button auto-scale to match. Pure downward broadcast, no
+ * inheritance from outer ancestors. See `src/CASCADES.md`.
+ */
+export const [ButtonSizeProvider, useButtonSize] = createContext<Size | undefined>('ButtonSize', {
+	default: undefined,
+})

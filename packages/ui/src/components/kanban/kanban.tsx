@@ -10,10 +10,10 @@ import {
 } from '@dnd-kit/core'
 import { type ReactNode, useCallback, useMemo } from 'react'
 import { cn } from '../../core'
+import { k } from '../../recipes/kata/kanban'
 import { type KanbanColumnShape, KanbanProvider } from './context'
 import { useKanbanDrag } from './use-kanban-drag'
 import { useKanbanKeyboard } from './use-kanban-keyboard'
-import { k } from './variants'
 
 export type { KanbanColumnShape }
 

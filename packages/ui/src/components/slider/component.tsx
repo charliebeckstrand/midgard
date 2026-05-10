@@ -3,7 +3,7 @@
 import type { ComponentPropsWithoutRef, CSSProperties } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
-import { type SliderVariants, sliderVariants } from './variants'
+import { type SliderVariants, sliderVariants } from '../../recipes/kata/slider'
 
 type SliderBaseProps = SliderVariants & {
 	value?: number

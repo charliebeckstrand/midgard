@@ -1,6 +1,7 @@
 'use client'
 
-import { createContext, type ReactNode, useContext } from 'react'
+import type { ReactNode } from 'react'
+import { createContext } from '../../core'
 import type { QueryCombinator, QueryField, QueryGroup, QueryRule } from './types'
 
 export type QueryBuilderStateValue = {
@@ -25,11 +26,16 @@ export type QueryBuilderContextValue = QueryBuilderStateValue &
 // lives in its own narrow context so rule/group consumers that only depend
 // on configuration skip re-renders when a sibling rule is edited.
 
-const QueryBuilderStateContext = createContext<QueryBuilderStateValue | null>(null)
+const [QueryBuilderStateProvider, useQueryBuilderState] =
+	createContext<QueryBuilderStateValue>('QueryBuilderState')
 
-const QueryBuilderActionsContext = createContext<QueryBuilderActions | null>(null)
+const [QueryBuilderActionsProvider, useQueryBuilderActions] =
+	createContext<QueryBuilderActions>('QueryBuilderActions')
 
-const QueryBuilderRootContext = createContext<QueryGroup | null>(null)
+const [QueryBuilderRootProvider, useQueryBuilderRoot] =
+	createContext<QueryGroup>('QueryBuilderRoot')
+
+export { useQueryBuilderActions, useQueryBuilderState }
 
 /** Internal — the component-level provider wires all three contexts. */
 export function QueryBuilderProvider({
@@ -44,11 +50,11 @@ export function QueryBuilderProvider({
 	children: ReactNode
 }) {
 	return (
-		<QueryBuilderActionsContext.Provider value={actions}>
-			<QueryBuilderStateContext.Provider value={state}>
-				<QueryBuilderRootContext.Provider value={root}>{children}</QueryBuilderRootContext.Provider>
-			</QueryBuilderStateContext.Provider>
-		</QueryBuilderActionsContext.Provider>
+		<QueryBuilderActionsProvider value={actions}>
+			<QueryBuilderStateProvider value={state}>
+				<QueryBuilderRootProvider value={root}>{children}</QueryBuilderRootProvider>
+			</QueryBuilderStateProvider>
+		</QueryBuilderActionsProvider>
 	)
 }
 
@@ -60,38 +66,9 @@ export function QueryBuilderProvider({
  * tree itself.
  */
 export function useQueryBuilderContext(): QueryBuilderContextValue {
-	const state = useContext(QueryBuilderStateContext)
-	const actions = useContext(QueryBuilderActionsContext)
-	const root = useContext(QueryBuilderRootContext)
-
-	if (state === null || actions === null || root === null) {
-		throw new Error('useQueryBuilderContext must be used within <QueryBuilder>')
-	}
+	const state = useQueryBuilderState()
+	const actions = useQueryBuilderActions()
+	const root = useQueryBuilderRoot()
 
 	return { ...state, ...actions, root }
-}
-
-/** Query-builder actions. Stable reference — consumers skip re-renders on tree edits. */
-export function useQueryBuilderActions(): QueryBuilderActions {
-	const actions = useContext(QueryBuilderActionsContext)
-
-	if (actions === null) {
-		throw new Error('useQueryBuilderActions must be used within <QueryBuilder>')
-	}
-
-	return actions
-}
-
-/**
- * Query-builder configuration (fields, getField, disabled). Stable across tree
- * edits — memoized consumers skip re-renders when an unrelated rule changes.
- */
-export function useQueryBuilderState(): QueryBuilderStateValue {
-	const state = useContext(QueryBuilderStateContext)
-
-	if (state === null) {
-		throw new Error('useQueryBuilderState must be used within <QueryBuilder>')
-	}
-
-	return state
 }

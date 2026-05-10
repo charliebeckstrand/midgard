@@ -2,6 +2,7 @@
 
 import { type Ref, type RefObject, useCallback, useMemo } from 'react'
 import { cn } from '../../core'
+import { k } from '../../recipes/kata/calendar'
 import {
 	Calendar,
 	type CalendarActive,
@@ -9,7 +10,6 @@ import {
 	type CalendarHandle,
 } from './calendar'
 import { isBeforeDay, isBetween, isSameDay } from './utilities'
-import { k } from './variants'
 
 export type CalendarRangeProps = {
 	onChange?: (date: Date) => void

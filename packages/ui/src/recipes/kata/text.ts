@@ -21,3 +21,5 @@ export const text = tv({
 })
 
 export type TextVariants = VariantProps<typeof text>
+
+export { text as textVariants }

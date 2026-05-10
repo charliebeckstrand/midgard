@@ -3,9 +3,9 @@
 import { ChevronDown } from 'lucide-react'
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { cn } from '../../core'
+import { k } from '../../recipes/kata/accordion'
 import { Icon } from '../icon'
 import { useAccordionItem } from './context'
-import { k } from './variants'
 
 // ── AccordionButton ─────────────────────────────────────
 

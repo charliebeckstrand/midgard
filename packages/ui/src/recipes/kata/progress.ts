@@ -84,3 +84,9 @@ export const progress = {
 	color: slots.color,
 	track: slots.track,
 }
+
+export {
+	progressGauge as progressGaugeVariants,
+	progressTrack as progressTrackVariants,
+	slots as k,
+}

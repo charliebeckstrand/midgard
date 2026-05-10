@@ -1,7 +1,7 @@
-export { Frame, type FrameProps } from './component'
 export type {
-	FrameAlign,
-	FrameDirection,
-	FrameGap,
-	FrameJustify,
-} from './variants'
+	FlexAlign as FrameAlign,
+	FlexDirection as FrameDirection,
+	FlexGap as FrameGap,
+	FlexJustify as FrameJustify,
+} from '../flex/variants'
+export { Frame, type FrameProps } from './component'

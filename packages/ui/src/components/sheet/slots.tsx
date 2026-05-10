@@ -5,12 +5,7 @@ import {
 	type PanelDescriptionProps,
 	type PanelTitleProps,
 } from '../../primitives'
-import {
-	sheetActionsVariants,
-	sheetBodyVariants,
-	sheetDescriptionVariants,
-	sheetTitleVariants,
-} from './variants'
+import { sheet } from '../../recipes/kata/sheet'
 
 export type SheetTitleProps = PanelTitleProps
 export type SheetDescriptionProps = PanelDescriptionProps
@@ -18,10 +13,10 @@ export type SheetBodyProps = PanelBodyProps
 export type SheetActionsProps = PanelActionsProps
 
 const { Title, Description, Body, Actions } = createPanel('sheet', {
-	title: sheetTitleVariants,
-	description: sheetDescriptionVariants,
-	body: sheetBodyVariants,
-	actions: sheetActionsVariants,
+	title: sheet.title,
+	description: sheet.description,
+	body: sheet.body,
+	actions: sheet.actions,
 })
 
 export {

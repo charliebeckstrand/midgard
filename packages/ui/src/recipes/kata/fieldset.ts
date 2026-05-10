@@ -23,3 +23,5 @@ export const fieldset = {
 	description: ['text-base', iro.text.muted, sawari.disabled],
 	error: ['text-base', iro.text.error, sawari.disabled],
 }
+
+export { fieldset as k }

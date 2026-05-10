@@ -2,7 +2,7 @@ import { type CSSProperties, type ReactNode, type Ref, useMemo } from 'react'
 import { cn } from '../../core'
 import { Polymorphic, type PolymorphicProps } from '../../primitives'
 import { type Step, sun } from '../../recipes/ryu/sun'
-import { ConcentricContext } from './context'
+import { ConcentricProvider } from './context'
 
 type ConcentricBaseProps = {
 	/** Size step that drives padding, inner radius, and the concentric outer radius. */
@@ -70,7 +70,7 @@ export function Concentric({
 			style={style}
 			{...props}
 		>
-			<ConcentricContext.Provider value={value}>{children}</ConcentricContext.Provider>
+			<ConcentricProvider value={value}>{children}</ConcentricProvider>
 		</Polymorphic>
 	)
 }

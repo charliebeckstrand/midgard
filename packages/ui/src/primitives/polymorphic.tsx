@@ -1,12 +1,12 @@
 import type { ComponentPropsWithoutRef, ElementType, JSX, ReactNode, Ref } from 'react'
-import { Link } from './link'
+import { type LinkProps, useLink } from './link'
 
-/** Discriminated union — renders as a Link when `href` is provided, otherwise as the fallback element. */
+/** Discriminated union — renders as a link when `href` is provided, otherwise as the fallback element. */
 export type PolymorphicProps<Fallback extends keyof JSX.IntrinsicElements> =
 	| ({ href?: never } & Omit<ComponentPropsWithoutRef<Fallback>, 'className'>)
-	| ({ href: string } & Omit<ComponentPropsWithoutRef<typeof Link>, 'className'>)
+	| ({ href: string } & Omit<LinkProps, 'className'>)
 
-/** Renders as a Link when `href` is present, otherwise as the fallback intrinsic element. */
+/** Renders as a link when `href` is present, otherwise as the fallback intrinsic element. */
 export function Polymorphic<Fallback extends keyof JSX.IntrinsicElements>({
 	as,
 	href,
@@ -23,17 +23,19 @@ export function Polymorphic<Fallback extends keyof JSX.IntrinsicElements>({
 	className: string
 	children: ReactNode
 } & Record<string, unknown>) {
+	const { component: LinkComponent } = useLink()
+
 	if (href !== undefined) {
 		return (
-			<Link
+			<LinkComponent
 				ref={ref as Ref<HTMLAnchorElement>}
 				data-slot={dataSlot}
 				href={href}
 				className={className}
-				{...(rest as Omit<ComponentPropsWithoutRef<typeof Link>, 'href' | 'className'>)}
+				{...(rest as Omit<LinkProps, 'href' | 'className'>)}
 			>
 				{children}
-			</Link>
+			</LinkComponent>
 		)
 	}
 

@@ -55,3 +55,5 @@ export const radioInput = tv({ base: control.check.hidden })
 export const slots = { disabled: iro.text.disabled }
 
 export type RadioVariants = VariantProps<typeof radio>
+
+export { radio as radioVariants, radioInput as radioInputVariants, slots as k }

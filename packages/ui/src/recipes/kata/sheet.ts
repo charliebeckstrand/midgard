@@ -61,3 +61,6 @@ export const sheet = definePanelRecipe({
 })
 
 export type SheetPanelVariants = VariantProps<typeof sheet.panel>
+
+export const sheetPanelVariants = sheet.panel
+export const sheetBackdropVariants = sheet.backdrop

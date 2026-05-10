@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { breadcrumbVariants } from './variants'
+import { breadcrumbVariants } from '../../recipes/kata/breadcrumb'
 
 export type BreadcrumbProps = ComponentPropsWithoutRef<'nav'>
 

@@ -5,8 +5,12 @@ import { type ReactNode, useCallback, useMemo } from 'react'
 import { cn, createContext } from '../../core'
 import { Overlay, PanelA11yProvider, usePanelA11yScope } from '../../primitives'
 import { ugoki } from '../../recipes'
+import {
+	type SheetPanelVariants,
+	sheetBackdropVariants,
+	sheetPanelVariants,
+} from '../../recipes/kata/sheet'
 import { useGlass } from '../glass/context'
-import { type SheetPanelVariants, sheetBackdropVariants, sheetPanelVariants } from './variants'
 
 type SheetSide = 'right' | 'left' | 'top' | 'bottom'
 

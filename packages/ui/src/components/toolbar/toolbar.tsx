@@ -3,8 +3,8 @@
 import { type ReactNode, useRef } from 'react'
 import { cn } from '../../core'
 import { useRoving } from '../../hooks'
+import { type ToolbarVariants, toolbarVariants } from '../../recipes/kata/toolbar'
 import { type ToolbarContextValue, type ToolbarOrientation, ToolbarProvider } from './context'
-import { type ToolbarVariants, toolbarVariants } from './variants'
 
 const TOOLBAR_ITEM_SELECTOR = [
 	'a[href]',

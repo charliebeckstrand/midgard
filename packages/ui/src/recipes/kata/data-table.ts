@@ -26,3 +26,5 @@ export const dataTable = {
 	sortIconActive: iro.text.default,
 	rowLoading: 'animate-pulse opacity-60',
 }
+
+export { dataTable as k }

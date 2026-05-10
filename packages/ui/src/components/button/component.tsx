@@ -11,18 +11,17 @@ import {
 } from 'react'
 import { cn } from '../../core'
 import { type PolymorphicProps, springProps, TouchTarget, useRipple } from '../../primitives'
-import { Link } from '../../primitives/link'
 import { kokkaku } from '../../recipes'
-import { useAlertContext } from '../alert/context'
+import { type ButtonVariants, buttonVariants } from '../../recipes/kata/button'
 import { useConcentric } from '../concentric'
 import { useGlass } from '../glass/context'
 import { Icon } from '../icon'
 import { useInputSize } from '../input/context'
+import { Link } from '../link'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
 import { Spinner, type SpinnerProps } from '../spinner'
 import { ButtonSizeProvider } from './context'
-import { type ButtonVariants, buttonVariants } from './variants'
 
 export type LoadingOptions = Pick<SpinnerProps, 'color' | 'size' | 'label'>
 
@@ -84,7 +83,6 @@ export function Button({
 
 	const loadingOptions = typeof loadingProp === 'object' ? loadingProp : undefined
 
-	const alert = useAlertContext()
 	const concentric = useConcentric()
 	const glass = useGlass()
 	const inputSize = useInputSize()
@@ -108,10 +106,6 @@ export function Button({
 			.onPointerDown
 
 		consumerHandler?.(e)
-	}
-
-	if (!color && alert) {
-		color = alert.variant === 'solid' ? 'inherit' : alert.color
 	}
 
 	const labelled = hasLabelContent(children)

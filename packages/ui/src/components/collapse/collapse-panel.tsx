@@ -4,8 +4,8 @@ import { AnimatePresence, motion } from 'motion/react'
 import type { ReactNode } from 'react'
 import { cn } from '../../core/cn'
 import { ugoki } from '../../recipes'
+import { k } from '../../recipes/kata/collapse'
 import { useCollapseContext } from './context'
-import { k } from './variants'
 
 export type CollapsePanelProps = {
 	children: ReactNode

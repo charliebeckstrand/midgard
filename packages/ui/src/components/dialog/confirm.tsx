@@ -1,11 +1,11 @@
 'use client'
 
 import type { ReactNode } from 'react'
+import type { DialogPanelVariants } from '../../recipes/kata/dialog'
 import type { ButtonVariants } from '../button'
 import { Button } from '../button'
 import { Dialog } from './dialog'
 import { DialogActions, DialogDescription, DialogTitle } from './slots'
-import type { DialogPanelVariants } from './variants'
 
 type ConfirmDialogAction = {
 	label?: string

@@ -17,8 +17,10 @@ import { useControllable } from '../../hooks/use-controllable'
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
 import { ControlFrame, PopoverPanel } from '../../primitives'
 import { kokkaku } from '../../recipes'
+import { k } from '../../recipes/kata/combobox'
+import { popover as kPopover } from '../../recipes/kata/popover'
 import { control as controlRecipe } from '../../recipes/waku/control'
-import { useControl } from '../control/context'
+import { type ControlSize, useControl } from '../control/context'
 import { useGlass } from '../glass/context'
 import { Icon } from '../icon'
 import { HeadlessInput } from '../input'
@@ -26,7 +28,6 @@ import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
 import { useComboboxSelection } from './use-combobox-selection'
 import { resolveInputDisplay, selectActiveOrSingleOption } from './utilities'
-import { k, kPopover } from './variants'
 
 type ComboboxContextValue<T = unknown> = {
 	value: T | T[] | undefined
@@ -44,6 +45,8 @@ type ComboboxBaseProps<T> = {
 	displayValue?: (value: T) => string
 	placement?: Placement
 	icon?: ReactNode
+	size?: ControlSize
+	disabled?: boolean
 	className?: string
 	inputType?: InputHTMLAttributes<HTMLInputElement>['type']
 	autoComplete?: InputHTMLAttributes<HTMLInputElement>['autoComplete']
@@ -91,6 +94,8 @@ export function Combobox<T>({
 	placeholder = 'Search',
 	placement = 'bottom-start',
 	icon,
+	size,
+	disabled,
 	selectable = true,
 	nullable = valueProp === undefined && defaultValue === undefined,
 	closeOnSelect,
@@ -107,7 +112,9 @@ export function Combobox<T>({
 	const control = useControl()
 	const skeleton = useSkeleton()
 
-	const resolvedSize = control?.size ?? 'md'
+	const resolvedSize = size ?? control?.size ?? 'md'
+
+	const resolvedDisabled = disabled ?? control?.disabled
 
 	const handleValueChange = useCallback(
 		(nextValue: T | T[] | undefined) => {
@@ -211,6 +218,7 @@ export function Combobox<T>({
 						data-slot="combobox-input"
 						id={id}
 						autoComplete={autoComplete}
+						disabled={resolvedDisabled}
 						value={inputDisplay}
 						placeholder={placeholder}
 						onChange={(e) => {
@@ -281,6 +289,7 @@ export function Combobox<T>({
 									id={listboxId}
 									role="listbox"
 									autoFocus={false}
+									glass={glass}
 									className={cn('relative', k.options)}
 									onKeyDown={(e) => {
 										if (e.key === 'Escape') close()

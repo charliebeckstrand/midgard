@@ -2,8 +2,8 @@
 
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
+import { stepperSeparatorVariants } from '../../recipes/kata/stepper'
 import { useStepper } from './context'
-import { stepperSeparatorVariants } from './variants'
 
 export type StepperSeparatorProps = {
 	className?: string

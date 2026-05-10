@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
+import { k } from '../../recipes/kata/avatar'
 import type { take } from '../../recipes/ryu/take'
 import { Avatar } from './avatar'
-import { AvatarGroupSizeContext } from './context'
-import { k } from './variants'
+import { AvatarGroupSizeProvider } from './context'
 
 type AvatarSize = take.AvatarSize
 
@@ -16,7 +16,7 @@ export type AvatarGroupProps = {
 
 export function AvatarGroup({ extra, size = 'md', className, children }: AvatarGroupProps) {
 	return (
-		<AvatarGroupSizeContext value={size}>
+		<AvatarGroupSizeProvider value={size}>
 			<div
 				data-slot="avatar-group"
 				className={cn(k.group.base, k.group.ring, k.group.spacing[size], className)}
@@ -24,6 +24,6 @@ export function AvatarGroup({ extra, size = 'md', className, children }: AvatarG
 				{children}
 				{extra != null && extra > 0 && <Avatar size={size} initials={`+${extra}`} />}
 			</div>
-		</AvatarGroupSizeContext>
+		</AvatarGroupSizeProvider>
 	)
 }

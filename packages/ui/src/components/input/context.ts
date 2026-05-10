@@ -1,12 +1,13 @@
 'use client'
 
-import { createContext, useContext } from 'react'
+import { createContext } from '../../core'
 import type { Size } from '../../types'
 
-const InputSizeContext = createContext<Size | undefined>(undefined)
-
-export const InputSizeProvider = InputSizeContext.Provider
-
-export function useInputSize(): Size | undefined {
-	return useContext(InputSizeContext)
-}
+/**
+ * Broadcast of `<Input>`'s resolved size to its descendants — affix icons,
+ * clear/loading buttons, spinners inside the input auto-scale. Pure downward
+ * broadcast, no inheritance from outer ancestors. See `src/CASCADES.md`.
+ */
+export const [InputSizeProvider, useInputSize] = createContext<Size | undefined>('InputSize', {
+	default: undefined,
+})

@@ -1,8 +1,12 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
+import {
+	type StatValueVariants,
+	statValuePlaceholder,
+	statValueVariants,
+} from '../../recipes/kata/stat'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
-import { type StatValueVariants, statValuePlaceholder, statValueVariants } from './variants'
 
 export type StatValueProps = StatValueVariants & {
 	className?: string

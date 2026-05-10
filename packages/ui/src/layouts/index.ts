@@ -2,7 +2,6 @@ export {
 	OffcanvasContext,
 	type OffcanvasContextValue,
 	OffcanvasProvider,
-	useOffcanvas,
 } from '../primitives/offcanvas'
 export { AuthLayout, type AuthLayoutProps } from './auth'
 export { DashboardLayout, type DashboardLayoutProps } from './dashboard'

@@ -1,6 +1,6 @@
 'use client'
 
-import { useLayoutEffect } from 'react'
+import { use, useLayoutEffect } from 'react'
 import { Combobox, ComboboxOption } from '../../components/combobox'
 import { Heading } from '../../components/heading'
 import {
@@ -12,12 +12,12 @@ import {
 	SidebarSection,
 } from '../../components/sidebar'
 import { useScrollWithin } from '../../hooks'
-import { useOffcanvas } from '../../primitives/offcanvas'
+import { OffcanvasContext } from '../../primitives/offcanvas'
 import { navigate } from '../hooks/use-hash'
 import { demos, preloadDemo, sortedCategories } from '../registry'
 
 export function SidebarContent({ route }: { route: string }) {
-	const offcanvas = useOffcanvas()
+	const offcanvas = use(OffcanvasContext)
 
 	const scrollWithin = useScrollWithin()
 

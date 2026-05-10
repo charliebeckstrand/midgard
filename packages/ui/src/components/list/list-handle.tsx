@@ -3,9 +3,9 @@
 import { GripVertical } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
+import { k } from '../../recipes/kata/list'
 import { Icon } from '../icon'
 import { useListContext, useListItemContext } from './context'
-import { k } from './variants'
 
 // ── ListHandle ─────────────────────────────────────────
 // Decorative pointer affordance. Focus and keyboard reorder live on the

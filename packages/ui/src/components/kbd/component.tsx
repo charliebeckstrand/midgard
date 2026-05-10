@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { type KbdVariants, kbdVariants } from './variants'
+import { type KbdVariants, kbdVariants } from '../../recipes/kata/kbd'
 
 export type KbdProps = ComponentPropsWithoutRef<'kbd'> & {
 	size?: KbdVariants['size']

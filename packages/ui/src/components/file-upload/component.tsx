@@ -4,13 +4,13 @@ import { Upload } from 'lucide-react'
 import type { ComponentProps, ReactNode } from 'react'
 import { cn } from '../../core'
 import { sawari } from '../../recipes'
+import { fileUploadClasses, k } from '../../recipes/kata/file-upload'
 import { AspectRatio, type AspectRatioProps } from '../aspect-ratio'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { Input } from '../input'
 import { useFileHandlers } from './use-file-handlers'
 import { formatFileNames } from './utilities'
-import { fileUploadClasses, k } from './variants'
 
 type FileUploadSharedProps = {
 	/** Accepted file types (e.g. `"image/*"`, `".pdf,.doc"`). */

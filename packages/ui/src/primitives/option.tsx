@@ -2,14 +2,14 @@
 
 import { Check } from 'lucide-react'
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
-import { Icon } from '../components/icon'
 import { cn } from '../core'
 import { option as k } from '../recipes/kata/option'
 
 const defaultCheckIcon = (
-	<Icon
-		icon={<Check />}
-		className="relative hidden self-center text-green-600 group-data-selected/option:inline"
+	<Check
+		aria-hidden="true"
+		data-slot="icon"
+		className="size-5 relative hidden self-center text-green-600 group-data-selected/option:inline"
 	/>
 )
 

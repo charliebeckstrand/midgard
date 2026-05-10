@@ -2,11 +2,11 @@
 
 import { memo, useMemo } from 'react'
 import { cn } from '../../core'
+import { k } from '../../recipes/kata/data-table'
 import { Checkbox } from '../checkbox'
 import { TableCell, TableRow } from '../table'
 import type { DataTableColumn } from './component'
 import { type DataTableRowContextValue, DataTableRowProvider, useDataTable } from './context'
-import { k } from './variants'
 
 type DataTableRowInternalProps<T> = {
 	row: T

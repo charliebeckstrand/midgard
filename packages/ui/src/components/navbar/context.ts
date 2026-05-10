@@ -1,11 +1,5 @@
 'use client'
 
-import { createContext, useContext } from 'react'
+import { createContext } from '../../core'
 
-const NavbarContext = createContext(false)
-
-export const NavbarProvider = NavbarContext.Provider
-
-export function useNavbar() {
-	return useContext(NavbarContext)
-}
+export const [NavbarProvider, useNavbar] = createContext<boolean>('Navbar', { default: false })

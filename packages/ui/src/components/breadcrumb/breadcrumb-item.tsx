@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { breadcrumbItemVariants } from './variants'
+import { breadcrumbItemVariants } from '../../recipes/kata/breadcrumb'
 
 export type BreadcrumbItemProps = { current?: boolean } & ComponentPropsWithoutRef<'li'>
 

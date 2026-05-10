@@ -3,13 +3,13 @@
 import { useCallback, useMemo } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
+import { k } from '../../recipes/kata/query-builder'
 import { Fieldset } from '../fieldset'
 import type { QueryBuilderActions, QueryBuilderStateValue } from './context'
 import { QueryBuilderProvider } from './context'
 import { QueryGroup } from './group'
 import type { QueryField, QueryGroup as QueryGroupNode, QueryRule as QueryRuleNode } from './types'
 import { addChild, createGroup, createRule, mapNode, removeChild } from './utilities'
-import { k } from './variants'
 
 // ── QueryBuilder ───────────────────────────────────────
 

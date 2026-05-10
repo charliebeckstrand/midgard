@@ -18,3 +18,5 @@ export const heading = tv({
 })
 
 export type HeadingVariants = VariantProps<typeof heading>
+
+export { heading as headingVariants }

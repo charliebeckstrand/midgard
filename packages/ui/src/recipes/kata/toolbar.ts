@@ -31,3 +31,5 @@ export const toolbarGroup = tv({
 
 export type ToolbarVariants = VariantProps<typeof toolbar>
 export type ToolbarGroupVariants = VariantProps<typeof toolbarGroup>
+
+export { toolbar as toolbarVariants, toolbarGroup as toolbarGroupVariants }

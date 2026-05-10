@@ -6,8 +6,8 @@ import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { PopoverPanel } from '../../primitives'
 import { omote } from '../../recipes'
+import { k } from '../../recipes/kata/menu'
 import { useMenuActions, useMenuState } from './menu'
-import { k } from './variants'
 
 export type MenuContentProps = {
 	className?: string

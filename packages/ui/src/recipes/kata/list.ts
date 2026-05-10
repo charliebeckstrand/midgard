@@ -57,3 +57,5 @@ export const list = {
 	label: 'min-w-0 truncate',
 	description: ['min-w-0 truncate', ji.size.sm, iro.text.muted],
 }
+
+export { list as k }

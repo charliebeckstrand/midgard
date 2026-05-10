@@ -23,7 +23,6 @@ const componentEntries = Object.fromEntries(
 )
 
 const entry = {
-	index: 'src/index.ts',
 	hooks: 'src/hooks/index.ts',
 	layouts: 'src/layouts/index.ts',
 	...componentEntries,

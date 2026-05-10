@@ -27,3 +27,5 @@ export const passwordStrength = {
 	ruleText: iro.text.muted,
 	ruleTextPass: iro.text.default,
 }
+
+export { passwordStrength as k }

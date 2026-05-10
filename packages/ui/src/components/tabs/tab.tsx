@@ -3,9 +3,9 @@
 import type { ComponentPropsWithoutRef, MouseEvent } from 'react'
 import { cn } from '../../core'
 import { ActiveIndicator, useActiveIndicator, useCurrentContext } from '../../primitives'
-import { segmentItemVariants } from '../segment/variants'
+import { segment as ks, segmentItemVariants } from '../../recipes/kata/segment'
+import { k } from '../../recipes/kata/tabs'
 import { useTabsContext } from './context'
-import { k, ks } from './variants'
 
 export type TabProps = {
 	value?: string

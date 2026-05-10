@@ -5,7 +5,7 @@ import {
 	chatMessageBubbleVariants,
 	chatMessageVariants,
 	k,
-} from './variants'
+} from '../../recipes/kata/chat-message'
 
 export type ChatMessageProps = ChatMessageVariants & {
 	/** Wall-clock label shown below the bubble. */

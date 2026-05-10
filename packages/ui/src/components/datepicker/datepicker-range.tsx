@@ -11,6 +11,9 @@ import { useFocusTrap } from '../../hooks/use-focus-trap'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { ControlFrame } from '../../primitives'
 import { iro, omote, ugoki } from '../../recipes'
+import { calendar as kCalendar } from '../../recipes/kata/calendar'
+import { k } from '../../recipes/kata/datepicker'
+import { popover as kPopover } from '../../recipes/kata/popover'
 import { Box } from '../box'
 import { Button } from '../button'
 import { type CalendarActive, type CalendarHandle, CalendarRange } from '../calendar'
@@ -20,7 +23,6 @@ import { Icon } from '../icon'
 import type { DatePickerBaseProps, DatePickerRangeProps } from './datepicker'
 import { type FooterButton, useDatePickerKeyDown } from './use-keyboard'
 import { addDays, clampDate, formatRange } from './utilities'
-import { k, kCalendar, kPopover } from './variants'
 
 export function DatePickerRange({
 	value: valueProp,

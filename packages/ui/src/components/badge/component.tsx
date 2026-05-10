@@ -2,9 +2,9 @@ import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { Polymorphic, type PolymorphicProps } from '../../primitives'
 import { kokkaku } from '../../recipes'
+import { type BadgeVariants, badgeVariants } from '../../recipes/kata/badge'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
-import { type BadgeVariants, badgeVariants } from './variants'
 
 type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never
 

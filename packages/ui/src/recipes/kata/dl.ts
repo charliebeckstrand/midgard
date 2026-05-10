@@ -44,3 +44,5 @@ export const dlDetails = tv({
 export type DlVariants = VariantProps<typeof dl>
 export type DlTermVariants = VariantProps<typeof dlTerm>
 export type DlDetailsVariants = VariantProps<typeof dlDetails>
+
+export { dl as dlVariants, dlDetails as dlDetailsVariants, dlTerm as dlTermVariants }

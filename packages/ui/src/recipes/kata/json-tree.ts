@@ -44,3 +44,5 @@ export const jsonTree = {
 	group: 'overflow-hidden',
 	highlight: ['bg-amber-100/60', 'dark:bg-amber-500/15', 'rounded-lg'],
 }
+
+export { jsonTree as k }

@@ -3,6 +3,19 @@
 Compound chrome shared by ≥2 components. Each module here is a multi-element
 or multi-state archetype that several kata depend on.
 
+## Wire format
+
+Every waku export is a class fragment (`string[]`) or a map of fragments
+(`Record<string, string[]>`). **`tv()` is never invoked inside waku** — it is
+called only at the kata public surface, where the variants axis is declared.
+
+Why this matters: a single wire format means any kata can compose any waku
+export without translating between fragment-arrays and `tv()`-callables. The
+panel family preserves `VariantProps<typeof X>` inference via the
+`definePanelRecipe` factory — callers pass their own `tv()` results in as
+generics, and the factory forwards them unchanged while emitting fragments
+for the zero-variant slots.
+
 ## Modules
 
 | Module    | Concern                                                 | Consumers |

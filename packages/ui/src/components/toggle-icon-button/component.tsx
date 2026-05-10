@@ -1,9 +1,9 @@
 import type { ComponentPropsWithoutRef, ReactElement } from 'react'
 import { cn } from '../../core'
+import { k } from '../../recipes/kata/toggle-icon-button'
 import type { Size } from '../../types'
 import { Button } from '../button'
 import { Icon } from '../icon'
-import { k } from './variants'
 
 export type ToggleIconButtonProps = {
 	pressed: boolean

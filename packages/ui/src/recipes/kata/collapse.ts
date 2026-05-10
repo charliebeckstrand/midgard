@@ -19,3 +19,5 @@ export const collapse = {
 	],
 	panel: 'overflow-hidden',
 }
+
+export { collapse as k }

@@ -3,12 +3,12 @@
 import { ArrowDown, ArrowUp } from 'lucide-react'
 import { memo } from 'react'
 import { cn } from '../../core'
+import { k } from '../../recipes/kata/data-table'
 import { Checkbox } from '../checkbox'
 import { Icon } from '../icon'
 import { TableHead, TableHeader, TableRow } from '../table'
 import type { DataTableColumn } from './component'
 import { useDataTable } from './context'
-import { k } from './variants'
 
 type DataTableHeadProps<T> = {
 	columns: DataTableColumn<T>[]

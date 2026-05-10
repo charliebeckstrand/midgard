@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext } from 'react'
+import { createContext } from '../../core'
 import type { Orientation } from '../../types'
 
 type TimelineOrientation = Orientation
@@ -11,15 +11,8 @@ type TimelineContextValue = {
 	variant: TimelineVariant
 }
 
-const TimelineContext = createContext<TimelineContextValue>({
-	orientation: 'vertical',
-	variant: 'solid',
+export const [TimelineProvider, useTimeline] = createContext<TimelineContextValue>('Timeline', {
+	default: { orientation: 'vertical', variant: 'solid' },
 })
-
-export const TimelineProvider = TimelineContext.Provider
-
-export function useTimeline(): TimelineContextValue {
-	return useContext(TimelineContext)
-}
 
 export type { TimelineOrientation, TimelineVariant }

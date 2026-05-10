@@ -27,3 +27,5 @@ export const calendar = {
 		rangeRightEdge: 'rounded-l-none',
 	},
 }
+
+export { calendar as k }

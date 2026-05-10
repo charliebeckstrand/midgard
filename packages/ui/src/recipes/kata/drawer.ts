@@ -43,3 +43,6 @@ export const drawer = definePanelRecipe({
 })
 
 export type DrawerPanelVariants = VariantProps<typeof drawer.panel>
+
+export const drawerPanelVariants = drawer.panel
+export const drawerBackdropVariants = drawer.backdrop

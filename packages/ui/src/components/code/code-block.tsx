@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react'
 import type { BundledLanguage, BundledTheme } from 'shiki'
 import { cn } from '../../core'
+import { codeBlockVariants, k } from '../../recipes/kata/code'
 import { CopyButton } from '../copy-button'
-import { codeBlockVariants, k } from './variants'
 
 const MAX_CACHE_SIZE = 200
 

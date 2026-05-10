@@ -1,5 +1,4 @@
+export { type AlertVariants, alertVariants } from '../../recipes/kata/alert'
 export { Alert, type AlertProps } from './alert'
 export { AlertDescription, type AlertDescriptionProps } from './alert-description'
 export { AlertTitle, type AlertTitleProps } from './alert-title'
-export { type AlertContextValue, useAlertContext } from './context'
-export { type AlertVariants, alertVariants } from './variants'

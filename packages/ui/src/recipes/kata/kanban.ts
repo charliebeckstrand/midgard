@@ -37,3 +37,5 @@ export const kanban = {
 	cardLifted: sen.focus.lifted,
 	cardActive: 'z-10 shadow-lg relative opacity-95',
 }
+
+export { kanban as k }

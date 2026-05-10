@@ -45,3 +45,5 @@ export const slots = {
 }
 
 export type TextareaVariants = VariantProps<typeof textarea>
+
+export { textarea as textareaVariants, textareaControl as controlVariants, slots as k }

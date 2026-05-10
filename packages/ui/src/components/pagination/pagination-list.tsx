@@ -1,7 +1,7 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { ActiveIndicatorScope } from '../../primitives'
-import { paginationListVariants } from './variants'
+import { paginationListVariants } from '../../recipes/kata/pagination'
 
 export type PaginationListProps = ComponentPropsWithoutRef<'ol'>
 

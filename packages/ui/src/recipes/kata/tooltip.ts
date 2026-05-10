@@ -17,3 +17,5 @@ export const tooltip = {
 		'pointer-events-none',
 	],
 }
+
+export { tooltip as k }

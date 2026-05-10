@@ -24,3 +24,6 @@ export const fileUpload = {
 	icon: 'shrink-0',
 	label: ['font-medium', iro.text.default],
 }
+
+export { fileUpload as k }
+export const fileUploadClasses = fileUpload.dropzone

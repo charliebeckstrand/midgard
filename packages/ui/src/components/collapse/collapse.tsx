@@ -4,10 +4,10 @@ import { type ReactNode, useCallback } from 'react'
 import { cn } from '../../core/cn'
 import { useControllable } from '../../hooks/use-controllable'
 import { useIdScope } from '../../hooks/use-id-scope'
+import { k } from '../../recipes/kata/collapse'
 import { CollapsePanel } from './collapse-panel'
 import { CollapseTrigger } from './collapse-trigger'
 import { CollapseProvider } from './context'
-import { k } from './variants'
 
 export type CollapseProps = {
 	/** Initial open state — uncontrolled. */

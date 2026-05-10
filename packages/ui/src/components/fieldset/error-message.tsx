@@ -2,9 +2,9 @@
 
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
+import { k } from '../../recipes/kata/fieldset'
 import { useControl } from '../control/context'
 import { useFormField } from '../form/context'
-import { k } from './variants'
 
 export type ErrorMessageProps = {
 	className?: string

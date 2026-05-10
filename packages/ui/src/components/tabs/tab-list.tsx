@@ -4,9 +4,9 @@ import { type ComponentPropsWithoutRef, useEffect, useRef } from 'react'
 import { cn } from '../../core'
 import { useRoving } from '../../hooks'
 import { ActiveIndicatorScope } from '../../primitives'
-import { segmentControlVariants } from '../segment/variants'
+import { segmentControlVariants } from '../../recipes/kata/segment'
+import { k } from '../../recipes/kata/tabs'
 import { useTabsContext } from './context'
-import { k } from './variants'
 
 const TAB_SELECTOR = 'button[data-slot="tab"]:not(:disabled)'
 

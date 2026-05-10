@@ -10,9 +10,9 @@ import {
 	useState,
 } from 'react'
 import { cn } from '../../core'
+import { k } from '../../recipes/kata/copy-button'
 import type { Size } from '../../types'
 import { ToggleIconButton } from '../toggle-icon-button'
-import { k } from './variants'
 
 export type CopyButtonProps = {
 	value: string

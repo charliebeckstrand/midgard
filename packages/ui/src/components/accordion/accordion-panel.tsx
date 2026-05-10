@@ -3,8 +3,8 @@
 import { AnimatePresence, motion } from 'motion/react'
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
+import { k } from '../../recipes/kata/accordion'
 import { useAccordionItem } from './context'
-import { k } from './variants'
 
 // ── AccordionPanel ──────────────────────────────────────
 

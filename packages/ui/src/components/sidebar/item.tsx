@@ -1,7 +1,7 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
+import { k } from '../../recipes/kata/sidebar'
 import { type BaseNavItemProps, createNavItem } from '../nav'
-import { k } from './variants'
 
 export type SidebarItemProps = BaseNavItemProps
 

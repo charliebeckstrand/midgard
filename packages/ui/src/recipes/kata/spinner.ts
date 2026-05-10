@@ -23,3 +23,5 @@ export const spinner = tv({
 })
 
 export type SpinnerVariants = VariantProps<typeof spinner>
+
+export { spinner as spinnerVariants }

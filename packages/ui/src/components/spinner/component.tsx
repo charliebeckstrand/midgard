@@ -1,8 +1,8 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
+import { type SpinnerVariants, spinnerVariants } from '../../recipes/kata/spinner'
 import { useButtonSize } from '../button/context'
 import { useInputSize } from '../input/context'
-import { type SpinnerVariants, spinnerVariants } from './variants'
 
 export type SpinnerProps = SpinnerVariants & {
 	label?: string

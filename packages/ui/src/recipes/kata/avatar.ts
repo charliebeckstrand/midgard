@@ -52,3 +52,10 @@ export const slots = {
 }
 
 export type AvatarVariants = VariantProps<typeof avatar>
+
+export {
+	avatar as avatarVariants,
+	avatarImage as avatarImageVariants,
+	avatarInitials as avatarInitialsVariants,
+	slots as k,
+}

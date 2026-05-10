@@ -2,8 +2,8 @@
 
 import { useEffect, useRef } from 'react'
 import { cn } from '../../core'
+import { k } from '../../recipes/kata/editable-grid'
 import { useEditableGrid } from './context'
-import { k } from './variants'
 
 export type EditableGridCellContentProps = {
 	rowIdx: number

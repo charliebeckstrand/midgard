@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
-import { k } from './variants'
+import { k } from '../../recipes/kata/kanban'
 
 export type KanbanColumnBodyProps = {
 	/** Shown when the column has no cards. */

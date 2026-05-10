@@ -1,20 +1,12 @@
-import {
-	type ComponentPropsWithoutRef,
-	createContext as reactCreateContext,
-	useCallback,
-	useContext,
-	useEffect,
-	useMemo,
-	useState,
-} from 'react'
-import { cn } from '../core'
+import { type ComponentPropsWithoutRef, useCallback, useEffect, useMemo, useState } from 'react'
+import { cn, createContext } from '../core'
 import { useIdScope } from '../hooks/use-id-scope'
 import { narabi } from '../recipes/ryu/narabi'
 
-const panelTitleVariants = () => cn(narabi.panel.title)
-const panelDescriptionVariants = () => cn(narabi.panel.description)
-const panelBodyVariants = () => cn(narabi.panel.body)
-const panelActionsVariants = () => cn(narabi.panel.actions)
+const defaultTitle = narabi.panel.title
+const defaultDescription = narabi.panel.description
+const defaultBody = narabi.panel.body
+const defaultActions = narabi.panel.actions
 
 export type PanelTitleProps = ComponentPropsWithoutRef<'h2'>
 export type PanelDescriptionProps = ComponentPropsWithoutRef<'p'>
@@ -27,13 +19,9 @@ type PanelA11yContextValue = {
 	registerDescription?: () => () => void
 }
 
-const PanelA11yContext = reactCreateContext<PanelA11yContextValue>({})
-
-export const PanelA11yProvider = PanelA11yContext.Provider
-
-export function usePanelA11y() {
-	return useContext(PanelA11yContext)
-}
+export const [PanelA11yProvider, usePanelA11y] = createContext<PanelA11yContextValue>('PanelA11y', {
+	default: {},
+})
 
 /** Hook for panel components to track whether a Description slot has been rendered. */
 export function useDescriptionRegistration() {
@@ -76,18 +64,18 @@ export function usePanelA11yScope() {
 }
 
 /** Creates Title, Description, Body, and Actions slot components for a panel prefix. */
-type PanelSlotVariants = {
-	title?: () => string
-	description?: () => string
-	body?: () => string
-	actions?: () => string
+type PanelSlots = {
+	title?: string | string[]
+	description?: string | string[]
+	body?: string | string[]
+	actions?: string | string[]
 }
 
-export function createPanel(prefix: string, variants?: PanelSlotVariants) {
-	const titleCva = variants?.title ?? panelTitleVariants
-	const descriptionCva = variants?.description ?? panelDescriptionVariants
-	const bodyCva = variants?.body ?? panelBodyVariants
-	const actionsCva = variants?.actions ?? panelActionsVariants
+export function createPanel(prefix: string, slots?: PanelSlots) {
+	const titleCls = slots?.title ?? defaultTitle
+	const descriptionCls = slots?.description ?? defaultDescription
+	const bodyCls = slots?.body ?? defaultBody
+	const actionsCls = slots?.actions ?? defaultActions
 
 	function Title({ className, id, ...props }: PanelTitleProps) {
 		const { titleId } = usePanelA11y()
@@ -95,7 +83,7 @@ export function createPanel(prefix: string, variants?: PanelSlotVariants) {
 			<h2
 				id={id ?? titleId}
 				data-slot={`${prefix}-title`}
-				className={cn(titleCva(), className)}
+				className={cn(titleCls, className)}
 				{...props}
 			/>
 		)
@@ -110,20 +98,18 @@ export function createPanel(prefix: string, variants?: PanelSlotVariants) {
 			<p
 				id={id ?? descriptionId}
 				data-slot={`${prefix}-description`}
-				className={cn(descriptionCva(), className)}
+				className={cn(descriptionCls, className)}
 				{...props}
 			/>
 		)
 	}
 
 	function Body({ className, ...props }: PanelBodyProps) {
-		return <div data-slot={`${prefix}-body`} className={cn(bodyCva(), className)} {...props} />
+		return <div data-slot={`${prefix}-body`} className={cn(bodyCls, className)} {...props} />
 	}
 
 	function Actions({ className, ...props }: PanelActionsProps) {
-		return (
-			<div data-slot={`${prefix}-actions`} className={cn(actionsCva(), className)} {...props} />
-		)
+		return <div data-slot={`${prefix}-actions`} className={cn(actionsCls, className)} {...props} />
 	}
 
 	return { Title, Description, Body, Actions }

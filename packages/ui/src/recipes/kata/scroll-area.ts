@@ -105,3 +105,10 @@ export const scrollArea = {
 	scrollbar: scrollAreaScrollbar,
 	thumb: scrollAreaThumb,
 }
+
+export {
+	scrollAreaScrollbar as scrollAreaScrollbarVariants,
+	scrollAreaThumb as scrollAreaThumbVariants,
+	scrollAreaViewport as scrollAreaViewportVariants,
+	scrollAreaWrapper as scrollAreaWrapperVariants,
+}

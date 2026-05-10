@@ -2,8 +2,8 @@
 
 import { type ReactNode, useMemo } from 'react'
 import { cn } from '../../core'
+import { k } from '../../recipes/kata/table'
 import { type TableContextValue, TableProvider } from './context'
-import { k } from './variants'
 
 export type TableVariants = {
 	dense?: boolean

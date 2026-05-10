@@ -1,3 +1,8 @@
+export {
+	type SheetPanelVariants,
+	sheetBackdropVariants,
+	sheetPanelVariants,
+} from '../../recipes/kata/sheet'
 export { Sheet, type SheetProps } from './sheet'
 export {
 	SheetActions,
@@ -10,12 +15,3 @@ export {
 	type SheetTitleProps,
 } from './slots'
 export { SheetClose, type SheetCloseProps, SheetOpen, type SheetOpenProps } from './trigger'
-export {
-	type SheetPanelVariants,
-	sheetActionsVariants,
-	sheetBodyVariants,
-	sheetCloseVariants,
-	sheetDescriptionVariants,
-	sheetPanelVariants,
-	sheetTitleVariants,
-} from './variants'

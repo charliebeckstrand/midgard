@@ -1,6 +1,6 @@
 import { cn } from '../../core'
+import { k } from '../../recipes/kata/bottom-nav'
 import { Nav, NavList, type NavProps } from '../nav'
-import { k } from './variants'
 
 export type BottomNavProps = NavProps
 

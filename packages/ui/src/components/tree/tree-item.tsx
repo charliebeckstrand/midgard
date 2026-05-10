@@ -5,9 +5,9 @@ import { AnimatePresence, motion } from 'motion/react'
 import { type ReactElement, type ReactNode, useMemo, useState } from 'react'
 import { cn } from '../../core'
 import { ugoki } from '../../recipes'
+import { k } from '../../recipes/kata/tree'
 import { Icon } from '../icon'
 import { TreeProvider, useTreeContext } from './context'
-import { k } from './variants'
 
 // ── TreeItem ───────────────────────────────────────────
 

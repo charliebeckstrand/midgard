@@ -29,3 +29,5 @@ export const editableGrid = {
 		right: 'text-right',
 	},
 }
+
+export { editableGrid as k }
