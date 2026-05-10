@@ -52,10 +52,11 @@ async function lighthouse(url: string): Promise<LhJson> {
 		'lighthouse',
 		url,
 		'--quiet',
-		'--chrome-flags=--headless=new --no-sandbox',
+		'--chrome-flags=--headless=new --no-sandbox --disable-dev-shm-usage',
 		'--output=json',
 		`--output-path=${out}`,
 		'--only-categories=performance',
+		'--form-factor=desktop',
 		'--throttling-method=simulate',
 		'--throttling.rttMs=150',
 		'--throttling.throughputKbps=1638.4',
@@ -63,6 +64,8 @@ async function lighthouse(url: string): Promise<LhJson> {
 		'--screenEmulation.mobile=false',
 		'--screenEmulation.width=1280',
 		'--screenEmulation.height=800',
+		'--screenEmulation.deviceScaleFactor=1',
+		'--screenEmulation.disabled=false',
 	]
 
 	const code = await new Promise<number>((res, rej) => {
