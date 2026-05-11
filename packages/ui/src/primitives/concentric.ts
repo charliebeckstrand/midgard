@@ -7,7 +7,7 @@ import type { Step } from '../recipes/ryu/sun'
  * descendants to default their `size` prop.
  *
  * Read by form fields and concentric participants as a fallback before
- * the component's own default. See `src/CASCADES.md` for the full chain.
+ * the component's own default. See `src/docs/CASCADES.md` for the full chain.
  */
 export type ConcentricContextValue = {
 	size: Step

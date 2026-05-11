@@ -39,7 +39,7 @@ export type UseFieldPropsResult = {
  *
  * Size is **not** resolved here — checkbox / radio read only `useConcentric`
  * for size, while input / textarea / switch additionally read `control?.size`.
- * Callers handle their own size cascade per `src/CASCADES.md`.
+ * Callers handle their own size cascade per `src/docs/CASCADES.md`.
  *
  * @example
  *   const { id, disabled, required, invalid } = useFieldProps({

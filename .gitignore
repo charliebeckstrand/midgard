@@ -32,6 +32,7 @@ npm-debug.log*
 # Claude
 .claude/cache/
 .claude/plans
+.claude/worktrees
 .claude/settings.json
 
 # council artifacts (session-scoped reports)

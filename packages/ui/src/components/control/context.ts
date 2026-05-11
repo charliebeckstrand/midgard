@@ -22,7 +22,7 @@ export type ControlContextValue = {
  * variant — every prop a nested form field can inherit.
  *
  * Read by input, textarea, switch, listbox, combobox, datepicker, checkbox,
- * radio. See `src/CASCADES.md` for the full chain.
+ * radio. See `src/docs/CASCADES.md` for the full chain.
  */
 export const [ControlProvider, useControl] = createContext<ControlContextValue | undefined>(
 	'Control',
