@@ -1,29 +1,20 @@
 'use client'
 
-import { FloatingPortal, type Placement } from '@floating-ui/react'
-import { Calendar as CalendarIcon } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
+import type { Placement } from '@floating-ui/react'
 import { useCallback, useMemo, useRef, useState } from 'react'
 
 import { cn } from '../../core'
-import { useFloatingUI } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
-import { useFocusTrap } from '../../hooks/use-focus-trap'
 import { useIdScope } from '../../hooks/use-id-scope'
-import { ControlFrame, ReducedMotion } from '../../primitives'
-import { iro, kokkaku, omote, ugoki } from '../../recipes'
+import { kokkaku } from '../../recipes'
 import { calendar as kCalendar } from '../../recipes/kata/calendar'
-import { k } from '../../recipes/kata/datepicker'
-import { popover as kPopover } from '../../recipes/kata/popover'
-import { Box } from '../box'
 import { Button } from '../button'
 import { Calendar, type CalendarActive, type CalendarHandle } from '../calendar'
 import { useControl } from '../control/context'
-import { useGlass } from '../glass/context'
-import { Icon } from '../icon'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
 import { DatePickerRange } from './datepicker-range'
+import { DatePickerShell, noopPickerOpenChange } from './shell'
 import { type FooterButton, useDatePickerKeyDown } from './use-keyboard'
 import { addDays, clampDate, formatDate } from './utilities'
 
@@ -84,7 +75,6 @@ function DatePickerSingle({
 	className,
 	disabled = false,
 }: DatePickerBaseProps & DatePickerSingleProps) {
-	const glass = useGlass()
 	const control = useControl()
 
 	const scope = useIdScope({ id: control?.id })
@@ -93,11 +83,7 @@ function DatePickerSingle({
 
 	const [open, setOpen] = useState(false)
 
-	const focusTrapRef = useFocusTrap(open)
-
 	const [active, setActive] = useState<CalendarActive | null>(null)
-
-	const triggerRef = useRef<HTMLButtonElement>(null)
 
 	const calendarRef = useRef<CalendarHandle>(null)
 
@@ -159,12 +145,6 @@ function DatePickerSingle({
 		[closeCalendar, openCalendar],
 	)
 
-	const handlePickerOpenChange = useCallback((_pickerOpen: boolean) => {
-		// The CalendarPicker's Popover restores focus to its own trigger
-		// (the month/year button inside the Calendar header) on close.
-		// We intentionally do nothing here to keep focus inside the focus trap.
-	}, [])
-
 	const handleFooterActivate = useCallback(
 		(kind: FooterButton) => {
 			if (kind === 'clear') handleClear()
@@ -195,121 +175,63 @@ function DatePickerSingle({
 		onFooterActivate: handleFooterActivate,
 	})
 
-	const { refs, floatingStyles, getReferenceProps, getFloatingProps } = useFloatingUI({
-		placement,
-		open,
-		onOpenChange: handleOpenChange,
-		offset: 8,
-		role: 'dialog',
-	})
-
 	return (
-		<>
+		<DatePickerShell
+			open={open}
+			onOpenChange={handleOpenChange}
+			placement={placement}
+			triggerId={scope.id}
+			displayValue={displayValue}
+			placeholder={placeholder}
+			disabled={disabled}
+			onTriggerKeyDown={handleInputKeyDown}
+			className={className}
+		>
+			<Calendar
+				ref={calendarRef}
+				value={value ?? null}
+				onChange={handleSelect}
+				min={min}
+				max={max}
+				active={open ? active : null}
+				onPickerOpenChange={noopPickerOpenChange}
+				footerRef={footerRef}
+			/>
 			<div
-				data-slot="control"
-				ref={refs.setReference}
-				className={cn(className)}
-				{...getReferenceProps()}
+				ref={footerRef}
+				role="toolbar"
+				data-slot="calendar-footer"
+				onKeyDown={(e) => calendarRef.current?.footerKeyDown(e)}
+				className={cn(kCalendar.footer)}
 			>
-				<ControlFrame
-					data-open={open || undefined}
-					className={cn(k.control[glass ? 'glass' : 'default'])}
-				>
-					<button
-						ref={triggerRef}
-						type="button"
-						id={scope.id}
-						aria-haspopup="dialog"
-						aria-expanded={open}
-						data-slot="datepicker-button"
-						disabled={disabled}
-						onClick={() => {
-							if (open) closeCalendar()
-							else openCalendar()
-						}}
-						onKeyDown={handleInputKeyDown}
-						className={cn(k.button)}
-					>
-						<span className={k.value}>
-							{displayValue || <span className={cn(iro.text.muted)}>{placeholder}</span>}
-						</span>
-					</button>
-					<span className={cn(k.icon)}>
-						<Icon icon={<CalendarIcon />} size="sm" />
-					</span>
-				</ControlFrame>
-			</div>
-
-			<FloatingPortal>
-				<ReducedMotion>
-					<AnimatePresence>
-						{open && (
-							<div
-								ref={refs.setFloating}
-								style={floatingStyles}
-								className={kPopover.portal}
-								{...getFloatingProps()}
-							>
-								<motion.div
-									ref={focusTrapRef}
-									{...ugoki.popover}
-									data-slot="datepicker-content"
-									className={cn('z-50', iro.text.default, glass && omote.glass)}
-									onMouseDown={(e) => e.preventDefault()}
-								>
-									<Box bg={glass ? 'none' : 'popover'} outline={glass || undefined} radius="lg">
-										<Calendar
-											ref={calendarRef}
-											value={value ?? null}
-											onChange={handleSelect}
-											min={min}
-											max={max}
-											active={open ? active : null}
-											onPickerOpenChange={handlePickerOpenChange}
-											footerRef={footerRef}
-										/>
-										<div
-											ref={footerRef}
-											role="toolbar"
-											data-slot="calendar-footer"
-											onKeyDown={(e) => calendarRef.current?.footerKeyDown(e)}
-											className={cn(kCalendar.footer)}
-										>
-											{value != null && (
-												<Button
-													variant="soft"
-													color="amber"
-													onClick={handleClear}
-													aria-label="Clear selection"
-													className={cn(
-														active?.zone === 'footer' &&
-															footerButtons[active.index] === 'clear' &&
-															kCalendar.day.active,
-													)}
-												>
-													Clear
-												</Button>
-											)}
-											<Button
-												variant="soft"
-												color="blue"
-												onClick={handleSelectToday}
-												className={cn(
-													active?.zone === 'footer' &&
-														footerButtons[active.index] === 'today' &&
-														kCalendar.day.active,
-												)}
-											>
-												Today
-											</Button>
-										</div>
-									</Box>
-								</motion.div>
-							</div>
+				{value != null && (
+					<Button
+						variant="soft"
+						color="amber"
+						onClick={handleClear}
+						aria-label="Clear selection"
+						className={cn(
+							active?.zone === 'footer' &&
+								footerButtons[active.index] === 'clear' &&
+								kCalendar.day.active,
 						)}
-					</AnimatePresence>
-				</ReducedMotion>
-			</FloatingPortal>
-		</>
+					>
+						Clear
+					</Button>
+				)}
+				<Button
+					variant="soft"
+					color="blue"
+					onClick={handleSelectToday}
+					className={cn(
+						active?.zone === 'footer' &&
+							footerButtons[active.index] === 'today' &&
+							kCalendar.day.active,
+					)}
+				>
+					Today
+				</Button>
+			</div>
+		</DatePickerShell>
 	)
 }
