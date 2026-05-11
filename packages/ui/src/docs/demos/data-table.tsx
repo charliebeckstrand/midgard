@@ -212,7 +212,7 @@ export default function DataTableDemo() {
 						...columns,
 						{
 							id: 'actions',
-							actions: (row) => <Button plain size="sm">Edit</Button>,
+							actions: (row) => <Button color="blue" size="sm">Edit</Button>,
 						},
 					]
 				`}

@@ -59,7 +59,7 @@ export default function TextareaDemo() {
 			<Example
 				title="With actions"
 				code={code`
-					import { ArrowUp, Plus } from 'lucide-react'
+					import { ArrowUp, Paperclip } from 'lucide-react'
 					import { Button } from 'ui'
 					import { Icon } from 'ui'
 					import { Spacer } from 'ui'
