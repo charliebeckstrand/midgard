@@ -16,12 +16,25 @@ export type PanelActionsProps = ComponentPropsWithoutRef<'div'>
 type PanelA11yContextValue = {
 	titleId?: string
 	descriptionId?: string
+	registerTitle?: () => () => void
 	registerDescription?: () => () => void
 }
 
 export const [PanelA11yProvider, usePanelA11y] = createContext<PanelA11yContextValue>('PanelA11y', {
 	default: {},
 })
+
+/** Hook for panel components to track whether a Title slot has been rendered. */
+export function useTitleRegistration() {
+	const [hasTitle, setHasTitle] = useState(false)
+
+	const registerTitle = useCallback(() => {
+		setHasTitle(true)
+		return () => setHasTitle(false)
+	}, [])
+
+	return { hasTitle, registerTitle }
+}
 
 /** Hook for panel components to track whether a Description slot has been rendered. */
 export function useDescriptionRegistration() {
@@ -37,8 +50,10 @@ export function useDescriptionRegistration() {
 
 /**
  * Sets up the a11y scaffolding required by modal panel roots (dialog, drawer, sheet):
- * generates title/description ids, tracks whether a Description slot is rendered,
- * and returns ready-to-spread ARIA props and a memoized provider value.
+ * generates title/description ids, tracks whether Title / Description slots are
+ * rendered, and returns ready-to-spread ARIA props and a memoized provider value.
+ * `aria-labelledby` / `aria-describedby` are only set once the matching slot has
+ * registered, so the dialog never references a non-existent id.
  */
 export function usePanelA11yScope() {
 	const scope = useIdScope()
@@ -46,18 +61,19 @@ export function usePanelA11yScope() {
 	const titleId = scope.sub('title')
 	const descriptionId = scope.sub('description')
 
+	const { hasTitle, registerTitle } = useTitleRegistration()
 	const { hasDescription, registerDescription } = useDescriptionRegistration()
 
 	const panelAriaProps = {
 		role: 'dialog' as const,
 		'aria-modal': true,
-		'aria-labelledby': titleId,
+		'aria-labelledby': hasTitle ? titleId : undefined,
 		'aria-describedby': hasDescription ? descriptionId : undefined,
 	}
 
 	const providerValue = useMemo<PanelA11yContextValue>(
-		() => ({ titleId, descriptionId, registerDescription }),
-		[titleId, descriptionId, registerDescription],
+		() => ({ titleId, descriptionId, registerTitle, registerDescription }),
+		[titleId, descriptionId, registerTitle, registerDescription],
 	)
 
 	return { panelAriaProps, providerValue }
@@ -78,7 +94,10 @@ export function createPanel(prefix: string, slots?: PanelSlots) {
 	const actionsCls = slots?.actions ?? defaultActions
 
 	function Title({ className, id, ...props }: PanelTitleProps) {
-		const { titleId } = usePanelA11y()
+		const { titleId, registerTitle } = usePanelA11y()
+
+		useEffect(() => registerTitle?.(), [registerTitle])
+
 		return (
 			<h2
 				id={id ?? titleId}
