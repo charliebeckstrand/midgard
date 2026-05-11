@@ -1,24 +1,27 @@
 import { describe, expect, it, vi } from 'vitest'
-import { ColumnManager, type ColumnManagerItem } from '../../components/column-manager'
+import {
+	DataTableColumnManager,
+	type DataTableColumnManagerItem,
+} from '../../components/data-table'
 import { allBySlot, bySlot, renderUI, screen, userEvent } from '../helpers'
 
-const columns: ColumnManagerItem[] = [
+const columns: DataTableColumnManagerItem[] = [
 	{ id: 'name', title: 'Name', pinned: true },
 	{ id: 'email', title: 'Email' },
 	{ id: 'role', title: 'Role' },
 ]
 
-describe('ColumnManager', () => {
-	it('renders with data-slot="column-manager"', () => {
-		const { container } = renderUI(<ColumnManager columns={columns} />)
+describe('DataTableColumnManager', () => {
+	it('renders with data-slot="data-table-column-manager"', () => {
+		const { container } = renderUI(<DataTableColumnManager columns={columns} />)
 
-		const el = bySlot(container, 'column-manager')
+		const el = bySlot(container, 'data-table-column-manager')
 
 		expect(el).toBeInTheDocument()
 	})
 
 	it('renders one item per column', () => {
-		const { container } = renderUI(<ColumnManager columns={columns} />)
+		const { container } = renderUI(<DataTableColumnManager columns={columns} />)
 
 		expect(allBySlot(container, 'list-item')).toHaveLength(3)
 	})
@@ -27,7 +30,11 @@ describe('ColumnManager', () => {
 		const onHiddenChange = vi.fn()
 
 		renderUI(
-			<ColumnManager columns={columns} defaultHidden={new Set()} onHiddenChange={onHiddenChange} />,
+			<DataTableColumnManager
+				columns={columns}
+				defaultHidden={new Set()}
+				onHiddenChange={onHiddenChange}
+			/>,
 		)
 
 		const user = userEvent.setup()
@@ -38,7 +45,7 @@ describe('ColumnManager', () => {
 	})
 
 	it('pinned column checkbox is disabled and cannot toggle', () => {
-		renderUI(<ColumnManager columns={columns} />)
+		renderUI(<DataTableColumnManager columns={columns} />)
 
 		const checkbox = screen.getByRole('checkbox', { name: /Name \(pinned\)/ })
 
@@ -46,11 +53,11 @@ describe('ColumnManager', () => {
 	})
 
 	it('renders a save-preset button only when onSavePreset is provided', () => {
-		const { rerender } = renderUI(<ColumnManager columns={columns} />)
+		const { rerender } = renderUI(<DataTableColumnManager columns={columns} />)
 
 		expect(screen.queryByRole('button', { name: 'Save as preset' })).not.toBeInTheDocument()
 
-		rerender(<ColumnManager columns={columns} onSavePreset={() => {}} />)
+		rerender(<DataTableColumnManager columns={columns} onSavePreset={() => {}} />)
 
 		expect(screen.getByRole('button', { name: 'Save as preset' })).toBeInTheDocument()
 	})
@@ -59,7 +66,7 @@ describe('ColumnManager', () => {
 		const onSavePreset = vi.fn()
 
 		renderUI(
-			<ColumnManager
+			<DataTableColumnManager
 				columns={columns}
 				defaultHidden={new Set(['role'])}
 				onSavePreset={onSavePreset}
@@ -77,9 +84,9 @@ describe('ColumnManager', () => {
 	})
 
 	it('applies custom className', () => {
-		const { container } = renderUI(<ColumnManager columns={columns} className="custom" />)
+		const { container } = renderUI(<DataTableColumnManager columns={columns} className="custom" />)
 
-		const el = bySlot(container, 'column-manager')
+		const el = bySlot(container, 'data-table-column-manager')
 
 		expect(el?.className).toContain('custom')
 	})

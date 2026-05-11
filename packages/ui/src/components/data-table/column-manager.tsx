@@ -12,7 +12,7 @@ import { Label } from '../fieldset'
 import { Icon } from '../icon'
 import { List, ListItem } from '../list'
 
-export type ColumnManagerItem = {
+export type DataTableColumnManagerItem = {
 	id: string | number
 	title: ReactNode
 	/** Pinned columns cannot be reordered or hidden. */
@@ -21,13 +21,13 @@ export type ColumnManagerItem = {
 	hideable?: boolean
 }
 
-export type ColumnManagerPreset = {
+export type DataTableColumnManagerPreset = {
 	order: (string | number)[]
 	hidden: (string | number)[]
 }
 
-export type ColumnManagerProps = {
-	columns: ColumnManagerItem[]
+export type DataTableColumnManagerProps = {
+	columns: DataTableColumnManagerItem[]
 
 	order?: (string | number)[]
 	defaultOrder?: (string | number)[]
@@ -37,13 +37,13 @@ export type ColumnManagerProps = {
 	defaultHidden?: Set<string | number>
 	onHiddenChange?: (hidden: Set<string | number>) => void
 
-	onSavePreset?: (preset: ColumnManagerPreset) => void
+	onSavePreset?: (preset: DataTableColumnManagerPreset) => void
 	savePresetLabel?: ReactNode
 
 	className?: string
 }
 
-export function ColumnManager({
+export function DataTableColumnManager({
 	columns,
 	order: orderProp,
 	defaultOrder,
@@ -54,7 +54,7 @@ export function ColumnManager({
 	onSavePreset,
 	savePresetLabel = 'Save as preset',
 	className,
-}: ColumnManagerProps) {
+}: DataTableColumnManagerProps) {
 	const fallbackOrder = useMemo(() => columns.map((c) => c.id), [columns])
 
 	const [order = fallbackOrder, setOrder] = useControllable<(string | number)[]>({
@@ -72,7 +72,7 @@ export function ColumnManager({
 	})
 
 	const byId = useMemo(() => {
-		const map = new Map<string | number, ColumnManagerItem>()
+		const map = new Map<string | number, DataTableColumnManagerItem>()
 
 		for (const col of columns) map.set(col.id, col)
 
@@ -82,7 +82,10 @@ export function ColumnManager({
 	const pinnedColumns = useMemo(() => columns.filter((c) => c.pinned), [columns])
 
 	const orderableColumns = useMemo(
-		() => order.map((id) => byId.get(id)).filter((c): c is ColumnManagerItem => !!c && !c.pinned),
+		() =>
+			order
+				.map((id) => byId.get(id))
+				.filter((c): c is DataTableColumnManagerItem => !!c && !c.pinned),
 		[order, byId],
 	)
 
@@ -98,10 +101,10 @@ export function ColumnManager({
 		[hidden, setHidden],
 	)
 
-	const getKey = useCallback((item: ColumnManagerItem) => String(item.id), [])
+	const getKey = useCallback((item: DataTableColumnManagerItem) => String(item.id), [])
 
 	const handleReorder = useCallback(
-		(items: ColumnManagerItem[]) => {
+		(items: DataTableColumnManagerItem[]) => {
 			const reorderedIds = items.map((i) => i.id)
 
 			const next: (string | number)[] = []
@@ -132,7 +135,7 @@ export function ColumnManager({
 	}, [onSavePreset, order, hidden])
 
 	return (
-		<div data-slot="column-manager" className={cn(k.root, className)}>
+		<div data-slot="data-table-column-manager" className={cn(k.root, className)}>
 			{pinnedColumns.length > 0 && (
 				<List items={pinnedColumns} getKey={getKey} variant="plain" sortable={false}>
 					{(col) => (
