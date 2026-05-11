@@ -4,7 +4,7 @@ TRIGGER when: the user asks to discover, profile, fingerprint, or summarize the 
 
 You are producing a single canonical **Project Profile** that downstream skills consume instead of each re-deriving the same facts. The profile is a JSON document written to `.claude/cache/project-profile.json`. Other skills read this file at the top of their flow.
 
-This skill assumes the project is a **Turborepo monorepo with Next.js apps and (optionally) shared React packages**. It does not attempt to handle Nx/Lerna monorepos, Vue/Svelte/Solid frameworks, or non-Turbo setups — those paths are out of scope.
+This skill is optimized for a **Turborepo monorepo with Next.js apps and (optionally) shared React packages** and produces its richest output for that shape. It degrades gracefully on other setups: when `turbo.json` is absent it sets `monorepo.tool` to `null` and records a note, and frameworks outside `next` / `react` resolve to `library`, `node`, or `null`. It does not attempt to detect Nx/Lerna metadata or Vue/Svelte/Solid framework specifics.
 
 ## Arguments
 
@@ -20,11 +20,13 @@ Recognized flags:
 
 ### 1. Decide whether to refresh
 
-Read `.claude/cache/project-profile.json` if it exists.
+Read `.claude/cache/project-profile.json` if it exists. If the file is missing or unparseable, treat the cache as stale and continue to step 2.
 
 The cache is **fresh** when **all** of the following hold:
+- `version` equals the value this skill emits (currently `1`).
 - `generatedAt` is less than 24 hours ago.
-- For every entry in `sourceMtimes`, the live mtime of that file matches the recorded value.
+- Every path in `sourceMtimes` still exists and its live mtime exactly matches the recorded value.
+- No file the skill **would record on a fresh run** is present today but absent from `sourceMtimes`. In practice: probe the conventions doc list (`CLAUDE.md`, `AGENTS.md`, `CONTRIBUTING.md`, `README.md`) and the pre-commit / CI config locations; if any present file is not in `sourceMtimes`, the cache is stale.
 - `--force` was not passed.
 
 If the cache is fresh, emit the existing profile and stop. Otherwise continue.
@@ -39,11 +41,12 @@ Run these in parallel:
   | `pnpm-lock.yaml` | `pnpm` |
   | `yarn.lock` | `yarn` |
   | `package-lock.json` | `npm` |
+  | `bun.lock` | `bun` |
   | `bun.lockb` | `bun` |
   Multiple lockfiles → pick the most recently modified and note the others in `notes`.
 
 - **Workspace config** → confirm Turbo and capture the workspace globs:
-  - `turbo.json` must exist (this skill assumes Turbo). If it's missing, add a `notes` entry warning the user and continue with `monorepo.tool: null`.
+  - When `turbo.json` exists, set `monorepo.tool` to `turbo`. When it is missing, set `monorepo.tool` to `null` and record a note — downstream skills that need the richer Turbo metadata will detect the absence themselves.
   - Capture the `workspaces` glob list from `pnpm-workspace.yaml#packages` or `package.json#workspaces` — whichever the repo uses.
 
 - **Conventions docs** → read these if present, in this order: `CLAUDE.md`, `AGENTS.md`, `CONTRIBUTING.md`, `README.md`. From each, extract:
@@ -54,7 +57,7 @@ Run these in parallel:
 - **Pre-commit hook config**:
   | File | Tool |
   | --- | --- |
-  | `lefthook.yml` | `lefthook` |
+  | `lefthook.yml` or `lefthook.yaml` | `lefthook` |
   | `.husky/` | `husky` |
   | `.pre-commit-config.yaml` | `pre-commit` |
   | `lint-staged` field in `package.json` | augments whichever tool is present |
@@ -82,19 +85,22 @@ Per-package fields:
   | otherwise | `null` |
 - `testRunner` — `vitest` / `jest` / `bun` / `node` (detected from devDeps and/or `scripts.test`); `null` if no test infrastructure.
 - `linter` — `biome` / `eslint`; `null` if absent.
-- `scripts` — copy `test`, `lint`, `check-types` (or `typecheck`), `build`, `dev` verbatim from `package.json#scripts`. Omit keys that do not exist.
-- `componentsDir` — first match of `src/components/`, `src/ui/`, `app/components/`, `lib/components/`, `components/`; else `null`.
-- `primitivesDir` — first match of `src/primitives/`, `src/atoms/`, `src/core/components/`; else `null`.
-- `hooksDir` — first match of `src/hooks/`, `src/use/`; else `null`.
-- `tokensDir` — first match of `src/recipes/`, `src/tokens/`, `src/theme/`, `src/styles/tokens/`; else `null`.
-- `testLayout` — examine up to 2 existing test files:
+- `scripts` — always emit all five keys (`test`, `lint`, `check-types`, `build`, `dev`). Copy the value verbatim from `package.json#scripts`; use `null` when the key is absent. If the package uses `typecheck` instead of `check-types`, normalize it under `check-types`.
+- `componentsDir` — first existing directory, in this order: `src/components/`, `src/ui/`, `app/components/`, `lib/components/`, `components/`; else `null`.
+- `primitivesDir` — first existing directory, in this order: `src/primitives/`, `src/atoms/`, `src/core/components/`; else `null`.
+- `hooksDir` — first existing directory, in this order: `src/hooks/`, `src/use/`; else `null`.
+- `tokensDir` — first existing directory, in this order: `src/recipes/`, `src/tokens/`, `src/theme/`, `src/styles/tokens/`; else `null`.
+- `testLayout` — list files matching `**/*.{test,spec}.{ts,tsx,js,jsx}` under the package, exclude `node_modules` and `dist`, and inspect up to 2 (most recently modified first):
   - Co-located next to source → `sibling`.
-  - Mirrored under a sibling `__tests__/` tree → `mirror`.
-  - Neither (or no tests) → `null`.
+  - Located under a `__tests__/` directory → `mirror`.
+  - No matching files → `null`.
+  - When the two samples disagree, pick whichever shape is more common across the full list; if still tied, prefer `sibling`.
 - `testHelpersDir` — directory containing a `helpers.ts` / `test-utils.ts` / `setup.ts` referenced from existing tests; else `null`.
 - `isFrontend` — `true` when any of `*.tsx` / `*.jsx` / `index.html` exist under the package; else `false`.
 
 ### 4. Assemble the profile
+
+Record an mtime entry in `sourceMtimes` for **every** file actually read across steps 2 and 3 — repo-root lockfiles, workspace and turbo configs, conventions docs, pre-commit and CI configs, and each package's `package.json`. Files that were probed but did not exist are not recorded; their later appearance is handled by the freshness check in step 1.
 
 Compose the final object. Schema:
 
@@ -104,8 +110,9 @@ Compose the final object. Schema:
   "generatedAt": "<ISO 8601 UTC>",
   "sourceMtimes": {
     "package.json": "<ISO 8601>",
-    "CLAUDE.md": "<ISO 8601>"
-    // every file read in step 2 appears here
+    "CLAUDE.md": "<ISO 8601>",
+    "packages/ui-kit/package.json": "<ISO 8601>",
+    "apps/web/package.json": "<ISO 8601>"
   },
   "repoRoot": "/abs/path/to/repo",
   "packageManager": "pnpm",
@@ -142,7 +149,9 @@ Compose the final object. Schema:
       "testRunner": null,
       "linter": "biome",
       "scripts": {
+        "test": null,
         "lint": "biome check .",
+        "check-types": null,
         "build": "next build",
         "dev": "next dev"
       },
@@ -177,7 +186,10 @@ Compose the final object. Schema:
       { "skill": "/ui:component:compose", "trigger": "asked to create a UI component" }
     ]
   },
-  "notes": []
+  "notes": [
+    "Both pnpm-lock.yaml and package-lock.json present; chose pnpm by mtime.",
+    "Package apps/web declares no test script."
+  ]
 }
 ```
 
@@ -194,7 +206,9 @@ The cache directory is gitignored. Do not commit it.
 
 ### 6. Summarize for the user
 
-Unless `--quiet` was passed, print a compact markdown summary (~15 lines):
+Print this section only when `--quiet` was **not** passed. `--force` is orthogonal: it controls cache invalidation, not output, so `--force` alone still prints the summary, and `--quiet --force` refreshes silently.
+
+Emit a compact markdown summary (~15 lines):
 
 ```md
 **Project Profile** — refreshed at <timestamp>
@@ -225,7 +239,10 @@ End with: `Run /repo:discover --force to refresh; downstream skills will reuse t
     "package.json": "2029-12-31T09:11:00Z",
     "turbo.json": "2029-12-31T09:11:00Z",
     "pnpm-workspace.yaml": "2029-12-15T10:00:00Z",
-    "CLAUDE.md": "2029-12-29T22:00:00Z"
+    "CLAUDE.md": "2029-12-29T22:00:00Z",
+    "lefthook.yml": "2029-11-02T17:00:00Z",
+    "packages/design-system/package.json": "2029-12-29T22:00:00Z",
+    "apps/storefront/package.json": "2029-12-30T08:00:00Z"
   },
   "repoRoot": "/home/dev/acme",
   "packageManager": "pnpm",
@@ -244,7 +261,8 @@ End with: `Run /repo:discover --force to refresh; downstream skills will reuse t
         "test": "vitest run",
         "lint": "biome check .",
         "check-types": "tsc --noEmit",
-        "build": "tsup"
+        "build": "tsup",
+        "dev": null
       },
       "componentsDir": "src/components",
       "primitivesDir": "src/primitives",
@@ -261,7 +279,9 @@ End with: `Run /repo:discover --force to refresh; downstream skills will reuse t
       "testRunner": null,
       "linter": "biome",
       "scripts": {
+        "test": null,
         "lint": "biome check .",
+        "check-types": null,
         "build": "next build",
         "dev": "next dev"
       },
