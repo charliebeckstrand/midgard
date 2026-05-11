@@ -85,9 +85,9 @@ export default function ChatMessageDemo() {
 					timestamp="11:10 AM"
 					actions={
 						<>
-							<CopyButton size="sm" value="Heading out now, ETA 3pm." />
-							<ToggleIconButton size="sm" pressed={false} icon={<RotateCcw />} aria-label="Retry" />
-							<ToggleIconButton size="sm" pressed={false} icon={<Pencil />} aria-label="Edit" />
+							<CopyButton size="xs" value="Heading out now, ETA 3pm." />
+							<ToggleIconButton size="xs" pressed={false} icon={<RotateCcw />} aria-label="Retry" />
+							<ToggleIconButton size="xs" pressed={false} icon={<Pencil />} aria-label="Edit" />
 						</>
 					}
 				>

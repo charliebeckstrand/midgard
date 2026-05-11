@@ -126,6 +126,7 @@ export default function EditableGridDemo() {
 					]
 
 					<EditableGrid
+						grid
 						columns={columns}
 						rows={rates}
 						getRowKey={(row) => row.id}
@@ -166,6 +167,7 @@ export default function EditableGridDemo() {
 					]
 
 					<EditableGrid
+						grid
 						columns={columns}
 						rows={rates}
 						getRowKey={(row) => row.id}

@@ -152,7 +152,7 @@ export default function ToastDemo() {
 						toast({
 							title: 'Message deleted',
 							description: 'The message has been removed.',
-							actions: <Button size="sm">Undo</Button>,
+							actions: <Button>Undo</Button>,
 						})
 					`}
 				>

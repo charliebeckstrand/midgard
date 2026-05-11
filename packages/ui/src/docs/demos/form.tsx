@@ -109,7 +109,6 @@ function ValidationForm() {
 				import { Field, Label, ErrorMessage } from 'ui/fieldset'
 				import { Input } from 'ui/input'
 				import { PasswordInput } from 'ui/password-input'
-				import { PasswordConfirm, PasswordConfirmInput } from 'ui/password-confirm'
 				import { Button } from 'ui/button'
 				import { Stack } from 'ui/stack'
 
@@ -140,18 +139,16 @@ function ValidationForm() {
 							<Input name="email" type="email" placeholder="jane@example.com" />
 							<ErrorMessage name="email" />
 						</Field>
-						<PasswordConfirm className="space-y-4" warning="Passwords do not match">
-							<Field>
-								<Label>Password</Label>
-								<PasswordInput name="password" placeholder="Min 8 characters" />
-								<ErrorMessage name="password" />
-							</Field>
-							<Field>
-								<Label>Confirm password</Label>
-								<PasswordConfirmInput name="confirmPassword" placeholder="Re-enter password" />
-								<ErrorMessage name="confirmPassword" />
-							</Field>
-						</PasswordConfirm>
+						<Field>
+							<Label>Password</Label>
+							<PasswordInput name="password" placeholder="Min 8 characters" />
+							<ErrorMessage name="password" />
+						</Field>
+						<Field>
+							<Label>Confirm password</Label>
+							<PasswordInput name="confirmPassword" placeholder="Re-enter password" />
+							<ErrorMessage name="confirmPassword" />
+						</Field>
 						<Button type="submit">Create account</Button>
 					</Stack>
 				</Form>
@@ -241,7 +238,6 @@ function DirtyTouchedForm() {
 				import { Input } from 'ui/input'
 				import { Button } from 'ui/button'
 				import { Stack } from 'ui/stack'
-				import { useFormContext } from 'ui/form'
 
 				const [result, setResult] = useState<string>('')
 

@@ -142,7 +142,12 @@ export default function AlertDemo() {
 				code={code`
 					import { Alert } from 'ui/alert'
 
-					<Alert block type="info" title="Full-width alert" />
+					<Alert
+						block
+						type="info"
+						title="Full-width alert"
+						description="This alert stretches to fill its container."
+					/>
 				`}
 			>
 				<ClosableBlockDemo />
