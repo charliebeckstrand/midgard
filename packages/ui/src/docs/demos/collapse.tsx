@@ -9,7 +9,7 @@ import { Example } from '../components/example'
 
 export const meta = { category: 'Data Display' }
 
-function CompoundCollapse() {
+function CompoundCollapseExample() {
 	return (
 		<Collapse>
 			<CollapseTrigger>{({ open }) => (open ? 'Hide details' : 'Show details')}</CollapseTrigger>
@@ -23,7 +23,7 @@ function CompoundCollapse() {
 	)
 }
 
-function ControlledCollapse() {
+function ControlledCollapseExample() {
 	const [open, setOpen] = useState(false)
 
 	return (
@@ -62,11 +62,11 @@ export default function CollapseDemo() {
 			</Example>
 
 			<Example title="Compound API">
-				<CompoundCollapse />
+				<CompoundCollapseExample />
 			</Example>
 
 			<Example title="Controlled">
-				<ControlledCollapse />
+				<ControlledCollapseExample />
 			</Example>
 		</Stack>
 	)

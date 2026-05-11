@@ -38,7 +38,7 @@ const describedTasks: Task[] = [
 	{ id: 'd', label: 'Ship docs and tests', description: 'Vertical, horizontal, disabled states' },
 ]
 
-function Default() {
+function DefaultExample() {
 	const [variant, setVariant] = useState<(typeof variants)[number]>('separated')
 
 	return (
@@ -59,7 +59,7 @@ function Default() {
 	)
 }
 
-function Vertical() {
+function VerticalExample() {
 	const [tasks, setTasks] = useState(initialTasks)
 
 	return (
@@ -78,7 +78,7 @@ function Vertical() {
 	)
 }
 
-function Horizontal() {
+function HorizontalExample() {
 	const [items, setItems] = useState([
 		{ id: '1', label: 'Todo' },
 		{ id: '2', label: 'In Progress' },
@@ -105,7 +105,7 @@ function Horizontal() {
 	)
 }
 
-function ReadOnly() {
+function ReadOnlyExample() {
 	return (
 		<Example title="Read-only">
 			<List items={initialTasks} getKey={(t) => t.id}>
@@ -119,7 +119,7 @@ function ReadOnly() {
 	)
 }
 
-function WithDescriptions() {
+function WithDescriptionsExample() {
 	const [tasks, setTasks] = useState(describedTasks)
 
 	return (
@@ -136,7 +136,7 @@ function WithDescriptions() {
 	)
 }
 
-function Disabled() {
+function DisabledExample() {
 	const [tasks, setTasks] = useState(initialTasks)
 
 	return (
@@ -155,12 +155,12 @@ function Disabled() {
 export default function ListDemo() {
 	return (
 		<Stack gap="xl">
-			<Default />
-			<Vertical />
-			<Horizontal />
-			<WithDescriptions />
-			<ReadOnly />
-			<Disabled />
+			<DefaultExample />
+			<VerticalExample />
+			<HorizontalExample />
+			<WithDescriptionsExample />
+			<ReadOnlyExample />
+			<DisabledExample />
 		</Stack>
 	)
 }

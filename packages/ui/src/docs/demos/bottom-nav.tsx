@@ -5,7 +5,6 @@ import { useState } from 'react'
 import { BottomNav, BottomNavItem } from '../../components/bottom-nav'
 import { Card } from '../../components/card'
 import { Stack } from '../../components/stack'
-import { code } from '../code'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Navigation' }
@@ -55,17 +54,7 @@ function WithLinksExample() {
 export default function BottomNavDemo() {
 	return (
 		<Stack gap="xl">
-			<Example
-				title="Default"
-				code={code`
-					import { BottomNav, BottomNavItem } from 'ui/bottom-nav'
-					import { Home, Search, MessageCircle, User, Settings } from 'lucide-react'
-
-					<BottomNav value={active} onChange={setActive}>
-					${items.map(({ value, label, iconName }) => `  <BottomNavItem value="${value}" icon={<${iconName} />}>${label}</BottomNavItem>`)}
-					</BottomNav>
-				`}
-			>
+			<Example title="Default">
 				<BottomNavExample />
 			</Example>
 

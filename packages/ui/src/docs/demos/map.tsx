@@ -71,7 +71,7 @@ const presets: { value: MapPreset; label: string }[] = [
 	{ value: 'satellite', label: 'Esri Satellite' },
 ]
 
-function Presets() {
+function PresetsExample() {
 	const [preset, setPreset] = useState<MapPreset>('demo')
 
 	return (
@@ -108,7 +108,7 @@ function Presets() {
 	)
 }
 
-function InteractiveRoute() {
+function InteractiveRouteExample() {
 	return (
 		<Example
 			title="Interactive route"
@@ -131,7 +131,7 @@ function InteractiveRoute() {
 	)
 }
 
-function Shipments() {
+function ShipmentsExample() {
 	const [messages, setMessages] = useState(seedMessages)
 
 	function handleSend(body: string) {
@@ -188,7 +188,7 @@ function Shipments() {
 	)
 }
 
-function InfoOnly() {
+function InfoOnlyExample() {
 	return (
 		<Example
 			title="Shipment without chat"
@@ -238,10 +238,10 @@ function InfoOnly() {
 export default function MapDemo() {
 	return (
 		<Stack gap="xl">
-			<Presets />
-			<InteractiveRoute />
-			<Shipments />
-			<InfoOnly />
+			<PresetsExample />
+			<InteractiveRouteExample />
+			<ShipmentsExample />
+			<InfoOnlyExample />
 		</Stack>
 	)
 }

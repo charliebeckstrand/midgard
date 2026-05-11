@@ -10,11 +10,11 @@ export const meta = { category: 'Input' }
 
 const placeholder = 'Search'
 
-function Controlled() {
+function ControlledExample() {
 	const [value, setValue] = useState('')
 
 	return (
-		<Example title="Controlled with clear">
+		<Example title="ControlledExample with clear">
 			<Field>
 				<Label>Search</Label>
 				<SearchInput
@@ -64,7 +64,7 @@ export default function SearchInputDemo() {
 				</Field>
 			</Example>
 
-			<Controlled />
+			<ControlledExample />
 
 			<Example title="Loading">
 				<Field>

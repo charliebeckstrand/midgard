@@ -59,7 +59,7 @@ function FiltersClearButton() {
 	)
 }
 
-function BasicDemo() {
+function BasicExample() {
 	const [filters, setFilters] = useState<BasicFilters>({
 		search: undefined,
 		status: undefined,
@@ -105,7 +105,7 @@ type DateFilters = {
 	category: string | undefined
 }
 
-function DateDemo() {
+function DateExample() {
 	const [filters, setFilters] = useState<DateFilters>({
 		search: undefined,
 		dateRange: undefined,
@@ -156,7 +156,7 @@ type RenderPropsFilters = {
 	maxPrice: number | undefined
 }
 
-function RenderPropsDemo() {
+function RenderPropsExample() {
 	const [filters, setFilters] = useState<RenderPropsFilters>({
 		search: undefined,
 		minPrice: undefined,
@@ -195,15 +195,15 @@ export default function FilterDemo() {
 	return (
 		<Stack gap="xl">
 			<Example title="Basic">
-				<BasicDemo />
+				<BasicExample />
 			</Example>
 
 			<Example title="With DatePicker">
-				<DateDemo />
+				<DateExample />
 			</Example>
 
 			<Example title="Render Props">
-				<RenderPropsDemo />
+				<RenderPropsExample />
 			</Example>
 		</Stack>
 	)

@@ -35,7 +35,7 @@ const seed: QueryGroupNode = {
 	],
 }
 
-function Controlled() {
+function ControlledExample() {
 	const [query, setQuery] = useState<QueryGroupNode>(seed)
 
 	return (
@@ -48,7 +48,7 @@ function Controlled() {
 	)
 }
 
-function Disabled() {
+function DisabledExample() {
 	return (
 		<Example title="Disabled">
 			<QueryBuilder fields={fields} defaultValue={seed} disabled />
@@ -59,8 +59,8 @@ function Disabled() {
 export default function QueryBuilderDemo() {
 	return (
 		<Stack gap="xl">
-			<Controlled />
-			<Disabled />
+			<ControlledExample />
+			<DisabledExample />
 		</Stack>
 	)
 }

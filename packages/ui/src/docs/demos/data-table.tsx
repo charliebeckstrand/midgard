@@ -104,37 +104,7 @@ export default function DataTableDemo() {
 				<DataTable columns={baseColumns} rows={people} getRowKey={(row) => row.id} />
 			</Example>
 
-			<Example
-				title="Sortable"
-				code={code`
-					import { DataTable, type SortState } from 'ui/data-table'
-
-					const [sort, setSort] = useState<SortState | undefined>({
-						column: 'name',
-						direction: 'asc',
-					})
-
-					const sortedRows = useMemo(() => {
-						if (!sort) return rows
-
-						const key = sort.column as keyof Row
-
-						const dir = sort.direction === 'asc' ? 1 : -1
-
-						return [...rows].sort((a, b) =>
-							a[key] < b[key] ? -dir : a[key] > b[key] ? dir : 0
-						)
-					}, [sort])
-
-					<DataTable
-						columns={columns}
-						rows={sortedRows}
-						getRowKey={(row) => row.id}
-						sort={sort}
-						onSortChange={setSort}
-					/>
-				`}
-			>
+			<Example title="Sortable">
 				<SortableExample />
 			</Example>
 

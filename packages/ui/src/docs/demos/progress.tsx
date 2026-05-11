@@ -19,7 +19,7 @@ const gaugeSizes = ['xs', 'sm', 'md', 'lg', 'xl'] as const
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
-function InteractiveBar() {
+function InteractiveBarExample() {
 	const [value, setValue] = useState(50)
 
 	return (
@@ -32,7 +32,7 @@ function InteractiveBar() {
 	)
 }
 
-function InteractiveGauge() {
+function InteractiveGaugeExample() {
 	const [value, setValue] = useState(50)
 
 	return (
@@ -61,7 +61,7 @@ export default function ProgressDemo() {
 				<TabContents>
 					<TabContent value="bar">
 						<Stack gap="xl">
-							<InteractiveBar />
+							<InteractiveBarExample />
 
 							<Example title="Sizes">
 								{barSizes.map((s, i) => (
@@ -94,7 +94,7 @@ export default function ProgressDemo() {
 					</TabContent>
 					<TabContent value="gauge">
 						<Stack gap="xl">
-							<InteractiveGauge />
+							<InteractiveGaugeExample />
 
 							<Example title="Colors">
 								<Flex gap="lg">

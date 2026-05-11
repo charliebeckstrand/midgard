@@ -24,7 +24,7 @@ async function simulateAsyncSubmission() {
 	return new Promise<void>((r) => setTimeout(r, 1000))
 }
 
-function BoundFieldsForm() {
+function BoundFieldsFormExample() {
 	const [result, setResult] = useState<string>('')
 
 	return (
@@ -98,7 +98,7 @@ function BoundFieldsForm() {
 	)
 }
 
-function ValidationForm() {
+function ValidationFormExample() {
 	const [result, setResult] = useState<string>('')
 
 	return (
@@ -226,7 +226,7 @@ function FormStatusDisplay() {
 	)
 }
 
-function DirtyTouchedForm() {
+function DirtyTouchedFormExample() {
 	const [result, setResult] = useState<string>('')
 
 	return (
@@ -306,7 +306,7 @@ function DirtyTouchedForm() {
 	)
 }
 
-function ServerErrorForm() {
+function ServerErrorFormExample() {
 	const [loading, setLoading] = useState(false)
 
 	return (
@@ -376,7 +376,7 @@ function ServerErrorForm() {
 	)
 }
 
-function ToggleForm() {
+function ToggleFormExample() {
 	const [result, setResult] = useState<string>('')
 
 	return (
@@ -475,11 +475,11 @@ function ToggleForm() {
 export default function FormDemo() {
 	return (
 		<Stack gap="xl">
-			<BoundFieldsForm />
-			<ValidationForm />
-			<DirtyTouchedForm />
-			<ServerErrorForm />
-			<ToggleForm />
+			<BoundFieldsFormExample />
+			<ValidationFormExample />
+			<DirtyTouchedFormExample />
+			<ServerErrorFormExample />
+			<ToggleFormExample />
 		</Stack>
 	)
 }

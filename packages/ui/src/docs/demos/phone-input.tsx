@@ -8,7 +8,7 @@ import { Example } from '../components/example'
 
 export const meta = { category: 'Input' }
 
-function Controlled() {
+function ControlledExample() {
 	const [value, setValue] = useState('')
 
 	return (
@@ -53,7 +53,7 @@ export default function PhoneInputDemo() {
 				</Field>
 			</Example>
 
-			<Controlled />
+			<ControlledExample />
 
 			<Example title="Disabled">
 				<Field>

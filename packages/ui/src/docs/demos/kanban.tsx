@@ -58,7 +58,7 @@ function ColumnTotalBadge({ items }: { items: Load[] }) {
 	)
 }
 
-function Default() {
+function DefaultExample() {
 	const [columns, setColumns] = useState(initialColumns)
 
 	return (
@@ -93,7 +93,7 @@ function Default() {
 	)
 }
 
-function ReadOnly() {
+function ReadOnlyExample() {
 	return (
 		<Example title="Read-only">
 			<Kanban columns={initialColumns} getItemKey={(load: Load) => load.id} aria-label="Loads">
@@ -118,7 +118,7 @@ function ReadOnly() {
 	)
 }
 
-function Disabled() {
+function DisabledExample() {
 	const [columns, setColumns] = useState(initialColumns)
 
 	return (
@@ -147,9 +147,9 @@ function Disabled() {
 export default function KanbanDemo() {
 	return (
 		<Stack gap="xl">
-			<Default />
-			<ReadOnly />
-			<Disabled />
+			<DefaultExample />
+			<ReadOnlyExample />
+			<DisabledExample />
 		</Stack>
 	)
 }

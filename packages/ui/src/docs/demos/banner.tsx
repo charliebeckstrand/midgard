@@ -14,7 +14,7 @@ const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 const types = ['info', 'success', 'warning', 'error'] as const
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
-function ClosableDemo() {
+function ClosableExample() {
 	const [visible, setVisible] = useState(true)
 
 	if (!visible) {
@@ -75,7 +75,7 @@ export default function BannerDemo() {
 			</Example>
 			<Example title="Closable">
 				<div className="-mx-4">
-					<ClosableDemo />
+					<ClosableExample />
 				</div>
 			</Example>
 			<Example title="With actions">

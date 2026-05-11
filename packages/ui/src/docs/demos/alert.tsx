@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { Alert } from '../../components/alert'
 import { Button } from '../../components/button'
 import { Stack } from '../../components/stack'
-import { code } from '../code'
 import { Example } from '../components/example'
 import { VariantListbox } from '../components/variant-listbox'
 
@@ -20,7 +19,7 @@ const types = ['info', 'success', 'warning', 'error'] as const
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
-function ClosableDemo() {
+function ClosableExample() {
 	const [visible, setVisible] = useState(true)
 
 	if (!visible) {
@@ -38,7 +37,7 @@ function ClosableDemo() {
 	)
 }
 
-function ClosableBlockDemo() {
+function ClosableBlockExample() {
 	const [visible, setVisible] = useState(true)
 
 	if (!visible) {
@@ -108,20 +107,8 @@ export default function AlertDemo() {
 				</Stack>
 			</Example>
 
-			<Example
-				title="Closable"
-				code={code`
-					import { Alert } from 'ui/alert'
-
-					<Alert
-						type="success"
-						title="Changes saved"
-						closable
-						onOpenChange={() => {}}
-					/>
-				`}
-			>
-				<ClosableDemo />
+			<Example title="Closable">
+				<ClosableExample />
 			</Example>
 
 			<Example title="With actions">
@@ -137,20 +124,8 @@ export default function AlertDemo() {
 				/>
 			</Example>
 
-			<Example
-				title="Block"
-				code={code`
-					import { Alert } from 'ui/alert'
-
-					<Alert
-						block
-						type="info"
-						title="Full-width alert"
-						description="This alert stretches to fill its container."
-					/>
-				`}
-			>
-				<ClosableBlockDemo />
+			<Example title="Block">
+				<ClosableBlockExample />
 			</Example>
 		</Stack>
 	)
