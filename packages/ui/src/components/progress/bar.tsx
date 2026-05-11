@@ -9,13 +9,15 @@ type ProgressColor = keyof typeof k.color
 
 // ── ProgressBar ─────────────────────────────────────────
 
-export type ProgressBarProps = {
+// A progressbar role needs an accessible name; require one of these at the type
+// level so consumers can't ship an unlabeled progress indicator.
+type ProgressBarLabel = { 'aria-label': string } | { 'aria-labelledby': string }
+
+export type ProgressBarProps = ProgressBarLabel & {
 	value?: number
 	max?: number
 	size?: 'sm' | 'md' | 'lg'
 	color?: ProgressColor
-	'aria-label'?: string
-	'aria-labelledby'?: string
 	className?: string
 }
 
@@ -24,9 +26,8 @@ export function ProgressBar({
 	max = 100,
 	size,
 	color = 'blue',
-	'aria-label': ariaLabel,
-	'aria-labelledby': ariaLabelledBy,
 	className,
+	...labelProps
 }: ProgressBarProps) {
 	const determinate = value != null
 
@@ -39,8 +40,7 @@ export function ProgressBar({
 			aria-valuenow={determinate ? value : undefined}
 			aria-valuemin={0}
 			aria-valuemax={max}
-			aria-label={ariaLabel}
-			aria-labelledby={ariaLabelledBy}
+			{...labelProps}
 			className={cn(progressTrackVariants({ size }), className)}
 		>
 			{determinate ? (

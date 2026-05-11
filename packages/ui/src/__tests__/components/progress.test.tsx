@@ -4,7 +4,7 @@ import { bySlot, renderUI } from '../helpers'
 
 describe('ProgressBar', () => {
 	it('renders with data-slot="progress-bar"', () => {
-		const { container } = renderUI(<ProgressBar value={50} />)
+		const { container } = renderUI(<ProgressBar value={50} aria-label="Progress" />)
 
 		const el = bySlot(container, 'progress-bar')
 
@@ -14,7 +14,7 @@ describe('ProgressBar', () => {
 	})
 
 	it('sets progressbar role and aria attributes', () => {
-		const { container } = renderUI(<ProgressBar value={50} max={100} />)
+		const { container } = renderUI(<ProgressBar value={50} max={100} aria-label="Progress" />)
 
 		const el = bySlot(container, 'progress-bar')
 
@@ -28,7 +28,9 @@ describe('ProgressBar', () => {
 	})
 
 	it('applies custom className', () => {
-		const { container } = renderUI(<ProgressBar value={50} className="custom" />)
+		const { container } = renderUI(
+			<ProgressBar value={50} className="custom" aria-label="Progress" />,
+		)
 
 		const el = bySlot(container, 'progress-bar')
 
@@ -38,7 +40,7 @@ describe('ProgressBar', () => {
 
 describe('ProgressGauge', () => {
 	it('renders with data-slot="progress-gauge"', () => {
-		const { container } = renderUI(<ProgressGauge value={75} />)
+		const { container } = renderUI(<ProgressGauge value={75} aria-label="Progress" />)
 
 		const el = bySlot(container, 'progress-gauge')
 
@@ -48,7 +50,7 @@ describe('ProgressGauge', () => {
 	})
 
 	it('sets progressbar role and aria attributes', () => {
-		const { container } = renderUI(<ProgressGauge value={75} max={100} />)
+		const { container } = renderUI(<ProgressGauge value={75} max={100} aria-label="Progress" />)
 
 		const el = bySlot(container, 'progress-gauge')
 
@@ -60,7 +62,9 @@ describe('ProgressGauge', () => {
 	})
 
 	it('applies custom className', () => {
-		const { container } = renderUI(<ProgressGauge value={75} className="custom" />)
+		const { container } = renderUI(
+			<ProgressGauge value={75} className="custom" aria-label="Progress" />,
+		)
 
 		const el = bySlot(container, 'progress-gauge')
 

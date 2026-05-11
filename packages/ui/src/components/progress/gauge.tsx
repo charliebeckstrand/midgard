@@ -8,15 +8,17 @@ import { k, progressGaugeVariants } from '../../recipes/kata/progress'
 
 type ProgressColor = keyof typeof k.color
 
-export type ProgressGaugeProps = {
+// A progressbar role needs an accessible name; require one of these at the type
+// level so consumers can't ship an unlabeled gauge.
+type ProgressGaugeLabel = { 'aria-label': string } | { 'aria-labelledby': string }
+
+export type ProgressGaugeProps = ProgressGaugeLabel & {
 	value?: number
 	max?: number
 	size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
 	color?: ProgressColor
 	label?: ReactNode | boolean
 	strokeWidth?: number
-	'aria-label'?: string
-	'aria-labelledby'?: string
 	className?: string
 }
 
@@ -31,9 +33,8 @@ export function ProgressGauge({
 	color = 'blue',
 	label,
 	strokeWidth = defaultStrokeWidth,
-	'aria-label': ariaLabel,
-	'aria-labelledby': ariaLabelledBy,
 	className,
+	...labelProps
 }: ProgressGaugeProps) {
 	const pct = Math.min(100, Math.max(0, (value / max) * 100))
 
@@ -54,8 +55,7 @@ export function ProgressGauge({
 			aria-valuenow={value}
 			aria-valuemin={0}
 			aria-valuemax={max}
-			aria-label={ariaLabel}
-			aria-labelledby={ariaLabelledBy}
+			{...labelProps}
 			className={cn(progressGaugeVariants({ size }), className)}
 		>
 			<ReducedMotion>

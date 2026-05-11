@@ -27,7 +27,7 @@ function InteractiveBar() {
 			title="Default"
 			actions={<ValueStepper value={value} onChange={setValue} max={100} step={10} />}
 		>
-			<ProgressBar value={value} />
+			<ProgressBar value={value} aria-label="Progress" />
 		</Example>
 	)
 }
@@ -42,10 +42,10 @@ function InteractiveGauge() {
 			code={code`
 				import { ProgressGauge } from 'ui/progress'
 
-				<ProgressGauge value={50} />
+				<ProgressGauge value={50} aria-label="Progress" />
 			`}
 		>
-			<ProgressGauge value={value} size="lg" />
+			<ProgressGauge value={value} size="lg" aria-label="Progress" />
 		</Example>
 	)
 }
@@ -67,7 +67,12 @@ export default function ProgressDemo() {
 								{barSizes.map((s, i) => (
 									<Flex key={s} gap="md">
 										<span className="w-6 text-xs text-zinc-500">{s}</span>
-										<ProgressBar size={s} value={40 + i * 10} className="flex-1" />
+										<ProgressBar
+											size={s}
+											value={40 + i * 10}
+											className="flex-1"
+											aria-label={`${s} progress`}
+										/>
 									</Flex>
 								))}
 							</Example>
@@ -76,7 +81,12 @@ export default function ProgressDemo() {
 								{colors.map((color) => (
 									<Flex key={color} gap="md">
 										<span className="w-10 text-xs text-zinc-500">{cap(color)}</span>
-										<ProgressBar color={color} value={75} className="flex-1" />
+										<ProgressBar
+											color={color}
+											value={75}
+											className="flex-1"
+											aria-label={`${cap(color)} progress`}
+										/>
 									</Flex>
 								))}
 							</Example>
@@ -89,7 +99,13 @@ export default function ProgressDemo() {
 							<Example title="Colors">
 								<Flex gap="lg">
 									{colors.map((color) => (
-										<ProgressGauge key={color} color={color} value={75} size="lg" />
+										<ProgressGauge
+											key={color}
+											color={color}
+											value={75}
+											size="lg"
+											aria-label={`${cap(color)} progress`}
+										/>
 									))}
 								</Flex>
 							</Example>
@@ -98,7 +114,7 @@ export default function ProgressDemo() {
 								<Flex gap="lg" align="end">
 									{gaugeSizes.map((s) => (
 										<Stack key={s} gap="sm" align="center">
-											<ProgressGauge value={75} size={s} color="red" />
+											<ProgressGauge value={75} size={s} color="red" aria-label={`${s} progress`} />
 											<span className="text-xs text-zinc-500">{s}</span>
 										</Stack>
 									))}
@@ -114,9 +130,10 @@ export default function ProgressDemo() {
 											size={s}
 											color="amber"
 											label={s !== 'xs'}
+											aria-label={`${s} progress`}
 										/>
 									))}
-									<ProgressGauge value={100} size="xl" color="amber" label />
+									<ProgressGauge value={100} size="xl" color="amber" label aria-label="Complete" />
 								</Flex>
 							</Example>
 						</Stack>
