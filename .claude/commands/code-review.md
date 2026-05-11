@@ -77,16 +77,18 @@ Use whichever name (`check-types` vs `typecheck`) the touched packages declare i
 
 ### 5. Review the diff
 
-Read the full staged diff and look for:
+Read the full staged diff. Focus on what no other skill in the `/postmortem` chain owns — security goes to `/security-review`, a11y goes to `/audit:a11y`, missing tests go to `/testing`, single-use abstractions and drive-by refactors go to `/simplify`. Don't re-cover that ground here.
 
-- **Bugs** — off-by-one, wrong operator, swapped arguments, missing `await`, mishandled promises, race conditions.
-- **Null / undefined hazards** — property access on values that can legitimately be nullish.
-- **Type holes** — `as any`, `as unknown as X`, `// @ts-ignore`, `// @ts-expect-error` without justification, widened return types, dropped generics.
-- **Broken call sites** — when a function signature, exported type, or return shape changes, grep the codebase for other callers and verify each one still compiles and behaves correctly.
-- **Accidental commits** — `console.log`, `debugger`, hardcoded secrets, commented-out blocks, generated artifacts, `// TODO: revert`.
-- **Scope creep** — unrelated formatting churn or drive-by refactors. If `conventions.principles` includes a rule like "a bug fix is not a refactoring opportunity", cite it explicitly when flagging.
+What's left for `/code-review`:
 
-For each finding, cite the file and line as `path/to/file.ts:42` and explain the concern in one sentence. No padding.
+- **Broken call sites** — when a function signature, exported type, or return shape changes, grep the codebase for other callers and verify each one still compiles. Example: `function foo(x: string)` → `function foo(x: string, y: number)` requires every caller to pass `y`.
+- **Weakened tests in the diff itself** — a test marked `.skip` (or framework equivalent), deleted, or stripped of assertions. A green suite hides this; only reading the diff catches it.
+- **Bugs in the changed logic** — off-by-one, wrong operator, swapped arguments, missing `await`, mishandled promises. Read each hunk as if the function were new.
+- **Null / undefined hazards** — property access on a value the type allows to be nullish, with no guard added.
+- **Type holes** — `as any`, `as unknown as X`, `// @ts-ignore`, `// @ts-expect-error` without a one-line justification comment; widened return types; dropped generics.
+- **Debug residue postmortem missed** — subtle leftovers like a `console.log` inside a conditional, a stray `debugger` behind a feature flag, a generated artifact checked in alongside source. Postmortem's BLOCK rule catches the obvious ones; surface anything that slipped through.
+
+For each finding, cite `path/to/file.ts:42` and explain the concern in one sentence. No padding.
 
 ### 6. Verdict
 
