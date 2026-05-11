@@ -1,11 +1,11 @@
 ---
 name: code-review
-description: "Pre-commit code review. Reads the staged diff, runs the project's tests and type checks for the touched packages, and reviews the changes for bugs, type holes, and broken call sites. Blocks the commit until every finding is resolved. MANDATORY TRIGGERS: '/code-review', 'code review', 'review my changes', 'review this diff', 'review before commit', 'pre-commit review', 'check before I commit'. ALWAYS run before executing `git commit` from inside Claude — do not commit until the review returns PASS or the user explicitly waives a finding."
+description: "Conditional code review. Reads the staged diff, runs the project's tests and type checks for the touched packages, and reviews the changes for bugs, type holes, and broken call sites. Blocks the commit until every finding is resolved. MANDATORY TRIGGERS: '/code-review', 'code review', 'review my changes', 'review this diff', 'review before commit', 'pre-commit review', 'check before I commit'. Invoked by `/postmortem` when the diff carries logical risk, or directly when the user asks for a review explicitly. Do NOT auto-invoke before every commit — `/postmortem` owns the pre-commit gate and decides when this skill runs. When invoked, do not commit until this review returns PASS or the user explicitly waives a finding."
 ---
 
 # Code Review
 
-Run before every commit. Block the commit if anything looks wrong.
+Run when `/postmortem` routes here, or when the user asks for a review explicitly. Block the commit if anything looks wrong. Do not run before every commit — `/postmortem` is the pre-commit gate that decides whether this review is warranted.
 
 ## What it checks
 
