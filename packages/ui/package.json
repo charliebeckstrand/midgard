@@ -31,10 +31,15 @@
 		"build": "tsup && tsc --emitDeclarationOnly --outDir dist",
 		"dev": "trap 'kill 0' EXIT; tsup --watch --no-dts & vite --config vite.docs.config.ts & wait",
 		"docs": "vite --config vite.docs.config.ts",
+		"docs:build": "vite build --config vite.docs.config.ts",
+		"docs:analyze": "ANALYZE=1 vite build --config vite.docs.config.ts",
+		"docs:preview": "vite preview --config vite.docs.config.ts --port 3456",
+		"perf:hmr": "tsx scripts/perf-hmr.ts",
+		"perf:lighthouse": "tsx scripts/perf-lighthouse.ts",
 		"test": "vitest run",
 		"test:watch": "vitest",
 		"bench": "vitest bench --run --config vitest.bench.config.ts",
-		"check-types": "tsc --noEmit",
+		"check-types": "tsc --noEmit && tsc --noEmit -p tsconfig.scripts.json",
 		"lint": "biome check --config-path=../.. .",
 		"lint:fix": "biome check --write --config-path=../.. ."
 	},
@@ -66,16 +71,20 @@
 		"@types/node": "^25.3.3",
 		"@types/react": "^19.1.6",
 		"@types/react-dom": "^19.2.3",
+		"@types/ws": "^8.5.13",
 		"@vitejs/plugin-react": "^6.0.1",
 		"@vitest/coverage-v8": "^4.1.5",
 		"jsdom": "^29.0.2",
 		"react": "^19.1.0",
 		"react-dom": "^19.2.4",
+		"rollup-plugin-visualizer": "^6.0.0",
 		"tailwindcss": "^4.2.1",
 		"tinybench": "^6.0.0",
 		"tsup": "^8.5.1",
+		"tsx": "^4.19.0",
 		"typescript": "^5.9.3",
 		"vite": "^8.0.0",
-		"vitest": "^4.1.5"
+		"vitest": "^4.1.5",
+		"ws": "^8.18.0"
 	}
 }
