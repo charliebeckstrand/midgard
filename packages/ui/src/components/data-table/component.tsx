@@ -7,17 +7,19 @@ import { cn } from '../../core'
 import { useControllable } from '../../hooks'
 import { k } from '../../recipes/kata/data-table'
 import { Button } from '../button'
-import { ColumnManager, type ColumnManagerItem, type ColumnManagerPreset } from '../column-manager'
 import { Dialog, DialogActions, DialogBody, DialogTitle } from '../dialog'
 import { Icon } from '../icon'
 import type { TableVariants } from '../table'
 import { Table, TableBody, TableLoading } from '../table'
 import { Toolbar } from '../toolbar'
+import {
+	DataTableColumnManager,
+	type DataTableColumnManagerItem,
+	type DataTableColumnManagerPreset,
+} from './column-manager'
 import { DataTableProvider, type SortState } from './context'
 import { DataTableHead } from './head'
 import { DataTableRowInternal } from './row'
-
-export type { ColumnManagerPreset } from '../column-manager'
 
 // ── Column definition ───────────────────────────────────
 
@@ -89,7 +91,7 @@ export type DataTableProps<T> = TableVariants & {
 	defaultHiddenColumns?: Set<string | number>
 	onHiddenColumnsChange?: (hidden: Set<string | number>) => void
 
-	onSavePreset?: (preset: ColumnManagerPreset) => void
+	onSavePreset?: (preset: DataTableColumnManagerPreset) => void
 
 	className?: string
 	children?: never
@@ -213,7 +215,7 @@ export function DataTable<T>({
 		return ordered
 	}, [columns, columnById, columnOrder, hiddenColumns])
 
-	const managerItems = useMemo<ColumnManagerItem[]>(
+	const managerItems = useMemo<DataTableColumnManagerItem[]>(
 		() =>
 			columns
 				.filter((c) => !c.selectable && !c.actions)
@@ -414,7 +416,7 @@ export function DataTable<T>({
 					<Dialog open={manageOpen} onOpenChange={setManageOpen}>
 						<DialogTitle>{manageColumnsLabel}</DialogTitle>
 						<DialogBody>
-							<ColumnManager
+							<DataTableColumnManager
 								columns={managerItems}
 								order={columnOrder}
 								onOrderChange={setColumnOrder}

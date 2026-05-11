@@ -1,5 +1,10 @@
 export {
-	type ColumnManagerPreset,
+	DataTableColumnManager,
+	type DataTableColumnManagerItem,
+	type DataTableColumnManagerPreset,
+	type DataTableColumnManagerProps,
+} from './column-manager'
+export {
 	DataTable,
 	type DataTableColumn,
 	type DataTableProps,
