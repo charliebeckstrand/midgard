@@ -122,6 +122,7 @@ describe('useDismissable', () => {
 		document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
 
 		expect(first).not.toHaveBeenCalled()
+
 		expect(second).toHaveBeenCalledOnce()
 	})
 })

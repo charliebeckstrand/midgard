@@ -71,7 +71,6 @@ describe('useRipple', () => {
 
 		// 2 * max(40, 80) = 160
 		expect(entry?.style.width).toBe('160px')
-
 		expect(entry?.style.height).toBe('160px')
 	})
 

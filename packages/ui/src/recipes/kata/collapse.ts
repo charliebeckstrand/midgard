@@ -8,7 +8,7 @@ export const collapse = {
 	trigger: [
 		'inline-flex items-center',
 		'gap-xs',
-		ji.size.sm,
+		ji.size.md,
 		iro.text.muted,
 		iro.text.hover,
 		'group-data-[open]/collapse:text-zinc-950',

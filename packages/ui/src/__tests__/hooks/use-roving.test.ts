@@ -12,6 +12,7 @@ function makeContainer(count: number) {
 
 		btn.setAttribute('role', 'option')
 		btn.setAttribute('tabindex', '-1')
+
 		btn.textContent = String(i)
 
 		container.appendChild(btn)
@@ -86,6 +87,7 @@ describe('useRoving', () => {
 		const container = makeContainer(3)
 
 		const items = container.querySelectorAll('button')
+
 		const first = items[0] as HTMLButtonElement
 
 		first.focus()
@@ -179,7 +181,6 @@ describe('useRoving', () => {
 		result.current(makeKey('ArrowDown'))
 
 		expect(items[0]?.hasAttribute('data-active')).toBe(false)
-
 		expect(items[1]?.hasAttribute('data-active')).toBe(true)
 
 		container.remove()

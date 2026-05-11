@@ -14,6 +14,7 @@ function isSanctioned(rel: string): boolean {
 function* walk(dir: string): Generator<string> {
 	for (const entry of readdirSync(dir)) {
 		const path = join(dir, entry)
+
 		const stat = statSync(path)
 
 		if (stat.isDirectory()) {
@@ -37,9 +38,11 @@ describe('createContext boundary', () => {
 
 		for (const path of walk(srcDir)) {
 			const rel = relative(srcDir, path)
+
 			const source = readFileSync(path, 'utf8')
 
 			if (!REACT_CREATE_CONTEXT.test(source)) continue
+
 			if (isSanctioned(rel)) continue
 
 			violations.push(rel)

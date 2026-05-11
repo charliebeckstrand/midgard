@@ -9,6 +9,7 @@ const COMPONENTS_IMPORT = /from\s+['"][^'"]*\.\.\/components\/[^'"]+['"]/
 function* walk(dir: string): Generator<string> {
 	for (const entry of readdirSync(dir)) {
 		const path = join(dir, entry)
+
 		const stat = statSync(path)
 
 		if (stat.isDirectory()) {

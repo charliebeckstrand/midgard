@@ -3,6 +3,6 @@
 	"compilerOptions": {
 		"noEmit": true
 	},
-	"include": ["src/__benchmarks__/docs"],
+	"include": ["src/__benchmarks__/docs", "*.config.ts"],
 	"exclude": []
 }

@@ -7,6 +7,7 @@ describe('useFocusTrap', () => {
 		const { result } = renderHook(() => useFocusTrap(false))
 
 		expect(result.current).toHaveProperty('current')
+
 		expect(result.current.current).toBeNull()
 	})
 })

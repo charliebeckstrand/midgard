@@ -54,6 +54,7 @@ export function Collapse({
 	const scope = useIdScope()
 
 	const triggerId = scope.sub('trigger')
+
 	const panelId = scope.sub('panel')
 
 	return (

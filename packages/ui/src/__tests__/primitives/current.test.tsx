@@ -67,7 +67,6 @@ describe('createCurrentContent', () => {
 		)
 
 		expect(screen.getByText('A')).toBeInTheDocument()
-
 		expect(screen.getByText('B')).toBeInTheDocument()
 	})
 })

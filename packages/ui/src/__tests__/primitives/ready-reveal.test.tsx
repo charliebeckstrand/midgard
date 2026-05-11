@@ -41,7 +41,6 @@ describe('ReadyReveal', () => {
 		)
 
 		expect(screen.getByText('Placeholder')).toBeInTheDocument()
-
 		expect(screen.getByText('Children')).toBeInTheDocument()
 	})
 

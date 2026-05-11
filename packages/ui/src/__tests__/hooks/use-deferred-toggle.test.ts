@@ -97,7 +97,6 @@ describe('useDeferredToggle', () => {
 
 		act(() => {
 			result.current.enqueue('a')
-
 			result.current.enqueue('b')
 		})
 
