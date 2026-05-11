@@ -8,7 +8,7 @@ describe('ToggleIconButton', () => {
 
 	it('renders with data-slot="toggle-icon-button"', () => {
 		const { container } = renderUI(
-			<ToggleIconButton pressed={false} icon={icon} activeIcon={activeIcon} />,
+			<ToggleIconButton pressed={false} icon={icon} activeIcon={activeIcon} aria-label="Toggle" />,
 		)
 
 		const el = bySlot(container, 'toggle-icon-button')
@@ -20,7 +20,13 @@ describe('ToggleIconButton', () => {
 
 	it('applies custom className', () => {
 		const { container } = renderUI(
-			<ToggleIconButton pressed={false} icon={icon} activeIcon={activeIcon} className="custom" />,
+			<ToggleIconButton
+				pressed={false}
+				icon={icon}
+				activeIcon={activeIcon}
+				className="custom"
+				aria-label="Toggle"
+			/>,
 		)
 
 		const el = bySlot(container, 'toggle-icon-button')
@@ -30,7 +36,7 @@ describe('ToggleIconButton', () => {
 
 	it('sets aria-pressed based on pressed prop', () => {
 		const { container } = renderUI(
-			<ToggleIconButton pressed={true} icon={icon} activeIcon={activeIcon} />,
+			<ToggleIconButton pressed={true} icon={icon} activeIcon={activeIcon} aria-label="Toggle" />,
 		)
 
 		const el = bySlot(container, 'toggle-icon-button')
@@ -42,7 +48,13 @@ describe('ToggleIconButton', () => {
 		const onClick = vi.fn()
 
 		const { container } = renderUI(
-			<ToggleIconButton pressed={false} icon={icon} activeIcon={activeIcon} onClick={onClick} />,
+			<ToggleIconButton
+				pressed={false}
+				icon={icon}
+				activeIcon={activeIcon}
+				onClick={onClick}
+				aria-label="Toggle"
+			/>,
 		)
 
 		const el = bySlot(container, 'toggle-icon-button')
