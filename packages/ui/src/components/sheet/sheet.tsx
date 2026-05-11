@@ -10,7 +10,7 @@ import {
 	sheetBackdropVariants,
 	sheetPanelVariants,
 } from '../../recipes/kata/sheet'
-import { useGlass } from '../glass/context'
+import { useResolvedSurface } from '../glass/context'
 
 type SheetSide = 'right' | 'left' | 'top' | 'bottom'
 
@@ -45,11 +45,9 @@ export function Sheet({
 	children,
 	container,
 }: SheetProps) {
-	const glassContext = useGlass()
-
 	const resolvedSide = (side ?? 'right') as SheetSide
 
-	const resolvedSurface = surface ?? (glass || glassContext ? 'glass' : undefined)
+	const resolvedSurface = useResolvedSurface(surface, glass)
 
 	const { panelAriaProps, providerValue } = usePanelA11yScope()
 
