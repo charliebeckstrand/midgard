@@ -66,9 +66,9 @@ If sibling components disagree, prefer the most recent (highest mtime) — it re
 
 If the profile's `tokensDir` is set, read its `index.*` and one representative token file. Note the categories the project exposes (colors, typography, spacing, radii, motion, etc.) so you can compose them instead of inventing literals.
 
-### 1d. Check for a demo or docs system
+### 1d. Note whether a docs system exists
 
-Look for one of: a `docs/` directory under the package, a Storybook config (`.storybook/`), an MDX directory, a `playground/`, or auto-discovery via `import.meta.glob` patterns. If the project has a demo system, every new component must include a demo file at the discovered location.
+Look for one of: a `docs/` directory under the package, a Storybook config (`.storybook/`), an MDX directory, a `playground/`, or auto-discovery via `import.meta.glob` patterns. Authoring the docs/demo file is **not** this skill's job — `/ui:docs:compose` owns it. Just record whether a docs system exists so step 3f can delegate.
 
 ---
 
@@ -256,9 +256,15 @@ If the package only exposes a single root entry, append the new component to the
 
 ### 3f. Demo / docs file
 
-If section 1d found a demo system, create the matching file at the discovered location. Use the same authoring style you saw in 1–2 existing demos (component composition, layout helpers from the project, the project's `Example` / `Story` wrapper, etc.). Demonstrate the API surface — variants, sizes, common compositions — not every permutation.
+If section 1d found a docs system, delegate to `/ui:docs:compose`:
 
-If the project has no demo system, skip this step.
+```
+/ui:docs:compose <ComponentName>
+```
+
+That skill reads the same Project Profile, samples sibling docs files for authoring conventions, and produces a docs page that demonstrates the component's API surface in a form the project's code-derivation tooling can parse. Do not author the docs file inline here — keep this skill focused on the component itself.
+
+If the project has no docs system, skip this step.
 
 ### 3g. Tests
 
@@ -282,7 +288,7 @@ Before declaring the component done, confirm:
 - [ ] The `className` prop is accepted and merged through the project's `cn` helper (or equivalent).
 - [ ] `'use client'` is present **only** when needed (hooks, event handlers, browser APIs) and matches sibling-component conventions.
 - [ ] Barrel/index, package-exports map, and any registry/glossary are updated.
-- [ ] A demo file exists at the discovered location (when the project has a demo system).
+- [ ] A docs file exists at the discovered location, produced via `/ui:docs:compose` (when the project has a docs system).
 - [ ] A test file exists at the discovered location, produced via `/testing`.
 - [ ] No unused imports, no dead code.
 - [ ] Diff read as a reviewer: if the new component is longer than the closest existing analog, justify the size or shrink it by composing more.

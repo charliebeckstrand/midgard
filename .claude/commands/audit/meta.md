@@ -9,7 +9,7 @@ This is the meta-audit: every other audit looks at code, this one looks at the a
 $ARGUMENTS
 
 Recognized hints:
-- A skill name or path (`/refactor:recommend`, `.claude/commands/ui/component.md`) → audit just that skill.
+- A skill name or path (`/refactor:recommend`, `.claude/commands/ui/component/compose.md`) → audit just that skill.
 - A heuristic from section 4 → only run that heuristic.
 - No arguments → audit every skill under `.claude/commands/`.
 
@@ -140,7 +140,7 @@ Find chunks of near-identical prose ≥6 lines that appear in 2+ skills. The "Lo
 
 Every `/foo` and `/foo:bar` mention in a skill body must resolve to an actual skill in `.claude/commands/` or `.claude/skills/`. Flag dangling references as blockers — they break the catalog's navigation.
 
-Also flag references to skills under their **old** flat names (e.g. `/ui-component` after the rename to `/ui:component`).
+Also flag references to skills under their **old** flat names (e.g. `/ui:component` after the rename to `/ui:component:compose`).
 
 ### 4k. CLAUDE.md binding coverage
 
@@ -148,7 +148,7 @@ Compare the inventory from section 1 with the `## Skills` section in CLAUDE.md. 
 
 - Skills present in the catalog but not bound in CLAUDE.md → warning. Bindings make triggers reliable.
 - Skills bound in CLAUDE.md but no longer present in the catalog → blocker. Dangling binding.
-- Skill bound under the wrong path (`/ui-component` instead of `/ui:component`) → blocker.
+- Skill bound under the wrong path (`/ui:component` instead of `/ui:component:compose`) → blocker.
 
 ---
 
@@ -169,12 +169,12 @@ Default severities per heuristic are noted above. Bump one notch when the issue:
 One section per audited skill, sorted alphabetically. Skills with zero findings still appear with a single PASS line — silence is harder to read than an explicit pass.
 
 ```
-### /ui:component (.claude/commands/ui/component.md · 297 lines)
+### /ui:component:compose (.claude/commands/ui/component/compose.md · 297 lines)
 
 | Severity | Rule | Location | Suggested fix |
 | --- | --- | --- | --- |
-| warning | hedging-in-mandatory-step | ui/component.md:128 | replace "you might want to wire" with "wire" — the step is required |
-| nit | padding-word | ui/component.md:42, 87, 211 | drop "simply" (3 occurrences) |
+| warning | hedging-in-mandatory-step | ui/component/compose.md:128 | replace "you might want to wire" with "wire" — the step is required |
+| nit | padding-word | ui/component/compose.md:42, 87, 211 | drop "simply" (3 occurrences) |
 ```
 
 ### Schema improvements (cross-cutting)
@@ -184,7 +184,7 @@ Separate table — one row per proposed Project Profile field:
 ```
 | Field | Location | Skills that would benefit | Rationale |
 | --- | --- | --- | --- |
-| `packages[*].stylingSystem` | per-package | `/ui:component`, `/audit:a11y`, `/refactor:recommend` | three skills currently re-detect CVA / tailwind-variants / CSS Modules from devDeps |
+| `packages[*].stylingSystem` | per-package | `/ui:component:compose`, `/audit:a11y`, `/refactor:recommend` | three skills currently re-detect CVA / tailwind-variants / CSS Modules from devDeps |
 | `packages[*].tsStrict` | per-package | `/code-review`, `/audit:recommend`, `/refactor:recommend` | type-tightness reasoning needs `compilerOptions.strict` and `noUncheckedIndexedAccess` |
 ```
 

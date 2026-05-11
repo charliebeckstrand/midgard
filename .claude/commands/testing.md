@@ -1,6 +1,6 @@
 # Create Tests
 
-TRIGGER when: the user asks to create, add, write, or scaffold tests for any target in the project — components, primitives, hooks, utilities, modules. Also runs automatically when `/ui:component` finishes creating a new component.
+TRIGGER when: the user asks to create, add, write, or scaffold tests for any target in the project — components, primitives, hooks, utilities, modules. Also runs automatically when `/ui:component:compose` finishes creating a new component.
 
 You are creating tests for a target somewhere in the project. Detect the target's package and type first, then apply the patterns that match. The test framework, file layout, and helper conventions vary per project — discover them, then follow what you find.
 

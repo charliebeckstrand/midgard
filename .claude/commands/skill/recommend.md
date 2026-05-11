@@ -50,7 +50,7 @@ From the profile and from `CLAUDE.md`:
 - **CLAUDE.md `## Skills` bindings** — a skill present in the catalog but unbound is a hygiene problem `/audit:meta` already flags; do not re-recommend it as new.
 - **Pre-commit gates** — `preCommit.gates`. A skill that re-implements an existing pre-commit check is a weak recommendation.
 - **CI jobs** — `ci.jobs`. Same rule.
-- **Existing recommenders** — `/audit:recommend`, `/refactor:recommend`, `/ui:component-recommend`, and this skill itself form the meta-recommender layer. Recommending another recommender requires a distinct lens that none of these cover.
+- **Existing recommenders** — `/audit:recommend`, `/refactor:recommend`, `/ui:component:recommend`, and this skill itself form the meta-recommender layer. Recommending another recommender requires a distinct lens that none of these cover.
 
 A category that is **already covered end-to-end** (skill exists, bound in `CLAUDE.md`, wired into a gate where applicable) is not a candidate. A category that is **partially covered** (skill exists but no binding, or binding but no gate) is a candidate for extension, not a new skill.
 
