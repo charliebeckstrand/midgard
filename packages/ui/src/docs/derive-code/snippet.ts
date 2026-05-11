@@ -2,7 +2,7 @@ import { addImport } from './imports'
 import type { Ctx } from './types'
 
 /**
- * Components decorated by the derived-code Vite plugin carry their original
+ * Components decorated by the derive-code Vite plugin carry their original
  * source as `__code`. Reading it lets the walker show the helper's full body
  * instead of an opaque `<HelperDemo />` tag.
  */

@@ -91,7 +91,7 @@ export function renderElement(element: ReactElement, ctx: Ctx, indent: string): 
 		}
 
 		// Self-closing helper with a build-time snippet attached by the
-		// derived-code Vite plugin. Use the raw JSX verbatim so users see
+		// derive-code Vite plugin. Use the raw JSX verbatim so users see
 		// the actual composition rather than an opaque `<HelperDemo />`.
 		const snippet = readSnippet(element.type)
 

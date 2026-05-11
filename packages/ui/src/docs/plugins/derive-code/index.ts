@@ -15,11 +15,11 @@ import { collectHelpers } from './collect-helpers'
  * Scope is limited to `demos/*.tsx` so the transform has no reach into
  * library components or unrelated docs modules.
  */
-export function derivedCodePlugin(): Plugin {
+export function deriveCodePlugin(): Plugin {
 	let demosDir: string
 
 	return {
-		name: 'derived-code',
+		name: 'derive-code',
 
 		enforce: 'pre',
 

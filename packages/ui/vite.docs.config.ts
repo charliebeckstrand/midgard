@@ -6,7 +6,7 @@ import {
 	componentApiPlugin,
 	componentTagsPlugin,
 	demoMetasPlugin,
-	derivedCodePlugin,
+	deriveCodePlugin,
 } from './src/docs/plugins'
 
 const analyze = process.env.ANALYZE === '1'
@@ -15,7 +15,7 @@ export default defineConfig({
 	base: '/',
 	root: 'src/docs',
 	plugins: [
-		derivedCodePlugin(),
+		deriveCodePlugin(),
 		componentTagsPlugin(),
 		react(),
 		tailwindcss(),
