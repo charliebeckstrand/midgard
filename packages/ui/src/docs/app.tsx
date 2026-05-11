@@ -10,7 +10,7 @@ import { SidebarContent } from './components/sidebar'
 import { DemoPage } from './demo-page'
 import { useHash } from './hooks/use-hash'
 import { useTheme } from './hooks/use-theme'
-import { demos, preloadDemo } from './registry'
+import { demos } from './registry'
 
 export function App() {
 	const route = useHash()
@@ -30,38 +30,17 @@ export function App() {
 		if (deferredRoute != null) contentRef.current?.closest('[class*="overflow-y"]')?.scrollTo(0, 0)
 	}, [deferredRoute])
 
-	// On idle, warm Shiki and prefetch every demo chunk so navigation never
-	// waits on the network. One demo per idle tick keeps the main thread
-	// responsive; hover/focus prefetch in the sidebar covers demos the user
-	// reaches for before the idle sweep finishes.
+	// Warm Shiki on idle so the first code-block reveal doesn't pay the cost.
+	// Per-demo prefetch happens via sidebar hover/focus — there's no need to
+	// fan out to all 104 demos here.
 	useEffect(() => {
 		const ric = window.requestIdleCallback ?? ((cb: IdleRequestCallback) => setTimeout(cb, 1))
 
 		const cic = window.cancelIdleCallback ?? clearTimeout
 
-		let cancelled = false
+		const handle = ric(() => loadShiki()) as number
 
-		let handle: number = 0
-
-		const queue = [() => loadShiki(), ...demos.map((d) => () => preloadDemo(d.id))]
-
-		let i = 0
-
-		const pump = () => {
-			if (cancelled || i >= queue.length) return
-
-			queue[i++]?.()
-
-			handle = ric(pump) as number
-		}
-
-		handle = ric(pump) as number
-
-		return () => {
-			cancelled = true
-
-			cic(handle)
-		}
+		return () => cic(handle)
 	}, [])
 
 	return (

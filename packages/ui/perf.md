@@ -33,7 +33,7 @@ CHROME_PATH=/path/to/chrome pnpm perf:lighthouse
 
 ## Baselines
 
-> Filled in during Phase 1 at commit `3dacdde`. Hardware: Linux 6.18.5 sandbox, single-VM, Node 22 + pnpm 10.33. All numbers represent a single representative run; treat with ±10% noise band.
+> Filled in during Phase 1 at commit `3dacdde`. Hardware: Linux 6.18.5 sandbox, single-VM, Node 22 + pnpm 10.33. All numbers represent a single representative run; treat with ±10% noise band on direct measurements; **Lighthouse simulated metrics are bimodal at this scale, ±5×** — see "Known noise" below.
 
 ### Build wall time (`pnpm docs:build`)
 
@@ -90,7 +90,21 @@ The four custom plugins account for >90% of build time. Cache state shifts which
 | `#data-table` | 12754 ms | 13354 ms | 0 ms | 13354 ms | 55 |
 | `#query-builder` | 12679 ms | 13204 ms | 0 ms | 13204 ms | 55 |
 
-**Key signal:** `#data-table` and `#query-builder` cold-load at ~13 s, ~4× the light routes. TBT=0 on those slow pages indicates **network/parse-bound, not JS-blocked**: their per-route chunks are large and the bundle splitter isn't isolating maplibre-gl/pdf/Shiki away from the critical path.
+**Note:** Lighthouse's simulated FCP/LCP at this scale is bimodal: re-running the same URL on the same build produces ~3 s in some runs and ~12.5 s in others (verified n=3 on `#button`). The 4× gap visible here between light and heavy routes is **not reproducible** — it's the simulation's variance, not a real signal. Treat single-shot Lighthouse numbers as illustrative only; use direct browser timing (next section) for change detection.
+
+### Real-world per-route load (Playwright, no throttling)
+
+Direct browser navigation, fresh chrome instance, measure to `networkidle`. Reproducible run-to-run.
+
+| route | requests | bytes (kB) | networkidle (ms) | first paint (ms) |
+| --- | --- | --- | --- | --- |
+| `/` | 234 | 3497.8 | 2625 | 76 |
+| `#button` | 234 | 3497.8 | 2660 | 88 |
+| `#dialog` | 234 | 3497.8 | ~2500 | 64 |
+| `#data-table` | 234 | 3497.8 | 2649 | 76 |
+| `#query-builder` | 234 | 3497.8 | 2553 | 84 |
+
+**Key signal:** every route loads the **same** 234 requests / 3.5 MB on networkidle, regardless of which demo the user wanted. This is the idle pump in `app.tsx` fanning out to all 104 demos. First paint itself (the 56-88 ms numbers) is decoupled and already fast — the waste is purely post-paint over-fetching.
 
 ### Author save-to-pixel (Vite HMR ack)
 
@@ -128,10 +142,10 @@ Median of n=10 saves per scenario. Probe writes a marker comment, waits for the 
 
 **Strongest signals (in priority order):**
 
-1. **Heavy demo pages cold-load 4× slower than light ones** (13 s vs 3 s under throttling). TBT=0 → not CPU-bound → chunking issue. `maplibre-gl` (272 kB gz) and `pdf` (121 kB gz) and the Shiki grammar collection likely aren't isolated from non-map / non-pdf / non-code routes.
-2. **Build is plugin-bound.** The four custom Vite plugins account for >90% of build wall time (5.8 s). The TS-compiler `componentApiPlugin` dominates the warm path; `componentTagsPlugin`'s eager scan dominates cold.
-3. **Shiki grammars are over-included.** ~24 language grammars plus 8+ themes ship as separate chunks. Several (imba, vue-vine, angular-ts, blade, wit, wgsl) are exotic and unlikely to appear in our code blocks.
-4. **`maplibre-gl` at 272 kB gzip** dwarfs every other dependency and ships even when no map demo is being viewed (well, in its own chunk — but does the entry route eagerly preload it? Visualizer drill-down needed).
+1. **Idle pump pre-fetches every demo on every page load** (`app.tsx:46`). Every route ends up with 234 requests / 3.5 MB on networkidle, regardless of which demo was visited. **Fixed — see the post-fix section below.**
+2. **Build is plugin-bound.** The four custom Vite plugins account for >90% of build wall time (5.8 s). The TS-compiler `componentApiPlugin` dominates the warm path; `componentTagsPlugin`'s eager scan dominates cold. **No fix proposed:** 5.8 s is acceptable build time and the plugins do useful work.
+3. **Shiki grammars are over-included.** ~24 language grammars plus 8+ themes ship as separate chunks. Several (imba, vue-vine, angular-ts, blade, wit, wgsl) are exotic and unlikely to appear in our code blocks. **Deferred:** these are lazy chunks, not in the critical path; impact is minimal post fix #1.
+4. **`maplibre-gl` at 272 kB gzip** dwarfs every other dependency. Verified isolated to the map demo's lazy chunk; not on the critical path. **No action needed.**
 
 **Confirmed non-issues (don't optimize these):**
 
@@ -139,6 +153,36 @@ Median of n=10 saves per scenario. Probe writes a marker comment, waits for the 
 - Author HMR: sub-10 ms ack on every scenario; the docs site doesn't suffer from slow inner-loop. First Principles' bet was wrong here.
 - Shiki idle lazy-load: already correctly deferred.
 - Lazy demo loading: already correctly `import.meta.glob()` without `eager`.
+
+## Known noise
+
+- **Lighthouse simulated FCP/LCP is bimodal** at 5× spread (verified n=3 on `#button`: 2808 ms / 2931 ms / 12455 ms). Use direct browser timing (Playwright `networkidle` + `firstPaint`) for change detection. Lighthouse numbers are kept as smoke signals only.
+- Build wall time has ~7% noise across the 5-run sample; treat anything under 15% as no signal.
+
+## Post-fix measurements
+
+### Fix 1 — drop all-demos idle preload (`app.tsx`)
+
+`app.tsx:37-65` was iterating over all 104 demos, calling `preloadDemo()` on each via `requestIdleCallback`. Sidebar hover/focus prefetch already covers user navigation. Replaced the 25-line pump with a one-shot `loadShiki()` warmup.
+
+| metric | before | after | Δ |
+| --- | --- | --- | --- |
+| `/` requests on networkidle | 234 | **33** | **−86%** |
+| `#button` requests | 234 | **33** | **−86%** |
+| `#dialog` requests | 234 | **44** | **−81%** |
+| `#data-table` requests | 234 | **54** | **−77%** |
+| `#query-builder` requests | 234 | **49** | **−79%** |
+| `/` networkidle (ms) | 2625 | **935** | **−64%** |
+| `#button` networkidle | 2660 | **933** | **−65%** |
+| `#data-table` networkidle | 2649 | **1023** | **−61%** |
+| `/` total bytes (kB) | 3497.8 | **2838.4** | **−19%** |
+| `#button` bytes | 3497.8 | **2838.4** | **−19%** |
+| Lighthouse FCP/LCP (any route) | n/a | within noise band (see above) | no change |
+| Build wall time | 5.80 s | 5.74 s (1 sample) | no change |
+| HMR ack | 1.3-3.8 ms | 1.3-3.8 ms | no change |
+| `deriveCode` bench | 12-2961 µs | 12-2961 µs | no change |
+
+**Decision rule check:** request count and networkidle move ≥60%, well over the 15% threshold. Fix lands.
 
 ---
 
@@ -153,3 +197,4 @@ A perf fix lands only if it moves the metric it claims to fix by **≥15%** on t
 | date | commit | change | baseline delta |
 | --- | --- | --- | --- |
 | 2026-05-10 | `3dacdde` | Phase 1 baselines recorded | — (initial) |
+| 2026-05-11 | (this) | Drop all-demos idle preload from `app.tsx`; keep hover/focus prefetch | requests −86%, networkidle −64%, bytes −19% |
