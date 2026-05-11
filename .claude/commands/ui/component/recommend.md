@@ -112,7 +112,7 @@ After the table, add a short paragraph noting any **declined** categories ("no F
 
 ## 6. Offer to create
 
-After presenting recommendations, ask the user which ones they'd like to scaffold. For each chosen item, invoke `/ui:component <name>` — that skill reads the same Project Profile and produces a component matching the project's conventions.
+After presenting recommendations, ask the user which ones they'd like to scaffold. For each chosen item, invoke `/ui:component:compose <name>` — that skill reads the same Project Profile and produces a component matching the project's conventions.
 
 ---
 

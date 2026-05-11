@@ -174,7 +174,7 @@ Compose the final object. Schema:
       "Recipe": "variant-aware styling factory"
     },
     "mandatorySkills": [
-      { "skill": "/ui:component", "trigger": "asked to create a UI component" }
+      { "skill": "/ui:component:compose", "trigger": "asked to create a UI component" }
     ]
   },
   "notes": []
