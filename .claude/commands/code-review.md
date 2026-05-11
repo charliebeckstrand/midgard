@@ -77,7 +77,7 @@ Use whichever name (`check-types` vs `typecheck`) the touched packages declare i
 
 ### 5. Review the diff
 
-Read the full staged diff. Focus on what no other skill in the `/postmortem` chain owns — security goes to `/security-review`, a11y goes to `/audit:a11y`, missing tests go to `/testing`, single-use abstractions and drive-by refactors go to `/simplify`. Don't re-cover that ground here.
+Read the full staged diff. Focus on what no other skill in the `/postmortem` chain owns — security goes to `/security-review`, a11y goes to `/audit:a11y`, missing tests go to `/tests:compose`, single-use abstractions and drive-by refactors go to `/simplify`. Don't re-cover that ground here.
 
 What's left for `/code-review`:
 
