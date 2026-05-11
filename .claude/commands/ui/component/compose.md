@@ -12,7 +12,7 @@ $ARGUMENTS
 
 ## 0. Load the Project Profile
 
-Read `.claude/cache/project-profile.json`. If it is missing, stale (per the freshness rules in `/discover`), or the relevant fields are `null`, invoke `/discover --quiet` to refresh it, then re-read.
+Read `.claude/cache/project-profile.json`. If it is missing, stale (per the freshness rules in `/repo:discover`), or the relevant fields are `null`, invoke `/repo:discover --quiet` to refresh it, then re-read.
 
 From the profile, pull the fields this skill uses:
 
