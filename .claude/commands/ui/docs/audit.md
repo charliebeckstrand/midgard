@@ -69,77 +69,77 @@ For each parsed docs file, run every applicable check. Each check produces zero 
 
 Severity legend:
 
-- **error** — broken docs (won't render, wrong component, missing required export). Blocks the audit.
-- **warn** — meaningful drift (component prop removed, category invalid, override out of sync). Surfaces in the report but doesn't block.
-- **info** — style or coverage hint (could compose more, missing edge-case example). Suggested fix only.
+- **blocker** — broken docs (won't render, wrong component, missing required export). Blocks the audit.
+- **warning** — meaningful drift (component prop removed, category invalid, override out of sync). Surfaces in the report but doesn't block.
+- **nit** — style or coverage hint (could compose more, missing edge-case example). Suggested fix only.
 
 ### 4.1. Coverage
 
-- **error** — `componentsDir` has a component that has no matching demo file in the docs directory. Skip components on the project's exclusion list (read from `CLAUDE.md`, `AGENTS.md`, or the docs registry's own skip list).
-- **warn** — a demo file exists for a component that no longer exists in `componentsDir`.
-- **info** — a demo file has fewer than 2 `<Example>` blocks (likely under-documented for any non-trivial component).
+- **blocker** — `componentsDir` has a component that has no matching demo file in the docs directory. Skip components on the project's exclusion list (read from `CLAUDE.md`, `AGENTS.md`, or the docs registry's own skip list).
+- **warning** — a demo file exists for a component that no longer exists in `componentsDir`.
+- **nit** — a demo file has fewer than 2 `<Example>` blocks (likely under-documented for any non-trivial component).
 
 ### 4.2. Required exports
 
 Parse each demo file. For every demo:
 
-- **error** — no default export (or default export is not a function returning JSX).
-- **error** — the default export does not render the project's example-wrapper at least once (the file is decorative, not a docs page).
-- **warn** — missing `export const meta = { … }` when sibling demos have it.
-- **warn** — `meta.category` is not one of the discovered valid categories (or not in `categoryOrder` if the project uses one).
+- **blocker** — no default export (or default export is not a function returning JSX).
+- **blocker** — the default export does not render the project's example-wrapper at least once (the file is decorative, not a docs page).
+- **warning** — missing `export const meta = { … }` when sibling demos have it.
+- **warning** — `meta.category` is not one of the discovered valid categories (or not in `categoryOrder` if the project uses one).
 
 ### 4.3. Example-wrapper usage
 
 For each `<Example>` (or whatever wrapper the project uses):
 
-- **error** — missing `title` prop.
-- **error** — empty `children` (the example renders nothing).
-- **warn** — explicit `code` override present, but `children` only uses tagged components — the walker would derive the same snippet; drop the override.
-- **warn** — explicit `code` override references a component not imported into the file, or a hook the file doesn't use (override drifted from the code).
-- **info** — `actions=` slot present without any interactive state in the demo (controls do nothing).
+- **blocker** — missing `title` prop.
+- **blocker** — empty `children` (the example renders nothing).
+- **warning** — explicit `code` override present, but `children` only uses tagged components — the walker would derive the same snippet; drop the override.
+- **warning** — explicit `code` override references a component not imported into the file, or a hook the file doesn't use (override drifted from the code).
+- **nit** — `actions=` slot present without any interactive state in the demo (controls do nothing).
 
 ### 4.4. Code-derivation friendliness
 
 These checks only run when the project has a code-derivation walker (section 2).
 
-- **warn** — an `<Example>`'s top-level children include a locally-defined wrapper component (PascalCase function defined in the same file) that the walker would render as opaque. Acceptable only if the project has the helper-extraction plugin and the wrapper is a top-level helper.
-- **warn** — an iteration (`.map()` returning JSX) inside an `<Example>` whose children don't have an explicit `key={…}`. The walker can't collapse iterated runs without a stable key signal.
-- **info** — an `<Example>` whose children are wrapped in raw `<div className="…">` rather than the project's layout primitives. The walker treats the wrapper as transparent, but the derived snippet reads better with a named primitive.
-- **info** — repeated literal blocks (3+ near-identical sibling components without a `.map()`) that could be expressed as iteration.
+- **warning** — an `<Example>`'s top-level children include a locally-defined wrapper component (PascalCase function defined in the same file) that the walker would render as opaque. Acceptable only if the project has the helper-extraction plugin and the wrapper is a top-level helper.
+- **warning** — an iteration (`.map()` returning JSX) inside an `<Example>` whose children don't have an explicit `key={…}`. The walker can't collapse iterated runs without a stable key signal.
+- **nit** — an `<Example>` whose children are wrapped in raw `<div className="…">` rather than the project's layout primitives. The walker treats the wrapper as transparent, but the derived snippet reads better with a named primitive.
+- **nit** — repeated literal blocks (3+ near-identical sibling components without a `.map()`) that could be expressed as iteration.
 
 ### 4.5. Prop-surface sync
 
 For each demo, parse the matching component source (look up by name → `componentsDir/<name>.tsx` or `componentsDir/<name>/<name>.tsx`):
 
-- **warn** — the demo references a prop that no longer exists on the component (removed, renamed).
-- **warn** — the demo references a literal variant / size / color value that's no longer in the component's variant union (typo or removed enum member).
-- **info** — the component has a documented variant / size / color value that has no example demonstrating it.
-- **info** — the component has a boolean state prop (`disabled`, `loading`, `readonly`, `invalid`) with no matching `<Example>` section.
+- **warning** — the demo references a prop that no longer exists on the component (removed, renamed).
+- **warning** — the demo references a literal variant / size / color value that's no longer in the component's variant union (typo or removed enum member).
+- **nit** — the component has a documented variant / size / color value that has no example demonstrating it.
+- **nit** — the component has a boolean state prop (`disabled`, `loading`, `readonly`, `invalid`) with no matching `<Example>` section.
 
 ### 4.6. Controls reuse
 
-- **warn** — the demo defines a local variant/size/color picker inline when a shared controls helper exists under `docs/components/` for the same axis. Replace with the shared component.
+- **warning** — the demo defines a local variant/size/color picker inline when a shared controls helper exists under `docs/components/` for the same axis. Replace with the shared component.
 
 ### 4.7. Authoring conventions
 
-- **info** — `'use client'` directive present in a demo with no hooks, event handlers, or browser APIs (and sibling demos drop it in that case).
-- **info** — `'use client'` directive missing in a demo that uses `useState` / `useEffect` / event handlers in a Next-consuming package.
-- **info** — variant/size/color array declared without `as const`, widening the type unnecessarily.
-- **info** — controls picker bound to state that no `<Example>` actually consumes.
+- **nit** — `'use client'` directive present in a demo with no hooks, event handlers, or browser APIs (and sibling demos drop it in that case).
+- **nit** — `'use client'` directive missing in a demo that uses `useState` / `useEffect` / event handlers in a Next-consuming package.
+- **nit** — variant/size/color array declared without `as const`, widening the type unnecessarily.
+- **nit** — controls picker bound to state that no `<Example>` actually consumes.
 
 ### 4.8. Registry hygiene
 
 When the project uses an explicit registry (not glob auto-discovery):
 
-- **error** — a demo file exists but isn't registered.
-- **error** — a registry entry points at a demo file that doesn't exist.
-- **warn** — registry entries out of alphabetical order (or out of the project's declared order).
+- **blocker** — a demo file exists but isn't registered.
+- **blocker** — a registry entry points at a demo file that doesn't exist.
+- **warning** — registry entries out of alphabetical order (or out of the project's declared order).
 
 ---
 
 ## 5. Report
 
-Group findings by file, then by severity within each file. Lead with errors, then warnings, then info. For every finding, include:
+Group findings by file, then by severity within each file. Lead with blockers, then warnings, then nits. For every finding, include:
 
 - `file:line` anchor (the line where the offending construct lives).
 - One-line description of what's wrong.
@@ -149,7 +149,7 @@ End with a roll-up:
 
 ```
 Audited: N docs files across M packages
-Findings: <E> error · <W> warn · <I> info
+Findings: <B> blocker · <W> warning · <N> nit
 Coverage: <X>/<Y> components have docs (<percent>%)
 ```
 

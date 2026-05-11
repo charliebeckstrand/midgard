@@ -161,7 +161,7 @@ Imagine a profile with:
 - `conventions.principles`: includes "Shared packages must not import from application code." and "Each commit represents one logical change."
 - `preCommit.gates`: `["lint", "type"]`.
 - `ci.jobs`: `["lint", "type", "test", "build"]`.
-- `.claude/commands/` contains `audit/a11y.md`, `audit/refactor.md`, `skill/audit.md`, `skill/compose.md`, `ui/component.md`, `ui/component-recommend.md`, plus the standard top-level skills.
+- `.claude/commands/` contains `audit/a11y.md`, `audit/refactor.md`, `skill/audit.md`, `skill/compose.md`, `ui/component/compose.md`, `ui/component/recommend.md`, plus the standard top-level skills.
 
 A reasonable output:
 
@@ -172,7 +172,7 @@ A reasonable output:
 | `audit/dead-code` | `audit` | "find unused exports and orphan files" | linter catches unused imports but not unused exports | Low | Medium | new skill |
 | `migration/scaffold` | `migration` (new) | "scaffold a Drizzle migration for this schema change" | no namespace today; the project ships Drizzle and writes migrations by hand | High | Low | new skill |
 
-Plus a note: *`audit/a11y`, `audit/refactor`, `skill/audit`, `skill/compose`, `ui/component`, and `ui/component-recommend` already exist. Recommender category covered by `/audit:refactor` and `/ui:component:recommend`. No backend-only audits proposed — the discovered stack has no server-only package that would justify them.*
+Plus a note: *`audit/a11y`, `audit/refactor`, `skill/audit`, `skill/compose`, `ui/component/compose`, and `ui/component/recommend` already exist. Recommender category covered by `/audit:refactor` and `/ui:component:recommend`. No backend-only audits proposed — the discovered stack has no server-only package that would justify them.*
 
 ---
 

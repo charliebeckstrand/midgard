@@ -14,7 +14,7 @@ If the user provided context ("I'm building a dashboard", "we need more form pie
 
 ## 1. Load the Project Profile
 
-Read `.claude/cache/project-profile.json`. If missing, stale, or relevant fields are `null`, invoke `/repo:discover --quiet` and re-read.
+Read `.claude/cache/project-profile.json`. If missing or stale, invoke `/repo:discover --quiet` and re-read.
 
 Pull these fields:
 
@@ -45,7 +45,7 @@ Look for entries in the tokens/recipes directory that have no matching component
 
 ### 2d. Project-declared exclusions
 
-Read `CLAUDE.md`, `AGENTS.md`, and the existing `ui/component.md` skill body for any "skip-recommend" or "do not scaffold" list. Treat anything declared there as authoritative — never propose it.
+Read `CLAUDE.md`, `AGENTS.md`, and the existing `ui/component/compose.md` skill body for any "skip-recommend" or "do not scaffold" list. Treat anything declared there as authoritative — never propose it.
 
 ---
 
