@@ -1,6 +1,6 @@
 'use client'
 
-import { use, useLayoutEffect } from 'react'
+import { use, useId, useLayoutEffect } from 'react'
 import { Combobox, ComboboxOption } from '../../components/combobox'
 import { Heading } from '../../components/heading'
 import {
@@ -17,6 +17,8 @@ import { navigate } from '../hooks/use-hash'
 import { demos, preloadDemo, sortedCategories } from '../registry'
 
 export function SidebarContent({ route }: { route: string }) {
+	const id = useId()
+
 	const offcanvas = use(OffcanvasContext)
 
 	const scrollWithin = useScrollWithin()
@@ -38,7 +40,7 @@ export function SidebarContent({ route }: { route: string }) {
 				<Heading level={2}>UI Components</Heading>
 			</SidebarHeader>
 			<Combobox<string>
-				id="component-search"
+				id={`${id}-search-components`}
 				placeholder="Search components"
 				autoComplete="off"
 				selectable={false}
