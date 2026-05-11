@@ -9,7 +9,6 @@ import {
 	PasswordStrength,
 } from '../../components/password-strength'
 import { Stack } from '../../components/stack'
-import { code } from '../code'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Password' }
@@ -82,43 +81,15 @@ function CustomRulesExample() {
 export default function PasswordStrengthDemo() {
 	return (
 		<Stack gap="xl">
-			<Example
-				title="With password input"
-				code={code`
-					import { PasswordInput } from 'ui/password-input'
-					import { PasswordStrength } from 'ui/password-strength'
-
-					const [value, setValue] = useState('')
-
-					<PasswordInput value={value} onChange={(e) => setValue(e.target.value)} />
-					<PasswordStrength value={value} />
-				`}
-			>
+			<Example title="With password input">
 				<BasicExample />
 			</Example>
 
-			<Example
-				title="Meter only"
-				code={code`
-					<PasswordStrength value={value} showRules={false} />
-				`}
-			>
+			<Example title="Meter only">
 				<MeterOnlyExample />
 			</Example>
 
-			<Example
-				title="Custom rules"
-				code={code`
-					import { defaultPasswordRules, PasswordStrength } from 'ui/password-strength'
-
-					const rules = [
-						...defaultPasswordRules,
-						{ id: 'length-12', label: 'At least 12 characters', test: (v) => v.length >= 12 },
-					]
-
-					<PasswordStrength value={value} rules={rules} />
-				`}
-			>
+			<Example title="Custom rules">
 				<CustomRulesExample />
 			</Example>
 		</Stack>

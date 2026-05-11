@@ -4,7 +4,6 @@ import { Button } from '../../components/button'
 import { Flex } from '../../components/flex'
 import { Stack } from '../../components/stack'
 import { Toast, useToast } from '../../components/toast'
-import { code } from '../code'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Feedback' }
@@ -100,62 +99,15 @@ export default function ToastDemo() {
 	return (
 		<Toast>
 			<Stack gap="xl">
-				<Example
-					title="Types"
-					code={code`
-						import { Toast, useToast } from 'ui/toast'
-						import { Button } from 'ui/button'
-
-						function App() {
-							const { toast } = useToast()
-
-							return (
-								<Button onClick={() => toast({ title: 'Saved', type: 'success' })}>
-									Show toast
-								</Button>
-							)
-						}
-
-						<Toast>
-							<App />
-						</Toast>
-					`}
-				>
+				<Example title="Types">
 					<ToastButtons />
 				</Example>
 
-				<Example
-					title="Persist"
-					code={code`
-						import { useToast } from 'ui/toast'
-						
-						const { toast } = useToast()
-
-						toast({
-							title: 'Attention:',
-							description: 'This toast will stay until dismissed.',
-							persist: true,
-						})
-					`}
-				>
+				<Example title="Persist">
 					<PersistToastButton />
 				</Example>
 
-				<Example
-					title="With action"
-					code={code`
-						import { Button } from 'ui/button'
-						import { useToast } from 'ui/toast'
-
-						const { toast } = useToast()
-
-						toast({
-							title: 'Message deleted',
-							description: 'The message has been removed.',
-							actions: <Button>Undo</Button>,
-						})
-					`}
-				>
+				<Example title="With action">
 					<ActionToastButton />
 				</Example>
 			</Stack>

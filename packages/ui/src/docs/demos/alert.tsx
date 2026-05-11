@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { Alert } from '../../components/alert'
 import { Button } from '../../components/button'
 import { Stack } from '../../components/stack'
-import { code } from '../code'
 import { Example } from '../components/example'
 import { VariantListbox } from '../components/variant-listbox'
 
@@ -108,19 +107,7 @@ export default function AlertDemo() {
 				</Stack>
 			</Example>
 
-			<Example
-				title="Closable"
-				code={code`
-					import { Alert } from 'ui/alert'
-
-					<Alert
-						type="success"
-						title="Changes saved"
-						closable
-						onOpenChange={() => {}}
-					/>
-				`}
-			>
+			<Example title="Closable">
 				<ClosableDemo />
 			</Example>
 
@@ -137,19 +124,7 @@ export default function AlertDemo() {
 				/>
 			</Example>
 
-			<Example
-				title="Block"
-				code={code`
-					import { Alert } from 'ui/alert'
-
-					<Alert
-						block
-						type="info"
-						title="Full-width alert"
-						description="This alert stretches to fill its container."
-					/>
-				`}
-			>
+			<Example title="Block">
 				<ClosableBlockDemo />
 			</Example>
 		</Stack>

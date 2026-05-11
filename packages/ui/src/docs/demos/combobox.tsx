@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { Combobox, ComboboxLabel, ComboboxOption } from '../../components/combobox'
 import { Field, Label } from '../../components/fieldset'
 import { Stack } from '../../components/stack'
-import { code } from '../code'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
@@ -75,60 +74,10 @@ function MultiCombobox() {
 export default function ComboboxDemo() {
 	return (
 		<Stack gap="xl">
-			<Example
-				title="Single"
-				code={code`
-					import { Combobox, ComboboxLabel, ComboboxOption } from 'ui/combobox'
-					import { Field, Label } from 'ui/fieldset'
-
-					const people = [
-					${people.map((p) => `  '${p}',`)}
-					]
-
-					<Field>
-						<Label>Assignee</Label>
-						<Combobox value={value} onChange={setValue} placeholder="Select a person">
-							{(query) =>
-								people
-									.filter((p) => !query || p.toLowerCase().includes(query.toLowerCase()))
-									.map((person) => (
-										<ComboboxOption key={person} value={person}>
-											<ComboboxLabel>{person}</ComboboxLabel>
-										</ComboboxOption>
-									))
-							}
-						</Combobox>
-					</Field>
-				`}
-			>
+			<Example title="Single">
 				<SingleCombobox />
 			</Example>
-			<Example
-				title="Multiple"
-				code={code`
-					import { Combobox, ComboboxLabel, ComboboxOption } from 'ui/combobox'
-					import { Field, Label } from 'ui/fieldset'
-
-					const people = [
-					${people.map((p) => `  '${p}',`)}
-					]
-
-					<Field>
-						<Label>Assignees</Label>
-						<Combobox multiple value={values} onChange={setValues} placeholder="Select people">
-							{(query) =>
-								people
-									.filter((p) => !query || p.toLowerCase().includes(query.toLowerCase()))
-									.map((person) => (
-										<ComboboxOption key={person} value={person}>
-											<ComboboxLabel>{person}</ComboboxLabel>
-										</ComboboxOption>
-									))
-							}
-						</Combobox>
-					</Field>
-				`}
-			>
+			<Example title="Multiple">
 				<MultiCombobox />
 			</Example>
 		</Stack>
