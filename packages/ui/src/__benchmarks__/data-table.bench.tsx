@@ -80,6 +80,7 @@ describe('DataTable · column-order logic (visibleColumns memo)', () => {
 	}))
 
 	const hidden = new Set<string | number>(manyColumns.slice(0, 20).map((c) => c.id))
+
 	const order = manyColumns.map((c) => c.id).reverse()
 
 	bench('40 columns · half hidden · reversed order · 100 rows', () => {
@@ -129,6 +130,7 @@ describe('DataTable · rerender after selection toggle (1,000 rows)', () => {
 		]
 
 		let selection = new Set<string | number>()
+
 		const { rerender } = render(
 			<DataTable columns={cols} rows={rows1k} getRowKey={getKey} selection={selection} />,
 		)
@@ -137,6 +139,7 @@ describe('DataTable · rerender after selection toggle (1,000 rows)', () => {
 			const key = getKey(rows1k[i * 100] as Shipment)
 
 			selection = new Set(selection)
+
 			selection.add(key)
 
 			rerender(<DataTable columns={cols} rows={rows1k} getRowKey={getKey} selection={selection} />)

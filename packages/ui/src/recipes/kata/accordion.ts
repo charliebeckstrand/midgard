@@ -38,9 +38,9 @@ export const accordionItem = tv({
 export const slots = {
 	button: [
 		'w-full flex items-center justify-between',
-		'p-4',
 		'gap-sm',
-		ji.size.sm,
+		'p-4',
+		ji.size.md,
 		iro.text.muted,
 		iro.text.hover,
 		'text-left font-medium',
@@ -57,7 +57,7 @@ export const slots = {
 		'group-data-[open]/accordion-item:rotate-180',
 	],
 	panel: 'overflow-hidden',
-	body: ['px-4 pb-4 pt-0', ji.size.sm, iro.text.muted],
+	body: ['px-4 pb-4 pt-0', ji.size.md, iro.text.muted],
 }
 
 export type AccordionVariants = VariantProps<typeof accordion>

@@ -32,6 +32,7 @@ function collectRuleIds(group: QueryGroup): string[] {
 
 const balancedIds = collectRuleIds(balanced)
 const deepWideIds = collectRuleIds(deepWide)
+
 const shallowWideFirstId = shallowWide.children[0]?.id ?? ''
 
 describe('query-builder: mapNode (update root-level rule)', () => {

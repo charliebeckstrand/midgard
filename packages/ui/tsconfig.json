@@ -5,6 +5,6 @@
 		"jsxImportSource": "react",
 		"lib": ["ES2022", "DOM", "DOM.Iterable"]
 	},
-	"include": ["src"],
+	"include": ["src", "tsup.config.ts"],
 	"exclude": ["src/docs", "src/__benchmarks__/docs"]
 }

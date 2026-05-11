@@ -65,6 +65,7 @@ describe('QueryBuilder · rerender after single-rule edit (5 edits/iter)', () =>
 
 	bench('deep-wide (~64 rules)', () => {
 		let tree = deepWide
+
 		const { rerender } = render(<QueryBuilder fields={QUERY_FIELDS} value={tree} />)
 
 		for (let i = 0; i < deepWideIds.length; i++) {

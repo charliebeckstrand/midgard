@@ -56,7 +56,9 @@ describe('json-tree: treeContainsMatch', () => {
 
 describe('json-tree: filterEntries (with index)', () => {
 	const term = 'value-root'
+
 	const index = buildSearchIndex(large, term)
+
 	const rootEntries = getEntries(large)
 
 	bench('root entries @ large', () => {
@@ -84,6 +86,7 @@ describe('json-tree: collectPaths', () => {
 
 describe('json-tree: getEntries', () => {
 	const obj = large as { [key: string]: JsonValue }
+
 	const arr: JsonValue[] = Object.values(obj)
 
 	bench('object', () => {

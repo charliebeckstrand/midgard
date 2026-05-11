@@ -87,6 +87,7 @@ describe('Combobox · open · virtualized', () => {
 			<Combobox<string> open>
 				{(query) => {
 					const q = query.toLowerCase()
+
 					const filtered = q ? opts.filter((o) => o.label.toLowerCase().includes(q)) : opts
 
 					return (

@@ -19,8 +19,10 @@ type Tagged = FunctionComponent<{ children?: ReactNode }> & { __module: string; 
 
 function tag(name: string, module = 'ui/components'): Tagged {
 	const Component = (() => null) as unknown as Tagged
+
 	Component.__module = module
 	Component.__name = name
+
 	return Component
 }
 

@@ -31,7 +31,9 @@ export type Shipment = {
 }
 
 const STATUSES: Shipment['status'][] = ['pending', 'in_transit', 'delivered', 'exception']
+
 const CARRIERS = ['ACME', 'Globex', 'Initech', 'Umbrella', 'Soylent', 'Hooli', 'Pied Piper']
+
 const CITIES = [
 	'Seattle',
 	'Chicago',
@@ -44,6 +46,7 @@ const CITIES = [
 	'Portland',
 	'Austin',
 ]
+
 const PERIODS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 export function makeShipments(count: number, seed = 1): Shipment[] {
@@ -89,8 +92,11 @@ export function makeJsonTree(depth: number, branching: number, seed = 1): Json {
 			const r = rand()
 
 			if (r < 0.3) return Math.floor(r * 10_000)
+
 			if (r < 0.6) return `value-${path}`
+
 			if (r < 0.8) return r > 0.7
+
 			return null
 		}
 
