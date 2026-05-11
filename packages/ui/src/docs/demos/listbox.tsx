@@ -15,7 +15,7 @@ const statuses = [
 	{ value: 'canceled', label: 'Canceled' },
 ]
 
-function SingleListbox() {
+function SingleListboxExample() {
 	const [selected, setSelected] = useState<string | undefined>(undefined)
 
 	return (
@@ -38,7 +38,7 @@ function SingleListbox() {
 	)
 }
 
-function MultiListbox() {
+function MultiListboxExample() {
 	const [selected, setSelected] = useState<string[]>([])
 
 	return (
@@ -65,11 +65,11 @@ export default function ListboxDemo() {
 	return (
 		<Stack gap="xl">
 			<Example title="Single">
-				<SingleListbox />
+				<SingleListboxExample />
 			</Example>
 
 			<Example title="Multiple">
-				<MultiListbox />
+				<MultiListboxExample />
 			</Example>
 		</Stack>
 	)

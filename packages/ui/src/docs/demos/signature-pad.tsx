@@ -12,7 +12,7 @@ import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
 
-function Default() {
+function DefaultExample() {
 	const [value, setValue] = useState<string | null>(null)
 	const [previewOpen, setPreviewOpen] = useState(false)
 
@@ -55,7 +55,7 @@ function Default() {
 	)
 }
 
-function ImperativeHandle() {
+function ImperativeHandleExample() {
 	const ref = useRef<SignaturePadHandle>(null)
 
 	const [value, setValue] = useState<string | null>(null)
@@ -99,7 +99,7 @@ function ImperativeHandle() {
 	)
 }
 
-function Disabled() {
+function DisabledExample() {
 	return (
 		<Example title="Disabled">
 			<SignaturePad disabled placeholder="Signature locked" />
@@ -110,9 +110,9 @@ function Disabled() {
 export default function SignaturePadDemo() {
 	return (
 		<Stack gap="xl">
-			<Default />
-			<ImperativeHandle />
-			<Disabled />
+			<DefaultExample />
+			<ImperativeHandleExample />
+			<DisabledExample />
 		</Stack>
 	)
 }

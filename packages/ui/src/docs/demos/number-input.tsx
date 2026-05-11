@@ -8,7 +8,7 @@ import { Example } from '../components/example'
 
 export const meta = { category: 'Input' }
 
-function Controlled() {
+function ControlledExample() {
 	const [value, setValue] = useState<number | undefined>(3)
 
 	return (
@@ -50,7 +50,7 @@ export default function NumberInputDemo() {
 				</Field>
 			</Example>
 
-			<Controlled />
+			<ControlledExample />
 
 			<Example title="Disabled">
 				<Field>

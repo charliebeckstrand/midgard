@@ -26,7 +26,7 @@ const sample = {
 	],
 }
 
-function ExpandAllDemo() {
+function ExpandAllExample() {
 	const allPaths = useMemo(() => collectJsonTreePaths(sample), [])
 
 	const [expanded, setExpanded] = useState<Set<string>>(allPaths)
@@ -49,7 +49,7 @@ function ExpandAllDemo() {
 	)
 }
 
-function SearchDemo() {
+function SearchExample() {
 	const [search, setSearch] = useState('')
 
 	const deferredSearch = useDeferredValue(search)
@@ -70,7 +70,7 @@ function SearchDemo() {
 	)
 }
 
-function FilterDemo() {
+function FilterExample() {
 	const [search, setSearch] = useState('')
 
 	const deferredSearch = useDeferredValue(search)
@@ -102,7 +102,7 @@ export default function JsonTreeDemo() {
 			</Example>
 
 			<Example title="Expand all levels">
-				<ExpandAllDemo />
+				<ExpandAllExample />
 			</Example>
 
 			<Example title="Collapsed by default">
@@ -110,11 +110,11 @@ export default function JsonTreeDemo() {
 			</Example>
 
 			<Example title="Search">
-				<SearchDemo />
+				<SearchExample />
 			</Example>
 
 			<Example title="Search with filter">
-				<FilterDemo />
+				<FilterExample />
 			</Example>
 
 			<Example title="Arrays of primitives">

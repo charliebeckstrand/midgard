@@ -8,7 +8,7 @@ import { Example } from '../components/example'
 
 export const meta = { category: 'Input' }
 
-function DefaultTagInput() {
+function DefaultTagInputExample() {
 	const [tags, setTags] = useState<string[]>(['React', 'TypeScript'])
 
 	return (
@@ -19,7 +19,7 @@ function DefaultTagInput() {
 	)
 }
 
-function SizedTagInputs() {
+function SizedTagInputsExample() {
 	return (
 		<>
 			<Field>
@@ -38,7 +38,7 @@ function SizedTagInputs() {
 	)
 }
 
-function MaxTagInput() {
+function MaxTagInputExample() {
 	const [tags, setTags] = useState<string[]>(['One', 'Two', 'Three'])
 
 	return (
@@ -58,15 +58,15 @@ export default function TagInputDemo() {
 	return (
 		<Stack gap="xl">
 			<Example title="Default">
-				<DefaultTagInput />
+				<DefaultTagInputExample />
 			</Example>
 
 			<Example title="Sizes">
-				<SizedTagInputs />
+				<SizedTagInputsExample />
 			</Example>
 
 			<Example title="Max tags">
-				<MaxTagInput />
+				<MaxTagInputExample />
 			</Example>
 
 			<Example title="Disabled">

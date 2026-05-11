@@ -8,7 +8,7 @@ import { Example } from '../components/example'
 
 export const meta = { category: 'Feedback' }
 
-function ToastButtons() {
+function ToastButtonsExample() {
 	const { toast } = useToast()
 
 	return (
@@ -55,7 +55,7 @@ function ToastButtons() {
 	)
 }
 
-function PersistToastButton() {
+function PersistToastButtonExample() {
 	const { toast } = useToast()
 
 	return (
@@ -74,7 +74,7 @@ function PersistToastButton() {
 	)
 }
 
-function ActionToastButton() {
+function ActionToastButtonExample() {
 	const { toast } = useToast()
 
 	return (
@@ -100,15 +100,15 @@ export default function ToastDemo() {
 		<Toast>
 			<Stack gap="xl">
 				<Example title="Types">
-					<ToastButtons />
+					<ToastButtonsExample />
 				</Example>
 
 				<Example title="Persist">
-					<PersistToastButton />
+					<PersistToastButtonExample />
 				</Example>
 
 				<Example title="With action">
-					<ActionToastButton />
+					<ActionToastButtonExample />
 				</Example>
 			</Stack>
 		</Toast>

@@ -14,7 +14,7 @@ function Sizer({ children, className }: { children: React.ReactNode; className?:
 	return <div className={`sm:max-w-sm ${className}`}>{children}</div>
 }
 
-function AreaDemo() {
+function AreaExample() {
 	const [files, setFiles] = useState<File[]>([])
 
 	return (
@@ -27,7 +27,7 @@ function AreaDemo() {
 	)
 }
 
-function CustomContentDemo() {
+function CustomContentExample() {
 	const [files, setFiles] = useState<File[]>([])
 
 	return (
@@ -44,7 +44,7 @@ function CustomContentDemo() {
 	)
 }
 
-function InputDemo() {
+function InputExample() {
 	const [files, setFiles] = useState<File[]>([])
 
 	return (
@@ -57,7 +57,7 @@ function InputDemo() {
 	)
 }
 
-function ButtonDemo() {
+function ButtonExample() {
 	const [files, setFiles] = useState<File[]>([])
 
 	return (
@@ -70,7 +70,7 @@ function ButtonDemo() {
 	)
 }
 
-function DisabledDemo() {
+function DisabledExample() {
 	return (
 		<Sizer className="flex flex-col gap-4">
 			<FileUpload disabled />
@@ -84,23 +84,23 @@ export default function FileUploadDemo() {
 	return (
 		<Stack gap="xl">
 			<Example title="Default">
-				<AreaDemo />
+				<AreaExample />
 			</Example>
 
 			<Example title="Custom content">
-				<CustomContentDemo />
+				<CustomContentExample />
 			</Example>
 
 			<Example title="Input variant">
-				<InputDemo />
+				<InputExample />
 			</Example>
 
 			<Example title="Button variant">
-				<ButtonDemo />
+				<ButtonExample />
 			</Example>
 
 			<Example title="Disabled">
-				<DisabledDemo />
+				<DisabledExample />
 			</Example>
 		</Stack>
 	)

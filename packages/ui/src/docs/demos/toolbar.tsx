@@ -17,7 +17,7 @@ import { Example } from '../components/example'
 
 export const meta = { category: 'Navigation' }
 
-function FormattingToolbar() {
+function FormattingToolbarExample() {
 	return (
 		<Toolbar aria-label="Text formatting">
 			<ToolbarGroup aria-label="History">
@@ -63,7 +63,7 @@ export default function ToolbarDemo() {
 	return (
 		<Stack gap="xl">
 			<Example title="Default">
-				<FormattingToolbar />
+				<FormattingToolbarExample />
 			</Example>
 
 			<Example title="Variants">

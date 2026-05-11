@@ -5,7 +5,7 @@ import { Example } from '../components/example'
 
 export const meta = { category: 'Data Display' }
 
-function Default() {
+function DefaultExample() {
 	return (
 		<Example
 			title="Default"
@@ -23,7 +23,7 @@ function Default() {
 	)
 }
 
-function Empty() {
+function EmptyExample() {
 	return (
 		<Example
 			title="Empty"
@@ -41,8 +41,8 @@ function Empty() {
 export default function PdfViewerDemo() {
 	return (
 		<Stack gap="xl">
-			<Default />
-			<Empty />
+			<DefaultExample />
+			<EmptyExample />
 		</Stack>
 	)
 }

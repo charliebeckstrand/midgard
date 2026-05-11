@@ -17,7 +17,7 @@ const variants = ['solid', 'soft', 'outline', 'plain', 'ghost'] as const
 
 type Variant = (typeof variants)[number]
 
-function DestructiveHoldButton() {
+function DestructiveHoldButtonExample() {
 	const [deleted, setDeleted] = useState(false)
 
 	return deleted ? (
@@ -58,7 +58,7 @@ export default function HoldButtonDemo() {
 			</Example>
 
 			<Example title="Destructive">
-				<DestructiveHoldButton />
+				<DestructiveHoldButtonExample />
 			</Example>
 
 			<Example title="Durations">

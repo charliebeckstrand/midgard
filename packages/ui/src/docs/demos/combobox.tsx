@@ -17,7 +17,7 @@ const people = [
 	'Hellen Schmidt',
 ]
 
-function SingleCombobox() {
+function SingleComboboxExample() {
 	const [selected, setSelected] = useState<string | undefined>(undefined)
 
 	return (
@@ -44,7 +44,7 @@ function SingleCombobox() {
 	)
 }
 
-function MultiCombobox() {
+function MultiComboboxExample() {
 	const [selected, setSelected] = useState<string[]>([])
 
 	return (
@@ -75,10 +75,10 @@ export default function ComboboxDemo() {
 	return (
 		<Stack gap="xl">
 			<Example title="Single">
-				<SingleCombobox />
+				<SingleComboboxExample />
 			</Example>
 			<Example title="Multiple">
-				<MultiCombobox />
+				<MultiComboboxExample />
 			</Example>
 		</Stack>
 	)

@@ -16,7 +16,7 @@ const sizes = ['sm', 'md', 'lg'] as const
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
-function Interactive() {
+function InteractiveExample() {
 	const [value, setValue] = useState(50)
 
 	return (
@@ -30,7 +30,7 @@ function Interactive() {
 	)
 }
 
-function StepSliderDemo() {
+function StepSliderExample() {
 	const [ratio, setRatio] = useState(0.5)
 
 	return (
@@ -42,7 +42,7 @@ function StepSliderDemo() {
 	)
 }
 
-function RangeSliderDemo() {
+function RangeSliderExample() {
 	const [range, setRange] = useState<[number, number]>([25, 75])
 
 	return (
@@ -55,7 +55,7 @@ function RangeSliderDemo() {
 	)
 }
 
-function RangeStepSliderDemo() {
+function RangeStepSliderExample() {
 	const [rangeClamped, setRangeClamped] = useState<[number, number]>([0.3, 0.7])
 	const [rangeSwap, setRangeSwap] = useState<[number, number]>([0.3, 0.7])
 
@@ -103,7 +103,7 @@ function RangeStepSliderDemo() {
 export default function SliderDemo() {
 	return (
 		<Stack gap="xl">
-			<Interactive />
+			<InteractiveExample />
 
 			<Example title="Sizes">
 				{sizes.map((s, i) => (
@@ -124,15 +124,15 @@ export default function SliderDemo() {
 			</Example>
 
 			<Example title="Step">
-				<StepSliderDemo />
+				<StepSliderExample />
 			</Example>
 
 			<Example title="Range">
-				<RangeSliderDemo />
+				<RangeSliderExample />
 			</Example>
 
 			<Example title="Range with steps">
-				<RangeStepSliderDemo />
+				<RangeStepSliderExample />
 			</Example>
 
 			<Example title="Disabled">

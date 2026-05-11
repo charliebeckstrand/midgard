@@ -66,7 +66,7 @@ function DynamicExample() {
 	)
 }
 
-function TransitionDemo() {
+function TransitionExample() {
 	const [ready, setReady] = useState(false)
 
 	return (
@@ -116,7 +116,7 @@ export default function SkeletonDemo() {
 			</Example>
 
 			<Example title="Transition">
-				<TransitionDemo />
+				<TransitionExample />
 			</Example>
 		</Stack>
 	)

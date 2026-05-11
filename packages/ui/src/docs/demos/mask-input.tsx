@@ -39,7 +39,7 @@ function formatIban(raw: string) {
 	return clean.match(/.{1,4}/g)?.join(' ') ?? ''
 }
 
-function Controlled() {
+function ControlledExample() {
 	const [value, setValue] = useState('')
 
 	return (
@@ -174,7 +174,7 @@ export default function MaskInputDemo() {
 				</Field>
 			</Example>
 
-			<Controlled />
+			<ControlledExample />
 
 			<Example
 				title="Disabled"

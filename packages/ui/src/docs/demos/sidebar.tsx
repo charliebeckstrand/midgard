@@ -65,7 +65,7 @@ function SidebarFrame({ children }: { children: ReactNode }) {
 	)
 }
 
-function DefaultSidebar() {
+function DefaultSidebarExample() {
 	const [active, setActive] = useState('home')
 
 	return (
@@ -90,7 +90,7 @@ function DefaultSidebar() {
 	)
 }
 
-function HeaderFooterSidebar() {
+function HeaderFooterSidebarExample() {
 	const [active, setActive] = useState('home')
 
 	return (
@@ -124,7 +124,7 @@ function HeaderFooterSidebar() {
 	)
 }
 
-function SectionedSidebar() {
+function SectionedSidebarExample() {
 	const [active, setActive] = useState('home')
 
 	return (
@@ -210,7 +210,7 @@ function SectionedSidebar() {
 	)
 }
 
-function ItemActionsSidebar() {
+function ItemActionsSidebarExample() {
 	return (
 		<SidebarFrame>
 			<Sidebar>
@@ -245,19 +245,19 @@ export default function SidebarDemo() {
 	return (
 		<Stack gap="xl">
 			<Example title="Default">
-				<DefaultSidebar />
+				<DefaultSidebarExample />
 			</Example>
 
 			<Example title="With header and footer">
-				<HeaderFooterSidebar />
+				<HeaderFooterSidebarExample />
 			</Example>
 
 			<Example title="Sections, divider, and spacer">
-				<SectionedSidebar />
+				<SectionedSidebarExample />
 			</Example>
 
 			<Example title="With item actions">
-				<ItemActionsSidebar />
+				<ItemActionsSidebarExample />
 			</Example>
 		</Stack>
 	)

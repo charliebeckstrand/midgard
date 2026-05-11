@@ -9,7 +9,7 @@ import { Example } from '../components/example'
 
 export const meta = { category: 'Data Display' }
 
-function Counter() {
+function CounterExample() {
 	const [value, setValue] = useState(1284)
 
 	return (
@@ -31,7 +31,7 @@ function Counter() {
 	)
 }
 
-function Currency() {
+function CurrencyExample() {
 	const [value, setValue] = useState(48_215.67)
 
 	const format = (n: number) =>
@@ -62,8 +62,8 @@ export default function OdometerDemo() {
 
 	return (
 		<Stack gap="xl">
-			<Counter />
-			<Currency />
+			<CounterExample />
+			<CurrencyExample />
 
 			<Example
 				title="Instant (duration=0)"

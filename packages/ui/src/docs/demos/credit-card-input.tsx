@@ -15,7 +15,7 @@ import { Example } from '../components/example'
 
 export const meta = { category: 'Input' }
 
-function Controlled() {
+function ControlledExample() {
 	const [value, setValue] = useState('')
 
 	return (
@@ -42,7 +42,7 @@ function Controlled() {
 	)
 }
 
-function Composed() {
+function ComposedExample() {
 	const [brand, setBrand] = useState<CreditCardBrand | undefined>(undefined)
 
 	return (
@@ -100,9 +100,9 @@ export default function CreditCardInputDemo() {
 				</Stack>
 			</Example>
 
-			<Composed />
+			<ComposedExample />
 
-			<Controlled />
+			<ControlledExample />
 
 			<Example title="Sizes">
 				<Field>

@@ -60,7 +60,7 @@ const mockGooglePlaces: AddressProvider = async (query) => {
 	)
 }
 
-function Default() {
+function DefaultExample() {
 	const [address, setAddress] = useState<AddressSuggestion | undefined>(undefined)
 
 	return (
@@ -76,7 +76,7 @@ function Default() {
 	)
 }
 
-function WithInitialOptions() {
+function WithInitialOptionsExample() {
 	const [address, setAddress] = useState<AddressSuggestion | undefined>(undefined)
 
 	return (
@@ -103,7 +103,7 @@ function WithInitialOptions() {
 	)
 }
 
-function CustomProvider() {
+function CustomProviderExample() {
 	const [address, setAddress] = useState<AddressSuggestion | undefined>(undefined)
 
 	return (
@@ -145,15 +145,15 @@ export default function AddressInputDemo() {
 			</Alert>
 
 			<Example title="Default">
-				<Default />
+				<DefaultExample />
 			</Example>
 
 			<Example title="With initial options">
-				<WithInitialOptions />
+				<WithInitialOptionsExample />
 			</Example>
 
 			<Example title="Custom provider">
-				<CustomProvider />
+				<CustomProviderExample />
 			</Example>
 		</Stack>
 	)
