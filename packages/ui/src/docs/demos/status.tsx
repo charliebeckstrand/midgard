@@ -5,6 +5,7 @@ import { Flex } from '../../components/flex'
 import { Stack } from '../../components/stack'
 import { StatusDot } from '../../components/status'
 import { Example } from '../components/example'
+import { capitalize } from '../components/format'
 import { SizeListbox } from '../components/size-listbox'
 import { VariantListbox } from '../components/variant-listbox'
 
@@ -13,8 +14,6 @@ export const meta = { category: 'Data Display' }
 const statuses = ['inactive', 'active', 'info', 'warning', 'error'] as const
 
 const sizes = ['xs', 'sm', 'md', 'lg'] as const
-
-const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
 export default function StatusDemo() {
 	const [status, setStatus] = useState<(typeof statuses)[number]>('active')
@@ -27,7 +26,7 @@ export default function StatusDemo() {
 					{statuses.map((s) => (
 						<Flex key={s} gap="sm">
 							<StatusDot status={s} />
-							<span className="text-sm text-zinc-500 dark:text-zinc-400">{cap(s)}</span>
+							<span className="text-sm text-zinc-500 dark:text-zinc-400">{capitalize(s)}</span>
 						</Flex>
 					))}
 				</Stack>
@@ -38,7 +37,7 @@ export default function StatusDemo() {
 					{statuses.map((s) => (
 						<Flex key={s} gap="sm">
 							<StatusDot variant="outline" status={s} />
-							<span className="text-sm text-zinc-500 dark:text-zinc-400">{cap(s)}</span>
+							<span className="text-sm text-zinc-500 dark:text-zinc-400">{capitalize(s)}</span>
 						</Flex>
 					))}
 				</Stack>

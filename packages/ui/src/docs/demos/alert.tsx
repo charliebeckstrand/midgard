@@ -5,6 +5,7 @@ import { Alert } from '../../components/alert'
 import { Button } from '../../components/button'
 import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
+import { capitalize } from '../components/format'
 import { VariantListbox } from '../components/variant-listbox'
 
 export const meta = { category: 'Feedback' }
@@ -16,8 +17,6 @@ const colorVariants = ['solid', 'soft', 'outline', 'plain'] as const
 const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 
 const types = ['info', 'success', 'warning', 'error'] as const
-
-const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
 function ClosableExample() {
 	const [visible, setVisible] = useState(true)
@@ -64,7 +63,7 @@ export default function AlertDemo() {
 			<Example title="Variants">
 				<Stack gap="md">
 					{variants.map((variant) => (
-						<Alert key={variant} variant={variant} title={`${cap(variant)} alert`} />
+						<Alert key={variant} variant={variant} title={`${capitalize(variant)} alert`} />
 					))}
 				</Stack>
 			</Example>
@@ -81,7 +80,7 @@ export default function AlertDemo() {
 			>
 				<Stack gap="md">
 					{colors.map((color) => (
-						<Alert key={color} variant={colorVariant} color={color} title={cap(color)} />
+						<Alert key={color} variant={colorVariant} color={color} title={capitalize(color)} />
 					))}
 				</Stack>
 			</Example>
@@ -89,7 +88,7 @@ export default function AlertDemo() {
 			<Example title="Types">
 				<Stack gap="md">
 					{types.map((type) => (
-						<Alert key={type} type={type} title={`${cap(type)} alert`} />
+						<Alert key={type} type={type} title={`${capitalize(type)} alert`} />
 					))}
 				</Stack>
 			</Example>
@@ -100,7 +99,7 @@ export default function AlertDemo() {
 						<Alert
 							key={type}
 							type={type}
-							title={`${cap(type)} alert`}
+							title={`${capitalize(type)} alert`}
 							description="This is a description providing more details about the alert."
 						/>
 					))}

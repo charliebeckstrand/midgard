@@ -5,6 +5,7 @@ import { Flex } from '../../components/flex'
 import { Icon } from '../../components/icon'
 import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
+import { LabeledColumn } from '../components/labeled'
 
 export const meta = { category: 'Data Display' }
 
@@ -32,10 +33,9 @@ export default function IconDemo() {
 			<Example title="Sizes">
 				<Flex gap="lg" className="dark:text-white">
 					{sizes.map((s) => (
-						<Stack key={s} gap="sm" align="center">
+						<LabeledColumn key={s} label={s}>
 							<Icon icon={<Plus />} size={s} />
-							<span className="text-xs text-zinc-500">{s}</span>
-						</Stack>
+						</LabeledColumn>
 					))}
 				</Flex>
 			</Example>

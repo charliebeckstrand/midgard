@@ -10,6 +10,7 @@ import { Stack } from '../../components/stack'
 import { Textarea } from '../../components/textarea'
 import { code } from '../code'
 import { Example } from '../components/example'
+import { capitalize } from '../components/format'
 export const meta = { category: 'Forms' }
 
 const variants = ['default', 'outline'] as const
@@ -29,9 +30,7 @@ export default function TextareaDemo() {
 			<Example title="Variants">
 				{variants.map((variant) => (
 					<Field key={variant}>
-						<Label htmlFor={`textarea-${variant}`}>
-							{variant.charAt(0).toUpperCase() + variant.slice(1)}
-						</Label>
+						<Label htmlFor={`textarea-${variant}`}>{capitalize(variant)}</Label>
 						<Textarea
 							id={`textarea-${variant}`}
 							variant={variant}
