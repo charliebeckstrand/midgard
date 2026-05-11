@@ -14,7 +14,7 @@ If the user provided context ("I'm building a dashboard", "we need more form pie
 
 ## 1. Load the Project Profile
 
-Read `.claude/cache/project-profile.json`. If missing, stale, or relevant fields are `null`, invoke `/discover --quiet` and re-read.
+Read `.claude/cache/project-profile.json`. If missing, stale, or relevant fields are `null`, invoke `/repo:discover --quiet` and re-read.
 
 Pull these fields:
 

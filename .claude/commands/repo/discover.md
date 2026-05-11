@@ -209,7 +209,7 @@ Unless `--quiet` was passed, print a compact markdown summary (~15 lines):
 - Cache: `.claude/cache/project-profile.json`
 ```
 
-End with: `Run /discover --force to refresh; downstream skills will reuse this file.`
+End with: `Run /repo:discover --force to refresh; downstream skills will reuse this file.`
 
 ---
 

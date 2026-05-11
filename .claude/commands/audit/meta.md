@@ -20,10 +20,10 @@ Recognized hints:
 Run these reads in parallel:
 
 - **List of skills** — glob `.claude/commands/**/*.md`. For each, capture path, first heading, the `TRIGGER` line, and total line count.
-- **Project Profile schema** — read `.claude/commands/discover.md` and extract the `Project Profile schema` section. This is the **canonical source of truth** for what fields exist; never quote the schema from memory.
+- **Project Profile schema** — read `.claude/commands/repo/discover.md` and extract the `Project Profile schema` section. This is the **canonical source of truth** for what fields exist; never quote the schema from memory.
 - **Conventions** — read `CLAUDE.md` for declared principles (used to weight findings) and the `## Skills` section (used to verify each skill is bound or intentionally optional).
 
-If `.claude/commands/discover.md` does not exist, surface that as the first blocker — every other skill depends on the profile it produces.
+If `.claude/commands/repo/discover.md` does not exist, surface that as the first blocker — every other skill depends on the profile it produces.
 
 ---
 
@@ -94,8 +94,8 @@ Flag deviations as warnings: missing `TRIGGER`, missing profile load when the sk
 For each skill that mentions the profile:
 
 - **References field that doesn't exist** → blocker. Compare every profile-path reference (e.g. `packages[*].framework`) against the schema extracted in section 1. Typos like `packages[*].frameworks` or stale field names (`packages[*].router`) are common.
-- **Re-implements discovery** → warning. The skill greps the lockfile, reads `tsconfig.json`, or parses `turbo.json` itself instead of delegating to `/discover`. The exception is when the data the skill needs is not in the profile — that's a schema-gap finding (section 4e), not a re-implementation finding.
-- **Skips the freshness check** → warning. Skills should refresh the profile via `/discover --quiet` when cache is missing or stale, not unconditionally read the JSON. Look for the cache-and-refresh paragraph in each skill that consumes the profile.
+- **Re-implements discovery** → warning. The skill greps the lockfile, reads `tsconfig.json`, or parses `turbo.json` itself instead of delegating to `/repo:discover`. The exception is when the data the skill needs is not in the profile — that's a schema-gap finding (section 4e), not a re-implementation finding.
+- **Skips the freshness check** → warning. Skills should refresh the profile via `/repo:discover --quiet` when cache is missing or stale, not unconditionally read the JSON. Look for the cache-and-refresh paragraph in each skill that consumes the profile.
 
 ### 4e. Profile schema gaps
 
@@ -221,7 +221,7 @@ Per-skill findings are mechanical — the user (or another agent) applies them d
 
 `/council` and `/premortem` each spawn ~10 sub-agents. Surface them in the `Next steps:` block and wait for the user to opt in — never invoke them silently from this skill.
 
-- **`/council` on the schema-improvements table** — offer prominently when the table has **≥2 rows**. Expanding the Project Profile is a load-bearing decision: more fields strengthen downstream skills, but `/discover` becomes fatter and more brittle. If the user opts in, pass the table verbatim as the framed question ("Should we add these fields to the Project Profile? Which ones?") with the rationale rows.
+- **`/council` on the schema-improvements table** — offer prominently when the table has **≥2 rows**. Expanding the Project Profile is a load-bearing decision: more fields strengthen downstream skills, but `/repo:discover` becomes fatter and more brittle. If the user opts in, pass the table verbatim as the framed question ("Should we add these fields to the Project Profile? Which ones?") with the rationale rows.
 
   Skip the offer when the table has **0 or 1** rows — a single proposal is a yes/no question, not a council-worthy debate.
 
@@ -230,7 +230,7 @@ After printing the report, append:
 > **Next steps:**
 > - Run `/council` on the schema-improvements table → debate whether to expand the Project Profile.
 > - Run `/council` on extraction candidates → debate DRY vs. colocation for the duplicated chunks.
-> - Run `/premortem` before applying schema changes to `/discover` → stress-test the diff before it lands, since the profile is the foundation every other skill consumes.
+> - Run `/premortem` before applying schema changes to `/repo:discover` → stress-test the diff before it lands, since the profile is the foundation every other skill consumes.
 > - Apply per-skill findings directly — they're mechanical and don't need council.
 
 Only show the lines that apply: drop the schema-council line when the schema table has 0 or 1 rows; drop the extraction line when there are zero candidates; drop the premortem line when no schema changes were proposed. Wait for an explicit go-ahead before firing any of them.
@@ -281,7 +281,7 @@ Use `packages[*].router` from the profile to pick the routing convention.
 Finding:
 
 ```
-blocker · profile-field-missing · ui-route.md:18 · `packages[*].router` is not in the schema (canonical schema is in discover.md). Either remove the reference or propose the field via 4e
+blocker · profile-field-missing · ui-route.md:18 · `packages[*].router` is not in the schema (canonical schema is in repo/discover.md). Either remove the reference or propose the field via 4e
 ```
 
 ### Schema-gap recommendation (cross-cutting)
@@ -298,6 +298,6 @@ Several skills currently say variants of "scan the linter config for X". This is
 
 - This skill **reviews** skills — it does not rewrite them. Findings are recommendations; the user decides what to apply.
 - Self-audit findings are tagged `(self)` in the output. Be honest about them; do not soften.
-- When proposing schema additions, **never** modify `/discover` directly from this skill — surface the proposal and let the user decide whether to expand the schema.
-- Quote the canonical schema from `discover.md` at runtime; never paraphrase the schema from memory, since it drifts.
+- When proposing schema additions, **never** modify `/repo:discover` directly from this skill — surface the proposal and let the user decide whether to expand the schema.
+- Quote the canonical schema from `repo/discover.md` at runtime; never paraphrase the schema from memory, since it drifts.
 - This skill is itself subject to the rules it enforces. If it grows past 500 lines or accumulates padding words, the next run should flag it.
