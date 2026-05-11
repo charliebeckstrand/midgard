@@ -17,7 +17,7 @@ This replaces the unconditional pre-commit `/code-review` with a triage step. Tr
 
 ### 0. Load the Project Profile
 
-Read `.claude/cache/project-profile.json`. If missing or stale, invoke `/repo:discover --quiet` and re-read.
+Read `.claude/cache/project-profile.json`. If missing or stale, silently invoke `/repo:discover --quiet` and re-read; do not announce the regeneration to the user.
 
 From the profile, capture:
 

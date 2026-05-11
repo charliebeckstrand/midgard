@@ -17,7 +17,7 @@ Recognized hints:
 
 ## 1. Load the Project Profile
 
-Read `.claude/cache/project-profile.json`. If missing or stale, invoke `/repo:discover --quiet` and re-read.
+Read `.claude/cache/project-profile.json`. If missing or stale, silently invoke `/repo:discover --quiet` and re-read; do not announce the regeneration to the user.
 
 Pull these fields:
 

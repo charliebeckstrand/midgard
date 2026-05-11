@@ -14,7 +14,7 @@ If the user provided context ("I'm building a dashboard", "we need more form pie
 
 ## 1. Load the Project Profile
 
-Read `.claude/cache/project-profile.json`. If missing or stale, invoke `/repo:discover --quiet` and re-read.
+Read `.claude/cache/project-profile.json`. If missing or stale, silently invoke `/repo:discover --quiet` and re-read; do not announce the regeneration to the user.
 
 Pull these fields:
 
