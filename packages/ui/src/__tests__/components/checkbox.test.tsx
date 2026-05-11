@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Checkbox, CheckboxField, CheckboxGroup } from '../../components/checkbox'
-import { Concentric } from '../../components/concentric'
+import { ConcentricProvider } from '../../primitives'
 import { bySlot, renderUI } from '../helpers'
 
 describe('Checkbox', () => {
@@ -111,21 +111,21 @@ describe('Checkbox size', () => {
 		expect(bySlot(container, 'control')?.className).toContain('size-5')
 	})
 
-	it('inherits size from <Concentric>', () => {
+	it('inherits size from the concentric context', () => {
 		const { container } = renderUI(
-			<Concentric size="sm">
+			<ConcentricProvider value={{ size: 'sm' }}>
 				<Checkbox />
-			</Concentric>,
+			</ConcentricProvider>,
 		)
 
 		expect(bySlot(container, 'control')?.className).toContain('size-4')
 	})
 
-	it('explicit size beats Concentric inheritance', () => {
+	it('explicit size beats concentric inheritance', () => {
 		const { container } = renderUI(
-			<Concentric size="sm">
+			<ConcentricProvider value={{ size: 'sm' }}>
 				<Checkbox size="lg" />
-			</Concentric>,
+			</ConcentricProvider>,
 		)
 
 		expect(bySlot(container, 'control')?.className).toContain('size-5')

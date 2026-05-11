@@ -1,9 +1,9 @@
 import { Search } from 'lucide-react'
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
-import { Concentric } from '../../components/concentric'
 import { Group } from '../../components/group'
 import { Icon } from '../../components/icon'
+import { ConcentricProvider } from '../../primitives'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Button', () => {
@@ -176,11 +176,11 @@ describe('Button', () => {
 			expect(bySlot(container, 'button')?.className).toContain(textClassFor.lg)
 		})
 
-		it('inherits size from <Concentric> when no explicit size prop is set', () => {
+		it('inherits size from the concentric context when no explicit size prop is set', () => {
 			const { container } = renderUI(
-				<Concentric size="sm">
+				<ConcentricProvider value={{ size: 'sm' }}>
 					<Button>Inherit</Button>
-				</Concentric>,
+				</ConcentricProvider>,
 			)
 
 			expect(bySlot(container, 'button')?.className).toContain(textClassFor.sm)

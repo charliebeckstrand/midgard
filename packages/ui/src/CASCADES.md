@@ -15,7 +15,7 @@ final = explicit prop ?? Control ?? Concentric ?? component default
 ```
 
 - **Control** (`useControl`) — provided by `<Control>`. Carries `id`, `autoComplete`, `disabled`, `invalid`, `readOnly`, `required`, `size`, `variant`. Form fields nested inside `<Control>` inherit all of these.
-- **Concentric** (`useConcentric`) — provided by `<Concentric>` / `<Group>` / `<Card>`. Carries `size` only. Used as a fallback when no Control wraps the field.
+- **Concentric** (`useConcentric`) — a primitive in `primitives/concentric.ts`, broadcast by `<Card>` / `<Drawer>` / `<Popover>` / `<Group>`. Carries `size` only. Used as a fallback when no Control wraps the field.
 
 Glass override on `variant`: form fields apply `variant: 'glass'` when `useGlass()` is `true` and no explicit variant is set.
 

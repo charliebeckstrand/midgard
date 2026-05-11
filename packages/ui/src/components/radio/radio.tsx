@@ -2,6 +2,7 @@
 
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
+import { useConcentric } from '../../primitives'
 import { kokkaku } from '../../recipes'
 import {
 	type RadioVariants,
@@ -9,7 +10,6 @@ import {
 	radioInputVariants,
 	radioVariants,
 } from '../../recipes/kata/radio'
-import { useConcentric } from '../concentric'
 import { invalidAttrs } from '../control/invalid-attrs'
 import { useFieldProps } from '../control/use-field-props'
 import { Placeholder } from '../placeholder'

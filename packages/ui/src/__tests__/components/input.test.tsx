@@ -1,7 +1,7 @@
 import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { Concentric } from '../../components/concentric'
 import { Input } from '../../components/input'
+import { ConcentricProvider } from '../../primitives'
 import { bySlot, renderUI, userEvent } from '../helpers'
 
 describe('Input', () => {
@@ -92,21 +92,21 @@ describe('Input size resolution', () => {
 		lg: 'text-lg',
 	} as const
 
-	it('inherits size from <Concentric> when no explicit prop is set', () => {
+	it('inherits size from the concentric context when no explicit prop is set', () => {
 		const { container } = renderUI(
-			<Concentric size="lg">
+			<ConcentricProvider value={{ size: 'lg' }}>
 				<Input />
-			</Concentric>,
+			</ConcentricProvider>,
 		)
 
 		expect(bySlot(container, 'input')?.className).toContain(textClassFor.lg)
 	})
 
-	it('explicit size prop overrides <Concentric> inheritance', () => {
+	it('explicit size prop overrides concentric inheritance', () => {
 		const { container } = renderUI(
-			<Concentric size="lg">
+			<ConcentricProvider value={{ size: 'lg' }}>
 				<Input size="sm" />
-			</Concentric>,
+			</ConcentricProvider>,
 		)
 
 		expect(bySlot(container, 'input')?.className).toContain(textClassFor.sm)

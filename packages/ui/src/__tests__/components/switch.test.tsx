@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Concentric } from '../../components/concentric'
 import { Switch, SwitchField } from '../../components/switch'
+import { ConcentricProvider } from '../../primitives'
 import { bySlot, renderUI } from '../helpers'
 
 describe('Switch', () => {
@@ -77,22 +77,22 @@ describe('SwitchField', () => {
 })
 
 describe('Switch size resolution', () => {
-	it('inherits size from <Concentric> when no explicit prop is set', () => {
+	it('inherits size from the concentric context when no explicit prop is set', () => {
 		const { container } = renderUI(
-			<Concentric size="lg">
+			<ConcentricProvider value={{ size: 'lg' }}>
 				<Switch />
-			</Concentric>,
+			</ConcentricProvider>,
 		)
 
 		// switchVariants size="lg" brings *:data-[slot=switch-thumb]:size-5.
 		expect(bySlot(container, 'control')?.className).toContain('*:data-[slot=switch-thumb]:size-5')
 	})
 
-	it('explicit size prop overrides <Concentric> inheritance', () => {
+	it('explicit size prop overrides concentric inheritance', () => {
 		const { container } = renderUI(
-			<Concentric size="lg">
+			<ConcentricProvider value={{ size: 'lg' }}>
 				<Switch size="sm" />
-			</Concentric>,
+			</ConcentricProvider>,
 		)
 
 		// switchVariants size="sm" brings *:data-[slot=switch-thumb]:size-3.

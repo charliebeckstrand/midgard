@@ -1,10 +1,13 @@
 import { type ReactNode, type Ref, useMemo } from 'react'
 import { cn } from '../../core'
-import { Polymorphic, type PolymorphicProps } from '../../primitives'
+import {
+	ConcentricProvider,
+	Polymorphic,
+	type PolymorphicProps,
+	useConcentric,
+} from '../../primitives'
 import type { Step } from '../../recipes/ryu/sun'
 import type { GroupOrientation } from '../../recipes/ryu/tsunagi'
-import { useConcentric } from '../concentric'
-import { ConcentricProvider } from '../concentric/context'
 import { useGroup } from './hook'
 
 type GroupBaseProps = {
@@ -12,7 +15,7 @@ type GroupBaseProps = {
 	orientation?: GroupOrientation
 	/**
 	 * Size step that drives end-cap radii on participating children. Resolution
-	 * order: explicit prop, then enclosing `<Concentric>` size, then `'md'`.
+	 * order: explicit prop, then enclosing concentric size, then `'md'`.
 	 */
 	size?: Step
 	/** Override the data-slot attribute. Defaults to "group". */
@@ -31,13 +34,14 @@ export type GroupProps = GroupBaseProps & PolymorphicProps<'div'>
  * `tsunagi.base` to drop their inner radii and overlap by 1 px so adjacent
  * borders don't double.
  *
- * Provides the same size context as `<Concentric>`: descendants that read
+ * Provides the concentric size context: descendants that read
  * `useConcentric()` (Button, Input, etc.) will default their `size` prop to
  * the wrapper's resolved size unless the consumer passes one explicitly.
  *
- * Composes with `<Concentric>`: when `size` is omitted, the wrapper inherits
- * from the enclosing concentric context, keeping a Card → Toolbar → Buttons
- * hierarchy visually consistent without prop drilling.
+ * Composes with surrounding `<Card>` / `<Drawer>` / `<Popover>`: when `size`
+ * is omitted, the wrapper inherits from the enclosing concentric context,
+ * keeping a Card → Toolbar → Buttons hierarchy visually consistent without
+ * prop drilling.
  *
  * @example
  *   <Group>

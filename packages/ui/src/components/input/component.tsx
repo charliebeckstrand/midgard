@@ -2,10 +2,9 @@
 
 import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
 import { cn } from '../../core'
-import { ControlFrame } from '../../primitives'
+import { ControlFrame, useConcentric } from '../../primitives'
 import { kokkaku } from '../../recipes'
 import { controlVariants, type InputVariants, inputVariants, k } from '../../recipes/kata/input'
-import { useConcentric } from '../concentric'
 import { useControl } from '../control/context'
 import { useFormText } from '../form/context'
 import { useGlass } from '../glass/context'
@@ -76,7 +75,7 @@ export function Input(props: InputProps) {
 	const resolvedInvalid = (control?.invalid || binding?.invalid) ?? undefined
 
 	// Resolution order: explicit prop, then any wrapping <Field> control
-	// context, then ambient <Concentric> / <Group> / <Card> size.
+	// context, then the ambient concentric size.
 	const resolvedSize = size ?? control?.size ?? concentric?.size ?? 'md'
 
 	const resolvedPrefix = prefix

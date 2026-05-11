@@ -18,7 +18,7 @@ describe('sun', () => {
 
 	it('stores Tailwind token names, never classnames', () => {
 		// A regression guard: classnames in `sun` would defeat the
-		// "structural data only" contract that <Concentric> and kata depend on.
+		// "structural data only" contract that concentric surfaces and kata depend on.
 		for (const step of steps) {
 			const fields = sun[step]
 

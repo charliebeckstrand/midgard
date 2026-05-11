@@ -3,7 +3,7 @@
 import { motion } from 'motion/react'
 import { type CSSProperties, type ReactNode, useCallback, useMemo } from 'react'
 import { cn, createContext } from '../../core'
-import { Overlay, PanelA11yProvider, usePanelA11yScope } from '../../primitives'
+import { ConcentricProvider, Overlay, PanelA11yProvider, usePanelA11yScope } from '../../primitives'
 import { ugoki } from '../../recipes'
 import {
 	type DrawerPanelVariants,
@@ -11,7 +11,6 @@ import {
 	drawerPanelVariants,
 } from '../../recipes/kata/drawer'
 import { type Step, sun } from '../../recipes/ryu/sun'
-import { ConcentricProvider } from '../concentric/context'
 import { useResolvedSurface } from '../glass/context'
 
 type DrawerContextValue = {
