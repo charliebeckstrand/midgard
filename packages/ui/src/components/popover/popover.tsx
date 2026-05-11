@@ -22,6 +22,7 @@ import {
 import { cn, createContext } from '../../core'
 import { useFloatingPanel } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
+import { ReducedMotion } from '../../primitives'
 import { iro, omote, ugoki } from '../../recipes'
 import { k } from '../../recipes/kata/popover'
 import type { Step } from '../../recipes/ryu/sun'
@@ -259,37 +260,39 @@ export function PopoverContent({
 
 	return (
 		<FloatingPortal>
-			<AnimatePresence onExitComplete={onExitComplete}>
-				{open && (
-					<div
-						ref={setFloating}
-						style={floatingStyles}
-						className={k.portal}
-						{...getFloatingProps()}
-					>
-						<motion.div
-							{...ugoki.popover}
-							ref={contentRef}
-							tabIndex={autoFocus ? -1 : undefined}
-							data-slot="popover-content"
-							data-step={size}
-							className={cn('z-50', iro.text.default, glass && omote.glass)}
+			<ReducedMotion>
+				<AnimatePresence onExitComplete={onExitComplete}>
+					{open && (
+						<div
+							ref={setFloating}
+							style={floatingStyles}
+							className={k.portal}
+							{...getFloatingProps()}
 						>
-							<ConcentricProvider value={concentricValue}>
-								<Box
-									p={p}
-									bg={glass ? 'none' : 'popover'}
-									radius="lg"
-									outline={glass || undefined}
-									className={className}
-								>
-									{children}
-								</Box>
-							</ConcentricProvider>
-						</motion.div>
-					</div>
-				)}
-			</AnimatePresence>
+							<motion.div
+								{...ugoki.popover}
+								ref={contentRef}
+								tabIndex={autoFocus ? -1 : undefined}
+								data-slot="popover-content"
+								data-step={size}
+								className={cn('z-50', iro.text.default, glass && omote.glass)}
+							>
+								<ConcentricProvider value={concentricValue}>
+									<Box
+										p={p}
+										bg={glass ? 'none' : 'popover'}
+										radius="lg"
+										outline={glass || undefined}
+										className={className}
+									>
+										{children}
+									</Box>
+								</ConcentricProvider>
+							</motion.div>
+						</div>
+					)}
+				</AnimatePresence>
+			</ReducedMotion>
 		</FloatingPortal>
 	)
 }

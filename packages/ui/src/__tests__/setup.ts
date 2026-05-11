@@ -81,6 +81,10 @@ vi.mock('motion/react', async () => {
 		return children
 	}
 
+	function MotionConfig({ children }: { children: React.ReactNode }) {
+		return children
+	}
+
 	function useAnimate() {
 		return [{ current: null }, vi.fn()]
 	}
@@ -96,7 +100,7 @@ vi.mock('motion/react', async () => {
 		}
 	}
 
-	return { motion, AnimatePresence, LayoutGroup, useAnimate, useMotionValue }
+	return { motion, AnimatePresence, LayoutGroup, MotionConfig, useAnimate, useMotionValue }
 })
 
 // ── maplibre-gl mock ────────────────────────────────

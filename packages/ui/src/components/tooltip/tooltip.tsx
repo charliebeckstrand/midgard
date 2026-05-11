@@ -23,6 +23,7 @@ import {
 } from 'react'
 import { cn } from '../../core'
 import { useFloatingPanel, useHasHover } from '../../hooks'
+import { ReducedMotion } from '../../primitives'
 import { ugoki } from '../../recipes'
 import { k } from '../../recipes/kata/tooltip'
 
@@ -137,26 +138,28 @@ export function Tooltip({
 		>
 			{trigger}
 			<FloatingPortal>
-				<AnimatePresence>
-					{open && (
-						<div
-							ref={refs.setFloating}
-							style={{
-								...floatingStyles,
-								pointerEvents: interactive ? 'auto' : 'none',
-							}}
-							className={k.portal}
-							{...getFloatingProps()}
-						>
-							<motion.div
-								{...ugoki.tooltip}
-								className={cn(k.content, interactive && 'pointer-events-auto', contentClassName)}
+				<ReducedMotion>
+					<AnimatePresence>
+						{open && (
+							<div
+								ref={refs.setFloating}
+								style={{
+									...floatingStyles,
+									pointerEvents: interactive ? 'auto' : 'none',
+								}}
+								className={k.portal}
+								{...getFloatingProps()}
 							>
-								{contentChildren}
-							</motion.div>
-						</div>
-					)}
-				</AnimatePresence>
+								<motion.div
+									{...ugoki.tooltip}
+									className={cn(k.content, interactive && 'pointer-events-auto', contentClassName)}
+								>
+									{contentChildren}
+								</motion.div>
+							</div>
+						)}
+					</AnimatePresence>
+				</ReducedMotion>
 			</FloatingPortal>
 		</div>
 	)

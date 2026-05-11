@@ -10,7 +10,13 @@ import {
 	type Ref,
 } from 'react'
 import { cn } from '../../core'
-import { type PolymorphicProps, springProps, TouchTarget, useRipple } from '../../primitives'
+import {
+	type PolymorphicProps,
+	ReducedMotion,
+	springProps,
+	TouchTarget,
+	useRipple,
+} from '../../primitives'
 import { kokkaku } from '../../recipes'
 import { type ButtonVariants, buttonVariants } from '../../recipes/kata/button'
 import { useConcentric } from '../concentric'
@@ -134,22 +140,24 @@ export function Button({
 
 	if (href !== undefined) {
 		return (
-			<motion.span {...springMotion} className="inline-flex">
-				<Link
-					data-slot="button"
-					data-has-prefix={!!prefix || undefined}
-					data-has-label={labelled || undefined}
-					data-has-suffix={!!suffix || undefined}
-					href={href}
-					className={classes}
-					{...(props as Omit<ComponentPropsWithoutRef<typeof Link>, 'href' | 'className'>)}
-					{...(loading && { 'aria-disabled': true, 'data-disabled': true, 'aria-busy': true })}
-					onPointerDown={pointerDown}
-				>
-					{ripple && rippleElement}
-					<TouchTarget>{content}</TouchTarget>
-				</Link>
-			</motion.span>
+			<ReducedMotion>
+				<motion.span {...springMotion} className="inline-flex">
+					<Link
+						data-slot="button"
+						data-has-prefix={!!prefix || undefined}
+						data-has-label={labelled || undefined}
+						data-has-suffix={!!suffix || undefined}
+						href={href}
+						className={classes}
+						{...(props as Omit<ComponentPropsWithoutRef<typeof Link>, 'href' | 'className'>)}
+						{...(loading && { 'aria-disabled': true, 'data-disabled': true, 'aria-busy': true })}
+						onPointerDown={pointerDown}
+					>
+						{ripple && rippleElement}
+						<TouchTarget>{content}</TouchTarget>
+					</Link>
+				</motion.span>
+			</ReducedMotion>
 		)
 	}
 
@@ -159,22 +167,24 @@ export function Button({
 	>
 
 	return (
-		<motion.button
-			{...springMotion}
-			ref={ref}
-			data-slot="button"
-			data-has-prefix={!!prefix || undefined}
-			data-has-label={labelled || undefined}
-			data-has-suffix={!!suffix || undefined}
-			type="button"
-			className={classes}
-			{...buttonProps}
-			disabled={loading || buttonProps.disabled}
-			aria-busy={loading || undefined}
-			onPointerDown={pointerDown}
-		>
-			{ripple && rippleElement}
-			<TouchTarget>{content}</TouchTarget>
-		</motion.button>
+		<ReducedMotion>
+			<motion.button
+				{...springMotion}
+				ref={ref}
+				data-slot="button"
+				data-has-prefix={!!prefix || undefined}
+				data-has-label={labelled || undefined}
+				data-has-suffix={!!suffix || undefined}
+				type="button"
+				className={classes}
+				{...buttonProps}
+				disabled={loading || buttonProps.disabled}
+				aria-busy={loading || undefined}
+				onPointerDown={pointerDown}
+			>
+				{ripple && rippleElement}
+				<TouchTarget>{content}</TouchTarget>
+			</motion.button>
+		</ReducedMotion>
 	)
 }

@@ -2,6 +2,7 @@
 
 import { motion } from 'motion/react'
 import { cn } from '../../core'
+import { ReducedMotion } from '../../primitives'
 import { k, progressTrackVariants } from '../../recipes/kata/progress'
 
 type ProgressColor = keyof typeof k.color
@@ -43,12 +44,14 @@ export function ProgressBar({
 			className={cn(progressTrackVariants({ size }), className)}
 		>
 			{determinate ? (
-				<motion.div
-					className={cn(k.bar.fill, k.color[color].bg)}
-					initial={{ width: 0 }}
-					animate={{ width: `${pct}%` }}
-					transition={{ type: 'spring', stiffness: 100, damping: 20 }}
-				/>
+				<ReducedMotion>
+					<motion.div
+						className={cn(k.bar.fill, k.color[color].bg)}
+						initial={{ width: 0 }}
+						animate={{ width: `${pct}%` }}
+						transition={{ type: 'spring', stiffness: 100, damping: 20 }}
+					/>
+				</ReducedMotion>
 			) : (
 				<div className={cn(k.bar.fill, k.color[color].bg, k.bar.indeterminate)} />
 			)}

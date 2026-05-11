@@ -11,6 +11,7 @@ import {
 } from 'react'
 import { cn, createContext } from '../core'
 import { ugoki } from '../recipes'
+import { ReducedMotion } from './reduced-motion'
 
 const [ActiveIndicatorScopeProvider, useActiveIndicatorScope] = createContext<string | undefined>(
 	'ActiveIndicatorScope',
@@ -27,7 +28,9 @@ export function ActiveIndicatorScope({ children, id }: PropsWithChildren<{ id?: 
 
 	return (
 		<ActiveIndicatorScopeProvider value={layoutId}>
-			<LayoutGroup id={layoutId}>{children}</LayoutGroup>
+			<ReducedMotion>
+				<LayoutGroup id={layoutId}>{children}</LayoutGroup>
+			</ReducedMotion>
 		</ActiveIndicatorScopeProvider>
 	)
 }
@@ -76,15 +79,17 @@ export function ActiveIndicator({
 	const instanceId = useId()
 
 	return (
-		<motion.span
-			ref={ref}
-			layoutId={resolvedLayoutId}
-			layoutDependency={instanceId}
-			className={cn('absolute inset-0', 'bg-zinc-300 dark:bg-zinc-600', 'rounded-lg', className)}
-			style={{ borderRadius: 8, ...style }}
-			transition={ugoki.spring}
-		>
-			{children}
-		</motion.span>
+		<ReducedMotion>
+			<motion.span
+				ref={ref}
+				layoutId={resolvedLayoutId}
+				layoutDependency={instanceId}
+				className={cn('absolute inset-0', 'bg-zinc-300 dark:bg-zinc-600', 'rounded-lg', className)}
+				style={{ borderRadius: 8, ...style }}
+				transition={ugoki.spring}
+			>
+				{children}
+			</motion.span>
+		</ReducedMotion>
 	)
 }

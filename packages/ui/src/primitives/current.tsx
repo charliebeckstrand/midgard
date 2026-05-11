@@ -5,6 +5,7 @@ import { type ComponentPropsWithoutRef, useEffect, useMemo, useRef, useState } f
 import { cn, createContext } from '../core'
 import { useControllable } from '../hooks'
 import { ugoki } from '../recipes'
+import { ReducedMotion } from './reduced-motion'
 
 // ── Context ──────────────────────────────────────────────
 
@@ -108,16 +109,18 @@ export function createCurrentContent(slotPrefix: string) {
 
 		return (
 			<FadeProvider value>
-				<motion.div
-					ref={ref}
-					data-slot={`${slotPrefix}-contents`}
-					animate={height !== undefined ? { height } : undefined}
-					initial={false}
-					transition={ugoki.reveal.transition}
-					className={cn('relative overflow-hidden', className)}
-				>
-					{children}
-				</motion.div>
+				<ReducedMotion>
+					<motion.div
+						ref={ref}
+						data-slot={`${slotPrefix}-contents`}
+						animate={height !== undefined ? { height } : undefined}
+						initial={false}
+						transition={ugoki.reveal.transition}
+						className={cn('relative overflow-hidden', className)}
+					>
+						{children}
+					</motion.div>
+				</ReducedMotion>
 			</FadeProvider>
 		)
 	}

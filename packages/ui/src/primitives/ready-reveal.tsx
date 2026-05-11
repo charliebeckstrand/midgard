@@ -4,6 +4,7 @@ import { motion } from 'motion/react'
 import { type ReactNode, useEffect, useRef, useState } from 'react'
 import { cn } from '../core'
 import { ugoki } from '../recipes'
+import { ReducedMotion } from './reduced-motion'
 
 export type ReadyRevealProps = {
 	/** When true, reveals `children`; when false, shows `placeholder`. */
@@ -48,32 +49,34 @@ function WaitReveal({ ready, placeholder, children, className }: Omit<ReadyRevea
 	}, [ready])
 
 	return (
-		<motion.div
-			animate={height !== undefined ? { height } : undefined}
-			initial={false}
-			transition={ugoki.reveal.transition}
-			className={cn('relative overflow-hidden', className)}
-		>
+		<ReducedMotion>
 			<motion.div
-				ref={placeholderRef}
-				aria-hidden={ready}
-				animate={ready ? hidden : visible}
+				animate={height !== undefined ? { height } : undefined}
 				initial={false}
 				transition={ugoki.reveal.transition}
-				style={{ ...(ready ? outOfFlow : inFlow), pointerEvents: ready ? 'none' : undefined }}
+				className={cn('relative overflow-hidden', className)}
 			>
-				{placeholder}
+				<motion.div
+					ref={placeholderRef}
+					aria-hidden={ready}
+					animate={ready ? hidden : visible}
+					initial={false}
+					transition={ugoki.reveal.transition}
+					style={{ ...(ready ? outOfFlow : inFlow), pointerEvents: ready ? 'none' : undefined }}
+				>
+					{placeholder}
+				</motion.div>
+				<motion.div
+					ref={contentRef}
+					animate={ready ? visible : hidden}
+					initial={false}
+					transition={ugoki.reveal.transition}
+					style={{ ...(ready ? inFlow : outOfFlow), pointerEvents: ready ? undefined : 'none' }}
+				>
+					{children}
+				</motion.div>
 			</motion.div>
-			<motion.div
-				ref={contentRef}
-				animate={ready ? visible : hidden}
-				initial={false}
-				transition={ugoki.reveal.transition}
-				style={{ ...(ready ? inFlow : outOfFlow), pointerEvents: ready ? undefined : 'none' }}
-			>
-				{children}
-			</motion.div>
-		</motion.div>
+		</ReducedMotion>
 	)
 }
 
@@ -97,24 +100,26 @@ export function ReadyReveal({
 	}
 
 	return (
-		<div className={cn('grid', className)} style={{ gridTemplate: '1fr / 1fr' }}>
-			<motion.div
-				aria-hidden={ready}
-				animate={ready ? hidden : visible}
-				initial={false}
-				transition={ugoki.reveal.transition}
-				style={{ ...gridCell, pointerEvents: ready ? 'none' : undefined }}
-			>
-				{placeholder}
-			</motion.div>
-			<motion.div
-				animate={ready ? visible : hidden}
-				initial={false}
-				transition={ugoki.reveal.transition}
-				style={{ ...gridCell, pointerEvents: ready ? undefined : 'none' }}
-			>
-				{children}
-			</motion.div>
-		</div>
+		<ReducedMotion>
+			<div className={cn('grid', className)} style={{ gridTemplate: '1fr / 1fr' }}>
+				<motion.div
+					aria-hidden={ready}
+					animate={ready ? hidden : visible}
+					initial={false}
+					transition={ugoki.reveal.transition}
+					style={{ ...gridCell, pointerEvents: ready ? 'none' : undefined }}
+				>
+					{placeholder}
+				</motion.div>
+				<motion.div
+					animate={ready ? visible : hidden}
+					initial={false}
+					transition={ugoki.reveal.transition}
+					style={{ ...gridCell, pointerEvents: ready ? undefined : 'none' }}
+				>
+					{children}
+				</motion.div>
+			</div>
+		</ReducedMotion>
 	)
 }

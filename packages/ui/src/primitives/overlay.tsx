@@ -7,6 +7,7 @@ import { cn } from '../core'
 import { useDismissable } from '../hooks/use-dismissable'
 import { useFocusTrap } from '../hooks/use-focus-trap'
 import { omote, ugoki } from '../recipes'
+import { ReducedMotion } from './reduced-motion'
 
 export type OverlayProps = {
 	open: boolean
@@ -48,26 +49,28 @@ export function Overlay({
 	if (typeof document === 'undefined') return null
 
 	return createPortal(
-		<AnimatePresence>
-			{open && (
-				<div
-					ref={focusTrapRef}
-					className={cn(scoped ? 'absolute inset-0 z-99' : 'fixed inset-0 z-99')}
-					{...props}
-				>
-					<motion.div
-						{...ugoki.overlay}
-						className={
-							className ??
-							cn('absolute inset-0', glass ? omote.backdrop.glass : omote.backdrop.base)
-						}
-						onClick={outsideClick ? () => onOpenChange(false) : undefined}
-						aria-hidden="true"
-					/>
-					{children}
-				</div>
-			)}
-		</AnimatePresence>,
+		<ReducedMotion>
+			<AnimatePresence>
+				{open && (
+					<div
+						ref={focusTrapRef}
+						className={cn(scoped ? 'absolute inset-0 z-99' : 'fixed inset-0 z-99')}
+						{...props}
+					>
+						<motion.div
+							{...ugoki.overlay}
+							className={
+								className ??
+								cn('absolute inset-0', glass ? omote.backdrop.glass : omote.backdrop.base)
+							}
+							onClick={outsideClick ? () => onOpenChange(false) : undefined}
+							aria-hidden="true"
+						/>
+						{children}
+					</div>
+				)}
+			</AnimatePresence>
+		</ReducedMotion>,
 		container ?? document.body,
 	)
 }

@@ -10,7 +10,7 @@ import { useFloatingUI } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { useFocusTrap } from '../../hooks/use-focus-trap'
 import { useIdScope } from '../../hooks/use-id-scope'
-import { ControlFrame } from '../../primitives'
+import { ControlFrame, ReducedMotion } from '../../primitives'
 import { iro, kokkaku, omote, ugoki } from '../../recipes'
 import { calendar as kCalendar } from '../../recipes/kata/calendar'
 import { k } from '../../recipes/kata/datepicker'
@@ -241,72 +241,74 @@ function DatePickerSingle({
 			</div>
 
 			<FloatingPortal>
-				<AnimatePresence>
-					{open && (
-						<div
-							ref={refs.setFloating}
-							style={floatingStyles}
-							className={kPopover.portal}
-							{...getFloatingProps()}
-						>
-							<motion.div
-								ref={focusTrapRef}
-								{...ugoki.popover}
-								data-slot="datepicker-content"
-								className={cn('z-50', iro.text.default, glass && omote.glass)}
-								onMouseDown={(e) => e.preventDefault()}
+				<ReducedMotion>
+					<AnimatePresence>
+						{open && (
+							<div
+								ref={refs.setFloating}
+								style={floatingStyles}
+								className={kPopover.portal}
+								{...getFloatingProps()}
 							>
-								<Box bg={glass ? 'none' : 'popover'} outline={glass || undefined} radius="lg">
-									<Calendar
-										ref={calendarRef}
-										value={value ?? null}
-										onChange={handleSelect}
-										min={min}
-										max={max}
-										active={open ? active : null}
-										onPickerOpenChange={handlePickerOpenChange}
-										footerRef={footerRef}
-									/>
-									<div
-										ref={footerRef}
-										role="toolbar"
-										data-slot="calendar-footer"
-										onKeyDown={(e) => calendarRef.current?.footerKeyDown(e)}
-										className={cn(kCalendar.footer)}
-									>
-										{value != null && (
+								<motion.div
+									ref={focusTrapRef}
+									{...ugoki.popover}
+									data-slot="datepicker-content"
+									className={cn('z-50', iro.text.default, glass && omote.glass)}
+									onMouseDown={(e) => e.preventDefault()}
+								>
+									<Box bg={glass ? 'none' : 'popover'} outline={glass || undefined} radius="lg">
+										<Calendar
+											ref={calendarRef}
+											value={value ?? null}
+											onChange={handleSelect}
+											min={min}
+											max={max}
+											active={open ? active : null}
+											onPickerOpenChange={handlePickerOpenChange}
+											footerRef={footerRef}
+										/>
+										<div
+											ref={footerRef}
+											role="toolbar"
+											data-slot="calendar-footer"
+											onKeyDown={(e) => calendarRef.current?.footerKeyDown(e)}
+											className={cn(kCalendar.footer)}
+										>
+											{value != null && (
+												<Button
+													variant="soft"
+													color="amber"
+													onClick={handleClear}
+													aria-label="Clear selection"
+													className={cn(
+														active?.zone === 'footer' &&
+															footerButtons[active.index] === 'clear' &&
+															kCalendar.day.active,
+													)}
+												>
+													Clear
+												</Button>
+											)}
 											<Button
 												variant="soft"
-												color="amber"
-												onClick={handleClear}
-												aria-label="Clear selection"
+												color="blue"
+												onClick={handleSelectToday}
 												className={cn(
 													active?.zone === 'footer' &&
-														footerButtons[active.index] === 'clear' &&
+														footerButtons[active.index] === 'today' &&
 														kCalendar.day.active,
 												)}
 											>
-												Clear
+												Today
 											</Button>
-										)}
-										<Button
-											variant="soft"
-											color="blue"
-											onClick={handleSelectToday}
-											className={cn(
-												active?.zone === 'footer' &&
-													footerButtons[active.index] === 'today' &&
-													kCalendar.day.active,
-											)}
-										>
-											Today
-										</Button>
-									</div>
-								</Box>
-							</motion.div>
-						</div>
-					)}
-				</AnimatePresence>
+										</div>
+									</Box>
+								</motion.div>
+							</div>
+						)}
+					</AnimatePresence>
+				</ReducedMotion>
 			</FloatingPortal>
 		</>
 	)
