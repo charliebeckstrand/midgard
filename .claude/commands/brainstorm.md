@@ -81,7 +81,7 @@ Output the brief directly in the chat using this exact structure. Keep each sect
 <2–3 bullets the user can check the result against.>
 
 ## Suggested handoff
-<Name the skill or agent best suited to execute this — e.g. `/ui-component`, `/init`, `general-purpose` agent, or "any code-writing skill". One line of why.>
+<Name the skill or agent best suited to execute this — e.g. `/ui:component`, `/init`, `general-purpose` agent, or "any code-writing skill". One line of why.>
 ```
 
 ### 6. Offer the handoff
