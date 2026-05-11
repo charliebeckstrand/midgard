@@ -1,13 +1,13 @@
 ---
 name: deliberate
-description: "Turn a fuzzy idea into a brief sharp enough to execute. Survey the seed against the seven dimensions every brief lives or dies on, then have the user weigh concrete ABCD options on only the dimensions the seed leaves open; synthesize their picks into a Brief an executor can act on without further translation. MANDATORY TRIGGERS: 'deliberate this', 'deliberate X', 'help me scope X', 'help me shape X', 'help me define X', 'turn this into a brief', 'pin this down', 'I have a vague idea', 'I want to do X but don't yet know what shape it should take'. STRONG TRIGGERS (when the request is upstream of execution): 'how should I frame X', 'what would the brief look like', 'I'm not sure what I'm asking for yet', 'let's define this before I start', 'what's the actual ask'. SKIP for: requests already scoped enough to execute, questions with one obvious answer, decisions between known alternatives (use /council), or stress-testing a drafted plan (use /premortem). Distinct from /council: council debates whether/which (decision not yet made); deliberate produces the brief that defines the work in the first place."
+description: "Survey the seed against the seven dimensions on which every brief lives or dies, then invite the user to weigh concrete ABCD options—only on the dimensions the seed leaves open. Synthesize their choices into a Brief an executor can act on without further translation. **Mandatory triggers:** 'deliberate this', 'deliberate X', 'help me scope/shape/define X', 'turn this into a brief', 'pin this down', 'I have a vague idea', 'I want to do X but don't yet know what shape it should take'. **Strong triggers** (when the request sits upstream of execution): 'how should I frame X', 'what would the brief look like', 'I'm not sure what I'm asking for yet', 'let's define this before I start', 'what's the actual ask'. **Skip when:** the request is already scoped enough to execute; the question has one obvious answer; the user is choosing between known alternatives (use /council); or the user is stress-testing a drafted plan (use /premortem). **Distinct from /council:** council debates *whether* or *which* (the decision isn't yet made); deliberate produces the brief that defines the work in the first place."
 ---
 
 # Deliberate
 
-A structured deliberation that turns a fuzzy idea into a brief sharp enough to execute. You name the dimensions still ambiguous; the user weighs concrete options across each; together you produce a Brief an executor can act on without further translation.
+A structured deliberation that sharpens a fuzzy idea into a brief ready for execution. You name the dimensions still in question; the user weighs concrete options on each; together you produce a Brief an executor can act on without further translation. 
 
-Use when the seed is too vague to act on. Skip when scope is already clear, when the question is *whether* or *which* among known options (use `/council`), or when a plan is drafted and you want to pressure-test it (use `/premortem`).
+Use when the seed is too vague to act on. Skip when scope is already clear, when the choice is *whether* or *which* among known options (use `/council`), or when a plan is drafted and you want to pressure-test it (use `/premortem`).
 
 ## Dimensions
 
