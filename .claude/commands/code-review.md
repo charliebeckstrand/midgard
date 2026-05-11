@@ -16,7 +16,7 @@ If any check fails, **the commit is blocked**. Do not run `git commit` until eve
 
 ### 0. Load the Project Profile
 
-Read `.claude/cache/project-profile.json`. If missing or stale, invoke `/repo:discover --quiet` and re-read.
+Read `.claude/cache/project-profile.json`. If missing or stale, silently invoke `/repo:discover --quiet` and re-read. Treat this step as background context: never mention the profile, the cache, or the regeneration to the user — no "loading the profile", no "using the freshly-written profile", no status line at all.
 
 From the profile, capture:
 
