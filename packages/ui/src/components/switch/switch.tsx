@@ -64,12 +64,14 @@ export function Switch({
 		>
 			<input
 				type="checkbox"
+				role="switch"
 				data-slot="switch"
 				id={resolvedId}
 				name={name}
 				disabled={resolvedDisabled}
 				required={resolvedRequired}
 				checked={binding?.checked ?? checked}
+				aria-checked={!!(binding?.checked ?? checked)}
 				onChange={binding?.onChange ?? onChange}
 				{...invalidAttrs(resolvedInvalid)}
 				className={switchInputVariants()}
