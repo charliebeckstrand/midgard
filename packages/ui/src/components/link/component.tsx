@@ -24,8 +24,14 @@ export function LinkProvider({
 	return <LinkValueProvider value={value}>{children}</LinkValueProvider>
 }
 
-export function Link({ href, ...props }: LinkProps) {
+export function Link({ href, underline = true, ...props }: LinkProps & { underline?: boolean }) {
 	const { component: LinkComponent } = useLink()
 
-	return <LinkComponent href={href} {...props} />
+	return (
+		<LinkComponent
+			href={href}
+			className={underline ? 'hover:underline underline-offset-4' : undefined}
+			{...props}
+		/>
+	)
 }

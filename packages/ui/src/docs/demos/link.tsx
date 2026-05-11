@@ -40,9 +40,8 @@ export default function LinkDemo() {
 				`}
 			>
 				<Text variant="muted">
-					Register a framework-specific component (e.g. next/link) at the app root via
-					LinkProvider. Every Link in the tree renders through it; otherwise Link falls back to
-					a plain anchor.
+					Register a framework-specific component (e.g. next/link) at the app root via LinkProvider.
+					Every Link in the tree renders through it; otherwise Link falls back to a plain anchor.
 				</Text>
 			</Example>
 		</Stack>
