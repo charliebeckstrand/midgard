@@ -119,9 +119,10 @@ function QueryRuleImpl({ rule, className }: QueryRuleProps) {
 				aria-label="Remove rule"
 				disabled={disabled}
 				className={k.rowRemove}
-				prefix={<Icon icon={<Trash />} />}
 				onClick={onRemove}
-			/>
+			>
+				<Icon icon={<Trash />} />
+			</Button>
 		</Flex>
 	)
 }

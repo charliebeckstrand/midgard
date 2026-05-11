@@ -93,12 +93,9 @@ export default function ButtonDemo() {
 			>
 				<Flex wrap gap="sm">
 					{variants.map((variant) => (
-						<Button
-							key={variant}
-							variant={variant}
-							size={iconOnlySize}
-							prefix={<Icon icon={<Plus />} />}
-						/>
+						<Button key={variant} variant={variant} size={iconOnlySize}>
+							<Icon icon={<Plus />} />
+						</Button>
 					))}
 				</Flex>
 			</Example>

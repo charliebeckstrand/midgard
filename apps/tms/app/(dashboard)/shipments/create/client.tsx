@@ -88,11 +88,9 @@ export default function ShipmentsCreateClient() {
 
 							return (
 								<Fragment key={account.id}>
-									<Button
-										suffix={<Icon icon={isOpen ? <ChevronDown /> : <ChevronRight />} />}
-										onClick={() => toggle(account.id)}
-									>
+									<Button onClick={() => toggle(account.id)}>
 										{account.name}
+										<Icon icon={isOpen ? <ChevronDown /> : <ChevronRight />} />
 									</Button>
 									<Collapse open={isOpen}>
 										<CollapsePanel>

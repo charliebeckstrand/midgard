@@ -1,12 +1,10 @@
 'use client'
 
-import { X } from 'lucide-react'
 import { type Ref, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
 import { k } from '../../recipes/kata/signature-pad'
 import { Button } from '../button'
-import { Icon } from '../icon'
 import { useCanvasSizing } from './use-canvas-sizing'
 import { useSignatureDrawing } from './use-signature-drawing'
 import { drawSnapshot } from './utilities'
@@ -171,7 +169,6 @@ export function SignaturePad({
 						color="amber"
 						data-slot="signature-pad-clear"
 						aria-label="Clear signature"
-						prefix={<Icon icon={<X />} size="xs" />}
 						onPointerDown={(event) => {
 							// Prevent the canvas pointerdown from firing.
 							event.stopPropagation()

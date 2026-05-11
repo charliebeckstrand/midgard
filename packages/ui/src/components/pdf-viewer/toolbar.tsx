@@ -81,10 +81,11 @@ export function PdfViewerToolbar({
 								variant="plain"
 								aria-label="Show thumbnails"
 								aria-expanded={thumbsOpen}
-								prefix={<Icon icon={<PanelLeft />} />}
 								disabled={isLoading}
 								onClick={onThumbsOpen}
-							/>
+							>
+								<Icon icon={<PanelLeft />} />
+							</Button>
 						)}
 
 						<ToolbarGroup aria-label="Page navigation">
@@ -125,30 +126,34 @@ export function PdfViewerToolbar({
 						variant="plain"
 						aria-label="Zoom out"
 						disabled={isLoading || isEmpty || zoom <= minZoom}
-						prefix={<Icon icon={<ZoomOut />} />}
 						onClick={zoomOut}
-					/>
+					>
+						<Icon icon={<ZoomOut />} />
+					</Button>
 					<Button
 						variant="plain"
 						aria-label="Zoom in"
 						disabled={isLoading || isEmpty || zoom >= maxZoom}
-						prefix={<Icon icon={<ZoomIn />} />}
 						onClick={zoomIn}
-					/>
+					>
+						<Icon icon={<ZoomIn />} />
+					</Button>
 					<Button
 						variant="plain"
 						aria-label="Fit to page"
 						disabled={isLoading || isEmpty || zoom === 1}
-						prefix={<Icon icon={<Maximize2 />} />}
 						onClick={fit}
-					/>
+					>
+						<Icon icon={<Maximize2 />} />
+					</Button>
 					<Button
 						variant="plain"
 						aria-label="Rotate"
 						disabled={isLoading || isEmpty}
-						prefix={<Icon icon={<RotateCw />} />}
 						onClick={rotate}
-					/>
+					>
+						<Icon icon={<RotateCw />} />
+					</Button>
 				</ToolbarGroup>
 				{src && (
 					<>
@@ -158,16 +163,18 @@ export function PdfViewerToolbar({
 								variant="plain"
 								aria-label="Download"
 								disabled={isLoading || isEmpty}
-								prefix={<Icon icon={<Download />} />}
 								onClick={download}
-							/>
+							>
+								<Icon icon={<Download />} />
+							</Button>
 							<Button
 								variant="plain"
 								aria-label="Print"
 								disabled={isLoading || isEmpty}
-								prefix={<Icon icon={<Printer />} />}
 								onClick={print}
-							/>
+							>
+								<Icon icon={<Printer />} />
+							</Button>
 						</ToolbarGroup>
 					</>
 				)}

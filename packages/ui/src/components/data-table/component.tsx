@@ -388,9 +388,9 @@ export function DataTable<T>({
 							variant="plain"
 							size="sm"
 							aria-haspopup="dialog"
-							prefix={<Icon icon={<SlidersHorizontal />} />}
 							onClick={() => setManageOpen(true)}
 						>
+							<Icon icon={<SlidersHorizontal />} />
 							{manageColumnsLabel}
 						</Button>
 					</Toolbar>

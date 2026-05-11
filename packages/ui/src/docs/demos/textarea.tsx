@@ -70,12 +70,15 @@ export default function TextareaDemo() {
 						rows={3}
 						placeholder="Ask anything"
 						actions={
-							<Button
-								size="sm"
-								color="blue"
-								disabled={!value.trim()}
-								prefix={<Icon icon={<ArrowUp />} />}
-							/>
+							<>
+								<Spacer />
+								<Button variant="plain" size="sm">
+									<Icon icon={<Paperclip />} />
+								</Button>
+								<Button size="sm" color="blue" disabled={!withActionsValue.trim()}>
+									<Icon icon={<ArrowUp />} />
+								</Button>
+							</>
 						}
 					/>
 				`}
@@ -92,13 +95,12 @@ export default function TextareaDemo() {
 						actions={
 							<>
 								<Spacer />
-								<Button variant="plain" size="sm" prefix={<Icon icon={<Paperclip />} />} />
-								<Button
-									size="sm"
-									color="blue"
-									disabled={!withActionsValue.trim()}
-									prefix={<Icon icon={<ArrowUp />} />}
-								/>
+								<Button variant="plain" size="sm">
+									<Icon icon={<Paperclip />} />
+								</Button>
+								<Button size="sm" color="blue" disabled={!withActionsValue.trim()}>
+									<Icon icon={<ArrowUp />} />
+								</Button>
 							</>
 						}
 					/>

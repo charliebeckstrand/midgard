@@ -130,9 +130,10 @@ export function Alert({
 					color={resolvedVariant === 'solid' ? 'inherit' : resolvedColor}
 					aria-label="Dismiss"
 					className={cn(k.close, 'self-center')}
-					prefix={<Icon icon={<X />} />}
 					onClick={close}
-				/>
+				>
+					<Icon icon={<X />} />
+				</Button>
 			)}
 		</div>
 	)

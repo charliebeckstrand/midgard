@@ -108,10 +108,10 @@ export function FileUpload(props: FileUploadProps) {
 					size={size}
 					color={color}
 					disabled={disabled}
-					prefix={<Icon icon={<Upload />} />}
 					className={cn(sawari.cursor)}
 					onClick={openPicker}
 				>
+					<Icon icon={<Upload />} />
 					{children ?? 'Upload'}
 				</Button>
 			</div>

@@ -87,9 +87,15 @@ export default function GroupDemo() {
 			{!isInput && (
 				<Example title="Vertical">
 					<Group orientation="vertical">
-						<Button variant="outline" prefix={<Icon icon={<Heading1 />} />} />
-						<Button variant="outline" prefix={<Icon icon={<Heading2 />} />} />
-						<Button variant="outline" prefix={<Icon icon={<Heading3 />} />} />
+						<Button variant="outline">
+							<Icon icon={<Heading1 />} />
+						</Button>
+						<Button variant="outline">
+							<Icon icon={<Heading2 />} />
+						</Button>
+						<Button variant="outline">
+							<Icon icon={<Heading3 />} />
+						</Button>
 					</Group>
 				</Example>
 			)}

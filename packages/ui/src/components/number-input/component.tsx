@@ -126,18 +126,20 @@ export function NumberInput({
 						tabIndex={-1}
 						disabled={disabled || atMin}
 						aria-label="Decrease"
-						prefix={<Icon icon={<Minus />} />}
 						onClick={decrease}
-					/>
+					>
+						<Icon icon={<Minus />} />
+					</Button>
 					<Button
 						variant="plain"
 						spring={false}
 						tabIndex={-1}
 						disabled={disabled || atMax}
 						aria-label="Increase"
-						prefix={<Icon icon={<Plus />} />}
 						onClick={increase}
-					/>
+					>
+						<Icon icon={<Plus />} />
+					</Button>
 				</span>
 			}
 			{...props}

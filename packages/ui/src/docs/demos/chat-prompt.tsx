@@ -6,7 +6,6 @@ import { Button } from '../../components/button'
 import { ChatPrompt } from '../../components/chat-prompt'
 import { Icon } from '../../components/icon'
 import { Stack } from '../../components/stack'
-import { code } from '../code'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Chat' }
@@ -26,7 +25,8 @@ function WithActionsDemo() {
 			onValueChange={setValue}
 			onSubmit={() => setValue('')}
 			actions={
-				<Button variant="plain" size="sm" prefix={<Icon icon={<CircleDashed />} />}>
+				<Button variant="plain" size="sm">
+					<Icon icon={<CircleDashed />} />
 					Data Analyst
 				</Button>
 			}
@@ -34,72 +34,37 @@ function WithActionsDemo() {
 	)
 }
 
-export default function ChatPromptDemo() {
-	const [streamingValue, setStreamingValue] = useState('')
-
+function StreamingDemo() {
+	const [value, setValue] = useState('')
 	const [streaming, setStreaming] = useState(false)
 
+	return (
+		<ChatPrompt
+			value={value}
+			onValueChange={setValue}
+			onSubmit={() => {
+				setValue('')
+				setStreaming(true)
+			}}
+			onStop={() => setStreaming(false)}
+			streaming={streaming}
+		/>
+	)
+}
+
+export default function ChatPromptDemo() {
 	return (
 		<Stack gap="xl">
 			<Example title="Default">
 				<DefaultDemo />
 			</Example>
 
-			<Example
-				title="With actions"
-				code={code`
-					import { ChatPrompt } from 'ui/chat-prompt'
-					import { Button } from 'ui/button'
-					import { Icon } from 'ui/icon'
-					import { CircleDashed, Paperclip } from 'lucide-react'
-
-					<ChatPrompt
-						value={value}
-						onValueChange={setValue}
-						onSubmit={() => setValue('')}
-						actions={
-							<>
-								<Button variant="plain" size="sm" prefix={<Icon icon={<CircleDashed />} />}>
-									Data Analyst
-								</Button>
-								<Button variant="plain" size="sm" prefix={<Icon icon={<Paperclip />} />} />
-							</>
-						}
-					/>
-				`}
-			>
+			<Example title="With actions">
 				<WithActionsDemo />
 			</Example>
 
-			<Example
-				title="Streaming"
-				code={code`
-					import { ChatPrompt } from 'ui/chat-prompt'
-
-					const [value, setValue] = useState('')
-					
-					const [streaming, setStreaming] = useState(false)
-
-					<ChatPrompt
-						value={value}
-						onValueChange={setValue}
-						onSubmit={() => setStreaming(true)}
-						onStop={() => setStreaming(false)}
-						streaming={streaming}
-					/>
-				`}
-			>
-				<ChatPrompt
-					value={streamingValue}
-					onValueChange={setStreamingValue}
-					onSubmit={() => {
-						setStreamingValue('')
-
-						setStreaming(true)
-					}}
-					onStop={() => setStreaming(false)}
-					streaming={streaming}
-				/>
+			<Example title="Streaming">
+				<StreamingDemo />
 			</Example>
 		</Stack>
 	)

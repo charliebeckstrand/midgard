@@ -32,13 +32,9 @@ function VisibilityToggle({ visible, onToggle, showLabel, hideLabel }: TogglePro
 	return (
 		<Tooltip>
 			<TooltipTrigger>
-				<Button
-					variant="plain"
-					size={size}
-					aria-label={text}
-					prefix={<Icon icon={visible ? <EyeOff /> : <Eye />} />}
-					onClick={onToggle}
-				/>
+				<Button variant="plain" size={size} aria-label={text} onClick={onToggle}>
+					<Icon icon={visible ? <EyeOff /> : <Eye />} />
+				</Button>
 			</TooltipTrigger>
 			<TooltipContent>{text}</TooltipContent>
 		</Tooltip>

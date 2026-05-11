@@ -72,11 +72,9 @@ export function MapShipment({ data, onSendMessage, onSelect }: MapShipmentProps)
 
 function ShipmentPin({ label }: { label: string }) {
 	return (
-		<Button
-			title={label}
-			className="rounded-full hover:scale-110 transition cursor-pointer"
-			prefix={<Icon icon={<Truck />} size="sm" />}
-		/>
+		<Button title={label} className="rounded-full hover:scale-110 transition cursor-pointer">
+			<Icon icon={<Truck />} size="sm" />
+		</Button>
 	)
 }
 
@@ -200,12 +198,9 @@ function ShipmentChat({ messages, onSend }: ShipmentChatProps) {
 						disabled={pending}
 						onChange={(e) => setDraft(e.target.value)}
 					/>
-					<Button
-						type="submit"
-						color="blue"
-						disabled={pending || draft.trim().length === 0}
-						prefix={<Icon icon={<ArrowUp />} size="xs" />}
-					/>
+					<Button type="submit" color="blue" disabled={pending || draft.trim().length === 0}>
+						<Icon icon={<ArrowUp />} size="xs" />
+					</Button>
 				</form>
 			)}
 		</Stack>

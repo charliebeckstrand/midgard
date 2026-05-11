@@ -32,8 +32,9 @@ export default function PopoverDemo() {
 			<Example title="Default">
 				<Popover>
 					<PopoverTrigger>
-						<Button variant="outline" suffix={<Icon icon={<ChevronDown />} />}>
+						<Button variant="outline">
 							Open popover
+							<Icon icon={<ChevronDown />} />
 						</Button>
 					</PopoverTrigger>
 					<PopoverContent>{popoverContent}</PopoverContent>
@@ -44,8 +45,9 @@ export default function PopoverDemo() {
 				<Glass>
 					<Popover>
 						<PopoverTrigger>
-							<Button variant="outline" suffix={<Icon icon={<ChevronDown />} />}>
+							<Button variant="outline">
 								Open popover
+								<Icon icon={<ChevronDown />} />
 							</Button>
 						</PopoverTrigger>
 						<PopoverContent>{popoverContent}</PopoverContent>
@@ -58,6 +60,7 @@ export default function PopoverDemo() {
 					<Flex justify="center" gap="lg" className="hidden sm:flex">
 						{placements.map((placement) => {
 							const isLeading = placement === 'left' || placement === 'top'
+
 							const iconNode = <Icon icon={iconMap[placement]} />
 
 							return (
@@ -81,12 +84,9 @@ export default function PopoverDemo() {
 							{(['right', 'bottom'] as const).map((placement) => (
 								<Popover key={placement} placement={placement}>
 									<PopoverTrigger>
-										<Button
-											variant="outline"
-											className="self-start"
-											suffix={<Icon icon={iconMap[placement]} />}
-										>
+										<Button variant="outline" className="self-start">
 											{placement}
+											<Icon icon={iconMap[placement]} />
 										</Button>
 									</PopoverTrigger>
 									<PopoverContent>Popover {placement}</PopoverContent>
@@ -97,11 +97,8 @@ export default function PopoverDemo() {
 							{(['top', 'left'] as const).map((placement) => (
 								<Popover key={placement} placement={placement}>
 									<PopoverTrigger>
-										<Button
-											variant="outline"
-											className="self-end"
-											prefix={<Icon icon={iconMap[placement]} />}
-										>
+										<Button variant="outline" className="self-end">
+											<Icon icon={iconMap[placement]} />
 											{placement}
 										</Button>
 									</PopoverTrigger>

@@ -39,8 +39,9 @@ export function ToggleIconButton({
 				data-slot="toggle-icon-button"
 				aria-pressed={pressed}
 				className={cn(k.base, className)}
-				prefix={<Icon icon={pressed ? activeIcon : icon} />}
-			/>
+			>
+				<Icon icon={pressed ? activeIcon : icon} />
+			</Button>
 		)
 	}
 

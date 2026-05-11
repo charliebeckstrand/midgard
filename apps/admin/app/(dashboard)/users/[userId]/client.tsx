@@ -121,7 +121,9 @@ export function UserDetailsClient({ details, chats: initialChats }: UserDetailsC
 						<SheetDescription>{viewChat}</SheetDescription>
 					</Stack>
 					<SheetClose>
-						<Button variant="plain" prefix={<Icon icon={<XMarkIcon />} />} />
+						<Button variant="plain">
+							<Icon icon={<XMarkIcon />} />
+						</Button>
 					</SheetClose>
 				</Flex>
 				<SheetBody>

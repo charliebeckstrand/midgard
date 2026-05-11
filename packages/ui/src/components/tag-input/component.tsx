@@ -136,14 +136,15 @@ export function TagInput({
 									className={tagRemoveSize[resolvedSize]}
 									size="xs"
 									variant="plain"
-									prefix={<Icon icon={<X />} />}
 									onMouseDown={(e) => e.preventDefault()}
 									onClick={(e) => {
 										e.stopPropagation()
 
 										removeTag(i)
 									}}
-								/>
+								>
+									<Icon icon={<X />} />
+								</Button>
 							)
 						}
 					>
@@ -171,10 +172,11 @@ export function TagInput({
 					size="xs"
 					color="blue"
 					disabled={disabled || atMax || inputValue.trim() === ''}
-					prefix={<Icon icon={<CornerLeftDown />} />}
 					onMouseDown={(e) => e.preventDefault()}
 					onClick={handleSubmit}
-				/>
+				>
+					<Icon icon={<CornerLeftDown />} />
+				</Button>
 			}
 			className={className}
 		/>

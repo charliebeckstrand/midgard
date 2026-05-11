@@ -158,9 +158,10 @@ export default function ChatPageDemo() {
 											color="red"
 											variant="soft"
 											size="sm"
-											prefix={<Icon icon={<Trash />} />}
 											onClick={() => setConfirmDialog(true)}
-										/>
+										>
+											<Icon icon={<Trash />} />
+										</Button>
 									)}
 								</Stack>
 							</SidebarItem>
@@ -212,22 +213,16 @@ export default function ChatPageDemo() {
 						placeholder="Ask anything"
 						actions={
 							<>
-								<Button variant="plain" size="sm" prefix={<Icon icon={<CircleDashed />} />}>
+								<Button variant="plain" size="sm">
+									<Icon icon={<CircleDashed />} />
 									Data Analyst
 								</Button>
-								<Button
-									variant="plain"
-									size="sm"
-									className="ml-auto"
-									prefix={<Icon icon={<Plus />} />}
-								/>
-								<Button
-									size="sm"
-									color="amber"
-									disabled={!input.trim()}
-									prefix={<Icon icon={<ArrowUp />} />}
-									onClick={send}
-								/>
+								<Button variant="plain" size="sm" className="ml-auto">
+									<Icon icon={<Plus />} />
+								</Button>
+								<Button size="sm" color="amber" disabled={!input.trim()} onClick={send}>
+									<Icon icon={<ArrowUp />} />
+								</Button>
 							</>
 						}
 					/>
