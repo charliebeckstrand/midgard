@@ -9,7 +9,7 @@ You are the **meta-skill** for the `skill/` namespace. You scan the existing cat
 $ARGUMENTS
 
 Recognized hints:
-- A namespace (`audit`, `refactor`, `ui`, `skill`) → narrow recommendations to that namespace.
+- A namespace (`audit`, `ui`, `skill`) → narrow recommendations to that namespace.
 - A category from section 4 → only recommend skills from that category.
 - No arguments → full scan, all categories.
 
@@ -50,7 +50,7 @@ From the profile and from `CLAUDE.md`:
 - **CLAUDE.md `## Skills` bindings** — a skill present in the catalog but unbound is a hygiene problem `/audit:meta` already flags; do not re-recommend it as new.
 - **Pre-commit gates** — `preCommit.gates`. A skill that re-implements an existing pre-commit check is a weak recommendation.
 - **CI jobs** — `ci.jobs`. Same rule.
-- **Existing recommenders** — `/audit:recommend`, `/refactor:recommend`, `/ui:component:recommend`, and this skill itself form the meta-recommender layer. Recommending another recommender requires a distinct lens that none of these cover.
+- **Existing recommenders** — `/audit:refactor`, `/ui:component:recommend`, and this skill itself form the meta-recommender layer. Recommending another recommender requires a distinct lens that none of these cover.
 
 A category that is **already covered end-to-end** (skill exists, bound in `CLAUDE.md`, wired into a gate where applicable) is not a candidate. A category that is **partially covered** (skill exists but no binding, or binding but no gate) is a candidate for extension, not a new skill.
 
@@ -86,13 +86,13 @@ Filter rules using profile fields:
 
 Walk `conventions.principles` from the profile. For each principle, ask: **does any existing skill enforce or operationalize this today?**
 
-- Principle: "Shared packages must not import from application code." → if no `audit/layering` or `refactor:recommend` heuristic covers this, propose `audit/layering` as a new skill.
+- Principle: "Shared packages must not import from application code." → if no `audit/layering` or `audit:refactor` heuristic covers this, propose `audit/layering` as a new skill.
 - Principle: "Each commit represents one logical change." → if no commit-time skill enforces atomicity, propose `audit/atomic-commits` (PR-time, since pre-commit cannot judge a single staged diff against this rule).
 - Principle: "Extend before inventing." → already operationalized by `/skill:compose`'s sample-the-catalog step; do not duplicate.
 
 Also walk the namespaces:
 
-- A namespace with **one** skill is a sparseness signal; ask whether a sibling would be earned (e.g. `refactor/` with only `recommend.md` could grow `refactor/apply.md` once duplication-extraction is repeatable).
+- A namespace with **one** skill is a sparseness signal; ask whether a sibling would be earned (e.g. `repo/` with only `discover.md` could grow a sibling once a recurring discovery-adjacent workflow earns one).
 - A namespace with **zero** skills but the project has the matching surface (e.g. no `migration/` namespace despite a Drizzle schema in the profile) is a strong candidate.
 
 A principle without enforcement is a stronger recommendation than a generic category gap.
@@ -120,7 +120,7 @@ Output a single ranked table:
 | Name | Namespace | Trigger it would handle | Why now | Effort | Priority | Form |
 | --- | --- | --- | --- | --- | --- | --- |
 | `audit/layering` | `audit` | "check shared packages don't depend on app code" | declared principle, no automated enforcement today | Medium | High | new skill |
-| `refactor/apply` | `refactor` | "apply the refactor I picked from `/refactor:recommend`" | recommender exists; execution is ad-hoc | Medium | Medium | new skill |
+| `audit/dead-code` | `audit` | "find unused exports and orphan files" | linter catches unused imports but not unused exports | Low | Medium | new skill |
 | `skill/compose` argument: `--from-principle` | `skill` | "scaffold a skill that enforces this principle from `CLAUDE.md`" | extension would let `/skill:compose` seed from a declared principle | Low | Medium | extension to existing |
 
 Column rules:
@@ -161,7 +161,7 @@ Imagine a profile with:
 - `conventions.principles`: includes "Shared packages must not import from application code." and "Each commit represents one logical change."
 - `preCommit.gates`: `["lint", "type"]`.
 - `ci.jobs`: `["lint", "type", "test", "build"]`.
-- `.claude/commands/` contains `audit/a11y.md`, `audit/meta.md`, `audit/recommend.md`, `refactor/recommend.md`, `ui/component.md`, `ui/component-recommend.md`, `skill/compose.md`, plus the standard top-level skills.
+- `.claude/commands/` contains `audit/a11y.md`, `audit/meta.md`, `audit/refactor.md`, `ui/component.md`, `ui/component-recommend.md`, `skill/compose.md`, plus the standard top-level skills.
 
 A reasonable output:
 
@@ -169,10 +169,10 @@ A reasonable output:
 | --- | --- | --- | --- | --- | --- | --- |
 | `audit/layering` | `audit` | "check shared packages don't depend on app code" | declared principle has no automated check; affects 3 packages | Medium | High | new skill |
 | `audit/atomic-commits` | `audit` | "flag commits that bundle unrelated changes" | declared principle, PR-time check possible | Medium | Medium | new skill |
-| `refactor/apply` | `refactor` | "apply the refactor I picked from `/refactor:recommend`" | `refactor/` namespace has only `recommend.md`; execution is ad-hoc | Medium | Medium | new skill |
+| `audit/dead-code` | `audit` | "find unused exports and orphan files" | linter catches unused imports but not unused exports | Low | Medium | new skill |
 | `migration/scaffold` | `migration` (new) | "scaffold a Drizzle migration for this schema change" | no namespace today; the project ships Drizzle and writes migrations by hand | High | Low | new skill |
 
-Plus a note: *`audit/a11y`, `audit/meta`, `audit/recommend`, `refactor/recommend`, `ui/component`, `ui/component-recommend`, and `skill/compose` already exist. Recommender category fully covered. No backend-only audits proposed — the discovered stack has no server-only package that would justify them.*
+Plus a note: *`audit/a11y`, `audit/meta`, `audit/refactor`, `ui/component`, `ui/component-recommend`, and `skill/compose` already exist. Recommender category covered by `/audit:refactor` and `/ui:component:recommend`. No backend-only audits proposed — the discovered stack has no server-only package that would justify them.*
 
 ---
 
