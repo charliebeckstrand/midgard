@@ -217,22 +217,23 @@ Verdict at the top of the report:
 
 Per-skill findings are mechanical — the user (or another agent) applies them directly. The **synthesis** sections (schema improvements, extraction candidates) carry real design tradeoffs and benefit from multiple perspectives.
 
-### Auto-invoke
+### Handoffs to offer
 
-- **`/council` on the schema-improvements table** when the table has **≥2 rows**. Expanding the Project Profile is a load-bearing decision: more fields strengthen downstream skills, but `/discover` becomes fatter and more brittle. Pass the table to `/council` as the question ("Should we add these fields to the Project Profile? Which ones?") and include the rationale rows verbatim. The chairman's verdict points the user to a concrete next step.
+`/council` and `/premortem` each spawn ~10 sub-agents. Surface them in the `Next steps:` block and wait for the user to opt in — never invoke them silently from this skill.
 
-  Skip the auto-invoke when the table has **0 or 1** rows — a single proposal is a yes/no question, not a council-worthy debate.
+- **`/council` on the schema-improvements table** — offer prominently when the table has **≥2 rows**. Expanding the Project Profile is a load-bearing decision: more fields strengthen downstream skills, but `/discover` becomes fatter and more brittle. If the user opts in, pass the table verbatim as the framed question ("Should we add these fields to the Project Profile? Which ones?") with the rationale rows.
 
-### Opt-in handoffs (offer at the end of the report)
+  Skip the offer when the table has **0 or 1** rows — a single proposal is a yes/no question, not a council-worthy debate.
 
 After printing the report, append:
 
 > **Next steps:**
+> - Run `/council` on the schema-improvements table → debate whether to expand the Project Profile.
 > - Run `/council` on extraction candidates → debate DRY vs. colocation for the duplicated chunks.
 > - Run `/premortem` before applying schema changes to `/discover` → stress-test the diff before it lands, since the profile is the foundation every other skill consumes.
 > - Apply per-skill findings directly — they're mechanical and don't need council.
 
-Only show the lines that apply: skip the extraction-candidates line if there are zero candidates; skip the premortem line if no schema changes were proposed.
+Only show the lines that apply: drop the schema-council line when the schema table has 0 or 1 rows; drop the extraction line when there are zero candidates; drop the premortem line when no schema changes were proposed. Wait for an explicit go-ahead before firing any of them.
 
 ### Don't invoke
 
