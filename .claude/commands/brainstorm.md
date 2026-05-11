@@ -1,11 +1,11 @@
 ---
 name: brainstorm
-description: "Turn a fuzzy idea into a precise brief an executor — another skill, an agent, or the user themselves — can act on without further translation. The user does the thinking by choosing from concrete ABCD options; you synthesize the brief at the end. MANDATORY TRIGGERS: 'brainstorm this', 'brainstorm X', 'help me scope X', 'help me shape X', 'help me define X', 'turn this into a brief', 'I have a vague idea', 'I want to do X but don't know where to start'. STRONG TRIGGERS (when the request is upstream of execution): 'how should I frame X', 'what would the brief look like', 'I'm not sure what I'm asking for yet', 'let's define this before I start'. SKIP for: requests already scoped enough to execute, questions with one obvious answer, decisions between known alternatives (use /council or /debate), or stress-testing a drafted plan (use /premortem). Distinct from /council: council debates *whether* or *which* among known options; brainstorm produces the brief that defines the work in the first place."
+description: "Turn a fuzzy idea into a precise brief an executor — another skill, an agent, or the user themselves — can act on without further translation. The user does the thinking by choosing from concrete ABCD options; you synthesize the brief at the end. MANDATORY TRIGGERS: 'brainstorm this', 'brainstorm X', 'help me scope X', 'help me shape X', 'help me define X', 'turn this into a brief', 'I have a vague idea', 'I want to do X but don't yet know what shape it should take'. STRONG TRIGGERS (when the request is upstream of execution): 'how should I frame X', 'what would the brief look like', 'I'm not sure what I'm asking for yet', 'let's define this before I start'. SKIP for: requests already scoped enough to execute, questions with one obvious answer, decisions between known alternatives (use /council or /debate), or stress-testing a drafted plan (use /premortem). Distinct from /council: council debates *whether* or *which* among known options; brainstorm produces the brief that defines the work in the first place."
 ---
 
 # Brainstorm
 
-Turn a fuzzy idea into a precise brief an executor — another skill, an agent, or the user themselves — can act on without further translation. The user does the thinking by choosing from concrete options; you do the synthesis at the end.
+Turn a fuzzy idea into a precise brief an executor — another skill, an agent, or the user themselves — can act on without further translation. The user does the thinking by choosing from concrete options; you synthesize at the end.
 
 ## Arguments
 
@@ -90,6 +90,51 @@ Output the brief directly in the chat using this exact structure. Keep each sect
 ### 6. Offer the handoff
 
 After the brief, ask the user in plain text whether to invoke the suggested skill now, hand the brief to a different one, or stop here so they can use it elsewhere. Do not auto-execute — this skill's job ends at the brief.
+
+---
+
+## Worked example (fabricated)
+
+Seed: "I want to write up our caching strategy."
+
+After two rounds of ABCD questions the user picks:
+
+- **Outcome** — a reference doc the team can consult
+- **Scope** — only the read-path cache (Redis); the write-path is out
+- **Audience** — backend engineers new to the codebase
+- **Deliverable format** — markdown, roughly three pages
+- **Success criteria** — a new hire can answer "what gets cached, for how long, and what invalidates it" without asking
+
+Synthesized brief:
+
+```markdown
+# Project Brief: Read-path caching reference
+
+## Objective
+Produce a reference doc that lets a new backend engineer reason about the read-path Redis cache without consulting the team.
+
+## Context
+- Read-path cache lives in `services/cache/redis.ts`.
+- TTL policy was rewritten last quarter; the old wiki page is stale.
+- Write-path queue and CDN cache are explicitly excluded.
+
+## Scope
+- **In:** what gets cached, the TTL per key family, what invalidates an entry, the failure mode when Redis is unreachable.
+- **Out:** infra setup, capacity planning, cost analysis.
+
+## Deliverable
+A markdown doc at `docs/architecture/read-cache.md`, ~3 pages, structured: Overview → Key families → TTL & invalidation → Failure mode → FAQ.
+
+## Success criteria
+- A new hire can answer "what gets cached, for how long, and what invalidates it" without asking.
+- No reference to deprecated key names (verify against `services/cache/redis.ts` exports).
+- <TBD: include sequence diagrams? deferred — author's call>
+
+## Suggested handoff
+The `general-purpose` agent, scoped to a single research-and-draft pass — the brief is concrete enough to execute without further clarification.
+```
+
+The `<TBD: ...>` line demonstrates how to mark a deferred dimension when the user opts out of a follow-up question.
 
 ---
 
