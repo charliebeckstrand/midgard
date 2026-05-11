@@ -268,13 +268,13 @@ If the project has no docs system, skip this step.
 
 ### 3g. Tests
 
-Always create a test file for the new component. Delegate to `/testing`:
+Always create a test file for the new component. Delegate to `/tests:compose`:
 
 ```
-/testing <ComponentName>
+/tests:compose <ComponentName>
 ```
 
-`/testing` reads the same Project Profile, infers the right location and runner, and produces a test that matches the project's conventions.
+`/tests:compose` reads the same Project Profile, infers the right location and runner, and produces a test that matches the project's conventions.
 
 ---
 
@@ -289,7 +289,7 @@ Before declaring the component done, confirm:
 - [ ] `'use client'` is present **only** when needed (hooks, event handlers, browser APIs) and matches sibling-component conventions.
 - [ ] Barrel/index, package-exports map, and any registry/glossary are updated.
 - [ ] A docs file exists at the discovered location, produced via `/ui:docs:compose` (when the project has a docs system).
-- [ ] A test file exists at the discovered location, produced via `/testing`.
+- [ ] A test file exists at the discovered location, produced via `/tests:compose`.
 - [ ] No unused imports, no dead code.
 - [ ] Diff read as a reviewer: if the new component is longer than the closest existing analog, justify the size or shrink it by composing more.
 

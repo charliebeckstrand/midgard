@@ -49,7 +49,7 @@ Use `AskUserQuestion` to pin the dimensions that materially change the scaffold.
 - **Profile dependency** — does the skill consume `.claude/cache/project-profile.json`?
 - **Output shape** — prose report, ranked findings table, scaffolded files, or in-place fix?
 - **Findings & severities** — does it produce findings? If yes, default to `blocker / warning / nit` unless siblings disagree.
-- **Handoffs** — does it auto-invoke another skill (`/testing`, `/audit:meta`, `/council`, `/premortem`)?
+- **Handoffs** — does it auto-invoke another skill (`/tests:compose`, `/audit:meta`, `/council`, `/premortem`)?
 - **Arguments** — does it accept `$ARGUMENTS`? Which hints does it recognize?
 
 Two rounds maximum. If the user says "just write it," synthesize from defaults and mark gaps as `<TBD>` placeholders in the draft.
