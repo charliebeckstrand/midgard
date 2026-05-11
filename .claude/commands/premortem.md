@@ -1,13 +1,13 @@
 ---
 name: premortem
-description: "Stress-test a drafted plan before executing it. Five 'future-you' agents roleplay specific failure modes that already happened, peer-review each other anonymously, then an Examiner synthesizes the most likely failure, falsifiable assumptions to verify, and a concrete diff to the plan. Based on Gary Klein's pre-mortem technique. Use AFTER a plan exists, BEFORE implementation begins. MANDATORY TRIGGERS: 'premortem this', 'pre-mortem this', 'stress-test the plan', 'stress-test this plan', 'pressure-test this', 'what could go wrong', 'find the failure modes', 'what am I missing', 'before I execute'. STRONG TRIGGERS (when a concrete plan exists): 'is this plan safe', 'what will break', 'where will this go wrong', 'ready to start?', 'should I just start?'. SKIP for: trivial single-file edits, mechanical refactors, situations where no concrete plan exists yet (use /council or /brainstorm instead), or where the failure mode is already obvious. Distinct from /council: council debates whether/which (decision not yet made); premortem stress-tests will-this-actually-work (decision made, plan drafted, about to execute)."
+description: "Stress-test a drafted plan before executing it. Five 'future-you' agents roleplay specific failure modes that already happened, peer-review each other anonymously, then an Examiner synthesizes the most likely failure, falsifiable assumptions to verify, and a concrete diff to the plan. Based on Gary Klein's pre-mortem technique. Use AFTER a plan exists, BEFORE implementation begins. MANDATORY TRIGGERS: 'premortem this', 'pre-mortem this', 'stress-test the plan', 'stress-test this plan', 'pressure-test this', 'what could go wrong', 'find the failure modes', 'what am I missing', 'before I execute'. STRONG TRIGGERS (when a concrete plan exists): 'is this plan safe', 'what will break', 'where will this go wrong', 'ready to start?', 'should I just start?'. SKIP for: trivial single-file edits, mechanical refactors, situations where no concrete plan exists yet (use /council or /deliberate instead), or where the failure mode is already obvious. Distinct from /council: council debates whether/which (decision not yet made); premortem stress-tests will-this-actually-work (decision made, plan drafted, about to execute)."
 ---
 
 # Premortem
 
 Stress-test a drafted plan by treating it as already failed. Five agents roleplay future-you, two weeks in, narrating a specific failure that already happened. Peer-review them anonymously, then synthesize the most likely failure, the falsifiable assumptions to verify before starting, and a concrete diff to the plan. Based on Gary Klein's pre-mortem technique.
 
-Use after a plan is drafted and before implementation begins. Skip if no concrete plan exists (use `/council` or `/brainstorm`), or if the failure mode is already obvious.
+Use after a plan is drafted and before implementation begins. Skip if no concrete plan exists (use `/council` or `/deliberate`), or if the failure mode is already obvious.
 
 ## Archetypes
 
@@ -148,4 +148,4 @@ Save two files in the workspace:
 - Past tense, always. Narratives are reports of failures that already happened, not predictions.
 - The Examiner may override the loudest narrative if the peer reviews show it's overdramatized.
 - Don't premortem trivial plans. If the failure mode is obvious or the plan is a one-line change, skip.
-- If no concrete plan exists, route to `/council` (decision still open) or `/brainstorm` (idea still vague).
+- If no concrete plan exists, route to `/council` (decision still open) or `/deliberate` (idea still vague).

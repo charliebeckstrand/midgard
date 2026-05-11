@@ -237,7 +237,7 @@ Only show the lines that apply: drop the schema-council line when the schema tab
 
 ### Don't invoke
 
-- `/brainstorm` — the audit's output is concrete findings, not an open-ended idea-generation prompt.
+- `/deliberate` — the audit's output is concrete findings, not an open-ended idea-generation prompt.
 - `/audit:refactor` — it operates on source code, not skill docs.
 
 ---
