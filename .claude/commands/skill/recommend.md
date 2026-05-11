@@ -63,7 +63,7 @@ Each entry is a **lens**, not a checklist. Skip categories the discovered stack 
 | Category | Typical concrete skills |
 | --- | --- |
 | **Discovery & profiling** | project profile generator; per-package convention sniffer; dependency-graph snapshot |
-| **Planning & scoping** | task brainstormer; design-doc drafter; spec-from-issue extractor |
+| **Planning & scoping** | task deliberator; design-doc drafter; spec-from-issue extractor |
 | **Multi-agent reasoning** | council; debate; premortem; postmortem |
 | **Pre-commit gates** | staged-diff reviewer; simplifier; commit-message linter; secret scanner |
 | **Audit** | a11y; type tightness; dead-code; layering; bundle size; i18n drift; design-token drift |
@@ -135,7 +135,7 @@ Column rules:
 
 After the table, add a short paragraph noting:
 - Skills the project **already has** in the touched namespaces (so the user sees the baseline).
-- Categories that found **no gaps** ("planning category fully covered by `/brainstorm` + `/council` + `/premortem`").
+- Categories that found **no gaps** ("planning category fully covered by `/deliberate` + `/council` + `/premortem`").
 - Categories that were **skipped** because the stack doesn't support them ("no Next package — server/client boundary skill skipped").
 
 This makes the recommendation set falsifiable.

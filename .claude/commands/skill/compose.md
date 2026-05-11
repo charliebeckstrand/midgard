@@ -33,7 +33,7 @@ Refuse to overwrite an existing file. If the path exists, surface the collision 
 
 Glob `.claude/commands/**/*.md`. Read 2–3 sibling skills end-to-end:
 - The skill nearest the proposed namespace (for `audit:foo`, read `audit/meta.md` and `audit/a11y.md`).
-- One top-level reference skill (`repo/discover.md` or `brainstorm.md`) for default voice and structure.
+- One top-level reference skill (`repo/discover.md` or `deliberate.md`) for default voice and structure.
 
 From the samples, capture as working notes — do not echo to the user:
 - Opener style: bare `# Title` + `TRIGGER when:` paragraph, or YAML frontmatter. Match the dominant pattern in the catalog; surface drift in the final summary if both forms exist.
