@@ -32,7 +32,7 @@ Refuse to overwrite an existing file. If the path exists, surface the collision 
 ## 2. Sample the catalog
 
 Glob `.claude/commands/**/*.md`. Read 2–3 sibling skills end-to-end:
-- The skill nearest the proposed namespace (for `audit:foo`, read `audit/meta.md` and `audit/recommend.md`).
+- The skill nearest the proposed namespace (for `audit:foo`, read `audit/meta.md` and `audit/a11y.md`).
 - One top-level reference skill (`repo/discover.md` or `brainstorm.md`) for default voice and structure.
 
 From the samples, capture as working notes — do not echo to the user:

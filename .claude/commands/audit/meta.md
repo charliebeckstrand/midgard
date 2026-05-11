@@ -9,7 +9,7 @@ This is the meta-audit: every other audit looks at code, this one looks at the a
 $ARGUMENTS
 
 Recognized hints:
-- A skill name or path (`/refactor:recommend`, `.claude/commands/ui/component/compose.md`) → audit just that skill.
+- A skill name or path (`/audit:refactor`, `.claude/commands/ui/component/compose.md`) → audit just that skill.
 - A heuristic from section 4 → only run that heuristic.
 - No arguments → audit every skill under `.claude/commands/`.
 
@@ -184,8 +184,8 @@ Separate table — one row per proposed Project Profile field:
 ```
 | Field | Location | Skills that would benefit | Rationale |
 | --- | --- | --- | --- |
-| `packages[*].stylingSystem` | per-package | `/ui:component:compose`, `/audit:a11y`, `/refactor:recommend` | three skills currently re-detect CVA / tailwind-variants / CSS Modules from devDeps |
-| `packages[*].tsStrict` | per-package | `/code-review`, `/audit:recommend`, `/refactor:recommend` | type-tightness reasoning needs `compilerOptions.strict` and `noUncheckedIndexedAccess` |
+| `packages[*].stylingSystem` | per-package | `/ui:component:compose`, `/audit:a11y`, `/audit:refactor` | three skills currently re-detect CVA / tailwind-variants / CSS Modules from devDeps |
+| `packages[*].tsStrict` | per-package | `/code-review`, `/audit:refactor` | type-tightness reasoning needs `compilerOptions.strict` and `noUncheckedIndexedAccess` |
 ```
 
 ### Extraction candidates
@@ -238,8 +238,7 @@ Only show the lines that apply: drop the schema-council line when the schema tab
 ### Don't invoke
 
 - `/brainstorm` — the audit's output is concrete findings, not an open-ended idea-generation prompt.
-- `/refactor:recommend` — it operates on source code, not skill docs.
-- `/audit:recommend` — different scope (codebase audit coverage, not skill quality).
+- `/audit:refactor` — it operates on source code, not skill docs.
 
 ---
 
@@ -289,7 +288,7 @@ blocker · profile-field-missing · ui-route.md:18 · `packages[*].router` is no
 Several skills currently say variants of "scan the linter config for X". This is a schema gap, not a per-skill bug:
 
 ```
-| `lintRules` | per-package, summarized | `/refactor:recommend`, `/audit:recommend`, `/audit:a11y` | three skills currently grep `.eslintrc*` / `biome.json` for rule presence; expose a summarized list at discovery time |
+| `lintRules` | per-package, summarized | `/audit:refactor`, `/audit:a11y` | two skills currently grep `.eslintrc*` / `biome.json` for rule presence; expose a summarized list at discovery time |
 ```
 
 ---
