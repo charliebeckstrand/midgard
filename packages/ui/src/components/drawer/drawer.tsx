@@ -12,7 +12,7 @@ import {
 } from '../../recipes/kata/drawer'
 import { type Step, sun } from '../../recipes/ryu/sun'
 import { ConcentricProvider } from '../concentric/context'
-import { useGlass } from '../glass/context'
+import { useResolvedSurface } from '../glass/context'
 
 type DrawerContextValue = {
 	close: () => void
@@ -39,9 +39,7 @@ export function Drawer({
 	className,
 	children,
 }: DrawerProps) {
-	const glassContext = useGlass()
-
-	const resolvedSurface = surface ?? (glass || glassContext ? 'glass' : undefined)
+	const resolvedSurface = useResolvedSurface(surface, glass)
 
 	const { panelAriaProps, providerValue } = usePanelA11yScope()
 

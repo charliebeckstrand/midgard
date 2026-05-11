@@ -7,7 +7,7 @@ import { useMinWidth } from '../../hooks'
 import { Overlay, PanelA11yProvider, usePanelA11yScope } from '../../primitives'
 import { ugoki } from '../../recipes'
 import { type DialogPanelVariants, dialogPanelVariants } from '../../recipes/kata/dialog'
-import { useGlass } from '../glass/context'
+import { useResolvedSurface } from '../glass/context'
 
 export type DialogProps = DialogPanelVariants & {
 	open: boolean
@@ -35,11 +35,7 @@ export function Dialog({
 	className,
 	children,
 }: DialogProps) {
-	const glassContext = useGlass()
-
-	// Resolve the surface from explicit prop, then the `glass` shorthand, then any
-	// enclosing <GlassProvider> (boolean context translated to the surface enum).
-	const resolvedSurface = surface ?? (glass || glassContext ? 'glass' : undefined)
+	const resolvedSurface = useResolvedSurface(surface, glass)
 
 	const isDesktop = useMinWidth(640)
 
