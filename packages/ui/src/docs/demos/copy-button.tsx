@@ -1,5 +1,3 @@
-'use client'
-
 import { Copy } from 'lucide-react'
 import { CopyButton } from '../../components/copy-button'
 import { Flex } from '../../components/flex'

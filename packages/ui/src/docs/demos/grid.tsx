@@ -1,5 +1,3 @@
-'use client'
-
 import { Card } from '../../components/card'
 import { Grid, GridCell, GridDivider } from '../../components/grid'
 import { Stack } from '../../components/stack'

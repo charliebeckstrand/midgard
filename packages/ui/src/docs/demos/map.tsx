@@ -116,7 +116,7 @@ function InteractiveRoute() {
 				import { Map, MapRoute } from 'ui/map'
 
 				<div className="h-96">
-					<Map center={[-122.18, 37.57]} zoom={7.5}>
+					<Map center={[-122.18, 37.65]} zoom={7.5}>
 						<MapRoute data={route} />
 					</Map>
 				</div>

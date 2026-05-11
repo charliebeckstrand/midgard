@@ -1,5 +1,3 @@
-'use client'
-
 import { Field, Label } from '../../components/fieldset'
 import { PasswordConfirm, PasswordConfirmInput } from '../../components/password-confirm'
 import { PasswordInput } from '../../components/password-input'

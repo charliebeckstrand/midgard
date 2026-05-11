@@ -1,5 +1,3 @@
-'use client'
-
 import { PdfViewer } from '../../components/pdf-viewer'
 import { Stack } from '../../components/stack'
 import { code } from '../code'

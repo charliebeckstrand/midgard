@@ -114,7 +114,7 @@ export default function MaskInputDemo() {
 				`}
 			>
 				<Field>
-					<Label>Plate</Label>
+					<Label>License plate</Label>
 					<MaskInput format={formatLicensePlate} placeholder="ABC-1234" />
 				</Field>
 			</Example>

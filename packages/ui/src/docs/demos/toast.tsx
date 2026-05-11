@@ -1,3 +1,5 @@
+'use client'
+
 import { Button } from '../../components/button'
 import { Flex } from '../../components/flex'
 import { Stack } from '../../components/stack'
@@ -150,7 +152,7 @@ export default function ToastDemo() {
 						toast({
 							title: 'Message deleted',
 							description: 'The message has been removed.',
-							actions: <Button size="sm">Undo</Button>,
+							actions: <Button>Undo</Button>,
 						})
 					`}
 				>

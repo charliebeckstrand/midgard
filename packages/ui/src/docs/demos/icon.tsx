@@ -1,5 +1,3 @@
-'use client'
-
 import { Heart, Plus, Search, Star } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '../../components/alert'
 import { Code } from '../../components/code'

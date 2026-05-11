@@ -5,7 +5,7 @@ import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
 
-const plans = ['Starter', 'Business', 'Enterprise']
+const plans = ['Starter', 'Business', 'Enterprise'] as const
 const colors = ['blue', 'green', 'red'] as const
 
 export default function RadioDemo() {
