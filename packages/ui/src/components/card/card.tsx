@@ -1,8 +1,8 @@
 import { type CSSProperties, useMemo } from 'react'
 import { cn } from '../../core'
+import { ConcentricProvider } from '../../primitives'
 import { type Step, sun } from '../../recipes/ryu/sun'
 import { Box, type BoxProps } from '../box'
-import { ConcentricProvider } from '../concentric/context'
 
 type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never
 

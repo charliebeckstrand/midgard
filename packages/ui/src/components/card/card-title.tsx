@@ -1,8 +1,8 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
+import { useConcentric } from '../../primitives'
 import { type JiSize, ji } from '../../recipes/ryu/ji'
 import type { Step } from '../../recipes/ryu/sun'
-import { useConcentric } from '../concentric'
 
 export type CardTitleProps = {
 	className?: string

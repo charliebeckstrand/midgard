@@ -10,7 +10,7 @@ Recipe-layer modules use Japanese names — each name covers exactly one
 concern (`iro` is colour, `ji` is typography, `ma` is spacing, and so on)
 so that consumers don't have to ask "where do I look for this?". This
 naming rule is **internal-only**: client-facing components, hooks, and
-props use English (`<Concentric>`, `useGroup`, `size`).
+props use English (`<Group>`, `useGroup`, `size`).
 
 ## Layout
 
@@ -61,18 +61,19 @@ frame, surface, field, size, icon, affix, resets, and check styles. The
 panel family (`dialog`, `drawer`, `sheet`, `inspector`) shares
 `kata/_panel.ts` for slot surfaces.
 
-## Wrapper components
+## Size cascade
 
-Two client-facing wrappers compose with the recipe layer:
+A small primitive — `ConcentricProvider` / `useConcentric` (in
+`primitives/concentric.ts`) — carries the ambient size step through the
+tree. It is not a wrapper component; surfaces opt in by rendering the
+provider themselves. `<Card>`, `<Drawer>`, `<Popover>`, and `<Group>` all
+broadcast their resolved `size` this way, and the outer container's
+border-radius follows the concentric formula `outer = inner + padding`.
 
-- `<Concentric>` (in `components/concentric/`) — provides a size context
-  and renders an outer container whose border-radius follows the
-  concentric formula `outer = inner + padding`. Descendants inherit the
-  size via `useConcentric()`.
-- `<Group>` (in `components/group/`) — joins adjacent children by
-  stamping `data-group={start|middle|end|only}`. Participating kata
-  consume `tsunagi.base` to drop their inner radii. Composes with
-  `<Concentric>` (size inherits).
+`<Group>` (in `components/group/`) also joins adjacent children by
+stamping `data-group={start|middle|end|only}`; participating kata consume
+`tsunagi.base` to drop their inner radii. When `size` is omitted, the
+group inherits from any enclosing concentric context.
 
 Components like Button, Checkbox, Radio read `useConcentric()` to default
 their `size` prop. The resolution order is: explicit prop, then

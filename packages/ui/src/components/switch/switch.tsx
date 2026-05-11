@@ -2,6 +2,7 @@
 
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
+import { useConcentric } from '../../primitives'
 import { kokkaku } from '../../recipes'
 import {
 	type SwitchVariants,
@@ -9,7 +10,6 @@ import {
 	switchThumbVariants,
 	switchVariants,
 } from '../../recipes/kata/switch'
-import { useConcentric } from '../concentric'
 import { useControl } from '../control/context'
 import { invalidAttrs } from '../control/invalid-attrs'
 import { useFieldProps } from '../control/use-field-props'
@@ -46,7 +46,7 @@ export function Switch({
 	} = useFieldProps({ id, disabled, required, binding })
 
 	// Resolution order: explicit prop, then any wrapping <Field> control
-	// context, then ambient <Concentric> / <Group> / <Card> size.
+	// context, then the ambient concentric size.
 	const resolvedSize = size ?? (control?.size as SwitchVariants['size']) ?? concentric?.size ?? 'md'
 
 	if (useSkeleton()) {

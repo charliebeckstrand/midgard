@@ -11,7 +11,8 @@
  * `--ui-padding: calc(var(--spacing) * ${step.space})`) and then read them
  * with static utilities (`p-(--ui-padding)`).
  *
- * Concentric formula (consumed by <Concentric>):
+ * Concentric formula (consumed by surfaces that opt into the cascade —
+ * `<Card>`, `<Drawer>`, `<Popover>`):
  *   outer-radius = inner-radius + padding
  *
  * Layer: ryū · Concern: size
@@ -27,7 +28,7 @@ export type SunStep = {
 	space: '2' | '3' | '4'
 	/** Tailwind spacing token (numeric) for gap between children. */
 	gap: '1' | '2' | '3'
-	/** Token suffix consumed as `var(--radius-${radius})` — the inner radius. <Concentric> derives outer = inner + padding. */
+	/** Token suffix consumed as `var(--radius-${radius})` — the inner radius. Surfaces derive outer = inner + padding. */
 	radius: 'sm' | 'md' | 'lg'
 	/** Tailwind size token for `data-slot="icon"` children. */
 	icon: '4' | '5' | '6'

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { Concentric, useConcentric } from '../../components/concentric'
 import { Group } from '../../components/group'
+import { ConcentricProvider, useConcentric } from '../../primitives'
 import { allBySlot, bySlot, renderUI } from '../helpers'
 
 describe('Group', () => {
@@ -130,31 +130,31 @@ describe('Group', () => {
 		expect(bySlot(container, 'group')).toHaveAttribute('data-step', 'lg')
 	})
 
-	it('inherits size from an enclosing Concentric when size is omitted', () => {
+	it('inherits size from an enclosing concentric context when size is omitted', () => {
 		const { container } = renderUI(
-			<Concentric size="sm">
+			<ConcentricProvider value={{ size: 'sm' }}>
 				<Group>
 					<button type="button">A</button>
 				</Group>
-			</Concentric>,
+			</ConcentricProvider>,
 		)
 
 		expect(bySlot(container, 'group')).toHaveAttribute('data-step', 'sm')
 	})
 
-	it('explicit size overrides Concentric inheritance', () => {
+	it('explicit size overrides concentric inheritance', () => {
 		const { container } = renderUI(
-			<Concentric size="sm">
+			<ConcentricProvider value={{ size: 'sm' }}>
 				<Group size="lg">
 					<button type="button">A</button>
 				</Group>
-			</Concentric>,
+			</ConcentricProvider>,
 		)
 
 		expect(bySlot(container, 'group')).toHaveAttribute('data-step', 'lg')
 	})
 
-	it('falls back to "md" outside Concentric and without explicit size', () => {
+	it('falls back to "md" outside any concentric context and without explicit size', () => {
 		const { container } = renderUI(
 			<Group>
 				<button type="button">A</button>
@@ -164,7 +164,7 @@ describe('Group', () => {
 		expect(bySlot(container, 'group')).toHaveAttribute('data-step', 'md')
 	})
 
-	it('provides the same size context to descendants as <Concentric>', () => {
+	it('provides a concentric size context to descendants', () => {
 		let observed: string | undefined
 
 		function Probe() {
@@ -182,7 +182,7 @@ describe('Group', () => {
 		expect(observed).toBe('lg')
 	})
 
-	it('descendants see the resolved size when Group inherits from Concentric', () => {
+	it('descendants see the resolved size when Group inherits from an outer concentric context', () => {
 		let observed: string | undefined
 
 		function Probe() {
@@ -192,11 +192,11 @@ describe('Group', () => {
 		}
 
 		renderUI(
-			<Concentric size="sm">
+			<ConcentricProvider value={{ size: 'sm' }}>
 				<Group>
 					<Probe />
 				</Group>
-			</Concentric>,
+			</ConcentricProvider>,
 		)
 
 		expect(observed).toBe('sm')

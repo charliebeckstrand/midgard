@@ -3,6 +3,7 @@
 import { Check, Minus } from 'lucide-react'
 import { type ComponentPropsWithRef, type ReactNode, useCallback, useRef } from 'react'
 import { cn } from '../../core'
+import { useConcentric } from '../../primitives'
 import { kokkaku } from '../../recipes'
 import {
 	type CheckboxVariants,
@@ -10,7 +11,6 @@ import {
 	checkboxInputVariants,
 	checkboxVariants,
 } from '../../recipes/kata/checkbox'
-import { useConcentric } from '../concentric'
 import { invalidAttrs } from '../control/invalid-attrs'
 import { useFieldProps } from '../control/use-field-props'
 import { useFormToggle } from '../form/context'

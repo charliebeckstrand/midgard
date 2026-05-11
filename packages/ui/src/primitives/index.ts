@@ -1,4 +1,9 @@
 export { ActiveIndicator, ActiveIndicatorScope, useActiveIndicator } from './active-indicator'
+export {
+	type ConcentricContextValue,
+	ConcentricProvider,
+	useConcentric,
+} from './concentric'
 export { ControlFrame, type ControlFrameProps } from './control'
 export {
 	type CurrentContextValue,

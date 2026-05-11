@@ -22,12 +22,11 @@ import {
 import { cn, createContext } from '../../core'
 import { useFloatingPanel } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
-import { ReducedMotion } from '../../primitives'
+import { ConcentricProvider, ReducedMotion } from '../../primitives'
 import { iro, omote, ugoki } from '../../recipes'
 import { k } from '../../recipes/kata/popover'
 import type { Step } from '../../recipes/ryu/sun'
 import { Box, type BoxPadding } from '../box'
-import { ConcentricProvider } from '../concentric/context'
 import { useGlass } from '../glass/context'
 
 type PopoverContextValue = {

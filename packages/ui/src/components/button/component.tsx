@@ -15,11 +15,11 @@ import {
 	ReducedMotion,
 	springProps,
 	TouchTarget,
+	useConcentric,
 	useRipple,
 } from '../../primitives'
 import { kokkaku } from '../../recipes'
 import { type ButtonVariants, buttonVariants } from '../../recipes/kata/button'
-import { useConcentric } from '../concentric'
 import { useGlass } from '../glass/context'
 import { Icon } from '../icon'
 import { useInputSize } from '../input/context'
@@ -96,9 +96,10 @@ export function Button({
 
 	const resolvedVariant = variant ?? (glass ? 'glass' : undefined)
 
-	// Resolution order: explicit prop, then enclosing <Group>/<Concentric>
-	// size, then any <Input> grouping context. Component's own default kicks
-	// in only when all of these are absent.
+	// Resolution order: explicit prop, then the ambient concentric size
+	// (provided by <Card>/<Group>/<Drawer>/<Popover>), then any <Input>
+	// grouping context. Component's own default kicks in only when all of
+	// these are absent.
 	const resolvedSize = size ?? concentric?.size ?? inputSize
 
 	const { onPointerDown: handleRipple, element: rippleElement } = useRipple()
