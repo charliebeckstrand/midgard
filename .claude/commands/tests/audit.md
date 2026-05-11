@@ -1,4 +1,4 @@
-# Audit Tests
+# tests:audit
 
 TRIGGER when: the user asks to audit, check, review, or scan the project's tests / test coverage / test suite; asks "are the tests in sync", "any stale tests", "does every component have a test", "run the test audit". Also auto-eligible after `/tests:compose` writes new tests, to verify the new file fits the project's coverage matrix and authoring conventions.
 
@@ -62,7 +62,7 @@ In priority order:
 
 For each parsed test file, run every applicable check. Each check produces zero or more findings.
 
-Severity legend (canonical per `/audit:meta`):
+Severity legend (canonical per `/skill:audit`):
 
 - **blocker** — broken test (won't run, wrong target, dangling `.only`, `describe`/`it` missing). Blocks the audit.
 - **warning** — meaningful drift (missing required pattern from `/tests:compose`, prop reference no longer exists on source, mock state leaks, layout mismatch). Surfaces in the report.

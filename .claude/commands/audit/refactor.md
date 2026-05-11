@@ -1,4 +1,4 @@
-# Recommend Refactors
+# audit:refactor
 
 TRIGGER when: the user asks to recommend, suggest, surface, or identify refactor opportunities; asks what's getting messy, what should be cleaned up, where the duplication is, what abstractions are pulling their weight.
 

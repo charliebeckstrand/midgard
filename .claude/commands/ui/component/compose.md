@@ -1,4 +1,4 @@
-# Create UI Component
+# ui:component:compose
 
 TRIGGER when: the user asks to create, add, build, or scaffold a new UI component for the project's component library.
 
@@ -12,7 +12,7 @@ $ARGUMENTS
 
 ## 0. Load the Project Profile
 
-Read `.claude/cache/project-profile.json`. If it is missing, stale (per the freshness rules in `/repo:discover`), or the relevant fields are `null`, invoke `/repo:discover --quiet` to refresh it, then re-read.
+Read `.claude/cache/project-profile.json`. If missing or stale, invoke `/repo:discover --quiet` and re-read.
 
 From the profile, pull the fields this skill uses:
 

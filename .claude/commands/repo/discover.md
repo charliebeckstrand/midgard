@@ -1,4 +1,4 @@
-# Discover the Project
+# repo:discover
 
 TRIGGER when: the user asks to discover, profile, fingerprint, or summarize the project, the stack, the conventions, or the workspace; also auto-invoked by other skills when their cache read misses or is stale.
 

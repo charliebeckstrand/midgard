@@ -1,9 +1,6 @@
----
-name: council
-description: "Run any question, idea, or decision through a council of 5 AI advisors who independently analyze it, peer-review each other anonymously, and synthesize a final verdict. Based on Karpathy's LLM Council methodology. MANDATORY TRIGGERS: 'council this', 'run the council', 'war room this'; any request to 'audit', 'review', or 'critique' a system, design, plan, or decision; any time plan mode is active for non-trivial work (3+ steps, multiple viable approaches, or meaningful tradeoffs). STRONG TRIGGERS (use when combined with a real decision or tradeoff): 'should I X or Y', 'which option', 'what would you do', 'is this the right move', 'validate this', 'get multiple perspectives', 'I can't decide', 'I'm torn between'. Do NOT trigger on simple yes/no questions, factual lookups, casual 'should I' without a meaningful tradeoff (e.g. 'should I use markdown' is not a council question), or straightforward plan mode tasks where the path is obvious and uncontroversial (single-file edits, mechanical refactors, well-scoped bug fixes). DO trigger when the user presents a genuine decision with stakes, multiple options, and context that suggests they want it pressure-tested from multiple angles."
----
+# council
 
-# Council
+TRIGGER when: the user asks to council, war-room, validate, or pressure-test a decision; says "should I X or Y", "which option", "what would you do", "I'm torn"; or plan mode is active for non-trivial work (3+ steps, multiple viable approaches, real tradeoffs). Skip yes/no questions, factual lookups, and planning where the path is obvious.
 
 Run a high-stakes question through 5 independent advisors, have them peer-review each other anonymously, then synthesize a verdict. Adapted from Karpathy's LLM Council using sub-agents instead of separate models.
 

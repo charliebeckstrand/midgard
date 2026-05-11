@@ -1,4 +1,4 @@
-# Recommend Skills
+# skill:recommend
 
 TRIGGER when: the user asks to recommend, suggest, or identify new project skills to add to `.claude/commands/`; asks what's missing from the skill catalog, what slash commands the project should have next, where the namespaces are sparse, or which declared conventions still lack an automated skill.
 
@@ -47,7 +47,7 @@ Anything already present **must not** be re-recommended as new — but it **can*
 
 From the profile and from `CLAUDE.md`:
 
-- **CLAUDE.md `## Skills` bindings** — a skill present in the catalog but unbound is a hygiene problem `/audit:meta` already flags; do not re-recommend it as new.
+- **CLAUDE.md `## Skills` bindings** — a skill present in the catalog but unbound is a hygiene problem `/skill:audit` already flags; do not re-recommend it as new.
 - **Pre-commit gates** — `preCommit.gates`. A skill that re-implements an existing pre-commit check is a weak recommendation.
 - **CI jobs** — `ci.jobs`. Same rule.
 - **Existing recommenders** — `/audit:refactor`, `/ui:component:recommend`, and this skill itself form the meta-recommender layer. Recommending another recommender requires a distinct lens that none of these cover.
@@ -146,7 +146,7 @@ This makes the recommendation set falsifiable.
 
 Ask the user which recommendations to act on. For each:
 
-- **`new skill`** → invoke `/skill:compose <name> "<one-line intent>"` so the seed flows straight into the compose skill's step 1. Do not draft the file inline — `/skill:compose` enforces the catalog's template and self-audits via `/audit:meta`.
+- **`new skill`** → invoke `/skill:compose <name> "<one-line intent>"` so the seed flows straight into the compose skill's step 1. Do not draft the file inline — `/skill:compose` enforces the catalog's template and self-audits via `/skill:audit`.
 - **`extension to existing`** → open the existing skill, propose the diff, and confirm before applying. Extensions to shared skills follow the same rule as shared components in `CLAUDE.md`: never modify without explicit approval.
 - **`lint / config change`** → propose the exact diff to the relevant config file and let the user apply it.
 
@@ -161,7 +161,7 @@ Imagine a profile with:
 - `conventions.principles`: includes "Shared packages must not import from application code." and "Each commit represents one logical change."
 - `preCommit.gates`: `["lint", "type"]`.
 - `ci.jobs`: `["lint", "type", "test", "build"]`.
-- `.claude/commands/` contains `audit/a11y.md`, `audit/meta.md`, `audit/refactor.md`, `ui/component.md`, `ui/component-recommend.md`, `skill/compose.md`, plus the standard top-level skills.
+- `.claude/commands/` contains `audit/a11y.md`, `audit/refactor.md`, `skill/audit.md`, `skill/compose.md`, `ui/component/compose.md`, `ui/component/recommend.md`, plus the standard top-level skills.
 
 A reasonable output:
 
@@ -172,7 +172,7 @@ A reasonable output:
 | `audit/dead-code` | `audit` | "find unused exports and orphan files" | linter catches unused imports but not unused exports | Low | Medium | new skill |
 | `migration/scaffold` | `migration` (new) | "scaffold a Drizzle migration for this schema change" | no namespace today; the project ships Drizzle and writes migrations by hand | High | Low | new skill |
 
-Plus a note: *`audit/a11y`, `audit/meta`, `audit/refactor`, `ui/component`, `ui/component-recommend`, and `skill/compose` already exist. Recommender category covered by `/audit:refactor` and `/ui:component:recommend`. No backend-only audits proposed — the discovered stack has no server-only package that would justify them.*
+Plus a note: *`audit/a11y`, `audit/refactor`, `skill/audit`, `skill/compose`, `ui/component/compose`, and `ui/component/recommend` already exist. Recommender category covered by `/audit:refactor` and `/ui:component:recommend`. No backend-only audits proposed — the discovered stack has no server-only package that would justify them.*
 
 ---
 
@@ -180,6 +180,6 @@ Plus a note: *`audit/a11y`, `audit/meta`, `audit/refactor`, `ui/component`, `ui/
 
 - Read the catalog **every run** — the namespace is meant to grow; never recommend something that's already there. Re-globbing is cheap; trusting memory is not.
 - Never recommend a skill the discovered stack cannot run (e.g. a Next route-bundle audit on a pure library workspace).
-- Distinguish **new skill** from **extension to existing** clearly. A new file under `.claude/commands/` is a different operation from a section added to an existing skill, and `/audit:meta` treats them differently.
+- Distinguish **new skill** from **extension to existing** clearly. A new file under `.claude/commands/` is a different operation from a section added to an existing skill, and `/skill:audit` treats them differently.
 - Cite specific declared principles when explaining gaps — vague claims like "the catalog feels thin here" are not evidence.
 - This skill **recommends**; it does not compose. Hand off accepted recommendations to `/skill:compose`, and let that skill's self-audit gate the final scaffold.

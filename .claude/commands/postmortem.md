@@ -1,9 +1,6 @@
----
-name: postmortem
-description: "Pre-commit triage. After a task is reported complete and before `git commit`, read the diff, classify the change, and route to the smallest set of downstream skills the change warrants — often `/code-review`, sometimes `/audit:a11y`, `/tests:compose`, `/simplify` (when present), or `/security-review` (when present), sometimes nothing at all. Replaces the unconditional 'always run `/code-review` before every commit' default with a decision that fits the change. MANDATORY TRIGGERS: '/postmortem', 'postmortem', 'task complete', 'ready to commit', 'wrap up', 'finish up'. ALWAYS run before executing `git commit` from inside Claude — do not commit until postmortem returns PROCEED or every chained downstream skill returns PASS. Supersedes `/code-review`'s own pre-commit trigger: invoke `/code-review` only when this skill routes to it."
----
+# postmortem
 
-# Postmortem
+TRIGGER when: a task is reported complete and a non-empty diff exists; the user says "wrap up", "finish up", "task complete", or "ready to commit". Always run before `git commit` from inside Claude — do not commit until this skill returns PROCEED or every chained downstream skill returns PASS.
 
 Run after a task is reported complete and before `git commit`. Read the diff, classify the change, and pick the smallest set of downstream skills the change needs.
 
