@@ -4,6 +4,7 @@ import { Icon } from '../../components/icon'
 import { Input } from '../../components/input'
 import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
+import { capitalize } from '../components/format'
 
 export const meta = { category: 'Forms' }
 
@@ -15,9 +16,7 @@ export default function InputDemo() {
 			<Example title="Variants">
 				{variants.map((variant) => (
 					<Field key={variant}>
-						<Label htmlFor={`input-${variant}`}>
-							{variant.charAt(0).toUpperCase() + variant.slice(1)}
-						</Label>
+						<Label htmlFor={`input-${variant}`}>{capitalize(variant)}</Label>
 						<Input
 							id={`input-${variant}`}
 							variant={variant}

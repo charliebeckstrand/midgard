@@ -6,6 +6,8 @@ import { Flex } from '../../components/flex'
 import { Spinner } from '../../components/spinner'
 import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
+import { capitalize } from '../components/format'
+import { LabeledColumn } from '../components/labeled'
 import { SizeListbox } from '../components/size-listbox'
 import { sizes as buttonSizes } from '../demos/button'
 
@@ -17,8 +19,6 @@ type ButtonSize = (typeof buttonSizes)[number]
 
 const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 
-const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
-
 export default function SpinnerDemo() {
 	const [buttonSize, setButtonSize] = useState<ButtonSize>('md')
 
@@ -29,23 +29,21 @@ export default function SpinnerDemo() {
 			</Example>
 
 			<Example title="Sizes">
-				<div className="flex items-end gap-4">
+				<Flex gap="lg" align="end">
 					{sizes.map((s) => (
-						<Stack key={s} gap="sm" align="center">
+						<LabeledColumn key={s} label={s}>
 							<Spinner size={s} />
-							<span className="text-xs text-zinc-500">{s}</span>
-						</Stack>
+						</LabeledColumn>
 					))}
-				</div>
+				</Flex>
 			</Example>
 
 			<Example title="Colors">
 				<Flex gap="lg">
 					{colors.map((c) => (
-						<Stack key={c} gap="sm" align="center">
+						<LabeledColumn key={c} label={capitalize(c)}>
 							<Spinner color={c} size="lg" />
-							<span className="text-xs text-zinc-500">{cap(c)}</span>
-						</Stack>
+						</LabeledColumn>
 					))}
 				</Flex>
 			</Example>

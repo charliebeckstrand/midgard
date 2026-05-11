@@ -7,6 +7,8 @@ import { Stack } from '../../components/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../components/tabs'
 import { code } from '../code'
 import { Example } from '../components/example'
+import { capitalize } from '../components/format'
+import { LabeledColumn, LabeledRow } from '../components/labeled'
 import { ValueStepper } from '../components/value-stepper'
 
 export const meta = { category: 'Feedback' }
@@ -16,8 +18,6 @@ const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 const barSizes = ['sm', 'md', 'lg'] as const
 
 const gaugeSizes = ['xs', 'sm', 'md', 'lg', 'xl'] as const
-
-const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
 function InteractiveBarExample() {
 	const [value, setValue] = useState(50)
@@ -65,29 +65,27 @@ export default function ProgressDemo() {
 
 							<Example title="Sizes">
 								{barSizes.map((s, i) => (
-									<Flex key={s} gap="md">
-										<span className="w-6 text-xs text-zinc-500">{s}</span>
+									<LabeledRow key={s} label={s}>
 										<ProgressBar
 											size={s}
 											value={40 + i * 10}
 											className="flex-1"
 											aria-label={`${s} progress`}
 										/>
-									</Flex>
+									</LabeledRow>
 								))}
 							</Example>
 
 							<Example title="Colors">
 								{colors.map((color) => (
-									<Flex key={color} gap="md">
-										<span className="w-10 text-xs text-zinc-500">{cap(color)}</span>
+									<LabeledRow key={color} label={capitalize(color)} labelWidth="md">
 										<ProgressBar
 											color={color}
 											value={75}
 											className="flex-1"
-											aria-label={`${cap(color)} progress`}
+											aria-label={`${capitalize(color)} progress`}
 										/>
-									</Flex>
+									</LabeledRow>
 								))}
 							</Example>
 						</Stack>
@@ -104,7 +102,7 @@ export default function ProgressDemo() {
 											color={color}
 											value={75}
 											size="lg"
-											aria-label={`${cap(color)} progress`}
+											aria-label={`${capitalize(color)} progress`}
 										/>
 									))}
 								</Flex>
@@ -113,10 +111,9 @@ export default function ProgressDemo() {
 							<Example title="Sizes">
 								<Flex gap="lg" align="end">
 									{gaugeSizes.map((s) => (
-										<Stack key={s} gap="sm" align="center">
+										<LabeledColumn key={s} label={s}>
 											<ProgressGauge value={75} size={s} color="red" aria-label={`${s} progress`} />
-											<span className="text-xs text-zinc-500">{s}</span>
-										</Stack>
+										</LabeledColumn>
 									))}
 								</Flex>
 							</Example>
