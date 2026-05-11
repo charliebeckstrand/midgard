@@ -6,6 +6,7 @@ import { cn } from '../core'
 import { useRoving, useScrollWithin } from '../hooks'
 import { omote, sen, ugoki } from '../recipes'
 import { popover } from '../recipes/kata/popover'
+import { ReducedMotion } from './reduced-motion'
 
 export function PopoverPanel({
 	id,
@@ -48,23 +49,25 @@ export function PopoverPanel({
 	}, [autoFocus, itemSelector, scrollWithin])
 
 	return (
-		<motion.div
-			ref={menuRef}
-			id={id}
-			role={role}
-			tabIndex={-1}
-			{...ugoki.popover}
-			onKeyDown={(e) => {
-				handleKeyDown(e)
-				onKeyDownProp?.(e)
-			}}
-			className={cn(
-				glass ? ['group/glass', omote.glass, sen.ring] : omote.popover,
-				popover.panel,
-				className,
-			)}
-		>
-			{children}
-		</motion.div>
+		<ReducedMotion>
+			<motion.div
+				ref={menuRef}
+				id={id}
+				role={role}
+				tabIndex={-1}
+				{...ugoki.popover}
+				onKeyDown={(e) => {
+					handleKeyDown(e)
+					onKeyDownProp?.(e)
+				}}
+				className={cn(
+					glass ? ['group/glass', omote.glass, sen.ring] : omote.popover,
+					popover.panel,
+					className,
+				)}
+			>
+				{children}
+			</motion.div>
+		</ReducedMotion>
 	)
 }

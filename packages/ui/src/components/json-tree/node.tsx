@@ -4,6 +4,7 @@ import { ChevronRight } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { memo, useEffect, useMemo, useState } from 'react'
 import { cn } from '../../core'
+import { ReducedMotion } from '../../primitives'
 import { ugoki } from '../../recipes'
 import { k } from '../../recipes/kata/json-tree'
 import { Icon } from '../icon'
@@ -164,25 +165,27 @@ export const JsonNode = memo(function JsonNode({ keyName, value }: JsonNodeProps
 				</button>
 			</div>
 
-			<AnimatePresence initial={false}>
-				{open && (
-					<motion.div data-slot="json-group" {...ugoki.collapse.fade} className={k.group}>
-						<JsonTreeProvider value={childContextValue}>
-							{visibleEntries.map(([childKey, childValue]) => (
-								<JsonNode key={String(childKey)} keyName={childKey} value={childValue} />
-							))}
-						</JsonTreeProvider>
-						<div
-							data-slot="json-close"
-							className={cn(k.row, k.punctuation)}
-							style={{ paddingLeft }}
-						>
-							<span className={k.chevronSpacer} aria-hidden="true" />
-							{closeBracket}
-						</div>
-					</motion.div>
-				)}
-			</AnimatePresence>
+			<ReducedMotion>
+				<AnimatePresence initial={false}>
+					{open && (
+						<motion.div data-slot="json-group" {...ugoki.collapse.fade} className={k.group}>
+							<JsonTreeProvider value={childContextValue}>
+								{visibleEntries.map(([childKey, childValue]) => (
+									<JsonNode key={String(childKey)} keyName={childKey} value={childValue} />
+								))}
+							</JsonTreeProvider>
+							<div
+								data-slot="json-close"
+								className={cn(k.row, k.punctuation)}
+								style={{ paddingLeft }}
+							>
+								<span className={k.chevronSpacer} aria-hidden="true" />
+								{closeBracket}
+							</div>
+						</motion.div>
+					)}
+				</AnimatePresence>
+			</ReducedMotion>
 		</div>
 	)
 })

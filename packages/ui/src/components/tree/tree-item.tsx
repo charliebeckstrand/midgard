@@ -4,6 +4,7 @@ import { ChevronRight } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { type ReactElement, type ReactNode, useMemo, useState } from 'react'
 import { cn } from '../../core'
+import { ReducedMotion } from '../../primitives'
 import { ugoki } from '../../recipes'
 import { k } from '../../recipes/kata/tree'
 import { Icon } from '../icon'
@@ -69,21 +70,23 @@ export function TreeItem({
 			</button>
 
 			{hasChildren && (
-				<AnimatePresence initial={false}>
-					{open && (
-						<TreeProvider value={childContextValue}>
-							<motion.div
-								role="group"
-								aria-label={typeof label === 'string' ? label : undefined}
-								data-slot="tree-group"
-								{...ugoki.collapse.fade}
-								className={k.group}
-							>
-								{children}
-							</motion.div>
-						</TreeProvider>
-					)}
-				</AnimatePresence>
+				<ReducedMotion>
+					<AnimatePresence initial={false}>
+						{open && (
+							<TreeProvider value={childContextValue}>
+								<motion.div
+									role="group"
+									aria-label={typeof label === 'string' ? label : undefined}
+									data-slot="tree-group"
+									{...ugoki.collapse.fade}
+									className={k.group}
+								>
+									{children}
+								</motion.div>
+							</TreeProvider>
+						)}
+					</AnimatePresence>
+				</ReducedMotion>
 			)}
 		</div>
 	)

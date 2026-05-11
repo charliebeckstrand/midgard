@@ -4,6 +4,7 @@ import { useCallback, useMemo, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
 import { k } from '../../recipes/kata/editable-grid'
+import { sen } from '../../recipes/ryu/sen'
 import {
 	DataTable,
 	type DataTableColumn,
@@ -366,7 +367,7 @@ export function EditableGrid<T>({
 				data-slot="editable-grid"
 				role="grid"
 				tabIndex={0}
-				className={cn('outline-none', className)}
+				className={cn(sen.focus.inset, className)}
 				onKeyDown={onWrapperKeyDown}
 				onPaste={onWrapperPaste}
 				onFocus={onWrapperFocus}

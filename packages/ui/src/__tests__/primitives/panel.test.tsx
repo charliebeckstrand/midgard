@@ -5,6 +5,7 @@ import {
 	PanelA11yProvider,
 	useDescriptionRegistration,
 	usePanelA11y,
+	useTitleRegistration,
 } from '../../primitives/panel'
 import { bySlot, renderUI } from '../helpers'
 
@@ -77,6 +78,14 @@ describe('usePanelA11y', () => {
 		const { result } = renderHook(() => usePanelA11y())
 
 		expect(result.current).toEqual({})
+	})
+})
+
+describe('useTitleRegistration', () => {
+	it('starts with hasTitle false', () => {
+		const { result } = renderHook(() => useTitleRegistration())
+
+		expect(result.current.hasTitle).toBe(false)
 	})
 })
 

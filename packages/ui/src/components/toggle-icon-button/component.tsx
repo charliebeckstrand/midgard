@@ -5,14 +5,21 @@ import type { Size } from '../../types'
 import { Button } from '../button'
 import { Icon } from '../icon'
 
-export type ToggleIconButtonProps = {
+// Icon-only by design — require one of these so the button always has an
+// accessible name.
+type ToggleIconButtonLabel = { 'aria-label': string } | { 'aria-labelledby': string }
+
+export type ToggleIconButtonProps = ToggleIconButtonLabel & {
 	pressed: boolean
 	icon: ReactElement
 	activeIcon?: ReactElement
 	animate?: boolean
 	size?: Size
 	className?: string
-} & Omit<ComponentPropsWithoutRef<'button'>, 'children' | 'type' | 'color'>
+} & Omit<
+		ComponentPropsWithoutRef<'button'>,
+		'children' | 'type' | 'color' | 'aria-label' | 'aria-labelledby'
+	>
 
 export function ToggleIconButton({
 	pressed,

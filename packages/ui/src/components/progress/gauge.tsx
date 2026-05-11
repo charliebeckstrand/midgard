@@ -3,19 +3,22 @@
 import { motion } from 'motion/react'
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
+import { ReducedMotion } from '../../primitives'
 import { k, progressGaugeVariants } from '../../recipes/kata/progress'
 
 type ProgressColor = keyof typeof k.color
 
-export type ProgressGaugeProps = {
+// A progressbar role needs an accessible name; require one of these at the type
+// level so consumers can't ship an unlabeled gauge.
+type ProgressGaugeLabel = { 'aria-label': string } | { 'aria-labelledby': string }
+
+export type ProgressGaugeProps = ProgressGaugeLabel & {
 	value?: number
 	max?: number
 	size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
 	color?: ProgressColor
 	label?: ReactNode | boolean
 	strokeWidth?: number
-	'aria-label'?: string
-	'aria-labelledby'?: string
 	className?: string
 }
 
@@ -30,9 +33,8 @@ export function ProgressGauge({
 	color = 'blue',
 	label,
 	strokeWidth = defaultStrokeWidth,
-	'aria-label': ariaLabel,
-	'aria-labelledby': ariaLabelledBy,
 	className,
+	...labelProps
 }: ProgressGaugeProps) {
 	const pct = Math.min(100, Math.max(0, (value / max) * 100))
 
@@ -53,41 +55,42 @@ export function ProgressGauge({
 			aria-valuenow={value}
 			aria-valuemin={0}
 			aria-valuemax={max}
-			aria-label={ariaLabel}
-			aria-labelledby={ariaLabelledBy}
+			{...labelProps}
 			className={cn(progressGaugeVariants({ size }), className)}
 		>
-			<svg
-				aria-hidden="true"
-				viewBox={`0 0 ${gaugeViewBox} ${gaugeViewBox}`}
-				className="size-full -rotate-90"
-			>
-				{/* Track */}
-				<circle
-					cx={gaugeViewBox / 2}
-					cy={gaugeViewBox / 2}
-					r={radius}
-					fill="none"
-					strokeWidth={strokeWidth}
-					className={cn(k.track.stroke)}
-					strokeLinecap="round"
-				/>
+			<ReducedMotion>
+				<svg
+					aria-hidden="true"
+					viewBox={`0 0 ${gaugeViewBox} ${gaugeViewBox}`}
+					className="size-full -rotate-90"
+				>
+					{/* Track */}
+					<circle
+						cx={gaugeViewBox / 2}
+						cy={gaugeViewBox / 2}
+						r={radius}
+						fill="none"
+						strokeWidth={strokeWidth}
+						className={cn(k.track.stroke)}
+						strokeLinecap="round"
+					/>
 
-				{/* Fill */}
-				<motion.circle
-					cx={gaugeViewBox / 2}
-					cy={gaugeViewBox / 2}
-					r={radius}
-					fill="none"
-					strokeWidth={strokeWidth}
-					strokeLinecap="round"
-					strokeDasharray={circumference}
-					className={cn(k.color[color].stroke)}
-					initial={{ strokeDashoffset: circumference }}
-					animate={{ strokeDashoffset: offset }}
-					transition={{ type: 'spring', stiffness: 100, damping: 20 }}
-				/>
-			</svg>
+					{/* Fill */}
+					<motion.circle
+						cx={gaugeViewBox / 2}
+						cy={gaugeViewBox / 2}
+						r={radius}
+						fill="none"
+						strokeWidth={strokeWidth}
+						strokeLinecap="round"
+						strokeDasharray={circumference}
+						className={cn(k.color[color].stroke)}
+						initial={{ strokeDashoffset: circumference }}
+						animate={{ strokeDashoffset: offset }}
+						transition={{ type: 'spring', stiffness: 100, damping: 20 }}
+					/>
+				</svg>
+			</ReducedMotion>
 
 			{resolvedLabel != null && (
 				<span className={cn(k.gauge.label, k.gauge.labelSize[resolvedSize])}>{resolvedLabel}</span>

@@ -22,7 +22,13 @@ export const editableGrid = {
 		center: 'justify-center text-center',
 		right: 'justify-end text-right',
 	},
-	editInput: ['absolute inset-0 bg-transparent outline-none', 'px-sm', 'py-sm', iro.text.default],
+	editInput: [
+		'absolute inset-0 bg-transparent',
+		sen.focus.inset,
+		'px-sm',
+		'py-sm',
+		iro.text.default,
+	],
 	editInputAlign: {
 		left: 'text-left',
 		center: 'text-center',

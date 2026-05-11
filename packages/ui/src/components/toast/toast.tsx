@@ -4,6 +4,7 @@ import { AnimatePresence } from 'motion/react'
 import { useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { cn } from '../../core'
+import { ReducedMotion } from '../../primitives'
 import { k, toastViewportVariants } from '../../recipes/kata/toast'
 import { ToastAlert } from './alert'
 import { ToastContext, type ToastProps, useToastState } from './toast-context'
@@ -30,30 +31,32 @@ export function Toast({
 		<ToastContext value={ctx}>
 			{children}
 			{createPortal(
-				<output
-					data-slot="toast-viewport"
-					aria-live="polite"
-					aria-atomic="false"
-					className={cn(toastViewportVariants({ position }))}
-				>
-					<div className={cn(k.scroll, isBottom && 'flex-col-reverse')}>
-						<AnimatePresence onExitComplete={handleExitComplete}>
-							{toasts.map((t) => (
-								<ToastAlert
-									key={t.id}
-									toast={t}
-									position={position}
-									showCloseButton={t.showCloseButton}
-									onOpenChange={(open, id) => {
-										if (!open) dismiss(id)
-									}}
-									onPause={pause}
-									onResume={resume}
-								/>
-							))}
-						</AnimatePresence>
-					</div>
-				</output>,
+				<ReducedMotion>
+					<output
+						data-slot="toast-viewport"
+						aria-live="polite"
+						aria-atomic="false"
+						className={cn(toastViewportVariants({ position }))}
+					>
+						<div className={cn(k.scroll, isBottom && 'flex-col-reverse')}>
+							<AnimatePresence onExitComplete={handleExitComplete}>
+								{toasts.map((t) => (
+									<ToastAlert
+										key={t.id}
+										toast={t}
+										position={position}
+										showCloseButton={t.showCloseButton}
+										onOpenChange={(open, id) => {
+											if (!open) dismiss(id)
+										}}
+										onPause={pause}
+										onResume={resume}
+									/>
+								))}
+							</AnimatePresence>
+						</div>
+					</output>
+				</ReducedMotion>,
 				document.body,
 			)}
 		</ToastContext>

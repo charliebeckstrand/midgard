@@ -9,7 +9,7 @@ import { useFloatingUI } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { useFocusTrap } from '../../hooks/use-focus-trap'
 import { useIdScope } from '../../hooks/use-id-scope'
-import { ControlFrame } from '../../primitives'
+import { ControlFrame, ReducedMotion } from '../../primitives'
 import { iro, omote, ugoki } from '../../recipes'
 import { calendar as kCalendar } from '../../recipes/kata/calendar'
 import { k } from '../../recipes/kata/datepicker'
@@ -222,64 +222,66 @@ export function DatePickerRange({
 			</div>
 
 			<FloatingPortal>
-				<AnimatePresence onExitComplete={flushPending}>
-					{open && (
-						<div
-							ref={refs.setFloating}
-							style={floatingStyles}
-							className={kPopover.portal}
-							{...getFloatingProps()}
-							tabIndex={-1}
-						>
-							<motion.div
-								ref={focusTrapRef}
-								{...ugoki.popover}
-								data-slot="datepicker-content"
-								className={cn('z-50', iro.text.default, glass && omote.glass)}
-								onMouseDown={(e) => e.preventDefault()}
+				<ReducedMotion>
+					<AnimatePresence onExitComplete={flushPending}>
+						{open && (
+							<div
+								ref={refs.setFloating}
+								style={floatingStyles}
+								className={kPopover.portal}
+								{...getFloatingProps()}
+								tabIndex={-1}
 							>
-								<Box bg={glass ? 'none' : 'popover'} outline={glass || undefined} radius="lg">
-									<CalendarRange
-										ref={calendarRef}
-										onChange={handleSelect}
-										min={min}
-										max={max}
-										rangeStart={rangeStart ?? (value ? value[0] : null)}
-										rangeEnd={rangeStart === null ? (value ? value[1] : null) : null}
-										hoverDate={rangeStart !== null ? hoverDate : null}
-										onHoverDate={setHoverDate}
-										active={open ? active : null}
-										onPickerOpenChange={handlePickerOpenChange}
-										footerRef={footerRef}
-									/>
-									{showClear && (
-										<div
-											ref={footerRef}
-											role="toolbar"
-											data-slot="calendar-footer"
-											onKeyDown={(e) => calendarRef.current?.footerKeyDown(e)}
-											className={cn(kCalendar.footer)}
-										>
-											<Button
-												variant="soft"
-												color="amber"
-												onClick={handleClear}
-												aria-label="Clear selection"
-												className={cn(
-													active?.zone === 'footer' &&
-														footerButtons[active.index] === 'clear' &&
-														kCalendar.day.active,
-												)}
+								<motion.div
+									ref={focusTrapRef}
+									{...ugoki.popover}
+									data-slot="datepicker-content"
+									className={cn('z-50', iro.text.default, glass && omote.glass)}
+									onMouseDown={(e) => e.preventDefault()}
+								>
+									<Box bg={glass ? 'none' : 'popover'} outline={glass || undefined} radius="lg">
+										<CalendarRange
+											ref={calendarRef}
+											onChange={handleSelect}
+											min={min}
+											max={max}
+											rangeStart={rangeStart ?? (value ? value[0] : null)}
+											rangeEnd={rangeStart === null ? (value ? value[1] : null) : null}
+											hoverDate={rangeStart !== null ? hoverDate : null}
+											onHoverDate={setHoverDate}
+											active={open ? active : null}
+											onPickerOpenChange={handlePickerOpenChange}
+											footerRef={footerRef}
+										/>
+										{showClear && (
+											<div
+												ref={footerRef}
+												role="toolbar"
+												data-slot="calendar-footer"
+												onKeyDown={(e) => calendarRef.current?.footerKeyDown(e)}
+												className={cn(kCalendar.footer)}
 											>
-												Clear
-											</Button>
-										</div>
-									)}
-								</Box>
-							</motion.div>
-						</div>
-					)}
-				</AnimatePresence>
+												<Button
+													variant="soft"
+													color="amber"
+													onClick={handleClear}
+													aria-label="Clear selection"
+													className={cn(
+														active?.zone === 'footer' &&
+															footerButtons[active.index] === 'clear' &&
+															kCalendar.day.active,
+													)}
+												>
+													Clear
+												</Button>
+											</div>
+										)}
+									</Box>
+								</motion.div>
+							</div>
+						)}
+					</AnimatePresence>
+				</ReducedMotion>
 			</FloatingPortal>
 		</>
 	)
