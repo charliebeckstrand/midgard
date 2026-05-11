@@ -1,8 +1,8 @@
-# audit:meta
+# skill:audit
 
-TRIGGER when: the user asks to audit, review, critique, tighten, polish, or improve the project's **skills** themselves — the files under `.claude/commands/`. Also when the user asks about skill consistency, trigger overlap, prose quality, or whether the Project Profile schema needs new fields.
+TRIGGER when: the user asks to audit, review, critique, tighten, polish, or improve a project skill — a file under `.claude/commands/`. Also when the user asks about skill consistency, trigger overlap, prose quality, or whether the Project Profile schema needs new fields.
 
-This is the meta-audit: every other audit looks at code, this one looks at the audits (and every other skill in the catalog). It produces severity-sorted, file:line-anchored findings plus a separate set of cross-cutting recommendations (schema improvements, candidate extractions, vocabulary drift).
+This skill audits the skill catalog itself. It produces severity-sorted, file:line-anchored findings on the targeted skill (or the whole catalog when none is implied), plus a separate set of cross-cutting recommendations (schema improvements, candidate extractions, vocabulary drift).
 
 ## Arguments
 
@@ -11,7 +11,7 @@ $ARGUMENTS
 Recognized hints:
 - A skill name or path (`/audit:refactor`, `.claude/commands/ui/component/compose.md`) → audit just that skill.
 - A heuristic from section 4 → only run that heuristic.
-- No arguments → audit every skill under `.claude/commands/`.
+- No arguments → audit the skill in conversation context; fall back to every skill under `.claude/commands/` when none is implied.
 
 ---
 
@@ -29,9 +29,11 @@ If `.claude/commands/repo/discover.md` does not exist, surface that as the first
 
 ## 2. Resolve scope
 
-If the user passed a skill name or path, narrow to that file. Otherwise audit every skill in the inventory.
+This skill is most often invoked to audit a **specific** skill. Pick the target in this order:
 
-Always include this skill (`audit/meta.md`) in the scope when no argument is passed. Self-audit findings are tagged `(self)` in the output for transparency.
+1. **Explicit argument** — if `$ARGUMENTS` names a skill or path (e.g. `/audit:refactor`, `.claude/commands/ui/component/compose.md`), audit only that file.
+2. **Skill in conversation context** — if a single skill under `.claude/commands/` is the obvious subject of the current session (recently edited, recently mentioned by the user, or named in the working diff), audit only that file. Confirm the implied target in one line before proceeding so the user can redirect.
+3. **Otherwise** — audit every skill under `.claude/commands/`. Include this skill (`skill/audit.md`) in the scope; tag self-audit findings `(self)` for transparency.
 
 ---
 

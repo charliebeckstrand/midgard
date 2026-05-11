@@ -32,7 +32,7 @@ Refuse to overwrite an existing file. If the path exists, surface the collision 
 ## 2. Sample the catalog
 
 Glob `.claude/commands/**/*.md`. Read 2–3 sibling skills end-to-end:
-- The skill nearest the proposed namespace (for `audit:foo`, read `audit/meta.md` and `audit/a11y.md`).
+- The skill nearest the proposed namespace (for `audit:foo`, read `audit/a11y.md` and `audit/refactor.md`).
 - One top-level reference skill (`repo/discover.md` or `deliberate.md`) for default voice and structure.
 
 From the samples, capture as working notes — do not echo to the user:
@@ -49,7 +49,7 @@ Use `AskUserQuestion` to pin the dimensions that materially change the scaffold.
 - **Profile dependency** — does the skill consume `.claude/cache/project-profile.json`?
 - **Output shape** — prose report, ranked findings table, scaffolded files, or in-place fix?
 - **Findings & severities** — does it produce findings? If yes, default to `blocker / warning / nit` unless siblings disagree.
-- **Handoffs** — does it auto-invoke another skill (`/tests:compose`, `/audit:meta`, `/council`, `/premortem`)?
+- **Handoffs** — does it auto-invoke another skill (`/tests:compose`, `/skill:audit`, `/council`, `/premortem`)?
 - **Arguments** — does it accept `$ARGUMENTS`? Which hints does it recognize?
 
 Two rounds maximum. If the user says "just write it," synthesize from defaults and mark gaps as `<TBD>` placeholders in the draft.
@@ -63,7 +63,7 @@ Write the new skill to the resolved path using the catalog's de-facto template. 
 3. One-paragraph framing of what the skill produces and what makes it different from siblings.
 4. `## Arguments` block with `$ARGUMENTS` (only if step 3 said the skill takes arguments).
 5. `---` separator.
-6. Numbered `## N. <verb-phrase>` sections. The first numbered section loads the Project Profile when step 3 said the skill needs it; copy the standard load-and-refresh paragraph from `code-review.md` step 0 verbatim — drift in this paragraph is what `/audit:meta` flags.
+6. Numbered `## N. <verb-phrase>` sections. The first numbered section loads the Project Profile when step 3 said the skill needs it; copy the standard load-and-refresh paragraph from `code-review.md` step 0 verbatim — drift in this paragraph is what `/skill:audit` flags.
 7. Optional `## Worked examples (fabricated)` section. Use fabricated identifiers (`Widget`, `formatCurrency`, `SizeProvider`) — never real names from this repo or any other real project.
 8. `## Important` closing section: 3–6 bullets stating non-obvious invariants and what the skill must not do.
 
@@ -74,7 +74,7 @@ Voice rules while writing:
 - One idea per sentence. No nominalizations (`perform an audit` → `audit`).
 - Code examples ≤25 lines, demonstrating one idea each.
 
-Cross-references to other skills must use the live form (`/audit:meta`, not `/audit-meta`). Every `/foo` mention must resolve to a file under `.claude/commands/`.
+Cross-references to other skills must use the live form (`/skill:audit`, not `/audit-meta`). Every `/foo` mention must resolve to a file under `.claude/commands/`.
 
 ## 5. Wire the CLAUDE.md binding
 
@@ -82,19 +82,19 @@ Open `CLAUDE.md` and append a binding paragraph to the `## Skills` section, foll
 
 > When asked to <intent>, always use the `/<slug>` skill. <One sentence on what it does and when it returns control.>
 
-Preserve clustering when siblings are grouped (e.g. all `audit:*` bindings sit together). Skills bound in CLAUDE.md but missing from the catalog (or vice versa) are blockers per `/audit:meta` heuristic 4k — keep the two in sync.
+Preserve clustering when siblings are grouped (e.g. all `audit:*` bindings sit together). Skills bound in CLAUDE.md but missing from the catalog (or vice versa) are blockers per `/skill:audit` heuristic 4k — keep the two in sync.
 
 If the user explicitly opts out of binding, skip this step and note it in the final summary so they remember to wire it later.
 
 ## 6. Self-audit
 
-This is the consistency-and-quality directive. Invoke `/audit:meta <path-to-new-skill>` and read the verdict:
+This is the consistency-and-quality directive. Invoke `/skill:audit <path-to-new-skill>` and read the verdict:
 
 - **PASS** → done. Print the path, a one-line summary of what was scaffolded, and the binding line added to `CLAUDE.md`. Surface any warnings the audit reported but do not block on them.
-- **PASS WITH FINDINGS** → resolve the warnings in the draft, or have the user explicitly waive each one, then re-run `/audit:meta` on the file until the verdict reaches PASS.
+- **PASS WITH FINDINGS** → resolve the warnings in the draft, or have the user explicitly waive each one, then re-run `/skill:audit` on the file until the verdict reaches PASS.
 - **FAIL** → blockers exist. Fix every blocker in-loop and re-audit. Do not return control to the user until the verdict is PASS or PASS WITH FINDINGS.
 
-Do not skip this step. The catalog's quality bar is whatever `/audit:meta` enforces; a scaffold that bypasses it drifts from the rest of the catalog by definition.
+Do not skip this step. The catalog's quality bar is whatever `/skill:audit` enforces; a scaffold that bypasses it drifts from the rest of the catalog by definition.
 
 ---
 
@@ -103,5 +103,5 @@ Do not skip this step. The catalog's quality bar is whatever `/audit:meta` enfor
 - The new skill must read like a sibling, not a stranger. When a stylistic preference disagrees with the catalog, follow the catalog.
 - Never invent project facts to fill the body. If a section needs project-specific content the user has not supplied, mark it `<TBD>` and surface the gap in the final summary.
 - Never invent new severity labels, table columns, or section headings when the catalog already settled them. Propose new shapes as a separate question — do not sneak them into a scaffold.
-- The CLAUDE.md binding is part of the deliverable, not a follow-up. `/audit:meta` heuristic 4k flags missing bindings.
-- Self-audit is not optional. A "good enough" scaffold that fails `/audit:meta` is not done.
+- The CLAUDE.md binding is part of the deliverable, not a follow-up. `/skill:audit` heuristic 4k flags missing bindings.
+- Self-audit is not optional. A "good enough" scaffold that fails `/skill:audit` is not done.
