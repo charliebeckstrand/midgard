@@ -4,7 +4,7 @@ import { Example } from '../components/example'
 
 export const meta = { category: 'Navigation' }
 
-const tabs = ['Account', 'Notifications', 'Billing']
+const tabs = ['Account', 'Notifications', 'Billing'] as const
 
 export default function TabsDemo() {
 	return (

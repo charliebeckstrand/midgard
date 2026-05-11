@@ -28,7 +28,7 @@ import { Example } from '../components/example'
 
 export const meta = { category: 'Other' }
 
-const people = ['Wade Cooper', 'Arlene McCoy', 'Devon Webb', 'Tom Cook']
+const people = ['Wade Cooper', 'Arlene McCoy', 'Devon Webb', 'Tom Cook'] as const
 
 export default function GlassDemo() {
 	const [dialogOpen, setDialogOpen] = useState(false)

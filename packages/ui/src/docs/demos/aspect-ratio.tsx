@@ -1,3 +1,5 @@
+'use client'
+
 import { useState } from 'react'
 import { AspectRatio, type AspectRatioPreset } from '../../components/aspect-ratio'
 import { Card } from '../../components/card'

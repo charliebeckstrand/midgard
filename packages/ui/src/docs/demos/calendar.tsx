@@ -1,3 +1,5 @@
+'use client'
+
 import { useState } from 'react'
 import { Calendar } from '../../components/calendar'
 import { Stack } from '../../components/stack'

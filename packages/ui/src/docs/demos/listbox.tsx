@@ -1,3 +1,5 @@
+'use client'
+
 import { useState } from 'react'
 import { Field, Label } from '../../components/fieldset'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
