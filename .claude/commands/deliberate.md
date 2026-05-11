@@ -1,9 +1,6 @@
----
-name: deliberate
-description: "Survey the seed against the seven dimensions on which every brief lives or dies, then invite the user to weigh concrete ABCD options—only on the dimensions the seed leaves open. Synthesize their choices into a Brief an executor can act on without further translation. **Mandatory triggers:** 'deliberate this', 'deliberate X', 'help me scope/shape/define X', 'turn this into a brief', 'pin this down', 'I have a vague idea', 'I want to do X but don't yet know what shape it should take'. **Strong triggers** (when the request sits upstream of execution): 'how should I frame X', 'what would the brief look like', 'I'm not sure what I'm asking for yet', 'let's define this before I start', 'what's the actual ask'. **Skip when:** the request is already scoped enough to execute; the question has one obvious answer; the user is choosing between known alternatives (use /council); or the user is stress-testing a drafted plan (use /premortem). **Distinct from /council:** council debates *whether* or *which* (the decision isn't yet made); deliberate produces the brief that defines the work in the first place."
----
+# deliberate
 
-# Deliberate
+TRIGGER when: the user has a vague seed and asks to deliberate, scope, shape, or define it — "help me frame X", "turn this into a brief", "pin this down", "I have a vague idea". Skip when scope is already clear, when the choice is *whether* or *which* among known options (use `/council`), or when a plan is drafted and you want to pressure-test it (use `/premortem`).
 
 A structured deliberation that sharpens a fuzzy idea into a brief ready for execution. You name the dimensions still in question; the user weighs concrete options on each; together you produce a Brief an executor can act on without further translation. 
 

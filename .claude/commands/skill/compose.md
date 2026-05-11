@@ -1,4 +1,4 @@
-# Compose a Skill
+# skill:compose
 
 TRIGGER when: the user asks to compose, scaffold, create, add, draft, or author a new project skill — a file under `.claude/commands/`. Also when the user asks how to extend the skill catalog or add a new project-level slash command.
 

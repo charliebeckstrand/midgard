@@ -1,4 +1,4 @@
-# Compose UI Component Docs
+# ui:docs:compose
 
 TRIGGER when: the user asks to create, add, write, or scaffold a docs page, demo, or example file for a UI component. Also runs automatically when `/ui:component:compose` finishes creating a new component and the project has a docs system.
 

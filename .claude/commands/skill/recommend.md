@@ -1,4 +1,4 @@
-# Recommend Skills
+# skill:recommend
 
 TRIGGER when: the user asks to recommend, suggest, or identify new project skills to add to `.claude/commands/`; asks what's missing from the skill catalog, what slash commands the project should have next, where the namespaces are sparse, or which declared conventions still lack an automated skill.
 

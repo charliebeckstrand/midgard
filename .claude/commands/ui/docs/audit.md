@@ -1,4 +1,4 @@
-# Audit UI Component Docs
+# ui:docs:audit
 
 TRIGGER when: the user asks to audit, check, review, or scan the project's component docs / demos / stories; asks "are the docs in sync", "any stale demos", "does every component have a docs page", "run the docs audit". Also auto-eligible after `/ui:component:compose` creates a new component and the project has a docs system.
 

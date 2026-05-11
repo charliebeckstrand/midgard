@@ -1,4 +1,4 @@
-# Create UI Component
+# ui:component:compose
 
 TRIGGER when: the user asks to create, add, build, or scaffold a new UI component for the project's component library.
 

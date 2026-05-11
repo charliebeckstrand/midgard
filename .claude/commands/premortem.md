@@ -1,9 +1,6 @@
----
-name: premortem
-description: "Stress-test a drafted plan before executing it. Five 'future-you' agents roleplay specific failure modes that already happened, peer-review each other anonymously, then an Examiner synthesizes the most likely failure, falsifiable assumptions to verify, and a concrete diff to the plan. Based on Gary Klein's pre-mortem technique. Use AFTER a plan exists, BEFORE implementation begins. MANDATORY TRIGGERS: 'premortem this', 'pre-mortem this', 'stress-test the plan', 'stress-test this plan', 'pressure-test this', 'what could go wrong', 'find the failure modes', 'what am I missing', 'before I execute'. STRONG TRIGGERS (when a concrete plan exists): 'is this plan safe', 'what will break', 'where will this go wrong', 'ready to start?', 'should I just start?'. SKIP for: trivial single-file edits, mechanical refactors, situations where no concrete plan exists yet (use /council or /deliberate instead), or where the failure mode is already obvious. Distinct from /council: council debates whether/which (decision not yet made); premortem stress-tests will-this-actually-work (decision made, plan drafted, about to execute)."
----
+# premortem
 
-# Premortem
+TRIGGER when: a concrete plan exists and is about to execute, and the user asks to premortem, stress-test, pressure-test, or check what could go wrong — "is this plan safe", "what will break", "ready to start?". Skip when no plan exists yet (use `/council` or `/deliberate` instead), or when the failure mode is already obvious.
 
 Stress-test a drafted plan by treating it as already failed. Five agents roleplay future-you, two weeks in, narrating a specific failure that already happened. Peer-review them anonymously, then synthesize the most likely failure, the falsifiable assumptions to verify before starting, and a concrete diff to the plan. Based on Gary Klein's pre-mortem technique.
 

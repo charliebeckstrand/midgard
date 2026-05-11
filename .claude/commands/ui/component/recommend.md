@@ -1,4 +1,4 @@
-# Recommend UI Components
+# ui:component:recommend
 
 TRIGGER when: the user asks to recommend, suggest, propose, or identify new UI components for the project's component library, or asks what's missing, what to build next, or how to expand the library.
 

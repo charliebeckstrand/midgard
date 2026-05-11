@@ -1,4 +1,4 @@
-# Audit Skills (Meta)
+# audit:meta
 
 TRIGGER when: the user asks to audit, review, critique, tighten, polish, or improve the project's **skills** themselves — the files under `.claude/commands/`. Also when the user asks about skill consistency, trigger overlap, prose quality, or whether the Project Profile schema needs new fields.
 

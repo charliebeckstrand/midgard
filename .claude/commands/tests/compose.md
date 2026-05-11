@@ -1,4 +1,4 @@
-# Create Tests
+# tests:compose
 
 TRIGGER when: the user asks to create, add, write, or scaffold tests for any target in the project — components, primitives, hooks, utilities, modules. Also runs automatically when `/ui:component:compose` finishes creating a new component.
 
