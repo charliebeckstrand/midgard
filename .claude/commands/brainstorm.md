@@ -5,7 +5,9 @@ description: "Turn a fuzzy idea into a precise brief an executor — another ski
 
 # Brainstorm
 
-Turn a fuzzy idea into a precise brief an executor — another skill, an agent, or the user themselves — can act on without further translation. The user does the thinking by choosing from concrete options; you synthesize at the end.
+Walk the user through 3–5 concrete ABCD-style questions to pin down what "done" looks like — outcome, scope, audience, deliverable, success criteria — then synthesize their picks into a Project Brief precise enough to hand off without further clarification.
+
+Use when the user starts with a fuzzy idea and can't yet describe the deliverable in one sentence. Skip if the request is already scoped enough to execute, if the question is *whether* or *which* among known options (use `/council`), or if a plan is already drafted and the question is whether it will work (use `/premortem`).
 
 ## Arguments
 
