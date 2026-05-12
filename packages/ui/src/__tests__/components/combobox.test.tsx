@@ -70,6 +70,22 @@ describe('Combobox', () => {
 		expect(icon).toBeInTheDocument()
 	})
 
+	it.each([
+		null,
+		false,
+		'',
+	] as const)('falls back to the default chevron when suffix is %p', (value) => {
+		const { container } = renderUI(
+			<Combobox suffix={value}>
+				<div>Option</div>
+			</Combobox>,
+		)
+
+		expect(bySlot(container, 'suffix')).not.toBeInTheDocument()
+
+		expect(container.querySelector('button[aria-label="Open"]')).toBeInTheDocument()
+	})
+
 	it('renders a placeholder in skeleton mode', () => {
 		const { container } = renderUI(
 			<Combobox>
