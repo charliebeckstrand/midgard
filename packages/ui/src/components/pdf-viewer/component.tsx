@@ -95,19 +95,29 @@ export function PdfViewer({
 	})
 
 	const [zoom, setZoom] = useState(defaultZoom)
-	const [rotation, setRotation] = useState(defaultRotation)
+	const [rotations, setRotations] = useState<Record<number, number>>({})
 
 	const [thumbsOpen, setThumbsOpen] = useState(false)
 
 	const rootRef = useRef<HTMLElement>(null)
 	const viewportRef = useRef<HTMLDivElement>(null)
 
-	const [viewportSize, setViewportSize] = useState<{ width: number; height: number } | null>(null)
+	const [viewportSize, setViewportSize] = useState<{
+		width: number
+		height: number
+		sideways: boolean
+	} | null>(null)
 	const [naturalSize, setNaturalSize] = useState<{ width: number; height: number } | null>(null)
 
 	const safePage = total > 0 ? clamp(currentPage, 1, total) : 0
 
 	const activePage = total > 0 ? pages[safePage - 1] : undefined
+
+	const rotation = rotations[safePage] ?? defaultRotation
+
+	const rotateActivePage = useCallback(() => {
+		setRotations((prev) => ({ ...prev, [safePage]: (prev[safePage] ?? defaultRotation) + 90 }))
+	}, [safePage, defaultRotation])
 
 	// Prefer dimensions supplied by the caller (or the pdf.js hook) so the viewport
 	// can establish its aspect ratio before the image paints. Fall back to the
@@ -117,35 +127,45 @@ export function PdfViewer({
 			? { width: activePage.width, height: activePage.height }
 			: naturalSize
 
+	const normalizedRotation = ((rotation % 360) + 360) % 360
+
+	const isSideways = normalizedRotation === 90 || normalizedRotation === 270
+
+	// `isSideways` is captured so the callback's identity flips on rotation —
+	// which re-runs the layout effect below, giving us a synchronous re-measure
+	// before paint (instead of waiting a frame for ResizeObserver to catch up).
+	// The `sideways` tag also marks each measurement with the orientation it
+	// was taken under, so consumers can detect stale measurements if needed.
+	const measureViewport = useCallback(() => {
+		const el = viewportRef.current
+
+		if (!el) return
+
+		const styles = window.getComputedStyle(el)
+
+		const padX = Number.parseFloat(styles.paddingLeft) + Number.parseFloat(styles.paddingRight)
+		const padY = Number.parseFloat(styles.paddingTop) + Number.parseFloat(styles.paddingBottom)
+
+		setViewportSize({
+			width: el.clientWidth - padX,
+			height: el.clientHeight - padY,
+			sideways: isSideways,
+		})
+	}, [isSideways])
+
 	useLayoutEffect(() => {
 		const el = viewportRef.current
 
 		if (!el) return
 
-		const measure = () => {
-			const styles = window.getComputedStyle(el)
+		measureViewport()
 
-			const padX = Number.parseFloat(styles.paddingLeft) + Number.parseFloat(styles.paddingRight)
-			const padY = Number.parseFloat(styles.paddingTop) + Number.parseFloat(styles.paddingBottom)
-
-			setViewportSize({
-				width: el.clientWidth - padX,
-				height: el.clientHeight - padY,
-			})
-		}
-
-		measure()
-
-		const observer = new ResizeObserver(() => measure())
+		const observer = new ResizeObserver(() => measureViewport())
 
 		observer.observe(el)
 
 		return () => observer.disconnect()
-	}, [])
-
-	const normalizedRotation = ((rotation % 360) + 360) % 360
-
-	const isSideways = normalizedRotation === 90 || normalizedRotation === 270
+	}, [measureViewport])
 
 	const fitScale = useMemo(() => {
 		if (!viewportSize || !pageSize) return 1
@@ -209,7 +229,7 @@ export function PdfViewer({
 				zoom={zoom}
 				setZoom={setZoom}
 				zoomLevels={zoomLevels}
-				setRotation={setRotation}
+				onRotate={rotateActivePage}
 				src={documentSrc}
 				filename={filename}
 				isLoading={isLoading}

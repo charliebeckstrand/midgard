@@ -2,6 +2,7 @@
 
 import { Download, Maximize2, PanelLeft, Printer, RotateCw, ZoomIn, ZoomOut } from 'lucide-react'
 import type { Dispatch, SetStateAction } from 'react'
+
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { Button } from '../button'
@@ -20,7 +21,7 @@ export type PdfViewerToolbarProps = {
 	zoom: number
 	setZoom: Dispatch<SetStateAction<number>>
 	zoomLevels: number[]
-	setRotation: Dispatch<SetStateAction<number>>
+	onRotate: () => void
 	src?: string
 	filename?: string
 	isLoading: boolean
@@ -28,9 +29,6 @@ export type PdfViewerToolbarProps = {
 	thumbsOpen: boolean
 	onThumbsOpen: () => void
 }
-
-// Tolerance for floating-point comparison against discrete zoom levels.
-const EPSILON = 1e-6
 
 export function PdfViewerToolbar({
 	pages,
@@ -40,7 +38,7 @@ export function PdfViewerToolbar({
 	zoom,
 	setZoom,
 	zoomLevels,
-	setRotation,
+	onRotate,
 	src,
 	filename,
 	isLoading,
@@ -51,18 +49,17 @@ export function PdfViewerToolbar({
 	const isEmpty = total === 0
 
 	const sortedLevels = [...zoomLevels].sort((a, b) => a - b)
+
 	const minZoom = sortedLevels[0] ?? 1
 	const maxZoom = sortedLevels[sortedLevels.length - 1] ?? 1
 
-	const nextLevelUp = sortedLevels.find((l) => l > zoom + EPSILON) ?? maxZoom
-	const nextLevelDown = [...sortedLevels].reverse().find((l) => l < zoom - EPSILON) ?? minZoom
+	const nextLevelUp = sortedLevels.find((l) => l > zoom + 1e-6) ?? maxZoom
+	const nextLevelDown = [...sortedLevels].reverse().find((l) => l < zoom - 1e-6) ?? minZoom
 
 	const zoomIn = () => setZoom(nextLevelUp)
 	const zoomOut = () => setZoom(nextLevelDown)
 
 	const fit = () => setZoom(1)
-
-	const rotate = () => setRotation((r) => r + 90)
 
 	const download = () => {
 		if (!src) return
@@ -179,7 +176,7 @@ export function PdfViewerToolbar({
 								variant="plain"
 								aria-label="Rotate"
 								disabled={isLoading || isEmpty}
-								onClick={rotate}
+								onClick={onRotate}
 							>
 								<Icon icon={<RotateCw />} />
 							</Button>
