@@ -105,6 +105,24 @@ describe('Listbox', () => {
 		expect(suffix?.querySelector('[data-slot="icon"]')).toBeInTheDocument()
 	})
 
+	it.each([
+		null,
+		false,
+		'',
+	] as const)('falls back to the default chevron when suffix is %p', (value) => {
+		const { container } = renderUI(
+			<Listbox suffix={value}>
+				<div>Option</div>
+			</Listbox>,
+		)
+
+		const suffix = bySlot(container, 'suffix')
+
+		expect(suffix).toBeInTheDocument()
+
+		expect(suffix?.querySelector('[data-slot="icon"]')).toBeInTheDocument()
+	})
+
 	it('renders a placeholder in skeleton mode', () => {
 		const { container } = renderUI(
 			<Listbox>

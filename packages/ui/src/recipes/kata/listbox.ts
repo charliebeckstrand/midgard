@@ -1,5 +1,3 @@
-import { iro } from '../ryu/iro'
-import { narabi } from '../ryu/narabi'
 import { sawari } from '../ryu/sawari'
 import { control } from '../waku/control'
 
@@ -17,15 +15,6 @@ export const listbox = {
 	options: 'max-h-60',
 	panel: 'relative min-w-full',
 	value: 'flex-1 min-w-0 truncate',
-	option: [...sawari.item, ...narabi.item],
-	affix: [
-		'flex items-center min-w-0',
-		'*:data-[slot=icon]:pointer-events-none',
-		...iro.text.muted,
-		...sawari.cursor,
-	],
-	prefix: control.affix.prefix,
-	suffix: control.affix.suffix,
 }
 
 export { listbox as k }

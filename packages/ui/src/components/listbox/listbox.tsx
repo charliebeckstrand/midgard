@@ -7,16 +7,16 @@ import { type ReactNode, useCallback, useId, useMemo, useRef } from 'react'
 import { cn, createContext } from '../../core'
 import { useFloatingUI } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
-import { ControlFrame, PopoverPanel } from '../../primitives'
+import { PopoverPanel } from '../../primitives'
 import { iro, kokkaku } from '../../recipes'
 import { k } from '../../recipes/kata/listbox'
 import { popover as kPopover } from '../../recipes/kata/popover'
-import { control as controlRecipe } from '../../recipes/waku/control'
 import { type ControlSize, useControl } from '../control/context'
 import { invalidAttrs } from '../control/invalid-attrs'
 import { useGlass } from '../glass/context'
 import { Icon } from '../icon'
 import { Placeholder } from '../placeholder'
+import { SelectTrigger } from '../select/trigger'
 import { useSkeleton } from '../skeleton/context'
 import { useListboxSelection } from './use-listbox-selection'
 import { resolveLabel } from './utilities'
@@ -146,46 +146,37 @@ export function Listbox<T>({
 
 	return (
 		<ListboxProvider value={contextValue}>
-			<div
-				data-slot="control"
-				ref={refs.setReference}
-				className={cn(className)}
-				{...getReferenceProps()}
+			<SelectTrigger
+				open={open}
+				setReference={refs.setReference}
+				getReferenceProps={getReferenceProps}
+				glass={glass}
+				size={resolvedSize}
+				className={className}
+				data-group={dataGroup}
+				data-group-orientation={dataGroupOrientation}
+				frameProps={{ onClick: () => setOpen(!open) }}
+				prefix={prefix}
+				suffix={suffix || <Icon icon={<ChevronsUpDown />} />}
 			>
-				<ControlFrame
-					data-open={open || undefined}
-					data-group={dataGroup}
-					data-group-orientation={dataGroupOrientation}
-					className={cn(!glass && controlRecipe.surface.default)}
-					onClick={() => setOpen(!open)}
+				<button
+					ref={triggerRef}
+					id={resolvedId}
+					type="button"
+					role="combobox"
+					aria-haspopup="listbox"
+					aria-expanded={open}
+					aria-controls={open ? listboxId : undefined}
+					disabled={resolvedDisabled}
+					data-slot="listbox-button"
+					{...invalidAttrs(control?.invalid)}
+					className={cn(k.button)}
 				>
-					{prefix && (
-						<span data-slot="prefix" className={cn('peer/prefix', k.affix, k.prefix[resolvedSize])}>
-							{prefix}
-						</span>
-					)}
-					<button
-						ref={triggerRef}
-						id={resolvedId}
-						type="button"
-						role="combobox"
-						aria-haspopup="listbox"
-						aria-expanded={open}
-						aria-controls={open ? listboxId : undefined}
-						disabled={resolvedDisabled}
-						data-slot="listbox-button"
-						{...invalidAttrs(control?.invalid)}
-						className={cn(k.button)}
-					>
-						<span className={cn(k.value, tabularNums && 'tabular-nums')}>
-							{label || <span className={cn(iro.text.muted)}>{placeholder}</span>}
-						</span>
-					</button>
-					<span data-slot="suffix" className={cn('peer/suffix', k.affix, k.suffix[resolvedSize])}>
-						{suffix ? suffix : <Icon icon={<ChevronsUpDown />} />}
+					<span className={cn(k.value, tabularNums && 'tabular-nums')}>
+						{label || <span className={cn(iro.text.muted)}>{placeholder}</span>}
 					</span>
-				</ControlFrame>
-			</div>
+				</button>
+			</SelectTrigger>
 
 			<FloatingPortal>
 				<AnimatePresence onExitComplete={flushPending}>
