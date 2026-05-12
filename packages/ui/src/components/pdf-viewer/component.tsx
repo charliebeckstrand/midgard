@@ -1,6 +1,6 @@
 'use client'
 
-import { type SyntheticEvent, useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useMinWidth } from '../../hooks'
 import { k } from '../../recipes/kata/pdf-viewer'
@@ -10,6 +10,7 @@ import { PdfViewerToolbar } from './toolbar'
 import type { PdfViewerPage } from './types'
 import { usePageRotation } from './use-page-rotation'
 import { usePageScale } from './use-page-scale'
+import { usePageSize } from './use-page-size'
 import { usePdfDocument } from './use-pdf-document'
 import { usePdfPagination } from './use-pdf-pagination'
 import { useViewportSize } from './use-viewport-size'
@@ -88,8 +89,6 @@ export function PdfViewer({
 	const rootRef = useRef<HTMLElement>(null)
 	const viewportRef = useRef<HTMLDivElement>(null)
 
-	const [naturalSize, setNaturalSize] = useState<{ width: number; height: number } | null>(null)
-
 	const activePage = total > 0 ? pages[safePage - 1] : undefined
 
 	const {
@@ -98,21 +97,7 @@ export function PdfViewer({
 		rotate: rotateActivePage,
 	} = usePageRotation(safePage, defaultRotation)
 
-	// Reset measured natural size on page change so a new page whose intrinsic
-	// dimensions are unknown until `<img>` loads doesn't inherit the previous
-	// page's aspect ratio.
-	// biome-ignore lint/correctness/useExhaustiveDependencies: reset is keyed on the active page identity, not on naturalSize itself
-	useEffect(() => {
-		setNaturalSize(null)
-	}, [activePage?.id, safePage])
-
-	// Prefer dimensions supplied by the caller (or the pdf.js hook) so the viewport
-	// can establish its aspect ratio before the image paints. Fall back to the
-	// image's natural size, then US Letter (8.5 × 11) for the pre-load state.
-	const pageSize =
-		activePage?.width && activePage.height
-			? { width: activePage.width, height: activePage.height }
-			: naturalSize
+	const { pageSize, onImageLoad } = usePageSize(activePage, safePage)
 
 	// `isTransposed` invalidates the viewport measurement so it re-runs synchronously
 	// on rotation flip, before paint — instead of waiting a frame for ResizeObserver.
@@ -130,12 +115,6 @@ export function PdfViewer({
 		zoom,
 		hasContent,
 	})
-
-	const handleImageLoad = (event: SyntheticEvent<HTMLImageElement>) => {
-		const img = event.currentTarget
-
-		setNaturalSize({ width: img.naturalWidth, height: img.naturalHeight })
-	}
 
 	return (
 		<section
@@ -182,7 +161,7 @@ export function PdfViewer({
 					isLoading={isLoading}
 					error={error}
 					visible={!!(viewportSize && pageSize)}
-					onImageLoad={handleImageLoad}
+					onImageLoad={onImageLoad}
 				/>
 			</div>
 		</section>
