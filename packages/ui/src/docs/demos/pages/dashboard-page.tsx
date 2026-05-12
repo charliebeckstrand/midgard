@@ -105,7 +105,7 @@ export default function DashboardPageDemo() {
 					<Stack gap="lg">
 						<Grid columns={{ initial: 1, sm: 2, lg: 4 }} gap="lg">
 							{stats.map((stat) => (
-								<Card key={stat.label}>
+								<Card key={stat.label} bg="none">
 									<CardBody>
 										<Stat>
 											<StatLabel>{stat.label}</StatLabel>
@@ -121,11 +121,7 @@ export default function DashboardPageDemo() {
 							<CardHeader className="flex sm:flex-row flex-col sm:items-center gap-4 justify-between">
 								<CardTitle>Recent orders</CardTitle>
 								<div className="sm:max-w-md">
-									<Input
-										placeholder="Search orders"
-										variant="outline"
-										prefix={<Icon icon={<Search />} />}
-									/>
+									<Input placeholder="Search orders" prefix={<Icon icon={<Search />} />} />
 								</div>
 							</CardHeader>
 							<CardBody>

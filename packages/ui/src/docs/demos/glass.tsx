@@ -43,56 +43,60 @@ export default function GlassDemo() {
 		<Stack gap="xl">
 			<Example title="Glass wrapper">
 				<Glass>
-					<Field>
-						<Label>Input</Label>
-						<Input placeholder="Glass input" />
-					</Field>
-					<Field>
-						<Label>Textarea</Label>
-						<Textarea placeholder="Glass textarea" />
-					</Field>
-					<Field>
-						<Label>Number</Label>
-						<NumberInput defaultValue={1} />
-					</Field>
+					<Stack>
+						<Field>
+							<Label>Input</Label>
+							<Input placeholder="Glass input" />
+						</Field>
+						<Field>
+							<Label>Textarea</Label>
+							<Textarea placeholder="Glass textarea" />
+						</Field>
+						<Field>
+							<Label>Number</Label>
+							<NumberInput defaultValue={1} />
+						</Field>
+					</Stack>
 				</Glass>
 			</Example>
 
 			<Example title="Form controls">
 				<Glass>
-					<Field>
-						<Label>Select</Label>
-						<Select placeholder="Select a person" displayValue={(v: string) => v}>
-							{people.map((p) => (
-								<SelectOption key={p} value={p}>
-									<SelectLabel>{p}</SelectLabel>
-								</SelectOption>
-							))}
-						</Select>
-					</Field>
-					<Field>
-						<Label>Combobox</Label>
-						<Combobox
-							value={comboboxValue}
-							onChange={setComboboxValue}
-							displayValue={(v: string) => v}
-							placeholder="Search people"
-						>
-							{(query) =>
-								people
-									.filter((p) => !query || p.toLowerCase().includes(query.toLowerCase()))
-									.map((p) => (
-										<ComboboxOption key={p} value={p}>
-											<ComboboxLabel>{p}</ComboboxLabel>
-										</ComboboxOption>
-									))
-							}
-						</Combobox>
-					</Field>
-					<Field>
-						<Label>Date</Label>
-						<DatePicker value={date} onChange={setDate} />
-					</Field>
+					<Stack>
+						<Field>
+							<Label>Select</Label>
+							<Select placeholder="Select a person" displayValue={(v: string) => v}>
+								{people.map((p) => (
+									<SelectOption key={p} value={p}>
+										<SelectLabel>{p}</SelectLabel>
+									</SelectOption>
+								))}
+							</Select>
+						</Field>
+						<Field>
+							<Label>Combobox</Label>
+							<Combobox
+								value={comboboxValue}
+								onChange={setComboboxValue}
+								displayValue={(v: string) => v}
+								placeholder="Search people"
+							>
+								{(query) =>
+									people
+										.filter((p) => !query || p.toLowerCase().includes(query.toLowerCase()))
+										.map((p) => (
+											<ComboboxOption key={p} value={p}>
+												<ComboboxLabel>{p}</ComboboxLabel>
+											</ComboboxOption>
+										))
+								}
+							</Combobox>
+						</Field>
+						<Field>
+							<Label>Date</Label>
+							<DatePicker value={date} onChange={setDate} />
+						</Field>
+					</Stack>
 				</Glass>
 			</Example>
 

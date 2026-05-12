@@ -14,6 +14,7 @@ export const pageButton = tv({
 		'min-w-9',
 		'p-2',
 		ji.size.sm,
+		'cursor-pointer',
 		'font-medium',
 		'rounded-lg',
 		sen.focus.ring,

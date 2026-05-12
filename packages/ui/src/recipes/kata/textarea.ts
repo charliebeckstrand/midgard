@@ -12,7 +12,7 @@ export const textarea = tv({
 		variant: {
 			default: [],
 			outline: [],
-			glass: control.surface.glass,
+			glass: [],
 		},
 		resize: {
 			none: 'resize-none',
@@ -29,7 +29,7 @@ export const textareaControl = tv({
 		variant: {
 			default: control.surface.default,
 			outline: [],
-			glass: [],
+			glass: control.surface.glass,
 		},
 	},
 	defaultVariants: { variant: 'default' },
