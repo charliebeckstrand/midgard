@@ -90,13 +90,13 @@ describe('PdfViewer', () => {
 	})
 
 	it('disables zoom in at the maximum', () => {
-		renderUI(<PdfViewer pages={pages} defaultZoom={4} maxZoom={4} />)
+		renderUI(<PdfViewer pages={pages} defaultZoom={4} />)
 
 		expect(screen.getByLabelText('Zoom in')).toBeDisabled()
 	})
 
 	it('disables zoom out at the minimum', () => {
-		renderUI(<PdfViewer pages={pages} defaultZoom={0.5} minZoom={0.5} />)
+		renderUI(<PdfViewer pages={pages} defaultZoom={0.5} />)
 
 		expect(screen.getByLabelText('Zoom out')).toBeDisabled()
 	})

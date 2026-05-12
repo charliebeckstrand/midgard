@@ -12,8 +12,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 import type { PdfViewerPage } from './component'
 import { downloadPdf, printPdf } from './utilities'
 
-const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n))
-
 export type PdfViewerToolbarProps = {
 	pages: PdfViewerPage[]
 	total: number
@@ -21,9 +19,7 @@ export type PdfViewerToolbarProps = {
 	goToPage: (page: number) => void
 	zoom: number
 	setZoom: Dispatch<SetStateAction<number>>
-	minZoom: number
-	maxZoom: number
-	zoomStep: number
+	zoomLevels: number[]
 	setRotation: Dispatch<SetStateAction<number>>
 	src?: string
 	filename?: string
@@ -33,6 +29,9 @@ export type PdfViewerToolbarProps = {
 	onThumbsOpen: () => void
 }
 
+// Tolerance for floating-point comparison against discrete zoom levels.
+const EPSILON = 1e-6
+
 export function PdfViewerToolbar({
 	pages,
 	total,
@@ -40,9 +39,7 @@ export function PdfViewerToolbar({
 	goToPage,
 	zoom,
 	setZoom,
-	minZoom,
-	maxZoom,
-	zoomStep,
+	zoomLevels,
 	setRotation,
 	src,
 	filename,
@@ -53,11 +50,15 @@ export function PdfViewerToolbar({
 }: PdfViewerToolbarProps) {
 	const isEmpty = total === 0
 
-	const nextZoomIn = clamp(zoom * zoomStep, minZoom, maxZoom)
-	const nextZoomOut = clamp(zoom / zoomStep, minZoom, maxZoom)
+	const sortedLevels = [...zoomLevels].sort((a, b) => a - b)
+	const minZoom = sortedLevels[0] ?? 1
+	const maxZoom = sortedLevels[sortedLevels.length - 1] ?? 1
 
-	const zoomIn = () => setZoom((z) => clamp(z * zoomStep, minZoom, maxZoom))
-	const zoomOut = () => setZoom((z) => clamp(z / zoomStep, minZoom, maxZoom))
+	const nextLevelUp = sortedLevels.find((l) => l > zoom + EPSILON) ?? maxZoom
+	const nextLevelDown = [...sortedLevels].reverse().find((l) => l < zoom - EPSILON) ?? minZoom
+
+	const zoomIn = () => setZoom(nextLevelUp)
+	const zoomOut = () => setZoom(nextLevelDown)
 
 	const fit = () => setZoom(1)
 
@@ -142,7 +143,7 @@ export function PdfViewerToolbar({
 								<Icon icon={<ZoomOut />} />
 							</Button>
 						</TooltipTrigger>
-						<TooltipContent>Zoom Out ({(nextZoomOut * 100).toFixed(0)}%)</TooltipContent>
+						<TooltipContent>Zoom Out ({(nextLevelDown * 100).toFixed(0)}%)</TooltipContent>
 					</Tooltip>
 					<Tooltip>
 						<TooltipTrigger>
@@ -155,7 +156,7 @@ export function PdfViewerToolbar({
 								<Icon icon={<ZoomIn />} />
 							</Button>
 						</TooltipTrigger>
-						<TooltipContent>Zoom In ({(nextZoomIn * 100).toFixed(0)}%)</TooltipContent>
+						<TooltipContent>Zoom In ({(nextLevelUp * 100).toFixed(0)}%)</TooltipContent>
 					</Tooltip>
 					<Tooltip>
 						<TooltipTrigger>

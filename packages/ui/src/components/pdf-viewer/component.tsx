@@ -43,12 +43,8 @@ export type PdfViewerProps = {
 	onPageChange?: (page: number) => void
 	/** Initial zoom scale. Defaults to 1. */
 	defaultZoom?: number
-	/** Lower zoom bound. */
-	minZoom?: number
-	/** Upper zoom bound. */
-	maxZoom?: number
-	/** Multiplicative step applied per zoom-in / zoom-out. */
-	zoomStep?: number
+	/** Discrete zoom levels, ascending. Zoom in/out steps through this list. */
+	zoomLevels?: number[]
 	/** Initial rotation in degrees. Snaps to multiples of 90. */
 	defaultRotation?: number
 	className?: string
@@ -65,9 +61,7 @@ export function PdfViewer({
 	defaultPage = 1,
 	onPageChange,
 	defaultZoom = 1,
-	minZoom = 0.5,
-	maxZoom = 4,
-	zoomStep = 1.25,
+	zoomLevels = [0.5, 0.75, 1, 1.25, 1.5, 2, 3],
 	defaultRotation = 0,
 	className,
 	'aria-label': ariaLabel = 'PDF viewer',
@@ -214,9 +208,7 @@ export function PdfViewer({
 				goToPage={goToPage}
 				zoom={zoom}
 				setZoom={setZoom}
-				minZoom={minZoom}
-				maxZoom={maxZoom}
-				zoomStep={zoomStep}
+				zoomLevels={zoomLevels}
 				setRotation={setRotation}
 				src={documentSrc}
 				filename={filename}
