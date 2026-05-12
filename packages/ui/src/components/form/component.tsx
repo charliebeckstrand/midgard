@@ -78,25 +78,24 @@ export function Form<T extends Record<string, unknown>>({
 	const isDirty = useMemo(() => Object.values(dirty).some(Boolean), [dirty])
 
 	const runValidation = useCallback(
-		(vals: T, touchedState: Touched, fields?: string[]) => {
+		(vals: T, touchedState: Touched, fields?: string[]): Errors => {
 			const v = validateRef.current
 
 			if (!v) return {}
 
-			const result: Errors = {}
+			const forced = fields !== undefined
 
 			const keys = fields ?? Object.keys(v)
 
+			const result: Errors = {}
+
 			for (const key of keys) {
-				const forced = fields !== undefined
+				const fn = v[key as keyof T] as Validator<T, keyof T> | undefined
 
-				const shouldValidate =
-					validateOn === 'change' || (validateOn === 'touched' && touchedState[key])
+				if (!fn) continue
 
-				if (forced || shouldValidate) {
-					const fn = v[key as keyof T] as Validator<T, keyof T> | undefined
-
-					if (fn) result[key] = fn(vals[key as keyof T], vals)
+				if (forced || validateOn === 'change' || (validateOn === 'touched' && touchedState[key])) {
+					result[key] = fn(vals[key as keyof T], vals)
 				}
 			}
 
@@ -110,14 +109,10 @@ export function Form<T extends Record<string, unknown>>({
 
 		if (!v) return true
 
-		for (const key of Object.keys(v)) {
-			const fn = v[key as keyof T] as Validator<T, keyof T> | undefined
+		const errs = runValidation(values, {}, Object.keys(v))
 
-			if (fn?.(values[key as keyof T], values) !== undefined) return false
-		}
-
-		return true
-	}, [values])
+		return !Object.values(errs).some((err) => err !== undefined)
+	}, [values, runValidation])
 
 	const getValue = useCallback((name: string) => valuesRef.current[name as keyof T], [])
 
@@ -208,13 +203,7 @@ export function Form<T extends Record<string, unknown>>({
 			const v = validateRef.current
 
 			if (v) {
-				const result: Errors = {}
-
-				for (const key of Object.keys(v)) {
-					const fn = v[key as keyof T] as Validator<T, keyof T> | undefined
-
-					if (fn) result[key] = fn(valuesRef.current[key as keyof T], valuesRef.current as T)
-				}
+				const result = runValidation(valuesRef.current as T, allTouched, Object.keys(v))
 
 				setErrors(result)
 
@@ -234,7 +223,7 @@ export function Form<T extends Record<string, unknown>>({
 				setSubmitting(false)
 			}
 		},
-		[onSubmit, setErrorsExternal, reset],
+		[onSubmit, setErrorsExternal, reset, runValidation],
 	)
 
 	const handleReset = useCallback(
