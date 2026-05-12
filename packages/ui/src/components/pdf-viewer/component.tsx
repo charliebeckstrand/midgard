@@ -2,7 +2,7 @@
 
 import { type SyntheticEvent, useEffect, useRef, useState } from 'react'
 import { cn } from '../../core'
-import { useControllable, useMinWidth } from '../../hooks'
+import { useMinWidth } from '../../hooks'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { PdfViewerStage } from './stage'
 import { PdfViewerThumbnails } from './thumbnails'
@@ -11,6 +11,7 @@ import type { PdfViewerPage } from './types'
 import { usePageRotation } from './use-page-rotation'
 import { usePageScale } from './use-page-scale'
 import { usePdfDocument } from './use-pdf-document'
+import { usePdfPagination } from './use-pdf-pagination'
 import { useViewportSize } from './use-viewport-size'
 
 export type PdfViewerProps = {
@@ -40,8 +41,6 @@ export type PdfViewerProps = {
 	className?: string
 	'aria-label'?: string
 }
-
-const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n))
 
 export function PdfViewer({
 	pages: pagesProp,
@@ -76,12 +75,11 @@ export function PdfViewer({
 
 	const isDesktop = useMinWidth(1024)
 
-	const [currentPage = defaultPage, setCurrentPage] = useControllable<number>({
-		value: page,
-		defaultValue: defaultPage,
-		onChange: (next) => {
-			if (next !== undefined) onPageChange?.(next)
-		},
+	const { safePage, goToPage } = usePdfPagination({
+		total,
+		page,
+		defaultPage,
+		onPageChange,
 	})
 
 	const [zoom, setZoom] = useState(defaultZoom)
@@ -91,8 +89,6 @@ export function PdfViewer({
 	const viewportRef = useRef<HTMLDivElement>(null)
 
 	const [naturalSize, setNaturalSize] = useState<{ width: number; height: number } | null>(null)
-
-	const safePage = total > 0 ? clamp(currentPage, 1, total) : 0
 
 	const activePage = total > 0 ? pages[safePage - 1] : undefined
 
@@ -139,12 +135,6 @@ export function PdfViewer({
 		const img = event.currentTarget
 
 		setNaturalSize({ width: img.naturalWidth, height: img.naturalHeight })
-	}
-
-	const goToPage = (next: number) => {
-		if (total === 0) return
-
-		setCurrentPage(clamp(Math.round(next), 1, total))
 	}
 
 	return (
