@@ -2,14 +2,12 @@
 
 import { useCallback, useMemo, useRef, useState } from 'react'
 
-import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { useIdScope } from '../../hooks/use-id-scope'
-import { calendar as kCalendar } from '../../recipes/kata/calendar'
-import { Button } from '../button'
 import { type CalendarActive, type CalendarHandle, CalendarRange } from '../calendar'
 import { useControl } from '../control/context'
 import type { DatePickerBaseProps, DatePickerRangeProps } from './datepicker'
+import { DatePickerFooter } from './datepicker-footer'
 import { DatePickerShell, noopPickerOpenChange } from './shell'
 import { type FooterButton, useDatePickerKeyDown } from './use-keyboard'
 import { addDays, clampDate, formatRange } from './utilities'
@@ -181,29 +179,13 @@ export function DatePickerRange({
 				onPickerOpenChange={noopPickerOpenChange}
 				footerRef={footerRef}
 			/>
-			{showClear && (
-				<div
-					ref={footerRef}
-					role="toolbar"
-					data-slot="calendar-footer"
-					onKeyDown={(e) => calendarRef.current?.footerKeyDown(e)}
-					className={cn(kCalendar.footer)}
-				>
-					<Button
-						variant="soft"
-						color="amber"
-						onClick={handleClear}
-						aria-label="Clear selection"
-						className={cn(
-							active?.zone === 'footer' &&
-								footerButtons[active.index] === 'clear' &&
-								kCalendar.day.active,
-						)}
-					>
-						Clear
-					</Button>
-				</div>
-			)}
+			<DatePickerFooter
+				active={active}
+				footerButtons={footerButtons}
+				onClear={handleClear}
+				footerRef={footerRef}
+				onKeyDown={(e) => calendarRef.current?.footerKeyDown(e)}
+			/>
 		</DatePickerShell>
 	)
 }

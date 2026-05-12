@@ -7,12 +7,11 @@ import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { kokkaku } from '../../recipes'
-import { calendar as kCalendar } from '../../recipes/kata/calendar'
-import { Button } from '../button'
 import { Calendar, type CalendarActive, type CalendarHandle } from '../calendar'
 import { useControl } from '../control/context'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
+import { DatePickerFooter } from './datepicker-footer'
 import { DatePickerRange } from './datepicker-range'
 import { DatePickerShell, noopPickerOpenChange } from './shell'
 import { type FooterButton, useDatePickerKeyDown } from './use-keyboard'
@@ -197,41 +196,14 @@ function DatePickerSingle({
 				onPickerOpenChange={noopPickerOpenChange}
 				footerRef={footerRef}
 			/>
-			<div
-				ref={footerRef}
-				role="toolbar"
-				data-slot="calendar-footer"
+			<DatePickerFooter
+				active={active}
+				footerButtons={footerButtons}
+				onClear={handleClear}
+				onToday={handleSelectToday}
+				footerRef={footerRef}
 				onKeyDown={(e) => calendarRef.current?.footerKeyDown(e)}
-				className={cn(kCalendar.footer)}
-			>
-				{value != null && (
-					<Button
-						variant="soft"
-						color="amber"
-						onClick={handleClear}
-						aria-label="Clear selection"
-						className={cn(
-							active?.zone === 'footer' &&
-								footerButtons[active.index] === 'clear' &&
-								kCalendar.day.active,
-						)}
-					>
-						Clear
-					</Button>
-				)}
-				<Button
-					variant="soft"
-					color="blue"
-					onClick={handleSelectToday}
-					className={cn(
-						active?.zone === 'footer' &&
-							footerButtons[active.index] === 'today' &&
-							kCalendar.day.active,
-					)}
-				>
-					Today
-				</Button>
-			</div>
+			/>
 		</DatePickerShell>
 	)
 }
