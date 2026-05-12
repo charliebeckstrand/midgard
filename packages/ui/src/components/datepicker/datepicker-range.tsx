@@ -1,209 +1,54 @@
 'use client'
 
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { CalendarRange } from '../calendar'
+import { DatePickerContent } from './content'
+import { DatePickerFooter } from './datepicker-footer'
+import { DatePickerTrigger } from './trigger'
+import type { DatePickerBaseProps, DatePickerRangeProps } from './types'
+import { useDatePickerRangeState } from './use-state'
 
-import { cn } from '../../core'
-import { useControllable } from '../../hooks/use-controllable'
-import { useIdScope } from '../../hooks/use-id-scope'
-import { calendar as kCalendar } from '../../recipes/kata/calendar'
-import { Button } from '../button'
-import { type CalendarActive, type CalendarHandle, CalendarRange } from '../calendar'
-import { useControl } from '../control/context'
-import type { DatePickerBaseProps, DatePickerRangeProps } from './datepicker'
-import { DatePickerShell, noopPickerOpenChange } from './shell'
-import { type FooterButton, useDatePickerKeyDown } from './use-keyboard'
-import { addDays, clampDate, formatRange } from './utilities'
+export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProps) {
+	const { placeholder = 'Select dates', className, disabled = false } = props
 
-export function DatePickerRange({
-	value: valueProp,
-	defaultValue,
-	onChange,
-	min,
-	max,
-	placeholder = 'Select dates',
-	placement = 'bottom-start',
-	className,
-	disabled = false,
-}: DatePickerBaseProps & DatePickerRangeProps) {
-	const control = useControl()
-	const scope = useIdScope({ id: control?.id })
-
-	const [value, setValue] = useControllable({ value: valueProp, defaultValue, onChange })
-
-	const [open, setOpen] = useState(false)
-
-	const [rangeStart, setRangeStart] = useState<Date | null>(null)
-
-	const [hoverDate, setHoverDate] = useState<Date | null>(null)
-
-	const [active, setActive] = useState<CalendarActive | null>(null)
-
-	const pendingRef = useRef<{ value: [Date, Date] | undefined } | null>(null)
-
-	const calendarRef = useRef<CalendarHandle>(null)
-
-	const footerRef = useRef<HTMLDivElement>(null)
-
-	const flushPending = useCallback(() => {
-		if (pendingRef.current) {
-			setValue(pendingRef.current.value)
-
-			pendingRef.current = null
-		}
-
-		setRangeStart(null)
-
-		setHoverDate(null)
-
-		setActive(null)
-	}, [setValue])
-
-	const getInitialActiveDate = useCallback(
-		() => clampDate(rangeStart ?? value?.[0] ?? min ?? new Date(), min, max),
-		[rangeStart, value, min, max],
-	)
-
-	const moveGridDate = useCallback(
-		(delta: number) => {
-			const base = active?.zone === 'grid' ? active.date : getInitialActiveDate()
-
-			const next = clampDate(addDays(base, delta), min, max)
-
-			if (rangeStart !== null) setHoverDate(next)
-
-			return next
-		},
-		[active, getInitialActiveDate, min, max, rangeStart],
-	)
-
-	const openCalendar = useCallback(() => {
-		flushPending()
-
-		setOpen(true)
-	}, [flushPending])
-
-	const closeCalendar = useCallback(() => {
-		setOpen(false)
-	}, [])
-
-	const handleClear = useCallback(() => {
-		pendingRef.current = { value: undefined }
-
-		closeCalendar()
-	}, [closeCalendar])
-
-	const handleSelect = useCallback(
-		(date: Date) => {
-			if (rangeStart === null) {
-				setRangeStart(date)
-
-				setHoverDate(null)
-			} else {
-				const start = rangeStart
-
-				const end = date
-
-				const range: [Date, Date] = start.getTime() <= end.getTime() ? [start, end] : [end, start]
-
-				// Pin both endpoints so the range stays stable through the exit animation.
-				setHoverDate(end)
-
-				pendingRef.current = { value: range }
-
-				closeCalendar()
-			}
-		},
-		[closeCalendar, rangeStart],
-	)
-
-	const handleOpenChange = useCallback(
-		(nextOpen: boolean) => {
-			if (!nextOpen) {
-				closeCalendar()
-			} else {
-				openCalendar()
-			}
-		},
-		[closeCalendar, openCalendar],
-	)
-
-	const showClear = rangeStart === null && value != null
-
-	const footerButtons = useMemo<FooterButton[]>(() => (showClear ? ['clear'] : []), [showClear])
-
-	const handleFooterActivate = useCallback(
-		(kind: FooterButton) => {
-			if (kind === 'clear') handleClear()
-		},
-		[handleClear],
-	)
-
-	const displayValue = value ? formatRange(value[0], value[1]) : ''
-
-	const handleInputKeyDown = useDatePickerKeyDown({
-		disabled,
-		open,
-		active,
-		setActive,
-		openCalendar,
-		closeCalendar,
-		moveGridDate,
-		getInitialActiveDate,
-		handleSelect,
-		calendarRef,
-		footerButtons,
-		onFooterActivate: handleFooterActivate,
-	})
+	const state = useDatePickerRangeState(props)
 
 	return (
-		<DatePickerShell
-			open={open}
-			onOpenChange={handleOpenChange}
-			placement={placement}
-			triggerId={scope.id}
-			displayValue={displayValue}
-			placeholder={placeholder}
-			disabled={disabled}
-			onTriggerKeyDown={handleInputKeyDown}
-			className={className}
-			onExitComplete={flushPending}
-		>
-			<CalendarRange
-				ref={calendarRef}
-				onChange={handleSelect}
-				min={min}
-				max={max}
-				rangeStart={rangeStart ?? (value ? value[0] : null)}
-				rangeEnd={rangeStart === null ? (value ? value[1] : null) : null}
-				hoverDate={rangeStart !== null ? hoverDate : null}
-				onHoverDate={setHoverDate}
-				active={open ? active : null}
-				onPickerOpenChange={noopPickerOpenChange}
-				footerRef={footerRef}
+		<>
+			<DatePickerTrigger
+				open={state.open}
+				onOpenChange={state.onOpenChange}
+				triggerId={state.triggerId}
+				setReference={state.setReference}
+				getReferenceProps={state.getReferenceProps}
+				displayValue={state.displayValue}
+				placeholder={placeholder}
+				disabled={disabled}
+				onKeyDown={state.onTriggerKeyDown}
+				className={className}
 			/>
-			{showClear && (
-				<div
-					ref={footerRef}
-					role="toolbar"
-					data-slot="calendar-footer"
-					onKeyDown={(e) => calendarRef.current?.footerKeyDown(e)}
-					className={cn(kCalendar.footer)}
-				>
-					<Button
-						variant="soft"
-						color="amber"
-						onClick={handleClear}
-						aria-label="Clear selection"
-						className={cn(
-							active?.zone === 'footer' &&
-								footerButtons[active.index] === 'clear' &&
-								kCalendar.day.active,
-						)}
-					>
-						Clear
-					</Button>
-				</div>
-			)}
-		</DatePickerShell>
+			<DatePickerContent
+				open={state.open}
+				setFloating={state.setFloating}
+				floatingStyles={state.floatingStyles}
+				getFloatingProps={state.getFloatingProps}
+				focusTrapRef={state.focusTrapRef}
+				onExitComplete={state.onExitComplete}
+			>
+				<CalendarRange
+					ref={state.calendar.calendarRef}
+					onChange={state.calendar.onChange}
+					min={props.min}
+					max={props.max}
+					rangeStart={state.calendar.rangeStart}
+					rangeEnd={state.calendar.rangeEnd}
+					hoverDate={state.calendar.hoverDate}
+					onHoverDate={state.calendar.onHoverDate}
+					active={state.calendar.active}
+					onPickerOpenChange={state.calendar.onPickerOpenChange}
+					footerRef={state.calendar.footerRef}
+				/>
+				<DatePickerFooter {...state.footer} />
+			</DatePickerContent>
+		</>
 	)
 }
