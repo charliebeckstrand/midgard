@@ -30,10 +30,15 @@ import { ji } from '../ryu/ji'
 import { omote } from '../ryu/omote'
 import { sawari } from '../ryu/sawari'
 import { sen } from '../ryu/sen'
+import { tsunagi } from '../ryu/tsunagi'
 import { kasane } from './kasane'
 
 // ── Outer frame chrome ──────────────────────────────────
-const frame = ['relative block w-full', ...kasane.all]
+// `tsunagi.base` is data-attribute-gated, so it stays inert until a `<Group>`
+// stamps `data-group` / `data-group-orientation` onto the frame. Including it
+// here is what lets every ControlFrame-based component (Input, Listbox,
+// Combobox, Textarea, …) participate in `<Group>` without per-component wiring.
+const frame = ['relative block w-full', ...kasane.all, ...tsunagi.base]
 
 // ── Surface variants for the frame ──────────────────────
 const surface = {

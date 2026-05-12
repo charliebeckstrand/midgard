@@ -1,6 +1,5 @@
 import { tv, type VariantProps } from 'tailwind-variants'
 import { iro } from '../ryu/iro'
-import { tsunagi } from '../ryu/tsunagi'
 import { control } from '../waku/control'
 
 export const input = tv({
@@ -17,7 +16,7 @@ export const input = tv({
 })
 
 export const inputControl = tv({
-	base: [...tsunagi.base],
+	base: [],
 	variants: {
 		variant: {
 			default: control.surface.default,

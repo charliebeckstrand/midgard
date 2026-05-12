@@ -64,6 +64,8 @@ type ComboboxBaseProps<T> = {
 	onOpenChange?: (open: boolean) => void
 	/** Fires when the input query changes. */
 	onQueryChange?: (query: string) => void
+	'data-group'?: string
+	'data-group-orientation'?: string
 	children: ReactNode | ((query: string) => ReactNode)
 }
 
@@ -106,6 +108,8 @@ export function Combobox<T>({
 	className,
 	autoComplete = 'off',
 	inputType = 'text',
+	'data-group': dataGroup,
+	'data-group-orientation': dataGroupOrientation,
 	children,
 }: ComboboxProps<T>) {
 	const glass = useGlass()
@@ -205,6 +209,8 @@ export function Combobox<T>({
 			>
 				<ControlFrame
 					data-open={open || undefined}
+					data-group={dataGroup}
+					data-group-orientation={dataGroupOrientation}
 					className={cn(!glass && controlRecipe.surface.default)}
 				>
 					<HeadlessInput

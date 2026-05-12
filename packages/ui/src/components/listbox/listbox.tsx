@@ -44,6 +44,8 @@ type ListboxBaseProps = {
 	nullable?: boolean
 	/** Render the selected value with tabular numerals so digit changes don't shift layout. */
 	tabularNums?: boolean
+	'data-group'?: string
+	'data-group-orientation'?: string
 	children: ReactNode
 }
 
@@ -82,6 +84,8 @@ export function Listbox<T>({
 	className,
 	inputId,
 	tabularNums,
+	'data-group': dataGroup,
+	'data-group-orientation': dataGroupOrientation,
 	children,
 }: ListboxProps<T>) {
 	const glass = useGlass()
@@ -154,6 +158,8 @@ export function Listbox<T>({
 			>
 				<ControlFrame
 					data-open={open || undefined}
+					data-group={dataGroup}
+					data-group-orientation={dataGroupOrientation}
 					className={cn(
 						!glass && controlRecipe.surface.default,
 						hasAffix && 'group/control flex items-center',
