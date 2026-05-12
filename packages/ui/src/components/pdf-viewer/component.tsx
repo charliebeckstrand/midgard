@@ -1,12 +1,15 @@
 'use client'
 
-import { type SyntheticEvent, useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { type SyntheticEvent, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useControllable, useMinWidth } from '../../hooks'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { PdfViewerThumbnails } from './thumbnails'
 import { PdfViewerToolbar } from './toolbar'
+import { usePageRotation } from './use-page-rotation'
+import { usePageScale } from './use-page-scale'
 import { usePdfDocument } from './use-pdf-document'
+import { useViewportSize } from './use-viewport-size'
 
 export type PdfViewerPage = {
 	/** Stable key. Falls back to the array index when omitted. */
@@ -95,29 +98,22 @@ export function PdfViewer({
 	})
 
 	const [zoom, setZoom] = useState(defaultZoom)
-	const [rotations, setRotations] = useState<Record<number, number>>({})
-
 	const [thumbsOpen, setThumbsOpen] = useState(false)
 
 	const rootRef = useRef<HTMLElement>(null)
 	const viewportRef = useRef<HTMLDivElement>(null)
 
-	const [viewportSize, setViewportSize] = useState<{
-		width: number
-		height: number
-		sideways: boolean
-	} | null>(null)
 	const [naturalSize, setNaturalSize] = useState<{ width: number; height: number } | null>(null)
 
 	const safePage = total > 0 ? clamp(currentPage, 1, total) : 0
 
 	const activePage = total > 0 ? pages[safePage - 1] : undefined
 
-	const rotation = rotations[safePage] ?? defaultRotation
-
-	const rotateActivePage = useCallback(() => {
-		setRotations((prev) => ({ ...prev, [safePage]: (prev[safePage] ?? defaultRotation) + 90 }))
-	}, [safePage, defaultRotation])
+	const {
+		rotation,
+		isTransposed,
+		rotate: rotateActivePage,
+	} = usePageRotation(safePage, defaultRotation)
 
 	// Prefer dimensions supplied by the caller (or the pdf.js hook) so the viewport
 	// can establish its aspect ratio before the image paints. Fall back to the
@@ -127,77 +123,22 @@ export function PdfViewer({
 			? { width: activePage.width, height: activePage.height }
 			: naturalSize
 
-	const normalizedRotation = ((rotation % 360) + 360) % 360
-
-	const isSideways = normalizedRotation === 90 || normalizedRotation === 270
-
-	// `isSideways` is captured so the callback's identity flips on rotation —
-	// which re-runs the layout effect below, giving us a synchronous re-measure
-	// before paint (instead of waiting a frame for ResizeObserver to catch up).
-	// The `sideways` tag also marks each measurement with the orientation it
-	// was taken under, so consumers can detect stale measurements if needed.
-	const measureViewport = useCallback(() => {
-		const el = viewportRef.current
-
-		if (!el) return
-
-		const styles = window.getComputedStyle(el)
-
-		const padX = Number.parseFloat(styles.paddingLeft) + Number.parseFloat(styles.paddingRight)
-		const padY = Number.parseFloat(styles.paddingTop) + Number.parseFloat(styles.paddingBottom)
-
-		setViewportSize({
-			width: el.clientWidth - padX,
-			height: el.clientHeight - padY,
-			sideways: isSideways,
-		})
-	}, [isSideways])
-
-	useLayoutEffect(() => {
-		const el = viewportRef.current
-
-		if (!el) return
-
-		measureViewport()
-
-		const observer = new ResizeObserver(() => measureViewport())
-
-		observer.observe(el)
-
-		return () => observer.disconnect()
-	}, [measureViewport])
-
-	const fitScale = useMemo(() => {
-		if (!viewportSize || !pageSize) return 1
-
-		const visW = isSideways ? pageSize.height : pageSize.width
-		const visH = isSideways ? pageSize.width : pageSize.height
-
-		if (visW === 0 || visH === 0) return 1
-
-		return Math.min(viewportSize.width / visW, viewportSize.height / visH)
-	}, [viewportSize, pageSize, isSideways])
-
-	const scale = fitScale * zoom
-
-	const imageW = pageSize ? pageSize.width * scale : undefined
-	const imageH = pageSize ? pageSize.height * scale : undefined
-
-	const frameW = isSideways ? imageH : imageW
-	const frameH = isSideways ? imageW : imageH
+	// `isTransposed` invalidates the viewport measurement so it re-runs synchronously
+	// on rotation flip, before paint — instead of waiting a frame for ResizeObserver.
+	const viewportSize = useViewportSize(viewportRef, isTransposed)
 
 	// Aspect ratio drives the viewport height. US Letter (8.5 × 11) is the pre-load
 	// fallback — close to most documents and stable while the first page resolves.
 	// Leave it unset when there's nothing to display so the viewer can collapse.
 	const hasContent = !!src || total > 0
 
-	const aspectRatio = !hasContent
-		? undefined
-		: pageSize
-			? isSideways
-				? `${pageSize.height} / ${pageSize.width}`
-				: `${pageSize.width} / ${pageSize.height}`
-			: '8.5 / 11'
+	const { imageW, imageH, frameW, frameH, aspectRatio } = usePageScale({
+		viewportSize,
+		pageSize,
+		isTransposed,
+		zoom,
+		hasContent,
+	})
 
 	const handleImageLoad = (event: SyntheticEvent<HTMLImageElement>) => {
 		const img = event.currentTarget
@@ -205,14 +146,11 @@ export function PdfViewer({
 		setNaturalSize({ width: img.naturalWidth, height: img.naturalHeight })
 	}
 
-	const goToPage = useCallback(
-		(next: number) => {
-			if (total === 0) return
+	const goToPage = (next: number) => {
+		if (total === 0) return
 
-			setCurrentPage(clamp(Math.round(next), 1, total))
-		},
-		[setCurrentPage, total],
-	)
+		setCurrentPage(clamp(Math.round(next), 1, total))
+	}
 
 	return (
 		<section
