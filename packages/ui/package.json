@@ -9,6 +9,10 @@
 		"LICENSE"
 	],
 	"exports": {
+		"./core": {
+			"types": "./src/core/index.ts",
+			"default": "./src/core/index.ts"
+		},
 		"./hooks": {
 			"types": "./src/hooks/index.ts",
 			"default": "./src/hooks/index.ts"
