@@ -38,7 +38,7 @@ import { kasane } from './kasane'
 // stamps `data-group` / `data-group-orientation` onto the frame. Including it
 // here is what lets every ControlFrame-based component (Input, Listbox,
 // Combobox, Textarea, …) participate in `<Group>` without per-component wiring.
-const frame = ['relative block w-full', ...kasane.all, ...tsunagi.base]
+const frame = ['group/control flex items-center', 'relative w-full', ...kasane.all, ...tsunagi.base]
 
 // ── Surface variants for the frame ──────────────────────
 const surface = {
@@ -78,14 +78,14 @@ const icon = ['flex items-center', 'pr-2', 'pointer-events-none']
 
 const affix = {
 	prefix: {
-		sm: 'pl-[calc(--spacing(2.5)-1px)] py-[calc(--spacing(0.5)-1px)]',
-		md: 'pl-[calc(--spacing(3)-1px)] py-[calc(--spacing(1)-1px)]',
-		lg: 'pl-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(1.5)-1px)]',
+		sm: 'pl-[calc(--spacing(2.5)-1px)] has-[button]:pl-[calc(--spacing(1.5)-1px)]',
+		md: 'pl-[calc(--spacing(3)-1px)] has-[button]:pl-[calc(--spacing(2)-1px)]',
+		lg: 'pl-[calc(--spacing(3.5)-1px)] has-[button]:pl-[calc(--spacing(2.5)-1px)]',
 	},
 	suffix: {
-		sm: 'pr-[calc(--spacing(2.5)-1px)] has-[button]:pr-[calc(--spacing(1.5)-1px)] py-[calc(--spacing(0.5)-1px)]',
-		md: 'pr-[calc(--spacing(3)-1px)] has-[button]:pr-[calc(--spacing(2)-1px)] py-[calc(--spacing(1)-1px)]',
-		lg: 'pr-[calc(--spacing(3.5)-1px)] has-[button]:pr-[calc(--spacing(2.5)-1px)] py-[calc(--spacing(1.5)-1px)]',
+		sm: 'pr-[calc(--spacing(2.5)-1px)] has-[button]:pr-[calc(--spacing(1.5)-1px)]',
+		md: 'pr-[calc(--spacing(3)-1px)] has-[button]:pr-[calc(--spacing(2)-1px)]',
+		lg: 'pr-[calc(--spacing(3.5)-1px)] has-[button]:pr-[calc(--spacing(2.5)-1px)]',
 	},
 	autofill: {
 		prefix: {
@@ -117,7 +117,6 @@ const check = {
 	hidden: ['absolute inset-0', 'opacity-0', ...sawari.cursor, sen.forced.control],
 	/** Custom check surface (the visible box / circle). */
 	surface: [
-		'shadow-xs',
 		'bg-white',
 		'border',
 		'border-zinc-950/15',

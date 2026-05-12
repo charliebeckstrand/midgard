@@ -16,7 +16,7 @@ export default function SplitDemo() {
 			</Example>
 
 			<Example title="Sidebar layout">
-				<Split ratio="1/3" gap="xl">
+				<Split ratio="1/3">
 					<Card>
 						<div className="line-clamp-1">Sidebar (1/3)</div>
 					</Card>

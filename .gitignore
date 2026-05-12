@@ -33,7 +33,6 @@ npm-debug.log*
 .claude/cache/
 .claude/plans
 .claude/worktrees
-.claude/settings.json
 
 # council artifacts (session-scoped reports)
 council-report-*.html

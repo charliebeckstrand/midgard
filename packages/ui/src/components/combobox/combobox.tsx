@@ -20,14 +20,16 @@ import { kokkaku } from '../../recipes'
 import { k } from '../../recipes/kata/combobox'
 import { popover as kPopover } from '../../recipes/kata/popover'
 import { control as controlRecipe } from '../../recipes/waku/control'
+import { Button } from '../button'
 import { type ControlSize, useControl } from '../control/context'
 import { useGlass } from '../glass/context'
 import { Icon } from '../icon'
 import { HeadlessInput } from '../input'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
+import { useComboboxInputHandlers } from './use-combobox-input-handlers'
 import { useComboboxSelection } from './use-combobox-selection'
-import { resolveInputDisplay, selectActiveOrSingleOption } from './utilities'
+import { resolveInputDisplay } from './utilities'
 
 type ComboboxContextValue<T = unknown> = {
 	value: T | T[] | undefined
@@ -44,7 +46,8 @@ type ComboboxBaseProps<T> = {
 	placeholder?: string
 	displayValue?: (value: T) => string
 	placement?: Placement
-	icon?: ReactNode
+	prefix?: ReactNode
+	suffix?: ReactNode
 	size?: ControlSize
 	disabled?: boolean
 	className?: string
@@ -95,7 +98,8 @@ export function Combobox<T>({
 	multiple = false,
 	placeholder = 'Search',
 	placement = 'bottom-start',
-	icon,
+	prefix,
+	suffix,
 	size,
 	disabled,
 	selectable = true,
@@ -171,6 +175,21 @@ export function Combobox<T>({
 
 	const inputDisplay = resolveInputDisplay({ editing, query, value, displayValue, multiple })
 
+	const inputHandlers = useComboboxInputHandlers<T>({
+		multiple,
+		clearOnEmpty,
+		value,
+		setValue,
+		setEditing,
+		setQuery,
+		setOpen,
+		close,
+		waitForKeyboard,
+		floatingRef: refs.floating,
+		optionsRef,
+		rovingKeyDown: handleKeyDown,
+	})
+
 	const scrollWithin = useScrollWithin()
 
 	const scrollToSelected = useCallback(
@@ -213,7 +232,13 @@ export function Combobox<T>({
 					data-group-orientation={dataGroupOrientation}
 					className={cn(!glass && controlRecipe.surface.default)}
 				>
+					{prefix && (
+						<span data-slot="prefix" className={cn('peer/prefix', k.affix, k.prefix[resolvedSize])}>
+							{prefix}
+						</span>
+					)}
 					<HeadlessInput
+						id={id}
 						ref={inputRef}
 						type={inputType}
 						role="combobox"
@@ -222,57 +247,40 @@ export function Combobox<T>({
 						aria-controls={open ? listboxId : undefined}
 						aria-autocomplete="list"
 						data-slot="combobox-input"
-						id={id}
 						autoComplete={autoComplete}
 						disabled={resolvedDisabled}
 						value={inputDisplay}
 						placeholder={placeholder}
-						onChange={(e) => {
-							const next = e.target.value
-
-							setEditing(true)
-
-							setQuery(next)
-
-							setOpen(true)
-
-							if (clearOnEmpty && next === '' && !multiple && value !== undefined) {
-								setValue(undefined)
-							}
-						}}
-						onFocus={() => waitForKeyboard(() => setOpen(true))}
-						onBlur={(e) => {
-							// Check if focus moved to the floating panel
-							const floating = refs.floating.current
-
-							if (floating?.contains(e.relatedTarget as Node)) return
-
-							close()
-						}}
-						onKeyDown={(e) => {
-							if (e.key === 'Escape') {
-								close()
-
-								return
-							}
-
-							if (e.key === 'Enter') {
-								const container = optionsRef.current
-
-								if (container && selectActiveOrSingleOption(container)) {
-									e.preventDefault()
-
-									return
-								}
-							}
-
-							handleKeyDown(e)
-						}}
 						className={cn(k.input)}
+						{...inputHandlers}
 					/>
-					<span data-slot="icon" className={cn(k.chevron)}>
-						{icon ?? <Icon icon={<ChevronsUpDown />} />}
-					</span>
+					{suffix ? (
+						<span data-slot="suffix" className={cn('peer/suffix', k.affix, k.suffix[resolvedSize])}>
+							{suffix}
+						</span>
+					) : (
+						<Button
+							variant="ghost"
+							tabIndex={-1}
+							aria-label={open ? 'Close' : 'Open'}
+							disabled={resolvedDisabled}
+							className={cn(k.chevron)}
+							onMouseDown={(e) => {
+								e.preventDefault()
+
+								if (open) {
+									close()
+								} else {
+									inputRef.current?.focus()
+									inputRef.current?.select()
+
+									setOpen(true)
+								}
+							}}
+						>
+							<Icon icon={<ChevronsUpDown />} />
+						</Button>
+					)}
 				</ControlFrame>
 			</div>
 

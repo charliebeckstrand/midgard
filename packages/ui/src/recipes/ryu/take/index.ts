@@ -10,8 +10,6 @@
  */
 
 import { avatar } from './avatar'
-import { combobox } from './combobox'
-import { listbox } from './listbox'
 import { mark } from './mark'
 import { panel } from './panel'
 import { scrollArea } from './scroll-area'
@@ -29,8 +27,6 @@ export const take = {
 	avatar,
 	panel,
 	scrollArea,
-	combobox,
-	listbox,
 	/** Inline-code / kbd sizing — base + size map. */
 	mark,
 } as const

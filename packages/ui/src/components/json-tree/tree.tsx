@@ -1,20 +1,14 @@
 'use client'
 
 import { useVirtualizer } from '@tanstack/react-virtual'
-import {
-	type KeyboardEventHandler,
-	type RefObject,
-	useCallback,
-	useMemo,
-	useRef,
-	useState,
-} from 'react'
+import { type KeyboardEventHandler, type RefObject, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useRoving } from '../../hooks'
 import { k } from '../../recipes/kata/json-tree'
 import { JsonTreeProvider } from './context'
 import { JsonNode } from './node'
 import { JsonNodeRow } from './node-row'
+import { useJsonTreeExpansion } from './use-expansion'
 import {
 	buildSearchIndex,
 	collectPaths,
@@ -166,40 +160,11 @@ function VirtualizedJsonTree({
 	onKeyDown,
 	className,
 }: VirtualizedJsonTreeProps) {
-	const controlled = expandedProp !== undefined
-
-	// Internal store mirrors per-node `useState` from the recursive path.
-	// Seeded once from defaultExpandDepth; later edits are the user's own.
-	const [internalExpanded, setInternalExpanded] = useState<Set<string>>(() =>
-		collectPaths(data, rootKey, defaultExpandDepth),
-	)
-
-	const expanded = controlled ? (expandedProp as Set<string>) : internalExpanded
-
-	const toggle = useCallback(
-		(path: string) => {
-			if (controlled && onExpandedChange) {
-				const next = new Set(expandedProp)
-
-				if (next.has(path)) next.delete(path)
-				else next.add(path)
-
-				onExpandedChange(next)
-
-				return
-			}
-
-			setInternalExpanded((prev) => {
-				const next = new Set(prev)
-
-				if (next.has(path)) next.delete(path)
-				else next.add(path)
-
-				return next
-			})
-		},
-		[controlled, expandedProp, onExpandedChange],
-	)
+	const { expanded, toggle } = useJsonTreeExpansion({
+		initial: () => collectPaths(data, rootKey, defaultExpandDepth),
+		expanded: expandedProp,
+		onExpandedChange,
+	})
 
 	const flatNodes = useMemo(
 		() => flattenTree(data, rootKey, expanded, searchValue, filter, searchIndex),

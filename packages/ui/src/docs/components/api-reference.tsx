@@ -128,7 +128,7 @@ function TypeCell({
 				type="button"
 				aria-expanded={expanded}
 				onClick={() => setExpanded((v) => !v)}
-				className="group flex cursor-pointer items-center gap-1.5 rounded-md text-left outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+				className="group flex cursor-pointer items-center gap-sm rounded-md text-left outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
 			>
 				<TypeBadges type={type} />
 				<Icon
@@ -139,9 +139,9 @@ function TypeCell({
 				/>
 			</button>
 			{expanded && (
-				<div className="space-y-1.5 border-zinc-200 border-l pl-2 text-sm dark:border-zinc-800">
+				<div className="space-y-2 border-zinc-200 border-l pl-2 text-sm dark:border-zinc-800">
 					{refEntries.map(([name, def]) => (
-						<div key={name} className="flex flex-wrap items-baseline gap-2">
+						<div key={name} className="flex flex-wrap items-baseline gap-sm">
 							<TypeBadges type={def} />
 						</div>
 					))}
@@ -218,10 +218,10 @@ function ComponentEntry({ entry }: { entry: ComponentApi }) {
 				</div>
 			)}
 			{passThrough.length > 0 && (
-				<div className="flex flex-wrap items-center gap-1.5 text-sm text-zinc-600 dark:text-zinc-400">
+				<div className="flex flex-wrap items-center gap-sm text-sm text-zinc-600 dark:text-zinc-400">
 					<span>Also accepts all</span>
 					{passThrough.map((pt, i) => (
-						<span key={pt.element} className="flex items-center gap-1.5">
+						<span key={pt.element} className="flex items-center gap-sm">
 							<Code className="font-mono dark:text-white">{`<${pt.element}>`}</Code>
 							{i < passThrough.length - 1 && <span>,</span>}
 						</span>

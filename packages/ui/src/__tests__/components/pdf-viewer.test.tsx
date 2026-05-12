@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { PdfViewer, type PdfViewerPage } from '../../components/pdf-viewer'
 import { downloadPdf, printPdf } from '../../components/pdf-viewer/utilities'
 import { useMinWidth } from '../../hooks'
-import { allBySlot, bySlot, renderUI, screen, userEvent, waitFor } from '../helpers'
+import { act, allBySlot, bySlot, fireEvent, renderUI, screen, userEvent, waitFor } from '../helpers'
 
 vi.mock('../../hooks', async (importOriginal) => {
 	const actual = await importOriginal<typeof import('../../hooks')>()
@@ -90,13 +90,13 @@ describe('PdfViewer', () => {
 	})
 
 	it('disables zoom in at the maximum', () => {
-		renderUI(<PdfViewer pages={pages} defaultZoom={4} maxZoom={4} />)
+		renderUI(<PdfViewer pages={pages} defaultZoom={4} />)
 
 		expect(screen.getByLabelText('Zoom in')).toBeDisabled()
 	})
 
 	it('disables zoom out at the minimum', () => {
-		renderUI(<PdfViewer pages={pages} defaultZoom={0.5} minZoom={0.5} />)
+		renderUI(<PdfViewer pages={pages} defaultZoom={0.5} />)
 
 		expect(screen.getByLabelText('Zoom out')).toBeDisabled()
 	})
@@ -195,6 +195,29 @@ describe('PdfViewer', () => {
 		const { container } = renderUI(<PdfViewer pages={pages} aria-label="Invoice viewer" />)
 
 		expect(bySlot(container, 'pdf-viewer')).toHaveAttribute('aria-label', 'Invoice viewer')
+	})
+
+	it("does not size the next page using the previous page's natural dimensions", () => {
+		const { container, rerender } = renderUI(<PdfViewer pages={pages} page={1} />)
+
+		const viewport = bySlot(container, 'pdf-viewer-viewport') as HTMLElement
+
+		const img = viewport.querySelector('img') as HTMLImageElement
+
+		Object.defineProperty(img, 'naturalWidth', { value: 800, configurable: true })
+		Object.defineProperty(img, 'naturalHeight', { value: 600, configurable: true })
+
+		act(() => {
+			fireEvent.load(img)
+		})
+
+		expect(viewport.style.aspectRatio).toBe('800 / 600')
+
+		rerender(<PdfViewer pages={pages} page={2} />)
+
+		// Without the per-page reset, the viewport would keep the previous page's
+		// 800/600 ratio until the new image fires its own load event.
+		expect(viewport.style.aspectRatio).toBe('8.5 / 11')
 	})
 })
 

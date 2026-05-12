@@ -22,6 +22,9 @@ const DEFAULT_PENDING_COLOR = '#a1a1aa'
 const DEFAULT_ACTIVE_COLOR = '#2563eb'
 const DEFAULT_DONE_COLOR = '#16a34a'
 
+/** Invisible click-target layer width, in pixels. */
+const HIT_LAYER_WIDTH = 24
+
 export type MapRouteProps = {
 	data: RouteData
 	/** Line color for each segment status. Defaults: pending=zinc-400, active=blue-600, done=green-600. */
@@ -55,16 +58,6 @@ export function MapRoute({
 
 	const [open, setOpen] = useState(false)
 
-	const handleSelectRef = useRef(() => {
-		if (handlersRef.current.disableInteraction) return
-
-		const result = handlersRef.current.onSelect?.(handlersRef.current.data)
-
-		if (result === false) return
-
-		setOpen(true)
-	})
-
 	const resolvedColors: Record<SegmentStatus, string> = useMemo(
 		() => ({
 			pending: colors?.pending ?? DEFAULT_PENDING_COLOR,
@@ -74,30 +67,29 @@ export function MapRoute({
 		[colors?.pending, colors?.active, colors?.done],
 	)
 
-	// Interactive handlers may change per render; the click listener is attached
-	// once and reads the latest versions via this ref.
-	const handlersRef = useRef({ data, disableInteraction, onSelect })
+	// Layers and event listeners are registered once; this ref carries the
+	// latest prop values into both the `onReady` callback (which may fire
+	// asynchronously, after props have already changed) and the long-lived
+	// map event handlers.
+	const latestRef = useRef({ data, resolvedColors, width, disableInteraction, onSelect })
 
-	handlersRef.current = { data, disableInteraction, onSelect }
+	latestRef.current = { data, resolvedColors, width, disableInteraction, onSelect }
 
-	// Mount layers once; geometry / paint sync effects below keep them current.
-	const mountDataRef = useRef(data)
+	const handleSelectRef = useRef(() => {
+		if (latestRef.current.disableInteraction) return
 
-	const mountColorsRef = useRef(resolvedColors)
+		const result = latestRef.current.onSelect?.(latestRef.current.data)
 
-	const mountWidthRef = useRef(width)
+		if (result === false) return
 
-	mountDataRef.current = data
-
-	mountColorsRef.current = resolvedColors
-
-	mountWidthRef.current = width
+		setOpen(true)
+	})
 
 	useEffect(() => {
 		const cleanup = onReady((map) => {
 			map.addSource(sourceId, {
 				type: 'geojson',
-				data: toSegmentCollection(mountDataRef.current),
+				data: toSegmentCollection(latestRef.current.data),
 			})
 
 			map.addLayer({
@@ -106,22 +98,21 @@ export function MapRoute({
 				source: sourceId,
 				layout: { 'line-cap': 'round', 'line-join': 'round' },
 				paint: {
-					'line-color': toColorMatch(mountColorsRef.current) as never,
-					'line-width': mountWidthRef.current,
+					'line-color': toColorMatch(latestRef.current.resolvedColors) as never,
+					'line-width': latestRef.current.width,
 				},
 			})
 
-			// Invisible, wider layer for easier hit testing.
 			map.addLayer({
 				id: hitLayerId,
 				type: 'line',
 				source: sourceId,
 				layout: { 'line-cap': 'round', 'line-join': 'round' },
-				paint: { 'line-color': '#000', 'line-opacity': 0, 'line-width': 24 },
+				paint: { 'line-color': '#000', 'line-opacity': 0, 'line-width': HIT_LAYER_WIDTH },
 			})
 
 			const handleClick = (event: MapLayerMouseEvent) => {
-				if (handlersRef.current.disableInteraction) return
+				if (latestRef.current.disableInteraction) return
 
 				event.originalEvent.stopPropagation()
 
@@ -129,7 +120,7 @@ export function MapRoute({
 			}
 
 			const handleEnter = () => {
-				if (!handlersRef.current.disableInteraction) map.getCanvas().style.cursor = 'pointer'
+				if (!latestRef.current.disableInteraction) map.getCanvas().style.cursor = 'pointer'
 			}
 
 			const handleLeave = () => {

@@ -3,7 +3,6 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import {
 	type KeyboardEvent,
-	memo,
 	type Ref,
 	type RefObject,
 	useCallback,
@@ -16,6 +15,7 @@ import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { k } from '../../recipes/kata/calendar'
 import { Button, type ButtonVariants } from '../button'
+import { DayCell } from './calendar-day-cell'
 import { CalendarPicker } from './calendar-picker'
 import { useCalendarFocus } from './use-calendar-focus'
 import { getCalendarDays, isBeforeDay, isSameDay, WEEKDAYS } from './utilities'
@@ -48,60 +48,6 @@ export type CalendarDayProps = {
 	onMouseEnter?: () => void
 	onMouseLeave?: () => void
 }
-
-type DayCellProps = {
-	date: Date
-	disabled: boolean
-	isToday: boolean
-	isActive: boolean
-	selected: boolean
-	variant?: ButtonVariants['variant']
-	color?: ButtonVariants['color']
-	customClassName?: string
-	gridColumnStart?: number
-	onSelect: (date: Date) => void
-	onMouseEnter?: () => void
-	onMouseLeave?: () => void
-}
-
-const DayCell = memo(function DayCell({
-	date,
-	disabled,
-	isToday,
-	isActive,
-	selected,
-	variant,
-	color,
-	customClassName,
-	gridColumnStart,
-	onSelect,
-	onMouseEnter,
-	onMouseLeave,
-}: DayCellProps) {
-	const handleClick = () => {
-		if (!disabled) onSelect(date)
-	}
-
-	return (
-		<Button
-			variant={variant ?? (selected ? 'solid' : isToday ? 'soft' : 'plain')}
-			color={color ?? (selected || isToday ? 'blue' : undefined)}
-			aria-pressed={selected}
-			disabled={disabled}
-			onClick={handleClick}
-			onMouseEnter={onMouseEnter}
-			onMouseLeave={onMouseLeave}
-			style={gridColumnStart ? { gridColumnStart } : undefined}
-			className={cn(
-				k.day.base,
-				isActive && (selected ? k.day.activeSelected : k.day.active),
-				customClassName,
-			)}
-		>
-			{date.getDate()}
-		</Button>
-	)
-})
 
 export type CalendarProps = {
 	value?: Date | null
@@ -319,7 +265,7 @@ export function Calendar({
 								selected={selected}
 								variant={dayProps?.variant}
 								color={dayProps?.color}
-								customClassName={dayProps?.className}
+								className={dayProps?.className}
 								gridColumnStart={gridColumnStart}
 								onSelect={handleSelect}
 								onMouseEnter={dayProps?.onMouseEnter}

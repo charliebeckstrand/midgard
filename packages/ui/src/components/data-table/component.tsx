@@ -1,25 +1,18 @@
 'use client'
 
-import { useVirtualizer } from '@tanstack/react-virtual'
-import { SlidersHorizontal } from 'lucide-react'
-import { type ReactNode, useCallback, useMemo, useRef, useState } from 'react'
+import { type ReactNode, useCallback, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
 import { k } from '../../recipes/kata/data-table'
-import { Button } from '../button'
-import { Dialog, DialogActions, DialogBody, DialogTitle } from '../dialog'
-import { Icon } from '../icon'
 import type { TableVariants } from '../table'
 import { Table, TableBody, TableLoading } from '../table'
 import { Toolbar } from '../toolbar'
-import {
-	DataTableColumnManager,
-	type DataTableColumnManagerItem,
-	type DataTableColumnManagerPreset,
-} from './column-manager'
+import type { DataTableColumnManagerItem, DataTableColumnManagerPreset } from './column-manager'
 import { DataTableProvider, type SortState } from './context'
 import { DataTableHead } from './head'
+import { DataTableManageColumnsDialog } from './manage-columns-dialog'
 import { DataTableRowInternal } from './row'
+import { DataTableVirtualizedBody } from './virtualized-body'
 
 // ── Column definition ───────────────────────────────────
 
@@ -228,8 +221,6 @@ export function DataTable<T>({
 		[columns],
 	)
 
-	const [manageOpen, setManageOpen] = useState(false)
-
 	const rowKeys = useMemo<(string | number)[]>(
 		() => rows.map((row, i) => getRowKey(row, i)),
 		[rows, getRowKey],
@@ -309,45 +300,9 @@ export function DataTable<T>({
 		],
 	)
 
-	// Virtualization. `useVirtualizer` is always called to satisfy the Rules of
-	// Hooks; when `virtualize` is off, count=0 makes it a no-op.
 	const scrollRef = useRef<HTMLDivElement>(null)
 
-	const virtualizer = useVirtualizer({
-		count: virtualizeEnabled && !loading ? rows.length : 0,
-		getScrollElement: () => scrollRef.current,
-		estimateSize: () => estimateSize,
-		overscan,
-	})
-
-	const virtualItems = virtualizeEnabled ? virtualizer.getVirtualItems() : []
-
-	const totalSize = virtualizeEnabled ? virtualizer.getTotalSize() : 0
-
-	const topSpacer = virtualItems[0]?.start ?? 0
-
-	const lastItem = virtualItems[virtualItems.length - 1]
-
-	const bottomSpacer = lastItem ? totalSize - lastItem.end : 0
-
 	const needsScrollWrapper = stickyHeader || virtualizeEnabled
-
-	function renderRow(row: T, index: number) {
-		const key = rowKeys[index] as string | number
-
-		const isLoading = rowLoading?.(row) ?? false
-
-		return (
-			<DataTableRowInternal<T>
-				key={key}
-				row={row}
-				rowKey={key}
-				columns={visibleColumns}
-				loading={isLoading}
-				className={rowClassName?.(row)}
-			/>
-		)
-	}
 
 	const tableContent = (
 		<Table dense={dense} bleed={bleed} grid={grid} striped={striped} className={className}>
@@ -356,27 +311,33 @@ export function DataTable<T>({
 			{loading ? (
 				<TableLoading columns={visibleColumns.length} />
 			) : virtualizeEnabled ? (
-				<TableBody>
-					{topSpacer > 0 && (
-						<tr data-slot="data-table-spacer">
-							<td
-								colSpan={visibleColumns.length}
-								style={{ height: topSpacer, padding: 0, border: 0 }}
-							/>
-						</tr>
-					)}
-					{virtualItems.map((vr) => renderRow(rows[vr.index] as T, vr.index))}
-					{bottomSpacer > 0 && (
-						<tr data-slot="data-table-spacer">
-							<td
-								colSpan={visibleColumns.length}
-								style={{ height: bottomSpacer, padding: 0, border: 0 }}
-							/>
-						</tr>
-					)}
-				</TableBody>
+				<DataTableVirtualizedBody<T>
+					scrollRef={scrollRef}
+					rows={rows}
+					rowKeys={rowKeys}
+					visibleColumns={visibleColumns}
+					rowLoading={rowLoading}
+					rowClassName={rowClassName}
+					estimateSize={estimateSize}
+					overscan={overscan}
+				/>
 			) : (
-				<TableBody>{rows.map(renderRow)}</TableBody>
+				<TableBody>
+					{rows.map((row, index) => {
+						const key = rowKeys[index] as string | number
+
+						return (
+							<DataTableRowInternal<T>
+								key={key}
+								row={row}
+								rowKey={key}
+								columns={visibleColumns}
+								loading={rowLoading?.(row) ?? false}
+								className={rowClassName?.(row)}
+							/>
+						)
+					})}
+				</TableBody>
 			)}
 		</Table>
 	)
@@ -385,17 +346,15 @@ export function DataTable<T>({
 		<DataTableProvider value={ctx}>
 			<div data-slot="data-table" className={cn(k.wrapper)}>
 				{manageColumns && (
-					<Toolbar aria-label="Column management">
-						<Button
-							variant="plain"
-							size="sm"
-							aria-haspopup="dialog"
-							onClick={() => setManageOpen(true)}
-						>
-							<Icon icon={<SlidersHorizontal />} />
-							{manageColumnsLabel}
-						</Button>
-					</Toolbar>
+					<DataTableManageColumnsDialog
+						label={manageColumnsLabel}
+						columns={managerItems}
+						order={columnOrder}
+						onOrderChange={setColumnOrder}
+						hidden={hiddenColumns}
+						onHiddenChange={setHiddenColumns}
+						onSavePreset={onSavePreset}
+					/>
 				)}
 
 				{batchActions && <Toolbar>{someSelected && batchActions(selection)}</Toolbar>}
@@ -410,27 +369,6 @@ export function DataTable<T>({
 					</div>
 				) : (
 					tableContent
-				)}
-
-				{manageColumns && (
-					<Dialog open={manageOpen} onOpenChange={setManageOpen}>
-						<DialogTitle>{manageColumnsLabel}</DialogTitle>
-						<DialogBody>
-							<DataTableColumnManager
-								columns={managerItems}
-								order={columnOrder}
-								onOrderChange={setColumnOrder}
-								hidden={hiddenColumns}
-								onHiddenChange={setHiddenColumns}
-								onSavePreset={onSavePreset}
-							/>
-						</DialogBody>
-						<DialogActions>
-							<Button variant="plain" onClick={() => setManageOpen(false)}>
-								Done
-							</Button>
-						</DialogActions>
-					</Dialog>
 				)}
 			</div>
 		</DataTableProvider>

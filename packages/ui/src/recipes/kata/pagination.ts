@@ -17,6 +17,7 @@ export const pageButton = tv({
 		'font-medium',
 		'rounded-lg',
 		sen.focus.ring,
+		...sawari.cursor,
 	],
 	variants: {
 		current: {

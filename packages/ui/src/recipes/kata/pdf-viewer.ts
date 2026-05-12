@@ -1,6 +1,7 @@
 import { iro } from '../ryu/iro'
 import { ji } from '../ryu/ji'
 import { omote } from '../ryu/omote'
+import { sawari } from '../ryu/sawari'
 import { sen } from '../ryu/sen'
 
 export const pdfViewer = {
@@ -43,7 +44,7 @@ export const pdfViewer = {
 		'gap-sm',
 		'bg-transparent',
 		'outline-none',
-		'cursor-pointer',
+		...sawari.cursor,
 	],
 	thumbnailFrame: [
 		'relative block w-full aspect-[3/4]',

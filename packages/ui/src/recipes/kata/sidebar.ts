@@ -20,9 +20,9 @@ export const sidebar = {
 	base: sidebarBase,
 	item: [
 		...sawari.nav,
+		...sawari.cursor,
 		'group relative',
 		'flex w-full items-center',
-		'cursor-pointer',
 		'gap-sm',
 		'p-2',
 		'rounded-lg',

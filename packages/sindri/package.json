@@ -3,20 +3,15 @@
 	"version": "0.1.0",
 	"type": "module",
 	"exports": {
-		".": {
-			"types": "./src/index.ts",
-			"import": "./dist/index.js",
-			"default": "./dist/index.js"
-		},
 		"./auth": {
 			"types": "./src/auth/index.ts",
-			"import": "./dist/auth/index.js",
-			"default": "./dist/auth/index.js"
+			"import": "./dist/auth.js",
+			"default": "./dist/auth.js"
 		},
 		"./chat": {
 			"types": "./src/chat/index.ts",
-			"import": "./dist/chat/index.js",
-			"default": "./dist/chat/index.js"
+			"import": "./dist/chat.js",
+			"default": "./dist/chat.js"
 		},
 		"./theme.css": "./src/theme.css",
 		"./globals.css": "./src/globals.css"

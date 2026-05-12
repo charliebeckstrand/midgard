@@ -1,7 +1,5 @@
 import { iro } from '../ryu/iro'
 import { sawari } from '../ryu/sawari'
-import { sen } from '../ryu/sen'
-import { take } from '../ryu/take'
 import { control } from '../waku/control'
 
 export const datepicker = {
@@ -10,24 +8,16 @@ export const datepicker = {
 		glass: [],
 	},
 	button: [
+		'flex items-center justify-between',
 		...control.field,
-		'block',
-		control.size.md,
-		take.listbox.padding,
+		...control.size.md,
 		'text-left',
 		'rounded-lg',
 		'appearance-none',
 		...sawari.cursor,
 	],
 	value: 'block truncate',
-	icon: [take.listbox.icon, 'flex items-center', 'pr-3', iro.text.muted, 'pointer-events-none'],
-	clearButton: [
-		'p-1 -m-1',
-		'rounded-md',
-		sen.focus.inset,
-		...iro.text.hover,
-		'pointer-events-auto',
-	],
+	icon: ['flex items-center', 'pointer-events-none', iro.text.muted],
 }
 
 export { datepicker as k }

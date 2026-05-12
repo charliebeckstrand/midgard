@@ -14,17 +14,15 @@ function ControlledExample() {
 	const [value, setValue] = useState('')
 
 	return (
-		<Example title="ControlledExample with clear">
-			<Field>
-				<Label>Search</Label>
-				<SearchInput
-					value={value}
-					onChange={(e) => setValue(e.target.value)}
-					onClear={() => setValue('')}
-					placeholder={placeholder}
-				/>
-			</Field>
-		</Example>
+		<Field>
+			<Label>Search</Label>
+			<SearchInput
+				value={value}
+				onChange={(e) => setValue(e.target.value)}
+				onClear={() => setValue('')}
+				placeholder={placeholder}
+			/>
+		</Field>
 	)
 }
 
@@ -64,7 +62,9 @@ export default function SearchInputDemo() {
 				</Field>
 			</Example>
 
-			<ControlledExample />
+			<Example title="Controlled with clear">
+				<ControlledExample />
+			</Example>
 
 			<Example title="Loading">
 				<Field>

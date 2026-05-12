@@ -1,5 +1,6 @@
 import { iro } from '../ryu/iro'
 import { ji } from '../ryu/ji'
+import { sawari } from '../ryu/sawari'
 import { sen } from '../ryu/sen'
 import { ugoki } from '../ryu/ugoki'
 
@@ -8,13 +9,13 @@ export const tree = {
 	itemContent: [
 		'flex w-full items-center',
 		'py-1 px-2',
-		ji.size.sm,
-		'gap-1.5',
+		ji.size.md,
+		'gap-sm',
 		iro.text.muted,
 		iro.text.hover,
 		'rounded-lg',
 		sen.focus.inset,
-		'cursor-pointer',
+		...sawari.cursor,
 		'data-[open]:text-zinc-950 dark:data-[open]:text-white',
 	],
 	itemContentActive: iro.text.default,

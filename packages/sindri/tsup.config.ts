@@ -1,7 +1,10 @@
 import { defineConfig } from 'tsup'
 
 export default defineConfig({
-	entry: ['src/index.ts', 'src/*/index.ts'],
+	entry: {
+		auth: 'src/auth/index.ts',
+		chat: 'src/chat/index.ts',
+	},
 	format: ['esm'],
 	target: 'node22',
 	outDir: 'dist',

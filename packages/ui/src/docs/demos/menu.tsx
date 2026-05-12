@@ -38,7 +38,6 @@ export default function MenuDemo() {
 						<MenuLabel>Duplicate</MenuLabel>
 					</MenuItem>
 				</MenuSection>
-				<MenuSeparator />
 				<MenuSection>
 					<MenuItem>
 						<MenuLabel>Archive</MenuLabel>

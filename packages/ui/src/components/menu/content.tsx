@@ -5,8 +5,8 @@ import { AnimatePresence } from 'motion/react'
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { PopoverPanel } from '../../primitives'
-import { omote } from '../../recipes'
 import { k } from '../../recipes/kata/menu'
+import { useGlass } from '../glass/context'
 import { useMenuActions, useMenuState } from './menu'
 
 export type MenuContentProps = {
@@ -17,13 +17,15 @@ export type MenuContentProps = {
 export function MenuContent({ className, children }: MenuContentProps) {
 	const { open, floatingStyles, getFloatingProps } = useMenuState()
 	const { close, static: isStatic, setFloating } = useMenuActions()
+	const glass = useGlass()
 
 	if (isStatic) {
 		return (
 			<PopoverPanel
 				role="menu"
 				itemSelector='[role="menuitem"]:not([data-disabled])'
-				className={cn(omote.popover, 'rounded-lg', 'p-1 space-y-0.5', k.content, className)}
+				glass={glass}
+				className={cn(k.content, className)}
 			>
 				{children}
 			</PopoverPanel>
@@ -38,6 +40,7 @@ export function MenuContent({ className, children }: MenuContentProps) {
 						<PopoverPanel
 							role="menu"
 							itemSelector='[role="menuitem"]:not([data-disabled])'
+							glass={glass}
 							className={cn('relative', k.content, className)}
 							onKeyDown={(e) => {
 								if (e.key === 'Escape') close()
