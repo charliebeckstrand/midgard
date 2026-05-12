@@ -26,8 +26,9 @@ import { Icon } from '../icon'
 import { HeadlessInput } from '../input'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
+import { useComboboxInputHandlers } from './use-combobox-input-handlers'
 import { useComboboxSelection } from './use-combobox-selection'
-import { resolveInputDisplay, selectActiveOrSingleOption } from './utilities'
+import { resolveInputDisplay } from './utilities'
 
 type ComboboxContextValue<T = unknown> = {
 	value: T | T[] | undefined
@@ -167,6 +168,21 @@ export function Combobox<T>({
 
 	const inputDisplay = resolveInputDisplay({ editing, query, value, displayValue, multiple })
 
+	const inputHandlers = useComboboxInputHandlers<T>({
+		multiple,
+		clearOnEmpty,
+		value,
+		setValue,
+		setEditing,
+		setQuery,
+		setOpen,
+		close,
+		waitForKeyboard,
+		floatingRef: refs.floating,
+		optionsRef,
+		rovingKeyDown: handleKeyDown,
+	})
+
 	const scrollWithin = useScrollWithin()
 
 	const scrollToSelected = useCallback(
@@ -221,47 +237,7 @@ export function Combobox<T>({
 						disabled={resolvedDisabled}
 						value={inputDisplay}
 						placeholder={placeholder}
-						onChange={(e) => {
-							const next = e.target.value
-
-							setEditing(true)
-
-							setQuery(next)
-
-							setOpen(true)
-
-							if (clearOnEmpty && next === '' && !multiple && value !== undefined) {
-								setValue(undefined)
-							}
-						}}
-						onFocus={() => waitForKeyboard(() => setOpen(true))}
-						onBlur={(e) => {
-							// Check if focus moved to the floating panel
-							const floating = refs.floating.current
-
-							if (floating?.contains(e.relatedTarget as Node)) return
-
-							close()
-						}}
-						onKeyDown={(e) => {
-							if (e.key === 'Escape') {
-								close()
-
-								return
-							}
-
-							if (e.key === 'Enter') {
-								const container = optionsRef.current
-
-								if (container && selectActiveOrSingleOption(container)) {
-									e.preventDefault()
-
-									return
-								}
-							}
-
-							handleKeyDown(e)
-						}}
+						{...inputHandlers}
 						className={cn(k.input)}
 					/>
 					<span data-slot="icon" className={cn(k.chevron)}>

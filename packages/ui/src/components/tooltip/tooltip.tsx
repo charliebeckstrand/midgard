@@ -91,6 +91,12 @@ export function Tooltip({
 
 	const wasDisabledRef = useRef(false)
 
+	// Polls the reference subtree for the `:disabled` pseudo-class after every
+	// render. React has no signal for `:disabled` transitions in descendants —
+	// they can flip from a child element's `disabled` attribute, an ancestor
+	// <fieldset disabled>, or a wrapper outside this component entirely — so
+	// the only correct trigger is "every time we re-render alongside whatever
+	// changed it." MutationObserver wouldn't catch the ancestor-fieldset case.
 	useEffect(() => {
 		const reference = refs.reference.current
 

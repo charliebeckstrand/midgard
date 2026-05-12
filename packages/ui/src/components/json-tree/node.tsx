@@ -10,6 +10,7 @@ import { k } from '../../recipes/kata/json-tree'
 import { Icon } from '../icon'
 import { JsonTreeProvider, useJsonTreeContext } from './context'
 import { NodeKey, PrimitiveValue } from './helpers'
+import { toggleExpandedSet } from './use-expansion'
 import {
 	filterEntries,
 	getEntries,
@@ -123,12 +124,7 @@ export const JsonNode = memo(function JsonNode({ keyName, value }: JsonNodeProps
 
 	const toggle = () => {
 		if (controlled && onExpandedChange) {
-			const next = new Set(expanded)
-
-			if (next.has(nodePath)) next.delete(nodePath)
-			else next.add(nodePath)
-
-			onExpandedChange(next)
+			toggleExpandedSet(expanded, nodePath, onExpandedChange)
 		} else {
 			setLocalOpen((prev) => !prev)
 		}
