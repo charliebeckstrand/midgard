@@ -1,6 +1,6 @@
 'use client'
 
-import { type SyntheticEvent, useRef, useState } from 'react'
+import { type SyntheticEvent, useEffect, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useControllable, useMinWidth } from '../../hooks'
 import { k } from '../../recipes/kata/pdf-viewer'
@@ -114,6 +114,14 @@ export function PdfViewer({
 		isTransposed,
 		rotate: rotateActivePage,
 	} = usePageRotation(safePage, defaultRotation)
+
+	// Reset measured natural size on page change so a new page whose intrinsic
+	// dimensions are unknown until `<img>` loads doesn't inherit the previous
+	// page's aspect ratio.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: reset is keyed on the active page identity, not on naturalSize itself
+	useEffect(() => {
+		setNaturalSize(null)
+	}, [activePage?.id, safePage])
 
 	// Prefer dimensions supplied by the caller (or the pdf.js hook) so the viewport
 	// can establish its aspect ratio before the image paints. Fall back to the
