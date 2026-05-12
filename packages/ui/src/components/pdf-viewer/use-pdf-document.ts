@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import type { PdfViewerPage } from './component'
+import type { PdfViewerPage } from './types'
 
 let workerConfigured = false
 

@@ -9,7 +9,7 @@ import { Button } from '../button'
 import { Flex } from '../flex/component'
 import { Icon } from '../icon'
 import { Sheet, SheetBody, SheetTitle } from '../sheet'
-import type { PdfViewerPage } from './component'
+import type { PdfViewerPage } from './types'
 
 export type PdfViewerThumbnailsProps = {
 	pages: PdfViewerPage[]

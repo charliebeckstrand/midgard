@@ -1,27 +1,19 @@
 'use client'
 
-import { type SyntheticEvent, useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { cn } from '../../core'
-import { useControllable, useMinWidth } from '../../hooks'
+import { useMinWidth } from '../../hooks'
 import { k } from '../../recipes/kata/pdf-viewer'
+import { PdfViewerStage } from './stage'
 import { PdfViewerThumbnails } from './thumbnails'
 import { PdfViewerToolbar } from './toolbar'
+import type { PdfViewerPage } from './types'
+import { usePageRotation } from './use-page-rotation'
+import { usePageScale } from './use-page-scale'
+import { usePageSize } from './use-page-size'
 import { usePdfDocument } from './use-pdf-document'
-
-export type PdfViewerPage = {
-	/** Stable key. Falls back to the array index when omitted. */
-	id?: string | number
-	/** Image source for the rendered page. */
-	src: string
-	/** Optional smaller image for the thumbnail sidebar. Falls back to `src`. */
-	thumbnail?: string
-	/** Optional accessible label for the page. Falls back to `Page N`. */
-	label?: string
-	/** Intrinsic width in pixels. Used to size the viewport before the image loads. */
-	width?: number
-	/** Intrinsic height in pixels. Used to size the viewport before the image loads. */
-	height?: number
-}
+import { usePdfPagination } from './use-pdf-pagination'
+import { useViewportSize } from './use-viewport-size'
 
 export type PdfViewerProps = {
 	/**
@@ -50,8 +42,6 @@ export type PdfViewerProps = {
 	className?: string
 	'aria-label'?: string
 }
-
-const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n))
 
 export function PdfViewer({
 	pages: pagesProp,
@@ -86,133 +76,45 @@ export function PdfViewer({
 
 	const isDesktop = useMinWidth(1024)
 
-	const [currentPage = defaultPage, setCurrentPage] = useControllable<number>({
-		value: page,
-		defaultValue: defaultPage,
-		onChange: (next) => {
-			if (next !== undefined) onPageChange?.(next)
-		},
+	const { safePage, goToPage } = usePdfPagination({
+		total,
+		page,
+		defaultPage,
+		onPageChange,
 	})
 
 	const [zoom, setZoom] = useState(defaultZoom)
-	const [rotations, setRotations] = useState<Record<number, number>>({})
-
 	const [thumbsOpen, setThumbsOpen] = useState(false)
 
 	const rootRef = useRef<HTMLElement>(null)
 	const viewportRef = useRef<HTMLDivElement>(null)
 
-	const [viewportSize, setViewportSize] = useState<{
-		width: number
-		height: number
-		sideways: boolean
-	} | null>(null)
-	const [naturalSize, setNaturalSize] = useState<{ width: number; height: number } | null>(null)
-
-	const safePage = total > 0 ? clamp(currentPage, 1, total) : 0
-
 	const activePage = total > 0 ? pages[safePage - 1] : undefined
 
-	const rotation = rotations[safePage] ?? defaultRotation
+	const {
+		rotation,
+		isTransposed,
+		rotate: rotateActivePage,
+	} = usePageRotation(safePage, defaultRotation)
 
-	const rotateActivePage = useCallback(() => {
-		setRotations((prev) => ({ ...prev, [safePage]: (prev[safePage] ?? defaultRotation) + 90 }))
-	}, [safePage, defaultRotation])
+	const { pageSize, onImageLoad } = usePageSize(activePage, safePage)
 
-	// Prefer dimensions supplied by the caller (or the pdf.js hook) so the viewport
-	// can establish its aspect ratio before the image paints. Fall back to the
-	// image's natural size, then US Letter (8.5 × 11) for the pre-load state.
-	const pageSize =
-		activePage?.width && activePage.height
-			? { width: activePage.width, height: activePage.height }
-			: naturalSize
-
-	const normalizedRotation = ((rotation % 360) + 360) % 360
-
-	const isSideways = normalizedRotation === 90 || normalizedRotation === 270
-
-	// `isSideways` is captured so the callback's identity flips on rotation —
-	// which re-runs the layout effect below, giving us a synchronous re-measure
-	// before paint (instead of waiting a frame for ResizeObserver to catch up).
-	// The `sideways` tag also marks each measurement with the orientation it
-	// was taken under, so consumers can detect stale measurements if needed.
-	const measureViewport = useCallback(() => {
-		const el = viewportRef.current
-
-		if (!el) return
-
-		const styles = window.getComputedStyle(el)
-
-		const padX = Number.parseFloat(styles.paddingLeft) + Number.parseFloat(styles.paddingRight)
-		const padY = Number.parseFloat(styles.paddingTop) + Number.parseFloat(styles.paddingBottom)
-
-		setViewportSize({
-			width: el.clientWidth - padX,
-			height: el.clientHeight - padY,
-			sideways: isSideways,
-		})
-	}, [isSideways])
-
-	useLayoutEffect(() => {
-		const el = viewportRef.current
-
-		if (!el) return
-
-		measureViewport()
-
-		const observer = new ResizeObserver(() => measureViewport())
-
-		observer.observe(el)
-
-		return () => observer.disconnect()
-	}, [measureViewport])
-
-	const fitScale = useMemo(() => {
-		if (!viewportSize || !pageSize) return 1
-
-		const visW = isSideways ? pageSize.height : pageSize.width
-		const visH = isSideways ? pageSize.width : pageSize.height
-
-		if (visW === 0 || visH === 0) return 1
-
-		return Math.min(viewportSize.width / visW, viewportSize.height / visH)
-	}, [viewportSize, pageSize, isSideways])
-
-	const scale = fitScale * zoom
-
-	const imageW = pageSize ? pageSize.width * scale : undefined
-	const imageH = pageSize ? pageSize.height * scale : undefined
-
-	const frameW = isSideways ? imageH : imageW
-	const frameH = isSideways ? imageW : imageH
+	// `isTransposed` invalidates the viewport measurement so it re-runs synchronously
+	// on rotation flip, before paint — instead of waiting a frame for ResizeObserver.
+	const viewportSize = useViewportSize(viewportRef, isTransposed)
 
 	// Aspect ratio drives the viewport height. US Letter (8.5 × 11) is the pre-load
 	// fallback — close to most documents and stable while the first page resolves.
 	// Leave it unset when there's nothing to display so the viewer can collapse.
 	const hasContent = !!src || total > 0
 
-	const aspectRatio = !hasContent
-		? undefined
-		: pageSize
-			? isSideways
-				? `${pageSize.height} / ${pageSize.width}`
-				: `${pageSize.width} / ${pageSize.height}`
-			: '8.5 / 11'
-
-	const handleImageLoad = (event: SyntheticEvent<HTMLImageElement>) => {
-		const img = event.currentTarget
-
-		setNaturalSize({ width: img.naturalWidth, height: img.naturalHeight })
-	}
-
-	const goToPage = useCallback(
-		(next: number) => {
-			if (total === 0) return
-
-			setCurrentPage(clamp(Math.round(next), 1, total))
-		},
-		[setCurrentPage, total],
-	)
+	const scale = usePageScale({
+		viewportSize,
+		pageSize,
+		isTransposed,
+		zoom,
+		hasContent,
+	})
 
 	return (
 		<section
@@ -250,44 +152,17 @@ export function PdfViewer({
 					container={rootRef.current}
 				/>
 
-				<div
+				<PdfViewerStage
 					ref={viewportRef}
-					data-slot="pdf-viewer-viewport"
-					className={cn(k.viewport)}
-					style={{ aspectRatio }}
-				>
-					{activePage && !isLoading ? (
-						<div
-							data-slot="pdf-viewer-page-frame"
-							className={cn(k.pageFrame)}
-							style={{ width: frameW, height: frameH }}
-						>
-							<img
-								key={activePage.id ?? safePage}
-								src={activePage.src}
-								alt={activePage.label ?? `Page ${safePage}`}
-								className={cn(k.page)}
-								style={{
-									width: imageW,
-									height: imageH,
-									transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
-									visibility: viewportSize && pageSize ? 'visible' : 'hidden',
-								}}
-								onLoad={handleImageLoad}
-							/>
-						</div>
-					) : error ? (
-						<div className={cn(k.pageEmpty)}>Failed to load PDF: {error.message}</div>
-					) : isLoading ? (
-						<output
-							data-slot="pdf-viewer-page-frame"
-							aria-label="Loading PDF"
-							className={cn(k.pagePlaceholder)}
-						/>
-					) : (
-						<div className={cn(k.pageEmpty)}>No pages to display</div>
-					)}
-				</div>
+					scale={scale}
+					activePage={activePage}
+					safePage={safePage}
+					rotation={rotation}
+					isLoading={isLoading}
+					error={error}
+					visible={!!(viewportSize && pageSize)}
+					onImageLoad={onImageLoad}
+				/>
 			</div>
 		</section>
 	)
