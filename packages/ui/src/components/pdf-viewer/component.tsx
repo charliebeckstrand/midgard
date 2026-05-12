@@ -7,25 +7,11 @@ import { k } from '../../recipes/kata/pdf-viewer'
 import { PdfViewerStage } from './stage'
 import { PdfViewerThumbnails } from './thumbnails'
 import { PdfViewerToolbar } from './toolbar'
+import type { PdfViewerPage } from './types'
 import { usePageRotation } from './use-page-rotation'
 import { usePageScale } from './use-page-scale'
 import { usePdfDocument } from './use-pdf-document'
 import { useViewportSize } from './use-viewport-size'
-
-export type PdfViewerPage = {
-	/** Stable key. Falls back to the array index when omitted. */
-	id?: string | number
-	/** Image source for the rendered page. */
-	src: string
-	/** Optional smaller image for the thumbnail sidebar. Falls back to `src`. */
-	thumbnail?: string
-	/** Optional accessible label for the page. Falls back to `Page N`. */
-	label?: string
-	/** Intrinsic width in pixels. Used to size the viewport before the image loads. */
-	width?: number
-	/** Intrinsic height in pixels. Used to size the viewport before the image loads. */
-	height?: number
-}
 
 export type PdfViewerProps = {
 	/**

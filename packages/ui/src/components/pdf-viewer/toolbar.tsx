@@ -10,7 +10,7 @@ import { Icon } from '../icon'
 import { Listbox, ListboxLabel, ListboxOption } from '../listbox'
 import { Toolbar, ToolbarGroup, ToolbarSeparator } from '../toolbar'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
-import type { PdfViewerPage } from './component'
+import type { PdfViewerPage } from './types'
 import { downloadPdf, printPdf } from './utilities'
 
 export type PdfViewerToolbarProps = {

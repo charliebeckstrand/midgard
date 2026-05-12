@@ -3,7 +3,7 @@
 import type { Ref, SyntheticEvent } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/pdf-viewer'
-import type { PdfViewerPage } from './component'
+import type { PdfViewerPage } from './types'
 import type { UsePageScaleResult } from './use-page-scale'
 
 export type PdfViewerStageProps = {
