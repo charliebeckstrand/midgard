@@ -165,7 +165,7 @@ export function componentTagsPlugin(): Plugin {
 		}),
 
 		transform(code, id) {
-			const cleanId = id.split('?')[0]
+			const cleanId = id.split('?')[0] ?? ''
 
 			const moduleName = moduleNameFor(cleanId, srcDir)
 

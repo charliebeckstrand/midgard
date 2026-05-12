@@ -9,7 +9,7 @@ export {
 	MenuShortcut,
 	type MenuShortcutProps,
 } from './item'
-export { Menu, type MenuProps } from './menu'
+export { Menu, type MenuProps, useMenuActions } from './menu'
 export {
 	MenuHeading,
 	type MenuHeadingProps,

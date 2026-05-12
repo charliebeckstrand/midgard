@@ -28,7 +28,7 @@ export function deriveCodePlugin(): Plugin {
 		},
 
 		transform(code, id) {
-			const cleanId = id.split('?')[0]
+			const cleanId = id.split('?')[0] ?? ''
 
 			if (!cleanId.startsWith(demosDir + path.sep)) return
 

@@ -21,6 +21,10 @@
 			"types": "./src/layouts/index.ts",
 			"default": "./src/layouts/index.ts"
 		},
+		"./primitives": {
+			"types": "./src/primitives/index.ts",
+			"default": "./src/primitives/index.ts"
+		},
 		"./types": {
 			"types": "./src/types/index.ts",
 			"default": "./src/types/index.ts"

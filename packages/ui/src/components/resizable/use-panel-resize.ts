@@ -138,13 +138,17 @@ export function usePanelResize({
 				handleWidth += dir === 'horizontal' ? hr.width : hr.height
 			})
 
+			const availableSize = totalSize - handleWidth
+
+			if (availableSize <= 0) return
+
 			const startPos = dir === 'horizontal' ? e.clientX : e.clientY
 
 			dragRef.current = {
 				handleIndex,
 				startPos,
 				startSizes: [...sizesRef.current],
-				availableSize: totalSize - handleWidth,
+				availableSize,
 			}
 
 			setDragging(handleIndex)
