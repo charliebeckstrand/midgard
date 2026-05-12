@@ -8,6 +8,7 @@ import { Button } from '../button'
 import { Icon } from '../icon'
 import { Listbox, ListboxLabel, ListboxOption } from '../listbox'
 import { Toolbar, ToolbarGroup, ToolbarSeparator } from '../toolbar'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 import type { PdfViewerPage } from './component'
 import { downloadPdf, printPdf } from './utilities'
 
@@ -77,15 +78,20 @@ export function PdfViewerToolbar({
 				{total > 0 && (
 					<>
 						{!isDesktop && (
-							<Button
-								variant="plain"
-								aria-label="Show thumbnails"
-								aria-expanded={thumbsOpen}
-								disabled={isLoading}
-								onClick={onThumbsOpen}
-							>
-								<Icon icon={<PanelLeft />} />
-							</Button>
+							<Tooltip>
+								<TooltipTrigger>
+									<Button
+										variant="plain"
+										aria-label="Show thumbnails"
+										aria-expanded={thumbsOpen}
+										disabled={isLoading}
+										onClick={onThumbsOpen}
+									>
+										<Icon icon={<PanelLeft />} />
+									</Button>
+								</TooltipTrigger>
+								<TooltipContent>Show thumbnails</TooltipContent>
+							</Tooltip>
 						)}
 
 						<ToolbarGroup aria-label="Page navigation">
@@ -122,59 +128,91 @@ export function PdfViewerToolbar({
 
 			<div className={cn(k.toolbarSection)}>
 				<ToolbarGroup aria-label="Zoom">
-					<Button
-						variant="plain"
-						aria-label="Zoom out"
-						disabled={isLoading || isEmpty || zoom <= minZoom}
-						onClick={zoomOut}
-					>
-						<Icon icon={<ZoomOut />} />
-					</Button>
-					<Button
-						variant="plain"
-						aria-label="Zoom in"
-						disabled={isLoading || isEmpty || zoom >= maxZoom}
-						onClick={zoomIn}
-					>
-						<Icon icon={<ZoomIn />} />
-					</Button>
-					<Button
-						variant="plain"
-						aria-label="Fit to page"
-						disabled={isLoading || isEmpty || zoom === 1}
-						onClick={fit}
-					>
-						<Icon icon={<Maximize2 />} />
-					</Button>
-					<Button
-						variant="plain"
-						aria-label="Rotate"
-						disabled={isLoading || isEmpty}
-						onClick={rotate}
-					>
-						<Icon icon={<RotateCw />} />
-					</Button>
+					<Tooltip>
+						<TooltipTrigger>
+							<Button
+								variant="plain"
+								aria-label="Zoom out"
+								disabled={isLoading || isEmpty || zoom <= minZoom}
+								onClick={zoomOut}
+							>
+								<Icon icon={<ZoomOut />} />
+							</Button>
+						</TooltipTrigger>
+						<TooltipContent>Zoom: {(zoom * 100).toFixed(0)}%</TooltipContent>
+					</Tooltip>
+					<Tooltip>
+						<TooltipTrigger>
+							<Button
+								variant="plain"
+								aria-label="Zoom in"
+								disabled={isLoading || isEmpty || zoom >= maxZoom}
+								onClick={zoomIn}
+							>
+								<Icon icon={<ZoomIn />} />
+							</Button>
+						</TooltipTrigger>
+						<TooltipContent>Zoom: {(zoom * 100).toFixed(0)}%</TooltipContent>
+					</Tooltip>
+					<Tooltip>
+						<TooltipTrigger>
+							<Button
+								variant="plain"
+								aria-label="Fit to page"
+								disabled={isLoading || isEmpty || zoom === 1}
+								onClick={fit}
+							>
+								<Icon icon={<Maximize2 />} />
+							</Button>
+						</TooltipTrigger>
+						<TooltipContent>Fit to page</TooltipContent>
+					</Tooltip>
+				</ToolbarGroup>
+				<ToolbarGroup aria-label="View">
+					<Tooltip>
+						<TooltipTrigger>
+							<Button
+								variant="plain"
+								aria-label="Rotate"
+								disabled={isLoading || isEmpty}
+								onClick={rotate}
+							>
+								<Icon icon={<RotateCw />} />
+							</Button>
+						</TooltipTrigger>
+						<TooltipContent>Rotate</TooltipContent>
+					</Tooltip>
 				</ToolbarGroup>
 				{src && (
 					<>
 						<ToolbarSeparator />
 						<ToolbarGroup aria-label="Document">
-							<Button
-								variant="plain"
-								aria-label="Download"
-								disabled={isLoading || isEmpty}
-								onClick={download}
-							>
-								<Icon icon={<Download />} />
-							</Button>
-							<Button
-								variant="plain"
-								aria-label="Print"
-								disabled={isLoading || isEmpty}
-								onClick={print}
-							>
-								<Icon icon={<Printer />} />
-							</Button>
+							<Tooltip>
+								<TooltipTrigger>
+									<Button
+										variant="plain"
+										aria-label="Download"
+										disabled={isLoading || isEmpty}
+										onClick={download}
+									>
+										<Icon icon={<Download />} />
+									</Button>
+								</TooltipTrigger>
+								<TooltipContent>Download</TooltipContent>
+							</Tooltip>
+							<Tooltip>
+								<TooltipTrigger>
+									<Button
+										variant="plain"
+										aria-label="Print"
+										disabled={isLoading || isEmpty}
+										onClick={print}
+									>
+										<Icon icon={<Printer />} />
+									</Button>
+								</TooltipTrigger>
+								<TooltipContent>Print</TooltipContent>
+							</Tooltip>
 						</ToolbarGroup>
 					</>
 				)}
