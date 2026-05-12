@@ -13,7 +13,7 @@ async function getUsers() {
 }
 
 export default async function UsersPage() {
-	const [users, { user }] = await Promise.all([getUsers(), getUser()])
+	const [users, user] = await Promise.all([getUsers(), getUser()])
 
 	return <UsersClient users={users} currentUser={user} />
 }

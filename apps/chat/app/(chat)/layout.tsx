@@ -12,7 +12,7 @@ async function fetchChats(): Promise<Chat[]> {
 }
 
 export default async function ChatLayout({ children }: { children: ReactNode }) {
-	const [{ user }, chats] = await Promise.all([getUser(), fetchChats()])
+	const [user, chats] = await Promise.all([getUser(), fetchChats()])
 
 	return (
 		<Suspense>

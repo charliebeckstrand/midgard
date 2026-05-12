@@ -9,16 +9,14 @@ export type User = {
 	updated_at: string
 }
 
-export async function getUser(): Promise<{ user?: User }> {
+export async function getUser(): Promise<User | undefined> {
 	try {
 		const res = await bifrost('/auth/user')
 
-		if (!res.ok) return { user: undefined }
+		if (!res.ok) return undefined
 
-		const data = await res.json()
-
-		return { user: data }
+		return (await res.json()) as User
 	} catch {
-		return { user: undefined }
+		return undefined
 	}
 }
