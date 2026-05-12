@@ -53,6 +53,9 @@ export function PdfViewerToolbar({
 }: PdfViewerToolbarProps) {
 	const isEmpty = total === 0
 
+	const nextZoomIn = clamp(zoom * zoomStep, minZoom, maxZoom)
+	const nextZoomOut = clamp(zoom / zoomStep, minZoom, maxZoom)
+
 	const zoomIn = () => setZoom((z) => clamp(z * zoomStep, minZoom, maxZoom))
 	const zoomOut = () => setZoom((z) => clamp(z / zoomStep, minZoom, maxZoom))
 
@@ -139,7 +142,7 @@ export function PdfViewerToolbar({
 								<Icon icon={<ZoomOut />} />
 							</Button>
 						</TooltipTrigger>
-						<TooltipContent>Zoom: {(zoom * 100).toFixed(0)}%</TooltipContent>
+						<TooltipContent>Zoom Out ({(nextZoomOut * 100).toFixed(0)}%)</TooltipContent>
 					</Tooltip>
 					<Tooltip>
 						<TooltipTrigger>
@@ -152,7 +155,7 @@ export function PdfViewerToolbar({
 								<Icon icon={<ZoomIn />} />
 							</Button>
 						</TooltipTrigger>
-						<TooltipContent>Zoom: {(zoom * 100).toFixed(0)}%</TooltipContent>
+						<TooltipContent>Zoom In ({(nextZoomIn * 100).toFixed(0)}%)</TooltipContent>
 					</Tooltip>
 					<Tooltip>
 						<TooltipTrigger>

@@ -98,7 +98,9 @@ export function Tooltip({
 
 		const isDisabled = !!reference.querySelector(':disabled')
 
-		if (wasDisabledRef.current && !isDisabled && reference.matches(':hover')) {
+		if (isDisabled && open) {
+			setOpen(false)
+		} else if (wasDisabledRef.current && !isDisabled && reference.matches(':hover')) {
 			setOpen(true)
 		}
 
