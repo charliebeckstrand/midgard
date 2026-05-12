@@ -33,7 +33,6 @@ export const [ListboxProvider, useListboxContext] = createContext<ListboxContext
 type ListboxBaseProps = {
 	placeholder?: string
 	placement?: Placement
-	icon?: ReactNode
 	prefix?: ReactNode
 	suffix?: ReactNode
 	size?: ControlSize
@@ -74,7 +73,6 @@ export function Listbox<T>({
 	nullable = valueProp === undefined && defaultValue === undefined,
 	placeholder = 'Select',
 	placement = 'bottom-start',
-	icon,
 	prefix,
 	suffix,
 	size,
@@ -142,8 +140,6 @@ export function Listbox<T>({
 		)
 	}
 
-	const hasAffix = prefix !== undefined || suffix !== undefined
-
 	return (
 		<ListboxProvider value={contextValue}>
 			<div
@@ -154,10 +150,8 @@ export function Listbox<T>({
 			>
 				<ControlFrame
 					data-open={open || undefined}
-					className={cn(
-						!glass && controlRecipe.surface.default,
-						hasAffix && 'group/control flex items-center',
-					)}
+					className={cn(!glass && controlRecipe.surface.default)}
+					onClick={() => setOpen(!open)}
 				>
 					{prefix && (
 						<span data-slot="prefix" className={cn('peer/prefix', k.affix, k.prefix[resolvedSize])}>
@@ -175,19 +169,15 @@ export function Listbox<T>({
 						disabled={resolvedDisabled}
 						data-slot="listbox-button"
 						{...invalidAttrs(control?.invalid)}
-						onClick={() => setOpen(!open)}
 						className={cn(k.button)}
 					>
 						<span className={cn(k.value, tabularNums && 'tabular-nums')}>
 							{label || <span className={cn(iro.text.muted)}>{placeholder}</span>}
 						</span>
-						{suffix && (
-							<span data-slot="suffix" className={cn(k.affix)}>
-								{suffix}
-							</span>
-						)}
-						<span className={cn(k.chevron)}>{icon ?? <Icon icon={<ChevronsUpDown />} />}</span>
 					</button>
+					<span data-slot="suffix" className={cn('peer/suffix', k.affix, k.suffix[resolvedSize])}>
+						{suffix ? suffix : <Icon icon={<ChevronsUpDown />} />}
+					</span>
 				</ControlFrame>
 			</div>
 

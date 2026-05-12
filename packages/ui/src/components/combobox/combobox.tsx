@@ -20,6 +20,7 @@ import { kokkaku } from '../../recipes'
 import { k } from '../../recipes/kata/combobox'
 import { popover as kPopover } from '../../recipes/kata/popover'
 import { control as controlRecipe } from '../../recipes/waku/control'
+import { Button } from '../button'
 import { type ControlSize, useControl } from '../control/context'
 import { useGlass } from '../glass/context'
 import { Icon } from '../icon'
@@ -45,7 +46,8 @@ type ComboboxBaseProps<T> = {
 	placeholder?: string
 	displayValue?: (value: T) => string
 	placement?: Placement
-	icon?: ReactNode
+	prefix?: ReactNode
+	suffix?: ReactNode
 	size?: ControlSize
 	disabled?: boolean
 	className?: string
@@ -94,7 +96,8 @@ export function Combobox<T>({
 	multiple = false,
 	placeholder = 'Search',
 	placement = 'bottom-start',
-	icon,
+	prefix,
+	suffix,
 	size,
 	disabled,
 	selectable = true,
@@ -223,7 +226,13 @@ export function Combobox<T>({
 					data-open={open || undefined}
 					className={cn(!glass && controlRecipe.surface.default)}
 				>
+					{prefix && (
+						<span data-slot="prefix" className={cn('peer/prefix', k.affix, k.prefix[resolvedSize])}>
+							{prefix}
+						</span>
+					)}
 					<HeadlessInput
+						id={id}
 						ref={inputRef}
 						type={inputType}
 						role="combobox"
@@ -232,17 +241,40 @@ export function Combobox<T>({
 						aria-controls={open ? listboxId : undefined}
 						aria-autocomplete="list"
 						data-slot="combobox-input"
-						id={id}
 						autoComplete={autoComplete}
 						disabled={resolvedDisabled}
 						value={inputDisplay}
 						placeholder={placeholder}
-						{...inputHandlers}
 						className={cn(k.input)}
+						{...inputHandlers}
 					/>
-					<span data-slot="icon" className={cn(k.chevron)}>
-						{icon ?? <Icon icon={<ChevronsUpDown />} />}
-					</span>
+					{suffix ? (
+						<span data-slot="suffix" className={cn('peer/suffix', k.affix, k.suffix[resolvedSize])}>
+							{suffix}
+						</span>
+					) : (
+						<Button
+							variant="ghost"
+							tabIndex={-1}
+							aria-label={open ? 'Close' : 'Open'}
+							disabled={resolvedDisabled}
+							className={cn(k.chevron)}
+							onMouseDown={(e) => {
+								e.preventDefault()
+
+								if (open) {
+									close()
+								} else {
+									inputRef.current?.focus()
+									inputRef.current?.select()
+
+									setOpen(true)
+								}
+							}}
+						>
+							<Icon icon={<ChevronsUpDown />} />
+						</Button>
+					)}
 				</ControlFrame>
 			</div>
 

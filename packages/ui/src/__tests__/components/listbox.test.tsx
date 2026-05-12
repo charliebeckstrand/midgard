@@ -90,7 +90,7 @@ describe('Listbox', () => {
 		expect(button).not.toBeDisabled()
 	})
 
-	it('omits prefix and suffix slots when not provided', () => {
+	it('omits the prefix slot and renders the default chevron in the suffix slot when not provided', () => {
 		const { container } = renderUI(
 			<Listbox>
 				<div>Option</div>
@@ -98,7 +98,11 @@ describe('Listbox', () => {
 		)
 
 		expect(bySlot(container, 'prefix')).not.toBeInTheDocument()
-		expect(bySlot(container, 'suffix')).not.toBeInTheDocument()
+
+		const suffix = bySlot(container, 'suffix')
+
+		expect(suffix).toBeInTheDocument()
+		expect(suffix?.querySelector('[data-slot="icon"]')).toBeInTheDocument()
 	})
 
 	it('renders a placeholder in skeleton mode', () => {

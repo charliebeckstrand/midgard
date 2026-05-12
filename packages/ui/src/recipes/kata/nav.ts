@@ -13,11 +13,11 @@ export const nav = {
 		'group relative flex w-full items-center',
 		'p-2',
 		...sawari.nav,
+		...sawari.cursor,
 		'gap-sm',
 		ji.size.md,
 		'text-left font-medium',
 		'rounded-lg',
-		'cursor-pointer',
 	],
 }
 

@@ -107,11 +107,11 @@ export function AddressInput({
 	return (
 		<Combobox<AddressSuggestion>
 			{...props}
+			displayValue={(s) => s.label}
 			placeholder={placeholder}
 			autoComplete={autoComplete}
-			displayValue={(s) => s.label}
-			icon={loading ? <Spinner /> : <Icon icon={<MapPin />} />}
 			clearOnEmpty
+			suffix={loading ? <Spinner /> : <Icon icon={<MapPin />} />}
 			open={ready && menuRequested}
 			onOpenChange={setMenuRequested}
 			onQueryChange={setQuery}

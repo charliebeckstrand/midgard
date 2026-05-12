@@ -80,7 +80,7 @@ export function DatePickerShell({
 			>
 				<ControlFrame
 					data-open={open || undefined}
-					className={cn(k.control[glass ? 'glass' : 'default'])}
+					className={cn('', k.control[glass ? 'glass' : 'default'])}
 				>
 					<button
 						ref={triggerRef}
@@ -97,10 +97,10 @@ export function DatePickerShell({
 						<span className={k.value}>
 							{displayValue || <span className={cn(iro.text.muted)}>{placeholder}</span>}
 						</span>
+						<span className={cn(k.icon)}>
+							<Icon icon={<CalendarIcon />} size="sm" />
+						</span>
 					</button>
-					<span className={cn(k.icon)}>
-						<Icon icon={<CalendarIcon />} size="sm" />
-					</span>
 				</ControlFrame>
 			</div>
 
