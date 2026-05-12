@@ -1,6 +1,5 @@
 'use client'
 
-import { useVirtualizer } from '@tanstack/react-virtual'
 import { type ReactNode, useCallback, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
@@ -13,6 +12,7 @@ import { DataTableProvider, type SortState } from './context'
 import { DataTableHead } from './head'
 import { DataTableManageColumnsDialog } from './manage-columns-dialog'
 import { DataTableRowInternal } from './row'
+import { DataTableVirtualizedBody } from './virtualized-body'
 
 // ── Column definition ───────────────────────────────────
 
@@ -300,45 +300,9 @@ export function DataTable<T>({
 		],
 	)
 
-	// Virtualization. `useVirtualizer` is always called to satisfy the Rules of
-	// Hooks; when `virtualize` is off, count=0 makes it a no-op.
 	const scrollRef = useRef<HTMLDivElement>(null)
 
-	const virtualizer = useVirtualizer({
-		count: virtualizeEnabled && !loading ? rows.length : 0,
-		getScrollElement: () => scrollRef.current,
-		estimateSize: () => estimateSize,
-		overscan,
-	})
-
-	const virtualItems = virtualizeEnabled ? virtualizer.getVirtualItems() : []
-
-	const totalSize = virtualizeEnabled ? virtualizer.getTotalSize() : 0
-
-	const topSpacer = virtualItems[0]?.start ?? 0
-
-	const lastItem = virtualItems[virtualItems.length - 1]
-
-	const bottomSpacer = lastItem ? totalSize - lastItem.end : 0
-
 	const needsScrollWrapper = stickyHeader || virtualizeEnabled
-
-	function renderRow(row: T, index: number) {
-		const key = rowKeys[index] as string | number
-
-		const isLoading = rowLoading?.(row) ?? false
-
-		return (
-			<DataTableRowInternal<T>
-				key={key}
-				row={row}
-				rowKey={key}
-				columns={visibleColumns}
-				loading={isLoading}
-				className={rowClassName?.(row)}
-			/>
-		)
-	}
 
 	const tableContent = (
 		<Table dense={dense} bleed={bleed} grid={grid} striped={striped} className={className}>
@@ -347,27 +311,33 @@ export function DataTable<T>({
 			{loading ? (
 				<TableLoading columns={visibleColumns.length} />
 			) : virtualizeEnabled ? (
-				<TableBody>
-					{topSpacer > 0 && (
-						<tr data-slot="data-table-spacer">
-							<td
-								colSpan={visibleColumns.length}
-								style={{ height: topSpacer, padding: 0, border: 0 }}
-							/>
-						</tr>
-					)}
-					{virtualItems.map((vr) => renderRow(rows[vr.index] as T, vr.index))}
-					{bottomSpacer > 0 && (
-						<tr data-slot="data-table-spacer">
-							<td
-								colSpan={visibleColumns.length}
-								style={{ height: bottomSpacer, padding: 0, border: 0 }}
-							/>
-						</tr>
-					)}
-				</TableBody>
+				<DataTableVirtualizedBody<T>
+					scrollRef={scrollRef}
+					rows={rows}
+					rowKeys={rowKeys}
+					visibleColumns={visibleColumns}
+					rowLoading={rowLoading}
+					rowClassName={rowClassName}
+					estimateSize={estimateSize}
+					overscan={overscan}
+				/>
 			) : (
-				<TableBody>{rows.map(renderRow)}</TableBody>
+				<TableBody>
+					{rows.map((row, index) => {
+						const key = rowKeys[index] as string | number
+
+						return (
+							<DataTableRowInternal<T>
+								key={key}
+								row={row}
+								rowKey={key}
+								columns={visibleColumns}
+								loading={rowLoading?.(row) ?? false}
+								className={rowClassName?.(row)}
+							/>
+						)
+					})}
+				</TableBody>
 			)}
 		</Table>
 	)
