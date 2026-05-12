@@ -11,7 +11,6 @@ export default defineConfig({
 	target: 'node22',
 	outDir: 'dist',
 	clean: true,
-	dts: true,
 	sourcemap: false,
 	splitting: false,
 	external: ['next', 'react'],
