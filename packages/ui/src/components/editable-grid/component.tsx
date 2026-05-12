@@ -3,16 +3,9 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
-import { k } from '../../recipes/kata/editable-grid'
 import { sen } from '../../recipes/ryu/sen'
-import {
-	DataTable,
-	type DataTableColumn,
-	type DataTableVirtualize,
-	type SortState,
-} from '../data-table'
+import { DataTable, type DataTableVirtualize, type SortState } from '../data-table'
 import type { TableVariants } from '../table'
-import { EditableGridCellContent } from './cell'
 import {
 	type CellChange,
 	type Coord,
@@ -20,6 +13,7 @@ import {
 	type EditableGridContextValue,
 	EditableGridProvider,
 } from './context'
+import { useEditableGridAugmentedColumns } from './use-editable-grid-augmented-columns'
 import { useEditableGridMutations } from './use-editable-grid-mutations'
 import { useEditableGridNavigation } from './use-editable-grid-navigation'
 import { useEditableGridWrapper } from './use-editable-grid-wrapper'
@@ -280,56 +274,11 @@ export function EditableGrid<T>({
 			setSelection: setSelectionRaw,
 		})
 
-	// ── Column augmentation ────────────────────────────────
-
-	const augmentedColumns = useMemo<DataTableColumn<T>[]>(() => {
-		let editableColIdx = 0
-
-		return columns.map((col) => {
-			if (col.selectable || col.actions) {
-				return {
-					id: col.id,
-					title: col.title,
-					sortable: col.sortable,
-					selectable: col.selectable,
-					actions: col.actions,
-					width: col.width,
-					className: col.className,
-					headerClassName: col.headerClassName,
-				}
-			}
-
-			const colIdx = editableColIdx++
-
-			const align = col.align ?? 'left'
-
-			const readOnly = col.readOnly ?? false
-
-			return {
-				id: col.id,
-				title: col.title,
-				sortable: col.sortable,
-				width: col.width,
-				className: cn(k.cellTd, col.className),
-				headerClassName: col.headerClassName,
-				cell: (row: T) => {
-					const rowIdx = rowIndexMap.get(row) ?? -1
-
-					const formatted = formatCell(row, col)
-
-					return (
-						<EditableGridCellContent
-							rowIdx={rowIdx}
-							colIdx={colIdx}
-							readOnly={readOnly}
-							align={align}
-							formatted={formatted}
-						/>
-					)
-				},
-			}
-		})
-	}, [columns, rowIndexMap, formatCell])
+	const augmentedColumns = useEditableGridAugmentedColumns<T>({
+		columns,
+		rowIndexMap,
+		formatCell,
+	})
 
 	const ctx = useMemo<EditableGridContextValue>(
 		() => ({
