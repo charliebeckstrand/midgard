@@ -15,17 +15,17 @@ import { cn, createContext } from '../../core'
 import { useFloatingUI, useRoving, useScrollWithin } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
-import { ControlFrame, PopoverPanel } from '../../primitives'
+import { PopoverPanel } from '../../primitives'
 import { kokkaku } from '../../recipes'
 import { k } from '../../recipes/kata/combobox'
 import { popover as kPopover } from '../../recipes/kata/popover'
-import { control as controlRecipe } from '../../recipes/waku/control'
 import { Button } from '../button'
 import { type ControlSize, useControl } from '../control/context'
 import { useGlass } from '../glass/context'
 import { Icon } from '../icon'
 import { HeadlessInput } from '../input'
 import { Placeholder } from '../placeholder'
+import { SelectTrigger } from '../select/trigger'
 import { useSkeleton } from '../skeleton/context'
 import { useComboboxInputHandlers } from './use-combobox-input-handlers'
 import { useComboboxSelection } from './use-combobox-selection'
@@ -220,45 +220,19 @@ export function Combobox<T>({
 
 	return (
 		<ComboboxProvider value={contextValue}>
-			<div
-				data-slot="control"
-				ref={refs.setReference}
-				className={cn(className)}
-				{...getReferenceProps()}
-			>
-				<ControlFrame
-					data-open={open || undefined}
-					data-group={dataGroup}
-					data-group-orientation={dataGroupOrientation}
-					className={cn(!glass && controlRecipe.surface.default)}
-				>
-					{prefix && (
-						<span data-slot="prefix" className={cn('peer/prefix', k.affix, k.prefix[resolvedSize])}>
-							{prefix}
-						</span>
-					)}
-					<HeadlessInput
-						id={id}
-						ref={inputRef}
-						type={inputType}
-						role="combobox"
-						aria-haspopup="listbox"
-						aria-expanded={open}
-						aria-controls={open ? listboxId : undefined}
-						aria-autocomplete="list"
-						data-slot="combobox-input"
-						autoComplete={autoComplete}
-						disabled={resolvedDisabled}
-						value={inputDisplay}
-						placeholder={placeholder}
-						className={cn(k.input)}
-						{...inputHandlers}
-					/>
-					{suffix ? (
-						<span data-slot="suffix" className={cn('peer/suffix', k.affix, k.suffix[resolvedSize])}>
-							{suffix}
-						</span>
-					) : (
+			<SelectTrigger
+				open={open}
+				setReference={refs.setReference}
+				getReferenceProps={getReferenceProps}
+				glass={glass}
+				size={resolvedSize}
+				className={className}
+				data-group={dataGroup}
+				data-group-orientation={dataGroupOrientation}
+				prefix={prefix}
+				suffix={suffix}
+				suffixUnwrapped={
+					!suffix ? (
 						<Button
 							variant="ghost"
 							tabIndex={-1}
@@ -280,9 +254,27 @@ export function Combobox<T>({
 						>
 							<Icon icon={<ChevronsUpDown />} />
 						</Button>
-					)}
-				</ControlFrame>
-			</div>
+					) : undefined
+				}
+			>
+				<HeadlessInput
+					id={id}
+					ref={inputRef}
+					type={inputType}
+					role="combobox"
+					aria-haspopup="listbox"
+					aria-expanded={open}
+					aria-controls={open ? listboxId : undefined}
+					aria-autocomplete="list"
+					data-slot="combobox-input"
+					autoComplete={autoComplete}
+					disabled={resolvedDisabled}
+					value={inputDisplay}
+					placeholder={placeholder}
+					className={cn(k.input)}
+					{...inputHandlers}
+				/>
+			</SelectTrigger>
 
 			<FloatingPortal>
 				<div ref={optionsRef}>
