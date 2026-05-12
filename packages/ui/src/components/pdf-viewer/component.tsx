@@ -4,6 +4,7 @@ import { type SyntheticEvent, useEffect, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useControllable, useMinWidth } from '../../hooks'
 import { k } from '../../recipes/kata/pdf-viewer'
+import { PdfViewerStage } from './stage'
 import { PdfViewerThumbnails } from './thumbnails'
 import { PdfViewerToolbar } from './toolbar'
 import { usePageRotation } from './use-page-rotation'
@@ -140,7 +141,7 @@ export function PdfViewer({
 	// Leave it unset when there's nothing to display so the viewer can collapse.
 	const hasContent = !!src || total > 0
 
-	const { imageW, imageH, frameW, frameH, aspectRatio } = usePageScale({
+	const scale = usePageScale({
 		viewportSize,
 		pageSize,
 		isTransposed,
@@ -196,44 +197,17 @@ export function PdfViewer({
 					container={rootRef.current}
 				/>
 
-				<div
+				<PdfViewerStage
 					ref={viewportRef}
-					data-slot="pdf-viewer-viewport"
-					className={cn(k.viewport)}
-					style={{ aspectRatio }}
-				>
-					{activePage && !isLoading ? (
-						<div
-							data-slot="pdf-viewer-page-frame"
-							className={cn(k.pageFrame)}
-							style={{ width: frameW, height: frameH }}
-						>
-							<img
-								key={activePage.id ?? safePage}
-								src={activePage.src}
-								alt={activePage.label ?? `Page ${safePage}`}
-								className={cn(k.page)}
-								style={{
-									width: imageW,
-									height: imageH,
-									transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
-									visibility: viewportSize && pageSize ? 'visible' : 'hidden',
-								}}
-								onLoad={handleImageLoad}
-							/>
-						</div>
-					) : error ? (
-						<div className={cn(k.pageEmpty)}>Failed to load PDF: {error.message}</div>
-					) : isLoading ? (
-						<output
-							data-slot="pdf-viewer-page-frame"
-							aria-label="Loading PDF"
-							className={cn(k.pagePlaceholder)}
-						/>
-					) : (
-						<div className={cn(k.pageEmpty)}>No pages to display</div>
-					)}
-				</div>
+					scale={scale}
+					activePage={activePage}
+					safePage={safePage}
+					rotation={rotation}
+					isLoading={isLoading}
+					error={error}
+					visible={!!(viewportSize && pageSize)}
+					onImageLoad={handleImageLoad}
+				/>
 			</div>
 		</section>
 	)
