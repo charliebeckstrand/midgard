@@ -5,11 +5,35 @@ import { Alert, AlertDescription } from '../../components/alert'
 import { Button } from '../../components/button'
 import { Control } from '../../components/control'
 import { ErrorMessage, Fieldset, Label, Legend } from '../../components/fieldset'
+import { Form } from '../../components/form'
 import { Input } from '../../components/input'
 import { Stack } from '../../components/stack'
 import { Textarea } from '../../components/textarea'
 import { Example } from '../components/example'
+
 export const meta = { category: 'Forms' }
+
+function RequiredExample() {
+	const [submitting, setSubmitting] = useState(false)
+
+	const handleSubmit = () => {
+		setSubmitting(true)
+
+		setTimeout(() => setSubmitting(false), 2000)
+	}
+
+	return (
+		<Form defaultValues={{ name: '' }} disabled={submitting} onSubmit={handleSubmit}>
+			<Stack>
+				<Control required>
+					<Label>Full name</Label>
+					<Input placeholder="Jane Smith" />
+				</Control>
+				<Button type="submit">Submit</Button>
+			</Stack>
+		</Form>
+	)
+}
 
 export default function ControlDemo() {
 	const [disabled, setDisabled] = useState(false)
@@ -38,15 +62,7 @@ export default function ControlDemo() {
 			</Example>
 
 			<Example title="Required">
-				<form onSubmit={(e) => e.preventDefault()} className="flex flex-col gap-4">
-					<Control required>
-						<Label>Full name</Label>
-						<Input placeholder="Jane Smith" />
-					</Control>
-					<div>
-						<Button type="submit">Submit</Button>
-					</div>
-				</form>
+				<RequiredExample />
 			</Example>
 
 			<Example title="Disabled">

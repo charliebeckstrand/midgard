@@ -8,8 +8,8 @@ export const tree = {
 	itemContent: [
 		'flex w-full items-center',
 		'py-1 px-2',
-		ji.size.sm,
-		'gap-1.5',
+		ji.size.md,
+		'gap-sm',
 		iro.text.muted,
 		iro.text.hover,
 		'rounded-lg',
