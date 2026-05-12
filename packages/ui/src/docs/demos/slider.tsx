@@ -1,11 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { Flex } from '../../components/flex'
 import { RangeSlider, Slider } from '../../components/slider'
 import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
 import { Example } from '../components/example'
+import { capitalize } from '../components/format'
+import { LabeledRow } from '../components/labeled'
 import { ValueStepper } from '../components/value-stepper'
 
 export const meta = { category: 'Forms' }
@@ -13,8 +14,6 @@ export const meta = { category: 'Forms' }
 const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 
 const sizes = ['sm', 'md', 'lg'] as const
-
-const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
 function InteractiveExample() {
 	const [value, setValue] = useState(50)
@@ -107,19 +106,17 @@ export default function SliderDemo() {
 
 			<Example title="Sizes">
 				{sizes.map((s, i) => (
-					<Flex key={s} gap="md">
-						<span className="w-6 text-xs text-zinc-500">{s}</span>
+					<LabeledRow key={s} label={s}>
 						<Slider size={s} defaultValue={40 + i * 20} className="flex-1" />
-					</Flex>
+					</LabeledRow>
 				))}
 			</Example>
 
 			<Example title="Colors">
 				{colors.map((color, index) => (
-					<Flex key={color} gap="md">
-						<span className="w-10 text-xs text-zinc-500">{cap(color)}</span>
+					<LabeledRow key={color} label={capitalize(color)} labelWidth="md">
 						<Slider color={color} defaultValue={40 + index * 10} className="flex-1" />
-					</Flex>
+					</LabeledRow>
 				))}
 			</Example>
 

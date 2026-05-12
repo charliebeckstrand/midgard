@@ -5,6 +5,8 @@ import { Avatar, AvatarGroup } from '../../components/avatar'
 import { Flex } from '../../components/flex'
 import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
+import { capitalize } from '../components/format'
+import { LabeledRow } from '../components/labeled'
 import { SizeListbox } from '../components/size-listbox'
 import { VariantListbox } from '../components/variant-listbox'
 
@@ -19,8 +21,6 @@ const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 type Size = (typeof sizes)[number]
 type Variant = (typeof variants)[number]
 
-const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
-
 export default function AvatarDemo() {
 	const [colorVariant, setColorVariant] = useState<Variant>('solid')
 	const [groupSize, setGroupSize] = useState<Size>('md')
@@ -31,10 +31,9 @@ export default function AvatarDemo() {
 			<Example title="Variants">
 				<Stack gap="sm">
 					{variants.map((v) => (
-						<Flex key={v} gap="sm">
-							<span className="w-12 text-xs text-zinc-500">{v}</span>
+						<LabeledRow key={v} label={v} labelWidth="lg">
 							<Avatar variant={v} initials="A" />
-						</Flex>
+						</LabeledRow>
 					))}
 				</Stack>
 			</Example>
@@ -47,7 +46,12 @@ export default function AvatarDemo() {
 			>
 				<Flex gap="sm">
 					{colors.map((color) => (
-						<Avatar key={color} variant={colorVariant} color={color} initials={cap(color)[0]} />
+						<Avatar
+							key={color}
+							variant={colorVariant}
+							color={color}
+							initials={capitalize(color)[0]}
+						/>
 					))}
 				</Flex>
 			</Example>

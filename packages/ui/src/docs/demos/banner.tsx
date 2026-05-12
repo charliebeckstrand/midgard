@@ -5,6 +5,7 @@ import { Banner } from '../../components/banner'
 import { Button } from '../../components/button'
 import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
+import { capitalize } from '../components/format'
 import { VariantListbox } from '../components/variant-listbox'
 
 export const meta = { category: 'Feedback' }
@@ -12,7 +13,6 @@ export const meta = { category: 'Feedback' }
 const variants = ['solid', 'soft', 'outline', 'plain'] as const
 const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 const types = ['info', 'success', 'warning', 'error'] as const
-const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
 function ClosableExample() {
 	const [visible, setVisible] = useState(true)
@@ -46,7 +46,7 @@ export default function BannerDemo() {
 						<Banner
 							key={type}
 							type={type}
-							title={`${cap(type)} — this is a ${type} banner`}
+							title={`${capitalize(type)} — this is a ${type} banner`}
 							closable={false}
 						/>
 					))}
@@ -59,7 +59,7 @@ export default function BannerDemo() {
 			>
 				<Stack className="gap-0 -mx-4">
 					{colors.map((c) => (
-						<Banner key={c} variant={variant} color={c} title={cap(c)} closable={false} />
+						<Banner key={c} variant={variant} color={c} title={capitalize(c)} closable={false} />
 					))}
 				</Stack>
 			</Example>
