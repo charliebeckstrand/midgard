@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from 'react'
 import { useControllable } from '../../hooks'
 import type { QueryBuilderActions } from './context'
-import type { QueryField, QueryGroup, QueryRule } from './types'
+import type { QueryField, QueryGroup } from './types'
 import { addChild, createGroup, createRule, mapNode, removeChild } from './utilities'
 
 export type UseQueryBuilderTreeOptions = {
@@ -27,7 +27,7 @@ export function useQueryBuilderTree({
 	const [tree, setTree] = useControllable<QueryGroup>({
 		value,
 		defaultValue: initial,
-		onChange: onChange as ((v: QueryGroup | undefined) => void) | undefined,
+		onChange: onChange && ((v) => v !== undefined && onChange(v)),
 	})
 
 	const root = tree ?? initial
@@ -36,7 +36,7 @@ export function useQueryBuilderTree({
 		(id, patch) => {
 			setTree((prev) =>
 				mapNode(prev ?? initial, id, (node) =>
-					node.type === 'rule' ? ({ ...node, ...patch } as QueryRule) : node,
+					node.type === 'rule' ? { ...node, ...patch, type: 'rule' as const } : node,
 				),
 			)
 		},

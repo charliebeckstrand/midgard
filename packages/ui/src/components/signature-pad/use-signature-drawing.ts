@@ -49,7 +49,7 @@ export function useSignatureDrawing({
 
 		event.preventDefault()
 
-		;(event.currentTarget as Element).setPointerCapture?.(event.pointerId)
+		event.currentTarget.setPointerCapture?.(event.pointerId)
 
 		drawingRef.current = true
 

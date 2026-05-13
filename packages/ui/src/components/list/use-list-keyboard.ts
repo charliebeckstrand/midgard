@@ -22,9 +22,9 @@ export function useListKeyboard<T>({ items, getKey, orientation, onReorder }: Op
 	const movingRef = useRef(false)
 
 	const focusItem = useCallback((id: string) => {
-		const el = document.querySelector(
+		const el = document.querySelector<HTMLElement>(
 			`[data-slot="list-item"][data-item-id="${CSS.escape(id)}"]`,
-		) as HTMLElement | null
+		)
 
 		el?.focus()
 	}, [])

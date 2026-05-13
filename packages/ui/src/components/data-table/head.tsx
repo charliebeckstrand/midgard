@@ -43,7 +43,7 @@ export function DataTableHead<T>({ columns }: DataTableHeadProps<T>) {
 					return (
 						<DataTableColumnHeader
 							key={col.id}
-							col={col as DataTableColumn<unknown>}
+							col={col}
 							isSorted={isSorted}
 							direction={isSorted ? sort?.direction : undefined}
 							stickyHeader={stickyHeader}
@@ -57,7 +57,7 @@ export function DataTableHead<T>({ columns }: DataTableHeadProps<T>) {
 }
 
 type DataTableColumnHeaderProps = {
-	col: DataTableColumn<unknown>
+	col: Pick<DataTableColumn<unknown>, 'id' | 'title' | 'sortable' | 'width' | 'headerClassName'>
 	isSorted: boolean
 	direction: 'asc' | 'desc' | undefined
 	stickyHeader: boolean

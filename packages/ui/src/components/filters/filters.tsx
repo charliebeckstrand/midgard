@@ -44,7 +44,7 @@ export function Filters<T extends FilterValue = FilterValue>({
 	const [state, setState] = useControllable<T>({
 		value: valueProp,
 		defaultValue: defaultValue ?? ({} as T),
-		onChange: onChange as ((value: T | undefined) => void) | undefined,
+		onChange: onChange && ((v) => v !== undefined && onChange(v)),
 	})
 
 	const filterValue = (state ?? {}) as T

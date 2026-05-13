@@ -2,7 +2,7 @@
 
 import { type RefObject, useEffect, useRef } from 'react'
 
-export type UseDismissableOptions = {
+export type UseDismissableOptions<T extends HTMLElement = HTMLDivElement> = {
 	open: boolean
 	onDismiss: () => void
 	/** Escape key closes. @default true */
@@ -12,7 +12,7 @@ export type UseDismissableOptions = {
 	/** Locks body scroll while open. Nested locks are reference-counted. @default false */
 	scrollLock?: boolean
 	/** External ref for the outside-pointer boundary. If omitted, attach the returned ref. */
-	containerRef?: RefObject<HTMLElement | null>
+	containerRef?: RefObject<T | null>
 }
 
 // Reference-counted so nested overlays don't release the lock prematurely.
@@ -50,10 +50,10 @@ export function useDismissable<T extends HTMLElement = HTMLDivElement>({
 	outsidePointer = true,
 	scrollLock = false,
 	containerRef: externalRef,
-}: UseDismissableOptions): RefObject<T | null> {
+}: UseDismissableOptions<T>): RefObject<T | null> {
 	const internalRef = useRef<T | null>(null)
 
-	const ref = (externalRef ?? internalRef) as RefObject<T | null>
+	const ref = externalRef ?? internalRef
 
 	const onDismissRef = useRef(onDismiss)
 

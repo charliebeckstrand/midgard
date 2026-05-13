@@ -33,7 +33,7 @@ function DataTableRowInternalImpl<T>({
 	)
 
 	return (
-		<DataTableRowProvider value={rowCtx as DataTableRowContextValue}>
+		<DataTableRowProvider value={rowCtx}>
 			<TableRow
 				data-selected={selected || undefined}
 				className={cn(loading && k.rowLoading, className)}

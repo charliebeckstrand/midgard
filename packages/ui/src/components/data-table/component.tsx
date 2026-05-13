@@ -328,7 +328,7 @@ export function DataTable<T>({
 			) : (
 				<TableBody>
 					{rows.map((row, index) => {
-						const key = rowKeys[index] as string | number
+						const key = rowKeys[index] ?? getRowKey(row, index)
 
 						return (
 							<DataTableRowInternal<T>

@@ -5,7 +5,6 @@ import {
 	cloneElement,
 	isValidElement,
 	type MouseEvent,
-	type MutableRefObject,
 	type ReactElement,
 	useCallback,
 } from 'react'
@@ -22,8 +21,7 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 
 	const mergeRefs = useCallback(
 		(node: HTMLElement | null) => {
-			;(triggerRef as MutableRefObject<HTMLButtonElement | null>).current =
-				node as HTMLButtonElement | null
+			triggerRef.current = node as HTMLButtonElement | null
 			setReference(node)
 		},
 		[triggerRef, setReference],

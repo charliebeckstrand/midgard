@@ -27,14 +27,14 @@ export function useDeferredToggle<T>({
 		(newValue: T) => {
 			setValue((prev) => {
 				if (multiple) {
-					const arr = (Array.isArray(prev) ? prev : []) as T[]
+					const arr: T[] = Array.isArray(prev) ? prev : []
 
 					return arr.includes(newValue) ? arr.filter((v) => v !== newValue) : [...arr, newValue]
 				}
 
 				if (nullable && prev === newValue) return undefined
 
-				return newValue as T | T[]
+				return newValue
 			})
 		},
 		[multiple, nullable, setValue],

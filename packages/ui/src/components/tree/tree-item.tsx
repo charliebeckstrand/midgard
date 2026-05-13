@@ -86,7 +86,7 @@ export function TreeItem({
 	}
 
 	const handleClick = (e: MouseEvent<HTMLDivElement>) => {
-		if ((e.target as HTMLElement).closest(AFFIX_SELECTOR)) return
+		if (e.target instanceof Element && e.target.closest(AFFIX_SELECTOR)) return
 
 		if (hasChildren) {
 			toggle()

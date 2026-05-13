@@ -12,7 +12,7 @@ export type LinkProps = {
 
 export type LinkComponent = ComponentType<LinkProps> | 'a'
 
-export interface LinkContextValue {
+export type LinkContextValue = {
 	component: LinkComponent
 }
 

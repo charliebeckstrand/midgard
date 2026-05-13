@@ -60,5 +60,5 @@ export function createContext<T>(
 		return value
 	}
 
-	return [Context.Provider as unknown as Provider<T>, useContextValue, Context]
+	return [Context.Provider, useContextValue, Context]
 }

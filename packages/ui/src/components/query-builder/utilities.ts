@@ -106,9 +106,7 @@ export function mapNode(
 
 	const { children } = tree
 
-	for (let i = 0; i < children.length; i++) {
-		const child = children[i] as QueryNode
-
+	for (const [i, child] of children.entries()) {
 		let nextChild: QueryNode | undefined
 
 		if (child.id === id) {
@@ -136,9 +134,7 @@ export function addChild(tree: QueryGroup, parentId: string, node: QueryNode): Q
 
 	const { children } = tree
 
-	for (let i = 0; i < children.length; i++) {
-		const child = children[i] as QueryNode
-
+	for (const [i, child] of children.entries()) {
 		if (child.type !== 'group') continue
 
 		const mapped = addChild(child, parentId, node)
@@ -158,9 +154,7 @@ export function addChild(tree: QueryGroup, parentId: string, node: QueryNode): Q
 export function removeChild(tree: QueryGroup, id: string): QueryGroup {
 	const { children } = tree
 
-	for (let i = 0; i < children.length; i++) {
-		const child = children[i] as QueryNode
-
+	for (const [i, child] of children.entries()) {
 		if (child.id === id) {
 			const nextChildren = children.slice()
 

@@ -84,7 +84,7 @@ export function ChatClient({
 	const activeChatId = useMemo(() => {
 		const match = pathname.match(/^\/([^/]+)/)
 
-		return match ? match[1] : null
+		return match?.[1] ?? null
 	}, [pathname])
 
 	const isDraft = searchParams.get('draft') === 'true'

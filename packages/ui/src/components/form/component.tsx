@@ -145,7 +145,7 @@ export function Form<T extends Record<string, unknown>>({
 
 			try {
 				await onSubmit(valuesRef.current, {
-					setErrors: setErrorsExternal as FormHelpers<T>['setErrors'],
+					setErrors: setErrorsExternal,
 					reset,
 				})
 			} finally {
@@ -166,7 +166,7 @@ export function Form<T extends Record<string, unknown>>({
 
 	const formState = useMemo<FormStateValue>(
 		() => ({
-			values: values as Record<string, unknown>,
+			values,
 			errors,
 			touched,
 			dirty,

@@ -119,14 +119,11 @@ const responsiveAlignMap: Record<Breakpoint, Record<FlexAlign, string>> = {
 }
 
 export function resolveDirection(value: ResponsiveDirection | undefined): string[] {
-	return resolveResponsive(
-		value,
-		(v, bp) => responsiveDirectionMap[(bp ?? 'initial') as Breakpoint][v],
-	)
+	return resolveResponsive(value, (v, bp) => responsiveDirectionMap[bp ?? 'initial'][v])
 }
 
 export function resolveAlign(value: ResponsiveAlign | undefined): string[] {
-	return resolveResponsive(value, (v, bp) => responsiveAlignMap[(bp ?? 'initial') as Breakpoint][v])
+	return resolveResponsive(value, (v, bp) => responsiveAlignMap[bp ?? 'initial'][v])
 }
 
 export function resolveGap(value: ResponsiveGap | undefined): string[] {

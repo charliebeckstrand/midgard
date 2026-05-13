@@ -47,7 +47,7 @@ export function Switch({
 
 	// Resolution order: explicit prop, then any wrapping <Field> control
 	// context, then the ambient concentric size.
-	const resolvedSize = size ?? (control?.size as SwitchVariants['size']) ?? concentric?.size ?? 'md'
+	const resolvedSize = size ?? control?.size ?? concentric?.size ?? 'md'
 
 	if (useSkeleton()) {
 		return (

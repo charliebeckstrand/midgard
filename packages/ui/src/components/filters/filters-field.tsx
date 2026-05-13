@@ -43,7 +43,7 @@ export function FiltersField({ name, children, className }: FiltersFieldProps) {
 	const handleChange = useCallback(
 		(valueOrEvent: unknown) => {
 			if (isSyntheticEvent(valueOrEvent)) {
-				const target = valueOrEvent.target as HTMLInputElement
+				const target = valueOrEvent.currentTarget
 
 				setValue(name, target.type === 'checkbox' ? target.checked : target.value)
 			} else {

@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { type PointerEvent, useCallback, useRef, useState } from 'react'
 import { ReducedMotion } from './reduced-motion'
 
-interface RippleEntry {
+type RippleEntry = {
 	key: number
 	x: number
 	y: number

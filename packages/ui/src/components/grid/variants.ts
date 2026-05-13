@@ -8,16 +8,18 @@ export type GridGap = Ma
 
 export function resolveResponsive<T>(
 	value: Responsive<T> | undefined,
-	resolver: (v: T, bp?: string) => string,
+	resolver: (v: T, bp?: Breakpoint) => string,
 ): string[] {
 	if (value === undefined) return []
 
 	if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-		const obj = value as Record<string, T>
+		const obj: Partial<Record<Breakpoint, T>> = value
 
 		const classes: string[] = []
 
-		for (const [bp, v] of Object.entries(obj)) {
+		for (const bp of BREAKPOINTS) {
+			const v = obj[bp]
+
 			if (v === undefined) continue
 
 			classes.push(resolver(v, bp === 'initial' ? undefined : bp))
@@ -26,7 +28,7 @@ export function resolveResponsive<T>(
 		return classes
 	}
 
-	return [resolver(value as T)]
+	return [resolver(value)]
 }
 
 // ─── Scalar resolver ────────────────────────────────────────────────────────
@@ -67,8 +69,10 @@ function resolveScalar<T>(
 	const style: Record<string, string | number> = {}
 
 	if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+		const obj: Partial<Record<Breakpoint, T>> = value
+
 		for (const bp of BREAKPOINTS) {
-			const v = (value as Record<string, T | undefined>)[bp]
+			const v = obj[bp]
 
 			if (v === undefined) continue
 
@@ -79,7 +83,7 @@ function resolveScalar<T>(
 	} else {
 		classes.push(classMap.initial)
 
-		style[varName(prefix, 'initial')] = toCss(value as T)
+		style[varName(prefix, 'initial')] = toCss(value)
 	}
 
 	return { classes, style: style as CSSProperties }
@@ -207,12 +211,14 @@ export function resolveSpan(
 	}
 
 	if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+		const obj: Partial<Record<Breakpoint, number | 'full'>> = value
+
 		const classes: string[] = []
 
 		const style: Record<string, string | number> = {}
 
 		for (const bp of BREAKPOINTS) {
-			const v = (value as Record<string, number | 'full' | undefined>)[bp]
+			const v = obj[bp]
 
 			if (v === undefined) continue
 
