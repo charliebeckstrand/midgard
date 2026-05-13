@@ -56,7 +56,7 @@ function walk(
 	const name = typeRefName(node.typeName)
 
 	// Omit<T, 'a' | 'b'> — recurse with extra omitted keys
-	if (name === 'Omit' || name === 'DistributiveOmit') {
+	if (name === 'Omit') {
 		const [inner, keys] = node.typeArguments ?? []
 
 		if (inner) walk(inner, [...omitted, ...stringLiteralKeys(keys)], out, visited, checker)

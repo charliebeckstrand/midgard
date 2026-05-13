@@ -3,7 +3,6 @@ import { cn } from '../../core'
 import { Polymorphic, type PolymorphicProps } from '../../primitives'
 import { kokkaku } from '../../recipes'
 import { type BadgeVariants, badgeVariants } from '../../recipes/kata/badge'
-import type { DistributiveOmit } from '../../types'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
 
@@ -13,7 +12,7 @@ type BadgeBaseProps = BadgeVariants & {
 	suffix?: ReactNode
 }
 
-export type BadgeProps = BadgeBaseProps & DistributiveOmit<PolymorphicProps<'span'>, 'prefix'>
+export type BadgeProps = BadgeBaseProps & PolymorphicProps<'span', 'prefix'>
 
 export function Badge({
 	variant = 'solid',

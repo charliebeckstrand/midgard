@@ -2,10 +2,9 @@ import { type CSSProperties, useMemo } from 'react'
 import { cn } from '../../core'
 import { ConcentricProvider } from '../../primitives'
 import { type Step, sun } from '../../recipes/ryu/sun'
-import type { DistributiveOmit } from '../../types'
 import { Box, type BoxProps } from '../box'
 
-export type CardProps = DistributiveOmit<BoxProps, 'radius'> & {
+export type CardProps = BoxProps<'radius'> & {
 	/** Size step that drives padding, inner radius, and the concentric outer radius. */
 	size?: Step
 }

@@ -20,7 +20,6 @@ import {
 } from '../../primitives'
 import { kokkaku } from '../../recipes'
 import { type ButtonVariants, buttonVariants } from '../../recipes/kata/button'
-import type { DistributiveOmit } from '../../types'
 import { useGlass } from '../glass/context'
 import { Icon } from '../icon'
 import { useInputSize } from '../input/context'
@@ -66,7 +65,7 @@ type ButtonBaseProps = ButtonVariants & {
 }
 
 export type ButtonProps = ButtonBaseProps &
-	(DistributiveOmit<PolymorphicProps<'button'>, 'prefix'> & { ref?: Ref<HTMLButtonElement> })
+	PolymorphicProps<'button', 'prefix'> & { ref?: Ref<HTMLButtonElement> }
 
 export function Button({
 	variant,

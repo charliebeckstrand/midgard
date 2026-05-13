@@ -79,7 +79,7 @@ function walk(
 
 	// Omit<T, K> — recurse into T (the omitted keys are stripped from the
 	// resolved type already; we don't need to re-strip here).
-	if (refName === 'Omit' || refName === 'DistributiveOmit') {
+	if (refName === 'Omit') {
 		const inner = node.typeArguments?.[0]
 		if (inner) walk(inner, names, visited, checker)
 
