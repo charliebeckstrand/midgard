@@ -79,41 +79,33 @@ export function Textarea({
 	const autoResizeStyle =
 		autoResize && rows ? { minHeight: `calc(${rows}lh + 1rem)`, ...style } : style
 
-	if (actions !== undefined) {
-		return (
-			<ControlFrame className={cn(k.frame, controlVariants({ variant: resolvedVariant }))}>
-				<textarea
-					data-slot="textarea"
-					{...controlProps}
-					rows={rows}
-					style={autoResizeStyle}
-					className={cn(
-						textareaVariants({ variant: resolvedVariant, resize: 'none', autoResize }),
-						k.bare,
-						className,
-					)}
-					{...props}
-				/>
-				<div data-slot="textarea-actions" className={cn(k.actions)}>
-					{actions}
-				</div>
-			</ControlFrame>
-		)
-	}
+	const hasActions = actions !== undefined
 
 	return (
-		<ControlFrame className={cn(controlVariants({ variant: resolvedVariant }))}>
+		<ControlFrame
+			className={cn(hasActions && k.frame, controlVariants({ variant: resolvedVariant }))}
+		>
 			<textarea
 				data-slot="textarea"
 				{...controlProps}
 				rows={rows}
 				style={autoResizeStyle}
 				className={cn(
-					textareaVariants({ variant: resolvedVariant, resize, autoResize }),
+					textareaVariants({
+						variant: resolvedVariant,
+						resize: hasActions ? 'none' : resize,
+						autoResize,
+					}),
+					hasActions && k.bare,
 					className,
 				)}
 				{...props}
 			/>
+			{hasActions && (
+				<div data-slot="textarea-actions" className={cn(k.actions)}>
+					{actions}
+				</div>
+			)}
 		</ControlFrame>
 	)
 }
