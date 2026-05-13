@@ -59,8 +59,14 @@ function DataTableRowInternalImpl<T>({
 						)
 					}
 
+					const cellExtra = col.cellProps?.(row)
+
 					return (
-						<TableCell key={col.id} className={cn(col.className)}>
+						<TableCell
+							key={col.id}
+							{...cellExtra}
+							className={cn(col.className, cellExtra?.className)}
+						>
 							{col.cell ? col.cell(row) : null}
 						</TableCell>
 					)

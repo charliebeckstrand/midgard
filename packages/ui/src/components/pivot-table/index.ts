@@ -4,7 +4,7 @@ export {
 	type PivotTableProps,
 	type PivotTotals,
 } from './component'
-export { type PivotAggregation } from './types'
+export type { PivotAggregation } from './types'
 export {
 	type UsePivotTableOptions,
 	type UsePivotTableResult,

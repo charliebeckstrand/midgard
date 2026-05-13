@@ -23,8 +23,7 @@ export type MapProps = {
 	onLoad?: (map: MapLibreMap) => void
 }
 
-// biome-ignore lint/suspicious/noShadowRestrictedNames: public component name
-export function Map({
+function MapView({
 	center = [0, 0],
 	zoom = 2,
 	bearing = 0,
@@ -213,3 +212,5 @@ export function Map({
 		</div>
 	)
 }
+
+export { MapView as Map }

@@ -10,7 +10,7 @@ import {
 	type DataTableSort,
 	type DataTableVirtualize,
 } from '../data-table'
-import type { TableElementProps, TableVariants } from '../table'
+import type { TableVariants } from '../table'
 import { type EditableGridContextValue, EditableGridProvider } from './context'
 import type { CellChange, Coord, EditableGridColumn } from './types'
 import { useEditableGridAugmentedColumns } from './use-editable-grid-augmented-columns'
@@ -257,6 +257,11 @@ export function EditableGrid<T>({
 		columns,
 		rowIndexMap,
 		formatCell,
+		active,
+		editing,
+		addCellToSelection,
+		moveActiveTo,
+		beginEdit,
 	})
 
 	const ctx = useMemo<EditableGridContextValue>(
@@ -304,18 +309,16 @@ export function EditableGrid<T>({
 				grid={grid}
 				striped={striped}
 				className={cn(sen.focus.inset, className)}
-				tableProps={
-					{
-						ref: wrapperRef,
-						'data-slot': 'editable-grid',
-						role: 'grid',
-						tabIndex: 0,
-						onKeyDown: onWrapperKeyDown,
-						onPaste: onWrapperPaste,
-						onFocus: onWrapperFocus,
-						onBlur: onWrapperBlur,
-					} as TableElementProps
-				}
+				tableProps={{
+					ref: wrapperRef,
+					'data-slot': 'editable-grid',
+					role: 'grid',
+					tabIndex: 0,
+					onKeyDown: onWrapperKeyDown,
+					onPaste: onWrapperPaste,
+					onFocus: onWrapperFocus,
+					onBlur: onWrapperBlur,
+				}}
 			/>
 		</EditableGridProvider>
 	)

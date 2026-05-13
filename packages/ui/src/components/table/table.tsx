@@ -14,6 +14,7 @@ export type TableVariants = {
 
 export type TableElementProps = TableHTMLAttributes<HTMLTableElement> & {
 	ref?: Ref<HTMLTableElement>
+	[key: `data-${string}`]: string | number | boolean | undefined
 }
 
 export type TableProps = TableVariants & {

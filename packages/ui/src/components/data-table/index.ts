@@ -17,8 +17,8 @@ export {
 	useDataTable,
 	useDataTableRow,
 } from './context'
-export {
-	type DataTableColumn,
-	type DataTableColumnManagerItem,
-	type DataTableColumnManagerPreset,
+export type {
+	DataTableColumn,
+	DataTableColumnManagerItem,
+	DataTableColumnManagerPreset,
 } from './types'

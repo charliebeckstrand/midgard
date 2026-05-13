@@ -23,5 +23,5 @@ export function NavItem({ value, current, onClick, ...props }: NavItemProps) {
 		}
 	}
 
-	return <BaseNavItem current={isCurrent} onClick={handleClick} {...props} />
+	return <BaseNavItem role="menuitem" current={isCurrent} onClick={handleClick} {...props} />
 }

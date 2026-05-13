@@ -6,7 +6,6 @@ export {
 	useKanbanContext,
 } from './context'
 export { Kanban, type KanbanProps } from './kanban'
-export { type KanbanColumnShape } from './types'
 export { KanbanCard, type KanbanCardProps } from './kanban-card'
 export { KanbanColumn, type KanbanColumnProps } from './kanban-column'
 export {
@@ -19,3 +18,4 @@ export {
 	KanbanColumnTitle,
 	type KanbanColumnTitleProps,
 } from './kanban-column-header'
+export type { KanbanColumnShape } from './types'

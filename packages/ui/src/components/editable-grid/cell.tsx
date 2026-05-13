@@ -20,19 +20,8 @@ export function EditableGridCellContent({
 	align,
 	formatted,
 }: EditableGridCellContentProps) {
-	const {
-		active,
-		anchor,
-		extraCells,
-		editing,
-		draft,
-		setDraft,
-		setActive,
-		addCellToSelection,
-		beginEdit,
-		commitEdit,
-		cancelEdit,
-	} = useEditableGrid()
+	const { active, anchor, extraCells, editing, draft, setDraft, commitEdit, cancelEdit } =
+		useEditableGrid()
 
 	const isActive = active?.row === rowIdx && active?.col === colIdx
 
@@ -75,39 +64,18 @@ export function EditableGridCellContent({
 	}, [showInput])
 
 	return (
-		// biome-ignore lint/a11y/useFocusableInteractive: focus lives on the grid wrapper; cells are focused programmatically via mouseDown
-		// biome-ignore lint/a11y/useSemanticElements: role="gridcell" is the correct ARIA role inside a composite grid widget
 		<div
 			data-slot="editable-grid-cell"
 			data-active={isActive || undefined}
 			data-in-range={inRange || undefined}
-			role="gridcell"
-			aria-readonly={readOnly || undefined}
 			className={cn(
 				k.cell,
 				k.cellAlign[align],
 				readOnly && k.cellReadOnly,
 				isActive && !showInput && k.cellActive,
 			)}
-			onMouseDown={(e) => {
-				if (showInput) return
-
-				e.preventDefault()
-
-				;(e.currentTarget.closest('[role=grid]') as HTMLElement | null)?.focus()
-
-				const coord = { row: rowIdx, col: colIdx }
-
-				if (e.metaKey || e.ctrlKey) addCellToSelection(coord)
-				else setActive(coord, e.shiftKey)
-			}}
-			onDoubleClick={() => {
-				if (readOnly) return
-
-				beginEdit({ row: rowIdx, col: colIdx }, formatted)
-			}}
 		>
-			<span className={cn('truncate', showInput && 'invisible')}>{formatted || '\u00A0'}</span>
+			<span className={cn('truncate', showInput && 'invisible')}>{formatted || ' '}</span>
 			{showInput && (
 				<input
 					ref={inputRef}
