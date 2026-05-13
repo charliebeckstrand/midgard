@@ -128,7 +128,7 @@ function CustomProviderExample() {
 export default function AddressInputDemo() {
 	return (
 		<Stack gap="xl">
-			<Alert type="info" closable>
+			<Alert severity="info" closable>
 				<Text>
 					AddressInput uses the{' '}
 					<a

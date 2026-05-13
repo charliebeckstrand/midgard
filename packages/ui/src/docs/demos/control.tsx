@@ -40,7 +40,7 @@ export default function ControlDemo() {
 
 	return (
 		<Stack gap="xl">
-			<Alert type="info" variant="soft" color="blue" closable>
+			<Alert severity="info" variant="soft" closable>
 				<AlertDescription>
 					Control generates and propagates a stable ID and state to control-aware children.
 				</AlertDescription>

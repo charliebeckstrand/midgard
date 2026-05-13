@@ -82,7 +82,7 @@ const commands: Command[] = [
 		group: 'Application',
 	},
 	{
-		id: 'appearance',
+		id: 'type',
 		label: 'Appearance',
 		icon: <Palette />,
 		group: 'Application',
@@ -141,7 +141,7 @@ export default function CommandPaletteDemo() {
 
 						if (!results.length) {
 							return (
-								<Alert type="warning" block>
+								<Alert severity="warning" block>
 									<AlertTitle>No commands found</AlertTitle>
 								</Alert>
 							)

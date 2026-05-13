@@ -14,7 +14,7 @@ const sizes = ['xs', 'sm', 'md', 'lg'] as const
 export default function IconDemo() {
 	return (
 		<Stack gap="xl">
-			<Alert type="info" closable>
+			<Alert severity="info" closable>
 				<AlertTitle>SVG support</AlertTitle>
 				<AlertDescription>
 					The <Code>&lt;Icon&gt;</Code> component can wrap any SVG icon component. It provides a

@@ -181,7 +181,7 @@ function ShipmentChat({ messages, onSend }: ShipmentChatProps) {
 				)}
 			>
 				{messages.length === 0 ? (
-					<Alert type="info">
+					<Alert severity="info">
 						<AlertTitle>No messages yet</AlertTitle>
 					</Alert>
 				) : (

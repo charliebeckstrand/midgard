@@ -17,7 +17,7 @@ export const meta = { category: 'Layout' }
 export default function CardDemo() {
 	return (
 		<Stack gap="xl">
-			<Alert type="info" closable>
+			<Alert severity="info" closable>
 				<AlertDescription>Card extends Box.</AlertDescription>
 				<AlertDescription>
 					See the{' '}
