@@ -1,14 +1,14 @@
 'use client'
 
-import { CornerLeftDown, X } from 'lucide-react'
+import { CornerLeftDown } from 'lucide-react'
 import { type Ref, useCallback, useImperativeHandle, useRef, useState } from 'react'
-import { useControllable, useInputTagKeyboard } from '../../hooks'
+import { useInputTagKeyboard } from '../../hooks'
 import type { Color } from '../../recipes/ryu/iro'
-import { Badge } from '../badge'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { Input } from '../input'
-import { tagRemoveSize, tagSize } from './utilities'
+import { TagBadge } from './tag-badge'
+import { useTagInput } from './use-tag-input'
 
 export type TagInputProps = {
 	id?: string
@@ -47,53 +47,26 @@ export function TagInput({
 	ref,
 	className,
 }: TagInputProps) {
-	const [tags = [], setTags] = useControllable<string[]>({
-		value,
-		defaultValue: defaultValue ?? [],
-		onChange,
-	})
-
-	const [inputValue, setInputValue] = useState('')
-
 	const inputRef = useRef<HTMLInputElement>(null)
 
 	useImperativeHandle(ref, () => inputRef.current as HTMLInputElement)
 
+	const { tags, atMax, addTag, removeTag } = useTagInput({
+		value,
+		defaultValue,
+		onChange,
+		max,
+		validate,
+		onMaxReleased: () => {
+			requestAnimationFrame(() => inputRef.current?.focus())
+		},
+	})
+
+	const [inputValue, setInputValue] = useState('')
+
 	const resolvedSize = size ?? 'md'
 
 	const resolvedColor = tag?.color ?? 'zinc'
-
-	const atMax = max !== undefined && tags.length >= max
-
-	const addTag = useCallback(
-		(raw: string): boolean => {
-			const tag = raw.trim()
-
-			if (!tag) return false
-
-			if (tags.includes(tag)) return false
-
-			if (max !== undefined && tags.length >= max) return false
-
-			if (validate && !validate(tag)) return false
-
-			setTags([...tags, tag])
-
-			return true
-		},
-		[tags, setTags, max, validate],
-	)
-
-	const removeTag = useCallback(
-		(index: number) => {
-			setTags(tags.filter((_, i) => i !== index))
-
-			if (atMax) {
-				requestAnimationFrame(() => inputRef.current?.focus())
-			}
-		},
-		[tags, setTags, atMax],
-	)
 
 	const clearInput = useCallback(() => setInputValue(''), [])
 
@@ -123,33 +96,14 @@ export function TagInput({
 		tags.length > 0 ? (
 			<span data-slot="tag-input" className="flex flex-wrap gap-1 min-w-0 cursor-text">
 				{tags.map((t, i) => (
-					<Badge
+					<TagBadge
 						key={t}
-						size={tagSize[resolvedSize]}
-						variant="outline"
-						rounded="full"
+						label={t}
+						size={resolvedSize}
 						color={resolvedColor}
-						suffix={
-							!disabled && (
-								<Button
-									aria-label={`Remove ${t}`}
-									className={tagRemoveSize[resolvedSize]}
-									size="xs"
-									variant="plain"
-									onMouseDown={(e) => e.preventDefault()}
-									onClick={(e) => {
-										e.stopPropagation()
-
-										removeTag(i)
-									}}
-								>
-									<Icon icon={<X />} />
-								</Button>
-							)
-						}
-					>
-						<span className="truncate">{t}</span>
-					</Badge>
+						disabled={disabled}
+						onRemove={() => removeTag(i)}
+					/>
 				))}
 			</span>
 		) : undefined
