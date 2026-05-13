@@ -1,7 +1,7 @@
 import { type RefObject, useCallback, useState } from 'react'
 import { useDeferredToggle } from '../../hooks/use-deferred-toggle'
 
-type UseComboboxSelectionParams<T> = {
+type UseComboboxStateParams<T> = {
 	multiple: boolean
 	nullable: boolean
 	selectable: boolean
@@ -16,7 +16,7 @@ type UseComboboxSelectionParams<T> = {
 	inputRef: RefObject<HTMLInputElement | null>
 }
 
-export function useComboboxSelection<T>({
+export function useComboboxState<T>({
 	multiple,
 	nullable,
 	selectable,
@@ -27,7 +27,7 @@ export function useComboboxSelection<T>({
 	onChange,
 	setValue,
 	inputRef,
-}: UseComboboxSelectionParams<T>) {
+}: UseComboboxStateParams<T>) {
 	const [query, setQueryInternal] = useState('')
 
 	const [internalOpen, setInternalOpen] = useState(false)

@@ -8,7 +8,7 @@ import {
 } from 'react'
 import { selectActiveOrSingleOption } from './utilities'
 
-type UseComboboxInputHandlersParams<T> = {
+type UseComboboxInputParams<T> = {
 	multiple: boolean
 	clearOnEmpty: boolean
 	value: T | T[] | undefined
@@ -23,7 +23,7 @@ type UseComboboxInputHandlersParams<T> = {
 	rovingKeyDown: KeyboardEventHandler<HTMLInputElement>
 }
 
-export function useComboboxInputHandlers<T>({
+export function useComboboxInput<T>({
 	multiple,
 	clearOnEmpty,
 	value,
@@ -36,7 +36,7 @@ export function useComboboxInputHandlers<T>({
 	floatingRef,
 	optionsRef,
 	rovingKeyDown,
-}: UseComboboxInputHandlersParams<T>) {
+}: UseComboboxInputParams<T>) {
 	const onChange = useCallback(
 		(e: ChangeEvent<HTMLInputElement>) => {
 			const next = e.target.value

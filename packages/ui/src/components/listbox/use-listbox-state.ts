@@ -1,7 +1,7 @@
 import { type RefObject, useCallback, useState } from 'react'
 import { useDeferredToggle } from '../../hooks/use-deferred-toggle'
 
-type UseListboxSelectionParams<T> = {
+type UseListboxStateParams<T> = {
 	multiple: boolean
 	nullable: boolean
 	setValue: (
@@ -10,12 +10,12 @@ type UseListboxSelectionParams<T> = {
 	triggerRef: RefObject<HTMLButtonElement | null>
 }
 
-export function useListboxSelection<T>({
+export function useListboxState<T>({
 	multiple,
 	nullable,
 	setValue,
 	triggerRef,
-}: UseListboxSelectionParams<T>) {
+}: UseListboxStateParams<T>) {
 	const [open, setOpen] = useState(false)
 
 	const close = useCallback(() => {
