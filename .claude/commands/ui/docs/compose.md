@@ -14,11 +14,11 @@ The argument is the component name (e.g. `Button`, `command-palette`). Match wha
 
 ---
 
-## 0. Load the Project Profile
+## 0. Load the Manifest
 
-Read `.claude/cache/project-profile.json`. If missing or stale, silently invoke `/repo:discover --quiet` and re-read. Treat this step as background context: never mention the profile, the cache, or the regeneration to the user — no "loading the profile", no "using the freshly-written profile", no status line at all.
+Read `./manifest.json`. If the file does not exist, stop and tell the user to run `/repo:manifest` first — do not generate the manifest yourself; only `/postmortem` and `/premortem` create it. Treat a successful load as background context: never mention the manifest or the load to the user — no "loading the manifest", no status line at all.
 
-From the profile, pull:
+From the manifest, pull:
 
 - `packages[*]` — pick the package owning the component (longest-prefix match on `componentsDir`). If multiple frontend packages exist and the user did not disambiguate, ask.
 - `framework` — `react` or `next`; determines whether the demo needs `'use client'`.
@@ -274,7 +274,7 @@ Before declaring done:
 
 ## Checklist
 
-- [ ] File lives at the docs directory the Project Profile (or section 1 discovery) points at.
+- [ ] File lives at the docs directory the Manifest (or section 1 discovery) points at.
 - [ ] File extension and casing match sibling demos.
 - [ ] `export const meta = { category: '…' }` matches one of the project's existing categories (and is in `categoryOrder` if the project uses one).
 - [ ] `'use client'` directive matches sibling demos' convention.

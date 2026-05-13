@@ -15,11 +15,11 @@ Recognized hints:
 
 ---
 
-## 0. Load the Project Profile
+## 0. Load the Manifest
 
-Read `.claude/cache/project-profile.json`. If missing or stale, silently invoke `/repo:discover --quiet` and re-read. Treat this step as background context: never mention the profile, the cache, or the regeneration to the user — no "loading the profile", no "using the freshly-written profile", no status line at all.
+Read `./manifest.json`. If the file does not exist, stop and tell the user to run `/repo:manifest` first — do not generate the manifest yourself; only `/postmortem` and `/premortem` create it. Treat a successful load as background context: never mention the manifest or the load to the user — no "loading the manifest", no status line at all.
 
-From the profile, capture:
+From the manifest, capture:
 
 - `packageManager` — `pnpm` / `yarn` / `npm` / `bun`.
 - `monorepo.tool` — `turbo` or another tool. This skill assumes Turborepo; fall back to running each touched package's scripts directly when the tool differs.
@@ -55,7 +55,7 @@ Read every target file in full. There is no diff; the entire file is the surface
 
 ## 2. Map files to packages
 
-For each `.ts` / `.tsx` file in the surface, find the longest `packages[*].path` from the profile that prefixes the file. Collect the unique set of affected package names.
+For each `.ts` / `.tsx` file in the surface, find the longest `packages[*].path` from the manifest that prefixes the file. Collect the unique set of affected package names.
 
 Skip files outside any package (root configs, top-level docs) when scoping the test and type-check runs — they still get reviewed in section 7.
 
@@ -69,7 +69,7 @@ Build the test command using Turbo:
 <pm> turbo test --filter=<pkg-1> --filter=<pkg-2>
 ```
 
-Pass one `--filter` per touched package in a single command. Substitute `<pm>` with the `packageManager` from the profile. Only include packages whose profile entry has `scripts.test` set.
+Pass one `--filter` per touched package in a single command. Substitute `<pm>` with the `packageManager` from the manifest. Only include packages whose manifest entry has `scripts.test` set.
 
 For every test file present in the diff itself (diff mode) or every newly-created test file (file mode), confirm:
 
@@ -82,7 +82,7 @@ A weakened test counts as a blocking finding even when the suite is green.
 
 ## 4. Type-check the touched packages
 
-If any touched package's profile entry has `scripts.check-types` (or `typecheck`) set, run the equivalent Turbo command:
+If any touched package's manifest entry has `scripts.check-types` (or `typecheck`) set, run the equivalent Turbo command:
 
 ```
 <pm> turbo check-types --filter=<pkg-1> --filter=<pkg-2>

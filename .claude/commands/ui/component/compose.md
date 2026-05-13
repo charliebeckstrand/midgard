@@ -10,11 +10,11 @@ $ARGUMENTS
 
 ---
 
-## 0. Load the Project Profile
+## 0. Load the Manifest
 
-Read `.claude/cache/project-profile.json`. If missing or stale, silently invoke `/repo:discover --quiet` and re-read. Treat this step as background context: never mention the profile, the cache, or the regeneration to the user — no "loading the profile", no "using the freshly-written profile", no status line at all.
+Read `./manifest.json`. If the file does not exist, stop and tell the user to run `/repo:manifest` first — do not generate the manifest yourself; only `/postmortem` and `/premortem` create it. Treat a successful load as background context: never mention the manifest or the load to the user — no "loading the manifest", no status line at all.
 
-From the profile, pull the fields this skill uses:
+From the manifest, pull the fields this skill uses:
 
 - `packages[*]` — pick the target package. If multiple packages have `componentsDir`, ask the user which one (default to the one whose `package.json#name` matches the user's hint, or to the only package where `isFrontend` is `true` if there's exactly one).
 - `framework` — `react` or `next` for component-bearing packages. Both use React + JSX; Next adds the `'use client'` directive convention.
@@ -30,11 +30,11 @@ If the target package has no `componentsDir`, stop and ask the user where to pla
 
 ## 1. Discover styling and authoring conventions
 
-The Project Profile gives you structure; you still need to learn **how** components are written in this project. Run these reads in parallel:
+The Manifest gives you structure; you still need to learn **how** components are written in this project. Run these reads in parallel:
 
 ### 1a. Detect the styling system
 
-Inspect the target package's `package.json` (or `devDependencies` resolved through the profile). The presence of a known dep determines the styling approach:
+Inspect the target package's `package.json` (or `devDependencies` resolved through the manifest). The presence of a known dep determines the styling approach:
 
 | Dep | System |
 | --- | --- |
@@ -64,7 +64,7 @@ If sibling components disagree, prefer the most recent (highest mtime) — it re
 
 ### 1c. Detect design tokens / recipes
 
-If the profile's `tokensDir` is set, read its `index.*` and one representative token file. Note the categories the project exposes (colors, typography, spacing, radii, motion, etc.) so you can compose them instead of inventing literals.
+If the manifest's `tokensDir` is set, read its `index.*` and one representative token file. Note the categories the project exposes (colors, typography, spacing, radii, motion, etc.) so you can compose them instead of inventing literals.
 
 ### 1d. Note whether a docs system exists
 
@@ -280,7 +280,7 @@ If section 1d found a docs system, delegate to `/ui:docs:compose`:
 /ui:docs:compose <ComponentName>
 ```
 
-That skill reads the same Project Profile, samples sibling docs files for authoring conventions, and produces a docs page that demonstrates the component's API surface in a form the project's code-derivation tooling can parse. Do not author the docs file inline here — keep this skill focused on the component itself.
+That skill reads the same Manifest, samples sibling docs files for authoring conventions, and produces a docs page that demonstrates the component's API surface in a form the project's code-derivation tooling can parse. Do not author the docs file inline here — keep this skill focused on the component itself.
 
 If the project has no docs system, skip this step.
 
@@ -292,7 +292,7 @@ Always create a test file for the new component. Delegate to `/tests:compose`:
 /tests:compose <ComponentName>
 ```
 
-`/tests:compose` reads the same Project Profile, infers the right location and runner, and produces a test that matches the project's conventions.
+`/tests:compose` reads the same Manifest, infers the right location and runner, and produces a test that matches the project's conventions.
 
 ### 3i. TypeScript review on the new files
 
@@ -327,7 +327,7 @@ Before declaring the component done, confirm:
 
 ## Important
 
-- The Project Profile is the source of truth for paths, framework, and toolchain. Never hard-code those facts.
-- If a profile field is `null` and the user's request doesn't disambiguate, ask before guessing.
+- The Manifest is the source of truth for paths, framework, and toolchain. Never hard-code those facts.
+- If a manifest field is `null` and the user's request doesn't disambiguate, ask before guessing.
 - Project-specific exclusion lists ("don't scaffold a `rating` here", etc.) live in `CLAUDE.md` or `AGENTS.md`. Honor whatever you find there; do not bake an exclusion list into this skill.
-- When the project's vocabulary differs from the generic examples above (e.g. it calls them "blocks" not "components", or has its own term for "recipe"), use the project's term in user-facing text. Pull that vocabulary from `conventions.vocabularyGlossary` in the profile.
+- When the project's vocabulary differs from the generic examples above (e.g. it calls them "blocks" not "components", or has its own term for "recipe"), use the project's term in user-facing text. Pull that vocabulary from `conventions.vocabularyGlossary` in the manifest.

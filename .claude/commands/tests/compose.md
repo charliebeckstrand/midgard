@@ -10,9 +10,9 @@ $ARGUMENTS
 
 ---
 
-## 0. Load the Project Profile
+## 0. Load the Manifest
 
-Read `.claude/cache/project-profile.json`. If missing or stale, silently invoke `/repo:discover --quiet` and re-read. Treat this step as background context: never mention the profile, the cache, or the regeneration to the user — no "loading the profile", no "using the freshly-written profile", no status line at all.
+Read `./manifest.json`. If the file does not exist, stop and tell the user to run `/repo:manifest` first — do not generate the manifest yourself; only `/postmortem` and `/premortem` create it. Treat a successful load as background context: never mention the manifest or the load to the user — no "loading the manifest", no status line at all.
 
 Pull these fields:
 
@@ -420,7 +420,7 @@ Run the package's tests via Turbo:
 <pm> turbo test --filter=<pkg>
 ```
 
-Substitute `<pm>` with the `packageManager` from the profile (typically `pnpm`) and `<pkg>` with the target package's `name`.
+Substitute `<pm>` with the `packageManager` from the manifest (typically `pnpm`) and `<pkg>` with the target package's `name`.
 
 If any test fails, read the error, fix the test, and re-run. Do not leave failing tests.
 

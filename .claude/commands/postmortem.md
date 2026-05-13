@@ -15,18 +15,18 @@ This is the triage step before commit. Trivial diffs (docs, comments, formatting
 
 ## Steps
 
-### 0. Load the Project Profile
+### 0. Ensure the Manifest exists
 
-Read `.claude/cache/project-profile.json`. If missing or stale, silently invoke `/repo:discover --quiet` and re-read. Treat this step as background context: never mention the profile, the cache, or the regeneration to the user — no "loading the profile", no "using the freshly-written profile", no status line at all.
+Read `./manifest.json`. If the file is missing, silently invoke `/repo:manifest --quiet` to create it, then re-read. Postmortem is the canonical creator alongside `/premortem` — never tell the user it's loading or generating the manifest.
 
-From the profile, capture:
+From the manifest, capture:
 
 - `packages[*].path` and `packages[*].name` — used to map changed files to packages and downstream skill scope.
 - `packages[*].componentsDir` — used to detect new or modified frontend components.
 - `packages[*].isFrontend` — used to gate the a11y route to frontend packages.
 - `conventions.principles` — observed when classifying scope creep, single-use abstraction, or speculative generality.
 
-Security-sensitive paths are not in the schema. Detect them inline against path patterns (`.env*`, `auth/`, `permissions/`, etc.) — never invent a profile field.
+Security-sensitive paths are not in the schema. Detect them inline against path patterns (`.env*`, `auth/`, `permissions/`, etc.) — never invent a manifest field.
 
 ### 1. Collect the diff
 
@@ -39,7 +39,25 @@ If nothing is staged, fall back to `git diff HEAD --name-only` and `git diff HEA
 
 If the diff is empty, stop — there's nothing to triage.
 
-### 2. Classify the change
+### 2. Refresh the Manifest if invalidated
+
+Inspect the diff's file list for paths that change what the Manifest records. Trigger a refresh when **any** of these are present:
+
+- Lockfiles: `pnpm-lock.yaml`, `yarn.lock`, `package-lock.json`, `bun.lock`, `bun.lockb`
+- Workspace / monorepo config: `turbo.json`, `pnpm-workspace.yaml`, or the root `package.json` `workspaces` hunk
+- Conventions docs: `CLAUDE.md`, `AGENTS.md`, `CONTRIBUTING.md`, `README.md`
+- Any package's `package.json` (added, removed, or `scripts` / `dependencies` / `devDependencies` hunks)
+- Pre-commit config: `lefthook.yml`, `lefthook.yaml`, `.husky/**`, `.pre-commit-config.yaml`
+- CI config: `.github/workflows/**`, `.gitlab-ci.yml`, `.circleci/config.yml`, `circle.yml`
+- New or removed package directories under any `monorepo.workspaces` glob
+
+If any signal matches, silently invoke `/repo:manifest --quiet`. After it returns, check `git status --short manifest.json`:
+- If `manifest.json` is modified, run `git add manifest.json` so it ships in the same commit as the change that invalidated it.
+- If `manifest.json` is unchanged, the invalidation signal didn't materially alter the schema; proceed.
+
+If no signal matches, skip this step entirely. The Manifest stays stable across logic-only diffs and never refreshes on every commit.
+
+### 3. Classify the change
 
 Apply these signals against the diff. Collect every match — multiple signals often apply to one diff.
 
@@ -58,7 +76,7 @@ Apply these signals against the diff. Collect every match — multiple signals o
 
 A diff can match several rows. Union the matched handoffs, then order them: extras (`/security-review`, `/audit:a11y`, `/tests:compose`, `/simplify`) first, then `/typescript:review`. `/typescript:review` is always last in the chain, never parallel — it reviews the change as-is, including any edits the extras prompt.
 
-### 3. Decide
+### 4. Decide
 
 Print the verdict in one line:
 
@@ -72,7 +90,7 @@ Then one of:
 - **REVIEW** or **REVIEW + EXTRAS** — invoke the chained skills in order. Each must return PASS (or the user explicitly waives a finding) before the next runs.
 - **BLOCK** — list every blocking observation with `file:line` citations. Refuse to chain further. Do not run `git commit` until the user resolves or explicitly overrides.
 
-### 4. Hand off
+### 5. Hand off
 
 For each skill in the chain, invoke it and wait for its verdict. If any returns BLOCK and the user has not overridden, stop the chain — `git commit` does not run.
 
@@ -94,4 +112,4 @@ When the chain completes with every step PASS (or the original verdict was PROCE
 - Never skip `/typescript:review` when any logic edit, type surface change, multi-file change, or new dependency is present. PROCEED is reserved for diffs with no executable change.
 - Never auto-commit. The chain returns control to the user; the user decides when to commit.
 - Don't pad the verdict. PROCEED is one sentence. BLOCK is the findings list and nothing else.
-- If the profile doesn't expose a field needed to classify (e.g. no `componentsDir`), fall back to `git grep` on path conventions — never guess.
+- If the manifest doesn't expose a field needed to classify (e.g. no `componentsDir`), fall back to `git grep` on path conventions — never guess.

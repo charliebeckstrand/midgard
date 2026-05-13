@@ -33,11 +33,11 @@ Refuse to overwrite an existing file. If the path exists, surface the collision 
 
 Glob `.claude/commands/**/*.md`. Read 2–3 sibling skills end-to-end:
 - The skill nearest the proposed namespace (for `audit:foo`, read `audit/a11y.md` and `audit/refactor.md`).
-- One top-level reference skill (`repo/discover.md` or `deliberate.md`) for default voice and structure.
+- One top-level reference skill (`repo/manifest.md` or `deliberate.md`) for default voice and structure.
 
 From the samples, capture as working notes — do not echo to the user:
 - Opener style: bare `# Title` + `TRIGGER when:` paragraph, or YAML frontmatter. Match the dominant pattern in the catalog; surface drift in the final summary if both forms exist.
-- Section ordering: which numbered steps recur (`Load the Project Profile`, `Resolve scope`, `Run the heuristics`, `Output`, `Important`).
+- Section ordering: which numbered steps recur (`Load the Manifest`, `Resolve scope`, `Run the heuristics`, `Output`, `Important`).
 - Severity labels: `blocker / warning / nit` is the catalog's current scheme.
 - Recommendation-table columns: recommenders use `Name | Location | Pattern | Impact | Effort | Priority | Rationale`.
 - Voice: imperative, second person, no hedging, no padding.
@@ -46,7 +46,7 @@ From the samples, capture as working notes — do not echo to the user:
 
 Use `AskUserQuestion` to pin the dimensions that materially change the scaffold. Batch into one call. Skip any dimension already pinned by `$ARGUMENTS` or by the namespace's siblings:
 
-- **Profile dependency** — does the skill consume `.claude/cache/project-profile.json`?
+- **Manifest dependency** — does the skill consume `./manifest.json`?
 - **Output shape** — prose report, ranked findings table, scaffolded files, or in-place fix?
 - **Findings & severities** — does it produce findings? If yes, default to `blocker / warning / nit` unless siblings disagree.
 - **Handoffs** — does it auto-invoke another skill (`/tests:compose`, `/skill:audit`, `/council`, `/premortem`)?
@@ -63,7 +63,7 @@ Write the new skill to the resolved path using the catalog's de-facto template. 
 3. One-paragraph framing of what the skill produces and what makes it different from siblings.
 4. `## Arguments` block with `$ARGUMENTS` (only if step 3 said the skill takes arguments).
 5. `---` separator.
-6. Numbered `## N. <verb-phrase>` sections. The first numbered section loads the Project Profile when step 3 said the skill needs it; copy the standard load-and-refresh paragraph from `postmortem.md` step 0 verbatim — drift in this paragraph is what `/skill:audit` flags.
+6. Numbered `## N. <verb-phrase>` sections. The first numbered section loads the Manifest when step 3 said the skill needs it; consumer skills copy the standard "stop and direct the user to run `/repo:manifest`" paragraph from a sibling consumer (e.g. `ui/component/compose.md` step 0) verbatim — drift in this paragraph is what `/skill:audit` flags. Lifecycle skills (`postmortem`, `premortem`) instead include a "create if missing" paragraph because they are the canonical creators alongside `/repo:manifest`.
 7. Optional `## Worked examples (fabricated)` section. Use fabricated identifiers (`Widget`, `formatCurrency`, `SizeProvider`) — never real names from this repo or any other real project.
 8. `## Important` closing section: 3–6 bullets stating non-obvious invariants and what the skill must not do.
 

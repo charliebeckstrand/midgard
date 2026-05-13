@@ -30,7 +30,6 @@ npm-debug.log*
 .DS_Store
 
 # Claude
-.claude/cache/
 .claude/plans
 .claude/worktrees
 

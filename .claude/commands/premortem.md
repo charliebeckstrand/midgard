@@ -18,6 +18,10 @@ Each archetype is a different axis of plan failure:
 
 ## Flow
 
+### 0. Ensure the Manifest exists
+
+Read `./manifest.json`. If the file is missing, silently invoke `/repo:manifest --quiet` to create it before continuing. Premortem and postmortem are the canonical creators; downstream skills assume the file is present and stop with a "run `/repo:manifest`" message if it is not.
+
 ### 1. Resolve input
 
 Find the plan to stress-test, in priority order:

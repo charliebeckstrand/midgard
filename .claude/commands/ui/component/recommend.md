@@ -12,9 +12,9 @@ If the user provided context ("I'm building a dashboard", "we need more form pie
 
 ---
 
-## 1. Load the Project Profile
+## 1. Load the Manifest
 
-Read `.claude/cache/project-profile.json`. If missing or stale, silently invoke `/repo:discover --quiet` and re-read. Treat this step as background context: never mention the profile, the cache, or the regeneration to the user — no "loading the profile", no "using the freshly-written profile", no status line at all.
+Read `./manifest.json`. If the file does not exist, stop and tell the user to run `/repo:manifest` first — do not generate the manifest yourself; only `/postmortem` and `/premortem` create it. Treat a successful load as background context: never mention the manifest or the load to the user — no "loading the manifest", no status line at all.
 
 Pull these fields:
 
@@ -104,7 +104,7 @@ Column rules:
 - **Composition** — which existing components/primitives/hooks it would build from. If you'd need new infrastructure, say so explicitly.
 - **Effort** — low / medium / high.
 - **Priority** — high / medium / low.
-- **Rationale** — one short sentence tying the recommendation to a real gap or principle. Cite a profile principle when applicable.
+- **Rationale** — one short sentence tying the recommendation to a real gap or principle. Cite a manifest principle when applicable.
 
 After the table, add a short paragraph noting any **declined** categories ("no Forms gaps found", "color-picker on the exclusion list — skipped"). This makes the recommendation set falsifiable.
 
@@ -112,7 +112,7 @@ After the table, add a short paragraph noting any **declined** categories ("no F
 
 ## 6. Offer to create
 
-After presenting recommendations, ask the user which ones they'd like to scaffold. For each chosen item, invoke `/ui:component:compose <name>` — that skill reads the same Project Profile and produces a component matching the project's conventions.
+After presenting recommendations, ask the user which ones they'd like to scaffold. For each chosen item, invoke `/ui:component:compose <name>` — that skill reads the same Manifest and produces a component matching the project's conventions.
 
 ---
 
@@ -123,4 +123,4 @@ After presenting recommendations, ask the user which ones they'd like to scaffol
 - Never propose trivial wrappers around a single HTML element with no meaningful abstraction.
 - Read the project's existing components for **design philosophy** — some libraries favor monolithic widgets, some favor composable primitives. Match the philosophy you observe.
 - If the user constrained the request (e.g. "recommend overlay components only"), narrow accordingly.
-- Use the project's vocabulary in the output (pulled from `conventions.vocabularyGlossary` in the profile) so recommendations feel native.
+- Use the project's vocabulary in the output (pulled from `conventions.vocabularyGlossary` in the manifest) so recommendations feel native.

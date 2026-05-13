@@ -15,9 +15,9 @@ Recognized hints:
 
 ---
 
-## 1. Load the Project Profile
+## 1. Load the Manifest
 
-Read `.claude/cache/project-profile.json`. If missing or stale, silently invoke `/repo:discover --quiet` and re-read. Treat this step as background context: never mention the profile, the cache, or the regeneration to the user — no "loading the profile", no "using the freshly-written profile", no status line at all.
+Read `./manifest.json`. If the file does not exist, stop and tell the user to run `/repo:manifest` first — do not generate the manifest yourself; only `/postmortem` and `/premortem` create it. Treat a successful load as background context: never mention the manifest or the load to the user — no "loading the manifest", no status line at all.
 
 Pull these fields:
 
@@ -45,7 +45,7 @@ Anything already present **must not** be re-recommended as new — but it **can*
 
 ## 3. Inventory bindings and adjacent gates
 
-From the profile and from `CLAUDE.md`:
+From the manifest and from `CLAUDE.md`:
 
 - **CLAUDE.md `## Skills` bindings** — a skill present in the catalog but unbound is a hygiene problem `/skill:audit` already flags; do not re-recommend it as new.
 - **Pre-commit gates** — `preCommit.gates`. A skill that re-implements an existing pre-commit check is a weak recommendation.
@@ -62,7 +62,7 @@ Each entry is a **lens**, not a checklist. Skip categories the discovered stack 
 
 | Category | Typical concrete skills |
 | --- | --- |
-| **Discovery & profiling** | project profile generator; per-package convention sniffer; dependency-graph snapshot |
+| **Discovery & profiling** | project manifest generator; per-package convention sniffer; dependency-graph snapshot |
 | **Planning & scoping** | task deliberator; design-doc drafter; spec-from-issue extractor |
 | **Multi-agent reasoning** | council; debate; premortem; postmortem |
 | **Pre-commit gates** | staged-diff reviewer; simplifier; commit-message linter; secret scanner |
@@ -73,7 +73,7 @@ Each entry is a **lens**, not a checklist. Skip categories the discovered stack 
 | **Workflow utilities** | loop runner; PR-watcher; release-notes generator; CLAUDE.md initializer |
 | **Project-specific** | a skill that encodes a declared principle in `conventions.principles` and has no automated check today |
 
-Filter rules using profile fields:
+Filter rules using manifest fields:
 
 - Frontend-only categories (UI scaffolding, a11y, design-token audits, i18n) require at least one package with `framework: react` or `next` (and `componentsDir` or `tokensDir` set for design-token work).
 - Next-only candidates (server/client boundary linter, route-bundle audit) require at least one package with `framework: next`.
@@ -84,7 +84,7 @@ Filter rules using profile fields:
 
 ## 5. Match principles and namespace shape to candidates
 
-Walk `conventions.principles` from the profile. For each principle, ask: **does any existing skill enforce or operationalize this today?**
+Walk `conventions.principles` from the manifest. For each principle, ask: **does any existing skill enforce or operationalize this today?**
 
 - Principle: "Shared packages must not import from application code." → if no `audit/layering` or `audit:refactor` heuristic covers this, propose `audit/layering` as a new skill.
 - Principle: "Each commit represents one logical change." → if no commit-time skill enforces atomicity, propose `audit/atomic-commits` (PR-time, since pre-commit cannot judge a single staged diff against this rule).
@@ -93,7 +93,7 @@ Walk `conventions.principles` from the profile. For each principle, ask: **does 
 Also walk the namespaces:
 
 - A namespace with **one** skill is a sparseness signal; ask whether a sibling would be earned (e.g. `repo/` with only `discover.md` could grow a sibling once a recurring discovery-adjacent workflow earns one).
-- A namespace with **zero** skills but the project has the matching surface (e.g. no `migration/` namespace despite a Drizzle schema in the profile) is a strong candidate.
+- A namespace with **zero** skills but the project has the matching surface (e.g. no `migration/` namespace despite a Drizzle schema in the manifest) is a strong candidate.
 
 A principle without enforcement is a stronger recommendation than a generic category gap.
 
@@ -156,7 +156,7 @@ Do **not** automatically wire newly-composed skills into pre-commit or CI; those
 
 ## Worked example (fabricated)
 
-Imagine a profile with:
+Imagine a manifest with:
 - `packages[*].framework`: `react`, `next`, `library`.
 - `conventions.principles`: includes "Shared packages must not import from application code." and "Each commit represents one logical change."
 - `preCommit.gates`: `["lint", "type"]`.

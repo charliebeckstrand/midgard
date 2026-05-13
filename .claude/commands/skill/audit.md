@@ -1,6 +1,6 @@
 # skill:audit
 
-TRIGGER when: the user asks to audit, review, critique, tighten, polish, or improve a project skill — a file under `.claude/commands/`. Also when the user asks about skill consistency, trigger overlap, prose quality, or whether the Project Profile schema needs new fields.
+TRIGGER when: the user asks to audit, review, critique, tighten, polish, or improve a project skill — a file under `.claude/commands/`. Also when the user asks about skill consistency, trigger overlap, prose quality, or whether the Manifest schema needs new fields.
 
 This skill audits the skill catalog itself. It produces severity-sorted, file:line-anchored findings on the targeted skill (or the whole catalog when none is implied), plus a separate set of cross-cutting recommendations (schema improvements, candidate extractions, vocabulary drift).
 
@@ -20,10 +20,10 @@ Recognized hints:
 Run these reads in parallel:
 
 - **List of skills** — glob `.claude/commands/**/*.md`. For each, capture path, first heading, the `TRIGGER` line, and total line count.
-- **Project Profile schema** — read `.claude/commands/repo/discover.md` and extract the `Project Profile schema` section. This is the **canonical source of truth** for what fields exist; never quote the schema from memory.
+- **Manifest schema** — read `.claude/commands/repo/manifest.md` and extract the `Manifest schema` section. This is the **canonical source of truth** for what fields exist; never quote the schema from memory.
 - **Conventions** — read `CLAUDE.md` for declared principles (used to weight findings) and the `## Skills` section (used to verify each skill is bound or intentionally optional).
 
-If `.claude/commands/repo/discover.md` does not exist, surface that as the first blocker — every other skill depends on the profile it produces.
+If `.claude/commands/repo/manifest.md` does not exist, surface that as the first blocker — every other skill depends on the manifest it produces.
 
 ---
 
@@ -43,10 +43,10 @@ For every skill in scope, read the file end-to-end. Capture:
 
 - Section headers and ordering.
 - Whether a `TRIGGER` line exists and where.
-- Whether the skill consumes the Project Profile and how.
+- Whether the skill consumes the Manifest and how.
 - Every code example (language, line count, whether it uses real-world identifiers).
 - Every reference to another skill (`/foo`, `/foo:bar`).
-- Every reference to a profile field (`packages[*].framework`, etc.).
+- Every reference to a manifest field (`packages[*].framework`, etc.).
 
 ---
 
@@ -84,26 +84,26 @@ Compare each skill against the catalog's de-facto template:
 2. `TRIGGER when:` paragraph
 3. Optional `## Arguments` block with `$ARGUMENTS`
 4. Optional `---` separator
-5. A "Load the Project Profile" or "Load context" step (when the skill consumes the profile)
+5. A "Load the Manifest" or "Load context" step (when the skill consumes the manifest)
 6. Numbered "How to" sections
 7. Optional worked examples
 8. An `## Important` (or equivalent) closing section
 
-Flag deviations as warnings: missing `TRIGGER`, missing profile load when the skill clearly needs one, numbered sections in inconsistent ordering across sibling skills, missing `## Important` closing.
+Flag deviations as warnings: missing `TRIGGER`, missing manifest load when the skill clearly needs one, numbered sections in inconsistent ordering across sibling skills, missing `## Important` closing.
 
-### 4d. Project Profile integration
+### 4d. Manifest integration
 
-For each skill that mentions the profile:
+For each skill that mentions the manifest:
 
-- **References field that doesn't exist** → blocker. Compare every profile-path reference (e.g. `packages[*].framework`) against the schema extracted in section 1. Typos like `packages[*].frameworks` or stale field names (`packages[*].router`) are common.
-- **Re-implements discovery** → warning. The skill greps the lockfile, reads `tsconfig.json`, or parses `turbo.json` itself instead of delegating to `/repo:discover`. The exception is when the data the skill needs is not in the profile — that's a schema-gap finding (section 4e), not a re-implementation finding.
-- **Skips the freshness check** → warning. Skills should refresh the profile via `/repo:discover --quiet` when cache is missing or stale, not unconditionally read the JSON. Look for the cache-and-refresh paragraph in each skill that consumes the profile.
+- **References field that doesn't exist** → blocker. Compare every manifest-path reference (e.g. `packages[*].framework`) against the schema extracted in section 1. Typos like `packages[*].frameworks` or stale field names (`packages[*].router`) are common.
+- **Re-implements discovery** → warning. The skill greps the lockfile, reads `tsconfig.json`, or parses `turbo.json` itself instead of delegating to `/repo:manifest`. The exception is when the data the skill needs is not in the manifest — that's a schema-gap finding (section 4e), not a re-implementation finding.
+- **Wrong missing-file behavior** → warning. Consumer skills must stop and direct the user to run `/repo:manifest` when `./manifest.json` is absent; they must never invoke `/repo:manifest` themselves (that's reserved for `/postmortem` and `/premortem`). Lifecycle skills (`postmortem`, `premortem`) must silently create the file when missing. A consumer skill that calls `/repo:manifest --quiet` itself, or a lifecycle skill that stops instead of creating, has drifted.
 
-### 4e. Profile schema gaps
+### 4e. Manifest schema gaps
 
 This heuristic produces **schema improvement** recommendations rather than per-skill findings.
 
-Scan every skill for: "read the linter config", "inspect `tsconfig.json`", "parse `.eslintrc*`", "look at CI config to find <X>", or any other reference to a project artifact that the profile does not currently expose. When a fact is consulted by **two or more** skills, propose adding it to the Project Profile schema.
+Scan every skill for: "read the linter config", "inspect `tsconfig.json`", "parse `.eslintrc*`", "look at CI config to find <X>", or any other reference to a project artifact that the manifest does not currently expose. When a fact is consulted by **two or more** skills, propose adding it to the Manifest schema.
 
 Output one row per proposed field, listing:
 - Field name.
@@ -131,7 +131,7 @@ Compare sibling skills (e.g. all `*recommend.md` files, all `audit/*.md` files):
 
 ### 4h. Redundancy across skills
 
-Find chunks of near-identical prose ≥6 lines that appear in 2+ skills. The "Load the Project Profile" paragraph is a known repeat; flag it only if it has **drifted** (the paragraphs disagree on staleness rules, flag names, or refresh command). Otherwise note the duplication once as a candidate for extraction into a shared preamble file (e.g. `.claude/commands/_preamble.md`).
+Find chunks of near-identical prose ≥6 lines that appear in 2+ skills. The consumer "stop and direct" paragraph is a known repeat across consumer skills; flag it only if it has **drifted** (the paragraphs disagree on the slash-command name, the missing-file directive, or the silence rule). Otherwise note the duplication once as a candidate for extraction into a shared preamble file (e.g. `.claude/commands/_preamble.md`).
 
 ### 4i. Length appropriateness
 
@@ -159,7 +159,7 @@ Compare the inventory from section 1 with the `## Skills` section in CLAUDE.md. 
 Default severities per heuristic are noted above. Bump one notch when the issue:
 
 - Crosses ≥2 sibling skills (e.g. consistent vocabulary drift).
-- Touches the Project Profile (the foundation every other skill depends on).
+- Touches the Manifest (the foundation every other skill depends on).
 - Breaks a declared principle from `CLAUDE.md`.
 
 ---
@@ -181,7 +181,7 @@ One section per audited skill, sorted alphabetically. Skills with zero findings 
 
 ### Schema improvements (cross-cutting)
 
-Separate table — one row per proposed Project Profile field:
+Separate table — one row per proposed Manifest field:
 
 ```
 | Field | Location | Skills that would benefit | Rationale |
@@ -197,7 +197,7 @@ Separate table — one row per chunk of redundant prose ≥6 lines duplicated in
 ```
 | Chunk | Occurrences | Suggested action |
 | --- | --- | --- |
-| "Load the Project Profile" paragraph (~8 lines) | 7 skills | extract to `.claude/commands/_preamble.md` and have each skill reference it, OR keep colocated and add a lint rule to enforce identical wording |
+| "Load the Manifest" paragraph (~8 lines) | 7 skills | extract to `.claude/commands/_preamble.md` and have each skill reference it, OR keep colocated and add a lint rule to enforce identical wording |
 ```
 
 ### Summary
@@ -223,16 +223,16 @@ Per-skill findings are mechanical — the user (or another agent) applies them d
 
 `/council` and `/premortem` each spawn ~10 sub-agents. Surface them in the `Next steps:` block and wait for the user to opt in — never invoke them silently from this skill.
 
-- **`/council` on the schema-improvements table** — offer prominently when the table has **≥2 rows**. Expanding the Project Profile is a load-bearing decision: more fields strengthen downstream skills, but `/repo:discover` becomes fatter and more brittle. If the user opts in, pass the table verbatim as the framed question ("Should we add these fields to the Project Profile? Which ones?") with the rationale rows.
+- **`/council` on the schema-improvements table** — offer prominently when the table has **≥2 rows**. Expanding the Manifest is a load-bearing decision: more fields strengthen downstream skills, but `/repo:manifest` becomes fatter and more brittle. If the user opts in, pass the table verbatim as the framed question ("Should we add these fields to the Manifest? Which ones?") with the rationale rows.
 
   Skip the offer when the table has **0 or 1** rows — a single proposal is a yes/no question, not a council-worthy debate.
 
 After printing the report, append:
 
 > **Next steps:**
-> - Run `/council` on the schema-improvements table → debate whether to expand the Project Profile.
+> - Run `/council` on the schema-improvements table → debate whether to expand the Manifest.
 > - Run `/council` on extraction candidates → debate DRY vs. colocation for the duplicated chunks.
-> - Run `/premortem` before applying schema changes to `/repo:discover` → stress-test the diff before it lands, since the profile is the foundation every other skill consumes.
+> - Run `/premortem` before applying schema changes to `/repo:manifest` → stress-test the diff before it lands, since the manifest is the foundation every other skill consumes.
 > - Apply per-skill findings directly — they're mechanical and don't need council.
 
 Only show the lines that apply: drop the schema-council line when the schema table has 0 or 1 rows; drop the extraction line when there are zero candidates; drop the premortem line when no schema changes were proposed. Wait for an explicit go-ahead before firing any of them.
@@ -271,18 +271,18 @@ After:
 Read `package.json`. Read the linter config.
 ```
 
-### Profile field that doesn't exist
+### Manifest field that doesn't exist
 
 Before:
 
 ```
-Use `packages[*].router` from the profile to pick the routing convention.
+Use `packages[*].router` from the manifest to pick the routing convention.
 ```
 
 Finding:
 
 ```
-blocker · profile-field-missing · ui-route.md:18 · `packages[*].router` is not in the schema (canonical schema is in repo/discover.md). Either remove the reference or propose the field via 4e
+blocker · manifest-field-missing · ui-route.md:18 · `packages[*].router` is not in the schema (canonical schema is in repo/manifest.md). Either remove the reference or propose the field via 4e
 ```
 
 ### Schema-gap recommendation (cross-cutting)
@@ -299,6 +299,6 @@ Several skills currently say variants of "scan the linter config for X". This is
 
 - This skill **reviews** skills — it does not rewrite them. Findings are recommendations; the user decides what to apply.
 - Self-audit findings are tagged `(self)` in the output. Be honest about them; do not soften.
-- When proposing schema additions, **never** modify `/repo:discover` directly from this skill — surface the proposal and let the user decide whether to expand the schema.
-- Quote the canonical schema from `repo/discover.md` at runtime; never paraphrase the schema from memory, since it drifts.
+- When proposing schema additions, **never** modify `/repo:manifest` directly from this skill — surface the proposal and let the user decide whether to expand the schema.
+- Quote the canonical schema from `repo/manifest.md` at runtime; never paraphrase the schema from memory, since it drifts.
 - This skill is itself subject to the rules it enforces. If it grows past 500 lines or accumulates padding words, the next run should flag it.
