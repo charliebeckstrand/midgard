@@ -116,7 +116,7 @@ export function Alert({
 				className,
 			)}
 		>
-			{resolvedIcon && <Icon icon={resolvedIcon} className={cn('shrink-0', !center && 'mt-0.5')} />}
+			{resolvedIcon && <Icon icon={resolvedIcon} className="shrink-0" />}
 
 			<div className={cn(k.content)}>
 				{title && <div className={cn(k.title)}>{title}</div>}

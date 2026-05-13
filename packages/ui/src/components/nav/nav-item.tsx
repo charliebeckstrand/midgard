@@ -6,8 +6,6 @@ import { useCurrentContext } from '../../primitives'
 import { k } from '../../recipes/kata/nav'
 import { type NavItemProps as BaseNavItemProps, createNavItem } from './create-nav-item'
 
-// ── NavItem ─────────────────────────────────────────────
-
 const BaseNavItem = createNavItem({ slotPrefix: 'nav', variants: () => cn(k.item) })
 
 export type NavItemProps = BaseNavItemProps & { value?: string }

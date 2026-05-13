@@ -1,7 +1,7 @@
 'use client'
 
 import { type RefObject, useCallback, useRef, useState } from 'react'
-import type { Coord } from './context'
+import type { Coord } from './types'
 
 export const cellKey = (row: number, col: number) => `${row},${col}`
 

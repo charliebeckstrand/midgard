@@ -65,10 +65,8 @@ export function SignaturePad({
 
 	const [isEmpty, setIsEmpty] = useState(current == null)
 
-	// ── Canvas sizing (DPR-aware) ──────────────────────
 	useCanvasSizing({ containerRef, canvasRef, isEmpty, strokeColor, strokeWidth })
 
-	// ── External value sync ────────────────────────────
 	useEffect(() => {
 		if (current === lastEmittedRef.current) return
 
@@ -97,7 +95,6 @@ export function SignaturePad({
 		lastEmittedRef.current = current
 	}, [current])
 
-	// ── Pointer drawing ────────────────────────────────
 	const { handlePointerDown, handlePointerMove, commit } = useSignatureDrawing({
 		canvasRef,
 		disabled,
@@ -110,7 +107,6 @@ export function SignaturePad({
 		setCurrent,
 	})
 
-	// ── Imperative API ─────────────────────────────────
 	const clear = useCallback(() => {
 		const canvas = canvasRef.current
 

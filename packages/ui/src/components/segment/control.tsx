@@ -7,8 +7,6 @@ import { ActiveIndicatorScope } from '../../primitives'
 import { type SegmentControlVariants, segmentControlVariants } from '../../recipes/kata/segment'
 import { useSegmentContext } from './context'
 
-// ── SegmentControl ──────────────────────────────────────
-
 export type SegmentControlProps = SegmentControlVariants & {
 	'aria-label'?: string
 	className?: string

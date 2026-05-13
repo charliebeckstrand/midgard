@@ -10,8 +10,8 @@ import {
 	scrollAreaViewportVariants,
 	scrollAreaWrapperVariants,
 } from '../../recipes/kata/scroll-area'
+import type { ScrollbarMode } from './types'
 import { useScrollbar } from './use-scrollbar'
-import type { ScrollbarMode } from './utilities'
 
 export type ScrollAreaProps = ScrollAreaWrapperVariants &
 	ScrollAreaViewportVariants & {

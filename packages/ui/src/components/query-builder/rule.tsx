@@ -14,8 +14,6 @@ import { QueryRuleValue } from './rule-value'
 import type { QueryRule as QueryRuleNode } from './types'
 import { getOperators } from './utilities'
 
-// ── QueryRule ──────────────────────────────────────────
-
 export type QueryRuleProps = {
 	rule: QueryRuleNode
 	className?: string

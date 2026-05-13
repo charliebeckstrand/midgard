@@ -1,6 +1,6 @@
 'use client'
 
-import { type ComponentPropsWithoutRef, type Ref, useMemo } from 'react'
+import { type ReactNode, type Ref, type TableHTMLAttributes, useMemo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/table'
 import { type TableContextValue, TableProvider } from './context'
@@ -12,13 +12,21 @@ export type TableVariants = {
 	striped?: boolean
 }
 
+export type TableElementProps = TableHTMLAttributes<HTMLTableElement> & {
+	ref?: Ref<HTMLTableElement>
+	[key: `data-${string}`]: string | number | boolean | undefined
+}
+
 export type TableProps = TableVariants & {
 	className?: string
-	/** Forwarded to the inner `<table>` element. Use for focus management or composite-widget wiring. */
-	tableRef?: Ref<HTMLTableElement>
-} & Omit<ComponentPropsWithoutRef<'table'>, 'className'> & {
-		[key: `data-${string}`]: string | number | boolean | undefined
-	}
+	children?: ReactNode
+	/**
+	 * Props spread onto the underlying `<table>` element. Use to attach a ref,
+	 * keyboard handlers, or ARIA attributes (e.g. `role="grid"` for composite
+	 * widgets) directly to the semantic element.
+	 */
+	tableProps?: TableElementProps
+}
 
 export function Table({
 	bleed,
@@ -26,9 +34,8 @@ export function Table({
 	grid,
 	striped,
 	className,
-	tableRef,
 	children,
-	...tableHtmlAttrs
+	tableProps,
 }: TableProps) {
 	const ctx = useMemo<TableContextValue>(
 		() => ({
@@ -43,7 +50,7 @@ export function Table({
 	return (
 		<TableProvider value={ctx}>
 			<div data-slot="table" className={cn('overflow-x-auto', bleed && '-mx-4 sm:-mx-6')}>
-				<table ref={tableRef} className={cn(k.base, className)} {...tableHtmlAttrs}>
+				<table {...tableProps} className={cn(k.base, className, tableProps?.className)}>
 					{children}
 				</table>
 			</div>

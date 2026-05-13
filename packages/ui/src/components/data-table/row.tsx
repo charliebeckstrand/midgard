@@ -5,8 +5,8 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/data-table'
 import { Checkbox } from '../checkbox'
 import { TableCell, TableRow } from '../table'
-import type { DataTableColumn } from './component'
 import { type DataTableRowContextValue, DataTableRowProvider, useDataTable } from './context'
+import type { DataTableColumn } from './types'
 
 type DataTableRowInternalProps<T> = {
 	row: T

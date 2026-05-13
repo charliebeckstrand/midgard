@@ -6,8 +6,6 @@ import { useRoving } from '../../hooks'
 import { k, type TreeSize } from '../../recipes/kata/tree'
 import { TreeProvider } from './context'
 
-// ── Tree ───────────────────────────────────────────────
-
 export type TreeProps = {
 	/** Controls icon size and text size for all items. @default 'md' */
 	size?: TreeSize

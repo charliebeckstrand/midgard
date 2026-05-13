@@ -1,12 +1,9 @@
 export {
 	DataTableColumnManager,
-	type DataTableColumnManagerItem,
-	type DataTableColumnManagerPreset,
 	type DataTableColumnManagerProps,
 } from './column-manager'
 export {
 	DataTable,
-	type DataTableColumn,
 	type DataTableColumnManagerConfig,
 	type DataTableProps,
 	type DataTableSelection,
@@ -20,3 +17,8 @@ export {
 	useDataTable,
 	useDataTableRow,
 } from './context'
+export type {
+	DataTableColumn,
+	DataTableColumnManagerItem,
+	DataTableColumnManagerPreset,
+} from './types'

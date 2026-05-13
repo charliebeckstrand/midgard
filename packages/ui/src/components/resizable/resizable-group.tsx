@@ -3,14 +3,10 @@
 import { Children, isValidElement, type ReactNode, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/resizable'
-import {
-	type PanelConfig,
-	type ResizableDirection,
-	ResizableIndexProvider,
-	ResizableProvider,
-} from './context'
+import { ResizableIndexProvider, ResizableProvider } from './context'
 import { ResizableHandle } from './resizable-handle'
 import { ResizablePanel, type ResizablePanelProps } from './resizable-panel'
+import type { PanelConfig, ResizableDirection } from './types'
 import { usePanelResize } from './use-panel-resize'
 
 export type ResizableGroupProps = {

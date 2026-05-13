@@ -2,10 +2,10 @@
 
 import { CalendarRange } from '../calendar'
 import { DatePickerContent } from './content'
+import type { DatePickerBaseProps, DatePickerRangeProps } from './datepicker'
 import { DatePickerFooter } from './footer'
 import { DatePickerTrigger } from './trigger'
-import type { DatePickerBaseProps, DatePickerRangeProps } from './types'
-import { useDatePickerRangeState } from './use-state'
+import { useDatePickerRangeState } from './use-range-state'
 
 export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProps) {
 	const { placeholder = 'Select dates', className, disabled = false } = props
@@ -44,7 +44,6 @@ export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProp
 					hoverDate={state.calendar.hoverDate}
 					onHoverDate={state.calendar.onHoverDate}
 					active={state.calendar.active}
-					onPickerOpenChange={state.calendar.onPickerOpenChange}
 					footerRef={state.calendar.footerRef}
 				/>
 				<DatePickerFooter {...state.footer} />

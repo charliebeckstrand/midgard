@@ -1,58 +1,27 @@
 'use client'
 
-import {
-	type ComponentPropsWithoutRef,
-	type HTMLAttributes,
-	type ReactNode,
-	type Ref,
-	useCallback,
-	useMemo,
-	useRef,
-} from 'react'
+import { type ReactNode, useCallback, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
 import { k } from '../../recipes/kata/data-table'
-import type { TableVariants } from '../table'
+import type { TableElementProps, TableVariants } from '../table'
 import { Table, TableBody, TableLoading } from '../table'
 import { Toolbar } from '../toolbar'
-import type { DataTableColumnManagerItem, DataTableColumnManagerPreset } from './column-manager'
 import { DataTableProvider, type SortState } from './context'
 import { DataTableHead } from './head'
 import { DataTableManageColumnsDialog } from './manage-columns-dialog'
 import { DataTableRowInternal } from './row'
+import type {
+	DataTableColumn,
+	DataTableColumnManagerItem,
+	DataTableColumnManagerPreset,
+} from './types'
 import { DataTableVirtualizedBody } from './virtualized-body'
-
-// ── Column definition ───────────────────────────────────
-
-export type DataTableColumn<T> = {
-	id: string | number
-	title?: ReactNode
-	sortable?: boolean
-	selectable?: boolean
-	actions?: (row: T) => ReactNode
-	cell?: (row: T) => ReactNode
-	/**
-	 * Per-row props spread onto the underlying `<td>`. Use to wire ARIA, data
-	 * attributes, or handlers (e.g. `role="gridcell"` + `onMouseDown` for a
-	 * composite-widget wrapper like EditableGrid). Returned `className` is
-	 * merged with the column's static `className`.
-	 */
-	cellProps?: (row: T) => Omit<HTMLAttributes<HTMLTableCellElement>, 'children'>
-	className?: string
-	headerClassName?: string
-	width?: string
-	/** Shown in the column manager but cannot be reordered or hidden. */
-	pinned?: boolean
-	/** When false, the column cannot be hidden from the column manager. Defaults to true. */
-	hideable?: boolean
-}
 
 export type DataTableVirtualize = boolean | { estimateSize?: number; overscan?: number }
 
 const DEFAULT_ROW_HEIGHT = 44
 const DEFAULT_OVERSCAN = 10
-
-// ── DataTable ───────────────────────────────────────────
 
 export type DataTableSort = {
 	value?: SortState
@@ -111,15 +80,12 @@ export type DataTableProps<T> = TableVariants & {
 	 */
 	virtualize?: DataTableVirtualize
 
-	/** Forwarded to the inner `<table>` element (role, tabIndex, handlers, data-*, etc.). */
-	tableProps?: Omit<
-		ComponentPropsWithoutRef<'table'>,
-		'children' | 'className' | keyof TableVariants
-	> & {
-		[key: `data-${string}`]: string | number | boolean | undefined
-	}
-	/** Forwarded to the inner `<table>` element. Use for composite-widget focus management. */
-	tableRef?: Ref<HTMLTableElement>
+	/**
+	 * Props spread onto the underlying `<table>` element. Use to attach a ref,
+	 * keyboard handlers, or ARIA attributes (e.g. `role="grid"`) directly to
+	 * the semantic element.
+	 */
+	tableProps?: TableElementProps
 
 	className?: string
 	children?: never
@@ -139,7 +105,6 @@ export function DataTable<T>({
 	rowLoading,
 	virtualize,
 	tableProps,
-	tableRef,
 	dense,
 	bleed,
 	grid,
@@ -343,8 +308,7 @@ export function DataTable<T>({
 			grid={grid}
 			striped={striped}
 			className={className}
-			tableRef={tableRef}
-			{...tableProps}
+			tableProps={tableProps}
 		>
 			<DataTableHead columns={visibleColumns} />
 

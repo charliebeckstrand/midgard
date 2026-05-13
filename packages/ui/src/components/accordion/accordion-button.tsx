@@ -7,8 +7,6 @@ import { k } from '../../recipes/kata/accordion'
 import { Icon } from '../icon'
 import { useAccordionItem } from './context'
 
-// ── AccordionButton ─────────────────────────────────────
-
 export type AccordionButtonProps = Omit<ComponentPropsWithoutRef<'button'>, 'children'> & {
 	children: ReactNode | ((bag: { open: boolean }) => ReactNode)
 }

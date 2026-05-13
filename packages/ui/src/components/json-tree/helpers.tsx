@@ -1,6 +1,7 @@
 import { cn } from '../../core'
 import { jsonValueColor, k } from '../../recipes/kata/json-tree'
-import { type JsonValue, valueType } from './utilities'
+import type { JsonValue } from './types'
+import { valueType } from './utilities'
 
 export function NodeKey({ keyName }: { keyName?: string | number }) {
 	if (keyName == null) return null

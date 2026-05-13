@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../table'
-import { defaultFormat, type PivotAggregation } from './pivot'
+import { defaultFormat } from './pivot'
+import type { PivotAggregation } from './types'
 import { type PivotTableKeys, usePivotTable } from './use-pivot-table'
 
-export type { PivotAggregation } from './pivot'
 export type { PivotTableKeys } from './use-pivot-table'
 
 export type PivotTotals = 'row' | 'col' | 'both' | 'none'

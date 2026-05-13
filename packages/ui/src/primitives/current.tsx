@@ -7,8 +7,6 @@ import { useControllable } from '../hooks'
 import { ugoki } from '../recipes'
 import { ReducedMotion } from './reduced-motion'
 
-// ── Context ──────────────────────────────────────────────
-
 export type CurrentContextValue = {
 	value: string | undefined
 	onChange: ((value: string) => void) | undefined
@@ -18,8 +16,6 @@ export const [CurrentProvider, useCurrentContext] = createContext<CurrentContext
 	'Current',
 	{ default: undefined },
 )
-
-// ── useCurrent ───────────────────────────────────────────
 
 export function useCurrent(props: {
 	value?: string
@@ -36,8 +32,6 @@ export function useCurrent(props: {
 
 	return [ctx, value, setValue]
 }
-
-// ── createCurrentContent ─────────────────────────────────
 
 const hidden = { opacity: 0 }
 const visible = { opacity: 1 }

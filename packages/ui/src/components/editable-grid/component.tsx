@@ -11,19 +11,12 @@ import {
 	type DataTableVirtualize,
 } from '../data-table'
 import type { TableVariants } from '../table'
-import {
-	type CellChange,
-	type Coord,
-	type EditableGridColumn,
-	type EditableGridContextValue,
-	EditableGridProvider,
-} from './context'
+import { type EditableGridContextValue, EditableGridProvider } from './context'
+import type { CellChange, Coord, EditableGridColumn } from './types'
 import { useEditableGridAugmentedColumns } from './use-editable-grid-augmented-columns'
 import { useEditableGridMutations } from './use-editable-grid-mutations'
 import { useEditableGridNavigation } from './use-editable-grid-navigation'
 import { useEditableGridWrapper } from './use-editable-grid-wrapper'
-
-// ── EditableGrid ───────────────────────────────────────
 
 export type EditableGridProps<T> = TableVariants & {
 	columns: EditableGridColumn<T>[]
@@ -119,8 +112,6 @@ export function EditableGrid<T>({
 		return m
 	}, [rows])
 
-	// ── Value helpers ──────────────────────────────────────
-
 	const formatCell = useCallback((row: T, col: EditableGridColumn<T>) => {
 		if (col.format) return col.format(row)
 
@@ -136,8 +127,6 @@ export function EditableGrid<T>({
 
 		return raw
 	}, [])
-
-	// ── Navigation ─────────────────────────────────────────
 
 	const {
 		active,
@@ -155,8 +144,6 @@ export function EditableGrid<T>({
 		addCellToSelection,
 	} = useEditableGridNavigation<T>({ rowsRef, editableColCount: editableCols.length })
 
-	// ── Mutations ──────────────────────────────────────────
-
 	const { applyCellWrite, applyBulkFill } = useEditableGridMutations<T>({
 		editableCols,
 		rowsRef,
@@ -171,8 +158,6 @@ export function EditableGrid<T>({
 	})
 
 	const hasMultiSelection = !!anchor || extraCells.size > 0
-
-	// ── Edit lifecycle ─────────────────────────────────────
 
 	const beginEdit = useCallback(
 		(coord: Coord, initial?: string, original?: string) => {
@@ -239,8 +224,6 @@ export function EditableGrid<T>({
 
 		wrapperRef.current?.focus()
 	}, [])
-
-	// ── Wrapper handlers ───────────────────────────────────
 
 	const { onWrapperKeyDown, onWrapperPaste, onWrapperFocus, onWrapperBlur } =
 		useEditableGridWrapper<T>({
@@ -326,8 +309,8 @@ export function EditableGrid<T>({
 				grid={grid}
 				striped={striped}
 				className={cn(sen.focus.inset, className)}
-				tableRef={wrapperRef}
 				tableProps={{
+					ref: wrapperRef,
 					'data-slot': 'editable-grid',
 					role: 'grid',
 					tabIndex: 0,

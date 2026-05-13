@@ -17,8 +17,6 @@ import { k } from '../../recipes/kata/tree'
 import { Icon } from '../icon'
 import { TreeProvider, useTreeContext } from './context'
 
-// ── TreeItem ───────────────────────────────────────────
-
 export type TreeItemProps = {
 	/** The item label. */
 	label: ReactNode

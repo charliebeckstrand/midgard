@@ -6,7 +6,7 @@ import { sen } from '../ryu/sen'
 
 export type ListVariant = 'separated' | 'outline' | 'plain' | 'solid'
 
-const rootBase = ['flex flex-col', 'list-none m-0 p-0']
+const rootBase = ['flex flex-col', 'm-0 p-0', 'list-none']
 
 const rootVariant = {
 	separated: ['gap-sm'],
@@ -48,9 +48,10 @@ export const list = {
 	handle: [
 		'inline-flex flex-none items-center justify-center',
 		'px-3 -mx-3',
-		'cursor-grab touch-none select-none',
-		'text-zinc-400 not-data-disabled:hover:text-zinc-700',
-		'dark:text-zinc-500 dark:not-data-disabled:hover:text-zinc-200',
+		'cursor-grab data-readonly:cursor-default data-disabled:cursor-not-allowed',
+		'touch-none select-none',
+		'text-zinc-400 not-data-disabled:not-data-readonly:hover:text-zinc-700',
+		'dark:text-zinc-500 dark:not-data-disabled:not-data-readonly:hover:text-zinc-200',
 		sawari.disabled,
 	],
 	content: 'flex flex-col flex-1 min-w-0',

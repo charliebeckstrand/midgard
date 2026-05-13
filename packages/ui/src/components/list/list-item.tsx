@@ -6,8 +6,6 @@ import { k } from '../../recipes/kata/list'
 import { useListContext, useListItemContext } from './context'
 import { ListHandle } from './list-handle'
 
-// ── ListItem ───────────────────────────────────────────
-
 export type ListItemProps = {
 	/** Content rendered before the main content — replaces the auto-inserted `<ListHandle>` when provided. */
 	leading?: ReactNode

@@ -1,5 +1,6 @@
 'use client'
 
+import type { Placement } from '@floating-ui/react'
 import { cn } from '../../core'
 import { kokkaku } from '../../recipes'
 import { Calendar } from '../calendar'
@@ -10,15 +11,32 @@ import { DatePickerContent } from './content'
 import { DatePickerFooter } from './footer'
 import { DatePickerRange } from './range'
 import { DatePickerTrigger } from './trigger'
-import type { DatePickerBaseProps, DatePickerProps, DatePickerSingleProps } from './types'
-import { useDatePickerSingleState } from './use-state'
+import { useDatePickerState } from './use-state'
 
-export type {
-	DatePickerBaseProps,
-	DatePickerProps,
-	DatePickerRangeProps,
-	DatePickerSingleProps,
-} from './types'
+export type DatePickerSingleProps = {
+	range?: false
+	value?: Date
+	defaultValue?: Date
+	onChange?: (value: Date | undefined) => void
+}
+
+export type DatePickerRangeProps = {
+	range: true
+	value?: [Date, Date]
+	defaultValue?: [Date, Date]
+	onChange?: (value: [Date, Date] | undefined) => void
+}
+
+export type DatePickerBaseProps = {
+	min?: Date
+	max?: Date
+	placeholder?: string
+	placement?: Placement
+	className?: string
+	disabled?: boolean
+}
+
+export type DatePickerProps = DatePickerBaseProps & (DatePickerSingleProps | DatePickerRangeProps)
 
 export function DatePicker(props: DatePickerProps) {
 	const control = useControl()
@@ -44,7 +62,7 @@ export function DatePicker(props: DatePickerProps) {
 function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 	const { placeholder = 'Select a date', className, disabled = false } = props
 
-	const state = useDatePickerSingleState(props)
+	const state = useDatePickerState(props)
 
 	return (
 		<>
@@ -74,7 +92,6 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 					min={props.min}
 					max={props.max}
 					active={state.calendar.active}
-					onPickerOpenChange={state.calendar.onPickerOpenChange}
 					footerRef={state.calendar.footerRef}
 				/>
 				<DatePickerFooter {...state.footer} />

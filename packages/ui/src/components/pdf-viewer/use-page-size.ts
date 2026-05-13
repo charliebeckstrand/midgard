@@ -25,15 +25,12 @@ export function usePageSize(
 ): UsePageSizeResult {
 	const [naturalSize, setNaturalSize] = useState<Size | null>(null)
 
-	// Resets `naturalSize` synchronously when the active page changes — the
-	// React-docs "adjust state on prop change" pattern. Avoids the effect-as-
-	// invalidation-trigger anti-pattern and keeps the dep array honest.
-	const [prevPageId, setPrevPageId] = useState(activePage?.id)
-	const [prevSafePage, setPrevSafePage] = useState(safePage)
+	const resetKey = `${activePage?.id ?? ''}:${safePage}`
 
-	if (prevPageId !== activePage?.id || prevSafePage !== safePage) {
-		setPrevPageId(activePage?.id)
-		setPrevSafePage(safePage)
+	const [prevResetKey, setPrevResetKey] = useState(resetKey)
+
+	if (prevResetKey !== resetKey) {
+		setPrevResetKey(resetKey)
 		setNaturalSize(null)
 	}
 

@@ -5,8 +5,6 @@ import type { Color } from '../../recipes/ryu/iro'
 import { StatusDot, type StatusDotProps } from '../status'
 import { useTimeline } from './context'
 
-// ── TimelineMarker ──────────────────────────────────────
-
 export type TimelineMarkerConfig = {
 	pulse?: StatusDotProps['pulse']
 	lineBefore?: Color

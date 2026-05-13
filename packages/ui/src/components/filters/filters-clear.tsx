@@ -4,8 +4,6 @@ import { Children, cloneElement, isValidElement, type MouseEvent, type ReactNode
 import { Button } from '../button'
 import { useFilters } from './context'
 
-// ── FiltersClear ───────────────────────────────────
-
 export type FiltersClearProps = {
 	children: ReactNode
 	className?: string

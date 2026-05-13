@@ -14,8 +14,6 @@ import { cn } from '../../core'
 import { Description, ErrorMessage, Field, Label } from '../fieldset'
 import { useFilters } from './context'
 
-// ── Helpers ────────────────────────────────────────
-
 function isSyntheticEvent(v: unknown): v is SyntheticEvent<HTMLInputElement> {
 	return v !== null && typeof v === 'object' && 'target' in v && 'nativeEvent' in v
 }
@@ -25,8 +23,6 @@ const DECORATION_TYPES = new Set<ElementType>([Label, Description, ErrorMessage]
 function isDecoration(child: ReactElement): boolean {
 	return DECORATION_TYPES.has(child.type as ElementType)
 }
-
-// ── FiltersField ───────────────────────────────────
 
 export type FiltersFieldRenderProps = {
 	value: unknown
