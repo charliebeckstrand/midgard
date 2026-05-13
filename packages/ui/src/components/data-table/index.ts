@@ -7,7 +7,10 @@ export {
 export {
 	DataTable,
 	type DataTableColumn,
+	type DataTableColumnManagerConfig,
 	type DataTableProps,
+	type DataTableSelection,
+	type DataTableSort,
 	type DataTableVirtualize,
 } from './component'
 export {

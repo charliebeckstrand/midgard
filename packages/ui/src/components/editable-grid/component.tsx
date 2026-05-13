@@ -4,7 +4,12 @@ import { useCallback, useMemo, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
 import { sen } from '../../recipes/ryu/sen'
-import { DataTable, type DataTableVirtualize, type SortState } from '../data-table'
+import {
+	DataTable,
+	type DataTableSelection,
+	type DataTableSort,
+	type DataTableVirtualize,
+} from '../data-table'
 import type { TableVariants } from '../table'
 import {
 	type CellChange,
@@ -25,13 +30,8 @@ export type EditableGridProps<T> = TableVariants & {
 	rows: T[]
 	getRowKey: (row: T, index: number) => string | number
 
-	sort?: SortState
-	defaultSort?: SortState
-	onSortChange?: (sort: SortState | undefined) => void
-
-	selection?: Set<string | number>
-	defaultSelection?: Set<string | number>
-	onSelectionChange?: (selection: Set<string | number> | undefined) => void
+	sort?: DataTableSort
+	selection?: DataTableSelection
 
 	/**
 	 * Called with one or more changes. When committing a cell inside a row that
@@ -60,12 +60,8 @@ export function EditableGrid<T>({
 	columns,
 	rows,
 	getRowKey,
-	sort,
-	defaultSort,
-	onSortChange,
-	selection: selectionProp,
-	defaultSelection,
-	onSelectionChange,
+	sort: sortConfig,
+	selection: selectionConfig,
 	onChange,
 	stickyHeader,
 	maxHeight,
@@ -78,9 +74,9 @@ export function EditableGrid<T>({
 	className,
 }: EditableGridProps<T>) {
 	const [selectionRaw, setSelectionRaw] = useControllable<Set<string | number>>({
-		value: selectionProp,
-		defaultValue: defaultSelection ?? new Set(),
-		onChange: onSelectionChange,
+		value: selectionConfig?.value,
+		defaultValue: selectionConfig?.defaultValue ?? new Set(),
+		onChange: selectionConfig?.onChange,
 	})
 
 	const selection = selectionRaw ?? new Set<string | number>()
@@ -326,8 +322,8 @@ export function EditableGrid<T>({
 					columns={augmentedColumns}
 					rows={rows}
 					getRowKey={getRowKey}
-					sort={{ value: sort, defaultValue: defaultSort, onChange: onSortChange }}
-					selection={{ value: selection, onChange: setSelectionRaw }}
+					sort={sortConfig}
+					selection={{ ...selectionConfig, value: selection, onChange: setSelectionRaw }}
 					rowClassName={rowClassName}
 					stickyHeader={stickyHeader}
 					maxHeight={maxHeight}
