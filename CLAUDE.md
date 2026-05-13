@@ -13,6 +13,22 @@
 - Formatting is tooling's job. Never fight the formatter.
 - Solve the stated problem — not adjacent ones. A bug fix is not a refactoring opportunity. If the right fix requires broadening scope, ask first.
 
+## File naming
+
+Filenames must stay legible when stripped of folder context — editor tabs, stack traces, grep results, PR diffs. Every file should be self-identifying anywhere it appears.
+
+Inside `packages/ui/src/components/<name>/` (and the parallel `primitives/`):
+
+- **Main component:** `<name>.tsx` — matches the folder name. Never `component.tsx`.
+- **Sub-components:** `<name>-<part>.tsx` — prefixed with the folder name. Never bare (`item.tsx`, `trigger.tsx`).
+- **Hooks:** `use-<name>-<hook>.ts` (or `.tsx` when the hook returns JSX). The folder name appears in every hook filename. Never bare (`hook.ts`, `use-state.ts`).
+- **Context:** `context.ts`. Use `.tsx` only when the file exports a provider component containing JSX.
+- **Types:** `types.ts` when extracted from the main file.
+- **Slots:** `slots.ts` for components exposing a composable slot API — an intentional, existing pattern.
+- **Barrel:** `index.ts`, re-exports only.
+
+When in doubt, prefix with the folder name. Bare filenames read fine inside the folder and turn into noise the moment they appear anywhere else.
+
 ## Architecture
 
 - Extend before inventing. Prefer growing an existing module over creating a new one unless there is a clear, distinct boundary.
