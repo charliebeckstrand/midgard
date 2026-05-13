@@ -1,5 +1,3 @@
-export type ScrollbarMode = 'auto' | 'visible' | 'hidden'
-
 export type ThumbState = { size: number; offset: number; visible: boolean }
 
 export const HIDDEN_THUMB: ThumbState = { size: 0, offset: 0, visible: false }
