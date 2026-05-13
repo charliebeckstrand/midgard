@@ -43,7 +43,9 @@ export function AddressInput({
 
 	const providerRef = useRef(provider)
 
-	providerRef.current = provider
+	useEffect(() => {
+		providerRef.current = provider
+	}, [provider])
 
 	useEffect(() => {
 		if (!menuRequested) return
