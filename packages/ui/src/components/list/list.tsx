@@ -89,6 +89,7 @@ export function List<T>({
 		() => ({
 			variant,
 			interactive,
+			disabled: !!disabled,
 			activeId,
 			liftedId,
 			itemCount: items.length,
@@ -96,7 +97,17 @@ export function List<T>({
 			onItemKeyDown,
 			onItemBlur,
 		}),
-		[variant, interactive, activeId, liftedId, items.length, sortable, onItemKeyDown, onItemBlur],
+		[
+			variant,
+			interactive,
+			disabled,
+			activeId,
+			liftedId,
+			items.length,
+			sortable,
+			onItemKeyDown,
+			onItemBlur,
+		],
 	)
 
 	const ul = (

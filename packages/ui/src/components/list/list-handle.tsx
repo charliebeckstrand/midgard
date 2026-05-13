@@ -13,7 +13,7 @@ export type ListHandleProps = {
 }
 
 export function ListHandle({ children, className }: ListHandleProps) {
-	const { interactive, itemCount } = useListContext()
+	const { interactive, disabled, itemCount } = useListContext()
 
 	const { listeners } = useListItemContext()
 
@@ -23,7 +23,8 @@ export function ListHandle({ children, className }: ListHandleProps) {
 		<span
 			aria-hidden="true"
 			data-slot="list-handle"
-			data-disabled={!interactive || undefined}
+			data-disabled={disabled || undefined}
+			data-readonly={(!interactive && !disabled) || undefined}
 			className={cn(k.handle, className)}
 			{...(interactive ? listeners : {})}
 		>

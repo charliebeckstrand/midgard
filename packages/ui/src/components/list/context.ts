@@ -11,6 +11,8 @@ export type ListContext = {
 	variant: ListVariant
 	/** Whether the list allows drag / keyboard reorder. */
 	interactive: boolean
+	/** Whether the list is explicitly disabled (vs. merely non-interactive / read-only). */
+	disabled: boolean
 	/** Id of the item currently being dragged, if any. */
 	activeId: string | null
 	/** Id of the item "lifted" via keyboard (Space), if any. */
