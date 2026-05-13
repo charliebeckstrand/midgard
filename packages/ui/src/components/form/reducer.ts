@@ -38,7 +38,9 @@ export function runValidators<T extends Record<string, unknown>>(
 	if (!validate) return {}
 
 	const forced = fields !== undefined
+
 	const keys = fields ?? Object.keys(validate)
+
 	const result: Errors = {}
 
 	for (const key of keys) {
