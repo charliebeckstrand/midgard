@@ -294,6 +294,16 @@ Always create a test file for the new component. Delegate to `/tests:compose`:
 
 `/tests:compose` reads the same Project Profile, infers the right location and runner, and produces a test that matches the project's conventions.
 
+### 3i. TypeScript review on the new files
+
+Before declaring the component done, invoke `/typescript:review` against every `.ts` / `.tsx` file this skill (and its delegated `/ui:docs:compose` / `/tests:compose` calls) wrote:
+
+```
+/typescript:review <component-folder-or-file-path>
+```
+
+`/typescript:review` reads each new file in full, runs the package's tests and type-checker, and applies the project's TypeScript principles and advanced-features catalog. The component is not done until `/typescript:review` returns PASS — surface any BLOCK findings to the user before continuing.
+
 ---
 
 ## Checklist
@@ -309,6 +319,7 @@ Before declaring the component done, confirm:
 - [ ] Barrel/index, package-exports map, and any registry/glossary are updated.
 - [ ] A docs file exists at the discovered location, produced via `/ui:docs:compose` (when the project has a docs system).
 - [ ] A test file exists at the discovered location, produced via `/tests:compose`.
+- [ ] `/typescript:review` has been invoked on every new `.ts` / `.tsx` file and returned PASS.
 - [ ] No unused imports, no dead code.
 - [ ] Diff read as a reviewer: if the new component is longer than the closest existing analog, justify the size or shrink it by composing more.
 

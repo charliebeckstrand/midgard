@@ -187,7 +187,7 @@ Separate table — one row per proposed Project Profile field:
 | Field | Location | Skills that would benefit | Rationale |
 | --- | --- | --- | --- |
 | `packages[*].stylingSystem` | per-package | `/ui:component:compose`, `/audit:a11y`, `/audit:refactor` | three skills currently re-detect CVA / tailwind-variants / CSS Modules from devDeps |
-| `packages[*].tsStrict` | per-package | `/code-review`, `/audit:refactor` | type-tightness reasoning needs `compilerOptions.strict` and `noUncheckedIndexedAccess` |
+| `packages[*].tsStrict` | per-package | `/typescript:review`, `/typescript:audit`, `/audit:refactor` | type-tightness reasoning needs `compilerOptions.strict` and `noUncheckedIndexedAccess` |
 ```
 
 ### Extraction candidates
