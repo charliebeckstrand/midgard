@@ -13,10 +13,10 @@ import {
 import type { TableVariants } from '../table'
 import { type EditableGridContextValue, EditableGridProvider } from './context'
 import type { CellChange, Coord, EditableGridColumn } from './types'
-import { useEditableGridAugmentedColumns } from './use-editable-grid-augmented-columns'
-import { useEditableGridMutations } from './use-editable-grid-mutations'
-import { useEditableGridNavigation } from './use-editable-grid-navigation'
-import { useEditableGridWrapper } from './use-editable-grid-wrapper'
+import { useEditableGridAugmentedColumns } from './use-augmented-columns'
+import { useEditableGridMutations } from './use-mutations'
+import { useEditableGridNavigation } from './use-navigation'
+import { useEditableGridWrapper } from './use-wrapper'
 
 export type EditableGridProps<T> = TableVariants & {
 	columns: EditableGridColumn<T>[]

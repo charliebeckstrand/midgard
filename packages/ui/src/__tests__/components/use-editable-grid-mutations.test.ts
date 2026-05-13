@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import type { Coord, EditableGridColumn } from '../../components/editable-grid/types'
-import { useEditableGridMutations } from '../../components/editable-grid/use-editable-grid-mutations'
+import { useEditableGridMutations } from '../../components/editable-grid/use-mutations'
 
 type Row = { id: string; value: string }
 

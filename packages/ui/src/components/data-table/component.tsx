@@ -7,9 +7,9 @@ import { k } from '../../recipes/kata/data-table'
 import type { TableElementProps, TableVariants } from '../table'
 import { Table, TableBody, TableLoading } from '../table'
 import { Toolbar } from '../toolbar'
+import { DataTableManageColumnsDialog } from './column-manager'
 import { DataTableProvider, type SortState } from './context'
 import { DataTableHead } from './head'
-import { DataTableManageColumnsDialog } from './manage-columns-dialog'
 import { DataTableRowInternal } from './row'
 import type {
 	DataTableColumn,

@@ -1,16 +1,18 @@
 'use client'
 
-import { Pin } from 'lucide-react'
-import { type ReactNode, useCallback, useMemo } from 'react'
+import { Pin, SlidersHorizontal } from 'lucide-react'
+import { type ReactNode, useCallback, useMemo, useState } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { k } from '../../recipes/kata/column-manager'
 import { Button } from '../button'
 import { Checkbox, CheckboxField, CheckboxGroup } from '../checkbox'
 import { Control } from '../control'
+import { Dialog, DialogActions, DialogBody, DialogTitle } from '../dialog'
 import { Label } from '../fieldset'
 import { Icon } from '../icon'
 import { List, ListItem } from '../list'
+import { Toolbar } from '../toolbar'
 import type { DataTableColumnManagerItem, DataTableColumnManagerPreset } from './types'
 
 export type DataTableColumnManagerProps = {
@@ -28,6 +30,10 @@ export type DataTableColumnManagerProps = {
 	savePresetLabel?: ReactNode
 
 	className?: string
+}
+
+function titleText(title: ReactNode, id: string | number): string {
+	return typeof title === 'string' ? title : String(id)
 }
 
 export function DataTableColumnManager({
@@ -185,6 +191,54 @@ export function DataTableColumnManager({
 	)
 }
 
-function titleText(title: ReactNode, id: string | number): string {
-	return typeof title === 'string' ? title : String(id)
+export type DataTableManageColumnsDialogProps = {
+	label: ReactNode
+	columns: DataTableColumnManagerItem[]
+	order: (string | number)[]
+	onOrderChange: (order: (string | number)[]) => void
+	hidden: Set<string | number>
+	onHiddenChange: (hidden: Set<string | number>) => void
+	onSavePreset?: (preset: DataTableColumnManagerPreset) => void
+}
+
+export function DataTableManageColumnsDialog({
+	label,
+	columns,
+	order,
+	onOrderChange,
+	hidden,
+	onHiddenChange,
+	onSavePreset,
+}: DataTableManageColumnsDialogProps) {
+	const [open, setOpen] = useState(false)
+
+	return (
+		<>
+			<Toolbar aria-label="Column management">
+				<Button variant="plain" size="sm" aria-haspopup="dialog" onClick={() => setOpen(true)}>
+					<Icon icon={<SlidersHorizontal />} />
+					{label}
+				</Button>
+			</Toolbar>
+
+			<Dialog open={open} onOpenChange={setOpen}>
+				<DialogTitle>{label}</DialogTitle>
+				<DialogBody>
+					<DataTableColumnManager
+						columns={columns}
+						order={order}
+						onOrderChange={onOrderChange}
+						hidden={hidden}
+						onHiddenChange={onHiddenChange}
+						onSavePreset={onSavePreset}
+					/>
+				</DialogBody>
+				<DialogActions>
+					<Button variant="plain" onClick={() => setOpen(false)}>
+						Done
+					</Button>
+				</DialogActions>
+			</Dialog>
+		</>
+	)
 }

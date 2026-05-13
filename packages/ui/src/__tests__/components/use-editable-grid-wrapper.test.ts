@@ -2,7 +2,7 @@ import { renderHook } from '@testing-library/react'
 import type { ClipboardEvent, FocusEvent, KeyboardEvent } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import type { Coord, EditableGridColumn } from '../../components/editable-grid/types'
-import { useEditableGridWrapper } from '../../components/editable-grid/use-editable-grid-wrapper'
+import { useEditableGridWrapper } from '../../components/editable-grid/use-wrapper'
 
 type Row = { id: string; value: string }
 
