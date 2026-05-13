@@ -13,14 +13,18 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 import type { PdfViewerPage } from './types'
 import { downloadPdf, printPdf } from './utilities'
 
+export type PdfViewerToolbarZoom = {
+	value: number
+	setValue: Dispatch<SetStateAction<number>>
+	levels: number[]
+}
+
 export type PdfViewerToolbarProps = {
 	pages: PdfViewerPage[]
 	total: number
 	safePage: number
 	goToPage: (page: number) => void
-	zoom: number
-	setZoom: Dispatch<SetStateAction<number>>
-	zoomLevels: number[]
+	zoom: PdfViewerToolbarZoom
 	onRotate: () => void
 	src?: string
 	filename?: string
@@ -36,8 +40,6 @@ export function PdfViewerToolbar({
 	safePage,
 	goToPage,
 	zoom,
-	setZoom,
-	zoomLevels,
 	onRotate,
 	src,
 	filename,
@@ -48,18 +50,18 @@ export function PdfViewerToolbar({
 }: PdfViewerToolbarProps) {
 	const isEmpty = total === 0
 
-	const sortedLevels = [...zoomLevels].sort((a, b) => a - b)
+	const sortedLevels = [...zoom.levels].sort((a, b) => a - b)
 
 	const minZoom = sortedLevels[0] ?? 1
 	const maxZoom = sortedLevels[sortedLevels.length - 1] ?? 1
 
-	const nextLevelUp = sortedLevels.find((l) => l > zoom + 1e-6) ?? maxZoom
-	const nextLevelDown = [...sortedLevels].reverse().find((l) => l < zoom - 1e-6) ?? minZoom
+	const nextLevelUp = sortedLevels.find((l) => l > zoom.value + 1e-6) ?? maxZoom
+	const nextLevelDown = [...sortedLevels].reverse().find((l) => l < zoom.value - 1e-6) ?? minZoom
 
-	const zoomIn = () => setZoom(nextLevelUp)
-	const zoomOut = () => setZoom(nextLevelDown)
+	const zoomIn = () => zoom.setValue(nextLevelUp)
+	const zoomOut = () => zoom.setValue(nextLevelDown)
 
-	const fit = () => setZoom(1)
+	const fit = () => zoom.setValue(1)
 
 	const download = () => {
 		if (!src) return
@@ -134,7 +136,7 @@ export function PdfViewerToolbar({
 							<Button
 								variant="plain"
 								aria-label="Zoom out"
-								disabled={isLoading || isEmpty || zoom <= minZoom}
+								disabled={isLoading || isEmpty || zoom.value <= minZoom}
 								onClick={zoomOut}
 							>
 								<Icon icon={<ZoomOut />} />
@@ -147,7 +149,7 @@ export function PdfViewerToolbar({
 							<Button
 								variant="plain"
 								aria-label="Zoom in"
-								disabled={isLoading || isEmpty || zoom >= maxZoom}
+								disabled={isLoading || isEmpty || zoom.value >= maxZoom}
 								onClick={zoomIn}
 							>
 								<Icon icon={<ZoomIn />} />
@@ -160,7 +162,7 @@ export function PdfViewerToolbar({
 							<Button
 								variant="plain"
 								aria-label="Fit to page"
-								disabled={isLoading || isEmpty || zoom === 1}
+								disabled={isLoading || isEmpty || zoom.value === 1}
 								onClick={fit}
 							>
 								<Icon icon={<Maximize2 />} />
