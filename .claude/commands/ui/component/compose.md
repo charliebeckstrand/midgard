@@ -105,7 +105,25 @@ A "command palette" is "a dialog containing a search input and a keyboard-naviga
 
 Honor the conventions you discovered in section 1. The exact filenames, extensions, and import paths depend on the project; the **shape** below is universal.
 
-### 3a. Variants / recipe (only if needed)
+### 3a. File layout — match the existing pattern
+
+Before writing, sample 2–3 sibling components in the target `componentsDir` and detect how they organize files. You're already reading siblings in section 1b for styling and naming — extend that pass to capture:
+
+- Do siblings ship **one component per file**, or do they bundle sub-components inside the top-level file?
+- Do siblings extract shared types into a colocated `types.ts`, or keep types inline next to the component that owns them?
+- Do siblings keep custom `use*` hooks in their own files (colocated or in `hooksDir`), or declare them inside the component file?
+
+Match the dominant sibling pattern. The codebase's existing conventions are the source of truth — do not import a stricter or looser split policy from elsewhere.
+
+When siblings disagree, or there are too few to set a baseline, fall back to these heuristics:
+
+- **Sub-components** earn their own file when they're nontrivial (their own state, more than a handful of JSX lines, or reused). Truly trivial single-use helpers can stay inline.
+- **A shared `types.ts`** is worth creating when **two or more** files in the component's folder need the same type. Do not pre-create one for types only one file uses.
+- **Custom hooks** belong in their own files when they're nontrivial or reusable beyond the component. Small one-liners coupled to a single component can stay next to it.
+
+Split where the boundary is clear and the pieces earn separation. Avoid splitting for its own sake — a 60-line component with one tightly-coupled subtree does not need to be three files. When siblings consistently violate even the fallback heuristics (e.g. every sibling inlines everything), surface the divergence to the user and ask whether to follow the legacy convention or set a new one rather than silently picking either.
+
+### 3b. Variants / recipe (only if needed)
 
 If the component owns genuinely new styling that isn't expressible through composition, create the variant recipe in the location your sibling components use (e.g. a colocated `variants.ts`, a file under `tokensDir`, or inline).
 
@@ -156,7 +174,7 @@ export const widget = tv({
 
 If the project owns a registry/barrel that lists every recipe (you'll see it in `tokensDir`), register the new recipe there in the same style.
 
-### 3b. Component file
+### 3c. Component file
 
 **Generic example — React functional component using a `cn` helper, variant recipe, and the project's polymorphic element pattern if one exists.**
 
@@ -217,7 +235,7 @@ Conventions to match from the sibling components you sampled:
 - Whether components carry a stable DOM marker (`data-slot`, `data-part`, `data-component`).
 - How `className` merges with computed classes — always merge, never overwrite.
 
-### 3c. Context (only if sub-components share state)
+### 3d. Context (only if sub-components share state)
 
 For compound components whose sub-parts need access to common state, use the project's typed context helper if one exists (search `primitivesDir` and `hooksDir` for a `createContext`-style factory). Otherwise use React's native `createContext`.
 
@@ -229,7 +247,7 @@ export type WidgetContextValue = { isOpen: boolean; setOpen: (v: boolean) => voi
 export const [WidgetProvider, useWidget] = createSafeContext<WidgetContextValue>('Widget')
 ```
 
-### 3d. Barrel / index file
+### 3e. Barrel / index file
 
 If the project uses per-component folders with `index.*` barrels, mirror that pattern:
 
@@ -241,7 +259,7 @@ export { type WidgetVariants } from './variants'
 
 If the project keeps components as single files with no folder, skip this step.
 
-### 3e. Package / module export entry
+### 3f. Package / module export entry
 
 If the target package exposes per-component subpath exports in `package.json#exports`, add one alphabetically:
 
@@ -254,7 +272,7 @@ If the target package exposes per-component subpath exports in `package.json#exp
 
 If the package only exposes a single root entry, append the new component to the root barrel instead.
 
-### 3f. Demo / docs file
+### 3g. Demo / docs file
 
 If section 1d found a docs system, delegate to `/ui:docs:compose`:
 
@@ -266,7 +284,7 @@ That skill reads the same Project Profile, samples sibling docs files for author
 
 If the project has no docs system, skip this step.
 
-### 3g. Tests
+### 3h. Tests
 
 Always create a test file for the new component. Delegate to `/tests:compose`:
 
@@ -283,6 +301,7 @@ Always create a test file for the new component. Delegate to `/tests:compose`:
 Before declaring the component done, confirm:
 
 - [ ] **Composition audit complete.** Every existing component, primitive, or hook that could have been reused was reused. No reinvented overlays, no raw `<button>`/`<input>` where the project ships a styled equivalent, no parallel recipes that mirror an existing one.
+- [ ] **File layout matches sibling components.** Component-per-file granularity, type colocation, and hook placement follow the dominant pattern in the target directory. Where siblings disagree, sub-components live in their own file when nontrivial, types move to a shared `types.ts` only when 2+ files import them, and nontrivial hooks live in their own files.
 - [ ] The variant/recipe (if any) composes the project's tokens rather than literal values.
 - [ ] File names, exports, and DOM markers match the sibling components you sampled.
 - [ ] The `className` prop is accepted and merged through the project's `cn` helper (or equivalent).
