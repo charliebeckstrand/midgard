@@ -134,7 +134,7 @@ Column rules:
 
 After the table, add a short paragraph noting:
 - Any heuristics that **found no candidates** ("no layering violations detected", "no dead exports").
-- Any heuristics that were **skipped** because the stack lacks the relevant signal (e.g. no React-specific scan in a Vue project).
+- Any heuristics that were **skipped** because the stack lacks the relevant signal (e.g. no Next-specific scan in a React-only package).
 
 This makes the report falsifiable.
 

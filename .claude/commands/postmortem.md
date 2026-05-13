@@ -64,7 +64,7 @@ Apply these signals against the diff. Collect every match — multiple signals o
 | Signal | Detection | Routes to |
 |---|---|---|
 | Secrets / auth / permissions touched | Path or hunk hits on `.env*`, `auth/`, `permissions/`, API keys, JWT, OAuth, session/cookie handling, RBAC | `/security-review` |
-| New or modified frontend component | New file under `packages[*].componentsDir`, or a modified `.tsx` / `.jsx` / `.vue` / `.svelte` that exports a component, in a package where `isFrontend` is true | `/audit:a11y` |
+| New or modified frontend component | New file under `packages[*].componentsDir`, or a modified `.tsx` / `.jsx` that exports a component, in a package where `isFrontend` is true | `/audit:a11y` |
 | New logic without matching tests | A new non-trivial function or branch with no corresponding `*.test.*` / `*.spec.*` change in the same diff | `/tests:compose` |
 | Smells like over-engineering | Single-use abstraction, speculative generic, premature interface, unused parameter, dead branch | `/simplify` |
 | Logic edit, type surface change, multi-file change, new dependency | Conditional logic edited, exported type changed, ≥3 source files modified, `package.json` dependency added | `/typescript:review` |

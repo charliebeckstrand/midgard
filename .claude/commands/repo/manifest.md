@@ -4,7 +4,7 @@ TRIGGER when: the user asks to discover, profile, fingerprint, or summarize the 
 
 You are producing a single canonical **Manifest** that downstream skills consume instead of each re-deriving the same facts. The Manifest is a JSON document tracked at `./manifest.json` (committed to the repo). Other skills read this file at the top of their flow and stop with a "run `/repo:manifest`" message if it is absent — they never generate it themselves.
 
-This skill is optimized for a **Turborepo monorepo with Next.js apps and (optionally) shared React packages** and produces its richest output for that shape. It degrades gracefully on other setups: when `turbo.json` is absent it sets `monorepo.tool` to `null` and records a note, and frameworks outside `next` / `react` resolve to `library`, `node`, or `null`. It does not attempt to detect Nx/Lerna metadata or Vue/Svelte/Solid framework specifics.
+This skill is optimized for a **Turborepo monorepo with Next.js apps and (optionally) shared React packages** and produces its richest output for that shape. It degrades gracefully on other setups: when `turbo.json` is absent it sets `monorepo.tool` to `null` and records a note, and frameworks outside `next` / `react` resolve to `node` or `null`. It does not attempt to detect Nx/Lerna metadata.
 
 ## Arguments
 
@@ -68,7 +68,6 @@ Per-package fields:
   | --- | --- |
   | `next` | `next` |
   | `react` (no `next`) | `react` |
-  | none of the above and `main`/`exports` points at JS | `library` |
   | none and entrypoint runs on Node | `node` |
   | otherwise | `null` |
 - `testRunner` — `vitest` / `jest` / `bun` / `node` (detected from devDeps and/or `scripts.test`); `null` if no test infrastructure.
