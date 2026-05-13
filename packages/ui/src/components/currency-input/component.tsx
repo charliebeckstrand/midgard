@@ -1,8 +1,9 @@
 'use client'
 
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useLayoutEffect, useRef, useState } from 'react'
 import { useControllable } from '../../hooks'
 import { Input, type InputProps } from '../input'
+import { useCurrencyFormatting } from './use-currency-formatting'
 import { countMeaningful, cursorForCount, formatEditing, parseEditing } from './utilities'
 
 export type CurrencyInputProps = Omit<
@@ -37,53 +38,8 @@ export function CurrencyInput({
 }: CurrencyInputProps) {
 	const [num, setNum] = useControllable<number>({ value, defaultValue, onChange })
 
-	const formatter = useMemo(
-		() =>
-			new Intl.NumberFormat(locale, {
-				style: 'currency',
-				currency,
-				...(precision !== undefined && {
-					minimumFractionDigits: precision,
-					maximumFractionDigits: precision,
-				}),
-			}),
-		[locale, currency, precision],
-	)
-
-	const { symbol, symbolIsPrefix, group, decimal, maxFractionDigits } = useMemo(() => {
-		const parts = formatter.formatToParts(0)
-
-		const currencyPart = parts.find((p) => p.type === 'currency')
-
-		const groupPart = parts.find((p) => p.type === 'group')
-
-		const decimalPart = parts.find((p) => p.type === 'decimal')
-
-		const currencyIdx = parts.findIndex((p) => p.type === 'currency')
-
-		const integerIdx = parts.findIndex((p) => p.type === 'integer')
-
-		const options = formatter.resolvedOptions()
-
-		return {
-			symbol: currencyPart?.value ?? '',
-			symbolIsPrefix: currencyIdx < integerIdx,
-			group: groupPart?.value ?? ',',
-			decimal: decimalPart?.value ?? '.',
-			maxFractionDigits: options.maximumFractionDigits ?? 2,
-		}
-	}, [formatter])
-
-	const displayFormatter = useMemo(() => {
-		const options = formatter.resolvedOptions()
-
-		return new Intl.NumberFormat(locale, {
-			style: 'decimal',
-			useGrouping: true,
-			minimumFractionDigits: options.minimumFractionDigits,
-			maximumFractionDigits: options.maximumFractionDigits,
-		})
-	}, [formatter, locale])
+	const { displayFormatter, symbol, symbolIsPrefix, group, decimal, maxFractionDigits } =
+		useCurrencyFormatting({ currency, locale, precision })
 
 	const [editingText, setEditingText] = useState<string | null>(null)
 
