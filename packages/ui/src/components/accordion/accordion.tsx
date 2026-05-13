@@ -36,21 +36,17 @@ function toArray(value: string | string[] | null | undefined): string[] {
 export function Accordion(props: AccordionProps) {
 	const { variant, className, children } = props
 
-	const type = props.type ?? 'single'
+	const isMultiple = props.type === 'multiple'
 
-	const isMultiple = type === 'multiple'
-
-	const collapsible = isMultiple ? true : ((props as SingleProps).collapsible ?? true)
+	const collapsible = isMultiple ? true : (props.collapsible ?? true)
 
 	const controlledValue = isMultiple
-		? (props as MultipleProps).value
-		: (props as SingleProps).value !== undefined
-			? toArray((props as SingleProps).value)
+		? props.value
+		: props.value !== undefined
+			? toArray(props.value)
 			: undefined
 
-	const defaultValue = isMultiple
-		? ((props as MultipleProps).defaultValue ?? [])
-		: toArray((props as SingleProps).defaultValue ?? null)
+	const defaultValue = isMultiple ? (props.defaultValue ?? []) : toArray(props.defaultValue ?? null)
 
 	const onValueChangeRef = useRef(props.onValueChange)
 

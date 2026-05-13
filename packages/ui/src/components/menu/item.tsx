@@ -20,15 +20,10 @@ export type MenuItemProps = MenuItemBaseProps &
 		| ({ href?: never } & Omit<ComponentPropsWithoutRef<'button'>, keyof MenuItemBaseProps>)
 	)
 
-export function MenuItem({
-	disabled,
-	className,
-	children,
-	onAction,
-	href,
-	...props
-}: MenuItemProps) {
+export function MenuItem(props: MenuItemProps) {
 	const { close } = useMenuActions()
+
+	const { disabled, className, children, onAction } = props
 
 	function handleSelect() {
 		if (disabled) return
@@ -38,10 +33,17 @@ export function MenuItem({
 
 	const classes = cn('group/option', k.item, className)
 
-	if (href) {
+	if (props.href !== undefined) {
+		const {
+			disabled: _disabled,
+			className: _className,
+			children: _children,
+			onAction: _onAction,
+			...rest
+		} = props
+
 		return (
 			<Link
-				href={href}
 				role="menuitem"
 				tabIndex={-1}
 				aria-disabled={disabled || undefined}
@@ -49,15 +51,20 @@ export function MenuItem({
 				data-disabled={disabled ? '' : undefined}
 				className={classes}
 				onClick={handleSelect}
-				{...(props as Omit<
-					ComponentPropsWithoutRef<typeof Link>,
-					keyof MenuItemBaseProps | 'href'
-				>)}
+				{...rest}
 			>
 				{children}
 			</Link>
 		)
 	}
+
+	const {
+		disabled: _disabled,
+		className: _className,
+		children: _children,
+		onAction: _onAction,
+		...rest
+	} = props
 
 	return (
 		<button
@@ -75,7 +82,7 @@ export function MenuItem({
 					handleSelect()
 				}
 			}}
-			{...(props as Omit<ComponentPropsWithoutRef<'button'>, keyof MenuItemBaseProps>)}
+			{...rest}
 		>
 			{children}
 		</button>

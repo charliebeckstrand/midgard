@@ -36,9 +36,9 @@ export function useKanbanKeyboard<T, C extends KanbanColumnShape<T>>({
 	)
 
 	const focusCard = useCallback((cardId: string) => {
-		const el = document.querySelector(
+		const el = document.querySelector<HTMLElement>(
 			`[data-slot="kanban-card"][data-card-id="${CSS.escape(cardId)}"]`,
-		) as HTMLElement | null
+		)
 
 		el?.focus()
 	}, [])

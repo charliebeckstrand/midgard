@@ -12,8 +12,6 @@ import {
 } from '../../recipes/kata/sheet'
 import { useResolvedSurface } from '../glass/context'
 
-type SheetSide = 'right' | 'left' | 'top' | 'bottom'
-
 type SheetContextValue = {
 	close: () => void
 }
@@ -45,7 +43,7 @@ export function Sheet({
 	children,
 	container,
 }: SheetProps) {
-	const resolvedSide = (side ?? 'right') as SheetSide
+	const resolvedSide = side ?? 'right'
 
 	const resolvedSurface = useResolvedSurface(surface, glass)
 

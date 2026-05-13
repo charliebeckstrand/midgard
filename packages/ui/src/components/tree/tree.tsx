@@ -65,7 +65,9 @@ export function Tree({ size = 'md', indent = false, children, className }: TreeP
 	}, [])
 
 	const handleFocus = (e: FocusEvent<HTMLDivElement>) => {
-		const target = (e.target as HTMLElement).closest<HTMLElement>(ITEM_SELECTOR)
+		if (!(e.target instanceof Element)) return
+
+		const target = e.target.closest<HTMLElement>(ITEM_SELECTOR)
 
 		if (!target || !ref.current) return
 

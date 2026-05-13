@@ -57,8 +57,7 @@ export function useRangePointer(opts: {
 
 			event.preventDefault()
 
-			const target = event.currentTarget as HTMLElement
-			target.setPointerCapture(event.pointerId)
+			event.currentTarget.setPointerCapture(event.pointerId)
 
 			const raw = valueFromPointer(event.clientX)
 
