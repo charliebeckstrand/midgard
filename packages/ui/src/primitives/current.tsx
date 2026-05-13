@@ -66,7 +66,7 @@ export function createCurrentContent(slotPrefix: string) {
 				ro.disconnect()
 
 				for (const child of el.children) {
-					if ((child as HTMLElement).hasAttribute('data-current')) {
+					if (child.hasAttribute('data-current')) {
 						ro.observe(child)
 
 						break

@@ -161,7 +161,7 @@ export function useFormToggle(
 	if (!field) return undefined
 
 	return {
-		checked: (field.value as boolean) ?? false,
+		checked: typeof field.value === 'boolean' ? field.value : false,
 		onChange: (e) => {
 			field.setValue(e.target.checked)
 			field.setTouched()
