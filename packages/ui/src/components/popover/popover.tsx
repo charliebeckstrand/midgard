@@ -1,41 +1,27 @@
 'use client'
 
+import { type Placement, useClick, useDismiss, useInteractions, useRole } from '@floating-ui/react'
 import {
-	FloatingPortal,
-	type Placement,
-	useClick,
-	useDismiss,
-	useInteractions,
-	useRole,
-} from '@floating-ui/react'
-import { AnimatePresence, motion } from 'motion/react'
-import {
-	cloneElement,
-	isValidElement,
+	type CSSProperties,
+	type ReactNode,
+	type RefObject,
 	useCallback,
 	useEffect,
-	useLayoutEffect,
 	useMemo,
 	useRef,
 } from 'react'
 import { cn, createContext } from '../../core'
 import { useFloatingPanel } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
-import { ConcentricProvider, ReducedMotion } from '../../primitives'
-import { iro, omote, ugoki } from '../../recipes'
-import { k } from '../../recipes/kata/popover'
-import type { Step } from '../../recipes/ryu/sun'
-import { Box, type BoxPadding } from '../box'
-import { useGlass } from '../glass/context'
 
 type PopoverContextValue = {
 	open: boolean
 	setOpen: (open: boolean) => void
 	close: () => void
-	triggerRef: React.RefObject<HTMLButtonElement | null>
+	triggerRef: RefObject<HTMLButtonElement | null>
 	setReference: (node: HTMLElement | null) => void
 	setFloating: (node: HTMLElement | null) => void
-	floatingStyles: React.CSSProperties
+	floatingStyles: CSSProperties
 	getReferenceProps: (userProps?: object) => Record<string, unknown>
 	getFloatingProps: (userProps?: object) => Record<string, unknown>
 	onExitComplete?: () => void
@@ -43,13 +29,15 @@ type PopoverContextValue = {
 
 const [PopoverProvider, usePopoverContext] = createContext<PopoverContextValue>('Popover')
 
+export { usePopoverContext }
+
 export type PopoverProps = {
 	placement?: Placement
 	open?: boolean
 	onOpenChange?: (open: boolean) => void
 	onExitComplete?: () => void
 	className?: string
-	children: React.ReactNode
+	children: ReactNode
 }
 
 export function Popover({
@@ -129,166 +117,5 @@ export function Popover({
 				{children}
 			</div>
 		</PopoverProvider>
-	)
-}
-
-export type PopoverTriggerProps = {
-	children: React.ReactNode
-	className?: string
-	manual?: boolean
-}
-
-export function PopoverTrigger({ children, className, manual = false }: PopoverTriggerProps) {
-	const { open, triggerRef, setReference, getReferenceProps } = usePopoverContext()
-
-	// Return a cleanup from the ref callback so React 19 won't call it with
-	// null on unmount. That avoids `setReference(null)` firing a state update
-	// during deletion effects, which can otherwise cascade into a "Maximum
-	// update depth" error when ancestor state is still in flux.
-	const mergeRefs = useCallback(
-		(node: HTMLElement | null) => {
-			triggerRef.current = node as HTMLButtonElement | null
-
-			setReference(node)
-
-			return () => {
-				triggerRef.current = null
-			}
-		},
-		[triggerRef, setReference],
-	)
-
-	const shouldIgnore = useCallback((e: React.SyntheticEvent<HTMLElement>): boolean => {
-		return e.target instanceof Element && e.target.closest('[data-popover-ignore]') !== null
-	}, [])
-
-	const wrapReferenceProps = useCallback(
-		(props?: Record<string, unknown>) => {
-			const refProps = getReferenceProps(props)
-
-			const eventKeys = Object.keys(refProps).filter((key) => /^on[A-Z]/.test(key))
-
-			const wrapped: Record<string, unknown> = { ...refProps }
-
-			for (const key of eventKeys) {
-				const original = refProps[key]
-
-				if (typeof original === 'function') {
-					wrapped[key] = (e: React.SyntheticEvent<HTMLElement>) => {
-						if (shouldIgnore(e)) return
-
-						return original(e)
-					}
-				}
-			}
-
-			return wrapped
-		},
-		[getReferenceProps, shouldIgnore],
-	)
-
-	if (isValidElement(children)) {
-		const child = children as React.ReactElement<
-			React.HTMLAttributes<HTMLElement> &
-				React.RefAttributes<HTMLElement> & { [key: `data-${string}`]: string | undefined }
-		>
-		const referenceProps = manual
-			? child.props
-			: wrapReferenceProps(child.props as Record<string, unknown>)
-
-		return cloneElement(child, {
-			...(referenceProps as React.HTMLAttributes<HTMLElement>),
-			ref: mergeRefs,
-			'aria-haspopup': 'dialog',
-			'aria-expanded': open,
-			'data-slot': 'popover-trigger',
-			className: cn(k.trigger, child.props.className, className),
-		})
-	}
-
-	const referenceProps = manual ? {} : wrapReferenceProps()
-
-	return (
-		<button
-			{...referenceProps}
-			ref={mergeRefs}
-			type="button"
-			aria-haspopup="dialog"
-			aria-expanded={open}
-			data-slot="popover-trigger"
-			className={cn(k.trigger, className)}
-		>
-			{children}
-		</button>
-	)
-}
-
-export type PopoverContentProps = {
-	className?: string
-	autoFocus?: boolean
-	p?: BoxPadding
-	/** Size step that propagates to descendants via the concentric context. */
-	size?: Step
-	children: React.ReactNode
-}
-
-export function PopoverContent({
-	className,
-	autoFocus = false,
-	p = 'lg',
-	size = 'md',
-	children,
-}: PopoverContentProps) {
-	const { open, setFloating, floatingStyles, getFloatingProps, onExitComplete } =
-		usePopoverContext()
-
-	const contentRef = useRef<HTMLDivElement | null>(null)
-
-	const glass = useGlass()
-
-	const concentricValue = useMemo(() => ({ size }), [size])
-
-	useLayoutEffect(() => {
-		if (open && autoFocus) {
-			contentRef.current?.focus()
-		}
-	}, [open, autoFocus])
-
-	return (
-		<FloatingPortal>
-			<ReducedMotion>
-				<AnimatePresence onExitComplete={onExitComplete}>
-					{open && (
-						<div
-							ref={setFloating}
-							style={floatingStyles}
-							className={k.portal}
-							{...getFloatingProps()}
-						>
-							<motion.div
-								{...ugoki.popover}
-								ref={contentRef}
-								tabIndex={autoFocus ? -1 : undefined}
-								data-slot="popover-content"
-								data-step={size}
-								className={cn('z-50', iro.text.default, glass && omote.glass)}
-							>
-								<ConcentricProvider value={concentricValue}>
-									<Box
-										p={p}
-										bg={glass ? 'none' : 'popover'}
-										radius="lg"
-										outline={glass || undefined}
-										className={className}
-									>
-										{children}
-									</Box>
-								</ConcentricProvider>
-							</motion.div>
-						</div>
-					)}
-				</AnimatePresence>
-			</ReducedMotion>
-		</FloatingPortal>
 	)
 }

@@ -1,5 +1,6 @@
 import { Button } from '../../components/button'
 import { Flex } from '../../components/flex'
+import { Glass } from '../../components/glass'
 import { Stack } from '../../components/stack'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { Example } from '../components/example'
@@ -40,6 +41,28 @@ export default function TooltipDemo() {
 					</TooltipTrigger>
 					<TooltipContent>This tooltip stays open when you hover over it.</TooltipContent>
 				</Tooltip>
+			</Example>
+
+			<Example title="Delay">
+				<Tooltip delay={1000}>
+					<TooltipTrigger>
+						<Button variant="outline">Hover me</Button>
+					</TooltipTrigger>
+					<TooltipContent>
+						This tooltip has a delay of 500ms before it opens and closes.
+					</TooltipContent>
+				</Tooltip>
+			</Example>
+
+			<Example title="Glass">
+				<Glass>
+					<Tooltip>
+						<TooltipTrigger>
+							<Button variant="outline">Hover me</Button>
+						</TooltipTrigger>
+						<TooltipContent>This tooltip has a glass surface.</TooltipContent>
+					</Tooltip>
+				</Glass>
 			</Example>
 		</Stack>
 	)

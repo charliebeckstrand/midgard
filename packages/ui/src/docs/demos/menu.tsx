@@ -1,6 +1,7 @@
 'use client'
 import { ChevronDown } from 'lucide-react'
 import { useState } from 'react'
+import { Box } from '../../components/box'
 import { Button } from '../../components/button'
 import { Glass } from '../../components/glass'
 import { Icon } from '../../components/icon'
@@ -14,6 +15,7 @@ import {
 	MenuTrigger,
 } from '../../components/menu'
 import { Stack } from '../../components/stack'
+import { Text } from '../../components/text'
 import { Example } from '../components/example'
 import { VariantListbox } from '../components/variant-listbox'
 
@@ -55,9 +57,11 @@ export default function MenuDemo() {
 
 	const context = (
 		<Menu>
-			<div className="flex items-center justify-center p-3 h-48 border border-dashed border-zinc-300 dark:border-zinc-700 rounded-md">
-				<span className="text-sm select-none">Or right-click here</span>
-			</div>
+			<Box className="flex items-center justify-center border border-dashed border-zinc-300 dark:border-zinc-700 rounded-lg p-20">
+				<Text variant="muted" className="select-none">
+					Right-click here
+				</Text>
+			</Box>
 			<MenuContent>
 				<MenuSection>
 					<MenuItem>

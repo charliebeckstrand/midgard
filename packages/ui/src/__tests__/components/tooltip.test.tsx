@@ -3,7 +3,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/toolti
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Tooltip', () => {
-	it('renders with data-slot="tooltip"', () => {
+	it('renders with data-slot="tooltip-trigger"', () => {
 		const { container } = renderUI(
 			<Tooltip>
 				<TooltipTrigger>
@@ -13,7 +13,7 @@ describe('Tooltip', () => {
 			</Tooltip>,
 		)
 
-		const el = bySlot(container, 'tooltip')
+		const el = bySlot(container, 'tooltip-trigger')
 
 		expect(el).toBeInTheDocument()
 	})

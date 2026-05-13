@@ -1,7 +1,6 @@
 'use client'
 
 import {
-	FloatingPortal,
 	type Placement,
 	safePolygon,
 	useClick,
@@ -11,35 +10,28 @@ import {
 	useInteractions,
 	useRole,
 } from '@floating-ui/react'
-import { AnimatePresence, motion } from 'motion/react'
-import {
-	type HTMLAttributes,
-	isValidElement,
-	type ReactNode,
-	useEffect,
-	useMemo,
-	useRef,
-	useState,
-} from 'react'
-import { cn } from '../../core'
+import { type CSSProperties, type ReactNode, useEffect, useMemo, useRef, useState } from 'react'
+import { createContext } from '../../core'
 import { useFloatingPanel, useHasHover } from '../../hooks'
-import { ReducedMotion } from '../../primitives'
-import { ugoki } from '../../recipes'
-import { k } from '../../recipes/kata/tooltip'
+
+type TooltipContextValue = {
+	open: boolean
+	interactive: boolean
+	setReference: (node: HTMLElement | null) => void
+	setFloating: (node: HTMLElement | null) => void
+	floatingStyles: CSSProperties
+	getReferenceProps: (userProps?: object) => Record<string, unknown>
+	getFloatingProps: (userProps?: object) => Record<string, unknown>
+}
+
+const [TooltipProvider, useTooltipContext] = createContext<TooltipContextValue>('Tooltip')
+
+export { useTooltipContext }
 
 export type TooltipProps = {
 	placement?: Placement
 	delay?: number
 	interactive?: boolean
-	children: ReactNode
-}
-
-export type TooltipTriggerProps = {
-	children: ReactNode
-}
-
-export type TooltipContentProps = {
-	className?: string
 	children: ReactNode
 }
 
@@ -50,31 +42,6 @@ export function Tooltip({
 	children,
 }: TooltipProps) {
 	const [open, setOpen] = useState(false)
-
-	const { trigger, contentClassName, contentChildren } = useMemo(() => {
-		const arr = Array.isArray(children) ? children : [children]
-
-		let trigger: ReactNode = null
-
-		let contentClassName: string | undefined
-
-		let contentChildren: ReactNode = null
-
-		for (const child of arr) {
-			if (!isValidElement(child)) continue
-
-			if (child.type === TooltipTrigger) {
-				trigger = child
-			} else if (child.type === TooltipContent) {
-				const contentProps = child.props as TooltipContentProps
-
-				contentClassName = contentProps.className
-				contentChildren = contentProps.children
-			}
-		}
-
-		return { trigger, contentClassName, contentChildren }
-	}, [children])
 
 	const { refs, floatingStyles, context } = useFloatingPanel({
 		placement,
@@ -137,50 +104,26 @@ export function Tooltip({
 		role,
 	])
 
-	return (
-		<div
-			ref={refs.setReference}
-			data-slot="tooltip"
-			className={k.trigger}
-			{...(getReferenceProps() as HTMLAttributes<HTMLDivElement>)}
-		>
-			{trigger}
-			<FloatingPortal>
-				<ReducedMotion>
-					<AnimatePresence>
-						{open && (
-							<div
-								ref={refs.setFloating}
-								style={{
-									...floatingStyles,
-									pointerEvents: interactive ? 'auto' : 'none',
-								}}
-								className={k.portal}
-								{...getFloatingProps()}
-							>
-								<motion.div
-									{...ugoki.tooltip}
-									className={cn(k.content, interactive && 'pointer-events-auto', contentClassName)}
-								>
-									{contentChildren}
-								</motion.div>
-							</div>
-						)}
-					</AnimatePresence>
-				</ReducedMotion>
-			</FloatingPortal>
-		</div>
+	const contextValue = useMemo<TooltipContextValue>(
+		() => ({
+			open,
+			interactive,
+			setReference: refs.setReference,
+			setFloating: refs.setFloating,
+			floatingStyles,
+			getReferenceProps,
+			getFloatingProps,
+		}),
+		[
+			open,
+			interactive,
+			refs.setReference,
+			refs.setFloating,
+			floatingStyles,
+			getReferenceProps,
+			getFloatingProps,
+		],
 	)
-}
 
-export function TooltipTrigger({ children }: TooltipTriggerProps) {
-	if (isValidElement(children)) {
-		return children
-	}
-
-	return <span>{children}</span>
-}
-
-export function TooltipContent(_props: TooltipContentProps) {
-	return null
+	return <TooltipProvider value={contextValue}>{children}</TooltipProvider>
 }

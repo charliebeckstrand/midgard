@@ -41,20 +41,6 @@ export default function PopoverDemo() {
 				</Popover>
 			</Example>
 
-			<Example title="Glass">
-				<Glass>
-					<Popover>
-						<PopoverTrigger>
-							<Button variant="outline">
-								Open popover
-								<Icon icon={<ChevronDown />} />
-							</Button>
-						</PopoverTrigger>
-						<PopoverContent>{popoverContent}</PopoverContent>
-					</Popover>
-				</Glass>
-			</Example>
-
 			<Example title="Placement">
 				<div>
 					<Flex justify="center" gap="lg" className="hidden sm:flex">
@@ -108,6 +94,20 @@ export default function PopoverDemo() {
 						</Stack>
 					</Stack>
 				</div>
+			</Example>
+
+			<Example title="Glass">
+				<Glass>
+					<Popover>
+						<PopoverTrigger>
+							<Button variant="outline">
+								Open popover
+								<Icon icon={<ChevronDown />} />
+							</Button>
+						</PopoverTrigger>
+						<PopoverContent>{popoverContent}</PopoverContent>
+					</Popover>
+				</Glass>
 			</Example>
 		</Stack>
 	)

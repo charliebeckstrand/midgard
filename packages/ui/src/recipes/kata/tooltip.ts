@@ -1,6 +1,7 @@
 import { iro } from '../ryu/iro'
 import { ji } from '../ryu/ji'
 import { omote } from '../ryu/omote'
+import { sen } from '../ryu/sen'
 
 export const tooltip = {
 	trigger: 'inline-flex cursor-help *:cursor-help',
@@ -11,11 +12,14 @@ export const tooltip = {
 		ji.size.md,
 		'font-medium',
 		'whitespace-nowrap',
-		omote.popover,
 		'rounded-lg',
 		iro.text.default,
 		'pointer-events-none',
 	],
+	surface: {
+		default: omote.popover,
+		glass: [omote.glass, sen.outline],
+	},
 }
 
 export { tooltip as k }
