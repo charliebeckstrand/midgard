@@ -2,7 +2,7 @@
 
 import type { DragEndEvent, DragOverEvent, DragStartEvent } from '@dnd-kit/core'
 import { type ReactNode, useCallback, useMemo, useRef, useState } from 'react'
-import type { KanbanColumnShape } from './context'
+import type { KanbanColumnShape } from './types'
 
 export function useKanbanDrag<T, C extends KanbanColumnShape<T>>({
 	columns,

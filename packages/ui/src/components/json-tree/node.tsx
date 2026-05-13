@@ -10,15 +10,9 @@ import { k } from '../../recipes/kata/json-tree'
 import { Icon } from '../icon'
 import { JsonTreeProvider, useJsonTreeContext } from './context'
 import { NodeKey, PrimitiveValue } from './helpers'
+import type { JsonValue } from './types'
 import { toggleExpandedSet } from './use-expansion'
-import {
-	filterEntries,
-	getEntries,
-	INDENT_REM,
-	isBranch,
-	type JsonValue,
-	matchesSearch,
-} from './utilities'
+import { filterEntries, getEntries, INDENT_REM, isBranch, matchesSearch } from './utilities'
 
 type JsonNodeProps = {
 	keyName?: string | number

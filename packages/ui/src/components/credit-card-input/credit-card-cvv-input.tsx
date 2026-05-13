@@ -2,7 +2,8 @@
 
 import { useMaskedInput } from '../../hooks'
 import { Input, type InputProps } from '../input'
-import { type CreditCardBrand, type CreditCardBrandInfo, formatCvv } from './utilities'
+import type { CreditCardBrand, CreditCardBrandInfo } from './types'
+import { formatCvv } from './utilities'
 
 export type CreditCardCvvInputProps = Omit<
 	InputProps,

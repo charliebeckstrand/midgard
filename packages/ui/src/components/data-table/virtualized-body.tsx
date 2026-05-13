@@ -3,8 +3,8 @@
 import { useVirtualizer } from '@tanstack/react-virtual'
 import type { RefObject } from 'react'
 import { TableBody } from '../table'
-import type { DataTableColumn } from './component'
 import { DataTableRowInternal } from './row'
+import type { DataTableColumn } from './types'
 
 type DataTableVirtualizedBodyProps<T> = {
 	scrollRef: RefObject<HTMLDivElement | null>

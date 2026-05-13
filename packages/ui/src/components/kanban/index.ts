@@ -1,12 +1,12 @@
 export { k as kanbanVariants } from '../../recipes/kata/kanban'
 export {
 	type KanbanColumnContext,
-	type KanbanColumnShape,
 	type KanbanContext,
 	useKanbanColumnContext,
 	useKanbanContext,
 } from './context'
 export { Kanban, type KanbanProps } from './kanban'
+export { type KanbanColumnShape } from './types'
 export { KanbanCard, type KanbanCardProps } from './kanban-card'
 export { KanbanColumn, type KanbanColumnProps } from './kanban-column'
 export {

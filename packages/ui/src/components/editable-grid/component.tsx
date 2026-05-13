@@ -11,13 +11,8 @@ import {
 	type DataTableVirtualize,
 } from '../data-table'
 import type { TableElementProps, TableVariants } from '../table'
-import {
-	type CellChange,
-	type Coord,
-	type EditableGridColumn,
-	type EditableGridContextValue,
-	EditableGridProvider,
-} from './context'
+import { type EditableGridContextValue, EditableGridProvider } from './context'
+import type { CellChange, Coord, EditableGridColumn } from './types'
 import { useEditableGridAugmentedColumns } from './use-editable-grid-augmented-columns'
 import { useEditableGridMutations } from './use-editable-grid-mutations'
 import { useEditableGridNavigation } from './use-editable-grid-navigation'

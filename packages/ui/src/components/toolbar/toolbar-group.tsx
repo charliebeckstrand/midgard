@@ -3,7 +3,8 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { type ToolbarGroupVariants, toolbarGroupVariants } from '../../recipes/kata/toolbar'
-import { type ToolbarOrientation, useToolbarContext } from './context'
+import { useToolbarContext } from './context'
+import type { ToolbarOrientation } from './types'
 
 export type ToolbarGroupProps = Omit<ToolbarGroupVariants, 'orientation'> & {
 	orientation?: ToolbarOrientation

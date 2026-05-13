@@ -2,23 +2,9 @@
 
 import { type ReactNode, useCallback, useRef, useState } from 'react'
 import { createContext } from '../../core'
+import type { ToastData, ToastPosition } from './types'
 import { useDrain } from './use-drain'
 import { useTimer } from './use-timer'
-
-export type ToastType = 'default' | 'secondary' | 'success' | 'warning' | 'error'
-export type ToastPosition = 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left'
-
-export type ToastData = {
-	id: string
-	zIndex: number
-	title: string
-	description?: string
-	type?: ToastType
-	actions?: ReactNode
-	showCloseButton?: boolean
-	persist?: boolean
-	dismissed?: boolean
-}
 
 type ToastInput = Omit<ToastData, 'id' | 'zIndex'> & { duration?: number }
 

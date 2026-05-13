@@ -2,15 +2,7 @@
 
 import type { PointerEvent as ReactPointerEvent } from 'react'
 import { createContext } from '../../core'
-import type { Orientation } from '../../types'
-
-export type ResizableDirection = Orientation
-
-export type PanelConfig = {
-	defaultSize: number
-	minSize: number
-	maxSize: number
-}
+import type { PanelConfig, ResizableDirection } from './types'
 
 type ResizableContextType = {
 	direction: ResizableDirection

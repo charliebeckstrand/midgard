@@ -7,28 +7,16 @@ import { k } from '../../recipes/kata/data-table'
 import type { TableElementProps, TableVariants } from '../table'
 import { Table, TableBody, TableLoading } from '../table'
 import { Toolbar } from '../toolbar'
-import type { DataTableColumnManagerItem, DataTableColumnManagerPreset } from './column-manager'
 import { DataTableProvider, type SortState } from './context'
 import { DataTableHead } from './head'
 import { DataTableManageColumnsDialog } from './manage-columns-dialog'
 import { DataTableRowInternal } from './row'
+import type {
+	DataTableColumn,
+	DataTableColumnManagerItem,
+	DataTableColumnManagerPreset,
+} from './types'
 import { DataTableVirtualizedBody } from './virtualized-body'
-
-export type DataTableColumn<T> = {
-	id: string | number
-	title?: ReactNode
-	sortable?: boolean
-	selectable?: boolean
-	actions?: (row: T) => ReactNode
-	cell?: (row: T) => ReactNode
-	className?: string
-	headerClassName?: string
-	width?: string
-	/** Shown in the column manager but cannot be reordered or hidden. */
-	pinned?: boolean
-	/** When false, the column cannot be hidden from the column manager. Defaults to true. */
-	hideable?: boolean
-}
 
 export type DataTableVirtualize = boolean | { estimateSize?: number; overscan?: number }
 

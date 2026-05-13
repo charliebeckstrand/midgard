@@ -1,7 +1,7 @@
 'use client'
 
 import { type RefObject, useCallback } from 'react'
-import type { CellChange, Coord, EditableGridColumn } from './context'
+import type { CellChange, Coord, EditableGridColumn } from './types'
 
 export function useEditableGridMutations<T>({
 	editableCols,

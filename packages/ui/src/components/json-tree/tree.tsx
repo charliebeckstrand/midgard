@@ -8,17 +8,15 @@ import { k } from '../../recipes/kata/json-tree'
 import { JsonTreeProvider } from './context'
 import { JsonNode } from './node'
 import { JsonNodeRow } from './node-row'
+import type { JsonValue } from './types'
 import { useJsonTreeExpansion } from './use-expansion'
 import {
 	buildSearchIndex,
 	collectPaths,
 	flattenTree,
-	type JsonValue,
 	normalizeSearch,
 	type Search,
 } from './utilities'
-
-export type { JsonValue }
 
 export type JsonTreeVirtualize = boolean | { estimateSize?: number; overscan?: number }
 
