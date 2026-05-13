@@ -59,26 +59,6 @@ export default function DialogDemo() {
 				</Dialog>
 			</Example>
 
-			<Example title="Glass">
-				<Button onClick={() => setGlassOpen(true)}>Open glass dialog</Button>
-				<Dialog glass open={glassOpen} onOpenChange={setGlassOpen}>
-					<DialogTitle>Glass dialog</DialogTitle>
-					<DialogBody>
-						<Stack gap="lg">
-							<Text>
-								The glass variant applies a backdrop blur with a transparent background, allowing
-								content behind the dialog to show through.
-							</Text>
-						</Stack>
-					</DialogBody>
-					<DialogActions>
-						<Button variant="plain" onClick={() => setGlassOpen(false)}>
-							Close
-						</Button>
-					</DialogActions>
-				</Dialog>
-			</Example>
-
 			<Example title="Confirm dialog">
 				<Button color="amber" onClick={() => setDiscardOpen(true)}>
 					Discard changes
@@ -169,6 +149,26 @@ export default function DialogDemo() {
 						</Stack>
 					</DialogBody>
 				</ConfirmDialog>
+			</Example>
+
+			<Example title="Glass">
+				<Button onClick={() => setGlassOpen(true)}>Open glass dialog</Button>
+				<Dialog glass open={glassOpen} onOpenChange={setGlassOpen}>
+					<DialogTitle>Glass dialog</DialogTitle>
+					<DialogBody>
+						<Stack gap="lg">
+							<Text>
+								The glass variant applies a backdrop blur with a transparent background, allowing
+								content behind the dialog to show through.
+							</Text>
+						</Stack>
+					</DialogBody>
+					<DialogActions>
+						<Button variant="plain" onClick={() => setGlassOpen(false)}>
+							Close
+						</Button>
+					</DialogActions>
+				</Dialog>
 			</Example>
 		</Stack>
 	)
