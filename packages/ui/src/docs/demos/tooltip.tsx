@@ -49,7 +49,7 @@ export default function TooltipDemo() {
 						<Button variant="outline">Hover me</Button>
 					</TooltipTrigger>
 					<TooltipContent>
-						This tooltip has a delay of 500ms before it opens and closes.
+						This tooltip has a delay of 1000ms before it opens and closes.
 					</TooltipContent>
 				</Tooltip>
 			</Example>
