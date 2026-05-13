@@ -56,7 +56,14 @@ describe('DataTable · with selection column', () => {
 	bench('1,000 rows · 10% pre-selected', () => {
 		const selection = new Set(rows1k.filter((_, i) => i % 10 === 0).map(getKey))
 
-		render(<DataTable columns={cols} rows={rows1k} getRowKey={getKey} selection={selection} />)
+		render(
+			<DataTable
+				columns={cols}
+				rows={rows1k}
+				getRowKey={getKey}
+				selection={{ value: selection }}
+			/>,
+		)
 
 		cleanup()
 	})
@@ -64,7 +71,14 @@ describe('DataTable · with selection column', () => {
 	bench('1,000 rows · all selected', () => {
 		const selection = new Set(rows1k.map(getKey))
 
-		render(<DataTable columns={cols} rows={rows1k} getRowKey={getKey} selection={selection} />)
+		render(
+			<DataTable
+				columns={cols}
+				rows={rows1k}
+				getRowKey={getKey}
+				selection={{ value: selection }}
+			/>,
+		)
 
 		cleanup()
 	})
@@ -89,8 +103,7 @@ describe('DataTable · column-order logic (visibleColumns memo)', () => {
 				columns={manyColumns}
 				rows={rows100}
 				getRowKey={getKey}
-				hiddenColumns={hidden}
-				columnOrder={order}
+				columnManager={{ hidden, order }}
 			/>,
 		)
 
@@ -132,7 +145,12 @@ describe('DataTable · rerender after selection toggle (1,000 rows)', () => {
 		let selection = new Set<string | number>()
 
 		const { rerender } = render(
-			<DataTable columns={cols} rows={rows1k} getRowKey={getKey} selection={selection} />,
+			<DataTable
+				columns={cols}
+				rows={rows1k}
+				getRowKey={getKey}
+				selection={{ value: selection }}
+			/>,
 		)
 
 		for (let i = 0; i < 5; i++) {
@@ -142,7 +160,14 @@ describe('DataTable · rerender after selection toggle (1,000 rows)', () => {
 
 			selection.add(key)
 
-			rerender(<DataTable columns={cols} rows={rows1k} getRowKey={getKey} selection={selection} />)
+			rerender(
+				<DataTable
+					columns={cols}
+					rows={rows1k}
+					getRowKey={getKey}
+					selection={{ value: selection }}
+				/>,
+			)
 		}
 
 		cleanup()

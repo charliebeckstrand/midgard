@@ -39,20 +39,44 @@ const DEFAULT_OVERSCAN = 10
 
 // ── DataTable ───────────────────────────────────────────
 
+export type DataTableSort = {
+	value?: SortState
+	defaultValue?: SortState
+	onChange?: (sort: SortState | undefined) => void
+}
+
+export type DataTableSelection = {
+	value?: Set<string | number>
+	defaultValue?: Set<string | number>
+	onChange?: (selection: Set<string | number> | undefined) => void
+	batchActions?: (selection: Set<string | number>) => ReactNode
+}
+
+export type DataTableColumnManagerConfig = {
+	/** Render the toolbar button that opens the manage-columns dialog. */
+	enabled?: boolean
+	/** Label on the toolbar button (and dialog title). */
+	label?: ReactNode
+
+	order?: (string | number)[]
+	defaultOrder?: (string | number)[]
+	onOrderChange?: (order: (string | number)[]) => void
+
+	hidden?: Set<string | number>
+	defaultHidden?: Set<string | number>
+	onHiddenChange?: (hidden: Set<string | number>) => void
+
+	onSavePreset?: (preset: DataTableColumnManagerPreset) => void
+}
+
 export type DataTableProps<T> = TableVariants & {
 	columns: DataTableColumn<T>[]
 	rows: T[]
 	getRowKey: (row: T, index: number) => string | number
 
-	sort?: SortState
-	defaultSort?: SortState
-	onSortChange?: (sort: SortState | undefined) => void
-
-	selection?: Set<string | number>
-	defaultSelection?: Set<string | number>
-	onSelectionChange?: (selection: Set<string | number> | undefined) => void
-
-	batchActions?: (selection: Set<string | number>) => ReactNode
+	sort?: DataTableSort
+	selection?: DataTableSelection
+	columnManager?: DataTableColumnManagerConfig
 
 	rowClassName?: (row: T) => string | undefined
 
@@ -72,20 +96,6 @@ export type DataTableProps<T> = TableVariants & {
 	 */
 	virtualize?: DataTableVirtualize
 
-	/** When true, shows a button that opens a dialog for managing column order and visibility. */
-	manageColumns?: boolean
-	manageColumnsLabel?: ReactNode
-
-	columnOrder?: (string | number)[]
-	defaultColumnOrder?: (string | number)[]
-	onColumnOrderChange?: (order: (string | number)[]) => void
-
-	hiddenColumns?: Set<string | number>
-	defaultHiddenColumns?: Set<string | number>
-	onHiddenColumnsChange?: (hidden: Set<string | number>) => void
-
-	onSavePreset?: (preset: DataTableColumnManagerPreset) => void
-
 	className?: string
 	children?: never
 }
@@ -94,28 +104,15 @@ export function DataTable<T>({
 	columns,
 	rows,
 	getRowKey,
-	sort: sortProp,
-	defaultSort,
-	onSortChange,
-	selection: selectionProp,
-	defaultSelection,
-	onSelectionChange,
-	batchActions,
+	sort: sortConfig,
+	selection: selectionConfig,
+	columnManager: columnManagerConfig,
 	rowClassName,
 	stickyHeader = false,
 	maxHeight,
 	loading = false,
 	rowLoading,
 	virtualize,
-	manageColumns = false,
-	manageColumnsLabel = 'Columns',
-	columnOrder: columnOrderProp,
-	defaultColumnOrder,
-	onColumnOrderChange,
-	hiddenColumns: hiddenColumnsProp,
-	defaultHiddenColumns,
-	onHiddenColumnsChange,
-	onSavePreset,
 	dense,
 	bleed,
 	grid,
@@ -137,33 +134,41 @@ export function DataTable<T>({
 	const overscan = virtOpts?.overscan ?? DEFAULT_OVERSCAN
 
 	const [sort, setSort] = useControllable<SortState>({
-		value: sortProp,
-		defaultValue: defaultSort,
-		onChange: onSortChange,
+		value: sortConfig?.value,
+		defaultValue: sortConfig?.defaultValue,
+		onChange: sortConfig?.onChange,
 	})
 
 	const [selectionRaw, setSelectionRaw] = useControllable<Set<string | number>>({
-		value: selectionProp,
-		defaultValue: defaultSelection ?? new Set(),
-		onChange: onSelectionChange,
+		value: selectionConfig?.value,
+		defaultValue: selectionConfig?.defaultValue ?? new Set(),
+		onChange: selectionConfig?.onChange,
 	})
 
 	const selection = selectionRaw ?? new Set<string | number>()
 
+	const batchActions = selectionConfig?.batchActions
+
 	const defaultOrder = useMemo(() => columns.map((c) => c.id), [columns])
 
 	const [columnOrder = defaultOrder, setColumnOrder] = useControllable<(string | number)[]>({
-		value: columnOrderProp,
-		defaultValue: defaultColumnOrder ?? defaultOrder,
-		onChange: (next) => onColumnOrderChange?.(next ?? []),
+		value: columnManagerConfig?.order,
+		defaultValue: columnManagerConfig?.defaultOrder ?? defaultOrder,
+		onChange: (next) => columnManagerConfig?.onOrderChange?.(next ?? []),
 	})
 
-	const [hiddenColumns = defaultHiddenColumns ?? new Set<string | number>(), setHiddenColumns] =
-		useControllable<Set<string | number>>({
-			value: hiddenColumnsProp,
-			defaultValue: defaultHiddenColumns ?? new Set<string | number>(),
-			onChange: (next) => onHiddenColumnsChange?.(next ?? new Set<string | number>()),
-		})
+	const [
+		hiddenColumns = columnManagerConfig?.defaultHidden ?? new Set<string | number>(),
+		setHiddenColumns,
+	] = useControllable<Set<string | number>>({
+		value: columnManagerConfig?.hidden,
+		defaultValue: columnManagerConfig?.defaultHidden ?? new Set<string | number>(),
+		onChange: (next) => columnManagerConfig?.onHiddenChange?.(next ?? new Set<string | number>()),
+	})
+
+	const manageColumns = columnManagerConfig?.enabled ?? false
+
+	const manageColumnsLabel = columnManagerConfig?.label ?? 'Columns'
 
 	const columnById = useMemo(() => {
 		const map = new Map<string | number, DataTableColumn<T>>()
@@ -353,7 +358,7 @@ export function DataTable<T>({
 						onOrderChange={setColumnOrder}
 						hidden={hiddenColumns}
 						onHiddenChange={setHiddenColumns}
-						onSavePreset={onSavePreset}
+						onSavePreset={columnManagerConfig?.onSavePreset}
 					/>
 				)}
 

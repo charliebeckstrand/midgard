@@ -326,11 +326,8 @@ export function EditableGrid<T>({
 					columns={augmentedColumns}
 					rows={rows}
 					getRowKey={getRowKey}
-					sort={sort}
-					defaultSort={defaultSort}
-					onSortChange={onSortChange}
-					selection={selection}
-					onSelectionChange={setSelectionRaw}
+					sort={{ value: sort, defaultValue: defaultSort, onChange: onSortChange }}
+					selection={{ value: selection, onChange: setSelectionRaw }}
 					rowClassName={rowClassName}
 					stickyHeader={stickyHeader}
 					maxHeight={maxHeight}
