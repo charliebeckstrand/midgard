@@ -1,14 +1,31 @@
-import type { ComponentPropsWithoutRef } from 'react'
+'use client'
+
+import { type ComponentPropsWithoutRef, useRef } from 'react'
 import { cn } from '../../core'
+import { useRoving } from '../../hooks'
 import { paginationVariants } from '../../recipes/kata/pagination'
+
+const PAGINATION_ITEM_SELECTOR = 'a[href],button:not(:disabled)'
 
 export type PaginationProps = ComponentPropsWithoutRef<'nav'>
 
-export function Pagination({ className, ...props }: PaginationProps) {
+export function Pagination({ className, onKeyDown, ...props }: PaginationProps) {
+	const ref = useRef<HTMLElement>(null)
+
+	const handleRovingKeyDown = useRoving(ref, {
+		itemSelector: PAGINATION_ITEM_SELECTOR,
+		orientation: 'horizontal',
+	})
+
 	return (
 		<nav
+			ref={ref}
 			data-slot="pagination"
 			aria-label="Pagination"
+			onKeyDown={(e) => {
+				onKeyDown?.(e)
+				if (!e.defaultPrevented) handleRovingKeyDown(e)
+			}}
 			className={cn(paginationVariants(), className)}
 			{...props}
 		/>
