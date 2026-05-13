@@ -12,7 +12,6 @@ import { AnimatePresence, motion } from 'motion/react'
 import {
 	cloneElement,
 	isValidElement,
-	type RefObject,
 	useCallback,
 	useEffect,
 	useLayoutEffect,
@@ -148,14 +147,12 @@ export function PopoverTrigger({ children, className, manual = false }: PopoverT
 	// update depth" error when ancestor state is still in flux.
 	const mergeRefs = useCallback(
 		(node: HTMLElement | null) => {
-			const triggerMutableRef = triggerRef as RefObject<HTMLButtonElement | null>
-
-			triggerMutableRef.current = node as HTMLButtonElement | null
+			triggerRef.current = node as HTMLButtonElement | null
 
 			setReference(node)
 
 			return () => {
-				triggerMutableRef.current = null
+				triggerRef.current = null
 			}
 		},
 		[triggerRef, setReference],

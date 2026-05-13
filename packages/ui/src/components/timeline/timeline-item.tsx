@@ -3,7 +3,7 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/timeline'
 import { TimelineProvider, type TimelineVariant, useTimeline } from './context'
 import type { TimelineMarkerConfig } from './timeline-marker'
-import { TimelineMarker, type TimelineMarkerProps } from './timeline-marker'
+import { TimelineMarker } from './timeline-marker'
 
 export type TimelineItemProps = {
 	active?: boolean
@@ -12,17 +12,9 @@ export type TimelineItemProps = {
 	children?: ReactNode
 } & TimelineMarkerConfig
 
-export function TimelineItem({
-	active,
-	variant: variantProp,
-	className,
-	children,
-	status,
-	color,
-	pulse,
-	lineBefore,
-	lineAfter,
-}: TimelineItemProps) {
+export function TimelineItem(props: TimelineItemProps) {
+	const { active, variant: variantProp, className, children, ...markerConfig } = props
+
 	const { orientation, variant: contextVariant } = useTimeline()
 
 	const variant = variantProp ?? contextVariant
@@ -48,11 +40,7 @@ export function TimelineItem({
 			)}
 		>
 			<TimelineProvider value={providerValue}>
-				{!hasMarker && (
-					<TimelineMarker
-						{...({ status, color, pulse, lineBefore, lineAfter } as TimelineMarkerProps)}
-					/>
-				)}
+				{!hasMarker && <TimelineMarker {...markerConfig} />}
 				{children}
 			</TimelineProvider>
 		</li>

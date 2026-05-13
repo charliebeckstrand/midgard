@@ -112,7 +112,7 @@ export function useFormStatus(): FormStatus | undefined {
 // provide one hook per shape rather than a single polymorphic hook.
 // ---------------------------------------------------------------------------
 
-export type FormTextBinding<E extends HTMLElement = HTMLElement> = {
+export type FormTextBinding<E extends HTMLInputElement | HTMLTextAreaElement = HTMLInputElement> = {
 	value: string
 	onChange: (e: ChangeEvent<E>) => void
 	onBlur: (e: FocusEvent<E>) => void
@@ -120,7 +120,7 @@ export type FormTextBinding<E extends HTMLElement = HTMLElement> = {
 }
 
 /** Binding for string-value controls (Input, Textarea). */
-export function useFormText<E extends HTMLElement = HTMLElement>(
+export function useFormText<E extends HTMLInputElement | HTMLTextAreaElement = HTMLInputElement>(
 	name: string | undefined,
 	handlers?: {
 		onChange?: (e: ChangeEvent<E>) => void
@@ -132,9 +132,9 @@ export function useFormText<E extends HTMLElement = HTMLElement>(
 	if (!field) return undefined
 
 	return {
-		value: (field.value as string) ?? '',
+		value: typeof field.value === 'string' ? field.value : '',
 		onChange: (e) => {
-			field.setValue((e.target as unknown as HTMLInputElement).value)
+			field.setValue(e.target.value)
 			handlers?.onChange?.(e)
 		},
 		onBlur: (e) => {

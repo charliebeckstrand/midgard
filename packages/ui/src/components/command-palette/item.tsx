@@ -28,16 +28,10 @@ export type CommandPaletteItemProps = CommandPaletteItemBaseProps &
 		  >)
 	)
 
-export function CommandPaletteItem({
-	disabled,
-	className,
-	children,
-	onAction,
-	closeOnAction = true,
-	href,
-	...props
-}: CommandPaletteItemProps) {
+export function CommandPaletteItem(props: CommandPaletteItemProps) {
 	const { close } = useCommandPaletteContext()
+
+	const { disabled, className, children, onAction, closeOnAction = true } = props
 
 	function handleSelect() {
 		if (disabled) return
@@ -49,25 +43,39 @@ export function CommandPaletteItem({
 
 	const classes = cn(k.item, className)
 
-	if (href) {
+	if (props.href !== undefined) {
+		const {
+			disabled: _disabled,
+			className: _className,
+			children: _children,
+			onAction: _onAction,
+			closeOnAction: _closeOnAction,
+			...rest
+		} = props
+
 		return (
 			<Link
-				href={href}
 				role="option"
 				tabIndex={-1}
 				data-slot="command-palette-item"
 				data-disabled={disabled ? '' : undefined}
 				className={classes}
 				onClick={handleSelect}
-				{...(props as Omit<
-					ComponentPropsWithoutRef<typeof Link>,
-					keyof CommandPaletteItemBaseProps | 'href'
-				>)}
+				{...rest}
 			>
 				{children}
 			</Link>
 		)
 	}
+
+	const {
+		disabled: _disabled,
+		className: _className,
+		children: _children,
+		onAction: _onAction,
+		closeOnAction: _closeOnAction,
+		...rest
+	} = props
 
 	return (
 		<button
@@ -78,7 +86,7 @@ export function CommandPaletteItem({
 			data-disabled={disabled ? '' : undefined}
 			className={classes}
 			onClick={handleSelect}
-			{...(props as Omit<ComponentPropsWithoutRef<'button'>, keyof CommandPaletteItemBaseProps>)}
+			{...rest}
 		>
 			{children}
 		</button>

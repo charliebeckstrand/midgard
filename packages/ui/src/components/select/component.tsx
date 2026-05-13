@@ -1,7 +1,7 @@
 import { Listbox, type ListboxProps } from '../listbox'
 
-export type SelectProps<T> = Omit<ListboxProps<T>, 'multiple'>
+export type SelectProps<T> = Extract<ListboxProps<T>, { multiple?: false }>
 
 export function Select<T>(props: SelectProps<T>) {
-	return <Listbox {...(props as ListboxProps<T>)} />
+	return <Listbox<T> {...props} />
 }
