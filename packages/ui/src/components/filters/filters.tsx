@@ -115,7 +115,7 @@ export function Filters<T extends FilterValue = FilterValue>({
 					>
 						{children}
 					</Flex>
-					{clear && clear}
+					{clear}
 				</Flex>
 				{suffix && <div data-slot="filters-suffix">{suffix}</div>}
 			</div>

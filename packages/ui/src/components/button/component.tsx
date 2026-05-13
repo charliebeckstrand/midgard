@@ -135,7 +135,7 @@ export function Button({
 		<ButtonSizeProvider value={resolvedSize ?? 'md'}>
 			{loading ? <Spinner {...loadingOptions} /> : prefix}
 			{children}
-			{suffix && suffix}
+			{suffix}
 		</ButtonSizeProvider>
 	)
 
