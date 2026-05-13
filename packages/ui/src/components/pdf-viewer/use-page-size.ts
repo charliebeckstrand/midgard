@@ -1,6 +1,6 @@
 'use client'
 
-import { type SyntheticEvent, useEffect, useState } from 'react'
+import { type SyntheticEvent, useState } from 'react'
 import type { PdfViewerPage } from './types'
 
 type Size = { width: number; height: number }
@@ -25,10 +25,17 @@ export function usePageSize(
 ): UsePageSizeResult {
 	const [naturalSize, setNaturalSize] = useState<Size | null>(null)
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: reset is keyed on the active page identity, not on naturalSize itself
-	useEffect(() => {
+	// Resets `naturalSize` synchronously when the active page changes — the
+	// React-docs "adjust state on prop change" pattern. Avoids the effect-as-
+	// invalidation-trigger anti-pattern and keeps the dep array honest.
+	const [prevPageId, setPrevPageId] = useState(activePage?.id)
+	const [prevSafePage, setPrevSafePage] = useState(safePage)
+
+	if (prevPageId !== activePage?.id || prevSafePage !== safePage) {
+		setPrevPageId(activePage?.id)
+		setPrevSafePage(safePage)
 		setNaturalSize(null)
-	}, [activePage?.id, safePage])
+	}
 
 	const pageSize =
 		activePage?.width && activePage.height

@@ -27,11 +27,12 @@ export function NavList({ orientation, className, children, ...props }: NavListP
 
 	return (
 		<ActiveIndicatorScope>
-			{/* biome-ignore lint/a11y/noStaticElementInteractions: roving focus on nav items within a <nav> landmark */}
 			<div
 				ref={ref}
 				data-slot="nav-list"
 				data-orientation={resolvedOrientation}
+				role="menubar"
+				aria-orientation={resolvedOrientation}
 				className={cn(k.list.base, k.list.orientation[resolvedOrientation], className)}
 				onKeyDown={handleKeyDown}
 				{...props}

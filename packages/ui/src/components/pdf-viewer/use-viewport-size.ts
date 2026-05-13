@@ -1,6 +1,6 @@
 'use client'
 
-import { type RefObject, useLayoutEffect, useState } from 'react'
+import { type RefObject, useCallback, useLayoutEffect, useRef, useState } from 'react'
 
 export type ViewportSize = { width: number; height: number }
 
@@ -18,23 +18,31 @@ export function useViewportSize(
 ): ViewportSize | null {
 	const [size, setSize] = useState<ViewportSize | null>(null)
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: invalidationKey is a re-measure trigger — its identity, not its use inside the effect, is the dep
-	useLayoutEffect(() => {
+	const lastInvalidationKeyRef = useRef(invalidationKey)
+
+	// `measure` is the same operation whether triggered by ResizeObserver or by
+	// an invalidation-key change. Pulling it out of the effects keeps both
+	// branches honest and lets each effect declare its real dependencies.
+	const measure = useCallback(() => {
 		const el = ref.current
 
 		if (!el) return
 
-		const measure = () => {
-			const styles = window.getComputedStyle(el)
+		const styles = window.getComputedStyle(el)
 
-			const padX = Number.parseFloat(styles.paddingLeft) + Number.parseFloat(styles.paddingRight)
-			const padY = Number.parseFloat(styles.paddingTop) + Number.parseFloat(styles.paddingBottom)
+		const padX = Number.parseFloat(styles.paddingLeft) + Number.parseFloat(styles.paddingRight)
+		const padY = Number.parseFloat(styles.paddingTop) + Number.parseFloat(styles.paddingBottom)
 
-			setSize({
-				width: el.clientWidth - padX,
-				height: el.clientHeight - padY,
-			})
-		}
+		setSize({
+			width: el.clientWidth - padX,
+			height: el.clientHeight - padY,
+		})
+	}, [ref])
+
+	useLayoutEffect(() => {
+		const el = ref.current
+
+		if (!el) return
 
 		measure()
 
@@ -43,7 +51,19 @@ export function useViewportSize(
 		observer.observe(el)
 
 		return () => observer.disconnect()
-	}, [ref, invalidationKey])
+	}, [ref, measure])
+
+	// Caller-driven invalidation: re-measure synchronously when the key flips.
+	// `measure` is stable per `ref`, so the effect only re-fires on key change.
+	// The lastInvalidationKey ref both pins the dep declaratively and skips the
+	// redundant remeasure on mount — the setup effect above already measures once.
+	useLayoutEffect(() => {
+		if (lastInvalidationKeyRef.current === invalidationKey) return
+
+		lastInvalidationKeyRef.current = invalidationKey
+
+		measure()
+	}, [invalidationKey, measure])
 
 	return size
 }

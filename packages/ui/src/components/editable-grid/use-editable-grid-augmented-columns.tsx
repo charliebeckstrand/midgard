@@ -1,22 +1,32 @@
 'use client'
 
-import { useMemo } from 'react'
+import { type HTMLAttributes, type MouseEvent, useMemo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/editable-grid'
 import type { DataTableColumn } from '../data-table'
 import { EditableGridCellContent } from './cell'
-import type { EditableGridColumn } from './context'
+import type { Coord, EditableGridColumn } from './context'
 
 type UseEditableGridAugmentedColumns<T> = {
 	columns: EditableGridColumn<T>[]
 	rowIndexMap: Map<T, number>
 	formatCell: (row: T, col: EditableGridColumn<T>) => string
+	active: Coord | null
+	editing: boolean
+	addCellToSelection: (coord: Coord) => void
+	moveActiveTo: (coord: Coord, extend?: boolean) => void
+	beginEdit: (coord: Coord, initial?: string, original?: string) => void
 }
 
 export function useEditableGridAugmentedColumns<T>({
 	columns,
 	rowIndexMap,
 	formatCell,
+	active,
+	editing,
+	addCellToSelection,
+	moveActiveTo,
+	beginEdit,
 }: UseEditableGridAugmentedColumns<T>): DataTableColumn<T>[] {
 	return useMemo<DataTableColumn<T>[]>(() => {
 		let editableColIdx = 0
@@ -48,6 +58,34 @@ export function useEditableGridAugmentedColumns<T>({
 				width: col.width,
 				className: cn(k.cellTd, col.className),
 				headerClassName: col.headerClassName,
+				cellProps: (row: T): HTMLAttributes<HTMLTableCellElement> => {
+					const rowIdx = rowIndexMap.get(row) ?? -1
+
+					const isActive = active?.row === rowIdx && active?.col === colIdx
+
+					const showInput = isActive && editing && !readOnly
+
+					return {
+						role: 'gridcell',
+						'aria-readonly': readOnly || undefined,
+						onMouseDown: (e: MouseEvent<HTMLTableCellElement>) => {
+							if (showInput) return
+
+							e.preventDefault()
+							;(e.currentTarget.closest('[role=grid]') as HTMLElement | null)?.focus()
+
+							const coord = { row: rowIdx, col: colIdx }
+
+							if (e.metaKey || e.ctrlKey) addCellToSelection(coord)
+							else moveActiveTo(coord, e.shiftKey)
+						},
+						onDoubleClick: () => {
+							if (readOnly) return
+
+							beginEdit({ row: rowIdx, col: colIdx }, formatCell(row, col))
+						},
+					}
+				},
 				cell: (row: T) => {
 					const rowIdx = rowIndexMap.get(row) ?? -1
 
@@ -65,5 +103,14 @@ export function useEditableGridAugmentedColumns<T>({
 				},
 			}
 		})
-	}, [columns, rowIndexMap, formatCell])
+	}, [
+		columns,
+		rowIndexMap,
+		formatCell,
+		active,
+		editing,
+		addCellToSelection,
+		moveActiveTo,
+		beginEdit,
+	])
 }

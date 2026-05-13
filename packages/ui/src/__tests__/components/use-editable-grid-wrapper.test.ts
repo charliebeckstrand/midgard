@@ -19,7 +19,7 @@ function makeEvent(key: string, opts: { shiftKey?: boolean; metaKey?: boolean } 
 		ctrlKey: false,
 		altKey: false,
 		preventDefault: vi.fn(),
-	} as unknown as KeyboardEvent<HTMLDivElement>
+	} as unknown as KeyboardEvent<HTMLTableElement>
 }
 
 function setup(
@@ -29,7 +29,7 @@ function setup(
 		anchor?: Coord | null
 		extras?: Set<string>
 		hasMultiSelection?: boolean
-		wrapper?: HTMLDivElement | null
+		wrapper?: HTMLTableElement | null
 		rows?: Row[]
 		selection?: Set<string | number>
 	} = {},
@@ -39,7 +39,7 @@ function setup(
 		{ id: 'b', value: 'b1' },
 	]
 
-	const wrapper = options.wrapper !== undefined ? options.wrapper : document.createElement('div')
+	const wrapper = options.wrapper !== undefined ? options.wrapper : document.createElement('table')
 
 	const mocks = {
 		moveActive: vi.fn(),
@@ -142,7 +142,7 @@ describe('useEditableGridWrapper: onWrapperKeyDown arrow navigation', () => {
 				extraCells: new Set(),
 				hasMultiSelection: false,
 				editableCols: cols,
-				wrapperRef: { current: document.createElement('div') },
+				wrapperRef: { current: document.createElement('table') },
 				rowsRef: { current: [{ id: 'a', value: 'a1' }] },
 				activeRef: { current: { row: 0, col: 0 } },
 				selectionRef: { current: new Set() },
@@ -284,11 +284,11 @@ describe('useEditableGridWrapper: onWrapperKeyDown delete and escape', () => {
 })
 
 describe('useEditableGridWrapper: onWrapperPaste', () => {
-	function makePaste(text: string): ClipboardEvent<HTMLDivElement> {
+	function makePaste(text: string): ClipboardEvent<HTMLTableElement> {
 		return {
 			clipboardData: { getData: vi.fn(() => text) },
 			preventDefault: vi.fn(),
-		} as unknown as ClipboardEvent<HTMLDivElement>
+		} as unknown as ClipboardEvent<HTMLTableElement>
 	}
 
 	it('pastes a single value into the active cell', () => {
@@ -361,12 +361,12 @@ describe('useEditableGridWrapper: onWrapperFocus and onWrapperBlur', () => {
 	function makeFocusEvent(
 		target: EventTarget | null,
 		related: EventTarget | null = null,
-	): FocusEvent<HTMLDivElement> {
-		return { target, relatedTarget: related } as unknown as FocusEvent<HTMLDivElement>
+	): FocusEvent<HTMLTableElement> {
+		return { target, relatedTarget: related } as unknown as FocusEvent<HTMLTableElement>
 	}
 
 	it('onWrapperFocus moves focus to {0,0} when tabbing in from above', () => {
-		const wrapper = document.createElement('div')
+		const wrapper = document.createElement('table')
 
 		document.body.appendChild(wrapper)
 
@@ -410,7 +410,7 @@ describe('useEditableGridWrapper: onWrapperFocus and onWrapperBlur', () => {
 	})
 
 	it('onWrapperBlur clears active and anchor when focus leaves the wrapper', () => {
-		const wrapper = document.createElement('div')
+		const wrapper = document.createElement('table')
 
 		const { api, setActive, setAnchor } = setup({ wrapper })
 
@@ -424,7 +424,7 @@ describe('useEditableGridWrapper: onWrapperFocus and onWrapperBlur', () => {
 	})
 
 	it('onWrapperBlur is a no-op when focus moves to a child of the wrapper', () => {
-		const wrapper = document.createElement('div')
+		const wrapper = document.createElement('table')
 
 		const child = document.createElement('button')
 

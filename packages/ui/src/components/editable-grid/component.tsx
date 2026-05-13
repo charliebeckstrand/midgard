@@ -103,7 +103,7 @@ export function EditableGrid<T>({
 
 	selectionRef.current = selection
 
-	const wrapperRef = useRef<HTMLDivElement>(null)
+	const wrapperRef = useRef<HTMLTableElement>(null)
 
 	// Editable column indices (exclude selectable / actions) — these are the
 	// columns the active-cell cursor can land on.
@@ -274,6 +274,11 @@ export function EditableGrid<T>({
 		columns,
 		rowIndexMap,
 		formatCell,
+		active,
+		editing,
+		addCellToSelection,
+		moveActiveTo,
+		beginEdit,
 	})
 
 	const ctx = useMemo<EditableGridContextValue>(
@@ -306,34 +311,32 @@ export function EditableGrid<T>({
 
 	return (
 		<EditableGridProvider value={ctx}>
-			{/* biome-ignore lint/a11y/useSemanticElements: role="grid" on the wrapper is the ARIA composite-widget pattern for spreadsheet-like editing */}
-			<div
-				ref={wrapperRef}
-				data-slot="editable-grid"
-				role="grid"
-				tabIndex={0}
+			<DataTable
+				columns={augmentedColumns}
+				rows={rows}
+				getRowKey={getRowKey}
+				sort={sortConfig}
+				selection={{ ...selectionConfig, value: selection, onChange: setSelectionRaw }}
+				rowClassName={rowClassName}
+				stickyHeader={stickyHeader}
+				maxHeight={maxHeight}
+				virtualize={virtualize}
+				dense={dense}
+				bleed={bleed}
+				grid={grid}
+				striped={striped}
 				className={cn(sen.focus.inset, className)}
-				onKeyDown={onWrapperKeyDown}
-				onPaste={onWrapperPaste}
-				onFocus={onWrapperFocus}
-				onBlur={onWrapperBlur}
-			>
-				<DataTable
-					columns={augmentedColumns}
-					rows={rows}
-					getRowKey={getRowKey}
-					sort={sortConfig}
-					selection={{ ...selectionConfig, value: selection, onChange: setSelectionRaw }}
-					rowClassName={rowClassName}
-					stickyHeader={stickyHeader}
-					maxHeight={maxHeight}
-					virtualize={virtualize}
-					dense={dense}
-					bleed={bleed}
-					grid={grid}
-					striped={striped}
-				/>
-			</div>
+				tableRef={wrapperRef}
+				tableProps={{
+					'data-slot': 'editable-grid',
+					role: 'grid',
+					tabIndex: 0,
+					onKeyDown: onWrapperKeyDown,
+					onPaste: onWrapperPaste,
+					onFocus: onWrapperFocus,
+					onBlur: onWrapperBlur,
+				}}
+			/>
 		</EditableGridProvider>
 	)
 }

@@ -1,6 +1,14 @@
 'use client'
 
-import { type ReactNode, useCallback, useMemo, useRef } from 'react'
+import {
+	type ComponentPropsWithoutRef,
+	type HTMLAttributes,
+	type ReactNode,
+	type Ref,
+	useCallback,
+	useMemo,
+	useRef,
+} from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
 import { k } from '../../recipes/kata/data-table'
@@ -23,6 +31,13 @@ export type DataTableColumn<T> = {
 	selectable?: boolean
 	actions?: (row: T) => ReactNode
 	cell?: (row: T) => ReactNode
+	/**
+	 * Per-row props spread onto the underlying `<td>`. Use to wire ARIA, data
+	 * attributes, or handlers (e.g. `role="gridcell"` + `onMouseDown` for a
+	 * composite-widget wrapper like EditableGrid). Returned `className` is
+	 * merged with the column's static `className`.
+	 */
+	cellProps?: (row: T) => Omit<HTMLAttributes<HTMLTableCellElement>, 'children'>
 	className?: string
 	headerClassName?: string
 	width?: string
@@ -96,6 +111,16 @@ export type DataTableProps<T> = TableVariants & {
 	 */
 	virtualize?: DataTableVirtualize
 
+	/** Forwarded to the inner `<table>` element (role, tabIndex, handlers, data-*, etc.). */
+	tableProps?: Omit<
+		ComponentPropsWithoutRef<'table'>,
+		'children' | 'className' | keyof TableVariants
+	> & {
+		[key: `data-${string}`]: string | number | boolean | undefined
+	}
+	/** Forwarded to the inner `<table>` element. Use for composite-widget focus management. */
+	tableRef?: Ref<HTMLTableElement>
+
 	className?: string
 	children?: never
 }
@@ -113,6 +138,8 @@ export function DataTable<T>({
 	loading = false,
 	rowLoading,
 	virtualize,
+	tableProps,
+	tableRef,
 	dense,
 	bleed,
 	grid,
@@ -310,7 +337,15 @@ export function DataTable<T>({
 	const needsScrollWrapper = stickyHeader || virtualizeEnabled
 
 	const tableContent = (
-		<Table dense={dense} bleed={bleed} grid={grid} striped={striped} className={className}>
+		<Table
+			dense={dense}
+			bleed={bleed}
+			grid={grid}
+			striped={striped}
+			className={className}
+			tableRef={tableRef}
+			{...tableProps}
+		>
 			<DataTableHead columns={visibleColumns} />
 
 			{loading ? (

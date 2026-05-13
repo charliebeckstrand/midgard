@@ -41,7 +41,7 @@ export function useEditableGridWrapper<T>({
 	extraCells: Set<string>
 	hasMultiSelection: boolean
 	editableCols: EditableGridColumn<T>[]
-	wrapperRef: RefObject<HTMLDivElement | null>
+	wrapperRef: RefObject<HTMLTableElement | null>
 	rowsRef: RefObject<T[]>
 	activeRef: RefObject<Coord | null>
 	selectionRef: RefObject<Set<string | number>>
@@ -61,7 +61,7 @@ export function useEditableGridWrapper<T>({
 	setSelection: (selection: Set<string | number>) => void
 }) {
 	const onWrapperKeyDown = useCallback(
-		(e: KeyboardEvent<HTMLDivElement>) => {
+		(e: KeyboardEvent<HTMLTableElement>) => {
 			if (editing) return
 
 			if (rowsRef.current.length === 0 || editableCols.length === 0) return
@@ -193,7 +193,7 @@ export function useEditableGridWrapper<T>({
 	)
 
 	const onWrapperPaste = useCallback(
-		(e: ClipboardEvent<HTMLDivElement>) => {
+		(e: ClipboardEvent<HTMLTableElement>) => {
 			if (editing || !active) return
 
 			const text = e.clipboardData.getData('text/plain')
@@ -263,7 +263,7 @@ export function useEditableGridWrapper<T>({
 	)
 
 	const onWrapperFocus = useCallback(
-		(e: FocusEvent<HTMLDivElement>) => {
+		(e: FocusEvent<HTMLTableElement>) => {
 			const wrapper = wrapperRef.current
 
 			if (!wrapper || e.target !== wrapper) return
@@ -290,7 +290,7 @@ export function useEditableGridWrapper<T>({
 	)
 
 	const onWrapperBlur = useCallback(
-		(e: FocusEvent<HTMLDivElement>) => {
+		(e: FocusEvent<HTMLTableElement>) => {
 			const next = e.relatedTarget
 
 			if (next instanceof Node && wrapperRef.current?.contains(next)) return
