@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useControllable } from '../../hooks'
 import { Input, type InputProps } from '../input'
 import { countMeaningful, cursorForCount, formatEditing, parseEditing } from './utilities'
@@ -85,16 +85,9 @@ export function CurrencyInput({
 		})
 	}, [formatter, locale])
 
-	const editingRef = useRef(false)
+	const [editingText, setEditingText] = useState<string | null>(null)
 
-	const [text, setText] = useState(() => (num === undefined ? '' : displayFormatter.format(num)))
-
-	// Reflect external numeric changes when the field is not being edited.
-	useEffect(() => {
-		if (editingRef.current) return
-
-		setText(num === undefined ? '' : displayFormatter.format(num))
-	}, [num, displayFormatter])
+	const text = editingText ?? (num === undefined ? '' : displayFormatter.format(num))
 
 	const inputRef = useRef<HTMLInputElement | null>(null)
 
@@ -133,11 +126,7 @@ export function CurrencyInput({
 			suffix={suffix ?? (symbolIsPrefix ? undefined : symbol)}
 			className="tabular-nums"
 			value={text}
-			onFocus={(e) => {
-				editingRef.current = true
-
-				onFocus?.(e)
-			}}
+			onFocus={onFocus}
 			onKeyDown={(e) => {
 				onKeyDown?.(e)
 
@@ -146,8 +135,6 @@ export function CurrencyInput({
 				}
 			}}
 			onChange={(e) => {
-				editingRef.current = true
-
 				const raw = e.target.value
 
 				const cursor = e.target.selectionStart ?? raw.length
@@ -158,18 +145,18 @@ export function CurrencyInput({
 
 				pendingCursorRef.current = cursorForCount(formatted, meaningfulBefore, decimal)
 
-				setText(formatted)
+				setEditingText(formatted)
 
 				setNum(parseEditing(formatted, group, decimal))
 			}}
 			onBlur={(e) => {
-				editingRef.current = false
+				if (editingText !== null) {
+					const parsed = parseEditing(editingText, group, decimal)
 
-				const parsed = parseEditing(text, group, decimal)
+					if (parsed !== num) setNum(parsed)
 
-				if (parsed !== num) setNum(parsed)
-
-				setText(parsed === undefined ? '' : displayFormatter.format(parsed))
+					setEditingText(null)
+				}
 
 				onBlur?.(e)
 			}}
