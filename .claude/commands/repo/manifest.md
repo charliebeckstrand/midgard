@@ -1,8 +1,8 @@
-# repo:discover
+# repo:manifest
 
-TRIGGER when: the user asks to discover, profile, fingerprint, or summarize the project, the stack, the conventions, or the workspace; also auto-invoked by other skills when their cache read misses or is stale.
+TRIGGER when: the user asks to discover, profile, fingerprint, or summarize the project, the stack, the conventions, or the workspace. Also invoked by `/postmortem` and `/premortem` to create or refresh `./manifest.json` when those lifecycle skills detect it is missing or invalidated.
 
-You are producing a single canonical **Project Profile** that downstream skills consume instead of each re-deriving the same facts. The profile is a JSON document written to `.claude/cache/project-profile.json`. Other skills read this file at the top of their flow.
+You are producing a single canonical **Manifest** that downstream skills consume instead of each re-deriving the same facts. The Manifest is a JSON document tracked at `./manifest.json` (committed to the repo). Other skills read this file at the top of their flow and stop with a "run `/repo:manifest`" message if it is absent — they never generate it themselves.
 
 This skill is optimized for a **Turborepo monorepo with Next.js apps and (optionally) shared React packages** and produces its richest output for that shape. It degrades gracefully on other setups: when `turbo.json` is absent it sets `monorepo.tool` to `null` and records a note, and frameworks outside `next` / `react` resolve to `library`, `node`, or `null`. It does not attempt to detect Nx/Lerna metadata or Vue/Svelte/Solid framework specifics.
 
@@ -11,27 +11,15 @@ This skill is optimized for a **Turborepo monorepo with Next.js apps and (option
 $ARGUMENTS
 
 Recognized flags:
-- `--quiet` — refresh the cache silently; emit only the cache path, no markdown summary.
-- `--force` — refresh the cache even if it is fresh.
+- `--quiet` — write the Manifest silently; emit only the path, no markdown summary.
 
 ---
 
 ## How to discover
 
-### 1. Decide whether to refresh
+Every invocation regenerates the Manifest end-to-end. There is no freshness short-circuit — staleness is detected by `/postmortem` against the working diff, not by this skill. Callers that want to skip work when the Manifest is already current should check existence themselves before invoking.
 
-Read `.claude/cache/project-profile.json` if it exists. If the file is missing or unparseable, treat the cache as stale and continue to step 2.
-
-The cache is **fresh** when **all** of the following hold:
-- `version` equals the value this skill emits (currently `1`).
-- `generatedAt` is less than 24 hours ago.
-- Every path in `sourceMtimes` still exists and its live mtime exactly matches the recorded value.
-- No file the skill **would record on a fresh run** is present today but absent from `sourceMtimes`. In practice: probe the conventions doc list (`CLAUDE.md`, `AGENTS.md`, `CONTRIBUTING.md`, `README.md`) and the pre-commit / CI config locations; if any present file is not in `sourceMtimes`, the cache is stale.
-- `--force` was not passed.
-
-If the cache is fresh, emit the existing profile and stop. Otherwise continue.
-
-### 2. Read repository-level inputs
+### 1. Read repository-level inputs
 
 Run these in parallel:
 
@@ -65,7 +53,7 @@ Run these in parallel:
 
 - **CI config** (`.github/workflows/*.{yml,yaml}`, `.gitlab-ci.yml`, `.circleci/config.yml`, `circle.yml`) → resolve `ci.provider` and list the job names. Do not parse step contents.
 
-### 3. Resolve packages
+### 2. Resolve packages
 
 If the repo is a monorepo, expand each `workspaces` glob to concrete directories. Otherwise the only package is the repo root.
 
@@ -98,9 +86,7 @@ Per-package fields:
 - `testHelpersDir` — directory containing a `helpers.ts` / `test-utils.ts` / `setup.ts` referenced from existing tests; else `null`.
 - `isFrontend` — `true` when any of `*.tsx` / `*.jsx` / `index.html` exist under the package; else `false`.
 
-### 4. Assemble the profile
-
-Record an mtime entry in `sourceMtimes` for **every** file actually read across steps 2 and 3 — repo-root lockfiles, workspace and turbo configs, conventions docs, pre-commit and CI configs, and each package's `package.json`. Files that were probed but did not exist are not recorded; their later appearance is handled by the freshness check in step 1.
+### 3. Assemble the Manifest
 
 Compose the final object. Schema:
 
@@ -108,12 +94,6 @@ Compose the final object. Schema:
 {
   "version": 1,
   "generatedAt": "<ISO 8601 UTC>",
-  "sourceMtimes": {
-    "package.json": "<ISO 8601>",
-    "CLAUDE.md": "<ISO 8601>",
-    "packages/ui-kit/package.json": "<ISO 8601>",
-    "apps/web/package.json": "<ISO 8601>"
-  },
   "repoRoot": "/abs/path/to/repo",
   "packageManager": "pnpm",
   "monorepo": {
@@ -198,20 +178,18 @@ Field rules:
 - `notes` collects any heuristic warnings (e.g. multiple lockfiles, conflicting framework signals).
 - Never emit project-specific facts unless they were actually discovered. Do not fabricate vocabulary entries.
 
-### 5. Write the cache
+### 4. Write the Manifest
 
-Ensure `.claude/cache/` exists (create it if not). Write the profile pretty-printed to `.claude/cache/project-profile.json`.
+Write the Manifest pretty-printed to `./manifest.json` at the repo root. The file is tracked in git — when invoked from `/postmortem`'s diff-driven refresh, the caller is responsible for staging the updated file so it ships in the same commit as the change that invalidated it.
 
-The cache directory is gitignored. Do not commit it.
+### 5. Summarize for the user
 
-### 6. Summarize for the user
-
-Print this section only when `--quiet` was **not** passed. `--force` is orthogonal: it controls cache invalidation, not output, so `--force` alone still prints the summary, and `--quiet --force` refreshes silently.
+Print this section only when `--quiet` was **not** passed.
 
 Emit a compact markdown summary (~15 lines):
 
 ```md
-**Project Profile** — refreshed at <timestamp>
+**Manifest** — written at <timestamp>
 
 - Package manager: <pm>
 - Monorepo: <tool> (<N> packages)
@@ -220,14 +198,14 @@ Emit a compact markdown summary (~15 lines):
 - Pre-commit gates: <list or "none">
 - CI: <provider>, <N> jobs
 - Conventions docs: <comma-separated filenames>
-- Cache: `.claude/cache/project-profile.json`
+- Path: `manifest.json`
 ```
 
-End with: `Run /repo:discover --force to refresh; downstream skills will reuse this file.`
+End with: `Run /repo:manifest to regenerate; downstream skills will reuse this file.`
 
 ---
 
-## Example profile
+## Example Manifest
 
 ### Turbo + Next monorepo with a shared React design system (pnpm)
 
@@ -235,15 +213,6 @@ End with: `Run /repo:discover --force to refresh; downstream skills will reuse t
 {
   "version": 1,
   "generatedAt": "2030-01-01T00:00:00Z",
-  "sourceMtimes": {
-    "package.json": "2029-12-31T09:11:00Z",
-    "turbo.json": "2029-12-31T09:11:00Z",
-    "pnpm-workspace.yaml": "2029-12-15T10:00:00Z",
-    "CLAUDE.md": "2029-12-29T22:00:00Z",
-    "lefthook.yml": "2029-11-02T17:00:00Z",
-    "packages/design-system/package.json": "2029-12-29T22:00:00Z",
-    "apps/storefront/package.json": "2029-12-30T08:00:00Z"
-  },
   "repoRoot": "/home/dev/acme",
   "packageManager": "pnpm",
   "monorepo": {
@@ -318,7 +287,7 @@ End with: `Run /repo:discover --force to refresh; downstream skills will reuse t
 
 ## Important
 
-- The profile must reflect **only what was observed**. Never invent fields. Use `null` and `[]` liberally.
+- The Manifest must reflect **only what was observed**. Never invent fields. Use `null` and `[]` liberally.
 - Run filesystem reads in parallel where independent. A typical run completes in under a few seconds.
-- Do not interpret the profile (e.g. recommend changes) here. Discovery is read-only. Other skills consume the profile and decide what to do.
-- If the repo has zero packages with a `package.json`, emit a profile with `packages: []` and a `notes` entry explaining why, and stop.
+- Do not interpret the manifest (e.g. recommend changes) here. Discovery is read-only. Other skills consume the manifest and decide what to do.
+- If the repo has zero packages with a `package.json`, emit a manifest with `packages: []` and a `notes` entry explaining why, and stop.

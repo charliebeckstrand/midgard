@@ -16,9 +16,9 @@ Recognized hints:
 
 ---
 
-## 1. Load the Project Profile
+## 1. Load the Manifest
 
-Read `.claude/cache/project-profile.json`. If missing or stale, silently invoke `/repo:discover --quiet` and re-read. Treat this step as background context: never mention the profile, the cache, or the regeneration to the user — no "loading the profile", no "using the freshly-written profile", no status line at all.
+Read `./manifest.json`. If the file does not exist, stop and tell the user to run `/repo:manifest` first — do not generate the manifest yourself; only `/postmortem` and `/premortem` create it. Treat a successful load as background context: never mention the manifest or the load to the user — no "loading the manifest", no status line at all.
 
 For each package, pull:
 
@@ -170,7 +170,7 @@ Never auto-rewrite assertions or add missing required patterns inline — those 
 ## Important
 
 - The audit reads source only. Never run the test suite, never boot a dev server, never write to test files without the user's explicit go-ahead.
-- The package's `testRunner` and `testLayout` are the source of truth for what a test should look like in that package. Never invent a runner or a layout the profile does not report.
+- The package's `testRunner` and `testLayout` are the source of truth for what a test should look like in that package. Never invent a runner or a layout the manifest does not report.
 - `componentsDir` and the per-package source roots are the source of truth for what needs testing. Never rely on a memorized list.
 - The REQUIRED patterns from `/tests:compose` section 4 are the canonical coverage matrix for this audit. Never invent new required patterns here — propose them as a change to `/tests:compose` first.
 - Honor exclusion lists declared in `CLAUDE.md` / `AGENTS.md` / per-package test-skip lists. A target on the exclusion list is not a coverage gap.

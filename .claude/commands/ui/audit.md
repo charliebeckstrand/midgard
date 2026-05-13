@@ -20,9 +20,9 @@ Recognized hints:
 
 ---
 
-## 1. Load the Project Profile
+## 1. Load the Manifest
 
-Read `.claude/cache/project-profile.json`. If missing or stale, silently invoke `/repo:discover --quiet` and re-read. Treat this step as background context: never mention the profile, the cache, or the regeneration to the user — no "loading the profile", no "using the freshly-written profile", no status line at all.
+Read `./manifest.json`. If the file does not exist, stop and tell the user to run `/repo:manifest` first — do not generate the manifest yourself; only `/postmortem` and `/premortem` create it. Treat a successful load as background context: never mention the manifest or the load to the user — no "loading the manifest", no status line at all.
 
 Filter `packages` to those with `isFrontend: true` and `framework` in (`react`, `next`). If none, stop and tell the user the project has no frontend packages to audit.
 
@@ -383,7 +383,7 @@ export function Widget({ value }: { value: string }) {
 ## Important
 
 - This skill **reads** source — it never edits. Findings are recommendations; the user decides what to fix.
-- Use the project's vocabulary (`conventions.vocabularyGlossary`) and directories (`componentsDir`, `primitivesDir`, `hooksDir`) when naming and locating proposed extractions. Never invent a directory the profile does not report.
+- Use the project's vocabulary (`conventions.vocabularyGlossary`) and directories (`componentsDir`, `primitivesDir`, `hooksDir`) when naming and locating proposed extractions. Never invent a directory the manifest does not report.
 - `componentsDir` is the source of truth for what components exist. Never rely on a memorized list.
 - Calibrate thresholds against **sibling components** (section 4) before flagging size or prop-surface findings. A blanket threshold is a fallback, not the default.
 - Cross-component patterns belong to `/audit:refactor`. Accessibility belongs to `/audit:a11y`. Docs drift belongs to `/ui:docs:audit`. Stay in lane and hand off when a finding escapes component scope.

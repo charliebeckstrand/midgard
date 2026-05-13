@@ -11,17 +11,17 @@ $ARGUMENTS
 Recognized hints:
 - A file path → audit that single file.
 - A directory path → audit every `.ts` / `.tsx` under it.
-- A package name from the profile → audit every TS file in that package.
+- A package name from the manifest → audit every TS file in that package.
 - `--changed` → audit only TS files in `git diff --name-only HEAD` (staged + unstaged).
 - No arguments → audit every TS file in every package (the sweep).
 
 ---
 
-## 0. Load the Project Profile
+## 0. Load the Manifest
 
-Read `.claude/cache/project-profile.json`. If missing or stale, silently invoke `/repo:discover --quiet` and re-read. Treat this step as background context: never mention the profile, the cache, or the regeneration to the user — no "loading the profile", no "using the freshly-written profile", no status line at all.
+Read `./manifest.json`. If the file does not exist, stop and tell the user to run `/repo:manifest` first — do not generate the manifest yourself; only `/postmortem` and `/premortem` create it. Treat a successful load as background context: never mention the manifest or the load to the user — no "loading the manifest", no status line at all.
 
-From the profile, capture:
+From the manifest, capture:
 
 - `packages[*].path` and `packages[*].name` — used to map files to packages.
 - `packages[*].framework` — `react` / `next` / `library` / `node`. Gates the TSX-specific checks in section 3.8.
