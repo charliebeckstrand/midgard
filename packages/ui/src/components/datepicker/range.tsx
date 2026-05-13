@@ -8,7 +8,13 @@ import { DatePickerTrigger } from './trigger'
 import { useDatePickerRangeState } from './use-range-state'
 
 export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProps) {
-	const { placeholder = 'Select dates', className, disabled = false } = props
+	const {
+		placeholder = 'Select dates',
+		className,
+		disabled = false,
+		'data-group': dataGroup,
+		'data-group-orientation': dataGroupOrientation,
+	} = props
 
 	const state = useDatePickerRangeState(props)
 
@@ -25,6 +31,8 @@ export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProp
 				disabled={disabled}
 				onKeyDown={state.onTriggerKeyDown}
 				className={className}
+				data-group={dataGroup}
+				data-group-orientation={dataGroupOrientation}
 			/>
 			<DatePickerContent
 				open={state.open}

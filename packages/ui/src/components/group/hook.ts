@@ -1,12 +1,14 @@
 import {
 	Children,
 	cloneElement,
+	createElement,
 	Fragment,
 	isValidElement,
 	type ReactElement,
 	type ReactNode,
 	useMemo,
 } from 'react'
+import { JoinProvider } from '../../primitives'
 import type { GroupOrientation, GroupPosition } from '../../recipes/ryu/tsunagi'
 
 function positionAt(index: number, length: number): GroupPosition {
@@ -36,8 +38,10 @@ function flattenChildren(children: ReactNode): ReactElement[] {
 /**
  * Stamp `data-group={start|middle|end|only}` and
  * `data-group-orientation={horizontal|vertical}` onto each child of a
- * group. Participating kata read these attributes via `tsunagi.base` to
- * render the correct end-cap radii and 1 px overlap.
+ * group, and broadcast the same position via `JoinContext` so descendants
+ * that swap their render path (e.g. a leaf control rendering `<Placeholder>`
+ * in skeleton mode) can still pick up the correct end-cap radii without
+ * each control having to forward `data-group` itself.
  *
  * Use this hook directly when a group component owns additional concerns
  * (keyboard navigation, focus management) and renders its own container.
@@ -50,12 +54,17 @@ export function useGroup(children: ReactNode, orientation: GroupOrientation): Re
 	return useMemo(() => {
 		const arr = flattenChildren(children)
 
-		return arr.map((child, index) =>
-			cloneElement(child, {
-				'data-group': positionAt(index, arr.length),
+		return arr.map((child, index) => {
+			const position = positionAt(index, arr.length)
+			const key = child.key ?? index
+
+			const cloned = cloneElement(child, {
+				'data-group': position,
 				'data-group-orientation': orientation,
-				key: child.key ?? index,
-			} as Partial<unknown>),
-		)
+				key,
+			} as Partial<unknown>)
+
+			return createElement(JoinProvider, { key, value: { position, orientation } }, cloned)
+		})
 	}, [children, orientation])
 }

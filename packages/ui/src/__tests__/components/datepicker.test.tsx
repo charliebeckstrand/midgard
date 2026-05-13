@@ -12,8 +12,11 @@ vi.mock('@floating-ui/react', () => {
 		offset: () => ({}),
 		shift: () => ({}),
 		size: () => ({}),
+		safePolygon: () => () => {},
 		useClick: () => ({}),
 		useDismiss: () => ({}),
+		useFocus: () => ({}),
+		useHover: () => ({}),
 		useFloating: () => ({
 			refs: {
 				setReference: noop,

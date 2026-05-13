@@ -2,7 +2,7 @@
 
 import { type KeyboardEvent, useCallback } from 'react'
 
-export type UseInputTagKeyboardOptions = {
+export type UseKeyboardOptions = {
 	/** Current input value. */
 	inputValue: string
 	/** Attempt to add a tag. Returns true on success. */
@@ -16,13 +16,13 @@ export type UseInputTagKeyboardOptions = {
 }
 
 /** Keyboard handler for tag inputs — Enter / comma to add, Backspace to remove. Skips IME composition. */
-export function useInputTagKeyboard({
+export function useKeyboard({
 	inputValue,
 	addTag,
 	removeTag,
 	clearInput,
 	tagCount,
-}: UseInputTagKeyboardOptions) {
+}: UseKeyboardOptions) {
 	return useCallback(
 		(e: KeyboardEvent<HTMLInputElement>) => {
 			if ((e.key === 'Enter' || e.key === ',') && !e.nativeEvent.isComposing) {

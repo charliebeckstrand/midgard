@@ -4,7 +4,8 @@ import { omote } from '../ryu/omote'
 import { sen } from '../ryu/sen'
 
 export const tooltip = {
-	trigger: 'inline-flex cursor-help *:cursor-help',
+	trigger: 'inline-flex',
+	triggerEnabled: 'cursor-help *:cursor-help',
 	portal: 'z-100',
 	content: [
 		'px-sm',

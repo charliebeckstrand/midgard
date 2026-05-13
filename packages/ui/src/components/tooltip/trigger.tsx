@@ -1,6 +1,7 @@
 'use client'
 
 import type { HTMLAttributes, ReactNode } from 'react'
+import { cn } from '../../core'
 import { k } from '../../recipes/kata/tooltip'
 import { useTooltipContext } from './tooltip'
 
@@ -9,13 +10,13 @@ export type TooltipTriggerProps = {
 }
 
 export function TooltipTrigger({ children }: TooltipTriggerProps) {
-	const { setReference, getReferenceProps } = useTooltipContext()
+	const { setReference, getReferenceProps, enabled, className } = useTooltipContext()
 
 	return (
 		<div
 			ref={setReference}
 			data-slot="tooltip-trigger"
-			className={k.trigger}
+			className={cn(k.trigger, enabled && k.triggerEnabled, className)}
 			{...(getReferenceProps() as HTMLAttributes<HTMLDivElement>)}
 		>
 			{children}

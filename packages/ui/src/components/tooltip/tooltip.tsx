@@ -17,6 +17,8 @@ import { useFloatingPanel, useHasHover } from '../../hooks'
 type TooltipContextValue = {
 	open: boolean
 	interactive: boolean
+	enabled: boolean
+	className?: string
 	setReference: (node: HTMLElement | null) => void
 	setFloating: (node: HTMLElement | null) => void
 	floatingStyles: CSSProperties
@@ -32,6 +34,8 @@ export type TooltipProps = {
 	placement?: Placement
 	delay?: number
 	interactive?: boolean
+	enabled?: boolean
+	className?: string
 	children: ReactNode
 }
 
@@ -39,6 +43,8 @@ export function Tooltip({
 	placement = 'top',
 	delay = 250,
 	interactive = false,
+	enabled = true,
+	className,
 	children,
 }: TooltipProps) {
 	const [open, setOpen] = useState(false)
@@ -83,14 +89,14 @@ export function Tooltip({
 	const hasHover = useHasHover()
 
 	const hover = useHover(context, {
-		enabled: hasHover,
+		enabled: enabled && hasHover,
 		delay: { open: delay, close: 100 },
 		...(interactive && { handleClose: safePolygon() }),
 	})
 
-	const click = useClick(context, { enabled: !hasHover })
+	const click = useClick(context, { enabled: enabled && !hasHover })
 
-	const focus = useFocus(context)
+	const focus = useFocus(context, { enabled })
 
 	const dismiss = useDismiss(context)
 
@@ -108,6 +114,8 @@ export function Tooltip({
 		() => ({
 			open,
 			interactive,
+			enabled,
+			className,
 			setReference: refs.setReference,
 			setFloating: refs.setFloating,
 			floatingStyles,
@@ -117,6 +125,8 @@ export function Tooltip({
 		[
 			open,
 			interactive,
+			enabled,
+			className,
 			refs.setReference,
 			refs.setFloating,
 			floatingStyles,

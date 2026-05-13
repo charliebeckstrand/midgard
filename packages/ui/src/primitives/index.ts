@@ -13,6 +13,11 @@ export {
 	useCurrentContext,
 } from './current'
 export {
+	type JoinContextValue,
+	JoinProvider,
+	useJoin,
+} from './join'
+export {
 	OffcanvasContext,
 	type OffcanvasContextValue,
 	OffcanvasProvider,

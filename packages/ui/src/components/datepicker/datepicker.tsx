@@ -34,6 +34,8 @@ export type DatePickerBaseProps = {
 	placement?: Placement
 	className?: string
 	disabled?: boolean
+	'data-group'?: string
+	'data-group-orientation'?: string
 }
 
 export type DatePickerProps = DatePickerBaseProps & (DatePickerSingleProps | DatePickerRangeProps)
@@ -60,7 +62,13 @@ export function DatePicker(props: DatePickerProps) {
 }
 
 function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
-	const { placeholder = 'Select a date', className, disabled = false } = props
+	const {
+		placeholder = 'Select a date',
+		className,
+		disabled = false,
+		'data-group': dataGroup,
+		'data-group-orientation': dataGroupOrientation,
+	} = props
 
 	const state = useDatePickerState(props)
 
@@ -77,6 +85,8 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 				disabled={disabled}
 				onKeyDown={state.onTriggerKeyDown}
 				className={className}
+				data-group={dataGroup}
+				data-group-orientation={dataGroupOrientation}
 			/>
 			<DatePickerContent
 				open={state.open}

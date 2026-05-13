@@ -1,14 +1,16 @@
 'use client'
 
 import { Calendar as CalendarIcon } from 'lucide-react'
-import type { KeyboardEvent, Ref } from 'react'
+import { type KeyboardEvent, type Ref, useRef } from 'react'
 
 import { cn } from '../../core'
+import { useIsTruncated } from '../../hooks'
 import { ControlFrame } from '../../primitives'
 import { iro } from '../../recipes'
 import { k } from '../../recipes/kata/datepicker'
 import { useGlass } from '../glass/context'
 import { Icon } from '../icon'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 
 export type DatePickerTriggerProps = {
 	open: boolean
@@ -22,6 +24,8 @@ export type DatePickerTriggerProps = {
 	disabled?: boolean
 	onKeyDown: (event: KeyboardEvent<HTMLElement>) => void
 	className?: string
+	'data-group'?: string
+	'data-group-orientation'?: string
 }
 
 export function DatePickerTrigger({
@@ -36,13 +40,27 @@ export function DatePickerTrigger({
 	disabled = false,
 	onKeyDown,
 	className,
+	'data-group': dataGroup,
+	'data-group-orientation': dataGroupOrientation,
 }: DatePickerTriggerProps) {
 	const glass = useGlass()
+
+	const valueRef = useRef<HTMLSpanElement>(null)
+
+	const isTruncated = useIsTruncated(valueRef, displayValue)
+
+	const valueNode = (
+		<span ref={valueRef} className={k.value}>
+			{displayValue || <span className={cn(iro.text.muted)}>{placeholder}</span>}
+		</span>
+	)
 
 	return (
 		<div data-slot="control" ref={setReference} className={cn(className)} {...getReferenceProps()}>
 			<ControlFrame
 				data-open={open || undefined}
+				data-group={dataGroup}
+				data-group-orientation={dataGroupOrientation}
 				className={cn('', k.control[glass ? 'glass' : 'default'])}
 			>
 				<button
@@ -57,9 +75,13 @@ export function DatePickerTrigger({
 					onKeyDown={onKeyDown}
 					className={cn(k.button)}
 				>
-					<span className={k.value}>
-						{displayValue || <span className={cn(iro.text.muted)}>{placeholder}</span>}
-					</span>
+					<Tooltip
+						enabled={isTruncated && Boolean(displayValue)}
+						className="min-w-0 flex-1 overflow-hidden"
+					>
+						<TooltipTrigger>{valueNode}</TooltipTrigger>
+						<TooltipContent>{displayValue}</TooltipContent>
+					</Tooltip>
 					<span className={cn(k.icon)}>
 						<Icon icon={<CalendarIcon />} size="sm" />
 					</span>

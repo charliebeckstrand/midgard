@@ -2,12 +2,12 @@
 
 import { CornerLeftDown } from 'lucide-react'
 import { type Ref, useCallback, useImperativeHandle, useRef, useState } from 'react'
-import { useInputTagKeyboard } from '../../hooks'
 import type { Color } from '../../recipes/ryu/iro'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { Input } from '../input'
 import { TagBadge } from './tag-badge'
+import { useKeyboard } from './use-keyboard'
 import { useTagInput } from './use-tag-input'
 
 export type TagInputProps = {
@@ -70,7 +70,7 @@ export function TagInput({
 
 	const clearInput = useCallback(() => setInputValue(''), [])
 
-	const handleKeyDown = useInputTagKeyboard({
+	const handleKeyDown = useKeyboard({
 		inputValue,
 		addTag,
 		removeTag,

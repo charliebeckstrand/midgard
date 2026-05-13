@@ -12,7 +12,7 @@ export {
 export { useFocusTrap } from './use-focus-trap'
 export { useHasHover } from './use-has-hover'
 export { type IdScope, useIdScope } from './use-id-scope'
-export { type UseInputTagKeyboardOptions, useInputTagKeyboard } from './use-input-tag-keyboard'
+export { useIsTruncated } from './use-is-truncated'
 export { useKeyboardSettled } from './use-keyboard-settled'
 export {
 	type UseMaskedInputOptions,
