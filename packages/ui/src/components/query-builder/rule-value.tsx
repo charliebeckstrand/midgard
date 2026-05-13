@@ -6,8 +6,6 @@ import { ListboxOption } from '../listbox'
 import { Select } from '../select'
 import type { QueryField } from './types'
 
-// ── QueryRuleValue ─────────────────────────────────────
-
 export type QueryRuleValueProps = {
 	field: QueryField
 	value: unknown

@@ -7,8 +7,6 @@ import { k, progressTrackVariants } from '../../recipes/kata/progress'
 
 type ProgressColor = keyof typeof k.color
 
-// ── ProgressBar ─────────────────────────────────────────
-
 // A progressbar role needs an accessible name; require one of these at the type
 // level so consumers can't ship an unlabeled progress indicator.
 type ProgressBarLabel = { 'aria-label': string } | { 'aria-labelledby': string }

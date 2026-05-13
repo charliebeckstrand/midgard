@@ -1,4 +1,4 @@
-export { Table, type TableProps, type TableVariants } from './table'
+export { Table, type TableElementProps, type TableProps, type TableVariants } from './table'
 export { TableBody, type TableBodyProps } from './table-body'
 export { TableCell, type TableCellProps } from './table-cell'
 export { TableHead, type TableHeadProps } from './table-head'

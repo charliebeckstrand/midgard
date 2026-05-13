@@ -4,7 +4,7 @@ export const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 
 export type Color = (typeof colors)[number]
 
-// ── Shared slots ────────────────────────────────────────
+// ── Shared ────────────────────────────────────────
 
 const text = defineColors({
 	zinc: { light: 'text-zinc-700', dark: 'dark:text-zinc-400' },

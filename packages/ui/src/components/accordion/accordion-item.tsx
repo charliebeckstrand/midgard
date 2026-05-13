@@ -5,8 +5,6 @@ import { cn } from '../../core'
 import { accordionItemVariants } from '../../recipes/kata/accordion'
 import { AccordionItemProvider, useAccordionRoot } from './context'
 
-// ── AccordionItem ───────────────────────────────────────
-
 export type AccordionItemProps = {
 	value: string
 	disabled?: boolean

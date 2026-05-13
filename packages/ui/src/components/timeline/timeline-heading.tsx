@@ -3,8 +3,6 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/timeline'
 import { useTimeline } from './context'
 
-// ── TimelineHeading ─────────────────────────────────────
-
 export type TimelineHeadingProps = {
 	className?: string
 	children?: ReactNode

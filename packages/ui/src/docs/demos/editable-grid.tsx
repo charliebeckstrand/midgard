@@ -16,8 +16,6 @@ import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
 
-// ── Sample data ────────────────────────────────────────
-
 type LaneRate = {
 	id: number
 	state: string
@@ -50,8 +48,6 @@ const numericColumn = (
 	...col,
 })
 
-// ── Apply a change batch to immutable rows ─────────────
-
 function applyChanges<T extends { id: number }>(rows: T[], changes: CellChange[]): T[] {
 	if (!changes.length) return rows
 
@@ -71,8 +67,6 @@ function applyChanges<T extends { id: number }>(rows: T[], changes: CellChange[]
 		return patch ? ({ ...row, ...patch } as T) : row
 	})
 }
-
-// ── Demo ───────────────────────────────────────────────
 
 export default function EditableGridDemo() {
 	const [rates, setRates] = useState<LaneRate[]>(initialRates)

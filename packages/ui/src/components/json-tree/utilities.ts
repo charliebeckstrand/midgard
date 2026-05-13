@@ -136,8 +136,6 @@ export function valueType(value: JsonValue): JsonValueType {
 	return 'boolean'
 }
 
-// ── Tree flattening (for virtualized rendering) ───────
-
 export type FlatNode =
 	| {
 			kind: 'leaf'

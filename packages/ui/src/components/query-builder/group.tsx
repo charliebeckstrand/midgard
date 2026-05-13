@@ -12,8 +12,6 @@ import { useQueryBuilderActions, useQueryBuilderState } from './context'
 import { QueryRule } from './rule'
 import type { QueryCombinator, QueryGroup as QueryGroupNode } from './types'
 
-// ── QueryGroup ─────────────────────────────────────────
-
 export type QueryGroupProps = {
 	group: QueryGroupNode
 	/** When true, the group is the root — its "remove" button is suppressed. */

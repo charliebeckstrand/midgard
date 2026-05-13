@@ -6,8 +6,6 @@ import { useControllable } from '../../hooks'
 import { type AccordionVariants, accordionVariants } from '../../recipes/kata/accordion'
 import { AccordionRootProvider } from './context'
 
-// ── Accordion (root) ────────────────────────────────────
-
 type SingleProps = {
 	type?: 'single'
 	value?: string | null

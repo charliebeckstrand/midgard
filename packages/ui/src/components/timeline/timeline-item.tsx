@@ -5,8 +5,6 @@ import { TimelineProvider, type TimelineVariant, useTimeline } from './context'
 import type { TimelineMarkerConfig } from './timeline-marker'
 import { TimelineMarker, type TimelineMarkerProps } from './timeline-marker'
 
-// ── TimelineItem ────────────────────────────────────────
-
 export type TimelineItemProps = {
 	active?: boolean
 	variant?: TimelineVariant

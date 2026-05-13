@@ -11,8 +11,6 @@ import { Example } from '../components/example'
 
 export const meta = { category: 'Table' }
 
-// ── Sample data ────────────────────────────────────────
-
 type Person = {
 	id: number
 	name: string
@@ -52,8 +50,6 @@ const baseColumns: DataTableColumn<Person>[] = [
 	},
 ]
 
-// ── Sortable example ───────────────────────────────────
-
 const sortableColumns: DataTableColumn<Person>[] = baseColumns.map((col) =>
 	col.id === 'name' || col.id === 'email' || col.id === 'role' ? { ...col, sortable: true } : col,
 )
@@ -80,8 +76,6 @@ function SortableExample() {
 		/>
 	)
 }
-
-// ── Demo ───────────────────────────────────────────────
 
 export default function DataTableDemo() {
 	const [selection, setSelection] = useState<Set<string | number>>(new Set())

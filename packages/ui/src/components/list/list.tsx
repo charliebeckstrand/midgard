@@ -4,14 +4,13 @@ import { DndContext, DragOverlay, type DragStartEvent } from '@dnd-kit/core'
 import { SortableContext } from '@dnd-kit/sortable'
 import { type ReactNode, useCallback, useMemo } from 'react'
 import { cn } from '../../core'
-import { type SortableOrientation, useSortableItem, useSortableList } from '../../hooks'
+import type { SortableOrientation } from '../../hooks'
 import { k, type ListVariant } from '../../recipes/kata/list'
 import { ListItemProvider, ListProvider } from './context'
+import { ListItemSortable } from './list-item-sortable'
+import { ListItemStatic } from './list-item-static'
+import { useListDrag } from './use-list-drag'
 import { useListKeyboard } from './use-list-keyboard'
-
-const noop = () => {}
-
-// ── List ───────────────────────────────────────────────
 
 type BaseListProps<T> = {
 	/** Ordered items. */
@@ -45,6 +44,8 @@ export type ListProps<T> = BaseListProps<T> &
 		  }
 	)
 
+const noop = () => {}
+
 export function List<T>({
 	items,
 	getKey,
@@ -57,26 +58,16 @@ export function List<T>({
 	className,
 	'aria-label': ariaLabel,
 }: ListProps<T>) {
-	const effectiveGetKey = useMemo<(item: T) => string>(() => {
-		if (getKey) return getKey
-
-		const indexByItem = new Map<T, number>()
-
-		items.forEach((item, index) => {
-			indexByItem.set(item, index)
-		})
-
-		return (item: T) => String(indexByItem.get(item) ?? -1)
-	}, [getKey, items])
-
-	const { itemIds, strategy, interactive, activeId, dndContextProps } = useSortableList({
-		items,
-		getKey: effectiveGetKey,
-		onReorder,
-		orientation,
-		disabled,
-		keyboardSensor: false,
-	})
+	const {
+		effectiveGetKey,
+		itemIds,
+		strategy,
+		interactive,
+		activeId,
+		activeItem,
+		activeIndex,
+		dndContextProps,
+	} = useListDrag({ items, getKey, onReorder, orientation, disabled })
 
 	const { liftedId, setLiftedId, onItemKeyDown, onItemBlur } = useListKeyboard({
 		items,
@@ -93,10 +84,6 @@ export function List<T>({
 		},
 		[dndContextProps, setLiftedId],
 	)
-
-	const activeItem = activeId ? items.find((item) => effectiveGetKey(item) === activeId) : null
-
-	const activeIndex = activeItem ? items.indexOf(activeItem) : -1
 
 	const ctxValue = useMemo(
 		() => ({
@@ -167,63 +154,5 @@ export function List<T>({
 				ul
 			)}
 		</ListProvider>
-	)
-}
-
-// ── ListItemSortable (internal) ────────────────────────
-// Calls `useSortableItem` once per id and exposes its handles through context
-// so `<ListItem>` and `<ListHandle>` can share a single sortable registration.
-
-type ListItemSortableProps = {
-	id: string
-	children: ReactNode
-}
-
-function ListItemSortable({ id, children }: ListItemSortableProps) {
-	const { setNodeRef, setActivatorNodeRef, attributes, listeners, style, isDragging } =
-		useSortableItem({ id })
-
-	return (
-		<ListItemProvider
-			value={{
-				id,
-				setNodeRef,
-				setActivatorNodeRef,
-				attributes,
-				listeners,
-				style,
-				isDragging,
-			}}
-		>
-			{children}
-		</ListItemProvider>
-	)
-}
-
-// ── ListItemStatic (internal) ──────────────────────────
-// Read-only passthrough — no sortable-item registration, no dnd context reads.
-// Provides the same ListItemProvider shape so ListItem / ListHandle don't have
-// to branch on interactivity.
-
-type ListItemStaticProps = {
-	id: string
-	children: ReactNode
-}
-
-function ListItemStatic({ id, children }: ListItemStaticProps) {
-	return (
-		<ListItemProvider
-			value={{
-				id,
-				setNodeRef: noop,
-				setActivatorNodeRef: noop,
-				attributes: {} as never,
-				listeners: undefined,
-				style: {},
-				isDragging: false,
-			}}
-		>
-			{children}
-		</ListItemProvider>
 	)
 }

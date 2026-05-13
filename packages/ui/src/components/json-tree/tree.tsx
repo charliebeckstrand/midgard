@@ -127,8 +127,6 @@ export function JsonTree({
 	)
 }
 
-// ── Virtualized path ───────────────────────────────────
-
 type VirtualizedJsonTreeProps = {
 	ref: RefObject<HTMLDivElement | null>
 	data: JsonValue

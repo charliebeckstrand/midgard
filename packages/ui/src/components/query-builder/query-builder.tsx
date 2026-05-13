@@ -10,8 +10,6 @@ import { QueryGroup } from './group'
 import type { QueryField, QueryGroup as QueryGroupNode } from './types'
 import { useQueryBuilderTree } from './use-query-builder-tree'
 
-// ── QueryBuilder ───────────────────────────────────────
-
 export type QueryBuilderProps = {
 	fields: QueryField[]
 	value?: QueryGroupNode

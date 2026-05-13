@@ -5,8 +5,6 @@ import { CurrentProvider, useCurrent } from '../../primitives'
 import type { SegmentControlVariants } from '../../recipes/kata/segment'
 import { SegmentProvider } from './context'
 
-// ── Segment ─────────────────────────────────────────────
-
 export type SegmentProps = SegmentControlVariants & {
 	value?: string
 	defaultValue?: string

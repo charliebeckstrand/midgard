@@ -90,8 +90,6 @@ export function hasRules(group: QueryGroup): boolean {
 	return group.children.some((child) => (child.type === 'rule' ? true : hasRules(child)))
 }
 
-// ── Immutable tree helpers ─────────────────────────────
-
 /**
  * Apply a transform to the node matching `id`, walking recursively.
  *

@@ -4,7 +4,7 @@ import { type ReactNode, useCallback, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
 import { k } from '../../recipes/kata/data-table'
-import type { TableVariants } from '../table'
+import type { TableElementProps, TableVariants } from '../table'
 import { Table, TableBody, TableLoading } from '../table'
 import { Toolbar } from '../toolbar'
 import type { DataTableColumnManagerItem, DataTableColumnManagerPreset } from './column-manager'
@@ -13,8 +13,6 @@ import { DataTableHead } from './head'
 import { DataTableManageColumnsDialog } from './manage-columns-dialog'
 import { DataTableRowInternal } from './row'
 import { DataTableVirtualizedBody } from './virtualized-body'
-
-// ── Column definition ───────────────────────────────────
 
 export type DataTableColumn<T> = {
 	id: string | number
@@ -36,8 +34,6 @@ export type DataTableVirtualize = boolean | { estimateSize?: number; overscan?: 
 
 const DEFAULT_ROW_HEIGHT = 44
 const DEFAULT_OVERSCAN = 10
-
-// ── DataTable ───────────────────────────────────────────
 
 export type DataTableSort = {
 	value?: SortState
@@ -96,6 +92,13 @@ export type DataTableProps<T> = TableVariants & {
 	 */
 	virtualize?: DataTableVirtualize
 
+	/**
+	 * Props spread onto the underlying `<table>` element. Use to attach a ref,
+	 * keyboard handlers, or ARIA attributes (e.g. `role="grid"`) directly to
+	 * the semantic element.
+	 */
+	tableProps?: TableElementProps
+
 	className?: string
 	children?: never
 }
@@ -113,6 +116,7 @@ export function DataTable<T>({
 	loading = false,
 	rowLoading,
 	virtualize,
+	tableProps,
 	dense,
 	bleed,
 	grid,
@@ -310,7 +314,14 @@ export function DataTable<T>({
 	const needsScrollWrapper = stickyHeader || virtualizeEnabled
 
 	const tableContent = (
-		<Table dense={dense} bleed={bleed} grid={grid} striped={striped} className={className}>
+		<Table
+			dense={dense}
+			bleed={bleed}
+			grid={grid}
+			striped={striped}
+			className={className}
+			tableProps={tableProps}
+		>
 			<DataTableHead columns={visibleColumns} />
 
 			{loading ? (

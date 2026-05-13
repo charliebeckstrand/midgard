@@ -85,10 +85,6 @@ function resolveScalar<T>(
 	return { classes, style: style as CSSProperties }
 }
 
-// ─── Class maps ─────────────────────────────────────────────────────────────
-//
-// Every entry is a literal string the Tailwind scanner can see verbatim.
-
 const COLS: ClassMap = {
 	initial: 'grid-cols-[repeat(var(--cols),minmax(0,1fr))]',
 	sm: 'sm:grid-cols-[repeat(var(--cols-sm),minmax(0,1fr))]',
@@ -159,8 +155,6 @@ const ROW_START: ClassMap = {
 	xl: 'xl:row-start-(--row-start-xl)',
 	'2xl': '2xl:row-start-(--row-start-2xl)',
 }
-
-// ─── Public resolvers ───────────────────────────────────────────────────────
 
 const asNumber = (n: number) => n
 
@@ -239,8 +233,6 @@ export function resolveSpan(
 	return resolveScalar(value as number, 'span', SPAN, asNumber)
 }
 
-// ─── Lookup maps ────────────────────────────────────────────────────────────
-
 export const flowMap = {
 	row: 'grid-flow-row',
 	column: 'grid-flow-col',
@@ -260,8 +252,6 @@ export const justifyMap = {
 	end: 'justify-items-end',
 	stretch: 'justify-items-stretch',
 } as const
-
-// ─── Divider variants ───────────────────────────────────────────────────────
 
 export {
 	type GridDividerVariants,

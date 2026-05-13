@@ -4,8 +4,6 @@ import { type TimelineVariants, timelineVariants } from '../../recipes/kata/time
 import type { TimelineOrientation, TimelineVariant } from './context'
 import { TimelineProvider } from './context'
 
-// ── Timeline ────────────────────────────────────────────
-
 export type TimelineProps = TimelineVariants & {
 	orientation?: TimelineOrientation
 	variant?: TimelineVariant

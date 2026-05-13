@@ -7,8 +7,6 @@ import { ActiveIndicatorScope } from '../../primitives'
 import { k } from '../../recipes/kata/nav'
 import { useNavbar } from '../navbar/context'
 
-// ── NavList ─────────────────────────────────────────────
-
 export type NavListProps = ComponentPropsWithoutRef<'div'> & {
 	orientation?: 'vertical' | 'horizontal'
 }

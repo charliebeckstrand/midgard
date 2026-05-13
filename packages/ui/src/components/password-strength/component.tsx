@@ -61,12 +61,12 @@ export function PasswordStrength({
 	return (
 		<div data-slot="password-strength" className={cn(k.root, className)}>
 			<div
-				className={cn(k.meter)}
 				role="progressbar"
 				aria-valuenow={activeCount}
 				aria-valuemin={0}
 				aria-valuemax={strengthLevels.length}
 				aria-label={`Password strength: ${label}`}
+				className={cn(k.meter)}
 			>
 				{strengthLevels.map((strengthLevel, i) => (
 					<div

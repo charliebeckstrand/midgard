@@ -6,8 +6,6 @@ import { ActiveIndicator, useActiveIndicator, useCurrentContext } from '../../pr
 import { k, segmentItemVariants } from '../../recipes/kata/segment'
 import { useSegmentContext } from './context'
 
-// ── SegmentItem ─────────────────────────────────────────
-
 export type SegmentItemProps = {
 	value: string
 	disabled?: boolean

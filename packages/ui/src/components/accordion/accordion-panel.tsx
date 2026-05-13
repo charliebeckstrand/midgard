@@ -7,8 +7,6 @@ import { ReducedMotion } from '../../primitives'
 import { k } from '../../recipes/kata/accordion'
 import { useAccordionItem } from './context'
 
-// ── AccordionPanel ──────────────────────────────────────
-
 export type AccordionPanelProps = {
 	className?: string
 	children: ReactNode

@@ -10,7 +10,7 @@ import {
 	type DataTableSort,
 	type DataTableVirtualize,
 } from '../data-table'
-import type { TableVariants } from '../table'
+import type { TableElementProps, TableVariants } from '../table'
 import {
 	type CellChange,
 	type Coord,
@@ -22,8 +22,6 @@ import { useEditableGridAugmentedColumns } from './use-editable-grid-augmented-c
 import { useEditableGridMutations } from './use-editable-grid-mutations'
 import { useEditableGridNavigation } from './use-editable-grid-navigation'
 import { useEditableGridWrapper } from './use-editable-grid-wrapper'
-
-// ── EditableGrid ───────────────────────────────────────
 
 export type EditableGridProps<T> = TableVariants & {
 	columns: EditableGridColumn<T>[]
@@ -103,7 +101,7 @@ export function EditableGrid<T>({
 
 	selectionRef.current = selection
 
-	const wrapperRef = useRef<HTMLDivElement>(null)
+	const wrapperRef = useRef<HTMLTableElement>(null)
 
 	// Editable column indices (exclude selectable / actions) — these are the
 	// columns the active-cell cursor can land on.
@@ -118,8 +116,6 @@ export function EditableGrid<T>({
 
 		return m
 	}, [rows])
-
-	// ── Value helpers ──────────────────────────────────────
 
 	const formatCell = useCallback((row: T, col: EditableGridColumn<T>) => {
 		if (col.format) return col.format(row)
@@ -137,8 +133,6 @@ export function EditableGrid<T>({
 		return raw
 	}, [])
 
-	// ── Navigation ─────────────────────────────────────────
-
 	const {
 		active,
 		anchor,
@@ -155,8 +149,6 @@ export function EditableGrid<T>({
 		addCellToSelection,
 	} = useEditableGridNavigation<T>({ rowsRef, editableColCount: editableCols.length })
 
-	// ── Mutations ──────────────────────────────────────────
-
 	const { applyCellWrite, applyBulkFill } = useEditableGridMutations<T>({
 		editableCols,
 		rowsRef,
@@ -171,8 +163,6 @@ export function EditableGrid<T>({
 	})
 
 	const hasMultiSelection = !!anchor || extraCells.size > 0
-
-	// ── Edit lifecycle ─────────────────────────────────────
 
 	const beginEdit = useCallback(
 		(coord: Coord, initial?: string, original?: string) => {
@@ -240,8 +230,6 @@ export function EditableGrid<T>({
 		wrapperRef.current?.focus()
 	}, [])
 
-	// ── Wrapper handlers ───────────────────────────────────
-
 	const { onWrapperKeyDown, onWrapperPaste, onWrapperFocus, onWrapperBlur } =
 		useEditableGridWrapper<T>({
 			editing,
@@ -306,34 +294,34 @@ export function EditableGrid<T>({
 
 	return (
 		<EditableGridProvider value={ctx}>
-			{/* biome-ignore lint/a11y/useSemanticElements: role="grid" on the wrapper is the ARIA composite-widget pattern for spreadsheet-like editing */}
-			<div
-				ref={wrapperRef}
-				data-slot="editable-grid"
-				role="grid"
-				tabIndex={0}
+			<DataTable
+				columns={augmentedColumns}
+				rows={rows}
+				getRowKey={getRowKey}
+				sort={sortConfig}
+				selection={{ ...selectionConfig, value: selection, onChange: setSelectionRaw }}
+				rowClassName={rowClassName}
+				stickyHeader={stickyHeader}
+				maxHeight={maxHeight}
+				virtualize={virtualize}
+				dense={dense}
+				bleed={bleed}
+				grid={grid}
+				striped={striped}
 				className={cn(sen.focus.inset, className)}
-				onKeyDown={onWrapperKeyDown}
-				onPaste={onWrapperPaste}
-				onFocus={onWrapperFocus}
-				onBlur={onWrapperBlur}
-			>
-				<DataTable
-					columns={augmentedColumns}
-					rows={rows}
-					getRowKey={getRowKey}
-					sort={sortConfig}
-					selection={{ ...selectionConfig, value: selection, onChange: setSelectionRaw }}
-					rowClassName={rowClassName}
-					stickyHeader={stickyHeader}
-					maxHeight={maxHeight}
-					virtualize={virtualize}
-					dense={dense}
-					bleed={bleed}
-					grid={grid}
-					striped={striped}
-				/>
-			</div>
+				tableProps={
+					{
+						ref: wrapperRef,
+						'data-slot': 'editable-grid',
+						role: 'grid',
+						tabIndex: 0,
+						onKeyDown: onWrapperKeyDown,
+						onPaste: onWrapperPaste,
+						onFocus: onWrapperFocus,
+						onBlur: onWrapperBlur,
+					} as TableElementProps
+				}
+			/>
 		</EditableGridProvider>
 	)
 }

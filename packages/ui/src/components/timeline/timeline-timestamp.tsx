@@ -3,8 +3,6 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/timeline'
 import { useTimeline } from './context'
 
-// ── TimelineTimestamp ────────────────────────────────────
-
 export type TimelineTimestampProps = {
 	className?: string
 	children?: ReactNode

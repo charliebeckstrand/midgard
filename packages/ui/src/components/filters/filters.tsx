@@ -6,8 +6,6 @@ import { useControllable } from '../../hooks/use-controllable'
 import { Flex } from '../flex'
 import { type FiltersContextValue, FiltersProvider } from './context'
 
-// ── Helpers ────────────────────────────────────────
-
 type FilterValue = Record<string, unknown>
 
 function isActive(v: unknown): boolean {
@@ -17,8 +15,6 @@ function isActive(v: unknown): boolean {
 
 	return true
 }
-
-// ── Filters ─────────────────────────────────────────
 
 export type FiltersProps<T extends FilterValue = FilterValue> = {
 	value?: T

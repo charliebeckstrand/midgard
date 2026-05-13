@@ -8,11 +8,11 @@ import { useFocusTrap } from '../../hooks/use-focus-trap'
 import { useIdScope } from '../../hooks/use-id-scope'
 import type { CalendarActive, CalendarHandle } from '../calendar'
 import { useControl } from '../control/context'
-import type { DatePickerBaseProps, DatePickerSingleProps } from './types'
+import type { DatePickerBaseProps, DatePickerRangeProps } from './types'
 import { type FooterButton, useDatePickerKeyDown } from './use-keyboard'
-import { addDays, clampDate, formatDate } from './utilities'
+import { addDays, clampDate, formatRange } from './utilities'
 
-export function useDatePickerState({
+export function useDatePickerRangeState({
 	value: valueProp,
 	defaultValue,
 	onChange,
@@ -20,7 +20,7 @@ export function useDatePickerState({
 	max,
 	placement = 'bottom-start',
 	disabled = false,
-}: DatePickerBaseProps & DatePickerSingleProps) {
+}: DatePickerBaseProps & DatePickerRangeProps) {
 	const control = useControl()
 
 	const scope = useIdScope({ id: control?.id })
@@ -29,7 +29,13 @@ export function useDatePickerState({
 
 	const [open, setOpen] = useState(false)
 
+	const [rangeStart, setRangeStart] = useState<Date | null>(null)
+
+	const [hoverDate, setHoverDate] = useState<Date | null>(null)
+
 	const [active, setActive] = useState<CalendarActive | null>(null)
+
+	const pendingRef = useRef<{ value: [Date, Date] | undefined } | null>(null)
 
 	const calendarRef = useRef<CalendarHandle>(null)
 
@@ -37,73 +43,98 @@ export function useDatePickerState({
 
 	const focusTrapRef = useFocusTrap(open)
 
+	const flushPending = useCallback(() => {
+		if (pendingRef.current) {
+			setValue(pendingRef.current.value)
+
+			pendingRef.current = null
+		}
+
+		setRangeStart(null)
+
+		setHoverDate(null)
+
+		setActive(null)
+	}, [setValue])
+
 	const getInitialActiveDate = useCallback(
-		() => clampDate(value ?? min ?? new Date(), min, max),
-		[value, min, max],
+		() => clampDate(rangeStart ?? value?.[0] ?? min ?? new Date(), min, max),
+		[rangeStart, value, min, max],
 	)
 
 	const moveGridDate = useCallback(
 		(delta: number) => {
 			const base = active?.zone === 'grid' ? active.date : getInitialActiveDate()
 
-			return clampDate(addDays(base, delta), min, max)
+			const next = clampDate(addDays(base, delta), min, max)
+
+			if (rangeStart !== null) setHoverDate(next)
+
+			return next
 		},
-		[active, getInitialActiveDate, min, max],
+		[active, getInitialActiveDate, min, max, rangeStart],
 	)
 
 	const openCalendar = useCallback(() => {
-		setOpen(true)
+		flushPending()
 
-		setActive(null)
-	}, [])
+		setOpen(true)
+	}, [flushPending])
 
 	const closeCalendar = useCallback(() => {
 		setOpen(false)
-
-		setActive(null)
 	}, [])
+
+	const handleClear = useCallback(() => {
+		pendingRef.current = { value: undefined }
+
+		closeCalendar()
+	}, [closeCalendar])
 
 	const handleSelect = useCallback(
 		(date: Date) => {
-			setValue(date)
+			if (rangeStart === null) {
+				setRangeStart(date)
 
-			closeCalendar()
+				setHoverDate(null)
+			} else {
+				const start = rangeStart
+
+				const end = date
+
+				const range: [Date, Date] = start.getTime() <= end.getTime() ? [start, end] : [end, start]
+
+				// Pin both endpoints so the range stays stable through the exit animation.
+				setHoverDate(end)
+
+				pendingRef.current = { value: range }
+
+				closeCalendar()
+			}
 		},
-		[closeCalendar, setValue],
+		[closeCalendar, rangeStart],
 	)
-
-	const handleClear = useCallback(() => {
-		setValue(undefined)
-
-		closeCalendar()
-	}, [closeCalendar, setValue])
-
-	const handleSelectToday = useCallback(() => {
-		handleSelect(new Date())
-	}, [handleSelect])
 
 	const handleOpenChange = useCallback(
 		(nextOpen: boolean) => {
-			if (nextOpen) {
-				openCalendar()
-			} else {
+			if (!nextOpen) {
 				closeCalendar()
+			} else {
+				openCalendar()
 			}
 		},
 		[closeCalendar, openCalendar],
 	)
 
+	const showClear = rangeStart === null && value != null
+
+	const footerButtons = useMemo<FooterButton[]>(() => (showClear ? ['clear'] : []), [showClear])
+
 	const onFooterActivate = useCallback(
 		(kind: FooterButton) => {
 			if (kind === 'clear') handleClear()
-			else handleSelectToday()
 		},
-		[handleClear, handleSelectToday],
-	)
-
-	const footerButtons = useMemo<FooterButton[]>(
-		() => (value != null ? ['clear', 'today'] : ['today']),
-		[value],
+		[handleClear],
 	)
 
 	const { refs, floatingStyles, getReferenceProps, getFloatingProps } = useFloatingUI({
@@ -131,10 +162,11 @@ export function useDatePickerState({
 
 	return {
 		triggerId: scope.id,
-		displayValue: value ? formatDate(value) : '',
+		displayValue: value ? formatRange(value[0], value[1]) : '',
 		open,
 		onOpenChange: handleOpenChange,
 		onTriggerKeyDown,
+		onExitComplete: flushPending,
 		setReference: refs.setReference,
 		setFloating: refs.setFloating,
 		floatingStyles,
@@ -142,7 +174,10 @@ export function useDatePickerState({
 		getFloatingProps,
 		focusTrapRef,
 		calendar: {
-			value: value ?? null,
+			rangeStart: rangeStart ?? (value ? value[0] : null),
+			rangeEnd: rangeStart === null ? (value ? value[1] : null) : null,
+			hoverDate: rangeStart !== null ? hoverDate : null,
+			onHoverDate: setHoverDate,
 			onChange: handleSelect,
 			active: open ? active : null,
 			calendarRef,
@@ -152,7 +187,6 @@ export function useDatePickerState({
 			active,
 			footerButtons,
 			onClear: handleClear,
-			onToday: handleSelectToday,
 			footerRef,
 			onKeyDown: (e: KeyboardEvent<HTMLDivElement>) => calendarRef.current?.footerKeyDown(e),
 		},

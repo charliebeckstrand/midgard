@@ -15,14 +15,10 @@ import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
 
-// ── Basic ──────────────────────────────────────────
-
 type BasicFilters = {
 	search: string | undefined
 	status: string | undefined
 }
-
-// ── Shared output component ────────────────────────
 
 type FilterOutputProps = {
 	expanded: Set<string>
@@ -97,8 +93,6 @@ function BasicExample() {
 	)
 }
 
-// ── With Date Picker ───────────────────────────────
-
 type DateFilters = {
 	search: string | undefined
 	dateRange: [Date, Date] | undefined
@@ -148,8 +142,6 @@ function DateExample() {
 	)
 }
 
-// ── Render Props ───────────────────────────────────
-
 type RenderPropsFilters = {
 	search: string | undefined
 	minPrice: number | undefined
@@ -188,8 +180,6 @@ function RenderPropsExample() {
 		</Filters>
 	)
 }
-
-// ── Demo ───────────────────────────────────────────
 
 export default function FilterDemo() {
 	return (
