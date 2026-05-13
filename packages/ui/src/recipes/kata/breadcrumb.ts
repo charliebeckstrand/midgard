@@ -1,6 +1,7 @@
 import { tv, type VariantProps } from 'tailwind-variants'
 import { iro } from '../ryu/iro'
 import { ji } from '../ryu/ji'
+import { sen } from '../ryu/sen'
 
 export const breadcrumb = tv({ base: '' })
 
@@ -20,7 +21,7 @@ export const breadcrumbItem = tv({
 })
 
 export const breadcrumbLink = tv({
-	base: '',
+	base: ['rounded-sm', sen.focus.ring],
 	variants: {
 		current: {
 			true: [iro.text.default, 'font-normal'],
