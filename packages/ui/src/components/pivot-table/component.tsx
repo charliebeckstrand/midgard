@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../table'
-import type { PivotAggregation } from './pivot'
+import { defaultFormat, type PivotAggregation } from './pivot'
 import { type PivotTableKeys, usePivotTable } from './use-pivot-table'
 
 export type { PivotAggregation } from './pivot'
@@ -121,14 +121,4 @@ export function PivotTable<T>({
 			</TableBody>
 		</Table>
 	)
-}
-
-// Cache formatters — `Number.prototype.toLocaleString` constructs a fresh
-// Intl.NumberFormat on every call, which becomes measurable in a pivot with
-// hundreds of numeric cells.
-const integerFormatter = new Intl.NumberFormat()
-const fractionFormatter = new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 })
-
-function defaultFormat(value: number): ReactNode {
-	return Number.isInteger(value) ? integerFormatter.format(value) : fractionFormatter.format(value)
 }

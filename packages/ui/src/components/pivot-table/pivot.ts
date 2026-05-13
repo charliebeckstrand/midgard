@@ -1,5 +1,15 @@
 export type PivotAggregation = 'sum' | 'count' | 'avg' | 'min' | 'max'
 
+// Cache formatters — `Number.prototype.toLocaleString` constructs a fresh
+// Intl.NumberFormat on every call, which becomes measurable in a pivot with
+// hundreds of numeric cells.
+const integerFormatter = new Intl.NumberFormat()
+const fractionFormatter = new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 })
+
+export function defaultFormat(value: number): string {
+	return Number.isInteger(value) ? integerFormatter.format(value) : fractionFormatter.format(value)
+}
+
 export function resolveAxis<T>(
 	data: readonly T[],
 	key: keyof T & string,
