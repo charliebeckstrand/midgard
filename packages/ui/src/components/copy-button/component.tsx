@@ -1,18 +1,12 @@
 'use client'
 
 import { Check, Clipboard } from 'lucide-react'
-import {
-	type ComponentPropsWithoutRef,
-	type ReactElement,
-	useCallback,
-	useEffect,
-	useRef,
-	useState,
-} from 'react'
+import { type ComponentPropsWithoutRef, type ReactElement, useCallback } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/copy-button'
 import type { Size } from '../../types'
 import { ToggleIconButton } from '../toggle-icon-button'
+import { useCopyState } from './use-copy-state'
 
 export type CopyButtonProps = {
 	value: string
@@ -34,26 +28,7 @@ export function CopyButton({
 	onCopiedChange,
 	...props
 }: CopyButtonProps) {
-	const [isCopied, setIsCopied] = useState(false)
-
-	const onCopiedChangeRef = useRef(onCopiedChange)
-
-	useEffect(() => {
-		onCopiedChangeRef.current = onCopiedChange
-	})
-
-	const copy = useCallback(async () => {
-		try {
-			await navigator.clipboard.writeText(value)
-
-			setIsCopied(true)
-
-			onCopiedChangeRef.current?.(true)
-		} catch {
-			// Clipboard write failed (denied permission, insecure context, missing
-			// API). Don't flip into the success state — the button must not lie.
-		}
-	}, [value])
+	const { isCopied, copy } = useCopyState({ value, timeout, onCopiedChange })
 
 	const handleClick = useCallback<NonNullable<CopyButtonProps['onClick']>>(
 		(event) => {
@@ -62,17 +37,6 @@ export function CopyButton({
 		},
 		[onClick, copy],
 	)
-
-	useEffect(() => {
-		if (!isCopied) return
-
-		const timer = setTimeout(() => {
-			setIsCopied(false)
-			onCopiedChangeRef.current?.(false)
-		}, timeout)
-
-		return () => clearTimeout(timer)
-	}, [isCopied, timeout])
 
 	return (
 		<ToggleIconButton
