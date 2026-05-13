@@ -15,7 +15,6 @@ export {
 	type SidebarFooterVariants,
 	type SidebarHeaderVariants,
 	type SidebarLayoutVariants,
-	type SidebarPanelVariants,
 	sidebarBodyVariants,
 	sidebarContentVariants,
 	sidebarContentWrapperVariants,
