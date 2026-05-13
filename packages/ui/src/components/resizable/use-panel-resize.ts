@@ -8,7 +8,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import type { PanelConfig, ResizableDirection } from './context'
+import type { PanelConfig, ResizableDirection } from './types'
 
 type DragState = {
 	handleIndex: number

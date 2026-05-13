@@ -11,20 +11,7 @@ import { Control } from '../control'
 import { Label } from '../fieldset'
 import { Icon } from '../icon'
 import { List, ListItem } from '../list'
-
-export type DataTableColumnManagerItem = {
-	id: string | number
-	title: ReactNode
-	/** Pinned columns cannot be reordered or hidden. */
-	pinned?: boolean
-	/** When false, the column cannot be hidden. Defaults to true. */
-	hideable?: boolean
-}
-
-export type DataTableColumnManagerPreset = {
-	order: (string | number)[]
-	hidden: (string | number)[]
-}
+import type { DataTableColumnManagerItem, DataTableColumnManagerPreset } from './types'
 
 export type DataTableColumnManagerProps = {
 	columns: DataTableColumnManagerItem[]

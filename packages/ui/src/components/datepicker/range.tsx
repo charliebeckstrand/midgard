@@ -4,7 +4,7 @@ import { CalendarRange } from '../calendar'
 import { DatePickerContent } from './content'
 import { DatePickerFooter } from './footer'
 import { DatePickerTrigger } from './trigger'
-import type { DatePickerBaseProps, DatePickerRangeProps } from './types'
+import type { DatePickerBaseProps, DatePickerRangeProps } from './datepicker'
 import { useDatePickerRangeState } from './use-range-state'
 
 export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProps) {

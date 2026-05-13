@@ -5,7 +5,7 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/editable-grid'
 import type { DataTableColumn } from '../data-table'
 import { EditableGridCellContent } from './cell'
-import type { EditableGridColumn } from './context'
+import type { EditableGridColumn } from './types'
 
 type UseEditableGridAugmentedColumns<T> = {
 	columns: EditableGridColumn<T>[]

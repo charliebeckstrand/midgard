@@ -1,12 +1,5 @@
 import type { JsonValueType } from '../../recipes/kata/json-tree'
-
-export type JsonValue =
-	| string
-	| number
-	| boolean
-	| null
-	| JsonValue[]
-	| { [key: string]: JsonValue }
+import type { JsonValue } from './types'
 
 export type Search = string | { value: string; filter?: boolean }
 

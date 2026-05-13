@@ -5,7 +5,8 @@ import { type ReactNode, useMemo } from 'react'
 import { useMaskedInput } from '../../hooks'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
-import { type CreditCardBrand, formatCardNumber } from './utilities'
+import type { CreditCardBrand } from './types'
+import { formatCardNumber } from './utilities'
 
 export type CreditCardInputProps = Omit<
 	InputProps,

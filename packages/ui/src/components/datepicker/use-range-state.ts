@@ -8,7 +8,7 @@ import { useFocusTrap } from '../../hooks/use-focus-trap'
 import { useIdScope } from '../../hooks/use-id-scope'
 import type { CalendarActive, CalendarHandle } from '../calendar'
 import { useControl } from '../control/context'
-import type { DatePickerBaseProps, DatePickerRangeProps } from './types'
+import type { DatePickerBaseProps, DatePickerRangeProps } from './datepicker'
 import { type FooterButton, useDatePickerKeyDown } from './use-keyboard'
 import { addDays, clampDate, formatRange } from './utilities'
 

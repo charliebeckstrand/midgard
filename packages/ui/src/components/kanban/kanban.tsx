@@ -11,11 +11,10 @@ import {
 import { type ReactNode, useCallback, useMemo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/kanban'
-import { type KanbanColumnShape, KanbanProvider } from './context'
+import { KanbanProvider } from './context'
+import type { KanbanColumnShape } from './types'
 import { useKanbanDrag } from './use-kanban-drag'
 import { useKanbanKeyboard } from './use-kanban-keyboard'
-
-export type { KanbanColumnShape }
 
 export type KanbanProps<T, C extends KanbanColumnShape<T>> = {
 	/** Ordered columns. Each column must have a stable `id` and an `items` array. */

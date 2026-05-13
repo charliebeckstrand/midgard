@@ -7,8 +7,8 @@ import { k } from '../../recipes/kata/data-table'
 import { Checkbox } from '../checkbox'
 import { Icon } from '../icon'
 import { TableHead, TableHeader, TableRow } from '../table'
-import type { DataTableColumn } from './component'
 import { useDataTable } from './context'
+import type { DataTableColumn } from './types'
 
 type DataTableHeadProps<T> = {
 	columns: DataTableColumn<T>[]

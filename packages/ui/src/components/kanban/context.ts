@@ -3,8 +3,6 @@
 import type { KeyboardEvent, ReactNode, RefObject } from 'react'
 import { createContext } from '../../core'
 
-export type KanbanColumnShape<T> = { id: string; items: T[] }
-
 export type KanbanContext = {
 	/** Whether cards in this board can be dragged or keyboard-reordered. */
 	interactive: boolean

@@ -6,11 +6,8 @@ import { Button } from '../button'
 import { Dialog, DialogActions, DialogBody, DialogTitle } from '../dialog'
 import { Icon } from '../icon'
 import { Toolbar } from '../toolbar'
-import {
-	DataTableColumnManager,
-	type DataTableColumnManagerItem,
-	type DataTableColumnManagerPreset,
-} from './column-manager'
+import { DataTableColumnManager } from './column-manager'
+import type { DataTableColumnManagerItem, DataTableColumnManagerPreset } from './types'
 
 export type DataTableManageColumnsDialogProps = {
 	label: ReactNode
