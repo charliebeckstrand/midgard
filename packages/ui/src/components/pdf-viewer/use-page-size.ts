@@ -1,6 +1,6 @@
 'use client'
 
-import { type SyntheticEvent, useEffect, useState } from 'react'
+import { type SyntheticEvent, useState } from 'react'
 import type { PdfViewerPage } from './types'
 
 type Size = { width: number; height: number }
@@ -25,10 +25,14 @@ export function usePageSize(
 ): UsePageSizeResult {
 	const [naturalSize, setNaturalSize] = useState<Size | null>(null)
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: reset is keyed on the active page identity, not on naturalSize itself
-	useEffect(() => {
+	const resetKey = `${activePage?.id ?? ''}:${safePage}`
+
+	const [prevResetKey, setPrevResetKey] = useState(resetKey)
+
+	if (prevResetKey !== resetKey) {
+		setPrevResetKey(resetKey)
 		setNaturalSize(null)
-	}, [activePage?.id, safePage])
+	}
 
 	const pageSize =
 		activePage?.width && activePage.height
