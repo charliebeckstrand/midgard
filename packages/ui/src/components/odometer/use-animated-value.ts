@@ -41,6 +41,7 @@ export function useAnimatedValue({ value, duration = 800 }: UseAnimatedValueOpti
 				rafRef.current = requestAnimationFrame(tick)
 			} else {
 				fromRef.current = to
+
 				rafRef.current = null
 			}
 		}

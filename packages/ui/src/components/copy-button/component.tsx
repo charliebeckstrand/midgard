@@ -33,6 +33,7 @@ export function CopyButton({
 	const handleClick = useCallback<NonNullable<CopyButtonProps['onClick']>>(
 		(event) => {
 			onClick?.(event)
+
 			void copy()
 		},
 		[onClick, copy],
