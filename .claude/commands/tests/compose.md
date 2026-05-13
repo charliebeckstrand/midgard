@@ -434,6 +434,18 @@ If the package declares `scripts.check-types` (or `typecheck`), run it the same 
 
 Use whichever task name the package declares. Any type error in the test file is a blocking failure — fix it.
 
+## 7. TypeScript review on the new test file
+
+Invoke `/typescript:review` against the new test file before declaring done:
+
+```
+/typescript:review <path-to-new-test-file>
+```
+
+`/typescript:review` applies the project's TypeScript principles (no `as any` in mocks without an inline justification, no `enum`, type predicates over implicit narrowing, etc.) and the advanced-features catalog. The test is not done until `/typescript:review` returns PASS — surface any BLOCK findings to the caller (the user, or `/ui:component:compose` if this run was delegated).
+
+When this skill is invoked **from** `/typescript:review` itself (file mode against a freshly-written test), skip this step to avoid recursion — the parent already covers it.
+
 ---
 
 ## What NOT to test
@@ -456,3 +468,4 @@ Use whichever task name the package declares. Any type error in the test file is
 - [ ] Formatting (indentation, blank lines, description casing) matches neighboring tests.
 - [ ] Tests pass for the target package.
 - [ ] Types check for the target package.
+- [ ] `/typescript:review` has been invoked on the new test file and returned PASS.

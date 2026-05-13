@@ -20,7 +20,7 @@ Recognized hints:
 Read `$ARGUMENTS` for a proposed slug and (optionally) a one-line intent. If both are present, skip ahead. If anything is missing, use `AskUserQuestion` to capture only what's missing — slug, namespace, and a one-sentence intent. Do not ask anything you can derive from later steps.
 
 Validate the slug:
-- Top-level slug → single token, lowercase, hyphenated only when one word does not fit (`code-review`).
+- Top-level slug → single token, lowercase, hyphenated only when one word does not fit.
 - Namespaced slug → `<namespace>:<leaf>`. The namespace must already exist as a sibling directory under `.claude/commands/`, or the new namespace must be a clear, distinct boundary you can name in one sentence.
 
 Resolve the file path:
@@ -63,7 +63,7 @@ Write the new skill to the resolved path using the catalog's de-facto template. 
 3. One-paragraph framing of what the skill produces and what makes it different from siblings.
 4. `## Arguments` block with `$ARGUMENTS` (only if step 3 said the skill takes arguments).
 5. `---` separator.
-6. Numbered `## N. <verb-phrase>` sections. The first numbered section loads the Project Profile when step 3 said the skill needs it; copy the standard load-and-refresh paragraph from `code-review.md` step 0 verbatim — drift in this paragraph is what `/skill:audit` flags.
+6. Numbered `## N. <verb-phrase>` sections. The first numbered section loads the Project Profile when step 3 said the skill needs it; copy the standard load-and-refresh paragraph from `postmortem.md` step 0 verbatim — drift in this paragraph is what `/skill:audit` flags.
 7. Optional `## Worked examples (fabricated)` section. Use fabricated identifiers (`Widget`, `formatCurrency`, `SizeProvider`) — never real names from this repo or any other real project.
 8. `## Important` closing section: 3–6 bullets stating non-obvious invariants and what the skill must not do.
 
