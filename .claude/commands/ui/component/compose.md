@@ -105,17 +105,23 @@ A "command palette" is "a dialog containing a search input and a keyboard-naviga
 
 Honor the conventions you discovered in section 1. The exact filenames, extensions, and import paths depend on the project; the **shape** below is universal.
 
-### 3a. Atomic file structure (DEFAULT)
+### 3a. File layout — match the existing pattern
 
-Default to many small files over one big file. Before writing the component file, plan the split:
+Before writing, sample 2–3 sibling components in the target `componentsDir` and detect how they organize files. You're already reading siblings in section 1b for styling and naming — extend that pass to capture:
 
-- **One component per file.** Sub-components (header, body, footer, item, row, summary, etc.) each live in their own file (`widget-header.tsx`, `widget-item.tsx`) and the top-level component imports and composes them. Keep a sub-component inline only when it is truly trivial and used in exactly one place inside the same file.
-- **Types stay colocated with their owning component by default.** Promote them to a sibling `types.ts` the moment **two or more** files in the component's folder import the same type — and import from `types.ts` in all of them. Do not pre-create a `types.ts` for types only one file uses.
-- **Custom hooks live in their own files.** A `use*` hook never lives inside a component file. Colocate as `use-widget-state.ts` next to the component when the hook is component-local; lift to `hooksDir` when the hook is reusable beyond this component.
+- Do siblings ship **one component per file**, or do they bundle sub-components inside the top-level file?
+- Do siblings extract shared types into a colocated `types.ts`, or keep types inline next to the component that owns them?
+- Do siblings keep custom `use*` hooks in their own files (colocated or in `hooksDir`), or declare them inside the component file?
 
-A widget that bundles three sub-components, a `WidgetState` type imported by two of them, and a `useWidgetState` hook should ship as five files: `widget.tsx`, `widget-header.tsx`, `widget-item.tsx`, `types.ts`, `use-widget-state.ts`. That is the target shape — not a single 200-line `widget.tsx`.
+Match the dominant sibling pattern. The codebase's existing conventions are the source of truth — do not import a stricter or looser split policy from elsewhere.
 
-Sibling conventions still rule on file naming, casing, and barrel layout (discover them in section 1b). The atomic-split policy applies regardless of those naming details. If sibling components in the package consistently violate this policy (e.g. every sibling inlines its sub-components in one file), surface the divergence to the user and ask whether to match the legacy convention or set a new one — do not silently follow drift.
+When siblings disagree, or there are too few to set a baseline, fall back to these heuristics:
+
+- **Sub-components** earn their own file when they're nontrivial (their own state, more than a handful of JSX lines, or reused). Truly trivial single-use helpers can stay inline.
+- **A shared `types.ts`** is worth creating when **two or more** files in the component's folder need the same type. Do not pre-create one for types only one file uses.
+- **Custom hooks** belong in their own files when they're nontrivial or reusable beyond the component. Small one-liners coupled to a single component can stay next to it.
+
+Split where the boundary is clear and the pieces earn separation. Avoid splitting for its own sake — a 60-line component with one tightly-coupled subtree does not need to be three files. When siblings consistently violate even the fallback heuristics (e.g. every sibling inlines everything), surface the divergence to the user and ask whether to follow the legacy convention or set a new one rather than silently picking either.
 
 ### 3b. Variants / recipe (only if needed)
 
@@ -295,7 +301,7 @@ Always create a test file for the new component. Delegate to `/tests:compose`:
 Before declaring the component done, confirm:
 
 - [ ] **Composition audit complete.** Every existing component, primitive, or hook that could have been reused was reused. No reinvented overlays, no raw `<button>`/`<input>` where the project ships a styled equivalent, no parallel recipes that mirror an existing one.
-- [ ] **Atomic file structure.** One component per file (sub-components live in sibling files). Types stay colocated with their owning component unless **two or more** files in the folder import the same type — in which case it lives in `types.ts`. Every custom `use*` hook lives in its own file, never inside a component file.
+- [ ] **File layout matches sibling components.** Component-per-file granularity, type colocation, and hook placement follow the dominant pattern in the target directory. Where siblings disagree, sub-components live in their own file when nontrivial, types move to a shared `types.ts` only when 2+ files import them, and nontrivial hooks live in their own files.
 - [ ] The variant/recipe (if any) composes the project's tokens rather than literal values.
 - [ ] File names, exports, and DOM markers match the sibling components you sampled.
 - [ ] The `className` prop is accepted and merged through the project's `cn` helper (or equivalent).

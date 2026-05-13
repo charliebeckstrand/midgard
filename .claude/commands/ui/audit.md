@@ -175,16 +175,20 @@ Do not propose consolidation when the candidates live in different packages — 
 - **nit** — comments referencing props, branches, or callers that **no longer exist** in the file (stale guidance).
 - **nit** — `TODO` / `FIXME` / `HACK` markers older than **6 months** (use `git blame` for the age). Cross-reference with `/audit:refactor` heuristic 3g and prefer that skill for repo-wide stale-marker passes; flag here only when the marker sits **inside the component being audited** and is directly relevant to a separate finding above.
 
-### 5.11. Atomic file structure violations
+### 5.11. File layout violations (vs sibling pattern)
 
-`/ui:component:compose` scaffolds new components into atomic files: one component per file, a shared `types.ts` when two or more sibling files import the same type, custom hooks in their own files. The audit flags drift from that shape on the components it inspects.
+Calibrate against the sibling sample from section 4. Determine the dominant pattern in the audited component's directory:
 
-- **warning** — two or more exported PascalCase components defined in the same file, when sibling components in the parent directory each live in their own file. Suggest splitting each into its own file, naming with the package's casing convention from section 4.
-- **warning** — a type declared inline in a component file and imported by a sibling file in the same directory. Suggest promoting the type to a colocated `types.ts` and updating both importers. Cite both `file:line` of the declaration and the `file:line` of the cross-file import.
-- **warning** — a `use*` custom hook declared inside a component file (any function whose name starts with `use` and that itself calls a React hook, declared in the same module as a component). Suggest extracting to a sibling `use-<name>.ts`; lift to `hooksDir` instead when the hook is reusable beyond this component.
-- **nit** — a non-exported PascalCase helper component declared inside a component file and used in exactly one place. Inline its JSX if trivial; lift to its own file if it carries meaningful structure.
+- **Component granularity** — do siblings ship one component per file, or bundle sub-components inside the top-level file?
+- **Type colocation** — do siblings extract shared types into a colocated `types.ts`, or keep them inline?
+- **Hook placement** — do siblings keep custom `use*` hooks in their own files, or declare them inside component files?
 
-Do not flag atomic-file violations when **every** sibling component in the same directory exhibits the same pattern — that's a package-wide convention drift belonging to `/audit:refactor`. Flag here only when the audited component is the outlier.
+Flag the audited component only when it **diverges** from the established sibling pattern. Do not flag when the whole directory exhibits the same shape — that is package-wide convention drift and belongs to `/audit:refactor`.
+
+- **warning** — siblings ship one component per file, but the audited file declares two or more exported PascalCase components. Suggest splitting each into its own file using the directory's casing convention.
+- **warning** — a type declared inline in the audited file is imported by a sibling file in the same directory. Cross-file imports earn a colocated `types.ts` regardless of sibling pattern. Cite both `file:line` of the declaration and the `file:line` of the cross-file import.
+- **warning** — siblings keep custom hooks in their own files, but the audited file declares a `use*` hook (any function whose name starts with `use` and that itself calls a React hook) inline. Suggest extracting to a sibling `use-<name>.ts`; lift to `hooksDir` instead when the hook is reusable beyond this component.
+- **nit** — a non-exported PascalCase helper component declared inside the audited file is nontrivial (own state, >20 JSX lines) and could earn its own file. Trivial single-use helpers are fine inline — only flag when the helper has weight.
 
 ### 5.12. Framework smells (component-local)
 
