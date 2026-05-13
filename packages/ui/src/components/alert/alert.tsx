@@ -10,25 +10,25 @@ import { Icon } from '../icon'
 import { AlertDescription } from './alert-description'
 import { AlertTitle } from './alert-title'
 
-type AlertType = 'info' | 'success' | 'warning' | 'error'
+export type AlertSeverity = 'info' | 'success' | 'warning' | 'error'
 
 type AlertColor = NonNullable<AlertVariants['color']>
 
-const typeColorMap: Record<AlertType, AlertColor> = {
+const severityColorMap: Record<AlertSeverity, AlertColor> = {
 	info: 'blue',
 	success: 'green',
 	warning: 'amber',
 	error: 'red',
 }
 
-const typeIconMap: Record<AlertType, ReactElement> = {
+const severityIconMap: Record<AlertSeverity, ReactElement> = {
 	info: <Info />,
 	success: <CheckCircle />,
 	warning: <AlertTriangle />,
 	error: <XCircle />,
 }
 
-const typeRoleMap: Record<AlertType, 'alert' | 'status'> = {
+const severityRoleMap: Record<AlertSeverity, 'alert' | 'status'> = {
 	info: 'status',
 	success: 'status',
 	warning: 'alert',
@@ -41,9 +41,13 @@ function hasChild(children: ReactNode, component: (...args: never[]) => ReactNod
 	)
 }
 
-export type AlertProps = Omit<AlertVariants, 'color'> & {
-	type?: AlertType
-	color?: AlertColor
+export type AlertProps = AlertVariants & {
+	/**
+	 * Semantic kind: drives the default color, an icon, and the ARIA role
+	 * (`'alert'` for warning/error, `'status'` for info/success). Use `color`
+	 * to render a colored alert with no semantic meaning.
+	 */
+	severity?: AlertSeverity
 	icon?: ReactElement
 	title?: ReactNode
 	description?: ReactNode
@@ -61,7 +65,7 @@ export type AlertProps = Omit<AlertVariants, 'color'> & {
 }
 
 export function Alert({
-	type,
+	severity,
 	variant,
 	color,
 	icon,
@@ -88,11 +92,11 @@ export function Alert({
 
 	const resolvedVariant = variant ?? 'soft'
 
-	const resolvedColor = type ? typeColorMap[type] : (color ?? 'zinc')
+	const resolvedColor = severity ? severityColorMap[severity] : (color ?? 'zinc')
 
-	const resolvedIcon = icon ?? (type ? typeIconMap[type] : undefined)
+	const resolvedIcon = icon ?? (severity ? severityIconMap[severity] : undefined)
 
-	const role = type ? typeRoleMap[type] : undefined
+	const role = severity ? severityRoleMap[severity] : undefined
 
 	const hasTitle = title || hasChild(children, AlertTitle)
 
@@ -108,7 +112,7 @@ export function Alert({
 				alertVariants({ variant, color: resolvedColor }),
 				center ? 'items-center' : 'items-start',
 				block && 'w-full',
-				type && !closable && 'pr-6',
+				severity && !closable && 'pr-6',
 				className,
 			)}
 		>

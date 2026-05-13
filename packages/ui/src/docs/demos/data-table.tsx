@@ -76,8 +76,7 @@ function SortableExample() {
 			columns={sortableColumns}
 			rows={sortedPeople}
 			getRowKey={(row) => row.id}
-			sort={sort}
-			onSortChange={setSort}
+			sort={{ value: sort, onChange: setSort }}
 		/>
 	)
 }
@@ -123,8 +122,7 @@ export default function DataTableDemo() {
 						columns={columns}
 						rows={rows}
 						getRowKey={(row) => row.id}
-						selection={selection}
-						onSelectionChange={setSelection}
+						selection={{ value: selection, onChange: setSelection }}
 					/>
 				`}
 			>
@@ -132,8 +130,7 @@ export default function DataTableDemo() {
 					columns={[{ id: 'select', selectable: true, width: '48px' }, ...baseColumns]}
 					rows={people}
 					getRowKey={(row) => row.id}
-					selection={selection}
-					onSelectionChange={(s) => setSelection(s ?? new Set())}
+					selection={{ value: selection, onChange: (s) => setSelection(s ?? new Set()) }}
 				/>
 			</Example>
 
@@ -146,11 +143,13 @@ export default function DataTableDemo() {
 						columns={columns}
 						rows={rows}
 						getRowKey={(row) => row.id}
-						batchActions={(selected) => (
-							<Button size="sm" onClick={() => alert(selected.size + ' selected')}>
-								Delete
-							</Button>
-						)}
+						selection={{
+							batchActions: (selected) => (
+								<Button size="sm" onClick={() => alert(selected.size + ' selected')}>
+									Delete
+								</Button>
+							),
+						}}
 					/>
 				`}
 			>
@@ -158,18 +157,20 @@ export default function DataTableDemo() {
 					columns={[{ id: 'select', selectable: true, width: '48px' }, ...baseColumns]}
 					rows={people}
 					getRowKey={(row) => row.id}
-					batchActions={(selected) => (
-						<HoldButton
-							size="sm"
-							color="red"
-							variant="soft"
-							onComplete={() => {
-								setSelection(new Set())
-							}}
-						>
-							Delete {selected.size > 0 && selected.size} items
-						</HoldButton>
-					)}
+					selection={{
+						batchActions: (selected) => (
+							<HoldButton
+								size="sm"
+								color="red"
+								variant="soft"
+								onComplete={() => {
+									setSelection(new Set())
+								}}
+							>
+								Delete {selected.size > 0 && selected.size} items
+							</HoldButton>
+						),
+					}}
 				/>
 			</Example>
 
@@ -236,15 +237,19 @@ export default function DataTableDemo() {
 					import { DataTable } from 'ui/data-table'
 
 					<DataTable
-						manageColumns
 						columns={columns}
-						defaultHiddenColumns={new Set(['location'])}
 						rows={rows}
 						getRowKey={(row) => row.id}
+						columnManager={{ enabled: true, defaultHidden: new Set(['location']) }}
 					/>
 				`}
 			>
-				<DataTable manageColumns columns={baseColumns} rows={people} getRowKey={(row) => row.id} />
+				<DataTable
+					columns={baseColumns}
+					rows={people}
+					getRowKey={(row) => row.id}
+					columnManager={{ enabled: true }}
+				/>
 			</Example>
 		</Stack>
 	)

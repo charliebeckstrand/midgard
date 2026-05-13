@@ -1,18 +1,11 @@
 'use client'
 
-import {
-	type ReactNode,
-	type SyntheticEvent,
-	useCallback,
-	useEffect,
-	useMemo,
-	useRef,
-	useState,
-} from 'react'
+import { type ReactNode, type SyntheticEvent, useCallback, useMemo, useState } from 'react'
 import { useFormContext } from '../form/context'
 import { Text } from '../text'
 import { PasswordConfirmProvider } from './context'
-import { deriveStatus, handlePasswordInput } from './utilities'
+import { usePasswordConfirmState } from './use-password-confirm-state'
+import { handlePasswordInput } from './utilities'
 
 export type PasswordConfirmProps = {
 	warning?: ReactNode
@@ -29,55 +22,30 @@ export function PasswordConfirm({
 	className,
 	children,
 }: PasswordConfirmProps) {
-	const [password, setPassword] = useState('')
 	const [passwordName, setPasswordName] = useState<string | undefined>(undefined)
-
-	const [confirm, setConfirm] = useState('')
 	const [confirmName, setConfirmName] = useState<string | undefined>(undefined)
-
-	const [lastEdited, setLastEdited] = useState<'password' | 'confirm' | null>(null)
 
 	const form = useFormContext()
 
 	const passwordError = passwordName ? form?.errors[passwordName] : undefined
+
 	const confirmHasFormError = confirmName ? Boolean(form?.errors[confirmName]) : false
 
-	const handleSetConfirm = useCallback((value: string) => {
-		setConfirm(value)
-		setLastEdited('confirm')
-	}, [])
-
-	const status = passwordError ? 'idle' : deriveStatus(password, confirm, lastEdited)
-
-	const onMatchRef = useRef(onPasswordMatch)
-	const onMismatchRef = useRef(onPasswordMismatch)
-
-	onMatchRef.current = onPasswordMatch
-	onMismatchRef.current = onPasswordMismatch
-
-	const prevMatchState = useRef<'match' | 'mismatch' | null>(null)
-
-	const matchState =
-		status === 'warning' ? 'mismatch' : password && confirm && password === confirm ? 'match' : null
-
-	useEffect(() => {
-		if (matchState === prevMatchState.current) return
-
-		prevMatchState.current = matchState
-
-		if (matchState === 'match') onMatchRef.current?.()
-		else if (matchState === 'mismatch') onMismatchRef.current?.()
-	}, [matchState])
+	const { status, setPassword, setConfirm, setLastEdited } = usePasswordConfirmState({
+		disabled: Boolean(passwordError),
+		onPasswordMatch,
+		onPasswordMismatch,
+	})
 
 	const handleInput = useCallback(
 		(e: SyntheticEvent<HTMLDivElement>) =>
 			handlePasswordInput(e, setPassword, setPasswordName, setLastEdited),
-		[],
+		[setPassword, setLastEdited],
 	)
 
 	const ctx = useMemo(
-		() => ({ status, setConfirm: handleSetConfirm, setConfirmName, confirmHasFormError }),
-		[status, handleSetConfirm, confirmHasFormError],
+		() => ({ status, setConfirm, setConfirmName, confirmHasFormError }),
+		[status, setConfirm, confirmHasFormError],
 	)
 
 	return (

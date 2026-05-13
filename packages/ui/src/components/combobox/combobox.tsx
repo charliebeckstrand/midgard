@@ -27,8 +27,8 @@ import { HeadlessInput } from '../input'
 import { Placeholder } from '../placeholder'
 import { SelectTrigger } from '../select/trigger'
 import { useSkeleton } from '../skeleton/context'
-import { useComboboxInputHandlers } from './use-combobox-input-handlers'
-import { useComboboxSelection } from './use-combobox-selection'
+import { useComboboxInput } from './use-combobox-input'
+import { useComboboxState } from './use-combobox-state'
 import { resolveInputDisplay } from './utilities'
 
 type ComboboxContextValue<T = unknown> = {
@@ -153,7 +153,7 @@ export function Combobox<T>({
 	const waitForKeyboard = useKeyboardSettled()
 
 	const { query, setQuery, open, setOpen, editing, setEditing, close, select, flushPending } =
-		useComboboxSelection<T>({
+		useComboboxState<T>({
 			multiple,
 			nullable,
 			selectable,
@@ -175,7 +175,7 @@ export function Combobox<T>({
 
 	const inputDisplay = resolveInputDisplay({ editing, query, value, displayValue, multiple })
 
-	const inputHandlers = useComboboxInputHandlers<T>({
+	const inputHandlers = useComboboxInput<T>({
 		multiple,
 		clearOnEmpty,
 		value,

@@ -18,7 +18,7 @@ import { Icon } from '../icon'
 import { Placeholder } from '../placeholder'
 import { SelectTrigger } from '../select/trigger'
 import { useSkeleton } from '../skeleton/context'
-import { useListboxSelection } from './use-listbox-selection'
+import { useListboxState } from './use-listbox-state'
 import { resolveLabel } from './utilities'
 
 type ListboxContextValue<T = unknown> = {
@@ -115,7 +115,7 @@ export function Listbox<T>({
 
 	const triggerRef = useRef<HTMLButtonElement>(null)
 
-	const { open, setOpen, close, select, flushPending } = useListboxSelection<T>({
+	const { open, setOpen, close, select, flushPending } = useListboxState<T>({
 		multiple,
 		nullable,
 		setValue,

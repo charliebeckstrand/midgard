@@ -1,12 +1,13 @@
 'use client'
 
 import { MapPin } from 'lucide-react'
-import { type InputHTMLAttributes, useEffect, useRef, useState } from 'react'
+import { type InputHTMLAttributes, useState } from 'react'
 import { Combobox, ComboboxDescription, ComboboxLabel, ComboboxOption } from '../combobox'
 import { Icon } from '../icon'
 import { Spinner } from '../spinner'
 import { photonProvider } from './photon'
 import type { AddressProvider, AddressSuggestion } from './types'
+import { useAddressSuggestions } from './use-address-suggestions'
 
 export type AddressInputProps = {
 	id?: string
@@ -31,78 +32,15 @@ export function AddressInput({
 }: AddressInputProps) {
 	const [query, setQuery] = useState('')
 
-	const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([])
-
-	const [loading, setLoading] = useState(false)
-
-	const [ready, setReady] = useState(false)
-
 	const [menuRequested, setMenuRequested] = useState(false)
 
-	const abortRef = useRef<AbortController | null>(null)
-
-	const providerRef = useRef(provider)
-
-	providerRef.current = provider
-
-	useEffect(() => {
-		if (!menuRequested) return
-
-		if (query.length < minQueryLength) {
-			abortRef.current?.abort()
-
-			setSuggestions([])
-
-			setLoading(false)
-
-			setReady(false)
-
-			return
-		}
-
-		setLoading(true)
-
-		setReady(false)
-
-		const delay = query.length === 0 ? 0 : debounceMs
-
-		const timeout = setTimeout(() => {
-			abortRef.current?.abort()
-
-			const controller = new AbortController()
-
-			abortRef.current = controller
-
-			providerRef
-				.current(query, { signal: controller.signal })
-				.then((results) => {
-					if (controller.signal.aborted) return
-
-					setSuggestions(results)
-
-					setLoading(false)
-
-					setReady(true)
-				})
-				.catch((error: unknown) => {
-					if (controller.signal.aborted) return
-
-					if (error instanceof DOMException && error.name === 'AbortError') return
-
-					setSuggestions([])
-
-					setLoading(false)
-
-					setReady(true)
-				})
-		}, delay)
-
-		return () => {
-			clearTimeout(timeout)
-
-			abortRef.current?.abort()
-		}
-	}, [query, menuRequested, debounceMs, minQueryLength])
+	const { suggestions, loading, ready } = useAddressSuggestions({
+		query,
+		enabled: menuRequested,
+		provider,
+		debounceMs,
+		minQueryLength,
+	})
 
 	return (
 		<Combobox<AddressSuggestion>

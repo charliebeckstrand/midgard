@@ -1,44 +1,7 @@
 'use client'
 
-import { type ComponentPropsWithoutRef, useEffect, useState } from 'react'
-
-const SEC = 1000
-const MIN = 60 * SEC
-const HOUR = 60 * MIN
-const DAY = 24 * HOUR
-const WEEK = 7 * DAY
-const MONTH = 30 * DAY
-const YEAR = 365 * DAY
-
-type Unit = 'second' | 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year'
-
-function pickUnit(absMs: number): { unit: Unit; value: number } {
-	if (absMs < MIN) return { unit: 'second', value: absMs / SEC }
-
-	if (absMs < HOUR) return { unit: 'minute', value: absMs / MIN }
-
-	if (absMs < DAY) return { unit: 'hour', value: absMs / HOUR }
-
-	if (absMs < WEEK) return { unit: 'day', value: absMs / DAY }
-
-	if (absMs < MONTH) return { unit: 'week', value: absMs / WEEK }
-
-	if (absMs < YEAR) return { unit: 'month', value: absMs / MONTH }
-
-	return { unit: 'year', value: absMs / YEAR }
-}
-
-function adaptiveInterval(absMs: number) {
-	if (absMs < MIN) return 5 * SEC
-
-	if (absMs < HOUR) return 30 * SEC
-
-	if (absMs < DAY) return MIN
-
-	if (absMs < WEEK) return HOUR
-
-	return DAY
-}
+import type { ComponentPropsWithoutRef } from 'react'
+import { useRelativeTime } from './use-relative-time'
 
 export type TimeAgoProps = Omit<
 	ComponentPropsWithoutRef<'time'>,
@@ -63,41 +26,9 @@ export function TimeAgo({
 	title = true,
 	...props
 }: TimeAgoProps) {
-	const [now, setNow] = useState(() => new Date())
+	const { then, isValid, text } = useRelativeTime({ date, format, locale, interval })
 
-	const then = date instanceof Date ? date : new Date(date)
-
-	const isValid = !Number.isNaN(then.getTime())
-
-	const diffMs = isValid ? then.getTime() - now.getTime() : 0
-
-	const absMs = Math.abs(diffMs)
-
-	const adaptiveMs = interval === 'auto' ? adaptiveInterval(absMs) : interval
-
-	useEffect(() => {
-		if (!isValid) return
-
-		const id = window.setInterval(() => setNow(new Date()), adaptiveMs)
-
-		return () => window.clearInterval(id)
-	}, [adaptiveMs, isValid])
-
-	if (!isValid) {
-		return <time data-slot="time-ago" {...props} />
-	}
-
-	let text: string
-
-	if (format) {
-		text = format(diffMs, now, then)
-	} else {
-		const formatter = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' })
-
-		const { unit, value } = pickUnit(absMs)
-
-		text = formatter.format(Math.round(diffMs > 0 ? value : -value), unit)
-	}
+	if (!isValid) return <time data-slot="time-ago" {...props} />
 
 	const resolvedTitle =
 		title === true ? then.toLocaleString(locale) : title === false ? undefined : title

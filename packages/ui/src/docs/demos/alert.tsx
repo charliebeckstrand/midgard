@@ -16,7 +16,7 @@ const colorVariants = ['solid', 'soft', 'outline', 'plain'] as const
 
 const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 
-const types = ['info', 'success', 'warning', 'error'] as const
+const severities = ['info', 'success', 'warning', 'error'] as const
 
 function ClosableExample() {
 	const [visible, setVisible] = useState(true)
@@ -27,7 +27,7 @@ function ClosableExample() {
 
 	return (
 		<Alert
-			type="success"
+			severity="success"
 			title="Changes saved"
 			description="Your changes have been saved successfully."
 			closable
@@ -46,7 +46,7 @@ function ClosableBlockExample() {
 	return (
 		<Alert
 			block
-			type="info"
+			severity="info"
 			title="Full-width alert"
 			description="This alert stretches to fill its container."
 			closable
@@ -85,21 +85,21 @@ export default function AlertDemo() {
 				</Stack>
 			</Example>
 
-			<Example title="Types">
+			<Example title="Severity">
 				<Stack gap="md">
-					{types.map((type) => (
-						<Alert key={type} type={type} title={`${capitalize(type)} alert`} />
+					{severities.map((severity) => (
+						<Alert key={severity} severity={severity} title={`${capitalize(severity)} alert`} />
 					))}
 				</Stack>
 			</Example>
 
 			<Example title="With description">
 				<Stack gap="md">
-					{types.map((type) => (
+					{severities.map((severity) => (
 						<Alert
-							key={type}
-							type={type}
-							title={`${capitalize(type)} alert`}
+							key={severity}
+							severity={severity}
+							title={`${capitalize(severity)} alert`}
 							description="This is a description providing more details about the alert."
 						/>
 					))}
@@ -112,7 +112,7 @@ export default function AlertDemo() {
 
 			<Example title="With actions">
 				<Alert
-					type="warning"
+					severity="warning"
 					title="Storage is almost full"
 					description="You have used 90% of your available storage."
 					actions={

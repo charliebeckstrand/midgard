@@ -211,7 +211,7 @@ describe('EditableGrid', () => {
 					columns={columns}
 					rows={rows}
 					getRowKey={(row) => row.id}
-					selection={selection}
+					selection={{ value: selection }}
 					onChange={captured}
 				/>
 			)

@@ -56,7 +56,7 @@ describe('EditableGrid · with selection', () => {
 				rows={rows1k}
 				getRowKey={getKey}
 				onChange={noop}
-				selection={selection}
+				selection={{ value: selection }}
 			/>,
 		)
 

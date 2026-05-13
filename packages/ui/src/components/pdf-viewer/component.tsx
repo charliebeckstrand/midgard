@@ -128,9 +128,7 @@ export function PdfViewer({
 				total={total}
 				safePage={safePage}
 				goToPage={goToPage}
-				zoom={zoom}
-				setZoom={setZoom}
-				zoomLevels={zoomLevels}
+				zoom={{ value: zoom, setValue: setZoom, levels: zoomLevels }}
 				onRotate={rotateActivePage}
 				src={documentSrc}
 				filename={filename}

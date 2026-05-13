@@ -2,14 +2,13 @@
 
 import { useCallback, useMemo } from 'react'
 import { cn } from '../../core'
-import { useControllable } from '../../hooks'
 import { k } from '../../recipes/kata/query-builder'
 import { Fieldset } from '../fieldset'
-import type { QueryBuilderActions, QueryBuilderStateValue } from './context'
+import type { QueryBuilderStateValue } from './context'
 import { QueryBuilderProvider } from './context'
 import { QueryGroup } from './group'
-import type { QueryField, QueryGroup as QueryGroupNode, QueryRule as QueryRuleNode } from './types'
-import { addChild, createGroup, createRule, mapNode, removeChild } from './utilities'
+import type { QueryField, QueryGroup as QueryGroupNode } from './types'
+import { useQueryBuilderTree } from './use-query-builder-tree'
 
 // ── QueryBuilder ───────────────────────────────────────
 
@@ -30,67 +29,13 @@ export function QueryBuilder({
 	disabled = false,
 	className,
 }: QueryBuilderProps) {
-	const initial = useMemo(() => defaultValue ?? createGroup('and'), [defaultValue])
-
-	const [tree, setTree] = useControllable<QueryGroupNode>({
-		value,
-		defaultValue: initial,
-		onChange: onChange as ((v: QueryGroupNode | undefined) => void) | undefined,
-	})
-
-	const root = tree ?? initial
+	const { root, actions } = useQueryBuilderTree({ fields, value, defaultValue, onChange })
 
 	const getField = useCallback((name: string) => fields.find((f) => f.name === name), [fields])
-
-	const updateRule = useCallback<QueryBuilderActions['updateRule']>(
-		(id, patch) => {
-			setTree((prev) =>
-				mapNode(prev ?? initial, id, (node) =>
-					node.type === 'rule' ? ({ ...node, ...patch } as QueryRuleNode) : node,
-				),
-			)
-		},
-		[setTree, initial],
-	)
-
-	const updateCombinator = useCallback<QueryBuilderActions['updateCombinator']>(
-		(id, combinator) => {
-			setTree((prev) => mapNode(prev ?? initial, id, (node) => ({ ...node, combinator })))
-		},
-		[setTree, initial],
-	)
-
-	const addRule = useCallback(
-		(groupId: string) => {
-			setTree((prev) => addChild(prev ?? initial, groupId, createRule(fields[0])))
-		},
-		[setTree, initial, fields],
-	)
-
-	const addGroup = useCallback(
-		(groupId: string) => {
-			setTree((prev) =>
-				addChild(prev ?? initial, groupId, createGroup('and', [createRule(fields[0])])),
-			)
-		},
-		[setTree, initial, fields],
-	)
-
-	const remove = useCallback(
-		(id: string) => {
-			setTree((prev) => removeChild(prev ?? initial, id))
-		},
-		[setTree, initial],
-	)
 
 	const state = useMemo<QueryBuilderStateValue>(
 		() => ({ fields, getField, disabled }),
 		[fields, getField, disabled],
-	)
-
-	const actions = useMemo<QueryBuilderActions>(
-		() => ({ updateRule, updateCombinator, addRule, addGroup, remove }),
-		[updateRule, updateCombinator, addRule, addGroup, remove],
 	)
 
 	return (

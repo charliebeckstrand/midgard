@@ -16,9 +16,7 @@ describe('PivotTable · lane × period (10 × 12 cells)', () => {
 		render(
 			<PivotTable
 				data={rows1k}
-				rowKey="lane"
-				columnKey="period"
-				valueKey="loads"
+				keys={{ row: 'lane', column: 'period', value: 'loads' }}
 				aggregation="sum"
 			/>,
 		)
@@ -30,9 +28,7 @@ describe('PivotTable · lane × period (10 × 12 cells)', () => {
 		render(
 			<PivotTable
 				data={rows10k}
-				rowKey="lane"
-				columnKey="period"
-				valueKey="loads"
+				keys={{ row: 'lane', column: 'period', value: 'loads' }}
 				aggregation="sum"
 			/>,
 		)
@@ -44,9 +40,7 @@ describe('PivotTable · lane × period (10 × 12 cells)', () => {
 		render(
 			<PivotTable
 				data={rows50k}
-				rowKey="lane"
-				columnKey="period"
-				valueKey="loads"
+				keys={{ row: 'lane', column: 'period', value: 'loads' }}
 				aggregation="sum"
 			/>,
 		)
@@ -60,9 +54,7 @@ describe('PivotTable · carrier × destination × totals', () => {
 		render(
 			<PivotTable
 				data={rows10k}
-				rowKey="carrier"
-				columnKey="destination"
-				valueKey="weight"
+				keys={{ row: 'carrier', column: 'destination', value: 'weight' }}
 				aggregation="avg"
 				totals="both"
 			/>,
@@ -75,9 +67,7 @@ describe('PivotTable · carrier × destination × totals', () => {
 		render(
 			<PivotTable
 				data={rows10k}
-				rowKey="carrier"
-				columnKey="destination"
-				valueKey="weight"
+				keys={{ row: 'carrier', column: 'destination', value: 'weight' }}
 				aggregation="avg"
 				totals="none"
 			/>,
@@ -93,9 +83,7 @@ describe('PivotTable · aggregation comparison (10k rows)', () => {
 			render(
 				<PivotTable
 					data={rows10k}
-					rowKey="lane"
-					columnKey="period"
-					valueKey="loads"
+					keys={{ row: 'lane', column: 'period', value: 'loads' }}
 					aggregation={aggregation}
 				/>,
 			)

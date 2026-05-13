@@ -171,8 +171,7 @@ export default function EditableGridDemo() {
 						columns={columns}
 						rows={rates}
 						getRowKey={(row) => row.id}
-						selection={selection}
-						onSelectionChange={setSelection}
+						selection={{ value: selection, onChange: setSelection }}
 						onChange={(changes) => setRates(applyChanges(rates, changes))}
 					/>
 				`}
@@ -193,8 +192,7 @@ export default function EditableGridDemo() {
 					columns={bulkColumns}
 					rows={bulkRates}
 					getRowKey={(row) => row.id}
-					selection={selection}
-					onSelectionChange={(s) => setSelection(s ?? new Set())}
+					selection={{ value: selection, onChange: (s) => setSelection(s ?? new Set()) }}
 					onChange={(changes) => setBulkRates((prev) => applyChanges(prev, changes))}
 				/>
 			</Example>

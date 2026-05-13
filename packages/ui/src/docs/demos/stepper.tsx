@@ -33,7 +33,7 @@ export default function StepperDemo() {
 
 	return (
 		<Stack gap="xl">
-			<Alert type="info" closable>
+			<Alert severity="info" closable>
 				<AlertDescription>
 					When <code>orientation</code> is not explicitly set, the stepper defaults to{' '}
 					<code>vertical</code> on mobile.

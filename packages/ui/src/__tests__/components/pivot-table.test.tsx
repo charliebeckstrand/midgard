@@ -15,7 +15,11 @@ const data: Row[] = [
 describe('PivotTable', () => {
 	it('renders a table with row and column dimensions', () => {
 		const { container } = renderUI(
-			<PivotTable data={data} rowKey="lane" columnKey="period" valueKey="loads" rowHeader="Lane" />,
+			<PivotTable
+				data={data}
+				keys={{ row: 'lane', column: 'period', value: 'loads' }}
+				rowHeader="Lane"
+			/>,
 		)
 
 		expect(bySlot(container, 'table')).toBeInTheDocument()
@@ -29,7 +33,11 @@ describe('PivotTable', () => {
 
 	it('sums values in each cell', () => {
 		renderUI(
-			<PivotTable data={data} rowKey="lane" columnKey="period" valueKey="loads" rowHeader="Lane" />,
+			<PivotTable
+				data={data}
+				keys={{ row: 'lane', column: 'period', value: 'loads' }}
+				rowHeader="Lane"
+			/>,
 		)
 
 		const laxRow = screen.getByText('LAX → DFW').closest('tr')
@@ -54,9 +62,7 @@ describe('PivotTable', () => {
 		renderUI(
 			<PivotTable
 				data={data}
-				rowKey="lane"
-				columnKey="period"
-				valueKey="loads"
+				keys={{ row: 'lane', column: 'period', value: 'loads' }}
 				rowHeader="Lane"
 				totals="row"
 			/>,
@@ -77,9 +83,7 @@ describe('PivotTable', () => {
 		renderUI(
 			<PivotTable
 				data={data}
-				rowKey="lane"
-				columnKey="period"
-				valueKey="loads"
+				keys={{ row: 'lane', column: 'period', value: 'loads' }}
 				rowHeader="Lane"
 				totals="both"
 			/>,
@@ -102,9 +106,7 @@ describe('PivotTable', () => {
 		renderUI(
 			<PivotTable
 				data={data}
-				rowKey="lane"
-				columnKey="period"
-				valueKey="loads"
+				keys={{ row: 'lane', column: 'period', value: 'loads' }}
 				aggregation="count"
 				rowHeader="Lane"
 			/>,
@@ -126,9 +128,7 @@ describe('PivotTable', () => {
 		renderUI(
 			<PivotTable
 				data={sparse}
-				rowKey="lane"
-				columnKey="period"
-				valueKey="loads"
+				keys={{ row: 'lane', column: 'period', value: 'loads' }}
 				rowHeader="Lane"
 			/>,
 		)
@@ -142,9 +142,7 @@ describe('PivotTable', () => {
 		renderUI(
 			<PivotTable
 				data={data}
-				rowKey="lane"
-				columnKey="period"
-				valueKey="loads"
+				keys={{ row: 'lane', column: 'period', value: 'loads' }}
 				format={(v) => `${v} loads`}
 				rowHeader="Lane"
 			/>,
@@ -157,9 +155,7 @@ describe('PivotTable', () => {
 		renderUI(
 			<PivotTable
 				data={data}
-				rowKey="lane"
-				columnKey="period"
-				valueKey="loads"
+				keys={{ row: 'lane', column: 'period', value: 'loads' }}
 				rowHeader="Lane"
 				rowOrder={['ORD → ATL', 'LAX → DFW']}
 				columnOrder={['Feb', 'Jan']}
@@ -184,9 +180,7 @@ describe('PivotTable', () => {
 			<PivotTable
 				className="custom"
 				data={data}
-				rowKey="lane"
-				columnKey="period"
-				valueKey="loads"
+				keys={{ row: 'lane', column: 'period', value: 'loads' }}
 			/>,
 		)
 
