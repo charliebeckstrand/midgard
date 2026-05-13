@@ -80,20 +80,19 @@ describe('SidebarLayout', () => {
 
 		const desktopPanel = container.querySelector('.max-lg\\:hidden')
 
-		expect(desktopPanel?.className).toContain('w-64')
+		expect(desktopPanel?.className).toContain('w-xs')
 	})
 
-	it('applies the mini width class to the desktop panel when mini is true', () => {
+	it('hides the inline desktop panel when floating is true', () => {
 		const { container } = renderUI(
-			<SidebarLayout sidebar={<div>sidebar</div>} mini>
+			<SidebarLayout sidebar={<div>sidebar</div>} floating>
 				body
 			</SidebarLayout>,
 		)
 
-		const desktopPanel = container.querySelector('.max-lg\\:hidden')
+		const inlinePanel = container.querySelector('.w-xs')
 
-		expect(desktopPanel?.className).toContain('w-auto')
-		expect(desktopPanel?.className).not.toContain('w-64')
+		expect(inlinePanel).toBeNull()
 	})
 
 	it('applies panelClassName to the desktop panel wrapper', () => {

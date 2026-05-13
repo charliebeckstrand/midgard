@@ -53,6 +53,8 @@ export function Tooltip({
 		placement,
 		open,
 		onOpenChange: (next) => {
+			if (next && !enabled) return
+
 			const reference = refs.reference.current
 
 			if (next && reference instanceof Element && reference.querySelector(':disabled')) return
@@ -61,6 +63,10 @@ export function Tooltip({
 		},
 		offset: 8,
 	})
+
+	useEffect(() => {
+		if (!enabled && open) setOpen(false)
+	}, [enabled, open])
 
 	const wasDisabledRef = useRef(false)
 

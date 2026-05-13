@@ -14,14 +14,18 @@ export const sidebarLayoutVariants = tv({
 export const sidebarPanelVariants = tv({
 	base: ['shrink-0 min-w-0', 'overflow-x-hidden overflow-y-auto', 'max-lg:hidden'],
 	variants: {
-		mini: {
-			false: 'w-64',
+		floating: {
+			false: 'w-xs',
 			true: 'w-auto',
 		},
 	},
 	defaultVariants: {
-		mini: false,
+		floating: false,
 	},
+})
+
+export const sidebarFloatingHotZoneVariants = tv({
+	base: ['absolute inset-y-0 left-0 z-30 w-4 max-lg:hidden'],
 })
 
 export const sidebarContentWrapperVariants = tv({
