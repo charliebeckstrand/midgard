@@ -1,16 +1,17 @@
 'use client'
 
 import { Check, Dot } from 'lucide-react'
-import { type ReactNode, useEffect, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/password-strength'
 import { Icon } from '../icon'
+import {
+	type PasswordRule,
+	type PasswordStrengthChange,
+	type StrengthLevel,
+	usePasswordStrength,
+} from './use-password-strength'
 
-export type PasswordRule = {
-	id: string
-	label: ReactNode
-	test: (value: string) => boolean
-}
+export type { PasswordRule, PasswordStrengthChange } from './use-password-strength'
 
 export const defaultPasswordRules: PasswordRule[] = [
 	{ id: 'length', label: 'At least 8 characters', test: (v) => v.length >= 8 },
@@ -25,27 +26,6 @@ const strengthLevels = [
 	{ id: 'good', label: 'Good' },
 	{ id: 'strong', label: 'Strong' },
 ] as const
-
-type StrengthLevel = 'empty' | (typeof strengthLevels)[number]['id']
-
-function deriveLevel(passed: number, total: number): StrengthLevel {
-	if (total === 0) return 'empty'
-
-	const ratio = passed / total
-
-	if (ratio <= 0.25) return 'weak'
-	if (ratio <= 0.5) return 'fair'
-	if (ratio < 1) return 'good'
-
-	return 'strong'
-}
-
-export type PasswordStrengthChange = {
-	score: number
-	max: number
-	level: StrengthLevel
-	passed: string[]
-}
 
 export type PasswordStrengthProps = {
 	value: string
@@ -66,35 +46,13 @@ export function PasswordStrength({
 	onStrengthChange,
 	className,
 }: PasswordStrengthProps) {
-	const results = useMemo(
-		() => rules.map((rule) => ({ rule, passed: rule.test(value) })),
-		[rules, value],
-	)
-
-	const passedIds = useMemo(() => results.filter((r) => r.passed).map((r) => r.rule.id), [results])
-
-	const passedCount = passedIds.length
-
-	const level: StrengthLevel = value.length === 0 ? 'empty' : deriveLevel(passedCount, rules.length)
+	const { results, level } = usePasswordStrength({ value, rules, onStrengthChange })
 
 	const activeCount = level === 'empty' ? 0 : strengthLevels.findIndex((l) => l.id === level) + 1
 
 	const label =
 		labels?.[level] ??
 		(activeCount === 0 ? 'Empty' : (strengthLevels[activeCount - 1]?.label ?? ''))
-
-	const onChangeRef = useRef(onStrengthChange)
-
-	onChangeRef.current = onStrengthChange
-
-	useEffect(() => {
-		onChangeRef.current?.({
-			score: passedCount,
-			max: rules.length,
-			level,
-			passed: passedIds,
-		})
-	}, [passedCount, rules.length, level, passedIds])
 
 	const levelClass = level === 'empty' ? undefined : k.level[level]
 
