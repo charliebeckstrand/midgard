@@ -5,9 +5,9 @@ import {
 	aggregateColumn,
 	aggregateRow,
 	groupValues,
-	type PivotAggregation,
 	resolveAxis,
 } from './pivot'
+import type { PivotAggregation } from './types'
 
 export type PivotTableKeys<T> = {
 	row: keyof T & string
