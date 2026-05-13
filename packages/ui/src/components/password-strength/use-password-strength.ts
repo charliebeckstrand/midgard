@@ -22,7 +22,7 @@ export type PasswordRuleResult = {
 
 export type UsePasswordStrengthOptions = {
 	value: string
-	rules: PasswordRule[]
+	rules: readonly PasswordRule[]
 	onStrengthChange?: (strength: PasswordStrengthChange) => void
 }
 

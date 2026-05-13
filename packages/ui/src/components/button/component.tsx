@@ -20,6 +20,7 @@ import {
 } from '../../primitives'
 import { kokkaku } from '../../recipes'
 import { type ButtonVariants, buttonVariants } from '../../recipes/kata/button'
+import type { DistributiveOmit } from '../../types'
 import { useGlass } from '../glass/context'
 import { Icon } from '../icon'
 import { useInputSize } from '../input/context'
@@ -53,8 +54,6 @@ function hasLabelContent(children: ReactNode): boolean {
 		return isValidElement(child) && !isIconElement(child)
 	})
 }
-
-type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never
 
 type ButtonBaseProps = ButtonVariants & {
 	block?: boolean

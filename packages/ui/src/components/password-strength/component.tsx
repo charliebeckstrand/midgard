@@ -13,7 +13,7 @@ import {
 
 export type { PasswordRule, PasswordStrengthChange } from './use-password-strength'
 
-export const defaultPasswordRules: PasswordRule[] = [
+export const defaultPasswordRules: readonly PasswordRule[] = [
 	{ id: 'length', label: 'At least 8 characters', test: (v) => v.length >= 8 },
 	{ id: 'uppercase', label: 'One uppercase letter', test: (v) => /[A-Z]/.test(v) },
 	{ id: 'number', label: 'One number', test: (v) => /\d/.test(v) },
@@ -29,7 +29,7 @@ const strengthLevels = [
 
 export type PasswordStrengthProps = {
 	value: string
-	rules?: PasswordRule[]
+	rules?: readonly PasswordRule[]
 	showRules?: boolean
 	showLabel?: boolean
 	labels?: Partial<Record<StrengthLevel, string>>

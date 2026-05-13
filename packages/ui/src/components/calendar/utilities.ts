@@ -1,4 +1,4 @@
-export const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
+export const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'] as const
 
 export const MONTHS = [
 	'Jan',
@@ -13,7 +13,7 @@ export const MONTHS = [
 	'Oct',
 	'Nov',
 	'Dec',
-]
+] as const
 
 export function isSameDay(a: Date, b: Date): boolean {
 	return (

@@ -22,11 +22,7 @@ export function ListItem({ leading, children, className }: ListItemProps) {
 
 	// dnd-kit hands back role="button" which would override the <li> semantics.
 	// Keep the focus/aria hints, drop the role.
-	const {
-		role: _role,
-		tabIndex,
-		...dragAttrs
-	} = (attributes ?? {}) as Partial<typeof attributes> & { role?: string; tabIndex?: number }
+	const { role: _role, tabIndex, ...dragAttrs } = attributes
 
 	return (
 		<li

@@ -14,12 +14,12 @@ export function resolveLabel<T>({
 
 		if (arr.length > 3) return `${arr.length} selected`
 
-		if (displayValue) return arr.map((v) => displayValue(v as T)).join(', ')
+		if (displayValue) return arr.map(displayValue).join(', ')
 
 		return `${arr.length} selected`
 	}
 
-	if (value !== undefined && displayValue) return displayValue(value as T)
+	if (value !== undefined && !Array.isArray(value) && displayValue) return displayValue(value)
 
 	return undefined
 }

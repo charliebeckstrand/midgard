@@ -15,7 +15,9 @@ export function resolveInputDisplay<T>({
 }): string {
 	if (editing) return query
 
-	if (!multiple && value !== undefined && displayValue) return displayValue(value as T)
+	if (!multiple && value !== undefined && !Array.isArray(value) && displayValue) {
+		return displayValue(value)
+	}
 
 	return ''
 }
