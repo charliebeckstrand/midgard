@@ -2,9 +2,18 @@
   "permissions": {
     "allow": [
       "Bash(mkdir:*)",
-      "Read(**/.claude/cache/**)",
-      "Write(**/.claude/cache/**)",
-      "Edit(**/.claude/cache/**)"
+      "Read(.claude/cache/**)",
+      "Write(.claude/cache/**)",
+      "Edit(.claude/cache/**)",
+      "Read(./.claude/cache/**)",
+      "Write(./.claude/cache/**)",
+      "Edit(./.claude/cache/**)",
+      "Read(/home/user/midgard/.claude/cache/**)",
+      "Write(/home/user/midgard/.claude/cache/**)",
+      "Edit(/home/user/midgard/.claude/cache/**)",
+      "Read(/home/user/midgard/.claude/cache/project-profile.json)",
+      "Write(/home/user/midgard/.claude/cache/project-profile.json)",
+      "Edit(/home/user/midgard/.claude/cache/project-profile.json)"
     ]
   }
 }
