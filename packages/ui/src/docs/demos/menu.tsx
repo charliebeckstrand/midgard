@@ -1,8 +1,9 @@
 'use client'
-
+import { ChevronDown } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../../components/button'
 import { Glass } from '../../components/glass'
+import { Icon } from '../../components/icon'
 import {
 	Menu,
 	MenuContent,
@@ -27,7 +28,9 @@ export default function MenuDemo() {
 	const dropdown = (
 		<Menu placement="bottom-start">
 			<MenuTrigger>
-				<Button variant="outline">Options</Button>
+				<Button variant="outline" suffix={<Icon icon={<ChevronDown />} />}>
+					Options
+				</Button>
 			</MenuTrigger>
 			<MenuContent>
 				<MenuSection>
