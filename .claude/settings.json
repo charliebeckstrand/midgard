@@ -2,9 +2,12 @@
   "permissions": {
     "allow": [
       "Bash(mkdir:*)",
-      "Read(**/.claude/cache/**)",
-      "Write(**/.claude/cache/**)",
-      "Edit(**/.claude/cache/**)"
+      "Read(.claude/cache/**)",
+      "Write(.claude/cache/**)",
+      "Edit(.claude/cache/**)",
+      "Read(//.claude/cache/**)",
+      "Write(//.claude/cache/**)",
+      "Edit(//.claude/cache/**)"
     ]
   }
 }
