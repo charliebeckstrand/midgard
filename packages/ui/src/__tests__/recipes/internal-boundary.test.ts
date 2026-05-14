@@ -38,9 +38,9 @@ describe('recipes internal-boundary contract', () => {
 	it('no app or sibling package imports from ui/recipes/*', () => {
 		const scanRoots = [
 			join(workspaceRoot, 'apps'),
-			...readdirSync(join(workspaceRoot, 'packages'))
-				.filter((name) => name !== 'ui')
-				.map((name) => join(workspaceRoot, 'packages', name)),
+			...readdirSync(join(workspaceRoot, 'packages'), { withFileTypes: true })
+				.filter((entry) => entry.isDirectory() && entry.name !== 'ui')
+				.map((entry) => join(workspaceRoot, 'packages', entry.name)),
 		]
 
 		const offenders: string[] = []
