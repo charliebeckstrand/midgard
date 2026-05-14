@@ -22,6 +22,11 @@ import type { Step } from '../../recipes/ryu/sun'
 import { Button } from '../button'
 import { Headless } from '../headless'
 
+/**
+ * Canonical props for nav-item-style components produced by `createNavItem`.
+ * Consumers like SidebarItem and the Nav family's NavItem extend this with
+ * their own extra props (e.g. `value` for selection binding).
+ */
 export type NavItemProps = {
 	icon?: ReactElement
 	current?: boolean

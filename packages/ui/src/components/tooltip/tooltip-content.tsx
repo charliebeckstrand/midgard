@@ -13,8 +13,11 @@ import { useTooltipContext } from './tooltip'
 
 export type TooltipContentProps = {
 	/**
-	 * Size step that drives padding and text size.
-	 * Resolution order: explicit prop, then enclosing concentric size, then `'md'`.
+	 * Size step that drives padding and text size. Overrides any `size` passed
+	 * to the parent `<Tooltip>`.
+	 *
+	 * Resolution order: explicit prop, then `<Tooltip size>`, then enclosing
+	 * concentric size, then `'md'`.
 	 */
 	size?: Step
 	className?: string
@@ -22,13 +25,20 @@ export type TooltipContentProps = {
 }
 
 export function TooltipContent({ size, className, children }: TooltipContentProps) {
-	const { open, interactive, setFloating, floatingStyles, getFloatingProps } = useTooltipContext()
+	const {
+		open,
+		interactive,
+		size: rootSize,
+		setFloating,
+		floatingStyles,
+		getFloatingProps,
+	} = useTooltipContext()
 
 	const glass = useGlass()
 
 	const concentric = useConcentric()
 
-	const resolvedSize: Step = size ?? concentric?.size ?? 'md'
+	const resolvedSize: Step = size ?? rootSize ?? concentric?.size ?? 'md'
 
 	return (
 		<FloatingPortal>

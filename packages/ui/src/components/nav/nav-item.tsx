@@ -5,7 +5,7 @@ import { cn } from '../../core'
 import { useCurrent } from '../../primitives'
 import { k } from '../../recipes/kata/nav'
 import { Icon } from '../icon'
-import { type NavItemProps as BaseNavItemProps, createNavItem } from './nav-item-helpers'
+import { createNavItem, type NavItemProps } from './nav-item-helpers'
 
 const BaseNavItem = createNavItem({
 	slotPrefix: 'nav',
@@ -13,9 +13,14 @@ const BaseNavItem = createNavItem({
 	renderIcon: (icon) => <Icon icon={icon} />,
 })
 
-export type NavItemProps = BaseNavItemProps & { value?: string }
+/**
+ * Props for `<NavItem>` — the Nav family's `role="menuitem"` variant. Extends
+ * the canonical `NavItemProps` with `value` for binding to the surrounding
+ * `<Nav>`'s selection state.
+ */
+export type NavMenuItemProps = NavItemProps & { value?: string }
 
-export function NavItem({ value, current, onClick, ...props }: NavItemProps) {
+export function NavItem({ value, current, onClick, ...props }: NavMenuItemProps) {
 	const ctx = useCurrent()
 
 	const isCurrent = current ?? (value !== undefined && ctx?.value === value)

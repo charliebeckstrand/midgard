@@ -13,11 +13,13 @@ import {
 import { type CSSProperties, type ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { createContext } from '../../core'
 import { useFloatingPanel, useHasHover } from '../../hooks'
+import type { Step } from '../../recipes/ryu/sun'
 
 type TooltipContextValue = {
 	open: boolean
 	interactive: boolean
 	enabled: boolean
+	size?: Step
 	className?: string
 	setReference: (node: HTMLElement | null) => void
 	setFloating: (node: HTMLElement | null) => void
@@ -35,6 +37,14 @@ export type TooltipProps = {
 	delay?: number
 	interactive?: boolean
 	enabled?: boolean
+	/**
+	 * Size step applied to the tooltip content. Forwarded via context so
+	 * setting it once on `<Tooltip>` styles its `<TooltipContent>` without
+	 * threading the prop through children. An explicit `size` on
+	 * `<TooltipContent>` still wins. When unset, content falls back to the
+	 * enclosing concentric size, then `'md'`.
+	 */
+	size?: Step
 	className?: string
 	children: ReactNode
 }
@@ -44,6 +54,7 @@ export function Tooltip({
 	delay = 250,
 	interactive = false,
 	enabled = true,
+	size,
 	className,
 	children,
 }: TooltipProps) {
@@ -121,6 +132,7 @@ export function Tooltip({
 			open,
 			interactive,
 			enabled,
+			size,
 			className,
 			setReference: refs.setReference,
 			setFloating: refs.setFloating,
@@ -132,6 +144,7 @@ export function Tooltip({
 			open,
 			interactive,
 			enabled,
+			size,
 			className,
 			refs.setReference,
 			refs.setFloating,

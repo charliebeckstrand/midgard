@@ -44,6 +44,7 @@ export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProp
 				floatingStyles={state.floatingStyles}
 				getFloatingProps={state.getFloatingProps}
 				focusTrapRef={state.focusTrapRef}
+				size={size}
 				onExitComplete={state.onExitComplete}
 			>
 				<CalendarRange

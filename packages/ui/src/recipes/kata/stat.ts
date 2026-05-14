@@ -6,9 +6,9 @@ export const statValue = tv({
 	base: ['font-semibold tracking-tight tabular-nums', ...iro.text.default],
 	variants: {
 		size: {
-			sm: ji.size.xl,
-			md: ji.size['2xl'],
-			lg: ji.size['3xl'],
+			sm: ji.size['2xl'],
+			md: ji.size['3xl'],
+			lg: ji.size['4xl'],
 		},
 	},
 	defaultVariants: { size: 'md' },
