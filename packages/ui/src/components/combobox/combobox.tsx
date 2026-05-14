@@ -15,7 +15,7 @@ import { cn, createContext } from '../../core'
 import { useFloatingUI, useRoving, useScrollWithin } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
-import { PopoverPanel } from '../../primitives'
+import { PopoverPanel, useJoin } from '../../primitives'
 import { kokkaku } from '../../recipes'
 import { k } from '../../recipes/kata/combobox'
 import { popover as kPopover } from '../../recipes/kata/popover'
@@ -120,6 +120,7 @@ export function Combobox<T>({
 	const glass = useGlass()
 	const control = useControl()
 	const skeleton = useSkeleton()
+	const join = useJoin()
 
 	const resolvedSize = size ?? control?.size ?? 'md'
 
@@ -214,7 +215,12 @@ export function Combobox<T>({
 	if (skeleton) {
 		return (
 			<Placeholder
-				className={cn(kokkaku.formControl.base, kokkaku.formControl.size[resolvedSize], className)}
+				className={cn(
+					kokkaku.formControl.base,
+					join ? kokkaku.formControl.group[resolvedSize] : kokkaku.formControl.full,
+					kokkaku.formControl.size[resolvedSize],
+					className,
+				)}
 			/>
 		)
 	}

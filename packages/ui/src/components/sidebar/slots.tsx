@@ -22,7 +22,7 @@ export function SidebarHeader({ className, children, closeIcon, ...props }: Side
 
 	return (
 		<div data-slot="sidebar-header" className={cn(k.header, className)} {...props}>
-			<div className="flex-1">{children}</div>
+			{children}
 			{offcanvas && (
 				<Button
 					variant="plain"

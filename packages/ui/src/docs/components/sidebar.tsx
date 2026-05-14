@@ -48,24 +48,22 @@ export function SidebarContent({
 	return (
 		<Sidebar>
 			<SidebarHeader>
-				<div className="flex items-center gap-sm">
-					<Heading level={2} className="flex-1">
-						UI Components
-					</Heading>
-					<Tooltip>
-						<TooltipTrigger>
-							<ToggleIconButton
-								pressed={!locked}
-								icon={<PanelLeftDashed />}
-								activeIcon={<PanelLeft />}
-								onClick={onToggleLocked}
-								aria-label={locked ? 'Floating sidebar' : 'Lock sidebar'}
-								className="max-lg:hidden p-1 -m-1"
-							/>
-						</TooltipTrigger>
-						<TooltipContent>{locked ? 'Floating sidebar' : 'Lock sidebar'}</TooltipContent>
-					</Tooltip>
-				</div>
+				<Heading level={2} className="flex-1">
+					UI Components
+				</Heading>
+				<Tooltip>
+					<TooltipTrigger>
+						<ToggleIconButton
+							pressed={!locked}
+							icon={<PanelLeftDashed />}
+							activeIcon={<PanelLeft />}
+							onClick={onToggleLocked}
+							aria-label={locked ? 'Floating sidebar' : 'Lock sidebar'}
+							className="max-lg:hidden p-1 -m-1"
+						/>
+					</TooltipTrigger>
+					<TooltipContent>{locked ? 'Floating sidebar' : 'Lock sidebar'}</TooltipContent>
+				</Tooltip>
 			</SidebarHeader>
 			<Combobox<string>
 				id={`${id}-search-components`}

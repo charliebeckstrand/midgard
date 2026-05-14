@@ -3,7 +3,7 @@
 import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
 import { cn } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
-import { ControlFrame, useConcentric } from '../../primitives'
+import { ControlFrame, useConcentric, useJoin } from '../../primitives'
 import { kokkaku } from '../../recipes'
 import { controlVariants, type InputVariants, inputVariants, k } from '../../recipes/kata/input'
 import { useControl } from '../control/context'
@@ -64,6 +64,7 @@ export function Input(props: InputProps) {
 	const glass = useGlass()
 	const headless = useHeadless()
 	const skeleton = useSkeleton()
+	const join = useJoin()
 
 	const binding = useFormText(name, { onChange, onBlur })
 
@@ -124,7 +125,12 @@ export function Input(props: InputProps) {
 	if (skeleton) {
 		return (
 			<Placeholder
-				className={cn(kokkaku.formControl.base, kokkaku.formControl.size[resolvedSize], className)}
+				className={cn(
+					kokkaku.formControl.base,
+					join ? kokkaku.formControl.group[resolvedSize] : kokkaku.formControl.full,
+					kokkaku.formControl.size[resolvedSize],
+					className,
+				)}
 			/>
 		)
 	}

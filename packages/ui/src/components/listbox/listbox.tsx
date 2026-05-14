@@ -7,7 +7,7 @@ import { type ReactNode, useCallback, useId, useMemo, useRef } from 'react'
 import { cn, createContext } from '../../core'
 import { useFloatingUI } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
-import { PopoverPanel } from '../../primitives'
+import { PopoverPanel, useJoin } from '../../primitives'
 import { iro, kokkaku } from '../../recipes'
 import { k } from '../../recipes/kata/listbox'
 import { popover as kPopover } from '../../recipes/kata/popover'
@@ -89,6 +89,7 @@ export function Listbox<T>({
 	const glass = useGlass()
 	const control = useControl()
 	const skeleton = useSkeleton()
+	const join = useJoin()
 
 	const resolvedId = inputId ?? control?.id
 
@@ -139,7 +140,12 @@ export function Listbox<T>({
 	if (skeleton) {
 		return (
 			<Placeholder
-				className={cn(kokkaku.formControl.base, kokkaku.formControl.size[resolvedSize], className)}
+				className={cn(
+					kokkaku.formControl.base,
+					join ? kokkaku.formControl.group[resolvedSize] : kokkaku.formControl.full,
+					kokkaku.formControl.size[resolvedSize],
+					className,
+				)}
 			/>
 		)
 	}

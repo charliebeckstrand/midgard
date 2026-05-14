@@ -17,7 +17,7 @@ export const sidebar = {
 	],
 	section: ['flex flex-col', 'gap-0.5'],
 	label: ['truncate'],
-	header: ['flex items-center', 'gap-sm'],
+	header: ['flex items-center justify-between', 'gap-sm'],
 	body: ['overflow-y-auto', 'flex flex-1 flex-col', 'gap-lg'],
 	divider: sen.divider,
 	footer: ['sticky bottom-0', 'flex flex-col', 'gap-0.5', 'mt-auto'],

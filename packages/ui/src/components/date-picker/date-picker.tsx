@@ -2,6 +2,7 @@
 
 import type { Placement } from '@floating-ui/react'
 import { cn } from '../../core'
+import { useJoin } from '../../primitives'
 import { kokkaku } from '../../recipes'
 import { Calendar } from '../calendar'
 import { useControl } from '../control/context'
@@ -43,13 +44,19 @@ export type DatePickerProps = DatePickerBaseProps & (DatePickerSingleProps | Dat
 export function DatePicker(props: DatePickerProps) {
 	const control = useControl()
 	const skeleton = useSkeleton()
+	const join = useJoin()
 
 	if (skeleton) {
 		const size = control?.size ?? 'md'
 
 		return (
 			<Placeholder
-				className={cn(kokkaku.formControl.base, kokkaku.formControl.size[size], props.className)}
+				className={cn(
+					kokkaku.formControl.base,
+					join ? kokkaku.formControl.group[size] : kokkaku.formControl.full,
+					kokkaku.formControl.size[size],
+					props.className,
+				)}
 			/>
 		)
 	}
