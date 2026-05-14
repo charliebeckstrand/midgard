@@ -4,5 +4,5 @@ export {
 	progressGaugeVariants,
 	progressTrackVariants,
 } from '../../recipes/kata/progress'
-export { ProgressBar, type ProgressBarProps } from './bar'
-export { ProgressGauge, type ProgressGaugeProps } from './gauge'
+export { ProgressBar, type ProgressBarProps } from './progress-bar'
+export { ProgressGauge, type ProgressGaugeProps } from './progress-gauge'

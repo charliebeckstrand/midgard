@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useState } from 'react'
 import { Button } from 'ui/button'
-import { ErrorMessage, Field, Fieldset, Label } from 'ui/fieldset'
+import { Field, Fieldset, Label, Message } from 'ui/fieldset'
 import { Heading } from 'ui/heading'
 import { Input } from 'ui/input'
 import { AuthLayout } from 'ui/layouts'
@@ -72,7 +72,7 @@ function LoginForm({ showRegisterLink }: { showRegisterLink: boolean }) {
 					<Field>
 						<Label>Email</Label>
 						<Input type="email" name="email" autoComplete="email" {...register('email')} />
-						{errors.email && <ErrorMessage>{errors.email}</ErrorMessage>}
+						{errors.email && <Message>{errors.email}</Message>}
 					</Field>
 
 					<Field>
@@ -82,7 +82,7 @@ function LoginForm({ showRegisterLink }: { showRegisterLink: boolean }) {
 							autoComplete="current-password"
 							{...register('password')}
 						/>
-						{errors.password && <ErrorMessage>{errors.password}</ErrorMessage>}
+						{errors.password && <Message>{errors.password}</Message>}
 					</Field>
 
 					<Button

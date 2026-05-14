@@ -3,7 +3,7 @@
 import type { ComponentPropsWithoutRef, Ref } from 'react'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { useControl } from '../control/context'
-import { invalidAttrs } from '../control/invalid-attrs'
+import { invalidAttrs } from '../control/control-invalid-attrs'
 
 export type HeadlessInputProps = {
 	ref?: Ref<HTMLInputElement>

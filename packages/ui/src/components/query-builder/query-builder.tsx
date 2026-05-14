@@ -6,7 +6,7 @@ import { k } from '../../recipes/kata/query-builder'
 import { Fieldset } from '../fieldset'
 import type { QueryBuilderStateValue } from './context'
 import { QueryBuilderProvider } from './context'
-import { QueryGroup } from './group'
+import { QueryBuilderGroup } from './query-builder-group'
 import type { QueryField, QueryGroup as QueryGroupNode } from './types'
 import { useQueryBuilderTree } from './use-query-builder-tree'
 
@@ -39,7 +39,7 @@ export function QueryBuilder({
 	return (
 		<QueryBuilderProvider state={state} actions={actions} root={root}>
 			<Fieldset data-slot="query-builder" disabled={disabled} className={cn(k.base, className)}>
-				<QueryGroup group={root} root />
+				<QueryBuilderGroup group={root} root />
 			</Fieldset>
 		</QueryBuilderProvider>
 	)

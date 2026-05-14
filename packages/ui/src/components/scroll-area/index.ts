@@ -4,4 +4,4 @@ export {
 	scrollAreaViewportVariants,
 	scrollAreaWrapperVariants,
 } from '../../recipes/kata/scroll-area'
-export { ScrollArea, type ScrollAreaProps } from './component'
+export { ScrollArea, type ScrollAreaProps } from './scroll-area'

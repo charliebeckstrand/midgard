@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { fetchOsrmRoute, fetchValhallaRoute } from '../../components/map/routing'
+import { fetchOsrmRoute, fetchValhallaRoute } from '../../components/map/map-routing'
 import type { LngLat } from '../../components/map/types'
 
 const TWO_POINTS: LngLat[] = [

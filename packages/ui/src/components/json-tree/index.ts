@@ -1,5 +1,5 @@
 export type { JsonValueType } from '../../recipes/kata/json-tree'
-export { JsonTree, type JsonTreeProps } from './tree'
+export { JsonTree, type JsonTreeProps } from './json-tree'
+export type { Search as JsonTreeSearch } from './json-tree-utilities'
+export { collectPaths as collectJsonTreePaths } from './json-tree-utilities'
 export type { JsonValue } from './types'
-export type { Search as JsonTreeSearch } from './utilities'
-export { collectPaths as collectJsonTreePaths } from './utilities'

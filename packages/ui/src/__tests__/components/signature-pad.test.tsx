@@ -6,7 +6,7 @@ import {
 	configureStroke,
 	drawSnapshot,
 	getCanvasPoint,
-} from '../../components/signature-pad/utilities'
+} from '../../components/signature-pad/signature-pad-utilities'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('SignaturePad', () => {

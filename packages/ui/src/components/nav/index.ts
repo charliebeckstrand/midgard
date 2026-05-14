@@ -1,5 +1,4 @@
 export { type NavContextValue, NavProvider, useNavContext } from './context'
-export { createNavItem, type NavItemProps as BaseNavItemProps } from './create-nav-item'
 export {
 	Nav,
 	type NavProps,

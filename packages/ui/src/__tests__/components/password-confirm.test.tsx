@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { PasswordConfirm, PasswordConfirmInput } from '../../components/password-confirm'
-import { deriveStatus } from '../../components/password-confirm/utilities'
+import { deriveStatus } from '../../components/password-confirm/password-confirm-utilities'
 import { PasswordInput } from '../../components/password-input'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 

@@ -2,9 +2,7 @@
 
 import { useState } from 'react'
 import { Button } from '../../components/button'
-import { Checkbox, CheckboxField } from '../../components/checkbox'
 import {
-	ConfirmDialog,
 	Dialog,
 	DialogActions,
 	DialogBody,
@@ -23,9 +21,6 @@ export const meta = { category: 'Overlay' }
 export default function DialogDemo() {
 	const [open, setOpen] = useState(false)
 	const [glassOpen, setGlassOpen] = useState(false)
-	const [discardOpen, setDiscardOpen] = useState(false)
-	const [termsConditionsOpen, setTermsConditionsOpen] = useState(false)
-	const [accepted, setAccepted] = useState(false)
 
 	return (
 		<Stack gap="xl">
@@ -57,98 +52,6 @@ export default function DialogDemo() {
 						</Button>
 					</DialogActions>
 				</Dialog>
-			</Example>
-
-			<Example title="Confirm dialog">
-				<Button color="amber" onClick={() => setDiscardOpen(true)}>
-					Discard changes
-				</Button>
-				<ConfirmDialog
-					open={discardOpen}
-					onOpenChange={setDiscardOpen}
-					onConfirm={() => setDiscardOpen(false)}
-					description="You have unsaved changes that will be lost."
-					confirm={{ label: 'Discard changes', color: 'amber' }}
-					cancel={{ label: 'Keep editing' }}
-				/>
-			</Example>
-
-			<Example title="Confirm with body content">
-				<Button color="blue" onClick={() => setTermsConditionsOpen(true)}>
-					Accept terms and conditions
-				</Button>
-				<ConfirmDialog
-					open={termsConditionsOpen}
-					onOpenChange={(open) => {
-						setTermsConditionsOpen(open)
-						if (!open) setAccepted(false)
-					}}
-					onConfirm={() => {
-						setTermsConditionsOpen(false)
-						setAccepted(false)
-					}}
-					title="Terms and Conditions"
-					confirm={{ label: 'Accept', color: 'blue', disabled: !accepted }}
-				>
-					<DialogBody>
-						<Stack gap="sm">
-							<Text>
-								Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
-								incididunt ut labore et dolore magna aliqua.
-							</Text>
-							<Text>
-								Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-								ex ea commodo consequat.
-							</Text>
-							<Text>
-								Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-								fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa
-								qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet,
-								consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore
-								magna aliqua.
-							</Text>
-							<Text>
-								Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
-								incididunt ut labore et dolore magna aliqua.
-							</Text>
-							<Text>
-								Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-								ex ea commodo consequat.
-							</Text>
-							<Text>
-								Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-								fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa
-								qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet,
-								consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore
-								magna aliqua.
-							</Text>
-							<Text>
-								Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
-								incididunt ut labore et dolore magna aliqua.
-							</Text>
-							<Text>
-								Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-								ex ea commodo consequat.
-							</Text>
-							<Text>
-								Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-								fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa
-								qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet,
-								consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore
-								magna aliqua.
-							</Text>
-							<CheckboxField className="my-2">
-								<Checkbox
-									id="terms"
-									color="blue"
-									checked={accepted}
-									onChange={() => setAccepted(!accepted)}
-								/>
-								<Label htmlFor="terms">Accept terms and conditions</Label>
-							</CheckboxField>
-						</Stack>
-					</DialogBody>
-				</ConfirmDialog>
 			</Example>
 
 			<Example title="Glass">

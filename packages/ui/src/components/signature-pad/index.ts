@@ -3,4 +3,4 @@ export {
 	SignaturePad,
 	type SignaturePadHandle,
 	type SignaturePadProps,
-} from './component'
+} from './signature-pad'

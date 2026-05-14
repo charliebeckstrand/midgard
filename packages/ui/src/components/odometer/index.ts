@@ -1,1 +1,1 @@
-export { Odometer, type OdometerProps } from './component'
+export { Odometer, type OdometerProps } from './odometer'

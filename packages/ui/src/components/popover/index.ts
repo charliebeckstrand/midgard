@@ -1,3 +1,3 @@
-export { PopoverContent, type PopoverContentProps } from './content'
 export { Popover, type PopoverProps } from './popover'
-export { PopoverTrigger, type PopoverTriggerProps } from './trigger'
+export { PopoverContent, type PopoverContentProps } from './popover-content'
+export { PopoverTrigger, type PopoverTriggerProps } from './popover-trigger'

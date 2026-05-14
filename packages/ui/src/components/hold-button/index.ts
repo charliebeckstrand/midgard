@@ -1,1 +1,1 @@
-export { HoldButton, type HoldButtonProps } from './component'
+export { HoldButton, type HoldButtonProps } from './hold-button'

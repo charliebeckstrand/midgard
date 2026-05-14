@@ -4,7 +4,7 @@ import type { Marker as MapLibreMarker } from 'maplibre-gl'
 import { type ReactNode, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useMapContext } from './context'
-import { loadMapLibre } from './loader'
+import { loadMapLibre } from './map-loader'
 import type { LngLat } from './types'
 
 export type MapMarkerProps = {

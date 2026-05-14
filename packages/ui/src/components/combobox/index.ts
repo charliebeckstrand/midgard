@@ -10,4 +10,4 @@ export {
 	type ComboboxLabelProps,
 	ComboboxOption,
 	type ComboboxOptionProps,
-} from './option'
+} from './combobox-option'

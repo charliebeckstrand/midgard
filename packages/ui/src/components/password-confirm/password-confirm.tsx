@@ -4,8 +4,8 @@ import { type ReactNode, type SyntheticEvent, useCallback, useMemo, useState } f
 import { useFormContext } from '../form/context'
 import { Text } from '../text'
 import { PasswordConfirmProvider } from './context'
+import { handlePasswordInput } from './password-confirm-utilities'
 import { usePasswordConfirmState } from './use-password-confirm-state'
-import { handlePasswordInput } from './utilities'
 
 export type PasswordConfirmProps = {
 	warning?: ReactNode

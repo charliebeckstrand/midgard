@@ -21,7 +21,11 @@ export const fieldset = {
 		sawari.disabled,
 	],
 	description: ['text-base', iro.text.muted, sawari.disabled],
-	error: ['text-base', iro.text.error, sawari.disabled],
+	message: {
+		base: ['text-base', sawari.disabled],
+		error: iro.text.error,
+		success: iro.text.success,
+	},
 }
 
 export { fieldset as k }

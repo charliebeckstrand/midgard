@@ -1,4 +1,4 @@
-export { Flex, FlexBase, type FlexProps } from './component'
+export { Flex, FlexBase, type FlexProps } from './flex'
 export {
 	directionMap,
 	type FlexAlign,

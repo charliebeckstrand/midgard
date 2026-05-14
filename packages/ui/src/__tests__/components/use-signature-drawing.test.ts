@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react'
 import type { PointerEvent as ReactPointerEvent } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { useSignatureDrawing } from '../../components/signature-pad/use-signature-drawing'
+import { useSignaturePadDrawing } from '../../components/signature-pad/use-signature-pad-drawing'
 
 function makeCtx() {
 	return {
@@ -70,7 +70,7 @@ function setup(
 	const lastEmittedRef = { current: null as string | null }
 
 	const { result } = renderHook(() =>
-		useSignatureDrawing({
+		useSignaturePadDrawing({
 			canvasRef: { current: canvas },
 			disabled: options.disabled,
 			readOnly: options.readOnly,
@@ -86,7 +86,7 @@ function setup(
 	return { api: result.current, canvas, ctx, setIsEmpty, setCurrent, lastEmittedRef }
 }
 
-describe('useSignatureDrawing: handlePointerDown', () => {
+describe('useSignaturePadDrawing: handlePointerDown', () => {
 	beforeEach(() => {
 		document.body.innerHTML = ''
 	})
@@ -167,7 +167,7 @@ describe('useSignatureDrawing: handlePointerDown', () => {
 	})
 })
 
-describe('useSignatureDrawing: handlePointerMove', () => {
+describe('useSignaturePadDrawing: handlePointerMove', () => {
 	beforeEach(() => {
 		document.body.innerHTML = ''
 	})
@@ -209,7 +209,7 @@ describe('useSignatureDrawing: handlePointerMove', () => {
 	})
 })
 
-describe('useSignatureDrawing: commit', () => {
+describe('useSignaturePadDrawing: commit', () => {
 	beforeEach(() => {
 		document.body.innerHTML = ''
 	})

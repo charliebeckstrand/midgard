@@ -25,11 +25,11 @@ import { useGlass } from '../glass/context'
 import { Icon } from '../icon'
 import { HeadlessInput } from '../input'
 import { Placeholder } from '../placeholder'
-import { SelectTrigger } from '../select/trigger'
+import { SelectTrigger } from '../select/select-trigger'
 import { useSkeleton } from '../skeleton/context'
+import { resolveInputDisplay } from './combobox-utilities'
 import { useComboboxInput } from './use-combobox-input'
 import { useComboboxState } from './use-combobox-state'
-import { resolveInputDisplay } from './utilities'
 
 type ComboboxContextValue<T = unknown> = {
 	value: T | T[] | undefined

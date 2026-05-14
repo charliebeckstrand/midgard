@@ -1,1 +1,1 @@
-export { PasswordInput, type PasswordInputProps } from './component'
+export { PasswordInput, type PasswordInputProps } from './password-input'

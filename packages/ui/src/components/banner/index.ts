@@ -1,1 +1,1 @@
-export { Banner, type BannerProps } from './component'
+export { Banner, type BannerProps } from './banner'

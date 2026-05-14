@@ -3,7 +3,7 @@
 import { ArrowUp, CircleDashed, Plus, Trash } from 'lucide-react'
 import { type ReactNode, useRef, useState } from 'react'
 import { Button } from '../../../components/button'
-import { ConfirmDialog } from '../../../components/dialog'
+import { Confirm } from '../../../components/confirm'
 import { Heading } from '../../../components/heading'
 import { Icon } from '../../../components/icon'
 import {
@@ -131,7 +131,7 @@ export default function ChatPageDemo() {
 		})
 	}
 
-	const [confirmDialog, setConfirmDialog] = useState(false)
+	const [confirmOpen, setConfirmOpen] = useState(false)
 
 	const sidebar = (
 		<>
@@ -158,7 +158,7 @@ export default function ChatPageDemo() {
 											color="red"
 											variant="soft"
 											size="sm"
-											onClick={() => setConfirmDialog(true)}
+											onClick={() => setConfirmOpen(true)}
 										>
 											<Icon icon={<Trash />} />
 										</Button>
@@ -170,11 +170,11 @@ export default function ChatPageDemo() {
 				</SidebarBody>
 			</Sidebar>
 
-			<ConfirmDialog
-				open={confirmDialog}
-				onOpenChange={setConfirmDialog}
+			<Confirm
+				open={confirmOpen}
+				onOpenChange={setConfirmOpen}
 				onConfirm={() => {
-					setConfirmDialog(false)
+					setConfirmOpen(false)
 				}}
 				confirm={{ color: 'red' }}
 				title="Delete conversation"

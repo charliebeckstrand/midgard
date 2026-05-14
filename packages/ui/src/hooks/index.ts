@@ -22,6 +22,7 @@ export {
 export { useMediaQuery } from './use-media-query'
 export { useMinWidth } from './use-min-width'
 export { useOffcanvas } from './use-offcanvas'
+export { useRipple } from './use-ripple'
 export {
 	type Orientation,
 	type RovingConfig,

@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react'
 import type { PointerEvent as ReactPointerEvent } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { useScrollbar } from '../../components/scroll-area/use-scrollbar'
+import { useScrollAreaScrollbar } from '../../components/scroll-area/use-scroll-area-scrollbar'
 
 function makeViewport({
 	scrollTop = 0,
@@ -60,9 +60,11 @@ afterEach(() => {
 	vi.useRealTimers()
 })
 
-describe('useScrollbar: orientation flags', () => {
+describe('useScrollAreaScrollbar: orientation flags', () => {
 	it('enables both axes when orientation is "both"', () => {
-		const { result } = renderHook(() => useScrollbar({ orientation: 'both', scrollbar: 'auto' }))
+		const { result } = renderHook(() =>
+			useScrollAreaScrollbar({ orientation: 'both', scrollbar: 'auto' }),
+		)
 
 		expect(result.current.hasVertical).toBe(true)
 
@@ -71,7 +73,7 @@ describe('useScrollbar: orientation flags', () => {
 
 	it('only enables the vertical axis when orientation is "vertical"', () => {
 		const { result } = renderHook(() =>
-			useScrollbar({ orientation: 'vertical', scrollbar: 'auto' }),
+			useScrollAreaScrollbar({ orientation: 'vertical', scrollbar: 'auto' }),
 		)
 
 		expect(result.current.hasVertical).toBe(true)
@@ -81,7 +83,7 @@ describe('useScrollbar: orientation flags', () => {
 
 	it('only enables the horizontal axis when orientation is "horizontal"', () => {
 		const { result } = renderHook(() =>
-			useScrollbar({ orientation: 'horizontal', scrollbar: 'auto' }),
+			useScrollAreaScrollbar({ orientation: 'horizontal', scrollbar: 'auto' }),
 		)
 
 		expect(result.current.hasVertical).toBe(false)
@@ -90,7 +92,9 @@ describe('useScrollbar: orientation flags', () => {
 	})
 
 	it('starts with hidden thumbs and isScrolling=false', () => {
-		const { result } = renderHook(() => useScrollbar({ orientation: 'both', scrollbar: 'auto' }))
+		const { result } = renderHook(() =>
+			useScrollAreaScrollbar({ orientation: 'both', scrollbar: 'auto' }),
+		)
 
 		expect(result.current.verticalThumb.visible).toBe(false)
 
@@ -100,10 +104,10 @@ describe('useScrollbar: orientation flags', () => {
 	})
 })
 
-describe('useScrollbar: handleScroll', () => {
+describe('useScrollAreaScrollbar: handleScroll', () => {
 	it('computes a visible vertical thumb when the viewport is attached', () => {
 		const { result } = renderHook(() =>
-			useScrollbar({ orientation: 'vertical', scrollbar: 'visible' }),
+			useScrollAreaScrollbar({ orientation: 'vertical', scrollbar: 'visible' }),
 		)
 
 		const viewport = makeViewport({ scrollTop: 50 })
@@ -124,7 +128,9 @@ describe('useScrollbar: handleScroll', () => {
 	it('flips isScrolling on and fades it out on auto mode', () => {
 		vi.useFakeTimers()
 
-		const { result } = renderHook(() => useScrollbar({ orientation: 'both', scrollbar: 'auto' }))
+		const { result } = renderHook(() =>
+			useScrollAreaScrollbar({ orientation: 'both', scrollbar: 'auto' }),
+		)
 
 		const viewport = makeViewport()
 
@@ -144,7 +150,9 @@ describe('useScrollbar: handleScroll', () => {
 	})
 
 	it('does not flip isScrolling in "visible" mode', () => {
-		const { result } = renderHook(() => useScrollbar({ orientation: 'both', scrollbar: 'visible' }))
+		const { result } = renderHook(() =>
+			useScrollAreaScrollbar({ orientation: 'both', scrollbar: 'visible' }),
+		)
 
 		const viewport = makeViewport()
 
@@ -158,7 +166,7 @@ describe('useScrollbar: handleScroll', () => {
 	})
 })
 
-describe('useScrollbar: startDrag', () => {
+describe('useScrollAreaScrollbar: startDrag', () => {
 	function makeEvent(client: { x: number; y: number }) {
 		return {
 			clientX: client.x,
@@ -170,7 +178,9 @@ describe('useScrollbar: startDrag', () => {
 	}
 
 	it('is a no-op when the viewport is not attached', () => {
-		const { result } = renderHook(() => useScrollbar({ orientation: 'both', scrollbar: 'auto' }))
+		const { result } = renderHook(() =>
+			useScrollAreaScrollbar({ orientation: 'both', scrollbar: 'auto' }),
+		)
 
 		const event = makeEvent({ x: 0, y: 0 })
 
@@ -180,7 +190,9 @@ describe('useScrollbar: startDrag', () => {
 	})
 
 	it('prevents default and stops propagation when the drag starts', () => {
-		const { result } = renderHook(() => useScrollbar({ orientation: 'both', scrollbar: 'auto' }))
+		const { result } = renderHook(() =>
+			useScrollAreaScrollbar({ orientation: 'both', scrollbar: 'auto' }),
+		)
 
 		const viewport = makeViewport()
 
@@ -202,7 +214,9 @@ describe('useScrollbar: startDrag', () => {
 	it('registers pointermove and pointerup listeners on the window', () => {
 		const add = vi.spyOn(window, 'addEventListener')
 
-		const { result } = renderHook(() => useScrollbar({ orientation: 'both', scrollbar: 'auto' }))
+		const { result } = renderHook(() =>
+			useScrollAreaScrollbar({ orientation: 'both', scrollbar: 'auto' }),
+		)
 
 		const viewport = makeViewport()
 

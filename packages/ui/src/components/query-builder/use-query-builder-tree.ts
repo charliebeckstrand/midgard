@@ -1,8 +1,8 @@
 import { useCallback, useMemo } from 'react'
 import { useControllable } from '../../hooks'
 import type { QueryBuilderActions } from './context'
+import { addChild, createGroup, createRule, mapNode, removeChild } from './query-builder-utilities'
 import type { QueryField, QueryGroup } from './types'
-import { addChild, createGroup, createRule, mapNode, removeChild } from './utilities'
 
 export type UseQueryBuilderTreeOptions = {
 	fields: QueryField[]

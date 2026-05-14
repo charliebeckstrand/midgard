@@ -1,1 +1,1 @@
-export { RangeSlider, type RangeSliderProps } from './component'
+export { RangeSlider, type RangeSliderProps } from './range-slider'

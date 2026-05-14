@@ -17,6 +17,7 @@ export {
 	JoinProvider,
 	useJoin,
 } from './join'
+export { createNavItem, type NavItemProps } from './nav-item'
 export {
 	OffcanvasContext,
 	type OffcanvasContextValue,
@@ -48,7 +49,6 @@ export { Polymorphic, type PolymorphicProps } from './polymorphic'
 export { PopoverPanel } from './popover'
 export { ReadyReveal, type ReadyRevealProps } from './ready-reveal'
 export { ReducedMotion } from './reduced-motion'
-export { useRipple } from './ripple'
 export { springProps } from './spring'
 export {
 	ToggleField,

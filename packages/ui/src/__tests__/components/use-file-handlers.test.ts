@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react'
 import type { ChangeEvent, DragEvent } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { useFileHandlers } from '../../components/file-upload/use-file-handlers'
+import { useFileUploadHandlers } from '../../components/file-upload/use-file-upload-handlers'
 
 function makeFile(name = 'a.txt') {
 	return new File(['hello'], name, { type: 'text/plain' })
@@ -31,9 +31,9 @@ function makeDragEvent(files: File[] = []): DragEvent {
 	} as unknown as DragEvent
 }
 
-describe('useFileHandlers', () => {
+describe('useFileUploadHandlers', () => {
 	it('starts with empty files and dragOver=false', () => {
-		const { result } = renderHook(() => useFileHandlers({}))
+		const { result } = renderHook(() => useFileUploadHandlers({}))
 
 		expect(result.current.files).toEqual([])
 
@@ -41,7 +41,7 @@ describe('useFileHandlers', () => {
 	})
 
 	it('openPicker clicks the input ref when not disabled', () => {
-		const { result } = renderHook(() => useFileHandlers({}))
+		const { result } = renderHook(() => useFileUploadHandlers({}))
 
 		const input = document.createElement('input')
 
@@ -57,7 +57,7 @@ describe('useFileHandlers', () => {
 	})
 
 	it('openPicker is a no-op when disabled', () => {
-		const { result } = renderHook(() => useFileHandlers({ disabled: true }))
+		const { result } = renderHook(() => useFileUploadHandlers({ disabled: true }))
 
 		const input = document.createElement('input')
 
@@ -75,7 +75,7 @@ describe('useFileHandlers', () => {
 	it('handleChange updates files and invokes onFiles with an array', () => {
 		const onFiles = vi.fn()
 
-		const { result } = renderHook(() => useFileHandlers({ onFiles }))
+		const { result } = renderHook(() => useFileUploadHandlers({ onFiles }))
 
 		const file = makeFile()
 
@@ -95,7 +95,7 @@ describe('useFileHandlers', () => {
 	it('handleChange is a no-op when target.files is null', () => {
 		const onFiles = vi.fn()
 
-		const { result } = renderHook(() => useFileHandlers({ onFiles }))
+		const { result } = renderHook(() => useFileUploadHandlers({ onFiles }))
 
 		const event = {
 			target: { files: null },
@@ -109,7 +109,7 @@ describe('useFileHandlers', () => {
 	})
 
 	it('handleDragEnter sets dragOver and prevents default', () => {
-		const { result } = renderHook(() => useFileHandlers({}))
+		const { result } = renderHook(() => useFileUploadHandlers({}))
 
 		const event = makeDragEvent()
 
@@ -125,7 +125,7 @@ describe('useFileHandlers', () => {
 	})
 
 	it('handleDragOver only prevents default and does not toggle dragOver', () => {
-		const { result } = renderHook(() => useFileHandlers({}))
+		const { result } = renderHook(() => useFileUploadHandlers({}))
 
 		const event = makeDragEvent()
 
@@ -141,7 +141,7 @@ describe('useFileHandlers', () => {
 	})
 
 	it('handleDragLeave clears dragOver after a single enter', () => {
-		const { result } = renderHook(() => useFileHandlers({}))
+		const { result } = renderHook(() => useFileUploadHandlers({}))
 
 		act(() => {
 			result.current.handleDragEnter(makeDragEvent())
@@ -155,7 +155,7 @@ describe('useFileHandlers', () => {
 	})
 
 	it('keeps dragOver true while a child boundary fires bubbled enter/leave pairs', () => {
-		const { result } = renderHook(() => useFileHandlers({}))
+		const { result } = renderHook(() => useFileUploadHandlers({}))
 
 		// Cursor enters dropzone, then crosses into a child: dragenter on the
 		// child bubbles before dragleave on the parent. dragOver must stay true.
@@ -183,7 +183,7 @@ describe('useFileHandlers', () => {
 	it('handleDrop clears dragOver and passes files to onFiles', () => {
 		const onFiles = vi.fn()
 
-		const { result } = renderHook(() => useFileHandlers({ onFiles }))
+		const { result } = renderHook(() => useFileUploadHandlers({ onFiles }))
 
 		const file = makeFile('drop.txt')
 
