@@ -1,4 +1,4 @@
-import { bifrost } from 'heimdall'
+import { bifrost } from 'auth'
 
 import type { ChatContent } from 'sindri/chat'
 import { ChatView } from '../chat-view'

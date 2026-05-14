@@ -1,4 +1,4 @@
-import { bifrost } from 'heimdall'
+import { bifrost } from 'auth'
 import { UserDetailsClient } from './client'
 
 async function getUserDetails(userId: string) {

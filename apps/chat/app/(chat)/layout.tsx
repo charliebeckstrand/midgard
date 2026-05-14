@@ -1,4 +1,4 @@
-import { bifrost, getUser } from 'heimdall'
+import { bifrost, getUser } from 'auth'
 import { type ReactNode, Suspense } from 'react'
 import { ChatClient } from './client'
 import type { Chat } from './types'
