@@ -137,6 +137,7 @@ const categoryOrder = [
 	'Overlay',
 	'Navigation',
 	'Layout',
+	'Providers',
 	'Pages',
 	'Chat',
 	'Shipments',

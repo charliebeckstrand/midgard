@@ -25,6 +25,10 @@
 			"types": "./src/primitives/index.ts",
 			"default": "./src/primitives/index.ts"
 		},
+		"./providers/*": {
+			"types": "./src/providers/*/index.ts",
+			"default": "./src/providers/*/index.ts"
+		},
 		"./types": {
 			"types": "./src/types/index.ts",
 			"default": "./src/types/index.ts"

@@ -207,8 +207,13 @@ export default function DataTableDemo() {
 				<DataTable grid columns={baseColumns} rows={people} getRowKey={(row) => row.id} />
 			</Example>
 
-			<Example title="Dense">
-				<DataTable dense columns={baseColumns} rows={people} getRowKey={(row) => row.id} />
+			<Example title="Compact density">
+				<DataTable
+					density="compact"
+					columns={baseColumns}
+					rows={people}
+					getRowKey={(row) => row.id}
+				/>
 			</Example>
 
 			<Example title="Sticky header" code={code`<DataTable stickyHeader maxHeight="200px" />`}>

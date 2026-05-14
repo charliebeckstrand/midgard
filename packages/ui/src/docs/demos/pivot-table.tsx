@@ -60,7 +60,7 @@ export default function PivotTableDemo() {
 					format={currency}
 					rowHeader="Carrier"
 					totals="row"
-					dense
+					density="compact"
 					striped
 				/>
 			</Example>

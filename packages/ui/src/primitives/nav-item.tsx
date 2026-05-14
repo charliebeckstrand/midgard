@@ -10,7 +10,9 @@ import {
 } from 'react'
 import { cn } from '../core'
 import { useScrollWithin } from '../hooks'
+import type { Step } from '../recipes/ryu/sun'
 import { ActiveIndicator, useActiveIndicator } from './active-indicator'
+import { useConcentric } from './concentric'
 import { OffcanvasContext } from './offcanvas'
 import { Polymorphic, type PolymorphicProps } from './polymorphic'
 import { TouchTarget } from './touch-target'
@@ -18,6 +20,8 @@ import { TouchTarget } from './touch-target'
 export type NavItemProps = {
 	icon?: ReactElement
 	current?: boolean
+	/** Size step. Resolves through `explicit ?? Concentric ?? 'md'`. */
+	size?: Step
 	className?: string
 	preventClose?: boolean
 	spring?: boolean
@@ -25,7 +29,8 @@ export type NavItemProps = {
 
 export type NavItemConfig = {
 	slotPrefix: string
-	variants: () => string
+	/** Receives the resolved size so callers can vary classes per step. */
+	variants: (size: Step) => string
 	/** Wraps the icon prop. Callers pass their own Icon component so primitives stay layer-clean. */
 	renderIcon: (icon: ReactElement) => ReactNode
 }
@@ -41,6 +46,7 @@ export function createNavItem(config: NavItemConfig) {
 	function NavItem({
 		icon,
 		current,
+		size,
 		className,
 		children,
 		href,
@@ -52,6 +58,10 @@ export function createNavItem(config: NavItemConfig) {
 		const itemRef = useRef<HTMLSpanElement>(null)
 
 		const indicator = useActiveIndicator()
+
+		const concentric = useConcentric()
+
+		const resolvedSize = size ?? concentric?.size ?? 'md'
 
 		const offcanvas = use(OffcanvasContext)
 
@@ -84,7 +94,7 @@ export function createNavItem(config: NavItemConfig) {
 					href={href}
 					data-current={current ? '' : undefined}
 					aria-current={current ? 'page' : undefined}
-					className={cn(config.variants(), 'relative z-10', className)}
+					className={cn(config.variants(resolvedSize), 'relative z-10', className)}
 					onClick={handleClick}
 					{...props}
 				>

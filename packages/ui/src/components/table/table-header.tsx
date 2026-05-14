@@ -10,13 +10,13 @@ export type TableHeaderProps = {
 } & Omit<ComponentPropsWithoutRef<'th'>, 'className'>
 
 export function TableHeader({ className, children, scope = 'col', ...props }: TableHeaderProps) {
-	const { grid, dense } = useTable()
+	const { grid, density } = useTable()
 
 	return (
 		<th
 			scope={scope}
 			data-slot="table-header"
-			className={cn(k.header, grid && k.grid, dense && 'py-1', className)}
+			className={cn(k.header, k.cellDensity[density], grid && k.grid, className)}
 			{...props}
 		>
 			{children}

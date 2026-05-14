@@ -1,6 +1,6 @@
 import type { Ref } from 'react'
 import { cn } from '../../core'
-import { Polymorphic, type PolymorphicProps } from '../../primitives'
+import { Polymorphic, type PolymorphicProps, useConcentric } from '../../primitives'
 import {
 	type BoxBg,
 	type BoxMargin,
@@ -71,6 +71,12 @@ export function Box({
 	children,
 	...props
 }: BoxProps) {
+	const concentric = useConcentric()
+
+	// Only `p` inherits — `px` / `py` stay explicit so margin-style overrides
+	// don't get masked by an ambient default.
+	const resolvedP = p ?? concentric?.size
+
 	return (
 		<Polymorphic
 			as="div"
@@ -78,7 +84,7 @@ export function Box({
 			dataSlot={dataSlot}
 			href={href}
 			className={cn(
-				p !== undefined && paddingMap[p],
+				resolvedP !== undefined && paddingMap[resolvedP],
 				px !== undefined && pxMap[px],
 				py !== undefined && pyMap[py],
 				m !== undefined && marginMap[m],
