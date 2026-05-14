@@ -12,12 +12,12 @@ export type CurrentContextValue = {
 	onChange: ((value: string) => void) | undefined
 }
 
-export const [CurrentProvider, useCurrentContext] = createContext<CurrentContextValue | undefined>(
+export const [CurrentProvider, useCurrent] = createContext<CurrentContextValue | undefined>(
 	'Current',
 	{ default: undefined },
 )
 
-export function useCurrent(props: {
+export function useCurrentState(props: {
 	value?: string
 	defaultValue?: string
 	onChange?: (value: string | undefined) => void
@@ -123,7 +123,7 @@ export function createCurrentContent(slotPrefix: string) {
 		children,
 		...props
 	}: ComponentPropsWithoutRef<'div'> & { value?: string }) {
-		const ctx = useCurrentContext()
+		const ctx = useCurrent()
 
 		const fade = useFade()
 

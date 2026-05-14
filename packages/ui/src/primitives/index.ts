@@ -10,7 +10,7 @@ export {
 	CurrentProvider,
 	createCurrentContent,
 	useCurrent,
-	useCurrentContext,
+	useCurrentState,
 } from './current'
 export {
 	type JoinContextValue,

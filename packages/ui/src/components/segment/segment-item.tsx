@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
-import { ActiveIndicator, useActiveIndicator, useCurrentContext } from '../../primitives'
+import { ActiveIndicator, useActiveIndicator, useCurrent } from '../../primitives'
 import { k, segmentItemVariants } from '../../recipes/kata/segment'
 import { useSegmentContext } from './context'
 
@@ -14,7 +14,7 @@ export type SegmentItemProps = {
 }
 
 export function SegmentItem({ value, disabled, className, children }: SegmentItemProps) {
-	const currentCtx = useCurrentContext()
+	const currentCtx = useCurrent()
 	const { size } = useSegmentContext()
 
 	const current = currentCtx?.value === value

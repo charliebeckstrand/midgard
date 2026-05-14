@@ -4,21 +4,21 @@ import {
 	CurrentProvider,
 	createCurrentContent,
 	useCurrent,
-	useCurrentContext,
+	useCurrentState,
 } from '../../primitives/current'
 import { renderUI, screen } from '../helpers'
 
-describe('useCurrentContext', () => {
+describe('useCurrent', () => {
 	it('returns undefined outside provider', () => {
-		const { result } = renderHook(() => useCurrentContext())
+		const { result } = renderHook(() => useCurrent())
 
 		expect(result.current).toBeUndefined()
 	})
 })
 
-describe('useCurrent', () => {
+describe('useCurrentState', () => {
 	it('returns a context value with the current value and onChange', () => {
-		const { result } = renderHook(() => useCurrent({ defaultValue: 'tab1' }))
+		const { result } = renderHook(() => useCurrentState({ defaultValue: 'tab1' }))
 
 		expect(result.current.value).toBe('tab1')
 

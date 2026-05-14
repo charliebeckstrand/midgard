@@ -2,7 +2,7 @@
 
 import { type ComponentPropsWithoutRef, useMemo } from 'react'
 import { cn } from '../../core'
-import { CurrentProvider, useCurrent } from '../../primitives'
+import { CurrentProvider, useCurrentState } from '../../primitives'
 import { type TabsOrientation, TabsProvider, type TabsVariant } from './context'
 
 export type TabsProps = ComponentPropsWithoutRef<'div'> & {
@@ -23,7 +23,7 @@ export function Tabs({
 	children,
 	...props
 }: TabsProps) {
-	const ctx = useCurrent({ value, defaultValue, onChange: onValueChange })
+	const ctx = useCurrentState({ value, defaultValue, onChange: onValueChange })
 
 	// Vertical only applies to the 'tab' variant; segment is always horizontal.
 	const resolvedOrientation: TabsOrientation = variant === 'segment' ? 'horizontal' : orientation
