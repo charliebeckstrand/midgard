@@ -42,7 +42,7 @@ export default function DensityDemo() {
 					</Field>
 
 					<Density density={density}>
-						<Stack gap="md">
+						<Stack>
 							<Field>
 								<Label>Email</Label>
 								<Input placeholder="you@example.com" />

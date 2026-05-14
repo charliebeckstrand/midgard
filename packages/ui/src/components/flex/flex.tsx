@@ -1,5 +1,6 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
+import { useConcentric } from '../../primitives'
 import {
 	type FlexAlign,
 	type FlexDirection,
@@ -93,9 +94,27 @@ function defaultAlignFromDirection(direction: ResponsiveDirection): ResponsiveAl
 	return align
 }
 
-/** Horizontal flex container. Use Flex for rows, Stack for columns. */
-export function Flex({ direction = 'row', align, ...props }: FlexProps) {
+/**
+ * Horizontal flex container. Use Flex for rows, Stack for columns.
+ *
+ * `gap` resolves through `explicit ?? Concentric` — a Flex inside a
+ * Concentric-providing ancestor (Card, Drawer, `<Density>`, …) inherits the
+ * matching spacing step. Outside any provider, `gap` stays unset.
+ */
+export function Flex({ direction = 'row', align, gap, ...props }: FlexProps) {
+	const concentric = useConcentric()
+
 	const resolvedAlign = align ?? defaultAlignFromDirection(direction)
 
-	return <FlexBase dataSlot="flex" direction={direction} align={resolvedAlign} {...props} />
+	const resolvedGap = gap ?? concentric?.size
+
+	return (
+		<FlexBase
+			dataSlot="flex"
+			direction={direction}
+			align={resolvedAlign}
+			gap={resolvedGap}
+			{...props}
+		/>
+	)
 }

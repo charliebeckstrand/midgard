@@ -1,5 +1,6 @@
 import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from 'react'
 import { cn } from '../../core'
+import { useConcentric } from '../../primitives'
 import { GridProvider } from './context'
 import {
 	alignMap,
@@ -27,7 +28,7 @@ export type GridProps = {
 export function Grid({
 	columns,
 	rows,
-	gap = 'md',
+	gap,
 	flow,
 	align,
 	justify,
@@ -36,6 +37,10 @@ export function Grid({
 	children,
 	...props
 }: GridProps) {
+	const concentric = useConcentric()
+
+	const resolvedGap = gap ?? concentric?.size ?? 'md'
+
 	const cols = resolveCols(columns)
 	const rws = resolveRows(rows)
 
@@ -47,7 +52,7 @@ export function Grid({
 					'grid',
 					...cols.classes,
 					...rws.classes,
-					...resolveGap(gap),
+					...resolveGap(resolvedGap),
 					flow && flowMap[flow],
 					align && alignMap[align],
 					justify && justifyMap[justify],
