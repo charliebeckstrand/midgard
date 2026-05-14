@@ -1,7 +1,7 @@
 'use client'
 
-import type { ChatContent } from 'sindri/chat'
-import { ChatLayout, useSendMessage } from 'sindri/chat'
+import type { ChatContent } from 'shared/chat'
+import { ChatLayout, useSendMessage } from 'shared/chat'
 import { Container } from 'ui/container'
 import { useChatContext } from './context'
 

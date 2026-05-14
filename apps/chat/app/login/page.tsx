@@ -1,4 +1,4 @@
-import { LoginPage } from 'sindri/auth'
+import { LoginPage } from 'shared/auth'
 
 export default function Login() {
 	return <LoginPage showRegisterLink={false} />

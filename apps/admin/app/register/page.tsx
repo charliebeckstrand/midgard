@@ -1,1 +1,1 @@
-export { RegisterPage as default } from 'sindri/auth'
+export { RegisterPage as default } from 'shared/auth'

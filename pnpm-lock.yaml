@@ -42,9 +42,9 @@ importers:
       react-dom:
         specifier: ^19.1.0
         version: 19.2.4(react@19.2.4)
-      sindri:
+      shared:
         specifier: workspace:*
-        version: link:../../packages/sindri
+        version: link:../../packages/shared
       ui:
         specifier: workspace:*
         version: link:../../packages/ui
@@ -88,9 +88,9 @@ importers:
       react-dom:
         specifier: ^19.1.0
         version: 19.2.4(react@19.2.4)
-      sindri:
+      shared:
         specifier: workspace:*
-        version: link:../../packages/sindri
+        version: link:../../packages/shared
       ui:
         specifier: workspace:*
         version: link:../../packages/ui
@@ -138,7 +138,7 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
-  packages/sindri:
+  packages/shared:
     dependencies:
       '@heroicons/react':
         specifier: ^2.2.0

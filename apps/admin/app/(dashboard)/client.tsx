@@ -4,7 +4,7 @@ import { UsersIcon } from '@heroicons/react/20/solid'
 import type { User } from 'auth/user'
 import { usePathname } from 'next/navigation'
 import type { ReactNode } from 'react'
-import { SidebarUserMenu } from 'sindri/auth'
+import { SidebarUserMenu } from 'shared/auth'
 import { SidebarLayout } from 'ui/layouts'
 import { Navbar } from 'ui/navbar'
 import {

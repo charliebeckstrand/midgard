@@ -1,6 +1,6 @@
 @import 'tailwindcss';
-@import 'sindri/globals.css';
+@import 'shared/globals.css';
 
 @source './';
-@source '../../../packages/sindri/src';
+@source '../../../packages/shared/src';
 @source '../../../packages/ui/src';
