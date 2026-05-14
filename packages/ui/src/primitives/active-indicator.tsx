@@ -82,6 +82,7 @@ export function ActiveIndicator({
 		<ReducedMotion>
 			<motion.span
 				ref={ref}
+				data-slot="active-indicator"
 				layoutId={resolvedLayoutId}
 				layoutDependency={instanceId}
 				className={cn('absolute inset-0', 'bg-zinc-300 dark:bg-zinc-600', 'rounded-lg', className)}

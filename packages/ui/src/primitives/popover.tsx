@@ -53,6 +53,7 @@ export function PopoverPanel({
 			<motion.div
 				ref={menuRef}
 				id={id}
+				data-slot="popover-panel"
 				role={role}
 				tabIndex={-1}
 				{...ugoki.popover}
