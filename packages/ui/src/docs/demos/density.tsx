@@ -7,19 +7,19 @@ import { Input } from '../../components/input'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 import { Stack } from '../../components/stack'
 import { Textarea } from '../../components/textarea'
-import { Density, type DensityTier } from '../../providers/density'
+import { Density, type DensityLevel } from '../../providers/density'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Providers' }
 
-const tiers: { value: DensityTier; label: string }[] = [
+const levels: { value: DensityLevel; label: string }[] = [
 	{ value: 'comfortable', label: 'Comfortable' },
 	{ value: 'snug', label: 'Snug' },
 	{ value: 'compact', label: 'Compact' },
 ]
 
 export default function DensityDemo() {
-	const [density, setDensity] = useState<DensityTier>('snug')
+	const [density, setDensity] = useState<DensityLevel>('snug')
 
 	return (
 		<Stack gap="xl">
@@ -27,15 +27,15 @@ export default function DensityDemo() {
 				<Stack gap="lg">
 					<Field>
 						<Label>Density</Label>
-						<Listbox<DensityTier>
+						<Listbox<DensityLevel>
 							value={density}
 							onValueChange={(value) => value && setDensity(value)}
-							displayValue={(v) => tiers.find((t) => t.value === v)?.label ?? v}
+							displayValue={(v) => levels.find((t) => t.value === v)?.label ?? v}
 							placeholder="Select density"
 						>
-							{tiers.map((tier) => (
-								<ListboxOption key={tier.value} value={tier.value}>
-									<ListboxLabel>{tier.label}</ListboxLabel>
+							{levels.map((level) => (
+								<ListboxOption key={level.value} value={level.value}>
+									<ListboxLabel>{level.label}</ListboxLabel>
 								</ListboxOption>
 							))}
 						</Listbox>

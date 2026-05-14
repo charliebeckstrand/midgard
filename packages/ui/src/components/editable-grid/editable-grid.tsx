@@ -60,7 +60,7 @@ export function EditableGrid<T>({
 	maxHeight,
 	rowClassName,
 	virtualize,
-	dense,
+	density,
 	bleed,
 	grid,
 	striped,
@@ -304,7 +304,7 @@ export function EditableGrid<T>({
 				stickyHeader={stickyHeader}
 				maxHeight={maxHeight}
 				virtualize={virtualize}
-				dense={dense}
+				density={density}
 				bleed={bleed}
 				grid={grid}
 				striped={striped}

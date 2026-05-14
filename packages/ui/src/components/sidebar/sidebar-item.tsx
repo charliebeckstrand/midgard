@@ -2,6 +2,7 @@ import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { type NavItemProps as BaseNavItemProps, createNavItem } from '../../primitives/nav-item'
 import { k } from '../../recipes/kata/sidebar'
+import type { Step } from '../../recipes/ryu/sun'
 import { Icon } from '../icon'
 
 export type SidebarItemProps = BaseNavItemProps
@@ -16,7 +17,7 @@ export type SidebarDividerProps = ComponentPropsWithoutRef<'hr'>
 
 export type SidebarItemActionsProps = ComponentPropsWithoutRef<'div'>
 
-export const sidebarItemVariants = () => cn(k.item)
+export const sidebarItemVariants = (size: Step) => cn(k.item, k.itemSize[size])
 
 export const SidebarItem = createNavItem({
 	slotPrefix: 'sidebar',

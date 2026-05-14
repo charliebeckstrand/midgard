@@ -105,7 +105,7 @@ export function DataTable<T>({
 	rowLoading,
 	virtualize,
 	tableProps,
-	dense,
+	density,
 	bleed,
 	grid,
 	striped,
@@ -303,7 +303,7 @@ export function DataTable<T>({
 
 	const tableContent = (
 		<Table
-			dense={dense}
+			density={density}
 			bleed={bleed}
 			grid={grid}
 			striped={striped}

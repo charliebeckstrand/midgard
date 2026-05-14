@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import type { DensityLevel } from '../../providers/density'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../table'
 import { defaultFormat } from './pivot-table-pivot'
 import type { PivotAggregation } from './types'
@@ -29,7 +30,7 @@ export type PivotTableProps<T> = {
 	columnOrder?: readonly string[]
 	/** Rendered when no source rows match a (row × column) group. @default '—' */
 	emptyCell?: ReactNode
-	dense?: boolean
+	density?: DensityLevel
 	grid?: boolean
 	striped?: boolean
 	className?: string
@@ -46,7 +47,7 @@ export function PivotTable<T>({
 	rowOrder,
 	columnOrder,
 	emptyCell = '—',
-	dense,
+	density,
 	grid,
 	striped,
 	className,
@@ -63,7 +64,7 @@ export function PivotTable<T>({
 	const formatValue = format ?? defaultFormat
 
 	return (
-		<Table className={className} dense={dense} grid={grid} striped={striped}>
+		<Table className={className} density={density} grid={grid} striped={striped}>
 			<TableHead>
 				<TableRow>
 					<TableHeader>{rowHeader}</TableHeader>

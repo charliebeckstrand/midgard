@@ -1,16 +1,9 @@
 import type { ReactNode } from 'react'
 import { ConcentricProvider } from '../../primitives'
-import type { Step } from '../../recipes/ryu/sun'
-import { DensityProvider, type DensityTier } from './context'
-
-const DENSITY_TO_SIZE: Record<DensityTier, Step> = {
-	comfortable: 'lg',
-	snug: 'md',
-	compact: 'sm',
-}
+import { DENSITY_TO_SIZE, type DensityLevel, DensityProvider } from './context'
 
 export type DensityProps = {
-	density: DensityTier
+	density: DensityLevel
 	className?: string
 	children: ReactNode
 }

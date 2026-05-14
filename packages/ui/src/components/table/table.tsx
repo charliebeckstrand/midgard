@@ -2,11 +2,19 @@
 
 import { type ReactNode, type Ref, type TableHTMLAttributes, useMemo } from 'react'
 import { cn } from '../../core'
+import { useConcentric } from '../../primitives'
+import { type DensityLevel, SIZE_TO_DENSITY } from '../../providers/density'
 import { k } from '../../recipes/kata/table'
 import { type TableContextValue, TableProvider } from './context'
 
 export type TableVariants = {
-	dense?: boolean
+	/**
+	 * Density level driving cell padding. Resolves through
+	 * `explicit ?? Concentric ?? 'snug'` — so `<Density density="compact">`,
+	 * or any size-providing surface (Card, Drawer, Popover, Group), tightens
+	 * the table automatically.
+	 */
+	density?: DensityLevel
 	bleed?: boolean
 	grid?: boolean
 	striped?: boolean
@@ -30,21 +38,25 @@ export type TableProps = TableVariants & {
 
 export function Table({
 	bleed,
-	dense,
 	grid,
 	striped,
+	density,
 	className,
 	children,
 	tableProps,
 }: TableProps) {
+	const concentric = useConcentric()
+
+	const resolvedDensity = density ?? (concentric ? SIZE_TO_DENSITY[concentric.size] : 'snug')
+
 	const ctx = useMemo<TableContextValue>(
 		() => ({
+			density: resolvedDensity,
 			bleed: bleed ?? false,
-			dense: dense ?? false,
 			grid: grid ?? false,
 			striped: striped ?? false,
 		}),
-		[bleed, dense, grid, striped],
+		[resolvedDensity, bleed, grid, striped],
 	)
 
 	return (

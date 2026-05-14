@@ -10,10 +10,10 @@ export type TableCellProps = {
 } & Omit<ComponentPropsWithoutRef<'td'>, 'className'>
 
 export function TableCell({ className, children, ...props }: TableCellProps) {
-	const { grid, dense } = useTable()
+	const { grid, density } = useTable()
 
 	return (
-		<td className={cn(k.cell, grid && k.grid, dense && 'py-1', className)} {...props}>
+		<td className={cn(k.cell, k.cellDensity[density], grid && k.grid, className)} {...props}>
 			{children}
 		</td>
 	)
