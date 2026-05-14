@@ -5,21 +5,89 @@ import { memo, useCallback, useMemo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/query-builder'
 import { Button } from '../button'
+import { DatePicker } from '../date-picker'
 import { Flex } from '../flex'
 import { Icon } from '../icon'
+import { Input } from '../input'
 import { ListboxOption } from '../listbox'
 import { Select } from '../select'
 import { useQueryBuilderActions, useQueryBuilderState } from './context'
 import { getOperators } from './query-builder-utilities'
-import { QueryRuleValue } from './rule-value'
-import type { QueryRule as QueryRuleNode } from './types'
+import type { QueryField, QueryRule } from './types'
 
-export type QueryRuleProps = {
-	rule: QueryRuleNode
+export type QueryBuilderRuleValueProps = {
+	field: QueryField
+	value: unknown
+	onChange: (value: unknown) => void
 	className?: string
 }
 
-function QueryRuleImpl({ rule, className }: QueryRuleProps) {
+export function QueryBuilderRuleValue({
+	field,
+	value,
+	onChange,
+	className,
+}: QueryBuilderRuleValueProps) {
+	if (field.type === 'select') {
+		return (
+			<Select
+				value={(value as string | undefined) ?? ''}
+				displayValue={(v: string) => field.options?.find((o) => o.value === v)?.label ?? ''}
+				onChange={(v: string | undefined) => onChange(v ?? '')}
+				placeholder="Value"
+				className={className}
+			>
+				{field.options?.map((o) => (
+					<ListboxOption key={o.value} value={o.value}>
+						{o.label}
+					</ListboxOption>
+				))}
+			</Select>
+		)
+	}
+
+	if (field.type === 'number') {
+		return (
+			<Input
+				type="number"
+				value={value == null ? '' : String(value)}
+				placeholder="Value"
+				onChange={(e) => {
+					const next = e.target.value
+					onChange(next === '' ? '' : Number(next))
+				}}
+			/>
+		)
+	}
+
+	if (field.type === 'date') {
+		const dateValue = value ? new Date(value as string) : undefined
+
+		return (
+			<DatePicker
+				value={dateValue}
+				placeholder="Value"
+				onChange={(d) => onChange(d ? d.toISOString().slice(0, 10) : '')}
+			/>
+		)
+	}
+
+	return (
+		<Input
+			type="text"
+			value={(value as string | undefined) ?? ''}
+			placeholder="Value"
+			onChange={(e) => onChange(e.target.value)}
+		/>
+	)
+}
+
+export type QueryBuilderRuleProps = {
+	rule: QueryRule
+	className?: string
+}
+
+function QueryBuilderRuleImpl({ rule, className }: QueryBuilderRuleProps) {
 	const { fields, getField, disabled } = useQueryBuilderState()
 
 	const { updateRule, remove } = useQueryBuilderActions()
@@ -103,7 +171,7 @@ function QueryRuleImpl({ rule, className }: QueryRuleProps) {
 				</Select>
 
 				{field && !selectedOperator?.noValue && (
-					<QueryRuleValue
+					<QueryBuilderRuleValue
 						field={field}
 						value={rule.value}
 						onChange={onValueChange}
@@ -125,4 +193,4 @@ function QueryRuleImpl({ rule, className }: QueryRuleProps) {
 	)
 }
 
-export const QueryRule = memo(QueryRuleImpl)
+export const QueryBuilderRule = memo(QueryBuilderRuleImpl)

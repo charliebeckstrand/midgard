@@ -3,13 +3,19 @@ export {
 	useQueryBuilderContext,
 } from './context'
 export {
-	QueryGroup,
-	type QueryGroupProps,
-} from './group'
-export {
 	QueryBuilder,
 	type QueryBuilderProps,
 } from './query-builder'
+export {
+	QueryBuilderGroup,
+	type QueryBuilderGroupProps,
+} from './query-builder-group'
+export {
+	QueryBuilderRule,
+	type QueryBuilderRuleProps,
+	QueryBuilderRuleValue,
+	type QueryBuilderRuleValueProps,
+} from './query-builder-rule'
 export {
 	addChild,
 	createGroup,
@@ -18,14 +24,6 @@ export {
 	mapNode,
 	removeChild,
 } from './query-builder-utilities'
-export {
-	QueryRule,
-	type QueryRuleProps,
-} from './rule'
-export {
-	QueryRuleValue,
-	type QueryRuleValueProps,
-} from './rule-value'
 export type {
 	QueryCombinator,
 	QueryField,

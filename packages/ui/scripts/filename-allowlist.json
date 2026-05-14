@@ -7,8 +7,5 @@
 	"fieldset/field.tsx",
 	"fieldset/label.tsx",
 	"fieldset/legend.tsx",
-	"input/headless.tsx",
-	"query-builder/group.tsx",
-	"query-builder/rule-value.tsx",
-	"query-builder/rule.tsx"
+	"input/headless.tsx"
 ]

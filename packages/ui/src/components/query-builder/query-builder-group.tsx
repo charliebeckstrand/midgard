@@ -9,17 +9,17 @@ import { HoldButton } from '../hold-button'
 import { Segment, SegmentControl, SegmentItem } from '../segment'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 import { useQueryBuilderActions, useQueryBuilderState } from './context'
-import { QueryRule } from './rule'
-import type { QueryCombinator, QueryGroup as QueryGroupNode } from './types'
+import { QueryBuilderRule } from './query-builder-rule'
+import type { QueryCombinator, QueryGroup } from './types'
 
-export type QueryGroupProps = {
-	group: QueryGroupNode
+export type QueryBuilderGroupProps = {
+	group: QueryGroup
 	/** When true, the group is the root — its "remove" button is suppressed. */
 	root?: boolean
 	className?: string
 }
 
-export function QueryGroup({ group, root, className }: QueryGroupProps) {
+export function QueryBuilderGroup({ group, root, className }: QueryBuilderGroupProps) {
 	const { disabled } = useQueryBuilderState()
 	const { updateCombinator, addRule, addGroup, remove } = useQueryBuilderActions()
 
@@ -46,7 +46,11 @@ export function QueryGroup({ group, root, className }: QueryGroupProps) {
 									</SegmentControl>
 								</Segment>
 							)}
-							{child.type === 'group' ? <QueryGroup group={child} /> : <QueryRule rule={child} />}
+							{child.type === 'group' ? (
+								<QueryBuilderGroup group={child} />
+							) : (
+								<QueryBuilderRule rule={child} />
+							)}
 						</div>
 					))
 				)}
