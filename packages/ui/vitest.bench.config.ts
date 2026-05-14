@@ -1,12 +1,11 @@
 import { defineConfig } from 'vitest/config'
+import { baseTest } from './vitest.base.config'
 
 export default defineConfig({
 	test: {
-		environment: 'jsdom',
-		globals: true,
+		...baseTest,
 		setupFiles: ['./src/__benchmarks__/setup.ts'],
 		include: ['src/__benchmarks__/**/*.bench.{ts,tsx}'],
-		css: false,
 		benchmark: {
 			include: ['src/__benchmarks__/**/*.bench.{ts,tsx}'],
 			reporters: ['default'],

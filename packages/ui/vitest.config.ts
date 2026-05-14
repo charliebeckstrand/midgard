@@ -1,14 +1,13 @@
 import { defineConfig } from 'vitest/config'
 import { componentTagsPlugin } from './src/docs/plugins'
+import { baseTest } from './vitest.base.config'
 
 export default defineConfig({
 	plugins: [componentTagsPlugin()],
 	test: {
-		environment: 'jsdom',
-		globals: true,
+		...baseTest,
 		setupFiles: ['./src/__tests__/setup.ts'],
 		include: ['src/__tests__/**/*.test.{ts,tsx}'],
-		css: false,
 		reporters: process.env.CI ? ['default', 'junit'] : ['default'],
 		outputFile: {
 			junit: 'test-results/junit.xml',
