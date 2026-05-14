@@ -1,6 +1,6 @@
 'use client'
 
-import { Lock, LockOpen } from 'lucide-react'
+import { PanelLeft, PanelLeftDashed } from 'lucide-react'
 import { use, useId, useLayoutEffect } from 'react'
 import { Combobox, ComboboxOption } from '../../components/combobox'
 import { Heading } from '../../components/heading'
@@ -52,12 +52,12 @@ export function SidebarContent({
 					<Heading level={2} className="flex-1">
 						UI Components
 					</Heading>
-					<Tooltip placement="bottom">
+					<Tooltip>
 						<TooltipTrigger>
 							<ToggleIconButton
 								pressed={!locked}
-								icon={<LockOpen />}
-								activeIcon={<Lock />}
+								icon={<PanelLeftDashed />}
+								activeIcon={<PanelLeft />}
 								onClick={onToggleLocked}
 								aria-label={locked ? 'Unlock sidebar' : 'Lock sidebar'}
 								className="max-lg:hidden p-0"
