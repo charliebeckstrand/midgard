@@ -6,9 +6,9 @@ export const statValue = tv({
 	base: ['font-semibold tracking-tight tabular-nums', ...iro.text.default],
 	variants: {
 		size: {
-			sm: ji.size['2xl'],
-			md: ji.size['3xl'],
-			lg: ji.size['4xl'],
+			sm: ji.size.xl,
+			md: ji.size['2xl'],
+			lg: ji.size['3xl'],
 		},
 	},
 	defaultVariants: { size: 'md' },
@@ -44,18 +44,41 @@ export const statValuePlaceholder = tv({
 	defaultVariants: { size: 'md' },
 })
 
+export const statLabelPlaceholder = tv({
+	base: '',
+	variants: {
+		size: {
+			sm: 'h-4 w-20',
+			md: 'h-5 w-24',
+			lg: 'h-6 w-28',
+		},
+	},
+	defaultVariants: { size: 'md' },
+})
+
 export const statPlaceholder = {
-	label: 'h-5 w-24',
 	description: 'h-5 w-20',
 	delta: 'h-5 w-12',
 }
+
+const label = tv({
+	base: [...iro.text.muted, 'font-medium'],
+	variants: {
+		size: {
+			sm: ji.size.xs,
+			md: ji.size.sm,
+			lg: ji.size.md,
+		},
+	},
+	defaultVariants: { size: 'md' },
+})
 
 export type StatValueVariants = VariantProps<typeof statValue>
 export type StatDeltaVariants = VariantProps<typeof statDelta>
 
 export const slots = {
-	base: ['flex flex-col', 'gap-xs'],
-	label: [ji.size.sm, ...iro.text.muted, 'font-medium'],
+	base: ['flex flex-col justify-center', 'h-full', 'gap-xs'],
+	label,
 	description: [ji.size.sm, ...iro.text.muted],
 }
 
