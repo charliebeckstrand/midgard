@@ -3,8 +3,11 @@
 import { useCallback, useRef } from 'react'
 
 export type UseDeferredToggleOptions<T> = {
+	/** Multi-select mode — the held value is an array and toggling adds / removes entries. */
 	multiple: boolean
+	/** Single-select mode — toggling the active value clears the selection. Ignored when `multiple` is true. */
 	nullable: boolean
+	/** Setter for the underlying value, called with an updater that receives the previous value. */
 	setValue: (updater: (prev: T | T[] | undefined) => T | T[] | undefined) => void
 }
 

@@ -5,6 +5,7 @@ import { useCallback, useRef, useState } from 'react'
 type SetValue<T> = T | undefined | ((prev: T | undefined) => T | undefined)
 
 export type UseControllableOptions<T> = {
+	/** Controlled value. `undefined` leaves the hook uncontrolled; pass `null` to stay controlled with no current value. */
 	value?: T | null
 	defaultValue?: T
 	onChange?: (value: T | undefined) => void
