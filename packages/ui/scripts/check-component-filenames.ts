@@ -5,9 +5,10 @@
  * `.ts` / `.tsx` file is one of:
  *
  * - the main component file:   `<folder>.tsx`
- * - a prefixed sub-file:       `<folder>-<part>.tsx`
+ * - a prefixed sub-file:       `<folder>-<part>.tsx` (or singular stem when folder is plural)
  * - a prefixed hook:           `use-<folder>.ts(x)` or `use-<folder>-<hook>.ts(x)`
- * - a permitted bare file:     `index.ts(x)`, `types.ts`, `context.ts(x)`, `slots.ts`
+ *                              (singular stem also accepted when folder is plural)
+ * - a permitted bare file:     `index.ts(x)`, `types.ts`, `context.ts(x)`, `slots.ts(x)`
  *
  * Existing offenders are pinned in `filename-allowlist.json`. CI fails on any
  * file not on the allowlist that breaks the rule. The allowlist shrinks as the
@@ -46,8 +47,17 @@ function listLeafFolders(root: string): string[] {
 	return out
 }
 
+function acceptedStems(folderName: string): string[] {
+	const stems = [folderName]
+	if (folderName.endsWith('s') && folderName.length > 1) {
+		stems.push(folderName.slice(0, -1))
+	}
+	return stems
+}
+
 function checkFolder(folderPath: string): Violation[] {
 	const folderName = folderPath.split('/').pop() as string
+	const stems = acceptedStems(folderName)
 	const violations: Violation[] = []
 
 	for (const entry of readdirSync(folderPath, { withFileTypes: true })) {
@@ -59,15 +69,16 @@ function checkFolder(folderPath: string): Violation[] {
 		if (BARE_ALLOWED.has(file)) continue
 
 		if (file.startsWith('use-')) {
-			if (
-				file === `use-${folderName}.ts` ||
-				file === `use-${folderName}.tsx` ||
-				file.startsWith(`use-${folderName}-`)
+			const ok = stems.some(
+				(stem) =>
+					file === `use-${stem}.ts` ||
+					file === `use-${stem}.tsx` ||
+					file.startsWith(`use-${stem}-`),
 			)
-				continue
+			if (ok) continue
 			violations.push({
 				path: relative(componentsRoot, join(folderPath, file)),
-				reason: `hook filename must start with \`use-${folderName}\``,
+				reason: `hook filename must start with \`use-${stems.join('` or `use-')}\``,
 			})
 			continue
 		}
@@ -80,11 +91,14 @@ function checkFolder(folderPath: string): Violation[] {
 			continue
 		}
 
-		if (file.startsWith(`${folderName}-`)) continue
+		const matchesStem = stems.some(
+			(stem) => file === `${stem}.ts` || file === `${stem}.tsx` || file.startsWith(`${stem}-`),
+		)
+		if (matchesStem) continue
 
 		violations.push({
 			path: relative(componentsRoot, join(folderPath, file)),
-			reason: `filename must be prefixed with \`${folderName}-\``,
+			reason: `filename must be prefixed with \`${stems.join('-` or `')}-\``,
 		})
 	}
 

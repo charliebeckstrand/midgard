@@ -20,8 +20,8 @@ Filenames must stay legible when stripped of folder context — editor tabs, sta
 Inside `packages/ui/src/components/<name>/` (and the parallel `primitives/`):
 
 - **Main component:** `<name>.tsx` — matches the folder name. Never `component.tsx`.
-- **Sub-components:** `<name>-<part>.tsx` — prefixed with the folder name. Never bare (`item.tsx`, `trigger.tsx`).
-- **Hooks:** `use-<name>-<hook>.ts` (or `.tsx` when the hook returns JSX). The folder name appears in every hook filename. Never bare (`hook.ts`, `use-state.ts`).
+- **Sub-components:** `<name>-<part>.tsx` — prefixed with the folder name. Never bare (`item.tsx`, `trigger.tsx`). When the folder name is plural, the singular stem is also accepted (`tabs/tab-list.tsx`, `tabs/tab.tsx`) — match the part's component name (`TabList`, `Tab`).
+- **Hooks:** `use-<name>-<hook>.ts` (or `.tsx` when the hook returns JSX). The folder name (or its singular stem) appears in every hook filename. Never bare (`hook.ts`, `use-state.ts`).
 - **Context:** `context.ts`. Use `.tsx` only when the file exports a provider component containing JSX.
 - **Types:** `types.ts` when extracted from the main file.
 - **Slots:** `slots.tsx` (or `slots.ts`) for components exposing a composable slot API — an intentional, existing pattern.
