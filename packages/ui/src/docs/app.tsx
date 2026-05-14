@@ -56,8 +56,9 @@ export function App() {
 					pressed={dark}
 					icon={<Moon />}
 					activeIcon={<Sun />}
-					onClick={toggleDark}
 					aria-label="Toggle dark mode"
+					className="p-2 -m-2"
+					onClick={toggleDark}
 				/>
 			}
 			sidebar={<SidebarContent route={route} locked={locked} onToggleLocked={toggleLocked} />}
