@@ -4,7 +4,7 @@ import { useMaskedInput } from '../../hooks'
 import { Input, type InputProps } from '../input'
 import { formatExpiry } from './credit-card-input-utilities'
 
-export type CreditCardExpiryInputProps = Omit<
+export type CreditCardInputExpiryProps = Omit<
 	InputProps,
 	'type' | 'inputMode' | 'value' | 'defaultValue' | 'onChange'
 > & {
@@ -14,14 +14,14 @@ export type CreditCardExpiryInputProps = Omit<
 	onChange?: (value: string) => void
 }
 
-export function CreditCardExpiryInput({
+export function CreditCardInputExpiry({
 	value,
 	defaultValue,
 	placeholder,
 	onChange,
 	ref,
 	...props
-}: CreditCardExpiryInputProps) {
+}: CreditCardInputExpiryProps) {
 	const masked = useMaskedInput({ value, defaultValue, onChange, format: formatExpiry, ref })
 
 	return (

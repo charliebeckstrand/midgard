@@ -1,7 +1,8 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
+import { type NavItemProps as BaseNavItemProps, createNavItem } from '../../primitives/nav-item'
 import { k } from '../../recipes/kata/sidebar'
-import { type BaseNavItemProps, createNavItem } from '../nav'
+import { Icon } from '../icon'
 
 export type SidebarItemProps = BaseNavItemProps
 
@@ -17,7 +18,11 @@ export type SidebarItemActionsProps = ComponentPropsWithoutRef<'div'>
 
 export const sidebarItemVariants = () => cn(k.item)
 
-export const SidebarItem = createNavItem({ slotPrefix: 'sidebar', variants: sidebarItemVariants })
+export const SidebarItem = createNavItem({
+	slotPrefix: 'sidebar',
+	variants: sidebarItemVariants,
+	renderIcon: (icon) => <Icon icon={icon} />,
+})
 
 export function SidebarLabel({ className, ...props }: SidebarLabelProps) {
 	return <span data-slot="sidebar-label" className={cn(k.label, className)} {...props} />

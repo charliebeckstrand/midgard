@@ -1,9 +1,9 @@
 import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import {
-	CreditCardCvvInput,
-	CreditCardExpiryInput,
 	CreditCardInput,
+	CreditCardInputCvv,
+	CreditCardInputExpiry,
 	detectCardBrand,
 	formatCardNumber,
 	formatExpiry,
@@ -136,9 +136,9 @@ describe('CreditCardInput', () => {
 	})
 })
 
-describe('CreditCardExpiryInput', () => {
+describe('CreditCardInputExpiry', () => {
 	it('renders an input with data-slot="input"', () => {
-		const { container } = renderUI(<CreditCardExpiryInput />)
+		const { container } = renderUI(<CreditCardInputExpiry />)
 
 		const input = bySlot(container, 'input')
 
@@ -148,13 +148,13 @@ describe('CreditCardExpiryInput', () => {
 	it('forwards ref', () => {
 		const ref = createRef<HTMLInputElement>()
 
-		renderUI(<CreditCardExpiryInput ref={ref} />)
+		renderUI(<CreditCardInputExpiry ref={ref} />)
 
 		expect(ref.current).toBeInstanceOf(HTMLInputElement)
 	})
 
 	it('uses MM/YY as the default placeholder', () => {
-		const { container } = renderUI(<CreditCardExpiryInput />)
+		const { container } = renderUI(<CreditCardInputExpiry />)
 
 		const input = bySlot(container, 'input')
 
@@ -162,7 +162,7 @@ describe('CreditCardExpiryInput', () => {
 	})
 
 	it('inserts a slash after the month digits', async () => {
-		const { container } = renderUI(<CreditCardExpiryInput />)
+		const { container } = renderUI(<CreditCardInputExpiry />)
 
 		const input = bySlot(container, 'input') as HTMLInputElement
 
@@ -174,7 +174,7 @@ describe('CreditCardExpiryInput', () => {
 	})
 
 	it('pads single-digit months greater than 1 with a leading zero', async () => {
-		const { container } = renderUI(<CreditCardExpiryInput />)
+		const { container } = renderUI(<CreditCardInputExpiry />)
 
 		const input = bySlot(container, 'input') as HTMLInputElement
 
@@ -186,7 +186,7 @@ describe('CreditCardExpiryInput', () => {
 	})
 
 	it('strips non-digit characters', async () => {
-		const { container } = renderUI(<CreditCardExpiryInput />)
+		const { container } = renderUI(<CreditCardInputExpiry />)
 
 		const input = bySlot(container, 'input') as HTMLInputElement
 
@@ -198,9 +198,9 @@ describe('CreditCardExpiryInput', () => {
 	})
 })
 
-describe('CreditCardCvvInput', () => {
+describe('CreditCardInputCvv', () => {
 	it('renders an input with data-slot="input"', () => {
-		const { container } = renderUI(<CreditCardCvvInput />)
+		const { container } = renderUI(<CreditCardInputCvv />)
 
 		const input = bySlot(container, 'input')
 
@@ -210,13 +210,13 @@ describe('CreditCardCvvInput', () => {
 	it('forwards ref', () => {
 		const ref = createRef<HTMLInputElement>()
 
-		renderUI(<CreditCardCvvInput ref={ref} />)
+		renderUI(<CreditCardInputCvv ref={ref} />)
 
 		expect(ref.current).toBeInstanceOf(HTMLInputElement)
 	})
 
 	it('caps input at 3 digits for non-Amex brands', async () => {
-		const { container } = renderUI(<CreditCardCvvInput brand="visa" />)
+		const { container } = renderUI(<CreditCardInputCvv brand="visa" />)
 
 		const input = bySlot(container, 'input') as HTMLInputElement
 
@@ -228,7 +228,7 @@ describe('CreditCardCvvInput', () => {
 	})
 
 	it('allows 4 digits for Amex', async () => {
-		const { container } = renderUI(<CreditCardCvvInput brand="amex" />)
+		const { container } = renderUI(<CreditCardInputCvv brand="amex" />)
 
 		const input = bySlot(container, 'input') as HTMLInputElement
 
@@ -240,7 +240,7 @@ describe('CreditCardCvvInput', () => {
 	})
 
 	it('strips non-digit characters', async () => {
-		const { container } = renderUI(<CreditCardCvvInput brand="visa" />)
+		const { container } = renderUI(<CreditCardInputCvv brand="visa" />)
 
 		const input = bySlot(container, 'input') as HTMLInputElement
 

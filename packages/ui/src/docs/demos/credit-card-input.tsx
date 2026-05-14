@@ -3,9 +3,9 @@
 import { useState } from 'react'
 import {
 	type CreditCardBrand,
-	CreditCardCvvInput,
-	CreditCardExpiryInput,
 	CreditCardInput,
+	CreditCardInputCvv,
+	CreditCardInputExpiry,
 } from '../../components/credit-card-input'
 import { Field, Label } from '../../components/fieldset'
 import { Flex } from '../../components/flex'
@@ -61,11 +61,11 @@ function ComposedExample() {
 				>
 					<Field className="w-full">
 						<Label>Expiry</Label>
-						<CreditCardExpiryInput />
+						<CreditCardInputExpiry />
 					</Field>
 					<Field className="w-full">
 						<Label>CVV</Label>
-						<CreditCardCvvInput brand={brand} />
+						<CreditCardInputCvv brand={brand} />
 					</Field>
 				</Flex>
 			</Stack>

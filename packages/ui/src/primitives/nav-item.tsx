@@ -1,17 +1,19 @@
 'use client'
 
-import { type MouseEvent, type ReactElement, use, useLayoutEffect, useRef } from 'react'
-import { cn } from '../../core'
-import { useScrollWithin } from '../../hooks'
 import {
-	ActiveIndicator,
-	Polymorphic,
-	type PolymorphicProps,
-	TouchTarget,
-	useActiveIndicator,
-} from '../../primitives'
-import { OffcanvasContext } from '../../primitives/offcanvas'
-import { Icon } from '../icon'
+	type MouseEvent,
+	type ReactElement,
+	type ReactNode,
+	use,
+	useLayoutEffect,
+	useRef,
+} from 'react'
+import { cn } from '../core'
+import { useScrollWithin } from '../hooks'
+import { ActiveIndicator, useActiveIndicator } from './active-indicator'
+import { OffcanvasContext } from './offcanvas'
+import { Polymorphic, type PolymorphicProps } from './polymorphic'
+import { TouchTarget } from './touch-target'
 
 export type NavItemProps = {
 	icon?: ReactElement
@@ -21,11 +23,19 @@ export type NavItemProps = {
 	spring?: boolean
 } & PolymorphicProps<'button'>
 
+export type NavItemConfig = {
+	slotPrefix: string
+	variants: () => string
+	/** Wraps the icon prop. Callers pass their own Icon component so primitives stay layer-clean. */
+	renderIcon: (icon: ReactElement) => ReactNode
+}
+
 /**
  * Factory for navigation item components (NavbarItem, SidebarItem).
- * Both share identical structure; only the data-slot prefix and variant differ.
+ * Both share identical structure; only the data-slot prefix, variant, and
+ * icon wrapper differ.
  */
-export function createNavItem(config: { slotPrefix: string; variants: () => string }) {
+export function createNavItem(config: NavItemConfig) {
 	const innerSlot = `${config.slotPrefix}-item-inner`
 
 	function NavItem({
@@ -79,7 +89,7 @@ export function createNavItem(config: { slotPrefix: string; variants: () => stri
 					{...props}
 				>
 					<TouchTarget>
-						{icon && <Icon icon={icon} />}
+						{icon && config.renderIcon(icon)}
 						{children}
 					</TouchTarget>
 				</Polymorphic>

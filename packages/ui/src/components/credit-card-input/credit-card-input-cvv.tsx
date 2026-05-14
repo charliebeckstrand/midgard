@@ -5,7 +5,7 @@ import { Input, type InputProps } from '../input'
 import { formatCvv } from './credit-card-input-utilities'
 import type { CreditCardBrand, CreditCardBrandInfo } from './types'
 
-export type CreditCardCvvInputProps = Omit<
+export type CreditCardInputCvvProps = Omit<
 	InputProps,
 	'type' | 'inputMode' | 'value' | 'defaultValue' | 'onChange'
 > & {
@@ -27,7 +27,7 @@ const CVV_LENGTHS: Record<CreditCardBrand, number> = {
 	unionpay: 3,
 }
 
-function resolveCvvLength(brand: CreditCardCvvInputProps['brand']): number {
+function resolveCvvLength(brand: CreditCardInputCvvProps['brand']): number {
 	if (!brand) return 4
 
 	if (typeof brand === 'string') return CVV_LENGTHS[brand]
@@ -35,7 +35,7 @@ function resolveCvvLength(brand: CreditCardCvvInputProps['brand']): number {
 	return brand.cvvLength
 }
 
-export function CreditCardCvvInput({
+export function CreditCardInputCvv({
 	value,
 	defaultValue,
 	onChange,
@@ -43,7 +43,7 @@ export function CreditCardCvvInput({
 	placeholder,
 	ref,
 	...props
-}: CreditCardCvvInputProps) {
+}: CreditCardInputCvvProps) {
 	const maxLength = resolveCvvLength(brand)
 
 	const masked = useMaskedInput({

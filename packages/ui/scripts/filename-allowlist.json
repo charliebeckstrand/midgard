@@ -1,20 +1,15 @@
 [
-	"credit-card-input/credit-card-input-cvv-input.tsx",
-	"credit-card-input/credit-card-input-expiry-input.tsx",
 	"dialog/confirm.tsx",
 	"dl/description-details.tsx",
 	"dl/description-list.tsx",
 	"dl/description-term.tsx",
-	"drawer/drawer-trigger.tsx",
 	"fieldset/description.tsx",
 	"fieldset/error-message.tsx",
 	"fieldset/field.tsx",
 	"fieldset/label.tsx",
 	"fieldset/legend.tsx",
 	"input/headless.tsx",
-	"nav/create-nav-item.tsx",
 	"query-builder/group.tsx",
 	"query-builder/rule-value.tsx",
-	"query-builder/rule.tsx",
-	"sheet/sheet-trigger.tsx"
+	"query-builder/rule.tsx"
 ]
