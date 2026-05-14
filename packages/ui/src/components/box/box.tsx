@@ -43,7 +43,7 @@ type BoxBaseProps = {
 	className?: string
 }
 
-export type BoxProps<Omitted extends PropertyKey = never> = BoxBaseProps &
+export type BoxProps<Omitted extends PropertyKey = never> = Omit<BoxBaseProps, Omitted> &
 	PolymorphicProps<'div', Omitted>
 
 function resolveOutline(outline: BoxOutline | undefined): string | readonly string[] | undefined {

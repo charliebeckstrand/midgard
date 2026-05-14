@@ -23,6 +23,7 @@ export function Message({
 	...props
 }: MessageProps) {
 	const control = useControl()
+
 	const field = useFormField(name)
 
 	// When form-bound, only the error variant auto-renders from the field's error.

@@ -154,7 +154,9 @@ function checkFolder(folderPath: string): Violation[] {
 		const file = entry.name
 
 		if (!file.endsWith('.ts') && !file.endsWith('.tsx')) continue
+
 		if (file.endsWith('.d.ts')) continue
+
 		if (BARE_ALLOWED.has(file)) continue
 
 		const path = relative(componentsRoot, join(folderPath, file))

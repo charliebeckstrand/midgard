@@ -21,6 +21,7 @@ export type QueryBuilderGroupProps = {
 
 export function QueryBuilderGroup({ group, root, className }: QueryBuilderGroupProps) {
 	const { disabled } = useQueryBuilderState()
+
 	const { updateCombinator, addRule, addGroup, remove } = useQueryBuilderActions()
 
 	return (
