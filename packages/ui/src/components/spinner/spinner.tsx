@@ -2,7 +2,7 @@ import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { type SpinnerVariants, spinnerVariants } from '../../recipes/kata/spinner'
 import { useButtonSize } from '../button/context'
-import { useInputSize } from '../input/context'
+import { useAffixSize } from '../input/context'
 
 export type SpinnerProps = SpinnerVariants & {
 	label?: string
@@ -11,11 +11,11 @@ export type SpinnerProps = SpinnerVariants & {
 } & Omit<ComponentPropsWithoutRef<'output'>, 'className' | 'color'>
 
 export function Spinner({ size, color, label = 'Loading', className, ...props }: SpinnerProps) {
+	const affixSize = useAffixSize()
+
 	const buttonSize = useButtonSize()
 
-	const inputSize = useInputSize()
-
-	const resolvedSize = size ?? buttonSize ?? inputSize
+	const resolvedSize = size ?? buttonSize ?? affixSize
 
 	return (
 		<output

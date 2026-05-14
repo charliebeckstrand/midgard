@@ -3,7 +3,7 @@
 import { cloneElement, type ReactElement } from 'react'
 import { cn } from '../../core'
 import { useButtonSize } from '../button/context'
-import { useInputSize } from '../input/context'
+import { useAffixSize } from '../input/context'
 
 type SizeToken = 'xs' | 'sm' | 'md' | 'lg'
 
@@ -21,10 +21,10 @@ const sizeMap: Record<SizeToken, string> = {
 }
 
 export function Icon({ icon, size, className }: IconProps) {
+	const affixSize = useAffixSize()
 	const buttonSize = useButtonSize()
-	const inputSize = useInputSize()
 
-	const resolvedSize = size ?? buttonSize ?? inputSize ?? 'md'
+	const resolvedSize = size ?? buttonSize ?? affixSize ?? 'md'
 
 	const isNumeric = typeof resolvedSize === 'number'
 

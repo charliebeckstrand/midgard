@@ -14,7 +14,7 @@ import { useHeadless } from '../headless/context'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
 import { Spinner } from '../spinner'
-import { InputSizeProvider } from './context'
+import { AffixSizeProvider } from './context'
 
 export type InputProps = Omit<InputVariants, 'size'> & {
 	size?: 'sm' | 'md' | 'lg'
@@ -130,7 +130,7 @@ export function Input(props: InputProps) {
 	}
 
 	return (
-		<InputSizeProvider value={iconSize[resolvedSize]}>
+		<AffixSizeProvider value={iconSize[resolvedSize]}>
 			<ControlFrame
 				data-group={dataGroup}
 				data-group-orientation={dataGroupOrientation}
@@ -174,6 +174,6 @@ export function Input(props: InputProps) {
 					</span>
 				)}
 			</ControlFrame>
-		</InputSizeProvider>
+		</AffixSizeProvider>
 	)
 }

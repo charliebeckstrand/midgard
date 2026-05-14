@@ -1,3 +1,3 @@
 export { type InputVariants, inputVariants } from '../../recipes/kata/input'
-export { InputSizeProvider, useInputSize } from './context'
+export { AffixSizeProvider, useAffixSize } from './context'
 export { Input, type InputProps } from './input'
