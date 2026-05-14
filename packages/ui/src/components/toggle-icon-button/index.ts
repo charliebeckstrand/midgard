@@ -1,1 +1,1 @@
-export { ToggleIconButton, type ToggleIconButtonProps } from './component'
+export { ToggleIconButton, type ToggleIconButtonProps } from './toggle-icon-button'

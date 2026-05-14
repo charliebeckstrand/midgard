@@ -3,7 +3,7 @@ export {
 	type PivotTableKeys,
 	type PivotTableProps,
 	type PivotTotals,
-} from './component'
+} from './pivot-table'
 export type { PivotAggregation } from './types'
 export {
 	type UsePivotTableOptions,

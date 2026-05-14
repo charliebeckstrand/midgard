@@ -7,7 +7,7 @@ import { ResizableIndexProvider, ResizableProvider } from './context'
 import { ResizableHandle } from './resizable-handle'
 import { ResizablePanel, type ResizablePanelProps } from './resizable-panel'
 import type { PanelConfig, ResizableDirection } from './types'
-import { usePanelResize } from './use-panel-resize'
+import { useResizablePanel } from './use-resizable-panel'
 
 export type ResizableGroupProps = {
 	direction?: ResizableDirection
@@ -43,7 +43,7 @@ export function ResizableGroup({
 		return configs
 	}, [children])
 
-	const { sizes, dragging, startDrag, resize } = usePanelResize({
+	const { sizes, dragging, startDrag, resize } = useResizablePanel({
 		groupRef,
 		direction,
 		panelConfigs,

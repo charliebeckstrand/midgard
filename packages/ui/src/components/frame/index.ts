@@ -4,4 +4,4 @@ export type {
 	FlexGap as FrameGap,
 	FlexJustify as FrameJustify,
 } from '../flex/variants'
-export { Frame, type FrameProps } from './component'
+export { Frame, type FrameProps } from './frame'

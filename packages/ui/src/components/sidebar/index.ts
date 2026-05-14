@@ -1,3 +1,4 @@
+export { Sidebar, type SidebarProps } from './sidebar'
 export {
 	SidebarDivider,
 	type SidebarDividerProps,
@@ -12,8 +13,7 @@ export {
 	SidebarSpacer,
 	type SidebarSpacerProps,
 	sidebarItemVariants,
-} from './item'
-export { Sidebar, type SidebarProps } from './sidebar'
+} from './sidebar-item'
 export {
 	SidebarBody,
 	type SidebarBodyProps,

@@ -1,2 +1,2 @@
-export { AspectRatio, type AspectRatioProps } from './component'
+export { AspectRatio, type AspectRatioProps } from './aspect-ratio'
 export type { AspectRatioPreset } from './variants'

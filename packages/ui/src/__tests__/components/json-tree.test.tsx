@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { JsonTree } from '../../components/json-tree'
-import { JsonNodeRow } from '../../components/json-tree/node-row'
+import { JsonTreeNodeRow } from '../../components/json-tree/json-tree-node-row'
 import {
 	buildSearchIndex,
 	collectPaths,
@@ -12,7 +12,7 @@ import {
 	normalizeSearch,
 	treeContainsMatch,
 	valueType,
-} from '../../components/json-tree/utilities'
+} from '../../components/json-tree/json-tree-utilities'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('JsonTree', () => {
@@ -330,10 +330,10 @@ describe('json-tree: valueType', () => {
 	})
 })
 
-describe('JsonNodeRow', () => {
+describe('JsonTreeNodeRow', () => {
 	it('renders a leaf node with its key and value', () => {
 		const { container } = renderUI(
-			<JsonNodeRow
+			<JsonTreeNodeRow
 				node={{
 					kind: 'leaf',
 					path: 'root.a',
@@ -355,7 +355,7 @@ describe('JsonNodeRow', () => {
 
 	it('marks the root leaf as focusable', () => {
 		const { container } = renderUI(
-			<JsonNodeRow
+			<JsonTreeNodeRow
 				node={{
 					kind: 'leaf',
 					path: 'root',
@@ -375,7 +375,7 @@ describe('JsonNodeRow', () => {
 
 	it('marks deeper leaves as not tab-navigable', () => {
 		const { container } = renderUI(
-			<JsonNodeRow
+			<JsonTreeNodeRow
 				node={{
 					kind: 'leaf',
 					path: 'root.a',
@@ -393,7 +393,7 @@ describe('JsonNodeRow', () => {
 
 	it('renders a branch-close row with the matching bracket for an array', () => {
 		const { container } = renderUI(
-			<JsonNodeRow
+			<JsonTreeNodeRow
 				node={{ kind: 'branch-close', path: 'root.a', depth: 1, value: [1, 2] }}
 				onToggle={() => {}}
 			/>,
@@ -408,7 +408,7 @@ describe('JsonNodeRow', () => {
 
 	it('renders a branch-close row with the matching bracket for an object', () => {
 		const { container } = renderUI(
-			<JsonNodeRow
+			<JsonTreeNodeRow
 				node={{ kind: 'branch-close', path: 'root.a', depth: 1, value: { x: 1 } }}
 				onToggle={() => {}}
 			/>,
@@ -419,7 +419,7 @@ describe('JsonNodeRow', () => {
 
 	it('renders a closed branch-open row with summary and closing bracket when count > 0', () => {
 		const { container } = renderUI(
-			<JsonNodeRow
+			<JsonTreeNodeRow
 				node={{
 					kind: 'branch-open',
 					path: 'root',
@@ -445,7 +445,7 @@ describe('JsonNodeRow', () => {
 
 	it('renders a closed branch-open row without a summary when count = 0', () => {
 		const { container } = renderUI(
-			<JsonNodeRow
+			<JsonTreeNodeRow
 				node={{
 					kind: 'branch-open',
 					path: 'root',
@@ -467,7 +467,7 @@ describe('JsonNodeRow', () => {
 
 	it('pluralises the summary for exactly one item', () => {
 		renderUI(
-			<JsonNodeRow
+			<JsonTreeNodeRow
 				node={{
 					kind: 'branch-open',
 					path: 'root',
@@ -489,7 +489,7 @@ describe('JsonNodeRow', () => {
 		const onToggle = vi.fn()
 
 		const { container } = renderUI(
-			<JsonNodeRow
+			<JsonTreeNodeRow
 				node={{
 					kind: 'branch-open',
 					path: 'root.a',
@@ -513,7 +513,7 @@ describe('JsonNodeRow', () => {
 
 	it('sets data-open when the branch is open and omits the summary', () => {
 		const { container } = renderUI(
-			<JsonNodeRow
+			<JsonTreeNodeRow
 				node={{
 					kind: 'branch-open',
 					path: 'root',

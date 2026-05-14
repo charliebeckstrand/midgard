@@ -10,9 +10,9 @@ import { Icon } from '../icon'
 import { ListboxOption } from '../listbox'
 import { Select } from '../select'
 import { useQueryBuilderActions, useQueryBuilderState } from './context'
+import { getOperators } from './query-builder-utilities'
 import { QueryRuleValue } from './rule-value'
 import type { QueryRule as QueryRuleNode } from './types'
-import { getOperators } from './utilities'
 
 export type QueryRuleProps = {
 	rule: QueryRuleNode

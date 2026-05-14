@@ -1,2 +1,2 @@
-export { Group, type GroupProps } from './component'
-export { useGroup } from './hook'
+export { Group, type GroupProps } from './group'
+export { useGroup } from './use-group'

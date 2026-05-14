@@ -15,10 +15,10 @@ import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { k } from '../../recipes/kata/calendar'
 import { Button, type ButtonVariants } from '../button'
-import { DayCell } from './calendar-day-cell'
+import { CalendarDayCell } from './calendar-day-cell'
 import { CalendarPicker } from './calendar-picker'
+import { getCalendarDays, isBeforeDay, isSameDay, WEEKDAYS } from './calendar-utilities'
 import { useCalendarFocus } from './use-calendar-focus'
-import { getCalendarDays, isBeforeDay, isSameDay, WEEKDAYS } from './utilities'
 
 export type CalendarActive =
 	| { zone: 'header'; index: 0 | 1 | 2 }
@@ -256,7 +256,7 @@ export function Calendar({
 						const gridColumnStart = date.getDate() === 1 ? firstDayColumn : undefined
 
 						return (
-							<DayCell
+							<CalendarDayCell
 								key={date.toISOString()}
 								date={date}
 								disabled={disabled}

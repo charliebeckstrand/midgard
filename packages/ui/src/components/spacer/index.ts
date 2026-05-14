@@ -1,1 +1,1 @@
-export { Spacer, type SpacerProps } from './component'
+export { Spacer, type SpacerProps } from './spacer'

@@ -1,5 +1,4 @@
 export { CommandPalette, type CommandPaletteProps } from './command-palette'
-export { useCommandPaletteContext } from './context'
 export {
 	CommandPaletteDescription,
 	type CommandPaletteDescriptionProps,
@@ -9,7 +8,8 @@ export {
 	type CommandPaletteLabelProps,
 	CommandPaletteShortcut,
 	type CommandPaletteShortcutProps,
-} from './item'
+} from './command-palette-item'
+export { useCommandPaletteContext } from './context'
 export {
 	CommandPaletteEmpty,
 	type CommandPaletteEmptyProps,

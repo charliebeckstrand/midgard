@@ -11,8 +11,8 @@ import {
 	switchVariants,
 } from '../../recipes/kata/switch'
 import { useControl } from '../control/context'
-import { invalidAttrs } from '../control/invalid-attrs'
-import { useFieldProps } from '../control/use-field-props'
+import { invalidAttrs } from '../control/control-invalid-attrs'
+import { useControlFieldProps } from '../control/use-control-field-props'
 import { useFormToggle } from '../form/context'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
@@ -43,7 +43,7 @@ export function Switch({
 		disabled: resolvedDisabled,
 		required: resolvedRequired,
 		invalid: resolvedInvalid,
-	} = useFieldProps({ id, disabled, required, binding })
+	} = useControlFieldProps({ id, disabled, required, binding })
 
 	// Resolution order: explicit prop, then any wrapping <Field> control
 	// context, then the ambient concentric size.

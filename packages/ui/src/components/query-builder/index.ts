@@ -11,6 +11,14 @@ export {
 	type QueryBuilderProps,
 } from './query-builder'
 export {
+	addChild,
+	createGroup,
+	createRule,
+	getOperators,
+	mapNode,
+	removeChild,
+} from './query-builder-utilities'
+export {
 	QueryRule,
 	type QueryRuleProps,
 } from './rule'
@@ -27,11 +35,3 @@ export type {
 	QueryOperator,
 	QueryRule as QueryRuleNode,
 } from './types'
-export {
-	addChild,
-	createGroup,
-	createRule,
-	getOperators,
-	mapNode,
-	removeChild,
-} from './utilities'

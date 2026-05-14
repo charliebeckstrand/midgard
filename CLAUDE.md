@@ -24,10 +24,13 @@ Inside `packages/ui/src/components/<name>/` (and the parallel `primitives/`):
 - **Hooks:** `use-<name>-<hook>.ts` (or `.tsx` when the hook returns JSX). The folder name (or its singular stem) appears in every hook filename. Never bare (`hook.ts`, `use-state.ts`).
 - **Context:** `context.ts`. Use `.tsx` only when the file exports a provider component containing JSX.
 - **Types:** `types.ts` when extracted from the main file.
+- **Variants:** `variants.ts` when the recipe / `class-variance-authority` config is extracted alongside the component.
 - **Slots:** `slots.tsx` (or `slots.ts`) for components exposing a composable slot API — an intentional, existing pattern.
 - **Barrel:** `index.ts`, re-exports only.
 
 When in doubt, prefix with the folder name. Bare filenames read fine inside the folder and turn into noise the moment they appear anywhere else.
+
+Every component or hook file must also export a symbol whose PascalCase (or `useCamelCase`) form matches the filename — `tag-input-badge.tsx` exports `TagInputBadge`, `use-tag-input-keyboard.ts` exports `useTagInputKeyboard`. `packages/ui/scripts/check-component-filenames.ts` enforces this on pre-commit; `packages/ui/scripts/filename-allowlist.json` carries a small set of grandfathered exceptions where renaming would break a stable public API (`Field`, `Label`, `ConfirmDialog`, `QueryRule`, etc.). Never extend that allowlist for new files — fix the file or fix the export.
 
 ## Architecture
 

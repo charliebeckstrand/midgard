@@ -1,4 +1,4 @@
-export { Select, type SelectProps } from './component'
+export { Select, type SelectProps } from './select'
 export {
 	SelectDescription,
 	type SelectDescriptionComponentProps,
@@ -6,4 +6,4 @@ export {
 	type SelectLabelComponentProps,
 	SelectOption,
 	type SelectOptionComponentProps,
-} from './option'
+} from './select-option'

@@ -36,6 +36,7 @@ const BARE_ALLOWED = new Set([
 	'context.tsx',
 	'slots.ts',
 	'slots.tsx',
+	'variants.ts',
 ])
 
 type Violation = { path: string; reason: string }
@@ -59,6 +60,11 @@ function isUtilityFile(file: string): boolean {
 
 function checkSymbolMatch(folderPath: string, file: string): Violation | null {
 	if (isUtilityFile(file)) return null
+	// `.ts` files that are not hooks are utility/data modules without a single
+	// primary export to match. Component files use `.tsx`; only enforce the
+	// symbol rule there and on hook files (which always start with `use-`).
+	const isHook = file.startsWith('use-')
+	if (!file.endsWith('.tsx') && !isHook) return null
 	const content = readFileSync(join(folderPath, file), 'utf8')
 	const expected = expectedSymbol(file)
 	// Match `export function Foo`, `export const Foo`, `export class Foo`,
@@ -104,6 +110,7 @@ function checkFolder(folderPath: string): Violation[] {
 		if (!entry.isFile()) continue
 		const file = entry.name
 		if (!file.endsWith('.ts') && !file.endsWith('.tsx')) continue
+		if (file.endsWith('.d.ts')) continue
 
 		if (BARE_ALLOWED.has(file)) continue
 

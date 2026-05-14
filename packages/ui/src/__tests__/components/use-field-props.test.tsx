@@ -2,7 +2,7 @@ import { renderHook } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { describe, expect, it } from 'vitest'
 import { type ControlContextValue, ControlProvider } from '../../components/control/context'
-import { useFieldProps } from '../../components/control/use-field-props'
+import { useControlFieldProps } from '../../components/control/use-control-field-props'
 
 function withControl(value: ControlContextValue | undefined) {
 	return function Wrapper({ children }: { children: ReactNode }) {
@@ -10,9 +10,9 @@ function withControl(value: ControlContextValue | undefined) {
 	}
 }
 
-describe('useFieldProps', () => {
+describe('useControlFieldProps', () => {
 	it('returns undefined for every field with no input or context', () => {
-		const { result } = renderHook(() => useFieldProps())
+		const { result } = renderHook(() => useControlFieldProps())
 
 		expect(result.current).toEqual({
 			id: undefined,
@@ -25,7 +25,7 @@ describe('useFieldProps', () => {
 	})
 
 	it('falls back to Control context when explicit input is omitted', () => {
-		const { result } = renderHook(() => useFieldProps(), {
+		const { result } = renderHook(() => useControlFieldProps(), {
 			wrapper: withControl({
 				id: 'ctl-id',
 				autoComplete: 'email',
@@ -49,7 +49,7 @@ describe('useFieldProps', () => {
 	it('explicit input wins over Control context', () => {
 		const { result } = renderHook(
 			() =>
-				useFieldProps({
+				useControlFieldProps({
 					id: 'mine',
 					autoComplete: 'name',
 					disabled: false,
@@ -75,13 +75,13 @@ describe('useFieldProps', () => {
 	})
 
 	it('resolves invalid from binding when Control has none', () => {
-		const { result } = renderHook(() => useFieldProps({ binding: { invalid: true } }))
+		const { result } = renderHook(() => useControlFieldProps({ binding: { invalid: true } }))
 
 		expect(result.current.invalid).toBe(true)
 	})
 
 	it('OR-merges Control invalid with binding invalid', () => {
-		const { result } = renderHook(() => useFieldProps({ binding: { invalid: false } }), {
+		const { result } = renderHook(() => useControlFieldProps({ binding: { invalid: false } }), {
 			wrapper: withControl({ id: 'x', invalid: true }),
 		})
 
@@ -89,7 +89,7 @@ describe('useFieldProps', () => {
 	})
 
 	it('preserves undefined when neither Control nor binding mark invalid', () => {
-		const { result } = renderHook(() => useFieldProps({ binding: {} }), {
+		const { result } = renderHook(() => useControlFieldProps({ binding: {} }), {
 			wrapper: withControl({ id: 'x' }),
 		})
 

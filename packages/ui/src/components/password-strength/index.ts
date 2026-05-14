@@ -4,4 +4,4 @@ export {
 	PasswordStrength,
 	type PasswordStrengthChange,
 	type PasswordStrengthProps,
-} from './component'
+} from './password-strength'

@@ -5,6 +5,12 @@ export {
 } from '../../recipes/kata/drawer'
 export { Drawer, type DrawerProps } from './drawer'
 export {
+	DrawerClose,
+	type DrawerCloseProps,
+	DrawerOpen,
+	type DrawerOpenProps,
+} from './drawer-trigger'
+export {
 	DrawerActions,
 	type DrawerActionsProps,
 	DrawerBody,
@@ -14,4 +20,3 @@ export {
 	DrawerTitle,
 	type DrawerTitleProps,
 } from './slots'
-export { DrawerClose, type DrawerCloseProps, DrawerOpen, type DrawerOpenProps } from './trigger'

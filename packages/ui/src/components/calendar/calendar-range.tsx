@@ -9,7 +9,7 @@ import {
 	type CalendarDayContext,
 	type CalendarHandle,
 } from './calendar'
-import { isBeforeDay, isBetween, isSameDay } from './utilities'
+import { isBeforeDay, isBetween, isSameDay } from './calendar-utilities'
 
 export type CalendarRangeProps = {
 	onChange?: (date: Date) => void

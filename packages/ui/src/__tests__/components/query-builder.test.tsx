@@ -11,7 +11,7 @@ import {
 	QueryRuleValue,
 	removeChild,
 } from '../../components/query-builder'
-import { hasRules } from '../../components/query-builder/utilities'
+import { hasRules } from '../../components/query-builder/query-builder-utilities'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 const fields: QueryField[] = [

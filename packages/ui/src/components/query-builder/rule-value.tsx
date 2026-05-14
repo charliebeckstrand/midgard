@@ -1,6 +1,6 @@
 'use client'
 
-import { DatePicker } from '../datepicker'
+import { DatePicker } from '../date-picker'
 import { Input } from '../input'
 import { ListboxOption } from '../listbox'
 import { Select } from '../select'

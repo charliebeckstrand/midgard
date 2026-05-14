@@ -1,1 +1,1 @@
-export { CopyButton, type CopyButtonProps } from './component'
+export { CopyButton, type CopyButtonProps } from './copy-button'

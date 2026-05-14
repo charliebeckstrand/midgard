@@ -2,7 +2,7 @@ import { cleanup, render } from '@testing-library/react'
 import { bench, describe } from 'vitest'
 import { ComboboxVirtualOptions } from '../components/combobox'
 import { Combobox } from '../components/combobox/combobox'
-import { ComboboxLabel, ComboboxOption } from '../components/combobox/option'
+import { ComboboxLabel, ComboboxOption } from '../components/combobox/combobox-option'
 import { makeComboboxOptions } from './fixtures'
 
 const options100 = makeComboboxOptions(100)

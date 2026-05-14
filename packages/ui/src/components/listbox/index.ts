@@ -10,4 +10,4 @@ export {
 	type ListboxLabelProps,
 	ListboxOption,
 	type ListboxOptionProps,
-} from './option'
+} from './listbox-option'

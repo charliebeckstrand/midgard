@@ -6,7 +6,7 @@ import {
 	aggregateRow,
 	groupValues,
 	resolveAxis,
-} from './pivot'
+} from './pivot-table-pivot'
 import type { PivotAggregation } from './types'
 
 export type PivotTableKeys<T> = {

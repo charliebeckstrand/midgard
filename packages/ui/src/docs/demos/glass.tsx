@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Button } from '../../components/button'
 import { Combobox, ComboboxLabel, ComboboxOption } from '../../components/combobox'
-import { DatePicker } from '../../components/datepicker'
+import { DatePicker } from '../../components/date-picker'
 import { Dialog, DialogActions, DialogBody, DialogTitle } from '../../components/dialog'
 import { Drawer, DrawerActions, DrawerBody, DrawerTitle } from '../../components/drawer'
 import { Field, Label } from '../../components/fieldset'

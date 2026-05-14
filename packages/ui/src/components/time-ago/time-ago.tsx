@@ -1,7 +1,7 @@
 'use client'
 
 import type { ComponentPropsWithoutRef } from 'react'
-import { useRelativeTime } from './use-relative-time'
+import { useTimeAgoRelativeTime } from './use-time-ago-relative-time'
 
 export type TimeAgoProps = Omit<
 	ComponentPropsWithoutRef<'time'>,
@@ -26,7 +26,7 @@ export function TimeAgo({
 	title = true,
 	...props
 }: TimeAgoProps) {
-	const { then, isValid, text } = useRelativeTime({ date, format, locale, interval })
+	const { then, isValid, text } = useTimeAgoRelativeTime({ date, format, locale, interval })
 
 	if (!isValid) return <time data-slot="time-ago" {...props} />
 

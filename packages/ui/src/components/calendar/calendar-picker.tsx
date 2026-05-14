@@ -7,8 +7,8 @@ import { useControllable } from '../../hooks/use-controllable'
 import { k } from '../../recipes/kata/calendar'
 import { Button } from '../button'
 import { Popover, PopoverContent, PopoverTrigger } from '../popover'
+import { MONTHS } from './calendar-utilities'
 import { useCalendarFocus } from './use-calendar-focus'
-import { MONTHS } from './utilities'
 
 type CalendarPickerProps = {
 	year: number

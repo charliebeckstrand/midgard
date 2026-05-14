@@ -1,7 +1,7 @@
 import { type KeyboardEvent, type RefObject, useCallback } from 'react'
+import { clamp, snapToStep } from './range-utilities'
 import type { OverlapMode, ThumbIndex } from './types'
 import { useRangeUpdate } from './use-range-update'
-import { clamp, snapToStep } from './utilities'
 
 export function useRangeKeyboard(opts: {
 	min: number
