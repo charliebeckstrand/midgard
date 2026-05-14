@@ -58,7 +58,12 @@ export function Textarea({
 	const resolvedVariant = variant ?? control?.variant ?? (glass ? 'glass' : undefined)
 
 	if (useSkeleton()) {
-		return <Placeholder className={cn(kokkaku.textarea.base, className)} />
+		return (
+			<Placeholder
+				className={cn(kokkaku.textarea.base, className)}
+				style={{ height: `calc(${rows}lh + 1rem)` }}
+			/>
+		)
 	}
 
 	const controlProps = {

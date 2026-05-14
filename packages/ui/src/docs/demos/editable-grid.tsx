@@ -7,7 +7,7 @@ import {
 	EditableGrid,
 	type EditableGridColumn,
 } from '../../components/editable-grid'
-import { Flex } from '../../components/flex/component'
+import { Flex } from '../../components/flex'
 import { Icon } from '../../components/icon'
 import { Stack } from '../../components/stack'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'

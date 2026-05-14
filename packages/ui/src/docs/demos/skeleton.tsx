@@ -11,7 +11,7 @@ import { Flex } from '../../components/flex'
 import { Heading } from '../../components/heading'
 import { Input } from '../../components/input'
 import { Radio } from '../../components/radio'
-import { Skeleton } from '../../components/skeleton'
+import { Skeleton, SkeletonProvider } from '../../components/skeleton'
 import { Stack } from '../../components/stack'
 import { Switch } from '../../components/switch'
 import { Text } from '../../components/text'
@@ -66,7 +66,7 @@ function DynamicExample() {
 	)
 }
 
-function TransitionExample() {
+function FormExample() {
 	const [ready, setReady] = useState(false)
 
 	return (
@@ -81,21 +81,60 @@ function TransitionExample() {
 			</Button>
 
 			<Skeleton ready={ready}>
-				<Card bg="none">
-					<CardHeader>
-						<Flex gap="md">
-							<Avatar initials="JD" />
-							<div className="flex-1 space-y-1">
-								<Heading level={5}>Jane Doe</Heading>
-								<Text>Senior Engineer</Text>
-							</div>
-						</Flex>
-					</CardHeader>
-					<CardBody>
-						<Text>Design systems & component libraries.</Text>
-					</CardBody>
-				</Card>
+				<Heading level={3}>Create account</Heading>
 			</Skeleton>
+			<Skeleton ready={ready}>
+				<Input placeholder="Email" />
+			</Skeleton>
+			<Skeleton ready={ready}>
+				<Input placeholder="Password" type="password" />
+			</Skeleton>
+			<Skeleton ready={ready}>
+				<Textarea placeholder="Bio" />
+			</Skeleton>
+			<Skeleton ready={ready}>
+				<Button color="blue">Sign up</Button>
+			</Skeleton>
+		</>
+	)
+}
+
+function ProfileCardExample() {
+	const [ready, setReady] = useState(false)
+
+	return (
+		<>
+			<Button
+				variant={ready ? 'soft' : 'outline'}
+				color={ready ? 'red' : undefined}
+				size="sm"
+				onClick={() => setReady(!ready)}
+			>
+				{ready ? 'Reset' : 'Simulate load'}
+			</Button>
+
+			<Card bg="none">
+				<CardHeader>
+					<Flex gap="md">
+						<Skeleton ready={ready}>
+							<Avatar initials="JD" />
+						</Skeleton>
+						<div className="flex-1 space-y-1">
+							<Skeleton ready={ready}>
+								<Heading level={3}>Jane Doe</Heading>
+							</Skeleton>
+							<Skeleton ready={ready}>
+								<Text>Senior Engineer</Text>
+							</Skeleton>
+						</div>
+					</Flex>
+				</CardHeader>
+				<CardBody>
+					<Skeleton ready={ready}>
+						<Text>Design systems & component libraries.</Text>
+					</Skeleton>
+				</CardBody>
+			</Card>
 		</>
 	)
 }
@@ -106,17 +145,11 @@ export default function SkeletonDemo() {
 			<DynamicExample />
 
 			<Example title="Form">
-				<Skeleton>
-					<Heading level={3}>Create account</Heading>
-					<Input placeholder="Email" />
-					<Input placeholder="Password" type="password" />
-					<Textarea placeholder="Bio" />
-					<Button>Sign up</Button>
-				</Skeleton>
+				<FormExample />
 			</Example>
 
-			<Example title="Transition">
-				<TransitionExample />
+			<Example title="Profile card">
+				<ProfileCardExample />
 			</Example>
 		</Stack>
 	)

@@ -1,3 +1,3 @@
 export const textarea = {
-	base: ['h-28', 'w-full', 'rounded-lg'],
+	base: ['w-full', 'rounded-lg'],
 }
