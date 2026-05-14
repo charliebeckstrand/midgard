@@ -40,8 +40,8 @@ export type UseSortableListReturn = {
 	dndContextProps: {
 		sensors: ReturnType<typeof useSortableSensors>
 		collisionDetection: typeof closestCenter
-		onDragStart: (event: DragStartEvent) => void
-		onDragEnd: (event: DragEndEvent) => void
+		onDragStart: (e: DragStartEvent) => void
+		onDragEnd: (e: DragEndEvent) => void
 		onDragCancel: () => void
 	}
 }
@@ -70,17 +70,17 @@ export function useSortableList<T>({
 	const strategy =
 		orientation === 'horizontal' ? horizontalListSortingStrategy : verticalListSortingStrategy
 
-	const handleDragStart = useCallback((event: DragStartEvent) => {
-		setActiveId(String(event.active.id))
+	const handleDragStart = useCallback((e: DragStartEvent) => {
+		setActiveId(String(e.active.id))
 	}, [])
 
 	const handleDragEnd = useCallback(
-		(event: DragEndEvent) => {
+		(e: DragEndEvent) => {
 			setActiveId(null)
 
 			if (!onReorder) return
 
-			const { active, over } = event
+			const { active, over } = e
 
 			if (!over || active.id === over.id) return
 

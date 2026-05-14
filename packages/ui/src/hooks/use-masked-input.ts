@@ -23,7 +23,7 @@ export type UseMaskedInputReturn = {
 	/** Attach to the input to enable caret restoration after format. */
 	ref: (node: HTMLInputElement | null) => void
 	setValue: (raw: string) => void
-	onChange: (event: ChangeEvent<HTMLInputElement>) => void
+	onChange: (e: ChangeEvent<HTMLInputElement>) => void
 }
 
 const defaultMeaningful = (c: string) => /[A-Za-z0-9+]/.test(c)
@@ -107,10 +107,10 @@ export function useMaskedInput({
 		value: current ?? '',
 		ref: setRef,
 		setValue: (raw) => setCurrent(format(raw)),
-		onChange: (event) => {
-			const raw = event.target.value
+		onChange: (e) => {
+			const raw = e.target.value
 
-			const cursor = event.target.selectionStart ?? raw.length
+			const cursor = e.target.selectionStart ?? raw.length
 
 			const meaningfulBefore = countMeaningful(raw, cursor, meaningful)
 

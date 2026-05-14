@@ -1,4 +1,4 @@
-export { useControllable } from './use-controllable'
+export { type UseControllableOptions, useControllable } from './use-controllable'
 export { type UseDeferredToggleOptions, useDeferredToggle } from './use-deferred-toggle'
 export { type UseDismissableOptions, useDismissable } from './use-dismissable'
 export {
