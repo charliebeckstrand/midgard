@@ -1,1 +1,1 @@
-export { LoginPage as default } from 'sindri/auth'
+export { LoginPage as default } from 'shared/auth'

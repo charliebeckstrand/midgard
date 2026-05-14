@@ -1,6 +1,6 @@
 import { bifrost } from 'auth'
 
-import type { ChatContent } from 'sindri/chat'
+import type { ChatContent } from 'shared/chat'
 import { ChatView } from '../chat-view'
 
 async function getChatHistory(chatId: string): Promise<ChatContent[]> {
