@@ -206,7 +206,7 @@ export default function ComponentDemo() {
 
       <Example
         title="Colors"
-        actions={<VariantListbox variants={variants} value={variant} onChange={setVariant} />}
+        actions={<VariantListbox variants={variants} value={variant} onValueChange={setVariant} />}
       >
         <Flex wrap gap="sm">
           {colors.map((c) => (
