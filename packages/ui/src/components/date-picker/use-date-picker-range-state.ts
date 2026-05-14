@@ -15,7 +15,7 @@ import { type FooterButton, useDatePickerKeyboard } from './use-date-picker-keyb
 export function useDatePickerRangeState({
 	value: valueProp,
 	defaultValue,
-	onChange,
+	onValueChange,
 	min,
 	max,
 	placement = 'bottom-start',
@@ -25,7 +25,11 @@ export function useDatePickerRangeState({
 
 	const scope = useIdScope({ id: control?.id })
 
-	const [value, setValue] = useControllable({ value: valueProp, defaultValue, onChange })
+	const [value, setValue] = useControllable({
+		value: valueProp,
+		defaultValue,
+		onChange: onValueChange,
+	})
 
 	const [open, setOpen] = useState(false)
 

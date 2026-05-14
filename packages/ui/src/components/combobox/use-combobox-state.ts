@@ -9,7 +9,7 @@ type UseComboboxStateParams<T> = {
 	open?: boolean
 	onOpenChange?: (open: boolean) => void
 	onQueryChange?: (query: string) => void
-	onChange?: (value: T) => void
+	onValueChange?: (value: T) => void
 	setValue: (
 		value: T | T[] | undefined | ((prev: T | T[] | undefined) => T | T[] | undefined),
 	) => void
@@ -24,7 +24,7 @@ export function useComboboxState<T>({
 	open: openProp,
 	onOpenChange,
 	onQueryChange,
-	onChange,
+	onValueChange,
 	setValue,
 	inputRef,
 }: UseComboboxStateParams<T>) {
@@ -71,7 +71,7 @@ export function useComboboxState<T>({
 	const select = useCallback(
 		(newValue: T) => {
 			if (!selectable) {
-				onChange?.(newValue)
+				onValueChange?.(newValue)
 			} else if (shouldClose) {
 				enqueue(newValue)
 			} else {
@@ -88,7 +88,7 @@ export function useComboboxState<T>({
 				inputRef.current?.focus()
 			}
 		},
-		[selectable, shouldClose, toggle, enqueue, onChange, close, setQuery, inputRef],
+		[selectable, shouldClose, toggle, enqueue, onValueChange, close, setQuery, inputRef],
 	)
 
 	return { query, setQuery, open, setOpen, editing, setEditing, close, select, flushPending }

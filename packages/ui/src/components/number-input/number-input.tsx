@@ -24,7 +24,7 @@ export type NumberInputProps = Omit<
 > & {
 	value?: number | null
 	defaultValue?: number
-	onChange?: (value: number | undefined) => void
+	onValueChange?: (value: number | undefined) => void
 	min?: number
 	max?: number
 	step?: number
@@ -33,7 +33,7 @@ export type NumberInputProps = Omit<
 export function NumberInput({
 	value,
 	defaultValue,
-	onChange,
+	onValueChange,
 	min,
 	max,
 	step = 1,
@@ -52,9 +52,9 @@ export function NumberInput({
 		onChange: field
 			? (v) => {
 					field.setValue(v)
-					onChange?.(v)
+					onValueChange?.(v)
 				}
-			: onChange,
+			: onValueChange,
 	})
 
 	const resolvedSize: Size = size ?? 'md'

@@ -32,7 +32,7 @@ export default function GroupDemo() {
 				<Control>
 					<Listbox<ChildType>
 						value={child}
-						onChange={(v) => v && setChild(v)}
+						onValueChange={(v) => v && setChild(v)}
 						displayValue={(v) => childOptions.find((o) => o.value === v)?.label ?? v}
 					>
 						{childOptions.map((option) => (

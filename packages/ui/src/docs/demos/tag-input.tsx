@@ -14,7 +14,7 @@ function DefaultTagInputExample() {
 	return (
 		<Field>
 			<Label>Tags</Label>
-			<TagInput value={tags} onChange={(v) => setTags(v ?? [])} placeholder="Add a tag" />
+			<TagInput value={tags} onValueChange={(v) => setTags(v ?? [])} placeholder="Add a tag" />
 		</Field>
 	)
 }
@@ -46,7 +46,7 @@ function MaxTagInputExample() {
 			<Label>Max 5 tags</Label>
 			<TagInput
 				value={tags}
-				onChange={(v) => setTags(v ?? [])}
+				onValueChange={(v) => setTags(v ?? [])}
 				max={5}
 				placeholder="Add up to 5 tags"
 			/>

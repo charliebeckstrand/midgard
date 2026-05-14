@@ -19,7 +19,7 @@ function isActive(v: unknown): boolean {
 export type FiltersProps<T extends FilterValue = FilterValue> = {
 	value?: T
 	defaultValue?: T
-	onChange?: (value: T) => void
+	onValueChange?: (value: T) => void
 	onClear?: () => void
 	clear?: ReactNode
 	affix?: ReactNode
@@ -32,7 +32,7 @@ export type FiltersProps<T extends FilterValue = FilterValue> = {
 export function Filters<T extends FilterValue = FilterValue>({
 	value: valueProp,
 	defaultValue,
-	onChange,
+	onValueChange,
 	onClear,
 	clear,
 	affix,
@@ -44,7 +44,7 @@ export function Filters<T extends FilterValue = FilterValue>({
 	const [state, setState] = useControllable<T>({
 		value: valueProp,
 		defaultValue: defaultValue ?? ({} as T),
-		onChange: onChange && ((v) => v !== undefined && onChange(v)),
+		onChange: onValueChange && ((v) => v !== undefined && onValueChange(v)),
 	})
 
 	const filterValue = (state ?? {}) as T

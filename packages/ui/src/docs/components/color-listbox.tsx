@@ -6,21 +6,21 @@ interface ColorListboxProps<T extends string> {
 	colors: readonly T[]
 	value: T
 	placement?: 'bottom-start' | 'bottom-end'
-	onChange: (value: T) => void
+	onValueChange: (value: T) => void
 }
 
 export function ColorListbox<T extends string>({
 	colors,
 	value,
 	placement = 'bottom-end',
-	onChange,
+	onValueChange,
 }: ColorListboxProps<T>) {
 	return (
 		<Listbox
 			value={value}
 			displayValue={(v: string) => v}
 			placement={placement}
-			onChange={onChange as (value: T | undefined) => void}
+			onValueChange={onValueChange as (value: T | undefined) => void}
 			className="capitalize"
 		>
 			{colors.map((c) => (

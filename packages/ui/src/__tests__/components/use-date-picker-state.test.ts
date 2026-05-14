@@ -59,7 +59,9 @@ describe('useDatePickerState', () => {
 		it('commits the selected date and closes', () => {
 			const onChange = vi.fn()
 
-			const { result } = renderHook(() => useDatePickerState({ defaultValue: Jan1, onChange }))
+			const { result } = renderHook(() =>
+				useDatePickerState({ defaultValue: Jan1, onValueChange: onChange }),
+			)
 
 			act(() => result.current.onOpenChange(true))
 
@@ -73,7 +75,9 @@ describe('useDatePickerState', () => {
 		it('clear resets the value to undefined and closes', () => {
 			const onChange = vi.fn()
 
-			const { result } = renderHook(() => useDatePickerState({ defaultValue: Jan15, onChange }))
+			const { result } = renderHook(() =>
+				useDatePickerState({ defaultValue: Jan15, onValueChange: onChange }),
+			)
 
 			act(() => result.current.onOpenChange(true))
 
@@ -87,7 +91,7 @@ describe('useDatePickerState', () => {
 		it('today selects the current date and closes', () => {
 			const onChange = vi.fn()
 
-			const { result } = renderHook(() => useDatePickerState({ onChange }))
+			const { result } = renderHook(() => useDatePickerState({ onValueChange: onChange }))
 
 			act(() => result.current.onOpenChange(true))
 
@@ -100,10 +104,12 @@ describe('useDatePickerState', () => {
 	})
 
 	describe('selection in controlled mode', () => {
-		it('does not mutate internal state; reports the new value via onChange', () => {
+		it('does not mutate internal state; reports the new value via onValueChange', () => {
 			const onChange = vi.fn()
 
-			const { result } = renderHook(() => useDatePickerState({ value: Jan1, onChange }))
+			const { result } = renderHook(() =>
+				useDatePickerState({ value: Jan1, onValueChange: onChange }),
+			)
 
 			act(() => result.current.onOpenChange(true))
 

@@ -56,7 +56,7 @@ describe('CreditCardInput', () => {
 	it('formats 16-digit card numbers in 4-4-4-4 groups', async () => {
 		const onChange = vi.fn()
 
-		const { container } = renderUI(<CreditCardInput onChange={onChange} />)
+		const { container } = renderUI(<CreditCardInput onValueChange={onChange} />)
 
 		const input = bySlot(container, 'input') as HTMLInputElement
 

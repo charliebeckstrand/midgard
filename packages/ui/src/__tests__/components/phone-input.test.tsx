@@ -47,7 +47,7 @@ describe('PhoneInput', () => {
 	it('formats US numbers as the user types', async () => {
 		const onChange = vi.fn()
 
-		const { container } = renderUI(<PhoneInput onChange={onChange} />)
+		const { container } = renderUI(<PhoneInput onValueChange={onChange} />)
 
 		const input = bySlot(container, 'input') as HTMLInputElement
 
@@ -63,7 +63,7 @@ describe('PhoneInput', () => {
 	it('strips non-digit characters for US country', async () => {
 		const onChange = vi.fn()
 
-		const { container } = renderUI(<PhoneInput onChange={onChange} />)
+		const { container } = renderUI(<PhoneInput onValueChange={onChange} />)
 
 		const input = bySlot(container, 'input') as HTMLInputElement
 

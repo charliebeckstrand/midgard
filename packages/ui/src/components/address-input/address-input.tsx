@@ -13,7 +13,7 @@ export type AddressInputProps = {
 	id?: string
 	value?: AddressSuggestion
 	defaultValue?: AddressSuggestion
-	onChange?: (value: AddressSuggestion | undefined) => void
+	onValueChange?: (value: AddressSuggestion | undefined) => void
 	provider?: AddressProvider
 	placeholder?: string
 	debounceMs?: number

@@ -30,10 +30,10 @@ describe('NumberInput', () => {
 		expect(ref.current).toBeInstanceOf(HTMLInputElement)
 	})
 
-	it('calls onChange when increase button is clicked', async () => {
+	it('calls onValueChange when increase button is clicked', async () => {
 		const onChange = vi.fn()
 
-		renderUI(<NumberInput defaultValue={5} onChange={onChange} />)
+		renderUI(<NumberInput defaultValue={5} onValueChange={onChange} />)
 
 		const user = userEvent.setup()
 
@@ -42,10 +42,10 @@ describe('NumberInput', () => {
 		expect(onChange).toHaveBeenCalledWith(6)
 	})
 
-	it('calls onChange when decrease button is clicked', async () => {
+	it('calls onValueChange when decrease button is clicked', async () => {
 		const onChange = vi.fn()
 
-		renderUI(<NumberInput defaultValue={5} onChange={onChange} />)
+		renderUI(<NumberInput defaultValue={5} onValueChange={onChange} />)
 
 		const user = userEvent.setup()
 
@@ -79,7 +79,7 @@ describe('NumberInput', () => {
 	it('respects step value', async () => {
 		const onChange = vi.fn()
 
-		renderUI(<NumberInput defaultValue={0} step={5} onChange={onChange} />)
+		renderUI(<NumberInput defaultValue={0} step={5} onValueChange={onChange} />)
 
 		const user = userEvent.setup()
 

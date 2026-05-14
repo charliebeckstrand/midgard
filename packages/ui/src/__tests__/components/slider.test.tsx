@@ -84,7 +84,7 @@ describe('RangeSlider', () => {
 		const onChange = vi.fn()
 
 		const { container } = renderUI(
-			<RangeSlider defaultValue={[10, 90]} step={5} onChange={onChange} />,
+			<RangeSlider defaultValue={[10, 90]} step={5} onValueChange={onChange} />,
 		)
 
 		const [lo] = allBySlot(container, 'slider-range-thumb')
@@ -98,7 +98,7 @@ describe('RangeSlider', () => {
 		const onChange = vi.fn()
 
 		const { container } = renderUI(
-			<RangeSlider defaultValue={[10, 90]} step={5} onChange={onChange} />,
+			<RangeSlider defaultValue={[10, 90]} step={5} onValueChange={onChange} />,
 		)
 
 		const [, hi] = allBySlot(container, 'slider-range-thumb')
@@ -112,7 +112,7 @@ describe('RangeSlider', () => {
 		const onChange = vi.fn()
 
 		const { container } = renderUI(
-			<RangeSlider defaultValue={[40, 90]} min={0} max={100} onChange={onChange} />,
+			<RangeSlider defaultValue={[40, 90]} min={0} max={100} onValueChange={onChange} />,
 		)
 
 		const [lo] = allBySlot(container, 'slider-range-thumb')
@@ -126,7 +126,7 @@ describe('RangeSlider', () => {
 		const onChange = vi.fn()
 
 		const { container } = renderUI(
-			<RangeSlider defaultValue={[10, 60]} min={0} max={100} onChange={onChange} />,
+			<RangeSlider defaultValue={[10, 60]} min={0} max={100} onValueChange={onChange} />,
 		)
 
 		const [, hi] = allBySlot(container, 'slider-range-thumb')
@@ -139,7 +139,7 @@ describe('RangeSlider', () => {
 	it('ignores unrelated keys', () => {
 		const onChange = vi.fn()
 
-		const { container } = renderUI(<RangeSlider defaultValue={[10, 90]} onChange={onChange} />)
+		const { container } = renderUI(<RangeSlider defaultValue={[10, 90]} onValueChange={onChange} />)
 
 		const [lo] = allBySlot(container, 'slider-range-thumb')
 
@@ -152,7 +152,7 @@ describe('RangeSlider', () => {
 		const onChange = vi.fn()
 
 		const { container } = renderUI(
-			<RangeSlider defaultValue={[48, 50]} step={5} allowCross={false} onChange={onChange} />,
+			<RangeSlider defaultValue={[48, 50]} step={5} allowCross={false} onValueChange={onChange} />,
 		)
 
 		const [lo] = allBySlot(container, 'slider-range-thumb')
@@ -166,7 +166,7 @@ describe('RangeSlider', () => {
 		const onChange = vi.fn()
 
 		const { container } = renderUI(
-			<RangeSlider defaultValue={[50, 50]} step={5} onChange={onChange} />,
+			<RangeSlider defaultValue={[50, 50]} step={5} onValueChange={onChange} />,
 		)
 
 		const [lo, hi] = allBySlot(container, 'slider-range-thumb')

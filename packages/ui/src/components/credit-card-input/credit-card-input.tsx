@@ -15,7 +15,7 @@ export type CreditCardInputProps = Omit<
 	value?: string
 	defaultValue?: string
 	placeholder?: string
-	onChange?: (value: string) => void
+	onValueChange?: (value: string) => void
 	onBrandChange?: (brand: CreditCardBrand | undefined) => void
 	prefix?: ReactNode
 }
@@ -24,7 +24,7 @@ export function CreditCardInput({
 	value,
 	defaultValue,
 	placeholder,
-	onChange,
+	onValueChange,
 	onBrandChange,
 	prefix,
 	suffix,
@@ -34,7 +34,7 @@ export function CreditCardInput({
 	const masked = useMaskedInput({
 		value,
 		defaultValue,
-		onChange,
+		onChange: onValueChange,
 		format: (raw) => formatCardNumber(raw).formatted,
 		ref,
 	})

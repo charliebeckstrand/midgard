@@ -66,7 +66,7 @@ function DefaultExample() {
 	return (
 		<Field>
 			<Label>Address</Label>
-			<AddressInput value={address} onChange={setAddress} />
+			<AddressInput value={address} onValueChange={setAddress} />
 			{address?.latitude != null ? (
 				<Text>
 					{address.latitude.toFixed(4)}, {address.longitude?.toFixed(4)}
@@ -84,7 +84,7 @@ function WithInitialOptionsExample() {
 			<Label>Address</Label>
 			<AddressInput
 				value={address}
-				onChange={setAddress}
+				onValueChange={setAddress}
 				minQueryLength={0}
 				provider={async (query) => {
 					const q = query.toLowerCase()
@@ -111,7 +111,7 @@ function CustomProviderExample() {
 			<Label>Address</Label>
 			<AddressInput
 				value={address}
-				onChange={setAddress}
+				onValueChange={setAddress}
 				provider={mockGooglePlaces}
 				minQueryLength={1}
 				placeholder="Try 'amph' or 'baker'"

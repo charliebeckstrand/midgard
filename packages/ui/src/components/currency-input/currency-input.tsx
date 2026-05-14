@@ -17,7 +17,7 @@ export type CurrencyInputProps = Omit<
 > & {
 	value?: number | null
 	defaultValue?: number
-	onChange?: (value: number | undefined) => void
+	onValueChange?: (value: number | undefined) => void
 	/** ISO 4217 currency code. Defaults to `USD`. */
 	currency?: string
 	/** BCP 47 locale tag. Defaults to the runtime default. */
@@ -29,7 +29,7 @@ export type CurrencyInputProps = Omit<
 export function CurrencyInput({
 	value,
 	defaultValue,
-	onChange,
+	onValueChange,
 	currency = 'USD',
 	locale,
 	precision,
@@ -41,7 +41,11 @@ export function CurrencyInput({
 	ref,
 	...props
 }: CurrencyInputProps) {
-	const [num, setNum] = useControllable<number>({ value, defaultValue, onChange })
+	const [num, setNum] = useControllable<number>({
+		value,
+		defaultValue,
+		onChange: onValueChange,
+	})
 
 	const { displayFormatter, symbol, symbolIsPrefix, group, decimal, maxFractionDigits } =
 		useCurrencyInputFormatting({ currency, locale, precision })

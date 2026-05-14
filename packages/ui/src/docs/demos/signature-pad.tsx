@@ -19,7 +19,7 @@ function DefaultExample() {
 	return (
 		<Example title="Default">
 			<Stack gap="md">
-				<SignaturePad value={value} onChange={setValue} />
+				<SignaturePad value={value} onValueChange={setValue} />
 				{value && (
 					<>
 						<Text color="green">Captured!</Text>
@@ -64,7 +64,7 @@ function ImperativeHandleExample() {
 	return (
 		<Example title="Imperative handle">
 			<Stack gap="md">
-				<SignaturePad ref={ref} defaultValue={null} hideClear onChange={setValue} />
+				<SignaturePad ref={ref} defaultValue={null} hideClear onValueChange={setValue} />
 				{value && (
 					<Flex gap="sm">
 						<Button

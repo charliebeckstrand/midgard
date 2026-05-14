@@ -55,7 +55,7 @@ export default function BannerDemo() {
 
 			<Example
 				title="Colors"
-				actions={<VariantListbox variants={variants} value={variant} onChange={setVariant} />}
+				actions={<VariantListbox variants={variants} value={variant} onValueChange={setVariant} />}
 			>
 				<Stack className="gap-0 -mx-4">
 					{colors.map((c) => (

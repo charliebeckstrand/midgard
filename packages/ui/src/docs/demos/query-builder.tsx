@@ -41,7 +41,7 @@ function ControlledExample() {
 	return (
 		<Example title="Controlled">
 			<Stack gap="md">
-				<QueryBuilder fields={fields} value={query} onChange={setQuery} />
+				<QueryBuilder fields={fields} value={query} onValueChange={setQuery} />
 				<JsonTree data={query as unknown as JsonValue} defaultExpandDepth={Infinity} />
 			</Stack>
 		</Example>

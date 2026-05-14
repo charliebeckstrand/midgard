@@ -47,7 +47,7 @@ export default function ScrollAreaDemo() {
 		<Stack gap="xl">
 			<Example
 				title="Vertical with size"
-				actions={<SizeListbox sizes={sizes} value={verticalSize} onChange={setVerticalSize} />}
+				actions={<SizeListbox sizes={sizes} value={verticalSize} onValueChange={setVerticalSize} />}
 			>
 				<ScrollArea size={verticalSize} rounded className="max-w-96">
 					<Stack gap="lg">
@@ -60,7 +60,9 @@ export default function ScrollAreaDemo() {
 
 			<Example
 				title="Horizontal with size"
-				actions={<SizeListbox sizes={sizes} value={horizontalSize} onChange={setHorizontalSize} />}
+				actions={
+					<SizeListbox sizes={sizes} value={horizontalSize} onValueChange={setHorizontalSize} />
+				}
 			>
 				<ScrollArea orientation="horizontal" size={horizontalSize} rounded>
 					<Flex gap="sm" className="w-max">
@@ -73,7 +75,7 @@ export default function ScrollAreaDemo() {
 
 			<Example
 				title="Both axes"
-				actions={<SizeListbox sizes={sizes} value={bothSize} onChange={setBothSize} />}
+				actions={<SizeListbox sizes={sizes} value={bothSize} onValueChange={setBothSize} />}
 			>
 				<ScrollArea orientation="both" size={bothSize} rounded>
 					<Stack gap="lg" className="w-max">

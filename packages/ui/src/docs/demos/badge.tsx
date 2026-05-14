@@ -42,7 +42,7 @@ export default function BadgeDemo() {
 					<VariantListbox
 						variants={colorVariants}
 						value={colorVariant}
-						onChange={setColorVariant}
+						onValueChange={setColorVariant}
 					/>
 				}
 			>

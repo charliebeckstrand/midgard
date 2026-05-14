@@ -12,7 +12,7 @@ export type CreditCardInputCvvProps = Omit<
 	value?: string
 	defaultValue?: string
 	placeholder?: string
-	onChange?: (value: string) => void
+	onValueChange?: (value: string) => void
 	/** Brand controls the CVV length (Amex accepts 4 digits; others accept 3). */
 	brand?: CreditCardBrand | CreditCardBrandInfo
 }
@@ -38,7 +38,7 @@ function resolveCvvLength(brand: CreditCardInputCvvProps['brand']): number {
 export function CreditCardInputCvv({
 	value,
 	defaultValue,
-	onChange,
+	onValueChange,
 	brand,
 	placeholder,
 	ref,
@@ -49,7 +49,7 @@ export function CreditCardInputCvv({
 	const masked = useMaskedInput({
 		value,
 		defaultValue,
-		onChange,
+		onChange: onValueChange,
 		format: (raw) => formatCvv(raw, maxLength),
 		ref,
 	})

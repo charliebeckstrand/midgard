@@ -140,11 +140,11 @@ describe('NavItem', () => {
 		expect(inners[1]).not.toHaveAttribute('aria-current')
 	})
 
-	it('calls Nav onChange with the item value when clicked', () => {
+	it('calls Nav onValueChange with the item value when clicked', () => {
 		const onChange = vi.fn()
 
 		renderUI(
-			<Nav onChange={onChange}>
+			<Nav onValueChange={onChange}>
 				<NavList>
 					<NavItem value="home">Home</NavItem>
 				</NavList>

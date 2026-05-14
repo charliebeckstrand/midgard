@@ -36,7 +36,7 @@ describe('Filter', () => {
 describe('FiltersField', () => {
 	it('renders with data-slot="filter-field"', () => {
 		const { container } = renderUI(
-			<Filters value={{ name: '' }} onChange={() => {}}>
+			<Filters value={{ name: '' }} onValueChange={() => {}}>
 				<FiltersField name="name">
 					<Input />
 				</FiltersField>
@@ -47,7 +47,7 @@ describe('FiltersField', () => {
 
 	it('injects value into child via cloneElement', () => {
 		const { container } = renderUI(
-			<Filters value={{ name: 'hello' }} onChange={() => {}}>
+			<Filters value={{ name: 'hello' }} onValueChange={() => {}}>
 				<FiltersField name="name">
 					<Input />
 				</FiltersField>
@@ -60,7 +60,7 @@ describe('FiltersField', () => {
 	it('calls onChange when input changes (auto-binding)', async () => {
 		const onChange = vi.fn()
 		const { container } = renderUI(
-			<Filters value={{ name: '' }} onChange={onChange}>
+			<Filters value={{ name: '' }} onValueChange={onChange}>
 				<FiltersField name="name">
 					<Input />
 				</FiltersField>
@@ -75,13 +75,13 @@ describe('FiltersField', () => {
 	it('supports render prop children', async () => {
 		const onChange = vi.fn()
 		const { container } = renderUI(
-			<Filters value={{ name: '' }} onChange={onChange}>
+			<Filters value={{ name: '' }} onValueChange={onChange}>
 				<FiltersField name="name">
-					{({ value, onChange: fieldOnChange }) => (
+					{({ value, onValueChange: fieldOnValueChange }) => (
 						<input
 							data-slot="raw-input"
 							value={(value as string) ?? ''}
-							onChange={(e) => fieldOnChange(e.target.value)}
+							onChange={(e) => fieldOnValueChange(e.target.value)}
 						/>
 					)}
 				</FiltersField>
@@ -109,7 +109,7 @@ describe('FiltersClear', () => {
 	it('clears all filter values when clicked', async () => {
 		const onChange = vi.fn()
 		renderUI(
-			<Filters value={{ name: 'hello', status: 'active' }} onChange={onChange}>
+			<Filters value={{ name: 'hello', status: 'active' }} onValueChange={onChange}>
 				<FiltersField name="name">
 					<Input />
 				</FiltersField>
@@ -130,7 +130,7 @@ describe('FiltersClear', () => {
 			<Filters
 				value={{ name: 'hello', status: 'active' }}
 				defaultValue={defaults}
-				onChange={onChange}
+				onValueChange={onChange}
 			>
 				<FiltersField name="name">
 					<Input />

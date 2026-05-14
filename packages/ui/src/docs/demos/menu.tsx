@@ -92,7 +92,7 @@ export default function MenuDemo() {
 					<VariantListbox
 						variants={surfaces}
 						value={dropdownSurface}
-						onChange={setDropdownSurface}
+						onValueChange={setDropdownSurface}
 					/>
 				}
 			>
@@ -102,7 +102,11 @@ export default function MenuDemo() {
 			<Example
 				title="Context Menu"
 				actions={
-					<VariantListbox variants={surfaces} value={contextSurface} onChange={setContextSurface} />
+					<VariantListbox
+						variants={surfaces}
+						value={contextSurface}
+						onValueChange={setContextSurface}
+					/>
 				}
 			>
 				{contextSurface === 'glass' ? <Glass>{context}</Glass> : context}

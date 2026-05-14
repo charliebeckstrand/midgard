@@ -138,14 +138,16 @@ describe('DatePicker', () => {
 		expect(button).toHaveAttribute('aria-expanded', 'false')
 	})
 
-	it('selects a date and calls onChange', async () => {
+	it('selects a date and calls onValueChange', async () => {
 		const user = userEvent.setup()
 
 		const onChange = vi.fn()
 
 		const defaultValue = new Date(2025, 5, 15)
 
-		const { container } = renderUI(<DatePicker defaultValue={defaultValue} onChange={onChange} />)
+		const { container } = renderUI(
+			<DatePicker defaultValue={defaultValue} onValueChange={onChange} />,
+		)
 
 		await user.click(bySlot(container, 'datepicker-button') as HTMLButtonElement)
 
@@ -170,7 +172,9 @@ describe('DatePicker', () => {
 
 		const defaultValue = new Date(2025, 5, 15)
 
-		const { container } = renderUI(<DatePicker defaultValue={defaultValue} onChange={onChange} />)
+		const { container } = renderUI(
+			<DatePicker defaultValue={defaultValue} onValueChange={onChange} />,
+		)
 
 		await user.click(bySlot(container, 'datepicker-button') as HTMLButtonElement)
 
@@ -184,7 +188,7 @@ describe('DatePicker', () => {
 
 		const onChange = vi.fn()
 
-		const { container } = renderUI(<DatePicker onChange={onChange} />)
+		const { container } = renderUI(<DatePicker onValueChange={onChange} />)
 
 		await user.click(bySlot(container, 'datepicker-button') as HTMLButtonElement)
 

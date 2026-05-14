@@ -74,7 +74,7 @@ export default function AlertDemo() {
 					<VariantListbox
 						variants={colorVariants}
 						value={colorVariant}
-						onChange={setColorVariant}
+						onValueChange={setColorVariant}
 					/>
 				}
 			>

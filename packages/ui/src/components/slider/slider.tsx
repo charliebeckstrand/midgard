@@ -8,7 +8,7 @@ import { type SliderVariants, sliderVariants } from '../../recipes/kata/slider'
 type SliderBaseProps = SliderVariants & {
 	value?: number
 	defaultValue?: number
-	onChange?: (value: number) => void
+	onValueChange?: (value: number) => void
 	min?: number
 	max?: number
 	step?: number
@@ -23,7 +23,7 @@ export type SliderProps = SliderBaseProps &
 export function Slider({
 	value,
 	defaultValue,
-	onChange,
+	onValueChange,
 	min = 0,
 	max = 100,
 	step = 1,
@@ -37,7 +37,7 @@ export function Slider({
 		value,
 		defaultValue: defaultValue ?? min,
 		onChange: (next) => {
-			if (next !== undefined) onChange?.(next)
+			if (next !== undefined) onValueChange?.(next)
 		},
 	})
 

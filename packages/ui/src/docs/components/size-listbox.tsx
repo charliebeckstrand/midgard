@@ -14,21 +14,21 @@ interface SizeListboxProps<T extends string> {
 	sizes: readonly T[]
 	value: T
 	placement?: 'bottom-start' | 'bottom-end'
-	onChange: (value: T) => void
+	onValueChange: (value: T) => void
 }
 
 export function SizeListbox<T extends string>({
 	sizes,
 	value,
 	placement = 'bottom-end',
-	onChange,
+	onValueChange,
 }: SizeListboxProps<T>) {
 	return (
 		<Listbox
 			value={value}
 			displayValue={(v: string) => sizeLabels[v] ?? v}
 			placement={placement}
-			onChange={onChange as (value: T | undefined) => void}
+			onValueChange={onValueChange as (value: T | undefined) => void}
 			className="capitalize"
 		>
 			{sizes.map((s) => (

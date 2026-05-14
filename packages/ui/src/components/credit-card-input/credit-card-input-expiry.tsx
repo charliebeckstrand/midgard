@@ -11,18 +11,24 @@ export type CreditCardInputExpiryProps = Omit<
 	value?: string
 	defaultValue?: string
 	placeholder?: string
-	onChange?: (value: string) => void
+	onValueChange?: (value: string) => void
 }
 
 export function CreditCardInputExpiry({
 	value,
 	defaultValue,
 	placeholder,
-	onChange,
+	onValueChange,
 	ref,
 	...props
 }: CreditCardInputExpiryProps) {
-	const masked = useMaskedInput({ value, defaultValue, onChange, format: formatExpiry, ref })
+	const masked = useMaskedInput({
+		value,
+		defaultValue,
+		onChange: onValueChange,
+		format: formatExpiry,
+		ref,
+	})
 
 	return (
 		<Input

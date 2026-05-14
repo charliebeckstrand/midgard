@@ -21,7 +21,7 @@ export type SignaturePadProps = {
 	/** Initial value for uncontrolled mode. */
 	defaultValue?: string | null
 	/** Fires when a stroke ends. Receives the signature as a data URL, or `null` when cleared. */
-	onChange?: (value: string | null) => void
+	onValueChange?: (value: string | null) => void
 	disabled?: boolean
 	readOnly?: boolean
 	/** Placeholder rendered over an empty pad. */
@@ -40,7 +40,7 @@ export type SignaturePadProps = {
 export function SignaturePad({
 	value,
 	defaultValue,
-	onChange,
+	onValueChange,
 	disabled,
 	readOnly,
 	placeholder = 'Sign here',
@@ -54,7 +54,7 @@ export function SignaturePad({
 	const [current, setCurrent] = useControllable<string | null>({
 		value,
 		defaultValue: defaultValue ?? null,
-		onChange: onChange ? (next) => onChange(next ?? null) : undefined,
+		onChange: onValueChange ? (next) => onValueChange(next ?? null) : undefined,
 	})
 
 	const canvasRef = useRef<HTMLCanvasElement>(null)

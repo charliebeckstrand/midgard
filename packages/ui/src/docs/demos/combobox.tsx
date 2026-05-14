@@ -26,7 +26,7 @@ function SingleComboboxExample() {
 			<Combobox
 				nullable
 				value={selected}
-				onChange={setSelected}
+				onValueChange={setSelected}
 				displayValue={(v: string) => v}
 				placeholder="Select a person"
 			>
@@ -53,7 +53,7 @@ function MultiComboboxExample() {
 			<Combobox
 				multiple
 				value={selected}
-				onChange={setSelected}
+				onValueChange={setSelected}
 				displayValue={(v: string) => v}
 				placeholder={selected.length ? `${selected.length} selected` : 'Select people'}
 			>

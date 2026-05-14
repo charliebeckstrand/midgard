@@ -41,7 +41,9 @@ describe('useDatePickerRangeState', () => {
 		it('first click sets rangeStart and does not commit yet', () => {
 			const onChange = vi.fn()
 
-			const { result } = renderHook(() => useDatePickerRangeState({ range: true, onChange }))
+			const { result } = renderHook(() =>
+				useDatePickerRangeState({ range: true, onValueChange: onChange }),
+			)
 
 			act(() => result.current.onOpenChange(true))
 
@@ -56,7 +58,9 @@ describe('useDatePickerRangeState', () => {
 		it('second click stages the range and closes; commit happens on exit', () => {
 			const onChange = vi.fn()
 
-			const { result } = renderHook(() => useDatePickerRangeState({ range: true, onChange }))
+			const { result } = renderHook(() =>
+				useDatePickerRangeState({ range: true, onValueChange: onChange }),
+			)
 
 			act(() => result.current.onOpenChange(true))
 
@@ -78,7 +82,9 @@ describe('useDatePickerRangeState', () => {
 		it('swaps endpoints when the second click is earlier than the first', () => {
 			const onChange = vi.fn()
 
-			const { result } = renderHook(() => useDatePickerRangeState({ range: true, onChange }))
+			const { result } = renderHook(() =>
+				useDatePickerRangeState({ range: true, onValueChange: onChange }),
+			)
 
 			act(() => result.current.onOpenChange(true))
 
@@ -94,7 +100,9 @@ describe('useDatePickerRangeState', () => {
 		it('allows a same-day selection (start === end)', () => {
 			const onChange = vi.fn()
 
-			const { result } = renderHook(() => useDatePickerRangeState({ range: true, onChange }))
+			const { result } = renderHook(() =>
+				useDatePickerRangeState({ range: true, onValueChange: onChange }),
+			)
 
 			act(() => result.current.onOpenChange(true))
 
@@ -151,7 +159,7 @@ describe('useDatePickerRangeState', () => {
 				useDatePickerRangeState({
 					range: true,
 					defaultValue: [Jan1, Jan31],
-					onChange,
+					onValueChange: onChange,
 				}),
 			)
 
@@ -230,7 +238,7 @@ describe('useDatePickerRangeState', () => {
 					range: true,
 					min: Jan1,
 					max: Jan31,
-					onChange,
+					onValueChange: onChange,
 				}),
 			)
 

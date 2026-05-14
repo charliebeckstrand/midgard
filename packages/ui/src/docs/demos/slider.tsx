@@ -23,7 +23,7 @@ function InteractiveExample() {
 			title="Default"
 			actions={<ValueStepper value={value} onChange={setValue} max={100} step={10} />}
 		>
-			<Slider value={value} onChange={setValue} />
+			<Slider value={value} onValueChange={setValue} />
 			<Text className="tabular-nums">{value}</Text>
 		</Example>
 	)
@@ -35,7 +35,7 @@ function StepSliderExample() {
 	return (
 		<>
 			{' '}
-			<Slider min={0} max={1} step={0.1} value={ratio} onChange={setRatio} color="red" />
+			<Slider min={0} max={1} step={0.1} value={ratio} onValueChange={setRatio} color="red" />
 			<Text className="tabular-nums">{ratio.toFixed(1)}</Text>
 		</>
 	)
@@ -46,7 +46,7 @@ function RangeSliderExample() {
 
 	return (
 		<>
-			<RangeSlider value={range} onChange={setRange} color="amber" />
+			<RangeSlider value={range} onValueChange={setRange} color="amber" />
 			<Text className="tabular-nums">
 				{range[0]} – {range[1]}
 			</Text>
@@ -69,7 +69,7 @@ function RangeStepSliderExample() {
 					step={0.1}
 					value={rangeClamped}
 					allowCross={false}
-					onChange={setRangeClamped}
+					onValueChange={setRangeClamped}
 					color="green"
 				/>
 
@@ -87,7 +87,7 @@ function RangeStepSliderExample() {
 					step={0.1}
 					value={rangeSwap}
 					allowCross={true}
-					onChange={setRangeSwap}
+					onValueChange={setRangeSwap}
 					color="green"
 				/>
 

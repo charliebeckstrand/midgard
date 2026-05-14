@@ -11,7 +11,12 @@ import {
 	useCallback,
 } from 'react'
 import { cn } from '../../core'
+import { Checkbox } from '../checkbox'
 import { Description, Field, Label, Message } from '../fieldset'
+import { Input } from '../input'
+import { Radio } from '../radio'
+import { Switch } from '../switch'
+import { Textarea } from '../textarea'
 import { useFilters } from './context'
 
 function isSyntheticEvent(v: unknown): v is SyntheticEvent<HTMLInputElement> {
@@ -24,9 +29,18 @@ function isDecoration(child: ReactElement): boolean {
 	return DECORATION_TYPES.has(child.type as ElementType)
 }
 
+// Children that take a DOM ChangeEvent on `onChange`; everything else gets the
+// value-shaped `onValueChange`. The same dispatcher handles both at runtime,
+// only the prop name differs.
+const EVENT_CALLBACK_TYPES = new Set<ElementType>([Input, Textarea, Checkbox, Switch, Radio])
+
+function expectsEventCallback(child: ReactElement): boolean {
+	return EVENT_CALLBACK_TYPES.has(child.type as ElementType)
+}
+
 export type FiltersFieldRenderProps = {
 	value: unknown
-	onChange: (value: unknown) => void
+	onValueChange: (value: unknown) => void
 }
 
 export type FiltersFieldProps = {
@@ -55,7 +69,10 @@ export function FiltersField({ name, children, className }: FiltersFieldProps) {
 
 	// Render prop pattern
 	if (typeof children === 'function') {
-		const renderProps: FiltersFieldRenderProps = { value: fieldValue, onChange: handleChange }
+		const renderProps: FiltersFieldRenderProps = {
+			value: fieldValue,
+			onValueChange: handleChange,
+		}
 
 		return (
 			<Field data-slot="filter-field" className={cn('w-full', className)}>
@@ -78,9 +95,11 @@ export function FiltersField({ name, children, className }: FiltersFieldProps) {
 
 		controlCloned = true
 
+		const handlerProp = expectsEventCallback(child) ? 'onChange' : 'onValueChange'
+
 		return cloneElement(child as ReactElement<Record<string, unknown>>, {
 			value: fieldValue ?? null,
-			onChange: handleChange,
+			[handlerProp]: handleChange,
 		})
 	})
 

@@ -18,14 +18,14 @@ import type { QueryField, QueryRule } from './types'
 export type QueryBuilderRuleValueProps = {
 	field: QueryField
 	value: unknown
-	onChange: (value: unknown) => void
+	onValueChange: (value: unknown) => void
 	className?: string
 }
 
 export function QueryBuilderRuleValue({
 	field,
 	value,
-	onChange,
+	onValueChange,
 	className,
 }: QueryBuilderRuleValueProps) {
 	if (field.type === 'select') {
@@ -33,7 +33,7 @@ export function QueryBuilderRuleValue({
 			<Select
 				value={(value as string | undefined) ?? ''}
 				displayValue={(v: string) => field.options?.find((o) => o.value === v)?.label ?? ''}
-				onChange={(v: string | undefined) => onChange(v ?? '')}
+				onValueChange={(v: string | undefined) => onValueChange(v ?? '')}
 				placeholder="Value"
 				className={className}
 			>
@@ -54,7 +54,7 @@ export function QueryBuilderRuleValue({
 				placeholder="Value"
 				onChange={(e) => {
 					const next = e.target.value
-					onChange(next === '' ? '' : Number(next))
+					onValueChange(next === '' ? '' : Number(next))
 				}}
 			/>
 		)
@@ -67,7 +67,7 @@ export function QueryBuilderRuleValue({
 			<DatePicker
 				value={dateValue}
 				placeholder="Value"
-				onChange={(d) => onChange(d ? d.toISOString().slice(0, 10) : '')}
+				onValueChange={(d) => onValueChange(d ? d.toISOString().slice(0, 10) : '')}
 			/>
 		)
 	}
@@ -77,7 +77,7 @@ export function QueryBuilderRuleValue({
 			type="text"
 			value={(value as string | undefined) ?? ''}
 			placeholder="Value"
-			onChange={(e) => onChange(e.target.value)}
+			onChange={(e) => onValueChange(e.target.value)}
 		/>
 	)
 }
@@ -145,7 +145,7 @@ function QueryBuilderRuleImpl({ rule, className }: QueryBuilderRuleProps) {
 				<Select
 					value={rule.field}
 					displayValue={displayField}
-					onChange={onFieldChange}
+					onValueChange={onFieldChange}
 					placeholder="Field"
 					className="w-full"
 				>
@@ -159,7 +159,7 @@ function QueryBuilderRuleImpl({ rule, className }: QueryBuilderRuleProps) {
 				<Select
 					value={rule.operator}
 					displayValue={displayOperator}
-					onChange={onOperatorChange}
+					onValueChange={onOperatorChange}
 					placeholder="Operator"
 					className="w-full"
 				>
@@ -174,7 +174,7 @@ function QueryBuilderRuleImpl({ rule, className }: QueryBuilderRuleProps) {
 					<QueryBuilderRuleValue
 						field={field}
 						value={rule.value}
-						onChange={onValueChange}
+						onValueChange={onValueChange}
 						className="w-full"
 					/>
 				)}

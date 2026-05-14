@@ -56,7 +56,7 @@ describe('TagInput', () => {
 	it('adds a tag on Enter', async () => {
 		const onChange = vi.fn()
 
-		const { container } = renderUI(<TagInput onChange={onChange} />)
+		const { container } = renderUI(<TagInput onValueChange={onChange} />)
 
 		const input = getInput(container)
 
@@ -70,7 +70,7 @@ describe('TagInput', () => {
 	it('adds a tag on comma', async () => {
 		const onChange = vi.fn()
 
-		const { container } = renderUI(<TagInput onChange={onChange} />)
+		const { container } = renderUI(<TagInput onValueChange={onChange} />)
 
 		const input = getInput(container)
 
@@ -84,7 +84,7 @@ describe('TagInput', () => {
 	it('adds a tag on blur', async () => {
 		const onChange = vi.fn()
 
-		const { container } = renderUI(<TagInput onChange={onChange} />)
+		const { container } = renderUI(<TagInput onValueChange={onChange} />)
 
 		const input = getInput(container)
 
@@ -99,7 +99,7 @@ describe('TagInput', () => {
 	it('does not add duplicate tags', async () => {
 		const onChange = vi.fn()
 
-		const { container } = renderUI(<TagInput defaultValue={['react']} onChange={onChange} />)
+		const { container } = renderUI(<TagInput defaultValue={['react']} onValueChange={onChange} />)
 
 		const input = getInput(container)
 
@@ -113,7 +113,9 @@ describe('TagInput', () => {
 	it('removes a tag via its remove button', async () => {
 		const onChange = vi.fn()
 
-		const { container } = renderUI(<TagInput defaultValue={['react', 'vue']} onChange={onChange} />)
+		const { container } = renderUI(
+			<TagInput defaultValue={['react', 'vue']} onValueChange={onChange} />,
+		)
 
 		const user = userEvent.setup()
 
@@ -129,7 +131,9 @@ describe('TagInput', () => {
 	it('removes last tag on Backspace when input is empty', async () => {
 		const onChange = vi.fn()
 
-		const { container } = renderUI(<TagInput defaultValue={['react', 'vue']} onChange={onChange} />)
+		const { container } = renderUI(
+			<TagInput defaultValue={['react', 'vue']} onValueChange={onChange} />,
+		)
 
 		const input = getInput(container)
 
@@ -145,7 +149,7 @@ describe('TagInput', () => {
 		const onChange = vi.fn()
 
 		const { container } = renderUI(
-			<TagInput defaultValue={['a', 'b']} max={2} onChange={onChange} />,
+			<TagInput defaultValue={['a', 'b']} max={2} onValueChange={onChange} />,
 		)
 
 		const input = getInput(container)
@@ -162,7 +166,7 @@ describe('TagInput', () => {
 
 		const validate = (tag: string) => tag.length >= 2
 
-		const { container } = renderUI(<TagInput validate={validate} onChange={onChange} />)
+		const { container } = renderUI(<TagInput validate={validate} onValueChange={onChange} />)
 
 		const input = getInput(container)
 

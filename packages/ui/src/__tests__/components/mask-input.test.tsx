@@ -49,7 +49,7 @@ describe('MaskInput', () => {
 	it('applies the format as the user types', async () => {
 		const onChange = vi.fn()
 
-		const { container } = renderUI(<MaskInput format={formatGroups} onChange={onChange} />)
+		const { container } = renderUI(<MaskInput format={formatGroups} onValueChange={onChange} />)
 
 		const input = bySlot(container, 'input') as HTMLInputElement
 
