@@ -22,8 +22,9 @@ import { popover as kPopover } from '../../recipes/kata/popover'
 import { Button } from '../button'
 import { type ControlSize, useControl } from '../control/context'
 import { useGlass } from '../glass/context'
+import { Headless } from '../headless'
 import { Icon } from '../icon'
-import { HeadlessInput } from '../input'
+import { Input } from '../input'
 import { Placeholder } from '../placeholder'
 import { SelectTrigger } from '../select/trigger'
 import { useSkeleton } from '../skeleton/context'
@@ -257,23 +258,25 @@ export function Combobox<T>({
 					) : undefined
 				}
 			>
-				<HeadlessInput
-					id={id}
-					ref={inputRef}
-					type={inputType}
-					role="combobox"
-					aria-haspopup="listbox"
-					aria-expanded={open}
-					aria-controls={open ? listboxId : undefined}
-					aria-autocomplete="list"
-					data-slot="combobox-input"
-					autoComplete={autoComplete}
-					disabled={resolvedDisabled}
-					value={inputDisplay}
-					placeholder={placeholder}
-					className={cn(k.input)}
-					{...inputHandlers}
-				/>
+				<Headless>
+					<Input
+						id={id}
+						ref={inputRef}
+						type={inputType}
+						role="combobox"
+						aria-haspopup="listbox"
+						aria-expanded={open}
+						aria-controls={open ? listboxId : undefined}
+						aria-autocomplete="list"
+						data-slot="combobox-input"
+						autoComplete={autoComplete}
+						disabled={resolvedDisabled}
+						value={inputDisplay}
+						placeholder={placeholder}
+						className={cn(k.input)}
+						{...inputHandlers}
+					/>
+				</Headless>
 			</SelectTrigger>
 
 			<FloatingPortal>
