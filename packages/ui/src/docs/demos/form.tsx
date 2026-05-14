@@ -5,7 +5,7 @@ import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'
 import { Checkbox, CheckboxField } from '../../components/checkbox'
 import { Control } from '../../components/control'
-import { ErrorMessage, Field, Label } from '../../components/fieldset'
+import { Field, Label, Message } from '../../components/fieldset'
 import { Flex } from '../../components/flex'
 import { Form, useFormContext } from '../../components/form'
 import { Input } from '../../components/input'
@@ -106,7 +106,7 @@ function ValidationFormExample() {
 			title="Validation"
 			code={code`
 				import { Form } from 'ui/form'
-				import { Field, Label, ErrorMessage } from 'ui/fieldset'
+				import { Field, Label, Message } from 'ui/fieldset'
 				import { Input } from 'ui/input'
 				import { PasswordInput } from 'ui/password-input'
 				import { Button } from 'ui/button'
@@ -137,17 +137,17 @@ function ValidationFormExample() {
 						<Field>
 							<Label>Email</Label>
 							<Input name="email" type="email" placeholder="jane@example.com" />
-							<ErrorMessage name="email" />
+							<Message name="email" />
 						</Field>
 						<Field>
 							<Label>Password</Label>
 							<PasswordInput name="password" placeholder="Min 8 characters" />
-							<ErrorMessage name="password" />
+							<Message name="password" />
 						</Field>
 						<Field>
 							<Label>Confirm password</Label>
 							<PasswordInput name="confirmPassword" placeholder="Re-enter password" />
-							<ErrorMessage name="confirmPassword" />
+							<Message name="confirmPassword" />
 						</Field>
 						<Button type="submit">Create account</Button>
 					</Stack>
@@ -182,17 +182,17 @@ function ValidationFormExample() {
 					<Field autoComplete="email">
 						<Label>Email</Label>
 						<Input name="email" type="email" placeholder="jane@example.com" />
-						<ErrorMessage name="email" />
+						<Message name="email" />
 					</Field>
 					<Field autoComplete="new-password">
 						<Label>Password</Label>
 						<PasswordInput name="password" placeholder="Min 8 characters" />
-						<ErrorMessage name="password" />
+						<Message name="password" />
 					</Field>
 					<Field autoComplete="new-password">
 						<Label>Confirm password</Label>
 						<PasswordInput name="confirmPassword" placeholder="Re-enter password" />
-						<ErrorMessage name="confirmPassword" />
+						<Message name="confirmPassword" />
 					</Field>
 					<Flex gap="sm">
 						<Button type="submit">Create account</Button>
@@ -234,7 +234,7 @@ function DirtyTouchedFormExample() {
 			title="Dirty + touched tracking"
 			code={code`
 				import { Form } from 'ui/form'
-				import { Field, Label, ErrorMessage } from 'ui/fieldset'
+				import { Field, Label, Message } from 'ui/fieldset'
 				import { Input } from 'ui/input'
 				import { Button } from 'ui/button'
 				import { Stack } from 'ui/stack'
@@ -252,12 +252,12 @@ function DirtyTouchedFormExample() {
 					<Field>
 						<Label>Username</Label>
 						<Input name="username" />
-						<ErrorMessage name="username" />
+						<Message name="username" />
 					</Field>
 					<Field>
 						<Label>Bio</Label>
 						<Textarea name="bio" placeholder="Tell us about yourself" />
-						<ErrorMessage name="bio" />
+						<Message name="bio" />
 					</Field>
 
 					<Button type="submit">Save</Button>
@@ -281,12 +281,12 @@ function DirtyTouchedFormExample() {
 					<Field autoComplete="username">
 						<Label>Username</Label>
 						<Input name="username" />
-						<ErrorMessage name="username" />
+						<Message name="username" />
 					</Field>
 					<Field>
 						<Label>Bio</Label>
 						<Textarea name="bio" placeholder="Tell us about yourself" rows={3} autoResize />
-						<ErrorMessage name="bio" />
+						<Message name="bio" />
 					</Field>
 
 					<FormStatusDisplay />
@@ -314,7 +314,7 @@ function ServerErrorFormExample() {
 			title="Server error injection"
 			code={code`
 				import { Form } from 'ui/form'
-				import { Field, Label, ErrorMessage } from 'ui/fieldset'
+				import { Field, Label, Message } from 'ui/fieldset'
 				import { Input } from 'ui/input'
 				import { Button } from 'ui/button'
 				import { Stack } from 'ui/stack'
@@ -341,7 +341,7 @@ function ServerErrorFormExample() {
 						<Field>
 							<Label>Username</Label>
 							<Input name="username" placeholder="Pick a username" loading={loading} />
-							<ErrorMessage name="username" />
+							<Message name="username" />
 						</Field>
 						<Button type="submit">Register</Button>
 					</Stack>
@@ -367,7 +367,7 @@ function ServerErrorFormExample() {
 					<Field autoComplete="username">
 						<Label>Username</Label>
 						<Input name="username" placeholder="Pick a username" loading={loading} />
-						<ErrorMessage name="username" />
+						<Message name="username" />
 					</Field>
 					<Button type="submit">Register</Button>
 				</Stack>
@@ -407,7 +407,7 @@ function ToggleFormExample() {
 								<Label>Accept terms and conditions</Label>
 							</CheckboxField>
 						</Control>
-						<ErrorMessage name="terms" />
+						<Message name="terms" />
 						<Control>
 							<CheckboxField>
 								<Checkbox name="newsletter" />
@@ -443,7 +443,7 @@ function ToggleFormExample() {
 							<Checkbox name="terms" />
 							<Label>Accept terms and conditions</Label>
 						</CheckboxField>
-						<ErrorMessage name="terms" />
+						<Message name="terms" />
 					</Control>
 					<Control>
 						<CheckboxField>

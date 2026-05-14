@@ -1,6 +1,0 @@
-# Commits to skip when running `git blame`. See `git config blame.ignoreRevsFile`.
-
-# Bulk filename sweep — packages/ui components renamed to <folder>.tsx and
-# folder-prefixed sub-files per CLAUDE.md "File naming". Pure rename + import
-# updates; no logic changes.
-5651334318ec9439699e202d7144a8dc633d99e7

@@ -1,6 +1,6 @@
 export { Description, type DescriptionProps } from './description'
-export { ErrorMessage, type ErrorMessageProps } from './error-message'
 export { Field, type FieldProps } from './field'
 export { Fieldset, type FieldsetProps } from './fieldset'
 export { Label, type LabelProps } from './label'
 export { Legend, type LegendProps } from './legend'
+export { Message, type MessageProps, type MessageVariant } from './message'

@@ -44,6 +44,8 @@
 		"docs:preview": "vite preview --config vite.docs.config.ts --port 3456",
 		"test": "vitest run",
 		"test:watch": "vitest",
+		"test:changed": "vitest run --changed",
+		"test:related": "vitest related --run",
 		"bench": "vitest bench --run --config vitest.bench.config.ts",
 		"check-types": "tsc --noEmit && tsc --noEmit -p tsconfig.scripts.json",
 		"lint": "biome check --config-path=../.. .",

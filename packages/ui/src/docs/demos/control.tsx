@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Alert, AlertDescription } from '../../components/alert'
 import { Button } from '../../components/button'
 import { Control } from '../../components/control'
-import { ErrorMessage, Fieldset, Label, Legend } from '../../components/fieldset'
+import { Fieldset, Label, Legend, Message } from '../../components/fieldset'
 import { Form } from '../../components/form'
 import { Input } from '../../components/input'
 import { Stack } from '../../components/stack'
@@ -57,7 +57,7 @@ export default function ControlDemo() {
 				<Control invalid>
 					<Label>Email</Label>
 					<Input type="email" />
-					<ErrorMessage>Please enter a valid email.</ErrorMessage>
+					<Message>Please enter a valid email.</Message>
 				</Control>
 			</Example>
 
