@@ -1,18 +1,14 @@
 'use client'
 
-import type {
-	SelectDescriptionProps,
-	SelectLabelProps,
-	SelectOptionProps,
-} from '../../primitives/option'
+import type { OptionDescriptionProps, OptionLabelProps, OptionProps } from '../../primitives/option'
 import { createSelectOption } from '../../primitives/option'
 import { useListboxContext } from './listbox'
 
-export type ListboxOptionProps = SelectOptionProps
+export type ListboxOptionProps = OptionProps
 
-export type ListboxLabelProps = SelectLabelProps
+export type ListboxLabelProps = OptionLabelProps
 
-export type ListboxDescriptionProps = SelectDescriptionProps
+export type ListboxDescriptionProps = OptionDescriptionProps
 
 const { Option, Label, Description } = createSelectOption({
 	slotPrefix: 'listbox',

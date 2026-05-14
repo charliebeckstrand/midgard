@@ -28,10 +28,10 @@ export {
 	type BaseOptionProps,
 	createSelectOption,
 	OptionDescription,
+	type OptionDescriptionProps,
 	OptionLabel,
-	type SelectDescriptionProps,
-	type SelectLabelProps,
-	type SelectOptionProps,
+	type OptionLabelProps,
+	type OptionProps,
 } from './option'
 export { Overlay, type OverlayProps } from './overlay'
 export {

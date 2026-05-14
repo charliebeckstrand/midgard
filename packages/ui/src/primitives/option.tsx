@@ -78,7 +78,7 @@ export function OptionDescription({
 	)
 }
 
-export type SelectOptionProps = {
+export type OptionProps = {
 	value: unknown
 	disabled?: boolean
 	icon?: ReactNode
@@ -86,9 +86,9 @@ export type SelectOptionProps = {
 	children?: ReactNode
 }
 
-export type SelectLabelProps = ComponentPropsWithoutRef<'span'>
+export type OptionLabelProps = ComponentPropsWithoutRef<'span'>
 
-export type SelectDescriptionProps = ComponentPropsWithoutRef<'span'>
+export type OptionDescriptionProps = ComponentPropsWithoutRef<'span'>
 
 /** Factory for select-like option components. Only the data-slot prefix and context hook differ. */
 export function createSelectOption(config: {
@@ -99,7 +99,7 @@ export function createSelectOption(config: {
 		select: (value: unknown) => void
 	}
 }) {
-	function Option({ value, disabled, icon, className, children }: SelectOptionProps) {
+	function Option({ value, disabled, icon, className, children }: OptionProps) {
 		const { value: selectedValue, multiple, select } = config.useContext()
 
 		const selected =
@@ -121,11 +121,11 @@ export function createSelectOption(config: {
 		)
 	}
 
-	function Label({ className, ...props }: SelectLabelProps) {
+	function Label({ className, ...props }: OptionLabelProps) {
 		return <OptionLabel data-slot={`${config.slotPrefix}-label`} className={className} {...props} />
 	}
 
-	function Description({ className, ...props }: SelectDescriptionProps) {
+	function Description({ className, ...props }: OptionDescriptionProps) {
 		return (
 			<OptionDescription
 				data-slot={`${config.slotPrefix}-description`}
