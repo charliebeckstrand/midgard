@@ -2,23 +2,27 @@
 
 import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
 import { cn } from '../../core'
+import { useIdScope } from '../../hooks/use-id-scope'
 import { ControlFrame, useConcentric } from '../../primitives'
 import { kokkaku } from '../../recipes'
 import { controlVariants, type InputVariants, inputVariants, k } from '../../recipes/kata/input'
 import { useControl } from '../control/context'
+import { invalidAttrs } from '../control/control-invalid-attrs'
 import { useFormText } from '../form/context'
 import { useGlass } from '../glass/context'
+import { useHeadless } from '../headless/context'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
 import { Spinner } from '../spinner'
 import { InputSizeProvider } from './context'
-import { HeadlessInput } from './headless'
 
 export type InputProps = Omit<InputVariants, 'size'> & {
 	size?: 'sm' | 'md' | 'lg'
 	loading?: boolean
 	prefix?: ReactNode
 	suffix?: ReactNode
+	/** Forces the invalid state. When omitted, inherits from Control / Form context. */
+	invalid?: boolean
 	ref?: Ref<HTMLInputElement>
 	className?: string
 	'data-group'?: string
@@ -44,6 +48,7 @@ export function Input(props: InputProps) {
 		required,
 		readOnly,
 		autoComplete,
+		invalid,
 		name,
 		value,
 		onChange,
@@ -57,6 +62,7 @@ export function Input(props: InputProps) {
 	const concentric = useConcentric()
 	const control = useControl()
 	const glass = useGlass()
+	const headless = useHeadless()
 	const skeleton = useSkeleton()
 
 	const binding = useFormText(name, { onChange, onBlur })
@@ -70,9 +76,41 @@ export function Input(props: InputProps) {
 	// coerce to '' so the native input stays controlled instead of flipping uncontrolled.
 	const controlledValue = hasValueProp ? (value ?? '') : value
 
-	const resolvedVariant = variant ?? control?.variant ?? (glass ? 'glass' : undefined)
+	const scope = useIdScope({ id: id ?? control?.id })
 
-	const resolvedInvalid = (control?.invalid || binding?.invalid) ?? undefined
+	const resolvedDisabled = disabled ?? control?.disabled
+	const resolvedRequired = required ?? control?.required
+	const resolvedReadOnly = readOnly ?? control?.readOnly
+	const resolvedAutoComplete = autoComplete ?? control?.autoComplete
+	const resolvedInvalid = invalid ?? control?.invalid ?? binding?.invalid
+
+	const resolvedValue = bound ? binding.value : controlledValue
+	const resolvedOnChange = bound ? binding.onChange : onChange
+	const resolvedOnBlur = bound ? binding.onBlur : onBlur
+
+	if (headless) {
+		return (
+			<input
+				ref={ref}
+				data-slot="input"
+				type={type}
+				id={scope.id}
+				name={name}
+				autoComplete={resolvedAutoComplete}
+				disabled={resolvedDisabled}
+				required={resolvedRequired}
+				readOnly={resolvedReadOnly}
+				value={resolvedValue}
+				onChange={resolvedOnChange}
+				onBlur={resolvedOnBlur}
+				className={className}
+				{...invalidAttrs(resolvedInvalid)}
+				{...rest}
+			/>
+		)
+	}
+
+	const resolvedVariant = variant ?? control?.variant ?? (glass ? 'glass' : undefined)
 
 	// Resolution order: explicit prop, then any wrapping <Field> control
 	// context, then the ambient concentric size.
@@ -107,25 +145,26 @@ export function Input(props: InputProps) {
 					</span>
 				)}
 
-				<HeadlessInput
+				<input
 					ref={ref}
+					data-slot="input"
 					type={type}
-					id={id}
+					id={scope.id}
 					name={name}
-					autoComplete={autoComplete}
-					disabled={disabled}
-					required={required}
-					readOnly={readOnly}
-					invalid={resolvedInvalid}
-					value={bound ? binding.value : controlledValue}
-					onChange={bound ? binding.onChange : onChange}
-					onBlur={bound ? binding.onBlur : onBlur}
+					autoComplete={resolvedAutoComplete}
+					disabled={resolvedDisabled}
+					required={resolvedRequired}
+					readOnly={resolvedReadOnly}
+					value={resolvedValue}
+					onChange={resolvedOnChange}
+					onBlur={resolvedOnBlur}
 					className={cn(
 						inputVariants({ variant: resolvedVariant, size: resolvedSize }),
 						resolvedPrefix && k.autofill.prefix[resolvedSize],
 						resolvedSuffix && k.autofill.suffix[resolvedSize],
 						className,
 					)}
+					{...invalidAttrs(resolvedInvalid)}
 					{...rest}
 				/>
 

@@ -21,6 +21,7 @@ import {
 import { kokkaku } from '../../recipes'
 import { type ButtonVariants, buttonVariants } from '../../recipes/kata/button'
 import { useGlass } from '../glass/context'
+import { useHeadless } from '../headless/context'
 import { Icon } from '../icon'
 import { useInputSize } from '../input/context'
 import { Link } from '../link'
@@ -89,8 +90,43 @@ export function Button({
 
 	const concentric = useConcentric()
 	const glass = useGlass()
+	const headless = useHeadless()
 	const inputSize = useInputSize()
 	const skeleton = useSkeleton()
+
+	const { onPointerDown: handleRipple, element: rippleElement } = useRipple()
+
+	if (headless) {
+		if (href !== undefined) {
+			return (
+				<Link
+					data-slot="button"
+					href={href}
+					className={className}
+					{...(props as Omit<ComponentPropsWithoutRef<typeof Link>, 'href' | 'className'>)}
+					{...(loading && { 'aria-disabled': true, 'data-disabled': true, 'aria-busy': true })}
+				>
+					{children}
+				</Link>
+			)
+		}
+
+		const bareButtonProps = props as Omit<ComponentPropsWithoutRef<'button'>, 'className'>
+
+		return (
+			<button
+				ref={ref}
+				data-slot="button"
+				type="button"
+				className={className}
+				{...bareButtonProps}
+				disabled={loading || bareButtonProps.disabled}
+				aria-busy={loading || undefined}
+			>
+				{children}
+			</button>
+		)
+	}
 
 	const resolvedVariant = variant ?? (glass ? 'glass' : undefined)
 
@@ -99,8 +135,6 @@ export function Button({
 	// grouping context. Component's own default kicks in only when all of
 	// these are absent.
 	const resolvedSize = size ?? concentric?.size ?? inputSize
-
-	const { onPointerDown: handleRipple, element: rippleElement } = useRipple()
 
 	const springMotion = springProps(spring)
 

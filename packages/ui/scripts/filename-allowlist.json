@@ -6,6 +6,5 @@
 	"fieldset/field.tsx",
 	"fieldset/label.tsx",
 	"fieldset/legend.tsx",
-	"fieldset/message.tsx",
-	"input/headless.tsx"
+	"fieldset/message.tsx"
 ]
