@@ -5,7 +5,10 @@ import { k } from '../../recipes/kata/sidebar'
 import type { Step } from '../../recipes/ryu/sun'
 import { Icon } from '../icon'
 
-export type SidebarItemProps = BaseNavItemProps
+export type SidebarItemProps = BaseNavItemProps & {
+	/** Size step. Resolves through `explicit ?? Concentric ?? 'md'`. */
+	size?: Step
+}
 
 export type SidebarLabelProps = ComponentPropsWithoutRef<'span'>
 

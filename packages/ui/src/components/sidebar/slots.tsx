@@ -21,7 +21,11 @@ export function SidebarHeader({ className, children, closeIcon, ...props }: Side
 	const offcanvas = use(OffcanvasContext)
 
 	return (
-		<div data-slot="sidebar-header" className={cn(k.header, className)} {...props}>
+		<div
+			data-slot="sidebar-header"
+			className={cn(k.header, offcanvas ? 'justify-between' : 'justify-center', className)}
+			{...props}
+		>
 			{children}
 			{offcanvas && (
 				<Button

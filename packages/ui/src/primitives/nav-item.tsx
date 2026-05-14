@@ -20,8 +20,6 @@ import { TouchTarget } from './touch-target'
 export type NavItemProps = {
 	icon?: ReactElement
 	current?: boolean
-	/** Size step. Resolves through `explicit ?? Concentric ?? 'md'`. */
-	size?: Step
 	className?: string
 	preventClose?: boolean
 	spring?: boolean
@@ -54,7 +52,7 @@ export function createNavItem(config: NavItemConfig) {
 		spring = false,
 		onClick,
 		...props
-	}: NavItemProps) {
+	}: NavItemProps & { size?: Step }) {
 		const itemRef = useRef<HTMLSpanElement>(null)
 
 		const indicator = useActiveIndicator()
