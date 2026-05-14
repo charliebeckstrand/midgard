@@ -63,13 +63,16 @@ Skip files outside any package (root configs, top-level docs) when scoping the t
 
 ## 3. Run tests for the touched packages
 
-Build the test command using Turbo:
+Run the smallest test command that still covers the diff. Never default to the full package suite — that's the pre-commit gate's job. For each touched package whose manifest entry has `scripts.test` set, pick a command by runner:
 
-```
-<pm> turbo test --filter=<pkg-1> --filter=<pkg-2>
-```
+- **`testRunner: vitest`** —
+  - *Diff mode* (this skill is reviewing a staged diff): `<pm> --filter=<pkg> exec vitest run --changed`. Vitest walks the dep graph from `git status` and runs only the tests that transitively import a changed file.
+  - *File mode* (this skill is reviewing one freshly-written file): `<pm> --filter=<pkg> exec vitest related --run <file>...`. Runs every test that imports the given file.
+  - If the diff touches a fan-out file (`recipes/`, `core/`, `primitives/`, a barrel) the scoped run widens to the full suite anyway — that's fine, let it run.
+- **`testRunner: jest`** — diff mode: `<pm> --filter=<pkg> exec jest --onlyChanged`; file mode: `<pm> --filter=<pkg> exec jest --findRelatedTests <file>...`.
+- **`testRunner: bun` or `node`** — no scoped flag. Fall back to `<pm> turbo test --filter=<pkg>` for those packages.
 
-Pass one `--filter` per touched package in a single command. Substitute `<pm>` with the `packageManager` from the manifest. Only include packages whose manifest entry has `scripts.test` set.
+Substitute `<pm>` with the `packageManager` from the manifest. When several touched packages have different runners, run each separately rather than a single `turbo test`.
 
 For every test file present in the diff itself (diff mode) or every newly-created test file (file mode), confirm:
 

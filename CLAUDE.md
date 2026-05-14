@@ -49,6 +49,16 @@ Every component or hook file must also export a symbol whose PascalCase (or `use
 
 For non-trivial work (three or more steps), enter planning mode before writing code. Delegate research to subagents — one focused task per agent — and keep the main context window clean. Summarize at milestones, not line by line.
 
+## Testing
+
+`packages/ui` is the only package with a test runner (`vitest`). The full suite is the lefthook pre-commit gate — that one run is the source of truth for "everything green". **Inside the editing loop, never invoke `pnpm --filter ui test` or `pnpm test`.** Run a scoped subset instead and let lefthook catch anything the scoped run missed at commit time.
+
+- **Known test files** (after editing a component whose test file is obvious): `pnpm --filter ui exec vitest run <test-file>...`. Fastest path — runs only the named files.
+- **Unknown tests for a source file**: `pnpm --filter ui test:related <source-file>...`. Walks the dependency graph and runs every test that transitively imports the file.
+- **Git diff**: `pnpm --filter ui test:changed`. Runs every test that imports a file in `git status`.
+
+`--changed` and `related` widen to the full suite when the change touches a fan-out file (`recipes/`, `core/`, `primitives/`, a barrel re-exported everywhere). For those, target test files by name. Skills that run tests (`/typescript:review`, `/tests:compose`, `/postmortem`) follow this convention automatically — they only fall back to the full package suite when no scoped command applies.
+
 ## Skills
 
 Project-level skills live under `.claude/commands/` and are organized into namespaces (`repo/`, `ui/`, `ui/component/`, `ui/docs/`, `audit/`, `skill/`, `tests/`) plus top-level utilities. Every skill except `/repo:manifest` opens by reading the Manifest tracked at `./manifest.json` (committed to the repo). `/postmortem` and `/premortem` create the file if it is missing; `/postmortem` additionally refreshes it when a diff invalidates it. Consumer skills stop and direct the user to run `/repo:manifest` when the file is absent — they never generate it themselves.
