@@ -2,6 +2,7 @@
 
 import type { OptionDescriptionProps, OptionLabelProps, OptionProps } from '../../primitives/option'
 import { createSelectOption } from '../../primitives/option'
+import { OptionCheckIcon } from '../option'
 import { useListboxContext } from './listbox'
 
 export type ListboxOptionProps = OptionProps
@@ -13,6 +14,7 @@ export type ListboxDescriptionProps = OptionDescriptionProps
 const { Option, Label, Description } = createSelectOption({
 	slotPrefix: 'listbox',
 	useContext: useListboxContext,
+	CheckIcon: OptionCheckIcon,
 })
 
 export { Description as ListboxDescription, Label as ListboxLabel, Option as ListboxOption }

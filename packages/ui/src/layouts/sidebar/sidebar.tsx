@@ -12,6 +12,7 @@ import { Sheet } from '../../components/sheet/sheet'
 import { cn, createContext } from '../../core'
 import { useScrollWithin } from '../../hooks'
 import { useOffcanvas } from '../../hooks/use-offcanvas'
+import { useConcentric } from '../../primitives/concentric'
 import { OffcanvasProvider } from '../../primitives/offcanvas'
 import {
 	sidebarBodyVariants,
@@ -26,7 +27,15 @@ import {
 
 const [SidebarLayoutContextProvider, useSidebarLayoutContext] = createContext<{
 	actions?: ReactNode
+	size?: 'sm' | 'md' | 'lg'
 }>('SidebarLayout', { default: {} })
+
+function navbarPaddingForSize(size: 'sm' | 'md' | 'lg'): string {
+	if (size === 'sm') return 'p-4'
+	if (size === 'lg') return 'p-8'
+
+	return 'p-6'
+}
 
 export type SidebarLayoutProps = PropsWithChildren<{
 	navbar?: ReactNode
@@ -57,6 +66,10 @@ export function SidebarLayout({
 	}, [floating])
 
 	const scrollWithin = useScrollWithin()
+
+	const ambient = useConcentric()
+
+	const size = ambient?.size ?? 'md'
 
 	return (
 		<Frame className={sidebarLayoutVariants()}>
@@ -126,7 +139,7 @@ export function SidebarLayout({
 			</Drawer>
 
 			{/* Navbar on mobile */}
-			<Flex gap="lg" align="center" className="lg:p-0 p-6 lg:hidden">
+			<Flex align="center" className={cn('lg:p-0 lg:hidden', navbarPaddingForSize(size))}>
 				<Button
 					variant="plain"
 					aria-label="Open navigation"
@@ -138,9 +151,9 @@ export function SidebarLayout({
 			</Flex>
 
 			{/* Content */}
-			<SidebarLayoutContextProvider value={{ actions }}>
+			<SidebarLayoutContextProvider value={{ actions, size }}>
 				<Frame direction="col" className={sidebarContentWrapperVariants({ floating })}>
-					<Frame direction="col" className={sidebarContentVariants({ stickyHeader })}>
+					<Frame direction="col" className={sidebarContentVariants({ size, stickyHeader })}>
 						{children}
 					</Frame>
 				</Frame>
@@ -152,10 +165,10 @@ export function SidebarLayout({
 export type SidebarLayoutHeaderProps = PropsWithChildren<{ className?: string }>
 
 export function SidebarLayoutHeader({ children, className }: SidebarLayoutHeaderProps) {
-	const { actions } = useSidebarLayoutContext()
+	const { actions, size } = useSidebarLayoutContext()
 
 	return (
-		<div data-slot="header" className={cn(sidebarHeaderVariants(), className)}>
+		<div data-slot="header" className={cn(sidebarHeaderVariants({ size }), className)}>
 			<div className="flex-1 min-w-0">{children}</div>
 			{actions && <div className="shrink-0 max-lg:hidden">{actions}</div>}
 		</div>

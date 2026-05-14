@@ -3,6 +3,7 @@
 import { type Ref, type RefObject, useCallback, useMemo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/calendar'
+import type { Step } from '../../recipes/ryu/sun'
 import {
 	Calendar,
 	type CalendarActive,
@@ -23,6 +24,8 @@ export type CalendarRangeProps = {
 	onPickerOpenChange?: (open: boolean) => void
 	footerRef?: RefObject<HTMLElement | null>
 	ref?: Ref<CalendarHandle>
+	/** Forwarded to `<Calendar>`. See its docs for the resolution chain. */
+	size?: Step
 	className?: string
 }
 
@@ -38,6 +41,7 @@ export function CalendarRange({
 	onPickerOpenChange,
 	footerRef,
 	ref,
+	size,
 	className,
 }: CalendarRangeProps) {
 	const effectiveEnd = hoverDate ?? rangeEnd
@@ -100,6 +104,7 @@ export function CalendarRange({
 			onPickerOpenChange={onPickerOpenChange}
 			getDayProps={getDayProps}
 			footerRef={footerRef}
+			size={size}
 			className={className}
 		/>
 	)

@@ -6,7 +6,12 @@ import { ugoki } from '../ryu/ugoki'
 export type TreeSize = 'sm' | 'md' | 'lg'
 
 export const tree = {
-	base: ['flex flex-col'],
+	base: [
+		'flex flex-col',
+		// Trim outer vertical padding on the edge rows so the tree sits flush with its container.
+		'[&>[data-slot=tree-item]:first-child>[role=treeitem]]:pt-0',
+		'[&>[data-slot=tree-item]:last-child>[role=treeitem]]:pb-0',
+	],
 	item: [],
 	itemContent: [
 		'flex w-full items-center',

@@ -19,12 +19,15 @@ import {
 } from 'react'
 import { cn, createContext } from '../../core'
 import { useFloatingPanel } from '../../hooks'
+import { useConcentric } from '../../primitives'
+import type { Step } from '../../recipes/ryu/sun'
 
 type MenuStateValue = {
 	open: boolean
 	floatingStyles: CSSProperties
 	getReferenceProps: () => Record<string, unknown>
 	getFloatingProps: () => Record<string, unknown>
+	size: Step
 }
 
 type MenuActionsValue = {
@@ -54,12 +57,21 @@ export function useMenuContext(): MenuContextValue {
 export type MenuProps = {
 	defaultOpen?: boolean
 	placement?: Placement
+	/**
+	 * Size step that drives menu item padding and text size.
+	 * Resolution order: explicit prop, then enclosing concentric size, then `'md'`.
+	 */
+	size?: Step
 	className?: string
 	children: ReactNode
 }
 
-export function Menu({ defaultOpen = false, placement, className, children }: MenuProps) {
+export function Menu({ defaultOpen = false, placement, size, className, children }: MenuProps) {
 	const [open, setOpen] = useState(defaultOpen)
+
+	const concentric = useConcentric()
+
+	const resolvedSize: Step = size ?? concentric?.size ?? 'md'
 
 	const [point, setPoint] = useState({ x: 0, y: 0 })
 
@@ -114,8 +126,9 @@ export function Menu({ defaultOpen = false, placement, className, children }: Me
 			floatingStyles,
 			getReferenceProps,
 			getFloatingProps,
+			size: resolvedSize,
 		}),
-		[open, floatingStyles, getReferenceProps, getFloatingProps],
+		[open, floatingStyles, getReferenceProps, getFloatingProps, resolvedSize],
 	)
 
 	const actions = useMemo<MenuActionsValue>(

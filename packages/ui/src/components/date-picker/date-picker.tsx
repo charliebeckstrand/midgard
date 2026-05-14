@@ -2,10 +2,10 @@
 
 import type { Placement } from '@floating-ui/react'
 import { cn } from '../../core'
-import { useJoin } from '../../primitives'
+import { useConcentric, useJoin } from '../../primitives'
 import { kokkaku } from '../../recipes'
 import { Calendar } from '../calendar'
-import { useControl } from '../control/context'
+import { type ControlSize, useControl } from '../control/context'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
 import { DatePickerContent } from './date-picker-content'
@@ -33,6 +33,18 @@ export type DatePickerBaseProps = {
 	max?: Date
 	placeholder?: string
 	placement?: Placement
+	/**
+	 * Size step that drives trigger padding, text size, and the calendar icon.
+	 * Resolution order: explicit prop, then `<Control>`, then enclosing concentric size, then `'md'`.
+	 */
+	size?: ControlSize
+	/**
+	 * Truncate the displayed date label when it overflows the trigger.
+	 * Set `false` to let the trigger grow to fit its content — useful inside a
+	 * `<Group>` or any other content-sized parent that would otherwise collapse
+	 * the label. @default true
+	 */
+	truncate?: boolean
 	className?: string
 	disabled?: boolean
 	'data-group'?: string
@@ -43,18 +55,19 @@ export type DatePickerProps = DatePickerBaseProps & (DatePickerSingleProps | Dat
 
 export function DatePicker(props: DatePickerProps) {
 	const control = useControl()
+	const concentric = useConcentric()
 	const skeleton = useSkeleton()
 	const join = useJoin()
 
-	if (skeleton) {
-		const size = control?.size ?? 'md'
+	const resolvedSize: ControlSize = props.size ?? control?.size ?? concentric?.size ?? 'md'
 
+	if (skeleton) {
 		return (
 			<Placeholder
 				className={cn(
 					kokkaku.formControl.base,
-					join ? kokkaku.formControl.group[size] : kokkaku.formControl.full,
-					kokkaku.formControl.size[size],
+					join ? kokkaku.formControl.group[resolvedSize] : kokkaku.formControl.full,
+					kokkaku.formControl.size[resolvedSize],
 					props.className,
 				)}
 			/>
@@ -62,15 +75,17 @@ export function DatePicker(props: DatePickerProps) {
 	}
 
 	if (props.range) {
-		return <DatePickerRange {...props} />
+		return <DatePickerRange {...props} size={resolvedSize} />
 	}
 
-	return <DatePickerSingle {...props} />
+	return <DatePickerSingle {...props} size={resolvedSize} />
 }
 
 function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 	const {
 		placeholder = 'Select a date',
+		size = 'md',
+		truncate = true,
 		className,
 		disabled = false,
 		'data-group': dataGroup,
@@ -89,6 +104,8 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 				getReferenceProps={state.getReferenceProps}
 				displayValue={state.displayValue}
 				placeholder={placeholder}
+				size={size}
+				truncate={truncate}
 				disabled={disabled}
 				onKeyDown={state.onTriggerKeyDown}
 				className={className}

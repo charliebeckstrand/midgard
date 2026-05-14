@@ -3,6 +3,7 @@
 import type { KeyboardEvent, RefObject } from 'react'
 
 import { cn } from '../../core'
+import { useConcentric } from '../../primitives'
 import { calendar as kCalendar } from '../../recipes/kata/calendar'
 import { Button } from '../button'
 import type { CalendarActive } from '../calendar'
@@ -25,6 +26,8 @@ export function DatePickerFooter({
 	footerRef,
 	onKeyDown,
 }: DatePickerFooterProps) {
+	const concentric = useConcentric()
+
 	if (footerButtons.length === 0) return null
 
 	return (
@@ -33,7 +36,7 @@ export function DatePickerFooter({
 			role="toolbar"
 			data-slot="calendar-footer"
 			onKeyDown={onKeyDown}
-			className={cn(kCalendar.footer)}
+			className={cn(kCalendar.footer({ size: concentric?.size }))}
 		>
 			{footerButtons.map((kind, index) => {
 				const isActive = active?.zone === 'footer' && active.index === index

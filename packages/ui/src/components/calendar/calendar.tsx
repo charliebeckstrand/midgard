@@ -13,7 +13,9 @@ import {
 } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
+import { ConcentricProvider, useConcentric } from '../../primitives'
 import { k } from '../../recipes/kata/calendar'
+import type { Step } from '../../recipes/ryu/sun'
 import { Button, type ButtonVariants } from '../button'
 import { CalendarDayCell } from './calendar-day-cell'
 import { CalendarPicker } from './calendar-picker'
@@ -60,6 +62,13 @@ export type CalendarProps = {
 	getDayProps?: (ctx: CalendarDayContext) => CalendarDayProps
 	footerRef?: RefObject<HTMLElement | null>
 	ref?: Ref<CalendarHandle>
+	/**
+	 * Size step that drives overall width, padding, and the weekday label size.
+	 * Resolution order: explicit prop, then enclosing concentric size, then `'md'`.
+	 * Re-broadcast to descendants via concentric so the nav buttons and day cells
+	 * inherit consistently.
+	 */
+	size?: Step
 	className?: string
 }
 
@@ -74,8 +83,15 @@ export function Calendar({
 	getDayProps,
 	footerRef,
 	ref,
+	size,
 	className,
 }: CalendarProps) {
+	const concentric = useConcentric()
+
+	const resolvedSize: Step = size ?? concentric?.size ?? 'md'
+
+	const concentricValue = useMemo(() => ({ size: resolvedSize }), [resolvedSize])
+
 	const handleValueChange = useCallback(
 		(nextValue: Date | undefined) => {
 			if (nextValue) onValueChange?.(nextValue)
@@ -199,82 +215,93 @@ export function Calendar({
 	const headerActiveIndex = active?.zone === 'header' ? active.index : null
 
 	return (
-		<div data-slot="calendar" className={cn(k.base, className)}>
-			<div ref={headerRef} role="toolbar" onKeyDown={handleHeaderKeyDown} className={cn(k.header)}>
-				<Button
-					variant="plain"
-					onClick={prevMonth}
-					aria-label="Previous month"
-					prefix={<ChevronLeft className={k.nav.icon} />}
-					className={cn(headerActiveIndex === 0 && k.day.active)}
-				/>
-				<CalendarPicker
-					year={year}
-					month={month}
-					today={today}
-					onNavigate={handlePickerNavigate}
-					monthLabel={monthLabel}
-					open={pickerOpen}
-					onOpenChange={handlePickerOpenChange}
-					triggerClassName={cn(headerActiveIndex === 1 && k.day.active)}
-				/>
-				<Button
-					variant="plain"
-					onClick={nextMonth}
-					aria-label="Next month"
-					prefix={<ChevronRight className={k.nav.icon} />}
-					className={cn(headerActiveIndex === 2 && k.day.active)}
-				/>
-			</div>
-
-			<div className={k.grid}>
-				{WEEKDAYS.map((day) => (
-					<div key={day} className={cn(k.weekday)} aria-hidden="true">
-						{day}
-					</div>
-				))}
-
+		<ConcentricProvider value={concentricValue}>
+			<div
+				data-slot="calendar"
+				data-step={resolvedSize}
+				className={cn(k.base({ size: resolvedSize }), className)}
+			>
 				<div
-					ref={gridRef}
-					role="listbox"
-					onKeyDown={handleGridKeyDown}
-					className="col-span-7 grid grid-cols-7"
+					ref={headerRef}
+					role="toolbar"
+					onKeyDown={handleHeaderKeyDown}
+					className={cn(k.header({ size: resolvedSize }))}
 				>
-					{days.map((date) => {
-						const disabled = isDisabled(date)
+					<Button
+						variant="plain"
+						onClick={prevMonth}
+						aria-label="Previous month"
+						prefix={<ChevronLeft className={k.nav.icon} />}
+						className={cn(headerActiveIndex === 0 && k.day.active)}
+					/>
+					<CalendarPicker
+						year={year}
+						month={month}
+						today={today}
+						onNavigate={handlePickerNavigate}
+						monthLabel={monthLabel}
+						open={pickerOpen}
+						onOpenChange={handlePickerOpenChange}
+						triggerClassName={cn(headerActiveIndex === 1 && k.day.active)}
+					/>
+					<Button
+						variant="plain"
+						onClick={nextMonth}
+						aria-label="Next month"
+						prefix={<ChevronRight className={k.nav.icon} />}
+						className={cn(headerActiveIndex === 2 && k.day.active)}
+					/>
+				</div>
 
-						const isToday = isSameDay(date, today)
+				<div className={k.grid}>
+					{WEEKDAYS.map((day) => (
+						<div key={day} className={cn(k.weekday({ size: resolvedSize }))} aria-hidden="true">
+							{day}
+						</div>
+					))}
 
-						const isSelected = value != null && isSameDay(date, value)
+					<div
+						ref={gridRef}
+						role="listbox"
+						onKeyDown={handleGridKeyDown}
+						className="col-span-7 grid grid-cols-7"
+					>
+						{days.map((date) => {
+							const disabled = isDisabled(date)
 
-						const isActive = activeGridDate != null && isSameDay(date, activeGridDate)
+							const isToday = isSameDay(date, today)
 
-						const dayProps = getDayProps?.({ date, disabled, isToday, isSelected, isActive })
+							const isSelected = value != null && isSameDay(date, value)
 
-						const selected = dayProps?.selected ?? isSelected
+							const isActive = activeGridDate != null && isSameDay(date, activeGridDate)
 
-						const gridColumnStart = date.getDate() === 1 ? firstDayColumn : undefined
+							const dayProps = getDayProps?.({ date, disabled, isToday, isSelected, isActive })
 
-						return (
-							<CalendarDayCell
-								key={date.toISOString()}
-								date={date}
-								disabled={disabled}
-								isToday={isToday}
-								isActive={isActive}
-								selected={selected}
-								variant={dayProps?.variant}
-								color={dayProps?.color}
-								className={dayProps?.className}
-								gridColumnStart={gridColumnStart}
-								onSelect={handleSelect}
-								onMouseEnter={dayProps?.onMouseEnter}
-								onMouseLeave={dayProps?.onMouseLeave}
-							/>
-						)
-					})}
+							const selected = dayProps?.selected ?? isSelected
+
+							const gridColumnStart = date.getDate() === 1 ? firstDayColumn : undefined
+
+							return (
+								<CalendarDayCell
+									key={date.toISOString()}
+									date={date}
+									disabled={disabled}
+									isToday={isToday}
+									isActive={isActive}
+									selected={selected}
+									variant={dayProps?.variant}
+									color={dayProps?.color}
+									className={dayProps?.className}
+									gridColumnStart={gridColumnStart}
+									onSelect={handleSelect}
+									onMouseEnter={dayProps?.onMouseEnter}
+									onMouseLeave={dayProps?.onMouseLeave}
+								/>
+							)
+						})}
+					</div>
 				</div>
 			</div>
-		</div>
+		</ConcentricProvider>
 	)
 }

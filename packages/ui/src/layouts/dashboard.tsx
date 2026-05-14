@@ -19,7 +19,7 @@ export function DashboardLayout({ filters, children }: DashboardLayoutProps) {
 
 	return (
 		<StackedLayout>
-			<Stack gap="lg">
+			<Stack>
 				{filters && (
 					<>
 						{/* Filters on desktop */}
@@ -37,7 +37,7 @@ export function DashboardLayout({ filters, children }: DashboardLayoutProps) {
 						<Drawer open={open} onOpenChange={setOpen}>
 							<DrawerTitle>Filters</DrawerTitle>
 							<DrawerBody>
-								<Stack gap="lg">{filters}</Stack>
+								<Stack>{filters}</Stack>
 							</DrawerBody>
 						</Drawer>
 					</>

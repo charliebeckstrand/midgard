@@ -1,6 +1,7 @@
 import { tv } from 'tailwind-variants'
 import { mode } from '../../core/recipe/mode'
 import { iro } from '../ryu/iro'
+import { ji } from '../ryu/ji'
 import { sawari } from '../ryu/sawari'
 import { sen } from '../ryu/sen'
 
@@ -33,11 +34,24 @@ const tabItem = tv({
 	],
 	variants: {
 		orientation: {
-			horizontal: ['px-1 pb-4', 'after:inset-x-0 after:-bottom-px after:h-0.5'],
-			vertical: ['px-4 py-2', 'after:inset-y-0 after:-left-px after:w-0.5'],
+			horizontal: ['after:inset-x-0 after:-bottom-px after:h-0.5'],
+			vertical: ['after:inset-y-0 after:-left-px after:w-0.5'],
+		},
+		size: {
+			sm: ji.size.sm,
+			md: ji.size.md,
+			lg: ji.size.lg,
 		},
 	},
-	defaultVariants: { orientation: 'horizontal' },
+	compoundVariants: [
+		{ orientation: 'horizontal', size: 'sm', class: 'px-1 pb-3' },
+		{ orientation: 'horizontal', size: 'md', class: 'px-1 pb-4' },
+		{ orientation: 'horizontal', size: 'lg', class: 'px-1 pb-5' },
+		{ orientation: 'vertical', size: 'sm', class: 'px-3 py-1.5' },
+		{ orientation: 'vertical', size: 'md', class: 'px-4 py-2' },
+		{ orientation: 'vertical', size: 'lg', class: 'px-5 py-2.5' },
+	],
+	defaultVariants: { orientation: 'horizontal', size: 'md' },
 })
 
 const tabIndicatorBar = tv({

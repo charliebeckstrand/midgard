@@ -21,22 +21,22 @@ Glass override on `variant`: form fields apply `variant: 'glass'` when `useGlass
 
 ### Concentric participants
 
-Components: `button` (partly), `card`, `card-title`, `checkbox`, `drawer`, `group`, `popover-content`, `radio`.
+Components: `button` (partly), `card`, `card-title`, `checkbox`, `drawer`, `group`, `menu`, `popover-content`, `radio`, `stat-value`, `tabs`, `tooltip-content`, `tree`.
 
 ```
 final = explicit prop ?? Concentric ?? component default
 ```
 
-These don't sit inside a `<Control>`; they only read the top-level concentric size cascade. Surfaces in this list (`card`, `drawer`, `group`, `popover-content`) both **inherit** from an outer concentric ancestor and **re-broadcast** their resolved size to their own descendants, so an outer `<Density>` or surface flows through nested surfaces without breaking.
+These don't sit inside a `<Control>`; they only read the top-level concentric size cascade. Surfaces in this list (`card`, `drawer`, `group`, `menu`, `popover-content`) both **inherit** from an outer concentric ancestor and **re-broadcast** their resolved size to their own descendants, so an outer `<Density>` or surface flows through nested surfaces without breaking. (`menu` re-broadcasts because its `<MenuContent>` is portaled — without re-broadcasting, descendant `<MenuItem>` would lose the ambient context.)
 
 ### Standalone interactive: `button`
 
 ```
-size    = explicit ?? Concentric ?? AffixSize
+size    = explicit ?? AffixSize ?? Concentric
 variant = explicit ?? (glass ? 'glass' : undefined)
 ```
 
-Button reads AffixSize because it can be rendered as a clear/loading button **inside** an `<Input>`, where the input broadcasts its affix size to descendants. Button does **not** read Control — it isn't a form-field-inside-Control by convention.
+Button reads AffixSize because it can be rendered as a clear/loading button **inside** an `<Input>` or `<SelectTrigger>`, where the affix container broadcasts a one-step-smaller size to its descendants. AffixSize is the more specific signal — only set inside an affix scope — so it wins over the outer ambient Concentric (provided by `<Card>` / `<Drawer>` / `<Density>` / etc.); without this ordering an affix button would render at the surface size whenever Concentric is non-null, which is now the default once `<Density>` is mounted at the app root. Button does **not** read Control — it isn't a form-field-inside-Control by convention.
 
 ### Cascade descendants: `spinner`, `icon`
 

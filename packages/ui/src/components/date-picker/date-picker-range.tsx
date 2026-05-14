@@ -10,6 +10,8 @@ import { useDatePickerRangeState } from './use-date-picker-range-state'
 export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProps) {
 	const {
 		placeholder = 'Select dates',
+		size = 'md',
+		truncate = true,
 		className,
 		disabled = false,
 		'data-group': dataGroup,
@@ -28,6 +30,8 @@ export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProp
 				getReferenceProps={state.getReferenceProps}
 				displayValue={state.displayValue}
 				placeholder={placeholder}
+				size={size}
+				truncate={truncate}
 				disabled={disabled}
 				onKeyDown={state.onTriggerKeyDown}
 				className={className}

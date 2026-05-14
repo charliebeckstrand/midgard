@@ -34,6 +34,13 @@ describe('Card', () => {
 
 		expect(el?.className).toContain('custom')
 	})
+
+	it('renders a placeholder in skeleton mode', () => {
+		const { container } = renderUI(<Card>content</Card>, { skeleton: true })
+
+		expect(bySlot(container, 'card')).not.toBeInTheDocument()
+		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
+	})
 })
 
 describe('CardHeader', () => {

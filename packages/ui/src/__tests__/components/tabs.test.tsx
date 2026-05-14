@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../../components/tabs'
+import { Density } from '../../providers/density'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Tabs', () => {
@@ -115,6 +116,56 @@ describe('Tab', () => {
 		)
 
 		expect(screen.getByText('My Tab')).toBeInTheDocument()
+	})
+
+	it('inherits size from ambient Density when wrapped in <Tabs>', () => {
+		const { container } = renderUI(
+			<Density density="compact">
+				<Tabs defaultValue="a">
+					<TabList>
+						<Tab value="a">Tab A</Tab>
+					</TabList>
+				</Tabs>
+			</Density>,
+		)
+
+		// Compact density → 'sm' → text-sm + pb-3 from the recipe.
+		const tab = bySlot(container, 'tab')
+
+		expect(tab?.className).toContain('text-sm')
+
+		expect(tab?.className).toContain('pb-3')
+	})
+
+	it('inherits size from ambient Density when used à la carte (TabList + Tab without <Tabs>)', () => {
+		const { container } = renderUI(
+			<Density density="loose">
+				<TabList>
+					<Tab current>Tab A</Tab>
+				</TabList>
+			</Density>,
+		)
+
+		// Loose density → 'lg' → text-lg + pb-5 from the recipe.
+		const tab = bySlot(container, 'tab')
+
+		expect(tab?.className).toContain('text-lg')
+
+		expect(tab?.className).toContain('pb-5')
+	})
+
+	it('falls back to md when neither <Tabs> nor Density is present', () => {
+		const { container } = renderUI(
+			<TabList>
+				<Tab current>Tab A</Tab>
+			</TabList>,
+		)
+
+		const tab = bySlot(container, 'tab')
+
+		expect(tab?.className).toContain('text-base')
+
+		expect(tab?.className).toContain('pb-4')
 	})
 })
 

@@ -2,7 +2,7 @@
 
 import type { ComponentPropsWithoutRef, MouseEvent } from 'react'
 import { cn } from '../../core'
-import { ActiveIndicator, useActiveIndicator, useCurrent } from '../../primitives'
+import { ActiveIndicator, useActiveIndicator, useConcentric, useCurrent } from '../../primitives'
 import { segment as ks, segmentItemVariants } from '../../recipes/kata/segment'
 import { k } from '../../recipes/kata/tabs'
 import { useTabsContext } from './context'
@@ -28,11 +28,17 @@ export function Tab({
 
 	const tabsCtx = useTabsContext()
 
+	const concentric = useConcentric()
+
 	const indicator = useActiveIndicator()
 
 	const isSegment = tabsCtx?.variant === 'segment'
 
 	const orientation = tabsCtx?.orientation ?? 'horizontal'
+
+	// When wrapped in <Tabs>, the parent has already resolved concentric into tabsCtx.size.
+	// When used à la carte (just <TabList>+<Tab>), fall back to reading concentric here.
+	const size = tabsCtx?.size ?? concentric?.size ?? 'md'
 
 	const current = currentProp ?? (value !== undefined && ctx?.value === value)
 
@@ -56,7 +62,7 @@ export function Tab({
 				tabIndex={current ? 0 : -1}
 				type="button"
 				className={cn(
-					isSegment ? segmentItemVariants() : k.tab({ orientation }),
+					isSegment ? segmentItemVariants({ size }) : k.tab({ orientation, size }),
 					'relative z-1',
 					className,
 				)}

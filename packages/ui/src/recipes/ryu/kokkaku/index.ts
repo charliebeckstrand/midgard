@@ -10,6 +10,7 @@
 import { avatar } from './avatar'
 import { badge } from './badge'
 import { button } from './button'
+import { card } from './card'
 import { checkbox } from './checkbox'
 import { formControl } from './form-control'
 import { heading } from './heading'
@@ -22,6 +23,7 @@ export const kokkaku = {
 	avatar,
 	badge,
 	button,
+	card,
 	checkbox,
 	formControl,
 	heading,

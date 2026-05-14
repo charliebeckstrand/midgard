@@ -62,6 +62,8 @@ type ButtonBaseProps = ButtonVariants & {
 	loading?: boolean | LoadingOptions
 	prefix?: ReactNode
 	suffix?: ReactNode
+	/** Override the rendered `data-slot`. Defaults to `'button'`. */
+	dataSlot?: string
 	className?: string
 }
 
@@ -82,6 +84,7 @@ export function Button({
 	loading: loadingProp = false,
 	prefix,
 	suffix,
+	dataSlot = 'button',
 	...props
 }: ButtonProps) {
 	const loading = !!loadingProp
@@ -100,7 +103,7 @@ export function Button({
 		if (href !== undefined) {
 			return (
 				<Link
-					data-slot="button"
+					data-slot={dataSlot}
 					href={href}
 					className={className}
 					{...(props as Omit<ComponentPropsWithoutRef<typeof Link>, 'href' | 'className'>)}
@@ -116,7 +119,7 @@ export function Button({
 		return (
 			<button
 				ref={ref}
-				data-slot="button"
+				data-slot={dataSlot}
 				type="button"
 				className={className}
 				{...bareButtonProps}
@@ -130,11 +133,18 @@ export function Button({
 
 	const resolvedVariant = variant ?? (glass ? 'glass' : undefined)
 
-	// Resolution order: explicit prop, then the ambient concentric size
-	// (provided by <Card>/<Group>/<Drawer>/<Popover>), then any <Input>
-	// grouping context. Component's own default kicks in only when all of
-	// these are absent.
-	const resolvedSize = size ?? concentric?.size ?? affixSize
+	// Resolution order: explicit prop, then AffixSize (scoped broadcast from
+	// the enclosing Input / SelectTrigger when this button is rendered as an
+	// affix), then the ambient concentric size (provided by surfaces like
+	// <Card> / <Group> / <Drawer> / <Popover> / <Density>). Component's own
+	// default kicks in only when all of these are absent.
+	//
+	// AffixSize wins over Concentric because it's a more specific signal:
+	// AffixSize is set only inside an affix context, so when it's present it
+	// reflects the "icon-sized" intent that should override the outer surface
+	// size (e.g. a clear button inside an md Input under compact Density still
+	// renders one step smaller than the input).
+	const resolvedSize = size ?? affixSize ?? concentric?.size
 
 	const springMotion = springProps(spring)
 
@@ -176,7 +186,7 @@ export function Button({
 			<ReducedMotion>
 				<motion.span {...springMotion} className="inline-flex">
 					<Link
-						data-slot="button"
+						data-slot={dataSlot}
 						data-has-prefix={!!prefix || undefined}
 						data-has-label={labelled || undefined}
 						data-has-suffix={!!suffix || undefined}
@@ -204,7 +214,7 @@ export function Button({
 			<motion.button
 				{...springMotion}
 				ref={ref}
-				data-slot="button"
+				data-slot={dataSlot}
 				data-has-prefix={!!prefix || undefined}
 				data-has-label={labelled || undefined}
 				data-has-suffix={!!suffix || undefined}

@@ -15,7 +15,7 @@ import { cn, createContext } from '../../core'
 import { useFloatingUI, useRoving, useScrollWithin } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
-import { PopoverPanel, useConcentric, useJoin } from '../../primitives'
+import { ConcentricProvider, PopoverPanel, useConcentric, useJoin } from '../../primitives'
 import { kokkaku } from '../../recipes'
 import { comboboxVariants, k } from '../../recipes/kata/combobox'
 import { popover as kPopover } from '../../recipes/kata/popover'
@@ -213,6 +213,8 @@ export function Combobox<T>({
 		[value, multiple, select, query],
 	)
 
+	const concentricValue = useMemo(() => ({ size: resolvedSize }), [resolvedSize])
+
 	if (skeleton) {
 		return (
 			<Placeholder
@@ -301,19 +303,21 @@ export function Combobox<T>({
 								className={cn('group/combobox', kPopover.portal)}
 								{...getFloatingProps()}
 							>
-								<PopoverPanel
-									id={listboxId}
-									role="listbox"
-									autoFocus={false}
-									glass={glass}
-									className={cn('relative', k.options)}
-									onKeyDown={(e) => {
-										if (e.key === 'Escape') close()
-									}}
-								>
-									{rendered}
-									<output className={cn(k.empty)}>No results</output>
-								</PopoverPanel>
+								<ConcentricProvider value={concentricValue}>
+									<PopoverPanel
+										id={listboxId}
+										role="listbox"
+										autoFocus={false}
+										glass={glass}
+										className={cn('relative', k.options)}
+										onKeyDown={(e) => {
+											if (e.key === 'Escape') close()
+										}}
+									>
+										{rendered}
+										<output className={cn(k.empty)}>No results</output>
+									</PopoverPanel>
+								</ConcentricProvider>
 							</div>
 						)}
 					</AnimatePresence>

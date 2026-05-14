@@ -1,7 +1,22 @@
-import { createSlot } from '../../core'
-import type { SlotProps } from '../../core/create-slot'
+'use client'
+
+import type { ComponentPropsWithoutRef } from 'react'
+import { cn } from '../../core'
+import { useConcentric } from '../../primitives'
 import { k } from '../../recipes/kata/fieldset'
 
-export type LegendProps = SlotProps<'legend'>
+export type LegendProps = {
+	className?: string
+} & Omit<ComponentPropsWithoutRef<'legend'>, 'className'>
 
-export const Legend = createSlot('legend', 'legend', k.legend)
+export function Legend({ className, ...props }: LegendProps) {
+	const concentric = useConcentric()
+
+	return (
+		<legend
+			data-slot="legend"
+			className={cn(k.legend({ size: concentric?.size }), className)}
+			{...props}
+		/>
+	)
+}

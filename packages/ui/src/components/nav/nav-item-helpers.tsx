@@ -8,14 +8,19 @@ import {
 	useLayoutEffect,
 	useRef,
 } from 'react'
-import { cn } from '../core'
-import { useScrollWithin } from '../hooks'
-import type { Step } from '../recipes/ryu/sun'
-import { ActiveIndicator, useActiveIndicator } from './active-indicator'
-import { useConcentric } from './concentric'
-import { OffcanvasContext } from './offcanvas'
-import { Polymorphic, type PolymorphicProps } from './polymorphic'
-import { TouchTarget } from './touch-target'
+import { cn } from '../../core'
+import { useScrollWithin } from '../../hooks'
+import {
+	ActiveIndicator,
+	OffcanvasContext,
+	type PolymorphicProps,
+	TouchTarget,
+	useActiveIndicator,
+	useConcentric,
+} from '../../primitives'
+import type { Step } from '../../recipes/ryu/sun'
+import { Button } from '../button'
+import { Headless } from '../headless'
 
 export type NavItemProps = {
 	icon?: ReactElement
@@ -23,7 +28,8 @@ export type NavItemProps = {
 	className?: string
 	preventClose?: boolean
 	spring?: boolean
-} & PolymorphicProps<'button'>
+	// `color` conflicts with `<Button>`'s variant union; `ref` differs between anchor/button branches.
+} & PolymorphicProps<'button', 'color' | 'ref'>
 
 export type NavItemConfig = {
 	slotPrefix: string
@@ -37,6 +43,11 @@ export type NavItemConfig = {
  * Factory for navigation item components (NavbarItem, SidebarItem).
  * Both share identical structure; only the data-slot prefix, variant, and
  * icon wrapper differ.
+ *
+ * The inner interactive element renders as `<Headless><Button>` so it picks up
+ * Button's cascades (concentric size, headless chrome stripping, link/button
+ * polymorphism) while still presenting as the consumer-defined `*-item-inner`
+ * slot.
  */
 export function createNavItem(config: NavItemConfig) {
 	const innerSlot = `${config.slotPrefix}-item-inner`
@@ -47,7 +58,6 @@ export function createNavItem(config: NavItemConfig) {
 		size,
 		className,
 		children,
-		href,
 		preventClose,
 		spring = false,
 		onClick,
@@ -86,21 +96,21 @@ export function createNavItem(config: NavItemConfig) {
 				className="group relative"
 				{...(spring ? indicator.tapHandlers : {})}
 			>
-				<Polymorphic
-					as="button"
-					dataSlot={innerSlot}
-					href={href}
-					data-current={current ? '' : undefined}
-					aria-current={current ? 'page' : undefined}
-					className={cn(config.variants(resolvedSize), 'relative z-10', className)}
-					onClick={handleClick}
-					{...props}
-				>
-					<TouchTarget>
-						{icon && config.renderIcon(icon, resolvedSize)}
-						{children}
-					</TouchTarget>
-				</Polymorphic>
+				<Headless>
+					<Button
+						dataSlot={innerSlot}
+						data-current={current ? '' : undefined}
+						aria-current={current ? 'page' : undefined}
+						className={cn(config.variants(resolvedSize), 'relative z-10', className)}
+						onClick={handleClick}
+						{...props}
+					>
+						<TouchTarget>
+							{icon && config.renderIcon(icon, resolvedSize)}
+							{children}
+						</TouchTarget>
+					</Button>
+				</Headless>
 				{current && <ActiveIndicator ref={indicator.ref} />}
 			</span>
 		)

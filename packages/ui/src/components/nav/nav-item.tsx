@@ -3,9 +3,9 @@
 import type { MouseEvent } from 'react'
 import { cn } from '../../core'
 import { useCurrent } from '../../primitives'
-import { type NavItemProps as BaseNavItemProps, createNavItem } from '../../primitives/nav-item'
 import { k } from '../../recipes/kata/nav'
 import { Icon } from '../icon'
+import { type NavItemProps as BaseNavItemProps, createNavItem } from './nav-item-helpers'
 
 const BaseNavItem = createNavItem({
 	slotPrefix: 'nav',

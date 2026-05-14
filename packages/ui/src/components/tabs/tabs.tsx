@@ -2,8 +2,8 @@
 
 import { type ComponentPropsWithoutRef, useMemo } from 'react'
 import { cn } from '../../core'
-import { CurrentProvider, useCurrentState } from '../../primitives'
-import { type TabsOrientation, TabsProvider, type TabsVariant } from './context'
+import { CurrentProvider, useConcentric, useCurrentState } from '../../primitives'
+import { type TabsOrientation, TabsProvider, type TabsSize, type TabsVariant } from './context'
 
 export type TabsProps = ComponentPropsWithoutRef<'div'> & {
 	value?: string
@@ -11,6 +11,11 @@ export type TabsProps = ComponentPropsWithoutRef<'div'> & {
 	onValueChange?: (value: string | undefined) => void
 	variant?: TabsVariant
 	orientation?: TabsOrientation
+	/**
+	 * Size step that drives tab text size and padding.
+	 * Resolution order: explicit prop, then enclosing concentric size, then `'md'`.
+	 */
+	size?: TabsSize
 }
 
 export function Tabs({
@@ -19,18 +24,23 @@ export function Tabs({
 	onValueChange,
 	variant = 'tab',
 	orientation = 'horizontal',
+	size,
 	className,
 	children,
 	...props
 }: TabsProps) {
 	const ctx = useCurrentState({ value, defaultValue, onChange: onValueChange })
 
+	const concentric = useConcentric()
+
+	const resolvedSize: TabsSize = size ?? concentric?.size ?? 'md'
+
 	// Vertical only applies to the 'tab' variant; segment is always horizontal.
 	const resolvedOrientation: TabsOrientation = variant === 'segment' ? 'horizontal' : orientation
 
 	const tabsCtx = useMemo(
-		() => ({ variant, orientation: resolvedOrientation }),
-		[variant, resolvedOrientation],
+		() => ({ variant, orientation: resolvedOrientation, size: resolvedSize }),
+		[variant, resolvedOrientation, resolvedSize],
 	)
 
 	const isVertical = resolvedOrientation === 'vertical'

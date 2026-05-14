@@ -1,9 +1,9 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { type NavItemProps as BaseNavItemProps, createNavItem } from '../../primitives/nav-item'
 import { k } from '../../recipes/kata/sidebar'
 import type { Step } from '../../recipes/ryu/sun'
 import { Icon } from '../icon'
+import { type NavItemProps as BaseNavItemProps, createNavItem } from '../nav/nav-item-helpers'
 
 export type SidebarItemProps = BaseNavItemProps & {
 	/** Size step. Resolves through `explicit ?? Concentric ?? 'md'`. */

@@ -1,8 +1,11 @@
 import { type CSSProperties, useMemo } from 'react'
 import { cn } from '../../core'
 import { ConcentricProvider, useConcentric } from '../../primitives'
+import { kokkaku } from '../../recipes'
 import { type Step, sun } from '../../recipes/ryu/sun'
 import { Box, type BoxProps } from '../box'
+import { Placeholder } from '../placeholder'
+import { useSkeleton } from '../skeleton/context'
 
 export type CardProps = BoxProps<'radius'> & {
 	/**
@@ -28,6 +31,12 @@ export function Card({
 	const resolvedSize = size ?? ambient?.size ?? 'md'
 
 	const ctx = useMemo(() => ({ size: resolvedSize }), [resolvedSize])
+
+	if (useSkeleton()) {
+		return (
+			<Placeholder className={cn(kokkaku.card.base, kokkaku.card.size[resolvedSize], className)} />
+		)
+	}
 
 	const noExplicitPadding = p === undefined && px === undefined && py === undefined
 

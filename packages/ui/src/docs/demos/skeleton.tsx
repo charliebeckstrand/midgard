@@ -24,6 +24,14 @@ const dynamicComponents = [
 	{ name: 'Avatar', render: () => <Avatar size="md" /> },
 	{ name: 'Badge', render: () => <Badge>New</Badge> },
 	{ name: 'Button', render: () => <Button>Submit</Button> },
+	{
+		name: 'Card',
+		render: () => (
+			<Card>
+				<CardBody>Body</CardBody>
+			</Card>
+		),
+	},
 	{ name: 'Checkbox', render: () => <Checkbox /> },
 	{ name: 'Heading', render: () => <Heading level={3}>The quick brown fox</Heading> },
 	{ name: 'Input', render: () => <Input placeholder="Email" /> },

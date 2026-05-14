@@ -17,7 +17,6 @@ export {
 	JoinProvider,
 	useJoin,
 } from './join'
-export { createNavItem, type NavItemProps } from './nav-item'
 export {
 	OffcanvasContext,
 	type OffcanvasContextValue,

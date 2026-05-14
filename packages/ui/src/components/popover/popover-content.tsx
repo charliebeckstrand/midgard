@@ -12,6 +12,10 @@ import { Box, type BoxPadding } from '../box'
 import { useGlass } from '../glass/context'
 import { usePopoverContext } from './popover'
 
+// Surface padding scales with the resolved concentric size. Consumers can still
+// override per-instance via the `p` prop.
+const paddingForSize: Record<Step, BoxPadding> = { sm: 'md', md: 'lg', lg: 'xl' }
+
 export type PopoverContentProps = {
 	className?: string
 	autoFocus?: boolean
@@ -27,7 +31,7 @@ export type PopoverContentProps = {
 export function PopoverContent({
 	className,
 	autoFocus = false,
-	p = 'lg',
+	p,
 	size,
 	children,
 }: PopoverContentProps) {
@@ -41,6 +45,8 @@ export function PopoverContent({
 	const ambient = useConcentric()
 
 	const resolvedSize = size ?? ambient?.size ?? 'md'
+
+	const resolvedPadding: BoxPadding = p ?? paddingForSize[resolvedSize]
 
 	const concentricValue = useMemo(() => ({ size: resolvedSize }), [resolvedSize])
 
@@ -71,7 +77,7 @@ export function PopoverContent({
 							>
 								<ConcentricProvider value={concentricValue}>
 									<Box
-										p={p}
+										p={resolvedPadding}
 										bg={glass ? 'none' : 'popover'}
 										radius="lg"
 										outline={glass || undefined}

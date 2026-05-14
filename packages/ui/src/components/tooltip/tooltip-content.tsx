@@ -4,21 +4,31 @@ import { FloatingPortal } from '@floating-ui/react'
 import { AnimatePresence, motion } from 'motion/react'
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
-import { ReducedMotion } from '../../primitives'
+import { ReducedMotion, useConcentric } from '../../primitives'
 import { ugoki } from '../../recipes'
 import { k } from '../../recipes/kata/tooltip'
+import type { Step } from '../../recipes/ryu/sun'
 import { useGlass } from '../glass/context'
 import { useTooltipContext } from './tooltip'
 
 export type TooltipContentProps = {
+	/**
+	 * Size step that drives padding and text size.
+	 * Resolution order: explicit prop, then enclosing concentric size, then `'md'`.
+	 */
+	size?: Step
 	className?: string
 	children: ReactNode
 }
 
-export function TooltipContent({ className, children }: TooltipContentProps) {
+export function TooltipContent({ size, className, children }: TooltipContentProps) {
 	const { open, interactive, setFloating, floatingStyles, getFloatingProps } = useTooltipContext()
 
 	const glass = useGlass()
+
+	const concentric = useConcentric()
+
+	const resolvedSize: Step = size ?? concentric?.size ?? 'md'
 
 	return (
 		<FloatingPortal>
@@ -32,13 +42,14 @@ export function TooltipContent({ className, children }: TooltipContentProps) {
 								pointerEvents: interactive ? 'auto' : 'none',
 							}}
 							data-slot="tooltip-content"
+							data-step={resolvedSize}
 							className={k.portal}
 							{...getFloatingProps()}
 						>
 							<motion.div
 								{...ugoki.tooltip}
 								className={cn(
-									k.content,
+									k.content({ size: resolvedSize }),
 									k.surface[glass ? 'glass' : 'default'],
 									interactive && 'pointer-events-auto',
 									className,

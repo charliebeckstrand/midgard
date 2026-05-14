@@ -1,5 +1,6 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
+import { useConcentric } from '../../primitives'
 import {
 	type StatValueVariants,
 	statValuePlaceholder,
@@ -12,13 +13,24 @@ export type StatValueProps = StatValueVariants & {
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
 
+/**
+ * `size` resolution order: explicit prop, then enclosing concentric size, then `'md'`.
+ */
 export function StatValue({ size, className, children, ...props }: StatValueProps) {
+	const concentric = useConcentric()
+
+	const resolvedSize = size ?? concentric?.size
+
 	if (useSkeleton()) {
-		return <Placeholder className={cn(statValuePlaceholder({ size }), className)} />
+		return <Placeholder className={cn(statValuePlaceholder({ size: resolvedSize }), className)} />
 	}
 
 	return (
-		<div data-slot="stat-value" className={cn(statValueVariants({ size }), className)} {...props}>
+		<div
+			data-slot="stat-value"
+			className={cn(statValueVariants({ size: resolvedSize }), className)}
+			{...props}
+		>
 			{children}
 		</div>
 	)

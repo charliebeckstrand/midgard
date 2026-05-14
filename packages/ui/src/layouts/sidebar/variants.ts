@@ -36,11 +36,15 @@ export const sidebarContentVariants = tv({
 	base: [
 		...omote.content,
 		'overflow-y-auto',
-		'px-6 pb-6 grow min-h-0',
-		'lg:not-has-[[data-slot=header]]:pt-6',
+		'grow min-h-0',
 		'[&:has([data-slot=footer])>[data-slot=body]]:pb-0',
 	],
 	variants: {
+		size: {
+			sm: 'px-4 pb-4 lg:not-has-[[data-slot=header]]:pt-4',
+			md: 'px-6 pb-6 lg:not-has-[[data-slot=header]]:pt-6',
+			lg: 'px-8 pb-8 lg:not-has-[[data-slot=header]]:pt-8',
+		},
 		stickyHeader: {
 			true: [
 				'**:data-[slot=header]:sticky',
@@ -54,12 +58,23 @@ export const sidebarContentVariants = tv({
 		},
 	},
 	defaultVariants: {
+		size: 'md',
 		stickyHeader: false,
 	},
 })
 
 export const sidebarHeaderVariants = tv({
-	base: ['flex items-center shrink-0 lg:pt-6 pb-6', '**:data-[slot=heading]:leading-none'],
+	base: ['flex items-center shrink-0', '**:data-[slot=heading]:leading-none'],
+	variants: {
+		size: {
+			sm: 'lg:pt-4 pb-4',
+			md: 'lg:pt-6 pb-6',
+			lg: 'lg:pt-8 pb-8',
+		},
+	},
+	defaultVariants: {
+		size: 'md',
+	},
 })
 
 export const sidebarBodyVariants = tv({ base: 'flex-1 min-h-0 overflow-y-auto' })

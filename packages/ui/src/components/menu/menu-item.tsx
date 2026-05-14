@@ -2,6 +2,7 @@
 
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { cn } from '../../core'
+import { useConcentric } from '../../primitives'
 import { k } from '../../recipes/kata/menu'
 import { Kbd, type KbdProps } from '../kbd'
 import { Link } from '../link'
@@ -23,6 +24,8 @@ export type MenuItemProps = MenuItemBaseProps &
 export function MenuItem(props: MenuItemProps) {
 	const { close } = useMenuActions()
 
+	const concentric = useConcentric()
+
 	const { disabled, className, children, onAction } = props
 
 	function handleSelect() {
@@ -31,7 +34,7 @@ export function MenuItem(props: MenuItemProps) {
 		close()
 	}
 
-	const classes = cn('group/option', k.item, className)
+	const classes = cn('group/option', k.item({ size: concentric?.size }), className)
 
 	if (props.href !== undefined) {
 		const {

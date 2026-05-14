@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
+import { useConcentric } from '../../primitives'
 import { k } from '../../recipes/kata/calendar'
 import { Button } from '../button'
 import { Popover, PopoverContent, PopoverTrigger } from '../popover'
@@ -31,6 +32,10 @@ export function CalendarPicker({
 	onOpenChange,
 	triggerClassName,
 }: CalendarPickerProps) {
+	const concentric = useConcentric()
+
+	const size = concentric?.size
+
 	const [pickerView, setPickerView] = useState<'months' | 'years'>('months')
 
 	const handleOpenChange = useCallback(
@@ -117,7 +122,7 @@ export function CalendarPicker({
 							ref={pickerHeaderRef}
 							role="toolbar"
 							onKeyDown={handleHeaderKeyDown}
-							className={cn(k.header)}
+							className={cn(k.header({ size }))}
 						>
 							<Button
 								variant="plain"
@@ -148,7 +153,7 @@ export function CalendarPicker({
 							ref={pickerGridRef}
 							role="listbox"
 							onKeyDown={handleGridKeyDown}
-							className={cn(k.picker.grid)}
+							className={cn(k.picker.grid({ size }))}
 						>
 							{MONTHS.map((label, i) => {
 								const isCurrent = i === today.getMonth() && pickerYear === today.getFullYear()
@@ -175,7 +180,7 @@ export function CalendarPicker({
 							ref={pickerHeaderRef}
 							role="toolbar"
 							onKeyDown={handleHeaderKeyDown}
-							className={cn(k.header)}
+							className={cn(k.header({ size }))}
 						>
 							<Button
 								variant="plain"
@@ -206,7 +211,7 @@ export function CalendarPicker({
 							ref={pickerGridRef}
 							role="listbox"
 							onKeyDown={handleGridKeyDown}
-							className={cn(k.picker.grid)}
+							className={cn(k.picker.grid({ size }))}
 						>
 							{Array.from({ length: 12 }, (_, i) => {
 								const y = decadeStart - 1 + i

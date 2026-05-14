@@ -18,10 +18,21 @@ export const listbox = tv({
 	defaultVariants: { size: 'md' },
 })
 
+const value = tv({
+	base: [],
+	variants: {
+		truncate: {
+			true: 'flex-1 min-w-0 truncate',
+			false: '',
+		},
+	},
+	defaultVariants: { truncate: true },
+})
+
 export const slots = {
 	options: 'max-h-60',
 	panel: 'relative min-w-full',
-	value: 'flex-1 min-w-0 truncate',
+	value,
 }
 
 export type ListboxVariants = VariantProps<typeof listbox>

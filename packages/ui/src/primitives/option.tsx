@@ -1,9 +1,10 @@
 'use client'
 
 import { Check } from 'lucide-react'
-import type { ComponentPropsWithoutRef, ReactNode } from 'react'
+import type { ComponentPropsWithoutRef, ComponentType, ReactNode } from 'react'
 import { cn } from '../core'
 import { option as k } from '../recipes/kata/option'
+import { useConcentric } from './concentric'
 
 const defaultCheckIcon = (
 	<Check
@@ -31,6 +32,8 @@ export function BaseOption({
 	onSelect,
 	...props
 }: BaseOptionProps) {
+	const concentric = useConcentric()
+
 	const sharedClasses = cn(k.content)
 
 	const checkIcon = icon ?? defaultCheckIcon
@@ -51,7 +54,7 @@ export function BaseOption({
 					if (!disabled) onSelect()
 				}
 			}}
-			className={cn(k.base)}
+			className={cn(k.base({ size: concentric?.size }))}
 			{...props}
 		>
 			<span className={cn(className, sharedClasses)}>{children}</span>
@@ -90,7 +93,18 @@ export type OptionLabelProps = ComponentPropsWithoutRef<'span'>
 
 export type OptionDescriptionProps = ComponentPropsWithoutRef<'span'>
 
-/** Factory for select-like option components. Only the data-slot prefix and context hook differ. */
+/**
+ * Factory for select-like option components. Consumers supply the data-slot
+ * prefix, the context hook, and optionally a `CheckIcon` component for the
+ * selected-state indicator.
+ *
+ * `CheckIcon` is the architectural escape hatch: primitives can't import
+ * `<Icon>` (or anything else from `components/`), but a select-like option
+ * needs a size-aware check icon. Consumers in `components/` instantiate the
+ * factory with a `CheckIcon` that internally uses `<Icon>` to read its size
+ * cascade. When omitted, the primitive falls back to a static lucide `<Check>`
+ * so direct callers still render something sensible.
+ */
 export function createSelectOption(config: {
 	slotPrefix: string
 	useContext: () => {
@@ -98,6 +112,7 @@ export function createSelectOption(config: {
 		multiple?: boolean
 		select: (value: unknown) => void
 	}
+	CheckIcon?: ComponentType
 }) {
 	function Option({ value, disabled, icon, className, children }: OptionProps) {
 		const { value: selectedValue, multiple, select } = config.useContext()
@@ -107,11 +122,13 @@ export function createSelectOption(config: {
 				? selectedValue.includes(value)
 				: selectedValue === value
 
+		const resolvedIcon = icon ?? (config.CheckIcon ? <config.CheckIcon /> : undefined)
+
 		return (
 			<BaseOption
 				selected={selected}
 				disabled={disabled}
-				icon={icon}
+				icon={resolvedIcon}
 				onSelect={() => select(value)}
 				data-slot={`${config.slotPrefix}-option`}
 				className={className}

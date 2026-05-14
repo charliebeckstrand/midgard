@@ -1,18 +1,27 @@
+import { tv } from 'tailwind-variants'
 import { iro } from '../ryu/iro'
+import { ji } from '../ryu/ji'
 import { narabi } from '../ryu/narabi'
 import { sawari } from '../ryu/sawari'
 import { sen } from '../ryu/sen'
 
+const menuItem = tv({
+	base: ['group/option flex w-full items-center', ...sawari.item, ...narabi.item],
+	variants: {
+		size: {
+			sm: ['gap-2 px-2.5 py-1', ji.size.sm],
+			md: ['gap-3 px-3 py-1.5', ji.size.md],
+			lg: ['gap-3 px-3.5 py-2.5', ji.size.lg],
+		},
+	},
+	defaultVariants: { size: 'md' },
+})
+
 export const menu = {
 	content: ['min-w-48', 'max-h-60'],
-	item: [
-		'group/option flex w-full items-center',
-		'gap-3 px-3.5 py-2.5 sm:px-3 sm:py-1.5',
-		...sawari.item,
-		...narabi.item,
-	],
+	item: menuItem,
 	section: 'first:pt-0 last:pb-0',
-	heading: ['px-3.5 pb-1 pt-2 sm:px-3', 'text-xs font-medium', iro.text.muted],
+	heading: ['px-3 pb-1 pt-2', 'text-xs font-medium', iro.text.muted],
 	label: 'truncate',
 	description: [narabi.description, iro.text.muted, 'group-focus/option:text-white'],
 	shortcut: 'ml-auto',

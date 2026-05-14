@@ -7,7 +7,7 @@ import { type ReactNode, useCallback, useId, useMemo, useRef } from 'react'
 import { cn, createContext } from '../../core'
 import { useFloatingUI } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
-import { PopoverPanel, useConcentric, useJoin } from '../../primitives'
+import { ConcentricProvider, PopoverPanel, useConcentric, useJoin } from '../../primitives'
 import { iro, kokkaku } from '../../recipes'
 import { k, listboxVariants } from '../../recipes/kata/listbox'
 import { popover as kPopover } from '../../recipes/kata/popover'
@@ -43,6 +43,13 @@ type ListboxBaseProps = {
 	nullable?: boolean
 	/** Render the selected value with tabular numerals so digit changes don't shift layout. */
 	tabularNums?: boolean
+	/**
+	 * Truncate the selected-value label when it overflows the trigger.
+	 * Set `false` to let the trigger grow to fit its content — useful inside a
+	 * `<Group>` or any other content-sized parent that would otherwise collapse
+	 * the label. @default true
+	 */
+	truncate?: boolean
 	'data-group'?: string
 	'data-group-orientation'?: string
 	children: ReactNode
@@ -82,6 +89,7 @@ export function Listbox<T>({
 	className,
 	inputId,
 	tabularNums,
+	truncate = true,
 	'data-group': dataGroup,
 	'data-group-orientation': dataGroupOrientation,
 	children,
@@ -138,6 +146,8 @@ export function Listbox<T>({
 		[value, multiple, select, close],
 	)
 
+	const concentricValue = useMemo(() => ({ size: resolvedSize }), [resolvedSize])
+
 	if (skeleton) {
 		return (
 			<Placeholder
@@ -179,7 +189,7 @@ export function Listbox<T>({
 					{...invalidAttrs(control?.invalid)}
 					className={cn(listboxVariants({ size: resolvedSize }))}
 				>
-					<span className={cn(k.value, tabularNums && 'tabular-nums')}>
+					<span className={cn(k.value({ truncate }), tabularNums && 'tabular-nums')}>
 						{label || <span className={cn(iro.text.muted)}>{placeholder}</span>}
 					</span>
 				</button>
@@ -194,14 +204,16 @@ export function Listbox<T>({
 							className={kPopover.portal}
 							{...getFloatingProps()}
 						>
-							<PopoverPanel
-								id={listboxId}
-								role="listbox"
-								glass={glass}
-								className={cn(k.panel, k.options)}
-							>
-								{children}
-							</PopoverPanel>
+							<ConcentricProvider value={concentricValue}>
+								<PopoverPanel
+									id={listboxId}
+									role="listbox"
+									glass={glass}
+									className={cn(k.panel, k.options)}
+								>
+									{children}
+								</PopoverPanel>
+							</ConcentricProvider>
 						</div>
 					)}
 				</AnimatePresence>
