@@ -1,31 +1,34 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import type { DialogPanelVariants } from '../../recipes/kata/dialog'
-import type { ButtonVariants } from '../button'
-import { Button } from '../button'
-import { Dialog } from './dialog'
-import { DialogActions, DialogDescription, DialogTitle } from './slots'
+import { Button, type ButtonVariants } from '../button'
+import {
+	Dialog,
+	DialogActions,
+	DialogDescription,
+	type DialogPanelVariants,
+	DialogTitle,
+} from '../dialog'
 
-type ConfirmDialogAction = {
+type ConfirmAction = {
 	label?: string
 	color?: NonNullable<ButtonVariants['color']>
 	disabled?: boolean
 }
 
-export type ConfirmDialogProps = Pick<DialogPanelVariants, 'size'> & {
+export type ConfirmProps = Pick<DialogPanelVariants, 'size'> & {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	onConfirm: () => void
 	title?: ReactNode
 	description?: ReactNode
 	children?: ReactNode
-	confirm?: ConfirmDialogAction
-	cancel?: ConfirmDialogAction
+	confirm?: ConfirmAction
+	cancel?: ConfirmAction
 	className?: string
 }
 
-export function ConfirmDialog({
+export function Confirm({
 	open,
 	onOpenChange,
 	onConfirm,
@@ -36,7 +39,7 @@ export function ConfirmDialog({
 	cancel,
 	size,
 	className,
-}: ConfirmDialogProps) {
+}: ConfirmProps) {
 	const close = () => onOpenChange(false)
 
 	return (

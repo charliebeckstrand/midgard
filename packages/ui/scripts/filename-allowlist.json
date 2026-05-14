@@ -1,5 +1,4 @@
 [
-	"dialog/confirm.tsx",
 	"dl/description-details.tsx",
 	"dl/description-list.tsx",
 	"dl/description-term.tsx",
