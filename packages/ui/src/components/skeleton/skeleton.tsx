@@ -6,8 +6,6 @@ import { SkeletonProvider } from './context'
 export type SkeletonProps = {
 	/** When provided, crossfades from skeleton to real content as ready flips. */
 	ready?: boolean
-	/** Animation mode forwarded to ReadyReveal. */
-	mode?: 'crossfade' | 'wait'
 	className?: string
 	children: ReactNode
 }
@@ -16,7 +14,7 @@ export type SkeletonProps = {
  * Renders children as dynamically-shaped skeletons via context.
  * Supply `ready` to crossfade into real content.
  */
-export function Skeleton({ ready, mode = 'crossfade', className, children }: SkeletonProps) {
+export function Skeleton({ ready, className, children }: SkeletonProps) {
 	if (ready === undefined) {
 		return (
 			<SkeletonProvider value={true}>
@@ -30,7 +28,6 @@ export function Skeleton({ ready, mode = 'crossfade', className, children }: Ske
 	return (
 		<ReadyReveal
 			ready={ready}
-			mode={mode}
 			className={className}
 			placeholder={<SkeletonProvider value={true}>{children}</SkeletonProvider>}
 		>

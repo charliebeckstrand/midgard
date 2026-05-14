@@ -23,7 +23,7 @@ describe('ReadyReveal', () => {
 		expect(screen.getByText('Real content')).toBeInTheDocument()
 	})
 
-	it('applies custom className in crossfade mode', () => {
+	it('applies custom className', () => {
 		const { container } = renderUI(
 			<ReadyReveal ready={false} placeholder={<span>P</span>} className="custom">
 				<span>C</span>
@@ -33,7 +33,7 @@ describe('ReadyReveal', () => {
 		expect(container.firstElementChild?.className).toContain('custom')
 	})
 
-	it('renders both elements in crossfade mode', () => {
+	it('renders both placeholder and children', () => {
 		renderUI(
 			<ReadyReveal ready={false} placeholder={<span>Placeholder</span>}>
 				<span>Children</span>
@@ -54,15 +54,5 @@ describe('ReadyReveal', () => {
 		const placeholder = screen.getByText('P').parentElement
 
 		expect(placeholder).toHaveAttribute('aria-hidden', 'true')
-	})
-
-	it('renders in wait mode', () => {
-		renderUI(
-			<ReadyReveal ready={true} placeholder={<span>P</span>} mode="wait">
-				<span>C</span>
-			</ReadyReveal>,
-		)
-
-		expect(screen.getByText('C')).toBeInTheDocument()
 	})
 })

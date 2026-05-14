@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { type ReactNode, useEffect, useRef, useState } from 'react'
+import type { ReactNode } from 'react'
 import { cn } from '../core'
 import { ugoki } from '../recipes'
 import { ReducedMotion } from './reduced-motion'
@@ -15,8 +15,6 @@ export type ReadyRevealProps = {
 	children: ReactNode
 	/** Outer container class. */
 	className?: string
-	/** `crossfade` overlaps both children; `wait` animates height to the active child. */
-	mode?: 'crossfade' | 'wait'
 }
 
 const hidden = { opacity: 0, filter: 'blur(4px)' }
@@ -24,81 +22,11 @@ const visible = { opacity: 1, filter: 'blur(0px)' }
 
 const gridCell = { gridArea: '1 / 1' } as const
 
-const inFlow = { position: 'relative' as const, top: 'auto' as const }
-const outOfFlow = { position: 'absolute' as const, top: 0, left: 0, right: 0 }
-
-function WaitReveal({ ready, placeholder, children, className }: Omit<ReadyRevealProps, 'mode'>) {
-	const placeholderRef = useRef<HTMLDivElement>(null)
-
-	const contentRef = useRef<HTMLDivElement>(null)
-
-	const [height, setHeight] = useState<number | undefined>(undefined)
-
-	useEffect(() => {
-		const el = ready ? contentRef.current : placeholderRef.current
-
-		if (!el) return
-
-		const ro = new ResizeObserver(([entry]) => {
-			if (entry) setHeight(entry.contentRect.height)
-		})
-
-		ro.observe(el)
-
-		return () => ro.disconnect()
-	}, [ready])
-
-	return (
-		<ReducedMotion>
-			<motion.div
-				animate={height !== undefined ? { height } : undefined}
-				initial={false}
-				transition={ugoki.reveal.transition}
-				className={cn('relative overflow-hidden', className)}
-			>
-				<motion.div
-					ref={placeholderRef}
-					aria-hidden={ready}
-					animate={ready ? hidden : visible}
-					initial={false}
-					transition={ugoki.reveal.transition}
-					style={{ ...(ready ? outOfFlow : inFlow), pointerEvents: ready ? 'none' : undefined }}
-				>
-					{placeholder}
-				</motion.div>
-				<motion.div
-					ref={contentRef}
-					animate={ready ? visible : hidden}
-					initial={false}
-					transition={ugoki.reveal.transition}
-					style={{ ...(ready ? inFlow : outOfFlow), pointerEvents: ready ? undefined : 'none' }}
-				>
-					{children}
-				</motion.div>
-			</motion.div>
-		</ReducedMotion>
-	)
-}
-
 /**
  * Crossfade transition between a placeholder and real content.
  * The placeholder should mirror the content layout so dimensions stay stable.
  * */
-export function ReadyReveal({
-	ready,
-	placeholder,
-	children,
-	className,
-	mode = 'crossfade',
-}: ReadyRevealProps) {
-	if (mode === 'wait') {
-		return (
-			<WaitReveal ready={ready} placeholder={placeholder} className={className}>
-				{children}
-			</WaitReveal>
-		)
-	}
-
+export function ReadyReveal({ ready, placeholder, children, className }: ReadyRevealProps) {
 	return (
 		<ReducedMotion>
 			<div className={cn('grid', className)} style={{ gridTemplate: '1fr / 1fr' }}>
