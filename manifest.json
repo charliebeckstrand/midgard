@@ -55,8 +55,8 @@
       "isFrontend": true
     },
     {
-      "name": "heimdall",
-      "path": "packages/heimdall",
+      "name": "auth",
+      "path": "packages/auth",
       "framework": null,
       "testRunner": null,
       "linter": "biome",
@@ -179,9 +179,9 @@
   },
   "notes": [
     "No CI provider detected — repository has no `.github/workflows/`, `.gitlab-ci.yml`, or `.circleci/config.yml`. `ci.provider` is null and `ci.jobs` is empty; the pre-commit hook (lefthook) is the only automated gate.",
-    "heimdall declares react and next only as devDependencies and peerDependencies with an empty `dependencies` object; no runtime framework signal — `framework` is null.",
+    "auth declares react and next only as devDependencies and peerDependencies with an empty `dependencies` object; no runtime framework signal — `framework` is null.",
     "sindri declares react/next only as peer/dev deps but ships React components (e.g. login-page.tsx, sidebar-user-menu.tsx); classified as `react`.",
-    "Only `packages/ui` has a test runner; admin, chat, heimdall, and sindri declare no `test` script.",
+    "Only `packages/ui` has a test runner; admin, chat, auth, and sindri declare no `test` script.",
     "Apps (admin, chat) live entirely under `app/` (Next App Router) with no `components/`, `hooks/`, `primitives/`, or `tokens/` subdirectory matching the schema's search order; all four directory fields are null.",
     "Only `CLAUDE.md` is present as a conventions doc — no `AGENTS.md`, `CONTRIBUTING.md`, or `README.md` at the repo root.",
     "Stray `apps/tms/` directory exists on disk (leftover `app/`, `next-env.d.ts`, `node_modules`) but has no `package.json`; excluded from `packages` since the tms app was removed."

@@ -1,7 +1,7 @@
 'use client'
 
 import { UsersIcon } from '@heroicons/react/20/solid'
-import type { User } from 'heimdall/user'
+import type { User } from 'auth/user'
 import { usePathname } from 'next/navigation'
 import type { ReactNode } from 'react'
 import { SidebarUserMenu } from 'sindri/auth'

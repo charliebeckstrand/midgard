@@ -1,4 +1,4 @@
-import { bifrost, getUser } from 'heimdall'
+import { bifrost, getUser } from 'auth'
 
 import { UsersClient } from './client'
 

@@ -1,7 +1,7 @@
 'use client'
 
 import { XMarkIcon } from '@heroicons/react/20/solid'
-import type { User } from 'heimdall/user'
+import type { User } from 'auth/user'
 import { useCallback, useEffect, useState } from 'react'
 import type { Chat, ChatContent } from 'sindri/chat'
 import { ChatMessages } from 'sindri/chat'

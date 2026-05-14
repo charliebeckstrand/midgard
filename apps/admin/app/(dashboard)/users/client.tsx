@@ -1,6 +1,6 @@
 'use client'
 
-import type { User } from 'heimdall/user'
+import type { User } from 'auth/user'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { Button } from 'ui/button'

@@ -5,7 +5,7 @@ import {
 	ChevronUpDownIcon,
 	Cog8ToothIcon,
 } from '@heroicons/react/20/solid'
-import type { User } from 'heimdall/user'
+import type { User } from 'auth/user'
 import { useRouter } from 'next/navigation'
 import { Avatar } from 'ui/avatar'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from 'ui/menu'
