@@ -60,6 +60,7 @@ export function Switch({
 	return (
 		<label
 			data-slot="control"
+			{...(resolvedDisabled ? { 'data-disabled': true } : {})}
 			className={cn(switchVariants({ size: resolvedSize, color }), className)}
 		>
 			<input

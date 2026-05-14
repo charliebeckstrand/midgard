@@ -38,6 +38,7 @@ export function Radio({ className, color, size, id, disabled, required, ...props
 	return (
 		<label
 			data-slot="control"
+			{...(resolvedDisabled ? { 'data-disabled': true } : {})}
 			className={cn(radioVariants({ color, size: resolvedSize }), className)}
 		>
 			<input

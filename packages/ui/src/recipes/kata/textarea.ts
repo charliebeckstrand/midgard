@@ -37,11 +37,11 @@ export const textareaControl = tv({
 
 export const slots = {
 	/** Strips textarea chrome when nested inside a framed container. */
-	bare: ['border-0', 'rounded-none', 'pt-3 focus:outline-hidden'],
+	bare: ['border-0', 'rounded-none', 'focus:outline-hidden'],
 	/** ControlFrame border when an actions slot is present. */
 	frame: [...sen.border],
 	/** Actions row beneath the textarea. */
-	actions: 'flex items-center gap-2 px-1.5 pb-1.5',
+	actions: 'flex items-center mt-auto gap-2 pr-2 pb-2',
 }
 
 export type TextareaVariants = VariantProps<typeof textarea>

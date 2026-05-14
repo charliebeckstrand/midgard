@@ -79,12 +79,11 @@ export function Textarea({
 		...invalidAttrs(resolvedInvalid),
 	}
 
-	// When autoResize is enabled, field-sizing-content ignores the rows attribute.
-	// Set a min-height based on rows so it acts as a floor.
-	const autoResizeStyle =
-		autoResize && rows ? { minHeight: `calc(${rows}lh + 1rem)`, ...style } : style
-
 	const hasActions = actions !== undefined
+
+	// field-sizing: content ignores `rows`, so enforce it as a min-height floor.
+	// Add extra space to account for padding and gap when actions are present.
+	const hasActionsStyle = hasActions ? { minHeight: `calc(${rows}lh + 4rem)`, ...style } : style
 
 	return (
 		<ControlFrame
@@ -94,7 +93,7 @@ export function Textarea({
 				data-slot="textarea"
 				{...controlProps}
 				rows={rows}
-				style={autoResizeStyle}
+				style={hasActionsStyle}
 				className={cn(
 					textareaVariants({
 						variant: resolvedVariant,

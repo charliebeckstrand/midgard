@@ -1,7 +1,7 @@
 'use client'
 
 import { Moon, Sun } from 'lucide-react'
-import { Suspense, useDeferredValue, useEffect, useRef } from 'react'
+import { Suspense, useCallback, useDeferredValue, useEffect, useRef, useState } from 'react'
 import { loadShiki } from '../components/code'
 import { Heading } from '../components/heading'
 import { ToggleIconButton } from '../components/toggle-icon-button'
@@ -21,6 +21,10 @@ export function App() {
 	const deferredRoute = useDeferredValue(route)
 
 	const [dark, toggleDark] = useTheme()
+
+	const [locked, setLocked] = useState(true)
+
+	const toggleLocked = useCallback(() => setLocked((l) => !l), [])
 
 	const current = demos.find((d) => d.id === deferredRoute)
 
@@ -46,6 +50,7 @@ export function App() {
 	return (
 		<SidebarLayout
 			stickyHeader
+			floating={!locked}
 			actions={
 				<ToggleIconButton
 					pressed={dark}
@@ -55,7 +60,7 @@ export function App() {
 					aria-label="Toggle dark mode"
 				/>
 			}
-			sidebar={<SidebarContent route={route} />}
+			sidebar={<SidebarContent route={route} locked={locked} onToggleLocked={toggleLocked} />}
 		>
 			<div ref={contentRef}>
 				{current ? (

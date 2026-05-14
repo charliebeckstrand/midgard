@@ -7,7 +7,7 @@ export {
 	SidebarLayoutHeader,
 	type SidebarLayoutHeaderProps,
 	type SidebarLayoutProps,
-} from './component'
+} from './sidebar'
 export {
 	type SidebarBodyVariants,
 	type SidebarContentVariants,

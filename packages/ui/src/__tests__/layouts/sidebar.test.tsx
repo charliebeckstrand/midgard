@@ -5,7 +5,7 @@ import {
 	SidebarLayoutBody,
 	SidebarLayoutFooter,
 	SidebarLayoutHeader,
-} from '../../layouts/sidebar/component'
+} from '../../layouts/sidebar/sidebar'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('SidebarLayout', () => {

@@ -1,23 +1,51 @@
 'use client'
 
 import { ArrowUp, Paperclip } from 'lucide-react'
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { Button } from '../../components/button'
 import { Field, Label } from '../../components/fieldset'
 import { Icon } from '../../components/icon'
 import { Spacer } from '../../components/spacer'
 import { Stack } from '../../components/stack'
 import { Textarea } from '../../components/textarea'
-import { code } from '../code'
 import { Example } from '../components/example'
 import { capitalize } from '../components/format'
 export const meta = { category: 'Forms' }
 
 const variants = ['default', 'outline'] as const
 
-export default function TextareaDemo() {
+function WithActionsExample() {
 	const [withActionsValue, setWithActionsValue] = useState('')
 
+	const id = useId()
+
+	return (
+		<Field>
+			<Label htmlFor={id}>With actions</Label>
+			<Textarea
+				id={id}
+				value={withActionsValue}
+				onChange={(e) => setWithActionsValue(e.target.value)}
+				autoResize
+				rows={1}
+				placeholder="Ask anything"
+				actions={
+					<>
+						<Spacer />
+						<Button variant="plain" size="sm">
+							<Icon icon={<Paperclip />} />
+						</Button>
+						<Button size="sm" color="blue" disabled={!withActionsValue.trim()}>
+							<Icon icon={<ArrowUp />} />
+						</Button>
+					</>
+				}
+			/>
+		</Field>
+	)
+}
+
+export default function TextareaDemo() {
 	return (
 		<Stack gap="xl">
 			<Example title="Default">
@@ -55,57 +83,8 @@ export default function TextareaDemo() {
 				</Field>
 			</Example>
 
-			<Example
-				title="With actions"
-				code={code`
-					import { ArrowUp, Paperclip } from 'lucide-react'
-					import { Button } from 'ui'
-					import { Icon } from 'ui'
-					import { Spacer } from 'ui'
-					import { Textarea } from 'ui'
-
-					<Textarea
-						value={value}
-						onChange={(e) => setValue(e.target.value)}
-						autoResize
-						rows={3}
-						placeholder="Ask anything"
-						actions={
-							<>
-								<Spacer />
-								<Button variant="plain" size="sm">
-									<Icon icon={<Paperclip />} />
-								</Button>
-								<Button size="sm" color="blue" disabled={!withActionsValue.trim()}>
-									<Icon icon={<ArrowUp />} />
-								</Button>
-							</>
-						}
-					/>
-				`}
-			>
-				<Field>
-					<Label htmlFor="textarea-actions">With actions</Label>
-					<Textarea
-						id="textarea-actions"
-						value={withActionsValue}
-						onChange={(e) => setWithActionsValue(e.target.value)}
-						autoResize
-						rows={3}
-						placeholder="Ask anything"
-						actions={
-							<>
-								<Spacer />
-								<Button variant="plain" size="sm">
-									<Icon icon={<Paperclip />} />
-								</Button>
-								<Button size="sm" color="blue" disabled={!withActionsValue.trim()}>
-									<Icon icon={<ArrowUp />} />
-								</Button>
-							</>
-						}
-					/>
-				</Field>
+			<Example title="With actions">
+				<WithActionsExample />
 			</Example>
 
 			<Example title="Invalid">

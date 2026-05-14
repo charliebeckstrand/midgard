@@ -52,6 +52,7 @@ export default function CheckboxDemo() {
 					<CheckboxField>
 						<Checkbox id="checkbox-disabled" disabled />
 						<Label htmlFor="checkbox-disabled">Disabled option</Label>
+						<Description>This checkbox is disabled and cannot be interacted with.</Description>
 					</CheckboxField>
 				</CheckboxGroup>
 			</Example>

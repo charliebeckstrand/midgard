@@ -1,5 +1,6 @@
 'use client'
 
+import { Lock, LockOpen } from 'lucide-react'
 import { use, useId, useLayoutEffect } from 'react'
 import { Combobox, ComboboxOption } from '../../components/combobox'
 import { Heading } from '../../components/heading'
@@ -11,12 +12,22 @@ import {
 	SidebarLabel,
 	SidebarSection,
 } from '../../components/sidebar'
+import { ToggleIconButton } from '../../components/toggle-icon-button'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { useScrollWithin } from '../../hooks'
 import { OffcanvasContext } from '../../primitives/offcanvas'
 import { navigate } from '../hooks/use-hash'
 import { demos, preloadDemo, sortedCategories } from '../registry'
 
-export function SidebarContent({ route }: { route: string }) {
+export function SidebarContent({
+	route,
+	locked,
+	onToggleLocked,
+}: {
+	route: string
+	locked: boolean
+	onToggleLocked: () => void
+}) {
 	const id = useId()
 
 	const offcanvas = use(OffcanvasContext)
@@ -37,7 +48,24 @@ export function SidebarContent({ route }: { route: string }) {
 	return (
 		<Sidebar>
 			<SidebarHeader>
-				<Heading level={2}>UI Components</Heading>
+				<div className="flex items-center gap-sm">
+					<Heading level={2} className="flex-1">
+						UI Components
+					</Heading>
+					<Tooltip placement="bottom">
+						<TooltipTrigger>
+							<ToggleIconButton
+								pressed={!locked}
+								icon={<LockOpen />}
+								activeIcon={<Lock />}
+								onClick={onToggleLocked}
+								aria-label={locked ? 'Unlock sidebar' : 'Lock sidebar'}
+								className="max-lg:hidden p-0"
+							/>
+						</TooltipTrigger>
+						<TooltipContent>{locked ? 'Unlock sidebar' : 'Lock sidebar'}</TooltipContent>
+					</Tooltip>
+				</div>
 			</SidebarHeader>
 			<Combobox<string>
 				id={`${id}-search-components`}

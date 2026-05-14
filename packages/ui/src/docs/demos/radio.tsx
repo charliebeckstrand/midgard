@@ -1,4 +1,4 @@
-import { Label } from '../../components/fieldset'
+import { Description, Label } from '../../components/fieldset'
 import { Radio, RadioField, RadioGroup } from '../../components/radio'
 import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
@@ -47,12 +47,17 @@ export default function RadioDemo() {
 			<Example title="Disabled">
 				<RadioGroup>
 					<RadioField>
-						<Radio id="radio-enabled" name="option" value="enabled" defaultChecked disabled />
+						<Radio id="radio-enabled" name="option" value="enabled" defaultChecked />
 						<Label htmlFor="radio-enabled">Enabled option</Label>
+					</RadioField>
+					<RadioField>
+						<Radio id="radio-enabled-2" name="option" value="enabled-2" />
+						<Label htmlFor="radio-enabled-2">Enabled option</Label>
 					</RadioField>
 					<RadioField>
 						<Radio id="radio-disabled" name="option" value="disabled" disabled />
 						<Label htmlFor="radio-disabled">Disabled option</Label>
+						<Description>This radio button is disabled and cannot be interacted with.</Description>
 					</RadioField>
 				</RadioGroup>
 			</Example>

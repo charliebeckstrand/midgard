@@ -75,6 +75,7 @@ export function Checkbox({
 	return (
 		<label
 			data-slot="control"
+			{...(resolvedDisabled ? { 'data-disabled': true } : {})}
 			className={cn(checkboxVariants({ color, size: resolvedSize }), className)}
 		>
 			<input

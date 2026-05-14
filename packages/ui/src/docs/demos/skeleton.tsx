@@ -44,10 +44,9 @@ function DynamicExample() {
 			actions={
 				<Combobox
 					value={selected}
-					onValueChange={setSelected}
 					displayValue={(v: string) => v}
+					onValueChange={setSelected}
 					placeholder="Search components"
-					className="w-56"
 				>
 					{(query) =>
 						dynamicComponents

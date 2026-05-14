@@ -13,10 +13,8 @@ export const fieldset = {
 	label: [
 		'text-base select-none',
 		sawari.cursor,
-		'[[data-slot=field]:has(:disabled)_&]:cursor-not-allowed',
-		'[[data-slot=field]:has([data-disabled])_&]:cursor-not-allowed',
-		'[[data-slot=control]:has(:disabled)_&]:cursor-not-allowed',
-		'[[data-slot=control]:has([data-disabled])_&]:cursor-not-allowed',
+		'[[data-slot=field][data-disabled]_&]:cursor-not-allowed',
+		'[[data-slot=control][data-disabled]_&]:cursor-not-allowed',
 		iro.text.default,
 		sawari.disabled,
 	],
