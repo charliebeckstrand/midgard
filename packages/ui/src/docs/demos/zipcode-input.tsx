@@ -15,7 +15,7 @@ function ControlledExample() {
 		<Example title="Controlled">
 			<Field>
 				<Label>ZIP</Label>
-				<ZipcodeInput value={value} onChange={setValue} />
+				<ZipcodeInput value={value} onValueChange={setValue} />
 			</Field>
 		</Example>
 	)

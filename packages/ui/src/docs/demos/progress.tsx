@@ -25,7 +25,7 @@ function InteractiveBarExample() {
 	return (
 		<Example
 			title="Default"
-			actions={<ValueStepper value={value} onChange={setValue} max={100} step={10} />}
+			actions={<ValueStepper value={value} onValueChange={setValue} max={100} step={10} />}
 		>
 			<ProgressBar value={value} aria-label="Progress" />
 		</Example>
@@ -38,7 +38,7 @@ function InteractiveGaugeExample() {
 	return (
 		<Example
 			title="Default"
-			actions={<ValueStepper value={value} onChange={setValue} max={100} step={10} />}
+			actions={<ValueStepper value={value} onValueChange={setValue} max={100} step={10} />}
 			code={code`
 				import { ProgressGauge } from 'ui/progress'
 

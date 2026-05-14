@@ -44,7 +44,7 @@ export function SidebarContent({ route }: { route: string }) {
 				placeholder="Search components"
 				autoComplete="off"
 				selectable={false}
-				onChange={(id) => {
+				onValueChange={(id) => {
 					if (!id) return
 
 					navigate(id)
