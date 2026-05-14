@@ -41,9 +41,7 @@ export {
 	type PanelBodyProps,
 	type PanelDescriptionProps,
 	type PanelTitleProps,
-	useDescriptionRegistration,
 	usePanelA11yScope,
-	useTitleRegistration,
 } from './panel'
 export { Polymorphic, type PolymorphicProps } from './polymorphic'
 export { PopoverPanel } from './popover'
