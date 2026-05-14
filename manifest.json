@@ -16,6 +16,8 @@
       "linter": "biome",
       "scripts": {
         "test": null,
+        "test:changed": null,
+        "test:related": null,
         "lint": "biome check --config-path=../.. .",
         "check-types": "tsc --noEmit",
         "build": "next build",
@@ -37,6 +39,8 @@
       "linter": "biome",
       "scripts": {
         "test": null,
+        "test:changed": null,
+        "test:related": null,
         "lint": "biome check --config-path=../.. .",
         "check-types": "tsc --noEmit",
         "build": "next build",
@@ -58,6 +62,8 @@
       "linter": "biome",
       "scripts": {
         "test": null,
+        "test:changed": null,
+        "test:related": null,
         "lint": "biome check --config-path=../.. .",
         "check-types": null,
         "build": "tsup",
@@ -79,6 +85,8 @@
       "linter": "biome",
       "scripts": {
         "test": null,
+        "test:changed": null,
+        "test:related": null,
         "lint": "biome check --config-path=../.. .",
         "check-types": null,
         "build": "tsup",
@@ -100,6 +108,8 @@
       "linter": "biome",
       "scripts": {
         "test": "vitest run",
+        "test:changed": "vitest run --changed",
+        "test:related": "vitest related --run",
         "lint": "biome check --config-path=../.. .",
         "check-types": "tsc --noEmit && tsc --noEmit -p tsconfig.scripts.json",
         "build": "tsup && tsc --emitDeclarationOnly --outDir dist",

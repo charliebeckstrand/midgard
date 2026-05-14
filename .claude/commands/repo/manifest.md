@@ -72,7 +72,7 @@ Per-package fields:
   | otherwise | `null` |
 - `testRunner` — `vitest` / `jest` / `bun` / `node` (detected from devDeps and/or `scripts.test`); `null` if no test infrastructure.
 - `linter` — `biome` / `eslint`; `null` if absent.
-- `scripts` — always emit all five keys (`test`, `lint`, `check-types`, `build`, `dev`). Copy the value verbatim from `package.json#scripts`; use `null` when the key is absent. If the package uses `typecheck` instead of `check-types`, normalize it under `check-types`.
+- `scripts` — always emit all seven keys (`test`, `test:changed`, `test:related`, `lint`, `check-types`, `build`, `dev`). Copy the value verbatim from `package.json#scripts`; use `null` when the key is absent. If the package uses `typecheck` instead of `check-types`, normalize it under `check-types`. The `test:changed` / `test:related` entries are the scoped-iteration commands consumed by `/typescript:review` and `/tests:compose` — see CLAUDE.md → "Testing".
 - `componentsDir` — first existing directory, in this order: `src/components/`, `src/ui/`, `app/components/`, `lib/components/`, `components/`; else `null`.
 - `primitivesDir` — first existing directory, in this order: `src/primitives/`, `src/atoms/`, `src/core/components/`; else `null`.
 - `hooksDir` — first existing directory, in this order: `src/hooks/`, `src/use/`; else `null`.
@@ -108,6 +108,8 @@ Compose the final object. Schema:
       "linter": "biome",
       "scripts": {
         "test": "vitest run",
+        "test:changed": "vitest run --changed",
+        "test:related": "vitest related --run",
         "lint": "biome check .",
         "check-types": "tsc --noEmit",
         "build": "tsup",
@@ -129,6 +131,8 @@ Compose the final object. Schema:
       "linter": "biome",
       "scripts": {
         "test": null,
+        "test:changed": null,
+        "test:related": null,
         "lint": "biome check .",
         "check-types": null,
         "build": "next build",
@@ -227,6 +231,8 @@ End with: `Run /repo:manifest to regenerate; downstream skills will reuse this f
       "linter": "biome",
       "scripts": {
         "test": "vitest run",
+        "test:changed": "vitest run --changed",
+        "test:related": "vitest related --run",
         "lint": "biome check .",
         "check-types": "tsc --noEmit",
         "build": "tsup",
@@ -248,6 +254,8 @@ End with: `Run /repo:manifest to regenerate; downstream skills will reuse this f
       "linter": "biome",
       "scripts": {
         "test": null,
+        "test:changed": null,
+        "test:related": null,
         "lint": "biome check .",
         "check-types": null,
         "build": "next build",
