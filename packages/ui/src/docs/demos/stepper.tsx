@@ -45,7 +45,7 @@ export default function StepperDemo() {
 				actions={
 					<ValueStepper
 						value={horizontalValue}
-						onChange={setHorizontalValue}
+						onValueChange={setHorizontalValue}
 						max={steps.length - 1}
 					/>
 				}
@@ -65,7 +65,11 @@ export default function StepperDemo() {
 			<Example
 				title="Vertical"
 				actions={
-					<ValueStepper value={verticalValue} onChange={setVerticalValue} max={steps.length - 1} />
+					<ValueStepper
+						value={verticalValue}
+						onValueChange={setVerticalValue}
+						max={steps.length - 1}
+					/>
 				}
 			>
 				<Stepper orientation="vertical" value={verticalValue} onValueChange={setVerticalValue}>
@@ -83,7 +87,7 @@ export default function StepperDemo() {
 			<Example
 				title="Linear"
 				actions={
-					<ValueStepper value={linearValue} onChange={setLinearValue} max={steps.length - 1} />
+					<ValueStepper value={linearValue} onValueChange={setLinearValue} max={steps.length - 1} />
 				}
 			>
 				<Stepper linear value={linearValue} onValueChange={setLinearValue}>
@@ -101,7 +105,7 @@ export default function StepperDemo() {
 			<Example
 				title="With content panels"
 				actions={
-					<ValueStepper value={panelsValue} onChange={setPanelsValue} max={steps.length - 1} />
+					<ValueStepper value={panelsValue} onValueChange={setPanelsValue} max={steps.length - 1} />
 				}
 			>
 				<Stepper value={panelsValue} onValueChange={setPanelsValue}>

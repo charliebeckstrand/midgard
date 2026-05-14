@@ -22,7 +22,7 @@ function BottomNavExample() {
 
 	return (
 		<Card bg="none" className="relative">
-			<BottomNav value={active} onChange={setActive}>
+			<BottomNav value={active} onValueChange={setActive}>
 				{items.map(({ value, label, icon }) => (
 					<BottomNavItem key={value} value={value} icon={icon}>
 						{label}

@@ -54,7 +54,7 @@ type ComboboxBaseProps<T> = {
 	className?: string
 	inputType?: InputHTMLAttributes<HTMLInputElement>['type']
 	autoComplete?: InputHTMLAttributes<HTMLInputElement>['autoComplete']
-	/** Fires onChange without storing the value. */
+	/** Fires onValueChange without storing the value. */
 	selectable?: boolean
 	/** Clicking the selected option clears it. */
 	nullable?: boolean

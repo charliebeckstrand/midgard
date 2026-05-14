@@ -21,7 +21,7 @@ function InteractiveExample() {
 	return (
 		<Example
 			title="Default"
-			actions={<ValueStepper value={value} onChange={setValue} max={100} step={10} />}
+			actions={<ValueStepper value={value} onValueChange={setValue} max={100} step={10} />}
 		>
 			<Slider value={value} onValueChange={setValue} />
 			<Text className="tabular-nums">{value}</Text>

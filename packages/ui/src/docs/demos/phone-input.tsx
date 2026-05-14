@@ -15,7 +15,7 @@ function ControlledExample() {
 		<Example title="Controlled">
 			<Field>
 				<Label>Phone</Label>
-				<PhoneInput value={value} onChange={setValue} placeholder="(555) 555-5555" />
+				<PhoneInput value={value} onValueChange={setValue} placeholder="(555) 555-5555" />
 			</Field>
 		</Example>
 	)
