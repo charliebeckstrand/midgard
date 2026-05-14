@@ -4,14 +4,19 @@ import { useCallback, useRef, useState } from 'react'
 
 type SetValue<T> = T | undefined | ((prev: T | undefined) => T | undefined)
 
-/** Manages controlled / uncontrolled value state with a unified setter. */
-export function useControllable<T>(props: {
+export type UseControllableOptions<T> = {
+	/** Controlled value. `undefined` leaves the hook uncontrolled; pass `null` to stay controlled with no current value. */
 	value?: T | null
 	defaultValue?: T
 	onChange?: (value: T | undefined) => void
-}): [T | undefined, (value: SetValue<T>) => void] {
-	const { value, defaultValue, onChange } = props
+}
 
+/** Manages controlled / uncontrolled value state with a unified setter. */
+export function useControllable<T>({
+	value,
+	defaultValue,
+	onChange,
+}: UseControllableOptions<T>): [T | undefined, (value: SetValue<T>) => void] {
 	const [internalValue, setInternalValue] = useState<T | undefined>(defaultValue)
 
 	const isControlled = value !== undefined
