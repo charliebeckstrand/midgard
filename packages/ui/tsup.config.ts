@@ -25,6 +25,7 @@ const componentEntries = Object.fromEntries(
 const entry = {
 	hooks: 'src/hooks/index.ts',
 	layouts: 'src/layouts/index.ts',
+	providers: 'src/providers/index.ts',
 	...componentEntries,
 }
 
