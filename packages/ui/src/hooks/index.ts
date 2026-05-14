@@ -1,5 +1,5 @@
 export { useControllable } from './use-controllable'
-export { useDeferredToggle } from './use-deferred-toggle'
+export { type UseDeferredToggleOptions, useDeferredToggle } from './use-deferred-toggle'
 export { type UseDismissableOptions, useDismissable } from './use-dismissable'
 export {
 	type UseFloatingPanelOptions,
@@ -30,7 +30,7 @@ export {
 	useRoving,
 } from './use-roving'
 export {
-	type ScrollWithinOptions,
+	type UseScrollWithinOptions,
 	useScrollWithin,
 } from './use-scroll-within'
 export {
@@ -39,7 +39,6 @@ export {
 	useSortableItem,
 } from './use-sortable-item'
 export {
-	type SortableOrientation,
 	type UseSortableListOptions,
 	type UseSortableListReturn,
 	useSortableList,

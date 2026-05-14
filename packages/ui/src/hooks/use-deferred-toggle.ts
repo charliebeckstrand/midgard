@@ -2,7 +2,7 @@
 
 import { useCallback, useRef } from 'react'
 
-type UseDeferredToggleOptions<T> = {
+export type UseDeferredToggleOptions<T> = {
 	multiple: boolean
 	nullable: boolean
 	setValue: (updater: (prev: T | T[] | undefined) => T | T[] | undefined) => void

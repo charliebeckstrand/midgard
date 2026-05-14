@@ -1,12 +1,12 @@
 'use client'
 
 import { type KeyboardEvent, useCallback, useRef, useState } from 'react'
-import type { SortableOrientation } from '../../hooks'
+import type { Orientation } from '../../hooks'
 
 type Options<T> = {
 	items: T[]
 	getKey: (item: T) => string
-	orientation: SortableOrientation
+	orientation: Orientation
 	onReorder?: (next: T[]) => void
 }
 

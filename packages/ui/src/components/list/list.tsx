@@ -4,7 +4,7 @@ import { DndContext, DragOverlay, type DragStartEvent } from '@dnd-kit/core'
 import { SortableContext } from '@dnd-kit/sortable'
 import { type ReactNode, useCallback, useMemo } from 'react'
 import { cn } from '../../core'
-import type { SortableOrientation } from '../../hooks'
+import type { Orientation } from '../../hooks'
 import { k, type ListVariant } from '../../recipes/kata/list'
 import { ListItemProvider, ListProvider } from './context'
 import { ListItemSortable } from './list-item-sortable'
@@ -20,7 +20,7 @@ type BaseListProps<T> = {
 	/** Visual variant. `separated` spaces cards apart; `outline` draws one border around the whole list with dividers; `plain` uses dividers only; `solid` renders tinted cards. */
 	variant?: ListVariant
 	/** Layout axis. Defaults to vertical. */
-	orientation?: SortableOrientation
+	orientation?: Orientation
 	/** Disable all drag / keyboard reorder interaction. */
 	disabled?: boolean
 	/** Render function for each item. */

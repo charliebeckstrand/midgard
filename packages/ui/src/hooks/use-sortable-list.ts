@@ -10,8 +10,6 @@ import { useCallback, useMemo, useState } from 'react'
 import type { Orientation } from '../types'
 import { useSortableSensors } from './use-sortable-sensors'
 
-export type SortableOrientation = Orientation
-
 export type UseSortableListOptions<T> = {
 	/** Ordered items. */
 	items: T[]
@@ -19,11 +17,11 @@ export type UseSortableListOptions<T> = {
 	getKey: (item: T) => string
 	/** Called with the next ordering whenever the list reorders. Omit for read-only. */
 	onReorder?: (next: T[]) => void
-	/** Layout axis. Defaults to vertical. */
-	orientation?: SortableOrientation
+	/** Layout axis. @default 'vertical' */
+	orientation?: Orientation
 	/** Disable pointer + keyboard interaction. */
 	disabled?: boolean
-	/** Register dnd-kit's keyboard sensor. Disable when the caller handles keyboard reordering itself. Defaults to true. */
+	/** Register dnd-kit's keyboard sensor. Disable when the caller handles keyboard reordering itself. @default true */
 	keyboardSensor?: boolean
 }
 
@@ -37,7 +35,7 @@ export type UseSortableListReturn = {
 	/** Id of the item currently being dragged, if any. */
 	activeId: string | null
 	/** Resolved orientation. */
-	orientation: SortableOrientation
+	orientation: Orientation
 	/** Spread onto `<DndContext>` to wire up drag handlers. */
 	dndContextProps: {
 		sensors: ReturnType<typeof useSortableSensors>
@@ -64,6 +62,7 @@ export function useSortableList<T>({
 	const interactive = !disabled && !!onReorder
 
 	const [activeId, setActiveId] = useState<string | null>(null)
+
 	const sensors = useSortableSensors({ keyboard: keyboardSensor })
 
 	const itemIds = useMemo(() => items.map(getKey), [items, getKey])
@@ -78,13 +77,17 @@ export function useSortableList<T>({
 	const handleDragEnd = useCallback(
 		(event: DragEndEvent) => {
 			setActiveId(null)
+
 			if (!onReorder) return
 
 			const { active, over } = event
+
 			if (!over || active.id === over.id) return
 
 			const oldIdx = itemIds.indexOf(String(active.id))
+
 			const newIdx = itemIds.indexOf(String(over.id))
+
 			if (oldIdx === -1 || newIdx === -1) return
 
 			onReorder(arrayMove(items, oldIdx, newIdx))

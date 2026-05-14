@@ -11,6 +11,7 @@ const focusableSelector = [
 	'[tabindex]:not([tabindex="-1"])',
 ].join(', ')
 
+/** Cycles Tab / Shift+Tab focus inside the returned container while `active`, and restores focus on release. */
 export function useFocusTrap(active: boolean) {
 	const containerRef = useRef<HTMLDivElement>(null)
 

@@ -1,13 +1,13 @@
 'use client'
 
 import { useMemo } from 'react'
-import { type SortableOrientation, useSortableList } from '../../hooks'
+import { type Orientation, useSortableList } from '../../hooks'
 
 type Options<T> = {
 	items: T[]
 	getKey?: (item: T) => string
 	onReorder?: (next: T[]) => void
-	orientation: SortableOrientation
+	orientation: Orientation
 	disabled?: boolean
 }
 

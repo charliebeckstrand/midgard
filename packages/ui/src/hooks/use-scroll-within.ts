@@ -1,11 +1,11 @@
 'use client'
 
-export type ScrollWithinOptions = {
+export type UseScrollWithinOptions = {
 	behavior?: ScrollBehavior
 	block?: 'start' | 'center' | 'end' | 'nearest'
 }
 
-function scrollWithin(node: HTMLElement | null, options: ScrollWithinOptions = {}) {
+function scrollWithin(node: HTMLElement | null, options: UseScrollWithinOptions = {}) {
 	if (!node) return
 
 	const { behavior = 'auto', block = 'nearest' } = options

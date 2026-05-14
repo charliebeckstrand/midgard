@@ -11,6 +11,7 @@ type RippleEntry = {
 	size: number
 }
 
+/** Material-style click ripple: returns a pointerdown handler plus the overlay element to render inside a relatively-positioned target. */
 export function useRipple({ duration = 0.5 }: { duration?: number } = {}) {
 	const [ripples, setRipples] = useState<RippleEntry[]>([])
 
