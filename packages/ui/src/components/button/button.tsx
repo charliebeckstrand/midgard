@@ -23,7 +23,7 @@ import { type ButtonVariants, buttonVariants } from '../../recipes/kata/button'
 import { useGlass } from '../glass/context'
 import { useHeadless } from '../headless/context'
 import { Icon } from '../icon'
-import { useInputSize } from '../input/context'
+import { useAffixSize } from '../input/context'
 import { Link } from '../link'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
@@ -91,7 +91,7 @@ export function Button({
 	const concentric = useConcentric()
 	const glass = useGlass()
 	const headless = useHeadless()
-	const inputSize = useInputSize()
+	const affixSize = useAffixSize()
 	const skeleton = useSkeleton()
 
 	const { onPointerDown: handleRipple, element: rippleElement } = useRipple()
@@ -134,7 +134,7 @@ export function Button({
 	// (provided by <Card>/<Group>/<Drawer>/<Popover>), then any <Input>
 	// grouping context. Component's own default kicks in only when all of
 	// these are absent.
-	const resolvedSize = size ?? concentric?.size ?? inputSize
+	const resolvedSize = size ?? concentric?.size ?? affixSize
 
 	const springMotion = springProps(spring)
 

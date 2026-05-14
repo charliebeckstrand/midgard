@@ -32,24 +32,24 @@ These don't sit inside a `<Control>`; they only read the top-level concentric si
 ### Standalone interactive: `button`
 
 ```
-size    = explicit ?? Concentric ?? InputSize
+size    = explicit ?? Concentric ?? AffixSize
 variant = explicit ?? (glass ? 'glass' : undefined)
 ```
 
-Button reads InputSize because it can be rendered as a clear/loading button **inside** an `<Input>`, where the input broadcasts its size to descendants. Button does **not** read Control — it isn't a form-field-inside-Control by convention.
+Button reads AffixSize because it can be rendered as a clear/loading button **inside** an `<Input>`, where the input broadcasts its affix size to descendants. Button does **not** read Control — it isn't a form-field-inside-Control by convention.
 
 ### Cascade descendants: `spinner`, `icon`
 
 Tiny things rendered inside larger sized controls.
 
 ```
-size = explicit ?? ButtonSize ?? InputSize ?? 'md'
+size = explicit ?? ButtonSize ?? AffixSize ?? 'md'
 ```
 
 - **ButtonSize** (`useButtonSize`) — broadcast by `<Button>` to its descendants so a Spinner or Icon inside a Button auto-scales.
-- **InputSize** (`useInputSize`) — broadcast by `<Input>` to its descendants for the same reason (affix icons, clear buttons, loading spinners).
+- **AffixSize** (`useAffixSize`) — broadcast by `<Input>` to its affix descendants for the same reason (icons, clear buttons, loading spinners).
 
-Both are "this control's size, propagated to its children" — pure broadcast, no inheritance from outer ancestors.
+Both are sizes a control broadcasts to its descendants — pure broadcast, no inheritance from outer ancestors.
 
 ### Avatar family: `avatar`, `status`
 
@@ -60,7 +60,7 @@ size = explicit ?? AvatarGroupSize / AvatarSize ?? 'md'
 - **AvatarGroupSize** — broadcast by `<AvatarGroup>` so all avatars in the stack share a size.
 - **AvatarSize** — broadcast by `<Avatar>` so a `<StatusDot>` placed on the avatar inherits its size.
 
-Same pattern as ButtonSize / InputSize, scoped to the avatar family.
+Same pattern as ButtonSize / AffixSize, scoped to the avatar family.
 
 ### Sub-cascades: `dl`, `timeline`
 
@@ -86,7 +86,7 @@ Both are read at the leaf level. They don't compose into the size/variant resolu
 Each cascade represents a coupling that prop drilling can't reach without ceremony:
 
 - Concentric size flows through arbitrary wrappers (Frame, Stack, layout components) to leaf controls.
-- ButtonSize / InputSize broadcasts to descendants that might be wrapped in custom layouts N levels deep.
+- ButtonSize / AffixSize broadcasts to descendants that might be wrapped in custom layouts N levels deep.
 - AvatarGroupSize same idea, scoped to the avatar family.
 - Glass / Skeleton are ambient flags that affect many descendants at once.
 
