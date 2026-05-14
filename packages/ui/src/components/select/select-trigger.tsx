@@ -6,6 +6,10 @@ import { ControlFrame } from '../../primitives'
 import { iro, sawari } from '../../recipes'
 import { control as controlRecipe } from '../../recipes/waku/control'
 import type { ControlSize } from '../control/context'
+import { AffixSizeProvider } from '../input/context'
+
+// Icon size is one step smaller than the trigger size (matches Input).
+const iconSize = { sm: 'xs', md: 'sm', lg: 'md' } as const
 
 const affixBase = [
 	'flex items-center min-w-0',
@@ -56,33 +60,40 @@ export function SelectTrigger({
 	children,
 }: SelectTriggerProps) {
 	return (
-		<div data-slot="control" ref={setReference} className={cn(className)} {...getReferenceProps()}>
-			<ControlFrame
-				data-open={open || undefined}
-				data-group={dataGroup}
-				data-group-orientation={dataGroupOrientation}
-				className={cn(!glass && controlRecipe.surface.default)}
-				{...frameProps}
+		<AffixSizeProvider value={iconSize[size]}>
+			<div
+				data-slot="control"
+				ref={setReference}
+				className={cn(className)}
+				{...getReferenceProps()}
 			>
-				{prefix && (
-					<span
-						data-slot="prefix"
-						className={cn('peer/prefix', affixBase, controlRecipe.affix.prefix[size])}
-					>
-						{prefix}
-					</span>
-				)}
-				{children}
-				{suffixUnwrapped ??
-					(suffix !== undefined && (
+				<ControlFrame
+					data-open={open || undefined}
+					data-group={dataGroup}
+					data-group-orientation={dataGroupOrientation}
+					className={cn(!glass && controlRecipe.surface.default)}
+					{...frameProps}
+				>
+					{prefix && (
 						<span
-							data-slot="suffix"
-							className={cn('peer/suffix', affixBase, controlRecipe.affix.suffix[size])}
+							data-slot="prefix"
+							className={cn('peer/prefix', affixBase, controlRecipe.affix.prefix[size])}
 						>
-							{suffix}
+							{prefix}
 						</span>
-					))}
-			</ControlFrame>
-		</div>
+					)}
+					{children}
+					{suffixUnwrapped ??
+						(suffix !== undefined && (
+							<span
+								data-slot="suffix"
+								className={cn('peer/suffix', affixBase, controlRecipe.affix.suffix[size])}
+							>
+								{suffix}
+							</span>
+						))}
+				</ControlFrame>
+			</div>
+		</AffixSizeProvider>
 	)
 }

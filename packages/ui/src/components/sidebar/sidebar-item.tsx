@@ -22,7 +22,7 @@ export const sidebarItemVariants = (size: Step) => cn(k.item, k.itemSize[size])
 export const SidebarItem = createNavItem({
 	slotPrefix: 'sidebar',
 	variants: sidebarItemVariants,
-	renderIcon: (icon) => <Icon icon={icon} />,
+	renderIcon: (icon, size) => <Icon icon={icon} size={size} />,
 })
 
 export function SidebarLabel({ className, ...props }: SidebarLabelProps) {

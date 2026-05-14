@@ -7,9 +7,9 @@ import { type ReactNode, useCallback, useId, useMemo, useRef } from 'react'
 import { cn, createContext } from '../../core'
 import { useFloatingUI } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
-import { PopoverPanel, useJoin } from '../../primitives'
+import { PopoverPanel, useConcentric, useJoin } from '../../primitives'
 import { iro, kokkaku } from '../../recipes'
-import { k } from '../../recipes/kata/listbox'
+import { k, listboxVariants } from '../../recipes/kata/listbox'
 import { popover as kPopover } from '../../recipes/kata/popover'
 import { type ControlSize, useControl } from '../control/context'
 import { invalidAttrs } from '../control/control-invalid-attrs'
@@ -86,6 +86,7 @@ export function Listbox<T>({
 	'data-group-orientation': dataGroupOrientation,
 	children,
 }: ListboxProps<T>) {
+	const concentric = useConcentric()
 	const glass = useGlass()
 	const control = useControl()
 	const skeleton = useSkeleton()
@@ -95,7 +96,7 @@ export function Listbox<T>({
 
 	const resolvedDisabled = disabled ?? control?.disabled
 
-	const resolvedSize = size ?? control?.size ?? 'md'
+	const resolvedSize = size ?? control?.size ?? concentric?.size ?? 'md'
 
 	const handleValueChange = useCallback(
 		(nextValue: T | T[] | undefined) => {
@@ -176,7 +177,7 @@ export function Listbox<T>({
 					disabled={resolvedDisabled}
 					data-slot="listbox-button"
 					{...invalidAttrs(control?.invalid)}
-					className={cn(k.button)}
+					className={cn(listboxVariants({ size: resolvedSize }))}
 				>
 					<span className={cn(k.value, tabularNums && 'tabular-nums')}>
 						{label || <span className={cn(iro.text.muted)}>{placeholder}</span>}

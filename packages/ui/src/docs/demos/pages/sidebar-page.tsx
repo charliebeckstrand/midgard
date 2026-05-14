@@ -3,7 +3,6 @@
 import { Activity, Inbox, Settings, Users } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../../../components/button'
-import { Field, Label } from '../../../components/fieldset'
 import { Filters, FiltersClear, FiltersField, useFilters } from '../../../components/filters'
 import { Heading } from '../../../components/heading'
 import { Listbox, ListboxLabel, ListboxOption } from '../../../components/listbox'
@@ -48,7 +47,7 @@ const orders = [
 ]
 
 const levels: { value: DensityLevel; label: string }[] = [
-	{ value: 'comfortable', label: 'Comfortable' },
+	{ value: 'loose', label: 'Loose' },
 	{ value: 'snug', label: 'Snug' },
 	{ value: 'compact', label: 'Compact' },
 ]
@@ -106,32 +105,6 @@ function OrdersFilters() {
 	)
 }
 
-function DensityPicker({
-	density,
-	onDensityChange,
-}: {
-	density: DensityLevel
-	onDensityChange: (next: DensityLevel) => void
-}) {
-	return (
-		<Field>
-			<Label>Density</Label>
-			<Listbox<DensityLevel>
-				value={density}
-				onValueChange={(v) => v && onDensityChange(v)}
-				displayValue={(v) => levels.find((t) => t.value === v)?.label ?? v}
-				placeholder="Select density"
-			>
-				{levels.map((level) => (
-					<ListboxOption key={level.value} value={level.value}>
-						<ListboxLabel>{level.label}</ListboxLabel>
-					</ListboxOption>
-				))}
-			</Listbox>
-		</Field>
-	)
-}
-
 export default function SidebarPageDemo() {
 	const [density, setDensity] = useState<DensityLevel>('snug')
 
@@ -153,15 +126,27 @@ export default function SidebarPageDemo() {
 	)
 
 	return (
-		<Example>
+		<Example
+			actions={
+				<Listbox<DensityLevel>
+					value={density}
+					onValueChange={(v) => v && setDensity(v)}
+					displayValue={(v) => levels.find((t) => t.value === v)?.label ?? v}
+					placeholder="Select density"
+				>
+					{levels.map((level) => (
+						<ListboxOption key={level.value} value={level.value}>
+							<ListboxLabel>{level.label}</ListboxLabel>
+						</ListboxOption>
+					))}
+				</Listbox>
+			}
+		>
 			<Stack gap="md">
-				{/* Picker sits outside Density so it stays a stable size. */}
-				<DensityPicker density={density} onDensityChange={setDensity} />
-
 				<Density density={density}>
 					<SidebarLayout sidebar={sidebar}>
 						<SidebarLayoutHeader>
-							<Heading level={3}>Orders</Heading>
+							<Heading level={1}>Orders</Heading>
 						</SidebarLayoutHeader>
 						<SidebarLayoutBody>
 							<Stack>

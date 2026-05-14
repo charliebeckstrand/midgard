@@ -1,19 +1,16 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { ji } from '../ryu/ji'
 import { sen } from '../ryu/sen'
 import { control } from '../waku/control'
 
-// Default control density for textarea (size isn't variable here).
-const density = ['px-[calc(--spacing(3)-1px)] py-[calc(--spacing(2)-1px)]', ji.size.md]
-
 export const textarea = tv({
-	base: ['block', ...control.field, ...density, 'rounded-lg', 'min-h-10'],
+	base: ['block', ...control.field, 'rounded-lg', 'min-h-10'],
 	variants: {
 		variant: {
 			default: [],
 			outline: [],
 			glass: [],
 		},
+		size: control.size,
 		resize: {
 			none: 'resize-none',
 			vertical: 'resize-y',
@@ -21,7 +18,7 @@ export const textarea = tv({
 		},
 		autoResize: { true: 'field-sizing-content', false: '' },
 	},
-	defaultVariants: { variant: 'default', resize: 'none', autoResize: false },
+	defaultVariants: { variant: 'default', size: 'md', resize: 'none', autoResize: false },
 })
 
 export const textareaControl = tv({

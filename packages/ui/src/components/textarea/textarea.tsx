@@ -2,7 +2,7 @@
 
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { cn } from '../../core'
-import { ControlFrame } from '../../primitives'
+import { ControlFrame, useConcentric } from '../../primitives'
 import { kokkaku } from '../../recipes'
 import {
 	controlVariants,
@@ -18,14 +18,16 @@ import { useGlass } from '../glass/context'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
 
-export type TextareaProps = TextareaVariants & {
+export type TextareaProps = Omit<TextareaVariants, 'size'> & {
+	size?: 'sm' | 'md' | 'lg'
 	className?: string
 	actions?: ReactNode
-} & Omit<ComponentPropsWithoutRef<'textarea'>, 'className'>
+} & Omit<ComponentPropsWithoutRef<'textarea'>, 'className' | 'size'>
 
 export function Textarea({
 	className,
 	variant,
+	size,
 	resize,
 	autoResize,
 	actions,
@@ -42,6 +44,7 @@ export function Textarea({
 	style,
 	...props
 }: TextareaProps) {
+	const concentric = useConcentric()
 	const glass = useGlass()
 	const control = useControl()
 	const binding = useFormText(name, { onChange, onBlur })
@@ -56,6 +59,7 @@ export function Textarea({
 	} = useControlFieldProps({ id, autoComplete, disabled, required, readOnly, binding })
 
 	const resolvedVariant = variant ?? control?.variant ?? (glass ? 'glass' : undefined)
+	const resolvedSize = size ?? control?.size ?? concentric?.size ?? 'md'
 
 	if (useSkeleton()) {
 		return (
@@ -97,6 +101,7 @@ export function Textarea({
 				className={cn(
 					textareaVariants({
 						variant: resolvedVariant,
+						size: resolvedSize,
 						resize: hasActions ? 'none' : resize,
 						autoResize,
 					}),

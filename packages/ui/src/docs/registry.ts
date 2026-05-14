@@ -136,11 +136,10 @@ const categoryOrder = [
 	'Feedback',
 	'Overlay',
 	'Navigation',
-	'Layout',
-	'Providers',
-	'Pages',
 	'Chat',
-	'Shipments',
+	'Layout',
+	'Pages',
+	'Providers',
 	'Other',
 ]
 

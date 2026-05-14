@@ -15,9 +15,9 @@ import { cn, createContext } from '../../core'
 import { useFloatingUI, useRoving, useScrollWithin } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
-import { PopoverPanel, useJoin } from '../../primitives'
+import { PopoverPanel, useConcentric, useJoin } from '../../primitives'
 import { kokkaku } from '../../recipes'
-import { k } from '../../recipes/kata/combobox'
+import { comboboxVariants, k } from '../../recipes/kata/combobox'
 import { popover as kPopover } from '../../recipes/kata/popover'
 import { Button } from '../button'
 import { type ControlSize, useControl } from '../control/context'
@@ -117,12 +117,13 @@ export function Combobox<T>({
 	'data-group-orientation': dataGroupOrientation,
 	children,
 }: ComboboxProps<T>) {
+	const concentric = useConcentric()
 	const glass = useGlass()
 	const control = useControl()
 	const skeleton = useSkeleton()
 	const join = useJoin()
 
-	const resolvedSize = size ?? control?.size ?? 'md'
+	const resolvedSize = size ?? control?.size ?? concentric?.size ?? 'md'
 
 	const resolvedDisabled = disabled ?? control?.disabled
 
@@ -279,7 +280,7 @@ export function Combobox<T>({
 						disabled={resolvedDisabled}
 						value={inputDisplay}
 						placeholder={placeholder}
-						className={cn(k.input)}
+						className={cn(comboboxVariants({ size: resolvedSize }))}
 						{...inputHandlers}
 					/>
 				</Headless>

@@ -12,7 +12,7 @@ export const table = {
 	cellDensity: {
 		compact: 'px-xs py-xs',
 		snug: 'px-sm py-sm',
-		comfortable: 'px-md py-md',
+		loose: 'px-md py-md',
 	} as Record<DensityLevel, string>,
 	grid: ['border', sen.borderSubtleColor],
 	striped: mode('*:even:bg-zinc-950/2.5', 'dark:*:even:bg-white/2.5'),

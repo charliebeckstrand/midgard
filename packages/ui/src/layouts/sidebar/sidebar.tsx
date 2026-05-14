@@ -3,7 +3,6 @@
 import { Menu } from 'lucide-react'
 import { type PropsWithChildren, type ReactNode, type Ref, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Box } from '../../components/box'
 import { Button } from '../../components/button'
 import { Drawer } from '../../components/drawer/drawer'
 import { Flex } from '../../components/flex'
@@ -156,10 +155,10 @@ export function SidebarLayoutHeader({ children, className }: SidebarLayoutHeader
 	const { actions } = useSidebarLayoutContext()
 
 	return (
-		<Box dataSlot="header" className={cn(sidebarHeaderVariants(), className)}>
+		<div data-slot="header" className={cn(sidebarHeaderVariants(), className)}>
 			<div className="flex-1 min-w-0">{children}</div>
 			{actions && <div className="shrink-0 max-lg:hidden">{actions}</div>}
-		</Box>
+		</div>
 	)
 }
 
@@ -170,9 +169,9 @@ export type SidebarLayoutBodyProps = PropsWithChildren<{
 
 export function SidebarLayoutBody({ ref, children, className }: SidebarLayoutBodyProps) {
 	return (
-		<Box ref={ref} dataSlot="body" className={cn(sidebarBodyVariants(), className)}>
+		<div ref={ref} data-slot="body" className={cn(sidebarBodyVariants(), className)}>
 			{children}
-		</Box>
+		</div>
 	)
 }
 
@@ -180,8 +179,8 @@ export type SidebarLayoutFooterProps = PropsWithChildren
 
 export function SidebarLayoutFooter({ children }: SidebarLayoutFooterProps) {
 	return (
-		<Box dataSlot="footer" className={sidebarFooterVariants()}>
+		<div data-slot="footer" className={sidebarFooterVariants()}>
 			{children}
-		</Box>
+		</div>
 	)
 }

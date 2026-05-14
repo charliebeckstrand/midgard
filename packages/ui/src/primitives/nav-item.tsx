@@ -31,8 +31,8 @@ export type NavItemConfig = {
 	slotPrefix: string
 	/** Receives the resolved size so callers can vary classes per step. */
 	variants: (size: Step) => string
-	/** Wraps the icon prop. Callers pass their own Icon component so primitives stay layer-clean. */
-	renderIcon: (icon: ReactElement) => ReactNode
+	/** Wraps the icon prop. Receives the resolved size so the icon can scale with the item. */
+	renderIcon: (icon: ReactElement, size: Step) => ReactNode
 }
 
 /**
@@ -99,7 +99,7 @@ export function createNavItem(config: NavItemConfig) {
 					{...props}
 				>
 					<TouchTarget>
-						{icon && config.renderIcon(icon)}
+						{icon && config.renderIcon(icon, resolvedSize)}
 						{children}
 					</TouchTarget>
 				</Polymorphic>

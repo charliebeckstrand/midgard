@@ -1,12 +1,22 @@
+import { tv, type VariantProps } from 'tailwind-variants'
 import { iro } from '../ryu/iro'
 import { ji } from '../ryu/ji'
 import { control } from '../waku/control'
 
-export const combobox = {
-	input: ['block', 'truncate', ...control.field, control.size.md, 'rounded-lg'],
+export const combobox = tv({
+	base: ['block', 'truncate', ...control.field, 'rounded-lg'],
+	variants: {
+		size: control.size,
+	},
+	defaultVariants: { size: 'md' },
+})
+
+export const slots = {
 	chevron: ['pl-0 pr-3 -m-px'],
 	options: 'max-h-60',
 	empty: ['hidden only:block', 'p-2', ji.size.sm, iro.text.muted],
 }
 
-export { combobox as k }
+export type ComboboxVariants = VariantProps<typeof combobox>
+
+export { combobox as comboboxVariants, slots as k }

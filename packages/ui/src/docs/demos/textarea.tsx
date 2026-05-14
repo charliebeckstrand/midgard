@@ -13,6 +13,7 @@ import { capitalize } from '../components/format'
 export const meta = { category: 'Forms' }
 
 const variants = ['default', 'outline'] as const
+const sizes = ['sm', 'md', 'lg'] as const
 
 function WithActionsExample() {
 	const [withActionsValue, setWithActionsValue] = useState('')
@@ -64,6 +65,19 @@ export default function TextareaDemo() {
 							variant={variant}
 							resize="vertical"
 							placeholder={`This is a ${variant} textarea`}
+						/>
+					</Field>
+				))}
+			</Example>
+
+			<Example title="Sizes">
+				{sizes.map((size) => (
+					<Field key={size}>
+						<Label htmlFor={`textarea-size-${size}`}>{capitalize(size)}</Label>
+						<Textarea
+							id={`textarea-size-${size}`}
+							size={size}
+							placeholder={`This is a ${size} textarea`}
 						/>
 					</Field>
 				))}
