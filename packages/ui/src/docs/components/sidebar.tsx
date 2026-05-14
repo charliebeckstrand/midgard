@@ -59,11 +59,11 @@ export function SidebarContent({
 								icon={<PanelLeftDashed />}
 								activeIcon={<PanelLeft />}
 								onClick={onToggleLocked}
-								aria-label={locked ? 'Unlock sidebar' : 'Lock sidebar'}
-								className="max-lg:hidden p-0"
+								aria-label={locked ? 'Floating sidebar' : 'Lock sidebar'}
+								className="max-lg:hidden p-1 -m-1"
 							/>
 						</TooltipTrigger>
-						<TooltipContent>{locked ? 'Unlock sidebar' : 'Lock sidebar'}</TooltipContent>
+						<TooltipContent>{locked ? 'Floating sidebar' : 'Lock sidebar'}</TooltipContent>
 					</Tooltip>
 				</div>
 			</SidebarHeader>

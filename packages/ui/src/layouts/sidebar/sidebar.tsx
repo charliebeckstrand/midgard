@@ -140,7 +140,7 @@ export function SidebarLayout({
 
 			{/* Content */}
 			<SidebarLayoutContextProvider value={{ actions }}>
-				<Frame direction="col" className={sidebarContentWrapperVariants()}>
+				<Frame direction="col" className={sidebarContentWrapperVariants({ floating })}>
 					<Frame direction="col" className={sidebarContentVariants({ stickyHeader })}>
 						{children}
 					</Frame>

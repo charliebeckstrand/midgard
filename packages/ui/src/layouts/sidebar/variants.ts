@@ -21,6 +21,15 @@ export const sidebarFloatingHotZoneVariants = tv({
 
 export const sidebarContentWrapperVariants = tv({
 	base: ['flex-1', 'lg:min-w-0 lg:py-2 lg:pr-2', 'overflow-hidden'],
+	variants: {
+		floating: {
+			true: 'lg:pl-2',
+			false: '',
+		},
+	},
+	defaultVariants: {
+		floating: false,
+	},
 })
 
 export const sidebarContentVariants = tv({
