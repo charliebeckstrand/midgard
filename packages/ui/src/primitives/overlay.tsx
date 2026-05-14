@@ -54,11 +54,13 @@ export function Overlay({
 				{open && (
 					<div
 						ref={focusTrapRef}
+						data-slot="overlay"
 						className={cn(scoped ? 'absolute inset-0 z-99' : 'fixed inset-0 z-99')}
 						{...props}
 					>
 						<motion.div
 							{...ugoki.overlay}
+							data-slot="overlay-backdrop"
 							className={
 								className ??
 								cn('absolute inset-0', glass ? omote.backdrop.glass : omote.backdrop.base)

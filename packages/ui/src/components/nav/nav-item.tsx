@@ -2,7 +2,7 @@
 
 import type { MouseEvent } from 'react'
 import { cn } from '../../core'
-import { useCurrentContext } from '../../primitives'
+import { useCurrent } from '../../primitives'
 import { type NavItemProps as BaseNavItemProps, createNavItem } from '../../primitives/nav-item'
 import { k } from '../../recipes/kata/nav'
 import { Icon } from '../icon'
@@ -16,7 +16,7 @@ const BaseNavItem = createNavItem({
 export type NavItemProps = BaseNavItemProps & { value?: string }
 
 export function NavItem({ value, current, onClick, ...props }: NavItemProps) {
-	const ctx = useCurrentContext()
+	const ctx = useCurrent()
 
 	const isCurrent = current ?? (value !== undefined && ctx?.value === value)
 

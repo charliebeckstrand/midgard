@@ -10,7 +10,7 @@ export {
 	CurrentProvider,
 	createCurrentContent,
 	useCurrent,
-	useCurrentContext,
+	useCurrentState,
 } from './current'
 export {
 	type JoinContextValue,
@@ -28,10 +28,10 @@ export {
 	type BaseOptionProps,
 	createSelectOption,
 	OptionDescription,
+	type OptionDescriptionProps,
 	OptionLabel,
-	type SelectDescriptionProps,
-	type SelectLabelProps,
-	type SelectOptionProps,
+	type OptionLabelProps,
+	type OptionProps,
 } from './option'
 export { Overlay, type OverlayProps } from './overlay'
 export {
@@ -41,9 +41,7 @@ export {
 	type PanelBodyProps,
 	type PanelDescriptionProps,
 	type PanelTitleProps,
-	useDescriptionRegistration,
 	usePanelA11yScope,
-	useTitleRegistration,
 } from './panel'
 export { Polymorphic, type PolymorphicProps } from './polymorphic'
 export { PopoverPanel } from './popover'

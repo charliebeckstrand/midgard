@@ -1,7 +1,7 @@
 'use client'
 
 import { type ReactNode, useMemo } from 'react'
-import { CurrentProvider, useCurrent } from '../../primitives'
+import { CurrentProvider, useCurrentState } from '../../primitives'
 import type { SegmentControlVariants } from '../../recipes/kata/segment'
 import { SegmentProvider } from './context'
 
@@ -21,7 +21,7 @@ export function Segment({
 	className,
 	children,
 }: SegmentProps) {
-	const [currentCtx] = useCurrent({
+	const currentCtx = useCurrentState({
 		value: valueProp,
 		defaultValue,
 		onChange: onValueChange,

@@ -2,7 +2,7 @@
 
 import type { ComponentPropsWithoutRef, MouseEvent } from 'react'
 import { cn } from '../../core'
-import { ActiveIndicator, useActiveIndicator, useCurrentContext } from '../../primitives'
+import { ActiveIndicator, useActiveIndicator, useCurrent } from '../../primitives'
 import { segment as ks, segmentItemVariants } from '../../recipes/kata/segment'
 import { k } from '../../recipes/kata/tabs'
 import { useTabsContext } from './context'
@@ -24,7 +24,7 @@ export function Tab({
 	onClick,
 	...props
 }: TabProps) {
-	const ctx = useCurrentContext()
+	const ctx = useCurrent()
 
 	const tabsCtx = useTabsContext()
 

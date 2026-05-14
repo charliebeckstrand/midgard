@@ -12,25 +12,23 @@ export type CurrentContextValue = {
 	onChange: ((value: string) => void) | undefined
 }
 
-export const [CurrentProvider, useCurrentContext] = createContext<CurrentContextValue | undefined>(
+export const [CurrentProvider, useCurrent] = createContext<CurrentContextValue | undefined>(
 	'Current',
 	{ default: undefined },
 )
 
-export function useCurrent(props: {
+export function useCurrentState(props: {
 	value?: string
 	defaultValue?: string
 	onChange?: (value: string | undefined) => void
-}): [CurrentContextValue, string | undefined, (value: string) => void] {
+}): CurrentContextValue {
 	const [value, setValue] = useControllable({
 		value: props.value,
 		defaultValue: props.defaultValue,
 		onChange: props.onChange,
 	})
 
-	const ctx = useMemo<CurrentContextValue>(() => ({ value, onChange: setValue }), [value, setValue])
-
-	return [ctx, value, setValue]
+	return useMemo<CurrentContextValue>(() => ({ value, onChange: setValue }), [value, setValue])
 }
 
 const hidden = { opacity: 0 }
@@ -125,7 +123,7 @@ export function createCurrentContent(slotPrefix: string) {
 		children,
 		...props
 	}: ComponentPropsWithoutRef<'div'> & { value?: string }) {
-		const ctx = useCurrentContext()
+		const ctx = useCurrent()
 
 		const fade = useFade()
 

@@ -1,3 +1,5 @@
+'use client'
+
 import { type ComponentPropsWithoutRef, useCallback, useEffect, useMemo, useState } from 'react'
 import { cn, createContext } from '../core'
 import { useIdScope } from '../hooks/use-id-scope'
@@ -24,8 +26,7 @@ export const [PanelA11yProvider, usePanelA11y] = createContext<PanelA11yContextV
 	default: {},
 })
 
-/** Hook for panel components to track whether a Title slot has been rendered. */
-export function useTitleRegistration() {
+function useTitleRegistration() {
 	const [hasTitle, setHasTitle] = useState(false)
 
 	const registerTitle = useCallback(() => {
@@ -36,8 +37,7 @@ export function useTitleRegistration() {
 	return { hasTitle, registerTitle }
 }
 
-/** Hook for panel components to track whether a Description slot has been rendered. */
-export function useDescriptionRegistration() {
+function useDescriptionRegistration() {
 	const [hasDescription, setHasDescription] = useState(false)
 
 	const registerDescription = useCallback(() => {

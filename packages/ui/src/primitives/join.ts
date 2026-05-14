@@ -1,3 +1,5 @@
+'use client'
+
 import { createContext } from '../core'
 import type { GroupOrientation, GroupPosition } from '../recipes/ryu/tsunagi'
 

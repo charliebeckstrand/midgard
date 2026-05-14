@@ -1,3 +1,5 @@
+'use client'
+
 import type { ComponentPropsWithoutRef, ElementType, JSX, ReactNode, Ref } from 'react'
 import { type LinkProps, useLink } from './link'
 
