@@ -134,11 +134,15 @@ describe('CalendarRange', () => {
 		expect(screen.getByText('May 2024')).toBeInTheDocument()
 	})
 
-	it('invokes onChange when a day is clicked', () => {
+	it('invokes onValueChange when a day is clicked', () => {
 		const onChange = vi.fn()
 
 		renderUI(
-			<CalendarRange rangeStart={d(2024, 3, 5)} rangeEnd={d(2024, 3, 10)} onChange={onChange} />,
+			<CalendarRange
+				rangeStart={d(2024, 3, 5)}
+				rangeEnd={d(2024, 3, 10)}
+				onValueChange={onChange}
+			/>,
 		)
 
 		const day = findDay(12) as HTMLElement

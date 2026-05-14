@@ -147,7 +147,7 @@ export function useDatePickerState({
 		focusTrapRef,
 		calendar: {
 			value: value ?? null,
-			onChange: handleSelect,
+			onValueChange: handleSelect,
 			active: open ? active : null,
 			calendarRef,
 			footerRef,

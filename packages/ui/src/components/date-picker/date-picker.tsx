@@ -98,7 +98,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 				<Calendar
 					ref={state.calendar.calendarRef}
 					value={state.calendar.value}
-					onChange={state.calendar.onChange}
+					onValueChange={state.calendar.onValueChange}
 					min={props.min}
 					max={props.max}
 					active={state.calendar.active}

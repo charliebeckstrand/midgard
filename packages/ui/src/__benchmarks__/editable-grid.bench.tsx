@@ -23,19 +23,23 @@ const rows10k = makeShipments(10_000)
 
 describe('EditableGrid · initial render', () => {
 	bench('100 rows × 8 cols', () => {
-		render(<EditableGrid columns={COLUMNS} rows={rows100} getRowKey={getKey} onChange={noop} />)
+		render(
+			<EditableGrid columns={COLUMNS} rows={rows100} getRowKey={getKey} onValueChange={noop} />,
+		)
 
 		cleanup()
 	})
 
 	bench('500 rows × 8 cols', () => {
-		render(<EditableGrid columns={COLUMNS} rows={rows500} getRowKey={getKey} onChange={noop} />)
+		render(
+			<EditableGrid columns={COLUMNS} rows={rows500} getRowKey={getKey} onValueChange={noop} />,
+		)
 
 		cleanup()
 	})
 
 	bench('1,000 rows × 8 cols', () => {
-		render(<EditableGrid columns={COLUMNS} rows={rows1k} getRowKey={getKey} onChange={noop} />)
+		render(<EditableGrid columns={COLUMNS} rows={rows1k} getRowKey={getKey} onValueChange={noop} />)
 
 		cleanup()
 	})
@@ -55,7 +59,7 @@ describe('EditableGrid · with selection', () => {
 				columns={cols}
 				rows={rows1k}
 				getRowKey={getKey}
-				onChange={noop}
+				onValueChange={noop}
 				selection={{ value: selection }}
 			/>,
 		)
@@ -71,7 +75,7 @@ describe('EditableGrid · virtualized initial render', () => {
 				columns={COLUMNS}
 				rows={rows1k}
 				getRowKey={getKey}
-				onChange={noop}
+				onValueChange={noop}
 				virtualize
 				maxHeight="600px"
 			/>,
@@ -86,7 +90,7 @@ describe('EditableGrid · virtualized initial render', () => {
 				columns={COLUMNS}
 				rows={rows10k}
 				getRowKey={getKey}
-				onChange={noop}
+				onValueChange={noop}
 				virtualize
 				maxHeight="600px"
 			/>,

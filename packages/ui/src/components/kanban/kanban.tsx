@@ -22,7 +22,7 @@ export type KanbanProps<T, C extends KanbanColumnShape<T>> = {
 	/** Stable key extractor for items. */
 	getItemKey: (item: T) => string
 	/** Called with the next columns whenever ordering changes. Omit for read-only. */
-	onChange?: (next: C[]) => void
+	onValueChange?: (next: C[]) => void
 	/** Disable all drag / keyboard reorder interaction. */
 	disabled?: boolean
 	children?: ReactNode
@@ -33,13 +33,13 @@ export type KanbanProps<T, C extends KanbanColumnShape<T>> = {
 export function Kanban<T, C extends KanbanColumnShape<T>>({
 	columns,
 	getItemKey,
-	onChange,
+	onValueChange,
 	disabled,
 	children,
 	className,
 	'aria-label': ariaLabel,
 }: KanbanProps<T, C>) {
-	const interactive = !disabled && !!onChange
+	const interactive = !disabled && !!onValueChange
 
 	const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 3 } }))
 
@@ -51,12 +51,12 @@ export function Kanban<T, C extends KanbanColumnShape<T>>({
 		handleDragOver,
 		handleDragEnd,
 		handleDragCancel,
-	} = useKanbanDrag({ columns, getItemKey, onChange })
+	} = useKanbanDrag({ columns, getItemKey, onValueChange })
 
 	const { liftedCardId, setLiftedCardId, onCardKeyDown, onCardBlur } = useKanbanKeyboard({
 		columns,
 		getItemKey,
-		onChange,
+		onValueChange,
 	})
 
 	// Clear keyboard-lifted state when a pointer drag begins.

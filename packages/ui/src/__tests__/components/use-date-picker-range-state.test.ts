@@ -47,7 +47,7 @@ describe('useDatePickerRangeState', () => {
 
 			act(() => result.current.onOpenChange(true))
 
-			act(() => result.current.calendar.onChange(Jan10))
+			act(() => result.current.calendar.onValueChange(Jan10))
 
 			expect(onChange).not.toHaveBeenCalled()
 			expect(result.current.calendar.rangeStart).toEqual(Jan10)
@@ -64,9 +64,9 @@ describe('useDatePickerRangeState', () => {
 
 			act(() => result.current.onOpenChange(true))
 
-			act(() => result.current.calendar.onChange(Jan10))
+			act(() => result.current.calendar.onValueChange(Jan10))
 
-			act(() => result.current.calendar.onChange(Jan20))
+			act(() => result.current.calendar.onValueChange(Jan20))
 
 			expect(result.current.open).toBe(false)
 
@@ -88,9 +88,9 @@ describe('useDatePickerRangeState', () => {
 
 			act(() => result.current.onOpenChange(true))
 
-			act(() => result.current.calendar.onChange(Jan20))
+			act(() => result.current.calendar.onValueChange(Jan20))
 
-			act(() => result.current.calendar.onChange(Jan10))
+			act(() => result.current.calendar.onValueChange(Jan10))
 
 			act(() => result.current.onExitComplete())
 
@@ -106,9 +106,9 @@ describe('useDatePickerRangeState', () => {
 
 			act(() => result.current.onOpenChange(true))
 
-			act(() => result.current.calendar.onChange(Jan10))
+			act(() => result.current.calendar.onValueChange(Jan10))
 
-			act(() => result.current.calendar.onChange(Jan10))
+			act(() => result.current.calendar.onValueChange(Jan10))
 
 			act(() => result.current.onExitComplete())
 
@@ -127,7 +127,7 @@ describe('useDatePickerRangeState', () => {
 			// Before the first click, hover state is suppressed.
 			expect(result.current.calendar.hoverDate).toBeNull()
 
-			act(() => result.current.calendar.onChange(Jan10))
+			act(() => result.current.calendar.onValueChange(Jan10))
 
 			act(() => result.current.calendar.onHoverDate(Jan20))
 
@@ -139,11 +139,11 @@ describe('useDatePickerRangeState', () => {
 
 			act(() => result.current.onOpenChange(true))
 
-			act(() => result.current.calendar.onChange(Jan10))
+			act(() => result.current.calendar.onValueChange(Jan10))
 
 			act(() => result.current.calendar.onHoverDate(Jan15))
 
-			act(() => result.current.calendar.onChange(Jan20))
+			act(() => result.current.calendar.onValueChange(Jan20))
 
 			act(() => result.current.onExitComplete())
 
@@ -198,7 +198,7 @@ describe('useDatePickerRangeState', () => {
 
 			act(() => result.current.onOpenChange(true))
 
-			act(() => result.current.calendar.onChange(Jan10))
+			act(() => result.current.calendar.onValueChange(Jan10))
 
 			expect(result.current.footer.footerButtons).toEqual([])
 		})
@@ -210,9 +210,9 @@ describe('useDatePickerRangeState', () => {
 
 			act(() => result.current.onOpenChange(true))
 
-			act(() => result.current.calendar.onChange(Jan10))
+			act(() => result.current.calendar.onValueChange(Jan10))
 
-			act(() => result.current.calendar.onChange(Jan20))
+			act(() => result.current.calendar.onValueChange(Jan20))
 
 			act(() => result.current.onExitComplete())
 
@@ -227,8 +227,8 @@ describe('useDatePickerRangeState', () => {
 	})
 
 	describe('min/max clamping', () => {
-		it('does not produce out-of-range selections via calendar.onChange', () => {
-			// The hook trusts calendar.onChange to deliver an in-range date, but it
+		it('does not produce out-of-range selections via calendar.onValueChange', () => {
+			// The hook trusts calendar.onValueChange to deliver an in-range date, but it
 			// also clamps any keyboard-driven movement. As a sanity check, verify
 			// onChange passes through user-supplied dates verbatim when within bounds.
 			const onChange = vi.fn()
@@ -244,9 +244,9 @@ describe('useDatePickerRangeState', () => {
 
 			act(() => result.current.onOpenChange(true))
 
-			act(() => result.current.calendar.onChange(Jan10))
+			act(() => result.current.calendar.onValueChange(Jan10))
 
-			act(() => result.current.calendar.onChange(Jan20))
+			act(() => result.current.calendar.onValueChange(Jan20))
 
 			act(() => result.current.onExitComplete())
 

@@ -12,7 +12,7 @@ export function useEditableGridMutations<T>({
 	extraCellsRef,
 	getRowKey,
 	parseValue,
-	onChange,
+	onValueChange,
 	setSelection,
 }: {
 	editableCols: EditableGridColumn<T>[]
@@ -23,7 +23,7 @@ export function useEditableGridMutations<T>({
 	extraCellsRef: RefObject<Set<string>>
 	getRowKey: (row: T, index: number) => string | number
 	parseValue: (raw: string, row: T, col: EditableGridColumn<T>) => unknown
-	onChange: (changes: CellChange[]) => void
+	onValueChange: (changes: CellChange[]) => void
 	setSelection: (selection: Set<string | number>) => void
 }) {
 	const applyCellWrite = useCallback(
@@ -59,11 +59,11 @@ export function useEditableGridMutations<T>({
 				changes.push({ rowKey, columnId: col.id, value })
 			}
 
-			onChange(changes)
+			onValueChange(changes)
 
 			if (sel.size > 0) setSelection(new Set())
 		},
-		[editableCols, rowsRef, selectionRef, getRowKey, parseValue, onChange, setSelection],
+		[editableCols, rowsRef, selectionRef, getRowKey, parseValue, onValueChange, setSelection],
 	)
 
 	const applyBulkFill = useCallback(
@@ -126,7 +126,7 @@ export function useEditableGridMutations<T>({
 			}
 
 			if (changes.length) {
-				onChange(changes)
+				onValueChange(changes)
 
 				if (selectionRef.current.size > 0) setSelection(new Set())
 			}
@@ -142,7 +142,7 @@ export function useEditableGridMutations<T>({
 			extraCellsRef,
 			getRowKey,
 			parseValue,
-			onChange,
+			onValueChange,
 			setSelection,
 		],
 	)

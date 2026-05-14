@@ -51,7 +51,7 @@ function setup(
 		beginEdit: vi.fn(),
 		applyCellWrite: vi.fn(),
 		applyBulkFill: vi.fn(),
-		onChange: vi.fn(),
+		onValueChange: vi.fn(),
 		setSelection: vi.fn(),
 	}
 
@@ -155,7 +155,7 @@ describe('useEditableGridWrapper: onWrapperKeyDown arrow navigation', () => {
 				beginEdit: vi.fn(),
 				applyCellWrite: vi.fn(),
 				applyBulkFill: vi.fn(),
-				onChange: vi.fn(),
+				onValueChange: vi.fn(),
 				setSelection: vi.fn(),
 				formatCell: () => '',
 				parseValue: (raw) => raw,
@@ -308,7 +308,7 @@ describe('useEditableGridWrapper: onWrapperPaste', () => {
 	})
 
 	it('expands a matrix paste into row-major changes and skips read-only columns', () => {
-		const { api, onChange } = setup({
+		const { api, onValueChange } = setup({
 			active: { row: 0, col: 0 },
 			rows: [
 				{ id: 'a', value: '' },
@@ -318,7 +318,7 @@ describe('useEditableGridWrapper: onWrapperPaste', () => {
 
 		api.onWrapperPaste(makePaste('a1\tskip\nb1\tskip'))
 
-		const changes = onChange.mock.calls[0]?.[0]
+		const changes = onValueChange.mock.calls[0]?.[0]
 
 		expect(changes).toEqual([
 			{ rowKey: 'a', columnId: 'value', value: 'a1' },
@@ -395,7 +395,7 @@ describe('useEditableGridWrapper: onWrapperFocus and onWrapperBlur', () => {
 				beginEdit: vi.fn(),
 				applyCellWrite: vi.fn(),
 				applyBulkFill: vi.fn(),
-				onChange: vi.fn(),
+				onValueChange: vi.fn(),
 				setSelection: vi.fn(),
 				formatCell: () => '',
 				parseValue: (raw) => raw,

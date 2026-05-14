@@ -17,12 +17,12 @@ const columns: Column[] = [
 	{ id: 'done', title: 'Done', items: [{ id: '2', title: 'Two' }] },
 ]
 
-function Board({ onChange }: { onChange?: (next: Column[]) => void } = {}) {
+function Board({ onValueChange }: { onValueChange?: (next: Column[]) => void } = {}) {
 	return (
 		<Kanban
 			columns={columns}
 			getItemKey={(item: Item) => item.id}
-			onChange={onChange}
+			onValueChange={onValueChange}
 			aria-label="Board"
 		>
 			{columns.map((column) => (

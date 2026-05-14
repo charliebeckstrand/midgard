@@ -12,7 +12,7 @@ import {
 import { isBeforeDay, isBetween, isSameDay } from './calendar-utilities'
 
 export type CalendarRangeProps = {
-	onChange?: (date: Date) => void
+	onValueChange?: (date: Date) => void
 	min?: Date
 	max?: Date
 	rangeStart?: Date | null
@@ -27,7 +27,7 @@ export type CalendarRangeProps = {
 }
 
 export function CalendarRange({
-	onChange,
+	onValueChange,
 	min,
 	max,
 	rangeStart,
@@ -93,7 +93,7 @@ export function CalendarRange({
 			ref={ref}
 			value={undefined}
 			defaultValue={defaultValue}
-			onChange={onChange}
+			onValueChange={onValueChange}
 			min={min}
 			max={max}
 			active={active}

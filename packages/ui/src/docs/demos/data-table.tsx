@@ -72,7 +72,7 @@ function SortableExample() {
 			columns={sortableColumns}
 			rows={sortedPeople}
 			getRowKey={(row) => row.id}
-			sort={{ value: sort, onChange: setSort }}
+			sort={{ value: sort, onValueChange: setSort }}
 		/>
 	)
 }
@@ -116,7 +116,7 @@ export default function DataTableDemo() {
 						columns={columns}
 						rows={rows}
 						getRowKey={(row) => row.id}
-						selection={{ value: selection, onChange: setSelection }}
+						selection={{ value: selection, onValueChange: setSelection }}
 					/>
 				`}
 			>
@@ -124,7 +124,7 @@ export default function DataTableDemo() {
 					columns={[{ id: 'select', selectable: true, width: '48px' }, ...baseColumns]}
 					rows={people}
 					getRowKey={(row) => row.id}
-					selection={{ value: selection, onChange: (s) => setSelection(s ?? new Set()) }}
+					selection={{ value: selection, onValueChange: (s) => setSelection(s ?? new Set()) }}
 				/>
 			</Example>
 

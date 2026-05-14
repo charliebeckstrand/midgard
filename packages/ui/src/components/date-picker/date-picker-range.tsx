@@ -44,7 +44,7 @@ export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProp
 			>
 				<CalendarRange
 					ref={state.calendar.calendarRef}
-					onChange={state.calendar.onChange}
+					onValueChange={state.calendar.onValueChange}
 					min={props.min}
 					max={props.max}
 					rangeStart={state.calendar.rangeStart}

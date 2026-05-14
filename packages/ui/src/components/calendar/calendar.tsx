@@ -52,7 +52,7 @@ export type CalendarDayProps = {
 export type CalendarProps = {
 	value?: Date | null
 	defaultValue?: Date
-	onChange?: (date: Date) => void
+	onValueChange?: (date: Date) => void
 	min?: Date
 	max?: Date
 	active?: CalendarActive | null
@@ -66,7 +66,7 @@ export type CalendarProps = {
 export function Calendar({
 	value: valueProp,
 	defaultValue,
-	onChange,
+	onValueChange,
 	min,
 	max,
 	active,
@@ -78,9 +78,9 @@ export function Calendar({
 }: CalendarProps) {
 	const handleValueChange = useCallback(
 		(nextValue: Date | undefined) => {
-			if (nextValue) onChange?.(nextValue)
+			if (nextValue) onValueChange?.(nextValue)
 		},
-		[onChange],
+		[onValueChange],
 	)
 
 	const [value, setValue] = useControllable({

@@ -6,11 +6,11 @@ import type { KanbanColumnShape } from './types'
 export function useKanbanKeyboard<T, C extends KanbanColumnShape<T>>({
 	columns,
 	getItemKey,
-	onChange,
+	onValueChange,
 }: {
 	columns: C[]
 	getItemKey: (item: T) => string
-	onChange?: (next: C[]) => void
+	onValueChange?: (next: C[]) => void
 }) {
 	const [liftedCardId, setLiftedCardId] = useState<string | null>(null)
 
@@ -112,7 +112,7 @@ export function useKanbanKeyboard<T, C extends KanbanColumnShape<T>>({
 
 	const moveWithinColumn = useCallback(
 		(cardId: string, direction: -1 | 1) => {
-			if (!onChange) return
+			if (!onValueChange) return
 
 			const col = findColumnByCardId(cardId)
 
@@ -132,16 +132,16 @@ export function useKanbanKeyboard<T, C extends KanbanColumnShape<T>>({
 
 			nextItems.splice(newIdx, 0, item)
 
-			onChange(columns.map((c) => (c.id === col.id ? { ...c, items: nextItems } : c)) as C[])
+			onValueChange(columns.map((c) => (c.id === col.id ? { ...c, items: nextItems } : c)) as C[])
 
 			refocusCard(cardId)
 		},
-		[columns, getItemKey, onChange, findColumnByCardId, refocusCard],
+		[columns, getItemKey, onValueChange, findColumnByCardId, refocusCard],
 	)
 
 	const moveToColumn = useCallback(
 		(cardId: string, direction: -1 | 1) => {
-			if (!onChange) return
+			if (!onValueChange) return
 
 			const col = findColumnByCardId(cardId)
 
@@ -173,11 +173,11 @@ export function useKanbanKeyboard<T, C extends KanbanColumnShape<T>>({
 				return c
 			}) as C[]
 
-			onChange(next)
+			onValueChange(next)
 
 			refocusCard(cardId)
 		},
-		[columns, getItemKey, onChange, findColumnByCardId, refocusCard],
+		[columns, getItemKey, onValueChange, findColumnByCardId, refocusCard],
 	)
 
 	const onCardKeyDown = useCallback(

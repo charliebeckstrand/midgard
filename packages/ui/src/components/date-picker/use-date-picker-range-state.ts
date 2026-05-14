@@ -182,7 +182,7 @@ export function useDatePickerRangeState({
 			rangeEnd: rangeStart === null ? (value ? value[1] : null) : null,
 			hoverDate: rangeStart !== null ? hoverDate : null,
 			onHoverDate: setHoverDate,
-			onChange: handleSelect,
+			onValueChange: handleSelect,
 			active: open ? active : null,
 			calendarRef,
 			footerRef,

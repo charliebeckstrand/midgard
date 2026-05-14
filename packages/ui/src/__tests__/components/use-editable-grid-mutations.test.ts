@@ -25,7 +25,7 @@ function setup(
 		{ id: 'c', value: '' },
 	]
 
-	const onChange = vi.fn()
+	const onValueChange = vi.fn()
 	const setSelection = vi.fn()
 
 	const { result } = renderHook(() =>
@@ -38,55 +38,55 @@ function setup(
 			extraCellsRef: { current: options.extras ?? new Set() },
 			getRowKey: (r) => r.id,
 			parseValue: (raw) => raw,
-			onChange,
+			onValueChange,
 			setSelection,
 		}),
 	)
 
-	return { api: result.current, onChange, setSelection }
+	return { api: result.current, onValueChange, setSelection }
 }
 
 describe('useEditableGridMutations: applyCellWrite', () => {
 	it('writes a single cell when no multi-row selection', () => {
-		const { api, onChange } = setup()
+		const { api, onValueChange } = setup()
 
 		api.applyCellWrite(1, 0, 'hello')
 
-		expect(onChange).toHaveBeenCalledWith([{ rowKey: 'b', columnId: 'value', value: 'hello' }])
+		expect(onValueChange).toHaveBeenCalledWith([{ rowKey: 'b', columnId: 'value', value: 'hello' }])
 	})
 
 	it('skips read-only columns', () => {
-		const { api, onChange } = setup()
+		const { api, onValueChange } = setup()
 
 		api.applyCellWrite(0, 1, 'nope')
 
-		expect(onChange).not.toHaveBeenCalled()
+		expect(onValueChange).not.toHaveBeenCalled()
 	})
 
 	it('skips when the column index is out of range', () => {
-		const { api, onChange } = setup()
+		const { api, onValueChange } = setup()
 
 		api.applyCellWrite(0, 99, 'x')
 
-		expect(onChange).not.toHaveBeenCalled()
+		expect(onValueChange).not.toHaveBeenCalled()
 	})
 
 	it('skips when the row is missing', () => {
-		const { api, onChange } = setup()
+		const { api, onValueChange } = setup()
 
 		api.applyCellWrite(99, 0, 'x')
 
-		expect(onChange).not.toHaveBeenCalled()
+		expect(onValueChange).not.toHaveBeenCalled()
 	})
 
 	it('fills the column across all rows in the selection', () => {
-		const { api, onChange, setSelection } = setup({
+		const { api, onValueChange, setSelection } = setup({
 			selection: new Set(['a', 'b']),
 		})
 
 		api.applyCellWrite(0, 0, 'bulk')
 
-		expect(onChange).toHaveBeenCalledWith([
+		expect(onValueChange).toHaveBeenCalledWith([
 			{ rowKey: 'a', columnId: 'value', value: 'bulk' },
 			{ rowKey: 'b', columnId: 'value', value: 'bulk' },
 		])
@@ -97,32 +97,34 @@ describe('useEditableGridMutations: applyCellWrite', () => {
 
 describe('useEditableGridMutations: applyBulkFill', () => {
 	it('returns false when there is no active cell', () => {
-		const { api, onChange } = setup({ active: null })
+		const { api, onValueChange } = setup({ active: null })
 
 		expect(api.applyBulkFill('x')).toBe(false)
 
-		expect(onChange).not.toHaveBeenCalled()
+		expect(onValueChange).not.toHaveBeenCalled()
 	})
 
 	it('fills only the active cell when no anchor or extras', () => {
-		const { api, onChange } = setup({ active: { row: 0, col: 0 } })
+		const { api, onValueChange } = setup({ active: { row: 0, col: 0 } })
 
 		api.applyBulkFill('active')
 
-		expect(onChange).toHaveBeenCalledWith([{ rowKey: 'a', columnId: 'value', value: 'active' }])
+		expect(onValueChange).toHaveBeenCalledWith([
+			{ rowKey: 'a', columnId: 'value', value: 'active' },
+		])
 	})
 
 	it('fills every cell in the anchored rectangle', () => {
-		const { api, onChange } = setup({
+		const { api, onValueChange } = setup({
 			active: { row: 1, col: 0 },
 			anchor: { row: 0, col: 0 },
 		})
 
 		api.applyBulkFill('rect')
 
-		expect(onChange).toHaveBeenCalledOnce()
+		expect(onValueChange).toHaveBeenCalledOnce()
 
-		const changes = onChange.mock.calls[0]?.[0]
+		const changes = onValueChange.mock.calls[0]?.[0]
 
 		expect(changes).toEqual(
 			expect.arrayContaining([
@@ -135,14 +137,14 @@ describe('useEditableGridMutations: applyBulkFill', () => {
 	})
 
 	it('includes extra cells in the fill', () => {
-		const { api, onChange } = setup({
+		const { api, onValueChange } = setup({
 			active: { row: 0, col: 0 },
 			extras: new Set(['2,0']),
 		})
 
 		api.applyBulkFill('extras')
 
-		const changes = onChange.mock.calls[0]?.[0]
+		const changes = onValueChange.mock.calls[0]?.[0]
 
 		expect(changes).toEqual([
 			{ rowKey: 'a', columnId: 'value', value: 'extras' },
@@ -151,14 +153,14 @@ describe('useEditableGridMutations: applyBulkFill', () => {
 	})
 
 	it('skips read-only columns inside the fill range', () => {
-		const { api, onChange } = setup({
+		const { api, onValueChange } = setup({
 			active: { row: 0, col: 0 },
 			anchor: { row: 0, col: 1 },
 		})
 
 		api.applyBulkFill('x')
 
-		const changes = onChange.mock.calls[0]?.[0]
+		const changes = onValueChange.mock.calls[0]?.[0]
 
 		expect(changes).toEqual([{ rowKey: 'a', columnId: 'value', value: 'x' }])
 	})
@@ -175,12 +177,12 @@ describe('useEditableGridMutations: applyBulkFill', () => {
 	})
 
 	it('returns true even when no writable cells are targeted', () => {
-		const { api, onChange } = setup({
+		const { api, onValueChange } = setup({
 			active: { row: 0, col: 1 }, // read-only only
 		})
 
 		expect(api.applyBulkFill('x')).toBe(true)
 
-		expect(onChange).not.toHaveBeenCalled()
+		expect(onValueChange).not.toHaveBeenCalled()
 	})
 })

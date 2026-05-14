@@ -65,7 +65,7 @@ describe('useDatePickerState', () => {
 
 			act(() => result.current.onOpenChange(true))
 
-			act(() => result.current.calendar.onChange(Jan15))
+			act(() => result.current.calendar.onValueChange(Jan15))
 
 			expect(onChange).toHaveBeenCalledWith(Jan15)
 			expect(result.current.calendar.value).toEqual(Jan15)
@@ -113,7 +113,7 @@ describe('useDatePickerState', () => {
 
 			act(() => result.current.onOpenChange(true))
 
-			act(() => result.current.calendar.onChange(Jan15))
+			act(() => result.current.calendar.onValueChange(Jan15))
 
 			expect(onChange).toHaveBeenCalledWith(Jan15)
 			expect(result.current.calendar.value).toEqual(Jan1)
@@ -154,7 +154,7 @@ describe('useDatePickerState', () => {
 
 			act(() => result.current.onOpenChange(true))
 
-			act(() => result.current.calendar.onChange(Jan15))
+			act(() => result.current.calendar.onValueChange(Jan15))
 
 			expect(result.current.footer.footerButtons).toEqual(['clear', 'today'])
 		})

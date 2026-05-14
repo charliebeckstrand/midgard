@@ -7,11 +7,11 @@ import type { KanbanColumnShape } from './types'
 export function useKanbanDrag<T, C extends KanbanColumnShape<T>>({
 	columns,
 	getItemKey,
-	onChange,
+	onValueChange,
 }: {
 	columns: C[]
 	getItemKey: (item: T) => string
-	onChange?: (next: C[]) => void
+	onValueChange?: (next: C[]) => void
 }) {
 	const [activeId, setActiveId] = useState<string | null>(null)
 
@@ -41,7 +41,7 @@ export function useKanbanDrag<T, C extends KanbanColumnShape<T>>({
 	}
 
 	const handleDragOver = (event: DragOverEvent) => {
-		if (!onChange) return
+		if (!onValueChange) return
 
 		const { active, over } = event
 
@@ -90,13 +90,13 @@ export function useKanbanDrag<T, C extends KanbanColumnShape<T>>({
 			return col
 		}) as C[]
 
-		onChange(next)
+		onValueChange(next)
 	}
 
 	const handleDragEnd = (event: DragEndEvent) => {
 		setActiveId(null)
 
-		if (!onChange) return
+		if (!onValueChange) return
 
 		const { active, over } = event
 
@@ -134,7 +134,7 @@ export function useKanbanDrag<T, C extends KanbanColumnShape<T>>({
 		const next = columns.map((col) =>
 			col.id === activeCol.id ? { ...col, items: nextItems } : col,
 		) as C[]
-		onChange(next)
+		onValueChange(next)
 	}
 
 	const handleDragCancel = () => setActiveId(null)
