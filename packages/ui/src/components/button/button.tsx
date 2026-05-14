@@ -88,10 +88,10 @@ export function Button({
 
 	const loadingOptions = typeof loadingProp === 'object' ? loadingProp : undefined
 
+	const affixSize = useAffixSize()
 	const concentric = useConcentric()
 	const glass = useGlass()
 	const headless = useHeadless()
-	const affixSize = useAffixSize()
 	const skeleton = useSkeleton()
 
 	const { onPointerDown: handleRipple, element: rippleElement } = useRipple()

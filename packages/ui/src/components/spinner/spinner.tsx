@@ -11,9 +11,9 @@ export type SpinnerProps = SpinnerVariants & {
 } & Omit<ComponentPropsWithoutRef<'output'>, 'className' | 'color'>
 
 export function Spinner({ size, color, label = 'Loading', className, ...props }: SpinnerProps) {
-	const buttonSize = useButtonSize()
-
 	const affixSize = useAffixSize()
+
+	const buttonSize = useButtonSize()
 
 	const resolvedSize = size ?? buttonSize ?? affixSize
 

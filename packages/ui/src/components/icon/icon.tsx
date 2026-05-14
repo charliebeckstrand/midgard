@@ -21,8 +21,8 @@ const sizeMap: Record<SizeToken, string> = {
 }
 
 export function Icon({ icon, size, className }: IconProps) {
-	const buttonSize = useButtonSize()
 	const affixSize = useAffixSize()
+	const buttonSize = useButtonSize()
 
 	const resolvedSize = size ?? buttonSize ?? affixSize ?? 'md'
 

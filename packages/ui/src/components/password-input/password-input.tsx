@@ -25,14 +25,14 @@ type ToggleProps = {
 }
 
 function VisibilityToggle({ visible, onToggle, showLabel, hideLabel }: ToggleProps) {
-	const size = useAffixSize()
+	const affixSize = useAffixSize()
 
 	const text = visible ? hideLabel : showLabel
 
 	return (
 		<Tooltip>
 			<TooltipTrigger>
-				<Button variant="plain" size={size} aria-label={text} onClick={onToggle}>
+				<Button variant="plain" size={affixSize} aria-label={text} onClick={onToggle}>
 					<Icon icon={visible ? <EyeOff /> : <Eye />} />
 				</Button>
 			</TooltipTrigger>

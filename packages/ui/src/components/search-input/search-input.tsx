@@ -19,12 +19,12 @@ export type SearchInputProps = Omit<
 }
 
 function ClearButton({ onClear }: { onClear: () => void }) {
-	const size = useAffixSize()
+	const affixSize = useAffixSize()
 
 	return (
 		<Button
 			variant="plain"
-			size={size}
+			size={affixSize}
 			className="pointer-events-auto"
 			aria-label="Clear search"
 			onClick={onClear}
