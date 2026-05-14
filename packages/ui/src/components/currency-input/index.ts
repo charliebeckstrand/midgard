@@ -1,1 +1,1 @@
-export { CurrencyInput, type CurrencyInputProps } from './component'
+export { CurrencyInput, type CurrencyInputProps } from './currency-input'

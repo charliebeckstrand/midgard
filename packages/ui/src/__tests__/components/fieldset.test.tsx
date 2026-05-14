@@ -1,12 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-	Description,
-	ErrorMessage,
-	Field,
-	Fieldset,
-	Label,
-	Legend,
-} from '../../components/fieldset'
+import { Description, Field, Fieldset, Label, Legend, Message } from '../../components/fieldset'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Fieldset', () => {
@@ -87,12 +80,24 @@ describe('Description', () => {
 	})
 })
 
-describe('ErrorMessage', () => {
-	it('renders with data-slot="error"', () => {
-		const { container } = renderUI(<ErrorMessage>Required</ErrorMessage>)
+describe('Message', () => {
+	it('renders with data-slot="message" and defaults to the error variant', () => {
+		const { container } = renderUI(<Message>Required</Message>)
 
-		expect(bySlot(container, 'error')).toBeInTheDocument()
+		const el = bySlot(container, 'message')
+
+		expect(el).toBeInTheDocument()
+
+		expect(el).toHaveAttribute('data-variant', 'error')
 
 		expect(screen.getByText('Required')).toBeInTheDocument()
+	})
+
+	it('renders the success variant', () => {
+		const { container } = renderUI(<Message variant="success">Looks good</Message>)
+
+		expect(bySlot(container, 'message')).toHaveAttribute('data-variant', 'success')
+
+		expect(screen.getByText('Looks good')).toBeInTheDocument()
 	})
 })

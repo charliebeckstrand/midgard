@@ -4,7 +4,7 @@ import {
 	computeThumb,
 	findScrollableAncestor,
 	HIDDEN_THUMB,
-} from '../../components/scroll-area/utilities'
+} from '../../components/scroll-area/scroll-area-utilities'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('ScrollArea', () => {

@@ -1,7 +1,10 @@
 import { act, renderHook } from '@testing-library/react'
 import { useRef } from 'react'
 import { describe, expect, it } from 'vitest'
-import { cellKey, useEditableGridNavigation } from '../../components/editable-grid/use-navigation'
+import {
+	cellKey,
+	useEditableGridNavigation,
+} from '../../components/editable-grid/use-editable-grid-navigation'
 
 function setup(rowCount = 3, editableColCount = 3) {
 	return renderHook(() => {

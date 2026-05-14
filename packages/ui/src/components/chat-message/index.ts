@@ -4,4 +4,4 @@ export {
 	chatMessageBubbleVariants,
 	chatMessageVariants,
 } from '../../recipes/kata/chat-message'
-export { ChatMessage, type ChatMessageProps } from './component'
+export { ChatMessage, type ChatMessageProps } from './chat-message'

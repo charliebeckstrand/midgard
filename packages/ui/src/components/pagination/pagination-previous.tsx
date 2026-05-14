@@ -1,7 +1,7 @@
 import { ChevronLeft } from 'lucide-react'
 import type { ButtonProps } from '../button'
 import { Icon } from '../icon'
-import { PaginationNavButton } from './utilities'
+import { PaginationNavButton } from './pagination-utilities'
 
 export type PaginationPreviousProps = ButtonProps
 

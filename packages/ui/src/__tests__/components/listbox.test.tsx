@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Listbox, ListboxVirtualOptions } from '../../components/listbox'
-import { resolveLabel } from '../../components/listbox/utilities'
+import { resolveLabel } from '../../components/listbox/listbox-utilities'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Listbox', () => {

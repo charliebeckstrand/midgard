@@ -8,7 +8,7 @@ import {
 	filterEntries,
 	getEntries,
 	treeContainsMatch,
-} from '../components/json-tree/utilities'
+} from '../components/json-tree/json-tree-utilities'
 import { makeJsonTree } from './fixtures'
 
 // Tree sizes chosen so branch count grows exponentially:

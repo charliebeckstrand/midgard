@@ -1,8 +1,13 @@
 // @vitest-environment node
 
 import { bench, describe } from 'vitest'
+import {
+	addChild,
+	createRule,
+	mapNode,
+	removeChild,
+} from '../components/query-builder/query-builder-utilities'
 import type { QueryGroup, QueryNode } from '../components/query-builder/types'
-import { addChild, createRule, mapNode, removeChild } from '../components/query-builder/utilities'
 import { makeQueryTree, QUERY_FIELDS } from './fixtures'
 
 // Tree sizes (depth × branching): total rules ≈ branching^(depth+1)

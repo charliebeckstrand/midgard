@@ -3,21 +3,27 @@ export {
 	useQueryBuilderContext,
 } from './context'
 export {
-	QueryGroup,
-	type QueryGroupProps,
-} from './group'
-export {
 	QueryBuilder,
 	type QueryBuilderProps,
 } from './query-builder'
 export {
-	QueryRule,
-	type QueryRuleProps,
-} from './rule'
+	QueryBuilderGroup,
+	type QueryBuilderGroupProps,
+} from './query-builder-group'
 export {
-	QueryRuleValue,
-	type QueryRuleValueProps,
-} from './rule-value'
+	QueryBuilderRule,
+	type QueryBuilderRuleProps,
+	QueryBuilderRuleValue,
+	type QueryBuilderRuleValueProps,
+} from './query-builder-rule'
+export {
+	addChild,
+	createGroup,
+	createRule,
+	getOperators,
+	mapNode,
+	removeChild,
+} from './query-builder-utilities'
 export type {
 	QueryCombinator,
 	QueryField,
@@ -27,11 +33,3 @@ export type {
 	QueryOperator,
 	QueryRule as QueryRuleNode,
 } from './types'
-export {
-	addChild,
-	createGroup,
-	createRule,
-	getOperators,
-	mapNode,
-	removeChild,
-} from './utilities'

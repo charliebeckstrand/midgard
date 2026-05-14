@@ -1,4 +1,4 @@
-export { Box, type BoxProps } from './component'
+export { Box, type BoxProps } from './box'
 export type {
 	BoxBg,
 	BoxMargin,

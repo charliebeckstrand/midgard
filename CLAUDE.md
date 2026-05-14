@@ -13,6 +13,25 @@
 - Formatting is tooling's job. Never fight the formatter.
 - Solve the stated problem — not adjacent ones. A bug fix is not a refactoring opportunity. If the right fix requires broadening scope, ask first.
 
+## File naming
+
+Filenames must stay legible when stripped of folder context — editor tabs, stack traces, grep results, PR diffs. Every file should be self-identifying anywhere it appears.
+
+Inside `packages/ui/src/components/<name>/` (and the parallel `primitives/`):
+
+- **Main component:** `<name>.tsx` — matches the folder name. Never `component.tsx`.
+- **Sub-components:** `<name>-<part>.tsx` — prefixed with the folder name. Never bare (`item.tsx`, `trigger.tsx`). When the folder name is plural, the singular stem is also accepted (`tabs/tab-list.tsx`, `tabs/tab.tsx`) — match the part's component name (`TabList`, `Tab`).
+- **Hooks:** `use-<name>-<hook>.ts` (or `.tsx` when the hook returns JSX). The folder name (or its singular stem) appears in every hook filename. Never bare (`hook.ts`, `use-state.ts`).
+- **Context:** `context.ts`. Use `.tsx` only when the file exports a provider component containing JSX.
+- **Types:** `types.ts` when extracted from the main file.
+- **Variants:** `variants.ts` when the recipe / `class-variance-authority` config is extracted alongside the component.
+- **Slots:** `slots.tsx` (or `slots.ts`) for components exposing a composable slot API — an intentional, existing pattern.
+- **Barrel:** `index.ts`, re-exports only.
+
+When in doubt, prefix with the folder name. Bare filenames read fine inside the folder and turn into noise the moment they appear anywhere else.
+
+Every component or hook file must also export a symbol whose PascalCase (or `useCamelCase`) form matches the filename — `tag-input-badge.tsx` exports `TagInputBadge`, `use-tag-input-keyboard.ts` exports `useTagInputKeyboard`. `packages/ui/scripts/check-component-filenames.ts` enforces this on pre-commit; `packages/ui/scripts/filename-allowlist.json` carries a small set of grandfathered exceptions where renaming would break a stable public API (`Field`, `Label`, `ConfirmDialog`, `QueryRule`, etc.). Never extend that allowlist for new files — fix the file or fix the export.
+
 ## Architecture
 
 - Extend before inventing. Prefer growing an existing module over creating a new one unless there is a clear, distinct boundary.
@@ -29,6 +48,16 @@
 ## Workflow
 
 For non-trivial work (three or more steps), enter planning mode before writing code. Delegate research to subagents — one focused task per agent — and keep the main context window clean. Summarize at milestones, not line by line.
+
+## Testing
+
+`packages/ui` is the only package with a test runner (`vitest`). The full suite is the lefthook pre-commit gate — that one run is the source of truth for "everything green". **Inside the editing loop, never invoke `pnpm --filter ui test` or `pnpm test`.** Run a scoped subset instead and let lefthook catch anything the scoped run missed at commit time.
+
+- **Known test files** (after editing a component whose test file is obvious): `pnpm --filter ui exec vitest run <test-file>...`. Fastest path — runs only the named files.
+- **Unknown tests for a source file**: `pnpm --filter ui test:related <source-file>...`. Walks the dependency graph and runs every test that transitively imports the file.
+- **Git diff**: `pnpm --filter ui test:changed`. Runs every test that imports a file in `git status`.
+
+`--changed` and `related` widen to the full suite when the change touches a fan-out file (`recipes/`, `core/`, `primitives/`, a barrel re-exported everywhere). For those, target test files by name. Skills that run tests (`/typescript:review`, `/tests:compose`, `/postmortem`) follow this convention automatically — they only fall back to the full package suite when no scoped command applies.
 
 ## Skills
 

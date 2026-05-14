@@ -1,2 +1,2 @@
-export { Container, type ContainerProps } from './component'
+export { Container, type ContainerProps } from './container'
 export type { ContainerPadding, ContainerSize } from './variants'

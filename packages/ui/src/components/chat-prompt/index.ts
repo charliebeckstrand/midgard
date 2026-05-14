@@ -1,1 +1,1 @@
-export { ChatPrompt, type ChatPromptProps } from './component'
+export { ChatPrompt, type ChatPromptProps } from './chat-prompt'

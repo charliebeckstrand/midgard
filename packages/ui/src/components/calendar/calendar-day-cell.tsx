@@ -20,7 +20,7 @@ export type DayCellProps = {
 	onMouseLeave?: () => void
 }
 
-export const DayCell = memo(function DayCell({
+export const CalendarDayCell = memo(function CalendarDayCell({
 	date,
 	disabled,
 	isToday,

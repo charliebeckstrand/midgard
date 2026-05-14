@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { PdfViewer, type PdfViewerPage } from '../../components/pdf-viewer'
-import { downloadPdf, printPdf } from '../../components/pdf-viewer/utilities'
+import { downloadPdf, printPdf } from '../../components/pdf-viewer/pdf-viewer-utilities'
 import { useMinWidth } from '../../hooks'
 import { act, allBySlot, bySlot, fireEvent, renderUI, screen, userEvent, waitFor } from '../helpers'
 

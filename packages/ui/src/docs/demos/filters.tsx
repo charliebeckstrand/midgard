@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Button } from '../../components/button'
-import { DatePicker } from '../../components/datepicker'
+import { DatePicker } from '../../components/date-picker'
 import { Label } from '../../components/fieldset'
 import { Filters, FiltersClear, FiltersField, useFilters } from '../../components/filters'
 import { Flex } from '../../components/flex'

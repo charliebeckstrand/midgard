@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Suspense, useState } from 'react'
 import { Button } from 'ui/button'
-import { ErrorMessage, Field, Fieldset, Label } from 'ui/fieldset'
+import { Field, Fieldset, Label, Message } from 'ui/fieldset'
 import { Heading } from 'ui/heading'
 import { Input } from 'ui/input'
 import { AuthLayout } from 'ui/layouts'
@@ -66,25 +66,25 @@ function RegisterForm() {
 					<Field>
 						<Label>Email</Label>
 						<Input type="email" name="email" autoComplete="email" {...register('email')} />
-						{errors.email && <ErrorMessage>{errors.email}</ErrorMessage>}
+						{errors.email && <Message>{errors.email}</Message>}
 					</Field>
 
 					<Field>
 						<Label>Full name</Label>
 						<Input name="name" {...register('name')} />
-						{errors.name && <ErrorMessage>{errors.name}</ErrorMessage>}
+						{errors.name && <Message>{errors.name}</Message>}
 					</Field>
 
 					<Field>
 						<Label>Password</Label>
 						<PasswordInput name="password" autoComplete="new-password" {...register('password')} />
-						{errors.password && <ErrorMessage>{errors.password}</ErrorMessage>}
+						{errors.password && <Message>{errors.password}</Message>}
 					</Field>
 
 					<Field>
 						<Label>Confirm password</Label>
 						<PasswordInput name="confirmPassword" {...register('confirmPassword')} />
-						{errors.confirmPassword && <ErrorMessage>{errors.confirmPassword}</ErrorMessage>}
+						{errors.confirmPassword && <Message>{errors.confirmPassword}</Message>}
 					</Field>
 
 					<Button type="submit" disabled={submitting} size="lg" className="w-full">

@@ -1,1 +1,1 @@
-export { ZipcodeInput, type ZipcodeInputCountry, type ZipcodeInputProps } from './component'
+export { ZipcodeInput, type ZipcodeInputCountry, type ZipcodeInputProps } from './zipcode-input'

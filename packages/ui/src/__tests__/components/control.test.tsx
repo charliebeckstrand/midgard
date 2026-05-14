@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Control } from '../../components/control'
-import { Description, ErrorMessage, Label } from '../../components/fieldset'
+import { Description, Label, Message } from '../../components/fieldset'
 import { Input } from '../../components/input'
 import { Switch } from '../../components/switch'
 import { Textarea } from '../../components/textarea'
@@ -88,23 +88,23 @@ describe('Control + Description', () => {
 	})
 })
 
-describe('Control + ErrorMessage', () => {
+describe('Control + Message', () => {
 	it('auto-wires id from control', () => {
 		const { container } = renderUI(
 			<Control id="test">
-				<ErrorMessage>Error</ErrorMessage>
+				<Message>Error</Message>
 			</Control>,
 		)
-		expect(bySlot(container, 'error')).toHaveAttribute('id', 'test-error')
+		expect(bySlot(container, 'message')).toHaveAttribute('id', 'test-error')
 	})
 
 	it('explicit id overrides control-derived id', () => {
 		const { container } = renderUI(
 			<Control id="test">
-				<ErrorMessage id="custom">Error</ErrorMessage>
+				<Message id="custom">Error</Message>
 			</Control>,
 		)
-		expect(bySlot(container, 'error')).toHaveAttribute('id', 'custom')
+		expect(bySlot(container, 'message')).toHaveAttribute('id', 'custom')
 	})
 })
 

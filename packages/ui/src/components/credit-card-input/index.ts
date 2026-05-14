@@ -1,5 +1,13 @@
 export { CreditCardInput, type CreditCardInputProps } from './credit-card-input'
-export { CreditCardCvvInput, type CreditCardCvvInputProps } from './cvv-input'
-export { CreditCardExpiryInput, type CreditCardExpiryInputProps } from './expiry-input'
+export { CreditCardInputCvv, type CreditCardInputCvvProps } from './credit-card-input-cvv'
+export {
+	CreditCardInputExpiry,
+	type CreditCardInputExpiryProps,
+} from './credit-card-input-expiry'
+export {
+	detectCardBrand,
+	formatCardNumber,
+	formatCvv,
+	formatExpiry,
+} from './credit-card-input-utilities'
 export type { CreditCardBrand, CreditCardBrandInfo } from './types'
-export { detectCardBrand, formatCardNumber, formatCvv, formatExpiry } from './utilities'

@@ -3,10 +3,15 @@
 import type { MouseEvent } from 'react'
 import { cn } from '../../core'
 import { useCurrentContext } from '../../primitives'
+import { type NavItemProps as BaseNavItemProps, createNavItem } from '../../primitives/nav-item'
 import { k } from '../../recipes/kata/nav'
-import { type NavItemProps as BaseNavItemProps, createNavItem } from './create-nav-item'
+import { Icon } from '../icon'
 
-const BaseNavItem = createNavItem({ slotPrefix: 'nav', variants: () => cn(k.item) })
+const BaseNavItem = createNavItem({
+	slotPrefix: 'nav',
+	variants: () => cn(k.item),
+	renderIcon: (icon) => <Icon icon={icon} />,
+})
 
 export type NavItemProps = BaseNavItemProps & { value?: string }
 

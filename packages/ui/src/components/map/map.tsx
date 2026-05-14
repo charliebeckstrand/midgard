@@ -5,8 +5,8 @@ import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { MapProvider } from './context'
-import { loadMapLibre } from './loader'
-import { MAP_PRESETS, type MapPreset } from './styles'
+import { loadMapLibre } from './map-loader'
+import { MAP_PRESETS, type MapPreset } from './map-styles'
 import type { LngLat } from './types'
 
 export type MapProps = {

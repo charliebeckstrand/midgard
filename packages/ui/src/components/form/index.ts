@@ -1,4 +1,3 @@
-export { Form, type FormHelpers, type FormProps } from './component'
 export {
 	type FormActions,
 	type FormContextValue,
@@ -15,3 +14,4 @@ export {
 	useFormText,
 	useFormToggle,
 } from './context'
+export { Form, type FormHelpers, type FormProps } from './form'

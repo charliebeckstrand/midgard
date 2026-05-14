@@ -4,4 +4,4 @@ export type {
 	FlexGap as StackGap,
 	FlexJustify as StackJustify,
 } from '../flex/variants'
-export { Stack, type StackProps } from './component'
+export { Stack, type StackProps } from './stack'

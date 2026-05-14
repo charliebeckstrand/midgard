@@ -3,8 +3,8 @@
 import { type ReactNode, useCallback, useRef, useState } from 'react'
 import { createContext } from '../../core'
 import type { ToastData, ToastPosition } from './types'
-import { useDrain } from './use-drain'
-import { useTimer } from './use-timer'
+import { useToastDrain } from './use-toast-drain'
+import { useToastTimer } from './use-toast-timer'
 
 type ToastInput = Omit<ToastData, 'id' | 'zIndex'> & { duration?: number }
 
@@ -43,9 +43,9 @@ export function useToastState({
 
 	const sync = useCallback(() => flush((n) => n + 1), [])
 
-	const { stopDrain, startDrain, handleExitComplete } = useDrain(toastsRef, sync)
+	const { stopDrain, startDrain, handleExitComplete } = useToastDrain(toastsRef, sync)
 
-	const { startTimer, pause, resume, resetRemaining } = useTimer(
+	const { startTimer, pause, resume, resetRemaining } = useToastTimer(
 		toastsRef,
 		duration,
 		startDrain,

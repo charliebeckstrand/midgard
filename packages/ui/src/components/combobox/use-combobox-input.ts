@@ -6,7 +6,7 @@ import {
 	type RefObject,
 	useCallback,
 } from 'react'
-import { selectActiveOrSingleOption } from './utilities'
+import { selectActiveOrSingleOption } from './combobox-utilities'
 
 type UseComboboxInputParams<T> = {
 	multiple: boolean

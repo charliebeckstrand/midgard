@@ -11,14 +11,14 @@ import {
 	useCallback,
 } from 'react'
 import { cn } from '../../core'
-import { Description, ErrorMessage, Field, Label } from '../fieldset'
+import { Description, Field, Label, Message } from '../fieldset'
 import { useFilters } from './context'
 
 function isSyntheticEvent(v: unknown): v is SyntheticEvent<HTMLInputElement> {
 	return v !== null && typeof v === 'object' && 'target' in v && 'nativeEvent' in v
 }
 
-const DECORATION_TYPES = new Set<ElementType>([Label, Description, ErrorMessage])
+const DECORATION_TYPES = new Set<ElementType>([Label, Description, Message])
 
 function isDecoration(child: ReactElement): boolean {
 	return DECORATION_TYPES.has(child.type as ElementType)
@@ -65,7 +65,7 @@ export function FiltersField({ name, children, className }: FiltersFieldProps) {
 	}
 
 	// Clone the first non-decoration child as the control; pass through
-	// Label/Description/ErrorMessage siblings untouched. null (not undefined)
+	// Label/Description/Message siblings untouched. null (not undefined)
 	// signals "explicit empty" to components that distinguish controlled state.
 	let controlCloned = false
 

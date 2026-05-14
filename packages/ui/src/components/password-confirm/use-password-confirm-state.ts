@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { deriveStatus } from './utilities'
+import { deriveStatus } from './password-confirm-utilities'
 
 type LastEdited = 'password' | 'confirm' | null
 

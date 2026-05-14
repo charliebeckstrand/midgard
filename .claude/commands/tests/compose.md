@@ -414,15 +414,18 @@ When mocks carry state, reset them in `beforeEach` (or globally in the project's
 
 ## 5. Run the tests
 
-Run the package's tests via Turbo:
+Run only the **freshly-written test file** — not the full package suite. The pre-commit gate runs everything at commit time; this step exists to verify the new file works in isolation.
 
-```
-<pm> turbo test --filter=<pkg>
-```
+Pick the command by runner:
+
+- **`testRunner: vitest`** — `<pm> --filter=<pkg> exec vitest run <new-test-file>`.
+- **`testRunner: jest`** — `<pm> --filter=<pkg> exec jest <new-test-file>`.
+- **`testRunner: bun`** — `<pm> --filter=<pkg> exec bun test <new-test-file>`.
+- **`testRunner: node`** — `<pm> --filter=<pkg> exec node --test <new-test-file>`.
 
 Substitute `<pm>` with the `packageManager` from the manifest (typically `pnpm`) and `<pkg>` with the target package's `name`.
 
-If any test fails, read the error, fix the test, and re-run. Do not leave failing tests.
+If the test fails, read the error, fix the test, and re-run. Do not leave failing tests.
 
 ## 6. Type-check
 

@@ -6,12 +6,12 @@ import {
 	getOperators,
 	mapNode,
 	QueryBuilder,
+	QueryBuilderRuleValue,
 	type QueryField,
 	type QueryGroupNode,
-	QueryRuleValue,
 	removeChild,
 } from '../../components/query-builder'
-import { hasRules } from '../../components/query-builder/utilities'
+import { hasRules } from '../../components/query-builder/query-builder-utilities'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 const fields: QueryField[] = [
@@ -286,14 +286,14 @@ describe('query-builder utilities', () => {
 		})
 	})
 
-	describe('QueryRuleValue', () => {
+	describe('QueryBuilderRuleValue', () => {
 		it('renders a text Input for text fields and emits string changes', () => {
 			const field: QueryField = { name: 'name', label: 'Name', type: 'text' }
 
 			const onChange = vi.fn()
 
 			const { container } = renderUI(
-				<QueryRuleValue field={field} value="hi" onChange={onChange} />,
+				<QueryBuilderRuleValue field={field} value="hi" onChange={onChange} />,
 			)
 
 			const input = container.querySelector('input') as HTMLInputElement
@@ -313,7 +313,7 @@ describe('query-builder utilities', () => {
 			const onChange = vi.fn()
 
 			const { container } = renderUI(
-				<QueryRuleValue field={field} value={10} onChange={onChange} />,
+				<QueryBuilderRuleValue field={field} value={10} onChange={onChange} />,
 			)
 
 			const input = container.querySelector('input') as HTMLInputElement
@@ -332,7 +332,9 @@ describe('query-builder utilities', () => {
 
 			const onChange = vi.fn()
 
-			const { container } = renderUI(<QueryRuleValue field={field} value={3} onChange={onChange} />)
+			const { container } = renderUI(
+				<QueryBuilderRuleValue field={field} value={3} onChange={onChange} />,
+			)
 
 			const input = container.querySelector('input') as HTMLInputElement
 
@@ -345,7 +347,7 @@ describe('query-builder utilities', () => {
 			const field: QueryField = { name: 'age', label: 'Age', type: 'number' }
 
 			const { container } = renderUI(
-				<QueryRuleValue field={field} value={null} onChange={() => {}} />,
+				<QueryBuilderRuleValue field={field} value={null} onChange={() => {}} />,
 			)
 
 			const input = container.querySelector('input') as HTMLInputElement
@@ -365,7 +367,7 @@ describe('query-builder utilities', () => {
 			}
 
 			const { container } = renderUI(
-				<QueryRuleValue field={field} value="open" onChange={() => {}} />,
+				<QueryBuilderRuleValue field={field} value="open" onChange={() => {}} />,
 			)
 
 			const button = container.querySelector('button[aria-haspopup="listbox"]')
@@ -377,7 +379,7 @@ describe('query-builder utilities', () => {
 			const field: QueryField = { name: 'start', label: 'Start', type: 'date' }
 
 			const { container } = renderUI(
-				<QueryRuleValue field={field} value="2024-03-05" onChange={() => {}} />,
+				<QueryBuilderRuleValue field={field} value="2024-03-05" onChange={() => {}} />,
 			)
 
 			const textInput = container.querySelector('input[type="text"]')
@@ -389,7 +391,7 @@ describe('query-builder utilities', () => {
 			const field: QueryField = { name: 'x', label: 'X', type: 'boolean' }
 
 			const { container } = renderUI(
-				<QueryRuleValue field={field} value={undefined} onChange={() => {}} />,
+				<QueryBuilderRuleValue field={field} value={undefined} onChange={() => {}} />,
 			)
 
 			const input = container.querySelector('input') as HTMLInputElement

@@ -6,7 +6,7 @@ import { createPortal } from 'react-dom'
 import { cn } from '../../core'
 import { ReducedMotion } from '../../primitives'
 import { k, toastViewportVariants } from '../../recipes/kata/toast'
-import { ToastAlert } from './alert'
+import { ToastAlert } from './toast-alert'
 import { ToastContext, type ToastProps, useToastState } from './toast-context'
 
 export function Toast({

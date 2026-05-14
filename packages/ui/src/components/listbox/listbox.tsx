@@ -12,14 +12,14 @@ import { iro, kokkaku } from '../../recipes'
 import { k } from '../../recipes/kata/listbox'
 import { popover as kPopover } from '../../recipes/kata/popover'
 import { type ControlSize, useControl } from '../control/context'
-import { invalidAttrs } from '../control/invalid-attrs'
+import { invalidAttrs } from '../control/control-invalid-attrs'
 import { useGlass } from '../glass/context'
 import { Icon } from '../icon'
 import { Placeholder } from '../placeholder'
-import { SelectTrigger } from '../select/trigger'
+import { SelectTrigger } from '../select/select-trigger'
 import { useSkeleton } from '../skeleton/context'
+import { resolveLabel } from './listbox-utilities'
 import { useListboxState } from './use-listbox-state'
-import { resolveLabel } from './utilities'
 
 type ListboxContextValue<T = unknown> = {
 	value: T | T[] | undefined
