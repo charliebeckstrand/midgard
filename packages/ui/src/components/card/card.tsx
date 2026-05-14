@@ -1,16 +1,19 @@
 import { type CSSProperties, useMemo } from 'react'
 import { cn } from '../../core'
-import { ConcentricProvider } from '../../primitives'
+import { ConcentricProvider, useConcentric } from '../../primitives'
 import { type Step, sun } from '../../recipes/ryu/sun'
 import { Box, type BoxProps } from '../box'
 
 export type CardProps = BoxProps<'radius'> & {
-	/** Size step that drives padding, inner radius, and the concentric outer radius. */
+	/**
+	 * Size step that drives padding, inner radius, and the concentric outer radius.
+	 * Resolution order: explicit prop, then enclosing concentric size, then `'md'`.
+	 */
 	size?: Step
 }
 
 export function Card({
-	size = 'md',
+	size,
 	p,
 	px,
 	py,
@@ -20,11 +23,15 @@ export function Card({
 	children,
 	...props
 }: CardProps) {
-	const ctx = useMemo(() => ({ size }), [size])
+	const ambient = useConcentric()
+
+	const resolvedSize = size ?? ambient?.size ?? 'md'
+
+	const ctx = useMemo(() => ({ size: resolvedSize }), [resolvedSize])
 
 	const noExplicitPadding = p === undefined && px === undefined && py === undefined
 
-	const step = sun[size]
+	const step = sun[resolvedSize]
 
 	const style: CSSProperties = {
 		'--ui-padding': `calc(var(--spacing) * ${step.space})`,
@@ -33,25 +40,23 @@ export function Card({
 	} as CSSProperties
 
 	return (
-		<ConcentricProvider value={ctx}>
-			<Box
-				dataSlot="card"
-				p={p}
-				px={px}
-				py={py}
-				bg={bg}
-				outline={outline}
-				data-step={size}
-				className={cn(
-					noExplicitPadding && '[&:not(:has(>[data-slot^=card-]))]:p-(--ui-padding)',
-					'overflow-hidden -outline-offset-1 rounded-(--ui-radius-inner)',
-					className,
-				)}
-				style={style}
-				{...props}
-			>
-				{children}
-			</Box>
-		</ConcentricProvider>
+		<Box
+			dataSlot="card"
+			p={p}
+			px={px}
+			py={py}
+			bg={bg}
+			outline={outline}
+			data-step={resolvedSize}
+			className={cn(
+				noExplicitPadding && '[&:not(:has(>[data-slot^=card-]))]:p-(--ui-padding)',
+				'overflow-hidden -outline-offset-1 rounded-(--ui-radius-inner)',
+				className,
+			)}
+			style={style}
+			{...props}
+		>
+			<ConcentricProvider value={ctx}>{children}</ConcentricProvider>
+		</Box>
 	)
 }

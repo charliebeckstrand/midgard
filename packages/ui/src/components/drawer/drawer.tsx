@@ -3,7 +3,13 @@
 import { motion } from 'motion/react'
 import { type CSSProperties, type ReactNode, useCallback, useMemo } from 'react'
 import { cn, createContext } from '../../core'
-import { ConcentricProvider, Overlay, PanelA11yProvider, usePanelA11yScope } from '../../primitives'
+import {
+	ConcentricProvider,
+	Overlay,
+	PanelA11yProvider,
+	useConcentric,
+	usePanelA11yScope,
+} from '../../primitives'
 import { ugoki } from '../../recipes'
 import {
 	type DrawerPanelVariants,
@@ -22,7 +28,10 @@ export const [DrawerProvider, useDrawerContext] = createContext<DrawerContextVal
 export type DrawerProps = DrawerPanelVariants & {
 	open: boolean
 	onOpenChange: (open: boolean) => void
-	/** Size step that propagates to descendants via the concentric context. */
+	/**
+	 * Size step that propagates to descendants via the concentric context.
+	 * Resolution order: explicit prop, then enclosing concentric size, then `'md'`.
+	 */
 	size?: Step
 	glass?: boolean
 	className?: string
@@ -33,7 +42,7 @@ export function Drawer({
 	open,
 	onOpenChange,
 	surface,
-	size = 'md',
+	size,
 	glass,
 	className,
 	children,
@@ -42,16 +51,20 @@ export function Drawer({
 
 	const { panelAriaProps, providerValue } = usePanelA11yScope()
 
+	const ambient = useConcentric()
+
+	const resolvedSize = size ?? ambient?.size ?? 'md'
+
 	const close = useCallback(() => onOpenChange(false), [onOpenChange])
 
 	const contextValue = useMemo(() => ({ close }), [close])
 
-	const concentricValue = useMemo(() => ({ size }), [size])
+	const concentricValue = useMemo(() => ({ size: resolvedSize }), [resolvedSize])
 
 	const style: CSSProperties = {
-		'--ui-radius-inner': `var(--radius-${sun[size].radius})`,
-		'--ui-padding': `calc(var(--spacing) * ${sun[size].space})`,
-		'--ui-gap': `calc(var(--spacing) * ${sun[size].gap})`,
+		'--ui-radius-inner': `var(--radius-${sun[resolvedSize].radius})`,
+		'--ui-padding': `calc(var(--spacing) * ${sun[resolvedSize].space})`,
+		'--ui-gap': `calc(var(--spacing) * ${sun[resolvedSize].gap})`,
 	} as CSSProperties
 
 	return (
@@ -64,7 +77,7 @@ export function Drawer({
 				{...ugoki.panel.bottom}
 				{...panelAriaProps}
 				data-slot="drawer"
-				data-step={size}
+				data-step={resolvedSize}
 				style={style}
 				onClick={(e) => e.stopPropagation()}
 				className={cn(drawerPanelVariants({ surface: resolvedSurface }), className)}

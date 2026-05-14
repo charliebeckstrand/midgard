@@ -4,7 +4,7 @@ import { FloatingPortal } from '@floating-ui/react'
 import { AnimatePresence, motion } from 'motion/react'
 import { type ReactNode, useLayoutEffect, useMemo, useRef } from 'react'
 import { cn } from '../../core'
-import { ConcentricProvider, ReducedMotion } from '../../primitives'
+import { ConcentricProvider, ReducedMotion, useConcentric } from '../../primitives'
 import { iro, omote, ugoki } from '../../recipes'
 import { k } from '../../recipes/kata/popover'
 import type { Step } from '../../recipes/ryu/sun'
@@ -16,7 +16,10 @@ export type PopoverContentProps = {
 	className?: string
 	autoFocus?: boolean
 	p?: BoxPadding
-	/** Size step that propagates to descendants via the concentric context. */
+	/**
+	 * Size step that propagates to descendants via the concentric context.
+	 * Resolution order: explicit prop, then enclosing concentric size, then `'md'`.
+	 */
 	size?: Step
 	children: ReactNode
 }
@@ -25,7 +28,7 @@ export function PopoverContent({
 	className,
 	autoFocus = false,
 	p = 'lg',
-	size = 'md',
+	size,
 	children,
 }: PopoverContentProps) {
 	const { open, setFloating, floatingStyles, getFloatingProps, onExitComplete } =
@@ -35,7 +38,11 @@ export function PopoverContent({
 
 	const glass = useGlass()
 
-	const concentricValue = useMemo(() => ({ size }), [size])
+	const ambient = useConcentric()
+
+	const resolvedSize = size ?? ambient?.size ?? 'md'
+
+	const concentricValue = useMemo(() => ({ size: resolvedSize }), [resolvedSize])
 
 	useLayoutEffect(() => {
 		if (open && autoFocus) {
@@ -59,7 +66,7 @@ export function PopoverContent({
 								ref={contentRef}
 								tabIndex={autoFocus ? -1 : undefined}
 								data-slot="popover-content"
-								data-step={size}
+								data-step={resolvedSize}
 								className={cn('z-50', iro.text.default, glass && omote.glass)}
 							>
 								<ConcentricProvider value={concentricValue}>

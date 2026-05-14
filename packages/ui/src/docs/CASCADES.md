@@ -21,13 +21,13 @@ Glass override on `variant`: form fields apply `variant: 'glass'` when `useGlass
 
 ### Concentric participants
 
-Components: `button` (partly), `card-title`, `checkbox`, `radio`, `group`.
+Components: `button` (partly), `card`, `card-title`, `checkbox`, `drawer`, `group`, `popover-content`, `radio`.
 
 ```
 final = explicit prop ?? Concentric ?? component default
 ```
 
-These don't sit inside a `<Control>`; they only read the top-level concentric size cascade.
+These don't sit inside a `<Control>`; they only read the top-level concentric size cascade. Surfaces in this list (`card`, `drawer`, `group`, `popover-content`) both **inherit** from an outer concentric ancestor and **re-broadcast** their resolved size to their own descendants, so an outer `<Density>` or surface flows through nested surfaces without breaking.
 
 ### Standalone interactive: `button`
 

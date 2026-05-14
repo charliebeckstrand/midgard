@@ -8,6 +8,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from '../../components/card'
+import { Density } from '../../providers/density'
 import { sun } from '../../recipes/ryu/sun'
 import { bySlot, renderUI, screen } from '../helpers'
 
@@ -228,5 +229,55 @@ describe('Card size system', () => {
 
 		// sun.sm.text = 'sm' → ji.size.sm = 'text-sm'
 		expect(bySlot(container, 'button')?.className).toContain('text-sm')
+	})
+
+	it('inherits an ambient Density when no size prop is given', () => {
+		const { container } = renderUI(
+			<Density density="compact">
+				<Card>content</Card>
+			</Density>,
+		)
+
+		expect(bySlot(container, 'card')).toHaveAttribute('data-step', 'sm')
+	})
+
+	it('explicit size prop wins over an ambient Density', () => {
+		const { container } = renderUI(
+			<Density density="compact">
+				<Card size="lg">content</Card>
+			</Density>,
+		)
+
+		expect(bySlot(container, 'card')).toHaveAttribute('data-step', 'lg')
+	})
+
+	it('inherits the resolved size from an outer Card when no size prop is given', () => {
+		const { container } = renderUI(
+			<Card size="sm">
+				<CardBody>
+					<Card>inner</Card>
+				</CardBody>
+			</Card>,
+		)
+
+		const cards = container.querySelectorAll<HTMLElement>('[data-slot="card"]')
+		// inner card is the second match
+		expect(cards[1]).toHaveAttribute('data-step', 'sm')
+	})
+
+	// Box now inherits `p` from Concentric. Card must not let its own Box
+	// pick up the size it broadcasts to descendants — otherwise the
+	// conditional `:has(>[data-slot^=card-])` padding rule is bypassed and
+	// CardHeader/CardBody layouts get an extra outer p-* class.
+	it("does not apply a static p-* class to the Card's own surface", () => {
+		const { container } = renderUI(
+			<Card size="md">
+				<CardBody>body</CardBody>
+			</Card>,
+		)
+
+		const cls = bySlot(container, 'card')?.className ?? ''
+
+		expect(cls).not.toMatch(/(^|\s)p-(xs|sm|md|lg|xl)(\s|$)/)
 	})
 })

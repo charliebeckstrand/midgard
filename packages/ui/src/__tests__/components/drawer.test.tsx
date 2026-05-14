@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Drawer, DrawerClose, DrawerOpen } from '../../components/drawer'
+import { Density } from '../../providers/density'
 import { fireEvent, renderUI, screen } from '../helpers'
 
 describe('Drawer', () => {
@@ -142,5 +143,29 @@ describe('Drawer size context', () => {
 
 		// sun.lg.text = 'lg' → ji.size.lg = 'text-lg'
 		expect(buttonInDrawer()?.className).toContain('text-lg')
+	})
+
+	it('inherits an ambient Density when no size prop is given', () => {
+		renderUI(
+			<Density density="compact">
+				<Drawer open onOpenChange={() => {}}>
+					content
+				</Drawer>
+			</Density>,
+		)
+
+		expect(drawerPanel()).toHaveAttribute('data-step', 'sm')
+	})
+
+	it('explicit size prop wins over an ambient Density', () => {
+		renderUI(
+			<Density density="compact">
+				<Drawer open onOpenChange={() => {}} size="lg">
+					content
+				</Drawer>
+			</Density>,
+		)
+
+		expect(drawerPanel()).toHaveAttribute('data-step', 'lg')
 	})
 })

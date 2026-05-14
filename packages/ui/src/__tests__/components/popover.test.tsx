@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Button } from '../../components/button'
 import { Popover, PopoverContent, PopoverTrigger } from '../../components/popover'
+import { Density } from '../../providers/density'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Popover', () => {
@@ -90,5 +91,35 @@ describe('PopoverContent size context', () => {
 
 		// sun.sm.text = 'sm' → ji.size.sm = 'text-sm'
 		expect(buttonInPopover()?.className).toContain('text-sm')
+	})
+
+	it('inherits an ambient Density when no size prop is given', () => {
+		renderUI(
+			<Density density="compact">
+				<Popover open>
+					<PopoverTrigger>
+						<button type="button">Open</button>
+					</PopoverTrigger>
+					<PopoverContent>content</PopoverContent>
+				</Popover>
+			</Density>,
+		)
+
+		expect(popoverContent()).toHaveAttribute('data-step', 'sm')
+	})
+
+	it('explicit size prop wins over an ambient Density', () => {
+		renderUI(
+			<Density density="compact">
+				<Popover open>
+					<PopoverTrigger>
+						<button type="button">Open</button>
+					</PopoverTrigger>
+					<PopoverContent size="lg">content</PopoverContent>
+				</Popover>
+			</Density>,
+		)
+
+		expect(popoverContent()).toHaveAttribute('data-step', 'lg')
 	})
 })
