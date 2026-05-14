@@ -3,7 +3,7 @@
 import { useVirtualizer } from '@tanstack/react-virtual'
 import type { RefObject } from 'react'
 import { TableBody } from '../table'
-import { DataTableRowInternal } from './row'
+import { DataTableRow } from './data-table-row'
 import type { DataTableColumn } from './types'
 
 type DataTableVirtualizedBodyProps<T> = {
@@ -59,7 +59,7 @@ export function DataTableVirtualizedBody<T>({
 				const key = rowKeys[vr.index] as string | number
 
 				return (
-					<DataTableRowInternal<T>
+					<DataTableRow<T>
 						key={key}
 						row={row}
 						rowKey={key}

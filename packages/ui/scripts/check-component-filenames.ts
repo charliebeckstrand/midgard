@@ -10,6 +10,12 @@
  *                              (singular stem also accepted when folder is plural)
  * - a permitted bare file:     `index.ts(x)`, `types.ts`, `context.ts(x)`, `slots.ts(x)`
  *
+ * In addition, every component / hook file must export a symbol whose PascalCase
+ * (or `useCamelCase`) form matches its kebab-case filename. `tag-input-badge.tsx`
+ * must export `TagInputBadge`; `use-tag-input-keyboard.ts` must export
+ * `useTagInputKeyboard`. Catches the case where a file is renamed but its
+ * exported component or hook keeps the old, now-divergent name.
+ *
  * Existing offenders are pinned in `filename-allowlist.json`. CI fails on any
  * file not on the allowlist that breaks the rule. The allowlist shrinks as the
  * convention is rolled out and is deleted in the final sweep.
@@ -33,6 +39,40 @@ const BARE_ALLOWED = new Set([
 ])
 
 type Violation = { path: string; reason: string }
+
+function expectedSymbol(file: string): string {
+	const base = file.replace(/\.tsx?$/, '')
+	const isHook = base.startsWith('use-')
+	const parts = (isHook ? base.slice(4) : base).split('-').filter(Boolean)
+	const pascal = parts.map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join('')
+	return isHook ? `use${pascal}` : pascal
+}
+
+// Suffixes that name a collection of helpers rather than a single component or hook.
+// Files matching these are exempt from the filename-vs-symbol match.
+const UTILITY_SUFFIXES = ['-utilities', '-helpers', '-constants']
+
+function isUtilityFile(file: string): boolean {
+	const base = file.replace(/\.tsx?$/, '')
+	return UTILITY_SUFFIXES.some((suffix) => base.endsWith(suffix))
+}
+
+function checkSymbolMatch(folderPath: string, file: string): Violation | null {
+	if (isUtilityFile(file)) return null
+	const content = readFileSync(join(folderPath, file), 'utf8')
+	const expected = expectedSymbol(file)
+	// Match `export function Foo`, `export const Foo`, `export class Foo`,
+	// `export async function Foo`, or `export { ..., Foo, ... }`.
+	const pattern = new RegExp(
+		`export\\s+(?:async\\s+)?(?:function|const|class|let)\\s+${expected}\\b|` +
+			`export\\s*\\{[^}]*\\b${expected}\\b`,
+	)
+	if (pattern.test(content)) return null
+	return {
+		path: relative(componentsRoot, join(folderPath, file)),
+		reason: `expected an exported \`${expected}\` matching the filename`,
+	}
+}
 
 function listLeafFolders(root: string): string[] {
 	const out: string[] = []
@@ -65,23 +105,7 @@ function checkFolder(folderPath: string): Violation[] {
 		const file = entry.name
 		if (!file.endsWith('.ts') && !file.endsWith('.tsx')) continue
 
-		if (file === `${folderName}.tsx`) continue
 		if (BARE_ALLOWED.has(file)) continue
-
-		if (file.startsWith('use-')) {
-			const ok = stems.some(
-				(stem) =>
-					file === `use-${stem}.ts` ||
-					file === `use-${stem}.tsx` ||
-					file.startsWith(`use-${stem}-`),
-			)
-			if (ok) continue
-			violations.push({
-				path: relative(componentsRoot, join(folderPath, file)),
-				reason: `hook filename must start with \`use-${stems.join('` or `use-')}\``,
-			})
-			continue
-		}
 
 		if (file === 'component.tsx') {
 			violations.push({
@@ -91,15 +115,38 @@ function checkFolder(folderPath: string): Violation[] {
 			continue
 		}
 
-		const matchesStem = stems.some(
-			(stem) => file === `${stem}.ts` || file === `${stem}.tsx` || file.startsWith(`${stem}-`),
-		)
-		if (matchesStem) continue
+		const isMain = file === `${folderName}.tsx`
+		const isHook = file.startsWith('use-')
 
-		violations.push({
-			path: relative(componentsRoot, join(folderPath, file)),
-			reason: `filename must be prefixed with \`${stems.join('-` or `')}-\``,
-		})
+		if (isHook) {
+			const ok = stems.some(
+				(stem) =>
+					file === `use-${stem}.ts` ||
+					file === `use-${stem}.tsx` ||
+					file.startsWith(`use-${stem}-`),
+			)
+			if (!ok) {
+				violations.push({
+					path: relative(componentsRoot, join(folderPath, file)),
+					reason: `hook filename must start with \`use-${stems.join('` or `use-')}\``,
+				})
+				continue
+			}
+		} else if (!isMain) {
+			const matchesStem = stems.some(
+				(stem) => file === `${stem}.ts` || file === `${stem}.tsx` || file.startsWith(`${stem}-`),
+			)
+			if (!matchesStem) {
+				violations.push({
+					path: relative(componentsRoot, join(folderPath, file)),
+					reason: `filename must be prefixed with \`${stems.join('-` or `')}-\``,
+				})
+				continue
+			}
+		}
+
+		const symbolViolation = checkSymbolMatch(folderPath, file)
+		if (symbolViolation) violations.push(symbolViolation)
 	}
 
 	return violations

@@ -1,1 +1,1 @@
-export { TagInput, type TagInputProps } from './component'
+export { TagInput, type TagInputProps } from './tag-input'

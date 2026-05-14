@@ -7,16 +7,16 @@ import { k } from '../../recipes/kata/data-table'
 import type { TableElementProps, TableVariants } from '../table'
 import { Table, TableBody, TableLoading } from '../table'
 import { Toolbar } from '../toolbar'
-import { DataTableManageColumnsDialog } from './column-manager'
 import { DataTableProvider, type SortState } from './context'
-import { DataTableHead } from './head'
-import { DataTableRowInternal } from './row'
+import { DataTableManageColumnsDialog } from './data-table-column-manager'
+import { DataTableHead } from './data-table-head'
+import { DataTableRow } from './data-table-row'
+import { DataTableVirtualizedBody } from './data-table-virtualized-body'
 import type {
 	DataTableColumn,
 	DataTableColumnManagerItem,
 	DataTableColumnManagerPreset,
 } from './types'
-import { DataTableVirtualizedBody } from './virtualized-body'
 
 export type DataTableVirtualize = boolean | { estimateSize?: number; overscan?: number }
 
@@ -331,7 +331,7 @@ export function DataTable<T>({
 						const key = rowKeys[index] ?? getRowKey(row, index)
 
 						return (
-							<DataTableRowInternal<T>
+							<DataTableRow<T>
 								key={key}
 								row={row}
 								rowKey={key}

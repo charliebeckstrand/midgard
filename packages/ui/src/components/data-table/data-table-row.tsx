@@ -8,7 +8,7 @@ import { TableCell, TableRow } from '../table'
 import { type DataTableRowContextValue, DataTableRowProvider, useDataTable } from './context'
 import type { DataTableColumn } from './types'
 
-type DataTableRowInternalProps<T> = {
+type DataTableRowProps<T> = {
 	row: T
 	rowKey: string | number
 	columns: DataTableColumn<T>[]
@@ -16,13 +16,7 @@ type DataTableRowInternalProps<T> = {
 	className: string | undefined
 }
 
-function DataTableRowInternalImpl<T>({
-	row,
-	rowKey,
-	columns,
-	loading,
-	className,
-}: DataTableRowInternalProps<T>) {
+function DataTableRowImpl<T>({ row, rowKey, columns, loading, className }: DataTableRowProps<T>) {
 	const { selection, toggleRow } = useDataTable()
 
 	const selected = selection.has(rowKey)
@@ -76,6 +70,4 @@ function DataTableRowInternalImpl<T>({
 	)
 }
 
-export const DataTableRowInternal = memo(
-	DataTableRowInternalImpl,
-) as typeof DataTableRowInternalImpl
+export const DataTableRow = memo(DataTableRowImpl) as typeof DataTableRowImpl

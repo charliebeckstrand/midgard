@@ -5,9 +5,9 @@ import type { Color } from '../../recipes/ryu/iro'
 import { Badge } from '../badge'
 import { Button } from '../button'
 import { Icon } from '../icon'
-import { tagRemoveSize, tagSize } from './utilities'
+import { tagRemoveSize, tagSize } from './tag-input-utilities'
 
-export type TagBadgeProps = {
+export type TagInputBadgeProps = {
 	label: string
 	size: 'sm' | 'md' | 'lg'
 	color: Color
@@ -15,7 +15,7 @@ export type TagBadgeProps = {
 	onRemove: () => void
 }
 
-export function TagBadge({ label, size, color, disabled, onRemove }: TagBadgeProps) {
+export function TagInputBadge({ label, size, color, disabled, onRemove }: TagInputBadgeProps) {
 	return (
 		<Badge
 			size={tagSize[size]}

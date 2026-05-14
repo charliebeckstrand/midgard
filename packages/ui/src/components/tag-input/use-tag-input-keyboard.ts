@@ -16,7 +16,7 @@ export type UseKeyboardOptions = {
 }
 
 /** Keyboard handler for tag inputs — Enter / comma to add, Backspace to remove. Skips IME composition. */
-export function useKeyboard({
+export function useTagInputKeyboard({
 	inputValue,
 	addTag,
 	removeTag,

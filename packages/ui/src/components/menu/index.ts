@@ -1,4 +1,5 @@
-export { MenuContent, type MenuContentProps } from './content'
+export { Menu, type MenuProps, useMenuActions } from './menu'
+export { MenuContent, type MenuContentProps } from './menu-content'
 export {
 	MenuDescription,
 	type MenuDescriptionProps,
@@ -8,8 +9,8 @@ export {
 	type MenuLabelProps,
 	MenuShortcut,
 	type MenuShortcutProps,
-} from './item'
-export { Menu, type MenuProps, useMenuActions } from './menu'
+} from './menu-item'
+export { MenuTrigger, type MenuTriggerProps } from './menu-trigger'
 export {
 	MenuHeading,
 	type MenuHeadingProps,
@@ -18,4 +19,3 @@ export {
 	MenuSeparator,
 	type MenuSeparatorProps,
 } from './slots'
-export { MenuTrigger, type MenuTriggerProps } from './trigger'

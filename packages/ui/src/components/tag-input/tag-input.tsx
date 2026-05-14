@@ -6,9 +6,9 @@ import type { Color } from '../../recipes/ryu/iro'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { Input } from '../input'
-import { TagBadge } from './tag-badge'
-import { useKeyboard } from './use-keyboard'
+import { TagInputBadge } from './tag-input-badge'
 import { useTagInput } from './use-tag-input'
+import { useTagInputKeyboard } from './use-tag-input-keyboard'
 
 export type TagInputProps = {
 	id?: string
@@ -70,7 +70,7 @@ export function TagInput({
 
 	const clearInput = useCallback(() => setInputValue(''), [])
 
-	const handleKeyDown = useKeyboard({
+	const handleKeyDown = useTagInputKeyboard({
 		inputValue,
 		addTag,
 		removeTag,
@@ -96,7 +96,7 @@ export function TagInput({
 		tags.length > 0 ? (
 			<span data-slot="tag-input" className="flex flex-wrap gap-1 min-w-0 cursor-text">
 				{tags.map((t, i) => (
-					<TagBadge
+					<TagInputBadge
 						key={t}
 						label={t}
 						size={resolvedSize}
