@@ -24,7 +24,7 @@ Inside `packages/ui/src/components/<name>/` (and the parallel `primitives/`):
 - **Hooks:** `use-<name>-<hook>.ts` (or `.tsx` when the hook returns JSX). The folder name appears in every hook filename. Never bare (`hook.ts`, `use-state.ts`).
 - **Context:** `context.ts`. Use `.tsx` only when the file exports a provider component containing JSX.
 - **Types:** `types.ts` when extracted from the main file.
-- **Slots:** `slots.ts` for components exposing a composable slot API — an intentional, existing pattern.
+- **Slots:** `slots.tsx` (or `slots.ts`) for components exposing a composable slot API — an intentional, existing pattern.
 - **Barrel:** `index.ts`, re-exports only.
 
 When in doubt, prefix with the folder name. Bare filenames read fine inside the folder and turn into noise the moment they appear anywhere else.
