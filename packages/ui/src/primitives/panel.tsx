@@ -1,3 +1,5 @@
+'use client'
+
 import { type ComponentPropsWithoutRef, useCallback, useEffect, useMemo, useState } from 'react'
 import { cn, createContext } from '../core'
 import { useIdScope } from '../hooks/use-id-scope'

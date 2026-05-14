@@ -1,5 +1,3 @@
-'use client'
-
 import { ugoki } from '../recipes'
 
 const active = {
