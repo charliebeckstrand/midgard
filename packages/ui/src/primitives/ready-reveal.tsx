@@ -29,7 +29,11 @@ const gridCell = { gridArea: '1 / 1' } as const
 export function ReadyReveal({ ready, placeholder, children, className }: ReadyRevealProps) {
 	return (
 		<ReducedMotion>
-			<div className={cn('grid', className)} style={{ gridTemplate: '1fr / 1fr' }}>
+			<div
+				data-slot="ready-reveal"
+				className={cn('grid', className)}
+				style={{ gridTemplate: '1fr / 1fr' }}
+			>
 				<motion.div
 					aria-hidden={ready}
 					animate={ready ? hidden : visible}
