@@ -3,30 +3,34 @@ import { join } from 'node:path'
 import { defineConfig } from 'tsup'
 
 /**
- * Discover build entries from the filesystem. Each component dir that has an
- * `index.ts` becomes a named entry; plus the package root, hooks, and layouts.
+ * Discover build entries from the filesystem. Each component / provider dir
+ * that has an `index.ts` becomes a named entry; plus hooks and layouts.
  */
-const componentsDir = 'src/components'
+function discoverEntries(root: string, prefix = '') {
+	return Object.fromEntries(
+		readdirSync(root)
+			.filter((name) => {
+				const indexPath = join(root, name, 'index.ts')
 
-const componentEntries = Object.fromEntries(
-	readdirSync(componentsDir)
-		.filter((name) => {
-			const indexPath = join(componentsDir, name, 'index.ts')
+				try {
+					return statSync(indexPath).isFile()
+				} catch {
+					return false
+				}
+			})
+			.map((name) => [`${prefix}${name}`, `${root}/${name}/index.ts`]),
+	)
+}
 
-			try {
-				return statSync(indexPath).isFile()
-			} catch {
-				return false
-			}
-		})
-		.map((name) => [name, `${componentsDir}/${name}/index.ts`]),
-)
+const componentEntries = discoverEntries('src/components')
+
+const providerEntries = discoverEntries('src/providers', 'providers/')
 
 const entry = {
 	hooks: 'src/hooks/index.ts',
 	layouts: 'src/layouts/index.ts',
-	providers: 'src/providers/index.ts',
 	...componentEntries,
+	...providerEntries,
 }
 
 export default defineConfig({

@@ -7,7 +7,7 @@ import { Input } from '../../components/input'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 import { Stack } from '../../components/stack'
 import { Textarea } from '../../components/textarea'
-import { Density, type DensityTier } from '../../providers'
+import { Density, type DensityTier } from '../../providers/density'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Providers' }
