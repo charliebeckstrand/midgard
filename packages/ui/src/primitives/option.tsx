@@ -123,7 +123,7 @@ export function createSelectOption(config: {
 
 	function Label({ className, ...props }: SelectLabelProps) {
 		return (
-			<OptionLabel data-slot={`${config.slotPrefix}-label`} className={cn(className)} {...props} />
+			<OptionLabel data-slot={`${config.slotPrefix}-label`} className={className} {...props} />
 		)
 	}
 
@@ -131,7 +131,7 @@ export function createSelectOption(config: {
 		return (
 			<OptionDescription
 				data-slot={`${config.slotPrefix}-description`}
-				className={cn(className)}
+				className={className}
 				{...props}
 			/>
 		)
