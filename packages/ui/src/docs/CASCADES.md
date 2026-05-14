@@ -29,14 +29,14 @@ final = explicit prop ?? Concentric ?? component default
 
 These don't sit inside a `<Control>`; they only read the top-level concentric size cascade. Surfaces in this list (`card`, `drawer`, `group`, `menu`, `popover-content`) both **inherit** from an outer concentric ancestor and **re-broadcast** their resolved size to their own descendants, so an outer `<Density>` or surface flows through nested surfaces without breaking. (`menu` re-broadcasts because its `<MenuContent>` is portaled — without re-broadcasting, descendant `<MenuItem>` would lose the ambient context.)
 
-### Standalone interactive: `button`
+### Standalone interactive: `button`, `badge`
 
 ```
 size    = explicit ?? AffixSize ?? Concentric
-variant = explicit ?? (glass ? 'glass' : undefined)
+variant = explicit ?? (glass ? 'glass' : undefined)  // button only
 ```
 
-Button reads AffixSize because it can be rendered as a clear/loading button **inside** an `<Input>` or `<SelectTrigger>`, where the affix container broadcasts a one-step-smaller size to its descendants. AffixSize is the more specific signal — only set inside an affix scope — so it wins over the outer ambient Concentric (provided by `<Card>` / `<Drawer>` / `<Density>` / etc.); without this ordering an affix button would render at the surface size whenever Concentric is non-null, which is now the default once `<Density>` is mounted at the app root. Button does **not** read Control — it isn't a form-field-inside-Control by convention.
+Button and Badge read AffixSize because they can be rendered inside an `<Input>`, `<SelectTrigger>`, or `<Grid>` cell, where the affix container broadcasts a one-step-smaller size to its descendants. AffixSize is the more specific signal — only set inside an affix scope — so it wins over the outer ambient Concentric (provided by `<Card>` / `<Drawer>` / `<Density>` / etc.); without this ordering a button or badge inside an affix would render at the surface size whenever Concentric is non-null, which is now the default once `<Density>` is mounted at the app root. Button does **not** read Control — it isn't a form-field-inside-Control by convention.
 
 ### Cascade descendants: `spinner`, `icon`
 

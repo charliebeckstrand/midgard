@@ -26,7 +26,7 @@ export function ToggleIconButton({
 	icon,
 	activeIcon = icon,
 	animate = true,
-	size = 'md',
+	size,
 	className,
 	...props
 }: ToggleIconButtonProps) {

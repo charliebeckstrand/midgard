@@ -20,7 +20,7 @@ export type CopyButtonProps = {
 export function CopyButton({
 	value,
 	icon,
-	size = 'md',
+	size,
 	timeout = 2000,
 	className,
 	disabled,
