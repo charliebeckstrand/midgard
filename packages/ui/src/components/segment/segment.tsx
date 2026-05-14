@@ -21,7 +21,7 @@ export function Segment({
 	className,
 	children,
 }: SegmentProps) {
-	const [currentCtx] = useCurrent({
+	const currentCtx = useCurrent({
 		value: valueProp,
 		defaultValue,
 		onChange: onValueChange,

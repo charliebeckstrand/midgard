@@ -21,16 +21,14 @@ export function useCurrent(props: {
 	value?: string
 	defaultValue?: string
 	onChange?: (value: string | undefined) => void
-}): [CurrentContextValue, string | undefined, (value: string) => void] {
+}): CurrentContextValue {
 	const [value, setValue] = useControllable({
 		value: props.value,
 		defaultValue: props.defaultValue,
 		onChange: props.onChange,
 	})
 
-	const ctx = useMemo<CurrentContextValue>(() => ({ value, onChange: setValue }), [value, setValue])
-
-	return [ctx, value, setValue]
+	return useMemo<CurrentContextValue>(() => ({ value, onChange: setValue }), [value, setValue])
 }
 
 const hidden = { opacity: 0 }

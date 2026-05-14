@@ -23,7 +23,7 @@ export function Tabs({
 	children,
 	...props
 }: TabsProps) {
-	const [ctx] = useCurrent({ value, defaultValue, onChange: onValueChange })
+	const ctx = useCurrent({ value, defaultValue, onChange: onValueChange })
 
 	// Vertical only applies to the 'tab' variant; segment is always horizontal.
 	const resolvedOrientation: TabsOrientation = variant === 'segment' ? 'horizontal' : orientation

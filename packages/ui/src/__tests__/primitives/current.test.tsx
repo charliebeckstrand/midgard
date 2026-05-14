@@ -17,12 +17,12 @@ describe('useCurrentContext', () => {
 })
 
 describe('useCurrent', () => {
-	it('returns context, value, and setValue', () => {
+	it('returns a context value with the current value and onChange', () => {
 		const { result } = renderHook(() => useCurrent({ defaultValue: 'tab1' }))
 
-		expect(result.current[1]).toBe('tab1')
+		expect(result.current.value).toBe('tab1')
 
-		expect(typeof result.current[2]).toBe('function')
+		expect(typeof result.current.onChange).toBe('function')
 	})
 })
 
