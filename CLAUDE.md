@@ -38,6 +38,7 @@ Every component or hook file must also export a symbol whose PascalCase (or `use
 - Dependencies flow inward. Shared packages never depend on application code.
 - Abstractions are extracted, not predicted. Duplication across multiple call sites earns a shared utility; a single use case does not.
 - When an existing component almost fits but is missing a capability (e.g. ref forwarding, a variant, a prop), ask the user whether extending the component makes sense long-term — not just for the immediate use case. Never update a shared component without explicit approval; propose the change and let the user decide.
+- `packages/ui/src/recipes/` is split into a public substrate layer and an internal layer. `ryu/` carries the cross-cutting scales and currents — re-exported from `src/recipes/index.ts` and consumed wherever a substrate is needed. `kata/` (per-component recipes) and `waku/` (control primitives) are internal: they live 1:1 with components, are imported via relative paths from inside the package, and are deliberately not listed in `package.json` `exports`. The boundary is pinned by `src/__tests__/recipes/internal-boundary.test.ts`.
 
 ## Git
 

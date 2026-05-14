@@ -15,7 +15,7 @@ function ControlledExample() {
 		<Example title="Controlled">
 			<Field>
 				<Label>Quantity</Label>
-				<NumberInput value={value} onChange={setValue} min={0} max={10} />
+				<NumberInput value={value} onValueChange={setValue} min={0} max={10} />
 			</Field>
 		</Example>
 	)

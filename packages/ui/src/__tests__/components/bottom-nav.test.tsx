@@ -103,11 +103,11 @@ describe('BottomNavItem', () => {
 		expect(items[1]).not.toHaveAttribute('data-current')
 	})
 
-	it('calls onChange with value on click', () => {
+	it('calls onValueChange with value on click', () => {
 		const onChange = vi.fn()
 
 		const { container } = renderUI(
-			<BottomNav onChange={onChange}>
+			<BottomNav onValueChange={onChange}>
 				<BottomNavItem icon={TestIcon} value="search">
 					Search
 				</BottomNavItem>

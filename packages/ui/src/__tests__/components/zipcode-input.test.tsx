@@ -49,7 +49,7 @@ describe('ZipcodeInput', () => {
 	it('formats US ZIP+4 with a dash', async () => {
 		const onChange = vi.fn()
 
-		const { container } = renderUI(<ZipcodeInput onChange={onChange} />)
+		const { container } = renderUI(<ZipcodeInput onValueChange={onChange} />)
 
 		const input = bySlot(container, 'input') as HTMLInputElement
 

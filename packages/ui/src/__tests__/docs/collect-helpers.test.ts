@@ -10,7 +10,7 @@ describe('collectHelpers preamble inclusion', () => {
 			``,
 			`function BasicExample() {`,
 			`\tconst [filters, setFilters] = useState<BasicFilters>({ search: undefined })`,
-			`\treturn <Filters value={filters} onChange={setFilters} />`,
+			`\treturn <Filters value={filters} onValueChange={setFilters} />`,
 			`}`,
 		].join('\n')
 

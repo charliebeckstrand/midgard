@@ -99,7 +99,7 @@ describe('CurrencyInput', () => {
 	it('reformats and emits the parsed number on blur', async () => {
 		const onChange = vi.fn()
 
-		const { container } = renderUI(<CurrencyInput onChange={onChange} />)
+		const { container } = renderUI(<CurrencyInput onValueChange={onChange} />)
 
 		const input = bySlot(container, 'input') as HTMLInputElement
 
@@ -118,7 +118,7 @@ describe('CurrencyInput', () => {
 	it('emits undefined when cleared', async () => {
 		const onChange = vi.fn()
 
-		const { container } = renderUI(<CurrencyInput defaultValue={50} onChange={onChange} />)
+		const { container } = renderUI(<CurrencyInput defaultValue={50} onValueChange={onChange} />)
 
 		const input = bySlot(container, 'input') as HTMLInputElement
 
@@ -135,13 +135,13 @@ describe('CurrencyInput', () => {
 	})
 
 	it('reflects external value changes when not focused', () => {
-		const { container, rerender } = renderUI(<CurrencyInput value={10} onChange={() => {}} />)
+		const { container, rerender } = renderUI(<CurrencyInput value={10} onValueChange={() => {}} />)
 
 		const input = bySlot(container, 'input') as HTMLInputElement
 
 		expect(input.value).toBe('10.00')
 
-		rerender(<CurrencyInput value={42} onChange={() => {}} />)
+		rerender(<CurrencyInput value={42} onValueChange={() => {}} />)
 
 		expect(input.value).toBe('42.00')
 	})

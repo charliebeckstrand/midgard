@@ -21,7 +21,7 @@ export default function CodeDemo() {
 		<Stack gap="xl">
 			<Example
 				title="Default"
-				actions={<SizeListbox sizes={sizes} value={size} onChange={setSize} />}
+				actions={<SizeListbox sizes={sizes} value={size} onValueChange={setSize} />}
 			>
 				<Text>
 					Run <Code size={size}>pnpm install</Code> to install dependencies.

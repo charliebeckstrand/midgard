@@ -4,7 +4,7 @@ import { useControllable } from '../../hooks'
 export type UseTagInputOptions = {
 	value?: string[]
 	defaultValue?: string[]
-	onChange?: (value: string[] | undefined) => void
+	onValueChange?: (value: string[] | undefined) => void
 	max?: number
 	validate?: (tag: string) => boolean
 	/** Fires when a removal transitions the list out of the at-max state. */
@@ -14,7 +14,7 @@ export type UseTagInputOptions = {
 export function useTagInput({
 	value,
 	defaultValue,
-	onChange,
+	onValueChange,
 	max,
 	validate,
 	onMaxReleased,
@@ -22,7 +22,7 @@ export function useTagInput({
 	const [tags = [], setTags] = useControllable<string[]>({
 		value,
 		defaultValue: defaultValue ?? [],
-		onChange,
+		onChange: onValueChange,
 	})
 
 	const atMax = max !== undefined && tags.length >= max

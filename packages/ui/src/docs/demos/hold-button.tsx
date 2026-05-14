@@ -47,7 +47,7 @@ export default function HoldButtonDemo() {
 		<Stack gap="xl">
 			<Example
 				title="Default"
-				actions={<VariantListbox variants={variants} value={variant} onChange={setVariant} />}
+				actions={<VariantListbox variants={variants} value={variant} onValueChange={setVariant} />}
 			>
 				<Flex direction="col" gap="lg">
 					<HoldButton variant={variant} onComplete={() => setCount((c) => c + 1)}>

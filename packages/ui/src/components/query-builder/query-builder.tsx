@@ -14,7 +14,7 @@ export type QueryBuilderProps = {
 	fields: QueryField[]
 	value?: QueryGroupNode
 	defaultValue?: QueryGroupNode
-	onChange?: (value: QueryGroupNode) => void
+	onValueChange?: (value: QueryGroupNode) => void
 	disabled?: boolean
 	className?: string
 }
@@ -23,11 +23,11 @@ export function QueryBuilder({
 	fields,
 	value,
 	defaultValue,
-	onChange,
+	onValueChange,
 	disabled = false,
 	className,
 }: QueryBuilderProps) {
-	const { root, actions } = useQueryBuilderTree({ fields, value, defaultValue, onChange })
+	const { root, actions } = useQueryBuilderTree({ fields, value, defaultValue, onValueChange })
 
 	const getField = useCallback((name: string) => fields.find((f) => f.name === name), [fields])
 

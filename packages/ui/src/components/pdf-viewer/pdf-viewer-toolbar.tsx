@@ -101,7 +101,7 @@ export function PdfViewerToolbar({
 							<Listbox<number>
 								aria-label="Current page"
 								value={safePage}
-								onChange={(next) => {
+								onValueChange={(next) => {
 									if (next !== undefined) goToPage(next)
 								}}
 								displayValue={(v) => String(v)}

@@ -14,7 +14,7 @@ type RangeSliderColor = keyof typeof k.color
 export type RangeSliderProps = {
 	value?: [number, number]
 	defaultValue?: [number, number]
-	onChange?: (value: [number, number]) => void
+	onValueChange?: (value: [number, number]) => void
 	min?: number
 	max?: number
 	step?: number
@@ -34,7 +34,7 @@ export type RangeSliderProps = {
 export function RangeSlider({
 	value,
 	defaultValue,
-	onChange,
+	onValueChange,
 	min = 0,
 	max = 100,
 	step = 1,
@@ -51,9 +51,9 @@ export function RangeSlider({
 	const [range, setRange] = useControllable<[number, number]>({
 		value,
 		defaultValue: defaultValue ?? [min, max],
-		onChange: onChange
+		onChange: onValueChange
 			? (v) => {
-					if (v !== undefined) onChange(v)
+					if (v !== undefined) onValueChange(v)
 				}
 			: undefined,
 	})

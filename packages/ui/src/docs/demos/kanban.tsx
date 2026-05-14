@@ -67,7 +67,7 @@ function DefaultExample() {
 				<Kanban
 					columns={columns}
 					getItemKey={(load: Load) => load.id}
-					onChange={setColumns}
+					onValueChange={setColumns}
 					aria-label="Load dispatch board"
 				>
 					{columns.map((column) => (
@@ -123,7 +123,12 @@ function DisabledExample() {
 
 	return (
 		<Example title="Disabled">
-			<Kanban columns={columns} getItemKey={(load: Load) => load.id} onChange={setColumns} disabled>
+			<Kanban
+				columns={columns}
+				getItemKey={(load: Load) => load.id}
+				onValueChange={setColumns}
+				disabled
+			>
 				{columns.map((column) => (
 					<KanbanColumn key={column.id} columnId={column.id}>
 						<KanbanColumnHeader>

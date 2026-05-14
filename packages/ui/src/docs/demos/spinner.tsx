@@ -50,7 +50,9 @@ export default function SpinnerDemo() {
 
 			<Example
 				title="Inside a button"
-				actions={<SizeListbox sizes={buttonSizes} value={buttonSize} onChange={setButtonSize} />}
+				actions={
+					<SizeListbox sizes={buttonSizes} value={buttonSize} onValueChange={setButtonSize} />
+				}
 			>
 				<Flex gap="md">
 					<Button disabled size={buttonSize} prefix={<Spinner />}>

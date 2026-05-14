@@ -40,7 +40,7 @@ export default function AccordionDemo() {
 		<Stack gap="xl">
 			<Example
 				title="Default"
-				actions={<VariantListbox variants={variants} value={variant} onChange={setVariant} />}
+				actions={<VariantListbox variants={variants} value={variant} onValueChange={setVariant} />}
 			>
 				<Accordion variant={variant} defaultValue="shipping">
 					{items.map((item) => (

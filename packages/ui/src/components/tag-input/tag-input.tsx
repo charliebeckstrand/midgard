@@ -20,7 +20,7 @@ export type TagInputProps = {
 	/** Initial tag values (uncontrolled). */
 	defaultValue?: string[]
 	/** Called when the tag list changes. */
-	onChange?: (value: string[] | undefined) => void
+	onValueChange?: (value: string[] | undefined) => void
 	/** Placeholder shown when empty. */
 	placeholder?: string
 	/** Prevent editing. */
@@ -39,7 +39,7 @@ export function TagInput({
 	tag,
 	value,
 	defaultValue,
-	onChange,
+	onValueChange,
 	placeholder,
 	disabled,
 	max,
@@ -54,7 +54,7 @@ export function TagInput({
 	const { tags, atMax, addTag, removeTag } = useTagInput({
 		value,
 		defaultValue,
-		onChange,
+		onValueChange,
 		max,
 		validate,
 		onMaxReleased: () => {

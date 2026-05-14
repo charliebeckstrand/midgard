@@ -77,7 +77,7 @@ export default function GlassDemo() {
 							<Label>Combobox</Label>
 							<Combobox
 								value={comboboxValue}
-								onChange={setComboboxValue}
+								onValueChange={setComboboxValue}
 								displayValue={(v: string) => v}
 								placeholder="Search people"
 							>
@@ -94,7 +94,7 @@ export default function GlassDemo() {
 						</Field>
 						<Field>
 							<Label>Date</Label>
-							<DatePicker value={date} onChange={setDate} />
+							<DatePicker value={date} onValueChange={setDate} />
 						</Field>
 					</Stack>
 				</Glass>

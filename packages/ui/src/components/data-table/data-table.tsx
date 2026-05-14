@@ -26,13 +26,13 @@ const DEFAULT_OVERSCAN = 10
 export type DataTableSort = {
 	value?: SortState
 	defaultValue?: SortState
-	onChange?: (sort: SortState | undefined) => void
+	onValueChange?: (sort: SortState | undefined) => void
 }
 
 export type DataTableSelection = {
 	value?: Set<string | number>
 	defaultValue?: Set<string | number>
-	onChange?: (selection: Set<string | number> | undefined) => void
+	onValueChange?: (selection: Set<string | number> | undefined) => void
 	batchActions?: (selection: Set<string | number>) => ReactNode
 }
 
@@ -128,13 +128,13 @@ export function DataTable<T>({
 	const [sort, setSort] = useControllable<SortState>({
 		value: sortConfig?.value,
 		defaultValue: sortConfig?.defaultValue,
-		onChange: sortConfig?.onChange,
+		onChange: sortConfig?.onValueChange,
 	})
 
 	const [selectionRaw, setSelectionRaw] = useControllable<Set<string | number>>({
 		value: selectionConfig?.value,
 		defaultValue: selectionConfig?.defaultValue ?? new Set(),
-		onChange: selectionConfig?.onChange,
+		onChange: selectionConfig?.onValueChange,
 	})
 
 	const selection = selectionRaw ?? new Set<string | number>()

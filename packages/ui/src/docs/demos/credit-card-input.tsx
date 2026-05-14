@@ -30,13 +30,13 @@ function ControlledExample() {
 				
 				<Field>
 					<Label>Card number</Label>
-					<CreditCardInput value={value} onChange={setValue} />
+					<CreditCardInput value={value} onValueChange={setValue} />
 				</Field>
 			`}
 		>
 			<Field>
 				<Label>Card number</Label>
-				<CreditCardInput value={value} onChange={setValue} />
+				<CreditCardInput value={value} onValueChange={setValue} />
 			</Field>
 		</Example>
 	)

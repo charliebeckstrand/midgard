@@ -16,11 +16,11 @@ export default function DatePickerDemo() {
 	return (
 		<Stack gap="xl">
 			<Example title="Default">
-				<DatePicker value={date} onChange={setDate} />
+				<DatePicker value={date} onValueChange={setDate} />
 			</Example>
 
 			<Example title="Range">
-				<DatePicker range value={range} onChange={setRange} />
+				<DatePicker range value={range} onValueChange={setRange} />
 			</Example>
 
 			<Example title="Disabled">
@@ -29,7 +29,7 @@ export default function DatePickerDemo() {
 
 			<Example title="Glass">
 				<Glass>
-					<DatePicker range value={glassRange} onChange={setGlassRange} />
+					<DatePicker range value={glassRange} onValueChange={setGlassRange} />
 				</Glass>
 			</Example>
 		</Stack>

@@ -17,14 +17,14 @@ export type DatePickerSingleProps = {
 	range?: false
 	value?: Date
 	defaultValue?: Date
-	onChange?: (value: Date | undefined) => void
+	onValueChange?: (value: Date | undefined) => void
 }
 
 export type DatePickerRangeProps = {
 	range: true
 	value?: [Date, Date]
 	defaultValue?: [Date, Date]
-	onChange?: (value: [Date, Date] | undefined) => void
+	onValueChange?: (value: [Date, Date] | undefined) => void
 }
 
 export type DatePickerBaseProps = {
@@ -98,7 +98,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 				<Calendar
 					ref={state.calendar.calendarRef}
 					value={state.calendar.value}
-					onChange={state.calendar.onChange}
+					onValueChange={state.calendar.onValueChange}
 					min={props.min}
 					max={props.max}
 					active={state.calendar.active}

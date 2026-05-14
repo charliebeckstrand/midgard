@@ -20,7 +20,7 @@ export default function SwitchDemo() {
 		<Stack gap="xl">
 			<Example
 				title="Default"
-				actions={<SizeListbox sizes={sizes} value={size} onChange={setSize} />}
+				actions={<SizeListbox sizes={sizes} value={size} onValueChange={setSize} />}
 			>
 				<SwitchField size={size}>
 					<Label htmlFor="switch-notifications">Notifications</Label>

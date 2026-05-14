@@ -77,14 +77,14 @@ type ComboboxSingleProps<T> = {
 	multiple?: false
 	value?: T
 	defaultValue?: T
-	onChange?: (value: T | undefined) => void
+	onValueChange?: (value: T | undefined) => void
 }
 
 type ComboboxMultipleProps<T> = {
 	multiple: true
 	value?: T[]
 	defaultValue?: T[]
-	onChange?: (value: T[]) => void
+	onValueChange?: (value: T[]) => void
 }
 
 export type ComboboxProps<T> = ComboboxBaseProps<T> &
@@ -95,7 +95,7 @@ export function Combobox<T>({
 	value: valueProp,
 	defaultValue,
 	displayValue,
-	onChange,
+	onValueChange,
 	multiple = false,
 	placeholder = 'Search',
 	placement = 'bottom-start',
@@ -129,9 +129,9 @@ export function Combobox<T>({
 		(nextValue: T | T[] | undefined) => {
 			if (nextValue === undefined && multiple) return
 
-			;(onChange as ((value: T | T[] | undefined) => void) | undefined)?.(nextValue)
+			;(onValueChange as ((value: T | T[] | undefined) => void) | undefined)?.(nextValue)
 		},
-		[onChange, multiple],
+		[onValueChange, multiple],
 	)
 
 	const [value, setValue] = useControllable<T | T[]>({
@@ -162,7 +162,7 @@ export function Combobox<T>({
 			open: openProp,
 			onOpenChange,
 			onQueryChange,
-			onChange: onChange as ((value: T) => void) | undefined,
+			onValueChange: onValueChange as ((value: T) => void) | undefined,
 			setValue,
 			inputRef,
 		})

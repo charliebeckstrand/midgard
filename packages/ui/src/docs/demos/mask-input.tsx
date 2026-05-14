@@ -67,7 +67,7 @@ function ControlledExample() {
 				<Label>License plate</Label>
 				<MaskInput 
 					value={value} 
-					onChange={setValue} 
+					onValueChange={setValue} 
 					format={formatLicensePlate} 
 					placeholder="ABC-1234" 
 				/>
@@ -78,7 +78,7 @@ function ControlledExample() {
 				<Label>License plate</Label>
 				<MaskInput
 					value={value}
-					onChange={setValue}
+					onValueChange={setValue}
 					format={formatLicensePlate}
 					placeholder="ABC-1234"
 				/>

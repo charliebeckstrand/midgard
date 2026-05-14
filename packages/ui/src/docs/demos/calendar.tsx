@@ -21,7 +21,7 @@ export default function CalendarDemo() {
 	return (
 		<Stack gap="xl">
 			<Example title="Default">
-				<Calendar value={date} onChange={setDate} />
+				<Calendar value={date} onValueChange={setDate} />
 			</Example>
 
 			<Example title="With min/max">

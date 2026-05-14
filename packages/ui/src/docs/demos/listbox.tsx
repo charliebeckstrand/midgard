@@ -24,7 +24,7 @@ function SingleListboxExample() {
 			<Listbox<string>
 				nullable
 				value={selected}
-				onChange={setSelected}
+				onValueChange={setSelected}
 				displayValue={(v: string) => statuses.find((s) => s.value === v)?.label ?? v}
 				placeholder="Select status"
 			>
@@ -47,7 +47,7 @@ function MultiListboxExample() {
 			<Listbox<string>
 				multiple
 				value={selected}
-				onChange={setSelected}
+				onValueChange={setSelected}
 				displayValue={(v) => statuses.find((s) => s.value === v)?.label ?? v}
 				placeholder="Select statuses"
 			>

@@ -27,7 +27,7 @@ describe('EditableGrid', () => {
 				columns={columns}
 				rows={rows}
 				getRowKey={(row) => row.id}
-				onChange={() => {}}
+				onValueChange={() => {}}
 			/>,
 		)
 
@@ -44,7 +44,7 @@ describe('EditableGrid', () => {
 				columns={columns}
 				rows={rows}
 				getRowKey={(row) => row.id}
-				onChange={() => {}}
+				onValueChange={() => {}}
 				className="custom"
 			/>,
 		)
@@ -58,7 +58,7 @@ describe('EditableGrid', () => {
 				columns={columns}
 				rows={rows}
 				getRowKey={(row) => row.id}
-				onChange={() => {}}
+				onValueChange={() => {}}
 			/>,
 		)
 
@@ -77,7 +77,7 @@ describe('EditableGrid', () => {
 				columns={columns}
 				rows={rows}
 				getRowKey={(row) => row.id}
-				onChange={() => {}}
+				onValueChange={() => {}}
 			/>,
 		)
 
@@ -90,7 +90,7 @@ describe('EditableGrid', () => {
 				columns={columns}
 				rows={rows}
 				getRowKey={(row) => row.id}
-				onChange={() => {}}
+				onValueChange={() => {}}
 			/>,
 		)
 
@@ -109,7 +109,7 @@ describe('EditableGrid', () => {
 				columns={columns}
 				rows={rows}
 				getRowKey={(row) => row.id}
-				onChange={onChange}
+				onValueChange={onChange}
 			/>,
 		)
 
@@ -128,7 +128,7 @@ describe('EditableGrid', () => {
 		expect(onChange).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'rate', value: '9.99' }])
 	})
 
-	it('cancels the edit on Escape without firing onChange', () => {
+	it('cancels the edit on Escape without firing onValueChange', () => {
 		const onChange = vi.fn()
 
 		const { container } = renderUI(
@@ -136,7 +136,7 @@ describe('EditableGrid', () => {
 				columns={columns}
 				rows={rows}
 				getRowKey={(row) => row.id}
-				onChange={onChange}
+				onValueChange={onChange}
 			/>,
 		)
 
@@ -161,7 +161,7 @@ describe('EditableGrid', () => {
 				columns={columns}
 				rows={rows}
 				getRowKey={(row) => row.id}
-				onChange={onChange}
+				onValueChange={onChange}
 			/>,
 		)
 
@@ -186,7 +186,12 @@ describe('EditableGrid', () => {
 		]
 
 		const { container } = renderUI(
-			<EditableGrid columns={priced} rows={rows} getRowKey={(row) => row.id} onChange={onChange} />,
+			<EditableGrid
+				columns={priced}
+				rows={rows}
+				getRowKey={(row) => row.id}
+				onValueChange={onChange}
+			/>,
 		)
 
 		expect(screen.getByText('$2.35')).toBeInTheDocument()
@@ -212,7 +217,7 @@ describe('EditableGrid', () => {
 					rows={rows}
 					getRowKey={(row) => row.id}
 					selection={{ value: selection }}
-					onChange={captured}
+					onValueChange={captured}
 				/>
 			)
 		}
@@ -245,7 +250,7 @@ describe('EditableGrid', () => {
 				columns={columns}
 				rows={rows}
 				getRowKey={(row) => row.id}
-				onChange={() => {}}
+				onValueChange={() => {}}
 			/>,
 		)
 
@@ -271,7 +276,7 @@ describe('EditableGrid', () => {
 				columns={columns}
 				rows={rows}
 				getRowKey={(row) => row.id}
-				onChange={onChange}
+				onValueChange={onChange}
 			/>,
 		)
 
@@ -297,7 +302,7 @@ describe('EditableGrid', () => {
 				columns={columns}
 				rows={manyRows}
 				getRowKey={(row) => row.id}
-				onChange={() => {}}
+				onValueChange={() => {}}
 				virtualize
 				maxHeight="300px"
 			/>,

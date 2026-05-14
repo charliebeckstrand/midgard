@@ -41,7 +41,11 @@ export default function AvatarDemo() {
 			<Example
 				title="Colors"
 				actions={
-					<VariantListbox variants={variants} value={colorVariant} onChange={setColorVariant} />
+					<VariantListbox
+						variants={variants}
+						value={colorVariant}
+						onValueChange={setColorVariant}
+					/>
 				}
 			>
 				<Flex gap="sm">
@@ -58,7 +62,7 @@ export default function AvatarDemo() {
 
 			<Example
 				title="Group"
-				actions={<SizeListbox sizes={sizes} value={groupSize} onChange={setGroupSize} />}
+				actions={<SizeListbox sizes={sizes} value={groupSize} onValueChange={setGroupSize} />}
 			>
 				<AvatarGroup size={groupSize} extra={3}>
 					{groupAvatars.map((initials) => (
@@ -69,7 +73,7 @@ export default function AvatarDemo() {
 
 			<Example
 				title="Status"
-				actions={<SizeListbox sizes={sizes} value={statusSize} onChange={setStatusSize} />}
+				actions={<SizeListbox sizes={sizes} value={statusSize} onValueChange={setStatusSize} />}
 			>
 				<Flex gap="md">
 					<Avatar size={statusSize} initials="AB" status="inactive" />

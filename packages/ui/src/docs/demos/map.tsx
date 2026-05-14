@@ -89,7 +89,7 @@ function PresetsExample() {
 					value={preset}
 					displayValue={(v) => presets.find((p) => p.value === v)?.label ?? v}
 					placement="bottom-end"
-					onChange={(v) => {
+					onValueChange={(v) => {
 						if (v) setPreset(v)
 					}}
 				>

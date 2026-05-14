@@ -65,7 +65,7 @@ function DashboardFilters() {
 	})
 
 	return (
-		<Filters value={filters} clear={<FiltersClearButton />} onChange={setFilters}>
+		<Filters value={filters} clear={<FiltersClearButton />} onValueChange={setFilters}>
 			<FiltersField name="status">
 				<Select placeholder="All statuses" displayValue={(v: string) => v}>
 					<SelectOption value="Completed">

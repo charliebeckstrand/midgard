@@ -32,7 +32,7 @@ export function useEditableGridWrapper<T>({
 	getRowKey,
 	applyCellWrite,
 	applyBulkFill,
-	onChange,
+	onValueChange,
 	setSelection,
 }: {
 	editing: boolean
@@ -57,7 +57,7 @@ export function useEditableGridWrapper<T>({
 	getRowKey: (row: T, index: number) => string | number
 	applyCellWrite: (rowIdx: number, editableColIdx: number, raw: string) => void
 	applyBulkFill: (raw: string) => boolean
-	onChange: (changes: CellChange[]) => void
+	onValueChange: (changes: CellChange[]) => void
 	setSelection: (selection: Set<string | number>) => void
 }) {
 	const onWrapperKeyDown = useCallback(
@@ -241,7 +241,7 @@ export function useEditableGridWrapper<T>({
 			})
 
 			if (changes.length) {
-				onChange(changes)
+				onValueChange(changes)
 
 				if (selectionRef.current.size > 0) setSelection(new Set())
 			}
@@ -255,7 +255,7 @@ export function useEditableGridWrapper<T>({
 			selectionRef,
 			getRowKey,
 			parseValue,
-			onChange,
+			onValueChange,
 			applyCellWrite,
 			applyBulkFill,
 			setSelection,

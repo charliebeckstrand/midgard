@@ -44,7 +44,7 @@ function DefaultExample() {
 	return (
 		<Example
 			title="Default"
-			actions={<VariantListbox variants={variants} value={variant} onChange={setVariant} />}
+			actions={<VariantListbox variants={variants} value={variant} onValueChange={setVariant} />}
 		>
 			<Stack gap="sm">
 				<List variant={variant} sortable={false} items={initialTasks} aria-label="Tasks">

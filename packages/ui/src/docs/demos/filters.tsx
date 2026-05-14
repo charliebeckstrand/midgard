@@ -68,7 +68,7 @@ function BasicExample() {
 			value={filters}
 			suffix={<FilterOutput expanded={expanded} onExpandedChange={setExpanded} />}
 			clear={<FiltersClearButton />}
-			onChange={setFilters}
+			onValueChange={setFilters}
 			onClear={() => setExpanded(new Set())}
 		>
 			<FiltersField name="search">
@@ -113,7 +113,7 @@ function DateExample() {
 			value={filters}
 			suffix={<FilterOutput expanded={expanded} onExpandedChange={setExpanded} />}
 			clear={<FiltersClearButton />}
-			onChange={setFilters}
+			onValueChange={setFilters}
 			onClear={() => setExpanded(new Set())}
 		>
 			<FiltersField name="search">
@@ -162,7 +162,7 @@ function RenderPropsExample() {
 			value={filters}
 			suffix={<FilterOutput expanded={expanded} onExpandedChange={setExpanded} />}
 			clear={<FiltersClearButton />}
-			onChange={setFilters}
+			onValueChange={setFilters}
 			onClear={() => setExpanded(new Set())}
 		>
 			<FiltersField name="search">

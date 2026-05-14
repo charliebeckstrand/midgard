@@ -31,7 +31,7 @@ export type EditableGridProps<T> = TableVariants & {
 	 * belongs to a multi-row selection, the same column value is applied to
 	 * every selected row and emitted as a batch.
 	 */
-	onChange: (changes: CellChange[]) => void
+	onValueChange: (changes: CellChange[]) => void
 
 	stickyHeader?: boolean
 	maxHeight?: string
@@ -55,7 +55,7 @@ export function EditableGrid<T>({
 	getRowKey,
 	sort: sortConfig,
 	selection: selectionConfig,
-	onChange,
+	onValueChange,
 	stickyHeader,
 	maxHeight,
 	rowClassName,
@@ -69,7 +69,7 @@ export function EditableGrid<T>({
 	const [selectionRaw, setSelectionRaw] = useControllable<Set<string | number>>({
 		value: selectionConfig?.value,
 		defaultValue: selectionConfig?.defaultValue ?? new Set(),
-		onChange: selectionConfig?.onChange,
+		onChange: selectionConfig?.onValueChange,
 	})
 
 	const selection = selectionRaw ?? new Set<string | number>()
@@ -153,7 +153,7 @@ export function EditableGrid<T>({
 		extraCellsRef,
 		getRowKey,
 		parseValue,
-		onChange,
+		onValueChange,
 		setSelection: setSelectionRaw,
 	})
 
@@ -249,7 +249,7 @@ export function EditableGrid<T>({
 			getRowKey,
 			applyCellWrite,
 			applyBulkFill,
-			onChange,
+			onValueChange,
 			setSelection: setSelectionRaw,
 		})
 
@@ -299,7 +299,7 @@ export function EditableGrid<T>({
 				rows={rows}
 				getRowKey={getRowKey}
 				sort={sortConfig}
-				selection={{ ...selectionConfig, value: selection, onChange: setSelectionRaw }}
+				selection={{ ...selectionConfig, value: selection, onValueChange: setSelectionRaw }}
 				rowClassName={rowClassName}
 				stickyHeader={stickyHeader}
 				maxHeight={maxHeight}

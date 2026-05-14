@@ -5,11 +5,14 @@ import { type CurrentContextValue, CurrentProvider } from '../../primitives'
 
 export type NavProps = Omit<ComponentPropsWithoutRef<'nav'>, 'onChange'> & {
 	value?: string
-	onChange?: (value: string) => void
+	onValueChange?: (value: string) => void
 }
 
-export function Nav({ value, onChange, className, children, ...props }: NavProps) {
-	const ctx = useMemo<CurrentContextValue>(() => ({ value, onChange }), [value, onChange])
+export function Nav({ value, onValueChange, className, children, ...props }: NavProps) {
+	const ctx = useMemo<CurrentContextValue>(
+		() => ({ value, onChange: onValueChange }),
+		[value, onValueChange],
+	)
 
 	return (
 		<CurrentProvider value={ctx}>

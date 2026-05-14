@@ -47,7 +47,11 @@ export default function ButtonDemo() {
 			<Example
 				title="Colors"
 				actions={
-					<VariantListbox variants={variants} value={colorVariant} onChange={setColorVariant} />
+					<VariantListbox
+						variants={variants}
+						value={colorVariant}
+						onValueChange={setColorVariant}
+					/>
 				}
 			>
 				<Flex wrap gap="sm">
@@ -71,7 +75,7 @@ export default function ButtonDemo() {
 
 			<Example
 				title="With icon"
-				actions={<SizeListbox sizes={sizes} value={iconSize} onChange={setIconSize} />}
+				actions={<SizeListbox sizes={sizes} value={iconSize} onValueChange={setIconSize} />}
 			>
 				<Flex wrap gap="sm">
 					{variants.map((variant) => (
@@ -89,7 +93,7 @@ export default function ButtonDemo() {
 
 			<Example
 				title="Icon only"
-				actions={<SizeListbox sizes={sizes} value={iconOnlySize} onChange={setIconOnlySize} />}
+				actions={<SizeListbox sizes={sizes} value={iconOnlySize} onValueChange={setIconOnlySize} />}
 			>
 				<Flex wrap gap="sm">
 					{variants.map((variant) => (
@@ -102,7 +106,9 @@ export default function ButtonDemo() {
 
 			<Example
 				title="Ripple"
-				actions={<ColorListbox colors={colors} value={rippleColor} onChange={setRippleColor} />}
+				actions={
+					<ColorListbox colors={colors} value={rippleColor} onValueChange={setRippleColor} />
+				}
 			>
 				<Flex wrap gap="sm">
 					{variants.map((variant) => (

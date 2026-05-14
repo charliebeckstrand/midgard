@@ -106,10 +106,10 @@ describe('Calendar', () => {
 		expect(screen.getByRole('listbox')).toBeInTheDocument()
 	})
 
-	it('calls onChange when a day is clicked', async () => {
+	it('calls onValueChange when a day is clicked', async () => {
 		const onChange = vi.fn()
 
-		renderUI(<Calendar onChange={onChange} />)
+		renderUI(<Calendar onValueChange={onChange} />)
 
 		const user = userEvent.setup()
 

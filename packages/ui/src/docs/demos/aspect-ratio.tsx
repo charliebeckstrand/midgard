@@ -24,7 +24,7 @@ function PresetsExample() {
 			actions={
 				<Listbox
 					value={ratio}
-					onChange={(v) => v && setRatio(v)}
+					onValueChange={(v) => v && setRatio(v)}
 					displayValue={(v: AspectRatioPreset) => v}
 					className="w-32"
 				>

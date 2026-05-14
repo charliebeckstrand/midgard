@@ -8,7 +8,7 @@ export type UseQueryBuilderTreeOptions = {
 	fields: QueryField[]
 	value?: QueryGroup
 	defaultValue?: QueryGroup
-	onChange?: (value: QueryGroup) => void
+	onValueChange?: (value: QueryGroup) => void
 }
 
 export type UseQueryBuilderTreeResult = {
@@ -20,14 +20,14 @@ export function useQueryBuilderTree({
 	fields,
 	value,
 	defaultValue,
-	onChange,
+	onValueChange,
 }: UseQueryBuilderTreeOptions): UseQueryBuilderTreeResult {
 	const initial = useMemo(() => defaultValue ?? createGroup('and'), [defaultValue])
 
 	const [tree, setTree] = useControllable<QueryGroup>({
 		value,
 		defaultValue: initial,
-		onChange: onChange && ((v) => v !== undefined && onChange(v)),
+		onChange: onValueChange && ((v) => v !== undefined && onValueChange(v)),
 	})
 
 	const root = tree ?? initial
