@@ -21,11 +21,13 @@
  * convention is rolled out and is deleted in the final sweep.
  */
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { dirname, join, relative } from 'node:path'
+import { basename, dirname, join, parse, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const here = dirname(fileURLToPath(import.meta.url))
+
 const componentsRoot = join(here, '..', 'src', 'components')
+
 const allowlistPath = join(here, 'filename-allowlist.json')
 
 const BARE_ALLOWED = new Set([
@@ -39,163 +41,189 @@ const BARE_ALLOWED = new Set([
 	'variants.ts',
 ])
 
+// Suffixes that name a collection of helpers rather than a single component or hook.
+// Files matching these are exempt from the filename-vs-symbol match.
+const UTILITY_SUFFIXES = ['-utilities', '-helpers', '-constants'] as const
+
 type Violation = { path: string; reason: string }
 
+function stem(file: string): string {
+	return parse(file).name
+}
+
 function expectedSymbol(file: string): string {
-	const base = file.replace(/\.tsx?$/, '')
+	const base = stem(file)
+
 	const isHook = base.startsWith('use-')
+
 	const parts = (isHook ? base.slice(4) : base).split('-').filter(Boolean)
+
 	const pascal = parts.map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join('')
+
 	return isHook ? `use${pascal}` : pascal
 }
 
-// Suffixes that name a collection of helpers rather than a single component or hook.
-// Files matching these are exempt from the filename-vs-symbol match.
-const UTILITY_SUFFIXES = ['-utilities', '-helpers', '-constants']
-
 function isUtilityFile(file: string): boolean {
-	const base = file.replace(/\.tsx?$/, '')
+	const base = stem(file)
+
 	return UTILITY_SUFFIXES.some((suffix) => base.endsWith(suffix))
 }
 
-function checkSymbolMatch(folderPath: string, file: string): Violation | null {
+function acceptedStems(folderName: string): string[] {
+	if (folderName.endsWith('s') && folderName.length > 1) {
+		return [folderName, folderName.slice(0, -1)]
+	}
+
+	return [folderName]
+}
+
+function classifyName(file: string, folderName: string, stems: string[]): string | null {
+	if (file === 'component.tsx') {
+		return `main file must be named \`${folderName}.tsx\``
+	}
+
+	if (file === `${folderName}.tsx`) return null
+
+	if (file.startsWith('use-')) {
+		const ok = stems.some(
+			(s) => file === `use-${s}.ts` || file === `use-${s}.tsx` || file.startsWith(`use-${s}-`),
+		)
+
+		return ok ? null : `hook filename must start with \`use-${stems.join('` or `use-')}\``
+	}
+
+	const matchesStem = stems.some(
+		(s) => file === `${s}.ts` || file === `${s}.tsx` || file.startsWith(`${s}-`),
+	)
+
+	return matchesStem ? null : `filename must be prefixed with \`${stems.join('-` or `')}-\``
+}
+
+function checkSymbolMatch(folderPath: string, file: string): string | null {
 	if (isUtilityFile(file)) return null
+
 	// `.ts` files that are not hooks are utility/data modules without a single
 	// primary export to match. Component files use `.tsx`; only enforce the
 	// symbol rule there and on hook files (which always start with `use-`).
 	const isHook = file.startsWith('use-')
+
 	if (!file.endsWith('.tsx') && !isHook) return null
-	const content = readFileSync(join(folderPath, file), 'utf8')
+
 	const expected = expectedSymbol(file)
+
+	const content = readFileSync(join(folderPath, file), 'utf8')
+
 	// Match `export function Foo`, `export const Foo`, `export class Foo`,
 	// `export async function Foo`, or `export { ..., Foo, ... }`.
 	const pattern = new RegExp(
 		`export\\s+(?:async\\s+)?(?:function|const|class|let)\\s+${expected}\\b|` +
 			`export\\s*\\{[^}]*\\b${expected}\\b`,
 	)
-	if (pattern.test(content)) return null
-	return {
-		path: relative(componentsRoot, join(folderPath, file)),
-		reason: `expected an exported \`${expected}\` matching the filename`,
-	}
+
+	return pattern.test(content) ? null : `expected an exported \`${expected}\` matching the filename`
 }
 
 function listLeafFolders(root: string): string[] {
 	const out: string[] = []
+
 	const walk = (dir: string) => {
 		const entries = readdirSync(dir, { withFileTypes: true })
-		const subdirs = entries.filter((e) => e.isDirectory())
-		const files = entries.filter((e) => e.isFile())
-		if (files.length > 0) out.push(dir)
-		for (const d of subdirs) walk(join(dir, d.name))
+
+		if (entries.some((e) => e.isFile())) out.push(dir)
+
+		for (const entry of entries) {
+			if (entry.isDirectory()) walk(join(dir, entry.name))
+		}
 	}
+
 	walk(root)
+
 	return out
 }
 
-function acceptedStems(folderName: string): string[] {
-	const stems = [folderName]
-	if (folderName.endsWith('s') && folderName.length > 1) {
-		stems.push(folderName.slice(0, -1))
-	}
-	return stems
-}
-
 function checkFolder(folderPath: string): Violation[] {
-	const folderName = folderPath.split('/').pop() as string
+	const folderName = basename(folderPath)
+
 	const stems = acceptedStems(folderName)
+
 	const violations: Violation[] = []
 
 	for (const entry of readdirSync(folderPath, { withFileTypes: true })) {
 		if (!entry.isFile()) continue
+
 		const file = entry.name
+
 		if (!file.endsWith('.ts') && !file.endsWith('.tsx')) continue
 		if (file.endsWith('.d.ts')) continue
-
 		if (BARE_ALLOWED.has(file)) continue
 
-		if (file === 'component.tsx') {
-			violations.push({
-				path: relative(componentsRoot, join(folderPath, file)),
-				reason: `main file must be named \`${folderName}.tsx\``,
-			})
+		const path = relative(componentsRoot, join(folderPath, file))
+
+		const nameReason = classifyName(file, folderName, stems)
+
+		if (nameReason) {
+			violations.push({ path, reason: nameReason })
 			continue
 		}
 
-		const isMain = file === `${folderName}.tsx`
-		const isHook = file.startsWith('use-')
+		const symbolReason = checkSymbolMatch(folderPath, file)
 
-		if (isHook) {
-			const ok = stems.some(
-				(stem) =>
-					file === `use-${stem}.ts` ||
-					file === `use-${stem}.tsx` ||
-					file.startsWith(`use-${stem}-`),
-			)
-			if (!ok) {
-				violations.push({
-					path: relative(componentsRoot, join(folderPath, file)),
-					reason: `hook filename must start with \`use-${stems.join('` or `use-')}\``,
-				})
-				continue
-			}
-		} else if (!isMain) {
-			const matchesStem = stems.some(
-				(stem) => file === `${stem}.ts` || file === `${stem}.tsx` || file.startsWith(`${stem}-`),
-			)
-			if (!matchesStem) {
-				violations.push({
-					path: relative(componentsRoot, join(folderPath, file)),
-					reason: `filename must be prefixed with \`${stems.join('-` or `')}-\``,
-				})
-				continue
-			}
-		}
-
-		const symbolViolation = checkSymbolMatch(folderPath, file)
-		if (symbolViolation) violations.push(symbolViolation)
+		if (symbolReason) violations.push({ path, reason: symbolReason })
 	}
 
 	return violations
 }
 
+function reportAndExit(header: string, lines: string[], hint: string): never {
+	console.error(`\n${lines.length} ${header}:\n`)
+
+	for (const line of lines) console.error(`  ${line}`)
+
+	console.error(`\n${hint}\n`)
+
+	process.exit(1)
+}
+
 const folders = listLeafFolders(componentsRoot)
+
 const violations = folders.flatMap(checkFolder)
 
-const writeMode = process.argv.includes('--write-allowlist')
-if (writeMode) {
+if (process.argv.includes('--write-allowlist')) {
 	const paths = violations.map((v) => v.path).sort()
+
 	writeFileSync(allowlistPath, `${JSON.stringify(paths, null, '\t')}\n`)
+
 	console.log(`Wrote ${paths.length} entries to ${relative(process.cwd(), allowlistPath)}`)
+
 	process.exit(0)
 }
 
 const allowlist: string[] = existsSync(allowlistPath)
 	? JSON.parse(readFileSync(allowlistPath, 'utf8'))
 	: []
+
 const allowed = new Set(allowlist)
-const allViolationPaths = new Set(violations.map((v) => v.path))
+
+const violationPaths = new Set(violations.map((v) => v.path))
 
 const newViolations = violations.filter((v) => !allowed.has(v.path))
-const staleAllowlist = allowlist.filter((p) => !allViolationPaths.has(p))
+
+const staleEntries = allowlist.filter((p) => !violationPaths.has(p))
 
 if (newViolations.length > 0) {
-	console.error(`\n${newViolations.length} filename violation(s) in packages/ui/src/components:\n`)
-	for (const v of newViolations) {
-		console.error(`  ${v.path}`)
-		console.error(`    ${v.reason}`)
-	}
-	console.error('\nSee CLAUDE.md → "File naming" for the rule.\n')
-	process.exit(1)
+	reportAndExit(
+		'filename violation(s) in packages/ui/src/components',
+		newViolations.flatMap((v) => [v.path, `    ${v.reason}`]),
+		'See CLAUDE.md → "File naming" for the rule.',
+	)
 }
 
-if (staleAllowlist.length > 0) {
-	console.error(
-		`\n${staleAllowlist.length} stale allowlist entry/ies (file no longer exists or no longer violates):\n`,
+if (staleEntries.length > 0) {
+	reportAndExit(
+		'stale allowlist entry/ies (file no longer exists or no longer violates)',
+		staleEntries,
+		'Remove them from packages/ui/scripts/filename-allowlist.json.',
 	)
-	for (const p of staleAllowlist) console.error(`  ${p}`)
-	console.error('\nRemove them from packages/ui/scripts/filename-allowlist.json.\n')
-	process.exit(1)
 }
 
 console.log(`OK · ${folders.length} folders checked · ${allowlist.length} allowlisted`)
