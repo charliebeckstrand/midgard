@@ -10,13 +10,13 @@ import {
 	type Ref,
 } from 'react'
 import { cn } from '../../core'
+import { useRipple } from '../../hooks'
 import {
 	type PolymorphicProps,
 	ReducedMotion,
 	springProps,
 	TouchTarget,
 	useConcentric,
-	useRipple,
 } from '../../primitives'
 import { kokkaku } from '../../recipes'
 import { type ButtonVariants, buttonVariants } from '../../recipes/kata/button'

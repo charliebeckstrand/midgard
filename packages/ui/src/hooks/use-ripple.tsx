@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from 'motion/react'
 import { type PointerEvent, useCallback, useRef, useState } from 'react'
-import { ReducedMotion } from './reduced-motion'
+import { ReducedMotion } from '../primitives/reduced-motion'
 
 type RippleEntry = {
 	key: number

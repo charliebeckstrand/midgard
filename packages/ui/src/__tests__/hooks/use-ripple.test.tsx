@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react'
 import type { PointerEvent } from 'react'
 import { describe, expect, it } from 'vitest'
-import { useRipple } from '../../primitives/ripple'
+import { useRipple } from '../../hooks/use-ripple'
 import { renderUI } from '../helpers'
 
 function makePointerEvent(target: HTMLElement, clientX = 0, clientY = 0) {
