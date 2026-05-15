@@ -20,9 +20,9 @@ const header = tv({
 	base: 'flex items-center justify-between',
 	variants: {
 		size: {
-			sm: 'mb-sm',
-			md: 'mb-md',
-			lg: 'mb-lg',
+			sm: 'mb-xs',
+			md: 'mb-sm',
+			lg: 'mb-md',
 		},
 	},
 	defaultVariants: { size: 'md' },

@@ -13,7 +13,6 @@ import {
 	SidebarSection,
 } from '../../components/sidebar'
 import { ToggleIconButton } from '../../components/toggle-icon-button'
-import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { useScrollWithin } from '../../hooks'
 import { OffcanvasContext } from '../../primitives/offcanvas'
 import { navigate } from '../hooks/use-hash'
