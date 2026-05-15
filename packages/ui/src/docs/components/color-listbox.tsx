@@ -2,7 +2,7 @@
 
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 
-interface ColorListboxProps<T extends string> {
+type ColorListboxProps<T extends string> = {
 	colors: readonly T[]
 	value: T
 	placement?: 'bottom-start' | 'bottom-end'

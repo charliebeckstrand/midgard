@@ -4,7 +4,7 @@ import { Minus, Plus } from 'lucide-react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 
-interface ValueStepperProps {
+type ValueStepperProps = {
 	value: number
 	onValueChange: (value: number) => void
 	min?: number

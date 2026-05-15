@@ -10,7 +10,7 @@ export const sizeLabels: Record<string, string> = {
 	xl: 'Extra large',
 }
 
-interface SizeListboxProps<T extends string> {
+type SizeListboxProps<T extends string> = {
 	sizes: readonly T[]
 	value: T
 	placement?: 'bottom-start' | 'bottom-end'

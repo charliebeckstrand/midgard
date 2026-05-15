@@ -1,14 +1,7 @@
 'use client'
 
 import { LayoutGroup, type MotionStyle, motion, useAnimate } from 'motion/react'
-import {
-	type PropsWithChildren,
-	type ReactNode,
-	type Ref,
-	useCallback,
-	useId,
-	useMemo,
-} from 'react'
+import { type ReactNode, type Ref, useCallback, useId, useMemo } from 'react'
 import { cn, createContext } from '../core'
 import { ugoki } from '../recipes'
 import { ReducedMotion } from './reduced-motion'
@@ -19,7 +12,7 @@ const [ActiveIndicatorScopeProvider, useActiveIndicatorScope] = createContext<st
 )
 
 /** Scopes active indicators so independent nav / tab groups can coexist. */
-export function ActiveIndicatorScope({ children, id }: PropsWithChildren<{ id?: string }>) {
+export function ActiveIndicatorScope({ children, id }: { id?: string; children: ReactNode }) {
 	const fallbackId = useId()
 
 	const scopeId = id ?? fallbackId

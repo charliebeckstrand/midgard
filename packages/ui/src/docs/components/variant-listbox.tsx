@@ -3,7 +3,7 @@
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 import { capitalize } from './format'
 
-interface VariantListboxProps<T extends string> {
+type VariantListboxProps<T extends string> = {
 	variants: readonly T[]
 	value: T
 	placement?: 'bottom-start' | 'bottom-end'
