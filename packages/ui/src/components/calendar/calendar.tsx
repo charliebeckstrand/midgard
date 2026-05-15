@@ -1,6 +1,5 @@
 'use client'
 
-import { ChevronLeft, ChevronRight } from 'lucide-react'
 import {
 	type KeyboardEvent,
 	type Ref,
@@ -16,10 +15,9 @@ import { useControllable } from '../../hooks/use-controllable'
 import { ConcentricProvider, useResolvedSize } from '../../primitives/concentric'
 import { k } from '../../recipes/kata/calendar'
 import type { Step } from '../../recipes/ryu/sun'
-import { Button, type ButtonVariants } from '../button'
-import { Icon } from '../icon'
+import type { ButtonVariants } from '../button'
 import { CalendarGrid } from './calendar-grid'
-import { CalendarPicker } from './calendar-picker'
+import { CalendarHeader } from './calendar-header'
 import { getCalendarDays, isBeforeDay } from './calendar-utilities'
 import { useCalendarFocus } from './use-calendar-focus'
 
@@ -220,37 +218,21 @@ export function Calendar({
 				data-step={resolvedSize}
 				className={cn(k.base({ size: resolvedSize }), className)}
 			>
-				<div
-					ref={headerRef}
-					role="toolbar"
-					onKeyDown={handleHeaderKeyDown}
-					className={cn(k.header({ size: resolvedSize }))}
-				>
-					<Button
-						variant="plain"
-						onClick={prevMonth}
-						aria-label="Previous month"
-						prefix={<Icon icon={<ChevronLeft />} />}
-						className={cn(headerActiveIndex === 0 && k.day.active)}
-					/>
-					<CalendarPicker
-						year={year}
-						month={month}
-						today={today}
-						onNavigate={handlePickerNavigate}
-						monthLabel={monthLabel}
-						open={pickerOpen}
-						onOpenChange={handlePickerOpenChange}
-						triggerClassName={cn(headerActiveIndex === 1 && k.day.active)}
-					/>
-					<Button
-						variant="plain"
-						onClick={nextMonth}
-						aria-label="Next month"
-						prefix={<Icon icon={<ChevronRight />} />}
-						className={cn(headerActiveIndex === 2 && k.day.active)}
-					/>
-				</div>
+				<CalendarHeader
+					headerRef={headerRef}
+					onHeaderKeyDown={handleHeaderKeyDown}
+					size={resolvedSize}
+					activeIndex={headerActiveIndex}
+					year={year}
+					month={month}
+					today={today}
+					monthLabel={monthLabel}
+					pickerOpen={pickerOpen}
+					onPickerOpenChange={handlePickerOpenChange}
+					onPickerNavigate={handlePickerNavigate}
+					onPrevMonth={prevMonth}
+					onNextMonth={nextMonth}
+				/>
 
 				<CalendarGrid
 					gridRef={gridRef}
