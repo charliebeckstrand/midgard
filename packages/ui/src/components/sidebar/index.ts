@@ -1,19 +1,14 @@
 export { Sidebar, type SidebarProps } from './sidebar'
+export { SidebarDivider, type SidebarDividerProps } from './sidebar-divider'
 export {
-	SidebarDivider,
-	type SidebarDividerProps,
 	SidebarItem,
-	SidebarItemActions,
-	type SidebarItemActionsProps,
 	type SidebarItemProps,
-	SidebarLabel,
-	type SidebarLabelProps,
-	SidebarSection,
-	type SidebarSectionProps,
-	SidebarSpacer,
-	type SidebarSpacerProps,
 	sidebarItemVariants,
 } from './sidebar-item'
+export { SidebarItemActions, type SidebarItemActionsProps } from './sidebar-item-actions'
+export { SidebarLabel, type SidebarLabelProps } from './sidebar-label'
+export { SidebarSection, type SidebarSectionProps } from './sidebar-section'
+export { SidebarSpacer, type SidebarSpacerProps } from './sidebar-spacer'
 export {
 	SidebarBody,
 	type SidebarBodyProps,
