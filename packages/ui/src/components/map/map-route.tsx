@@ -2,20 +2,12 @@
 
 import type { MapLayerMouseEvent } from 'maplibre-gl'
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
-import { Sheet, SheetBody, SheetDescription, SheetTitle } from '../sheet'
-import {
-	Timeline,
-	TimelineDescription,
-	TimelineHeading,
-	TimelineItem,
-	TimelineTimestamp,
-} from '../timeline'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 import { useMapContext } from './context'
 import { MapMarker } from './map-marker'
-import type { LngLat, RouteData, RouteStop } from './types'
-
-type SegmentStatus = 'pending' | 'active' | 'done'
+import { MapRouteTimeline } from './map-route-timeline'
+import { type SegmentStatus, toColorMatch, toSegmentCollection } from './map-route-utilities'
+import type { RouteData, RouteStop } from './types'
 
 /** Muted grey for the base (unwalked) route. */
 const DEFAULT_PENDING_COLOR = '#a1a1aa'
@@ -175,8 +167,6 @@ export function MapRoute({
 		map.setPaintProperty(layerId, 'line-width', width)
 	}, [resolvedColors, width, layerId, getMap])
 
-	const currentIndex = resolveCurrentIndex(data.stops)
-
 	return (
 		<>
 			{showStops &&
@@ -189,129 +179,9 @@ export function MapRoute({
 						<StopMarker stop={stop} colors={resolvedColors} />
 					</MapMarker>
 				))}
-			<Sheet open={open} onOpenChange={setOpen} size="sm">
-				<SheetTitle>Route timeline</SheetTitle>
-				{data.stops.length > 0 && (
-					<SheetDescription>
-						{data.stops.length} stop{data.stops.length === 1 ? '' : 's'}
-					</SheetDescription>
-				)}
-				<SheetBody>
-					<Timeline>
-						{data.stops.map((stop, index) => {
-							const isCompleted = index < currentIndex
-
-							const isCurrent = index === currentIndex
-
-							const isReached = isCompleted || isCurrent
-
-							const isFinal = isCurrent && index === data.stops.length - 1
-
-							const timestamp = formatTimestamp(stop.timestamp)
-
-							return (
-								<TimelineItem
-									key={stop.id}
-									active={isCurrent}
-									variant={isReached ? 'solid' : 'outline'}
-									status={isCompleted || isFinal ? 'active' : isCurrent ? 'info' : 'inactive'}
-									pulse={isCurrent && !isFinal}
-									lineBefore={isReached ? 'green' : undefined}
-									lineAfter={isCompleted ? 'green' : undefined}
-								>
-									{timestamp && <TimelineTimestamp>{timestamp}</TimelineTimestamp>}
-									<TimelineHeading>{stop.name}</TimelineHeading>
-									{stop.description && (
-										<TimelineDescription>{stop.description}</TimelineDescription>
-									)}
-								</TimelineItem>
-							)
-						})}
-					</Timeline>
-				</SheetBody>
-			</Sheet>
+			<MapRouteTimeline open={open} onOpenChange={setOpen} stops={data.stops} />
 		</>
 	)
-}
-
-/**
- * Build one GeoJSON LineString feature per segment between consecutive stops,
- * tagged with the status that determines its color.
- *
- * Segment rule: a segment inherits its starting stop's status; a done → active
- * transition keeps the completed portion green up to the current position.
- */
-function toSegmentCollection(data: RouteData) {
-	const path: LngLat[] = data.path ?? data.stops.map((s) => s.position)
-
-	const segments: Array<{
-		type: 'Feature'
-		geometry: { type: 'LineString'; coordinates: LngLat[] }
-		properties: { status: SegmentStatus; index: number }
-	}> = []
-
-	for (let i = 0; i < path.length - 1; i++) {
-		const fromPoint = path[i]
-
-		const toPoint = path[i + 1]
-
-		if (!fromPoint || !toPoint) continue
-
-		const from = data.stops[i]?.status
-
-		const to = data.stops[i + 1]?.status
-
-		let status: SegmentStatus = 'pending'
-
-		if (from === 'done' && (to === 'done' || to === 'active')) status = 'done'
-		else if (from === 'active' || to === 'active') status = 'active'
-		else if (from === 'done') status = 'done'
-
-		segments.push({
-			type: 'Feature',
-			geometry: { type: 'LineString', coordinates: [fromPoint, toPoint] },
-			properties: { status, index: i },
-		})
-	}
-
-	return { type: 'FeatureCollection' as const, features: segments }
-}
-
-function toColorMatch(colors: Record<SegmentStatus, string>) {
-	return [
-		'match',
-		['get', 'status'],
-		'done',
-		colors.done,
-		'active',
-		colors.active,
-		colors.pending,
-	] as const
-}
-
-function formatTimestamp(ts?: string | Date) {
-	if (!ts) return null
-
-	const date = typeof ts === 'string' ? new Date(ts) : ts
-
-	if (Number.isNaN(date.getTime())) return null
-
-	return date.toLocaleString(undefined, {
-		month: 'short',
-		day: 'numeric',
-		hour: 'numeric',
-		minute: '2-digit',
-	})
-}
-
-function resolveCurrentIndex(stops: RouteData['stops']) {
-	const activeIndex = stops.findIndex((s) => s.status === 'active')
-
-	if (activeIndex !== -1) return activeIndex
-
-	const doneCount = stops.filter((s) => s.status === 'done').length
-
-	return Math.min(doneCount, Math.max(stops.length - 1, 0))
 }
 
 function StopMarker({ stop, colors }: { stop: RouteStop; colors: Record<SegmentStatus, string> }) {
