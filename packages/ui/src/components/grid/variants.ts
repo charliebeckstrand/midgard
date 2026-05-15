@@ -1,35 +1,10 @@
 import type { CSSProperties } from 'react'
 import type { Ma } from '../../recipes/ryu/ma'
-import { BREAKPOINTS, type Breakpoint, type Responsive } from '../../types'
+import { BREAKPOINTS, type Breakpoint, type Responsive, resolveResponsive } from '../../types'
 
 export type { Responsive }
 
 export type GridGap = Ma
-
-export function resolveResponsive<T>(
-	value: Responsive<T> | undefined,
-	resolver: (v: T, bp?: Breakpoint) => string,
-): string[] {
-	if (value === undefined) return []
-
-	if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-		const obj: Partial<Record<Breakpoint, T>> = value
-
-		const classes: string[] = []
-
-		for (const bp of BREAKPOINTS) {
-			const v = obj[bp]
-
-			if (v === undefined) continue
-
-			classes.push(resolver(v, bp === 'initial' ? undefined : bp))
-		}
-
-		return classes
-	}
-
-	return [resolver(value)]
-}
 
 // ─── Scalar resolver ────────────────────────────────────────────────────────
 //
