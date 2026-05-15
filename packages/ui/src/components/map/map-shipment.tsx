@@ -69,7 +69,11 @@ export function MapShipment({ data, onSendMessage, onSelect }: MapShipmentProps)
 
 function ShipmentPin({ label }: { label: string }) {
 	return (
-		<Button title={label} className="rounded-full hover:scale-110 transition cursor-pointer">
+		<Button
+			aria-label={label}
+			title={label}
+			className="rounded-full hover:scale-110 transition cursor-pointer"
+		>
 			<Icon icon={<Truck />} size="sm" />
 		</Button>
 	)

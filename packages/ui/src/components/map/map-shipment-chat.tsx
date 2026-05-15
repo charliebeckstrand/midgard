@@ -100,7 +100,12 @@ export function MapShipmentChat({ messages, onSend }: MapShipmentChatProps) {
 						disabled={pending}
 						onChange={(e) => setDraft(e.target.value)}
 					/>
-					<Button type="submit" color="blue" disabled={pending || draft.trim().length === 0}>
+					<Button
+						type="submit"
+						color="blue"
+						aria-label="Send"
+						disabled={pending || draft.trim().length === 0}
+					>
 						<Icon icon={<ArrowUp />} size="xs" />
 					</Button>
 				</form>

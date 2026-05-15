@@ -81,6 +81,7 @@ export function EditableGridCell({
 					ref={inputRef}
 					data-slot="editable-grid-input"
 					size={1}
+					aria-label={`Edit row ${rowIdx + 1} column ${colIdx + 1}`}
 					className={cn(k.editInput, k.editInputAlign[align])}
 					value={draft}
 					onChange={(e) => setDraft(e.target.value)}
