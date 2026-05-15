@@ -8,17 +8,13 @@ import { take } from '../ryu/take'
 import { tsunagi } from '../ryu/tsunagi'
 
 const { solid, soft, outline, plain } = iro.palette
-
 const { inherit } = iro.text
 
-const buttonSolid = { ...merge(solid.bg, solid.text, solid.hover), inherit }
-
-// Re-exported for the calendar kata, which reuses the soft button colour matrix.
+export const buttonSolid = { ...merge(solid.bg, solid.text, solid.hover), inherit }
 export const buttonSoft = { ...merge(soft.bg, soft.text, soft.hover), inherit }
-
-const buttonOutline = { ...merge(outline.ring, outline.text, outline.hover), inherit }
-const buttonPlain = { ...merge(plain.text, plain.hover), inherit }
-const buttonGhost = { ...plain.text, inherit }
+export const buttonOutline = { ...merge(outline.ring, outline.text, outline.hover), inherit }
+export const buttonPlain = { ...merge(plain.text, plain.hover), inherit }
+export const buttonGhost = { ...plain.text, inherit }
 
 const { color, compoundVariants } = colorVariants({
 	solid: buttonSolid,
@@ -51,7 +47,6 @@ const size = {
 		'p-[calc(--spacing(2.5)-1px)]',
 		'data-[has-label]:py-[calc(--spacing(2)-1px)]',
 	],
-
 	lg: [
 		ji.size.lg,
 		take.icon.lg,

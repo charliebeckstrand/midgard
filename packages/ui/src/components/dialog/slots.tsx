@@ -4,7 +4,7 @@ import {
 	type PanelBodyProps,
 	type PanelDescriptionProps,
 	type PanelTitleProps,
-} from '../../primitives'
+} from '../../primitives/panel'
 
 const { Title, Description, Body, Actions } = createPanel('dialog')
 

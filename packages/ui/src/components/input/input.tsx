@@ -3,7 +3,9 @@
 import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
 import { cn } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
-import { ControlFrame, useConcentric, useJoin } from '../../primitives'
+import { ConcentricProvider, useResolvedSize } from '../../primitives/concentric'
+import { ControlFrame } from '../../primitives/control'
+import { useJoin } from '../../primitives/join'
 import { kokkaku } from '../../recipes'
 import { controlVariants, type InputVariants, inputVariants, k } from '../../recipes/kata/input'
 import { useControl } from '../control/context'
@@ -14,7 +16,6 @@ import { useHeadless } from '../headless/context'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
 import { Spinner } from '../spinner'
-import { AffixSizeProvider } from './context'
 
 export type InputProps = Omit<InputVariants, 'size'> & {
 	size?: 'sm' | 'md' | 'lg'
@@ -59,12 +60,13 @@ export function Input(props: InputProps) {
 		...rest
 	} = props
 
-	const concentric = useConcentric()
 	const control = useControl()
 	const glass = useGlass()
 	const headless = useHeadless()
 	const skeleton = useSkeleton()
 	const join = useJoin()
+
+	const resolvedSize = useResolvedSize(size)
 
 	const binding = useFormText(name, { onChange, onBlur })
 
@@ -86,6 +88,7 @@ export function Input(props: InputProps) {
 	const resolvedInvalid = invalid ?? control?.invalid ?? binding?.invalid
 
 	const resolvedValue = bound ? binding.value : controlledValue
+
 	const resolvedOnChange = bound ? binding.onChange : onChange
 	const resolvedOnBlur = bound ? binding.onBlur : onBlur
 
@@ -113,10 +116,6 @@ export function Input(props: InputProps) {
 
 	const resolvedVariant = variant ?? control?.variant ?? (glass ? 'glass' : undefined)
 
-	// Resolution order: explicit prop, then any wrapping <Field> control
-	// context, then the ambient concentric size.
-	const resolvedSize = size ?? control?.size ?? concentric?.size ?? 'md'
-
 	const resolvedPrefix = prefix
 	const resolvedSuffix = loading ? <Spinner /> : suffix
 
@@ -135,8 +134,10 @@ export function Input(props: InputProps) {
 		)
 	}
 
+	const affixStep = iconSize[resolvedSize]
+
 	return (
-		<AffixSizeProvider value={iconSize[resolvedSize]}>
+		<ConcentricProvider value={{ size: affixStep }}>
 			<ControlFrame
 				data-group={dataGroup}
 				data-group-orientation={dataGroupOrientation}
@@ -180,6 +181,6 @@ export function Input(props: InputProps) {
 					</span>
 				)}
 			</ControlFrame>
-		</AffixSizeProvider>
+		</ConcentricProvider>
 	)
 }

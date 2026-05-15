@@ -4,7 +4,9 @@ import { ArrowDown, ArrowUp } from 'lucide-react'
 import { memo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/data-table'
+import { Button } from '../button'
 import { Checkbox } from '../checkbox'
+import { Headless } from '../headless'
 import { Icon } from '../icon'
 import { TableHead, TableHeader, TableRow } from '../table'
 import { useDataTable } from './context'
@@ -77,19 +79,21 @@ const DataTableColumnHeader = memo(function DataTableColumnHeader({
 			style={col.width ? { width: col.width } : undefined}
 		>
 			{col.sortable ? (
-				<button
-					type="button"
-					className={cn(k.sortButton)}
-					onClick={() => toggleSort(col.id)}
-					aria-label={`Sort by ${typeof col.title === 'string' ? col.title : col.id}`}
-				>
-					{col.title}
-					{isSorted && direction === 'asc' ? (
-						<Icon icon={<ArrowUp />} className={cn(k.sortIconActive)} />
-					) : isSorted && direction === 'desc' ? (
-						<Icon icon={<ArrowDown />} className={cn(k.sortIconActive)} />
-					) : null}
-				</button>
+				<Headless>
+					<Button
+						type="button"
+						className={cn(k.sortButton)}
+						onClick={() => toggleSort(col.id)}
+						aria-label={`Sort by ${typeof col.title === 'string' ? col.title : col.id}`}
+					>
+						{col.title}
+						{isSorted && direction === 'asc' ? (
+							<Icon icon={<ArrowUp />} className={cn(k.sortIconActive)} />
+						) : isSorted && direction === 'desc' ? (
+							<Icon icon={<ArrowDown />} className={cn(k.sortIconActive)} />
+						) : null}
+					</Button>
+				</Headless>
 			) : (
 				col.title
 			)}

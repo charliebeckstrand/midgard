@@ -2,7 +2,9 @@
 
 import type { ComponentPropsWithoutRef, MouseEvent } from 'react'
 import { cn } from '../../core'
-import { ActiveIndicator, useActiveIndicator, useConcentric, useCurrent } from '../../primitives'
+import { ActiveIndicator, useActiveIndicator } from '../../primitives/active-indicator'
+import { useResolvedSize } from '../../primitives/concentric'
+import { useCurrent } from '../../primitives/current'
 import { segment as ks, segmentItemVariants } from '../../recipes/kata/segment'
 import { k } from '../../recipes/kata/tabs'
 import { useTabsContext } from './context'
@@ -28,8 +30,6 @@ export function Tab({
 
 	const tabsCtx = useTabsContext()
 
-	const concentric = useConcentric()
-
 	const indicator = useActiveIndicator()
 
 	const isSegment = tabsCtx?.variant === 'segment'
@@ -38,7 +38,7 @@ export function Tab({
 
 	// When wrapped in <Tabs>, the parent has already resolved concentric into tabsCtx.size.
 	// When used à la carte (just <TabList>+<Tab>), fall back to reading concentric here.
-	const size = tabsCtx?.size ?? concentric?.size ?? 'md'
+	const size = useResolvedSize(tabsCtx?.size)
 
 	const current = currentProp ?? (value !== undefined && ctx?.value === value)
 

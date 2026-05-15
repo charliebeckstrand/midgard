@@ -1,11 +1,7 @@
 import { type ReactNode, type Ref, useMemo } from 'react'
 import { cn } from '../../core'
-import {
-	ConcentricProvider,
-	Polymorphic,
-	type PolymorphicProps,
-	useConcentric,
-} from '../../primitives'
+import { ConcentricProvider, useResolvedSize } from '../../primitives/concentric'
+import { Polymorphic, type PolymorphicProps } from '../../primitives/polymorphic'
 import type { Step } from '../../recipes/ryu/sun'
 import type { GroupOrientation } from '../../recipes/ryu/tsunagi'
 import { useGroup } from './use-group'
@@ -18,7 +14,6 @@ type GroupBaseProps = {
 	 * order: explicit prop, then enclosing concentric size, then `'md'`.
 	 */
 	size?: Step
-	/** Override the data-slot attribute. Defaults to "group". */
 	dataSlot?: string
 	ref?: Ref<HTMLDivElement>
 	className?: string
@@ -35,7 +30,7 @@ export type GroupProps = GroupBaseProps & PolymorphicProps<'div'>
  * borders don't double.
  *
  * Provides the concentric size context: descendants that read
- * `useConcentric()` (Button, Input, etc.) will default their `size` prop to
+ * `useResolvedSize()` (Button, Input, etc.) will default their `size` prop to
  * the wrapper's resolved size unless the consumer passes one explicitly.
  *
  * Composes with surrounding `<Card>` / `<Drawer>` / `<Popover>`: when `size`
@@ -60,13 +55,11 @@ export function Group({
 	children,
 	...props
 }: GroupProps) {
-	const ctx = useConcentric()
-
-	const resolvedSize = size ?? ctx?.size ?? 'md'
-
-	const stamped = useGroup(children, orientation)
+	const resolvedSize = useResolvedSize(size)
 
 	const contextValue = useMemo(() => ({ size: resolvedSize }), [resolvedSize])
+
+	const stamped = useGroup(children, orientation)
 
 	return (
 		<Polymorphic

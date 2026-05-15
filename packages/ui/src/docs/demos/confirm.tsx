@@ -51,7 +51,7 @@ export default function ConfirmDemo() {
 					confirm={{ label: 'Accept', color: 'blue', disabled: !accepted }}
 				>
 					<DialogBody>
-						<Stack gap="sm">
+						<Stack>
 							<Text>
 								Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
 								incididunt ut labore et dolore magna aliqua.
@@ -65,7 +65,7 @@ export default function ConfirmDemo() {
 								fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa
 								qui officia deserunt mollit anim id est laborum.
 							</Text>
-							<CheckboxField className="my-2">
+							<CheckboxField>
 								<Checkbox
 									id="terms"
 									color="blue"

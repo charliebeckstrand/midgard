@@ -4,9 +4,10 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
-import { useConcentric } from '../../primitives'
+import { useResolvedSize } from '../../primitives/concentric'
 import { k } from '../../recipes/kata/calendar'
 import { Button } from '../button'
+import { Icon } from '../icon'
 import { Popover, PopoverContent, PopoverTrigger } from '../popover'
 import { MONTHS } from './calendar-utilities'
 import { useCalendarFocus } from './use-calendar-focus'
@@ -32,9 +33,7 @@ export function CalendarPicker({
 	onOpenChange,
 	triggerClassName,
 }: CalendarPickerProps) {
-	const concentric = useConcentric()
-
-	const size = concentric?.size
+	const size = useResolvedSize()
 
 	const [pickerView, setPickerView] = useState<'months' | 'years'>('months')
 
@@ -115,7 +114,7 @@ export function CalendarPicker({
 					{monthLabel}
 				</Button>
 			</PopoverTrigger>
-			<PopoverContent className="min-w-64">
+			<PopoverContent>
 				{pickerView === 'months' ? (
 					<>
 						<div
@@ -128,7 +127,7 @@ export function CalendarPicker({
 								variant="plain"
 								onClick={() => setPickerYear((y) => y - 1)}
 								aria-label="Previous year"
-								prefix={<ChevronLeft className={k.nav.icon} />}
+								prefix={<Icon icon={<ChevronLeft />} />}
 							/>
 							<Button
 								variant="plain"
@@ -146,7 +145,7 @@ export function CalendarPicker({
 								variant="plain"
 								onClick={() => setPickerYear((y) => y + 1)}
 								aria-label="Next year"
-								prefix={<ChevronRight className={k.nav.icon} />}
+								prefix={<Icon icon={<ChevronRight />} />}
 							/>
 						</div>
 						<div
@@ -165,6 +164,7 @@ export function CalendarPicker({
 										key={label}
 										variant={isSelected ? 'solid' : 'plain'}
 										data-selected={isSelected || undefined}
+										block
 										onClick={() => selectMonth(i)}
 										className={cn(isCurrent && !isSelected && k.picker.cellCurrent)}
 									>
@@ -187,7 +187,7 @@ export function CalendarPicker({
 								onClick={() => setDecadeYear((y) => y - 10)}
 								aria-label="Previous decade"
 							>
-								<ChevronLeft className={k.nav.icon} />
+								<Icon icon={<ChevronLeft />} />
 							</Button>
 							<Button
 								variant="plain"
@@ -204,7 +204,7 @@ export function CalendarPicker({
 								onClick={() => setDecadeYear((y) => y + 10)}
 								aria-label="Next decade"
 							>
-								<ChevronRight className={k.nav.icon} />
+								<Icon icon={<ChevronRight />} />
 							</Button>
 						</div>
 						<div

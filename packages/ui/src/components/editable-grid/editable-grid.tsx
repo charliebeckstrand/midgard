@@ -3,7 +3,6 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
-import { sen } from '../../recipes/ryu/sen'
 import {
 	DataTable,
 	type DataTableSelection,
@@ -308,7 +307,7 @@ export function EditableGrid<T>({
 				bleed={bleed}
 				grid={grid}
 				striped={striped}
-				className={cn(sen.focus.inset, className)}
+				className={cn('outline-0', className)}
 				tableProps={{
 					ref: wrapperRef,
 					'data-slot': 'editable-grid',

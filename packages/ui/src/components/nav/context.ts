@@ -1,6 +1,6 @@
 'use client'
 
-import { type CurrentContextValue, CurrentProvider, useCurrent } from '../../primitives'
+import { type CurrentContextValue, CurrentProvider, useCurrent } from '../../primitives/current'
 
 export type NavContextValue = CurrentContextValue
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Radio, RadioField, RadioGroup } from '../../components/radio'
-import { ConcentricProvider } from '../../primitives'
+import { ConcentricProvider } from '../../primitives/concentric'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Radio', () => {

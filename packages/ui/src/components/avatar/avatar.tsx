@@ -1,5 +1,6 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
+import { ConcentricProvider, useResolvedSize } from '../../primitives/concentric'
 import { kokkaku } from '../../recipes'
 import {
 	type AvatarVariants,
@@ -11,7 +12,6 @@ import {
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
 import { StatusDot } from '../status'
-import { AvatarSizeProvider, useAvatarGroupSize } from './context'
 
 type Status = 'inactive' | 'active' | 'warning' | 'error'
 
@@ -34,18 +34,17 @@ export function Avatar({
 	className,
 	...props
 }: AvatarProps) {
-	const groupSize = useAvatarGroupSize()
 	const skeleton = useSkeleton()
 
-	const resolvedSize = size ?? groupSize ?? 'md'
+	const resolvedSize = useResolvedSize(size)
 
 	if (skeleton) {
 		return (
-			<AvatarSizeProvider value={resolvedSize}>
+			<ConcentricProvider value={{ size: resolvedSize }}>
 				<Placeholder
 					className={cn(kokkaku.avatar.base, kokkaku.avatar.size[resolvedSize], className)}
 				/>
-			</AvatarSizeProvider>
+			</ConcentricProvider>
 		)
 	}
 
@@ -80,15 +79,15 @@ export function Avatar({
 	)
 
 	if (!status) {
-		return <AvatarSizeProvider value={resolvedSize}>{avatarEl}</AvatarSizeProvider>
+		return <ConcentricProvider value={{ size: resolvedSize }}>{avatarEl}</ConcentricProvider>
 	}
 
 	return (
-		<AvatarSizeProvider value={resolvedSize}>
+		<ConcentricProvider value={{ size: resolvedSize }}>
 			<span data-slot="avatar-with-status" className={cn('relative inline-flex', className)}>
 				{avatarEl}
 				<StatusDot status={status} className={cn('absolute top-0 right-0', k.statusRing)} />
 			</span>
-		</AvatarSizeProvider>
+		</ConcentricProvider>
 	)
 }

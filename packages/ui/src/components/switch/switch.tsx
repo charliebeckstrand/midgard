@@ -2,7 +2,7 @@
 
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { useConcentric } from '../../primitives'
+import { useResolvedSize } from '../../primitives/concentric'
 import { kokkaku } from '../../recipes'
 import {
 	type SwitchVariants,
@@ -10,7 +10,6 @@ import {
 	switchThumbVariants,
 	switchVariants,
 } from '../../recipes/kata/switch'
-import { useControl } from '../control/context'
 import { invalidAttrs } from '../control/control-invalid-attrs'
 import { useControlFieldProps } from '../control/use-control-field-props'
 import { useFormToggle } from '../form/context'
@@ -33,10 +32,9 @@ export function Switch({
 	onChange,
 	...props
 }: SwitchProps) {
-	const concentric = useConcentric()
-	const control = useControl()
-
 	const binding = useFormToggle(name, { onChange })
+
+	const resolvedSize = useResolvedSize(size)
 
 	const {
 		id: resolvedId,
@@ -44,10 +42,6 @@ export function Switch({
 		required: resolvedRequired,
 		invalid: resolvedInvalid,
 	} = useControlFieldProps({ id, disabled, required, binding })
-
-	// Resolution order: explicit prop, then any wrapping <Field> control
-	// context, then the ambient concentric size.
-	const resolvedSize = size ?? control?.size ?? concentric?.size ?? 'md'
 
 	if (useSkeleton()) {
 		return (

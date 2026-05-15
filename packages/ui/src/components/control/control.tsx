@@ -3,6 +3,7 @@
 import { type ReactNode, useMemo } from 'react'
 import { cn } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
+import { ConcentricProvider } from '../../primitives/concentric'
 import { fieldset as k } from '../../recipes/kata/fieldset'
 import {
 	type ControlContextValue,
@@ -81,15 +82,23 @@ export function Control({
 		],
 	)
 
+	const body = (
+		<div
+			data-slot="control"
+			{...(mergedDisabled ? { 'data-disabled': true } : {})}
+			className={cn(k.field, className)}
+		>
+			{children}
+		</div>
+	)
+
 	return (
 		<ControlProvider value={value}>
-			<div
-				data-slot="control"
-				{...(mergedDisabled ? { 'data-disabled': true } : {})}
-				className={cn(k.field, className)}
-			>
-				{children}
-			</div>
+			{mergedSize ? (
+				<ConcentricProvider value={{ size: mergedSize }}>{body}</ConcentricProvider>
+			) : (
+				body
+			)}
 		</ControlProvider>
 	)
 }

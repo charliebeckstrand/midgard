@@ -11,7 +11,7 @@ import {
 	useState,
 } from 'react'
 import { cn } from '../../core'
-import { ReducedMotion } from '../../primitives'
+import { ReducedMotion } from '../../primitives/reduced-motion'
 import { ugoki } from '../../recipes'
 import { k } from '../../recipes/kata/tree'
 import { Icon } from '../icon'

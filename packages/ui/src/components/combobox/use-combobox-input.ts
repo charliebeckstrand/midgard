@@ -9,32 +9,32 @@ import {
 import { selectActiveOrSingleOption } from './combobox-utilities'
 
 type UseComboboxInputParams<T> = {
+	value: T | T[] | undefined
 	multiple: boolean
 	clearOnEmpty: boolean
-	value: T | T[] | undefined
+	floatingRef: RefObject<HTMLElement | null>
+	optionsRef: RefObject<HTMLDivElement | null>
 	setValue: (value: T | T[] | undefined) => void
 	setEditing: (editing: boolean) => void
 	setQuery: (query: string) => void
 	setOpen: (open: boolean) => void
 	close: () => void
-	waitForKeyboard: (cb: () => void) => void
-	floatingRef: RefObject<HTMLElement | null>
-	optionsRef: RefObject<HTMLDivElement | null>
+	keyboardSettled: (cb: () => void) => void
 	rovingKeyDown: KeyboardEventHandler<HTMLInputElement>
 }
 
 export function useComboboxInput<T>({
+	value,
 	multiple,
 	clearOnEmpty,
-	value,
+	floatingRef,
+	optionsRef,
 	setValue,
 	setEditing,
 	setQuery,
 	setOpen,
 	close,
-	waitForKeyboard,
-	floatingRef,
-	optionsRef,
+	keyboardSettled,
 	rovingKeyDown,
 }: UseComboboxInputParams<T>) {
 	const onChange = useCallback(
@@ -55,8 +55,8 @@ export function useComboboxInput<T>({
 	)
 
 	const onFocus = useCallback(() => {
-		waitForKeyboard(() => setOpen(true))
-	}, [setOpen, waitForKeyboard])
+		keyboardSettled(() => setOpen(true))
+	}, [setOpen, keyboardSettled])
 
 	const onBlur = useCallback(
 		(e: FocusEvent<HTMLInputElement>) => {

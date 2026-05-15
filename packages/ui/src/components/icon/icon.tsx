@@ -2,18 +2,16 @@
 
 import { cloneElement, type ReactElement } from 'react'
 import { cn } from '../../core'
-import { useButtonSize } from '../button/context'
-import { useAffixSize } from '../input/context'
-
-type SizeToken = 'xs' | 'sm' | 'md' | 'lg'
+import { useResolvedSize } from '../../primitives/concentric'
+import type { Size } from '../../types/size'
 
 export type IconProps = {
 	icon: ReactElement
-	size?: SizeToken | number
+	size?: Size | number
 	className?: string
 }
 
-const sizeMap: Record<SizeToken, string> = {
+const sizeMap: Record<Size, string> = {
 	xs: 'size-3',
 	sm: 'size-4',
 	md: 'size-5',
@@ -21,10 +19,9 @@ const sizeMap: Record<SizeToken, string> = {
 }
 
 export function Icon({ icon, size, className }: IconProps) {
-	const affixSize = useAffixSize()
-	const buttonSize = useButtonSize()
+	const ambient = useResolvedSize<Size>()
 
-	const resolvedSize = size ?? buttonSize ?? affixSize ?? 'md'
+	const resolvedSize = size ?? ambient
 
 	const isNumeric = typeof resolvedSize === 'number'
 

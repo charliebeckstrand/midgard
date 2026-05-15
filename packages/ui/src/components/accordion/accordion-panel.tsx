@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from 'motion/react'
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
-import { ReducedMotion } from '../../primitives'
+import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k } from '../../recipes/kata/accordion'
 import { useAccordionItem } from './context'
 

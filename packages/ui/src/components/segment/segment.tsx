@@ -1,7 +1,7 @@
 'use client'
 
 import { type ReactNode, useMemo } from 'react'
-import { CurrentProvider, useCurrentState } from '../../primitives'
+import { CurrentProvider, useCurrentState } from '../../primitives/current'
 import type { SegmentControlVariants } from '../../recipes/kata/segment'
 import { SegmentProvider } from './context'
 

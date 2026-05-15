@@ -2,7 +2,7 @@
 
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { useConcentric } from '../../primitives'
+import { useResolvedSize } from '../../primitives/concentric'
 import { kokkaku } from '../../recipes'
 import {
 	type RadioVariants,
@@ -20,8 +20,6 @@ export type RadioProps = RadioVariants & {
 } & Omit<ComponentPropsWithoutRef<'input'>, 'className' | 'type' | 'size'>
 
 export function Radio({ className, color, size, id, disabled, required, ...props }: RadioProps) {
-	const concentric = useConcentric()
-
 	const {
 		id: resolvedId,
 		disabled: resolvedDisabled,
@@ -29,7 +27,7 @@ export function Radio({ className, color, size, id, disabled, required, ...props
 		invalid: resolvedInvalid,
 	} = useControlFieldProps({ id, disabled, required })
 
-	const resolvedSize = size ?? concentric?.size ?? 'md'
+	const resolvedSize = useResolvedSize(size)
 
 	if (useSkeleton()) {
 		return <Placeholder className={cn(kokkaku.radio.base, className)} />

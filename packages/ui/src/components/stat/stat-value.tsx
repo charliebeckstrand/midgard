@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { useConcentric } from '../../primitives'
+import { useResolvedSize } from '../../primitives/concentric'
 import {
 	type StatValueVariants,
 	statValuePlaceholder,
@@ -17,9 +17,7 @@ export type StatValueProps = StatValueVariants & {
  * `size` resolution order: explicit prop, then enclosing concentric size, then `'md'`.
  */
 export function StatValue({ size, className, children, ...props }: StatValueProps) {
-	const concentric = useConcentric()
-
-	const resolvedSize = size ?? concentric?.size
+	const resolvedSize = useResolvedSize(size)
 
 	if (useSkeleton()) {
 		return <Placeholder className={cn(statValuePlaceholder({ size: resolvedSize }), className)} />

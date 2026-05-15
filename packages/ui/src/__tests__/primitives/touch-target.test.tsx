@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { TouchTarget } from '../../primitives'
+import { TouchTarget } from '../../primitives/touch-target'
 import { renderUI, screen } from '../helpers'
 
 describe('TouchTarget', () => {

@@ -2,7 +2,8 @@
 
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { cn } from '../../core'
-import { ControlFrame, useConcentric } from '../../primitives'
+import { useResolvedSize } from '../../primitives/concentric'
+import { ControlFrame } from '../../primitives/control'
 import { kokkaku } from '../../recipes'
 import {
 	controlVariants,
@@ -44,7 +45,6 @@ export function Textarea({
 	style,
 	...props
 }: TextareaProps) {
-	const concentric = useConcentric()
 	const glass = useGlass()
 	const control = useControl()
 	const binding = useFormText(name, { onChange, onBlur })
@@ -59,7 +59,7 @@ export function Textarea({
 	} = useControlFieldProps({ id, autoComplete, disabled, required, readOnly, binding })
 
 	const resolvedVariant = variant ?? control?.variant ?? (glass ? 'glass' : undefined)
-	const resolvedSize = size ?? control?.size ?? concentric?.size ?? 'md'
+	const resolvedSize = useResolvedSize(size)
 
 	if (useSkeleton()) {
 		return (

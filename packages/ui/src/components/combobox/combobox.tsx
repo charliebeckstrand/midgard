@@ -15,7 +15,9 @@ import { cn, createContext } from '../../core'
 import { useFloatingUI, useRoving, useScrollWithin } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
-import { ConcentricProvider, PopoverPanel, useConcentric, useJoin } from '../../primitives'
+import { ConcentricProvider, useResolvedSize } from '../../primitives/concentric'
+import { useJoin } from '../../primitives/join'
+import { PopoverPanel } from '../../primitives/popover'
 import { kokkaku } from '../../recipes'
 import { comboboxVariants, k } from '../../recipes/kata/combobox'
 import { popover as kPopover } from '../../recipes/kata/popover'
@@ -117,13 +119,12 @@ export function Combobox<T>({
 	'data-group-orientation': dataGroupOrientation,
 	children,
 }: ComboboxProps<T>) {
-	const concentric = useConcentric()
 	const glass = useGlass()
 	const control = useControl()
 	const skeleton = useSkeleton()
 	const join = useJoin()
 
-	const resolvedSize = size ?? control?.size ?? concentric?.size ?? 'md'
+	const resolvedSize = useResolvedSize(size)
 
 	const resolvedDisabled = disabled ?? control?.disabled
 
@@ -142,7 +143,7 @@ export function Combobox<T>({
 		onChange: handleValueChange,
 	})
 
-	const listboxId = useId()
+	const comboboxId = useId()
 
 	const inputRef = useRef<HTMLInputElement>(null)
 
@@ -153,7 +154,7 @@ export function Combobox<T>({
 		focusOnEmpty: true,
 	})
 
-	const waitForKeyboard = useKeyboardSettled()
+	const keyboardSettled = useKeyboardSettled()
 
 	const { query, setQuery, open, setOpen, editing, setEditing, close, select, flushPending } =
 		useComboboxState<T>({
@@ -162,11 +163,11 @@ export function Combobox<T>({
 			selectable,
 			closeOnSelect,
 			open: openProp,
+			inputRef,
 			onOpenChange,
 			onQueryChange,
 			onValueChange: onValueChange as ((value: T) => void) | undefined,
 			setValue,
-			inputRef,
 		})
 
 	const { refs, floatingStyles, getReferenceProps, getFloatingProps } = useFloatingUI({
@@ -182,14 +183,14 @@ export function Combobox<T>({
 		multiple,
 		clearOnEmpty,
 		value,
+		floatingRef: refs.floating,
+		optionsRef,
 		setValue,
 		setEditing,
 		setQuery,
 		setOpen,
 		close,
-		waitForKeyboard,
-		floatingRef: refs.floating,
-		optionsRef,
+		keyboardSettled,
 		rovingKeyDown: handleKeyDown,
 	})
 
@@ -275,7 +276,7 @@ export function Combobox<T>({
 						role="combobox"
 						aria-haspopup="listbox"
 						aria-expanded={open}
-						aria-controls={open ? listboxId : undefined}
+						aria-controls={open ? comboboxId : undefined}
 						aria-autocomplete="list"
 						data-slot="combobox-input"
 						autoComplete={autoComplete}
@@ -305,7 +306,7 @@ export function Combobox<T>({
 							>
 								<ConcentricProvider value={concentricValue}>
 									<PopoverPanel
-										id={listboxId}
+										id={comboboxId}
 										role="listbox"
 										autoFocus={false}
 										glass={glass}

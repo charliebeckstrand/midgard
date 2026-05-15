@@ -3,7 +3,7 @@
 import { type FocusEvent, type ReactNode, useEffect, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useRoving } from '../../hooks'
-import { useConcentric } from '../../primitives'
+import { useResolvedSize } from '../../primitives/concentric'
 import { k, type TreeSize } from '../../recipes/kata/tree'
 import { TreeProvider } from './context'
 
@@ -37,9 +37,7 @@ export function Tree({ size, indent = false, children, className }: TreeProps) {
 		focusOnEmpty: true,
 	})
 
-	const concentric = useConcentric()
-
-	const resolvedSize: TreeSize = size ?? concentric?.size ?? 'md'
+	const resolvedSize: TreeSize = useResolvedSize(size)
 
 	const rootContextValue = useMemo(
 		() => ({ depth: 0, size: resolvedSize, indent }),

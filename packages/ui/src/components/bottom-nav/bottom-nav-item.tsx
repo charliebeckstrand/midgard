@@ -2,13 +2,9 @@
 
 import type { MouseEvent, ReactElement } from 'react'
 import { cn } from '../../core'
-import {
-	ActiveIndicator,
-	Polymorphic,
-	type PolymorphicProps,
-	TouchTarget,
-	useActiveIndicator,
-} from '../../primitives'
+import { ActiveIndicator, useActiveIndicator } from '../../primitives/active-indicator'
+import { Polymorphic, type PolymorphicProps } from '../../primitives/polymorphic'
+import { TouchTarget } from '../../primitives/touch-target'
 import { k } from '../../recipes/kata/bottom-nav'
 import { Icon } from '../icon'
 import { useNavContext } from '../nav/context'

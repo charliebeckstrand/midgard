@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from 'react'
 import { cn } from '../../core'
-import { useConcentric } from '../../primitives'
+import { useConcentric } from '../../primitives/concentric'
 import { GridProvider } from './context'
 import {
 	alignMap,

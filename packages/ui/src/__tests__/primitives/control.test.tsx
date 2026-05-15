@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ControlFrame } from '../../primitives'
+import { ControlFrame } from '../../primitives/control'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('ControlFrame', () => {

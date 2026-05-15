@@ -1,79 +1,52 @@
 # Cascade contracts
 
-Components read ambient state from React contexts to resolve their final props. Where a component reads from depends on its semantic role. This document is the canonical map — contributors should not have to trace imports to reconstruct it.
+Every size-aware component resolves its final `size` through a single hook — `useResolvedSize` from `primitives/concentric.ts`. Every leaf is:
 
-If you're adding a new component or changing how an existing one resolves a prop, the chain you write should match the table below for the role.
-
-## Roles
-
-### Form fields
-
-Components: `input`, `textarea`, `switch`, `listbox`, `combobox`, `datepicker`, `checkbox`, `radio`.
-
-```
-final = explicit prop ?? Control ?? Concentric ?? component default
+```ts
+const resolvedSize = useResolvedSize(size)
 ```
 
-- **Control** (`useControl`) — provided by `<Control>`. Carries `id`, `autoComplete`, `disabled`, `invalid`, `readOnly`, `required`, `size`, `variant`. Form fields nested inside `<Control>` inherit all of these.
-- **Concentric** (`useConcentric`) — a primitive in `primitives/concentric.ts`, broadcast by `<Card>` / `<Drawer>` / `<Popover>` / `<Group>`. Carries `size` only. Used as a fallback when no Control wraps the field.
+The Concentric provider tree encodes priority. Each size-broadcasting surface writes a `<ConcentricProvider>`, and innermost-wins (standard React context semantics) handles everything: a Button inside an Input affix slot inherits the affix step; a form field inside `<Control size="sm">` inherits the control size; a Spinner inside `<Button size="lg">` inherits the button size; a `<StatusDot>` inside `<Avatar size="xl">` inherits the avatar size. No call-site `??` composition.
 
-Glass override on `variant`: form fields apply `variant: 'glass'` when `useGlass()` is `true` and no explicit variant is set.
+The hook is generic on the caller's size type so each component keeps its narrower `Step` / `Size` / `Ma` typing. Concentric's value is `Ma` (the widest broadcaster's type); out-of-range values reaching a narrower consumer fall through to the consumer's variant `defaultVariants`.
 
-### Concentric participants
+## Broadcasters
 
-Components: `button` (partly), `card`, `card-title`, `checkbox`, `drawer`, `group`, `menu`, `popover-content`, `radio`, `stat-value`, `tabs`, `tooltip-content`, `tree`.
+Every size-broadcasting surface writes Concentric:
 
-```
-final = explicit prop ?? Concentric ?? component default
-```
+| Surface | Concentric value |
+| --- | --- |
+| `<Card>`, `<Drawer>`, `<Group>`, `<Popover>`, `<Density>` | the surface's resolved size |
+| `<Control size>` | the control's size (only when set) |
+| `<Input>` (affix slot only) | one step down — `sm → xs`, `md → sm`, `lg → md` |
+| `<SelectTrigger>` | same as Input affix |
+| `<Button>` (descendants only) | the button's resolved size |
+| `<Avatar>`, `<AvatarGroup>` | the avatar's size |
 
-These don't sit inside a `<Control>`; they only read the top-level concentric size cascade. Surfaces in this list (`card`, `drawer`, `group`, `menu`, `popover-content`) both **inherit** from an outer concentric ancestor and **re-broadcast** their resolved size to their own descendants, so an outer `<Density>` or surface flows through nested surfaces without breaking. (`menu` re-broadcasts because its `<MenuContent>` is portaled — without re-broadcasting, descendant `<MenuItem>` would lose the ambient context.)
+`<Density>` continues to also write the legacy `<DensityProvider>` so consumers that key off the "compact / snug / loose" vocabulary (currently none in-package after the table refactor) can still find it.
 
-### Standalone interactive: `button`, `badge`
+## Consumers
 
-```
-size    = explicit ?? AffixSize ?? Concentric
-variant = explicit ?? (glass ? 'glass' : undefined)  // button only
-```
-
-Button and Badge read AffixSize because they can be rendered inside an `<Input>`, `<SelectTrigger>`, or `<Grid>` cell, where the affix container broadcasts a one-step-smaller size to its descendants. AffixSize is the more specific signal — only set inside an affix scope — so it wins over the outer ambient Concentric (provided by `<Card>` / `<Drawer>` / `<Density>` / etc.); without this ordering a button or badge inside an affix would render at the surface size whenever Concentric is non-null, which is now the default once `<Density>` is mounted at the app root. Button does **not** read Control — it isn't a form-field-inside-Control by convention.
-
-### Cascade descendants: `spinner`, `icon`
-
-Tiny things rendered inside larger sized controls.
-
-```
-size = explicit ?? ButtonSize ?? AffixSize ?? 'md'
+```ts
+useResolvedSize(size)        // explicit prop wins; otherwise nearest Concentric ancestor; otherwise 'md'
+useResolvedSize()            // pure ambient read (no explicit), defaults to 'md'
+useResolvedSize<Size>(size)  // explicit caller type — Button / Badge / Avatar typed as Size or Ma
 ```
 
-- **ButtonSize** (`useButtonSize`) — broadcast by `<Button>` to its descendants so a Spinner or Icon inside a Button auto-scales.
-- **AffixSize** (`useAffixSize`) — broadcast by `<Input>` to its affix descendants for the same reason (icons, clear buttons, loading spinners).
+That's the entire API. No role-specific chains.
 
-Both are sizes a control broadcasts to its descendants — pure broadcast, no inheritance from outer ancestors.
+## Layout primitives — opt-in concentric pickup
 
-### Avatar family: `avatar`, `status`
-
-```
-size = explicit ?? AvatarGroupSize / AvatarSize ?? 'md'
-```
-
-- **AvatarGroupSize** — broadcast by `<AvatarGroup>` so all avatars in the stack share a size.
-- **AvatarSize** — broadcast by `<Avatar>` so a `<StatusDot>` placed on the avatar inherits its size.
-
-Same pattern as ButtonSize / AffixSize, scoped to the avatar family.
-
-### Sub-cascades: `dl`, `timeline`
-
-Components inside a `<Dl>` or `<Timeline>` read the parent's orientation / variant from a small ambient context. Not a general cascade — only the immediate compound's children consume these.
+`box`, `flex`, `stack`, `grid` keep their direct `useConcentric()` reads. Their `p` / `gap` is `Ma` or `Responsive<Ma>` (wider than the hook's `T extends Ma` constraint allows for the responsive forms), and Box/Flex specifically treat `undefined` as "no style applied" — which the hook's `'md'` fallback would clobber.
 
 ## Ambient flags
 
-These cascade as boolean flags rather than as values to fall back on:
+Boolean cascades, read at the leaf:
 
 - **`useGlass()`** — `true` inside `<Glass>`. Form fields and Button switch to the glass variant when no explicit variant is passed. Surface chrome (Popover, Dialog, etc.) takes a `glass` prop and consumers pass `useGlass()` through.
 - **`useSkeleton()`** — `true` inside `<Skeleton>`. Sized leaf controls render a `<Placeholder>` shaped from `kokkaku` instead of their real markup.
 
-Both are read at the leaf level. They don't compose into the size/variant resolution chain — they short-circuit to a different render path.
+They don't compose into the size resolution — they short-circuit to a different render path.
 
 ## What does **not** cascade
 
@@ -81,19 +54,14 @@ Both are read at the leaf level. They don't compose into the size/variant resolu
 - **`variant` on Button** — Button doesn't read `control?.variant`. Only Input / Textarea do, because they're direct Control children.
 - **Dialog / Drawer / Sheet variants** — these are independent compounds, not part of the Control family.
 
-## Why context, not prop drilling
+## Why context
 
-Each cascade represents a coupling that prop drilling can't reach without ceremony:
+Concentric flows through arbitrary wrappers (Frame, Stack, custom layouts) without prop-drilling. Surfaces and broadcasters set it without their descendants having to know.
 
-- Concentric size flows through arbitrary wrappers (Frame, Stack, layout components) to leaf controls.
-- ButtonSize / AffixSize broadcasts to descendants that might be wrapped in custom layouts N levels deep.
-- AvatarGroupSize same idea, scoped to the avatar family.
-- Glass / Skeleton are ambient flags that affect many descendants at once.
-
-The Control context is special: it's also the data bridge between `<Field>` (label, help, errors, validation) and the underlying form field, so it carries id, validity, disabled state, etc. — not just size.
+The `<Control>` context is special: it's also the data bridge between `<Field>` (label, help, errors, validation) and the underlying form field, so it carries id, validity, disabled state, etc. — not just size. Its size leg is mirrored into Concentric so size consumers don't need to read Control directly.
 
 ## Adding a new component
 
-1. Identify the role (form field, concentric participant, standalone interactive, cascade descendant, avatar family, or sub-cascade).
-2. Use the chain documented above for that role. Do not invent a new chain.
-3. If the component doesn't fit any role, raise it before writing the chain — a new role earns a new section here.
+1. Resolve size with `useResolvedSize(size)`. That's it for the typical case.
+2. If the component is a layout primitive that wants the "no contextual size → no style" semantic instead of `'md'` fallback, read `useConcentric()` directly (see Box/Flex).
+3. If the component **broadcasts** a size for its descendants — a new surface, an affix-like slot, etc. — wrap its children in `<ConcentricProvider value={{ size }}>`.

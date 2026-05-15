@@ -2,7 +2,7 @@
 
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { useConcentric } from '../../primitives'
+import { useResolvedSize } from '../../primitives/concentric'
 import { k } from '../../recipes/kata/fieldset'
 import { useControl } from '../control/context'
 import { useFormField } from '../form/context'
@@ -25,11 +25,9 @@ export function Message({
 }: MessageProps) {
 	const control = useControl()
 
-	const concentric = useConcentric()
-
 	const field = useFormField(name)
 
-	const size = control?.size ?? concentric?.size
+	const size = useResolvedSize()
 
 	// When form-bound, only the error variant auto-renders from the field's error.
 	// Other variants render their children verbatim.

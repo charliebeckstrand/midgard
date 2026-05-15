@@ -3,7 +3,7 @@
 import { Check, Minus } from 'lucide-react'
 import { type ComponentPropsWithRef, type ReactNode, useCallback, useRef } from 'react'
 import { cn } from '../../core'
-import { useConcentric } from '../../primitives'
+import { useResolvedSize } from '../../primitives/concentric'
 import { kokkaku } from '../../recipes'
 import {
 	type CheckboxVariants,
@@ -38,8 +38,6 @@ export function Checkbox({
 	onChange,
 	...props
 }: CheckboxProps) {
-	const concentric = useConcentric()
-
 	const binding = useFormToggle(name, { onChange })
 
 	const {
@@ -51,7 +49,7 @@ export function Checkbox({
 
 	const internalRef = useRef<HTMLInputElement>(null)
 
-	const resolvedSize = size ?? concentric?.size ?? 'md'
+	const resolvedSize = useResolvedSize(size)
 
 	const setRef = useCallback(
 		(el: HTMLInputElement | null) => {

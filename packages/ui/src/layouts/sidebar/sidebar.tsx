@@ -12,7 +12,7 @@ import { Sheet } from '../../components/sheet/sheet'
 import { cn, createContext } from '../../core'
 import { useScrollWithin } from '../../hooks'
 import { useOffcanvas } from '../../hooks/use-offcanvas'
-import { useConcentric } from '../../primitives/concentric'
+import { useResolvedSize } from '../../primitives/concentric'
 import { OffcanvasProvider } from '../../primitives/offcanvas'
 import {
 	sidebarBodyVariants,
@@ -67,9 +67,7 @@ export function SidebarLayout({
 
 	const scrollWithin = useScrollWithin()
 
-	const ambient = useConcentric()
-
-	const size = ambient?.size ?? 'md'
+	const size = useResolvedSize()
 
 	return (
 		<Frame className={sidebarLayoutVariants()}>

@@ -1,7 +1,7 @@
 'use client'
 
 import { Check } from 'lucide-react'
-import { useConcentric } from '../../primitives'
+import { useResolvedSize } from '../../primitives/concentric'
 import { Icon } from '../icon'
 
 /**
@@ -14,12 +14,12 @@ import { Icon } from '../icon'
  * `data-selected`.
  */
 export function OptionCheckIcon() {
-	const concentric = useConcentric()
+	const size = useResolvedSize()
 
 	return (
 		<Icon
 			icon={<Check />}
-			size={concentric?.size}
+			size={size}
 			className="relative hidden self-center text-green-600 group-data-selected/option:inline"
 		/>
 	)

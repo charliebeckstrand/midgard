@@ -43,6 +43,7 @@ export function useCopyButtonState({
 
 		const timer = setTimeout(() => {
 			setIsCopied(false)
+
 			onCopiedChangeRef.current?.(false)
 		}, timeout)
 

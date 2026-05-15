@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { useConcentric } from '../../primitives'
+import { useResolvedSize } from '../../primitives/concentric'
 import { type JiSize, ji } from '../../recipes/ryu/ji'
 import type { Step } from '../../recipes/ryu/sun'
 import { Heading } from '../heading'
@@ -16,8 +16,7 @@ const titleText: Record<Step, JiSize> = {
 }
 
 export function CardTitle({ className, size, children, ...props }: CardTitleProps) {
-	const concentric = useConcentric()
-	const resolvedSize = size ?? concentric?.size ?? 'md'
+	const resolvedSize = useResolvedSize(size)
 
 	return (
 		<Heading

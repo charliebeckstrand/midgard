@@ -1,5 +1,5 @@
 import type { ComponentPropsWithoutRef } from 'react'
-import { createCurrentContent } from '../../primitives'
+import { createCurrentContent } from '../../primitives/current'
 
 const { Contents: NavContents, Content: NavContent } = createCurrentContent('nav')
 

@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { ActiveIndicatorScope } from '../../primitives'
+import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import { type NavbarVariants, navbarVariants } from '../../recipes/kata/navbar'
 import { NavbarProvider } from './context'
 

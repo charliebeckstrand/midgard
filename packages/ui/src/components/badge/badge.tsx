@@ -2,10 +2,10 @@
 
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
-import { Polymorphic, type PolymorphicProps, useConcentric } from '../../primitives'
+import { useResolvedSize } from '../../primitives/concentric'
+import { Polymorphic, type PolymorphicProps } from '../../primitives/polymorphic'
 import { kokkaku } from '../../recipes'
 import { type BadgeVariants, badgeVariants } from '../../recipes/kata/badge'
-import { useAffixSize } from '../input/context'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
 
@@ -36,16 +36,12 @@ export function Badge({
 	suffix,
 	...props
 }: BadgeProps) {
-	const affixSize = useAffixSize()
-
-	const concentric = useConcentric()
-
-	const resolvedSize = size ?? affixSize ?? concentric?.size
+	const resolvedSize = useResolvedSize(size)
 
 	if (useSkeleton()) {
 		return (
 			<Placeholder
-				className={cn(kokkaku.badge.base, kokkaku.badge.size[resolvedSize ?? 'md'], className)}
+				className={cn(kokkaku.badge.base, kokkaku.badge.size[resolvedSize], className)}
 			/>
 		)
 	}

@@ -1,8 +1,8 @@
 import { createContext } from '../../core'
-import type { DensityLevel } from '../../providers/density'
+import type { Step } from '../../recipes/ryu/sun'
 
 export type TableContextValue = {
-	density: DensityLevel
+	size: Step
 	bleed: boolean
 	grid: boolean
 	striped: boolean

@@ -8,7 +8,7 @@ import {
 	type ReactNode,
 	useMemo,
 } from 'react'
-import { JoinProvider } from '../../primitives'
+import { JoinProvider } from '../../primitives/join'
 import type { GroupOrientation, GroupPosition } from '../../recipes/ryu/tsunagi'
 
 function positionAt(index: number, length: number): GroupPosition {

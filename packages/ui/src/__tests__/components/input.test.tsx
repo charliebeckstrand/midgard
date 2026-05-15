@@ -1,7 +1,7 @@
 import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Input } from '../../components/input'
-import { ConcentricProvider } from '../../primitives'
+import { ConcentricProvider } from '../../primitives/concentric'
 import { bySlot, renderUI, userEvent } from '../helpers'
 
 describe('Input', () => {

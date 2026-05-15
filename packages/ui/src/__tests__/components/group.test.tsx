@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Group } from '../../components/group'
-import { ConcentricProvider, useConcentric } from '../../primitives'
+import { ConcentricProvider, useConcentric } from '../../primitives/concentric'
 import { allBySlot, bySlot, renderUI } from '../helpers'
 
 describe('Group', () => {

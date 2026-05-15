@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ToggleField, ToggleGroup } from '../../primitives'
+import { ToggleField, ToggleGroup } from '../../primitives/toggle'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('ToggleGroup', () => {

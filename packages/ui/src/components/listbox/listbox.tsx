@@ -7,7 +7,9 @@ import { type ReactNode, useCallback, useId, useMemo, useRef } from 'react'
 import { cn, createContext } from '../../core'
 import { useFloatingUI } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
-import { ConcentricProvider, PopoverPanel, useConcentric, useJoin } from '../../primitives'
+import { ConcentricProvider, useResolvedSize } from '../../primitives/concentric'
+import { useJoin } from '../../primitives/join'
+import { PopoverPanel } from '../../primitives/popover'
 import { iro, kokkaku } from '../../recipes'
 import { k, listboxVariants } from '../../recipes/kata/listbox'
 import { popover as kPopover } from '../../recipes/kata/popover'
@@ -94,7 +96,6 @@ export function Listbox<T>({
 	'data-group-orientation': dataGroupOrientation,
 	children,
 }: ListboxProps<T>) {
-	const concentric = useConcentric()
 	const glass = useGlass()
 	const control = useControl()
 	const skeleton = useSkeleton()
@@ -104,7 +105,7 @@ export function Listbox<T>({
 
 	const resolvedDisabled = disabled ?? control?.disabled
 
-	const resolvedSize = size ?? control?.size ?? concentric?.size ?? 'md'
+	const resolvedSize = useResolvedSize(size)
 
 	const handleValueChange = useCallback(
 		(nextValue: T | T[] | undefined) => {

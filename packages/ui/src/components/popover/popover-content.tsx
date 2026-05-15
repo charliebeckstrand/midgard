@@ -4,7 +4,8 @@ import { FloatingPortal } from '@floating-ui/react'
 import { AnimatePresence, motion } from 'motion/react'
 import { type ReactNode, useLayoutEffect, useMemo, useRef } from 'react'
 import { cn } from '../../core'
-import { ConcentricProvider, ReducedMotion, useConcentric } from '../../primitives'
+import { ConcentricProvider, useResolvedSize } from '../../primitives/concentric'
+import { ReducedMotion } from '../../primitives/reduced-motion'
 import { iro, omote, ugoki } from '../../recipes'
 import { k } from '../../recipes/kata/popover'
 import type { Step } from '../../recipes/ryu/sun'
@@ -42,9 +43,7 @@ export function PopoverContent({
 
 	const glass = useGlass()
 
-	const ambient = useConcentric()
-
-	const resolvedSize = size ?? ambient?.size ?? 'md'
+	const resolvedSize = useResolvedSize(size)
 
 	const resolvedPadding: BoxPadding = p ?? paddingForSize[resolvedSize]
 

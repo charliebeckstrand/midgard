@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { useConcentric } from '../../primitives'
+import { useConcentric } from '../../primitives/concentric'
 import {
 	type FlexAlign,
 	type FlexDirection,
@@ -104,9 +104,9 @@ function defaultAlignFromDirection(direction: ResponsiveDirection): ResponsiveAl
 export function Flex({ direction = 'row', align, gap, ...props }: FlexProps) {
 	const concentric = useConcentric()
 
-	const resolvedAlign = align ?? defaultAlignFromDirection(direction)
-
 	const resolvedGap = gap ?? concentric?.size
+
+	const resolvedAlign = align ?? defaultAlignFromDirection(direction)
 
 	return (
 		<FlexBase

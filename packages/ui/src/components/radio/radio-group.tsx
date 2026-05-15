@@ -1,5 +1,5 @@
 import type { ComponentPropsWithoutRef } from 'react'
-import { ToggleGroup } from '../../primitives'
+import { ToggleGroup } from '../../primitives/toggle'
 
 export type RadioGroupProps = ComponentPropsWithoutRef<'div'>
 

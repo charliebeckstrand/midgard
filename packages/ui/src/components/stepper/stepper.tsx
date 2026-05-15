@@ -3,7 +3,7 @@
 import { Children, isValidElement, type ReactNode, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useMinWidth, useRoving } from '../../hooks'
-import { ActiveIndicatorScope } from '../../primitives'
+import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import { type StepperVariants, stepperVariants } from '../../recipes/kata/stepper'
 import { Stack } from '../stack'
 import { type StepperOrientation, StepperProvider } from './context'

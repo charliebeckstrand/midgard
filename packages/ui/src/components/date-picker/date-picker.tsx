@@ -2,10 +2,11 @@
 
 import type { Placement } from '@floating-ui/react'
 import { cn } from '../../core'
-import { useConcentric, useJoin } from '../../primitives'
+import { useResolvedSize } from '../../primitives/concentric'
+import { useJoin } from '../../primitives/join'
 import { kokkaku } from '../../recipes'
 import { Calendar } from '../calendar'
-import { type ControlSize, useControl } from '../control/context'
+import type { ControlSize } from '../control/context'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
 import { DatePickerContent } from './date-picker-content'
@@ -54,12 +55,10 @@ export type DatePickerBaseProps = {
 export type DatePickerProps = DatePickerBaseProps & (DatePickerSingleProps | DatePickerRangeProps)
 
 export function DatePicker(props: DatePickerProps) {
-	const control = useControl()
-	const concentric = useConcentric()
 	const skeleton = useSkeleton()
 	const join = useJoin()
 
-	const resolvedSize: ControlSize = props.size ?? control?.size ?? concentric?.size ?? 'md'
+	const resolvedSize: ControlSize = useResolvedSize(props.size)
 
 	if (skeleton) {
 		return (

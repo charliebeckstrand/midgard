@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { Polymorphic } from '../../primitives'
+import { Polymorphic } from '../../primitives/polymorphic'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Polymorphic', () => {

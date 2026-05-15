@@ -3,8 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Group } from '../../components/group'
 import { Icon } from '../../components/icon'
-import { AffixSizeProvider } from '../../components/input/context'
-import { ConcentricProvider } from '../../primitives'
+import { ConcentricProvider } from '../../primitives/concentric'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Button', () => {
@@ -204,20 +203,18 @@ describe('Button', () => {
 			expect(bySlot(container, 'button')?.className).toContain(textClassFor.md)
 		})
 
-		// Regression: `<Input>` / `<SelectTrigger>` / `<Grid>` wrap their affix
-		// descendants in `<AffixSizeProvider>` to broadcast a one-step-smaller
-		// size. AffixSize must beat Concentric in the resolution chain — when
-		// `<Density>` is mounted at the app root every Button has a non-null
-		// Concentric ancestor, so an earlier ordering of
-		// `explicit ?? concentric ?? affixSize` caused affix buttons (and badges)
-		// to render at the outer surface size instead of one step smaller.
+		// Regression: `<Input>` / `<SelectTrigger>` wrap their affix descendants
+		// in a nested `<ConcentricProvider>` carrying the one-step-smaller affix
+		// size. Inner provider wins — when `<Density>` (or a surrounding `<Card>`)
+		// mounts an outer Concentric at the app root, the affix wrap still pins
+		// the button to the smaller affix size.
 
-		it('AffixSize wins over Concentric when both are set', () => {
+		it('inner Concentric (the affix wrap) wins over outer Concentric', () => {
 			const { container } = renderUI(
 				<ConcentricProvider value={{ size: 'lg' }}>
-					<AffixSizeProvider value="sm">
+					<ConcentricProvider value={{ size: 'sm' }}>
 						<Button>Affix</Button>
-					</AffixSizeProvider>
+					</ConcentricProvider>
 				</ConcentricProvider>,
 			)
 
@@ -225,31 +222,31 @@ describe('Button', () => {
 			expect(bySlot(container, 'button')?.className).not.toContain(textClassFor.lg)
 		})
 
-		it('AffixSize can drop a button to xs (a size Concentric does not express)', () => {
+		it('Concentric can drop a button to xs', () => {
 			const { container } = renderUI(
 				<ConcentricProvider value={{ size: 'sm' }}>
-					<AffixSizeProvider value="xs">
+					<ConcentricProvider value={{ size: 'xs' }}>
 						<Button>Affix</Button>
-					</AffixSizeProvider>
+					</ConcentricProvider>
 				</ConcentricProvider>,
 			)
 
 			expect(bySlot(container, 'button')?.className).toContain(textClassFor.xs)
 		})
 
-		it('explicit size prop still wins over AffixSize', () => {
+		it('explicit size prop still wins over inner Concentric', () => {
 			const { container } = renderUI(
 				<ConcentricProvider value={{ size: 'lg' }}>
-					<AffixSizeProvider value="sm">
+					<ConcentricProvider value={{ size: 'sm' }}>
 						<Button size="md">Override</Button>
-					</AffixSizeProvider>
+					</ConcentricProvider>
 				</ConcentricProvider>,
 			)
 
 			expect(bySlot(container, 'button')?.className).toContain(textClassFor.md)
 		})
 
-		it('falls back to Concentric when no AffixSize is set', () => {
+		it('inherits Concentric when no explicit size is set', () => {
 			const { container } = renderUI(
 				<ConcentricProvider value={{ size: 'lg' }}>
 					<Button>Concentric</Button>

@@ -1,12 +1,8 @@
 'use client'
 
 import { cn } from '../../core'
-import {
-	ActiveIndicator,
-	Polymorphic,
-	type PolymorphicProps,
-	useActiveIndicator,
-} from '../../primitives'
+import { ActiveIndicator, useActiveIndicator } from '../../primitives/active-indicator'
+import { Polymorphic, type PolymorphicProps } from '../../primitives/polymorphic'
 import { pageButtonVariants } from '../../recipes/kata/pagination'
 
 type PaginationPageBaseProps = {

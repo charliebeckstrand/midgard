@@ -3,13 +3,9 @@
 import { motion } from 'motion/react'
 import { type CSSProperties, type ReactNode, useCallback, useMemo } from 'react'
 import { cn, createContext } from '../../core'
-import {
-	ConcentricProvider,
-	Overlay,
-	PanelA11yProvider,
-	useConcentric,
-	usePanelA11yScope,
-} from '../../primitives'
+import { ConcentricProvider, useResolvedSize } from '../../primitives/concentric'
+import { Overlay } from '../../primitives/overlay'
+import { PanelA11yProvider, usePanelA11yScope } from '../../primitives/panel'
 import { ugoki } from '../../recipes'
 import {
 	type DrawerPanelVariants,
@@ -51,9 +47,7 @@ export function Drawer({
 
 	const { panelAriaProps, providerValue } = usePanelA11yScope()
 
-	const ambient = useConcentric()
-
-	const resolvedSize = size ?? ambient?.size ?? 'md'
+	const resolvedSize = useResolvedSize(size)
 
 	const close = useCallback(() => onOpenChange(false), [onOpenChange])
 

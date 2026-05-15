@@ -3,7 +3,7 @@
 import { type ReactNode, useRef } from 'react'
 import { cn } from '../../core'
 import { useRoving } from '../../hooks'
-import { ActiveIndicatorScope } from '../../primitives'
+import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import { type SegmentControlVariants, segmentControlVariants } from '../../recipes/kata/segment'
 import { useSegmentContext } from './context'
 

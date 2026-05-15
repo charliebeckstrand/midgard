@@ -5,7 +5,7 @@ import { type KeyboardEvent, type Ref, useRef } from 'react'
 
 import { cn } from '../../core'
 import { useIsTruncated } from '../../hooks'
-import { ControlFrame } from '../../primitives'
+import { ControlFrame } from '../../primitives/control'
 import { iro } from '../../recipes'
 import { k } from '../../recipes/kata/datepicker'
 import type { ControlSize } from '../control/context'

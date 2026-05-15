@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { useConcentric } from '../../primitives'
+import { useResolvedSize } from '../../primitives/concentric'
 import { k, statLabelPlaceholder } from '../../recipes/kata/stat'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
@@ -14,9 +14,7 @@ export type StatLabelProps = {
  * inside `<Density density="compact">` shrinks alongside its `<StatValue>`.
  */
 export function StatLabel({ className, children, ...props }: StatLabelProps) {
-	const concentric = useConcentric()
-
-	const size = concentric?.size
+	const size = useResolvedSize()
 
 	if (useSkeleton()) {
 		return <Placeholder className={cn(statLabelPlaceholder({ size }), className)} />

@@ -3,7 +3,7 @@
 import { type ComponentPropsWithoutRef, useRef } from 'react'
 import { cn } from '../../core'
 import { useRoving } from '../../hooks'
-import { ActiveIndicatorScope } from '../../primitives'
+import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import { k } from '../../recipes/kata/nav'
 import { useNavbar } from '../navbar/context'
 

@@ -13,10 +13,11 @@ import {
 } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
-import { ConcentricProvider, useConcentric } from '../../primitives'
+import { ConcentricProvider, useResolvedSize } from '../../primitives/concentric'
 import { k } from '../../recipes/kata/calendar'
 import type { Step } from '../../recipes/ryu/sun'
 import { Button, type ButtonVariants } from '../button'
+import { Icon } from '../icon'
 import { CalendarDayCell } from './calendar-day-cell'
 import { CalendarPicker } from './calendar-picker'
 import { getCalendarDays, isBeforeDay, isSameDay, WEEKDAYS } from './calendar-utilities'
@@ -86,9 +87,7 @@ export function Calendar({
 	size,
 	className,
 }: CalendarProps) {
-	const concentric = useConcentric()
-
-	const resolvedSize: Step = size ?? concentric?.size ?? 'md'
+	const resolvedSize: Step = useResolvedSize(size)
 
 	const concentricValue = useMemo(() => ({ size: resolvedSize }), [resolvedSize])
 
@@ -216,11 +215,7 @@ export function Calendar({
 
 	return (
 		<ConcentricProvider value={concentricValue}>
-			<div
-				data-slot="calendar"
-				data-step={resolvedSize}
-				className={cn(k.base({ size: resolvedSize }), className)}
-			>
+			<div data-slot="calendar" data-step={resolvedSize} className={cn(k.base, className)}>
 				<div
 					ref={headerRef}
 					role="toolbar"
@@ -231,7 +226,7 @@ export function Calendar({
 						variant="plain"
 						onClick={prevMonth}
 						aria-label="Previous month"
-						prefix={<ChevronLeft className={k.nav.icon} />}
+						prefix={<Icon icon={<ChevronLeft />} />}
 						className={cn(headerActiveIndex === 0 && k.day.active)}
 					/>
 					<CalendarPicker
@@ -248,7 +243,7 @@ export function Calendar({
 						variant="plain"
 						onClick={nextMonth}
 						aria-label="Next month"
-						prefix={<ChevronRight className={k.nav.icon} />}
+						prefix={<Icon icon={<ChevronRight />} />}
 						className={cn(headerActiveIndex === 2 && k.day.active)}
 					/>
 				</div>

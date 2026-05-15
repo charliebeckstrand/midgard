@@ -177,7 +177,7 @@ export default function DataTableDemo() {
 						...columns,
 						{
 							id: 'actions',
-							actions: (row) => <Button color="blue" size="sm">Edit</Button>,
+							actions: (row) => <Button color="blue">Edit</Button>,
 						},
 					]
 				`}
@@ -187,11 +187,7 @@ export default function DataTableDemo() {
 						...baseColumns,
 						{
 							id: 'actions',
-							actions: () => (
-								<Button color="blue" size="sm">
-									Edit
-								</Button>
-							),
+							actions: () => <Button color="blue">Edit</Button>,
 						},
 					]}
 					rows={people}

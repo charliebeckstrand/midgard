@@ -2,7 +2,7 @@
 
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { useConcentric } from '../../primitives'
+import { useResolvedSize } from '../../primitives/concentric'
 import { k } from '../../recipes/kata/fieldset'
 
 export type LegendProps = {
@@ -10,13 +10,7 @@ export type LegendProps = {
 } & Omit<ComponentPropsWithoutRef<'legend'>, 'className'>
 
 export function Legend({ className, ...props }: LegendProps) {
-	const concentric = useConcentric()
+	const size = useResolvedSize()
 
-	return (
-		<legend
-			data-slot="legend"
-			className={cn(k.legend({ size: concentric?.size }), className)}
-			{...props}
-		/>
-	)
+	return <legend data-slot="legend" className={cn(k.legend({ size }), className)} {...props} />
 }

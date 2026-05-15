@@ -2,7 +2,8 @@
 
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
-import { ActiveIndicator, useActiveIndicator, useCurrent } from '../../primitives'
+import { ActiveIndicator, useActiveIndicator } from '../../primitives/active-indicator'
+import { useCurrent } from '../../primitives/current'
 import { k, segmentItemVariants } from '../../recipes/kata/segment'
 import { useSegmentContext } from './context'
 

@@ -19,7 +19,7 @@ import {
 } from 'react'
 import { cn, createContext } from '../../core'
 import { useFloatingPanel } from '../../hooks'
-import { useConcentric } from '../../primitives'
+import { useResolvedSize } from '../../primitives/concentric'
 import type { Step } from '../../recipes/ryu/sun'
 
 type MenuStateValue = {
@@ -69,9 +69,7 @@ export type MenuProps = {
 export function Menu({ defaultOpen = false, placement, size, className, children }: MenuProps) {
 	const [open, setOpen] = useState(defaultOpen)
 
-	const concentric = useConcentric()
-
-	const resolvedSize: Step = size ?? concentric?.size ?? 'md'
+	const resolvedSize: Step = useResolvedSize(size)
 
 	const [point, setPoint] = useState({ x: 0, y: 0 })
 

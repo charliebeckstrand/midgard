@@ -1,6 +1,11 @@
 import type { FC, ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { BaseOption, createSelectOption, OptionDescription, OptionLabel } from '../../primitives'
+import {
+	BaseOption,
+	createSelectOption,
+	OptionDescription,
+	OptionLabel,
+} from '../../primitives/option'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('BaseOption', () => {

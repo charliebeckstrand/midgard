@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { VirtualOptions } from '../../primitives'
+import { VirtualOptions } from '../../primitives/virtual-options'
 import { bySlot, renderUI } from '../helpers'
 
 // jsdom has no layout, so react-virtual sees a 0-height scroll container and

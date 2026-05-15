@@ -1,6 +1,6 @@
 import { type CSSProperties, useMemo } from 'react'
 import { cn } from '../../core'
-import { ConcentricProvider, useConcentric } from '../../primitives'
+import { ConcentricProvider, useResolvedSize } from '../../primitives/concentric'
 import { kokkaku } from '../../recipes'
 import { type Step, sun } from '../../recipes/ryu/sun'
 import { Box, type BoxProps } from '../box'
@@ -26,11 +26,9 @@ export function Card({
 	children,
 	...props
 }: CardProps) {
-	const ambient = useConcentric()
+	const resolvedSize = useResolvedSize(size)
 
-	const resolvedSize = size ?? ambient?.size ?? 'md'
-
-	const ctx = useMemo(() => ({ size: resolvedSize }), [resolvedSize])
+	const context = useMemo(() => ({ size: resolvedSize }), [resolvedSize])
 
 	if (useSkeleton()) {
 		return (
@@ -65,7 +63,7 @@ export function Card({
 			style={style}
 			{...props}
 		>
-			<ConcentricProvider value={ctx}>{children}</ConcentricProvider>
+			<ConcentricProvider value={context}>{children}</ConcentricProvider>
 		</Box>
 	)
 }

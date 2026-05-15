@@ -3,7 +3,8 @@
 import { type ComponentPropsWithoutRef, useEffect, useRef } from 'react'
 import { cn } from '../../core'
 import { useRoving } from '../../hooks'
-import { ActiveIndicatorScope, useConcentric } from '../../primitives'
+import { ActiveIndicatorScope } from '../../primitives/active-indicator'
+import { useResolvedSize } from '../../primitives/concentric'
 import { segmentControlVariants } from '../../recipes/kata/segment'
 import { k } from '../../recipes/kata/tabs'
 import { useTabsContext } from './context'
@@ -15,15 +16,13 @@ export type TabListProps = ComponentPropsWithoutRef<'div'>
 export function TabList({ className, children, ...props }: TabListProps) {
 	const tabsCtx = useTabsContext()
 
-	const concentric = useConcentric()
-
 	const isSegment = tabsCtx?.variant === 'segment'
 
 	const orientation = tabsCtx?.orientation ?? 'horizontal'
 
 	// When wrapped in <Tabs>, the parent has already resolved concentric into tabsCtx.size.
 	// When used à la carte (just <TabList>+<Tab>), fall back to reading concentric here.
-	const size = tabsCtx?.size ?? concentric?.size ?? 'md'
+	const size = useResolvedSize(tabsCtx?.size)
 
 	const ref = useRef<HTMLDivElement>(null)
 

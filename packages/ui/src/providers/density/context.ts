@@ -12,13 +12,6 @@ export const DENSITY_TO_SIZE: Record<DensityLevel, Step> = {
 	compact: 'sm',
 }
 
-/** Reverse of {@link DENSITY_TO_SIZE} — translate an ambient Concentric size back into a density level. */
-export const SIZE_TO_DENSITY: Record<Step, DensityLevel> = {
-	sm: 'compact',
-	md: 'snug',
-	lg: 'loose',
-}
-
 /**
  * Ambient density level — provided by `<Density>`. Maps 1:1 to the Concentric
  * size cascade (`loose` → `lg`, `snug` → `md`, `compact` → `sm`), which

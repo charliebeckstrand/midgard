@@ -10,14 +10,11 @@ import {
 } from 'react'
 import { cn } from '../../core'
 import { useScrollWithin } from '../../hooks'
-import {
-	ActiveIndicator,
-	OffcanvasContext,
-	type PolymorphicProps,
-	TouchTarget,
-	useActiveIndicator,
-	useConcentric,
-} from '../../primitives'
+import { ActiveIndicator, useActiveIndicator } from '../../primitives/active-indicator'
+import { useResolvedSize } from '../../primitives/concentric'
+import { OffcanvasContext } from '../../primitives/offcanvas'
+import type { PolymorphicProps } from '../../primitives/polymorphic'
+import { TouchTarget } from '../../primitives/touch-target'
 import type { Step } from '../../recipes/ryu/sun'
 import { Button } from '../button'
 import { Headless } from '../headless'
@@ -72,9 +69,7 @@ export function createNavItem(config: NavItemConfig) {
 
 		const indicator = useActiveIndicator()
 
-		const concentric = useConcentric()
-
-		const resolvedSize = size ?? concentric?.size ?? 'md'
+		const resolvedSize = useResolvedSize(size)
 
 		const offcanvas = use(OffcanvasContext)
 

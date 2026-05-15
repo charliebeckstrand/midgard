@@ -2,7 +2,7 @@
 
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { useConcentric } from '../../primitives'
+import { useResolvedSize } from '../../primitives/concentric'
 import { k } from '../../recipes/kata/fieldset'
 import { useControl } from '../control/context'
 
@@ -14,9 +14,7 @@ export type LabelProps = {
 export function Label({ className, htmlFor, ...props }: LabelProps) {
 	const control = useControl()
 
-	const concentric = useConcentric()
-
-	const size = control?.size ?? concentric?.size
+	const size = useResolvedSize()
 
 	return (
 		// biome-ignore lint/a11y/noLabelWithoutControl: htmlFor is passed by the consumer or the label wraps its control

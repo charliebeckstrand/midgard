@@ -5,7 +5,7 @@ import { type ChangeEvent, useCallback } from 'react'
 import { useControllable } from '../../hooks/use-controllable'
 import { Button } from '../button'
 import { Icon } from '../icon'
-import { Input, type InputProps, useAffixSize } from '../input'
+import { Input, type InputProps } from '../input'
 import { Spinner } from '../spinner'
 
 export type SearchInputProps = Omit<
@@ -19,12 +19,9 @@ export type SearchInputProps = Omit<
 }
 
 function ClearButton({ onClear }: { onClear: () => void }) {
-	const affixSize = useAffixSize()
-
 	return (
 		<Button
 			variant="plain"
-			size={affixSize}
 			className="pointer-events-auto"
 			aria-label="Clear search"
 			onClick={onClear}

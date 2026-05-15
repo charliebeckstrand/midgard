@@ -1,4 +1,4 @@
-import { useConcentric } from '../../primitives'
+import { useConcentric } from '../../primitives/concentric'
 import { FlexBase, type FlexProps } from '../flex'
 
 export type StackProps = FlexProps

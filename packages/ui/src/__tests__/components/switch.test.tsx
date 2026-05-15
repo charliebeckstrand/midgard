@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Switch, SwitchField } from '../../components/switch'
-import { ConcentricProvider } from '../../primitives'
+import { ConcentricProvider } from '../../primitives/concentric'
 import { bySlot, renderUI } from '../helpers'
 
 describe('Switch', () => {

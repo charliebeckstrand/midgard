@@ -4,7 +4,7 @@ import { Check } from 'lucide-react'
 import type { ComponentPropsWithoutRef, ComponentType, ReactNode } from 'react'
 import { cn } from '../core'
 import { option as k } from '../recipes/kata/option'
-import { useConcentric } from './concentric'
+import { useResolvedSize } from './concentric'
 
 const defaultCheckIcon = (
 	<Check
@@ -32,7 +32,7 @@ export function BaseOption({
 	onSelect,
 	...props
 }: BaseOptionProps) {
-	const concentric = useConcentric()
+	const size = useResolvedSize()
 
 	const sharedClasses = cn(k.content)
 
@@ -54,7 +54,7 @@ export function BaseOption({
 					if (!disabled) onSelect()
 				}
 			}}
-			className={cn(k.base({ size: concentric?.size }))}
+			className={cn(k.base({ size }))}
 			{...props}
 		>
 			<span className={cn(className, sharedClasses)}>{children}</span>

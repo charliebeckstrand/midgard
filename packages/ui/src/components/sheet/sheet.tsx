@@ -3,7 +3,8 @@
 import { motion } from 'motion/react'
 import { type ReactNode, useCallback, useMemo } from 'react'
 import { cn, createContext } from '../../core'
-import { Overlay, PanelA11yProvider, usePanelA11yScope } from '../../primitives'
+import { Overlay } from '../../primitives/overlay'
+import { PanelA11yProvider, usePanelA11yScope } from '../../primitives/panel'
 import { ugoki } from '../../recipes'
 import {
 	type SheetPanelVariants,

@@ -2,7 +2,7 @@
 
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { ActiveIndicator } from '../../primitives'
+import { ActiveIndicator } from '../../primitives/active-indicator'
 import { k } from '../../recipes/kata/stepper'
 import { useStepper, useStepperStep } from './context'
 

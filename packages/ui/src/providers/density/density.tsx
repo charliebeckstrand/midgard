@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { ConcentricProvider } from '../../primitives'
+import { ConcentricProvider } from '../../primitives/concentric'
 import { DENSITY_TO_SIZE, type DensityLevel, DensityProvider } from './context'
 
 export type DensityProps = {

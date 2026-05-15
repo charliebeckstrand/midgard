@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { ToggleField } from '../../primitives'
+import { ToggleField } from '../../primitives/toggle'
 import { k } from '../../recipes/kata/checkbox'
 
 export type CheckboxFieldProps = ComponentPropsWithoutRef<'div'>

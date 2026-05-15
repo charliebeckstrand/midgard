@@ -2,7 +2,7 @@
 
 import { motion } from 'motion/react'
 import { cn } from '../../core'
-import { ReducedMotion } from '../../primitives'
+import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k, progressTrackVariants } from '../../recipes/kata/progress'
 
 type ProgressColor = keyof typeof k.color

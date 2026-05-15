@@ -2,7 +2,7 @@
 
 import type { MouseEvent } from 'react'
 import { cn } from '../../core'
-import { useCurrent } from '../../primitives'
+import { useCurrent } from '../../primitives/current'
 import { k } from '../../recipes/kata/nav'
 import { Icon } from '../icon'
 import { createNavItem, type NavItemProps } from './nav-item-helpers'

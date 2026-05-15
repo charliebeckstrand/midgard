@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { useJoin } from '../../primitives'
+import { useJoin } from '../../primitives/join'
 import { k } from '../../recipes/kata/placeholder'
 
 export type PlaceholderProps = {

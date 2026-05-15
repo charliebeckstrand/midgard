@@ -4,7 +4,7 @@ import {
 	type PanelBodyProps,
 	type PanelDescriptionProps,
 	type PanelTitleProps,
-} from '../../primitives'
+} from '../../primitives/panel'
 import { drawer } from '../../recipes/kata/drawer'
 
 export type DrawerTitleProps = PanelTitleProps

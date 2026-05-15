@@ -4,7 +4,7 @@ import { Eye, EyeOff } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../button'
 import { Icon } from '../icon'
-import { Input, type InputProps, useAffixSize } from '../input'
+import { Input, type InputProps } from '../input'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 
 export type PasswordInputProps = Omit<InputProps, 'type' | 'suffix'> & {
@@ -25,14 +25,12 @@ type ToggleProps = {
 }
 
 function VisibilityToggle({ visible, onToggle, showLabel, hideLabel }: ToggleProps) {
-	const affixSize = useAffixSize()
-
 	const text = visible ? hideLabel : showLabel
 
 	return (
 		<Tooltip>
 			<TooltipTrigger>
-				<Button variant="plain" size={affixSize} aria-label={text} onClick={onToggle}>
+				<Button variant="plain" aria-label={text} onClick={onToggle}>
 					<Icon icon={visible ? <EyeOff /> : <Eye />} />
 				</Button>
 			</TooltipTrigger>
