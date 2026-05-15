@@ -4,12 +4,13 @@ import { X } from 'lucide-react'
 import type { Color } from '../../recipes/ryu/iro'
 import { Badge } from '../badge'
 import { Button } from '../button'
+import type { ControlSize } from '../control/context'
 import { Icon } from '../icon'
 import { tagRemoveSize, tagSize } from './tag-input-utilities'
 
 export type TagInputBadgeProps = {
 	label: string
-	size: 'sm' | 'md' | 'lg'
+	size: ControlSize
 	color: Color
 	disabled?: boolean
 	onRemove: () => void

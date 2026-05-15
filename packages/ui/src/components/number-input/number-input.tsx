@@ -6,13 +6,12 @@ import { cn } from '../../core'
 import { useControllable } from '../../hooks'
 import { k } from '../../recipes/kata/input'
 import { Button } from '../button'
+import type { ControlSize } from '../control/context'
 import { useFormField } from '../form/context'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
 
-type Size = 'sm' | 'md' | 'lg'
-
-const padding: Record<Size, string> = {
+const padding: Record<ControlSize, string> = {
 	sm: 'pr-[4rem]',
 	md: 'pr-[4.5rem]',
 	lg: 'pr-[5rem]',
@@ -57,7 +56,7 @@ export function NumberInput({
 			: onValueChange,
 	})
 
-	const resolvedSize: Size = size ?? 'md'
+	const resolvedSize: ControlSize = size ?? 'md'
 
 	const precision = step.toString().split('.')[1]?.length ?? 0
 

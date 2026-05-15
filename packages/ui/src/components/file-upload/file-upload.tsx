@@ -7,6 +7,7 @@ import { sawari } from '../../recipes'
 import { fileUploadClasses, k } from '../../recipes/kata/file-upload'
 import { AspectRatio, type AspectRatioProps } from '../aspect-ratio'
 import { Button } from '../button'
+import type { ControlSize } from '../control/context'
 import { Icon } from '../icon'
 import { Input } from '../input'
 import { formatFileNames } from './file-upload-utilities'
@@ -33,7 +34,7 @@ type FileUploadAreaProps = FileUploadSharedProps & {
 type FileUploadInputProps = FileUploadSharedProps & {
 	variant: 'input'
 	/** Input field size. */
-	size?: 'sm' | 'md' | 'lg'
+	size?: ControlSize
 	/** Placeholder when empty. */
 	placeholder?: string
 }
@@ -41,7 +42,7 @@ type FileUploadInputProps = FileUploadSharedProps & {
 type FileUploadButtonProps = FileUploadSharedProps & {
 	variant: 'button'
 	/** Button size. */
-	size?: 'sm' | 'md' | 'lg'
+	size?: ControlSize
 	/** Button color. */
 	color?: ComponentProps<typeof Button>['color']
 }
