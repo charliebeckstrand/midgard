@@ -1,6 +1,7 @@
 'use client'
 
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
+import { Fieldset } from '../fieldset'
 import { FormProvider } from './context'
 import type { ValidateOn, Validators } from './form-reducer'
 import { type FormHelpers, useFormReducer } from './use-form-reducer'
@@ -46,12 +47,12 @@ export function Form<T extends Record<string, unknown>>({
 				className={className}
 				{...props}
 			>
-				<fieldset
+				<Fieldset
 					disabled={disabled || formState.submitting}
 					className="m-0 min-w-0 border-none p-0"
 				>
 					{children}
-				</fieldset>
+				</Fieldset>
 			</form>
 		</FormProvider>
 	)

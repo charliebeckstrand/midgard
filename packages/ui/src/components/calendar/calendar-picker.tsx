@@ -130,6 +130,43 @@ export function CalendarPicker({
 		}
 	})
 
+	const viewConfig =
+		pickerView === 'months'
+			? {
+					prevLabel: 'Previous year',
+					nextLabel: 'Next year',
+					centerLabel: pickerYear,
+					onPrev: () => setPickerYear((y) => y - 1),
+					onNext: () => setPickerYear((y) => y + 1),
+					onCenter: () => {
+						setDecadeYear(pickerYear)
+
+						setPickerView('years')
+
+						focusPickerGrid()
+					},
+					cells: monthCells,
+					cellBlock: true,
+				}
+			: {
+					prevLabel: 'Previous decade',
+					nextLabel: 'Next decade',
+					centerLabel: (
+						<>
+							{decadeStart}&ndash;{decadeStart + 9}
+						</>
+					),
+					onPrev: () => setDecadeYear((y) => y - 10),
+					onNext: () => setDecadeYear((y) => y + 10),
+					onCenter: () => {
+						setPickerView('months')
+
+						focusPickerGrid()
+					},
+					cells: yearCells,
+					cellBlock: false,
+				}
+
 	return (
 		<Popover placement="bottom" open={pickerOpen} onOpenChange={handlePickerOpen}>
 			<PopoverTrigger>
@@ -138,52 +175,14 @@ export function CalendarPicker({
 				</Button>
 			</PopoverTrigger>
 			<PopoverContent>
-				{pickerView === 'months' ? (
-					<CalendarPickerGrid
-						headerRef={pickerHeaderRef}
-						gridRef={pickerGridRef}
-						onHeaderKeyDown={handleHeaderKeyDown}
-						onGridKeyDown={handleGridKeyDown}
-						prevLabel="Previous year"
-						nextLabel="Next year"
-						centerLabel={pickerYear}
-						onPrev={() => setPickerYear((y) => y - 1)}
-						onNext={() => setPickerYear((y) => y + 1)}
-						onCenter={() => {
-							setDecadeYear(pickerYear)
-
-							setPickerView('years')
-
-							focusPickerGrid()
-						}}
-						cells={monthCells}
-						cellBlock
-						size={size}
-					/>
-				) : (
-					<CalendarPickerGrid
-						headerRef={pickerHeaderRef}
-						gridRef={pickerGridRef}
-						onHeaderKeyDown={handleHeaderKeyDown}
-						onGridKeyDown={handleGridKeyDown}
-						prevLabel="Previous decade"
-						nextLabel="Next decade"
-						centerLabel={
-							<>
-								{decadeStart}&ndash;{decadeStart + 9}
-							</>
-						}
-						onPrev={() => setDecadeYear((y) => y - 10)}
-						onNext={() => setDecadeYear((y) => y + 10)}
-						onCenter={() => {
-							setPickerView('months')
-
-							focusPickerGrid()
-						}}
-						cells={yearCells}
-						size={size}
-					/>
-				)}
+				<CalendarPickerGrid
+					headerRef={pickerHeaderRef}
+					gridRef={pickerGridRef}
+					onHeaderKeyDown={handleHeaderKeyDown}
+					onGridKeyDown={handleGridKeyDown}
+					{...viewConfig}
+					size={size}
+				/>
 			</PopoverContent>
 		</Popover>
 	)
