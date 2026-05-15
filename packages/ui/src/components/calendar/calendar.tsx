@@ -20,7 +20,7 @@ import { CalendarGrid } from './calendar-grid'
 import { CalendarHeader } from './calendar-header'
 import { getCalendarDays, isBeforeDay } from './calendar-utilities'
 import { useCalendarFocus } from './use-calendar-focus'
-import { useCalendarViewDate } from './use-calendar-view-date'
+import { useCalendarMonth } from './use-calendar-month'
 
 export type CalendarActive =
 	| { zone: 'header'; index: 0 | 1 | 2 }
@@ -107,7 +107,7 @@ export function Calendar({
 
 	const activeGridDate = active?.zone === 'grid' ? active.date : null
 
-	const { viewDate, year, month, prevMonth, nextMonth, navigateTo } = useCalendarViewDate({
+	const { viewDate, year, month, prevMonth, nextMonth, navigateTo } = useCalendarMonth({
 		value,
 		defaultValue,
 		activeGridDate,

@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react'
 
-type UseCalendarViewDateOptions = {
+type UseCalendarMonthOptions = {
 	value: Date | null | undefined
 	defaultValue?: Date
 	activeGridDate: Date | null
@@ -13,11 +13,7 @@ type UseCalendarViewDateOptions = {
  * — not in a `useEffect` — to avoid an extra render cycle when the prop
  * change should already have switched the visible month.
  */
-export function useCalendarViewDate({
-	value,
-	defaultValue,
-	activeGridDate,
-}: UseCalendarViewDateOptions) {
+export function useCalendarMonth({ value, defaultValue, activeGridDate }: UseCalendarMonthOptions) {
 	const [viewDate, setViewDate] = useState(() => {
 		const seed = value ?? defaultValue ?? new Date()
 
