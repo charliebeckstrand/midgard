@@ -1,3 +1,5 @@
+'use client'
+
 import { type CSSProperties, useMemo } from 'react'
 import { cn } from '../../core'
 import { ConcentricProvider, useResolvedSize } from '../../primitives/concentric'
