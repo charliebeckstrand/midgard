@@ -3,7 +3,7 @@
 import type { OptionDescriptionProps, OptionLabelProps, OptionProps } from '../../primitives/option'
 import { createSelectOption } from '../../primitives/option'
 import { OptionCheckIcon } from '../option'
-import { useComboboxContext } from './combobox'
+import { useComboboxContext } from './context'
 
 export type ComboboxOptionProps = OptionProps
 

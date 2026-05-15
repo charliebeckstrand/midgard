@@ -8,7 +8,7 @@ import { ConcentricProvider } from '../../primitives/concentric'
 import { PopoverPanel } from '../../primitives/popover'
 import { k } from '../../recipes/kata/menu'
 import { useGlass } from '../glass/context'
-import { useMenuActions, useMenuState } from './menu'
+import { useMenuActions, useMenuState } from './context'
 
 export type MenuContentProps = {
 	className?: string

@@ -11,8 +11,8 @@ import {
 	useCallback,
 } from 'react'
 import { cn } from '../../core'
-import { k } from '../../recipes/kata/popover'
-import { usePopoverContext } from './popover'
+import { k } from '../../recipes/waku/popover'
+import { usePopoverContext } from './context'
 
 export type PopoverTriggerProps = {
 	children: ReactNode

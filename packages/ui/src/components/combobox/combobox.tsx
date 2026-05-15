@@ -11,8 +11,8 @@ import {
 	useMemo,
 	useRef,
 } from 'react'
-import { cn, createContext } from '../../core'
-import { useFloatingUI, useRoving, useScrollWithin } from '../../hooks'
+import { cn } from '../../core'
+import { useFloatingUI, useRoving, useScrollWithin, useSelectableValueChange } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
 import { ConcentricProvider, useResolvedSize } from '../../primitives/concentric'
@@ -20,7 +20,7 @@ import { useJoin } from '../../primitives/join'
 import { PopoverPanel } from '../../primitives/popover'
 import { kokkaku } from '../../recipes'
 import { comboboxVariants, k } from '../../recipes/kata/combobox'
-import { popover as kPopover } from '../../recipes/kata/popover'
+import { popover as kPopover } from '../../recipes/waku/popover'
 import { Button } from '../button'
 import { type ControlSize, useControl } from '../control/context'
 import { useGlass } from '../glass/context'
@@ -31,18 +31,9 @@ import { Placeholder } from '../placeholder'
 import { SelectTrigger } from '../select/select-trigger'
 import { useSkeleton } from '../skeleton/context'
 import { resolveInputDisplay } from './combobox-utilities'
+import { ComboboxProvider } from './context'
 import { useComboboxInput } from './use-combobox-input'
 import { useComboboxState } from './use-combobox-state'
-
-type ComboboxContextValue<T = unknown> = {
-	value: T | T[] | undefined
-	multiple: boolean
-	select: (value: T) => void
-	query: string
-}
-
-export const [ComboboxProvider, useComboboxContext] =
-	createContext<ComboboxContextValue>('Combobox')
 
 type ComboboxBaseProps<T> = {
 	id?: string
@@ -128,13 +119,9 @@ export function Combobox<T>({
 
 	const resolvedDisabled = disabled ?? control?.disabled
 
-	const handleValueChange = useCallback(
-		(nextValue: T | T[] | undefined) => {
-			if (nextValue === undefined && multiple) return
-
-			;(onValueChange as ((value: T | T[] | undefined) => void) | undefined)?.(nextValue)
-		},
-		[onValueChange, multiple],
+	const handleValueChange = useSelectableValueChange<T>(
+		onValueChange as ((value: T | T[] | undefined) => void) | undefined,
+		multiple,
 	)
 
 	const [value, setValue] = useControllable<T | T[]>({
@@ -209,7 +196,7 @@ export function Combobox<T>({
 
 	const rendered = typeof children === 'function' ? children(query) : children
 
-	const contextValue = useMemo<ComboboxContextValue>(
+	const contextValue = useMemo(
 		() => ({ value, multiple, select: select as (v: unknown) => void, query }),
 		[value, multiple, select, query],
 	)

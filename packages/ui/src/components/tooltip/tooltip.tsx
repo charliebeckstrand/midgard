@@ -10,27 +10,10 @@ import {
 	useInteractions,
 	useRole,
 } from '@floating-ui/react'
-import { type CSSProperties, type ReactNode, useEffect, useMemo, useRef, useState } from 'react'
-import { createContext } from '../../core'
+import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { useFloatingPanel, useHasHover } from '../../hooks'
 import type { Step } from '../../recipes/ryu/sun'
-
-type TooltipContextValue = {
-	open: boolean
-	interactive: boolean
-	enabled: boolean
-	size?: Step
-	className?: string
-	setReference: (node: HTMLElement | null) => void
-	setFloating: (node: HTMLElement | null) => void
-	floatingStyles: CSSProperties
-	getReferenceProps: (userProps?: object) => Record<string, unknown>
-	getFloatingProps: (userProps?: object) => Record<string, unknown>
-}
-
-const [TooltipProvider, useTooltipContext] = createContext<TooltipContextValue>('Tooltip')
-
-export { useTooltipContext }
+import { TooltipProvider } from './context'
 
 export type TooltipProps = {
 	placement?: Placement
@@ -127,7 +110,7 @@ export function Tooltip({
 		role,
 	])
 
-	const contextValue = useMemo<TooltipContextValue>(
+	const contextValue = useMemo(
 		() => ({
 			open,
 			interactive,

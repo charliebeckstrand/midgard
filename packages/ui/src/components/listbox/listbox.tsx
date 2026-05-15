@@ -3,16 +3,16 @@
 import { FloatingPortal, type Placement } from '@floating-ui/react'
 import { ChevronsUpDown } from 'lucide-react'
 import { AnimatePresence } from 'motion/react'
-import { type ReactNode, useCallback, useId, useMemo, useRef } from 'react'
-import { cn, createContext } from '../../core'
-import { useFloatingUI } from '../../hooks'
+import { type ReactNode, useId, useMemo, useRef } from 'react'
+import { cn } from '../../core'
+import { useFloatingUI, useSelectableValueChange } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { ConcentricProvider, useResolvedSize } from '../../primitives/concentric'
 import { useJoin } from '../../primitives/join'
 import { PopoverPanel } from '../../primitives/popover'
 import { iro, kokkaku } from '../../recipes'
 import { k, listboxVariants } from '../../recipes/kata/listbox'
-import { popover as kPopover } from '../../recipes/kata/popover'
+import { popover as kPopover } from '../../recipes/waku/popover'
 import { type ControlSize, useControl } from '../control/context'
 import { invalidAttrs } from '../control/control-invalid-attrs'
 import { useGlass } from '../glass/context'
@@ -20,17 +20,9 @@ import { Icon } from '../icon'
 import { Placeholder } from '../placeholder'
 import { SelectTrigger } from '../select/select-trigger'
 import { useSkeleton } from '../skeleton/context'
+import { ListboxProvider } from './context'
 import { resolveLabel } from './listbox-utilities'
 import { useListboxState } from './use-listbox-state'
-
-type ListboxContextValue<T = unknown> = {
-	value: T | T[] | undefined
-	multiple: boolean
-	select: (value: T) => void
-	close: () => void
-}
-
-export const [ListboxProvider, useListboxContext] = createContext<ListboxContextValue>('Listbox')
 
 type ListboxBaseProps = {
 	placeholder?: string
@@ -107,13 +99,9 @@ export function Listbox<T>({
 
 	const resolvedSize = useResolvedSize(size)
 
-	const handleValueChange = useCallback(
-		(nextValue: T | T[] | undefined) => {
-			if (nextValue === undefined && multiple) return
-
-			;(onValueChange as ((value: T | T[] | undefined) => void) | undefined)?.(nextValue)
-		},
-		[onValueChange, multiple],
+	const handleValueChange = useSelectableValueChange<T>(
+		onValueChange as ((value: T | T[] | undefined) => void) | undefined,
+		multiple,
 	)
 
 	const [value, setValue] = useControllable<T | T[]>({
@@ -142,7 +130,7 @@ export function Listbox<T>({
 
 	const label = resolveLabel({ value, displayValue, multiple })
 
-	const contextValue = useMemo<ListboxContextValue>(
+	const contextValue = useMemo(
 		() => ({ value, multiple, select: select as (v: unknown) => void, close }),
 		[value, multiple, select, close],
 	)

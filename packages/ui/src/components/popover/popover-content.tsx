@@ -7,11 +7,11 @@ import { cn } from '../../core'
 import { ConcentricProvider, useResolvedSize } from '../../primitives/concentric'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { iro, omote, ugoki } from '../../recipes'
-import { k } from '../../recipes/kata/popover'
 import type { Step } from '../../recipes/ryu/sun'
+import { k } from '../../recipes/waku/popover'
 import { Box, type BoxPadding } from '../box'
 import { useGlass } from '../glass/context'
-import { usePopoverContext } from './popover'
+import { usePopoverContext } from './context'
 
 // Surface padding scales with the resolved concentric size. Consumers can still
 // override per-instance via the `p` prop.

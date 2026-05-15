@@ -3,7 +3,7 @@
 import type { OptionDescriptionProps, OptionLabelProps, OptionProps } from '../../primitives/option'
 import { createSelectOption } from '../../primitives/option'
 import { OptionCheckIcon } from '../option'
-import { useListboxContext } from './listbox'
+import { useListboxContext } from './context'
 
 export type ListboxOptionProps = OptionProps
 

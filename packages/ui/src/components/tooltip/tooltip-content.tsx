@@ -10,7 +10,7 @@ import { ugoki } from '../../recipes'
 import { k } from '../../recipes/kata/tooltip'
 import type { Step } from '../../recipes/ryu/sun'
 import { useGlass } from '../glass/context'
-import { useTooltipContext } from './tooltip'
+import { useTooltipContext } from './context'
 
 export type TooltipContentProps = {
 	/**

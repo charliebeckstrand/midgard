@@ -1,4 +1,5 @@
-export { Menu, type MenuProps, useMenuActions } from './menu'
+export { useMenuActions } from './context'
+export { Menu, type MenuProps } from './menu'
 export { MenuContent, type MenuContentProps } from './menu-content'
 export {
 	MenuDescription,

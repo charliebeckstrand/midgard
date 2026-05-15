@@ -2,7 +2,7 @@
 
 import type { MouseEvent, MouseEventHandler, ReactElement } from 'react'
 import { cloneElement } from 'react'
-import { useSheetContext } from './sheet'
+import { useSheetContext } from './context'
 
 export type SheetCloseProps = {
 	children: ReactElement<{ onClick?: MouseEventHandler }>
