@@ -34,6 +34,7 @@ import { resolveInputDisplay } from './combobox-utilities'
 import { ComboboxProvider } from './context'
 import { useComboboxInput } from './use-combobox-input'
 import { useComboboxState } from './use-combobox-state'
+import { useComboboxTrigger } from './use-combobox-trigger'
 
 type ComboboxBaseProps<T> = {
 	id?: string
@@ -181,6 +182,8 @@ export function Combobox<T>({
 		rovingKeyDown: handleKeyDown,
 	})
 
+	const triggerHandlers = useComboboxTrigger({ open, close, setOpen, inputRef })
+
 	const scrollWithin = useScrollWithin()
 
 	const scrollToSelected = useCallback(
@@ -237,18 +240,7 @@ export function Combobox<T>({
 							aria-label={open ? 'Close' : 'Open'}
 							disabled={resolvedDisabled}
 							className={cn(k.chevron)}
-							onMouseDown={(e) => {
-								e.preventDefault()
-
-								if (open) {
-									close()
-								} else {
-									inputRef.current?.focus()
-									inputRef.current?.select()
-
-									setOpen(true)
-								}
-							}}
+							onMouseDown={triggerHandlers.onMouseDown}
 						>
 							<Icon icon={<ChevronsUpDown />} />
 						</Button>
