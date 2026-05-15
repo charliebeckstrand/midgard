@@ -9,8 +9,12 @@ export type IdScope = {
 	sub: (suffix: string) => string
 }
 
+export type UseIdScopeOptions = {
+	id?: string
+}
+
 /** Stable scoped ID with a helper for deriving related IDs. */
-export function useIdScope(options?: { id?: string }): IdScope {
+export function useIdScope(options?: UseIdScopeOptions): IdScope {
 	const generatedId = useId()
 
 	const id = options?.id ?? generatedId

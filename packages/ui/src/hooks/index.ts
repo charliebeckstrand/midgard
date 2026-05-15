@@ -11,7 +11,7 @@ export {
 } from './use-floating-ui'
 export { useFocusTrap } from './use-focus-trap'
 export { useHasHover } from './use-has-hover'
-export { type IdScope, useIdScope } from './use-id-scope'
+export { type IdScope, type UseIdScopeOptions, useIdScope } from './use-id-scope'
 export { useIsTruncated } from './use-is-truncated'
 export { useKeyboardSettled } from './use-keyboard-settled'
 export {
@@ -22,7 +22,7 @@ export {
 export { useMediaQuery } from './use-media-query'
 export { useMinWidth } from './use-min-width'
 export { useOffcanvas } from './use-offcanvas'
-export { useRipple } from './use-ripple'
+export { type UseRippleOptions, useRipple } from './use-ripple'
 export {
 	type Orientation,
 	type RovingConfig,
