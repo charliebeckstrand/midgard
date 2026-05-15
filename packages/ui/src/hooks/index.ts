@@ -3,26 +3,20 @@ export { type UseDeferredToggleOptions, useDeferredToggle } from './use-deferred
 export { type UseDismissableOptions, useDismissable } from './use-dismissable'
 export {
 	type UseFloatingPanelOptions,
-	type UseFloatingPanelReturn,
 	type UseFloatingUIOptions,
-	type UseFloatingUIReturn,
 	useFloatingPanel,
 	useFloatingUI,
 } from './use-floating-ui'
 export { useFocusTrap } from './use-focus-trap'
 export { useHasHover } from './use-has-hover'
-export { type IdScope, useIdScope } from './use-id-scope'
+export { type UseIdScopeOptions, useIdScope } from './use-id-scope'
 export { useIsTruncated } from './use-is-truncated'
 export { useKeyboardSettled } from './use-keyboard-settled'
-export {
-	type UseMaskedInputOptions,
-	type UseMaskedInputReturn,
-	useMaskedInput,
-} from './use-masked-input'
+export { type UseMaskedInputOptions, useMaskedInput } from './use-masked-input'
 export { useMediaQuery } from './use-media-query'
 export { useMinWidth } from './use-min-width'
 export { useOffcanvas } from './use-offcanvas'
-export { useRipple } from './use-ripple'
+export { type UseRippleOptions, useRipple } from './use-ripple'
 export {
 	type Orientation,
 	type RovingConfig,
@@ -33,14 +27,6 @@ export {
 	type UseScrollWithinOptions,
 	useScrollWithin,
 } from './use-scroll-within'
-export {
-	type UseSortableItemOptions,
-	type UseSortableItemReturn,
-	useSortableItem,
-} from './use-sortable-item'
-export {
-	type UseSortableListOptions,
-	type UseSortableListReturn,
-	useSortableList,
-} from './use-sortable-list'
+export { type UseSortableItemOptions, useSortableItem } from './use-sortable-item'
+export { type UseSortableListOptions, useSortableList } from './use-sortable-list'
 export { type UseSortableSensorsOptions, useSortableSensors } from './use-sortable-sensors'
