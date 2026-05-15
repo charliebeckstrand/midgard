@@ -6,9 +6,6 @@ pre-commit:
     - name: check-types
       run: pnpm check-types
       priority: 2
-    - name: filename check
-      run: pnpm --filter ui lint:filenames
-      priority: 3
     - name: test
       run: pnpm --filter ui test
-      priority: 4
+      priority: 3

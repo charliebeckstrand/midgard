@@ -1,34 +1,25 @@
-/**
- * Enforces the file-naming convention documented in CLAUDE.md → "File naming".
- *
- * Walks every leaf folder under `packages/ui/src/components/` and verifies each
- * `.ts` / `.tsx` file is one of:
- *
- * - the main component file:   `<folder>.tsx`
- * - a prefixed sub-file:       `<folder>-<part>.tsx` (or singular stem when folder is plural)
- * - a prefixed hook:           `use-<folder>.ts(x)` or `use-<folder>-<hook>.ts(x)`
- *                              (singular stem also accepted when folder is plural)
- * - a permitted bare file:     `index.ts(x)`, `types.ts`, `context.ts(x)`, `slots.ts(x)`
- *
- * In addition, every component / hook file must export a symbol whose PascalCase
- * (or `useCamelCase`) form matches its kebab-case filename. `tag-input-badge.tsx`
- * must export `TagInputBadge`; `use-tag-input-keyboard.ts` must export
- * `useTagInputKeyboard`. Catches the case where a file is renamed but its
- * exported component or hook keeps the old, now-divergent name.
- *
- * Existing offenders are pinned in `filename-allowlist.json`. CI fails on any
- * file not on the allowlist that breaks the rule. The allowlist shrinks as the
- * convention is rolled out and is deleted in the final sweep.
- */
-import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { basename, dirname, join, parse, relative } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { readdirSync, readFileSync } from 'node:fs'
+import { basename, join, parse, relative } from 'node:path'
+import { describe, expect, it } from 'vitest'
 
-const here = dirname(fileURLToPath(import.meta.url))
+// Enforces the file-naming convention documented in CLAUDE.md → "File naming".
+//
+// Every `.ts` / `.tsx` file in a component folder must be one of:
+//
+//   - the main component file:   `<folder>.tsx`
+//   - a prefixed sub-file:       `<folder>-<part>.tsx` (or singular stem when folder is plural)
+//   - a prefixed hook:           `use-<folder>.ts(x)` or `use-<folder>-<hook>.ts(x)`
+//                                (singular stem also accepted when folder is plural)
+//   - a permitted bare file:     `index.ts(x)`, `types.ts`, `context.ts(x)`, `slots.ts(x)`,
+//                                `variants.ts`
+//
+// In addition, every component / hook file must export a symbol whose
+// PascalCase (or `useCamelCase`) form matches its kebab-case filename —
+// `tag-input-badge.tsx` exports `TagInputBadge`, `use-tag-input-keyboard.ts`
+// exports `useTagInputKeyboard`. Catches the case where a file is renamed but
+// its exported component or hook keeps the old, now-divergent name.
 
-const componentsRoot = join(here, '..', 'src', 'components')
-
-const allowlistPath = join(here, 'filename-allowlist.json')
+const componentsDir = join(__dirname, '../../../components')
 
 const BARE_ALLOWED = new Set([
 	'index.ts',
@@ -41,9 +32,23 @@ const BARE_ALLOWED = new Set([
 	'variants.ts',
 ])
 
-// Suffixes that name a collection of helpers rather than a single component or hook.
-// Files matching these are exempt from the filename-vs-symbol match.
+// Suffixes that name a collection of helpers rather than a single component or
+// hook. Files matching these are exempt from the filename-vs-symbol match.
 const UTILITY_SUFFIXES = ['-utilities', '-helpers', '-constants'] as const
+
+// Grandfathered files where renaming would break a stable public API
+// (`Field`, `Label`, etc.). Never extend this list for new files — fix the
+// file or fix the export.
+const ALLOWLIST = new Set([
+	'dl/description-details.tsx',
+	'dl/description-list.tsx',
+	'dl/description-term.tsx',
+	'fieldset/description.tsx',
+	'fieldset/field.tsx',
+	'fieldset/label.tsx',
+	'fieldset/legend.tsx',
+	'fieldset/message.tsx',
+])
 
 type Violation = { path: string; reason: string }
 
@@ -159,7 +164,7 @@ function checkFolder(folderPath: string): Violation[] {
 
 		if (BARE_ALLOWED.has(file)) continue
 
-		const path = relative(componentsRoot, join(folderPath, file))
+		const path = relative(componentsDir, join(folderPath, file))
 
 		const nameReason = classifyName(file, folderName, stems)
 
@@ -176,56 +181,32 @@ function checkFolder(folderPath: string): Violation[] {
 	return violations
 }
 
-function reportAndExit(header: string, lines: string[], hint: string): never {
-	console.error(`\n${lines.length} ${header}:\n`)
+describe('component filename boundary', () => {
+	const folders = listLeafFolders(componentsDir)
 
-	for (const line of lines) console.error(`  ${line}`)
+	const violations = folders.flatMap(checkFolder)
 
-	console.error(`\n${hint}\n`)
+	const newViolations = violations.filter((v) => !ALLOWLIST.has(v.path))
 
-	process.exit(1)
-}
+	const violationPaths = new Set(violations.map((v) => v.path))
 
-const folders = listLeafFolders(componentsRoot)
+	const staleEntries = [...ALLOWLIST].filter((p) => !violationPaths.has(p))
 
-const violations = folders.flatMap(checkFolder)
+	it('every component file matches the filename convention', () => {
+		expect(
+			newViolations,
+			`filename violation(s) in packages/ui/src/components — see CLAUDE.md → "File naming":\n${newViolations
+				.map((v) => `  ${v.path}\n    ${v.reason}`)
+				.join('\n')}`,
+		).toEqual([])
+	})
 
-if (process.argv.includes('--write-allowlist')) {
-	const paths = violations.map((v) => v.path).sort()
-
-	writeFileSync(allowlistPath, `${JSON.stringify(paths, null, '\t')}\n`)
-
-	console.log(`Wrote ${paths.length} entries to ${relative(process.cwd(), allowlistPath)}`)
-
-	process.exit(0)
-}
-
-const allowlist: string[] = existsSync(allowlistPath)
-	? JSON.parse(readFileSync(allowlistPath, 'utf8'))
-	: []
-
-const allowed = new Set(allowlist)
-
-const violationPaths = new Set(violations.map((v) => v.path))
-
-const newViolations = violations.filter((v) => !allowed.has(v.path))
-
-const staleEntries = allowlist.filter((p) => !violationPaths.has(p))
-
-if (newViolations.length > 0) {
-	reportAndExit(
-		'filename violation(s) in packages/ui/src/components',
-		newViolations.flatMap((v) => [v.path, `    ${v.reason}`]),
-		'See CLAUDE.md → "File naming" for the rule.',
-	)
-}
-
-if (staleEntries.length > 0) {
-	reportAndExit(
-		'stale allowlist entry/ies (file no longer exists or no longer violates)',
-		staleEntries,
-		'Remove them from packages/ui/scripts/filename-allowlist.json.',
-	)
-}
-
-console.log(`OK · ${folders.length} folders checked · ${allowlist.length} allowlisted`)
+	it('the allowlist does not contain stale entries', () => {
+		expect(
+			staleEntries,
+			`stale allowlist entry/ies (file no longer exists or no longer violates) — remove them from ALLOWLIST:\n${staleEntries
+				.map((p) => `  ${p}`)
+				.join('\n')}`,
+		).toEqual([])
+	})
+})
