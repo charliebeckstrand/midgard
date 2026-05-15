@@ -18,9 +18,9 @@ import { k } from '../../recipes/kata/calendar'
 import type { Step } from '../../recipes/ryu/sun'
 import { Button, type ButtonVariants } from '../button'
 import { Icon } from '../icon'
-import { CalendarDayCell } from './calendar-day-cell'
+import { CalendarGrid } from './calendar-grid'
 import { CalendarPicker } from './calendar-picker'
-import { getCalendarDays, isBeforeDay, isSameDay, WEEKDAYS } from './calendar-utilities'
+import { getCalendarDays, isBeforeDay } from './calendar-utilities'
 import { useCalendarFocus } from './use-calendar-focus'
 
 export type CalendarActive =
@@ -252,54 +252,19 @@ export function Calendar({
 					/>
 				</div>
 
-				<div className={k.grid}>
-					{WEEKDAYS.map((day) => (
-						<div key={day} className={cn(k.weekday({ size: resolvedSize }))} aria-hidden="true">
-							{day}
-						</div>
-					))}
-
-					<div
-						ref={gridRef}
-						role="listbox"
-						onKeyDown={handleGridKeyDown}
-						className="col-span-7 grid grid-cols-7"
-					>
-						{days.map((date) => {
-							const disabled = isDisabled(date)
-
-							const isToday = isSameDay(date, today)
-
-							const isSelected = value != null && isSameDay(date, value)
-
-							const isActive = activeGridDate != null && isSameDay(date, activeGridDate)
-
-							const dayProps = getDayProps?.({ date, disabled, isToday, isSelected, isActive })
-
-							const selected = dayProps?.selected ?? isSelected
-
-							const gridColumnStart = date.getDate() === 1 ? firstDayColumn : undefined
-
-							return (
-								<CalendarDayCell
-									key={date.toISOString()}
-									date={date}
-									disabled={disabled}
-									isToday={isToday}
-									isActive={isActive}
-									selected={selected}
-									variant={dayProps?.variant}
-									color={dayProps?.color}
-									className={dayProps?.className}
-									gridColumnStart={gridColumnStart}
-									onSelect={handleSelect}
-									onMouseEnter={dayProps?.onMouseEnter}
-									onMouseLeave={dayProps?.onMouseLeave}
-								/>
-							)
-						})}
-					</div>
-				</div>
+				<CalendarGrid
+					gridRef={gridRef}
+					onGridKeyDown={handleGridKeyDown}
+					size={resolvedSize}
+					days={days}
+					firstDayColumn={firstDayColumn}
+					today={today}
+					value={value}
+					activeGridDate={activeGridDate}
+					isDisabled={isDisabled}
+					getDayProps={getDayProps}
+					onSelect={handleSelect}
+				/>
 			</div>
 		</ConcentricProvider>
 	)
