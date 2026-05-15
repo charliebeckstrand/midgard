@@ -1,22 +1,15 @@
 'use client'
 
-import { ChevronRight } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { memo, useEffect, useMemo, useState } from 'react'
-import { cn } from '../../core'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { ugoki } from '../../recipes'
 import { k } from '../../recipes/kata/json-tree'
-import { Icon } from '../icon'
 import { JsonTreeProvider, useJsonTreeContext } from './context'
-import { NodeKey, PrimitiveValue } from './json-tree-helpers'
-import {
-	filterEntries,
-	getEntries,
-	INDENT_REM,
-	isBranch,
-	matchesSearch,
-} from './json-tree-utilities'
+import { JsonTreeBranchClose } from './json-tree-branch-close'
+import { JsonTreeBranchHeader } from './json-tree-branch-header'
+import { JsonTreeLeafRow } from './json-tree-leaf-row'
+import { filterEntries, getEntries, isBranch, matchesSearch } from './json-tree-utilities'
 import type { JsonValue } from './types'
 import { toggleExpandedSet } from './use-json-tree-expansion'
 
@@ -92,33 +85,11 @@ export const JsonTreeNode = memo(function JsonTreeNode({ keyName, value }: JsonN
 
 	const isArray = Array.isArray(value)
 
-	const openBracket = isArray ? '[' : '{'
-	const closeBracket = isArray ? ']' : '}'
-
 	const count = visibleEntries.length
-
-	const summary = count === 0 ? '' : count === 1 ? '1 item' : `${count} items`
-
-	const paddingLeft = `${depth * INDENT_REM}rem`
 
 	if (!branch) {
 		return (
-			<div data-highlighted={highlighted || undefined}>
-				<div className={cn(k.row)} style={{ paddingLeft }}>
-					<div
-						role="treeitem"
-						tabIndex={depth === 0 ? 0 : -1}
-						data-slot="json-node"
-						className={cn(k.leaf)}
-					>
-						<span className={k.chevronSpacer} aria-hidden="true" />
-						<span className={cn(k.content, highlighted && k.highlight)}>
-							<NodeKey keyName={keyName} />
-							<PrimitiveValue value={value} />
-						</span>
-					</div>
-				</div>
-			</div>
+			<JsonTreeLeafRow depth={depth} keyName={keyName} value={value} highlighted={highlighted} />
 		)
 	}
 
@@ -132,35 +103,15 @@ export const JsonTreeNode = memo(function JsonTreeNode({ keyName, value }: JsonN
 
 	return (
 		<div data-slot="json-node" data-highlighted={highlighted || undefined}>
-			<div className={cn(k.row)} style={{ paddingLeft }}>
-				<button
-					type="button"
-					role="treeitem"
-					aria-expanded={open}
-					aria-level={depth + 1}
-					tabIndex={depth === 0 ? 0 : -1}
-					data-slot="json-node-toggle"
-					data-open={open || undefined}
-					className={cn(k.toggle)}
-					onClick={toggle}
-				>
-					<span className={cn(k.chevron)} aria-hidden="true">
-						<Icon icon={<ChevronRight />} size="sm" className={cn(open && 'rotate-90')} />
-					</span>
-					<span className={cn(k.content, highlighted && k.highlight)}>
-						<NodeKey keyName={keyName} />
-						<span className={cn(k.punctuation)}>{openBracket}</span>
-						{!open && count > 0 && (
-							<>
-								<span className={cn(k.summary)}>{summary}</span>
-								<span className={cn(k.punctuation)}>{closeBracket}</span>
-							</>
-						)}
-						{!open && count === 0 && <span className={cn(k.punctuation)}>{closeBracket}</span>}
-					</span>
-				</button>
-			</div>
-
+			<JsonTreeBranchHeader
+				depth={depth}
+				keyName={keyName}
+				isArray={isArray}
+				open={open}
+				count={count}
+				highlighted={highlighted}
+				onToggle={toggle}
+			/>
 			<ReducedMotion>
 				<AnimatePresence initial={false}>
 					{open && (
@@ -170,14 +121,7 @@ export const JsonTreeNode = memo(function JsonTreeNode({ keyName, value }: JsonN
 									<JsonTreeNode key={String(childKey)} keyName={childKey} value={childValue} />
 								))}
 							</JsonTreeProvider>
-							<div
-								data-slot="json-close"
-								className={cn(k.row, k.punctuation)}
-								style={{ paddingLeft }}
-							>
-								<span className={k.chevronSpacer} aria-hidden="true" />
-								{closeBracket}
-							</div>
+							<JsonTreeBranchClose depth={depth} isArray={isArray} />
 						</motion.div>
 					)}
 				</AnimatePresence>
