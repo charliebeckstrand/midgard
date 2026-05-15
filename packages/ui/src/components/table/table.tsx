@@ -51,11 +51,10 @@ export function Table({
 	const ctx = useMemo<TableContextValue>(
 		() => ({
 			size: resolvedSize,
-			bleed: bleed ?? false,
 			grid: grid ?? false,
 			striped: striped ?? false,
 		}),
-		[resolvedSize, bleed, grid, striped],
+		[resolvedSize, grid, striped],
 	)
 
 	return (

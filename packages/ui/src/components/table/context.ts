@@ -3,7 +3,6 @@ import type { Step } from '../../recipes/ryu/sun'
 
 export type TableContextValue = {
 	size: Step
-	bleed: boolean
 	grid: boolean
 	striped: boolean
 }
