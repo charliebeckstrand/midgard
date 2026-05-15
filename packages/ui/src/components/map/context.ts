@@ -3,7 +3,7 @@
 import type { Map as MapLibreMap } from 'maplibre-gl'
 import { createContext } from '../../core'
 
-type MapContextValue = {
+export type MapContextValue = {
 	getMap: () => MapLibreMap | null
 	onReady: (cb: (map: MapLibreMap) => void) => () => void
 }
