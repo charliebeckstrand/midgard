@@ -1,6 +1,11 @@
 'use client'
 
-import { DndContext, DragOverlay, type DragStartEvent } from '@dnd-kit/core'
+import {
+	DndContext,
+	type DraggableAttributes,
+	DragOverlay,
+	type DragStartEvent,
+} from '@dnd-kit/core'
 import { SortableContext } from '@dnd-kit/sortable'
 import { type ReactNode, useCallback, useMemo } from 'react'
 import { cn } from '../../core'
@@ -150,7 +155,7 @@ export function List<T>({
 									id: effectiveGetKey(activeItem),
 									setNodeRef: noop,
 									setActivatorNodeRef: noop,
-									attributes: {} as never,
+									attributes: {} as DraggableAttributes,
 									listeners: undefined,
 									style: {},
 									isDragging: true,
