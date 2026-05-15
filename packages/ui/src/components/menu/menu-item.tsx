@@ -4,7 +4,6 @@ import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { cn } from '../../core'
 import { useResolvedSize } from '../../primitives/concentric'
 import { k } from '../../recipes/kata/menu'
-import { Kbd, type KbdProps } from '../kbd'
 import { Link } from '../link'
 import { useMenuActions } from './context'
 
@@ -90,22 +89,4 @@ export function MenuItem(props: MenuItemProps) {
 			{children}
 		</button>
 	)
-}
-
-export type MenuLabelProps = ComponentPropsWithoutRef<'span'>
-
-export function MenuLabel({ className, ...props }: MenuLabelProps) {
-	return <span data-slot="menu-label" className={cn(k.label, className)} {...props} />
-}
-
-export type MenuDescriptionProps = ComponentPropsWithoutRef<'span'>
-
-export function MenuDescription({ className, ...props }: MenuDescriptionProps) {
-	return <span data-slot="menu-description" className={cn(k.description, className)} {...props} />
-}
-
-export type MenuShortcutProps = KbdProps
-
-export function MenuShortcut({ className, ...props }: MenuShortcutProps) {
-	return <Kbd data-slot="menu-shortcut" className={cn(k.shortcut, className)} {...props} />
 }
