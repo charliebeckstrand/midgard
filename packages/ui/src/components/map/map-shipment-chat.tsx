@@ -5,13 +5,14 @@ import { type FormEvent, useEffect, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { Alert, AlertTitle } from '../alert'
 import { Button } from '../button'
+import { ChatMessage } from '../chat-message'
 import { Icon } from '../icon'
 import { Input } from '../input'
 import { Stack } from '../stack'
-import type { ChatMessage } from './types'
+import type { ChatMessage as ChatMessageData } from './types'
 
 export type MapShipmentChatProps = {
-	messages: ChatMessage[]
+	messages: ChatMessageData[]
 	onSend?: (body: string) => unknown | Promise<unknown>
 }
 
@@ -78,7 +79,15 @@ export function MapShipmentChat({ messages, onSend }: MapShipmentChatProps) {
 						<AlertTitle>No messages yet</AlertTitle>
 					</Alert>
 				) : (
-					messages.map((m) => <ChatBubble key={m.id} message={m} />)
+					messages.map((m) => (
+						<ChatMessage
+							key={m.id}
+							type={m.author === 'me' ? 'user' : 'assistant'}
+							timestamp={m.timestamp ? formatChatTimestamp(m.timestamp) : undefined}
+						>
+							{m.body}
+						</ChatMessage>
+					))
 				)}
 			</div>
 			{onSend && (
@@ -100,38 +109,10 @@ export function MapShipmentChat({ messages, onSend }: MapShipmentChatProps) {
 	)
 }
 
-function ChatBubble({ message }: { message: ChatMessage }) {
-	const mine = message.author === 'me'
+function formatChatTimestamp(timestamp: string | Date) {
+	const date = typeof timestamp === 'string' ? new Date(timestamp) : timestamp
 
-	const timestamp = message.timestamp
-		? formatChatTimestamp(
-				typeof message.timestamp === 'string' ? new Date(message.timestamp) : message.timestamp,
-			)
-		: null
-
-	return (
-		<div
-			data-slot="map-shipment-chat-message"
-			data-author={message.author}
-			className={cn('flex flex-col', mine ? 'items-end' : 'items-start')}
-		>
-			<div
-				className={cn(
-					'max-w-[80%] rounded-2xl px-3 py-2 text-sm',
-					mine
-						? 'rounded-br-sm bg-blue-600 text-white'
-						: 'rounded-bl-sm bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-zinc-100',
-				)}
-			>
-				{message.body}
-			</div>
-			{timestamp && <span className="mt-0.5 text-xs text-zinc-500">{timestamp}</span>}
-		</div>
-	)
-}
-
-function formatChatTimestamp(date: Date) {
-	if (Number.isNaN(date.getTime())) return null
+	if (Number.isNaN(date.getTime())) return undefined
 
 	return date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
 }
