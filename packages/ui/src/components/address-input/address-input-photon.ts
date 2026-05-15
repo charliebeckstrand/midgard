@@ -18,6 +18,39 @@ type PhotonFeature = {
 
 type PhotonResponse = { features: PhotonFeature[] }
 
+function isPhotonFeature(value: unknown): value is PhotonFeature {
+	if (typeof value !== 'object' || value === null) return false
+
+	const f = value as { geometry?: unknown; properties?: unknown }
+
+	if (typeof f.geometry !== 'object' || f.geometry === null) return false
+
+	const coords = (f.geometry as { coordinates?: unknown }).coordinates
+
+	if (
+		!Array.isArray(coords) ||
+		coords.length !== 2 ||
+		typeof coords[0] !== 'number' ||
+		typeof coords[1] !== 'number'
+	) {
+		return false
+	}
+
+	if (typeof f.properties !== 'object' || f.properties === null) return false
+
+	const p = f.properties as { osm_id?: unknown; osm_type?: unknown }
+
+	return typeof p.osm_id === 'number' && typeof p.osm_type === 'string'
+}
+
+function isPhotonResponse(value: unknown): value is PhotonResponse {
+	if (typeof value !== 'object' || value === null) return false
+
+	const features = (value as { features?: unknown }).features
+
+	return Array.isArray(features) && features.every(isPhotonFeature)
+}
+
 const PHOTON_ENDPOINT = 'https://photon.komoot.io/api/'
 
 export const photonProvider: AddressProvider = async (query, { signal }) => {
@@ -27,7 +60,9 @@ export const photonProvider: AddressProvider = async (query, { signal }) => {
 
 	if (!response.ok) throw new Error(`Photon request failed: ${response.status}`)
 
-	const data = (await response.json()) as PhotonResponse
+	const data: unknown = await response.json()
+
+	if (!isPhotonResponse(data)) throw new Error('Photon response did not match expected shape')
 
 	return data.features.map(featureToSuggestion)
 }
