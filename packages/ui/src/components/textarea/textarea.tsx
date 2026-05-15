@@ -11,6 +11,7 @@ import {
 	type TextareaVariants,
 	textareaVariants,
 } from '../../recipes/kata/textarea'
+import type { Step } from '../../recipes/ryu/sun'
 import { useControl } from '../control/context'
 import { invalidAttrs } from '../control/control-invalid-attrs'
 import { useControlFieldProps } from '../control/use-control-field-props'
@@ -20,7 +21,7 @@ import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
 
 export type TextareaProps = Omit<TextareaVariants, 'size'> & {
-	size?: 'sm' | 'md' | 'lg'
+	size?: Step
 	className?: string
 	actions?: ReactNode
 } & Omit<ComponentPropsWithoutRef<'textarea'>, 'className' | 'size'>
