@@ -11,7 +11,7 @@ import { describe, expect, it } from 'vitest'
 //   2. The recipes barrel never re-exports anything from kata/ or waku/.
 //   3. No app or sibling package imports from 'ui/recipes/*'.
 
-const uiRoot = join(__dirname, '../../..')
+const uiRoot = join(__dirname, '../../../..')
 const workspaceRoot = join(uiRoot, '../..')
 
 describe('recipes internal-boundary contract', () => {

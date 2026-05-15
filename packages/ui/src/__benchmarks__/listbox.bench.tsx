@@ -1,6 +1,7 @@
 import { cleanup, render } from '@testing-library/react'
 import { bench, describe } from 'vitest'
-import { Listbox, ListboxLabel, ListboxOption, ListboxVirtualOptions } from '../components/listbox'
+import { Listbox, ListboxLabel, ListboxOption } from '../components/listbox'
+import { VirtualOptions } from '../primitives/virtual-options'
 import { makeComboboxOptions } from './fixtures'
 
 // Listbox opens on user click, so we can't benchmark the open-panel path the
@@ -71,13 +72,13 @@ describe('Listbox · virtualized', () => {
 	function renderVirt(opts: { value: string; label: string }[]) {
 		return (
 			<div role="listbox" style={{ maxHeight: '400px', overflow: 'auto' }}>
-				<ListboxVirtualOptions items={opts} estimateSize={36}>
+				<VirtualOptions items={opts} estimateSize={36}>
 					{(o) => (
 						<ListboxOption key={o.value} value={o.value}>
 							<ListboxLabel>{o.label}</ListboxLabel>
 						</ListboxOption>
 					)}
-				</ListboxVirtualOptions>
+				</VirtualOptions>
 			</div>
 		)
 	}

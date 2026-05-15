@@ -2,11 +2,10 @@ import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-const srcDir = join(__dirname, '../..')
+const srcDir = join(__dirname, '../../..')
 
 const REACT_CREATE_CONTEXT = /import\s+\{[^}]*\bcreateContext\b[^}]*\}\s+from\s+['"]react['"]/
 
-/** Only `core/create-context.ts` is allowed to import `createContext` from React. */
 function isSanctioned(rel: string): boolean {
 	return rel === 'core/create-context.ts'
 }
@@ -43,6 +42,7 @@ describe('createContext boundary', () => {
 
 			if (!REACT_CREATE_CONTEXT.test(source)) continue
 
+			/** Only `core/create-context.ts` is allowed to import `createContext` from React. */
 			if (isSanctioned(rel)) continue
 
 			violations.push(rel)

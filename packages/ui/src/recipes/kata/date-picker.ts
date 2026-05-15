@@ -3,7 +3,7 @@ import { iro } from '../ryu/iro'
 import { sawari } from '../ryu/sawari'
 import { control } from '../waku/control'
 
-const datepickerButton = tv({
+const datePickerButton = tv({
 	base: [
 		'flex items-center justify-between',
 		...control.field,
@@ -18,7 +18,7 @@ const datepickerButton = tv({
 	defaultVariants: { size: 'md' },
 })
 
-const datepickerValue = tv({
+const datePickerValue = tv({
 	base: ['block'],
 	variants: {
 		truncate: {
@@ -29,16 +29,16 @@ const datepickerValue = tv({
 	defaultVariants: { truncate: true },
 })
 
-export type DatepickerButtonVariants = VariantProps<typeof datepickerButton>
+export type DatePickerButtonVariants = VariantProps<typeof datePickerButton>
 
-export const datepicker = {
+export const datePicker = {
 	control: {
 		default: control.surface.default,
 		glass: [],
 	},
-	button: datepickerButton,
-	value: datepickerValue,
+	button: datePickerButton,
+	value: datePickerValue,
 	icon: ['flex items-center', 'pointer-events-none', iro.text.muted],
 }
 
-export { datepicker as k, datepickerButton as datepickerButtonVariants }
+export { datePicker as k, datePickerButton as datePickerButtonVariants }

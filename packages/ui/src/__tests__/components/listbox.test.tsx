@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { Listbox, ListboxVirtualOptions } from '../../components/listbox'
+import { Listbox } from '../../components/listbox'
 import { resolveLabel } from '../../components/listbox/listbox-utilities'
+import { VirtualOptions } from '../../primitives/virtual-options'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Listbox', () => {
@@ -135,20 +136,20 @@ describe('Listbox', () => {
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 
-	it('ListboxVirtualOptions is exported and mounts', () => {
+	it('VirtualOptions is exported and mounts', () => {
 		// Listbox opens on click; exercise the virtualization helper by mounting
 		// it inside a matching role="listbox" container.
 		const items = Array.from({ length: 500 }, (_, i) => ({ value: `v${i}`, label: `L${i}` }))
 
 		const { container } = renderUI(
 			<div role="listbox" style={{ maxHeight: '200px', overflow: 'auto' }}>
-				<ListboxVirtualOptions items={items} estimateSize={32}>
+				<VirtualOptions items={items} estimateSize={32}>
 					{(o) => (
 						<div key={o.value} role="option" tabIndex={-1}>
 							{o.label}
 						</div>
 					)}
-				</ListboxVirtualOptions>
+				</VirtualOptions>
 			</div>,
 		)
 

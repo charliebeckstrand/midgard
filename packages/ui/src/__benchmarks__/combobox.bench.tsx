@@ -1,8 +1,8 @@
 import { cleanup, render } from '@testing-library/react'
 import { bench, describe } from 'vitest'
-import { ComboboxVirtualOptions } from '../components/combobox'
 import { Combobox } from '../components/combobox/combobox'
 import { ComboboxLabel, ComboboxOption } from '../components/combobox/combobox-option'
+import { VirtualOptions } from '../primitives/virtual-options'
 import { makeComboboxOptions } from './fixtures'
 
 const options100 = makeComboboxOptions(100)
@@ -91,13 +91,13 @@ describe('Combobox · open · virtualized', () => {
 					const filtered = q ? opts.filter((o) => o.label.toLowerCase().includes(q)) : opts
 
 					return (
-						<ComboboxVirtualOptions items={filtered} estimateSize={36}>
+						<VirtualOptions items={filtered} estimateSize={36}>
 							{(o) => (
 								<ComboboxOption key={o.value} value={o.value}>
 									<ComboboxLabel>{o.label}</ComboboxLabel>
 								</ComboboxOption>
 							)}
-						</ComboboxVirtualOptions>
+						</VirtualOptions>
 					)
 				}}
 			</Combobox>

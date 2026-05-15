@@ -1,10 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import {
-	Combobox,
-	ComboboxLabel,
-	ComboboxOption,
-	ComboboxVirtualOptions,
-} from '../../components/combobox'
+import { Combobox, ComboboxLabel, ComboboxOption } from '../../components/combobox'
+import { VirtualOptions } from '../../primitives/virtual-options'
 import { bySlot, renderUI } from '../helpers'
 
 describe('Combobox', () => {
@@ -106,13 +102,13 @@ describe('Combobox', () => {
 
 		renderUI(
 			<Combobox<string> open>
-				<ComboboxVirtualOptions items={options} estimateSize={32}>
+				<VirtualOptions items={options} estimateSize={32}>
 					{(o) => (
 						<ComboboxOption key={o.value} value={o.value}>
 							<ComboboxLabel>{o.label}</ComboboxLabel>
 						</ComboboxOption>
 					)}
-				</ComboboxVirtualOptions>
+				</VirtualOptions>
 			</Combobox>,
 		)
 

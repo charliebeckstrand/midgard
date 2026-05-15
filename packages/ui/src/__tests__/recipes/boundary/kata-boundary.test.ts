@@ -2,11 +2,10 @@ import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-const srcDir = join(__dirname, '../..')
+const srcDir = join(__dirname, '../../..')
 
 const TV_IMPORT = /import\s+\{[^}]*\btv\b[^}]*\}\s+from\s+['"]tailwind-variants['"]/
 
-/** Locations sanctioned to author `tv()` recipes. */
 function isSanctioned(rel: string): boolean {
 	if (rel.startsWith('recipes/kata/') && rel.endsWith('.ts')) return true
 
@@ -46,6 +45,7 @@ describe('kata boundary', () => {
 
 			if (!TV_IMPORT.test(source)) continue
 
+			/** Locations sanctioned to author `tv()` recipes. */
 			if (isSanctioned(rel)) continue
 
 			violations.push(rel)

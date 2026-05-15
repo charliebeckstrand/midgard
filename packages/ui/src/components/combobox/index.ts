@@ -1,7 +1,3 @@
-export {
-	VirtualOptions as ComboboxVirtualOptions,
-	type VirtualOptionsProps as ComboboxVirtualOptionsProps,
-} from '../../primitives/virtual-options'
 export { Combobox, type ComboboxProps } from './combobox'
 export {
 	ComboboxDescription,
