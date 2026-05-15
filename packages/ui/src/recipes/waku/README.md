@@ -23,6 +23,7 @@ for the zero-variant slots.
 | `kasane`  | The signature 4-layer chrome (inset / hover / focus / validation rings) | Used internally by `waku/control`; available to any kata that wants the layered overlay. |
 | `control` | Field archetype: frame + surface + field reset + size + icon + affix + resets + check. Composes `kasane` for the chrome. | `input`, `textarea`, `listbox`, `combobox`, `datepicker`, `checkbox`, `radio`, `switch`, `ControlFrame` |
 | `panel`   | Floating panel archetype: a `definePanelRecipe` factory that builds the title/description/header/body/actions/close slot recipes around the caller's `panel` (and optional `backdrop`) tv() recipes. Backed by `narabi.panel`. | `dialog`, `drawer`, `sheet`, `inspector` |
+| `popover` | Floating overlay archetype: shared `trigger` / `portal` / `panel` class fragments for any component that pops a floating panel anchored to a trigger. | `popover`, `combobox`, `listbox`, `date-picker`, `primitives/popover` |
 
 ## kasane (重ね) — the named signature primitive
 
