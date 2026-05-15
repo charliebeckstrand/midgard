@@ -219,4 +219,18 @@ describe('photonProvider', () => {
 			/Photon request failed: 500/,
 		)
 	})
+
+	it('throws when the response shape does not match', async () => {
+		global.fetch = vi.fn(
+			async () =>
+				({
+					ok: true,
+					json: async () => ({ features: 'not an array' }),
+				}) as Response,
+		)
+
+		await expect(photonProvider('q', { signal: new AbortController().signal })).rejects.toThrow(
+			/did not match expected shape/,
+		)
+	})
 })
