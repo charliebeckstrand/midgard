@@ -34,7 +34,14 @@ type ButtonBaseProps = ButtonVariants & {
 }
 
 export type ButtonProps = ButtonBaseProps &
-	PolymorphicProps<'button', 'prefix'> & { ref?: Ref<HTMLButtonElement> }
+	(
+		| (Extract<PolymorphicProps<'button', 'prefix'>, { href?: never }> & {
+				ref?: Ref<HTMLButtonElement>
+		  })
+		| (Extract<PolymorphicProps<'button', 'prefix'>, { href: string }> & {
+				ref?: Ref<HTMLAnchorElement>
+		  })
+	)
 
 export function Button({
 	variant,
@@ -68,7 +75,7 @@ export function Button({
 	if (headless) {
 		return (
 			<ButtonHeadless
-				ref={ref}
+				ref={ref as Ref<HTMLButtonElement> | Ref<HTMLAnchorElement> | undefined}
 				href={href}
 				dataSlot={dataSlot}
 				className={className}
@@ -120,6 +127,7 @@ export function Button({
 			<ReducedMotion>
 				<motion.span {...(spring && buttonSpring)}>
 					<Link
+						ref={ref as Ref<HTMLAnchorElement>}
 						data-slot={dataSlot}
 						data-has-prefix={!!prefix || undefined}
 						data-has-label={labelled || undefined}
@@ -147,7 +155,7 @@ export function Button({
 		<ReducedMotion>
 			<motion.button
 				{...(spring && buttonSpring)}
-				ref={ref}
+				ref={ref as Ref<HTMLButtonElement>}
 				data-slot={dataSlot}
 				data-has-prefix={!!prefix || undefined}
 				data-has-label={labelled || undefined}
