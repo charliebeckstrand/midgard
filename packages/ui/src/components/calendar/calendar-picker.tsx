@@ -1,14 +1,11 @@
 'use client'
 
-import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { useResolvedSize } from '../../primitives/concentric'
-import { k } from '../../recipes/kata/calendar'
 import { Button } from '../button'
-import { Icon } from '../icon'
 import { Popover, PopoverContent, PopoverTrigger } from '../popover'
+import { CalendarPickerGrid, type CalendarPickerGridCell } from './calendar-picker-grid'
 import { MONTHS } from './calendar-utilities'
 import { useCalendarFocus } from './use-calendar-focus'
 
@@ -107,6 +104,32 @@ export function CalendarPicker({
 		[pickerYear, onNavigate, setPickerOpen],
 	)
 
+	const monthCells: CalendarPickerGridCell[] = MONTHS.map((label, i) => ({
+		key: label,
+		label,
+		selected: i === month && pickerYear === year,
+		current: i === today.getMonth() && pickerYear === today.getFullYear(),
+		onSelect: () => selectMonth(i),
+	}))
+
+	const yearCells: CalendarPickerGridCell[] = Array.from({ length: 12 }, (_, i) => {
+		const y = decadeStart - 1 + i
+
+		return {
+			key: y,
+			label: y,
+			selected: y === year,
+			current: y === today.getFullYear(),
+			onSelect: () => {
+				setPickerYear(y)
+
+				setPickerView('months')
+
+				focusPickerGrid()
+			},
+		}
+	})
+
 	return (
 		<Popover placement="bottom" open={pickerOpen} onOpenChange={handlePickerOpen}>
 			<PopoverTrigger>
@@ -116,130 +139,50 @@ export function CalendarPicker({
 			</PopoverTrigger>
 			<PopoverContent>
 				{pickerView === 'months' ? (
-					<>
-						<div
-							ref={pickerHeaderRef}
-							role="toolbar"
-							onKeyDown={handleHeaderKeyDown}
-							className={cn(k.header({ size }))}
-						>
-							<Button
-								variant="plain"
-								onClick={() => setPickerYear((y) => y - 1)}
-								aria-label="Previous year"
-								prefix={<Icon icon={<ChevronLeft />} />}
-							/>
-							<Button
-								variant="plain"
-								onClick={() => {
-									setDecadeYear(pickerYear)
+					<CalendarPickerGrid
+						headerRef={pickerHeaderRef}
+						gridRef={pickerGridRef}
+						onHeaderKeyDown={handleHeaderKeyDown}
+						onGridKeyDown={handleGridKeyDown}
+						prevLabel="Previous year"
+						nextLabel="Next year"
+						centerLabel={pickerYear}
+						onPrev={() => setPickerYear((y) => y - 1)}
+						onNext={() => setPickerYear((y) => y + 1)}
+						onCenter={() => {
+							setDecadeYear(pickerYear)
 
-									setPickerView('years')
+							setPickerView('years')
 
-									focusPickerGrid()
-								}}
-							>
-								{pickerYear}
-							</Button>
-							<Button
-								variant="plain"
-								onClick={() => setPickerYear((y) => y + 1)}
-								aria-label="Next year"
-								prefix={<Icon icon={<ChevronRight />} />}
-							/>
-						</div>
-						<div
-							ref={pickerGridRef}
-							role="listbox"
-							onKeyDown={handleGridKeyDown}
-							className={cn(k.picker.grid({ size }))}
-						>
-							{MONTHS.map((label, i) => {
-								const isCurrent = i === today.getMonth() && pickerYear === today.getFullYear()
-
-								const isSelected = i === month && pickerYear === year
-
-								return (
-									<Button
-										key={label}
-										variant={isSelected ? 'solid' : 'plain'}
-										data-selected={isSelected || undefined}
-										block
-										onClick={() => selectMonth(i)}
-										className={cn(isCurrent && !isSelected && k.picker.cellCurrent)}
-									>
-										{label}
-									</Button>
-								)
-							})}
-						</div>
-					</>
+							focusPickerGrid()
+						}}
+						cells={monthCells}
+						cellBlock
+						size={size}
+					/>
 				) : (
-					<>
-						<div
-							ref={pickerHeaderRef}
-							role="toolbar"
-							onKeyDown={handleHeaderKeyDown}
-							className={cn(k.header({ size }))}
-						>
-							<Button
-								variant="plain"
-								onClick={() => setDecadeYear((y) => y - 10)}
-								aria-label="Previous decade"
-							>
-								<Icon icon={<ChevronLeft />} />
-							</Button>
-							<Button
-								variant="plain"
-								onClick={() => {
-									setPickerView('months')
-
-									focusPickerGrid()
-								}}
-							>
+					<CalendarPickerGrid
+						headerRef={pickerHeaderRef}
+						gridRef={pickerGridRef}
+						onHeaderKeyDown={handleHeaderKeyDown}
+						onGridKeyDown={handleGridKeyDown}
+						prevLabel="Previous decade"
+						nextLabel="Next decade"
+						centerLabel={
+							<>
 								{decadeStart}&ndash;{decadeStart + 9}
-							</Button>
-							<Button
-								variant="plain"
-								onClick={() => setDecadeYear((y) => y + 10)}
-								aria-label="Next decade"
-							>
-								<Icon icon={<ChevronRight />} />
-							</Button>
-						</div>
-						<div
-							ref={pickerGridRef}
-							role="listbox"
-							onKeyDown={handleGridKeyDown}
-							className={cn(k.picker.grid({ size }))}
-						>
-							{Array.from({ length: 12 }, (_, i) => {
-								const y = decadeStart - 1 + i
+							</>
+						}
+						onPrev={() => setDecadeYear((y) => y - 10)}
+						onNext={() => setDecadeYear((y) => y + 10)}
+						onCenter={() => {
+							setPickerView('months')
 
-								const isCurrent = y === today.getFullYear()
-
-								const isSelected = y === year
-
-								return (
-									<Button
-										key={y}
-										variant={isSelected ? 'solid' : 'plain'}
-										data-selected={isSelected || undefined}
-										onClick={() => {
-											setPickerYear(y)
-
-											setPickerView('months')
-
-											focusPickerGrid()
-										}}
-										className={cn(isCurrent && !isSelected && k.picker.cellCurrent)}
-									>
-										{y}
-									</Button>
-								)
-							})}
-						</div>
-					</>
+							focusPickerGrid()
+						}}
+						cells={yearCells}
+						size={size}
+					/>
 				)}
 			</PopoverContent>
 		</Popover>
