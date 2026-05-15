@@ -141,7 +141,7 @@ function QueryBuilderRuleImpl({ rule, className }: QueryBuilderRuleProps) {
 
 	return (
 		<Flex data-slot="query-rule" gap="sm" full className={cn(k.rule, className)}>
-			<Flex equal flex gap="sm" direction={{ initial: 'row', sm: 'col' }}>
+			<Flex equal flex="1" gap="sm" direction={{ initial: 'row', sm: 'col' }}>
 				<Select
 					value={rule.field}
 					displayValue={displayField}

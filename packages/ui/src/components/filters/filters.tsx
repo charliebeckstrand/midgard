@@ -107,7 +107,7 @@ export function Filters<T extends FilterValue = FilterValue>({
 						align={{ initial: 'end', md: 'start' }}
 						equal={equal}
 						full
-						grow
+						flex="auto"
 					>
 						{children}
 					</Flex>

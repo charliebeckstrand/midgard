@@ -193,7 +193,7 @@ export default function ChatPageDemo() {
 				</SidebarLayoutHeader>
 
 				<SidebarLayoutBody ref={bodyRef}>
-					<Stack gap="lg" full flex>
+					<Stack gap="lg" full flex="1">
 						{messages.map((msg) => (
 							<ChatMessage key={msg.id} role={msg.role}>
 								{msg.content}

@@ -25,14 +25,12 @@ export type FlexProps = {
 	justify?: ResponsiveJustify
 	/** Allow children to wrap onto multiple lines. */
 	wrap?: boolean
-	/** Fills available space (flex: 1 1 0%). */
-	flex?: boolean
+	/** Fill available space. `'1'` is `flex: 1 1 0%`; `'auto'` is `flex: 1 1 auto`. */
+	flex?: '1' | 'auto' | false
 	/** Render as `inline-flex` instead of `flex`. */
 	inline?: boolean
 	/** Spans full width of parent. */
 	full?: boolean
-	/** Fills available space (flex: 1 1 auto). */
-	grow?: boolean
 	/** Stretches all children equally. */
 	equal?: boolean
 	className?: string
@@ -49,7 +47,6 @@ export function FlexBase({
 	flex,
 	inline,
 	full,
-	grow,
 	equal,
 	className,
 	children,
@@ -65,8 +62,8 @@ export function FlexBase({
 				resolveJustify(justify),
 				wrap && 'flex-wrap',
 				full && 'w-full',
-				grow && 'grow',
-				flex && 'flex-1',
+				flex === '1' && 'flex-1',
+				flex === 'auto' && 'flex-auto',
 				equal && '*:flex-1',
 				inline ? 'inline-flex' : 'flex',
 				className,
