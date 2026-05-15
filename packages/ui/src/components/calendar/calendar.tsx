@@ -215,7 +215,11 @@ export function Calendar({
 
 	return (
 		<ConcentricProvider value={concentricValue}>
-			<div data-slot="calendar" data-step={resolvedSize} className={cn(k.base, className)}>
+			<div
+				data-slot="calendar"
+				data-step={resolvedSize}
+				className={cn(k.base({ size: resolvedSize }), className)}
+			>
 				<div
 					ref={headerRef}
 					role="toolbar"

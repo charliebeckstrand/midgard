@@ -4,6 +4,18 @@ import { ji } from '../ryu/ji'
 import { sen } from '../ryu/sen'
 import { buttonSoft } from './button'
 
+const base = tv({
+	base: ['inline-flex flex-col', 'select-none'],
+	variants: {
+		size: {
+			sm: 'w-52',
+			md: 'w-68',
+			lg: 'w-80',
+		},
+	},
+	defaultVariants: { size: 'md' },
+})
+
 const header = tv({
 	base: 'flex items-center justify-between',
 	variants: {
@@ -53,7 +65,7 @@ const weekday = tv({
 })
 
 export const calendar = {
-	base: ['inline-flex flex-col', 'select-none'],
+	base,
 	grid: 'grid grid-cols-7',
 	header,
 	footer,
