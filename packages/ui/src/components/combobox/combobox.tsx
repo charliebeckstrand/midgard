@@ -12,7 +12,7 @@ import {
 	useRef,
 } from 'react'
 import { cn } from '../../core'
-import { useFloatingUI, useRoving, useScrollWithin } from '../../hooks'
+import { useFloatingUI, useRoving, useScrollWithin, useSelectableValueChange } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
 import { ConcentricProvider, useResolvedSize } from '../../primitives/concentric'
@@ -119,13 +119,9 @@ export function Combobox<T>({
 
 	const resolvedDisabled = disabled ?? control?.disabled
 
-	const handleValueChange = useCallback(
-		(nextValue: T | T[] | undefined) => {
-			if (nextValue === undefined && multiple) return
-
-			;(onValueChange as ((value: T | T[] | undefined) => void) | undefined)?.(nextValue)
-		},
-		[onValueChange, multiple],
+	const handleValueChange = useSelectableValueChange<T>(
+		onValueChange as ((value: T | T[] | undefined) => void) | undefined,
+		multiple,
 	)
 
 	const [value, setValue] = useControllable<T | T[]>({

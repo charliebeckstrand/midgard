@@ -3,9 +3,9 @@
 import { FloatingPortal, type Placement } from '@floating-ui/react'
 import { ChevronsUpDown } from 'lucide-react'
 import { AnimatePresence } from 'motion/react'
-import { type ReactNode, useCallback, useId, useMemo, useRef } from 'react'
+import { type ReactNode, useId, useMemo, useRef } from 'react'
 import { cn } from '../../core'
-import { useFloatingUI } from '../../hooks'
+import { useFloatingUI, useSelectableValueChange } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { ConcentricProvider, useResolvedSize } from '../../primitives/concentric'
 import { useJoin } from '../../primitives/join'
@@ -99,13 +99,9 @@ export function Listbox<T>({
 
 	const resolvedSize = useResolvedSize(size)
 
-	const handleValueChange = useCallback(
-		(nextValue: T | T[] | undefined) => {
-			if (nextValue === undefined && multiple) return
-
-			;(onValueChange as ((value: T | T[] | undefined) => void) | undefined)?.(nextValue)
-		},
-		[onValueChange, multiple],
+	const handleValueChange = useSelectableValueChange<T>(
+		onValueChange as ((value: T | T[] | undefined) => void) | undefined,
+		multiple,
 	)
 
 	const [value, setValue] = useControllable<T | T[]>({

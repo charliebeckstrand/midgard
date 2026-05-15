@@ -27,6 +27,7 @@ export {
 	type UseScrollWithinOptions,
 	useScrollWithin,
 } from './use-scroll-within'
+export { useSelectableValueChange } from './use-selectable-value-change'
 export { type UseSortableItemOptions, useSortableItem } from './use-sortable-item'
 export { type UseSortableListOptions, useSortableList } from './use-sortable-list'
 export { type UseSortableSensorsOptions, useSortableSensors } from './use-sortable-sensors'
