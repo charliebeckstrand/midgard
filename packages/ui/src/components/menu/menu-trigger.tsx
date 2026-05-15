@@ -9,7 +9,7 @@ import {
 	useCallback,
 } from 'react'
 import { cn } from '../../core'
-import { useMenuActions, useMenuState } from './menu'
+import { useMenuActions, useMenuState } from './context'
 
 export type MenuTriggerProps =
 	| ({ children: ReactElement } & { className?: string })

@@ -12,7 +12,7 @@ import {
 } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/popover'
-import { usePopoverContext } from './popover'
+import { usePopoverContext } from './context'
 
 export type PopoverTriggerProps = {
 	children: ReactNode

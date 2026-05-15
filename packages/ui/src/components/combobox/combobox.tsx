@@ -11,7 +11,7 @@ import {
 	useMemo,
 	useRef,
 } from 'react'
-import { cn, createContext } from '../../core'
+import { cn } from '../../core'
 import { useFloatingUI, useRoving, useScrollWithin } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
@@ -31,18 +31,9 @@ import { Placeholder } from '../placeholder'
 import { SelectTrigger } from '../select/select-trigger'
 import { useSkeleton } from '../skeleton/context'
 import { resolveInputDisplay } from './combobox-utilities'
+import { ComboboxProvider } from './context'
 import { useComboboxInput } from './use-combobox-input'
 import { useComboboxState } from './use-combobox-state'
-
-type ComboboxContextValue<T = unknown> = {
-	value: T | T[] | undefined
-	multiple: boolean
-	select: (value: T) => void
-	query: string
-}
-
-export const [ComboboxProvider, useComboboxContext] =
-	createContext<ComboboxContextValue>('Combobox')
 
 type ComboboxBaseProps<T> = {
 	id?: string
@@ -209,7 +200,7 @@ export function Combobox<T>({
 
 	const rendered = typeof children === 'function' ? children(query) : children
 
-	const contextValue = useMemo<ComboboxContextValue>(
+	const contextValue = useMemo(
 		() => ({ value, multiple, select: select as (v: unknown) => void, query }),
 		[value, multiple, select, query],
 	)

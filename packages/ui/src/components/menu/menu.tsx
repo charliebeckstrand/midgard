@@ -7,52 +7,12 @@ import {
 	useInteractions,
 	useRole,
 } from '@floating-ui/react'
-import {
-	type CSSProperties,
-	type MouseEvent,
-	type ReactNode,
-	type RefObject,
-	useCallback,
-	useMemo,
-	useRef,
-	useState,
-} from 'react'
-import { cn, createContext } from '../../core'
+import { type MouseEvent, type ReactNode, useCallback, useMemo, useRef, useState } from 'react'
+import { cn } from '../../core'
 import { useFloatingPanel } from '../../hooks'
 import { useResolvedSize } from '../../primitives/concentric'
 import type { Step } from '../../recipes/ryu/sun'
-
-type MenuStateValue = {
-	open: boolean
-	floatingStyles: CSSProperties
-	getReferenceProps: () => Record<string, unknown>
-	getFloatingProps: () => Record<string, unknown>
-	size: Step
-}
-
-type MenuActionsValue = {
-	setOpen: (open: boolean) => void
-	close: () => void
-	static: boolean
-	triggerRef: RefObject<HTMLButtonElement | null>
-	setReference: (node: HTMLElement | null) => void
-	setFloating: (node: HTMLElement | null) => void
-}
-
-export type MenuContextValue = MenuStateValue & MenuActionsValue
-
-const [MenuStateProvider, useMenuState] = createContext<MenuStateValue>('Menu')
-const [MenuActionsProvider, useMenuActions] = createContext<MenuActionsValue>('Menu')
-
-export { useMenuActions, useMenuState }
-
-/** Returns combined state + actions. Prefer `useMenuActions` in leaves that only need `close`. */
-export function useMenuContext(): MenuContextValue {
-	const state = useMenuState()
-	const actions = useMenuActions()
-
-	return { ...state, ...actions }
-}
+import { MenuActionsProvider, MenuStateProvider } from './context'
 
 export type MenuProps = {
 	defaultOpen?: boolean
@@ -118,7 +78,7 @@ export function Menu({ defaultOpen = false, placement, size, className, children
 		setOpen(true)
 	}, [])
 
-	const state = useMemo<MenuStateValue>(
+	const state = useMemo(
 		() => ({
 			open,
 			floatingStyles,
@@ -129,7 +89,7 @@ export function Menu({ defaultOpen = false, placement, size, className, children
 		[open, floatingStyles, getReferenceProps, getFloatingProps, resolvedSize],
 	)
 
-	const actions = useMemo<MenuActionsValue>(
+	const actions = useMemo(
 		() => ({
 			setOpen,
 			close,

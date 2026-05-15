@@ -2,7 +2,7 @@
 
 import { motion } from 'motion/react'
 import { type ReactNode, useCallback, useMemo } from 'react'
-import { cn, createContext } from '../../core'
+import { cn } from '../../core'
 import { Overlay } from '../../primitives/overlay'
 import { PanelA11yProvider, usePanelA11yScope } from '../../primitives/panel'
 import { ugoki } from '../../recipes'
@@ -12,12 +12,7 @@ import {
 	sheetPanelVariants,
 } from '../../recipes/kata/sheet'
 import { useResolvedSurface } from '../glass/context'
-
-type SheetContextValue = {
-	close: () => void
-}
-
-export const [SheetProvider, useSheetContext] = createContext<SheetContextValue>('Sheet')
+import { SheetProvider } from './context'
 
 export type SheetProps = SheetPanelVariants & {
 	open: boolean

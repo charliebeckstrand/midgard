@@ -6,7 +6,7 @@ import { useResolvedSize } from '../../primitives/concentric'
 import { k } from '../../recipes/kata/menu'
 import { Kbd, type KbdProps } from '../kbd'
 import { Link } from '../link'
-import { useMenuActions } from './menu'
+import { useMenuActions } from './context'
 
 type MenuItemBaseProps = {
 	disabled?: boolean

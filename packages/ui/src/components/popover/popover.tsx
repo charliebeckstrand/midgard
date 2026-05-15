@@ -1,35 +1,11 @@
 'use client'
 
 import { type Placement, useClick, useDismiss, useInteractions, useRole } from '@floating-ui/react'
-import {
-	type CSSProperties,
-	type ReactNode,
-	type RefObject,
-	useCallback,
-	useEffect,
-	useMemo,
-	useRef,
-} from 'react'
-import { cn, createContext } from '../../core'
+import { type ReactNode, useCallback, useEffect, useMemo, useRef } from 'react'
+import { cn } from '../../core'
 import { useFloatingPanel } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
-
-type PopoverContextValue = {
-	open: boolean
-	setOpen: (open: boolean) => void
-	close: () => void
-	triggerRef: RefObject<HTMLButtonElement | null>
-	setReference: (node: HTMLElement | null) => void
-	setFloating: (node: HTMLElement | null) => void
-	floatingStyles: CSSProperties
-	getReferenceProps: (userProps?: object) => Record<string, unknown>
-	getFloatingProps: (userProps?: object) => Record<string, unknown>
-	onExitComplete?: () => void
-}
-
-const [PopoverProvider, usePopoverContext] = createContext<PopoverContextValue>('Popover')
-
-export { usePopoverContext }
+import { PopoverProvider } from './context'
 
 export type PopoverProps = {
 	placement?: Placement
@@ -85,7 +61,7 @@ export function Popover({
 		setOpen(false)
 	}, [setOpen])
 
-	const contextValue = useMemo<PopoverContextValue>(
+	const contextValue = useMemo(
 		() => ({
 			open,
 			setOpen,

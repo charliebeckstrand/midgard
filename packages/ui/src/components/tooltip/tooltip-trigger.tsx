@@ -3,7 +3,7 @@
 import type { HTMLAttributes, ReactNode } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/tooltip'
-import { useTooltipContext } from './tooltip'
+import { useTooltipContext } from './context'
 
 export type TooltipTriggerProps = {
 	children: ReactNode
