@@ -18,6 +18,20 @@ import {
 } from '@floating-ui/react'
 import { type CSSProperties, type HTMLProps, useMemo } from 'react'
 
+// Explicit return types: TS can't write a portable `.d.ts` for the inferred
+// return because `useFloating`'s shape references `@floating-ui/react-dom`,
+// a transitive dep (TS2742). Kept local — not re-exported from the barrel.
+type UseFloatingPanelReturn = {
+	refs: ExtendedRefs<ReferenceType>
+	floatingStyles: CSSProperties
+	context: FloatingRootContext
+}
+
+type UseFloatingUIReturn = UseFloatingPanelReturn & {
+	getReferenceProps: (userProps?: HTMLProps<Element>) => Record<string, unknown>
+	getFloatingProps: (userProps?: HTMLProps<HTMLElement>) => Record<string, unknown>
+}
+
 const matchReferenceWidthMiddleware = size({
 	apply({ rects, elements }) {
 		Object.assign(elements.floating.style, {
@@ -44,12 +58,6 @@ export type UseFloatingPanelOptions = {
 	matchReferenceWidth?: boolean
 	/** Escape hatch — fully overrides the default offset/flip/shift/size middleware chain. */
 	middleware?: Middleware[]
-}
-
-export type UseFloatingPanelReturn = {
-	refs: ExtendedRefs<ReferenceType>
-	floatingStyles: CSSProperties
-	context: FloatingRootContext
 }
 
 /**
@@ -86,11 +94,6 @@ export function useFloatingPanel({
 
 export type UseFloatingUIOptions = UseFloatingPanelOptions & {
 	role?: 'listbox' | 'menu' | 'dialog' | 'tooltip'
-}
-
-export type UseFloatingUIReturn = UseFloatingPanelReturn & {
-	getReferenceProps: (userProps?: HTMLProps<Element>) => Record<string, unknown>
-	getFloatingProps: (userProps?: HTMLProps<HTMLElement>) => Record<string, unknown>
 }
 
 /**

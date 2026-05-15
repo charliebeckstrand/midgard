@@ -25,27 +25,6 @@ export type UseSortableListOptions<T> = {
 	keyboardSensor?: boolean
 }
 
-export type UseSortableListReturn = {
-	/** Stable id list for `<SortableContext items={itemIds}>`. */
-	itemIds: string[]
-	/** Sorting strategy matching the orientation. */
-	strategy: typeof verticalListSortingStrategy
-	/** Whether drag / keyboard reorder is currently enabled. */
-	interactive: boolean
-	/** Id of the item currently being dragged, if any. */
-	activeId: string | null
-	/** Resolved orientation. */
-	orientation: Orientation
-	/** Spread onto `<DndContext>` to wire up drag handlers. */
-	dndContextProps: {
-		sensors: ReturnType<typeof useSortableSensors>
-		collisionDetection: typeof closestCenter
-		onDragStart: (e: DragStartEvent) => void
-		onDragEnd: (e: DragEndEvent) => void
-		onDragCancel: () => void
-	}
-}
-
 /**
  * Single-list reorder hook backed by @dnd-kit. Owns the drag lifecycle and
  * commits reorders via `arrayMove`, leaving rendering of `<DndContext>` and
@@ -58,7 +37,7 @@ export function useSortableList<T>({
 	orientation = 'vertical',
 	disabled = false,
 	keyboardSensor = true,
-}: UseSortableListOptions<T>): UseSortableListReturn {
+}: UseSortableListOptions<T>) {
 	const interactive = !disabled && !!onReorder
 
 	const [activeId, setActiveId] = useState<string | null>(null)

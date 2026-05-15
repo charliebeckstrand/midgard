@@ -2,19 +2,12 @@
 
 import { useCallback, useId, useMemo } from 'react'
 
-export type IdScope = {
-	/** Root scoped ID. */
-	id: string
-	/** Derives a child ID by appending a suffix. */
-	sub: (suffix: string) => string
-}
-
 export type UseIdScopeOptions = {
 	id?: string
 }
 
 /** Stable scoped ID with a helper for deriving related IDs. */
-export function useIdScope(options?: UseIdScopeOptions): IdScope {
+export function useIdScope(options?: UseIdScopeOptions) {
 	const generatedId = useId()
 
 	const id = options?.id ?? generatedId

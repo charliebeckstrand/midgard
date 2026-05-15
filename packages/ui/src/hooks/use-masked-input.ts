@@ -18,14 +18,6 @@ export type UseMaskedInputOptions = {
 	meaningful?: (char: string) => boolean
 }
 
-export type UseMaskedInputReturn = {
-	value: string
-	/** Attach to the input to enable caret restoration after format. */
-	ref: (node: HTMLInputElement | null) => void
-	setValue: (raw: string) => void
-	onChange: (e: ChangeEvent<HTMLInputElement>) => void
-}
-
 const defaultMeaningful = (c: string) => /[A-Za-z0-9+]/.test(c)
 
 function countMeaningful(s: string, end: number, test: (c: string) => boolean) {
@@ -68,7 +60,7 @@ export function useMaskedInput({
 	format,
 	ref: externalRef,
 	meaningful = defaultMeaningful,
-}: UseMaskedInputOptions): UseMaskedInputReturn {
+}: UseMaskedInputOptions) {
 	const [current, setCurrent] = useControllable<string>({
 		value,
 		defaultValue: defaultValue !== undefined ? format(defaultValue) : '',
@@ -106,8 +98,8 @@ export function useMaskedInput({
 	return {
 		value: current ?? '',
 		ref: setRef,
-		setValue: (raw) => setCurrent(format(raw)),
-		onChange: (e) => {
+		setValue: (raw: string) => setCurrent(format(raw)),
+		onChange: (e: ChangeEvent<HTMLInputElement>) => {
 			const raw = e.target.value
 
 			const cursor = e.target.selectionStart ?? raw.length
