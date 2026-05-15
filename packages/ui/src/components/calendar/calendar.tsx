@@ -20,6 +20,7 @@ import { CalendarGrid } from './calendar-grid'
 import { CalendarHeader } from './calendar-header'
 import { getCalendarDays, isBeforeDay } from './calendar-utilities'
 import { useCalendarFocus } from './use-calendar-focus'
+import { useCalendarViewDate } from './use-calendar-view-date'
 
 export type CalendarActive =
 	| { zone: 'header'; index: 0 | 1 | 2 }
@@ -104,28 +105,15 @@ export function Calendar({
 
 	const today = useMemo(() => new Date(), [])
 
-	const [viewDate, setViewDate] = useState(
-		() =>
-			new Date(
-				(value ?? defaultValue ?? today).getFullYear(),
-				(value ?? defaultValue ?? today).getMonth(),
-				1,
-			),
-	)
+	const activeGridDate = active?.zone === 'grid' ? active.date : null
 
-	const year = viewDate.getFullYear()
-
-	const month = viewDate.getMonth()
+	const { viewDate, year, month, prevMonth, nextMonth, navigateTo } = useCalendarViewDate({
+		value,
+		defaultValue,
+		activeGridDate,
+	})
 
 	const days = useMemo(() => getCalendarDays(year, month), [year, month])
-
-	const prevMonth = useCallback(() => {
-		setViewDate(new Date(year, month - 1, 1))
-	}, [year, month])
-
-	const nextMonth = useCallback(() => {
-		setViewDate(new Date(year, month + 1, 1))
-	}, [year, month])
 
 	const [pickerOpen, setPickerOpen] = useState(false)
 
@@ -166,10 +154,6 @@ export function Calendar({
 		[prevMonth, nextMonth, openPicker, handleFooterKeyDown],
 	)
 
-	const handlePickerNavigate = useCallback((y: number, m: number) => {
-		setViewDate(new Date(y, m, 1))
-	}, [])
-
 	const handleSelect = useCallback(
 		(date: Date) => {
 			setValue(date)
@@ -180,34 +164,6 @@ export function Calendar({
 	const firstDayColumn = new Date(year, month, 1).getDay() + 1
 
 	const monthLabel = viewDate.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
-
-	const activeGridDate = active?.zone === 'grid' ? active.date : null
-
-	// Adjust viewDate during render when the driving prop changes (avoids an
-	// extra render cycle that the previous useEffect approach caused).
-	const prevActiveGridDateRef = useRef(activeGridDate)
-
-	const prevValueRef = useRef(value)
-
-	if (activeGridDate && activeGridDate !== prevActiveGridDateRef.current) {
-		const next = new Date(activeGridDate.getFullYear(), activeGridDate.getMonth(), 1)
-
-		if (next.getTime() !== viewDate.getTime()) {
-			setViewDate(next)
-		}
-	}
-
-	prevActiveGridDateRef.current = activeGridDate
-
-	if (value && value !== prevValueRef.current) {
-		if (
-			value.getFullYear() !== viewDate.getFullYear() ||
-			value.getMonth() !== viewDate.getMonth()
-		) {
-			setViewDate(new Date(value.getFullYear(), value.getMonth(), 1))
-		}
-	}
-	prevValueRef.current = value
 
 	const headerActiveIndex = active?.zone === 'header' ? active.index : null
 
@@ -229,7 +185,7 @@ export function Calendar({
 					monthLabel={monthLabel}
 					pickerOpen={pickerOpen}
 					onPickerOpenChange={handlePickerOpenChange}
-					onPickerNavigate={handlePickerNavigate}
+					onPickerNavigate={navigateTo}
 					onPrevMonth={prevMonth}
 					onNextMonth={nextMonth}
 				/>
