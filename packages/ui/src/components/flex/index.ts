@@ -1,6 +1,5 @@
 export { Flex, FlexBase, type FlexProps } from './flex'
 export {
-	directionMap,
 	type FlexAlign,
 	type FlexDirection,
 	type FlexGap,

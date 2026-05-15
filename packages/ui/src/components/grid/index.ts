@@ -4,7 +4,6 @@ export { GridDivider, type GridDividerProps } from './grid-divider'
 export {
 	type GridDividerVariants,
 	type GridGap,
-	gridDividerVariants,
 	type Responsive,
 	resolveResponsive,
 } from './variants'
