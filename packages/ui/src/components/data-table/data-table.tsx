@@ -17,6 +17,7 @@ import type {
 	DataTableColumnManagerItem,
 	DataTableColumnManagerPreset,
 } from './types'
+import { useDataTableSelection } from './use-data-table-selection'
 
 export type DataTableVirtualize = boolean | { estimateSize?: number; overscan?: number }
 
@@ -131,14 +132,6 @@ export function DataTable<T>({
 		onChange: sortConfig?.onValueChange,
 	})
 
-	const [selectionRaw, setSelectionRaw] = useControllable<Set<string | number>>({
-		value: selectionConfig?.value,
-		defaultValue: selectionConfig?.defaultValue ?? new Set(),
-		onChange: selectionConfig?.onValueChange,
-	})
-
-	const selection = selectionRaw ?? new Set<string | number>()
-
 	const batchActions = selectionConfig?.batchActions
 
 	const defaultOrder = useMemo(() => columns.map((c) => c.id), [columns])
@@ -223,41 +216,10 @@ export function DataTable<T>({
 		[rows, getRowKey],
 	)
 
-	const allSelected =
-		rowKeys.length > 0 && rowKeys.every((rk: string | number) => selection.has(rk))
-
-	const someSelected = rowKeys.some((rk: string | number) => selection.has(rk))
-
-	// Mirror rowKeys in a ref so toggleAll stays stable across selection edits.
-	const rowKeysRef = useRef(rowKeys)
-
-	rowKeysRef.current = rowKeys
-
-	const toggleRow = useCallback(
-		(key: string | number) => {
-			setSelectionRaw((prev) => {
-				const next = new Set(prev ?? [])
-
-				if (next.has(key)) next.delete(key)
-				else next.add(key)
-
-				return next
-			})
-		},
-		[setSelectionRaw],
-	)
-
-	const toggleAll = useCallback(() => {
-		setSelectionRaw((prev) => {
-			const keys = rowKeysRef.current
-
-			const current = prev ?? new Set<string | number>()
-
-			const every = keys.length > 0 && keys.every((k) => current.has(k))
-
-			return every ? new Set() : new Set(keys)
-		})
-	}, [setSelectionRaw])
+	const { selection, toggleRow, toggleAll, allSelected, someSelected } = useDataTableSelection({
+		selectionConfig,
+		rowKeys,
+	})
 
 	const toggleSort = useCallback(
 		(column: string | number) => {
