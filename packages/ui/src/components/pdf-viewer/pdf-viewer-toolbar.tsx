@@ -1,6 +1,6 @@
 'use client'
 
-import { Download, Maximize2, PanelLeft, Printer, RotateCw, ZoomIn, ZoomOut } from 'lucide-react'
+import { PanelLeft, RotateCw } from 'lucide-react'
 import type { Dispatch, SetStateAction } from 'react'
 
 import { cn } from '../../core'
@@ -10,7 +10,8 @@ import { Icon } from '../icon'
 import { Listbox, ListboxLabel, ListboxOption } from '../listbox'
 import { Toolbar, ToolbarGroup, ToolbarSeparator } from '../toolbar'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
-import { downloadPdf, printPdf } from './pdf-viewer-utilities'
+import { PdfViewerDocumentActions } from './pdf-viewer-document-actions'
+import { PdfViewerZoomControls } from './pdf-viewer-zoom-controls'
 import type { PdfViewerPage } from './types'
 
 export type PdfViewerToolbarZoom = {
@@ -50,30 +51,7 @@ export function PdfViewerToolbar({
 }: PdfViewerToolbarProps) {
 	const isEmpty = total === 0
 
-	const sortedLevels = [...zoom.levels].sort((a, b) => a - b)
-
-	const minZoom = sortedLevels[0] ?? 1
-	const maxZoom = sortedLevels[sortedLevels.length - 1] ?? 1
-
-	const nextLevelUp = sortedLevels.find((l) => l > zoom.value + 1e-6) ?? maxZoom
-	const nextLevelDown = [...sortedLevels].reverse().find((l) => l < zoom.value - 1e-6) ?? minZoom
-
-	const zoomIn = () => zoom.setValue(nextLevelUp)
-	const zoomOut = () => zoom.setValue(nextLevelDown)
-
-	const fit = () => zoom.setValue(1)
-
-	const download = () => {
-		if (!src) return
-
-		downloadPdf(src, filename)
-	}
-
-	const print = () => {
-		if (!src) return
-
-		printPdf(src)
-	}
+	const controlsDisabled = isLoading || isEmpty
 
 	return (
 		<Toolbar aria-label="PDF controls" className={cn(k.toolbar)}>
@@ -130,54 +108,14 @@ export function PdfViewerToolbar({
 			<ToolbarSeparator />
 
 			<div className={cn(k.toolbarSection)}>
-				<ToolbarGroup aria-label="Zoom">
-					<Tooltip>
-						<TooltipTrigger>
-							<Button
-								variant="plain"
-								aria-label="Zoom out"
-								disabled={isLoading || isEmpty || zoom.value <= minZoom}
-								onClick={zoomOut}
-							>
-								<Icon icon={<ZoomOut />} />
-							</Button>
-						</TooltipTrigger>
-						<TooltipContent>Zoom Out ({(nextLevelDown * 100).toFixed(0)}%)</TooltipContent>
-					</Tooltip>
-					<Tooltip>
-						<TooltipTrigger>
-							<Button
-								variant="plain"
-								aria-label="Zoom in"
-								disabled={isLoading || isEmpty || zoom.value >= maxZoom}
-								onClick={zoomIn}
-							>
-								<Icon icon={<ZoomIn />} />
-							</Button>
-						</TooltipTrigger>
-						<TooltipContent>Zoom In ({(nextLevelUp * 100).toFixed(0)}%)</TooltipContent>
-					</Tooltip>
-					<Tooltip>
-						<TooltipTrigger>
-							<Button
-								variant="plain"
-								aria-label="Fit to page"
-								disabled={isLoading || isEmpty || zoom.value === 1}
-								onClick={fit}
-							>
-								<Icon icon={<Maximize2 />} />
-							</Button>
-						</TooltipTrigger>
-						<TooltipContent>Fit to page</TooltipContent>
-					</Tooltip>
-				</ToolbarGroup>
+				<PdfViewerZoomControls zoom={zoom} disabled={controlsDisabled} />
 				<ToolbarGroup aria-label="View">
 					<Tooltip>
 						<TooltipTrigger>
 							<Button
 								variant="plain"
 								aria-label="Rotate"
-								disabled={isLoading || isEmpty}
+								disabled={controlsDisabled}
 								onClick={onRotate}
 							>
 								<Icon icon={<RotateCw />} />
@@ -189,34 +127,7 @@ export function PdfViewerToolbar({
 				{src && (
 					<>
 						<ToolbarSeparator />
-						<ToolbarGroup aria-label="Document">
-							<Tooltip>
-								<TooltipTrigger>
-									<Button
-										variant="plain"
-										aria-label="Download"
-										disabled={isLoading || isEmpty}
-										onClick={download}
-									>
-										<Icon icon={<Download />} />
-									</Button>
-								</TooltipTrigger>
-								<TooltipContent>Download</TooltipContent>
-							</Tooltip>
-							<Tooltip>
-								<TooltipTrigger>
-									<Button
-										variant="plain"
-										aria-label="Print"
-										disabled={isLoading || isEmpty}
-										onClick={print}
-									>
-										<Icon icon={<Printer />} />
-									</Button>
-								</TooltipTrigger>
-								<TooltipContent>Print</TooltipContent>
-							</Tooltip>
-						</ToolbarGroup>
+						<PdfViewerDocumentActions src={src} filename={filename} disabled={controlsDisabled} />
 					</>
 				)}
 			</div>
