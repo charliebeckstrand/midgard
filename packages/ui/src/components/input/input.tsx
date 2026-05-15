@@ -8,6 +8,7 @@ import { ControlFrame } from '../../primitives/control'
 import { useJoin } from '../../primitives/join'
 import { kokkaku } from '../../recipes'
 import { controlVariants, type InputVariants, inputVariants, k } from '../../recipes/kata/input'
+import type { Step } from '../../recipes/ryu/sun'
 import { useControl } from '../control/context'
 import { invalidAttrs } from '../control/control-invalid-attrs'
 import { useFormText } from '../form/context'
@@ -18,7 +19,7 @@ import { useSkeleton } from '../skeleton/context'
 import { Spinner } from '../spinner'
 
 export type InputProps = Omit<InputVariants, 'size'> & {
-	size?: 'sm' | 'md' | 'lg'
+	size?: Step
 	loading?: boolean
 	prefix?: ReactNode
 	suffix?: ReactNode

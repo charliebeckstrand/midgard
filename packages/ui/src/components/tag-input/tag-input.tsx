@@ -4,6 +4,7 @@ import { CornerLeftDown } from 'lucide-react'
 import { type Ref, useCallback, useImperativeHandle, useRef, useState } from 'react'
 import type { Color } from '../../recipes/ryu/iro'
 import { Button } from '../button'
+import type { ControlSize } from '../control/context'
 import { Icon } from '../icon'
 import { Input } from '../input'
 import { TagInputBadge } from './tag-input-badge'
@@ -12,7 +13,7 @@ import { useTagInputKeyboard } from './use-tag-input-keyboard'
 
 export type TagInputProps = {
 	id?: string
-	size?: 'sm' | 'md' | 'lg'
+	size?: ControlSize
 	/** Tag appearance. */
 	tag?: { color?: Color }
 	/** Current tag values (controlled). */

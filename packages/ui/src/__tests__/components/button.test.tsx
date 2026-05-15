@@ -1,4 +1,5 @@
 import { Search } from 'lucide-react'
+import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Group } from '../../components/group'
@@ -55,6 +56,26 @@ describe('Button', () => {
 		expect(link?.tagName).toBe('A')
 
 		expect(link).toHaveAttribute('href', '/about')
+	})
+
+	it('forwards ref to the button element', () => {
+		const ref = createRef<HTMLButtonElement>()
+
+		renderUI(<Button ref={ref}>Click</Button>)
+
+		expect(ref.current).toBeInstanceOf(HTMLButtonElement)
+	})
+
+	it('forwards ref to the anchor element when href is provided', () => {
+		const ref = createRef<HTMLAnchorElement>()
+
+		renderUI(
+			<Button href="/about" ref={ref}>
+				About
+			</Button>,
+		)
+
+		expect(ref.current).toBeInstanceOf(HTMLAnchorElement)
 	})
 
 	it('disables the button when disabled prop is set', () => {

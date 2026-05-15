@@ -4,6 +4,7 @@ import { motion } from 'motion/react'
 import { cn } from '../../core'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k, progressTrackVariants } from '../../recipes/kata/progress'
+import type { Step } from '../../recipes/ryu/sun'
 
 type ProgressColor = keyof typeof k.color
 
@@ -14,7 +15,7 @@ type ProgressBarLabel = { 'aria-label': string } | { 'aria-labelledby': string }
 export type ProgressBarProps = ProgressBarLabel & {
 	value?: number
 	max?: number
-	size?: 'sm' | 'md' | 'lg'
+	size?: Step
 	color?: ProgressColor
 	className?: string
 }

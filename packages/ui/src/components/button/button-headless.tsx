@@ -8,7 +8,7 @@ import { Link } from '../link'
 // post-destructure rest and casts to the right element type at the spread.
 export type ButtonHeadlessProps = {
 	href?: string
-	ref?: Ref<HTMLButtonElement>
+	ref?: Ref<HTMLButtonElement> | Ref<HTMLAnchorElement>
 	dataSlot?: string
 	className?: string
 	loading?: boolean
@@ -27,6 +27,7 @@ export function ButtonHeadless({
 	if (href !== undefined) {
 		return (
 			<Link
+				ref={ref as Ref<HTMLAnchorElement>}
 				data-slot={dataSlot}
 				href={href}
 				className={className}
@@ -42,7 +43,7 @@ export function ButtonHeadless({
 
 	return (
 		<button
-			ref={ref}
+			ref={ref as Ref<HTMLButtonElement>}
 			data-slot={dataSlot}
 			type="button"
 			className={className}

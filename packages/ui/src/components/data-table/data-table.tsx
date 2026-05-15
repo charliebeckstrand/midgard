@@ -279,22 +279,11 @@ export function DataTable<T>({
 			toggleAll,
 			allSelected,
 			someSelected,
-			rowCount: rows.length,
 			sort,
 			toggleSort,
 			stickyHeader,
 		}),
-		[
-			selection,
-			toggleRow,
-			toggleAll,
-			allSelected,
-			someSelected,
-			rows.length,
-			sort,
-			toggleSort,
-			stickyHeader,
-		],
+		[selection, toggleRow, toggleAll, allSelected, someSelected, sort, toggleSort, stickyHeader],
 	)
 
 	const scrollRef = useRef<HTMLDivElement>(null)

@@ -140,6 +140,3 @@ export const control = {
 	resets,
 	check,
 } as const
-
-export type ControlSize = keyof typeof control.size
-export type ControlSurface = keyof typeof control.surface

@@ -1,9 +1,10 @@
 'use client'
 
 import { createContext } from '../../core'
+import type { Step } from '../../recipes/ryu/sun'
 
 export type SegmentContextValue = {
-	size: 'sm' | 'md' | 'lg'
+	size: Step
 }
 
 export const [SegmentProvider, useSegmentContext] = createContext<SegmentContextValue>('Segment')

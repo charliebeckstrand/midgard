@@ -13,7 +13,6 @@ export type DataTableContextValue = {
 	toggleAll: () => void
 	allSelected: boolean
 	someSelected: boolean
-	rowCount: number
 	sort: SortState | undefined
 	toggleSort: (column: string | number) => void
 	stickyHeader: boolean
