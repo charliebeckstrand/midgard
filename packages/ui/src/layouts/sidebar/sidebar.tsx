@@ -111,7 +111,7 @@ export function SidebarLayout({
 				createPortal(
 					<div
 						aria-hidden
-						className="fixed top-0 bottom-0 left-80 w-20 z-100 max-lg:hidden"
+						className="fixed top-0 bottom-0 left-80 w-10 z-100 max-lg:hidden"
 						onPointerEnter={() => setFloatingOpen(true)}
 						onPointerLeave={() => setFloatingOpen(false)}
 					/>,
