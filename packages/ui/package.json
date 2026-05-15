@@ -21,6 +21,16 @@
 			"types": "./src/layouts/index.ts",
 			"default": "./src/layouts/index.ts"
 		},
+		"./primitives/*": {
+			"types": [
+				"./src/primitives/*.ts",
+				"./src/primitives/*.tsx"
+			],
+			"default": [
+				"./src/primitives/*.ts",
+				"./src/primitives/*.tsx"
+			]
+		},
 		"./providers/*": {
 			"types": "./src/providers/*/index.ts",
 			"default": "./src/providers/*/index.ts"
