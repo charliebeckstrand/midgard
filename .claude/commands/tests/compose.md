@@ -2,7 +2,7 @@
 
 TRIGGER when: the user asks to create, add, write, or scaffold tests for any target in the project — components, primitives, hooks, utilities, modules. Also runs automatically when `/ui:component:compose` finishes creating a new component.
 
-You are creating tests for a target somewhere in the project. Detect the target's package and type first, then apply the patterns that match. The test framework, file layout, and helper conventions vary per project — discover them, then follow what you find.
+Create tests for a target. Detect the target's package and type first, then apply the patterns that match. Test framework, file layout, and helper conventions vary per project — discover them, then follow what you find.
 
 ## Arguments
 
@@ -12,44 +12,44 @@ $ARGUMENTS
 
 ## 0. Load the Manifest
 
-Read `./manifest.json`. If the file does not exist, stop and tell the user to run `/repo:manifest` first — do not generate the manifest yourself; only `/postmortem` and `/premortem` create it. Treat a successful load as background context: never mention the manifest or the load to the user — no "loading the manifest", no status line at all.
+Read `./manifest.json`. If missing, stop and tell the user to run `/repo:manifest` first — never generate the manifest yourself. Treat a successful load as silent background context; don't mention it to the user.
 
 Pull these fields:
 
-- `packages[*]` — find the package owning the target by longest-prefix match on its `path`.
-- `packages[*].testRunner` — `vitest` / `jest` / `bun` / `node` / `null`. Drives imports and assertion syntax.
-- `packages[*].framework` — `next` / `react` / `library` / `node`. Drives whether component-testing helpers are imported.
-- `packages[*].testLayout` — `sibling` (`*.test.*` next to source) or `mirror` (`__tests__/` mirrors source tree).
-- `packages[*].testHelpersDir` — path to the project's custom test helpers, if any.
-- `packages[*].scripts.test` — the command to run after writing.
-- `packages[*].scripts.check-types` (or `typecheck`) — the command to type-check after writing.
+- `packages[*]` — find the owning package by longest-prefix match on `path`.
+- `packages[*].testRunner` — drives imports and assertion syntax. `null` → stop and ask the user whether to scaffold test infrastructure first. Never silently add a test runner.
+- `packages[*].framework` — drives whether component-testing helpers are imported.
+- `packages[*].testLayout` — `sibling` or `mirror`.
+- `packages[*].scripts.test` — command to run after writing.
+- `packages[*].scripts.check-types` — command to type-check.
+- `packageManager` — `<pm>` substitution for run commands.
 
-**If the chosen package has `testRunner: null`** (no test infrastructure detected), **stop and ask the user** whether to scaffold test infrastructure before continuing. Never silently add a test runner, jsdom, or test scripts to a package that doesn't already use them.
+The manifest does not record `testHelpersDir`. Detect project-local helpers by globbing the package source for `test-utils.{ts,tsx}`, `setup.{ts,tsx}`, `helpers.{ts,tsx}`, or `__tests__/helpers/`. If found, prefer that file's exports over raw library calls.
 
 ---
 
 ## 1. Decide where the test goes
 
-Use `testLayout`:
+Per `testLayout`:
 
-- **`sibling`** — test lives next to the source as `<name>.test.<ext>` (or `<name>.spec.<ext>` if that's the project's convention).
-- **`mirror`** — test lives under the package's mirrored test root (typically `src/__tests__/`) at a path that reflects the source path.
-- **`null`** — sample 1–2 existing test files in the package to learn the convention, then mirror it.
+- **`sibling`** — `<name>.test.<ext>` next to source (or `.spec.` if the project's convention).
+- **`mirror`** — under the package's mirrored test root (typically `src/__tests__/`) at a path reflecting the source path.
+- **`null`** — sample 1–2 existing tests in the package and mirror their convention.
 
-Extension rules:
+Extension:
 
-- Tests that render JSX: `.test.tsx`.
-- Pure-module and hook tests: `.test.ts`.
+- Renders JSX → `.test.tsx`.
+- Pure modules and hooks → `.test.ts`.
 
 ---
 
 ## 2. Read the source first
 
-Before writing any test, read the target's source thoroughly. Capture:
+Capture before writing:
 
-- **For UI components / primitives** — root element tag, any stable DOM marker (`data-slot`, `data-part`), prop surface (variants, `className`, `children`, refs, event handlers), whether it uses any context-fallback pattern (size inheritance, theming), whether it's polymorphic (accepts `href` / `as`), whether it has compound sub-parts.
-- **For hooks** — input/output shape, internal state, callbacks accepted, side effects, memoization guarantees, browser APIs read at module load.
-- **For utilities / pure modules** — public API, documented edge cases, external dependencies that would need mocking.
+- **Components / primitives** — root element tag, stable DOM marker (`data-slot`, `data-part`), prop surface (variants, `className`, `children`, refs, event handlers), context-fallback patterns, polymorphism (`href` / `as`), compound sub-parts.
+- **Hooks** — input/output shape, internal state, callbacks, side effects, memoization guarantees, browser APIs read at module load.
+- **Utilities / pure modules** — public API, documented edge cases, external dependencies that need mocking.
 
 This determines which patterns apply.
 
@@ -59,24 +59,22 @@ This determines which patterns apply.
 
 In parallel:
 
-- **Test runner imports**: derive from `testRunner`. Examples — `vitest` → `import { describe, it, expect, vi } from 'vitest'`; `jest` → globals or `@jest/globals`; `bun` → `import { describe, it, expect } from 'bun:test'`; `node` → `import { describe, it } from 'node:test'` + `import assert from 'node:assert/strict'`.
-- **React testing helpers**: when the target's package has `framework: react` or `next`, use `@testing-library/react` (`render`, `renderHook`, `screen`, `fireEvent`, `userEvent`, `act`, `waitFor`). For pure-library packages without a frontend surface, skip framework helpers entirely.
-- **Project-local helpers**: if `testHelpersDir` is set, read its barrel/index. Prefer the project's helpers over the raw library calls — they typically wrap providers, add convenience queries, or pre-configure user events.
-- **Existing-test mimicry**: read **one neighboring test** in the package. Match its formatting (tabs vs spaces, blank-line discipline, description casing, import grouping). Consistency is non-negotiable.
+- **Runner imports** — derived from `testRunner`. Vitest → `import { describe, it, expect, vi } from 'vitest'`. Jest → globals or `@jest/globals`. Bun → `import { describe, it, expect } from 'bun:test'`. Node → `import { describe, it } from 'node:test'` + `import assert from 'node:assert/strict'`.
+- **Framework helpers** — when the package has `framework: react` or `next`, use `@testing-library/react`. For pure libraries with no frontend surface, skip them entirely.
+- **Project-local helpers** — if any were discovered in section 0, prefer them.
+- **Mimic neighbors** — read **one neighboring test** in the package. Match formatting, blank-line discipline, description casing, import grouping.
 
 ---
 
 ## 4. Apply the patterns
 
-Pick every pattern that applies to the target type. Required patterns are flagged.
+Pick every pattern that applies. Required patterns are flagged.
 
-Examples below are written for a Vitest + React stack with fabricated identifiers (`Widget`, `useToggle`, `formatCurrency`). Adapt the runner imports if the project uses Jest, Bun test, or Node test instead. Where the project has its own render helper in `testHelpersDir`, substitute it for `render`.
-
----
+Examples below use Vitest + React with fabricated identifiers. Adapt the runner imports if the project uses Jest, Bun, or Node. Where a project-local render helper exists, substitute it for `render`.
 
 ### 4.1. Component / primitive patterns
 
-**A. Renders with the expected root marker** (REQUIRED for every component)
+**A. Renders with the expected root marker** (REQUIRED)
 
 ```tsx
 it('renders with data-slot="widget"', () => {
@@ -89,9 +87,9 @@ it('renders with data-slot="widget"', () => {
 })
 ```
 
-If the project does not use DOM markers, query by accessible role instead (`screen.getByRole('button')`) or by the project's preferred query strategy.
+If the project doesn't use DOM markers, query by accessible role (`screen.getByRole(...)`) instead.
 
-**B. Merges custom `className`** (REQUIRED for every component)
+**B. Merges custom `className`** (REQUIRED)
 
 ```tsx
 it('merges custom className', () => {
@@ -101,121 +99,25 @@ it('merges custom className', () => {
 })
 ```
 
-**C. Renders children** (when the component accepts children)
+**C. Renders children** (when the component accepts children) — `render(<Widget>Hello</Widget>)`, assert `screen.getByText('Hello')` in document.
 
-```tsx
-it('renders children', () => {
-  render(<Widget>Hello</Widget>)
+**D. Forwards ref** (when using `forwardRef`) — pass a `createRef`, assert `ref.current instanceof HTMLDivElement`.
 
-  expect(screen.getByText('Hello')).toBeInTheDocument()
-})
-```
+**E. Polymorphic / `as`** (when element changes by prop) — render with `href`, assert root tag is `A` and `href` attribute matches.
 
-**D. Forwards ref** (when the component uses `forwardRef` or equivalent)
+**F. Event forwarding** (when forwarding events) — pass a `vi.fn()` handler, dispatch the event on the root marker, assert `toHaveBeenCalledOnce()`. For input-like components, use `userEvent.type()` with the appropriate role query.
 
-```tsx
-it('forwards ref', () => {
-  const ref = createRef<HTMLDivElement>()
+**G. Disabled** (when the component accepts `disabled`) — render with `disabled`, assert root marker is `toBeDisabled()`.
 
-  render(<Widget ref={ref} />)
+**H. Loading** (when the component accepts `loading`) — render with `loading`, assert root is disabled and `aria-busy="true"`.
 
-  expect(ref.current).toBeInstanceOf(HTMLDivElement)
-})
-```
+**I. HTML attribute pass-through** (when props are spread) — render with `id="x"`, assert root has that attribute.
 
-**E. Polymorphic / `as` behavior** (when the component changes element by prop)
+**J. Compound sub-components** (when the component has sub-parts) — test each sub-part's marker and `className` merge using the same pattern as A and B.
 
-```tsx
-it('renders as a link when href is provided', () => {
-  const { container } = render(<Widget href="/path">Link</Widget>)
+**K. Context-fallback prop resolution** (when a prop resolves explicit → context → default)
 
-  const el = container.querySelector('[data-slot="widget"]')
-
-  expect(el?.tagName).toBe('A')
-  expect(el).toHaveAttribute('href', '/path')
-})
-```
-
-**F. Event forwarding** (when the component forwards events)
-
-```tsx
-it('forwards click handler', () => {
-  const onClick = vi.fn()
-
-  const { container } = render(<Widget onClick={onClick}>Click</Widget>)
-
-  container.querySelector('[data-slot="widget"]')?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-
-  expect(onClick).toHaveBeenCalledOnce()
-})
-```
-
-For input-like components, use the framework's user-interaction helper:
-
-```tsx
-it('fires onChange when typed into', async () => {
-  const onChange = vi.fn()
-
-  render(<TextField onChange={onChange} />)
-
-  await userEvent.type(screen.getByRole('textbox'), 'a')
-
-  expect(onChange).toHaveBeenCalled()
-})
-```
-
-**G. Disabled state** (when the component accepts `disabled`)
-
-```tsx
-it('disables the element when disabled is set', () => {
-  const { container } = render(<Widget disabled>content</Widget>)
-
-  expect(container.querySelector('[data-slot="widget"]')).toBeDisabled()
-})
-```
-
-**H. Loading state** (when the component accepts `loading`)
-
-```tsx
-it('sets aria-busy and disables when loading', () => {
-  const { container } = render(<Widget loading>content</Widget>)
-
-  const el = container.querySelector('[data-slot="widget"]')
-
-  expect(el).toBeDisabled()
-  expect(el).toHaveAttribute('aria-busy', 'true')
-})
-```
-
-**I. HTML attribute pass-through** (when the component spreads props)
-
-```tsx
-it('passes through HTML attributes', () => {
-  const { container } = render(<Widget id="x" data-testid="el">content</Widget>)
-
-  expect(container.querySelector('[data-slot="widget"]')).toHaveAttribute('id', 'x')
-})
-```
-
-**J. Compound sub-components** (when the component has sub-parts)
-
-Test each sub-part's marker and `className` merge:
-
-```tsx
-it('renders header with data-slot="widget-header"', () => {
-  const { container } = render(
-    <Widget>
-      <WidgetHeader>Title</WidgetHeader>
-    </Widget>,
-  )
-
-  expect(container.querySelector('[data-slot="widget-header"]')).toBeInTheDocument()
-})
-```
-
-**K. Context-fallback prop resolution** (when the component reads a context-provided default)
-
-When a component resolves a prop in the order **explicit → context → default**, exercise each step. Match against a stable output (a class, an attribute, a computed value) that uniquely identifies each step.
+Exercise each resolution step. Match against a stable output (class, attribute, computed value) that uniquely identifies the step.
 
 ```tsx
 it('inherits size from <SizeProvider>', () => {
@@ -239,15 +141,13 @@ it('explicit size prop overrides the provider', () => {
 })
 ```
 
-**L. Wrapper / provider components** (when the target itself provides context)
-
-Test that the wrapper exposes the expected attributes / context to descendants. For SVG children, query `getAttribute('class')` rather than reading `.className` — the latter returns an `SVGAnimatedString`, not a string.
+**L. Wrapper / provider components** (when the target provides context) — test that descendants receive the expected attributes / context. For SVG children, query `getAttribute('class')` rather than `.className` (the latter returns an `SVGAnimatedString`).
 
 ---
 
 ### 4.2. Hook patterns
 
-**A. Initial value** (REQUIRED for every hook)
+**A. Initial value** (REQUIRED)
 
 ```ts
 it('returns the expected initial value', () => {
@@ -257,67 +157,17 @@ it('returns the expected initial value', () => {
 })
 ```
 
-**B. State transitions** (when the hook manages state)
+**B. State transitions** (when the hook manages state) — render, call the setter inside `act()`, assert the new state.
 
-```ts
-it('toggles state', () => {
-  const { result } = renderHook(() => useToggle(false))
+**C. Callbacks** (when the hook accepts `onChange` or similar) — pass a `vi.fn()`, trigger the state change, assert called with the expected value.
 
-  act(() => {
-    result.current[1]()
-  })
+**D. Side effects** (when the hook interacts with the DOM or browser APIs) — assert the effect is active after render, then `unmount()` and assert cleanup.
 
-  expect(result.current[0]).toBe(true)
-})
-```
-
-**C. Callbacks** (when the hook accepts `onChange` or similar)
-
-```ts
-it('calls onChange when the value changes', () => {
-  const onChange = vi.fn()
-
-  const { result } = renderHook(() => useToggle(false, { onChange }))
-
-  act(() => {
-    result.current[1]()
-  })
-
-  expect(onChange).toHaveBeenCalledWith(true)
-})
-```
-
-**D. Side effects** (when the hook interacts with the DOM or browser APIs)
-
-```ts
-it('cleans up on unmount', () => {
-  const { unmount } = renderHook(() => useResizeObserver(ref))
-
-  expect(resizeObserverIsActive()).toBe(true)
-
-  unmount()
-
-  expect(resizeObserverIsActive()).toBe(false)
-})
-```
-
-**E. Referential stability** (when the hook returns a memoized object)
-
-```ts
-it('returns the same reference across re-renders when inputs do not change', () => {
-  const { result, rerender } = renderHook(() => useStableHandlers({ id: 'a' }))
-
-  const first = result.current
-
-  rerender()
-
-  expect(result.current).toBe(first)
-})
-```
+**E. Referential stability** (when the hook returns a memoized object) — capture `result.current`, `rerender()` with unchanged inputs, assert `result.current === first`.
 
 **F. Module-level browser-API reads** (when the hook reads browser APIs at module load)
 
-Use dynamic imports with the runner's module-reset API:
+Use dynamic import with the runner's module-reset API:
 
 ```ts
 it('reads the mocked environment', async () => {
@@ -350,33 +200,15 @@ it('formats a dollar amount with two decimals', () => {
 })
 ```
 
-**B. Edge cases**
+**B. Edge cases** — one `it` per behavior. Cover documented edge cases (empty input, falsy values, conflicting inputs, boundary values). Skip cases the function does not promise to handle. Do not bundle unrelated assertions in one `it`.
 
-Cover documented edge cases — empty input, falsy values, conflicting inputs, boundary values. **One `it` per behavior**; do not bundle unrelated assertions. Skip cases the function does not promise to handle.
-
-```ts
-it('returns "$0.00" for zero', () => {
-  expect(formatCurrency(0, 'USD')).toBe('$0.00')
-})
-
-it('rounds half-to-even at the second decimal', () => {
-  expect(formatCurrency(1.005, 'USD')).toBe('$1.00')
-})
-```
-
-**C. Throws on invalid input** (when the function throws by contract)
-
-```ts
-it('throws when the currency code is unknown', () => {
-  expect(() => formatCurrency(1, 'XYZ')).toThrow(/unknown currency/i)
-})
-```
+**C. Throws on invalid input** (when the function throws by contract) — `expect(() => fn(bad)).toThrow(/pattern/i)`.
 
 ---
 
 ### 4.4. Module patterns with mocking
 
-For modules that depend on external services, the network, or other modules. Apply the smallest mock that isolates the unit under test.
+Apply the smallest mock that isolates the unit under test.
 
 **A. Mock a dependency module**
 
@@ -406,38 +238,36 @@ it('calls the expected endpoint', async () => {
 })
 ```
 
-**C. Reset mocks between tests**
-
-When mocks carry state, reset them in `beforeEach` (or globally in the project's setup file) — never let one test's mock state leak into another.
+**C. Reset between tests** — when mocks carry state, reset in `beforeEach` (or globally in the project's setup file). Never let mock state leak across tests.
 
 ---
 
 ## 5. Run the tests
 
-Run only the **freshly-written test file** — not the full package suite. The pre-commit gate runs everything at commit time; this step exists to verify the new file works in isolation.
+Run only the **freshly-written test file** — not the full suite. The pre-commit gate runs everything at commit time.
 
-Pick the command by runner:
+By runner:
 
-- **`testRunner: vitest`** — `<pm> --filter=<pkg> exec vitest run <new-test-file>`.
-- **`testRunner: jest`** — `<pm> --filter=<pkg> exec jest <new-test-file>`.
-- **`testRunner: bun`** — `<pm> --filter=<pkg> exec bun test <new-test-file>`.
-- **`testRunner: node`** — `<pm> --filter=<pkg> exec node --test <new-test-file>`.
+- **vitest** — `<pm> --filter=<pkg> exec vitest run <new-test-file>`
+- **jest** — `<pm> --filter=<pkg> exec jest <new-test-file>`
+- **bun** — `<pm> --filter=<pkg> exec bun test <new-test-file>`
+- **node** — `<pm> --filter=<pkg> exec node --test <new-test-file>`
 
-Substitute `<pm>` with the `packageManager` from the manifest (typically `pnpm`) and `<pkg>` with the target package's `name`.
+Substitute `<pm>` with `packageManager` and `<pkg>` with the target package's `name`.
 
-If the test fails, read the error, fix the test, and re-run. Do not leave failing tests.
+If the test fails, fix it and re-run. Do not leave failing tests.
 
 ## 6. Type-check
 
-If the package declares `scripts.check-types` (or `typecheck`), run it the same way:
+If the package declares `scripts.check-types` (or `typecheck`):
 
 ```
 <pm> turbo check-types --filter=<pkg>
 ```
 
-Use whichever task name the package declares. Any type error in the test file is a blocking failure — fix it.
+Any type error in the test file is blocking — fix it.
 
-## 7. TypeScript review on the new test file
+## 7. TypeScript review
 
 Invoke `/typescript:review` against the new test file before declaring done:
 
@@ -445,30 +275,30 @@ Invoke `/typescript:review` against the new test file before declaring done:
 /typescript:review <path-to-new-test-file>
 ```
 
-`/typescript:review` applies the project's TypeScript principles (no `as any` in mocks without an inline justification, no `enum`, type predicates over implicit narrowing, etc.) and the advanced-features catalog. The test is not done until `/typescript:review` returns PASS — surface any BLOCK findings to the caller (the user, or `/ui:component:compose` if this run was delegated).
+The test is not done until `/typescript:review` returns PASS. Surface BLOCK findings to the caller (the user, or `/ui:component:compose` if this run was delegated).
 
-When this skill is invoked **from** `/typescript:review` itself (file mode against a freshly-written test), skip this step to avoid recursion — the parent already covers it.
+When invoked **from** `/typescript:review` itself (file mode against a freshly-written test), skip this step to avoid recursion — the parent already covers it.
 
 ---
 
 ## What NOT to test
 
-- **Visual appearance** — do not assert specific class strings or computed styles. Test behavior, not styling. Exception: a single deterministic marker (a `data-*` attribute or a class that uniquely identifies a resolved variant) is acceptable when probing prop-resolution order.
-- **Internal implementation details** — do not test internal state variables, private methods, or token literals.
-- **Animation timing** — motion is almost always non-deterministic in tests. Mock or skip it; do not assert frame-by-frame behavior.
-- **Snapshot tests** — only introduce them if the project already uses them.
-- **Every variant permutation** — verify the variant system works, not every combination of variant × color × size × tone.
-- **Third-party library internals** — trust the library; test your usage of it, not its behavior.
+- **Visual appearance** — no class strings or computed styles. Test behavior. Exception: a single deterministic marker (a `data-*` attribute or class that uniquely identifies a resolved variant) is acceptable when probing prop-resolution order.
+- **Internal implementation details** — no internal state variables, private methods, or token literals.
+- **Animation timing** — non-deterministic in tests. Mock or skip.
+- **Snapshot tests** — only if the project already uses them.
+- **Every variant permutation** — verify the system works, not every combination.
+- **Third-party library internals** — trust the library; test your usage of it.
 
 ---
 
 ## Checklist
 
-- [ ] Test file is at the correct path for the project's `testLayout` (`sibling` or `mirror`), and matches the extension of neighboring tests.
-- [ ] Imports are scoped to what the file actually uses; runner and framework helpers match what the project already imports elsewhere.
-- [ ] If the project has helpers in `testHelpersDir`, they are used rather than raw library calls.
-- [ ] Every applicable pattern from section 4 is included.
-- [ ] Formatting (indentation, blank lines, description casing) matches neighboring tests.
+- [ ] Test file at the correct path for the package's `testLayout`, with the correct extension.
+- [ ] Imports scoped to what the file uses; runner and framework helpers match the project's existing patterns.
+- [ ] Project-local helpers used when present.
+- [ ] Every applicable pattern from section 4 included.
+- [ ] Formatting matches neighboring tests.
 - [ ] Tests pass for the target package.
 - [ ] Types check for the target package.
-- [ ] `/typescript:review` has been invoked on the new test file and returned PASS.
+- [ ] `/typescript:review` returned PASS on the new test file.

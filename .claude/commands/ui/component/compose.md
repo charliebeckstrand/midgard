@@ -2,7 +2,9 @@
 
 TRIGGER when: the user asks to create, add, build, or scaffold a new UI component for the project's component library.
 
-You are creating a new component inside whatever package houses this project's UI library. The repo is a Turborepo with Next.js apps and (usually) one or more shared React component packages. Within that scope the structure, vocabulary, and styling system still vary per project — discover them before writing code, then match the conventions you find.
+Create a new component inside whatever package houses this project's UI library. The repo is a Turborepo with Next.js apps and (usually) one or more shared React component packages. Within that scope the structure, vocabulary, and styling system vary per project — discover them before writing code, then match what you find.
+
+This skill is the **canonical source** for the project's component-authoring conventions. Two reference blocks at the bottom — `[layout-heuristics]` and `[framework-discipline]` — are cited by handle from `/ui:audit` and other consumers. Keep those blocks tight; the rest of the skill is workflow.
 
 ## Arguments
 
@@ -12,122 +14,107 @@ $ARGUMENTS
 
 ## 0. Load the Manifest
 
-Read `./manifest.json`. If the file does not exist, stop and tell the user to run `/repo:manifest` first — do not generate the manifest yourself; only `/postmortem` and `/premortem` create it. Treat a successful load as background context: never mention the manifest or the load to the user — no "loading the manifest", no status line at all.
+Read `./manifest.json`. If missing, stop and tell the user to run `/repo:manifest` first — never generate the manifest yourself. Treat a successful load as silent background context; don't mention it to the user.
 
-From the manifest, pull the fields this skill uses:
+Per package, capture:
 
-- `packages[*]` — pick the target package. If multiple packages have `componentsDir`, ask the user which one (default to the one whose `package.json#name` matches the user's hint, or to the only package where `isFrontend` is `true` if there's exactly one).
-- `framework` — `react` or `next` for component-bearing packages. Both use React + JSX; Next adds the `'use client'` directive convention.
-- `componentsDir` — where the new component goes.
+- `path`, `name`, `isFrontend` — pick the target package. If multiple frontend packages exist and the user did not disambiguate, ask. Default to the one whose `package.json#name` matches the user's hint, or to the only `isFrontend: true` package if there's exactly one.
+- `framework` — `react` or `next`. Both use React + JSX; Next adds the `'use client'` directive convention.
+- `componentsDir` — where the new component goes. If `null`, stop and ask the user where to place the component.
 - `primitivesDir`, `hooksDir`, `tokensDir` — what's available for reuse.
-- `testLayout` and `testHelpersDir` — used when scaffolding the matching test.
-- `conventions.vocabularyGlossary` — surface this in user-facing summaries so the scaffold speaks the project's language.
+- `testLayout` — used when scaffolding the matching test.
 - `conventions.principles` — observe declared rules (layering, naming, dependency direction).
 
-If the target package has no `componentsDir`, stop and ask the user where to place the component before continuing.
+The manifest does not record `testHelpersDir`. Detect project-local test helpers by globbing the package source for `test-utils.{ts,tsx}`, `setup.{ts,tsx}`, `helpers.{ts,tsx}`, or `__tests__/helpers/`.
 
 ---
 
 ## 1. Discover styling and authoring conventions
 
-The Manifest gives you structure; you still need to learn **how** components are written in this project. Run these reads in parallel:
+The Manifest gives you structure; you still need to learn **how** components are written here. Run these reads in parallel:
 
 ### 1a. Detect the styling system
 
-Inspect the target package's `package.json` (or `devDependencies` resolved through the manifest). The presence of a known dep determines the styling approach:
+Inspect the target package's `package.json` (resolved through the manifest). Known deps:
 
 | Dep | System |
 | --- | --- |
-| `tailwind-variants` or `cva` (class-variance-authority) | variant recipe library |
+| `tailwind-variants` or `cva` | variant recipe library |
 | `vanilla-extract` | typed CSS-in-TS with sprinkles |
 | `stitches` / `@stitches/react` | runtime CSS-in-JS |
 | `styled-components` / `emotion` | tagged-template CSS-in-JS |
 | `tailwindcss` only (no variant lib) | utility classes via a `cn`-style helper |
-| `*.module.css` files present in `componentsDir` | CSS Modules |
+| `*.module.css` files in `componentsDir` | CSS Modules |
 
-If none of these signals fires, read 1–2 sibling components before assuming — Next.js projects often invent their own conventions.
+If none of these signals fires, read 1–2 sibling components before assuming.
 
 ### 1b. Sample sibling components
 
-Read **1–2 existing components** in the target `componentsDir`. From them, extract:
+Read **1–2 existing components** in the target `componentsDir`. Extract:
 
 - File naming (`Button.tsx` vs `button.tsx` vs `button/index.tsx`).
-- Whether each component owns a folder or is a single file.
-- Whether sub-components live in separate files or inline.
-- Where variant/recipe logic lives (sibling `variants.ts`? colocated in the same file? in `tokensDir`?).
+- Folder-per-component vs single file.
+- Sub-component placement (separate files vs inline).
+- Where variant/recipe logic lives (sibling `variants.ts`, colocated, or in `tokensDir`).
 - Export style (named vs default, `export function` vs `export const`).
 - Barrel/index conventions.
-- The project's `cn`-equivalent: search for `clsx`, `classnames`, `cva`, `tailwind-merge`, or a local helper.
-- Whether components carry a `data-slot` / `data-part` / similar marker.
+- The project's `cn`-equivalent: `clsx`, `classnames`, `cva`, `tailwind-merge`, or a local helper.
+- Whether components carry a stable DOM marker (`data-slot` / `data-part` / similar).
 
-If sibling components disagree, prefer the most recent (highest mtime) — it represents the current convention.
+When siblings disagree, prefer the most recent (highest mtime).
+
+The output of section 1b drives every output decision in section 3. If siblings inline variants, the variants file in 3b becomes inline. If siblings ship one file per sub-component, 3c's compound example is the reference shape. Do not silently default to the most-decomposed pattern when siblings are simpler.
 
 ### 1c. Detect design tokens / recipes
 
-If the manifest's `tokensDir` is set, read its `index.*` and one representative token file. Note the categories the project exposes (colors, typography, spacing, radii, motion, etc.) so you can compose them instead of inventing literals.
+If `tokensDir` is set, read its `index.*` and one representative token file. Note the categories the project exposes (colors, typography, spacing, radii, motion, etc.) so you can compose them instead of inventing literals.
 
 ### 1d. Note whether a docs system exists
 
-Look for one of: a `docs/` directory under the package, a Storybook config (`.storybook/`), an MDX directory, a `playground/`, or auto-discovery via `import.meta.glob` patterns. Authoring the docs/demo file is **not** this skill's job — `/ui:docs:compose` owns it. Just record whether a docs system exists so step 3f can delegate.
+Look for: a `docs/` directory under the package, a Storybook config (`.storybook/`), an MDX directory, a `playground/`, or auto-discovery via `import.meta.glob`. Authoring docs is **not** this skill's job — `/ui:docs:compose` owns it. Record presence; delegate in 3g.
 
 ---
 
-## 2. Composition-first audit (REQUIRED — do this before writing)
+## 2. Composition-first audit (REQUIRED — before writing)
 
-The single most common scaffolding mistake is reinventing behavior that already exists in the library. Before writing any code, walk this hierarchy and prefer the highest level that applies:
+The single most common scaffolding mistake is reinventing behavior that already exists. Before writing code, walk this hierarchy and prefer the highest level that applies:
 
 1. **Compose existing components** in `componentsDir`.
-2. **Use primitives** in `primitivesDir` (if any).
+2. **Use primitives** in `primitivesDir`.
 3. **Use recipes / tokens / hooks** in `tokensDir` and `hooksDir`.
 4. **Write raw markup + styling** only as a last resort.
 
 ### Mandatory audit questions
 
-Walk through these. If the answer is "yes", **compose the existing piece instead of inventing one**:
+If the answer is "yes", **compose the existing piece instead of inventing one**:
 
-- Does the component render in a modal / overlay surface? → compose the project's existing dialog/sheet/drawer/popover.
-- Does it contain a text input? → compose the project's `Input`/`Textarea` equivalent.
-- Does it contain a clickable action? → compose the project's `Button` equivalent.
-- Does it render a list of selectable options with keyboard navigation? → compose the project's `Listbox`/`Combobox`/`Menu` equivalent.
-- Does it need a surface with padding/border/background props? → compose the project's `Box`/`Card`/`Surface` equivalent.
-- Does it need controlled-or-uncontrolled state? → use the project's `useControllable` equivalent (search `hooksDir` for one before writing your own).
-- Does it need floating positioning? → use the project's floating-positioning hook (search `hooksDir` for one).
+- Renders in a modal / overlay surface? → compose the existing dialog/sheet/drawer/popover.
+- Contains a text input? → compose the existing `Input`/`Textarea` equivalent.
+- Contains a clickable action? → compose the existing `Button` equivalent.
+- Renders a list of selectable options with keyboard navigation? → compose the existing `Listbox`/`Combobox`/`Menu`.
+- Needs a surface with padding/border/background props? → compose the existing `Box`/`Card`/`Surface`.
+- Needs controlled-or-uncontrolled state? → use the project's `useControllable` equivalent (search `hooksDir`).
+- Needs floating positioning? → use the project's floating-positioning hook (search `hooksDir`).
 
-If none of the audit questions apply and the styling is also fully covered by composition, **skip the recipe / variants step** in section 3 — the new component is just a thin assembly file.
+If none apply and styling is fully covered by composition, **skip the recipe / variants step** in section 3 — the new component is a thin assembly file.
 
-### Worked example
-
-A "command palette" is "a dialog containing a search input and a keyboard-navigated list". The correct implementation composes `<Dialog>`, `<Input>`, and `<Listbox>` (or the project's equivalents) — roughly 50–100 lines. It does **not** re-implement overlays, motion, or option rendering. Apply the same lens to every new component.
+A "command palette" is "a dialog containing a search input and a keyboard-navigated list". Correct implementation composes `<Dialog>`, `<Input>`, and `<Listbox>` (or equivalents) — roughly 50–100 lines. It does **not** re-implement overlays, motion, or option rendering.
 
 ---
 
 ## 3. Scaffold the component
 
-Honor the conventions you discovered in section 1. The exact filenames, extensions, and import paths depend on the project; the **shape** below is universal.
+Output decisions follow `[layout-heuristics]` (see bottom of this file). When sibling components agree, match them. When they disagree, fall back to the heuristics.
 
-### 3a. File layout — match the existing pattern
+### 3a. File layout
 
-Before writing, sample 2–3 sibling components in the target `componentsDir` and detect how they organize files. You're already reading siblings in section 1b for styling and naming — extend that pass to capture:
-
-- Do siblings ship **one component per file**, or do they bundle sub-components inside the top-level file?
-- Do siblings extract shared types into a colocated `types.ts`, or keep types inline next to the component that owns them?
-- Do siblings keep custom `use*` hooks in their own files (colocated or in `hooksDir`), or declare them inside the component file?
-
-Match the dominant sibling pattern. The codebase's existing conventions are the source of truth — do not import a stricter or looser split policy from elsewhere.
-
-When siblings disagree, or there are too few to set a baseline, fall back to these heuristics:
-
-- **Sub-components** earn their own file when they're nontrivial (their own state, more than a handful of JSX lines, or reused). Truly trivial single-use helpers can stay inline.
-- **A shared `types.ts`** is worth creating when **two or more** files in the component's folder need the same type. Do not pre-create one for types only one file uses.
-- **Custom hooks** belong in their own files when they're nontrivial or reusable beyond the component. Small one-liners coupled to a single component can stay next to it.
-
-Split where the boundary is clear and the pieces earn separation. Avoid splitting for its own sake — a 60-line component with one tightly-coupled subtree does not need to be three files. When siblings consistently violate even the fallback heuristics (e.g. every sibling inlines everything), surface the divergence to the user and ask whether to follow the legacy convention or set a new one rather than silently picking either.
+Apply `[layout-heuristics]`. Surface divergence to the user when siblings consistently violate even the fallback heuristics; ask whether to follow the legacy convention or set a new one.
 
 ### 3b. Variants / recipe (only if needed)
 
-If the component owns genuinely new styling that isn't expressible through composition, create the variant recipe in the location your sibling components use (e.g. a colocated `variants.ts`, a file under `tokensDir`, or inline).
+If the component owns genuinely new styling that isn't expressible through composition, create the variant recipe in the location your sibling components use. Inline if siblings inline; sibling `variants.ts` if siblings split; `tokensDir` if siblings centralize.
 
-**Generic example — `tailwind-variants` recipe with size and tone variants, plus a slots map for compound sub-elements.** Adjust to the styling system you detected.
+**Example — `tailwind-variants` recipe with size and tone variants, plus a slots map for compound sub-elements.** Adjust to the styling system you detected.
 
 ```ts
 import { tv, type VariantProps } from 'tailwind-variants'
@@ -156,7 +143,7 @@ export const widgetSlots = {
 }
 ```
 
-If the project's `tokensDir` exposes pre-built tone/size/spacing helpers, **compose them** instead of writing literal values:
+If `tokensDir` exposes pre-built tone/size/spacing helpers, **compose them** instead of literal values:
 
 ```ts
 import { tokens } from '@/tokens'
@@ -172,11 +159,13 @@ export const widget = tv({
 })
 ```
 
-If the project owns a registry/barrel that lists every recipe (you'll see it in `tokensDir`), register the new recipe there in the same style.
+If the project owns a registry/barrel listing every recipe (visible in `tokensDir`), register the new recipe there.
 
 ### 3c. Component file
 
-**Generic example — React functional component using a `cn` helper, variant recipe, and the project's polymorphic element pattern if one exists.**
+Apply `[framework-discipline]` for `'use client'`, `forwardRef`, and DOM-marker decisions.
+
+**Example — React functional component using a `cn` helper, variant recipe, polymorphic element pattern if siblings use one.**
 
 ```tsx
 import { cn } from '@/utils/cn'
@@ -196,7 +185,7 @@ export function Widget({ tone, size, className, children, ...rest }: WidgetProps
 }
 ```
 
-**Generic example — compound component with sub-parts in sibling files.**
+**Compound component with sub-parts in sibling files** (when siblings ship that way):
 
 ```tsx
 // widget-header.tsx
@@ -214,7 +203,7 @@ export function WidgetHeader({ className, children, ...rest }: WidgetHeaderProps
 }
 ```
 
-**Generic example — size inheritance via a context provider.** Use this when the project has an `<EnclosingProvider>` / `useEnclosing()` pattern (you'll spot it in sibling components). The resolution order is: explicit prop → context → recipe default.
+**Size inheritance via context** (when siblings use `<Provider>` / `useEnclosing()`). Resolution order: explicit prop → context → recipe default.
 
 ```tsx
 import { useSize } from '@/components/size-provider'
@@ -226,18 +215,11 @@ export function Widget({ size, ...rest }: WidgetProps) {
 }
 ```
 
-Conventions to match from the sibling components you sampled:
-
-- File naming and extension.
-- `'use client'` — when the target is a Next.js app or a shared package consumed by Next server components, add this directive **only** when the component uses hooks, event handlers, or browser APIs. Match the convention of sibling components.
-- Named exports vs default exports.
-- Whether prop types are exported alongside the component.
-- Whether components carry a stable DOM marker (`data-slot`, `data-part`, `data-component`).
-- How `className` merges with computed classes — always merge, never overwrite.
+Always merge `className` with computed classes — never overwrite.
 
 ### 3d. Context (only if sub-components share state)
 
-For compound components whose sub-parts need access to common state, use the project's typed context helper if one exists (search `primitivesDir` and `hooksDir` for a `createContext`-style factory). Otherwise use React's native `createContext`.
+For compound components whose sub-parts need access to common state, use the project's typed context helper if one exists (search `primitivesDir` and `hooksDir`). Otherwise use React's native `createContext`.
 
 ```ts
 import { createSafeContext } from '@/utils/context'
@@ -249,7 +231,7 @@ export const [WidgetProvider, useWidget] = createSafeContext<WidgetContextValue>
 
 ### 3e. Barrel / index file
 
-If the project uses per-component folders with `index.*` barrels, mirror that pattern:
+If the project uses per-component folders with `index.*` barrels:
 
 ```ts
 export { Widget, type WidgetProps } from './widget'
@@ -257,7 +239,7 @@ export { WidgetHeader, type WidgetHeaderProps } from './widget-header'
 export { type WidgetVariants } from './variants'
 ```
 
-If the project keeps components as single files with no folder, skip this step.
+If components are single files with no folder, skip.
 
 ### 3f. Package / module export entry
 
@@ -270,56 +252,93 @@ If the target package exposes per-component subpath exports in `package.json#exp
 }
 ```
 
-If the package only exposes a single root entry, append the new component to the root barrel instead.
+If the package only exposes a root entry, append to the root barrel.
 
 ### 3g. Demo / docs file
 
-If section 1d found a docs system, delegate to `/ui:docs:compose`:
+If section 1d found a docs system:
 
 ```
 /ui:docs:compose <ComponentName>
 ```
 
-That skill reads the same Manifest, samples sibling docs files for authoring conventions, and produces a docs page that demonstrates the component's API surface in a form the project's code-derivation tooling can parse. Do not author the docs file inline here — keep this skill focused on the component itself.
+That skill reads the same Manifest, samples sibling docs files, and produces a docs page. Do not author the docs file inline.
 
-If the project has no docs system, skip this step.
+If no docs system, skip.
 
 ### 3h. Tests
 
-Always create a test file for the new component. Delegate to `/tests:compose`:
+Always create a test file. Delegate:
 
 ```
 /tests:compose <ComponentName>
 ```
 
-`/tests:compose` reads the same Manifest, infers the right location and runner, and produces a test that matches the project's conventions.
+`/tests:compose` reads the same Manifest and produces a test matching the project's conventions.
 
-### 3i. TypeScript review on the new files
+### 3i. TypeScript review
 
-Before declaring the component done, invoke `/typescript:review` against every `.ts` / `.tsx` file this skill (and its delegated `/ui:docs:compose` / `/tests:compose` calls) wrote:
+Before declaring done, invoke `/typescript:review` against every `.ts` / `.tsx` file this skill (and its delegates) wrote:
 
 ```
 /typescript:review <component-folder-or-file-path>
 ```
 
-`/typescript:review` reads each new file in full, runs the package's tests and type-checker, and applies the project's TypeScript principles and advanced-features catalog. The component is not done until `/typescript:review` returns PASS — surface any BLOCK findings to the user before continuing.
+The component is not done until `/typescript:review` returns PASS. Surface BLOCK findings to the user.
+
+---
+
+## Reference: `[layout-heuristics]`
+
+Cited by `/ui:audit` 5.11 and any future skill that detects or prevents layout drift.
+
+**Match the dominant sibling pattern in the target directory.** When sampling siblings, observe:
+
+1. **Component granularity** — one component per file, or sub-components bundled inside the top-level file?
+2. **Type colocation** — shared types in a colocated `types.ts`, or kept inline next to the owning component?
+3. **Hook placement** — custom `use*` hooks in their own files (colocated or in `hooksDir`), or declared inside component files?
+
+**Fallback heuristics when siblings disagree or are too few:**
+
+- **Sub-components** earn their own file when they're nontrivial (own state, more than a handful of JSX lines, or reused). Truly trivial single-use helpers stay inline.
+- **A shared `types.ts`** is worth creating when **two or more** files in the component's folder need the same type. Do not pre-create one for types only one file uses.
+- **Custom hooks** belong in their own files when they're nontrivial or reusable beyond the component. Small one-liners coupled to a single component stay inline.
+
+Split where the boundary is clear and the pieces earn separation. Avoid splitting for its own sake — a 60-line component with one tightly-coupled subtree does not need to be three files.
+
+**When siblings consistently violate even the fallback heuristics** (every sibling inlines everything, every sibling over-splits), surface the divergence and ask whether to follow the legacy convention or set a new one. Do not silently pick either.
+
+---
+
+## Reference: `[framework-discipline]`
+
+Cited by `/ui:audit` 5.12 and any future skill that detects or prevents framework smells.
+
+**`'use client'`** — add **only** when the component uses hooks, event handlers, or browser APIs, and only in packages whose `framework` is `next` or that are consumed by Next server components. Match the convention of sibling components. Never add it to a component that has none of these.
+
+**`forwardRef`** — when declared, the ref must be forwarded to a DOM element or to a child component that accepts a ref. A `forwardRef` whose ref parameter is never used is a smell.
+
+**Stable DOM markers** — components carry a stable marker (`data-slot`, `data-part`, `data-component`) only when sibling components do. Match the project's convention; do not introduce markers unilaterally.
+
+**`className` merge** — always merge incoming `className` with computed classes through the project's `cn` helper. Never overwrite or drop.
+
+**Memoization (`useMemo` / `useCallback`)** — apply only when the computation is non-trivial. Memoizing a literal, an identity expression, or a single property access is noise and may itself be the smell `/ui:audit` 5.12 flags.
 
 ---
 
 ## Checklist
 
-Before declaring the component done, confirm:
+Before declaring done:
 
-- [ ] **Composition audit complete.** Every existing component, primitive, or hook that could have been reused was reused. No reinvented overlays, no raw `<button>`/`<input>` where the project ships a styled equivalent, no parallel recipes that mirror an existing one.
-- [ ] **File layout matches sibling components.** Component-per-file granularity, type colocation, and hook placement follow the dominant pattern in the target directory. Where siblings disagree, sub-components live in their own file when nontrivial, types move to a shared `types.ts` only when 2+ files import them, and nontrivial hooks live in their own files.
+- [ ] **Composition audit complete.** Every existing component, primitive, or hook that could have been reused was reused.
+- [ ] **File layout matches `[layout-heuristics]`** against the target directory's siblings.
+- [ ] **Framework discipline matches `[framework-discipline]`** — `'use client'` is present iff needed, `forwardRef` (if used) actually forwards, `className` merges through the project's helper.
 - [ ] The variant/recipe (if any) composes the project's tokens rather than literal values.
 - [ ] File names, exports, and DOM markers match the sibling components you sampled.
-- [ ] The `className` prop is accepted and merged through the project's `cn` helper (or equivalent).
-- [ ] `'use client'` is present **only** when needed (hooks, event handlers, browser APIs) and matches sibling-component conventions.
-- [ ] Barrel/index, package-exports map, and any registry/glossary are updated.
+- [ ] Barrel/index, package-exports map, and any registry are updated.
 - [ ] A docs file exists at the discovered location, produced via `/ui:docs:compose` (when the project has a docs system).
 - [ ] A test file exists at the discovered location, produced via `/tests:compose`.
-- [ ] `/typescript:review` has been invoked on every new `.ts` / `.tsx` file and returned PASS.
+- [ ] `/typescript:review` returned PASS on every new file.
 - [ ] No unused imports, no dead code.
 - [ ] Diff read as a reviewer: if the new component is longer than the closest existing analog, justify the size or shrink it by composing more.
 
@@ -329,5 +348,5 @@ Before declaring the component done, confirm:
 
 - The Manifest is the source of truth for paths, framework, and toolchain. Never hard-code those facts.
 - If a manifest field is `null` and the user's request doesn't disambiguate, ask before guessing.
-- Project-specific exclusion lists ("don't scaffold a `rating` here", etc.) live in `CLAUDE.md` or `AGENTS.md`. Honor whatever you find there; do not bake an exclusion list into this skill.
-- When the project's vocabulary differs from the generic examples above (e.g. it calls them "blocks" not "components", or has its own term for "recipe"), use the project's term in user-facing text. Pull that vocabulary from `conventions.vocabularyGlossary` in the manifest.
+- Project-specific exclusion lists ("don't scaffold a `rating` here") live in `CLAUDE.md` or `AGENTS.md`. Honor them; do not bake an exclusion list into this skill.
+- The `[layout-heuristics]` and `[framework-discipline]` blocks are the canonical source for those conventions. When updating them, update only here — consumer skills cite by handle.

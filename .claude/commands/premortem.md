@@ -18,9 +18,17 @@ Each archetype is a different axis of plan failure:
 
 ## Flow
 
-### 0. Ensure the Manifest exists
+### 0. Ensure the Manifest exists and is fresh
 
-Read `./manifest.json`. If the file is missing, silently invoke `/repo:manifest --quiet` to create it before continuing. Premortem and postmortem are the canonical creators; downstream skills assume the file is present and stop with a "run `/repo:manifest`" message if it is not.
+Read `./manifest.json`. If the file is missing, silently invoke `/repo:manifest --quiet` to create it before continuing. Premortem and postmortem are the canonical creators; downstream skills assume the file is present.
+
+Then check freshness against the working tree. Run `git diff HEAD --name-only` (and `git diff --cached --name-only` if anything is staged) and inspect the result against the **canonical invalidator list in `/repo:manifest` → "Freshness invalidators"**. That list is authoritative; do not duplicate it here.
+
+If any invalidator path appears in the diff, silently invoke `/repo:manifest --quiet` to refresh. Unlike postmortem, premortem does **not** stage the refreshed manifest — there is no commit pending, and the user will handle staging later (typically when postmortem runs).
+
+If no invalidator matches, proceed with the existing manifest. The Manifest stays stable across logic-only changes.
+
+Never tell the user the manifest is loading, generating, or refreshing — this step is silent unless `/repo:manifest` itself produces a notable warning.
 
 ### 1. Resolve input
 

@@ -1,7 +1,7 @@
 'use client'
 
 import { PanelLeft, PanelLeftDashed } from 'lucide-react'
-import { use, useId, useLayoutEffect } from 'react'
+import { Fragment, use, useId, useLayoutEffect } from 'react'
 import { Combobox, ComboboxOption } from '../../components/combobox'
 import { Heading } from '../../components/heading'
 import {
@@ -48,22 +48,17 @@ export function SidebarContent({
 	return (
 		<Sidebar>
 			<SidebarHeader>
-				<Heading level={2} className="flex-1">
-					UI Components
+				<Heading level={2} className="flex-1 font-medium">
+					Components
 				</Heading>
-				<Tooltip>
-					<TooltipTrigger>
-						<ToggleIconButton
-							pressed={!locked}
-							icon={<PanelLeftDashed />}
-							activeIcon={<PanelLeft />}
-							onClick={onToggleLocked}
-							aria-label={locked ? 'Floating sidebar' : 'Lock sidebar'}
-							className="max-lg:hidden p-1 -m-1"
-						/>
-					</TooltipTrigger>
-					<TooltipContent>{locked ? 'Floating sidebar' : 'Lock sidebar'}</TooltipContent>
-				</Tooltip>
+				<ToggleIconButton
+					pressed={!locked}
+					icon={<PanelLeftDashed />}
+					activeIcon={<PanelLeft />}
+					onClick={onToggleLocked}
+					aria-label={locked ? 'Floating sidebar' : 'Lock sidebar'}
+					className="max-lg:hidden -m-2"
+				/>
 			</SidebarHeader>
 			<Combobox<string>
 				id={`${id}-search-components`}
@@ -98,36 +93,39 @@ export function SidebarContent({
 				}}
 			</Combobox>
 			<SidebarBody>
-				<div className="flex flex-col gap-2">
+				<div className="flex flex-col gap-md">
 					{sortedCategories.map(([category, items]) => (
-						<SidebarSection key={category}>
-							<span className="text-zinc-500 px-2 my-3 first:mt-0">{category}</span>
-							{items.map((demo) => {
-								const prefetch = () => preloadDemo(demo.id)
+						<Fragment key={category}>
+							<span className="text-zinc-500 leading-none px-2">{category}</span>
 
-								return (
-									<SidebarItem
-										key={demo.id}
-										href={`#${demo.id}`}
-										current={route === demo.id}
-										onClick={(e) => {
-											// Prevent the browser's default hash-link scroll;
-											// our deferredRoute effect handles scroll-to-top
-											// after the new demo commits.
-											e.preventDefault()
+							<SidebarSection>
+								{items.map((demo) => {
+									const prefetch = () => preloadDemo(demo.id)
 
-											prefetch()
+									return (
+										<SidebarItem
+											key={demo.id}
+											href={`#${demo.id}`}
+											current={route === demo.id}
+											onClick={(e) => {
+												// Prevent the browser's default hash-link scroll;
+												// our deferredRoute effect handles scroll-to-top
+												// after the new demo commits.
+												e.preventDefault()
 
-											navigate(demo.id)
-										}}
-										onMouseEnter={prefetch}
-										onFocus={prefetch}
-									>
-										<SidebarLabel>{demo.name}</SidebarLabel>
-									</SidebarItem>
-								)
-							})}
-						</SidebarSection>
+												prefetch()
+
+												navigate(demo.id)
+											}}
+											onMouseEnter={prefetch}
+											onFocus={prefetch}
+										>
+											<SidebarLabel>{demo.name}</SidebarLabel>
+										</SidebarItem>
+									)
+								})}
+							</SidebarSection>
+						</Fragment>
 					))}
 				</div>
 			</SidebarBody>

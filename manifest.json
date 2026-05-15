@@ -1,189 +1,191 @@
 {
-  "version": 1,
-  "generatedAt": "2026-05-13T14:06:43Z",
-  "repoRoot": "/Users/charliebeckstrand/Sites/midgard",
-  "packageManager": "pnpm",
-  "monorepo": {
-    "tool": "turbo",
-    "workspaces": ["apps/*", "packages/*"]
-  },
-  "packages": [
-    {
-      "name": "admin",
-      "path": "apps/admin",
-      "framework": "next",
-      "testRunner": null,
-      "linter": "biome",
-      "scripts": {
-        "test": null,
-        "test:changed": null,
-        "test:related": null,
-        "lint": "biome check --config-path=../.. .",
-        "check-types": "tsc --noEmit",
-        "build": "next build",
-        "dev": "next dev --port 3000 --turbopack"
-      },
-      "componentsDir": null,
-      "primitivesDir": null,
-      "hooksDir": null,
-      "tokensDir": null,
-      "testLayout": null,
-      "testHelpersDir": null,
-      "isFrontend": true
-    },
-    {
-      "name": "chat",
-      "path": "apps/chat",
-      "framework": "next",
-      "testRunner": null,
-      "linter": "biome",
-      "scripts": {
-        "test": null,
-        "test:changed": null,
-        "test:related": null,
-        "lint": "biome check --config-path=../.. .",
-        "check-types": "tsc --noEmit",
-        "build": "next build",
-        "dev": "next dev --port 3001 --turbopack"
-      },
-      "componentsDir": null,
-      "primitivesDir": null,
-      "hooksDir": null,
-      "tokensDir": null,
-      "testLayout": null,
-      "testHelpersDir": null,
-      "isFrontend": true
-    },
-    {
-      "name": "auth",
-      "path": "packages/auth",
-      "framework": null,
-      "testRunner": null,
-      "linter": "biome",
-      "scripts": {
-        "test": null,
-        "test:changed": null,
-        "test:related": null,
-        "lint": "biome check --config-path=../.. .",
-        "check-types": null,
-        "build": "tsup",
-        "dev": "tsup --watch"
-      },
-      "componentsDir": null,
-      "primitivesDir": null,
-      "hooksDir": null,
-      "tokensDir": null,
-      "testLayout": null,
-      "testHelpersDir": null,
-      "isFrontend": false
-    },
-    {
-      "name": "shared",
-      "path": "packages/shared",
-      "framework": "react",
-      "testRunner": null,
-      "linter": "biome",
-      "scripts": {
-        "test": null,
-        "test:changed": null,
-        "test:related": null,
-        "lint": "biome check --config-path=../.. .",
-        "check-types": null,
-        "build": "tsup",
-        "dev": "tsup --watch"
-      },
-      "componentsDir": null,
-      "primitivesDir": null,
-      "hooksDir": null,
-      "tokensDir": null,
-      "testLayout": null,
-      "testHelpersDir": null,
-      "isFrontend": true
-    },
-    {
-      "name": "ui",
-      "path": "packages/ui",
-      "framework": "react",
-      "testRunner": "vitest",
-      "linter": "biome",
-      "scripts": {
-        "test": "vitest run",
-        "test:changed": "vitest run --changed",
-        "test:related": "vitest related --run",
-        "lint": "biome check --config-path=../.. .",
-        "check-types": "tsc --noEmit && tsc --noEmit -p tsconfig.scripts.json",
-        "build": "tsup && tsc --emitDeclarationOnly --outDir dist",
-        "dev": "trap 'kill 0' EXIT; tsup --watch --no-dts & vite --config vite.docs.config.ts & wait"
-      },
-      "componentsDir": "src/components",
-      "primitivesDir": "src/primitives",
-      "hooksDir": "src/hooks",
-      "tokensDir": "src/recipes",
-      "testLayout": "mirror",
-      "testHelpersDir": "src/__tests__",
-      "isFrontend": true
-    }
-  ],
-  "preCommit": {
-    "tool": "lefthook",
-    "gates": ["lint", "check-types", "test"]
-  },
-  "ci": {
-    "provider": null,
-    "jobs": []
-  },
-  "conventions": {
-    "files": ["CLAUDE.md"],
-    "principles": [
-      "Simplicity above all — the best solution is the simplest one that fully solves the problem.",
-      "Hold yourself to a staff engineer standard; only propose changes you would confidently ship to production.",
-      "Understand before modifying — read surrounding code and follow its conventions.",
-      "Build from small, composable pieces; let the type system carry its weight.",
-      "Formatting is tooling's job. Never fight the formatter.",
-      "Solve the stated problem — not adjacent ones. A bug fix is not a refactoring opportunity.",
-      "Extend before inventing — prefer growing an existing module over creating a new one.",
-      "Dependencies flow inward. Shared packages never depend on application code.",
-      "Abstractions are extracted, not predicted — duplication across multiple call sites earns a shared utility.",
-      "Never update a shared component without explicit approval; propose the change and let the user decide.",
-      "Imperative mood, atomic commits — each commit represents one logical change.",
-      "Feature branches for non-trivial work; never force-push shared branches.",
-      "Review your own diff before committing."
-    ],
-    "vocabularyGlossary": {
-      "Manifest": "the canonical project profile JSON at ./manifest.json that downstream skills consume",
-      "primitive": "low-level UI building block under packages/ui/src/primitives",
-      "recipe": "variant-aware styling factory under packages/ui/src/recipes",
-      "Slot": "named region inside a composite component"
-    },
-    "mandatorySkills": [
-      { "skill": "/repo:manifest", "trigger": "asked to discover, profile, fingerprint, or summarize the project" },
-      { "skill": "/ui:component:compose", "trigger": "asked to create, add, build, or scaffold a new UI component" },
-      { "skill": "/ui:component:recommend", "trigger": "asked to recommend or identify new UI components" },
-      { "skill": "/ui:docs:compose", "trigger": "asked to create or scaffold a docs page for a UI component" },
-      { "skill": "/ui:docs:audit", "trigger": "asked to audit the project's component docs / demos / stories" },
-      { "skill": "/ui:audit", "trigger": "asked to audit, check, or review a UI component" },
-      { "skill": "/tests:compose", "trigger": "asked to create or scaffold tests" },
-      { "skill": "/tests:audit", "trigger": "asked to audit the project's tests" },
-      { "skill": "/postmortem", "trigger": "asked to wrap up a task or commit; a non-empty diff exists" },
-      { "skill": "/typescript:review", "trigger": "asked to review changes before a commit" },
-      { "skill": "/typescript:audit", "trigger": "asked to audit TypeScript code for smells" },
-      { "skill": "/audit:refactor", "trigger": "asked to recommend refactor opportunities" },
-      { "skill": "/audit:a11y", "trigger": "asked to audit accessibility, or after a new frontend component" },
-      { "skill": "/deliberate", "trigger": "asked to deliberate, scope, or shape a fuzzy idea" },
-      { "skill": "/council", "trigger": "asked to audit, review, or critique a decision with meaningful tradeoffs" },
-      { "skill": "/premortem", "trigger": "a concrete plan exists and is about to execute" },
-      { "skill": "/skill:compose", "trigger": "asked to compose or scaffold a new project skill" },
-      { "skill": "/skill:audit", "trigger": "asked to audit or tighten a project skill" },
-      { "skill": "/skill:recommend", "trigger": "asked to recommend new project skills to add" }
-    ]
-  },
-  "notes": [
-    "No CI provider detected — repository has no `.github/workflows/`, `.gitlab-ci.yml`, or `.circleci/config.yml`. `ci.provider` is null and `ci.jobs` is empty; the pre-commit hook (lefthook) is the only automated gate.",
-    "auth declares react and next only as devDependencies and peerDependencies with an empty `dependencies` object; no runtime framework signal — `framework` is null.",
-    "shared declares react/next only as peer/dev deps but ships React components (e.g. login-page.tsx, sidebar-user-menu.tsx); classified as `react`.",
-    "Only `packages/ui` has a test runner; admin, chat, auth, and shared declare no `test` script.",
-    "Apps (admin, chat) live entirely under `app/` (Next App Router) with no `components/`, `hooks/`, `primitives/`, or `tokens/` subdirectory matching the schema's search order; all four directory fields are null.",
-    "Only `CLAUDE.md` is present as a conventions doc — no `AGENTS.md`, `CONTRIBUTING.md`, or `README.md` at the repo root.",
-    "Stray `apps/tms/` directory exists on disk (leftover `app/`, `next-env.d.ts`, `node_modules`) but has no `package.json`; excluded from `packages` since the tms app was removed."
-  ]
+	"version": 1,
+	"generatedAt": "2026-05-15T18:27:45Z",
+	"repoRoot": "/Users/charliebeckstrand/Sites/midgard",
+	"packageManager": "pnpm",
+	"monorepo": {
+		"tool": "turbo",
+		"workspaces": ["apps/*", "packages/*"]
+	},
+	"packages": [
+		{
+			"name": "admin",
+			"path": "apps/admin",
+			"framework": "next",
+			"testRunner": null,
+			"linter": "biome",
+			"scripts": {
+				"test": null,
+				"test:changed": null,
+				"test:related": null,
+				"lint": "biome check --config-path=../.. .",
+				"check-types": "tsc --noEmit",
+				"build": "next build",
+				"dev": "next dev --port 3000 --turbopack"
+			},
+			"componentsDir": null,
+			"primitivesDir": null,
+			"hooksDir": null,
+			"tokensDir": null,
+			"testLayout": null,
+			"testHelpersDir": null,
+			"isFrontend": true
+		},
+		{
+			"name": "chat",
+			"path": "apps/chat",
+			"framework": "next",
+			"testRunner": null,
+			"linter": "biome",
+			"scripts": {
+				"test": null,
+				"test:changed": null,
+				"test:related": null,
+				"lint": "biome check --config-path=../.. .",
+				"check-types": "tsc --noEmit",
+				"build": "next build",
+				"dev": "next dev --port 3001 --turbopack"
+			},
+			"componentsDir": null,
+			"primitivesDir": null,
+			"hooksDir": null,
+			"tokensDir": null,
+			"testLayout": null,
+			"testHelpersDir": null,
+			"isFrontend": true
+		},
+		{
+			"name": "auth",
+			"path": "packages/auth",
+			"framework": "next",
+			"testRunner": null,
+			"linter": "biome",
+			"scripts": {
+				"test": null,
+				"test:changed": null,
+				"test:related": null,
+				"lint": "biome check --config-path=../.. .",
+				"check-types": null,
+				"build": "tsup",
+				"dev": "tsup --watch"
+			},
+			"componentsDir": null,
+			"primitivesDir": null,
+			"hooksDir": null,
+			"tokensDir": null,
+			"testLayout": null,
+			"testHelpersDir": null,
+			"isFrontend": false
+		},
+		{
+			"name": "shared",
+			"path": "packages/shared",
+			"framework": "next",
+			"testRunner": null,
+			"linter": "biome",
+			"scripts": {
+				"test": null,
+				"test:changed": null,
+				"test:related": null,
+				"lint": "biome check --config-path=../.. .",
+				"check-types": null,
+				"build": "tsup",
+				"dev": "tsup --watch"
+			},
+			"componentsDir": null,
+			"primitivesDir": null,
+			"hooksDir": null,
+			"tokensDir": null,
+			"testLayout": null,
+			"testHelpersDir": null,
+			"isFrontend": true
+		},
+		{
+			"name": "ui",
+			"path": "packages/ui",
+			"framework": "react",
+			"testRunner": "vitest",
+			"linter": "biome",
+			"scripts": {
+				"test": "vitest run",
+				"test:changed": "vitest run --changed",
+				"test:related": "vitest related --run",
+				"lint": "biome check --config-path=../.. .",
+				"check-types": "tsc --noEmit && tsc --noEmit -p tsconfig.scripts.json",
+				"build": "tsup && tsc --emitDeclarationOnly --outDir dist",
+				"dev": "trap 'kill 0' EXIT; tsup --watch --no-dts & vite --config vite.docs.config.ts & wait"
+			},
+			"componentsDir": "src/components",
+			"primitivesDir": "src/primitives",
+			"hooksDir": "src/hooks",
+			"tokensDir": "src/recipes",
+			"testLayout": "mirror",
+			"testHelpersDir": "src/__tests__",
+			"isFrontend": true
+		}
+	],
+	"preCommit": {
+		"tool": "lefthook",
+		"gates": ["lint", "type", "filenames", "test"]
+	},
+	"ci": {
+		"provider": null,
+		"jobs": []
+	},
+	"conventions": {
+		"files": ["CLAUDE.md"],
+		"principles": [
+			"Simplicity above all; abstractions are extracted from proven duplication, never predicted.",
+			"Solve the stated problem, not adjacent ones — a bug fix is not a refactoring opportunity.",
+			"Dependencies flow inward: shared packages never depend on application code.",
+			"Let the type system carry its weight; if a type is hard to express, rethink the design.",
+			"packages/ui/src/recipes/ has a public substrate (ryu/) and an internal layer (kata/, waku/); the internal/public boundary is pinned by src/__tests__/recipes/internal-boundary.test.ts.",
+			"Files must be self-identifying out of context: components use <name>.tsx / <name>-<part>.tsx; hooks use use-<name>-<hook>.ts; every component or hook file exports a symbol whose PascalCase form matches its filename (enforced by packages/ui/scripts/check-component-filenames.ts).",
+			"Never extend packages/ui/scripts/filename-allowlist.json for new files — fix the file or fix the export instead.",
+			"Imperative-mood, atomic commits; each commit represents one logical change.",
+			"Inside the editing loop, never run the full ui test suite (`pnpm --filter ui test` or `pnpm test`); use scoped commands and let the lefthook pre-commit gate catch the rest.",
+			"When a check fails after an edit, fix the cause; never weaken the check (no deleting assertions, .skip, or stripping expect calls to make a suite green).",
+			"Work is done only when /postmortem returns PROCEED and the diff has been self-reviewed."
+		],
+		"vocabularyGlossary": {
+			"ryu": "Public substrate layer under packages/ui/src/recipes/ — cross-cutting scales and currents re-exported from src/recipes/index.ts.",
+			"kata": "Internal per-component recipe layer under packages/ui/src/recipes/kata/ — imported via relative paths, deliberately not in package.json exports.",
+			"waku": "Internal control primitive layer under packages/ui/src/recipes/waku/ — same internal-only boundary as kata.",
+			"Manifest": "Canonical project profile at ./manifest.json produced by /repo:manifest and consumed by every other skill.",
+			"Brief": "Output of /deliberate — a precise problem statement synthesized from ABCD-style answers to dimension gaps."
+		},
+		"mandatorySkills": [
+			{
+				"skill": "/repo:manifest",
+				"trigger": "./manifest.json is missing or invalidated (every other skill stops with this instruction when absent)"
+			},
+			{
+				"skill": "/deliberate",
+				"trigger": "request is a fuzzy idea from which no concrete proposal can be formed"
+			},
+			{
+				"skill": "/postmortem",
+				"trigger": "before declaring work done — must return PROCEED, or every chained downstream skill must return PASS"
+			},
+			{
+				"skill": "/ui:component:compose",
+				"trigger": "scaffolding a new UI component in packages/ui — canonical source for [layout-heuristics] and [framework-discipline]"
+			},
+			{
+				"skill": "/tests:compose",
+				"trigger": "writing tests for components, hooks, utilities, or modules"
+			},
+			{
+				"skill": "/typescript:review",
+				"trigger": "only via /postmortem (diff mode) or /ui:component:compose & /tests:compose (file mode) — do not invoke directly outside those paths unless explicitly asked"
+			}
+		]
+	},
+	"notes": [
+		"apps/tms, packages/heimdall, and packages/sindri exist on disk as residual directories without package.json (only .turbo/ and dist/ artifacts). Git log shows tms was removed and heimdall/sindri were renamed to auth/shared — these directories should be cleaned up.",
+		"Both .husky/ and lefthook.yml are present; lefthook is the active tool (root package.json `prepare` script runs `lefthook install`).",
+		"No CI provider detected — no .github/workflows, .gitlab-ci.yml, or .circleci/config.yml.",
+		"packages/ui is the only package with a test runner (vitest), matching the documented testing policy in CLAUDE.md.",
+		"packages/auth and packages/shared list `next` in devDependencies/peerDependencies and so resolve to framework=next per the discovery table, though they ship as libraries (tsup build) consumed by the Next apps."
+	]
 }

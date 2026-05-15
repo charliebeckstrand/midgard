@@ -9,14 +9,21 @@ import { Example } from '../components/example'
 
 export const meta = { category: 'Layout' }
 
-const presets: AspectRatioPreset[] = ['square', 'video', '4/3', '3/2', '16/9', '21/9']
+const presets: { label: string; value: AspectRatioPreset }[] = [
+	{ label: 'Square', value: 'square' },
+	{ label: 'Video', value: 'video' },
+	{ label: '4/3', value: '4/3' },
+	{ label: '3/2', value: '3/2' },
+	{ label: '16/9', value: '16/9' },
+	{ label: '21/9', value: '21/9' },
+]
 
 function Sizer({ children, className }: { children: React.ReactNode; className?: string }) {
 	return <div className={`sm:max-w-sm ${className}`}>{children}</div>
 }
 
 function PresetsExample() {
-	const [ratio, setRatio] = useState<AspectRatioPreset>('video')
+	const [ratio, setRatio] = useState<AspectRatioPreset>('square')
 
 	return (
 		<Example
@@ -25,12 +32,14 @@ function PresetsExample() {
 				<Listbox
 					value={ratio}
 					onValueChange={(v) => v && setRatio(v)}
-					displayValue={(v: AspectRatioPreset) => v}
+					displayValue={(v: AspectRatioPreset) =>
+						presets.find((preset) => preset.value === v)?.label || v
+					}
 					className="w-32"
 				>
 					{presets.map((preset) => (
-						<ListboxOption key={preset} value={preset}>
-							<ListboxLabel>{preset}</ListboxLabel>
+						<ListboxOption key={preset.value} value={preset.value}>
+							<ListboxLabel>{preset.label}</ListboxLabel>
 						</ListboxOption>
 					))}
 				</Listbox>
@@ -53,7 +62,7 @@ export default function AspectRatioDemo() {
 			<Example title="Custom ratio">
 				<Sizer>
 					<AspectRatio ratio={1.618}>
-						<Card className="flex flex-1 h-full items-center justify-center">Golden (1.618)</Card>
+						<Card className="flex flex-1 h-full items-center justify-center">1.618</Card>
 					</AspectRatio>
 				</Sizer>
 			</Example>

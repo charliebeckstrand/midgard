@@ -11,8 +11,8 @@ export const sidebar = {
 		...sawari.cursor,
 		'group relative',
 		'flex w-full items-center',
-		'rounded-lg',
 		'text-left font-medium',
+		'rounded-lg',
 	],
 	itemSize: {
 		sm: [ji.size.sm, 'gap-xs', 'p-1.5', take.icon.sm],
@@ -21,7 +21,7 @@ export const sidebar = {
 	} as Record<Step, string[]>,
 	section: ['flex flex-col', 'gap-0.5'],
 	label: ['truncate'],
-	header: ['flex items-center justify-between', 'gap-sm'],
+	header: ['flex items-center justify-between', 'gap-sm', '**:data-[slot=heading]:leading-none'],
 	body: ['overflow-y-auto', 'flex flex-1 flex-col', 'gap-lg'],
 	divider: sen.divider,
 	footer: ['sticky bottom-0', 'flex flex-col', 'gap-0.5', 'mt-auto'],

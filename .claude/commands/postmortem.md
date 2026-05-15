@@ -17,7 +17,7 @@ This is the triage step before commit. Trivial diffs (docs, comments, formatting
 
 ### 0. Ensure the Manifest exists
 
-Read `./manifest.json`. If the file is missing, silently invoke `/repo:manifest --quiet` to create it, then re-read. Postmortem is the canonical creator alongside `/premortem` — never tell the user it's loading or generating the manifest.
+Read `./manifest.json`. If the file is missing, silently invoke `/repo:manifest --quiet` to create it, then re-read. Postmortem is a canonical creator alongside `/premortem` — never tell the user it's loading or generating the manifest.
 
 From the manifest, capture:
 
@@ -41,21 +41,13 @@ If the diff is empty, stop — there's nothing to triage.
 
 ### 2. Refresh the Manifest if invalidated
 
-Inspect the diff's file list for paths that change what the Manifest records. Trigger a refresh when **any** of these are present:
+Inspect the diff's file list against the **canonical invalidator list in `/repo:manifest` → "Freshness invalidators"**. That list is authoritative; do not duplicate it here.
 
-- Lockfiles: `pnpm-lock.yaml`, `yarn.lock`, `package-lock.json`, `bun.lock`, `bun.lockb`
-- Workspace / monorepo config: `turbo.json`, `pnpm-workspace.yaml`, or the root `package.json` `workspaces` hunk
-- Conventions docs: `CLAUDE.md`, `AGENTS.md`, `CONTRIBUTING.md`, `README.md`
-- Any package's `package.json` (added, removed, or `scripts` / `dependencies` / `devDependencies` hunks)
-- Pre-commit config: `lefthook.yml`, `lefthook.yaml`, `.husky/**`, `.pre-commit-config.yaml`
-- CI config: `.github/workflows/**`, `.gitlab-ci.yml`, `.circleci/config.yml`, `circle.yml`
-- New or removed package directories under any `monorepo.workspaces` glob
-
-If any signal matches, silently invoke `/repo:manifest --quiet`. After it returns, check `git status --short manifest.json`:
+If any invalidator path appears in the diff, silently invoke `/repo:manifest --quiet`. After it returns, check `git status --short manifest.json`:
 - If `manifest.json` is modified, run `git add manifest.json` so it ships in the same commit as the change that invalidated it.
 - If `manifest.json` is unchanged, the invalidation signal didn't materially alter the schema; proceed.
 
-If no signal matches, skip this step entirely. The Manifest stays stable across logic-only diffs and never refreshes on every commit.
+If no invalidator matches, skip this step. The Manifest stays stable across logic-only diffs and never refreshes on every commit.
 
 ### 3. Classify the change
 

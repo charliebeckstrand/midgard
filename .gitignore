@@ -33,6 +33,8 @@ npm-debug.log*
 .claude/plans
 .claude/worktrees
 
-# council artifacts (session-scoped reports)
-council-report-*.html
+# Council/debate/deliberate skill outputs
 council-transcript-*.md
+council-report-*.html
+debate-*.md
+deliberate-*.md
