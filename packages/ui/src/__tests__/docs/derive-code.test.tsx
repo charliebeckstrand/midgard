@@ -70,6 +70,18 @@ describe('deriveCode child ordering', () => {
 	const Icon = tag<{ name?: string }>('Icon', 'icon')
 	const Button = tag<{ variant?: string; children?: unknown }>('Button', 'button')
 
+	it('coalesces adjacent text leaves so inline interpolation stays on one line', () => {
+		const Tooltip = tag<{ children?: unknown }>('Tooltip', 'tooltip')
+
+		const placement = 'left'
+
+		const tree = createElement(Tooltip, null, 'Tooltip on ', placement)
+
+		const result = deriveCode(tree)
+
+		expect(result).toContain('<Tooltip>Tooltip on left</Tooltip>')
+	})
+
 	it('preserves source order of mixed text and element children', () => {
 		const tree = createElement(
 			Card,

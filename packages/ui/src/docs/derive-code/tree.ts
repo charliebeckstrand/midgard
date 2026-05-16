@@ -54,28 +54,51 @@ export type ChildItem =
 /**
  * Walk children in source order, flattening pass-through wrappers and
  * surfacing both recognized elements and text leaves as a position-preserving
- * sequence. Callers render mixed children without losing original ordering
- * (e.g. `<Card><Icon />Hello<Button /></Card>` keeps `Hello` between the two
- * elements instead of appended at the end).
+ * sequence. Adjacent text leaves are coalesced into a single item so inline
+ * interpolation like `<Foo>Hi {name}</Foo>` keeps rendering on one line.
  */
 export function collectChildItems(nodes: ReactNode[]): ChildItem[] {
 	const items: ChildItem[] = []
+
+	let textBuffer: string[] = []
+
+	const flushText = () => {
+		if (textBuffer.length === 0) return
+
+		items.push({ kind: 'text', value: textBuffer.join(' ') })
+
+		textBuffer = []
+	}
 
 	for (const n of nodes) {
 		if (typeof n === 'string') {
 			const trimmed = n.trim()
 
-			if (trimmed !== '') items.push({ kind: 'text', value: trimmed })
+			if (trimmed !== '') textBuffer.push(trimmed)
 		} else if (typeof n === 'number') {
-			items.push({ kind: 'text', value: String(n) })
+			textBuffer.push(String(n))
 		} else if (isValidElement(n)) {
 			if (isPassThrough(n)) {
-				items.push(...collectChildItems(elementChildren(n)))
+				// Walk the wrapper's children; merge their text leaves into the
+				// current buffer so `<span>Hi</span> there` coalesces.
+				for (const nested of collectChildItems(elementChildren(n))) {
+					if (nested.kind === 'text') {
+						textBuffer.push(nested.value)
+					} else {
+						flushText()
+
+						items.push(nested)
+					}
+				}
 			} else {
+				flushText()
+
 				items.push({ kind: 'element', value: n })
 			}
 		}
 	}
+
+	flushText()
 
 	return items
 }
