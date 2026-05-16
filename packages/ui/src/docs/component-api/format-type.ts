@@ -83,10 +83,7 @@ function namedTypeShortName(
 
 	if (!namedDecl) return null
 
-	const ref = type as ts.TypeReference
-	const args = (ref.target ? checker.getTypeArguments(ref) : undefined) as
-		| readonly ts.Type[]
-		| undefined
+	const args = isTypeReference(type) ? checker.getTypeArguments(type) : undefined
 
 	const trimmed = trimDefaultArgs(args, namedDecl.typeParameters, checker, location)
 
@@ -237,4 +234,15 @@ function typeParameterFallback(
 /** Convert TS double-quoted string literals to single quotes for parity with v1. */
 function toSingleQuotes(s: string): string {
 	return s.replace(/"([^"\\]*)"/g, "'$1'")
+}
+
+/**
+ * Narrow a `ts.Type` to a `TypeReference` — i.e. an object type whose identity
+ * is a generic instantiation. `checker.getTypeArguments` is only defined on
+ * these; calling it on a plain Object or Interface type is unsafe.
+ */
+function isTypeReference(type: ts.Type): type is ts.TypeReference {
+	if (!(type.flags & ts.TypeFlags.Object)) return false
+
+	return ((type as ts.ObjectType).objectFlags & ts.ObjectFlags.Reference) !== 0
 }
