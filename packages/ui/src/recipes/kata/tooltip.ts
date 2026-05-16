@@ -17,7 +17,7 @@ const content = tv({
 })
 
 export const tooltip = {
-	trigger: '',
+	trigger: 'inline-flex',
 	triggerEnabled: 'cursor-help *:cursor-help',
 	portal: 'z-100',
 	content,
