@@ -18,6 +18,8 @@ export function readPublicExports(file: ts.SourceFile): string[] {
 
 	const visit = (node: ts.Node) => {
 		if (ts.isExportDeclaration(node) && node.exportClause && ts.isNamedExports(node.exportClause)) {
+			if (node.isTypeOnly) return
+
 			for (const specifier of node.exportClause.elements) {
 				if (specifier.isTypeOnly) continue
 
