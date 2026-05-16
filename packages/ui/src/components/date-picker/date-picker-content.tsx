@@ -2,13 +2,12 @@
 
 import { FloatingPortal } from '@floating-ui/react'
 import { AnimatePresence, motion } from 'motion/react'
-import { type CSSProperties, type ReactNode, type Ref, useMemo } from 'react'
+import type { CSSProperties, ReactNode, Ref } from 'react'
 
 import { cn } from '../../core'
-import { ConcentricProvider } from '../../primitives/concentric'
+import { Density } from '../../primitives/density'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { iro, omote, ugoki } from '../../recipes'
-import type { Step } from '../../recipes/ryu/sun'
 import { popover as kPopover } from '../../recipes/waku/popover'
 import { Box } from '../box'
 import type { ControlSize } from '../control/context'
@@ -21,10 +20,10 @@ export type DatePickerContentProps = {
 	getFloatingProps: () => Record<string, unknown>
 	focusTrapRef: Ref<HTMLDivElement>
 	/**
-	 * Resolved size from `<DatePicker>`. Re-broadcast via `<ConcentricProvider>`
-	 * because the FloatingPortal teleports out of the concentric chain — without
-	 * this, `<Calendar>` and `<DatePickerFooter>` inside would fall back to
-	 * `'md'` even when the trigger renders at `sm` / `lg`.
+	 * Resolved size from `<DatePicker>`. Re-broadcast via `<Density>` because
+	 * the FloatingPortal teleports out of the density chain — without this,
+	 * `<Calendar>` and `<DatePickerFooter>` inside would fall back to `'md'`
+	 * even when the trigger renders at `sm` / `lg`.
 	 */
 	size: ControlSize
 	onExitComplete?: () => void
@@ -42,8 +41,6 @@ export function DatePickerContent({
 	children,
 }: DatePickerContentProps) {
 	const glass = useGlass()
-
-	const concentricValue = useMemo<{ size: Step }>(() => ({ size }), [size])
 
 	return (
 		<FloatingPortal>
@@ -65,11 +62,11 @@ export function DatePickerContent({
 								className={cn('z-50', iro.text.default, glass && omote.glass)}
 								onMouseDown={(e) => e.preventDefault()}
 							>
-								<ConcentricProvider value={concentricValue}>
+								<Density density={size} size={size}>
 									<Box bg={glass ? 'none' : 'popover'} outline={glass || undefined} radius="lg">
 										{children}
 									</Box>
-								</ConcentricProvider>
+								</Density>
 							</motion.div>
 						</div>
 					)}

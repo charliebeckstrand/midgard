@@ -29,14 +29,14 @@ export type GroupProps = GroupBaseProps & PolymorphicProps<'div'>
  * `tsunagi.base` to drop their inner radii and overlap by 1 px so adjacent
  * borders don't double.
  *
- * Provides the concentric size context: descendants that read
- * `useResolvedSize()` (Button, Input, etc.) will default their `size` prop to
+ * Provides the Density cascade for its descendants: components that read
+ * `useDensity()` (Button, Input, etc.) will default their `size` prop to
  * the wrapper's resolved size unless the consumer passes one explicitly.
  *
  * Composes with surrounding `<Card>` / `<Drawer>` / `<Popover>`: when `size`
- * is omitted, the wrapper inherits from the enclosing concentric context,
- * keeping a Card → Toolbar → Buttons hierarchy visually consistent without
- * prop drilling.
+ * is omitted, the wrapper inherits from the enclosing Density, keeping a
+ * Card → Toolbar → Buttons hierarchy visually consistent without prop
+ * drilling.
  *
  * @example
  *   <Group>

@@ -2,14 +2,11 @@
 
 import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
 import { cn } from '../../core'
-import { ConcentricProvider } from '../../primitives/concentric'
+import { AffixProvider, affixStepDown } from '../../primitives/affix'
 import { ControlFrame } from '../../primitives/control'
 import { iro, sawari } from '../../recipes'
 import { control as controlRecipe } from '../../recipes/waku/control'
 import type { ControlSize } from '../control/context'
-
-// Icon size is one step smaller than the trigger size (matches Input).
-const iconSize = { sm: 'xs', md: 'sm', lg: 'md' } as const
 
 const affixBase = [
 	'flex items-center min-w-0',
@@ -60,7 +57,7 @@ export function SelectTrigger({
 	children,
 }: SelectTriggerProps) {
 	return (
-		<ConcentricProvider value={{ size: iconSize[size] }}>
+		<AffixProvider value={affixStepDown(size)}>
 			<div
 				data-slot="control"
 				ref={setReference}
@@ -94,6 +91,6 @@ export function SelectTrigger({
 						))}
 				</ControlFrame>
 			</div>
-		</ConcentricProvider>
+		</AffixProvider>
 	)
 }

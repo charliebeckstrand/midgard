@@ -5,7 +5,6 @@ import { createContext } from '../core'
 import type { Ma } from '../recipes/ryu/ma'
 import type { Step } from '../recipes/ryu/sun'
 import { useAffix } from './affix'
-import { ConcentricProvider, useConcentric } from './concentric'
 
 /**
  * Density token — broadcast by `<Density>`, read by every size-aware component
@@ -60,33 +59,13 @@ const [DensityProviderRaw, useDensityNullable] = createContext<DensityToken | nu
 	default: null,
 })
 
-function isStep(s: string): s is Step {
-	return s === 'sm' || s === 'md' || s === 'lg'
-}
-
 /**
  * Read the active density. Returns the diagonal `md` preset when no provider
  * is in the tree.
- *
- * Bridge for the Concentric → Density migration: when a {@link Density}
- * ancestor exists, returns its token directly; when only a legacy
- * `<ConcentricProvider>` is present, projects `size` onto a diagonal token so
- * migrated consumers still see the surrounding cascade. Wider Concentric
- * values (`xs`, `xl`) fall back to the `md` preset. The bridge is removed
- * once every component has migrated; see `MIGRATION.md`.
  */
 export function useDensity(): DensityToken {
 	const density = useDensityNullable()
-	const concentric = useConcentric()
-	const concentricSize = concentric?.size
-
-	return useMemo<DensityToken>(() => {
-		if (density) return density
-		if (concentricSize !== undefined && isStep(concentricSize)) {
-			return { density: concentricSize, size: concentricSize }
-		}
-		return DENSITY_PRESETS.md
-	}, [density, concentricSize])
+	return density ?? DENSITY_PRESETS.md
 }
 
 /**
@@ -95,9 +74,7 @@ export function useDensity(): DensityToken {
  * they need to inherit sub-`Step` values when nested inside a control affix
  * slot, and the regular `useDensity` can't carry those.
  *
- * Resolution order: `explicit ?? Affix ?? Concentric ?? Density.size`.
- * The legacy Concentric leg is the migration bridge for the size cascade —
- * it goes away when the last `useResolvedSize` consumer migrates.
+ * Resolution order: `explicit ?? Affix ?? Density.size`.
  *
  * Generic on the caller's size type. Most callers' types are narrower than
  * `Ma` (Icon tops out at `lg`; Button's recipe currently lacks `xl`); the
@@ -106,9 +83,8 @@ export function useDensity(): DensityToken {
  */
 export function useWideSize<T extends Ma = Ma>(explicit?: T): T {
 	const affix = useAffix()
-	const concentric = useConcentric()
 	const density = useDensity()
-	return (explicit ?? affix ?? concentric?.size ?? density.size) as T
+	return (explicit ?? affix ?? density.size) as T
 }
 
 export type DensityProps = DensityInput & { children: ReactNode }
@@ -117,24 +93,9 @@ export type DensityProps = DensityInput & { children: ReactNode }
  * Broadcasts a density token to descendants. Each axis cascades independently
  * — `<Density size="lg">` overrides `size` while inheriting `density` from
  * the surrounding context.
- *
- * Writes a legacy {@link ConcentricProvider} alongside the new context so
- * unmigrated consumers still reading `useResolvedSize` continue to see the
- * cascade during the migration window. The dual write is removed once every
- * component has migrated.
  */
 export function Density({ children, scale, density: densityProp, size: sizeProp }: DensityProps) {
-	const parentDensity = useDensityNullable()
-	const concentric = useConcentric()
-	const concentricSize = concentric?.size
-
-	const parent = useMemo<DensityToken>(() => {
-		if (parentDensity) return parentDensity
-		if (concentricSize !== undefined && isStep(concentricSize)) {
-			return { density: concentricSize, size: concentricSize }
-		}
-		return DENSITY_PRESETS.md
-	}, [parentDensity, concentricSize])
+	const parent = useDensity()
 
 	const token = useMemo<DensityToken>(() => {
 		const base = scale ? DENSITY_PRESETS[scale] : parent
@@ -144,11 +105,7 @@ export function Density({ children, scale, density: densityProp, size: sizeProp 
 		}
 	}, [scale, densityProp, sizeProp, parent])
 
-	return (
-		<DensityProviderRaw value={token}>
-			<ConcentricProvider value={{ size: token.size }}>{children}</ConcentricProvider>
-		</DensityProviderRaw>
-	)
+	return <DensityProviderRaw value={token}>{children}</DensityProviderRaw>
 }
 
 /**

@@ -1,6 +1,5 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import { ConcentricProvider, useConcentric } from '../../primitives/concentric'
 import {
 	DENSITY_PRESETS,
 	Density,
@@ -118,61 +117,5 @@ describe('DensityScope', () => {
 		})
 
 		expect(result.current).toEqual(DENSITY_PRESETS.md)
-	})
-})
-
-describe('Concentric bridge (legacy interop)', () => {
-	it('Density writes a matching ConcentricProvider for unmigrated consumers', () => {
-		const { result } = renderHook(() => useConcentric(), {
-			wrapper: ({ children }) => <Density scale="lg">{children}</Density>,
-		})
-
-		expect(result.current).toEqual({ size: 'lg' })
-	})
-
-	it('useDensity projects from a legacy Concentric ancestor when no Density exists', () => {
-		const { result } = renderHook(() => useDensity(), {
-			wrapper: ({ children }) => (
-				<ConcentricProvider value={{ size: 'sm' }}>{children}</ConcentricProvider>
-			),
-		})
-
-		expect(result.current).toEqual({ density: 'sm', size: 'sm' })
-	})
-
-	it('useDensity falls back to md when Concentric carries a wider value (xs / xl)', () => {
-		const { result } = renderHook(() => useDensity(), {
-			wrapper: ({ children }) => (
-				<ConcentricProvider value={{ size: 'xs' }}>{children}</ConcentricProvider>
-			),
-		})
-
-		expect(result.current).toEqual(DENSITY_PRESETS.md)
-	})
-
-	it('Density wins over an enclosing Concentric (new system authoritative)', () => {
-		const { result } = renderHook(() => useDensity(), {
-			wrapper: ({ children }) => (
-				<ConcentricProvider value={{ size: 'sm' }}>
-					<Density size="lg">{children}</Density>
-				</ConcentricProvider>
-			),
-		})
-
-		expect(result.current).toEqual({ density: 'sm', size: 'lg' })
-	})
-
-	it('Density inherits the density axis from a legacy Concentric ancestor', () => {
-		// Concentric ancestor carries `lg`; a Density with size override should
-		// still inherit `density: 'lg'` from the projected Concentric.
-		const { result } = renderHook(() => useDensity(), {
-			wrapper: ({ children }) => (
-				<ConcentricProvider value={{ size: 'lg' }}>
-					<Density size="sm">{children}</Density>
-				</ConcentricProvider>
-			),
-		})
-
-		expect(result.current).toEqual({ density: 'lg', size: 'sm' })
 	})
 })

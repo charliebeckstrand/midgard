@@ -1,7 +1,6 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { AffixProvider, useAffix } from '../../primitives/affix'
-import { ConcentricProvider } from '../../primitives/concentric'
 import { DENSITY_PRESETS, Density, useWideSize } from '../../primitives/density'
 
 describe('useAffix', () => {
@@ -47,24 +46,11 @@ describe('useWideSize', () => {
 		expect(result.current).toBe('xs')
 	})
 
-	it('falls through to legacy Concentric when no Affix', () => {
-		const { result } = renderHook(() => useWideSize(), {
-			wrapper: ({ children }) => (
-				<ConcentricProvider value={{ size: 'xl' }}>{children}</ConcentricProvider>
-			),
-		})
-
-		expect(result.current).toBe('xl')
-	})
-
-	it('falls through to Density size when no Affix or Concentric', () => {
+	it('falls through to Density size when no Affix', () => {
 		const { result } = renderHook(() => useWideSize(), {
 			wrapper: ({ children }) => <Density size="lg">{children}</Density>,
 		})
 
-		// Density wrap also writes Concentric via bridge, so this read goes
-		// through Concentric — but the value is the same lg the Density
-		// resolved to.
 		expect(result.current).toBe('lg')
 	})
 

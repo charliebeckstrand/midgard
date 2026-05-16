@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Radio, RadioField, RadioGroup } from '../../components/radio'
-import { ConcentricProvider } from '../../primitives/concentric'
+import { Density } from '../../primitives/density'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Radio', () => {
@@ -107,9 +107,9 @@ describe('Radio size', () => {
 
 	it('inherits size from the concentric context', () => {
 		const { container } = renderUI(
-			<ConcentricProvider value={{ size: 'sm' }}>
+			<Density scale="sm">
 				<Radio />
-			</ConcentricProvider>,
+			</Density>,
 		)
 
 		expect(bySlot(container, 'control')?.className).toContain('size-4')

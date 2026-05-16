@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { ConcentricProvider } from '../../primitives/concentric'
+import { Density as DensityPrimitive } from '../../primitives/density'
 import { DENSITY_TO_SIZE, type DensityLevel, DensityProvider } from './context'
 
 export type DensityProps = {
@@ -9,23 +9,26 @@ export type DensityProps = {
 }
 
 /**
- * Sets ambient density for descendants and broadcasts the matching
- * Concentric size so every size-aware component (Input, Button, Card, …)
- * inherits automatically — no further wiring per consumer.
+ * Friendly t-shirt-named density wrapper (`compact` / `snug` / `loose`) that
+ * sets the ambient density for descendants and broadcasts the matching
+ * `Step` value through the universal Density primitive so every size-aware
+ * component (Input, Button, Card, …) inherits automatically.
  *
  * Reference consumer: `<Input>`. Form fields resolve their size through
- * `Control → Concentric`, so dropping an `<Input>` (or any
- * `<Field>`-wrapped field) inside `<Density density="compact">` shrinks the
- * field to `sm` without touching its props.
+ * `useDensity()`, so dropping an `<Input>` (or any `<Field>`-wrapped field)
+ * inside `<Density density="compact">` shrinks the field to `'sm'` without
+ * touching its props.
  */
 export function Density({ density, className, children }: DensityProps) {
+	const step = DENSITY_TO_SIZE[density]
+
 	return (
 		<DensityProvider value={density}>
-			<ConcentricProvider value={{ size: DENSITY_TO_SIZE[density] }}>
+			<DensityPrimitive density={step} size={step}>
 				<span data-slot="density" data-density={density} className={className ?? 'contents'}>
 					{children}
 				</span>
-			</ConcentricProvider>
+			</DensityPrimitive>
 		</DensityProvider>
 	)
 }
