@@ -25,6 +25,12 @@ export type CommandPaletteProps = Pick<DialogPanelVariants, 'size'> & {
 	icon?: ReactNode
 	outsideClick?: boolean
 	className?: string
+	/**
+	 * Items to render in the palette. Pass a function to receive the live query
+	 * string and filter inline. CommandPalette does not virtualize its result
+	 * list — keep the rendered set to a few hundred items at most, or wrap the
+	 * children in your own windowed renderer for larger result sets.
+	 */
 	children: ReactNode | ((query: string) => ReactNode)
 }
 

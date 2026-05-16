@@ -41,6 +41,9 @@ export type EditableGridProps<T> = TableVariants & {
 	 * (plus overscan) render to the DOM. Requires `maxHeight`.
 	 *
 	 * Pass `true` for defaults, or an object to tune. See DataTable for details.
+	 *
+	 * Without virtualization every row in `rows` renders to the DOM; recommended
+	 * past ~500 rows.
 	 */
 	virtualize?: DataTableVirtualize
 

@@ -75,6 +75,10 @@ export type DataTableProps<T> = TableVariants & {
 	 *
 	 * Pass `true` for defaults (44px row height, 10 overscan), or an object
 	 * to tune. Assumes uniform row heights.
+	 *
+	 * Without virtualization every row in `rows` renders to the DOM; a few
+	 * hundred rows are fine but past ~500 rows initial render and column-state
+	 * changes become noticeably slow. Enable virtualization at that scale.
 	 */
 	virtualize?: DataTableVirtualize
 
