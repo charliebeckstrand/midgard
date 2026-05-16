@@ -38,9 +38,7 @@ export function buildComponentApi(decl: ComponentDecl, checker: ts.TypeChecker):
 
 		const defaults = new Map([...cvaDefaults, ...inlineDefaults])
 
-		for (const symbol of collectAllProperties(propsType)) {
-			const name = symbol.getName()
-
+		for (const { name, symbol, types } of collectAllProperties(propsType, decl.callable, checker)) {
 			if (IGNORED_PROPS.has(name) || name.startsWith('_')) continue
 
 			// `projectNames` is the authoritative set of "real" props derived
@@ -52,7 +50,7 @@ export function buildComponentApi(decl: ComponentDecl, checker: ts.TypeChecker):
 				continue
 			}
 
-			props.push(buildPropDef(name, symbol, decl.callable, checker, defaults))
+			props.push(buildPropDef(name, symbol, types, decl.callable, checker, defaults))
 		}
 	}
 
@@ -63,6 +61,8 @@ export function buildComponentApi(decl: ComponentDecl, checker: ts.TypeChecker):
 	return api
 }
 
+type CollectedProp = { name: string; symbol: ts.Symbol; types: ts.Type[] }
+
 /**
  * `propsType.getProperties()` on a union returns only the *intersection* of
  * arm properties, dropping discriminated-union members (e.g. Accordion's
@@ -71,9 +71,18 @@ export function buildComponentApi(decl: ComponentDecl, checker: ts.TypeChecker):
  *
  * Intersections are already merged by `getProperties()`, but their *arms*
  * may themselves contain unions — recurse so nested unions are still split.
+ *
+ * When the same prop name shows up in multiple arms with distinct types
+ * (e.g. a prop present in some union arms but not all, so it never lands in
+ * the top-level merged view), collect every contributing arm-type so the
+ * rendered prop reflects them all rather than just the first one visited.
  */
-function collectAllProperties(type: ts.Type): ts.Symbol[] {
-	const seen = new Map<string, ts.Symbol>()
+function collectAllProperties(
+	type: ts.Type,
+	callable: ts.Node,
+	checker: ts.TypeChecker,
+): CollectedProp[] {
+	const seen = new Map<string, { symbol: ts.Symbol; types: ts.Type[] }>()
 
 	const visit = (t: ts.Type): void => {
 		// Capture this level's view first — for unions, this gives us the
@@ -82,7 +91,16 @@ function collectAllProperties(type: ts.Type): ts.Symbol[] {
 		// to recover any arm-only props that the intersection-by-key view
 		// dropped.
 		for (const sym of t.getProperties()) {
-			if (!seen.has(sym.getName())) seen.set(sym.getName(), sym)
+			const name = sym.getName()
+			const armType = checker.getTypeOfSymbolAtLocation(sym, callable)
+
+			const existing = seen.get(name)
+
+			if (!existing) {
+				seen.set(name, { symbol: sym, types: [armType] })
+			} else if (!existing.types.includes(armType)) {
+				existing.types.push(armType)
+			}
 		}
 
 		if (t.flags & ts.TypeFlags.Union) {
@@ -98,7 +116,7 @@ function collectAllProperties(type: ts.Type): ts.Symbol[] {
 
 	visit(type)
 
-	return [...seen.values()]
+	return [...seen.entries()].map(([name, { symbol, types }]) => ({ name, symbol, types }))
 }
 
 /** Resolve the props type from the component's callable signature. */
@@ -119,17 +137,16 @@ function getPropsType(callable: ts.Node, checker: ts.TypeChecker): ts.Type | nul
 function buildPropDef(
 	name: string,
 	symbol: ts.Symbol,
+	propTypes: ts.Type[],
 	callable: ts.Node,
 	checker: ts.TypeChecker,
 	defaults: Map<string, string>,
 ): PropDef {
-	const propType = checker.getTypeOfSymbolAtLocation(symbol, callable)
-
 	const inline = inlineSourceType(symbol)
 
 	const prop: PropDef = {
 		name,
-		type: inline ?? formatPropType(propType, checker, callable),
+		type: inline ?? formatPropTypes(propTypes, checker, callable),
 	}
 
 	const references = extractReferences(prop.type, callable, checker)
@@ -145,6 +162,23 @@ function buildPropDef(
 	if (defaultVal !== undefined) prop.default = defaultVal
 
 	return prop
+}
+
+/**
+ * Format every contributing arm-type for a prop, dedupe by rendered text, and
+ * join with `|` when more than one distinct rendering remains. The single-type
+ * path stays identical to the prior behavior.
+ */
+function formatPropTypes(types: ts.Type[], checker: ts.TypeChecker, location: ts.Node): string {
+	const rendered: string[] = []
+
+	for (const t of types) {
+		const text = formatPropType(t, checker, location)
+
+		if (!rendered.includes(text)) rendered.push(text)
+	}
+
+	return rendered.join(' | ')
 }
 
 /**
