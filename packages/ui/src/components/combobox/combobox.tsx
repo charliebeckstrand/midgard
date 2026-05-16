@@ -15,7 +15,7 @@ import { cn } from '../../core'
 import { useFloatingUI, useRoving, useScrollWithin, useSelectableValueChange } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
-import { ConcentricProvider, useResolvedSize } from '../../primitives/concentric'
+import { DENSITY_PRESETS, Density, useDensity } from '../../primitives/density'
 import { useJoin } from '../../primitives/join'
 import { PopoverPanel } from '../../primitives/popover'
 import { kokkaku } from '../../recipes'
@@ -116,7 +116,9 @@ export function Combobox<T>({
 	const skeleton = useSkeleton()
 	const join = useJoin()
 
-	const resolvedSize = useResolvedSize(size)
+	const inherited = useDensity()
+	const token = size ? DENSITY_PRESETS[size] : inherited
+	const resolvedSize = token.size
 
 	const resolvedDisabled = disabled ?? control?.disabled
 
@@ -204,8 +206,6 @@ export function Combobox<T>({
 		[value, multiple, select, query],
 	)
 
-	const concentricValue = useMemo(() => ({ size: resolvedSize }), [resolvedSize])
-
 	if (skeleton) {
 		return (
 			<Placeholder
@@ -262,7 +262,7 @@ export function Combobox<T>({
 						disabled={resolvedDisabled}
 						value={inputDisplay}
 						placeholder={placeholder}
-						className={cn(comboboxVariants({ density: resolvedSize, size: resolvedSize }))}
+						className={cn(comboboxVariants({ density: token.density, size: token.size }))}
 						{...inputHandlers}
 					/>
 				</Headless>
@@ -283,7 +283,7 @@ export function Combobox<T>({
 								className={cn('group/combobox', kPopover.portal)}
 								{...getFloatingProps()}
 							>
-								<ConcentricProvider value={concentricValue}>
+								<Density density={token.density} size={token.size}>
 									<PopoverPanel
 										id={comboboxId}
 										role="listbox"
@@ -297,7 +297,7 @@ export function Combobox<T>({
 										{rendered}
 										<output className={cn(k.empty)}>No results</output>
 									</PopoverPanel>
-								</ConcentricProvider>
+								</Density>
 							</div>
 						)}
 					</AnimatePresence>

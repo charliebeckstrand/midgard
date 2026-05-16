@@ -3,7 +3,7 @@
 import type { KeyboardEvent, RefObject } from 'react'
 
 import { cn } from '../../core'
-import { useResolvedSize } from '../../primitives/concentric'
+import { useDensity } from '../../primitives/density'
 import { calendar as kCalendar } from '../../recipes/kata/calendar'
 import { Button } from '../button'
 import type { CalendarActive } from '../calendar'
@@ -26,7 +26,7 @@ export function DatePickerFooter({
 	footerRef,
 	onKeyDown,
 }: DatePickerFooterProps) {
-	const size = useResolvedSize()
+	const { size } = useDensity()
 
 	if (footerButtons.length === 0) return null
 
