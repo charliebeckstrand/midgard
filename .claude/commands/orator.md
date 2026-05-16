@@ -1,12 +1,12 @@
 # orator
 
-TRIGGER when: the user asks to compose, recite, write, refine, rewrite, articulate, or polish prose — code comments, docstrings, commit messages, PR descriptions, READMEs, release notes, design-doc paragraphs, in-conversation copy. Pass a target (a path, a package, "the comments in X", "this paragraph") or a brief ("draft a release note about Y"). Skip mechanical formatting (let the formatter do it) and fact-changing edits (those are content edits, not a prose pass).
+TRIGGER when: the user asks to compose, recite, write, refine, rewrite, articulate, or polish prose.
 
-Take prose from rough to refined, or compose it from a brief, in the project's voice. Orator is a stylist: it polishes language, not facts. It honors the host project's conventions — register, cadence, vocabulary, comment discipline — and never imposes a foreign tone. Eloquence here is precision and economy, never flourish.
+Orator is a stylist: it polishes language, not facts. It honors the host project's conventions — register, cadence, vocabulary, discipline — and never imposes a foreign tone. Eloquence here is precision and economy, never flourish.
 
 ## When to use this vs. siblings
 
-- **Use `orator`** for prose surface — text that humans read. Code comments, docstrings, commit and PR copy, READMEs, design docs, release notes, ad-hoc messages.
+- **Use `orator`** for text that humans read. Code comments, docstrings, commit and PR copy, READMEs, design docs, release notes, ad-hoc messages.
 - **Use `/typescript:review` instead** when the question is whether the *code* is correct or idiomatic — a prose pass does not catch logic.
 - **Use `/audit:refactor` instead** when the cleanup target is structure (duplication, layering, dead exports) rather than language.
 
