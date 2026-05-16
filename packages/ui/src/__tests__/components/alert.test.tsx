@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Alert, AlertDescription, AlertTitle } from '../../components/alert'
+import { Alert, AlertBody, AlertDescription, AlertTitle } from '../../components/alert'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Alert', () => {
@@ -33,6 +33,26 @@ describe('Alert', () => {
 		expect(screen.getByText('Title')).toBeInTheDocument()
 
 		expect(screen.getByText('Description')).toBeInTheDocument()
+	})
+
+	it('auto-wraps non-slot children in AlertBody', () => {
+		const { container } = renderUI(<Alert>plain text</Alert>)
+
+		const body = bySlot(container, 'alert-body')
+
+		expect(body).toBeInTheDocument()
+
+		expect(body).toHaveTextContent('plain text')
+	})
+
+	it('does not auto-wrap when children include a slot', () => {
+		const { container } = renderUI(
+			<Alert>
+				<AlertTitle>Title</AlertTitle>
+			</Alert>,
+		)
+
+		expect(bySlot(container, 'alert-body')).not.toBeInTheDocument()
 	})
 
 	it('dismisses when close button is clicked', () => {
@@ -71,6 +91,28 @@ describe('AlertTitle', () => {
 		)
 
 		expect(screen.getByText('My Title')).toBeInTheDocument()
+	})
+})
+
+describe('AlertBody', () => {
+	it('renders with data-slot="alert-body"', () => {
+		const { container } = renderUI(
+			<Alert>
+				<AlertBody>body</AlertBody>
+			</Alert>,
+		)
+
+		expect(bySlot(container, 'alert-body')).toBeInTheDocument()
+	})
+
+	it('renders body content', () => {
+		renderUI(
+			<Alert>
+				<AlertBody>My Body</AlertBody>
+			</Alert>,
+		)
+
+		expect(screen.getByText('My Body')).toBeInTheDocument()
 	})
 })
 
