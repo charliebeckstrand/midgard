@@ -127,6 +127,35 @@ function extractStringLiteral(
 	return null
 }
 
+/**
+ * Class-name stems where the lowercased stem differs from the HTML tag. For
+ * the unlisted majority (`HTMLDivElement` → `div`, `HTMLInputElement` →
+ * `input`, …) the lowercased stem *is* the tag. Ambiguous classes resolve to
+ * the most representative tag — `HTMLHeadingElement` covers h1..h6,
+ * `HTMLTableCellElement` covers td and th, `HTMLTableSectionElement` covers
+ * tbody/thead/tfoot, `HTMLModElement` covers del/ins, `HTMLQuoteElement`
+ * covers q and blockquote.
+ */
+const HTML_ELEMENT_TAG_OVERRIDES: ReadonlyMap<string, string> = new Map([
+	['Anchor', 'a'],
+	['BR', 'br'],
+	['DList', 'dl'],
+	['Heading', 'h1'],
+	['HR', 'hr'],
+	['Image', 'img'],
+	['LI', 'li'],
+	['Mod', 'del'],
+	['OList', 'ol'],
+	['Paragraph', 'p'],
+	['Quote', 'blockquote'],
+	['TableCaption', 'caption'],
+	['TableCell', 'td'],
+	['TableCol', 'col'],
+	['TableRow', 'tr'],
+	['TableSection', 'tbody'],
+	['UList', 'ul'],
+])
+
 /** Extract an HTML element tag from `HTMLDivElement` / `HTMLButtonElement` style references. */
 function extractHtmlElementTag(
 	node: ts.TypeNode | undefined,
@@ -135,20 +164,22 @@ function extractHtmlElementTag(
 	if (!node) return null
 
 	if (ts.isTypeReferenceNode(node)) {
-		const name = typeRefName(node.typeName)
+		const tag = tagFromClassName(typeRefName(node.typeName))
 
-		const match = name.match(/^HTML(\w+)Element$/)
-
-		if (match?.[1]) return match[1].toLowerCase()
+		if (tag) return tag
 	}
 
 	const type = checker.getTypeFromTypeNode(node)
 
-	const symbolName = type.getSymbol()?.getName() ?? ''
+	return tagFromClassName(type.getSymbol()?.getName() ?? '')
+}
 
-	const match = symbolName.match(/^HTML(\w+)Element$/)
+function tagFromClassName(name: string): string | null {
+	const match = name.match(/^HTML(\w+)Element$/)
 
-	return match?.[1]?.toLowerCase() ?? null
+	if (!match?.[1]) return null
+
+	return HTML_ELEMENT_TAG_OVERRIDES.get(match[1]) ?? match[1].toLowerCase()
 }
 
 function getNodeId(node: ts.Node): string {
