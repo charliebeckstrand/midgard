@@ -1,4 +1,4 @@
-/** `[longitude, latitude]` — MapLibre / GeoJSON order, opposite of how humans say it. */
+/** `[longitude, latitude]` — MapLibre / GeoJSON order, opposite of the idiomatic "lat / lng". */
 export type LngLat = [number, number]
 
 export type RouteStop = {
