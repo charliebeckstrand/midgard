@@ -97,6 +97,10 @@ function namedTypeShortName(
  * what's left is what the source actually wrote. Returns `null` to signal
  * "give up; let TS render the full thing" (mismatched arity, missing defaults
  * mid-list, …).
+ *
+ * A default expression may reference an earlier type parameter (`type Foo<T,
+ * U = T>`); we resolve those against the supplied arg at the earlier position
+ * rather than letting them collapse to the bare unbound parameter.
  */
 function trimDefaultArgs(
 	args: readonly ts.Type[] | undefined,
@@ -108,6 +112,8 @@ function trimDefaultArgs(
 
 	if (!params || params.length < args.length) return args
 
+	const argStrings = args.map((a) => checker.typeToString(a, location, TYPE_FORMAT_FLAGS))
+
 	let len = args.length
 
 	while (len > 0) {
@@ -116,12 +122,20 @@ function trimDefaultArgs(
 
 		if (!arg || !param || !param.default) break
 
-		const defaultType = checker.getTypeFromTypeNode(param.default)
+		const defaultText = param.default.getText().trim()
 
-		const argStr = checker.typeToString(arg, location, TYPE_FORMAT_FLAGS)
-		const defStr = checker.typeToString(defaultType, location, TYPE_FORMAT_FLAGS)
+		const earlierIndex = params.findIndex((p, i) => i < len - 1 && p.name.text === defaultText)
 
-		if (argStr !== defStr) break
+		const expected =
+			earlierIndex >= 0
+				? argStrings[earlierIndex]
+				: checker.typeToString(
+						checker.getTypeFromTypeNode(param.default),
+						location,
+						TYPE_FORMAT_FLAGS,
+					)
+
+		if (argStrings[len - 1] !== expected) break
 
 		len--
 	}
