@@ -163,7 +163,11 @@ function resolveToObjectLiteral(
 
 	if (ts.isObjectLiteralExpression(node)) return node
 
-	if (ts.isAsExpression(node) || ts.isSatisfiesExpression(node) || ts.isParenthesizedExpression(node)) {
+	if (
+		ts.isAsExpression(node) ||
+		ts.isSatisfiesExpression(node) ||
+		ts.isParenthesizedExpression(node)
+	) {
 		return resolveToObjectLiteral(node.expression, checker)
 	}
 
