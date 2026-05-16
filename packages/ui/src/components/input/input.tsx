@@ -3,6 +3,7 @@
 import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
 import { cn } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
+import { AffixProvider } from '../../primitives/affix'
 import { ConcentricProvider } from '../../primitives/concentric'
 import { ControlFrame } from '../../primitives/control'
 import { DENSITY_PRESETS, DensityScope, useDensity } from '../../primitives/density'
@@ -32,10 +33,13 @@ export type InputProps = Omit<InputVariants, 'size'> & {
 	'data-group-orientation'?: string
 } & Omit<ComponentPropsWithoutRef<'input'>, 'className' | 'size' | 'prefix'>
 
-// Affix sub-cascade: the input's size → the Concentric size broadcast into
-// prefix / suffix slots. Goes below the `Step` union (`sm` → `'xs'`) for
-// tighter affix icons than the Density cascade alone can express, so the
-// affix slot stays on Concentric until that wider scale has another home.
+// Affix sub-cascade: the input's size → the Ma value broadcast into the
+// prefix / suffix slots. Goes below the `Step` floor (`'sm'` → `'xs'`) for
+// tighter affix icons than Density alone can express. Carried by the
+// `AffixProvider` primitive for migrated consumers; mirrored into
+// `ConcentricProvider` during the migration so unmigrated consumers reading
+// `useResolvedSize` continue to see it. The Concentric mirror retires when
+// the last `useResolvedSize` consumer is gone.
 const affixSize = { sm: 'xs', md: 'sm', lg: 'md' } as const
 
 export function Input(props: InputProps) {
@@ -145,55 +149,57 @@ export function Input(props: InputProps) {
 
 	return (
 		<DensityScope scale={size}>
-			<ConcentricProvider value={{ size: affixStep }}>
-				<ControlFrame
-					data-group={dataGroup}
-					data-group-orientation={dataGroupOrientation}
-					className={cn(
-						controlVariants({ variant: resolvedVariant }),
-						hasAffix && 'group/control flex flex-wrap items-center',
-					)}
-				>
-					{resolvedPrefix && (
-						<span className={cn('peer/prefix', k.affix, k.prefix[token.density])}>
-							{resolvedPrefix}
-						</span>
-					)}
-
-					<input
-						ref={ref}
-						data-slot="input"
-						type={type}
-						id={scope.id}
-						name={name}
-						autoComplete={resolvedAutoComplete}
-						disabled={resolvedDisabled}
-						required={resolvedRequired}
-						readOnly={resolvedReadOnly}
-						value={resolvedValue}
-						onChange={resolvedOnChange}
-						onBlur={resolvedOnBlur}
+			<AffixProvider value={affixStep}>
+				<ConcentricProvider value={{ size: affixStep }}>
+					<ControlFrame
+						data-group={dataGroup}
+						data-group-orientation={dataGroupOrientation}
 						className={cn(
-							inputVariants({
-								variant: resolvedVariant,
-								density: token.density,
-								size: token.size,
-							}),
-							resolvedPrefix && k.autofill.prefix[token.density],
-							resolvedSuffix && k.autofill.suffix[token.density],
-							className,
+							controlVariants({ variant: resolvedVariant }),
+							hasAffix && 'group/control flex flex-wrap items-center',
 						)}
-						{...invalidAttrs(resolvedInvalid)}
-						{...rest}
-					/>
+					>
+						{resolvedPrefix && (
+							<span className={cn('peer/prefix', k.affix, k.prefix[token.density])}>
+								{resolvedPrefix}
+							</span>
+						)}
 
-					{resolvedSuffix && (
-						<span data-slot="suffix" className={cn(k.affix, k.suffix[token.density])}>
-							{resolvedSuffix}
-						</span>
-					)}
-				</ControlFrame>
-			</ConcentricProvider>
+						<input
+							ref={ref}
+							data-slot="input"
+							type={type}
+							id={scope.id}
+							name={name}
+							autoComplete={resolvedAutoComplete}
+							disabled={resolvedDisabled}
+							required={resolvedRequired}
+							readOnly={resolvedReadOnly}
+							value={resolvedValue}
+							onChange={resolvedOnChange}
+							onBlur={resolvedOnBlur}
+							className={cn(
+								inputVariants({
+									variant: resolvedVariant,
+									density: token.density,
+									size: token.size,
+								}),
+								resolvedPrefix && k.autofill.prefix[token.density],
+								resolvedSuffix && k.autofill.suffix[token.density],
+								className,
+							)}
+							{...invalidAttrs(resolvedInvalid)}
+							{...rest}
+						/>
+
+						{resolvedSuffix && (
+							<span data-slot="suffix" className={cn(k.affix, k.suffix[token.density])}>
+								{resolvedSuffix}
+							</span>
+						)}
+					</ControlFrame>
+				</ConcentricProvider>
+			</AffixProvider>
 		</DensityScope>
 	)
 }

@@ -2,7 +2,9 @@
 
 import { type ReactNode, useMemo } from 'react'
 import { createContext } from '../core'
+import type { Ma } from '../recipes/ryu/ma'
 import type { Step } from '../recipes/ryu/sun'
+import { useAffix } from './affix'
 import { ConcentricProvider, useConcentric } from './concentric'
 
 /**
@@ -85,6 +87,23 @@ export function useDensity(): DensityToken {
 		}
 		return DENSITY_PRESETS.md
 	}, [density, concentricSize])
+}
+
+/**
+ * Resolve a wider-scale size through the Affix → Density cascade. Used by
+ * components whose own size type spans `Ma` (`Button`, `Icon`, `Spinner`) —
+ * they need to inherit sub-`Step` values when nested inside a control affix
+ * slot, and the regular `useDensity` can't carry those.
+ *
+ * Resolution order: `explicit ?? Affix ?? Concentric ?? Density.size`.
+ * The legacy Concentric leg is the migration bridge for the size cascade —
+ * it goes away when the last `useResolvedSize` consumer migrates.
+ */
+export function useWideSize(explicit?: Ma): Ma {
+	const affix = useAffix()
+	const concentric = useConcentric()
+	const density = useDensity()
+	return explicit ?? affix ?? concentric?.size ?? density.size
 }
 
 export type DensityProps = DensityInput & { children: ReactNode }
