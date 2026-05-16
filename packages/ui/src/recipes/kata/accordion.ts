@@ -24,11 +24,16 @@ export const accordion = tv({
 })
 
 export const accordionItem = tv({
-	base: 'group/accordion-item',
+	base: [
+		'group/accordion-item',
+		'has-[[data-slot=accordion-button]:focus-visible]:ring-2',
+		'has-[[data-slot=accordion-button]:focus-visible]:ring-blue-500',
+		'has-[[data-slot=accordion-button]:focus-visible]:ring-inset',
+	],
 	variants: {
 		variant: {
 			separated: ['overflow-hidden', 'rounded-lg', ...sen.border],
-			outline: '',
+			outline: ['first:rounded-t-[inherit]', 'last:rounded-b-[inherit]'],
 			plain: '',
 		},
 	},
@@ -46,7 +51,7 @@ export const slots = {
 		'text-left font-medium',
 		'group-data-[open]/accordion-item:text-zinc-950',
 		'dark:group-data-[open]/accordion-item:text-white',
-		'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-inset',
+		'focus-visible:outline-none',
 		'disabled:opacity-50 disabled:cursor-not-allowed',
 		...sawari.cursor,
 	],
