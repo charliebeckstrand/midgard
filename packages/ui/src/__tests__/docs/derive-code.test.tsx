@@ -184,4 +184,23 @@ describe('deriveCode + __code', () => {
 		expect(result).toMatch(/import \{[^}]*useOptimistic[^}]*\} from 'react'/)
 		expect(result).toMatch(/import \{[^}]*useFormStatus[^}]*\} from 'react'/)
 	})
+
+	it('does not mistake method calls for React hooks', () => {
+		const Foo = tag<{ children?: unknown }>('Foo', 'foo')
+
+		function MethodDemo() {
+			return null
+		}
+
+		;(MethodDemo as unknown as { __code: string }).__code = [
+			'function MethodDemo() {',
+			'\tconst result = router.use(plugin)',
+			'\treturn <Foo />',
+			'}',
+		].join('\n')
+
+		const result = deriveCode(createElement(MethodDemo))
+
+		expect(result).not.toMatch(/import \{[^}]*\buse\b[^}]*\} from 'react'/)
+	})
 })
