@@ -65,6 +65,18 @@ describe('deriveCode iteration vs authored siblings', () => {
 	})
 })
 
+describe('deriveCode prop formatting', () => {
+	it('escapes embedded quotes in array-literal props', () => {
+		const Foo = tag<{ tags?: string[] }>('Foo', 'foo')
+
+		const tree = createElement(Foo, { tags: ["it's", 'fine'] })
+
+		const result = deriveCode(tree)
+
+		expect(result).toContain('tags={["it\'s", "fine"]}')
+	})
+})
+
 describe('deriveCode + __code', () => {
 	it('renders the helper function snippet verbatim and infers imports', () => {
 		function AreaDemo() {

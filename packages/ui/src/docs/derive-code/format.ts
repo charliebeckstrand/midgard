@@ -70,7 +70,10 @@ function jsxString(value: string): string {
 }
 
 function formatLiteral(value: string | number | boolean): string {
-	if (typeof value === 'string') return `'${value}'`
+	// `JSON.stringify` escapes embedded quotes, backslashes, and control
+	// characters; a bare `'${value}'` template emits invalid JS when the
+	// string itself contains a single quote.
+	if (typeof value === 'string') return JSON.stringify(value)
 
 	return String(value)
 }
