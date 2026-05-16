@@ -21,9 +21,31 @@ function NavItems() {
 	)
 }
 
-export default function NavbarDemo() {
+function NavProviderDemo() {
 	const [current, setCurrent] = useState('home')
 
+	return (
+		<NavProvider value={{ value: current, onChange: setCurrent }}>
+			<Navbar>
+				<NavItems />
+				<Spacer />
+				<NavList>
+					<NavItem>Login</NavItem>
+				</NavList>
+			</Navbar>
+
+			<Card bg="surface">
+				<NavContents>
+					<NavContent value="home">Home page</NavContent>
+					<NavContent value="about">About us</NavContent>
+					<NavContent value="contact">Contact information</NavContent>
+				</NavContents>
+			</Card>
+		</NavProvider>
+	)
+}
+
+export default function NavbarDemo() {
 	return (
 		<Stack gap="xl">
 			<Example title="Default">
@@ -49,23 +71,7 @@ export default function NavbarDemo() {
 			</Example>
 
 			<Example title="With NavProvider">
-				<NavProvider value={{ value: current, onChange: setCurrent }}>
-					<Navbar>
-						<NavItems />
-						<Spacer />
-						<NavList>
-							<NavItem>Login</NavItem>
-						</NavList>
-					</Navbar>
-
-					<Card bg="surface">
-						<NavContents>
-							<NavContent value="home">Home page</NavContent>
-							<NavContent value="about">About us</NavContent>
-							<NavContent value="contact">Contact information</NavContent>
-						</NavContents>
-					</Card>
-				</NavProvider>
+				<NavProviderDemo />
 			</Example>
 
 			<Example title="With icons">
