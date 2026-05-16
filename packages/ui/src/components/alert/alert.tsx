@@ -1,14 +1,12 @@
 'use client'
 
 import { AlertTriangle, CheckCircle, Info, X, XCircle } from 'lucide-react'
-import { Children, isValidElement, type ReactElement, type ReactNode, useCallback } from 'react'
+import { type ReactElement, type ReactNode, useCallback } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
 import { type AlertVariants, alertVariants, k } from '../../recipes/kata/alert'
 import { Button } from '../button'
 import { Icon } from '../icon'
-import { AlertDescription } from './alert-description'
-import { AlertTitle } from './alert-title'
 
 export type AlertSeverity = 'info' | 'success' | 'warning' | 'error'
 
@@ -33,12 +31,6 @@ const severityRoleMap: Record<AlertSeverity, 'alert' | 'status'> = {
 	success: 'status',
 	warning: 'alert',
 	error: 'alert',
-}
-
-function hasChild(children: ReactNode, component: (...args: never[]) => ReactNode): boolean {
-	return Children.toArray(children).some(
-		(child) => isValidElement(child) && child.type === component,
-	)
 }
 
 export type AlertProps = AlertVariants & {
@@ -98,34 +90,34 @@ export function Alert({
 
 	const role = severity ? severityRoleMap[severity] : undefined
 
-	const hasTitle = title || hasChild(children, AlertTitle)
-
-	const hasDescription = description || hasChild(children, AlertDescription)
-
-	const center = !(hasTitle && hasDescription)
-
 	return (
 		<div
 			data-slot="alert"
 			role={role}
 			className={cn(
 				alertVariants({ variant, color: resolvedColor }),
-				center ? 'items-center' : 'items-start',
 				block && 'w-full',
 				severity && !closable && 'pr-6',
 				className,
 			)}
 		>
-			{resolvedIcon && <Icon icon={resolvedIcon} className="shrink-0" />}
+			<div
+				className={cn(
+					k.content,
+					resolvedIcon ? 'grid grid-cols-[auto_minmax(0,1fr)] gap-x-sm' : 'flex flex-col',
+				)}
+			>
+				{resolvedIcon && <Icon icon={resolvedIcon} className={cn(k.icon)} />}
 
-			<div className={cn(k.content)}>
 				{title && <div className={cn(k.title)}>{title}</div>}
 
-				{description && <div className={cn(k.description)}>{description}</div>}
+				{description && (
+					<div className={cn(k.description, resolvedIcon && 'col-start-2')}>{description}</div>
+				)}
 
-				{children}
+				{children && (resolvedIcon ? <div className="col-start-2">{children}</div> : children)}
 
-				{actions && <div className={cn(k.actions)}>{actions}</div>}
+				{actions && <div className={cn(k.actions, resolvedIcon && 'col-start-2')}>{actions}</div>}
 			</div>
 
 			{closable && (

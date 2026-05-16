@@ -29,10 +29,10 @@ export const alert = tv({
 
 /** Slot classes for sub-elements. */
 export const slots = {
-	icon: 'shrink-0',
-	title: [ji.size.lg, 'leading-none font-semibold'],
+	icon: 'shrink-0 self-center',
+	title: [ji.size.lg, 'leading-none font-semibold', 'self-center'],
 	description: 'leading-none',
-	content: ['flex flex-col flex-1 min-w-0', 'gap-md'],
+	content: ['flex-1 min-w-0', 'gap-md'],
 	actions: ['flex items-center', 'gap-xs'],
 	close: ['shrink-0', 'rounded-md'],
 }
