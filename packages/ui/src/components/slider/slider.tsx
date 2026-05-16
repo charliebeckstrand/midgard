@@ -43,7 +43,7 @@ export function Slider({
 
 	const current = internal ?? min
 
-	const pct = max === min ? 0 : ((current - min) / (max - min)) * 100
+	const percent = max === min ? 0 : ((current - min) / (max - min)) * 100
 
 	return (
 		<input
@@ -55,7 +55,7 @@ export function Slider({
 			value={current}
 			onChange={(event) => setInternal(Number(event.target.value))}
 			className={cn(sliderVariants({ size, color }), className)}
-			style={{ ...style, '--slider-value': `${pct}%` } as CSSProperties}
+			style={{ ...style, '--slider-value': `${percent}%` } as CSSProperties}
 			{...props}
 		/>
 	)
