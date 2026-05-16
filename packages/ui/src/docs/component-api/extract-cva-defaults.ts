@@ -66,18 +66,22 @@ function walk(
 
 /**
  * Given the type-argument of `VariantProps<T>`, follow `typeof recipe` to the
- * recipe's `tv({ ... })` initializer and read its `defaultVariants`.
+ * recipe's `tv({ ... })` initializer and read its `defaultVariants`. Aliased
+ * forms (`type RecipeType = typeof recipe; VariantProps<RecipeType>`) are
+ * resolved through one alias hop before bailing.
  */
 function collectFromVariantProps(
 	arg: ts.TypeNode,
 	out: Map<string, string>,
 	checker: ts.TypeChecker,
 ): void {
-	if (!ts.isTypeQueryNode(arg)) return
+	const query = unwrapToTypeQuery(arg, checker)
+
+	if (!query) return
 
 	// `typeof X` — exprName references the X identifier.
 	const symbol = checker.getSymbolAtLocation(
-		ts.isIdentifier(arg.exprName) ? arg.exprName : arg.exprName.right,
+		ts.isIdentifier(query.exprName) ? query.exprName : query.exprName.right,
 	)
 
 	if (!symbol) return
@@ -129,6 +133,26 @@ function readDefaultVariants(
 
 			return map
 		}
+	}
+
+	return null
+}
+
+/**
+ * Resolve a type-argument to its underlying `typeof X` query node. Handles
+ * the direct form and one level of project-alias indirection — `type R =
+ * typeof recipe` followed by `VariantProps<R>`. Parenthesized type nodes are
+ * unwrapped along the way.
+ */
+function unwrapToTypeQuery(node: ts.TypeNode, checker: ts.TypeChecker): ts.TypeQueryNode | null {
+	if (ts.isParenthesizedTypeNode(node)) return unwrapToTypeQuery(node.type, checker)
+
+	if (ts.isTypeQueryNode(node)) return node
+
+	if (ts.isTypeReferenceNode(node)) {
+		const target = resolveTypeAliasTarget(node.typeName, checker)
+
+		if (target) return unwrapToTypeQuery(target, checker)
 	}
 
 	return null
