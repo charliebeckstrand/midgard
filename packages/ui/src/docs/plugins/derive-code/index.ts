@@ -16,7 +16,7 @@ import { collectHelpers } from './collect-helpers'
  * library components or unrelated docs modules.
  */
 export function deriveCodePlugin(): Plugin {
-	let demosDir: string
+	let demosDir = ''
 
 	return {
 		name: 'derive-code',
