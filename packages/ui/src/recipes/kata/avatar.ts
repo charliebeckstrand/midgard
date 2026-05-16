@@ -41,11 +41,9 @@ export const slots = {
 		base: 'flex items-center',
 		ring: '*:ring-2 *:ring-white dark:*:ring-zinc-900',
 		spacing: {
-			xs: '-space-x-1',
 			sm: '-space-x-1.5',
 			md: '-space-x-2',
 			lg: '-space-x-2.5',
-			xl: '-space-x-3',
 		},
 	},
 	statusRing: 'ring-2 ring-white dark:ring-zinc-900',

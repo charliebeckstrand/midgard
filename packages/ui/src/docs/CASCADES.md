@@ -6,7 +6,7 @@ Every size-aware component resolves its final `size` through a single hook — `
 const resolvedSize = useResolvedSize(size)
 ```
 
-The Concentric provider tree encodes priority. Each size-broadcasting surface writes a `<ConcentricProvider>`, and innermost-wins (standard React context semantics) handles everything: a Button inside an Input affix slot inherits the affix step; a form field inside `<Control size="sm">` inherits the control size; a Spinner inside `<Button size="lg">` inherits the button size; a `<StatusDot>` inside `<Avatar size="xl">` inherits the avatar size. No call-site `??` composition.
+The Concentric provider tree encodes priority. Each size-broadcasting surface writes a `<ConcentricProvider>`, and innermost-wins (standard React context semantics) handles everything: a Button inside an Input affix slot inherits the affix step; a form field inside `<Control size="sm">` inherits the control size; a Spinner inside `<Button size="lg">` inherits the button size; a `<StatusDot>` inside `<Avatar size="lg">` inherits the avatar size. No call-site `??` composition.
 
 The hook is generic on the caller's size type so each component keeps its narrower `Step` / `Size` / `Ma` typing. Concentric's value is `Ma` (the widest broadcaster's type); out-of-range values reaching a narrower consumer fall through to the consumer's variant `defaultVariants`.
 
