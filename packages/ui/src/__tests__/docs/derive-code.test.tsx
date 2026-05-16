@@ -82,6 +82,15 @@ describe('deriveCode child ordering', () => {
 		expect(result).toContain('<Tooltip>Tooltip on left</Tooltip>')
 	})
 
+	it('keeps text at the top level (deriveCode called with mixed children)', () => {
+		const Button = tag<{ children?: unknown }>('Button', 'button')
+
+		const result = deriveCode(['Heading text', createElement(Button, null, 'Click')])
+
+		expect(result).toContain('Heading text')
+		expect(result).toContain('<Button>Click</Button>')
+	})
+
 	it('preserves source order of mixed text and element children', () => {
 		const tree = createElement(
 			Card,

@@ -1,8 +1,8 @@
-import { isValidElement, type ReactElement, type ReactNode } from 'react'
+import { type ReactElement, type ReactNode } from 'react'
 import { formatProps, INDENT, renderOpenTag } from './format'
 import { addImport } from './imports'
 import { collectSnippetImports, readSnippet, reindent } from './snippet'
-import { collectChildItems, elementChildren, flattenPassThroughs } from './tree'
+import { collectChildItems, elementChildren } from './tree'
 import type { Ctx } from './types'
 
 // ---------------------------------------------------------------------------
@@ -10,21 +10,60 @@ import type { Ctx } from './types'
 // ---------------------------------------------------------------------------
 
 /**
- * Render a list of React children as a JSX snippet. Flattens pass-through
- * wrappers, then — when the siblings look like the output of a `.map()` —
- * collapses runs of 3+ identical renders so iterated content doesn't dominate.
+ * Render a list of React children as a JSX snippet. Pass-through wrappers
+ * are flattened, text leaves keep their position relative to surrounding
+ * elements, and consecutive iterated siblings collapse to a single
+ * representative when the run is 3+ identical renders.
+ *
  * Authored siblings (e.g. three buttons inside a `<Group>` to demonstrate
- * border joining) are kept intact, since their multiplicity is the demo.
+ * border joining) are kept intact — their multiplicity is the demo.
  */
 export function renderNodes(nodes: ReactNode[], ctx: Ctx, indent: string): string {
-	// Flattening at every level lets list detection see the real components
-	// that were wrapped in styling divs/spans.
-	const elements = flattenPassThroughs(nodes.filter(isValidElement))
+	const items = collectChildItems(nodes)
 
-	if (elements.length === 0) return ''
+	if (items.length === 0) return ''
 
-	if (elements.length === 1 && elements[0]) {
-		return indent + renderElement(elements[0], ctx, indent)
+	const parts: string[] = []
+
+	let batch: ReactElement[] = []
+
+	const flushBatch = () => {
+		if (batch.length === 0) return
+
+		parts.push(...renderElementBatch(batch, ctx, indent))
+
+		batch = []
+	}
+
+	for (const item of items) {
+		if (item.kind === 'text') {
+			flushBatch()
+
+			parts.push(indent + item.value)
+		} else {
+			batch.push(item.value)
+		}
+	}
+
+	flushBatch()
+
+	return parts.join('\n')
+}
+
+/**
+ * Render a run of consecutive elements. Iteration-collapse (3+ identical
+ * renders → one) only applies to keyed batches, so authored siblings without
+ * keys pass through untouched.
+ */
+function renderElementBatch(elements: ReactElement[], ctx: Ctx, indent: string): string[] {
+	if (elements.length === 1) {
+		const only = elements[0]
+
+		if (!only) return []
+
+		const body = renderElement(only, ctx, indent)
+
+		return body ? [indent + body] : []
 	}
 
 	const lines: string[] = []
@@ -43,13 +82,9 @@ export function renderNodes(nodes: ReactNode[], ctx: Ctx, indent: string): strin
 		lines.push(line)
 	}
 
-	// Only collapse duplicates when the siblings clearly came from iteration.
-	// `Children.toArray` formats user-supplied keys as `.$<key>` and assigns
-	// positional keys (`.0`, `.1`) to inline siblings, so an explicit key on
-	// every sibling is the cleanest signal that this is `.map()` output.
 	const isIteration = elements.length >= 2 && elements.every(hasExplicitKey)
 
-	if (!isIteration) return lines.join('\n')
+	if (!isIteration) return lines
 
 	const emitted = new Map<string, number>()
 
@@ -67,7 +102,7 @@ export function renderNodes(nodes: ReactNode[], ctx: Ctx, indent: string): strin
 		result.push(line)
 	}
 
-	return result.join('\n')
+	return result
 }
 
 function hasExplicitKey(element: ReactElement): element is ReactElement & { key: string } {
@@ -130,43 +165,15 @@ export function renderElement(element: ReactElement, ctx: Ctx, indent: string): 
 }
 
 /**
- * Render the children of a recognized component, preserving source order
- * between text leaves and recognized elements. Consecutive elements are
- * batched into a single `renderNodes` call so iteration-collapse still
- * applies to `.map()` output that doesn't have text mixed in.
+ * Render the children of a recognized component. Defers to `renderNodes`
+ * for the actual walk, then substitutes a `…` placeholder when children
+ * exist but nothing was renderable — so the parent shows as `<Foo>…</Foo>`
+ * instead of misleadingly collapsing to `<Foo />`.
  */
 export function renderChildrenContent(nodes: ReactNode[], ctx: Ctx, indent: string): string {
 	if (nodes.length === 0) return ''
 
-	const items = collectChildItems(nodes)
+	const rendered = renderNodes(nodes, ctx, indent)
 
-	if (items.length === 0) return '…'
-
-	const parts: string[] = []
-
-	let batch: ReactElement[] = []
-
-	const flushBatch = () => {
-		if (batch.length === 0) return
-
-		const rendered = renderNodes(batch, ctx, indent)
-
-		if (rendered !== '') parts.push(rendered)
-
-		batch = []
-	}
-
-	for (const item of items) {
-		if (item.kind === 'text') {
-			flushBatch()
-
-			parts.push(indent + item.value)
-		} else {
-			batch.push(item.value)
-		}
-	}
-
-	flushBatch()
-
-	return parts.length > 0 ? parts.join('\n') : '…'
+	return rendered !== '' ? rendered : '…'
 }

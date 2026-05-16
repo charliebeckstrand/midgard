@@ -26,27 +26,6 @@ export function elementChildren(element: ReactElement): ReactNode[] {
 	return Children.toArray((element.props as { children?: ReactNode }).children)
 }
 
-/**
- * Flatten Fragments and HTML wrappers, keeping only meaningful component
- * elements. Works recursively so `<div><span><Button/></span></div>` surfaces
- * the Button at the top level.
- */
-export function flattenPassThroughs(elements: ReactElement[]): ReactElement[] {
-	const result: ReactElement[] = []
-
-	for (const el of elements) {
-		if (isPassThrough(el)) {
-			result.push(...flattenPassThroughs(elementChildren(el).filter(isValidElement)))
-
-			continue
-		}
-
-		result.push(el)
-	}
-
-	return result
-}
-
 export type ChildItem =
 	| { kind: 'text'; value: string }
 	| { kind: 'element'; value: ReactElement }
