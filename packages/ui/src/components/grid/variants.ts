@@ -6,8 +6,6 @@ export type { Responsive }
 
 export type GridGap = Ma
 
-// ─── Scalar resolver ────────────────────────────────────────────────────────
-//
 // For grid props that accept a numeric value (`columns`, `rows`, `span`,
 // `rowSpan`, `start`, `rowStart`), we route the runtime value through a CSS
 // custom property and apply a *static* Tailwind utility that reads it.

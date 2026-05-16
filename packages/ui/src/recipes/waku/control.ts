@@ -12,7 +12,8 @@
  *   - `surface`   — surface chrome variants (default / outline / glass).
  *   - `field`     — inner field reset: transparent bg, no native outline,
  *                   placeholder colour, disabled cursor.
- *   - `size`      — density: border-compensated padding + font size.
+ *   - `density`   — border-compensated padding, keyed by the density axis.
+ *   - `size`      — font size, keyed by the size axis.
  *   - `icon`      — chevron / affix slot layout.
  *   - `affix`     — prefix / suffix slot padding (tracks density).
  *   - `resets`    — browser-default resets keyed by input type.
@@ -33,14 +34,12 @@ import { sen } from '../ryu/sen'
 import { tsunagi } from '../ryu/tsunagi'
 import { kasane } from './kasane'
 
-// ── Outer frame chrome ──────────────────────────────────
 // `tsunagi.base` is data-attribute-gated, so it stays inert until a `<Group>`
 // stamps `data-group` / `data-group-orientation` onto the frame. Including it
 // here is what lets every ControlFrame-based component (Input, Listbox,
 // Combobox, Textarea, …) participate in `<Group>` without per-component wiring.
 const frame = ['group/control flex items-center', 'relative w-full', ...kasane.all, ...tsunagi.base]
 
-// ── Surface variants for the frame ──────────────────────
 const surface = {
 	default: [
 		'bg-white',
@@ -52,7 +51,6 @@ const surface = {
 	glass: ['bg-transparent', omote.blur.md],
 } as const
 
-// ── Inner field reset (placeholder, transparent bg, no outline) ──
 const field = [
 	'gap-sm',
 	'relative',
@@ -66,7 +64,6 @@ const field = [
 	'dark:placeholder:text-zinc-400',
 ]
 
-// ── Density axis: border-compensated padding ────────────
 // Tracks the `density` axis of the Density token (padding + gap dimension).
 // Affix padding (`affix.prefix`, `affix.suffix`, `affix.autofill`) below is
 // the same axis — keyed by the density step, not the size step.
@@ -76,7 +73,6 @@ const density = {
 	lg: 'px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)]',
 } as const
 
-// ── Size axis: font size ────────────────────────────────
 // Tracks the `size` axis of the Density token (text + icon dimension).
 const size = {
 	sm: ji.size.sm,
@@ -84,7 +80,6 @@ const size = {
 	lg: ji.size.lg,
 } as const
 
-// ── Affix slot layout (chevron, prefix, suffix) ─────────
 const icon = ['flex items-center', 'pr-2', 'pointer-events-none']
 
 const affix = {
@@ -112,7 +107,6 @@ const affix = {
 	},
 } as const
 
-// ── Browser-default resets per input type ───────────────
 const resets = {
 	number: [
 		'[appearance:textfield]',
@@ -122,7 +116,6 @@ const resets = {
 	],
 }
 
-// ── Checkbox / radio: hidden native input + custom surface ──
 const check = {
 	/** Visually hidden native input overlaying the custom check surface. */
 	hidden: ['absolute inset-0', 'opacity-0', ...sawari.cursor, sen.forced.control],

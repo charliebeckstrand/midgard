@@ -1,97 +1,10 @@
 # Recipes
 
-Design-token recipes for the UI package. Each recipe captures one design
-concern as reusable Tailwind class fragments. Components compose recipes;
-they don't reinvent them.
+Design-token recipes for the UI package. Components compose them; they
+don't reinvent them.
 
-## Naming
-
-Recipe-layer modules use Japanese names — each name covers exactly one
-concern (`iro` is colour, `ji` is typography, `ma` is spacing, and so on)
-so that consumers don't have to ask "where do I look for this?". This
-naming rule is **internal-only**: client-facing components, hooks, and
-props use English (`<Group>`, `useGroup`, `size`).
-
-## Layout
-
-```
-recipes/
-  ryu/    — currents: cross-cutting tokens and compounds
-  kata/   — forms: per-component recipes
-```
-
-Future: `waku/` (frames) for the layered chrome primitives — promotion
-of `kata/_control.ts` and `kata/_panel.ts` is in progress.
-
-## Layer 1 — 流 (ryū) "Currents"
-
-Cross-cutting design decisions. Each module either bundles 2+ co-occurring
-properties or owns a single-axis scale that the rest of the system points
-into. Lives in `ryu/`.
-
-| Module | Concern |
-| ------ | ------- |
-| `sun`     | size system: text + leading, padding, gap, inner radius, icon — by step (sm/md/lg). The spine. |
-| `iro`     | colour palettes (`palette.{solid,soft,outline,plain}`) plus semantic text/bg roles |
-| `ji`      | typography size scale (font-size with line-height bundled; weight/tracking/family use Tailwind directly) |
-| `omote`   | surface chromes (panel/popover/glass/backdrop bundles) |
-| `sawari`  | interaction states (hover/press/disabled compounds with motion) |
-| `ugoki`   | motion (CSS transitions + Framer Motion presets) |
-| `kokkaku` | per-component skeleton placeholder shapes |
-| `narabi`  | sibling/slot layout (panel slots, list items, toggle/group, field) |
-| `tsunagi` | group join selectors (used by `<Group>`) |
-| `ma`      | spacing vocabulary — `xs/sm/md/lg/xl` token names. Padding, margin, and gap classes (`p-md`, `gap-lg`, `mt-xs`, …) are first-class Tailwind v4 utilities projected from `--step-*` tokens in `theme.css` via `@utility`; write them inline. |
-| `sen`     | lines (borders, rings, dividers, focus, forced-colors compounds) |
-| `take`    | dimension scales (icon, avatar, panel, scrollArea, combobox, listbox, mark) |
-
-Composition flows freely within `ryu/`. The ordering above is rough — `sun`
-is the most common entry point for size-aware kata.
-
-## Layer 2 — 型 (kata) "Forms"
-
-Per-component recipes in `kata/`. One `tv()` per component (or a plain
-slots object when there are no variants). A kata may compose freely from
-`ryu/` but never sideways from another kata except through shared internal
-kata files (prefixed with `_`).
-
-The control family (`input`, `textarea`, `listbox`, `combobox`,
-`datepicker`, `checkbox`, `radio`, `switch`, and the `ControlFrame`
-primitive) shares `kata/_control.ts` as the single source of truth for
-frame, surface, field, size, icon, affix, resets, and check styles. The
-panel family (`dialog`, `drawer`, `sheet`, `inspector`) shares
-`kata/_panel.ts` for slot surfaces.
-
-## Size cascade
-
-A small primitive — `ConcentricProvider` / `useConcentric` (in
-`primitives/concentric.ts`) — carries the ambient size step through the
-tree. It is not a wrapper component; surfaces opt in by rendering the
-provider themselves. `<Card>`, `<Drawer>`, `<Popover>`, and `<Group>` all
-broadcast their resolved `size` this way, and the outer container's
-border-radius follows the concentric formula `outer = inner + padding`.
-
-`<Group>` (in `components/group/`) also joins adjacent children by
-stamping `data-group={start|middle|end|only}`; participating kata consume
-`tsunagi.base` to drop their inner radii. When `size` is omitted, the
-group inherits from any enclosing concentric context.
-
-Components like Button, Checkbox, Radio read `useConcentric()` to default
-their `size` prop. The resolution order is: explicit prop, then
-`useConcentric()`, then any component-specific context, then the kata's
-`defaultVariants`.
-
-## Rules
-
-- **Extract on the second use site, not the first.** A duplicate fragment
-  with two consumers earns a shared module; with one, it stays inline.
-- **A new shared concern = a new entry in an existing module.** Only add
-  a brand-new module when the concern doesn't fit any existing one.
-- **Spacing and radius have no recipe maps.** `ma` is the named spacing
-  vocabulary (`xs/sm/md/lg/xl`); radius uses Tailwind's built-in scale
-  (`rounded-{none,sm,md,lg,xl,full}`). Both are real Tailwind v4
-  utilities — for spacing they are backed by `--step-*` theme tokens
-  in `theme.css`, projected through static `@utility` rules so the
-  t-shirt names don't shadow `--container-*` utilities like `max-w-sm`.
-  Inside `tv()` recipes write `'p-md'`, `'gap-lg'`, `'rounded-lg'`
-  directly — same as any other utility. Off-scale values go inline too
-  (e.g. `'gap-0.5'`, `'p-3.5'`, `'rounded-2xl'`).
+| Layer                                | What                                                        |
+| ------------------------------------ | ----------------------------------------------------------- |
+| [Ryu 流 - Currents](./ryu/README.md) | Cross-cutting scales and compound tokens. Public substrate. |
+| [Kata 型 - Forms](./kata/README.md)  | Per-component recipes. Internal.                            |
+| [Waku 枠 - Frames](./waku/README.md) | Multi-element archetypes shared by ≥2 kata. Internal.       |
