@@ -112,4 +112,27 @@ describe('deriveCode + __code', () => {
 		// React hook imports scanned from the body.
 		expect(result).toMatch(/import \{.*useState.*\} from 'react'/)
 	})
+
+	it('infers React 19 hook imports (use, useActionState, useOptimistic, useFormStatus)', () => {
+		function FormDemo() {
+			return null
+		}
+
+		;(FormDemo as unknown as { __code: string }).__code = [
+			'function FormDemo() {',
+			'\tconst data = use(promise)',
+			'\tconst [state, action] = useActionState(submit, null)',
+			'\tconst [optimistic, addOptimistic] = useOptimistic(items)',
+			'\tconst status = useFormStatus()',
+			'\treturn <form />',
+			'}',
+		].join('\n')
+
+		const result = deriveCode(createElement(FormDemo))
+
+		expect(result).toMatch(/import \{[^}]*\buse\b[^}]*\} from 'react'/)
+		expect(result).toMatch(/import \{[^}]*useActionState[^}]*\} from 'react'/)
+		expect(result).toMatch(/import \{[^}]*useOptimistic[^}]*\} from 'react'/)
+		expect(result).toMatch(/import \{[^}]*useFormStatus[^}]*\} from 'react'/)
+	})
 })
