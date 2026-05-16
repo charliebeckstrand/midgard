@@ -43,7 +43,6 @@ const cursor = [
 	'has-[data-disabled]:cursor-not-allowed',
 ]
 
-/** Motoi (基) — structure only. */
 const motoi = {
 	item: [
 		'sm:py-1.5 py-2.5',
@@ -57,7 +56,6 @@ const motoi = {
 	nav: [take.icon.md],
 }
 
-/** Hiru (昼) — light palette. */
 const hiru = {
 	item: [
 		'not-disabled:not-data-disabled:hover:bg-zinc-950/5',
@@ -66,7 +64,6 @@ const hiru = {
 	nav: ['group-hover:bg-zinc-950/5'],
 }
 
-/** Yoru (夜) — dark palette. */
 const yoru = {
 	item: [
 		'dark:not-disabled:not-data-disabled:hover:bg-white/5',

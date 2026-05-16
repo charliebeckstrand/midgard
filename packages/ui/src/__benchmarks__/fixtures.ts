@@ -6,6 +6,8 @@
  * LCG so identical parameters always produce identical output.
  */
 
+import type { QueryField, QueryGroup, QueryNode } from '../components/query-builder/types'
+
 export function rng(seed = 1) {
 	let state = seed >>> 0
 
@@ -109,8 +111,6 @@ export function makeJsonTree(depth: number, branching: number, seed = 1): Json {
 
 	return build(depth, 'root')
 }
-
-import type { QueryField, QueryGroup, QueryNode } from '../components/query-builder/types'
 
 export const QUERY_FIELDS: QueryField[] = [
 	{ name: 'status', label: 'Status', type: 'text' },
