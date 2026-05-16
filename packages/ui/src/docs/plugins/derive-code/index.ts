@@ -41,7 +41,7 @@ export function deriveCodePlugin(): Plugin {
 			const tail = helpers
 				.map(
 					({ name, code }) =>
-						`;(${name} as unknown as { __code?: string }).__code = ${JSON.stringify(code)};`,
+						`;Object.assign(${name}, { __code: ${JSON.stringify(code)} });`,
 				)
 				.join('\n')
 
