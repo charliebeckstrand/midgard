@@ -2,7 +2,7 @@
 
 import { type ReactNode, useCallback, useMemo, useRef } from 'react'
 import { cn } from '../../core'
-import { useControllable } from '../../hooks'
+import { useControllable, useRoving } from '../../hooks'
 import { type AccordionVariants, accordionVariants } from '../../recipes/kata/accordion'
 import { AccordionRootProvider } from './context'
 
@@ -101,9 +101,21 @@ export function Accordion(props: AccordionProps) {
 		[variant, isOpen, toggle],
 	)
 
+	const ref = useRef<HTMLDivElement>(null)
+
+	const handleKeyDown = useRoving(ref, {
+		itemSelector: '[data-slot="accordion-button"]:not(:disabled)',
+	})
+
 	return (
 		<AccordionRootProvider value={ctx}>
-			<div data-slot="accordion" className={cn(accordionVariants({ variant }), className)}>
+			{/* biome-ignore lint/a11y/noStaticElementInteractions: the WAI-ARIA accordion pattern defines no role for the container; the roving tabindex handler must live here to navigate between header buttons */}
+			<div
+				ref={ref}
+				data-slot="accordion"
+				className={cn(accordionVariants({ variant }), className)}
+				onKeyDown={handleKeyDown}
+			>
 				{children}
 			</div>
 		</AccordionRootProvider>
