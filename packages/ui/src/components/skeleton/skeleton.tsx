@@ -11,8 +11,8 @@ export type SkeletonProps = {
 }
 
 /**
- * Renders children as dynamically-shaped skeletons via context.
- * Supply `ready` to crossfade into real content.
+ * Renders descendants as skeletons shaped by their own layout. When `ready`
+ * is provided, crossfades to the real content as it flips true.
  */
 export function Skeleton({ ready, className, children }: SkeletonProps) {
 	if (ready === undefined) {

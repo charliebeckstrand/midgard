@@ -1,9 +1,8 @@
 /**
- * Tagged template literal for example code blocks.
- *
- * - Auto-dedents based on minimum indentation
- * - Trims leading/trailing blank lines
- * - Joins array interpolations with newlines, preserving indentation
+ * Tagged template literal for example code blocks. Auto-dedents to the
+ * minimum indentation, trims leading and trailing blank lines, and joins
+ * array interpolations with newlines while preserving the surrounding
+ * indentation.
  */
 export function code(strings: TemplateStringsArray, ...values: (string | string[])[]) {
 	let result = ''

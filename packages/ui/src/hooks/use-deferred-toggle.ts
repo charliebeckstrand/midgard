@@ -13,9 +13,8 @@ export type UseDeferredToggleOptions<T> = {
 
 /**
  * Toggle logic for Listbox / Combobox selection, wrapped with a pending-value
- * queue so a toggle can be deferred until a panel finishes its exit animation —
- * avoiding the jarring flicker where the selected item visibly updates before
- * the panel collapses.
+ * queue so the toggle can be deferred until a panel finishes its exit
+ * animation — keeping the selected item stable while the panel collapses.
  *
  * Call `enqueue(value)` to queue a toggle, then wire `flushPending` to
  * `AnimatePresence`'s `onExitComplete` (or equivalent). Use `toggle` directly
