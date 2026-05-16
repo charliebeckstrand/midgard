@@ -102,6 +102,7 @@ export function Textarea({
 				className={cn(
 					textareaVariants({
 						variant: resolvedVariant,
+						density: resolvedSize,
 						size: resolvedSize,
 						resize: hasActions ? 'none' : resize,
 						autoResize,

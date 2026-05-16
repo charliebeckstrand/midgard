@@ -10,9 +10,10 @@ export const input = tv({
 			outline: [],
 			glass: [],
 		},
+		density: control.density,
 		size: control.size,
 	},
-	defaultVariants: { variant: 'default', size: 'md' },
+	defaultVariants: { variant: 'default', density: 'md', size: 'md' },
 })
 
 export const inputControl = tv({

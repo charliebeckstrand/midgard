@@ -155,7 +155,7 @@ export function Input(props: InputProps) {
 					)}
 				>
 					{resolvedPrefix && (
-						<span className={cn('peer/prefix', k.affix, k.prefix[resolvedSize])}>
+						<span className={cn('peer/prefix', k.affix, k.prefix[token.density])}>
 							{resolvedPrefix}
 						</span>
 					)}
@@ -174,9 +174,13 @@ export function Input(props: InputProps) {
 						onChange={resolvedOnChange}
 						onBlur={resolvedOnBlur}
 						className={cn(
-							inputVariants({ variant: resolvedVariant, size: resolvedSize }),
-							resolvedPrefix && k.autofill.prefix[resolvedSize],
-							resolvedSuffix && k.autofill.suffix[resolvedSize],
+							inputVariants({
+								variant: resolvedVariant,
+								density: token.density,
+								size: token.size,
+							}),
+							resolvedPrefix && k.autofill.prefix[token.density],
+							resolvedSuffix && k.autofill.suffix[token.density],
 							className,
 						)}
 						{...invalidAttrs(resolvedInvalid)}
@@ -184,7 +188,7 @@ export function Input(props: InputProps) {
 					/>
 
 					{resolvedSuffix && (
-						<span data-slot="suffix" className={cn(k.affix, k.suffix[resolvedSize])}>
+						<span data-slot="suffix" className={cn(k.affix, k.suffix[token.density])}>
 							{resolvedSuffix}
 						</span>
 					)}

@@ -262,7 +262,7 @@ export function Combobox<T>({
 						disabled={resolvedDisabled}
 						value={inputDisplay}
 						placeholder={placeholder}
-						className={cn(comboboxVariants({ size: resolvedSize }))}
+						className={cn(comboboxVariants({ density: resolvedSize, size: resolvedSize }))}
 						{...inputHandlers}
 					/>
 				</Headless>

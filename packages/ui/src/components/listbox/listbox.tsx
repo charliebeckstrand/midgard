@@ -176,7 +176,7 @@ export function Listbox<T>({
 					disabled={resolvedDisabled}
 					data-slot="listbox-button"
 					{...invalidAttrs(control?.invalid)}
-					className={cn(listboxVariants({ size: resolvedSize }))}
+					className={cn(listboxVariants({ density: resolvedSize, size: resolvedSize }))}
 				>
 					<span className={cn(k.value({ truncate }), tabularNums && 'tabular-nums')}>
 						{label || <span className={cn(iro.text.muted)}>{placeholder}</span>}

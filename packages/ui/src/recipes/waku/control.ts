@@ -66,11 +66,22 @@ const field = [
 	'dark:placeholder:text-zinc-400',
 ]
 
-// ── Density: border-compensated padding + font size ─────
+// ── Density axis: border-compensated padding ────────────
+// Tracks the `density` axis of the Density token (padding + gap dimension).
+// Affix padding (`affix.prefix`, `affix.suffix`, `affix.autofill`) below is
+// the same axis — keyed by the density step, not the size step.
+const density = {
+	sm: 'px-[calc(--spacing(2.5)-1px)] py-[calc(--spacing(1.5)-1px)]',
+	md: 'px-[calc(--spacing(3)-1px)] py-[calc(--spacing(2)-1px)]',
+	lg: 'px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)]',
+} as const
+
+// ── Size axis: font size ────────────────────────────────
+// Tracks the `size` axis of the Density token (text + icon dimension).
 const size = {
-	sm: ['px-[calc(--spacing(2.5)-1px)] py-[calc(--spacing(1.5)-1px)]', ji.size.sm],
-	md: ['px-[calc(--spacing(3)-1px)] py-[calc(--spacing(2)-1px)]', ji.size.md],
-	lg: ['px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)]', ji.size.lg],
+	sm: ji.size.sm,
+	md: ji.size.md,
+	lg: ji.size.lg,
 } as const
 
 // ── Affix slot layout (chevron, prefix, suffix) ─────────
@@ -134,6 +145,7 @@ export const control = {
 	frame,
 	surface,
 	field,
+	density,
 	size,
 	icon,
 	affix,

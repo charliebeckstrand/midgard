@@ -13,9 +13,10 @@ export const listbox = tv({
 		...sawari.cursor,
 	],
 	variants: {
+		density: control.density,
 		size: control.size,
 	},
-	defaultVariants: { size: 'md' },
+	defaultVariants: { density: 'md', size: 'md' },
 })
 
 const value = tv({

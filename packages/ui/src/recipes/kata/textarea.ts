@@ -10,6 +10,7 @@ export const textarea = tv({
 			outline: [],
 			glass: [],
 		},
+		density: control.density,
 		size: control.size,
 		resize: {
 			none: 'resize-none',
@@ -18,7 +19,13 @@ export const textarea = tv({
 		},
 		autoResize: { true: 'field-sizing-content', false: '' },
 	},
-	defaultVariants: { variant: 'default', size: 'md', resize: 'none', autoResize: false },
+	defaultVariants: {
+		variant: 'default',
+		density: 'md',
+		size: 'md',
+		resize: 'none',
+		autoResize: false,
+	},
 })
 
 export const textareaControl = tv({
