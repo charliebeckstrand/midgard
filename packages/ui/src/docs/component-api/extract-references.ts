@@ -85,7 +85,12 @@ export function extractReferences(
 function collectTypeNames(text: string): string[] {
 	const names: string[] = []
 
-	for (const match of text.matchAll(TYPE_NAME_RE)) {
+	// String-literal members of a type (`'PageHeader' | 'Footer'`) can spell
+	// out PascalCase tokens that the regex below would otherwise harvest as
+	// type names. Blank them out so they never reach symbol resolution.
+	const stripped = text.replace(/'[^'\\]*'|"[^"\\]*"/g, '')
+
+	for (const match of stripped.matchAll(TYPE_NAME_RE)) {
 		const name = match[1]
 
 		if (!name) continue
