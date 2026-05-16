@@ -115,9 +115,8 @@ function readDefaultVariants(
 	for (const prop of config.properties) {
 		if (
 			ts.isPropertyAssignment(prop) &&
-			ts.isIdentifier(prop.name) &&
 			ts.isObjectLiteralExpression(prop.initializer) &&
-			prop.name.text === 'defaultVariants'
+			propertyKeyName(prop.name) === 'defaultVariants'
 		) {
 			const map = new Map<string, string>()
 
