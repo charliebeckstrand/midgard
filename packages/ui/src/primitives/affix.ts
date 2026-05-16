@@ -4,18 +4,25 @@ import { createContext } from '../core'
 import type { Ma } from '../recipes/ryu/ma'
 
 /**
- * Narrow `Ma`-typed cascade for the slot-context step-down: descendants
- * inside a control affix (`<Input>` prefix / suffix, `<SelectTrigger>`
- * chevron) render one notch smaller than the host, and that step often
- * lands below the Density token's `Step` floor (`'xs'` at `'sm'`).
+ * Narrow `Ma`-typed cascade for slot-context broadcasting, written by
+ * surfaces whose descendants need a size value outside the `Step` floor.
  *
- * Only wider-scale components (Button, Icon, Spinner) consume this; the
- * universal {@link useDensity} cascade stays `Step`-typed for everyone
- * else. The two cascades compose: a Button inside an Input affix reads
- * Affix first, falls through to Density if no affix ancestor is present.
+ * Two writer shapes today:
  *
- * Returns `null` outside any affix-providing ancestor — consumers should
- * treat `null` as "no slot context, use the regular Density cascade".
+ * - **Control affix slots** (`<Input>` prefix / suffix,
+ *   `<SelectTrigger>` chevron) broadcast a stepped-down value — `'xs'`
+ *   at `'sm'`, `'sm'` at `'md'` — so icons and small buttons inside
+ *   the slot render tighter than the host.
+ * - **`<Button>`** broadcasts its own resolved size so loading
+ *   spinners, prefix / suffix icons, and any other wider-scale-aware
+ *   descendants inherit the button's `Ma` size (including `'xs'` and
+ *   the prospective `'xl'`, which the `Step`-typed Density cascade
+ *   can't carry).
+ *
+ * Read by wider-scale components (Button, Icon, Spinner) through
+ * `useWideSize`; the universal `useDensity` cascade stays `Step`-typed
+ * for everyone else. Returns `null` outside any provider — consumers
+ * treat `null` as "fall through to the Density cascade".
  */
 const [AffixProvider, useAffix] = createContext<Ma | null>('Affix', { default: null })
 

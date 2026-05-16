@@ -4,7 +4,8 @@ import { motion } from 'motion/react'
 import type { ComponentPropsWithoutRef, PointerEvent, ReactNode, Ref } from 'react'
 import { cn } from '../../core'
 import { useRipple } from '../../hooks'
-import { ConcentricProvider, useResolvedSize } from '../../primitives/concentric'
+import { AffixProvider } from '../../primitives/affix'
+import { useWideSize } from '../../primitives/density'
 import type { PolymorphicProps } from '../../primitives/polymorphic'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { TouchTarget } from '../../primitives/touch-target'
@@ -68,7 +69,7 @@ export function Button({
 	const headless = useHeadless()
 	const skeleton = useSkeleton()
 
-	const resolvedSize = useResolvedSize(size)
+	const resolvedSize = useWideSize(size)
 
 	const { onPointerDown: handleRipple, element: rippleElement } = useRipple()
 
@@ -106,11 +107,11 @@ export function Button({
 	const labelled = hasLabelContent(children)
 
 	const content = (
-		<ConcentricProvider value={{ size: resolvedSize }}>
+		<AffixProvider value={resolvedSize}>
 			{loading ? <Spinner {...loadingOptions} /> : prefix}
 			{children}
 			{suffix}
-		</ConcentricProvider>
+		</AffixProvider>
 	)
 
 	const handlePointerDown = (e: PointerEvent<HTMLElement>) => {

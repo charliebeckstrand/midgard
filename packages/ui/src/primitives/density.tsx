@@ -98,12 +98,17 @@ export function useDensity(): DensityToken {
  * Resolution order: `explicit ?? Affix ?? Concentric ?? Density.size`.
  * The legacy Concentric leg is the migration bridge for the size cascade —
  * it goes away when the last `useResolvedSize` consumer migrates.
+ *
+ * Generic on the caller's size type. Most callers' types are narrower than
+ * `Ma` (Icon tops out at `lg`; Button's recipe currently lacks `xl`); the
+ * cast trusts the caller to handle out-of-range values via recipe
+ * `defaultVariants` or graceful fallback.
  */
-export function useWideSize(explicit?: Ma): Ma {
+export function useWideSize<T extends Ma = Ma>(explicit?: T): T {
 	const affix = useAffix()
 	const concentric = useConcentric()
 	const density = useDensity()
-	return explicit ?? affix ?? concentric?.size ?? density.size
+	return (explicit ?? affix ?? concentric?.size ?? density.size) as T
 }
 
 export type DensityProps = DensityInput & { children: ReactNode }
