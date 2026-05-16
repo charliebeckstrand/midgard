@@ -42,9 +42,9 @@ Component leaves with no `size` prop just destructure: `const { size } = useDens
 
 Read with `useWideSize(explicit?)` — resolves `explicit ?? Affix ?? Density.size`. Used by Button, Icon, and Spinner; nothing else needs the wider scale.
 
-## `Concentric` — reserved for nested-radius math
+## Adaptive radius (deferred)
 
-`packages/ui/src/primitives/concentric.ts` is preserved for its original geometric purpose: surfaces that nest visually (Card inside Card, Drawer containing Popover) declare their radius + padding, and inner surfaces compute their own inner-fitting radius as `outer_radius - outer_padding`. The provider + hook are exported; the type is minimal until that lands.
+The original `sun.ts` comment described an "outer-radius = inner-radius + padding" formula for surfaces that nest visually. That cascade is not currently implemented — components derive their radius from their own size. Adaptive radius (a CSS-driven `--ui-radius-inner = calc(--ui-outer-radius − --ui-outer-padding)` chain, opt-in per surface) is a separate design pass; see commit history for the conversation that surfaced the need.
 
 ## Adding a new component
 
@@ -59,9 +59,9 @@ Read with `useWideSize(explicit?)` — resolves `explicit ?? Affix ?? Density.si
 - **`variant` on Button** — Button doesn't read `control?.variant`. Only Input / Textarea do, because they're direct Control children.
 - **Dialog / Drawer / Sheet variants** — these are independent compounds, not part of the Control family.
 
-## Layout primitives — opt-in concentric pickup
+## Layout primitives — opt-in Density pickup
 
-`box`, `flex`, `stack`, `grid` historically read `useConcentric()` directly for the "no contextual size → no style applied" semantic (their `p` / `gap` is `Responsive<Ma>`, wider than the hook's constraint and undefined-friendly). With Concentric now reserved for the nested-radius cascade, those reads will move to `useDensity()` when the layout primitives are next touched; the behaviour is unchanged because the layout primitives' undefined-friendly composition happens at the prop level, not the cascade.
+`box`, `flex`, `stack`, `grid` read `useDensityNullable()` rather than `useDensity()` — their `p` / `gap` props treat `undefined` as "no style applied," and the `'md'` default `useDensity` falls back to would clobber that opt-in semantic. They consume the `density` axis (the padding-and-gap dimension) for their resolved `p` / `gap`.
 
 ## Ambient flags
 

@@ -1,6 +1,6 @@
 import type { Ref } from 'react'
 import { cn } from '../../core'
-import { useConcentric } from '../../primitives/concentric'
+import { useDensityNullable } from '../../primitives/density'
 import { Polymorphic, type PolymorphicProps } from '../../primitives/polymorphic'
 import {
 	type BoxBg,
@@ -72,11 +72,11 @@ export function Box({
 	children,
 	...props
 }: BoxProps) {
-	const concentric = useConcentric()
+	const density = useDensityNullable()
 
 	// Only `p` inherits — `px` / `py` stay explicit so margin-style overrides
 	// don't get masked by an ambient default.
-	const resolvedPadding = p ?? concentric?.size
+	const resolvedPadding = p ?? density?.density
 
 	return (
 		<Polymorphic

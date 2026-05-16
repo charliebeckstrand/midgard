@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from 'react'
 import { cn } from '../../core'
-import { useConcentric } from '../../primitives/concentric'
+import { useDensityNullable } from '../../primitives/density'
 import { GridProvider } from './context'
 import {
 	alignMap,
@@ -37,9 +37,9 @@ export function Grid({
 	children,
 	...props
 }: GridProps) {
-	const concentric = useConcentric()
+	const density = useDensityNullable()
 
-	const resolvedGap = gap ?? concentric?.size ?? 'md'
+	const resolvedGap = gap ?? density?.density ?? 'md'
 
 	const cols = resolveCols(columns)
 	const rws = resolveRows(rows)

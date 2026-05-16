@@ -29,21 +29,24 @@ here.
 
 ## Size cascade
 
-`ConcentricProvider` / `useConcentric` (in `primitives/concentric.ts`)
-carries the ambient size step through the tree. Surfaces opt in by
-rendering the provider themselves — `<Card>`, `<Drawer>`, `<Popover>`,
-and `<Group>` all broadcast their resolved `size` this way. Border
-radii follow the same nesting: `outer = inner + padding`.
+`Density` / `useDensity` (in `primitives/density.tsx`) carries the
+ambient two-axis token (`density` for padding+gap, `size` for
+text+icon) through the tree. Surfaces broadcast it themselves —
+`<Card>`, `<Drawer>`, `<Popover>`, `<Group>`, and `<Density>` all
+write the resolved token for their descendants.
 
 `<Group>` (in `components/group/`) also joins adjacent children by
 stamping `data-group={start|middle|end|only}`; participating kata
 consume `tsunagi.base` to drop their inner radii. When `size` is
-omitted, the group inherits from any enclosing concentric context.
+omitted, the group inherits from any enclosing Density context.
 
-Components like `Button`, `Checkbox`, and `Radio` read `useConcentric()`
-to default their `size` prop. Resolution order: explicit prop, then
-`useConcentric()`, then component-specific context, then the kata's
-`defaultVariants`.
+Components like `Checkbox` and `Radio` read `useDensity()` to default
+their `size` prop. Wider-scale components (`Button`, `Icon`, `Spinner`)
+read `useWideSize()` instead — it composes the Affix primitive
+(`primitives/affix.ts`) for slot-context broadcasts that go below the
+`Step` floor (`'xs'`). Resolution order: explicit prop, then
+component-specific context (e.g. Control for form fields), then
+`useDensity()` / `useWideSize()`, then the kata's `defaultVariants`.
 
 ## Spacing and radius
 

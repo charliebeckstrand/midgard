@@ -62,11 +62,18 @@ const [DensityProviderRaw, useDensityNullable] = createContext<DensityToken | nu
 /**
  * Read the active density. Returns the diagonal `md` preset when no provider
  * is in the tree.
+ *
+ * Use {@link useDensityNullable} when you need to distinguish "no ancestor"
+ * from `md` — layout primitives (Box, Flex, Stack, Grid) whose `p` / `gap`
+ * treat `undefined` as "no style applied" want the nullable read so they
+ * don't accidentally inherit the default.
  */
 export function useDensity(): DensityToken {
 	const density = useDensityNullable()
 	return density ?? DENSITY_PRESETS.md
 }
+
+export { useDensityNullable }
 
 /**
  * Resolve a wider-scale size through the Affix → Density cascade. Used by
