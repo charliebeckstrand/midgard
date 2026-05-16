@@ -20,7 +20,7 @@ export function detectPassThroughs(
 ): PassThrough[] {
 	const found: PassThrough[] = []
 
-	const visited = new Set<ts.Node>()
+	const visited = new Set<string>()
 
 	walk(annotation, [], found, visited, checker)
 
@@ -31,12 +31,17 @@ function walk(
 	node: ts.TypeNode,
 	omitted: string[],
 	out: PassThrough[],
-	visited: Set<ts.Node>,
+	visited: Set<string>,
 	checker: ts.TypeChecker,
 ): void {
-	if (visited.has(node)) return
+	// Key by node + omitted context: the same alias reached through different
+	// `Omit<…>` wrappers needs to be re-walked so each visit's omitted keys
+	// land on its own pass-through entry.
+	const key = `${getNodeId(node)} ${omitted.join('|')}`
 
-	visited.add(node)
+	if (visited.has(key)) return
+
+	visited.add(key)
 
 	// Intersection / union — walk each member
 	if (ts.isIntersectionTypeNode(node) || ts.isUnionTypeNode(node)) {
@@ -144,6 +149,10 @@ function extractHtmlElementTag(
 	const match = symbolName.match(/^HTML(\w+)Element$/)
 
 	return match?.[1]?.toLowerCase() ?? null
+}
+
+function getNodeId(node: ts.Node): string {
+	return `${node.getSourceFile().fileName}:${node.pos}:${node.end}`
 }
 
 function dedupe(items: PassThrough[]): PassThrough[] {
