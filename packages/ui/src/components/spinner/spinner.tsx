@@ -1,16 +1,15 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { useWideSize } from '../../primitives/density'
+import { useSizeWide } from '../../primitives/density'
 import { type SpinnerVariants, spinnerVariants } from '../../recipes/kata/spinner'
 
 export type SpinnerProps = SpinnerVariants & {
 	label?: string
-	size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'output'>, 'className' | 'color'>
 
 export function Spinner({ size, color, label = 'Loading', className, ...props }: SpinnerProps) {
-	const resolvedSize = useWideSize(size)
+	const resolvedSize = useSizeWide(size)
 
 	return (
 		<output

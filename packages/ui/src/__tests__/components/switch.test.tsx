@@ -77,7 +77,7 @@ describe('SwitchField', () => {
 })
 
 describe('Switch size resolution', () => {
-	it('inherits size from the concentric context when no explicit prop is set', () => {
+	it('inherits size from the Density context when no explicit prop is set', () => {
 		const { container } = renderUI(
 			<Density scale="lg">
 				<Switch />
@@ -88,7 +88,7 @@ describe('Switch size resolution', () => {
 		expect(bySlot(container, 'control')?.className).toContain('*:data-[slot=switch-thumb]:size-5')
 	})
 
-	it('explicit size prop overrides concentric inheritance', () => {
+	it('explicit size prop overrides Density inheritance', () => {
 		const { container } = renderUI(
 			<Density scale="lg">
 				<Switch size="sm" />

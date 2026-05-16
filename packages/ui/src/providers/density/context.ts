@@ -5,7 +5,7 @@ import type { Step } from '../../recipes/ryu/sun'
 
 export type DensityLevel = 'loose' | 'snug' | 'compact'
 
-/** Density → Concentric size. The two cascades are 1:1. */
+/** Friendly density level → `Step` carried by the Density primitive. 1:1 mapping. */
 export const DENSITY_TO_SIZE: Record<DensityLevel, Step> = {
 	loose: 'lg',
 	snug: 'md',
@@ -13,10 +13,11 @@ export const DENSITY_TO_SIZE: Record<DensityLevel, Step> = {
 }
 
 /**
- * Ambient density level — provided by `<Density>`. Maps 1:1 to the Concentric
- * size cascade (`loose` → `lg`, `snug` → `md`, `compact` → `sm`), which
- * `<Density>` broadcasts alongside this context so every size-aware
- * descendant inherits without further wiring. See `src/docs/CASCADES.md`.
+ * Friendly ambient density level — provided by `<Density>`. Maps 1:1 to the
+ * `Step` cascade carried by the Density primitive (`loose` → `lg`,
+ * `snug` → `md`, `compact` → `sm`), which `<Density>` broadcasts alongside
+ * this context so every size-aware descendant inherits without further
+ * wiring.
  *
  * Defaults to `'snug'` (equivalent to `size: 'md'`) outside any provider.
  */

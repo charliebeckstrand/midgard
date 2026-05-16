@@ -20,8 +20,8 @@ type Options<T> = {
  * - Without options, the hook throws when used outside a provider — for
  *   required context (Menu, Tabs, Dialog, etc.).
  * - With `{ default }`, the hook returns the default when used outside a
- *   provider — for optional / ambient context (Glass, Skeleton, Concentric,
- *   Control, etc.).
+ *   provider — for optional / ambient context (Glass, Skeleton, Headless,
+ *   Density, Control, etc.).
  *
  * The third tuple element is the raw React Context, for thin cases where a
  * named hook would be empty sugar — consumers can `use(Context)` directly.

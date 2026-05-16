@@ -13,7 +13,7 @@ import { Box, type BoxPadding } from '../box'
 import { useGlass } from '../glass/context'
 import { usePopoverContext } from './context'
 
-// Surface padding scales with the resolved concentric size. Consumers can still
+// Surface padding scales with the resolved Density size. Consumers can still
 // override per-instance via the `p` prop.
 const paddingForSize: Record<Step, BoxPadding> = { sm: 'md', md: 'lg', lg: 'xl' }
 
@@ -22,8 +22,8 @@ export type PopoverContentProps = {
 	autoFocus?: boolean
 	p?: BoxPadding
 	/**
-	 * Size step that propagates to descendants via the concentric context.
-	 * Resolution order: explicit prop, then enclosing concentric size, then `'md'`.
+	 * Size step that propagates to descendants via the Density context.
+	 * Resolution order: explicit prop, then enclosing Density size, then `'md'`.
 	 */
 	size?: Step
 	children: ReactNode

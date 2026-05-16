@@ -3,13 +3,16 @@
 import { type CSSProperties, useRef } from 'react'
 import { cn } from '../../../core'
 import { useControllable } from '../../../hooks/use-controllable'
-import { sliderRange as k } from '../../../recipes/kata/slider-range'
+import {
+	k,
+	type RangeSliderVariants,
+	rangeSliderRootVariants,
+	rangeSliderThumbVariants,
+	rangeSliderTrackVariants,
+} from '../../../recipes/kata/slider-range'
 import { pct } from './range-utilities'
 import { useRangeKeyboard } from './use-range-keyboard'
 import { useRangePointer } from './use-range-pointer'
-
-type RangeSliderSize = keyof typeof k.size
-type RangeSliderColor = keyof typeof k.color
 
 export type RangeSliderProps = {
 	value?: [number, number]
@@ -18,8 +21,8 @@ export type RangeSliderProps = {
 	min?: number
 	max?: number
 	step?: number
-	size?: RangeSliderSize
-	color?: RangeSliderColor
+	size?: RangeSliderVariants['size']
+	color?: RangeSliderVariants['color']
 	disabled?: boolean
 	/**
 	 * Whether moving a thumb past the other swaps their roles. When `false`,
@@ -38,16 +41,13 @@ export function RangeSlider({
 	min = 0,
 	max = 100,
 	step = 1,
-	size: sizeProp,
-	color: colorProp,
+	size,
+	color,
 	disabled = false,
 	allowCross = true,
 	className,
 	style,
 }: RangeSliderProps) {
-	const size = sizeProp ?? k.defaults.size
-	const color = colorProp ?? k.defaults.color
-
 	const [range, setRange] = useControllable<[number, number]>({
 		value,
 		defaultValue: defaultValue ?? [min, max],
@@ -90,13 +90,11 @@ export function RangeSlider({
 	const lo = pct(current[0], min, max)
 	const hi = pct(current[1], min, max)
 
-	const sizeClasses = k.size[size]
-
 	return (
 		<div
 			data-slot="slider-range"
 			data-disabled={disabled || undefined}
-			className={cn(k.root, sizeClasses.root, k.color[color], className)}
+			className={cn(rangeSliderRootVariants({ size, color }), className)}
 			style={style}
 			onPointerDown={onPointerDown}
 			onPointerMove={onPointerMove}
@@ -106,7 +104,7 @@ export function RangeSlider({
 			<div
 				ref={trackRef}
 				data-slot="slider-range-track"
-				className={cn(k.track, sizeClasses.track, 'top-1/2 -translate-y-1/2')}
+				className={cn(rangeSliderTrackVariants({ size }), 'top-1/2 -translate-y-1/2')}
 			>
 				{/* Filled range */}
 				<div
@@ -128,7 +126,7 @@ export function RangeSlider({
 				aria-valuenow={current[0]}
 				aria-label="Range start"
 				data-slot="slider-range-thumb"
-				className={cn(k.thumb, sizeClasses.thumb, 'top-1/2 -translate-y-1/2')}
+				className={cn(rangeSliderThumbVariants({ size }), 'top-1/2 -translate-y-1/2')}
 				style={{ left: `${lo}%` }}
 				onKeyDown={handleKeyDown(0)}
 			/>
@@ -145,7 +143,7 @@ export function RangeSlider({
 				aria-valuenow={current[1]}
 				aria-label="Range end"
 				data-slot="slider-range-thumb"
-				className={cn(k.thumb, sizeClasses.thumb, 'top-1/2 -translate-y-1/2')}
+				className={cn(rangeSliderThumbVariants({ size }), 'top-1/2 -translate-y-1/2')}
 				style={{ left: `${hi}%` }}
 				onKeyDown={handleKeyDown(1)}
 			/>

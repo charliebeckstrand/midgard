@@ -25,8 +25,8 @@ export type DrawerProps = DrawerPanelVariants & {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	/**
-	 * Size step that propagates to descendants via the concentric context.
-	 * Resolution order: explicit prop, then enclosing concentric size, then `'md'`.
+	 * Size step that propagates to descendants via the Density context.
+	 * Resolution order: explicit prop, then enclosing Density size, then `'md'`.
 	 */
 	size?: Step
 	glass?: boolean

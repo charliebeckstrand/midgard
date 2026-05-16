@@ -14,7 +14,7 @@ export type StatValueProps = StatValueVariants & {
 } & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
 
 /**
- * `size` resolution order: explicit prop, then enclosing concentric size, then `'md'`.
+ * `size` resolution order: explicit prop, then enclosing Density size, then `'md'`.
  */
 export function StatValue({ size, className, children, ...props }: StatValueProps) {
 	const inherited = useDensity()

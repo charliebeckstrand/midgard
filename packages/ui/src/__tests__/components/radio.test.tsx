@@ -105,7 +105,7 @@ describe('Radio size', () => {
 		expect(bySlot(container, 'control')?.className).toContain('size-5')
 	})
 
-	it('inherits size from the concentric context', () => {
+	it('inherits size from the Density context', () => {
 		const { container } = renderUI(
 			<Density scale="sm">
 				<Radio />

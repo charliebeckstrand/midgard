@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
-import { useWideSize } from '../../primitives/density'
+import { useSizeWide } from '../../primitives/density'
 import { Polymorphic, type PolymorphicProps } from '../../primitives/polymorphic'
 import { kokkaku } from '../../recipes'
 import { type BadgeVariants, badgeVariants } from '../../recipes/kata/badge'
@@ -20,9 +20,8 @@ export type BadgeProps = BadgeBaseProps & PolymorphicProps<'span', 'prefix'>
 /**
  * `size` resolution mirrors Button: explicit prop, then AffixSize (the scoped
  * broadcast from `<Input>` / `<SelectTrigger>` / `<Grid>`), then the ambient
- * concentric size, then the recipe's `md` default. AffixSize wins over
- * Concentric so a badge inside a grid cell renders one step smaller than the
- * grid itself.
+ * Density size, then the recipe's `md` default. AffixSize wins over Density so
+ * a badge inside a grid cell renders one step smaller than the grid itself.
  */
 export function Badge({
 	variant = 'solid',
@@ -36,7 +35,7 @@ export function Badge({
 	suffix,
 	...props
 }: BadgeProps) {
-	const resolvedSize = useWideSize(size)
+	const resolvedSize = useSizeWide(size)
 
 	if (useSkeleton()) {
 		return (

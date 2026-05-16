@@ -91,7 +91,41 @@ One of:
 
 ### 4. Output
 
-Save to workspace as `deliberate-audit-[timestamp].md`. Deliver via `SendUserFile`.
+Save two files in the workspace and deliver the HTML to the user via `SendUserFile` (status `normal`, caption naming the topic of the audited deliberation). Use a single `YYYYMMDD-HHMMSS` timestamp for both filenames.
+
+#### `deliberate-audit-[timestamp].md`
+
+Plain Markdown. The audit content as specified in step 3, verbatim. No styling.
+
+#### `deliberate-audit-[timestamp].html`
+
+Self-contained — one file, inline `<style>`, no external assets, no scripts. Must render correctly when opened directly in a browser from the filesystem.
+
+**Required structure, in this order:**
+
+1. **Header** — `<h1>` "Council Audit" (or the topic of the audited deliberation if it is known), meta line beneath with date and, if relevant, git branch in `<code>`.
+2. **Headline** — large display text, one sentence, the audit's headline. Sits directly under the header with minimal chrome. The first thing the eye lands on.
+3. **Audit Summary** — compact bordered panel directly under the headline. Renders the four labeled bullets (Verdict under review, Audit outcome, Strongest concern, Strongest defense) as a clean labeled list. Designed to be skimmed in ~10 seconds and to be copy-pasted into a doc or note.
+4. **Verdict Under Review** — bordered panel containing the original verdict that was audited (verdict type and what was recommended). Provides the artifact context, parallel to council's Proposal Under Review.
+5. **Audit Outcome** — the most prominent block on the page (heavier styling than Audit Summary). Contains: an outcome tag (Earned / Partially earned / Unearned / Cannot determine) styled distinctly per outcome, followed by the recommendation paragraph (Accept the verdict / Accept with caveats / Re-run council with a revised Proposal Under Review / Re-run council with a different angle), then a final highlighted sub-panel naming the concrete next action.
+6. **Findings** — `<h3>` per finding, body containing the failure-mode name, the specific transcript evidence (rendered in a `<blockquote>` or quote-styled element), and why it matters for the verdict's reliability. **Omit this section entirely if the audit found no failures.**
+7. **What the Verdict Got Right** — `<ul>` of points the deliberation handled well. **Omit if step 3 produced nothing to acknowledge.**
+8. **Footer** — muted, centered, e.g. "Deliberate audit — seven failure modes checked. Re-run `council` with a revised Proposal Under Review if the recommendation calls for it."
+
+**Conditional section rule:** sections 6 and 7 are omitted entirely if step 3 produced no content for them. A clean audit on a well-reasoned verdict produces a short report — that is the correct outcome, not a sign that the spec was under-filled.
+
+**Required styling:**
+
+- Inline `<style>` only. CSS custom properties for theme colors. `@media (prefers-color-scheme: light)` block providing a light-mode palette; default palette is dark.
+- System font stack: `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif`.
+- Centered content column, `max-width: 880px`, generous padding (`48px 28px 80px`).
+- Headline: large display size (≥1.6× body), generous line-height, sits flush with the page rather than in a box.
+- Audit Summary: compact bordered panel with subtle background, slightly tighter line-height than body text. Designed to read as a unit, not as prose.
+- Outcome tag: distinct background per outcome type (Earned = green-tinted, Partially earned = amber-tinted, Unearned = red-tinted, Cannot determine = muted gray). Audit Outcome block uses a border accent in the matching color and is the heaviest-styled block on the page.
+- Code spans (`<code>`) get a subtle panel background and rounded corners.
+- No emoji. No images. No external fonts.
+
+After writing both files, deliver the HTML via `SendUserFile`.
 
 ---
 
@@ -144,7 +178,39 @@ Output in plain language. No jargon. Structured but conversational.
 
 ### 4. Output
 
-Save to workspace as `deliberate-advice-[timestamp].md`. Deliver via `SendUserFile`.
+Save two files in the workspace and deliver the HTML to the user via `SendUserFile` (status `normal`, caption naming the decision being deliberated). Use a single `YYYYMMDD-HHMMSS` timestamp for both filenames.
+
+#### `deliberate-advice-[timestamp].md`
+
+Plain Markdown. The advice content as specified in step 3, verbatim. No styling.
+
+#### `deliberate-advice-[timestamp].html`
+
+Self-contained — one file, inline `<style>`, no external assets, no scripts. Must render correctly when opened directly in a browser from the filesystem.
+
+**Required structure, in this order:**
+
+1. **Header** — `<h1>` naming the decision in plain terms, meta line beneath with date and, if relevant, git branch in `<code>`.
+2. **The Short Version** — large display text, one sentence, the advice's strongest pause-point. Sits directly under the header with minimal chrome. The first thing the eye lands on.
+3. **The Decision** — bordered panel containing the user's framing as gathered in step 1: what they're deciding, why now, what they're leaning toward, what's fixed, what they've already tried. Provides the context the advice responds to.
+4. **Here's What I'd Want You to Think About Before Deciding** — the main prose panel containing the 3–5 paragraphs of considerations. Body-style text, generous line-height, reads as an advisor talking rather than a checklist.
+5. **What I'd Do First** — the heaviest-styled block on the page. One concrete suggestion. Visually prominent so it does not get lost in the surrounding prose.
+6. **What I'm Not Going to Tell You** — muted closing panel acknowledging the limits of outside advice.
+7. **Footer** — muted, centered, e.g. "Standalone deliberation — careful advice, no verdict. Run `council` if the decision warrants the full protocol."
+
+**Required styling:**
+
+- Inline `<style>` only. CSS custom properties for theme colors. `@media (prefers-color-scheme: light)` block providing a light-mode palette; default palette is dark.
+- System font stack: `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif`.
+- Centered content column, `max-width: 880px`, generous padding (`48px 28px 80px`).
+- The Short Version: large display size (≥1.6× body), generous line-height, sits flush with the page.
+- The Decision: bordered panel with subtle background.
+- What I'd Do First: heaviest-styled block, border accent in a single attention color (not tied to a verdict type — standalone mode renders advice, not a verdict).
+- What I'm Not Going to Tell You: muted text color, subtle border or background to set it apart from the main prose without competing visually with What I'd Do First.
+- Code spans (`<code>`) get a subtle panel background and rounded corners.
+- No emoji. No images. No external fonts.
+
+After writing both files, deliver the HTML via `SendUserFile`.
 
 ---
 

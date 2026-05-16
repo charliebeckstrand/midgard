@@ -92,7 +92,7 @@ describe('Input size resolution', () => {
 		lg: 'text-lg',
 	} as const
 
-	it('inherits size from the concentric context when no explicit prop is set', () => {
+	it('inherits size from the Density context when no explicit prop is set', () => {
 		const { container } = renderUI(
 			<Density scale="lg">
 				<Input />
@@ -102,7 +102,7 @@ describe('Input size resolution', () => {
 		expect(bySlot(container, 'input')?.className).toContain(textClassFor.lg)
 	})
 
-	it('explicit size prop overrides concentric inheritance', () => {
+	it('explicit size prop overrides Density inheritance', () => {
 		const { container } = renderUI(
 			<Density scale="lg">
 				<Input size="sm" />

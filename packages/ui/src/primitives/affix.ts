@@ -21,7 +21,7 @@ import type { Step } from '../recipes/ryu/sun'
  *   can't carry).
  *
  * Read by wider-scale components (Button, Icon, Spinner) through
- * `useWideSize`; the universal `useDensity` cascade stays `Step`-typed
+ * `useSizeWide`; the universal `useDensity` cascade stays `Step`-typed
  * for everyone else. Returns `null` outside any provider — consumers
  * treat `null` as "fall through to the Density cascade".
  */

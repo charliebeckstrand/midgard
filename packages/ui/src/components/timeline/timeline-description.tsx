@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
-import { k } from '../../recipes/kata/timeline'
+import { timelineDescriptionVariants } from '../../recipes/kata/timeline'
 import { useTimeline } from './context'
 
 export type TimelineDescriptionProps = {
@@ -14,7 +14,7 @@ export function TimelineDescription({ className, children }: TimelineDescription
 	return (
 		<p
 			data-slot="timeline-description"
-			className={cn(k.description.base, k.description[orientation], className)}
+			className={cn(timelineDescriptionVariants({ orientation }), className)}
 		>
 			{children}
 		</p>

@@ -272,7 +272,7 @@ describe('Card size system', () => {
 		expect(cards[1]).toHaveAttribute('data-step', 'sm')
 	})
 
-	// Box now inherits `p` from Concentric. Card must not let its own Box
+	// Box now inherits `p` from Density. Card must not let its own Box
 	// pick up the size it broadcasts to descendants — otherwise the
 	// conditional `:has(>[data-slot^=card-])` padding rule is bypassed and
 	// CardHeader/CardBody layouts get an extra outer p-* class.

@@ -227,7 +227,7 @@ describe('Button', () => {
 
 		// Regression: `<Input>` / `<SelectTrigger>` wrap their affix descendants
 		// in an `<AffixProvider>` carrying the one-step-smaller affix size. The
-		// Affix cascade is read first by `useWideSize` — so when `<Density>` (or
+		// Affix cascade is read first by `useSizeWide` — so when `<Density>` (or
 		// a surrounding `<Card>`) mounts an outer Step cascade at the app root,
 		// the affix wrap still pins the button to the smaller affix size.
 

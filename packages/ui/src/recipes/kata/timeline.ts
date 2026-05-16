@@ -17,15 +17,54 @@ export const timeline = tv({
 	defaultVariants: { orientation: 'vertical', variant: 'solid' },
 })
 
+const item = tv({
+	base: 'relative overflow-hidden',
+	variants: {
+		orientation: {
+			vertical: 'grid grid-cols-[0.875rem_1fr] gap-x-4 pb-8 last:pb-0',
+			horizontal: 'flex flex-col pl-[6.5px] pt-8 pr-8 last:pr-0',
+		},
+	},
+	defaultVariants: { orientation: 'vertical' },
+})
+
+const heading = tv({
+	base: ['font-semibold', ji.size.lg, ...iro.text.default],
+	variants: {
+		orientation: {
+			vertical: 'col-start-2 row-start-1',
+			horizontal: 'order-1',
+		},
+	},
+	defaultVariants: { orientation: 'vertical' },
+})
+
+const description = tv({
+	base: [ji.size.md],
+	variants: {
+		orientation: {
+			vertical: 'col-start-2 row-start-2',
+			horizontal: 'order-2',
+		},
+	},
+	defaultVariants: { orientation: 'vertical' },
+})
+
+const timestamp = tv({
+	base: [ji.size.sm, ...iro.text.muted],
+	variants: {
+		orientation: {
+			vertical: 'col-start-2 row-start-3 mt-1',
+			horizontal: 'order-3 mt-1',
+		},
+	},
+	defaultVariants: { orientation: 'vertical' },
+})
+
 export type TimelineVariants = VariantProps<typeof timeline>
 
 export const slots = {
-	item: {
-		base: 'relative overflow-hidden',
-		vertical: 'grid grid-cols-[0.875rem_1fr] gap-x-4 pb-8 last:pb-0',
-		horizontal: 'flex flex-col pl-[6.5px] pt-8 pr-8 last:pr-0',
-		active: '',
-	},
+	item,
 	marker: {
 		base: [
 			'z-10 relative inline-flex size-3.5 items-center justify-center',
@@ -73,21 +112,16 @@ export const slots = {
 			blue: 'after:bg-blue-500 dark:after:bg-blue-500',
 		},
 	},
-	heading: {
-		base: ['font-semibold', ji.size.lg, ...iro.text.default],
-		vertical: 'col-start-2 row-start-1',
-		horizontal: 'order-1',
-	},
-	description: {
-		base: [ji.size.md],
-		vertical: 'col-start-2 row-start-2',
-		horizontal: 'order-2',
-	},
-	timestamp: {
-		base: [ji.size.sm, ...iro.text.muted],
-		vertical: 'col-start-2 row-start-3 mt-1',
-		horizontal: 'order-3 mt-1',
-	},
+	heading,
+	description,
+	timestamp,
 }
 
-export { timeline as timelineVariants, slots as k }
+export {
+	timeline as timelineVariants,
+	item as timelineItemVariants,
+	heading as timelineHeadingVariants,
+	description as timelineDescriptionVariants,
+	timestamp as timelineTimestampVariants,
+	slots as k,
+}

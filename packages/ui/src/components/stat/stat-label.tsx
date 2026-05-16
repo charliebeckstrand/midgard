@@ -10,7 +10,7 @@ export type StatLabelProps = {
 } & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
 
 /**
- * `size` resolves from the enclosing concentric context, so a `<StatLabel>`
+ * `size` resolves from the enclosing Density context, so a `<StatLabel>`
  * inside `<Density density="compact">` shrinks alongside its `<StatValue>`.
  */
 export function StatLabel({ className, children, ...props }: StatLabelProps) {
