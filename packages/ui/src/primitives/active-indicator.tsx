@@ -49,6 +49,11 @@ export function useActiveIndicator() {
 	)
 }
 
+/**
+ * Visual marker that morphs between sibling items via Motion's shared-element
+ * transition. Resolves its `layoutId` from the nearest `ActiveIndicatorScope`
+ * so independent groups (nav, tabs) don't trade animations.
+ */
 export function ActiveIndicator({
 	ref,
 	layoutId,

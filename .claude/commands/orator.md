@@ -6,7 +6,7 @@ Orator is a stylist: it polishes language, not facts. It honors the host project
 
 ## When to use this vs. siblings
 
-- **Use `orator`** for text that humans read. Code comments, docstrings, commit and PR copy, READMEs, design docs, release notes, ad-hoc messages.
+- **Use `orator`** for any surface where idiomatic phrasing is the bar. Code comments, docstrings, commit and PR copy, READMEs, design docs, release notes, ad-hoc messages.
 - **Use `/typescript:review` instead** when the question is whether the *code* is correct or idiomatic — a prose pass does not catch logic.
 - **Use `/audit:refactor` instead** when the cleanup target is structure (duplication, layering, dead exports) rather than language.
 

@@ -2,7 +2,10 @@
 
 import { useCallback, useEffect, useRef } from 'react'
 
-/** Defers a callback until the virtual keyboard has settled. Fires immediately on desktop or when the keyboard is already visible. */
+/**
+ * Defers a callback until the virtual keyboard has settled. Fires
+ * immediately on desktop or when the keyboard is already visible.
+ */
 export function useKeyboardSettled() {
 	const rafRef = useRef<number | null>(null)
 

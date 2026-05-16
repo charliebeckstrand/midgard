@@ -1,4 +1,10 @@
 import type { ReactNode } from 'react'
+
+/**
+ * Expands the hit target to the WCAG 44 px minimum on coarse pointers without
+ * altering visual layout. The invisible expansion sibling is hidden on
+ * `pointer-fine` devices, so mouse users see the element at its natural size.
+ */
 export function TouchTarget({ children }: { children: ReactNode }) {
 	return (
 		<>

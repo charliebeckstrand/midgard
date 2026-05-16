@@ -72,6 +72,7 @@ export type CalendarProps = {
 	className?: string
 }
 
+/** Single-date month-grid picker — exposes navigation, focus, and picker handles to a parent via `ref` for embedded use. */
 export function Calendar({
 	value: valueProp,
 	defaultValue,

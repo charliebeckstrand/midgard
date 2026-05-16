@@ -30,6 +30,7 @@ export type KanbanProps<T, C extends KanbanColumnShape<T>> = {
 	'aria-label'?: string
 }
 
+/** Multi-column board with drag-and-drop and keyboard reordering both within and across columns. */
 export function Kanban<T, C extends KanbanColumnShape<T>>({
 	columns,
 	getItemKey,

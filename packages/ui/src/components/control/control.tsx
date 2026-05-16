@@ -27,11 +27,10 @@ export type ControlProps = {
 }
 
 /**
- * Context wrapper for form fields.
- *
- * Generates a stable id and propagates disabled, invalid, readOnly,
- * required, size, and variant to control-aware children.
- * Supports nesting — disabled/readOnly cascade, size/variant inherit.
+ * Generates a stable id and broadcasts `disabled`, `invalid`, `readOnly`,
+ * `required`, `size`, and `variant` to control-aware descendants. Nests:
+ * `disabled` / `readOnly` cascade through inner Controls, `size` / `variant`
+ * inherit unless overridden.
  */
 export function Control({
 	id: idProp,

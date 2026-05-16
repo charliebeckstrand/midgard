@@ -37,6 +37,7 @@ export type SignaturePadProps = {
 	className?: string
 }
 
+/** Pointer-driven canvas for capturing a signature — emits a data URL when a stroke ends and stays sized to its container under devicePixelRatio. */
 export function SignaturePad({
 	value,
 	defaultValue,

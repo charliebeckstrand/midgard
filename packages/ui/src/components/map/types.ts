@@ -1,3 +1,4 @@
+/** `[longitude, latitude]` — MapLibre / GeoJSON order, opposite of the idiomatic "lat / lng". */
 export type LngLat = [number, number]
 
 export type RouteStop = {
@@ -20,6 +21,7 @@ export type GeofenceShape =
 	| { kind: 'circle'; center: LngLat; radiusMeters: number }
 	| { kind: 'polygon'; coordinates: LngLat[] }
 
+/** A single message in a shipment's chat thread — local to `map/`, not the `ChatMessage` component. */
 export type ChatMessage = {
 	id: string
 	author: 'me' | 'them'

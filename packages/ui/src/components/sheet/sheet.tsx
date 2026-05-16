@@ -21,9 +21,10 @@ export type SheetProps = SheetPanelVariants & {
 	className?: string
 	children: ReactNode
 	/**
-	 * Optional element to scope the sheet to. When provided, the sheet renders within
-	 * that element using absolute positioning. The container must be positioned
-	 * (e.g. `position: relative`). Defaults to full viewport.
+	 * Optional element to portal into. When provided, the sheet is scoped to this
+	 * element (rendered with `absolute` positioning, no body scroll lock). The
+	 * container must establish a positioning context (e.g. `position: relative`).
+	 * Defaults to `document.body` with full-viewport `fixed` positioning.
 	 */
 	container?: HTMLElement | null
 }

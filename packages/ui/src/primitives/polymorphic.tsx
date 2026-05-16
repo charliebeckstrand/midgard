@@ -3,7 +3,7 @@
 import type { ComponentPropsWithoutRef, ElementType, JSX, ReactNode, Ref } from 'react'
 import { type LinkProps, useLink } from './link'
 
-/** Discriminated union — renders as a link when `href` is provided, otherwise as the fallback element. */
+/** Props for `Polymorphic` — strips `href` from the fallback arm so it can't be passed accidentally. */
 export type PolymorphicProps<
 	Fallback extends keyof JSX.IntrinsicElements,
 	Omitted extends PropertyKey = never,
@@ -11,7 +11,7 @@ export type PolymorphicProps<
 	| ({ href?: never } & Omit<ComponentPropsWithoutRef<Fallback>, 'className' | Omitted>)
 	| ({ href: string } & Omit<LinkProps, 'className' | Omitted>)
 
-/** Renders as a link when `href` is present, otherwise as the fallback intrinsic element. */
+/** Renders the registered link component when `href` is present, the fallback intrinsic element otherwise. */
 export function Polymorphic<Fallback extends keyof JSX.IntrinsicElements>({
 	as,
 	href,

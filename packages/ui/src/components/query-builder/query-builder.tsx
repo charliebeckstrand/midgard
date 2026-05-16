@@ -19,6 +19,7 @@ export type QueryBuilderProps = {
 	className?: string
 }
 
+/** Nested group / rule editor for boolean queries — produces a tree of `and` / `or` groups over typed field rules. */
 export function QueryBuilder({
 	fields,
 	value,

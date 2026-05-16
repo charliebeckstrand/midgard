@@ -93,6 +93,7 @@ export type DataTableProps<T> = TableVariants & {
 	children?: never
 }
 
+/** Sortable, selectable table over a flat row source — with optional row virtualization and a column manager. */
 export function DataTable<T>({
 	columns,
 	rows,

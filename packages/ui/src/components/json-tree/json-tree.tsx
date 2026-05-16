@@ -49,6 +49,7 @@ export type JsonTreeProps = {
 	className?: string
 }
 
+/** Collapsible tree view for arbitrary JSON — supports search highlighting, controlled expansion, and optional row virtualization. */
 export function JsonTree({
 	data,
 	rootKey,

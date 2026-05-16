@@ -36,6 +36,7 @@ export type PivotTableProps<T> = {
 	className?: string
 }
 
+/** Two-axis aggregation table — groups rows by `(row × column)` keys and aggregates a value field into each cell. */
 export function PivotTable<T>({
 	data,
 	keys,

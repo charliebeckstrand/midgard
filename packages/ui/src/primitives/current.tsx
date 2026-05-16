@@ -12,11 +12,18 @@ export type CurrentContextValue = {
 	onChange: ((value: string) => void) | undefined
 }
 
+/**
+ * Shared "active panel" cascade used by `Tabs`, `Stepper`, and any surface
+ * that switches between mutually exclusive views. Consumers (`Contents` /
+ * `Content` from `createCurrentContent`) compare their own `value` against
+ * the context and render accordingly.
+ */
 export const [CurrentProvider, useCurrent] = createContext<CurrentContextValue | undefined>(
 	'Current',
 	{ default: undefined },
 )
 
+/** Controlled / uncontrolled state owner for the current-panel cascade. Memoizes the provider value. */
 export function useCurrentState(props: {
 	value?: string
 	defaultValue?: string
@@ -37,6 +44,13 @@ const visible = { opacity: 1 }
 const inFlow = { position: 'relative' as const }
 const outOfFlow = { position: 'absolute' as const, top: 0, left: 0, right: 0 }
 
+/**
+ * Builds the `Contents` + `Content` pair for a given slot prefix. `Contents`
+ * is the outer container that animates height between active panels;
+ * `Content` is the per-panel wrapper that fades in place when its `value`
+ * matches the surrounding `CurrentProvider`. Pass `fade={false}` on
+ * `Contents` to keep the layout but drop the animation.
+ */
 export function createCurrentContent(slotPrefix: string) {
 	const [FadeProvider, useFade] = createContext<boolean>('Fade', { default: false })
 
