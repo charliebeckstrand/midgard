@@ -85,7 +85,13 @@ export function extractReferences(
 function collectTypeNames(text: string): string[] {
 	const names: string[] = []
 
-	for (const match of text.matchAll(TYPE_NAME_RE)) {
+	// String-literal and template-literal members of a type (`'PageHeader'`,
+	// `` `#${string}` ``) can spell out PascalCase tokens that the regex below
+	// would otherwise harvest as type names. Blank them out so they never
+	// reach symbol resolution.
+	const stripped = text.replace(/'[^'\\]*'|"[^"\\]*"|`[^`\\]*`/g, '')
+
+	for (const match of stripped.matchAll(TYPE_NAME_RE)) {
 		const name = match[1]
 
 		if (!name) continue
@@ -122,7 +128,10 @@ function resolveAliasDefinition(
 		if (decl.getSourceFile().fileName.includes('/node_modules/')) continue
 
 		if (ts.isTypeAliasDeclaration(decl)) {
-			return { text: normalizeWhitespace(decl.type.getText()), declaration: decl }
+			const params = typeParameterList(decl.typeParameters)
+			const body = `${params ? `${params} = ` : ''}${decl.type.getText()}`
+
+			return { text: normalizeWhitespace(body), declaration: decl }
 		}
 
 		if (ts.isInterfaceDeclaration(decl)) {
@@ -134,6 +143,8 @@ function resolveAliasDefinition(
 }
 
 function formatInterface(decl: ts.InterfaceDeclaration): string {
+	const params = typeParameterList(decl.typeParameters)
+
 	const heritage =
 		decl.heritageClauses?.flatMap((clause) => clause.types.map((t) => t.getText())) ?? []
 
@@ -141,7 +152,13 @@ function formatInterface(decl: ts.InterfaceDeclaration): string {
 
 	const heritagePart = heritage.length > 0 ? `extends ${heritage.join(', ')} ` : ''
 
-	return `${heritagePart}{ ${members} }`
+	return `${params ? `${params} ` : ''}${heritagePart}{ ${members} }`
+}
+
+function typeParameterList(params: ts.NodeArray<ts.TypeParameterDeclaration> | undefined): string {
+	if (!params || params.length === 0) return ''
+
+	return `<${params.map((p) => p.getText()).join(', ')}>`
 }
 
 function normalizeWhitespace(s: string): string {

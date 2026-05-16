@@ -20,7 +20,7 @@ export function detectPassThroughs(
 ): PassThrough[] {
 	const found: PassThrough[] = []
 
-	const visited = new Set<ts.Node>()
+	const visited = new Set<string>()
 
 	walk(annotation, [], found, visited, checker)
 
@@ -31,12 +31,17 @@ function walk(
 	node: ts.TypeNode,
 	omitted: string[],
 	out: PassThrough[],
-	visited: Set<ts.Node>,
+	visited: Set<string>,
 	checker: ts.TypeChecker,
 ): void {
-	if (visited.has(node)) return
+	// Key by node + omitted context: the same alias reached through different
+	// `Omit<…>` wrappers needs to be re-walked so each visit's omitted keys
+	// land on its own pass-through entry.
+	const key = `${getNodeId(node)} ${omitted.join('|')}`
 
-	visited.add(node)
+	if (visited.has(key)) return
+
+	visited.add(key)
 
 	// Intersection / union — walk each member
 	if (ts.isIntersectionTypeNode(node) || ts.isUnionTypeNode(node)) {
@@ -122,28 +127,63 @@ function extractStringLiteral(
 	return null
 }
 
+/**
+ * Class-name stems where the lowercased stem differs from the HTML tag. For
+ * the unlisted majority (`HTMLDivElement` → `div`, `HTMLInputElement` →
+ * `input`, …) the lowercased stem *is* the tag. Ambiguous classes resolve to
+ * the most representative tag — `HTMLHeadingElement` covers h1..h6,
+ * `HTMLTableCellElement` covers td and th, `HTMLTableSectionElement` covers
+ * tbody/thead/tfoot, `HTMLModElement` covers del/ins, `HTMLQuoteElement`
+ * covers q and blockquote.
+ */
+const HTML_ELEMENT_TAG_OVERRIDES: ReadonlyMap<string, string> = new Map([
+	['Anchor', 'a'],
+	['BR', 'br'],
+	['DList', 'dl'],
+	['Heading', 'h1'],
+	['HR', 'hr'],
+	['Image', 'img'],
+	['LI', 'li'],
+	['Mod', 'del'],
+	['OList', 'ol'],
+	['Paragraph', 'p'],
+	['Quote', 'blockquote'],
+	['TableCaption', 'caption'],
+	['TableCell', 'td'],
+	['TableCol', 'col'],
+	['TableRow', 'tr'],
+	['TableSection', 'tbody'],
+	['UList', 'ul'],
+])
+
 /** Extract an HTML element tag from `HTMLDivElement` / `HTMLButtonElement` style references. */
 function extractHtmlElementTag(
 	node: ts.TypeNode | undefined,
 	checker: ts.TypeChecker,
 ): string | null {
-	if (!node) return 'element'
+	if (!node) return null
 
 	if (ts.isTypeReferenceNode(node)) {
-		const name = typeRefName(node.typeName)
+		const tag = tagFromClassName(typeRefName(node.typeName))
 
-		const match = name.match(/^HTML(\w+)Element$/)
-
-		if (match?.[1]) return match[1].toLowerCase()
+		if (tag) return tag
 	}
 
 	const type = checker.getTypeFromTypeNode(node)
 
-	const symbolName = type.getSymbol()?.getName() ?? ''
+	return tagFromClassName(type.getSymbol()?.getName() ?? '')
+}
 
-	const match = symbolName.match(/^HTML(\w+)Element$/)
+function tagFromClassName(name: string): string | null {
+	const match = name.match(/^HTML(\w+)Element$/)
 
-	return match?.[1]?.toLowerCase() ?? null
+	if (!match?.[1]) return null
+
+	return HTML_ELEMENT_TAG_OVERRIDES.get(match[1]) ?? match[1].toLowerCase()
+}
+
+function getNodeId(node: ts.Node): string {
+	return `${node.getSourceFile().fileName}:${node.pos}:${node.end}`
 }
 
 function dedupe(items: PassThrough[]): PassThrough[] {

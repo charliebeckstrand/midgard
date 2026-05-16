@@ -49,9 +49,14 @@ function parseComponentDir(
 	if (publicNames.length === 0) return []
 
 	// Source files in this component directory — searched by findComponent.
+	// `program.getSourceFiles()` normalizes filenames to forward slashes on
+	// every platform, so match against a forward-slash prefix rather than the
+	// OS-native `path.sep`.
+	const dirPrefix = `${dir.split(path.sep).join('/')}/`
+
 	const dirFiles = program
 		.getSourceFiles()
-		.filter((f) => f.fileName.startsWith(dir + path.sep) && /\.tsx?$/.test(f.fileName))
+		.filter((f) => f.fileName.startsWith(dirPrefix) && /\.tsx?$/.test(f.fileName))
 
 	const apis: ComponentApi[] = []
 

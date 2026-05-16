@@ -66,18 +66,22 @@ function walk(
 
 /**
  * Given the type-argument of `VariantProps<T>`, follow `typeof recipe` to the
- * recipe's `tv({ ... })` initializer and read its `defaultVariants`.
+ * recipe's `tv({ ... })` initializer and read its `defaultVariants`. Aliased
+ * forms (`type RecipeType = typeof recipe; VariantProps<RecipeType>`) are
+ * resolved through one alias hop before bailing.
  */
 function collectFromVariantProps(
 	arg: ts.TypeNode,
 	out: Map<string, string>,
 	checker: ts.TypeChecker,
 ): void {
-	if (!ts.isTypeQueryNode(arg)) return
+	const query = unwrapToTypeQuery(arg, checker)
+
+	if (!query) return
 
 	// `typeof X` — exprName references the X identifier.
 	const symbol = checker.getSymbolAtLocation(
-		ts.isIdentifier(arg.exprName) ? arg.exprName : arg.exprName.right,
+		ts.isIdentifier(query.exprName) ? query.exprName : query.exprName.right,
 	)
 
 	if (!symbol) return
@@ -87,7 +91,7 @@ function collectFromVariantProps(
 	for (const decl of aliased.getDeclarations() ?? []) {
 		if (!ts.isVariableDeclaration(decl) || !decl.initializer) continue
 
-		const defaults = readDefaultVariants(decl.initializer)
+		const defaults = readDefaultVariants(decl.initializer, checker)
 
 		if (defaults) {
 			for (const [k, v] of defaults) {
@@ -98,33 +102,109 @@ function collectFromVariantProps(
 }
 
 /** Read `defaultVariants` out of a `tv({ ... })` / `cva({ ... })` call expression. */
-function readDefaultVariants(node: ts.Expression): Map<string, string> | null {
+function readDefaultVariants(
+	node: ts.Expression,
+	checker: ts.TypeChecker,
+): Map<string, string> | null {
 	if (!ts.isCallExpression(node)) return null
 
-	const config = node.arguments[0]
+	const config = resolveToObjectLiteral(node.arguments[0], checker)
 
-	if (!config || !ts.isObjectLiteralExpression(config)) return null
+	if (!config) return null
 
 	for (const prop of config.properties) {
 		if (
 			ts.isPropertyAssignment(prop) &&
-			ts.isIdentifier(prop.name) &&
 			ts.isObjectLiteralExpression(prop.initializer) &&
-			prop.name.text === 'defaultVariants'
+			propertyKeyName(prop.name) === 'defaultVariants'
 		) {
 			const map = new Map<string, string>()
 
 			for (const inner of prop.initializer.properties) {
 				if (!ts.isPropertyAssignment(inner)) continue
 
-				if (!ts.isIdentifier(inner.name) && !ts.isStringLiteral(inner.name)) continue
+				const key = propertyKeyName(inner.name)
 
-				const key = inner.name.text
+				if (!key) continue
 
 				map.set(key, inner.initializer.getText())
 			}
 
 			return map
+		}
+	}
+
+	return null
+}
+
+/**
+ * Resolve a type-argument to its underlying `typeof X` query node. Handles
+ * the direct form and one level of project-alias indirection — `type R =
+ * typeof recipe` followed by `VariantProps<R>`. Parenthesized type nodes are
+ * unwrapped along the way.
+ */
+function unwrapToTypeQuery(node: ts.TypeNode, checker: ts.TypeChecker): ts.TypeQueryNode | null {
+	if (ts.isParenthesizedTypeNode(node)) return unwrapToTypeQuery(node.type, checker)
+
+	if (ts.isTypeQueryNode(node)) return node
+
+	if (ts.isTypeReferenceNode(node)) {
+		const target = resolveTypeAliasTarget(node.typeName, checker)
+
+		if (target) return unwrapToTypeQuery(target, checker)
+	}
+
+	return null
+}
+
+/**
+ * Read the string key of a property-assignment name. Accepts identifiers,
+ * string literals, and computed names whose expression is a string literal
+ * (`['size']: 'md'`). Returns null for anything else (numeric, dynamic).
+ */
+function propertyKeyName(name: ts.PropertyName): string | null {
+	if (ts.isIdentifier(name) || ts.isStringLiteral(name)) return name.text
+
+	if (ts.isComputedPropertyName(name) && ts.isStringLiteralLike(name.expression)) {
+		return name.expression.text
+	}
+
+	return null
+}
+
+/**
+ * Resolve an argument expression to the underlying object literal. Handles
+ * direct literals (`tv({ ... })`), identifier indirection (`const config = {
+ * ... }; tv(config)`), and the usual `as const` / `satisfies` / parens
+ * wrappers authors put around CVA configs.
+ */
+function resolveToObjectLiteral(
+	node: ts.Expression | undefined,
+	checker: ts.TypeChecker,
+): ts.ObjectLiteralExpression | null {
+	if (!node) return null
+
+	if (ts.isObjectLiteralExpression(node)) return node
+
+	if (
+		ts.isAsExpression(node) ||
+		ts.isSatisfiesExpression(node) ||
+		ts.isParenthesizedExpression(node)
+	) {
+		return resolveToObjectLiteral(node.expression, checker)
+	}
+
+	if (ts.isIdentifier(node)) {
+		const symbol = checker.getSymbolAtLocation(node)
+
+		if (!symbol) return null
+
+		const aliased = unaliasSymbol(symbol, checker)
+
+		for (const decl of aliased.getDeclarations() ?? []) {
+			if (ts.isVariableDeclaration(decl) && decl.initializer) {
+				return resolveToObjectLiteral(decl.initializer, checker)
+			}
 		}
 	}
 
