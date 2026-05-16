@@ -23,6 +23,7 @@ From the manifest, capture:
 
 - `packages[*].path` and `packages[*].name` — used to map changed files to packages and downstream skill scope.
 - `packages[*].componentsDir` — used to detect new or modified frontend components.
+- `packages[*].primitivesDir`, `packages[*].hooksDir`, `packages[*].testHelpersDir`, `packages[*].testLayout` — used to locate reference siblings for the format-alignment check in 3a.
 - `packages[*].isFrontend` — used to gate the a11y route to frontend packages.
 - `conventions.principles` — observed when classifying scope creep, single-use abstraction, or speculative generality.
 
@@ -67,6 +68,29 @@ Apply these signals against the diff. Collect every match — multiple signals o
 `/simplify` and `/security-review` are user-level skills, not project skills under `.claude/commands/`. When the harness does not expose them, fold their concerns into `/typescript:review` (note the simplification or security angle as a finding for `/typescript:review` to scrutinize) and drop them from the chain.
 
 A diff can match several rows. Union the matched handoffs, then order them: extras (`/security-review`, `/audit:a11y`, `/tests:compose`, `/simplify`) first, then `/typescript:review`. `/typescript:review` is always last in the chain, never parallel — it reviews the change as-is, including any edits the extras prompt.
+
+### 3a. Verify packages/ui format alignment
+
+Skip this step when no staged file lives under `packages/ui`. Otherwise, for each staged source file in that package, detect its kind and read **one** reference sibling of the same kind, then compare structural patterns. The point is to confirm the staged file matches the established format of existing code — not to second-guess the change's behavior.
+
+| Kind | Path predicate | Reference picked from |
+|---|---|---|
+| component | under `componentsDir` | a random sibling `componentsDir/<other>/<other>.tsx` (the main component file in another component folder) |
+| primitive | under `primitivesDir` | a random sibling `primitivesDir/<other>.tsx` |
+| hook | under `hooksDir`, filename starts with `use-` | a random sibling `hooksDir/use-<other>.ts` |
+| test | under `testHelpersDir`, matches `*.test.{ts,tsx}` | a random sibling test in the same mirrored subdir (`components/`, `primitives/`, `hooks/`) |
+
+Exclude files already in the diff when picking the reference. Read both staged file and reference. Compare:
+
+- **Filename + export** — matches `<name>.tsx` / `<name>-<part>.tsx` / `use-<name>.ts` per CLAUDE.md, and the exported symbol's PascalCase (or `useCamelCase`) form matches the filename. Violation → **BLOCK** (the lefthook `filenames` gate and `component-filename-boundary.test.ts` would fail anyway; rejecting earlier saves the round-trip).
+- **Import grouping** — same external / internal / relative ordering and same alias style as the reference.
+- **Top-level structure** — types lifted to `types.ts`, hooks lifted to `use-<name>.ts`, recipes lifted to `variants.ts` when the reference follows that split; same compound / sub-part file layout as the reference (e.g. `<name>-<part>.tsx` files when the reference has them).
+- **Component shape** — same `'use client'` discipline, same `forwardRef` / polymorphic pattern, same `data-slot` / `data-part` marker convention as the reference.
+- **Test conventions** — same `describe` / `it` nesting depth, same render helper (project-local `renderWithProviders` vs raw `render`), same assertion style, same mock pattern as the reference test.
+
+Drift findings fold into the chain as `format-drift` notes carried into `/typescript:review` (or `/ui:audit` if that's already in the chain). Filename / export-name violations BLOCK.
+
+If the manifest's directory field for a kind is `null` (e.g. `primitivesDir: null`), skip that kind silently — there's no reference to sample.
 
 ### 4. Decide
 
