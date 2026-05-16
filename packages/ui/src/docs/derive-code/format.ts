@@ -6,7 +6,7 @@ export const INDENT = '  '
 
 // Props that never belong in derived code — either structural (children, key,
 // ref) or styling noise (className).
-const IGNORED_PROPS = new Set(['children', 'className', 'key', 'ref'])
+const IGNORED_PROPS: ReadonlySet<string> = new Set(['children', 'className', 'key', 'ref'])
 
 // ---------------------------------------------------------------------------
 // Prop formatting
@@ -70,7 +70,10 @@ function jsxString(value: string): string {
 }
 
 function formatLiteral(value: string | number | boolean): string {
-	if (typeof value === 'string') return `'${value}'`
+	// `JSON.stringify` escapes embedded quotes, backslashes, and control
+	// characters; a bare `'${value}'` template emits invalid JS when the
+	// string itself contains a single quote.
+	if (typeof value === 'string') return JSON.stringify(value)
 
 	return String(value)
 }

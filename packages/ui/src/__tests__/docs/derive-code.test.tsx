@@ -65,6 +65,67 @@ describe('deriveCode iteration vs authored siblings', () => {
 	})
 })
 
+describe('deriveCode child ordering', () => {
+	const Card = tag<{ children?: unknown }>('Card', 'card')
+	const Icon = tag<{ name?: string }>('Icon', 'icon')
+	const Button = tag<{ variant?: string; children?: unknown }>('Button', 'button')
+
+	it('coalesces adjacent text leaves so inline interpolation stays on one line', () => {
+		const Tooltip = tag<{ children?: unknown }>('Tooltip', 'tooltip')
+
+		const placement = 'left'
+
+		const tree = createElement(Tooltip, null, 'Tooltip on ', placement)
+
+		const result = deriveCode(tree)
+
+		expect(result).toContain('<Tooltip>Tooltip on left</Tooltip>')
+	})
+
+	it('keeps text at the top level (deriveCode called with mixed children)', () => {
+		const Button = tag<{ children?: unknown }>('Button', 'button')
+
+		const result = deriveCode(['Heading text', createElement(Button, null, 'Click')])
+
+		expect(result).toContain('Heading text')
+		expect(result).toContain('<Button>Click</Button>')
+	})
+
+	it('preserves source order of mixed text and element children', () => {
+		const tree = createElement(
+			Card,
+			null,
+			createElement(Icon, { name: 'star' }),
+			'Hello',
+			createElement(Button, null, 'Click'),
+		)
+
+		const result = deriveCode(tree)
+
+		const body = (result ?? '').split('\n\n').slice(1).join('\n')
+
+		const iconIndex = body.indexOf('<Icon')
+		const helloIndex = body.indexOf('Hello')
+		const buttonIndex = body.indexOf('<Button')
+
+		expect(iconIndex).toBeGreaterThanOrEqual(0)
+		expect(helloIndex).toBeGreaterThan(iconIndex)
+		expect(buttonIndex).toBeGreaterThan(helloIndex)
+	})
+})
+
+describe('deriveCode prop formatting', () => {
+	it('escapes embedded quotes in array-literal props', () => {
+		const Foo = tag<{ tags?: string[] }>('Foo', 'foo')
+
+		const tree = createElement(Foo, { tags: ["it's", 'fine'] })
+
+		const result = deriveCode(tree)
+
+		expect(result).toContain('tags={["it\'s", "fine"]}')
+	})
+})
+
 describe('deriveCode + __code', () => {
 	it('renders the helper function snippet verbatim and infers imports', () => {
 		function AreaDemo() {
@@ -99,5 +160,47 @@ describe('deriveCode + __code', () => {
 
 		// React hook imports scanned from the body.
 		expect(result).toMatch(/import \{.*useState.*\} from 'react'/)
+	})
+
+	it('infers React 19 hook imports (use, useActionState, useOptimistic, useFormStatus)', () => {
+		function FormDemo() {
+			return null
+		}
+
+		;(FormDemo as unknown as { __code: string }).__code = [
+			'function FormDemo() {',
+			'\tconst data = use(promise)',
+			'\tconst [state, action] = useActionState(submit, null)',
+			'\tconst [optimistic, addOptimistic] = useOptimistic(items)',
+			'\tconst status = useFormStatus()',
+			'\treturn <form />',
+			'}',
+		].join('\n')
+
+		const result = deriveCode(createElement(FormDemo))
+
+		expect(result).toMatch(/import \{[^}]*\buse\b[^}]*\} from 'react'/)
+		expect(result).toMatch(/import \{[^}]*useActionState[^}]*\} from 'react'/)
+		expect(result).toMatch(/import \{[^}]*useOptimistic[^}]*\} from 'react'/)
+		expect(result).toMatch(/import \{[^}]*useFormStatus[^}]*\} from 'react'/)
+	})
+
+	it('does not mistake method calls for React hooks', () => {
+		const Foo = tag<{ children?: unknown }>('Foo', 'foo')
+
+		function MethodDemo() {
+			return null
+		}
+
+		;(MethodDemo as unknown as { __code: string }).__code = [
+			'function MethodDemo() {',
+			'\tconst result = router.use(plugin)',
+			'\treturn <Foo />',
+			'}',
+		].join('\n')
+
+		const result = deriveCode(createElement(MethodDemo))
+
+		expect(result).not.toMatch(/import \{[^}]*\buse\b[^}]*\} from 'react'/)
 	})
 })

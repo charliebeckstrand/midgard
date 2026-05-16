@@ -1,8 +1,8 @@
-import { isValidElement, type ReactElement, type ReactNode } from 'react'
+import type { ReactElement, ReactNode } from 'react'
 import { formatProps, INDENT, renderOpenTag } from './format'
 import { addImport } from './imports'
 import { collectSnippetImports, readSnippet, reindent } from './snippet'
-import { elementChildren, extractTextContent, flattenPassThroughs } from './tree'
+import { collectChildItems, elementChildren } from './tree'
 import type { Ctx } from './types'
 
 // ---------------------------------------------------------------------------
@@ -10,21 +10,60 @@ import type { Ctx } from './types'
 // ---------------------------------------------------------------------------
 
 /**
- * Render a list of React children as a JSX snippet. Flattens pass-through
- * wrappers, then — when the siblings look like the output of a `.map()` —
- * collapses runs of 3+ identical renders so iterated content doesn't dominate.
+ * Render a list of React children as a JSX snippet. Pass-through wrappers
+ * are flattened, text leaves keep their position relative to surrounding
+ * elements, and consecutive iterated siblings collapse to a single
+ * representative when the run is 3+ identical renders.
+ *
  * Authored siblings (e.g. three buttons inside a `<Group>` to demonstrate
- * border joining) are kept intact, since their multiplicity is the demo.
+ * border joining) are kept intact — their multiplicity is the demo.
  */
 export function renderNodes(nodes: ReactNode[], ctx: Ctx, indent: string): string {
-	// Flattening at every level lets list detection see the real components
-	// that were wrapped in styling divs/spans.
-	const elements = flattenPassThroughs(nodes.filter(isValidElement))
+	const items = collectChildItems(nodes)
 
-	if (elements.length === 0) return ''
+	if (items.length === 0) return ''
 
-	if (elements.length === 1 && elements[0]) {
-		return indent + renderElement(elements[0], ctx, indent)
+	const parts: string[] = []
+
+	let batch: ReactElement[] = []
+
+	const flushBatch = () => {
+		if (batch.length === 0) return
+
+		parts.push(...renderElementBatch(batch, ctx, indent))
+
+		batch = []
+	}
+
+	for (const item of items) {
+		if (item.kind === 'text') {
+			flushBatch()
+
+			parts.push(indent + item.value)
+		} else {
+			batch.push(item.value)
+		}
+	}
+
+	flushBatch()
+
+	return parts.join('\n')
+}
+
+/**
+ * Render a run of consecutive elements. Iteration-collapse (3+ identical
+ * renders → one) only applies to keyed batches, so authored siblings without
+ * keys pass through untouched.
+ */
+function renderElementBatch(elements: ReactElement[], ctx: Ctx, indent: string): string[] {
+	if (elements.length === 1) {
+		const only = elements[0]
+
+		if (!only) return []
+
+		const body = renderElement(only, ctx, indent)
+
+		return body ? [indent + body] : []
 	}
 
 	const lines: string[] = []
@@ -43,13 +82,9 @@ export function renderNodes(nodes: ReactNode[], ctx: Ctx, indent: string): strin
 		lines.push(line)
 	}
 
-	// Only collapse duplicates when the siblings clearly came from iteration.
-	// `Children.toArray` formats user-supplied keys as `.$<key>` and assigns
-	// positional keys (`.0`, `.1`) to inline siblings, so an explicit key on
-	// every sibling is the cleanest signal that this is `.map()` output.
 	const isIteration = elements.length >= 2 && elements.every(hasExplicitKey)
 
-	if (!isIteration) return lines.join('\n')
+	if (!isIteration) return lines
 
 	const emitted = new Map<string, number>()
 
@@ -67,11 +102,15 @@ export function renderNodes(nodes: ReactNode[], ctx: Ctx, indent: string): strin
 		result.push(line)
 	}
 
-	return result.join('\n')
+	return result
 }
 
-function hasExplicitKey(element: ReactElement): boolean {
-	return typeof element.key === 'string' && element.key.includes('$')
+function hasExplicitKey(element: ReactElement): element is ReactElement & { key: string } {
+	// `Children.toArray` serializes user-provided keys with a `.$` prefix
+	// (positional siblings get `.0`, `.1`, …; nested arrays concatenate as
+	// `.0/.$x`). We test for the `.$` marker, not a bare `$`, so authored
+	// keys containing `$` in a non-iteration position don't false-positive.
+	return typeof element.key === 'string' && element.key.includes('.$')
 }
 
 /**
@@ -115,35 +154,26 @@ export function renderElement(element: ReactElement, ctx: Ctx, indent: string): 
 	if (childrenStr === '') return open
 
 	// Inline short text children (e.g. <Card>Left</Card>) rather than
-	// breaking them across multiple lines.
+	// breaking them across multiple lines. `childrenStr` always carries its
+	// indent prefix; strip it here since the value sits between tags on a
+	// single line.
 	if (!childrenStr.includes('\n') && !childrenStr.includes('<')) {
-		return `${open}${childrenStr}</${info.name}>`
+		return `${open}${childrenStr.trimStart()}</${info.name}>`
 	}
 
 	return `${open}\n${childrenStr}\n${indent}</${info.name}>`
 }
 
 /**
- * Render the children of a recognized component. Combines text extraction
- * with recursive walking so mixed bodies (e.g. `<Icon />` plus a label)
- * show both the nested component and the text content.
+ * Render the children of a recognized component. Defers to `renderNodes`
+ * for the actual walk, then substitutes a `…` placeholder when children
+ * exist but nothing was renderable — so the parent shows as `<Foo>…</Foo>`
+ * instead of misleadingly collapsing to `<Foo />`.
  */
 export function renderChildrenContent(nodes: ReactNode[], ctx: Ctx, indent: string): string {
 	if (nodes.length === 0) return ''
 
-	const rendered = renderNodes(nodes, ctx, indent).trimEnd()
+	const rendered = renderNodes(nodes, ctx, indent)
 
-	const text = extractTextContent(nodes)
-
-	if (rendered === '') {
-		// Children exist but nothing was recognized — show a placeholder so
-		// the parent renders as `<Foo>…</Foo>` instead of `<Foo />`.
-		return text ?? '…'
-	}
-
-	if (text) {
-		return `${rendered}\n${indent}${text}`
-	}
-
-	return rendered
+	return rendered !== '' ? rendered : '…'
 }

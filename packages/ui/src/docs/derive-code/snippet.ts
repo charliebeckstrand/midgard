@@ -51,9 +51,12 @@ function leadingSpace(line: string): number {
 }
 
 // Curated alternation — we don't want to import every `useFoo`-looking custom
-// hook the snippet might reference, only React's own.
+// hook the snippet might reference, only React's own. Keep this list in sync
+// with the React `use*` export surface; missing entries cause snippets to emit
+// unresolved identifiers. The `(?<!\.)` lookbehind keeps method calls
+// (`router.use(...)`, `app.useState(...)`) from masquerading as React hooks.
 const HOOK_RE =
-	/\b(useCallback|useContext|useDebugValue|useDeferredValue|useEffect|useId|useImperativeHandle|useInsertionEffect|useLayoutEffect|useMemo|useReducer|useRef|useState|useSyncExternalStore|useTransition)\b/g
+	/(?<!\.)\b(use|useActionState|useCallback|useContext|useDebugValue|useDeferredValue|useEffect|useFormStatus|useHostTransitionStatus|useId|useImperativeHandle|useInsertionEffect|useLayoutEffect|useMemo|useOptimistic|useReducer|useRef|useState|useSyncExternalStore|useTransition)\b/g
 
 const TAG_RE = /<([A-Z][\w]*)/g
 

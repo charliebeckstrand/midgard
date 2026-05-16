@@ -30,7 +30,11 @@ const JSX_RETURN = /(?:return|=>)\s*\(?\s*<[A-Za-z>]/
  */
 type Preamble = { names: string[]; code: string; index: number }
 
-function isJsxReturningVariableStatement(stmt: ts.VariableStatement, code: string): boolean {
+function isJsxReturningVariableStatement(
+	stmt: ts.VariableStatement,
+	sf: ts.SourceFile,
+	source: string,
+): boolean {
 	for (const decl of stmt.declarationList.declarations) {
 		if (!ts.isIdentifier(decl.name)) continue
 
@@ -42,7 +46,13 @@ function isJsxReturningVariableStatement(stmt: ts.VariableStatement, code: strin
 
 		if (!ts.isArrowFunction(init) && !ts.isFunctionExpression(init)) continue
 
-		if (JSX_RETURN.test(code)) return true
+		// Test the initializer's source, not the surrounding statement. A
+		// multi-declarator `const A = () => <X />, B = somethingElse` otherwise
+		// flagged both declarators because the JSX return lived anywhere in the
+		// shared statement source.
+		const initText = source.slice(init.getStart(sf), init.getEnd())
+
+		if (JSX_RETURN.test(initText)) return true
 	}
 
 	return false
@@ -74,7 +84,7 @@ function collectPreambles(sf: ts.SourceFile, source: string): Preamble[] {
 			// Skip statements that are themselves JSX-returning helpers — those
 			// are collected by `collectHelpers` and would otherwise be pulled in
 			// twice (once as preamble, once as helper).
-			if (isJsxReturningVariableStatement(stmt, code)) continue
+			if (isJsxReturningVariableStatement(stmt, sf, source)) continue
 
 			const names: string[] = []
 

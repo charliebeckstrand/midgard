@@ -26,48 +26,60 @@ export function elementChildren(element: ReactElement): ReactNode[] {
 	return Children.toArray((element.props as { children?: ReactNode }).children)
 }
 
+export type ChildItem =
+	| { kind: 'text'; value: string }
+	| { kind: 'element'; value: ReactElement }
+
 /**
- * Flatten Fragments and HTML wrappers, keeping only meaningful component
- * elements. Works recursively so `<div><span><Button/></span></div>` surfaces
- * the Button at the top level.
+ * Walk children in source order, flattening pass-through wrappers and
+ * surfacing both recognized elements and text leaves as a position-preserving
+ * sequence. Adjacent text leaves are coalesced into a single item so inline
+ * interpolation like `<Foo>Hi {name}</Foo>` keeps rendering on one line.
  */
-export function flattenPassThroughs(elements: ReactElement[]): ReactElement[] {
-	const result: ReactElement[] = []
+export function collectChildItems(nodes: ReactNode[]): ChildItem[] {
+	const items: ChildItem[] = []
 
-	for (const el of elements) {
-		if (isPassThrough(el)) {
-			result.push(...flattenPassThroughs(elementChildren(el).filter(isValidElement)))
+	let textBuffer: string[] = []
 
-			continue
-		}
+	const flushText = () => {
+		if (textBuffer.length === 0) return
 
-		result.push(el)
+		items.push({ kind: 'text', value: textBuffer.join(' ') })
+
+		textBuffer = []
 	}
-
-	return result
-}
-
-/**
- * Collect the text/number leaves from a subtree into a single string,
- * walking through pass-through wrappers. Returns the concatenated text
- * or `null` if no text is found.
- */
-export function extractTextContent(nodes: ReactNode[]): string | null {
-	const parts: string[] = []
 
 	for (const n of nodes) {
-		if (typeof n === 'string' && n.trim() !== '') {
-			parts.push(n.trim())
-		} else if (typeof n === 'number') {
-			parts.push(String(n))
-		} else if (isValidElement(n) && isPassThrough(n)) {
-			const nested = extractTextContent(elementChildren(n))
+		if (typeof n === 'string') {
+			const trimmed = n.trim()
 
-			if (nested) parts.push(nested)
+			if (trimmed !== '') textBuffer.push(trimmed)
+		} else if (typeof n === 'number') {
+			textBuffer.push(String(n))
+		} else if (isValidElement(n)) {
+			if (isPassThrough(n)) {
+				// Walk the wrapper's children; merge their text leaves into the
+				// current buffer so `<span>Hi</span> there` coalesces.
+				for (const nested of collectChildItems(elementChildren(n))) {
+					if (nested.kind === 'text') {
+						textBuffer.push(nested.value)
+					} else {
+						flushText()
+
+						items.push(nested)
+					}
+				}
+			} else {
+				flushText()
+
+				items.push({ kind: 'element', value: n })
+			}
 		}
 	}
 
-	return parts.length > 0 ? parts.join(' ') : null
+	flushText()
+
+	return items
 }
 
 // ---------------------------------------------------------------------------
