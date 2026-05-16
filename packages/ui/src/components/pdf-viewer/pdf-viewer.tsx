@@ -17,16 +17,17 @@ import { usePdfViewerViewportSize } from './use-pdf-viewer-viewport-size'
 
 export type PdfViewerProps = {
 	/**
-	 * Pre-rendered page images, in order.
-	 * When omitted and `src` is provided, pages are rendered from the PDF via pdf.js.
+	 * Pre-rendered page images, in order. When provided, drives what's rendered.
+	 * When omitted, pages are rendered from `src` via pdf.js.
 	 */
 	pages?: PdfViewerPage[]
 	/**
-	 * Source URL for the PDF document. Drives the viewport when `pages` is not provided,
-	 * and powers the download and print toolbar actions.
+	 * Source URL for the PDF document. Drives the viewport when `pages` is
+	 * omitted, and always powers the download and print toolbar actions —
+	 * so it remains meaningful alongside `pages`.
 	 */
 	src?: string
-	/** Filename used for the download attribute. */
+	/** Filename used for the download attribute. Only meaningful with `src`. */
 	filename?: string
 	/** Controlled current page (1-based). */
 	page?: number

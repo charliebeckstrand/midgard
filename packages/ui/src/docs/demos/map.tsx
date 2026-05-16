@@ -82,7 +82,7 @@ function PresetsExample() {
 
 				const [preset, setPreset] = useState<MapPreset>('demo')
 
-				<Map preset={preset} center={[-95, 33]} zoom={0} />
+				<Map preset={preset} camera={{ center: [-95, 33], zoom: 0 }} />
 			`}
 			actions={
 				<Listbox<MapPreset>
@@ -102,7 +102,7 @@ function PresetsExample() {
 			}
 		>
 			<div className="h-96">
-				<MapView preset={preset} center={[-95, 33]} zoom={0} />
+				<MapView preset={preset} camera={{ center: [-95, 33], zoom: 0 }} />
 			</div>
 		</Example>
 	)
@@ -116,14 +116,14 @@ function InteractiveRouteExample() {
 				import { Map, MapRoute } from 'ui/map'
 
 				<div className="h-96">
-					<Map center={[-122.18, 37.65]} zoom={7.5}>
+					<Map camera={{ center: [-122.18, 37.65], zoom: 7.5 }}>
 						<MapRoute data={route} />
 					</Map>
 				</div>
 			`}
 		>
 			<div className="h-96">
-				<MapView center={[-122.18, 37.65]} zoom={7.5}>
+				<MapView camera={{ center: [-122.18, 37.65], zoom: 7.5 }}>
 					<MapRoute data={route} />
 				</MapView>
 			</div>
@@ -148,7 +148,7 @@ function ShipmentsExample() {
 				import { Map, MapShipment } from 'ui/map'
 
 				<div className="h-96">
-					<Map center={[-122.47, 37.69]} zoom={11}>
+					<Map camera={{ center: [-122.47, 37.69], zoom: 11 }}>
 						<MapShipment
 							data={{
 								id: 'ship-1',
@@ -166,7 +166,7 @@ function ShipmentsExample() {
 			`}
 		>
 			<div className="h-96">
-				<MapView center={[-122.47, 37.69]} zoom={11}>
+				<MapView camera={{ center: [-122.47, 37.69], zoom: 11 }}>
 					<MapShipment
 						data={{
 							id: 'ship-1',
@@ -196,7 +196,7 @@ function InfoOnlyExample() {
 				import { Map, MapShipment } from 'ui/map'
 
 				<div className="h-96">
-					<Map center={[-122.47, 37.69]} zoom={11}>
+					<Map camera={{ center: [-122.47, 37.69], zoom: 11 }}>
 						<MapShipment
 							data={{
 								id: 'ship-2',
@@ -215,7 +215,7 @@ function InfoOnlyExample() {
 			`}
 		>
 			<div className="h-96">
-				<MapView center={[-122.47, 37.69]} zoom={11}>
+				<MapView camera={{ center: [-122.47, 37.69], zoom: 11 }}>
 					<MapShipment
 						data={{
 							id: 'ship-2',
