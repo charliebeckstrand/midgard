@@ -9,11 +9,16 @@ import { MAP_PRESETS, type MapPreset } from './map-styles'
 import type { LngLat } from './types'
 import { useMapInstance } from './use-map-instance'
 
-export type MapProps = {
+export type MapCamera = {
 	center?: LngLat
 	zoom?: number
 	bearing?: number
 	pitch?: number
+}
+
+export type MapProps = {
+	/** Initial camera position. Defaults to `{ center: [0, 0], zoom: 2, bearing: 0, pitch: 0 }`. */
+	camera?: MapCamera
 	/** Preset visual style. Takes precedence over `style` when provided. */
 	preset?: MapPreset
 	style?: string | StyleSpecification
@@ -24,10 +29,7 @@ export type MapProps = {
 }
 
 function MapView({
-	center = [0, 0],
-	zoom = 2,
-	bearing = 0,
-	pitch = 0,
+	camera,
 	preset,
 	style,
 	interactive = true,
@@ -38,10 +40,10 @@ function MapView({
 	const resolvedStyle = preset ? MAP_PRESETS[preset] : (style ?? MAP_PRESETS.demo)
 
 	const { containerRef, contextValue, ready } = useMapInstance({
-		center,
-		zoom,
-		bearing,
-		pitch,
+		center: camera?.center ?? [0, 0],
+		zoom: camera?.zoom ?? 2,
+		bearing: camera?.bearing ?? 0,
+		pitch: camera?.pitch ?? 0,
 		style: resolvedStyle,
 		interactive,
 		onLoad,
