@@ -3,8 +3,8 @@
 import type { ComponentPropsWithoutRef, MouseEvent } from 'react'
 import { cn } from '../../core'
 import { ActiveIndicator, useActiveIndicator } from '../../primitives/active-indicator'
-import { useResolvedSize } from '../../primitives/concentric'
 import { useCurrent } from '../../primitives/current'
+import { useDensity } from '../../primitives/density'
 import { segment as ks, segmentItemVariants } from '../../recipes/kata/segment'
 import { k } from '../../recipes/kata/tabs'
 import { useTabsContext } from './context'
@@ -36,9 +36,10 @@ export function Tab({
 
 	const orientation = tabsCtx?.orientation ?? 'horizontal'
 
-	// When wrapped in <Tabs>, the parent has already resolved concentric into tabsCtx.size.
-	// When used à la carte (just <TabList>+<Tab>), fall back to reading concentric here.
-	const size = useResolvedSize(tabsCtx?.size)
+	// When wrapped in <Tabs>, the parent has already resolved Density into tabsCtx.size.
+	// When used à la carte (just <TabList>+<Tab>), fall back to reading Density here.
+	const inherited = useDensity()
+	const size = tabsCtx?.size ?? inherited.size
 
 	const current = currentProp ?? (value !== undefined && ctx?.value === value)
 

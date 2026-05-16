@@ -4,7 +4,7 @@ import { FloatingPortal } from '@floating-ui/react'
 import { AnimatePresence, motion } from 'motion/react'
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
-import { useResolvedSize } from '../../primitives/concentric'
+import { useDensity } from '../../primitives/density'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { ugoki } from '../../recipes'
 import { k } from '../../recipes/kata/tooltip'
@@ -37,7 +37,8 @@ export function TooltipContent({ size, className, children }: TooltipContentProp
 
 	const glass = useGlass()
 
-	const resolvedSize: Step = useResolvedSize(size ?? rootSize)
+	const inherited = useDensity()
+	const resolvedSize: Step = size ?? rootSize ?? inherited.size
 
 	return (
 		<FloatingPortal>

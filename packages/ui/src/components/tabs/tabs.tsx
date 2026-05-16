@@ -2,8 +2,8 @@
 
 import { type ComponentPropsWithoutRef, useMemo } from 'react'
 import { cn } from '../../core'
-import { useResolvedSize } from '../../primitives/concentric'
 import { CurrentProvider, useCurrentState } from '../../primitives/current'
+import { useDensity } from '../../primitives/density'
 import { type TabsOrientation, TabsProvider, type TabsSize, type TabsVariant } from './context'
 
 export type TabsProps = ComponentPropsWithoutRef<'div'> & {
@@ -32,7 +32,8 @@ export function Tabs({
 }: TabsProps) {
 	const ctx = useCurrentState({ value, defaultValue, onChange: onValueChange })
 
-	const resolvedSize: TabsSize = useResolvedSize(size)
+	const inherited = useDensity()
+	const resolvedSize: TabsSize = size ?? inherited.size
 
 	// Vertical only applies to the 'tab' variant; segment is always horizontal.
 	const resolvedOrientation: TabsOrientation = variant === 'segment' ? 'horizontal' : orientation

@@ -3,7 +3,7 @@
 import { motion } from 'motion/react'
 import { type CSSProperties, type ReactNode, useCallback, useMemo } from 'react'
 import { cn, createContext } from '../../core'
-import { ConcentricProvider, useResolvedSize } from '../../primitives/concentric'
+import { Density, useDensity } from '../../primitives/density'
 import { Overlay } from '../../primitives/overlay'
 import { PanelA11yProvider, usePanelA11yScope } from '../../primitives/panel'
 import { ugoki } from '../../recipes'
@@ -47,13 +47,12 @@ export function Drawer({
 
 	const { panelAriaProps, providerValue } = usePanelA11yScope()
 
-	const resolvedSize = useResolvedSize(size)
+	const inherited = useDensity()
+	const resolvedSize = size ?? inherited.size
 
 	const close = useCallback(() => onOpenChange(false), [onOpenChange])
 
 	const contextValue = useMemo(() => ({ close }), [close])
-
-	const concentricValue = useMemo(() => ({ size: resolvedSize }), [resolvedSize])
 
 	const style: CSSProperties = {
 		'--ui-radius-inner': `var(--radius-${sun[resolvedSize].radius})`,
@@ -78,7 +77,9 @@ export function Drawer({
 			>
 				<DrawerProvider value={contextValue}>
 					<PanelA11yProvider value={providerValue}>
-						<ConcentricProvider value={concentricValue}>{children}</ConcentricProvider>
+						<Density density={resolvedSize} size={resolvedSize}>
+							{children}
+						</Density>
 					</PanelA11yProvider>
 				</DrawerProvider>
 			</motion.div>

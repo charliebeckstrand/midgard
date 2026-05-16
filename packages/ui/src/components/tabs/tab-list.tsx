@@ -4,7 +4,7 @@ import { type ComponentPropsWithoutRef, useEffect, useRef } from 'react'
 import { cn } from '../../core'
 import { useRoving } from '../../hooks'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
-import { useResolvedSize } from '../../primitives/concentric'
+import { useDensity } from '../../primitives/density'
 import { segmentControlVariants } from '../../recipes/kata/segment'
 import { k } from '../../recipes/kata/tabs'
 import { useTabsContext } from './context'
@@ -20,9 +20,10 @@ export function TabList({ className, children, ...props }: TabListProps) {
 
 	const orientation = tabsCtx?.orientation ?? 'horizontal'
 
-	// When wrapped in <Tabs>, the parent has already resolved concentric into tabsCtx.size.
-	// When used à la carte (just <TabList>+<Tab>), fall back to reading concentric here.
-	const size = useResolvedSize(tabsCtx?.size)
+	// When wrapped in <Tabs>, the parent has already resolved Density into tabsCtx.size.
+	// When used à la carte (just <TabList>+<Tab>), fall back to reading Density here.
+	const inherited = useDensity()
+	const size = tabsCtx?.size ?? inherited.size
 
 	const ref = useRef<HTMLDivElement>(null)
 

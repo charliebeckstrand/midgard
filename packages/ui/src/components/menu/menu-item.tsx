@@ -2,7 +2,7 @@
 
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { cn } from '../../core'
-import { useResolvedSize } from '../../primitives/concentric'
+import { useDensity } from '../../primitives/density'
 import { k } from '../../recipes/kata/menu'
 import { Link } from '../link'
 import { useMenuActions } from './context'
@@ -23,7 +23,7 @@ export type MenuItemProps = MenuItemBaseProps &
 export function MenuItem(props: MenuItemProps) {
 	const { close } = useMenuActions()
 
-	const size = useResolvedSize()
+	const { size } = useDensity()
 
 	const { disabled, className, children, onAction } = props
 

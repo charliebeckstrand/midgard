@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { useResolvedSize } from '../../primitives/concentric'
+import { useDensity } from '../../primitives/density'
 import { type StatusDotVariants, statusDotVariants } from '../../recipes/kata/status'
 
 export type StatusDotProps = StatusDotVariants & {
@@ -8,7 +8,8 @@ export type StatusDotProps = StatusDotVariants & {
 } & Omit<ComponentPropsWithoutRef<'span'>, 'className'>
 
 export function StatusDot({ variant, status, size, pulse, className, ...props }: StatusDotProps) {
-	const resolvedSize = useResolvedSize(size)
+	const inherited = useDensity()
+	const resolvedSize = size ?? inherited.size
 
 	return (
 		<span

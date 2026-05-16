@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useControllable } from '../../hooks/use-controllable'
-import { useResolvedSize } from '../../primitives/concentric'
+import { useDensity } from '../../primitives/density'
 import { Button } from '../button'
 import { Popover, PopoverContent, PopoverTrigger } from '../popover'
 import { CalendarPickerGrid, type CalendarPickerGridCell } from './calendar-picker-grid'
@@ -30,7 +30,7 @@ export function CalendarPicker({
 	onOpenChange,
 	triggerClassName,
 }: CalendarPickerProps) {
-	const size = useResolvedSize()
+	const { size } = useDensity()
 
 	const [pickerView, setPickerView] = useState<'months' | 'years'>('months')
 

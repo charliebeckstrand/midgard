@@ -4,7 +4,7 @@ import { Check } from 'lucide-react'
 import type { ComponentPropsWithoutRef, ComponentType, ReactNode } from 'react'
 import { cn } from '../core'
 import { option as k } from '../recipes/waku/option'
-import { useResolvedSize } from './concentric'
+import { useDensity } from './density'
 
 const defaultCheckIcon = (
 	<Check
@@ -32,7 +32,7 @@ export function BaseOption({
 	onSelect,
 	...props
 }: BaseOptionProps) {
-	const size = useResolvedSize()
+	const { size } = useDensity()
 
 	const sharedClasses = cn(k.content)
 

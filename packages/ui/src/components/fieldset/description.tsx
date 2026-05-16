@@ -2,7 +2,7 @@
 
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { useResolvedSize } from '../../primitives/concentric'
+import { useDensity } from '../../primitives/density'
 import { k } from '../../recipes/kata/fieldset'
 import { useControl } from '../control/context'
 
@@ -13,7 +13,7 @@ export type DescriptionProps = {
 export function Description({ className, id, ...props }: DescriptionProps) {
 	const control = useControl()
 
-	const size = useResolvedSize()
+	const { size } = useDensity()
 
 	return (
 		<p

@@ -11,7 +11,7 @@ import {
 import { cn } from '../../core'
 import { useScrollWithin } from '../../hooks'
 import { ActiveIndicator, useActiveIndicator } from '../../primitives/active-indicator'
-import { useResolvedSize } from '../../primitives/concentric'
+import { useDensity } from '../../primitives/density'
 import { OffcanvasContext } from '../../primitives/offcanvas'
 import type { PolymorphicProps } from '../../primitives/polymorphic'
 import { TouchTarget } from '../../primitives/touch-target'
@@ -69,7 +69,8 @@ export function createNavItem(config: NavItemConfig) {
 
 		const indicator = useActiveIndicator()
 
-		const resolvedSize = useResolvedSize(size)
+		const inherited = useDensity()
+		const resolvedSize = size ?? inherited.size
 
 		const offcanvas = use(OffcanvasContext)
 

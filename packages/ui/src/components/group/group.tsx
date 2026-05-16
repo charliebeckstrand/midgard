@@ -1,6 +1,6 @@
-import { type ReactNode, type Ref, useMemo } from 'react'
+import type { ReactNode, Ref } from 'react'
 import { cn } from '../../core'
-import { ConcentricProvider, useResolvedSize } from '../../primitives/concentric'
+import { Density, useDensity } from '../../primitives/density'
 import { Polymorphic, type PolymorphicProps } from '../../primitives/polymorphic'
 import type { Step } from '../../recipes/ryu/sun'
 import type { GroupOrientation } from '../../recipes/ryu/tsunagi'
@@ -55,9 +55,8 @@ export function Group({
 	children,
 	...props
 }: GroupProps) {
-	const resolvedSize = useResolvedSize(size)
-
-	const contextValue = useMemo(() => ({ size: resolvedSize }), [resolvedSize])
+	const inherited = useDensity()
+	const resolvedSize = size ?? inherited.size
 
 	const stamped = useGroup(children, orientation)
 
@@ -72,7 +71,9 @@ export function Group({
 			className={cn('inline-flex', orientation === 'vertical' ? 'flex-col' : 'flex-row', className)}
 			{...props}
 		>
-			<ConcentricProvider value={contextValue}>{stamped}</ConcentricProvider>
+			<Density density={resolvedSize} size={resolvedSize}>
+				{stamped}
+			</Density>
 		</Polymorphic>
 	)
 }
