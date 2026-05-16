@@ -1,7 +1,19 @@
-import { type ReactNode, useMemo } from 'react'
+import { type ReactNode, useMemo, useRef } from 'react'
 import { useControllable } from '../../hooks'
 import type { DataTableColumnManagerConfig } from './data-table'
 import type { DataTableColumn, DataTableColumnManagerItem } from './types'
+
+function sameElements<T>(a: readonly T[], b: readonly T[]): boolean {
+	if (a === b) return true
+
+	if (a.length !== b.length) return false
+
+	for (let i = 0; i < a.length; i++) {
+		if (a[i] !== b[i]) return false
+	}
+
+	return true
+}
 
 export type UseDataTableColumnsOptions<T> = {
 	columns: DataTableColumn<T>[]
@@ -60,7 +72,7 @@ export function useDataTableColumns<T>({
 		return map
 	}, [columns])
 
-	const visibleColumns = useMemo(() => {
+	const visibleColumnsCandidate = useMemo(() => {
 		const ordered: DataTableColumn<T>[] = []
 
 		const seen = new Set<string | number>()
@@ -94,6 +106,18 @@ export function useDataTableColumns<T>({
 
 		return ordered
 	}, [columns, columnById, columnOrder, hiddenColumns])
+
+	// Reuse the previous array reference when contents are element-wise identical
+	// so `React.memo`'d row components skip rendering on no-op upstream churn —
+	// e.g. consumer rebuilds the `columns` prop with stable column objects, or a
+	// column-order change that doesn't affect the visible slice.
+	const visibleColumnsRef = useRef(visibleColumnsCandidate)
+
+	const visibleColumns = sameElements(visibleColumnsRef.current, visibleColumnsCandidate)
+		? visibleColumnsRef.current
+		: visibleColumnsCandidate
+
+	visibleColumnsRef.current = visibleColumns
 
 	const managerItems = useMemo<DataTableColumnManagerItem[]>(
 		() =>

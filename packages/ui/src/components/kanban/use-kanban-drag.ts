@@ -22,10 +22,21 @@ export function useKanbanDrag<T, C extends KanbanColumnShape<T>>({
 		[columns, getItemKey],
 	)
 
-	const findColumnByCardId = useCallback(
-		(id: string) => columns.find((c) => c.items.some((i) => getItemKey(i) === id)),
-		[columns, getItemKey],
-	)
+	// dnd-kit fires `dragOver` per pointer move; without this index, each call
+	// would scan `columns × items` to find the column owning the dragged card.
+	const cardIndex = useMemo(() => {
+		const m = new Map<string, C>()
+
+		for (const col of columns) {
+			for (const item of col.items) {
+				m.set(getItemKey(item), col)
+			}
+		}
+
+		return m
+	}, [columns, getItemKey])
+
+	const findColumnByCardId = useCallback((id: string) => cardIndex.get(id), [cardIndex])
 
 	const findColumn = useCallback(
 		(id: string) => {
