@@ -111,7 +111,7 @@ describe('Checkbox size', () => {
 		expect(bySlot(container, 'control')?.className).toContain('size-5')
 	})
 
-	it('inherits size from the concentric context', () => {
+	it('inherits size from the Density context', () => {
 		const { container } = renderUI(
 			<Density scale="sm">
 				<Checkbox />
@@ -121,7 +121,7 @@ describe('Checkbox size', () => {
 		expect(bySlot(container, 'control')?.className).toContain('size-4')
 	})
 
-	it('explicit size beats concentric inheritance', () => {
+	it('explicit size beats Density inheritance', () => {
 		const { container } = renderUI(
 			<Density scale="sm">
 				<Checkbox size="lg" />

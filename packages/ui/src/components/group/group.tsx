@@ -11,7 +11,7 @@ type GroupBaseProps = {
 	orientation?: GroupOrientation
 	/**
 	 * Size step that drives end-cap radii on participating children. Resolution
-	 * order: explicit prop, then enclosing concentric size, then `'md'`.
+	 * order: explicit prop, then enclosing Density size, then `'md'`.
 	 */
 	size?: Step
 	dataSlot?: string

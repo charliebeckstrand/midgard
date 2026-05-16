@@ -64,9 +64,9 @@ export type CalendarProps = {
 	ref?: Ref<CalendarHandle>
 	/**
 	 * Size step that drives overall width, padding, and the weekday label size.
-	 * Resolution order: explicit prop, then enclosing concentric size, then `'md'`.
-	 * Re-broadcast to descendants via concentric so the nav buttons and day cells
-	 * inherit consistently.
+	 * Resolution order: explicit prop, then enclosing Density size, then `'md'`.
+	 * Re-broadcast to descendants via the Density context so the nav buttons and
+	 * day cells inherit consistently.
 	 */
 	size?: Step
 	className?: string

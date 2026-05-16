@@ -47,7 +47,7 @@ export type NavItemConfig = {
  * icon wrapper differ.
  *
  * The inner interactive element renders as `<Headless><Button>` so it picks up
- * Button's cascades (concentric size, headless chrome stripping, link/button
+ * Button's cascades (Density size, headless chrome stripping, link/button
  * polymorphism) while still presenting as the consumer-defined `*-item-inner`
  * slot.
  */

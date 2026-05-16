@@ -19,7 +19,7 @@ export type MenuProps = {
 	placement?: Placement
 	/**
 	 * Size step that drives menu item padding and text size.
-	 * Resolution order: explicit prop, then enclosing concentric size, then `'md'`.
+	 * Resolution order: explicit prop, then enclosing Density size, then `'md'`.
 	 */
 	size?: Step
 	className?: string

@@ -6,7 +6,7 @@ import { Icon } from '../icon'
 
 /**
  * Selected-state check icon used inside Listbox/Combobox options. Reads the
- * ambient concentric size so the icon scales with the option row's density.
+ * ambient Density size so the icon scales with the option row's density.
  *
  * Lives in `components/` because primitives can't import `<Icon>` —
  * `createSelectOption`'s factory accepts this as a `CheckIcon` config and

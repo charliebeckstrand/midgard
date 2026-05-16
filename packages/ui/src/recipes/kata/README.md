@@ -17,7 +17,7 @@ contract is pinned by
 Every kata file ends in one of two exports:
 
 - A `tv()` call producing a variants-aware recipe. The kata's
-  `defaultVariants` resolves `size` from any enclosing concentric
+  `defaultVariants` resolves `size` from any enclosing Density
   context.
 - A plain slots object — `{ root: '...', label: '...', … }` — when the
   component has no variants.

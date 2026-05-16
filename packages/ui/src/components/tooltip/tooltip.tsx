@@ -25,7 +25,7 @@ export type TooltipProps = {
 	 * setting it once on `<Tooltip>` styles its `<TooltipContent>` without
 	 * threading the prop through children. An explicit `size` on
 	 * `<TooltipContent>` still wins. When unset, content falls back to the
-	 * enclosing concentric size, then `'md'`.
+	 * enclosing Density size, then `'md'`.
 	 */
 	size?: Step
 	className?: string

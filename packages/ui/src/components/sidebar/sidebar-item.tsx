@@ -5,7 +5,7 @@ import { Icon } from '../icon'
 import { createNavItem, type NavItemProps } from '../nav/nav-item-helpers'
 
 export type SidebarItemProps = NavItemProps & {
-	/** Size step. Resolves through `explicit ?? Concentric ?? 'md'`. */
+	/** Size step. Resolves through `explicit ?? Density ?? 'md'`. */
 	size?: Step
 }
 

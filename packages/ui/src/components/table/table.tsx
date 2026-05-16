@@ -10,10 +10,10 @@ import { type TableContextValue, TableProvider } from './context'
 export type TableVariants = {
 	/**
 	 * Density level driving cell padding. Resolves through
-	 * `explicit ?? Concentric ?? 'snug'` — so `<Density density="compact">`,
+	 * `explicit ?? Density ?? 'snug'` — so `<Density density="compact">`,
 	 * or any size-providing surface (Card, Drawer, Popover, Group), tightens
 	 * the table automatically. Internally the resolved value is converted to
-	 * the Concentric `Step` shared with every other size-aware component.
+	 * the `Step` shared with every other size-aware component.
 	 */
 	density?: DensityLevel
 	bleed?: boolean

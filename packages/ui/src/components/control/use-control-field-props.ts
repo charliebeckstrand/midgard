@@ -39,7 +39,7 @@ export type UseFieldPropsResult = {
  *
  * Size is **not** resolved here — every field reads `useDensity()` directly
  * (input / textarea / switch / etc. compose `size ?? control?.size` against
- * the Density cascade at the call site). See `src/docs/CASCADES.md`.
+ * the Density cascade at the call site).
  *
  * @example
  *   const { id, disabled, required, invalid } = useControlFieldProps({

@@ -36,7 +36,7 @@ export type DatePickerBaseProps = {
 	placement?: Placement
 	/**
 	 * Size step that drives trigger padding, text size, and the calendar icon.
-	 * Resolution order: explicit prop, then `<Control>`, then enclosing concentric size, then `'md'`.
+	 * Resolution order: explicit prop, then `<Control>`, then enclosing Density size, then `'md'`.
 	 */
 	size?: ControlSize
 	/**

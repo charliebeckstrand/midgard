@@ -18,7 +18,7 @@ export type TooltipContentProps = {
 	 * to the parent `<Tooltip>`.
 	 *
 	 * Resolution order: explicit prop, then `<Tooltip size>`, then enclosing
-	 * concentric size, then `'md'`.
+	 * Density size, then `'md'`.
 	 */
 	size?: Step
 	className?: string

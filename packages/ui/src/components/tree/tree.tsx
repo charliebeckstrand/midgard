@@ -10,7 +10,7 @@ import { TreeProvider } from './context'
 export type TreeProps = {
 	/**
 	 * Controls icon size and text size for all items.
-	 * Resolution order: explicit prop, then enclosing concentric size, then `'md'`.
+	 * Resolution order: explicit prop, then enclosing Density size, then `'md'`.
 	 */
 	size?: TreeSize
 	/** Indent nested items so a child's chevron lines up under its parent's prefix slot. @default false */
