@@ -33,6 +33,8 @@ npm-debug.log*
 .claude/plans
 .claude/worktrees
 
+.claude/launch.json
+
 # Council/debate/deliberate skill outputs
 council-transcript-*.md
 council-report-*.html
