@@ -4,7 +4,8 @@ import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Group } from '../../components/group'
 import { Icon } from '../../components/icon'
-import { ConcentricProvider } from '../../primitives/concentric'
+import { AffixProvider } from '../../primitives/affix'
+import { Density } from '../../primitives/density'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Button', () => {
@@ -198,11 +199,11 @@ describe('Button', () => {
 			expect(bySlot(container, 'button')?.className).toContain(textClassFor.lg)
 		})
 
-		it('inherits size from the concentric context when no explicit size prop is set', () => {
+		it('inherits size from the Density context when no explicit size prop is set', () => {
 			const { container } = renderUI(
-				<ConcentricProvider value={{ size: 'sm' }}>
+				<Density scale="sm">
 					<Button>Inherit</Button>
-				</ConcentricProvider>,
+				</Density>,
 			)
 
 			expect(bySlot(container, 'button')?.className).toContain(textClassFor.sm)
@@ -225,53 +226,53 @@ describe('Button', () => {
 		})
 
 		// Regression: `<Input>` / `<SelectTrigger>` wrap their affix descendants
-		// in a nested `<ConcentricProvider>` carrying the one-step-smaller affix
-		// size. Inner provider wins — when `<Density>` (or a surrounding `<Card>`)
-		// mounts an outer Concentric at the app root, the affix wrap still pins
-		// the button to the smaller affix size.
+		// in an `<AffixProvider>` carrying the one-step-smaller affix size. The
+		// Affix cascade is read first by `useWideSize` — so when `<Density>` (or
+		// a surrounding `<Card>`) mounts an outer Step cascade at the app root,
+		// the affix wrap still pins the button to the smaller affix size.
 
-		it('inner Concentric (the affix wrap) wins over outer Concentric', () => {
+		it('Affix wins over an enclosing Density', () => {
 			const { container } = renderUI(
-				<ConcentricProvider value={{ size: 'lg' }}>
-					<ConcentricProvider value={{ size: 'sm' }}>
+				<Density scale="lg">
+					<AffixProvider value="sm">
 						<Button>Affix</Button>
-					</ConcentricProvider>
-				</ConcentricProvider>,
+					</AffixProvider>
+				</Density>,
 			)
 
 			expect(bySlot(container, 'button')?.className).toContain(textClassFor.sm)
 			expect(bySlot(container, 'button')?.className).not.toContain(textClassFor.lg)
 		})
 
-		it('Concentric can drop a button to xs', () => {
+		it('Affix can drop a button to xs', () => {
 			const { container } = renderUI(
-				<ConcentricProvider value={{ size: 'sm' }}>
-					<ConcentricProvider value={{ size: 'xs' }}>
+				<Density scale="sm">
+					<AffixProvider value="xs">
 						<Button>Affix</Button>
-					</ConcentricProvider>
-				</ConcentricProvider>,
+					</AffixProvider>
+				</Density>,
 			)
 
 			expect(bySlot(container, 'button')?.className).toContain(textClassFor.xs)
 		})
 
-		it('explicit size prop still wins over inner Concentric', () => {
+		it('explicit size prop still wins over Affix', () => {
 			const { container } = renderUI(
-				<ConcentricProvider value={{ size: 'lg' }}>
-					<ConcentricProvider value={{ size: 'sm' }}>
+				<Density scale="lg">
+					<AffixProvider value="sm">
 						<Button size="md">Override</Button>
-					</ConcentricProvider>
-				</ConcentricProvider>,
+					</AffixProvider>
+				</Density>,
 			)
 
 			expect(bySlot(container, 'button')?.className).toContain(textClassFor.md)
 		})
 
-		it('inherits Concentric when no explicit size is set', () => {
+		it('inherits Density when no explicit size is set', () => {
 			const { container } = renderUI(
-				<ConcentricProvider value={{ size: 'lg' }}>
-					<Button>Concentric</Button>
-				</ConcentricProvider>,
+				<Density scale="lg">
+					<Button>Density</Button>
+				</Density>,
 			)
 
 			expect(bySlot(container, 'button')?.className).toContain(textClassFor.lg)

@@ -7,7 +7,7 @@ import { type ReactNode, useId, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useFloatingUI, useSelectableValueChange } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
-import { ConcentricProvider, useResolvedSize } from '../../primitives/concentric'
+import { DENSITY_PRESETS, Density, useDensity } from '../../primitives/density'
 import { useJoin } from '../../primitives/join'
 import { PopoverPanel } from '../../primitives/popover'
 import { iro, kokkaku } from '../../recipes'
@@ -97,7 +97,9 @@ export function Listbox<T>({
 
 	const resolvedDisabled = disabled ?? control?.disabled
 
-	const resolvedSize = useResolvedSize(size)
+	const inherited = useDensity()
+	const token = size ? DENSITY_PRESETS[size] : inherited
+	const resolvedSize = token.size
 
 	const handleValueChange = useSelectableValueChange<T>(
 		onValueChange as ((value: T | T[] | undefined) => void) | undefined,
@@ -134,8 +136,6 @@ export function Listbox<T>({
 		() => ({ value, multiple, select: select as (v: unknown) => void, close }),
 		[value, multiple, select, close],
 	)
-
-	const concentricValue = useMemo(() => ({ size: resolvedSize }), [resolvedSize])
 
 	if (skeleton) {
 		return (
@@ -176,7 +176,7 @@ export function Listbox<T>({
 					disabled={resolvedDisabled}
 					data-slot="listbox-button"
 					{...invalidAttrs(control?.invalid)}
-					className={cn(listboxVariants({ size: resolvedSize }))}
+					className={cn(listboxVariants({ density: token.density, size: token.size }))}
 				>
 					<span className={cn(k.value({ truncate }), tabularNums && 'tabular-nums')}>
 						{label || <span className={cn(iro.text.muted)}>{placeholder}</span>}
@@ -193,7 +193,7 @@ export function Listbox<T>({
 							className={kPopover.portal}
 							{...getFloatingProps()}
 						>
-							<ConcentricProvider value={concentricValue}>
+							<Density density={token.density} size={token.size}>
 								<PopoverPanel
 									id={listboxId}
 									role="listbox"
@@ -202,7 +202,7 @@ export function Listbox<T>({
 								>
 									{children}
 								</PopoverPanel>
-							</ConcentricProvider>
+							</Density>
 						</div>
 					)}
 				</AnimatePresence>

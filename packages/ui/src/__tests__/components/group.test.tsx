@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Group } from '../../components/group'
-import { ConcentricProvider, useConcentric } from '../../primitives/concentric'
+import { Density, useDensity } from '../../primitives/density'
 import { allBySlot, bySlot, renderUI } from '../helpers'
 
 describe('Group', () => {
@@ -130,31 +130,31 @@ describe('Group', () => {
 		expect(bySlot(container, 'group')).toHaveAttribute('data-step', 'lg')
 	})
 
-	it('inherits size from an enclosing concentric context when size is omitted', () => {
+	it('inherits size from an enclosing Density context when size is omitted', () => {
 		const { container } = renderUI(
-			<ConcentricProvider value={{ size: 'sm' }}>
+			<Density scale="sm">
 				<Group>
 					<button type="button">A</button>
 				</Group>
-			</ConcentricProvider>,
+			</Density>,
 		)
 
 		expect(bySlot(container, 'group')).toHaveAttribute('data-step', 'sm')
 	})
 
-	it('explicit size overrides concentric inheritance', () => {
+	it('explicit size overrides Density inheritance', () => {
 		const { container } = renderUI(
-			<ConcentricProvider value={{ size: 'sm' }}>
+			<Density scale="sm">
 				<Group size="lg">
 					<button type="button">A</button>
 				</Group>
-			</ConcentricProvider>,
+			</Density>,
 		)
 
 		expect(bySlot(container, 'group')).toHaveAttribute('data-step', 'lg')
 	})
 
-	it('falls back to "md" outside any concentric context and without explicit size', () => {
+	it('falls back to "md" outside any Density context and without explicit size', () => {
 		const { container } = renderUI(
 			<Group>
 				<button type="button">A</button>
@@ -164,11 +164,11 @@ describe('Group', () => {
 		expect(bySlot(container, 'group')).toHaveAttribute('data-step', 'md')
 	})
 
-	it('provides a concentric size context to descendants', () => {
+	it('provides a Density context to descendants', () => {
 		let observed: string | undefined
 
 		function Probe() {
-			observed = useConcentric()?.size
+			observed = useDensity().size
 
 			return null
 		}
@@ -182,21 +182,21 @@ describe('Group', () => {
 		expect(observed).toBe('lg')
 	})
 
-	it('descendants see the resolved size when Group inherits from an outer concentric context', () => {
+	it('descendants see the resolved size when Group inherits from an outer Density context', () => {
 		let observed: string | undefined
 
 		function Probe() {
-			observed = useConcentric()?.size
+			observed = useDensity().size
 
 			return null
 		}
 
 		renderUI(
-			<ConcentricProvider value={{ size: 'sm' }}>
+			<Density scale="sm">
 				<Group>
 					<Probe />
 				</Group>
-			</ConcentricProvider>,
+			</Density>,
 		)
 
 		expect(observed).toBe('sm')

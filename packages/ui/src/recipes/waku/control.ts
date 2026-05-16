@@ -12,7 +12,8 @@
  *   - `surface`   — surface chrome variants (default / outline / glass).
  *   - `field`     — inner field reset: transparent bg, no native outline,
  *                   placeholder colour, disabled cursor.
- *   - `size`      — density: border-compensated padding + font size.
+ *   - `density`   — border-compensated padding, keyed by the density axis.
+ *   - `size`      — font size, keyed by the size axis.
  *   - `icon`      — chevron / affix slot layout.
  *   - `affix`     — prefix / suffix slot padding (tracks density).
  *   - `resets`    — browser-default resets keyed by input type.
@@ -63,10 +64,20 @@ const field = [
 	'dark:placeholder:text-zinc-400',
 ]
 
+// Tracks the `density` axis of the Density token (padding + gap dimension).
+// Affix padding (`affix.prefix`, `affix.suffix`, `affix.autofill`) below is
+// the same axis — keyed by the density step, not the size step.
+const density = {
+	sm: 'px-[calc(--spacing(2.5)-1px)] py-[calc(--spacing(1.5)-1px)]',
+	md: 'px-[calc(--spacing(3)-1px)] py-[calc(--spacing(2)-1px)]',
+	lg: 'px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)]',
+} as const
+
+// Tracks the `size` axis of the Density token (text + icon dimension).
 const size = {
-	sm: ['px-[calc(--spacing(2.5)-1px)] py-[calc(--spacing(1.5)-1px)]', ji.size.sm],
-	md: ['px-[calc(--spacing(3)-1px)] py-[calc(--spacing(2)-1px)]', ji.size.md],
-	lg: ['px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)]', ji.size.lg],
+	sm: ji.size.sm,
+	md: ji.size.md,
+	lg: ji.size.lg,
 } as const
 
 const icon = ['flex items-center', 'pr-2', 'pointer-events-none']
@@ -127,6 +138,7 @@ export const control = {
 	frame,
 	surface,
 	field,
+	density,
 	size,
 	icon,
 	affix,

@@ -1,14 +1,12 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
-import { ConcentricProvider } from '../../primitives/concentric'
+import { DensityScope } from '../../primitives/density'
 import { k } from '../../recipes/kata/avatar'
-import type { take } from '../../recipes/ryu/take'
+import type { Step } from '../../recipes/ryu/sun'
 import { Avatar } from './avatar'
 
-type AvatarSize = take.AvatarSize
-
 export type AvatarGroupProps = {
-	size?: AvatarSize
+	size?: Step
 	extra?: number
 	className?: string
 	children: ReactNode
@@ -16,7 +14,7 @@ export type AvatarGroupProps = {
 
 export function AvatarGroup({ extra, size = 'md', className, children }: AvatarGroupProps) {
 	return (
-		<ConcentricProvider value={{ size }}>
+		<DensityScope scale={size}>
 			<div
 				data-slot="avatar-group"
 				className={cn(k.group.base, k.group.ring, k.group.spacing[size], className)}
@@ -24,6 +22,6 @@ export function AvatarGroup({ extra, size = 'md', className, children }: AvatarG
 				{children}
 				{extra != null && extra > 0 && <Avatar size={size} initials={`+${extra}`} />}
 			</div>
-		</ConcentricProvider>
+		</DensityScope>
 	)
 }

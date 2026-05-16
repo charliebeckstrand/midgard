@@ -2,7 +2,7 @@
 
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { useResolvedSize } from '../../primitives/concentric'
+import { useDensity } from '../../primitives/density'
 import { kokkaku } from '../../recipes'
 import {
 	type RadioVariants,
@@ -27,7 +27,8 @@ export function Radio({ className, color, size, id, disabled, required, ...props
 		invalid: resolvedInvalid,
 	} = useControlFieldProps({ id, disabled, required })
 
-	const resolvedSize = useResolvedSize(size)
+	const inherited = useDensity()
+	const resolvedSize = size ?? inherited.size
 
 	if (useSkeleton()) {
 		return <Placeholder className={cn(kokkaku.radio.base, className)} />

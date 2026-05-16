@@ -2,8 +2,8 @@
 
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { cn } from '../../core'
-import { useResolvedSize } from '../../primitives/concentric'
 import { ControlFrame } from '../../primitives/control'
+import { DENSITY_PRESETS, useDensity } from '../../primitives/density'
 import { kokkaku } from '../../recipes'
 import {
 	controlVariants,
@@ -60,7 +60,8 @@ export function Textarea({
 	} = useControlFieldProps({ id, autoComplete, disabled, required, readOnly, binding })
 
 	const resolvedVariant = variant ?? control?.variant ?? (glass ? 'glass' : undefined)
-	const resolvedSize = useResolvedSize(size)
+	const inherited = useDensity()
+	const token = size ? DENSITY_PRESETS[size] : inherited
 
 	if (useSkeleton()) {
 		return (
@@ -102,7 +103,8 @@ export function Textarea({
 				className={cn(
 					textareaVariants({
 						variant: resolvedVariant,
-						size: resolvedSize,
+						density: token.density,
+						size: token.size,
 						resize: hasActions ? 'none' : resize,
 						autoResize,
 					}),

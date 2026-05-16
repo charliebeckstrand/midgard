@@ -1,8 +1,8 @@
 'use client'
 
-import { type CSSProperties, useMemo } from 'react'
+import type { CSSProperties } from 'react'
 import { cn } from '../../core'
-import { ConcentricProvider, useResolvedSize } from '../../primitives/concentric'
+import { DENSITY_PRESETS, DensityScope, useDensity } from '../../primitives/density'
 import { kokkaku } from '../../recipes'
 import { type Step, sun } from '../../recipes/ryu/sun'
 import { Box, type BoxProps } from '../box'
@@ -11,8 +11,9 @@ import { useSkeleton } from '../skeleton/context'
 
 export type CardProps = BoxProps<'radius'> & {
 	/**
-	 * Size step that drives padding, inner radius, and the concentric outer radius.
-	 * Resolution order: explicit prop, then enclosing concentric size, then `'md'`.
+	 * Sets both density and size axes to the same step via the preset table.
+	 * When omitted, both axes inherit from the surrounding density cascade.
+	 * Resolution: explicit prop, then enclosing `<Density>`, then `'md'`.
 	 */
 	size?: Step
 }
@@ -28,24 +29,21 @@ export function Card({
 	children,
 	...props
 }: CardProps) {
-	const resolvedSize = useResolvedSize(size)
-
-	const context = useMemo(() => ({ size: resolvedSize }), [resolvedSize])
+	const inherited = useDensity()
+	const token = size ? DENSITY_PRESETS[size] : inherited
 
 	if (useSkeleton()) {
 		return (
-			<Placeholder className={cn(kokkaku.card.base, kokkaku.card.size[resolvedSize], className)} />
+			<Placeholder className={cn(kokkaku.card.base, kokkaku.card.size[token.size], className)} />
 		)
 	}
 
 	const noExplicitPadding = p === undefined && px === undefined && py === undefined
 
-	const step = sun[resolvedSize]
-
 	const style: CSSProperties = {
-		'--ui-padding': `calc(var(--spacing) * ${step.space})`,
-		'--ui-radius-inner': `var(--radius-${step.radius})`,
-		'--ui-gap': `calc(var(--spacing) * ${step.gap})`,
+		'--ui-padding': `calc(var(--spacing) * ${sun[token.density].space})`,
+		'--ui-radius-inner': `var(--radius-${sun[token.size].radius})`,
+		'--ui-gap': `calc(var(--spacing) * ${sun[token.density].gap})`,
 	} as CSSProperties
 
 	return (
@@ -56,7 +54,7 @@ export function Card({
 			py={py}
 			bg={bg}
 			outline={outline}
-			data-step={resolvedSize}
+			data-step={token.size}
 			className={cn(
 				noExplicitPadding && '[&:not(:has(>[data-slot^=card-]))]:p-(--ui-padding)',
 				'overflow-hidden -outline-offset-1 rounded-(--ui-radius-inner)',
@@ -65,7 +63,7 @@ export function Card({
 			style={style}
 			{...props}
 		>
-			<ConcentricProvider value={context}>{children}</ConcentricProvider>
+			<DensityScope scale={size}>{children}</DensityScope>
 		</Box>
 	)
 }

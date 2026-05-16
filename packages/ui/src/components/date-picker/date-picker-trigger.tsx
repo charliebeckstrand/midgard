@@ -82,7 +82,7 @@ export function DatePickerTrigger({
 					disabled={disabled}
 					onClick={() => onOpenChange(!open)}
 					onKeyDown={onKeyDown}
-					className={cn(k.button({ size }))}
+					className={cn(k.button({ density: size, size }))}
 				>
 					<Tooltip
 						enabled={truncate && isTruncated && Boolean(displayValue)}

@@ -2,7 +2,7 @@
 
 import { cloneElement, type ReactElement } from 'react'
 import { cn } from '../../core'
-import { useResolvedSize } from '../../primitives/concentric'
+import { useWideSize } from '../../primitives/density'
 import type { Size } from '../../types/size'
 
 export type IconProps = {
@@ -19,7 +19,12 @@ const sizeMap: Record<Size, string> = {
 }
 
 export function Icon({ icon, size, className }: IconProps) {
-	const ambient = useResolvedSize<Size>()
+	// Icon's scale tops out at `lg` — `take.icon` doesn't have an `xl` step.
+	// `useWideSize` can carry `'xl'` (Button broadcasts up to `Ma`), so when
+	// that reaches an Icon with no explicit size, `sizeMap` lookup misses
+	// and the icon falls back to its inherited dimensions. Make the type
+	// narrowing explicit so the missing-key branch reads as intentional.
+	const ambient = useWideSize() as Size
 
 	const resolvedSize = size ?? ambient
 

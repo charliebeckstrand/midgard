@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { useResolvedSize } from '../../primitives/concentric'
+import { DENSITY_PRESETS, useDensity } from '../../primitives/density'
 import {
 	type StatValueVariants,
 	statValuePlaceholder,
@@ -17,7 +17,8 @@ export type StatValueProps = StatValueVariants & {
  * `size` resolution order: explicit prop, then enclosing concentric size, then `'md'`.
  */
 export function StatValue({ size, className, children, ...props }: StatValueProps) {
-	const resolvedSize = useResolvedSize(size)
+	const inherited = useDensity()
+	const resolvedSize = size ? DENSITY_PRESETS[size].size : inherited.size
 
 	if (useSkeleton()) {
 		return <Placeholder className={cn(statValuePlaceholder({ size: resolvedSize }), className)} />

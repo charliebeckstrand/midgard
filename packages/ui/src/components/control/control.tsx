@@ -3,7 +3,7 @@
 import { type ReactNode, useMemo } from 'react'
 import { cn } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
-import { ConcentricProvider } from '../../primitives/concentric'
+import { Density } from '../../primitives/density'
 import { fieldset as k } from '../../recipes/kata/fieldset'
 import {
 	type ControlContextValue,
@@ -94,7 +94,9 @@ export function Control({
 	return (
 		<ControlProvider value={value}>
 			{mergedSize ? (
-				<ConcentricProvider value={{ size: mergedSize }}>{body}</ConcentricProvider>
+				<Density density={mergedSize} size={mergedSize}>
+					{body}
+				</Density>
 			) : (
 				body
 			)}

@@ -12,7 +12,7 @@ import {
 } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
-import { ConcentricProvider, useResolvedSize } from '../../primitives/concentric'
+import { Density, useDensity } from '../../primitives/density'
 import { k } from '../../recipes/kata/calendar'
 import type { Step } from '../../recipes/ryu/sun'
 import type { ButtonVariants } from '../button'
@@ -87,9 +87,8 @@ export function Calendar({
 	size,
 	className,
 }: CalendarProps) {
-	const resolvedSize: Step = useResolvedSize(size)
-
-	const concentricValue = useMemo(() => ({ size: resolvedSize }), [resolvedSize])
+	const inherited = useDensity()
+	const resolvedSize: Step = size ?? inherited.size
 
 	const handleValueChange = useCallback(
 		(nextValue: Date | undefined) => {
@@ -169,7 +168,7 @@ export function Calendar({
 	const headerActiveIndex = active?.zone === 'header' ? active.index : null
 
 	return (
-		<ConcentricProvider value={concentricValue}>
+		<Density density={resolvedSize} size={resolvedSize}>
 			<div
 				data-slot="calendar"
 				data-step={resolvedSize}
@@ -205,6 +204,6 @@ export function Calendar({
 					onSelect={handleSelect}
 				/>
 			</div>
-		</ConcentricProvider>
+		</Density>
 	)
 }

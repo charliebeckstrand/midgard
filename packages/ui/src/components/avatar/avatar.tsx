@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { ConcentricProvider, useResolvedSize } from '../../primitives/concentric'
+import { DENSITY_PRESETS, DensityScope, useDensity } from '../../primitives/density'
 import { kokkaku } from '../../recipes'
 import {
 	type AvatarVariants,
@@ -36,15 +36,17 @@ export function Avatar({
 }: AvatarProps) {
 	const skeleton = useSkeleton()
 
-	const resolvedSize = useResolvedSize(size)
+	const inherited = useDensity()
+	const token = size ? DENSITY_PRESETS[size] : inherited
+	const resolvedSize = token.size
 
 	if (skeleton) {
 		return (
-			<ConcentricProvider value={{ size: resolvedSize }}>
+			<DensityScope scale={size}>
 				<Placeholder
 					className={cn(kokkaku.avatar.base, kokkaku.avatar.size[resolvedSize], className)}
 				/>
-			</ConcentricProvider>
+			</DensityScope>
 		)
 	}
 
@@ -79,15 +81,15 @@ export function Avatar({
 	)
 
 	if (!status) {
-		return <ConcentricProvider value={{ size: resolvedSize }}>{avatarEl}</ConcentricProvider>
+		return <DensityScope scale={size}>{avatarEl}</DensityScope>
 	}
 
 	return (
-		<ConcentricProvider value={{ size: resolvedSize }}>
+		<DensityScope scale={size}>
 			<span data-slot="avatar-with-status" className={cn('relative inline-flex', className)}>
 				{avatarEl}
 				<StatusDot status={status} className={cn('absolute top-0 right-0', k.statusRing)} />
 			</span>
-		</ConcentricProvider>
+		</DensityScope>
 	)
 }

@@ -1,43 +1,67 @@
 # Cascade contracts
 
-Every size-aware component resolves its final `size` through a single hook — `useResolvedSize` from `primitives/concentric.ts`. Every leaf is:
+Three independent context primitives carry size-related concerns through the tree. Each has one job; consumers compose them at the call site.
+
+## `Density` — the universal Step cascade
+
+`packages/ui/src/primitives/density.tsx` carries a two-axis token keyed on `Step` (`'sm' | 'md' | 'lg'`):
 
 ```ts
-const resolvedSize = useResolvedSize(size)
+type DensityToken = {
+  density: Step  // padding + gap (breathing room)
+  size:    Step  // text + icon  (visual heft)
+}
 ```
 
-The Concentric provider tree encodes priority. Each size-broadcasting surface writes a `<ConcentricProvider>`, and innermost-wins (standard React context semantics) handles everything: a Button inside an Input affix slot inherits the affix step; a form field inside `<Control size="sm">` inherits the control size; a Spinner inside `<Button size="lg">` inherits the button size; a `<StatusDot>` inside `<Avatar size="xl">` inherits the avatar size. No call-site `??` composition.
+The axes inherit independently — `<Density density="sm">` shrinks spacing without touching font size; `<Density size="lg">` bumps text and icon without re-padding. Cascade is per-axis innermost-wins.
 
-The hook is generic on the caller's size type so each component keeps its narrower `Step` / `Size` / `Ma` typing. Concentric's value is `Ma` (the widest broadcaster's type); out-of-range values reaching a narrower consumer fall through to the consumer's variant `defaultVariants`.
+Read with `useDensity()`. Returns the diagonal `'md'` preset when no provider is in the tree. Component leaves with their own `size` prop compose at the call site:
 
-## Broadcasters
+```ts
+const inherited = useDensity()
+const token = size ? DENSITY_PRESETS[size] : inherited
+```
 
-Every size-broadcasting surface writes Concentric:
+Component leaves with no `size` prop just destructure: `const { size } = useDensity()`.
 
-| Surface | Concentric value |
+**Broadcasters** (write `<Density>` for their descendants):
+
+| Surface | Token shape |
 | --- | --- |
-| `<Card>`, `<Drawer>`, `<Group>`, `<Popover>`, `<Density>` | the surface's resolved size |
-| `<Control size>` | the control's size (only when set) |
-| `<Input>` (affix slot only) | one step down — `sm → xs`, `md → sm`, `lg → md` |
-| `<SelectTrigger>` | same as Input affix |
-| `<Button>` (descendants only) | the button's resolved size |
-| `<Avatar>`, `<AvatarGroup>` | the avatar's size |
+| `<Card>`, `<Drawer>`, `<Popover>`, `<Group>`, `<Calendar>` | the surface's resolved token |
+| `<Listbox>` / `<Combobox>` popover panel | the trigger's resolved token (re-broadcast across the portal boundary) |
+| `<Tabs>` | the wrapper's resolved size, propagated through `useTabsContext` |
+| `<Density>` | the user-facing API |
 
-`<Density>` continues to also write the legacy `<DensityProvider>` so consumers that key off the "compact / snug / loose" vocabulary (currently none in-package after the table refactor) can still find it.
+## `Affix` — the narrow Ma cascade for wider-scale slots
 
-## Consumers
+`packages/ui/src/primitives/affix.ts` carries `Ma | null` (`'xs' | 'sm' | 'md' | 'lg' | 'xl'`). Used by the few surfaces whose descendants legitimately need a value outside the `Step` floor:
 
-```ts
-useResolvedSize(size)        // explicit prop wins; otherwise nearest Concentric ancestor; otherwise 'md'
-useResolvedSize()            // pure ambient read (no explicit), defaults to 'md'
-useResolvedSize<Size>(size)  // explicit caller type — Button / Badge / Avatar typed as Size or Ma
-```
+- **Control affix slots** (`<Input>` prefix / suffix, `<SelectTrigger>` chevron) broadcast a stepped-down value — `'xs'` at `'sm'` — so icons and small buttons render tighter than the host.
+- **`<Button>`** broadcasts its own resolved size so loading spinners and prefix/suffix icons inherit the button's `Ma` size, including `'xs'` and `'xl'` that the `Step`-typed Density cascade can't carry.
 
-That's the entire API. No role-specific chains.
+Read with `useWideSize(explicit?)` — resolves `explicit ?? Affix ?? Density.size`. Used by Button, Icon, and Spinner; nothing else needs the wider scale.
 
-## Layout primitives — opt-in concentric pickup
+## Adaptive radius (deferred)
 
-`box`, `flex`, `stack`, `grid` keep their direct `useConcentric()` reads. Their `p` / `gap` is `Ma` or `Responsive<Ma>` (wider than the hook's `T extends Ma` constraint allows for the responsive forms), and Box/Flex specifically treat `undefined` as "no style applied" — which the hook's `'md'` fallback would clobber.
+The original `sun.ts` comment described an "outer-radius = inner-radius + padding" formula for surfaces that nest visually. That cascade is not currently implemented — components derive their radius from their own size. Adaptive radius (a CSS-driven `--ui-radius-inner = calc(--ui-outer-radius − --ui-outer-padding)` chain, opt-in per surface) is a separate design pass; see commit history for the conversation that surfaced the need.
+
+## Adding a new component
+
+1. **Step-only consumer:** `useDensity()`. Compose `size ?? inherited.size` at the call site.
+2. **Ma-aware consumer** (your size prop is wider than Step): `useWideSize(size)`. Returns explicit → Affix → Density.size.
+3. **Broadcaster** that wants descendants to inherit a different size than the surrounding cascade: wrap children in `<Density density={...} size={...}>` or the `<DensityScope scale={size}>` sugar.
+4. **Slot that needs to project a sub-Step value to wider-scale descendants** (rare — Input affix is the canonical case): wrap in `<AffixProvider value={maValue}>`.
+
+## What does **not** cascade
+
+- **Color** — always explicit. There is no ambient color context. Any component pair that needs colour matching (e.g. `<Alert>` + its close `<Button>`) passes the color through props.
+- **`variant` on Button** — Button doesn't read `control?.variant`. Only Input / Textarea do, because they're direct Control children.
+- **Dialog / Drawer / Sheet variants** — these are independent compounds, not part of the Control family.
+
+## Layout primitives — opt-in Density pickup
+
+`box`, `flex`, `stack`, `grid` read `useDensityNullable()` rather than `useDensity()` — their `p` / `gap` props treat `undefined` as "no style applied," and the `'md'` default `useDensity` falls back to would clobber that opt-in semantic. They consume the `density` axis (the padding-and-gap dimension) for their resolved `p` / `gap`.
 
 ## Ambient flags
 
@@ -48,20 +72,8 @@ Boolean cascades, read at the leaf:
 
 They don't compose into the size resolution — they short-circuit to a different render path.
 
-## What does **not** cascade
-
-- **Color** — always explicit. There is no ambient color context. Any component-pair that needs colour matching (e.g. `Alert` + its close `Button`) passes the color through props.
-- **`variant` on Button** — Button doesn't read `control?.variant`. Only Input / Textarea do, because they're direct Control children.
-- **Dialog / Drawer / Sheet variants** — these are independent compounds, not part of the Control family.
-
 ## Why context
 
-Concentric flows through arbitrary wrappers (Frame, Stack, custom layouts) without prop-drilling. Surfaces and broadcasters set it without their descendants having to know.
+Density flows through arbitrary wrappers (Frame, Stack, custom layouts) without prop-drilling. Surfaces and broadcasters set it without their descendants having to know.
 
-The `<Control>` context is special: it's also the data bridge between `<Field>` (label, help, errors, validation) and the underlying form field, so it carries id, validity, disabled state, etc. — not just size. Its size leg is mirrored into Concentric so size consumers don't need to read Control directly.
-
-## Adding a new component
-
-1. Resolve size with `useResolvedSize(size)`. That's it for the typical case.
-2. If the component is a layout primitive that wants the "no contextual size → no style" semantic instead of `'md'` fallback, read `useConcentric()` directly (see Box/Flex).
-3. If the component **broadcasts** a size for its descendants — a new surface, an affix-like slot, etc. — wrap its children in `<ConcentricProvider value={{ size }}>`.
+The `<Control>` context is special: it's also the data bridge between `<Field>` (label, help, errors, validation) and the underlying form field, so it carries id, validity, disabled state, etc. — not just size.

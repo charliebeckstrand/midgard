@@ -1,7 +1,7 @@
 'use client'
 
 import { Check } from 'lucide-react'
-import { useResolvedSize } from '../../primitives/concentric'
+import { useDensity } from '../../primitives/density'
 import { Icon } from '../icon'
 
 /**
@@ -14,7 +14,7 @@ import { Icon } from '../icon'
  * `data-selected`.
  */
 export function OptionCheckIcon() {
-	const size = useResolvedSize()
+	const { size } = useDensity()
 
 	return (
 		<Icon

@@ -6,9 +6,10 @@ import { control } from '../waku/control'
 export const combobox = tv({
 	base: ['block', 'truncate', ...control.field, 'rounded-lg'],
 	variants: {
+		density: control.density,
 		size: control.size,
 	},
-	defaultVariants: { size: 'md' },
+	defaultVariants: { density: 'md', size: 'md' },
 })
 
 export const slots = {

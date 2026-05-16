@@ -2,7 +2,7 @@
 
 import type { Placement } from '@floating-ui/react'
 import { cn } from '../../core'
-import { useResolvedSize } from '../../primitives/concentric'
+import { useDensity } from '../../primitives/density'
 import { useJoin } from '../../primitives/join'
 import { kokkaku } from '../../recipes'
 import { Calendar } from '../calendar'
@@ -58,7 +58,8 @@ export function DatePicker(props: DatePickerProps) {
 	const skeleton = useSkeleton()
 	const join = useJoin()
 
-	const resolvedSize: ControlSize = useResolvedSize(props.size)
+	const inherited = useDensity()
+	const resolvedSize: ControlSize = props.size ?? inherited.size
 
 	if (skeleton) {
 		return (

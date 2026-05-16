@@ -2,9 +2,9 @@
 
 import { FloatingPortal } from '@floating-ui/react'
 import { AnimatePresence, motion } from 'motion/react'
-import { type ReactNode, useLayoutEffect, useMemo, useRef } from 'react'
+import { type ReactNode, useLayoutEffect, useRef } from 'react'
 import { cn } from '../../core'
-import { ConcentricProvider, useResolvedSize } from '../../primitives/concentric'
+import { Density, useDensity } from '../../primitives/density'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { iro, omote, ugoki } from '../../recipes'
 import type { Step } from '../../recipes/ryu/sun'
@@ -43,11 +43,10 @@ export function PopoverContent({
 
 	const glass = useGlass()
 
-	const resolvedSize = useResolvedSize(size)
+	const inherited = useDensity()
+	const resolvedSize = size ?? inherited.size
 
 	const resolvedPadding: BoxPadding = p ?? paddingForSize[resolvedSize]
-
-	const concentricValue = useMemo(() => ({ size: resolvedSize }), [resolvedSize])
 
 	useLayoutEffect(() => {
 		if (open && autoFocus) {
@@ -74,7 +73,7 @@ export function PopoverContent({
 								data-step={resolvedSize}
 								className={cn('z-50', iro.text.default, glass && omote.glass)}
 							>
-								<ConcentricProvider value={concentricValue}>
+								<Density density={resolvedSize} size={resolvedSize}>
 									<Box
 										p={resolvedPadding}
 										bg={glass ? 'none' : 'popover'}
@@ -84,7 +83,7 @@ export function PopoverContent({
 									>
 										{children}
 									</Box>
-								</ConcentricProvider>
+								</Density>
 							</motion.div>
 						</div>
 					)}

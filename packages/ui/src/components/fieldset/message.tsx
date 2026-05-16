@@ -2,7 +2,7 @@
 
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { useResolvedSize } from '../../primitives/concentric'
+import { useDensity } from '../../primitives/density'
 import { k } from '../../recipes/kata/fieldset'
 import { useControl } from '../control/context'
 import { useFormField } from '../form/context'
@@ -27,7 +27,7 @@ export function Message({
 
 	const field = useFormField(name)
 
-	const size = useResolvedSize()
+	const { size } = useDensity()
 
 	// When form-bound, only the error variant auto-renders from the field's error.
 	// Other variants render their children verbatim.

@@ -2,7 +2,7 @@
 
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { useResolvedSize } from '../../primitives/concentric'
+import { useDensity } from '../../primitives/density'
 import { type JiSize, ji } from '../../recipes/ryu/ji'
 import type { Step } from '../../recipes/ryu/sun'
 import { Heading } from '../heading'
@@ -18,7 +18,8 @@ const titleText: Record<Step, JiSize> = {
 }
 
 export function CardTitle({ className, size, children, ...props }: CardTitleProps) {
-	const resolvedSize = useResolvedSize(size)
+	const inherited = useDensity()
+	const resolvedSize: Step = size ?? inherited.size
 
 	return (
 		<Heading

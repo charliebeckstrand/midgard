@@ -3,7 +3,7 @@
 import { Check, Minus } from 'lucide-react'
 import { type ComponentPropsWithRef, type ReactNode, useCallback, useRef } from 'react'
 import { cn } from '../../core'
-import { useResolvedSize } from '../../primitives/concentric'
+import { useDensity } from '../../primitives/density'
 import { kokkaku } from '../../recipes'
 import {
 	type CheckboxVariants,
@@ -49,7 +49,8 @@ export function Checkbox({
 
 	const internalRef = useRef<HTMLInputElement>(null)
 
-	const resolvedSize = useResolvedSize(size)
+	const inherited = useDensity()
+	const resolvedSize = size ?? inherited.size
 
 	const setRef = useCallback(
 		(el: HTMLInputElement | null) => {

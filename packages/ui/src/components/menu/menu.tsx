@@ -10,7 +10,7 @@ import {
 import { type MouseEvent, type ReactNode, useCallback, useMemo, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useFloatingPanel } from '../../hooks'
-import { useResolvedSize } from '../../primitives/concentric'
+import { useDensity } from '../../primitives/density'
 import type { Step } from '../../recipes/ryu/sun'
 import { MenuActionsProvider, MenuStateProvider } from './context'
 
@@ -29,7 +29,8 @@ export type MenuProps = {
 export function Menu({ defaultOpen = false, placement, size, className, children }: MenuProps) {
 	const [open, setOpen] = useState(defaultOpen)
 
-	const resolvedSize: Step = useResolvedSize(size)
+	const inherited = useDensity()
+	const resolvedSize: Step = size ?? inherited.size
 
 	const [point, setPoint] = useState({ x: 0, y: 0 })
 

@@ -2,9 +2,9 @@
 
 import { FloatingPortal } from '@floating-ui/react'
 import { AnimatePresence } from 'motion/react'
-import { type ReactNode, useMemo } from 'react'
+import type { ReactNode } from 'react'
 import { cn } from '../../core'
-import { ConcentricProvider } from '../../primitives/concentric'
+import { Density } from '../../primitives/density'
 import { PopoverPanel } from '../../primitives/popover'
 import { k } from '../../recipes/kata/menu'
 import { useGlass } from '../glass/context'
@@ -20,11 +20,9 @@ export function MenuContent({ className, children }: MenuContentProps) {
 	const { close, static: isStatic, setFloating } = useMenuActions()
 	const glass = useGlass()
 
-	const concentricValue = useMemo(() => ({ size }), [size])
-
 	if (isStatic) {
 		return (
-			<ConcentricProvider value={concentricValue}>
+			<Density density={size} size={size}>
 				<PopoverPanel
 					role="menu"
 					itemSelector='[role="menuitem"]:not([data-disabled])'
@@ -33,7 +31,7 @@ export function MenuContent({ className, children }: MenuContentProps) {
 				>
 					{children}
 				</PopoverPanel>
-			</ConcentricProvider>
+			</Density>
 		)
 	}
 
@@ -42,7 +40,7 @@ export function MenuContent({ className, children }: MenuContentProps) {
 			<AnimatePresence>
 				{open && (
 					<div ref={setFloating} style={floatingStyles} className="z-100" {...getFloatingProps()}>
-						<ConcentricProvider value={concentricValue}>
+						<Density density={size} size={size}>
 							<PopoverPanel
 								role="menu"
 								itemSelector='[role="menuitem"]:not([data-disabled])'
@@ -54,7 +52,7 @@ export function MenuContent({ className, children }: MenuContentProps) {
 							>
 								{children}
 							</PopoverPanel>
-						</ConcentricProvider>
+						</Density>
 					</div>
 				)}
 			</AnimatePresence>
