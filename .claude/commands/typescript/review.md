@@ -1,6 +1,6 @@
 # typescript:review
 
-TRIGGER when: `/postmortem` routes here because the staged diff contains `.ts` / `.tsx` changes — this skill is the logic-risk gate in the postmortem chain. Also when `/ui:component:compose`, `/tests:compose`, or another caller finishes writing a new `.ts` / `.tsx` file and needs the new surface vetted before handing control back. Also when the user asks to "review my diff", "review this TS file", "check this before I commit".
+TRIGGER when: `/postmortem` routes here because the staged diff contains `.ts` / `.tsx` changes. Also when `/ui:component:compose`, `/tests:compose`, or another caller finishes writing a new `.ts` / `.tsx` file and needs the new surface vetted before handing control back. Also when the user asks to "review my diff", "review this TS file", "check this before I commit".
 
 Review TypeScript code — a staged diff (postmortem path) or one or more newly-created files (post-creation path) — against the project's tests, type-checker, and the principles below. Produces a PASS / BLOCK verdict; the commit (diff mode) or the handoff (file mode) does not proceed until PASS.
 
@@ -11,13 +11,13 @@ $ARGUMENTS
 Recognized hints:
 - No argument → **diff mode**. Review the staged diff (or `git diff HEAD` when nothing is staged). Used by `/postmortem`.
 - A path to a `.ts` / `.tsx` file → **file mode**. Review that newly-created file. Used by `/ui:component:compose` and `/tests:compose`.
-- A directory → **file mode**, expanded to every `.ts` / `.tsx` directly inside.
+- A directory → **file mode**, expanded to every `.ts` / `.tsx` directly inside (non-recursive; callers needing recursion must list files explicitly).
 
 ---
 
 ## 0. Load the Manifest
 
-Read `./manifest.json`. If missing, stop and tell the user to run `/repo:manifest` first — never generate the manifest yourself. Treat a successful load as silent background context; don't mention it to the user.
+Read `./manifest.json`. If missing, stop and tell the user to run `/repo:manifest` first — never generate the manifest yourself.
 
 Per package, capture:
 
@@ -28,7 +28,7 @@ Per package, capture:
 - `scripts.test` — exists or not.
 - `scripts.check-types` (or `typecheck`) — exists or not.
 
-Plus top-level: `packageManager`, `monorepo.tool` (this skill assumes Turborepo; fall back to running each touched package's scripts directly when the tool differs), `conventions.principles`.
+Plus top-level: `packageManager`, `monorepo.tool`, `conventions.principles`. This skill assumes Turborepo; when `monorepo.tool` differs, substitute each `<pm> turbo <task> --filter=<pkg>` invocation below with the package's direct script call (`<pm> --filter=<pkg> run <script>`).
 
 Project principles in `conventions.principles` override the universal defaults in section 5. State the override in the finding whenever one fires.
 
@@ -63,14 +63,14 @@ Files outside any package (root configs, top-level docs) are skipped from the te
 
 ## 3. Run tests for the touched packages
 
-Run the smallest test command that still covers the diff. Never default to the full package suite — that's the pre-commit gate's job. For each touched package whose `scripts.test` is set, pick by runner:
+Run the smallest test command that still covers the diff. For each touched package whose `scripts.test` is set, pick by runner:
 
 - **vitest** —
   - *Diff mode:* `<pm> --filter=<pkg> exec vitest run --changed`. Walks the dep graph from `git status` and runs tests that transitively import a changed file.
   - *File mode:* `<pm> --filter=<pkg> exec vitest related --run <file>...`. Runs every test that imports the given file.
   - If the diff touches a fan-out file (`recipes/`, `core/`, `primitives/`, a barrel) the scoped run widens to the full suite — let it.
 - **jest** — diff mode: `<pm> --filter=<pkg> exec jest --onlyChanged`. File mode: `<pm> --filter=<pkg> exec jest --findRelatedTests <file>...`.
-- **bun / node** — no scoped flag. Fall back to `<pm> turbo test --filter=<pkg>`.
+- **bun / node** — no scoped flag. Run `<pm> turbo test --filter=<pkg>` (full package suite; bun/node test runners don't expose change-driven flags).
 
 Substitute `<pm>` with `packageManager`. When touched packages have different runners, run each separately rather than a single `turbo test`.
 
@@ -85,23 +85,23 @@ A weakened test counts as a **blocking** finding even when the suite is green.
 
 ## 4. Type-check the touched packages
 
-If any touched package has `scripts.check-types` (or `typecheck`):
+If any touched package has `scripts.check-types` (or `typecheck`), use that script name:
 
 ```
-<pm> turbo check-types --filter=<pkg-1> --filter=<pkg-2>
+<pm> turbo <script> --filter=<pkg-1> --filter=<pkg-2>
 ```
 
-Use whichever script name the touched packages declare. Any type error blocks the verdict. If no touched package exposes a type-check script, note it and move on.
+Any type error blocks the verdict. If no touched package exposes a type-check script, note it and move on. Type-check is always a single invocation regardless of test runners.
 
 ---
 
 ## 5. Universal TypeScript principles
 
-Non-negotiable defaults. Surface a finding only when the code violates one — do not pad with principles the surrounding code already follows.
+Surface a finding only when the code violates one; do not pad with principles the surrounding code already follows.
 
 - **Strict mode is the floor.** Assume `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`. Code that compiles only with looser settings is a finding.
 - **Prefer `unknown` to `any`.** Reserve `any` for genuine pass-through (a logger recording arbitrary payloads); require an inline justification.
-- **Narrow with control flow, not casts.** Type predicates, `in`, `instanceof`, discriminant checks, exhaustive switches — these replace `as T` and `!`. The compiler verifies narrowing; casts silence it.
+- **Narrow with control flow, not casts.** Type predicates, `in`, `instanceof`, discriminant checks, and exhaustive switches replace `as T` and `!`.
 - **Inference over annotation.** Annotate function parameters and exported return types; let inference handle locals. Use `satisfies` to assert a shape without widening.
 - **Readonly by default for shared data.** Function parameters, returned arrays, and module-level data default to `readonly`. Mutability is opt-in.
 - **No `enum`.** Use `as const` objects or literal-string unions. Enums emit runtime code, conflate types with values, behave oddly under `isolatedModules`.
@@ -241,9 +241,9 @@ Then one of:
 
 ## Rules
 
-- Never run `git commit` while findings remain open.
+- BLOCK halts the caller's commit chain; this skill returns a verdict, never invokes `git commit`.
 - Never auto-fix during the review — surface, let the caller decide.
-- Never skip a review because the surface "looks small". Trivial surfaces hide non-trivial bugs.
+- Never skip a review for surface size.
 - Type holes (`any`, `@ts-ignore`, `as` without a guard) are **blocking by default** — require an inline justification or a refactor.
 - Don't pad. PASS is one line.
-- Fabricated identifiers in catalog examples only (`Widget`, `User`, `Shape`, `Route`) — never a real project symbol.
+- Use fabricated identifiers in catalog examples; never real project symbols.

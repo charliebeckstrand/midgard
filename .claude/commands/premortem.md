@@ -2,9 +2,7 @@
 
 TRIGGER when: a concrete plan exists and is about to execute, and the user asks to premortem, stress-test, pressure-test, or check what could go wrong — "is this plan safe", "what will break", "ready to start?". Skip when no plan exists yet (use `/council` or `/deliberate` instead), or when the failure mode is already obvious.
 
-Stress-test a drafted plan by treating it as already failed. Five agents roleplay future-you, two weeks in, narrating a specific failure that already happened. Peer-review them anonymously, then synthesize the most likely failure, the falsifiable assumptions to verify before starting, and a concrete diff to the plan. Based on Gary Klein's pre-mortem technique.
-
-Use after a plan is drafted and before implementation begins. Skip if no concrete plan exists (use `/council` or `/deliberate`), or if the failure mode is already obvious.
+Stress-test a drafted plan. Five agents roleplay future-you, two weeks in, narrating a specific failure that already happened. Peer-review them anonymously, then synthesize the most likely failure, the falsifiable assumptions to verify before starting, and a concrete diff to the plan. Based on Gary Klein's pre-mortem technique.
 
 ## Archetypes
 
@@ -20,15 +18,19 @@ Each archetype is a different axis of plan failure:
 
 ### 0. Ensure the Manifest exists and is fresh
 
-Read `./manifest.json`. If the file is missing, silently invoke `/repo:manifest --quiet` to create it before continuing. Premortem and postmortem are the canonical creators; downstream skills assume the file is present.
+Read `./manifest.json`. If the file is missing, silently invoke `/repo:manifest --quiet` to create it before continuing.
 
-Then check freshness against the working tree. Run `git diff HEAD --name-only` (and `git diff --cached --name-only` if anything is staged) and inspect the result against the **canonical invalidator list in `/repo:manifest` → "Freshness invalidators"**. That list is authoritative; do not duplicate it here.
+Then check freshness against the working tree. Run `git diff HEAD --name-only` (and `git diff --cached --name-only` if anything is staged). If any of these invalidator paths appear in the diff, silently invoke `/repo:manifest --quiet` to refresh, then proceed without staging the refreshed manifest (the user stages it when postmortem runs):
 
-If any invalidator path appears in the diff, silently invoke `/repo:manifest --quiet` to refresh. Unlike postmortem, premortem does **not** stage the refreshed manifest — there is no commit pending, and the user will handle staging later (typically when postmortem runs).
+- Root `package.json`, `pnpm-workspace.yaml`, or any package's `package.json`
+- `turbo.json`, `tsconfig.json`
+- Lockfiles (`pnpm-lock.yaml`, `package-lock.json`, `yarn.lock`, `bun.lock`)
+- `lefthook.yml`, `lefthook.yaml`, `.husky/`, `.pre-commit-config.yaml`
+- `.github/workflows/*.{yml,yaml}`
+- `CLAUDE.md`, `AGENTS.md`, `CONTRIBUTING.md`, `README.md`
 
-If no invalidator matches, proceed with the existing manifest. The Manifest stays stable across logic-only changes.
+If no invalidator matches, proceed with the existing manifest.
 
-Never tell the user the manifest is loading, generating, or refreshing — this step is silent unless `/repo:manifest` itself produces a notable warning.
 
 ### 1. Resolve input
 
@@ -36,12 +38,12 @@ Find the plan to stress-test, in priority order:
 
 1. A plan pasted inline in the user's message.
 2. A file path the user referenced.
-3. If invoked in plan mode, the most recently modified file in `~/.claude/plans/*.md`. Echo the plan's first H1 and path back, then ask one beat of confirmation before fanning out.
+3. Otherwise, if `~/.claude/plans/` exists, the most recently modified `.md` file in that directory. Echo the plan's first H1 and path back, then ask one beat of confirmation before fanning out.
 4. If nothing resolves, ask one clarifying question.
 
 ### 2. Frame
 
-Read `CLAUDE.md`, the plan, and any files the plan references (≤30 seconds). Use `Glob` + `Read`. Reframe the plan into a neutral one-paragraph summary: goal, approach, scope, where the work touches. No opinion, no steering.
+Read `CLAUDE.md`, the plan, and any files the plan references. Use `Glob` + `Read`. Reframe the plan into a neutral one-paragraph summary: goal, approach, scope, where the work touches.
 
 ### 3. Convene (parallel)
 
@@ -79,7 +81,7 @@ Archetype-specific openers and constraints:
 
 ### 4. Peer review (parallel)
 
-Anonymize the 5 narratives as A–E (randomize the mapping). Spawn 5 reviewers in parallel:
+Anonymize the 5 narratives as A–E. Record the A-E → archetype mapping before spawning reviewers; reuse it verbatim in step 6's transcript. Spawn 5 reviewers in parallel:
 
 ```
 Five future-you agents reported failures of this plan:
@@ -145,9 +147,9 @@ Be direct. Don't hedge.
 
 ### 6. Report + transcript
 
-Save two files in the workspace:
+Save two files to the current working directory. Capture the filename timestamp via `date +%Y%m%d-%H%M%S` at the start of this step and reuse it for both filenames.
 
-- `premortem-report-[timestamp].html` — self-contained HTML, inline CSS, system font stack, clean and scannable. Contains: the framed plan, the Examiner verdict (prominent), an alignment visual showing where narratives converged and diverged, collapsed-by-default sections for each archetype's full narrative, a collapsed peer-review section, footer with timestamp. Open it after writing.
+- `premortem-report-[timestamp].html` — self-contained HTML, inline CSS, system font stack, clean and scannable. Contains: the framed plan, the Examiner verdict (prominent), an alignment matrix (5-row table: archetypes vs. shared failure themes; X-marks which archetypes raised which theme), collapsed-by-default sections for each archetype's full narrative, a collapsed peer-review section, footer with timestamp. Open it after writing.
 - `premortem-transcript-[timestamp].md` — original input, framed plan, all 5 narratives, all 5 peer reviews (with anonymization mapping revealed), Examiner's full synthesis.
 
 ## Rules
@@ -155,6 +157,6 @@ Save two files in the workspace:
 - Spawn archetypes and reviewers in parallel — never sequentially.
 - Anonymize before peer review. Reviewers must not know which archetype wrote which narrative.
 - Past tense, always. Narratives are reports of failures that already happened, not predictions.
-- The Examiner may override the loudest narrative if the peer reviews show it's overdramatized.
+- The Examiner may override the loudest narrative if the peer reviews show it's overdramatized. When overriding, name the replacement explicitly in Most Likely Failure — do not hedge between them.
 - Don't premortem trivial plans. If the failure mode is obvious or the plan is a one-line change, skip.
 - If no concrete plan exists, route to `/council` (decision still open) or `/deliberate` (idea still vague).

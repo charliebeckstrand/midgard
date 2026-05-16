@@ -4,7 +4,7 @@ TRIGGER when: the user asks to create, add, build, or scaffold a new UI componen
 
 Create a new component inside whatever package houses this project's UI library. The repo is a Turborepo with Next.js apps and (usually) one or more shared React component packages. Within that scope the structure, vocabulary, and styling system vary per project — discover them before writing code, then match what you find.
 
-This skill is the **canonical source** for the project's component-authoring conventions. Two reference blocks at the bottom — `[layout-heuristics]` and `[framework-discipline]` — are cited by handle from `/ui:audit` and other consumers. Keep those blocks tight; the rest of the skill is workflow.
+`[layout-heuristics]` and `[framework-discipline]` (bottom) are cited by handle from `/ui:audit` and other consumers; keep them tight. The rest of the skill is workflow.
 
 ## Arguments
 
@@ -14,7 +14,7 @@ $ARGUMENTS
 
 ## 0. Load the Manifest
 
-Read `./manifest.json`. If missing, stop and tell the user to run `/repo:manifest` first — never generate the manifest yourself. Treat a successful load as silent background context; don't mention it to the user.
+Read `./manifest.json`. If missing, stop and tell the user to run `/repo:manifest` first — never generate the manifest yourself.
 
 Per package, capture:
 
@@ -24,8 +24,6 @@ Per package, capture:
 - `primitivesDir`, `hooksDir`, `tokensDir` — what's available for reuse.
 - `testLayout` — used when scaffolding the matching test.
 - `conventions.principles` — observe declared rules (layering, naming, dependency direction).
-
-The manifest does not record `testHelpersDir`. Detect project-local test helpers by globbing the package source for `test-utils.{ts,tsx}`, `setup.{ts,tsx}`, `helpers.{ts,tsx}`, or `__tests__/helpers/`.
 
 ---
 
@@ -46,7 +44,7 @@ Inspect the target package's `package.json` (resolved through the manifest). Kno
 | `tailwindcss` only (no variant lib) | utility classes via a `cn`-style helper |
 | `*.module.css` files in `componentsDir` | CSS Modules |
 
-If none of these signals fires, read 1–2 sibling components before assuming.
+If none of these signals fires, lean on the section 1b sibling reads to decide the styling system.
 
 ### 1b. Sample sibling components
 
@@ -63,7 +61,7 @@ Read **1–2 existing components** in the target `componentsDir`. Extract:
 
 When siblings disagree, prefer the most recent (highest mtime).
 
-The output of section 1b drives every output decision in section 3. If siblings inline variants, the variants file in 3b becomes inline. If siblings ship one file per sub-component, 3c's compound example is the reference shape. Do not silently default to the most-decomposed pattern when siblings are simpler.
+Section 3 follows what 1b finds; don't default to the most-decomposed shape when siblings are simpler.
 
 ### 1c. Detect design tokens / recipes
 
@@ -98,7 +96,7 @@ If the answer is "yes", **compose the existing piece instead of inventing one**:
 
 If none apply and styling is fully covered by composition, **skip the recipe / variants step** in section 3 — the new component is a thin assembly file.
 
-A "command palette" is "a dialog containing a search input and a keyboard-navigated list". Correct implementation composes `<Dialog>`, `<Input>`, and `<Listbox>` (or equivalents) — roughly 50–100 lines. It does **not** re-implement overlays, motion, or option rendering.
+A "command palette" composes `<Dialog>`, `<Input>`, and `<Listbox>` (or equivalents). It doesn't re-implement overlays, motion, or option rendering.
 
 ---
 
@@ -110,7 +108,7 @@ Output decisions follow `[layout-heuristics]` (see bottom of this file). When si
 
 Apply `[layout-heuristics]`. Surface divergence to the user when siblings consistently violate even the fallback heuristics; ask whether to follow the legacy convention or set a new one.
 
-### 3b. Variants / recipe (only if needed)
+### 3b. Variants / recipe
 
 If the component owns genuinely new styling that isn't expressible through composition, create the variant recipe in the location your sibling components use. Inline if siblings inline; sibling `variants.ts` if siblings split; `tokensDir` if siblings centralize.
 
@@ -159,7 +157,7 @@ export const widget = tv({
 })
 ```
 
-If the project owns a registry/barrel listing every recipe (visible in `tokensDir`), register the new recipe there.
+If `tokensDir` contains a registry/barrel that re-exports every recipe (typically `recipes.ts` or `index.ts`), register the new recipe there.
 
 ### 3c. Component file
 
@@ -243,7 +241,7 @@ If components are single files with no folder, skip.
 
 ### 3f. Package / module export entry
 
-If the target package exposes per-component subpath exports in `package.json#exports`, add one alphabetically:
+If the target package exposes per-component subpath exports in `package.json#exports` (skip if the existing entry is a single wildcard like `"./*"`), add one alphabetically:
 
 ```jsonc
 "./widget": {
@@ -284,7 +282,7 @@ Before declaring done, invoke `/typescript:review` against every `.ts` / `.tsx` 
 /typescript:review <component-folder-or-file-path>
 ```
 
-The component is not done until `/typescript:review` returns PASS. Surface BLOCK findings to the user.
+Surface BLOCK findings to the user.
 
 ---
 
@@ -304,7 +302,7 @@ Cited by `/ui:audit` 5.11 and any future skill that detects or prevents layout d
 - **A shared `types.ts`** is worth creating when **two or more** files in the component's folder need the same type. Do not pre-create one for types only one file uses.
 - **Custom hooks** belong in their own files when they're nontrivial or reusable beyond the component. Small one-liners coupled to a single component stay inline.
 
-Split where the boundary is clear and the pieces earn separation. Avoid splitting for its own sake — a 60-line component with one tightly-coupled subtree does not need to be three files.
+Split where the boundary is clear and the pieces earn separation.
 
 **When siblings consistently violate even the fallback heuristics** (every sibling inlines everything, every sibling over-splits), surface the divergence and ask whether to follow the legacy convention or set a new one. Do not silently pick either.
 

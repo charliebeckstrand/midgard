@@ -2,25 +2,23 @@
 
 TRIGGER when: a question deserves scrutiny but does not warrant the full `council` protocol; the user wants to be rubber-ducked by more than one party; moderate stakes with one or two real tradeoffs; council triage explicitly routed here. Skip yes/no questions, factual lookups, and decisions with one obvious answer.
 
-Run a question through two parties using propose-interrogate-swap, then produce a brief joint synthesis. Lighter and faster than `council` — no five-evaluator parallelism, no anonymous peer review, no HTML report. Markdown output only.
+Run a question through two parties using propose-interrogate-swap, then produce a brief joint synthesis. Markdown output only.
 
 ## When to use this vs. siblings
 
 - **Use `debate`** when the decision needs scrutiny but only has one or two real tradeoffs, the user wants to be rubber-ducked by more than one party, or council triage routed here from a higher-stakes path that turned out lighter than expected.
-- **Use `council`** instead when stakes are high, multiple parties are affected, reversibility is low, or several non-obvious tradeoffs need separate examination. Debate's synthesizer can recommend escalating to council mid-flow if stakes turn out higher than scoped.
+- **Use `council`** instead when stakes are high, multiple parties are affected, reversibility is low, or several non-obvious tradeoffs need separate examination.
 - **Use `deliberate`** to audit a debate's joint synthesis after the fact, or to vet a decision in plain language without a structured two-party exchange.
 
 ## Core principle
 
-Two parties take turns proposing and interrogating. Neither is locked into a stance — both can endorse the same path. The structure forces *engagement*: the interrogator must reference the proposer's specific claims, not produce a parallel analysis. After two rounds (one per party as proposer), both parties write a joint synthesis covering agreement, remaining disagreement, and the recommended path.
-
-Modeled on Supreme Court oral argument: petitioner argues, justices probe, respondent argues, justices probe — except both parties take both roles.
+Two parties take turns proposing and interrogating. Neither is locked into a stance — both can endorse the same path. The interrogator must reference the proposer's specific claims, not produce parallel analysis. After two rounds (one per party as proposer), both parties write a joint synthesis covering agreement, remaining disagreement, and the recommended path.
 
 ## Flow
 
 ### 1. Frame the question
 
-Scan the workspace for context (≤30 seconds): `CLAUDE.md`, `memory/`, referenced files, anything obviously relevant.
+Scan for context: `CLAUDE.md` and any files the user explicitly referenced. Cap at 3 reads.
 
 Construct a brief **Question Frame** with:
 
@@ -141,7 +139,7 @@ If Party B endorsed your original proposal: focus on the residual concerns Party
 
 If Party B proposed something different: interrogate the specific differences. Is the new path actually better, or is it different for difference's sake?
 
-Do not relitigate your original case. Engage what Party B proposed.
+Do not relitigate your original case. Engage what Party B proposed. Do not propose an alternative — interrogation only.
 
 200-350 words. No preamble.
 ```
@@ -163,7 +161,7 @@ PARTY B'S INTERROGATION OF A: [response]
 PARTY B'S PROPOSAL: [response]
 PARTY A'S INTERROGATION OF B: [response]
 
-Produce a joint synthesis. This is not an opinion you arbitrate — it is what the two parties would write together if they had to agree on one document.
+Write what both parties would sign if forced to agree on one document.
 
 Output exactly this structure:
 
@@ -171,7 +169,7 @@ Output exactly this structure:
 [One sentence capturing the debate's resolution. ≤25 words.]
 
 ## Recommendation
-[One paragraph stating the recommended path. ≤100 words. If the parties converged, this is the converged path. If they didn't, this is the stronger of the two paths, and the section explains why. Direct, no hedging.]
+[One paragraph stating the recommended path. ≤100 words. If the parties converged, state the converged path. If not, pick the stronger path and explain why. Direct, no hedging.]
 
 ## Where the Parties Agreed
 [Bullets. Points both parties accepted, either explicitly or by failing to contest. Omit if there was little agreement.]
@@ -188,7 +186,7 @@ Output exactly this structure:
 
 ### 7. Output
 
-Save one Markdown file to the workspace. No HTML, no separate transcript — debate is intentionally lighter than council.
+Save one Markdown file to the current working directory. Capture the filename timestamp via `date +%Y%m%d-%H%M%S` at the start of this step. No HTML, no separate transcript.
 
 #### `debate-[timestamp].md`
 
@@ -209,11 +207,11 @@ Deliver the file to the user via `SendUserFile` (status `normal`, caption naming
 - The four party calls are sequential, not parallel. Each must see the prior turn.
 - The synthesizer is a separate agent — not Party A or Party B. Independence matters.
 - Neither party is positionally pro or con. Both can endorse the same path.
-- The interrogator does not propose an alternative in their round. Mixing roles dilutes engagement.
+- The interrogator does not propose an alternative in their round.
 - If both parties converge on the same path with no residual disagreement, the synthesis is short — do not pad it.
 - If the question turns out to be high-stakes mid-debate, the synthesizer can recommend escalating to the `council` skill rather than rendering a final recommendation.
 
 ## Sibling skills
 
-- **`council`** — full five-evaluator protocol with anonymous peer review and HTML report. Use for high-stakes proposals affecting multiple parties or with low reversibility. Council triage may route here from debate if stakes turn out higher than initially assessed.
+- **`council`** — full five-evaluator protocol with anonymous peer review and HTML report. Use for high-stakes proposals affecting multiple parties or with low reversibility.
 - **`deliberate`** — interrogates a prior verdict for unearned consensus or blurred reasoning. Can be run on a debate's joint synthesis the same way it runs on a council verdict.

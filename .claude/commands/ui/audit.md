@@ -4,7 +4,7 @@ TRIGGER when: the user asks to audit, check, review, or scan a UI component (or 
 
 Static, per-component health audit against the project's UI source files. Produces `file:line`-anchored findings sorted by severity. Reads source only — no dev server, no test run, no headless browser.
 
-Typical invocation names a single component. With no target, sweeps every component and surfaces the **worst offenders** ranked by severity-weighted finding count — a triage list, not an alphabetical wall.
+Typical invocation names a single component. Without a target, sweeps every component and ranks by severity-weighted finding count.
 
 **Scope boundaries:**
 
@@ -25,14 +25,14 @@ $ARGUMENTS
 Recognized hints:
 - A path or component name → audit that scope. **Typical case.**
 - `--changed` → audit only files in `git diff --name-only` (staged + unstaged).
-- `--top N` → in suite mode, show only the top N worst offenders (default 10).
+- `--top N` → in suite or changed mode, show only the top N worst offenders (default 10).
 - No arguments → audit every component under each frontend package's `componentsDir` and rank worst offenders.
 
 ---
 
 ## 1. Load the Manifest
 
-Read `./manifest.json`. If missing, stop and tell the user to run `/repo:manifest` first — never generate the manifest yourself. Treat a successful load as silent background context; don't mention it to the user.
+Read `./manifest.json`. If missing, stop and tell the user to run `/repo:manifest` first — never generate the manifest yourself.
 
 Filter `packages` to `isFrontend: true` and `framework` in (`react`, `next`). If none, stop and tell the user the project has no frontend packages to audit.
 
@@ -50,7 +50,7 @@ Per qualifying package:
 
 In priority order:
 
-1. **Explicit path or component name** from `$ARGUMENTS` → audit just that.
+1. **Explicit path or component name** from `$ARGUMENTS` → audit just that (wins over `--changed`).
 2. **`--changed`** → `git diff --name-only HEAD` plus unstaged. Keep `.tsx` / `.jsx` files under a frontend package's `componentsDir` or `primitivesDir`.
 3. **No argument** → audit every file under each frontend package's `componentsDir` and rank worst offenders.
 
@@ -81,14 +81,14 @@ If a file fails to parse, record `blocker · parse-error` and skip remaining che
 
 ## 4. Sample sibling components
 
-Per audited component, glob the parent directory and read up to **3** siblings. Capture:
+Per audited component, glob the parent directory and read the **3 alphabetically-first siblings** (excluding the target). Capture:
 
 - Median prop count across siblings (for prop-surface thresholds in 5.3).
 - Dominant variant / size / color discriminator names (for naming-inconsistency findings in 5.9).
 - Whether siblings extract subtrees vs inline them.
 - Whether siblings push hooks into `hooksDir` vs declare inline.
 
-Siblings calibrate thresholds. A 20-prop component in a 20-prop-sibling package is not bloat; the same component in a 6-prop-sibling package is.
+Sibling median calibrates the §5.3 prop-bloat threshold.
 
 ---
 
@@ -117,7 +117,7 @@ Severity:
 
 ### 5.3. Prop-surface bloat
 
-- **warning** — prop count > **1.5×** the sibling median (from section 4). When siblings are too few, fall back to a hard threshold of **15 props**.
+- **warning** — prop count > **1.5×** the sibling median (from section 4). When fewer than 2 siblings exist, fall back to a hard threshold of **15 props**.
 - **warning** — more than **4 boolean props**. Suggest a discriminated union (`status: 'idle' | 'loading' | 'error' | 'success'`) or compound-component split.
 - **warning** — two or more props that always **co-vary** in every visible call site. Suggest merging into one object prop or one discriminated union.
 - **nit** — props **passed straight through** to a single child with no logic between. Suggest spreading or removing the wrapper.
@@ -135,7 +135,7 @@ Severity:
 - **warning** — `{cond && <Foo/>}` chains where multiple siblings depend on overlapping conditions. Suggests a single guarded section.
 - **warning** — **render function** (function returning JSX) declared **inline inside the component body** and called once. Inline the JSX or extract a real component.
 - **nit** — fragment soup: 3+ adjacent `<>…</>` fragments at the same depth.
-- **nit** — `return null` used as a guard when an **early return** at the top would short-circuit the rest of the work.
+- **nit** — `return null` as a guard when an **early return** at the top of the function would replace it.
 
 ### 5.6. State and effect smells
 
@@ -179,16 +179,16 @@ Do not propose consolidation when candidates live in different packages — that
 ### 5.10. Comment and marker rot
 
 - **nit** — comments referencing props, branches, or callers that no longer exist.
-- **nit** — `TODO` / `FIXME` / `HACK` markers older than **6 months** (`git blame` for age). Prefer `/audit:refactor` for repo-wide stale-marker passes; flag here only when the marker sits inside the component being audited and is directly relevant to a separate finding above.
+- **nit** — `TODO` / `FIXME` / `HACK` markers older than **6 months** (`git blame` for age; skip when `git blame` is unavailable or the file is untracked). Prefer `/audit:refactor` for repo-wide stale-marker passes; flag here only when the marker sits inside the component being audited and is directly relevant to a separate finding above.
 
 ### 5.11. Layout drift (cites `[layout-heuristics]` in `/ui:component:compose`)
 
-Detects deviations from the dominant sibling pattern, with the fallback heuristics from `[layout-heuristics]` applying when siblings disagree. Flag the audited component only when it diverges from the established sibling pattern — package-wide convention drift belongs to `/audit:refactor`.
+Detects deviations from the dominant sibling pattern, with the fallback heuristics from `[layout-heuristics]` applying when siblings disagree. A pattern counts as established when at least 2 of the 3 sampled siblings agree; with fewer agreeing, skip these checks. Flag the audited component only when it diverges from the established sibling pattern — package-wide convention drift belongs to `/audit:refactor`.
 
 - **warning** — siblings ship one component per file, but the audited file declares two or more exported PascalCase components. Suggest splitting each into its own file.
 - **warning** — a type declared inline in the audited file is imported by a sibling file in the same directory. Cross-file imports earn a colocated `types.ts` regardless of sibling pattern. Cite both `file:line`s.
 - **warning** — siblings keep custom hooks in their own files, but the audited file declares a `use*` hook (function whose name starts with `use` and itself calls a React hook) inline. Suggest a sibling `use-<name>.ts`; lift to `hooksDir` when reusable beyond this component.
-- **nit** — a non-exported PascalCase helper component declared inside the audited file is nontrivial (own state, > 20 JSX lines) and could earn its own file. Trivial single-use helpers fine inline.
+- **nit** — a non-exported PascalCase helper component declared inside the audited file is nontrivial (own state, > 20 JSX lines) and could earn its own file.
 
 ### 5.12. Framework smells (cites `[framework-discipline]` in `/ui:component:compose`)
 
@@ -260,7 +260,7 @@ N components audited · M findings (B blockers · W warnings · n nits)
 Split candidates: <count> · Consolidate candidates: <count>
 ```
 
-Top-of-report status:
+Top-of-report status (aggregate across all audited components):
 
 - Any **blocker** → **FAIL**.
 - Only warnings/nits → **PASS WITH FINDINGS**.
@@ -278,7 +278,7 @@ Ask which findings to act on. Auto-actionable:
 - **Consolidate candidate** approved → propose the unified prop interface as a diff. No auto-apply.
 - **Dead variant** or **unused prop** approved → propose the removal as a diff.
 
-Never apply changes automatically. Component edits are judgment calls; surface and wait.
+Never apply changes automatically.
 
 Hand off when out of scope:
 
@@ -360,8 +360,8 @@ warning · mirrored-state · widget.tsx:2 · drop the `current` state; read `val
 
 ## Important
 
-- Reads source — never edits. Findings are recommendations.
-- Calibrate thresholds against **sibling components** (section 4) before flagging size or prop-surface. A blanket threshold is a fallback.
-- A split or consolidate recommendation must cite the **line range** and the **minimal prop interface** — never vague suggestions like "consider splitting this".
-- In `suite` mode, **rank, then truncate**. The worst-offenders table is the deliverable; full per-component sections only for the top-N.
-- `[layout-heuristics]` and `[framework-discipline]` are defined in `/ui:component:compose`. Surface findings against those statements — do not redefine the rules here.
+- Reads source; never edits.
+- Calibrate against **sibling components** (section 4) before flagging size or prop-surface; the blanket threshold is a fallback.
+- Split/consolidate findings must cite line range and minimal prop interface.
+- In `suite` mode, **rank, then truncate**.
+- `[layout-heuristics]` and `[framework-discipline]` live in `/ui:component:compose`. Surface violations; don't restate the rules.

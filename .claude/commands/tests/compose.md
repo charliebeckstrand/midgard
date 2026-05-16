@@ -2,7 +2,7 @@
 
 TRIGGER when: the user asks to create, add, write, or scaffold tests for any target in the project — components, primitives, hooks, utilities, modules. Also runs automatically when `/ui:component:compose` finishes creating a new component.
 
-Create tests for a target. Detect the target's package and type first, then apply the patterns that match. Test framework, file layout, and helper conventions vary per project — discover them, then follow what you find.
+Create tests for a target. Detect the target's package and type first, then apply the patterns that match.
 
 ## Arguments
 
@@ -12,19 +12,19 @@ $ARGUMENTS
 
 ## 0. Load the Manifest
 
-Read `./manifest.json`. If missing, stop and tell the user to run `/repo:manifest` first — never generate the manifest yourself. Treat a successful load as silent background context; don't mention it to the user.
+Read `./manifest.json`. If missing, stop and tell the user to run `/repo:manifest` first — never generate the manifest yourself.
 
 Pull these fields:
 
 - `packages[*]` — find the owning package by longest-prefix match on `path`.
-- `packages[*].testRunner` — drives imports and assertion syntax. `null` → stop and ask the user whether to scaffold test infrastructure first. Never silently add a test runner.
+- `packages[*].testRunner` — drives imports and assertion syntax. `null` → stop and ask the user whether to scaffold test infrastructure first; if invoked automatically by `/ui:component:compose`, return BLOCK with the missing-runner reason instead of prompting. Never silently add a test runner.
 - `packages[*].framework` — drives whether component-testing helpers are imported.
 - `packages[*].testLayout` — `sibling` or `mirror`.
 - `packages[*].scripts.test` — command to run after writing.
 - `packages[*].scripts.check-types` — command to type-check.
 - `packageManager` — `<pm>` substitution for run commands.
 
-The manifest does not record `testHelpersDir`. Detect project-local helpers by globbing the package source for `test-utils.{ts,tsx}`, `setup.{ts,tsx}`, `helpers.{ts,tsx}`, or `__tests__/helpers/`. If found, prefer that file's exports over raw library calls.
+Read the package's `testHelpersDir` from the manifest. If `null`, fall back to globbing the package source for `test-utils.{ts,tsx}`, `setup.{ts,tsx}`, `helpers.{ts,tsx}`, or `__tests__/helpers/`. If multiple match, prefer the one whose exports include a `render` or `renderHook` wrapper; otherwise use the closest to the source file. Prefer the file's exports over raw library calls.
 
 ---
 
@@ -51,7 +51,6 @@ Capture before writing:
 - **Hooks** — input/output shape, internal state, callbacks, side effects, memoization guarantees, browser APIs read at module load.
 - **Utilities / pure modules** — public API, documented edge cases, external dependencies that need mocking.
 
-This determines which patterns apply.
 
 ---
 
@@ -62,7 +61,7 @@ In parallel:
 - **Runner imports** — derived from `testRunner`. Vitest → `import { describe, it, expect, vi } from 'vitest'`. Jest → globals or `@jest/globals`. Bun → `import { describe, it, expect } from 'bun:test'`. Node → `import { describe, it } from 'node:test'` + `import assert from 'node:assert/strict'`.
 - **Framework helpers** — when the package has `framework: react` or `next`, use `@testing-library/react`. For pure libraries with no frontend surface, skip them entirely.
 - **Project-local helpers** — if any were discovered in section 0, prefer them.
-- **Mimic neighbors** — read **one neighboring test** in the package. Match formatting, blank-line discipline, description casing, import grouping.
+- **Mimic neighbors** — read the sibling test (same folder); if none, the nearest test under the same `components/` or `primitives/` subtree. Match formatting, blank-line discipline, description casing, import grouping.
 
 ---
 
@@ -70,7 +69,7 @@ In parallel:
 
 Pick every pattern that applies. Required patterns are flagged.
 
-Examples below use Vitest + React with fabricated identifiers. Adapt the runner imports if the project uses Jest, Bun, or Node. Where a project-local render helper exists, substitute it for `render`.
+Examples below use Vitest + React with fabricated identifiers. Where a project-local render helper exists, substitute it for `render`.
 
 ### 4.1. Component / primitive patterns
 
@@ -244,7 +243,7 @@ it('calls the expected endpoint', async () => {
 
 ## 5. Run the tests
 
-Run only the **freshly-written test file** — not the full suite. The pre-commit gate runs everything at commit time.
+Run only the **freshly-written test file**.
 
 By runner:
 
@@ -253,19 +252,19 @@ By runner:
 - **bun** — `<pm> --filter=<pkg> exec bun test <new-test-file>`
 - **node** — `<pm> --filter=<pkg> exec node --test <new-test-file>`
 
-Substitute `<pm>` with `packageManager` and `<pkg>` with the target package's `name`.
+Substitute `<pm>` with `packageManager` and `<pkg>` with the target package's `name`. Pass `<new-test-file>` as a path relative to the package root (the directory containing the package's `package.json`).
 
-If the test fails, fix it and re-run. Do not leave failing tests.
+If the test fails, fix it and re-run.
 
 ## 6. Type-check
 
-If the package declares `scripts.check-types` (or `typecheck`):
+If the package declares `scripts.check-types`:
 
 ```
 <pm> turbo check-types --filter=<pkg>
 ```
 
-Any type error in the test file is blocking — fix it.
+Fix any type error in the test file before continuing.
 
 ## 7. TypeScript review
 
@@ -275,7 +274,7 @@ Invoke `/typescript:review` against the new test file before declaring done:
 /typescript:review <path-to-new-test-file>
 ```
 
-The test is not done until `/typescript:review` returns PASS. Surface BLOCK findings to the caller (the user, or `/ui:component:compose` if this run was delegated).
+The test is not done until `/typescript:review` returns PASS. If it returns BLOCK, emit a final message starting with `BLOCK:` (followed by the findings); otherwise emit `PASS`. `/ui:component:compose` reads the first token.
 
 When invoked **from** `/typescript:review` itself (file mode against a freshly-written test), skip this step to avoid recursion — the parent already covers it.
 
@@ -297,7 +296,8 @@ When invoked **from** `/typescript:review` itself (file mode against a freshly-w
 - [ ] Test file at the correct path for the package's `testLayout`, with the correct extension.
 - [ ] Imports scoped to what the file uses; runner and framework helpers match the project's existing patterns.
 - [ ] Project-local helpers used when present.
-- [ ] Every applicable pattern from section 4 included.
+- [ ] Every REQUIRED pattern for the target type included.
+- [ ] Every optional pattern whose precondition holds included.
 - [ ] Formatting matches neighboring tests.
 - [ ] Tests pass for the target package.
 - [ ] Types check for the target package.

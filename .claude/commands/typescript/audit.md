@@ -2,9 +2,9 @@
 
 TRIGGER when: the user asks to audit, check, review, or scan TypeScript — a specific file, a package, or the whole repo. Asks "is this idiomatic", "any TS smells", "tighten the types in X", "is `any` anywhere", "audit our TypeScript". Pass a target name or path for per-file mode; pass nothing for the project-wide sweep.
 
-Static audit of `.ts` / `.tsx` files. Produces severity-sorted, `file:line`-anchored findings. Does **not** run tests or the type-checker — source analysis only. For change-driven gating (staged diff, newly-created files) use `/typescript:review`; for periodic clean-up and per-file polish, use this skill.
+Static audit of `.ts` / `.tsx` files. Produces severity-sorted, `file:line`-anchored findings. Does **not** run tests or the type-checker — source analysis only. Use for periodic clean-up and per-file polish.
 
-The principles cited here are the canonical statement in `/typescript:review` sections 5 (universal principles) and 6 (advanced-features catalog). This skill detects violations against that statement — it does not redefine the rules.
+Principles live in `/typescript:review` sections 5 (universal) and 6 (advanced features). This skill detects violations; it does not restate them.
 
 ## Arguments
 
@@ -21,7 +21,7 @@ Recognized hints:
 
 ## 0. Load the Manifest
 
-Read `./manifest.json`. If missing, stop and tell the user to run `/repo:manifest` first — never generate the manifest yourself. Treat a successful load as silent background context; don't mention it to the user.
+Read `./manifest.json`. If missing, stop and tell the user to run `/repo:manifest` first — never generate the manifest yourself.
 
 Per package, capture:
 
@@ -49,7 +49,7 @@ Exclude in every mode: `node_modules/`, `.next/`, `dist/`, `build/`, generated d
 
 ## 2. Sample sibling conventions
 
-For per-file mode, read **one sibling file** in the same directory before checking. Capture:
+For per-file mode, read up to 3 sibling files in the same directory before checking. Require a 2-of-3 match before flagging convention drift in 3.9. Capture:
 
 - `type` vs `interface`.
 - Export style — named-only vs `export default`.
@@ -71,7 +71,7 @@ Flag:
 
 - `as any` and `as unknown as X`.
 - `// @ts-ignore` and `// @ts-expect-error` without an inline justification on the line above.
-- `<T>x` angle-bracket casts (TSX-incompatible; project convention is the `as` form).
+- `<T>x` angle-bracket casts in `.tsx` files (TSX-incompatible). In `.ts` files, flag only when a sibling uses the `as` form.
 - The non-null assertion `!` where a narrowing guard would apply.
 
 Severity: **High** in exported surface or library code; **Medium** in app code without justification; **Low** in test files mocking a third-party shape.
@@ -83,7 +83,7 @@ Cites `/typescript:review` 5 "Narrow with control flow, not casts".
 Flag every:
 
 - Explicit `any` parameter, return type, generic bound, or property.
-- Implicit `any` inferred from a missing annotation on an exported function (the linter usually catches this; surface only when `linter: null`).
+- Implicit `any` inferred from a missing annotation on an exported function. Surface only when `linter: null` or when `tsconfig.strict` is false in the package.
 
 Severity: **High** in exported surface; **Medium** elsewhere.
 
@@ -136,7 +136,7 @@ Flag patterns where a feature from `/typescript:review` section 6 would replace 
 - Type predicates — `boolean`-returning runtime check that should be a predicate.
 - Branded types — a "string but not really" surface (an id, a timestamp) that branding would distinguish.
 
-Severity: **Low** by default — upgrades, not violations. Bump to **Medium** when the heavier form is hiding a real bug (a widened literal that's been wrong at runtime, a missing exhaustiveness check that already let a new variant slip through).
+Severity: **Low** by default — upgrades, not violations. Bump to **Medium** when the heavier form hides a live bug — a widened literal wrong at runtime, a missing exhaustiveness check that let a new variant through.
 
 ### 3.8 TSX-specific (only when the file's package `framework` is `react` or `next`)
 
@@ -147,7 +147,7 @@ Flag:
 - `default export` on a component file when sibling components use named exports.
 - A `PropsWithChildren<P>` wrapper where `children?: React.ReactNode` inline would be clearer.
 
-Severity: **Low** (convention-level). Cites `/typescript:review` 6h.
+Severity: **Low** (convention-level). Cites `/typescript:review` section 6 (TSX-specific patterns).
 
 ### 3.9 Convention drift
 
@@ -164,18 +164,6 @@ Severity: **Low**.
 
 ## 4. Produce findings
 
-### Per-file mode
-
-Print findings inline, severity-sorted (High → Medium → Low), with `file:line` citations and a one-line suggested fix per finding.
-
-### Sweep mode
-
-Aggregate by category. Per category, print the worst 10 findings with `file:line` anchors; cite the total count above the list. Order categories by total finding count, severity-weighted.
-
----
-
-## 5. Verdict
-
 Header:
 
 ```
@@ -185,7 +173,8 @@ Header:
 Then either:
 
 - **CLEAN** — no findings worth surfacing. State this in one line.
-- A severity-sorted finding list (per-file) or category-grouped list (sweep), each with `file:line` anchors and a one-line suggested fix.
+- **Per-file mode** — findings inline, severity-sorted (High → Medium → Low), each as `file:line` plus a one-line fix.
+- **Sweep mode** — group by category. Per category, list the worst 10 findings with `file:line` anchors and one-line fixes; cite the total count above the list. Order categories by `(High × 3 + Medium × 2 + Low × 1)`.
 
 ---
 
@@ -196,5 +185,5 @@ Then either:
 - Project principles in `conventions.principles` override the universal defaults. State the override whenever one fires.
 - Skip what the linter already enforces. The `linter` field tells you what to skip.
 - `/typescript:review` handles staged-diff and new-file gating — do not re-implement its role here.
-- Don't pad. CLEAN is one line. Findings are `file:line` + suggested fix and nothing more.
+- Don't pad. CLEAN is one line. Each finding is `file:line` plus a one-line fix.
 - Fabricated identifiers in examples only — never a real project symbol.

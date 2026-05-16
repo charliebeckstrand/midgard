@@ -4,7 +4,7 @@ TRIGGER when: the user asks to create, add, write, or scaffold a docs page, demo
 
 Create a single docs/demo file next to the project's other component docs. The repo is a Turborepo with Next.js apps and (usually) one or more shared React component packages. The exact docs system (Storybook MDX, hand-rolled Vite playground, `import.meta.glob`-driven registry, etc.) varies per project — discover, then match.
 
-The docs page demonstrates the component's **API surface** — variants, sizes, states, common compositions — in a form the project's code-derivation tooling (if any) can parse into copy-paste snippets. Optimize for that consumer, not for prose.
+The docs page demonstrates the component's **API surface** — variants, sizes, states, common compositions — in a form the project's code-derivation tooling (if any) can parse into copy-paste snippets. Optimize for that consumer.
 
 ## Arguments
 
@@ -16,7 +16,7 @@ Component name (e.g. `Button`, `command-palette`). Match the casing the rest of 
 
 ## 0. Load the Manifest
 
-Read `./manifest.json`. If missing, stop and tell the user to run `/repo:manifest` first — never generate the manifest yourself. Treat a successful load as silent background context; don't mention it to the user.
+Read `./manifest.json`. If missing, stop and tell the user to run `/repo:manifest` first — never generate the manifest yourself.
 
 Pull:
 
@@ -24,8 +24,6 @@ Pull:
 - `framework` — `react` or `next`; determines whether the demo needs `'use client'`.
 - `componentsDir` — source of truth for importable components.
 - `primitivesDir`, `hooksDir`, `tokensDir` — what the docs can compose alongside the target component.
-
-If the target package has no docs system (see section 1), stop and tell the user.
 
 ---
 
@@ -43,7 +41,7 @@ Capture:
 - **Demo file path** the new file should occupy (e.g. `packages/ui/src/docs/demos/<name>.tsx`).
 - **Registry mechanism** — glob auto-discovery, an explicit `index.ts` registry, or Storybook CSF auto-titles.
 - **Example-wrapper** — `<Example>`, `<Story>`, `<Demo>`, `<Showcase>`. Read its props.
-- **Code-derivation walker** — search for `deriveCode` / `extractCode` / similar. If present, the wrapper auto-generates the "Show code" block; if not, expects an explicit `code` prop.
+- **Code-derivation walker** — search for `deriveCode` / `extractCode` / similar. If present, the wrapper auto-generates the "Show code" block; if not, expects an explicit `code` prop. If a specific capability (helper extraction in 3c, collapse in 3b) can't be confirmed from the walker's source, treat it as absent.
 
 If no signal fires, stop and ask where docs live — never guess.
 
@@ -98,7 +96,7 @@ The walker matches build-time-tagged components from the project's barrels:
 </Example>
 ```
 
-Walkers typically collapse runs of 3+ identical iterated siblings to a single representative. The explicit `key={variant}` is the signal. If the project's walker collapses, lean into it — don't unroll the loop by hand.
+Walkers typically collapse runs of 3+ identical iterated siblings to a single representative. The explicit `key={variant}` is the signal. If the project's walker collapses, lean into it.
 
 ### 3c. Author state in a sub-helper when the snippet would otherwise be noisy
 
@@ -142,13 +140,13 @@ When the example renders a side-effect-y thing the walker can't see — a hook c
 </Example>
 ```
 
-Prefer the derived snippet. Every explicit `code` block is one more thing to keep in sync with the component's real API.
+Prefer the derived snippet — every explicit `code` block is one more thing to keep in sync.
 
 ---
 
 ## 4. Compose the docs file
 
-Honor sibling conventions from section 2. The shape below is the de-facto pattern.
+Honor sibling conventions from section 2.
 
 ### 4a. Imports
 
@@ -181,7 +179,7 @@ const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 type Color = (typeof colors)[number]
 ```
 
-Use `as const` for variant/color/size arrays. Reuse the project's canonical lists when they exist (some projects export `BUTTON_VARIANTS` from the component file — import it instead of redeclaring).
+Use `as const` for variant/color/size arrays. Before redeclaring, grep the component file for exported `const` arrays (e.g. `BUTTON_VARIANTS`) and import them if present.
 
 ### 4c. The default export
 
@@ -239,7 +237,7 @@ Skip axes the component doesn't have. Never invent props in the docs that don't 
 
 ### 4e. Reuse the docs controls helpers
 
-If the project has shared controls under `docs/components/` (size pickers, variant pickers, color pickers, value steppers), import and use them instead of writing fresh `<select>` elements inline. They keep docs visually consistent and typically render through the project's components, participating in code derivation cleanly.
+If the project has shared controls under the docs directory discovered in §1 (size pickers, variant pickers, color pickers, value steppers), import and use them instead of writing fresh `<select>` elements inline. They keep docs visually consistent and typically render through the project's components, participating in code derivation cleanly.
 
 ---
 
@@ -258,8 +256,8 @@ Check the registry's sort order. Most projects sort alphabetically; some respect
 
 Before declaring done:
 
-- Open the docs dev server (if one exists) and navigate to the new page. The route should be reachable; every example should render without console errors.
-- Confirm the derived snippet for each example matches the rendered JSX. If a snippet looks wrong, the wrapper or layout choice is fighting the walker — fix the demo, not the walker.
+- If the user is running the docs dev server, navigate to the new page; the route should be reachable and every example should render without console errors. Otherwise rely on the type-check and snapshot/derived-code check below.
+- Confirm the derived snippet for each example matches the rendered JSX.
 - If the project has a docs test (a snapshot of `deriveCode` output, an a11y axe pass, a render smoke test), run it.
 - If the docs file uses `code` overrides, confirm each matches what the example would emit on its own; if they agree, prefer dropping the override.
 
@@ -269,7 +267,7 @@ Before declaring done:
 
 - [ ] File lives at the docs directory section 1 discovered.
 - [ ] File extension and casing match sibling demos.
-- [ ] `export const meta = { category: '…' }` matches an existing category (and is in `categoryOrder` if used).
+- [ ] If siblings expose `export const meta = { category: '…' }`, it matches an existing category (and is in `categoryOrder` if used).
 - [ ] `'use client'` matches sibling demos.
 - [ ] Default export is named `<Name>Demo`, wraps content in the project's outermost layout primitive.
 - [ ] Every `<Example>` has a `title`; interactive controls live in `actions=`.
@@ -286,5 +284,4 @@ Before declaring done:
 
 - The docs file's job is to demonstrate the **API surface**, not to recite internals. If a section doesn't teach the reader something they can act on, cut it.
 - Trust the code-derivation walker. Fighting it creates two sources of truth that will drift.
-- Sibling demos are the source of truth for authoring style. When in doubt, copy the most recent neighbor.
 - Never propose changes to the docs walker, the example wrapper, or any shared docs infrastructure from inside this skill. If a component genuinely can't be documented with the existing tooling, surface that as a finding and let the user decide.

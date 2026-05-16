@@ -2,9 +2,9 @@
 
 TRIGGER when: the user asks to discover, profile, fingerprint, or summarize the project, the stack, the conventions, or the workspace. Also invoked by `/postmortem` and `/premortem` to create or refresh `./manifest.json` when those lifecycle skills detect it is missing or invalidated.
 
-You are producing a single canonical **Manifest** that downstream skills consume instead of each re-deriving the same facts. The Manifest is a JSON document tracked at `./manifest.json` (committed to the repo). Other skills read this file at the top of their flow and stop with a "run `/repo:manifest`" message if it is absent — they never generate it themselves.
+You are producing a single canonical **Manifest** that downstream skills consume instead of each re-deriving them. The Manifest is a JSON document tracked at `./manifest.json` (committed to the repo). Other skills read this file at the top of their flow and stop with a "run `/repo:manifest`" message if it is absent — they never generate it themselves.
 
-This skill is optimized for a **Turborepo monorepo with Next.js apps and (optionally) shared React packages** and produces its richest output for that shape. It degrades gracefully on other setups: when `turbo.json` is absent it sets `monorepo.tool` to `null` and records a note, and frameworks outside `next` / `react` resolve to `node` or `null`. It does not attempt to detect Nx/Lerna metadata.
+This skill is optimized for a **Turborepo monorepo with Next.js apps and (optionally) shared React packages** and produces full output for that shape; degrades elsewhere. When `turbo.json` is absent it sets `monorepo.tool` to `null` and records a note; frameworks outside `next` / `react` resolve to `node` or `null`. It does not attempt to detect Nx/Lerna metadata.
 
 ## Arguments
 
@@ -17,7 +17,7 @@ Recognized flags:
 
 ## How to discover
 
-Every invocation regenerates the Manifest end-to-end. There is no freshness short-circuit — staleness is detected by `/postmortem` against the working diff, not by this skill. Callers that want to skip work when the Manifest is already current should check existence themselves before invoking.
+Every invocation regenerates the Manifest end-to-end. Staleness is `/postmortem`'s concern, against the working diff. Callers that want to skip work when the Manifest is already current should check existence themselves before invoking.
 
 ### 1. Read repository-level inputs
 
@@ -31,16 +31,18 @@ Run these in parallel:
   | `package-lock.json` | `npm` |
   | `bun.lock` | `bun` |
   | `bun.lockb` | `bun` |
-  Multiple lockfiles → pick the most recently modified and note the others in `notes`.
+  Multiple lockfiles → pick the most recently modified and note the rejected lockfile names in `notes`.
 
 - **Workspace config** → confirm Turbo and capture the workspace globs:
   - When `turbo.json` exists, set `monorepo.tool` to `turbo`. When it is missing, set `monorepo.tool` to `null` and record a note — downstream skills that need the richer Turbo metadata will detect the absence themselves.
   - Capture the `workspaces` glob list from `pnpm-workspace.yaml#packages` or `package.json#workspaces` — whichever the repo uses.
 
 - **Conventions docs** → read these if present, in this order: `CLAUDE.md`, `AGENTS.md`, `CONTRIBUTING.md`, `README.md`. From each, extract:
-  - One-line summaries of any declared **principles** (architecture rules, code-style rules, dependency rules).
+  - One-line summaries of any declared **principles** (architecture rules, code-style rules, dependency rules). Cap at ~10.
   - A **vocabulary glossary**: any project-specific terms (folder/recipe/primitive names) defined or repeatedly referenced, with a 1-sentence gloss inferred from context.
   - Any **mandatory skill bindings** declared (statements like "always use `/foo` when …").
+
+  On conflict between files, the earlier file in the list wins.
 
 - **Pre-commit hook config**:
   | File | Tool |
@@ -72,16 +74,12 @@ Per-package fields:
   | otherwise | `null` |
 - `testRunner` — `vitest` / `jest` / `bun` / `node` (detected from devDeps and/or `scripts.test`); `null` if no test infrastructure.
 - `linter` — `biome` / `eslint`; `null` if absent.
-- `scripts` — always emit all seven keys (`test`, `test:changed`, `test:related`, `lint`, `check-types`, `build`, `dev`). Copy the value verbatim from `package.json#scripts`; use `null` when the key is absent. If the package uses `typecheck` instead of `check-types`, normalize it under `check-types`. The `test:changed` / `test:related` entries are the scoped-iteration commands consumed by `/typescript:review` and `/tests:compose` — see CLAUDE.md → "Testing".
+- `scripts` — always emit all seven keys (`test`, `test:changed`, `test:related`, `lint`, `check-types`, `build`, `dev`). Copy the value verbatim from `package.json#scripts`; use `null` when the key is absent. Prefer `check-types`; fall back to `typecheck` if absent; ignore other aliases. The `test:changed` / `test:related` entries are the scoped-iteration commands consumed by `/typescript:review` and `/tests:compose`.
 - `componentsDir` — first existing directory, in this order: `src/components/`, `src/ui/`, `app/components/`, `lib/components/`, `components/`; else `null`.
 - `primitivesDir` — first existing directory, in this order: `src/primitives/`, `src/atoms/`, `src/core/components/`; else `null`.
 - `hooksDir` — first existing directory, in this order: `src/hooks/`, `src/use/`; else `null`.
 - `tokensDir` — first existing directory, in this order: `src/recipes/`, `src/tokens/`, `src/theme/`, `src/styles/tokens/`; else `null`.
-- `testLayout` — list files matching `**/*.{test,spec}.{ts,tsx,js,jsx}` under the package, exclude `node_modules` and `dist`, and inspect up to 2 (most recently modified first):
-  - Co-located next to source → `sibling`.
-  - Located under a `__tests__/` directory → `mirror`.
-  - No matching files → `null`.
-  - When the two samples disagree, pick whichever shape is more common across the full list; if still tied, prefer `sibling`.
+- `testLayout` — list files matching `**/*.{test,spec}.{ts,tsx,js,jsx}` under the package (exclude `node_modules` and `dist`). Classify each as `sibling` (next to source) or `mirror` (under a `__tests__/` directory). Pick whichever shape is more common; if tied, prefer `sibling`. No matching files → `null`.
 - `testHelpersDir` — directory containing a `helpers.ts` / `test-utils.ts` / `setup.ts` referenced from existing tests; else `null`.
 - `isFrontend` — `true` when any of `*.tsx` / `*.jsx` / `index.html` exist under the package; else `false`.
 
@@ -179,11 +177,11 @@ Compose the final object. Schema:
 Field rules:
 - Every field is **required**; use `null` when a value is genuinely absent.
 - `notes` collects any heuristic warnings (e.g. multiple lockfiles, conflicting framework signals).
-- Never emit project-specific facts unless they were actually discovered. Do not fabricate vocabulary entries.
+- Never fabricate vocabulary entries or project-specific facts.
 
 ### 4. Write the Manifest
 
-Write the Manifest pretty-printed to `./manifest.json` at the repo root. The file is tracked in git — when invoked from `/postmortem`'s diff-driven refresh, the caller is responsible for staging the updated file so it ships in the same commit as the change that invalidated it.
+Write the Manifest pretty-printed to `./manifest.json` at the repo root. The file is tracked in git — when invoked from `/postmortem`'s diff-driven refresh, the caller is responsible for staging the updated file so it ships in the same commit as the change that invalidated it. Direct user invocations leave staging to the user.
 
 ### 5. Summarize for the user
 
@@ -295,6 +293,6 @@ End with: `Run /repo:manifest to regenerate; downstream skills will reuse this f
 ## Important
 
 - The Manifest must reflect **only what was observed**. Never invent fields. Use `null` and `[]` liberally.
-- Run filesystem reads in parallel where independent. A typical run completes in under a few seconds.
-- Do not interpret the manifest (e.g. recommend changes) here. Discovery is read-only. Other skills consume the manifest and decide what to do.
+- Run filesystem reads in parallel where independent.
+- Do not interpret the manifest (e.g. recommend changes) here. Discovery is read-only.
 - If the repo has zero packages with a `package.json`, emit a manifest with `packages: []` and a `notes` entry explaining why, and stop.

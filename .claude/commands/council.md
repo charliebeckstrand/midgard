@@ -2,7 +2,7 @@
 
 TRIGGER when: the user asks to council, war-room, evaluate, or pressure-test a concrete proposal or decision; says "should I X or Y", "which option", "what would you do", "I'm torn"; or plan mode is active for non-trivial work (3+ steps, multiple viable approaches, real tradeoffs). Skip yes/no questions, factual lookups, reversible low-stakes choices, and planning where the path is obvious.
 
-Run a proposal through 5 evaluators using shared lenses, peer-review their evaluations anonymously, then render a verdict. Adapted from Karpathy's LLM Council using sub-agents instead of separate models.
+Run a proposal through 5 evaluators using shared lenses, peer-review their evaluations anonymously, then render a verdict.
 
 ## When to use this vs. siblings
 
@@ -12,9 +12,9 @@ Run a proposal through 5 evaluators using shared lenses, peer-review their evalu
 
 ## Core principle
 
-The council evaluates a **concrete proposal**, not a topic. All five evaluators examine the same artifact through different lenses. They do not hold assigned stances — none is positionally pro or con. Consensus emerges when it emerges; disagreement surfaces when it's real. The chairman renders a verdict, which may be to reject the proposal outright, and may side with a minority when the minority's reasoning is stronger.
+The council evaluates a **concrete proposal**, not a topic. All five evaluators examine the same artifact through different lenses. They do not hold assigned stances — none is positionally pro or con. Report consensus only when evaluators converge; surface disagreement only when it's substantive. The chairman renders a verdict, which may be to reject the proposal outright, and may side with a minority when the minority's reasoning is stronger.
 
-The council is impartial. It does not exist to make the user's proposal work. It exists to evaluate whether it should.
+The council evaluates whether the proposal should proceed; it does not advocate for it.
 
 ## Flow
 
@@ -24,27 +24,27 @@ Before convening, assess whether the question warrants the full protocol:
 
 - **Skip the council and answer directly** if the answer is obvious or has one right answer, the decision is cheaply reversible and low blast-radius, or the user wants factual information rather than evaluation.
 - **Ask one clarifying question, then re-triage** if the question is too vague to extract a proposal.
-- **Route to `debate`** if the question deserves scrutiny but doesn't warrant a full council — moderate stakes, one or two real tradeoffs, or the user just needs to be rubber-ducked by more than one party. The Supreme Court doesn't hear every case; the council shouldn't either. Tell the user you're routing to debate and why.
+- **Route to `debate`** if the question deserves scrutiny but doesn't warrant a full council — moderate stakes, one or two real tradeoffs, or the user just needs to be rubber-ducked by more than one party. Tell the user you're routing to debate and why.
 - **Continue to step 2** if the question warrants the full council: high stakes, multiple non-obvious tradeoffs, low reversibility, or affects parties beyond the user.
 
 ### 2. Frame the proposal
 
-Scan the workspace for context (≤30 seconds): `CLAUDE.md`, `memory/`, referenced files, recent council transcripts, anything obviously relevant. Use `Glob` + `Read`.
+Scan for context: `CLAUDE.md`, any files the user explicitly referenced, and the most recent `council-transcript-*.md` in the cwd if relevant. Cap at 5 reads.
 
 Construct a **Proposal Under Review** with these required parts:
 
 - **Proposal** — 1-3 sentences stating what is being proposed. Concrete, not topical.
-- **Driver** — the specific friction, opportunity, or goal motivating this consideration. *Why now, why this?* If the user hasn't said and it isn't obvious from context, ask before convening. A proposal without a driver is a proposal in search of a problem.
+- **Driver** — the specific friction, opportunity, or goal motivating this consideration. *Why now, why this?* If the user hasn't said and it isn't obvious from context, ask before convening.
 - **Key assumption** — the central claim the proposal rests on. If this is wrong, the proposal fails.
 - **Success criterion** — what observably happens if this works.
 - **User's current prior** — what the user currently leans toward, in their own framing.
 - **Constraints** — budget, timeline, reversibility, what's been tried, team/context. Surface explicitly; do not assume.
 
-If the user brought a vague question rather than a proposal, draft the proposal yourself and confirm it with the user in one message before convening. The user can amend it. Do not convene without a concrete proposal on the table.
+If the user brought a vague question rather than a proposal, draft the proposal yourself and confirm it with the user in one message before convening. The user can amend it.
 
 ### 3. Convene evaluators (parallel)
 
-Spawn all 5 evaluators in parallel. Each examines the same Proposal Under Review through a different evaluation lens. None is positionally pro or con — all are evaluators of the same object.
+Spawn all 5 evaluators in parallel. Each examines the same Proposal Under Review through a different evaluation lens.
 
 - **Assumption** — Is the proposal's central assumption true? What would have to be the case for it to hold? What evidence supports or undermines it?
 - **Failure-mode** — Where does this break under real conditions? What's the most likely way it fails, and what's the worst way it fails?
@@ -73,7 +73,7 @@ Respond through your lens. Be direct and specific. Engage the constraints — do
 
 ### 4. Peer review (parallel)
 
-Anonymize the 5 responses as A-E (randomize the mapping). Spawn 5 reviewers in parallel:
+Anonymize the 5 responses as A-E. Record the A-E → Lens mapping before spawning reviewers; reuse it verbatim in step 6's transcript. Spawn 5 reviewers in parallel:
 
 ```
 Five evaluators reviewed this proposal through different lenses:
@@ -126,7 +126,7 @@ Render a verdict. Your verdict is one of:
 - **Proceed** — the proposal is sound. Name any risks worth monitoring.
 - **Revise** — the proposal has the right shape but needs specific changes. Name them.
 - **Reject** — the proposal should not proceed. Name what should replace it.
-- **Fork** — the deliberation surfaced two viable paths (A and B) that depend on a factor the council cannot resolve from outside (user's risk tolerance, team composition, specific context). Name both paths, name the deciding factor, and give the user a concrete way to determine which path applies to them. Use sparingly — most forks are actually unresolved Revises in disguise. If the deciding factor *can* be resolved by the user gathering one piece of information, prefer "Insufficient information" with a request for that information.
+- **Fork** — the deliberation surfaced two viable paths (A and B) that depend on a stable user attribute the council cannot observe from outside (risk tolerance, team composition, established workflow). Name both paths, name the deciding attribute, and give the user a concrete way to determine which path applies to them. Use sparingly. If the deciding factor is information the user could gather in a single lookup, prefer "Insufficient information" with a request for that information.
 - **Insufficient information** — the proposal cannot be evaluated as stated. Name what's missing.
 
 Rules:
@@ -142,13 +142,13 @@ Output exactly this structure, omitting any section that does not apply. The Hea
 [One sentence capturing the entire deliberation. The thing you'd say in a hallway. ≤25 words. Should land even without reading anything else.]
 
 ## Cliff Notes
-[3-5 bullets condensing the report. Format each as a short labeled bullet:
+3-5 labeled bullets condensing the report. Each ≤15 words.
+
 - **Verdict:** [one phrase]
 - **Why:** [one phrase naming the strongest convergence or the deciding consideration]
 - **Watch for:** [one phrase naming the biggest risk or blind spot]
 - **Do first:** [one phrase naming the next action]
 - **If condition X:** [optional — if the verdict has a reframe path, name it]
-Keep each bullet ≤15 words.]
 
 ## Verdict
 [Proceed / Revise / Reject / Fork / Insufficient information, followed by one paragraph stating the verdict and why. Direct, no hedging. ≤120 words (≤180 for Fork, since both paths must be named). If a reframe of the proposal would warrant a different verdict, name it here in one sentence.]
@@ -176,7 +176,7 @@ Keep each bullet ≤15 words.]
 
 ### 6. Report + transcript
 
-Save two files in the workspace and deliver the HTML to the user via `SendUserFile` (status `normal`, caption naming the topic). Use a single `YYYYMMDD-HHMMSS` timestamp for both filenames.
+Save two files to the current working directory and deliver the HTML to the user via `SendUserFile` (status `normal`, caption naming the topic). Capture one timestamp at the start of this step via `date +%Y%m%d-%H%M%S` and reuse it verbatim for both filenames.
 
 #### `council-transcript-[timestamp].md`
 

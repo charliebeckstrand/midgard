@@ -2,7 +2,7 @@
 
 TRIGGER when: the user asks to recommend, suggest, propose, or identify new UI components for the project's component library, or asks what's missing, what to build next, or how to expand the library.
 
-Analyze the project's existing UI inventory and recommend new components that complement what's already there. Base recommendations on real gaps, observed composition style, and the project's own design philosophy — not on a generic checklist.
+Analyze the project's existing UI inventory and recommend new components that complement what's already there. Base recommendations on real gaps, observed composition style, and the project's own design philosophy.
 
 ## Arguments
 
@@ -14,13 +14,13 @@ If the user provided context ("I'm building a dashboard", "we need more form pie
 
 ## 1. Load the Manifest
 
-Read `./manifest.json`. If missing, stop and tell the user to run `/repo:manifest` first — never generate the manifest yourself. Treat a successful load as silent background context; don't mention it to the user.
+Read `./manifest.json`. If missing, stop and tell the user to run `/repo:manifest` first — never generate the manifest yourself.
 
 Pull:
 
-- `packages[*]` — focus on `isFrontend: true`, `framework` in (`react`, `next`), and `componentsDir` set. Ask the user which package if more than one qualifies.
+- `packages[*]` — focus on `isFrontend: true`, `framework` in (`react`, `next`), and `componentsDir` set. If more than one qualifies, halt and ask the user which package; resume after answer.
 - `componentsDir`, `primitivesDir`, `hooksDir`, `tokensDir` — the inventory to inspect.
-- `conventions.principles` — declared rules that weight recommendations (e.g. "compose existing components before inventing primitives" → bias toward components that mostly reuse what's there).
+- `conventions.principles` — declared rules that weight recommendations (e.g. a "compose before invent" principle biases toward components reusing existing primitives).
 
 If no qualifying package exists, stop and tell the user the project has no UI library to recommend against.
 
@@ -28,11 +28,11 @@ If no qualifying package exists, stop and tell the user the project has no UI li
 
 ## 2. Inventory what exists
 
-Run these reads in parallel against the chosen package.
+Run these reads in parallel against the chosen package. (If section 1 halted to ask which package, resume here after the answer.)
 
 ### 2a. Existing components
 
-Glob `componentsDir` (one level deep, or following whatever pattern sibling components use — folders vs files). Record the full list. **Never rely on a memorized list — the library evolves.**
+Glob `componentsDir` one level deep; if results show folder-per-component (subdirectories rather than files), recurse one more level. Record the full list. **Never rely on a memorized list — the library evolves.**
 
 ### 2b. Primitives, hooks, and tokens
 
@@ -40,17 +40,17 @@ Glob `primitivesDir`, `hooksDir`, and `tokensDir` (when set). These are the buil
 
 ### 2c. Partially built work
 
-Look for entries in the tokens/recipes directory with no matching component, and components missing demos or tests — both signal in-progress work the user may already plan to finish.
+Look for entries in the tokens/recipes directory with no matching component, and components missing demos or tests — both signal in-progress work. Surface these in section 5 under a separate "in-progress" note, not as recommendations.
 
 ### 2d. Project-declared exclusions
 
-Read `CLAUDE.md`, `AGENTS.md`, and the existing `ui/component/compose.md` skill body for any "skip-recommend" or "do not scaffold" list. Anything declared there is authoritative — never propose it.
+Read `CLAUDE.md` and `AGENTS.md` for any "skip-recommend" or "do not scaffold" list. Anything declared there is authoritative — never propose it.
 
 ---
 
 ## 3. Identify gaps
 
-Compare findings against this catalog of universal UI categories. The catalog is a **lens**, not a checklist — adapt to the project's domain and design philosophy.
+Compare findings against this catalog of universal UI categories. Adapt to the project's domain; the catalog is not exhaustive.
 
 | Category | Common members |
 | --- | --- |
@@ -67,10 +67,10 @@ For each candidate the project does **not** ship and is **not** on the exclusion
 
 A real gap:
 
-- Commonly needed in applications of the kind this project targets (infer from conventions docs and from existing components — a dashboard kit and a marketing kit need different things).
+- Commonly needed in applications of the kind this project targets (infer from conventions docs and from existing components).
 - Mostly built from existing primitives / hooks / tokens (would feel native, not bolted on).
 - API surface well-defined and focused — not a sprawling subsystem.
-- Not a trivial single-element wrapper (`<H1>` around `<h1>` doesn't count; meaningful abstraction required).
+- Not a trivial single-element wrapper — meaningful abstraction required.
 
 ---
 
@@ -83,13 +83,13 @@ Per candidate that survives section 3, assess:
 - **Composability** — fits cleanly with existing components vs conflicts with their conventions.
 - **Scope** — single focused component (preferred) vs large subsystem.
 
-Drop anything that scores poorly on two or more axes. Quality over quantity — 5 strong beats 20 weak.
+Drop anything that scores poorly on two or more axes.
 
 ---
 
 ## 5. Present recommendations
 
-One row per recommendation in a single table, grouped visually by category, ordered by priority within each group:
+One row per recommendation in a single table, sorted by category first then priority within each category:
 
 | Name | Category | Composition | Effort | Priority | Rationale |
 | --- | --- | --- | --- | --- | --- |
@@ -105,13 +105,13 @@ Column rules:
 - **Priority** — high / medium / low.
 - **Rationale** — one short sentence tying the recommendation to a real gap or principle. Cite a manifest principle when applicable.
 
-After the table, add a short paragraph noting any **declined** categories ("no Forms gaps found", "color-picker on the exclusion list — skipped"). Makes the recommendation set falsifiable.
+After the table, add a short paragraph noting any **declined** categories ("no Forms gaps found", "color-picker on the exclusion list — skipped").
 
 ---
 
 ## 6. Offer to create
 
-Ask which recommendations to scaffold. Per chosen item, invoke `/ui:component:compose <name>`.
+Ask which recommendations to scaffold. Per chosen item, invoke `/ui:component:compose <name>` sequentially — wait for each to complete before starting the next.
 
 ---
 

@@ -2,18 +2,18 @@
 
 TRIGGER when: a council or debate produced a verdict that feels suspiciously clean (too-fast consensus), suspiciously blurred (consensus claimed but reasoning doesn't support it), or where the user wants the verdict itself interrogated rather than accepting it; also when a user wants careful scrutiny of any decision standalone (no prior council). Skip yes/no questions, settled matters, and routine choices.
 
-Interrogate a verdict — or a decision — for the quality of its reasoning, not just its conclusion. Two modes: **post-council** (audits a prior verdict, technical register) and **standalone** (vets a decision from scratch, plain-language register).
+Interrogate a verdict — or a decision — for the quality of its reasoning, not just its conclusion. Two modes: **post-council** and **standalone**.
 
 ## When to use this vs. siblings
 
-- **Use `deliberate` (post-council mode)** after a `council` or `debate` session when the verdict feels suspiciously clean (too-fast consensus), suspiciously blurred (consensus claimed but reasoning doesn't support it), or when you want the verdict audited rather than accepted at face value.
-- **Use `deliberate` (standalone mode)** when you want careful, plain-language scrutiny of a decision but don't need the full ceremony of a council or the structured exchange of a debate. Think of it as a lawyer talking to a client rather than convening a court.
+- **Use `deliberate` (post-council mode)** after a `council`/`debate` verdict you want audited.
+- **Use `deliberate` (standalone mode)** for a decision you want scrutinized without full ceremony.
 - **Use `council`** instead if the decision is high-stakes and hasn't been examined yet — deliberate audits or advises but does not replace the council's verdict-rendering job.
 - **Use `debate`** instead if you want a two-party exchange to surface tradeoffs you haven't yet considered.
 
 ## Core principle
 
-A conclusion is only as good as the reasoning that produced it. Deliberate's job is not to render a new verdict — it is to check whether the existing one was *earned*. Convergence can be cargo-culted. Disagreement can be smoothed over. Drivers can be post-hoc. Verdicts can drift from the evaluator content they claim to synthesize. Deliberate audits for these failure modes and reports what it finds.
+A conclusion is only as good as the reasoning that produced it. Deliberate checks whether the existing verdict was *earned*. Convergence can be cargo-culted. Disagreement can be smoothed over. Drivers can be post-hoc. Verdicts can drift from the evaluator content they claim to synthesize. Deliberate audits for these failure modes and reports what it finds.
 
 Modeled on a lawyer's role: rigorous, evidence-based, willing to say the case is weaker than it looks — or stronger. Speaks to the client (standalone mode) in language they understand. Speaks to other lawyers (post-council mode) with the technical vocabulary of the deliberation itself.
 
@@ -21,7 +21,7 @@ Modeled on a lawyer's role: rigorous, evidence-based, willing to say the case is
 
 Determine mode from context:
 
-- **Post-council mode** — invoked on a prior council or debate transcript. The user names a session, references a verdict, or invokes after `council`/`debate` has run. Audit the transcript directly.
+- **Post-council mode** — invoked on a prior council or debate transcript. The user names a session, references a verdict, or invokes `deliberate` in the same turn as, or explicitly referencing, a recent council/debate output. Audit the transcript directly.
 - **Standalone mode** — invoked on a decision with no prior council/debate. The user wants careful scrutiny but doesn't need full ceremony. Frame and audit in plain language.
 
 If the mode is ambiguous, ask once: "Are you asking me to audit a prior council session, or vet a decision from scratch?"
@@ -34,7 +34,7 @@ Audits an existing transcript for reasoning quality. Technical register — assu
 
 ### 1. Locate and load the transcript
 
-Find the council transcript (`council-transcript-[timestamp].md`) or debate output (`debate-[timestamp].md`) in the workspace. If the user named a topic but not a file, glob for recent transcripts and confirm which one to audit.
+Find the council transcript (`council-transcript-*.md`) or debate output (`debate-*.md`) in the current working directory. If the user named a topic but not a file, glob for recent transcripts and confirm which one to audit.
 
 If no transcript exists but the user is referencing a recent session, ask the user to identify it.
 
@@ -60,7 +60,7 @@ Audit the transcript against the following failure modes. For each, gather evide
 
 ### 3. Render an audit
 
-Output exactly this structure. Omit any section where no finding applies.
+Output exactly this structure. Findings and What the Verdict Got Right may be omitted when empty; the other sections always render — use "None" for empty Audit Summary bullets.
 
 ```
 ## Headline
@@ -91,7 +91,7 @@ One of:
 
 ### 4. Output
 
-Save two files in the workspace and deliver the HTML to the user via `SendUserFile` (status `normal`, caption naming the topic of the audited deliberation). Use a single `YYYYMMDD-HHMMSS` timestamp for both filenames.
+Save two files to the current working directory and deliver the HTML to the user via `SendUserFile` (status `normal`, caption naming the topic of the audited deliberation). Capture one timestamp via `date +%Y%m%d-%H%M%S` at the start of this step and reuse it for both filenames.
 
 #### `deliberate-audit-[timestamp].md`
 
@@ -112,7 +112,7 @@ Self-contained — one file, inline `<style>`, no external assets, no scripts. M
 7. **What the Verdict Got Right** — `<ul>` of points the deliberation handled well. **Omit if step 3 produced nothing to acknowledge.**
 8. **Footer** — muted, centered, e.g. "Deliberate audit — seven failure modes checked. Re-run `council` with a revised Proposal Under Review if the recommendation calls for it."
 
-**Conditional section rule:** sections 6 and 7 are omitted entirely if step 3 produced no content for them. A clean audit on a well-reasoned verdict produces a short report — that is the correct outcome, not a sign that the spec was under-filled.
+**Conditional section rule:** sections 6 and 7 are omitted entirely if step 3 produced no content for them.
 
 **Required styling:**
 
@@ -178,7 +178,7 @@ Output in plain language. No jargon. Structured but conversational.
 
 ### 4. Output
 
-Save two files in the workspace and deliver the HTML to the user via `SendUserFile` (status `normal`, caption naming the decision being deliberated). Use a single `YYYYMMDD-HHMMSS` timestamp for both filenames.
+Save two files to the current working directory and deliver the HTML to the user via `SendUserFile` (status `normal`, caption naming the decision being deliberated). Capture one timestamp via `date +%Y%m%d-%H%M%S` at the start of this step and reuse it for both filenames.
 
 #### `deliberate-advice-[timestamp].md`
 

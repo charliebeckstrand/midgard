@@ -2,7 +2,7 @@
 
 TRIGGER when: the user asks to compose, recite, write, refine, rewrite, articulate, or polish prose.
 
-Orator is a stylist: it polishes language, not facts. It honors the host project's conventions — register, cadence, vocabulary, discipline — and never imposes a foreign tone. Eloquence here is precision and economy, never flourish.
+Orator is a stylist: it polishes language, not facts. It honors the host project's conventions — register, cadence, vocabulary, discipline — and never imposes a foreign tone.
 
 ## When to use this vs. siblings
 
@@ -27,7 +27,7 @@ If no argument is passed and there is no obvious target in the conversation, ask
 
 ## 0. Load the Manifest
 
-Read `./manifest.json`. If missing, stop and tell the user to run `/repo:manifest` first — never generate it yourself. Treat a successful load as silent background context.
+Read `./manifest.json`. If missing, stop and tell the user to run `/repo:manifest` first — never generate it yourself.
 
 Pull:
 
@@ -70,8 +70,6 @@ From the samples, lock:
 - **Vocabulary** — domain terms used unaltered; jargon that is or isn't expanded on first use.
 - **Markdown idioms** — bullet vs. paragraph density, code-span discipline, link style.
 
-The locked voice is the target. Deviations from it earn a justification.
-
 ---
 
 ## 3. Apply the universal prose principles
@@ -96,7 +94,7 @@ Cite a principle by name when a rewrite invokes it.
 
 Honor the project's comment principles (sourced from `CLAUDE.md` → "Doing tasks"):
 
-- **Default to no comment.** A comment earns its place by explaining a non-obvious WHY — a hidden constraint, a subtle invariant, a workaround for a specific bug, behavior that would surprise the reader. If the candidate comment merely restates WHAT the code does, **flag it for deletion** rather than polishing it.
+- **Default to no comment.** A comment earns its place by explaining a non-obvious WHY — a hidden constraint, a subtle invariant, a workaround for a specific bug, a non-obvious ordering requirement. If the candidate comment merely restates WHAT the code does, **flag it for deletion** rather than polishing it.
 - **No transient context.** Strip references to the current task, fix, ticket number, PR, or specific callers ("used by X", "added for the Y flow"). That context belongs in the PR description and rots in the source tree.
 - **One short line is the default.** Multi-line comment blocks earn their lines.
 - **Match the file's comment register.** A package with terse one-liners does not get paragraph-length essays mid-function.
@@ -118,7 +116,7 @@ Honor the project's comment principles (sourced from `CLAUDE.md` → "Doing task
 ### READMEs, design docs, release notes
 
 - Open with the *what and why* — never with installation.
-- Each heading earns its place by carrying content the previous section needed but couldn't fit.
+- Each heading introduces content that doesn't belong under the previous one.
 - Code samples are realistic. Avoid `foo` / `bar` when a real example fits in the same characters.
 
 ---
@@ -131,7 +129,6 @@ Honor the project's comment principles (sourced from `CLAUDE.md` → "Doing task
 - Produce the rewritten prose.
 - For each non-trivial change, attach a one-phrase rationale citing a principle from section 3 or 4.
 - For each candidate flagged for deletion, output a delete marker with the rationale.
-- Never alter executable code, identifiers, or string literals — only the prose inside comment delimiters, Markdown bodies, docstrings, or freestanding message text.
 - Code spans, fenced code blocks, and example snippets inside Markdown stay byte-identical.
 
 **Compose mode:**
@@ -178,4 +175,4 @@ Emit the draft inline. End with one sentence offering a sharper version on reque
 - **Don't touch executable code.** Orator's surface is prose. Identifiers, strings, code blocks, and fenced examples stay byte-identical.
 - **Don't preserve comments that violate `CLAUDE.md` → "Doing tasks".** A comment that restates WHAT the code does, or carries transient context, is flagged for deletion — polishing it would entrench a smell.
 - **Don't pad.** A clean rewrite is a one-line replacement with a one-phrase rationale. Long rationales mean the rewrite did too much.
-- **Don't cross modes.** If the user wants refine, don't compose; if the user wants compose, don't refine. Confirm the mode if there is any doubt.
+- **Don't cross modes.** Confirm the mode if there's any doubt.

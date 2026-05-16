@@ -2,7 +2,7 @@
 
 TRIGGER when: the user asks to audit, check, review, or scan the project's tests / test coverage / test suite; asks "are the tests in sync", "any stale tests", "does every component have a test", "run the test audit". Also auto-eligible after `/tests:compose` writes new tests, to verify the new file fits the project's coverage matrix and authoring conventions.
 
-Static audit of the project's test files. Produces `file:line`-anchored findings sorted by severity. Does **not** run the test suite — source analysis only.
+Source-only audit of test files. Produces severity-sorted findings anchored to `file:line`.
 
 ## Arguments
 
@@ -12,14 +12,14 @@ Recognized hints:
 - A component, hook, or module name → audit only that target's test file.
 - A path → audit a specific test file or subdirectory.
 - `--changed` → audit only test files in `git diff --name-only` (staged + unstaged), plus tests for source files whose source changed.
-- `--top N` → in suite mode, show only the top N worst offenders (default 10).
+- `--top N` → in suite or changed mode, show only the top N worst offenders (default 10).
 - No arguments → audit every test file in every package, plus check for source files missing a test.
 
 ---
 
 ## 1. Load the Manifest
 
-Read `./manifest.json`. If missing, stop and tell the user to run `/repo:manifest` first — never generate the manifest yourself. Treat a successful load as silent background context; don't mention it to the user.
+Read `./manifest.json`. If missing, stop and tell the user to run `/repo:manifest` first — never generate the manifest yourself.
 
 Per package, capture:
 
@@ -29,9 +29,9 @@ Per package, capture:
 - `testLayout` — `sibling` or `mirror`. Drives location checks.
 - `componentsDir` — source of truth for which components need tests.
 - `isFrontend` — gates component-pattern checks.
-- `conventions.principles` — observed when classifying over-testing and dead-test findings.
+- `conventions.principles` — drives classification of over-testing and dead-test findings.
 
-The manifest does not record a `testHelpersDir`. Detect project-local test helpers by globbing the package source for `test-utils.{ts,tsx}`, `setup.{ts,tsx}`, `helpers.{ts,tsx}`, or a `__tests__/helpers/` directory. If found, treat that file as the canonical render-helper source for the package.
+Read the package's `testHelpersDir` from the manifest. If `null`, fall back to globbing the package source for `test-utils.{ts,tsx}`, `setup.{ts,tsx}`, `helpers.{ts,tsx}`, or a `__tests__/helpers/` directory. Treat the discovered file as the canonical render-helper source for the package.
 
 Security-sensitive and project-specific paths are not in the schema — detect them inline. Never invent a manifest field.
 
@@ -42,7 +42,7 @@ Security-sensitive and project-specific paths are not in the schema — detect t
 Per qualifying package, collect:
 
 - Every `*.test.*` / `*.spec.*` under the package's source root (for `sibling`) or under `__tests__/` (for `mirror`).
-- The package's **test setup file** (`vitest.setup.*`, `jest.setup.*`, etc.) — global mocks and stubs there are not "missing in individual files".
+- The package's **test setup file** (`vitest.setup.*`, `jest.setup.*`, etc.). Don't flag a per-file finding for mocks declared in the setup file.
 - The **project-local helpers file** discovered in section 1, if any.
 - The list of source files that should have a corresponding test (every non-trivial export under `componentsDir`, `src/hooks/`, `src/utils/`, or the package's equivalent).
 
@@ -72,6 +72,8 @@ Severity:
 - **blocker** — broken test (won't run, wrong target, dangling `.only`, missing `describe`/`it`).
 - **warning** — meaningful drift (missing required pattern, source-surface mismatch, mock state leak, layout mismatch).
 - **nit** — style or coverage hint.
+
+**Non-trivial** in this skill means a runtime value or component export. Skip pure type exports, barrel re-exports, and zero-branch constants.
 
 ### 4.1. Coverage
 
@@ -209,15 +211,14 @@ After presenting findings, ask whether to apply auto-fixable items:
 - Wrong test-layout location → move to match the package's `testLayout`.
 - `'use client'` directive in a test → remove it.
 
-Never auto-rewrite assertions or add missing required patterns inline — surface them and let `/tests:compose` extend the file in a focused pass.
+Never modify an existing test file beyond the structural fixes listed above; new files and pattern additions go through `/tests:compose`.
 
 ---
 
 ## Important
 
 - Source analysis only. Never run the test suite, boot a dev server, or write to test files without explicit go-ahead.
-- The package's `testRunner` and `testLayout` are the source of truth — never invent a runner or layout the manifest does not report.
-- `componentsDir` and per-package source roots are the source of truth for what needs testing — never rely on a memorized list.
-- The REQUIRED patterns from `/tests:compose` section 4 are the canonical coverage matrix. Never invent new required patterns here — propose them as a change to `/tests:compose` first.
-- Honor exclusion lists declared in `CLAUDE.md` / `AGENTS.md` / per-package test-skip lists.
-- In `suite` mode, **rank, then truncate**. The worst-offenders table is the deliverable; full per-file sections only for the top-N.
+- Read `testRunner`, `testLayout`, `componentsDir`, and per-package source roots from the manifest. Never invent values the manifest doesn't report.
+- The REQUIRED patterns from `/tests:compose` section 4 are the canonical coverage matrix. New required patterns belong in `/tests:compose`, not here.
+- Honor exclusion lists in `CLAUDE.md` / `AGENTS.md` under a `## Tests skip list` heading. If none, treat as no exclusions.
+- In `suite` mode, **rank, then truncate**.

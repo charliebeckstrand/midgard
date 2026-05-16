@@ -2,9 +2,9 @@
 
 TRIGGER when: the user asks to rename a type/function across files, lift a type to a shared home, convert `enum` declarations to `as const`, replace `any` with `unknown` + narrowing, migrate JavaScript with JSDoc to native TypeScript, add type assertions or `satisfies` clauses across files, or tighten types from `string`/`number` to literal unions or branded types. Also invoked by `/audit:refactor` when a chosen candidate is type-shaped.
 
-Perform type-driven migrations in staged, checkpointable steps. Each stage produces a clean diff and runs the project's type-checker and scoped tests before advancing. The repo is in a valid state after every stage — never in mid-migration limbo.
+Perform type-driven migrations in staged, checkpointable steps. Each stage produces a clean diff and runs the project's type-checker and scoped tests before advancing. The repo stays valid after every stage.
 
-This skill writes code. Unlike `/typescript:audit` (read-only smell detection) and `/typescript:review` (read-only review gate), this skill *edits files*. It runs as a sequence of small commits, each independently revertable.
+This skill writes code. It runs as a sequence of small commits, each independently revertable.
 
 ## Modes
 
@@ -33,7 +33,7 @@ If arguments don't resolve cleanly to mode + target, ask one clarifying question
 
 ## 1. Load the Manifest
 
-Read `./manifest.json`. If missing, stop and tell the user to run `/repo:manifest` first — never generate the manifest yourself. Treat a successful load as silent background context; don't mention it to the user.
+Read `./manifest.json`. If missing, stop and tell the user to run `/repo:manifest` first — never generate the manifest yourself.
 
 Per package, capture:
 
@@ -41,7 +41,7 @@ Per package, capture:
 - `framework` — gates TSX-specific migration patterns.
 - `linter` — drives which auto-fix tools are available between stages.
 - `testRunner` — drives the scoped test command used per stage.
-- `scripts.test`, `scripts.check-types` — both must exist for the touched packages, or the migration's stage gates can't run. If either is missing, stop and tell the user.
+- `scripts.test`, `scripts.test:related`, `scripts.test:changed`, `scripts.check-types` — `test` and `check-types` must exist for the touched packages, or the migration's stage gates can't run. If either is missing, stop and tell the user. `test:related` / `test:changed` are used for scoped per-stage gates when available.
 - `conventions.principles` — observed when proposing the new shape (e.g. a principle like "shared packages never depend on app code" constrains `lift` destinations).
 
 Plus top-level: `packageManager` (for run commands), `monorepo.tool` (Turborepo assumed; fall back to per-package scripts otherwise).
@@ -61,7 +61,7 @@ Identify every file the migration touches:
 
 Always exclude `node_modules/`, `dist/`, `build/`, `.next/`, generated declaration files.
 
-If the scope is large (>20 files), surface the count and ask the user to confirm before starting. Large migrations earn explicit consent.
+If the scope is large (>20 files), surface the count and ask the user to confirm before starting.
 
 ---
 
@@ -71,11 +71,11 @@ Per mode, the staging pattern is opinionated. Each stage is independently commit
 
 ### 3a. `rename`
 
-- **Stage 1: Add a deprecated alias** at the declaration site. The old name re-exports the new one (or vice versa, depending on which is shorter to deprecate). Type-check passes; no consumers changed. *Repo state after: both names work; old name marked `@deprecated`.*
+- **Stage 1: Add a deprecated alias** at the declaration site. The old name re-exports the new one, marked `@deprecated`. Type-check passes; no consumers changed. *Repo state after: both names work; old name marked `@deprecated`.*
 - **Stage 2..N: Migrate each consumer** one commit per file. Per stage: update imports in that file, run the file's scoped test, advance. *Repo state after each: that file uses the new name; everything else still works.*
 - **Final stage: Remove the deprecated alias.** Type-check + full package suite. *Repo state after: only the new name exists.*
 
-Test gate per stage: `scripts.test:related` against the touched file (or `scripts.test:changed` after staging the rename, whichever is cleaner).
+Test gate per stage: the package's scoped test command (see section 5).
 
 ### 3b. `lift`
 
@@ -91,7 +91,7 @@ Test gate per stage: scoped tests for the touched file. Final stage also runs ty
 - **Stage 2..N: Migrate each consumer.** Replace `MyEnum.Value` with the const object form (`MyConst.value`) one file at a time. Type-check after each. Note that consumers of the *type* (not the runtime values) generally don't change — TypeScript's structural typing handles them. Only runtime references change. *Repo state after each: that consumer uses the new shape.*
 - **Final stage: Remove the enum.** Type-check + full package suite. *Repo state after: only `as const` shape remains.*
 
-Watch for: `const enum` usage (different migration — these inline at use sites, so removing them is purely a textual replacement). Numeric enums where consumers rely on the index value (harder migration — sometimes the right answer is to keep the explicit number in the const object).
+Watch for: `const enum` usage (these inline at use sites — removal is a textual replacement). Numeric enums where consumers read the numeric value: preserve the number explicitly in the const object; otherwise drop it.
 
 ### 3d. `any-to-unknown`
 
@@ -131,7 +131,7 @@ Test gate per stage: scoped tests for the touched file, plus type-check after ea
 
 ## 4. Premortem the plan before executing
 
-Produce the plan as Markdown at `~/.claude/plans/typescript-migrate-<mode>-<slug>-<timestamp>.md`, then invoke `/premortem`. Premortem will pick the file up automatically and stress-test it through the five archetypes.
+Produce the plan as Markdown at `~/.claude/plans/typescript-migrate-<mode>-<slug>-<timestamp>.md`, where `<slug>` is the target name kebab-cased and `<timestamp>` comes from `date +%Y%m%d-%H%M%S`. Then invoke `/premortem`; it picks the file up automatically and stress-tests it through the five archetypes.
 
 If premortem returns concrete diffs to the plan, apply them before proceeding. If premortem flags a Point-of-No-Return failure, restructure to add a checkpoint before the irreversible step.
 
@@ -147,14 +147,14 @@ After premortem-driven plan revisions, ask the user to confirm execution. Then p
 2. Run the stage's test gate using the package's scoped test command:
    - **vitest**: `<pm> --filter=<pkg> exec vitest related --run <touched-files>` (or `--changed` after staging).
    - **jest**: `<pm> --filter=<pkg> exec jest --findRelatedTests <touched-files>`.
-   - **bun / node**: fall back to `<pm> turbo test --filter=<pkg>`.
+   - **bun / node**: `<pm> turbo test --filter=<pkg>` (full package suite; bun/node test runners don't expose change-driven flags).
 3. Run the package's type-check: `<pm> turbo check-types --filter=<pkg>` (or `typecheck`, whichever the package declares).
 4. If either gate fails: stop, surface the failure, do not advance. The user fixes or aborts.
-5. If both gates pass: invoke `/typescript:review` in file mode against the touched files. Surface any BLOCK findings.
+5. If both gates pass: invoke `/typescript:review` in file mode against the touched files. BLOCK halts the stage; the user resolves or waives.
 6. Ask the user to commit. **Never auto-commit.** Commit messages follow the project's git conventions (imperative mood, atomic).
 7. Advance to the next stage only after the previous stage is committed.
 
-Atomic, scoped commits per stage. Each stage's commit message describes what changed structurally (e.g. "rename formatCurrency to formatMoney in apps/web", "lift UserId to packages/shared", "convert Status enum to as-const object").
+Example stage commit messages: "rename formatCurrency to formatMoney in apps/web", "lift UserId to packages/shared", "convert Status enum to as-const object".
 
 ---
 
@@ -173,14 +173,14 @@ If the user abandons mid-migration, the repo is in a valid state at whatever sta
 
 ## Rules
 
-- This skill writes code. It is the only TypeScript skill in the catalog that does. Treat that responsibility carefully — every stage is a real diff, every commit is real history.
+- This skill writes code; every stage produces a real diff and a real commit. Treat that responsibility carefully.
 - Never bundle stages. Each stage's commit is independently revertable, which is the whole point of the staging pattern.
 - Never auto-commit. The user approves every commit.
-- Never skip the type-check gate. A migration that ships type errors is worse than no migration.
+- Never skip the type-check gate.
 - Never skip the `/typescript:review` file-mode pass at each stage. The review catches issues the migration itself might introduce (lost generics, dropped `readonly`, widened return types).
 - If a stage requires the user to make a judgment call (an `any` site that genuinely needs `any`, a JSDoc type with no clean TS equivalent), surface and ask rather than guessing.
 - Never modify `.gitignore`, lockfiles, CI configs, or other tracked-but-not-source files as part of a migration. If the migration needs config changes (e.g. removing `allowJs` after `jsdoc-to-ts`), surface the change as a separate proposed edit at the wrap-up step.
-- The migration's success is not "the code compiles" — it's "the code compiles, the tests pass, the review returns PASS, and the diff reads cleanly as a reviewer."
+- Success means tests pass, review returns PASS, and the diff reads cleanly.
 
 ## Sibling skills
 

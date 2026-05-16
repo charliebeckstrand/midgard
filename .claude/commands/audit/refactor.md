@@ -2,7 +2,7 @@
 
 TRIGGER when: the user asks to recommend, suggest, surface, or identify refactor opportunities; asks what's getting messy, what should be cleaned up, where the duplication is, what abstractions are pulling their weight. Also when the user picks a refactor candidate from a prior audit and asks to plan or execute it.
 
-Audit the project for refactor opportunities, rank them, and — for the candidates the user chooses to act on — produce a staged execution plan and run it. Recommendations must be grounded in concrete evidence (file paths, line numbers, callsite counts) — never vague platitudes like "consider extracting".
+Audit the project for refactor opportunities, rank them, and — for the candidates the user chooses to act on — produce a staged execution plan and run it. Recommendations must cite concrete evidence: file paths, line numbers, callsite counts.
 
 **Scope boundaries:**
 
@@ -26,13 +26,13 @@ Recognized hints:
 
 ## 1. Load the Manifest
 
-Read `./manifest.json`. If missing, stop and tell the user to run `/repo:manifest` first — never generate the manifest yourself. Treat a successful load as silent background context; don't mention it to the user.
+Read `./manifest.json`. If missing, stop and tell the user to run `/repo:manifest` first — never generate the manifest yourself.
 
 Pull:
 
 - `monorepo.workspaces` and `packages[*].path` — the scope universe.
 - `packages[*].framework`, `packages[*].linter`, `packages[*].testRunner` — drives language-aware heuristics.
-- `conventions.principles` — declared rules that **weight** which heuristics matter most. A principle like "shared packages never depend on app code" promotes the dependency-direction heuristic; "atomic commits" has no impact on refactor scoring.
+- `conventions.principles` — weights heuristic priority (e.g. "shared packages never depend on app code" promotes the dependency-direction heuristic).
 - `notes` — flags that might explain anomalies (e.g. multiple lockfiles).
 
 ---
@@ -60,7 +60,7 @@ Find clusters of near-identical code across files. Threshold: 8+ lines duplicate
 - Outline of the shared shape.
 - Suggested extraction target — lowest-common scope (same package, then shared package, then root utility).
 
-Skip clusters that model different domain concepts despite syntactic similarity (two CRUD handlers sharing a try/catch shape but operating on unrelated entities). Code shape alone is not duplication; **semantic** duplication is.
+Skip clusters that model different domain concepts despite syntactic similarity (two CRUD handlers sharing a try/catch shape but operating on unrelated entities). Flag only when call sites share both shape and domain concept.
 
 ### 3b. Layering / dependency-direction violations
 
@@ -70,13 +70,13 @@ Also flag intra-package layering breaks when the project's source tree implies l
 
 ### 3c. Single-use abstractions
 
-Find exported functions, components, hooks, or types whose **only** consumer is one other file (excluding tests). Candidates to **inline**, because the abstraction earns its keep at duplication ≥2.
+Find exported functions, components, hooks, or types whose **only** consumer is one other file (excluding tests). Candidates to **inline** — abstractions require ≥2 call sites.
 
 Per candidate: declaration `file:line`, sole consumer `file:line`, one-sentence rationale.
 
 Skip exports that are part of a public API surface (re-exported from a package barrel that other packages import) — those have unseen consumers.
 
-When the single use is **within the same package and the abstraction is a component**, prefer `/ui:audit`'s consolidate-candidate detection — that skill has the JSX-shape comparison this scope can't do well. Flag here only when the single-use abstraction is non-component code (a utility, a hook used by one file, a type used in one place).
+When the single use is **within the same package and the abstraction is a component**, skip the candidate and surface a one-line note: "→ `/ui:audit` for component consolidation in `<package>`." Flag here only when the single-use abstraction is non-component code (a utility, a hook used by one file, a type used in one place).
 
 ### 3d. Naming / convention inconsistencies
 
@@ -86,17 +86,17 @@ Per cluster: list the variants, files using each, and which name appears most of
 
 ### 3e. Long files / long functions
 
-Default thresholds: **file > 400 lines**, **function/method > 60 lines**. For functions, include cyclomatic-complexity proxy: count `if` / `else if` / `switch case` / `?:` / `&&` / `||`.
+Default thresholds: **file > 400 lines**, **function/method > 60 lines**, **cyclomatic-complexity proxy > 12** (count `if` / `else if` / `switch case` / `?:` / `&&` / `||` per function).
 
 ### 3f. Dead exports
 
 Find exported symbols with no internal consumer AND no entry in any `package.json#exports` map or root barrel that another package would import.
 
-Use the linter's report if `linter` is `eslint` with `eslint-plugin-unused-imports` configured — preferable to a hand-rolled scan. If `biome`, run `biome check --formatter-enabled=false` and parse for unused-export findings.
+Use the linter's report if `linter` is `eslint` with `eslint-plugin-unused-imports` configured. If `biome`, run `biome check --formatter-enabled=false` and parse for unused-export findings. Otherwise grep for exported symbols with zero in-repo importers.
 
 ### 3g. Stale markers
 
-Grep for `TODO`, `FIXME`, `XXX`, `HACK`. Use `git blame` for commit dates. Flag any older than **6 months**. Group by file; report `file:line` + age in weeks.
+Grep for `TODO`, `FIXME`, `XXX`, `HACK`. Use `git blame` for commit dates; if blame is unavailable, flag all markers with age "unknown". Flag any older than **6 months**. Group by file; report `file:line` + age in weeks.
 
 ### 3h. Framework smells (cross-file only)
 
@@ -147,7 +147,6 @@ After the table, add a short paragraph noting:
 - Any heuristics that **found no candidates** ("no layering violations detected", "no dead exports").
 - Any heuristics that were **skipped** because the stack lacks the relevant signal (e.g. no Next-specific scan in a React-only package).
 
-This makes the report falsifiable.
 
 ---
 
@@ -170,7 +169,7 @@ The default sequencing pattern for almost every refactor:
 2. **Migrate consumers** one at a time, each as its own commit.
 3. **Remove** the old shape once no consumers remain.
 
-This pattern produces clean checkpoints — abandoning after stage 1 leaves a deprecated-but-working old shape next to a new one; abandoning after partial stage 2 leaves some consumers on each shape, both working. Only stage 3 is destructive, and only after consumers have been migrated and verified.
+Stages 1 and 2 are non-destructive; only stage 3 deletes.
 
 Some refactor patterns have specific sequencing:
 
@@ -180,7 +179,7 @@ Some refactor patterns have specific sequencing:
 - **`long-file` / `long-function`** — Stage 1: extract sub-pieces alongside the original (cohabitating). Stage 2: rewrite the original to call the extracted pieces. Stage 3: remove anything no longer used. **Test gate:** the file's tests, plus a manual diff read.
 - **`dead-export`** — Single stage: remove the export and its definition. **Test gate:** the package's full type-check and test suite, since "no consumers" is only as reliable as the analysis that produced the finding.
 - **`stale-marker`** — Single stage: resolve the marker (delete, fix, or replace with a tracked issue). Not really a refactor; surface it but don't over-engineer the plan.
-- **`naming`** — Maps to `/typescript:migrate rename` for type/function renames, or a manual rename for identifier-only changes. Single stage with the migrate skill; the migrate skill produces its own internal stages.
+- **`naming`** — Maps to `/typescript:migrate rename` for type/function renames, or a manual rename for identifier-only changes (see 6b).
 
 ### 6b. Type-shaped work delegates to `/typescript:migrate`
 
@@ -190,7 +189,7 @@ When the chosen candidate is a non-type refactor (a duplication extract, a layer
 
 ### 6c. Premortem the plan before executing
 
-Once the plan is produced, **invoke `/premortem` on it before the user approves execution**. The plan lives at `~/.claude/plans/audit-refactor-<candidate-slug>-<timestamp>.md`; premortem will pick it up automatically and stress-test it through the five archetypes.
+Once the plan is produced, write it to `~/.claude/plans/audit-refactor-<candidate-slug>-<timestamp>.md`, then **invoke `/premortem` on it before the user approves execution**. Premortem picks it up automatically and stress-tests it through the five archetypes.
 
 If premortem returns concrete diffs to the plan, apply them before proceeding. If premortem flags a Point-of-No-Return failure (irreversible artifact, lossy stage), restructure the plan to add a checkpoint before the irreversible step.
 
@@ -205,7 +204,7 @@ After premortem-driven plan revisions, ask the user to confirm execution. Then p
 5. After `/postmortem` returns PROCEED, ask the user to commit. **Never auto-commit.**
 6. Advance to the next stage only after the previous stage is committed.
 
-Atomic, scoped changes per stage. Never bundle unrelated refactors. Never combine stages "to save commits" — the checkpoint structure is what makes this safe.
+Atomic, scoped changes per stage. Never bundle unrelated refactors.
 
 ### 6e. Handoff to sibling skills when out of scope
 

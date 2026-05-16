@@ -1,23 +1,21 @@
 # postmortem
 
-TRIGGER when: a task is reported complete and a non-empty diff exists; the user says "wrap up", "finish up", "task complete", or "ready to commit". Always run before `git commit` from inside Claude — do not commit until this skill returns PROCEED or every chained downstream skill returns PASS.
+TRIGGER when: the user signals completion ("wrap up", "finish up", "task complete", "ready to commit") and a non-empty diff exists. Always run before `git commit` from inside Claude — do not commit until this skill returns PROCEED or every chained downstream skill returns PASS.
 
-Run after a task is reported complete and before `git commit`. Read the diff, classify the change, and pick the smallest set of downstream skills the change needs.
-
-This is the triage step before commit. Trivial diffs (docs, comments, formatting, dependency-free renames) proceed directly to commit. Risky diffs (logic, type surface, multi-file, new dependencies, secrets, auth, UI components) chain through the matching downstream skills first. `/typescript:review` is the default logic-risk gate for any diff with `.ts` / `.tsx` changes — this is a TypeScript codebase, so TS-aware review subsumes generic code review.
+Trivial diffs (docs, comments, formatting, dependency-free renames) proceed directly to commit. Risky diffs (logic, type surface, multi-file, new dependencies, secrets, auth, UI components) chain through the matching downstream skills first. `/typescript:review` is the default logic-risk gate for any diff with `.ts` / `.tsx` changes — this is a TypeScript codebase, so TS-aware review subsumes generic code review.
 
 ## What it decides
 
 - **PROCEED** — commit without further checks. The diff is mechanical or non-functional.
 - **REVIEW** — chain into `/typescript:review` because the diff carries logical risk.
-- **REVIEW + EXTRAS** — chain into one or more of `/audit:a11y`, `/tests:compose`, `/simplify`, `/security-review`, then `/typescript:review`, in that order.
+- **REVIEW + EXTRAS** — chain into one or more of `/audit:a11y`, `/tests:compose`, then `/typescript:review`, in that order.
 - **BLOCK** — refuse to commit and surface the reason (e.g. half-finished work, debug code, secrets in the diff).
 
 ## Steps
 
 ### 0. Ensure the Manifest exists
 
-Read `./manifest.json`. If the file is missing, silently invoke `/repo:manifest --quiet` to create it, then re-read. Postmortem is a canonical creator alongside `/premortem` — never tell the user it's loading or generating the manifest.
+Read `./manifest.json`. If the file is missing, silently invoke `/repo:manifest --quiet` to create it, then re-read.
 
 From the manifest, capture:
 
@@ -42,9 +40,16 @@ If the diff is empty, stop — there's nothing to triage.
 
 ### 2. Refresh the Manifest if invalidated
 
-Inspect the diff's file list against the **canonical invalidator list in `/repo:manifest` → "Freshness invalidators"**. That list is authoritative; do not duplicate it here.
+Inspect the diff's file list. If any of these invalidator paths appear, silently invoke `/repo:manifest --quiet`:
 
-If any invalidator path appears in the diff, silently invoke `/repo:manifest --quiet`. After it returns, check `git status --short manifest.json`:
+- Root `package.json`, `pnpm-workspace.yaml`, or any package's `package.json`
+- `turbo.json`, `tsconfig.json`
+- Lockfiles (`pnpm-lock.yaml`, `package-lock.json`, `yarn.lock`, `bun.lock`)
+- `lefthook.yml`, `lefthook.yaml`, `.husky/`, `.pre-commit-config.yaml`
+- `.github/workflows/*.{yml,yaml}`
+- `CLAUDE.md`, `AGENTS.md`, `CONTRIBUTING.md`, `README.md`
+
+If `/repo:manifest --quiet` returns an error, surface it and BLOCK — the manifest is a prerequisite, not best-effort. On success, check `git status --short manifest.json`:
 - If `manifest.json` is modified, run `git add manifest.json` so it ships in the same commit as the change that invalidated it.
 - If `manifest.json` is unchanged, the invalidation signal didn't materially alter the schema; proceed.
 
@@ -52,33 +57,31 @@ If no invalidator matches, skip this step. The Manifest stays stable across logi
 
 ### 3. Classify the change
 
-Apply these signals against the diff. Collect every match — multiple signals often apply to one diff.
+Apply these signals against the diff. Collect every match — a diff may match multiple rows.
 
 | Signal | Detection | Routes to |
 |---|---|---|
-| Secrets / auth / permissions touched | Path or hunk hits on `.env*`, `auth/`, `permissions/`, API keys, JWT, OAuth, session/cookie handling, RBAC | `/security-review` |
+| Secrets / auth / permissions touched | Path or hunk hits on `.env*`, `auth/`, `permissions/`, API keys, JWT, OAuth, session/cookie handling, RBAC | `/typescript:review` (flag the security angle as a finding) |
 | New or modified frontend component | New file under `packages[*].componentsDir`, or a modified `.tsx` / `.jsx` that exports a component, in a package where `isFrontend` is true | `/audit:a11y` |
-| New logic without matching tests | A new non-trivial function or branch with no corresponding `*.test.*` / `*.spec.*` change in the same diff | `/tests:compose` |
-| Smells like over-engineering | Single-use abstraction, speculative generic, premature interface, unused parameter, dead branch | `/simplify` |
+| New logic without matching tests | A new exported function, or a new conditional with more than one branch, with no corresponding `*.test.*` / `*.spec.*` change in the same diff | `/tests:compose` |
+| Smells like over-engineering | Single-use abstraction, speculative generic, premature interface, unused parameter, dead branch | `/typescript:review` (flag the simplification angle as a finding) |
 | Logic edit, type surface change, multi-file change, new dependency | Conditional logic edited, exported type changed, ≥3 source files modified, `package.json` dependency added | `/typescript:review` |
 | Docs / comments / formatting only | Diff hits only `*.md`, comment lines, or whitespace; no executable lines changed | PROCEED |
 | Dependency-free rename | Symbol renamed with all call sites updated, no behavior change | PROCEED |
 | Debug code, half-finished work, secrets in diff | `console.log`, `debugger`, `// TODO: revert`, commented-out blocks, real credentials | BLOCK |
 
-`/simplify` and `/security-review` are user-level skills, not project skills under `.claude/commands/`. When the harness does not expose them, fold their concerns into `/typescript:review` (note the simplification or security angle as a finding for `/typescript:review` to scrutinize) and drop them from the chain.
-
-A diff can match several rows. Union the matched handoffs, then order them: extras (`/security-review`, `/audit:a11y`, `/tests:compose`, `/simplify`) first, then `/typescript:review`. `/typescript:review` is always last in the chain, never parallel — it reviews the change as-is, including any edits the extras prompt.
+Union the matched handoffs, then order them: extras (`/audit:a11y`, `/tests:compose`) first, then `/typescript:review`. `/typescript:review` is always last in the chain, never parallel — it reviews the change as-is, including any edits the extras prompt.
 
 ### 3a. Verify packages/ui format alignment
 
-Skip this step when no staged file lives under `packages/ui`. Otherwise, for each staged source file in that package, detect its kind and read **one** reference sibling of the same kind, then compare structural patterns. The point is to confirm the staged file matches the established format of existing code — not to second-guess the change's behavior.
+Skip this step when no staged file lives under `packages/ui`. Otherwise, for each staged source file in that package, detect its kind and read **one** reference sibling of the same kind, then compare structural patterns — not behavior.
 
 | Kind | Path predicate | Reference picked from |
 |---|---|---|
-| component | under `componentsDir` | a random sibling `componentsDir/<other>/<other>.tsx` (the main component file in another component folder) |
-| primitive | under `primitivesDir` | a random sibling `primitivesDir/<other>.tsx` |
-| hook | under `hooksDir`, filename starts with `use-` | a random sibling `hooksDir/use-<other>.ts` |
-| test | under `testHelpersDir`, matches `*.test.{ts,tsx}` | a random sibling test in the same mirrored subdir (`components/`, `primitives/`, `hooks/`) |
+| component | under `componentsDir` | the most-recently-modified sibling `componentsDir/<other>/<other>.tsx` (the main component file in another component folder) |
+| primitive | under `primitivesDir` | the most-recently-modified sibling `primitivesDir/<other>.tsx` |
+| hook | under `hooksDir`, filename starts with `use-` | the most-recently-modified sibling `hooksDir/use-<other>.ts` |
+| test | under `testHelpersDir`, matches `*.test.{ts,tsx}` | the most-recently-modified sibling test in the same mirrored subdir (`components/`, `primitives/`, `hooks/`) |
 
 Exclude files already in the diff when picking the reference. Read both staged file and reference. Compare:
 
@@ -108,17 +111,17 @@ Then one of:
 
 ### 5. Hand off
 
-For each skill in the chain, invoke it and wait for its verdict. If any returns BLOCK and the user has not overridden, stop the chain — `git commit` does not run.
+For each skill in the chain, invoke it and wait for its verdict. Downstream skills return PASS or BLOCK; PASS is required to advance the chain. If any returns BLOCK and the user has not overridden, stop the chain — `git commit` does not run.
 
-When the chain completes with every step PASS (or the original verdict was PROCEED), state that the change is ready to commit. Do not run `git commit` yourself unless the user explicitly asked you to commit.
+When the chain finishes clean, state the change is ready to commit. Do not run `git commit` yourself unless the user explicitly asked you to commit.
 
 ## Worked examples (fabricated)
 
 - **README typo fix** — one file, `*.md`, no code paths. Verdict: PROCEED. No chain.
 - **Rename `formatCurrency` → `formatMoney` across 4 files** — symbol rename, every call site updated, no behavior change. Verdict: PROCEED.
 - **New `SizeProvider` context with `useSize` hook** — new logic, no tests in diff, new file under `componentsDir`. Verdict: REVIEW + EXTRAS. Chain: `/tests:compose` → `/audit:a11y` → `/typescript:review`.
-- **Patch a JWT verification edge case in `auth/verifyToken.ts`** — auth path touched, logic edit. Verdict: REVIEW + EXTRAS. Chain: `/security-review` → `/typescript:review`.
-- **Introduce `WidgetFactory<T>` with a single caller** — speculative generic abstraction. Verdict: REVIEW + EXTRAS. Chain: `/simplify` → `/typescript:review`.
+- **Patch a JWT verification edge case in `auth/verifyToken.ts`** — auth path touched, logic edit. Verdict: REVIEW. Chain: `/typescript:review` (with security angle flagged).
+- **Introduce `WidgetFactory<T>` with a single caller** — speculative generic abstraction. Verdict: REVIEW. Chain: `/typescript:review` (with simplification angle flagged).
 - **`console.log("debug:", user)` left in a handler** — debug code in diff. Verdict: BLOCK. Cite `path/to/file.ts:42`. Commit refused.
 
 ## Rules
@@ -128,4 +131,4 @@ When the chain completes with every step PASS (or the original verdict was PROCE
 - Never skip `/typescript:review` when any logic edit, type surface change, multi-file change, or new dependency is present. PROCEED is reserved for diffs with no executable change.
 - Never auto-commit. The chain returns control to the user; the user decides when to commit.
 - Don't pad the verdict. PROCEED is one sentence. BLOCK is the findings list and nothing else.
-- If the manifest doesn't expose a field needed to classify (e.g. no `componentsDir`), fall back to `git grep` on path conventions — never guess.
+- If the manifest doesn't expose a field needed to classify (e.g. `componentsDir` is `null`), glob these fallback paths: `packages/*/src/components/`, `packages/*/src/ui/`, `packages/*/components/` for components; `packages/*/src/primitives/` for primitives; `packages/*/src/hooks/` for hooks. Never invent paths not in this list.

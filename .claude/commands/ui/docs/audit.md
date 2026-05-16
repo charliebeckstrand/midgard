@@ -2,7 +2,7 @@
 
 TRIGGER when: the user asks to audit, check, review, or scan the project's component docs / demos / stories; asks "are the docs in sync", "any stale demos", "does every component have a docs page", "run the docs audit". Also auto-eligible after `/ui:component:compose` creates a new component and the project has a docs system.
 
-Static audit of the project's component docs files. Produces `file:line`-anchored findings sorted by severity. Does **not** boot a docs dev server — source analysis only.
+Static audit of the project's component docs files. Produces `file:line`-anchored findings sorted by severity.
 
 With no target, sweeps every demo file and surfaces the **worst offenders** ranked by severity-weighted finding count.
 
@@ -14,14 +14,14 @@ Recognized hints:
 - A component name → audit only that component's docs file.
 - A path → audit a specific docs file or subdirectory.
 - `--changed` → audit only docs files in `git diff --name-only` (staged + unstaged), plus docs for components whose source changed.
-- `--top N` → in suite mode, show only the top N worst offenders (default 10).
+- `--top N` → in suite or changed mode, show only the top N worst offenders (default 10).
 - No arguments → audit every docs file in every frontend package, plus check for components missing a docs file.
 
 ---
 
 ## 1. Load the Manifest
 
-Read `./manifest.json`. If missing, stop and tell the user to run `/repo:manifest` first — never generate the manifest yourself. Treat a successful load as silent background context; don't mention it to the user.
+Read `./manifest.json`. If missing, stop and tell the user to run `/repo:manifest` first — never generate the manifest yourself.
 
 Filter `packages` to `isFrontend: true` and `framework` in (`react`, `next`). If none, stop and tell the user the project has no frontend packages with docs to audit.
 
@@ -34,7 +34,7 @@ Per qualifying package:
 
 ## 2. Locate the docs system
 
-Apply the same discovery as `/ui:docs:compose` section 1:
+The discovery here mirrors `/ui:docs:compose`'s "Locate the docs system" step:
 
 - A `docs/` (or `docs/demos/`, `stories/`, `examples/`, `playground/`) directory under each frontend package.
 - A Storybook config (`.storybook/`).
@@ -46,10 +46,11 @@ For packages with a docs system, capture:
 
 - The **demos directory** (e.g. `packages/ui/src/docs/demos`).
 - The **registry file** (`index.ts` or `registry.ts`, if not glob-based).
-- The **example-wrapper component** (typically `docs/components/example.tsx`).
+- The **example-wrapper component** (e.g. `docs/components/example.tsx`).
 - Whether the project ships a **code-derivation walker** (`deriveCode` / `extractCode` / similar).
-- The **list of valid categories** (parse a `categoryOrder` array or scan all existing `meta.category` values).
+- The **list of valid categories** — parse `categoryOrder` (the canonical source). If absent, skip the category-validity check (4.2) and record one package-level finding: "no canonical category list found".
 - The **controls helpers** under `docs/components/` (size picker, variant picker, etc.) so the audit can flag reinvented controls.
+- The **meta convention** — sample 2-3 sibling demos; record whether `export const meta` is the local convention.
 
 ---
 
@@ -82,14 +83,14 @@ Severity:
 
 - **blocker** — `componentsDir` has a component with no matching demo file. Skip exclusions declared in `CLAUDE.md` / `AGENTS.md` / the docs registry's own skip list.
 - **warning** — a demo file exists for a component that no longer exists in `componentsDir`.
-- **nit** — a demo file has fewer than 2 `<Example>` blocks for a non-trivial component.
+- **nit** — a demo file has fewer than 2 `<Example>` blocks for a component that exports 2+ variants or a `size` prop.
 
 ### 4.2. Required exports
 
 - **blocker** — no default export (or default export is not a function returning JSX).
 - **blocker** — the default export does not render the project's example-wrapper at least once.
 - **warning** — missing `export const meta = { … }` when sibling demos have it.
-- **warning** — `meta.category` is not one of the discovered valid categories (or not in `categoryOrder` if the project uses one).
+- **warning** — `meta.category` is not in `categoryOrder` (when the project ships one).
 
 ### 4.3. Example-wrapper usage
 
@@ -105,7 +106,7 @@ Per `<Example>` (or the project's equivalent):
 
 Only when the project has a code-derivation walker.
 
-- **warning** — `<Example>` top-level children include a locally-defined wrapper component (PascalCase function defined in the same file) that the walker would render as opaque. Acceptable only if the project has helper-extraction and the wrapper is a top-level helper.
+- **warning** — `<Example>` top-level children include a locally-defined wrapper (PascalCase function in the same file); the walker renders it opaque. Skip this finding when the project supports helper-extraction and the wrapper is a top-level helper.
 - **warning** — an iteration inside an `<Example>` whose children don't have an explicit `key={…}`. The walker can't collapse iterated runs without a stable key.
 - **nit** — `<Example>` children wrapped in raw `<div className="…">` rather than the project's layout primitives.
 - **nit** — repeated literal blocks (3+ near-identical sibling components without a `.map()`) that could be iteration.
@@ -160,7 +161,7 @@ One section per changed demo, sorted by score descending. Cap at top **10** unle
 
 ### `suite` mode
 
-Lead with a **Worst offenders** table, sorted by score descending, capped at top **10** (or `--top N`):
+Lead with a **Worst offenders** table, sorted by score descending, capped at top **10** (or `--top N`). Headline finding is the highest-severity finding for each demo; ties broken by lowest `file:line`:
 
 ```
 ## Worst offenders
@@ -208,7 +209,7 @@ Ask whether to apply auto-fixable items:
 - Inline picker with a shared equivalent → swap to the shared component.
 - Demo file missing entirely → invoke `/ui:docs:compose <name>`.
 
-Never auto-rewrite the `<Example>` body — judgment call about which axes to demonstrate.
+Never auto-rewrite the `<Example>` body — choosing which axes to demonstrate is a judgment call.
 
 ---
 
@@ -218,4 +219,4 @@ Never auto-rewrite the `<Example>` body — judgment call about which axes to de
 - `componentsDir` is the source of truth for what components exist. Never rely on a memorized list.
 - When the project's docs system doesn't match any signal in section 2, surface that and stop — don't invent a docs convention.
 - Honor exclusion lists declared in `CLAUDE.md` / `AGENTS.md` / the docs registry's own skip list.
-- In `suite` mode, **rank, then truncate**. The worst-offenders table is the deliverable.
+- In `suite` mode, **rank, then truncate**.
