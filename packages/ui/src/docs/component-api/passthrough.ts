@@ -127,7 +127,7 @@ function extractHtmlElementTag(
 	node: ts.TypeNode | undefined,
 	checker: ts.TypeChecker,
 ): string | null {
-	if (!node) return 'element'
+	if (!node) return null
 
 	if (ts.isTypeReferenceNode(node)) {
 		const name = typeRefName(node.typeName)
