@@ -70,8 +70,12 @@ export function renderNodes(nodes: ReactNode[], ctx: Ctx, indent: string): strin
 	return result.join('\n')
 }
 
-function hasExplicitKey(element: ReactElement): boolean {
-	return typeof element.key === 'string' && element.key.includes('$')
+function hasExplicitKey(element: ReactElement): element is ReactElement & { key: string } {
+	// `Children.toArray` serializes user-provided keys with a `.$` prefix
+	// (positional siblings get `.0`, `.1`, …; nested arrays concatenate as
+	// `.0/.$x`). We test for the `.$` marker, not a bare `$`, so authored
+	// keys containing `$` in a non-iteration position don't false-positive.
+	return typeof element.key === 'string' && element.key.includes('.$')
 }
 
 /**
