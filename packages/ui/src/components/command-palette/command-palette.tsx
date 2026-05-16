@@ -28,6 +28,7 @@ export type CommandPaletteProps = Pick<DialogPanelVariants, 'size'> & {
 	children: ReactNode | ((query: string) => ReactNode)
 }
 
+/** Searchable command launcher in a modal dialog — children receive the live query for client-side filtering. */
 export function CommandPalette({
 	open,
 	onOpenChange,

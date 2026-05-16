@@ -28,6 +28,7 @@ export type MapProps = {
 	onLoad?: (map: MapLibreMap) => void
 }
 
+/** MapLibre-backed interactive map — provides the map instance to descendants (markers, routes, geofences) via context. */
 function MapView({
 	camera,
 	preset,

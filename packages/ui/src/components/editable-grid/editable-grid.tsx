@@ -48,6 +48,7 @@ export type EditableGridProps<T> = TableVariants & {
 	children?: never
 }
 
+/** Spreadsheet-style grid over `DataTable` — adds inline cell editing, keyboard navigation, and batch-apply on multi-row selections. */
 export function EditableGrid<T>({
 	columns,
 	rows,

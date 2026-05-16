@@ -39,6 +39,7 @@ function partitionStepperChildren(children: ReactNode): {
 	return { rowChildren, panelsChildren }
 }
 
+/** Indexed multi-step flow — partitions its children into a step row and a panels group, with roving arrow-key navigation across steps. */
 export function Stepper({
 	value,
 	onValueChange,

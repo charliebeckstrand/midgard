@@ -44,6 +44,7 @@ export type PdfViewerProps = {
 	'aria-label'?: string
 }
 
+/** PDF document viewer — renders pages from `pages` or via pdf.js from `src`, with toolbar controls for zoom, rotation, download, and print. */
 export function PdfViewer({
 	pages: pagesProp,
 	src,
