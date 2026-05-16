@@ -12,7 +12,6 @@
 import { mode } from '../../../core/recipe/mode'
 import { outline, plain, soft, solid } from './palette'
 
-// ── Text ────────────────────────────────────────────────
 const text = {
 	default: mode('text-zinc-950', 'dark:text-white'),
 	muted: mode('text-zinc-500', 'dark:text-zinc-400'),
@@ -44,7 +43,6 @@ const text = {
 	),
 }
 
-// ── Background ──────────────────────────────────────────
 const bg = {
 	surface: mode('bg-white', 'dark:bg-zinc-900'),
 	panel: mode('bg-white', 'dark:bg-zinc-900'),
@@ -57,7 +55,6 @@ const bg = {
 	},
 }
 
-// ── Palette ─────────────────────────────────────────────
 const palette = { solid, soft, outline, plain }
 
 export const iro = { bg, text, palette } as const

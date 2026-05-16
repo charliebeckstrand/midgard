@@ -33,14 +33,12 @@ import { sen } from '../ryu/sen'
 import { tsunagi } from '../ryu/tsunagi'
 import { kasane } from './kasane'
 
-// ── Outer frame chrome ──────────────────────────────────
 // `tsunagi.base` is data-attribute-gated, so it stays inert until a `<Group>`
 // stamps `data-group` / `data-group-orientation` onto the frame. Including it
 // here is what lets every ControlFrame-based component (Input, Listbox,
 // Combobox, Textarea, …) participate in `<Group>` without per-component wiring.
 const frame = ['group/control flex items-center', 'relative w-full', ...kasane.all, ...tsunagi.base]
 
-// ── Surface variants for the frame ──────────────────────
 const surface = {
 	default: [
 		'bg-white',
@@ -52,7 +50,6 @@ const surface = {
 	glass: ['bg-transparent', omote.blur.md],
 } as const
 
-// ── Inner field reset (placeholder, transparent bg, no outline) ──
 const field = [
 	'gap-sm',
 	'relative',
@@ -66,14 +63,12 @@ const field = [
 	'dark:placeholder:text-zinc-400',
 ]
 
-// ── Density: border-compensated padding + font size ─────
 const size = {
 	sm: ['px-[calc(--spacing(2.5)-1px)] py-[calc(--spacing(1.5)-1px)]', ji.size.sm],
 	md: ['px-[calc(--spacing(3)-1px)] py-[calc(--spacing(2)-1px)]', ji.size.md],
 	lg: ['px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)]', ji.size.lg],
 } as const
 
-// ── Affix slot layout (chevron, prefix, suffix) ─────────
 const icon = ['flex items-center', 'pr-2', 'pointer-events-none']
 
 const affix = {
@@ -101,7 +96,6 @@ const affix = {
 	},
 } as const
 
-// ── Browser-default resets per input type ───────────────
 const resets = {
 	number: [
 		'[appearance:textfield]',
@@ -111,7 +105,6 @@ const resets = {
 	],
 }
 
-// ── Checkbox / radio: hidden native input + custom surface ──
 const check = {
 	/** Visually hidden native input overlaying the custom check surface. */
 	hidden: ['absolute inset-0', 'opacity-0', ...sawari.cursor, sen.forced.control],

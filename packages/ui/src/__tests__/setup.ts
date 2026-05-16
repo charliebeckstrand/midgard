@@ -6,10 +6,13 @@ afterEach(() => {
 	cleanup()
 })
 
-// ── Suppress @tanstack/virtual-core teardown noise ──
-// Its debounced timer fires after jsdom teardown, causing a
-// "window is not defined" ReferenceError. We only swallow that
-// specific error so real unhandled errors still fail the suite.
+/**
+ * Suppress @tanstack/virtual-core teardown noise.
+ *
+ * Its debounced timer fires after jsdom teardown, causing a
+ * "window is not defined" ReferenceError. We only swallow that
+ * specific error so real unhandled errors still fail the suite.
+ */
 const originalOnError = window.onerror
 window.onerror = (message, ...args) => {
 	if (typeof message === 'string' && message.includes('window is not defined')) {
@@ -28,10 +31,12 @@ window.onunhandledrejection = (event: PromiseRejectionEvent) => {
 	originalOnUnhandledRejection?.call(window, event)
 }
 
-// ── motion/react mock ───────────────────────────────
-// Replaces animated wrappers with plain HTML elements so tests run in jsdom
-// without needing a full animation runtime.
-
+/**
+ * motion/react mock.
+ *
+ * Replaces animated wrappers with plain HTML elements so tests run in jsdom
+ * without needing a full animation runtime.
+ */
 vi.mock('motion/react', async () => {
 	const { createElement, forwardRef } = await import('react')
 
@@ -103,10 +108,12 @@ vi.mock('motion/react', async () => {
 	return { motion, AnimatePresence, LayoutGroup, MotionConfig, useAnimate, useMotionValue }
 })
 
-// ── maplibre-gl mock ────────────────────────────────
-// jsdom has no WebGL, so swap the MapLibre runtime for a minimal fake
-// that records calls and fires 'load' on the next microtask.
-
+/**
+ * maplibre-gl mock.
+ *
+ * jsdom has no WebGL, so swap the MapLibre runtime for a minimal fake
+ * that records calls and fires 'load' on the next microtask.
+ */
 vi.mock('maplibre-gl', () => {
 	class FakeMap {
 		private handlers = new Map<string, Set<(...args: unknown[]) => void>>()
@@ -221,7 +228,7 @@ vi.mock('maplibre-gl', () => {
 	}
 })
 
-// ── Browser API stubs ───────────────────────────────
+/** Browser API stubs for jsdom. */
 
 if (typeof window.matchMedia !== 'function') {
 	Object.defineProperty(window, 'matchMedia', {

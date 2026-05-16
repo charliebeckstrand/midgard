@@ -6,6 +6,8 @@
  * LCG so identical parameters always produce identical output.
  */
 
+import type { QueryField, QueryGroup, QueryNode } from '../components/query-builder/types'
+
 export function rng(seed = 1) {
 	let state = seed >>> 0
 
@@ -76,8 +78,6 @@ export function makeShipments(count: number, seed = 1): Shipment[] {
 	return out
 }
 
-// ── JSON tree fixtures ─────────────────────────────────
-
 type Json = string | number | boolean | null | Json[] | { [k: string]: Json }
 
 /**
@@ -111,10 +111,6 @@ export function makeJsonTree(depth: number, branching: number, seed = 1): Json {
 
 	return build(depth, 'root')
 }
-
-// ── Query-builder fixtures ─────────────────────────────
-
-import type { QueryField, QueryGroup, QueryNode } from '../components/query-builder/types'
 
 export const QUERY_FIELDS: QueryField[] = [
 	{ name: 'status', label: 'Status', type: 'text' },
@@ -163,8 +159,6 @@ export function makeQueryTree(depth: number, branching: number): QueryGroup {
 	return build(depth)
 }
 
-// ── Kanban fixtures ────────────────────────────────────
-
 export type KanbanItem = { id: string; title: string }
 
 export function makeKanbanColumns(
@@ -186,8 +180,6 @@ export function makeKanbanColumns(
 	return columns
 }
 
-// ── List fixtures ──────────────────────────────────────
-
 export function makeListItems(count: number): { id: string; title: string }[] {
 	const items: { id: string; title: string }[] = new Array(count)
 
@@ -195,8 +187,6 @@ export function makeListItems(count: number): { id: string; title: string }[] {
 
 	return items
 }
-
-// ── Combobox option fixtures ───────────────────────────
 
 export function makeComboboxOptions(count: number): { value: string; label: string }[] {
 	const options: { value: string; label: string }[] = new Array(count)
