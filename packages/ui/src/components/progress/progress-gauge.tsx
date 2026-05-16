@@ -3,8 +3,14 @@
 import { motion } from 'motion/react'
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
+import { useSizeWide } from '../../primitives/density'
 import { ReducedMotion } from '../../primitives/reduced-motion'
-import { k, progressGaugeVariants } from '../../recipes/kata/progress'
+import {
+	k,
+	type ProgressGaugeVariants,
+	progressGaugeLabelVariants,
+	progressGaugeVariants,
+} from '../../recipes/kata/progress'
 
 type ProgressColor = keyof typeof k.color
 
@@ -12,41 +18,39 @@ type ProgressColor = keyof typeof k.color
 // level so consumers can't ship an unlabeled gauge.
 type ProgressGaugeLabel = { 'aria-label': string } | { 'aria-labelledby': string }
 
-export type ProgressGaugeProps = ProgressGaugeLabel & {
-	value?: number
-	max?: number
-	size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
-	color?: ProgressColor
-	label?: ReactNode | boolean
-	strokeWidth?: number
-	className?: string
-}
+export type ProgressGaugeProps = ProgressGaugeLabel &
+	ProgressGaugeVariants & {
+		value?: number
+		max?: number
+		color?: ProgressColor
+		label?: ReactNode | boolean
+		strokeWidth?: number
+		className?: string
+	}
 
 const gaugeViewBox = 36
-
-const defaultStrokeWidth = 3.5
 
 export function ProgressGauge({
 	value = 0,
 	max = 100,
 	size,
-	color = 'blue',
+	color = 'zinc',
 	label,
-	strokeWidth = defaultStrokeWidth,
+	strokeWidth = 3.5,
 	className,
 	...labelProps
 }: ProgressGaugeProps) {
-	const pct = Math.min(100, Math.max(0, (value / max) * 100))
-
-	const resolvedSize = size ?? 'md'
+	const resolvedSize = useSizeWide(size)
 
 	const radius = (gaugeViewBox - strokeWidth) / 2
 
+	const percent = Math.min(100, Math.max(0, (value / max) * 100))
+
 	const circumference = 2 * Math.PI * radius
 
-	const offset = circumference - (pct / 100) * circumference
+	const offset = circumference - (percent / 100) * circumference
 
-	const resolvedLabel = label === true ? Math.round(pct) : label
+	const resolvedLabel = label === true ? Math.round(percent) : label
 
 	return (
 		<div
@@ -56,7 +60,7 @@ export function ProgressGauge({
 			aria-valuemin={0}
 			aria-valuemax={max}
 			{...labelProps}
-			className={cn(progressGaugeVariants({ size }), className)}
+			className={cn(progressGaugeVariants({ size: resolvedSize }), className)}
 		>
 			<ReducedMotion>
 				<svg
@@ -93,7 +97,7 @@ export function ProgressGauge({
 			</ReducedMotion>
 
 			{resolvedLabel != null && (
-				<span className={cn(k.gauge.label, k.gauge.labelSize[resolvedSize])}>{resolvedLabel}</span>
+				<span className={progressGaugeLabelVariants({ size: resolvedSize })}>{resolvedLabel}</span>
 			)}
 		</div>
 	)

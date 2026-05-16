@@ -3,10 +3,15 @@
 import { motion } from 'motion/react'
 import { cn } from '../../core'
 import { ReducedMotion } from '../../primitives/reduced-motion'
-import { k, progressTrackVariants } from '../../recipes/kata/progress'
+import {
+	k,
+	type ProgressBarFillVariants,
+	progressBarFillVariants,
+	progressTrackVariants,
+} from '../../recipes/kata/progress'
 import type { Step } from '../../recipes/ryu/sun'
 
-type ProgressColor = keyof typeof k.color
+type ProgressColor = NonNullable<ProgressBarFillVariants['color']>
 
 // A progressbar role needs an accessible name; require one of these at the type
 // level so consumers can't ship an unlabeled progress indicator.
@@ -24,13 +29,13 @@ export function ProgressBar({
 	value,
 	max = 100,
 	size,
-	color = 'blue',
+	color,
 	className,
 	...labelProps
 }: ProgressBarProps) {
 	const determinate = value != null
 
-	const pct = determinate ? Math.min(100, Math.max(0, (value / max) * 100)) : 0
+	const percent = determinate ? Math.min(100, Math.max(0, (value / max) * 100)) : 0
 
 	return (
 		<div
@@ -45,14 +50,14 @@ export function ProgressBar({
 			{determinate ? (
 				<ReducedMotion>
 					<motion.div
-						className={cn(k.bar.fill, k.color[color].bg)}
+						className={progressBarFillVariants({ color })}
 						initial={{ width: 0 }}
-						animate={{ width: `${pct}%` }}
+						animate={{ width: `${percent}%` }}
 						transition={{ type: 'spring', stiffness: 100, damping: 20 }}
 					/>
 				</ReducedMotion>
 			) : (
-				<div className={cn(k.bar.fill, k.color[color].bg, k.bar.indeterminate)} />
+				<div className={cn(progressBarFillVariants({ color }), k.bar.indeterminate)} />
 			)}
 		</div>
 	)

@@ -2,48 +2,65 @@ import { tv, type VariantProps } from 'tailwind-variants'
 import { iro } from '../ryu/iro'
 
 export const progressTrack = tv({
-	base: ['overflow-hidden', 'rounded-full', 'bg-zinc-200', 'dark:bg-zinc-700'],
+	base: ['overflow-hidden', 'rounded-full', 'bg-zinc-200', 'dark:bg-zinc-800'],
 	variants: {
 		size: {
-			sm: 'h-1',
-			md: 'h-2',
-			lg: 'h-3',
+			sm: 'h-2',
+			md: 'h-3',
+			lg: 'h-4',
 		},
 	},
 	defaultVariants: { size: 'md' },
+})
+
+export const progressBarFill = tv({
+	base: ['h-full', 'rounded-full'],
+	variants: {
+		color: {
+			zinc: 'bg-zinc-600 dark:bg-zinc-400',
+			red: 'bg-red-600 dark:bg-red-500',
+			amber: 'bg-amber-500',
+			green: 'bg-green-600 dark:bg-green-500',
+			blue: 'bg-blue-600 dark:bg-blue-500',
+		},
+	},
+	defaultVariants: { color: 'zinc' },
 })
 
 export const progressGauge = tv({
 	base: ['relative', 'inline-flex items-center justify-center'],
 	variants: {
 		size: {
-			xs: 'size-6',
-			sm: 'size-8',
-			md: 'size-12',
-			lg: 'size-16',
-			xl: 'size-20',
+			sm: 'size-12',
+			md: 'size-16',
+			lg: 'size-20',
+			xl: 'size-24',
+		},
+	},
+	defaultVariants: { size: 'md' },
+})
+
+export const progressGaugeLabel = tv({
+	base: ['absolute', 'font-semibold', ...iro.text.default],
+	variants: {
+		size: {
+			sm: 'text-xs',
+			md: 'text-sm',
+			lg: 'text-md',
+			xl: 'text-lg',
 		},
 	},
 	defaultVariants: { size: 'md' },
 })
 
 export type ProgressTrackVariants = VariantProps<typeof progressTrack>
+export type ProgressBarFillVariants = VariantProps<typeof progressBarFill>
 export type ProgressGaugeVariants = VariantProps<typeof progressGauge>
+export type ProgressGaugeLabelVariants = VariantProps<typeof progressGaugeLabel>
 
 export const slots = {
 	bar: {
-		fill: ['h-full', 'rounded-full'],
 		indeterminate: 'w-1/3 animate-[progress-indeterminate_1.5s_ease-in-out_infinite]',
-	},
-	gauge: {
-		label: ['absolute', 'font-semibold', ...iro.text.default],
-		labelSize: {
-			xs: 'text-[6px]',
-			sm: 'text-[8px]',
-			md: 'text-xs',
-			lg: 'text-sm',
-			xl: 'text-base',
-		},
 	},
 	color: {
 		zinc: {
@@ -79,14 +96,16 @@ export const slots = {
 
 /** Kept for the `kata` barrel — not consumed directly. */
 export const progress = {
-	bar: { track: progressTrack, ...slots.bar },
-	gauge: { base: progressGauge, ...slots.gauge },
+	bar: { track: progressTrack, fill: progressBarFill, ...slots.bar },
+	gauge: { base: progressGauge, label: progressGaugeLabel },
 	color: slots.color,
 	track: slots.track,
 }
 
 export {
+	progressBarFill as progressBarFillVariants,
 	progressGauge as progressGaugeVariants,
+	progressGaugeLabel as progressGaugeLabelVariants,
 	progressTrack as progressTrackVariants,
 	slots as k,
 }

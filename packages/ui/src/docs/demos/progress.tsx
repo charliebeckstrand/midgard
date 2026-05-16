@@ -5,7 +5,6 @@ import { Flex } from '../../components/flex'
 import { ProgressBar, ProgressGauge } from '../../components/progress'
 import { Stack } from '../../components/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../components/tabs'
-import { code } from '../code'
 import { Example } from '../components/example'
 import { capitalize } from '../components/format'
 import { LabeledColumn, LabeledRow } from '../components/labeled'
@@ -17,40 +16,12 @@ const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 
 const barSizes = ['sm', 'md', 'lg'] as const
 
-const gaugeSizes = ['xs', 'sm', 'md', 'lg', 'xl'] as const
-
-function InteractiveBarExample() {
-	const [value, setValue] = useState(50)
-
-	return (
-		<Example
-			title="Default"
-			actions={<ValueStepper value={value} onValueChange={setValue} max={100} step={10} />}
-		>
-			<ProgressBar value={value} aria-label="Progress" />
-		</Example>
-	)
-}
-
-function InteractiveGaugeExample() {
-	const [value, setValue] = useState(50)
-
-	return (
-		<Example
-			title="Default"
-			actions={<ValueStepper value={value} onValueChange={setValue} max={100} step={10} />}
-			code={code`
-				import { ProgressGauge } from 'ui/progress'
-
-				<ProgressGauge value={50} aria-label="Progress" />
-			`}
-		>
-			<ProgressGauge value={value} size="lg" aria-label="Progress" />
-		</Example>
-	)
-}
+const gaugeSizes = ['sm', 'md', 'lg', 'xl'] as const
 
 export default function ProgressDemo() {
+	const [barValue, setBarValue] = useState(50)
+	const [gaugeValue, setGaugeValue] = useState(50)
+
 	return (
 		<Tabs defaultValue="bar">
 			<Stack gap="lg">
@@ -61,19 +32,13 @@ export default function ProgressDemo() {
 				<TabContents>
 					<TabContent value="bar">
 						<Stack gap="xl">
-							<InteractiveBarExample />
-
-							<Example title="Sizes">
-								{barSizes.map((s, i) => (
-									<LabeledRow key={s} label={s}>
-										<ProgressBar
-											size={s}
-											value={40 + i * 10}
-											className="flex-1"
-											aria-label={`${s} progress`}
-										/>
-									</LabeledRow>
-								))}
+							<Example
+								title="Default"
+								actions={
+									<ValueStepper value={barValue} onValueChange={setBarValue} max={100} step={10} />
+								}
+							>
+								<ProgressBar value={barValue} aria-label="Progress" />
 							</Example>
 
 							<Example title="Colors">
@@ -88,11 +53,37 @@ export default function ProgressDemo() {
 									</LabeledRow>
 								))}
 							</Example>
+
+							<Example title="Sizes">
+								{barSizes.map((s, i) => (
+									<LabeledRow key={s} label={s}>
+										<ProgressBar
+											size={s}
+											color="red"
+											value={40 + i * 10}
+											className="flex-1"
+											aria-label={`${s} progress`}
+										/>
+									</LabeledRow>
+								))}
+							</Example>
 						</Stack>
 					</TabContent>
 					<TabContent value="gauge">
 						<Stack gap="xl">
-							<InteractiveGaugeExample />
+							<Example
+								title="Default"
+								actions={
+									<ValueStepper
+										value={gaugeValue}
+										onValueChange={setGaugeValue}
+										max={100}
+										step={10}
+									/>
+								}
+							>
+								<ProgressGauge value={gaugeValue} aria-label="Progress" />
+							</Example>
 
 							<Example title="Colors">
 								<Flex gap="lg">
@@ -101,7 +92,6 @@ export default function ProgressDemo() {
 											key={color}
 											color={color}
 											value={75}
-											size="lg"
 											aria-label={`${capitalize(color)} progress`}
 										/>
 									))}
@@ -123,14 +113,13 @@ export default function ProgressDemo() {
 									{gaugeSizes.map((s) => (
 										<ProgressGauge
 											key={s}
-											value={s === 'xs' ? 60 : 80}
+											value={80}
 											size={s}
 											color="amber"
-											label={s !== 'xs'}
+											label
 											aria-label={`${s} progress`}
 										/>
 									))}
-									<ProgressGauge value={100} size="xl" color="amber" label aria-label="Complete" />
 								</Flex>
 							</Example>
 						</Stack>
