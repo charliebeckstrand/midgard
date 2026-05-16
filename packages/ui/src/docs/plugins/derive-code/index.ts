@@ -16,7 +16,7 @@ import { collectHelpers } from './collect-helpers'
  * library components or unrelated docs modules.
  */
 export function deriveCodePlugin(): Plugin {
-	let demosDir: string
+	let demosDir = ''
 
 	return {
 		name: 'derive-code',
@@ -41,7 +41,7 @@ export function deriveCodePlugin(): Plugin {
 			const tail = helpers
 				.map(
 					({ name, code }) =>
-						`;(${name} as unknown as { __code?: string }).__code = ${JSON.stringify(code)};`,
+						`;Object.assign(${name}, { __code: ${JSON.stringify(code)} });`,
 				)
 				.join('\n')
 
