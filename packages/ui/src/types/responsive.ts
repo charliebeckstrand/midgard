@@ -26,5 +26,5 @@ export function resolveResponsive<T>(
 		return classes
 	}
 
-	return [resolver(value as T)]
+	return [resolver(value)]
 }
