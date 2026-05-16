@@ -17,17 +17,8 @@ export type CardProps = BoxProps<'radius'> & {
 	size?: Step
 }
 
-const outerPadding: Record<Step, string> = {
-	sm: '[&:not(:has(>[data-slot^=card-]))]:p-sm',
-	md: '[&:not(:has(>[data-slot^=card-]))]:p-md',
-	lg: '[&:not(:has(>[data-slot^=card-]))]:p-lg',
-}
-
 export function Card({
 	size,
-	p,
-	px,
-	py,
 	bg = 'tint',
 	outline = true,
 	className,
@@ -44,21 +35,17 @@ export function Card({
 		)
 	}
 
-	const noExplicitPadding = p === undefined && px === undefined && py === undefined
-
 	return (
 		<Box
 			dataSlot="card"
-			p={p}
-			px={px}
-			py={py}
+			p={token.density}
 			bg={bg}
 			outline={outline}
 			radius={sun[token.size].radius}
 			data-step={token.size}
 			className={cn(
-				noExplicitPadding && outerPadding[token.density],
 				'overflow-hidden -outline-offset-1',
+				'[&:has(>[data-slot^=card-])]:p-0',
 				className,
 			)}
 			{...props}

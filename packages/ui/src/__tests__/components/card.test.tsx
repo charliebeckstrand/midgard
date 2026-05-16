@@ -259,11 +259,11 @@ describe('Card size system', () => {
 		expect(cards[1]).toHaveAttribute('data-step', 'sm')
 	})
 
-	// Box now inherits `p` from Density. Card must not let its own Box
-	// pick up the size it broadcasts to descendants — otherwise the
-	// conditional `:has(>[data-slot^=card-])` padding rule is bypassed and
-	// CardHeader/CardBody layouts get an extra outer p-* class.
-	it("does not apply a static p-* class to the Card's own surface", () => {
+	// Card always carries a static `p-{density}` so callers can compose with
+	// Box's normal padding contract; the `:has(>[data-slot^=card-])` selector
+	// zeroes that padding when slot children (CardHeader/CardBody/etc.) own
+	// the layout, preventing the outer + inner double-padding regression.
+	it('suppresses its outer padding when card slot children are present', () => {
 		const { container } = renderUI(
 			<Card size="md">
 				<CardBody>body</CardBody>
@@ -272,6 +272,6 @@ describe('Card size system', () => {
 
 		const cls = bySlot(container, 'card')?.className ?? ''
 
-		expect(cls).not.toMatch(/(^|\s)p-(xs|sm|md|lg|xl)(\s|$)/)
+		expect(cls).toContain('[&:has(>[data-slot^=card-])]:p-0')
 	})
 })
