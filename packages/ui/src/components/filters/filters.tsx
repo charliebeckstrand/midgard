@@ -43,7 +43,7 @@ export function Filters<T extends FilterValue = FilterValue>({
 }: FiltersProps<T>) {
 	const [state, setState] = useControllable<T>({
 		value: valueProp,
-		defaultValue: defaultValue ?? ({} as T),
+		defaultValue,
 		onChange: onValueChange && ((v) => v !== undefined && onValueChange(v)),
 	})
 
