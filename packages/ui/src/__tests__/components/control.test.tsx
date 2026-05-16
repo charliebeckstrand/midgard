@@ -209,8 +209,6 @@ describe('Control + Textarea', () => {
 	})
 })
 
-// ── Nesting ────────────────────────────────────────────────
-
 describe('Control nesting', () => {
 	it('parent disabled propagates to child Control input', () => {
 		const { container } = renderUI(
@@ -330,8 +328,6 @@ describe('Control nesting', () => {
 		expect(bySlot(container, 'input')).toBeDisabled()
 	})
 })
-
-// ── Size / Variant ─────────────────────────────────────────
 
 describe('Control + size', () => {
 	it('Input inherits size from Control', () => {

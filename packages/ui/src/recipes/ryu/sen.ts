@@ -9,7 +9,7 @@
  * Layer: ryū · Concern: lines
  */
 
-// ── Motoi (基) — structure only ─────────────────────────
+/** Motoi (基) — structure only. */
 const motoi = {
 	border: 'border',
 	outline: 'outline',
@@ -17,7 +17,7 @@ const motoi = {
 	divider: 'border-t',
 }
 
-// ── Hiru (昼) — light palette ───────────────────────────
+/** Hiru (昼) — light palette. */
 const hiru = {
 	border: 'border-zinc-950/10',
 	borderEmphasis: 'border-zinc-950/20',
@@ -29,7 +29,7 @@ const hiru = {
 	ring: 'ring-zinc-950/10',
 }
 
-// ── Yoru (夜) — dark palette ────────────────────────────
+/** Yoru (夜) — dark palette. */
 const yoru = {
 	border: 'dark:border-white/10',
 	borderEmphasis: 'dark:border-white/20',
@@ -41,7 +41,6 @@ const yoru = {
 	ring: 'dark:ring-white/10',
 }
 
-// ── Export ──────────────────────────────────────────────
 export const sen = {
 	/** Default border — 1 px, low-contrast palette. */
 	border: [motoi.border, hiru.border, yoru.border],

@@ -4,8 +4,6 @@ export const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 
 export type Color = (typeof colors)[number]
 
-// ── Shared ────────────────────────────────────────
-
 const text = defineColors({
 	zinc: { light: 'text-zinc-700', dark: 'dark:text-zinc-400' },
 	red: { light: 'text-red-700', dark: 'dark:text-red-400' },
@@ -37,8 +35,6 @@ const hover = defineColors({
 	},
 })
 
-// ── Solid ────────────────────────────────────────────────
-
 export const solid = {
 	bg: defineColors({
 		zinc: 'bg-zinc-600',
@@ -62,8 +58,6 @@ export const solid = {
 		blue: 'not-disabled:hover:bg-blue-700',
 	}),
 }
-
-// ── Soft ─────────────────────────────────────────────────
 
 export const soft = {
 	bg: defineColors({
@@ -98,8 +92,6 @@ export const soft = {
 	}),
 }
 
-// ── Outline ─────────────────────────────────────────────
-
 export const outline = {
 	border: defineColors({
 		zinc: { light: 'border-zinc-800', dark: 'dark:border-zinc-600' },
@@ -118,8 +110,6 @@ export const outline = {
 	text,
 	hover,
 }
-
-// ── Plain ───────────────────────────────────────────────
 
 export const plain = {
 	text,

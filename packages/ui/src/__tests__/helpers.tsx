@@ -3,8 +3,6 @@ import type { ReactElement, ReactNode } from 'react'
 import { GlassProvider } from '../components/glass/context'
 import { SkeletonProvider } from '../components/skeleton/context'
 
-// ── Context wrapper options ─────────────────────────
-
 type UIContextOptions = {
 	skeleton?: boolean
 	glass?: boolean
@@ -38,8 +36,6 @@ export function renderUI(ui: ReactElement, options: UIRenderOptions = {}): Rende
 	return render(ui, { wrapper: Wrapper, ...renderOptions })
 }
 
-// ── Query helpers ───────────────────────────────────
-
 /**
  * Query a single element by its `data-slot` attribute within a container.
  * Returns `null` when not found — mirrors `querySelector` semantics.
@@ -54,8 +50,6 @@ export function bySlot(container: HTMLElement, name: string) {
 export function allBySlot(container: HTMLElement, name: string) {
 	return Array.from(container.querySelectorAll<HTMLElement>(`[data-slot="${name}"]`))
 }
-
-// ── Re-exports ──────────────────────────────────────
 
 export { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 
