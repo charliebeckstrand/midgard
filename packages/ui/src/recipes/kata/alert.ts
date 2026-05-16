@@ -31,10 +31,11 @@ export const alert = tv({
 export const slots = {
 	icon: 'shrink-0 self-center',
 	title: [ji.size.lg, 'leading-none font-semibold', 'self-center'],
-	description: 'leading-none',
+	description: ['leading-none', 'col-start-2'],
 	content: ['flex-1 min-w-0', 'gap-md'],
+	body: 'col-start-2',
 	actions: ['flex items-center', 'gap-xs'],
-	close: ['shrink-0', 'rounded-md'],
+	close: ['shrink-0'],
 }
 
 export type AlertVariants = VariantProps<typeof alert>

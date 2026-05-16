@@ -1,12 +1,13 @@
 'use client'
 
 import { AlertTriangle, CheckCircle, Info, X, XCircle } from 'lucide-react'
-import { type ReactElement, type ReactNode, useCallback } from 'react'
+import { Children, isValidElement, type ReactElement, type ReactNode, useCallback } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
 import { type AlertVariants, alertVariants, k } from '../../recipes/kata/alert'
 import { Button } from '../button'
 import { Icon } from '../icon'
+import { AlertBody } from './alert-body'
 
 export type AlertSeverity = 'info' | 'success' | 'warning' | 'error'
 
@@ -31,6 +32,24 @@ const severityRoleMap: Record<AlertSeverity, 'alert' | 'status'> = {
 	success: 'status',
 	warning: 'alert',
 	error: 'alert',
+}
+
+const SLOT_DISPLAY_NAMES = new Set(['alert-title', 'alert-description', 'alert-body'])
+
+function isSlotChild(node: ReactNode): boolean {
+	if (!isValidElement(node)) return false
+
+	const type = node.type as { displayName?: string } | string
+
+	return typeof type !== 'string' && SLOT_DISPLAY_NAMES.has(type.displayName ?? '')
+}
+
+function renderChildren(children: ReactNode): ReactNode {
+	if (children === undefined || children === null || children === false) return null
+
+	const hasSlot = Children.toArray(children).some(isSlotChild)
+
+	return hasSlot ? children : <AlertBody>{children}</AlertBody>
 }
 
 export type AlertProps = AlertVariants & {
@@ -111,11 +130,9 @@ export function Alert({
 
 				{title && <div className={cn(k.title)}>{title}</div>}
 
-				{description && (
-					<div className={cn(k.description, resolvedIcon && 'col-start-2')}>{description}</div>
-				)}
+				{description && <div className={cn(k.description)}>{description}</div>}
 
-				{children && (resolvedIcon ? <div className="col-start-2">{children}</div> : children)}
+				{renderChildren(children)}
 
 				{actions && <div className={cn(k.actions, resolvedIcon && 'col-start-2')}>{actions}</div>}
 			</div>
