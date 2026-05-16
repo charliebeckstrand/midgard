@@ -38,6 +38,7 @@ export function Tree({ size, indent = false, children, className }: TreeProps) {
 	})
 
 	const inherited = useDensity()
+
 	const resolvedSize: TreeSize = size ?? inherited.size
 
 	const rootContextValue = useMemo(

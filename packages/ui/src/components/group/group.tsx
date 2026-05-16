@@ -55,10 +55,10 @@ export function Group({
 	children,
 	...props
 }: GroupProps) {
-	const inherited = useDensity()
-	const resolvedSize = size ?? inherited.size
-
 	const stamped = useGroup(children, orientation)
+	const inherited = useDensity()
+
+	const resolvedSize = size ?? inherited.size
 
 	return (
 		<Polymorphic

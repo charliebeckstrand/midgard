@@ -9,6 +9,7 @@ export type StatusDotProps = StatusDotVariants & {
 
 export function StatusDot({ variant, status, size, pulse, className, ...props }: StatusDotProps) {
 	const inherited = useDensity()
+
 	const resolvedSize = size ?? inherited.size
 
 	return (

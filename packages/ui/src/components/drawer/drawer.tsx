@@ -48,6 +48,7 @@ export function Drawer({
 	const { panelAriaProps, providerValue } = usePanelA11yScope()
 
 	const inherited = useDensity()
+
 	const resolvedSize = size ?? inherited.size
 
 	const close = useCallback(() => onOpenChange(false), [onOpenChange])

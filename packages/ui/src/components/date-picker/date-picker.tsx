@@ -57,8 +57,8 @@ export type DatePickerProps = DatePickerBaseProps & (DatePickerSingleProps | Dat
 export function DatePicker(props: DatePickerProps) {
 	const skeleton = useSkeleton()
 	const join = useJoin()
-
 	const inherited = useDensity()
+
 	const resolvedSize: ControlSize = props.size ?? inherited.size
 
 	if (skeleton) {

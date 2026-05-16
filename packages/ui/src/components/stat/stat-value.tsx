@@ -18,6 +18,7 @@ export type StatValueProps = StatValueVariants & {
  */
 export function StatValue({ size, className, children, ...props }: StatValueProps) {
 	const inherited = useDensity()
+
 	const resolvedSize = size ? DENSITY_PRESETS[size].size : inherited.size
 
 	if (useSkeleton()) {

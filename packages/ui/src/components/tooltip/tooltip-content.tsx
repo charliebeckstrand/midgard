@@ -36,8 +36,8 @@ export function TooltipContent({ size, className, children }: TooltipContentProp
 	} = useTooltipContext()
 
 	const glass = useGlass()
-
 	const inherited = useDensity()
+
 	const resolvedSize: Step = size ?? rootSize ?? inherited.size
 
 	return (

@@ -38,7 +38,7 @@ export function Tabs({
 	// Vertical only applies to the 'tab' variant; segment is always horizontal.
 	const resolvedOrientation: TabsOrientation = variant === 'segment' ? 'horizontal' : orientation
 
-	const tabsCtx = useMemo(
+	const tabsContext = useMemo(
 		() => ({ variant, orientation: resolvedOrientation, size: resolvedSize }),
 		[variant, resolvedOrientation, resolvedSize],
 	)
@@ -47,7 +47,7 @@ export function Tabs({
 
 	return (
 		<CurrentProvider value={ctx}>
-			<TabsProvider value={tabsCtx}>
+			<TabsProvider value={tabsContext}>
 				<div
 					data-slot="tab-group"
 					data-orientation={resolvedOrientation}

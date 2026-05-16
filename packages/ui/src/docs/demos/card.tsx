@@ -1,4 +1,4 @@
-import { Alert, AlertDescription } from '../../components/alert'
+import { Alert, AlertDescription, AlertTitle } from '../../components/alert'
 import { Button } from '../../components/button'
 import {
 	Card,
@@ -8,6 +8,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from '../../components/card'
+import { Link } from '../../components/link'
 import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
 import { Example } from '../components/example'
@@ -18,13 +19,9 @@ export default function CardDemo() {
 	return (
 		<Stack gap="xl">
 			<Alert severity="info" closable>
-				<AlertDescription>Card extends Box.</AlertDescription>
+				<AlertTitle>Card extends Box.</AlertTitle>
 				<AlertDescription>
-					See the{' '}
-					<a href="#box" className="text-white underline underline-offset-4">
-						Box documentation
-					</a>{' '}
-					for more details and examples.
+					See the <Link href="#box">Box documentation</Link> for more details and examples.
 				</AlertDescription>
 			</Alert>
 

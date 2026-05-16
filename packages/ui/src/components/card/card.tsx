@@ -30,6 +30,7 @@ export function Card({
 	...props
 }: CardProps) {
 	const inherited = useDensity()
+
 	const token = size ? DENSITY_PRESETS[size] : inherited
 
 	if (useSkeleton()) {

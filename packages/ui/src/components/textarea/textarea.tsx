@@ -49,6 +49,9 @@ export function Textarea({
 	const glass = useGlass()
 	const control = useControl()
 	const binding = useFormText(name, { onChange, onBlur })
+	const inherited = useDensity()
+
+	const token = size ? DENSITY_PRESETS[size] : inherited
 
 	const {
 		id: resolvedId,
@@ -60,8 +63,6 @@ export function Textarea({
 	} = useControlFieldProps({ id, autoComplete, disabled, required, readOnly, binding })
 
 	const resolvedVariant = variant ?? control?.variant ?? (glass ? 'glass' : undefined)
-	const inherited = useDensity()
-	const token = size ? DENSITY_PRESETS[size] : inherited
 
 	if (useSkeleton()) {
 		return (

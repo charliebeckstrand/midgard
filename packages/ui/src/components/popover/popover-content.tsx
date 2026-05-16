@@ -42,8 +42,8 @@ export function PopoverContent({
 	const contentRef = useRef<HTMLDivElement | null>(null)
 
 	const glass = useGlass()
-
 	const inherited = useDensity()
+
 	const resolvedSize = size ?? inherited.size
 
 	const resolvedPadding: BoxPadding = p ?? paddingForSize[resolvedSize]

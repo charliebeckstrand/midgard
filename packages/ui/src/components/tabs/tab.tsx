@@ -28,18 +28,18 @@ export function Tab({
 }: TabProps) {
 	const ctx = useCurrent()
 
-	const tabsCtx = useTabsContext()
-
+	const tabsContext = useTabsContext()
 	const indicator = useActiveIndicator()
 
-	const isSegment = tabsCtx?.variant === 'segment'
-
-	const orientation = tabsCtx?.orientation ?? 'horizontal'
-
-	// When wrapped in <Tabs>, the parent has already resolved Density into tabsCtx.size.
+	// When wrapped in <Tabs>, the parent has already resolved Density into tabsContext.size.
 	// When used à la carte (just <TabList>+<Tab>), fall back to reading Density here.
 	const inherited = useDensity()
-	const size = tabsCtx?.size ?? inherited.size
+
+	const size = tabsContext?.size ?? inherited.size
+
+	const isSegment = tabsContext?.variant === 'segment'
+
+	const orientation = tabsContext?.orientation ?? 'horizontal'
 
 	const current = currentProp ?? (value !== undefined && ctx?.value === value)
 

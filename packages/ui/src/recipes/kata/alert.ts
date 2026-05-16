@@ -13,7 +13,7 @@ const { color, compoundVariants } = colorVariants({
 })
 
 export const alert = tv({
-	base: ['flex w-fit', 'px-4 py-3.5', 'gap-sm', ji.size.md, 'rounded-lg'],
+	base: ['flex w-fit', 'p-4', 'gap-sm', ji.size.md, 'rounded-lg'],
 	variants: {
 		variant: {
 			solid: '',
@@ -31,8 +31,8 @@ export const alert = tv({
 export const slots = {
 	icon: 'shrink-0',
 	title: [ji.size.lg, 'leading-none font-semibold'],
-	description: '',
-	content: ['flex flex-col flex-1 min-w-0', 'gap-2'],
+	description: 'leading-none',
+	content: ['flex flex-col flex-1 min-w-0', 'gap-md'],
 	actions: ['flex items-center', 'gap-xs'],
 	close: ['shrink-0', 'rounded-md'],
 }

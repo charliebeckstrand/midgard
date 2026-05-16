@@ -47,6 +47,7 @@ export function Table({
 	tableProps,
 }: TableProps) {
 	const inherited = useDensity()
+
 	const resolvedSize = density ? DENSITY_TO_SIZE[density] : inherited.size
 
 	const ctx = useMemo<TableContextValue>(

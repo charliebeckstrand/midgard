@@ -28,6 +28,7 @@ export function Radio({ className, color, size, id, disabled, required, ...props
 	} = useControlFieldProps({ id, disabled, required })
 
 	const inherited = useDensity()
+
 	const resolvedSize = size ?? inherited.size
 
 	if (useSkeleton()) {

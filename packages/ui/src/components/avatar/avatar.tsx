@@ -37,7 +37,9 @@ export function Avatar({
 	const skeleton = useSkeleton()
 
 	const inherited = useDensity()
+
 	const token = size ? DENSITY_PRESETS[size] : inherited
+
 	const resolvedSize = token.size
 
 	if (skeleton) {

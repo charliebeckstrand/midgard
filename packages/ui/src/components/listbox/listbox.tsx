@@ -92,13 +92,14 @@ export function Listbox<T>({
 	const control = useControl()
 	const skeleton = useSkeleton()
 	const join = useJoin()
+	const inherited = useDensity()
+
+	const token = size ? DENSITY_PRESETS[size] : inherited
 
 	const resolvedId = inputId ?? control?.id
 
 	const resolvedDisabled = disabled ?? control?.disabled
 
-	const inherited = useDensity()
-	const token = size ? DENSITY_PRESETS[size] : inherited
 	const resolvedSize = token.size
 
 	const handleValueChange = useSelectableValueChange<T>(

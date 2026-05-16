@@ -19,6 +19,7 @@ const titleText: Record<Step, JiSize> = {
 
 export function CardTitle({ className, size, children, ...props }: CardTitleProps) {
 	const inherited = useDensity()
+
 	const resolvedSize: Step = size ?? inherited.size
 
 	return (

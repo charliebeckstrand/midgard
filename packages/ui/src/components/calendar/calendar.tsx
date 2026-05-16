@@ -88,6 +88,7 @@ export function Calendar({
 	className,
 }: CalendarProps) {
 	const inherited = useDensity()
+
 	const resolvedSize: Step = size ?? inherited.size
 
 	const handleValueChange = useCallback(

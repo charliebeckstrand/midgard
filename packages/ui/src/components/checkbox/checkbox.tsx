@@ -50,12 +50,15 @@ export function Checkbox({
 	const internalRef = useRef<HTMLInputElement>(null)
 
 	const inherited = useDensity()
+
 	const resolvedSize = size ?? inherited.size
 
 	const setRef = useCallback(
 		(el: HTMLInputElement | null) => {
 			internalRef.current = el
+
 			if (el) el.indeterminate = !!indeterminate
+
 			if (typeof ref === 'function') ref(el)
 			else if (ref) ref.current = el
 		},

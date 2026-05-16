@@ -14,16 +14,17 @@ const TAB_SELECTOR = 'button[data-slot="tab"]:not(:disabled)'
 export type TabListProps = ComponentPropsWithoutRef<'div'>
 
 export function TabList({ className, children, ...props }: TabListProps) {
-	const tabsCtx = useTabsContext()
+	const tabsContext = useTabsContext()
 
-	const isSegment = tabsCtx?.variant === 'segment'
+	const isSegment = tabsContext?.variant === 'segment'
 
-	const orientation = tabsCtx?.orientation ?? 'horizontal'
+	const orientation = tabsContext?.orientation ?? 'horizontal'
 
-	// When wrapped in <Tabs>, the parent has already resolved Density into tabsCtx.size.
+	// When wrapped in <Tabs>, the parent has already resolved Density into tabsContext.size.
 	// When used à la carte (just <TabList>+<Tab>), fall back to reading Density here.
 	const inherited = useDensity()
-	const size = tabsCtx?.size ?? inherited.size
+
+	const size = tabsContext?.size ?? inherited.size
 
 	const ref = useRef<HTMLDivElement>(null)
 

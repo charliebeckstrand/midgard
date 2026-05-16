@@ -35,6 +35,7 @@ export function Switch({
 	const binding = useFormToggle(name, { onChange })
 
 	const inherited = useDensity()
+
 	const resolvedSize = size ?? inherited.size
 
 	const {
