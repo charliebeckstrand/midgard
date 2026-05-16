@@ -120,15 +120,30 @@ function readDefaultVariants(
 			for (const inner of prop.initializer.properties) {
 				if (!ts.isPropertyAssignment(inner)) continue
 
-				if (!ts.isIdentifier(inner.name) && !ts.isStringLiteral(inner.name)) continue
+				const key = propertyKeyName(inner.name)
 
-				const key = inner.name.text
+				if (!key) continue
 
 				map.set(key, inner.initializer.getText())
 			}
 
 			return map
 		}
+	}
+
+	return null
+}
+
+/**
+ * Read the string key of a property-assignment name. Accepts identifiers,
+ * string literals, and computed names whose expression is a string literal
+ * (`['size']: 'md'`). Returns null for anything else (numeric, dynamic).
+ */
+function propertyKeyName(name: ts.PropertyName): string | null {
+	if (ts.isIdentifier(name) || ts.isStringLiteral(name)) return name.text
+
+	if (ts.isComputedPropertyName(name) && ts.isStringLiteralLike(name.expression)) {
+		return name.expression.text
 	}
 
 	return null
