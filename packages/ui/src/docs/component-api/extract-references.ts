@@ -128,7 +128,10 @@ function resolveAliasDefinition(
 		if (decl.getSourceFile().fileName.includes('/node_modules/')) continue
 
 		if (ts.isTypeAliasDeclaration(decl)) {
-			return { text: normalizeWhitespace(decl.type.getText()), declaration: decl }
+			const params = typeParameterList(decl.typeParameters)
+			const body = `${params ? `${params} = ` : ''}${decl.type.getText()}`
+
+			return { text: normalizeWhitespace(body), declaration: decl }
 		}
 
 		if (ts.isInterfaceDeclaration(decl)) {
@@ -140,6 +143,8 @@ function resolveAliasDefinition(
 }
 
 function formatInterface(decl: ts.InterfaceDeclaration): string {
+	const params = typeParameterList(decl.typeParameters)
+
 	const heritage =
 		decl.heritageClauses?.flatMap((clause) => clause.types.map((t) => t.getText())) ?? []
 
@@ -147,7 +152,13 @@ function formatInterface(decl: ts.InterfaceDeclaration): string {
 
 	const heritagePart = heritage.length > 0 ? `extends ${heritage.join(', ')} ` : ''
 
-	return `${heritagePart}{ ${members} }`
+	return `${params ? `${params} ` : ''}${heritagePart}{ ${members} }`
+}
+
+function typeParameterList(params: ts.NodeArray<ts.TypeParameterDeclaration> | undefined): string {
+	if (!params || params.length === 0) return ''
+
+	return `<${params.map((p) => p.getText()).join(', ')}>`
 }
 
 function normalizeWhitespace(s: string): string {
