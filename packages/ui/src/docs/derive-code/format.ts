@@ -6,7 +6,7 @@ export const INDENT = '  '
 
 // Props that never belong in derived code — either structural (children, key,
 // ref) or styling noise (className).
-const IGNORED_PROPS = new Set(['children', 'className', 'key', 'ref'])
+const IGNORED_PROPS: ReadonlySet<string> = new Set(['children', 'className', 'key', 'ref'])
 
 // ---------------------------------------------------------------------------
 // Prop formatting
