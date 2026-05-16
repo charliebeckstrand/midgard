@@ -65,6 +65,34 @@ describe('deriveCode iteration vs authored siblings', () => {
 	})
 })
 
+describe('deriveCode child ordering', () => {
+	const Card = tag<{ children?: unknown }>('Card', 'card')
+	const Icon = tag<{ name?: string }>('Icon', 'icon')
+	const Button = tag<{ variant?: string; children?: unknown }>('Button', 'button')
+
+	it('preserves source order of mixed text and element children', () => {
+		const tree = createElement(
+			Card,
+			null,
+			createElement(Icon, { name: 'star' }),
+			'Hello',
+			createElement(Button, null, 'Click'),
+		)
+
+		const result = deriveCode(tree)
+
+		const body = (result ?? '').split('\n\n').slice(1).join('\n')
+
+		const iconIndex = body.indexOf('<Icon')
+		const helloIndex = body.indexOf('Hello')
+		const buttonIndex = body.indexOf('<Button')
+
+		expect(iconIndex).toBeGreaterThanOrEqual(0)
+		expect(helloIndex).toBeGreaterThan(iconIndex)
+		expect(buttonIndex).toBeGreaterThan(helloIndex)
+	})
+})
+
 describe('deriveCode prop formatting', () => {
 	it('escapes embedded quotes in array-literal props', () => {
 		const Foo = tag<{ tags?: string[] }>('Foo', 'foo')

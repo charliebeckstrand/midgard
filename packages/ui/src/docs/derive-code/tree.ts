@@ -47,27 +47,37 @@ export function flattenPassThroughs(elements: ReactElement[]): ReactElement[] {
 	return result
 }
 
+export type ChildItem =
+	| { kind: 'text'; value: string }
+	| { kind: 'element'; value: ReactElement }
+
 /**
- * Collect the text/number leaves from a subtree into a single string,
- * walking through pass-through wrappers. Returns the concatenated text
- * or `null` if no text is found.
+ * Walk children in source order, flattening pass-through wrappers and
+ * surfacing both recognized elements and text leaves as a position-preserving
+ * sequence. Callers render mixed children without losing original ordering
+ * (e.g. `<Card><Icon />Hello<Button /></Card>` keeps `Hello` between the two
+ * elements instead of appended at the end).
  */
-export function extractTextContent(nodes: ReactNode[]): string | null {
-	const parts: string[] = []
+export function collectChildItems(nodes: ReactNode[]): ChildItem[] {
+	const items: ChildItem[] = []
 
 	for (const n of nodes) {
-		if (typeof n === 'string' && n.trim() !== '') {
-			parts.push(n.trim())
-		} else if (typeof n === 'number') {
-			parts.push(String(n))
-		} else if (isValidElement(n) && isPassThrough(n)) {
-			const nested = extractTextContent(elementChildren(n))
+		if (typeof n === 'string') {
+			const trimmed = n.trim()
 
-			if (nested) parts.push(nested)
+			if (trimmed !== '') items.push({ kind: 'text', value: trimmed })
+		} else if (typeof n === 'number') {
+			items.push({ kind: 'text', value: String(n) })
+		} else if (isValidElement(n)) {
+			if (isPassThrough(n)) {
+				items.push(...collectChildItems(elementChildren(n)))
+			} else {
+				items.push({ kind: 'element', value: n })
+			}
 		}
 	}
 
-	return parts.length > 0 ? parts.join(' ') : null
+	return items
 }
 
 // ---------------------------------------------------------------------------

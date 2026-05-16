@@ -2,7 +2,7 @@ import { isValidElement, type ReactElement, type ReactNode } from 'react'
 import { formatProps, INDENT, renderOpenTag } from './format'
 import { addImport } from './imports'
 import { collectSnippetImports, readSnippet, reindent } from './snippet'
-import { elementChildren, extractTextContent, flattenPassThroughs } from './tree'
+import { collectChildItems, elementChildren, flattenPassThroughs } from './tree'
 import type { Ctx } from './types'
 
 // ---------------------------------------------------------------------------
@@ -115,35 +115,54 @@ export function renderElement(element: ReactElement, ctx: Ctx, indent: string): 
 	if (childrenStr === '') return open
 
 	// Inline short text children (e.g. <Card>Left</Card>) rather than
-	// breaking them across multiple lines.
+	// breaking them across multiple lines. `childrenStr` always carries its
+	// indent prefix; strip it here since the value sits between tags on a
+	// single line.
 	if (!childrenStr.includes('\n') && !childrenStr.includes('<')) {
-		return `${open}${childrenStr}</${info.name}>`
+		return `${open}${childrenStr.trimStart()}</${info.name}>`
 	}
 
 	return `${open}\n${childrenStr}\n${indent}</${info.name}>`
 }
 
 /**
- * Render the children of a recognized component. Combines text extraction
- * with recursive walking so mixed bodies (e.g. `<Icon />` plus a label)
- * show both the nested component and the text content.
+ * Render the children of a recognized component, preserving source order
+ * between text leaves and recognized elements. Consecutive elements are
+ * batched into a single `renderNodes` call so iteration-collapse still
+ * applies to `.map()` output that doesn't have text mixed in.
  */
 export function renderChildrenContent(nodes: ReactNode[], ctx: Ctx, indent: string): string {
 	if (nodes.length === 0) return ''
 
-	const rendered = renderNodes(nodes, ctx, indent).trimEnd()
+	const items = collectChildItems(nodes)
 
-	const text = extractTextContent(nodes)
+	if (items.length === 0) return '…'
 
-	if (rendered === '') {
-		// Children exist but nothing was recognized — show a placeholder so
-		// the parent renders as `<Foo>…</Foo>` instead of `<Foo />`.
-		return text ?? '…'
+	const parts: string[] = []
+
+	let batch: ReactElement[] = []
+
+	const flushBatch = () => {
+		if (batch.length === 0) return
+
+		const rendered = renderNodes(batch, ctx, indent)
+
+		if (rendered !== '') parts.push(rendered)
+
+		batch = []
 	}
 
-	if (text) {
-		return `${rendered}\n${indent}${text}`
+	for (const item of items) {
+		if (item.kind === 'text') {
+			flushBatch()
+
+			parts.push(indent + item.value)
+		} else {
+			batch.push(item.value)
+		}
 	}
 
-	return rendered
+	flushBatch()
+
+	return parts.length > 0 ? parts.join('\n') : '…'
 }
