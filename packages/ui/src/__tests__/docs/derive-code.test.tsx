@@ -186,8 +186,9 @@ describe('deriveCode + __code', () => {
 	})
 
 	it('does not mistake method calls for React hooks', () => {
-		const Foo = tag<{ children?: unknown }>('Foo', 'foo')
-
+		// `<Stack />` is a real recognized component, so `deriveCode` returns a
+		// non-null code block — needed to assert "the block contains no React
+		// `use` import" via toMatch.
 		function MethodDemo() {
 			return null
 		}
@@ -195,12 +196,13 @@ describe('deriveCode + __code', () => {
 		;(MethodDemo as unknown as { __code: string }).__code = [
 			'function MethodDemo() {',
 			'\tconst result = router.use(plugin)',
-			'\treturn <Foo />',
+			'\treturn <Stack />',
 			'}',
 		].join('\n')
 
 		const result = deriveCode(createElement(MethodDemo))
 
+		expect(result).not.toBeNull()
 		expect(result).not.toMatch(/import \{[^}]*\buse\b[^}]*\} from 'react'/)
 	})
 })
