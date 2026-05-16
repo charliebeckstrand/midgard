@@ -70,6 +70,7 @@ const [DensityProviderRaw, useDensityNullable] = createContext<DensityToken | nu
  */
 export function useDensity(): DensityToken {
 	const density = useDensityNullable()
+
 	return density ?? DENSITY_PRESETS.md
 }
 
@@ -77,9 +78,10 @@ export { useDensityNullable }
 
 /**
  * Resolve a wider-scale size through the Affix → Density cascade. Used by
- * components whose own size type spans `Ma` (`Button`, `Icon`, `Spinner`) —
- * they need to inherit sub-`Step` values when nested inside a control affix
- * slot, and the regular `useDensity` can't carry those.
+ * components whose own size type spans `Ma` (`Button`, `Icon`, `Spinner`,
+ * `ProgressGauge`) — they need to inherit sub-`Step` values when nested
+ * inside a control affix slot, and the regular `useDensity` can't carry
+ * those.
  *
  * Resolution order: `explicit ?? Affix ?? Density.size`.
  *
@@ -88,9 +90,10 @@ export { useDensityNullable }
  * cast trusts the caller to handle out-of-range values via recipe
  * `defaultVariants` or graceful fallback.
  */
-export function useWideSize<T extends Ma = Ma>(explicit?: T): T {
+export function useSizeWide<T extends Ma = Ma>(explicit?: T): T {
 	const affix = useAffix()
 	const density = useDensity()
+
 	return (explicit ?? affix ?? density.size) as T
 }
 
@@ -106,6 +109,7 @@ export function Density({ children, scale, density: densityProp, size: sizeProp 
 
 	const token = useMemo<DensityToken>(() => {
 		const base = scale ? DENSITY_PRESETS[scale] : parent
+
 		return {
 			density: densityProp ?? base.density,
 			size: sizeProp ?? base.size,

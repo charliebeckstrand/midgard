@@ -42,11 +42,11 @@ omitted, the group inherits from any enclosing Density context.
 
 Components like `Checkbox` and `Radio` read `useDensity()` to default
 their `size` prop. Wider-scale components (`Button`, `Icon`, `Spinner`)
-read `useWideSize()` instead — it composes the Affix primitive
+read `useSizeWide()` instead — it composes the Affix primitive
 (`primitives/affix.ts`) for slot-context broadcasts that go below the
 `Step` floor (`'xs'`). Resolution order: explicit prop, then
 component-specific context (e.g. Control for form fields), then
-`useDensity()` / `useWideSize()`, then the kata's `defaultVariants`.
+`useDensity()` / `useSizeWide()`, then the kata's `defaultVariants`.
 
 ## Spacing and radius
 

@@ -5,7 +5,7 @@ import type { ComponentPropsWithoutRef, PointerEvent, ReactNode, Ref } from 'rea
 import { cn } from '../../core'
 import { useRipple } from '../../hooks'
 import { AffixProvider } from '../../primitives/affix'
-import { useWideSize } from '../../primitives/density'
+import { useSizeWide } from '../../primitives/density'
 import type { PolymorphicProps } from '../../primitives/polymorphic'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { TouchTarget } from '../../primitives/touch-target'
@@ -69,7 +69,7 @@ export function Button({
 	const headless = useHeadless()
 	const skeleton = useSkeleton()
 
-	const resolvedSize = useWideSize(size)
+	const resolvedSize = useSizeWide(size)
 
 	const { onPointerDown: handleRipple, element: rippleElement } = useRipple()
 
