@@ -87,7 +87,7 @@ function collectFromVariantProps(
 	for (const decl of aliased.getDeclarations() ?? []) {
 		if (!ts.isVariableDeclaration(decl) || !decl.initializer) continue
 
-		const defaults = readDefaultVariants(decl.initializer)
+		const defaults = readDefaultVariants(decl.initializer, checker)
 
 		if (defaults) {
 			for (const [k, v] of defaults) {
@@ -98,12 +98,15 @@ function collectFromVariantProps(
 }
 
 /** Read `defaultVariants` out of a `tv({ ... })` / `cva({ ... })` call expression. */
-function readDefaultVariants(node: ts.Expression): Map<string, string> | null {
+function readDefaultVariants(
+	node: ts.Expression,
+	checker: ts.TypeChecker,
+): Map<string, string> | null {
 	if (!ts.isCallExpression(node)) return null
 
-	const config = node.arguments[0]
+	const config = resolveToObjectLiteral(node.arguments[0], checker)
 
-	if (!config || !ts.isObjectLiteralExpression(config)) return null
+	if (!config) return null
 
 	for (const prop of config.properties) {
 		if (
@@ -125,6 +128,41 @@ function readDefaultVariants(node: ts.Expression): Map<string, string> | null {
 			}
 
 			return map
+		}
+	}
+
+	return null
+}
+
+/**
+ * Resolve an argument expression to the underlying object literal. Handles
+ * direct literals (`tv({ ... })`), identifier indirection (`const config = {
+ * ... }; tv(config)`), and the usual `as const` / `satisfies` / parens
+ * wrappers authors put around CVA configs.
+ */
+function resolveToObjectLiteral(
+	node: ts.Expression | undefined,
+	checker: ts.TypeChecker,
+): ts.ObjectLiteralExpression | null {
+	if (!node) return null
+
+	if (ts.isObjectLiteralExpression(node)) return node
+
+	if (ts.isAsExpression(node) || ts.isSatisfiesExpression(node) || ts.isParenthesizedExpression(node)) {
+		return resolveToObjectLiteral(node.expression, checker)
+	}
+
+	if (ts.isIdentifier(node)) {
+		const symbol = checker.getSymbolAtLocation(node)
+
+		if (!symbol) return null
+
+		const aliased = unaliasSymbol(symbol, checker)
+
+		for (const decl of aliased.getDeclarations() ?? []) {
+			if (ts.isVariableDeclaration(decl) && decl.initializer) {
+				return resolveToObjectLiteral(decl.initializer, checker)
+			}
 		}
 	}
 
