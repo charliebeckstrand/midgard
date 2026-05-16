@@ -7,18 +7,14 @@
  *
  * Sun stores *data*, not classnames. Tailwind's scanner only sees literal
  * strings, so dynamic `` `p-${step.space}` `` would silently miss generation.
- * Consumers translate sun's tokens into CSS custom properties (e.g.
- * `--ui-padding: calc(var(--spacing) * ${step.space})`) and then read them
- * with static utilities (`p-(--ui-padding)`).
- *
- * Concentric formula (consumed by surfaces that opt into the cascade —
- * `<Card>`, `<Drawer>`, `<Popover>`):
- *   outer-radius = inner-radius + padding
+ * Consumers translate sun's tokens into static utilities at the call site
+ * via density-keyed maps.
  *
  * Layer: ryū · Concern: size
  */
 
 export const steps = ['sm', 'md', 'lg'] as const
+
 export type Step = (typeof steps)[number]
 
 export type SunStep = {
@@ -28,7 +24,7 @@ export type SunStep = {
 	space: '2' | '3' | '4'
 	/** Tailwind spacing token (numeric) for gap between children. */
 	gap: '1' | '2' | '3'
-	/** Token suffix consumed as `var(--radius-${radius})` — the inner radius. Surfaces derive outer = inner + padding. */
+	/** Key into Box's `radius` prop (and `rounded-{radius}` Tailwind utility). */
 	radius: 'sm' | 'md' | 'lg'
 	/** Tailwind size token for `data-slot="icon"` children. */
 	icon: '4' | '5' | '6'

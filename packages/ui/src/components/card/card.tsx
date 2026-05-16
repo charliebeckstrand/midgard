@@ -1,6 +1,5 @@
 'use client'
 
-import type { CSSProperties } from 'react'
 import { cn } from '../../core'
 import { DENSITY_PRESETS, DensityScope, useDensity } from '../../primitives/density'
 import { kokkaku } from '../../recipes'
@@ -16,6 +15,12 @@ export type CardProps = BoxProps<'radius'> & {
 	 * Resolution: explicit prop, then enclosing `<Density>`, then `'md'`.
 	 */
 	size?: Step
+}
+
+const outerPadding: Record<Step, string> = {
+	sm: '[&:not(:has(>[data-slot^=card-]))]:p-sm',
+	md: '[&:not(:has(>[data-slot^=card-]))]:p-md',
+	lg: '[&:not(:has(>[data-slot^=card-]))]:p-lg',
 }
 
 export function Card({
@@ -41,12 +46,6 @@ export function Card({
 
 	const noExplicitPadding = p === undefined && px === undefined && py === undefined
 
-	const style: CSSProperties = {
-		'--ui-padding': `calc(var(--spacing) * ${sun[token.density].space})`,
-		'--ui-radius-inner': `var(--radius-${sun[token.size].radius})`,
-		'--ui-gap': `calc(var(--spacing) * ${sun[token.density].gap})`,
-	} as CSSProperties
-
 	return (
 		<Box
 			dataSlot="card"
@@ -55,13 +54,13 @@ export function Card({
 			py={py}
 			bg={bg}
 			outline={outline}
+			radius={sun[token.size].radius}
 			data-step={token.size}
 			className={cn(
-				noExplicitPadding && '[&:not(:has(>[data-slot^=card-]))]:p-(--ui-padding)',
-				'overflow-hidden -outline-offset-1 rounded-(--ui-radius-inner)',
+				noExplicitPadding && outerPadding[token.density],
+				'overflow-hidden -outline-offset-1',
 				className,
 			)}
-			style={style}
 			{...props}
 		>
 			<DensityScope scale={size}>{children}</DensityScope>

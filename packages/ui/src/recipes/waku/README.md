@@ -57,7 +57,6 @@ The whole stack is `kasane.all`. Individual layers are exported as
 custom field can opt into a subset (e.g. focus + validation without
 disabled).
 
-The concentric `outer = inner + padding` formula and `kasane`'s
-layered chrome are the two named identity elements of this library —
-together they make components feel coherent without resorting to a
+`kasane`'s layered chrome is the named identity element of this
+library — it makes components feel coherent without resorting to a
 heavyweight component shell.

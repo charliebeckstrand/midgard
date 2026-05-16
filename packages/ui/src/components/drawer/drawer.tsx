@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { type CSSProperties, type ReactNode, useCallback, useMemo } from 'react'
+import { type ReactNode, useCallback, useMemo } from 'react'
 import { cn, createContext } from '../../core'
 import { Density, useDensity } from '../../primitives/density'
 import { Overlay } from '../../primitives/overlay'
@@ -12,7 +12,7 @@ import {
 	drawerBackdropVariants,
 	drawerPanelVariants,
 } from '../../recipes/kata/drawer'
-import { type Step, sun } from '../../recipes/ryu/sun'
+import type { Step } from '../../recipes/ryu/sun'
 import { useResolvedSurface } from '../glass/context'
 
 type DrawerContextValue = {
@@ -55,12 +55,6 @@ export function Drawer({
 
 	const contextValue = useMemo(() => ({ close }), [close])
 
-	const style: CSSProperties = {
-		'--ui-radius-inner': `var(--radius-${sun[resolvedSize].radius})`,
-		'--ui-padding': `calc(var(--spacing) * ${sun[resolvedSize].space})`,
-		'--ui-gap': `calc(var(--spacing) * ${sun[resolvedSize].gap})`,
-	} as CSSProperties
-
 	return (
 		<Overlay
 			open={open}
@@ -72,7 +66,6 @@ export function Drawer({
 				{...panelAriaProps}
 				data-slot="drawer"
 				data-step={resolvedSize}
-				style={style}
 				onClick={(e) => e.stopPropagation()}
 				className={cn(drawerPanelVariants({ surface: resolvedSurface }), className)}
 			>

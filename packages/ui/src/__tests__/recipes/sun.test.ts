@@ -18,7 +18,8 @@ describe('sun', () => {
 
 	it('stores Tailwind token names, never classnames', () => {
 		// A regression guard: classnames in `sun` would defeat the
-		// "structural data only" contract that concentric surfaces and kata depend on.
+		// "structural data only" contract that density-keyed call-site
+		// maps depend on.
 		for (const step of steps) {
 			const fields = sun[step]
 
@@ -31,8 +32,9 @@ describe('sun', () => {
 	})
 
 	it('scales the radius monotonically across steps', () => {
-		// Concentric integrity depends on each step's radius being a coherent
-		// rung on the rounded-* scale — sm→md→lg in this case.
+		// Each step's radius must be a coherent rung on the rounded-* scale —
+		// sm→md→lg in this case — so Box's `radius` prop renders predictably
+		// across sizes.
 		expect(sun.sm.radius).toBe('sm')
 		expect(sun.md.radius).toBe('md')
 		expect(sun.lg.radius).toBe('lg')

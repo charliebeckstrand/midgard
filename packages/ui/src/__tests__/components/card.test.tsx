@@ -9,7 +9,6 @@ import {
 	CardTitle,
 } from '../../components/card'
 import { Density } from '../../providers/density'
-import { sun } from '../../recipes/ryu/sun'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Card', () => {
@@ -162,35 +161,23 @@ describe('Card size system', () => {
 		expect(bySlot(container, 'card')).toHaveAttribute('data-step', 'lg')
 	})
 
-	it('emits the concentric formula CSS variables from sun', () => {
-		const { container } = renderUI(<Card size="md">content</Card>)
-
-		const card = bySlot(container, 'card')
-
-		expect(card?.style.getPropertyValue('--ui-radius-inner')).toBe(`var(--radius-${sun.md.radius})`)
-		expect(card?.style.getPropertyValue('--ui-padding')).toBe(
-			`calc(var(--spacing) * ${sun.md.space})`,
-		)
-		expect(card?.style.getPropertyValue('--ui-gap')).toBe(`calc(var(--spacing) * ${sun.md.gap})`)
-	})
-
-	it('renders the radius class sourced from the inner-radius CSS variable', () => {
+	it('renders an inner-radius class matching the resolved size', () => {
 		const { container } = renderUI(<Card>content</Card>)
 
-		expect(bySlot(container, 'card')?.className).toContain('rounded-(--ui-radius-inner)')
+		expect(bySlot(container, 'card')?.className).toContain('rounded-md')
 	})
 
-	it('CardBody reads its padding from --ui-padding', () => {
+	it('CardBody picks its padding from the surrounding density', () => {
 		const { container } = renderUI(
 			<Card size="sm">
 				<CardBody>body</CardBody>
 			</Card>,
 		)
 
-		expect(bySlot(container, 'card-body')?.className).toContain('p-(--ui-padding)')
+		expect(bySlot(container, 'card-body')?.className).toContain('p-sm')
 	})
 
-	it('CardHeader reads its padding from --ui-padding', () => {
+	it('CardHeader picks its padding from the surrounding density', () => {
 		const { container } = renderUI(
 			<Card size="lg">
 				<CardHeader>header</CardHeader>
@@ -199,8 +186,8 @@ describe('Card size system', () => {
 
 		const cls = bySlot(container, 'card-header')?.className ?? ''
 
-		expect(cls).toContain('px-(--ui-padding)')
-		expect(cls).toContain('pt-(--ui-padding)')
+		expect(cls).toContain('px-lg')
+		expect(cls).toContain('pt-lg')
 	})
 
 	it('CardTitle text size tracks the Card size, bumped one step up', () => {
