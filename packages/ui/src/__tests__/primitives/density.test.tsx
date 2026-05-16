@@ -1,7 +1,13 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { ConcentricProvider, useConcentric } from '../../primitives/concentric'
-import { Density, DensityScope, PRESETS, stepDown, useDensity } from '../../primitives/density'
+import {
+	DENSITY_PRESETS,
+	Density,
+	DensityScope,
+	stepDown,
+	useDensity,
+} from '../../primitives/density'
 
 describe('stepDown', () => {
 	it('steps md → sm', () => {
@@ -21,7 +27,7 @@ describe('useDensity (no ancestor)', () => {
 	it('returns the md preset outside any provider', () => {
 		const { result } = renderHook(() => useDensity())
 
-		expect(result.current).toEqual(PRESETS.md)
+		expect(result.current).toEqual(DENSITY_PRESETS.md)
 	})
 })
 
@@ -111,7 +117,7 @@ describe('DensityScope', () => {
 			wrapper: ({ children }) => <DensityScope>{children}</DensityScope>,
 		})
 
-		expect(result.current).toEqual(PRESETS.md)
+		expect(result.current).toEqual(DENSITY_PRESETS.md)
 	})
 })
 
@@ -141,7 +147,7 @@ describe('Concentric bridge (legacy interop)', () => {
 			),
 		})
 
-		expect(result.current).toEqual(PRESETS.md)
+		expect(result.current).toEqual(DENSITY_PRESETS.md)
 	})
 
 	it('Density wins over an enclosing Concentric (new system authoritative)', () => {

@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { DensityScope, PRESETS, useDensity } from '../../primitives/density'
+import { DENSITY_PRESETS, DensityScope, useDensity } from '../../primitives/density'
 import { kokkaku } from '../../recipes'
 import {
 	type AvatarVariants,
@@ -37,7 +37,7 @@ export function Avatar({
 	const skeleton = useSkeleton()
 
 	const inherited = useDensity()
-	const token = size ? PRESETS[size] : inherited
+	const token = size ? DENSITY_PRESETS[size] : inherited
 	const resolvedSize = token.size
 
 	if (skeleton) {

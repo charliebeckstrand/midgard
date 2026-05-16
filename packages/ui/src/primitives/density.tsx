@@ -36,7 +36,7 @@ export type DensityToken = {
 export type DensityInput = Partial<DensityToken> & { scale?: Step }
 
 /** Diagonal preset table — `scale="md"` resolves to `{ density: 'md', size: 'md' }`. */
-export const PRESETS: Record<Step, DensityToken> = {
+export const DENSITY_PRESETS: Record<Step, DensityToken> = {
 	sm: { density: 'sm', size: 'sm' },
 	md: { density: 'md', size: 'md' },
 	lg: { density: 'lg', size: 'lg' },
@@ -83,7 +83,7 @@ export function useDensity(): DensityToken {
 		if (concentricSize !== undefined && isStep(concentricSize)) {
 			return { density: concentricSize, size: concentricSize }
 		}
-		return PRESETS.md
+		return DENSITY_PRESETS.md
 	}, [density, concentricSize])
 }
 
@@ -109,11 +109,11 @@ export function Density({ children, scale, density: densityProp, size: sizeProp 
 		if (concentricSize !== undefined && isStep(concentricSize)) {
 			return { density: concentricSize, size: concentricSize }
 		}
-		return PRESETS.md
+		return DENSITY_PRESETS.md
 	}, [parentDensity, concentricSize])
 
 	const token = useMemo<DensityToken>(() => {
-		const base = scale ? PRESETS[scale] : parent
+		const base = scale ? DENSITY_PRESETS[scale] : parent
 		return {
 			density: densityProp ?? base.density,
 			size: sizeProp ?? base.size,

@@ -5,7 +5,7 @@ import { cn } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { ConcentricProvider } from '../../primitives/concentric'
 import { ControlFrame } from '../../primitives/control'
-import { DensityScope, PRESETS, useDensity } from '../../primitives/density'
+import { DENSITY_PRESETS, DensityScope, useDensity } from '../../primitives/density'
 import { useJoin } from '../../primitives/join'
 import { kokkaku } from '../../recipes'
 import { controlVariants, type InputVariants, inputVariants, k } from '../../recipes/kata/input'
@@ -72,7 +72,7 @@ export function Input(props: InputProps) {
 	const join = useJoin()
 
 	const inherited = useDensity()
-	const token = size ? PRESETS[size] : inherited
+	const token = size ? DENSITY_PRESETS[size] : inherited
 	const resolvedSize = token.size
 
 	const binding = useFormText(name, { onChange, onBlur })

@@ -2,7 +2,7 @@
 
 import type { CSSProperties } from 'react'
 import { cn } from '../../core'
-import { DensityScope, PRESETS, useDensity } from '../../primitives/density'
+import { DENSITY_PRESETS, DensityScope, useDensity } from '../../primitives/density'
 import { kokkaku } from '../../recipes'
 import { type Step, sun } from '../../recipes/ryu/sun'
 import { Box, type BoxProps } from '../box'
@@ -30,7 +30,7 @@ export function Card({
 	...props
 }: CardProps) {
 	const inherited = useDensity()
-	const token = size ? PRESETS[size] : inherited
+	const token = size ? DENSITY_PRESETS[size] : inherited
 
 	if (useSkeleton()) {
 		return (
