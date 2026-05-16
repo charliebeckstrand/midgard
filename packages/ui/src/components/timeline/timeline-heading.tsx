@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
-import { k } from '../../recipes/kata/timeline'
+import { timelineHeadingVariants } from '../../recipes/kata/timeline'
 import { useTimeline } from './context'
 
 export type TimelineHeadingProps = {
@@ -14,7 +14,7 @@ export function TimelineHeading({ className, children }: TimelineHeadingProps) {
 	return (
 		<div
 			data-slot="timeline-heading"
-			className={cn(k.heading.base, k.heading[orientation], className)}
+			className={cn(timelineHeadingVariants({ orientation }), className)}
 		>
 			{children}
 		</div>

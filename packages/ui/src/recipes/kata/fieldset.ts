@@ -35,7 +35,7 @@ const description = tv({
 	defaultVariants: { size: 'md' },
 })
 
-const messageBase = tv({
+const message = tv({
 	base: [sawari.disabled],
 	variants: {
 		size: {
@@ -43,8 +43,12 @@ const messageBase = tv({
 			md: ji.size.md,
 			lg: ji.size.lg,
 		},
+		variant: {
+			error: iro.text.error,
+			success: iro.text.success,
+		},
 	},
-	defaultVariants: { size: 'md' },
+	defaultVariants: { size: 'md', variant: 'error' },
 })
 
 const legend = tv({
@@ -69,11 +73,7 @@ export const fieldset = {
 	],
 	label,
 	description,
-	message: {
-		base: messageBase,
-		error: iro.text.error,
-		success: iro.text.success,
-	},
+	message,
 }
 
-export { fieldset as k }
+export { fieldset as k, message as messageVariants }

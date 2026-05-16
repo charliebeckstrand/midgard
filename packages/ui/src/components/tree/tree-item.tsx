@@ -13,7 +13,7 @@ import {
 import { cn } from '../../core'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { ugoki } from '../../recipes'
-import { k } from '../../recipes/kata/tree'
+import { k, treeChevronVariants, treeItemContentVariants } from '../../recipes/kata/tree'
 import { Icon } from '../icon'
 import { TreeProvider, useTreeContext } from './context'
 
@@ -142,8 +142,7 @@ export function TreeItem({
 				data-open={open || undefined}
 				className={cn(
 					'group/tree-item',
-					k.itemContent,
-					k.itemContentSize[size],
+					treeItemContentVariants({ size }),
 					active && k.itemContentActive,
 					className,
 				)}
@@ -151,7 +150,7 @@ export function TreeItem({
 				onClick={handleClick}
 				onKeyDown={handleKeyDown}
 			>
-				<span className={cn(k.chevron, k.chevronWidth[size])} aria-hidden="true">
+				<span className={treeChevronVariants({ size })} aria-hidden="true">
 					{hasChildren && (
 						<Icon icon={<ChevronRight />} size={iconSize} className={cn(open && 'rotate-90')} />
 					)}

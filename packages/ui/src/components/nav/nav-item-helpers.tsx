@@ -36,7 +36,7 @@ export type NavItemProps = {
 export type NavItemConfig = {
 	slotPrefix: string
 	/** Receives the resolved size so callers can vary classes per step. */
-	variants: (size: Step) => string
+	variants: (props: { size: Step }) => string
 	/** Wraps the icon prop. Receives the resolved size so the icon can scale with the item. */
 	renderIcon: (icon: ReactElement, size: Step) => ReactNode
 }
@@ -68,8 +68,8 @@ export function createNavItem(config: NavItemConfig) {
 		const itemRef = useRef<HTMLSpanElement>(null)
 
 		const indicator = useActiveIndicator()
-
 		const inherited = useDensity()
+
 		const resolvedSize = size ?? inherited.size
 
 		const offcanvas = use(OffcanvasContext)
@@ -102,7 +102,7 @@ export function createNavItem(config: NavItemConfig) {
 						dataSlot={innerSlot}
 						data-current={current ? '' : undefined}
 						aria-current={current ? 'page' : undefined}
-						className={cn(config.variants(resolvedSize), 'relative z-10', className)}
+						className={cn(config.variants({ size: resolvedSize }), 'relative z-10', className)}
 						onClick={handleClick}
 						{...props}
 					>
