@@ -1,6 +1,6 @@
 'use client'
 
-import { type KeyboardEvent, useCallback, useMemo, useRef, useState } from 'react'
+import { type KeyboardEvent, useCallback, useMemo, useReducer, useRef, useState } from 'react'
 
 import { useFloatingUI } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
@@ -9,6 +9,7 @@ import { useIdScope } from '../../hooks/use-id-scope'
 import type { CalendarActive, CalendarHandle } from '../calendar'
 import { useControl } from '../control/context'
 import type { DatePickerBaseProps, DatePickerRangeProps } from './date-picker'
+import { datePickerRangeReducer, initialDatePickerRangeState } from './date-picker-range-reducer'
 import { addDays, clampDate, formatRange } from './date-picker-utilities'
 import { type FooterButton, useDatePickerKeyboard } from './use-date-picker-keyboard'
 
@@ -33,11 +34,9 @@ export function useDatePickerRangeState({
 
 	const [open, setOpen] = useState(false)
 
-	const [rangeStart, setRangeStart] = useState<Date | null>(null)
+	const [state, dispatch] = useReducer(datePickerRangeReducer, initialDatePickerRangeState)
 
-	const [hoverDate, setHoverDate] = useState<Date | null>(null)
-
-	const [active, setActive] = useState<CalendarActive | null>(null)
+	const { rangeStart, hoverDate, active } = state
 
 	const pendingRef = useRef<{ value: [Date, Date] | undefined } | null>(null)
 
@@ -54,11 +53,7 @@ export function useDatePickerRangeState({
 			pendingRef.current = null
 		}
 
-		setRangeStart(null)
-
-		setHoverDate(null)
-
-		setActive(null)
+		dispatch({ type: 'reset' })
 	}, [setValue])
 
 	const getInitialActiveDate = useCallback(
@@ -72,7 +67,7 @@ export function useDatePickerRangeState({
 
 			const next = clampDate(addDays(base, delta), min, max)
 
-			if (rangeStart !== null) setHoverDate(next)
+			if (rangeStart !== null) dispatch({ type: 'hover', date: next })
 
 			return next
 		},
@@ -98,9 +93,7 @@ export function useDatePickerRangeState({
 	const handleSelect = useCallback(
 		(date: Date) => {
 			if (rangeStart === null) {
-				setRangeStart(date)
-
-				setHoverDate(null)
+				dispatch({ type: 'startRange', date })
 			} else {
 				const start = rangeStart
 
@@ -109,7 +102,7 @@ export function useDatePickerRangeState({
 				const range: [Date, Date] = start.getTime() <= end.getTime() ? [start, end] : [end, start]
 
 				// Pin both endpoints so the range stays stable through the exit animation.
-				setHoverDate(end)
+				dispatch({ type: 'pinEndpoint', date: end })
 
 				pendingRef.current = { value: range }
 
@@ -149,6 +142,13 @@ export function useDatePickerRangeState({
 		role: 'dialog',
 	})
 
+	const setActive = useCallback(
+		(next: CalendarActive | null) => dispatch({ type: 'setActive', active: next }),
+		[],
+	)
+
+	const onHoverDate = useCallback((date: Date | null) => dispatch({ type: 'hover', date }), [])
+
 	const onTriggerKeyDown = useDatePickerKeyboard({
 		disabled,
 		open,
@@ -181,7 +181,7 @@ export function useDatePickerRangeState({
 			rangeStart: rangeStart ?? (value ? value[0] : null),
 			rangeEnd: rangeStart === null ? (value ? value[1] : null) : null,
 			hoverDate: rangeStart !== null ? hoverDate : null,
-			onHoverDate: setHoverDate,
+			onHoverDate,
 			onValueChange: handleSelect,
 			active: open ? active : null,
 			calendarRef,
