@@ -1,19 +1,12 @@
 'use client'
 
-import { type Ref, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import type { Ref } from 'react'
 import { cn } from '../../core'
-import { useControllable } from '../../hooks'
 import { k } from '../../recipes/kata/signature-pad'
 import { Button } from '../button'
-import { drawSnapshot } from './signature-pad-utilities'
-import { useSignaturePadCanvasSizing } from './use-signature-pad-canvas-sizing'
-import { useSignaturePadDrawing } from './use-signature-pad-drawing'
+import { type SignaturePadHandle, useSignaturePadState } from './use-signature-pad-state'
 
-export type SignaturePadHandle = {
-	clear: () => void
-	toDataURL: (type?: string, quality?: number) => string | null
-	isEmpty: () => boolean
-}
+export type { SignaturePadHandle }
 
 export type SignaturePadProps = {
 	/** Controlled value — a data URL, or `null` / `undefined` when empty. */
@@ -52,87 +45,17 @@ export function SignaturePad({
 	ref,
 	className,
 }: SignaturePadProps) {
-	const [current, setCurrent] = useControllable<string | null>({
-		value,
-		defaultValue: defaultValue ?? null,
-		onChange: onValueChange ? (next) => onValueChange(next ?? null) : undefined,
-	})
-
-	const canvasRef = useRef<HTMLCanvasElement>(null)
-
-	const containerRef = useRef<HTMLDivElement>(null)
-
-	const lastEmittedRef = useRef<string | null>(null)
-
-	const [isEmpty, setIsEmpty] = useState(current == null)
-
-	useSignaturePadCanvasSizing({ containerRef, canvasRef, isEmpty, strokeColor, strokeWidth })
-
-	useEffect(() => {
-		if (current === lastEmittedRef.current) return
-
-		const canvas = canvasRef.current
-
-		if (!canvas) return
-
-		const ctx = canvas.getContext('2d')
-
-		if (!ctx) return
-
-		ctx.clearRect(0, 0, canvas.width, canvas.height)
-
-		if (!current) {
-			setIsEmpty(true)
-
-			lastEmittedRef.current = null
-
-			return
-		}
-
-		drawSnapshot(canvas, current)
-
-		setIsEmpty(false)
-
-		lastEmittedRef.current = current
-	}, [current])
-
-	const { handlePointerDown, handlePointerMove, commit } = useSignaturePadDrawing({
-		canvasRef,
-		disabled,
-		readOnly,
-		strokeColor,
-		strokeWidth,
-		isEmpty,
-		setIsEmpty,
-		lastEmittedRef,
-		setCurrent,
-	})
-
-	const clear = useCallback(() => {
-		const canvas = canvasRef.current
-
-		if (canvas) {
-			const ctx = canvas.getContext('2d')
-
-			ctx?.clearRect(0, 0, canvas.width, canvas.height)
-		}
-
-		setIsEmpty(true)
-
-		lastEmittedRef.current = null
-
-		setCurrent(null)
-	}, [setCurrent])
-
-	useImperativeHandle(
-		ref,
-		() => ({
-			clear,
-			toDataURL: (type, quality) => canvasRef.current?.toDataURL(type, quality) ?? null,
-			isEmpty: () => isEmpty,
-		}),
-		[clear, isEmpty],
-	)
+	const { containerRef, canvasRef, isEmpty, handlePointerDown, handlePointerMove, commit, clear } =
+		useSignaturePadState({
+			value,
+			defaultValue,
+			onValueChange,
+			disabled,
+			readOnly,
+			strokeColor,
+			strokeWidth,
+			ref,
+		})
 
 	return (
 		<div
