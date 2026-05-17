@@ -1,25 +1,16 @@
 import type { ReactNode } from 'react'
 import { useEffect, useRef } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { Toast, useToast } from '../../components/toast'
+import { Toast } from '../../components/toast'
+import { ToastProvider, useToast } from '../../providers/toast'
 import { act, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Toast', () => {
-	it('renders children', () => {
-		renderUI(
-			<Toast>
-				<span>App content</span>
-			</Toast>,
-		)
-
-		expect(screen.getByText('App content')).toBeInTheDocument()
-	})
-
 	it('renders a toast viewport in the document', () => {
 		renderUI(
-			<Toast>
-				<span>content</span>
-			</Toast>,
+			<ToastProvider>
+				<Toast />
+			</ToastProvider>,
 		)
 
 		const viewport = document.querySelector('[data-slot="toast-viewport"]')
@@ -29,9 +20,9 @@ describe('Toast', () => {
 
 	it('sets aria-live on viewport', () => {
 		renderUI(
-			<Toast>
-				<span>content</span>
-			</Toast>,
+			<ToastProvider>
+				<Toast />
+			</ToastProvider>,
 		)
 
 		const viewport = document.querySelector('[data-slot="toast-viewport"]')
@@ -71,9 +62,10 @@ describe('Toast: useToast behavior', () => {
 		let api: ReturnType<typeof useToast> | null = null
 
 		renderUI(
-			<Toast>
+			<ToastProvider>
 				<Trigger onReady={(ctx) => (api = ctx)} />
-			</Toast>,
+				<Toast />
+			</ToastProvider>,
 		)
 
 		act(() => {
@@ -87,9 +79,10 @@ describe('Toast: useToast behavior', () => {
 		let api: ReturnType<typeof useToast> | null = null
 
 		renderUI(
-			<Toast>
+			<ToastProvider>
 				<Trigger onReady={(ctx) => (api = ctx)} />
-			</Toast>,
+				<Toast />
+			</ToastProvider>,
 		)
 
 		let id = ''
@@ -104,9 +97,6 @@ describe('Toast: useToast behavior', () => {
 			api?.dismiss(id)
 		})
 
-		// The dismiss path marks the toast dismissed and then schedules removal
-		// via requestAnimationFrame. jsdom leaves the element present during the
-		// exit animation, so assert the dismissed marker was applied.
 		expect(api).not.toBeNull()
 	})
 
@@ -114,9 +104,10 @@ describe('Toast: useToast behavior', () => {
 		let api: ReturnType<typeof useToast> | null = null
 
 		renderUI(
-			<Toast maxToasts={2}>
+			<ToastProvider maxToasts={2}>
 				<Trigger onReady={(ctx) => (api = ctx)} />
-			</Toast>,
+				<Toast />
+			</ToastProvider>,
 		)
 
 		act(() => {
@@ -125,8 +116,6 @@ describe('Toast: useToast behavior', () => {
 			api?.toast({ title: 'C' })
 		})
 
-		// oldest (A) should be marked dismissed and removed on the next frame.
-		// We assert B + C are visible; A may still appear briefly during exit.
 		expect(screen.getByText('B')).toBeInTheDocument()
 		expect(screen.getByText('C')).toBeInTheDocument()
 	})
@@ -135,9 +124,10 @@ describe('Toast: useToast behavior', () => {
 		let api: ReturnType<typeof useToast> | null = null
 
 		renderUI(
-			<Toast duration={1000}>
+			<ToastProvider duration={1000}>
 				<Trigger onReady={(ctx) => (api = ctx)} />
-			</Toast>,
+				<Toast />
+			</ToastProvider>,
 		)
 
 		act(() => {
@@ -157,9 +147,10 @@ describe('Toast: useToast behavior', () => {
 		let api: ReturnType<typeof useToast> | null = null
 
 		renderUI(
-			<Toast duration={500}>
+			<ToastProvider duration={500}>
 				<Trigger onReady={(ctx) => (api = ctx)} />
-			</Toast>,
+				<Toast />
+			</ToastProvider>,
 		)
 
 		act(() => {
@@ -177,9 +168,10 @@ describe('Toast: useToast behavior', () => {
 		let api: ReturnType<typeof useToast> | null = null
 
 		renderUI(
-			<Toast duration={100000}>
+			<ToastProvider duration={100000}>
 				<Trigger onReady={(ctx) => (api = ctx)} />
-			</Toast>,
+				<Toast />
+			</ToastProvider>,
 		)
 
 		act(() => {
@@ -197,9 +189,10 @@ describe('Toast: useToast behavior', () => {
 		let api: ReturnType<typeof useToast> | null = null
 
 		renderUI(
-			<Toast duration={1000}>
+			<ToastProvider duration={1000}>
 				<Trigger onReady={(ctx) => (api = ctx)} />
-			</Toast>,
+				<Toast />
+			</ToastProvider>,
 		)
 
 		act(() => {
@@ -207,8 +200,7 @@ describe('Toast: useToast behavior', () => {
 		})
 
 		const title = screen.getByText('Hoverable')
-		// The mouse-enter/leave handlers are attached to an ancestor motion.div.
-		// jsdom bubbles, so firing on the alert works.
+
 		act(() => {
 			vi.advanceTimersByTime(500)
 		})
@@ -219,7 +211,6 @@ describe('Toast: useToast behavior', () => {
 			vi.advanceTimersByTime(1000)
 		})
 
-		// Still present because timer was paused.
 		expect(screen.getByText('Hoverable')).toBeInTheDocument()
 
 		fireEvent.mouseLeave(title)
@@ -233,9 +224,9 @@ describe('Toast: useToast behavior', () => {
 
 	it('renders toasts with the configured position viewport class', () => {
 		renderUI(
-			<Toast position="top-left">
-				<span>content</span>
-			</Toast>,
+			<ToastProvider>
+				<Toast position="top-left" />
+			</ToastProvider>,
 		)
 
 		const viewport = document.querySelector('[data-slot="toast-viewport"]')
@@ -243,7 +234,7 @@ describe('Toast: useToast behavior', () => {
 		expect(viewport).toBeInTheDocument()
 	})
 
-	it('throws when useToast is called outside of a Toast provider', () => {
+	it('throws when useToast is called outside of a ToastProvider', () => {
 		const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
 		function Bad() {

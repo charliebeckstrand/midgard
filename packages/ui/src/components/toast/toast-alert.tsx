@@ -2,10 +2,10 @@
 
 import { motion } from 'motion/react'
 import { cn } from '../../core'
+import type { ToastData, ToastPosition, ToastType } from '../../providers/toast/types'
 import { ugoki } from '../../recipes'
 import { k } from '../../recipes/kata/toast'
 import { Alert } from '../alert'
-import type { ToastData, ToastPosition, ToastType } from './types'
 
 function getToastMotion(position: ToastPosition) {
 	if (position.startsWith('bottom')) return ugoki.toast.bottom

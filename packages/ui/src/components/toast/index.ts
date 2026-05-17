@@ -1,4 +1,2 @@
 export { type ToastViewportVariants, toastViewportVariants } from '../../recipes/kata/toast'
-export { Toast } from './toast'
-export { type ToastProps, useToast } from './toast-context'
-export type { ToastData, ToastPosition, ToastType } from './types'
+export { Toast, type ToastProps } from './toast'

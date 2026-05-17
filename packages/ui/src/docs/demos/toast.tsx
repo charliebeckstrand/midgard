@@ -3,7 +3,8 @@
 import { Button } from '../../components/button'
 import { Flex } from '../../components/flex'
 import { Stack } from '../../components/stack'
-import { Toast, useToast } from '../../components/toast'
+import { Toast } from '../../components/toast'
+import { ToastProvider, useToast } from '../../providers/toast'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Feedback' }
@@ -97,7 +98,7 @@ function ActionToastButtonExample() {
 
 export default function ToastDemo() {
 	return (
-		<Toast>
+		<ToastProvider>
 			<Stack gap="xl">
 				<Example title="Types">
 					<ToastButtonsExample />
@@ -111,6 +112,7 @@ export default function ToastDemo() {
 					<ActionToastButtonExample />
 				</Example>
 			</Stack>
-		</Toast>
+			<Toast />
+		</ToastProvider>
 	)
 }

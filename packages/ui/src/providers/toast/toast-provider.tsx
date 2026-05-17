@@ -1,42 +1,33 @@
 'use client'
 
-import { type ReactNode, useCallback, useRef, useState } from 'react'
-import { createContext } from '../../core'
-import type { ToastData, ToastPosition } from './types'
+import { type ReactNode, useCallback, useMemo, useRef, useState } from 'react'
+import {
+	type ToastContextValue,
+	ToastValueProvider,
+	type ToastViewportContextValue,
+	ToastViewportProvider,
+} from './context'
+import type { ToastData, ToastInput } from './types'
 import { useToastDrain } from './use-toast-drain'
 import { useToastTimer } from './use-toast-timer'
 
-type ToastInput = Omit<ToastData, 'id' | 'zIndex'> & { duration?: number }
-
-type ToastContextValue = {
-	toast: (data: ToastInput) => string
-	dismiss: (id: string) => void
-}
-
-const [ToastContext, useToast] = createContext<ToastContextValue>('Toast')
-
-export { ToastContext, useToast }
-
-export type ToastProps = {
+export type ToastProviderProps = {
 	children: ReactNode
-	position?: ToastPosition
+	/** Default lifetime (ms) for toasts that don't set `persist` or their own `duration`. */
 	duration?: number
+	/** Cap on active toasts; oldest are dismissed when exceeded. */
 	maxToasts?: number
 }
 
 let counter = 0
 
-export function useToastState({
-	position,
-	duration = 5000,
-	maxToasts = 5,
-}: {
-	position: ToastPosition
-	duration?: number
-	maxToasts?: number
-}) {
-	const isBottom = position.startsWith('bottom')
-
+/**
+ * App-root toast state. Manages the toast queue, timers, and pause/resume
+ * behaviour, and exposes `useToast()` to any descendant. Render a `<Toast>`
+ * viewport (from `ui/toast`) anywhere inside the provider to display the
+ * queued toasts.
+ */
+export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: ToastProviderProps) {
 	const toastsRef = useRef<ToastData[]>([])
 
 	const [, flush] = useState(0)
@@ -58,7 +49,6 @@ export function useToastState({
 
 			if (!toast) return
 
-			// Mark dismissed so the exit animation uses fade-only
 			if (!toast.dismissed) {
 				toastsRef.current = toastsRef.current.map((t) =>
 					t.id === id ? { ...t, dismissed: true } : t,
@@ -66,7 +56,6 @@ export function useToastState({
 
 				sync()
 
-				// Remove next frame so AnimatePresence captures the exit.
 				requestAnimationFrame(() => {
 					toastsRef.current = toastsRef.current.filter((t) => t.id !== id)
 
@@ -95,7 +84,6 @@ export function useToastState({
 
 			toastsRef.current = [...toastsRef.current, { ...data, id, zIndex: counter }]
 
-			// Dismiss oldest toasts when exceeding max
 			if (maxToasts > 0) {
 				const active = toastsRef.current.filter((t) => !t.dismissed)
 				const excess = active.length - maxToasts
@@ -120,7 +108,21 @@ export function useToastState({
 		[maxToasts, duration, sync, startTimer, stopDrain, resetRemaining, dismiss],
 	)
 
-	const toasts = [...toastsRef.current].reverse()
+	const publicValue = useMemo<ToastContextValue>(() => ({ toast, dismiss }), [toast, dismiss])
 
-	return { toasts, toast, dismiss, pause, resume, handleExitComplete, isBottom }
+	// Viewport value changes every render (toasts array is recomputed) — only
+	// the viewport consumes it, so re-rendering with each push is intentional.
+	const viewportValue: ToastViewportContextValue = {
+		toasts: [...toastsRef.current].reverse(),
+		dismiss,
+		pause,
+		resume,
+		handleExitComplete,
+	}
+
+	return (
+		<ToastValueProvider value={publicValue}>
+			<ToastViewportProvider value={viewportValue}>{children}</ToastViewportProvider>
+		</ToastValueProvider>
+	)
 }
