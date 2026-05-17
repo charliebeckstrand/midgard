@@ -54,8 +54,8 @@ export function ListboxButton({
 				aria-haspopup="listbox"
 				aria-expanded={open}
 				aria-controls={open ? controlsId : undefined}
-				disabled={disabled}
 				dataSlot="listbox-button"
+				disabled={disabled}
 				{...invalidAttrs(invalid)}
 				className={cn(listboxVariants({ density, size }))}
 			>
