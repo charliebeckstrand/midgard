@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
 import {
@@ -11,8 +11,9 @@ import {
 } from '../data-table'
 import type { TableVariants } from '../table'
 import { type EditableGridContextValue, EditableGridProvider } from './context'
-import type { CellChange, Coord, EditableGridColumn } from './types'
+import type { CellChange, EditableGridColumn } from './types'
 import { useEditableGridAugmentedColumns } from './use-editable-grid-augmented-columns'
+import { useEditableGridDraft } from './use-editable-grid-draft'
 import { useEditableGridMutations } from './use-editable-grid-mutations'
 import { useEditableGridNavigation } from './use-editable-grid-navigation'
 import { useEditableGridWrapper } from './use-editable-grid-wrapper'
@@ -76,19 +77,6 @@ export function EditableGrid<T>({
 	})
 
 	const selection = selectionRaw ?? new Set<string | number>()
-
-	const [editing, setEditing] = useState(false)
-
-	const [draft, setDraft] = useState('')
-
-	// Guards the commit-on-blur that fires when the input unmounts after an
-	// explicit Enter / Tab / Escape commit. Ensures a single commit per session.
-	const sessionClosedRef = useRef(false)
-
-	// The cell's formatted display value when editing began. Used to skip no-op
-	// commits so a lossy format→parse round-trip (e.g. "$2.35" → NaN) never
-	// overwrites an unchanged cell.
-	const originalFormattedRef = useRef('')
 
 	// Stable refs so callbacks don't rebuild every render.
 	const rowsRef = useRef(rows)
@@ -160,73 +148,20 @@ export function EditableGrid<T>({
 		setSelection: setSelectionRaw,
 	})
 
+	const { editing, draft, setDraft, beginEdit, commitEdit, cancelEdit } = useEditableGridDraft<T>({
+		editableCols,
+		active,
+		anchorRef,
+		extraCellsRef,
+		wrapperRef,
+		applyCellWrite,
+		applyBulkFill,
+		moveActive,
+		moveActiveTab,
+		setActive,
+	})
+
 	const hasMultiSelection = !!anchor || extraCells.size > 0
-
-	const beginEdit = useCallback(
-		(coord: Coord, initial?: string, original?: string) => {
-			const col = editableCols[coord.col]
-
-			if (!col || col.readOnly) return
-
-			const initialDraft = initial ?? ''
-
-			sessionClosedRef.current = false
-
-			originalFormattedRef.current = original ?? initialDraft
-
-			setActive(coord)
-
-			setDraft(initialDraft)
-
-			setEditing(true)
-		},
-		[editableCols, setActive],
-	)
-
-	const commitEdit = useCallback(
-		(advance: 'down' | 'right' | 'left' | 'none') => {
-			if (sessionClosedRef.current) return true
-
-			sessionClosedRef.current = true
-
-			setEditing(false)
-
-			if (active && draft !== originalFormattedRef.current) {
-				if (anchorRef.current || extraCellsRef.current.size > 0) applyBulkFill(draft)
-				else applyCellWrite(active.row, active.col, draft)
-			}
-
-			let stayedInGrid = true
-
-			if (advance === 'down') moveActive(1, 0)
-			else if (advance === 'right') stayedInGrid = moveActiveTab(1)
-			else if (advance === 'left') stayedInGrid = moveActiveTab(-1)
-
-			if (stayedInGrid) wrapperRef.current?.focus()
-
-			return stayedInGrid
-		},
-		[
-			active,
-			draft,
-			anchorRef,
-			extraCellsRef,
-			applyCellWrite,
-			applyBulkFill,
-			moveActive,
-			moveActiveTab,
-		],
-	)
-
-	const cancelEdit = useCallback(() => {
-		sessionClosedRef.current = true
-
-		setEditing(false)
-
-		setDraft('')
-
-		wrapperRef.current?.focus()
-	}, [])
 
 	const { onWrapperKeyDown, onWrapperPaste, onWrapperFocus, onWrapperBlur } =
 		useEditableGridWrapper<T>({
@@ -287,6 +222,7 @@ export function EditableGrid<T>({
 			extraCells,
 			editing,
 			draft,
+			setDraft,
 			moveActiveTo,
 			addCellToSelection,
 			beginEdit,
