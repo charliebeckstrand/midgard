@@ -5,7 +5,7 @@ import { type KeyboardEventHandler, type RefObject, useMemo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/json-tree'
 import { JsonTreeNodeRow } from './json-tree-node-row'
-import { buildSearchIndex, collectPaths, flattenTree } from './json-tree-utilities'
+import { type buildSearchIndex, collectPaths, flattenTree } from './json-tree-utilities'
 import type { JsonValue } from './types'
 import { useJsonTreeExpansion } from './use-json-tree-expansion'
 

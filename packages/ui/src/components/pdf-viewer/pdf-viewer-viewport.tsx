@@ -11,8 +11,17 @@ import { usePdfViewerContext } from './context'
  * reserves space before the image paints.
  */
 export function PdfViewerViewport() {
-	const { viewportRef, scale, activePage, safePage, rotation, isLoading, error, visible, onImageLoad } =
-		usePdfViewerContext()
+	const {
+		viewportRef,
+		scale,
+		activePage,
+		safePage,
+		rotation,
+		isLoading,
+		error,
+		visible,
+		onImageLoad,
+	} = usePdfViewerContext()
 
 	const { aspectRatio, frameW, frameH, imageW, imageH } = scale
 
