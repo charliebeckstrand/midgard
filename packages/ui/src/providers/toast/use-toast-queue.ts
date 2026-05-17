@@ -1,7 +1,7 @@
 import { type MutableRefObject, useCallback, useRef } from 'react'
 import type { ToastData } from './types'
 
-export function useToastDrain(toastsRef: MutableRefObject<ToastData[]>, sync: () => void) {
+export function useToastQueue(toastsRef: MutableRefObject<ToastData[]>, sync: () => void) {
 	const drainQueueRef = useRef<string[]>([])
 	const drainingRef = useRef(false)
 

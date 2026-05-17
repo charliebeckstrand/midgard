@@ -8,7 +8,7 @@ import {
 	ToastViewportProvider,
 } from './context'
 import type { ToastData, ToastInput } from './types'
-import { useToastDrain } from './use-toast-drain'
+import { useToastQueue } from './use-toast-queue'
 import { useToastTimer } from './use-toast-timer'
 
 export type ToastProviderProps = {
@@ -34,7 +34,7 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 
 	const sync = useCallback(() => flush((n) => n + 1), [])
 
-	const { stopDrain, startDrain, handleExitComplete } = useToastDrain(toastsRef, sync)
+	const { stopDrain, startDrain, handleExitComplete } = useToastQueue(toastsRef, sync)
 
 	const { startTimer, pause, resume, resetRemaining } = useToastTimer(
 		toastsRef,
