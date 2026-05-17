@@ -8,7 +8,7 @@ import type { TableElementProps, TableVariants } from '../table'
 import { Table, TableBody, TableLoading } from '../table'
 import { Toolbar } from '../toolbar'
 import { DataTableProvider, type SortState } from './context'
-import { DataTableManageColumnsDialog } from './data-table-column-manager'
+import { DataTableColumnManagerDialog } from './data-table-column-manager-dialog'
 import { DataTableHead } from './data-table-head'
 import { DataTableRow } from './data-table-row'
 import { DataTableVirtualizedBody } from './data-table-virtualized-body'
@@ -245,7 +245,7 @@ export function DataTable<T>({
 		<DataTableProvider value={ctx}>
 			<div data-slot="data-table" className={cn(k.wrapper)}>
 				{manageColumns && (
-					<DataTableManageColumnsDialog
+					<DataTableColumnManagerDialog
 						label={manageColumnsLabel}
 						columns={managerItems}
 						order={columnOrder}
