@@ -1,26 +1,23 @@
 'use client'
 
-import { FloatingPortal, type Placement } from '@floating-ui/react'
+import type { Placement } from '@floating-ui/react'
 import { ChevronsUpDown } from 'lucide-react'
-import { AnimatePresence } from 'motion/react'
 import { type ReactNode, useId, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useFloatingUI, useSelectableValueChange } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
-import { DENSITY_PRESETS, Density, useDensity } from '../../primitives/density'
+import { DENSITY_PRESETS, useDensity } from '../../primitives/density'
 import { useJoin } from '../../primitives/join'
-import { PopoverPanel } from '../../primitives/popover'
-import { iro, kokkaku } from '../../recipes'
-import { k, listboxVariants } from '../../recipes/kata/listbox'
-import { popover as kPopover } from '../../recipes/waku/popover'
+import { kokkaku } from '../../recipes'
 import { type ControlSize, useControl } from '../control/context'
-import { invalidAttrs } from '../control/control-invalid-attrs'
 import { useGlass } from '../glass/context'
 import { Icon } from '../icon'
 import { Placeholder } from '../placeholder'
 import { SelectTrigger } from '../select/select-trigger'
 import { useSkeleton } from '../skeleton/context'
 import { ListboxProvider } from './context'
+import { ListboxButton } from './listbox-button'
+import { ListboxPanel } from './listbox-panel'
 import { resolveLabel } from './listbox-utilities'
 import { useListboxState } from './use-listbox-state'
 
@@ -166,48 +163,35 @@ export function Listbox<T>({
 				prefix={prefix}
 				suffix={suffix || <Icon icon={<ChevronsUpDown />} />}
 			>
-				<button
-					ref={triggerRef}
+				<ListboxButton
 					id={resolvedId}
-					type="button"
-					role="combobox"
-					aria-haspopup="listbox"
-					aria-expanded={open}
-					aria-controls={open ? listboxId : undefined}
+					ref={triggerRef}
+					open={open}
+					controlsId={listboxId}
 					disabled={resolvedDisabled}
-					data-slot="listbox-button"
-					{...invalidAttrs(control?.invalid)}
-					className={cn(listboxVariants({ density: token.density, size: token.size }))}
-				>
-					<span className={cn(k.value({ truncate }), tabularNums && 'tabular-nums')}>
-						{label || <span className={cn(iro.text.muted)}>{placeholder}</span>}
-					</span>
-				</button>
+					invalid={control?.invalid}
+					label={label}
+					placeholder={placeholder}
+					truncate={truncate}
+					tabularNums={tabularNums}
+					density={token.density}
+					size={token.size}
+				/>
 			</SelectTrigger>
 
-			<FloatingPortal>
-				<AnimatePresence onExitComplete={flushPending}>
-					{open && (
-						<div
-							ref={refs.setFloating}
-							style={floatingStyles}
-							className={kPopover.portal}
-							{...getFloatingProps()}
-						>
-							<Density density={token.density} size={token.size}>
-								<PopoverPanel
-									id={listboxId}
-									role="listbox"
-									glass={glass}
-									className={cn(k.panel, k.options)}
-								>
-									{children}
-								</PopoverPanel>
-							</Density>
-						</div>
-					)}
-				</AnimatePresence>
-			</FloatingPortal>
+			<ListboxPanel
+				id={listboxId}
+				open={open}
+				glass={glass}
+				density={token.density}
+				size={token.size}
+				floatingStyles={floatingStyles}
+				getFloatingProps={getFloatingProps}
+				setFloating={refs.setFloating}
+				flushPending={flushPending}
+			>
+				{children}
+			</ListboxPanel>
 		</ListboxProvider>
 	)
 }
