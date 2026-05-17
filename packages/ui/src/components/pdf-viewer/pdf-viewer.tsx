@@ -1,19 +1,13 @@
 'use client'
 
-import { useRef, useState } from 'react'
 import { cn } from '../../core'
-import { useMinWidth } from '../../hooks'
 import { k } from '../../recipes/kata/pdf-viewer'
-import { PdfViewerStage } from './pdf-viewer-stage'
+import { PdfViewerProvider } from './context'
+import { PdfViewerViewport } from './pdf-viewer-viewport'
 import { PdfViewerThumbnails } from './pdf-viewer-thumbnails'
 import { PdfViewerToolbar } from './pdf-viewer-toolbar'
 import type { PdfViewerPage } from './types'
-import { usePdfViewerDocument } from './use-pdf-viewer-document'
-import { usePdfViewerPageRotation } from './use-pdf-viewer-page-rotation'
-import { usePdfViewerPageScale } from './use-pdf-viewer-page-scale'
-import { usePdfViewerPageSize } from './use-pdf-viewer-page-size'
-import { usePdfViewerPagination } from './use-pdf-viewer-pagination'
-import { usePdfViewerViewportSize } from './use-pdf-viewer-viewport-size'
+import { usePdfViewer } from './use-pdf-viewer'
 
 export type PdfViewerProps = {
 	/**
@@ -46,124 +40,44 @@ export type PdfViewerProps = {
 
 /** PDF document viewer — renders pages from `pages` or via pdf.js from `src`, with toolbar controls for zoom, rotation, download, and print. */
 export function PdfViewer({
-	pages: pagesProp,
+	pages,
 	src,
 	filename,
 	page,
-	defaultPage = 1,
+	defaultPage,
 	onPageChange,
-	defaultZoom = 1,
-	zoomLevels = [0.5, 0.75, 1, 1.25, 1.5, 2, 3],
-	defaultRotation = 0,
+	defaultZoom,
+	zoomLevels,
+	defaultRotation,
 	className,
 	'aria-label': ariaLabel = 'PDF viewer',
 }: PdfViewerProps) {
-	const shouldLoadFromSrc = !pagesProp && !!src
-
-	const {
-		pages: loadedPages,
-		documentUrl,
-		isLoading,
-		error,
-	} = usePdfViewerDocument(shouldLoadFromSrc ? src : undefined)
-
-	const pages = pagesProp ?? loadedPages
-
-	// Prefer the same-origin blob URL from the hook so download/print stay in-page.
-	// Falling back to the original `src` works for same-origin docs but will navigate
-	// to the browser's PDF viewer for cross-origin docs.
-	const documentSrc = documentUrl ?? src
-
-	const total = pages.length
-
-	const isDesktop = useMinWidth(1024)
-
-	const { safePage, goToPage } = usePdfViewerPagination({
-		total,
+	const ctx = usePdfViewer({
+		pages,
+		src,
+		filename,
 		page,
 		defaultPage,
 		onPageChange,
-	})
-
-	const [zoom, setZoom] = useState(defaultZoom)
-	const [thumbsOpen, setThumbsOpen] = useState(false)
-
-	const rootRef = useRef<HTMLElement>(null)
-	const viewportRef = useRef<HTMLDivElement>(null)
-
-	const activePage = total > 0 ? pages[safePage - 1] : undefined
-
-	const {
-		rotation,
-		isTransposed,
-		rotate: rotateActivePage,
-	} = usePdfViewerPageRotation(safePage, defaultRotation)
-
-	const { pageSize, onImageLoad } = usePdfViewerPageSize(activePage, safePage)
-
-	// `isTransposed` invalidates the viewport measurement so it re-runs synchronously
-	// on rotation flip, before paint — instead of waiting a frame for ResizeObserver.
-	const viewportSize = usePdfViewerViewportSize(viewportRef, isTransposed)
-
-	// Aspect ratio drives the viewport height. US Letter (8.5 × 11) is the pre-load
-	// fallback — close to most documents and stable while the first page resolves.
-	// Leave it unset when there's nothing to display so the viewer can collapse.
-	const hasContent = !!src || total > 0
-
-	const scale = usePdfViewerPageScale({
-		viewportSize,
-		pageSize,
-		isTransposed,
-		zoom,
-		hasContent,
+		defaultZoom,
+		zoomLevels,
+		defaultRotation,
 	})
 
 	return (
-		<section
-			ref={rootRef}
-			data-slot="pdf-viewer"
-			aria-label={ariaLabel}
-			className={cn(k.base, className)}
-		>
-			<PdfViewerToolbar
-				pages={pages}
-				total={total}
-				safePage={safePage}
-				goToPage={goToPage}
-				zoom={{ value: zoom, setValue: setZoom, levels: zoomLevels }}
-				onRotate={rotateActivePage}
-				src={documentSrc}
-				filename={filename}
-				isLoading={isLoading}
-				isDesktop={isDesktop}
-				thumbsOpen={thumbsOpen}
-				onThumbsOpen={() => setThumbsOpen(true)}
-			/>
-
-			<div className={cn(k.body)}>
-				<PdfViewerThumbnails
-					pages={pages}
-					safePage={safePage}
-					goToPage={goToPage}
-					isLoading={isLoading}
-					isDesktop={isDesktop}
-					thumbsOpen={thumbsOpen}
-					onThumbsOpenChange={setThumbsOpen}
-					container={rootRef.current}
-				/>
-
-				<PdfViewerStage
-					ref={viewportRef}
-					scale={scale}
-					activePage={activePage}
-					safePage={safePage}
-					rotation={rotation}
-					isLoading={isLoading}
-					error={error}
-					visible={!!(viewportSize && pageSize)}
-					onImageLoad={onImageLoad}
-				/>
-			</div>
-		</section>
+		<PdfViewerProvider value={ctx}>
+			<section
+				ref={ctx.rootRef}
+				data-slot="pdf-viewer"
+				aria-label={ariaLabel}
+				className={cn(k.base, className)}
+			>
+				<PdfViewerToolbar />
+				<div className={cn(k.body)}>
+					<PdfViewerThumbnails />
+					<PdfViewerViewport />
+				</div>
+			</section>
+		</PdfViewerProvider>
 	)
 }

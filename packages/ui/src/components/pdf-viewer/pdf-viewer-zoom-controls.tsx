@@ -3,10 +3,10 @@ import { Button } from '../button'
 import { Icon } from '../icon'
 import { ToolbarGroup } from '../toolbar'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
-import type { PdfViewerToolbarZoom } from './pdf-viewer-toolbar'
+import type { PdfViewerZoom } from './types'
 
 export type PdfViewerZoomControlsProps = {
-	zoom: PdfViewerToolbarZoom
+	zoom: PdfViewerZoom
 	disabled: boolean
 }
 

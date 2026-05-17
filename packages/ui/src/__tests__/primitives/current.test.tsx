@@ -1,8 +1,9 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import {
+	CurrentContent,
+	CurrentContents,
 	CurrentProvider,
-	createCurrentContent,
 	useCurrent,
 	useCurrentState,
 } from '../../primitives/current'
@@ -26,28 +27,32 @@ describe('useCurrentState', () => {
 	})
 })
 
-describe('createCurrentContent', () => {
-	const { Contents, Content } = createCurrentContent('test')
-
-	it('Contents renders with correct data-slot', () => {
+describe('CurrentContents / CurrentContent', () => {
+	it('CurrentContents renders with correct data-slot', () => {
 		const { container } = renderUI(
 			<CurrentProvider value={{ value: 'a', onChange: undefined }}>
-				<Contents fade={false}>
-					<Content value="a">Content A</Content>
-				</Contents>
+				<CurrentContents slotPrefix="test" fade={false}>
+					<CurrentContent slotPrefix="test" value="a">
+						Content A
+					</CurrentContent>
+				</CurrentContents>
 			</CurrentProvider>,
 		)
 
 		expect(container.querySelector('[data-slot="test-contents"]')).toBeInTheDocument()
 	})
 
-	it('Content renders matching value', () => {
+	it('CurrentContent renders matching value', () => {
 		renderUI(
 			<CurrentProvider value={{ value: 'a', onChange: undefined }}>
-				<Contents fade={false}>
-					<Content value="a">Content A</Content>
-					<Content value="b">Content B</Content>
-				</Contents>
+				<CurrentContents slotPrefix="test" fade={false}>
+					<CurrentContent slotPrefix="test" value="a">
+						Content A
+					</CurrentContent>
+					<CurrentContent slotPrefix="test" value="b">
+						Content B
+					</CurrentContent>
+				</CurrentContents>
 			</CurrentProvider>,
 		)
 
@@ -56,13 +61,17 @@ describe('createCurrentContent', () => {
 		expect(screen.queryByText('Content B')).not.toBeInTheDocument()
 	})
 
-	it('Content renders all when no value set', () => {
+	it('CurrentContent renders all when no value set', () => {
 		renderUI(
 			<CurrentProvider value={{ value: undefined, onChange: undefined }}>
-				<Contents fade={false}>
-					<Content value="a">A</Content>
-					<Content value="b">B</Content>
-				</Contents>
+				<CurrentContents slotPrefix="test" fade={false}>
+					<CurrentContent slotPrefix="test" value="a">
+						A
+					</CurrentContent>
+					<CurrentContent slotPrefix="test" value="b">
+						B
+					</CurrentContent>
+				</CurrentContents>
 			</CurrentProvider>,
 		)
 

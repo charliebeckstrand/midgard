@@ -1,9 +1,16 @@
 import type { ComponentPropsWithoutRef } from 'react'
-import { createCurrentContent } from '../../primitives/current'
+import { CurrentContent, CurrentContents } from '../../primitives/current'
 
-const { Contents: NavContents, Content: NavContent } = createCurrentContent('nav')
+export type NavContentsProps = Omit<
+	ComponentPropsWithoutRef<typeof CurrentContents>,
+	'slotPrefix'
+>
+export type NavContentProps = Omit<ComponentPropsWithoutRef<typeof CurrentContent>, 'slotPrefix'>
 
-export { NavContent, NavContents }
+export function NavContents(props: NavContentsProps) {
+	return <CurrentContents slotPrefix="nav" {...props} />
+}
 
-export type NavContentsProps = ComponentPropsWithoutRef<typeof NavContents>
-export type NavContentProps = ComponentPropsWithoutRef<typeof NavContent>
+export function NavContent(props: NavContentProps) {
+	return <CurrentContent slotPrefix="nav" {...props} />
+}
