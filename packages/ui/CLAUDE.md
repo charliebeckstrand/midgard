@@ -1,5 +1,9 @@
 # packages/ui — CLAUDE.md
 
+## Warmup
+
+Before any typecheck, test, build, or lint touches this package, run `pnpm install` from the repo root. The remote execution environment starts from a fresh clone — without `node_modules`, `tsc` reports missing-module and missing-type errors that look pre-existing and get misread as out-of-scope noise. If "pre-existing" errors reference imports you didn't touch, install before drawing conclusions. Install once per session.
+
 ## Skills
 
 UI-specific skills (the project-wide ones are documented in the root `CLAUDE.md`):
