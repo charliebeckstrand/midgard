@@ -1,8 +1,7 @@
 'use client'
 
-import { FloatingPortal, type Placement } from '@floating-ui/react'
+import type { Placement } from '@floating-ui/react'
 import { ChevronsUpDown } from 'lucide-react'
-import { AnimatePresence } from 'motion/react'
 import {
 	type InputHTMLAttributes,
 	type ReactNode,
@@ -15,21 +14,19 @@ import { cn } from '../../core'
 import { useFloatingUI, useRoving, useScrollWithin, useSelectableValueChange } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
-import { DENSITY_PRESETS, Density, useDensity } from '../../primitives/density'
+import { DENSITY_PRESETS, useDensity } from '../../primitives/density'
 import { useJoin } from '../../primitives/join'
-import { PopoverPanel } from '../../primitives/popover'
 import { kokkaku } from '../../recipes'
-import { comboboxVariants, k } from '../../recipes/kata/combobox'
-import { popover as kPopover } from '../../recipes/waku/popover'
+import { k } from '../../recipes/kata/combobox'
 import { Button } from '../button'
 import { type ControlSize, useControl } from '../control/context'
 import { useGlass } from '../glass/context'
-import { Headless } from '../headless'
 import { Icon } from '../icon'
-import { Input } from '../input'
 import { Placeholder } from '../placeholder'
 import { SelectTrigger } from '../select/select-trigger'
 import { useSkeleton } from '../skeleton/context'
+import { ComboboxInput } from './combobox-input'
+import { ComboboxPanel } from './combobox-panel'
 import { resolveInputDisplay } from './combobox-utilities'
 import { ComboboxProvider } from './context'
 import { useComboboxInput } from './use-combobox-input'
@@ -248,62 +245,39 @@ export function Combobox<T>({
 					) : undefined
 				}
 			>
-				<Headless>
-					<Input
-						id={id}
-						ref={inputRef}
-						type={inputType}
-						role="combobox"
-						aria-haspopup="listbox"
-						aria-expanded={open}
-						aria-controls={open ? comboboxId : undefined}
-						aria-autocomplete="list"
-						data-slot="combobox-input"
-						autoComplete={autoComplete}
-						disabled={resolvedDisabled}
-						value={inputDisplay}
-						placeholder={placeholder}
-						className={cn(comboboxVariants({ density: token.density, size: token.size }))}
-						{...inputHandlers}
-					/>
-				</Headless>
+				<ComboboxInput
+					id={id}
+					ref={inputRef}
+					type={inputType}
+					autoComplete={autoComplete}
+					open={open}
+					controlsId={comboboxId}
+					disabled={resolvedDisabled}
+					value={inputDisplay}
+					placeholder={placeholder}
+					density={token.density}
+					size={token.size}
+					handlers={inputHandlers}
+				/>
 			</SelectTrigger>
 
-			<FloatingPortal>
-				<div ref={optionsRef}>
-					<AnimatePresence onExitComplete={flushPending}>
-						{open && (
-							<div
-								ref={(node) => {
-									refs.setFloating(node)
-
-									scrollToSelected(node)
-								}}
-								data-editing={editing || undefined}
-								style={floatingStyles}
-								className={cn('group/combobox', kPopover.portal)}
-								{...getFloatingProps()}
-							>
-								<Density density={token.density} size={token.size}>
-									<PopoverPanel
-										id={comboboxId}
-										role="listbox"
-										autoFocus={false}
-										glass={glass}
-										className={cn('relative', k.options)}
-										onKeyDown={(e) => {
-											if (e.key === 'Escape') close()
-										}}
-									>
-										{rendered}
-										<output className={cn(k.empty)}>No results</output>
-									</PopoverPanel>
-								</Density>
-							</div>
-						)}
-					</AnimatePresence>
-				</div>
-			</FloatingPortal>
+			<ComboboxPanel
+				id={comboboxId}
+				open={open}
+				editing={editing}
+				glass={glass}
+				density={token.density}
+				size={token.size}
+				floatingStyles={floatingStyles}
+				getFloatingProps={getFloatingProps}
+				optionsRef={optionsRef}
+				setFloating={refs.setFloating}
+				scrollToSelected={scrollToSelected}
+				flushPending={flushPending}
+				onClose={close}
+			>
+				{rendered}
+			</ComboboxPanel>
 		</ComboboxProvider>
 	)
 }
