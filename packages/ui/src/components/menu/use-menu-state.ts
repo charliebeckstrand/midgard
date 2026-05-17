@@ -37,6 +37,7 @@ export function useMenuState({ defaultOpen = false, placement, size }: UseMenuSt
 		open,
 		onOpenChange: setOpen,
 		matchReferenceWidth: isDropdown,
+		restoreFocusTo: isDropdown ? triggerRef : undefined,
 	})
 
 	const clientPoint = useClientPoint(context, {
@@ -57,11 +58,7 @@ export function useMenuState({ defaultOpen = false, placement, size }: UseMenuSt
 
 	const close = useCallback(() => {
 		setOpen(false)
-
-		if (isDropdown) {
-			triggerRef.current?.focus()
-		}
-	}, [isDropdown])
+	}, [])
 
 	const handleContextMenu = useCallback((e: MouseEvent) => {
 		e.preventDefault()

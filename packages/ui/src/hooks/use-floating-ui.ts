@@ -16,7 +16,14 @@ import {
 	useInteractions,
 	useRole,
 } from '@floating-ui/react'
-import { type CSSProperties, type HTMLProps, useMemo } from 'react'
+import {
+	type CSSProperties,
+	type HTMLProps,
+	type RefObject,
+	useEffect,
+	useMemo,
+	useRef,
+} from 'react'
 
 // Explicit return types: TS can't write a portable `.d.ts` for the inferred
 // return because `useFloating`'s shape references `@floating-ui/react-dom`,
@@ -58,6 +65,8 @@ export type UseFloatingPanelOptions = {
 	matchReferenceWidth?: boolean
 	/** Escape hatch — fully overrides the default offset/flip/shift/size middleware chain. */
 	middleware?: Middleware[]
+	/** When the panel transitions from open to closed, restore focus to this element. */
+	restoreFocusTo?: RefObject<HTMLElement | null>
 }
 
 /**
@@ -75,6 +84,7 @@ export function useFloatingPanel({
 	offset: offsetPx = 4,
 	matchReferenceWidth = false,
 	middleware,
+	restoreFocusTo,
 }: UseFloatingPanelOptions): UseFloatingPanelReturn {
 	const resolvedMiddleware = useMemo(
 		() => middleware ?? buildMiddleware(offsetPx, matchReferenceWidth),
@@ -88,6 +98,14 @@ export function useFloatingPanel({
 		whileElementsMounted: autoUpdate,
 		middleware: resolvedMiddleware,
 	})
+
+	const prevOpenRef = useRef(open)
+
+	useEffect(() => {
+		if (prevOpenRef.current && !open) restoreFocusTo?.current?.focus()
+
+		prevOpenRef.current = open
+	}, [open, restoreFocusTo])
 
 	return { refs, floatingStyles, context }
 }
