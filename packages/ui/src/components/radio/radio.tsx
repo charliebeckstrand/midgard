@@ -1,7 +1,7 @@
 'use client'
 
 import type { ComponentPropsWithoutRef } from 'react'
-import { cn } from '../../core'
+import { cn, invalidAttrs } from '../../core'
 import { useDensity } from '../../primitives/density'
 import { kokkaku } from '../../recipes'
 import {
@@ -10,8 +10,7 @@ import {
 	radioInputVariants,
 	radioVariants,
 } from '../../recipes/kata/radio'
-import { invalidAttrs } from '../control/control-invalid-attrs'
-import { useControlFieldProps } from '../control/use-control-field-props'
+import { useControlProps } from '../control/use-control-props'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
 
@@ -25,7 +24,7 @@ export function Radio({ className, color, size, id, disabled, required, ...props
 		disabled: resolvedDisabled,
 		required: resolvedRequired,
 		invalid: resolvedInvalid,
-	} = useControlFieldProps({ id, disabled, required })
+	} = useControlProps({ id, disabled, required })
 
 	const inherited = useDensity()
 

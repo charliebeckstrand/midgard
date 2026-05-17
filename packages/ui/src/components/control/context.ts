@@ -24,7 +24,7 @@ export type ControlContextValue = {
  * the underlying form field, so it carries more than just size.
  *
  * Resolution lives at the field's call site: shared form-field props go
- * through `useControlFieldProps`; size is resolved separately through the
+ * through `useControlProps`; size is resolved separately through the
  * Density cascade.
  *
  * Read by input, textarea, switch, listbox, combobox, datepicker, checkbox,

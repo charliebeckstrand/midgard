@@ -1,12 +1,11 @@
 'use client'
 
 import type { ReactNode, Ref } from 'react'
-import { cn } from '../../core'
+import { cn, invalidAttrs } from '../../core'
 import { iro } from '../../recipes'
 import { k, listboxVariants } from '../../recipes/kata/listbox'
 import { Button } from '../button'
 import type { ControlSize } from '../control/context'
-import { invalidAttrs } from '../control/control-invalid-attrs'
 import { Headless } from '../headless'
 
 export type ListboxButtonProps = {

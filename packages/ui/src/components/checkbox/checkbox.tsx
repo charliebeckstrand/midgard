@@ -2,7 +2,7 @@
 
 import { Check, Minus } from 'lucide-react'
 import { type ComponentPropsWithRef, type ReactNode, useCallback, useRef } from 'react'
-import { cn } from '../../core'
+import { cn, invalidAttrs } from '../../core'
 import { useDensity } from '../../primitives/density'
 import {
 	type CheckboxVariants,
@@ -10,8 +10,7 @@ import {
 	checkboxInputVariants,
 	checkboxVariants,
 } from '../../recipes/kata/checkbox'
-import { invalidAttrs } from '../control/control-invalid-attrs'
-import { useControlFieldProps } from '../control/use-control-field-props'
+import { useControlProps } from '../control/use-control-props'
 import { useFormToggle } from '../form/context'
 import { useSkeleton } from '../skeleton/context'
 import { CheckboxSkeleton } from './checkbox-skeleton'
@@ -44,7 +43,7 @@ export function Checkbox({
 		disabled: resolvedDisabled,
 		required: resolvedRequired,
 		invalid: resolvedInvalid,
-	} = useControlFieldProps({ id, disabled, required, binding })
+	} = useControlProps({ id, disabled, required, binding })
 
 	const internalRef = useRef<HTMLInputElement>(null)
 
