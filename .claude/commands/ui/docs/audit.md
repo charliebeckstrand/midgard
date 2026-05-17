@@ -4,7 +4,7 @@ TRIGGER when: the user asks to audit, check, review, or scan the project's compo
 
 Compares the project's component docs files against the docs baseline (coverage + required exports + example-wrapper discipline + prop-surface sync). Deviations are reported as `file:line`-anchored entries grouped by severity.
 
-A run that finds no deviations reports PASS and emits no table. With a target, audits that target; without one, sweeps every demo file and ranks only those that deviated.
+A run that finds no deviations reports CLEAN and emits no table. With a target, audits that target; without one, sweeps every demo file and ranks only those that deviated.
 
 ## Arguments
 
@@ -145,7 +145,7 @@ When the project uses an explicit registry (not glob auto-discovery):
 
 ## 5. Output
 
-Lead the report with the verdict (see *Verdict* below). When the verdict is PASS, that is the entire report — no per-demo sections, no roll-up. The remainder of this section applies only when at least one deviation was recorded. Score for ranking deviated demos is:
+Lead the report with the verdict (see *Verdict* below). When the verdict is CLEAN, that is the entire report — no per-demo sections, no roll-up. The remainder of this section applies only when at least one deviation was recorded. Score for ranking deviated demos is:
 
 ```
 score = (blockers × 5) + (warnings × 2) + (nits × 1)
@@ -195,8 +195,8 @@ Coverage: <X>/<Y> components have docs (<percent>%)
 ### Verdict (lead the report)
 
 - Any **blocker** → **FAIL**.
-- Only warnings/nits → **PASS WITH DEVIATIONS**.
-- No deviations recorded → **PASS**. End the report here.
+- Only warnings/nits → **DEVIATIONS PRESENT**.
+- No deviations recorded → **CLEAN**. End the report here.
 
 If `--changed` and the diff is empty, say so and exit cleanly.
 
@@ -218,7 +218,7 @@ Never auto-rewrite the `<Example>` body — choosing which axes to demonstrate i
 ## Important
 
 - Source analysis only. Never boot a dev server, never run the project's build, never write to docs files without explicit go-ahead.
-- The audit's deliverable is the verdict. Deviations are evidence; a PASS run is a successful run. Do not manufacture nits to justify a non-empty report.
+- The audit's deliverable is the verdict. Deviations are evidence; a CLEAN run is a successful run. Do not manufacture nits to justify a non-empty report.
 - `componentsDir` is the source of truth for what components exist. Never rely on a memorized list.
 - When the project's docs system doesn't match any signal in section 2, surface that and stop — don't invent a docs convention.
 - Honor exclusion lists declared in `CLAUDE.md` / `AGENTS.md` / the docs registry's own skip list.

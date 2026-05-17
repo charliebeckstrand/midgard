@@ -4,7 +4,7 @@ TRIGGER when: the user asks to audit, check, review, or scan a UI component (or 
 
 Compares UI source files against the per-component health baseline (sibling-calibrated thresholds + `[layout-heuristics]` + `[framework-discipline]`). Deviations are reported as `file:line`-anchored entries grouped by severity. Reads source only — no dev server, no test run, no headless browser.
 
-A run that finds no deviations reports PASS and emits no table. The audit's job is to confirm the baseline; on a mature, frequently-audited package, PASS is the expected outcome, not the exception. Typical invocation names a single component; without a target, sweeps every component and ranks only those that deviated.
+A run that finds no deviations reports CLEAN and emits no table. The audit's job is to confirm the baseline; on a mature, frequently-audited package, CLEAN is the expected outcome, not the exception. Typical invocation names a single component; without a target, sweeps every component and ranks only those that deviated.
 
 **Scope boundaries:**
 
@@ -203,7 +203,7 @@ Only on packages whose `framework` is `react` or `next`.
 
 ## 6. Output
 
-Lead the report with the verdict (see *Verdict* below). When the verdict is PASS, that is the entire report — no per-component sections, no roll-up. The remainder of this section applies only when at least one deviation was recorded. Score for ranking deviated components is:
+Lead the report with the verdict (see *Verdict* below). When the verdict is CLEAN, that is the entire report — no per-component sections, no roll-up. The remainder of this section applies only when at least one deviation was recorded. Score for ranking deviated components is:
 
 ```
 score = (blockers × 5) + (warnings × 2) + (nits × 1)
@@ -263,8 +263,8 @@ Split candidates: <count> · Consolidate candidates: <count>
 ### Verdict (lead the report)
 
 - Any **blocker** → **FAIL**.
-- Only warnings/nits → **PASS WITH DEVIATIONS**.
-- No deviations recorded → **PASS**. End the report here.
+- Only warnings/nits → **DEVIATIONS PRESENT**.
+- No deviations recorded → **CLEAN**. End the report here.
 
 If `--changed` and the diff is empty, say so and exit cleanly.
 
@@ -361,8 +361,8 @@ warning · mirrored-state · widget.tsx:2 · drop the `current` state; read `val
 ## Important
 
 - Reads source; never edits.
-- The audit's deliverable is the verdict. Deviations are evidence for the verdict, not the deliverable. PASS is a successful run.
-- Do not manufacture nits to justify a non-empty report. On a mature `packages/ui`, expect most runs to be PASS or near-PASS; a long deviation table after a recent clean run is a signal the bar drifted, not that the code regressed.
+- The audit's deliverable is the verdict. Deviations are evidence for the verdict, not the deliverable. CLEAN is a successful run.
+- Do not manufacture nits to justify a non-empty report. On a mature `packages/ui`, expect most runs to be CLEAN or near-CLEAN; a long deviation table after a recent CLEAN run is a signal the bar drifted, not that the code regressed.
 - Calibrate against **sibling components** (section 4) before flagging size or prop-surface; the blanket threshold is a fallback.
 - Split/consolidate findings must cite line range and minimal prop interface.
 - In `suite` mode, **rank, then truncate**.

@@ -2,7 +2,7 @@
 
 TRIGGER when: the user asks to audit, check, review, or scan the project's tests / test coverage / test suite; asks "are the tests in sync", "any stale tests", "does every component have a test", "run the test audit". Also auto-eligible after `/tests:compose` writes new tests, to verify the new file fits the project's coverage matrix and authoring conventions.
 
-Compares test files against the project's test baseline (coverage matrix + `/tests:compose` REQUIRED patterns + authoring conventions). Deviations are reported as `file:line`-anchored entries grouped by severity. A run that finds no deviations reports PASS and emits no table.
+Compares test files against the project's test baseline (coverage matrix + `/tests:compose` REQUIRED patterns + authoring conventions). Deviations are reported as `file:line`-anchored entries grouped by severity. A run that finds no deviations reports CLEAN and emits no table.
 
 ## Arguments
 
@@ -142,7 +142,7 @@ Parse the matching source file:
 
 ## 5. Report
 
-Lead the report with the verdict (see *Verdict* below). When the verdict is PASS, that is the entire report — no per-file sections, no roll-up. The remainder of this section applies only when at least one deviation was recorded. Score for ranking deviated files is:
+Lead the report with the verdict (see *Verdict* below). When the verdict is CLEAN, that is the entire report — no per-file sections, no roll-up. The remainder of this section applies only when at least one deviation was recorded. Score for ranking deviated files is:
 
 ```
 score = (blockers × 5) + (warnings × 2) + (nits × 1)
@@ -196,8 +196,8 @@ Coverage: <X>/<Y> testable units have tests (<percent>%)
 ### Verdict (lead the report)
 
 - Any **blocker** → **FAIL**.
-- Only warnings/nits → **PASS WITH DEVIATIONS**.
-- No deviations recorded → **PASS**. End the report here.
+- Only warnings/nits → **DEVIATIONS PRESENT**.
+- No deviations recorded → **CLEAN**. End the report here.
 
 If `--changed` was used and the diff is empty, say so and exit cleanly.
 
@@ -220,7 +220,7 @@ Never modify an existing test file beyond the structural fixes listed above; new
 ## Important
 
 - Source analysis only. Never run the test suite, boot a dev server, or write to test files without explicit go-ahead.
-- The audit's deliverable is the verdict. Deviations are evidence; a PASS run is a successful run. Do not manufacture nits to justify a non-empty report.
+- The audit's deliverable is the verdict. Deviations are evidence; a CLEAN run is a successful run. Do not manufacture nits to justify a non-empty report.
 - Read `testRunner`, `testLayout`, `componentsDir`, and per-package source roots from the manifest. Never invent values the manifest doesn't report.
 - The REQUIRED patterns from `/tests:compose` section 4 are the canonical coverage matrix. New required patterns belong in `/tests:compose`, not here.
 - Honor exclusion lists in `CLAUDE.md` / `AGENTS.md` under a `## Tests skip list` heading. If none, treat as no exclusions.
