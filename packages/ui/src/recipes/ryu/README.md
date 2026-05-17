@@ -14,18 +14,18 @@ here.
 
 | Module    | Concern                                                                                                                                                             |
 | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sun`     | Size system: text + leading, padding, gap, inner radius, icon — by step (sm/md/lg). The spine; the most common entry point for size-aware kata.                     |
 | `iro`     | Colour palettes (`palette.{solid,soft,outline,plain}`) plus semantic text/bg roles.                                                                                 |
 | `ji`      | Typography size scale — font-size with line-height bundled. Weight, tracking, and family use Tailwind directly.                                                     |
+| `kokkaku` | Per-component skeleton placeholder shapes.                                                                                                                          |
+| `ma`      | Spacing vocabulary — `xs/sm/md/lg/xl` token names projected to Tailwind utilities (`p-md`, `gap-lg`, `mt-xs`) via `@utility` from `--step-*` tokens in `theme.css`. |
+| `narabi`  | Sibling / slot layout (panel slots, list items, toggle / group, field).                                                                                             |
 | `omote`   | Surface chromes (panel / popover / glass / backdrop bundles).                                                                                                       |
 | `sawari`  | Interaction states (hover / press / disabled compounds with motion).                                                                                                |
-| `ugoki`   | Motion — CSS transitions plus Framer Motion presets.                                                                                                                |
-| `kokkaku` | Per-component skeleton placeholder shapes.                                                                                                                          |
-| `narabi`  | Sibling / slot layout (panel slots, list items, toggle / group, field).                                                                                             |
-| `tsunagi` | Group join selectors — consumed by `<Group>`.                                                                                                                       |
-| `ma`      | Spacing vocabulary — `xs/sm/md/lg/xl` token names projected to Tailwind utilities (`p-md`, `gap-lg`, `mt-xs`) via `@utility` from `--step-*` tokens in `theme.css`. |
 | `sen`     | Lines — borders, dividers, rings, focus indicators, forced-colors compounds.                                                                                        |
+| `sun`     | Size system: text + leading, padding, gap, inner radius, icon — by step (sm/md/lg). The spine; the most common entry point for size-aware kata.                     |
 | `take`    | Dimension scales (icon, avatar, panel, scrollArea, combobox, listbox, mark).                                                                                        |
+| `tsunagi` | Group join selectors — consumed by `<Group>`.                                                                                                                       |
+| `ugoki`   | Motion — CSS transitions plus Framer Motion presets.                                                                                                                |
 
 ## Size cascade
 

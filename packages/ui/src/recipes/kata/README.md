@@ -32,9 +32,9 @@ duplicated.
 | Family  | Members                                                                                                  | Archetype                                                                                              |
 | ------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
 | Control | `input`, `textarea`, `listbox`, `combobox`, `date-picker`, `checkbox`, `radio`, `switch`, `ControlFrame` | `waku/control` — frame, surface, field reset, size, icon, affix, resets, check.                        |
+| Option  | `combobox`, `listbox`, `select`                                                                          | `waku/option` — base / size / content / label / description for select rows.                           |
 | Panel   | `dialog`, `drawer`, `sheet`, `inspector`                                                                 | `waku/panel` — title / description / header / body / actions / close slots via `definePanelRecipe`.    |
 | Popover | `popover`, `combobox`, `listbox`, `date-picker`                                                          | `waku/popover` — trigger / portal / panel for floating overlays anchored to a trigger.                 |
-| Option  | `combobox`, `listbox`, `select`                                                                          | `waku/option` — base / size / content / label / description for select rows.                           |
 
 See [waku/README.md](../waku/README.md) for each archetype's wire
 format and slot inventory.
