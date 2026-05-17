@@ -9,16 +9,15 @@ import { useSizeWide } from '../../primitives/density'
 import type { PolymorphicProps } from '../../primitives/polymorphic'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { TouchTarget } from '../../primitives/touch-target'
-import { kokkaku } from '../../recipes'
 import { type ButtonVariants, buttonVariants } from '../../recipes/kata/button'
 import { useGlass } from '../glass/context'
 import { useHeadless } from '../headless/context'
 import { Link } from '../link'
-import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
 import { Spinner, type SpinnerProps } from '../spinner'
 import { ButtonHeadless } from './button-headless'
 import { hasLabelContent } from './button-helpers'
+import { ButtonSkeleton } from './button-skeleton'
 import { buttonSpring } from './button-spring'
 
 export type LoadingOptions = Pick<SpinnerProps, 'color' | 'size' | 'label'>
@@ -97,11 +96,7 @@ export function Button({
 	)
 
 	if (skeleton) {
-		return (
-			<Placeholder
-				className={cn(kokkaku.button.base, kokkaku.button.size[resolvedSize], className)}
-			/>
-		)
+		return <ButtonSkeleton size={size} className={className} />
 	}
 
 	const labelled = hasLabelContent(children)

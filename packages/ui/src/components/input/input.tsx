@@ -6,16 +6,14 @@ import { useIdScope } from '../../hooks/use-id-scope'
 import { AffixProvider, affixStepDown } from '../../primitives/affix'
 import { ControlFrame } from '../../primitives/control'
 import { DENSITY_PRESETS, DensityScope, useDensity } from '../../primitives/density'
-import { useJoin } from '../../primitives/join'
-import { kokkaku } from '../../recipes'
 import { controlVariants, type InputVariants, inputVariants, k } from '../../recipes/kata/input'
 import type { Step } from '../../recipes/ryu/sun'
 import { useControl } from '../control/context'
 import { invalidAttrs } from '../control/control-invalid-attrs'
+import { ControlSkeleton } from '../control/control-skeleton'
 import { useControlFieldProps } from '../control/use-control-field-props'
 import { useGlass } from '../glass/context'
 import { useHeadless } from '../headless/context'
-import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
 import { Spinner } from '../spinner'
 import { useInputValue } from './use-input-value'
@@ -64,7 +62,6 @@ export function Input(props: InputProps) {
 	const glass = useGlass()
 	const headless = useHeadless()
 	const skeleton = useSkeleton()
-	const join = useJoin()
 	const inherited = useDensity()
 
 	const token = size ? DENSITY_PRESETS[size] : inherited
@@ -116,16 +113,7 @@ export function Input(props: InputProps) {
 	const hasAffix = resolvedPrefix !== undefined || resolvedSuffix !== undefined
 
 	if (skeleton) {
-		return (
-			<Placeholder
-				className={cn(
-					kokkaku.formControl.base,
-					join ? kokkaku.formControl.group[resolvedSize] : kokkaku.formControl.full,
-					kokkaku.formControl.size[resolvedSize],
-					className,
-				)}
-			/>
-		)
+		return <ControlSkeleton size={size} className={className} />
 	}
 
 	const affixStep = affixStepDown(resolvedSize)

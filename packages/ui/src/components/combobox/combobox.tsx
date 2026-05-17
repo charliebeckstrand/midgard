@@ -15,14 +15,12 @@ import { useFloatingUI, useRoving, useScrollWithin, useSelectableValueChange } f
 import { useControllable } from '../../hooks/use-controllable'
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
 import { DENSITY_PRESETS, useDensity } from '../../primitives/density'
-import { useJoin } from '../../primitives/join'
-import { kokkaku } from '../../recipes'
 import { k } from '../../recipes/kata/combobox'
 import { Button } from '../button'
 import { type ControlSize, useControl } from '../control/context'
+import { ControlSkeleton } from '../control/control-skeleton'
 import { useGlass } from '../glass/context'
 import { Icon } from '../icon'
-import { Placeholder } from '../placeholder'
 import { SelectTrigger } from '../select/select-trigger'
 import { useSkeleton } from '../skeleton/context'
 import { ComboboxInput } from './combobox-input'
@@ -111,7 +109,6 @@ export function Combobox<T>({
 	const glass = useGlass()
 	const control = useControl()
 	const skeleton = useSkeleton()
-	const join = useJoin()
 	const inherited = useDensity()
 
 	const token = size ? DENSITY_PRESETS[size] : inherited
@@ -205,16 +202,7 @@ export function Combobox<T>({
 	)
 
 	if (skeleton) {
-		return (
-			<Placeholder
-				className={cn(
-					kokkaku.formControl.base,
-					join ? kokkaku.formControl.group[resolvedSize] : kokkaku.formControl.full,
-					kokkaku.formControl.size[resolvedSize],
-					className,
-				)}
-			/>
-		)
+		return <ControlSkeleton size={size} className={className} />
 	}
 
 	return (

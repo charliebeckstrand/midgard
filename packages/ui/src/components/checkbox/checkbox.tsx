@@ -4,7 +4,6 @@ import { Check, Minus } from 'lucide-react'
 import { type ComponentPropsWithRef, type ReactNode, useCallback, useRef } from 'react'
 import { cn } from '../../core'
 import { useDensity } from '../../primitives/density'
-import { kokkaku } from '../../recipes'
 import {
 	type CheckboxVariants,
 	checkboxCheckSize,
@@ -14,8 +13,8 @@ import {
 import { invalidAttrs } from '../control/control-invalid-attrs'
 import { useControlFieldProps } from '../control/use-control-field-props'
 import { useFormToggle } from '../form/context'
-import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
+import { CheckboxSkeleton } from './checkbox-skeleton'
 
 export type CheckboxProps = CheckboxVariants & {
 	indeterminate?: boolean
@@ -66,7 +65,7 @@ export function Checkbox({
 	)
 
 	if (useSkeleton()) {
-		return <Placeholder className={cn(kokkaku.checkbox.base, className)} />
+		return <CheckboxSkeleton className={className} />
 	}
 
 	const checkClass = cn(

@@ -4,10 +4,9 @@ import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { useSizeWide } from '../../primitives/density'
 import { Polymorphic, type PolymorphicProps } from '../../primitives/polymorphic'
-import { kokkaku } from '../../recipes'
 import { type BadgeVariants, badgeVariants } from '../../recipes/kata/badge'
-import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
+import { BadgeSkeleton } from './badge-skeleton'
 
 type BadgeBaseProps = BadgeVariants & {
 	className?: string
@@ -38,11 +37,7 @@ export function Badge({
 	const resolvedSize = useSizeWide(size)
 
 	if (useSkeleton()) {
-		return (
-			<Placeholder
-				className={cn(kokkaku.badge.base, kokkaku.badge.size[resolvedSize], className)}
-			/>
-		)
+		return <BadgeSkeleton size={size} className={className} />
 	}
 
 	return (
