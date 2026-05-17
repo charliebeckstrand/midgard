@@ -11,41 +11,9 @@ import {
 } from 'react'
 import { useControllable } from '../../hooks/use-controllable'
 import type { CalendarPickerGridCell } from './calendar-picker-grid'
+import { calendarPickerReducer, initialCalendarPickerState } from './calendar-picker-reducer'
 import { MONTHS } from './calendar-utilities'
 import { useCalendarFocus } from './use-calendar-focus'
-
-type View = 'months' | 'years'
-
-type State = {
-	view: View
-	pickerYear: number
-	decadeYear: number
-}
-
-type Action =
-	| { type: 'open'; year: number }
-	| { type: 'stepYear'; delta: number }
-	| { type: 'stepDecade'; delta: number }
-	| { type: 'showYears' }
-	| { type: 'showMonths' }
-	| { type: 'selectYear'; year: number }
-
-function reduce(state: State, action: Action): State {
-	switch (action.type) {
-		case 'open':
-			return { view: 'months', pickerYear: action.year, decadeYear: action.year }
-		case 'stepYear':
-			return { ...state, pickerYear: state.pickerYear + action.delta }
-		case 'stepDecade':
-			return { ...state, decadeYear: state.decadeYear + action.delta }
-		case 'showYears':
-			return { ...state, view: 'years', decadeYear: state.pickerYear }
-		case 'showMonths':
-			return { ...state, view: 'months' }
-		case 'selectYear':
-			return { ...state, view: 'months', pickerYear: action.year }
-	}
-}
 
 export type UseCalendarPickerInput = {
 	year: number
@@ -98,11 +66,7 @@ export function useCalendarPicker({
 		onChange: handleOpenChange,
 	})
 
-	const [state, dispatch] = useReducer(reduce, undefined, () => ({
-		view: 'months' as View,
-		pickerYear: year,
-		decadeYear: year,
-	}))
+	const [state, dispatch] = useReducer(calendarPickerReducer, year, initialCalendarPickerState)
 
 	const { view, pickerYear, decadeYear } = state
 
