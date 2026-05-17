@@ -1,9 +1,16 @@
 import type { ComponentPropsWithoutRef } from 'react'
-import { createCurrentContent } from '../../primitives/current'
+import { CurrentContent, CurrentContents } from '../../primitives/current'
 
-const { Contents: TabContents, Content: TabContent } = createCurrentContent('tab')
+export type TabContentsProps = Omit<
+	ComponentPropsWithoutRef<typeof CurrentContents>,
+	'slotPrefix'
+>
+export type TabContentProps = Omit<ComponentPropsWithoutRef<typeof CurrentContent>, 'slotPrefix'>
 
-export { TabContent, TabContents }
+export function TabContents(props: TabContentsProps) {
+	return <CurrentContents slotPrefix="tab" {...props} />
+}
 
-export type TabContentsProps = ComponentPropsWithoutRef<typeof TabContents>
-export type TabContentProps = ComponentPropsWithoutRef<typeof TabContent>
+export function TabContent(props: TabContentProps) {
+	return <CurrentContent slotPrefix="tab" {...props} />
+}
