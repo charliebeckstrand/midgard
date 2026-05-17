@@ -1,7 +1,7 @@
 'use client'
 
 import type { ComponentPropsWithoutRef } from 'react'
-import { cn } from '../../core'
+import { cn, invalidAttrs } from '../../core'
 import { useDensity } from '../../primitives/density'
 import { kokkaku } from '../../recipes'
 import {
@@ -10,8 +10,7 @@ import {
 	switchThumbVariants,
 	switchVariants,
 } from '../../recipes/kata/switch'
-import { invalidAttrs } from '../control/control-invalid-attrs'
-import { useControlFieldProps } from '../control/use-control-field-props'
+import { useControlProps } from '../control/use-control-props'
 import { useFormToggle } from '../form/context'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
@@ -43,7 +42,7 @@ export function Switch({
 		disabled: resolvedDisabled,
 		required: resolvedRequired,
 		invalid: resolvedInvalid,
-	} = useControlFieldProps({ id, disabled, required, binding })
+	} = useControlProps({ id, disabled, required, binding })
 
 	if (useSkeleton()) {
 		return (

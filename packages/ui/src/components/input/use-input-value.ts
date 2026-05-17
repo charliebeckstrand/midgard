@@ -16,7 +16,7 @@ export type UseInputValueResult = {
 	value: InputHTMLAttributes<HTMLInputElement>['value']
 	onChange: ChangeEventHandler<HTMLInputElement> | undefined
 	onBlur: FocusEventHandler<HTMLInputElement> | undefined
-	/** Pass to `useControlFieldProps` so the form's invalid flag merges in. */
+	/** Pass to `useControlProps` so the form's invalid flag merges in. */
 	binding: FormTextBinding | undefined
 }
 

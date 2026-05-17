@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { invalidAttrs } from '../../components/control/control-invalid-attrs'
+import { invalidAttrs } from '../../core/invalid-attrs'
 
 describe('invalidAttrs', () => {
 	it('returns the attribute pair when invalid is true', () => {

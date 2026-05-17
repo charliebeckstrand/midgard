@@ -6,7 +6,7 @@ type FieldBinding = {
 	invalid?: boolean
 }
 
-export type UseFieldPropsInput = {
+export type UseControlPropsInput = {
 	id?: string
 	autoComplete?: string
 	disabled?: boolean
@@ -20,7 +20,7 @@ export type UseFieldPropsInput = {
 	binding?: FieldBinding
 }
 
-export type UseFieldPropsResult = {
+export type UseControlPropsResult = {
 	id: string | undefined
 	autoComplete: string | undefined
 	disabled: boolean | undefined
@@ -42,11 +42,11 @@ export type UseFieldPropsResult = {
  * the Density cascade at the call site).
  *
  * @example
- *   const { id, disabled, required, invalid } = useControlFieldProps({
+ *   const { id, disabled, required, invalid } = useControlProps({
  *     id: idProp, disabled: disabledProp, required: requiredProp, binding,
  *   })
  */
-export function useControlFieldProps(input: UseFieldPropsInput = {}): UseFieldPropsResult {
+export function useControlProps(input: UseControlPropsInput = {}): UseControlPropsResult {
 	const control = useControl()
 
 	return {

@@ -1,7 +1,7 @@
 'use client'
 
 import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
-import { cn } from '../../core'
+import { cn, invalidAttrs } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { AffixProvider, affixStepDown } from '../../primitives/affix'
 import { ControlFrame } from '../../primitives/control'
@@ -9,9 +9,8 @@ import { DENSITY_PRESETS, DensityScope, useDensity } from '../../primitives/dens
 import { controlVariants, type InputVariants, inputVariants, k } from '../../recipes/kata/input'
 import type { Step } from '../../recipes/ryu/sun'
 import { useControl } from '../control/context'
-import { invalidAttrs } from '../control/control-invalid-attrs'
 import { ControlSkeleton } from '../control/control-skeleton'
-import { useControlFieldProps } from '../control/use-control-field-props'
+import { useControlProps } from '../control/use-control-props'
 import { useGlass } from '../glass/context'
 import { useHeadless } from '../headless/context'
 import { useSkeleton } from '../skeleton/context'
@@ -70,7 +69,7 @@ export function Input(props: InputProps) {
 
 	const valueState = useInputValue({ hasValueProp, name, value, onChange, onBlur })
 
-	const sharedAttrs = useControlFieldProps({
+	const sharedAttrs = useControlProps({
 		id,
 		autoComplete,
 		disabled,

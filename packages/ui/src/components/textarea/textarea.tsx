@@ -1,7 +1,7 @@
 'use client'
 
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
-import { cn } from '../../core'
+import { cn, invalidAttrs } from '../../core'
 import { ControlFrame } from '../../primitives/control'
 import { DENSITY_PRESETS, useDensity } from '../../primitives/density'
 import { kokkaku } from '../../recipes'
@@ -13,8 +13,7 @@ import {
 } from '../../recipes/kata/textarea'
 import type { Step } from '../../recipes/ryu/sun'
 import { useControl } from '../control/context'
-import { invalidAttrs } from '../control/control-invalid-attrs'
-import { useControlFieldProps } from '../control/use-control-field-props'
+import { useControlProps } from '../control/use-control-props'
 import { useFormText } from '../form/context'
 import { useGlass } from '../glass/context'
 import { Placeholder } from '../placeholder'
@@ -60,7 +59,7 @@ export function Textarea({
 		required: resolvedRequired,
 		readOnly: resolvedReadOnly,
 		invalid: resolvedInvalid,
-	} = useControlFieldProps({ id, autoComplete, disabled, required, readOnly, binding })
+	} = useControlProps({ id, autoComplete, disabled, required, readOnly, binding })
 
 	const resolvedVariant = variant ?? control?.variant ?? (glass ? 'glass' : undefined)
 
