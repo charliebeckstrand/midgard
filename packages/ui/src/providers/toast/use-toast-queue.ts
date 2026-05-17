@@ -38,5 +38,5 @@ export function useToastQueue(toastsRef: MutableRefObject<ToastData[]>, sync: ()
 		if (drainingRef.current) drainNext()
 	}, [drainNext])
 
-	return { drainingRef, stopDrain, drainNext, startDrain, handleExitComplete }
+	return { drainingRef, drainNext, startDrain, stopDrain, handleExitComplete }
 }

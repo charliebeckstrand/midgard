@@ -34,7 +34,7 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 
 	const sync = useCallback(() => flush((n) => n + 1), [])
 
-	const { stopDrain, startDrain, handleExitComplete } = useToastQueue(toastsRef, sync)
+	const { startDrain, stopDrain, handleExitComplete } = useToastQueue(toastsRef, sync)
 
 	const { startTimer, pause, resume, resetRemaining } = useToastTimer(
 		toastsRef,
