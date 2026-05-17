@@ -13,9 +13,11 @@ export {
 export {
 	QueryBuilderRule,
 	type QueryBuilderRuleProps,
+} from './query-builder-rule'
+export {
 	QueryBuilderRuleValue,
 	type QueryBuilderRuleValueProps,
-} from './query-builder-rule'
+} from './query-builder-rule-value'
 export {
 	addChild,
 	createGroup,
