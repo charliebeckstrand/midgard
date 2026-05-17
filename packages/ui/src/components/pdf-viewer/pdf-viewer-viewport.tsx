@@ -1,23 +1,8 @@
 'use client'
 
-import type { Ref, SyntheticEvent } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/pdf-viewer'
-import type { PdfViewerPage } from './types'
-import type { UsePageScaleResult } from './use-pdf-viewer-page-scale'
-
-export type PdfViewerStageProps = {
-	ref?: Ref<HTMLDivElement>
-	scale: UsePageScaleResult
-	activePage: PdfViewerPage | undefined
-	safePage: number
-	rotation: number
-	isLoading: boolean
-	error: Error | null
-	/** False until the viewport has been measured and a page size is known, so the page image stays hidden during the first paint. */
-	visible: boolean
-	onImageLoad: (event: SyntheticEvent<HTMLImageElement>) => void
-}
+import { usePdfViewerContext } from './context'
 
 /**
  * Renders the page surface inside the measured viewport — either the active
@@ -25,22 +10,15 @@ export type PdfViewerStageProps = {
  * The viewport's aspect ratio is driven by the `scale` input so the container
  * reserves space before the image paints.
  */
-export function PdfViewerStage({
-	ref,
-	scale,
-	activePage,
-	safePage,
-	rotation,
-	isLoading,
-	error,
-	visible,
-	onImageLoad,
-}: PdfViewerStageProps) {
+export function PdfViewerViewport() {
+	const { viewportRef, scale, activePage, safePage, rotation, isLoading, error, visible, onImageLoad } =
+		usePdfViewerContext()
+
 	const { aspectRatio, frameW, frameH, imageW, imageH } = scale
 
 	return (
 		<div
-			ref={ref}
+			ref={viewportRef}
 			data-slot="pdf-viewer-viewport"
 			className={cn(k.viewport)}
 			style={{ aspectRatio }}

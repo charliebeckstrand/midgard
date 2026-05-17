@@ -9,29 +9,12 @@ import { Button } from '../button'
 import { Flex } from '../flex'
 import { Icon } from '../icon'
 import { Sheet, SheetBody, SheetTitle } from '../sheet'
-import type { PdfViewerPage } from './types'
+import { usePdfViewerContext } from './context'
 
-export type PdfViewerThumbnailsProps = {
-	pages: PdfViewerPage[]
-	safePage: number
-	goToPage: (page: number) => void
-	isLoading: boolean
-	isDesktop: boolean
-	thumbsOpen: boolean
-	onThumbsOpenChange: (open: boolean) => void
-	container: HTMLElement | null
-}
+export function PdfViewerThumbnails() {
+	const { pages, safePage, goToPage, isLoading, isDesktop, thumbsOpen, setThumbsOpen, rootRef } =
+		usePdfViewerContext()
 
-export function PdfViewerThumbnails({
-	pages,
-	safePage,
-	goToPage,
-	isLoading,
-	isDesktop,
-	thumbsOpen,
-	onThumbsOpenChange,
-	container,
-}: PdfViewerThumbnailsProps) {
 	const scrollActiveIntoView = useScrollWithin()
 
 	const sidebarRef = useRef<HTMLElement>(null)
@@ -131,8 +114,8 @@ export function PdfViewerThumbnails({
 				<Sheet
 					side="left"
 					open={thumbsOpen}
-					onOpenChange={onThumbsOpenChange}
-					container={container}
+					onOpenChange={setThumbsOpen}
+					container={rootRef.current}
 				>
 					<SheetTitle>
 						<Flex gap="sm" justify="between" align="center">
@@ -140,13 +123,13 @@ export function PdfViewerThumbnails({
 							<Button
 								variant="plain"
 								aria-label="Close thumbnails"
-								onClick={() => onThumbsOpenChange(false)}
+								onClick={() => setThumbsOpen(false)}
 							>
 								<Icon icon={<X />} />
 							</Button>
 						</Flex>
 					</SheetTitle>
-					<SheetBody>{renderList(() => onThumbsOpenChange(false), 'grid')}</SheetBody>
+					<SheetBody>{renderList(() => setThumbsOpen(false), 'grid')}</SheetBody>
 				</Sheet>
 			)}
 		</>

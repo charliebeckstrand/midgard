@@ -1,3 +1,5 @@
+import type { Dispatch, SetStateAction } from 'react'
+
 export type PdfViewerPage = {
 	/** Stable key. Falls back to the array index when omitted. */
 	id?: string | number
@@ -11,4 +13,10 @@ export type PdfViewerPage = {
 	width?: number
 	/** Intrinsic height in pixels. Used to size the viewport before the image loads. */
 	height?: number
+}
+
+export type PdfViewerZoom = {
+	value: number
+	setValue: Dispatch<SetStateAction<number>>
+	levels: number[]
 }

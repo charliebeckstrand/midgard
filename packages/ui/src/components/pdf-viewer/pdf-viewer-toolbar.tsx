@@ -1,7 +1,6 @@
 'use client'
 
 import { PanelLeft, RotateCw } from 'lucide-react'
-import type { Dispatch, SetStateAction } from 'react'
 
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/pdf-viewer'
@@ -10,45 +9,26 @@ import { Icon } from '../icon'
 import { Listbox, ListboxLabel, ListboxOption } from '../listbox'
 import { Toolbar, ToolbarGroup, ToolbarSeparator } from '../toolbar'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
+import { usePdfViewerContext } from './context'
 import { PdfViewerDocumentActions } from './pdf-viewer-document-actions'
 import { PdfViewerZoomControls } from './pdf-viewer-zoom-controls'
-import type { PdfViewerPage } from './types'
 
-export type PdfViewerToolbarZoom = {
-	value: number
-	setValue: Dispatch<SetStateAction<number>>
-	levels: number[]
-}
+export function PdfViewerToolbar() {
+	const {
+		pages,
+		total,
+		safePage,
+		goToPage,
+		zoom,
+		rotate,
+		documentSrc,
+		filename,
+		isLoading,
+		isDesktop,
+		thumbsOpen,
+		setThumbsOpen,
+	} = usePdfViewerContext()
 
-export type PdfViewerToolbarProps = {
-	pages: PdfViewerPage[]
-	total: number
-	safePage: number
-	goToPage: (page: number) => void
-	zoom: PdfViewerToolbarZoom
-	onRotate: () => void
-	src?: string
-	filename?: string
-	isLoading: boolean
-	isDesktop: boolean
-	thumbsOpen: boolean
-	onThumbsOpen: () => void
-}
-
-export function PdfViewerToolbar({
-	pages,
-	total,
-	safePage,
-	goToPage,
-	zoom,
-	onRotate,
-	src,
-	filename,
-	isLoading,
-	isDesktop,
-	thumbsOpen,
-	onThumbsOpen,
-}: PdfViewerToolbarProps) {
 	const isEmpty = total === 0
 
 	const controlsDisabled = isLoading || isEmpty
@@ -66,7 +46,7 @@ export function PdfViewerToolbar({
 										aria-label="Show thumbnails"
 										aria-expanded={thumbsOpen}
 										disabled={isLoading}
-										onClick={onThumbsOpen}
+										onClick={() => setThumbsOpen(true)}
 									>
 										<Icon icon={<PanelLeft />} />
 									</Button>
@@ -116,7 +96,7 @@ export function PdfViewerToolbar({
 								variant="plain"
 								aria-label="Rotate"
 								disabled={controlsDisabled}
-								onClick={onRotate}
+								onClick={rotate}
 							>
 								<Icon icon={<RotateCw />} />
 							</Button>
@@ -124,10 +104,14 @@ export function PdfViewerToolbar({
 						<TooltipContent>Rotate</TooltipContent>
 					</Tooltip>
 				</ToolbarGroup>
-				{src && (
+				{documentSrc && (
 					<>
 						<ToolbarSeparator />
-						<PdfViewerDocumentActions src={src} filename={filename} disabled={controlsDisabled} />
+						<PdfViewerDocumentActions
+							src={documentSrc}
+							filename={filename}
+							disabled={controlsDisabled}
+						/>
 					</>
 				)}
 			</div>
