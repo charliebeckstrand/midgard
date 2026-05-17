@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { RangeSlider, Slider } from '../../components/slider'
-import { clamp, pct, snapToStep } from '../../components/slider/range/range-utilities'
+import { pct, snapToStep } from '../../components/slider/range/range-utilities'
 import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 
 describe('Slider', () => {
@@ -188,20 +188,6 @@ describe('RangeSlider', () => {
 		expect(lo).toBeDisabled()
 
 		expect(hi).toBeDisabled()
-	})
-})
-
-describe('clamp', () => {
-	it('returns the value when within the range', () => {
-		expect(clamp(5, 0, 10)).toBe(5)
-	})
-
-	it('returns the lower bound when below the range', () => {
-		expect(clamp(-2, 0, 10)).toBe(0)
-	})
-
-	it('returns the upper bound when above the range', () => {
-		expect(clamp(12, 0, 10)).toBe(10)
 	})
 })
 

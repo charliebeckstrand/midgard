@@ -1,5 +1,6 @@
 'use client'
 
+import { clamp } from '../../helpers'
 import { useControllable } from '../../hooks'
 
 export type UsePdfPaginationInput = {
@@ -17,8 +18,6 @@ export type UsePdfPaginationResult = {
 	/** Clamp, round, and commit a page number. No-op when `total === 0`. */
 	goToPage: (next: number) => void
 }
-
-const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n))
 
 /**
  * Manages 1-based page state for the PDF viewer in both controlled and
