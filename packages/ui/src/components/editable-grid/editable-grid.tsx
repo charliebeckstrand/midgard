@@ -18,6 +18,11 @@ import { useEditableGridMutations } from './use-editable-grid-mutations'
 import { useEditableGridNavigation } from './use-editable-grid-navigation'
 import { useEditableGridWrapper } from './use-editable-grid-wrapper'
 
+// Stable empty-selection sentinel: a fresh Set per render breaks referential
+// equality for `selectionRef` and any downstream memo/effect that reads it.
+// Treated as read-only — all updates go through `setSelectionRaw(new Set(...))`.
+const EMPTY_SELECTION = new Set<string | number>()
+
 export type EditableGridProps<T> = TableVariants & {
 	columns: EditableGridColumn<T>[]
 	rows: T[]
@@ -76,7 +81,7 @@ export function EditableGrid<T>({
 		onChange: selectionConfig?.onValueChange,
 	})
 
-	const selection = selectionRaw ?? new Set<string | number>()
+	const selection = selectionRaw ?? EMPTY_SELECTION
 
 	// Stable refs so callbacks don't rebuild every render.
 	const rowsRef = useRef(rows)

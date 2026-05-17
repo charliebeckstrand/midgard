@@ -1,7 +1,7 @@
 'use client'
 
 import { type Placement, useClick, useDismiss, useInteractions, useRole } from '@floating-ui/react'
-import { type ReactNode, useCallback, useEffect, useMemo, useRef } from 'react'
+import { type ReactNode, useCallback, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useFloatingPanel } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
@@ -37,6 +37,7 @@ export function Popover({
 		open,
 		onOpenChange: setOpen,
 		offset: 8,
+		restoreFocusTo: triggerRef,
 	})
 
 	const click = useClick(context)
@@ -46,16 +47,6 @@ export function Popover({
 	const role = useRole(context, { role: 'dialog' })
 
 	const { getReferenceProps, getFloatingProps } = useInteractions([click, dismiss, role])
-
-	const prevOpenRef = useRef(open)
-
-	useEffect(() => {
-		if (prevOpenRef.current && !open) {
-			triggerRef.current?.focus()
-		}
-
-		prevOpenRef.current = open
-	}, [open])
 
 	const close = useCallback(() => {
 		setOpen(false)

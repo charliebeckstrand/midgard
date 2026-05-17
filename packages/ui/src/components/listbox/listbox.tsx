@@ -114,7 +114,6 @@ export function Listbox<T>({
 		multiple,
 		nullable,
 		setValue,
-		triggerRef,
 	})
 
 	const { refs, floatingStyles, getReferenceProps, getFloatingProps } = useFloatingUI({
@@ -122,6 +121,7 @@ export function Listbox<T>({
 		open,
 		onOpenChange: setOpen,
 		matchReferenceWidth: true,
+		restoreFocusTo: triggerRef,
 	})
 
 	const label = resolveLabel({ value, displayValue, multiple })

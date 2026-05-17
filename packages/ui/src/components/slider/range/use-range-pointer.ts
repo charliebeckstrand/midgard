@@ -1,5 +1,6 @@
 import { type PointerEvent, type RefObject, useCallback, useRef } from 'react'
-import { clamp, snapToStep } from './range-utilities'
+import { clamp } from '../../../helpers'
+import { snapToStep } from './range-utilities'
 import type { OverlapMode, ThumbIndex } from './types'
 import { useRangeUpdate } from './use-range-update'
 

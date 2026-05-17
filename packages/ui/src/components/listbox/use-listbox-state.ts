@@ -1,4 +1,4 @@
-import { type RefObject, useCallback, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { useDeferredToggle } from '../../hooks/use-deferred-toggle'
 
 type UseListboxStateParams<T> = {
@@ -7,22 +7,14 @@ type UseListboxStateParams<T> = {
 	setValue: (
 		value: T | T[] | undefined | ((prev: T | T[] | undefined) => T | T[] | undefined),
 	) => void
-	triggerRef: RefObject<HTMLButtonElement | null>
 }
 
-export function useListboxState<T>({
-	multiple,
-	nullable,
-	setValue,
-	triggerRef,
-}: UseListboxStateParams<T>) {
+export function useListboxState<T>({ multiple, nullable, setValue }: UseListboxStateParams<T>) {
 	const [open, setOpen] = useState(false)
 
 	const close = useCallback(() => {
 		setOpen(false)
-
-		triggerRef.current?.focus()
-	}, [triggerRef])
+	}, [])
 
 	const { toggle, enqueue, flushPending } = useDeferredToggle<T>({ multiple, nullable, setValue })
 
