@@ -2,6 +2,7 @@
 
 import type { ComponentPropsWithoutRef, CSSProperties } from 'react'
 import { cn } from '../../core'
+import { pct } from '../../helpers'
 import { useControllable } from '../../hooks/use-controllable'
 import { type SliderVariants, sliderVariants } from '../../recipes/kata/slider'
 
@@ -43,7 +44,7 @@ export function Slider({
 
 	const current = internal ?? min
 
-	const percent = max === min ? 0 : ((current - min) / (max - min)) * 100
+	const percent = pct(current, min, max)
 
 	return (
 		<input

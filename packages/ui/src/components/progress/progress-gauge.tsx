@@ -3,6 +3,7 @@
 import { motion } from 'motion/react'
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
+import { clamp, pct } from '../../helpers'
 import { useSizeWide } from '../../primitives/density'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import {
@@ -44,7 +45,7 @@ export function ProgressGauge({
 
 	const radius = (gaugeViewBox - strokeWidth) / 2
 
-	const percent = Math.min(100, Math.max(0, (value / max) * 100))
+	const percent = clamp(pct(value, 0, max), 0, 100)
 
 	const circumference = 2 * Math.PI * radius
 
