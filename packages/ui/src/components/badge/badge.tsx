@@ -2,12 +2,11 @@
 
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
-import { useSizeWide } from '../../primitives/density'
+import { DensityScope, useSizeWide } from '../../primitives/density'
 import { Polymorphic, type PolymorphicProps } from '../../primitives/polymorphic'
-import { kokkaku } from '../../recipes'
 import { type BadgeVariants, badgeVariants } from '../../recipes/kata/badge'
-import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
+import { BadgeSkeleton } from './badge-skeleton'
 
 type BadgeBaseProps = BadgeVariants & {
 	className?: string
@@ -22,6 +21,11 @@ export type BadgeProps = BadgeBaseProps & PolymorphicProps<'span', 'prefix'>
  * broadcast from `<Input>` / `<SelectTrigger>` / `<Grid>`), then the ambient
  * Density size, then the recipe's `md` default. AffixSize wins over Density so
  * a badge inside a grid cell renders one step smaller than the grid itself.
+ *
+ * When `size` is set explicitly to a Density step (`sm`/`md`/`lg`), it
+ * cascades to descendants via `<DensityScope>` so prefix/suffix slots inherit
+ * the badge's density. `xs` is sub-Step and doesn't propagate — descendants
+ * keep the ambient density.
  */
 export function Badge({
 	variant = 'solid',
@@ -38,26 +42,24 @@ export function Badge({
 	const resolvedSize = useSizeWide(size)
 
 	if (useSkeleton()) {
-		return (
-			<Placeholder
-				className={cn(kokkaku.badge.base, kokkaku.badge.size[resolvedSize], className)}
-			/>
-		)
+		return <BadgeSkeleton size={size} className={className} />
 	}
 
 	return (
-		<Polymorphic
-			as="span"
-			dataSlot="badge"
-			data-has-prefix={prefix ? '' : undefined}
-			data-has-suffix={suffix ? '' : undefined}
-			href={href}
-			className={cn(badgeVariants({ variant, color, size: resolvedSize, rounded }), className)}
-			{...props}
-		>
-			{prefix}
-			{children}
-			{suffix}
-		</Polymorphic>
+		<DensityScope scale={size === 'xs' ? undefined : size}>
+			<Polymorphic
+				as="span"
+				dataSlot="badge"
+				data-has-prefix={prefix ? '' : undefined}
+				data-has-suffix={suffix ? '' : undefined}
+				href={href}
+				className={cn(badgeVariants({ variant, color, size: resolvedSize, rounded }), className)}
+				{...props}
+			>
+				{prefix}
+				{children}
+				{suffix}
+			</Polymorphic>
+		</DensityScope>
 	)
 }

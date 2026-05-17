@@ -1,13 +1,10 @@
 'use client'
 
 import type { Placement } from '@floating-ui/react'
-import { cn } from '../../core'
 import { useDensity } from '../../primitives/density'
-import { useJoin } from '../../primitives/join'
-import { kokkaku } from '../../recipes'
 import { Calendar } from '../calendar'
 import type { ControlSize } from '../control/context'
-import { Placeholder } from '../placeholder'
+import { ControlSkeleton } from '../control/control-skeleton'
 import { useSkeleton } from '../skeleton/context'
 import { DatePickerContent } from './date-picker-content'
 import { DatePickerFooter } from './date-picker-footer'
@@ -56,22 +53,12 @@ export type DatePickerProps = DatePickerBaseProps & (DatePickerSingleProps | Dat
 
 export function DatePicker(props: DatePickerProps) {
 	const skeleton = useSkeleton()
-	const join = useJoin()
 	const inherited = useDensity()
 
 	const resolvedSize: ControlSize = props.size ?? inherited.size
 
 	if (skeleton) {
-		return (
-			<Placeholder
-				className={cn(
-					kokkaku.formControl.base,
-					join ? kokkaku.formControl.group[resolvedSize] : kokkaku.formControl.full,
-					kokkaku.formControl.size[resolvedSize],
-					props.className,
-				)}
-			/>
-		)
+		return <ControlSkeleton size={props.size} className={props.className} />
 	}
 
 	if (props.range) {

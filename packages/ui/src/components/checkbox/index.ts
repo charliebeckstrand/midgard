@@ -6,3 +6,4 @@ export {
 export { Checkbox, type CheckboxProps } from './checkbox'
 export { CheckboxField, type CheckboxFieldProps } from './checkbox-field'
 export { CheckboxGroup, type CheckboxGroupProps } from './checkbox-group'
+export { CheckboxSkeleton, type CheckboxSkeletonProps } from './checkbox-skeleton'

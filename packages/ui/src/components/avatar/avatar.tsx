@@ -1,7 +1,6 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { DENSITY_PRESETS, DensityScope, useDensity } from '../../primitives/density'
-import { kokkaku } from '../../recipes'
 import {
 	type AvatarVariants,
 	avatarImageVariants,
@@ -9,9 +8,9 @@ import {
 	avatarVariants,
 	k,
 } from '../../recipes/kata/avatar'
-import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
 import { StatusDot } from '../status'
+import { AvatarSkeleton } from './avatar-skeleton'
 
 type Status = 'inactive' | 'active' | 'warning' | 'error'
 
@@ -43,13 +42,7 @@ export function Avatar({
 	const resolvedSize = token.size
 
 	if (skeleton) {
-		return (
-			<DensityScope scale={size}>
-				<Placeholder
-					className={cn(kokkaku.avatar.base, kokkaku.avatar.size[resolvedSize], className)}
-				/>
-			</DensityScope>
-		)
+		return <AvatarSkeleton size={size} className={className} />
 	}
 
 	const avatarEl = (
