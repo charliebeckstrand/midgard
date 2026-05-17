@@ -47,7 +47,9 @@ export function CurrentContent({
 			animate={current ? { opacity: 1 } : { opacity: 0 }}
 			initial={false}
 			transition={ugoki.reveal.transition}
-			style={current ? { position: 'relative' } : { position: 'absolute', top: 0, left: 0, right: 0 }}
+			style={
+				current ? { position: 'relative' } : { position: 'absolute', top: 0, left: 0, right: 0 }
+			}
 			inert={!current}
 			className={className}
 		>

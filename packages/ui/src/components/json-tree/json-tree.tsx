@@ -6,8 +6,8 @@ import { useRoving } from '../../hooks'
 import { k } from '../../recipes/kata/json-tree'
 import { JsonTreeProvider } from './context'
 import { JsonTreeNode } from './json-tree-node'
-import { JsonTreeVirtualized } from './json-tree-virtualized'
 import { buildSearchIndex, normalizeSearch, type Search } from './json-tree-utilities'
+import { JsonTreeVirtualized } from './json-tree-virtualized'
 import type { JsonValue } from './types'
 
 export type JsonTreeVirtualize = boolean | { estimateSize?: number; overscan?: number }
@@ -114,4 +114,3 @@ export function JsonTree({
 		</JsonTreeProvider>
 	)
 }
-

@@ -3,9 +3,9 @@
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { PdfViewerProvider } from './context'
-import { PdfViewerViewport } from './pdf-viewer-viewport'
 import { PdfViewerThumbnails } from './pdf-viewer-thumbnails'
 import { PdfViewerToolbar } from './pdf-viewer-toolbar'
+import { PdfViewerViewport } from './pdf-viewer-viewport'
 import type { PdfViewerPage } from './types'
 import { usePdfViewer } from './use-pdf-viewer'
 

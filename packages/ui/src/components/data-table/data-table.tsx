@@ -188,6 +188,44 @@ export function DataTable<T>({
 
 	const needsScrollWrapper = stickyHeader || virtualizeEnabled
 
+	const renderBody = () => {
+		if (loading) return <TableLoading columns={visibleColumns.length} />
+
+		if (virtualizeEnabled) {
+			return (
+				<DataTableVirtualizedBody<T>
+					scrollRef={scrollRef}
+					rows={rows}
+					rowKeys={rowKeys}
+					visibleColumns={visibleColumns}
+					rowLoading={rowLoading}
+					rowClassName={rowClassName}
+					estimateSize={estimateSize}
+					overscan={overscan}
+				/>
+			)
+		}
+
+		return (
+			<TableBody>
+				{rows.map((row, index) => {
+					const key = rowKeys[index] ?? getRowKey(row, index)
+
+					return (
+						<DataTableRow<T>
+							key={key}
+							row={row}
+							rowKey={key}
+							columns={visibleColumns}
+							loading={rowLoading?.(row) ?? false}
+							className={rowClassName?.(row)}
+						/>
+					)
+				})}
+			</TableBody>
+		)
+	}
+
 	const tableContent = (
 		<Table
 			density={density}
@@ -199,37 +237,7 @@ export function DataTable<T>({
 		>
 			<DataTableHead columns={visibleColumns} />
 
-			{loading ? (
-				<TableLoading columns={visibleColumns.length} />
-			) : virtualizeEnabled ? (
-				<DataTableVirtualizedBody<T>
-					scrollRef={scrollRef}
-					rows={rows}
-					rowKeys={rowKeys}
-					visibleColumns={visibleColumns}
-					rowLoading={rowLoading}
-					rowClassName={rowClassName}
-					estimateSize={estimateSize}
-					overscan={overscan}
-				/>
-			) : (
-				<TableBody>
-					{rows.map((row, index) => {
-						const key = rowKeys[index] ?? getRowKey(row, index)
-
-						return (
-							<DataTableRow<T>
-								key={key}
-								row={row}
-								rowKey={key}
-								columns={visibleColumns}
-								loading={rowLoading?.(row) ?? false}
-								className={rowClassName?.(row)}
-							/>
-						)
-					})}
-				</TableBody>
-			)}
+			{renderBody()}
 		</Table>
 	)
 
