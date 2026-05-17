@@ -12,12 +12,13 @@ import { controlVariants, type InputVariants, inputVariants, k } from '../../rec
 import type { Step } from '../../recipes/ryu/sun'
 import { useControl } from '../control/context'
 import { invalidAttrs } from '../control/control-invalid-attrs'
-import { useFormText } from '../form/context'
+import { useControlFieldProps } from '../control/use-control-field-props'
 import { useGlass } from '../glass/context'
 import { useHeadless } from '../headless/context'
 import { Placeholder } from '../placeholder'
 import { useSkeleton } from '../skeleton/context'
 import { Spinner } from '../spinner'
+import { useInputValue } from './use-input-value'
 
 export type InputProps = Omit<InputVariants, 'size'> & {
 	size?: Step
@@ -70,29 +71,22 @@ export function Input(props: InputProps) {
 
 	const resolvedSize = token.size
 
-	const binding = useFormText(name, { onChange, onBlur })
+	const valueState = useInputValue({ hasValueProp, name, value, onChange, onBlur })
 
-	// Wrappers take ownership of value/onChange by passing them explicitly.
-	// In that case we still emit `name` to the DOM and surface `invalid`
-	// from the form, but we don't override the wrapper's controlled state.
-	const bound = !hasValueProp && binding !== undefined
+	const sharedAttrs = useControlFieldProps({
+		id,
+		autoComplete,
+		disabled,
+		required,
+		readOnly,
+		binding: valueState.binding,
+	})
 
-	// When a wrapper passes value={null} or value={undefined} to signal "empty",
-	// coerce to '' so the native input stays controlled instead of flipping uncontrolled.
-	const controlledValue = hasValueProp ? (value ?? '') : value
+	const scope = useIdScope({ id: sharedAttrs.id })
 
-	const scope = useIdScope({ id: id ?? control?.id })
+	const resolvedInvalid = invalid ?? sharedAttrs.invalid
 
-	const resolvedDisabled = disabled ?? control?.disabled
-	const resolvedRequired = required ?? control?.required
-	const resolvedReadOnly = readOnly ?? control?.readOnly
-	const resolvedAutoComplete = autoComplete ?? control?.autoComplete
-	const resolvedInvalid = invalid ?? control?.invalid ?? binding?.invalid
-
-	const resolvedValue = bound ? binding.value : controlledValue
-
-	const resolvedOnChange = bound ? binding.onChange : onChange
-	const resolvedOnBlur = bound ? binding.onBlur : onBlur
+	const resolvedVariant = variant ?? control?.variant ?? (glass ? 'glass' : undefined)
 
 	if (headless) {
 		return (
@@ -102,21 +96,19 @@ export function Input(props: InputProps) {
 				type={type}
 				id={scope.id}
 				name={name}
-				autoComplete={resolvedAutoComplete}
-				disabled={resolvedDisabled}
-				required={resolvedRequired}
-				readOnly={resolvedReadOnly}
-				value={resolvedValue}
-				onChange={resolvedOnChange}
-				onBlur={resolvedOnBlur}
+				autoComplete={sharedAttrs.autoComplete}
+				disabled={sharedAttrs.disabled}
+				required={sharedAttrs.required}
+				readOnly={sharedAttrs.readOnly}
+				value={valueState.value}
+				onChange={valueState.onChange}
+				onBlur={valueState.onBlur}
 				className={className}
 				{...invalidAttrs(resolvedInvalid)}
 				{...rest}
 			/>
 		)
 	}
-
-	const resolvedVariant = variant ?? control?.variant ?? (glass ? 'glass' : undefined)
 
 	const resolvedPrefix = prefix
 	const resolvedSuffix = loading ? <Spinner /> : suffix
@@ -161,13 +153,13 @@ export function Input(props: InputProps) {
 						type={type}
 						id={scope.id}
 						name={name}
-						autoComplete={resolvedAutoComplete}
-						disabled={resolvedDisabled}
-						required={resolvedRequired}
-						readOnly={resolvedReadOnly}
-						value={resolvedValue}
-						onChange={resolvedOnChange}
-						onBlur={resolvedOnBlur}
+						autoComplete={sharedAttrs.autoComplete}
+						disabled={sharedAttrs.disabled}
+						required={sharedAttrs.required}
+						readOnly={sharedAttrs.readOnly}
+						value={valueState.value}
+						onChange={valueState.onChange}
+						onBlur={valueState.onBlur}
 						className={cn(
 							inputVariants({
 								variant: resolvedVariant,
