@@ -2,7 +2,7 @@
 
 TRIGGER when: the user asks to audit, check, review, or scan the project's tests / test coverage / test suite; asks "are the tests in sync", "any stale tests", "does every component have a test", "run the test audit". Also auto-eligible after `/tests:compose` writes new tests, to verify the new file fits the project's coverage matrix and authoring conventions.
 
-Source-only audit of test files. Produces severity-sorted findings anchored to `file:line`.
+Compares test files against the project's test baseline (coverage matrix + `/tests:compose` REQUIRED patterns + authoring conventions). Deviations are reported as `file:line`-anchored entries grouped by severity. A run that finds no deviations reports PASS and emits no table.
 
 ## Arguments
 
@@ -65,7 +65,9 @@ Record the **mode**:
 
 ## 4. Run the checks
 
-Each check produces zero or more findings.
+Each check below defines one baseline condition. A check that holds emits nothing; only deviations get reported.
+
+A nit is not licence to fill the table. Surface a nit only when it would survive a second reader's review; otherwise treat the check as held.
 
 Severity:
 
@@ -140,7 +142,7 @@ Parse the matching source file:
 
 ## 5. Report
 
-Score each audited test file:
+Lead the report with the verdict (see *Verdict* below). When the verdict is PASS, that is the entire report — no per-file sections, no roll-up. The remainder of this section applies only when at least one deviation was recorded. Score for ranking deviated files is:
 
 ```
 score = (blockers × 5) + (warnings × 2) + (nits × 1)
@@ -158,10 +160,10 @@ One section per changed test file, sorted by score descending. Cap at top **10**
 
 ### `suite` mode
 
-Lead with a **Worst offenders** table, sorted by score descending, capped at top **10** (or `--top N`):
+Lead with a **Deviation summary** table — test files that left the baseline, ranked by deviation score, capped at top **10** (or `--top N`). Files that hold the baseline do not appear:
 
 ```
-## Worst offenders
+## Deviation summary
 
 | Rank | Test | Location | Blockers | Warnings | Nits | Score | Headline finding |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -172,7 +174,7 @@ Lead with a **Worst offenders** table, sorted by score descending, capped at top
 Then print full per-file sections for the top-N only, in rank order. List the rest below the cut:
 
 ```
-Below the cut: N test files with M findings (run `/tests:audit <name>` to inspect).
+Remaining test files with deviations: N (M deviations total). Run `/tests:audit <name>` to inspect.
 ```
 
 ### Per-file section (all modes)
@@ -186,16 +188,16 @@ Group findings by severity (blockers → warnings → nits). Per finding:
 ### Roll-up
 
 ```
-Audited: N test files across M packages
-Findings: <B> blocker · <W> warning · <I> nit
+Audited: N test files across M packages · K outside baseline
+Deviations: <B> blocker · <W> warning · <I> nit
 Coverage: <X>/<Y> testable units have tests (<percent>%)
 ```
 
-Top-of-report status:
+### Verdict (lead the report)
 
 - Any **blocker** → **FAIL**.
-- Only warnings/nits → **PASS WITH FINDINGS**.
-- Nothing found → **PASS**.
+- Only warnings/nits → **PASS WITH DEVIATIONS**.
+- No deviations recorded → **PASS**. End the report here.
 
 If `--changed` was used and the diff is empty, say so and exit cleanly.
 
@@ -218,6 +220,7 @@ Never modify an existing test file beyond the structural fixes listed above; new
 ## Important
 
 - Source analysis only. Never run the test suite, boot a dev server, or write to test files without explicit go-ahead.
+- The audit's deliverable is the verdict. Deviations are evidence; a PASS run is a successful run. Do not manufacture nits to justify a non-empty report.
 - Read `testRunner`, `testLayout`, `componentsDir`, and per-package source roots from the manifest. Never invent values the manifest doesn't report.
 - The REQUIRED patterns from `/tests:compose` section 4 are the canonical coverage matrix. New required patterns belong in `/tests:compose`, not here.
 - Honor exclusion lists in `CLAUDE.md` / `AGENTS.md` under a `## Tests skip list` heading. If none, treat as no exclusions.

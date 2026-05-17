@@ -2,7 +2,7 @@
 
 TRIGGER when: the user asks to audit, check, review, or scan TypeScript — a specific file, a package, or the whole repo. Asks "is this idiomatic", "any TS smells", "tighten the types in X", "is `any` anywhere", "audit our TypeScript". Pass a target name or path for per-file mode; pass nothing for the project-wide sweep.
 
-Static audit of `.ts` / `.tsx` files. Produces severity-sorted, `file:line`-anchored findings. Does **not** run tests or the type-checker — source analysis only. Use for periodic clean-up and per-file polish.
+Compares `.ts` / `.tsx` files against the principles in `/typescript:review`. Deviations are reported as `file:line`-anchored entries grouped by severity. Does **not** run tests or the type-checker — source analysis only. A run that finds no deviations reports CLEAN and emits no entries; CLEAN is the goal, not the exception.
 
 Principles live in `/typescript:review` sections 5 (universal) and 6 (advanced features). This skill detects violations; it does not restate them.
 
@@ -63,7 +63,9 @@ For the sweep, derive the dominant convention per-package (most common pattern i
 
 ## 3. Run the checks
 
-Each category cites the canonical principle in `/typescript:review`. Surface a finding only when the code violates the principle (or reaches for a heavier alternative when the catalog covers the simpler form).
+Each category cites the canonical principle in `/typescript:review`. A check fires only when the code violates the principle (or reaches for a heavier alternative when the catalog covers the simpler form). A check that holds emits nothing.
+
+Low severity is a gate, not a quota. A Low-severity finding earns its row only when it would survive a second reader's review — otherwise treat the check as held.
 
 ### 3.1 Type holes
 
@@ -164,15 +166,16 @@ Severity: **Low**.
 
 ## 4. Produce findings
 
-Header:
+Lead with the verdict. If no check fired, report **CLEAN** in one line and stop — no header, no categories.
+
+Otherwise, header:
 
 ```
 <N> files audited · <M> findings (high: H · medium: M · low: L)
 ```
 
-Then either:
+Then by mode:
 
-- **CLEAN** — no findings worth surfacing. State this in one line.
 - **Per-file mode** — findings inline, severity-sorted (High → Medium → Low), each as `file:line` plus a one-line fix.
 - **Sweep mode** — group by category. Per category, list the worst 10 findings with `file:line` anchors and one-line fixes; cite the total count above the list. Order categories by `(High × 3 + Medium × 2 + Low × 1)`.
 
@@ -180,7 +183,8 @@ Then either:
 
 ## Rules
 
-- Audits, does not edit. Findings are the deliverable.
+- Audits, does not edit. The verdict is the deliverable; findings are evidence.
+- CLEAN is the expected outcome on a healthy file. Do not manufacture Low-severity findings to justify a non-empty report.
 - Surface a finding only when the principle is violated — not every `as` is wrong. Flag unjustified ones.
 - Project principles in `conventions.principles` override the universal defaults. State the override whenever one fires.
 - Skip what the linter already enforces. The `linter` field tells you what to skip.

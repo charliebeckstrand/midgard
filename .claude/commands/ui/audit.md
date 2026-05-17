@@ -2,9 +2,9 @@
 
 TRIGGER when: the user asks to audit, check, review, or scan a UI component (or every component in a frontend package); asks "is this component getting messy", "any bugs in this component", "what should I split", "what should I consolidate", "what's wrong with this component". Also auto-eligible after `/ui:component:compose` creates a new component.
 
-Static, per-component health audit against the project's UI source files. Produces `file:line`-anchored findings sorted by severity. Reads source only — no dev server, no test run, no headless browser.
+Compares UI source files against the per-component health baseline (sibling-calibrated thresholds + `[layout-heuristics]` + `[framework-discipline]`). Deviations are reported as `file:line`-anchored entries grouped by severity. Reads source only — no dev server, no test run, no headless browser.
 
-Typical invocation names a single component. Without a target, sweeps every component and ranks by severity-weighted finding count.
+A run that finds no deviations reports PASS and emits no table. The audit's job is to confirm the baseline; on a mature, frequently-audited package, PASS is the expected outcome, not the exception. Typical invocation names a single component; without a target, sweeps every component and ranks only those that deviated.
 
 **Scope boundaries:**
 
@@ -94,9 +94,9 @@ Sibling median calibrates the §5.3 prop-bloat threshold.
 
 ## 5. Run the checks
 
-Each check produces zero or more findings.
+Each check below defines one baseline condition. The check fires only when the component departs from it; a check that holds emits nothing.
 
-Severity:
+A nit is not licence to fill the table. On a frequently-audited component, expect most nit-level checks to hold. Surface a nit only when it would survive a second reader's review; otherwise treat the check as held. Severity grades each deviation, not the component:
 
 - **blocker** — broken component (won't render, references missing props, hook violates Rules of Hooks).
 - **warning** — meaningful smell (prop bloat, SRP violation, dead branch, mirrored state, conditional tangle).
@@ -203,7 +203,7 @@ Only on packages whose `framework` is `react` or `next`.
 
 ## 6. Output
 
-Score each audited component:
+Lead the report with the verdict (see *Verdict* below). When the verdict is PASS, that is the entire report — no per-component sections, no roll-up. The remainder of this section applies only when at least one deviation was recorded. Score for ranking deviated components is:
 
 ```
 score = (blockers × 5) + (warnings × 2) + (nits × 1)
@@ -221,10 +221,10 @@ One section per changed component, sorted by score descending. Cap at top **10**
 
 ### `suite` mode
 
-Lead with a **Worst offenders** table, sorted by score descending, capped at top **10** (or `--top N`):
+Lead with a **Deviation summary** table — components that left the baseline, ranked by deviation score, capped at top **10** (or `--top N`). Components that hold the baseline do not appear:
 
 ```
-## Worst offenders
+## Deviation summary
 
 | Rank | Component | Location | Blockers | Warnings | Nits | Score | Headline finding |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -232,12 +232,12 @@ Lead with a **Worst offenders** table, sorted by score descending, capped at top
 | 2 | Drawer | packages/design-system/src/components/drawer/drawer.tsx | 0 | 5 | 1 | 11 | split-candidate: 320-line file with two unrelated subtrees |
 ```
 
-**Headline finding** is the highest-severity finding for that component in one line. Ties on score break alphabetically.
+**Headline** is the highest-severity deviation for that component in one line. Ties on score break alphabetically.
 
 Then print the full per-component sections for the top-N only, in rank order. List the remaining components below the cut as one line each:
 
 ```
-Below the cut: N components with M findings (run `/ui:audit <component>` to inspect).
+Remaining components with deviations: N (M deviations total). Run `/ui:audit <component>` to inspect.
 ```
 
 ### Per-component section (all modes)
@@ -256,15 +256,15 @@ Below the cut: N components with M findings (run `/ui:audit <component>` to insp
 ### Roll-up
 
 ```
-N components audited · M findings (B blockers · W warnings · n nits)
+N components audited · K outside baseline · M deviations (B blockers · W warnings · n nits)
 Split candidates: <count> · Consolidate candidates: <count>
 ```
 
-Top-of-report status (aggregate across all audited components):
+### Verdict (lead the report)
 
 - Any **blocker** → **FAIL**.
-- Only warnings/nits → **PASS WITH FINDINGS**.
-- Nothing found → **PASS**.
+- Only warnings/nits → **PASS WITH DEVIATIONS**.
+- No deviations recorded → **PASS**. End the report here.
 
 If `--changed` and the diff is empty, say so and exit cleanly.
 
@@ -361,6 +361,8 @@ warning · mirrored-state · widget.tsx:2 · drop the `current` state; read `val
 ## Important
 
 - Reads source; never edits.
+- The audit's deliverable is the verdict. Deviations are evidence for the verdict, not the deliverable. PASS is a successful run.
+- Do not manufacture nits to justify a non-empty report. On a mature `packages/ui`, expect most runs to be PASS or near-PASS; a long deviation table after a recent clean run is a signal the bar drifted, not that the code regressed.
 - Calibrate against **sibling components** (section 4) before flagging size or prop-surface; the blanket threshold is a fallback.
 - Split/consolidate findings must cite line range and minimal prop interface.
 - In `suite` mode, **rank, then truncate**.

@@ -2,7 +2,9 @@
 
 TRIGGER when: the user asks to recommend, suggest, surface, or identify refactor opportunities; asks what's getting messy, what should be cleaned up, where the duplication is, what abstractions are pulling their weight. Also when the user picks a refactor candidate from a prior audit and asks to plan or execute it.
 
-Audit the project for refactor opportunities, rank them, and — for the candidates the user chooses to act on — produce a staged execution plan and run it. Recommendations must cite concrete evidence: file paths, line numbers, callsite counts.
+Surveys the project for refactor opportunities, ranks the high-confidence candidates, and — for those the user chooses to act on — produces a staged execution plan and runs it.
+
+Recommendations clear a confidence bar; this skill does not pad the table to justify the run. A run that returns no candidates is a valid outcome and means the bar held. Recommendations must cite concrete evidence: file paths, line numbers, callsite counts.
 
 **Scope boundaries:**
 
@@ -113,7 +115,7 @@ Be conservative — only flag patterns with high confidence.
 
 ## 4. Score and rank
 
-Per candidate:
+Per candidate. The bar is gatekeeping, not filtering — a low-priority candidate is dropped, not demoted into the report.
 
 - **Impact** — Low / Medium / High. Promote candidates whose fix reduces real ongoing pain: many duplicate sites, layering violations blocking a planned refactor, dead code in hot files.
 - **Effort** — Low / Medium / High. Promote candidates whose fix is well-contained and reversible.
@@ -127,7 +129,9 @@ If `conventions.principles` cite a relevant rule, **bump Impact one notch** for 
 
 ## 5. Present recommendations
 
-Single ranked table:
+If no candidate cleared the bar, report **NO RECOMMENDATIONS** in one line and stop. Note any heuristic that was skipped for lack of signal so the user knows the coverage. Do not invent low-confidence candidates to populate the table.
+
+Otherwise, single ranked table:
 
 | Name | Location | Pattern | Impact | Effort | Priority | Rationale |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -144,8 +148,8 @@ Column rules:
 
 After the table, add a short paragraph noting:
 
-- Any heuristics that **found no candidates** ("no layering violations detected", "no dead exports").
-- Any heuristics that were **skipped** because the stack lacks the relevant signal (e.g. no Next-specific scan in a React-only package).
+- Heuristics that ran and confirmed the baseline ("no layering violations", "no dead exports") — these are evidence the survey worked, not gaps.
+- Heuristics that were skipped because the stack lacks the relevant signal (e.g. no Next-specific scan in a React-only package).
 
 
 ---
@@ -273,9 +277,10 @@ const [lang] = (req.headers['accept-language'] ?? 'en-US').split('-')
 ## Important
 
 - Every candidate must cite `file:line` evidence. Vague suggestions like "consider extracting" without evidence are not allowed.
+- Confidence is a gate, not a tiebreaker. A long candidate list is a signal the bar was set too low — re-tune, do not ship.
+- The expected outcome on a healthy codebase is **NO RECOMMENDATIONS** or one to three candidates. A table with ten candidates is suspicious.
 - Do not propose refactors that contradict `conventions.principles`.
 - Do not propose stylistic-only changes already handled by the project's formatter.
-- Prefer fewer, higher-confidence recommendations over a long list of low-confidence ones.
 - Recommendations are suggestions; execution requires user approval at each stage. **Never auto-execute, never auto-commit, never bundle stages.**
 - Always premortem the plan before execution. The plan goes to `~/.claude/plans/audit-refactor-<slug>-<timestamp>.md`; `/premortem` picks it up automatically.
 - Type-shaped execution delegates to `/typescript:migrate`. This skill orchestrates the plan but does not perform `rename`, `lift`, `enum-to-const`, `any-to-unknown`, or `jsdoc-to-ts` edits directly.
