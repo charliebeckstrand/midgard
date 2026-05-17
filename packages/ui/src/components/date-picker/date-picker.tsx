@@ -2,10 +2,10 @@
 
 import type { Placement } from '@floating-ui/react'
 import { useDensity } from '../../primitives/density'
+import { useSkeleton } from '../../providers/skeleton'
 import { Calendar } from '../calendar'
 import type { ControlSize } from '../control/context'
 import { ControlSkeleton } from '../control/control-skeleton'
-import { useSkeleton } from '../skeleton/context'
 import { DatePickerContent } from './date-picker-content'
 import { DatePickerFooter } from './date-picker-footer'
 import { DatePickerRange } from './date-picker-range'

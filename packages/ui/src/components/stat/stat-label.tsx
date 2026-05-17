@@ -1,9 +1,9 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { useDensity } from '../../primitives/density'
+import { useSkeleton } from '../../providers/skeleton'
 import { k, statLabelPlaceholder } from '../../recipes/kata/stat'
 import { Placeholder } from '../placeholder'
-import { useSkeleton } from '../skeleton/context'
 
 export type StatLabelProps = {
 	className?: string

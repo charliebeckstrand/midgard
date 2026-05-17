@@ -1,9 +1,9 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
+import { useSkeleton } from '../../providers/skeleton'
 import { kokkaku } from '../../recipes'
 import { type HeadingVariants, headingVariants } from '../../recipes/kata/heading'
 import { Placeholder } from '../placeholder'
-import { useSkeleton } from '../skeleton/context'
 
 type HeadingLevel = 1 | 2 | 3 | 4 | 5 | 6
 

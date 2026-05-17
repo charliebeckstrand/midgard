@@ -3,6 +3,7 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn, invalidAttrs } from '../../core'
 import { useDensity } from '../../primitives/density'
+import { useSkeleton } from '../../providers/skeleton'
 import { kokkaku } from '../../recipes'
 import {
 	type SwitchVariants,
@@ -13,7 +14,6 @@ import {
 import { useControlProps } from '../control/use-control-props'
 import { useFormToggle } from '../form/context'
 import { Placeholder } from '../placeholder'
-import { useSkeleton } from '../skeleton/context'
 
 export type SwitchProps = SwitchVariants & {
 	className?: string

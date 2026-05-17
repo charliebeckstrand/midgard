@@ -4,6 +4,7 @@ import { Check, Minus } from 'lucide-react'
 import { type ComponentPropsWithRef, type ReactNode, useCallback, useRef } from 'react'
 import { cn, invalidAttrs } from '../../core'
 import { useDensity } from '../../primitives/density'
+import { useSkeleton } from '../../providers/skeleton'
 import {
 	type CheckboxVariants,
 	checkboxCheckSize,
@@ -12,7 +13,6 @@ import {
 } from '../../recipes/kata/checkbox'
 import { useControlProps } from '../control/use-control-props'
 import { useFormToggle } from '../form/context'
-import { useSkeleton } from '../skeleton/context'
 import { CheckboxSkeleton } from './checkbox-skeleton'
 
 export type CheckboxProps = CheckboxVariants & {

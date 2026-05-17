@@ -1,7 +1,7 @@
 import { type RenderOptions, type RenderResult, render } from '@testing-library/react'
 import type { ReactElement, ReactNode } from 'react'
 import { GlassProvider } from '../components/glass/context'
-import { SkeletonProvider } from '../components/skeleton/context'
+import { SkeletonProvider } from '../providers/skeleton'
 
 type UIContextOptions = {
 	skeleton?: boolean

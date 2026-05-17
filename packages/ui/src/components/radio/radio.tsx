@@ -3,6 +3,7 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn, invalidAttrs } from '../../core'
 import { useDensity } from '../../primitives/density'
+import { useSkeleton } from '../../providers/skeleton'
 import { kokkaku } from '../../recipes'
 import {
 	type RadioVariants,
@@ -12,7 +13,6 @@ import {
 } from '../../recipes/kata/radio'
 import { useControlProps } from '../control/use-control-props'
 import { Placeholder } from '../placeholder'
-import { useSkeleton } from '../skeleton/context'
 
 export type RadioProps = RadioVariants & {
 	className?: string

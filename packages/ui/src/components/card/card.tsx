@@ -2,11 +2,11 @@
 
 import { cn } from '../../core'
 import { DENSITY_PRESETS, DensityScope, useDensity } from '../../primitives/density'
+import { useSkeleton } from '../../providers/skeleton'
 import { kokkaku } from '../../recipes'
 import { type Step, sun } from '../../recipes/ryu/sun'
 import { Box, type BoxProps } from '../box'
 import { Placeholder } from '../placeholder'
-import { useSkeleton } from '../skeleton/context'
 
 export type CardProps = BoxProps<'radius'> & {
 	/**
