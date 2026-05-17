@@ -6,6 +6,7 @@ import { useRoving } from '../../hooks'
 import { useDensity } from '../../primitives/density'
 import { k, type TreeSize } from '../../recipes/kata/tree'
 import { TreeProvider } from './context'
+import { ensureFirstItemActive, ITEM_SELECTOR, setActiveItem } from './tree-helpers'
 
 export type TreeProps = {
 	/**
@@ -17,15 +18,6 @@ export type TreeProps = {
 	indent?: boolean
 	children: ReactNode
 	className?: string
-}
-
-const ITEM_SELECTOR = '[role="treeitem"]'
-
-/** Standard ARIA roving-tabindex: only the active item is in the tab order. */
-function setActiveItem(container: HTMLElement, target: HTMLElement) {
-	const items = container.querySelectorAll<HTMLElement>(ITEM_SELECTOR)
-
-	for (const item of items) item.tabIndex = item === target ? 0 : -1
 }
 
 export function Tree({ size, indent = false, children, className }: TreeProps) {
@@ -54,21 +46,9 @@ export function Tree({ size, indent = false, children, className }: TreeProps) {
 
 		if (!container) return
 
-		const ensureFirstActive = () => {
-			const items = Array.from(container.querySelectorAll<HTMLElement>(ITEM_SELECTOR))
+		ensureFirstItemActive(container)
 
-			if (items.length === 0) return
-
-			if (items.some((i) => i.tabIndex === 0)) return
-
-			items.forEach((item, i) => {
-				item.tabIndex = i === 0 ? 0 : -1
-			})
-		}
-
-		ensureFirstActive()
-
-		const observer = new MutationObserver(ensureFirstActive)
+		const observer = new MutationObserver(() => ensureFirstItemActive(container))
 
 		observer.observe(container, { childList: true, subtree: true })
 
