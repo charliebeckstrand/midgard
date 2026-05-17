@@ -1,22 +1,14 @@
 'use client'
 
 import { Search, X } from 'lucide-react'
-import {
-	type ReactNode,
-	useCallback,
-	useId,
-	useLayoutEffect,
-	useMemo,
-	useRef,
-	useState,
-} from 'react'
-import { useRoving } from '../../hooks'
+import type { ReactNode } from 'react'
 import { Button } from '../button'
 import { Dialog, DialogBody, type DialogPanelVariants } from '../dialog'
 import { Flex } from '../flex'
 import { Icon } from '../icon'
 import { Input } from '../input'
 import { CommandPaletteProvider } from './context'
+import { useCommandPaletteState } from './use-command-palette-state'
 
 export type CommandPaletteProps = Pick<DialogPanelVariants, 'size'> & {
 	open: boolean
@@ -45,38 +37,10 @@ export function CommandPalette({
 	className,
 	children,
 }: CommandPaletteProps) {
-	const [query, setQuery] = useState('')
-
-	const listboxId = useId()
-
-	const inputRef = useRef<HTMLInputElement>(null)
-
-	const listRef = useRef<HTMLDivElement>(null)
-
-	const onKeyDown = useRoving(listRef, {
-		mode: 'virtual',
-		itemSelector: '[data-slot="command-palette-item"]:not([data-disabled])',
-	})
-
-	// Reset query when closed (adjust during render to avoid extra cycle)
-	const prevOpenRef = useRef(open)
-
-	if (open !== prevOpenRef.current) {
-		prevOpenRef.current = open
-
-		if (!open) setQuery('')
-	}
-
-	// Focus input on open
-	useLayoutEffect(() => {
-		if (open) inputRef.current?.focus()
-	}, [open])
+	const { query, setQuery, listboxId, inputRef, listRef, onKeyDown, close, ctx } =
+		useCommandPaletteState({ open, onOpenChange })
 
 	const rendered = typeof children === 'function' ? children(query) : children
-
-	const close = useCallback(() => onOpenChange(false), [onOpenChange])
-
-	const ctx = useMemo(() => ({ close, query }), [close, query])
 
 	return (
 		<Dialog
