@@ -2,9 +2,9 @@
 
 TRIGGER when: the user asks to audit, check, review, or scan the project's component docs / demos / stories; asks "are the docs in sync", "any stale demos", "does every component have a docs page", "run the docs audit". Also auto-eligible after `/ui:component:compose` creates a new component and the project has a docs system.
 
-Static audit of the project's component docs files. Produces `file:line`-anchored findings sorted by severity.
+Compares the project's component docs files against the docs baseline (coverage + required exports + example-wrapper discipline + prop-surface sync). Deviations are reported as `file:line`-anchored entries grouped by severity.
 
-With no target, sweeps every demo file and surfaces the **worst offenders** ranked by severity-weighted finding count.
+A run that finds no deviations reports CLEAN and emits no table. With a target, audits that target; without one, sweeps every demo file and ranks only those that deviated.
 
 ## Arguments
 
@@ -73,7 +73,9 @@ Record the **mode**:
 
 ## 4. Run the checks
 
-Severity:
+Each check below defines one baseline condition for the demo file. The check fires only when the demo departs from it; a check that holds emits nothing.
+
+A nit is not licence to fill the table. Surface a nit only when it would survive a second reader's review; otherwise treat the check as held. Severity:
 
 - **blocker** — broken docs (won't render, wrong component, missing required export).
 - **warning** — meaningful drift (prop removed, category invalid, override out of sync).
@@ -143,7 +145,7 @@ When the project uses an explicit registry (not glob auto-discovery):
 
 ## 5. Output
 
-Score each audited demo:
+Lead the report with the verdict (see *Verdict* below). When the verdict is CLEAN, that is the entire report — no per-demo sections, no roll-up. The remainder of this section applies only when at least one deviation was recorded. Score for ranking deviated demos is:
 
 ```
 score = (blockers × 5) + (warnings × 2) + (nits × 1)
@@ -161,10 +163,10 @@ One section per changed demo, sorted by score descending. Cap at top **10** unle
 
 ### `suite` mode
 
-Lead with a **Worst offenders** table, sorted by score descending, capped at top **10** (or `--top N`). Headline finding is the highest-severity finding for each demo; ties broken by lowest `file:line`:
+Lead with a **Deviation summary** table — demos that left the baseline, ranked by deviation score, capped at top **10** (or `--top N`). Demos that hold the baseline do not appear. Headline is the highest-severity deviation for each demo; ties broken by lowest `file:line`:
 
 ```
-## Worst offenders
+## Deviation summary
 
 | Rank | Demo | Location | Blockers | Warnings | Nits | Score | Headline finding |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -175,7 +177,7 @@ Lead with a **Worst offenders** table, sorted by score descending, capped at top
 Then print full per-demo sections for the top-N only, in rank order. List the rest below the cut:
 
 ```
-Below the cut: N demos with M findings (run `/ui:docs:audit <component>` to inspect).
+Remaining demos with deviations: N (M deviations total). Run `/ui:docs:audit <component>` to inspect.
 ```
 
 ### Per-demo section (all modes)
@@ -185,16 +187,16 @@ Group findings by severity. Per finding: `file:line` + one-line description + on
 ### Roll-up
 
 ```
-N docs files audited across M packages
-Findings: <B> blocker · <W> warning · <I> nit
+N docs files audited across M packages · K outside baseline
+Deviations: <B> blocker · <W> warning · <I> nit
 Coverage: <X>/<Y> components have docs (<percent>%)
 ```
 
-Top-of-report status:
+### Verdict (lead the report)
 
 - Any **blocker** → **FAIL**.
-- Only warnings/nits → **PASS WITH FINDINGS**.
-- Nothing found → **PASS**.
+- Only warnings/nits → **DEVIATIONS PRESENT**.
+- No deviations recorded → **CLEAN**. End the report here.
 
 If `--changed` and the diff is empty, say so and exit cleanly.
 
@@ -216,6 +218,7 @@ Never auto-rewrite the `<Example>` body — choosing which axes to demonstrate i
 ## Important
 
 - Source analysis only. Never boot a dev server, never run the project's build, never write to docs files without explicit go-ahead.
+- The audit's deliverable is the verdict. Deviations are evidence; a CLEAN run is a successful run. Do not manufacture nits to justify a non-empty report.
 - `componentsDir` is the source of truth for what components exist. Never rely on a memorized list.
 - When the project's docs system doesn't match any signal in section 2, surface that and stop — don't invent a docs convention.
 - Honor exclusion lists declared in `CLAUDE.md` / `AGENTS.md` / the docs registry's own skip list.
