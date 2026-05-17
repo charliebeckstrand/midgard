@@ -18,9 +18,10 @@ export type LinkContextValue = {
 
 /**
  * Link context — exposes the framework-specific link component an app has
- * registered (e.g. `next/link`). The user-facing `Link` and `LinkProvider`
- * components live in `components/link`; primitives consume the context to
- * render links without depending on the component layer.
+ * registered (e.g. `next/link`). The user-facing `<Link>` lives in
+ * `components/link`; the friendly `<LinkProvider>` lives in
+ * `providers/link`. Primitives consume the context to render links without
+ * depending on either.
  */
 export const [LinkValueProvider, useLink] = createContext<LinkContextValue>('Link', {
 	default: { component: 'a' },

@@ -28,7 +28,8 @@ export default function LinkDemo() {
 			<Example
 				title="With provider"
 				code={code`
-					import { Link, LinkProvider } from 'ui/link'
+					import { Link } from 'ui/link'
+					import { LinkProvider } from 'ui/providers/link'
 					import NextLink from 'next/link'
 
 					<LinkProvider component={NextLink}>
