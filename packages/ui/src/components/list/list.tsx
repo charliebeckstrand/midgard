@@ -9,6 +9,7 @@ import {
 import { SortableContext } from '@dnd-kit/sortable'
 import { type ReactNode, useCallback, useMemo } from 'react'
 import { cn } from '../../core'
+import { noop } from '../../helpers'
 import type { Orientation } from '../../hooks'
 import { k, type ListVariant } from '../../recipes/kata/list'
 import { ListItemProvider, ListProvider } from './context'
@@ -48,8 +49,6 @@ export type ListProps<T> = BaseListProps<T> &
 				getKey?: (item: T) => string
 		  }
 	)
-
-const noop = () => {}
 
 export function List<T>({
 	items,

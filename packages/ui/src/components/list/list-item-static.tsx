@@ -1,14 +1,13 @@
 'use client'
 
 import type { ReactNode } from 'react'
+import { noop } from '../../helpers'
 import { ListItemProvider } from './context'
 
 export type ListItemStaticProps = {
 	id: string
 	children: ReactNode
 }
-
-const noop = () => {}
 
 export function ListItemStatic({ id, children }: ListItemStaticProps) {
 	return (
