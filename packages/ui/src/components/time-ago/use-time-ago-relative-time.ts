@@ -1,12 +1,5 @@
 import { useEffect, useState } from 'react'
-
-const SEC = 1000
-const MIN = 60 * SEC
-const HOUR = 60 * MIN
-const DAY = 24 * HOUR
-const WEEK = 7 * DAY
-const MONTH = 30 * DAY
-const YEAR = 365 * DAY
+import { DAY, HOUR, MIN, MONTH, SEC, WEEK, YEAR } from './time-ago-constants'
 
 type Unit = 'second' | 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year'
 

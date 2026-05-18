@@ -12,6 +12,7 @@ import {
 	progressGaugeVariants,
 } from '../../recipes/kata/progress'
 import { clamp, pct } from '../../utilities'
+import { GAUGE_VIEW_BOX } from './progress-gauge-constants'
 
 type ProgressColor = keyof typeof k.color
 
@@ -29,8 +30,6 @@ export type ProgressGaugeProps = ProgressGaugeLabel &
 		className?: string
 	}
 
-const gaugeViewBox = 36
-
 export function ProgressGauge({
 	value = 0,
 	max = 100,
@@ -43,7 +42,7 @@ export function ProgressGauge({
 }: ProgressGaugeProps) {
 	const resolvedSize = useSizeWide(size)
 
-	const radius = (gaugeViewBox - strokeWidth) / 2
+	const radius = (GAUGE_VIEW_BOX - strokeWidth) / 2
 
 	const percent = clamp(pct(value, 0, max), 0, 100)
 
@@ -66,13 +65,13 @@ export function ProgressGauge({
 			<ReducedMotion>
 				<svg
 					aria-hidden="true"
-					viewBox={`0 0 ${gaugeViewBox} ${gaugeViewBox}`}
+					viewBox={`0 0 ${GAUGE_VIEW_BOX} ${GAUGE_VIEW_BOX}`}
 					className="size-full -rotate-90"
 				>
 					{/* Track */}
 					<circle
-						cx={gaugeViewBox / 2}
-						cy={gaugeViewBox / 2}
+						cx={GAUGE_VIEW_BOX / 2}
+						cy={GAUGE_VIEW_BOX / 2}
 						r={radius}
 						fill="none"
 						strokeWidth={strokeWidth}
@@ -82,8 +81,8 @@ export function ProgressGauge({
 
 					{/* Fill */}
 					<motion.circle
-						cx={gaugeViewBox / 2}
-						cy={gaugeViewBox / 2}
+						cx={GAUGE_VIEW_BOX / 2}
+						cy={GAUGE_VIEW_BOX / 2}
 						r={radius}
 						fill="none"
 						strokeWidth={strokeWidth}

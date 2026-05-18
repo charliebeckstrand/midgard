@@ -4,8 +4,7 @@ import { type ComponentPropsWithoutRef, useRef } from 'react'
 import { cn } from '../../core'
 import { useRoving } from '../../hooks'
 import { paginationVariants } from '../../recipes/kata/pagination'
-
-const PAGINATION_ITEM_SELECTOR = 'a[href],button:not(:disabled)'
+import { PAGINATION_ITEM_SELECTOR } from './pagination-constants'
 
 export type PaginationProps = ComponentPropsWithoutRef<'nav'>
 

@@ -5,16 +5,8 @@ import { cn } from '../../core'
 import { useRoving } from '../../hooks'
 import { type ToolbarVariants, toolbarVariants } from '../../recipes/kata/toolbar'
 import { type ToolbarContextValue, ToolbarProvider } from './context'
+import { TOOLBAR_ITEM_SELECTOR } from './toolbar-constants'
 import type { ToolbarOrientation } from './types'
-
-const TOOLBAR_ITEM_SELECTOR = [
-	'a[href]',
-	'button:not(:disabled)',
-	'[tabindex="0"]',
-	'[role="button"]:not([aria-disabled="true"])',
-	'[role="checkbox"]:not([aria-disabled="true"])',
-	'[role="radio"]:not([aria-disabled="true"])',
-].join(',')
 
 export type ToolbarProps = Omit<ToolbarVariants, 'orientation'> & {
 	orientation?: ToolbarOrientation

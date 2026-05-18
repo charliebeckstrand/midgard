@@ -4,13 +4,11 @@ import { useVirtualizer } from '@tanstack/react-virtual'
 import { type KeyboardEventHandler, type RefObject, useMemo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/json-tree'
+import { DEFAULT_OVERSCAN, DEFAULT_ROW_HEIGHT } from './json-tree-constants'
 import { JsonTreeNodeRow } from './json-tree-node-row'
 import { type buildSearchIndex, collectPaths, flattenTree } from './json-tree-utilities'
 import type { JsonValue } from './types'
 import { useJsonTreeExpansion } from './use-json-tree-expansion'
-
-const DEFAULT_ROW_HEIGHT = 24
-const DEFAULT_OVERSCAN = 20
 
 export type JsonTreeVirtualizedProps = {
 	ref: RefObject<HTMLDivElement | null>
