@@ -1,6 +1,7 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { DENSITY_PRESETS, DensityScope, useDensity } from '../../primitives/density'
+import { useSkeleton } from '../../providers/skeleton'
 import {
 	type AvatarVariants,
 	avatarImageVariants,
@@ -8,7 +9,6 @@ import {
 	avatarVariants,
 	k,
 } from '../../recipes/kata/avatar'
-import { useSkeleton } from '../skeleton/context'
 import { StatusDot } from '../status'
 import { AvatarSkeleton } from './avatar-skeleton'
 

@@ -4,8 +4,8 @@ import type { ToastData } from './types'
 export function useToastTimer(
 	toastsRef: MutableRefObject<ToastData[]>,
 	duration: number,
-	startDrain: () => void,
-	stopDrain: () => void,
+	start: () => void,
+	stop: () => void,
 ) {
 	const remainingRef = useRef(duration)
 	const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
@@ -16,8 +16,8 @@ export function useToastTimer(
 
 		startRef.current = Date.now()
 
-		timerRef.current = setTimeout(startDrain, remainingRef.current)
-	}, [startDrain])
+		timerRef.current = setTimeout(start, remainingRef.current)
+	}, [start])
 
 	const pause = useCallback(() => {
 		const elapsed = Date.now() - startRef.current
@@ -25,8 +25,8 @@ export function useToastTimer(
 		remainingRef.current = Math.max(remainingRef.current - elapsed, 0)
 
 		clearTimeout(timerRef.current)
-		stopDrain()
-	}, [stopDrain])
+		stop()
+	}, [stop])
 
 	const resume = useCallback(() => {
 		if (toastsRef.current.length > 0) startTimer()

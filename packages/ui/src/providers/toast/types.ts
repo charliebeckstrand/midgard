@@ -14,3 +14,5 @@ export type ToastData = {
 	persist?: boolean
 	dismissed?: boolean
 }
+
+export type ToastInput = Omit<ToastData, 'id' | 'zIndex'> & { duration?: number }

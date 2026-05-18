@@ -1,9 +1,9 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
+import { useSkeleton } from '../../providers/skeleton'
 import { kokkaku } from '../../recipes'
 import { type TextVariants, textVariants } from '../../recipes/kata/text'
 import { Placeholder } from '../placeholder'
-import { useSkeleton } from '../skeleton/context'
 
 export type TextProps = TextVariants & {
 	className?: string

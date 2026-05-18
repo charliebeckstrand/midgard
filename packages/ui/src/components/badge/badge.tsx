@@ -4,8 +4,8 @@ import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { DensityScope, useSizeWide } from '../../primitives/density'
 import { Polymorphic, type PolymorphicProps } from '../../primitives/polymorphic'
+import { useSkeleton } from '../../providers/skeleton'
 import { type BadgeVariants, badgeVariants } from '../../recipes/kata/badge'
-import { useSkeleton } from '../skeleton/context'
 import { BadgeSkeleton } from './badge-skeleton'
 
 type BadgeBaseProps = BadgeVariants & {

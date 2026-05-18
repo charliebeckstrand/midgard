@@ -4,6 +4,7 @@ import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { cn, invalidAttrs } from '../../core'
 import { ControlFrame } from '../../primitives/control'
 import { DENSITY_PRESETS, useDensity } from '../../primitives/density'
+import { useSkeleton } from '../../providers/skeleton'
 import { kokkaku } from '../../recipes'
 import {
 	controlVariants,
@@ -17,7 +18,6 @@ import { useControlProps } from '../control/use-control-props'
 import { useFormText } from '../form/context'
 import { useGlass } from '../glass/context'
 import { Placeholder } from '../placeholder'
-import { useSkeleton } from '../skeleton/context'
 
 export type TextareaProps = Omit<TextareaVariants, 'size'> & {
 	size?: Step

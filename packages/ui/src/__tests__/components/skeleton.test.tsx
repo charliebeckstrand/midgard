@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { Skeleton } from '../../components/skeleton'
+import { Skeleton } from '../../providers/skeleton'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Skeleton', () => {

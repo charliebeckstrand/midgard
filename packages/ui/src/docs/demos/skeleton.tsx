@@ -11,11 +11,11 @@ import { Flex } from '../../components/flex'
 import { Heading } from '../../components/heading'
 import { Input } from '../../components/input'
 import { Radio } from '../../components/radio'
-import { Skeleton } from '../../components/skeleton'
 import { Stack } from '../../components/stack'
 import { Switch } from '../../components/switch'
 import { Text } from '../../components/text'
 import { Textarea } from '../../components/textarea'
+import { Skeleton } from '../../providers/skeleton'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Feedback' }

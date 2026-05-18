@@ -1,4 +1,4 @@
-import { Skeleton } from '../skeleton'
+import { Skeleton } from '../../providers/skeleton'
 import { Text } from '../text'
 import { TableBody } from './table-body'
 import { TableCell } from './table-cell'
