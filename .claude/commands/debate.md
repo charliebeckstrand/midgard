@@ -1,31 +1,25 @@
 # debate
 
-TRIGGER when: a question deserves scrutiny but does not warrant the full `council` protocol; the user wants to be rubber-ducked by more than one party; moderate stakes with one or two real tradeoffs; council triage explicitly routed here. Skip yes/no questions, factual lookups, and decisions with one obvious answer.
+TRIGGER when: a question deserves scrutiny but doesn't warrant `/council`; the user wants to be rubber-ducked by more than one party; moderate stakes with one or two real tradeoffs; council triage routed here. Skip yes/no questions, factual lookups, and decisions with one obvious answer.
 
 Run a question through two parties using propose-interrogate-swap, then produce a brief joint synthesis. Markdown output only.
 
-## When to use this vs. siblings
-
-- **Use `debate`** when the decision needs scrutiny but only has one or two real tradeoffs, the user wants to be rubber-ducked by more than one party, or council triage routed here from a higher-stakes path that turned out lighter than expected.
-- **Use `council`** instead when stakes are high, multiple parties are affected, reversibility is low, or several non-obvious tradeoffs need separate examination.
-- **Use `deliberate`** to audit a debate's joint synthesis after the fact, or to vet a decision in plain language without a structured two-party exchange.
-
 ## Core principle
 
-Two parties take turns proposing and interrogating. Neither is locked into a stance — both can endorse the same path. The interrogator must reference the proposer's specific claims, not produce parallel analysis. After two rounds (one per party as proposer), both parties write a joint synthesis covering agreement, remaining disagreement, and the recommended path.
+Two parties take turns proposing and interrogating. Neither is locked into a stance — both can endorse the same path. The interrogator references the proposer's specific claims, not parallel analysis. After two rounds (one per party as proposer), both parties write a joint synthesis covering agreement, remaining disagreement, and the recommended path.
 
 ## Flow
 
 ### 1. Frame the question
 
-Scan for context: `CLAUDE.md` and any files the user explicitly referenced. Cap at 3 reads.
+Scan for context: `CLAUDE.md` and files the user referenced. Cap at 3 reads.
 
-Construct a brief **Question Frame** with:
+Construct a brief **Question Frame**:
 
-- **Question** — 1-2 sentences stating the actual decision or proposal.
-- **Driver** — why this is being considered now. If the user hasn't said and it isn't obvious from context, ask.
+- **Question** — 1–2 sentences stating the actual decision or proposal.
+- **Driver** — why this is being considered now. If the user hasn't said and context doesn't imply, ask.
 - **Constraints** — what's fixed (budget, timeline, reversibility, context). Surface explicitly.
-- **User's current prior** — what the user currently leans toward, if stated.
+- **User's current prior** — what the user leans toward, if stated.
 
 If the question is too vague to frame, ask one clarifying question, then proceed.
 
@@ -76,7 +70,7 @@ Do not propose an alternative this round. That is round 2's job.
 
 ### 4. Round 2 — Party B proposes
 
-Now Party B proposes, having seen Party A's case and their own interrogation of it:
+Now Party B proposes, having seen Party A's case and their own interrogation:
 
 ```
 You are Party B in a two-party debate. Your role this round: PROPOSER.
@@ -181,12 +175,12 @@ Output exactly this structure:
 [One concrete next step. ≤40 words.]
 
 ## What Would Change the Recommendation
-[1-2 conditions under which the recommendation would flip. This makes the recommendation falsifiable.]
+[1-2 conditions under which the recommendation would flip. Makes the recommendation falsifiable.]
 ```
 
 ### 7. Output
 
-Save one Markdown file to the current working directory. Capture the filename timestamp via `date +%Y%m%d-%H%M%S` at the start of this step. No HTML, no separate transcript.
+Save one Markdown file to cwd. Capture the filename timestamp via `date +%Y%m%d-%H%M%S` at the start of this step. No HTML, no separate transcript.
 
 #### `debate-[timestamp].md`
 
@@ -200,18 +194,13 @@ Plain Markdown. Sections, in order:
 6. Round 2: Party A's interrogation
 7. Joint synthesis (Headline, Recommendation, Agreement, Disagreement, What to Do First, What Would Change It)
 
-Deliver the file to the user via `SendUserFile` (status `normal`, caption naming the topic).
+Deliver the file via `SendUserFile` (status `normal`, caption naming the topic).
 
 ## Rules
 
 - The four party calls are sequential, not parallel. Each must see the prior turn.
 - The synthesizer is a separate agent — not Party A or Party B. Independence matters.
 - Neither party is positionally pro or con. Both can endorse the same path.
-- The interrogator does not propose an alternative in their round.
-- If both parties converge on the same path with no residual disagreement, the synthesis is short — do not pad it.
-- If the question turns out to be high-stakes mid-debate, the synthesizer can recommend escalating to the `council` skill rather than rendering a final recommendation.
-
-## Sibling skills
-
-- **`council`** — full five-evaluator protocol with anonymous peer review and HTML report. Use for high-stakes proposals affecting multiple parties or with low reversibility.
-- **`deliberate`** — interrogates a prior verdict for unearned consensus or blurred reasoning. Can be run on a debate's joint synthesis the same way it runs on a council verdict.
+- The interrogator doesn't propose an alternative in their round.
+- If both parties converge on the same path with no residual disagreement, the synthesis is short — don't pad it.
+- If the question turns out to be high-stakes mid-debate, the synthesizer can recommend escalating to `/council` rather than rendering a final recommendation.

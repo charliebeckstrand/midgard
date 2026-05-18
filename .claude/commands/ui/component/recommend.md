@@ -1,8 +1,8 @@
 # ui:component:recommend
 
-TRIGGER when: the user asks to recommend, suggest, propose, or identify new UI components for the project's component library, or asks what's missing, what to build next, or how to expand the library.
+TRIGGER when: recommend, suggest, propose, or identify new UI components; "what's missing", "what to build next", "how to expand the library".
 
-Analyze the project's existing UI inventory and recommend new components that complement what's already there. Base recommendations on real gaps, observed composition style, and the project's own design philosophy.
+Analyze the project's UI inventory and recommend new components that complement what's there. Base recommendations on real gaps, observed composition style, and the project's design philosophy.
 
 ## Arguments
 
@@ -12,23 +12,25 @@ If the user provided context ("I'm building a dashboard", "we need more form pie
 
 ---
 
-## 1. Load the Manifest
+## 1. Manifest
 
-Read `./manifest.json`. If missing, stop and tell the user to run `/repo:manifest` first — never generate the manifest yourself.
+Read `./manifest.json`. If missing, halt with a pointer to `/repo:manifest`.
 
 Pull:
 
-- `packages[*]` — focus on `isFrontend: true`, `framework` in (`react`, `next`), and `componentsDir` set. If more than one qualifies, halt and ask the user which package; resume after answer.
-- `componentsDir`, `primitivesDir`, `hooksDir`, `tokensDir` — the inventory to inspect.
-- `conventions.principles` — declared rules that weight recommendations (e.g. a "compose before invent" principle biases toward components reusing existing primitives).
+| Field | Use |
+|---|---|
+| `packages[*]` filtered to `isFrontend: true`, `framework` in (`react`, `next`), `componentsDir` set | choose the target package. If more than one qualifies, halt and ask the user which; resume after answer. |
+| `componentsDir`, `primitivesDir`, `hooksDir`, `tokensDir` | the inventory to inspect |
+| `conventions.principles` | weight recommendations (e.g. "compose before invent" biases toward components reusing existing primitives) |
 
-If no qualifying package exists, stop and tell the user the project has no UI library to recommend against.
+If no qualifying package exists, halt — no UI library to recommend against.
 
 ---
 
 ## 2. Inventory what exists
 
-Run these reads in parallel against the chosen package. (If section 1 halted to ask which package, resume here after the answer.)
+Run reads in parallel against the chosen package.
 
 ### 2a. Existing components
 
@@ -40,7 +42,7 @@ Glob `primitivesDir`, `hooksDir`, and `tokensDir` (when set). These are the buil
 
 ### 2c. Partially built work
 
-Look for entries in the tokens/recipes directory with no matching component, and components missing demos or tests — both signal in-progress work. Surface these in section 5 under a separate "in-progress" note, not as recommendations.
+Look for entries in the tokens/recipes directory with no matching component, and components missing demos or tests — both signal in-progress work. Surface in §5 under a separate "in-progress" note, not as recommendations.
 
 ### 2d. Project-declared exclusions
 
@@ -63,11 +65,11 @@ Compare findings against this catalog of universal UI categories. Adapt to the p
 | **Navigation** | navbar, breadcrumb, tabs, pagination, stepper, bottom nav, sidebar nav |
 | **Disclosure** | accordion, collapsible, disclosure, details |
 
-For each candidate the project does **not** ship and is **not** on the exclusion list, decide whether it's a real gap.
+For each candidate the project doesn't ship and isn't on the exclusion list, decide whether it's a real gap.
 
 A real gap:
 
-- Commonly needed in applications of the kind this project targets (infer from conventions docs and from existing components).
+- Commonly needed in applications of the kind this project targets (infer from conventions docs and existing components).
 - Mostly built from existing primitives / hooks / tokens (would feel native, not bolted on).
 - API surface well-defined and focused — not a sprawling subsystem.
 - Not a trivial single-element wrapper — meaningful abstraction required.
@@ -76,12 +78,14 @@ A real gap:
 
 ## 4. Evaluate and rank
 
-Per candidate that survives section 3, assess:
+Per surviving candidate, assess:
 
-- **Value** — how commonly needed; fills a real coverage gap.
-- **Feasibility** — assembled from existing pieces (high) vs requires new infrastructure (low).
-- **Composability** — fits cleanly with existing components vs conflicts with their conventions.
-- **Scope** — single focused component (preferred) vs large subsystem.
+| Axis | Promotes |
+|---|---|
+| **Value** | commonly needed; fills a real coverage gap |
+| **Feasibility** | assembled from existing pieces (high) vs requires new infrastructure (low) |
+| **Composability** | fits cleanly with existing components vs conflicts with their conventions |
+| **Scope** | single focused component (preferred) vs large subsystem |
 
 Drop anything that scores poorly on two or more axes.
 
@@ -89,7 +93,7 @@ Drop anything that scores poorly on two or more axes.
 
 ## 5. Present recommendations
 
-One row per recommendation in a single table, sorted by category first then priority within each category:
+One row per recommendation, sorted by category first then priority within category:
 
 | Name | Category | Composition | Effort | Priority | Rationale |
 | --- | --- | --- | --- | --- | --- |
@@ -99,7 +103,7 @@ One row per recommendation in a single table, sorted by category first then prio
 Column rules:
 
 - **Name** — match the project's naming convention from existing components.
-- **Category** — one of the categories from section 3.
+- **Category** — one of the categories from §3.
 - **Composition** — which existing components/primitives/hooks it would build from. If you'd need new infrastructure, say so.
 - **Effort** — low / medium / high.
 - **Priority** — high / medium / low.
@@ -115,7 +119,7 @@ Ask which recommendations to scaffold. Per chosen item, invoke `/ui:component:co
 
 ---
 
-## Important
+## Rules
 
 - Always glob the filesystem at runtime. Never assume the component list is static.
 - Never propose anything on the project's exclusion list.

@@ -9,23 +9,29 @@ Trivial diffs (docs, comments, formatting, dependency-free renames) proceed dire
 - **PROCEED** — commit without further checks. The diff is mechanical or non-functional.
 - **REVIEW** — chain into `/typescript:review` because the diff carries logical risk.
 - **REVIEW + EXTRAS** — chain into one or more of `/audit:a11y`, `/tests:compose`, then `/typescript:review`, in that order.
-- **BLOCK** — refuse to commit and surface the reason (e.g. half-finished work, debug code, secrets in the diff).
+- **BLOCK** — refuse to commit and surface the reason (half-finished work, debug code, secrets).
+
+**Canonical sources cited by handle:**
+
+- `[manifest-invalidators]` — defined at the bottom of this file. Cited by `/premortem`.
 
 ## Steps
 
-### 0. Ensure the Manifest exists
+### 0. Manifest
 
-Read `./manifest.json`. If the file is missing, silently invoke `/repo:manifest --quiet` to create it, then re-read.
+Read `./manifest.json`. If missing, silently invoke `/repo:manifest --quiet`, then re-read.
 
-From the manifest, capture:
+Capture:
 
-- `packages[*].path` and `packages[*].name` — used to map changed files to packages and downstream skill scope.
-- `packages[*].componentsDir` — used to detect new or modified frontend components.
-- `packages[*].primitivesDir`, `packages[*].hooksDir`, `packages[*].testHelpersDir`, `packages[*].testLayout` — used to locate reference siblings for the format-alignment check in 3a.
-- `packages[*].isFrontend` — used to gate the a11y route to frontend packages.
-- `conventions.principles` — observed when classifying scope creep, single-use abstraction, or speculative generality.
+| Field | Use |
+|---|---|
+| `packages[*].path`, `packages[*].name` | map changed files to packages and downstream skill scope |
+| `packages[*].componentsDir` | detect new or modified frontend components |
+| `packages[*].primitivesDir`, `packages[*].hooksDir`, `packages[*].testHelpersDir`, `packages[*].testLayout` | locate reference siblings for the format-alignment check in §3a |
+| `packages[*].isFrontend` | gate the a11y route to frontend packages |
+| `conventions.principles` | observed when classifying scope creep, single-use abstraction, speculative generality |
 
-Security-sensitive paths are not in the schema. Detect them inline against path patterns (`.env*`, `auth/`, `permissions/`, etc.) — never invent a manifest field.
+Security-sensitive paths aren't in the schema. Detect them inline against path patterns (`.env*`, `auth/`, `permissions/`) — never invent a manifest field.
 
 ### 1. Collect the diff
 
@@ -34,26 +40,20 @@ git diff --cached --name-only
 git diff --cached
 ```
 
-If nothing is staged, fall back to `git diff HEAD --name-only` and `git diff HEAD`, and tell the user you're inspecting unstaged changes because nothing is staged.
+If nothing is staged, fall back to `git diff HEAD --name-only` and `git diff HEAD`; tell the user you're inspecting unstaged changes.
 
-If the diff is empty, stop — there's nothing to triage.
+Empty diff → stop.
 
 ### 2. Refresh the Manifest if invalidated
 
-Inspect the diff's file list. If any of these invalidator paths appear, silently invoke `/repo:manifest --quiet`:
+Inspect the diff's file list. If any path matches `[manifest-invalidators]` (see *Reference* at the bottom), silently invoke `/repo:manifest --quiet`.
 
-- Root `package.json`, `pnpm-workspace.yaml`, or any package's `package.json`
-- `turbo.json`, `tsconfig.json`
-- Lockfiles (`pnpm-lock.yaml`, `package-lock.json`, `yarn.lock`, `bun.lock`)
-- `lefthook.yml`, `lefthook.yaml`, `.husky/`, `.pre-commit-config.yaml`
-- `.github/workflows/*.{yml,yaml}`
-- `CLAUDE.md`, `AGENTS.md`, `CONTRIBUTING.md`, `README.md`
+On error, surface and BLOCK — the manifest is a prerequisite, not best-effort. On success, check `git status --short manifest.json`:
 
-If `/repo:manifest --quiet` returns an error, surface it and BLOCK — the manifest is a prerequisite, not best-effort. On success, check `git status --short manifest.json`:
-- If `manifest.json` is modified, run `git add manifest.json` so it ships in the same commit as the change that invalidated it.
-- If `manifest.json` is unchanged, the invalidation signal didn't materially alter the schema; proceed.
+- Modified → surface as a finding: tell the user the refresh updated `manifest.json` and recommend `git add manifest.json` so the schema ships with the change that invalidated it. Don't auto-stage; the user decides what enters the commit.
+- Unchanged → the invalidation signal didn't materially alter the schema; proceed.
 
-If no invalidator matches, skip this step. The Manifest stays stable across logic-only diffs and never refreshes on every commit.
+No invalidator match → skip this step. The manifest stays stable across logic-only diffs.
 
 ### 3. Classify the change
 
@@ -61,39 +61,40 @@ Apply these signals against the diff. Collect every match — a diff may match m
 
 | Signal | Detection | Routes to |
 |---|---|---|
-| Secrets / auth / permissions touched | Path or hunk hits on `.env*`, `auth/`, `permissions/`, API keys, JWT, OAuth, session/cookie handling, RBAC | `/typescript:review` (flag the security angle as a finding) |
-| New or modified frontend component | New file under `packages[*].componentsDir`, or a modified `.tsx` / `.jsx` that exports a component, in a package where `isFrontend` is true | `/audit:a11y` |
-| New logic without matching tests | A new exported function, or a new conditional with more than one branch, with no corresponding `*.test.*` / `*.spec.*` change in the same diff | `/tests:compose` |
-| Smells like over-engineering | Single-use abstraction, speculative generic, premature interface, unused parameter, dead branch | `/typescript:review` (flag the simplification angle as a finding) |
+| Secrets / auth / permissions touched | Path or hunk hits on `.env*`, `auth/`, `permissions/`, API keys, JWT, OAuth, session/cookie handling, RBAC | `/typescript:review --angle=security` |
+| New or modified frontend component | New file under `packages[*].componentsDir`, or modified `.tsx` / `.jsx` exporting a component, in a package where `isFrontend` is true | `/audit:a11y` |
+| New logic without matching tests | A new exported function, or a new conditional with more than one branch, with no corresponding `*.test.*` / `*.spec.*` change in the diff | `/tests:compose` |
+| Smells like over-engineering | Single-use abstraction, speculative generic, premature interface, unused parameter, dead branch | `/typescript:review --angle=simplification` |
 | Logic edit, type surface change, multi-file change, new dependency | Conditional logic edited, exported type changed, ≥3 source files modified, `package.json` dependency added | `/typescript:review` |
 | Docs / comments / formatting only | Diff hits only `*.md`, comment lines, or whitespace; no executable lines changed | PROCEED |
 | Dependency-free rename | Symbol renamed with all call sites updated, no behavior change | PROCEED |
 | Debug code, half-finished work, secrets in diff | `console.log`, `debugger`, `// TODO: revert`, commented-out blocks, real credentials | BLOCK |
 
-Union the matched handoffs, then order them: extras (`/audit:a11y`, `/tests:compose`) first, then `/typescript:review`. `/typescript:review` is always last in the chain, never parallel — it reviews the change as-is, including any edits the extras prompt.
+Union the matched handoffs, then order them: extras (`/audit:a11y`, `/tests:compose`) first, then `/typescript:review`. `/typescript:review` is always last in the chain, never parallel — it reviews the change as-is, including any edits the extras prompt. When multiple rows route to `/typescript:review` with `--angle=` flags, stack them on a single invocation (`/typescript:review --angle=security --angle=simplification`) rather than running the reviewer twice.
 
-### 3a. Verify packages/ui format alignment
+### 3a. Verify ui package format alignment
 
-Skip this step when no staged file lives under `packages/ui`. Otherwise, for each staged source file in that package, detect its kind and read **one** reference sibling of the same kind, then compare structural patterns — not behavior.
+For each staged source file, find its containing package via `packages[*].path`. Skip the file when its package has no `componentsDir`, `primitivesDir`, or `hooksDir` set — the kind table below doesn't apply to non-library-shaped packages. Otherwise detect its kind and read **one** reference sibling of the same kind, then compare structural patterns — not behavior.
 
-| Kind | Path predicate | Reference picked from |
+| Kind | Path predicate | Reference |
 |---|---|---|
-| component | under `componentsDir` | the most-recently-modified sibling `componentsDir/<other>/<other>.tsx` (the main component file in another component folder) |
-| primitive | under `primitivesDir` | the most-recently-modified sibling `primitivesDir/<other>.tsx` |
-| hook | under `hooksDir`, filename starts with `use-` | the most-recently-modified sibling `hooksDir/use-<other>.ts` |
-| test | under `testHelpersDir`, matches `*.test.{ts,tsx}` | the most-recently-modified sibling test in the same mirrored subdir (`components/`, `primitives/`, `hooks/`) |
+| component | under `componentsDir` | most-recently-modified sibling `componentsDir/<other>/<other>.tsx` (the main component file in another component folder) |
+| primitive | under `primitivesDir` | most-recently-modified sibling `primitivesDir/<other>.tsx` |
+| hook | under `hooksDir`, filename starts with `use-` | most-recently-modified sibling `hooksDir/use-<other>.ts` |
+| test (`sibling` layout) | `*.{test,spec}.{ts,tsx}` under the package, excluding files inside `testHelpersDir` | most-recently-modified other test beside source under the same source directory |
+| test (`mirror` layout) | same as above | most-recently-modified other test under the same `__tests__/<subdir>` (preserving the mirrored subdir, e.g. `components/`, `primitives/`, `hooks/`) |
 
 Exclude files already in the diff when picking the reference. Read both staged file and reference. Compare:
 
 - **Filename + export** — matches `<name>.tsx` / `<name>-<part>.tsx` / `use-<name>.ts` per CLAUDE.md, and the exported symbol's PascalCase (or `useCamelCase`) form matches the filename. Violation → **BLOCK** (the lefthook `filenames` gate and `component-filename-boundary.test.ts` would fail anyway; rejecting earlier saves the round-trip).
 - **Import grouping** — same external / internal / relative ordering and same alias style as the reference.
-- **Top-level structure** — types lifted to `types.ts`, hooks lifted to `use-<name>.ts`, recipes lifted to `variants.ts` when the reference follows that split; same compound / sub-part file layout as the reference (e.g. `<name>-<part>.tsx` files when the reference has them).
-- **Component shape** — same `'use client'` discipline, same `forwardRef` / polymorphic pattern, same `data-slot` / `data-part` marker convention as the reference.
-- **Test conventions** — same `describe` / `it` nesting depth, same render helper (project-local `renderWithProviders` vs raw `render`), same assertion style, same mock pattern as the reference test.
+- **Top-level structure** — types lifted to `types.ts`, hooks lifted to `use-<name>.ts`, recipes lifted to `variants.ts` when the reference follows that split; same compound / sub-part file layout (e.g. `<name>-<part>.tsx` files when the reference has them).
+- **Component shape** — same `'use client'` discipline, same `forwardRef` / polymorphic pattern, same `data-slot` / `data-part` marker convention.
+- **Test conventions** — same `describe` / `it` nesting depth, same render helper (project-local `renderWithProviders` vs raw `render`), same assertion style, same mock pattern.
 
-Drift findings fold into the chain as `format-drift` notes carried into `/typescript:review` (or `/ui:audit` if that's already in the chain). Filename / export-name violations BLOCK.
+Drift findings surface as advisory `format-drift` findings on this skill's own verdict output (alongside the classification line in §4). They don't BLOCK on their own — the user reads them and decides. Filename / export-name violations BLOCK.
 
-If the manifest's directory field for a kind is `null` (e.g. `primitivesDir: null`), skip that kind silently — there's no reference to sample.
+If the manifest's directory field for a kind is `null` (e.g. `primitivesDir: null`), or `testLayout` is `null` for the test kind, skip that kind silently — no reference to sample.
 
 ### 4. Decide
 
@@ -106,22 +107,22 @@ Print the verdict in one line:
 Then one of:
 
 - **PROCEED** — state the reason in one sentence (`docs-only`, `whitespace-only`, `mechanical rename with all call sites updated`). Hand control back to the user.
-- **REVIEW** or **REVIEW + EXTRAS** — invoke the chained skills in order. Each must return PASS (or the user explicitly waives a finding) before the next runs.
+- **REVIEW** or **REVIEW + EXTRAS** — invoke the chained skills in order. Each must clear without a blocking finding before the next runs: gates (`/typescript:review`, `/tests:compose`) must return PASS; audits (`/audit:a11y`, `/tests:audit`, `/ui:audit`, `/ui:docs:audit`) must return CLEAN or DEVIATIONS PRESENT. The user may waive any finding to advance.
 - **BLOCK** — list every blocking observation with `file:line` citations. Refuse to chain further. Do not run `git commit` until the user resolves or explicitly overrides.
 
 ### 5. Hand off
 
-For each skill in the chain, invoke it and wait for its verdict. Downstream skills return PASS or BLOCK; PASS is required to advance the chain. If any returns BLOCK and the user has not overridden, stop the chain — `git commit` does not run.
+For each skill in the chain, invoke it and wait for its verdict. Two verdict shapes appear: gates return **PASS / BLOCK**; audits return **CLEAN / DEVIATIONS PRESENT / FAIL**. Advance the chain on PASS or CLEAN; on DEVIATIONS PRESENT, surface the findings and advance unless the user halts; on BLOCK or FAIL, stop the chain — `git commit` does not run until findings are resolved or explicitly waived.
 
-When the chain finishes clean, state the change is ready to commit. Do not run `git commit` yourself unless the user explicitly asked you to commit.
+When the chain finishes clean, state the change is ready to commit. Do not run `git commit` yourself unless the user explicitly asked.
 
 ## Worked examples (fabricated)
 
 - **README typo fix** — one file, `*.md`, no code paths. Verdict: PROCEED. No chain.
-- **Rename `formatCurrency` → `formatMoney` across 4 files** — symbol rename, every call site updated, no behavior change. Verdict: PROCEED.
+- **Rename `formatCurrency` → `formatMoney` across 4 files** — symbol rename, every call site updated. Verdict: PROCEED.
 - **New `SizeProvider` context with `useSize` hook** — new logic, no tests in diff, new file under `componentsDir`. Verdict: REVIEW + EXTRAS. Chain: `/tests:compose` → `/audit:a11y` → `/typescript:review`.
-- **Patch a JWT verification edge case in `auth/verifyToken.ts`** — auth path touched, logic edit. Verdict: REVIEW. Chain: `/typescript:review` (with security angle flagged).
-- **Introduce `WidgetFactory<T>` with a single caller** — speculative generic abstraction. Verdict: REVIEW. Chain: `/typescript:review` (with simplification angle flagged).
+- **Patch a JWT verification edge case in `auth/verifyToken.ts`** — auth path touched, logic edit. Verdict: REVIEW. Chain: `/typescript:review --angle=security`.
+- **Introduce `WidgetFactory<T>` with a single caller** — speculative generic abstraction. Verdict: REVIEW. Chain: `/typescript:review --angle=simplification`.
 - **`console.log("debug:", user)` left in a handler** — debug code in diff. Verdict: BLOCK. Cite `path/to/file.ts:42`. Commit refused.
 
 ## Rules
@@ -132,3 +133,14 @@ When the chain finishes clean, state the change is ready to commit. Do not run `
 - Never auto-commit. The chain returns control to the user; the user decides when to commit.
 - Don't pad the verdict. PROCEED is one sentence. BLOCK is the findings list and nothing else.
 - If the manifest doesn't expose a field needed to classify (e.g. `componentsDir` is `null`), glob these fallback paths: `packages/*/src/components/`, `packages/*/src/ui/`, `packages/*/components/` for components; `packages/*/src/primitives/` for primitives; `packages/*/src/hooks/` for hooks. Never invent paths not in this list.
+
+## Reference: `[manifest-invalidators]`
+
+Paths whose modification can invalidate `manifest.json`. Canonical source — update only here; consumer skills cite by handle.
+
+- Root `package.json`, `pnpm-workspace.yaml`, or any package's `package.json`
+- `turbo.json`, `tsconfig.json`
+- Lockfiles (`pnpm-lock.yaml`, `package-lock.json`, `yarn.lock`, `bun.lock`)
+- `lefthook.yml`, `lefthook.yaml`, `.husky/`, `.pre-commit-config.yaml`
+- `.github/workflows/*.{yml,yaml}`
+- `CLAUDE.md`, `AGENTS.md`, `CONTRIBUTING.md`, `README.md`

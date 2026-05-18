@@ -1,6 +1,6 @@
 # typescript:review
 
-TRIGGER when: `/postmortem` routes here because the staged diff contains `.ts` / `.tsx` changes. Also when `/ui:component:compose`, `/tests:compose`, or another caller finishes writing a new `.ts` / `.tsx` file and needs the new surface vetted before handing control back. Also when the user asks to "review my diff", "review this TS file", "check this before I commit".
+TRIGGER when: `/postmortem` routes here because the staged diff contains `.ts` / `.tsx` changes. Also when `/ui:component:compose`, `/tests:compose`, or another caller finishes writing a new `.ts` / `.tsx` file and needs it vetted before handing control back. Also when the user asks "review my diff", "review this TS file", "check this before I commit".
 
 Review TypeScript code — a staged diff (postmortem path) or one or more newly-created files (post-creation path) — against the project's tests, type-checker, and the principles below. Produces a PASS / BLOCK verdict; the commit (diff mode) or the handoff (file mode) does not proceed until PASS.
 
@@ -9,28 +9,33 @@ Review TypeScript code — a staged diff (postmortem path) or one or more newly-
 $ARGUMENTS
 
 Recognized hints:
+
 - No argument → **diff mode**. Review the staged diff (or `git diff HEAD` when nothing is staged). Used by `/postmortem`.
 - A path to a `.ts` / `.tsx` file → **file mode**. Review that newly-created file. Used by `/ui:component:compose` and `/tests:compose`.
 - A directory → **file mode**, expanded to every `.ts` / `.tsx` directly inside (non-recursive; callers needing recursion must list files explicitly).
+- Multiple paths (any mix of `.ts` / `.tsx` files and directories, space-separated) → **file mode**. Each path is expanded as above and the union is reviewed in one invocation with findings merged. Used by `/typescript:migrate` to review every file a stage touched.
+- `--angle=<security|simplification>` → emphasize that review lens (see §7 *Angle emphasis*). `/postmortem` passes one (or more) when its classification routed here for a reason beyond generic TS review. Multiple `--angle=` flags stack and may combine with any mode above.
 
 ---
 
-## 0. Load the Manifest
+## 0. Manifest
 
-Read `./manifest.json`. If missing, stop and tell the user to run `/repo:manifest` first — never generate the manifest yourself.
+Read `./manifest.json`. If missing, halt with a pointer to `/repo:manifest`.
 
 Per package, capture:
 
-- `path`, `name` — map files to packages.
-- `framework` — gates TSX-specific entries in section 6h.
-- `linter` — `biome` / `eslint` / `null`. Drives which rules the project already enforces, so the review does not duplicate them.
-- `testRunner` — drives test-typing expectations.
-- `scripts.test` — exists or not.
-- `scripts.check-types` (or `typecheck`) — exists or not.
+| Field | Use |
+|---|---|
+| `path`, `name` | map files to packages |
+| `framework` | gates TSX-specific entries in §6h |
+| `linter` (`biome` / `eslint` / `null`) | findings the linter already enforces are skipped |
+| `testRunner` | drives test-typing expectations |
+| `scripts.test` | exists or not |
+| `scripts.check-types`, `scripts.typecheck` | resolved in §4 (read `check-types` first, fall back to `typecheck`) |
 
 Plus top-level: `packageManager`, `monorepo.tool`, `conventions.principles`. This skill assumes Turborepo; when `monorepo.tool` differs, substitute each `<pm> turbo <task> --filter=<pkg>` invocation below with the package's direct script call (`<pm> --filter=<pkg> run <script>`).
 
-Project principles in `conventions.principles` override the universal defaults in section 5. State the override in the finding whenever one fires.
+`conventions.principles` overrides §5 universal defaults. State the override in the finding whenever one fires.
 
 ---
 
@@ -43,7 +48,7 @@ git diff --cached --name-only
 git diff --cached
 ```
 
-If nothing is staged, fall back to `git diff HEAD --name-only` and `git diff HEAD`, and tell the user the review is running against unstaged changes because nothing is staged.
+If nothing is staged, fall back to `git diff HEAD --name-only` and `git diff HEAD`; tell the user the review is running against unstaged changes.
 
 Empty diff → stop.
 
@@ -51,13 +56,15 @@ Empty diff → stop.
 
 Read every target file in full. Also read **one sibling file** in the same directory to capture local conventions (type-vs-interface, export style, generic naming, where types live).
 
+**Sibling fallback for new folders.** When the target's immediate directory contains no other `.ts` / `.tsx` file — the common case when `/ui:component:compose` scaffolds a brand-new component folder — climb one level and pick the most-recently-modified `.ts` / `.tsx` under that parent's sibling directories (e.g. the nearest cousin in `componentsDir`). If even that yields nothing, skip the convention-sample step and rely on §5 universal principles plus `conventions.principles` from the manifest. Never stall the review for lack of a sibling.
+
 ---
 
 ## 2. Map files to packages
 
 For each `.ts` / `.tsx` file in the surface, find the longest `packages[*].path` that prefixes the file. Collect the unique set of affected packages.
 
-Files outside any package (root configs, top-level docs) are skipped from the test and type-check runs — they still get reviewed in section 7.
+Files outside any package (root configs, top-level docs) are skipped from the test and type-check runs — they still get reviewed in §7.
 
 ---
 
@@ -65,14 +72,15 @@ Files outside any package (root configs, top-level docs) are skipped from the te
 
 Run the smallest test command that still covers the diff. For each touched package whose `scripts.test` is set, pick by runner:
 
-- **vitest** —
-  - *Diff mode:* `<pm> --filter=<pkg> exec vitest run --changed`. Walks the dep graph from `git status` and runs tests that transitively import a changed file.
-  - *File mode:* `<pm> --filter=<pkg> exec vitest related --run <file>...`. Runs every test that imports the given file.
-  - If the diff touches a fan-out file (`recipes/`, `core/`, `primitives/`, a barrel) the scoped run widens to the full suite — let it.
-- **jest** — diff mode: `<pm> --filter=<pkg> exec jest --onlyChanged`. File mode: `<pm> --filter=<pkg> exec jest --findRelatedTests <file>...`.
-- **bun / node** — no scoped flag. Run `<pm> turbo test --filter=<pkg>` (full package suite; bun/node test runners don't expose change-driven flags).
+| Runner | Diff mode | File mode |
+|---|---|---|
+| vitest | `<pm> --filter=<pkg> exec vitest run --changed` (walks dep graph from `git status`) | `<pm> --filter=<pkg> exec vitest related --run <file>...` |
+| jest | `<pm> --filter=<pkg> exec jest --onlyChanged` | `<pm> --filter=<pkg> exec jest --findRelatedTests <file>...` |
+| bun / node | `<pm> turbo test --filter=<pkg>` (full package suite — bun/node runners don't expose change-driven flags) | same as diff mode |
 
 Substitute `<pm>` with `packageManager`. When touched packages have different runners, run each separately rather than a single `turbo test`.
+
+If the diff touches a fan-out file (`recipes/`, `core/`, `primitives/`, a barrel), the scoped run widens to the full suite — let it.
 
 For every test file in the diff itself (diff mode) or every newly-created test file (file mode), confirm:
 
@@ -85,19 +93,19 @@ A weakened test counts as a **blocking** finding even when the suite is green.
 
 ## 4. Type-check the touched packages
 
-If any touched package has `scripts.check-types` (or `typecheck`), use that script name:
+For each touched package, resolve the type-check script name from the manifest: `scripts.check-types`, falling back to `scripts.typecheck` when null. Skip the package when both are null. Then invoke:
 
 ```
 <pm> turbo <script> --filter=<pkg-1> --filter=<pkg-2>
 ```
 
-Any type error blocks the verdict. If no touched package exposes a type-check script, note it and move on. Type-check is always a single invocation regardless of test runners.
+Any type error blocks the verdict. Type-check is always a single invocation regardless of test runners.
 
 ---
 
 ## 5. Universal TypeScript principles
 
-Surface a finding only when the code violates one; do not pad with principles the surrounding code already follows.
+Surface a finding only when the code violates one; don't pad with principles the surrounding code already follows.
 
 - **Strict mode is the floor.** Assume `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`. Code that compiles only with looser settings is a finding.
 - **Prefer `unknown` to `any`.** Reserve `any` for genuine pass-through (a logger recording arbitrary payloads); require an inline justification.
@@ -117,6 +125,7 @@ Surface a feature only when the code is missing it (or reaching for a heavier al
 ### 6a. Type-level expression
 
 - **`satisfies`** — assert a value conforms to a shape without widening its inferred type.
+
   ```ts
   const routes = {
     home: '/',
@@ -125,8 +134,10 @@ Surface a feature only when the code is missing it (or reaching for a heavier al
   ```
 
 - **`as const`** — freeze a value's inferred type to its literal / tuple form.
+
   ```ts
   const SIZES = ['sm', 'md', 'lg'] as const
+
   type Size = (typeof SIZES)[number]
   ```
 
@@ -148,6 +159,7 @@ Surface a feature only when the code is missing it (or reaching for a heavier al
 ### 6d. Narrowing and exhaustiveness
 
 - **Discriminated unions** — one literal field disambiguates each branch.
+
   ```ts
   type Shape =
     | { kind: 'circle'; r: number }
@@ -155,9 +167,11 @@ Surface a feature only when the code is missing it (or reaching for a heavier al
   ```
 
 - **`never`-based exhaustiveness** — force a compile error on missed branches.
+
   ```ts
   default: {
     const _exhaustive: never = s
+
     return _exhaustive
   }
   ```
@@ -167,7 +181,8 @@ Surface a feature only when the code is missing it (or reaching for a heavier al
 
 ### 6e. Nominal typing
 
-- **Branded types** — distinguish two strings (or two numbers) the structural system treats as equal. Pair with a constructor and a check; do not brand by cast alone.
+- **Branded types** — distinguish two strings (or numbers) the structural system treats as equal. Pair with a constructor and a check; don't brand by cast alone.
+
   ```ts
   type UserId = string & { readonly __brand: 'UserId' }
   ```
@@ -187,7 +202,7 @@ Two often-missed:
 - **Declaration merging** — multiple `interface` declarations with the same name in the same scope merge. Use deliberately; flag as a smell when accidental.
 - **`const enum` is off the table** — breaks `isolatedModules`. Use `as const` objects.
 
-### 6h. TSX-specific (only when the package's `framework` is `react` or `next`)
+### 6h. TSX-specific (only when `framework` is `react` or `next`)
 
 - **`React.ComponentPropsWithoutRef<'div'>`** — props of an intrinsic element, minus `ref`. Reach for this over `JSX.IntrinsicElements['div']` for component prop spreads.
 - **Discriminated prop unions** — model "either A or B, never both".
@@ -207,8 +222,8 @@ Read every staged hunk for:
 - **Bugs in changed logic** — off-by-one, wrong operator, swapped arguments, missing `await`, mishandled promises.
 - **Null / undefined hazards** — property access on a value the type allows to be nullish, with no guard added.
 - **Type holes** — `as any`, `as unknown as X`, `// @ts-ignore`, `// @ts-expect-error` without an inline justification; widened return types; dropped generics.
-- **Section 5 / 6 violations** in changed code — `enum`, missed `satisfies`, hand-rolled exhaustiveness, non-null assertions where a guard applies, parallel type definitions.
-- **Constant naming drift** — module-level `const` whose casing or placement violates the file's package `## Constant naming` rule (e.g. `packages/ui/CLAUDE.md`). Cite the rule's location; skip when no such rule exists in the package.
+- **§5 / §6 violations** in changed code — `enum`, missed `satisfies`, hand-rolled exhaustiveness, non-null assertions where a guard applies, parallel type definitions.
+- **Constant naming drift** — module-level `const` whose casing or placement violates the file's package `## Constant naming` rule (e.g. `packages/ui/CLAUDE.md`). Cite the rule's location; skip when no such rule exists.
 - **Debug residue** — `console.log` inside a conditional, stray `debugger` behind a feature flag, generated artifacts checked in alongside source.
 
 ### File mode
@@ -216,13 +231,20 @@ Read every staged hunk for:
 Read the whole file for:
 
 - **Type holes** — every `as`, `any`, `@ts-ignore`, `@ts-expect-error` must carry an inline justification or be replaced by a narrowing.
-- **Section 5 violations** — `enum`, mutable shared data, `as T` where narrowing applies, missing type predicates.
-- **Section 6 opportunities** — places where `satisfies`, discriminated unions, const generics, or branded types would replace a cast or a widen-then-narrow.
+- **§5 violations** — `enum`, mutable shared data, `as T` where narrowing applies, missing type predicates.
+- **§6 opportunities** — places where `satisfies`, discriminated unions, const generics, or branded types would replace a cast or a widen-then-narrow.
 - **Convention drift from the sampled sibling** — `type` vs `interface`, named vs default export, where types live, generic-naming style.
-- **Constant naming drift** — module-level `const` whose casing or placement violates the file's package `## Constant naming` rule (e.g. `packages/ui/CLAUDE.md`). Cite the rule's location; skip when no such rule exists in the package.
+- **Constant naming drift** — same rule as diff mode.
 - **Dead code** — unused exports, parameters, branches.
 
 Per finding: `path/to/file.ts:42` + one-sentence concern with the principle or feature handle. No padding.
+
+### Angle emphasis (when `--angle=` was passed)
+
+For each declared angle, surface one advisory finding that names the lens and points at the touched files, even when no concrete defect exists — the caller routed here because the diff matched a pattern (auth surface, single-use abstraction) that warrants the human-visible nudge. An angle finding alone does not BLOCK; it BLOCKs only when paired with a concrete defect under that lens.
+
+- **`security`** — review the touched surface for OWASP-shaped concerns (input validation, authn/authz, secret handling, injection, SSRF, IDOR). Cite `file:line` for any concrete issue; otherwise emit one advisory finding stating the surface was reviewed under the security lens.
+- **`simplification`** — review the touched surface for single-use abstractions, speculative generics, premature interfaces, unused parameters, dead branches. Cite `file:line` for any concrete issue; otherwise emit one advisory finding stating the surface was reviewed under the simplification lens.
 
 ---
 
