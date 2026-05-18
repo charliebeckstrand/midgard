@@ -31,7 +31,7 @@ Formatting is tooling's job. Never fight the formatter.
 
 ## Git
 
-- Imperative mood, atomic commits. Each commit represents one logical change, described by what it does.
+- Imperative mood. Commit by feature group. Split only when changes are genuinely independent.
 - Feature branches for non-trivial work. Never force-push shared branches.
 - Review your own diff before committing.
 
