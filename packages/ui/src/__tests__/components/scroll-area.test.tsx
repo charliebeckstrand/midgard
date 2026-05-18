@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ScrollArea } from '../../components/scroll-area'
+import { HIDDEN_THUMB } from '../../components/scroll-area/scroll-area-constants'
 import {
 	computeThumb,
 	findScrollableAncestor,
-	HIDDEN_THUMB,
 } from '../../components/scroll-area/scroll-area-utilities'
 import { bySlot, renderUI, screen } from '../helpers'
 

@@ -1,10 +1,4 @@
-export type ThumbState = { size: number; offset: number; visible: boolean }
-
-export const HIDDEN_THUMB: ThumbState = { size: 0, offset: 0, visible: false }
-
-export const MIN_THUMB_SIZE = 20
-
-export const SCROLL_FADE_DELAY_MS = 800
+import { HIDDEN_THUMB, MIN_THUMB_SIZE, type ThumbState } from './scroll-area-constants'
 
 /** Computes thumb size and offset for one axis. Returns HIDDEN_THUMB when content fits. */
 export function computeThumb(

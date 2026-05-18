@@ -12,8 +12,6 @@ export function normalizeSearch(search: Search | undefined): { value: string; fi
 	return { value: search.value, filter: search.filter ?? false }
 }
 
-export const INDENT_REM = 1.25
-
 export function isBranch(value: JsonValue): value is JsonValue[] | { [key: string]: JsonValue } {
 	return typeof value === 'object' && value !== null
 }
