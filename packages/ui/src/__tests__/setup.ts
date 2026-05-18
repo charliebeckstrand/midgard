@@ -233,6 +233,7 @@ vi.mock('maplibre-gl', () => {
 if (typeof window.matchMedia !== 'function') {
 	Object.defineProperty(window, 'matchMedia', {
 		writable: true,
+		configurable: true,
 		value: vi.fn().mockImplementation((query: string) => ({
 			matches: false,
 			media: query,
@@ -257,3 +258,9 @@ if (typeof window.ResizeObserver !== 'function') {
 if (typeof Element.prototype.scrollIntoView !== 'function') {
 	Element.prototype.scrollIntoView = vi.fn()
 }
+
+// jsdom has no canvas backend and prints a "Not implemented" jsdomError every
+// time getContext is called. PdfViewer and SignaturePad already null-check the
+// returned context, so returning null directly is behaviourally identical —
+// minus the noise.
+HTMLCanvasElement.prototype.getContext = (() => null) as HTMLCanvasElement['getContext']

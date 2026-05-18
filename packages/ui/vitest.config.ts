@@ -6,6 +6,8 @@ export default defineConfig({
 	plugins: [componentTagsPlugin()],
 	test: {
 		...baseTest,
+		pool: 'vmThreads',
+		sequence: { shuffle: true },
 		setupFiles: ['./src/__tests__/setup.ts'],
 		include: ['src/__tests__/**/*.test.{ts,tsx}'],
 		reporters: process.env.CI ? ['default', 'junit'] : ['default'],

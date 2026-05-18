@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Alert, AlertBody, AlertDescription, AlertTitle } from '../../components/alert'
-import { bySlot, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Alert', () => {
 	it('renders with data-slot="alert"', () => {
@@ -66,7 +66,9 @@ describe('Alert', () => {
 
 		const closeButton = container.querySelector('button')
 
-		closeButton?.click()
+		if (!closeButton) throw new Error('close button not rendered')
+
+		fireEvent.click(closeButton)
 
 		expect(onOpenChange).toHaveBeenCalledWith(false)
 	})
