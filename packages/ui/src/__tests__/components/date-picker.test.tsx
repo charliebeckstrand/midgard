@@ -1,51 +1,9 @@
-import type { ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { DatePicker } from '../../components/date-picker'
 import { bySlot, renderUI, screen, userEvent } from '../helpers'
 
-vi.mock('@floating-ui/react', () => {
-	const noop = () => {}
-
-	const identity = <T,>(x: T) => x
-
-	return {
-		autoUpdate: noop,
-		FloatingPortal: ({ children }: { children: ReactNode }) => children,
-		flip: () => ({}),
-		offset: () => ({}),
-		shift: () => ({}),
-		size: () => ({}),
-		safePolygon: () => () => {},
-		useClick: () => ({}),
-		useDismiss: () => ({}),
-		useFocus: () => ({}),
-		useHover: () => ({}),
-		useFloating: () => ({
-			refs: {
-				setReference: noop,
-				setFloating: noop,
-				reference: { current: null },
-				floating: { current: null },
-			},
-			floatingStyles: {},
-			context: {},
-			x: 0,
-			y: 0,
-			strategy: 'absolute',
-			placement: 'bottom',
-			middlewareData: {},
-			isPositioned: true,
-			update: noop,
-		}),
-		useInteractions: () => ({
-			getReferenceProps: identity,
-			getFloatingProps: identity,
-			getItemProps: identity,
-		}),
-		useRole: () => ({}),
-	}
-})
+vi.mock('@floating-ui/react', async () => (await import('../mocks/floating-ui')).default)
 
 function findDay(day: number) {
 	const buttons = screen.getAllByRole('button')
