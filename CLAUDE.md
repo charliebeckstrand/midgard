@@ -31,7 +31,7 @@ Formatting is tooling's job. Never fight the formatter.
 
 ## Git
 
-- Imperative mood. Commit by feature group — CI runs the full suite per commit, so fragmenting multiplies CI time. Split only when changes are genuinely independent (a standalone refactor, a test-only change).
+- Imperative mood. Commit by feature group. Split only when changes are genuinely independent (a standalone refactor, a test-only change).
 - Feature branches for non-trivial work. Never force-push shared branches.
 - Review your own diff before committing.
 
