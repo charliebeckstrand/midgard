@@ -1,34 +1,11 @@
-import {
-	type Dispatch,
-	type RefObject,
-	type SetStateAction,
-	useCallback,
-	useRef,
-	useState,
-} from 'react'
-import type { Coord, EditableGridColumn } from './types'
-
-export type UseEditableGridDraftInput<T> = {
-	editableCols: EditableGridColumn<T>[]
-	active: Coord | null
-	anchorRef: RefObject<Coord | null>
-	extraCellsRef: RefObject<Set<string>>
-	wrapperRef: RefObject<HTMLTableElement | null>
-	applyCellWrite: (rowIdx: number, editableColIdx: number, raw: string) => void
-	applyBulkFill: (raw: string) => void
-	moveActive: (dRow: number, dCol: number, extend?: boolean) => void
-	moveActiveTab: (dir: 1 | -1) => boolean
-	setActive: (coord: Coord) => void
-}
-
-export type UseEditableGridDraftResult = {
-	editing: boolean
-	draft: string
-	setDraft: Dispatch<SetStateAction<string>>
-	beginEdit: (coord: Coord, initial?: string, original?: string) => void
-	commitEdit: (advance: 'down' | 'right' | 'left' | 'none') => boolean
-	cancelEdit: () => void
-}
+import { type RefObject, useCallback, useRef, useState } from 'react'
+import type {
+	Coord,
+	EditableGridDraftApi,
+	EditableGridMutationsApi,
+	EditableGridNavigationApi,
+	EditableGridRowsApi,
+} from './types'
 
 /**
  * Owns the lifecycle of an in-progress cell edit: the draft buffer, the
@@ -37,17 +14,16 @@ export type UseEditableGridDraftResult = {
  * through `applyCellWrite` otherwise, then advances the cursor.
  */
 export function useEditableGridDraft<T>({
-	editableCols,
-	active,
-	anchorRef,
-	extraCellsRef,
+	nav: { active, anchorRef, extraCellsRef, moveActive, moveActiveTab, setActive },
+	mutations: { applyCellWrite, applyBulkFill },
+	rows: { editableCols },
 	wrapperRef,
-	applyCellWrite,
-	applyBulkFill,
-	moveActive,
-	moveActiveTab,
-	setActive,
-}: UseEditableGridDraftInput<T>): UseEditableGridDraftResult {
+}: {
+	nav: EditableGridNavigationApi
+	mutations: EditableGridMutationsApi
+	rows: EditableGridRowsApi<T>
+	wrapperRef: RefObject<HTMLTableElement | null>
+}): EditableGridDraftApi {
 	const [editing, setEditing] = useState(false)
 
 	const [draft, setDraft] = useState('')

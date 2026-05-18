@@ -1,7 +1,13 @@
 import { renderHook } from '@testing-library/react'
 import type { ClipboardEvent, FocusEvent, KeyboardEvent } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import type { Coord, EditableGridColumn } from '../../components/editable-grid/types'
+import type {
+	Coord,
+	EditableGridColumn,
+	EditableGridDraftApi,
+	EditableGridMutationsApi,
+	EditableGridNavigationApi,
+} from '../../components/editable-grid/types'
 import { useEditableGridWrapper } from '../../components/editable-grid/use-editable-grid-wrapper'
 
 type Row = { id: string; value: string }
@@ -55,22 +61,51 @@ function setup(
 		setSelection: vi.fn(),
 	}
 
+	// hasMultiSelection is derived inside the wrapper as `!!anchor || extras.size > 0`;
+	// honor a test-supplied flag by defaulting anchor to a truthy value when set.
+	const effectiveAnchor = options.anchor ?? (options.hasMultiSelection ? { row: 0, col: 1 } : null)
+
+	const nav = {
+		active: options.active ?? { row: 0, col: 0 },
+		anchor: effectiveAnchor,
+		extraCells: options.extras ?? new Set(),
+		activeRef: { current: options.active ?? { row: 0, col: 0 } },
+		moveActive: mocks.moveActive,
+		moveActiveTo: mocks.moveActiveTo,
+		moveActiveTab: mocks.moveActiveTab,
+		setActive: mocks.setActive,
+		setAnchor: mocks.setAnchor,
+		setExtraCells: mocks.setExtraCells,
+	} as unknown as EditableGridNavigationApi
+
+	const mutations: EditableGridMutationsApi = {
+		applyCellWrite: mocks.applyCellWrite,
+		applyBulkFill: mocks.applyBulkFill,
+	}
+
+	const draft = {
+		editing: options.editing ?? false,
+		beginEdit: mocks.beginEdit,
+	} as unknown as EditableGridDraftApi
+
 	const { result } = renderHook(() =>
 		useEditableGridWrapper<Row>({
-			editing: options.editing ?? false,
-			active: options.active ?? { row: 0, col: 0 },
-			anchor: options.anchor ?? null,
-			extraCells: options.extras ?? new Set(),
-			hasMultiSelection: options.hasMultiSelection ?? false,
-			editableCols: cols,
+			nav,
+			mutations,
+			draft,
+			rows: {
+				rowsRef: { current: rows },
+				editableCols: cols,
+				getRowKey: (r) => r.id,
+				formatCell: (row, col) => String(row[col.id as keyof Row] ?? ''),
+				parseValue: (raw) => raw,
+			},
+			selection: {
+				selectionRef: { current: options.selection ?? new Set() },
+				setSelection: mocks.setSelection,
+			},
 			wrapperRef: { current: wrapper },
-			rowsRef: { current: rows },
-			activeRef: { current: options.active ?? { row: 0, col: 0 } },
-			selectionRef: { current: options.selection ?? new Set() },
-			...mocks,
-			formatCell: (row, col) => String(row[col.id as keyof Row] ?? ''),
-			parseValue: (raw) => raw,
-			getRowKey: (r) => r.id,
+			onValueChange: mocks.onValueChange,
 		}),
 	)
 
@@ -136,30 +171,39 @@ describe('useEditableGridWrapper: onWrapperKeyDown arrow navigation', () => {
 
 		const { result } = renderHook(() =>
 			useEditableGridWrapper<Row>({
-				editing: false,
-				active: { row: 0, col: 0 },
-				anchor: null,
-				extraCells: new Set(),
-				hasMultiSelection: false,
-				editableCols: cols,
+				nav: {
+					active: { row: 0, col: 0 },
+					anchor: null,
+					extraCells: new Set(),
+					activeRef: { current: { row: 0, col: 0 } },
+					moveActive: vi.fn(),
+					moveActiveTo: vi.fn(),
+					moveActiveTab: vi.fn(() => false),
+					setActive: vi.fn(),
+					setAnchor: vi.fn(),
+					setExtraCells: vi.fn(),
+				} as unknown as EditableGridNavigationApi,
+				mutations: {
+					applyCellWrite: vi.fn(),
+					applyBulkFill: vi.fn(),
+				},
+				draft: {
+					editing: false,
+					beginEdit: vi.fn(),
+				} as unknown as EditableGridDraftApi,
+				rows: {
+					rowsRef: { current: [{ id: 'a', value: 'a1' }] },
+					editableCols: cols,
+					getRowKey: (r) => r.id,
+					formatCell: () => '',
+					parseValue: (raw) => raw,
+				},
+				selection: {
+					selectionRef: { current: new Set() },
+					setSelection: vi.fn(),
+				},
 				wrapperRef: { current: document.createElement('table') },
-				rowsRef: { current: [{ id: 'a', value: 'a1' }] },
-				activeRef: { current: { row: 0, col: 0 } },
-				selectionRef: { current: new Set() },
-				moveActive: vi.fn(),
-				moveActiveTo: vi.fn(),
-				moveActiveTab: vi.fn(() => false),
-				setActive: vi.fn(),
-				setAnchor: vi.fn(),
-				setExtraCells: vi.fn(),
-				beginEdit: vi.fn(),
-				applyCellWrite: vi.fn(),
-				applyBulkFill: vi.fn(),
 				onValueChange: vi.fn(),
-				setSelection: vi.fn(),
-				formatCell: () => '',
-				parseValue: (raw) => raw,
-				getRowKey: (r) => r.id,
 			}),
 		)
 
@@ -376,30 +420,39 @@ describe('useEditableGridWrapper: onWrapperFocus and onWrapperBlur', () => {
 
 		const { result } = renderHook(() =>
 			useEditableGridWrapper<Row>({
-				editing: false,
-				active: null,
-				anchor: null,
-				extraCells: new Set(),
-				hasMultiSelection: false,
-				editableCols: cols,
+				nav: {
+					active: null,
+					anchor: null,
+					extraCells: new Set(),
+					activeRef: { current: null },
+					moveActive: vi.fn(),
+					moveActiveTo: vi.fn(),
+					moveActiveTab: vi.fn(() => true),
+					setActive: vi.fn(),
+					setAnchor: vi.fn(),
+					setExtraCells: vi.fn(),
+				} as unknown as EditableGridNavigationApi,
+				mutations: {
+					applyCellWrite: vi.fn(),
+					applyBulkFill: vi.fn(),
+				},
+				draft: {
+					editing: false,
+					beginEdit: vi.fn(),
+				} as unknown as EditableGridDraftApi,
+				rows: {
+					rowsRef: { current: [{ id: 'a', value: '' }] },
+					editableCols: cols,
+					getRowKey: (r) => r.id,
+					formatCell: () => '',
+					parseValue: (raw) => raw,
+				},
+				selection: {
+					selectionRef: { current: new Set() },
+					setSelection: vi.fn(),
+				},
 				wrapperRef: { current: wrapper },
-				rowsRef: { current: [{ id: 'a', value: '' }] },
-				activeRef: { current: null },
-				selectionRef: { current: new Set() },
-				moveActive: vi.fn(),
-				moveActiveTo: vi.fn(),
-				moveActiveTab: vi.fn(() => true),
-				setActive: vi.fn(),
-				setAnchor: vi.fn(),
-				setExtraCells: vi.fn(),
-				beginEdit: vi.fn(),
-				applyCellWrite: vi.fn(),
-				applyBulkFill: vi.fn(),
 				onValueChange: vi.fn(),
-				setSelection: vi.fn(),
-				formatCell: () => '',
-				parseValue: (raw) => raw,
-				getRowKey: (r) => r.id,
 			}),
 		)
 

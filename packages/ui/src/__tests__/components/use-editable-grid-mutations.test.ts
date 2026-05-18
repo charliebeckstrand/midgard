@@ -1,6 +1,10 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import type { Coord, EditableGridColumn } from '../../components/editable-grid/types'
+import type {
+	Coord,
+	EditableGridColumn,
+	EditableGridNavigationApi,
+} from '../../components/editable-grid/types'
 import { useEditableGridMutations } from '../../components/editable-grid/use-editable-grid-mutations'
 
 type Row = { id: string; value: string }
@@ -28,18 +32,27 @@ function setup(
 	const onValueChange = vi.fn()
 	const setSelection = vi.fn()
 
+	const nav = {
+		activeRef: { current: options.active ?? null },
+		anchorRef: { current: options.anchor ?? null },
+		extraCellsRef: { current: options.extras ?? new Set() },
+	} as unknown as EditableGridNavigationApi
+
 	const { result } = renderHook(() =>
 		useEditableGridMutations<Row>({
-			editableCols: cols,
-			rowsRef: { current: rows },
-			selectionRef: { current: options.selection ?? new Set() },
-			activeRef: { current: options.active ?? null },
-			anchorRef: { current: options.anchor ?? null },
-			extraCellsRef: { current: options.extras ?? new Set() },
-			getRowKey: (r) => r.id,
-			parseValue: (raw) => raw,
+			nav,
+			rows: {
+				rowsRef: { current: rows },
+				editableCols: cols,
+				getRowKey: (r) => r.id,
+				formatCell: () => '',
+				parseValue: (raw: string) => raw,
+			},
+			selection: {
+				selectionRef: { current: options.selection ?? new Set() },
+				setSelection,
+			},
 			onValueChange,
-			setSelection,
 		}),
 	)
 

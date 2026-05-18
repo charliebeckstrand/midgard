@@ -1,31 +1,26 @@
 'use client'
 
-import { type RefObject, useCallback } from 'react'
-import type { CellChange, Coord, EditableGridColumn } from './types'
+import { useCallback } from 'react'
+import type {
+	CellChange,
+	Coord,
+	EditableGridMutationsApi,
+	EditableGridNavigationApi,
+	EditableGridRowsApi,
+	EditableGridSelectionApi,
+} from './types'
 
 export function useEditableGridMutations<T>({
-	editableCols,
-	rowsRef,
-	selectionRef,
-	activeRef,
-	anchorRef,
-	extraCellsRef,
-	getRowKey,
-	parseValue,
+	nav: { activeRef, anchorRef, extraCellsRef },
+	rows: { rowsRef, editableCols, getRowKey, parseValue },
+	selection: { selectionRef, setSelection },
 	onValueChange,
-	setSelection,
 }: {
-	editableCols: EditableGridColumn<T>[]
-	rowsRef: RefObject<T[]>
-	selectionRef: RefObject<Set<string | number>>
-	activeRef: RefObject<Coord | null>
-	anchorRef: RefObject<Coord | null>
-	extraCellsRef: RefObject<Set<string>>
-	getRowKey: (row: T, index: number) => string | number
-	parseValue: (raw: string, row: T, col: EditableGridColumn<T>) => unknown
+	nav: EditableGridNavigationApi
+	rows: EditableGridRowsApi<T>
+	selection: EditableGridSelectionApi
 	onValueChange: (changes: CellChange[]) => void
-	setSelection: (selection: Set<string | number>) => void
-}) {
+}): EditableGridMutationsApi {
 	const applyCellWrite = useCallback(
 		(rowIdx: number, editableColIdx: number, raw: string) => {
 			const col = editableCols[editableColIdx]

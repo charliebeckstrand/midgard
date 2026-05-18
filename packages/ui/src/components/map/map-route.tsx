@@ -1,19 +1,17 @@
 'use client'
 
-import type { MapLayerMouseEvent } from 'maplibre-gl'
-import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useId, useMemo, useRef, useState } from 'react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
-import { useMapContext } from './context'
 import { MapMarker } from './map-marker'
 import {
 	DEFAULT_ACTIVE_COLOR,
 	DEFAULT_DONE_COLOR,
 	DEFAULT_PENDING_COLOR,
-	HIT_LAYER_WIDTH,
 } from './map-route-constants'
 import { MapRouteTimeline } from './map-route-timeline'
-import { type SegmentStatus, toColorMatch, toSegmentCollection } from './map-route-utilities'
+import type { SegmentStatus } from './map-route-utilities'
 import type { RouteData, RouteStop } from './types'
+import { useMapRouteLayers } from './use-map-route-layers'
 
 export type MapRouteProps = {
 	data: RouteData
@@ -36,8 +34,6 @@ export function MapRoute({
 	disableInteraction = false,
 	onSelect,
 }: MapRouteProps) {
-	const { getMap, onReady } = useMapContext()
-
 	const reactId = useId().replace(/[^a-zA-Z0-9_-]/g, '-')
 
 	const sourceId = `map-route-src-${reactId}`
@@ -75,95 +71,16 @@ export function MapRoute({
 		setOpen(true)
 	})
 
-	useEffect(() => {
-		const cleanup = onReady((map) => {
-			map.addSource(sourceId, {
-				type: 'geojson',
-				data: toSegmentCollection(latestRef.current.data),
-			})
-
-			map.addLayer({
-				id: layerId,
-				type: 'line',
-				source: sourceId,
-				layout: { 'line-cap': 'round', 'line-join': 'round' },
-				paint: {
-					'line-color': toColorMatch(latestRef.current.resolvedColors) as never,
-					'line-width': latestRef.current.width,
-				},
-			})
-
-			map.addLayer({
-				id: hitLayerId,
-				type: 'line',
-				source: sourceId,
-				layout: { 'line-cap': 'round', 'line-join': 'round' },
-				paint: { 'line-color': '#000', 'line-opacity': 0, 'line-width': HIT_LAYER_WIDTH },
-			})
-
-			const handleClick = (event: MapLayerMouseEvent) => {
-				if (latestRef.current.disableInteraction) return
-
-				event.originalEvent.stopPropagation()
-
-				handleSelectRef.current()
-			}
-
-			const handleEnter = () => {
-				if (!latestRef.current.disableInteraction) map.getCanvas().style.cursor = 'pointer'
-			}
-
-			const handleLeave = () => {
-				map.getCanvas().style.cursor = ''
-			}
-
-			map.on('click', hitLayerId, handleClick)
-
-			map.on('mouseenter', hitLayerId, handleEnter)
-
-			map.on('mouseleave', hitLayerId, handleLeave)
-		})
-
-		return () => {
-			cleanup?.()
-
-			const map = getMap()
-
-			if (!map) return
-
-			try {
-				if (map.getLayer(hitLayerId)) map.removeLayer(hitLayerId)
-
-				if (map.getLayer(layerId)) map.removeLayer(layerId)
-
-				if (map.getSource(sourceId)) map.removeSource(sourceId)
-			} catch {
-				// Map may already be torn down.
-			}
-		}
-	}, [onReady, getMap, sourceId, layerId, hitLayerId])
-
-	// Sync geometry + segment status when data changes.
-	useEffect(() => {
-		const map = getMap()
-
-		const source = map?.getSource(sourceId) as
-			| { setData: (d: ReturnType<typeof toSegmentCollection>) => void }
-			| undefined
-
-		source?.setData(toSegmentCollection(data))
-	}, [data, sourceId, getMap])
-
-	// Sync paint props when colors/width change.
-	useEffect(() => {
-		const map = getMap()
-
-		if (!map?.getLayer(layerId)) return
-
-		map.setPaintProperty(layerId, 'line-color', toColorMatch(resolvedColors))
-
-		map.setPaintProperty(layerId, 'line-width', width)
-	}, [resolvedColors, width, layerId, getMap])
+	useMapRouteLayers({
+		sourceId,
+		layerId,
+		hitLayerId,
+		data,
+		resolvedColors,
+		width,
+		latestRef,
+		handleSelectRef,
+	})
 
 	return (
 		<>

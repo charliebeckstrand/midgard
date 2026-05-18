@@ -1,7 +1,7 @@
 'use client'
 
 import { type RefObject, useCallback, useRef, useState } from 'react'
-import type { Coord } from './types'
+import type { Coord, EditableGridNavigationApi } from './types'
 
 export const cellKey = (row: number, col: number) => `${row},${col}`
 
@@ -11,7 +11,7 @@ export function useEditableGridNavigation<T>({
 }: {
 	rowsRef: RefObject<T[]>
 	editableColCount: number
-}) {
+}): EditableGridNavigationApi {
 	const [active, setActive] = useState<Coord | null>(null)
 
 	const [anchor, setAnchor] = useState<Coord | null>(null)
