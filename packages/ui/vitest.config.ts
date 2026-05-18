@@ -1,9 +1,9 @@
 import { defineConfig } from 'vitest/config'
-import { componentTagsPlugin } from './src/docs/plugins'
+import { componentTagsPlugin, virtualStubsPlugin } from './src/docs/plugins'
 import { baseTest } from './vitest.base.config'
 
 export default defineConfig({
-	plugins: [componentTagsPlugin()],
+	plugins: [componentTagsPlugin(), virtualStubsPlugin()],
 	test: {
 		...baseTest,
 		pool: 'vmThreads',
