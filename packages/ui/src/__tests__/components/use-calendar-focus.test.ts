@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react'
-import type { KeyboardEvent } from 'react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { useCalendarFocus } from '../../components/calendar/use-calendar-focus'
+import { makeKeyEvent } from '../helpers'
 
 function makeContainer(buttonCount: number) {
 	const el = document.createElement('div')
@@ -16,15 +16,6 @@ function makeContainer(buttonCount: number) {
 	document.body.appendChild(el)
 
 	return el
-}
-
-function makeEvent(key: string) {
-	return {
-		key,
-		preventDefault: vi.fn(),
-		stopPropagation: vi.fn(),
-		defaultPrevented: false,
-	} as unknown as KeyboardEvent
 }
 
 function setup(
@@ -62,7 +53,7 @@ describe('useCalendarFocus: header', () => {
 	it('ArrowDown moves focus from header to the first grid button', () => {
 		const { header, grid, handleHeaderKeyDown } = setup()
 
-		const event = makeEvent('ArrowDown')
+		const event = makeKeyEvent('ArrowDown')
 
 		handleHeaderKeyDown(event)
 
@@ -77,7 +68,7 @@ describe('useCalendarFocus: header', () => {
 	it('stopPropagation propagates to header events when configured', () => {
 		const { handleHeaderKeyDown } = setup({ stopPropagation: true })
 
-		const event = makeEvent('ArrowDown')
+		const event = makeKeyEvent('ArrowDown')
 
 		handleHeaderKeyDown(event)
 
@@ -98,7 +89,7 @@ describe('useCalendarFocus: grid', () => {
 
 		first.focus()
 
-		const event = makeEvent('ArrowUp')
+		const event = makeKeyEvent('ArrowUp')
 
 		handleGridKeyDown(event)
 
@@ -122,7 +113,7 @@ describe('useCalendarFocus: grid', () => {
 
 		lastRowFirst.focus()
 
-		const event = makeEvent('ArrowDown')
+		const event = makeKeyEvent('ArrowDown')
 
 		handleGridKeyDown(event)
 
@@ -138,7 +129,7 @@ describe('useCalendarFocus: grid', () => {
 
 		last.focus()
 
-		handleGridKeyDown(makeEvent('ArrowDown'))
+		handleGridKeyDown(makeKeyEvent('ArrowDown'))
 
 		// With no footer, the calendar delegates to the roving grid handler, which
 		// keeps focus inside the grid rather than escaping to another zone.
@@ -158,7 +149,7 @@ describe('useCalendarFocus: footer', () => {
 
 		footerFirst.focus()
 
-		const event = makeEvent('ArrowUp')
+		const event = makeKeyEvent('ArrowUp')
 
 		handleFooterKeyDown(event)
 
@@ -176,7 +167,7 @@ describe('useCalendarFocus: footer', () => {
 
 		;(buttons?.item(1) as HTMLButtonElement).focus()
 
-		handleFooterKeyDown(makeEvent('ArrowRight'))
+		handleFooterKeyDown(makeKeyEvent('ArrowRight'))
 
 		expect(document.activeElement).toBe(buttons?.item(0))
 	})
@@ -188,7 +179,7 @@ describe('useCalendarFocus: footer', () => {
 
 		;(buttons?.item(0) as HTMLButtonElement).focus()
 
-		handleFooterKeyDown(makeEvent('ArrowLeft'))
+		handleFooterKeyDown(makeKeyEvent('ArrowLeft'))
 
 		expect(document.activeElement).toBe(buttons?.item(1))
 	})
@@ -196,7 +187,7 @@ describe('useCalendarFocus: footer', () => {
 	it('ArrowLeft is a no-op when focus is outside the footer', () => {
 		const { handleFooterKeyDown } = setup({ footer: true })
 
-		const event = makeEvent('ArrowLeft')
+		const event = makeKeyEvent('ArrowLeft')
 
 		handleFooterKeyDown(event)
 

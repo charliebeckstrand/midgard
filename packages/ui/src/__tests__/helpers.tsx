@@ -1,5 +1,6 @@
 import { type RenderOptions, type RenderResult, render } from '@testing-library/react'
-import type { ReactElement, ReactNode } from 'react'
+import type { KeyboardEvent, ReactElement, ReactNode } from 'react'
+import { vi } from 'vitest'
 import { GlassProvider } from '../components/glass/context'
 import { SkeletonProvider } from '../providers/skeleton'
 
@@ -49,6 +50,29 @@ export function bySlot(container: HTMLElement, name: string) {
  */
 export function allBySlot(container: HTMLElement, name: string) {
 	return Array.from(container.querySelectorAll<HTMLElement>(`[data-slot="${name}"]`))
+}
+
+/**
+ * Build a synthetic React KeyboardEvent for hooks/handlers that accept one
+ * directly. `preventDefault` and `stopPropagation` are `vi.fn()` spies, so
+ * tests can assert against them via `event.preventDefault`.
+ */
+export function makeKeyEvent<T extends Element = Element>(
+	key: string,
+	overrides: Partial<KeyboardEvent<T>> = {},
+): KeyboardEvent<T> {
+	return {
+		key,
+		shiftKey: false,
+		metaKey: false,
+		ctrlKey: false,
+		altKey: false,
+		preventDefault: vi.fn(),
+		stopPropagation: vi.fn(),
+		defaultPrevented: false,
+		nativeEvent: { isComposing: false },
+		...overrides,
+	} as unknown as KeyboardEvent<T>
 }
 
 export { act, fireEvent, screen, waitFor, within } from '@testing-library/react'

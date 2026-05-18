@@ -1,8 +1,8 @@
 import { renderHook } from '@testing-library/react'
-import type { KeyboardEvent } from 'react'
 import { useRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { useRoving } from '../../hooks/use-roving'
+import { makeKeyEvent } from '../helpers'
 
 function makeContainer(count: number) {
 	const container = document.createElement('div')
@@ -21,13 +21,6 @@ function makeContainer(count: number) {
 	document.body.appendChild(container)
 
 	return container
-}
-
-function makeKey(key: string) {
-	return {
-		key,
-		preventDefault: vi.fn(),
-	} as unknown as KeyboardEvent
 }
 
 describe('useRoving', () => {
@@ -76,7 +69,7 @@ describe('useRoving', () => {
 			return useRoving(ref, { itemSelector: '[role="option"]' })
 		})
 
-		const event = makeKey('ArrowDown')
+		const event = makeKeyEvent('ArrowDown')
 
 		expect(() => result.current(event)).not.toThrow()
 
@@ -98,7 +91,7 @@ describe('useRoving', () => {
 			return useRoving(ref, { itemSelector: '[role="option"]' })
 		})
 
-		const event = makeKey('ArrowDown')
+		const event = makeKeyEvent('ArrowDown')
 
 		result.current(event)
 
@@ -118,7 +111,7 @@ describe('useRoving', () => {
 			return useRoving(ref, { itemSelector: '[role="option"]' })
 		})
 
-		const event = makeKey('ArrowDown')
+		const event = makeKeyEvent('ArrowDown')
 
 		result.current(event)
 
@@ -136,7 +129,7 @@ describe('useRoving', () => {
 			return useRoving(ref, { itemSelector: '[role="option"]', focusOnEmpty: true })
 		})
 
-		const event = makeKey('ArrowDown')
+		const event = makeKeyEvent('ArrowDown')
 
 		result.current(event)
 
@@ -154,7 +147,7 @@ describe('useRoving', () => {
 			return useRoving(ref, { itemSelector: '[role="option"]', mode: 'virtual' })
 		})
 
-		const event = makeKey('ArrowDown')
+		const event = makeKeyEvent('ArrowDown')
 
 		result.current(event)
 
@@ -178,7 +171,7 @@ describe('useRoving', () => {
 			return useRoving(ref, { itemSelector: '[role="option"]', mode: 'virtual' })
 		})
 
-		result.current(makeKey('ArrowDown'))
+		result.current(makeKeyEvent('ArrowDown'))
 
 		expect(items[0]?.hasAttribute('data-active')).toBe(false)
 		expect(items[1]?.hasAttribute('data-active')).toBe(true)
@@ -203,7 +196,7 @@ describe('useRoving', () => {
 			return useRoving(ref, { itemSelector: '[role="option"]', mode: 'virtual' })
 		})
 
-		result.current(makeKey('Enter'))
+		result.current(makeKeyEvent('Enter'))
 
 		expect(clickSpy).toHaveBeenCalled()
 
@@ -219,7 +212,7 @@ describe('useRoving', () => {
 			return useRoving(ref, { itemSelector: '[role="option"]', mode: 'virtual' })
 		})
 
-		const event = makeKey('Enter')
+		const event = makeKeyEvent('Enter')
 
 		result.current(event)
 

@@ -1,11 +1,12 @@
 import { renderHook } from '@testing-library/react'
-import type { KeyboardEvent, RefObject } from 'react'
+import type { RefObject } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import type { CalendarActive, CalendarHandle } from '../../components/calendar'
 import {
 	type FooterButton,
 	useDatePickerKeyboard,
 } from '../../components/date-picker/use-date-picker-keyboard'
+import { makeKeyEvent } from '../helpers'
 
 type Setup = Partial<{
 	disabled: boolean
@@ -64,19 +65,11 @@ function setup(overrides: Setup = {}) {
 	}
 }
 
-function makeEvent(key: string, options: { shiftKey?: boolean } = {}) {
-	return {
-		key,
-		shiftKey: options.shiftKey ?? false,
-		preventDefault: vi.fn(),
-	} as unknown as KeyboardEvent<HTMLElement>
-}
-
 describe('useDatePickerKeyboard: disabled', () => {
 	it('ignores all keys when disabled', () => {
 		const { handler, openCalendar } = setup({ disabled: true, open: false })
 
-		handler(makeEvent('ArrowDown'))
+		handler(makeKeyEvent<HTMLElement>('ArrowDown'))
 
 		expect(openCalendar).not.toHaveBeenCalled()
 	})
@@ -86,7 +79,7 @@ describe('useDatePickerKeyboard: closed calendar', () => {
 	it('opens the calendar on ArrowDown', () => {
 		const { handler, openCalendar } = setup({ open: false })
 
-		const e = makeEvent('ArrowDown')
+		const e = makeKeyEvent<HTMLElement>('ArrowDown')
 
 		handler(e)
 
@@ -98,7 +91,7 @@ describe('useDatePickerKeyboard: closed calendar', () => {
 	it('opens the calendar on ArrowUp', () => {
 		const { handler, openCalendar } = setup({ open: false })
 
-		handler(makeEvent('ArrowUp'))
+		handler(makeKeyEvent<HTMLElement>('ArrowUp'))
 
 		expect(openCalendar).toHaveBeenCalled()
 	})
@@ -106,7 +99,7 @@ describe('useDatePickerKeyboard: closed calendar', () => {
 	it('opens the calendar on Enter', () => {
 		const { handler, openCalendar } = setup({ open: false })
 
-		handler(makeEvent('Enter'))
+		handler(makeKeyEvent<HTMLElement>('Enter'))
 
 		expect(openCalendar).toHaveBeenCalled()
 	})
@@ -114,7 +107,7 @@ describe('useDatePickerKeyboard: closed calendar', () => {
 	it('opens the calendar on Space', () => {
 		const { handler, openCalendar } = setup({ open: false })
 
-		handler(makeEvent(' '))
+		handler(makeKeyEvent<HTMLElement>(' '))
 
 		expect(openCalendar).toHaveBeenCalled()
 	})
@@ -122,7 +115,7 @@ describe('useDatePickerKeyboard: closed calendar', () => {
 	it('ignores other keys', () => {
 		const { handler, openCalendar } = setup({ open: false })
 
-		handler(makeEvent('a'))
+		handler(makeKeyEvent<HTMLElement>('a'))
 
 		expect(openCalendar).not.toHaveBeenCalled()
 	})
@@ -132,7 +125,7 @@ describe('useDatePickerKeyboard: open with null active', () => {
 	it('closes on Escape', () => {
 		const { handler, closeCalendar } = setup({ active: null })
 
-		handler(makeEvent('Escape'))
+		handler(makeKeyEvent<HTMLElement>('Escape'))
 
 		expect(closeCalendar).toHaveBeenCalled()
 	})
@@ -140,7 +133,7 @@ describe('useDatePickerKeyboard: open with null active', () => {
 	it('jumps to header on Shift+ArrowUp', () => {
 		const { handler, setActive } = setup({ active: null })
 
-		handler(makeEvent('ArrowUp', { shiftKey: true }))
+		handler(makeKeyEvent<HTMLElement>('ArrowUp', { shiftKey: true }))
 
 		expect(setActive).toHaveBeenCalledWith({ zone: 'header', index: 1 })
 	})
@@ -148,7 +141,7 @@ describe('useDatePickerKeyboard: open with null active', () => {
 	it('jumps to footer on Shift+ArrowDown', () => {
 		const { handler, setActive } = setup({ active: null })
 
-		handler(makeEvent('ArrowDown', { shiftKey: true }))
+		handler(makeKeyEvent<HTMLElement>('ArrowDown', { shiftKey: true }))
 
 		expect(setActive).toHaveBeenCalledWith({ zone: 'footer', index: 0 })
 	})
@@ -156,7 +149,7 @@ describe('useDatePickerKeyboard: open with null active', () => {
 	it('does not jump to footer on Shift+ArrowDown when there are no footer buttons', () => {
 		const { handler, setActive } = setup({ active: null, footerButtons: [] })
 
-		handler(makeEvent('ArrowDown', { shiftKey: true }))
+		handler(makeKeyEvent<HTMLElement>('ArrowDown', { shiftKey: true }))
 
 		expect(setActive).not.toHaveBeenCalled()
 	})
@@ -164,7 +157,7 @@ describe('useDatePickerKeyboard: open with null active', () => {
 	it('materializes on grid when any arrow is pressed from null active', () => {
 		const { handler, setActive, getInitialActiveDate } = setup({ active: null })
 
-		handler(makeEvent('ArrowRight'))
+		handler(makeKeyEvent<HTMLElement>('ArrowRight'))
 
 		expect(getInitialActiveDate).toHaveBeenCalled()
 
@@ -176,7 +169,7 @@ describe('useDatePickerKeyboard: open with null active', () => {
 	it('selects the initial date on Enter when active is null', () => {
 		const { handler, handleSelect } = setup({ active: null })
 
-		handler(makeEvent('Enter'))
+		handler(makeKeyEvent<HTMLElement>('Enter'))
 
 		expect(handleSelect).toHaveBeenCalled()
 	})
@@ -188,7 +181,7 @@ describe('useDatePickerKeyboard: grid zone', () => {
 	it('moves grid date backward one day on ArrowLeft', () => {
 		const { handler, moveGridDate, setActive } = setup({ active: gridActive })
 
-		handler(makeEvent('ArrowLeft'))
+		handler(makeKeyEvent<HTMLElement>('ArrowLeft'))
 
 		expect(moveGridDate).toHaveBeenCalledWith(-1)
 
@@ -198,7 +191,7 @@ describe('useDatePickerKeyboard: grid zone', () => {
 	it('moves grid date forward one day on ArrowRight', () => {
 		const { handler, moveGridDate } = setup({ active: gridActive })
 
-		handler(makeEvent('ArrowRight'))
+		handler(makeKeyEvent<HTMLElement>('ArrowRight'))
 
 		expect(moveGridDate).toHaveBeenCalledWith(1)
 	})
@@ -206,7 +199,7 @@ describe('useDatePickerKeyboard: grid zone', () => {
 	it('moves grid date backward one week on ArrowUp', () => {
 		const { handler, moveGridDate } = setup({ active: gridActive })
 
-		handler(makeEvent('ArrowUp'))
+		handler(makeKeyEvent<HTMLElement>('ArrowUp'))
 
 		expect(moveGridDate).toHaveBeenCalledWith(-7)
 	})
@@ -214,7 +207,7 @@ describe('useDatePickerKeyboard: grid zone', () => {
 	it('moves grid date forward one week on ArrowDown', () => {
 		const { handler, moveGridDate } = setup({ active: gridActive })
 
-		handler(makeEvent('ArrowDown'))
+		handler(makeKeyEvent<HTMLElement>('ArrowDown'))
 
 		expect(moveGridDate).toHaveBeenCalledWith(7)
 	})
@@ -222,7 +215,7 @@ describe('useDatePickerKeyboard: grid zone', () => {
 	it('selects the active grid date on Enter', () => {
 		const { handler, handleSelect } = setup({ active: gridActive })
 
-		handler(makeEvent('Enter'))
+		handler(makeKeyEvent<HTMLElement>('Enter'))
 
 		expect(handleSelect).toHaveBeenCalledWith(gridActive.date)
 	})
@@ -230,7 +223,7 @@ describe('useDatePickerKeyboard: grid zone', () => {
 	it('selects on Space', () => {
 		const { handler, handleSelect } = setup({ active: gridActive })
 
-		handler(makeEvent(' '))
+		handler(makeKeyEvent<HTMLElement>(' '))
 
 		expect(handleSelect).toHaveBeenCalled()
 	})
@@ -240,7 +233,7 @@ describe('useDatePickerKeyboard: header zone', () => {
 	it('wraps header index backward on ArrowLeft', () => {
 		const { handler, setActive } = setup({ active: { zone: 'header', index: 0 } })
 
-		handler(makeEvent('ArrowLeft'))
+		handler(makeKeyEvent<HTMLElement>('ArrowLeft'))
 
 		expect(setActive).toHaveBeenCalledWith({ zone: 'header', index: 2 })
 	})
@@ -248,7 +241,7 @@ describe('useDatePickerKeyboard: header zone', () => {
 	it('wraps header index forward on ArrowRight', () => {
 		const { handler, setActive } = setup({ active: { zone: 'header', index: 2 } })
 
-		handler(makeEvent('ArrowRight'))
+		handler(makeKeyEvent<HTMLElement>('ArrowRight'))
 
 		expect(setActive).toHaveBeenCalledWith({ zone: 'header', index: 0 })
 	})
@@ -256,7 +249,7 @@ describe('useDatePickerKeyboard: header zone', () => {
 	it('moves from header to grid on ArrowDown', () => {
 		const { handler, setActive } = setup({ active: { zone: 'header', index: 1 } })
 
-		handler(makeEvent('ArrowDown'))
+		handler(makeKeyEvent<HTMLElement>('ArrowDown'))
 
 		expect(setActive).toHaveBeenCalledWith(expect.objectContaining({ zone: 'grid' }))
 	})
@@ -273,7 +266,7 @@ describe('useDatePickerKeyboard: header zone', () => {
 			} as unknown as CalendarHandle,
 		})
 
-		handler(makeEvent('Enter'))
+		handler(makeKeyEvent<HTMLElement>('Enter'))
 
 		expect(prevMonth).toHaveBeenCalled()
 	})
@@ -290,7 +283,7 @@ describe('useDatePickerKeyboard: header zone', () => {
 			} as unknown as CalendarHandle,
 		})
 
-		handler(makeEvent('Enter'))
+		handler(makeKeyEvent<HTMLElement>('Enter'))
 
 		expect(openPicker).toHaveBeenCalled()
 	})
@@ -307,7 +300,7 @@ describe('useDatePickerKeyboard: header zone', () => {
 			} as unknown as CalendarHandle,
 		})
 
-		handler(makeEvent('Enter'))
+		handler(makeKeyEvent<HTMLElement>('Enter'))
 
 		expect(nextMonth).toHaveBeenCalled()
 	})
@@ -317,7 +310,7 @@ describe('useDatePickerKeyboard: footer zone', () => {
 	it('wraps footer index backward on ArrowLeft', () => {
 		const { handler, setActive } = setup({ active: { zone: 'footer', index: 0 } })
 
-		handler(makeEvent('ArrowLeft'))
+		handler(makeKeyEvent<HTMLElement>('ArrowLeft'))
 
 		expect(setActive).toHaveBeenCalledWith({ zone: 'footer', index: 1 })
 	})
@@ -325,7 +318,7 @@ describe('useDatePickerKeyboard: footer zone', () => {
 	it('wraps footer index forward on ArrowRight', () => {
 		const { handler, setActive } = setup({ active: { zone: 'footer', index: 1 } })
 
-		handler(makeEvent('ArrowRight'))
+		handler(makeKeyEvent<HTMLElement>('ArrowRight'))
 
 		expect(setActive).toHaveBeenCalledWith({ zone: 'footer', index: 0 })
 	})
@@ -333,7 +326,7 @@ describe('useDatePickerKeyboard: footer zone', () => {
 	it('moves from footer to grid on ArrowUp', () => {
 		const { handler, setActive } = setup({ active: { zone: 'footer', index: 0 } })
 
-		handler(makeEvent('ArrowUp'))
+		handler(makeKeyEvent<HTMLElement>('ArrowUp'))
 
 		expect(setActive).toHaveBeenCalledWith(expect.objectContaining({ zone: 'grid' }))
 	})
@@ -344,7 +337,7 @@ describe('useDatePickerKeyboard: footer zone', () => {
 			footerButtons: ['clear', 'today'],
 		})
 
-		handler(makeEvent('Enter'))
+		handler(makeKeyEvent<HTMLElement>('Enter'))
 
 		expect(onFooterActivate).toHaveBeenCalledWith('today')
 	})
@@ -355,7 +348,7 @@ describe('useDatePickerKeyboard: footer zone', () => {
 			footerButtons: [],
 		})
 
-		handler(makeEvent('ArrowLeft'))
+		handler(makeKeyEvent<HTMLElement>('ArrowLeft'))
 
 		expect(setActive).not.toHaveBeenCalled()
 	})
