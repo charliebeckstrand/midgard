@@ -16,7 +16,7 @@ export const sidebarPanelVariants = tv({
 })
 
 export const sidebarFloatingHotZoneVariants = tv({
-	base: ['absolute inset-y-0 left-0 z-30 w-4 max-lg:hidden'],
+	base: ['absolute inset-y-0 left-0 z-30 w-2 max-lg:hidden'],
 })
 
 export const sidebarContentWrapperVariants = tv({
