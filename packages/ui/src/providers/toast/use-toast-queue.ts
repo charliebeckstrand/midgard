@@ -2,20 +2,20 @@ import { type MutableRefObject, useCallback, useRef } from 'react'
 import type { ToastData } from './types'
 
 export function useToastQueue(toastsRef: MutableRefObject<ToastData[]>, sync: () => void) {
-	const drainQueueRef = useRef<string[]>([])
-	const drainingRef = useRef(false)
+	const queueRef = useRef<string[]>([])
+	const runningRef = useRef(false)
 
-	const stopDrain = useCallback(() => {
-		drainingRef.current = false
+	const stop = useCallback(() => {
+		runningRef.current = false
 
-		drainQueueRef.current = []
+		queueRef.current = []
 	}, [])
 
-	const drainNext = useCallback(() => {
-		const id = drainQueueRef.current.shift()
+	const next = useCallback(() => {
+		const id = queueRef.current.shift()
 
 		if (!id) {
-			drainingRef.current = false
+			runningRef.current = false
 
 			return
 		}
@@ -24,19 +24,19 @@ export function useToastQueue(toastsRef: MutableRefObject<ToastData[]>, sync: ()
 		sync()
 	}, [toastsRef, sync])
 
-	const startDrain = useCallback(() => {
-		drainingRef.current = true
+	const start = useCallback(() => {
+		runningRef.current = true
 
 		const active = toastsRef.current.filter((t) => !t.persist)
 
-		drainQueueRef.current = active.map((t) => t.id)
+		queueRef.current = active.map((t) => t.id)
 
-		drainNext()
-	}, [toastsRef, drainNext])
+		next()
+	}, [toastsRef, next])
 
 	const handleExitComplete = useCallback(() => {
-		if (drainingRef.current) drainNext()
-	}, [drainNext])
+		if (runningRef.current) next()
+	}, [next])
 
-	return { drainingRef, drainNext, startDrain, stopDrain, handleExitComplete }
+	return { runningRef, start, stop, next, handleExitComplete }
 }

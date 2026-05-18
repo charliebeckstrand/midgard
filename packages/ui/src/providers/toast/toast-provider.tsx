@@ -34,13 +34,13 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 
 	const sync = useCallback(() => flush((n) => n + 1), [])
 
-	const { startDrain, stopDrain, handleExitComplete } = useToastQueue(toastsRef, sync)
+	const { start, stop, handleExitComplete } = useToastQueue(toastsRef, sync)
 
 	const { startTimer, pause, resume, resetRemaining } = useToastTimer(
 		toastsRef,
 		duration,
-		startDrain,
-		stopDrain,
+		start,
+		stop,
 	)
 
 	const dismiss = useCallback(
@@ -61,7 +61,7 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 
 					sync()
 
-					if (toastsRef.current.length === 0) stopDrain()
+					if (toastsRef.current.length === 0) stop()
 				})
 
 				return
@@ -71,14 +71,14 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 
 			sync()
 
-			if (toastsRef.current.length === 0) stopDrain()
+			if (toastsRef.current.length === 0) stop()
 		},
-		[sync, stopDrain],
+		[sync, stop],
 	)
 
 	const toast = useCallback(
 		(data: ToastInput) => {
-			stopDrain()
+			stop()
 
 			const id = `toast-${++counter}`
 
@@ -105,7 +105,7 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 
 			return id
 		},
-		[maxToasts, duration, sync, startTimer, stopDrain, resetRemaining, dismiss],
+		[maxToasts, duration, sync, startTimer, stop, resetRemaining, dismiss],
 	)
 
 	const publicValue = useMemo<ToastContextValue>(() => ({ toast, dismiss }), [toast, dismiss])
