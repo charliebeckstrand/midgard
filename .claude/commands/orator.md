@@ -36,9 +36,9 @@ Pick by target path:
 
 | Target | Rule set |
 |---|---|
-| File under `.claude/commands/` | §3 shared + §3b skill-file |
+| File under `.claude/commands/`, or `CLAUDE.md` / `AGENTS.md` anywhere in the repo | §3 shared + §3b skill-file |
 | Code comments, docstrings | §3 shared + §3a human-prose |
-| Commits, PRs, READMEs, design docs, release notes, any `*.md` outside `.claude/commands/` | §3 shared + §3a human-prose |
+| Commits, PRs, READMEs, design docs, release notes, any other `*.md` | §3 shared + §3a human-prose |
 | In-conversation prose with no path context | §3 shared only |
 
 Don't guess when the target is ambiguous — applying §3 alone is correct; half-applying §3a or §3b is not. When a directory target spans multiple kinds, resolve the rule set per file.
@@ -83,7 +83,7 @@ Surface adjustments:
 
 1. **Parallel structure.** Five "When X, do Y" beat five differently-shaped sentences carrying the same rule.
 2. **Imperative, verb-first.** The reader is an agent.
-3. **Spell out algorithms.** Name the field, the fallback, the flag — "read `scripts.check-types`; if null, read `scripts.typecheck`" beats "whichever the package declares".
+3. **Spell out algorithms.** Name the field, the path, the predicate — "read `scripts.check-types`; skip the package when null" beats "whichever the package declares".
 4. **Cite by handle.** Reference `[handle]` defined elsewhere; never re-list contents inline.
 5. **Tables and numbered steps over paragraphs.** Structure carries semantics the reader follows directly.
 6. **No cadence variation.** Five short imperatives in a row are correct, not choppy.

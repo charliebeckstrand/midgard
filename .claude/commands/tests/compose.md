@@ -23,7 +23,7 @@ Per package, capture:
 | `framework` | drives whether component-testing helpers are imported |
 | `testLayout` | `sibling` or `mirror` |
 | `scripts.test` | command to run after writing |
-| `scripts.check-types` | type-check command (falls back to `scripts.typecheck` when null) |
+| `scripts.check-types` | type-check command (skip when null) |
 | `packageManager` | `<pm>` substitution for run commands |
 
 Read `testHelpersDir`. If `null`, glob the package source for `test-utils.{ts,tsx}`, `setup.{ts,tsx}`, `helpers.{ts,tsx}`, or `__tests__/helpers/`. With multiple matches, prefer the one whose exports include a `render` or `renderHook` wrapper; otherwise use the closest to the source file. Prefer the file's exports over raw library calls.
@@ -262,10 +262,10 @@ If the test fails, fix it and re-run.
 
 ## 6. Type-check
 
-Resolve the script name from the manifest: `scripts.check-types`, falling back to `scripts.typecheck` when null. Then:
+Read `scripts.check-types` from the manifest. If null, skip the type-check (no script declared). Otherwise:
 
 ```
-<pm> turbo <script> --filter=<pkg>
+<pm> turbo check-types --filter=<pkg>
 ```
 
 Fix any type error in the test file before continuing.

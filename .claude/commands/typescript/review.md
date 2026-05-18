@@ -31,7 +31,7 @@ Per package, capture:
 | `linter` (`biome` / `eslint` / `null`) | findings the linter already enforces are skipped |
 | `testRunner` | drives test-typing expectations |
 | `scripts.test` | exists or not |
-| `scripts.check-types`, `scripts.typecheck` | resolved in §4 (read `check-types` first, fall back to `typecheck`) |
+| `scripts.check-types` | invoked in §4; skip the package when null |
 
 Plus top-level: `packageManager`, `monorepo.tool`, `conventions.principles`. This skill assumes Turborepo; when `monorepo.tool` differs, substitute each `<pm> turbo <task> --filter=<pkg>` invocation below with the package's direct script call (`<pm> --filter=<pkg> run <script>`).
 
@@ -93,10 +93,10 @@ A weakened test counts as a **blocking** finding even when the suite is green.
 
 ## 4. Type-check the touched packages
 
-For each touched package, resolve the type-check script name from the manifest: `scripts.check-types`, falling back to `scripts.typecheck` when null. Skip the package when both are null. Then invoke:
+For each touched package, read `scripts.check-types` from the manifest. Skip the package when null (no type-check script declared). Then invoke a single command across the remaining packages:
 
 ```
-<pm> turbo <script> --filter=<pkg-1> --filter=<pkg-2>
+<pm> turbo check-types --filter=<pkg-1> --filter=<pkg-2>
 ```
 
 Any type error blocks the verdict. Type-check is always a single invocation regardless of test runners.

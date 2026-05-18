@@ -154,7 +154,7 @@ After premortem-driven revisions, ask the user to confirm execution. Per stage:
    - **vitest**: `<pm> --filter=<pkg> exec vitest related --run <touched-files>` (or `--changed` after staging).
    - **jest**: `<pm> --filter=<pkg> exec jest --findRelatedTests <touched-files>`.
    - **bun / node**: `<pm> turbo test --filter=<pkg>` (full package suite; bun/node test runners don't expose change-driven flags).
-3. Run the package's type-check. Resolve the script name from the manifest: `scripts.check-types`, falling back to `scripts.typecheck` when null. Then invoke `<pm> turbo <script> --filter=<pkg>`.
+3. Run the package's type-check. Read `scripts.check-types` from the manifest. If null, skip the type-check (no script declared). Otherwise invoke `<pm> turbo check-types --filter=<pkg>`.
 4. If either gate fails: stop, surface, don't advance. The user fixes or aborts.
 5. If both gates pass: invoke `/typescript:review` in file mode against the stage's touched files as a single space-separated path list (`/typescript:review <file-1> <file-2> ...`). BLOCK halts the stage; the user resolves or waives.
 6. Ask the user to commit. **Never auto-commit.** Commit messages follow the project's git conventions (imperative mood, atomic).
