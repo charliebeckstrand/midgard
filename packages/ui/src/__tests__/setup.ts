@@ -233,6 +233,7 @@ vi.mock('maplibre-gl', () => {
 if (typeof window.matchMedia !== 'function') {
 	Object.defineProperty(window, 'matchMedia', {
 		writable: true,
+		configurable: true,
 		value: vi.fn().mockImplementation((query: string) => ({
 			matches: false,
 			media: query,
