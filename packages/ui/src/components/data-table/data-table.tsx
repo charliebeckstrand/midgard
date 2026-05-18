@@ -5,14 +5,13 @@ import { cn } from '../../core'
 import { useControllable } from '../../hooks'
 import { k } from '../../recipes/kata/data-table'
 import type { TableElementProps, TableVariants } from '../table'
-import { Table, TableBody, TableLoading } from '../table'
+import { Table } from '../table'
 import { Toolbar } from '../toolbar'
 import { DataTableProvider, type SortState } from './context'
+import { DataTableBody } from './data-table-body'
 import { DataTableColumnManagerDialog } from './data-table-column-manager-dialog'
 import { DEFAULT_OVERSCAN, DEFAULT_ROW_HEIGHT } from './data-table-constants'
 import { DataTableHead } from './data-table-head'
-import { DataTableRow } from './data-table-row'
-import { DataTableVirtualizedBody } from './data-table-virtualized-body'
 import type { DataTableColumn, DataTableColumnManagerPreset } from './types'
 import { useDataTableColumns } from './use-data-table-columns'
 import { useDataTableSelection } from './use-data-table-selection'
@@ -186,44 +185,6 @@ export function DataTable<T>({
 
 	const needsScrollWrapper = stickyHeader || virtualizeEnabled
 
-	const renderBody = () => {
-		if (loading) return <TableLoading columns={visibleColumns.length} />
-
-		if (virtualizeEnabled) {
-			return (
-				<DataTableVirtualizedBody<T>
-					scrollRef={scrollRef}
-					rows={rows}
-					rowKeys={rowKeys}
-					visibleColumns={visibleColumns}
-					rowLoading={rowLoading}
-					rowClassName={rowClassName}
-					estimateSize={estimateSize}
-					overscan={overscan}
-				/>
-			)
-		}
-
-		return (
-			<TableBody>
-				{rows.map((row, index) => {
-					const key = rowKeys[index] ?? getRowKey(row, index)
-
-					return (
-						<DataTableRow<T>
-							key={key}
-							row={row}
-							rowKey={key}
-							columns={visibleColumns}
-							loading={rowLoading?.(row) ?? false}
-							className={rowClassName?.(row)}
-						/>
-					)
-				})}
-			</TableBody>
-		)
-	}
-
 	const tableContent = (
 		<Table
 			density={density}
@@ -235,7 +196,16 @@ export function DataTable<T>({
 		>
 			<DataTableHead columns={visibleColumns} />
 
-			{renderBody()}
+			<DataTableBody<T>
+				loading={loading}
+				rows={rows}
+				rowKeys={rowKeys}
+				visibleColumns={visibleColumns}
+				getRowKey={getRowKey}
+				rowLoading={rowLoading}
+				rowClassName={rowClassName}
+				virtualize={virtualizeEnabled ? { scrollRef, estimateSize, overscan } : null}
+			/>
 		</Table>
 	)
 
