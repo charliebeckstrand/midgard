@@ -3,7 +3,7 @@
 import { type ReactNode, useCallback, useMemo } from 'react'
 import { cn } from '../../core'
 import { accordionItemVariants } from '../../recipes/kata/accordion'
-import { AccordionItemProvider, useAccordionRoot } from './context'
+import { AccordionItemProvider, useAccordion } from './context'
 
 export type AccordionItemProps = {
 	value: string
@@ -18,13 +18,13 @@ export function AccordionItem({
 	className,
 	children,
 }: AccordionItemProps) {
-	const root = useAccordionRoot()
+	const accordion = useAccordion()
 
-	const open = root.isOpen(value)
+	const open = accordion.isOpen(value)
 
 	const toggle = useCallback(() => {
-		if (!disabled) root.toggle(value)
-	}, [disabled, root, value])
+		if (!disabled) accordion.toggle(value)
+	}, [disabled, accordion, value])
 
 	const context = useMemo(
 		() => ({ value, open, toggle, disabled }),
@@ -36,7 +36,7 @@ export function AccordionItem({
 			<div
 				data-slot="accordion-item"
 				data-open={open || undefined}
-				className={cn(accordionItemVariants({ variant: root.variant }), className)}
+				className={cn(accordionItemVariants({ variant: accordion.variant }), className)}
 			>
 				{children}
 			</div>
