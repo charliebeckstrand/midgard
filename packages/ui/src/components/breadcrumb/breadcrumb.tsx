@@ -4,7 +4,6 @@ import { type ComponentPropsWithoutRef, useRef } from 'react'
 import { cn } from '../../core'
 import { useRoving } from '../../hooks'
 import { breadcrumbVariants } from '../../recipes/kata/breadcrumb'
-import { BREADCRUMB_ITEM_SELECTOR } from './breadcrumb-constants'
 
 export type BreadcrumbProps = ComponentPropsWithoutRef<'nav'>
 
@@ -12,7 +11,7 @@ export function Breadcrumb({ className, onKeyDown, ...props }: BreadcrumbProps) 
 	const ref = useRef<HTMLElement>(null)
 
 	const handleRovingKeyDown = useRoving(ref, {
-		itemSelector: BREADCRUMB_ITEM_SELECTOR,
+		itemSelector: 'a[href]',
 		orientation: 'horizontal',
 	})
 
