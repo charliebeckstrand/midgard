@@ -14,12 +14,15 @@ export const meta = { category: 'Data Display' }
 
 const groupAvatars = ['AB', 'CD', 'EF', 'GH'] as const
 
-const sizes = ['xs', 'sm', 'md', 'lg', 'xl'] as const
-const variants = ['solid', 'soft', 'outline'] as const
-const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
+const sizes = ['sm', 'md', 'lg'] as const
 
 type Size = (typeof sizes)[number]
+
+const variants = ['solid', 'soft', 'outline'] as const
+
 type Variant = (typeof variants)[number]
+
+const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 
 export default function AvatarDemo() {
 	const [colorVariant, setColorVariant] = useState<Variant>('solid')
