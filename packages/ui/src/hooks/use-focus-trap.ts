@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 
 const focusableSelector = [
 	'a[href]',
@@ -17,7 +17,7 @@ export function useFocusTrap(active: boolean) {
 
 	const previouslyFocused = useRef<HTMLElement | null>(null)
 
-	useEffect(() => {
+	useLayoutEffect(() => {
 		if (!active) return
 
 		const container = containerRef.current
