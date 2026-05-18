@@ -2,7 +2,7 @@
 
 import { FloatingPortal } from '@floating-ui/react'
 import { AnimatePresence, motion } from 'motion/react'
-import { type ReactNode, useLayoutEffect, useRef } from 'react'
+import { type ReactNode, useEffect, useRef } from 'react'
 import { cn } from '../../core'
 import { Density, useDensity } from '../../primitives/density'
 import { ReducedMotion } from '../../primitives/reduced-motion'
@@ -48,7 +48,7 @@ export function PopoverContent({
 
 	const resolvedPadding: BoxPadding = p ?? paddingForSize[resolvedSize]
 
-	useLayoutEffect(() => {
+	useEffect(() => {
 		if (open && autoFocus) {
 			contentRef.current?.focus()
 		}
