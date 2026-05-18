@@ -3,7 +3,7 @@
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { cn, invalidAttrs } from '../../core'
 import { ControlFrame } from '../../primitives/control'
-import { DENSITY_PRESETS, useDensity } from '../../primitives/density'
+import { densityPresets, useDensity } from '../../primitives/density'
 import { useSkeleton } from '../../providers/skeleton'
 import { kokkaku } from '../../recipes'
 import {
@@ -50,7 +50,7 @@ export function Textarea({
 	const binding = useFormText(name, { onChange, onBlur })
 	const inherited = useDensity()
 
-	const token = size ? DENSITY_PRESETS[size] : inherited
+	const token = size ? densityPresets[size] : inherited
 
 	const {
 		id: resolvedId,

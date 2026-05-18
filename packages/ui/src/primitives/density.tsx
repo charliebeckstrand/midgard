@@ -37,7 +37,7 @@ export type DensityToken = {
 export type DensityInput = Partial<DensityToken> & { scale?: Step }
 
 /** Diagonal preset table — `scale="md"` resolves to `{ density: 'md', size: 'md' }`. */
-export const DENSITY_PRESETS: Record<Step, DensityToken> = {
+export const densityPresets: Record<Step, DensityToken> = {
 	sm: { density: 'sm', size: 'sm' },
 	md: { density: 'md', size: 'md' },
 	lg: { density: 'lg', size: 'lg' },
@@ -71,7 +71,7 @@ const [DensityProviderRaw, useDensityNullable] = createContext<DensityToken | nu
 export function useDensity(): DensityToken {
 	const density = useDensityNullable()
 
-	return density ?? DENSITY_PRESETS.md
+	return density ?? densityPresets.md
 }
 
 export { useDensityNullable }
@@ -108,7 +108,7 @@ export function Density({ children, scale, density: densityProp, size: sizeProp 
 	const parent = useDensity()
 
 	const token = useMemo<DensityToken>(() => {
-		const base = scale ? DENSITY_PRESETS[scale] : parent
+		const base = scale ? densityPresets[scale] : parent
 
 		return {
 			density: densityProp ?? base.density,

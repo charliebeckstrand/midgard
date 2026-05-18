@@ -1,7 +1,7 @@
 'use client'
 
 import { cn } from '../../core'
-import { DENSITY_PRESETS, DensityScope, useDensity } from '../../primitives/density'
+import { DensityScope, densityPresets, useDensity } from '../../primitives/density'
 import { useSkeleton } from '../../providers/skeleton'
 import { kokkaku } from '../../recipes'
 import { type Step, sun } from '../../recipes/ryu/sun'
@@ -27,7 +27,7 @@ export function Card({
 }: CardProps) {
 	const inherited = useDensity()
 
-	const token = size ? DENSITY_PRESETS[size] : inherited
+	const token = size ? densityPresets[size] : inherited
 
 	if (useSkeleton()) {
 		return (

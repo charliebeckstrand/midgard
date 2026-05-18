@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { DENSITY_PRESETS, useDensity } from '../../primitives/density'
+import { densityPresets, useDensity } from '../../primitives/density'
 import { useSkeleton } from '../../providers/skeleton'
 import {
 	type StatValueVariants,
@@ -19,7 +19,7 @@ export type StatValueProps = StatValueVariants & {
 export function StatValue({ size, className, children, ...props }: StatValueProps) {
 	const inherited = useDensity()
 
-	const resolvedSize = size ? DENSITY_PRESETS[size].size : inherited.size
+	const resolvedSize = size ? densityPresets[size].size : inherited.size
 
 	if (useSkeleton()) {
 		return <Placeholder className={cn(statValuePlaceholder({ size: resolvedSize }), className)} />

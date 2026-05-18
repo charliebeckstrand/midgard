@@ -6,7 +6,7 @@ import type { Step } from '../../recipes/ryu/sun'
 export type DensityLevel = 'loose' | 'snug' | 'compact'
 
 /** Friendly density level → `Step` carried by the Density primitive. 1:1 mapping. */
-export const DENSITY_TO_SIZE: Record<DensityLevel, Step> = {
+export const densityToSize: Record<DensityLevel, Step> = {
 	loose: 'lg',
 	snug: 'md',
 	compact: 'sm',

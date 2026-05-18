@@ -43,9 +43,9 @@ Every component or hook file must also export a symbol whose PascalCase (or `use
 
 ## Constant naming
 
-For module-level constants (typically in `-constants.ts` files):
+Module-level constants (typically in `-constants.ts`):
 
-- **`UPPER_SNAKE_CASE`** for named magic values — primitives you'd otherwise inline as a literal (`MIN_THUMB_SIZE = 20`, `INDENT_REM = 1.25`, `ITEM_SELECTOR = '[role="treeitem"]'`), fixed-list tuples (`WEEKDAYS`, `MONTHS`, `BREAKPOINTS`), and frozen sentinel values used as defaults (`HIDDEN_THUMB`).
-- **`camelCase`** for data structures — lookup tables keyed by a component concept (`tagSize`, `ratioMap`, `gapMap`, `directionMap`), library config blobs (`buttonSpring`), and initial-state shapes (`initialDatePickerRangeState`).
+- **`UPPER_SNAKE_CASE`** for named magic values — primitives, fixed enumerations, sentinel defaults.
+- **`camelCase`** for keyed data — lookup tables, config objects, initial-state shapes.
 
-Rule of thumb: if you'd otherwise inline the value as a magic literal, name it `UPPER_SNAKE`. If you'd index into it or pass it as an options object, name it `camelCase`.
+If you'd inline it as a literal, `UPPER_SNAKE`. If you'd index into it, `camelCase`.

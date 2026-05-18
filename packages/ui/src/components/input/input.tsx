@@ -5,7 +5,7 @@ import { cn, invalidAttrs } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { AffixProvider, affixStepDown } from '../../primitives/affix'
 import { ControlFrame } from '../../primitives/control'
-import { DENSITY_PRESETS, DensityScope, useDensity } from '../../primitives/density'
+import { DensityScope, densityPresets, useDensity } from '../../primitives/density'
 import { useSkeleton } from '../../providers/skeleton'
 import { controlVariants, type InputVariants, inputVariants, k } from '../../recipes/kata/input'
 import type { Step } from '../../recipes/ryu/sun'
@@ -63,7 +63,7 @@ export function Input(props: InputProps) {
 	const skeleton = useSkeleton()
 	const inherited = useDensity()
 
-	const token = size ? DENSITY_PRESETS[size] : inherited
+	const token = size ? densityPresets[size] : inherited
 
 	const resolvedSize = token.size
 
