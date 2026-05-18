@@ -3,11 +3,11 @@
 import { AnimatePresence, motion } from 'motion/react'
 import type { HTMLAttributes, ReactNode } from 'react'
 import { createPortal } from 'react-dom'
-import { cn } from '../core'
-import { useDismissable } from '../hooks/use-dismissable'
-import { useFocusTrap } from '../hooks/use-focus-trap'
-import { omote, ugoki } from '../recipes'
-import { ReducedMotion } from './reduced-motion'
+import { cn } from '../../core'
+import { useDismissable } from '../../hooks/use-dismissable'
+import { useFocusTrap } from '../../hooks/use-focus-trap'
+import { omote, ugoki } from '../../recipes'
+import { ReducedMotion } from '../reduced-motion'
 
 export type OverlayProps = {
 	open: boolean

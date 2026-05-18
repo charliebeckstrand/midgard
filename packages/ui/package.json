@@ -22,14 +22,8 @@
 			"default": "./src/layouts/index.ts"
 		},
 		"./primitives/*": {
-			"types": [
-				"./src/primitives/*.ts",
-				"./src/primitives/*.tsx"
-			],
-			"default": [
-				"./src/primitives/*.ts",
-				"./src/primitives/*.tsx"
-			]
+			"types": "./src/primitives/*/index.ts",
+			"default": "./src/primitives/*/index.ts"
 		},
 		"./providers/*": {
 			"types": "./src/providers/*/index.ts",

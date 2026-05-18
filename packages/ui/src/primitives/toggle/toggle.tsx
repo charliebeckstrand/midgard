@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef } from 'react'
-import { cn } from '../core'
-import { narabi } from '../recipes'
+import { cn } from '../../core'
+import { narabi } from '../../recipes'
 
 export type ToggleGroupProps = {
 	className?: string

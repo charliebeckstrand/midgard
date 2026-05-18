@@ -1,7 +1,7 @@
 'use client'
 
-import { createContext } from '../core'
-import type { GroupOrientation, GroupPosition } from '../recipes/ryu/tsunagi'
+import { createContext } from '../../core'
+import type { GroupOrientation, GroupPosition } from '../../recipes/ryu/tsunagi'
 
 /**
  * Per-element join position broadcast by `<Group>` (via `useGroup`) to each

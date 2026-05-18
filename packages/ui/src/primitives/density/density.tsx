@@ -1,10 +1,10 @@
 'use client'
 
 import { type ReactNode, useMemo } from 'react'
-import { createContext } from '../core'
-import type { Ma } from '../recipes/ryu/ma'
-import type { Step } from '../recipes/ryu/sun'
-import { useAffix } from './affix'
+import { createContext } from '../../core'
+import type { Ma } from '../../recipes/ryu/ma'
+import type { Step } from '../../recipes/ryu/sun'
+import { useAffix } from '../affix'
 
 /**
  * Density token — broadcast by `<Density>`, read by every size-aware component

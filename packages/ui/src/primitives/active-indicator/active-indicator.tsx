@@ -2,9 +2,9 @@
 
 import { LayoutGroup, type MotionStyle, motion, useAnimate } from 'motion/react'
 import { type ReactNode, type Ref, useCallback, useId, useMemo } from 'react'
-import { cn, createContext } from '../core'
-import { ugoki } from '../recipes'
-import { ReducedMotion } from './reduced-motion'
+import { cn, createContext } from '../../core'
+import { ugoki } from '../../recipes'
+import { ReducedMotion } from '../reduced-motion'
 
 const [ActiveIndicatorScopeProvider, useActiveIndicatorScope] = createContext<string | undefined>(
 	'ActiveIndicatorScope',

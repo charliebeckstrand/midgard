@@ -1,7 +1,7 @@
 'use client'
 
 import type { ComponentPropsWithoutRef, ElementType, JSX, ReactNode, Ref } from 'react'
-import { type LinkProps, useLink } from './link'
+import { type LinkProps, useLink } from '../link'
 
 /** Props for `Polymorphic` — strips `href` from the fallback arm so it can't be passed accidentally. */
 export type PolymorphicProps<

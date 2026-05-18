@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext } from '../core'
+import { createContext } from '../../core'
 
 export type OffcanvasContextValue = {
 	close: () => void

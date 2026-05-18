@@ -1,7 +1,7 @@
 'use client'
 
 import type { AnchorHTMLAttributes, ComponentType, ReactNode, Ref } from 'react'
-import { createContext } from '../core'
+import { createContext } from '../../core'
 
 export type LinkProps = {
 	href: string

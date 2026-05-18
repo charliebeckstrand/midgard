@@ -2,9 +2,9 @@
 
 import { Check } from 'lucide-react'
 import type { ComponentPropsWithoutRef, ComponentType, ReactNode } from 'react'
-import { cn } from '../core'
-import { option as k } from '../recipes/waku/option'
-import { useDensity } from './density'
+import { cn } from '../../core'
+import { option as k } from '../../recipes/waku/option'
+import { useDensity } from '../density'
 
 const defaultCheckIcon = (
 	<Check

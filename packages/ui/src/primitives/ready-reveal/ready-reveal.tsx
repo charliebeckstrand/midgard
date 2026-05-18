@@ -2,9 +2,9 @@
 
 import { motion } from 'motion/react'
 import type { ReactNode } from 'react'
-import { cn } from '../core'
-import { ugoki } from '../recipes'
-import { ReducedMotion } from './reduced-motion'
+import { cn } from '../../core'
+import { ugoki } from '../../recipes'
+import { ReducedMotion } from '../reduced-motion'
 
 export type ReadyRevealProps = {
 	/** When true, reveals `children`; when false, shows `placeholder`. */
