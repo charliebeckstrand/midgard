@@ -3,7 +3,6 @@
 import { motion } from 'motion/react'
 import type { ComponentPropsWithoutRef, PointerEvent, ReactNode, Ref } from 'react'
 import { cn } from '../../core'
-import { useRipple } from '../../hooks'
 import { AffixProvider } from '../../primitives/affix'
 import { useSizeWide } from '../../primitives/density'
 import type { PolymorphicProps } from '../../primitives/polymorphic'
