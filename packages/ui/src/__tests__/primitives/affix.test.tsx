@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { AffixProvider, useAffix } from '../../primitives/affix'
-import { DENSITY_PRESETS, Density, useSizeWide } from '../../primitives/density'
+import { Density, densityPresets, useSizeWide } from '../../primitives/density'
 
 describe('useAffix', () => {
 	it('returns null outside any AffixProvider', () => {
@@ -57,7 +57,7 @@ describe('useSizeWide', () => {
 	it('returns md when nothing is in scope', () => {
 		const { result } = renderHook(() => useSizeWide())
 
-		expect(result.current).toBe(DENSITY_PRESETS.md.size)
+		expect(result.current).toBe(densityPresets.md.size)
 	})
 
 	it('Affix wins over an enclosing Density', () => {

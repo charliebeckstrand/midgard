@@ -10,9 +10,9 @@ import {
 	useRef,
 } from 'react'
 import { useControllable } from '../../hooks/use-controllable'
+import { MONTHS } from './calendar-constants'
 import type { CalendarPickerGridCell } from './calendar-picker-grid'
 import { calendarPickerReducer, initialCalendarPickerState } from './calendar-picker-reducer'
-import { MONTHS } from './calendar-utilities'
 import { useCalendarFocus } from './use-calendar-focus'
 
 export type UseCalendarPickerInput = {

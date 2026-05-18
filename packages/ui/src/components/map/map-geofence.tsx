@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef } from 'react'
 import { useMapContext } from './context'
+import { EARTH_RADIUS_M } from './map-geofence-constants'
 import type { GeofenceShape, LngLat } from './types'
 
 export type MapGeofenceProps = {
@@ -131,8 +132,6 @@ function toPolygon(shape: GeofenceShape) {
 		properties: {},
 	}
 }
-
-const EARTH_RADIUS_M = 6371000
 
 function circlePolygon(center: LngLat, radiusMeters: number, steps = 64): LngLat[] {
 	const [lng, lat] = center

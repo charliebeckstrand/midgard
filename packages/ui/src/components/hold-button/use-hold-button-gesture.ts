@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react'
-
-const RESET_DURATION = 150
+import { RESET_DURATION } from './hold-button-constants'
 
 export type UseHoldGestureOptions = {
 	duration: number

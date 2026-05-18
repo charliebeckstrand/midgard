@@ -5,8 +5,9 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/calendar'
 import type { Step } from '../../recipes/ryu/sun'
 import type { CalendarDayContext, CalendarDayProps } from './calendar'
+import { WEEKDAYS } from './calendar-constants'
 import { CalendarDayCell } from './calendar-day-cell'
-import { isSameDay, WEEKDAYS } from './calendar-utilities'
+import { isSameDay } from './calendar-utilities'
 
 export type CalendarGridProps = {
 	gridRef: RefObject<HTMLDivElement | null>

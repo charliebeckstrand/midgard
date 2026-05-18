@@ -14,9 +14,9 @@ import { useGlass } from '../glass/context'
 import { useHeadless } from '../headless/context'
 import { Link } from '../link'
 import { Spinner, type SpinnerProps } from '../spinner'
+import { buttonSpring } from './button-constants'
 import { ButtonHeadless } from './button-headless'
 import { ButtonSkeleton } from './button-skeleton'
-import { buttonSpring } from './button-spring'
 import { hasLabelContent } from './button-utilities'
 
 export type LoadingOptions = Pick<SpinnerProps, 'color' | 'size' | 'label'>

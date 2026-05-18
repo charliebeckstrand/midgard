@@ -4,8 +4,7 @@ import { type ComponentPropsWithoutRef, useRef } from 'react'
 import { cn } from '../../core'
 import { useRoving } from '../../hooks'
 import { breadcrumbVariants } from '../../recipes/kata/breadcrumb'
-
-const BREADCRUMB_ITEM_SELECTOR = 'a[href]'
+import { BREADCRUMB_ITEM_SELECTOR } from './breadcrumb-constants'
 
 export type BreadcrumbProps = ComponentPropsWithoutRef<'nav'>
 

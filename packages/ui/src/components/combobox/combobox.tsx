@@ -13,7 +13,7 @@ import {
 import { useFloatingUI, useRoving, useScrollWithin, useSelectableValueChange } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
-import { DENSITY_PRESETS, useDensity } from '../../primitives/density'
+import { densityPresets, useDensity } from '../../primitives/density'
 import { useSkeleton } from '../../providers/skeleton'
 import { type ControlSize, useControl } from '../control/context'
 import { ControlSkeleton } from '../control/control-skeleton'
@@ -108,7 +108,7 @@ export function Combobox<T>({
 	const skeleton = useSkeleton()
 	const inherited = useDensity()
 
-	const token = size ? DENSITY_PRESETS[size] : inherited
+	const token = size ? densityPresets[size] : inherited
 
 	const resolvedSize = token.size
 

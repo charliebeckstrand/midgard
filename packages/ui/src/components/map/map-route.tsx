@@ -5,17 +5,15 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 import { useMapContext } from './context'
 import { MapMarker } from './map-marker'
+import {
+	DEFAULT_ACTIVE_COLOR,
+	DEFAULT_DONE_COLOR,
+	DEFAULT_PENDING_COLOR,
+	HIT_LAYER_WIDTH,
+} from './map-route-constants'
 import { MapRouteTimeline } from './map-route-timeline'
 import { type SegmentStatus, toColorMatch, toSegmentCollection } from './map-route-utilities'
 import type { RouteData, RouteStop } from './types'
-
-/** Muted grey for the base (unwalked) route. */
-const DEFAULT_PENDING_COLOR = '#a1a1aa'
-const DEFAULT_ACTIVE_COLOR = '#2563eb'
-const DEFAULT_DONE_COLOR = '#16a34a'
-
-/** Invisible click-target layer width, in pixels. */
-const HIT_LAYER_WIDTH = 24
 
 export type MapRouteProps = {
 	data: RouteData

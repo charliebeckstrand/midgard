@@ -1,4 +1,4 @@
-export const ITEM_SELECTOR = '[role="treeitem"]'
+import { ITEM_SELECTOR } from './tree-constants'
 
 /** Standard ARIA roving-tabindex: only the active item is in the tab order. */
 export function setActiveItem(container: HTMLElement, target: HTMLElement) {

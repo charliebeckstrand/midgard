@@ -27,7 +27,7 @@ function rasterStyle(tiles: string[], attribution: string, maxzoom = 19): StyleS
 	}
 }
 
-export const MAP_PRESETS: Record<MapPreset, string | StyleSpecification> = {
+export const mapPresets: Record<MapPreset, string | StyleSpecification> = {
 	demo: DEMO,
 	osm: rasterStyle(
 		['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],

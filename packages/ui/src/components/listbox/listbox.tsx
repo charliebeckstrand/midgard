@@ -5,7 +5,7 @@ import { ChevronsUpDown } from 'lucide-react'
 import { type ReactNode, useId, useMemo, useRef } from 'react'
 import { useFloatingUI, useSelectableValueChange } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
-import { DENSITY_PRESETS, useDensity } from '../../primitives/density'
+import { densityPresets, useDensity } from '../../primitives/density'
 import { useSkeleton } from '../../providers/skeleton'
 import { type ControlSize, useControl } from '../control/context'
 import { ControlSkeleton } from '../control/control-skeleton'
@@ -87,7 +87,7 @@ export function Listbox<T>({
 	const skeleton = useSkeleton()
 	const inherited = useDensity()
 
-	const token = size ? DENSITY_PRESETS[size] : inherited
+	const token = size ? densityPresets[size] : inherited
 
 	const resolvedId = inputId ?? control?.id
 

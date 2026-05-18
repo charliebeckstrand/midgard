@@ -6,7 +6,8 @@ import { useRoving } from '../../hooks'
 import { useDensity } from '../../primitives/density'
 import { k, type TreeSize } from '../../recipes/kata/tree'
 import { TreeProvider } from './context'
-import { ensureFirstItemActive, ITEM_SELECTOR, setActiveItem } from './tree-utilities'
+import { ITEM_SELECTOR } from './tree-constants'
+import { ensureFirstItemActive, setActiveItem } from './tree-utilities'
 
 export type TreeProps = {
 	/**

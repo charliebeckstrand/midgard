@@ -1,20 +1,3 @@
-export const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'] as const
-
-export const MONTHS = [
-	'Jan',
-	'Feb',
-	'Mar',
-	'Apr',
-	'May',
-	'Jun',
-	'Jul',
-	'Aug',
-	'Sep',
-	'Oct',
-	'Nov',
-	'Dec',
-] as const
-
 export function isSameDay(a: Date, b: Date): boolean {
 	return (
 		a.getFullYear() === b.getFullYear() &&

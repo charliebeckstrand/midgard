@@ -6,7 +6,7 @@ import { Badge } from '../badge'
 import { Button } from '../button'
 import type { ControlSize } from '../control/context'
 import { Icon } from '../icon'
-import { tagRemoveSize, tagSize } from './tag-input-utilities'
+import { tagRemoveSize, tagSize } from './tag-input-constants'
 
 export type TagInputBadgeProps = {
 	label: string

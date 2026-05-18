@@ -9,6 +9,7 @@ import { Table, TableBody, TableLoading } from '../table'
 import { Toolbar } from '../toolbar'
 import { DataTableProvider, type SortState } from './context'
 import { DataTableColumnManagerDialog } from './data-table-column-manager-dialog'
+import { DEFAULT_OVERSCAN, DEFAULT_ROW_HEIGHT } from './data-table-constants'
 import { DataTableHead } from './data-table-head'
 import { DataTableRow } from './data-table-row'
 import { DataTableVirtualizedBody } from './data-table-virtualized-body'
@@ -17,9 +18,6 @@ import { useDataTableColumns } from './use-data-table-columns'
 import { useDataTableSelection } from './use-data-table-selection'
 
 export type DataTableVirtualize = boolean | { estimateSize?: number; overscan?: number }
-
-const DEFAULT_ROW_HEIGHT = 44
-const DEFAULT_OVERSCAN = 10
 
 export type DataTableSort = {
 	value?: SortState

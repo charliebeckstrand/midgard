@@ -3,7 +3,7 @@
 import { type ReactNode, type Ref, type TableHTMLAttributes, useMemo } from 'react'
 import { cn } from '../../core'
 import { useDensity } from '../../primitives/density'
-import { DENSITY_TO_SIZE, type DensityLevel } from '../../providers/density'
+import { type DensityLevel, densityToSize } from '../../providers/density'
 import { k } from '../../recipes/kata/table'
 import { type TableContextValue, TableProvider } from './context'
 
@@ -48,7 +48,7 @@ export function Table({
 }: TableProps) {
 	const inherited = useDensity()
 
-	const resolvedSize = density ? DENSITY_TO_SIZE[density] : inherited.size
+	const resolvedSize = density ? densityToSize[density] : inherited.size
 
 	const context = useMemo<TableContextValue>(
 		() => ({

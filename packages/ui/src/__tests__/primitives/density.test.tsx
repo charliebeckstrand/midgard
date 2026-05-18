@@ -1,9 +1,9 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import {
-	DENSITY_PRESETS,
 	Density,
 	DensityScope,
+	densityPresets,
 	stepDown,
 	useDensity,
 } from '../../primitives/density'
@@ -26,7 +26,7 @@ describe('useDensity (no ancestor)', () => {
 	it('returns the md preset outside any provider', () => {
 		const { result } = renderHook(() => useDensity())
 
-		expect(result.current).toEqual(DENSITY_PRESETS.md)
+		expect(result.current).toEqual(densityPresets.md)
 	})
 })
 
@@ -116,6 +116,6 @@ describe('DensityScope', () => {
 			wrapper: ({ children }) => <DensityScope>{children}</DensityScope>,
 		})
 
-		expect(result.current).toEqual(DENSITY_PRESETS.md)
+		expect(result.current).toEqual(densityPresets.md)
 	})
 })

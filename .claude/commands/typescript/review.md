@@ -208,6 +208,7 @@ Read every staged hunk for:
 - **Null / undefined hazards** — property access on a value the type allows to be nullish, with no guard added.
 - **Type holes** — `as any`, `as unknown as X`, `// @ts-ignore`, `// @ts-expect-error` without an inline justification; widened return types; dropped generics.
 - **Section 5 / 6 violations** in changed code — `enum`, missed `satisfies`, hand-rolled exhaustiveness, non-null assertions where a guard applies, parallel type definitions.
+- **Constant naming drift** — module-level `const` whose casing or placement violates the file's package `## Constant naming` rule (e.g. `packages/ui/CLAUDE.md`). Cite the rule's location; skip when no such rule exists in the package.
 - **Debug residue** — `console.log` inside a conditional, stray `debugger` behind a feature flag, generated artifacts checked in alongside source.
 
 ### File mode
@@ -218,6 +219,7 @@ Read the whole file for:
 - **Section 5 violations** — `enum`, mutable shared data, `as T` where narrowing applies, missing type predicates.
 - **Section 6 opportunities** — places where `satisfies`, discriminated unions, const generics, or branded types would replace a cast or a widen-then-narrow.
 - **Convention drift from the sampled sibling** — `type` vs `interface`, named vs default export, where types live, generic-naming style.
+- **Constant naming drift** — module-level `const` whose casing or placement violates the file's package `## Constant naming` rule (e.g. `packages/ui/CLAUDE.md`). Cite the rule's location; skip when no such rule exists in the package.
 - **Dead code** — unused exports, parameters, branches.
 
 Per finding: `path/to/file.ts:42` + one-sentence concern with the principle or feature handle. No padding.

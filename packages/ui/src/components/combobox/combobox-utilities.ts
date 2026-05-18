@@ -1,4 +1,4 @@
-const OPTION_SELECTOR = '[role="option"]:not([data-disabled])'
+import { OPTION_SELECTOR } from './combobox-constants'
 
 export function resolveInputDisplay<T>({
 	editing,

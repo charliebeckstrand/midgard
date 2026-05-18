@@ -5,7 +5,7 @@ import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { MapProvider } from './context'
-import { MAP_PRESETS, type MapPreset } from './map-styles'
+import { type MapPreset, mapPresets } from './map-styles'
 import type { LngLat } from './types'
 import { useMapInstance } from './use-map-instance'
 
@@ -38,7 +38,7 @@ function MapView({
 	children,
 	onLoad,
 }: MapProps) {
-	const resolvedStyle = preset ? MAP_PRESETS[preset] : (style ?? MAP_PRESETS.demo)
+	const resolvedStyle = preset ? mapPresets[preset] : (style ?? mapPresets.demo)
 
 	const { containerRef, contextValue, ready } = useMapInstance({
 		center: camera?.center ?? [0, 0],

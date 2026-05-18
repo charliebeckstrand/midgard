@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { Density as DensityPrimitive } from '../../primitives/density'
-import { DENSITY_TO_SIZE, type DensityLevel, DensityProvider } from './context'
+import { type DensityLevel, DensityProvider, densityToSize } from './context'
 
 export type DensityProps = {
 	density: DensityLevel
@@ -20,7 +20,7 @@ export type DensityProps = {
  * touching its props.
  */
 export function Density({ density, className, children }: DensityProps) {
-	const step = DENSITY_TO_SIZE[density]
+	const step = densityToSize[density]
 
 	return (
 		<DensityProvider value={density}>

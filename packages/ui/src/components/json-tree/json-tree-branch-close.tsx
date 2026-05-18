@@ -1,6 +1,6 @@
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/json-tree'
-import { INDENT_REM } from './json-tree-utilities'
+import { INDENT_REM } from './json-tree-constants'
 
 export type JsonTreeBranchCloseProps = {
 	depth: number

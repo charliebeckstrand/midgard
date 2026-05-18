@@ -8,8 +8,7 @@ import { useDensity } from '../../primitives/density'
 import { segmentControlVariants } from '../../recipes/kata/segment'
 import { k } from '../../recipes/kata/tabs'
 import { useTabsContext } from './context'
-
-const TAB_SELECTOR = 'button[data-slot="tab"]:not(:disabled)'
+import { TAB_SELECTOR } from './tabs-constants'
 
 export type TabListProps = ComponentPropsWithoutRef<'div'>
 

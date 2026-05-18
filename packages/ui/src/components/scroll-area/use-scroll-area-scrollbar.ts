@@ -8,13 +8,8 @@ import {
 	useState,
 } from 'react'
 import type { ScrollOrientation } from '../../types'
-import {
-	computeThumb,
-	findScrollableAncestor,
-	HIDDEN_THUMB,
-	SCROLL_FADE_DELAY_MS,
-	type ThumbState,
-} from './scroll-area-utilities'
+import { HIDDEN_THUMB, SCROLL_FADE_DELAY_MS, type ThumbState } from './scroll-area-constants'
+import { computeThumb, findScrollableAncestor } from './scroll-area-utilities'
 import type { ScrollbarMode } from './types'
 
 type Orientation = ScrollOrientation

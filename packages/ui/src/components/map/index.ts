@@ -10,7 +10,7 @@ export {
 	fetchValhallaRoute,
 } from './map-routing'
 export { MapShipment, type MapShipmentProps } from './map-shipment'
-export { MAP_PRESETS, type MapPreset } from './map-styles'
+export { type MapPreset, mapPresets } from './map-styles'
 export type {
 	ChatMessage,
 	GeofenceShape,

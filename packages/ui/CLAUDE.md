@@ -40,3 +40,12 @@ Inside `src/components/<name>/` (and the parallel `primitives/`):
 When in doubt, prefix with the folder name.
 
 Every component or hook file must also export a symbol whose PascalCase (or `useCamelCase`) form matches the filename — `tag-input-badge.tsx` exports `TagInputBadge`, `use-tag-input-keyboard.ts` exports `useTagInputKeyboard`. `src/__tests__/components/boundary/component-filename-boundary.test.ts` enforces this; it carries an inline `ALLOWLIST` of grandfathered exceptions where renaming would break a stable public API (`Field`, `Label`, `ConfirmDialog`, `QueryRule`, etc.). Never extend that allowlist for new files (any file not currently in the `ALLOWLIST`, including renames or moves of allowlisted files) — fix the file or fix the export.
+
+## Constant naming
+
+Module-level constants (typically in `-constants.ts`):
+
+- **`UPPER_SNAKE_CASE`** for named magic values — primitives, fixed enumerations, sentinel defaults.
+- **`camelCase`** for keyed data — lookup tables, config objects, initial-state shapes.
+
+If you'd inline it as a literal, `UPPER_SNAKE`. If you'd index into it, `camelCase`.

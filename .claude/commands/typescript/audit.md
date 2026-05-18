@@ -162,6 +162,14 @@ Flag deviations from the sibling-sampled or package-dominant convention captured
 
 Severity: **Low**.
 
+### 3.10 Constant naming and placement
+
+Skip when no `## Constant naming` section exists in a CLAUDE.md within the audited package's directory tree.
+
+Flag module-level `const` declarations whose casing or placement violates the rule — e.g. a `Record<>` lookup table named `UPPER_SNAKE` when the rule reserves that casing for primitives, or a magic number defined inline in a component when the rule wants it in a sibling `-constants.ts`.
+
+Severity: **Low**. Cites the package's `## Constant naming` rule; do not restate it.
+
 ---
 
 ## 4. Produce findings

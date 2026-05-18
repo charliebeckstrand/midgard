@@ -6,11 +6,7 @@ import { cn } from '../../core'
 import { k, treeChevronVariants, treeItemContentVariants } from '../../recipes/kata/tree'
 import { Icon } from '../icon'
 import { useTreeContext } from './context'
-
-const AFFIX_SELECTOR = '[data-slot="tree-item-prefix"], [data-slot="tree-item-suffix"]'
-
-const PREFIX_INTERACTIVE_SELECTOR =
-	'[data-slot="tree-item-prefix"] input, [data-slot="tree-item-prefix"] button, [data-slot="tree-item-prefix"] [role="checkbox"]'
+import { AFFIX_SELECTOR, PREFIX_INTERACTIVE_SELECTOR } from './tree-constants'
 
 export type TreeItemContentProps = {
 	label: ReactNode

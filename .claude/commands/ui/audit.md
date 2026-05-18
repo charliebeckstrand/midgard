@@ -175,6 +175,7 @@ Do not propose consolidation when candidates live in different packages — that
 - **nit** — different names for the **same boolean concept** (`isOpen` / `open` / `visible`).
 - **nit** — different names for the **same handler concept** (`onChange` and `onValueChange` for the same event).
 - **nit** — component name diverges from the package's dominant casing convention.
+- **nit** — module-level `const` whose casing or placement contradicts the package's `## Constant naming` rule (e.g. `packages/ui/CLAUDE.md`). Cite the rule's location; do not restate it. Skip when no such rule exists in the package.
 
 ### 5.10. Comment and marker rot
 
