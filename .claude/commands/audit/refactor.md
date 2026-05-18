@@ -86,6 +86,8 @@ Within a single package, flag clusters where the same concept uses different ide
 
 Per cluster: list the variants, files using each, and which name appears most often (the suggested canonical form).
 
+Also flag module-level `const` declarations whose casing or placement violates a package's `## Constant naming` rule (e.g. `packages/ui/CLAUDE.md`) — miscased identifiers, or inline definitions where the rule wants them in a sibling `-constants.ts`. Cite the rule's location; do not restate it. Skip when no such rule exists in the audited package.
+
 ### 3e. Long files / long functions
 
 Default thresholds: **file > 400 lines**, **function/method > 60 lines**, **cyclomatic-complexity proxy > 12** (count `if` / `else if` / `switch case` / `?:` / `&&` / `||` per function).
