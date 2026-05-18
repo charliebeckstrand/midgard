@@ -4,6 +4,33 @@ import ts from 'typescript'
 const PROJECT_ROOT = '/project'
 
 /**
+ * Lib and other on-disk `.d.ts` files are parsed once per worker and reused
+ * across every `createInMemoryProgram` call. Parsing `lib.es2022.d.ts` is by
+ * far the most expensive step of building a tiny in-memory Program; caching
+ * the SourceFile (immutable, safe to share) is what makes the suite cheap.
+ */
+const diskSourceFileCache = new Map<string, ts.SourceFile>()
+
+function readDiskSourceFile(
+	filename: string,
+	languageVersion: ts.ScriptTarget | ts.CreateSourceFileOptions,
+): ts.SourceFile | undefined {
+	const cached = diskSourceFileCache.get(filename)
+
+	if (cached) return cached
+
+	const text = ts.sys.readFile(filename)
+
+	if (text === undefined) return undefined
+
+	const sf = ts.createSourceFile(filename, text, languageVersion, true)
+
+	diskSourceFileCache.set(filename, sf)
+
+	return sf
+}
+
+/**
  * Build a TS Program covering a tiny in-memory project plus the standard
  * library. Sources are placed under `/project/<name>.ts` and the resulting
  * Program's TypeChecker can resolve both the in-memory files and `lib.*.d.ts`
@@ -39,11 +66,7 @@ export function createInMemoryProgram(files: Record<string, string>): {
 				return ts.createSourceFile(filename, projectText, languageVersion, true, ts.ScriptKind.TSX)
 			}
 
-			const text = ts.sys.readFile(filename)
-
-			if (text === undefined) return undefined
-
-			return ts.createSourceFile(filename, text, languageVersion, true)
+			return readDiskSourceFile(filename, languageVersion)
 		},
 		getDefaultLibFileName: (opts) => ts.getDefaultLibFilePath(opts),
 		getCurrentDirectory: () => PROJECT_ROOT,
