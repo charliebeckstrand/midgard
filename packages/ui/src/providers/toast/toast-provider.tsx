@@ -86,6 +86,7 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 
 			if (maxToasts > 0) {
 				const active = toastsRef.current.filter((t) => !t.dismissed)
+
 				const excess = active.length - maxToasts
 
 				if (excess > 0) {

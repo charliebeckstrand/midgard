@@ -1,8 +1,9 @@
-import { type MutableRefObject, useCallback, useRef } from 'react'
+import { type RefObject, useCallback, useRef } from 'react'
 import type { ToastData } from './types'
 
-export function useToastQueue(toastsRef: MutableRefObject<ToastData[]>, sync: () => void) {
+export function useToastQueue(toastsRef: RefObject<ToastData[]>, sync: () => void) {
 	const queueRef = useRef<string[]>([])
+
 	const runningRef = useRef(false)
 
 	const stop = useCallback(() => {

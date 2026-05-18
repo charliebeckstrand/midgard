@@ -1,14 +1,16 @@
-import { type MutableRefObject, useCallback, useRef } from 'react'
+import { type RefObject, useCallback, useRef } from 'react'
 import type { ToastData } from './types'
 
 export function useToastTimer(
-	toastsRef: MutableRefObject<ToastData[]>,
+	toastsRef: RefObject<ToastData[]>,
 	duration: number,
 	start: () => void,
 	stop: () => void,
 ) {
 	const remainingRef = useRef(duration)
+
 	const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
+
 	const startRef = useRef(0)
 
 	const startTimer = useCallback(() => {

@@ -47,6 +47,7 @@ describe('Toast: useToast behavior', () => {
 
 	function Trigger({ onReady, children }: TriggerProps) {
 		const context = useToast()
+
 		const calledRef = useRef(false)
 
 		useEffect(() => {

@@ -18,9 +18,11 @@ describe('useFloatingPanel', () => {
 
 	it('restores focus to restoreFocusTo on close', () => {
 		const triggerRef = createRef<HTMLElement>()
+
 		const element = document.createElement('button')
 
 		const focus = vi.spyOn(element, 'focus')
+
 		;(triggerRef as { current: HTMLElement }).current = element
 
 		const { rerender } = renderHook(
@@ -43,9 +45,11 @@ describe('useFloatingPanel', () => {
 
 	it('does not restore focus on an open transition', () => {
 		const triggerRef = createRef<HTMLElement>()
+
 		const element = document.createElement('button')
 
 		const focus = vi.spyOn(element, 'focus')
+
 		;(triggerRef as { current: HTMLElement }).current = element
 
 		const { rerender } = renderHook(

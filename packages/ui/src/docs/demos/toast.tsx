@@ -115,6 +115,7 @@ export default function ToastDemo() {
 
 						// Anywhere inside the provider:
 						const { toast, dismiss } = useToast()
+						
 						toast({ title: 'Saved' })
 					`}
 				>
