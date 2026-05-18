@@ -53,17 +53,13 @@ export function usePdfViewerViewportSize(
 		return () => observer.disconnect()
 	}, [ref, measure])
 
-	// Caller-driven invalidation: re-measure synchronously when the key flips.
-	// `measure` is stable per `ref`, so the effect only re-fires on key change.
-	// The lastInvalidationKey ref both pins the dep declaratively and skips the
-	// redundant remeasure on mount — the setup effect above already measures once.
-	useLayoutEffect(() => {
-		if (lastInvalidationKeyRef.current === invalidationKey) return
-
+	// Caller-driven invalidation: re-measure during render when the key flips.
+	// The setup effect above measures on mount, so this short-circuits when the
+	// key matches the initial value.
+	if (lastInvalidationKeyRef.current !== invalidationKey) {
 		lastInvalidationKeyRef.current = invalidationKey
-
 		measure()
-	}, [invalidationKey, measure])
+	}
 
 	return size
 }

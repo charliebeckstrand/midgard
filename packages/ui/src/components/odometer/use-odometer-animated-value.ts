@@ -38,13 +38,15 @@ export function useOdometerAnimatedValue({
 
 			const eased = 1 - (1 - t) ** 3
 
-			setDisplay(from + (to - from) * eased)
+			const current = from + (to - from) * eased
+
+			fromRef.current = current
+
+			setDisplay(current)
 
 			if (t < 1) {
 				rafRef.current = requestAnimationFrame(tick)
 			} else {
-				fromRef.current = to
-
 				rafRef.current = null
 			}
 		}
@@ -57,8 +59,6 @@ export function useOdometerAnimatedValue({
 
 				rafRef.current = null
 			}
-
-			fromRef.current = to
 		}
 	}, [value, duration])
 

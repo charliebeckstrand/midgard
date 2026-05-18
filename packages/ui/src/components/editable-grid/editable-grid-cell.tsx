@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 import { cn } from '../../core'
 import {
 	editableGridCellInputVariants,
@@ -49,7 +49,7 @@ export function EditableGridCell({
 
 	editEntryRef.current = { draft, formatted }
 
-	useEffect(() => {
+	useLayoutEffect(() => {
 		if (!showInput) return
 
 		const input = inputRef.current

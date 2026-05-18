@@ -1,6 +1,6 @@
 'use client'
 
-import { type SyntheticEvent, useLayoutEffect, useRef, useState } from 'react'
+import { type SyntheticEvent, useRef, useState } from 'react'
 import type { PdfViewerPage } from './types'
 
 type Size = { width: number; height: number }
@@ -28,12 +28,10 @@ export function usePdfViewerPageSize(
 	const resetKey = `${activePage?.id ?? ''}:${safePage}`
 	const prevResetKey = useRef(resetKey)
 
-	useLayoutEffect(() => {
-		if (prevResetKey.current === resetKey) return
-
+	if (prevResetKey.current !== resetKey) {
 		prevResetKey.current = resetKey
 		setNaturalSize(null)
-	}, [resetKey])
+	}
 
 	const pageSize =
 		activePage?.width && activePage.height

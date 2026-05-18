@@ -48,9 +48,11 @@ export function useTooltipState({
 		offset: 8,
 	})
 
-	useEffect(() => {
-		if (!enabled && open) setOpen(false)
-	}, [enabled, open])
+	const prevEnabledRef = useRef(enabled)
+	if (prevEnabledRef.current && !enabled && open) {
+		setOpen(false)
+	}
+	prevEnabledRef.current = enabled
 
 	const wasDisabledRef = useRef(false)
 
