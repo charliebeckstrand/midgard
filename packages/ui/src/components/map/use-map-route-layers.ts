@@ -39,6 +39,12 @@ export function useMapRouteLayers({
 	const { getMap, onReady } = useMapContext()
 
 	useEffect(() => {
+		let handlers: {
+			click: (event: MapLayerMouseEvent) => void
+			enter: () => void
+			leave: () => void
+		} | null = null
+
 		const cleanup = onReady((map) => {
 			map.addSource(sourceId, {
 				type: 'geojson',
@@ -80,6 +86,8 @@ export function useMapRouteLayers({
 				map.getCanvas().style.cursor = ''
 			}
 
+			handlers = { click: handleClick, enter: handleEnter, leave: handleLeave }
+
 			map.on('click', hitLayerId, handleClick)
 
 			map.on('mouseenter', hitLayerId, handleEnter)
@@ -95,6 +103,16 @@ export function useMapRouteLayers({
 			if (!map) return
 
 			try {
+				if (handlers) {
+					map.off('click', hitLayerId, handlers.click)
+					map.off('mouseenter', hitLayerId, handlers.enter)
+					map.off('mouseleave', hitLayerId, handlers.leave)
+				}
+
+				// Reset the cursor in case we unmount while hovered — handleLeave
+				// would have done this, but it won't fire after the listener is off.
+				map.getCanvas().style.cursor = ''
+
 				if (map.getLayer(hitLayerId)) map.removeLayer(hitLayerId)
 
 				if (map.getLayer(layerId)) map.removeLayer(layerId)
