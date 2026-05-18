@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { HoldButton } from '../../components/hold-button'
 import { act, bySlot, fireEvent, renderUI, screen } from '../helpers'
 
@@ -155,95 +155,93 @@ describe('HoldButton', () => {
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 
-	it('fires onComplete after the hold duration elapses', () => {
-		vi.useFakeTimers()
-
-		const onComplete = vi.fn()
-
-		const { container } = renderUI(
-			<HoldButton duration={1000} onComplete={onComplete}>
-				Hold
-			</HoldButton>,
-		)
-
-		const el = bySlot(container, 'hold-button') as HTMLElement
-
-		fireEvent.pointerDown(el)
-
-		act(() => {
-			vi.advanceTimersByTime(1000)
+	describe('hold completion', () => {
+		beforeEach(() => {
+			vi.useFakeTimers()
 		})
 
-		expect(onComplete).toHaveBeenCalledOnce()
-
-		vi.useRealTimers()
-	})
-
-	it('cancels an in-flight hold when disabled flips true mid-hold', () => {
-		vi.useFakeTimers()
-
-		const onComplete = vi.fn()
-
-		const onHoldCancel = vi.fn()
-
-		const { container, rerender } = renderUI(
-			<HoldButton duration={1000} onComplete={onComplete} onHoldCancel={onHoldCancel}>
-				Hold
-			</HoldButton>,
-		)
-
-		const el = bySlot(container, 'hold-button') as HTMLElement
-
-		fireEvent.pointerDown(el)
-
-		act(() => {
-			vi.advanceTimersByTime(500)
+		afterEach(() => {
+			vi.useRealTimers()
 		})
 
-		rerender(
-			<HoldButton duration={1000} disabled onComplete={onComplete} onHoldCancel={onHoldCancel}>
-				Hold
-			</HoldButton>,
-		)
+		it('fires onComplete after the hold duration elapses', () => {
+			const onComplete = vi.fn()
 
-		act(() => {
-			vi.advanceTimersByTime(1000)
+			const { container } = renderUI(
+				<HoldButton duration={1000} onComplete={onComplete}>
+					Hold
+				</HoldButton>,
+			)
+
+			const el = bySlot(container, 'hold-button') as HTMLElement
+
+			fireEvent.pointerDown(el)
+
+			act(() => {
+				vi.advanceTimersByTime(1000)
+			})
+
+			expect(onComplete).toHaveBeenCalledOnce()
 		})
 
-		expect(onHoldCancel).toHaveBeenCalledOnce()
+		it('cancels an in-flight hold when disabled flips true mid-hold', () => {
+			const onComplete = vi.fn()
 
-		expect(onComplete).not.toHaveBeenCalled()
+			const onHoldCancel = vi.fn()
 
-		vi.useRealTimers()
-	})
+			const { container, rerender } = renderUI(
+				<HoldButton duration={1000} onComplete={onComplete} onHoldCancel={onHoldCancel}>
+					Hold
+				</HoldButton>,
+			)
 
-	it('does not fire onComplete when released before duration elapses', () => {
-		vi.useFakeTimers()
+			const el = bySlot(container, 'hold-button') as HTMLElement
 
-		const onComplete = vi.fn()
+			fireEvent.pointerDown(el)
 
-		const { container } = renderUI(
-			<HoldButton duration={1000} onComplete={onComplete}>
-				Hold
-			</HoldButton>,
-		)
+			act(() => {
+				vi.advanceTimersByTime(500)
+			})
 
-		const el = bySlot(container, 'hold-button') as HTMLElement
+			rerender(
+				<HoldButton duration={1000} disabled onComplete={onComplete} onHoldCancel={onHoldCancel}>
+					Hold
+				</HoldButton>,
+			)
 
-		fireEvent.pointerDown(el)
+			act(() => {
+				vi.advanceTimersByTime(1000)
+			})
 
-		act(() => {
-			vi.advanceTimersByTime(500)
+			expect(onHoldCancel).toHaveBeenCalledOnce()
+
+			expect(onComplete).not.toHaveBeenCalled()
 		})
 
-		fireEvent.pointerUp(el)
+		it('does not fire onComplete when released before duration elapses', () => {
+			const onComplete = vi.fn()
 
-		act(() => {
-			vi.advanceTimersByTime(1000)
+			const { container } = renderUI(
+				<HoldButton duration={1000} onComplete={onComplete}>
+					Hold
+				</HoldButton>,
+			)
+
+			const el = bySlot(container, 'hold-button') as HTMLElement
+
+			fireEvent.pointerDown(el)
+
+			act(() => {
+				vi.advanceTimersByTime(500)
+			})
+
+			fireEvent.pointerUp(el)
+
+			act(() => {
+				vi.advanceTimersByTime(1000)
+			})
+
+			expect(onComplete).not.toHaveBeenCalled()
 		})
-
-		expect(onComplete).not.toHaveBeenCalled()
-
-		vi.useRealTimers()
 	})
 })

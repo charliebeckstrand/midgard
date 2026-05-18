@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react'
-import type { KeyboardEvent } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useListKeyboard } from '../../components/list/use-list-keyboard'
+import { makeKeyEvent } from '../helpers'
 
 type Item = { id: string }
 
@@ -22,22 +22,6 @@ function mountListDom(ids: string[]): HTMLElement[] {
 
 		return el
 	})
-}
-
-function makeKeyEvent(key: string, modifiers: Partial<KeyboardEvent> = {}) {
-	const preventDefault = vi.fn()
-
-	const event = {
-		key,
-		metaKey: false,
-		ctrlKey: false,
-		altKey: false,
-		shiftKey: false,
-		preventDefault,
-		...modifiers,
-	} as unknown as KeyboardEvent
-
-	return { event, preventDefault }
 }
 
 describe('useListKeyboard', () => {
@@ -73,14 +57,14 @@ describe('useListKeyboard', () => {
 
 			const lift = makeKeyEvent(' ')
 
-			act(() => result.current.onItemKeyDown('b', lift.event))
+			act(() => result.current.onItemKeyDown('b', lift))
 
 			expect(result.current.liftedId).toBe('b')
 			expect(lift.preventDefault).toHaveBeenCalled()
 
 			const drop = makeKeyEvent(' ')
 
-			act(() => result.current.onItemKeyDown('b', drop.event))
+			act(() => result.current.onItemKeyDown('b', drop))
 
 			expect(result.current.liftedId).toBeNull()
 		})
@@ -94,9 +78,9 @@ describe('useListKeyboard', () => {
 				}),
 			)
 
-			act(() => result.current.onItemKeyDown('a', makeKeyEvent(' ').event))
+			act(() => result.current.onItemKeyDown('a', makeKeyEvent(' ')))
 
-			act(() => result.current.onItemKeyDown('a', makeKeyEvent('Escape').event))
+			act(() => result.current.onItemKeyDown('a', makeKeyEvent('Escape')))
 
 			expect(result.current.liftedId).toBeNull()
 		})
@@ -110,9 +94,9 @@ describe('useListKeyboard', () => {
 				}),
 			)
 
-			act(() => result.current.onItemKeyDown('a', makeKeyEvent(' ').event))
+			act(() => result.current.onItemKeyDown('a', makeKeyEvent(' ')))
 
-			act(() => result.current.onItemKeyDown('a', makeKeyEvent('Enter').event))
+			act(() => result.current.onItemKeyDown('a', makeKeyEvent('Enter')))
 
 			expect(result.current.liftedId).toBeNull()
 		})
@@ -132,7 +116,7 @@ describe('useListKeyboard', () => {
 
 			const ev = makeKeyEvent('ArrowDown')
 
-			act(() => result.current.onItemKeyDown('a', ev.event))
+			act(() => result.current.onItemKeyDown('a', ev))
 
 			expect(document.activeElement).toBe(b)
 			expect(ev.preventDefault).toHaveBeenCalled()
@@ -149,7 +133,7 @@ describe('useListKeyboard', () => {
 				}),
 			)
 
-			act(() => result.current.onItemKeyDown('b', makeKeyEvent('ArrowUp').event))
+			act(() => result.current.onItemKeyDown('b', makeKeyEvent('ArrowUp')))
 
 			expect(document.activeElement).toBe(a)
 		})
@@ -165,7 +149,7 @@ describe('useListKeyboard', () => {
 				}),
 			)
 
-			act(() => result.current.onItemKeyDown('a', makeKeyEvent('ArrowRight').event))
+			act(() => result.current.onItemKeyDown('a', makeKeyEvent('ArrowRight')))
 
 			expect(document.activeElement).toBe(b)
 		})
@@ -181,7 +165,7 @@ describe('useListKeyboard', () => {
 				}),
 			)
 
-			act(() => result.current.onItemKeyDown('c', makeKeyEvent('Home').event))
+			act(() => result.current.onItemKeyDown('c', makeKeyEvent('Home')))
 
 			expect(document.activeElement).toBe(a)
 		})
@@ -197,7 +181,7 @@ describe('useListKeyboard', () => {
 				}),
 			)
 
-			act(() => result.current.onItemKeyDown('a', makeKeyEvent('End').event))
+			act(() => result.current.onItemKeyDown('a', makeKeyEvent('End')))
 
 			expect(document.activeElement).toBe(c)
 		})
@@ -215,7 +199,7 @@ describe('useListKeyboard', () => {
 
 			const ev = makeKeyEvent('ArrowUp')
 
-			act(() => result.current.onItemKeyDown('a', ev.event))
+			act(() => result.current.onItemKeyDown('a', ev))
 
 			expect(ev.preventDefault).not.toHaveBeenCalled()
 		})
@@ -239,11 +223,11 @@ describe('useListKeyboard', () => {
 				useListKeyboard({ items, getKey: (i) => i.id, orientation: 'vertical', onReorder }),
 			)
 
-			act(() => result.current.onItemKeyDown('a', makeKeyEvent(' ').event))
+			act(() => result.current.onItemKeyDown('a', makeKeyEvent(' ')))
 
 			const move = makeKeyEvent('ArrowDown')
 
-			act(() => result.current.onItemKeyDown('a', move.event))
+			act(() => result.current.onItemKeyDown('a', move))
 
 			expect(move.preventDefault).toHaveBeenCalled()
 			expect(onReorder).toHaveBeenCalledTimes(1)
@@ -262,9 +246,9 @@ describe('useListKeyboard', () => {
 				}),
 			)
 
-			act(() => result.current.onItemKeyDown('c', makeKeyEvent(' ').event))
+			act(() => result.current.onItemKeyDown('c', makeKeyEvent(' ')))
 
-			act(() => result.current.onItemKeyDown('c', makeKeyEvent('ArrowUp').event))
+			act(() => result.current.onItemKeyDown('c', makeKeyEvent('ArrowUp')))
 
 			expect(onReorder.mock.calls[0]?.[0].map((i: Item) => i.id)).toEqual(['a', 'c', 'b'])
 		})
@@ -281,9 +265,9 @@ describe('useListKeyboard', () => {
 				}),
 			)
 
-			act(() => result.current.onItemKeyDown('a', makeKeyEvent(' ').event))
+			act(() => result.current.onItemKeyDown('a', makeKeyEvent(' ')))
 
-			act(() => result.current.onItemKeyDown('a', makeKeyEvent('ArrowUp').event))
+			act(() => result.current.onItemKeyDown('a', makeKeyEvent('ArrowUp')))
 
 			expect(onReorder).not.toHaveBeenCalled()
 		})
@@ -297,11 +281,11 @@ describe('useListKeyboard', () => {
 				}),
 			)
 
-			act(() => result.current.onItemKeyDown('a', makeKeyEvent(' ').event))
+			act(() => result.current.onItemKeyDown('a', makeKeyEvent(' ')))
 
 			const ev = makeKeyEvent('ArrowDown')
 
-			act(() => result.current.onItemKeyDown('a', ev.event))
+			act(() => result.current.onItemKeyDown('a', ev))
 
 			// preventDefault still fires (the switch case unconditionally prevents),
 			// but no reorder side effect is observable.
@@ -319,7 +303,7 @@ describe('useListKeyboard', () => {
 				}),
 			)
 
-			act(() => result.current.onItemKeyDown('a', makeKeyEvent(' ', { shiftKey: true }).event))
+			act(() => result.current.onItemKeyDown('a', makeKeyEvent(' ', { shiftKey: true })))
 
 			expect(result.current.liftedId).toBeNull()
 		})
@@ -337,7 +321,7 @@ describe('useListKeyboard', () => {
 
 			const ev = makeKeyEvent('ArrowDown', { ctrlKey: true })
 
-			act(() => result.current.onItemKeyDown('a', ev.event))
+			act(() => result.current.onItemKeyDown('a', ev))
 
 			expect(ev.preventDefault).not.toHaveBeenCalled()
 		})
@@ -353,7 +337,7 @@ describe('useListKeyboard', () => {
 				}),
 			)
 
-			act(() => result.current.onItemKeyDown('a', makeKeyEvent(' ').event))
+			act(() => result.current.onItemKeyDown('a', makeKeyEvent(' ')))
 
 			expect(result.current.liftedId).toBe('a')
 

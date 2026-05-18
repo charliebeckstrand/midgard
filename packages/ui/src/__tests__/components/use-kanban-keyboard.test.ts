@@ -1,8 +1,8 @@
 import { act, renderHook } from '@testing-library/react'
-import type { KeyboardEvent } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { KanbanColumnShape } from '../../components/kanban/types'
 import { useKanbanKeyboard } from '../../components/kanban/use-kanban-keyboard'
+import { makeKeyEvent } from '../helpers'
 
 type Card = { id: string }
 
@@ -14,18 +14,6 @@ function makeColumns(): Column[] {
 		{ id: 'b', items: [{ id: 'b1' }] },
 		{ id: 'c', items: [] },
 	]
-}
-
-function makeEvent(key: string, opts: Partial<Pick<KeyboardEvent, 'shiftKey' | 'metaKey'>> = {}) {
-	return {
-		key,
-		shiftKey: false,
-		metaKey: false,
-		ctrlKey: false,
-		altKey: false,
-		preventDefault: vi.fn(),
-		...opts,
-	} as unknown as KeyboardEvent
 }
 
 describe('useKanbanKeyboard: lift state', () => {
@@ -40,13 +28,13 @@ describe('useKanbanKeyboard: lift state', () => {
 		expect(result.current.liftedCardId).toBeNull()
 
 		act(() => {
-			result.current.onCardKeyDown('a1', makeEvent(' '))
+			result.current.onCardKeyDown('a1', makeKeyEvent(' '))
 		})
 
 		expect(result.current.liftedCardId).toBe('a1')
 
 		act(() => {
-			result.current.onCardKeyDown('a1', makeEvent(' '))
+			result.current.onCardKeyDown('a1', makeKeyEvent(' '))
 		})
 
 		expect(result.current.liftedCardId).toBeNull()
@@ -61,7 +49,7 @@ describe('useKanbanKeyboard: lift state', () => {
 		)
 
 		act(() => {
-			result.current.onCardKeyDown('a1', makeEvent(' ', { shiftKey: true }))
+			result.current.onCardKeyDown('a1', makeKeyEvent(' ', { shiftKey: true }))
 		})
 
 		expect(result.current.liftedCardId).toBeNull()
@@ -76,11 +64,11 @@ describe('useKanbanKeyboard: lift state', () => {
 		)
 
 		act(() => {
-			result.current.onCardKeyDown('a1', makeEvent(' '))
+			result.current.onCardKeyDown('a1', makeKeyEvent(' '))
 		})
 
 		act(() => {
-			result.current.onCardKeyDown('a1', makeEvent('Escape'))
+			result.current.onCardKeyDown('a1', makeKeyEvent('Escape'))
 		})
 
 		expect(result.current.liftedCardId).toBeNull()
@@ -95,7 +83,7 @@ describe('useKanbanKeyboard: lift state', () => {
 		)
 
 		act(() => {
-			result.current.onCardKeyDown('a1', makeEvent(' '))
+			result.current.onCardKeyDown('a1', makeKeyEvent(' '))
 		})
 
 		expect(result.current.liftedCardId).toBe('a1')
@@ -135,7 +123,7 @@ describe('useKanbanKeyboard: focus navigation', () => {
 			}),
 		)
 
-		const event = makeEvent('ArrowDown')
+		const event = makeKeyEvent('ArrowDown')
 
 		act(() => {
 			result.current.onCardKeyDown('a1', event)
@@ -155,7 +143,7 @@ describe('useKanbanKeyboard: focus navigation', () => {
 		)
 
 		act(() => {
-			result.current.onCardKeyDown('a2', makeEvent('ArrowUp'))
+			result.current.onCardKeyDown('a2', makeKeyEvent('ArrowUp'))
 		})
 
 		expect(document.activeElement?.getAttribute('data-card-id')).toBe('a1')
@@ -170,7 +158,7 @@ describe('useKanbanKeyboard: focus navigation', () => {
 		)
 
 		act(() => {
-			result.current.onCardKeyDown('a2', makeEvent('Home'))
+			result.current.onCardKeyDown('a2', makeKeyEvent('Home'))
 		})
 
 		expect(document.activeElement?.getAttribute('data-card-id')).toBe('a1')
@@ -185,7 +173,7 @@ describe('useKanbanKeyboard: focus navigation', () => {
 		)
 
 		act(() => {
-			result.current.onCardKeyDown('a1', makeEvent('End'))
+			result.current.onCardKeyDown('a1', makeKeyEvent('End'))
 		})
 
 		expect(document.activeElement?.getAttribute('data-card-id')).toBe('a2')
@@ -200,7 +188,7 @@ describe('useKanbanKeyboard: focus navigation', () => {
 		)
 
 		act(() => {
-			result.current.onCardKeyDown('a1', makeEvent('ArrowRight'))
+			result.current.onCardKeyDown('a1', makeKeyEvent('ArrowRight'))
 		})
 
 		expect(document.activeElement?.getAttribute('data-card-id')).toBe('b1')
@@ -214,7 +202,7 @@ describe('useKanbanKeyboard: focus navigation', () => {
 			}),
 		)
 
-		const event = makeEvent('ArrowRight')
+		const event = makeKeyEvent('ArrowRight')
 
 		act(() => {
 			result.current.onCardKeyDown('b1', event)
@@ -231,7 +219,7 @@ describe('useKanbanKeyboard: focus navigation', () => {
 			}),
 		)
 
-		const event = makeEvent('ArrowLeft')
+		const event = makeKeyEvent('ArrowLeft')
 
 		act(() => {
 			result.current.onCardKeyDown('a1', event)
@@ -248,7 +236,7 @@ describe('useKanbanKeyboard: focus navigation', () => {
 			}),
 		)
 
-		const event = makeEvent('ArrowDown')
+		const event = makeKeyEvent('ArrowDown')
 
 		act(() => {
 			result.current.onCardKeyDown('unknown', event)
@@ -271,11 +259,11 @@ describe('useKanbanKeyboard: reordering a lifted card', () => {
 		)
 
 		act(() => {
-			result.current.onCardKeyDown('a1', makeEvent(' '))
+			result.current.onCardKeyDown('a1', makeKeyEvent(' '))
 		})
 
 		act(() => {
-			result.current.onCardKeyDown('a1', makeEvent('ArrowDown'))
+			result.current.onCardKeyDown('a1', makeKeyEvent('ArrowDown'))
 		})
 
 		expect(onValueChange).toHaveBeenCalledOnce()
@@ -297,11 +285,11 @@ describe('useKanbanKeyboard: reordering a lifted card', () => {
 		)
 
 		act(() => {
-			result.current.onCardKeyDown('a2', makeEvent(' '))
+			result.current.onCardKeyDown('a2', makeKeyEvent(' '))
 		})
 
 		act(() => {
-			result.current.onCardKeyDown('a2', makeEvent('ArrowDown'))
+			result.current.onCardKeyDown('a2', makeKeyEvent('ArrowDown'))
 		})
 
 		expect(onValueChange).not.toHaveBeenCalled()
@@ -319,11 +307,11 @@ describe('useKanbanKeyboard: reordering a lifted card', () => {
 		)
 
 		act(() => {
-			result.current.onCardKeyDown('a1', makeEvent(' '))
+			result.current.onCardKeyDown('a1', makeKeyEvent(' '))
 		})
 
 		act(() => {
-			result.current.onCardKeyDown('a1', makeEvent('ArrowRight'))
+			result.current.onCardKeyDown('a1', makeKeyEvent('ArrowRight'))
 		})
 
 		const next = onValueChange.mock.calls[0]?.[0] as Column[]
@@ -345,11 +333,11 @@ describe('useKanbanKeyboard: reordering a lifted card', () => {
 		)
 
 		act(() => {
-			result.current.onCardKeyDown('a1', makeEvent(' '))
+			result.current.onCardKeyDown('a1', makeKeyEvent(' '))
 		})
 
 		act(() => {
-			result.current.onCardKeyDown('a1', makeEvent('ArrowLeft'))
+			result.current.onCardKeyDown('a1', makeKeyEvent('ArrowLeft'))
 		})
 
 		expect(onValueChange).not.toHaveBeenCalled()
@@ -364,12 +352,12 @@ describe('useKanbanKeyboard: reordering a lifted card', () => {
 		)
 
 		act(() => {
-			result.current.onCardKeyDown('a1', makeEvent(' '))
+			result.current.onCardKeyDown('a1', makeKeyEvent(' '))
 		})
 
 		expect(() =>
 			act(() => {
-				result.current.onCardKeyDown('a1', makeEvent('ArrowDown'))
+				result.current.onCardKeyDown('a1', makeKeyEvent('ArrowDown'))
 			}),
 		).not.toThrow()
 	})

@@ -1,8 +1,12 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Odometer } from '../../components/odometer'
 import { bySlot, renderUI, waitFor } from '../helpers'
 
 describe('Odometer', () => {
+	afterEach(() => {
+		vi.restoreAllMocks()
+	})
+
 	it('renders with data-slot="odometer"', () => {
 		const { container } = renderUI(<Odometer value={0} />)
 
@@ -73,7 +77,5 @@ describe('Odometer', () => {
 		unmount()
 
 		expect(cancelSpy).toHaveBeenCalled()
-
-		cancelSpy.mockRestore()
 	})
 })

@@ -1,9 +1,13 @@
 import { renderHook } from '@testing-library/react'
 import { createRef } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { useFloatingPanel, useFloatingUI } from '../../hooks/use-floating-ui'
 
 describe('useFloatingPanel', () => {
+	afterEach(() => {
+		vi.restoreAllMocks()
+	})
+
 	it('returns refs, floatingStyles, and context', () => {
 		const { result } = renderHook(() =>
 			useFloatingPanel({ placement: 'bottom-start', open: false, onOpenChange: () => {} }),

@@ -1,16 +1,7 @@
 import { renderHook } from '@testing-library/react'
-import type { KeyboardEvent } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { useTagInputKeyboard } from '../../components/tag-input/use-tag-input-keyboard'
-
-function createKeyEvent(key: string, overrides = {}) {
-	return {
-		key,
-		preventDefault: vi.fn(),
-		nativeEvent: { isComposing: false },
-		...overrides,
-	} as unknown as KeyboardEvent<HTMLInputElement>
-}
+import { makeKeyEvent } from '../helpers'
 
 describe('useTagInputKeyboard', () => {
 	it('Enter key calls addTag and clearInput on success', () => {
@@ -22,7 +13,7 @@ describe('useTagInputKeyboard', () => {
 			useTagInputKeyboard({ inputValue: 'hello', addTag, removeTag, clearInput, tagCount: 0 }),
 		)
 
-		result.current(createKeyEvent('Enter'))
+		result.current(makeKeyEvent<HTMLInputElement>('Enter'))
 
 		expect(addTag).toHaveBeenCalledWith('hello')
 		expect(clearInput).toHaveBeenCalled()
@@ -42,7 +33,7 @@ describe('useTagInputKeyboard', () => {
 			}),
 		)
 
-		result.current(createKeyEvent('Enter'))
+		result.current(makeKeyEvent<HTMLInputElement>('Enter'))
 
 		expect(addTag).toHaveBeenCalledWith('dup')
 		expect(clearInput).not.toHaveBeenCalled()
@@ -62,7 +53,7 @@ describe('useTagInputKeyboard', () => {
 			}),
 		)
 
-		result.current(createKeyEvent(','))
+		result.current(makeKeyEvent<HTMLInputElement>(','))
 
 		expect(addTag).toHaveBeenCalledWith('tag')
 		expect(clearInput).toHaveBeenCalled()
@@ -81,7 +72,7 @@ describe('useTagInputKeyboard', () => {
 			}),
 		)
 
-		result.current(createKeyEvent('Backspace'))
+		result.current(makeKeyEvent<HTMLInputElement>('Backspace'))
 
 		expect(removeTag).toHaveBeenCalledWith(2)
 	})
@@ -99,7 +90,7 @@ describe('useTagInputKeyboard', () => {
 			}),
 		)
 
-		result.current(createKeyEvent('Backspace'))
+		result.current(makeKeyEvent<HTMLInputElement>('Backspace'))
 
 		expect(removeTag).not.toHaveBeenCalled()
 	})
@@ -117,7 +108,7 @@ describe('useTagInputKeyboard', () => {
 			}),
 		)
 
-		result.current(createKeyEvent('Backspace'))
+		result.current(makeKeyEvent<HTMLInputElement>('Backspace'))
 
 		expect(removeTag).not.toHaveBeenCalled()
 	})

@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react'
-import type { ClipboardEvent, FocusEvent, KeyboardEvent } from 'react'
+import type { ClipboardEvent, FocusEvent } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import type {
 	Coord,
@@ -9,6 +9,7 @@ import type {
 	EditableGridNavigationApi,
 } from '../../components/editable-grid/types'
 import { useEditableGridWrapper } from '../../components/editable-grid/use-editable-grid-wrapper'
+import { makeKeyEvent } from '../helpers'
 
 type Row = { id: string; value: string }
 
@@ -16,17 +17,6 @@ const cols: EditableGridColumn<Row>[] = [
 	{ id: 'value', title: 'Value' } as EditableGridColumn<Row>,
 	{ id: 'readonly', title: 'RO', readOnly: true } as EditableGridColumn<Row>,
 ]
-
-function makeEvent(key: string, opts: { shiftKey?: boolean; metaKey?: boolean } = {}) {
-	return {
-		key,
-		shiftKey: opts.shiftKey ?? false,
-		metaKey: opts.metaKey ?? false,
-		ctrlKey: false,
-		altKey: false,
-		preventDefault: vi.fn(),
-	} as unknown as KeyboardEvent<HTMLTableElement>
-}
 
 function setup(
 	options: {
@@ -116,7 +106,7 @@ describe('useEditableGridWrapper: onWrapperKeyDown arrow navigation', () => {
 	it('ArrowUp moves the active cell up', () => {
 		const { api, moveActive } = setup()
 
-		const e = makeEvent('ArrowUp')
+		const e = makeKeyEvent<HTMLTableElement>('ArrowUp')
 
 		api.onWrapperKeyDown(e)
 
@@ -128,7 +118,7 @@ describe('useEditableGridWrapper: onWrapperKeyDown arrow navigation', () => {
 	it('ArrowDown with shift passes extend=true', () => {
 		const { api, moveActive } = setup()
 
-		api.onWrapperKeyDown(makeEvent('ArrowDown', { shiftKey: true }))
+		api.onWrapperKeyDown(makeKeyEvent<HTMLTableElement>('ArrowDown', { shiftKey: true }))
 
 		expect(moveActive).toHaveBeenCalledWith(1, 0, true)
 	})
@@ -136,8 +126,8 @@ describe('useEditableGridWrapper: onWrapperKeyDown arrow navigation', () => {
 	it('ArrowLeft and ArrowRight delegate to moveActive', () => {
 		const { api, moveActive } = setup()
 
-		api.onWrapperKeyDown(makeEvent('ArrowLeft'))
-		api.onWrapperKeyDown(makeEvent('ArrowRight'))
+		api.onWrapperKeyDown(makeKeyEvent<HTMLTableElement>('ArrowLeft'))
+		api.onWrapperKeyDown(makeKeyEvent<HTMLTableElement>('ArrowRight'))
 
 		expect(moveActive).toHaveBeenNthCalledWith(1, 0, -1, false)
 
@@ -147,7 +137,7 @@ describe('useEditableGridWrapper: onWrapperKeyDown arrow navigation', () => {
 	it('Tab delegates to moveActiveTab and prevents default when handled', () => {
 		const { api, moveActiveTab } = setup()
 
-		const e = makeEvent('Tab')
+		const e = makeKeyEvent<HTMLTableElement>('Tab')
 
 		api.onWrapperKeyDown(e)
 
@@ -159,7 +149,7 @@ describe('useEditableGridWrapper: onWrapperKeyDown arrow navigation', () => {
 	it('Shift+Tab passes -1 to moveActiveTab', () => {
 		const { api, moveActiveTab } = setup()
 
-		api.onWrapperKeyDown(makeEvent('Tab', { shiftKey: true }))
+		api.onWrapperKeyDown(makeKeyEvent<HTMLTableElement>('Tab', { shiftKey: true }))
 
 		expect(moveActiveTab).toHaveBeenCalledWith(-1)
 	})
@@ -167,7 +157,7 @@ describe('useEditableGridWrapper: onWrapperKeyDown arrow navigation', () => {
 	it('does not prevent default on Tab when moveActiveTab returns false', () => {
 		const { api } = setup()
 
-		const e = makeEvent('Tab')
+		const e = makeKeyEvent<HTMLTableElement>('Tab')
 
 		const { result } = renderHook(() =>
 			useEditableGridWrapper<Row>({
@@ -217,7 +207,7 @@ describe('useEditableGridWrapper: onWrapperKeyDown arrow navigation', () => {
 	it('Home jumps to column 0 in the current row', () => {
 		const { api, moveActiveTo } = setup({ active: { row: 1, col: 1 } })
 
-		api.onWrapperKeyDown(makeEvent('Home'))
+		api.onWrapperKeyDown(makeKeyEvent<HTMLTableElement>('Home'))
 
 		expect(moveActiveTo).toHaveBeenCalledWith({ row: 1, col: 0 }, false)
 	})
@@ -225,7 +215,7 @@ describe('useEditableGridWrapper: onWrapperKeyDown arrow navigation', () => {
 	it('End jumps to the last editable column in the current row', () => {
 		const { api, moveActiveTo } = setup({ active: { row: 1, col: 0 } })
 
-		api.onWrapperKeyDown(makeEvent('End'))
+		api.onWrapperKeyDown(makeKeyEvent<HTMLTableElement>('End'))
 
 		expect(moveActiveTo).toHaveBeenCalledWith({ row: 1, col: cols.length - 1 }, false)
 	})
@@ -233,7 +223,7 @@ describe('useEditableGridWrapper: onWrapperKeyDown arrow navigation', () => {
 	it('is a no-op while editing', () => {
 		const { api, moveActive } = setup({ editing: true })
 
-		api.onWrapperKeyDown(makeEvent('ArrowDown'))
+		api.onWrapperKeyDown(makeKeyEvent<HTMLTableElement>('ArrowDown'))
 
 		expect(moveActive).not.toHaveBeenCalled()
 	})
@@ -241,7 +231,7 @@ describe('useEditableGridWrapper: onWrapperKeyDown arrow navigation', () => {
 	it('is a no-op when there are no rows', () => {
 		const { api, moveActive } = setup({ rows: [] })
 
-		api.onWrapperKeyDown(makeEvent('ArrowDown'))
+		api.onWrapperKeyDown(makeKeyEvent<HTMLTableElement>('ArrowDown'))
 
 		expect(moveActive).not.toHaveBeenCalled()
 	})
@@ -251,7 +241,7 @@ describe('useEditableGridWrapper: onWrapperKeyDown editing entry', () => {
 	it('Enter begins edit with the formatted cell value', () => {
 		const { api, beginEdit } = setup({ active: { row: 0, col: 0 } })
 
-		api.onWrapperKeyDown(makeEvent('Enter'))
+		api.onWrapperKeyDown(makeKeyEvent<HTMLTableElement>('Enter'))
 
 		expect(beginEdit).toHaveBeenCalledWith({ row: 0, col: 0 }, 'a1')
 	})
@@ -259,7 +249,7 @@ describe('useEditableGridWrapper: onWrapperKeyDown editing entry', () => {
 	it('F2 also begins edit', () => {
 		const { api, beginEdit } = setup()
 
-		api.onWrapperKeyDown(makeEvent('F2'))
+		api.onWrapperKeyDown(makeKeyEvent<HTMLTableElement>('F2'))
 
 		expect(beginEdit).toHaveBeenCalled()
 	})
@@ -267,7 +257,7 @@ describe('useEditableGridWrapper: onWrapperKeyDown editing entry', () => {
 	it('printable characters begin edit with the typed value replacing the original', () => {
 		const { api, beginEdit } = setup({ active: { row: 0, col: 0 } })
 
-		api.onWrapperKeyDown(makeEvent('x'))
+		api.onWrapperKeyDown(makeKeyEvent<HTMLTableElement>('x'))
 
 		expect(beginEdit).toHaveBeenCalledWith({ row: 0, col: 0 }, 'x', 'a1')
 	})
@@ -275,7 +265,7 @@ describe('useEditableGridWrapper: onWrapperKeyDown editing entry', () => {
 	it('ignores printable characters combined with a modifier', () => {
 		const { api, beginEdit } = setup()
 
-		api.onWrapperKeyDown(makeEvent('v', { metaKey: true }))
+		api.onWrapperKeyDown(makeKeyEvent<HTMLTableElement>('v', { metaKey: true }))
 
 		expect(beginEdit).not.toHaveBeenCalled()
 	})
@@ -285,7 +275,7 @@ describe('useEditableGridWrapper: onWrapperKeyDown delete and escape', () => {
 	it('Delete clears the active cell when there is no multi-selection', () => {
 		const { api, applyCellWrite, applyBulkFill } = setup()
 
-		api.onWrapperKeyDown(makeEvent('Delete'))
+		api.onWrapperKeyDown(makeKeyEvent<HTMLTableElement>('Delete'))
 
 		expect(applyCellWrite).toHaveBeenCalledWith(0, 0, '')
 
@@ -295,7 +285,7 @@ describe('useEditableGridWrapper: onWrapperKeyDown delete and escape', () => {
 	it('Backspace bulk-fills empty when there is a multi-selection', () => {
 		const { api, applyBulkFill, applyCellWrite } = setup({ hasMultiSelection: true })
 
-		api.onWrapperKeyDown(makeEvent('Backspace'))
+		api.onWrapperKeyDown(makeKeyEvent<HTMLTableElement>('Backspace'))
 
 		expect(applyBulkFill).toHaveBeenCalledWith('')
 
@@ -305,7 +295,7 @@ describe('useEditableGridWrapper: onWrapperKeyDown delete and escape', () => {
 	it('Escape clears active when there is no multi-selection', () => {
 		const { api, setActive } = setup()
 
-		api.onWrapperKeyDown(makeEvent('Escape'))
+		api.onWrapperKeyDown(makeKeyEvent<HTMLTableElement>('Escape'))
 
 		expect(setActive).toHaveBeenCalledWith(null)
 	})
@@ -317,7 +307,7 @@ describe('useEditableGridWrapper: onWrapperKeyDown delete and escape', () => {
 			extras: new Set(['1,0']),
 		})
 
-		api.onWrapperKeyDown(makeEvent('Escape'))
+		api.onWrapperKeyDown(makeKeyEvent<HTMLTableElement>('Escape'))
 
 		expect(setAnchor).toHaveBeenCalledWith(null)
 

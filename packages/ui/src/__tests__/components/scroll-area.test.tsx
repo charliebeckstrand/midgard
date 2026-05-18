@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ScrollArea } from '../../components/scroll-area'
 import { HIDDEN_THUMB } from '../../components/scroll-area/scroll-area-constants'
 import {
@@ -74,6 +74,10 @@ describe('computeThumb', () => {
 })
 
 describe('findScrollableAncestor', () => {
+	afterEach(() => {
+		vi.restoreAllMocks()
+	})
+
 	it('returns null when no ancestor scrolls', () => {
 		const el = document.createElement('div')
 
@@ -103,6 +107,5 @@ describe('findScrollableAncestor', () => {
 		expect(findScrollableAncestor(child)).toBe(scrollable)
 
 		scrollable.remove()
-		;(window.getComputedStyle as ReturnType<typeof vi.spyOn>).mockRestore()
 	})
 })

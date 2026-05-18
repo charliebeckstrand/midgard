@@ -1,4 +1,3 @@
-import type { ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 import {
@@ -15,45 +14,7 @@ import {
 } from '../../components/menu'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
-vi.mock('@floating-ui/react', () => {
-	const noop = () => {}
-	const identity = <T,>(x: T) => x
-
-	return {
-		autoUpdate: noop,
-		FloatingPortal: ({ children }: { children: ReactNode }) => children,
-		flip: () => ({}),
-		offset: () => ({}),
-		shift: () => ({}),
-		size: () => ({}),
-		useClick: () => ({}),
-		useClientPoint: () => ({}),
-		useDismiss: () => ({}),
-		useFloating: () => ({
-			refs: {
-				setReference: noop,
-				setFloating: noop,
-				reference: { current: null },
-				floating: { current: null },
-			},
-			floatingStyles: {},
-			context: {},
-			x: 0,
-			y: 0,
-			strategy: 'absolute',
-			placement: 'bottom',
-			middlewareData: {},
-			isPositioned: true,
-			update: noop,
-		}),
-		useInteractions: () => ({
-			getReferenceProps: identity,
-			getFloatingProps: identity,
-			getItemProps: identity,
-		}),
-		useRole: () => ({}),
-	}
-})
+vi.mock('@floating-ui/react', async () => (await import('../mocks/floating-ui')).default)
 
 describe('Menu', () => {
 	it('renders with data-slot="menu"', () => {

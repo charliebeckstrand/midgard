@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { AddressProvider } from '../../components/address-input'
 import { AddressInput, photonProvider } from '../../components/address-input'
 import { bySlot, renderUI, userEvent, waitFor } from '../helpers'
@@ -76,8 +76,7 @@ describe('AddressInput', () => {
 
 		await user.type(input, 'ab')
 
-		await new Promise((resolve) => setTimeout(resolve, 20))
-
+		// The minQueryLength gate returns before scheduling a debounce timer, so no async work is pending.
 		expect(provider).not.toHaveBeenCalled()
 	})
 
@@ -134,6 +133,10 @@ describe('AddressInput', () => {
 })
 
 describe('photonProvider', () => {
+	afterEach(() => {
+		vi.unstubAllGlobals()
+	})
+
 	function makeFeature(
 		properties: Record<string, unknown>,
 		coordinates: [number, number] = [10, 20],
@@ -146,23 +149,26 @@ describe('photonProvider', () => {
 	}
 
 	it('maps features with street + housenumber into a primary + secondary label', async () => {
-		global.fetch = vi.fn(
-			async () =>
-				({
-					ok: true,
-					json: async () => ({
-						features: [
-							makeFeature({
-								housenumber: '10',
-								street: 'Main St',
-								city: 'Springfield',
-								state: 'IL',
-								country: 'USA',
-								postcode: '62701',
-							}),
-						],
-					}),
-				}) as Response,
+		vi.stubGlobal(
+			'fetch',
+			vi.fn(
+				async () =>
+					({
+						ok: true,
+						json: async () => ({
+							features: [
+								makeFeature({
+									housenumber: '10',
+									street: 'Main St',
+									city: 'Springfield',
+									state: 'IL',
+									country: 'USA',
+									postcode: '62701',
+								}),
+							],
+						}),
+					}) as Response,
+			),
 		)
 
 		const results = await photonProvider('query', { signal: new AbortController().signal })
@@ -177,14 +183,17 @@ describe('photonProvider', () => {
 	})
 
 	it('falls back to the feature name when no street is present', async () => {
-		global.fetch = vi.fn(
-			async () =>
-				({
-					ok: true,
-					json: async () => ({
-						features: [makeFeature({ name: 'Central Park', city: 'NY' })],
-					}),
-				}) as Response,
+		vi.stubGlobal(
+			'fetch',
+			vi.fn(
+				async () =>
+					({
+						ok: true,
+						json: async () => ({
+							features: [makeFeature({ name: 'Central Park', city: 'NY' })],
+						}),
+					}) as Response,
+			),
 		)
 
 		const results = await photonProvider('q', { signal: new AbortController().signal })
@@ -195,14 +204,17 @@ describe('photonProvider', () => {
 	})
 
 	it('uses the secondary as label and omits description when primary is missing', async () => {
-		global.fetch = vi.fn(
-			async () =>
-				({
-					ok: true,
-					json: async () => ({
-						features: [makeFeature({ city: 'NY', country: 'USA' })],
-					}),
-				}) as Response,
+		vi.stubGlobal(
+			'fetch',
+			vi.fn(
+				async () =>
+					({
+						ok: true,
+						json: async () => ({
+							features: [makeFeature({ city: 'NY', country: 'USA' })],
+						}),
+					}) as Response,
+			),
 		)
 
 		const results = await photonProvider('q', { signal: new AbortController().signal })
@@ -213,7 +225,10 @@ describe('photonProvider', () => {
 	})
 
 	it('throws when the response is not ok', async () => {
-		global.fetch = vi.fn(async () => ({ ok: false, status: 500 }) as Response)
+		vi.stubGlobal(
+			'fetch',
+			vi.fn(async () => ({ ok: false, status: 500 }) as Response),
+		)
 
 		await expect(photonProvider('q', { signal: new AbortController().signal })).rejects.toThrow(
 			/Photon request failed: 500/,
@@ -221,12 +236,15 @@ describe('photonProvider', () => {
 	})
 
 	it('throws when the response shape does not match', async () => {
-		global.fetch = vi.fn(
-			async () =>
-				({
-					ok: true,
-					json: async () => ({ features: 'not an array' }),
-				}) as Response,
+		vi.stubGlobal(
+			'fetch',
+			vi.fn(
+				async () =>
+					({
+						ok: true,
+						json: async () => ({ features: 'not an array' }),
+					}) as Response,
+			),
 		)
 
 		await expect(photonProvider('q', { signal: new AbortController().signal })).rejects.toThrow(
