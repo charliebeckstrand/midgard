@@ -7,59 +7,45 @@ import {
 	type RefObject,
 	useCallback,
 } from 'react'
-import type { CellChange, Coord, EditableGridColumn } from './types'
+import type {
+	CellChange,
+	EditableGridDraftApi,
+	EditableGridMutationsApi,
+	EditableGridNavigationApi,
+	EditableGridRowsApi,
+	EditableGridSelectionApi,
+} from './types'
 
 export function useEditableGridWrapper<T>({
-	editing,
-	active,
-	anchor,
-	extraCells,
-	hasMultiSelection,
-	editableCols,
+	nav: {
+		active,
+		anchor,
+		extraCells,
+		activeRef,
+		moveActive,
+		moveActiveTo,
+		moveActiveTab,
+		setActive,
+		setAnchor,
+		setExtraCells,
+	},
+	mutations: { applyCellWrite, applyBulkFill },
+	draft: { editing, beginEdit },
+	rows: { rowsRef, editableCols, getRowKey, formatCell, parseValue },
+	selection: { selectionRef, setSelection },
 	wrapperRef,
-	rowsRef,
-	activeRef,
-	selectionRef,
-	moveActive,
-	moveActiveTo,
-	moveActiveTab,
-	setActive,
-	setAnchor,
-	setExtraCells,
-	beginEdit,
-	formatCell,
-	parseValue,
-	getRowKey,
-	applyCellWrite,
-	applyBulkFill,
 	onValueChange,
-	setSelection,
 }: {
-	editing: boolean
-	active: Coord | null
-	anchor: Coord | null
-	extraCells: Set<string>
-	hasMultiSelection: boolean
-	editableCols: EditableGridColumn<T>[]
+	nav: EditableGridNavigationApi
+	mutations: EditableGridMutationsApi
+	draft: EditableGridDraftApi
+	rows: EditableGridRowsApi<T>
+	selection: EditableGridSelectionApi
 	wrapperRef: RefObject<HTMLTableElement | null>
-	rowsRef: RefObject<T[]>
-	activeRef: RefObject<Coord | null>
-	selectionRef: RefObject<Set<string | number>>
-	moveActive: (dRow: number, dCol: number, extend?: boolean) => void
-	moveActiveTo: (coord: Coord, extend?: boolean) => void
-	moveActiveTab: (dir: 1 | -1) => boolean
-	setActive: (coord: Coord | null) => void
-	setAnchor: (anchor: Coord | null) => void
-	setExtraCells: (cells: Set<string>) => void
-	beginEdit: (coord: Coord, initial?: string, original?: string) => void
-	formatCell: (row: T, col: EditableGridColumn<T>) => string
-	parseValue: (raw: string, row: T, col: EditableGridColumn<T>) => unknown
-	getRowKey: (row: T, index: number) => string | number
-	applyCellWrite: (rowIdx: number, editableColIdx: number, raw: string) => void
-	applyBulkFill: (raw: string) => boolean
 	onValueChange: (changes: CellChange[]) => void
-	setSelection: (selection: Set<string | number>) => void
 }) {
+	const hasMultiSelection = !!anchor || extraCells.size > 0
+
 	const onWrapperKeyDown = useCallback(
 		(e: KeyboardEvent<HTMLTableElement>) => {
 			if (editing) return

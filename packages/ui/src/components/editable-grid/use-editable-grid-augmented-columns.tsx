@@ -5,28 +5,22 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/editable-grid'
 import type { DataTableColumn } from '../data-table'
 import { EditableGridCell } from './editable-grid-cell'
-import type { Coord, EditableGridColumn } from './types'
+import type { EditableGridColumn, EditableGridDraftApi, EditableGridNavigationApi } from './types'
 
 type UseEditableGridAugmentedColumns<T> = {
 	columns: EditableGridColumn<T>[]
 	rowIndexMap: Map<T, number>
+	nav: EditableGridNavigationApi
+	draft: EditableGridDraftApi
 	formatCell: (row: T, col: EditableGridColumn<T>) => string
-	active: Coord | null
-	editing: boolean
-	addCellToSelection: (coord: Coord) => void
-	moveActiveTo: (coord: Coord, extend?: boolean) => void
-	beginEdit: (coord: Coord, initial?: string, original?: string) => void
 }
 
 export function useEditableGridAugmentedColumns<T>({
 	columns,
 	rowIndexMap,
+	nav: { active, addCellToSelection, moveActiveTo },
+	draft: { editing, beginEdit },
 	formatCell,
-	active,
-	editing,
-	addCellToSelection,
-	moveActiveTo,
-	beginEdit,
 }: UseEditableGridAugmentedColumns<T>): DataTableColumn<T>[] {
 	return useMemo<DataTableColumn<T>[]>(() => {
 		let editableColIdx = 0

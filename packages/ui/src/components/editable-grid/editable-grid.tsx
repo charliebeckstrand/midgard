@@ -11,7 +11,12 @@ import {
 } from '../data-table'
 import type { TableVariants } from '../table'
 import { type EditableGridContextValue, EditableGridProvider } from './context'
-import type { CellChange, EditableGridColumn } from './types'
+import type {
+	CellChange,
+	EditableGridColumn,
+	EditableGridRowsApi,
+	EditableGridSelectionApi,
+} from './types'
 import { useEditableGridAugmentedColumns } from './use-editable-grid-augmented-columns'
 import { useEditableGridDraft } from './use-editable-grid-draft'
 import { useEditableGridMutations } from './use-editable-grid-mutations'
@@ -124,116 +129,67 @@ export function EditableGrid<T>({
 		return raw
 	}, [])
 
-	const {
-		active,
-		anchor,
-		extraCells,
-		activeRef,
-		anchorRef,
-		extraCellsRef,
-		setActive,
-		setAnchor,
-		setExtraCells,
-		moveActiveTo,
-		moveActive,
-		moveActiveTab,
-		addCellToSelection,
-	} = useEditableGridNavigation<T>({ rowsRef, editableColCount: editableCols.length })
-
-	const { applyCellWrite, applyBulkFill } = useEditableGridMutations<T>({
-		editableCols,
+	const rowsApi: EditableGridRowsApi<T> = {
 		rowsRef,
-		selectionRef,
-		activeRef,
-		anchorRef,
-		extraCellsRef,
-		getRowKey,
-		parseValue,
-		onValueChange,
-		setSelection: setSelectionRaw,
-	})
-
-	const { editing, draft, setDraft, beginEdit, commitEdit, cancelEdit } = useEditableGridDraft<T>({
 		editableCols,
-		active,
-		anchorRef,
-		extraCellsRef,
-		wrapperRef,
-		applyCellWrite,
-		applyBulkFill,
-		moveActive,
-		moveActiveTab,
-		setActive,
+		getRowKey,
+		formatCell,
+		parseValue,
+	}
+
+	const selectionApi: EditableGridSelectionApi = {
+		selectionRef,
+		setSelection: setSelectionRaw,
+	}
+
+	const nav = useEditableGridNavigation<T>({
+		rowsRef,
+		editableColCount: editableCols.length,
 	})
 
-	const hasMultiSelection = !!anchor || extraCells.size > 0
+	const mutations = useEditableGridMutations<T>({
+		nav,
+		rows: rowsApi,
+		selection: selectionApi,
+		onValueChange,
+	})
+
+	const draft = useEditableGridDraft<T>({ nav, mutations, rows: rowsApi, wrapperRef })
 
 	const { onWrapperKeyDown, onWrapperPaste, onWrapperFocus, onWrapperBlur } =
 		useEditableGridWrapper<T>({
-			editing,
-			active,
-			anchor,
-			extraCells,
-			hasMultiSelection,
-			editableCols,
+			nav,
+			mutations,
+			draft,
+			rows: rowsApi,
+			selection: selectionApi,
 			wrapperRef,
-			rowsRef,
-			activeRef,
-			selectionRef,
-			moveActive,
-			moveActiveTo,
-			moveActiveTab,
-			setActive,
-			setAnchor,
-			setExtraCells,
-			beginEdit,
-			formatCell,
-			parseValue,
-			getRowKey,
-			applyCellWrite,
-			applyBulkFill,
 			onValueChange,
-			setSelection: setSelectionRaw,
 		})
 
 	const augmentedColumns = useEditableGridAugmentedColumns<T>({
 		columns,
 		rowIndexMap,
+		nav,
+		draft,
 		formatCell,
-		active,
-		editing,
-		addCellToSelection,
-		moveActiveTo,
-		beginEdit,
 	})
 
 	const context = useMemo<EditableGridContextValue>(
 		() => ({
-			active,
-			anchor,
-			extraCells,
-			editing,
-			draft,
-			setDraft,
-			setActive: moveActiveTo,
-			addCellToSelection,
-			beginEdit,
-			commitEdit,
-			cancelEdit,
+			active: nav.active,
+			anchor: nav.anchor,
+			extraCells: nav.extraCells,
+			editing: draft.editing,
+			draft: draft.draft,
+			setDraft: draft.setDraft,
+			setActive: nav.moveActiveTo,
+			addCellToSelection: nav.addCellToSelection,
+			beginEdit: draft.beginEdit,
+			commitEdit: draft.commitEdit,
+			cancelEdit: draft.cancelEdit,
 		}),
-		[
-			active,
-			anchor,
-			extraCells,
-			editing,
-			draft,
-			setDraft,
-			moveActiveTo,
-			addCellToSelection,
-			beginEdit,
-			commitEdit,
-			cancelEdit,
-		],
+		[nav, draft],
 	)
 
 	return (
