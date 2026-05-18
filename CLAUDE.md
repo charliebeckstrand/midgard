@@ -9,14 +9,12 @@
 
 ## Judgment
 
-Rules for when to stop, when to ask, and when to call work done.
-
-- **When a request is ambiguous, ask one specific clarifying question** rather than guessing or proposing N options. For genuinely fuzzy ideas (you can't form a concrete proposal from the request), route to `/deliberate`.
-- **When a fix needs to broaden scope, ask first.** Never quietly turn a bug fix into a refactor.
-- **When an existing shared component almost fits but is missing a capability, ask** whether extending it makes sense long-term — not just for the immediate use case. Never update a shared component without explicit approval.
-- **When a skill's preconditions aren't met, stop and surface the gap** rather than improvising. Missing manifest, missing test runner, missing type-check script — each skill's expected behavior is to fail loud, not paper over.
-- **When a check fails after an edit, fix the cause; never weaken the check.** If a test must legitimately change, the change earns its own commit and an explanation. Deleting assertions, marking `.skip`, or stripping `expect` calls to make a suite green is a blocking failure regardless of intent.
-- **Work is done when `/postmortem` returns PROCEED** (or every chained downstream skill returns PASS — downstream skills return PASS or BLOCK) and you have re-read the diff. Until then, work is in progress.
+- **Ambiguous request → ask one specific clarifying question.** Don't guess; don't propose N options. For genuinely fuzzy ideas you can't form a concrete proposal from, route to `/deliberate`.
+- **Scope creep → ask first.** Never quietly turn a bug fix into a refactor.
+- **Shared component almost fits → ask** whether extending it makes sense long-term, not just for the immediate use case. Never update a shared component without explicit approval.
+- **Skill precondition missing → stop and surface the gap.** Missing manifest, missing test runner, missing type-check script — each skill's expected behavior is to fail loud, not paper over.
+- **Check fails after an edit → fix the cause; never weaken the check.** If a test must legitimately change, the change earns its own commit and an explanation. Deleting assertions, marking `.skip`, or stripping `expect` calls to make a suite green is a blocking failure regardless of intent.
+- **Work is done when `/postmortem` returns PROCEED**, or every chained downstream skill clears without a blocking finding (see `/postmortem` §4–§5 for the verdict-shape protocol), and you have re-read the diff. Until then, work is in progress.
 
 ## Architecture
 
@@ -27,7 +25,7 @@ Rules for when to stop, when to ask, and when to call work done.
 
 ## Workflow
 
-For non-trivial work (three or more file edits, or any change spanning multiple packages), enter planning mode before writing code. Delegate research to subagents — one focused task per agent — and keep the main context window clean. Summarize at milestones, not line by line.
+For non-trivial work (3+ file edits, or any change spanning multiple packages), enter planning mode before writing code. Delegate research to subagents — one focused task per agent — and keep the main context window clean. Summarize at milestones, not line by line.
 
 Formatting is tooling's job. Never fight the formatter.
 
@@ -39,9 +37,9 @@ Formatting is tooling's job. Never fight the formatter.
 
 ## Skills
 
-Project skills live in `.claude/commands/`. They all read `./manifest.json` first and halt with a pointer to `/repo:manifest` if it's missing. `/repo:manifest` generates it; `/postmortem` and `/premortem` create it on demand; `/postmortem` refreshes it when a diff invalidates it. Operate silently — surface only `/repo:manifest`'s warnings.
+Project skills live in `.claude/commands/` and read `./manifest.json` at the top of each flow. Default behavior: halt with a pointer to `/repo:manifest` when the manifest is missing. `/postmortem` and `/premortem` are the exception — as lifecycle skills they silently invoke `/repo:manifest --quiet` to create or refresh the manifest in flight, surfacing only `/repo:manifest`'s own warnings.
 
-Each skill's canonical description lives in its own file under `.claude/commands/`. The catalog below is an index — read the skill file for the full contract.
+Each skill's canonical description lives in its own file. The catalog below is an index; read the skill file for the full contract.
 
 ### Discovery
 
@@ -51,22 +49,25 @@ Each skill's canonical description lives in its own file under `.claude/commands
 
 - **`/deliberate`** — audit a council/debate verdict, or vet a decision standalone in plain language.
 - **`/council`** — render a verdict on a proposal via 5 evaluators + chairman.
+- **`/debate`** — run a question through two parties via propose-interrogate-swap; lighter than `/council`.
 - **`/premortem`** — stress-test a plan via 5 failure archetypes.
 
-**When to pick which:** use `/council` to render a verdict on a proposal; `/premortem` to stress-test a plan; `/deliberate` to audit a verdict or vet a decision in plain language.
+**`/council` vs `/debate`:** pick `/council` for high-stakes proposals with multiple parties or non-obvious tradeoffs; pick `/debate` when only one or two real tradeoffs need rubber-ducking. The bullets above cover the rest.
 
 ### Authoring
 
 - **`/tests:compose`** — write tests for any target (components, hooks, utilities, modules).
 - **`/typescript:migrate`** — staged type-shaped migrations (`rename`, `lift`, `enum-to-const`, `any-to-unknown`, `jsdoc-to-ts`, `tighten`).
+- **`/orator`** — polish or compose prose (comments, docstrings, READMEs, commit/PR copy, release notes) in the project's house voice.
 
 ### Auditing
 
 - **`/tests:audit`** — test suite audit.
-- **`/typescript:audit`** — TypeScript smell audit. **Use for periodic clean-up and on-demand polish; use `/typescript:review` for change-driven gating.**
+- **`/typescript:audit`** — TypeScript smell audit. Use for periodic clean-up and on-demand polish; use `/typescript:review` for change-driven gating.
 - **`/audit:refactor`** — repo-wide refactor opportunities, plus staged execution of chosen candidates. Type-shaped execution delegates to `/typescript:migrate`.
+- **`/audit:a11y`** — accessibility audit on any frontend source.
 
 ### Commit-time gating
 
-- **`/postmortem`** — pre-commit triage. **The pre-commit orchestrator** — decides whether `/typescript:review` is necessary; do not invoke `/typescript:review` unconditionally before every commit on your own.
-- **`/typescript:review`** — TypeScript review gate; returns PASS or BLOCK. **Two invocation paths:** `/postmortem` invokes diff mode as part of the commit chain; `/ui:component:compose` and `/tests:compose` invoke file mode after writing a new file. Do not invoke directly outside those paths unless the user asks for a review explicitly.
+- **`/postmortem`** — pre-commit triage. The pre-commit orchestrator — decides whether `/typescript:review` is necessary; don't invoke `/typescript:review` unconditionally before every commit on your own.
+- **`/typescript:review`** — TypeScript review gate; returns PASS or BLOCK. Two invocation paths: `/postmortem` invokes diff mode as part of the commit chain; `/ui:component:compose` and `/tests:compose` invoke file mode after writing a new file. Don't invoke directly outside those paths unless the user asks for a review explicitly.
