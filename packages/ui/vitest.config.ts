@@ -7,6 +7,13 @@ export default defineConfig({
 	test: {
 		...baseTest,
 		pool: 'vmThreads',
+		sequence: { shuffle: true },
+		onConsoleLog: (log) => {
+			// React 19 reports stray post-test updates from libraries we don't
+			// own (floating-ui hover delays, motion mocks). The real signal
+			// would be a failed assertion, not a console line.
+			if (log.includes('was not wrapped in act(')) return false
+		},
 		setupFiles: ['./src/__tests__/setup.ts'],
 		include: ['src/__tests__/**/*.test.{ts,tsx}'],
 		reporters: process.env.CI ? ['default', 'junit'] : ['default'],
