@@ -29,7 +29,7 @@ export function SidebarHeader({ className, children, closeIcon, ...props }: Side
 			{children}
 			{offcanvas && (
 				<Button
-					variant="plain"
+					variant="bare"
 					aria-label="Close navigation"
 					className="ml-auto"
 					prefix={closeIcon ?? <Icon icon={<X />} />}

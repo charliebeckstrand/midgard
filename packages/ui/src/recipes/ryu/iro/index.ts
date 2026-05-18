@@ -10,7 +10,7 @@
  */
 
 import { mode } from '../../../core/recipe/mode'
-import { outline, plain, soft, solid } from './palette'
+import { bare, outline, plain, soft, solid } from './palette'
 
 const text = {
 	default: mode('text-zinc-950', 'dark:text-white'),
@@ -55,7 +55,7 @@ const bg = {
 	},
 }
 
-const palette = { solid, soft, outline, plain }
+const palette = { solid, soft, outline, plain, bare }
 
 export const iro = { bg, text, palette } as const
 

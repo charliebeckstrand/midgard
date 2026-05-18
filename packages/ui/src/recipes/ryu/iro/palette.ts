@@ -115,3 +115,35 @@ export const plain = {
 	text,
 	hover,
 }
+
+export const bare = {
+	text: defineColors({
+		zinc: { light: 'text-zinc-500', dark: 'dark:text-zinc-400' },
+		red: { light: 'text-red-600', dark: 'dark:text-red-500' },
+		amber: { light: 'text-amber-600', dark: 'dark:text-amber-500' },
+		green: { light: 'text-green-600', dark: 'dark:text-green-500' },
+		blue: { light: 'text-blue-600', dark: 'dark:text-blue-500' },
+	}),
+	hover: defineColors({
+		zinc: {
+			light: 'not-disabled:hover:text-zinc-950',
+			dark: 'dark:not-disabled:hover:text-white',
+		},
+		red: {
+			light: 'not-disabled:hover:text-red-700',
+			dark: 'dark:not-disabled:hover:text-red-400',
+		},
+		amber: {
+			light: 'not-disabled:hover:text-amber-700',
+			dark: 'dark:not-disabled:hover:text-amber-400',
+		},
+		green: {
+			light: 'not-disabled:hover:text-green-700',
+			dark: 'dark:not-disabled:hover:text-green-400',
+		},
+		blue: {
+			light: 'not-disabled:hover:text-blue-700',
+			dark: 'dark:not-disabled:hover:text-blue-400',
+		},
+	}),
+}

@@ -6,20 +6,17 @@ import { Button } from '../../components/button'
 import { Flex } from '../../components/flex'
 import { Icon } from '../../components/icon'
 import { Stack } from '../../components/stack'
-import { ColorListbox } from '../components/color-listbox'
 import { Example } from '../components/example'
 import { SizeListbox, sizeLabels } from '../components/size-listbox'
 import { VariantListbox } from '../components/variant-listbox'
 
 export const meta = { category: 'Forms' }
 
-const variants = ['solid', 'soft', 'outline', 'plain', 'ghost'] as const
+const variants = ['solid', 'soft', 'outline', 'plain', 'bare', 'ghost'] as const
 
 type Variant = (typeof variants)[number]
 
 const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
-
-type Color = (typeof colors)[number]
 
 export const sizes = ['xs', 'sm', 'md', 'lg'] as const
 
@@ -27,7 +24,6 @@ type Size = (typeof sizes)[number]
 
 export default function ButtonDemo() {
 	const [colorVariant, setColorVariant] = useState<Variant>('solid')
-	const [rippleColor, setRippleColor] = useState<Color>('zinc')
 
 	const [iconSize, setIconSize] = useState<Size>('md')
 	const [iconOnlySize, setIconOnlySize] = useState<Size>('md')
@@ -99,21 +95,6 @@ export default function ButtonDemo() {
 					{variants.map((variant) => (
 						<Button key={variant} variant={variant} size={iconOnlySize}>
 							<Icon icon={<Plus />} />
-						</Button>
-					))}
-				</Flex>
-			</Example>
-
-			<Example
-				title="Ripple"
-				actions={
-					<ColorListbox colors={colors} value={rippleColor} onValueChange={setRippleColor} />
-				}
-			>
-				<Flex wrap gap="sm">
-					{variants.map((variant) => (
-						<Button key={variant} variant={variant} color={rippleColor} ripple>
-							{variant}
 						</Button>
 					))}
 				</Flex>

@@ -2,6 +2,14 @@
 
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 
+const colorLabels: Record<string, string> = {
+	zinc: 'Zinc',
+	red: 'Red',
+	amber: 'Amber',
+	green: 'Green',
+	blue: 'Blue',
+}
+
 type ColorListboxProps<T extends string> = {
 	colors: readonly T[]
 	value: T
@@ -18,14 +26,13 @@ export function ColorListbox<T extends string>({
 	return (
 		<Listbox
 			value={value}
-			displayValue={(v: string) => v}
+			displayValue={(v: string) => colorLabels[v] ?? v}
 			placement={placement}
 			onValueChange={onValueChange as (value: T | undefined) => void}
-			className="capitalize"
 		>
 			{colors.map((c) => (
 				<ListboxOption key={c} value={c}>
-					<ListboxLabel className="capitalize">{c}</ListboxLabel>
+					<ListboxLabel>{colorLabels[c] ?? c}</ListboxLabel>
 				</ListboxOption>
 			))}
 		</Listbox>

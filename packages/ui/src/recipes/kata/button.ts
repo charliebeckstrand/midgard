@@ -7,13 +7,14 @@ import { sen } from '../ryu/sen'
 import { take } from '../ryu/take'
 import { tsunagi } from '../ryu/tsunagi'
 
-const { solid, soft, outline, plain } = iro.palette
+const { solid, soft, outline, plain, bare } = iro.palette
 const { inherit } = iro.text
 
 export const buttonSolid = { ...merge(solid.bg, solid.text, solid.hover), inherit }
 export const buttonSoft = { ...merge(soft.bg, soft.text, soft.hover), inherit }
 export const buttonOutline = { ...merge(outline.ring, outline.text, outline.hover), inherit }
 export const buttonPlain = { ...merge(plain.text, plain.hover), inherit }
+export const buttonBare = { ...merge(bare.text, bare.hover), inherit }
 export const buttonGhost = { ...plain.text, inherit }
 
 const { color, compoundVariants } = colorVariants({
@@ -21,8 +22,8 @@ const { color, compoundVariants } = colorVariants({
 	soft: buttonSoft,
 	outline: buttonOutline,
 	plain: buttonPlain,
+	bare: buttonBare,
 	ghost: buttonGhost,
-	glass: buttonPlain,
 })
 
 const size = {
@@ -75,13 +76,20 @@ export const button = tv({
 			soft: '',
 			outline: 'ring-1 ring-inset',
 			plain: '',
+			bare: '',
 			ghost: '',
 			glass: '',
 		},
 		color,
 		size,
 	},
-	compoundVariants,
+	compoundVariants: [
+		...compoundVariants,
+		{
+			variant: 'bare' as const,
+			class: ['p-0', 'before:content-[""] before:absolute before:-inset-2'],
+		},
+	],
 	defaultVariants: { variant: 'solid', color: 'zinc', size: 'md' },
 })
 

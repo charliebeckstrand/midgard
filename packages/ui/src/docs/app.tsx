@@ -56,17 +56,21 @@ export function App() {
 					pressed={dark}
 					icon={<Moon />}
 					activeIcon={<Sun />}
-					aria-label="Toggle dark mode"
-					className="p-2 -m-2"
+					aria-label="Toggle theme"
 					onClick={toggleDark}
 				/>
 			}
-			sidebar={<SidebarContent route={route} locked={locked} onToggleLocked={toggleLocked} />}
+			sidebar={<SidebarContent route={route} />}
 		>
 			<div ref={contentRef}>
 				{current ? (
 					<Suspense fallback={null}>
-						<DemoPage key={current.id} demo={current} />
+						<DemoPage
+							key={current.id}
+							demo={current}
+							locked={locked}
+							onToggleLocked={toggleLocked}
+						/>
 					</Suspense>
 				) : (
 					<div className="p-6">

@@ -77,9 +77,12 @@ describe('Combobox', () => {
 			</Combobox>,
 		)
 
-		expect(bySlot(container, 'suffix')).not.toBeInTheDocument()
+		const suffix = bySlot(container, 'suffix')
 
-		expect(container.querySelector('button[aria-label="Open"]')).toBeInTheDocument()
+		expect(suffix).toBeInTheDocument()
+		expect(suffix).toHaveAttribute('role', 'button')
+		expect(suffix).toHaveAttribute('aria-label', 'Open')
+		expect(suffix?.querySelector('[data-slot="icon"]')).toBeInTheDocument()
 	})
 
 	it('renders a placeholder in skeleton mode', () => {

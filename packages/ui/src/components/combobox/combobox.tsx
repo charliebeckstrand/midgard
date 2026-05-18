@@ -10,14 +10,11 @@ import {
 	useMemo,
 	useRef,
 } from 'react'
-import { cn } from '../../core'
 import { useFloatingUI, useRoving, useScrollWithin, useSelectableValueChange } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
 import { DENSITY_PRESETS, useDensity } from '../../primitives/density'
 import { useSkeleton } from '../../providers/skeleton'
-import { k } from '../../recipes/kata/combobox'
-import { Button } from '../button'
 import { type ControlSize, useControl } from '../control/context'
 import { ControlSkeleton } from '../control/control-skeleton'
 import { useGlass } from '../glass/context'
@@ -217,20 +214,16 @@ export function Combobox<T>({
 				data-group={dataGroup}
 				data-group-orientation={dataGroupOrientation}
 				prefix={prefix}
-				suffix={suffix}
-				suffixUnwrapped={
-					!suffix ? (
-						<Button
-							variant="ghost"
-							tabIndex={-1}
-							aria-label={open ? 'Close' : 'Open'}
-							disabled={resolvedDisabled}
-							className={cn(k.chevron)}
-							onMouseDown={triggerHandlers.onMouseDown}
-						>
-							<Icon icon={<ChevronsUpDown />} />
-						</Button>
-					) : undefined
+				suffix={suffix || <Icon icon={<ChevronsUpDown />} />}
+				suffixProps={
+					suffix
+						? undefined
+						: {
+								role: 'button',
+								'aria-label': open ? 'Close' : 'Open',
+								'aria-disabled': resolvedDisabled || undefined,
+								onMouseDown: resolvedDisabled ? undefined : triggerHandlers.onMouseDown,
+							}
 				}
 			>
 				<ComboboxInput

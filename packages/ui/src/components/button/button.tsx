@@ -24,7 +24,6 @@ export type LoadingOptions = Pick<SpinnerProps, 'color' | 'size' | 'label'>
 
 type ButtonBaseProps = ButtonVariants & {
 	block?: boolean
-	ripple?: boolean
 	spring?: boolean
 	loading?: boolean | LoadingOptions
 	prefix?: ReactNode
@@ -52,7 +51,6 @@ export function Button({
 	children,
 	href,
 	ref,
-	ripple = false,
 	spring = false,
 	loading: loadingProp = false,
 	prefix,
@@ -69,8 +67,6 @@ export function Button({
 	const skeleton = useSkeleton()
 
 	const resolvedSize = useSizeWide(size)
-
-	const { onPointerDown: handleRipple, element: rippleElement } = useRipple()
 
 	if (headless) {
 		return (
@@ -110,8 +106,6 @@ export function Button({
 	)
 
 	const handlePointerDown = (e: PointerEvent<HTMLElement>) => {
-		if (ripple) handleRipple(e)
-
 		const consumerHandler = (props as { onPointerDown?: (e: PointerEvent<HTMLElement>) => void })
 			.onPointerDown
 
@@ -134,7 +128,6 @@ export function Button({
 						{...(loading && { 'aria-disabled': true, 'data-disabled': true, 'aria-busy': true })}
 						onPointerDown={handlePointerDown}
 					>
-						{ripple && rippleElement}
 						<TouchTarget>{content}</TouchTarget>
 					</Link>
 				</motion.span>
@@ -163,7 +156,6 @@ export function Button({
 				aria-busy={loading || undefined}
 				onPointerDown={handlePointerDown}
 			>
-				{ripple && rippleElement}
 				<TouchTarget>{content}</TouchTarget>
 			</motion.button>
 		</ReducedMotion>

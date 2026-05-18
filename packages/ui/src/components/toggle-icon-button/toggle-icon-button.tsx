@@ -34,7 +34,7 @@ export function ToggleIconButton({
 		return (
 			<Button
 				{...props}
-				variant="ghost"
+				variant="bare"
 				size={size}
 				data-slot="toggle-icon-button"
 				aria-pressed={pressed}
@@ -48,7 +48,7 @@ export function ToggleIconButton({
 	return (
 		<Button
 			{...props}
-			variant="ghost"
+			variant="bare"
 			size={size}
 			data-slot="toggle-icon-button"
 			aria-pressed={pressed}

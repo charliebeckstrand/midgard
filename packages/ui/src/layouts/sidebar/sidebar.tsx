@@ -139,13 +139,13 @@ export function SidebarLayout({
 			{/* Navbar on mobile */}
 			<Flex align="center" className={cn('lg:p-0 lg:hidden', navbarPaddingForSize(size))}>
 				<Button
-					variant="plain"
+					variant="bare"
 					aria-label="Open navigation"
 					prefix={menuIcon ?? <Icon icon={<Menu />} />}
 					onClick={() => setOpen(true)}
 				/>
 				{navbar && <div className="min-w-0 flex-1">{navbar}</div>}
-				{actions && <div className="shrink-0 ml-auto">{actions}</div>}
+				{actions && <div className="flex items-center shrink-0 ml-auto">{actions}</div>}
 			</Flex>
 
 			{/* Content */}
@@ -168,7 +168,7 @@ export function SidebarLayoutHeader({ children, className }: SidebarLayoutHeader
 	return (
 		<div data-slot="header" className={cn(sidebarHeaderVariants({ size }), className)}>
 			<div className="flex-1 min-w-0">{children}</div>
-			{actions && <div className="shrink-0 max-lg:hidden">{actions}</div>}
+			{actions && <div className="shrink-0 max-lg:hidden flex items-center">{actions}</div>}
 		</div>
 	)
 }

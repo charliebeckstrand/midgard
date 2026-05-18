@@ -24,8 +24,8 @@ export type SelectTriggerProps = {
 	prefix?: ReactNode
 	/** Suffix rendered inside the standard `<span data-slot="suffix">` slot. */
 	suffix?: ReactNode
-	/** Escape hatch for suffixes that must be a top-level focus target inside the ControlFrame (e.g. Combobox's interactive chevron Button). */
-	suffixUnwrapped?: ReactNode
+	/** Props spread onto the suffix `<span>` slot — used by Combobox to make the chevron a click target. */
+	suffixProps?: Omit<ComponentPropsWithoutRef<'span'>, 'className' | 'children'>
 	className?: string
 	frameProps?: Omit<ComponentPropsWithoutRef<typeof ControlFrame>, 'className' | 'children'>
 	'data-group'?: string
@@ -49,7 +49,7 @@ export function SelectTrigger({
 	size,
 	prefix,
 	suffix,
-	suffixUnwrapped,
+	suffixProps,
 	className,
 	frameProps,
 	'data-group': dataGroup,
@@ -80,15 +80,15 @@ export function SelectTrigger({
 						</span>
 					)}
 					{children}
-					{suffixUnwrapped ??
-						(suffix !== undefined && (
-							<span
-								data-slot="suffix"
-								className={cn('peer/suffix', affixBase, controlRecipe.affix.suffix[size])}
-							>
-								{suffix}
-							</span>
-						))}
+					{suffix !== undefined && (
+						<span
+							data-slot="suffix"
+							className={cn('peer/suffix', affixBase, controlRecipe.affix.suffix[size])}
+							{...suffixProps}
+						>
+							{suffix}
+						</span>
+					)}
 				</ControlFrame>
 			</div>
 		</AffixProvider>

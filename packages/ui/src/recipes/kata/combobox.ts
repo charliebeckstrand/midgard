@@ -13,7 +13,6 @@ export const combobox = tv({
 })
 
 export const slots = {
-	chevron: ['pl-0 pr-3 -m-px'],
 	options: 'max-h-60',
 	empty: ['hidden only:block', 'p-2', ji.size.sm, iro.text.muted],
 }

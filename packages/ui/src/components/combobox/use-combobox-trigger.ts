@@ -9,7 +9,7 @@ type UseComboboxTriggerParams = {
 
 export function useComboboxTrigger({ open, close, setOpen, inputRef }: UseComboboxTriggerParams) {
 	const onMouseDown = useCallback(
-		(e: MouseEvent<HTMLButtonElement>) => {
+		(e: MouseEvent<HTMLElement>) => {
 			e.preventDefault()
 
 			if (open) {

@@ -29,7 +29,6 @@ export function SizeListbox<T extends string>({
 			displayValue={(v: string) => sizeLabels[v] ?? v}
 			placement={placement}
 			onValueChange={onValueChange as (value: T | undefined) => void}
-			className="capitalize"
 		>
 			{sizes.map((s) => (
 				<ListboxOption key={s} value={s}>

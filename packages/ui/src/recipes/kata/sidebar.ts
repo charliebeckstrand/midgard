@@ -10,7 +10,7 @@ const sidebarItem = tv({
 		...sawari.cursor,
 		'group relative',
 		'flex w-full items-center',
-		'text-left font-medium',
+		'text-left',
 		'rounded-lg',
 	],
 	variants: {
@@ -28,7 +28,7 @@ export const sidebar = {
 	item: sidebarItem,
 	section: ['flex flex-col', 'gap-0.5'],
 	label: ['truncate'],
-	header: ['flex items-center justify-between', 'gap-sm', '**:data-[slot=heading]:leading-none'],
+	header: ['flex items-center justify-between', 'gap-md', '**:data-[slot=heading]:leading-none'],
 	body: ['overflow-y-auto', 'flex flex-1 flex-col', 'gap-lg'],
 	divider: sen.divider,
 	footer: ['sticky bottom-0', 'flex flex-col', 'gap-0.5', 'mt-auto'],

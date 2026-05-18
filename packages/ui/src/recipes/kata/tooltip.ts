@@ -5,7 +5,7 @@ import { omote } from '../ryu/omote'
 import { sen } from '../ryu/sen'
 
 const content = tv({
-	base: ['font-medium', 'whitespace-nowrap', 'rounded-lg', iro.text.default, 'pointer-events-none'],
+	base: [iro.text.default, 'font-medium', 'whitespace-nowrap', 'rounded-lg', 'pointer-events-none'],
 	variants: {
 		size: {
 			sm: ['px-xs py-xs', ji.size.sm],
@@ -17,7 +17,7 @@ const content = tv({
 })
 
 export const tooltip = {
-	trigger: 'inline-flex',
+	trigger: 'inline-flex items-center',
 	triggerEnabled: 'cursor-help *:cursor-help',
 	portal: 'z-100',
 	content,
