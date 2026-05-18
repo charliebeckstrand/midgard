@@ -16,6 +16,7 @@ describe('TimeAgo', () => {
 
 	afterEach(() => {
 		vi.useRealTimers()
+		vi.restoreAllMocks()
 	})
 
 	it('renders a <time> element with data-slot="time-ago"', () => {
@@ -110,8 +111,6 @@ describe('TimeAgo', () => {
 		renderUI(<TimeAgo date={past} interval={1000} />)
 
 		expect(setInterval).toHaveBeenCalledWith(expect.any(Function), 1000)
-
-		setInterval.mockRestore()
 	})
 
 	it('forwards HTML attributes to the time element', () => {

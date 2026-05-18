@@ -1,11 +1,15 @@
 import { renderHook } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 describe('useMediaQuery', () => {
+	afterEach(() => {
+		vi.unstubAllGlobals()
+	})
+
 	it('returns false when the query does not match', async () => {
-		Object.defineProperty(window, 'matchMedia', {
-			writable: true,
-			value: vi.fn().mockImplementation((query: string) => ({
+		vi.stubGlobal(
+			'matchMedia',
+			vi.fn().mockImplementation((query: string) => ({
 				matches: false,
 				media: query,
 				onchange: null,
@@ -15,7 +19,7 @@ describe('useMediaQuery', () => {
 				removeListener: vi.fn(),
 				dispatchEvent: vi.fn(),
 			})),
-		})
+		)
 
 		vi.resetModules()
 
@@ -27,9 +31,9 @@ describe('useMediaQuery', () => {
 	})
 
 	it('returns true when the query matches', async () => {
-		Object.defineProperty(window, 'matchMedia', {
-			writable: true,
-			value: vi.fn().mockImplementation((query: string) => ({
+		vi.stubGlobal(
+			'matchMedia',
+			vi.fn().mockImplementation((query: string) => ({
 				matches: query === '(min-width: 640px)',
 				media: query,
 				onchange: null,
@@ -39,7 +43,7 @@ describe('useMediaQuery', () => {
 				removeListener: vi.fn(),
 				dispatchEvent: vi.fn(),
 			})),
-		})
+		)
 
 		vi.resetModules()
 
@@ -54,9 +58,9 @@ describe('useMediaQuery', () => {
 		const addEventListener = vi.fn()
 		const removeEventListener = vi.fn()
 
-		Object.defineProperty(window, 'matchMedia', {
-			writable: true,
-			value: vi.fn().mockImplementation((query: string) => ({
+		vi.stubGlobal(
+			'matchMedia',
+			vi.fn().mockImplementation((query: string) => ({
 				matches: false,
 				media: query,
 				onchange: null,
@@ -66,7 +70,7 @@ describe('useMediaQuery', () => {
 				removeListener: vi.fn(),
 				dispatchEvent: vi.fn(),
 			})),
-		})
+		)
 
 		vi.resetModules()
 

@@ -58,6 +58,7 @@ function makeTrack(size: number) {
 
 afterEach(() => {
 	vi.useRealTimers()
+	vi.restoreAllMocks()
 })
 
 describe('useScrollAreaScrollbar: orientation flags', () => {
@@ -233,7 +234,5 @@ describe('useScrollAreaScrollbar: startDrag', () => {
 		expect(kinds).toContain('pointermove')
 
 		expect(kinds).toContain('pointerup')
-
-		add.mockRestore()
 	})
 })
