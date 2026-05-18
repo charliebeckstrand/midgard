@@ -2,6 +2,7 @@
 
 import { type CSSProperties, useRef } from 'react'
 import { cn } from '../../../core'
+import { pct } from '../../../helpers'
 import { useControllable } from '../../../hooks/use-controllable'
 import {
 	k,
@@ -10,7 +11,6 @@ import {
 	rangeSliderThumbVariants,
 	rangeSliderTrackVariants,
 } from '../../../recipes/kata/slider-range'
-import { pct } from './range-utilities'
 import { useRangeKeyboard } from './use-range-keyboard'
 import { useRangePointer } from './use-range-pointer'
 

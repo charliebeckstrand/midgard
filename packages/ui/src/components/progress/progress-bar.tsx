@@ -2,6 +2,7 @@
 
 import { motion } from 'motion/react'
 import { cn } from '../../core'
+import { clamp, pct } from '../../helpers'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import {
 	k,
@@ -35,7 +36,7 @@ export function ProgressBar({
 }: ProgressBarProps) {
 	const determinate = value != null
 
-	const percent = determinate ? Math.min(100, Math.max(0, (value / max) * 100)) : 0
+	const percent = determinate ? clamp(pct(value, 0, max), 0, 100) : 0
 
 	return (
 		<div

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { RangeSlider, Slider } from '../../components/slider'
-import { pct, snapToStep } from '../../components/slider/range/range-utilities'
+import { snapToStep } from '../../components/slider/range/range-helpers'
 import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 
 describe('Slider', () => {
@@ -202,19 +202,5 @@ describe('snapToStep', () => {
 
 	it('offsets the step grid by min', () => {
 		expect(snapToStep(13, 3, 5)).toBe(13)
-	})
-})
-
-describe('pct', () => {
-	it('returns 0 when min equals max', () => {
-		expect(pct(5, 5, 5)).toBe(0)
-	})
-
-	it('returns a percentage within the range', () => {
-		expect(pct(25, 0, 100)).toBe(25)
-	})
-
-	it('normalizes non-zero ranges to a 0–100 scale', () => {
-		expect(pct(15, 10, 20)).toBe(50)
 	})
 })
