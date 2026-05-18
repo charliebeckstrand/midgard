@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { RangeSlider, Slider } from '../../components/slider'
-import { snapToStep } from '../../components/slider/range/range-helpers'
+import { snapToStep } from '../../components/slider/range/range-utilities'
 import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 
 describe('Slider', () => {

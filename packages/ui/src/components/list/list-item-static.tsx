@@ -1,7 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { noop } from '../../helpers'
+import { noop } from '../../utilities'
 import { ListItemProvider } from './context'
 
 export type ListItemStaticProps = {

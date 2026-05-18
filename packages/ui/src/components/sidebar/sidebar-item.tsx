@@ -1,7 +1,7 @@
 import { sidebarItemVariants } from '../../recipes/kata/sidebar'
 import type { Step } from '../../recipes/ryu/sun'
 import { Icon } from '../icon'
-import { createNavItem, type NavItemProps } from '../nav/nav-item-helpers'
+import { createNavItem, type NavItemProps } from '../nav/nav-item-utilities'
 
 export type SidebarItemProps = NavItemProps & {
 	/** Size step. Resolves through `explicit ?? Density ?? 'md'`. */

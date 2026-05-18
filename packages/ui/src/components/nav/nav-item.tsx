@@ -5,7 +5,7 @@ import { cn } from '../../core'
 import { useCurrent } from '../../primitives/current'
 import { k } from '../../recipes/kata/nav'
 import { Icon } from '../icon'
-import { createNavItem, type NavItemProps } from './nav-item-helpers'
+import { createNavItem, type NavItemProps } from './nav-item-utilities'
 
 const BaseNavItem = createNavItem({
 	slotPrefix: 'nav',

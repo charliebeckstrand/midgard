@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
-import { clamp } from '../../../helpers'
-import { snapToStep } from './range-helpers'
+import { clamp } from '../../../utilities'
+import { snapToStep } from './range-utilities'
 import type { OverlapMode, ThumbIndex } from './types'
 
 export function useRangeUpdate(opts: {

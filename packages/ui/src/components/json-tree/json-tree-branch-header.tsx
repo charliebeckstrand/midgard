@@ -2,8 +2,7 @@ import { ChevronRight } from 'lucide-react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/json-tree'
 import { Icon } from '../icon'
-import { NodeKey } from './json-tree-helpers'
-import { INDENT_REM } from './json-tree-utilities'
+import { INDENT_REM, NodeKey } from './json-tree-utilities'
 
 export type JsonTreeBranchHeaderProps = {
 	depth: number

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { pct } from '../../helpers/pct'
+import { pct } from '../../utilities/pct'
 
 describe('pct', () => {
 	it('returns 0 when min equals max', () => {

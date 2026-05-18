@@ -23,7 +23,7 @@ export {
 	createNavItem,
 	type NavItemConfig,
 	type NavItemProps,
-} from './nav-item-helpers'
+} from './nav-item-utilities'
 export {
 	NavList,
 	type NavListProps,
