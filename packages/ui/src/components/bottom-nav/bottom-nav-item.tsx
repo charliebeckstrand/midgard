@@ -26,16 +26,16 @@ export function BottomNavItem({
 	onClick,
 	...props
 }: BottomNavItemProps) {
-	const ctx = useNavContext()
+	const context = useNavContext()
 	const indicator = useActiveIndicator()
 
-	const isCurrent = current ?? (value !== undefined && ctx?.value === value)
+	const isCurrent = current ?? (value !== undefined && context?.value === value)
 
 	function handleClick(e: MouseEvent<HTMLElement>) {
 		onClick?.(e as MouseEvent<HTMLButtonElement> & MouseEvent<HTMLAnchorElement>)
 
 		if (value !== undefined) {
-			ctx?.onChange?.(value)
+			context?.onChange?.(value)
 		}
 	}
 

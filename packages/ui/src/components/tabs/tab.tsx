@@ -26,9 +26,10 @@ export function Tab({
 	onClick,
 	...props
 }: TabProps) {
-	const ctx = useCurrent()
+	const context = useCurrent()
 
 	const tabsContext = useTabsContext()
+
 	const indicator = useActiveIndicator()
 
 	// When wrapped in <Tabs>, the parent has already resolved Density into tabsContext.size.
@@ -41,13 +42,13 @@ export function Tab({
 
 	const orientation = tabsContext?.orientation ?? 'horizontal'
 
-	const current = currentProp ?? (value !== undefined && ctx?.value === value)
+	const current = currentProp ?? (value !== undefined && context?.value === value)
 
 	function handleClick(e: MouseEvent<HTMLButtonElement>) {
 		onClick?.(e)
 
 		if (value !== undefined) {
-			ctx?.onChange?.(value)
+			context?.onChange?.(value)
 		}
 	}
 

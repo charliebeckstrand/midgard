@@ -21,15 +21,15 @@ const BaseNavItem = createNavItem({
 export type NavMenuItemProps = NavItemProps & { value?: string }
 
 export function NavItem({ value, current, onClick, ...props }: NavMenuItemProps) {
-	const ctx = useCurrent()
+	const context = useCurrent()
 
-	const isCurrent = current ?? (value !== undefined && ctx?.value === value)
+	const isCurrent = current ?? (value !== undefined && context?.value === value)
 
 	function handleClick(e: MouseEvent<HTMLElement>) {
 		onClick?.(e as MouseEvent<HTMLButtonElement> & MouseEvent<HTMLAnchorElement>)
 
 		if (value !== undefined) {
-			ctx?.onChange?.(value)
+			context?.onChange?.(value)
 		}
 	}
 

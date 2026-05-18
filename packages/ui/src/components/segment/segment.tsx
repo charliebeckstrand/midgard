@@ -21,17 +21,17 @@ export function Segment({
 	className,
 	children,
 }: SegmentProps) {
-	const currentCtx = useCurrentState({
+	const currentContext = useCurrentState({
 		value: valueProp,
 		defaultValue,
 		onChange: onValueChange,
 	})
 
-	const segmentCtx = useMemo(() => ({ size: size ?? ('md' as const) }), [size])
+	const segmentContext = useMemo(() => ({ size: size ?? ('md' as const) }), [size])
 
 	return (
-		<CurrentProvider value={currentCtx}>
-			<SegmentProvider value={segmentCtx}>
+		<CurrentProvider value={currentContext}>
+			<SegmentProvider value={segmentContext}>
 				<div data-slot="segment" className={className}>
 					{children}
 				</div>

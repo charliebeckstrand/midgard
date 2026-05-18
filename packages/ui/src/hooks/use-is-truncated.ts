@@ -7,19 +7,20 @@ let canvas: HTMLCanvasElement | null = null
 function measureTextWidth(text: string, el: HTMLElement): number {
 	canvas ??= document.createElement('canvas')
 
-	const ctx = canvas.getContext('2d')
+	const context = canvas.getContext('2d')
 
-	if (!ctx) return 0
+	if (!context) return 0
 
 	const cs = getComputedStyle(el)
 
-	ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`
+	context.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`
 
-	if ('letterSpacing' in ctx) {
-		;(ctx as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = cs.letterSpacing
+	if ('letterSpacing' in context) {
+		;(context as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing =
+			cs.letterSpacing
 	}
 
-	return ctx.measureText(text).width
+	return context.measureText(text).width
 }
 
 function getContentWidth(el: HTMLElement): number {

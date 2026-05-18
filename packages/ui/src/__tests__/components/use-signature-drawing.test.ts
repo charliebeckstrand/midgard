@@ -3,7 +3,7 @@ import type { PointerEvent as ReactPointerEvent } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useSignaturePadDrawing } from '../../components/signature-pad/use-signature-pad-drawing'
 
-function makeCtx() {
+function makeContext() {
 	return {
 		beginPath: vi.fn(),
 		moveTo: vi.fn(),
@@ -22,13 +22,13 @@ function makeCtx() {
 	}
 }
 
-function makeCanvas(ctx: CanvasRenderingContext2D | null) {
+function makeCanvas(context: CanvasRenderingContext2D | null) {
 	const canvas = document.createElement('canvas')
 
 	canvas.getBoundingClientRect = () =>
 		({ x: 0, y: 0, left: 0, top: 0, right: 100, bottom: 100, width: 100, height: 100 }) as DOMRect
 
-	canvas.getContext = (() => ctx) as unknown as HTMLCanvasElement['getContext']
+	canvas.getContext = (() => context) as unknown as HTMLCanvasElement['getContext']
 
 	canvas.toDataURL = () => 'data:image/png;base64,abc'
 
@@ -57,12 +57,12 @@ function setup(
 		disabled?: boolean
 		readOnly?: boolean
 		isEmpty?: boolean
-		ctx?: CanvasRenderingContext2D | null
+		context?: CanvasRenderingContext2D | null
 	} = {},
 ) {
-	const ctx = options.ctx === undefined ? makeCtx() : options.ctx
+	const context = options.context === undefined ? makeContext() : options.context
 
-	const canvas = makeCanvas(ctx)
+	const canvas = makeCanvas(context)
 
 	const setIsEmpty = vi.fn()
 	const setCurrent = vi.fn()
@@ -83,7 +83,7 @@ function setup(
 		}),
 	)
 
-	return { api: result.current, canvas, ctx, setIsEmpty, setCurrent, lastEmittedRef }
+	return { api: result.current, canvas, context, setIsEmpty, setCurrent, lastEmittedRef }
 }
 
 describe('useSignaturePadDrawing: handlePointerDown', () => {
@@ -92,7 +92,7 @@ describe('useSignaturePadDrawing: handlePointerDown', () => {
 	})
 
 	it('begins a stroke and draws a dot at the pointer position', () => {
-		const { api, ctx } = setup()
+		const { api, context } = setup()
 
 		const event = makeEvent()
 
@@ -100,7 +100,7 @@ describe('useSignaturePadDrawing: handlePointerDown', () => {
 
 		expect(event.preventDefault).toHaveBeenCalled()
 
-		const mock = ctx as ReturnType<typeof makeCtx>
+		const mock = context as ReturnType<typeof makeContext>
 
 		expect(mock.beginPath).toHaveBeenCalled()
 
@@ -125,7 +125,7 @@ describe('useSignaturePadDrawing: handlePointerDown', () => {
 	})
 
 	it('is a no-op when disabled', () => {
-		const { api, ctx } = setup({ disabled: true })
+		const { api, context } = setup({ disabled: true })
 
 		const event = makeEvent()
 
@@ -133,11 +133,11 @@ describe('useSignaturePadDrawing: handlePointerDown', () => {
 
 		expect(event.preventDefault).not.toHaveBeenCalled()
 
-		expect((ctx as ReturnType<typeof makeCtx>).beginPath).not.toHaveBeenCalled()
+		expect((context as ReturnType<typeof makeContext>).beginPath).not.toHaveBeenCalled()
 	})
 
 	it('is a no-op when readOnly', () => {
-		const { api, ctx } = setup({ readOnly: true })
+		const { api, context } = setup({ readOnly: true })
 
 		const event = makeEvent()
 
@@ -145,7 +145,7 @@ describe('useSignaturePadDrawing: handlePointerDown', () => {
 
 		expect(event.preventDefault).not.toHaveBeenCalled()
 
-		expect((ctx as ReturnType<typeof makeCtx>).beginPath).not.toHaveBeenCalled()
+		expect((context as ReturnType<typeof makeContext>).beginPath).not.toHaveBeenCalled()
 	})
 
 	it('ignores non-left mouse buttons', () => {
@@ -159,7 +159,7 @@ describe('useSignaturePadDrawing: handlePointerDown', () => {
 	})
 
 	it('does not throw when the canvas has no 2d context', () => {
-		const { api } = setup({ ctx: null })
+		const { api } = setup({ context: null })
 
 		const event = makeEvent()
 
@@ -173,21 +173,21 @@ describe('useSignaturePadDrawing: handlePointerMove', () => {
 	})
 
 	it('is a no-op before a stroke has started', () => {
-		const { api, ctx } = setup()
+		const { api, context } = setup()
 
 		api.handlePointerMove(makeEvent({ clientX: 30, clientY: 40 }))
 
-		expect((ctx as ReturnType<typeof makeCtx>).stroke).not.toHaveBeenCalled()
+		expect((context as ReturnType<typeof makeContext>).stroke).not.toHaveBeenCalled()
 	})
 
 	it('draws a line segment from the last point and sets isEmpty=false on first move', () => {
-		const { api, ctx, setIsEmpty } = setup({ isEmpty: true })
+		const { api, context, setIsEmpty } = setup({ isEmpty: true })
 
 		api.handlePointerDown(makeEvent({ clientX: 10, clientY: 20 }))
 
 		api.handlePointerMove(makeEvent({ clientX: 30, clientY: 40 }))
 
-		const mock = ctx as ReturnType<typeof makeCtx>
+		const mock = context as ReturnType<typeof makeContext>
 
 		expect(mock.moveTo).toHaveBeenCalledWith(10, 20)
 

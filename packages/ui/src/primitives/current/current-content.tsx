@@ -24,11 +24,11 @@ export function CurrentContent({
 	children,
 	...props
 }: CurrentContentProps) {
-	const ctx = useCurrent()
+	const context = useCurrent()
 
 	const fade = useCurrentFade()
 
-	const current = value === undefined || ctx?.value === undefined || ctx.value === value
+	const current = value === undefined || context?.value === undefined || context.value === value
 
 	if (!fade) {
 		if (!current) return null

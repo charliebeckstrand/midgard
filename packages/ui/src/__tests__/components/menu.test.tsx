@@ -1,6 +1,20 @@
 import type { ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
+import {
+	Menu,
+	MenuContent,
+	MenuDescription,
+	MenuHeading,
+	MenuItem,
+	MenuLabel,
+	MenuSection,
+	MenuSeparator,
+	MenuShortcut,
+	MenuTrigger,
+} from '../../components/menu'
+import { bySlot, fireEvent, renderUI, screen } from '../helpers'
+
 vi.mock('@floating-ui/react', () => {
 	const noop = () => {}
 	const identity = <T,>(x: T) => x
@@ -40,20 +54,6 @@ vi.mock('@floating-ui/react', () => {
 		useRole: () => ({}),
 	}
 })
-
-import {
-	Menu,
-	MenuContent,
-	MenuDescription,
-	MenuHeading,
-	MenuItem,
-	MenuLabel,
-	MenuSection,
-	MenuSeparator,
-	MenuShortcut,
-	MenuTrigger,
-} from '../../components/menu'
-import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Menu', () => {
 	it('renders with data-slot="menu"', () => {

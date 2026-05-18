@@ -26,10 +26,13 @@ export function AccordionItem({
 		if (!disabled) root.toggle(value)
 	}, [disabled, root, value])
 
-	const ctx = useMemo(() => ({ value, open, toggle, disabled }), [value, open, toggle, disabled])
+	const context = useMemo(
+		() => ({ value, open, toggle, disabled }),
+		[value, open, toggle, disabled],
+	)
 
 	return (
-		<AccordionItemProvider value={ctx}>
+		<AccordionItemProvider value={context}>
 			<div
 				data-slot="accordion-item"
 				data-open={open || undefined}

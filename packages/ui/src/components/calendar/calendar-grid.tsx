@@ -18,7 +18,7 @@ export type CalendarGridProps = {
 	value: Date | null | undefined
 	activeGridDate: Date | null
 	isDisabled: (date: Date) => boolean
-	getDayProps?: (ctx: CalendarDayContext) => CalendarDayProps
+	getDayProps?: (context: CalendarDayContext) => CalendarDayProps
 	onSelect: (date: Date) => void
 }
 

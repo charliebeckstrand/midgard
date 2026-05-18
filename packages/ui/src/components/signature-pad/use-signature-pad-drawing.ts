@@ -55,20 +55,20 @@ export function useSignaturePadDrawing({
 
 		lastPointRef.current = point
 
-		const ctx = canvasRef.current?.getContext('2d')
+		const context = canvasRef.current?.getContext('2d')
 
-		if (!ctx) return
+		if (!context) return
 
-		ctx.beginPath()
+		context.beginPath()
 
-		ctx.moveTo(point.x, point.y)
+		context.moveTo(point.x, point.y)
 
 		// Dot so a tap leaves a mark.
-		ctx.arc(point.x, point.y, strokeWidth / 2, 0, Math.PI * 2)
+		context.arc(point.x, point.y, strokeWidth / 2, 0, Math.PI * 2)
 
-		ctx.fillStyle = strokeColor
+		context.fillStyle = strokeColor
 
-		ctx.fill()
+		context.fill()
 	}
 
 	const handlePointerMove = (event: ReactPointerEvent) => {
@@ -78,18 +78,18 @@ export function useSignaturePadDrawing({
 
 		if (!point) return
 
-		const ctx = canvasRef.current?.getContext('2d')
+		const context = canvasRef.current?.getContext('2d')
 
 		const last = lastPointRef.current
 
-		if (!ctx || !last) return
+		if (!context || !last) return
 
-		ctx.beginPath()
+		context.beginPath()
 
-		ctx.moveTo(last.x, last.y)
-		ctx.lineTo(point.x, point.y)
+		context.moveTo(last.x, last.y)
+		context.lineTo(point.x, point.y)
 
-		ctx.stroke()
+		context.stroke()
 
 		lastPointRef.current = point
 		if (isEmpty) setIsEmpty(false)

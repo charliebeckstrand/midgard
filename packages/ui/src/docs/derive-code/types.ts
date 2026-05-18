@@ -27,7 +27,7 @@ export type ComponentRegistry = {
  * Per-call state threaded through the traversal. Carries the registry and
  * accumulates imports as we discover them.
  */
-export type Ctx = {
+export type Context = {
 	registry: ComponentRegistry
 	imports: Map<string, Set<string>>
 }

@@ -38,7 +38,7 @@ export function useCommandPaletteState({ open, onOpenChange }: UseCommandPalette
 
 	const close = useCallback(() => onOpenChange(false), [onOpenChange])
 
-	const ctx = useMemo(() => ({ close, query }), [close, query])
+	const context = useMemo(() => ({ close, query }), [close, query])
 
-	return { query, setQuery, listboxId, inputRef, listRef, onKeyDown, close, ctx }
+	return { query, setQuery, listboxId, inputRef, listRef, onKeyDown, close, context }
 }

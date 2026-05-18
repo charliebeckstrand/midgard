@@ -1,8 +1,12 @@
 import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
+import { Calendar, type CalendarHandle } from '../../components/calendar'
+import { bySlot, renderUI, screen, userEvent } from '../helpers'
+
 vi.mock('@floating-ui/react', () => {
 	const noop = () => {}
+
 	const identity = <T,>(x: T) => x
 
 	type MockContext = { open?: boolean; onOpenChange?: (open: boolean) => void }
@@ -16,9 +20,9 @@ vi.mock('@floating-ui/react', () => {
 		offset: () => ({}),
 		shift: () => ({}),
 		size: () => ({}),
-		useClick: (ctx: MockContext): MockInteraction => ({
+		useClick: (context: MockContext): MockInteraction => ({
 			reference: {
-				onClick: () => ctx?.onOpenChange?.(!ctx?.open),
+				onClick: () => context?.onOpenChange?.(!context?.open),
 			},
 		}),
 		useDismiss: (): MockInteraction => ({}),
@@ -42,16 +46,20 @@ vi.mock('@floating-ui/react', () => {
 		useInteractions: (interactions: MockInteraction[] = []) => ({
 			getReferenceProps: (userProps: Record<string, unknown> = {}) => {
 				const merged: Record<string, unknown> = { ...userProps }
+
 				for (const interaction of interactions) {
 					const onClick = interaction?.reference?.onClick
+
 					if (typeof onClick === 'function') {
 						const existing = merged.onClick as ((e: unknown) => void) | undefined
+
 						merged.onClick = (e: unknown) => {
 							existing?.(e)
 							onClick(e)
 						}
 					}
 				}
+
 				return merged
 			},
 			getFloatingProps: identity,
@@ -60,9 +68,6 @@ vi.mock('@floating-ui/react', () => {
 		useRole: (): MockInteraction => ({}),
 	}
 })
-
-import { Calendar, type CalendarHandle } from '../../components/calendar'
-import { bySlot, renderUI, screen, userEvent } from '../helpers'
 
 describe('Calendar', () => {
 	it('renders with data-slot="calendar"', () => {

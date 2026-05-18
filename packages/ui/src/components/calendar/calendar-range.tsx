@@ -48,8 +48,8 @@ export function CalendarRange({
 	const effectiveEnd = hoverDate ?? rangeEnd
 
 	const getDayProps = useCallback(
-		(ctx: CalendarDayContext) => {
-			const { date } = ctx
+		(context: CalendarDayContext) => {
+			const { date } = context
 
 			const isRangeStart = rangeStart != null && isSameDay(date, rangeStart)
 			const isRangeEnd = effectiveEnd != null && isSameDay(date, effectiveEnd)

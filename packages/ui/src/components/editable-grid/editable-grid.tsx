@@ -207,7 +207,7 @@ export function EditableGrid<T>({
 		beginEdit,
 	})
 
-	const ctx = useMemo<EditableGridContextValue>(
+	const context = useMemo<EditableGridContextValue>(
 		() => ({
 			active,
 			anchor,
@@ -237,7 +237,7 @@ export function EditableGrid<T>({
 	)
 
 	return (
-		<EditableGridProvider value={ctx}>
+		<EditableGridProvider value={context}>
 			<DataTable
 				columns={augmentedColumns}
 				rows={rows}

@@ -59,7 +59,7 @@ export type CalendarProps = {
 	max?: Date
 	active?: CalendarActive | null
 	onPickerOpenChange?: (open: boolean) => void
-	getDayProps?: (ctx: CalendarDayContext) => CalendarDayProps
+	getDayProps?: (context: CalendarDayContext) => CalendarDayProps
 	footerRef?: RefObject<HTMLElement | null>
 	ref?: Ref<CalendarHandle>
 	/**

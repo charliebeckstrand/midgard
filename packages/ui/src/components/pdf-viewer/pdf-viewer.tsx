@@ -52,7 +52,7 @@ export function PdfViewer({
 	className,
 	'aria-label': ariaLabel = 'PDF viewer',
 }: PdfViewerProps) {
-	const ctx = usePdfViewer({
+	const context = usePdfViewer({
 		pages,
 		src,
 		filename,
@@ -65,9 +65,9 @@ export function PdfViewer({
 	})
 
 	return (
-		<PdfViewerProvider value={ctx}>
+		<PdfViewerProvider value={context}>
 			<section
-				ref={ctx.rootRef}
+				ref={context.rootRef}
 				data-slot="pdf-viewer"
 				aria-label={ariaLabel}
 				className={cn(k.base, className)}

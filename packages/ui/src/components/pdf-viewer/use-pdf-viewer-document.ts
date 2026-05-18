@@ -100,11 +100,11 @@ export function usePdfViewerDocument(src: string | undefined): UsePdfDocumentRes
 					canvas.width = viewport.width
 					canvas.height = viewport.height
 
-					const ctx = canvas.getContext('2d')
+					const context = canvas.getContext('2d')
 
-					if (!ctx) continue
+					if (!context) continue
 
-					await page.render({ canvas, canvasContext: ctx, viewport }).promise
+					await page.render({ canvas, canvasContext: context, viewport }).promise
 
 					if (cancelled) return
 

@@ -3,7 +3,7 @@
 import { Children, type ReactNode } from 'react'
 import { assemble } from './imports'
 import { defaultRegistry } from './registry'
-import type { Ctx } from './types'
+import type { Context } from './types'
 import { renderNodes } from './walk'
 
 export type { ComponentInfo } from './types'
@@ -23,14 +23,14 @@ export type { ComponentInfo } from './types'
  * code block entirely.
  */
 export function deriveCode(children: ReactNode): string | null {
-	const ctx: Ctx = {
+	const context: Context = {
 		registry: defaultRegistry,
 		imports: new Map(),
 	}
 
-	const jsx = renderNodes(Children.toArray(children), ctx, '')
+	const jsx = renderNodes(Children.toArray(children), context, '')
 
-	if (ctx.imports.size === 0) return null
+	if (context.imports.size === 0) return null
 
-	return assemble(ctx, jsx)
+	return assemble(context, jsx)
 }

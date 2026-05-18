@@ -30,9 +30,10 @@ export function Tabs({
 	children,
 	...props
 }: TabsProps) {
-	const ctx = useCurrentState({ value, defaultValue, onChange: onValueChange })
+	const context = useCurrentState({ value, defaultValue, onChange: onValueChange })
 
 	const inherited = useDensity()
+
 	const resolvedSize: TabsSize = size ?? inherited.size
 
 	// Vertical only applies to the 'tab' variant; segment is always horizontal.
@@ -46,7 +47,7 @@ export function Tabs({
 	const isVertical = resolvedOrientation === 'vertical'
 
 	return (
-		<CurrentProvider value={ctx}>
+		<CurrentProvider value={context}>
 			<TabsProvider value={tabsContext}>
 				<div
 					data-slot="tab-group"

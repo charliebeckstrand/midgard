@@ -56,11 +56,11 @@ export function useSignaturePadState({
 
 		if (!canvas) return
 
-		const ctx = canvas.getContext('2d')
+		const context = canvas.getContext('2d')
 
-		if (!ctx) return
+		if (!context) return
 
-		ctx.clearRect(0, 0, canvas.width, canvas.height)
+		context.clearRect(0, 0, canvas.width, canvas.height)
 
 		if (!current) {
 			setIsEmpty(true)
@@ -93,9 +93,9 @@ export function useSignaturePadState({
 		const canvas = canvasRef.current
 
 		if (canvas) {
-			const ctx = canvas.getContext('2d')
+			const context = canvas.getContext('2d')
 
-			ctx?.clearRect(0, 0, canvas.width, canvas.height)
+			context?.clearRect(0, 0, canvas.width, canvas.height)
 		}
 
 		setIsEmpty(true)

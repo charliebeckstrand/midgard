@@ -1,5 +1,5 @@
 import { addImport } from './imports'
-import type { Ctx } from './types'
+import type { Context } from './types'
 
 /**
  * Components decorated by the derive-code Vite plugin carry their original
@@ -65,18 +65,18 @@ const TAG_RE = /<([A-Z][\w]*)/g
  * JSX opening tags, and React hooks via bare identifier use. `addImport`
  * dedupes per-(module,name), so repeated matches are harmless.
  */
-export function collectSnippetImports(snippet: string, ctx: Ctx): void {
+export function collectSnippetImports(snippet: string, context: Context): void {
 	for (const [, name] of snippet.matchAll(TAG_RE)) {
 		if (!name) continue
 
-		const info = ctx.registry.byName.get(name)
+		const info = context.registry.byName.get(name)
 
-		if (info?.module) addImport(ctx, info.module, info.name)
+		if (info?.module) addImport(context, info.module, info.name)
 	}
 
 	for (const [, hook] of snippet.matchAll(HOOK_RE)) {
 		if (!hook) continue
 
-		addImport(ctx, 'react', hook)
+		addImport(context, 'react', hook)
 	}
 }

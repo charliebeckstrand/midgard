@@ -89,7 +89,7 @@ export function List<T>({
 		[dndContextProps, setLiftedId],
 	)
 
-	const ctxValue = useMemo(
+	const contextValue = useMemo(
 		() => ({
 			variant,
 			interactive,
@@ -141,7 +141,7 @@ export function List<T>({
 	)
 
 	return (
-		<ListProvider value={ctxValue}>
+		<ListProvider value={contextValue}>
 			{interactive ? (
 				<DndContext {...dndContextProps} onDragStart={handleDragStart}>
 					<SortableContext items={itemIds} strategy={strategy}>

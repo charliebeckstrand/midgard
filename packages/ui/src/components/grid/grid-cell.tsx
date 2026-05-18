@@ -33,9 +33,9 @@ export function GridCell({
 	children,
 	...props
 }: GridCellProps) {
-	const ctx = useGrid()
+	const context = useGrid()
 
-	const sp = resolveSpan(span, ctx?.columns)
+	const sp = resolveSpan(span, context?.columns)
 	const rs = resolveRowSpan(rowSpan)
 	const cs = resolveColStart(start)
 	const rss = resolveRowStart(rowStart)

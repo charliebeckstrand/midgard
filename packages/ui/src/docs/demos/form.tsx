@@ -326,13 +326,13 @@ function ServerErrorFormExample() {
 					validate={{
 						username: (v) => (!v ? 'Username is required' : undefined),
 					}}
-					onSubmit={async (_values, ctx) => {
+					onSubmit={async (_values, context) => {
 						setLoading(true)
 
 						// Simulate a server error response after an async submission
 						await simulateAsyncSubmission()
 
-						ctx.setErrors({ username: 'This username is already taken' })
+						context.setErrors({ username: 'This username is already taken' })
 
 						setLoading(false)
 					}}
@@ -353,12 +353,12 @@ function ServerErrorFormExample() {
 				validate={{
 					username: (v) => (!v ? 'Username is required' : undefined),
 				}}
-				onSubmit={async (_values, ctx) => {
+				onSubmit={async (_values, context) => {
 					setLoading(true)
 
 					await simulateAsyncSubmission()
 
-					ctx.setErrors({ username: 'This username is already taken' })
+					context.setErrors({ username: 'This username is already taken' })
 
 					setLoading(false)
 				}}

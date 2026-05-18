@@ -19,9 +19,9 @@ export function SegmentControl({
 	className,
 	children,
 }: SegmentControlProps) {
-	const ctx = useSegmentContext()
+	const context = useSegmentContext()
 
-	const size = sizeProp ?? ctx.size
+	const size = sizeProp ?? context.size
 
 	const containerRef = useRef<HTMLDivElement>(null)
 

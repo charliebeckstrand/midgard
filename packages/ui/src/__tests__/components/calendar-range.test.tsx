@@ -1,8 +1,12 @@
 import type { ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
+import { CalendarRange } from '../../components/calendar/calendar-range'
+import { bySlot, fireEvent, renderUI, screen } from '../helpers'
+
 vi.mock('@floating-ui/react', () => {
 	const noop = () => {}
+
 	const identity = <T,>(x: T) => x
 
 	return {
@@ -39,9 +43,6 @@ vi.mock('@floating-ui/react', () => {
 		useRole: () => ({}),
 	}
 })
-
-import { CalendarRange } from '../../components/calendar/calendar-range'
-import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 function d(year: number, month: number, day: number) {
 	return new Date(year, month - 1, day)

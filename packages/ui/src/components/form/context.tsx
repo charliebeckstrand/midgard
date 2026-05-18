@@ -73,17 +73,17 @@ export type FormFieldState = {
 
 /** Returns form-bound state for a named field, or undefined if not inside a Form or name is absent. */
 export function useFormField(name: string | undefined): FormFieldState | undefined {
-	const ctx = useFormContext()
+	const context = useFormContext()
 
-	if (!name || !ctx) return undefined
+	if (!name || !context) return undefined
 
 	return {
-		value: ctx.getValue(name),
-		setValue: (v) => ctx.setValue(name, v),
-		setTouched: () => ctx.setTouched(name),
-		error: ctx.errors[name],
-		touched: ctx.touched[name] ?? false,
-		dirty: ctx.dirty[name] ?? false,
+		value: context.getValue(name),
+		setValue: (v) => context.setValue(name, v),
+		setTouched: () => context.setTouched(name),
+		error: context.errors[name],
+		touched: context.touched[name] ?? false,
+		dirty: context.dirty[name] ?? false,
 	}
 }
 
@@ -95,14 +95,14 @@ export type FormStatus = {
 
 /** Returns form-level status, or undefined outside a Form. */
 export function useFormStatus(): FormStatus | undefined {
-	const ctx = useFormContext()
+	const context = useFormContext()
 
-	if (!ctx) return undefined
+	if (!context) return undefined
 
 	return {
-		submitting: ctx.submitting,
-		isDirty: ctx.isDirty,
-		isValid: ctx.isValid,
+		submitting: context.submitting,
+		isDirty: context.isDirty,
+		isValid: context.isValid,
 	}
 }
 

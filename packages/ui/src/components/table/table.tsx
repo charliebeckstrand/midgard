@@ -50,7 +50,7 @@ export function Table({
 
 	const resolvedSize = density ? DENSITY_TO_SIZE[density] : inherited.size
 
-	const ctx = useMemo<TableContextValue>(
+	const context = useMemo<TableContextValue>(
 		() => ({
 			size: resolvedSize,
 			grid: grid ?? false,
@@ -60,7 +60,7 @@ export function Table({
 	)
 
 	return (
-		<TableProvider value={ctx}>
+		<TableProvider value={context}>
 			<div data-slot="table" className={cn('overflow-x-auto', bleed && '-mx-4 sm:-mx-6')}>
 				<table {...tableProps} className={cn(k.base, className, tableProps?.className)}>
 					{children}

@@ -124,22 +124,22 @@ describe('getCanvasPoint', () => {
 
 describe('configureStroke', () => {
 	it('assigns stroke properties to the context', () => {
-		const ctx = {
+		const context = {
 			lineCap: '',
 			lineJoin: '',
 			strokeStyle: '',
 			lineWidth: 0,
 		} as unknown as CanvasRenderingContext2D
 
-		configureStroke(ctx, '#ff0000', 3)
+		configureStroke(context, '#ff0000', 3)
 
-		expect(ctx.lineCap).toBe('round')
+		expect(context.lineCap).toBe('round')
 
-		expect(ctx.lineJoin).toBe('round')
+		expect(context.lineJoin).toBe('round')
 
-		expect(ctx.strokeStyle).toBe('#ff0000')
+		expect(context.strokeStyle).toBe('#ff0000')
 
-		expect(ctx.lineWidth).toBe(3)
+		expect(context.lineWidth).toBe(3)
 	})
 })
 

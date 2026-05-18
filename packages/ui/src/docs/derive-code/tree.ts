@@ -1,5 +1,5 @@
 import { Children, Fragment, isValidElement, type ReactElement, type ReactNode } from 'react'
-import type { Ctx } from './types'
+import type { Context } from './types'
 
 // ---------------------------------------------------------------------------
 // Type guards
@@ -90,8 +90,8 @@ export function collectChildItems(nodes: ReactNode[]): ChildItem[] {
  * returns `null` so the caller drops the prop rather than emitting a name
  * that wouldn't have a matching import.
  */
-export function getElementName(element: ReactElement, ctx: Ctx): string | null {
-	const info = ctx.registry.byType.get(element.type)
+export function getElementName(element: ReactElement, context: Context): string | null {
+	const info = context.registry.byType.get(element.type)
 
 	if (info) return info.name
 

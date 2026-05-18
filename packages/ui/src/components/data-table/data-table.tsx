@@ -170,7 +170,7 @@ export function DataTable<T>({
 		[setSort],
 	)
 
-	const ctx = useMemo(
+	const context = useMemo(
 		() => ({
 			selection,
 			toggleRow,
@@ -242,7 +242,7 @@ export function DataTable<T>({
 	)
 
 	return (
-		<DataTableProvider value={ctx}>
+		<DataTableProvider value={context}>
 			<div data-slot="data-table" className={cn(k.wrapper)}>
 				{manageColumns && (
 					<DataTableColumnManagerDialog

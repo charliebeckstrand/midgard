@@ -86,13 +86,13 @@ export function Filters<T extends FilterValue = FilterValue>({
 		[filterValue],
 	)
 
-	const ctx: FiltersContextValue = useMemo(
+	const context: FiltersContextValue = useMemo(
 		() => ({ value: filterValue, setValue, clear: handleClear, onClear, activeCount }),
 		[filterValue, setValue, handleClear, onClear, activeCount],
 	)
 
 	return (
-		<FiltersProvider value={ctx}>
+		<FiltersProvider value={context}>
 			<div data-slot="filters" className={cn('flex flex-col gap-4', className)}>
 				{affix && <div data-slot="filters-affix">{affix}</div>}
 				<Flex

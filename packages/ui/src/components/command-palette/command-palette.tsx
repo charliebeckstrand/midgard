@@ -37,7 +37,7 @@ export function CommandPalette({
 	className,
 	children,
 }: CommandPaletteProps) {
-	const { query, setQuery, listboxId, inputRef, listRef, onKeyDown, close, ctx } =
+	const { query, setQuery, listboxId, inputRef, listRef, onKeyDown, close, context } =
 		useCommandPaletteState({ open, onOpenChange })
 
 	const rendered = typeof children === 'function' ? children(query) : children
@@ -51,7 +51,7 @@ export function CommandPalette({
 			size={size}
 			className={className}
 		>
-			<CommandPaletteProvider value={ctx}>
+			<CommandPaletteProvider value={context}>
 				<Flex gap="sm">
 					<Input
 						ref={inputRef}

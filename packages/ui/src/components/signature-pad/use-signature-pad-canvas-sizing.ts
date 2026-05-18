@@ -54,13 +54,13 @@ export function useSignaturePadCanvasSizing({
 			canvas.style.width = `${width}px`
 			canvas.style.height = `${height}px`
 
-			const ctx = canvas.getContext('2d')
+			const context = canvas.getContext('2d')
 
-			if (!ctx) return
+			if (!context) return
 
-			ctx.scale(dpr, dpr)
+			context.scale(dpr, dpr)
 
-			configureStroke(ctx, color, lineWidth)
+			configureStroke(context, color, lineWidth)
 
 			if (snapshot) {
 				drawSnapshot(canvas, snapshot)

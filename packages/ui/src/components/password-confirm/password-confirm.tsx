@@ -43,13 +43,13 @@ export function PasswordConfirm({
 		[setPassword, setLastEdited],
 	)
 
-	const ctx = useMemo(
+	const context = useMemo(
 		() => ({ status, setConfirm, setConfirmName, confirmHasFormError }),
 		[status, setConfirm, confirmHasFormError],
 	)
 
 	return (
-		<PasswordConfirmProvider value={ctx}>
+		<PasswordConfirmProvider value={context}>
 			<div data-slot="password-confirm" className={className} onInput={handleInput}>
 				<div className="space-y-4">{children}</div>
 				{status === 'warning' && warning && !confirmHasFormError && (

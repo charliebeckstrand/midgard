@@ -3,7 +3,7 @@ import { formatProps, INDENT, renderOpenTag } from './format'
 import { addImport } from './imports'
 import { collectSnippetImports, readSnippet, reindent } from './snippet'
 import { collectChildItems, elementChildren } from './tree'
-import type { Ctx } from './types'
+import type { Context } from './types'
 
 // ---------------------------------------------------------------------------
 // Tree traversal
@@ -18,7 +18,7 @@ import type { Ctx } from './types'
  * Authored siblings (e.g. three buttons inside a `<Group>` to demonstrate
  * border joining) are kept intact — their multiplicity is the demo.
  */
-export function renderNodes(nodes: ReactNode[], ctx: Ctx, indent: string): string {
+export function renderNodes(nodes: ReactNode[], context: Context, indent: string): string {
 	const items = collectChildItems(nodes)
 
 	if (items.length === 0) return ''
@@ -30,7 +30,7 @@ export function renderNodes(nodes: ReactNode[], ctx: Ctx, indent: string): strin
 	const flushBatch = () => {
 		if (batch.length === 0) return
 
-		parts.push(...renderElementBatch(batch, ctx, indent))
+		parts.push(...renderElementBatch(batch, context, indent))
 
 		batch = []
 	}
@@ -55,13 +55,13 @@ export function renderNodes(nodes: ReactNode[], ctx: Ctx, indent: string): strin
  * renders → one) only applies to keyed batches, so authored siblings without
  * keys pass through untouched.
  */
-function renderElementBatch(elements: ReactElement[], ctx: Ctx, indent: string): string[] {
+function renderElementBatch(elements: ReactElement[], context: Context, indent: string): string[] {
 	if (elements.length === 1) {
 		const only = elements[0]
 
 		if (!only) return []
 
-		const body = renderElement(only, ctx, indent)
+		const body = renderElement(only, context, indent)
 
 		return body ? [indent + body] : []
 	}
@@ -71,7 +71,7 @@ function renderElementBatch(elements: ReactElement[], ctx: Ctx, indent: string):
 	const counts = new Map<string, number>()
 
 	for (const el of elements) {
-		const body = renderElement(el, ctx, indent)
+		const body = renderElement(el, context, indent)
 
 		if (!body) continue
 
@@ -117,8 +117,8 @@ function hasExplicitKey(element: ReactElement): element is ReactElement & { key:
  * Render a single recognized component element. Unknown components are
  * transparently unwrapped so their internal composition can still contribute.
  */
-export function renderElement(element: ReactElement, ctx: Ctx, indent: string): string {
-	const info = ctx.registry.byType.get(element.type)
+export function renderElement(element: ReactElement, context: Context, indent: string): string {
+	const info = context.registry.byType.get(element.type)
 
 	if (!info) {
 		// Unknown component (e.g. a locally-defined demo wrapper). Walk its
@@ -126,7 +126,7 @@ export function renderElement(element: ReactElement, ctx: Ctx, indent: string): 
 		const children = elementChildren(element)
 
 		if (children.length > 0) {
-			return renderNodes(children, ctx, indent).trimStart()
+			return renderNodes(children, context, indent).trimStart()
 		}
 
 		// Self-closing helper with a build-time snippet attached by the
@@ -135,7 +135,7 @@ export function renderElement(element: ReactElement, ctx: Ctx, indent: string): 
 		const snippet = readSnippet(element.type)
 
 		if (snippet !== null) {
-			collectSnippetImports(snippet, ctx)
+			collectSnippetImports(snippet, context)
 
 			return reindent(snippet, indent)
 		}
@@ -143,11 +143,11 @@ export function renderElement(element: ReactElement, ctx: Ctx, indent: string): 
 		return ''
 	}
 
-	if (info.module) addImport(ctx, info.module, info.name)
+	if (info.module) addImport(context, info.module, info.name)
 
-	const propParts = formatProps(element.props as Record<string, unknown>, ctx)
+	const propParts = formatProps(element.props as Record<string, unknown>, context)
 
-	const childrenStr = renderChildrenContent(elementChildren(element), ctx, indent + INDENT)
+	const childrenStr = renderChildrenContent(elementChildren(element), context, indent + INDENT)
 
 	const open = renderOpenTag(info.name, propParts, indent, childrenStr !== '')
 
@@ -170,10 +170,14 @@ export function renderElement(element: ReactElement, ctx: Ctx, indent: string): 
  * exist but nothing was renderable — so the parent shows as `<Foo>…</Foo>`
  * instead of misleadingly collapsing to `<Foo />`.
  */
-export function renderChildrenContent(nodes: ReactNode[], ctx: Ctx, indent: string): string {
+export function renderChildrenContent(
+	nodes: ReactNode[],
+	context: Context,
+	indent: string,
+): string {
 	if (nodes.length === 0) return ''
 
-	const rendered = renderNodes(nodes, ctx, indent)
+	const rendered = renderNodes(nodes, context, indent)
 
 	return rendered !== '' ? rendered : '…'
 }

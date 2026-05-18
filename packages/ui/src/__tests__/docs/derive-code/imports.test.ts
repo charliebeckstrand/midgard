@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { addImport, assemble } from '../../../docs/derive-code/imports'
-import type { Ctx } from '../../../docs/derive-code/types'
+import type { Context } from '../../../docs/derive-code/types'
 
-function emptyCtx(): Ctx {
+function emptyContext(): Context {
 	return {
 		registry: { byType: { get: () => undefined }, byName: new Map() },
 		imports: new Map(),
@@ -11,85 +11,85 @@ function emptyCtx(): Ctx {
 
 describe('addImport', () => {
 	it('records a single name under its module', () => {
-		const ctx = emptyCtx()
+		const context = emptyContext()
 
-		addImport(ctx, 'button', 'Button')
+		addImport(context, 'button', 'Button')
 
-		expect(ctx.imports.get('button')).toEqual(new Set(['Button']))
+		expect(context.imports.get('button')).toEqual(new Set(['Button']))
 	})
 
 	it('dedupes repeated names within a module', () => {
-		const ctx = emptyCtx()
+		const context = emptyContext()
 
-		addImport(ctx, 'button', 'Button')
-		addImport(ctx, 'button', 'Button')
+		addImport(context, 'button', 'Button')
+		addImport(context, 'button', 'Button')
 
-		expect(ctx.imports.get('button')?.size).toBe(1)
+		expect(context.imports.get('button')?.size).toBe(1)
 	})
 
 	it('keeps names from different modules separate', () => {
-		const ctx = emptyCtx()
+		const context = emptyContext()
 
-		addImport(ctx, 'button', 'Button')
-		addImport(ctx, 'icon', 'Icon')
+		addImport(context, 'button', 'Button')
+		addImport(context, 'icon', 'Icon')
 
-		expect(ctx.imports.get('button')).toEqual(new Set(['Button']))
-		expect(ctx.imports.get('icon')).toEqual(new Set(['Icon']))
+		expect(context.imports.get('button')).toEqual(new Set(['Button']))
+		expect(context.imports.get('icon')).toEqual(new Set(['Icon']))
 	})
 
 	it('accumulates multiple names for the same module', () => {
-		const ctx = emptyCtx()
+		const context = emptyContext()
 
-		addImport(ctx, 'group', 'Group')
-		addImport(ctx, 'group', 'GroupItem')
+		addImport(context, 'group', 'Group')
+		addImport(context, 'group', 'GroupItem')
 
-		expect(ctx.imports.get('group')).toEqual(new Set(['Group', 'GroupItem']))
+		expect(context.imports.get('group')).toEqual(new Set(['Group', 'GroupItem']))
 	})
 })
 
 describe('assemble', () => {
 	it('emits imports + a blank line + jsx', () => {
-		const ctx = emptyCtx()
+		const context = emptyContext()
 
-		addImport(ctx, 'button', 'Button')
+		addImport(context, 'button', 'Button')
 
-		const result = assemble(ctx, '<Button />')
+		const result = assemble(context, '<Button />')
 
 		expect(result).toBe(`import { Button } from 'ui/button'\n\n<Button />`)
 	})
 
 	it('returns just the imports when jsx is empty', () => {
-		const ctx = emptyCtx()
+		const context = emptyContext()
 
-		addImport(ctx, 'button', 'Button')
+		addImport(context, 'button', 'Button')
 
-		expect(assemble(ctx, '')).toBe(`import { Button } from 'ui/button'`)
+		expect(assemble(context, '')).toBe(`import { Button } from 'ui/button'`)
 	})
 
 	it("uses a bare 'react' specifier for react imports", () => {
-		const ctx = emptyCtx()
+		const context = emptyContext()
 
-		addImport(ctx, 'react', 'useState')
+		addImport(context, 'react', 'useState')
 
-		expect(assemble(ctx, '')).toBe(`import { useState } from 'react'`)
+		expect(assemble(context, '')).toBe(`import { useState } from 'react'`)
 	})
 
 	it("prefixes non-react modules with 'ui/'", () => {
-		const ctx = emptyCtx()
+		const context = emptyContext()
 
-		addImport(ctx, 'file-upload', 'FileUpload')
+		addImport(context, 'file-upload', 'FileUpload')
 
-		expect(assemble(ctx, '')).toBe(`import { FileUpload } from 'ui/file-upload'`)
+		expect(assemble(context, '')).toBe(`import { FileUpload } from 'ui/file-upload'`)
 	})
 
 	it('sorts modules alphabetically across the emitted lines', () => {
-		const ctx = emptyCtx()
+		const context = emptyContext()
 
-		addImport(ctx, 'icon', 'Icon')
-		addImport(ctx, 'button', 'Button')
-		addImport(ctx, 'avatar', 'Avatar')
+		addImport(context, 'icon', 'Icon')
+		addImport(context, 'button', 'Button')
+		addImport(context, 'avatar', 'Avatar')
 
-		const lines = assemble(ctx, '').split('\n')
+		const lines = assemble(context, '').split('\n')
 
 		expect(lines).toEqual([
 			`import { Avatar } from 'ui/avatar'`,
@@ -99,11 +99,11 @@ describe('assemble', () => {
 	})
 
 	it('sorts names alphabetically within a single import statement', () => {
-		const ctx = emptyCtx()
+		const context = emptyContext()
 
-		addImport(ctx, 'group', 'GroupItem')
-		addImport(ctx, 'group', 'Group')
+		addImport(context, 'group', 'GroupItem')
+		addImport(context, 'group', 'Group')
 
-		expect(assemble(ctx, '')).toBe(`import { Group, GroupItem } from 'ui/group'`)
+		expect(assemble(context, '')).toBe(`import { Group, GroupItem } from 'ui/group'`)
 	})
 })

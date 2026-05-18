@@ -15,10 +15,11 @@ export type SegmentItemProps = {
 }
 
 export function SegmentItem({ value, disabled, className, children }: SegmentItemProps) {
-	const currentCtx = useCurrent()
+	const currentContext = useCurrent()
+
 	const { size } = useSegmentContext()
 
-	const current = currentCtx?.value === value
+	const current = currentContext?.value === value
 
 	const indicator = useActiveIndicator()
 
@@ -33,7 +34,7 @@ export function SegmentItem({ value, disabled, className, children }: SegmentIte
 				aria-checked={current}
 				disabled={disabled}
 				tabIndex={current ? 0 : -1}
-				onClick={() => currentCtx?.onChange?.(value)}
+				onClick={() => currentContext?.onChange?.(value)}
 				className={cn(segmentItemVariants({ size }), 'relative z-1', className)}
 			>
 				{children}

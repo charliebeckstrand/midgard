@@ -69,7 +69,7 @@ export function Kanban<T, C extends KanbanColumnShape<T>>({
 		[rawDragStart, setLiftedCardId],
 	)
 
-	const ctxValue = useMemo(
+	const contextValue = useMemo(
 		() => ({
 			interactive,
 			activeId,
@@ -83,7 +83,7 @@ export function Kanban<T, C extends KanbanColumnShape<T>>({
 	)
 
 	return (
-		<KanbanProvider value={ctxValue}>
+		<KanbanProvider value={contextValue}>
 			<DndContext
 				sensors={sensors}
 				collisionDetection={closestCorners}

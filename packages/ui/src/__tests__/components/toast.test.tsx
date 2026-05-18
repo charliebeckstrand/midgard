@@ -41,19 +41,21 @@ describe('Toast: useToast behavior', () => {
 	})
 
 	type TriggerProps = {
-		onReady?: (ctx: ReturnType<typeof useToast>) => void
+		onReady?: (context: ReturnType<typeof useToast>) => void
 		children?: ReactNode
 	}
 
 	function Trigger({ onReady, children }: TriggerProps) {
-		const ctx = useToast()
+		const context = useToast()
 		const calledRef = useRef(false)
 
 		useEffect(() => {
 			if (calledRef.current) return
+
 			calledRef.current = true
-			onReady?.(ctx)
-		}, [ctx, onReady])
+
+			onReady?.(context)
+		}, [context, onReady])
 
 		return <>{children}</>
 	}
@@ -63,7 +65,7 @@ describe('Toast: useToast behavior', () => {
 
 		renderUI(
 			<ToastProvider>
-				<Trigger onReady={(ctx) => (api = ctx)} />
+				<Trigger onReady={(context) => (api = context)} />
 				<Toast />
 			</ToastProvider>,
 		)
@@ -80,7 +82,7 @@ describe('Toast: useToast behavior', () => {
 
 		renderUI(
 			<ToastProvider>
-				<Trigger onReady={(ctx) => (api = ctx)} />
+				<Trigger onReady={(context) => (api = context)} />
 				<Toast />
 			</ToastProvider>,
 		)
@@ -105,7 +107,7 @@ describe('Toast: useToast behavior', () => {
 
 		renderUI(
 			<ToastProvider maxToasts={2}>
-				<Trigger onReady={(ctx) => (api = ctx)} />
+				<Trigger onReady={(context) => (api = context)} />
 				<Toast />
 			</ToastProvider>,
 		)
@@ -125,7 +127,7 @@ describe('Toast: useToast behavior', () => {
 
 		renderUI(
 			<ToastProvider duration={1000}>
-				<Trigger onReady={(ctx) => (api = ctx)} />
+				<Trigger onReady={(context) => (api = context)} />
 				<Toast />
 			</ToastProvider>,
 		)
@@ -148,7 +150,7 @@ describe('Toast: useToast behavior', () => {
 
 		renderUI(
 			<ToastProvider duration={500}>
-				<Trigger onReady={(ctx) => (api = ctx)} />
+				<Trigger onReady={(context) => (api = context)} />
 				<Toast />
 			</ToastProvider>,
 		)
@@ -169,7 +171,7 @@ describe('Toast: useToast behavior', () => {
 
 		renderUI(
 			<ToastProvider duration={100000}>
-				<Trigger onReady={(ctx) => (api = ctx)} />
+				<Trigger onReady={(context) => (api = context)} />
 				<Toast />
 			</ToastProvider>,
 		)
@@ -190,7 +192,7 @@ describe('Toast: useToast behavior', () => {
 
 		renderUI(
 			<ToastProvider duration={1000}>
-				<Trigger onReady={(ctx) => (api = ctx)} />
+				<Trigger onReady={(context) => (api = context)} />
 				<Toast />
 			</ToastProvider>,
 		)

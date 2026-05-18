@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { collectSnippetImports, readSnippet, reindent } from '../../../docs/derive-code/snippet'
-import type { ComponentInfo, Ctx } from '../../../docs/derive-code/types'
+import type { ComponentInfo, Context } from '../../../docs/derive-code/types'
 
-function ctxWithRegistry(byName: Map<string, ComponentInfo>): Ctx {
+function contextWithRegistry(byName: Map<string, ComponentInfo>): Context {
 	return {
 		registry: { byType: { get: () => undefined }, byName },
 		imports: new Map(),
@@ -92,6 +92,7 @@ describe('reindent', () => {
 
 		expect(lines[0]).toBe('{')
 		expect(lines[1]).toBe('')
+
 		// minIndent computed only from the non-empty subsequent lines (both
 		// leading=1) → 1. The empty line is preserved as ''.
 		expect(lines[2]).toBe('return null')
@@ -101,37 +102,37 @@ describe('reindent', () => {
 
 describe('collectSnippetImports', () => {
 	it('collects UI component imports from JSX opening tags via the registry', () => {
-		const ctx = ctxWithRegistry(
+		const context = contextWithRegistry(
 			new Map([
 				['Stack', { name: 'Stack', module: 'stack' }],
 				['FileUpload', { name: 'FileUpload', module: 'file-upload' }],
 			]),
 		)
 
-		collectSnippetImports('<Stack><FileUpload /></Stack>', ctx)
+		collectSnippetImports('<Stack><FileUpload /></Stack>', context)
 
-		expect(ctx.imports.get('stack')).toEqual(new Set(['Stack']))
-		expect(ctx.imports.get('file-upload')).toEqual(new Set(['FileUpload']))
+		expect(context.imports.get('stack')).toEqual(new Set(['Stack']))
+		expect(context.imports.get('file-upload')).toEqual(new Set(['FileUpload']))
 	})
 
 	it('ignores PascalCase tags that the registry does not recognize', () => {
-		const ctx = ctxWithRegistry(new Map())
+		const context = contextWithRegistry(new Map())
 
-		collectSnippetImports('<UnknownThing />', ctx)
+		collectSnippetImports('<UnknownThing />', context)
 
-		expect(ctx.imports.size).toBe(0)
+		expect(context.imports.size).toBe(0)
 	})
 
 	it('collects React hooks via bare identifier use', () => {
-		const ctx = ctxWithRegistry(new Map())
+		const context = contextWithRegistry(new Map())
 
-		collectSnippetImports('const [v, setV] = useState(0)', ctx)
+		collectSnippetImports('const [v, setV] = useState(0)', context)
 
-		expect(ctx.imports.get('react')).toEqual(new Set(['useState']))
+		expect(context.imports.get('react')).toEqual(new Set(['useState']))
 	})
 
 	it('collects React 19 hooks (use, useActionState, useOptimistic, useFormStatus)', () => {
-		const ctx = ctxWithRegistry(new Map())
+		const context = contextWithRegistry(new Map())
 
 		const body = [
 			'const data = use(promise)',
@@ -140,9 +141,9 @@ describe('collectSnippetImports', () => {
 			'const status = useFormStatus()',
 		].join('\n')
 
-		collectSnippetImports(body, ctx)
+		collectSnippetImports(body, context)
 
-		const reactImports = ctx.imports.get('react')
+		const reactImports = context.imports.get('react')
 
 		expect(reactImports).toContain('use')
 		expect(reactImports).toContain('useActionState')
@@ -151,26 +152,26 @@ describe('collectSnippetImports', () => {
 	})
 
 	it('does not mistake method calls for React hooks (lookbehind on `.`)', () => {
-		const ctx = ctxWithRegistry(new Map())
+		const context = contextWithRegistry(new Map())
 
-		collectSnippetImports('router.use(plugin)', ctx)
+		collectSnippetImports('router.use(plugin)', context)
 
-		expect(ctx.imports.get('react')).toBeUndefined()
+		expect(context.imports.get('react')).toBeUndefined()
 	})
 
 	it('does not import non-React hook-shaped identifiers (e.g. useFoo)', () => {
-		const ctx = ctxWithRegistry(new Map())
+		const context = contextWithRegistry(new Map())
 
-		collectSnippetImports('const v = useFoo()', ctx)
+		collectSnippetImports('const v = useFoo()', context)
 
-		expect(ctx.imports.get('react')).toBeUndefined()
+		expect(context.imports.get('react')).toBeUndefined()
 	})
 
 	it('dedupes repeated matches into a single import entry', () => {
-		const ctx = ctxWithRegistry(new Map([['Stack', { name: 'Stack', module: 'stack' }]]))
+		const context = contextWithRegistry(new Map([['Stack', { name: 'Stack', module: 'stack' }]]))
 
-		collectSnippetImports('<Stack><Stack /></Stack>', ctx)
+		collectSnippetImports('<Stack><Stack /></Stack>', context)
 
-		expect(ctx.imports.get('stack')?.size).toBe(1)
+		expect(context.imports.get('stack')?.size).toBe(1)
 	})
 })

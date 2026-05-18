@@ -1,6 +1,6 @@
 import { isValidElement } from 'react'
 import { getElementName, isPrimitive } from './tree'
-import type { Ctx } from './types'
+import type { Context } from './types'
 
 export const INDENT = '  '
 
@@ -12,13 +12,13 @@ const IGNORED_PROPS: ReadonlySet<string> = new Set(['children', 'className', 'ke
 // Prop formatting
 // ---------------------------------------------------------------------------
 
-export function formatProps(props: Record<string, unknown>, ctx: Ctx): string[] {
+export function formatProps(props: Record<string, unknown>, context: Context): string[] {
 	const parts: string[] = []
 
 	for (const [key, value] of Object.entries(props)) {
 		if (IGNORED_PROPS.has(key)) continue
 
-		const formatted = formatProp(key, value, ctx)
+		const formatted = formatProp(key, value, context)
 
 		if (formatted !== null) parts.push(formatted)
 	}
@@ -26,7 +26,7 @@ export function formatProps(props: Record<string, unknown>, ctx: Ctx): string[] 
 	return parts
 }
 
-function formatProp(key: string, value: unknown, ctx: Ctx): string | null {
+function formatProp(key: string, value: unknown, context: Context): string | null {
 	if (value === undefined || value === null || value === false) return null
 
 	if (value === true) return key
@@ -39,11 +39,11 @@ function formatProp(key: string, value: unknown, ctx: Ctx): string | null {
 	if (typeof value === 'function') return null
 
 	if (isValidElement(value)) {
-		const name = getElementName(value, ctx)
+		const name = getElementName(value, context)
 
 		if (!name) return null
 
-		const childProps = formatProps(value.props as Record<string, unknown>, ctx)
+		const childProps = formatProps(value.props as Record<string, unknown>, context)
 
 		const propStr = childProps.length > 0 ? ` ${childProps.join(' ')}` : ''
 

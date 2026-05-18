@@ -7,7 +7,7 @@ import {
 	isPassThrough,
 	isPrimitive,
 } from '../../../docs/derive-code/tree'
-import type { ComponentInfo, Ctx } from '../../../docs/derive-code/types'
+import type { ComponentInfo, Context } from '../../../docs/derive-code/types'
 
 function tag<P>(name: string, mod: string): FunctionComponent<P> {
 	const Component: FunctionComponent<P> = () => null
@@ -17,7 +17,7 @@ function tag<P>(name: string, mod: string): FunctionComponent<P> {
 	return Component
 }
 
-function ctxWithTagReader(): Ctx {
+function contextWithTagReader(): Context {
 	return {
 		registry: {
 			byType: {
@@ -136,6 +136,7 @@ describe('collectChildItems element handling', () => {
 		const items = collectChildItems(['Before', createElement(Button, { key: 'b' }), 'After'])
 
 		expect(items.map((i) => i.kind)).toEqual(['text', 'element', 'text'])
+
 		expect((items[0] as { kind: 'text'; value: string }).value).toBe('Before')
 		expect((items[2] as { kind: 'text'; value: string }).value).toBe('After')
 	})
@@ -145,22 +146,22 @@ describe('getElementName', () => {
 	it('returns the registry name for a recognized component', () => {
 		const Button = tag('Button', 'button')
 
-		const ctx = ctxWithTagReader()
+		const context = contextWithTagReader()
 
-		expect(getElementName(createElement(Button), ctx)).toBe('Button')
+		expect(getElementName(createElement(Button), context)).toBe('Button')
 	})
 
 	it('returns the tag name for an intrinsic element', () => {
-		const ctx = ctxWithTagReader()
+		const context = contextWithTagReader()
 
-		expect(getElementName(createElement('div'), ctx)).toBe('div')
+		expect(getElementName(createElement('div'), context)).toBe('div')
 	})
 
 	it('returns null for an unrecognized non-intrinsic component', () => {
 		const Unknown = (() => null) as FunctionComponent
 
-		const ctx = ctxWithTagReader()
+		const context = contextWithTagReader()
 
-		expect(getElementName(createElement(Unknown), ctx)).toBeNull()
+		expect(getElementName(createElement(Unknown), context)).toBeNull()
 	})
 })

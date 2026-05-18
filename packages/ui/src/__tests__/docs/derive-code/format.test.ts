@@ -1,7 +1,7 @@
 import { createElement, type FunctionComponent } from 'react'
 import { describe, expect, it } from 'vitest'
 import { formatProps, renderOpenTag } from '../../../docs/derive-code/format'
-import type { ComponentInfo, Ctx } from '../../../docs/derive-code/types'
+import type { ComponentInfo, Context } from '../../../docs/derive-code/types'
 
 function tag<P>(name: string, mod: string): FunctionComponent<P> {
 	const Component: FunctionComponent<P> = () => null
@@ -19,7 +19,7 @@ function readTag(type: unknown): ComponentInfo | undefined {
 	return { name: tag.__name, module: tag.__module }
 }
 
-function emptyCtx(): Ctx {
+function emptyContext(): Context {
 	return {
 		registry: { byType: { get: readTag }, byName: new Map() },
 		imports: new Map(),
@@ -28,43 +28,43 @@ function emptyCtx(): Ctx {
 
 describe('formatProps value handling', () => {
 	it('drops undefined / null / false', () => {
-		const result = formatProps({ a: undefined, b: null, c: false }, emptyCtx())
+		const result = formatProps({ a: undefined, b: null, c: false }, emptyContext())
 
 		expect(result).toEqual([])
 	})
 
 	it('emits bare key for `true`', () => {
-		const result = formatProps({ disabled: true }, emptyCtx())
+		const result = formatProps({ disabled: true }, emptyContext())
 
 		expect(result).toEqual(['disabled'])
 	})
 
 	it('quotes plain strings with double quotes', () => {
-		const result = formatProps({ name: 'alice' }, emptyCtx())
+		const result = formatProps({ name: 'alice' }, emptyContext())
 
 		expect(result).toEqual(['name="alice"'])
 	})
 
 	it('falls back to JSON-in-braces when a string contains a double quote', () => {
-		const result = formatProps({ name: 'a"b' }, emptyCtx())
+		const result = formatProps({ name: 'a"b' }, emptyContext())
 
 		expect(result).toEqual(['name={"a\\"b"}'])
 	})
 
 	it('falls back to JSON-in-braces when a string contains a newline', () => {
-		const result = formatProps({ text: 'line\nbreak' }, emptyCtx())
+		const result = formatProps({ text: 'line\nbreak' }, emptyContext())
 
 		expect(result).toEqual(['text={"line\\nbreak"}'])
 	})
 
 	it('wraps numbers in braces', () => {
-		const result = formatProps({ count: 7 }, emptyCtx())
+		const result = formatProps({ count: 7 }, emptyContext())
 
 		expect(result).toEqual(['count={7}'])
 	})
 
 	it('drops function-valued props (event handlers, callbacks)', () => {
-		const result = formatProps({ onClick: () => {} }, emptyCtx())
+		const result = formatProps({ onClick: () => {} }, emptyContext())
 
 		expect(result).toEqual([])
 	})
@@ -78,26 +78,26 @@ describe('formatProps value handling', () => {
 				ref: { current: null },
 				kept: 'yes',
 			},
-			emptyCtx(),
+			emptyContext(),
 		)
 
 		expect(result).toEqual(['kept="yes"'])
 	})
 
 	it('formats an array of primitives as a JSON array literal', () => {
-		const result = formatProps({ tags: ['a', 'b'] }, emptyCtx())
+		const result = formatProps({ tags: ['a', 'b'] }, emptyContext())
 
 		expect(result).toEqual(['tags={["a", "b"]}'])
 	})
 
 	it('escapes embedded quotes inside an array of strings', () => {
-		const result = formatProps({ tags: [`it's`, 'fine'] }, emptyCtx())
+		const result = formatProps({ tags: [`it's`, 'fine'] }, emptyContext())
 
 		expect(result).toEqual([`tags={["it's", "fine"]}`])
 	})
 
 	it('drops arrays containing non-primitive values', () => {
-		const result = formatProps({ items: [{ id: 1 }] }, emptyCtx())
+		const result = formatProps({ items: [{ id: 1 }] }, emptyContext())
 
 		expect(result).toEqual([])
 	})
@@ -105,7 +105,7 @@ describe('formatProps value handling', () => {
 	it('renders an element-valued prop using the registry tag', () => {
 		const Icon = tag<{ name?: string }>('Icon', 'icon')
 
-		const result = formatProps({ icon: createElement(Icon, { name: 'star' }) }, emptyCtx())
+		const result = formatProps({ icon: createElement(Icon, { name: 'star' }) }, emptyContext())
 
 		expect(result).toEqual(['icon={<Icon name="star" />}'])
 	})
@@ -113,13 +113,13 @@ describe('formatProps value handling', () => {
 	it('drops element-valued props whose type is unregistered and non-intrinsic', () => {
 		const Unknown = (() => null) as FunctionComponent
 
-		const result = formatProps({ icon: createElement(Unknown) }, emptyCtx())
+		const result = formatProps({ icon: createElement(Unknown) }, emptyContext())
 
 		expect(result).toEqual([])
 	})
 
 	it('renders an intrinsic element-valued prop using its tag name', () => {
-		const result = formatProps({ icon: createElement('div') }, emptyCtx())
+		const result = formatProps({ icon: createElement('div') }, emptyContext())
 
 		expect(result).toEqual(['icon={<div />}'])
 	})

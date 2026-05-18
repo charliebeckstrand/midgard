@@ -96,7 +96,7 @@ export function Accordion(props: AccordionProps) {
 		[current, collapsible, setCurrent, isMultiple],
 	)
 
-	const ctx = useMemo(
+	const context = useMemo(
 		() => ({ variant: variant ?? 'separated', isOpen, toggle }),
 		[variant, isOpen, toggle],
 	)
@@ -108,7 +108,7 @@ export function Accordion(props: AccordionProps) {
 	})
 
 	return (
-		<AccordionRootProvider value={ctx}>
+		<AccordionRootProvider value={context}>
 			{/* biome-ignore lint/a11y/noStaticElementInteractions: the WAI-ARIA accordion pattern defines no role for the container; the roving tabindex handler must live here to navigate between header buttons */}
 			<div
 				ref={ref}

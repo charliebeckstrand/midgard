@@ -1,8 +1,12 @@
 import type { ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
+import { DatePicker } from '../../components/date-picker'
+import { bySlot, renderUI, screen, userEvent } from '../helpers'
+
 vi.mock('@floating-ui/react', () => {
 	const noop = () => {}
+
 	const identity = <T,>(x: T) => x
 
 	return {
@@ -42,9 +46,6 @@ vi.mock('@floating-ui/react', () => {
 		useRole: () => ({}),
 	}
 })
-
-import { DatePicker } from '../../components/date-picker'
-import { bySlot, renderUI, screen, userEvent } from '../helpers'
 
 function findDay(day: number) {
 	const buttons = screen.getAllByRole('button')

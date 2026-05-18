@@ -21,13 +21,13 @@ function DataTableRowImpl<T>({ row, rowKey, columns, loading, className }: DataT
 
 	const selected = selection.has(rowKey)
 
-	const rowCtx = useMemo<DataTableRowContextValue<T>>(
+	const rowContext = useMemo<DataTableRowContextValue<T>>(
 		() => ({ row, rowKey, selected, loading }),
 		[row, rowKey, selected, loading],
 	)
 
 	return (
-		<DataTableRowProvider value={rowCtx}>
+		<DataTableRowProvider value={rowContext}>
 			<TableRow
 				data-selected={selected || undefined}
 				className={cn(loading && k.rowLoading, className)}

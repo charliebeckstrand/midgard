@@ -39,10 +39,10 @@ export function Toolbar({
 		orientation,
 	})
 
-	const ctx: ToolbarContextValue = { orientation }
+	const context: ToolbarContextValue = { orientation }
 
 	return (
-		<ToolbarProvider value={ctx}>
+		<ToolbarProvider value={context}>
 			<div
 				ref={ref}
 				data-slot="toolbar"
