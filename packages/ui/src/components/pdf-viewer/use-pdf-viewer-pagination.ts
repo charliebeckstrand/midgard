@@ -1,7 +1,7 @@
 'use client'
 
-import { clamp } from '../../helpers'
 import { useControllable } from '../../hooks'
+import { clamp } from '../../utilities'
 
 export type UsePdfPaginationInput = {
 	total: number

@@ -3,7 +3,6 @@
 import { motion } from 'motion/react'
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
-import { clamp, pct } from '../../helpers'
 import { useSizeWide } from '../../primitives/density'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import {
@@ -12,6 +11,7 @@ import {
 	progressGaugeLabelVariants,
 	progressGaugeVariants,
 } from '../../recipes/kata/progress'
+import { clamp, pct } from '../../utilities'
 
 type ProgressColor = keyof typeof k.color
 

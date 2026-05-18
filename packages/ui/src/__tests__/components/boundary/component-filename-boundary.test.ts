@@ -32,9 +32,9 @@ const BARE_ALLOWED = new Set([
 	'variants.ts',
 ])
 
-// Suffixes that name a collection of helpers rather than a single component or
-// hook. Files matching these are exempt from the filename-vs-symbol match.
-const UTILITY_SUFFIXES = ['-utilities', '-helpers', '-constants'] as const
+// Suffixes that name a collection of utilities rather than a single component
+// or hook. Files matching these are exempt from the filename-vs-symbol match.
+const UTILITY_SUFFIXES = ['-utilities', '-constants'] as const
 
 // Grandfathered files where renaming would break a stable public API
 // (`Field`, `Label`, etc.). Never extend this list for new files — fix the

@@ -59,6 +59,5 @@ const palette = { solid, soft, outline, plain }
 
 export const iro = { bg, text, palette } as const
 
-export { merge } from './helpers'
-
 export { type Color, colors } from './palette'
+export { merge } from './utilities'

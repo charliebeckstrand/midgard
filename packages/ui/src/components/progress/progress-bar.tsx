@@ -2,7 +2,6 @@
 
 import { motion } from 'motion/react'
 import { cn } from '../../core'
-import { clamp, pct } from '../../helpers'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import {
 	k,
@@ -11,6 +10,7 @@ import {
 	progressTrackVariants,
 } from '../../recipes/kata/progress'
 import type { Step } from '../../recipes/ryu/sun'
+import { clamp, pct } from '../../utilities'
 
 type ProgressColor = NonNullable<ProgressBarFillVariants['color']>
 

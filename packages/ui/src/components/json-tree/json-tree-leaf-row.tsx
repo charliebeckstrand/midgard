@@ -1,7 +1,6 @@
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/json-tree'
-import { NodeKey, PrimitiveValue } from './json-tree-helpers'
-import { INDENT_REM } from './json-tree-utilities'
+import { INDENT_REM, NodeKey, PrimitiveValue } from './json-tree-utilities'
 import type { JsonValue } from './types'
 
 export type JsonTreeLeafRowProps = {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { collectHelpers } from '../../docs/plugins/derive-code/collect-helpers'
+import { collectHelpers } from '../../docs/plugins/derive-code/collect-utilities'
 
 describe('collectHelpers preamble inclusion', () => {
 	it('prepends type aliases referenced by name', () => {
