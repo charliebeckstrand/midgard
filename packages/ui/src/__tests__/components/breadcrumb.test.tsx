@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
 	Breadcrumb,
 	BreadcrumbItem,
@@ -6,7 +6,7 @@ import {
 	BreadcrumbList,
 	BreadcrumbSeparator,
 } from '../../components/breadcrumb'
-import { bySlot, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Breadcrumb', () => {
 	it('renders with data-slot="breadcrumb"', () => {
@@ -113,5 +113,90 @@ describe('BreadcrumbSeparator', () => {
 		)
 
 		expect(bySlot(container, 'breadcrumb-separator')).toBeInTheDocument()
+	})
+})
+
+describe('Breadcrumb keyboard handling', () => {
+	it('forwards onKeyDown before roving navigation', () => {
+		const onKeyDown = vi.fn()
+
+		renderUI(
+			<Breadcrumb onKeyDown={onKeyDown}>
+				<BreadcrumbList>
+					<BreadcrumbItem>
+						<BreadcrumbLink href="/a">A</BreadcrumbLink>
+					</BreadcrumbItem>
+				</BreadcrumbList>
+			</Breadcrumb>,
+		)
+
+		const nav = screen.getByRole('navigation', { name: 'Breadcrumb' })
+
+		fireEvent.keyDown(nav, { key: 'ArrowRight' })
+
+		expect(onKeyDown).toHaveBeenCalledOnce()
+	})
+
+	it('skips roving navigation when the caller calls preventDefault', () => {
+		renderUI(
+			<Breadcrumb
+				onKeyDown={(e) => {
+					e.preventDefault()
+				}}
+			>
+				<BreadcrumbList>
+					<BreadcrumbItem>
+						<BreadcrumbLink href="/a">A</BreadcrumbLink>
+					</BreadcrumbItem>
+					<BreadcrumbItem>
+						<BreadcrumbLink href="/b">B</BreadcrumbLink>
+					</BreadcrumbItem>
+				</BreadcrumbList>
+			</Breadcrumb>,
+		)
+
+		const nav = screen.getByRole('navigation', { name: 'Breadcrumb' })
+
+		fireEvent.keyDown(nav, { key: 'ArrowRight' })
+
+		expect(nav).toBeInTheDocument()
+	})
+})
+
+describe('BreadcrumbLink without href', () => {
+	it('renders a span with aria-current when current is true', () => {
+		const { container } = renderUI(
+			<Breadcrumb>
+				<BreadcrumbList>
+					<BreadcrumbItem>
+						<BreadcrumbLink current>Current</BreadcrumbLink>
+					</BreadcrumbItem>
+				</BreadcrumbList>
+			</Breadcrumb>,
+		)
+
+		const el = bySlot(container, 'breadcrumb-link')
+
+		expect(el?.tagName).toBe('SPAN')
+
+		expect(el).toHaveAttribute('aria-current', 'page')
+	})
+
+	it('renders a span without aria-current when current is false', () => {
+		const { container } = renderUI(
+			<Breadcrumb>
+				<BreadcrumbList>
+					<BreadcrumbItem>
+						<BreadcrumbLink>Plain</BreadcrumbLink>
+					</BreadcrumbItem>
+				</BreadcrumbList>
+			</Breadcrumb>,
+		)
+
+		const el = bySlot(container, 'breadcrumb-link')
+
+		expect(el?.tagName).toBe('SPAN')
+
+		expect(el).not.toHaveAttribute('aria-current')
 	})
 })

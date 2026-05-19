@@ -87,4 +87,66 @@ describe('NumberInput', () => {
 
 		expect(onChange).toHaveBeenCalledWith(5)
 	})
+
+	it('seeds the value to 0 when increase is clicked from an empty state', async () => {
+		const onChange = vi.fn()
+
+		renderUI(<NumberInput onValueChange={onChange} />)
+
+		const user = userEvent.setup()
+
+		await user.click(screen.getByLabelText('Increase'))
+
+		expect(onChange).toHaveBeenCalledWith(0)
+	})
+
+	it('clamps to max when increase would overshoot', async () => {
+		const onChange = vi.fn()
+
+		renderUI(<NumberInput defaultValue={9} max={10} step={5} onValueChange={onChange} />)
+
+		const user = userEvent.setup()
+
+		await user.click(screen.getByLabelText('Increase'))
+
+		expect(onChange).toHaveBeenCalledWith(10)
+	})
+
+	it('clamps to min when decrease would undershoot', async () => {
+		const onChange = vi.fn()
+
+		renderUI(<NumberInput defaultValue={1} min={0} step={5} onValueChange={onChange} />)
+
+		const user = userEvent.setup()
+
+		await user.click(screen.getByLabelText('Decrease'))
+
+		expect(onChange).toHaveBeenCalledWith(0)
+	})
+
+	it('rounds at the step precision', async () => {
+		const onChange = vi.fn()
+
+		renderUI(<NumberInput defaultValue={0} step={0.1} onValueChange={onChange} />)
+
+		const user = userEvent.setup()
+
+		await user.click(screen.getByLabelText('Increase'))
+
+		expect(onChange).toHaveBeenCalledWith(0.1)
+	})
+
+	it('updates the value via direct typing', async () => {
+		const onChange = vi.fn()
+
+		renderUI(<NumberInput onValueChange={onChange} />)
+
+		const user = userEvent.setup()
+
+		const input = screen.getByRole('spinbutton')
+
+		await user.type(input, '7')
+
+		expect(onChange).toHaveBeenCalledWith(7)
+	})
 })

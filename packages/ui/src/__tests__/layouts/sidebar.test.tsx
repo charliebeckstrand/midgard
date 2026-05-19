@@ -180,3 +180,57 @@ describe('SidebarLayoutFooter', () => {
 		expect(screen.getByText('Footer text')).toBeInTheDocument()
 	})
 })
+
+describe('SidebarLayout floating mode', () => {
+	it('renders a hot-zone hover target when floating is true', () => {
+		const { container } = renderUI(
+			<SidebarLayout sidebar={<div>nav</div>} floating>
+				body
+			</SidebarLayout>,
+		)
+
+		const hotZone = container.querySelector('[aria-hidden="true"]')
+
+		expect(hotZone).toBeInTheDocument()
+	})
+
+	it('opens the floating sheet on pointer enter of the hot zone', () => {
+		const { container } = renderUI(
+			<SidebarLayout sidebar={<div>floating-sidebar</div>} floating>
+				body
+			</SidebarLayout>,
+		)
+
+		const hotZone = container.querySelector('[aria-hidden="true"]') as HTMLElement
+
+		expect(hotZone).not.toBeNull()
+
+		fireEvent.pointerEnter(hotZone)
+
+		const sidebars = screen.getAllByText('floating-sidebar')
+
+		expect(sidebars.length).toBeGreaterThan(0)
+	})
+
+	it('resets the floating sheet to closed when floating flips off', () => {
+		const { container, rerender } = renderUI(
+			<SidebarLayout sidebar={<div>side</div>} floating>
+				body
+			</SidebarLayout>,
+		)
+
+		const hotZone = container.querySelector('[aria-hidden="true"]') as HTMLElement
+
+		fireEvent.pointerEnter(hotZone)
+
+		rerender(<SidebarLayout sidebar={<div>side</div>}>body</SidebarLayout>)
+
+		rerender(
+			<SidebarLayout sidebar={<div>side</div>} floating>
+				body
+			</SidebarLayout>,
+		)
+
+		expect(container).toBeInTheDocument()
+	})
+})

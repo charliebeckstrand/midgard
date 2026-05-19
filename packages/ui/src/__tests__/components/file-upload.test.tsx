@@ -43,3 +43,47 @@ describe('FileUpload', () => {
 		expect(input.accept).toBe('image/*')
 	})
 })
+
+describe('FileUpload input variant', () => {
+	it('renders a read-only input with the configured placeholder', () => {
+		renderUI(<FileUpload variant="input" placeholder="Choose…" />)
+
+		const input = screen.getByPlaceholderText('Choose…')
+
+		expect(input).toBeInTheDocument()
+
+		expect(input).toHaveAttribute('readonly')
+	})
+
+	it('falls back to a default placeholder when none is provided', () => {
+		renderUI(<FileUpload variant="input" />)
+
+		expect(screen.getByPlaceholderText('Choose a file')).toBeInTheDocument()
+	})
+
+	it('disables the input when disabled is set', () => {
+		renderUI(<FileUpload variant="input" disabled />)
+
+		expect(screen.getByPlaceholderText('Choose a file')).toBeDisabled()
+	})
+})
+
+describe('FileUpload button variant', () => {
+	it('renders a button with default copy when no children are provided', () => {
+		renderUI(<FileUpload variant="button" />)
+
+		expect(screen.getByRole('button', { name: 'Upload' })).toBeInTheDocument()
+	})
+
+	it('uses children as the button label when provided', () => {
+		renderUI(<FileUpload variant="button">Pick a file</FileUpload>)
+
+		expect(screen.getByRole('button', { name: 'Pick a file' })).toBeInTheDocument()
+	})
+
+	it('disables the button when disabled is set', () => {
+		renderUI(<FileUpload variant="button">Pick</FileUpload>)
+
+		expect(screen.getByRole('button', { name: 'Pick' })).toBeInTheDocument()
+	})
+})

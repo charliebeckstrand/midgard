@@ -4,6 +4,7 @@ import {
 	TimelineDescription,
 	TimelineHeading,
 	TimelineItem,
+	TimelineTimestamp,
 } from '../../components/timeline'
 import { bySlot, renderUI, screen } from '../helpers'
 
@@ -104,5 +105,63 @@ describe('TimelineDescription', () => {
 		)
 
 		expect(screen.getByText('Some details')).toBeInTheDocument()
+	})
+})
+
+describe('TimelineTimestamp', () => {
+	it('renders with data-slot="timeline-timestamp"', () => {
+		const { container } = renderUI(
+			<Timeline>
+				<TimelineItem>
+					<TimelineTimestamp dateTime="2024-01-01">Jan 1</TimelineTimestamp>
+				</TimelineItem>
+			</Timeline>,
+		)
+
+		const el = bySlot(container, 'timeline-timestamp')
+
+		expect(el).toBeInTheDocument()
+
+		expect(el?.tagName).toBe('TIME')
+
+		expect(el).toHaveAttribute('datetime', '2024-01-01')
+	})
+
+	it('renders its children', () => {
+		renderUI(
+			<Timeline>
+				<TimelineItem>
+					<TimelineTimestamp>Jan 1, 2024</TimelineTimestamp>
+				</TimelineItem>
+			</Timeline>,
+		)
+
+		expect(screen.getByText('Jan 1, 2024')).toBeInTheDocument()
+	})
+
+	it('applies custom className', () => {
+		const { container } = renderUI(
+			<Timeline>
+				<TimelineItem>
+					<TimelineTimestamp className="custom">Jan 1</TimelineTimestamp>
+				</TimelineItem>
+			</Timeline>,
+		)
+
+		const el = bySlot(container, 'timeline-timestamp')
+
+		expect(el?.className).toContain('custom')
+	})
+
+	it('reads horizontal orientation from the Timeline context', () => {
+		const { container } = renderUI(
+			<Timeline orientation="horizontal">
+				<TimelineItem>
+					<TimelineTimestamp>Jan 1</TimelineTimestamp>
+				</TimelineItem>
+			</Timeline>,
+		)
+
+		expect(bySlot(container, 'timeline-timestamp')).toBeInTheDocument()
 	})
 })

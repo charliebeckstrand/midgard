@@ -12,6 +12,7 @@ import {
 	MenuShortcut,
 	MenuTrigger,
 } from '../../components/menu'
+import { useMenuContext } from '../../components/menu/context'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Menu', () => {
@@ -363,5 +364,61 @@ describe('MenuLabel / MenuDescription / MenuShortcut', () => {
 		const { container } = renderUI(<MenuShortcut>⌘K</MenuShortcut>)
 
 		expect(bySlot(container, 'menu-shortcut')).toBeInTheDocument()
+	})
+})
+
+describe('MenuTrigger fallback button', () => {
+	it('renders a plain button when children is not a React element', () => {
+		const { container } = renderUI(
+			<Menu>
+				<MenuTrigger>Open</MenuTrigger>
+			</Menu>,
+		)
+
+		const trigger = bySlot(container, 'menu-trigger')
+
+		expect(trigger?.tagName).toBe('BUTTON')
+
+		expect(trigger).toHaveTextContent('Open')
+
+		expect(trigger).toHaveAttribute('aria-haspopup', 'menu')
+	})
+
+	it('toggles open state when the fallback button is clicked', () => {
+		const { container } = renderUI(
+			<Menu>
+				<MenuTrigger>Open</MenuTrigger>
+				<MenuContent>
+					<MenuItem>Item</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		const trigger = bySlot(container, 'menu-trigger') as HTMLElement
+
+		fireEvent.click(trigger)
+
+		expect(trigger).toHaveAttribute('aria-expanded', 'true')
+	})
+})
+
+describe('useMenuContext', () => {
+	function ContextProbe() {
+		const ctx = useMenuContext()
+
+		return <span data-testid="probe">{ctx.open ? 'open' : 'closed'}</span>
+	}
+
+	it('returns combined state and actions when called inside a Menu', () => {
+		renderUI(
+			<Menu defaultOpen>
+				<MenuTrigger>Open</MenuTrigger>
+				<MenuContent>
+					<ContextProbe />
+				</MenuContent>
+			</Menu>,
+		)
+
+		expect(screen.getByTestId('probe')).toHaveTextContent('open')
 	})
 })

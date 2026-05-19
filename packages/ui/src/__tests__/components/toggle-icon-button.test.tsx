@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ToggleIconButton } from '../../components/toggle-icon-button'
-import { bySlot, renderUI } from '../helpers'
+import { bySlot, renderUI, within } from '../helpers'
 
 describe('ToggleIconButton', () => {
 	const icon = <svg data-testid="icon" />
@@ -62,5 +62,55 @@ describe('ToggleIconButton', () => {
 		el?.click()
 
 		expect(onClick).toHaveBeenCalledOnce()
+	})
+
+	it('renders a single icon when animate is false and pressed is false', () => {
+		const { container } = renderUI(
+			<ToggleIconButton
+				animate={false}
+				pressed={false}
+				icon={icon}
+				activeIcon={activeIcon}
+				aria-label="Toggle"
+			/>,
+		)
+
+		const el = bySlot(container, 'toggle-icon-button') as HTMLElement
+
+		expect(el).toBeInTheDocument()
+
+		expect(within(el).queryByTestId('icon')).toBeInTheDocument()
+
+		expect(within(el).queryByTestId('active-icon')).not.toBeInTheDocument()
+	})
+
+	it('renders only the active icon when animate is false and pressed is true', () => {
+		const { container } = renderUI(
+			<ToggleIconButton
+				animate={false}
+				pressed={true}
+				icon={icon}
+				activeIcon={activeIcon}
+				aria-label="Toggle"
+			/>,
+		)
+
+		const el = bySlot(container, 'toggle-icon-button') as HTMLElement
+
+		expect(within(el).queryByTestId('active-icon')).toBeInTheDocument()
+
+		expect(within(el).queryByTestId('icon')).not.toBeInTheDocument()
+	})
+
+	it('renders both icons (for the crossfade) when animate is true', () => {
+		const { container } = renderUI(
+			<ToggleIconButton pressed={false} icon={icon} activeIcon={activeIcon} aria-label="Toggle" />,
+		)
+
+		const el = bySlot(container, 'toggle-icon-button') as HTMLElement
+
+		expect(within(el).queryByTestId('icon')).toBeInTheDocument()
+
+		expect(within(el).queryByTestId('active-icon')).toBeInTheDocument()
 	})
 })
