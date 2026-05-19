@@ -276,3 +276,31 @@ describe('Accordion multiple-select behavior', () => {
 		expect(screen.getByText('Panel B')).toBeInTheDocument()
 	})
 })
+
+describe('AccordionButton render-prop child', () => {
+	it('invokes a function child with the current open state', () => {
+		renderUI(
+			<Accordion defaultValue="a">
+				<AccordionItem value="a">
+					<AccordionButton>{({ open }) => (open ? 'Open!' : 'Closed')}</AccordionButton>
+					<AccordionPanel>Body</AccordionPanel>
+				</AccordionItem>
+			</Accordion>,
+		)
+
+		expect(screen.getByText('Open!')).toBeInTheDocument()
+	})
+
+	it('invokes a function child with open=false when the item is closed', () => {
+		renderUI(
+			<Accordion>
+				<AccordionItem value="a">
+					<AccordionButton>{({ open }) => (open ? 'Open!' : 'Closed')}</AccordionButton>
+					<AccordionPanel>Body</AccordionPanel>
+				</AccordionItem>
+			</Accordion>,
+		)
+
+		expect(screen.getByText('Closed')).toBeInTheDocument()
+	})
+})

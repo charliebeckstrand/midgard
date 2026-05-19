@@ -22,6 +22,22 @@ describe('Link', () => {
 		expect(link).toHaveAttribute('href', '/about')
 	})
 
+	it('applies the underline class by default', () => {
+		renderUI(<Link href="/u">Underline</Link>)
+
+		expect(screen.getByText('Underline').className).toContain('hover:underline')
+	})
+
+	it('omits the underline class when underline={false}', () => {
+		renderUI(
+			<Link href="/u" underline={false}>
+				NoUnderline
+			</Link>,
+		)
+
+		expect(screen.getByText('NoUnderline').className ?? '').not.toContain('hover:underline')
+	})
+
 	it('renders custom component from LinkProvider', () => {
 		function CustomLink({ href, children, ...props }: { href: string; children?: ReactNode }) {
 			return (

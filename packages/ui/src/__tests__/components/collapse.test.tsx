@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Collapse } from '../../components/collapse'
+import { Collapse, CollapsePanel, CollapseTrigger } from '../../components/collapse'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Collapse', () => {
@@ -118,5 +118,44 @@ describe('Collapse', () => {
 		)
 
 		expect(bySlot(container, 'collapse')).toBeInTheDocument()
+	})
+})
+
+describe('CollapseTrigger render-prop child', () => {
+	it('invokes a function child with the current open state', () => {
+		renderUI(
+			<Collapse defaultOpen>
+				<CollapseTrigger>{({ open }) => (open ? 'Open!' : 'Closed')}</CollapseTrigger>
+				<CollapsePanel>Body</CollapsePanel>
+			</Collapse>,
+		)
+
+		expect(screen.getByText('Open!')).toBeInTheDocument()
+	})
+
+	it('invokes a function child with open=false when collapsed', () => {
+		renderUI(
+			<Collapse>
+				<CollapseTrigger>{({ open }) => (open ? 'Open!' : 'Closed')}</CollapseTrigger>
+				<CollapsePanel>Body</CollapsePanel>
+			</Collapse>,
+		)
+
+		expect(screen.getByText('Closed')).toBeInTheDocument()
+	})
+
+	it('forwards the user onClick after toggling', () => {
+		const onClick = vi.fn()
+
+		renderUI(
+			<Collapse>
+				<CollapseTrigger onClick={onClick}>Toggle</CollapseTrigger>
+				<CollapsePanel>Body</CollapsePanel>
+			</Collapse>,
+		)
+
+		fireEvent.click(screen.getByText('Toggle'))
+
+		expect(onClick).toHaveBeenCalled()
 	})
 })
