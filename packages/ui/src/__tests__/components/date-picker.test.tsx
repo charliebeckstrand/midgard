@@ -3,8 +3,6 @@ import { describe, expect, it, vi } from 'vitest'
 import { DatePicker } from '../../components/date-picker'
 import { bySlot, renderUI, screen, userEvent } from '../helpers'
 
-vi.mock('@floating-ui/react', async () => (await import('../mocks/floating-ui')).default)
-
 function findDay(day: number) {
 	const buttons = screen.getAllByRole('button')
 

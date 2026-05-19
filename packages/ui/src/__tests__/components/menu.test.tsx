@@ -14,8 +14,6 @@ import {
 } from '../../components/menu'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
-vi.mock('@floating-ui/react', async () => (await import('../mocks/floating-ui')).default)
-
 describe('Menu', () => {
 	it('renders with data-slot="menu"', () => {
 		const { container } = renderUI(

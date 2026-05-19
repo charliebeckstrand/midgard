@@ -8,7 +8,7 @@ export default defineConfig({
 		...baseTest,
 		pool: 'vmThreads',
 		sequence: { shuffle: true },
-		setupFiles: ['./src/__tests__/setup.ts'],
+		setupFiles: ['./src/__tests__/setup/index.ts', './src/__tests__/setup/module-mocks.ts'],
 		include: ['src/__tests__/**/*.test.{ts,tsx}'],
 		reporters: process.env.CI ? ['default', 'junit'] : ['default'],
 		outputFile: {

@@ -6,19 +6,14 @@ const identity = <T>(x: T) => x
 
 /**
  * Vanilla `@floating-ui/react` mock: every export is a noop or identity
- * passthrough. Consumers whose components own their open/close state
- * (Menu, DatePicker, CalendarRange, etc.) don't need floating-ui to wire
- * clicks — they manage `aria-expanded` directly.
+ * passthrough. Applied globally via `setup/module-mocks.ts` so every test
+ * file sees the same module shape — per-file mocks can resolve inconsistently
+ * in the vmThreads pool when `sequence.shuffle` reorders worker loading,
+ * leaving `useFloating` and `useHover` (or vice versa) in mixed states.
  *
  * Tests whose component delegates click-to-toggle to floating-ui (e.g.
- * Calendar's inline header picker) keep their own smart-mock locally.
- *
- * Usage:
- *
- *   vi.mock('@floating-ui/react', async () => (await import('../mocks/floating-ui')).default)
- *
- * The dynamic-import indirection works around vi.mock's factory-hoisting
- * limitation while keeping the mock surface in one place.
+ * Calendar's inline header picker) override locally via `vi.mock` in the
+ * test file.
  */
 const floatingUIMock = {
 	autoUpdate: noop,

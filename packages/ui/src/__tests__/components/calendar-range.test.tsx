@@ -3,8 +3,6 @@ import { describe, expect, it, vi } from 'vitest'
 import { CalendarRange } from '../../components/calendar/calendar-range'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
-vi.mock('@floating-ui/react', async () => (await import('../mocks/floating-ui')).default)
-
 function d(year: number, month: number, day: number) {
 	return new Date(year, month - 1, day)
 }

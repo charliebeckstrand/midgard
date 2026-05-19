@@ -1,0 +1,76 @@
+import { createElement, forwardRef, type ReactNode } from 'react'
+import { vi } from 'vitest'
+
+/**
+ * `motion/react` mock applied globally via `setup/module-mocks.ts`.
+ *
+ * Replaces every animated wrapper with a plain HTML element so tests run in
+ * jsdom without needing a full animation runtime.
+ */
+
+const MOTION_PROPS = new Set([
+	'animate',
+	'initial',
+	'exit',
+	'transition',
+	'variants',
+	'whileTap',
+	'whileHover',
+	'whileFocus',
+	'whileDrag',
+	'whileInView',
+	'layout',
+	'layoutId',
+	'layoutDependency',
+	'onAnimationComplete',
+	'onAnimationStart',
+])
+
+function stripMotionProps(props: Record<string, unknown>) {
+	const clean: Record<string, unknown> = {}
+
+	for (const [k, v] of Object.entries(props)) {
+		if (!MOTION_PROPS.has(k)) clean[k] = v
+	}
+
+	return clean
+}
+
+const handler: ProxyHandler<object> = {
+	get(_, tag: string) {
+		return forwardRef((props: Record<string, unknown>, ref: unknown) =>
+			createElement(tag, { ref, ...stripMotionProps(props) }),
+		)
+	},
+}
+
+const motion = new Proxy({}, handler)
+
+function AnimatePresence({ children }: { children: ReactNode }) {
+	return children
+}
+
+function LayoutGroup({ children }: { children: ReactNode }) {
+	return children
+}
+
+function MotionConfig({ children }: { children: ReactNode }) {
+	return children
+}
+
+function useAnimate(): [{ current: null }, (...args: unknown[]) => void] {
+	return [{ current: null }, vi.fn()]
+}
+
+function useMotionValue<T>(initial: T) {
+	let value = initial
+	return {
+		get: () => value,
+		set: (next: T) => {
+			value = next
+		},
+		on: () => () => {},
+	}
+}
+
+export default { motion, AnimatePresence, LayoutGroup, MotionConfig, useAnimate, useMotionValue }
