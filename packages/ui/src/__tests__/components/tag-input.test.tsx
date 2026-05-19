@@ -222,6 +222,29 @@ describe('TagInput', () => {
 
 		expect(input).toHaveAttribute('aria-label', 'Add tags')
 	})
+
+	it('adds a tag when the suffix Add button is clicked', async () => {
+		const onChange = vi.fn()
+
+		const { container } = renderUI(<TagInput onValueChange={onChange} />)
+
+		const input = getInput(container)
+
+		const user = userEvent.setup()
+
+		await user.type(input, 'svelte')
+
+		// The Add button is the last button in the input's suffix slot.
+		const buttons = container.querySelectorAll('button')
+
+		const addButton = buttons[buttons.length - 1] as HTMLButtonElement
+
+		await user.click(addButton)
+
+		expect(onChange).toHaveBeenCalledWith(['svelte'])
+
+		expect(input.value).toBe('')
+	})
 })
 
 describe('useTagInput', () => {

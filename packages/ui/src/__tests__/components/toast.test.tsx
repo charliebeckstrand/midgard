@@ -350,6 +350,37 @@ describe('Toast: useToast behavior', () => {
 		expect(document.querySelector('[data-slot="alert-close"]')).toBeNull()
 	})
 
+	it('dismisses the toast when the Alert close button is clicked', () => {
+		let api: ReturnType<typeof useToast> | undefined
+
+		renderUI(
+			<ToastProvider duration={5000}>
+				<Toast />
+				<Trigger onReady={(c) => (api = c)} />
+			</ToastProvider>,
+		)
+
+		act(() => {
+			api?.toast({ title: 'Closable', persist: true })
+		})
+
+		expect(screen.getByText('Closable')).toBeInTheDocument()
+
+		const dismissButton = screen.getByRole('button', { name: 'Dismiss' })
+
+		act(() => {
+			fireEvent.click(dismissButton)
+		})
+
+		// First click marks it dismissed (still in the queue for exit animation),
+		// drain it with a follow-up dispatch through the (mocked) AnimatePresence.
+		act(() => {
+			vi.advanceTimersByTime(1000)
+		})
+
+		expect(screen.queryByText('Closable')).not.toBeInTheDocument()
+	})
+
 	it('removes a toast immediately when dismiss is called a second time', () => {
 		let api: ReturnType<typeof useToast> | null = null
 
