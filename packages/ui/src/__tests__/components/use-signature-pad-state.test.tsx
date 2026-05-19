@@ -65,7 +65,7 @@ function attachCanvasMocks(
 
 	Object.defineProperty(el, 'getBoundingClientRect', {
 		configurable: true,
-		value: () => ({ width: 100, height: 60 }) as DOMRect,
+		value: () => DOMRect.fromRect({ width: 100, height: 60 }),
 	})
 }
 
@@ -91,7 +91,7 @@ function Harness({
 				state.containerRef.current = el
 
 				if (el) {
-					el.getBoundingClientRect = () => ({ width: 100, height: 60 }) as DOMRect
+					el.getBoundingClientRect = () => DOMRect.fromRect({ width: 100, height: 60 })
 				}
 			}}
 		>

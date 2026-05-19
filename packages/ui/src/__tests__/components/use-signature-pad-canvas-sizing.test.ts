@@ -26,13 +26,13 @@ function setup(opts: {
 
 		canvas.toDataURL = () => 'data:,snapshot'
 
-		canvas.getBoundingClientRect = () => ({ width: 100, height: 60 }) as DOMRect
+		canvas.getBoundingClientRect = () => DOMRect.fromRect({ width: 100, height: 60 })
 	}
 
 	const container = containerSize === null ? null : document.createElement('div')
 
 	if (container && containerSize) {
-		container.getBoundingClientRect = () => containerSize as DOMRect
+		container.getBoundingClientRect = () => DOMRect.fromRect(containerSize)
 	}
 
 	const { result, unmount } = renderHook(() => {

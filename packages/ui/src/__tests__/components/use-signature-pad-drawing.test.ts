@@ -29,13 +29,7 @@ function setup({
 
 		canvas.toDataURL = () => 'data:,strokes'
 
-		canvas.getBoundingClientRect = () =>
-			({
-				left: 0,
-				top: 0,
-				width: 100,
-				height: 100,
-			}) as DOMRect
+		canvas.getBoundingClientRect = () => DOMRect.fromRect({ width: 100, height: 100 })
 	}
 
 	const setIsEmpty = vi.fn()

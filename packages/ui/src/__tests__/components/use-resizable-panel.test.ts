@@ -14,21 +14,14 @@ function makeGroup(rect: { width: number; height: number }, handleCount = 0): HT
 		handle.setAttribute('data-slot', 'resizable-handle')
 
 		Object.defineProperty(handle, 'getBoundingClientRect', {
-			value: () => ({ width: 0, height: 0, top: 0, left: 0, right: 0, bottom: 0 }),
+			value: () => DOMRect.fromRect(),
 		})
 
 		el.appendChild(handle)
 	}
 
 	Object.defineProperty(el, 'getBoundingClientRect', {
-		value: () => ({
-			width: rect.width,
-			height: rect.height,
-			top: 0,
-			left: 0,
-			right: rect.width,
-			bottom: rect.height,
-		}),
+		value: () => DOMRect.fromRect({ width: rect.width, height: rect.height }),
 	})
 
 	return el

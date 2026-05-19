@@ -104,17 +104,7 @@ describe('getCanvasPoint', () => {
 	it('returns a canvas-relative point when the canvas is provided', () => {
 		const canvas = document.createElement('canvas')
 
-		canvas.getBoundingClientRect = () => ({
-			x: 5,
-			y: 10,
-			left: 5,
-			top: 10,
-			right: 105,
-			bottom: 110,
-			width: 100,
-			height: 100,
-			toJSON: () => ({}),
-		})
+		canvas.getBoundingClientRect = () => DOMRect.fromRect({ x: 5, y: 10, width: 100, height: 100 })
 
 		const event = { clientX: 25, clientY: 30 } as ReactPointerEvent
 
@@ -154,7 +144,7 @@ describe('drawSnapshot', () => {
 
 		vi.spyOn(canvas, 'getContext').mockReturnValue(makeCanvasContext({ drawImage }))
 
-		canvas.getBoundingClientRect = () => ({ width: 200, height: 80 }) as DOMRect
+		canvas.getBoundingClientRect = () => DOMRect.fromRect({ width: 200, height: 80 })
 
 		let captured: HTMLImageElement | null = null
 
