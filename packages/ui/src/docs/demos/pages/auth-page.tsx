@@ -1,6 +1,6 @@
 'use client'
 
-import { type ComponentProps, useState } from 'react'
+import { type ComponentProps, type ReactNode, useState } from 'react'
 import { Button } from '../../../components/button'
 import { Field, Fieldset, Label } from '../../../components/fieldset'
 import { Heading } from '../../../components/heading'
@@ -17,7 +17,7 @@ const Form = ({
 	children,
 }: {
 	onSubmit: ComponentProps<'form'>['onSubmit']
-	children: React.ReactNode
+	children: ReactNode
 }) => (
 	<form onSubmit={onSubmit} className="grid gap-6 w-full sm:max-w-sm px-4">
 		{children}

@@ -1,7 +1,7 @@
 'use client'
 
 import { Upload } from 'lucide-react'
-import { useState } from 'react'
+import { type ReactNode, useState } from 'react'
 import { FileUpload } from '../../components/file-upload'
 import { Icon } from '../../components/icon'
 import { Stack } from '../../components/stack'
@@ -10,7 +10,7 @@ import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
 
-function Sizer({ children, className }: { children: React.ReactNode; className?: string }) {
+function Sizer({ children, className }: { children: ReactNode; className?: string }) {
 	return <div className={`sm:max-w-sm ${className}`}>{children}</div>
 }
 

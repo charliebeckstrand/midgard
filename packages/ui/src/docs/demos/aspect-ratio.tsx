@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { type ReactNode, useState } from 'react'
 import { AspectRatio, type AspectRatioPreset } from '../../components/aspect-ratio'
 import { Card } from '../../components/card'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
@@ -18,7 +18,7 @@ const presets: { label: string; value: AspectRatioPreset }[] = [
 	{ label: '21/9', value: '21/9' },
 ]
 
-function Sizer({ children, className }: { children: React.ReactNode; className?: string }) {
+function Sizer({ children, className }: { children: ReactNode; className?: string }) {
 	return <div className={`sm:max-w-sm ${className}`}>{children}</div>
 }
 
