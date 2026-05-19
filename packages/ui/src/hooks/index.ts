@@ -22,6 +22,7 @@ export {
 	type UseRovingOptions,
 	useRoving,
 } from './use-roving'
+export { useScrollLock } from './use-scroll-lock'
 export {
 	type UseScrollWithinOptions,
 	useScrollWithin,

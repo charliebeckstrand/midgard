@@ -6,6 +6,7 @@ import { type HTMLAttributes, type ReactNode, type RefObject, useEffect } from '
 import { createPortal } from 'react-dom'
 import { cn } from '../../core'
 import { useDismissable } from '../../hooks/use-dismissable'
+import { useScrollLock } from '../../hooks/use-scroll-lock'
 import { omote, ugoki } from '../../recipes'
 import { ReducedMotion } from '../reduced-motion'
 import { notifyOverlayOpened } from './overlay-signal'
@@ -47,8 +48,9 @@ export function Overlay({
 		open,
 		onDismiss: () => onOpenChange(false),
 		outsidePointer: false,
-		scrollLock: !scoped,
 	})
+
+	useScrollLock(open && !scoped)
 
 	useEffect(() => {
 		if (open) notifyOverlayOpened()
