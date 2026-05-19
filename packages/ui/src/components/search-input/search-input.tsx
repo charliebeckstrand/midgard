@@ -21,8 +21,8 @@ export type SearchInputProps = Omit<
 function ClearButton({ onClear }: { onClear: () => void }) {
 	return (
 		<Button
-			variant="plain"
-			className="pointer-events-auto"
+			variant="bare"
+			className="mr-2 pointer-events-auto"
 			aria-label="Clear search"
 			onClick={onClear}
 		>
