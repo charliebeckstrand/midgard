@@ -1,74 +1,41 @@
-import type { CreditCardBrandInfo } from './types'
+import cardValidator from 'card-validator'
+import type { CreditCardBrand, CreditCardBrandInfo } from './types'
 
-const BRANDS: Array<CreditCardBrandInfo & { pattern: RegExp }> = [
-	{
-		brand: 'amex',
-		label: 'Amex',
-		pattern: /^3[47]/,
-		lengths: [15],
-		gaps: [4, 10],
-		cvvLength: 4,
-	},
-	{
-		brand: 'visa',
-		label: 'Visa',
-		pattern: /^4/,
-		lengths: [13, 16, 19],
-		gaps: [4, 8, 12],
-		cvvLength: 3,
-	},
-	{
-		brand: 'mastercard',
-		label: 'Mastercard',
-		pattern: /^(5[1-5]|2(2(2[1-9]|[3-9]\d)|[3-6]\d\d|7([01]\d|20)))/,
-		lengths: [16],
-		gaps: [4, 8, 12],
-		cvvLength: 3,
-	},
-	{
-		brand: 'discover',
-		label: 'Discover',
-		pattern: /^(6011|65|64[4-9])/,
-		lengths: [16, 19],
-		gaps: [4, 8, 12],
-		cvvLength: 3,
-	},
-	{
-		brand: 'diners',
-		label: 'Diners Club',
-		pattern: /^(3(0[0-5]|095|[689]))/,
-		lengths: [14, 16, 19],
-		gaps: [4, 10],
-		cvvLength: 3,
-	},
-	{
-		brand: 'jcb',
-		label: 'JCB',
-		pattern: /^35(2[89]|[3-8])/,
-		lengths: [16, 17, 18, 19],
-		gaps: [4, 8, 12],
-		cvvLength: 3,
-	},
-	{
-		brand: 'unionpay',
-		label: 'UnionPay',
-		pattern: /^62/,
-		lengths: [16, 17, 18, 19],
-		gaps: [4, 8, 12],
-		cvvLength: 3,
-	},
+const { number, cvv } = cardValidator
+
+// Allowlist mapping card-validator's `type` strings to the package's public
+// brand names + labels. Brands outside this list (maestro, elo, mir, hiper,
+// hipercard) resolve to undefined.
+const BRANDS: ReadonlyArray<{
+	type: string
+	brand: CreditCardBrand
+	label: string
+}> = [
+	{ type: 'visa', brand: 'visa', label: 'Visa' },
+	{ type: 'mastercard', brand: 'mastercard', label: 'Mastercard' },
+	{ type: 'american-express', brand: 'amex', label: 'Amex' },
+	{ type: 'discover', brand: 'discover', label: 'Discover' },
+	{ type: 'diners-club', brand: 'diners', label: 'Diners Club' },
+	{ type: 'jcb', brand: 'jcb', label: 'JCB' },
+	{ type: 'unionpay', brand: 'unionpay', label: 'UnionPay' },
 ]
 
 export function detectCardBrand(digits: string): CreditCardBrandInfo | undefined {
-	for (const entry of BRANDS) {
-		if (entry.pattern.test(digits)) {
-			const { pattern: _pattern, ...info } = entry
+	const { card } = number(digits)
 
-			return info
-		}
+	if (!card) return undefined
+
+	const entry = BRANDS.find((b) => b.type === card.type)
+
+	if (!entry) return undefined
+
+	return {
+		brand: entry.brand,
+		label: entry.label,
+		lengths: card.lengths,
+		gaps: card.gaps,
+		cvvLength: card.code.size,
 	}
-
-	return undefined
 }
 
 export function formatCardNumber(raw: string): {
@@ -118,4 +85,23 @@ export function formatExpiry(raw: string): string {
 
 export function formatCvv(raw: string, maxLength: number): string {
 	return raw.replace(/\D/g, '').slice(0, maxLength)
+}
+
+export type CardValidity = {
+	isValid: boolean
+	isPotentiallyValid: boolean
+}
+
+export function validateCardNumber(value: string): CardValidity {
+	const { isValid, isPotentiallyValid } = number(value.replace(/\D/g, ''))
+
+	return { isValid, isPotentiallyValid }
+}
+
+export function validateCardCvv(value: string, brand?: CreditCardBrand): CardValidity {
+	const maxLength = brand === 'amex' ? 4 : 3
+
+	const { isValid, isPotentiallyValid } = cvv(value.replace(/\D/g, ''), maxLength)
+
+	return { isValid, isPotentiallyValid }
 }

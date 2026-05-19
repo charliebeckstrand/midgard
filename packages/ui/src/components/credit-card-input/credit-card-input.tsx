@@ -5,7 +5,11 @@ import { type ReactNode, useMemo } from 'react'
 import { useMaskedInput } from '../../hooks'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
-import { formatCardNumber } from './credit-card-input-utilities'
+import {
+	type CardValidity,
+	formatCardNumber,
+	validateCardNumber,
+} from './credit-card-input-utilities'
 import type { CreditCardBrand } from './types'
 
 export type CreditCardInputProps = Omit<
@@ -17,6 +21,8 @@ export type CreditCardInputProps = Omit<
 	placeholder?: string
 	onValueChange?: (value: string) => void
 	onBrandChange?: (brand: CreditCardBrand | undefined) => void
+	/** Fires on every change with the card number's Luhn + length + pattern verdict. */
+	onValidityChange?: (validity: CardValidity) => void
 	prefix?: ReactNode
 }
 
@@ -26,6 +32,7 @@ export function CreditCardInput({
 	placeholder,
 	onValueChange,
 	onBrandChange,
+	onValidityChange,
 	prefix,
 	suffix,
 	ref,
@@ -54,7 +61,11 @@ export function CreditCardInput({
 			onChange={(e) => {
 				masked.onChange(e)
 
-				onBrandChange?.(formatCardNumber(e.target.value).brand?.brand)
+				const next = formatCardNumber(e.target.value)
+
+				onBrandChange?.(next.brand?.brand)
+
+				onValidityChange?.(validateCardNumber(next.digits))
 			}}
 			{...props}
 		/>

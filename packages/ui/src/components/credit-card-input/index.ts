@@ -5,9 +5,12 @@ export {
 	type CreditCardInputExpiryProps,
 } from './credit-card-input-expiry'
 export {
+	type CardValidity,
 	detectCardBrand,
 	formatCardNumber,
 	formatCvv,
 	formatExpiry,
+	validateCardCvv,
+	validateCardNumber,
 } from './credit-card-input-utilities'
 export type { CreditCardBrand, CreditCardBrandInfo } from './types'

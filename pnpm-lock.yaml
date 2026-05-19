@@ -195,6 +195,9 @@ importers:
       '@tanstack/react-virtual':
         specifier: ^3.13.23
         version: 3.13.23(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      card-validator:
+        specifier: ^10.0.4
+        version: 10.0.4
       clsx:
         specifier: ^2.0.0
         version: 2.1.1
@@ -1566,6 +1569,9 @@ packages:
   caniuse-lite@1.0.30001778:
     resolution: {integrity: sha512-PN7uxFL+ExFJO61aVmP1aIEG4i9whQd4eoSCebav62UwDyp5OHh06zN4jqKSMePVgxHifCw1QJxdRkA1Pisekg==}
 
+  card-validator@10.0.4:
+    resolution: {integrity: sha512-1Q/tDCSvM5iL3psPo6j8KF/VoI63WA7Y4Zthy1E7l/H4Iul2e2X+1S0vp33n3OMRjLgGU2+gLaK2NsGtwArJkQ==}
+
   ccount@2.0.1:
     resolution: {integrity: sha512-eyrF0jiFpY+3drT6383f1qhkbGsLSifNAjA61IUjZjmLCWjItY6LB9ft9YhoDgwfmclB2zhu51Lc7+95b8NRAg==}
 
@@ -1641,6 +1647,9 @@ packages:
   convert-to-spaces@2.0.1:
     resolution: {integrity: sha512-rcQ1bsQO9799wq24uE5AM2tAILy4gXGIK/njFWcVQkGNZ96edlpY+A7bjwvzjYvLDyzmG1MmMLZhpcsb+klNMQ==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
+
+  credit-card-type@10.1.2:
+    resolution: {integrity: sha512-fP9vlyeYSHfKbIdE6IOR63YivTXMy0ZqyEkBhHxuAbvpltepe+zJmQ34A2Va7zJ8J7ZaB5IMAdD+1YJOmsajJA==}
 
   css-tree@3.2.1:
     resolution: {integrity: sha512-X7sjQzceUhu1u7Y/ylrRZFU2FS6LRiFVp6rKLPg23y3x3c3DOKAwuXGDp+PAGjh6CSnCjYeAul8pcT8bAl+lSA==}
@@ -3853,6 +3862,10 @@ snapshots:
 
   caniuse-lite@1.0.30001778: {}
 
+  card-validator@10.0.4:
+    dependencies:
+      credit-card-type: 10.1.2
+
   ccount@2.0.1: {}
 
   chai@6.2.2: {}
@@ -3909,6 +3922,8 @@ snapshots:
   convert-source-map@2.0.0: {}
 
   convert-to-spaces@2.0.1: {}
+
+  credit-card-type@10.1.2: {}
 
   css-tree@3.2.1:
     dependencies:
