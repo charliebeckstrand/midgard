@@ -65,4 +65,27 @@ describe('useGroup', () => {
 
 		expect(keys).toEqual(['0', '1', '2'])
 	})
+
+	it('flattens children wrapped in Fragments', () => {
+		function FragmentHarness() {
+			const children = (
+				<>
+					<button key="a" data-slot="child" type="button">
+						a
+					</button>
+					<button key="b" data-slot="child" type="button">
+						b
+					</button>
+				</>
+			)
+
+			return <div>{useGroup(children, 'horizontal')}</div>
+		}
+
+		const { container } = renderUI(<FragmentHarness />)
+
+		const positions = allBySlot(container, 'child').map((el) => el.getAttribute('data-group'))
+
+		expect(positions).toEqual(['start', 'end'])
+	})
 })
