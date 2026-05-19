@@ -1,5 +1,6 @@
 import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
+import { Form } from '../../components/form'
 import { NumberInput } from '../../components/number-input'
 import { renderUI, screen, userEvent } from '../helpers'
 
@@ -148,5 +149,57 @@ describe('NumberInput', () => {
 		await user.type(input, '7')
 
 		expect(onChange).toHaveBeenCalledWith(7)
+	})
+
+	it('clears the value when the input is emptied', async () => {
+		const onChange = vi.fn()
+
+		renderUI(<NumberInput defaultValue={7} onValueChange={onChange} />)
+
+		const user = userEvent.setup()
+
+		const input = screen.getByRole('spinbutton') as HTMLInputElement
+
+		await user.clear(input)
+
+		expect(onChange).toHaveBeenLastCalledWith(undefined)
+	})
+
+	it('binds to a Form field by name, writing through field.setValue', async () => {
+		const onSubmit = vi.fn()
+
+		renderUI(
+			<Form defaultValues={{ qty: 0 }} onSubmit={onSubmit}>
+				<NumberInput name="qty" />
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		const user = userEvent.setup()
+
+		const input = screen.getByRole('spinbutton') as HTMLInputElement
+
+		await user.type(input, '5')
+
+		await user.click(screen.getByRole('button', { name: 'Submit' }))
+
+		expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ qty: 5 }), expect.anything())
+	})
+
+	it('ignores typed input that does not parse as a number', async () => {
+		const onChange = vi.fn()
+
+		renderUI(<NumberInput onValueChange={onChange} />)
+
+		const user = userEvent.setup()
+
+		const input = screen.getByRole('spinbutton') as HTMLInputElement
+
+		// `userEvent.type` writes one character at a time; typing 'e' is the only
+		// keystroke jsdom accepts on a type="number" input that doesn't yield a
+		// parseable number, hitting the Number.isNaN guard.
+		await user.type(input, 'e')
+
+		expect(onChange).not.toHaveBeenCalled()
 	})
 })

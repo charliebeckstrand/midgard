@@ -60,6 +60,12 @@ describe('Field', () => {
 
 		expect(el?.className).toContain('custom')
 	})
+
+	it('marks data-disabled when the disabled prop is set', () => {
+		const { container } = renderUI(<Field disabled>content</Field>)
+
+		expect(bySlot(container, 'field')).toHaveAttribute('data-disabled')
+	})
 })
 
 describe('Label', () => {

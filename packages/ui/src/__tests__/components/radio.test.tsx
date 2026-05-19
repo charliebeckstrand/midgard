@@ -46,6 +46,14 @@ describe('Radio', () => {
 
 		expect(el.value).toBe('a')
 	})
+
+	it('marks the control wrapper with data-disabled when disabled', () => {
+		const { container } = renderUI(<Radio disabled />)
+
+		const wrapper = bySlot(container, 'control')
+
+		expect(wrapper).toHaveAttribute('data-disabled')
+	})
 })
 
 describe('RadioField', () => {

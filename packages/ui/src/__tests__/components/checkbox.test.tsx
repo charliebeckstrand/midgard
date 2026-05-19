@@ -1,3 +1,4 @@
+import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Checkbox, CheckboxField, CheckboxGroup } from '../../components/checkbox'
 import { Density } from '../../primitives/density'
@@ -61,6 +62,30 @@ describe('Checkbox', () => {
 
 		expect(bySlot(container, 'checkbox')).not.toBeInTheDocument()
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
+	})
+
+	it('forwards a createRef to the input element', () => {
+		const ref = createRef<HTMLInputElement>()
+
+		renderUI(<Checkbox ref={ref} />)
+
+		expect(ref.current).toBeInstanceOf(HTMLInputElement)
+	})
+
+	it('forwards a callback ref to the input element', () => {
+		const refFn = vi.fn()
+
+		renderUI(<Checkbox ref={refFn} />)
+
+		expect(refFn).toHaveBeenCalledWith(expect.any(HTMLInputElement))
+	})
+
+	it('sets the indeterminate flag on the input element when indeterminate is true', () => {
+		const { container } = renderUI(<Checkbox indeterminate />)
+
+		const input = bySlot(container, 'checkbox') as HTMLInputElement
+
+		expect(input.indeterminate).toBe(true)
 	})
 })
 

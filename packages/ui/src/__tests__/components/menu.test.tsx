@@ -217,6 +217,25 @@ describe('MenuContent', () => {
 
 		expect(screen.getByText('Item')).toBeInTheDocument()
 	})
+
+	it('closes the menu when Escape is pressed on the menu panel', () => {
+		renderUI(
+			<Menu placement="bottom-start">
+				<MenuTrigger>
+					<button type="button">Open</button>
+				</MenuTrigger>
+				<MenuContent>
+					<MenuItem>Item</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		fireEvent.click(screen.getByText('Open'))
+
+		fireEvent.keyDown(screen.getByRole('menu'), { key: 'Escape' })
+
+		expect(screen.queryByText('Item')).not.toBeInTheDocument()
+	})
 })
 
 describe('MenuItem', () => {
@@ -332,6 +351,40 @@ describe('MenuItem', () => {
 		fireEvent.keyDown(screen.getByText('Item'), { key: ' ' })
 
 		expect(onAction).toHaveBeenCalled()
+	})
+
+	it('ignores non-Enter/Space keys', () => {
+		const onAction = vi.fn()
+
+		renderUI(
+			<Menu defaultOpen>
+				<MenuContent>
+					<MenuItem onAction={onAction}>Item</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		fireEvent.keyDown(screen.getByText('Item'), { key: 'ArrowDown' })
+
+		expect(onAction).not.toHaveBeenCalled()
+	})
+
+	it('marks data-disabled on the href variant when disabled', () => {
+		renderUI(
+			<Menu defaultOpen>
+				<MenuContent>
+					<MenuItem href="/about" disabled>
+						About
+					</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		const item = screen.getByText('About').closest('[role="menuitem"]') as HTMLElement
+
+		expect(item).toHaveAttribute('data-disabled')
+
+		expect(item.tagName).toBe('A')
 	})
 
 	it('applies custom className', () => {
