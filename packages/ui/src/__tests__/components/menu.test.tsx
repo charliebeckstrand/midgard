@@ -232,9 +232,7 @@ describe('MenuContent', () => {
 
 		fireEvent.click(screen.getByText('Open'))
 
-		const panel = document.querySelector('[role="menu"]') as HTMLElement
-
-		fireEvent.keyDown(panel, { key: 'Escape' })
+		fireEvent.keyDown(screen.getByRole('menu'), { key: 'Escape' })
 
 		expect(screen.queryByText('Item')).not.toBeInTheDocument()
 	})

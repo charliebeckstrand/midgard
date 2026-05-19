@@ -209,12 +209,12 @@ describe('NavItem', () => {
 		const { container } = renderUI(
 			<Nav>
 				<NavList>
-					<NavItem icon={<svg data-testid="nav-icon" aria-hidden />}>Dashboard</NavItem>
+					<NavItem icon={<svg aria-hidden />}>Dashboard</NavItem>
 				</NavList>
 			</Nav>,
 		)
 
-		expect(container.querySelector('[data-testid="nav-icon"]')).toBeInTheDocument()
+		expect(bySlot(container, 'icon')).toBeInTheDocument()
 	})
 })
 

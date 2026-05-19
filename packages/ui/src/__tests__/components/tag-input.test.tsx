@@ -234,10 +234,7 @@ describe('TagInput', () => {
 
 		await user.type(input, 'svelte')
 
-		// The Add button is the last button in the input's suffix slot.
-		const buttons = container.querySelectorAll('button')
-
-		const addButton = buttons[buttons.length - 1] as HTMLButtonElement
+		const addButton = bySlot(container, 'suffix')?.querySelector('button') as HTMLButtonElement
 
 		await user.click(addButton)
 
