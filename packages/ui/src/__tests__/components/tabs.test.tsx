@@ -223,3 +223,45 @@ describe('TabPanel', () => {
 		expect(panel).toHaveAttribute('aria-labelledby', 't1')
 	})
 })
+
+describe('TabList variants', () => {
+	it('renders TabList with vertical orientation from Tabs', () => {
+		const { container } = renderUI(
+			<Tabs orientation="vertical" defaultValue="a">
+				<TabList>
+					<Tab value="a">A</Tab>
+				</TabList>
+			</Tabs>,
+		)
+
+		expect(bySlot(container, 'tab-list')).toHaveAttribute('data-orientation', 'vertical')
+	})
+
+	it('renders TabList without a Tabs wrapper', () => {
+		const { container } = renderUI(
+			<TabList>
+				<button type="button" role="tab">
+					Standalone
+				</button>
+			</TabList>,
+		)
+
+		const list = bySlot(container, 'tab-list')
+
+		expect(list).toBeInTheDocument()
+
+		expect(list).toHaveAttribute('data-orientation', 'horizontal')
+	})
+
+	it('renders TabList with segment variant from Tabs', () => {
+		const { container } = renderUI(
+			<Tabs variant="segment" defaultValue="a">
+				<TabList>
+					<Tab value="a">A</Tab>
+				</TabList>
+			</Tabs>,
+		)
+
+		expect(bySlot(container, 'tab-list')).toBeInTheDocument()
+	})
+})
