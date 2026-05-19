@@ -5,7 +5,7 @@ import { useToastQueue } from '../../providers/toast/use-toast-queue'
 import { useToastTimer } from '../../providers/toast/use-toast-timer'
 
 function makeToast(id: string, persist = false): ToastData {
-	return { id, title: id, persist, zIndex: 1, duration: 1000 }
+	return { id, title: id, persist, duration: 1000 }
 }
 
 describe('useToastQueue', () => {

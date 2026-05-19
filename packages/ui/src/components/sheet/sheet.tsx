@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { type ReactNode, useCallback, useMemo } from 'react'
+import { type ReactNode, type RefObject, useCallback, useMemo } from 'react'
 import { cn } from '../../core'
 import { Overlay } from '../../primitives/overlay'
 import { PanelA11yProvider, usePanelA11yScope } from '../../primitives/panel'
@@ -27,6 +27,8 @@ export type SheetProps = SheetPanelVariants & {
 	 * Defaults to `document.body` with full-viewport `fixed` positioning.
 	 */
 	container?: HTMLElement | null
+	/** Element to receive initial focus when the sheet opens. Defaults to the first tabbable child. */
+	initialFocus?: RefObject<HTMLElement | null>
 }
 
 export function Sheet({
@@ -39,6 +41,7 @@ export function Sheet({
 	className,
 	children,
 	container,
+	initialFocus,
 }: SheetProps) {
 	const resolvedSide = side ?? 'right'
 
@@ -55,6 +58,7 @@ export function Sheet({
 			open={open}
 			onOpenChange={onOpenChange}
 			container={container}
+			initialFocus={initialFocus}
 			className={sheetBackdropVariants({ surface: resolvedSurface })}
 		>
 			<motion.div

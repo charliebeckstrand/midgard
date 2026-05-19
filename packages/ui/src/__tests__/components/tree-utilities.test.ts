@@ -25,7 +25,7 @@ describe('setActiveItem', () => {
 	it('makes the target item tabbable and detunes every other item', () => {
 		const { container, items } = makeTree(3)
 
-		setActiveItem(container, items[1]!)
+		setActiveItem(container, items[1] as HTMLElement)
 
 		expect(items[0]?.tabIndex).toBe(-1)
 
@@ -51,7 +51,7 @@ describe('ensureFirstItemActive', () => {
 	it('is a no-op when an item is already tabbable', () => {
 		const { container, items } = makeTree(3)
 
-		setActiveItem(container, items[2]!)
+		setActiveItem(container, items[2] as HTMLElement)
 
 		ensureFirstItemActive(container)
 

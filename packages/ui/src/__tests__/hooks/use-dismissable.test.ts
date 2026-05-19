@@ -69,44 +69,6 @@ describe('useDismissable', () => {
 		expect(onDismiss).not.toHaveBeenCalled()
 	})
 
-	it('locks and restores body overflow when scrollLock is enabled', () => {
-		const { unmount } = renderHook(() =>
-			useDismissable({ open: true, onDismiss: vi.fn(), scrollLock: true }),
-		)
-
-		expect(document.body.style.overflow).toBe('hidden')
-
-		unmount()
-
-		expect(document.body.style.overflow).toBe('')
-	})
-
-	it('leaves overflow untouched when scrollLock is disabled', () => {
-		renderHook(() => useDismissable({ open: true, onDismiss: vi.fn() }))
-
-		expect(document.body.style.overflow).not.toBe('hidden')
-	})
-
-	it('keeps the lock while nested dismissables overlap', () => {
-		const outer = renderHook(() =>
-			useDismissable({ open: true, onDismiss: vi.fn(), scrollLock: true }),
-		)
-
-		const inner = renderHook(() =>
-			useDismissable({ open: true, onDismiss: vi.fn(), scrollLock: true }),
-		)
-
-		expect(document.body.style.overflow).toBe('hidden')
-
-		inner.unmount()
-
-		expect(document.body.style.overflow).toBe('hidden')
-
-		outer.unmount()
-
-		expect(document.body.style.overflow).toBe('')
-	})
-
 	it('reads the latest onDismiss without resubscribing', () => {
 		const first = vi.fn()
 

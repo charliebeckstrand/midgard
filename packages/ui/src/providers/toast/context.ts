@@ -5,7 +5,7 @@ import type { ToastData, ToastInput } from './types'
 
 export type ToastContextValue = {
 	toast: (data: ToastInput) => string
-	dismiss: (id: string) => void
+	dismiss: (target: { id: string }) => void
 }
 
 export type ToastViewportContextValue = {

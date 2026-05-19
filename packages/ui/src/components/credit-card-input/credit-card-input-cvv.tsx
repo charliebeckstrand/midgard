@@ -2,7 +2,7 @@
 
 import { useMaskedInput } from '../../hooks'
 import { Input, type InputProps } from '../input'
-import { formatCvv } from './credit-card-input-utilities'
+import { type CardValidity, formatCvv, validateCardCvv } from './credit-card-input-utilities'
 import type { CreditCardBrand, CreditCardBrandInfo } from './types'
 
 export type CreditCardInputCvvProps = Omit<
@@ -15,6 +15,8 @@ export type CreditCardInputCvvProps = Omit<
 	onValueChange?: (value: string) => void
 	/** Brand controls the CVV length (Amex accepts 4 digits; others accept 3). */
 	brand?: CreditCardBrand | CreditCardBrandInfo
+	/** Fires on every change with the CVV's length verdict (vs the brand-derived max). */
+	onValidityChange?: (validity: CardValidity) => void
 }
 
 const CVV_LENGTHS: Record<CreditCardBrand, number> = {
@@ -25,6 +27,14 @@ const CVV_LENGTHS: Record<CreditCardBrand, number> = {
 	diners: 3,
 	jcb: 3,
 	unionpay: 3,
+}
+
+function resolveBrand(brand: CreditCardInputCvvProps['brand']): CreditCardBrand | undefined {
+	if (!brand) return undefined
+
+	if (typeof brand === 'string') return brand
+
+	return brand.brand
 }
 
 function resolveCvvLength(brand: CreditCardInputCvvProps['brand']): number {
@@ -41,10 +51,13 @@ export function CreditCardInputCvv({
 	onValueChange,
 	brand,
 	placeholder,
+	onValidityChange,
 	ref,
 	...props
 }: CreditCardInputCvvProps) {
 	const maxLength = resolveCvvLength(brand)
+
+	const resolvedBrand = resolveBrand(brand)
 
 	const masked = useMaskedInput({
 		value,
@@ -63,7 +76,11 @@ export function CreditCardInputCvv({
 			maxLength={maxLength}
 			placeholder={placeholder ?? (maxLength === 4 ? '1234' : '123')}
 			value={masked.value}
-			onChange={masked.onChange}
+			onChange={(e) => {
+				masked.onChange(e)
+
+				onValidityChange?.(validateCardCvv(e.target.value, resolvedBrand))
+			}}
 			{...props}
 		/>
 	)

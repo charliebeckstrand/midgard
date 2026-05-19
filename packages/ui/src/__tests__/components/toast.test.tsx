@@ -99,7 +99,7 @@ describe('Toast: useToast behavior', () => {
 		expect(screen.getByText('Dismissable')).toBeInTheDocument()
 
 		act(() => {
-			api?.dismiss(id)
+			api?.dismiss({ id })
 		})
 
 		expect(api).not.toBeNull()
@@ -402,11 +402,11 @@ describe('Toast: useToast behavior', () => {
 		// First dismiss marks the toast as dismissed; a follow-up dismiss runs the
 		// "already dismissed" filter-removal branch.
 		act(() => {
-			api?.dismiss(id)
+			api?.dismiss({ id })
 		})
 
 		act(() => {
-			api?.dismiss(id)
+			api?.dismiss({ id })
 		})
 
 		expect(screen.queryByText('Twice')).not.toBeInTheDocument()
@@ -425,7 +425,7 @@ describe('Toast: useToast behavior', () => {
 		// Should be a silent no-op rather than throw.
 		expect(() => {
 			act(() => {
-				api?.dismiss('does-not-exist')
+				api?.dismiss({ id: 'does-not-exist' })
 			})
 		}).not.toThrow()
 	})

@@ -114,7 +114,10 @@ describe('CreditCardInput', () => {
 
 		const user = userEvent.setup()
 
-		await user.type(input, '4')
+		// Two-digit prefix unambiguously narrows to Visa within the supported
+		// brand list. card-validator (correctly) holds off on identifying Visa
+		// from a single '4' because other brands also begin with 4.
+		await user.type(input, '42')
 
 		expect(onBrandChange).toHaveBeenLastCalledWith('visa')
 	})
@@ -173,7 +176,7 @@ describe('CreditCardInputExpiry', () => {
 		expect(input.value).toBe('12/28')
 	})
 
-	it('pads single-digit months greater than 1 with a leading zero', async () => {
+	it('leaves a single digit unchanged until a second digit is typed', async () => {
 		const { container } = renderUI(<CreditCardInputExpiry />)
 
 		const input = bySlot(container, 'input') as HTMLInputElement
@@ -182,7 +185,7 @@ describe('CreditCardInputExpiry', () => {
 
 		await user.type(input, '5')
 
-		expect(input.value).toBe('05/')
+		expect(input.value).toBe('5')
 	})
 
 	it('strips non-digit characters', async () => {
@@ -301,13 +304,14 @@ describe('formatExpiry', () => {
 		expect(formatExpiry('')).toBe('')
 	})
 
-	it('keeps a leading 0 or 1 un-padded', () => {
+	it('passes any single digit through unchanged', () => {
 		expect(formatExpiry('0')).toBe('0')
 		expect(formatExpiry('1')).toBe('1')
+		expect(formatExpiry('5')).toBe('5')
 	})
 
-	it('pads single-digit months greater than 1', () => {
-		expect(formatExpiry('5')).toBe('05/')
+	it('appends a slash after two digits', () => {
+		expect(formatExpiry('12')).toBe('12/')
 	})
 
 	it('formats four digits as MM/YY', () => {

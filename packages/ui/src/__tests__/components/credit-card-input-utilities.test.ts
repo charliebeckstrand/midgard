@@ -4,6 +4,8 @@ import {
 	formatCardNumber,
 	formatCvv,
 	formatExpiry,
+	validateCardCvv,
+	validateCardNumber,
 } from '../../components/credit-card-input/credit-card-input-utilities'
 
 describe('detectCardBrand', () => {
@@ -94,18 +96,18 @@ describe('formatExpiry', () => {
 		expect(formatExpiry('--')).toBe('')
 	})
 
-	it('keeps a single digit "0" or "1" without auto-prefixing', () => {
+	it('passes a single digit through unchanged', () => {
 		expect(formatExpiry('0')).toBe('0')
 
 		expect(formatExpiry('1')).toBe('1')
+
+		expect(formatExpiry('4')).toBe('4')
 	})
 
-	it('auto-prefixes a single digit greater than 1 with a leading zero', () => {
-		expect(formatExpiry('4')).toBe('04/')
-	})
-
-	it('appends a slash after a two-digit month', () => {
+	it('appends a slash after two digits, even when the month is invalid', () => {
 		expect(formatExpiry('12')).toBe('12/')
+
+		expect(formatExpiry('45')).toBe('45/')
 	})
 
 	it('appends year digits after the slash', () => {
@@ -132,5 +134,72 @@ describe('formatCvv', () => {
 
 	it('returns an empty string when no digits are present', () => {
 		expect(formatCvv('abc', 3)).toBe('')
+	})
+})
+
+describe('validateCardNumber', () => {
+	it('accepts a Luhn-valid Visa test card', () => {
+		expect(validateCardNumber('4111111111111111')).toEqual({
+			isValid: true,
+			isPotentiallyValid: true,
+		})
+	})
+
+	it('rejects a Luhn-invalid sixteen-digit number that matches a Visa prefix', () => {
+		// Same length and prefix as the test card above, but the trailing digit
+		// breaks the Luhn checksum.
+		expect(validateCardNumber('4111111111111112').isValid).toBe(false)
+	})
+
+	it('treats a partial prefix as potentially valid', () => {
+		expect(validateCardNumber('4111')).toEqual({
+			isValid: false,
+			isPotentiallyValid: true,
+		})
+	})
+
+	it('strips formatting characters before validating', () => {
+		expect(validateCardNumber('4111-1111-1111-1111')).toEqual({
+			isValid: true,
+			isPotentiallyValid: true,
+		})
+	})
+
+	it('accepts a Luhn-valid Amex test card', () => {
+		expect(validateCardNumber('378282246310005')).toEqual({
+			isValid: true,
+			isPotentiallyValid: true,
+		})
+	})
+})
+
+describe('validateCardCvv', () => {
+	it('accepts a 3-digit CVV for non-Amex brands', () => {
+		expect(validateCardCvv('123', 'visa')).toEqual({
+			isValid: true,
+			isPotentiallyValid: true,
+		})
+	})
+
+	it('rejects a 4-digit CVV for non-Amex brands', () => {
+		expect(validateCardCvv('1234', 'visa').isValid).toBe(false)
+	})
+
+	it('accepts a 4-digit CVV for Amex', () => {
+		expect(validateCardCvv('1234', 'amex')).toEqual({
+			isValid: true,
+			isPotentiallyValid: true,
+		})
+	})
+
+	it('treats a 2-digit input as potentially valid', () => {
+		expect(validateCardCvv('12', 'visa')).toEqual({
+			isValid: false,
+			isPotentiallyValid: true,
+		})
+	})
+
+	it('strips non-digit characters before validating', () => {
+		expect(validateCardCvv('1-2-3', 'visa').isValid).toBe(true)
 	})
 })

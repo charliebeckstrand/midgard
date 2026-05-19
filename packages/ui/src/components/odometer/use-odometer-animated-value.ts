@@ -1,3 +1,4 @@
+import { animate } from 'motion'
 import { useEffect, useRef, useState } from 'react'
 
 export type UseAnimatedValueOptions = {
@@ -6,6 +7,8 @@ export type UseAnimatedValueOptions = {
 	duration?: number
 }
 
+const easeOutCubic = (t: number) => 1 - (1 - t) ** 3
+
 export function useOdometerAnimatedValue({
 	value,
 	duration = 800,
@@ -13,8 +16,6 @@ export function useOdometerAnimatedValue({
 	const [display, setDisplay] = useState(value)
 
 	const fromRef = useRef(value)
-
-	const rafRef = useRef<number | null>(null)
 
 	useEffect(() => {
 		const from = fromRef.current
@@ -31,35 +32,17 @@ export function useOdometerAnimatedValue({
 			return
 		}
 
-		const start = performance.now()
+		const controls = animate(from, to, {
+			duration: duration / 1000,
+			ease: easeOutCubic,
+			onUpdate: (latest) => {
+				fromRef.current = latest
 
-		const tick = () => {
-			const t = Math.min(1, (performance.now() - start) / duration)
+				setDisplay(latest)
+			},
+		})
 
-			const eased = 1 - (1 - t) ** 3
-
-			const current = from + (to - from) * eased
-
-			fromRef.current = current
-
-			setDisplay(current)
-
-			if (t < 1) {
-				rafRef.current = requestAnimationFrame(tick)
-			} else {
-				rafRef.current = null
-			}
-		}
-
-		rafRef.current = requestAnimationFrame(tick)
-
-		return () => {
-			if (rafRef.current != null) {
-				cancelAnimationFrame(rafRef.current)
-
-				rafRef.current = null
-			}
-		}
+		return () => controls.stop()
 	}, [value, duration])
 
 	return display

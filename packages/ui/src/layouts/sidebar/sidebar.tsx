@@ -1,7 +1,14 @@
 'use client'
 
 import { Menu } from 'lucide-react'
-import { type PropsWithChildren, type ReactNode, type Ref, useEffect, useState } from 'react'
+import {
+	type PropsWithChildren,
+	type ReactNode,
+	type Ref,
+	useEffect,
+	useRef,
+	useState,
+} from 'react'
 import { createPortal } from 'react-dom'
 import { Button } from '../../components/button'
 import { Drawer } from '../../components/drawer/drawer'
@@ -69,6 +76,8 @@ export function SidebarLayout({
 
 	const scrollWithin = useScrollWithin()
 
+	const floatingInitialFocusRef = useRef<HTMLDivElement>(null)
+
 	const { size } = useDensity()
 
 	return (
@@ -92,10 +101,11 @@ export function SidebarLayout({
 					size="xs"
 					open={floatingOpen}
 					onOpenChange={setFloatingOpen}
+					initialFocus={floatingInitialFocusRef}
 					className="sm:top-0 sm:left-0 sm:bottom-0 sm:rounded-l-none"
 				>
 					<div
-						data-autofocus
+						ref={floatingInitialFocusRef}
 						tabIndex={-1}
 						className="flex flex-col h-full outline-none"
 						onPointerEnter={() => setFloatingOpen(true)}
