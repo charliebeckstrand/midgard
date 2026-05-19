@@ -62,7 +62,7 @@ export function MapRouteTimeline({ open, onOpenChange, stops }: MapRouteTimeline
 			</SheetBody>
 			<SheetActions>
 				<SheetClose>
-					<Button variant="soft">Close</Button>
+					<Button>Close</Button>
 				</SheetClose>
 			</SheetActions>
 		</Sheet>
