@@ -223,4 +223,79 @@ describe('useDataTableColumns', () => {
 
 		expect(result.current.visibleColumns).toBe(first)
 	})
+
+	it('propagates pinned and hideable=false metadata onto managerItems', () => {
+		const cols: DataTableColumn<Row>[] = [
+			{ id: 'name', title: 'Name', cell: (r) => r.name, pinned: true },
+			{ id: 'age', title: 'Age', cell: (r) => r.age, hideable: false },
+			{ id: 'status', title: 'Status', cell: (r) => r.status },
+		]
+
+		const { result } = renderHook(() =>
+			useDataTableColumns<Row>({ columns: cols, columnManagerConfig: { enabled: true } }),
+		)
+
+		const items = result.current.managerItems
+
+		const byId = Object.fromEntries(items.map((m) => [m.id, m]))
+
+		expect(byId.name?.pinned).toBe(true)
+
+		expect(byId.age?.hideable).toBe(false)
+
+		expect(byId.status?.pinned).toBeUndefined()
+
+		expect(byId.status?.hideable).toBeUndefined()
+	})
+
+	it('reflects a controlled hidden set even when defaultHidden is also supplied', () => {
+		const hidden = new Set<string | number>(['name'])
+
+		const { result } = renderHook(() =>
+			useDataTableColumns<Row>({
+				columns: baseColumns,
+				columnManagerConfig: { hidden, defaultHidden: new Set(['age']) },
+			}),
+		)
+
+		// Controlled `hidden` wins; only "name" should be hidden.
+		expect(result.current.hiddenColumns.has('name')).toBe(true)
+
+		expect(result.current.hiddenColumns.has('age')).toBe(false)
+
+		expect(result.current.visibleColumns.map((c) => c.id)).toEqual(['age', 'status'])
+	})
+
+	it('returns the new visibleColumns reference when the visible slice actually changes', () => {
+		const { result, rerender } = renderHook(
+			({ hidden }: { hidden: Set<string | number> }) =>
+				useDataTableColumns<Row>({
+					columns: baseColumns,
+					columnManagerConfig: { hidden },
+				}),
+			{ initialProps: { hidden: new Set<string | number>() } },
+		)
+
+		const first = result.current.visibleColumns
+
+		rerender({ hidden: new Set<string | number>(['age']) })
+
+		expect(result.current.visibleColumns).not.toBe(first)
+
+		expect(result.current.visibleColumns.map((c) => c.id)).toEqual(['name', 'status'])
+	})
+
+	it('honors manageColumns=false when columnManagerConfig.enabled is unset', () => {
+		const { result } = renderHook(() =>
+			useDataTableColumns<Row>({
+				columns: baseColumns,
+				columnManagerConfig: { label: 'Anything' },
+			}),
+		)
+
+		expect(result.current.manageColumns).toBe(false)
+
+		// Custom label still resolves even when the manager is not enabled.
+		expect(result.current.manageColumnsLabel).toBe('Anything')
+	})
 })

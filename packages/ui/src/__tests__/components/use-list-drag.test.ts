@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react'
+import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { useListDrag } from '../../components/list/use-list-drag'
 
@@ -67,5 +67,51 @@ describe('useListDrag', () => {
 		)
 
 		expect(result.current.interactive).toBe(false)
+	})
+
+	it('resolves activeItem and activeIndex from the items list on drag start', () => {
+		const { result } = renderHook(() =>
+			useListDrag<Item>({
+				items,
+				getKey: (i) => i.id,
+				onReorder: () => {},
+				orientation: 'vertical',
+			}),
+		)
+
+		act(() => {
+			result.current.dndContextProps.onDragStart({
+				active: { id: 'b' },
+			} as unknown as Parameters<typeof result.current.dndContextProps.onDragStart>[0])
+		})
+
+		expect(result.current.activeId).toBe('b')
+
+		expect(result.current.activeItem).toEqual({ id: 'b', label: 'B' })
+
+		expect(result.current.activeIndex).toBe(1)
+	})
+
+	it('reports activeItem=null when the active id does not match any item', () => {
+		const { result } = renderHook(() =>
+			useListDrag<Item>({
+				items,
+				getKey: (i) => i.id,
+				onReorder: () => {},
+				orientation: 'vertical',
+			}),
+		)
+
+		act(() => {
+			result.current.dndContextProps.onDragStart({
+				active: { id: 'missing' },
+			} as unknown as Parameters<typeof result.current.dndContextProps.onDragStart>[0])
+		})
+
+		expect(result.current.activeId).toBe('missing')
+
+		expect(result.current.activeItem).toBeNull()
+
+		expect(result.current.activeIndex).toBe(-1)
 	})
 })

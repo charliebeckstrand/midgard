@@ -402,6 +402,45 @@ describe('MenuTrigger fallback button', () => {
 	})
 })
 
+describe('Menu context-menu mode', () => {
+	it('opens the menu in response to a contextmenu event when no placement is set', () => {
+		const { container } = renderUI(
+			<Menu>
+				<MenuContent>
+					<MenuItem>Item</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		const root = bySlot(container, 'menu') as HTMLElement
+
+		// Without a placement prop the root wrapper opts into context-menu mode.
+		expect(root).toHaveAttribute('role', 'application')
+
+		fireEvent.contextMenu(root, { clientX: 50, clientY: 80 })
+
+		// After a context-menu open, the menu surface is rendered with role="menu".
+		expect(container.querySelector('[role="menu"]')).toBeInTheDocument()
+	})
+
+	it('does not register a contextmenu handler when placement is provided (dropdown mode)', () => {
+		const { container } = renderUI(
+			<Menu placement="bottom-start">
+				<MenuTrigger>
+					<button type="button">Open</button>
+				</MenuTrigger>
+				<MenuContent>
+					<MenuItem>Item</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		const root = bySlot(container, 'menu') as HTMLElement
+
+		expect(root).not.toHaveAttribute('role', 'application')
+	})
+})
+
 describe('useMenuContext', () => {
 	function ContextProbe() {
 		const ctx = useMenuContext()

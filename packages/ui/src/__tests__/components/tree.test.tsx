@@ -328,6 +328,56 @@ describe('TreeItem', () => {
 		expect(row).toHaveAttribute('aria-expanded', 'false')
 	})
 
+	it('moves the roving tabIndex onto the focused tree-item', () => {
+		const { container } = renderUI(
+			<Tree>
+				<TreeItem label="One" />
+				<TreeItem label="Two" />
+				<TreeItem label="Three" />
+			</Tree>,
+		)
+
+		const rows = container.querySelectorAll<HTMLElement>('[data-slot="tree-item-content"]')
+
+		const first = rows[0] as HTMLElement
+
+		const second = rows[1] as HTMLElement
+
+		// The mount-time effect makes the first item tabbable.
+		expect(first.tabIndex).toBe(0)
+
+		expect(second.tabIndex).toBe(-1)
+
+		// Focusing the second item moves the tabIndex via the Tree's focus capture.
+		fireEvent.focus(second)
+
+		expect(second.tabIndex).toBe(0)
+
+		expect(first.tabIndex).toBe(-1)
+	})
+
+	it('ignores focus events that bubble from outside any tree-item', () => {
+		const { container } = renderUI(
+			<Tree>
+				<TreeItem label="One" />
+			</Tree>,
+		)
+
+		const root = container.querySelector<HTMLElement>('[data-slot="tree"]') as HTMLElement
+
+		const row = container.querySelector<HTMLElement>(
+			'[data-slot="tree-item-content"]',
+		) as HTMLElement
+
+		// Initial tabIndex from the mount-time roving effect.
+		expect(row.tabIndex).toBe(0)
+
+		// A focus event targeting the wrapper (no closest treeitem) must be a no-op.
+		fireEvent.focus(root)
+
+		expect(row.tabIndex).toBe(0)
+	})
+
 	it('applies indent padding to nested items when the Tree opts in', () => {
 		const { container } = renderUI(
 			<Tree indent>

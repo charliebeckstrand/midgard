@@ -315,6 +315,79 @@ describe('Toast: useToast behavior', () => {
 		expect(document.querySelector('[data-slot="alert-close"]')).toBeNull()
 	})
 
+	it('removes a toast immediately when dismiss is called a second time', () => {
+		let api: ReturnType<typeof useToast> | null = null
+
+		renderUI(
+			<ToastProvider duration={5000}>
+				<Trigger onReady={(context) => (api = context)} />
+				<Toast />
+			</ToastProvider>,
+		)
+
+		let id = ''
+
+		act(() => {
+			id = api?.toast({ title: 'Twice' }) ?? ''
+		})
+
+		expect(screen.getByText('Twice')).toBeInTheDocument()
+
+		// First dismiss marks the toast as dismissed; a follow-up dismiss runs the
+		// "already dismissed" filter-removal branch.
+		act(() => {
+			api?.dismiss(id)
+		})
+
+		act(() => {
+			api?.dismiss(id)
+		})
+
+		expect(screen.queryByText('Twice')).not.toBeInTheDocument()
+	})
+
+	it('ignores a dismiss call for an unknown toast id', () => {
+		let api: ReturnType<typeof useToast> | null = null
+
+		renderUI(
+			<ToastProvider>
+				<Trigger onReady={(context) => (api = context)} />
+				<Toast />
+			</ToastProvider>,
+		)
+
+		// Should be a silent no-op rather than throw.
+		expect(() => {
+			act(() => {
+				api?.dismiss('does-not-exist')
+			})
+		}).not.toThrow()
+	})
+
+	it('disables the maxToasts cap when set to 0', () => {
+		let api: ReturnType<typeof useToast> | null = null
+
+		renderUI(
+			<ToastProvider maxToasts={0}>
+				<Trigger onReady={(context) => (api = context)} />
+				<Toast />
+			</ToastProvider>,
+		)
+
+		act(() => {
+			api?.toast({ title: 'One', persist: true })
+			api?.toast({ title: 'Two', persist: true })
+			api?.toast({ title: 'Three', persist: true })
+		})
+
+		// With maxToasts=0 the excess-cap branch is skipped — everything stays.
+		expect(screen.getByText('One')).toBeInTheDocument()
+
+		expect(screen.getByText('Two')).toBeInTheDocument()
+
+		expect(screen.getByText('Three')).toBeInTheDocument()
+	})
+
 	it('renders a toast with rich actions', () => {
 		let api: ReturnType<typeof useToast> | undefined
 

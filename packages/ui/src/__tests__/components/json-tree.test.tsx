@@ -127,6 +127,72 @@ describe('JsonTree', () => {
 		expect(screen.queryByText('"value"')).not.toBeInTheDocument()
 	})
 
+	it('renders a primitive string root as a single leaf row', () => {
+		renderUI(<JsonTree data={'Ada' as unknown as Parameters<typeof JsonTree>[0]['data']} />)
+
+		expect(screen.getByText('"Ada"')).toBeInTheDocument()
+	})
+
+	it('renders a primitive number root as a single leaf row', () => {
+		renderUI(<JsonTree data={42 as unknown as Parameters<typeof JsonTree>[0]['data']} />)
+
+		expect(screen.getByText('42')).toBeInTheDocument()
+	})
+
+	it('renders a primitive boolean root as a single leaf row', () => {
+		renderUI(<JsonTree data={true as unknown as Parameters<typeof JsonTree>[0]['data']} />)
+
+		expect(screen.getByText('true')).toBeInTheDocument()
+	})
+
+	it('renders a null root as a single leaf row', () => {
+		renderUI(<JsonTree data={null} />)
+
+		expect(screen.getByText('null')).toBeInTheDocument()
+	})
+
+	it('renders an array root with index keys when expanded', () => {
+		renderUI(<JsonTree data={[10, 20]} defaultExpandDepth={1} />)
+
+		// Array indices render without quotes.
+		expect(screen.getByText('0')).toBeInTheDocument()
+
+		expect(screen.getByText('10')).toBeInTheDocument()
+
+		expect(screen.getByText('20')).toBeInTheDocument()
+	})
+
+	it('toggles an array open and closed via its branch header', () => {
+		renderUI(<JsonTree data={{ items: [1, 2, 3] }} defaultExpandDepth={1} />)
+
+		const toggle = screen.getByText('"items"').closest('button')
+
+		if (!toggle) throw new Error('toggle not found')
+
+		// Initially closed at depth 1.
+		expect(screen.queryByText('1')).not.toBeInTheDocument()
+
+		fireEvent.click(toggle)
+
+		// Each numeric index 0/1/2 appears once expanded.
+		expect(screen.getByText('0')).toBeInTheDocument()
+
+		fireEvent.click(toggle)
+
+		expect(screen.queryByText('0')).not.toBeInTheDocument()
+	})
+
+	it('highlights a matching key when a search term is active without filter', () => {
+		const { container } = renderUI(
+			<JsonTree data={{ needle: 'value' }} defaultExpandDepth={1} search="needle" />,
+		)
+
+		// The branch header carrying the matching key is flagged via data-highlighted.
+		const highlighted = container.querySelector('[data-highlighted]')
+
+		expect(highlighted).toBeInTheDocument()
+	})
+
 	it('hides non-branch leaves that do not match the filtered search term', () => {
 		renderUI(
 			<JsonTree
