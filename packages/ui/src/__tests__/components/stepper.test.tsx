@@ -183,9 +183,11 @@ describe('StepperStep interactive mode', () => {
 			</Stepper>,
 		)
 
-		const second = container.querySelectorAll<HTMLButtonElement>('[data-slot="stepper-step"]')[1]
+		const second = container.querySelectorAll<HTMLButtonElement>(
+			'[data-slot="stepper-step"]',
+		)[1] as HTMLButtonElement
 
-		fireEvent.click(second!)
+		fireEvent.click(second)
 
 		expect(onValueChange).toHaveBeenCalledWith(2)
 	})
