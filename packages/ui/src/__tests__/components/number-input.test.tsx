@@ -1,5 +1,6 @@
 import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
+import { Form } from '../../components/form'
 import { NumberInput } from '../../components/number-input'
 import { renderUI, screen, userEvent } from '../helpers'
 
@@ -162,6 +163,27 @@ describe('NumberInput', () => {
 		await user.clear(input)
 
 		expect(onChange).toHaveBeenLastCalledWith(undefined)
+	})
+
+	it('binds to a Form field by name, writing through field.setValue', async () => {
+		const onSubmit = vi.fn()
+
+		renderUI(
+			<Form defaultValues={{ qty: 0 }} onSubmit={onSubmit}>
+				<NumberInput name="qty" />
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		const user = userEvent.setup()
+
+		const input = screen.getByRole('spinbutton') as HTMLInputElement
+
+		await user.type(input, '5')
+
+		await user.click(screen.getByRole('button', { name: 'Submit' }))
+
+		expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ qty: 5 }), expect.anything())
 	})
 
 	it('ignores typed input that does not parse as a number', async () => {

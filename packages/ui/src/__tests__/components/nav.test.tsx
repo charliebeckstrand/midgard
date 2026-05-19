@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Nav, NavContent, NavContents, NavItem, NavList } from '../../components/nav'
+import { Navbar } from '../../components/navbar'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Nav', () => {
@@ -78,6 +79,18 @@ describe('NavList', () => {
 			<Nav>
 				<NavList orientation="horizontal">content</NavList>
 			</Nav>,
+		)
+
+		expect(bySlot(container, 'nav-list')).toHaveAttribute('data-orientation', 'horizontal')
+	})
+
+	it('defaults to horizontal orientation inside a Navbar', () => {
+		const { container } = renderUI(
+			<Navbar>
+				<Nav>
+					<NavList>content</NavList>
+				</Nav>
+			</Navbar>,
 		)
 
 		expect(bySlot(container, 'nav-list')).toHaveAttribute('data-orientation', 'horizontal')
