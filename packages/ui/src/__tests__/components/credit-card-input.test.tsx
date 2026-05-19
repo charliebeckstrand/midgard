@@ -196,6 +196,22 @@ describe('CreditCardInputExpiry', () => {
 
 		expect(input.value).toBe('12/25')
 	})
+
+	it('deletes the auto-inserted slash and the preceding digit on backspace', async () => {
+		const { container } = renderUI(<CreditCardInputExpiry />)
+
+		const input = bySlot(container, 'input') as HTMLInputElement
+
+		const user = userEvent.setup()
+
+		await user.type(input, '12')
+
+		expect(input.value).toBe('12/')
+
+		await user.type(input, '{Backspace}')
+
+		expect(input.value).toBe('1')
+	})
 })
 
 describe('CreditCardInputCvv', () => {
