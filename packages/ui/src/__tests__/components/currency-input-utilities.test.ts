@@ -10,7 +10,7 @@ import {
 
 describe('escapeRegExp', () => {
 	it('escapes characters with regex meaning', () => {
-		expect(escapeRegExp('.+*?^${}()|[]\\')).toBe('\\.\\+\\*\\?\\^\\$\\{\\}\\(\\)\\|\\[\\]\\\\')
+		expect(escapeRegExp('.+*?^$' + '{}()|[]\\')).toBe('\\.\\+\\*\\?\\^\\$\\{\\}\\(\\)\\|\\[\\]\\\\')
 	})
 
 	it('passes alphanumerics through unchanged', () => {
