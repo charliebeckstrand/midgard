@@ -329,8 +329,7 @@ describe('Resizable: drag', () => {
 
 		const group = bySlot(container, 'resizable-group') as HTMLElement
 
-		group.getBoundingClientRect = () =>
-			({ x: 0, y: 0, left: 0, top: 0, right: 200, bottom: 20, width: 200, height: 20 }) as DOMRect
+		group.getBoundingClientRect = () => DOMRect.fromRect({ width: 200, height: 20 })
 
 		const handle = bySlot(container, 'resizable-handle') as HTMLElement
 

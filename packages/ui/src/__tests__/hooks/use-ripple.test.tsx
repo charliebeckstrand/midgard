@@ -31,7 +31,7 @@ describe('useRipple', () => {
 
 		const host = document.createElement('div')
 
-		host.getBoundingClientRect = () => ({ left: 10, top: 20, width: 100, height: 50 }) as DOMRect
+		host.getBoundingClientRect = () => DOMRect.fromRect({ x: 10, y: 20, width: 100, height: 50 })
 
 		act(() => {
 			result.current.onPointerDown(ripplePointerEvent(host, 30, 40))
@@ -52,7 +52,7 @@ describe('useRipple', () => {
 
 		const host = document.createElement('div')
 
-		host.getBoundingClientRect = () => ({ left: 0, top: 0, width: 40, height: 80 }) as DOMRect
+		host.getBoundingClientRect = () => DOMRect.fromRect({ width: 40, height: 80 })
 
 		act(() => {
 			result.current.onPointerDown(ripplePointerEvent(host, 10, 10))

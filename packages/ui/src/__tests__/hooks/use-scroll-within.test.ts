@@ -2,23 +2,6 @@ import { renderHook } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { useScrollWithin } from '../../hooks/use-scroll-within'
 
-type RectOverrides = Partial<DOMRect>
-
-function rect(overrides: RectOverrides = {}): DOMRect {
-	return {
-		x: 0,
-		y: 0,
-		top: 0,
-		left: 0,
-		right: 0,
-		bottom: 0,
-		width: 0,
-		height: 0,
-		toJSON: () => ({}),
-		...overrides,
-	} as DOMRect
-}
-
 function buildScrollable() {
 	const scroller = document.createElement('div')
 	const node = document.createElement('div')
@@ -86,9 +69,9 @@ describe('useScrollWithin', () => {
 
 			const { scroller, node } = buildScrollable()
 
-			scroller.getBoundingClientRect = () => rect({ top: 0, height: 100 })
+			scroller.getBoundingClientRect = () => DOMRect.fromRect({ y: 0, height: 100 })
 
-			node.getBoundingClientRect = () => rect({ top: 50, height: 20 })
+			node.getBoundingClientRect = () => DOMRect.fromRect({ y: 50, height: 20 })
 
 			const { result } = renderHook(() => useScrollWithin())
 
@@ -102,9 +85,9 @@ describe('useScrollWithin', () => {
 
 			const { scroller, node } = buildScrollable()
 
-			scroller.getBoundingClientRect = () => rect({ top: 0, height: 100 })
+			scroller.getBoundingClientRect = () => DOMRect.fromRect({ y: 0, height: 100 })
 
-			node.getBoundingClientRect = () => rect({ top: 10, height: 20 })
+			node.getBoundingClientRect = () => DOMRect.fromRect({ y: 10, height: 20 })
 
 			const { result } = renderHook(() => useScrollWithin())
 
@@ -118,9 +101,9 @@ describe('useScrollWithin', () => {
 
 			const { scroller, node } = buildScrollable()
 
-			scroller.getBoundingClientRect = () => rect({ top: 0, height: 100 })
+			scroller.getBoundingClientRect = () => DOMRect.fromRect({ y: 0, height: 100 })
 
-			node.getBoundingClientRect = () => rect({ top: 10, height: 20 })
+			node.getBoundingClientRect = () => DOMRect.fromRect({ y: 10, height: 20 })
 
 			const { result } = renderHook(() => useScrollWithin())
 
@@ -134,9 +117,9 @@ describe('useScrollWithin', () => {
 
 			const { scroller, node } = buildScrollable()
 
-			scroller.getBoundingClientRect = () => rect({ top: 0, height: 100 })
+			scroller.getBoundingClientRect = () => DOMRect.fromRect({ y: 0, height: 100 })
 
-			node.getBoundingClientRect = () => rect({ top: 20, height: 20 })
+			node.getBoundingClientRect = () => DOMRect.fromRect({ y: 20, height: 20 })
 
 			const { result } = renderHook(() => useScrollWithin())
 
@@ -150,9 +133,9 @@ describe('useScrollWithin', () => {
 
 			const { scroller, node } = buildScrollable()
 
-			scroller.getBoundingClientRect = () => rect({ top: 0, height: 100 })
+			scroller.getBoundingClientRect = () => DOMRect.fromRect({ y: 0, height: 100 })
 
-			node.getBoundingClientRect = () => rect({ top: -30, height: 20 })
+			node.getBoundingClientRect = () => DOMRect.fromRect({ y: -30, height: 20 })
 
 			const { result } = renderHook(() => useScrollWithin())
 
@@ -166,9 +149,9 @@ describe('useScrollWithin', () => {
 
 			const { scroller, node } = buildScrollable()
 
-			scroller.getBoundingClientRect = () => rect({ top: 0, height: 100 })
+			scroller.getBoundingClientRect = () => DOMRect.fromRect({ y: 0, height: 100 })
 
-			node.getBoundingClientRect = () => rect({ top: 110, height: 20 })
+			node.getBoundingClientRect = () => DOMRect.fromRect({ y: 110, height: 20 })
 
 			const { result } = renderHook(() => useScrollWithin())
 

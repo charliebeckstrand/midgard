@@ -29,13 +29,7 @@ function setup({
 
 		canvas.toDataURL = () => 'data:,strokes'
 
-		canvas.getBoundingClientRect = () =>
-			({
-				left: 0,
-				top: 0,
-				width: 100,
-				height: 100,
-			}) as DOMRect
+		canvas.getBoundingClientRect = () => DOMRect.fromRect({ width: 100, height: 100 })
 	}
 
 	const setIsEmpty = vi.fn()
@@ -126,6 +120,28 @@ describe('useSignaturePadDrawing', () => {
 		expect(context.fill).toHaveBeenCalled()
 	})
 
+	it('captures the pointer on the target', () => {
+		const { result } = setup()
+
+		const event = pointerEvent()
+
+		act(() => {
+			result.current.handlePointerDown(event)
+		})
+
+		expect(event.currentTarget.setPointerCapture).toHaveBeenCalledWith(1)
+	})
+
+	it('does not throw when the canvas has no 2d context', () => {
+		const { result } = setup({ contextNull: true })
+
+		expect(() =>
+			act(() => {
+				result.current.handlePointerDown(pointerEvent())
+			}),
+		).not.toThrow()
+	})
+
 	it('does nothing on pointermove when no stroke is in progress', () => {
 		const { result, context } = setup()
 
@@ -186,6 +202,26 @@ describe('useSignaturePadDrawing', () => {
 
 	it('is a no-op when commit() is called without an active stroke', () => {
 		const { result, setCurrent } = setup()
+
+		act(() => {
+			result.current.commit()
+		})
+
+		expect(setCurrent).not.toHaveBeenCalled()
+	})
+
+	it('ignores a second commit with no further drawing', () => {
+		const { result, setCurrent } = setup()
+
+		act(() => {
+			result.current.handlePointerDown(pointerEvent({ clientX: 0, clientY: 0 }))
+		})
+
+		act(() => {
+			result.current.commit()
+		})
+
+		setCurrent.mockClear()
 
 		act(() => {
 			result.current.commit()

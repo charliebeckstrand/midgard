@@ -22,6 +22,14 @@ This package owns the repo's only test runner (`vitest`). The lefthook pre-commi
 
 Skills that run tests (`/typescript:review`, `/tests:compose`, `/postmortem`) prefer the package's scoped test commands (`scripts.test:related`, `scripts.test:changed`) automatically — they fall back to the full package suite only when no scoped command applies.
 
+## Tests skip list
+
+- Tests that drive a third-party async lifecycle (`fetch`, `@tanstack/react-virtual`, floating-ui, pdfjs, etc.)
+
+These have flaked on Linux-based Azure CI. They pass locally.
+
+Cover the surface at a synchronous seam — a pure reducer, a typed harness, a unit-level callback — or skip it.
+
 ## File naming
 
 Filenames must stay legible when stripped of folder context (editor tabs, stack traces, grep results, PR diffs).

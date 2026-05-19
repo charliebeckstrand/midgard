@@ -3,16 +3,7 @@ import {
 	fileListToArray,
 	formatFileNames,
 } from '../../components/file-upload/file-upload-utilities'
-
-class FakeFileList extends Array<File> implements FileList {
-	item(index: number): File | null {
-		return this[index] ?? null
-	}
-}
-
-function makeFileList(files: File[]): FileList {
-	return new FakeFileList(...files)
-}
+import { makeFileList } from '../helpers'
 
 describe('fileListToArray', () => {
 	it('returns an empty array when the input is null', () => {

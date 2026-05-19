@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react'
-import type { ChangeEvent } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { useMaskedInput } from '../../hooks/use-masked-input'
+import { makeChangeEvent } from '../helpers'
 
 const upper = (raw: string) => raw.toUpperCase()
 
@@ -32,7 +32,7 @@ describe('useMaskedInput', () => {
 		const { result } = renderHook(() => useMaskedInput({ defaultValue: '', format: upper }))
 
 		act(() => {
-			result.current.onChange({ target: { value: 'foo' } } as ChangeEvent<HTMLInputElement>)
+			result.current.onChange(makeChangeEvent({ target: { value: 'foo' } as HTMLInputElement }))
 		})
 
 		expect(result.current.value).toBe('FOO')
