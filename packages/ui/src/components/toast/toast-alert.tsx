@@ -51,20 +51,21 @@ export function ToastAlert({
 
 	const { variant, color } = typeAlertMap[t.type ?? 'default']
 
-	const isTop = position.startsWith('top')
+	const positionTop = position.startsWith('top')
 
 	const autoDismiss = {
 		height: 0,
-		...(isTop ? { paddingBottom: 0 } : { paddingTop: 0 }),
+		...(positionTop ? { paddingBottom: 0 } : { paddingTop: 0 }),
 		transition: { duration: 0.15 },
 	}
+
 	const manualDismiss = { opacity: 0, transition: { duration: 0.15 } }
 
 	return (
 		<motion.div
 			layout
 			style={{
-				...(isTop ? { paddingBottom: 8 } : { paddingTop: 8 }),
+				...(positionTop ? { paddingBottom: 8 } : { paddingTop: 8 }),
 				zIndex,
 			}}
 			exit={t.dismissed ? manualDismiss : autoDismiss}
