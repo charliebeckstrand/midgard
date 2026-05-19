@@ -4,16 +4,24 @@ const noop = () => {}
 
 const identity = <T>(x: T) => x
 
+type MockContext = { open?: boolean; onOpenChange?: (open: boolean) => void }
+
+type MockInteraction = { reference?: { onClick?: (e: unknown) => void } }
+
 /**
- * Vanilla `@floating-ui/react` mock: every export is a noop or identity
- * passthrough. Applied globally via `setup/module-mocks.ts` so every test
- * file sees the same module shape — per-file mocks can resolve inconsistently
- * in the vmThreads pool when `sequence.shuffle` reorders worker loading,
- * leaving `useFloating` and `useHover` (or vice versa) in mixed states.
+ * `@floating-ui/react` mock applied globally via `setup/module-mocks.ts`.
  *
- * Tests whose component delegates click-to-toggle to floating-ui (e.g.
- * Calendar's inline header picker) override locally via `vi.mock` in the
- * test file.
+ * Provides just enough behavior for tests:
+ *   - `useFloating` exposes `open` and `onOpenChange` on `context` so consumers
+ *     of `useClick` can wire click-to-toggle.
+ *   - `useClick` returns an onClick that flips open via `onOpenChange`.
+ *   - `useInteractions` merges interaction-supplied onClick handlers into the
+ *     reference props alongside any user-supplied onClick.
+ *
+ * Everything else (positioning, hover, focus, dismiss, role, portals) is a
+ * noop or identity passthrough. Mocking globally keeps the module graph
+ * consistent across the vmThreads pool — per-file mocks for the same module
+ * can resolve inconsistently when `sequence.shuffle` reorders worker loading.
  */
 const floatingUIMock = {
 	autoUpdate: noop,
@@ -23,12 +31,16 @@ const floatingUIMock = {
 	shift: () => ({}),
 	size: () => ({}),
 	safePolygon: () => () => {},
-	useClick: () => ({}),
-	useClientPoint: () => ({}),
-	useDismiss: () => ({}),
-	useFocus: () => ({}),
-	useHover: () => ({}),
-	useFloating: () => ({
+	useClick: (context: MockContext): MockInteraction => ({
+		reference: {
+			onClick: () => context?.onOpenChange?.(!context?.open),
+		},
+	}),
+	useClientPoint: (): MockInteraction => ({}),
+	useDismiss: (): MockInteraction => ({}),
+	useFocus: (): MockInteraction => ({}),
+	useHover: (): MockInteraction => ({}),
+	useFloating: (opts: MockContext) => ({
 		refs: {
 			setReference: noop,
 			setFloating: noop,
@@ -36,7 +48,7 @@ const floatingUIMock = {
 			floating: { current: null },
 		},
 		floatingStyles: {},
-		context: {},
+		context: { open: opts?.open, onOpenChange: opts?.onOpenChange } as MockContext,
 		x: 0,
 		y: 0,
 		strategy: 'absolute',
@@ -45,12 +57,29 @@ const floatingUIMock = {
 		isPositioned: true,
 		update: noop,
 	}),
-	useInteractions: () => ({
-		getReferenceProps: identity,
+	useInteractions: (interactions: MockInteraction[] = []) => ({
+		getReferenceProps: (userProps: Record<string, unknown> = {}) => {
+			const merged: Record<string, unknown> = { ...userProps }
+
+			for (const interaction of interactions) {
+				const onClick = interaction?.reference?.onClick
+
+				if (typeof onClick === 'function') {
+					const existing = merged.onClick as ((e: unknown) => void) | undefined
+
+					merged.onClick = (e: unknown) => {
+						existing?.(e)
+						onClick(e)
+					}
+				}
+			}
+
+			return merged
+		},
 		getFloatingProps: identity,
 		getItemProps: identity,
 	}),
-	useRole: () => ({}),
+	useRole: (): MockInteraction => ({}),
 }
 
 export default floatingUIMock
