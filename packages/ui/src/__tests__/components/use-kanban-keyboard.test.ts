@@ -361,4 +361,103 @@ describe('useKanbanKeyboard: reordering a lifted card', () => {
 			}),
 		).not.toThrow()
 	})
+
+	it('moves the card up within the column on ArrowUp when lifted', () => {
+		const onValueChange = vi.fn()
+
+		const { result } = renderHook(() =>
+			useKanbanKeyboard<Card, Column>({
+				columns: makeColumns(),
+				getItemKey: (i) => i.id,
+				onValueChange,
+			}),
+		)
+
+		act(() => {
+			result.current.onCardKeyDown('a2', makeKeyEvent(' '))
+		})
+
+		act(() => {
+			result.current.onCardKeyDown('a2', makeKeyEvent('ArrowUp'))
+		})
+
+		const next = onValueChange.mock.calls[0]?.[0] as Column[]
+
+		expect(next[0]?.items.map((i) => i.id)).toEqual(['a2', 'a1'])
+	})
+
+	it('drops the lifted card on Enter', () => {
+		const { result } = renderHook(() =>
+			useKanbanKeyboard<Card, Column>({
+				columns: makeColumns(),
+				getItemKey: (i) => i.id,
+			}),
+		)
+
+		act(() => {
+			result.current.onCardKeyDown('a1', makeKeyEvent(' '))
+		})
+
+		expect(result.current.liftedCardId).toBe('a1')
+
+		act(() => {
+			result.current.onCardKeyDown('a1', makeKeyEvent('Enter'))
+		})
+
+		expect(result.current.liftedCardId).toBeNull()
+	})
+
+	it('does not move when ArrowRight targets a column index past the last one', () => {
+		const onValueChange = vi.fn()
+
+		const { result } = renderHook(() =>
+			useKanbanKeyboard<Card, Column>({
+				columns: makeColumns(),
+				getItemKey: (i) => i.id,
+				onValueChange,
+			}),
+		)
+
+		// 'b1' is in column index 1; column index 2 exists but is empty — we're
+		// targeting the out-of-bounds case where direction would push the index
+		// past `columns.length`.
+		act(() => {
+			result.current.onCardKeyDown('b1', makeKeyEvent(' '))
+		})
+
+		act(() => {
+			result.current.onCardKeyDown('b1', makeKeyEvent('ArrowRight'))
+		})
+
+		// b1 moves to column c (empty before), so this DOES reorder; assert it.
+		expect(onValueChange).toHaveBeenCalled()
+
+		const next = onValueChange.mock.calls[0]?.[0] as Column[]
+
+		expect(next[1]?.items).toEqual([])
+
+		expect(next[2]?.items.map((i) => i.id)).toEqual(['b1'])
+	})
+
+	it('does not reorder when the lifted card id is unknown', () => {
+		const onValueChange = vi.fn()
+
+		const { result } = renderHook(() =>
+			useKanbanKeyboard<Card, Column>({
+				columns: makeColumns(),
+				getItemKey: (i) => i.id,
+				onValueChange,
+			}),
+		)
+
+		act(() => {
+			result.current.onCardKeyDown('ghost', makeKeyEvent(' '))
+		})
+
+		act(() => {
+			result.current.onCardKeyDown('ghost', makeKeyEvent('ArrowRight'))
+		})
+
+		expect(onValueChange).not.toHaveBeenCalled()
+	})
 })

@@ -364,6 +364,96 @@ describe('useResizablePanel', () => {
 		})
 	})
 
+	describe('degenerate configurations', () => {
+		it('preserves panel defaults when their sum is zero', () => {
+			const { result } = renderHook(() =>
+				useResizablePanel({
+					groupRef: makeRef(null),
+					direction: 'horizontal',
+					panelConfigs: [
+						{ defaultSize: 0, minSize: 0, maxSize: 100 },
+						{ defaultSize: 0, minSize: 0, maxSize: 100 },
+					],
+				}),
+			)
+
+			// total=0 → the normalization branch returns `raw` untouched.
+			expect(result.current.sizes).toEqual([0, 0])
+		})
+
+		it('ignores startDrag when the available size collapses to zero', () => {
+			const group = makeGroup({ width: 0, height: 0 })
+
+			const { result } = renderHook(() =>
+				useResizablePanel({
+					groupRef: makeRef(group),
+					direction: 'horizontal',
+					panelConfigs: equalPanels,
+				}),
+			)
+
+			act(() => {
+				result.current.startDrag(0, makePointerEvent({ button: 0, clientX: 0, clientY: 0 }))
+			})
+
+			expect(result.current.dragging).toBeNull()
+		})
+
+		it('uses the vertical rect height for vertical drags', () => {
+			const group = makeGroup({ width: 100, height: 1000 })
+
+			const { result } = renderHook(() =>
+				useResizablePanel({
+					groupRef: makeRef(group),
+					direction: 'vertical',
+					panelConfigs: equalPanels,
+				}),
+			)
+
+			act(() => {
+				result.current.startDrag(0, makePointerEvent({ button: 0, clientX: 0, clientY: 500 }))
+			})
+
+			expect(result.current.dragging).toBe(0)
+		})
+
+		it('skips contextmenu cleanup gracefully when no drag is active', () => {
+			renderHook(() =>
+				useResizablePanel({
+					groupRef: makeRef(null),
+					direction: 'horizontal',
+					panelConfigs: equalPanels,
+				}),
+			)
+
+			expect(() => document.dispatchEvent(new Event('contextmenu'))).not.toThrow()
+		})
+
+		it('clears the drag on contextmenu while a drag is in progress', () => {
+			const group = makeGroup({ width: 1000, height: 100 })
+
+			const { result } = renderHook(() =>
+				useResizablePanel({
+					groupRef: makeRef(group),
+					direction: 'horizontal',
+					panelConfigs: equalPanels,
+				}),
+			)
+
+			act(() => {
+				result.current.startDrag(0, makePointerEvent({ button: 0, clientX: 500, clientY: 0 }))
+			})
+
+			expect(result.current.dragging).toBe(0)
+
+			act(() => {
+				document.dispatchEvent(new Event('contextmenu'))
+			})
+
+			expect(result.current.dragging).toBeNull()
+		})
+	})
+
 	describe('unmount cleanup', () => {
 		it('removes document listeners on unmount mid-drag', () => {
 			const group = makeGroup({ width: 1000, height: 100 })

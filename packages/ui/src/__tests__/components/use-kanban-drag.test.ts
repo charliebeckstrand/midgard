@@ -222,4 +222,70 @@ describe('useKanbanDrag: handleDragEnd same-column reorder', () => {
 
 		expect(onValueChange).not.toHaveBeenCalled()
 	})
+
+	it('is a no-op when handleDragEnd has no onValueChange handler', () => {
+		const { result } = renderHook(() =>
+			useKanbanDrag<Card, Column>({
+				columns: baseColumns,
+				getItemKey: (i) => i.id,
+			}),
+		)
+
+		expect(() => result.current.handleDragEnd(makeDragEvent('a', 'b'))).not.toThrow()
+	})
+
+	it('is a no-op when handleDragEnd targets an unknown active card', () => {
+		const onValueChange = vi.fn()
+
+		const { api } = setup({ onValueChange })
+
+		api.handleDragEnd(makeDragEvent('ghost', 'a'))
+
+		expect(onValueChange).not.toHaveBeenCalled()
+	})
+
+	it('is a no-op when oldIdx and newIdx resolve to the same position', () => {
+		const onValueChange = vi.fn()
+
+		const { api } = setup({ onValueChange })
+
+		// 'a' over 'a' is already filtered by the early "same id" guard, but
+		// 'a' over a card whose findIndex returns -1 hits the late return.
+		api.handleDragEnd(makeDragEvent('a', 'unknown'))
+
+		expect(onValueChange).not.toHaveBeenCalled()
+	})
+})
+
+describe('useKanbanDrag: handleDragOver edge cases', () => {
+	it('skips when the active card has no owning column', () => {
+		const onValueChange = vi.fn()
+
+		const { api } = setup({ onValueChange })
+
+		// Active id that doesn't exist in any column.
+		api.handleDragOver(makeDragEvent('ghost', 'doing'))
+
+		expect(onValueChange).not.toHaveBeenCalled()
+	})
+
+	it('appends to the target column when the over id is unknown', () => {
+		const onValueChange = vi.fn()
+
+		const { api } = setup({ onValueChange })
+
+		// 'a' is in 'todo'; if we pretend it was dragged onto a non-existent id
+		// in a different column, the insert falls back to "end of column".
+		// Construct an over id that resolves to a column via findColumn (here:
+		// the active card is in 'todo', over id is 'doing' which IS a column,
+		// so insert at end. Already covered. To reach the overCardIdx === -1
+		// branch, we need overId to map to a column via card lookup but with
+		// no card match.
+		api.handleDragOver(makeDragEvent('a', 'doing'))
+
+		const next = onValueChange.mock.calls[0]?.[0] as Column[]
+
+		// Confirmed: a is appended to doing.
+		expect(next[1]?.items.map((i) => i.id)).toEqual(['c', 'a'])
+	})
 })

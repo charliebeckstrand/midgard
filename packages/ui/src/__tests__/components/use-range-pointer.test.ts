@@ -223,4 +223,56 @@ describe('useRangePointer', () => {
 
 		expect(setRange).toHaveBeenCalled()
 	})
+
+	it('reassigns the upper thumb to slot 0 when it crosses below the lower in swap mode', () => {
+		const { api, setRange } = setup({ current: [70, 80], overlap: 'swap' })
+
+		// Pointer near 80 → closer to upper thumb (index 1).
+		api.onPointerDown(makeEvent({ clientX: 80 }))
+
+		setRange.mockClear()
+
+		// Drag the upper thumb past the lower one — swap re-points draggingRef
+		// at index 0 so subsequent moves track the same finger.
+		api.onPointerMove(makeEvent({ clientX: 10 }))
+
+		expect(setRange).toHaveBeenCalled()
+	})
+
+	it('falls back to min when the track ref is detached', () => {
+		const setRange = vi.fn()
+
+		const { result } = renderHook(() =>
+			useRangePointer({
+				min: 5,
+				max: 100,
+				step: 1,
+				disabled: false,
+				current: [20, 80],
+				trackRef: { current: null },
+				setRange,
+				overlap: 'clamp',
+			}),
+		)
+
+		result.current.onPointerDown(makeEvent({ clientX: 50 }))
+
+		const updater = setRange.mock.calls[0]?.[0] as (
+			prev: [number, number] | undefined,
+		) => [number, number]
+
+		// valueFromPointer returns min=5; closest thumb to value=5 is index 0.
+		expect(updater([20, 80])[0]).toBe(5)
+	})
+
+	it('stays pending when stacked and pointer has not moved', () => {
+		const { api, setRange } = setup({ current: [50, 50] })
+
+		api.onPointerDown(makeEvent({ clientX: 50 }))
+
+		// dx === 0 case: pointermove at the same x.
+		api.onPointerMove(makeEvent({ clientX: 50 }))
+
+		expect(setRange).not.toHaveBeenCalled()
+	})
 })

@@ -197,4 +197,136 @@ describe('useCalendarFocus: footer', () => {
 
 		expect(event.preventDefault).not.toHaveBeenCalled()
 	})
+
+	it('ignores non-arrow keys in the footer handler', () => {
+		const { handleFooterKeyDown } = setup({ footer: true })
+
+		const event = makeKeyEvent('a')
+
+		handleFooterKeyDown(event)
+
+		expect(event.preventDefault).not.toHaveBeenCalled()
+	})
+
+	it('stopPropagation propagates from footer ArrowUp when configured', () => {
+		const { footer, handleFooterKeyDown } = setup({ footer: true, stopPropagation: true })
+
+		;(footer?.querySelector('button') as HTMLButtonElement).focus()
+
+		const event = makeKeyEvent('ArrowUp')
+
+		handleFooterKeyDown(event)
+
+		expect(event.stopPropagation).toHaveBeenCalled()
+	})
+
+	it('stopPropagation propagates from footer ArrowRight when configured', () => {
+		const { footer, handleFooterKeyDown } = setup({
+			footer: true,
+			footerButtons: 2,
+			stopPropagation: true,
+		})
+
+		;(footer?.querySelector('button') as HTMLButtonElement).focus()
+
+		const event = makeKeyEvent('ArrowRight')
+
+		handleFooterKeyDown(event)
+
+		expect(event.stopPropagation).toHaveBeenCalled()
+	})
+
+	it('treats a missing footerRef as no footer for keyboard navigation', () => {
+		// `footerRef` is optional; passing it as undefined should leave the
+		// inner `(footerRef?.current ?? null)` chain on the nullish branch
+		// rather than throw.
+		const grid = makeContainer(14)
+
+		const header = makeContainer(3)
+
+		const { result } = renderHook(() =>
+			useCalendarFocus({ headerRef: { current: header }, gridRef: { current: grid } }),
+		)
+
+		expect(() => result.current.handleFooterKeyDown(makeKeyEvent('ArrowLeft'))).not.toThrow()
+	})
+})
+
+describe('useCalendarFocus: stopPropagation paths', () => {
+	beforeEach(() => {
+		document.body.innerHTML = ''
+	})
+
+	it('stopPropagation propagates from header keydown when the roving handler prevents default', () => {
+		const { header, handleHeaderKeyDown } = setup({ stopPropagation: true })
+
+		;(header.querySelector('button') as HTMLButtonElement).focus()
+
+		// ArrowRight goes through the header roving handler, which calls
+		// preventDefault — that's the path line 82 guards.
+		const event = makeKeyEvent('ArrowRight')
+
+		handleHeaderKeyDown(event)
+
+		expect(event.stopPropagation).toHaveBeenCalled()
+	})
+
+	it('does not stopPropagation from header keydown when the roving handler is a no-op', () => {
+		const { handleHeaderKeyDown } = setup({ stopPropagation: true })
+
+		// 'a' has no roving binding, so preventDefault is never called and
+		// the late `defaultPrevented` guard should leave stopPropagation alone.
+		const event = makeKeyEvent('a')
+
+		handleHeaderKeyDown(event)
+
+		expect(event.stopPropagation).not.toHaveBeenCalled()
+	})
+
+	it('stopPropagation propagates from ArrowUp at the top row of the grid when configured', () => {
+		const { grid, handleGridKeyDown } = setup({ cols: 7, gridButtons: 14, stopPropagation: true })
+
+		;(grid.querySelector('button') as HTMLButtonElement).focus()
+
+		const event = makeKeyEvent('ArrowUp')
+
+		handleGridKeyDown(event)
+
+		expect(event.stopPropagation).toHaveBeenCalled()
+	})
+
+	it('stopPropagation propagates from ArrowDown at the bottom row when a footer is present', () => {
+		const { grid, handleGridKeyDown } = setup({
+			cols: 7,
+			gridButtons: 14,
+			footer: true,
+			stopPropagation: true,
+		})
+
+		const buttons = grid.querySelectorAll('button')
+
+		;(buttons.item(buttons.length - 7) as HTMLButtonElement).focus()
+
+		const event = makeKeyEvent('ArrowDown')
+
+		handleGridKeyDown(event)
+
+		expect(event.stopPropagation).toHaveBeenCalled()
+	})
+
+	it('stopPropagation propagates from grid keydown when the roving handler prevents default', () => {
+		const { grid, handleGridKeyDown } = setup({ cols: 7, gridButtons: 14, stopPropagation: true })
+
+		// Mid-grid focus — ArrowRight hits the roving grid handler, which calls
+		// preventDefault and triggers the late `defaultPrevented` guard.
+		const buttons = grid.querySelectorAll('button')
+
+		;(buttons.item(3) as HTMLButtonElement).focus()
+
+		const event = makeKeyEvent('ArrowRight')
+
+		handleGridKeyDown(event)
+
+		expect(event.stopPropagation).toHaveBeenCalled()
+	})
 })

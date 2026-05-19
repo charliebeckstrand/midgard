@@ -507,4 +507,77 @@ describe('MapGeofence', () => {
 
 		await waitFor(() => expect(bySlot(container, 'map')).toHaveAttribute('data-ready', 'true'))
 	})
+
+	it('renders a polygon-kind shape', async () => {
+		const { container } = renderUI(
+			<MapView>
+				<MapGeofence
+					shape={{
+						kind: 'polygon',
+						coordinates: [
+							[0, 0],
+							[1, 0],
+							[1, 1],
+							[0, 1],
+						],
+					}}
+				/>
+			</MapView>,
+		)
+
+		await waitFor(() => expect(bySlot(container, 'map')).toHaveAttribute('data-ready', 'true'))
+	})
+
+	it('renders a polygon whose first and last coordinates already match', async () => {
+		// Already-closed ring exercises the early-return branch in `toPolygon`
+		// that skips re-appending `first` when `first === last`.
+		const { container } = renderUI(
+			<MapView>
+				<MapGeofence
+					shape={{
+						kind: 'polygon',
+						coordinates: [
+							[0, 0],
+							[1, 0],
+							[1, 1],
+							[0, 0],
+						],
+					}}
+				/>
+			</MapView>,
+		)
+
+		await waitFor(() => expect(bySlot(container, 'map')).toHaveAttribute('data-ready', 'true'))
+	})
+
+	it('cleans up its source and layers on unmount', async () => {
+		const { container, unmount } = renderUI(
+			<MapView>
+				<MapGeofence shape={{ kind: 'circle', center: [0, 0], radiusMeters: 200 }} />
+			</MapView>,
+		)
+
+		await waitFor(() => expect(bySlot(container, 'map')).toHaveAttribute('data-ready', 'true'))
+
+		expect(() => unmount()).not.toThrow()
+	})
+
+	it('honors custom color, fill opacity, stroke color, and stroke width on mount', async () => {
+		// Initial-mount paint paths read these props from `mountPropsRef` and
+		// also run through the prop-sync effect's `getLayer`/`setPaintProperty`
+		// branches once.
+		const { container } = renderUI(
+			<MapView>
+				<MapGeofence
+					shape={{ kind: 'circle', center: [0, 0], radiusMeters: 200 }}
+					color="#ff0000"
+					fillOpacity={0.5}
+					strokeColor="#00ff00"
+					strokeWidth={4}
+				/>
+			</MapView>,
+		)
+
+		await waitFor(() => expect(bySlot(container, 'map')).toHaveAttribute('data-ready', 'true'))
+	})
 })
