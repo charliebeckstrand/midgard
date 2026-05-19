@@ -1,8 +1,7 @@
 import { renderHook } from '@testing-library/react'
-import type { ChangeEvent } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { useComboboxInput } from '../../components/combobox/use-combobox-input'
-import { makeFocusEvent, makeKeyEvent } from '../helpers'
+import { makeChangeEvent, makeFocusEvent, makeKeyEvent } from '../helpers'
 
 function setup<T>(overrides: Partial<Parameters<typeof useComboboxInput<T>>[0]> = {}) {
 	const setValue = vi.fn()
@@ -58,9 +57,7 @@ describe('useComboboxInput onChange', () => {
 	it('flips into editing mode, mirrors the query, and opens the panel', () => {
 		const { result, setEditing, setQuery, setOpen } = setup<string>()
 
-		const event = {
-			target: { value: 'partial' },
-		} as ChangeEvent<HTMLInputElement>
+		const event = makeChangeEvent({ target: { value: 'partial' } as HTMLInputElement })
 
 		result.current.onChange(event)
 
@@ -74,7 +71,7 @@ describe('useComboboxInput onChange', () => {
 	it('clears the value when clearOnEmpty is true and the input goes empty in single-select', () => {
 		const { result, setValue } = setup<string>({ clearOnEmpty: true, value: 'x' })
 
-		const event = { target: { value: '' } } as ChangeEvent<HTMLInputElement>
+		const event = makeChangeEvent({ target: { value: '' } as HTMLInputElement })
 
 		result.current.onChange(event)
 
@@ -84,7 +81,7 @@ describe('useComboboxInput onChange', () => {
 	it('does not clear the value when clearOnEmpty is false', () => {
 		const { result, setValue } = setup<string>({ value: 'x' })
 
-		const event = { target: { value: '' } } as ChangeEvent<HTMLInputElement>
+		const event = makeChangeEvent({ target: { value: '' } as HTMLInputElement })
 
 		result.current.onChange(event)
 
@@ -98,7 +95,7 @@ describe('useComboboxInput onChange', () => {
 			value: ['x'],
 		})
 
-		const event = { target: { value: '' } } as ChangeEvent<HTMLInputElement>
+		const event = makeChangeEvent({ target: { value: '' } as HTMLInputElement })
 
 		result.current.onChange(event)
 

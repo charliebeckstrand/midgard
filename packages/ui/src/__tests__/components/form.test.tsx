@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react'
-import type { FocusEvent, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import {
 	Form,
@@ -11,7 +11,7 @@ import {
 	useFormText,
 	useFormToggle,
 } from '../../components/form'
-import { bySlot, fireEvent, makeChangeEvent, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, makeChangeEvent, makeFocusEvent, renderUI, screen } from '../helpers'
 
 describe('Form', () => {
 	it('renders with data-slot="form"', () => {
@@ -434,7 +434,7 @@ describe('useFormText', () => {
 		})
 
 		act(() => {
-			result.current?.onBlur({} as FocusEvent<HTMLInputElement>)
+			result.current?.onBlur(makeFocusEvent<HTMLInputElement>())
 		})
 
 		expect(onBlur).toHaveBeenCalledOnce()
