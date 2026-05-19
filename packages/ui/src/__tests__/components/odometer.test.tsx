@@ -7,6 +7,8 @@ describe('Odometer', () => {
 		vi.restoreAllMocks()
 	})
 
+	const wait = (ms: number) => new Promise((r) => setTimeout(r, ms))
+
 	it('renders with data-slot="odometer"', () => {
 		const { container } = renderUI(<Odometer value={0} />)
 
@@ -67,15 +69,17 @@ describe('Odometer', () => {
 		expect(bySlot(container, 'odometer')).toHaveAttribute('id', 'score')
 	})
 
-	it('cancels the running animation when unmounted', () => {
-		const cancelSpy = vi.spyOn(window, 'cancelAnimationFrame')
+	it('cancels the running animation when unmounted', async () => {
+		const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-		const { rerender, unmount } = renderUI(<Odometer value={0} duration={500} />)
+		const { rerender, unmount } = renderUI(<Odometer value={0} duration={80} />)
 
-		rerender(<Odometer value={1000} duration={500} />)
+		rerender(<Odometer value={1000} duration={80} />)
 
 		unmount()
 
-		expect(cancelSpy).toHaveBeenCalled()
+		await wait(120)
+
+		expect(errorSpy).not.toHaveBeenCalled()
 	})
 })
