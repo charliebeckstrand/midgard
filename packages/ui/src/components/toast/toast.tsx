@@ -36,11 +36,12 @@ export function Toast({ position = 'bottom-right' }: ToastProps) {
 			>
 				<div className={cn(k.scroll, isBottom && 'flex-col-reverse')}>
 					<AnimatePresence onExitComplete={handleExitComplete}>
-						{toasts.map((t) => (
+						{toasts.map((t, i) => (
 							<ToastAlert
 								key={t.id}
 								toast={t}
 								position={position}
+								zIndex={toasts.length - i}
 								showCloseButton={t.showCloseButton}
 								onOpenChange={(open, id) => {
 									if (!open) dismiss(id)

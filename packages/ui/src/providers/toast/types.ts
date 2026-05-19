@@ -5,7 +5,6 @@ export type ToastPosition = 'top-right' | 'top-left' | 'bottom-right' | 'bottom-
 
 export type ToastData = {
 	id: string
-	zIndex: number
 	duration: number
 	title: string
 	description?: string
@@ -16,4 +15,12 @@ export type ToastData = {
 	dismissed?: boolean
 }
 
-export type ToastInput = Omit<ToastData, 'id' | 'zIndex' | 'duration'> & { duration?: number }
+export type ToastInput = Omit<ToastData, 'id' | 'duration'> & {
+	duration?: number
+	/**
+	 * Optional caller-supplied id. When omitted, the provider generates one.
+	 * Callers are responsible for uniqueness — `dismiss({ id })` removes every
+	 * toast matching the id.
+	 */
+	id?: string
+}

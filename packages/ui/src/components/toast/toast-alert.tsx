@@ -29,6 +29,7 @@ const typeAlertMap: Record<
 type ToastAlertProps = {
 	toast: ToastData
 	position: ToastPosition
+	zIndex: number
 	showCloseButton?: boolean
 	onOpenChange: (open: boolean, id: string) => void
 	onPause: () => void
@@ -39,6 +40,7 @@ type ToastAlertProps = {
 export function ToastAlert({
 	toast: t,
 	position,
+	zIndex,
 	showCloseButton = true,
 	onOpenChange,
 	onPause,
@@ -54,7 +56,7 @@ export function ToastAlert({
 			layout
 			style={{
 				...(position.startsWith('top') ? { paddingBottom: 8 } : { paddingTop: 8 }),
-				zIndex: t.zIndex,
+				zIndex,
 			}}
 			exit={{
 				height: 0,

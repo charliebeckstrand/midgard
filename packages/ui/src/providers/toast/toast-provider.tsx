@@ -19,8 +19,6 @@ export type ToastProviderProps = {
 	maxToasts?: number
 }
 
-let counter = 0
-
 /**
  * App-root toast state. Manages the toast queue, timers, and pause/resume
  * behaviour, and exposes `useToast()` to any descendant. Render a `<Toast>`
@@ -80,11 +78,11 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 		(data: ToastInput) => {
 			stop()
 
-			const id = `toast-${++counter}`
+			const id = data.id ?? crypto.randomUUID()
 
 			toastsRef.current = [
 				...toastsRef.current,
-				{ ...data, id, zIndex: counter, duration: data.duration ?? duration },
+				{ ...data, id, duration: data.duration ?? duration },
 			]
 
 			if (maxToasts > 0) {
@@ -123,7 +121,10 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 		[reset],
 	)
 
-	const publicValue = useMemo<ToastContextValue>(() => ({ toast, dismiss }), [toast, dismiss])
+	const publicValue = useMemo<ToastContextValue>(
+		() => ({ toast, dismiss: ({ id }) => dismiss(id) }),
+		[toast, dismiss],
+	)
 
 	// Viewport value changes every render (toasts array is recomputed) — only
 	// the viewport consumes it, so re-rendering with each push is intentional.
