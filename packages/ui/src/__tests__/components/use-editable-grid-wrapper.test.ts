@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react'
 import type { ClipboardEvent, FocusEvent } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import type {
 	Coord,
 	EditableGridColumn,
@@ -10,6 +10,10 @@ import type {
 } from '../../components/editable-grid/types'
 import { useEditableGridWrapper } from '../../components/editable-grid/use-editable-grid-wrapper'
 import { makeKeyEvent } from '../helpers'
+
+afterEach(() => {
+	document.body.innerHTML = ''
+})
 
 type Row = { id: string; value: string }
 
@@ -566,9 +570,6 @@ describe('useEditableGridWrapper: onWrapperFocus and onWrapperBlur', () => {
 		)
 
 		result.current.onWrapperFocus(makeFocusEvent(wrapper, before))
-
-		wrapper.remove()
-		before.remove()
 	})
 
 	it('onWrapperBlur clears active and anchor when focus leaves the wrapper', () => {

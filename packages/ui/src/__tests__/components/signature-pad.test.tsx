@@ -167,9 +167,11 @@ describe('drawSnapshot', () => {
 			}
 		} as typeof Image
 
-		drawSnapshot(canvas, 'data:,hello')
-
-		window.Image = Original
+		try {
+			drawSnapshot(canvas, 'data:,hello')
+		} finally {
+			window.Image = Original
+		}
 
 		;(captured as HTMLImageElement | null)?.onload?.(new Event('load'))
 

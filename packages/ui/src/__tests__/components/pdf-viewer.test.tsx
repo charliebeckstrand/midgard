@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { PdfViewer, type PdfViewerPage } from '../../components/pdf-viewer'
 import { downloadPdf, printPdf } from '../../components/pdf-viewer/pdf-viewer-utilities'
 import { useMinWidth } from '../../hooks'
@@ -12,6 +12,10 @@ vi.mock('../../hooks', async (importOriginal) => {
 
 beforeEach(() => {
 	vi.mocked(useMinWidth).mockReturnValue(true)
+})
+
+afterEach(() => {
+	vi.restoreAllMocks()
 })
 
 const pages: PdfViewerPage[] = [

@@ -117,15 +117,11 @@ describe('useComboboxTrigger', () => {
 
 		const setOpen = vi.fn()
 
-		const focus = vi.fn()
-
-		const select = vi.fn()
-
 		const input = document.createElement('input')
 
-		input.focus = focus
+		const focus = vi.spyOn(input, 'focus').mockImplementation(() => {})
 
-		input.select = select
+		const select = vi.spyOn(input, 'select').mockImplementation(() => {})
 
 		const inputRef = { current: input }
 

@@ -1,21 +1,36 @@
 import { renderHook } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+
+const originalMatchMedia = window.matchMedia
+
+function stubMatchMedia(matchesFor: (query: string) => boolean) {
+	Object.defineProperty(window, 'matchMedia', {
+		writable: true,
+		configurable: true,
+		value: vi.fn().mockImplementation((query: string) => ({
+			matches: matchesFor(query),
+			media: query,
+			onchange: null,
+			addEventListener: vi.fn(),
+			removeEventListener: vi.fn(),
+			addListener: vi.fn(),
+			removeListener: vi.fn(),
+			dispatchEvent: vi.fn(),
+		})),
+	})
+}
+
+afterEach(() => {
+	Object.defineProperty(window, 'matchMedia', {
+		writable: true,
+		configurable: true,
+		value: originalMatchMedia,
+	})
+})
 
 describe('useMinWidth', () => {
 	it('returns false when the viewport does not match the min-width', async () => {
-		Object.defineProperty(window, 'matchMedia', {
-			writable: true,
-			value: vi.fn().mockImplementation((query: string) => ({
-				matches: false,
-				media: query,
-				onchange: null,
-				addEventListener: vi.fn(),
-				removeEventListener: vi.fn(),
-				addListener: vi.fn(),
-				removeListener: vi.fn(),
-				dispatchEvent: vi.fn(),
-			})),
-		})
+		stubMatchMedia(() => false)
 
 		vi.resetModules()
 
@@ -27,19 +42,7 @@ describe('useMinWidth', () => {
 	})
 
 	it('returns true when the viewport matches the min-width', async () => {
-		Object.defineProperty(window, 'matchMedia', {
-			writable: true,
-			value: vi.fn().mockImplementation((query: string) => ({
-				matches: query === '(min-width: 1024px)',
-				media: query,
-				onchange: null,
-				addEventListener: vi.fn(),
-				removeEventListener: vi.fn(),
-				addListener: vi.fn(),
-				removeListener: vi.fn(),
-				dispatchEvent: vi.fn(),
-			})),
-		})
+		stubMatchMedia((query) => query === '(min-width: 1024px)')
 
 		vi.resetModules()
 

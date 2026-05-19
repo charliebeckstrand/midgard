@@ -4,11 +4,10 @@ import { useComboboxState } from '../../components/combobox/use-combobox-state'
 
 function setup<T>(overrides: Partial<Parameters<typeof useComboboxState<T>>[0]> = {}) {
 	const setValue = vi.fn()
-	const focus = vi.fn()
 
 	const input = document.createElement('input')
 
-	input.focus = focus
+	const focus = vi.spyOn(input, 'focus').mockImplementation(() => {})
 
 	const inputRef = { current: input }
 

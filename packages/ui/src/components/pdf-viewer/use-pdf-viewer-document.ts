@@ -3,19 +3,17 @@
 import { useEffect, useState } from 'react'
 import type { PdfViewerPage } from './types'
 
-let workerConfigured = false
-
 async function configureWorker() {
-	if (workerConfigured) return
+	const pdfjs = await import('pdfjs-dist')
 
-	const [pdfjs, workerUrlModule] = await Promise.all([
-		import('pdfjs-dist'),
-		import('pdfjs-dist/build/pdf.worker.min.mjs?url'),
-	])
+	// Skip the worker URL import once workerSrc is set — this also lets the
+	// runtime (or a test) pre-configure workerSrc and bypass the Vite-specific
+	// `?url` import, which is not reliably resolvable outside a Vite build.
+	if (pdfjs.GlobalWorkerOptions.workerSrc) return
+
+	const workerUrlModule = await import('pdfjs-dist/build/pdf.worker.min.mjs?url')
 
 	pdfjs.GlobalWorkerOptions.workerSrc = workerUrlModule.default
-
-	workerConfigured = true
 }
 
 export type UsePdfDocumentResult = {

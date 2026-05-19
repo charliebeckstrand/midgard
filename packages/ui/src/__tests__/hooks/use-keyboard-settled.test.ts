@@ -1,16 +1,32 @@
 import { renderHook } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
+
+const originalVisualViewport = window.visualViewport
+
+afterEach(() => {
+	vi.restoreAllMocks()
+
+	Object.defineProperty(window, 'visualViewport', {
+		value: originalVisualViewport,
+		writable: true,
+		configurable: true,
+	})
+
+	if ('ontouchstart' in window) Reflect.deleteProperty(window, 'ontouchstart')
+})
+
+function stubVisualViewport(value: { height: number } | null) {
+	Object.defineProperty(window, 'visualViewport', {
+		value,
+		writable: true,
+		configurable: true,
+	})
+}
 
 describe('useKeyboardSettled', () => {
 	it('fires callback immediately when visualViewport is not available', () => {
-		const original = window.visualViewport
-
-		Object.defineProperty(window, 'visualViewport', {
-			value: null,
-			writable: true,
-			configurable: true,
-		})
+		stubVisualViewport(null)
 
 		const { result } = renderHook(() => useKeyboardSettled())
 
@@ -19,12 +35,6 @@ describe('useKeyboardSettled', () => {
 		result.current(callback)
 
 		expect(callback).toHaveBeenCalledOnce()
-
-		Object.defineProperty(window, 'visualViewport', {
-			value: original,
-			writable: true,
-			configurable: true,
-		})
 	})
 
 	it('returns a stable function reference across re-renders', () => {
@@ -38,16 +48,9 @@ describe('useKeyboardSettled', () => {
 	})
 
 	it('fires callback immediately on non-touch devices even when visualViewport is present', () => {
-		const originalVv = window.visualViewport
-		const hadTouch = 'ontouchstart' in window
+		stubVisualViewport({ height: window.innerHeight })
 
-		Object.defineProperty(window, 'visualViewport', {
-			value: { height: window.innerHeight },
-			writable: true,
-			configurable: true,
-		})
-
-		if (hadTouch) Reflect.deleteProperty(window, 'ontouchstart')
+		if ('ontouchstart' in window) Reflect.deleteProperty(window, 'ontouchstart')
 
 		const { result } = renderHook(() => useKeyboardSettled())
 
@@ -56,22 +59,10 @@ describe('useKeyboardSettled', () => {
 		result.current(callback)
 
 		expect(callback).toHaveBeenCalledOnce()
-
-		Object.defineProperty(window, 'visualViewport', {
-			value: originalVv,
-			writable: true,
-			configurable: true,
-		})
 	})
 
 	it('fires callback immediately when the keyboard is already visible', () => {
-		const originalVv = window.visualViewport
-
-		Object.defineProperty(window, 'visualViewport', {
-			value: { height: window.innerHeight * 0.5 },
-			writable: true,
-			configurable: true,
-		})
+		stubVisualViewport({ height: window.innerHeight * 0.5 })
 
 		window.ontouchstart = null
 
@@ -82,38 +73,24 @@ describe('useKeyboardSettled', () => {
 		result.current(callback)
 
 		expect(callback).toHaveBeenCalledOnce()
-
-		Object.defineProperty(window, 'visualViewport', {
-			value: originalVv,
-			writable: true,
-			configurable: true,
-		})
-
-		Reflect.deleteProperty(window, 'ontouchstart')
 	})
 
 	it('polls via rAF and fires once the viewport has settled', () => {
-		const originalVv = window.visualViewport
-
 		const vv = { height: window.innerHeight }
 
-		Object.defineProperty(window, 'visualViewport', {
-			value: vv,
-			writable: true,
-			configurable: true,
-		})
+		stubVisualViewport(vv)
 
 		window.ontouchstart = null
 
 		let rafCb: FrameRequestCallback | null = null
 
-		const raf = vi.spyOn(window, 'requestAnimationFrame').mockImplementation((fn) => {
+		vi.spyOn(window, 'requestAnimationFrame').mockImplementation((fn) => {
 			rafCb = fn
 
 			return 1
 		})
 
-		const cancel = vi.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => {})
+		vi.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => {})
 
 		const { result } = renderHook(() => useKeyboardSettled())
 
@@ -129,39 +106,22 @@ describe('useKeyboardSettled', () => {
 		for (let i = 0; i < 6; i++) (rafCb as FrameRequestCallback | null)?.(0)
 
 		expect(callback).toHaveBeenCalledOnce()
-
-		raf.mockRestore()
-		cancel.mockRestore()
-
-		Object.defineProperty(window, 'visualViewport', {
-			value: originalVv,
-			writable: true,
-			configurable: true,
-		})
-
-		Reflect.deleteProperty(window, 'ontouchstart')
 	})
 
 	it('bails out and fires after 60 frames even if the viewport never changes', () => {
-		const originalVv = window.visualViewport
-
-		Object.defineProperty(window, 'visualViewport', {
-			value: { height: window.innerHeight },
-			writable: true,
-			configurable: true,
-		})
+		stubVisualViewport({ height: window.innerHeight })
 
 		window.ontouchstart = null
 
 		let rafCb: FrameRequestCallback | null = null
 
-		const raf = vi.spyOn(window, 'requestAnimationFrame').mockImplementation((fn) => {
+		vi.spyOn(window, 'requestAnimationFrame').mockImplementation((fn) => {
 			rafCb = fn
 
 			return 1
 		})
 
-		const cancel = vi.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => {})
+		vi.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => {})
 
 		const { result } = renderHook(() => useKeyboardSettled())
 
@@ -172,31 +132,14 @@ describe('useKeyboardSettled', () => {
 		for (let i = 0; i < 60; i++) (rafCb as FrameRequestCallback | null)?.(0)
 
 		expect(callback).toHaveBeenCalledOnce()
-
-		raf.mockRestore()
-		cancel.mockRestore()
-
-		Object.defineProperty(window, 'visualViewport', {
-			value: originalVv,
-			writable: true,
-			configurable: true,
-		})
-
-		Reflect.deleteProperty(window, 'ontouchstart')
 	})
 
 	it('cancels a pending rAF when invoked a second time', () => {
-		const originalVv = window.visualViewport
-
-		Object.defineProperty(window, 'visualViewport', {
-			value: { height: window.innerHeight },
-			writable: true,
-			configurable: true,
-		})
+		stubVisualViewport({ height: window.innerHeight })
 
 		window.ontouchstart = null
 
-		const raf = vi.spyOn(window, 'requestAnimationFrame').mockImplementation(() => 99)
+		vi.spyOn(window, 'requestAnimationFrame').mockImplementation(() => 99)
 
 		const cancel = vi.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => {})
 
@@ -207,31 +150,14 @@ describe('useKeyboardSettled', () => {
 		result.current(vi.fn())
 
 		expect(cancel).toHaveBeenCalledWith(99)
-
-		raf.mockRestore()
-		cancel.mockRestore()
-
-		Object.defineProperty(window, 'visualViewport', {
-			value: originalVv,
-			writable: true,
-			configurable: true,
-		})
-
-		Reflect.deleteProperty(window, 'ontouchstart')
 	})
 
 	it('cancels any pending rAF on unmount', () => {
-		const originalVv = window.visualViewport
-
-		Object.defineProperty(window, 'visualViewport', {
-			value: { height: window.innerHeight },
-			writable: true,
-			configurable: true,
-		})
+		stubVisualViewport({ height: window.innerHeight })
 
 		window.ontouchstart = null
 
-		const raf = vi.spyOn(window, 'requestAnimationFrame').mockImplementation(() => 42)
+		vi.spyOn(window, 'requestAnimationFrame').mockImplementation(() => 42)
 
 		const cancel = vi.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => {})
 
@@ -242,16 +168,5 @@ describe('useKeyboardSettled', () => {
 		unmount()
 
 		expect(cancel).toHaveBeenCalledWith(42)
-
-		raf.mockRestore()
-		cancel.mockRestore()
-
-		Object.defineProperty(window, 'visualViewport', {
-			value: originalVv,
-			writable: true,
-			configurable: true,
-		})
-
-		Reflect.deleteProperty(window, 'ontouchstart')
 	})
 })
