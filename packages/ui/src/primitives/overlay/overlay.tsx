@@ -1,13 +1,14 @@
 'use client'
 
 import { AnimatePresence, motion } from 'motion/react'
-import type { HTMLAttributes, ReactNode } from 'react'
+import { type HTMLAttributes, type ReactNode, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { cn } from '../../core'
 import { useDismissable } from '../../hooks/use-dismissable'
 import { useFocusTrap } from '../../hooks/use-focus-trap'
 import { omote, ugoki } from '../../recipes'
 import { ReducedMotion } from '../reduced-motion'
+import { notifyOverlayOpened } from './overlay-signal'
 
 export type OverlayProps = {
 	open: boolean
@@ -45,6 +46,10 @@ export function Overlay({
 		outsidePointer: false,
 		scrollLock: !scoped,
 	})
+
+	useEffect(() => {
+		if (open) notifyOverlayOpened()
+	}, [open])
 
 	if (typeof document === 'undefined') return null
 

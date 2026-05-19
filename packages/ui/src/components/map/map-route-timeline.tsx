@@ -1,6 +1,7 @@
 'use client'
 
-import { Sheet, SheetBody, SheetDescription, SheetTitle } from '../sheet'
+import { Button } from '../button'
+import { Sheet, SheetActions, SheetBody, SheetClose, SheetDescription, SheetTitle } from '../sheet'
 import {
 	Timeline,
 	TimelineDescription,
@@ -59,6 +60,11 @@ export function MapRouteTimeline({ open, onOpenChange, stops }: MapRouteTimeline
 					})}
 				</Timeline>
 			</SheetBody>
+			<SheetActions>
+				<SheetClose>
+					<Button>Close</Button>
+				</SheetClose>
+			</SheetActions>
 		</Sheet>
 	)
 }

@@ -96,6 +96,30 @@ describe('MapRoute', () => {
 
 		expect(allBySlot(container, 'map-marker').length).toBe(0)
 	})
+
+	it('closes the timeline sheet when the close button is clicked', async () => {
+		const user = userEvent.setup()
+
+		const { container } = renderUI(
+			<MapView>
+				<MapRoute data={route} />
+			</MapView>,
+		)
+
+		await waitFor(() => expect(allBySlot(container, 'map-marker').length).toBe(route.stops.length))
+
+		const marker = bySlot(container, 'map-marker')
+
+		if (!marker) throw new Error('marker missing')
+
+		await user.click(marker)
+
+		expect(screen.getByText('Route timeline')).toBeInTheDocument()
+
+		await user.click(screen.getByRole('button', { name: 'Close' }))
+
+		expect(screen.queryByText('Route timeline')).not.toBeInTheDocument()
+	})
 })
 
 describe('MapShipment', () => {

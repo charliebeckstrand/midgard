@@ -1,10 +1,11 @@
 'use client'
 
 import { type Placement, useClick, useDismiss, useInteractions, useRole } from '@floating-ui/react'
-import { type ReactNode, useCallback, useMemo, useRef } from 'react'
+import { type ReactNode, useCallback, useEffect, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useFloatingPanel } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
+import { notifyOverlayOpened } from '../../primitives/overlay'
 import { PopoverProvider } from './context'
 
 export type PopoverProps = {
@@ -51,6 +52,10 @@ export function Popover({
 	const close = useCallback(() => {
 		setOpen(false)
 	}, [setOpen])
+
+	useEffect(() => {
+		if (open) notifyOverlayOpened()
+	}, [open])
 
 	const contextValue = useMemo(
 		() => ({
