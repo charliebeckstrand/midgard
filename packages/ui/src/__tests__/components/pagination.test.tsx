@@ -95,6 +95,34 @@ describe('PaginationPage', () => {
 
 		expect(el).toHaveAttribute('href', '/page/1')
 	})
+
+	it('marks the current page with aria-current="page"', () => {
+		const { container } = renderUI(
+			<Pagination>
+				<PaginationList>
+					<PaginationPage current>1</PaginationPage>
+				</PaginationList>
+			</Pagination>,
+		)
+
+		const el = bySlot(container, 'pagination-page')
+
+		expect(el).toHaveAttribute('aria-current', 'page')
+	})
+
+	it('omits aria-current when current is false', () => {
+		const { container } = renderUI(
+			<Pagination>
+				<PaginationList>
+					<PaginationPage>1</PaginationPage>
+				</PaginationList>
+			</Pagination>,
+		)
+
+		const el = bySlot(container, 'pagination-page')
+
+		expect(el).not.toHaveAttribute('aria-current')
+	})
 })
 
 describe('PaginationGap', () => {

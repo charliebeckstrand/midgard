@@ -185,4 +185,164 @@ describe('TreeItem', () => {
 
 		expect(row?.className).toContain('text-sm')
 	})
+
+	it('opens a closed parent when ArrowRight is pressed on the row', () => {
+		const { container } = renderUI(
+			<Tree>
+				<TreeItem label="Parent">
+					<TreeItem label="Child" />
+				</TreeItem>
+			</Tree>,
+		)
+
+		const row = bySlot(container, 'tree-item-content') as HTMLElement
+
+		expect(row).toHaveAttribute('aria-expanded', 'false')
+
+		fireEvent.keyDown(row, { key: 'ArrowRight' })
+
+		expect(row).toHaveAttribute('aria-expanded', 'true')
+	})
+
+	it('closes an open parent when ArrowLeft is pressed on the row', () => {
+		const { container } = renderUI(
+			<Tree>
+				<TreeItem label="Parent" defaultOpen>
+					<TreeItem label="Child" />
+				</TreeItem>
+			</Tree>,
+		)
+
+		const row = bySlot(container, 'tree-item-content') as HTMLElement
+
+		expect(row).toHaveAttribute('aria-expanded', 'true')
+
+		fireEvent.keyDown(row, { key: 'ArrowLeft' })
+
+		expect(row).toHaveAttribute('aria-expanded', 'false')
+	})
+
+	it('toggles a parent on Enter', () => {
+		const { container } = renderUI(
+			<Tree>
+				<TreeItem label="Parent">
+					<TreeItem label="Child" />
+				</TreeItem>
+			</Tree>,
+		)
+
+		const row = bySlot(container, 'tree-item-content') as HTMLElement
+
+		fireEvent.keyDown(row, { key: 'Enter' })
+
+		expect(row).toHaveAttribute('aria-expanded', 'true')
+	})
+
+	it('toggles a parent on Space', () => {
+		const { container } = renderUI(
+			<Tree>
+				<TreeItem label="Parent">
+					<TreeItem label="Child" />
+				</TreeItem>
+			</Tree>,
+		)
+
+		const row = bySlot(container, 'tree-item-content') as HTMLElement
+
+		fireEvent.keyDown(row, { key: ' ' })
+
+		expect(row).toHaveAttribute('aria-expanded', 'true')
+	})
+
+	it('Enter on a leaf forwards the click to a prefix-interactive control', () => {
+		const onPrefixClick = vi.fn()
+
+		const { container } = renderUI(
+			<Tree>
+				<TreeItem
+					label="Leaf"
+					prefix={
+						<button type="button" data-testid="pre-btn" onClick={onPrefixClick}>
+							pre
+						</button>
+					}
+				/>
+			</Tree>,
+		)
+
+		const row = bySlot(container, 'tree-item-content') as HTMLElement
+
+		fireEvent.keyDown(row, { key: 'Enter' })
+
+		expect(onPrefixClick).toHaveBeenCalledOnce()
+	})
+
+	it('ignores key events that bubble from descendants', () => {
+		const { container } = renderUI(
+			<Tree>
+				<TreeItem label="Parent">
+					<TreeItem label="Child" />
+				</TreeItem>
+			</Tree>,
+		)
+
+		const row = bySlot(container, 'tree-item-content') as HTMLElement
+
+		// Simulate a key event that originated from the inner span.
+		const label = row.querySelector('span:last-of-type') as HTMLElement
+
+		fireEvent.keyDown(label, { key: 'Enter' })
+
+		expect(row).toHaveAttribute('aria-expanded', 'false')
+	})
+
+	it('ArrowRight on an already-open branch does not collapse it', () => {
+		const { container } = renderUI(
+			<Tree>
+				<TreeItem label="Parent" defaultOpen>
+					<TreeItem label="Child" />
+				</TreeItem>
+			</Tree>,
+		)
+
+		const row = bySlot(container, 'tree-item-content') as HTMLElement
+
+		fireEvent.keyDown(row, { key: 'ArrowRight' })
+
+		expect(row).toHaveAttribute('aria-expanded', 'true')
+	})
+
+	it('ArrowLeft on an already-closed branch does not open it', () => {
+		const { container } = renderUI(
+			<Tree>
+				<TreeItem label="Parent">
+					<TreeItem label="Child" />
+				</TreeItem>
+			</Tree>,
+		)
+
+		const row = bySlot(container, 'tree-item-content') as HTMLElement
+
+		fireEvent.keyDown(row, { key: 'ArrowLeft' })
+
+		expect(row).toHaveAttribute('aria-expanded', 'false')
+	})
+
+	it('applies indent padding to nested items when the Tree opts in', () => {
+		const { container } = renderUI(
+			<Tree indent>
+				<TreeItem label="Parent" defaultOpen>
+					<TreeItem label="Child" />
+				</TreeItem>
+			</Tree>,
+		)
+
+		const rows = container.querySelectorAll<HTMLElement>('[data-slot="tree-item-content"]')
+
+		expect(rows.length).toBe(2)
+
+		const child = rows[1] as HTMLElement
+
+		expect(child.style.paddingLeft).not.toBe('0.5rem')
+	})
 })

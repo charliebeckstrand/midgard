@@ -172,4 +172,21 @@ describe('ToolbarSeparator', () => {
 
 		expect(bySlot(container, 'toolbar-separator')?.className).toContain('custom')
 	})
+
+	it('renders a horizontal separator when the toolbar is vertical', () => {
+		const { container } = renderUI(
+			<Toolbar orientation="vertical">
+				<button type="button">A</button>
+				<ToolbarSeparator />
+				<button type="button">B</button>
+			</Toolbar>,
+		)
+
+		const el = bySlot(container, 'toolbar-separator')
+
+		// A horizontal <hr> renders without an explicit aria-orientation.
+		expect(el).not.toHaveAttribute('aria-orientation')
+
+		expect(el?.className).toContain('my-1')
+	})
 })

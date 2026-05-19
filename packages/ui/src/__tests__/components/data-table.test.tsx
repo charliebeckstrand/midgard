@@ -57,6 +57,74 @@ describe('DataTable', () => {
 		expect(screen.queryByText('Alice')).not.toBeInTheDocument()
 	})
 
+	it('renders a selection checkbox column when a column declares selectable', () => {
+		const selectColumns = [{ id: 'select', selectable: true }, ...columns]
+
+		renderUI(<DataTable columns={selectColumns} rows={rows} getRowKey={getRowKey} />)
+
+		const checkboxes = screen.getAllByRole('checkbox', { name: /Select row/ })
+
+		expect(checkboxes.length).toBe(rows.length)
+	})
+
+	it('renders custom actions cells when a column declares actions', () => {
+		const actionsColumns = [
+			...columns,
+			{
+				id: 'actions',
+				actions: (row: { name: string }) => <button type="button">Edit {row.name}</button>,
+			},
+		]
+
+		renderUI(<DataTable columns={actionsColumns} rows={rows} getRowKey={getRowKey} />)
+
+		expect(screen.getByRole('button', { name: 'Edit Alice' })).toBeInTheDocument()
+
+		expect(screen.getByRole('button', { name: 'Edit Bob' })).toBeInTheDocument()
+	})
+
+	it('spreads per-row props from cellProps onto the cell', () => {
+		const cellPropsColumns = [
+			{
+				id: 'name',
+				title: 'Name',
+				cell: (row: { name: string }) => row.name,
+				cellProps: (row: { name: string }) => ({
+					'data-row-name': row.name,
+					className: 'extra-cell',
+				}),
+			},
+		]
+
+		const { container } = renderUI(
+			<DataTable columns={cellPropsColumns} rows={rows} getRowKey={getRowKey} />,
+		)
+
+		const cells = container.querySelectorAll('tbody td')
+
+		const aliceCell = Array.from(cells).find((c) => c.getAttribute('data-row-name') === 'Alice')
+
+		expect(aliceCell).toBeDefined()
+
+		expect(aliceCell?.className).toContain('extra-cell')
+	})
+
+	it('renders an empty cell when a column has no cell renderer', () => {
+		const sparseColumns = [{ id: 'empty', title: 'Empty' }]
+
+		const { container } = renderUI(
+			<DataTable columns={sparseColumns} rows={rows} getRowKey={getRowKey} />,
+		)
+
+		const cells = container.querySelectorAll('tbody td')
+
+		expect(cells.length).toBe(rows.length)
+
+		for (const cell of cells) {
+			expect(cell.textContent).toBe('')
+		}
+	})
+
 	describe('virtualize', () => {
 		const manyRows = Array.from({ length: 500 }, (_, i) => ({
 			name: `Person ${i}`,

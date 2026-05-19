@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
 	Sidebar,
 	SidebarBody,
@@ -11,7 +11,8 @@ import {
 	SidebarSection,
 	SidebarSpacer,
 } from '../../components/sidebar'
-import { bySlot, renderUI, screen } from '../helpers'
+import { OffcanvasProvider } from '../../primitives/offcanvas'
+import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Sidebar', () => {
 	it('renders with data-slot="sidebar"', () => {
@@ -50,6 +51,46 @@ describe('SidebarHeader', () => {
 		)
 
 		expect(bySlot(container, 'sidebar-header')).toBeInTheDocument()
+	})
+
+	it('renders a close button inside an offcanvas surface and invokes close on click', () => {
+		const close = vi.fn()
+
+		const { container } = renderUI(
+			<OffcanvasProvider value={{ close }}>
+				<Sidebar>
+					<SidebarHeader>Header</SidebarHeader>
+				</Sidebar>
+			</OffcanvasProvider>,
+		)
+
+		const header = bySlot(container, 'sidebar-header')
+
+		expect(header?.className).toContain('justify-between')
+
+		const closeButton = screen.getByRole('button', { name: 'Close navigation' })
+
+		expect(closeButton).toBeInTheDocument()
+
+		fireEvent.click(closeButton)
+
+		expect(close).toHaveBeenCalledOnce()
+	})
+
+	it('uses a custom closeIcon when provided in an offcanvas surface', () => {
+		const close = vi.fn()
+
+		renderUI(
+			<OffcanvasProvider value={{ close }}>
+				<Sidebar>
+					<SidebarHeader closeIcon={<span data-testid="custom-close">x</span>}>
+						Header
+					</SidebarHeader>
+				</Sidebar>
+			</OffcanvasProvider>,
+		)
+
+		expect(screen.getByTestId('custom-close')).toBeInTheDocument()
 	})
 })
 

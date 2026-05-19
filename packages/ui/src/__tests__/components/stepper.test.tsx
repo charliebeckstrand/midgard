@@ -137,4 +137,19 @@ describe('StepperPanel', () => {
 
 		expect(screen.getByText('Panel Content')).toBeInTheDocument()
 	})
+
+	it('returns null when value does not match the current step', () => {
+		renderUI(
+			<Stepper value={1}>
+				<StepperStep value={1}>
+					<StepperTitle>Step 1</StepperTitle>
+				</StepperStep>
+				<StepperPanels>
+					<StepperPanel value={2}>Hidden</StepperPanel>
+				</StepperPanels>
+			</Stepper>,
+		)
+
+		expect(screen.queryByText('Hidden')).not.toBeInTheDocument()
+	})
 })

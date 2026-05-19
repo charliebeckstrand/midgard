@@ -203,4 +203,23 @@ describe('TabPanel', () => {
 
 		expect(screen.getByText('Panel Content')).toBeInTheDocument()
 	})
+
+	it('derives id and aria-labelledby from the provided id prop', () => {
+		const { container } = renderUI(
+			<Tabs defaultValue="a">
+				<TabList>
+					<Tab value="a">Tab A</Tab>
+				</TabList>
+				<TabPanels>
+					<TabPanel id="t1">Panel A</TabPanel>
+				</TabPanels>
+			</Tabs>,
+		)
+
+		const panel = bySlot(container, 'tab-panel')
+
+		expect(panel).toHaveAttribute('id', 't1-panel')
+
+		expect(panel).toHaveAttribute('aria-labelledby', 't1')
+	})
 })

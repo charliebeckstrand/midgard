@@ -174,4 +174,48 @@ describe('KanbanCard', () => {
 
 		expect(bySlot(container, 'kanban-card')?.className).toContain('custom-card')
 	})
+
+	it('marks cards as disabled and omits the aria-label when the board is non-interactive', () => {
+		const { container } = renderUI(
+			<Kanban columns={columns} getItemKey={(item: Item) => item.id}>
+				<KanbanColumn columnId="todo">
+					<KanbanColumnBody>
+						<KanbanCard cardId="1">One</KanbanCard>
+					</KanbanColumnBody>
+				</KanbanColumn>
+			</Kanban>,
+		)
+
+		const card = bySlot(container, 'kanban-card')
+
+		expect(card).toHaveAttribute('data-disabled')
+
+		expect(card).not.toHaveAttribute('aria-label')
+	})
+
+	it('marks cards as interactive and exposes the aria-label when onValueChange is supplied', () => {
+		const { container } = renderUI(<Board onValueChange={() => {}} />)
+
+		const card = bySlot(container, 'kanban-card')
+
+		expect(card).not.toHaveAttribute('data-disabled')
+
+		expect(card).toHaveAttribute('aria-label', 'Drag to reorder')
+	})
+
+	it('honors a custom aria-label on an interactive card', () => {
+		const { container } = renderUI(
+			<Kanban columns={columns} getItemKey={(item: Item) => item.id} onValueChange={() => {}}>
+				<KanbanColumn columnId="todo">
+					<KanbanColumnBody>
+						<KanbanCard cardId="1" aria-label="Card One">
+							One
+						</KanbanCard>
+					</KanbanColumnBody>
+				</KanbanColumn>
+			</Kanban>,
+		)
+
+		expect(bySlot(container, 'kanban-card')).toHaveAttribute('aria-label', 'Card One')
+	})
 })

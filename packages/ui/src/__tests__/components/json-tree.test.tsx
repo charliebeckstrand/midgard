@@ -75,6 +75,72 @@ describe('JsonTree', () => {
 		expect(screen.getByText('3 items')).toBeInTheDocument()
 	})
 
+	it('calls onExpandedChange when controlled and a branch is toggled', () => {
+		const onExpandedChange = vi.fn()
+
+		// The root path is '$' — include it so the nested branch header renders.
+		const expanded = new Set<string>(['$'])
+
+		renderUI(
+			<JsonTree
+				data={{ nested: { value: 1 } }}
+				expanded={expanded}
+				onExpandedChange={onExpandedChange}
+			/>,
+		)
+
+		const toggle = screen.getByText('"nested"').closest('button')
+
+		if (!toggle) throw new Error('toggle not found')
+
+		fireEvent.click(toggle)
+
+		expect(onExpandedChange).toHaveBeenCalledOnce()
+
+		const next = onExpandedChange.mock.calls[0]?.[0] as Set<string>
+
+		expect(next.has('$.nested')).toBe(true)
+	})
+
+	it('reflects the controlled expanded set on render', () => {
+		const expanded = new Set<string>(['$', '$.nested'])
+
+		renderUI(
+			<JsonTree data={{ nested: { value: 1 } }} expanded={expanded} onExpandedChange={() => {}} />,
+		)
+
+		expect(screen.getByText('"value"')).toBeInTheDocument()
+	})
+
+	it('auto-expands matching branches when search is active without filter', () => {
+		renderUI(<JsonTree data={{ outer: { needle: 'match' } }} search="needle" />)
+
+		// Without expansion the inner "needle" key wouldn't be in the DOM.
+		expect(screen.getByText('"needle"')).toBeInTheDocument()
+	})
+
+	it('collapses branches without matches when filter + search produces no entries', () => {
+		renderUI(
+			<JsonTree data={{ outer: { value: 'noop' } }} search={{ value: 'zzz', filter: true }} />,
+		)
+
+		expect(screen.queryByText('"value"')).not.toBeInTheDocument()
+	})
+
+	it('hides non-branch leaves that do not match the filtered search term', () => {
+		renderUI(
+			<JsonTree
+				data={{ name: 'Ada', age: 42 }}
+				defaultExpandDepth={1}
+				search={{ value: 'Ada', filter: true }}
+			/>,
+		)
+
+		expect(screen.getByText('"Ada"')).toBeInTheDocument()
+
+		expect(screen.queryByText('42')).not.toBeInTheDocument()
+	})
+
 	describe('virtualize', () => {
 		it('throws when virtualize is set without maxHeight', () => {
 			expect(() => renderUI(<JsonTree data={{}} virtualize />)).toThrow(/requires `maxHeight`/)

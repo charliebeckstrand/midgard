@@ -139,6 +139,48 @@ describe('TableBody', () => {
 
 		expect(body?.tagName).toBe('TBODY')
 	})
+
+	it('inherits striped classes from the enclosing Table when striped is set', () => {
+		const { container: striped } = renderUI(
+			<Table striped>
+				<TableBody>
+					<TableRow>
+						<TableCell>cell</TableCell>
+					</TableRow>
+				</TableBody>
+			</Table>,
+		)
+
+		const { container: plain } = renderUI(
+			<Table>
+				<TableBody>
+					<TableRow>
+						<TableCell>cell</TableCell>
+					</TableRow>
+				</TableBody>
+			</Table>,
+		)
+
+		const stripedClass = bySlot(striped, 'table-body')?.className ?? ''
+
+		const plainClass = bySlot(plain, 'table-body')?.className ?? ''
+
+		expect(stripedClass.length).toBeGreaterThan(plainClass.length)
+	})
+
+	it('applies a custom className on TableBody', () => {
+		const { container } = renderUI(
+			<Table>
+				<TableBody className="my-body">
+					<TableRow>
+						<TableCell>cell</TableCell>
+					</TableRow>
+				</TableBody>
+			</Table>,
+		)
+
+		expect(bySlot(container, 'table-body')?.className).toContain('my-body')
+	})
 })
 
 describe('TableRow', () => {

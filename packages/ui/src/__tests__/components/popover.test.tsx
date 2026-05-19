@@ -44,6 +44,38 @@ describe('Popover', () => {
 
 		expect(el?.className).toContain('custom')
 	})
+
+	it('renders a default button when PopoverTrigger has non-element manual children', () => {
+		const { container } = renderUI(
+			<Popover>
+				<PopoverTrigger manual>Open</PopoverTrigger>
+			</Popover>,
+		)
+
+		const trigger = bySlot(container, 'popover-trigger')
+
+		expect(trigger?.tagName).toBe('BUTTON')
+
+		expect(trigger).toHaveAttribute('aria-haspopup', 'dialog')
+
+		expect(trigger?.textContent).toBe('Open')
+	})
+
+	it('preserves the original child element when manual is set on an element trigger', () => {
+		const { container } = renderUI(
+			<Popover>
+				<PopoverTrigger manual>
+					<button type="button" data-testid="manual-child">
+						Open
+					</button>
+				</PopoverTrigger>
+			</Popover>,
+		)
+
+		const trigger = bySlot(container, 'popover-trigger')
+
+		expect(trigger).toHaveAttribute('data-testid', 'manual-child')
+	})
 })
 
 describe('PopoverContent size context', () => {
