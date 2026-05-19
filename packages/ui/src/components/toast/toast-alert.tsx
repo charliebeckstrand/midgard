@@ -51,29 +51,35 @@ export function ToastAlert({
 
 	const { variant, color } = typeAlertMap[t.type ?? 'default']
 
+	const isTop = position.startsWith('top')
+
+	const autoDismiss = {
+		height: 0,
+		...(isTop ? { paddingBottom: 0 } : { paddingTop: 0 }),
+		transition: { duration: 0.15 },
+	}
+	const manualDismiss = { opacity: 0, transition: { duration: 0.15 } }
+
 	return (
 		<motion.div
 			layout
 			style={{
-				...(position.startsWith('top') ? { paddingBottom: 8 } : { paddingTop: 8 }),
+				...(isTop ? { paddingBottom: 8 } : { paddingTop: 8 }),
 				zIndex,
 			}}
-			exit={{
-				height: 0,
-				...(position.startsWith('top') ? { paddingBottom: 0 } : { paddingTop: 0 }),
-				transition: { duration: 0.15 },
-			}}
+			exit={t.dismissed ? manualDismiss : autoDismiss}
 			transition={{ layout: { type: 'spring', stiffness: 500, damping: 25 } }}
 		>
 			<motion.div
 				initial={{ ...motionConfig.initial, opacity: 0 }}
-				animate={t.dismissed ? { opacity: 0 } : motionConfig.animate}
-				transition={t.dismissed ? { duration: 0.15 } : motionConfig.transition}
+				animate={motionConfig.animate}
+				transition={motionConfig.transition}
 				onMouseEnter={onPause}
 				onMouseLeave={onResume}
 				onClick={() => onReset(t.id)}
 			>
 				<Alert
+					open={true}
 					variant={variant}
 					color={color}
 					title={t.title}
