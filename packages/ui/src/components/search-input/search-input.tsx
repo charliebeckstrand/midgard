@@ -18,19 +18,6 @@ export type SearchInputProps = Omit<
 	onClear?: () => void
 }
 
-function ClearButton({ onClear }: { onClear: () => void }) {
-	return (
-		<Button
-			variant="bare"
-			className="mr-2 pointer-events-auto"
-			aria-label="Clear search"
-			onClick={onClear}
-		>
-			<Icon icon={<X />} />
-		</Button>
-	)
-}
-
 export function SearchInput({
 	loading,
 	onClear,
@@ -65,7 +52,14 @@ export function SearchInput({
 	const suffix = loading ? (
 		<Spinner />
 	) : currentValue !== '' ? (
-		<ClearButton onClear={handleClear} />
+		<Button
+			variant="bare"
+			className="mr-2 pointer-events-auto"
+			aria-label="Clear search"
+			onClick={handleClear}
+		>
+			<Icon icon={<X />} />
+		</Button>
 	) : undefined
 
 	return (
