@@ -24,7 +24,7 @@ Skills that run tests (`/typescript:review`, `/tests:compose`, `/postmortem`) pr
 
 ## Tests skip list
 
-Tests that drive a third-party async surface (`fetch`, `@tanstack/react-virtual`, pdfjs, floating-ui open lifecycle, etc.) have consistently flaked on Azure CI under Linux Node 20 with no local repro. **Don't write them.** Cover the surface at a synchronous seam — a pure reducer, a typed harness, a unit-level callback — or skip it.
+Tests that drive a third-party async surface (`fetch`, `@tanstack/react-virtual`, pdfjs, floating-ui open lifecycle, etc.) have consistently flaked on Azure CI (Linux) with no local repro. **Don't write them.** Cover the surface at a synchronous seam — a pure reducer, a typed harness, a unit-level callback — or skip it.
 
 ## File naming
 
