@@ -22,6 +22,18 @@ This package owns the repo's only test runner (`vitest`). The lefthook pre-commi
 
 Skills that run tests (`/typescript:review`, `/tests:compose`, `/postmortem`) prefer the package's scoped test commands (`scripts.test:related`, `scripts.test:changed`) automatically — they fall back to the full package suite only when no scoped command applies.
 
+## Tests skip list
+
+Targets and cases below were removed because they consistently flaked on Azure CI under Linux Node 20 with no local repro. **Do not recreate them.** If a future change makes them viable again, the recreation MUST be paired with evidence — a green Azure CI run across at least 20 sequential triggers, or a documented seam (typed harness, deterministic mock) that eliminates the flake root cause. Note the evidence in the PR; an audit gap is the lesser cost.
+
+| Target | Removed in | Root cause |
+|---|---|---|
+| `DataTableVirtualizedBody` component suite (`__tests__/components/data-table-virtualized-body.test.tsx`) | `5660409` | Mocked `@tanstack/react-virtual` via mutable module-scope bindings; virtualizer state never propagated through the render under Azure's Node 20 |
+| `usePdfViewerDocument` async cases — fetch-error, fetch-throw, successful-render (`__tests__/components/use-pdf-viewer-document.test.ts`) | `4a2f731` | Rode the real async lifecycle through dynamic `import()` + `fetch` + pdfjs render; state never propagated through the multi-`await` chain on Azure CI |
+| `QueryBuilder` listbox-interaction cases (`__tests__/components/query-builder.test.tsx`) | `61d3f91` | Floating-UI / listbox open lifecycle was non-deterministic on Azure CI |
+
+A new test for any of these surfaces is acceptable only when it covers a different seam (a pure unit, a typed reducer, a synchronous code path) — not a re-attempt at the original integration.
+
 ## File naming
 
 Filenames must stay legible when stripped of folder context (editor tabs, stack traces, grep results, PR diffs).
