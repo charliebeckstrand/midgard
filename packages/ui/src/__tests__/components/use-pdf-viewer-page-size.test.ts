@@ -4,13 +4,18 @@ import { describe, expect, it } from 'vitest'
 import type { PdfViewerPage } from '../../components/pdf-viewer/types'
 import { usePdfViewerPageSize } from '../../components/pdf-viewer/use-pdf-viewer-page-size'
 
-function makeLoadEvent(naturalWidth: number, naturalHeight: number) {
+function makeLoadEvent(
+	naturalWidth: number,
+	naturalHeight: number,
+): SyntheticEvent<HTMLImageElement> {
 	const img = document.createElement('img')
 
 	Object.defineProperty(img, 'naturalWidth', { configurable: true, value: naturalWidth })
 	Object.defineProperty(img, 'naturalHeight', { configurable: true, value: naturalHeight })
 
-	return { currentTarget: img } as unknown as SyntheticEvent<HTMLImageElement>
+	const partial: Partial<SyntheticEvent<HTMLImageElement>> = { currentTarget: img }
+
+	return partial as SyntheticEvent<HTMLImageElement>
 }
 
 describe('usePdfViewerPageSize', () => {

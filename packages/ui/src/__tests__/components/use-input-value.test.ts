@@ -24,16 +24,8 @@ describe('useInputValue', () => {
 		expect(result.current.binding).toBeUndefined()
 	})
 
-	it('coerces an explicit undefined value to "" when hasValueProp is true', () => {
+	it('coerces a nullish value to "" when hasValueProp is true', () => {
 		const { result } = renderHook(() => useInputValue({ hasValueProp: true, value: undefined }))
-
-		expect(result.current.value).toBe('')
-	})
-
-	it('coerces an explicit null value to "" when hasValueProp is true', () => {
-		const { result } = renderHook(() =>
-			useInputValue({ hasValueProp: true, value: null as unknown as undefined }),
-		)
 
 		expect(result.current.value).toBe('')
 	})

@@ -37,7 +37,9 @@ describe('deriveStatus', () => {
 
 describe('handlePasswordInput', () => {
 	function makeEvent(target: HTMLElement): SyntheticEvent<HTMLDivElement> {
-		return { target } as unknown as SyntheticEvent<HTMLDivElement>
+		const partial: Partial<SyntheticEvent<HTMLDivElement>> = { target }
+
+		return partial as SyntheticEvent<HTMLDivElement>
 	}
 
 	it('writes the value, name, and lastEdited when the password input changes', () => {
