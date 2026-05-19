@@ -2,17 +2,15 @@ import type { ReactNode } from 'react'
 import { HeadlessProvider } from './context'
 
 export type HeadlessProps = {
-	className?: string
 	children: ReactNode
 }
 
-/** Strips chrome from headless-aware descendants — they render the bare semantic element. */
-export function Headless({ className, children }: HeadlessProps) {
-	return (
-		<HeadlessProvider value={true}>
-			<span data-slot="headless" className={className ?? 'contents'}>
-				{children}
-			</span>
-		</HeadlessProvider>
-	)
+/**
+ * Strips chrome from headless-aware descendants — they render the bare
+ * semantic element. Renders as a pass-through (no host element) so the
+ * disabled child remains a direct child of any surrounding `ControlFrame`,
+ * keeping `kasane`'s `has-[>:disabled]` selectors intact.
+ */
+export function Headless({ children }: HeadlessProps) {
+	return <HeadlessProvider value={true}>{children}</HeadlessProvider>
 }
