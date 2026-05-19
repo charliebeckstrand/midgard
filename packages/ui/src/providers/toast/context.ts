@@ -13,6 +13,7 @@ export type ToastViewportContextValue = {
 	dismiss: (id: string) => void
 	pause: () => void
 	resume: () => void
+	reset: (id: string) => void
 	handleExitComplete: () => void
 }
 
