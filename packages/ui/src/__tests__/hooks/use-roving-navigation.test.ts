@@ -65,6 +65,40 @@ describe('nextIndexForKey', () => {
 	it('-1 index with backward key returns last', () => {
 		expect(nextIndexForKey('ArrowUp', -1, 5)).toBe(4)
 	})
+
+	it('grid -1 index with ArrowRight returns 0', () => {
+		expect(nextIndexForKey('ArrowRight', -1, 6, { cols: 3 })).toBe(0)
+	})
+
+	it('grid -1 index with ArrowDown returns 0', () => {
+		expect(nextIndexForKey('ArrowDown', -1, 6, { cols: 3 })).toBe(0)
+	})
+
+	it('grid -1 index with ArrowLeft returns last index', () => {
+		expect(nextIndexForKey('ArrowLeft', -1, 6, { cols: 3 })).toBe(5)
+	})
+
+	it('grid -1 index with ArrowUp returns last index', () => {
+		expect(nextIndexForKey('ArrowUp', -1, 6, { cols: 3 })).toBe(5)
+	})
+
+	it('grid -1 index with a non-arrow key returns null', () => {
+		expect(nextIndexForKey('a', -1, 6, { cols: 3 })).toBeNull()
+	})
+
+	it('grid ArrowDown from bottom row wraps to the matching column on the first row', () => {
+		// idx 4 is row 1, col 1 → ArrowDown should wrap to col 1 on row 0 (idx 1).
+		expect(nextIndexForKey('ArrowDown', 4, 6, { cols: 3 })).toBe(1)
+	})
+
+	it('grid ArrowUp from top row wraps to the matching column on the last row', () => {
+		// idx 1 is row 0, col 1 → ArrowUp should wrap to col 1 on row 1 (idx 4).
+		expect(nextIndexForKey('ArrowUp', 1, 6, { cols: 3 })).toBe(4)
+	})
+
+	it('grid with a non-arrow non-Home/End key returns null', () => {
+		expect(nextIndexForKey('a', 0, 6, { cols: 3 })).toBeNull()
+	})
 })
 
 describe('queryItems', () => {
