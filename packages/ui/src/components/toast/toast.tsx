@@ -20,7 +20,7 @@ export type ToastProps = {
  * callers don't need to live next to it.
  */
 export function Toast({ position = 'bottom-right' }: ToastProps) {
-	const { toasts, dismiss, pause, resume, handleExitComplete } = useToastViewport()
+	const { toasts, dismiss, pause, resume, reset, handleExitComplete } = useToastViewport()
 
 	const isBottom = position.startsWith('bottom')
 
@@ -47,6 +47,7 @@ export function Toast({ position = 'bottom-right' }: ToastProps) {
 								}}
 								onPause={pause}
 								onResume={resume}
+								onReset={reset}
 							/>
 						))}
 					</AnimatePresence>

@@ -36,7 +36,7 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 
 	const { start, stop, handleExitComplete } = useToastQueue(toastsRef, sync)
 
-	const { startTimer, pause, resume, resetRemaining } = useToastTimer(
+	const { startTimer, pause, resume, resetRemaining, reset } = useToastTimer(
 		toastsRef,
 		duration,
 		start,
@@ -82,7 +82,10 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 
 			const id = `toast-${++counter}`
 
-			toastsRef.current = [...toastsRef.current, { ...data, id, zIndex: counter }]
+			toastsRef.current = [
+				...toastsRef.current,
+				{ ...data, id, zIndex: counter, duration: data.duration ?? duration },
+			]
 
 			if (maxToasts > 0) {
 				const active = toastsRef.current.filter((t) => !t.dismissed)
@@ -109,6 +112,17 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 		[maxToasts, duration, sync, startTimer, stop, resetRemaining, dismiss],
 	)
 
+	const resetToast = useCallback(
+		(id: string) => {
+			const target = toastsRef.current.find((t) => t.id === id)
+
+			if (!target || target.dismissed || target.persist) return
+
+			reset(target.duration)
+		},
+		[reset],
+	)
+
 	const publicValue = useMemo<ToastContextValue>(() => ({ toast, dismiss }), [toast, dismiss])
 
 	// Viewport value changes every render (toasts array is recomputed) — only
@@ -118,6 +132,7 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 		dismiss,
 		pause,
 		resume,
+		reset: resetToast,
 		handleExitComplete,
 	}
 
