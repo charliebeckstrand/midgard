@@ -6,7 +6,11 @@ function setup<T>(overrides: Partial<Parameters<typeof useComboboxState<T>>[0]> 
 	const setValue = vi.fn()
 	const focus = vi.fn()
 
-	const inputRef = { current: { focus } as unknown as HTMLInputElement }
+	const input = document.createElement('input')
+
+	input.focus = focus
+
+	const inputRef = { current: input }
 
 	const result = renderHook(() =>
 		useComboboxState<T>({

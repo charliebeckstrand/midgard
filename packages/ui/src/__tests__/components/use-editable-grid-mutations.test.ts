@@ -32,11 +32,13 @@ function setup(
 	const onValueChange = vi.fn()
 	const setSelection = vi.fn()
 
-	const nav = {
+	const partialNav: Partial<EditableGridNavigationApi> = {
 		activeRef: { current: options.active ?? null },
 		anchorRef: { current: options.anchor ?? null },
 		extraCellsRef: { current: options.extras ?? new Set() },
-	} as unknown as EditableGridNavigationApi
+	}
+
+	const nav = partialNav as EditableGridNavigationApi
 
 	const { result } = renderHook(() =>
 		useEditableGridMutations<Row>({

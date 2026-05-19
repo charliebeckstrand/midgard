@@ -30,14 +30,20 @@ function setup(options: { columns?: Column[]; onValueChange?: (next: Column[]) =
 }
 
 function makeDragStart(id: string): DragStartEvent {
-	return { active: { id } } as unknown as DragStartEvent
+	const partial: Partial<DragStartEvent> = {
+		active: { id } as DragStartEvent['active'],
+	}
+
+	return partial as DragStartEvent
 }
 
 function makeDragEvent(activeId: string, overId: string | null): DragOverEvent & DragEndEvent {
-	return {
-		active: { id: activeId },
-		over: overId ? { id: overId } : null,
-	} as unknown as DragOverEvent & DragEndEvent
+	const partial: Partial<DragOverEvent & DragEndEvent> = {
+		active: { id: activeId } as DragOverEvent['active'],
+		over: overId ? ({ id: overId } as DragOverEvent['over']) : null,
+	}
+
+	return partial as DragOverEvent & DragEndEvent
 }
 
 describe('useKanbanDrag: state', () => {

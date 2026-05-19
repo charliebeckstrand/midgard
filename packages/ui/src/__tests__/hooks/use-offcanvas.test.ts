@@ -44,6 +44,29 @@ describe('useOffcanvas', () => {
 	})
 })
 
+function stubBreakpoint(value: string): void {
+	const partial: Partial<CSSStyleDeclaration> = { getPropertyValue: () => value }
+
+	const impl: typeof window.getComputedStyle = () => partial as CSSStyleDeclaration
+
+	window.getComputedStyle = impl
+}
+
+type MqlMock = Pick<
+	MediaQueryList,
+	'matches' | 'media' | 'addEventListener' | 'removeEventListener'
+>
+
+function stubMatchMedia(mql: MqlMock): ReturnType<typeof vi.fn> {
+	const partial: Partial<MediaQueryList> = mql
+
+	const spy = vi.fn((_query: string): MediaQueryList => partial as MediaQueryList)
+
+	window.matchMedia = spy
+
+	return spy
+}
+
 describe('useOffcanvas — breakpoint listener', () => {
 	const originalGetComputedStyle = window.getComputedStyle
 	const originalMatchMedia = window.matchMedia
@@ -65,11 +88,8 @@ describe('useOffcanvas — breakpoint listener', () => {
 			removeEventListener: vi.fn(),
 		}
 
-		window.getComputedStyle = (() => ({
-			getPropertyValue: () => '1024px',
-		})) as unknown as typeof window.getComputedStyle
-
-		window.matchMedia = vi.fn(() => mqlMock) as unknown as typeof window.matchMedia
+		stubBreakpoint('1024px')
+		stubMatchMedia(mqlMock)
 
 		const { result } = renderHook(() => useOffcanvas())
 
@@ -100,11 +120,8 @@ describe('useOffcanvas — breakpoint listener', () => {
 			removeEventListener: vi.fn(),
 		}
 
-		window.getComputedStyle = (() => ({
-			getPropertyValue: () => '1024px',
-		})) as unknown as typeof window.getComputedStyle
-
-		window.matchMedia = vi.fn(() => mqlMock) as unknown as typeof window.matchMedia
+		stubBreakpoint('1024px')
+		stubMatchMedia(mqlMock)
 
 		const { result } = renderHook(() => useOffcanvas())
 
@@ -120,13 +137,11 @@ describe('useOffcanvas — breakpoint listener', () => {
 	})
 
 	it('bails when --breakpoint-lg is undefined', () => {
-		window.getComputedStyle = (() => ({
-			getPropertyValue: () => '',
-		})) as unknown as typeof window.getComputedStyle
+		stubBreakpoint('')
 
 		const matchMediaSpy = vi.fn()
 
-		window.matchMedia = matchMediaSpy as unknown as typeof window.matchMedia
+		window.matchMedia = matchMediaSpy as typeof window.matchMedia
 
 		renderHook(() => useOffcanvas())
 
@@ -141,11 +156,8 @@ describe('useOffcanvas — breakpoint listener', () => {
 			removeEventListener: vi.fn(),
 		}
 
-		window.getComputedStyle = (() => ({
-			getPropertyValue: () => '1024px',
-		})) as unknown as typeof window.getComputedStyle
-
-		window.matchMedia = vi.fn(() => mqlMock) as unknown as typeof window.matchMedia
+		stubBreakpoint('1024px')
+		stubMatchMedia(mqlMock)
 
 		const { unmount } = renderHook(() => useOffcanvas())
 

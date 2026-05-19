@@ -20,11 +20,13 @@ if (typeof window.matchMedia !== 'function') {
 }
 
 if (typeof window.ResizeObserver !== 'function') {
-	window.ResizeObserver = class ResizeObserver {
-		observe() {}
-		unobserve() {}
-		disconnect() {}
-	} as unknown as typeof window.ResizeObserver
+	class StubResizeObserver implements ResizeObserver {
+		observe(_target: Element, _options?: ResizeObserverOptions): void {}
+		unobserve(_target: Element): void {}
+		disconnect(): void {}
+	}
+
+	window.ResizeObserver = StubResizeObserver
 }
 
 if (typeof Element.prototype.scrollIntoView !== 'function') {

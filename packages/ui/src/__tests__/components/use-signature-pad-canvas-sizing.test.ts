@@ -2,6 +2,7 @@ import { renderHook } from '@testing-library/react'
 import { type RefObject, useRef } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { useSignaturePadCanvasSizing } from '../../components/signature-pad/use-signature-pad-canvas-sizing'
+import { makeCanvasContext } from '../helpers'
 
 type ContainerRef = RefObject<HTMLDivElement | null>
 type CanvasRef = RefObject<HTMLCanvasElement | null>
@@ -15,14 +16,7 @@ function setup(opts: {
 	const containerSize =
 		opts.containerSize === undefined ? { width: 320, height: 80 } : opts.containerSize
 
-	const context = {
-		scale: vi.fn(),
-		lineCap: '',
-		lineJoin: '',
-		strokeStyle: '',
-		lineWidth: 0,
-		drawImage: vi.fn(),
-	} as unknown as CanvasRenderingContext2D
+	const context = makeCanvasContext({ scale: vi.fn() })
 
 	const canvas = opts.canvasNull ? null : document.createElement('canvas')
 

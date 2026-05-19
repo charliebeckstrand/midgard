@@ -7,7 +7,7 @@ import {
 	drawSnapshot,
 	getCanvasPoint,
 } from '../../components/signature-pad/signature-pad-utilities'
-import { bySlot, renderUI, screen } from '../helpers'
+import { bySlot, makeCanvasContext, renderUI, screen } from '../helpers'
 
 describe('SignaturePad', () => {
 	it('renders with data-slot="signature-pad"', () => {
@@ -124,12 +124,7 @@ describe('getCanvasPoint', () => {
 
 describe('configureStroke', () => {
 	it('assigns stroke properties to the context', () => {
-		const context = {
-			lineCap: '',
-			lineJoin: '',
-			strokeStyle: '',
-			lineWidth: 0,
-		} as unknown as CanvasRenderingContext2D
+		const context = makeCanvasContext()
 
 		configureStroke(context, '#ff0000', 3)
 
@@ -157,10 +152,7 @@ describe('drawSnapshot', () => {
 
 		const drawImage = vi.fn()
 
-		canvas.getContext = (() =>
-			({
-				drawImage,
-			}) as unknown as CanvasRenderingContext2D) as unknown as HTMLCanvasElement['getContext']
+		vi.spyOn(canvas, 'getContext').mockReturnValue(makeCanvasContext({ drawImage }))
 
 		canvas.getBoundingClientRect = () => ({ width: 200, height: 80 }) as DOMRect
 
@@ -171,7 +163,7 @@ describe('drawSnapshot', () => {
 		window.Image = class extends Original {
 			constructor() {
 				super()
-				captured = this as unknown as HTMLImageElement
+				captured = this
 			}
 		} as typeof Image
 

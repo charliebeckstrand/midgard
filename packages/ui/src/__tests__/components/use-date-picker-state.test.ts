@@ -1,6 +1,7 @@
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { useDatePickerState } from '../../components/date-picker/use-date-picker-state'
+import { makeKeyEvent } from '../helpers'
 
 const Jan1 = new Date(2025, 0, 1)
 const Jan15 = new Date(2025, 0, 15)
@@ -135,13 +136,8 @@ describe('useDatePickerState', () => {
 	})
 
 	describe('keyboard delegation', () => {
-		function fakeKey(key: string, shift = false): React.KeyboardEvent<HTMLElement> {
-			return {
-				key,
-				shiftKey: shift,
-				preventDefault: () => {},
-			} as unknown as React.KeyboardEvent<HTMLElement>
-		}
+		const fakeKey = (key: string, shift = false) =>
+			makeKeyEvent<HTMLElement>(key, { shiftKey: shift })
 
 		it('opens the calendar when ArrowDown is pressed on a closed trigger', () => {
 			const { result } = renderHook(() => useDatePickerState({}))
@@ -199,12 +195,7 @@ describe('useDatePickerState', () => {
 			)
 
 			// Open and trigger a grid materialisation to expose the initial active date.
-			const fakeKey = (k: string): React.KeyboardEvent<HTMLElement> =>
-				({
-					key: k,
-					shiftKey: false,
-					preventDefault: () => {},
-				}) as unknown as React.KeyboardEvent<HTMLElement>
+			const fakeKey = (k: string) => makeKeyEvent<HTMLElement>(k)
 
 			act(() => {
 				result.current.onTriggerKeyDown(fakeKey('ArrowDown'))

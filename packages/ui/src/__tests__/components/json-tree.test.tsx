@@ -128,19 +128,19 @@ describe('JsonTree', () => {
 	})
 
 	it('renders a primitive string root as a single leaf row', () => {
-		renderUI(<JsonTree data={'Ada' as unknown as Parameters<typeof JsonTree>[0]['data']} />)
+		renderUI(<JsonTree data="Ada" />)
 
 		expect(screen.getByText('"Ada"')).toBeInTheDocument()
 	})
 
 	it('renders a primitive number root as a single leaf row', () => {
-		renderUI(<JsonTree data={42 as unknown as Parameters<typeof JsonTree>[0]['data']} />)
+		renderUI(<JsonTree data={42} />)
 
 		expect(screen.getByText('42')).toBeInTheDocument()
 	})
 
 	it('renders a primitive boolean root as a single leaf row', () => {
-		renderUI(<JsonTree data={true as unknown as Parameters<typeof JsonTree>[0]['data']} />)
+		renderUI(<JsonTree data={true} />)
 
 		expect(screen.getByText('true')).toBeInTheDocument()
 	})

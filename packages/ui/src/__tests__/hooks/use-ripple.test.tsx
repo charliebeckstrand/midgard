@@ -1,15 +1,10 @@
 import { act, renderHook } from '@testing-library/react'
-import type { PointerEvent } from 'react'
 import { describe, expect, it } from 'vitest'
 import { useRipple } from '../../hooks/use-ripple'
-import { renderUI } from '../helpers'
+import { makePointerEvent, renderUI } from '../helpers'
 
-function makePointerEvent(target: HTMLElement, clientX = 0, clientY = 0) {
-	return {
-		currentTarget: target,
-		clientX,
-		clientY,
-	} as unknown as PointerEvent<HTMLElement>
+function ripplePointerEvent(target: HTMLElement, clientX = 0, clientY = 0) {
+	return makePointerEvent<HTMLElement>({ currentTarget: target, clientX, clientY })
 }
 
 describe('useRipple', () => {
@@ -39,7 +34,7 @@ describe('useRipple', () => {
 		host.getBoundingClientRect = () => ({ left: 10, top: 20, width: 100, height: 50 }) as DOMRect
 
 		act(() => {
-			result.current.onPointerDown(makePointerEvent(host, 30, 40))
+			result.current.onPointerDown(ripplePointerEvent(host, 30, 40))
 		})
 
 		rerender()
@@ -60,7 +55,7 @@ describe('useRipple', () => {
 		host.getBoundingClientRect = () => ({ left: 0, top: 0, width: 40, height: 80 }) as DOMRect
 
 		act(() => {
-			result.current.onPointerDown(makePointerEvent(host, 10, 10))
+			result.current.onPointerDown(ripplePointerEvent(host, 10, 10))
 		})
 
 		rerender()

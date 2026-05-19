@@ -1,34 +1,39 @@
 import { act, renderHook } from '@testing-library/react'
-import type { ChangeEvent, DragEvent } from 'react'
+import type { DragEvent } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { useFileUploadHandlers } from '../../components/file-upload/use-file-upload-handlers'
+import { makeChangeEvent } from '../helpers'
 
 function makeFile(name = 'a.txt') {
 	return new File(['hello'], name, { type: 'text/plain' })
 }
 
 function makeFileList(files: File[]): FileList {
-	const list = {
+	const iterator: () => ArrayIterator<File> = () => files[Symbol.iterator]()
+
+	const partial: Partial<FileList> & Record<number, File> = {
 		length: files.length,
 		item: (i: number) => files[i] ?? null,
-		*[Symbol.iterator]() {
-			for (const f of files) yield f
-		},
-	} as unknown as FileList
-
-	for (let i = 0; i < files.length; i++) {
-		;(list as unknown as Record<number, File>)[i] = files[i] as File
+		[Symbol.iterator]: iterator,
 	}
 
-	return list
+	for (let i = 0; i < files.length; i++) {
+		partial[i] = files[i] as File
+	}
+
+	return partial as FileList
 }
 
 function makeDragEvent(files: File[] = []): DragEvent {
-	return {
+	const dataTransfer: Partial<DataTransfer> = { files: makeFileList(files) }
+
+	const partial: Partial<DragEvent> = {
 		preventDefault: vi.fn(),
 		stopPropagation: vi.fn(),
-		dataTransfer: { files: makeFileList(files) },
-	} as unknown as DragEvent
+		dataTransfer: dataTransfer as DataTransfer,
+	}
+
+	return partial as DragEvent
 }
 
 describe('useFileUploadHandlers', () => {
@@ -83,9 +88,9 @@ describe('useFileUploadHandlers', () => {
 
 		const file = makeFile()
 
-		const event = {
-			target: { files: makeFileList([file]) },
-		} as unknown as ChangeEvent<HTMLInputElement>
+		const event = makeChangeEvent<HTMLInputElement>({
+			target: { files: makeFileList([file]) } as HTMLInputElement,
+		})
 
 		act(() => {
 			result.current.handleChange(event)
@@ -101,9 +106,9 @@ describe('useFileUploadHandlers', () => {
 
 		const { result } = renderHook(() => useFileUploadHandlers({ onFiles }))
 
-		const event = {
-			target: { files: null },
-		} as unknown as ChangeEvent<HTMLInputElement>
+		const event = makeChangeEvent<HTMLInputElement>({
+			target: { files: null } as HTMLInputElement,
+		})
 
 		act(() => {
 			result.current.handleChange(event)

@@ -15,6 +15,7 @@ vi.mock('pdfjs-dist', () => ({
 }))
 
 import { usePdfViewerDocument } from '../../components/pdf-viewer/use-pdf-viewer-document'
+import { makeCanvasContext } from '../helpers'
 
 const originalFetch = globalThis.fetch
 const originalCreateObjectURL = globalThis.URL.createObjectURL
@@ -52,10 +53,7 @@ describe('usePdfViewerDocument', () => {
 	})
 
 	it('resets to the empty state when src is removed after a value', () => {
-		globalThis.fetch = vi.fn().mockResolvedValue({
-			ok: false,
-			status: 500,
-		} as unknown as Response)
+		globalThis.fetch = vi.fn().mockResolvedValue(new Response(null, { status: 500 }))
 
 		const { result, rerender } = renderHook(
 			({ src }: { src: string | undefined }) => usePdfViewerDocument(src),
@@ -72,10 +70,7 @@ describe('usePdfViewerDocument', () => {
 	})
 
 	it('sets an error when the fetch response is not ok', async () => {
-		globalThis.fetch = vi.fn().mockResolvedValue({
-			ok: false,
-			status: 404,
-		} as unknown as Response)
+		globalThis.fetch = vi.fn().mockResolvedValue(new Response(null, { status: 404 }))
 
 		const { result } = renderHook(() => usePdfViewerDocument('/missing.pdf'))
 
@@ -101,11 +96,7 @@ describe('usePdfViewerDocument', () => {
 	})
 
 	it('builds a documentUrl + pages from a successful pdfjs render', async () => {
-		globalThis.fetch = vi.fn().mockResolvedValue({
-			ok: true,
-			status: 200,
-			arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)),
-		} as unknown as Response)
+		globalThis.fetch = vi.fn().mockResolvedValue(new Response(new ArrayBuffer(8)))
 
 		const renderPromise = Promise.resolve()
 
@@ -123,12 +114,13 @@ describe('usePdfViewerDocument', () => {
 		getDocumentMock.mockReturnValue({ promise: Promise.resolve(doc) })
 
 		// Stub HTMLCanvasElement so render() can run.
-		HTMLCanvasElement.prototype.getContext = vi.fn(
-			() => ({ drawImage: vi.fn() }) as unknown as CanvasRenderingContext2D,
-		) as unknown as HTMLCanvasElement['getContext']
+		const canvasContext = makeCanvasContext({ drawImage: vi.fn() })
 
-		HTMLCanvasElement.prototype.toBlob = ((cb: (b: Blob | null) => void) =>
-			cb(new Blob([], { type: 'image/png' }))) as unknown as HTMLCanvasElement['toBlob']
+		vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(canvasContext)
+
+		const stubToBlob: HTMLCanvasElement['toBlob'] = (cb) => cb(new Blob([], { type: 'image/png' }))
+
+		HTMLCanvasElement.prototype.toBlob = stubToBlob
 
 		const { result } = renderHook(() => usePdfViewerDocument('/doc.pdf'))
 
