@@ -13,6 +13,8 @@ export function useToastTimer(
 
 	const startRef = useRef(0)
 
+	const pausedRef = useRef(false)
+
 	const startTimer = useCallback(() => {
 		clearTimeout(timerRef.current)
 
@@ -22,6 +24,8 @@ export function useToastTimer(
 	}, [start])
 
 	const pause = useCallback(() => {
+		pausedRef.current = true
+
 		const elapsed = Date.now() - startRef.current
 
 		remainingRef.current = Math.max(remainingRef.current - elapsed, 0)
@@ -31,6 +35,8 @@ export function useToastTimer(
 	}, [stop])
 
 	const resume = useCallback(() => {
+		pausedRef.current = false
+
 		if (toastsRef.current.length > 0) startTimer()
 	}, [toastsRef, startTimer])
 
@@ -41,5 +47,19 @@ export function useToastTimer(
 		[duration],
 	)
 
-	return { remainingRef, startTimer, pause, resume, resetRemaining }
+	// Restore the full duration and restart the timer — unless the viewport
+	// is paused (mouse still hovered), in which case `resume()` will pick up
+	// the new remaining when the user moves away.
+	const reset = useCallback(
+		(ms?: number) => {
+			remainingRef.current = ms ?? duration
+
+			if (pausedRef.current || toastsRef.current.length === 0) return
+
+			startTimer()
+		},
+		[duration, startTimer, toastsRef],
+	)
+
+	return { remainingRef, startTimer, pause, resume, resetRemaining, reset }
 }

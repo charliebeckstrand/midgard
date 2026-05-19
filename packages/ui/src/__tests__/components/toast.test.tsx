@@ -188,6 +188,41 @@ describe('Toast: useToast behavior', () => {
 		expect(screen.queryByText('Fast')).not.toBeInTheDocument()
 	})
 
+	it('resets the dismiss timer when the toast is clicked', () => {
+		let api: ReturnType<typeof useToast> | null = null
+
+		renderUI(
+			<ToastProvider duration={1000}>
+				<Trigger onReady={(context) => (api = context)} />
+				<Toast />
+			</ToastProvider>,
+		)
+
+		act(() => {
+			api?.toast({ title: 'Clickable' })
+		})
+
+		const title = screen.getByText('Clickable')
+
+		act(() => {
+			vi.advanceTimersByTime(800)
+		})
+
+		fireEvent.click(title)
+
+		act(() => {
+			vi.advanceTimersByTime(800)
+		})
+
+		expect(screen.getByText('Clickable')).toBeInTheDocument()
+
+		act(() => {
+			vi.advanceTimersByTime(500)
+		})
+
+		expect(screen.queryByText('Clickable')).not.toBeInTheDocument()
+	})
+
 	it('pauses the timer on hover and resumes on leave', () => {
 		let api: ReturnType<typeof useToast> | null = null
 

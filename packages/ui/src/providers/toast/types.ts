@@ -6,6 +6,7 @@ export type ToastPosition = 'top-right' | 'top-left' | 'bottom-right' | 'bottom-
 export type ToastData = {
 	id: string
 	zIndex: number
+	duration: number
 	title: string
 	description?: string
 	type?: ToastType
@@ -15,4 +16,4 @@ export type ToastData = {
 	dismissed?: boolean
 }
 
-export type ToastInput = Omit<ToastData, 'id' | 'zIndex'> & { duration?: number }
+export type ToastInput = Omit<ToastData, 'id' | 'zIndex' | 'duration'> & { duration?: number }

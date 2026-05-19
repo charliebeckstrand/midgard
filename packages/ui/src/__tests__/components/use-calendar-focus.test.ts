@@ -1,7 +1,11 @@
 import { renderHook } from '@testing-library/react'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { useCalendarFocus } from '../../components/calendar/use-calendar-focus'
 import { makeKeyEvent } from '../helpers'
+
+afterEach(() => {
+	document.body.innerHTML = ''
+})
 
 function makeContainer(buttonCount: number) {
 	const el = document.createElement('div')

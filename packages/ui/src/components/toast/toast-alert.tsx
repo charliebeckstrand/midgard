@@ -33,6 +33,7 @@ type ToastAlertProps = {
 	onOpenChange: (open: boolean, id: string) => void
 	onPause: () => void
 	onResume: () => void
+	onReset: (id: string) => void
 }
 
 export function ToastAlert({
@@ -42,6 +43,7 @@ export function ToastAlert({
 	onOpenChange,
 	onPause,
 	onResume,
+	onReset,
 }: ToastAlertProps) {
 	const motionConfig = getToastMotion(position)
 
@@ -67,6 +69,7 @@ export function ToastAlert({
 				transition={t.dismissed ? { duration: 0.15 } : motionConfig.transition}
 				onMouseEnter={onPause}
 				onMouseLeave={onResume}
+				onClick={() => onReset(t.id)}
 			>
 				<Alert
 					variant={variant}
