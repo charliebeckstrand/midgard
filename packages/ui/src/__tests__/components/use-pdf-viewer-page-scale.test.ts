@@ -18,6 +18,7 @@ describe('usePdfViewerPageScale', () => {
 		)
 
 		expect(result.current.imageW).toBeUndefined()
+
 		expect(result.current.imageH).toBeUndefined()
 	})
 
@@ -62,6 +63,7 @@ describe('usePdfViewerPageScale', () => {
 		)
 
 		expect(result.current.imageW).toBe(300)
+
 		expect(result.current.imageH).toBe(600)
 	})
 
@@ -77,6 +79,7 @@ describe('usePdfViewerPageScale', () => {
 		)
 
 		expect(result.current.imageW).toBe(600)
+
 		expect(result.current.imageH).toBe(1200)
 	})
 
@@ -93,7 +96,9 @@ describe('usePdfViewerPageScale', () => {
 
 		// frameW takes the image height; aspectRatio swaps too
 		expect(result.current.frameW).toBe(result.current.imageH)
+
 		expect(result.current.frameH).toBe(result.current.imageW)
+
 		expect(result.current.aspectRatio).toBe(`${page.height} / ${page.width}`)
 	})
 })

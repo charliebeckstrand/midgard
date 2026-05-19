@@ -28,7 +28,9 @@ describe('setActiveItem', () => {
 		setActiveItem(container, items[1] as HTMLElement)
 
 		expect(items[0]?.tabIndex).toBe(-1)
+
 		expect(items[1]?.tabIndex).toBe(0)
+
 		expect(items[2]?.tabIndex).toBe(-1)
 	})
 })
@@ -40,7 +42,9 @@ describe('ensureFirstItemActive', () => {
 		ensureFirstItemActive(container)
 
 		expect(items[0]?.tabIndex).toBe(0)
+
 		expect(items[1]?.tabIndex).toBe(-1)
+
 		expect(items[2]?.tabIndex).toBe(-1)
 	})
 
@@ -52,6 +56,7 @@ describe('ensureFirstItemActive', () => {
 		ensureFirstItemActive(container)
 
 		expect(items[0]?.tabIndex).toBe(-1)
+
 		expect(items[2]?.tabIndex).toBe(0)
 	})
 

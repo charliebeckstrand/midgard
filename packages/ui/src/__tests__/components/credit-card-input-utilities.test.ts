@@ -9,6 +9,7 @@ import {
 describe('detectCardBrand', () => {
 	it('detects Amex from a 34/37 prefix', () => {
 		expect(detectCardBrand('378282246310005')?.brand).toBe('amex')
+
 		expect(detectCardBrand('342824631000510')?.brand).toBe('amex')
 	})
 
@@ -89,11 +90,13 @@ describe('formatCardNumber', () => {
 describe('formatExpiry', () => {
 	it('returns an empty string when no digits are present', () => {
 		expect(formatExpiry('')).toBe('')
+
 		expect(formatExpiry('--')).toBe('')
 	})
 
 	it('keeps a single digit "0" or "1" without auto-prefixing', () => {
 		expect(formatExpiry('0')).toBe('0')
+
 		expect(formatExpiry('1')).toBe('1')
 	})
 

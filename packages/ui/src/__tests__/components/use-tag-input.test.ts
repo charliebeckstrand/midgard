@@ -23,6 +23,7 @@ describe('useTagInput', () => {
 		})
 
 		expect(ok).toBe(true)
+
 		expect(result.current.tags).toEqual(['a', 'b'])
 	})
 
@@ -36,6 +37,7 @@ describe('useTagInput', () => {
 		})
 
 		expect(ok).toBe(false)
+
 		expect(result.current.tags).toEqual([])
 	})
 
@@ -49,6 +51,7 @@ describe('useTagInput', () => {
 		})
 
 		expect(ok).toBe(false)
+
 		expect(result.current.tags).toEqual(['a'])
 	})
 
@@ -64,6 +67,7 @@ describe('useTagInput', () => {
 		})
 
 		expect(ok).toBe(false)
+
 		expect(result.current.tags).toEqual(['a', 'b'])
 	})
 
@@ -79,7 +83,9 @@ describe('useTagInput', () => {
 		})
 
 		expect(ok).toBe(false)
+
 		expect(validate).toHaveBeenCalledWith('hi')
+
 		expect(result.current.tags).toEqual([])
 	})
 

@@ -77,7 +77,9 @@ describe('getCalendarDays', () => {
 		const days = getCalendarDays(2024, 8) // September 2024
 
 		expect(days).toHaveLength(30)
+
 		expect(days[0]?.getDate()).toBe(1)
+
 		expect(days.at(-1)?.getDate()).toBe(30)
 	})
 
@@ -97,6 +99,7 @@ describe('getCalendarDays', () => {
 		const [first] = getCalendarDays(2024, 5)
 
 		expect(first?.getFullYear()).toBe(2024)
+
 		expect(first?.getMonth()).toBe(5)
 	})
 })

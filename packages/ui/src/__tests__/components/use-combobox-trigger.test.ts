@@ -5,9 +5,13 @@ import { makePointerEvent } from '../helpers'
 
 function setup(open: boolean) {
 	const close = vi.fn()
+
 	const setOpen = vi.fn()
+
 	const input = document.createElement('input')
+
 	const focus = vi.spyOn(input, 'focus')
+
 	const select = vi.spyOn(input, 'select')
 
 	const { result } = renderHook(() =>
@@ -31,7 +35,9 @@ describe('useComboboxTrigger', () => {
 		handler(event)
 
 		expect(event.preventDefault).toHaveBeenCalled()
+
 		expect(close).toHaveBeenCalled()
+
 		expect(setOpen).not.toHaveBeenCalled()
 	})
 
@@ -43,9 +49,13 @@ describe('useComboboxTrigger', () => {
 		handler(event)
 
 		expect(event.preventDefault).toHaveBeenCalled()
+
 		expect(focus).toHaveBeenCalled()
+
 		expect(select).toHaveBeenCalled()
+
 		expect(setOpen).toHaveBeenCalledWith(true)
+
 		expect(close).not.toHaveBeenCalled()
 	})
 })

@@ -21,6 +21,7 @@ describe('escapeRegExp', () => {
 describe('isMeaningful', () => {
 	it('treats digits as meaningful', () => {
 		expect(isMeaningful('0', '.')).toBe(true)
+
 		expect(isMeaningful('9', '.')).toBe(true)
 	})
 
@@ -30,11 +31,13 @@ describe('isMeaningful', () => {
 
 	it('treats the configured decimal separator as meaningful', () => {
 		expect(isMeaningful('.', '.')).toBe(true)
+
 		expect(isMeaningful(',', ',')).toBe(true)
 	})
 
 	it('rejects group separators and other characters', () => {
 		expect(isMeaningful(',', '.')).toBe(false)
+
 		expect(isMeaningful(' ', '.')).toBe(false)
 	})
 })

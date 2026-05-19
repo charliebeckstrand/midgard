@@ -28,7 +28,9 @@ describe('createRule', () => {
 		const rule = createRule(textField)
 
 		expect(rule.type).toBe('rule')
+
 		expect(rule.combinator).toBe('and')
+
 		expect(rule.field).toBe('title')
 	})
 
@@ -42,8 +44,11 @@ describe('createRule', () => {
 
 	it('defaults the value per field type', () => {
 		expect(createRule(textField).value).toBe('')
+
 		expect(createRule(numberField).value).toBe('')
+
 		expect(createRule(selectField).value).toBe('admin')
+
 		expect(createRule(booleanField).value).toBeNull()
 	})
 
@@ -51,11 +56,13 @@ describe('createRule', () => {
 		const rule = createRule()
 
 		expect(rule.field).toBe('')
+
 		expect(rule.operator).toBe('')
 	})
 
 	it('mints unique ids across calls', () => {
 		const a = createRule(textField)
+
 		const b = createRule(textField)
 
 		expect(a.id).not.toBe(b.id)
@@ -67,15 +74,19 @@ describe('createGroup', () => {
 		const group = createGroup()
 
 		expect(group.type).toBe('group')
+
 		expect(group.combinator).toBe('and')
+
 		expect(group.children).toEqual([])
 	})
 
 	it('honors the supplied combinator and children', () => {
 		const child = createRule(textField)
+
 		const group = createGroup('or', [child])
 
 		expect(group.combinator).toBe('or')
+
 		expect(group.children).toEqual([child])
 	})
 })
@@ -108,6 +119,7 @@ describe('hasRules', () => {
 
 	it('returns true when a rule is nested inside a child group', () => {
 		const inner = createGroup('and', [createRule(textField)])
+
 		const outer = createGroup('and', [inner])
 
 		expect(hasRules(outer)).toBe(true)
@@ -121,6 +133,7 @@ describe('hasRules', () => {
 describe('mapNode', () => {
 	it('replaces a top-level node identified by id', () => {
 		const rule = createRule(textField)
+
 		const tree = createGroup('and', [rule])
 
 		const replacement: QueryRule = { ...rule, field: 'replaced' }
@@ -132,7 +145,9 @@ describe('mapNode', () => {
 
 	it('replaces a node nested inside a child group', () => {
 		const rule = createRule(textField)
+
 		const inner = createGroup('and', [rule])
+
 		const tree = createGroup('and', [inner])
 
 		const replacement: QueryRule = { ...rule, field: 'replaced' }
@@ -162,6 +177,7 @@ describe('addChild', () => {
 
 	it('appends inside a nested group', () => {
 		const inner = createGroup()
+
 		const tree = createGroup('and', [inner])
 
 		const rule = createRule(textField)
@@ -183,6 +199,7 @@ describe('addChild', () => {
 describe('removeChild', () => {
 	it('removes a top-level child by id', () => {
 		const rule = createRule(textField)
+
 		const tree = createGroup('and', [rule])
 
 		expect(removeChild(tree, rule.id).children).toEqual([])
@@ -190,7 +207,9 @@ describe('removeChild', () => {
 
 	it('removes a deeply nested child', () => {
 		const rule = createRule(textField)
+
 		const inner = createGroup('and', [rule])
+
 		const tree = createGroup('and', [inner])
 
 		const next = removeChild(tree, rule.id)

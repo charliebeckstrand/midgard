@@ -18,6 +18,7 @@ describe('usePivotTable', () => {
 		const { result } = renderHook(() => usePivotTable(data, keys))
 
 		expect(result.current.rows).toEqual(expect.arrayContaining(['NA', 'EU']))
+
 		expect(result.current.columns).toEqual(expect.arrayContaining(['Q1', 'Q2']))
 	})
 
@@ -27,6 +28,7 @@ describe('usePivotTable', () => {
 		)
 
 		expect(result.current.rows).toEqual(['EU', 'NA'])
+
 		expect(result.current.columns).toEqual(['Q2', 'Q1'])
 	})
 
@@ -34,6 +36,7 @@ describe('usePivotTable', () => {
 		const { result } = renderHook(() => usePivotTable(data, keys))
 
 		expect(result.current.cellValue('NA', 'Q1')).toBe(100)
+
 		expect(result.current.cellValue('NA', 'Q2')).toBe(50)
 	})
 
@@ -47,7 +50,9 @@ describe('usePivotTable', () => {
 		const { result } = renderHook(() => usePivotTable(data, keys))
 
 		expect(result.current.rowTotal('NA')).toBe(150)
+
 		expect(result.current.colTotals).toEqual(expect.arrayContaining([175, 175]))
+
 		expect(result.current.grandTotal).toBe(350)
 	})
 
@@ -55,7 +60,9 @@ describe('usePivotTable', () => {
 		const { result } = renderHook(() => usePivotTable(data, keys, { aggregation: 'count' }))
 
 		expect(result.current.cellValue('NA', 'Q1')).toBe(1)
+
 		expect(result.current.rowTotal('NA')).toBe(2)
+
 		expect(result.current.grandTotal).toBe(4)
 	})
 })

@@ -42,7 +42,9 @@ describe('handlePasswordInput', () => {
 
 	it('writes the value, name, and lastEdited when the password input changes', () => {
 		const setPassword = vi.fn()
+
 		const setPasswordName = vi.fn()
+
 		const setLastEdited = vi.fn()
 
 		const input = document.createElement('input')
@@ -53,13 +55,17 @@ describe('handlePasswordInput', () => {
 		handlePasswordInput(makeEvent(input), setPassword, setPasswordName, setLastEdited)
 
 		expect(setPassword).toHaveBeenCalledWith('hunter2')
+
 		expect(setPasswordName).toHaveBeenCalledWith('password')
+
 		expect(setLastEdited).toHaveBeenCalledWith('password')
 	})
 
 	it('treats a missing name attribute as undefined', () => {
 		const setPassword = vi.fn()
+
 		const setPasswordName = vi.fn()
+
 		const setLastEdited = vi.fn()
 
 		const input = document.createElement('input')
@@ -73,7 +79,9 @@ describe('handlePasswordInput', () => {
 
 	it('ignores the confirm input identified by data-password-confirm-input', () => {
 		const setPassword = vi.fn()
+
 		const setPasswordName = vi.fn()
+
 		const setLastEdited = vi.fn()
 
 		const input = document.createElement('input')
@@ -84,13 +92,17 @@ describe('handlePasswordInput', () => {
 		handlePasswordInput(makeEvent(input), setPassword, setPasswordName, setLastEdited)
 
 		expect(setPassword).not.toHaveBeenCalled()
+
 		expect(setPasswordName).not.toHaveBeenCalled()
+
 		expect(setLastEdited).not.toHaveBeenCalled()
 	})
 
 	it('ignores targets that are not HTMLInputElement', () => {
 		const setPassword = vi.fn()
+
 		const setPasswordName = vi.fn()
+
 		const setLastEdited = vi.fn()
 
 		const div = document.createElement('div')
@@ -98,7 +110,9 @@ describe('handlePasswordInput', () => {
 		handlePasswordInput(makeEvent(div), setPassword, setPasswordName, setLastEdited)
 
 		expect(setPassword).not.toHaveBeenCalled()
+
 		expect(setPasswordName).not.toHaveBeenCalled()
+
 		expect(setLastEdited).not.toHaveBeenCalled()
 	})
 })

@@ -9,7 +9,9 @@ describe('useCommandPaletteState', () => {
 		)
 
 		expect(result.current.query).toBe('')
+
 		expect(typeof result.current.listboxId).toBe('string')
+
 		expect(result.current.listboxId.length).toBeGreaterThan(0)
 	})
 

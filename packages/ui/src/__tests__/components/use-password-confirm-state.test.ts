@@ -7,7 +7,9 @@ describe('usePasswordConfirmState', () => {
 		const { result } = renderHook(() => usePasswordConfirmState())
 
 		expect(result.current.password).toBe('')
+
 		expect(result.current.confirm).toBe('')
+
 		expect(result.current.status).toBe('idle')
 	})
 
@@ -16,6 +18,7 @@ describe('usePasswordConfirmState', () => {
 
 		act(() => {
 			result.current.setPassword('hunter2')
+
 			result.current.setConfirm('hunt')
 		})
 
@@ -27,6 +30,7 @@ describe('usePasswordConfirmState', () => {
 
 		act(() => {
 			result.current.setPassword('hunter2')
+
 			result.current.setConfirm('hunter3')
 		})
 
@@ -38,6 +42,7 @@ describe('usePasswordConfirmState', () => {
 
 		act(() => {
 			result.current.setPassword('hunter2')
+
 			result.current.setConfirm('hunter3')
 		})
 
@@ -51,6 +56,7 @@ describe('usePasswordConfirmState', () => {
 
 		act(() => {
 			result.current.setPassword('hunter2')
+
 			result.current.setConfirm('hunter2')
 		})
 
@@ -64,6 +70,7 @@ describe('usePasswordConfirmState', () => {
 
 		act(() => {
 			result.current.setPassword('hunter2')
+
 			result.current.setConfirm('hunter3')
 		})
 
@@ -77,12 +84,14 @@ describe('usePasswordConfirmState', () => {
 
 		act(() => {
 			result.current.setPassword('hunter2')
+
 			result.current.setConfirm('hunter2')
 		})
 
 		expect(onPasswordMatch).toHaveBeenCalledOnce()
 
 		rerender()
+
 		rerender()
 
 		expect(onPasswordMatch).toHaveBeenCalledOnce()

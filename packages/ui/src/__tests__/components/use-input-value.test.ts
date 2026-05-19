@@ -8,6 +8,7 @@ import { useInputValue } from '../../components/input/use-input-value'
 describe('useInputValue', () => {
 	it('returns the supplied value when hasValueProp is true', () => {
 		const onChange = vi.fn()
+
 		const onBlur = vi.fn()
 
 		const { result } = renderHook(() =>
@@ -15,8 +16,11 @@ describe('useInputValue', () => {
 		)
 
 		expect(result.current.value).toBe('hello')
+
 		expect(result.current.onChange).toBe(onChange)
+
 		expect(result.current.onBlur).toBe(onBlur)
+
 		expect(result.current.binding).toBeUndefined()
 	})
 

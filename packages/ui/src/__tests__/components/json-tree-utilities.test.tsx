@@ -37,13 +37,17 @@ describe('normalizeSearch', () => {
 describe('isBranch', () => {
 	it('returns true for objects and arrays', () => {
 		expect(isBranch({})).toBe(true)
+
 		expect(isBranch([])).toBe(true)
 	})
 
 	it('returns false for primitives and null', () => {
 		expect(isBranch('s')).toBe(false)
+
 		expect(isBranch(0)).toBe(false)
+
 		expect(isBranch(true)).toBe(false)
+
 		expect(isBranch(null)).toBe(false)
 	})
 })
@@ -65,6 +69,7 @@ describe('getEntries', () => {
 
 	it('returns [] for primitives and null', () => {
 		expect(getEntries('s')).toEqual([])
+
 		expect(getEntries(null)).toEqual([])
 	})
 })
@@ -108,6 +113,7 @@ describe('buildSearchIndex', () => {
 		const index = buildSearchIndex(tree, 'needle')
 
 		expect(index.get(tree)).toBe(true)
+
 		expect(index.get(tree.outer)).toBe(true)
 	})
 
@@ -140,7 +146,9 @@ describe('collectPaths', () => {
 		const paths = collectPaths({ a: { b: 1 }, c: 2 })
 
 		expect(paths.has('$')).toBe(true)
+
 		expect(paths.has('$.a')).toBe(true)
+
 		expect(paths.has('$.c')).toBe(false) // 2 is a leaf, not a branch
 	})
 
@@ -148,6 +156,7 @@ describe('collectPaths', () => {
 		const paths = collectPaths({ a: { b: { c: 1 } } }, undefined, 1)
 
 		expect(paths.has('$')).toBe(true)
+
 		expect(paths.has('$.a')).toBe(false)
 	})
 
@@ -159,8 +168,11 @@ describe('collectPaths', () => {
 describe('valueType', () => {
 	it('maps each JSON primitive to its label', () => {
 		expect(valueType(null)).toBe('null')
+
 		expect(valueType('s')).toBe('string')
+
 		expect(valueType(1)).toBe('number')
+
 		expect(valueType(true)).toBe('boolean')
 	})
 })
@@ -172,6 +184,7 @@ describe('flattenTree', () => {
 		const nodes = flattenTree(tree, undefined, new Set(), '', false, new WeakMap())
 
 		expect(nodes).toHaveLength(1)
+
 		expect(nodes[0]?.kind).toBe('branch-open')
 	})
 

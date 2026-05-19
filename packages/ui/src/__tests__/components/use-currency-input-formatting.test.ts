@@ -7,8 +7,11 @@ describe('useCurrencyInputFormatting', () => {
 		const { result } = renderHook(() => useCurrencyInputFormatting({ locale: 'en-US' }))
 
 		expect(result.current.symbol).toBe('$')
+
 		expect(result.current.symbolIsPrefix).toBe(true)
+
 		expect(result.current.group).toBe(',')
+
 		expect(result.current.decimal).toBe('.')
 	})
 

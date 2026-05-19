@@ -19,7 +19,9 @@ describe('computeThumb', () => {
 		const thumb = computeThumb(0, 100, 400, 100)
 
 		expect(thumb.size).toBe(25)
+
 		expect(thumb.offset).toBe(0)
+
 		expect(thumb.visible).toBe(true)
 	})
 
@@ -58,6 +60,7 @@ describe('findScrollableAncestor', () => {
 
 	it('returns null when no ancestor is scrollable', () => {
 		const parent = document.createElement('div')
+
 		const child = document.createElement('div')
 
 		parent.appendChild(child)

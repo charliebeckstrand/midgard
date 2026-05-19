@@ -7,7 +7,9 @@ describe('usePdfViewerPageRotation', () => {
 		const { result } = renderHook(() => usePdfViewerPageRotation(1, 0))
 
 		expect(result.current.rotation).toBe(0)
+
 		expect(result.current.normalizedRotation).toBe(0)
+
 		expect(result.current.isTransposed).toBe(false)
 	})
 
@@ -17,7 +19,9 @@ describe('usePdfViewerPageRotation', () => {
 		act(() => result.current.rotate())
 
 		expect(result.current.rotation).toBe(90)
+
 		expect(result.current.normalizedRotation).toBe(90)
+
 		expect(result.current.isTransposed).toBe(true)
 	})
 
@@ -25,12 +29,17 @@ describe('usePdfViewerPageRotation', () => {
 		const { result } = renderHook(() => usePdfViewerPageRotation(1, 0))
 
 		act(() => result.current.rotate())
+
 		act(() => result.current.rotate())
+
 		act(() => result.current.rotate())
+
 		act(() => result.current.rotate())
 
 		expect(result.current.rotation).toBe(360)
+
 		expect(result.current.normalizedRotation).toBe(0)
+
 		expect(result.current.isTransposed).toBe(false)
 	})
 
