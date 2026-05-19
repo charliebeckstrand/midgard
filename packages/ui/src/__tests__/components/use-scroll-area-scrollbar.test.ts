@@ -288,5 +288,72 @@ describe('useScrollAreaScrollbar', () => {
 			// scrollTop must not be mutated after unmount.
 			expect(viewport.scrollTop).toBe(0)
 		})
+
+		it('drags the horizontal axis when axis="x"', () => {
+			const { hook, viewport } = setupHook('horizontal', 'visible')
+
+			mockGeometry(viewport, { scrollWidth: 400, clientWidth: 100, scrollHeight: 100 })
+
+			act(() => hook.result.current.handleScroll())
+
+			const handler = hook.result.current.startDrag('x')
+
+			act(() => {
+				handler(makePointerEvent<HTMLDivElement>({ clientX: 0, clientY: 0 }))
+			})
+
+			act(() => {
+				window.dispatchEvent(new PointerEvent('pointermove', { clientX: 5 }))
+			})
+
+			// Same geometry as the vertical drag test, but scrollLeft must move
+			// instead of scrollTop.
+			expect(viewport.scrollLeft).toBeGreaterThan(0)
+		})
+
+		it('cleans up a prior drag if startDrag is called again before pointerup', () => {
+			const { hook, viewport } = setupHook('vertical', 'visible')
+
+			act(() => hook.result.current.handleScroll())
+
+			const handler = hook.result.current.startDrag('y')
+
+			act(() => {
+				handler(makePointerEvent<HTMLDivElement>({ clientY: 0, clientX: 0 }))
+			})
+
+			// Restart the drag from a new origin — the prior cleanup runs first.
+			act(() => {
+				handler(makePointerEvent<HTMLDivElement>({ clientY: 50, clientX: 0 }))
+			})
+
+			act(() => {
+				window.dispatchEvent(new PointerEvent('pointermove', { clientY: 60 }))
+			})
+
+			// The new drag uses the new startClient = 50; delta = 10 → scrollTop 40.
+			expect(viewport.scrollTop).toBe(40)
+		})
+
+		it('clamps scale to 0 when the track has no room for the thumb', () => {
+			// trackSize - thumbSize <= 0 → scale = 0 → onMove leaves scrollTop alone.
+			const { hook, viewport, vTrack } = setupHook('vertical', 'visible')
+
+			act(() => hook.result.current.handleScroll())
+
+			mockGeometry(vTrack, { clientHeight: 10 })
+
+			const handler = hook.result.current.startDrag('y')
+
+			act(() => {
+				handler(makePointerEvent<HTMLDivElement>({ clientY: 0, clientX: 0 }))
+			})
+
+			act(() => {
+				window.dispatchEvent(new PointerEvent('pointermove', { clientY: 200 }))
+			})
+
+			expect(viewport.scrollTop).toBe(0)
+		})
 	})
 })

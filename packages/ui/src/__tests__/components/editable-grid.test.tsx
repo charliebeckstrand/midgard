@@ -461,4 +461,70 @@ describe('EditableGrid', () => {
 
 		expect(rendered.length).toBeLessThan(manyRows.length)
 	})
+
+	it('extends the selection on shift+click', () => {
+		const { container } = renderUI(
+			<EditableGrid
+				columns={columns}
+				rows={rows}
+				getRowKey={(row) => row.id}
+				onValueChange={() => {}}
+			/>,
+		)
+
+		const cells = allBySlot(container, 'editable-grid-cell')
+
+		// Anchor the active cell, then shift-click another to extend selection.
+		fireEvent.mouseDown(cells[1] as HTMLElement)
+
+		fireEvent.mouseDown(cells[3] as HTMLElement, { shiftKey: true })
+
+		expect(cells[3]).toHaveAttribute('data-active')
+	})
+
+	it('adds an extra cell to the selection on meta+click', () => {
+		const { container } = renderUI(
+			<EditableGrid
+				columns={columns}
+				rows={rows}
+				getRowKey={(row) => row.id}
+				onValueChange={() => {}}
+			/>,
+		)
+
+		const cells = allBySlot(container, 'editable-grid-cell')
+
+		fireEvent.mouseDown(cells[1] as HTMLElement)
+
+		fireEvent.mouseDown(cells[3] as HTMLElement, { metaKey: true })
+
+		// Meta+click moves focus to the new cell and keeps the prior active in
+		// the extras set — we can only directly observe the new active here.
+		expect(cells[3]).toHaveAttribute('data-active')
+	})
+
+	it('renders selectable and actions columns alongside editable ones', () => {
+		const mixedColumns: EditableGridColumn<Row>[] = [
+			{ id: 'select', selectable: true } as EditableGridColumn<Row>,
+			...columns,
+			{
+				id: 'actions',
+				actions: (row: Row) => <button type="button">Edit {row.id}</button>,
+			} as EditableGridColumn<Row>,
+		]
+
+		renderUI(
+			<EditableGrid
+				columns={mixedColumns}
+				rows={rows}
+				getRowKey={(row) => row.id}
+				onValueChange={() => {}}
+			/>,
+		)
+
+		// Selection checkboxes for each row, plus per-row action buttons.
+		expect(screen.getAllByRole('checkbox', { name: /Select row/ }).length).toBe(rows.length)
+
+		expect(screen.getByText('Edit 1')).toBeInTheDocument()
+	})
 })

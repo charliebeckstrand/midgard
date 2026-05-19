@@ -153,4 +153,64 @@ describe('CurrencyInput', () => {
 
 		expect(input).toBeDisabled()
 	})
+
+	it('blurs the input when Enter is pressed', async () => {
+		const { container } = renderUI(<CurrencyInput defaultValue={10} />)
+
+		const input = bySlot(container, 'input') as HTMLInputElement
+
+		const user = userEvent.setup()
+
+		input.focus()
+
+		expect(document.activeElement).toBe(input)
+
+		await user.keyboard('{Enter}')
+
+		expect(document.activeElement).not.toBe(input)
+	})
+
+	it('does not blur the input when the consumer prevents default on Enter', async () => {
+		const onKeyDown = vi.fn((e: React.KeyboardEvent<HTMLInputElement>) => {
+			if (e.key === 'Enter') e.preventDefault()
+		})
+
+		const { container } = renderUI(<CurrencyInput defaultValue={10} onKeyDown={onKeyDown} />)
+
+		const input = bySlot(container, 'input') as HTMLInputElement
+
+		const user = userEvent.setup()
+
+		input.focus()
+
+		await user.keyboard('{Enter}')
+
+		expect(document.activeElement).toBe(input)
+	})
+
+	it('forwards onValueChange and onBlur after edits round-trip through the input', async () => {
+		const onBlur = vi.fn()
+
+		const { container } = renderUI(<CurrencyInput defaultValue={10} onBlur={onBlur} />)
+
+		const input = bySlot(container, 'input') as HTMLInputElement
+
+		const user = userEvent.setup()
+
+		input.focus()
+
+		await user.type(input, '5')
+
+		input.blur()
+
+		expect(onBlur).toHaveBeenCalled()
+	})
+
+	it('accepts a callback ref alongside the controlled value', () => {
+		const refCb = vi.fn()
+
+		renderUI(<CurrencyInput ref={refCb} value={5} onValueChange={() => {}} />)
+
+		expect(refCb).toHaveBeenCalledWith(expect.any(HTMLInputElement))
+	})
 })

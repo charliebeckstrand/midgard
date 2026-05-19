@@ -354,4 +354,159 @@ describe('useDatePickerKeyboard: footer zone', () => {
 
 		expect(setActive).not.toHaveBeenCalled()
 	})
+
+	it('does nothing on ArrowRight when footerButtons is empty', () => {
+		const { handler, setActive } = setup({
+			active: { zone: 'footer', index: 0 },
+			footerButtons: [],
+		})
+
+		handler(makeKeyEvent<HTMLElement>('ArrowRight'))
+
+		expect(setActive).not.toHaveBeenCalled()
+	})
+
+	it('decrements the footer index on ArrowLeft when not at index 0', () => {
+		const { handler, setActive } = setup({
+			active: { zone: 'footer', index: 1 },
+			footerButtons: ['clear', 'today'],
+		})
+
+		handler(makeKeyEvent<HTMLElement>('ArrowLeft'))
+
+		expect(setActive).toHaveBeenCalledWith({ zone: 'footer', index: 0 })
+	})
+
+	it('increments the footer index on ArrowRight when not at the last index', () => {
+		const { handler, setActive } = setup({
+			active: { zone: 'footer', index: 0 },
+			footerButtons: ['clear', 'today'],
+		})
+
+		handler(makeKeyEvent<HTMLElement>('ArrowRight'))
+
+		expect(setActive).toHaveBeenCalledWith({ zone: 'footer', index: 1 })
+	})
+
+	it('swallows ArrowDown in the footer zone', () => {
+		const { handler, setActive } = setup({ active: { zone: 'footer', index: 0 } })
+
+		const event = makeKeyEvent<HTMLElement>('ArrowDown')
+
+		handler(event)
+
+		expect(event.preventDefault).toHaveBeenCalled()
+
+		expect(setActive).not.toHaveBeenCalled()
+	})
+
+	it('activates the footer button on Space', () => {
+		const { handler, onFooterActivate } = setup({
+			active: { zone: 'footer', index: 0 },
+			footerButtons: ['clear', 'today'],
+		})
+
+		handler(makeKeyEvent<HTMLElement>(' '))
+
+		expect(onFooterActivate).toHaveBeenCalledWith('clear')
+	})
+
+	it('does not activate when Enter falls on a footer index past the available buttons', () => {
+		const { handler, onFooterActivate } = setup({
+			active: { zone: 'footer', index: 5 },
+			footerButtons: ['clear', 'today'],
+		})
+
+		handler(makeKeyEvent<HTMLElement>('Enter'))
+
+		expect(onFooterActivate).not.toHaveBeenCalled()
+	})
+})
+
+describe('useDatePickerKeyboard: header zone (additional branches)', () => {
+	it('decrements header index on ArrowLeft when not at index 0', () => {
+		const { handler, setActive } = setup({ active: { zone: 'header', index: 1 } })
+
+		handler(makeKeyEvent<HTMLElement>('ArrowLeft'))
+
+		expect(setActive).toHaveBeenCalledWith({ zone: 'header', index: 0 })
+	})
+
+	it('increments header index on ArrowRight when not at the last index', () => {
+		const { handler, setActive } = setup({ active: { zone: 'header', index: 0 } })
+
+		handler(makeKeyEvent<HTMLElement>('ArrowRight'))
+
+		expect(setActive).toHaveBeenCalledWith({ zone: 'header', index: 1 })
+	})
+
+	it('swallows ArrowUp in the header zone', () => {
+		const { handler, setActive } = setup({ active: { zone: 'header', index: 0 } })
+
+		const event = makeKeyEvent<HTMLElement>('ArrowUp')
+
+		handler(event)
+
+		expect(event.preventDefault).toHaveBeenCalled()
+
+		expect(setActive).not.toHaveBeenCalled()
+	})
+
+	it('activates the focused header button on Space', () => {
+		const openPicker = vi.fn()
+
+		const { handler } = setup({
+			active: { zone: 'header', index: 1 },
+			calendarHandle: {
+				prevMonth: vi.fn(),
+				nextMonth: vi.fn(),
+				openPicker,
+				footerKeyDown: vi.fn(),
+			},
+		})
+
+		handler(makeKeyEvent<HTMLElement>(' '))
+
+		expect(openPicker).toHaveBeenCalled()
+	})
+})
+
+describe('useDatePickerKeyboard: null active edge cases', () => {
+	it('selects the initial date on Space when active is null', () => {
+		const { handler, handleSelect } = setup({ active: null })
+
+		handler(makeKeyEvent<HTMLElement>(' '))
+
+		expect(handleSelect).toHaveBeenCalled()
+	})
+
+	it('is a no-op on non-Enter/Space keys when active is null', () => {
+		const { handler, handleSelect, setActive } = setup({ active: null })
+
+		handler(makeKeyEvent<HTMLElement>('a'))
+
+		expect(handleSelect).not.toHaveBeenCalled()
+
+		expect(setActive).not.toHaveBeenCalled()
+	})
+
+	it('swallows non-arrow keys in the grid zone', () => {
+		const { handler, setActive, handleSelect } = setup({
+			active: { zone: 'grid', date: new Date(2026, 0, 15) },
+		})
+
+		handler(makeKeyEvent<HTMLElement>('a'))
+
+		expect(setActive).not.toHaveBeenCalled()
+
+		expect(handleSelect).not.toHaveBeenCalled()
+	})
+
+	it('swallows non-arrow keys in the header zone', () => {
+		const { handler, setActive } = setup({ active: { zone: 'header', index: 0 } })
+
+		handler(makeKeyEvent<HTMLElement>('a'))
+
+		expect(setActive).not.toHaveBeenCalled()
+	})
 })

@@ -55,11 +55,15 @@ function setup(
 	// honor a test-supplied flag by defaulting anchor to a truthy value when set.
 	const effectiveAnchor = options.anchor ?? (options.hasMultiSelection ? { row: 0, col: 1 } : null)
 
+	// `options.active === undefined` means "use the default"; `null` means
+	// "explicitly no active cell" — needed to exercise the null-active branches.
+	const activeValue = 'active' in options ? (options.active ?? null) : { row: 0, col: 0 }
+
 	const partialNav: Partial<EditableGridNavigationApi> = {
-		active: options.active ?? { row: 0, col: 0 },
+		active: activeValue,
 		anchor: effectiveAnchor,
 		extraCells: options.extras ?? new Set(),
-		activeRef: { current: options.active ?? { row: 0, col: 0 } },
+		activeRef: { current: activeValue },
 		moveActive: mocks.moveActive,
 		moveActiveTo: mocks.moveActiveTo,
 		moveActiveTab: mocks.moveActiveTab,
@@ -243,6 +247,24 @@ describe('useEditableGridWrapper: onWrapperKeyDown arrow navigation', () => {
 
 		expect(moveActive).not.toHaveBeenCalled()
 	})
+
+	it('Home falls back to {row: 0, col: 0} when activeRef is empty', () => {
+		// `activeRef.current` may be null before the first focus lands; the
+		// Home/End handlers default `prev` to `{ row: 0, col: 0 }` for that case.
+		const { api, moveActiveTo } = setup({ active: null })
+
+		api.onWrapperKeyDown(makeKeyEvent<HTMLTableElement>('Home'))
+
+		expect(moveActiveTo).toHaveBeenCalledWith({ row: 0, col: 0 }, false)
+	})
+
+	it('End falls back to {row: 0, col: lastEditable} when activeRef is empty', () => {
+		const { api, moveActiveTo } = setup({ active: null })
+
+		api.onWrapperKeyDown(makeKeyEvent<HTMLTableElement>('End'))
+
+		expect(moveActiveTo).toHaveBeenCalledWith({ row: 0, col: cols.length - 1 }, false)
+	})
 })
 
 describe('useEditableGridWrapper: onWrapperKeyDown editing entry', () => {
@@ -322,6 +344,78 @@ describe('useEditableGridWrapper: onWrapperKeyDown delete and escape', () => {
 		expect(setExtraCells).toHaveBeenCalled()
 
 		expect(setActive).not.toHaveBeenCalled()
+	})
+
+	it('Escape with only anchor leaves extras alone', () => {
+		const { api, setAnchor, setExtraCells } = setup({
+			anchor: { row: 0, col: 0 },
+		})
+
+		api.onWrapperKeyDown(makeKeyEvent<HTMLTableElement>('Escape'))
+
+		expect(setAnchor).toHaveBeenCalledWith(null)
+
+		expect(setExtraCells).not.toHaveBeenCalled()
+	})
+
+	it('Escape with only extras leaves anchor alone', () => {
+		const { api, setAnchor, setExtraCells } = setup({
+			extras: new Set(['1,0']),
+		})
+
+		api.onWrapperKeyDown(makeKeyEvent<HTMLTableElement>('Escape'))
+
+		expect(setAnchor).not.toHaveBeenCalled()
+
+		expect(setExtraCells).toHaveBeenCalled()
+	})
+
+	it('Delete is a no-op when no active cell', () => {
+		const { api, applyCellWrite, applyBulkFill } = setup({ active: null })
+
+		const event = makeKeyEvent<HTMLTableElement>('Delete')
+
+		api.onWrapperKeyDown(event)
+
+		expect(applyCellWrite).not.toHaveBeenCalled()
+
+		expect(applyBulkFill).not.toHaveBeenCalled()
+
+		expect(event.preventDefault).not.toHaveBeenCalled()
+	})
+
+	it('Escape is a no-op when no active cell', () => {
+		const { api, setActive, setAnchor } = setup({ active: null })
+
+		api.onWrapperKeyDown(makeKeyEvent<HTMLTableElement>('Escape'))
+
+		expect(setActive).not.toHaveBeenCalled()
+
+		expect(setAnchor).not.toHaveBeenCalled()
+	})
+
+	it('Enter is a no-op when no active cell', () => {
+		const { api, beginEdit } = setup({ active: null })
+
+		api.onWrapperKeyDown(makeKeyEvent<HTMLTableElement>('Enter'))
+
+		expect(beginEdit).not.toHaveBeenCalled()
+	})
+
+	it('Enter is a no-op when the active cell points past the row range', () => {
+		const { api, beginEdit } = setup({ active: { row: 99, col: 0 } })
+
+		api.onWrapperKeyDown(makeKeyEvent<HTMLTableElement>('Enter'))
+
+		expect(beginEdit).not.toHaveBeenCalled()
+	})
+
+	it('printable characters are ignored when active points past the row range', () => {
+		const { api, beginEdit } = setup({ active: { row: 99, col: 0 } })
+
+		api.onWrapperKeyDown(makeKeyEvent<HTMLTableElement>('x'))
+
+		expect(beginEdit).not.toHaveBeenCalled()
 	})
 })
 

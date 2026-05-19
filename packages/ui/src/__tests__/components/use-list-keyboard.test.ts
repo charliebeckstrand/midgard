@@ -327,6 +327,65 @@ describe('useListKeyboard', () => {
 		})
 	})
 
+	describe('unknown item ids', () => {
+		it('does not preventDefault when ArrowDown targets an unknown id', () => {
+			const { result } = renderHook(() =>
+				useListKeyboard({
+					items: buildItems(['a', 'b']),
+					getKey: (i) => i.id,
+					orientation: 'vertical',
+				}),
+			)
+
+			const ev = makeKeyEvent('ArrowDown')
+
+			act(() => result.current.onItemKeyDown('ghost', ev))
+
+			expect(ev.preventDefault).not.toHaveBeenCalled()
+		})
+
+		it('skips reorder when the lifted id is unknown', () => {
+			const onReorder = vi.fn()
+
+			const { result } = renderHook(() =>
+				useListKeyboard({
+					items: buildItems(['a', 'b', 'c']),
+					getKey: (i) => i.id,
+					orientation: 'vertical',
+					onReorder,
+				}),
+			)
+
+			act(() => result.current.onItemKeyDown('ghost', makeKeyEvent(' ')))
+
+			act(() => result.current.onItemKeyDown('ghost', makeKeyEvent('ArrowDown')))
+
+			expect(onReorder).not.toHaveBeenCalled()
+		})
+	})
+
+	describe('onItemBlur', () => {
+		it('drops the lifted item when focus leaves outside a reorder', () => {
+			const { result } = renderHook(() =>
+				useListKeyboard({
+					items: buildItems(['a', 'b', 'c']),
+					getKey: (i) => i.id,
+					orientation: 'vertical',
+				}),
+			)
+
+			act(() => result.current.onItemKeyDown('a', makeKeyEvent(' ')))
+
+			expect(result.current.liftedId).toBe('a')
+
+			act(() => {
+				result.current.onItemBlur()
+			})
+
+			expect(result.current.liftedId).toBeNull()
+		})
+	})
+
 	describe('blur', () => {
 		it('drops the lifted item on blur', () => {
 			const { result } = renderHook(() =>

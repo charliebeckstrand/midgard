@@ -251,4 +251,72 @@ describe('photonProvider', () => {
 			/did not match expected shape/,
 		)
 	})
+
+	it.each([
+		{ name: 'a primitive response', body: 'plain' },
+		{ name: 'features containing a primitive', body: { features: ['nope'] } },
+		{
+			name: 'features with a null geometry',
+			body: { features: [{ geometry: null, properties: {} }] },
+		},
+		{
+			name: 'features with non-array coordinates',
+			body: {
+				features: [
+					{
+						geometry: { coordinates: 'oops' },
+						properties: { osm_id: 1, osm_type: 'N' },
+					},
+				],
+			},
+		},
+		{
+			name: 'coordinates of the wrong length',
+			body: {
+				features: [
+					{
+						geometry: { coordinates: [1, 2, 3] },
+						properties: { osm_id: 1, osm_type: 'N' },
+					},
+				],
+			},
+		},
+		{
+			name: 'non-numeric coordinates',
+			body: {
+				features: [
+					{
+						geometry: { coordinates: ['lat', 'lng'] },
+						properties: { osm_id: 1, osm_type: 'N' },
+					},
+				],
+			},
+		},
+		{
+			name: 'a null properties bag',
+			body: {
+				features: [{ geometry: { coordinates: [1, 2] }, properties: null }],
+			},
+		},
+		{
+			name: 'a string osm_id',
+			body: {
+				features: [
+					{
+						geometry: { coordinates: [1, 2] },
+						properties: { osm_id: 'abc', osm_type: 'N' },
+					},
+				],
+			},
+		},
+	])('rejects responses with $name', async ({ body }) => {
+		vi.stubGlobal(
+			'fetch',
+			vi.fn(async () => ({ ok: true, json: async () => body }) as Response),
+		)
+
+		await expect(photonProvider('q', { signal: new AbortController().signal })).rejects.toThrow(
+			/did not match expected shape/,
+		)
+	})
 })
