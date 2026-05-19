@@ -1,6 +1,7 @@
 import { act, renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useScrollAreaScrollbar } from '../../components/scroll-area/use-scroll-area-scrollbar'
+import { makePointerEvent } from '../helpers'
 
 type Geometry = {
 	clientHeight?: number
@@ -216,12 +217,7 @@ describe('useScrollAreaScrollbar', () => {
 
 			expect(typeof handler).toBe('function')
 
-			const event = {
-				clientY: 0,
-				clientX: 0,
-				preventDefault: vi.fn(),
-				stopPropagation: vi.fn(),
-			} as unknown as React.PointerEvent<HTMLDivElement>
+			const event = makePointerEvent<HTMLDivElement>({ clientY: 0, clientX: 0 })
 
 			expect(() => handler(event)).not.toThrow()
 			expect(event.preventDefault).not.toHaveBeenCalled()
@@ -239,12 +235,14 @@ describe('useScrollAreaScrollbar', () => {
 			const stopPropagation = vi.fn()
 
 			act(() => {
-				handler({
-					clientY: 0,
-					clientX: 0,
-					preventDefault,
-					stopPropagation,
-				} as unknown as React.PointerEvent<HTMLDivElement>)
+				handler(
+					makePointerEvent<HTMLDivElement>({
+						clientY: 0,
+						clientX: 0,
+						preventDefault,
+						stopPropagation,
+					}),
+				)
 			})
 
 			expect(preventDefault).toHaveBeenCalled()
@@ -278,12 +276,7 @@ describe('useScrollAreaScrollbar', () => {
 			const handler = hook.result.current.startDrag('y')
 
 			act(() => {
-				handler({
-					clientY: 0,
-					clientX: 0,
-					preventDefault: vi.fn(),
-					stopPropagation: vi.fn(),
-				} as unknown as React.PointerEvent<HTMLDivElement>)
+				handler(makePointerEvent<HTMLDivElement>({ clientY: 0, clientX: 0 }))
 			})
 
 			hook.unmount()

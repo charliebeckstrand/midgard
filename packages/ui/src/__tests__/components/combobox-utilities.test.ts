@@ -121,7 +121,13 @@ describe('useComboboxTrigger', () => {
 
 		const select = vi.fn()
 
-		const inputRef = { current: { focus, select } as unknown as HTMLInputElement }
+		const input = document.createElement('input')
+
+		input.focus = focus
+
+		input.select = select
+
+		const inputRef = { current: input }
 
 		const { result } = renderHook(() => useComboboxTrigger({ open, close, setOpen, inputRef }))
 
@@ -131,9 +137,11 @@ describe('useComboboxTrigger', () => {
 	it('closes when invoked while open', () => {
 		const { result, close, setOpen } = setupHook(true)
 
-		const event = {
-			preventDefault: vi.fn(),
-		} as unknown as Parameters<typeof result.current.onMouseDown>[0]
+		type MouseDownEvent = Parameters<typeof result.current.onMouseDown>[0]
+
+		const partial: Partial<MouseDownEvent> = { preventDefault: vi.fn() }
+
+		const event = partial as MouseDownEvent
 
 		act(() => {
 			result.current.onMouseDown(event)
@@ -149,9 +157,11 @@ describe('useComboboxTrigger', () => {
 	it('opens, focuses and selects the input when invoked while closed', () => {
 		const { result, setOpen, focus, select } = setupHook(false)
 
-		const event = {
-			preventDefault: vi.fn(),
-		} as unknown as Parameters<typeof result.current.onMouseDown>[0]
+		type MouseDownEvent = Parameters<typeof result.current.onMouseDown>[0]
+
+		const partial: Partial<MouseDownEvent> = { preventDefault: vi.fn() }
+
+		const event = partial as MouseDownEvent
 
 		act(() => {
 			result.current.onMouseDown(event)

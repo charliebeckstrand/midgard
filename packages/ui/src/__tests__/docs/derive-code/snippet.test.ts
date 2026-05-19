@@ -11,11 +11,12 @@ function contextWithRegistry(byName: Map<string, ComponentInfo>): Context {
 
 describe('readSnippet', () => {
 	it('returns the `__code` string attached to a function', () => {
-		function Demo() {
-			return null
-		}
-
-		;(Demo as unknown as { __code: string }).__code = 'function Demo() { return null }'
+		const Demo = Object.assign(
+			function Demo() {
+				return null
+			},
+			{ __code: 'function Demo() { return null }' },
+		)
 
 		expect(readSnippet(Demo)).toBe('function Demo() { return null }')
 	})
@@ -36,11 +37,12 @@ describe('readSnippet', () => {
 	})
 
 	it('returns null when `__code` is present but not a string', () => {
-		function Demo() {
-			return null
-		}
-
-		;(Demo as unknown as { __code: unknown }).__code = 42
+		const Demo = Object.assign(
+			function Demo() {
+				return null
+			},
+			{ __code: 42 },
+		)
 
 		expect(readSnippet(Demo)).toBeNull()
 	})

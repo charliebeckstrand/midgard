@@ -17,22 +17,17 @@ const ROUTE_JSON = {
 	routes: [{ geometry: { coordinates: ROUTE_COORDS } }],
 }
 
-function jsonResponse(body: unknown, init: Partial<{ ok: boolean; status: number }> = {}) {
-	return {
-		ok: init.ok ?? true,
-		status: init.status ?? 200,
-		json: async () => body,
-	} as unknown as Response
+function jsonResponse(
+	body: unknown,
+	init: Partial<{ ok: boolean; status: number }> = {},
+): Response {
+	return new Response(JSON.stringify(body), {
+		status: init.status ?? (init.ok === false ? 500 : 200),
+	})
 }
 
-function throwingJsonResponse() {
-	return {
-		ok: true,
-		status: 200,
-		json: async () => {
-			throw new SyntaxError('Unexpected token')
-		},
-	} as unknown as Response
+function throwingJsonResponse(): Response {
+	return new Response('not-json{', { status: 200 })
 }
 
 let fetchMock: ReturnType<typeof vi.fn>

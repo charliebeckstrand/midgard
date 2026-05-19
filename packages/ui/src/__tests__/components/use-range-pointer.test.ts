@@ -2,6 +2,7 @@ import { renderHook } from '@testing-library/react'
 import type { PointerEvent as ReactPointerEvent } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { useRangePointer } from '../../components/slider/range/use-range-pointer'
+import { makePointerEvent } from '../helpers'
 
 function makeTrack() {
 	const el = document.createElement('div')
@@ -12,16 +13,12 @@ function makeTrack() {
 	return el
 }
 
-function makeEvent(overrides: Partial<ReactPointerEvent> = {}) {
-	const target = { setPointerCapture: vi.fn() }
+function makeEvent(overrides: Partial<ReactPointerEvent> = {}): ReactPointerEvent {
+	const target = document.createElement('div')
 
-	return {
-		clientX: 0,
-		pointerId: 1,
-		currentTarget: target,
-		preventDefault: vi.fn(),
-		...overrides,
-	} as unknown as ReactPointerEvent
+	target.setPointerCapture = vi.fn()
+
+	return makePointerEvent({ currentTarget: target, ...overrides })
 }
 
 function setup(
@@ -92,10 +89,7 @@ describe('useRangePointer', () => {
 
 		api.onPointerDown(event)
 
-		expect(
-			(event.currentTarget as unknown as { setPointerCapture: ReturnType<typeof vi.fn> })
-				.setPointerCapture,
-		).toHaveBeenCalledWith(1)
+		expect(event.currentTarget.setPointerCapture).toHaveBeenCalledWith(1)
 	})
 
 	it('onPointerDown is a no-op when disabled', () => {

@@ -3,6 +3,7 @@ import { createRef, type RefObject } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { PanelConfig } from '../../components/resizable/types'
 import { useResizablePanel } from '../../components/resizable/use-resizable-panel'
+import { makePointerEvent } from '../helpers'
 
 function makeGroup(rect: { width: number; height: number }, handleCount = 0): HTMLDivElement {
 	const el = document.createElement('div')
@@ -231,12 +232,7 @@ describe('useResizablePanel', () => {
 			)
 
 			act(() => {
-				result.current.startDrag(0, {
-					button: 0,
-					clientX: 0,
-					clientY: 0,
-					preventDefault: vi.fn(),
-				} as unknown as React.PointerEvent)
+				result.current.startDrag(0, makePointerEvent({ button: 0, clientX: 0, clientY: 0 }))
 			})
 
 			expect(result.current.dragging).toBeNull()
@@ -254,12 +250,7 @@ describe('useResizablePanel', () => {
 			)
 
 			act(() => {
-				result.current.startDrag(0, {
-					button: 2,
-					clientX: 0,
-					clientY: 0,
-					preventDefault: vi.fn(),
-				} as unknown as React.PointerEvent)
+				result.current.startDrag(0, makePointerEvent({ button: 2, clientX: 0, clientY: 0 }))
 			})
 
 			expect(result.current.dragging).toBeNull()
@@ -279,12 +270,10 @@ describe('useResizablePanel', () => {
 			const preventDefault = vi.fn()
 
 			act(() => {
-				result.current.startDrag(0, {
-					button: 0,
-					clientX: 100,
-					clientY: 0,
-					preventDefault,
-				} as unknown as React.PointerEvent)
+				result.current.startDrag(
+					0,
+					makePointerEvent({ button: 0, clientX: 100, clientY: 0, preventDefault }),
+				)
 			})
 
 			expect(preventDefault).toHaveBeenCalled()
@@ -314,21 +303,11 @@ describe('useResizablePanel', () => {
 			)
 
 			act(() => {
-				result.current.startDrag(0, {
-					button: 0,
-					clientX: 500,
-					clientY: 0,
-					preventDefault: vi.fn(),
-				} as unknown as React.PointerEvent)
+				result.current.startDrag(0, makePointerEvent({ button: 0, clientX: 500, clientY: 0 }))
 			})
 
 			act(() => {
-				const event = new Event('pointermove') as unknown as PointerEvent
-
-				Object.defineProperty(event, 'clientX', { value: 600 })
-				Object.defineProperty(event, 'clientY', { value: 0 })
-
-				document.dispatchEvent(event)
+				document.dispatchEvent(new PointerEvent('pointermove', { clientX: 600, clientY: 0 }))
 			})
 
 			// 100px delta / 1000px available = 10% shift.
@@ -348,21 +327,11 @@ describe('useResizablePanel', () => {
 			)
 
 			act(() => {
-				result.current.startDrag(0, {
-					button: 0,
-					clientX: 0,
-					clientY: 500,
-					preventDefault: vi.fn(),
-				} as unknown as React.PointerEvent)
+				result.current.startDrag(0, makePointerEvent({ button: 0, clientX: 0, clientY: 500 }))
 			})
 
 			act(() => {
-				const event = new Event('pointermove') as unknown as PointerEvent
-
-				Object.defineProperty(event, 'clientX', { value: 0 })
-				Object.defineProperty(event, 'clientY', { value: 700 })
-
-				document.dispatchEvent(event)
+				document.dispatchEvent(new PointerEvent('pointermove', { clientX: 0, clientY: 700 }))
 			})
 
 			expect(result.current.sizes).toEqual([70, 30])
@@ -380,12 +349,7 @@ describe('useResizablePanel', () => {
 			)
 
 			act(() => {
-				result.current.startDrag(0, {
-					button: 0,
-					clientX: 500,
-					clientY: 0,
-					preventDefault: vi.fn(),
-				} as unknown as React.PointerEvent)
+				result.current.startDrag(0, makePointerEvent({ button: 0, clientX: 500, clientY: 0 }))
 			})
 
 			act(() => {
@@ -393,12 +357,7 @@ describe('useResizablePanel', () => {
 			})
 
 			act(() => {
-				const event = new Event('pointermove') as unknown as PointerEvent
-
-				Object.defineProperty(event, 'clientX', { value: 900 })
-				Object.defineProperty(event, 'clientY', { value: 0 })
-
-				document.dispatchEvent(event)
+				document.dispatchEvent(new PointerEvent('pointermove', { clientX: 900, clientY: 0 }))
 			})
 
 			expect(result.current.sizes).toEqual([50, 50])
@@ -421,12 +380,7 @@ describe('useResizablePanel', () => {
 			)
 
 			act(() => {
-				result.current.startDrag(0, {
-					button: 0,
-					clientX: 500,
-					clientY: 0,
-					preventDefault: vi.fn(),
-				} as unknown as React.PointerEvent)
+				result.current.startDrag(0, makePointerEvent({ button: 0, clientX: 500, clientY: 0 }))
 			})
 
 			onSizesChange.mockClear()
@@ -434,11 +388,7 @@ describe('useResizablePanel', () => {
 			unmount()
 
 			act(() => {
-				const event = new Event('pointermove') as unknown as PointerEvent
-
-				Object.defineProperty(event, 'clientX', { value: 900 })
-
-				document.dispatchEvent(event)
+				document.dispatchEvent(new PointerEvent('pointermove', { clientX: 900 }))
 			})
 
 			expect(onSizesChange).not.toHaveBeenCalled()

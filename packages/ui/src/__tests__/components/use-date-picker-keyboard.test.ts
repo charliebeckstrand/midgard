@@ -25,13 +25,12 @@ function setup(overrides: Setup = {}) {
 	const handleSelect = vi.fn()
 	const onFooterActivate = vi.fn()
 
-	const calendarHandle: CalendarHandle =
-		overrides.calendarHandle ??
-		({
-			prevMonth: vi.fn(),
-			nextMonth: vi.fn(),
-			openPicker: vi.fn(),
-		} as unknown as CalendarHandle)
+	const calendarHandle: CalendarHandle = overrides.calendarHandle ?? {
+		prevMonth: vi.fn(),
+		nextMonth: vi.fn(),
+		openPicker: vi.fn(),
+		footerKeyDown: vi.fn(),
+	}
 
 	const calendarRef = { current: calendarHandle } as RefObject<CalendarHandle | null>
 
@@ -263,7 +262,8 @@ describe('useDatePickerKeyboard: header zone', () => {
 				prevMonth,
 				nextMonth: vi.fn(),
 				openPicker: vi.fn(),
-			} as unknown as CalendarHandle,
+				footerKeyDown: vi.fn(),
+			},
 		})
 
 		handler(makeKeyEvent<HTMLElement>('Enter'))
@@ -280,7 +280,8 @@ describe('useDatePickerKeyboard: header zone', () => {
 				prevMonth: vi.fn(),
 				nextMonth: vi.fn(),
 				openPicker,
-			} as unknown as CalendarHandle,
+				footerKeyDown: vi.fn(),
+			},
 		})
 
 		handler(makeKeyEvent<HTMLElement>('Enter'))
@@ -297,7 +298,8 @@ describe('useDatePickerKeyboard: header zone', () => {
 				prevMonth: vi.fn(),
 				nextMonth,
 				openPicker: vi.fn(),
-			} as unknown as CalendarHandle,
+				footerKeyDown: vi.fn(),
+			},
 		})
 
 		handler(makeKeyEvent<HTMLElement>('Enter'))

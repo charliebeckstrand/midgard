@@ -47,7 +47,7 @@ describe('useKeyboardSettled', () => {
 			configurable: true,
 		})
 
-		if (hadTouch) delete (window as unknown as { ontouchstart?: unknown }).ontouchstart
+		if (hadTouch) Reflect.deleteProperty(window, 'ontouchstart')
 
 		const { result } = renderHook(() => useKeyboardSettled())
 
@@ -73,7 +73,7 @@ describe('useKeyboardSettled', () => {
 			configurable: true,
 		})
 
-		;(window as unknown as { ontouchstart: null }).ontouchstart = null
+		window.ontouchstart = null
 
 		const { result } = renderHook(() => useKeyboardSettled())
 
@@ -89,7 +89,7 @@ describe('useKeyboardSettled', () => {
 			configurable: true,
 		})
 
-		delete (window as unknown as { ontouchstart?: unknown }).ontouchstart
+		Reflect.deleteProperty(window, 'ontouchstart')
 	})
 
 	it('polls via rAF and fires once the viewport has settled', () => {
@@ -103,12 +103,12 @@ describe('useKeyboardSettled', () => {
 			configurable: true,
 		})
 
-		;(window as unknown as { ontouchstart: null }).ontouchstart = null
+		window.ontouchstart = null
 
-		let rafCb: (() => void) | null = null
+		let rafCb: FrameRequestCallback | null = null
 
 		const raf = vi.spyOn(window, 'requestAnimationFrame').mockImplementation((fn) => {
-			rafCb = fn as unknown as () => void
+			rafCb = fn
 
 			return 1
 		})
@@ -126,7 +126,7 @@ describe('useKeyboardSettled', () => {
 		// Simulate keyboard appearing, then six stable frames to trigger the 5-frame threshold.
 		vv.height = Math.floor(window.innerHeight * 0.5)
 
-		for (let i = 0; i < 6; i++) (rafCb as (() => void) | null)?.()
+		for (let i = 0; i < 6; i++) (rafCb as FrameRequestCallback | null)?.(0)
 
 		expect(callback).toHaveBeenCalledOnce()
 
@@ -139,7 +139,7 @@ describe('useKeyboardSettled', () => {
 			configurable: true,
 		})
 
-		delete (window as unknown as { ontouchstart?: unknown }).ontouchstart
+		Reflect.deleteProperty(window, 'ontouchstart')
 	})
 
 	it('bails out and fires after 60 frames even if the viewport never changes', () => {
@@ -151,12 +151,12 @@ describe('useKeyboardSettled', () => {
 			configurable: true,
 		})
 
-		;(window as unknown as { ontouchstart: null }).ontouchstart = null
+		window.ontouchstart = null
 
-		let rafCb: (() => void) | null = null
+		let rafCb: FrameRequestCallback | null = null
 
 		const raf = vi.spyOn(window, 'requestAnimationFrame').mockImplementation((fn) => {
-			rafCb = fn as unknown as () => void
+			rafCb = fn
 
 			return 1
 		})
@@ -169,7 +169,7 @@ describe('useKeyboardSettled', () => {
 
 		result.current(callback)
 
-		for (let i = 0; i < 60; i++) (rafCb as (() => void) | null)?.()
+		for (let i = 0; i < 60; i++) (rafCb as FrameRequestCallback | null)?.(0)
 
 		expect(callback).toHaveBeenCalledOnce()
 
@@ -182,7 +182,7 @@ describe('useKeyboardSettled', () => {
 			configurable: true,
 		})
 
-		delete (window as unknown as { ontouchstart?: unknown }).ontouchstart
+		Reflect.deleteProperty(window, 'ontouchstart')
 	})
 
 	it('cancels a pending rAF when invoked a second time', () => {
@@ -194,7 +194,7 @@ describe('useKeyboardSettled', () => {
 			configurable: true,
 		})
 
-		;(window as unknown as { ontouchstart: null }).ontouchstart = null
+		window.ontouchstart = null
 
 		const raf = vi.spyOn(window, 'requestAnimationFrame').mockImplementation(() => 99)
 
@@ -217,7 +217,7 @@ describe('useKeyboardSettled', () => {
 			configurable: true,
 		})
 
-		delete (window as unknown as { ontouchstart?: unknown }).ontouchstart
+		Reflect.deleteProperty(window, 'ontouchstart')
 	})
 
 	it('cancels any pending rAF on unmount', () => {
@@ -229,7 +229,7 @@ describe('useKeyboardSettled', () => {
 			configurable: true,
 		})
 
-		;(window as unknown as { ontouchstart: null }).ontouchstart = null
+		window.ontouchstart = null
 
 		const raf = vi.spyOn(window, 'requestAnimationFrame').mockImplementation(() => 42)
 
@@ -252,6 +252,6 @@ describe('useKeyboardSettled', () => {
 			configurable: true,
 		})
 
-		delete (window as unknown as { ontouchstart?: unknown }).ontouchstart
+		Reflect.deleteProperty(window, 'ontouchstart')
 	})
 })

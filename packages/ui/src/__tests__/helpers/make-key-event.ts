@@ -13,7 +13,7 @@ export function makeKeyEvent<T extends Element = Element>(
 	key: string,
 	overrides: Partial<KeyboardEvent<T>> = {},
 ): KeyboardEvent<T> {
-	const event = {
+	const partial: Partial<KeyboardEvent<T>> & { defaultPrevented: boolean } = {
 		key,
 		shiftKey: false,
 		metaKey: false,
@@ -21,15 +21,15 @@ export function makeKeyEvent<T extends Element = Element>(
 		altKey: false,
 		stopPropagation: vi.fn(),
 		defaultPrevented: false,
-		nativeEvent: { isComposing: false },
+		nativeEvent: { isComposing: false } as KeyboardEvent<T>['nativeEvent'],
 		...overrides,
-	} as unknown as KeyboardEvent<T> & { defaultPrevented: boolean }
+	}
 
 	if (!overrides.preventDefault) {
-		event.preventDefault = vi.fn(() => {
-			event.defaultPrevented = true
+		partial.preventDefault = vi.fn(() => {
+			partial.defaultPrevented = true
 		})
 	}
 
-	return event
+	return partial as KeyboardEvent<T>
 }

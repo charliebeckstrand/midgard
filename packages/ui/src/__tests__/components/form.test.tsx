@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react'
-import type { ChangeEvent, FocusEvent, ReactNode } from 'react'
+import type { FocusEvent, ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import {
 	Form,
@@ -11,7 +11,7 @@ import {
 	useFormText,
 	useFormToggle,
 } from '../../components/form'
-import { bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, makeChangeEvent, renderUI, screen } from '../helpers'
 
 describe('Form', () => {
 	it('renders with data-slot="form"', () => {
@@ -412,9 +412,11 @@ describe('useFormText', () => {
 		expect(result.current?.value).toBe('')
 
 		act(() => {
-			result.current?.onChange({
-				target: { value: 'hello' },
-			} as unknown as ChangeEvent<HTMLInputElement>)
+			result.current?.onChange(
+				makeChangeEvent<HTMLInputElement>({
+					target: { value: 'hello' } as HTMLInputElement,
+				}),
+			)
 		})
 
 		expect(result.current?.value).toBe('hello')
@@ -456,9 +458,11 @@ describe('useFormToggle', () => {
 		expect(result.current?.checked).toBe(false)
 
 		act(() => {
-			result.current?.onChange({
-				target: { checked: true },
-			} as unknown as ChangeEvent<HTMLInputElement>)
+			result.current?.onChange(
+				makeChangeEvent<HTMLInputElement>({
+					target: { checked: true } as HTMLInputElement,
+				}),
+			)
 		})
 
 		expect(result.current?.checked).toBe(true)
