@@ -96,18 +96,18 @@ describe('formatExpiry', () => {
 		expect(formatExpiry('--')).toBe('')
 	})
 
-	it('keeps a single digit "0" or "1" without auto-prefixing', () => {
+	it('passes a single digit through unchanged', () => {
 		expect(formatExpiry('0')).toBe('0')
 
 		expect(formatExpiry('1')).toBe('1')
+
+		expect(formatExpiry('4')).toBe('4')
 	})
 
-	it('auto-prefixes a single digit greater than 1 with a leading zero', () => {
-		expect(formatExpiry('4')).toBe('04/')
-	})
-
-	it('appends a slash after a two-digit month', () => {
+	it('appends a slash after two digits, even when the month is invalid', () => {
 		expect(formatExpiry('12')).toBe('12/')
+
+		expect(formatExpiry('45')).toBe('45/')
 	})
 
 	it('appends year digits after the slash', () => {

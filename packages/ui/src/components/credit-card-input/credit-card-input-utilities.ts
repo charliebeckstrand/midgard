@@ -67,14 +67,7 @@ export function formatCardNumber(raw: string): {
 export function formatExpiry(raw: string): string {
 	const d = raw.replace(/\D/g, '').slice(0, 4)
 
-	if (d.length === 0) return ''
-
-	// Auto-prefix single digit months > 1 (e.g. "4" → "04/").
-	if (d.length === 1) {
-		if (d[0] === '0' || d[0] === '1') return d
-
-		return `0${d[0]}/`
-	}
+	if (d.length < 2) return d
 
 	const month = d.slice(0, 2)
 
