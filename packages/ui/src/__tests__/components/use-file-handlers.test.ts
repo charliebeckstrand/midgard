@@ -2,26 +2,10 @@ import { act, renderHook } from '@testing-library/react'
 import type { DragEvent } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { useFileUploadHandlers } from '../../components/file-upload/use-file-upload-handlers'
-import { makeChangeEvent } from '../helpers'
+import { makeChangeEvent, makeFileList } from '../helpers'
 
 function makeFile(name = 'a.txt') {
 	return new File(['hello'], name, { type: 'text/plain' })
-}
-
-function makeFileList(files: File[]): FileList {
-	const iterator: () => ArrayIterator<File> = () => files[Symbol.iterator]()
-
-	const partial: Partial<FileList> & Record<number, File> = {
-		length: files.length,
-		item: (i: number) => files[i] ?? null,
-		[Symbol.iterator]: iterator,
-	}
-
-	for (let i = 0; i < files.length; i++) {
-		partial[i] = files[i] as File
-	}
-
-	return partial as FileList
 }
 
 function makeDragEvent(files: File[] = []): DragEvent {
