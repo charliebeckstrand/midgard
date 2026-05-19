@@ -121,4 +121,50 @@ describe('PhoneInput', () => {
 
 		expect(input).toBeDisabled()
 	})
+
+	it('renders a custom prefix in place of the default phone icon', () => {
+		const { container } = renderUI(
+			<PhoneInput prefix={<span data-testid="custom-prefix">PHN</span>} />,
+		)
+
+		expect(container.querySelector('[data-testid="custom-prefix"]')).toBeInTheDocument()
+	})
+
+	it('strips a leading country-code 1 from an 11-digit US number', () => {
+		const { container } = renderUI(<PhoneInput defaultValue="15551234567" />)
+
+		const input = bySlot(container, 'input') as HTMLInputElement
+
+		expect(input.value).toBe('(555) 123-4567')
+	})
+
+	it('preserves a leading + with no digits for international country', async () => {
+		const { container } = renderUI(<PhoneInput country="international" />)
+
+		const input = bySlot(container, 'input') as HTMLInputElement
+
+		const user = userEvent.setup()
+
+		await user.type(input, '+')
+
+		expect(input.value).toBe('+')
+	})
+
+	it('formats digits without a + for international country', () => {
+		const { container } = renderUI(
+			<PhoneInput country="international" defaultValue="14155551234" />,
+		)
+
+		const input = bySlot(container, 'input') as HTMLInputElement
+
+		expect(input.value).toBe('14155551234')
+	})
+
+	it('renders an empty string for an empty US value', () => {
+		const { container } = renderUI(<PhoneInput defaultValue="" />)
+
+		const input = bySlot(container, 'input') as HTMLInputElement
+
+		expect(input.value).toBe('')
+	})
 })

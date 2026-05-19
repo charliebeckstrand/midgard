@@ -1,6 +1,7 @@
 import { createRef } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Box } from '../../components/box'
+import { Density } from '../../providers/density'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Box', () => {
@@ -110,5 +111,38 @@ describe('Box', () => {
 		expect(bySlot(container, 'card')).toBeInTheDocument()
 
 		expect(bySlot(container, 'box')).toBeNull()
+	})
+
+	it('inherits padding from an ambient Density when p is omitted', () => {
+		const { container } = renderUI(
+			<Density density="compact">
+				<Box>content</Box>
+			</Density>,
+		)
+
+		// compact → sm step → p-sm via paddingMap.
+		expect(bySlot(container, 'box')?.className).toContain('p-sm')
+	})
+
+	it('explicit p prop wins over the ambient Density', () => {
+		const { container } = renderUI(
+			<Density density="compact">
+				<Box p="lg">content</Box>
+			</Density>,
+		)
+
+		const el = bySlot(container, 'box') as HTMLElement
+
+		expect(el.className).toContain('p-lg')
+
+		expect(el.className).not.toContain('p-sm')
+	})
+
+	it('does not apply any padding class when no p and no ambient Density are present', () => {
+		const { container } = renderUI(<Box>content</Box>)
+
+		const el = bySlot(container, 'box') as HTMLElement
+
+		expect(el.className).not.toMatch(/(^|\s)p-(xs|sm|md|lg|xl)(\s|$)/)
 	})
 })

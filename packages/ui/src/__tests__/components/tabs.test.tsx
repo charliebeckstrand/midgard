@@ -1,7 +1,7 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../../components/tabs'
 import { Density } from '../../providers/density'
-import { bySlot, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
 
 describe('Tabs', () => {
 	it('renders with data-slot="tab-group"', () => {
@@ -166,6 +166,106 @@ describe('Tab', () => {
 		expect(tab?.className).toContain('text-base')
 
 		expect(tab?.className).toContain('pb-4')
+	})
+
+	it('explicit current prop wins over the Tabs context value', () => {
+		const { container } = renderUI(
+			<Tabs defaultValue="a">
+				<TabList>
+					<Tab value="a">A</Tab>
+					<Tab value="b" current>
+						B forced
+					</Tab>
+				</TabList>
+			</Tabs>,
+		)
+
+		const tabs = container.querySelectorAll<HTMLElement>('[data-slot="tab"]')
+
+		// First tab matches the context value "a" → current; second is forced via prop.
+		expect(tabs[0]).toHaveAttribute('data-current', '')
+
+		expect(tabs[1]).toHaveAttribute('data-current', '')
+
+		expect(tabs[1]).toHaveAttribute('aria-selected', 'true')
+	})
+
+	it('selects a tab by value through the Tabs context onChange', async () => {
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(
+			<Tabs defaultValue="a" onValueChange={onValueChange}>
+				<TabList>
+					<Tab value="a">A</Tab>
+					<Tab value="b">B</Tab>
+				</TabList>
+			</Tabs>,
+		)
+
+		const tabs = container.querySelectorAll<HTMLElement>('[data-slot="tab"]')
+
+		const user = userEvent.setup()
+
+		await user.click(tabs[1] as HTMLElement)
+
+		expect(onValueChange).toHaveBeenCalledWith('b')
+	})
+
+	it('invokes the caller onClick handler when a Tab is clicked', () => {
+		const onClick = vi.fn()
+
+		const { container } = renderUI(
+			<TabList>
+				<Tab onClick={onClick}>Standalone</Tab>
+			</TabList>,
+		)
+
+		const tab = bySlot(container, 'tab') as HTMLElement
+
+		fireEvent.click(tab)
+
+		expect(onClick).toHaveBeenCalled()
+	})
+
+	it('wires aria-controls when a Tab id is provided', () => {
+		const { container } = renderUI(
+			<TabList>
+				<Tab id="settings">Settings</Tab>
+			</TabList>,
+		)
+
+		const tab = bySlot(container, 'tab') as HTMLElement
+
+		expect(tab).toHaveAttribute('id', 'settings')
+
+		expect(tab).toHaveAttribute('aria-controls', 'settings-panel')
+	})
+
+	it('renders the segment variant on Tab when wrapped in <Tabs variant="segment">', () => {
+		const { container } = renderUI(
+			<Tabs variant="segment" defaultValue="a">
+				<TabList>
+					<Tab value="a">A</Tab>
+				</TabList>
+			</Tabs>,
+		)
+
+		const tab = bySlot(container, 'tab')
+
+		// Segment variant emits a different recipe; sanity check that the tab still renders.
+		expect(tab).toBeInTheDocument()
+
+		expect(tab).toHaveAttribute('data-current', '')
+	})
+
+	it('applies a custom className on Tab', () => {
+		const { container } = renderUI(
+			<TabList>
+				<Tab className="my-tab">A</Tab>
+			</TabList>,
+		)
+
+		expect(bySlot(container, 'tab')?.className).toContain('my-tab')
 	})
 })
 

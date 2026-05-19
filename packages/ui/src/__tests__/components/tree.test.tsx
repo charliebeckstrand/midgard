@@ -395,4 +395,63 @@ describe('TreeItem', () => {
 
 		expect(child.style.paddingLeft).not.toBe('0.5rem')
 	})
+
+	it('renders an active TreeItem without throwing', () => {
+		const { container } = renderUI(
+			<Tree>
+				<TreeItem label="Selected" active />
+			</Tree>,
+		)
+
+		const row = bySlot(container, 'tree-item-content') as HTMLElement
+
+		expect(row).toBeInTheDocument()
+	})
+
+	it('passes a custom className through to the row content', () => {
+		const { container } = renderUI(
+			<Tree>
+				<TreeItem label="Styled" className="my-row" />
+			</Tree>,
+		)
+
+		const row = bySlot(container, 'tree-item-content') as HTMLElement
+
+		expect(row.className).toContain('my-row')
+	})
+
+	it('honours controlled open=true and ignores defaultOpen', () => {
+		const { container } = renderUI(
+			<Tree>
+				<TreeItem label="Parent" open defaultOpen={false}>
+					<TreeItem label="Child" />
+				</TreeItem>
+			</Tree>,
+		)
+
+		const row = bySlot(container, 'tree-item-content') as HTMLElement
+
+		expect(row).toHaveAttribute('aria-expanded', 'true')
+	})
+
+	it('fires onOpenChange when controlled, without changing the row state', () => {
+		const onOpenChange = vi.fn()
+
+		const { container } = renderUI(
+			<Tree>
+				<TreeItem label="Parent" open={false} onOpenChange={onOpenChange}>
+					<TreeItem label="Child" />
+				</TreeItem>
+			</Tree>,
+		)
+
+		const row = bySlot(container, 'tree-item-content') as HTMLElement
+
+		fireEvent.click(screen.getByText('Parent'))
+
+		expect(onOpenChange).toHaveBeenCalledWith(true)
+
+		// Controlled — open stays false until the parent flips the prop.
+		expect(row).toHaveAttribute('aria-expanded', 'false')
+	})
 })

@@ -229,3 +229,78 @@ describe('Filter (uncontrolled)', () => {
 		expect(bySlot(container, 'count')?.textContent).toBe('1')
 	})
 })
+
+describe('Filters extras', () => {
+	it('renders the affix slot when provided', () => {
+		const { container } = renderUI(
+			<Filters affix={<span>affix node</span>}>
+				<span>child</span>
+			</Filters>,
+		)
+
+		const affix = bySlot(container, 'filters-affix')
+
+		expect(affix).toBeInTheDocument()
+
+		expect(affix?.textContent).toBe('affix node')
+	})
+
+	it('renders the suffix slot when provided', () => {
+		const { container } = renderUI(
+			<Filters suffix={<span>suffix node</span>}>
+				<span>child</span>
+			</Filters>,
+		)
+
+		const suffix = bySlot(container, 'filters-suffix')
+
+		expect(suffix).toBeInTheDocument()
+
+		expect(suffix?.textContent).toBe('suffix node')
+	})
+
+	it('omits the affix and suffix slots when not provided', () => {
+		const { container } = renderUI(
+			<Filters>
+				<span>child</span>
+			</Filters>,
+		)
+
+		expect(bySlot(container, 'filters-affix')).toBeNull()
+
+		expect(bySlot(container, 'filters-suffix')).toBeNull()
+	})
+
+	it('invokes onClear in addition to clearing values', async () => {
+		const onClear = vi.fn()
+
+		renderUI(
+			<Filters value={{ name: 'hello' }} onClear={onClear}>
+				<FiltersClear>
+					<Button>Clear</Button>
+				</FiltersClear>
+			</Filters>,
+		)
+
+		const user = userEvent.setup()
+
+		await user.click(screen.getByText('Clear'))
+
+		expect(onClear).toHaveBeenCalled()
+	})
+
+	it('renders the equal layout variant without error', () => {
+		const { container } = renderUI(
+			<Filters equal>
+				<FiltersField name="a">
+					<Input />
+				</FiltersField>
+				<FiltersField name="b">
+					<Input />
+				</FiltersField>
+			</Filters>,
+		)
+
+		expect(bySlot(container, 'filters')).toBeInTheDocument()
+	})
+})
