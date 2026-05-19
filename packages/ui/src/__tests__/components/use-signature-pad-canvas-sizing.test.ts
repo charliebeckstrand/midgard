@@ -54,8 +54,15 @@ function setup(opts: {
 	return { result, unmount, canvas, context }
 }
 
+const originalDevicePixelRatio = window.devicePixelRatio
+
 afterEach(() => {
 	vi.restoreAllMocks()
+
+	Object.defineProperty(window, 'devicePixelRatio', {
+		value: originalDevicePixelRatio,
+		configurable: true,
+	})
 })
 
 describe('useSignaturePadCanvasSizing', () => {

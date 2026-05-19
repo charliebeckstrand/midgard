@@ -38,6 +38,8 @@ describe('Toast: useToast behavior', () => {
 
 	afterEach(() => {
 		vi.useRealTimers()
+
+		vi.restoreAllMocks()
 	})
 
 	type TriggerProps = {
@@ -273,7 +275,7 @@ describe('Toast: useToast behavior', () => {
 	})
 
 	it('throws when useToast is called outside of a ToastProvider', () => {
-		const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+		vi.spyOn(console, 'error').mockImplementation(() => {})
 
 		function Bad() {
 			useToast()
@@ -282,8 +284,6 @@ describe('Toast: useToast behavior', () => {
 		}
 
 		expect(() => renderUI(<Bad />)).toThrow()
-
-		spy.mockRestore()
 	})
 
 	it.each([

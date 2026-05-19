@@ -6,6 +6,8 @@ import { makeCanvasContext } from '../helpers'
 
 afterEach(() => {
 	document.body.innerHTML = ''
+
+	vi.restoreAllMocks()
 })
 
 function TruncationProbe({

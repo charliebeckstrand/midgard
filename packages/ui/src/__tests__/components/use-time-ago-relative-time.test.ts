@@ -21,6 +21,8 @@ beforeEach(() => {
 
 afterEach(() => {
 	vi.useRealTimers()
+
+	vi.restoreAllMocks()
 })
 
 describe('useTimeAgoRelativeTime', () => {
