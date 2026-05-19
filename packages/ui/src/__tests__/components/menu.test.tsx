@@ -217,6 +217,27 @@ describe('MenuContent', () => {
 
 		expect(screen.getByText('Item')).toBeInTheDocument()
 	})
+
+	it('closes the menu when Escape is pressed on the menu panel', () => {
+		renderUI(
+			<Menu placement="bottom-start">
+				<MenuTrigger>
+					<button type="button">Open</button>
+				</MenuTrigger>
+				<MenuContent>
+					<MenuItem>Item</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		fireEvent.click(screen.getByText('Open'))
+
+		const panel = document.querySelector('[role="menu"]') as HTMLElement
+
+		fireEvent.keyDown(panel, { key: 'Escape' })
+
+		expect(screen.queryByText('Item')).not.toBeInTheDocument()
+	})
 })
 
 describe('MenuItem', () => {

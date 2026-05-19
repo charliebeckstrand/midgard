@@ -122,4 +122,16 @@ describe('TimeAgo', () => {
 
 		expect(el?.className).toContain('custom')
 	})
+
+	it('renders an empty <time> when the date is invalid', () => {
+		const { container } = renderUI(<TimeAgo date="not-a-date" />)
+
+		const el = bySlot(container, 'time-ago')
+
+		expect(el).toBeInTheDocument()
+
+		expect(el?.textContent).toBe('')
+
+		expect(el).not.toHaveAttribute('dateTime')
+	})
 })

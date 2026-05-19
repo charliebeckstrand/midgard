@@ -191,6 +191,18 @@ describe('NavItem', () => {
 
 		expect(onClick).toHaveBeenCalled()
 	})
+
+	it('renders the icon prop through the createNavItem icon slot', () => {
+		const { container } = renderUI(
+			<Nav>
+				<NavList>
+					<NavItem icon={<svg data-testid="nav-icon" aria-hidden />}>Dashboard</NavItem>
+				</NavList>
+			</Nav>,
+		)
+
+		expect(container.querySelector('[data-testid="nav-icon"]')).toBeInTheDocument()
+	})
 })
 
 describe('NavContent / NavContents', () => {
