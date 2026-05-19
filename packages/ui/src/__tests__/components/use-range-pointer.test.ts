@@ -159,4 +159,74 @@ describe('useRangePointer', () => {
 
 		expect(updater([20, 80])).toEqual([0, 80])
 	})
+
+	it('moves the lower thumb when stacked and the pointer lands below the stack', () => {
+		const { api, setRange } = setup({ current: [50, 50] })
+
+		api.onPointerDown(makeEvent({ clientX: 20 }))
+
+		expect(setRange).toHaveBeenCalled()
+
+		const updater = setRange.mock.calls[0]?.[0] as (
+			prev: [number, number] | undefined,
+		) => [number, number]
+
+		expect(updater([50, 50])[0]).toBe(20)
+	})
+
+	it('moves the upper thumb when stacked and the pointer lands above the stack', () => {
+		const { api, setRange } = setup({ current: [50, 50] })
+
+		api.onPointerDown(makeEvent({ clientX: 90 }))
+
+		const updater = setRange.mock.calls[0]?.[0] as (
+			prev: [number, number] | undefined,
+		) => [number, number]
+
+		expect(updater([50, 50])[1]).toBe(90)
+	})
+
+	it('defers thumb selection until the first move reveals direction', () => {
+		const { api, setRange } = setup({ current: [50, 50] })
+
+		api.onPointerDown(makeEvent({ clientX: 50 }))
+
+		expect(setRange).not.toHaveBeenCalled()
+
+		api.onPointerMove(makeEvent({ clientX: 60 }))
+
+		expect(setRange).toHaveBeenCalled()
+	})
+
+	it('stays pending when stacked at min and pointer moves left', () => {
+		const { api, setRange } = setup({ current: [0, 0] })
+
+		api.onPointerDown(makeEvent({ clientX: 0 }))
+
+		api.onPointerMove(makeEvent({ clientX: -10 }))
+
+		expect(setRange).not.toHaveBeenCalled()
+	})
+
+	it('stays pending when stacked at max and pointer moves right', () => {
+		const { api, setRange } = setup({ current: [100, 100] })
+
+		api.onPointerDown(makeEvent({ clientX: 100 }))
+
+		api.onPointerMove(makeEvent({ clientX: 110 }))
+
+		expect(setRange).not.toHaveBeenCalled()
+	})
+
+	it('reassigns the dragging thumb when overlap is swap and thumbs cross', () => {
+		const { api, setRange } = setup({ current: [20, 30], overlap: 'swap' })
+
+		api.onPointerDown(makeEvent({ clientX: 20 }))
+
+		setRange.mockClear()
+
+		api.onPointerMove(makeEvent({ clientX: 90 }))
+
+		expect(setRange).toHaveBeenCalled()
+	})
 })
