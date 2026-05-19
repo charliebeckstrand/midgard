@@ -62,6 +62,26 @@ describe('NavList', () => {
 
 		expect(screen.getByText('Hello')).toBeInTheDocument()
 	})
+
+	it('defaults to vertical orientation outside of a Navbar', () => {
+		const { container } = renderUI(
+			<Nav>
+				<NavList>content</NavList>
+			</Nav>,
+		)
+
+		expect(bySlot(container, 'nav-list')).toHaveAttribute('data-orientation', 'vertical')
+	})
+
+	it('honours an explicit orientation prop over the contextual default', () => {
+		const { container } = renderUI(
+			<Nav>
+				<NavList orientation="horizontal">content</NavList>
+			</Nav>,
+		)
+
+		expect(bySlot(container, 'nav-list')).toHaveAttribute('data-orientation', 'horizontal')
+	})
 })
 
 describe('NavItem', () => {
