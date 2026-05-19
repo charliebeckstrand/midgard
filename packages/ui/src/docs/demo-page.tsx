@@ -34,7 +34,7 @@ export function DemoPage({
 						aria-label={locked ? 'Float sidebar' : 'Lock sidebar'}
 						onClick={onToggleLocked}
 					>
-						<Icon icon={locked ? <PanelLeft /> : <PanelLeftDashed />} />
+						<Icon icon={locked ? <PanelLeftDashed /> : <PanelLeft />} />
 					</Button>
 					<Heading>{demo.name}</Heading>
 				</div>
