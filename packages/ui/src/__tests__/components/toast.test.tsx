@@ -295,4 +295,48 @@ describe('Toast: useToast behavior', () => {
 
 		expect(screen.getByText(`T-${type}`)).toBeInTheDocument()
 	})
+
+	it('renders a toast without a close button when showCloseButton is false', () => {
+		let api: ReturnType<typeof useToast> | undefined
+
+		renderUI(
+			<ToastProvider>
+				<Toast />
+				<Trigger onReady={(c) => (api = c)} />
+			</ToastProvider>,
+		)
+
+		act(() => {
+			api?.toast({ title: 'Quiet', persist: true, showCloseButton: false })
+		})
+
+		expect(screen.getByText('Quiet')).toBeInTheDocument()
+
+		expect(document.querySelector('[data-slot="alert-close"]')).toBeNull()
+	})
+
+	it('renders a toast with rich actions', () => {
+		let api: ReturnType<typeof useToast> | undefined
+
+		renderUI(
+			<ToastProvider>
+				<Toast />
+				<Trigger onReady={(c) => (api = c)} />
+			</ToastProvider>,
+		)
+
+		act(() => {
+			api?.toast({
+				title: 'With description',
+				description: 'Body text',
+				actions: <button type="button">Undo</button>,
+			})
+		})
+
+		expect(screen.getByText('With description')).toBeInTheDocument()
+
+		expect(screen.getByText('Body text')).toBeInTheDocument()
+
+		expect(screen.getByRole('button', { name: 'Undo' })).toBeInTheDocument()
+	})
 })

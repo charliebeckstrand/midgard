@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
 	Stepper,
 	StepperDescription,
@@ -8,7 +8,7 @@ import {
 	StepperStep,
 	StepperTitle,
 } from '../../components/stepper'
-import { bySlot, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Stepper', () => {
 	it('renders with data-slot="stepper"', () => {
@@ -151,5 +151,121 @@ describe('StepperPanel', () => {
 		)
 
 		expect(screen.queryByText('Hidden')).not.toBeInTheDocument()
+	})
+})
+
+describe('StepperStep interactive mode', () => {
+	it('renders steps as buttons when onValueChange is provided', () => {
+		const { container } = renderUI(
+			<Stepper value={1} onValueChange={() => {}}>
+				<StepperStep value={1}>
+					<StepperTitle>Step 1</StepperTitle>
+				</StepperStep>
+			</Stepper>,
+		)
+
+		const el = bySlot(container, 'stepper-step')
+
+		expect(el?.tagName).toBe('BUTTON')
+	})
+
+	it('calls onValueChange when an interactive step is clicked', () => {
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(
+			<Stepper value={1} onValueChange={onValueChange}>
+				<StepperStep value={1}>
+					<StepperTitle>Step 1</StepperTitle>
+				</StepperStep>
+				<StepperStep value={2}>
+					<StepperTitle>Step 2</StepperTitle>
+				</StepperStep>
+			</Stepper>,
+		)
+
+		const second = container.querySelectorAll<HTMLButtonElement>('[data-slot="stepper-step"]')[1]
+
+		fireEvent.click(second!)
+
+		expect(onValueChange).toHaveBeenCalledWith(2)
+	})
+
+	it('disables upcoming steps in linear mode', () => {
+		const { container } = renderUI(
+			<Stepper value={1} linear onValueChange={() => {}}>
+				<StepperStep value={1}>
+					<StepperTitle>Step 1</StepperTitle>
+				</StepperStep>
+				<StepperStep value={2}>
+					<StepperTitle>Step 2</StepperTitle>
+				</StepperStep>
+			</Stepper>,
+		)
+
+		const buttons = container.querySelectorAll<HTMLButtonElement>('[data-slot="stepper-step"]')
+
+		expect(buttons[1]).toBeDisabled()
+	})
+
+	it('respects an explicit disabled prop on a step', () => {
+		const { container } = renderUI(
+			<Stepper value={1} onValueChange={() => {}}>
+				<StepperStep value={1} disabled>
+					<StepperTitle>Step 1</StepperTitle>
+				</StepperStep>
+			</Stepper>,
+		)
+
+		expect(bySlot(container, 'stepper-step')).toBeDisabled()
+	})
+
+	it('marks a disabled non-interactive step with data-disabled', () => {
+		const { container } = renderUI(
+			<Stepper value={1}>
+				<StepperStep value={1} disabled>
+					<StepperTitle>Step 1</StepperTitle>
+				</StepperStep>
+			</Stepper>,
+		)
+
+		const el = bySlot(container, 'stepper-step')
+
+		expect(el?.tagName).toBe('DIV')
+
+		expect(el).toHaveAttribute('data-disabled', '')
+	})
+
+	it('partitions vertical-orientation children so non-indicator content lives in stepper-content', () => {
+		const { container } = renderUI(
+			<Stepper value={1} orientation="vertical">
+				<StepperStep value={1}>
+					<StepperTitle>Step 1</StepperTitle>
+				</StepperStep>
+			</Stepper>,
+		)
+
+		expect(bySlot(container, 'stepper-content')).toBeInTheDocument()
+	})
+
+	it('passes the current state through to descendants', () => {
+		const { container } = renderUI(
+			<Stepper value={2}>
+				<StepperStep value={1}>
+					<StepperTitle>Step 1</StepperTitle>
+				</StepperStep>
+				<StepperStep value={2}>
+					<StepperTitle>Step 2</StepperTitle>
+				</StepperStep>
+				<StepperStep value={3}>
+					<StepperTitle>Step 3</StepperTitle>
+				</StepperStep>
+			</Stepper>,
+		)
+
+		const states = Array.from(
+			container.querySelectorAll<HTMLElement>('[data-slot="stepper-step"]'),
+		).map((el) => el.getAttribute('data-state'))
+
+		expect(states).toEqual(['completed', 'current', 'upcoming'])
 	})
 })

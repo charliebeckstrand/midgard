@@ -77,6 +77,50 @@ describe('QueryBuilder', () => {
 
 		expect(screen.getByRole('button', { name: 'Add rule' })).toBeDisabled()
 	})
+
+	it('renders a remove button on each rule that removes the rule when clicked', () => {
+		const onChange = vi.fn()
+
+		const initialRule = createRule(fields[0])
+
+		const tree = createGroup('and', [initialRule])
+
+		renderUI(<QueryBuilder fields={fields} value={tree} onValueChange={onChange} />)
+
+		const removeButton = screen.getByRole('button', { name: 'Remove rule' })
+
+		expect(removeButton).toBeInTheDocument()
+
+		removeButton.click()
+
+		expect(onChange).toHaveBeenCalled()
+
+		const next = onChange.mock.calls.at(-1)?.[0]
+
+		expect(next.children).toHaveLength(0)
+	})
+
+	it('disables the remove rule button when QueryBuilder is disabled', () => {
+		const initialRule = createRule(fields[0])
+
+		const tree = createGroup('and', [initialRule])
+
+		renderUI(<QueryBuilder fields={fields} value={tree} disabled />)
+
+		expect(screen.getByRole('button', { name: 'Remove rule' })).toBeDisabled()
+	})
+
+	it('renders a value input for text-typed rule fields', () => {
+		const initialRule = createRule(fields[0])
+
+		const tree = createGroup('and', [initialRule])
+
+		const { container } = renderUI(<QueryBuilder fields={fields} value={tree} />)
+
+		const inputs = container.querySelectorAll('input[type="text"]')
+
+		expect(inputs.length).toBeGreaterThan(0)
+	})
 })
 
 describe('query-builder utilities', () => {
