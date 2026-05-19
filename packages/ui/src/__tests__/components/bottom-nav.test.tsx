@@ -116,7 +116,7 @@ describe('BottomNavItem', () => {
 
 		const item = bySlot(container, 'bottom-nav-item')
 
-		fireEvent.click(item!)
+		fireEvent.click(item as HTMLElement)
 
 		expect(onChange).toHaveBeenCalledWith('search')
 	})

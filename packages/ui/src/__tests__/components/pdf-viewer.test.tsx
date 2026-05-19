@@ -78,7 +78,7 @@ describe('PdfViewer', () => {
 
 		const thumbnails = allBySlot(container, 'pdf-viewer-thumbnail')
 
-		fireEvent.click(thumbnails[2]!)
+		fireEvent.click(thumbnails[2] as HTMLElement)
 
 		expect(onPageChange).toHaveBeenCalledWith(3)
 	})

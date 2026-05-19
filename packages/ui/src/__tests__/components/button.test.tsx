@@ -42,7 +42,7 @@ describe('Button', () => {
 
 		const button = bySlot(container, 'button')
 
-		fireEvent.click(button!)
+		fireEvent.click(button as HTMLElement)
 
 		expect(onClick).toHaveBeenCalledOnce()
 	})

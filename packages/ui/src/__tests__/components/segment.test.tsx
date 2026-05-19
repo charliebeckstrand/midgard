@@ -62,7 +62,7 @@ describe('Segment', () => {
 			</Segment>,
 		)
 
-		fireEvent.click(allBySlot(container, 'segment-item')[1]!)
+		fireEvent.click(allBySlot(container, 'segment-item')[1] as HTMLElement)
 
 		expect(onValueChange).toHaveBeenCalledWith('b')
 	})
@@ -81,7 +81,7 @@ describe('Segment', () => {
 			</Segment>,
 		)
 
-		fireEvent.click(allBySlot(container, 'segment-item')[1]!)
+		fireEvent.click(allBySlot(container, 'segment-item')[1] as HTMLElement)
 
 		expect(onValueChange).not.toHaveBeenCalled()
 	})
@@ -134,7 +134,7 @@ describe('Segment', () => {
 
 		expect(items[0]).toHaveAttribute('aria-checked', 'true')
 
-		fireEvent.click(items[1]!)
+		fireEvent.click(items[1] as HTMLElement)
 
 		expect(onValueChange).toHaveBeenCalledWith('b')
 	})

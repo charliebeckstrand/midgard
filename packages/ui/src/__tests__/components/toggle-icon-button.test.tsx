@@ -59,7 +59,7 @@ describe('ToggleIconButton', () => {
 
 		const el = bySlot(container, 'toggle-icon-button')
 
-		fireEvent.click(el!)
+		fireEvent.click(el as HTMLElement)
 
 		expect(onClick).toHaveBeenCalledOnce()
 	})
