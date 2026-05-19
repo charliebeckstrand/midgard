@@ -79,7 +79,11 @@ export function useTooltipState({
 		wasDisabledRef.current = isDisabled
 	})
 
-	useEffect(() => subscribeOverlayOpened(() => setOpen(false)), [])
+	useEffect(() => {
+		if (!open) return
+
+		return subscribeOverlayOpened(() => setOpen(false))
+	}, [open])
 
 	const hasHover = useHasHover()
 
