@@ -12,6 +12,7 @@ import {
 } from '@floating-ui/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useFloatingPanel, useHasHover } from '../../hooks'
+import { subscribeOverlayOpened } from '../../primitives/overlay'
 import type { Step } from '../../recipes/ryu/sun'
 
 export type UseTooltipStateOptions = {
@@ -77,6 +78,8 @@ export function useTooltipState({
 
 		wasDisabledRef.current = isDisabled
 	})
+
+	useEffect(() => subscribeOverlayOpened(() => setOpen(false)), [])
 
 	const hasHover = useHasHover()
 
