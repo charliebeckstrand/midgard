@@ -71,4 +71,44 @@ describe('Box', () => {
 
 		expect(el).toHaveAttribute('id', 'test')
 	})
+
+	it('applies the outline=true variant', () => {
+		const { container } = renderUI(<Box outline>content</Box>)
+
+		expect(bySlot(container, 'box')).toBeInTheDocument()
+	})
+
+	it('applies an explicit outline weight', () => {
+		const { container } = renderUI(<Box outline="strong">content</Box>)
+
+		expect(bySlot(container, 'box')).toBeInTheDocument()
+	})
+
+	it('applies radius, bg, padding, and margin tokens', () => {
+		const { container } = renderUI(
+			<Box radius="md" bg="surface" p="md" m="sm">
+				content
+			</Box>,
+		)
+
+		expect(bySlot(container, 'box')).toBeInTheDocument()
+	})
+
+	it('respects px / py / mx / my overrides', () => {
+		const { container } = renderUI(
+			<Box px="lg" py="sm" mx="xs" my="md">
+				content
+			</Box>,
+		)
+
+		expect(bySlot(container, 'box')).toBeInTheDocument()
+	})
+
+	it('renders with a custom dataSlot', () => {
+		const { container } = renderUI(<Box dataSlot="card">content</Box>)
+
+		expect(bySlot(container, 'card')).toBeInTheDocument()
+
+		expect(bySlot(container, 'box')).toBeNull()
+	})
 })
