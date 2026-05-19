@@ -6,7 +6,7 @@ const { number, cvv } = cardValidator
 // Allowlist mapping card-validator's `type` strings to the package's public
 // brand names + labels. Brands outside this list (maestro, elo, mir, hiper,
 // hipercard) resolve to undefined.
-const BRANDS: ReadonlyArray<{
+const brands: ReadonlyArray<{
 	type: string
 	brand: CreditCardBrand
 	label: string
@@ -25,7 +25,7 @@ export function detectCardBrand(digits: string): CreditCardBrandInfo | undefined
 
 	if (!card) return undefined
 
-	const entry = BRANDS.find((b) => b.type === card.type)
+	const entry = brands.find((b) => b.type === card.type)
 
 	if (!entry) return undefined
 
