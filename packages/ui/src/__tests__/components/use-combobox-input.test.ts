@@ -1,7 +1,8 @@
 import { renderHook } from '@testing-library/react'
-import type { ChangeEvent, FocusEvent, KeyboardEvent } from 'react'
+import type { ChangeEvent } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { useComboboxInput } from '../../components/combobox/use-combobox-input'
+import { makeFocusEvent, makeKeyEvent } from '../helpers'
 
 function setup<T>(overrides: Partial<Parameters<typeof useComboboxInput<T>>[0]> = {}) {
 	const setValue = vi.fn()
@@ -121,9 +122,9 @@ describe('useComboboxInput onBlur', () => {
 
 		floatingRef.current = document.createElement('div')
 
-		const event = {
+		const event = makeFocusEvent<HTMLInputElement>({
 			relatedTarget: document.createElement('span'),
-		} as unknown as FocusEvent<HTMLInputElement>
+		})
 
 		result.current.onBlur(event)
 
@@ -141,7 +142,7 @@ describe('useComboboxInput onBlur', () => {
 
 		floatingRef.current = floating
 
-		const event = { relatedTarget: inside } as unknown as FocusEvent<HTMLInputElement>
+		const event = makeFocusEvent<HTMLInputElement>({ relatedTarget: inside })
 
 		result.current.onBlur(event)
 
@@ -150,17 +151,10 @@ describe('useComboboxInput onBlur', () => {
 })
 
 describe('useComboboxInput onKeyDown', () => {
-	function makeKeyEvent(key: string) {
-		return {
-			key,
-			preventDefault: vi.fn(),
-		} as unknown as KeyboardEvent<HTMLInputElement>
-	}
-
 	it('closes on Escape', () => {
 		const { result, close, rovingKeyDown } = setup<string>()
 
-		result.current.onKeyDown(makeKeyEvent('Escape'))
+		result.current.onKeyDown(makeKeyEvent<HTMLInputElement>('Escape'))
 
 		expect(close).toHaveBeenCalled()
 
@@ -180,7 +174,7 @@ describe('useComboboxInput onKeyDown', () => {
 
 		optionsRef.current = container as HTMLDivElement
 
-		const event = makeKeyEvent('Enter')
+		const event = makeKeyEvent<HTMLInputElement>('Enter')
 
 		result.current.onKeyDown(event)
 
@@ -192,7 +186,7 @@ describe('useComboboxInput onKeyDown', () => {
 
 		optionsRef.current = document.createElement('div') as HTMLDivElement
 
-		const event = makeKeyEvent('Enter')
+		const event = makeKeyEvent<HTMLInputElement>('Enter')
 
 		result.current.onKeyDown(event)
 
@@ -202,7 +196,7 @@ describe('useComboboxInput onKeyDown', () => {
 	it('forwards other keys to roving navigation', () => {
 		const { result, rovingKeyDown } = setup<string>()
 
-		const event = makeKeyEvent('ArrowDown')
+		const event = makeKeyEvent<HTMLInputElement>('ArrowDown')
 
 		result.current.onKeyDown(event)
 

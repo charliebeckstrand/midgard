@@ -2,6 +2,7 @@ import { render, renderHook } from '@testing-library/react'
 import { type RefObject, useRef } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { useIsTruncated } from '../../hooks/use-is-truncated'
+import { makeCanvasContext } from '../helpers'
 
 afterEach(() => {
 	document.body.innerHTML = ''
@@ -30,28 +31,27 @@ function TruncationProbe({
 				value: clientWidth,
 			})
 
+			const cssPartial: Partial<CSSStyleDeclaration> = {
+				paddingLeft: '0px',
+				paddingRight: '0px',
+				fontStyle: 'normal',
+				fontWeight: '400',
+				fontSize: '16px',
+				fontFamily: 'system-ui',
+				letterSpacing: '0px',
+			}
+
 			vi.spyOn(window, 'getComputedStyle').mockImplementation(
-				() =>
-					({
-						paddingLeft: '0px',
-						paddingRight: '0px',
-						fontStyle: 'normal',
-						fontWeight: '400',
-						fontSize: '16px',
-						fontFamily: 'system-ui',
-						letterSpacing: '0px',
-					}) as unknown as CSSStyleDeclaration,
+				() => cssPartial as CSSStyleDeclaration,
 			)
 
-			const ctx = {
+			const ctx = makeCanvasContext({
 				font: '',
 				letterSpacing: '0px',
 				measureText: () => ({ width: measuredWidth }) as TextMetrics,
-			}
+			})
 
-			vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(
-				() => ctx as unknown as CanvasRenderingContext2D,
-			)
+			vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(() => ctx)
 		}
 	}
 

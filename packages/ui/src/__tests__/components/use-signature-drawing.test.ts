@@ -2,24 +2,10 @@ import { renderHook } from '@testing-library/react'
 import type { PointerEvent as ReactPointerEvent } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useSignaturePadDrawing } from '../../components/signature-pad/use-signature-pad-drawing'
+import { makeCanvasContext, makePointerEvent } from '../helpers'
 
 function makeContext() {
-	return {
-		beginPath: vi.fn(),
-		moveTo: vi.fn(),
-		lineTo: vi.fn(),
-		stroke: vi.fn(),
-		arc: vi.fn(),
-		fill: vi.fn(),
-		fillStyle: '',
-	} as unknown as CanvasRenderingContext2D & {
-		beginPath: ReturnType<typeof vi.fn>
-		moveTo: ReturnType<typeof vi.fn>
-		lineTo: ReturnType<typeof vi.fn>
-		stroke: ReturnType<typeof vi.fn>
-		arc: ReturnType<typeof vi.fn>
-		fill: ReturnType<typeof vi.fn>
-	}
+	return makeCanvasContext({ fillStyle: '' })
 }
 
 function makeCanvas(context: CanvasRenderingContext2D | null) {
@@ -28,7 +14,7 @@ function makeCanvas(context: CanvasRenderingContext2D | null) {
 	canvas.getBoundingClientRect = () =>
 		({ x: 0, y: 0, left: 0, top: 0, right: 100, bottom: 100, width: 100, height: 100 }) as DOMRect
 
-	canvas.getContext = (() => context) as unknown as HTMLCanvasElement['getContext']
+	canvas.getContext = (() => context) as HTMLCanvasElement['getContext']
 
 	canvas.toDataURL = () => 'data:image/png;base64,abc'
 
@@ -36,20 +22,19 @@ function makeCanvas(context: CanvasRenderingContext2D | null) {
 }
 
 function makeEvent(overrides: Partial<ReactPointerEvent> = {}) {
-	const target = {
-		setPointerCapture: vi.fn(),
-	}
+	const target = document.createElement('div')
 
-	return {
+	target.setPointerCapture = vi.fn()
+
+	return makePointerEvent({
 		clientX: 10,
 		clientY: 20,
 		pointerId: 1,
 		pointerType: 'pen',
 		button: 0,
 		currentTarget: target,
-		preventDefault: vi.fn(),
 		...overrides,
-	} as unknown as ReactPointerEvent
+	})
 }
 
 function setup(
@@ -118,10 +103,7 @@ describe('useSignaturePadDrawing: handlePointerDown', () => {
 
 		api.handlePointerDown(event)
 
-		expect(
-			(event.currentTarget as unknown as { setPointerCapture: ReturnType<typeof vi.fn> })
-				.setPointerCapture,
-		).toHaveBeenCalledWith(1)
+		expect(event.currentTarget.setPointerCapture).toHaveBeenCalledWith(1)
 	})
 
 	it('is a no-op when disabled', () => {

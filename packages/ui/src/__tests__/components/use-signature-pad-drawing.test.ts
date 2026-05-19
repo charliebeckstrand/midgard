@@ -3,6 +3,7 @@ import type { PointerEvent as ReactPointerEvent } from 'react'
 import { useRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { useSignaturePadDrawing } from '../../components/signature-pad/use-signature-pad-drawing'
+import { makeCanvasContext, makePointerEvent } from '../helpers'
 
 type Setup = {
 	disabled?: boolean
@@ -19,19 +20,7 @@ function setup({
 	contextNull = false,
 	canvasNull = false,
 }: Setup = {}) {
-	const context = {
-		beginPath: vi.fn(),
-		moveTo: vi.fn(),
-		lineTo: vi.fn(),
-		arc: vi.fn(),
-		fill: vi.fn(),
-		stroke: vi.fn(),
-		lineCap: '',
-		lineJoin: '',
-		strokeStyle: '',
-		fillStyle: '',
-		lineWidth: 0,
-	} as unknown as CanvasRenderingContext2D
+	const context = makeCanvasContext()
 
 	const canvas = canvasNull ? null : document.createElement('canvas')
 
@@ -75,16 +64,19 @@ function setup({
 }
 
 function pointerEvent(overrides: Partial<ReactPointerEvent> = {}): ReactPointerEvent {
-	return {
+	const target = document.createElement('div')
+
+	target.setPointerCapture = vi.fn()
+
+	return makePointerEvent({
 		clientX: 10,
 		clientY: 10,
 		button: 0,
 		pointerId: 1,
 		pointerType: 'mouse',
-		preventDefault: vi.fn(),
-		currentTarget: { setPointerCapture: vi.fn() },
+		currentTarget: target,
 		...overrides,
-	} as unknown as ReactPointerEvent
+	})
 }
 
 describe('useSignaturePadDrawing', () => {

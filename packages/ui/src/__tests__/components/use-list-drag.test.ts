@@ -1,8 +1,17 @@
+import type { DragStartEvent } from '@dnd-kit/core'
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { useListDrag } from '../../components/list/use-list-drag'
 
 type Item = { id: string; label: string }
+
+function dragStartEvent(id: string): DragStartEvent {
+	const partial: Partial<DragStartEvent> = {
+		active: { id } as DragStartEvent['active'],
+	}
+
+	return partial as DragStartEvent
+}
 
 const items: Item[] = [
 	{ id: 'a', label: 'A' },
@@ -80,9 +89,7 @@ describe('useListDrag', () => {
 		)
 
 		act(() => {
-			result.current.dndContextProps.onDragStart({
-				active: { id: 'b' },
-			} as unknown as Parameters<typeof result.current.dndContextProps.onDragStart>[0])
+			result.current.dndContextProps.onDragStart(dragStartEvent('b'))
 		})
 
 		expect(result.current.activeId).toBe('b')
@@ -103,9 +110,7 @@ describe('useListDrag', () => {
 		)
 
 		act(() => {
-			result.current.dndContextProps.onDragStart({
-				active: { id: 'missing' },
-			} as unknown as Parameters<typeof result.current.dndContextProps.onDragStart>[0])
+			result.current.dndContextProps.onDragStart(dragStartEvent('missing'))
 		})
 
 		expect(result.current.activeId).toBe('missing')

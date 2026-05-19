@@ -128,21 +128,24 @@ describe('deriveCode prop formatting', () => {
 
 describe('deriveCode + __code', () => {
 	it('renders the helper function snippet verbatim and infers imports', () => {
-		function AreaDemo() {
-			return null
-		}
-
-		;(AreaDemo as unknown as { __code: string }).__code = [
-			'function AreaDemo() {',
-			'\tconst [files, setFiles] = useState<File[]>([])',
-			'',
-			'\treturn (',
-			'\t\t<Stack>',
-			'\t\t\t<FileUpload accept="image/*" onFiles={setFiles} />',
-			'\t\t</Stack>',
-			'\t)',
-			'}',
-		].join('\n')
+		const AreaDemo = Object.assign(
+			function AreaDemo() {
+				return null
+			},
+			{
+				__code: [
+					'function AreaDemo() {',
+					'\tconst [files, setFiles] = useState<File[]>([])',
+					'',
+					'\treturn (',
+					'\t\t<Stack>',
+					'\t\t\t<FileUpload accept="image/*" onFiles={setFiles} />',
+					'\t\t</Stack>',
+					'\t)',
+					'}',
+				].join('\n'),
+			},
+		)
 
 		const result = deriveCode(createElement(AreaDemo))
 
@@ -163,19 +166,22 @@ describe('deriveCode + __code', () => {
 	})
 
 	it('infers React 19 hook imports (use, useActionState, useOptimistic, useFormStatus)', () => {
-		function FormDemo() {
-			return null
-		}
-
-		;(FormDemo as unknown as { __code: string }).__code = [
-			'function FormDemo() {',
-			'\tconst data = use(promise)',
-			'\tconst [state, action] = useActionState(submit, null)',
-			'\tconst [optimistic, addOptimistic] = useOptimistic(items)',
-			'\tconst status = useFormStatus()',
-			'\treturn <form />',
-			'}',
-		].join('\n')
+		const FormDemo = Object.assign(
+			function FormDemo() {
+				return null
+			},
+			{
+				__code: [
+					'function FormDemo() {',
+					'\tconst data = use(promise)',
+					'\tconst [state, action] = useActionState(submit, null)',
+					'\tconst [optimistic, addOptimistic] = useOptimistic(items)',
+					'\tconst status = useFormStatus()',
+					'\treturn <form />',
+					'}',
+				].join('\n'),
+			},
+		)
 
 		const result = deriveCode(createElement(FormDemo))
 
@@ -189,16 +195,19 @@ describe('deriveCode + __code', () => {
 		// `<Stack />` is a real recognized component, so `deriveCode` returns a
 		// non-null code block — needed to assert "the block contains no React
 		// `use` import" via toMatch.
-		function MethodDemo() {
-			return null
-		}
-
-		;(MethodDemo as unknown as { __code: string }).__code = [
-			'function MethodDemo() {',
-			'\tconst result = router.use(plugin)',
-			'\treturn <Stack />',
-			'}',
-		].join('\n')
+		const MethodDemo = Object.assign(
+			function MethodDemo() {
+				return null
+			},
+			{
+				__code: [
+					'function MethodDemo() {',
+					'\tconst result = router.use(plugin)',
+					'\treturn <Stack />',
+					'}',
+				].join('\n'),
+			},
+		)
 
 		const result = deriveCode(createElement(MethodDemo))
 

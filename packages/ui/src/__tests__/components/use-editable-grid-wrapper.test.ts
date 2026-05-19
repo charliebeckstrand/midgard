@@ -55,7 +55,7 @@ function setup(
 	// honor a test-supplied flag by defaulting anchor to a truthy value when set.
 	const effectiveAnchor = options.anchor ?? (options.hasMultiSelection ? { row: 0, col: 1 } : null)
 
-	const nav = {
+	const partialNav: Partial<EditableGridNavigationApi> = {
 		active: options.active ?? { row: 0, col: 0 },
 		anchor: effectiveAnchor,
 		extraCells: options.extras ?? new Set(),
@@ -66,17 +66,21 @@ function setup(
 		setActive: mocks.setActive,
 		setAnchor: mocks.setAnchor,
 		setExtraCells: mocks.setExtraCells,
-	} as unknown as EditableGridNavigationApi
+	}
+
+	const nav = partialNav as EditableGridNavigationApi
 
 	const mutations: EditableGridMutationsApi = {
 		applyCellWrite: mocks.applyCellWrite,
 		applyBulkFill: mocks.applyBulkFill,
 	}
 
-	const draft = {
+	const partialDraft: Partial<EditableGridDraftApi> = {
 		editing: options.editing ?? false,
 		beginEdit: mocks.beginEdit,
-	} as unknown as EditableGridDraftApi
+	}
+
+	const draft = partialDraft as EditableGridDraftApi
 
 	const { result } = renderHook(() =>
 		useEditableGridWrapper<Row>({
@@ -159,28 +163,32 @@ describe('useEditableGridWrapper: onWrapperKeyDown arrow navigation', () => {
 
 		const e = makeKeyEvent<HTMLTableElement>('Tab')
 
+		const partialNav: Partial<EditableGridNavigationApi> = {
+			active: { row: 0, col: 0 },
+			anchor: null,
+			extraCells: new Set(),
+			activeRef: { current: { row: 0, col: 0 } },
+			moveActive: vi.fn(),
+			moveActiveTo: vi.fn(),
+			moveActiveTab: vi.fn(() => false),
+			setActive: vi.fn(),
+			setAnchor: vi.fn(),
+			setExtraCells: vi.fn(),
+		}
+
+		const partialDraft: Partial<EditableGridDraftApi> = {
+			editing: false,
+			beginEdit: vi.fn(),
+		}
+
 		const { result } = renderHook(() =>
 			useEditableGridWrapper<Row>({
-				nav: {
-					active: { row: 0, col: 0 },
-					anchor: null,
-					extraCells: new Set(),
-					activeRef: { current: { row: 0, col: 0 } },
-					moveActive: vi.fn(),
-					moveActiveTo: vi.fn(),
-					moveActiveTab: vi.fn(() => false),
-					setActive: vi.fn(),
-					setAnchor: vi.fn(),
-					setExtraCells: vi.fn(),
-				} as unknown as EditableGridNavigationApi,
+				nav: partialNav as EditableGridNavigationApi,
 				mutations: {
 					applyCellWrite: vi.fn(),
 					applyBulkFill: vi.fn(),
 				},
-				draft: {
-					editing: false,
-					beginEdit: vi.fn(),
-				} as unknown as EditableGridDraftApi,
+				draft: partialDraft as EditableGridDraftApi,
 				rows: {
 					rowsRef: { current: [{ id: 'a', value: 'a1' }] },
 					editableCols: cols,
@@ -319,10 +327,14 @@ describe('useEditableGridWrapper: onWrapperKeyDown delete and escape', () => {
 
 describe('useEditableGridWrapper: onWrapperPaste', () => {
 	function makePaste(text: string): ClipboardEvent<HTMLTableElement> {
-		return {
-			clipboardData: { getData: vi.fn(() => text) },
+		const dataTransfer: Partial<DataTransfer> = { getData: vi.fn(() => text) }
+
+		const partial: Partial<ClipboardEvent<HTMLTableElement>> = {
+			clipboardData: dataTransfer as DataTransfer,
 			preventDefault: vi.fn(),
-		} as unknown as ClipboardEvent<HTMLTableElement>
+		}
+
+		return partial as ClipboardEvent<HTMLTableElement>
 	}
 
 	it('pastes a single value into the active cell', () => {
@@ -392,11 +404,20 @@ describe('useEditableGridWrapper: onWrapperPaste', () => {
 })
 
 describe('useEditableGridWrapper: onWrapperFocus and onWrapperBlur', () => {
+	type FocusTarget = FocusEvent<HTMLTableElement>['target']
+
+	type FocusRelated = FocusEvent<HTMLTableElement>['relatedTarget']
+
 	function makeFocusEvent(
-		target: EventTarget | null,
-		related: EventTarget | null = null,
+		target: Element | null,
+		related: Element | null = null,
 	): FocusEvent<HTMLTableElement> {
-		return { target, relatedTarget: related } as unknown as FocusEvent<HTMLTableElement>
+		const partial: Partial<FocusEvent<HTMLTableElement>> = {
+			target: target as FocusTarget,
+			relatedTarget: related as FocusRelated,
+		}
+
+		return partial as FocusEvent<HTMLTableElement>
 	}
 
 	it('onWrapperFocus moves focus to {0,0} when tabbing in from above', () => {
@@ -408,28 +429,32 @@ describe('useEditableGridWrapper: onWrapperFocus and onWrapperBlur', () => {
 
 		document.body.insertBefore(before, wrapper)
 
+		const partialNav: Partial<EditableGridNavigationApi> = {
+			active: null,
+			anchor: null,
+			extraCells: new Set(),
+			activeRef: { current: null },
+			moveActive: vi.fn(),
+			moveActiveTo: vi.fn(),
+			moveActiveTab: vi.fn(() => true),
+			setActive: vi.fn(),
+			setAnchor: vi.fn(),
+			setExtraCells: vi.fn(),
+		}
+
+		const partialDraft: Partial<EditableGridDraftApi> = {
+			editing: false,
+			beginEdit: vi.fn(),
+		}
+
 		const { result } = renderHook(() =>
 			useEditableGridWrapper<Row>({
-				nav: {
-					active: null,
-					anchor: null,
-					extraCells: new Set(),
-					activeRef: { current: null },
-					moveActive: vi.fn(),
-					moveActiveTo: vi.fn(),
-					moveActiveTab: vi.fn(() => true),
-					setActive: vi.fn(),
-					setAnchor: vi.fn(),
-					setExtraCells: vi.fn(),
-				} as unknown as EditableGridNavigationApi,
+				nav: partialNav as EditableGridNavigationApi,
 				mutations: {
 					applyCellWrite: vi.fn(),
 					applyBulkFill: vi.fn(),
 				},
-				draft: {
-					editing: false,
-					beginEdit: vi.fn(),
-				} as unknown as EditableGridDraftApi,
+				draft: partialDraft as EditableGridDraftApi,
 				rows: {
 					rowsRef: { current: [{ id: 'a', value: '' }] },
 					editableCols: cols,

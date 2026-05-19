@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react'
-import type { PointerEvent as ReactPointerEvent } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { useScrollAreaScrollbar } from '../../components/scroll-area/use-scroll-area-scrollbar'
+import { makePointerEvent } from '../helpers'
 
 function makeViewport({
 	scrollTop = 0,
@@ -169,13 +169,7 @@ describe('useScrollAreaScrollbar: handleScroll', () => {
 
 describe('useScrollAreaScrollbar: startDrag', () => {
 	function makeEvent(client: { x: number; y: number }) {
-		return {
-			clientX: client.x,
-			clientY: client.y,
-			pointerId: 1,
-			preventDefault: vi.fn(),
-			stopPropagation: vi.fn(),
-		} as unknown as ReactPointerEvent<HTMLDivElement>
+		return makePointerEvent<HTMLDivElement>({ clientX: client.x, clientY: client.y })
 	}
 
 	it('is a no-op when the viewport is not attached', () => {
