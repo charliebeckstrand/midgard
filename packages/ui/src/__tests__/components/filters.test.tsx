@@ -303,4 +303,31 @@ describe('Filters extras', () => {
 
 		expect(bySlot(container, 'filters')).toBeInTheDocument()
 	})
+
+	it('removes a key from the value when the field is set to an empty/inactive value', async () => {
+		const onChange = vi.fn()
+
+		const { container } = renderUI(
+			<Filters defaultValue={{ name: 'hello' }} onValueChange={onChange}>
+				<FiltersField name="name">
+					<Input />
+				</FiltersField>
+			</Filters>,
+		)
+
+		const input = bySlot(container, 'input') as HTMLInputElement
+
+		const user = userEvent.setup()
+
+		await user.clear(input)
+
+		// Empty string is inactive — Filters should drop `name` from the value object.
+		expect(onChange).toHaveBeenCalled()
+
+		const lastCall = onChange.mock.calls[onChange.mock.calls.length - 1] as [
+			Record<string, unknown>,
+		]
+
+		expect(Object.hasOwn(lastCall[0], 'name')).toBe(false)
+	})
 })

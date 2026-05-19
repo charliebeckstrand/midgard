@@ -288,4 +288,32 @@ describe('useTagInput', () => {
 
 		expect(onMaxReleased).not.toHaveBeenCalled()
 	})
+
+	it('addTag accepts a new tag when below max', () => {
+		const onValueChange = vi.fn()
+
+		const { result } = renderHook(() => useTagInput({ defaultValue: ['a'], max: 5, onValueChange }))
+
+		let added = false
+
+		act(() => {
+			added = result.current.addTag('b')
+		})
+
+		expect(added).toBe(true)
+
+		expect(onValueChange).toHaveBeenCalledWith(['a', 'b'])
+	})
+
+	it('addTag rejects a duplicate', () => {
+		const { result } = renderHook(() => useTagInput({ defaultValue: ['a'] }))
+
+		let added = true
+
+		act(() => {
+			added = result.current.addTag('a')
+		})
+
+		expect(added).toBe(false)
+	})
 })
