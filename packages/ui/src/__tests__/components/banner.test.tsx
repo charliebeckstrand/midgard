@@ -26,4 +26,20 @@ describe('Banner', () => {
 
 		expect(el?.className).toContain('custom')
 	})
+
+	it('applies sticky positioning when position="sticky"', () => {
+		const { container } = renderUI(<Banner position="sticky">content</Banner>)
+
+		const el = bySlot(container, 'alert')
+
+		expect(el?.className).toContain('sticky')
+	})
+
+	it('omits sticky positioning when position="static" (default)', () => {
+		const { container } = renderUI(<Banner>content</Banner>)
+
+		const el = bySlot(container, 'alert')
+
+		expect(el?.className).not.toContain('sticky')
+	})
 })
