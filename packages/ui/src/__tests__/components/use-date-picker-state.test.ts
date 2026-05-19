@@ -134,6 +134,94 @@ describe('useDatePickerState', () => {
 		})
 	})
 
+	describe('keyboard delegation', () => {
+		function fakeKey(key: string, shift = false): React.KeyboardEvent<HTMLElement> {
+			return {
+				key,
+				shiftKey: shift,
+				preventDefault: () => {},
+			} as unknown as React.KeyboardEvent<HTMLElement>
+		}
+
+		it('opens the calendar when ArrowDown is pressed on a closed trigger', () => {
+			const { result } = renderHook(() => useDatePickerState({}))
+
+			act(() => {
+				result.current.onTriggerKeyDown(fakeKey('ArrowDown'))
+			})
+
+			expect(result.current.open).toBe(true)
+		})
+
+		it('ignores keys when disabled is true', () => {
+			const { result } = renderHook(() => useDatePickerState({ disabled: true }))
+
+			act(() => {
+				result.current.onTriggerKeyDown(fakeKey('ArrowDown'))
+			})
+
+			expect(result.current.open).toBe(false)
+		})
+
+		it('closes the calendar on Escape when open', () => {
+			const { result } = renderHook(() => useDatePickerState({}))
+
+			act(() => {
+				result.current.onTriggerKeyDown(fakeKey('ArrowDown'))
+			})
+
+			act(() => {
+				result.current.onTriggerKeyDown(fakeKey('Escape'))
+			})
+
+			expect(result.current.open).toBe(false)
+		})
+
+		it('materialises grid focus on the first arrow press after opening', () => {
+			const { result } = renderHook(() => useDatePickerState({ defaultValue: Jan15 }))
+
+			act(() => {
+				result.current.onTriggerKeyDown(fakeKey('ArrowDown'))
+			})
+
+			act(() => {
+				result.current.onTriggerKeyDown(fakeKey('ArrowRight'))
+			})
+
+			expect(result.current.calendar.active?.zone).toBe('grid')
+		})
+	})
+
+	describe('initial active date', () => {
+		it('clamps the initial date to min when no value is set', () => {
+			const { result } = renderHook(() =>
+				useDatePickerState({ min: Jan15, max: new Date(2025, 11, 31) }),
+			)
+
+			// Open and trigger a grid materialisation to expose the initial active date.
+			const fakeKey = (k: string): React.KeyboardEvent<HTMLElement> =>
+				({
+					key: k,
+					shiftKey: false,
+					preventDefault: () => {},
+				}) as unknown as React.KeyboardEvent<HTMLElement>
+
+			act(() => {
+				result.current.onTriggerKeyDown(fakeKey('ArrowDown'))
+			})
+
+			act(() => {
+				result.current.onTriggerKeyDown(fakeKey('ArrowRight'))
+			})
+
+			const active = result.current.calendar.active
+
+			if (active?.zone !== 'grid') throw new Error('expected grid active zone')
+
+			expect(active.date.getTime()).toBeGreaterThanOrEqual(Jan15.getTime())
+		})
+	})
+
 	describe('footerButtons', () => {
 		it('exposes only "today" when there is no value', () => {
 			const { result } = renderHook(() => useDatePickerState({}))

@@ -154,6 +154,47 @@ describe('JsonTree', () => {
 			expect(bySlot(container, 'json-tree')).toBeInTheDocument()
 		})
 
+		it('mounts virtualized with a custom estimateSize and overscan', () => {
+			const { container } = renderUI(
+				<JsonTree
+					data={{ a: 1, b: 2 }}
+					virtualize={{ estimateSize: 40, overscan: 5 }}
+					maxHeight="200px"
+				/>,
+			)
+
+			expect(bySlot(container, 'json-tree')).toBeInTheDocument()
+		})
+
+		it('mounts virtualized with a controlled expanded set', () => {
+			const onExpandedChange = vi.fn()
+
+			const { container } = renderUI(
+				<JsonTree
+					data={{ a: 1 }}
+					virtualize
+					maxHeight="200px"
+					expanded={new Set(['$'])}
+					onExpandedChange={onExpandedChange}
+				/>,
+			)
+
+			expect(bySlot(container, 'json-tree')).toBeInTheDocument()
+		})
+
+		it('mounts virtualized with an active search term', () => {
+			const { container } = renderUI(
+				<JsonTree
+					data={{ outer: { needle: 'match' } }}
+					virtualize
+					maxHeight="200px"
+					search={{ value: 'needle', filter: true }}
+				/>,
+			)
+
+			expect(bySlot(container, 'json-tree')).toBeInTheDocument()
+		})
+
 		it('never renders more rows than the flattened node count', () => {
 			const data = Object.fromEntries(Array.from({ length: 100 }, (_, i) => [`key_${i}`, i]))
 			const { container } = renderUI(

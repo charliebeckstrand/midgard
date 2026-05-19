@@ -34,6 +34,86 @@ describe('Grid', () => {
 
 		expect(el).toHaveAttribute('id', 'test')
 	})
+
+	it('applies a numeric columns value via the --cols CSS variable', () => {
+		const { container } = renderUI(<Grid columns={3}>content</Grid>)
+
+		const el = bySlot(container, 'grid')
+
+		expect(el?.className).toContain('grid-cols-[repeat(var(--cols),minmax(0,1fr))]')
+
+		expect(el?.style.getPropertyValue('--cols')).toBe('3')
+	})
+
+	it('applies a numeric rows value via the --rows CSS variable', () => {
+		const { container } = renderUI(<Grid rows={4}>content</Grid>)
+
+		const el = bySlot(container, 'grid')
+
+		expect(el?.className).toContain('grid-rows-[repeat(var(--rows),minmax(0,1fr))]')
+
+		expect(el?.style.getPropertyValue('--rows')).toBe('4')
+	})
+
+	it('emits both initial and sm classes for a responsive columns prop', () => {
+		const { container } = renderUI(<Grid columns={{ initial: 2, md: 4 }}>content</Grid>)
+
+		const el = bySlot(container, 'grid')
+
+		expect(el?.className).toContain('grid-cols-[repeat(var(--cols),minmax(0,1fr))]')
+
+		expect(el?.className).toContain('md:grid-cols-[repeat(var(--cols-md),minmax(0,1fr))]')
+
+		expect(el?.style.getPropertyValue('--cols')).toBe('2')
+
+		expect(el?.style.getPropertyValue('--cols-md')).toBe('4')
+	})
+
+	it('applies the gap class for an explicit gap value', () => {
+		const { container } = renderUI(<Grid gap="lg">content</Grid>)
+
+		expect(bySlot(container, 'grid')?.className).toContain('gap-lg')
+	})
+
+	it('applies a responsive gap object', () => {
+		const { container } = renderUI(<Grid gap={{ initial: 'sm', md: 'xl' }}>content</Grid>)
+
+		const cls = bySlot(container, 'grid')?.className ?? ''
+
+		expect(cls).toContain('gap-sm')
+
+		expect(cls).toContain('md:gap-xl')
+	})
+
+	it('applies flow, align, and justify classes', () => {
+		const { container } = renderUI(
+			<Grid flow="column" align="center" justify="end">
+				content
+			</Grid>,
+		)
+
+		const cls = bySlot(container, 'grid')?.className ?? ''
+
+		expect(cls).toContain('grid-flow-col')
+
+		expect(cls).toContain('items-center')
+
+		expect(cls).toContain('justify-items-end')
+	})
+
+	it('merges inline style with computed grid styles', () => {
+		const { container } = renderUI(
+			<Grid columns={2} style={{ background: 'red' }}>
+				content
+			</Grid>,
+		)
+
+		const el = bySlot(container, 'grid')
+
+		expect(el?.style.background).toBe('red')
+
+		expect(el?.style.getPropertyValue('--cols')).toBe('2')
+	})
 })
 
 describe('GridCell', () => {
@@ -134,6 +214,22 @@ describe('GridCell', () => {
 		)
 
 		expect(bySlot(container, 'grid-cell')).toHaveAttribute('id', 'cell-1')
+	})
+
+	it('mixes numeric and "full" values in a responsive span object', () => {
+		const { container } = renderUI(
+			<Grid>
+				<GridCell span={{ initial: 2, md: 'full' }}>cell</GridCell>
+			</Grid>,
+		)
+
+		const cell = bySlot(container, 'grid-cell')
+
+		expect(cell?.className).toContain('col-span-(--span)')
+
+		expect(cell?.className).toContain('md:col-span-full')
+
+		expect(cell?.style.getPropertyValue('--span')).toBe('2')
 	})
 })
 

@@ -1,0 +1,226 @@
+import { act, renderHook } from '@testing-library/react'
+import { describe, expect, it, vi } from 'vitest'
+import type { DataTableColumn } from '../../components/data-table'
+import { useDataTableColumns } from '../../components/data-table/use-data-table-columns'
+
+type Row = { name: string; age: number; status: string }
+
+const baseColumns: DataTableColumn<Row>[] = [
+	{ id: 'name', title: 'Name', cell: (r) => r.name },
+	{ id: 'age', title: 'Age', cell: (r) => r.age },
+	{ id: 'status', title: 'Status', cell: (r) => r.status },
+]
+
+describe('useDataTableColumns', () => {
+	it('defaults columnOrder to the column ids in declaration order', () => {
+		const { result } = renderHook(() =>
+			useDataTableColumns<Row>({ columns: baseColumns, columnManagerConfig: undefined }),
+		)
+
+		expect(result.current.columnOrder).toEqual(['name', 'age', 'status'])
+	})
+
+	it('exposes empty hidden set by default', () => {
+		const { result } = renderHook(() =>
+			useDataTableColumns<Row>({ columns: baseColumns, columnManagerConfig: undefined }),
+		)
+
+		expect(result.current.hiddenColumns.size).toBe(0)
+	})
+
+	it('exposes the default manage-columns label as "Columns"', () => {
+		const { result } = renderHook(() =>
+			useDataTableColumns<Row>({ columns: baseColumns, columnManagerConfig: undefined }),
+		)
+
+		expect(result.current.manageColumnsLabel).toBe('Columns')
+	})
+
+	it('reads manageColumns from columnManagerConfig.enabled', () => {
+		const { result } = renderHook(() =>
+			useDataTableColumns<Row>({
+				columns: baseColumns,
+				columnManagerConfig: { enabled: true },
+			}),
+		)
+
+		expect(result.current.manageColumns).toBe(true)
+	})
+
+	it('honors a controlled order from columnManagerConfig.order', () => {
+		const { result } = renderHook(() =>
+			useDataTableColumns<Row>({
+				columns: baseColumns,
+				columnManagerConfig: { order: ['age', 'name', 'status'] },
+			}),
+		)
+
+		expect(result.current.columnOrder).toEqual(['age', 'name', 'status'])
+
+		expect(result.current.visibleColumns.map((c) => c.id)).toEqual(['age', 'name', 'status'])
+	})
+
+	it('uses defaultOrder when no controlled order is supplied', () => {
+		const { result } = renderHook(() =>
+			useDataTableColumns<Row>({
+				columns: baseColumns,
+				columnManagerConfig: { defaultOrder: ['status', 'name', 'age'] },
+			}),
+		)
+
+		expect(result.current.columnOrder).toEqual(['status', 'name', 'age'])
+	})
+
+	it('drops a hidden column from visibleColumns', () => {
+		const { result } = renderHook(() =>
+			useDataTableColumns<Row>({
+				columns: baseColumns,
+				columnManagerConfig: { defaultHidden: new Set(['age']) },
+			}),
+		)
+
+		const ids = result.current.visibleColumns.map((c) => c.id)
+
+		expect(ids).not.toContain('age')
+
+		expect(ids).toContain('name')
+	})
+
+	it('fires onHiddenChange when setHiddenColumns is called', () => {
+		const onHiddenChange = vi.fn()
+
+		const { result } = renderHook(() =>
+			useDataTableColumns<Row>({
+				columns: baseColumns,
+				columnManagerConfig: { onHiddenChange, defaultHidden: new Set() },
+			}),
+		)
+
+		act(() => {
+			result.current.setHiddenColumns(new Set(['age']))
+		})
+
+		expect(onHiddenChange).toHaveBeenCalledWith(new Set(['age']))
+	})
+
+	it('fires onOrderChange when setColumnOrder is called', () => {
+		const onOrderChange = vi.fn()
+
+		const { result } = renderHook(() =>
+			useDataTableColumns<Row>({
+				columns: baseColumns,
+				columnManagerConfig: { onOrderChange },
+			}),
+		)
+
+		act(() => {
+			result.current.setColumnOrder(['status', 'age', 'name'])
+		})
+
+		expect(onOrderChange).toHaveBeenCalledWith(['status', 'age', 'name'])
+	})
+
+	it('preserves selectable, actions, and pinned columns even when listed as hidden', () => {
+		const cols: DataTableColumn<Row>[] = [
+			{ id: 'select', selectable: true },
+			{ id: 'name', title: 'Name', cell: (r) => r.name },
+			{ id: 'pinned-status', title: 'Status', cell: (r) => r.status, pinned: true },
+			{
+				id: 'actions',
+				actions: (r) => r.name,
+			},
+		]
+
+		const { result } = renderHook(() =>
+			useDataTableColumns<Row>({
+				columns: cols,
+				columnManagerConfig: {
+					enabled: true,
+					defaultHidden: new Set(['select', 'name', 'pinned-status', 'actions']),
+				},
+			}),
+		)
+
+		const visibleIds = result.current.visibleColumns.map((c) => c.id)
+
+		expect(visibleIds).toContain('select')
+
+		expect(visibleIds).toContain('pinned-status')
+
+		expect(visibleIds).toContain('actions')
+
+		expect(visibleIds).not.toContain('name')
+	})
+
+	it('excludes selectable and actions columns from managerItems', () => {
+		const cols: DataTableColumn<Row>[] = [
+			{ id: 'select', selectable: true },
+			{ id: 'name', title: 'Name', cell: (r) => r.name },
+			{
+				id: 'actions',
+				actions: (r) => r.name,
+			},
+		]
+
+		const { result } = renderHook(() =>
+			useDataTableColumns<Row>({ columns: cols, columnManagerConfig: { enabled: true } }),
+		)
+
+		const ids = result.current.managerItems.map((m) => m.id)
+
+		expect(ids).toEqual(['name'])
+	})
+
+	it('defaults managerItems title to the id when no title is set', () => {
+		const cols: DataTableColumn<Row>[] = [{ id: 'name', cell: (r) => r.name }]
+
+		const { result } = renderHook(() =>
+			useDataTableColumns<Row>({ columns: cols, columnManagerConfig: { enabled: true } }),
+		)
+
+		expect(result.current.managerItems[0]?.title).toBe('name')
+	})
+
+	it('honors a custom manage-columns label', () => {
+		const { result } = renderHook(() =>
+			useDataTableColumns<Row>({
+				columns: baseColumns,
+				columnManagerConfig: { enabled: true, label: 'Manage' },
+			}),
+		)
+
+		expect(result.current.manageColumnsLabel).toBe('Manage')
+	})
+
+	it('appends columns missing from the stored order at the end', () => {
+		const { result } = renderHook(() =>
+			useDataTableColumns<Row>({
+				columns: baseColumns,
+				columnManagerConfig: { order: ['name'] },
+			}),
+		)
+
+		const ids = result.current.visibleColumns.map((c) => c.id)
+
+		expect(ids[0]).toBe('name')
+
+		expect(ids).toContain('age')
+
+		expect(ids).toContain('status')
+	})
+
+	it('reuses the previous visibleColumns reference when contents are element-wise identical', () => {
+		const { result, rerender } = renderHook(
+			({ cols }: { cols: DataTableColumn<Row>[] }) =>
+				useDataTableColumns<Row>({ columns: cols, columnManagerConfig: undefined }),
+			{ initialProps: { cols: baseColumns } },
+		)
+
+		const first = result.current.visibleColumns
+
+		// Same columns, new array — should still reuse the cached reference.
+		rerender({ cols: [...baseColumns] })
+
+		expect(result.current.visibleColumns).toBe(first)
+	})
+})

@@ -183,6 +183,102 @@ describe('TableBody', () => {
 	})
 })
 
+describe('Table variants', () => {
+	it('applies bleed offset classes when bleed is set', () => {
+		const { container } = renderUI(
+			<Table bleed>
+				<TableBody>
+					<TableRow>
+						<TableCell>cell</TableCell>
+					</TableRow>
+				</TableBody>
+			</Table>,
+		)
+
+		const wrapper = bySlot(container, 'table')
+
+		expect(wrapper?.className).toContain('-mx-4')
+	})
+
+	it('forwards a ref via tableProps onto the underlying <table>', () => {
+		let tableEl: HTMLTableElement | null = null
+
+		renderUI(
+			<Table
+				tableProps={{
+					ref: (el) => {
+						tableEl = el
+					},
+				}}
+			>
+				<TableBody>
+					<TableRow>
+						<TableCell>cell</TableCell>
+					</TableRow>
+				</TableBody>
+			</Table>,
+		)
+
+		expect(tableEl).toBeInstanceOf(HTMLTableElement)
+	})
+
+	it('merges tableProps.className with the variant className', () => {
+		const { container } = renderUI(
+			<Table tableProps={{ className: 'extra-table' }}>
+				<TableBody>
+					<TableRow>
+						<TableCell>cell</TableCell>
+					</TableRow>
+				</TableBody>
+			</Table>,
+		)
+
+		expect(container.querySelector('table')?.className).toContain('extra-table')
+	})
+
+	it('resolves an explicit density prop without erroring', () => {
+		const { container } = renderUI(
+			<Table density="snug">
+				<TableBody>
+					<TableRow>
+						<TableCell>cell</TableCell>
+					</TableRow>
+				</TableBody>
+			</Table>,
+		)
+
+		expect(container.querySelector('tbody td')).toBeInTheDocument()
+	})
+
+	it('renders grid borders when grid is set', () => {
+		const { container: gridded } = renderUI(
+			<Table grid>
+				<TableBody>
+					<TableRow>
+						<TableCell>cell</TableCell>
+					</TableRow>
+				</TableBody>
+			</Table>,
+		)
+
+		const { container: plain } = renderUI(
+			<Table>
+				<TableBody>
+					<TableRow>
+						<TableCell>cell</TableCell>
+					</TableRow>
+				</TableBody>
+			</Table>,
+		)
+
+		const griddedClass = gridded.querySelector('tbody td')?.className ?? ''
+
+		const plainClass = plain.querySelector('tbody td')?.className ?? ''
+
+		expect(griddedClass).not.toBe(plainClass)
+	})
+})
+
 describe('TableRow', () => {
 	it('renders a tr element', () => {
 		const { container } = renderUI(
