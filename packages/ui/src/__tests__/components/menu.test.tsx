@@ -355,6 +355,40 @@ describe('MenuItem', () => {
 		expect(onAction).toHaveBeenCalled()
 	})
 
+	it('ignores non-Enter/Space keys', () => {
+		const onAction = vi.fn()
+
+		renderUI(
+			<Menu defaultOpen>
+				<MenuContent>
+					<MenuItem onAction={onAction}>Item</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		fireEvent.keyDown(screen.getByText('Item'), { key: 'ArrowDown' })
+
+		expect(onAction).not.toHaveBeenCalled()
+	})
+
+	it('marks data-disabled on the href variant when disabled', () => {
+		renderUI(
+			<Menu defaultOpen>
+				<MenuContent>
+					<MenuItem href="/about" disabled>
+						About
+					</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		const item = screen.getByText('About').closest('[role="menuitem"]') as HTMLElement
+
+		expect(item).toHaveAttribute('data-disabled')
+
+		expect(item.tagName).toBe('A')
+	})
+
 	it('applies custom className', () => {
 		const { container } = renderUI(
 			<Menu defaultOpen>

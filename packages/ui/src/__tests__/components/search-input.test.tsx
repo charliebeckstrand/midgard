@@ -91,4 +91,18 @@ describe('SearchInput', () => {
 		expect(bySlot(container, 'input')).not.toBeInTheDocument()
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
+
+	it('fires onClear when typing reduces the input to empty', async () => {
+		const onClear = vi.fn()
+
+		const { container } = renderUI(<SearchInput defaultValue="abc" onClear={onClear} />)
+
+		const input = bySlot(container, 'input') as HTMLInputElement
+
+		const user = userEvent.setup()
+
+		await user.clear(input)
+
+		expect(onClear).toHaveBeenCalled()
+	})
 })
