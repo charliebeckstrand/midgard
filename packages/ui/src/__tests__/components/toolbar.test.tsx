@@ -133,6 +133,30 @@ describe('ToolbarGroup', () => {
 
 		expect(bySlot(container, 'toolbar-group')?.className).toContain('custom')
 	})
+
+	it('inherits orientation from the surrounding toolbar', () => {
+		const { container } = renderUI(
+			<Toolbar orientation="vertical">
+				<ToolbarGroup>
+					<button type="button">A</button>
+				</ToolbarGroup>
+			</Toolbar>,
+		)
+
+		expect(bySlot(container, 'toolbar-group')).toBeInTheDocument()
+	})
+
+	it('honors an explicit orientation prop over the toolbar context', () => {
+		const { container } = renderUI(
+			<Toolbar orientation="horizontal">
+				<ToolbarGroup orientation="vertical">
+					<button type="button">A</button>
+				</ToolbarGroup>
+			</Toolbar>,
+		)
+
+		expect(bySlot(container, 'toolbar-group')).toBeInTheDocument()
+	})
 })
 
 describe('ToolbarSeparator', () => {
@@ -171,5 +195,22 @@ describe('ToolbarSeparator', () => {
 		)
 
 		expect(bySlot(container, 'toolbar-separator')?.className).toContain('custom')
+	})
+
+	it('renders a horizontal separator when the toolbar is vertical', () => {
+		const { container } = renderUI(
+			<Toolbar orientation="vertical">
+				<button type="button">A</button>
+				<ToolbarSeparator />
+				<button type="button">B</button>
+			</Toolbar>,
+		)
+
+		const el = bySlot(container, 'toolbar-separator')
+
+		// A horizontal <hr> renders without an explicit aria-orientation.
+		expect(el).not.toHaveAttribute('aria-orientation')
+
+		expect(el?.className).toContain('my-1')
 	})
 })

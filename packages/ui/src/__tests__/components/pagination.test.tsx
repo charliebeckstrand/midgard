@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
 	Pagination,
 	PaginationGap,
@@ -7,7 +7,7 @@ import {
 	PaginationPage,
 	PaginationPrevious,
 } from '../../components/pagination'
-import { bySlot, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Pagination', () => {
 	it('renders with data-slot="pagination"', () => {
@@ -95,6 +95,34 @@ describe('PaginationPage', () => {
 
 		expect(el).toHaveAttribute('href', '/page/1')
 	})
+
+	it('marks the current page with aria-current="page"', () => {
+		const { container } = renderUI(
+			<Pagination>
+				<PaginationList>
+					<PaginationPage current>1</PaginationPage>
+				</PaginationList>
+			</Pagination>,
+		)
+
+		const el = bySlot(container, 'pagination-page')
+
+		expect(el).toHaveAttribute('aria-current', 'page')
+	})
+
+	it('omits aria-current when current is false', () => {
+		const { container } = renderUI(
+			<Pagination>
+				<PaginationList>
+					<PaginationPage>1</PaginationPage>
+				</PaginationList>
+			</Pagination>,
+		)
+
+		const el = bySlot(container, 'pagination-page')
+
+		expect(el).not.toHaveAttribute('aria-current')
+	})
 })
 
 describe('PaginationGap', () => {
@@ -136,5 +164,46 @@ describe('PaginationNext', () => {
 		)
 
 		expect(screen.getByLabelText('Next page')).toBeInTheDocument()
+	})
+})
+
+describe('Pagination keyboard handling', () => {
+	it('forwards onKeyDown before roving navigation', () => {
+		const onKeyDown = vi.fn()
+
+		renderUI(
+			<Pagination onKeyDown={onKeyDown}>
+				<PaginationList>
+					<PaginationPage>1</PaginationPage>
+				</PaginationList>
+			</Pagination>,
+		)
+
+		const nav = screen.getByRole('navigation')
+
+		fireEvent.keyDown(nav, { key: 'ArrowRight' })
+
+		expect(onKeyDown).toHaveBeenCalledOnce()
+	})
+
+	it('skips roving navigation when the caller calls preventDefault', () => {
+		renderUI(
+			<Pagination
+				onKeyDown={(e) => {
+					e.preventDefault()
+				}}
+			>
+				<PaginationList>
+					<PaginationPage>1</PaginationPage>
+					<PaginationPage>2</PaginationPage>
+				</PaginationList>
+			</Pagination>,
+		)
+
+		const nav = screen.getByRole('navigation')
+
+		fireEvent.keyDown(nav, { key: 'ArrowRight' })
+
+		expect(nav).toBeInTheDocument()
 	})
 })

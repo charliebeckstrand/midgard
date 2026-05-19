@@ -144,6 +144,42 @@ describe('FiltersClear', () => {
 		await user.click(screen.getByText('Clear'))
 		expect(onChange).toHaveBeenCalledWith(defaults)
 	})
+
+	it('preserves the child element onClick alongside the clear behaviour', async () => {
+		const onChange = vi.fn()
+
+		const childClick = vi.fn()
+
+		renderUI(
+			<Filters value={{ name: 'hello' }} onValueChange={onChange}>
+				<FiltersClear>
+					<Button onClick={childClick}>Clear</Button>
+				</FiltersClear>
+			</Filters>,
+		)
+
+		const user = userEvent.setup()
+
+		await user.click(screen.getByText('Clear'))
+
+		expect(childClick).toHaveBeenCalled()
+
+		expect(onChange).toHaveBeenCalled()
+	})
+
+	it('merges the FiltersClear className into the child element', () => {
+		renderUI(
+			<Filters value={{ name: 'hello' }}>
+				<FiltersClear className="from-wrapper">
+					<Button>Clear</Button>
+				</FiltersClear>
+			</Filters>,
+		)
+
+		const button = screen.getByText('Clear').closest('button')
+
+		expect(button?.className).toContain('from-wrapper')
+	})
 })
 
 describe('useFilters', () => {
@@ -191,5 +227,107 @@ describe('Filter (uncontrolled)', () => {
 		const user = userEvent.setup()
 		await user.type(input, 'test')
 		expect(bySlot(container, 'count')?.textContent).toBe('1')
+	})
+})
+
+describe('Filters extras', () => {
+	it('renders the affix slot when provided', () => {
+		const { container } = renderUI(
+			<Filters affix={<span>affix node</span>}>
+				<span>child</span>
+			</Filters>,
+		)
+
+		const affix = bySlot(container, 'filters-affix')
+
+		expect(affix).toBeInTheDocument()
+
+		expect(affix?.textContent).toBe('affix node')
+	})
+
+	it('renders the suffix slot when provided', () => {
+		const { container } = renderUI(
+			<Filters suffix={<span>suffix node</span>}>
+				<span>child</span>
+			</Filters>,
+		)
+
+		const suffix = bySlot(container, 'filters-suffix')
+
+		expect(suffix).toBeInTheDocument()
+
+		expect(suffix?.textContent).toBe('suffix node')
+	})
+
+	it('omits the affix and suffix slots when not provided', () => {
+		const { container } = renderUI(
+			<Filters>
+				<span>child</span>
+			</Filters>,
+		)
+
+		expect(bySlot(container, 'filters-affix')).toBeNull()
+
+		expect(bySlot(container, 'filters-suffix')).toBeNull()
+	})
+
+	it('invokes onClear in addition to clearing values', async () => {
+		const onClear = vi.fn()
+
+		renderUI(
+			<Filters value={{ name: 'hello' }} onClear={onClear}>
+				<FiltersClear>
+					<Button>Clear</Button>
+				</FiltersClear>
+			</Filters>,
+		)
+
+		const user = userEvent.setup()
+
+		await user.click(screen.getByText('Clear'))
+
+		expect(onClear).toHaveBeenCalled()
+	})
+
+	it('renders the equal layout variant without error', () => {
+		const { container } = renderUI(
+			<Filters equal>
+				<FiltersField name="a">
+					<Input />
+				</FiltersField>
+				<FiltersField name="b">
+					<Input />
+				</FiltersField>
+			</Filters>,
+		)
+
+		expect(bySlot(container, 'filters')).toBeInTheDocument()
+	})
+
+	it('removes a key from the value when the field is set to an empty/inactive value', async () => {
+		const onChange = vi.fn()
+
+		const { container } = renderUI(
+			<Filters defaultValue={{ name: 'hello' }} onValueChange={onChange}>
+				<FiltersField name="name">
+					<Input />
+				</FiltersField>
+			</Filters>,
+		)
+
+		const input = bySlot(container, 'input') as HTMLInputElement
+
+		const user = userEvent.setup()
+
+		await user.clear(input)
+
+		// Empty string is inactive — Filters should drop `name` from the value object.
+		expect(onChange).toHaveBeenCalled()
+
+		const lastCall = onChange.mock.calls[onChange.mock.calls.length - 1] as [
+			Record<string, unknown>,
+		]
+
+		expect(Object.hasOwn(lastCall[0], 'name')).toBe(false)
 	})
 })

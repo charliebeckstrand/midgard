@@ -290,6 +290,155 @@ describe('EditableGrid', () => {
 		expect(onChange).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'rate', value: '' }])
 	})
 
+	it('advances to the cell below on Enter commit', () => {
+		const { container } = renderUI(
+			<EditableGrid
+				columns={columns}
+				rows={rows}
+				getRowKey={(row) => row.id}
+				onValueChange={() => {}}
+			/>,
+		)
+
+		const cells = allBySlot(container, 'editable-grid-cell')
+
+		fireEvent.doubleClick(cells[1] as HTMLElement)
+
+		const input = bySlot(container, 'editable-grid-input') as HTMLInputElement
+
+		fireEvent.change(input, { target: { value: '7' } })
+
+		fireEvent.keyDown(input, { key: 'Enter' })
+
+		// After Enter the editor closes and the cell two rows down (same column) is active.
+		expect(bySlot(container, 'editable-grid-input')).not.toBeInTheDocument()
+
+		expect(cells[3]).toHaveAttribute('data-active')
+	})
+
+	it('commits and advances to the right on Tab', () => {
+		const onChange = vi.fn()
+
+		const editable: EditableGridColumn<Row>[] = [
+			{ id: 'state', title: 'State', field: 'state' },
+			{ id: 'rate', title: 'Rate', field: 'rate' },
+		]
+
+		const { container } = renderUI(
+			<EditableGrid
+				columns={editable}
+				rows={rows}
+				getRowKey={(row) => row.id}
+				onValueChange={onChange}
+			/>,
+		)
+
+		const cells = allBySlot(container, 'editable-grid-cell')
+
+		fireEvent.doubleClick(cells[0] as HTMLElement)
+
+		const input = bySlot(container, 'editable-grid-input') as HTMLInputElement
+
+		fireEvent.change(input, { target: { value: 'TX' } })
+
+		fireEvent.keyDown(input, { key: 'Tab' })
+
+		expect(onChange).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'state', value: 'TX' }])
+
+		expect(bySlot(container, 'editable-grid-input')).not.toBeInTheDocument()
+	})
+
+	it('commits and advances to the left on Shift+Tab', () => {
+		const onChange = vi.fn()
+
+		const editable: EditableGridColumn<Row>[] = [
+			{ id: 'state', title: 'State', field: 'state' },
+			{ id: 'rate', title: 'Rate', field: 'rate' },
+		]
+
+		const { container } = renderUI(
+			<EditableGrid
+				columns={editable}
+				rows={rows}
+				getRowKey={(row) => row.id}
+				onValueChange={onChange}
+			/>,
+		)
+
+		const cells = allBySlot(container, 'editable-grid-cell')
+
+		fireEvent.doubleClick(cells[1] as HTMLElement)
+
+		const input = bySlot(container, 'editable-grid-input') as HTMLInputElement
+
+		fireEvent.change(input, { target: { value: '9' } })
+
+		fireEvent.keyDown(input, { key: 'Tab', shiftKey: true })
+
+		expect(onChange).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'rate', value: '9' }])
+	})
+
+	it('skips committing when the draft equals the original formatted value', () => {
+		const onChange = vi.fn()
+
+		const priced: EditableGridColumn<Row>[] = [
+			{
+				id: 'rate',
+				title: 'Rate',
+				field: 'rate',
+				format: (r) => `$${r.rate.toFixed(2)}`,
+				parse: (raw) => Number(raw),
+			},
+		]
+
+		const { container } = renderUI(
+			<EditableGrid
+				columns={priced}
+				rows={rows}
+				getRowKey={(row) => row.id}
+				onValueChange={onChange}
+			/>,
+		)
+
+		fireEvent.doubleClick(allBySlot(container, 'editable-grid-cell')[0] as HTMLElement)
+
+		const input = bySlot(container, 'editable-grid-input') as HTMLInputElement
+
+		// Leave the value identical to the formatted original.
+		fireEvent.keyDown(input, { key: 'Enter' })
+
+		expect(onChange).not.toHaveBeenCalled()
+	})
+
+	it('routes the second Enter through the closed-session guard without re-committing', () => {
+		const onChange = vi.fn()
+
+		const editable: EditableGridColumn<Row>[] = [{ id: 'rate', title: 'Rate', field: 'rate' }]
+
+		const { container } = renderUI(
+			<EditableGrid
+				columns={editable}
+				rows={rows}
+				getRowKey={(row) => row.id}
+				onValueChange={onChange}
+			/>,
+		)
+
+		const cells = allBySlot(container, 'editable-grid-cell')
+
+		fireEvent.doubleClick(cells[0] as HTMLElement)
+
+		const input = bySlot(container, 'editable-grid-input') as HTMLInputElement
+
+		fireEvent.change(input, { target: { value: '11' } })
+
+		fireEvent.keyDown(input, { key: 'Enter' })
+
+		// The input unmounts after Enter, so its onBlur fires synchronously and
+		// would otherwise commit a second time; the session guard suppresses that.
+		expect(onChange).toHaveBeenCalledTimes(1)
+	})
+
 	it('renders only a subset of rows when virtualized', () => {
 		const manyRows: Row[] = Array.from({ length: 500 }, (_, i) => ({
 			id: i,

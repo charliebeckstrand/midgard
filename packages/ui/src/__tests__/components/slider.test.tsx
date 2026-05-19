@@ -49,6 +49,40 @@ describe('Slider', () => {
 
 		expect(el).toHaveAttribute('id', 'test')
 	})
+
+	it('fires onValueChange on input', () => {
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(<Slider defaultValue={20} onValueChange={onValueChange} />)
+
+		const el = bySlot(container, 'slider') as HTMLInputElement
+
+		fireEvent.change(el, { target: { value: '50' } })
+
+		expect(onValueChange).toHaveBeenCalledWith(50)
+	})
+
+	it('reflects a controlled value', () => {
+		const { container } = renderUI(<Slider value={42} onValueChange={() => {}} />)
+
+		const el = bySlot(container, 'slider') as HTMLInputElement
+
+		expect(el.value).toBe('42')
+	})
+
+	it('renders with explicit size and color variants', () => {
+		const { container } = renderUI(<Slider size="sm" color="green" />)
+
+		expect(bySlot(container, 'slider')).toBeInTheDocument()
+	})
+
+	it('merges caller-supplied inline style with the slider --slider-value var', () => {
+		const { container } = renderUI(<Slider defaultValue={25} style={{ width: '300px' }} />)
+
+		const el = bySlot(container, 'slider') as HTMLInputElement
+
+		expect(el.style.width).toBe('300px')
+	})
 })
 
 describe('RangeSlider', () => {

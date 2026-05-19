@@ -243,3 +243,47 @@ describe('CommandPaletteLabel and CommandPaletteDescription', () => {
 		expect(bySlot(container, 'command-palette-shortcut')).toBeInTheDocument()
 	})
 })
+
+describe('CommandPalette open/close transitions', () => {
+	it('clears the query when the palette transitions from open to closed', async () => {
+		const { rerender } = renderUI(
+			<CommandPalette open onOpenChange={() => {}}>
+				<CommandPaletteItem>Run</CommandPaletteItem>
+			</CommandPalette>,
+		)
+
+		const input = screen.getByRole('combobox') as HTMLInputElement
+
+		const user = userEvent.setup()
+
+		await user.type(input, 'p')
+
+		expect(input.value.length).toBeGreaterThan(0)
+
+		rerender(
+			<CommandPalette open={false} onOpenChange={() => {}}>
+				<CommandPaletteItem>Run</CommandPaletteItem>
+			</CommandPalette>,
+		)
+
+		rerender(
+			<CommandPalette open onOpenChange={() => {}}>
+				<CommandPaletteItem>Run</CommandPaletteItem>
+			</CommandPalette>,
+		)
+
+		const reopenedInput = screen.getByRole('combobox') as HTMLInputElement
+
+		expect(reopenedInput.value).toBe('')
+	})
+
+	it('focuses the input on open', () => {
+		renderUI(
+			<CommandPalette open onOpenChange={() => {}}>
+				<CommandPaletteItem>Run</CommandPaletteItem>
+			</CommandPalette>,
+		)
+
+		expect(document.activeElement).toBe(screen.getByRole('combobox'))
+	})
+})

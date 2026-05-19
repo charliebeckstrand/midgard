@@ -237,3 +237,39 @@ describe('List keyboard reordering', () => {
 		expect(document.activeElement).toBe(first)
 	})
 })
+
+describe('List: static (non-interactive) mode', () => {
+	it('renders read-only items without drag wiring when sortable=false', () => {
+		const { container } = renderUI(
+			<List items={items} sortable={false} getKey={(i) => i.id}>
+				{(item) => <ListItem>{item.label}</ListItem>}
+			</List>,
+		)
+
+		// Without onReorder + sortable=false, the static branch renders and no
+		// DragOverlay is mounted.
+		expect(allBySlot(container, 'list-item')).toHaveLength(items.length)
+	})
+
+	it('falls back to index-based keys when no getKey is supplied to a read-only list', () => {
+		const { container } = renderUI(
+			<List items={items} sortable={false}>
+				{(item) => <ListItem>{item.label}</ListItem>}
+			</List>,
+		)
+
+		// Static list still renders one item per input.
+		expect(allBySlot(container, 'list-item')).toHaveLength(items.length)
+	})
+
+	it('renders a non-interactive list when sortable is true but onReorder is omitted', () => {
+		const { container } = renderUI(
+			<List items={items} getKey={(i) => i.id}>
+				{(item) => <ListItem>{item.label}</ListItem>}
+			</List>,
+		)
+
+		// Read-only sortable lists still render every item.
+		expect(allBySlot(container, 'list-item')).toHaveLength(items.length)
+	})
+})

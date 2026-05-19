@@ -52,4 +52,15 @@ describe('CodeBlock', () => {
 
 		expect(screen.getByText('padded')).toBeInTheDocument()
 	})
+
+	it('does not throw when unmounted before shiki resolves', async () => {
+		const { unmount } = renderUI(<CodeBlock code="unique-unmount-token" />)
+
+		// Tear the component down on the same tick — the cancelled flag inside the effect
+		// suppresses the trailing setHtml call.
+		unmount()
+
+		// Let pending microtasks settle so the effect cleanup runs.
+		await Promise.resolve()
+	})
 })

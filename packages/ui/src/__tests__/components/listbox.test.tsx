@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { Listbox } from '../../components/listbox'
 import { resolveLabel } from '../../components/listbox/listbox-utilities'
 import { VirtualOptions } from '../../primitives/virtual-options'
-import { bySlot, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Listbox', () => {
 	it('renders with data-slot="control"', () => {
@@ -134,6 +134,83 @@ describe('Listbox', () => {
 
 		expect(bySlot(container, 'listbox-button')).not.toBeInTheDocument()
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
+	})
+
+	it('opens the panel and exposes a listbox role when the trigger is clicked', () => {
+		const { container } = renderUI(
+			<Listbox>
+				<div role="option" tabIndex={-1} aria-selected="false">
+					Option
+				</div>
+			</Listbox>,
+		)
+
+		const button = bySlot(container, 'listbox-button') as HTMLElement
+
+		fireEvent.click(button)
+
+		expect(button).toHaveAttribute('aria-expanded', 'true')
+
+		expect(button).toHaveAttribute('aria-controls')
+
+		// Panel renders through a portal once open.
+		expect(screen.getByRole('listbox')).toBeInTheDocument()
+	})
+
+	it('renders the selected value label via displayValue', () => {
+		renderUI(
+			<Listbox value="alpha" displayValue={(v) => v.toUpperCase()}>
+				<div>Option</div>
+			</Listbox>,
+		)
+
+		expect(screen.getByText('ALPHA')).toBeInTheDocument()
+	})
+
+	it('applies tabular-nums when tabularNums is set', () => {
+		const { container } = renderUI(
+			<Listbox tabularNums value="1.234" displayValue={(v) => v}>
+				<div>Option</div>
+			</Listbox>,
+		)
+
+		const button = bySlot(container, 'listbox-button') as HTMLElement
+
+		// The tabular-nums class is applied to the inner label span.
+		expect(button.querySelector('.tabular-nums')).toBeInTheDocument()
+	})
+
+	it('resolves an explicit size override', () => {
+		const { container } = renderUI(
+			<Listbox size="lg">
+				<div>Option</div>
+			</Listbox>,
+		)
+
+		expect(bySlot(container, 'listbox-button')).toBeInTheDocument()
+	})
+
+	it('mounts in multi-select mode with an empty default value', () => {
+		const { container } = renderUI(
+			<Listbox multiple>
+				<div>Option</div>
+			</Listbox>,
+		)
+
+		const button = bySlot(container, 'listbox-button') as HTMLElement
+
+		// No label resolved → placeholder visible.
+		expect(button.textContent).toContain('Select')
+	})
+
+	it('renders the count summary when multi-select has more than 3 items', () => {
+		renderUI(
+			<Listbox multiple value={['a', 'b', 'c', 'd']}>
+				<div>Option</div>
+			</Listbox>,
+		)
+
+		expect(screen.getByText('4 selected')).toBeInTheDocument()
 	})
 
 	it('VirtualOptions is exported and mounts', () => {

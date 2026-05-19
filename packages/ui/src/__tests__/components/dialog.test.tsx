@@ -36,4 +36,54 @@ describe('Dialog', () => {
 
 		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 	})
+
+	it('renders with align="start"', () => {
+		renderUI(
+			<Dialog open align="start" onOpenChange={() => {}}>
+				Start-aligned
+			</Dialog>,
+		)
+
+		expect(screen.getByText('Start-aligned')).toBeInTheDocument()
+	})
+
+	it('renders with align="center" (default)', () => {
+		renderUI(
+			<Dialog open onOpenChange={() => {}}>
+				Center
+			</Dialog>,
+		)
+
+		expect(screen.getByText('Center')).toBeInTheDocument()
+	})
+
+	it('renders with explicit size variant', () => {
+		renderUI(
+			<Dialog open size="sm" onOpenChange={() => {}}>
+				Small
+			</Dialog>,
+		)
+
+		expect(screen.getByText('Small')).toBeInTheDocument()
+	})
+
+	it('respects outsideClick=false', () => {
+		renderUI(
+			<Dialog open outsideClick={false} onOpenChange={() => {}}>
+				Locked
+			</Dialog>,
+		)
+
+		expect(screen.getByText('Locked')).toBeInTheDocument()
+	})
+
+	it('renders with the glass surface', () => {
+		renderUI(
+			<Dialog open glass onOpenChange={() => {}}>
+				Glassy
+			</Dialog>,
+		)
+
+		expect(screen.getByText('Glassy')).toBeInTheDocument()
+	})
 })

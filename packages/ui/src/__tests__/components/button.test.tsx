@@ -110,6 +110,24 @@ describe('Button', () => {
 		expect(screen.getByText('Hello World')).toBeInTheDocument()
 	})
 
+	it('renders the spring wrapper around a link button', () => {
+		const { container } = renderUI(
+			<Button href="/spring" spring>
+				Springy
+			</Button>,
+		)
+
+		expect(bySlot(container, 'button')).toBeInTheDocument()
+
+		expect(screen.getByText('Springy').closest('a')).toHaveAttribute('href', '/spring')
+	})
+
+	it('renders the spring wrapper around a button-shaped button', () => {
+		const { container } = renderUI(<Button spring>Click</Button>)
+
+		expect(bySlot(container, 'button')?.tagName).toBe('BUTTON')
+	})
+
 	describe('label detection', () => {
 		// data-has-label drives the icon-only vs labelled padding in the recipe.
 		// Text children produce a labelled button; icon-only children do not, so

@@ -50,6 +50,22 @@ describe('Avatar', () => {
 		expect(bySlot(container, 'avatar')).not.toBeInTheDocument()
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
+
+	it('wraps the avatar with a status dot when status is provided', () => {
+		const { container } = renderUI(<Avatar initials="AB" status="active" />)
+
+		expect(bySlot(container, 'avatar-with-status')).toBeInTheDocument()
+
+		expect(bySlot(container, 'avatar')).toBeInTheDocument()
+	})
+
+	it('omits the status wrapper when no status is provided', () => {
+		const { container } = renderUI(<Avatar initials="AB" />)
+
+		expect(bySlot(container, 'avatar-with-status')).toBeNull()
+
+		expect(bySlot(container, 'avatar')).toBeInTheDocument()
+	})
 })
 
 describe('AvatarGroup', () => {

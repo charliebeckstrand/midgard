@@ -45,4 +45,40 @@ describe('Badge', () => {
 		expect(bySlot(container, 'badge')).not.toBeInTheDocument()
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
+
+	it('renders prefix content with data-has-prefix', () => {
+		const { container } = renderUI(<Badge prefix={<span>icon</span>}>Tag</Badge>)
+
+		const badge = bySlot(container, 'badge')
+
+		expect(badge).toHaveAttribute('data-has-prefix', '')
+
+		expect(screen.getByText('icon')).toBeInTheDocument()
+	})
+
+	it('renders suffix content with data-has-suffix', () => {
+		const { container } = renderUI(<Badge suffix={<span>×</span>}>Tag</Badge>)
+
+		const badge = bySlot(container, 'badge')
+
+		expect(badge).toHaveAttribute('data-has-suffix', '')
+
+		expect(screen.getByText('×')).toBeInTheDocument()
+	})
+
+	it('renders with the xs sub-Step size variant', () => {
+		const { container } = renderUI(<Badge size="xs">Tiny</Badge>)
+
+		expect(bySlot(container, 'badge')).toBeInTheDocument()
+	})
+
+	it('renders with rounded and color variants', () => {
+		const { container } = renderUI(
+			<Badge rounded="full" color="green" variant="soft">
+				Done
+			</Badge>,
+		)
+
+		expect(bySlot(container, 'badge')).toBeInTheDocument()
+	})
 })

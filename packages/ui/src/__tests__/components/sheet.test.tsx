@@ -80,4 +80,44 @@ describe('SheetClose', () => {
 
 		expect(onOpenChange).toHaveBeenCalledWith(false)
 	})
+
+	it('renders with side="left"', () => {
+		renderUI(
+			<Sheet open side="left" onOpenChange={() => {}}>
+				Left sheet
+			</Sheet>,
+		)
+
+		expect(screen.getByText('Left sheet')).toBeInTheDocument()
+	})
+
+	it('renders with side="top"', () => {
+		renderUI(
+			<Sheet open side="top" onOpenChange={() => {}}>
+				Top sheet
+			</Sheet>,
+		)
+
+		expect(screen.getByText('Top sheet')).toBeInTheDocument()
+	})
+
+	it('renders with side="bottom"', () => {
+		renderUI(
+			<Sheet open side="bottom" onOpenChange={() => {}}>
+				Bottom sheet
+			</Sheet>,
+		)
+
+		expect(screen.getByText('Bottom sheet')).toBeInTheDocument()
+	})
+
+	it('renders with an explicit size variant', () => {
+		renderUI(
+			<Sheet open size="sm" onOpenChange={() => {}}>
+				Small sheet
+			</Sheet>,
+		)
+
+		expect(screen.getByText('Small sheet')).toBeInTheDocument()
+	})
 })

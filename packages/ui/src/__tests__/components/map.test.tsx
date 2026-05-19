@@ -71,6 +71,64 @@ describe('MapMarker', () => {
 
 		await waitFor(() => expect(allBySlot(container, 'map-marker').length).toBe(1))
 	})
+
+	it('applies a custom className to the marker element', async () => {
+		const { container } = renderUI(
+			<MapView>
+				<MapMarker position={[0, 0]} className="custom-pin" />
+			</MapView>,
+		)
+
+		await waitFor(() => expect(allBySlot(container, 'map-marker').length).toBe(1))
+
+		const marker = bySlot(container, 'map-marker') as HTMLElement
+
+		expect(marker.className).toContain('custom-pin')
+	})
+
+	it('invokes onClick when the marker element is clicked', async () => {
+		const onClick = vi.fn()
+
+		const user = userEvent.setup()
+
+		const { container } = renderUI(
+			<MapView>
+				<MapMarker position={[0, 0]} onClick={onClick} />
+			</MapView>,
+		)
+
+		await waitFor(() => expect(allBySlot(container, 'map-marker').length).toBe(1))
+
+		const marker = bySlot(container, 'map-marker') as HTMLElement
+
+		await user.click(marker)
+
+		expect(onClick).toHaveBeenCalled()
+	})
+
+	it('renders custom children inside the marker portal', async () => {
+		const { container } = renderUI(
+			<MapView>
+				<MapMarker position={[0, 0]}>
+					<span data-testid="pin-child">PIN</span>
+				</MapMarker>
+			</MapView>,
+		)
+
+		await waitFor(() => expect(allBySlot(container, 'map-marker').length).toBe(1))
+
+		expect(screen.getByTestId('pin-child')).toBeInTheDocument()
+	})
+
+	it('respects an explicit anchor without throwing', async () => {
+		const { container } = renderUI(
+			<MapView>
+				<MapMarker position={[0, 0]} anchor="bottom-right" />
+			</MapView>,
+		)
+
+		await waitFor(() => expect(allBySlot(container, 'map-marker').length).toBe(1))
+	})
 })
 
 describe('MapRoute', () => {

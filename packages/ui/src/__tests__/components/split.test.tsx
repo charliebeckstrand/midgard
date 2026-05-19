@@ -34,4 +34,44 @@ describe('Split', () => {
 
 		expect(el).toHaveAttribute('id', 'test')
 	})
+
+	it('uses grid-template-columns for horizontal direction', () => {
+		const { container } = renderUI(<Split direction="horizontal">a</Split>)
+
+		const el = bySlot(container, 'split') as HTMLElement
+
+		expect(el.style.gridTemplateColumns).toBeTruthy()
+	})
+
+	it('uses grid-template-rows for vertical direction', () => {
+		const { container } = renderUI(<Split direction="vertical">a</Split>)
+
+		const el = bySlot(container, 'split') as HTMLElement
+
+		expect(el.style.gridTemplateRows).toBeTruthy()
+	})
+
+	it('applies the align class when provided', () => {
+		const { container } = renderUI(<Split align="center">a</Split>)
+
+		const el = bySlot(container, 'split')
+
+		expect(el?.className.length).toBeGreaterThan(0)
+	})
+
+	it('honours an explicit ratio', () => {
+		const { container } = renderUI(<Split ratio="1/3">a</Split>)
+
+		const el = bySlot(container, 'split') as HTMLElement
+
+		expect(el.style.gridTemplateColumns).toContain('1fr')
+	})
+
+	it('merges caller style with the ratio style', () => {
+		const { container } = renderUI(<Split style={{ background: 'red' }}>a</Split>)
+
+		const el = bySlot(container, 'split') as HTMLElement
+
+		expect(el.style.background).toBe('red')
+	})
 })

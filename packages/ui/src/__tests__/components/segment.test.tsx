@@ -201,4 +201,28 @@ describe('Segment', () => {
 
 		expect(bySlot(container, 'segment-control')).toHaveAttribute('aria-label', 'View mode')
 	})
+
+	it('renders with an explicit size variant', () => {
+		const { container } = renderUI(
+			<Segment value="a" size="sm">
+				<SegmentControl>
+					<SegmentItem value="a">A</SegmentItem>
+				</SegmentControl>
+			</Segment>,
+		)
+
+		expect(bySlot(container, 'segment')).toBeInTheDocument()
+	})
+
+	it('renders with size="lg"', () => {
+		const { container } = renderUI(
+			<Segment value="a" size="lg">
+				<SegmentControl>
+					<SegmentItem value="a">A</SegmentItem>
+				</SegmentControl>
+			</Segment>,
+		)
+
+		expect(bySlot(container, 'segment')).toBeInTheDocument()
+	})
 })

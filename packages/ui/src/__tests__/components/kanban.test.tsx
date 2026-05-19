@@ -174,4 +174,108 @@ describe('KanbanCard', () => {
 
 		expect(bySlot(container, 'kanban-card')?.className).toContain('custom-card')
 	})
+
+	it('marks cards as disabled and omits the aria-label when the board is non-interactive', () => {
+		const { container } = renderUI(
+			<Kanban columns={columns} getItemKey={(item: Item) => item.id}>
+				<KanbanColumn columnId="todo">
+					<KanbanColumnBody>
+						<KanbanCard cardId="1">One</KanbanCard>
+					</KanbanColumnBody>
+				</KanbanColumn>
+			</Kanban>,
+		)
+
+		const card = bySlot(container, 'kanban-card')
+
+		expect(card).toHaveAttribute('data-disabled')
+
+		expect(card).not.toHaveAttribute('aria-label')
+	})
+
+	it('marks cards as interactive and exposes the aria-label when onValueChange is supplied', () => {
+		const { container } = renderUI(<Board onValueChange={() => {}} />)
+
+		const card = bySlot(container, 'kanban-card')
+
+		expect(card).not.toHaveAttribute('data-disabled')
+
+		expect(card).toHaveAttribute('aria-label', 'Drag to reorder')
+	})
+
+	it('honors a custom aria-label on an interactive card', () => {
+		const { container } = renderUI(
+			<Kanban columns={columns} getItemKey={(item: Item) => item.id} onValueChange={() => {}}>
+				<KanbanColumn columnId="todo">
+					<KanbanColumnBody>
+						<KanbanCard cardId="1" aria-label="Card One">
+							One
+						</KanbanCard>
+					</KanbanColumnBody>
+				</KanbanColumn>
+			</Kanban>,
+		)
+
+		expect(bySlot(container, 'kanban-card')).toHaveAttribute('aria-label', 'Card One')
+	})
+
+	it('marks an interactive card as lifted after pressing Space', async () => {
+		const { container } = renderUI(<Board onValueChange={() => {}} />)
+
+		const card = bySlot(container, 'kanban-card') as HTMLElement
+
+		card.focus()
+
+		const { fireEvent } = await import('@testing-library/react')
+
+		fireEvent.keyDown(card, { key: ' ' })
+
+		expect(card).toHaveAttribute('data-lifted')
+	})
+
+	it('clears the lifted attribute when the card blurs', async () => {
+		const { container } = renderUI(<Board onValueChange={() => {}} />)
+
+		const card = bySlot(container, 'kanban-card') as HTMLElement
+
+		card.focus()
+
+		const { fireEvent } = await import('@testing-library/react')
+
+		fireEvent.keyDown(card, { key: ' ' })
+
+		expect(card).toHaveAttribute('data-lifted')
+
+		fireEvent.blur(card)
+
+		expect(card).not.toHaveAttribute('data-lifted')
+	})
+})
+
+describe('KanbanColumnBody', () => {
+	it('renders children when the column has cards, omitting the empty fallback', () => {
+		const { container } = renderUI(<Board />)
+
+		// With non-empty items the fallback element should not render.
+		expect(screen.queryByText('Empty')).not.toBeInTheDocument()
+
+		expect(bySlot(container, 'kanban-card')).toBeInTheDocument()
+	})
+
+	it('renders nothing when the column is empty and no fallback is provided', () => {
+		const { container } = renderUI(
+			<Kanban columns={[{ id: 'x', title: 'X', items: [] }]} getItemKey={(i: Item) => i.id}>
+				<KanbanColumn columnId="x">
+					<KanbanColumnBody />
+				</KanbanColumn>
+			</Kanban>,
+		)
+
+		const body = bySlot(container, 'kanban-column-body')
+
+		expect(body).toBeInTheDocument()
+
+		// No fallback supplied → no children rendered.
+		expect(body?.children).toHaveLength(0)
+	})
 })

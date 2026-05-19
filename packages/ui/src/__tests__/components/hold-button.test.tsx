@@ -134,6 +134,74 @@ describe('HoldButton', () => {
 		expect(onPointerDown).toHaveBeenCalledOnce()
 	})
 
+	it('forwards onPointerUp to the caller', () => {
+		const onPointerUp = vi.fn()
+
+		const { container } = renderUI(<HoldButton onPointerUp={onPointerUp}>Hold</HoldButton>)
+
+		const el = bySlot(container, 'hold-button') as HTMLElement
+
+		fireEvent.pointerUp(el)
+
+		expect(onPointerUp).toHaveBeenCalledOnce()
+	})
+
+	it('forwards onPointerCancel to the caller', () => {
+		const onPointerCancel = vi.fn()
+
+		const { container } = renderUI(<HoldButton onPointerCancel={onPointerCancel}>Hold</HoldButton>)
+
+		const el = bySlot(container, 'hold-button') as HTMLElement
+
+		fireEvent.pointerCancel(el)
+
+		expect(onPointerCancel).toHaveBeenCalledOnce()
+	})
+
+	it('forwards onPointerLeave to the caller', () => {
+		const onPointerLeave = vi.fn()
+
+		const { container } = renderUI(<HoldButton onPointerLeave={onPointerLeave}>Hold</HoldButton>)
+
+		const el = bySlot(container, 'hold-button') as HTMLElement
+
+		fireEvent.pointerLeave(el)
+
+		expect(onPointerLeave).toHaveBeenCalledOnce()
+	})
+
+	it('forwards onKeyDown and onKeyUp to the caller', () => {
+		const onKeyDown = vi.fn()
+		const onKeyUp = vi.fn()
+
+		const { container } = renderUI(
+			<HoldButton onKeyDown={onKeyDown} onKeyUp={onKeyUp}>
+				Hold
+			</HoldButton>,
+		)
+
+		const el = bySlot(container, 'hold-button') as HTMLElement
+
+		fireEvent.keyDown(el, { key: 'Enter' })
+		fireEvent.keyUp(el, { key: 'Enter' })
+
+		expect(onKeyDown).toHaveBeenCalledOnce()
+
+		expect(onKeyUp).toHaveBeenCalledOnce()
+	})
+
+	it('ignores non-primary pointer buttons on pointerdown', () => {
+		const onHoldStart = vi.fn()
+
+		const { container } = renderUI(<HoldButton onHoldStart={onHoldStart}>Hold</HoldButton>)
+
+		const el = bySlot(container, 'hold-button') as HTMLElement
+
+		fireEvent.pointerDown(el, { button: 2 })
+
+		expect(onHoldStart).not.toHaveBeenCalled()
+	})
+
 	it('passes through HTML attributes', () => {
 		const { container } = renderUI(
 			<HoldButton id="test" aria-label="Hold to delete">

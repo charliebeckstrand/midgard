@@ -75,6 +75,138 @@ describe('JsonTree', () => {
 		expect(screen.getByText('3 items')).toBeInTheDocument()
 	})
 
+	it('calls onExpandedChange when controlled and a branch is toggled', () => {
+		const onExpandedChange = vi.fn()
+
+		// The root path is '$' — include it so the nested branch header renders.
+		const expanded = new Set<string>(['$'])
+
+		renderUI(
+			<JsonTree
+				data={{ nested: { value: 1 } }}
+				expanded={expanded}
+				onExpandedChange={onExpandedChange}
+			/>,
+		)
+
+		const toggle = screen.getByText('"nested"').closest('button')
+
+		if (!toggle) throw new Error('toggle not found')
+
+		fireEvent.click(toggle)
+
+		expect(onExpandedChange).toHaveBeenCalledOnce()
+
+		const next = onExpandedChange.mock.calls[0]?.[0] as Set<string>
+
+		expect(next.has('$.nested')).toBe(true)
+	})
+
+	it('reflects the controlled expanded set on render', () => {
+		const expanded = new Set<string>(['$', '$.nested'])
+
+		renderUI(
+			<JsonTree data={{ nested: { value: 1 } }} expanded={expanded} onExpandedChange={() => {}} />,
+		)
+
+		expect(screen.getByText('"value"')).toBeInTheDocument()
+	})
+
+	it('auto-expands matching branches when search is active without filter', () => {
+		renderUI(<JsonTree data={{ outer: { needle: 'match' } }} search="needle" />)
+
+		// Without expansion the inner "needle" key wouldn't be in the DOM.
+		expect(screen.getByText('"needle"')).toBeInTheDocument()
+	})
+
+	it('collapses branches without matches when filter + search produces no entries', () => {
+		renderUI(
+			<JsonTree data={{ outer: { value: 'noop' } }} search={{ value: 'zzz', filter: true }} />,
+		)
+
+		expect(screen.queryByText('"value"')).not.toBeInTheDocument()
+	})
+
+	it('renders a primitive string root as a single leaf row', () => {
+		renderUI(<JsonTree data={'Ada' as unknown as Parameters<typeof JsonTree>[0]['data']} />)
+
+		expect(screen.getByText('"Ada"')).toBeInTheDocument()
+	})
+
+	it('renders a primitive number root as a single leaf row', () => {
+		renderUI(<JsonTree data={42 as unknown as Parameters<typeof JsonTree>[0]['data']} />)
+
+		expect(screen.getByText('42')).toBeInTheDocument()
+	})
+
+	it('renders a primitive boolean root as a single leaf row', () => {
+		renderUI(<JsonTree data={true as unknown as Parameters<typeof JsonTree>[0]['data']} />)
+
+		expect(screen.getByText('true')).toBeInTheDocument()
+	})
+
+	it('renders a null root as a single leaf row', () => {
+		renderUI(<JsonTree data={null} />)
+
+		expect(screen.getByText('null')).toBeInTheDocument()
+	})
+
+	it('renders an array root with index keys when expanded', () => {
+		renderUI(<JsonTree data={[10, 20]} defaultExpandDepth={1} />)
+
+		// Array indices render without quotes.
+		expect(screen.getByText('0')).toBeInTheDocument()
+
+		expect(screen.getByText('10')).toBeInTheDocument()
+
+		expect(screen.getByText('20')).toBeInTheDocument()
+	})
+
+	it('toggles an array open and closed via its branch header', () => {
+		renderUI(<JsonTree data={{ items: [1, 2, 3] }} defaultExpandDepth={1} />)
+
+		const toggle = screen.getByText('"items"').closest('button')
+
+		if (!toggle) throw new Error('toggle not found')
+
+		// Initially closed at depth 1.
+		expect(screen.queryByText('1')).not.toBeInTheDocument()
+
+		fireEvent.click(toggle)
+
+		// Each numeric index 0/1/2 appears once expanded.
+		expect(screen.getByText('0')).toBeInTheDocument()
+
+		fireEvent.click(toggle)
+
+		expect(screen.queryByText('0')).not.toBeInTheDocument()
+	})
+
+	it('highlights a matching key when a search term is active without filter', () => {
+		const { container } = renderUI(
+			<JsonTree data={{ needle: 'value' }} defaultExpandDepth={1} search="needle" />,
+		)
+
+		// The branch header carrying the matching key is flagged via data-highlighted.
+		const highlighted = container.querySelector('[data-highlighted]')
+
+		expect(highlighted).toBeInTheDocument()
+	})
+
+	it('hides non-branch leaves that do not match the filtered search term', () => {
+		renderUI(
+			<JsonTree
+				data={{ name: 'Ada', age: 42 }}
+				defaultExpandDepth={1}
+				search={{ value: 'Ada', filter: true }}
+			/>,
+		)
+
+		expect(screen.getByText('"Ada"')).toBeInTheDocument()
+
+		expect(screen.queryByText('42')).not.toBeInTheDocument()
+	})
+
 	describe('virtualize', () => {
 		it('throws when virtualize is set without maxHeight', () => {
 			expect(() => renderUI(<JsonTree data={{}} virtualize />)).toThrow(/requires `maxHeight`/)
@@ -83,6 +215,47 @@ describe('JsonTree', () => {
 		it('mounts with data-slot="json-tree" when virtualized', () => {
 			const { container } = renderUI(
 				<JsonTree data={{ a: 1, b: 2 }} virtualize maxHeight="200px" />,
+			)
+
+			expect(bySlot(container, 'json-tree')).toBeInTheDocument()
+		})
+
+		it('mounts virtualized with a custom estimateSize and overscan', () => {
+			const { container } = renderUI(
+				<JsonTree
+					data={{ a: 1, b: 2 }}
+					virtualize={{ estimateSize: 40, overscan: 5 }}
+					maxHeight="200px"
+				/>,
+			)
+
+			expect(bySlot(container, 'json-tree')).toBeInTheDocument()
+		})
+
+		it('mounts virtualized with a controlled expanded set', () => {
+			const onExpandedChange = vi.fn()
+
+			const { container } = renderUI(
+				<JsonTree
+					data={{ a: 1 }}
+					virtualize
+					maxHeight="200px"
+					expanded={new Set(['$'])}
+					onExpandedChange={onExpandedChange}
+				/>,
+			)
+
+			expect(bySlot(container, 'json-tree')).toBeInTheDocument()
+		})
+
+		it('mounts virtualized with an active search term', () => {
+			const { container } = renderUI(
+				<JsonTree
+					data={{ outer: { needle: 'match' } }}
+					virtualize
+					maxHeight="200px"
+					search={{ value: 'needle', filter: true }}
+				/>,
 			)
 
 			expect(bySlot(container, 'json-tree')).toBeInTheDocument()

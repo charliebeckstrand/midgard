@@ -6,7 +6,7 @@ import {
 	OptionDescription,
 	OptionLabel,
 } from '../../primitives/option'
-import { bySlot, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('BaseOption', () => {
 	it('renders with role="option"', () => {
@@ -81,6 +81,72 @@ describe('BaseOption', () => {
 		)
 
 		expect(screen.getByText('My Option')).toBeInTheDocument()
+	})
+
+	it('selects on Enter key', () => {
+		const onSelect = vi.fn()
+
+		renderUI(
+			<BaseOption selected={false} onSelect={onSelect}>
+				Option
+			</BaseOption>,
+		)
+
+		fireEvent.keyDown(screen.getByRole('option'), { key: 'Enter' })
+
+		expect(onSelect).toHaveBeenCalledOnce()
+	})
+
+	it('selects on Space key', () => {
+		const onSelect = vi.fn()
+
+		renderUI(
+			<BaseOption selected={false} onSelect={onSelect}>
+				Option
+			</BaseOption>,
+		)
+
+		fireEvent.keyDown(screen.getByRole('option'), { key: ' ' })
+
+		expect(onSelect).toHaveBeenCalledOnce()
+	})
+
+	it('does not select when Enter is pressed and disabled', () => {
+		const onSelect = vi.fn()
+
+		renderUI(
+			<BaseOption selected={false} disabled onSelect={onSelect}>
+				Option
+			</BaseOption>,
+		)
+
+		fireEvent.keyDown(screen.getByRole('option'), { key: 'Enter' })
+
+		expect(onSelect).not.toHaveBeenCalled()
+	})
+
+	it('ignores keys other than Enter and Space', () => {
+		const onSelect = vi.fn()
+
+		renderUI(
+			<BaseOption selected={false} onSelect={onSelect}>
+				Option
+			</BaseOption>,
+		)
+
+		fireEvent.keyDown(screen.getByRole('option'), { key: 'a' })
+
+		expect(onSelect).not.toHaveBeenCalled()
+	})
+
+	it('renders a custom icon when provided in place of the default check', () => {
+		const { container } = renderUI(
+			<BaseOption selected={true} icon={<svg data-testid="custom-icon" />} onSelect={() => {}}>
+				Option
+			</BaseOption>,
+		)
+
+		expect(container.querySelector('[data-testid="custom-icon"]')).toBeInTheDocument()
 	})
 })
 

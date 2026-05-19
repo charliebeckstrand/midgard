@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Popover, PopoverContent, PopoverTrigger } from '../../components/popover'
 import { Density } from '../../providers/density'
@@ -43,6 +43,38 @@ describe('Popover', () => {
 		const el = bySlot(container, 'popover')
 
 		expect(el?.className).toContain('custom')
+	})
+
+	it('renders a default button when PopoverTrigger has non-element manual children', () => {
+		const { container } = renderUI(
+			<Popover>
+				<PopoverTrigger manual>Open</PopoverTrigger>
+			</Popover>,
+		)
+
+		const trigger = bySlot(container, 'popover-trigger')
+
+		expect(trigger?.tagName).toBe('BUTTON')
+
+		expect(trigger).toHaveAttribute('aria-haspopup', 'dialog')
+
+		expect(trigger?.textContent).toBe('Open')
+	})
+
+	it('preserves the original child element when manual is set on an element trigger', () => {
+		const { container } = renderUI(
+			<Popover>
+				<PopoverTrigger manual>
+					<button type="button" data-testid="manual-child">
+						Open
+					</button>
+				</PopoverTrigger>
+			</Popover>,
+		)
+
+		const trigger = bySlot(container, 'popover-trigger')
+
+		expect(trigger).toHaveAttribute('data-testid', 'manual-child')
 	})
 })
 
@@ -121,5 +153,65 @@ describe('PopoverContent size context', () => {
 		)
 
 		expect(popoverContent()).toHaveAttribute('data-step', 'lg')
+	})
+})
+
+describe('Popover open/close control', () => {
+	const popoverContent = () => document.querySelector<HTMLElement>('[data-slot="popover-content"]')
+
+	it('respects an explicit placement prop without throwing', () => {
+		renderUI(
+			<Popover open placement="right-start">
+				<PopoverTrigger>
+					<button type="button">Open</button>
+				</PopoverTrigger>
+				<PopoverContent>placed</PopoverContent>
+			</Popover>,
+		)
+
+		expect(popoverContent()).not.toBeNull()
+	})
+
+	it('renders with a controlled open=true prop and forwards onOpenChange', () => {
+		const onOpenChange = vi.fn()
+
+		renderUI(
+			<Popover open onOpenChange={onOpenChange}>
+				<PopoverTrigger>
+					<button type="button">Open</button>
+				</PopoverTrigger>
+				<PopoverContent>panel</PopoverContent>
+			</Popover>,
+		)
+
+		expect(popoverContent()).not.toBeNull()
+	})
+
+	it('omits content when controlled open=false', () => {
+		renderUI(
+			<Popover open={false} onOpenChange={() => {}}>
+				<PopoverTrigger>
+					<button type="button">Open</button>
+				</PopoverTrigger>
+				<PopoverContent>hidden</PopoverContent>
+			</Popover>,
+		)
+
+		expect(popoverContent()).toBeNull()
+	})
+
+	it('accepts an onExitComplete callback prop without throwing', () => {
+		const onExitComplete = vi.fn()
+
+		renderUI(
+			<Popover open onExitComplete={onExitComplete}>
+				<PopoverTrigger>
+					<button type="button">Open</button>
+				</PopoverTrigger>
+				<PopoverContent>panel</PopoverContent>
+			</Popover>,
+		)
+
+		expect(popoverContent()).not.toBeNull()
 	})
 })

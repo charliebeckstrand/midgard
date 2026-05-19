@@ -1,0 +1,211 @@
+import { renderHook } from '@testing-library/react'
+import type { ChangeEvent, FocusEvent, KeyboardEvent } from 'react'
+import { describe, expect, it, vi } from 'vitest'
+import { useComboboxInput } from '../../components/combobox/use-combobox-input'
+
+function setup<T>(overrides: Partial<Parameters<typeof useComboboxInput<T>>[0]> = {}) {
+	const setValue = vi.fn()
+
+	const setEditing = vi.fn()
+
+	const setQuery = vi.fn()
+
+	const setOpen = vi.fn()
+
+	const close = vi.fn()
+
+	const rovingKeyDown = vi.fn()
+
+	const keyboardSettled = vi.fn((cb: () => void) => cb())
+
+	const floatingRef = { current: null as HTMLElement | null }
+
+	const optionsRef = { current: null as HTMLDivElement | null }
+
+	const { result } = renderHook(() =>
+		useComboboxInput<T>({
+			value: undefined as T | undefined,
+			multiple: false,
+			clearOnEmpty: false,
+			floatingRef,
+			optionsRef,
+			setValue,
+			setEditing,
+			setQuery,
+			setOpen,
+			close,
+			keyboardSettled,
+			rovingKeyDown,
+			...overrides,
+		}),
+	)
+
+	return {
+		result,
+		setValue,
+		setEditing,
+		setQuery,
+		setOpen,
+		close,
+		rovingKeyDown,
+		floatingRef,
+		optionsRef,
+	}
+}
+
+describe('useComboboxInput onChange', () => {
+	it('flips into editing mode, mirrors the query, and opens the panel', () => {
+		const { result, setEditing, setQuery, setOpen } = setup<string>()
+
+		const event = {
+			target: { value: 'partial' },
+		} as ChangeEvent<HTMLInputElement>
+
+		result.current.onChange(event)
+
+		expect(setEditing).toHaveBeenCalledWith(true)
+
+		expect(setQuery).toHaveBeenCalledWith('partial')
+
+		expect(setOpen).toHaveBeenCalledWith(true)
+	})
+
+	it('clears the value when clearOnEmpty is true and the input goes empty in single-select', () => {
+		const { result, setValue } = setup<string>({ clearOnEmpty: true, value: 'x' })
+
+		const event = { target: { value: '' } } as ChangeEvent<HTMLInputElement>
+
+		result.current.onChange(event)
+
+		expect(setValue).toHaveBeenCalledWith(undefined)
+	})
+
+	it('does not clear the value when clearOnEmpty is false', () => {
+		const { result, setValue } = setup<string>({ value: 'x' })
+
+		const event = { target: { value: '' } } as ChangeEvent<HTMLInputElement>
+
+		result.current.onChange(event)
+
+		expect(setValue).not.toHaveBeenCalled()
+	})
+
+	it('does not clear in multi-select mode', () => {
+		const { result, setValue } = setup<string>({
+			clearOnEmpty: true,
+			multiple: true,
+			value: ['x'],
+		})
+
+		const event = { target: { value: '' } } as ChangeEvent<HTMLInputElement>
+
+		result.current.onChange(event)
+
+		expect(setValue).not.toHaveBeenCalled()
+	})
+})
+
+describe('useComboboxInput onFocus', () => {
+	it('opens the panel via keyboardSettled', () => {
+		const { result, setOpen } = setup<string>()
+
+		result.current.onFocus()
+
+		expect(setOpen).toHaveBeenCalledWith(true)
+	})
+})
+
+describe('useComboboxInput onBlur', () => {
+	it('closes when focus leaves the floating element', () => {
+		const { result, close, floatingRef } = setup<string>()
+
+		floatingRef.current = document.createElement('div')
+
+		const event = {
+			relatedTarget: document.createElement('span'),
+		} as unknown as FocusEvent<HTMLInputElement>
+
+		result.current.onBlur(event)
+
+		expect(close).toHaveBeenCalled()
+	})
+
+	it('keeps the panel open when focus moves inside the floating element', () => {
+		const { result, close, floatingRef } = setup<string>()
+
+		const floating = document.createElement('div')
+
+		const inside = document.createElement('span')
+
+		floating.appendChild(inside)
+
+		floatingRef.current = floating
+
+		const event = { relatedTarget: inside } as unknown as FocusEvent<HTMLInputElement>
+
+		result.current.onBlur(event)
+
+		expect(close).not.toHaveBeenCalled()
+	})
+})
+
+describe('useComboboxInput onKeyDown', () => {
+	function makeKeyEvent(key: string) {
+		return {
+			key,
+			preventDefault: vi.fn(),
+		} as unknown as KeyboardEvent<HTMLInputElement>
+	}
+
+	it('closes on Escape', () => {
+		const { result, close, rovingKeyDown } = setup<string>()
+
+		result.current.onKeyDown(makeKeyEvent('Escape'))
+
+		expect(close).toHaveBeenCalled()
+
+		expect(rovingKeyDown).not.toHaveBeenCalled()
+	})
+
+	it('selects the lone option on Enter when one is present', () => {
+		const { result, optionsRef } = setup<string>()
+
+		const container = document.createElement('div')
+
+		const option = document.createElement('div')
+
+		option.setAttribute('role', 'option')
+
+		container.appendChild(option)
+
+		optionsRef.current = container as HTMLDivElement
+
+		const event = makeKeyEvent('Enter')
+
+		result.current.onKeyDown(event)
+
+		expect(event.preventDefault).toHaveBeenCalled()
+	})
+
+	it('forwards Enter to roving navigation when there is no lone option', () => {
+		const { result, rovingKeyDown, optionsRef } = setup<string>()
+
+		optionsRef.current = document.createElement('div') as HTMLDivElement
+
+		const event = makeKeyEvent('Enter')
+
+		result.current.onKeyDown(event)
+
+		expect(rovingKeyDown).toHaveBeenCalled()
+	})
+
+	it('forwards other keys to roving navigation', () => {
+		const { result, rovingKeyDown } = setup<string>()
+
+		const event = makeKeyEvent('ArrowDown')
+
+		result.current.onKeyDown(event)
+
+		expect(rovingKeyDown).toHaveBeenCalledWith(event)
+	})
+})

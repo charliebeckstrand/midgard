@@ -1,6 +1,8 @@
+import { act } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { Description, Field, Fieldset, Label, Legend, Message } from '../../components/fieldset'
-import { bySlot, renderUI, screen } from '../helpers'
+import { Form } from '../../components/form'
+import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Fieldset', () => {
 	it('renders with data-slot="fieldset"', () => {
@@ -99,5 +101,63 @@ describe('Message', () => {
 		expect(bySlot(container, 'message')).toHaveAttribute('data-variant', 'success')
 
 		expect(screen.getByText('Looks good')).toBeInTheDocument()
+	})
+
+	it('applies a custom className', () => {
+		const { container } = renderUI(<Message className="custom">oops</Message>)
+
+		expect(bySlot(container, 'message')?.className).toContain('custom')
+	})
+
+	it('respects an explicit id when provided', () => {
+		const { container } = renderUI(<Message id="m1">oops</Message>)
+
+		expect(bySlot(container, 'message')).toHaveAttribute('id', 'm1')
+	})
+
+	it('renders nothing when bound to a form field that has no error', () => {
+		const { container } = renderUI(
+			<Form defaultValues={{ name: 'Ada' }}>
+				<Message name="name">fallback</Message>
+			</Form>,
+		)
+
+		expect(bySlot(container, 'message')).toBeNull()
+	})
+
+	it('renders the form field error when bound and the field has an error', async () => {
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ name: '' }}
+				onSubmit={(_v, helpers: { setErrors: (e: Record<string, string>) => void }) => {
+					helpers.setErrors({ name: 'required' })
+				}}
+			>
+				<Message name="name">fallback</Message>
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		const form = bySlot(container, 'form') as HTMLFormElement
+
+		await act(async () => {
+			fireEvent.submit(form)
+		})
+
+		const message = bySlot(container, 'message') as HTMLElement
+
+		expect(message.textContent).toBe('required')
+	})
+
+	it('renders verbatim children for the success variant inside a form', () => {
+		const { container } = renderUI(
+			<Form defaultValues={{ name: 'Ada' }}>
+				<Message variant="success" name="name">
+					Looks good
+				</Message>
+			</Form>,
+		)
+
+		expect(bySlot(container, 'message')?.textContent).toBe('Looks good')
 	})
 })

@@ -14,6 +14,32 @@ import {
 import { hasRules } from '../../components/query-builder/query-builder-utilities'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
+// The shared `motion/react` mock leaves `AnimatePresence` as a pass-through, so
+// its `onExitComplete` never fires — the Listbox uses that callback to flush a
+// deferred select. Override locally so single-select option clicks commit
+// immediately, letting us exercise the QueryBuilderRule's field/operator
+// onChange handlers.
+vi.mock('motion/react', async () => {
+	const actual =
+		await vi.importActual<typeof import('../mocks/motion-react')>('../mocks/motion-react')
+
+	const base = actual.default
+
+	function AnimatePresence({
+		children,
+		onExitComplete,
+	}: {
+		children?: React.ReactNode
+		onExitComplete?: () => void
+	}) {
+		if ((children == null || children === false) && onExitComplete) onExitComplete()
+
+		return <>{children}</>
+	}
+
+	return { ...base, AnimatePresence }
+})
+
 const fields: QueryField[] = [
 	{ name: 'name', label: 'Name', type: 'text' },
 	{ name: 'age', label: 'Age', type: 'number' },
@@ -76,6 +102,226 @@ describe('QueryBuilder', () => {
 		renderUI(<QueryBuilder fields={fields} disabled />)
 
 		expect(screen.getByRole('button', { name: 'Add rule' })).toBeDisabled()
+	})
+
+	it('renders a remove button on each rule that removes the rule when clicked', () => {
+		const onChange = vi.fn()
+
+		const initialRule = createRule(fields[0])
+
+		const tree = createGroup('and', [initialRule])
+
+		renderUI(<QueryBuilder fields={fields} value={tree} onValueChange={onChange} />)
+
+		const removeButton = screen.getByRole('button', { name: 'Remove rule' })
+
+		expect(removeButton).toBeInTheDocument()
+
+		removeButton.click()
+
+		expect(onChange).toHaveBeenCalled()
+
+		const next = onChange.mock.calls.at(-1)?.[0]
+
+		expect(next.children).toHaveLength(0)
+	})
+
+	it('disables the remove rule button when QueryBuilder is disabled', () => {
+		const initialRule = createRule(fields[0])
+
+		const tree = createGroup('and', [initialRule])
+
+		renderUI(<QueryBuilder fields={fields} value={tree} disabled />)
+
+		expect(screen.getByRole('button', { name: 'Remove rule' })).toBeDisabled()
+	})
+
+	it('renders a value input for text-typed rule fields', () => {
+		const initialRule = createRule(fields[0])
+
+		const tree = createGroup('and', [initialRule])
+
+		const { container } = renderUI(<QueryBuilder fields={fields} value={tree} />)
+
+		const inputs = container.querySelectorAll('input[type="text"]')
+
+		expect(inputs.length).toBeGreaterThan(0)
+	})
+
+	it('swaps the field, resets operator and value when the field selector changes', () => {
+		const onChange = vi.fn()
+
+		const initialRule = createRule(fields[0])
+
+		const tree = createGroup('and', [initialRule])
+
+		const { container } = renderUI(
+			<QueryBuilder fields={fields} value={tree} onValueChange={onChange} />,
+		)
+
+		const triggers = container.querySelectorAll('[data-slot="listbox-button"]')
+
+		const fieldTrigger = triggers[0] as HTMLElement
+
+		fireEvent.click(fieldTrigger)
+
+		fireEvent.click(screen.getByRole('option', { name: 'Age' }))
+
+		expect(onChange).toHaveBeenCalled()
+
+		const next = onChange.mock.calls.at(-1)?.[0]
+
+		const updated = next.children[0]
+
+		expect(updated.field).toBe('age')
+
+		expect(updated.operator).toBe('equals')
+
+		expect(updated.value).toBe('')
+	})
+
+	it('updates the operator when the operator selector changes', () => {
+		const onChange = vi.fn()
+
+		const initialRule = createRule(fields[1])
+
+		const tree = createGroup('and', [initialRule])
+
+		const { container } = renderUI(
+			<QueryBuilder fields={fields} value={tree} onValueChange={onChange} />,
+		)
+
+		const triggers = container.querySelectorAll('[data-slot="listbox-button"]')
+
+		fireEvent.click(triggers[1] as HTMLElement)
+
+		fireEvent.click(screen.getByRole('option', { name: '≥' }))
+
+		const next = onChange.mock.calls.at(-1)?.[0]
+
+		expect(next.children[0].operator).toBe('gte')
+	})
+
+	it('renders a number input for number-typed rule fields', () => {
+		const numberRule = createRule(fields[1])
+
+		const tree = createGroup('and', [numberRule])
+
+		const { container } = renderUI(<QueryBuilder fields={fields} value={tree} />)
+
+		expect(container.querySelector('input[type="number"]')).toBeInTheDocument()
+	})
+
+	it('renders a Select for select-typed rule fields', () => {
+		const selectField: QueryField = {
+			name: 'status',
+			label: 'Status',
+			type: 'select',
+			options: [
+				{ value: 'open', label: 'Open' },
+				{ value: 'closed', label: 'Closed' },
+			],
+		}
+
+		const rule = createRule(selectField)
+
+		const tree = createGroup('and', [rule])
+
+		const { container } = renderUI(<QueryBuilder fields={[selectField]} value={tree} />)
+
+		// Field selector + operator selector + value selector — 3 listbox buttons total.
+		expect(container.querySelectorAll('[data-slot="listbox-button"]')).toHaveLength(3)
+	})
+
+	it('omits the value control when the selected operator has noValue=true', () => {
+		const textField: QueryField = { name: 'name', label: 'Name', type: 'text' }
+
+		const rule = {
+			...createRule(textField),
+			operator: 'isEmpty',
+		}
+
+		const tree = createGroup('and', [rule])
+
+		const { container } = renderUI(<QueryBuilder fields={[textField]} value={tree} />)
+
+		// Only the two selects (field, operator) are present — no value input.
+		expect(container.querySelector('input[type="text"]')).not.toBeInTheDocument()
+
+		expect(container.querySelectorAll('[data-slot="listbox-button"]')).toHaveLength(2)
+	})
+})
+
+describe('QueryBuilderGroup', () => {
+	it('adds a rule to the root group when "Add rule" is clicked', () => {
+		const onChange = vi.fn()
+
+		renderUI(<QueryBuilder fields={fields} onValueChange={onChange} />)
+
+		screen.getByRole('button', { name: 'Add rule' }).click()
+
+		const next = onChange.mock.calls.at(-1)?.[0]
+
+		expect(next.children).toHaveLength(1)
+
+		expect(next.children[0].type).toBe('rule')
+	})
+
+	it('adds a nested group when "Add group" is clicked on the root', () => {
+		const onChange = vi.fn()
+
+		renderUI(<QueryBuilder fields={fields} onValueChange={onChange} />)
+
+		screen.getByRole('button', { name: 'Add group' }).click()
+
+		const next = onChange.mock.calls.at(-1)?.[0]
+
+		expect(next.children).toHaveLength(1)
+
+		expect(next.children[0].type).toBe('group')
+	})
+
+	it('suppresses the "Add group" and "Remove group" controls at the root', () => {
+		renderUI(<QueryBuilder fields={fields} />)
+
+		// Root renders "Add group" but never "Remove group".
+		expect(screen.queryByRole('button', { name: 'Remove group' })).not.toBeInTheDocument()
+	})
+
+	it('renders the AND/OR combinator between sibling children', () => {
+		const tree = createGroup('and', [createRule(fields[0]), createRule(fields[0])])
+
+		const { container } = renderUI(<QueryBuilder fields={fields} value={tree} />)
+
+		// Segment renders for the second child only.
+		const segments = container.querySelectorAll('[data-slot="segment"]')
+
+		expect(segments.length).toBeGreaterThan(0)
+	})
+
+	it('switches the child combinator when an AND/OR segment is clicked', () => {
+		const onChange = vi.fn()
+
+		const tree = createGroup('and', [createRule(fields[0]), createRule(fields[0])])
+
+		renderUI(<QueryBuilder fields={fields} value={tree} onValueChange={onChange} />)
+
+		// Click the OR option on the segment between the two rules.
+		fireEvent.click(screen.getByRole('radio', { name: 'OR' }))
+
+		const next = onChange.mock.calls.at(-1)?.[0]
+
+		expect(next.children[1].combinator).toBe('or')
+	})
+
+	it('renders a nested group with its own remove control', () => {
+		const inner = createGroup('and', [createRule(fields[0])])
+
+		const tree = createGroup('and', [inner])
+
+		renderUI(<QueryBuilder fields={fields} value={tree} />)
+
+		expect(screen.getByRole('button', { name: 'Remove group' })).toBeInTheDocument()
 	})
 })
 

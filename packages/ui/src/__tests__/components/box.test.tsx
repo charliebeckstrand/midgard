@@ -1,6 +1,7 @@
 import { createRef } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Box } from '../../components/box'
+import { Density } from '../../providers/density'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Box', () => {
@@ -70,5 +71,78 @@ describe('Box', () => {
 		const el = bySlot(container, 'box')
 
 		expect(el).toHaveAttribute('id', 'test')
+	})
+
+	it('applies the outline=true variant', () => {
+		const { container } = renderUI(<Box outline>content</Box>)
+
+		expect(bySlot(container, 'box')).toBeInTheDocument()
+	})
+
+	it('applies an explicit outline weight', () => {
+		const { container } = renderUI(<Box outline="strong">content</Box>)
+
+		expect(bySlot(container, 'box')).toBeInTheDocument()
+	})
+
+	it('applies radius, bg, padding, and margin tokens', () => {
+		const { container } = renderUI(
+			<Box radius="md" bg="surface" p="md" m="sm">
+				content
+			</Box>,
+		)
+
+		expect(bySlot(container, 'box')).toBeInTheDocument()
+	})
+
+	it('respects px / py / mx / my overrides', () => {
+		const { container } = renderUI(
+			<Box px="lg" py="sm" mx="xs" my="md">
+				content
+			</Box>,
+		)
+
+		expect(bySlot(container, 'box')).toBeInTheDocument()
+	})
+
+	it('renders with a custom dataSlot', () => {
+		const { container } = renderUI(<Box dataSlot="card">content</Box>)
+
+		expect(bySlot(container, 'card')).toBeInTheDocument()
+
+		expect(bySlot(container, 'box')).toBeNull()
+	})
+
+	it('inherits padding from an ambient Density when p is omitted', () => {
+		const { container } = renderUI(
+			<Density density="compact">
+				<Box>content</Box>
+			</Density>,
+		)
+
+		// compact → sm step → p-sm via paddingMap.
+		expect(bySlot(container, 'box')?.className).toContain('p-sm')
+	})
+
+	it('explicit p prop wins over the ambient Density', () => {
+		const { container } = renderUI(
+			<Density density="compact">
+				<Box p="lg">content</Box>
+			</Density>,
+		)
+
+		const el = bySlot(container, 'box') as HTMLElement
+
+		expect(el.className).toContain('p-lg')
+
+		expect(el.className).not.toContain('p-sm')
+	})
+
+	it('does not apply any padding class when no p and no ambient Density are present', () => {
+		const { container } = renderUI(<Box>content</Box>)
+
+		const el = bySlot(container, 'box') as HTMLElement
+
+		expect(el.className).not.toMatch(/(^|\s)p-(xs|sm|md|lg|xl)(\s|$)/)
 	})
 })
