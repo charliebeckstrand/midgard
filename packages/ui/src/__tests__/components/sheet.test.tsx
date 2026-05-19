@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Sheet, SheetClose, SheetOpen } from '../../components/sheet'
-import { renderUI, screen } from '../helpers'
+import { fireEvent, renderUI, screen } from '../helpers'
 
 describe('Sheet', () => {
 	it('renders with role="dialog" when open', () => {
@@ -51,7 +51,7 @@ describe('SheetOpen', () => {
 			</SheetOpen>,
 		)
 
-		screen.getByRole('button', { name: 'Open' }).click()
+		fireEvent.click(screen.getByRole('button', { name: 'Open' }))
 
 		expect(childOnClick).toHaveBeenCalledOnce()
 
@@ -74,7 +74,7 @@ describe('SheetClose', () => {
 			</Sheet>,
 		)
 
-		screen.getByRole('button', { name: 'Close' }).click()
+		fireEvent.click(screen.getByRole('button', { name: 'Close' }))
 
 		expect(childOnClick).toHaveBeenCalledOnce()
 

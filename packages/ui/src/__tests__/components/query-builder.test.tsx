@@ -1,3 +1,4 @@
+import { type ReactNode, useEffect } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import {
 	addChild,
@@ -18,7 +19,8 @@ import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 // its `onExitComplete` never fires — the Listbox uses that callback to flush a
 // deferred select. Override locally so single-select option clicks commit
 // immediately, letting us exercise the QueryBuilderRule's field/operator
-// onChange handlers.
+// onChange handlers. Fire onExitComplete from an effect so flushPending's
+// setState lands in the commit phase, not during AnimatePresence's render.
 vi.mock('motion/react', async () => {
 	const actual =
 		await vi.importActual<typeof import('../mocks/motion-react')>('../mocks/motion-react')
@@ -29,10 +31,14 @@ vi.mock('motion/react', async () => {
 		children,
 		onExitComplete,
 	}: {
-		children?: React.ReactNode
+		children?: ReactNode
 		onExitComplete?: () => void
 	}) {
-		if ((children == null || children === false) && onExitComplete) onExitComplete()
+		const isEmpty = children == null || children === false
+
+		useEffect(() => {
+			if (isEmpty) onExitComplete?.()
+		}, [isEmpty, onExitComplete])
 
 		return <>{children}</>
 	}
@@ -93,7 +99,7 @@ describe('QueryBuilder', () => {
 
 		renderUI(<QueryBuilder fields={fields} onValueChange={onChange} />)
 
-		screen.getByRole('button', { name: 'Add rule' }).click()
+		fireEvent.click(screen.getByRole('button', { name: 'Add rule' }))
 
 		expect(onChange).toHaveBeenCalled()
 	})
@@ -117,7 +123,7 @@ describe('QueryBuilder', () => {
 
 		expect(removeButton).toBeInTheDocument()
 
-		removeButton.click()
+		fireEvent.click(removeButton)
 
 		expect(onChange).toHaveBeenCalled()
 
@@ -258,7 +264,7 @@ describe('QueryBuilderGroup', () => {
 
 		renderUI(<QueryBuilder fields={fields} onValueChange={onChange} />)
 
-		screen.getByRole('button', { name: 'Add rule' }).click()
+		fireEvent.click(screen.getByRole('button', { name: 'Add rule' }))
 
 		const next = onChange.mock.calls.at(-1)?.[0]
 
@@ -272,7 +278,7 @@ describe('QueryBuilderGroup', () => {
 
 		renderUI(<QueryBuilder fields={fields} onValueChange={onChange} />)
 
-		screen.getByRole('button', { name: 'Add group' }).click()
+		fireEvent.click(screen.getByRole('button', { name: 'Add group' }))
 
 		const next = onChange.mock.calls.at(-1)?.[0]
 

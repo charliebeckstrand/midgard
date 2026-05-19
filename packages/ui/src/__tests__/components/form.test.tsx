@@ -62,7 +62,7 @@ describe('Form', () => {
 		expect(el).toHaveAttribute('id', 'signup')
 	})
 
-	it('calls onSubmit with current values', () => {
+	it('calls onSubmit with current values', async () => {
 		const onSubmit = vi.fn()
 
 		const { container } = renderUI(
@@ -73,7 +73,11 @@ describe('Form', () => {
 
 		const form = bySlot(container, 'form') as HTMLFormElement
 
-		fireEvent.submit(form)
+		// handleSubmit awaits onSubmit then calls setSubmitting(false); wrap so
+		// the trailing setState lands inside act.
+		await act(async () => {
+			fireEvent.submit(form)
+		})
 
 		expect(onSubmit).toHaveBeenCalledWith({ name: 'Ada' }, expect.any(Object))
 	})
@@ -179,9 +183,7 @@ describe('Form', () => {
 			</Form>,
 		)
 
-		act(() => {
-			screen.getByRole('button', { name: 'Change' }).click()
-		})
+		fireEvent.click(screen.getByRole('button', { name: 'Change' }))
 
 		expect(screen.getByTestId('value').textContent).toBe('Changed')
 
@@ -213,7 +215,7 @@ describe('Form', () => {
 			</Form>,
 		)
 
-		screen.getByRole('button', { name: 'Clear' }).click()
+		fireEvent.click(screen.getByRole('button', { name: 'Clear' }))
 
 		expect(validator).toHaveBeenCalled()
 	})

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Segment, SegmentControl, SegmentItem } from '../../components/segment'
-import { allBySlot, bySlot, renderUI } from '../helpers'
+import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 
 describe('Segment', () => {
 	it('renders with data-slot="segment-control"', () => {
@@ -62,7 +62,7 @@ describe('Segment', () => {
 			</Segment>,
 		)
 
-		allBySlot(container, 'segment-item')[1]?.click()
+		fireEvent.click(allBySlot(container, 'segment-item')[1]!)
 
 		expect(onValueChange).toHaveBeenCalledWith('b')
 	})
@@ -81,7 +81,7 @@ describe('Segment', () => {
 			</Segment>,
 		)
 
-		allBySlot(container, 'segment-item')[1]?.click()
+		fireEvent.click(allBySlot(container, 'segment-item')[1]!)
 
 		expect(onValueChange).not.toHaveBeenCalled()
 	})
@@ -134,7 +134,7 @@ describe('Segment', () => {
 
 		expect(items[0]).toHaveAttribute('aria-checked', 'true')
 
-		items[1]?.click()
+		fireEvent.click(items[1]!)
 
 		expect(onValueChange).toHaveBeenCalledWith('b')
 	})

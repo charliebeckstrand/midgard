@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ToggleIconButton } from '../../components/toggle-icon-button'
-import { bySlot, renderUI, within } from '../helpers'
+import { bySlot, fireEvent, renderUI, within } from '../helpers'
 
 describe('ToggleIconButton', () => {
 	const icon = <svg data-testid="icon" />
@@ -59,7 +59,7 @@ describe('ToggleIconButton', () => {
 
 		const el = bySlot(container, 'toggle-icon-button')
 
-		el?.click()
+		fireEvent.click(el!)
 
 		expect(onClick).toHaveBeenCalledOnce()
 	})
