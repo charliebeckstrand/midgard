@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Textarea } from '../../components/textarea'
-import { bySlot, renderUI, userEvent } from '../helpers'
+import { bySlot, renderUI, screen, userEvent } from '../helpers'
 
 describe('Textarea', () => {
 	it('renders with data-slot="textarea"', () => {
@@ -48,5 +48,31 @@ describe('Textarea', () => {
 
 		expect(bySlot(container, 'textarea')).not.toBeInTheDocument()
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
+	})
+
+	it('picks up the glass variant from a glass context', () => {
+		const { container } = renderUI(<Textarea />, { glass: true })
+
+		expect(bySlot(container, 'textarea')).toBeInTheDocument()
+	})
+
+	it('renders with autoResize enabled', () => {
+		const { container } = renderUI(<Textarea autoResize />)
+
+		expect(bySlot(container, 'textarea')).toBeInTheDocument()
+	})
+
+	it('renders with an explicit resize prop', () => {
+		const { container } = renderUI(<Textarea resize="none" />)
+
+		expect(bySlot(container, 'textarea')).toBeInTheDocument()
+	})
+
+	it('renders actions next to the textarea', () => {
+		const { container } = renderUI(<Textarea actions={<span>send</span>} />)
+
+		expect(bySlot(container, 'textarea')).toBeInTheDocument()
+
+		expect(screen.getByText('send')).toBeInTheDocument()
 	})
 })
