@@ -144,6 +144,42 @@ describe('FiltersClear', () => {
 		await user.click(screen.getByText('Clear'))
 		expect(onChange).toHaveBeenCalledWith(defaults)
 	})
+
+	it('preserves the child element onClick alongside the clear behaviour', async () => {
+		const onChange = vi.fn()
+
+		const childClick = vi.fn()
+
+		renderUI(
+			<Filters value={{ name: 'hello' }} onValueChange={onChange}>
+				<FiltersClear>
+					<Button onClick={childClick}>Clear</Button>
+				</FiltersClear>
+			</Filters>,
+		)
+
+		const user = userEvent.setup()
+
+		await user.click(screen.getByText('Clear'))
+
+		expect(childClick).toHaveBeenCalled()
+
+		expect(onChange).toHaveBeenCalled()
+	})
+
+	it('merges the FiltersClear className into the child element', () => {
+		renderUI(
+			<Filters value={{ name: 'hello' }}>
+				<FiltersClear className="from-wrapper">
+					<Button>Clear</Button>
+				</FiltersClear>
+			</Filters>,
+		)
+
+		const button = screen.getByText('Clear').closest('button')
+
+		expect(button?.className).toContain('from-wrapper')
+	})
 })
 
 describe('useFilters', () => {
