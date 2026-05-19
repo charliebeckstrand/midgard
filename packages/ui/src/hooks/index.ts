@@ -7,7 +7,6 @@ export {
 	useFloatingPanel,
 	useFloatingUI,
 } from './use-floating-ui'
-export { useFocusTrap } from './use-focus-trap'
 export { useHasHover } from './use-has-hover'
 export { type UseIdScopeOptions, useIdScope } from './use-id-scope'
 export { useIsTruncated } from './use-is-truncated'

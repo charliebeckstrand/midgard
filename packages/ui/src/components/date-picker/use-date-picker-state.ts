@@ -4,7 +4,6 @@ import { type KeyboardEvent, useCallback, useMemo, useRef, useState } from 'reac
 
 import { useFloatingUI } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
-import { useFocusTrap } from '../../hooks/use-focus-trap'
 import { useIdScope } from '../../hooks/use-id-scope'
 import type { CalendarActive, CalendarHandle } from '../calendar'
 import { useControl } from '../control/context'
@@ -38,8 +37,6 @@ export function useDatePickerState({
 	const calendarRef = useRef<CalendarHandle>(null)
 
 	const footerRef = useRef<HTMLDivElement>(null)
-
-	const focusTrapRef = useFocusTrap(open)
 
 	const getInitialActiveDate = useCallback(
 		() => clampDate(value ?? min ?? new Date(), min, max),
@@ -110,7 +107,7 @@ export function useDatePickerState({
 		[value],
 	)
 
-	const { refs, floatingStyles, getReferenceProps, getFloatingProps } = useFloatingUI({
+	const { refs, floatingStyles, context, getReferenceProps, getFloatingProps } = useFloatingUI({
 		placement,
 		open,
 		onOpenChange: handleOpenChange,
@@ -144,7 +141,7 @@ export function useDatePickerState({
 		floatingStyles,
 		getReferenceProps,
 		getFloatingProps,
-		focusTrapRef,
+		context,
 		calendar: {
 			value: value ?? null,
 			onValueChange: handleSelect,

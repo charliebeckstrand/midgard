@@ -1,11 +1,11 @@
 'use client'
 
+import { FloatingFocusManager, useFloating } from '@floating-ui/react'
 import { AnimatePresence, motion } from 'motion/react'
-import { type HTMLAttributes, type ReactNode, useEffect } from 'react'
+import { type HTMLAttributes, type ReactNode, type RefObject, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { cn } from '../../core'
 import { useDismissable } from '../../hooks/use-dismissable'
-import { useFocusTrap } from '../../hooks/use-focus-trap'
 import { omote, ugoki } from '../../recipes'
 import { ReducedMotion } from '../reduced-motion'
 import { notifyOverlayOpened } from './overlay-signal'
@@ -24,6 +24,8 @@ export type OverlayProps = {
 	 * Defaults to `document.body` with full-viewport `fixed` positioning.
 	 */
 	container?: HTMLElement | null
+	/** Element to receive initial focus when the overlay opens. Defaults to the first tabbable child. */
+	initialFocus?: RefObject<HTMLElement | null>
 } & Omit<HTMLAttributes<HTMLDivElement>, 'className' | 'children'>
 
 export function Overlay({
@@ -34,9 +36,10 @@ export function Overlay({
 	className,
 	children,
 	container,
+	initialFocus,
 	...props
 }: OverlayProps) {
-	const focusTrapRef = useFocusTrap(open)
+	const { refs, context } = useFloating({ open, onOpenChange })
 
 	const scoped = container != null
 
@@ -57,24 +60,26 @@ export function Overlay({
 		<ReducedMotion>
 			<AnimatePresence>
 				{open && (
-					<div
-						ref={focusTrapRef}
-						data-slot="overlay"
-						className={cn(scoped ? 'absolute inset-0 z-99' : 'fixed inset-0 z-99')}
-						{...props}
-					>
-						<motion.div
-							{...ugoki.overlay}
-							data-slot="overlay-backdrop"
-							className={
-								className ??
-								cn('absolute inset-0', glass ? omote.backdrop.glass : omote.backdrop.base)
-							}
-							onClick={outsideClick ? () => onOpenChange(false) : undefined}
-							aria-hidden="true"
-						/>
-						{children}
-					</div>
+					<FloatingFocusManager context={context} modal initialFocus={initialFocus ?? undefined}>
+						<div
+							ref={refs.setFloating}
+							data-slot="overlay"
+							className={cn(scoped ? 'absolute inset-0 z-99' : 'fixed inset-0 z-99')}
+							{...props}
+						>
+							<motion.div
+								{...ugoki.overlay}
+								data-slot="overlay-backdrop"
+								className={
+									className ??
+									cn('absolute inset-0', glass ? omote.backdrop.glass : omote.backdrop.base)
+								}
+								onClick={outsideClick ? () => onOpenChange(false) : undefined}
+								aria-hidden="true"
+							/>
+							{children}
+						</div>
+					</FloatingFocusManager>
 				)}
 			</AnimatePresence>
 		</ReducedMotion>,

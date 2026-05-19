@@ -43,7 +43,7 @@ export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProp
 				setFloating={state.setFloating}
 				floatingStyles={state.floatingStyles}
 				getFloatingProps={state.getFloatingProps}
-				focusTrapRef={state.focusTrapRef}
+				context={state.context}
 				size={size}
 				onExitComplete={state.onExitComplete}
 			>

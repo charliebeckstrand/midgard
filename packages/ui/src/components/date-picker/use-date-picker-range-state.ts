@@ -4,7 +4,6 @@ import { type KeyboardEvent, useCallback, useMemo, useReducer, useRef, useState 
 
 import { useFloatingUI } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
-import { useFocusTrap } from '../../hooks/use-focus-trap'
 import { useIdScope } from '../../hooks/use-id-scope'
 import type { CalendarActive, CalendarHandle } from '../calendar'
 import { useControl } from '../control/context'
@@ -43,8 +42,6 @@ export function useDatePickerRangeState({
 	const calendarRef = useRef<CalendarHandle>(null)
 
 	const footerRef = useRef<HTMLDivElement>(null)
-
-	const focusTrapRef = useFocusTrap(open)
 
 	const flushPending = useCallback(() => {
 		if (pendingRef.current) {
@@ -134,7 +131,7 @@ export function useDatePickerRangeState({
 		[handleClear],
 	)
 
-	const { refs, floatingStyles, getReferenceProps, getFloatingProps } = useFloatingUI({
+	const { refs, floatingStyles, context, getReferenceProps, getFloatingProps } = useFloatingUI({
 		placement,
 		open,
 		onOpenChange: handleOpenChange,
@@ -176,7 +173,7 @@ export function useDatePickerRangeState({
 		floatingStyles,
 		getReferenceProps,
 		getFloatingProps,
-		focusTrapRef,
+		context,
 		calendar: {
 			rangeStart: rangeStart ?? (value ? value[0] : null),
 			rangeEnd: rangeStart === null ? (value ? value[1] : null) : null,

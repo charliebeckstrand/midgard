@@ -104,7 +104,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 				setFloating={state.setFloating}
 				floatingStyles={state.floatingStyles}
 				getFloatingProps={state.getFloatingProps}
-				focusTrapRef={state.focusTrapRef}
+				context={state.context}
 				size={size}
 			>
 				<Calendar

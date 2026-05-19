@@ -25,6 +25,7 @@ type MockInteraction = { reference?: { onClick?: (e: unknown) => void } }
  */
 const floatingUIMock = {
 	autoUpdate: noop,
+	FloatingFocusManager: ({ children }: { children: ReactNode }) => children,
 	FloatingPortal: ({ children }: { children: ReactNode }) => children,
 	flip: () => ({}),
 	offset: () => ({}),
