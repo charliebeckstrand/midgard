@@ -5,6 +5,8 @@
  * records calls and fires 'load' on the next microtask.
  */
 
+import { act } from '@testing-library/react'
+
 class FakeMap {
 	private handlers = new Map<string, Set<(...args: unknown[]) => void>>()
 	private sources = new Map<string, unknown>()
@@ -15,7 +17,13 @@ class FakeMap {
 	constructor(opts: { container: HTMLElement }) {
 		this.container = opts.container
 
-		queueMicrotask(() => this.emit('load'))
+		// The 'load' handler in useMapInstance calls setReady(true); wrap the
+		// emission so the resulting React state update flushes inside act().
+		queueMicrotask(() => {
+			act(() => {
+				this.emit('load')
+			})
+		})
 	}
 
 	on(

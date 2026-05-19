@@ -1,7 +1,7 @@
 import { act, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { CopyButton } from '../../components/copy-button'
-import { renderUI } from '../helpers'
+import { fireEvent, renderUI } from '../helpers'
 
 function stubClipboard(writeText: (value: string) => Promise<void>) {
 	const original = Object.getOwnPropertyDescriptor(window.navigator, 'clipboard')
@@ -56,7 +56,7 @@ describe('CopyButton', () => {
 
 			const button = container.querySelector('button') as HTMLButtonElement
 
-			button.click()
+			fireEvent.click(button)
 
 			await waitFor(() => expect(writeText).toHaveBeenCalledWith('hello'))
 
@@ -102,7 +102,7 @@ describe('CopyButton', () => {
 			const button = container.querySelector('button') as HTMLButtonElement
 
 			await act(async () => {
-				button.click()
+				fireEvent.click(button)
 			})
 
 			await vi.waitFor(() => expect(onCopiedChange).toHaveBeenCalledWith(true))
@@ -132,7 +132,7 @@ describe('CopyButton', () => {
 
 			const button = container.querySelector('button') as HTMLButtonElement
 
-			button.click()
+			fireEvent.click(button)
 
 			await waitFor(() => expect(writeText).toHaveBeenCalledWith('hello'))
 
@@ -153,7 +153,7 @@ describe('CopyButton', () => {
 
 			const button = container.querySelector('button') as HTMLButtonElement
 
-			button.click()
+			fireEvent.click(button)
 
 			expect(onClick).toHaveBeenCalledTimes(1)
 

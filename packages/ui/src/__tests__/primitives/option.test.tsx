@@ -54,7 +54,7 @@ describe('BaseOption', () => {
 			</BaseOption>,
 		)
 
-		screen.getByRole('option').click()
+		fireEvent.click(screen.getByRole('option'))
 
 		expect(onSelect).toHaveBeenCalledOnce()
 	})
@@ -68,7 +68,7 @@ describe('BaseOption', () => {
 			</BaseOption>,
 		)
 
-		screen.getByRole('option').click()
+		fireEvent.click(screen.getByRole('option'))
 
 		expect(onSelect).not.toHaveBeenCalled()
 	})

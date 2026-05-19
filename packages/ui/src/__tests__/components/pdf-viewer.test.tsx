@@ -78,7 +78,7 @@ describe('PdfViewer', () => {
 
 		const thumbnails = allBySlot(container, 'pdf-viewer-thumbnail')
 
-		thumbnails[2]?.click()
+		fireEvent.click(thumbnails[2] as HTMLElement)
 
 		expect(onPageChange).toHaveBeenCalledWith(3)
 	})
@@ -136,7 +136,7 @@ describe('PdfViewer', () => {
 
 		renderUI(<PdfViewer pages={pages} src="/sample.pdf" filename="doc.pdf" />)
 
-		screen.getByLabelText('Download').click()
+		fireEvent.click(screen.getByLabelText('Download'))
 
 		const anchor = appendChild.mock.calls.find((c) => (c[0] as HTMLElement).tagName === 'A')?.[0] as
 			| HTMLAnchorElement
@@ -154,7 +154,7 @@ describe('PdfViewer', () => {
 
 		renderUI(<PdfViewer pages={pages} src="/sample.pdf" />)
 
-		screen.getByLabelText('Print').click()
+		fireEvent.click(screen.getByLabelText('Print'))
 
 		const iframe = appendChild.mock.calls.find(
 			(c) => (c[0] as HTMLElement).tagName === 'IFRAME',

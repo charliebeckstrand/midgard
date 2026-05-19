@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { BottomNav, BottomNavItem } from '../../components/bottom-nav'
-import { allBySlot, bySlot, renderUI, screen } from '../helpers'
+import { allBySlot, bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 // Minimal icon element for tests
 const TestIcon = <svg data-testid="icon" />
@@ -116,7 +116,7 @@ describe('BottomNavItem', () => {
 
 		const item = bySlot(container, 'bottom-nav-item')
 
-		item?.click()
+		fireEvent.click(item as HTMLElement)
 
 		expect(onChange).toHaveBeenCalledWith('search')
 	})

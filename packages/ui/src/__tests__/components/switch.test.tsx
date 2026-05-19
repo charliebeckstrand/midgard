@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Switch, SwitchField } from '../../components/switch'
 import { Density } from '../../primitives/density'
-import { bySlot, renderUI } from '../helpers'
+import { bySlot, fireEvent, renderUI } from '../helpers'
 
 describe('Switch', () => {
 	it('renders a checkbox input with data-slot="switch"', () => {
@@ -43,7 +43,7 @@ describe('Switch', () => {
 
 		expect(input.checked).toBe(true)
 
-		input.click()
+		fireEvent.click(input)
 
 		expect(onChange).toHaveBeenCalled()
 	})

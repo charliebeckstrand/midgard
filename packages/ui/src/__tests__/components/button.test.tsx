@@ -6,7 +6,7 @@ import { Group } from '../../components/group'
 import { Icon } from '../../components/icon'
 import { AffixProvider } from '../../primitives/affix'
 import { Density } from '../../primitives/density'
-import { bySlot, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Button', () => {
 	it('renders a button element with data-slot', () => {
@@ -42,7 +42,7 @@ describe('Button', () => {
 
 		const button = bySlot(container, 'button')
 
-		button?.click()
+		fireEvent.click(button as HTMLElement)
 
 		expect(onClick).toHaveBeenCalledOnce()
 	})
