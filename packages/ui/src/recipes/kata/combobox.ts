@@ -1,21 +1,15 @@
-import { tv, type VariantProps } from 'tailwind-variants'
-import { iro, ji } from '../../core/recipe'
+import { defineRecipe, iro, ji, type VariantPropsOf } from '../../core/recipe'
 import { control } from '../waku/control'
 
-export const combobox = tv({
+export const k = defineRecipe({
 	base: ['block', 'truncate', ...control.field, 'rounded-lg'],
-	variants: {
-		density: control.density,
-		size: control.size,
+	density: control.density,
+	size: control.size,
+	slots: {
+		options: 'max-h-60',
+		empty: ['hidden only:block', 'p-2', ji.size.sm, iro.text.muted],
 	},
-	defaultVariants: { density: 'md', size: 'md' },
+	defaults: { density: 'md', size: 'md' },
 })
 
-export const k = {
-	options: 'max-h-60',
-	empty: ['hidden only:block', 'p-2', ji.size.sm, iro.text.muted],
-}
-
-export type ComboboxVariants = VariantProps<typeof combobox>
-
-export { combobox as comboboxVariants }
+export type ComboboxVariants = VariantPropsOf<typeof k>

@@ -1,9 +1,4 @@
-export {
-	type StatDeltaVariants,
-	type StatValueVariants,
-	statDeltaVariants,
-	statValueVariants,
-} from '../../recipes/kata/stat'
+export type { StatDeltaVariants, StatValueVariants } from '../../recipes/kata/stat'
 export { Stat, type StatProps } from './stat'
 export { StatDelta, type StatDeltaProps } from './stat-delta'
 export { StatDescription, type StatDescriptionProps } from './stat-description'

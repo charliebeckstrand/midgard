@@ -3,7 +3,7 @@
 import { type ReactNode, useCallback, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useControllable, useRoving } from '../../hooks'
-import { type AccordionVariants, accordionVariants } from '../../recipes/kata/accordion'
+import { type AccordionVariants, k } from '../../recipes/kata/accordion'
 import { AccordionProvider } from './context'
 
 type SingleProps = {
@@ -113,7 +113,7 @@ export function Accordion(props: AccordionProps) {
 			<div
 				ref={ref}
 				data-slot="accordion"
-				className={cn(accordionVariants({ variant }), className)}
+				className={cn(k({ variant }), className)}
 				onKeyDown={handleKeyDown}
 			>
 				{children}

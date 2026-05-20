@@ -13,10 +13,10 @@ const componentsDir = join(__dirname, '../../../components')
 
 const srcDir = join(__dirname, '../../..')
 
-const MA_IMPORT = /from\s+['"][^'"]*recipes\/ryu\/ma['"]/
+const MA_IMPORT = /import\s+(?:type\s+)?\{[^}]*\bMa\b[^}]*\}\s+from\s+['"][^'"]*core\/recipe['"]/
 
 describe('component Ma import boundary', () => {
-	it('only variants.ts may import Ma from recipes/ryu/ma', () => {
+	it('only variants.ts may import the Ma type from core/recipe', () => {
 		const violations: string[] = []
 
 		walk(componentsDir, (file, content) => {
@@ -31,7 +31,7 @@ describe('component Ma import boundary', () => {
 
 		expect(
 			violations,
-			`component file imports Ma directly — derive size from the kata's VariantProps instead:\n  ${violations.join('\n  ')}`,
+			`component file imports Ma directly — derive size from the kata's VariantPropsOf instead:\n  ${violations.join('\n  ')}`,
 		).toEqual([])
 	})
 })

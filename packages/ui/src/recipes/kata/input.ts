@@ -1,41 +1,42 @@
-import { tv, type VariantProps } from 'tailwind-variants'
-import { iro } from '../../core/recipe'
+import { defineRecipe, iro, type VariantPropsOf } from '../../core/recipe'
 import { control } from '../waku/control'
 
-export const input = tv({
+export const k = defineRecipe({
 	base: [...control.field, 'block', 'rounded-lg'],
-	variants: {
-		variant: {
-			default: [],
-			outline: [],
-			glass: [],
-		},
-		density: control.density,
-		size: control.size,
+	variant: {
+		default: [],
+		outline: [],
+		glass: [],
 	},
-	defaultVariants: { variant: 'default', density: 'md', size: 'md' },
+	density: control.density,
+	size: control.size,
+	slots: {
+		affix: [
+			'flex items-center min-w-0',
+			'*:data-[slot=icon]:pointer-events-none',
+			...iro.text.muted,
+		],
+		number: control.resets.number,
+	},
+	defaults: { variant: 'default', density: 'md', size: 'md' },
 })
 
-export const inputControl = tv({
-	base: [],
-	variants: {
-		variant: {
-			default: control.surface.default,
-			outline: [],
-			glass: control.surface.glass,
-		},
+export const inputControl = defineRecipe({
+	variant: {
+		default: control.surface.default,
+		outline: [],
+		glass: control.surface.glass,
 	},
-	defaultVariants: { variant: 'default' },
+	defaults: { variant: 'default' },
 })
 
-export const k = {
-	affix: ['flex items-center min-w-0', '*:data-[slot=icon]:pointer-events-none', ...iro.text.muted],
-	prefix: control.affix.prefix,
-	suffix: control.affix.suffix,
-	autofill: control.affix.autofill,
-	number: control.resets.number,
-}
+/** Density-keyed prefix padding for the input affix slot. */
+export const prefix = control.affix.prefix
 
-export type InputVariants = VariantProps<typeof input>
+/** Density-keyed suffix padding for the input affix slot. */
+export const suffix = control.affix.suffix
 
-export { input as inputVariants, inputControl as controlVariants }
+/** Density-keyed autofill offset compensation. */
+export const autofill = control.affix.autofill
+
+export type InputVariants = VariantPropsOf<typeof k>

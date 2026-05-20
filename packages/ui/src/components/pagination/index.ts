@@ -1,10 +1,4 @@
-export {
-	type PageButtonVariants,
-	pageButtonVariants,
-	paginationGapVariants,
-	paginationListVariants,
-	paginationVariants,
-} from '../../recipes/kata/pagination'
+export type { PageButtonVariants } from '../../recipes/kata/pagination'
 export { Pagination, type PaginationProps } from './pagination'
 export { PaginationGap, type PaginationGapProps } from './pagination-gap'
 export { PaginationList, type PaginationListProps } from './pagination-list'

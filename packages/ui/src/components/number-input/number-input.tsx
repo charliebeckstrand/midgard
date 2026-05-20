@@ -4,7 +4,7 @@ import { Minus, Plus } from 'lucide-react'
 import type { ChangeEvent } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
-import { k } from '../../recipes/kata/input'
+import { k as inputK } from '../../recipes/kata/input'
 import { Button } from '../button'
 import type { ControlSize } from '../control/context'
 import { useFormField } from '../form/context'
@@ -116,7 +116,7 @@ export function NumberInput({
 			min={min}
 			max={max}
 			step={step}
-			className={cn(padding[resolvedSize], k.number, className)}
+			className={cn(padding[resolvedSize], inputK.number, className)}
 			suffix={
 				<span className="pointer-events-auto flex items-center gap-0.5">
 					<Button

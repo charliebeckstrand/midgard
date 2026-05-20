@@ -8,7 +8,7 @@ import type {
 	Ref,
 } from 'react'
 import { cn } from '../../core'
-import { comboboxVariants } from '../../recipes/kata/combobox'
+import { k } from '../../recipes/kata/combobox'
 import type { ControlSize } from '../control/context'
 import { Headless } from '../headless'
 import { Input } from '../input'
@@ -72,7 +72,7 @@ export function ComboboxInput({
 				disabled={disabled}
 				value={value}
 				placeholder={placeholder}
-				className={cn(comboboxVariants({ density, size }))}
+				className={cn(k({ density, size }))}
 				{...handlers}
 			/>
 		</Headless>

@@ -3,7 +3,7 @@
 import type { ReactNode, Ref } from 'react'
 import { cn, invalidAttrs } from '../../core'
 import { iro } from '../../recipes'
-import { k, listboxVariants } from '../../recipes/kata/listbox'
+import { k, value } from '../../recipes/kata/listbox'
 import { Button } from '../button'
 import type { ControlSize } from '../control/context'
 import { Headless } from '../headless'
@@ -56,9 +56,9 @@ export function ListboxButton({
 				dataSlot="listbox-button"
 				disabled={disabled}
 				{...invalidAttrs(invalid)}
-				className={cn(listboxVariants({ density, size }))}
+				className={cn(k({ density, size }))}
 			>
-				<span className={cn(k.value({ truncate }), tabularNums && 'tabular-nums')}>
+				<span className={cn(value({ truncate }), tabularNums && 'tabular-nums')}>
 					{label || <span className={cn(iro.text.muted)}>{placeholder}</span>}
 				</span>
 			</Button>
