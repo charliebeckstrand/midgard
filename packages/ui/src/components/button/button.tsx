@@ -9,7 +9,7 @@ import type { PolymorphicProps } from '../../primitives/polymorphic'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { TouchTarget } from '../../primitives/touch-target'
 import { useSkeleton } from '../../providers/skeleton'
-import { type ButtonVariants, buttonVariants } from '../../recipes/kata/button'
+import { type ButtonVariants, k } from '../../recipes/kata/button'
 import { useGlass } from '../glass/context'
 import { useHeadless } from '../headless/context'
 import { Link } from '../link'
@@ -85,7 +85,7 @@ export function Button({
 	const resolvedVariant = variant ?? (glass ? 'glass' : undefined)
 
 	const classes = cn(
-		buttonVariants({ variant: resolvedVariant, color, size: resolvedSize }),
+		k({ variant: resolvedVariant, color, size: resolvedSize }),
 		block && 'w-full',
 		className,
 	)
