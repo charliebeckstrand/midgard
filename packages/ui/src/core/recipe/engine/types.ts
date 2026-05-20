@@ -1,0 +1,89 @@
+/**
+ * Public types for the recipe engine.
+ *
+ * `RecipeConfig` is the shape a kata declares — five reserved fields
+ * (`base`, `palette`, `compound`, `slots`, `defaults`) plus any number of
+ * variant axes as top-level fields. `Recipe<C>` is what `defineRecipe`
+ * returns. `VariantPropsOf<R>` extracts the prop shape from either side —
+ * use it in kata to type the consumer-facing `<Name>Variants` export.
+ */
+
+import type { ClassValue } from 'clsx'
+
+import type { Color } from '../substrate/colors'
+
+import type { PaletteConfig } from './palette'
+
+/** A single variant axis: maps each variant value to its class set. */
+export type VariantAxis = Record<string, ClassValue>
+
+/** A compound rule applies a class set when every named axis matches. */
+export type CompoundRule = Record<string, string | ClassValue> & { class: ClassValue }
+
+/** Reserved top-level config field names — kata may not use these as axis names. */
+export type ReservedField = 'base' | 'palette' | 'compound' | 'slots' | 'defaults'
+
+/** The reserved fields' types. */
+export type RecipeBase = {
+	base?: ClassValue
+	palette?: PaletteConfig
+	compound?: CompoundRule[]
+	slots?: Record<string, ClassValue>
+	defaults?: Record<string, string>
+}
+
+/**
+ * A recipe config: reserved fields plus any number of variant axes at the
+ * top level. `C` is the concrete config the kata passes; the engine uses
+ * `AxesOf<C>` to walk the non-reserved fields.
+ */
+export type RecipeConfig = RecipeBase & {
+	// biome-ignore lint/suspicious/noExplicitAny: index signature must accept the reserved-field types alongside VariantAxis; the runtime distinguishes them.
+	[axis: string]: any
+}
+
+/** The non-reserved (variant axis) fields of a config. */
+export type AxesOf<C> = {
+	[K in keyof C as K extends ReservedField ? never : K]: C[K] extends VariantAxis ? C[K] : never
+}
+
+/** The fully-expanded config the runtime consumes. */
+export type ResolvedConfig = {
+	base?: ClassValue
+	variants: Record<string, Record<string, ClassValue>>
+	compound: CompoundRule[]
+	slots: Record<string, ClassValue>
+	defaults: Record<string, string>
+}
+
+export type Recipe<C extends RecipeBase> = {
+	(props?: ComputedProps<C>): string
+	/** Pre-merged static slot classes. */
+	k: { [K in keyof NonNullable<C['slots']>]: string }
+	/** Resolved config — exposed for introspection. */
+	readonly config: ResolvedConfig
+}
+
+/** Explicit `variant:` keys declared by the kata, or `never` if absent. */
+type ExplicitVariantKeys<C> = C extends { variant: infer V } ? keyof V & string : never
+
+/** Computed prop shape for a given config — used internally and by `VariantPropsOf`. */
+export type ComputedProps<C> = {
+	[K in keyof AxesOf<C> as K extends 'variant' ? never : K]?: keyof AxesOf<C>[K] & string
+} & (C extends { palette: PaletteConfig<infer E, infer M> }
+	? {
+			variant?: (M & string) | ExplicitVariantKeys<C>
+			color?: Color | (E & string)
+		}
+	: C extends { variant: VariantAxis }
+		? { variant?: ExplicitVariantKeys<C> }
+		: Record<never, never>)
+
+/**
+ * Extracts the prop shape from either a `Recipe<C>` or a `RecipeConfig`.
+ *
+ * @example
+ *   export type ButtonVariants = VariantPropsOf<typeof button>
+ */
+export type VariantPropsOf<R> =
+	R extends Recipe<infer C> ? ComputedProps<C> : R extends RecipeBase ? ComputedProps<R> : never

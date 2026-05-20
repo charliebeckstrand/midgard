@@ -1,0 +1,8 @@
+export { type Color, colors } from './colors'
+export { iro } from './iro'
+export { ji } from './ji'
+export { sawari } from './sawari'
+export { sen } from './sen'
+export { type ShadeSpec, shades } from './shades'
+export { take } from './take'
+export { tsunagi } from './tsunagi'
