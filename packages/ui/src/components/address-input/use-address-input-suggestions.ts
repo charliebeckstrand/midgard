@@ -2,17 +2,17 @@ import { useEffect, useRef, useState } from 'react'
 import type { AddressProvider, AddressSuggestion } from './types'
 
 export type UseAddressSuggestionsOptions = {
-	query: string
 	enabled: boolean
 	provider: AddressProvider
+	query: string
 	debounceMs: number
 	minQueryLength: number
 }
 
 export function useAddressInputSuggestions({
-	query,
 	enabled,
 	provider,
+	query,
 	debounceMs,
 	minQueryLength,
 }: UseAddressSuggestionsOptions) {

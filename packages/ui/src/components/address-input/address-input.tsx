@@ -23,6 +23,8 @@ export type AddressInputProps = {
 }
 
 export function AddressInput({
+	value,
+	onValueChange,
 	provider = photonProvider,
 	debounceMs = 500,
 	minQueryLength = 3,
@@ -35,21 +37,25 @@ export function AddressInput({
 	const [menuRequested, setMenuRequested] = useState(false)
 
 	const { suggestions, loading, ready } = useAddressInputSuggestions({
-		query,
 		enabled: menuRequested,
 		provider,
+		query,
 		debounceMs,
 		minQueryLength,
 	})
 
+	const suffix = loading ? <Spinner /> : <Icon icon={<MapPin />} />
+
 	return (
 		<Combobox<AddressSuggestion>
 			{...props}
+			value={value}
 			displayValue={(s) => s.label}
+			onValueChange={onValueChange}
 			placeholder={placeholder}
 			autoComplete={autoComplete}
 			clearOnEmpty
-			suffix={loading ? <Spinner /> : <Icon icon={<MapPin />} />}
+			suffix={suffix}
 			open={ready && menuRequested}
 			onOpenChange={setMenuRequested}
 			onQueryChange={setQuery}
