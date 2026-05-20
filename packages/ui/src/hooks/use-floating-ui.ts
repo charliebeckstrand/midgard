@@ -28,13 +28,13 @@ import {
 // Explicit return types: TS can't write a portable `.d.ts` for the inferred
 // return because `useFloating`'s shape references `@floating-ui/react-dom`,
 // a transitive dep (TS2742). Kept local — not re-exported from the barrel.
-type UseFloatingPanelReturn = {
+type UseFloatingPanelResult = {
 	refs: ExtendedRefs<ReferenceType>
 	floatingStyles: CSSProperties
 	context: FloatingRootContext
 }
 
-type UseFloatingUIReturn = UseFloatingPanelReturn & {
+type UseFloatingUIResult = UseFloatingPanelResult & {
 	getReferenceProps: (userProps?: HTMLProps<Element>) => Record<string, unknown>
 	getFloatingProps: (userProps?: HTMLProps<HTMLElement>) => Record<string, unknown>
 }
@@ -85,7 +85,7 @@ export function useFloatingPanel({
 	matchReferenceWidth = false,
 	middleware,
 	restoreFocusTo,
-}: UseFloatingPanelOptions): UseFloatingPanelReturn {
+}: UseFloatingPanelOptions): UseFloatingPanelResult {
 	const resolvedMiddleware = useMemo(
 		() => middleware ?? buildMiddleware(offsetPx, matchReferenceWidth),
 		[middleware, offsetPx, matchReferenceWidth],
@@ -121,7 +121,7 @@ export type UseFloatingUIOptions = UseFloatingPanelOptions & {
 export function useFloatingUI({
 	role: roleProp = 'listbox',
 	...rest
-}: UseFloatingUIOptions): UseFloatingUIReturn {
+}: UseFloatingUIOptions): UseFloatingUIResult {
 	const { refs, floatingStyles, context } = useFloatingPanel(rest)
 
 	const dismiss = useDismiss(context)
