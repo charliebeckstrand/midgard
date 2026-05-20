@@ -10,7 +10,7 @@ export type ListItemSortableProps = {
 }
 
 export function ListItemSortable({ id, children }: ListItemSortableProps) {
-	const { setNodeRef, setActivatorNodeRef, attributes, listeners, style, isDragging } =
+	const { setNodeRef, setActivatorNodeRef, attributes, listeners, style, dragging } =
 		useSortableItem({ id })
 
 	return (
@@ -22,7 +22,7 @@ export function ListItemSortable({ id, children }: ListItemSortableProps) {
 				attributes,
 				listeners,
 				style,
-				isDragging,
+				dragging,
 			}}
 		>
 			{children}

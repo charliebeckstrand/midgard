@@ -45,7 +45,7 @@ export function SignaturePad({
 	ref,
 	className,
 }: SignaturePadProps) {
-	const { containerRef, canvasRef, isEmpty, handlePointerDown, handlePointerMove, commit, clear } =
+	const { containerRef, canvasRef, empty, handlePointerDown, handlePointerMove, commit, clear } =
 		useSignaturePadState({
 			value,
 			defaultValue,
@@ -61,7 +61,7 @@ export function SignaturePad({
 		<div
 			ref={containerRef}
 			data-slot="signature-pad"
-			data-empty={isEmpty || undefined}
+			data-empty={empty || undefined}
 			data-disabled={disabled || undefined}
 			data-readonly={readOnly || undefined}
 			className={cn(k.base, 'h-40', className)}
@@ -77,12 +77,12 @@ export function SignaturePad({
 				onPointerCancel={commit}
 				onPointerLeave={commit}
 			/>
-			{isEmpty && !disabled && (
+			{empty && !disabled && (
 				<div data-slot="signature-pad-placeholder" className={cn(k.placeholder)}>
 					{placeholder}
 				</div>
 			)}
-			{clearable && !disabled && !readOnly && !isEmpty && (
+			{clearable && !disabled && !readOnly && !empty && (
 				<div data-slot="signature-pad-actions" className={cn(k.actions)}>
 					<Button
 						size="sm"

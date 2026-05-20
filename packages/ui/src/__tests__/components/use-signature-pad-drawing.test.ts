@@ -8,7 +8,7 @@ import { makeCanvasContext, makePointerEvent } from '../helpers'
 type Setup = {
 	disabled?: boolean
 	readOnly?: boolean
-	isEmpty?: boolean
+	empty?: boolean
 	contextNull?: boolean
 	canvasNull?: boolean
 }
@@ -16,7 +16,7 @@ type Setup = {
 function setup({
 	disabled = false,
 	readOnly = false,
-	isEmpty = true,
+	empty = true,
 	contextNull = false,
 	canvasNull = false,
 }: Setup = {}) {
@@ -32,7 +32,7 @@ function setup({
 		canvas.getBoundingClientRect = () => DOMRect.fromRect({ width: 100, height: 100 })
 	}
 
-	const setIsEmpty = vi.fn()
+	const setEmpty = vi.fn()
 
 	const setCurrent = vi.fn()
 
@@ -47,14 +47,14 @@ function setup({
 			readOnly,
 			strokeColor: '#000',
 			strokeWidth: 2,
-			isEmpty,
-			setIsEmpty,
+			empty,
+			setEmpty,
 			lastEmittedRef,
 			setCurrent,
 		})
 	})
 
-	return { result, context, canvas, setIsEmpty, setCurrent, lastEmittedRef }
+	return { result, context, canvas, setEmpty, setCurrent, lastEmittedRef }
 }
 
 function pointerEvent(overrides: Partial<ReactPointerEvent> = {}): ReactPointerEvent {
@@ -153,7 +153,7 @@ describe('useSignaturePadDrawing', () => {
 	})
 
 	it('extends a stroke on pointermove after pointerdown', () => {
-		const { result, context, setIsEmpty } = setup({ isEmpty: true })
+		const { result, context, setEmpty } = setup({ empty: true })
 
 		act(() => {
 			result.current.handlePointerDown(pointerEvent({ clientX: 0, clientY: 0 }))
@@ -167,11 +167,11 @@ describe('useSignaturePadDrawing', () => {
 
 		expect(context.stroke).toHaveBeenCalled()
 
-		expect(setIsEmpty).toHaveBeenCalledWith(false)
+		expect(setEmpty).toHaveBeenCalledWith(false)
 	})
 
-	it('does not flip isEmpty when pointermove fires on an already-non-empty pad', () => {
-		const { result, setIsEmpty } = setup({ isEmpty: false })
+	it('does not flip empty when pointermove fires on an already-non-empty pad', () => {
+		const { result, setEmpty } = setup({ empty: false })
 
 		act(() => {
 			result.current.handlePointerDown(pointerEvent({ clientX: 0, clientY: 0 }))
@@ -181,7 +181,7 @@ describe('useSignaturePadDrawing', () => {
 			result.current.handlePointerMove(pointerEvent({ clientX: 10, clientY: 10 }))
 		})
 
-		expect(setIsEmpty).not.toHaveBeenCalled()
+		expect(setEmpty).not.toHaveBeenCalled()
 	})
 
 	it('commits the canvas snapshot via setCurrent on commit()', () => {

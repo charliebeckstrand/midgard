@@ -17,7 +17,7 @@ describe('useSortableItem', () => {
 			setNodeRef: expect.any(Function),
 			setActivatorNodeRef: expect.any(Function),
 			style: expect.any(Object),
-			isDragging: false,
+			dragging: false,
 		})
 	})
 

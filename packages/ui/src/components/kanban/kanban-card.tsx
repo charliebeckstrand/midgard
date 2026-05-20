@@ -26,7 +26,7 @@ export function KanbanCard({
 	// Surface referenced for narrowing — column scope is maintained for future use.
 	useKanbanColumnContext()
 
-	const { setNodeRef, attributes, listeners, style, isDragging } = useSortableItem({
+	const { setNodeRef, attributes, listeners, style, dragging } = useSortableItem({
 		id: cardId,
 		disabled: !interactive,
 	})
@@ -49,13 +49,13 @@ export function KanbanCard({
 			aria-label={interactive ? ariaLabel : undefined}
 			data-slot="kanban-card"
 			data-card-id={cardId}
-			data-active={isDragging || undefined}
+			data-active={dragging || undefined}
 			data-lifted={lifted || undefined}
 			data-disabled={!interactive || undefined}
 			className={cn(
 				k.card,
 				interactive && k.cardDraggable,
-				isDragging && k.cardDragging,
+				dragging && k.cardDragging,
 				lifted && k.cardLifted,
 				className,
 			)}

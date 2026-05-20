@@ -140,7 +140,7 @@ describe('useSignaturePadState', () => {
 	it('starts empty when no value is provided', () => {
 		const { captured } = renderHarness()
 
-		expect(captured.state?.isEmpty).toBe(true)
+		expect(captured.state?.empty).toBe(true)
 	})
 
 	it('starts non-empty when a defaultValue is provided', () => {
@@ -150,7 +150,7 @@ describe('useSignaturePadState', () => {
 			strokeWidth: 2,
 		})
 
-		expect(captured.state?.isEmpty).toBe(false)
+		expect(captured.state?.empty).toBe(false)
 
 		// The value-sync effect should have cleared the canvas in preparation
 		// for the snapshot paint.
@@ -185,7 +185,7 @@ describe('useSignaturePadState', () => {
 		// clearRect runs once per value-sync to wipe the canvas before painting.
 		expect(context?.clearRect.mock.calls.length).toBeGreaterThan(clearCallsBefore)
 
-		expect(captured.state?.isEmpty).toBe(false)
+		expect(captured.state?.empty).toBe(false)
 	})
 
 	it('clears the canvas and flips isEmpty when a controlled value becomes null', () => {
@@ -209,7 +209,7 @@ describe('useSignaturePadState', () => {
 
 		expect(context?.clearRect).toHaveBeenCalled()
 
-		expect(captured.state?.isEmpty).toBe(true)
+		expect(captured.state?.empty).toBe(true)
 	})
 
 	it('clear() wipes the canvas, flips isEmpty, and notifies via onValueChange', () => {
@@ -230,7 +230,7 @@ describe('useSignaturePadState', () => {
 
 		expect(context?.clearRect).toHaveBeenCalled()
 
-		expect(captured.state?.isEmpty).toBe(true)
+		expect(captured.state?.empty).toBe(true)
 
 		expect(onValueChange).toHaveBeenLastCalledWith(null)
 	})
@@ -244,7 +244,7 @@ describe('useSignaturePadState', () => {
 			})
 		}).not.toThrow()
 
-		expect(captured.state?.isEmpty).toBe(true)
+		expect(captured.state?.empty).toBe(true)
 	})
 
 	it('exposes clear, toDataURL, and isEmpty through the imperative handle', () => {

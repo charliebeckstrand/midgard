@@ -14,7 +14,7 @@ export type ListItemProps = {
 }
 
 export function ListItem({ prefix, children, className }: ListItemProps) {
-	const { id, setNodeRef, attributes, style, isDragging } = useListItemContext()
+	const { id, setNodeRef, attributes, style, dragging } = useListItemContext()
 
 	const { variant, sortable, interactive, liftedId, onItemKeyDown, onItemBlur } = useListContext()
 
@@ -34,9 +34,9 @@ export function ListItem({ prefix, children, className }: ListItemProps) {
 			{...(interactive ? dragAttrs : {})}
 			data-slot="list-item"
 			data-item-id={id}
-			data-active={isDragging || undefined}
+			data-active={dragging || undefined}
 			data-lifted={lifted || undefined}
-			className={cn(k.item(variant), isDragging && k.itemActive, lifted && k.itemLifted, className)}
+			className={cn(k.item(variant), dragging && k.itemActive, lifted && k.itemLifted, className)}
 		>
 			{prefix ?? (sortable ? <ListHandle /> : null)}
 			<div className={k.content}>{children}</div>

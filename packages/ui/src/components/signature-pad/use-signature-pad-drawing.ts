@@ -13,8 +13,8 @@ type UseSignatureDrawingOptions = {
 	readOnly?: boolean
 	strokeColor: string
 	strokeWidth: number
-	isEmpty: boolean
-	setIsEmpty: Dispatch<SetStateAction<boolean>>
+	empty: boolean
+	setEmpty: Dispatch<SetStateAction<boolean>>
 	lastEmittedRef: RefObject<string | null>
 	setCurrent: (value: string | null) => void
 }
@@ -29,8 +29,8 @@ export function useSignaturePadDrawing({
 	readOnly,
 	strokeColor,
 	strokeWidth,
-	isEmpty,
-	setIsEmpty,
+	empty,
+	setEmpty,
 	lastEmittedRef,
 	setCurrent,
 }: UseSignatureDrawingOptions) {
@@ -92,7 +92,7 @@ export function useSignaturePadDrawing({
 		context.stroke()
 
 		lastPointRef.current = point
-		if (isEmpty) setIsEmpty(false)
+		if (empty) setEmpty(false)
 	}
 
 	const commit = () => {

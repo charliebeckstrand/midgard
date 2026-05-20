@@ -40,14 +40,14 @@ export function DataTableHead<T>({ columns }: DataTableHeadProps<T>) {
 						)
 					}
 
-					const isSorted = sort?.column === col.id
+					const sorted = sort?.column === col.id
 
 					return (
 						<DataTableColumnHeader
 							key={col.id}
 							col={col}
-							isSorted={isSorted}
-							direction={isSorted ? sort?.direction : undefined}
+							sorted={sorted}
+							direction={sorted ? sort?.direction : undefined}
 							stickyHeader={stickyHeader}
 							toggleSort={toggleSort}
 						/>
@@ -60,7 +60,7 @@ export function DataTableHead<T>({ columns }: DataTableHeadProps<T>) {
 
 type DataTableColumnHeaderProps = {
 	col: Pick<DataTableColumn<unknown>, 'id' | 'title' | 'sortable' | 'width' | 'headerClassName'>
-	isSorted: boolean
+	sorted: boolean
 	direction: 'asc' | 'desc' | undefined
 	stickyHeader: boolean
 	toggleSort: (column: string | number) => void
@@ -68,7 +68,7 @@ type DataTableColumnHeaderProps = {
 
 const DataTableColumnHeader = memo(function DataTableColumnHeader({
 	col,
-	isSorted,
+	sorted,
 	direction,
 	stickyHeader,
 	toggleSort,
@@ -87,9 +87,9 @@ const DataTableColumnHeader = memo(function DataTableColumnHeader({
 						aria-label={`Sort by ${typeof col.title === 'string' ? col.title : col.id}`}
 					>
 						{col.title}
-						{isSorted && direction === 'asc' ? (
+						{sorted && direction === 'asc' ? (
 							<Icon icon={<ArrowUp />} className={cn(k.sortIconActive)} />
-						) : isSorted && direction === 'desc' ? (
+						) : sorted && direction === 'desc' ? (
 							<Icon icon={<ArrowDown />} className={cn(k.sortIconActive)} />
 						) : null}
 					</Button>

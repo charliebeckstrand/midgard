@@ -19,7 +19,7 @@ export function ListItemStatic({ id, children }: ListItemStaticProps) {
 				attributes: {} as never,
 				listeners: undefined,
 				style: {},
-				isDragging: false,
+				dragging: false,
 			}}
 		>
 			{children}
