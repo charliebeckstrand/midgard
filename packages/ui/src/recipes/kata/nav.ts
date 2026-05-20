@@ -14,7 +14,7 @@ export const k = {
 		...hannou.nav,
 		...hannou.cursor,
 		'gap-sm',
-		ji.size.md,
+		ji.md,
 		'text-left font-medium',
 		'rounded-lg',
 	],

@@ -22,7 +22,7 @@ const itemBase = [
 	'flex items-center',
 	'gap-sm',
 	'gap-y-0',
-	ji.size.md,
+	ji.md,
 	iro.text.default,
 	sen.focus.inset,
 ]
@@ -52,5 +52,5 @@ export const k = {
 	],
 	content: 'flex flex-col flex-1 min-w-0',
 	label: 'min-w-0 truncate',
-	description: ['min-w-0 truncate', ji.size.sm, iro.text.muted],
+	description: ['min-w-0 truncate', ji.sm, iro.text.muted],
 }

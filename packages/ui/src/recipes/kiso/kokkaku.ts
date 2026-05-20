@@ -128,3 +128,5 @@ export const kokkaku = {
 	text,
 	textarea,
 } as const
+
+export type Kokkaku = typeof kokkaku

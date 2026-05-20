@@ -3,7 +3,7 @@ import { defineRecipe, iro, ji, sen, type VariantPropsOf } from '..'
 const root = defineRecipe({ base: '' })
 
 const list = defineRecipe({
-	base: ['flex flex-wrap items-center', 'gap-sm', 'break-words', ji.size.md],
+	base: ['flex flex-wrap items-center', 'gap-sm', 'break-words', ji.md],
 })
 
 const item = defineRecipe({

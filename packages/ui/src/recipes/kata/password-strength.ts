@@ -13,7 +13,7 @@ const segment = defineRecipe({
 })
 
 const label = defineRecipe({
-	base: [ji.size.sm, 'font-medium'],
+	base: [ji.sm, 'font-medium'],
 	level: {
 		weak: 'text-red-600 dark:text-red-500',
 		fair: 'text-amber-600 dark:text-amber-500',
@@ -30,7 +30,7 @@ export const k = {
 	segment,
 	label,
 	rules: ['flex flex-col', 'gap-0.5'],
-	rule: ['inline-flex items-center', 'gap-xs', ji.size.sm],
+	rule: ['inline-flex items-center', 'gap-xs', ji.sm],
 	ruleIcon: 'size-4 shrink-0',
 	ruleIconPass: 'text-green-600 dark:text-green-500',
 	ruleIconFail: iro.text.muted,

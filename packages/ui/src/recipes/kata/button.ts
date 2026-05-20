@@ -39,28 +39,28 @@ export const k = defineRecipe({
 	},
 	size: {
 		xs: [
-			ji.size.xs,
+			ji.xs,
 			shaku.icon.xs,
 			'gap-0.5',
 			'p-[calc(--spacing(1.5)-1px)]',
 			'data-[has-label]:py-[calc(--spacing(1)-1px)]',
 		],
 		sm: [
-			ji.size.sm,
+			ji.sm,
 			shaku.icon.sm,
 			'gap-0.75',
 			'p-[calc(--spacing(2)-1px)]',
 			'data-[has-label]:py-[calc(--spacing(1.5)-1px)]',
 		],
 		md: [
-			ji.size.md,
+			ji.md,
 			shaku.icon.md,
 			'gap-xs',
 			'p-[calc(--spacing(2.5)-1px)]',
 			'data-[has-label]:py-[calc(--spacing(2)-1px)]',
 		],
 		lg: [
-			ji.size.lg,
+			ji.lg,
 			shaku.icon.lg,
 			'gap-sm',
 			'p-[calc(--spacing(3)-1px)]',

@@ -15,7 +15,7 @@ export const k = {
 		'border-b',
 		omote.tint,
 	],
-	batchCount: ['font-medium whitespace-nowrap', ji.size.sm, iro.text.muted],
+	batchCount: ['font-medium whitespace-nowrap', ji.sm, iro.text.muted],
 	selectCell: 'w-px text-center align-middle [line-height:0]',
 	actionsCell: 'w-px whitespace-nowrap',
 	sortButton: [

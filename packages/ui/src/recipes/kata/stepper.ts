@@ -56,7 +56,7 @@ export const k = {
 			'group-focus-visible:outline-2 group-focus-visible:outline-blue-600',
 		],
 	},
-	description: [ji.size.sm, ...iro.text.muted],
+	description: [ji.sm, ...iro.text.muted],
 	activeIndicator: ['z-10', 'bg-blue-600 dark:bg-blue-600'],
 }
 

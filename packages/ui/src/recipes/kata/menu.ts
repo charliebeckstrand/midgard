@@ -3,9 +3,9 @@ import { defineRecipe, hannou, iro, ji, narabi, sen, type VariantPropsOf } from 
 const item = defineRecipe({
 	base: ['group/option flex w-full items-center', ...hannou.item, ...narabi.item],
 	size: {
-		sm: ['gap-2 px-2.5 py-1', ji.size.sm],
-		md: ['gap-3 px-3 py-1.5', ji.size.md],
-		lg: ['gap-3 px-3.5 py-2.5', ji.size.lg],
+		sm: ['gap-2 px-2.5 py-1', ji.sm],
+		md: ['gap-3 px-3 py-1.5', ji.md],
+		lg: ['gap-3 px-3.5 py-2.5', ji.lg],
 	},
 	defaults: { size: 'md' },
 })

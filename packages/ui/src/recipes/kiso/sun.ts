@@ -14,7 +14,7 @@ export const steps = ['sm', 'md', 'lg'] as const
 export type Step = (typeof steps)[number]
 
 export type SunStep = {
-	/** Key into `ji.size` — bundles font-size + line-height. */
+	/** Key into `ji` — bundles font-size + line-height. */
 	text: 'sm' | 'md' | 'lg'
 	/** Tailwind spacing token (numeric) for padding. */
 	space: '2' | '3' | '4'

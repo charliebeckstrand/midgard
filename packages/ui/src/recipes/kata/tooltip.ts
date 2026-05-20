@@ -3,9 +3,9 @@ import { defineRecipe, iro, ji, omote, sen } from '..'
 const content = defineRecipe({
 	base: [iro.text.default, 'font-medium', 'whitespace-nowrap', 'rounded-lg', 'pointer-events-none'],
 	size: {
-		sm: ['px-xs py-xs', ji.size.sm],
-		md: ['px-sm py-sm', ji.size.md],
-		lg: ['px-md py-md', ji.size.lg],
+		sm: ['px-xs py-xs', ji.sm],
+		md: ['px-sm py-sm', ji.md],
+		lg: ['px-md py-md', ji.lg],
 	},
 	defaults: { size: 'md' },
 })

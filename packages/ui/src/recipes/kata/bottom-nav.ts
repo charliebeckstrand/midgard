@@ -13,7 +13,7 @@ export const k = {
 		'flex flex-1 flex-col items-center justify-center',
 		'py-4',
 		'gap-xs',
-		ji.size.sm,
+		ji.sm,
 		iro.text.muted,
 		iro.text.hover,
 		'font-medium',

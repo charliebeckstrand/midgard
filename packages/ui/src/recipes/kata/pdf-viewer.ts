@@ -12,7 +12,7 @@ export const k = {
 		'shrink-0',
 	],
 	toolbarSection: ['flex items-center shrink-0', 'gap-xs'],
-	pageStatus: [ji.size.sm, iro.text.muted, 'tabular-nums select-none whitespace-nowrap'],
+	pageStatus: [ji.sm, iro.text.muted, 'tabular-nums select-none whitespace-nowrap'],
 	body: ['flex flex-1 min-h-0'],
 	sidebar: [
 		'flex flex-col shrink-0 w-56 min-h-0',
@@ -26,7 +26,7 @@ export const k = {
 		'flex items-center',
 		'gap-xs',
 		'px-3 py-2',
-		ji.size.md,
+		ji.md,
 		iro.text.muted,
 		'font-semibold',
 		'shrink-0',
@@ -55,10 +55,10 @@ export const k = {
 		'group-data-current/thumb:hover:opacity-100',
 	],
 	thumbnailImage: ['block w-full h-full object-contain'],
-	thumbnailFallback: ['flex items-center justify-center h-full w-full', ji.size.sm, iro.text.muted],
+	thumbnailFallback: ['flex items-center justify-center h-full w-full', ji.sm, iro.text.muted],
 	thumbnailPlaceholder: ['block w-full aspect-[3/4]', omote.skeleton],
 	thumbnailLabel: [
-		ji.size.sm,
+		ji.sm,
 		iro.text.muted,
 		'group-data-current/thumb:text-zinc-950 dark:group-data-current/thumb:text-white',
 		'tabular-nums select-none',
@@ -74,5 +74,5 @@ export const k = {
 	pageFrame: ['relative shrink-0'],
 	page: ['absolute top-1/2 left-1/2 origin-center', 'shadow-lg', 'bg-white'],
 	pagePlaceholder: ['w-full h-full', omote.skeleton],
-	pageEmpty: ['flex items-center justify-center w-full h-full', 'py-2', ji.size.sm, iro.text.muted],
+	pageEmpty: ['flex items-center justify-center w-full h-full', 'py-2', ji.sm, iro.text.muted],
 }

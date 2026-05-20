@@ -23,9 +23,9 @@ const item = defineRecipe({
 		'outline-none',
 	],
 	size: {
-		sm: ['px-2.5 py-1', ...ji.size.xs],
-		md: ['px-3 py-1.5', ...ji.size.sm],
-		lg: ['px-4 py-2', ...ji.size.md],
+		sm: ['px-2.5 py-1', ...ji.xs],
+		md: ['px-3 py-1.5', ...ji.sm],
+		lg: ['px-4 py-2', ...ji.md],
 	},
 	defaults: { size: 'md' },
 })

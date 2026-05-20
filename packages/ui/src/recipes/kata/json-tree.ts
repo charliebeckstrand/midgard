@@ -15,7 +15,7 @@ const rowBase = [
 	'flex w-full items-center',
 	'gap-xs',
 	'py-0.5',
-	ji.size.sm,
+	ji.sm,
 	'rounded-lg',
 	'has-focus-visible:bg-blue-100/60 dark:has-focus-visible:bg-blue-600/30',
 ]

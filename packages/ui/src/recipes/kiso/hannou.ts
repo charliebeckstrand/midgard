@@ -48,7 +48,7 @@ const motoi = {
 	item: [
 		'sm:py-1.5 py-2.5',
 		'outline-hidden',
-		ji.size.md,
+		ji.md,
 		sen.forced.text,
 		sen.forced.focus,
 		disabled,

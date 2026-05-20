@@ -3,16 +3,16 @@ import { defineRecipe, iro, ji, type VariantPropsOf } from '..'
 export const k = defineRecipe({
 	base: ['flex flex-col justify-center', 'h-full', 'gap-xs'],
 	slots: {
-		description: [ji.size.sm, ...iro.text.muted],
+		description: [ji.sm, ...iro.text.muted],
 	},
 })
 
 export const label = defineRecipe({
 	base: [...iro.text.muted, 'font-medium'],
 	size: {
-		sm: ji.size.xs,
-		md: ji.size.sm,
-		lg: ji.size.md,
+		sm: ji.xs,
+		md: ji.sm,
+		lg: ji.md,
 	},
 	defaults: { size: 'md' },
 })
@@ -20,15 +20,15 @@ export const label = defineRecipe({
 export const statValue = defineRecipe({
 	base: ['font-semibold tracking-tight tabular-nums', ...iro.text.default],
 	size: {
-		sm: ji.size['2xl'],
-		md: ji.size['3xl'],
-		lg: ji.size['4xl'],
+		sm: ji['2xl'],
+		md: ji['3xl'],
+		lg: ji['4xl'],
 	},
 	defaults: { size: 'md' },
 })
 
 export const statDelta = defineRecipe({
-	base: ['inline-flex items-center', ji.size.sm, 'gap-xs', 'font-medium tabular-nums'],
+	base: ['inline-flex items-center', ji.sm, 'gap-xs', 'font-medium tabular-nums'],
 	trend: {
 		up: 'text-green-600 dark:text-green-500',
 		down: 'text-red-600 dark:text-red-500',

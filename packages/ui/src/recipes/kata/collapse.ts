@@ -5,7 +5,7 @@ export const k = {
 	trigger: [
 		'inline-flex items-center',
 		'gap-sm',
-		ji.size.md,
+		ji.md,
 		iro.text.muted,
 		iro.text.hover,
 		'group-data-[open]/collapse:text-zinc-950',

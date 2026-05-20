@@ -4,7 +4,7 @@ export const k = {
 	dropzone: [
 		'flex flex-col items-center justify-center',
 		'gap-xs',
-		ji.size.md,
+		ji.md,
 		iro.text.muted,
 		'rounded-lg',
 		sen.focus.ring,

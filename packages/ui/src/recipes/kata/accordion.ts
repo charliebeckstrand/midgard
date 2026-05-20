@@ -18,7 +18,7 @@ export const k = defineRecipe({
 			'w-full flex items-center justify-between',
 			'gap-sm',
 			'p-4',
-			ji.size.md,
+			ji.md,
 			iro.text.muted,
 			iro.text.hover,
 			'text-left font-medium',
@@ -35,7 +35,7 @@ export const k = defineRecipe({
 			'group-data-[open]/accordion-item:rotate-180',
 		],
 		panel: 'overflow-hidden',
-		body: ['px-4 pb-4 pt-0', ji.size.md, iro.text.muted],
+		body: ['px-4 pb-4 pt-0', ji.md, iro.text.muted],
 	},
 	defaults: { variant: 'separated' },
 })

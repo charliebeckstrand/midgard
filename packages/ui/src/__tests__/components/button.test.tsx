@@ -198,7 +198,7 @@ describe('Button', () => {
 	})
 
 	describe('size resolution', () => {
-		// Each size variant brings a distinct text class via ji.size; matching
+		// Each size variant brings a distinct text class via ji; matching
 		// it confirms which size the kata actually rendered.
 		const textClassFor = {
 			xs: 'text-xs',

@@ -1,7 +1,7 @@
 import { defineRecipe, iro, ji, sen, type VariantPropsOf } from '..'
 
 const root = defineRecipe({
-	base: ji.size.sm,
+	base: ji.sm,
 	orientation: {
 		horizontal: 'grid grid-cols-1 sm:grid-cols-[min(50%,--spacing(56))_auto]',
 		vertical: 'flex flex-col',

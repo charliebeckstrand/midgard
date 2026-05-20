@@ -70,9 +70,9 @@ const density = {
 
 // Tracks the `size` axis of the Density token (text + icon dimension).
 const size = {
-	sm: ji.size.sm,
-	md: ji.size.md,
-	lg: ji.size.lg,
+	sm: ji.sm,
+	md: ji.md,
+	lg: ji.lg,
 } as const
 
 const icon = ['flex items-center', 'pr-2', 'pointer-events-none']

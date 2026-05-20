@@ -14,7 +14,7 @@ export const k = {
 	placeholder: [
 		'absolute inset-0',
 		'flex items-center justify-center',
-		ji.size.sm,
+		ji.sm,
 		iro.text.muted,
 		'pointer-events-none',
 	],

@@ -4,4 +4,4 @@ import { iro, ji } from '../../recipes'
 
 export type CardDescriptionProps = SlotProps<'p'>
 
-export const CardDescription = createSlot('p', 'card-description', ji.size.sm, iro.text.muted)
+export const CardDescription = createSlot('p', 'card-description', ji.sm, iro.text.muted)
