@@ -6,10 +6,6 @@
 	--step-xl: calc(var(--spacing) * 6);
 }
 
-/* The `ma` spacing scale is exposed as static `@utility` rules rather than
-   `--spacing-*` tokens because the t-shirt names (xs/sm/md/lg/xl) collide with
-   `--container-*` and would otherwise shadow `max-w-sm`, `w-md`, etc. */
-
 @utility p-xs { padding: var(--step-xs); }
 @utility p-sm { padding: var(--step-sm); }
 @utility p-md { padding: var(--step-md); }
