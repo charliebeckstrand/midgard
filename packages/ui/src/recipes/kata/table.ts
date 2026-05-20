@@ -1,6 +1,5 @@
 import { tv } from 'tailwind-variants'
-import { iro, sen } from '../../core/recipe'
-import { mode } from '../../core/recipe/mode'
+import { iro, mode, sen } from '../../core/recipe'
 
 const cellSize = {
 	sm: 'px-xs py-xs',

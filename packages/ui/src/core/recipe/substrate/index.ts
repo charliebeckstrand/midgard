@@ -1,6 +1,7 @@
 export { type Color, colors } from './colors'
 export { iro } from './iro'
 export { ji } from './ji'
+export { defineColors, mode } from './mode'
 export { narabi } from './narabi'
 export { omote } from './omote'
 export { sawari } from './sawari'

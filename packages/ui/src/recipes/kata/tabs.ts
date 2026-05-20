@@ -1,6 +1,5 @@
 import { tv } from 'tailwind-variants'
-import { iro, ji, sawari, sen } from '../../core/recipe'
-import { mode } from '../../core/recipe/mode'
+import { iro, ji, mode, sawari, sen } from '../../core/recipe'
 
 export const tabIndicator = mode('bg-zinc-950', 'dark:bg-white')
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { defineColors, mode } from '../../core/recipe/mode'
+import { defineColors, mode } from '../../core/recipe'
 
 describe('mode', () => {
 	it('returns just the light value when no dark is provided', () => {

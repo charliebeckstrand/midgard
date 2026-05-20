@@ -9,7 +9,7 @@
  * Tier: 1 · Concern: color
  */
 
-import { mode } from '../../../core/recipe/mode'
+import { mode } from '../../../core/recipe/substrate/mode'
 import { bare, outline, plain, soft, solid } from './palette'
 
 const text = {
