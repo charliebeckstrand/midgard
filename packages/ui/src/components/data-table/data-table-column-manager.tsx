@@ -131,7 +131,7 @@ export function DataTableColumnManager({
 				<List items={pinnedColumns} getKey={getKey} variant="plain" sortable={false}>
 					{(col) => (
 						<ListItem
-							leading={
+							prefix={
 								<span aria-hidden="true" className={cn(k.pin)}>
 									<Icon icon={<Pin />} />
 								</span>

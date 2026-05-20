@@ -22,7 +22,7 @@ export type FiltersProps<T extends FilterValue = FilterValue> = {
 	onValueChange?: (value: T) => void
 	onClear?: () => void
 	clear?: ReactNode
-	affix?: ReactNode
+	prefix?: ReactNode
 	suffix?: ReactNode
 	equal?: boolean
 	children: ReactNode
@@ -35,7 +35,7 @@ export function Filters<T extends FilterValue = FilterValue>({
 	onValueChange,
 	onClear,
 	clear,
-	affix,
+	prefix,
 	suffix,
 	equal,
 	children,
@@ -94,7 +94,7 @@ export function Filters<T extends FilterValue = FilterValue>({
 	return (
 		<FiltersProvider value={context}>
 			<div data-slot="filters" className={cn('flex flex-col gap-4', className)}>
-				{affix && <div data-slot="filters-affix">{affix}</div>}
+				{prefix && <div data-slot="filters-prefix">{prefix}</div>}
 				<Flex
 					direction={{ initial: 'row', sm: 'col' }}
 					gap="sm"

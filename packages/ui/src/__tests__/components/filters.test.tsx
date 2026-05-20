@@ -231,18 +231,18 @@ describe('Filter (uncontrolled)', () => {
 })
 
 describe('Filters extras', () => {
-	it('renders the affix slot when provided', () => {
+	it('renders the prefix slot when provided', () => {
 		const { container } = renderUI(
-			<Filters affix={<span>affix node</span>}>
+			<Filters prefix={<span>prefix node</span>}>
 				<span>child</span>
 			</Filters>,
 		)
 
-		const affix = bySlot(container, 'filters-affix')
+		const prefix = bySlot(container, 'filters-prefix')
 
-		expect(affix).toBeInTheDocument()
+		expect(prefix).toBeInTheDocument()
 
-		expect(affix?.textContent).toBe('affix node')
+		expect(prefix?.textContent).toBe('prefix node')
 	})
 
 	it('renders the suffix slot when provided', () => {
@@ -259,14 +259,14 @@ describe('Filters extras', () => {
 		expect(suffix?.textContent).toBe('suffix node')
 	})
 
-	it('omits the affix and suffix slots when not provided', () => {
+	it('omits the prefix and suffix slots when not provided', () => {
 		const { container } = renderUI(
 			<Filters>
 				<span>child</span>
 			</Filters>,
 		)
 
-		expect(bySlot(container, 'filters-affix')).toBeNull()
+		expect(bySlot(container, 'filters-prefix')).toBeNull()
 
 		expect(bySlot(container, 'filters-suffix')).toBeNull()
 	})
