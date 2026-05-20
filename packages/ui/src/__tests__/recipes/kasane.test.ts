@@ -47,6 +47,17 @@ describe('kasane', () => {
 		expect(focus).toContain('not-has-[[data-valid]]')
 	})
 
+	it('focus layer mirrors every focus-within rule against data-open', () => {
+		// Listbox / combobox keep their focus chrome lit while the popover is
+		// open even after the surface loses :focus-within — `data-open` carries
+		// the same ring as `focus-within` so the two paths cannot drift.
+		const focus = kasane.focus.join(' ')
+
+		expect(focus).toContain('data-open:after:ring-2')
+		expect(focus).toContain('data-open:after:ring-blue-600')
+		expect(focus).toContain('data-open:z-10')
+	})
+
 	it('validation layer covers all three states across both rings', () => {
 		const validation = kasane.validation.join(' ')
 
@@ -57,6 +68,16 @@ describe('kasane', () => {
 		expect(validation).toContain('has-[[data-warning]]:focus-within:after:ring-amber-500')
 		expect(validation).toContain('has-[[data-valid]]:ring-green-600')
 		expect(validation).toContain('has-[[data-valid]]:focus-within:after:ring-green-600')
+	})
+
+	it('validation layer mirrors the focus-within recolours against data-open', () => {
+		// Parallels the focus-layer pairing: the validation tint stays painted
+		// while the surface is `data-open`, not just while it is `focus-within`.
+		const validation = kasane.validation.join(' ')
+
+		expect(validation).toContain('has-[[data-invalid]]:data-open:after:ring-red-600')
+		expect(validation).toContain('has-[[data-warning]]:data-open:after:ring-amber-500')
+		expect(validation).toContain('has-[[data-valid]]:data-open:after:ring-green-600')
 	})
 
 	it('hover layer is suppressed when the wrapped element is :disabled', () => {
