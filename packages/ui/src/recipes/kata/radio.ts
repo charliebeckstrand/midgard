@@ -1,5 +1,11 @@
-import { tv, type VariantProps } from 'tailwind-variants'
-import { defineColors, iro, sawari, sen } from '../../core/recipe'
+import {
+	defineColors,
+	defineRecipe,
+	iro,
+	sawari,
+	sen,
+	type VariantPropsOf,
+} from '../../core/recipe'
 import { control } from '../waku/control'
 
 const color = defineColors({
@@ -16,7 +22,7 @@ const color = defineColors({
 	blue: '[--radio-checked-indicator:var(--color-white)] [--radio-checked-bg:var(--color-blue-600)] [--radio-checked-border:var(--color-blue-800)]/90',
 })
 
-export const radio = tv({
+export const k = defineRecipe({
 	base: [
 		'relative',
 		'inline-flex items-center justify-center',
@@ -29,28 +35,25 @@ export const radio = tv({
 		'has-checked:bg-(--radio-checked-bg) has-checked:border-(--radio-checked-border)',
 		'not-has-[:disabled]:has-checked:hover:opacity-90',
 	],
-	variants: {
-		color,
-		size: {
-			sm: 'size-4',
-			md: 'size-4.5',
-			lg: 'size-5',
-		},
+	color,
+	size: {
+		sm: 'size-4',
+		md: 'size-4.5',
+		lg: 'size-5',
 	},
-	defaultVariants: { color: 'zinc', size: 'md' },
+	defaults: { color: 'zinc', size: 'md' },
 })
 
+export const input = defineRecipe({ base: control.check.hidden })
+
 /** Indicator dot size class per radio size step. Read by the component. */
-export const radioIndicatorSize = {
+export const indicatorSize = {
 	sm: 'size-1',
 	md: 'size-1.5',
 	lg: 'size-2',
 } as const
 
-export const radioInput = tv({ base: control.check.hidden })
+/** Disabled-state text class shared by the radio field wrapper. */
+export const disabled = iro.text.disabled
 
-export const k = { disabled: iro.text.disabled }
-
-export type RadioVariants = VariantProps<typeof radio>
-
-export { radio as radioVariants, radioInput as radioInputVariants }
+export type RadioVariants = VariantPropsOf<typeof k>

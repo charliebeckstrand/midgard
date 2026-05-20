@@ -1,8 +1,4 @@
-export {
-	type RadioVariants,
-	radioInputVariants,
-	radioVariants,
-} from '../../recipes/kata/radio'
+export type { RadioVariants } from '../../recipes/kata/radio'
 export {
 	Radio,
 	type RadioProps,

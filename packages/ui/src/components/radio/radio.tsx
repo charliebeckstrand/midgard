@@ -6,10 +6,10 @@ import { useDensity } from '../../primitives/density'
 import { useSkeleton } from '../../providers/skeleton'
 import { kokkaku } from '../../recipes'
 import {
+	indicatorSize,
 	type RadioVariants,
-	radioIndicatorSize,
-	radioInputVariants,
-	radioVariants,
+	k as radio,
+	input as radioInput,
 } from '../../recipes/kata/radio'
 import { useControlProps } from '../control/use-control-props'
 import { Placeholder } from '../placeholder'
@@ -38,7 +38,7 @@ export function Radio({ className, color, size, id, disabled, required, ...props
 		<label
 			data-slot="control"
 			{...(resolvedDisabled ? { 'data-disabled': true } : {})}
-			className={cn(radioVariants({ color, size: resolvedSize }), className)}
+			className={cn(radio({ color, size: resolvedSize }), className)}
 		>
 			<input
 				type="radio"
@@ -47,7 +47,7 @@ export function Radio({ className, color, size, id, disabled, required, ...props
 				disabled={resolvedDisabled}
 				required={resolvedRequired}
 				{...invalidAttrs(resolvedInvalid)}
-				className={radioInputVariants()}
+				className={radioInput()}
 				{...props}
 			/>
 			<span
@@ -55,7 +55,7 @@ export function Radio({ className, color, size, id, disabled, required, ...props
 				aria-hidden="true"
 				className={cn(
 					'absolute rounded-full bg-(--radio-checked-indicator) opacity-0 pointer-events-none',
-					radioIndicatorSize[resolvedSize],
+					indicatorSize[resolvedSize],
 				)}
 			/>
 		</label>

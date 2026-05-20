@@ -7,9 +7,9 @@ import { useDensity } from '../../primitives/density'
 import { useSkeleton } from '../../providers/skeleton'
 import {
 	type CheckboxVariants,
-	checkboxCheckSize,
-	checkboxInputVariants,
-	checkboxVariants,
+	k as checkbox,
+	input as checkboxInput,
+	checkSize,
 } from '../../recipes/kata/checkbox'
 import { useControlProps } from '../control/use-control-props'
 import { useFormToggle } from '../form/context'
@@ -69,14 +69,14 @@ export function Checkbox({
 
 	const checkClass = cn(
 		'pointer-events-none absolute stroke-(--checkbox-check) opacity-0',
-		checkboxCheckSize[resolvedSize],
+		checkSize[resolvedSize],
 	)
 
 	return (
 		<label
 			data-slot="control"
 			{...(resolvedDisabled ? { 'data-disabled': true } : {})}
-			className={cn(checkboxVariants({ color, size: resolvedSize }), className)}
+			className={cn(checkbox({ color, size: resolvedSize }), className)}
 		>
 			<input
 				type="checkbox"
@@ -89,7 +89,7 @@ export function Checkbox({
 				checked={binding?.checked ?? checked}
 				onChange={binding?.onChange ?? onChange}
 				{...invalidAttrs(resolvedInvalid)}
-				className={checkboxInputVariants()}
+				className={checkboxInput()}
 				{...props}
 			/>
 			{indeterminate

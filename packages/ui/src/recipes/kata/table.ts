@@ -1,5 +1,4 @@
-import { tv } from 'tailwind-variants'
-import { iro, mode, sen } from '../../core/recipe'
+import { defineRecipe, iro, sen, type VariantPropsOf } from '../../core/recipe'
 
 const cellSize = {
 	sm: 'px-xs py-xs',
@@ -12,25 +11,28 @@ const grid = {
 	false: '',
 }
 
-const tableCell = tv({
+const cell = defineRecipe({
 	base: [iro.text.default],
-	variants: { size: cellSize, grid },
-	defaultVariants: { size: 'md', grid: false },
+	size: cellSize,
+	grid,
+	defaults: { size: 'md', grid: false },
 })
 
-const tableHeader = tv({
+const header = defineRecipe({
 	base: ['font-bold', iro.text.muted],
-	variants: { size: cellSize, grid },
-	defaultVariants: { size: 'md', grid: false },
+	size: cellSize,
+	grid,
+	defaults: { size: 'md', grid: false },
 })
 
 export const k = {
 	base: 'w-full text-left text-base',
 	head: [iro.text.muted, sen.borderSubtleColor],
-	header: tableHeader,
+	header,
 	row: [],
-	cell: tableCell,
-	striped: mode('*:even:bg-zinc-950/2.5', 'dark:*:even:bg-white/2.5'),
+	cell,
+	striped: ['*:even:bg-zinc-950/2.5', 'dark:*:even:bg-white/2.5'],
 }
 
-export { tableCell as tableCellVariants, tableHeader as tableHeaderVariants }
+export type TableCellVariants = VariantPropsOf<typeof cell>
+export type TableHeaderVariants = VariantPropsOf<typeof header>

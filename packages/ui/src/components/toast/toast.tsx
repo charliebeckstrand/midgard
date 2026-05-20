@@ -6,7 +6,7 @@ import { cn } from '../../core'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { useToastViewport } from '../../providers/toast/context'
 import type { ToastPosition } from '../../providers/toast/types'
-import { k, toastViewportVariants } from '../../recipes/kata/toast'
+import { k } from '../../recipes/kata/toast'
 import { ToastAlert } from './toast-alert'
 
 export type ToastProps = {
@@ -32,7 +32,7 @@ export function Toast({ position = 'bottom-right' }: ToastProps) {
 				data-slot="toast-viewport"
 				aria-live="polite"
 				aria-atomic="false"
-				className={cn(toastViewportVariants({ position }))}
+				className={cn(k.viewport({ position }))}
 			>
 				<div className={cn(k.scroll, isBottom && 'flex-col-reverse')}>
 					<AnimatePresence onExitComplete={handleExitComplete}>

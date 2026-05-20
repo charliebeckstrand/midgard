@@ -4,7 +4,7 @@ import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { ActiveIndicator, useActiveIndicator } from '../../primitives/active-indicator'
 import { useCurrent } from '../../primitives/current'
-import { k, segmentItemVariants } from '../../recipes/kata/segment'
+import { k } from '../../recipes/kata/segment'
 import { useSegmentContext } from './context'
 
 export type SegmentItemProps = {
@@ -35,7 +35,7 @@ export function SegmentItem({ value, disabled, className, children }: SegmentIte
 				disabled={disabled}
 				tabIndex={current ? 0 : -1}
 				onClick={() => currentContext?.onValueChange?.(value)}
-				className={cn(segmentItemVariants({ size }), 'relative z-1', className)}
+				className={cn(k.item({ size }), 'relative z-1', className)}
 			>
 				{children}
 			</button>

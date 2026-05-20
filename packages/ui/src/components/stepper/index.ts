@@ -1,12 +1,8 @@
-export {
-	type StepperSeparatorVariants,
-	type StepperStepVariants,
-	type StepperTitleVariants,
-	type StepperVariants,
-	stepperSeparatorVariants,
-	stepperStepVariants,
-	stepperTitleVariants,
-	stepperVariants,
+export type {
+	StepperSeparatorVariants,
+	StepperStepVariants,
+	StepperTitleVariants,
+	StepperVariants,
 } from '../../recipes/kata/stepper'
 export type { StepperOrientation, StepState } from './context'
 export { Stepper, type StepperProps } from './stepper'

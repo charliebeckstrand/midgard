@@ -1,8 +1,4 @@
-export {
-	type SheetPanelVariants,
-	sheetBackdropVariants,
-	sheetPanelVariants,
-} from '../../recipes/kata/sheet'
+export type { SheetPanelVariants } from '../../recipes/kata/sheet'
 export { Sheet, type SheetProps } from './sheet'
 export { SheetClose, type SheetCloseProps } from './sheet-close'
 export { SheetTrigger, type SheetTriggerProps } from './sheet-trigger'

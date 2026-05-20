@@ -1,5 +1,11 @@
-import { tv, type VariantProps } from 'tailwind-variants'
-import { defineColors, iro, mode, sawari, sen } from '../../core/recipe'
+import {
+	defineColors,
+	defineRecipe,
+	iro,
+	sawari,
+	sen,
+	type VariantPropsOf,
+} from '../../core/recipe'
 import { control } from '../waku/control'
 
 const color = defineColors({
@@ -43,9 +49,9 @@ const color = defineColors({
 	},
 })
 
-const track = [...mode('bg-zinc-200', 'dark:bg-white/10'), ...sen.ringInset]
+const track = ['bg-zinc-200', 'dark:bg-white/10', ...sen.ringInset]
 
-export const switchRecipe = tv({
+export const k = defineRecipe({
 	base: [
 		'relative inline-flex shrink-0 items-center',
 		sen.focus.outline,
@@ -61,32 +67,30 @@ export const switchRecipe = tv({
 		'not-has-[:disabled]:has-checked:hover:opacity-90',
 		'has-[:disabled]:opacity-50 has-[:disabled]:cursor-not-allowed',
 	],
-	variants: {
-		color,
-		size: {
-			sm: [
-				'h-5 w-8',
-				'*:data-[slot=switch-thumb]:size-3',
-				'has-checked:*:data-[slot=switch-thumb]:left-4',
-			],
-			md: [
-				'h-6 w-10',
-				'*:data-[slot=switch-thumb]:size-4',
-				'has-checked:*:data-[slot=switch-thumb]:left-5',
-			],
-			lg: [
-				'h-7 w-12',
-				'*:data-[slot=switch-thumb]:size-5',
-				'has-checked:*:data-[slot=switch-thumb]:left-6',
-			],
-		},
+	color,
+	size: {
+		sm: [
+			'h-5 w-8',
+			'*:data-[slot=switch-thumb]:size-3',
+			'has-checked:*:data-[slot=switch-thumb]:left-4',
+		],
+		md: [
+			'h-6 w-10',
+			'*:data-[slot=switch-thumb]:size-4',
+			'has-checked:*:data-[slot=switch-thumb]:left-5',
+		],
+		lg: [
+			'h-7 w-12',
+			'*:data-[slot=switch-thumb]:size-5',
+			'has-checked:*:data-[slot=switch-thumb]:left-6',
+		],
 	},
-	defaultVariants: { color: 'zinc', size: 'md' },
+	defaults: { color: 'zinc', size: 'md' },
 })
 
-export const switchInput = tv({ base: control.check.hidden })
+export const input = defineRecipe({ base: control.check.hidden })
 
-export const switchThumb = tv({
+export const thumb = defineRecipe({
 	base: [
 		'absolute top-1 left-1 inline-block',
 		'bg-white ring-1 ring-zinc-950/5',
@@ -97,27 +101,18 @@ export const switchThumb = tv({
 	],
 })
 
-export const switchField = tv({
+export const field = defineRecipe({
 	base: '*:data-[slot=control]:row-span-2 *:data-[slot=control]:mt-0',
-	variants: {
-		size: {
-			sm: 'grid-cols-[2rem_1fr]',
-			md: 'grid-cols-[2.5rem_1fr]',
-			lg: 'grid-cols-[3rem_1fr]',
-		},
+	size: {
+		sm: 'grid-cols-[2rem_1fr]',
+		md: 'grid-cols-[2.5rem_1fr]',
+		lg: 'grid-cols-[3rem_1fr]',
 	},
-	defaultVariants: { size: 'md' },
+	defaults: { size: 'md' },
 })
 
-export const slots = { disabled: iro.text.disabled }
+/** Disabled-state text class shared by the switch field wrapper. */
+export const disabled = iro.text.disabled
 
-export type SwitchVariants = VariantProps<typeof switchRecipe>
-export type SwitchFieldVariants = VariantProps<typeof switchField>
-
-export {
-	switchField as switchFieldVariants,
-	switchInput as switchInputVariants,
-	switchRecipe as switchVariants,
-	switchThumb as switchThumbVariants,
-	slots as k,
-}
+export type SwitchVariants = VariantPropsOf<typeof k>
+export type SwitchFieldVariants = VariantPropsOf<typeof field>

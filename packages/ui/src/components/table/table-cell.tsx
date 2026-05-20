@@ -2,7 +2,7 @@
 
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { tableCellVariants } from '../../recipes/kata/table'
+import { k } from '../../recipes/kata/table'
 import { useTable } from './context'
 
 export type TableCellProps = {
@@ -13,7 +13,7 @@ export function TableCell({ className, children, ...props }: TableCellProps) {
 	const { grid, size } = useTable()
 
 	return (
-		<td className={cn(tableCellVariants({ size, grid }), className)} {...props}>
+		<td className={cn(k.cell({ size, grid }), className)} {...props}>
 			{children}
 		</td>
 	)

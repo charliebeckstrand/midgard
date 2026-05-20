@@ -1,65 +1,54 @@
-import { tv } from 'tailwind-variants'
-import { iro, ji, sen } from '../../core/recipe'
+import { defineRecipe, iro, ji, sen } from '../../core/recipe'
 import { buttonSoft } from './button'
 
-const base = tv({
+const base = defineRecipe({
 	base: ['inline-flex flex-col', 'select-none'],
-	variants: {
-		size: {
-			sm: 'w-52',
-			md: 'w-68',
-			lg: 'w-80',
-		},
+	size: {
+		sm: 'w-52',
+		md: 'w-68',
+		lg: 'w-80',
 	},
-	defaultVariants: { size: 'md' },
+	defaults: { size: 'md' },
 })
 
-const header = tv({
+const header = defineRecipe({
 	base: 'flex items-center justify-between',
-	variants: {
-		size: {
-			sm: 'mb-xs',
-			md: 'mb-sm',
-			lg: 'mb-md',
-		},
+	size: {
+		sm: 'mb-xs',
+		md: 'mb-sm',
+		lg: 'mb-md',
 	},
-	defaultVariants: { size: 'md' },
+	defaults: { size: 'md' },
 })
 
-const footer = tv({
+const footer = defineRecipe({
 	base: ['flex items-center justify-center'],
-	variants: {
-		size: {
-			sm: 'pb-xs gap-xs',
-			md: 'pb-xs gap-sm',
-			lg: 'pb-md gap-md',
-		},
+	size: {
+		sm: 'pb-xs gap-xs',
+		md: 'pb-xs gap-sm',
+		lg: 'pb-md gap-md',
 	},
-	defaultVariants: { size: 'md' },
+	defaults: { size: 'md' },
 })
 
-const pickerGrid = tv({
+const pickerGrid = defineRecipe({
 	base: 'grid grid-cols-3',
-	variants: {
-		size: {
-			sm: 'px-sm',
-			md: 'px-md',
-			lg: 'px-lg',
-		},
+	size: {
+		sm: 'px-sm',
+		md: 'px-md',
+		lg: 'px-lg',
 	},
-	defaultVariants: { size: 'md' },
+	defaults: { size: 'md' },
 })
 
-const weekday = tv({
+const weekday = defineRecipe({
 	base: ['flex items-center justify-center', 'w-full aspect-square', 'font-medium', iro.text.muted],
-	variants: {
-		size: {
-			sm: ji.size.xs,
-			md: ji.size.sm,
-			lg: ji.size.md,
-		},
+	size: {
+		sm: ji.size.xs,
+		md: ji.size.sm,
+		lg: ji.size.md,
 	},
-	defaultVariants: { size: 'md' },
+	defaults: { size: 'md' },
 })
 
 export const k = {

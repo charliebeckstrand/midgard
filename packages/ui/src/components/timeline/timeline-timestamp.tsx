@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
-import { timelineTimestampVariants } from '../../recipes/kata/timeline'
+import { k } from '../../recipes/kata/timeline'
 import { useTimeline } from './context'
 
 export type TimelineTimestampProps = {
@@ -16,7 +16,7 @@ export function TimelineTimestamp({ className, children, dateTime }: TimelineTim
 		<time
 			data-slot="timeline-timestamp"
 			dateTime={dateTime}
-			className={cn(timelineTimestampVariants({ orientation }), className)}
+			className={cn(k.timestamp({ orientation }), className)}
 		>
 			{children}
 		</time>

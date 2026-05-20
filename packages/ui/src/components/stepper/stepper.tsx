@@ -4,7 +4,7 @@ import { Children, isValidElement, type ReactNode, useMemo, useRef } from 'react
 import { cn } from '../../core'
 import { useMinWidth, useRoving } from '../../hooks'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
-import { type StepperVariants, stepperVariants } from '../../recipes/kata/stepper'
+import { k, type StepperVariants } from '../../recipes/kata/stepper'
 import { Stack } from '../stack'
 import { type StepperOrientation, StepperProvider } from './context'
 import { StepperPanels } from './stepper-panels'
@@ -84,7 +84,7 @@ export function Stepper({
 			role="toolbar"
 			aria-orientation={resolvedOrientation}
 			onKeyDown={onValueChange !== undefined ? handleKeyDown : undefined}
-			className={cn(stepperVariants({ orientation: resolvedOrientation }), className)}
+			className={cn(k.root({ orientation: resolvedOrientation }), className)}
 		>
 			{rowChildren}
 		</div>

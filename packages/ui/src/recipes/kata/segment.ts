@@ -1,19 +1,16 @@
-import { tv, type VariantProps } from 'tailwind-variants'
-import { ji, omote, sawari, sen } from '../../core/recipe'
+import { defineRecipe, ji, omote, sawari, sen, type VariantPropsOf } from '../../core/recipe'
 
-export const segmentControl = tv({
+const control = defineRecipe({
 	base: ['inline-flex items-center', 'rounded-lg', ...omote.tint],
-	variants: {
-		size: {
-			sm: ['p-0.5', ...'gap-xs'],
-			md: ['p-1', ...'gap-sm'],
-			lg: ['p-1', ...'gap-md'],
-		},
+	size: {
+		sm: ['p-0.5', ...'gap-xs'],
+		md: ['p-1', ...'gap-sm'],
+		lg: ['p-1', ...'gap-md'],
 	},
-	defaultVariants: { size: 'md' },
+	defaults: { size: 'md' },
 })
 
-export const segmentItem = tv({
+const item = defineRecipe({
 	base: [
 		'flex items-center justify-center',
 		'font-medium select-none',
@@ -25,28 +22,21 @@ export const segmentItem = tv({
 		...sawari.cursor,
 		'outline-none',
 	],
-	variants: {
-		size: {
-			sm: ['px-2.5 py-1', ...ji.size.xs],
-			md: ['px-3 py-1.5', ...ji.size.sm],
-			lg: ['px-4 py-2', ...ji.size.md],
-		},
+	size: {
+		sm: ['px-2.5 py-1', ...ji.size.xs],
+		md: ['px-3 py-1.5', ...ji.size.sm],
+		lg: ['px-4 py-2', ...ji.size.md],
 	},
-	defaultVariants: { size: 'md' },
+	defaults: { size: 'md' },
 })
 
-export type SegmentControlVariants = VariantProps<typeof segmentControl>
-export type SegmentItemVariants = VariantProps<typeof segmentItem>
+const indicator = ['bg-white', 'dark:bg-zinc-600']
 
 export const k = {
-	indicator: ['bg-white', 'dark:bg-zinc-600'],
+	control,
+	item,
+	indicator,
 }
 
-/** Kept for the `kata` barrel — read by `tabs` and other consumers. */
-export const segment = {
-	control: segmentControl,
-	item: segmentItem,
-	indicator: k.indicator,
-}
-
-export { segmentControl as segmentControlVariants, segmentItem as segmentItemVariants }
+export type SegmentControlVariants = VariantPropsOf<typeof control>
+export type SegmentItemVariants = VariantPropsOf<typeof item>
