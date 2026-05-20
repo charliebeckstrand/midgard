@@ -1,7 +1,6 @@
-import { tv } from 'tailwind-variants'
-import { iro, ji, narabi, sawari } from '../../core/recipe'
+import { defineRecipe, iro, ji, narabi, sawari, type VariantPropsOf } from '../../core/recipe'
 
-const label = tv({
+const label = defineRecipe({
 	base: [
 		'select-none',
 		sawari.cursor,
@@ -10,54 +9,46 @@ const label = tv({
 		iro.text.default,
 		sawari.disabled,
 	],
-	variants: {
-		size: {
-			sm: ji.size.sm,
-			md: ji.size.md,
-			lg: ji.size.lg,
-		},
+	size: {
+		sm: ji.size.sm,
+		md: ji.size.md,
+		lg: ji.size.lg,
 	},
-	defaultVariants: { size: 'md' },
+	defaults: { size: 'md' },
 })
 
-const description = tv({
+const description = defineRecipe({
 	base: [iro.text.muted, sawari.disabled],
-	variants: {
-		size: {
-			sm: ji.size.sm,
-			md: ji.size.md,
-			lg: ji.size.lg,
-		},
+	size: {
+		sm: ji.size.sm,
+		md: ji.size.md,
+		lg: ji.size.lg,
 	},
-	defaultVariants: { size: 'md' },
+	defaults: { size: 'md' },
 })
 
-const message = tv({
+const message = defineRecipe({
 	base: [sawari.disabled],
-	variants: {
-		size: {
-			sm: ji.size.sm,
-			md: ji.size.md,
-			lg: ji.size.lg,
-		},
-		variant: {
-			error: iro.text.error,
-			success: iro.text.success,
-		},
+	size: {
+		sm: ji.size.sm,
+		md: ji.size.md,
+		lg: ji.size.lg,
 	},
-	defaultVariants: { size: 'md', variant: 'error' },
+	variant: {
+		error: iro.text.error,
+		success: iro.text.success,
+	},
+	defaults: { size: 'md', variant: 'error' },
 })
 
-const legend = tv({
+const legend = defineRecipe({
 	base: ['font-semibold', iro.text.default, sawari.disabled],
-	variants: {
-		size: {
-			sm: ji.size.sm,
-			md: ji.size.md,
-			lg: ji.size.lg,
-		},
+	size: {
+		sm: ji.size.sm,
+		md: ji.size.md,
+		lg: ji.size.lg,
 	},
-	defaultVariants: { size: 'md' },
+	defaults: { size: 'md' },
 })
 
 export const k = {
@@ -73,4 +64,4 @@ export const k = {
 	message,
 }
 
-export { message as messageVariants }
+export type FieldsetMessageVariants = VariantPropsOf<typeof message>

@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { gridDividerVariants } from './variants'
+import { k } from '../../recipes/kata/grid'
 
 export type GridDividerProps = {
 	soft?: boolean
@@ -8,11 +8,5 @@ export type GridDividerProps = {
 } & Omit<ComponentPropsWithoutRef<'hr'>, 'className'>
 
 export function GridDivider({ soft, className, ...props }: GridDividerProps) {
-	return (
-		<hr
-			data-slot="grid-divider"
-			className={cn(gridDividerVariants({ soft }), className)}
-			{...props}
-		/>
-	)
+	return <hr data-slot="grid-divider" className={cn(k.divider({ soft }), className)} {...props} />
 }

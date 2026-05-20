@@ -232,7 +232,4 @@ export const justifyMap = {
 	stretch: 'justify-items-stretch',
 } as const
 
-export {
-	type GridDividerVariants,
-	gridDivider as gridDividerVariants,
-} from '../../recipes/kata/grid'
+export type { GridDividerVariants } from '../../recipes/kata/grid'

@@ -1,7 +1,6 @@
-import { tv } from 'tailwind-variants'
-import { ji, sawari, sen, take } from '../../core/recipe'
+import { defineRecipe, ji, sawari, sen, take, type VariantPropsOf } from '../../core/recipe'
 
-const sidebarItem = tv({
+const item = defineRecipe({
 	base: [
 		...sawari.nav,
 		...sawari.cursor,
@@ -10,19 +9,17 @@ const sidebarItem = tv({
 		'text-left',
 		'rounded-lg',
 	],
-	variants: {
-		size: {
-			sm: [ji.size.sm, 'gap-xs', 'p-1.5', take.icon.sm],
-			md: [ji.size.md, 'gap-sm', 'p-2', take.icon.md],
-			lg: [ji.size.lg, 'gap-md', 'p-2.5', take.icon.lg],
-		},
+	size: {
+		sm: [ji.size.sm, 'gap-xs', 'p-1.5', take.icon.sm],
+		md: [ji.size.md, 'gap-sm', 'p-2', take.icon.md],
+		lg: [ji.size.lg, 'gap-md', 'p-2.5', take.icon.lg],
 	},
-	defaultVariants: { size: 'md' },
+	defaults: { size: 'md' },
 })
 
 export const k = {
 	base: ['overflow-y-auto', 'flex flex-col gap-y-4', 'h-full', 'py-6', 'px-4'],
-	item: sidebarItem,
+	item,
 	section: ['flex flex-col', 'gap-0.5'],
 	label: ['truncate'],
 	header: ['flex items-center justify-between', 'gap-md', '**:data-[slot=heading]:leading-none'],
@@ -31,4 +28,4 @@ export const k = {
 	footer: ['sticky bottom-0', 'flex flex-col', 'gap-0.5', 'mt-auto'],
 }
 
-export { sidebarItem as sidebarItemVariants }
+export type SidebarItemVariants = VariantPropsOf<typeof item>
