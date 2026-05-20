@@ -17,9 +17,9 @@ describe('usePivotTable', () => {
 	it('derives the row and column axes from the data', () => {
 		const { result } = renderHook(() => usePivotTable(data, keys))
 
-		expect(result.current.rows).toEqual(expect.arrayContaining(['NA', 'EU']))
+		expect(result.current.rowKeys).toEqual(expect.arrayContaining(['NA', 'EU']))
 
-		expect(result.current.columns).toEqual(expect.arrayContaining(['Q1', 'Q2']))
+		expect(result.current.columnKeys).toEqual(expect.arrayContaining(['Q1', 'Q2']))
 	})
 
 	it('honors an explicit rowOrder and columnOrder', () => {
@@ -27,9 +27,9 @@ describe('usePivotTable', () => {
 			usePivotTable(data, keys, { rowOrder: ['EU', 'NA'], columnOrder: ['Q2', 'Q1'] }),
 		)
 
-		expect(result.current.rows).toEqual(['EU', 'NA'])
+		expect(result.current.rowKeys).toEqual(['EU', 'NA'])
 
-		expect(result.current.columns).toEqual(['Q2', 'Q1'])
+		expect(result.current.columnKeys).toEqual(['Q2', 'Q1'])
 	})
 
 	it('aggregates cell values by sum by default', () => {

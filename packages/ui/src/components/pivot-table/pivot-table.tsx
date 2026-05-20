@@ -11,7 +11,7 @@ export type PivotTotals = 'row' | 'col' | 'both' | 'none'
 
 export type PivotTableProps<T> = {
 	/** Source rows to pivot. */
-	data: readonly T[]
+	rows: readonly T[]
 	/** Fields that identify the row, column, and value dimension of the pivot. */
 	keys: PivotTableKeys<T>
 	/** How to aggregate the value field within a (row × column) group. @default 'sum' */
@@ -24,9 +24,9 @@ export type PivotTableProps<T> = {
 	totalLabel?: string
 	/** Which totals to render. @default 'none' */
 	totals?: PivotTotals
-	/** Explicit ordering of row values. Extras in `data` are appended. */
+	/** Explicit ordering of row values. Extras in `rows` are appended. */
 	rowOrder?: readonly string[]
-	/** Explicit ordering of column values. Extras in `data` are appended. */
+	/** Explicit ordering of column values. Extras in `rows` are appended. */
 	columnOrder?: readonly string[]
 	/** Rendered when no source rows match a (row × column) group. @default '—' */
 	emptyCell?: ReactNode
@@ -38,7 +38,7 @@ export type PivotTableProps<T> = {
 
 /** Two-axis aggregation table — groups rows by `(row × column)` keys and aggregates a value field into each cell. */
 export function PivotTable<T>({
-	data,
+	rows,
 	keys,
 	aggregation = 'sum',
 	format,
@@ -53,11 +53,15 @@ export function PivotTable<T>({
 	striped,
 	className,
 }: PivotTableProps<T>) {
-	const { rows, columns, cellValue, rowTotal, colTotals, grandTotal } = usePivotTable(data, keys, {
-		aggregation,
-		rowOrder,
-		columnOrder,
-	})
+	const { rowKeys, columnKeys, cellValue, rowTotal, colTotals, grandTotal } = usePivotTable(
+		rows,
+		keys,
+		{
+			aggregation,
+			rowOrder,
+			columnOrder,
+		},
+	)
 
 	const showRowTotals = totals === 'row' || totals === 'both'
 	const showColTotals = totals === 'col' || totals === 'both'
@@ -69,7 +73,7 @@ export function PivotTable<T>({
 			<TableHead>
 				<TableRow>
 					<TableHeader>{rowHeader}</TableHeader>
-					{columns.map((col) => (
+					{columnKeys.map((col) => (
 						<TableHeader key={col} className="text-right">
 							{col}
 						</TableHeader>
@@ -78,14 +82,14 @@ export function PivotTable<T>({
 				</TableRow>
 			</TableHead>
 			<TableBody>
-				{rows.map((row) => {
-					const total = rowTotal(row)
+				{rowKeys.map((rowKey) => {
+					const total = rowTotal(rowKey)
 
 					return (
-						<TableRow key={row}>
-							<TableCell className="font-medium">{row}</TableCell>
-							{columns.map((col) => {
-								const value = cellValue(row, col)
+						<TableRow key={rowKey}>
+							<TableCell className="font-medium">{rowKey}</TableCell>
+							{columnKeys.map((col) => {
+								const value = cellValue(rowKey, col)
 
 								return (
 									<TableCell key={col} className="text-right tabular-nums">
@@ -104,7 +108,7 @@ export function PivotTable<T>({
 				{showColTotals && (
 					<TableRow className="font-semibold">
 						<TableCell className="font-semibold">{totalLabel}</TableCell>
-						{columns.map((col, i) => {
+						{columnKeys.map((col, i) => {
 							const total = colTotals[i]
 
 							return (
