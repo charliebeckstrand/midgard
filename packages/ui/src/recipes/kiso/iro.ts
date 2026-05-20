@@ -4,8 +4,8 @@
  * Semantic colour bundles and the palette matrix. The matrix is keyed by
  * variant (solid / soft / outline / plain / bare) and slot (bg / text /
  * hover / ring / border). Each slot is a `Record<Color, string[]>` built
- * via `shades()` — the dark prefix is added by the substrate, not the
- * call site.
+ * via `shades()` — the dark class carries its own `dark:` prefix so the
+ * full literal survives Tailwind's source scan.
  *
  * Layer: kiso · Concern: colour
  */
@@ -57,19 +57,19 @@ const textBundle = {
 }
 
 const text = shades({
-	zinc: ['text-zinc-700', 'text-zinc-400'],
-	red: ['text-red-700', 'text-red-400'],
-	amber: ['text-amber-700', 'text-amber-400'],
-	green: ['text-green-700', 'text-green-400'],
-	blue: ['text-blue-700', 'text-blue-400'],
+	zinc: ['text-zinc-700', 'dark:text-zinc-400'],
+	red: ['text-red-700', 'dark:text-red-400'],
+	amber: ['text-amber-700', 'dark:text-amber-400'],
+	green: ['text-green-700', 'dark:text-green-400'],
+	blue: ['text-blue-700', 'dark:text-blue-400'],
 })
 
 const hover = shades({
-	zinc: ['not-disabled:hover:bg-zinc-600/15', 'not-disabled:hover:bg-zinc-500/15'],
-	red: ['not-disabled:hover:bg-red-600/15', 'not-disabled:hover:bg-red-500/15'],
-	amber: ['not-disabled:hover:bg-amber-500/15', 'not-disabled:hover:bg-amber-500/15'],
-	green: ['not-disabled:hover:bg-green-600/15', 'not-disabled:hover:bg-green-500/15'],
-	blue: ['not-disabled:hover:bg-blue-600/15', 'not-disabled:hover:bg-blue-500/15'],
+	zinc: ['not-disabled:hover:bg-zinc-600/15', 'dark:not-disabled:hover:bg-zinc-500/15'],
+	red: ['not-disabled:hover:bg-red-600/15', 'dark:not-disabled:hover:bg-red-500/15'],
+	amber: ['not-disabled:hover:bg-amber-500/15', 'dark:not-disabled:hover:bg-amber-500/15'],
+	green: ['not-disabled:hover:bg-green-600/15', 'dark:not-disabled:hover:bg-green-500/15'],
+	blue: ['not-disabled:hover:bg-blue-600/15', 'dark:not-disabled:hover:bg-blue-500/15'],
 })
 
 const solid = {
@@ -106,28 +106,28 @@ const soft = {
 	}),
 	text,
 	hover: shades({
-		zinc: ['not-disabled:hover:bg-zinc-600/30', 'not-disabled:hover:bg-zinc-500/30'],
-		red: ['not-disabled:hover:bg-red-600/30', 'not-disabled:hover:bg-red-500/30'],
-		amber: ['not-disabled:hover:bg-amber-500/30', 'not-disabled:hover:bg-amber-500/30'],
-		green: ['not-disabled:hover:bg-green-600/30', 'not-disabled:hover:bg-green-500/30'],
-		blue: ['not-disabled:hover:bg-blue-600/30', 'not-disabled:hover:bg-blue-500/30'],
+		zinc: ['not-disabled:hover:bg-zinc-600/30', 'dark:not-disabled:hover:bg-zinc-500/30'],
+		red: ['not-disabled:hover:bg-red-600/30', 'dark:not-disabled:hover:bg-red-500/30'],
+		amber: ['not-disabled:hover:bg-amber-500/30', 'dark:not-disabled:hover:bg-amber-500/30'],
+		green: ['not-disabled:hover:bg-green-600/30', 'dark:not-disabled:hover:bg-green-500/30'],
+		blue: ['not-disabled:hover:bg-blue-600/30', 'dark:not-disabled:hover:bg-blue-500/30'],
 	}),
 }
 
 const outline = {
 	border: shades({
-		zinc: ['border-zinc-800', 'border-zinc-600'],
-		red: ['border-red-600', 'border-red-700'],
-		amber: ['border-amber-500', 'border-amber-700'],
-		green: ['border-green-600', 'border-green-700'],
-		blue: ['border-blue-600', 'border-blue-700'],
+		zinc: ['border-zinc-800', 'dark:border-zinc-600'],
+		red: ['border-red-600', 'dark:border-red-700'],
+		amber: ['border-amber-500', 'dark:border-amber-700'],
+		green: ['border-green-600', 'dark:border-green-700'],
+		blue: ['border-blue-600', 'dark:border-blue-700'],
 	}),
 	ring: shades({
-		zinc: ['ring-zinc-800', 'ring-zinc-600'],
-		red: ['ring-red-600', 'ring-red-700'],
-		amber: ['ring-amber-500', 'ring-amber-700'],
-		green: ['ring-green-600', 'ring-green-700'],
-		blue: ['ring-blue-600', 'ring-blue-700'],
+		zinc: ['ring-zinc-800', 'dark:ring-zinc-600'],
+		red: ['ring-red-600', 'dark:ring-red-700'],
+		amber: ['ring-amber-500', 'dark:ring-amber-700'],
+		green: ['ring-green-600', 'dark:ring-green-700'],
+		blue: ['ring-blue-600', 'dark:ring-blue-700'],
 	}),
 	text,
 	hover,
@@ -137,18 +137,18 @@ const plain = { text, hover }
 
 const bare = {
 	text: shades({
-		zinc: ['text-zinc-500', 'text-zinc-400'],
-		red: ['text-red-600', 'text-red-500'],
-		amber: ['text-amber-600', 'text-amber-500'],
-		green: ['text-green-600', 'text-green-500'],
-		blue: ['text-blue-600', 'text-blue-500'],
+		zinc: ['text-zinc-500', 'dark:text-zinc-400'],
+		red: ['text-red-600', 'dark:text-red-500'],
+		amber: ['text-amber-600', 'dark:text-amber-500'],
+		green: ['text-green-600', 'dark:text-green-500'],
+		blue: ['text-blue-600', 'dark:text-blue-500'],
 	}),
 	hover: shades({
-		zinc: ['not-disabled:hover:text-zinc-950', 'not-disabled:hover:text-white'],
-		red: ['not-disabled:hover:text-red-700', 'not-disabled:hover:text-red-400'],
-		amber: ['not-disabled:hover:text-amber-700', 'not-disabled:hover:text-amber-400'],
-		green: ['not-disabled:hover:text-green-700', 'not-disabled:hover:text-green-400'],
-		blue: ['not-disabled:hover:text-blue-700', 'not-disabled:hover:text-blue-400'],
+		zinc: ['not-disabled:hover:text-zinc-950', 'dark:not-disabled:hover:text-white'],
+		red: ['not-disabled:hover:text-red-700', 'dark:not-disabled:hover:text-red-400'],
+		amber: ['not-disabled:hover:text-amber-700', 'dark:not-disabled:hover:text-amber-400'],
+		green: ['not-disabled:hover:text-green-700', 'dark:not-disabled:hover:text-green-400'],
+		blue: ['not-disabled:hover:text-blue-700', 'dark:not-disabled:hover:text-blue-400'],
 	}),
 }
 

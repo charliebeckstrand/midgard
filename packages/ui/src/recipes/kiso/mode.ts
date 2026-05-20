@@ -10,8 +10,8 @@
  *
  * Authoring style: the dark string carries its own `dark:` prefix (one per
  * class, since a single entry may bundle several variable-setters). Use
- * `shades()` from `./shades` when the dark prefix can be inferred — that
- * keeps the shorter tuple form for the iro palette.
+ * `shades()` from `./shades` for the per-`Color` form; both helpers expect
+ * the dark class to ship its prefix so Tailwind picks up the full literal.
  */
 
 type ModeValue = string | readonly (string | readonly string[])[]
