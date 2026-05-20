@@ -5,7 +5,7 @@
  *           Internal to the package; not re-exported from this barrel.
  *           Components consume kata via a relative path:
  *           `from '../../recipes/kata/<name>'`.
- *   waku/ — control primitives composed by panel-shaped kata (Dialog,
+ *   genkei/ — control primitives composed by panel-shaped kata (Dialog,
  *           Drawer, Sheet, etc.). Same internal status as kata.
  *
  * Substrate (iro / ji / ma / narabi / omote / sawari / sen / take / tsunagi /
@@ -14,7 +14,7 @@
  * barrel.
  *
  * `package.json` `exports` deliberately omits `./recipes` and `./recipes/*`,
- * so kata and waku are unreachable from outside the package. The contract
+ * so kata and genkei are unreachable from outside the package. The contract
  * is pinned by `src/__tests__/recipes/internal-boundary.test.ts`.
  */
 

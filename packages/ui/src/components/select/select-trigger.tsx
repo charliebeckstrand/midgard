@@ -5,7 +5,7 @@ import { cn } from '../../core'
 import { AffixProvider, affixStepDown } from '../../primitives/affix'
 import { ControlFrame } from '../../primitives/control'
 import { iro, sawari } from '../../recipes'
-import { control as controlRecipe } from '../../recipes/waku/control'
+import { control as controlRecipe } from '../../recipes/genkei/control'
 import type { ControlSize } from '../control/context'
 
 const affixBase = [

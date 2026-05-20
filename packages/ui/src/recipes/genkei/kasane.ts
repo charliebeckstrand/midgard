@@ -19,7 +19,7 @@
  * or compose individual layers when a kata only wants a subset (e.g. hover
  * + focus without validation).
  *
- * Layer: waku · Concern: layered chrome
+ * Layer: genkei · Concern: layered chrome
  */
 
 /**

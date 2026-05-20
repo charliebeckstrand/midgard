@@ -7,7 +7,7 @@
  * via `shades()`, so the dark mode prefix is added by the substrate, not
  * by the call site.
  *
- * Layer: ryū · Concern: colour
+ * Layer: kiso · Concern: colour
  */
 
 import { mode } from './mode'

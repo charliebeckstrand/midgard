@@ -6,8 +6,8 @@ import type { CSSProperties, ReactNode, Ref } from 'react'
 import { cn } from '../../core'
 import { Density } from '../../primitives/density'
 import { PopoverPanel } from '../../primitives/popover'
+import { popover as kPopover } from '../../recipes/genkei/popover'
 import { k } from '../../recipes/kata/combobox'
-import { popover as kPopover } from '../../recipes/waku/popover'
 import type { ControlSize } from '../control/context'
 
 export type ComboboxPanelProps = {

@@ -6,7 +6,7 @@
  * Density presets (button / compact / control) live with their component in
  * `kata`, composed from these primitives.
  *
- * Layer: ryū · Concern: sizing
+ * Layer: kiso · Concern: sizing
  */
 
 import type { ScrollOrientation } from '../../../types'

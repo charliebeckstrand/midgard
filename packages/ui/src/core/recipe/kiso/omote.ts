@@ -6,7 +6,7 @@
  * Surfaces exist as a composite layer because popovers, panels, and backdrops
  * each have a coherent multi-property chrome that is always applied together.
  *
- * Layer: ryū · Concern: surface
+ * Layer: kiso · Concern: surface
  */
 
 import { iro } from './iro'

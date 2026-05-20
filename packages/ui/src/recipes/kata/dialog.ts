@@ -1,5 +1,5 @@
 import { defineRecipe, narabi, omote, take, type VariantPropsOf } from '../../core/recipe'
-import { definePanelRecipe } from '../waku/panel'
+import { definePanelRecipe } from '../genkei/panel'
 
 export const k = definePanelRecipe({
 	panel: defineRecipe({

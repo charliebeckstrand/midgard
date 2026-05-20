@@ -20,10 +20,10 @@
  *   - `check`     — visually hidden native input + custom check surface.
  *
  * Exposes plain class fragments (`string[]`) and fragment maps. Per the
- * waku wire-format contract, `defineRecipe()` is invoked only at the kata public
+ * genkei wire-format contract, `defineRecipe()` is invoked only at the kata public
  * surface; consumers compose these fragments into whatever shape they need.
  *
- * Layer: waku · Concern: control field archetype
+ * Layer: genkei · Concern: control field archetype
  */
 
 import { iro, ji, omote, sawari, sen, tsunagi } from '../../core/recipe'

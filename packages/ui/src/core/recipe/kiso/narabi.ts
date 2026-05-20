@@ -3,7 +3,7 @@
  *
  * Ordering, positioning, and slot relationships between siblings.
  *
- * Layer: ryū · Concern: layout
+ * Layer: kiso · Concern: layout
  */
 
 import { iro } from './iro'

@@ -2,19 +2,19 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-// waku/ holds compound chrome shared by ≥2 components — control, popover,
+// genkei/ holds compound chrome shared by ≥2 components — control, popover,
 // option, panel, kasane. It sits below the component surface and must stay
-// there: waku may compose the substrate and other waku, but a waku module
+// there: genkei may compose the substrate and other genkei, but a genkei module
 // reaching up into components, layouts, primitives, hooks, or providers
 // would invert the dependency direction and pull stateful React or component
 // context into the recipe layer.
 //
-// The internal consumers of each waku module are documented per-module in
-// recipes/waku/README.md; pinning that richer contract statically would
-// duplicate the README. This test pins the half that is mechanical: waku has
+// The internal consumers of each genkei module are documented per-module in
+// recipes/genkei/README.md; pinning that richer contract statically would
+// duplicate the README. This test pins the half that is mechanical: genkei has
 // no upward dependencies.
 
-const wakuDir = join(__dirname, '../../../recipes/waku')
+const genkeiDir = join(__dirname, '../../../recipes/genkei')
 const srcDir = join(__dirname, '../../..')
 
 const FORBIDDEN_PATTERNS = [
@@ -25,11 +25,11 @@ const FORBIDDEN_PATTERNS = [
 	{ label: 'providers/', regex: /from\s+['"][^'"]*\/providers\/[^'"]+['"]/g },
 ] as const
 
-describe('waku purity boundary', () => {
-	it('waku does not import from components, layouts, primitives, hooks, or providers', () => {
+describe('genkei purity boundary', () => {
+	it('genkei does not import from components, layouts, primitives, hooks, or providers', () => {
 		const violations: string[] = []
 
-		walk(wakuDir, (file, content) => {
+		walk(genkeiDir, (file, content) => {
 			if (!/\.(?:tsx?|mts|cts)$/.test(file)) return
 
 			const rel = relative(srcDir, file)
@@ -43,7 +43,7 @@ describe('waku purity boundary', () => {
 
 		expect(
 			violations,
-			`waku reaches upward into higher layers:\n  ${violations.join('\n  ')}`,
+			`genkei reaches upward into higher layers:\n  ${violations.join('\n  ')}`,
 		).toEqual([])
 	})
 })

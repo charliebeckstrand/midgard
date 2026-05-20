@@ -11,7 +11,7 @@
  * The scale is calibrated so most components land on `sm` / `md` / `lg` and
  * the ends are reserved for edge cases (compact chrome, page-level layout).
  *
- * Layer: ryū · Concern: spacing
+ * Layer: kiso · Concern: spacing
  */
 
 export const ma = ['xs', 'sm', 'md', 'lg', 'xl'] as const

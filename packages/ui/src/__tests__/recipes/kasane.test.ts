@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { kasane } from '../../recipes/waku/kasane'
+import { kasane } from '../../recipes/genkei/kasane'
 
 describe('kasane', () => {
 	it('exposes the seven named layers plus an "all" convenience', () => {

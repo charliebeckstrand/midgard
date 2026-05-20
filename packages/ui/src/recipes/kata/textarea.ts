@@ -1,5 +1,5 @@
 import { defineRecipe, sen, type VariantPropsOf } from '../../core/recipe'
-import { control } from '../waku/control'
+import { control } from '../genkei/control'
 
 export const k = defineRecipe({
 	base: ['block', ...control.field, 'rounded-lg', 'min-h-10'],

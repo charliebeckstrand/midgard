@@ -139,7 +139,7 @@
 			"Solve the stated problem, not adjacent ones — a bug fix is not a refactoring opportunity.",
 			"Dependencies flow inward: shared packages never depend on application code.",
 			"Let the type system carry its weight; if a type is hard to express, rethink the design.",
-			"packages/ui/src/core/recipe/ holds the recipe engine (defineRecipe, palette) and the substrate (iro · ji · ma · narabi · omote · sawari · sen · take · tsunagi · ugoki · kokkaku). packages/ui/src/recipes/ has the internal kata and waku layers; the boundary is pinned by src/__tests__/recipes/boundary/recipe-boundary.test.ts.",
+			"packages/ui/src/core/recipe/ holds the recipe engine (defineRecipe, palette) and the kiso substrate (iro · ji · ma · narabi · omote · sawari · sen · take · tsunagi · ugoki · kokkaku). packages/ui/src/recipes/ has the internal kata and genkei layers; the boundary is pinned by src/__tests__/recipes/boundary/recipe-boundary.test.ts.",
 			"Files must be self-identifying out of context: components use <name>.tsx / <name>-<part>.tsx; hooks use use-<name>-<hook>.ts; every component or hook file exports a symbol whose PascalCase form matches its filename (enforced by packages/ui/src/__tests__/components/boundary/component-filename-boundary.test.ts).",
 			"Never extend the inline ALLOWLIST in component-filename-boundary.test.ts for new files — fix the file or fix the export instead.",
 			"Imperative-mood, atomic commits; each commit represents one logical change.",
@@ -149,9 +149,9 @@
 		],
 		"vocabularyGlossary": {
 			"engine": "The recipe DSL under packages/ui/src/core/recipe/engine/ — `defineRecipe(config)` plus `palette(matrix, ...overlays)`. Reserved fields `base`, `palette`, `compound`, `slots`, `defaults`; any other top-level field is a variant axis.",
-			"substrate": "Design-token primitives under packages/ui/src/core/recipe/substrate/ — iro · ji · ma · narabi · omote · sawari · sen · take · tsunagi · ugoki · kokkaku. Re-exported from packages/ui/src/recipes/index.ts for in-package consumers.",
-			"kata": "Internal per-component recipe layer under packages/ui/src/recipes/kata/ — every file exports the primary recipe as `k`. Imported via relative paths, deliberately not in package.json exports.",
-			"waku": "Internal multi-element archetype layer under packages/ui/src/recipes/waku/ — same internal-only boundary as kata.",
+			"kiso": "Design-token substrate (基礎 — foundation) under packages/ui/src/core/recipe/kiso/ — iro · ji · ma · narabi · omote · sawari · sen · take · tsunagi · ugoki · kokkaku. Re-exported from packages/ui/src/recipes/index.ts for in-package consumers.",
+			"kata": "Internal per-component recipe layer (型 — form) under packages/ui/src/recipes/kata/ — every file exports the primary recipe as `k`. Imported via relative paths, deliberately not in package.json exports.",
+			"genkei": "Internal multi-element archetype layer (原型 — archetype) under packages/ui/src/recipes/genkei/ — shared structural templates (panel, control, option, popover, kasane) instantiated by ≥2 kata. Same internal-only boundary as kata.",
 			"Manifest": "Canonical project profile at ./manifest.json produced by /repo:manifest and consumed by every other skill.",
 			"Brief": "Output of /deliberate — a precise problem statement synthesized from ABCD-style answers to dimension gaps."
 		},

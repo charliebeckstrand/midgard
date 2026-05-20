@@ -6,7 +6,7 @@
  * data table — text/space/gap/radius/icon tokens for components that need to
  * read a specific axis at a given step.
  *
- * Layer: ryū · Concern: size
+ * Layer: kiso · Concern: size
  */
 
 export const steps = ['sm', 'md', 'lg'] as const

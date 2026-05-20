@@ -10,7 +10,7 @@
 
 import type { ClassValue } from 'clsx'
 
-import type { Color } from '../substrate/colors'
+import type { Color } from '../kiso/colors'
 
 import type { PaletteConfig } from './palette'
 

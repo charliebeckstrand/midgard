@@ -9,7 +9,7 @@
  * Uses Tailwind 4 logical-property classes (`rounded-s-*` / `rounded-e-*`,
  * `-ms-px`) so right-to-left layouts mirror without per-direction overrides.
  *
- * Layer: ryū · Concern: group joins
+ * Layer: kiso · Concern: group joins
  */
 
 import type { Orientation } from '../../../types'

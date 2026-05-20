@@ -4,7 +4,7 @@
  * All motion concerns. CSS transition fragments live under `css`; Framer
  * Motion enter / exit configs spread directly onto motion elements.
  *
- * Layer: ryū · Concern: motion
+ * Layer: kiso · Concern: motion
  */
 
 const slideTransition = { duration: 0.15 } as const

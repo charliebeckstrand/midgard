@@ -6,7 +6,7 @@
  * (width / orientation) with its default colour; colour-only variants live
  * alongside for overrides.
  *
- * Layer: ryū · Concern: lines
+ * Layer: kiso · Concern: lines
  */
 
 const motoi = {

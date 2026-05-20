@@ -5,7 +5,7 @@ import { type KeyboardEventHandler, type ReactNode, useLayoutEffect, useRef } fr
 import { cn } from '../../core'
 import { useRoving, useScrollWithin } from '../../hooks'
 import { omote, sen, ugoki } from '../../recipes'
-import { popover } from '../../recipes/waku/popover'
+import { popover } from '../../recipes/genkei/popover'
 import { ReducedMotion } from '../reduced-motion'
 
 export function PopoverPanel({

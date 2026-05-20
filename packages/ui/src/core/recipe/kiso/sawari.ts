@@ -3,7 +3,7 @@
  *
  * Interaction feedback — hover, press, selection, and disabled (dormant) state.
  *
- * Layer: ryū · Concern: interaction
+ * Layer: kiso · Concern: interaction
  */
 
 import { iro } from './iro'

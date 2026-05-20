@@ -1,5 +1,5 @@
 import { defineColors, defineRecipe, iro, sen, type VariantPropsOf } from '../../core/recipe'
-import { control } from '../waku/control'
+import { control } from '../genkei/control'
 
 const color = defineColors({
 	zinc: {

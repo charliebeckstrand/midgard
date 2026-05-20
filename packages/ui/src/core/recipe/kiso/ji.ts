@@ -7,7 +7,7 @@
  * consumer used the Tailwind utility directly (`font-semibold`,
  * `tracking-tight`, etc.) instead of routing through the recipe.
  *
- * Layer: ryū · Concern: typography
+ * Layer: kiso · Concern: typography
  */
 
 export const ji = {

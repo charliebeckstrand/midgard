@@ -4,7 +4,7 @@
  * Skeleton placeholder dimensions per component — stripped of chrome,
  * variant, and colour so placeholders track the real component's silhouette.
  *
- * Layer: ryū · Concern: skeleton form
+ * Layer: kiso · Concern: skeleton form
  */
 
 import { take } from './take'

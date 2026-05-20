@@ -1,22 +1,22 @@
-# Waku 枠 - Frames
+# Genkei 原型 - Archetypes
 
 Multi-element, multi-state archetypes shared by ≥2 kata.
 
 ## Boundary
 
-`waku/` is internal — omitted from `package.json` `exports` and not
-re-exported from `src/recipes/index.ts`. Kata consume waku via relative
+`genkei/` is internal — omitted from `package.json` `exports` and not
+re-exported from `src/recipes/index.ts`. Kata consume genkei via relative
 path. The contract is pinned by
 `src/__tests__/recipes/internal-boundary.test.ts`.
 
 ## Wire format
 
-Every waku export is a class fragment (`string[]`) or a map of
+Every genkei export is a class fragment (`string[]`) or a map of
 fragments (`Record<string, string[]>`). **`defineRecipe()` is never invoked
-inside waku** — it is called only at the kata public surface, where
+inside genkei** — it is called only at the kata public surface, where
 the variants axis is declared.
 
-A single wire format means any kata can compose any waku export
+A single wire format means any kata can compose any genkei export
 without translating between fragment-arrays and `defineRecipe()`-callables. The
 panel family preserves `VariantProps<typeof X>` inference via the
 `definePanelRecipe` factory — callers pass their `defineRecipe()` results as
@@ -28,7 +28,7 @@ fragments for the zero-variant slots.
 | Module    | Concern                                                                                                                                                                                                                                | Consumers                                                                                                 |
 | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
 | `control` | Field archetype: frame + surface + field reset + size + icon + affix + resets + check. Composes `kasane` for the chrome.                                                                                                               | `input`, `textarea`, `listbox`, `combobox`, `date-picker`, `checkbox`, `radio`, `switch`, `ControlFrame`. |
-| `kasane`  | The signature 4-layer chrome (inset / hover / focus / validation rings).                                                                                                                                                               | `waku/control`, and any kata that wants the layered overlay.                                              |
+| `kasane`  | The signature 4-layer chrome (inset / hover / focus / validation rings).                                                                                                                                                               | `genkei/control`, and any kata that wants the layered overlay.                                              |
 | `option`  | Option-row archetype — `base` (shared) + `size` map + `content` / `label` / `description` fragments for select-like rows.                                                                                                              | `primitives/option`, consumed by `combobox`, `listbox`, `select` via `createSelectOption`.                |
 | `panel`   | Floating panel archetype — a `definePanelRecipe` factory that builds title / description / header / body / actions / close slot recipes around the caller's `panel` (and optional `backdrop`) `defineRecipe()` recipes. Backed by `narabi.panel`. | `dialog`, `drawer`, `sheet`, `inspector`.                                                                 |
 | `popover` | Floating overlay archetype — shared `trigger` / `portal` / `panel` class fragments for any component that pops a floating panel anchored to a trigger.                                                                                 | `popover`, `combobox`, `listbox`, `date-picker`, `primitives/popover`.                                    |

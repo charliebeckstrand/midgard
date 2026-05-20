@@ -5,11 +5,11 @@
  * `primitives/option`.
  *
  * Exposes plain class fragments (`string[]`) and a size-keyed fragment map.
- * Per the waku wire-format contract, `defineRecipe()` is invoked only at the kata
+ * Per the genkei wire-format contract, `defineRecipe()` is invoked only at the kata
  * public surface; consumers compose these fragments into whatever shape
  * they need.
  *
- * Layer: waku · Concern: option-row archetype
+ * Layer: genkei · Concern: option-row archetype
  */
 
 import { iro, ji, narabi, sawari } from '../../core/recipe'
