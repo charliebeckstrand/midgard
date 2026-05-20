@@ -2,7 +2,7 @@ import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { useSkeleton } from '../../providers/skeleton'
 import { kokkaku } from '../../recipes'
-import { type HeadingVariants, headingVariants } from '../../recipes/kata/heading'
+import { type HeadingVariants, k } from '../../recipes/kata/heading'
 import { Placeholder } from '../placeholder'
 
 type HeadingLevel = 1 | 2 | 3 | 4 | 5 | 6
@@ -21,7 +21,5 @@ export function Heading({ level = 1, className, ...props }: HeadingProps) {
 
 	const Tag = `h${level}` as const
 
-	return (
-		<Tag data-slot="heading" className={cn(headingVariants({ level }), className)} {...props} />
-	)
+	return <Tag data-slot="heading" className={cn(k({ level }), className)} {...props} />
 }

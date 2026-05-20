@@ -10,4 +10,4 @@
  * Layer: ryū · Concern: group joins
  */
 
-export { tsunagi } from '../../../recipes/ryu/tsunagi'
+export { type GroupOrientation, type GroupPosition, tsunagi } from '../../../recipes/ryu/tsunagi'

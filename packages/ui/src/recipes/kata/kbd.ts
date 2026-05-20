@@ -1,14 +1,9 @@
-import { tv, type VariantProps } from 'tailwind-variants'
-import { take } from '../../core/recipe'
+import { defineRecipe, take, type VariantPropsOf } from '../../core/recipe'
 
-export const kbd = tv({
+export const k = defineRecipe({
 	base: ['inline-flex items-center justify-center', ...take.mark.base],
-	variants: {
-		size: take.mark.size,
-	},
-	defaultVariants: { size: 'md' },
+	size: take.mark.size,
+	defaults: { size: 'md' },
 })
 
-export type KbdVariants = VariantProps<typeof kbd>
-
-export { kbd as kbdVariants }
+export type KbdVariants = VariantPropsOf<typeof k>
