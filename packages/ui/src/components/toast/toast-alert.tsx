@@ -2,7 +2,7 @@
 
 import { motion } from 'motion/react'
 import { cn } from '../../core'
-import type { ToastData, ToastPosition, ToastType } from '../../providers/toast/types'
+import type { ToastData, ToastPosition, ToastSeverity } from '../../providers/toast/types'
 import { ugoki } from '../../recipes'
 import { k } from '../../recipes/kata/toast'
 import { Alert } from '../alert'
@@ -15,8 +15,8 @@ function getToastMotion(position: ToastPosition) {
 	return ugoki.toast.left
 }
 
-const typeAlertMap: Record<
-	NonNullable<ToastType>,
+const severityAlertMap: Record<
+	NonNullable<ToastSeverity>,
 	{ variant: 'solid' | 'soft'; color: 'blue' | 'zinc' | 'green' | 'amber' | 'red' }
 > = {
 	default: { variant: 'solid', color: 'blue' },
@@ -30,7 +30,7 @@ type ToastAlertProps = {
 	toast: ToastData
 	position: ToastPosition
 	zIndex: number
-	showCloseButton?: boolean
+	closable?: boolean
 	onOpenChange: (open: boolean, id: string) => void
 	onPause: () => void
 	onResume: () => void
@@ -41,7 +41,7 @@ export function ToastAlert({
 	toast: t,
 	position,
 	zIndex,
-	showCloseButton = true,
+	closable = true,
 	onOpenChange,
 	onPause,
 	onResume,
@@ -49,7 +49,7 @@ export function ToastAlert({
 }: ToastAlertProps) {
 	const motionConfig = getToastMotion(position)
 
-	const { variant, color } = typeAlertMap[t.type ?? 'default']
+	const { variant, color } = severityAlertMap[t.severity ?? 'default']
 
 	const positionTop = position.startsWith('top')
 
@@ -86,7 +86,7 @@ export function ToastAlert({
 					title={t.title}
 					description={t.description}
 					actions={t.actions}
-					closable={showCloseButton}
+					closable={closable}
 					onOpenChange={(open) => onOpenChange(open, t.id)}
 					className={cn(k.card)}
 				/>

@@ -314,7 +314,7 @@ describe('Toast: useToast behavior', () => {
 		['success'],
 		['warning'],
 		['error'],
-	] as const)('renders a %s-typed toast', (type) => {
+	] as const)('renders a %s-severity toast', (severity) => {
 		let api: ReturnType<typeof useToast> | undefined
 
 		renderUI(
@@ -325,13 +325,13 @@ describe('Toast: useToast behavior', () => {
 		)
 
 		act(() => {
-			api?.toast({ title: `T-${type}`, type })
+			api?.toast({ title: `T-${severity}`, severity })
 		})
 
-		expect(screen.getByText(`T-${type}`)).toBeInTheDocument()
+		expect(screen.getByText(`T-${severity}`)).toBeInTheDocument()
 	})
 
-	it('renders a toast without a close button when showCloseButton is false', () => {
+	it('renders a toast without a close button when closable is false', () => {
 		let api: ReturnType<typeof useToast> | undefined
 
 		renderUI(
@@ -342,7 +342,7 @@ describe('Toast: useToast behavior', () => {
 		)
 
 		act(() => {
-			api?.toast({ title: 'Quiet', persist: true, showCloseButton: false })
+			api?.toast({ title: 'Quiet', persist: true, closable: false })
 		})
 
 		expect(screen.getByText('Quiet')).toBeInTheDocument()

@@ -22,7 +22,7 @@ function ToastButtonsExample() {
 					toast({
 						title: 'Draft saved',
 						description: 'Your draft has been saved locally.',
-						type: 'secondary',
+						severity: 'secondary',
 					})
 				}
 			>
@@ -31,7 +31,11 @@ function ToastButtonsExample() {
 			<Button
 				color="green"
 				onClick={() =>
-					toast({ title: 'Saved', description: 'Your changes have been saved.', type: 'success' })
+					toast({
+						title: 'Saved',
+						description: 'Your changes have been saved.',
+						severity: 'success',
+					})
 				}
 			>
 				Success
@@ -39,7 +43,7 @@ function ToastButtonsExample() {
 			<Button
 				color="amber"
 				onClick={() =>
-					toast({ title: 'Warning', description: 'Storage is almost full.', type: 'warning' })
+					toast({ title: 'Warning', description: 'Storage is almost full.', severity: 'warning' })
 				}
 			>
 				Warning
@@ -47,7 +51,7 @@ function ToastButtonsExample() {
 			<Button
 				color="red"
 				onClick={() =>
-					toast({ title: 'Error', description: 'Something went wrong.', type: 'error' })
+					toast({ title: 'Error', description: 'Something went wrong.', severity: 'error' })
 				}
 			>
 				Error
@@ -84,14 +88,14 @@ function ActionToastButtonExample() {
 		const handleUndo = () => {
 			dismiss({ id })
 
-			toast({ title: 'Action undone', type: 'success' })
+			toast({ title: 'Action undone', severity: 'success' })
 		}
 
 		toast({
 			id,
 			title: 'Message deleted',
 			description: 'The message has been removed.',
-			type: 'success',
+			severity: 'success',
 			duration: 7000,
 			actions: (
 				<Button color="amber" onClick={handleUndo}>
