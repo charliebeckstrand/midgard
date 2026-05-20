@@ -153,7 +153,7 @@ export default function CommandPaletteDemo() {
 							if (!items.length) return null
 
 							return (
-								<CommandPaletteGroup key={group} heading={group}>
+								<CommandPaletteGroup key={group} title={group}>
 									{items.map((c) => (
 										<CommandPaletteItem key={c.id}>
 											<Icon icon={c.icon} size="sm" />

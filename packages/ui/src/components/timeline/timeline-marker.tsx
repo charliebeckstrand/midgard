@@ -12,7 +12,7 @@ export type TimelineMarkerConfig = {
 } & ({ status?: StatusDotProps['status']; color?: never } | { color?: Color; status?: never })
 
 export type TimelineMarkerProps = TimelineMarkerConfig & {
-	active?: boolean
+	current?: boolean
 	className?: string
 	children?: ReactNode
 }
@@ -23,7 +23,7 @@ export function TimelineMarker({
 	pulse,
 	lineBefore,
 	lineAfter,
-	active: _active,
+	current: _current,
 	className,
 	children,
 }: TimelineMarkerProps) {

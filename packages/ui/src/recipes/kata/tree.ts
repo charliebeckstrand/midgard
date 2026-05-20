@@ -50,7 +50,7 @@ export const tree = {
 	],
 	item: [],
 	itemContent: treeItemContent,
-	itemContentActive: iro.text.default,
+	itemContentCurrent: iro.text.default,
 	chevron: treeChevron,
 	label: 'flex-1 truncate text-left',
 	group: 'overflow-hidden',

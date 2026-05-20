@@ -2,10 +2,10 @@ import { describe, expect, it } from 'vitest'
 import {
 	Timeline,
 	TimelineDescription,
-	TimelineHeading,
 	TimelineItem,
 	TimelineMarker,
 	TimelineTimestamp,
+	TimelineTitle,
 } from '../../components/timeline'
 import { bySlot, renderUI, screen } from '../helpers'
 
@@ -14,7 +14,7 @@ describe('Timeline', () => {
 		const { container } = renderUI(
 			<Timeline>
 				<TimelineItem>
-					<TimelineHeading>Event</TimelineHeading>
+					<TimelineTitle>Event</TimelineTitle>
 				</TimelineItem>
 			</Timeline>,
 		)
@@ -30,7 +30,7 @@ describe('Timeline', () => {
 		const { container } = renderUI(
 			<Timeline className="custom">
 				<TimelineItem>
-					<TimelineHeading>Event</TimelineHeading>
+					<TimelineTitle>Event</TimelineTitle>
 				</TimelineItem>
 			</Timeline>,
 		)
@@ -46,7 +46,7 @@ describe('TimelineItem', () => {
 		const { container } = renderUI(
 			<Timeline>
 				<TimelineItem>
-					<TimelineHeading>Event</TimelineHeading>
+					<TimelineTitle>Event</TimelineTitle>
 				</TimelineItem>
 			</Timeline>,
 		)
@@ -55,24 +55,24 @@ describe('TimelineItem', () => {
 	})
 })
 
-describe('TimelineHeading', () => {
-	it('renders with data-slot="timeline-heading"', () => {
+describe('TimelineTitle', () => {
+	it('renders with data-slot="timeline-title"', () => {
 		const { container } = renderUI(
 			<Timeline>
 				<TimelineItem>
-					<TimelineHeading>Event</TimelineHeading>
+					<TimelineTitle>Event</TimelineTitle>
 				</TimelineItem>
 			</Timeline>,
 		)
 
-		expect(bySlot(container, 'timeline-heading')).toBeInTheDocument()
+		expect(bySlot(container, 'timeline-title')).toBeInTheDocument()
 	})
 
 	it('renders children', () => {
 		renderUI(
 			<Timeline>
 				<TimelineItem>
-					<TimelineHeading>My Event</TimelineHeading>
+					<TimelineTitle>My Event</TimelineTitle>
 				</TimelineItem>
 			</Timeline>,
 		)
@@ -86,7 +86,7 @@ describe('TimelineDescription', () => {
 		const { container } = renderUI(
 			<Timeline>
 				<TimelineItem>
-					<TimelineHeading>Event</TimelineHeading>
+					<TimelineTitle>Event</TimelineTitle>
 					<TimelineDescription>Details</TimelineDescription>
 				</TimelineItem>
 			</Timeline>,
@@ -99,7 +99,7 @@ describe('TimelineDescription', () => {
 		renderUI(
 			<Timeline>
 				<TimelineItem>
-					<TimelineHeading>Event</TimelineHeading>
+					<TimelineTitle>Event</TimelineTitle>
 					<TimelineDescription>Some details</TimelineDescription>
 				</TimelineItem>
 			</Timeline>,

@@ -5,9 +5,9 @@ import { Sheet, SheetActions, SheetBody, SheetClose, SheetDescription, SheetTitl
 import {
 	Timeline,
 	TimelineDescription,
-	TimelineHeading,
 	TimelineItem,
 	TimelineTimestamp,
+	TimelineTitle,
 } from '../timeline'
 import { formatTimestamp, resolveCurrentIndex } from './map-route-utilities'
 import type { RouteStop } from './types'
@@ -45,7 +45,7 @@ export function MapRouteTimeline({ open, onOpenChange, stops }: MapRouteTimeline
 						return (
 							<TimelineItem
 								key={stop.id}
-								active={isCurrent}
+								current={isCurrent}
 								variant={isReached ? 'solid' : 'outline'}
 								status={isCompleted || isFinal ? 'active' : isCurrent ? 'info' : 'inactive'}
 								pulse={isCurrent && !isFinal}
@@ -53,7 +53,7 @@ export function MapRouteTimeline({ open, onOpenChange, stops }: MapRouteTimeline
 								lineAfter={isCompleted ? 'green' : undefined}
 							>
 								{timestamp && <TimelineTimestamp>{timestamp}</TimelineTimestamp>}
-								<TimelineHeading>{stop.name}</TimelineHeading>
+								<TimelineTitle>{stop.name}</TimelineTitle>
 								{stop.description && <TimelineDescription>{stop.description}</TimelineDescription>}
 							</TimelineItem>
 						)

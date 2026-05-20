@@ -28,7 +28,7 @@ const item = tv({
 	defaultVariants: { orientation: 'vertical' },
 })
 
-const heading = tv({
+const title = tv({
 	base: ['font-semibold', ji.size.lg, ...iro.text.default],
 	variants: {
 		orientation: {
@@ -112,7 +112,7 @@ export const slots = {
 			blue: 'after:bg-blue-500 dark:after:bg-blue-500',
 		},
 	},
-	heading,
+	title,
 	description,
 	timestamp,
 }
@@ -120,7 +120,7 @@ export const slots = {
 export {
 	timeline as timelineVariants,
 	item as timelineItemVariants,
-	heading as timelineHeadingVariants,
+	title as timelineTitleVariants,
 	description as timelineDescriptionVariants,
 	timestamp as timelineTimestampVariants,
 	slots as k,

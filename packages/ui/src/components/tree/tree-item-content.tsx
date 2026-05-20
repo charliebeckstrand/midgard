@@ -13,7 +13,7 @@ export type TreeItemContentProps = {
 	icon?: ReactElement
 	prefix?: ReactNode
 	suffix?: ReactNode
-	active?: boolean
+	current?: boolean
 	hasChildren: boolean
 	open: boolean
 	onOpenChange: (open: boolean) => void
@@ -25,7 +25,7 @@ export function TreeItemContent({
 	icon,
 	prefix,
 	suffix,
-	active,
+	current,
 	hasChildren,
 	open,
 	onOpenChange,
@@ -98,7 +98,7 @@ export function TreeItemContent({
 			className={cn(
 				'group/tree-item',
 				treeItemContentVariants({ size }),
-				active && k.itemContentActive,
+				current && k.itemContentCurrent,
 				className,
 			)}
 			style={{ paddingLeft }}
