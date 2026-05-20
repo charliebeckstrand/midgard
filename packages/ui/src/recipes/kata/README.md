@@ -7,24 +7,23 @@ Per-component recipes. One file per `src/components/<name>/`.
 `kata/` is internal — omitted from `package.json` `exports` and not
 re-exported from `src/recipes/index.ts`. Components consume kata via
 relative path: `from '../../recipes/kata/<name>'`. A kata composes
-freely from the substrate (`core/recipe/substrate`) and `genkei/`;
-sideways composition between kata is forbidden — shared concerns are
-promoted to `genkei/` instead. The contract is pinned by
-`src/__tests__/recipes/internal-boundary.test.ts`.
+freely from the substrate (`recipes/kiso`) and `genkei/`; sideways
+composition between kata is forbidden — shared concerns promote to
+`genkei/` instead. The contract is pinned by
+`src/__tests__/recipes/boundary/recipe-boundary.test.ts`.
 
 ## Shape
 
-Every kata exports the recipe as `k`, built via `defineRecipe(...)`
-from `core/recipe`. The kata's `defaults` resolves `size` from any
-enclosing Density context. Slots merge into the recipe via the
-`slots:` field; consumers access them as direct properties (e.g.
-`k.title`).
+Every kata exports the recipe as `k`, built via `defineRecipe(...)`.
+The kata's `defaults` resolves `size` from any enclosing Density
+context. Slots declared in the `slots:` field attach to the recipe as
+direct properties — consumers reach them as `k.title`.
 
-Sub-recipes that aren't the primary entry-point get named exports
-alongside `k` (`item`, `bubble`, `track`, …). Plain-data kata that
-don't need variants export `k` as an object literal.
+Sub-recipes that aren't the primary entry get named exports alongside
+`k` (`item`, `bubble`, `track`, …). Plain-data kata without variants
+export `k` as an object literal.
 
-Filenames are `<name>.ts`, matching the component folder name.
+Filenames are `<name>.ts`, matching the component folder.
 
 ## Families
 

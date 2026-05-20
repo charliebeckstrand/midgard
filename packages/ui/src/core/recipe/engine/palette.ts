@@ -1,25 +1,22 @@
 /**
  * palette() — declares a recipe's colour × variant matrix.
  *
- * First argument: the palette matrix. Each entry is one of two shapes:
+ * First argument: the matrix. Each entry takes one of two shapes:
  *
- *   1. `Record<Color, string[]>` — a single per-colour data record. Pass
- *      e.g. `iro.palette.plain.text` directly when a variant only needs one
- *      slot's data.
+ *   1. `Record<Color, string[]>` — a single per-colour record. Pass
+ *      `iro.palette.plain.text` directly when a variant pulls from one
+ *      slot.
+ *   2. `readonly Record<Color, string[]>[]` — an array of records merged
+ *      per colour. Pass `[solid.bg, solid.text, solid.hover]` to bundle
+ *      several iro.palette slots into one variant.
  *
- *   2. `readonly Record<Color, string[]>[]` — an array of records the engine
- *      merges per colour. Pass e.g. `[solid.bg, solid.text, solid.hover]` to
- *      bundle several iro.palette slots into one variant.
+ * Subsequent arguments: per-colour overlays. Each `{ color → class }` map
+ * applies its classes to every variant in the matrix — used for non-palette
+ * colour values like `inherit`. Multiple overlays merge left-to-right.
  *
- * Subsequent arguments: per-colour overlays. Each is a `{ color → class }`
- * map that applies the same classes to every variant in the matrix. Used
- * for non-palette colour values such as `inherit`. Multiple overlay objects
- * are merged left-to-right.
- *
- * The result is stored on `RecipeConfig.palette` (not on a variant axis) so
- * the variant scaffold (`{ outline: 'ring-1 ring-inset', … }`) and the
- * palette participation matrix stay in separate fields with single
- * responsibilities.
+ * Stored on `RecipeConfig.palette` rather than on a variant axis: the
+ * variant scaffold (`{ outline: 'ring-1 ring-inset', … }`) and the palette
+ * matrix stay in separate fields with single responsibilities.
  */
 
 import type { ClassValue } from 'clsx'

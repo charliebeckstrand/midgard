@@ -3,17 +3,16 @@
  *
  * Builds a callable recipe from a `RecipeConfig`:
  *
- *   - `base`, `variants`, `compound`, `defaults` — applied in that order
- *     per call. Class composition runs through `clsx` (conditional input)
- *     and `tailwind-merge` (conflict resolution).
- *   - `slots` — pre-merged once at recipe-creation time and merged onto the
- *     recipe as direct properties (e.g. `recipe.title`, `recipe.body`).
- *   - `palette` — expanded at creation time into an implicit `color` axis
- *     and a flock of compound rules. See `palette.ts`.
+ *   - `base`, `variants`, `compound`, `defaults` apply in that order per
+ *     call. Composition runs through `clsx` (conditional input) and
+ *     `tailwind-merge` (conflict resolution).
+ *   - `slots` are pre-merged at creation time and attached to the recipe
+ *     as direct properties (`recipe.title`, `recipe.body`).
+ *   - `palette` expands at creation time into an implicit `color` axis
+ *     plus compound rules. See `palette.ts`.
  *
- * The kata exports the recipe directly (typically as `k`); callers use
- * `k(...)` for the variant call and `k.title` for slot classes — a single
- * binding per kata.
+ * The kata exports the recipe as `k`; callers use `k(...)` for the variant
+ * call and `k.title` for slot classes — one binding per kata.
  */
 
 import type { ClassValue } from 'clsx'
@@ -55,9 +54,8 @@ export function defineRecipe<C extends RecipeConfig>(config: C): Recipe<C> {
 	function recipe(props?: ComputedProps<C>): string {
 		const raw = { ...resolved.defaults, ...(props as Record<string, unknown>) }
 
-		// Axis lookup is by string key, so booleans and numbers get coerced.
-		// Lets callers pass `soft: false` or `level: 1` against `{ true / false }`
-		// and `{ 1 / 2 / … }` axes respectively.
+		// Coerce booleans and numbers to strings so callers can pass `soft: false`
+		// or `level: 1` against axes keyed by `'true'`/`'false'` or `'1'`/`'2'`.
 		const values: Record<string, string | undefined> = {}
 
 		for (const [key, value] of Object.entries(raw)) {
@@ -83,9 +81,8 @@ export function defineRecipe<C extends RecipeConfig>(config: C): Recipe<C> {
 
 	Object.defineProperty(recipe, 'config', { value: resolved, enumerable: false })
 
-	// `recipe` is a function that we've dynamically extended with slot
-	// properties (via Object.assign) and `.config` (via defineProperty). The
-	// type system can't see those attachments, so we assert the final shape.
+	// The slot properties and `.config` are attached at runtime; the type
+	// system can't see them. Assert the final shape.
 	return recipe as Recipe<C>
 }
 
@@ -100,11 +97,10 @@ function matches(rule: CompoundRule, values: Record<string, string | undefined>)
 }
 
 /**
- * Walks the top-level config: collects each non-reserved field as a variant
- * axis, then expands `palette` into the `color` axis plus per-(variant ×
- * colour) compounds. Variants declared in the palette matrix but not in the
- * kata's `variant:` scaffold are added as empty entries — they're valid
- * values, just with no structural class.
+ * Collects each non-reserved top-level field as a variant axis, then expands
+ * `palette` into the `color` axis plus per-(variant × colour) compounds.
+ * Palette-matrix keys missing from `variant:` are added as empty entries —
+ * valid values with no structural class.
  */
 function expand(config: RecipeConfig): ResolvedConfig {
 	const variants: Record<string, Record<string, ClassValue>> = {}
@@ -121,7 +117,7 @@ function expand(config: RecipeConfig): ResolvedConfig {
 		const ex = expandPalette(config.palette)
 
 		// Union palette-matrix keys into the `variant` axis so palette-only
-		// variants don't have to be repeated in the kata's variant scaffold.
+		// variants don't need a separate entry in the variant scaffold.
 		const variantAxis = variants.variant ?? {}
 
 		for (const variantValue of Object.keys(config.palette.matrix)) {
@@ -134,7 +130,7 @@ function expand(config: RecipeConfig): ResolvedConfig {
 		compound.push(...ex.compound)
 	}
 
-	// User compounds applied AFTER palette compounds so they can override
+	// User compounds run after palette compounds so they override.
 	compound.push(...(config.compound ?? []))
 
 	return {

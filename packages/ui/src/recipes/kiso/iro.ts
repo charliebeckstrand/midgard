@@ -1,11 +1,11 @@
 /**
  * Iro (色) — colour.
  *
- * Semantic colour bundles and the palette matrix. The palette is keyed by
+ * Semantic colour bundles and the palette matrix. The matrix is keyed by
  * variant (solid / soft / outline / plain / bare) and slot (bg / text /
  * hover / ring / border). Each slot is a `Record<Color, string[]>` built
- * via `shades()`, so the dark mode prefix is added by the substrate, not
- * by the call site.
+ * via `shades()` — the dark prefix is added by the substrate, not the
+ * call site.
  *
  * Layer: kiso · Concern: colour
  */

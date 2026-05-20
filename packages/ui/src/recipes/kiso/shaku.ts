@@ -1,10 +1,10 @@
 /**
  * Shaku (尺) — measure.
  *
- * Pure dimension scales — width, height, and the icon-slot size grid.
- * Typography lives in `ji`; padding, margin, and gap live in `ma`.
- * Density presets (button / compact / control) live with their component in
- * `kata`, composed from these primitives.
+ * Dimension scales — width, height, and the icon-slot size grid. Typography
+ * lives in `ji`; padding, margin, and gap live in `ma`. Density presets
+ * (button / compact / control) sit with their component in `kata`, composed
+ * from these primitives.
  *
  * Layer: kiso · Concern: sizing
  */

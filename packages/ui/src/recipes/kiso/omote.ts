@@ -1,10 +1,10 @@
 /**
  * Omote (面) — surfaces.
  *
- * Named surface chromes — the visual plane content sits on. Each entry is a
- * composition of atomic primitives (`iro` colour, `sen` lines + forced-colors).
- * Surfaces exist as a composite layer because popovers, panels, and backdrops
- * each have a coherent multi-property chrome that is always applied together.
+ * Named surface chromes — the plane content sits on. Each entry composes
+ * `iro` colour with `sen` lines and forced-colour fallbacks. The composite
+ * layer exists because popovers, panels, and backdrops each carry a
+ * multi-property chrome that always applies together.
  *
  * Layer: kiso · Concern: surface
  */

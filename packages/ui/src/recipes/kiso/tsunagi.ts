@@ -16,14 +16,13 @@ import type { Orientation } from '../../types'
 
 export const tsunagi = {
 	/**
-	 * Spread into a kata's recipe `base` array to opt the component into the
-	 * group system. Inactive when the parent doesn't stamp the `data-group`
-	 * attribute, so participation is zero-cost when unused.
+	 * Spread into a kata's recipe `base` to opt in to the group system. Dormant
+	 * until the parent stamps `data-group`, so participation costs nothing when
+	 * unused.
 	 *
-	 * Pseudo-element radii (`before:` / `after:`) are dropped alongside the
-	 * outer radius so kasane consumers (Input, etc.) don't peek their inset
-	 * fill or focus overlay through with rounded corners while the outer
-	 * element is flat.
+	 * Pseudo-element radii (`before:` / `after:`) drop alongside the outer
+	 * radius so kasane consumers (Input, etc.) don't show rounded inset fill or
+	 * focus overlay corners while the outer element is flat.
 	 */
 	base: [
 		// Horizontal: 'start' loses its end-side radius, 'end' loses its start-side radius.

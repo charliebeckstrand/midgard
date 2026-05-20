@@ -1,13 +1,13 @@
 /**
- * Merges multiple per-key class records into one, concatenating each key's
- * arrays. Used by kata that want a pre-merged variant × colour bundle outside
- * the recipe engine's compound expansion — for instance, calendar reading
- * button's soft palette to render a selected-cell colour.
+ * Concatenates per-key class records into one. Used when a kata needs a
+ * pre-merged variant × colour bundle outside the engine's compound expansion
+ * — e.g. calendar reading button's soft palette for the selected-cell
+ * colour.
  *
  * @example
  *   const { soft } = iro.palette
  *   const buttonSoft = merge(soft.bg, soft.text, soft.hover)
- *   // buttonSoft.blue is the merged blue classes from all three slots
+ *   // buttonSoft.blue holds the merged blue classes from all three slots.
  */
 
 export function merge<K extends string>(

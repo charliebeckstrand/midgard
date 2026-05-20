@@ -1,11 +1,9 @@
 /**
  * Ji (字) — typography.
  *
- * Typography size scale (font-size with line-height bundled).
- *
- * Weight / tracking / family helpers were removed after audit — every
- * consumer used the Tailwind utility directly (`font-semibold`,
- * `tracking-tight`, etc.) instead of routing through the recipe.
+ * Type-size scale: font-size with line-height bundled. Weight, tracking, and
+ * family use the Tailwind utility directly (`font-semibold`,
+ * `tracking-tight`, …) rather than routing through the recipe.
  *
  * Layer: kiso · Concern: typography
  */
