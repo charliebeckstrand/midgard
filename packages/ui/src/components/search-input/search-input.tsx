@@ -54,7 +54,7 @@ export function SearchInput({
 	) : currentValue !== '' ? (
 		<Button
 			variant="bare"
-			className="mr-2 pointer-events-auto"
+			className="pointer-events-auto"
 			aria-label="Clear search"
 			onClick={handleClear}
 		>

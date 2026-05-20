@@ -84,14 +84,32 @@ const icon = ['flex items-center', 'pr-2', 'pointer-events-none']
 
 const affix = {
 	prefix: {
-		sm: 'pl-[calc(--spacing(2.5)-1px)] has-[button]:pl-[calc(--spacing(1.5)-1px)]',
-		md: 'pl-[calc(--spacing(3)-1px)] has-[button]:pl-[calc(--spacing(2)-1px)]',
-		lg: 'pl-[calc(--spacing(3.5)-1px)] has-[button]:pl-[calc(--spacing(2.5)-1px)]',
+		sm: [
+			'pl-[calc(--spacing(2.5)-1px)]',
+			'has-[button:not([data-variant=bare])]:pl-[calc(--spacing(1.5)-1px)]',
+		],
+		md: [
+			'pl-[calc(--spacing(3)-1px)]',
+			'has-[button:not([data-variant=bare])]:pl-[calc(--spacing(2)-1px)]',
+		],
+		lg: [
+			'pl-[calc(--spacing(3.5)-1px)]',
+			'has-[button:not([data-variant=bare])]:pl-[calc(--spacing(2.5)-1px)]',
+		],
 	},
 	suffix: {
-		sm: 'pr-[calc(--spacing(2.5)-1px)] has-[button]:pr-[calc(--spacing(1.5)-1px)]',
-		md: 'pr-[calc(--spacing(3)-1px)] has-[button]:pr-[calc(--spacing(2)-1px)]',
-		lg: 'pr-[calc(--spacing(3.5)-1px)] has-[button]:pr-[calc(--spacing(2.5)-1px)]',
+		sm: [
+			'pr-[calc(--spacing(2.5)-1px)]',
+			'has-[button:not([data-variant=bare])]:pr-[calc(--spacing(1.5)-1px)]',
+		],
+		md: [
+			'pr-[calc(--spacing(3)-1px)]',
+			'has-[button:not([data-variant=bare])]:pr-[calc(--spacing(2)-1px)]',
+		],
+		lg: [
+			'pr-[calc(--spacing(3.5)-1px)]',
+			'has-[button:not([data-variant=bare])]:pr-[calc(--spacing(2.5)-1px)]',
+		],
 	},
 	autofill: {
 		prefix: {
