@@ -26,9 +26,9 @@ export const accordion = tv({
 export const accordionItem = tv({
 	base: [
 		'group/accordion-item',
-		'has-[[data-slot=accordion-button]:focus-visible]:ring-2',
-		'has-[[data-slot=accordion-button]:focus-visible]:ring-blue-500',
-		'has-[[data-slot=accordion-button]:focus-visible]:ring-inset',
+		'has-[[data-slot=accordion-trigger]:focus-visible]:ring-2',
+		'has-[[data-slot=accordion-trigger]:focus-visible]:ring-blue-500',
+		'has-[[data-slot=accordion-trigger]:focus-visible]:ring-inset',
 	],
 	variants: {
 		variant: {
@@ -41,7 +41,7 @@ export const accordionItem = tv({
 })
 
 export const slots = {
-	button: [
+	trigger: [
 		'w-full flex items-center justify-between',
 		'gap-sm',
 		'p-4',

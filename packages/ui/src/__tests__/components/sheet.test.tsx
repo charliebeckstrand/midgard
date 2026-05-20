@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Sheet, SheetClose, SheetOpen } from '../../components/sheet'
+import { Sheet, SheetClose, SheetTrigger } from '../../components/sheet'
 import { fireEvent, renderUI, screen } from '../helpers'
 
 describe('Sheet', () => {
@@ -38,17 +38,17 @@ describe('Sheet', () => {
 	})
 })
 
-describe('SheetOpen', () => {
+describe('SheetTrigger', () => {
 	it('invokes onClick and preserves the child onClick when clicked', () => {
 		const childOnClick = vi.fn()
 		const onClick = vi.fn()
 
 		renderUI(
-			<SheetOpen onClick={onClick}>
+			<SheetTrigger onClick={onClick}>
 				<button type="button" onClick={childOnClick}>
 					Open
 				</button>
-			</SheetOpen>,
+			</SheetTrigger>,
 		)
 
 		fireEvent.click(screen.getByRole('button', { name: 'Open' }))

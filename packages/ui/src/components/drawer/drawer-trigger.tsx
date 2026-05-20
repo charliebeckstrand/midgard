@@ -3,12 +3,12 @@
 import type { MouseEvent, MouseEventHandler, ReactElement } from 'react'
 import { cloneElement } from 'react'
 
-export type DrawerOpenProps = {
+export type DrawerTriggerProps = {
 	children: ReactElement<{ onClick?: MouseEventHandler }>
 	onClick?: () => void
 }
 
-export function DrawerOpen({ children, onClick }: DrawerOpenProps) {
+export function DrawerTrigger({ children, onClick }: DrawerTriggerProps) {
 	return cloneElement(children, {
 		onClick: (e: MouseEvent) => {
 			children.props.onClick?.(e)

@@ -23,7 +23,7 @@ export function AccordionPanel({ className, children }: AccordionPanelProps) {
 						data-slot="accordion-panel"
 						id={`accordion-panel-${value}`}
 						role="region"
-						aria-labelledby={`accordion-button-${value}`}
+						aria-labelledby={`accordion-trigger-${value}`}
 						initial={{ height: 0, opacity: 0 }}
 						animate={{ height: 'auto', opacity: 1 }}
 						exit={{ height: 0, opacity: 0 }}

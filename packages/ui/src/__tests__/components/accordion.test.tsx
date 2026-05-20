@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
 import {
 	Accordion,
-	AccordionButton,
 	AccordionItem,
 	AccordionPanel,
+	AccordionTrigger,
 } from '../../components/accordion'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
@@ -12,7 +12,7 @@ describe('Accordion', () => {
 		const { container } = renderUI(
 			<Accordion>
 				<AccordionItem value="a">
-					<AccordionButton>Toggle</AccordionButton>
+					<AccordionTrigger>Toggle</AccordionTrigger>
 					<AccordionPanel>Content</AccordionPanel>
 				</AccordionItem>
 			</Accordion>,
@@ -29,7 +29,7 @@ describe('Accordion', () => {
 		const { container } = renderUI(
 			<Accordion className="custom">
 				<AccordionItem value="a">
-					<AccordionButton>Toggle</AccordionButton>
+					<AccordionTrigger>Toggle</AccordionTrigger>
 					<AccordionPanel>Content</AccordionPanel>
 				</AccordionItem>
 			</Accordion>,
@@ -46,7 +46,7 @@ describe('AccordionItem', () => {
 		const { container } = renderUI(
 			<Accordion>
 				<AccordionItem value="a">
-					<AccordionButton>Toggle</AccordionButton>
+					<AccordionTrigger>Toggle</AccordionTrigger>
 					<AccordionPanel>Content</AccordionPanel>
 				</AccordionItem>
 			</Accordion>,
@@ -56,25 +56,25 @@ describe('AccordionItem', () => {
 	})
 })
 
-describe('AccordionButton', () => {
-	it('renders with data-slot="accordion-button"', () => {
+describe('AccordionTrigger', () => {
+	it('renders with data-slot="accordion-trigger"', () => {
 		const { container } = renderUI(
 			<Accordion>
 				<AccordionItem value="a">
-					<AccordionButton>Toggle</AccordionButton>
+					<AccordionTrigger>Toggle</AccordionTrigger>
 					<AccordionPanel>Content</AccordionPanel>
 				</AccordionItem>
 			</Accordion>,
 		)
 
-		expect(bySlot(container, 'accordion-button')).toBeInTheDocument()
+		expect(bySlot(container, 'accordion-trigger')).toBeInTheDocument()
 	})
 
 	it('renders children', () => {
 		renderUI(
 			<Accordion>
 				<AccordionItem value="a">
-					<AccordionButton>Toggle Me</AccordionButton>
+					<AccordionTrigger>Toggle Me</AccordionTrigger>
 					<AccordionPanel>Content</AccordionPanel>
 				</AccordionItem>
 			</Accordion>,
@@ -89,7 +89,7 @@ describe('AccordionPanel', () => {
 		renderUI(
 			<Accordion defaultValue="a">
 				<AccordionItem value="a">
-					<AccordionButton>Toggle</AccordionButton>
+					<AccordionTrigger>Toggle</AccordionTrigger>
 					<AccordionPanel>Panel Content</AccordionPanel>
 				</AccordionItem>
 			</Accordion>,
@@ -104,7 +104,7 @@ describe('Accordion single-select behavior', () => {
 		renderUI(
 			<Accordion>
 				<AccordionItem value="a">
-					<AccordionButton>Open A</AccordionButton>
+					<AccordionTrigger>Open A</AccordionTrigger>
 					<AccordionPanel>Panel A</AccordionPanel>
 				</AccordionItem>
 			</Accordion>,
@@ -121,7 +121,7 @@ describe('Accordion single-select behavior', () => {
 		renderUI(
 			<Accordion defaultValue="a" onValueChange={onValueChange}>
 				<AccordionItem value="a">
-					<AccordionButton>Toggle A</AccordionButton>
+					<AccordionTrigger>Toggle A</AccordionTrigger>
 					<AccordionPanel>Panel A</AccordionPanel>
 				</AccordionItem>
 			</Accordion>,
@@ -138,7 +138,7 @@ describe('Accordion single-select behavior', () => {
 		renderUI(
 			<Accordion defaultValue="a" collapsible={false} onValueChange={onValueChange}>
 				<AccordionItem value="a">
-					<AccordionButton>Toggle A</AccordionButton>
+					<AccordionTrigger>Toggle A</AccordionTrigger>
 					<AccordionPanel>Panel A</AccordionPanel>
 				</AccordionItem>
 			</Accordion>,
@@ -155,11 +155,11 @@ describe('Accordion single-select behavior', () => {
 		renderUI(
 			<Accordion defaultValue="a" onValueChange={onValueChange}>
 				<AccordionItem value="a">
-					<AccordionButton>A</AccordionButton>
+					<AccordionTrigger>A</AccordionTrigger>
 					<AccordionPanel>Panel A</AccordionPanel>
 				</AccordionItem>
 				<AccordionItem value="b">
-					<AccordionButton>B</AccordionButton>
+					<AccordionTrigger>B</AccordionTrigger>
 					<AccordionPanel>Panel B</AccordionPanel>
 				</AccordionItem>
 			</Accordion>,
@@ -176,7 +176,7 @@ describe('Accordion single-select behavior', () => {
 		renderUI(
 			<Accordion value="a" onValueChange={onValueChange}>
 				<AccordionItem value="a">
-					<AccordionButton>A</AccordionButton>
+					<AccordionTrigger>A</AccordionTrigger>
 					<AccordionPanel>Panel A</AccordionPanel>
 				</AccordionItem>
 			</Accordion>,
@@ -189,7 +189,7 @@ describe('Accordion single-select behavior', () => {
 		renderUI(
 			<Accordion value={null}>
 				<AccordionItem value="a">
-					<AccordionButton>A</AccordionButton>
+					<AccordionTrigger>A</AccordionTrigger>
 					<AccordionPanel>Panel A</AccordionPanel>
 				</AccordionItem>
 			</Accordion>,
@@ -206,11 +206,11 @@ describe('Accordion multiple-select behavior', () => {
 		renderUI(
 			<Accordion type="multiple" defaultValue={['a']} onValueChange={onValueChange}>
 				<AccordionItem value="a">
-					<AccordionButton>A</AccordionButton>
+					<AccordionTrigger>A</AccordionTrigger>
 					<AccordionPanel>Panel A</AccordionPanel>
 				</AccordionItem>
 				<AccordionItem value="b">
-					<AccordionButton>B</AccordionButton>
+					<AccordionTrigger>B</AccordionTrigger>
 					<AccordionPanel>Panel B</AccordionPanel>
 				</AccordionItem>
 			</Accordion>,
@@ -229,11 +229,11 @@ describe('Accordion multiple-select behavior', () => {
 		renderUI(
 			<Accordion type="multiple" defaultValue={['a', 'b']} onValueChange={onValueChange}>
 				<AccordionItem value="a">
-					<AccordionButton>A</AccordionButton>
+					<AccordionTrigger>A</AccordionTrigger>
 					<AccordionPanel>Panel A</AccordionPanel>
 				</AccordionItem>
 				<AccordionItem value="b">
-					<AccordionButton>B</AccordionButton>
+					<AccordionTrigger>B</AccordionTrigger>
 					<AccordionPanel>Panel B</AccordionPanel>
 				</AccordionItem>
 			</Accordion>,
@@ -248,7 +248,7 @@ describe('Accordion multiple-select behavior', () => {
 		renderUI(
 			<Accordion type="multiple">
 				<AccordionItem value="a">
-					<AccordionButton>A</AccordionButton>
+					<AccordionTrigger>A</AccordionTrigger>
 					<AccordionPanel>Panel A</AccordionPanel>
 				</AccordionItem>
 			</Accordion>,
@@ -261,11 +261,11 @@ describe('Accordion multiple-select behavior', () => {
 		renderUI(
 			<Accordion type="multiple" value={['a', 'b']}>
 				<AccordionItem value="a">
-					<AccordionButton>A</AccordionButton>
+					<AccordionTrigger>A</AccordionTrigger>
 					<AccordionPanel>Panel A</AccordionPanel>
 				</AccordionItem>
 				<AccordionItem value="b">
-					<AccordionButton>B</AccordionButton>
+					<AccordionTrigger>B</AccordionTrigger>
 					<AccordionPanel>Panel B</AccordionPanel>
 				</AccordionItem>
 			</Accordion>,
@@ -277,12 +277,12 @@ describe('Accordion multiple-select behavior', () => {
 	})
 })
 
-describe('AccordionButton render-prop child', () => {
+describe('AccordionTrigger render-prop child', () => {
 	it('invokes a function child with the current open state', () => {
 		renderUI(
 			<Accordion defaultValue="a">
 				<AccordionItem value="a">
-					<AccordionButton>{({ open }) => (open ? 'Open!' : 'Closed')}</AccordionButton>
+					<AccordionTrigger>{({ open }) => (open ? 'Open!' : 'Closed')}</AccordionTrigger>
 					<AccordionPanel>Body</AccordionPanel>
 				</AccordionItem>
 			</Accordion>,
@@ -295,7 +295,7 @@ describe('AccordionButton render-prop child', () => {
 		renderUI(
 			<Accordion>
 				<AccordionItem value="a">
-					<AccordionButton>{({ open }) => (open ? 'Open!' : 'Closed')}</AccordionButton>
+					<AccordionTrigger>{({ open }) => (open ? 'Open!' : 'Closed')}</AccordionTrigger>
 					<AccordionPanel>Body</AccordionPanel>
 				</AccordionItem>
 			</Accordion>,

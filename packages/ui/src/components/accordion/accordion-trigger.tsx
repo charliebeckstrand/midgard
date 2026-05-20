@@ -7,23 +7,23 @@ import { k } from '../../recipes/kata/accordion'
 import { Icon } from '../icon'
 import { useAccordionItem } from './context'
 
-export type AccordionButtonProps = Omit<ComponentPropsWithoutRef<'button'>, 'children'> & {
+export type AccordionTriggerProps = Omit<ComponentPropsWithoutRef<'button'>, 'children'> & {
 	children: ReactNode | ((bag: { open: boolean }) => ReactNode)
 }
 
-export function AccordionButton({ className, children, ...props }: AccordionButtonProps) {
+export function AccordionTrigger({ className, children, ...props }: AccordionTriggerProps) {
 	const { open, toggle, disabled, value } = useAccordionItem()
 
 	return (
 		<button
 			type="button"
-			data-slot="accordion-button"
+			data-slot="accordion-trigger"
 			aria-expanded={open}
 			aria-controls={`accordion-panel-${value}`}
-			id={`accordion-button-${value}`}
+			id={`accordion-trigger-${value}`}
 			disabled={disabled}
 			onClick={toggle}
-			className={cn(k.button, className)}
+			className={cn(k.trigger, className)}
 			{...props}
 		>
 			<span className="flex-1">
