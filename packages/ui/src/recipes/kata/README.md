@@ -7,20 +7,22 @@ Per-component recipes. One file per `src/components/<name>/`.
 `kata/` is internal — omitted from `package.json` `exports` and not
 re-exported from `src/recipes/index.ts`. Components consume kata via
 relative path: `from '../../recipes/kata/<name>'`. A kata composes
-freely from `ryu/` and `waku/`; sideways composition between kata is
-forbidden — shared concerns are promoted to `waku/` instead. The
-contract is pinned by
+freely from the substrate (`core/recipe/substrate`) and `waku/`;
+sideways composition between kata is forbidden — shared concerns are
+promoted to `waku/` instead. The contract is pinned by
 `src/__tests__/recipes/internal-boundary.test.ts`.
 
 ## Shape
 
-Every kata file ends in one of two exports:
+Every kata exports the recipe as `k`, built via `defineRecipe(...)`
+from `core/recipe`. The kata's `defaults` resolves `size` from any
+enclosing Density context. Slots merge into the recipe via the
+`slots:` field; consumers access them as direct properties (e.g.
+`k.title`).
 
-- A `tv()` call producing a variants-aware recipe. The kata's
-  `defaultVariants` resolves `size` from any enclosing Density
-  context.
-- A plain slots object — `{ root: '...', label: '...', … }` — when the
-  component has no variants.
+Sub-recipes that aren't the primary entry-point get named exports
+alongside `k` (`item`, `bubble`, `track`, …). Plain-data kata that
+don't need variants export `k` as an object literal.
 
 Filenames are `<name>.ts`, matching the component folder name.
 
@@ -42,7 +44,8 @@ format and slot inventory.
 ## Rules
 
 - **Compose, don't redefine.** A kata that reinvents a recipe already
-  in `ryu/` or `waku/` is a defect — fold it into the existing module.
+  in the substrate or `waku/` is a defect — fold it into the existing
+  module.
 - **No sideways imports.** If two kata need the same fragment, promote
   the shared concern to `waku/`.
 - **Variants earn their axis.** Add a variant axis when ≥2 components

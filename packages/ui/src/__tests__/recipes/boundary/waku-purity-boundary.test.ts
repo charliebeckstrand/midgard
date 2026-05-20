@@ -4,10 +4,10 @@ import { describe, expect, it } from 'vitest'
 
 // waku/ holds compound chrome shared by ≥2 components — control, popover,
 // option, panel, kasane. It sits below the component surface and must stay
-// there: waku may compose ryu and other waku, but a waku module reaching up
-// into components, layouts, primitives, hooks, or providers would invert the
-// dependency direction and pull stateful React or component context into the
-// recipe layer.
+// there: waku may compose the substrate and other waku, but a waku module
+// reaching up into components, layouts, primitives, hooks, or providers
+// would invert the dependency direction and pull stateful React or component
+// context into the recipe layer.
 //
 // The internal consumers of each waku module are documented per-module in
 // recipes/waku/README.md; pinning that richer contract statically would

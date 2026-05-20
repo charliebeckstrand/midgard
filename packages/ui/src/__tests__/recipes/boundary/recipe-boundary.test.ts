@@ -2,10 +2,9 @@ import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-// `ryu/` is the public substrate scale layer (re-exported from
-// src/recipes/index.ts). `kata/` and `waku/` are internal-only — see the
-// header in src/recipes/index.ts for the full contract. This test pins the
-// three boundaries that keep them internal:
+// `kata/` and `waku/` are internal-only — see the header in
+// src/recipes/index.ts for the full contract. This test pins the three
+// boundaries that keep them internal:
 //
 //   1. package.json `exports` never lists ./recipes or ./recipes/*.
 //   2. The recipes barrel never re-exports anything from kata/ or waku/.
