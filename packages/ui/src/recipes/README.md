@@ -9,5 +9,6 @@ rather than reinventing them.
 | [Genkei 原型 - Archetypes](./genkei/README.md) | Multi-element archetypes shared by ≥2 kata. Internal.   |
 | [Kata 型 - Forms](./kata/README.md)            | Per-component recipes built on the engine. Internal.    |
 
-The recipe engine (`defineRecipe`, `palette`, `merge`) lives in
-[`core/recipe/`](../core/recipe) and is re-exported from this barrel.
+The recipe engine (`defineRecipe`, `palette`, `merge`), the colour axis
+(`colors`, `Color`), and the `mode` / `shades` authoring helpers live in
+[`core/recipe/`](../core/recipe) and are re-exported from this barrel.
