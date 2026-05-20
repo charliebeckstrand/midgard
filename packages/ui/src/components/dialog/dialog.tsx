@@ -18,6 +18,10 @@ export type DialogProps = DialogPanelVariants & {
 	glass?: boolean
 	className?: string
 	children: ReactNode
+	/** Accessible name when no `<DialogTitle>` is rendered. */
+	'aria-label'?: string
+	/** Accessible name reference when no `<DialogTitle>` is rendered. */
+	'aria-labelledby'?: string
 }
 
 const alignClasses = {
@@ -35,12 +39,14 @@ export function Dialog({
 	glass,
 	className,
 	children,
+	'aria-label': ariaLabel,
+	'aria-labelledby': ariaLabelledBy,
 }: DialogProps) {
 	const resolvedSurface = useResolvedSurface(surface, glass)
 
 	const isDesktop = useMinWidth(640)
 
-	const { panelAriaProps, providerValue } = usePanelA11yScope()
+	const { panelAriaProps, providerValue } = usePanelA11yScope({ ariaLabel, ariaLabelledBy })
 
 	return (
 		<Overlay

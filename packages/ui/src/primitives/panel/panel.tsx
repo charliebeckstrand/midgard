@@ -48,14 +48,23 @@ function useDescriptionRegistration() {
 	return { hasDescription, registerDescription }
 }
 
+export type PanelA11yScopeOptions = {
+	/** Used as `aria-label` only when no Title slot registers and no `ariaLabelledBy` is provided. */
+	ariaLabel?: string
+	/** External label reference; used as `aria-labelledby` only when no Title slot registers. */
+	ariaLabelledBy?: string
+}
+
 /**
  * Sets up the a11y scaffolding required by modal panel roots (dialog, drawer, sheet):
  * generates title/description ids, tracks whether Title / Description slots are
  * rendered, and returns ready-to-spread ARIA props and a memoized provider value.
- * `aria-labelledby` / `aria-describedby` are only set once the matching slot has
- * registered, so the dialog never references a non-existent id.
+ * Precedence for the dialog's accessible name: Title slot (if registered) →
+ * `ariaLabelledBy` → `ariaLabel`. `aria-labelledby` / `aria-describedby` are only
+ * set once the matching slot has registered, so the dialog never references a
+ * non-existent id.
  */
-export function usePanelA11yScope() {
+export function usePanelA11yScope({ ariaLabel, ariaLabelledBy }: PanelA11yScopeOptions = {}) {
 	const scope = useIdScope()
 
 	const titleId = scope.sub('title')
@@ -67,7 +76,8 @@ export function usePanelA11yScope() {
 	const panelAriaProps = {
 		role: 'dialog' as const,
 		'aria-modal': true,
-		'aria-labelledby': hasTitle ? titleId : undefined,
+		'aria-label': hasTitle || ariaLabelledBy ? undefined : ariaLabel,
+		'aria-labelledby': hasTitle ? titleId : ariaLabelledBy,
 		'aria-describedby': hasDescription ? descriptionId : undefined,
 	}
 

@@ -32,6 +32,10 @@ export type DrawerProps = DrawerPanelVariants & {
 	glass?: boolean
 	className?: string
 	children: ReactNode
+	/** Accessible name when no `<DrawerTitle>` is rendered. */
+	'aria-label'?: string
+	/** Accessible name reference when no `<DrawerTitle>` is rendered. */
+	'aria-labelledby'?: string
 }
 
 export function Drawer({
@@ -42,10 +46,12 @@ export function Drawer({
 	glass,
 	className,
 	children,
+	'aria-label': ariaLabel,
+	'aria-labelledby': ariaLabelledBy,
 }: DrawerProps) {
 	const resolvedSurface = useResolvedSurface(surface, glass)
 
-	const { panelAriaProps, providerValue } = usePanelA11yScope()
+	const { panelAriaProps, providerValue } = usePanelA11yScope({ ariaLabel, ariaLabelledBy })
 
 	const inherited = useDensity()
 

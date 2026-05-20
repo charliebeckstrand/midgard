@@ -29,6 +29,10 @@ export type SheetProps = SheetPanelVariants & {
 	container?: HTMLElement | null
 	/** Element to receive initial focus when the sheet opens. Defaults to the first tabbable child. */
 	initialFocus?: RefObject<HTMLElement | null>
+	/** Accessible name when no `<SheetTitle>` is rendered. */
+	'aria-label'?: string
+	/** Accessible name reference when no `<SheetTitle>` is rendered. */
+	'aria-labelledby'?: string
 }
 
 export function Sheet({
@@ -42,12 +46,14 @@ export function Sheet({
 	children,
 	container,
 	initialFocus,
+	'aria-label': ariaLabel,
+	'aria-labelledby': ariaLabelledBy,
 }: SheetProps) {
 	const resolvedSide = side ?? 'right'
 
 	const resolvedSurface = useResolvedSurface(surface, glass)
 
-	const { panelAriaProps, providerValue } = usePanelA11yScope()
+	const { panelAriaProps, providerValue } = usePanelA11yScope({ ariaLabel, ariaLabelledBy })
 
 	const close = useCallback(() => onOpenChange(false), [onOpenChange])
 
