@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { DensityScope } from '../../primitives/density'
-import { k } from '../../recipes/kata/avatar'
+import { group } from '../../recipes/kata/avatar'
 import type { Step } from '../../recipes/ryu/sun'
 import { Avatar } from './avatar'
 
@@ -17,7 +17,7 @@ export function AvatarGroup({ extra, size = 'md', className, children }: AvatarG
 		<DensityScope scale={size}>
 			<div
 				data-slot="avatar-group"
-				className={cn(k.group.base, k.group.ring, k.group.spacing[size], className)}
+				className={cn(group.base, group.ring, group.spacing[size], className)}
 			>
 				{children}
 				{extra != null && extra > 0 && <Avatar size={size} initials={`+${extra}`} />}
