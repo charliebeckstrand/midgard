@@ -55,6 +55,8 @@ export function CommandPaletteItem(props: CommandPaletteItemProps) {
 		return (
 			<Link
 				role="option"
+				aria-selected={false}
+				aria-disabled={disabled || undefined}
 				tabIndex={-1}
 				data-slot="command-palette-item"
 				data-disabled={disabled ? '' : undefined}
@@ -80,6 +82,8 @@ export function CommandPaletteItem(props: CommandPaletteItemProps) {
 		<button
 			type="button"
 			role="option"
+			aria-selected={false}
+			aria-disabled={disabled || undefined}
 			tabIndex={-1}
 			data-slot="command-palette-item"
 			data-disabled={disabled ? '' : undefined}
