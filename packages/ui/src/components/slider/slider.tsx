@@ -37,7 +37,7 @@ export function Slider({
 	const [internal, setInternal] = useControllable<number>({
 		value,
 		defaultValue: defaultValue ?? min,
-		onChange: (next) => {
+		onValueChange: (next) => {
 			if (next !== undefined) onValueChange?.(next)
 		},
 	})

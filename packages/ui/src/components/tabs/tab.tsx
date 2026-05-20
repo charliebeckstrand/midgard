@@ -48,7 +48,7 @@ export function Tab({
 		onClick?.(e)
 
 		if (value !== undefined) {
-			context?.onChange?.(value)
+			context?.onValueChange?.(value)
 		}
 	}
 

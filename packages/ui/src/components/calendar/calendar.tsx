@@ -101,7 +101,7 @@ export function Calendar({
 	const [value, setValue] = useControllable({
 		value: valueProp,
 		defaultValue,
-		onChange: handleValueChange,
+		onValueChange: handleValueChange,
 	})
 
 	const today = useMemo(() => new Date(), [])

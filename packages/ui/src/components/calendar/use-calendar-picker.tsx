@@ -63,7 +63,7 @@ export function useCalendarPicker({
 	const [pickerOpen, setPickerOpen] = useControllable({
 		value: openProp,
 		defaultValue: false,
-		onChange: handleOpenChange,
+		onValueChange: handleOpenChange,
 	})
 
 	const [state, dispatch] = useReducer(calendarPickerReducer, year, initialCalendarPickerState)

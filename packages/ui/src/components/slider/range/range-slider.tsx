@@ -51,7 +51,7 @@ export function RangeSlider({
 	const [range, setRange] = useControllable<[number, number]>({
 		value,
 		defaultValue: defaultValue ?? [min, max],
-		onChange: onValueChange
+		onValueChange: onValueChange
 			? (v) => {
 					if (v !== undefined) onValueChange(v)
 				}

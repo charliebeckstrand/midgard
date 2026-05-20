@@ -34,7 +34,7 @@ export function SegmentItem({ value, disabled, className, children }: SegmentIte
 				aria-checked={current}
 				disabled={disabled}
 				tabIndex={current ? 0 : -1}
-				onClick={() => currentContext?.onChange?.(value)}
+				onClick={() => currentContext?.onValueChange?.(value)}
 				className={cn(segmentItemVariants({ size }), 'relative z-1', className)}
 			>
 				{children}

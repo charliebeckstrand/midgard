@@ -28,7 +28,7 @@ export function useDataTableSelection({
 	const [selectionRaw, setSelectionRaw] = useControllable<Set<string | number>>({
 		value: selectionConfig?.value,
 		defaultValue: selectionConfig?.defaultValue ?? new Set(),
-		onChange: selectionConfig?.onValueChange,
+		onValueChange: selectionConfig?.onValueChange,
 	})
 
 	const selection = selectionRaw ?? new Set<string | number>()

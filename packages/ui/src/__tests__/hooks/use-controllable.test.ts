@@ -25,16 +25,16 @@ describe('useControllable', () => {
 		expect(result.current[0]).toBe(42)
 	})
 
-	it('calls onChange when value is set in uncontrolled mode', () => {
-		const onChange = vi.fn()
+	it('calls onValueChange when value is set in uncontrolled mode', () => {
+		const onValueChange = vi.fn()
 
-		const { result } = renderHook(() => useControllable({ defaultValue: 'a', onChange }))
+		const { result } = renderHook(() => useControllable({ defaultValue: 'a', onValueChange }))
 
 		act(() => {
 			result.current[1]('b')
 		})
 
-		expect(onChange).toHaveBeenCalledWith('b')
+		expect(onValueChange).toHaveBeenCalledWith('b')
 	})
 
 	it('uses the provided value in controlled mode', () => {
@@ -54,16 +54,16 @@ describe('useControllable', () => {
 		expect(result.current[0]).toBe('locked')
 	})
 
-	it('calls onChange in controlled mode', () => {
-		const onChange = vi.fn()
+	it('calls onValueChange in controlled mode', () => {
+		const onValueChange = vi.fn()
 
-		const { result } = renderHook(() => useControllable({ value: 'a', onChange }))
+		const { result } = renderHook(() => useControllable({ value: 'a', onValueChange }))
 
 		act(() => {
 			result.current[1]('b')
 		})
 
-		expect(onChange).toHaveBeenCalledWith('b')
+		expect(onValueChange).toHaveBeenCalledWith('b')
 	})
 
 	it('treats null value as controlled with undefined result', () => {

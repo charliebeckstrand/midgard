@@ -48,7 +48,7 @@ export function useDataTableColumns<T>({
 	const [columnOrder = defaultOrder, setColumnOrder] = useControllable<(string | number)[]>({
 		value: columnManagerConfig?.order,
 		defaultValue: columnManagerConfig?.defaultOrder ?? defaultOrder,
-		onChange: (next) => columnManagerConfig?.onOrderChange?.(next ?? []),
+		onValueChange: (next) => columnManagerConfig?.onOrderChange?.(next ?? []),
 	})
 
 	const [
@@ -57,7 +57,8 @@ export function useDataTableColumns<T>({
 	] = useControllable<Set<string | number>>({
 		value: columnManagerConfig?.hidden,
 		defaultValue: columnManagerConfig?.defaultHidden ?? new Set<string | number>(),
-		onChange: (next) => columnManagerConfig?.onHiddenChange?.(next ?? new Set<string | number>()),
+		onValueChange: (next) =>
+			columnManagerConfig?.onHiddenChange?.(next ?? new Set<string | number>()),
 	})
 
 	const manageColumns = columnManagerConfig?.enabled ?? false

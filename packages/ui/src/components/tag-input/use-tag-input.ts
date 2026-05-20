@@ -22,7 +22,7 @@ export function useTagInput({
 	const [tags = [], setTags] = useControllable<string[]>({
 		value,
 		defaultValue: defaultValue ?? [],
-		onChange: onValueChange,
+		onValueChange,
 	})
 
 	const atMax = max !== undefined && tags.length >= max

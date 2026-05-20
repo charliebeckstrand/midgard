@@ -48,7 +48,7 @@ export function NumberInput({
 	const [current, setCurrent] = useControllable<number>({
 		value: field ? (field.value as number) : value,
 		defaultValue,
-		onChange: field
+		onValueChange: field
 			? (v) => {
 					field.setValue(v)
 					onValueChange?.(v)

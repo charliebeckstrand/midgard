@@ -51,7 +51,7 @@ export function DataTableColumnManager({
 	const [order = fallbackOrder, setOrder] = useControllable<(string | number)[]>({
 		value: orderProp,
 		defaultValue: defaultOrder ?? fallbackOrder,
-		onChange: (next) => onOrderChange?.(next ?? []),
+		onValueChange: (next) => onOrderChange?.(next ?? []),
 	})
 
 	const [hidden = defaultHidden ?? new Set<string | number>(), setHidden] = useControllable<
@@ -59,7 +59,7 @@ export function DataTableColumnManager({
 	>({
 		value: hiddenProp,
 		defaultValue: defaultHidden ?? new Set<string | number>(),
-		onChange: (next) => onHiddenChange?.(next ?? new Set<string | number>()),
+		onValueChange: (next) => onHiddenChange?.(next ?? new Set<string | number>()),
 	})
 
 	const byId = useMemo(() => {

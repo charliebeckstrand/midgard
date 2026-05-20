@@ -35,7 +35,7 @@ export function BottomNavItem({
 		onClick?.(e as MouseEvent<HTMLButtonElement> & MouseEvent<HTMLAnchorElement>)
 
 		if (value !== undefined) {
-			context?.onChange?.(value)
+			context?.onValueChange?.(value)
 		}
 	}
 

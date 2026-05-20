@@ -50,7 +50,7 @@ export function CurrencyInput({
 	const [num, setNum] = useControllable<number>({
 		value,
 		defaultValue,
-		onChange: onValueChange,
+		onValueChange,
 	})
 
 	const { displayFormatter, symbol, symbolIsPrefix, group, decimal, maxFractionDigits } =

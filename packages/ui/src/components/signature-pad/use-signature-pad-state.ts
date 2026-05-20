@@ -36,7 +36,7 @@ export function useSignaturePadState({
 	const [current, setCurrent] = useControllable<string | null>({
 		value,
 		defaultValue: defaultValue ?? null,
-		onChange: onValueChange ? (next) => onValueChange(next ?? null) : undefined,
+		onValueChange: onValueChange ? (next) => onValueChange(next ?? null) : undefined,
 	})
 
 	const canvasRef = useRef<HTMLCanvasElement>(null)

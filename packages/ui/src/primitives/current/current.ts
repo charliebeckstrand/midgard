@@ -6,7 +6,7 @@ import { useControllable } from '../../hooks'
 
 export type CurrentContextValue = {
 	value: string | undefined
-	onChange: ((value: string) => void) | undefined
+	onValueChange: ((value: string) => void) | undefined
 }
 
 /**
@@ -23,15 +23,15 @@ export const [CurrentProvider, useCurrent] = createContext<CurrentContextValue |
 export function useCurrentState(props: {
 	value?: string
 	defaultValue?: string
-	onChange?: (value: string | undefined) => void
+	onValueChange?: (value: string | undefined) => void
 }): CurrentContextValue {
 	const [value, setValue] = useControllable({
 		value: props.value,
 		defaultValue: props.defaultValue,
-		onChange: props.onChange,
+		onValueChange: props.onValueChange,
 	})
 
-	return useMemo<CurrentContextValue>(() => ({ value, onChange: setValue }), [value, setValue])
+	return useMemo<CurrentContextValue>(() => ({ value, onValueChange: setValue }), [value, setValue])
 }
 
 /** Internal: signals to `CurrentContent` that its `CurrentContents` parent is animating height. */

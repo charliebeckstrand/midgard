@@ -103,7 +103,7 @@ export function Listbox<T>({
 	const [value, setValue] = useControllable<T | T[]>({
 		value: valueProp,
 		defaultValue: defaultValue as T | T[] | undefined,
-		onChange: handleValueChange,
+		onValueChange: handleValueChange,
 	})
 
 	const listboxId = useId()

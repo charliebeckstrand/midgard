@@ -27,7 +27,7 @@ export function useDatePickerState({
 	const [value, setValue] = useControllable({
 		value: valueProp,
 		defaultValue,
-		onChange: onValueChange,
+		onValueChange,
 	})
 
 	const [open, setOpen] = useState(false)

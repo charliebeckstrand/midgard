@@ -30,7 +30,7 @@ export function usePdfViewerPagination(input: UsePdfPaginationOptions): UsePdfPa
 	const [currentPage = defaultPage, setCurrentPage] = useControllable<number>({
 		value: page,
 		defaultValue: defaultPage,
-		onChange: (next) => {
+		onValueChange: (next) => {
 			if (next !== undefined) onPageChange?.(next)
 		},
 	})

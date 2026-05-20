@@ -8,14 +8,14 @@ export type UseControllableOptions<T> = {
 	/** Controlled value. `undefined` leaves the hook uncontrolled; pass `null` to stay controlled with no current value. */
 	value?: T | null
 	defaultValue?: T
-	onChange?: (value: T | undefined) => void
+	onValueChange?: (value: T | undefined) => void
 }
 
 /** Manages controlled / uncontrolled value state with a unified setter. */
 export function useControllable<T>({
 	value,
 	defaultValue,
-	onChange,
+	onValueChange,
 }: UseControllableOptions<T>): [T | undefined, (value: SetValue<T>) => void] {
 	const [internalValue, setInternalValue] = useState<T | undefined>(defaultValue)
 
@@ -27,9 +27,9 @@ export function useControllable<T>({
 
 	valueRef.current = currentValue
 
-	const onChangeRef = useRef(onChange)
+	const onValueChangeRef = useRef(onValueChange)
 
-	onChangeRef.current = onChange
+	onValueChangeRef.current = onValueChange
 
 	const setValue = useCallback((next: SetValue<T>) => {
 		const resolved =
@@ -39,7 +39,7 @@ export function useControllable<T>({
 
 		setInternalValue(resolved)
 
-		onChangeRef.current?.(resolved)
+		onValueChangeRef.current?.(resolved)
 	}, [])
 
 	return [currentValue, setValue]

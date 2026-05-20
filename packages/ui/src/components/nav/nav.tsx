@@ -10,7 +10,7 @@ export type NavProps = Omit<ComponentPropsWithoutRef<'nav'>, 'onChange'> & {
 
 export function Nav({ value, onValueChange, className, children, ...props }: NavProps) {
 	const context = useMemo<CurrentContextValue>(
-		() => ({ value, onChange: onValueChange }),
+		() => ({ value, onValueChange }),
 		[value, onValueChange],
 	)
 

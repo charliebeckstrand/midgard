@@ -70,7 +70,7 @@ export function Accordion(props: AccordionProps) {
 	const [current = [], setCurrent] = useControllable<string[]>({
 		value: controlledValue,
 		defaultValue,
-		onChange: onControllableChange,
+		onValueChange: onControllableChange,
 	})
 
 	const isOpen = useCallback((value: string) => current.includes(value), [current])

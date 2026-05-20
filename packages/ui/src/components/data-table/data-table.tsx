@@ -128,7 +128,7 @@ export function DataTable<T>({
 	const [sort, setSort] = useControllable<SortState>({
 		value: sortConfig?.value,
 		defaultValue: sortConfig?.defaultValue,
-		onChange: sortConfig?.onValueChange,
+		onValueChange: sortConfig?.onValueChange,
 	})
 
 	const batchActions = selectionConfig?.batchActions
