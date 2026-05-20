@@ -8,9 +8,9 @@ type Slot = {
 type Base = { base: string | string[] }
 
 type PanelRecipeInput<P, B> = {
-	/** tv() result for the panel root element. Defines positioning, size, glass, etc. */
+	/** Recipe for the panel root element. Defines positioning, size, glass, etc. */
 	panel: P
-	/** tv() result for the backdrop. Present on modal variants (dialog, drawer, sheet). */
+	/** Recipe for the backdrop. Present on modal variants (dialog, drawer, sheet). */
 	backdrop?: B
 	/** Extra padding / layout for the Title slot. */
 	title?: Slot
@@ -34,12 +34,13 @@ function toArray(v?: string | string[]): string[] {
 /**
  * Factory for defining a panel recipe.
  *
- * The `panel` and (optional) `backdrop` slots are caller-supplied `tv()` results
- * — they carry real variants (size, surface, side) and stay callable so consumers
- * keep `VariantProps<typeof result.panel>` inference. The other slots (title,
- * description, header, body, actions, close) are zero-variant class fragments
- * built from `narabi.panel` plus optional caller-supplied extras; they are
- * returned as `string[]` and applied via `cn(...)` at the call site.
+ * The `panel` and (optional) `backdrop` slots are caller-supplied
+ * `defineRecipe(...)` results — they carry real variants (size, surface, side)
+ * and stay callable so consumers keep `VariantPropsOf<typeof result.panel>`
+ * inference. The other slots (title, description, header, body, actions,
+ * close) are zero-variant class fragments built from `narabi.panel` plus
+ * optional caller-supplied extras; they are returned as `string[]` and
+ * applied via `cn(...)` at the call site.
  */
 export function definePanelRecipe<P, B = undefined>(
 	input: PanelRecipeInput<P, B>,

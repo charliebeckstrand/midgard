@@ -12,14 +12,14 @@ path. The contract is pinned by
 ## Wire format
 
 Every waku export is a class fragment (`string[]`) or a map of
-fragments (`Record<string, string[]>`). **`tv()` is never invoked
+fragments (`Record<string, string[]>`). **`defineRecipe()` is never invoked
 inside waku** — it is called only at the kata public surface, where
 the variants axis is declared.
 
 A single wire format means any kata can compose any waku export
-without translating between fragment-arrays and `tv()`-callables. The
+without translating between fragment-arrays and `defineRecipe()`-callables. The
 panel family preserves `VariantProps<typeof X>` inference via the
-`definePanelRecipe` factory — callers pass their `tv()` results as
+`definePanelRecipe` factory — callers pass their `defineRecipe()` results as
 generics, and the factory forwards them unchanged while emitting
 fragments for the zero-variant slots.
 
@@ -30,7 +30,7 @@ fragments for the zero-variant slots.
 | `control` | Field archetype: frame + surface + field reset + size + icon + affix + resets + check. Composes `kasane` for the chrome.                                                                                                               | `input`, `textarea`, `listbox`, `combobox`, `date-picker`, `checkbox`, `radio`, `switch`, `ControlFrame`. |
 | `kasane`  | The signature 4-layer chrome (inset / hover / focus / validation rings).                                                                                                                                                               | `waku/control`, and any kata that wants the layered overlay.                                              |
 | `option`  | Option-row archetype — `base` (shared) + `size` map + `content` / `label` / `description` fragments for select-like rows.                                                                                                              | `primitives/option`, consumed by `combobox`, `listbox`, `select` via `createSelectOption`.                |
-| `panel`   | Floating panel archetype — a `definePanelRecipe` factory that builds title / description / header / body / actions / close slot recipes around the caller's `panel` (and optional `backdrop`) `tv()` recipes. Backed by `narabi.panel`. | `dialog`, `drawer`, `sheet`, `inspector`.                                                                 |
+| `panel`   | Floating panel archetype — a `definePanelRecipe` factory that builds title / description / header / body / actions / close slot recipes around the caller's `panel` (and optional `backdrop`) `defineRecipe()` recipes. Backed by `narabi.panel`. | `dialog`, `drawer`, `sheet`, `inspector`.                                                                 |
 | `popover` | Floating overlay archetype — shared `trigger` / `portal` / `panel` class fragments for any component that pops a floating panel anchored to a trigger.                                                                                 | `popover`, `combobox`, `listbox`, `date-picker`, `primitives/popover`.                                    |
 
 ## kasane (重ね) — the signature primitive

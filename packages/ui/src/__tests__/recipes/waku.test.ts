@@ -8,7 +8,7 @@ const wakuFiles = readdirSync(wakuDir).filter((f) => f.endsWith('.ts'))
 
 describe('waku wire-format contract', () => {
 	// Per packages/ui/src/recipes/waku/README.md, every waku export is a class
-	// fragment (`string[]`) or a map of fragments. `tv()` is invoked only at
+	// fragment (`string[]`) or a map of fragments. `defineRecipe()` is invoked only at
 	// the kata public surface so callers keep one wire format and recipes
 	// preserve `VariantProps<typeof X>` inference via passthrough generics.
 	it.each(wakuFiles)('%s does not import tv from tailwind-variants', (file) => {

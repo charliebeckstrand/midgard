@@ -5,7 +5,7 @@
  * `primitives/option`.
  *
  * Exposes plain class fragments (`string[]`) and a size-keyed fragment map.
- * Per the waku wire-format contract, `tv()` is invoked only at the kata
+ * Per the waku wire-format contract, `defineRecipe()` is invoked only at the kata
  * public surface; consumers compose these fragments into whatever shape
  * they need.
  *
