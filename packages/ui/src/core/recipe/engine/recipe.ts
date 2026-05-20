@@ -52,14 +52,22 @@ export function defineRecipe<C extends RecipeConfig>(config: C): Recipe<C> {
 	}
 
 	function recipe(props?: ComputedProps<C>): string {
-		const raw = { ...resolved.defaults, ...(props as Record<string, unknown>) }
-
-		// Coerce booleans and numbers to strings so callers can pass `soft: false`
-		// or `level: 1` against axes keyed by `'true'`/`'false'` or `'1'`/`'2'`.
+		// Merge defaults with non-undefined props only. Spreading raw props would
+		// let `color: undefined` (a destructured-but-unset prop on the consumer)
+		// clobber the default and skip compound rules that match on it.
 		const values: Record<string, string | undefined> = {}
 
-		for (const [key, value] of Object.entries(raw)) {
+		for (const [key, value] of Object.entries(resolved.defaults)) {
 			values[key] = value === undefined || value === null ? undefined : String(value)
+		}
+
+		if (props) {
+			for (const [key, value] of Object.entries(props as Record<string, unknown>)) {
+				if (value === undefined || value === null) continue
+				// Coerce booleans and numbers so callers can pass `soft: false` or
+				// `level: 1` against axes keyed by `'true'`/`'false'` or `'1'`/`'2'`.
+				values[key] = String(value)
+			}
 		}
 
 		const acc: ClassValue[] = [resolved.base]
