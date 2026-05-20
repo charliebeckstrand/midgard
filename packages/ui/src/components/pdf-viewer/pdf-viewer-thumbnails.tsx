@@ -12,7 +12,7 @@ import { Sheet, SheetBody, SheetTitle } from '../sheet'
 import { usePdfViewerContext } from './context'
 
 export function PdfViewerThumbnails() {
-	const { pages, safePage, goToPage, isLoading, isDesktop, thumbsOpen, setThumbsOpen, rootRef } =
+	const { pages, safePage, goToPage, loading, isDesktop, thumbsOpen, setThumbsOpen, rootRef } =
 		usePdfViewerContext()
 
 	const scrollActiveIntoView = useScrollWithin()
@@ -44,7 +44,7 @@ export function PdfViewerThumbnails() {
 			data-slot="pdf-viewer-thumbnails"
 			className={cn(layout === 'grid' ? k.thumbnailsGrid : k.thumbnails)}
 		>
-			{isLoading && thumbnailList.length === 0
+			{loading && thumbnailList.length === 0
 				? ['a', 'b', 'c', 'd', 'e', 'f'].map((key) => (
 						<li key={`placeholder-${key}`}>
 							<span
@@ -94,7 +94,7 @@ export function PdfViewerThumbnails() {
 		</ul>
 	)
 
-	if (pages.length === 0 && !isLoading) return null
+	if (pages.length === 0 && !loading) return null
 
 	return (
 		<>

@@ -35,7 +35,7 @@ export type UsePdfViewerResult = {
 	scale: UsePageScaleResult
 	documentSrc: string | undefined
 	filename: string | undefined
-	isLoading: boolean
+	loading: boolean
 	error: Error | null
 	isDesktop: boolean
 	thumbsOpen: boolean
@@ -62,7 +62,7 @@ export function usePdfViewer({
 	const {
 		pages: loadedPages,
 		documentUrl,
-		isLoading,
+		loading,
 		error,
 	} = usePdfViewerDocument(shouldLoadFromSrc ? src : undefined)
 
@@ -125,7 +125,7 @@ export function usePdfViewer({
 		scale,
 		documentSrc,
 		filename,
-		isLoading,
+		loading,
 		error,
 		isDesktop,
 		thumbsOpen,
