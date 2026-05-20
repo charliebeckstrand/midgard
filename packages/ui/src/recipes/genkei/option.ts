@@ -12,13 +12,13 @@
  * Layer: genkei · Concern: option-row archetype
  */
 
-import { iro, ji, narabi, sawari } from '../../core/recipe'
+import { hannou, iro, ji, narabi } from '../../core/recipe'
 
 const base = [
 	'group/option grid w-full items-baseline',
 	'grid-cols-[1fr_--spacing(5)] sm:grid-cols-[1fr_--spacing(4)]',
 	'rounded-lg',
-	...sawari.item,
+	...hannou.item,
 	'data-active:bg-zinc-950/5',
 	'dark:data-active:bg-white/5',
 	'group-data-editing/combobox:only-of-type:bg-zinc-950/5',

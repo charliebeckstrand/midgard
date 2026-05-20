@@ -1,4 +1,4 @@
-import { ji, sawari } from '../../core/recipe'
+import { hannou, ji } from '../../core/recipe'
 
 export const k = {
 	list: {
@@ -11,8 +11,8 @@ export const k = {
 	item: [
 		'group relative flex w-full items-center',
 		'p-2',
-		...sawari.nav,
-		...sawari.cursor,
+		...hannou.nav,
+		...hannou.cursor,
 		'gap-sm',
 		ji.size.md,
 		'text-left font-medium',

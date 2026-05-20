@@ -1,4 +1,4 @@
-import { defineRecipe, ji, omote, sawari, sen, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, hannou, ji, omote, sen, type VariantPropsOf } from '../../core/recipe'
 
 const control = defineRecipe({
 	base: ['inline-flex items-center', 'rounded-lg', ...omote.tint],
@@ -18,8 +18,8 @@ const item = defineRecipe({
 		'rounded-lg',
 		sen.focus.indicator,
 		sen.focus.ring,
-		...sawari.disabled,
-		...sawari.cursor,
+		...hannou.disabled,
+		...hannou.cursor,
 		'outline-none',
 	],
 	size: {

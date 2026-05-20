@@ -1,4 +1,4 @@
-import { defineRecipe, iro, sawari, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, hannou, iro, type VariantPropsOf } from '../../core/recipe'
 import { control } from '../genkei/control'
 
 const button = defineRecipe({
@@ -8,7 +8,7 @@ const button = defineRecipe({
 		'text-left',
 		'rounded-lg',
 		'appearance-none',
-		...sawari.cursor,
+		...hannou.cursor,
 	],
 	density: control.density,
 	size: control.size,

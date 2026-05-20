@@ -1,4 +1,4 @@
-import { iro, ji, sawari, sen } from '../../core/recipe'
+import { hannou, iro, ji, sen } from '../../core/recipe'
 
 export const k = {
 	base: [
@@ -8,7 +8,7 @@ export const k = {
 		sen.border,
 		'rounded-lg',
 		sen.focus.ring,
-		sawari.disabled,
+		hannou.disabled,
 	],
 	canvas: ['block w-full h-full', 'cursor-crosshair touch-none select-none'],
 	placeholder: [

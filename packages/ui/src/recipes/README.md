@@ -8,6 +8,6 @@ don't reinvent them.
 | [Kata 型 - Forms](./kata/README.md)      | Per-component recipes built on the engine. Internal.    |
 | [Genkei 原型 - Archetypes](./genkei/README.md) | Multi-element archetypes shared by ≥2 kata. Internal. |
 
-The substrate (`kiso`: iro · ji · ma · narabi · omote · sawari · sen ·
-take · tsunagi · ugoki · kokkaku) and the recipe engine (`defineRecipe`,
+The substrate (`kiso`: iro · ji · ma · narabi · omote · hannou · sen ·
+shaku · tsunagi · ugoki · kokkaku) and the recipe engine (`defineRecipe`,
 `palette`) live alongside in [`core/recipe/`](../core/recipe).

@@ -1,4 +1,4 @@
-import { defineRecipe, iro, palette, take, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, iro, palette, shaku, type VariantPropsOf } from '../../core/recipe'
 
 const { solid, soft, outline } = iro.palette
 
@@ -13,7 +13,7 @@ export const k = defineRecipe({
 		soft: 'border border-transparent',
 		outline: 'border',
 	},
-	size: take.avatar,
+	size: shaku.avatar,
 	palette: palette({
 		solid: [solid.bg, solid.text],
 		soft: [soft.bg, soft.text],

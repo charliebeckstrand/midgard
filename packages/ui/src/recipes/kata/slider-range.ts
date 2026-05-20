@@ -1,7 +1,7 @@
-import { defineRecipe, sawari, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, hannou, type VariantPropsOf } from '../../core/recipe'
 
 const root = defineRecipe({
-	base: ['relative', 'w-full', ...sawari.cursor, 'select-none', 'touch-none', sawari.disabled],
+	base: ['relative', 'w-full', ...hannou.cursor, 'select-none', 'touch-none', hannou.disabled],
 	size: {
 		sm: 'py-3',
 		md: 'py-4',

@@ -8,7 +8,7 @@
  *   genkei/ — control primitives composed by panel-shaped kata (Dialog,
  *           Drawer, Sheet, etc.). Same internal status as kata.
  *
- * Substrate (iro / ji / ma / narabi / omote / sawari / sen / take / tsunagi /
+ * Substrate (iro / ji / ma / narabi / omote / hannou / sen / shaku / tsunagi /
  * ugoki / kokkaku) lives in `core/recipe/substrate/` alongside the engine
  * primitives. Re-exported here for callers that pull through the recipes
  * barrel.
@@ -19,15 +19,15 @@
  */
 
 export {
+	hannou,
 	iro,
 	ji,
 	kokkaku,
 	ma,
 	narabi,
 	omote,
-	sawari,
 	sen,
-	take,
+	shaku,
 	tsunagi,
 	ugoki,
 } from '../core/recipe'

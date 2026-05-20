@@ -1,4 +1,4 @@
-import { iro, ji, omote, sawari, sen } from '../../core/recipe'
+import { hannou, iro, ji, omote, sen } from '../../core/recipe'
 import { tabIndicator } from './tabs'
 
 export const k = {
@@ -18,7 +18,7 @@ export const k = {
 		iro.text.hover,
 		'font-medium',
 		sen.focus.inset,
-		...sawari.cursor,
+		...hannou.cursor,
 	],
 	current: [iro.text.default],
 	indicator: ['inset-x-4 bottom-auto top-0', 'h-0.5', 'rounded-full', tabIndicator],

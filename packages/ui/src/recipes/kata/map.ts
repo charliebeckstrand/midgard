@@ -1,4 +1,4 @@
-import { sawari, sen } from '../../core/recipe'
+import { hannou, sen } from '../../core/recipe'
 
 export const k = {
 	base: [
@@ -6,7 +6,7 @@ export const k = {
 		'w-full h-full',
 		sen.border,
 		'rounded-lg',
-		sawari.disabled,
+		hannou.disabled,
 	],
 	canvas: ['absolute inset-0'],
 }

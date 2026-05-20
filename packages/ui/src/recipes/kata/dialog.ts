@@ -1,4 +1,4 @@
-import { defineRecipe, narabi, omote, take, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, narabi, omote, shaku, type VariantPropsOf } from '../../core/recipe'
 import { definePanelRecipe } from '../genkei/panel'
 
 export const k = definePanelRecipe({
@@ -16,7 +16,7 @@ export const k = definePanelRecipe({
 			glass: [...omote.glass],
 			flat: [...omote.panel.bg],
 		},
-		size: take.panel,
+		size: shaku.panel,
 		defaults: { size: 'lg', surface: 'flat' },
 	}),
 })

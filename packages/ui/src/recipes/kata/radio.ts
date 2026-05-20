@@ -1,8 +1,8 @@
 import {
 	defineColors,
 	defineRecipe,
+	hannou,
 	iro,
-	sawari,
 	sen,
 	type VariantPropsOf,
 } from '../../core/recipe'
@@ -27,7 +27,7 @@ export const k = defineRecipe({
 		'relative',
 		'inline-flex items-center justify-center',
 		sen.focus.outline,
-		...sawari.cursor,
+		...hannou.cursor,
 		'has-checked:*:data-[slot=radio-indicator]:opacity-100',
 		...control.check.surface,
 		'rounded-full',

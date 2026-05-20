@@ -1,4 +1,4 @@
-import { iro, ji, narabi, sawari } from '../../core/recipe'
+import { hannou, iro, ji, narabi } from '../../core/recipe'
 
 export const k = {
 	group: 'py-1 first:pt-0 last:pb-0',
@@ -7,7 +7,7 @@ export const k = {
 		'group/option flex w-full items-center',
 		'px-2',
 		'gap-sm',
-		...sawari.item,
+		...hannou.item,
 		...narabi.item,
 		'data-active:bg-zinc-950/5',
 		'dark:data-active:bg-white/5',

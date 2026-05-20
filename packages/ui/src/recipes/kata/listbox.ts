@@ -1,4 +1,4 @@
-import { defineRecipe, sawari, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, hannou, type VariantPropsOf } from '../../core/recipe'
 import { control } from '../genkei/control'
 
 export const k = defineRecipe({
@@ -9,7 +9,7 @@ export const k = defineRecipe({
 		...control.field,
 		'rounded-lg',
 		'appearance-none',
-		...sawari.cursor,
+		...hannou.cursor,
 	],
 	density: control.density,
 	size: control.size,

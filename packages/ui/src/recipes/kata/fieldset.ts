@@ -1,13 +1,13 @@
-import { defineRecipe, iro, ji, narabi, sawari, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, hannou, iro, ji, narabi, type VariantPropsOf } from '../../core/recipe'
 
 const label = defineRecipe({
 	base: [
 		'select-none',
-		sawari.cursor,
+		hannou.cursor,
 		'[[data-slot=field][data-disabled]_&]:cursor-not-allowed',
 		'[[data-slot=control][data-disabled]_&]:cursor-not-allowed',
 		iro.text.default,
-		sawari.disabled,
+		hannou.disabled,
 	],
 	size: {
 		sm: ji.size.sm,
@@ -18,7 +18,7 @@ const label = defineRecipe({
 })
 
 const description = defineRecipe({
-	base: [iro.text.muted, sawari.disabled],
+	base: [iro.text.muted, hannou.disabled],
 	size: {
 		sm: ji.size.sm,
 		md: ji.size.md,
@@ -28,7 +28,7 @@ const description = defineRecipe({
 })
 
 const message = defineRecipe({
-	base: [sawari.disabled],
+	base: [hannou.disabled],
 	size: {
 		sm: ji.size.sm,
 		md: ji.size.md,
@@ -42,7 +42,7 @@ const message = defineRecipe({
 })
 
 const legend = defineRecipe({
-	base: ['font-semibold', iro.text.default, sawari.disabled],
+	base: ['font-semibold', iro.text.default, hannou.disabled],
 	size: {
 		sm: ji.size.sm,
 		md: ji.size.md,
@@ -52,7 +52,7 @@ const legend = defineRecipe({
 })
 
 export const k = {
-	base: ['[&>legend+*]:pt-4', sawari.disabled],
+	base: ['[&>legend+*]:pt-4', hannou.disabled],
 	legend,
 	field: [
 		...narabi.field,

@@ -1,8 +1,8 @@
 import {
 	defineColors,
 	defineRecipe,
+	hannou,
 	iro,
-	sawari,
 	sen,
 	type VariantPropsOf,
 } from '../../core/recipe'
@@ -55,7 +55,7 @@ export const k = defineRecipe({
 	base: [
 		'relative inline-flex shrink-0 items-center',
 		sen.focus.outline,
-		...sawari.cursor,
+		...hannou.cursor,
 		'has-checked:*:data-[slot=switch-thumb]:bg-(--switch)',
 		'has-checked:*:data-[slot=switch-thumb]:shadow-(--switch-shadow)',
 		'has-checked:*:data-[slot=switch-thumb]:ring-(--switch-ring)',

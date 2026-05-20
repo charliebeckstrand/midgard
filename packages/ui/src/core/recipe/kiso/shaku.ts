@@ -1,5 +1,5 @@
 /**
- * Take (丈) — measure.
+ * Shaku (尺) — measure.
  *
  * Pure dimension scales — width, height, and the icon-slot size grid.
  * Typography lives in `ji`; padding, margin, and gap live in `ma`.
@@ -97,7 +97,7 @@ const listbox = {
 	icon: 'absolute inset-y-0 right-0',
 }
 
-export const take = {
+export const shaku = {
 	icon,
 	avatar,
 	panel,
@@ -107,9 +107,9 @@ export const take = {
 	listbox,
 } as const
 
-export namespace take {
-	export type IconSize = keyof typeof take.icon
-	export type MarkSize = keyof typeof take.mark.size
-	export type AvatarSize = keyof typeof take.avatar
-	export type PanelSize = keyof typeof take.panel
+export namespace shaku {
+	export type IconSize = keyof typeof shaku.icon
+	export type MarkSize = keyof typeof shaku.mark.size
+	export type AvatarSize = keyof typeof shaku.avatar
+	export type PanelSize = keyof typeof shaku.panel
 }

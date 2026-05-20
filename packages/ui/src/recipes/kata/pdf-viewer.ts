@@ -1,4 +1,4 @@
-import { iro, ji, omote, sawari, sen } from '../../core/recipe'
+import { hannou, iro, ji, omote, sen } from '../../core/recipe'
 
 export const k = {
 	base: ['relative flex flex-col', 'overflow-hidden', omote.surface, sen.border],
@@ -40,7 +40,7 @@ export const k = {
 		'gap-sm',
 		'bg-transparent',
 		'outline-none',
-		...sawari.cursor,
+		...hannou.cursor,
 	],
 	thumbnailFrame: [
 		'relative block w-full aspect-[3/4]',

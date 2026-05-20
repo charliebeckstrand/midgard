@@ -7,11 +7,11 @@
  * Layer: kiso · Concern: skeleton form
  */
 
-import { take } from './take'
+import { shaku } from './shaku'
 
 const avatar = {
 	base: 'rounded-full',
-	size: take.avatar,
+	size: shaku.avatar,
 	defaults: { size: 'md' as const },
 }
 

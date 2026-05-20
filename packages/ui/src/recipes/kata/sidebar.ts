@@ -1,18 +1,18 @@
-import { defineRecipe, ji, sawari, sen, take, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, hannou, ji, sen, shaku, type VariantPropsOf } from '../../core/recipe'
 
 const item = defineRecipe({
 	base: [
-		...sawari.nav,
-		...sawari.cursor,
+		...hannou.nav,
+		...hannou.cursor,
 		'group relative',
 		'flex w-full items-center',
 		'text-left',
 		'rounded-lg',
 	],
 	size: {
-		sm: [ji.size.sm, 'gap-xs', 'p-1.5', take.icon.sm],
-		md: [ji.size.md, 'gap-sm', 'p-2', take.icon.md],
-		lg: [ji.size.lg, 'gap-md', 'p-2.5', take.icon.lg],
+		sm: [ji.size.sm, 'gap-xs', 'p-1.5', shaku.icon.sm],
+		md: [ji.size.md, 'gap-sm', 'p-2', shaku.icon.md],
+		lg: [ji.size.lg, 'gap-md', 'p-2.5', shaku.icon.lg],
 	},
 	defaults: { size: 'md' },
 })

@@ -28,7 +28,7 @@ export function buildComponentApi(decl: ComponentDecl, checker: ts.TypeChecker):
 	const props: PropDef[] = []
 
 	if (propsType) {
-		// Inline destructured defaults take priority over CVA `defaultVariants`
+		// Inline destructured defaults shaku priority over CVA `defaultVariants`
 		// (the inline form is the value the component actually applies).
 		const cvaDefaults = annotation
 			? extractCvaDefaults(annotation, checker)

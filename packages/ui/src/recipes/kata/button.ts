@@ -1,12 +1,12 @@
 import {
 	defineRecipe,
+	hannou,
 	iro,
 	ji,
 	merge,
 	palette,
-	sawari,
 	sen,
-	take,
+	shaku,
 	tsunagi,
 	type VariantPropsOf,
 } from '../../core/recipe'
@@ -29,8 +29,8 @@ export const k = defineRecipe({
 		'inline-flex items-center justify-center',
 		'w-fit shrink-0 font-semibold rounded-lg',
 		sen.focus.inset,
-		...sawari.disabled,
-		...sawari.cursor,
+		...hannou.disabled,
+		...hannou.cursor,
 		...tsunagi.base,
 	],
 	variant: {
@@ -40,28 +40,28 @@ export const k = defineRecipe({
 	size: {
 		xs: [
 			ji.size.xs,
-			take.icon.xs,
+			shaku.icon.xs,
 			'gap-0.5',
 			'p-[calc(--spacing(1.5)-1px)]',
 			'data-[has-label]:py-[calc(--spacing(1)-1px)]',
 		],
 		sm: [
 			ji.size.sm,
-			take.icon.sm,
+			shaku.icon.sm,
 			'gap-0.75',
 			'p-[calc(--spacing(2)-1px)]',
 			'data-[has-label]:py-[calc(--spacing(1.5)-1px)]',
 		],
 		md: [
 			ji.size.md,
-			take.icon.md,
+			shaku.icon.md,
 			'gap-xs',
 			'p-[calc(--spacing(2.5)-1px)]',
 			'data-[has-label]:py-[calc(--spacing(2)-1px)]',
 		],
 		lg: [
 			ji.size.lg,
-			take.icon.lg,
+			shaku.icon.lg,
 			'gap-sm',
 			'p-[calc(--spacing(3)-1px)]',
 			'data-[has-label]:py-[calc(--spacing(2.5)-1px)]',

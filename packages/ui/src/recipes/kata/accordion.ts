@@ -1,4 +1,4 @@
-import { defineRecipe, iro, ji, sawari, sen, ugoki, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, hannou, iro, ji, sen, ugoki, type VariantPropsOf } from '../../core/recipe'
 
 export const k = defineRecipe({
 	base: 'flex flex-col',
@@ -26,7 +26,7 @@ export const k = defineRecipe({
 			'dark:group-data-[open]/accordion-item:text-white',
 			'focus-visible:outline-none',
 			'disabled:opacity-50 disabled:cursor-not-allowed',
-			...sawari.cursor,
+			...hannou.cursor,
 		],
 		indicator: [
 			'shrink-0',

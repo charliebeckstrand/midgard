@@ -1,4 +1,4 @@
-import { defineRecipe, iro, ji, sawari, sen, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, hannou, iro, ji, sen, type VariantPropsOf } from '../../core/recipe'
 
 export const tabIndicator = ['bg-zinc-950', 'dark:bg-white']
 
@@ -18,9 +18,9 @@ const tab = defineRecipe({
 		'font-medium',
 		...iro.text.tab,
 		sen.focus.indicator,
-		...sawari.disabled,
+		...hannou.disabled,
 		'outline-none',
-		...sawari.cursor,
+		...hannou.cursor,
 		'after:absolute after:rounded-full',
 		'after:bg-transparent',
 		'focus-visible:after:bg-blue-500',

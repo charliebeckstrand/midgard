@@ -1,4 +1,4 @@
-import { defineRecipe, iro, ji, sawari, sen, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, hannou, iro, ji, sen, type VariantPropsOf } from '../../core/recipe'
 
 export const k = defineRecipe({
 	base: ['flex items-center list-none', 'gap-xs'],
@@ -12,8 +12,8 @@ export const k = defineRecipe({
 			...iro.text.hover,
 			'font-medium',
 			sen.focus.ring,
-			...sawari.disabled,
-			...sawari.cursor,
+			...hannou.disabled,
+			...hannou.cursor,
 			'rounded-lg',
 		],
 	},
@@ -33,7 +33,7 @@ export const pageButton = defineRecipe({
 		'font-medium',
 		'rounded-lg',
 		sen.focus.ring,
-		...sawari.cursor,
+		...hannou.cursor,
 	],
 	current: {
 		true: [...iro.text.default],

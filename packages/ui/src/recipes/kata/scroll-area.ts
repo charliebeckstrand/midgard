@@ -1,17 +1,17 @@
-import { defineRecipe, sen, take, ugoki, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, sen, shaku, ugoki, type VariantPropsOf } from '../../core/recipe'
 import type { ScrollOrientation } from '../../types'
 
 type Orientation = ScrollOrientation
-type Size = keyof (typeof take.scrollArea)['vertical']
+type Size = keyof (typeof shaku.scrollArea)['vertical']
 
 const orientationKeys: Orientation[] = ['vertical', 'horizontal', 'both']
-const sizeKeys = Object.keys(take.scrollArea.vertical) as Size[]
+const sizeKeys = Object.keys(shaku.scrollArea.vertical) as Size[]
 
 const sizeCompoundRules = orientationKeys.flatMap((orientation) =>
 	sizeKeys.map((size) => ({
 		orientation,
 		size,
-		class: take.scrollArea[orientation][size],
+		class: shaku.scrollArea[orientation][size],
 	})),
 )
 

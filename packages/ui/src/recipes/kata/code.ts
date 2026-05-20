@@ -1,10 +1,10 @@
-import { defineRecipe, ji, take, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, ji, shaku, type VariantPropsOf } from '../../core/recipe'
 
 const blockBg = 'bg-[#0d1117]'
 
 export const k = defineRecipe({
-	base: [...take.mark.base],
-	size: take.mark.size,
+	base: [...shaku.mark.base],
+	size: shaku.mark.size,
 	defaults: { size: 'md' },
 })
 

@@ -1,4 +1,4 @@
-import { iro, ji, sawari, sen } from '../../core/recipe'
+import { hannou, iro, ji, sen } from '../../core/recipe'
 
 export const k = {
 	dropzone: [
@@ -11,7 +11,7 @@ export const k = {
 		'border border-dashed',
 		'border-zinc-300',
 		'dark:border-zinc-700',
-		...sawari.cursor,
+		...hannou.cursor,
 		'hover:not-disabled:border-zinc-400',
 		'dark:hover:not-disabled:border-zinc-500',
 		'data-[drag-over]:border-blue-500 data-[drag-over]:bg-blue-50/50',

@@ -1,7 +1,8 @@
 /**
- * Sawari (触り) — touch response.
+ * Hannou (反応) — response.
  *
- * Interaction feedback — hover, press, selection, and disabled (dormant) state.
+ * Interaction feedback — hover, press, selection, focus, and disabled
+ * (dormant) state.
  *
  * Layer: kiso · Concern: interaction
  */
@@ -9,7 +10,7 @@
 import { iro } from './iro'
 import { ji } from './ji'
 import { sen } from './sen'
-import { take } from './take'
+import { shaku } from './shaku'
 import { ugoki } from './ugoki'
 
 // Hover/focus highlight for items inside a glass parent. Lives here as a state
@@ -53,7 +54,7 @@ const motoi = {
 		disabled,
 		cursor,
 	],
-	nav: [take.icon.md],
+	nav: [shaku.icon.md],
 }
 
 const hiru = {
@@ -74,7 +75,7 @@ const yoru = {
 
 const item = [iro.text.default, 'rounded-lg', motoi.item, hiru.item, yoru.item, glassItem]
 
-export const sawari = {
+export const hannou = {
 	item,
 	nav: [motoi.nav, hiru.nav, yoru.nav, sen.focus.inset],
 	/** Disabled / dormant state. */

@@ -1,13 +1,13 @@
-import { defineRecipe, sawari, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, hannou, type VariantPropsOf } from '../../core/recipe'
 
 export const k = defineRecipe({
 	base: [
 		'w-full',
 		'appearance-none',
 		'bg-transparent',
-		...sawari.cursor,
+		...hannou.cursor,
 		'outline-none',
-		...sawari.disabled,
+		...hannou.disabled,
 
 		// --slider-value is set inline (0–100 %); --slider-fill / --slider-track come from the color variant.
 		'[&::-webkit-slider-runnable-track]:w-full',

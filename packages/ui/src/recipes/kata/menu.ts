@@ -1,7 +1,7 @@
-import { defineRecipe, iro, ji, narabi, sawari, sen, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, hannou, iro, ji, narabi, sen, type VariantPropsOf } from '../../core/recipe'
 
 const item = defineRecipe({
-	base: ['group/option flex w-full items-center', ...sawari.item, ...narabi.item],
+	base: ['group/option flex w-full items-center', ...hannou.item, ...narabi.item],
 	size: {
 		sm: ['gap-2 px-2.5 py-1', ji.size.sm],
 		md: ['gap-3 px-3 py-1.5', ji.size.md],

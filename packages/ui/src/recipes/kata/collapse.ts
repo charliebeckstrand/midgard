@@ -1,4 +1,4 @@
-import { iro, ji, sawari, sen } from '../../core/recipe'
+import { hannou, iro, ji, sen } from '../../core/recipe'
 
 export const k = {
 	base: 'group/collapse',
@@ -12,7 +12,7 @@ export const k = {
 		'dark:group-data-[open]/collapse:text-white',
 		sen.focus.ring,
 		'disabled:opacity-50 disabled:cursor-not-allowed',
-		...sawari.cursor,
+		...hannou.cursor,
 	],
 	panel: 'overflow-hidden',
 }

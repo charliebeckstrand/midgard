@@ -26,7 +26,7 @@
  * Layer: genkei · Concern: control field archetype
  */
 
-import { iro, ji, omote, sawari, sen, tsunagi } from '../../core/recipe'
+import { hannou, iro, ji, omote, sen, tsunagi } from '../../core/recipe'
 import { kasane } from './kasane'
 
 // `tsunagi.base` is data-attribute-gated, so it stays inert until a `<Group>`
@@ -131,7 +131,7 @@ const resets = {
 
 const check = {
 	/** Visually hidden native input overlaying the custom check surface. */
-	hidden: ['absolute inset-0', 'opacity-0', ...sawari.cursor, sen.forced.control],
+	hidden: ['absolute inset-0', 'opacity-0', ...hannou.cursor, sen.forced.control],
 	/** Custom check surface (the visible box / circle). */
 	surface: [
 		'bg-white',

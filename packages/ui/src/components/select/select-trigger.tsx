@@ -4,7 +4,7 @@ import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
 import { cn } from '../../core'
 import { AffixProvider, affixStepDown } from '../../primitives/affix'
 import { ControlFrame } from '../../primitives/control'
-import { iro, sawari } from '../../recipes'
+import { hannou, iro } from '../../recipes'
 import { control as controlRecipe } from '../../recipes/genkei/control'
 import type { ControlSize } from '../control/context'
 
@@ -12,7 +12,7 @@ const affixBase = [
 	'flex items-center min-w-0',
 	'*:data-[slot=icon]:pointer-events-none',
 	...iro.text.muted,
-	...sawari.cursor,
+	...hannou.cursor,
 ]
 
 export type SelectTriggerProps = {

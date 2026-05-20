@@ -1,4 +1,4 @@
-import { defineRecipe, iro, ji, sawari, sen, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, hannou, iro, ji, sen, type VariantPropsOf } from '../../core/recipe'
 
 const stepper = defineRecipe({
 	base: 'flex w-full',
@@ -10,7 +10,7 @@ const stepper = defineRecipe({
 })
 
 const step = defineRecipe({
-	base: ['group relative text-left', 'outline-none', ...sawari.disabled, ...sawari.cursor],
+	base: ['group relative text-left', 'outline-none', ...hannou.disabled, ...hannou.cursor],
 	orientation: {
 		horizontal: 'flex shrink-0 flex-col items-center w-32 gap-0.5 text-center',
 		vertical: ['flex w-full items-center gap-4 py-1 first:pt-0', ...sen.borderSubtleColor],
