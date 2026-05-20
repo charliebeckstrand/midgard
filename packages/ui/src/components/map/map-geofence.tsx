@@ -113,7 +113,7 @@ export function MapGeofence({
 
 function toPolygon(shape: GeofenceShape) {
 	const coords =
-		shape.kind === 'circle' ? circlePolygon(shape.center, shape.radiusMeters) : shape.coordinates
+		shape.type === 'circle' ? circlePolygon(shape.center, shape.radiusMeters) : shape.coordinates
 
 	const first = coords[0]
 
