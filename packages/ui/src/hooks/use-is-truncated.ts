@@ -2,41 +2,9 @@
 
 import { type RefObject, useLayoutEffect, useState } from 'react'
 
-let canvas: HTMLCanvasElement | null = null
+const HIDDEN_STYLES =
+	'position:absolute;left:-9999px;top:0;visibility:hidden;pointer-events:none;white-space:nowrap;width:auto;max-width:none;'
 
-function measureTextWidth(text: string, el: HTMLElement): number {
-	canvas ??= document.createElement('canvas')
-
-	const context = canvas.getContext('2d')
-
-	if (!context) return 0
-
-	const cs = getComputedStyle(el)
-
-	context.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`
-
-	if ('letterSpacing' in context) {
-		;(context as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing =
-			cs.letterSpacing
-	}
-
-	return context.measureText(text).width
-}
-
-function getContentWidth(el: HTMLElement): number {
-	const cs = getComputedStyle(el)
-
-	const paddingX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight)
-
-	return el.clientWidth - paddingX
-}
-
-/**
- * Returns true when `text` overflows the referenced element's content box.
- * Measures via canvas using the element's computed font, which avoids the
- * sub-pixel rounding that can make `scrollWidth > clientWidth` flip on/off
- * by a single pixel as layout shifts.
- */
 export function useIsTruncated(ref: RefObject<HTMLElement | null>, text: string): boolean {
 	const [truncated, setTruncated] = useState(false)
 
@@ -49,10 +17,24 @@ export function useIsTruncated(ref: RefObject<HTMLElement | null>, text: string)
 			return
 		}
 
-		const check = () => {
-			const textWidth = measureTextWidth(text, el)
+		const measurer = document.createElement('span')
 
-			const contentWidth = getContentWidth(el)
+		measurer.textContent = text
+
+		measurer.setAttribute('aria-hidden', 'true')
+
+		measurer.style.cssText = HIDDEN_STYLES
+
+		el.appendChild(measurer)
+
+		const check = () => {
+			const textWidth = measurer.getBoundingClientRect().width
+
+			const cs = getComputedStyle(el)
+
+			const paddingX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight)
+
+			const contentWidth = el.getBoundingClientRect().width - paddingX
 
 			setTruncated(textWidth > contentWidth)
 		}
@@ -63,7 +45,19 @@ export function useIsTruncated(ref: RefObject<HTMLElement | null>, text: string)
 
 		observer.observe(el)
 
-		return () => observer.disconnect()
+		let fontsCancelled = false
+
+		document.fonts?.ready.then(() => {
+			if (!fontsCancelled) check()
+		})
+
+		return () => {
+			fontsCancelled = true
+
+			observer.disconnect()
+
+			measurer.remove()
+		}
 	}, [ref, text])
 
 	return truncated
