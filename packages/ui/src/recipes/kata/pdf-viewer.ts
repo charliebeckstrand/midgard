@@ -1,10 +1,6 @@
-import { iro } from '../ryu/iro'
-import { ji } from '../ryu/ji'
-import { omote } from '../ryu/omote'
-import { sawari } from '../ryu/sawari'
-import { sen } from '../ryu/sen'
+import { hannou, iro, ji, omote, sen } from '..'
 
-export const pdfViewer = {
+export const k = {
 	base: ['relative flex flex-col', 'overflow-hidden', omote.surface, sen.border],
 	toolbar: [
 		'flex flex-nowrap items-center justify-between',
@@ -44,7 +40,7 @@ export const pdfViewer = {
 		'gap-sm',
 		'bg-transparent',
 		'outline-none',
-		...sawari.cursor,
+		...hannou.cursor,
 	],
 	thumbnailFrame: [
 		'relative block w-full aspect-[3/4]',
@@ -80,5 +76,3 @@ export const pdfViewer = {
 	pagePlaceholder: ['w-full h-full', omote.skeleton],
 	pageEmpty: ['flex items-center justify-center w-full h-full', 'py-2', ji.size.sm, iro.text.muted],
 }
-
-export { pdfViewer as k }

@@ -1,12 +1,8 @@
-import { tv } from 'tailwind-variants'
-import { iro } from '../ryu/iro'
-import { ji } from '../ryu/ji'
-import { sen } from '../ryu/sen'
-import { ugoki } from '../ryu/ugoki'
+import { defineRecipe, iro, ji, sen, ugoki } from '..'
 
 export type TreeSize = 'sm' | 'md' | 'lg'
 
-const treeItemContent = tv({
+const itemContent = defineRecipe({
 	base: [
 		'flex w-full items-center',
 		'py-1 px-2',
@@ -19,39 +15,35 @@ const treeItemContent = tv({
 		'select-none',
 		'data-[open]:text-zinc-950 dark:data-[open]:text-white',
 	],
-	variants: {
-		size: {
-			sm: ji.size.sm,
-			md: ji.size.md,
-			lg: ji.size.lg,
-		},
+	size: {
+		sm: ji.size.sm,
+		md: ji.size.md,
+		lg: ji.size.lg,
 	},
-	defaultVariants: { size: 'md' },
+	defaults: { size: 'md' },
 })
 
-const treeChevron = tv({
+const chevron = defineRecipe({
 	base: ['flex-none', 'flex items-center justify-center', ugoki.css.transform, ugoki.css.duration],
-	variants: {
-		size: {
-			sm: 'w-4',
-			md: 'w-5',
-			lg: 'w-6',
-		},
+	size: {
+		sm: 'w-4',
+		md: 'w-5',
+		lg: 'w-6',
 	},
-	defaultVariants: { size: 'md' },
+	defaults: { size: 'md' },
 })
 
-export const tree = {
+export const k = {
 	base: [
 		'flex flex-col',
-		// Trim outer vertical padding on the edge rows so the tree sits flush with its container.
-		'[&>[data-slot=tree-item]:first-child>[role=treeitem]]:pt-0',
-		'[&>[data-slot=tree-item]:last-child>[role=treeitem]]:pb-0',
+		// Trim outer vertical padding on the edge rows so the k sits flush with its container.
+		'[&>[data-slot=k-item]:first-child>[role=treeitem]]:pt-0',
+		'[&>[data-slot=k-item]:last-child>[role=treeitem]]:pb-0',
 	],
 	item: [],
-	itemContent: treeItemContent,
+	itemContent,
 	itemContentCurrent: iro.text.default,
-	chevron: treeChevron,
+	chevron,
 	label: 'flex-1 truncate text-left',
 	group: 'overflow-hidden',
 	iconSize: {
@@ -66,5 +58,3 @@ export const tree = {
 		lg: 2,
 	},
 } as const
-
-export { tree as k, treeItemContent as treeItemContentVariants, treeChevron as treeChevronVariants }

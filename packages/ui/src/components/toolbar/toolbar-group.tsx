@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
-import { type ToolbarGroupVariants, toolbarGroupVariants } from '../../recipes/kata/toolbar'
+import { k, type ToolbarGroupVariants } from '../../recipes/kata/toolbar'
 import { useToolbarContext } from './context'
 import type { ToolbarOrientation } from './types'
 
@@ -29,7 +29,7 @@ export function ToolbarGroup({
 			data-slot="toolbar-group"
 			role="group"
 			aria-label={ariaLabel}
-			className={cn(toolbarGroupVariants({ orientation }), className)}
+			className={cn(k.group({ orientation }), className)}
 		>
 			{children}
 		</div>

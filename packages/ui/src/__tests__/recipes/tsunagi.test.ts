@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { tsunagi } from '../../recipes/ryu/tsunagi'
+import { tsunagi } from '../../recipes'
 
 describe('tsunagi', () => {
 	const base = tsunagi.base.join(' ')

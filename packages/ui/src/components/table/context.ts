@@ -1,5 +1,5 @@
 import { createContext } from '../../core'
-import type { Step } from '../../recipes/ryu/sun'
+import type { Step } from '../../recipes'
 
 export type TableContextValue = {
 	size: Step

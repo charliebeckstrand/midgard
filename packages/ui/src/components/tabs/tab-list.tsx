@@ -5,7 +5,7 @@ import { cn } from '../../core'
 import { useRoving } from '../../hooks'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import { useDensity } from '../../primitives/density'
-import { segmentControlVariants } from '../../recipes/kata/segment'
+import { k as ks } from '../../recipes/kata/segment'
 import { k } from '../../recipes/kata/tabs'
 import { useTabsContext } from './context'
 import { TAB_SELECTOR } from './tabs-constants'
@@ -70,10 +70,7 @@ export function TabList({ className, children, ...props }: TabListProps) {
 				role="tablist"
 				aria-orientation={orientation}
 				onKeyDown={handleKeyDown}
-				className={cn(
-					isSegment ? segmentControlVariants({ size }) : k.list({ orientation }),
-					className,
-				)}
+				className={cn(isSegment ? ks.control({ size }) : k.list({ orientation }), className)}
 				{...props}
 			>
 				{children}

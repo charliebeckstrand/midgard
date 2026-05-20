@@ -3,7 +3,7 @@
 import type { Placement } from '@floating-ui/react'
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
-import type { Step } from '../../recipes/ryu/sun'
+import type { Step } from '../../recipes'
 import { MenuActionsProvider, MenuStateProvider } from './context'
 import { useMenuState } from './use-menu-state'
 

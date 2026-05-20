@@ -1,8 +1,7 @@
-import { tv, type VariantProps } from 'tailwind-variants'
-import { sawari } from '../ryu/sawari'
-import { control } from '../waku/control'
+import { defineRecipe, hannou, type VariantPropsOf } from '..'
+import { control } from '../genkei/control'
 
-export const listbox = tv({
+export const k = defineRecipe({
 	base: [
 		'flex items-center',
 		'w-full',
@@ -10,32 +9,23 @@ export const listbox = tv({
 		...control.field,
 		'rounded-lg',
 		'appearance-none',
-		...sawari.cursor,
+		...hannou.cursor,
 	],
-	variants: {
-		density: control.density,
-		size: control.size,
+	density: control.density,
+	size: control.size,
+	slots: {
+		options: 'max-h-60',
+		panel: 'relative min-w-full',
 	},
-	defaultVariants: { density: 'md', size: 'md' },
+	defaults: { density: 'md', size: 'md' },
 })
 
-const value = tv({
-	base: [],
-	variants: {
-		truncate: {
-			true: 'flex-1 min-w-0 truncate',
-			false: '',
-		},
+export const value = defineRecipe({
+	truncate: {
+		true: 'flex-1 min-w-0 truncate',
+		false: '',
 	},
-	defaultVariants: { truncate: true },
+	defaults: { truncate: true },
 })
 
-export const slots = {
-	options: 'max-h-60',
-	panel: 'relative min-w-full',
-	value,
-}
-
-export type ListboxVariants = VariantProps<typeof listbox>
-
-export { listbox as listboxVariants, slots as k }
+export type ListboxVariants = VariantPropsOf<typeof k>

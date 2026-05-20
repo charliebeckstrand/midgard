@@ -3,12 +3,9 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import {
+	k,
 	type ScrollAreaViewportVariants,
 	type ScrollAreaWrapperVariants,
-	scrollAreaScrollbarVariants,
-	scrollAreaThumbVariants,
-	scrollAreaViewportVariants,
-	scrollAreaWrapperVariants,
 } from '../../recipes/kata/scroll-area'
 import type { ScrollbarMode } from './types'
 import { useScrollAreaScrollbar } from './use-scroll-area-scrollbar'
@@ -50,12 +47,12 @@ export function ScrollArea({
 	return (
 		<div
 			data-slot="scroll-area"
-			className={cn(scrollAreaWrapperVariants({ rounded, orientation, size, bare }), className)}
+			className={cn(k.wrapper({ rounded, orientation, size, bare }), className)}
 		>
 			<div
 				data-slot="scroll-area-viewport"
 				ref={viewportRef}
-				className={scrollAreaViewportVariants({ orientation, bare })}
+				className={k.viewport({ orientation, bare })}
 				onScroll={handleScroll}
 				{...props}
 			>
@@ -65,7 +62,7 @@ export function ScrollArea({
 				<div
 					ref={verticalTrackRef}
 					data-slot="scroll-area-scrollbar"
-					className={scrollAreaScrollbarVariants({
+					className={k.scrollbar({
 						orientation: 'vertical',
 						rounded: rounded ?? false,
 						state: scrollbarState,
@@ -74,7 +71,7 @@ export function ScrollArea({
 					{verticalThumb.visible && (
 						<div
 							data-slot="scroll-area-thumb"
-							className={scrollAreaThumbVariants({ orientation: 'vertical' })}
+							className={k.thumb({ orientation: 'vertical' })}
 							style={{
 								height: `${verticalThumb.size}px`,
 								top: `${verticalThumb.offset}px`,
@@ -88,7 +85,7 @@ export function ScrollArea({
 				<div
 					ref={horizontalTrackRef}
 					data-slot="scroll-area-scrollbar"
-					className={scrollAreaScrollbarVariants({
+					className={k.scrollbar({
 						orientation: 'horizontal',
 						rounded: rounded ?? false,
 						state: scrollbarState,
@@ -97,7 +94,7 @@ export function ScrollArea({
 					{horizontalThumb.visible && (
 						<div
 							data-slot="scroll-area-thumb"
-							className={scrollAreaThumbVariants({ orientation: 'horizontal' })}
+							className={k.thumb({ orientation: 'horizontal' })}
 							style={{
 								width: `${horizontalThumb.size}px`,
 								left: `${horizontalThumb.offset}px`,

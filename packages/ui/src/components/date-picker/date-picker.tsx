@@ -82,7 +82,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 	const state = useDatePickerState(props)
 
 	return (
-		<>
+		<div className="contents">
 			<DatePickerTrigger
 				open={state.open}
 				onOpenChange={state.onOpenChange}
@@ -118,6 +118,6 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 				/>
 				<DatePickerFooter {...state.footer} />
 			</DatePickerContent>
-		</>
+		</div>
 	)
 }

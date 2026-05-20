@@ -1,4 +1,4 @@
-export { type AlertVariants, alertVariants } from '../../recipes/kata/alert'
+export type { AlertVariants } from '../../recipes/kata/alert'
 export { Alert, type AlertProps, type AlertSeverity } from './alert'
 export { AlertBody, type AlertBodyProps } from './alert-body'
 export { AlertDescription, type AlertDescriptionProps } from './alert-description'

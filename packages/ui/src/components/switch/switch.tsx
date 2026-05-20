@@ -7,9 +7,9 @@ import { useSkeleton } from '../../providers/skeleton'
 import { kokkaku } from '../../recipes'
 import {
 	type SwitchVariants,
-	switchInputVariants,
-	switchThumbVariants,
-	switchVariants,
+	input as switchInput,
+	k as switchRecipe,
+	thumb as switchThumb,
 } from '../../recipes/kata/switch'
 import { useControlProps } from '../control/use-control-props'
 import { useFormToggle } from '../form/context'
@@ -56,7 +56,7 @@ export function Switch({
 		<label
 			data-slot="control"
 			{...(resolvedDisabled ? { 'data-disabled': true } : {})}
-			className={cn(switchVariants({ size: resolvedSize, color }), className)}
+			className={cn(switchRecipe({ size: resolvedSize, color }), className)}
 		>
 			<input
 				type="checkbox"
@@ -70,10 +70,10 @@ export function Switch({
 				aria-checked={!!(binding?.checked ?? checked)}
 				onChange={binding?.onChange ?? onChange}
 				{...invalidAttrs(resolvedInvalid)}
-				className={switchInputVariants()}
+				className={switchInput()}
 				{...props}
 			/>
-			<span data-slot="switch-thumb" aria-hidden="true" className={switchThumbVariants()} />
+			<span data-slot="switch-thumb" aria-hidden="true" className={switchThumb()} />
 		</label>
 	)
 }

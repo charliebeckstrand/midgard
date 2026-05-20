@@ -2,7 +2,7 @@
 
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { stepperTitleVariants } from '../../recipes/kata/stepper'
+import { k } from '../../recipes/kata/stepper'
 import { useStepper } from './context'
 
 export type StepperTitleProps = ComponentPropsWithoutRef<'span'>
@@ -15,7 +15,7 @@ export function StepperTitle({ className, ...props }: StepperTitleProps) {
 	return (
 		<span
 			data-slot="stepper-title"
-			className={cn(stepperTitleVariants({ orientation, interactive }), className)}
+			className={cn(k.title({ orientation, interactive }), className)}
 			{...props}
 		/>
 	)

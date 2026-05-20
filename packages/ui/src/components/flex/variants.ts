@@ -1,4 +1,4 @@
-import type { Ma } from '../../recipes/ryu/ma'
+import type { Ma } from '../../recipes'
 import { type Breakpoint, type Responsive, resolveResponsive } from '../../types'
 
 export type FlexGap = Ma

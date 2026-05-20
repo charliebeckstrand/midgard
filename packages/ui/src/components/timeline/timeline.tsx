@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
-import { type TimelineVariants, timelineVariants } from '../../recipes/kata/timeline'
+import { k, type TimelineVariants } from '../../recipes/kata/timeline'
 import type { TimelineOrientation, TimelineVariant } from './context'
 import { TimelineProvider } from './context'
 
@@ -22,10 +22,7 @@ export function Timeline({
 
 	return (
 		<TimelineProvider value={{ orientation: resolvedOrientation, variant: resolvedVariant }}>
-			<ol
-				data-slot="timeline"
-				className={cn(timelineVariants({ orientation, variant }), className)}
-			>
+			<ol data-slot="timeline" className={cn(k.root({ orientation, variant }), className)}>
 				{children}
 			</ol>
 		</TimelineProvider>

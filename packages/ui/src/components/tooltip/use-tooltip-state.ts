@@ -13,7 +13,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useFloatingPanel, useHasHover } from '../../hooks'
 import { subscribeOverlayOpened } from '../../primitives/overlay'
-import type { Step } from '../../recipes/ryu/sun'
+import type { Step } from '../../recipes'
 
 export type UseTooltipStateOptions = {
 	placement?: Placement

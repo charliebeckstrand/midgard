@@ -1,12 +1,8 @@
-import { iro } from '../ryu/iro'
-import { ji } from '../ryu/ji'
-import { omote } from '../ryu/omote'
-import { sawari } from '../ryu/sawari'
-import { sen } from '../ryu/sen'
+import { hannou, iro, ji, omote, sen } from '..'
 
 export type ListVariant = 'separated' | 'outline' | 'plain' | 'solid'
 
-const rootBase = ['flex flex-col', 'm-0 p-0', 'list-none']
+const rootBase = ['flex flex-col', 'm-0 p-0', 'k-none']
 
 const rootVariant = {
 	separated: ['gap-sm'],
@@ -22,7 +18,7 @@ const rootVariant = {
 } satisfies Record<ListVariant, unknown>
 
 const itemBase = [
-	'group/list-item',
+	'group/k-item',
 	'flex items-center',
 	'gap-sm',
 	'gap-y-0',
@@ -38,7 +34,7 @@ const itemVariant = {
 	solid: ['p-md', ...omote.tint, sen.border, 'rounded-lg'],
 } satisfies Record<ListVariant, unknown>
 
-export const list = {
+export const k = {
 	base: rootBase,
 	root: (variant: ListVariant = 'separated') => [...rootBase, ...rootVariant[variant]],
 	horizontal: 'flex-row',
@@ -52,11 +48,9 @@ export const list = {
 		'touch-none select-none',
 		'text-zinc-400 not-data-disabled:not-data-readonly:hover:text-zinc-700',
 		'dark:text-zinc-500 dark:not-data-disabled:not-data-readonly:hover:text-zinc-200',
-		sawari.disabled,
+		hannou.disabled,
 	],
 	content: 'flex flex-col flex-1 min-w-0',
 	label: 'min-w-0 truncate',
 	description: ['min-w-0 truncate', ji.size.sm, iro.text.muted],
 }
-
-export { list as k }

@@ -1,14 +1,9 @@
-import { tv, type VariantProps } from 'tailwind-variants'
-import { take } from '../ryu/take'
+import { defineRecipe, shaku, type VariantPropsOf } from '..'
 
-export const kbd = tv({
-	base: ['inline-flex items-center justify-center', ...take.mark.base],
-	variants: {
-		size: take.mark.size,
-	},
-	defaultVariants: { size: 'md' },
+export const k = defineRecipe({
+	base: ['inline-flex items-center justify-center', ...shaku.mark.base],
+	size: shaku.mark.size,
+	defaults: { size: 'md' },
 })
 
-export type KbdVariants = VariantProps<typeof kbd>
-
-export { kbd as kbdVariants }
+export type KbdVariants = VariantPropsOf<typeof k>

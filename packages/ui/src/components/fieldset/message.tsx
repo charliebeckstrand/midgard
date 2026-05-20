@@ -3,7 +3,7 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { useDensity } from '../../primitives/density'
-import { messageVariants } from '../../recipes/kata/fieldset'
+import { k } from '../../recipes/kata/fieldset'
 import { useControl } from '../control/context'
 import { useFormField } from '../form/context'
 
@@ -42,7 +42,7 @@ export function Message({
 			data-slot="message"
 			data-variant={variant}
 			id={id ?? (control ? `${control.id}-${variant}` : undefined)}
-			className={cn(messageVariants({ size, variant }), className)}
+			className={cn(k.message({ size, variant }), className)}
 			{...props}
 		>
 			{content}

@@ -1,47 +1,40 @@
-import { tv, type VariantProps } from 'tailwind-variants'
-import { iro } from '../ryu/iro'
-import { ji } from '../ryu/ji'
-import { sen } from '../ryu/sen'
+import { defineRecipe, iro, ji, sen, type VariantPropsOf } from '..'
 
-export const breadcrumb = tv({ base: '' })
+const root = defineRecipe({ base: '' })
 
-export const breadcrumbList = tv({
+const list = defineRecipe({
 	base: ['flex flex-wrap items-center', 'gap-sm', 'break-words', ji.size.md],
 })
 
-export const breadcrumbItem = tv({
+const item = defineRecipe({
 	base: ['inline-flex items-center', 'gap-sm'],
-	variants: {
-		current: {
-			true: [iro.text.default, 'font-normal'],
-			false: '',
-		},
+	current: {
+		true: [iro.text.default, 'font-normal'],
+		false: '',
 	},
-	defaultVariants: { current: false },
+	defaults: { current: false },
 })
 
-export const breadcrumbLink = tv({
+const link = defineRecipe({
 	base: ['rounded-sm', sen.focus.ring],
-	variants: {
-		current: {
-			true: [iro.text.default, 'font-normal'],
-			false: [iro.text.muted, 'hover:text-zinc-950', 'dark:hover:text-white'],
-		},
+	current: {
+		true: [iro.text.default, 'font-normal'],
+		false: [iro.text.muted, 'hover:text-zinc-950', 'dark:hover:text-white'],
 	},
-	defaultVariants: { current: false },
+	defaults: { current: false },
 })
 
-export const breadcrumbSeparator = tv({
+const separator = defineRecipe({
 	base: [...iro.text.muted, '[&>svg]:size-3.5'],
 })
 
-export type BreadcrumbItemVariants = VariantProps<typeof breadcrumbItem>
-export type BreadcrumbLinkVariants = VariantProps<typeof breadcrumbLink>
-
-export {
-	breadcrumb as breadcrumbVariants,
-	breadcrumbItem as breadcrumbItemVariants,
-	breadcrumbLink as breadcrumbLinkVariants,
-	breadcrumbList as breadcrumbListVariants,
-	breadcrumbSeparator as breadcrumbSeparatorVariants,
+export const k = {
+	root,
+	list,
+	item,
+	link,
+	separator,
 }
+
+export type BreadcrumbItemVariants = VariantPropsOf<typeof item>
+export type BreadcrumbLinkVariants = VariantPropsOf<typeof link>

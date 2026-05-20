@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { type Step, steps, sun } from '../../recipes/ryu/sun'
+import { type Step, steps, sun } from '../../recipes'
 
 describe('sun', () => {
 	it('exposes the canonical sm/md/lg steps', () => {

@@ -4,7 +4,8 @@ import { describe, expect, it } from 'vitest'
 
 const srcDir = join(__dirname, '../../..')
 
-const TV_IMPORT = /import\s+\{[^}]*\btv\b[^}]*\}\s+from\s+['"]tailwind-variants['"]/
+const RECIPE_IMPORT =
+	/import\s+\{[^}]*\bdefineRecipe\b[^}]*\}\s+from\s+['"][^'"]*\bcore\/recipe['"]/
 
 function isSanctioned(rel: string): boolean {
 	if (rel.startsWith('recipes/kata/') && rel.endsWith('.ts')) return true
@@ -31,11 +32,11 @@ function* walk(dir: string): Generator<string> {
 }
 
 describe('kata boundary', () => {
-	// Per the audit, `tv()` is the recipe primitive and lives only at the kata
-	// public surface (recipes/kata/*.ts) or in layout-local variants files
-	// (layouts/*/variants.ts). Importing tv() anywhere else means styling has
+	// `defineRecipe` is the recipe primitive and lives only at the kata public
+	// surface (recipes/kata/*.ts) or in layout-local variants files
+	// (layouts/*/variants.ts). Importing it anywhere else means styling has
 	// leaked out of the recipe layer.
-	it('tv from tailwind-variants is imported only in sanctioned files', () => {
+	it('defineRecipe from core/recipe is imported only in sanctioned files', () => {
 		const violations: string[] = []
 
 		for (const path of walk(srcDir)) {
@@ -43,16 +44,17 @@ describe('kata boundary', () => {
 
 			const source = readFileSync(path, 'utf8')
 
-			if (!TV_IMPORT.test(source)) continue
+			if (!RECIPE_IMPORT.test(source)) continue
 
-			/** Locations sanctioned to author `tv()` recipes. */
+			/** Locations sanctioned to author recipes. */
 			if (isSanctioned(rel)) continue
 
 			violations.push(rel)
 		}
 
-		expect(violations, `tv() imported outside sanctioned files: ${violations.join(', ')}`).toEqual(
-			[],
-		)
+		expect(
+			violations,
+			`defineRecipe imported outside sanctioned files: ${violations.join(', ')}`,
+		).toEqual([])
 	})
 })

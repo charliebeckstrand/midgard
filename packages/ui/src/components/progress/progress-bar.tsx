@@ -3,13 +3,8 @@
 import { motion } from 'motion/react'
 import { cn } from '../../core'
 import { ReducedMotion } from '../../primitives/reduced-motion'
-import {
-	k,
-	type ProgressBarFillVariants,
-	progressBarFillVariants,
-	progressTrackVariants,
-} from '../../recipes/kata/progress'
-import type { Step } from '../../recipes/ryu/sun'
+import type { Step } from '../../recipes'
+import { k, type ProgressBarFillVariants, progressBarFill } from '../../recipes/kata/progress'
 import { clamp, pct } from '../../utilities'
 
 type ProgressColor = NonNullable<ProgressBarFillVariants['color']>
@@ -46,19 +41,19 @@ export function ProgressBar({
 			aria-valuemin={0}
 			aria-valuemax={max}
 			{...labelProps}
-			className={cn(progressTrackVariants({ size }), className)}
+			className={cn(k({ size }), className)}
 		>
 			{determinate ? (
 				<ReducedMotion>
 					<motion.div
-						className={progressBarFillVariants({ color })}
+						className={progressBarFill({ color })}
 						initial={{ width: 0 }}
 						animate={{ width: `${percent}%` }}
 						transition={{ type: 'spring', stiffness: 100, damping: 20 }}
 					/>
 				</ReducedMotion>
 			) : (
-				<div className={cn(progressBarFillVariants({ color }), k.bar.indeterminate)} />
+				<div className={cn(progressBarFill({ color }), k.barIndeterminate)} />
 			)}
 		</div>
 	)

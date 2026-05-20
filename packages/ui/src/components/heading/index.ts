@@ -1,2 +1,2 @@
-export { type HeadingVariants, headingVariants } from '../../recipes/kata/heading'
+export type { HeadingVariants } from '../../recipes/kata/heading'
 export { Heading, type HeadingProps } from './heading'

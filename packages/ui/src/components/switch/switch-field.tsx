@@ -1,7 +1,7 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { narabi } from '../../recipes'
-import { k, type SwitchFieldVariants, switchFieldVariants } from '../../recipes/kata/switch'
+import { disabled, field, type SwitchFieldVariants } from '../../recipes/kata/switch'
 
 export type SwitchFieldProps = SwitchFieldVariants & {
 	className?: string
@@ -11,7 +11,7 @@ export function SwitchField({ className, size, ...props }: SwitchFieldProps) {
 	return (
 		<div
 			data-slot="field"
-			className={cn(narabi.toggle, switchFieldVariants({ size }), k.disabled, className)}
+			className={cn(narabi.toggle, field({ size }), disabled, className)}
 			{...props}
 		/>
 	)

@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { dlDetailsVariants } from '../../recipes/kata/dl'
+import { k } from '../../recipes/kata/dl'
 import { useDlOrientation } from './context'
 
 export type DescriptionDetailsProps = {
@@ -11,10 +11,6 @@ export function DescriptionDetails({ className, ...props }: DescriptionDetailsPr
 	const orientation = useDlOrientation()
 
 	return (
-		<dd
-			data-slot="dl-details"
-			className={cn(dlDetailsVariants({ orientation }), className)}
-			{...props}
-		/>
+		<dd data-slot="dl-details" className={cn(k.details({ orientation }), className)} {...props} />
 	)
 }

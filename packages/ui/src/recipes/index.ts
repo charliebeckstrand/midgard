@@ -1,28 +1,23 @@
 /**
- * Design-token recipes.
+ * Recipes — the design-system layer of the UI package.
  *
- *   ryu/  — substrate scales and cross-cutting currents. Re-exported below
- *           and consumed by kata, by components, and (via this barrel) by
- *           any internal call site that wants a substrate scale.
- *   kata/ — per-component recipes (1:1 with src/components/<name>/). Internal
- *           to the package; not re-exported from this barrel. Components
- *           consume kata via a relative path: `from '../../recipes/kata/<name>'`.
- *   waku/ — control primitives composed by panel-shaped kata (Dialog, Drawer,
- *           Sheet, etc.). Same internal status as kata.
+ *   kiso/   — substrate. Design-token primitives (iro / ji / ma / narabi /
+ *             omote / hannou / sen / shaku / tsunagi / ugoki / kokkaku) plus
+ *             the mode and shades helpers. Re-exported below.
+ *   kata/   — per-component recipes (1:1 with `src/components/<name>/`).
+ *             Internal; not re-exported. Components import directly:
+ *             `from '../../recipes/kata/<name>'`.
+ *   genkei/ — multi-element archetypes shared by ≥2 kata (panel, control,
+ *             option, popover, kasane). Same internal status as kata.
  *
- * package.json `exports` deliberately omits `./recipes` and `./recipes/*`,
- * so kata and waku are unreachable from outside the package. The contract
- * is pinned by src/__tests__/recipes/internal-boundary.test.ts — that test
- * fails if the boundary drifts.
+ * The recipe engine (`defineRecipe`, `palette`, `merge`) lives in
+ * `core/recipe/` and is re-exported below so consumers get the full DSL
+ * from one barrel.
+ *
+ * `package.json` `exports` omits `./recipes` and `./recipes/*` — kata and
+ * genkei are unreachable from outside the package. The contract is pinned
+ * by `src/__tests__/recipes/boundary/recipe-boundary.test.ts`.
  */
 
-export { iro } from './ryu/iro'
-export { ji } from './ryu/ji'
-export { kokkaku } from './ryu/kokkaku'
-export { ma } from './ryu/ma'
-export { narabi } from './ryu/narabi'
-export { omote } from './ryu/omote'
-export { sawari } from './ryu/sawari'
-export { sen } from './ryu/sen'
-export { take } from './ryu/take'
-export { ugoki } from './ryu/ugoki'
+export * from '../core/recipe'
+export * from './kiso'

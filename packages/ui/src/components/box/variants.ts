@@ -1,5 +1,5 @@
+import type { Ma } from '../../recipes'
 import { omote, sen } from '../../recipes'
-import type { Ma } from '../../recipes/ryu/ma'
 
 export type BoxPadding = Ma
 export type BoxMargin = Ma | 'auto'

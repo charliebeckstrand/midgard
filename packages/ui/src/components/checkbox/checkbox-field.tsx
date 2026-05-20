@@ -1,10 +1,10 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { ToggleField } from '../../primitives/toggle'
-import { k } from '../../recipes/kata/checkbox'
+import { disabled } from '../../recipes/kata/checkbox'
 
 export type CheckboxFieldProps = ComponentPropsWithoutRef<'div'>
 
 export function CheckboxField({ className, ...props }: CheckboxFieldProps) {
-	return <ToggleField className={cn(k.disabled, className)} {...props} />
+	return <ToggleField className={cn(disabled, className)} {...props} />
 }

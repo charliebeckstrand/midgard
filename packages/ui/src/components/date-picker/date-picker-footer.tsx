@@ -4,7 +4,7 @@ import type { KeyboardEvent, RefObject } from 'react'
 
 import { cn } from '../../core'
 import { useDensity } from '../../primitives/density'
-import { calendar as kCalendar } from '../../recipes/kata/calendar'
+import { k as kCalendar } from '../../recipes/kata/calendar'
 import { Button } from '../button'
 import type { CalendarActive } from '../calendar'
 import type { FooterButton } from './use-date-picker-keyboard'

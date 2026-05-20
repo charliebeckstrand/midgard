@@ -4,7 +4,7 @@ import { type ReactNode, useMemo } from 'react'
 import { cn } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { Density } from '../../primitives/density'
-import { fieldset as k } from '../../recipes/kata/fieldset'
+import { k } from '../../recipes/kata/fieldset'
 import {
 	type ControlContextValue,
 	ControlProvider,

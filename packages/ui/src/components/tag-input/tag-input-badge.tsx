@@ -1,7 +1,7 @@
 'use client'
 
 import { X } from 'lucide-react'
-import type { Color } from '../../recipes/ryu/iro'
+import type { Color } from '../../recipes'
 import { Badge } from '../badge'
 import { Button } from '../button'
 import type { ControlSize } from '../control/context'

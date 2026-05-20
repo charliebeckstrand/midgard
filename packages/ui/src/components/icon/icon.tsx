@@ -19,7 +19,7 @@ const sizeMap: Record<Size, string> = {
 }
 
 export function Icon({ icon, size, className }: IconProps) {
-	// Icon's scale tops out at `lg` — `take.icon` doesn't have an `xl` step.
+	// Icon's scale tops out at `lg` — `shaku.icon` doesn't have an `xl` step.
 	// `useSizeWide` can carry `'xl'` (Button broadcasts up to `Ma`), so when
 	// that reaches an Icon with no explicit size, `sizeMap` lookup misses
 	// and the icon falls back to its inherited dimensions. Make the type

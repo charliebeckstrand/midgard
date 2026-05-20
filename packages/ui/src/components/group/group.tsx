@@ -2,8 +2,7 @@ import type { ReactNode, Ref } from 'react'
 import { cn } from '../../core'
 import { Density, useDensity } from '../../primitives/density'
 import { Polymorphic, type PolymorphicProps } from '../../primitives/polymorphic'
-import type { Step } from '../../recipes/ryu/sun'
-import type { GroupOrientation } from '../../recipes/ryu/tsunagi'
+import type { GroupOrientation, Step } from '../../recipes'
 import { useGroup } from './use-group'
 
 type GroupBaseProps = {

@@ -2,11 +2,7 @@
 
 import { useLayoutEffect, useRef } from 'react'
 import { cn } from '../../core'
-import {
-	editableGridCellInputVariants,
-	editableGridCellVariants,
-	k,
-} from '../../recipes/kata/editable-grid'
+import { k } from '../../recipes/kata/editable-grid'
 import { useEditableGrid } from './context'
 
 export type EditableGridCellContentProps = {
@@ -73,7 +69,7 @@ export function EditableGridCell({
 			data-active={isActive || undefined}
 			data-in-range={inRange || undefined}
 			className={cn(
-				editableGridCellVariants({ align }),
+				k.cell({ align }),
 				readOnly && k.cellReadOnly,
 				isActive && !showInput && k.cellActive,
 			)}
@@ -85,7 +81,7 @@ export function EditableGridCell({
 					data-slot="editable-grid-input"
 					size={1}
 					aria-label={`Edit row ${rowIdx + 1} column ${colIdx + 1}`}
-					className={editableGridCellInputVariants({ align })}
+					className={k.editInput({ align })}
 					value={draft}
 					onChange={(e) => setDraft(e.target.value)}
 					onBlur={() => commitEdit('none')}

@@ -2,7 +2,7 @@
 
 import type { Placement } from '@floating-ui/react'
 import type { ReactNode } from 'react'
-import type { Step } from '../../recipes/ryu/sun'
+import type { Step } from '../../recipes'
 import { TooltipProvider } from './context'
 import { useTooltipState } from './use-tooltip-state'
 

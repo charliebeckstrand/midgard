@@ -5,7 +5,7 @@ import {
 	type PanelDescriptionProps,
 	type PanelTitleProps,
 } from '../../primitives/panel'
-import { sheet } from '../../recipes/kata/sheet'
+import { k as sheet } from '../../recipes/kata/sheet'
 
 export type SheetTitleProps = PanelTitleProps
 export type SheetDescriptionProps = PanelDescriptionProps

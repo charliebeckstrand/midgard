@@ -7,7 +7,7 @@ import { useMinWidth } from '../../hooks'
 import { Overlay } from '../../primitives/overlay'
 import { PanelA11yProvider, usePanelA11yScope } from '../../primitives/panel'
 import { ugoki } from '../../recipes'
-import { type DialogPanelVariants, dialogPanelVariants } from '../../recipes/kata/dialog'
+import { type DialogPanelVariants, k as dialog } from '../../recipes/kata/dialog'
 import { useResolvedSurface } from '../glass/context'
 
 export type DialogProps = DialogPanelVariants & {
@@ -61,7 +61,7 @@ export function Dialog({
 					data-slot="dialog"
 					className={cn(
 						'pointer-events-auto',
-						dialogPanelVariants({ surface: resolvedSurface, size }),
+						dialog.panel({ surface: resolvedSurface, size }),
 						className,
 					)}
 				>

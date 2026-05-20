@@ -1,40 +1,34 @@
-import { tv } from 'tailwind-variants'
-import { iro } from '../ryu/iro'
-import { ji } from '../ryu/ji'
+import { defineRecipe, iro, ji } from '..'
 
-const passwordStrengthSegment = tv({
+const segment = defineRecipe({
 	base: ['flex-1 h-1', 'rounded-full', 'bg-zinc-200 dark:bg-zinc-700'],
-	variants: {
-		level: {
-			weak: 'bg-red-600 dark:bg-red-500',
-			fair: 'bg-amber-600 dark:bg-amber-500',
-			good: 'bg-blue-600 dark:bg-blue-500',
-			strong: 'bg-green-600 dark:bg-green-500',
-			empty: '',
-		},
+	level: {
+		weak: 'bg-red-600 dark:bg-red-500',
+		fair: 'bg-amber-600 dark:bg-amber-500',
+		good: 'bg-blue-600 dark:bg-blue-500',
+		strong: 'bg-green-600 dark:bg-green-500',
+		empty: '',
 	},
-	defaultVariants: { level: 'empty' },
+	defaults: { level: 'empty' },
 })
 
-const passwordStrengthLabel = tv({
+const label = defineRecipe({
 	base: [ji.size.sm, 'font-medium'],
-	variants: {
-		level: {
-			weak: 'text-red-600 dark:text-red-500',
-			fair: 'text-amber-600 dark:text-amber-500',
-			good: 'text-blue-600 dark:text-blue-500',
-			strong: 'text-green-600 dark:text-green-500',
-			empty: iro.text.muted,
-		},
+	level: {
+		weak: 'text-red-600 dark:text-red-500',
+		fair: 'text-amber-600 dark:text-amber-500',
+		good: 'text-blue-600 dark:text-blue-500',
+		strong: 'text-green-600 dark:text-green-500',
+		empty: iro.text.muted,
 	},
-	defaultVariants: { level: 'empty' },
+	defaults: { level: 'empty' },
 })
 
-export const passwordStrength = {
+export const k = {
 	root: ['flex flex-col', 'gap-sm'],
 	meter: ['flex items-center', 'gap-xs'],
-	segment: passwordStrengthSegment,
-	label: passwordStrengthLabel,
+	segment,
+	label,
 	rules: ['flex flex-col', 'gap-0.5'],
 	rule: ['inline-flex items-center', 'gap-xs', ji.size.sm],
 	ruleIcon: 'size-4 shrink-0',
@@ -42,10 +36,4 @@ export const passwordStrength = {
 	ruleIconFail: iro.text.muted,
 	ruleText: iro.text.muted,
 	ruleTextPass: iro.text.default,
-}
-
-export {
-	passwordStrength as k,
-	passwordStrengthSegment as passwordStrengthSegmentVariants,
-	passwordStrengthLabel as passwordStrengthLabelVariants,
 }

@@ -1,7 +1,7 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { useDensity } from '../../primitives/density'
-import { type StatusDotVariants, statusDotVariants } from '../../recipes/kata/status'
+import { k, type StatusDotVariants } from '../../recipes/kata/status'
 
 export type StatusDotProps = StatusDotVariants & {
 	className?: string
@@ -15,7 +15,7 @@ export function StatusDot({ variant, status, size, pulse, className, ...props }:
 	return (
 		<span
 			data-slot="status-dot"
-			className={cn(statusDotVariants({ variant, status, size: resolvedSize, pulse }), className)}
+			className={cn(k({ variant, status, size: resolvedSize, pulse }), className)}
 			{...props}
 		/>
 	)

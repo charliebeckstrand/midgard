@@ -1,10 +1,8 @@
-import { toggleIconButton } from './toggle-icon-button'
+import { k as toggleIcon } from './toggle-icon-button'
 
-export const copyButton = {
+export const k = {
 	base: [
-		...toggleIconButton.base,
+		...toggleIcon.base,
 		'disabled:text-green-600 disabled:opacity-100 disabled:cursor-default',
 	],
 }
-
-export { copyButton as k }

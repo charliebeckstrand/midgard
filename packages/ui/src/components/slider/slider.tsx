@@ -3,7 +3,7 @@
 import type { ComponentPropsWithoutRef, CSSProperties } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
-import { type SliderVariants, sliderVariants } from '../../recipes/kata/slider'
+import { k, type SliderVariants } from '../../recipes/kata/slider'
 import { pct } from '../../utilities'
 
 type SliderBaseProps = SliderVariants & {
@@ -55,7 +55,7 @@ export function Slider({
 			step={step}
 			value={current}
 			onChange={(event) => setInternal(Number(event.target.value))}
-			className={cn(sliderVariants({ size, color }), className)}
+			className={cn(k({ size, color }), className)}
 			style={{ ...style, '--slider-value': `${percent}%` } as CSSProperties}
 			{...props}
 		/>

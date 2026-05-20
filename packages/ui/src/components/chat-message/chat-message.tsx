@@ -1,11 +1,6 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
-import {
-	type ChatMessageVariants,
-	chatMessageBubbleVariants,
-	chatMessageVariants,
-	k,
-} from '../../recipes/kata/chat-message'
+import { bubble, type ChatMessageVariants, k } from '../../recipes/kata/chat-message'
 
 export type ChatMessageProps = ChatMessageVariants & {
 	/** Wall-clock label shown below the bubble. */
@@ -30,9 +25,9 @@ export function ChatMessage({
 		<div
 			data-slot="chat-message"
 			data-type={type ?? 'assistant'}
-			className={cn(chatMessageVariants({ type }), className)}
+			className={cn(k({ type }), className)}
 		>
-			<div data-slot="chat-message-bubble" className={cn(chatMessageBubbleVariants({ type }))}>
+			<div data-slot="chat-message-bubble" className={cn(bubble({ type }))}>
 				{children}
 				{streaming && <span data-slot="chat-message-cursor" aria-hidden className={cn(k.cursor)} />}
 			</div>

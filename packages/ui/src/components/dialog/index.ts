@@ -1,4 +1,4 @@
-export { type DialogPanelVariants, dialogPanelVariants } from '../../recipes/kata/dialog'
+export type { DialogPanelVariants } from '../../recipes/kata/dialog'
 export { Dialog, type DialogProps } from './dialog'
 export {
 	DialogActions,

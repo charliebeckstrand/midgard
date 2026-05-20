@@ -1,9 +1,6 @@
-import { iro } from '../ryu/iro'
-import { ji } from '../ryu/ji'
-import { sawari } from '../ryu/sawari'
-import { sen } from '../ryu/sen'
+import { hannou, iro, ji, sen } from '..'
 
-export const fileUpload = {
+export const k = {
 	dropzone: [
 		'flex flex-col items-center justify-center',
 		'gap-xs',
@@ -14,7 +11,7 @@ export const fileUpload = {
 		'border border-dashed',
 		'border-zinc-300',
 		'dark:border-zinc-700',
-		...sawari.cursor,
+		...hannou.cursor,
 		'hover:not-disabled:border-zinc-400',
 		'dark:hover:not-disabled:border-zinc-500',
 		'data-[drag-over]:border-blue-500 data-[drag-over]:bg-blue-50/50',
@@ -25,5 +22,4 @@ export const fileUpload = {
 	label: ['font-medium', iro.text.default],
 }
 
-export { fileUpload as k }
-export const fileUploadClasses = fileUpload.dropzone
+export const fileUploadClasses = k.dropzone

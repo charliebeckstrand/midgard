@@ -8,7 +8,7 @@ export type StatProps = {
 
 export function Stat({ className, children, ...props }: StatProps) {
 	return (
-		<div data-slot="stat" className={cn(k.base, className)} {...props}>
+		<div data-slot="stat" className={cn(k(), className)} {...props}>
 			{children}
 		</div>
 	)

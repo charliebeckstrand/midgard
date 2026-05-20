@@ -1,11 +1,8 @@
-import { tv, type VariantProps } from 'tailwind-variants'
-import { narabi } from '../ryu/narabi'
-import { omote } from '../ryu/omote'
-import { take } from '../ryu/take'
-import { definePanelRecipe } from '../waku/panel'
+import { defineRecipe, narabi, omote, shaku, type VariantPropsOf } from '..'
+import { definePanelRecipe } from '../genkei/panel'
 
-export const dialog = definePanelRecipe({
-	panel: tv({
+export const k = definePanelRecipe({
+	panel: defineRecipe({
 		base: [
 			...omote.panel.chrome.flat(),
 			narabi.panel.base,
@@ -15,17 +12,13 @@ export const dialog = definePanelRecipe({
 			'max-sm:rounded-t-2xl max-sm:rounded-b-none max-sm:max-h-[calc(85dvh)] max-sm:overflow-y-auto',
 			'sm:rounded-2xl sm:max-h-[calc(100dvh-2rem)]',
 		],
-		variants: {
-			surface: {
-				glass: [...omote.glass],
-				flat: [...omote.panel.bg],
-			},
-			size: take.panel,
+		surface: {
+			glass: [...omote.glass],
+			flat: [...omote.panel.bg],
 		},
-		defaultVariants: { size: 'lg', surface: 'flat' },
+		size: shaku.panel,
+		defaults: { size: 'lg', surface: 'flat' },
 	}),
 })
 
-export type DialogPanelVariants = VariantProps<typeof dialog.panel>
-
-export const dialogPanelVariants = dialog.panel
+export type DialogPanelVariants = VariantPropsOf<typeof k.panel>

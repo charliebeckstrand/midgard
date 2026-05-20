@@ -5,7 +5,7 @@ import { cn } from '../../core'
 import { DensityScope, useSizeWide } from '../../primitives/density'
 import { Polymorphic, type PolymorphicProps } from '../../primitives/polymorphic'
 import { useSkeleton } from '../../providers/skeleton'
-import { type BadgeVariants, badgeVariants } from '../../recipes/kata/badge'
+import { type BadgeVariants, k } from '../../recipes/kata/badge'
 import { BadgeSkeleton } from './badge-skeleton'
 
 type BadgeBaseProps = BadgeVariants & {
@@ -53,7 +53,7 @@ export function Badge({
 				data-has-prefix={prefix ? '' : undefined}
 				data-has-suffix={suffix ? '' : undefined}
 				href={href}
-				className={cn(badgeVariants({ variant, color, size: resolvedSize, rounded }), className)}
+				className={cn(k({ variant, color, size: resolvedSize, rounded }), className)}
 				{...props}
 			>
 				{prefix}

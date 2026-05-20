@@ -10,7 +10,7 @@ import {
 import { type MouseEvent, useCallback, useMemo, useRef, useState } from 'react'
 import { useFloatingPanel } from '../../hooks'
 import { useDensity } from '../../primitives/density'
-import type { Step } from '../../recipes/ryu/sun'
+import type { Step } from '../../recipes'
 
 export type UseMenuStateOptions = {
 	defaultOpen?: boolean

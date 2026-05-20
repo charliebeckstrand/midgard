@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import type { BundledLanguage, BundledTheme } from 'shiki'
 import { cn } from '../../core'
-import { codeBlockVariants, k } from '../../recipes/kata/code'
+import { block, codeBlock } from '../../recipes/kata/code'
 import { CopyButton } from '../copy-button'
 import { MAX_CACHE_SIZE } from './code-block-constants'
 
@@ -93,20 +93,20 @@ export function CodeBlock({
 	}, [code, lang, theme])
 
 	return (
-		<div data-slot="code-block" className={cn(codeBlockVariants({ inline }), className)}>
+		<div data-slot="code-block" className={cn(codeBlock({ inline }), className)}>
 			{copy && (
-				<div className={cn(k.block.copyButtonWrapper)}>
-					<CopyButton value={code} className={cn(k.block.copyButton)} size="sm" />
+				<div className={cn(block.copyButtonWrapper)}>
+					<CopyButton value={code} className={cn(block.copyButton)} size="sm" />
 				</div>
 			)}
 			{html ? (
 				<div
-					className={cn(k.block.content, copy && k.block.contentCopy)}
+					className={cn(block.content, copy && block.contentCopy)}
 					// biome-ignore lint/security/noDangerouslySetInnerHtml: shiki output is trusted
 					dangerouslySetInnerHTML={{ __html: html }}
 				/>
 			) : (
-				<pre className={cn(k.block.fallback, copy && k.block.fallbackCopy)} tabIndex={-1}>
+				<pre className={cn(block.fallback, copy && block.fallbackCopy)} tabIndex={-1}>
 					<code>{code}</code>
 				</pre>
 			)}

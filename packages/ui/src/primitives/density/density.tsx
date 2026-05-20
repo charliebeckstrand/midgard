@@ -2,8 +2,7 @@
 
 import { type ReactNode, useMemo } from 'react'
 import { createContext } from '../../core'
-import type { Ma } from '../../recipes/ryu/ma'
-import type { Step } from '../../recipes/ryu/sun'
+import type { Ma, Step } from '../../recipes'
 import { useAffix } from '../affix'
 
 /**

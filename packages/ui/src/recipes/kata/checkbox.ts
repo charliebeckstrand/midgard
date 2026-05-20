@@ -1,8 +1,5 @@
-import { tv, type VariantProps } from 'tailwind-variants'
-import { defineColors } from '../../core/recipe/mode'
-import { iro } from '../ryu/iro'
-import { sen } from '../ryu/sen'
-import { control } from '../waku/control'
+import { defineColors, defineRecipe, iro, sen, type VariantPropsOf } from '..'
+import { control } from '../genkei/control'
 
 const color = defineColors({
 	zinc: {
@@ -18,7 +15,7 @@ const color = defineColors({
 	blue: '[--checkbox-check:var(--color-white)] [--checkbox-checked-bg:var(--color-blue-600)] [--checkbox-checked-border:var(--color-blue-800)]/90',
 })
 
-export const checkbox = tv({
+export const k = defineRecipe({
 	base: [
 		'relative',
 		'inline-flex items-center justify-center',
@@ -33,28 +30,25 @@ export const checkbox = tv({
 		'not-has-[:disabled]:has-checked:hover:opacity-90',
 		'not-has-[:disabled]:has-[:indeterminate]:hover:opacity-90',
 	],
-	variants: {
-		color,
-		size: {
-			sm: ['size-4', 'rounded-[--spacing(0.75)]'],
-			md: ['size-4.5', 'rounded-[--spacing(1)]'],
-			lg: ['size-5', 'rounded-[--spacing(1.25)]'],
-		},
+	color,
+	size: {
+		sm: ['size-4', 'rounded-[--spacing(0.75)]'],
+		md: ['size-4.5', 'rounded-[--spacing(1)]'],
+		lg: ['size-5', 'rounded-[--spacing(1.25)]'],
 	},
-	defaultVariants: { color: 'zinc', size: 'md' },
+	defaults: { color: 'zinc', size: 'md' },
 })
 
+export const input = defineRecipe({ base: control.check.hidden })
+
 /** Check-icon size class per checkbox size step. Read by the component. */
-export const checkboxCheckSize = {
+export const checkSize = {
 	sm: 'size-3',
 	md: 'size-3.5',
 	lg: 'size-4',
 } as const
 
-export const checkboxInput = tv({ base: control.check.hidden })
+/** Disabled-state text class shared by the checkbox field wrapper. */
+export const disabled = iro.text.disabled
 
-export const slots = { disabled: iro.text.disabled }
-
-export type CheckboxVariants = VariantProps<typeof checkbox>
-
-export { checkbox as checkboxVariants, checkboxInput as checkboxInputVariants, slots as k }
+export type CheckboxVariants = VariantPropsOf<typeof k>

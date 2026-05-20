@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 
 // Top-level hooks are reusable building blocks consumed by components,
 // primitives, and other hooks. They must not reach upward into components,
-// layouts, providers, or per-component recipes (kata/waku). Importing
+// layouts, providers, or per-component recipes (kata/genkei). Importing
 // primitives is allowed — hooks frequently read context exposed through
 // primitive providers (see useRipple → ReducedMotion).
 
@@ -16,7 +16,7 @@ const FORBIDDEN_PATTERNS = [
 	{ label: 'layouts/', regex: /from\s+['"][^'"]*\/layouts\/[^'"]+['"]/g },
 	{ label: 'providers/', regex: /from\s+['"][^'"]*\/providers\/[^'"]+['"]/g },
 	{ label: 'recipes/kata/', regex: /from\s+['"][^'"]*\/recipes\/kata\/[^'"]+['"]/g },
-	{ label: 'recipes/waku/', regex: /from\s+['"][^'"]*\/recipes\/waku\/[^'"]+['"]/g },
+	{ label: 'recipes/genkei/', regex: /from\s+['"][^'"]*\/recipes\/genkei\/[^'"]+['"]/g },
 ] as const
 
 describe('hook purity boundary', () => {

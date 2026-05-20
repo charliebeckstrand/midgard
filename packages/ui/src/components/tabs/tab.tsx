@@ -5,7 +5,7 @@ import { cn } from '../../core'
 import { ActiveIndicator, useActiveIndicator } from '../../primitives/active-indicator'
 import { useCurrent } from '../../primitives/current'
 import { useDensity } from '../../primitives/density'
-import { segment as ks, segmentItemVariants } from '../../recipes/kata/segment'
+import { k as ks } from '../../recipes/kata/segment'
 import { k } from '../../recipes/kata/tabs'
 import { useTabsContext } from './context'
 
@@ -64,7 +64,7 @@ export function Tab({
 				tabIndex={current ? 0 : -1}
 				type="button"
 				className={cn(
-					isSegment ? segmentItemVariants({ size }) : k.tab({ orientation, size }),
+					isSegment ? ks.item({ size }) : k.tab({ orientation, size }),
 					'relative z-1',
 					className,
 				)}

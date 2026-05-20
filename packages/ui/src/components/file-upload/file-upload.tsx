@@ -3,7 +3,7 @@
 import { Upload } from 'lucide-react'
 import type { ComponentProps, ReactNode } from 'react'
 import { cn } from '../../core'
-import { sawari } from '../../recipes'
+import { hannou } from '../../recipes'
 import { fileUploadClasses, k } from '../../recipes/kata/file-upload'
 import { AspectRatio, type AspectRatioProps } from '../aspect-ratio'
 import { Button } from '../button'
@@ -92,7 +92,7 @@ export function FileUpload(props: FileUploadProps) {
 					value={label ?? ''}
 					placeholder={placeholder ?? 'Choose a file'}
 					onClick={openPicker}
-					className={cn('file:hidden', sawari.cursor)}
+					className={cn('file:hidden', hannou.cursor)}
 					suffix={<Icon icon={<Upload />} />}
 				/>
 			</div>
@@ -109,7 +109,7 @@ export function FileUpload(props: FileUploadProps) {
 					size={size}
 					color={color}
 					disabled={disabled}
-					className={cn(sawari.cursor)}
+					className={cn(hannou.cursor)}
 					onClick={openPicker}
 				>
 					<Icon icon={<Upload />} />

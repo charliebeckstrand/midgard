@@ -1,31 +1,25 @@
-import { tv } from 'tailwind-variants'
-import { ji } from '../ryu/ji'
-import { sawari } from '../ryu/sawari'
-import { sen } from '../ryu/sen'
-import { take } from '../ryu/take'
+import { defineRecipe, hannou, ji, sen, shaku, type VariantPropsOf } from '..'
 
-const sidebarItem = tv({
+const item = defineRecipe({
 	base: [
-		...sawari.nav,
-		...sawari.cursor,
+		...hannou.nav,
+		...hannou.cursor,
 		'group relative',
 		'flex w-full items-center',
 		'text-left',
 		'rounded-lg',
 	],
-	variants: {
-		size: {
-			sm: [ji.size.sm, 'gap-xs', 'p-1.5', take.icon.sm],
-			md: [ji.size.md, 'gap-sm', 'p-2', take.icon.md],
-			lg: [ji.size.lg, 'gap-md', 'p-2.5', take.icon.lg],
-		},
+	size: {
+		sm: [ji.size.sm, 'gap-xs', 'p-1.5', shaku.icon.sm],
+		md: [ji.size.md, 'gap-sm', 'p-2', shaku.icon.md],
+		lg: [ji.size.lg, 'gap-md', 'p-2.5', shaku.icon.lg],
 	},
-	defaultVariants: { size: 'md' },
+	defaults: { size: 'md' },
 })
 
-export const sidebar = {
+export const k = {
 	base: ['overflow-y-auto', 'flex flex-col gap-y-4', 'h-full', 'py-6', 'px-4'],
-	item: sidebarItem,
+	item,
 	section: ['flex flex-col', 'gap-0.5'],
 	label: ['truncate'],
 	header: ['flex items-center justify-between', 'gap-md', '**:data-[slot=heading]:leading-none'],
@@ -34,4 +28,4 @@ export const sidebar = {
 	footer: ['sticky bottom-0', 'flex flex-col', 'gap-0.5', 'mt-auto'],
 }
 
-export { sidebar as k, sidebarItem as sidebarItemVariants }
+export type SidebarItemVariants = VariantPropsOf<typeof item>

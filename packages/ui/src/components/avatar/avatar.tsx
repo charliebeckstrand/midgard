@@ -4,10 +4,10 @@ import { DensityScope, densityPresets, useDensity } from '../../primitives/densi
 import { useSkeleton } from '../../providers/skeleton'
 import {
 	type AvatarVariants,
-	avatarImageVariants,
-	avatarInitialsVariants,
-	avatarVariants,
+	image,
+	initials as initialsClasses,
 	k,
+	statusRing,
 } from '../../recipes/kata/avatar'
 import { StatusDot } from '../status'
 import { AvatarSkeleton } from './avatar-skeleton'
@@ -48,12 +48,12 @@ export function Avatar({
 	const avatarEl = (
 		<span
 			data-slot="avatar"
-			className={cn(avatarVariants({ variant, color, size: resolvedSize }), !status && className)}
+			className={cn(k({ variant, color, size: resolvedSize }), !status && className)}
 			{...props}
 		>
 			{initials && (
 				<svg
-					className={avatarInitialsVariants()}
+					className={initialsClasses}
 					viewBox="0 0 100 100"
 					aria-hidden={alt ? undefined : 'true'}
 					role="img"
@@ -71,7 +71,7 @@ export function Avatar({
 					</text>
 				</svg>
 			)}
-			{src && <img className={avatarImageVariants()} src={src} alt={alt} />}
+			{src && <img className={image} src={src} alt={alt} />}
 		</span>
 	)
 
@@ -83,7 +83,7 @@ export function Avatar({
 		<DensityScope scale={size}>
 			<span data-slot="avatar-with-status" className={cn('relative inline-flex', className)}>
 				{avatarEl}
-				<StatusDot status={status} className={cn('absolute top-0 right-0', k.statusRing)} />
+				<StatusDot status={status} className={cn('absolute top-0 right-0', statusRing)} />
 			</span>
 		</DensityScope>
 	)

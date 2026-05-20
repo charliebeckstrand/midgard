@@ -15,7 +15,7 @@ import { useDensity } from '../../primitives/density'
 import { OffcanvasContext } from '../../primitives/offcanvas'
 import type { PolymorphicProps } from '../../primitives/polymorphic'
 import { TouchTarget } from '../../primitives/touch-target'
-import type { Step } from '../../recipes/ryu/sun'
+import type { Step } from '../../recipes'
 import { Button } from '../button'
 import { Headless } from '../headless'
 

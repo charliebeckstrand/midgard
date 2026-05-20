@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { breadcrumbLinkVariants } from '../../recipes/kata/breadcrumb'
+import { k } from '../../recipes/kata/breadcrumb'
 import { Link } from '../link'
 
 export type BreadcrumbLinkProps = { current?: boolean } & (
@@ -11,7 +11,7 @@ export type BreadcrumbLinkProps = { current?: boolean } & (
 export function BreadcrumbLink(props: BreadcrumbLinkProps) {
 	const { current = false, className } = props
 
-	const classes = cn(breadcrumbLinkVariants({ current }), className)
+	const classes = cn(k.link({ current }), className)
 
 	if (props.href !== undefined) {
 		const { current: _current, className: _className, ...rest } = props

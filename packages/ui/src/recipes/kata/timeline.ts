@@ -1,69 +1,56 @@
-import { tv, type VariantProps } from 'tailwind-variants'
-import { iro } from '../ryu/iro'
-import { ji } from '../ryu/ji'
+import { defineRecipe, iro, ji, type VariantPropsOf } from '..'
 
-export const timeline = tv({
+const timeline = defineRecipe({
 	base: ['list-none p-0 m-0'],
-	variants: {
-		orientation: {
-			vertical: 'flex flex-col',
-			horizontal: 'flex flex-row overflow-x-auto',
-		},
-		variant: {
-			solid: '',
-			outline: '',
-		},
+	orientation: {
+		vertical: 'flex flex-col',
+		horizontal: 'flex flex-row overflow-x-auto',
 	},
-	defaultVariants: { orientation: 'vertical', variant: 'solid' },
+	variant: {
+		solid: '',
+		outline: '',
+	},
+	defaults: { orientation: 'vertical', variant: 'solid' },
 })
 
-const item = tv({
+const item = defineRecipe({
 	base: 'relative overflow-hidden',
-	variants: {
-		orientation: {
-			vertical: 'grid grid-cols-[0.875rem_1fr] gap-x-4 pb-8 last:pb-0',
-			horizontal: 'flex flex-col pl-[6.5px] pt-8 pr-8 last:pr-0',
-		},
+	orientation: {
+		vertical: 'grid grid-cols-[0.875rem_1fr] gap-x-4 pb-8 last:pb-0',
+		horizontal: 'flex flex-col pl-[6.5px] pt-8 pr-8 last:pr-0',
 	},
-	defaultVariants: { orientation: 'vertical' },
+	defaults: { orientation: 'vertical' },
 })
 
-const title = tv({
+const title = defineRecipe({
 	base: ['font-semibold', ji.size.lg, ...iro.text.default],
-	variants: {
-		orientation: {
-			vertical: 'col-start-2 row-start-1',
-			horizontal: 'order-1',
-		},
+	orientation: {
+		vertical: 'col-start-2 row-start-1',
+		horizontal: 'order-1',
 	},
-	defaultVariants: { orientation: 'vertical' },
+	defaults: { orientation: 'vertical' },
 })
 
-const description = tv({
+const description = defineRecipe({
 	base: [ji.size.md],
-	variants: {
-		orientation: {
-			vertical: 'col-start-2 row-start-2',
-			horizontal: 'order-2',
-		},
+	orientation: {
+		vertical: 'col-start-2 row-start-2',
+		horizontal: 'order-2',
 	},
-	defaultVariants: { orientation: 'vertical' },
+	defaults: { orientation: 'vertical' },
 })
 
-const timestamp = tv({
+const timestamp = defineRecipe({
 	base: [ji.size.sm, ...iro.text.muted],
-	variants: {
-		orientation: {
-			vertical: 'col-start-2 row-start-3 mt-1',
-			horizontal: 'order-3 mt-1',
-		},
+	orientation: {
+		vertical: 'col-start-2 row-start-3 mt-1',
+		horizontal: 'order-3 mt-1',
 	},
-	defaultVariants: { orientation: 'vertical' },
+	defaults: { orientation: 'vertical' },
 })
 
-export type TimelineVariants = VariantProps<typeof timeline>
-
-export const slots = {
+export const k = {
+	root: timeline,
 	item,
 	marker: {
 		base: [
@@ -117,11 +104,4 @@ export const slots = {
 	timestamp,
 }
 
-export {
-	timeline as timelineVariants,
-	item as timelineItemVariants,
-	title as timelineTitleVariants,
-	description as timelineDescriptionVariants,
-	timestamp as timelineTimestampVariants,
-	slots as k,
-}
+export type TimelineVariants = VariantPropsOf<typeof timeline>

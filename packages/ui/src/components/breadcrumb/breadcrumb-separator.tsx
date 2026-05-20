@@ -1,7 +1,7 @@
 import { ChevronRight } from 'lucide-react'
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { breadcrumbSeparatorVariants } from '../../recipes/kata/breadcrumb'
+import { k } from '../../recipes/kata/breadcrumb'
 import { Icon } from '../icon'
 
 export type BreadcrumbSeparatorProps = ComponentPropsWithoutRef<'li'>
@@ -12,7 +12,7 @@ export function BreadcrumbSeparator({ children, className, ...props }: Breadcrum
 			data-slot="breadcrumb-separator"
 			role="presentation"
 			aria-hidden="true"
-			className={cn(breadcrumbSeparatorVariants(), className)}
+			className={cn(k.separator(), className)}
 			{...props}
 		>
 			{children ?? <Icon icon={<ChevronRight />} aria-hidden="true" />}

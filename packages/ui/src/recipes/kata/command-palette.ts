@@ -1,16 +1,13 @@
-import { iro } from '../ryu/iro'
-import { ji } from '../ryu/ji'
-import { narabi } from '../ryu/narabi'
-import { sawari } from '../ryu/sawari'
+import { hannou, iro, ji, narabi } from '..'
 
-export const commandPalette = {
+export const k = {
 	group: 'py-1 first:pt-0 last:pb-0',
 	title: ['p-2', ji.size.xs, iro.text.muted, 'font-medium'],
 	item: [
 		'group/option flex w-full items-center',
 		'px-2',
 		'gap-sm',
-		...sawari.item,
+		...hannou.item,
 		...narabi.item,
 		'data-active:bg-zinc-950/5',
 		'dark:data-active:bg-white/5',
@@ -19,5 +16,3 @@ export const commandPalette = {
 	description: [narabi.description, ji.size.xs, iro.text.muted],
 	shortcut: 'ml-auto',
 }
-
-export { commandPalette as k }

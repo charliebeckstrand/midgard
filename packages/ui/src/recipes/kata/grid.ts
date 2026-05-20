@@ -1,18 +1,15 @@
-import { tv, type VariantProps } from 'tailwind-variants'
-import { sen } from '../ryu/sen'
+import { defineRecipe, sen, type VariantPropsOf } from '..'
 
-export const gridDivider = tv({
+const divider = defineRecipe({
 	base: 'border-t col-span-full',
-	variants: {
-		soft: {
-			true: [...sen.borderSubtleColor],
-			false: [...sen.borderColor],
-		},
+	soft: {
+		true: [...sen.borderSubtleColor],
+		false: [...sen.borderColor],
 	},
-	defaultVariants: { soft: false },
+	defaults: { soft: false },
 })
 
-export type GridDividerVariants = VariantProps<typeof gridDivider>
-
 /** Kept for the `kata` barrel — not consumed directly. */
-export const grid = { divider: gridDivider }
+export const k = { divider }
+
+export type GridDividerVariants = VariantPropsOf<typeof divider>

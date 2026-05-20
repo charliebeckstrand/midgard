@@ -1,9 +1,6 @@
-import { iro } from '../ryu/iro'
-import { ji } from '../ryu/ji'
-import { sawari } from '../ryu/sawari'
-import { sen } from '../ryu/sen'
+import { hannou, iro, ji, sen } from '..'
 
-export const collapse = {
+export const k = {
 	base: 'group/collapse',
 	trigger: [
 		'inline-flex items-center',
@@ -15,9 +12,7 @@ export const collapse = {
 		'dark:group-data-[open]/collapse:text-white',
 		sen.focus.ring,
 		'disabled:opacity-50 disabled:cursor-not-allowed',
-		...sawari.cursor,
+		...hannou.cursor,
 	],
 	panel: 'overflow-hidden',
 }
-
-export { collapse as k }

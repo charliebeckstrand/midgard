@@ -1,59 +1,43 @@
-import { tv, type VariantProps } from 'tailwind-variants'
-import { colorVariants } from '../../core/recipe'
-import { iro, merge } from '../ryu/iro'
-import { take } from '../ryu/take'
+import { defineRecipe, iro, palette, shaku, type VariantPropsOf } from '..'
 
 const { solid, soft, outline } = iro.palette
 
-const { color, compoundVariants } = colorVariants({
-	solid: merge(solid.bg, solid.text),
-	soft: merge(soft.bg, soft.text),
-	outline: merge(outline.ring, outline.text),
-})
-
-export const avatar = tv({
+export const k = defineRecipe({
 	base: [
 		'inline-grid place-items-center align-middle overflow-hidden',
 		'*:col-start-1 *:row-start-1',
 		'rounded-full',
 	],
-	variants: {
-		variant: {
-			solid: 'border border-transparent text-white',
-			soft: 'border border-transparent',
-			outline: 'border',
-		},
-		color,
-		size: take.avatar,
+	variant: {
+		solid: 'border border-transparent text-white',
+		soft: 'border border-transparent',
+		outline: 'border',
 	},
-	compoundVariants,
-	defaultVariants: { variant: 'solid', color: 'zinc', size: 'md' },
+	size: shaku.avatar,
+	palette: palette({
+		solid: [solid.bg, solid.text],
+		soft: [soft.bg, soft.text],
+		outline: [outline.ring, outline.text],
+	}),
+	defaults: { variant: 'solid', color: 'zinc', size: 'md' },
 })
 
-export const avatarInitials = tv({
-	base: 'select-none fill-current text-[48px] font-medium uppercase',
-})
-export const avatarImage = tv({ base: 'size-full object-cover' })
+export const initials = 'select-none fill-current text-[48px] font-medium uppercase'
 
-/** Slot classes for avatar group and status ring. */
-export const slots = {
-	group: {
-		base: 'flex items-center',
-		ring: '*:ring-2 *:ring-white dark:*:ring-zinc-900',
-		spacing: {
-			sm: '-space-x-1.5',
-			md: '-space-x-2',
-			lg: '-space-x-2.5',
-		},
+export const image = 'size-full object-cover'
+
+/** Avatar-group container classes. */
+export const group = {
+	base: 'flex items-center',
+	ring: '*:ring-2 *:ring-white dark:*:ring-zinc-900',
+	spacing: {
+		sm: '-space-x-1.5',
+		md: '-space-x-2',
+		lg: '-space-x-2.5',
 	},
-	statusRing: 'ring-2 ring-white dark:ring-zinc-900',
 }
 
-export type AvatarVariants = VariantProps<typeof avatar>
+/** Ring around an avatar's status indicator. */
+export const statusRing = 'ring-2 ring-white dark:ring-zinc-900'
 
-export {
-	avatar as avatarVariants,
-	avatarImage as avatarImageVariants,
-	avatarInitials as avatarInitialsVariants,
-	slots as k,
-}
+export type AvatarVariants = VariantPropsOf<typeof k>

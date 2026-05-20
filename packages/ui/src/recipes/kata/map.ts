@@ -1,15 +1,12 @@
-import { sawari } from '../ryu/sawari'
-import { sen } from '../ryu/sen'
+import { hannou, sen } from '..'
 
-export const map = {
+export const k = {
 	base: [
 		'relative isolate overflow-hidden',
 		'w-full h-full',
 		sen.border,
 		'rounded-lg',
-		sawari.disabled,
+		hannou.disabled,
 	],
 	canvas: ['absolute inset-0'],
 }
-
-export { map as k }

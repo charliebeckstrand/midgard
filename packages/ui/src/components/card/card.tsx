@@ -3,8 +3,7 @@
 import { cn } from '../../core'
 import { DensityScope, densityPresets, useDensity } from '../../primitives/density'
 import { useSkeleton } from '../../providers/skeleton'
-import { kokkaku } from '../../recipes'
-import { type Step, sun } from '../../recipes/ryu/sun'
+import { kokkaku, type Step, sun } from '../../recipes'
 import { Box, type BoxProps } from '../box'
 import { Placeholder } from '../placeholder'
 

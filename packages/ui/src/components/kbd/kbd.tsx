@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { type KbdVariants, kbdVariants } from '../../recipes/kata/kbd'
+import { type KbdVariants, k } from '../../recipes/kata/kbd'
 
 export type KbdProps = ComponentPropsWithoutRef<'kbd'> & {
 	size?: KbdVariants['size']
@@ -12,7 +12,7 @@ export type KbdProps = ComponentPropsWithoutRef<'kbd'> & {
 
 export function Kbd({ cmd, ctrl, size, className, children, ...props }: KbdProps) {
 	return (
-		<kbd data-slot="kbd" className={cn(kbdVariants({ size }), className)} {...props}>
+		<kbd data-slot="kbd" className={cn(k({ size }), className)} {...props}>
 			{cmd && <span>⌘</span>}
 			{ctrl && <span>⌃</span>}
 			{children}

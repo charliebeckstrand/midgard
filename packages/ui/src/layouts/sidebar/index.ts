@@ -8,18 +8,12 @@ export {
 	type SidebarLayoutHeaderProps,
 	type SidebarLayoutProps,
 } from './sidebar'
-export {
-	type SidebarBodyVariants,
-	type SidebarContentVariants,
-	type SidebarContentWrapperVariants,
-	type SidebarFooterVariants,
-	type SidebarHeaderVariants,
-	type SidebarLayoutVariants,
-	sidebarBodyVariants,
-	sidebarContentVariants,
-	sidebarContentWrapperVariants,
-	sidebarFooterVariants,
-	sidebarHeaderVariants,
-	sidebarLayoutVariants,
-	sidebarPanelVariants,
+export type {
+	SidebarBodyVariants,
+	SidebarContentVariants,
+	SidebarContentWrapperVariants,
+	SidebarFooterVariants,
+	SidebarHeaderVariants,
+	SidebarLayoutVariants,
+	SidebarPanelVariants,
 } from './variants'

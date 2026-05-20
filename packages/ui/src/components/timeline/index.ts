@@ -1,4 +1,4 @@
-export { type TimelineVariants, timelineVariants } from '../../recipes/kata/timeline'
+export type { TimelineVariants } from '../../recipes/kata/timeline'
 export { Timeline, type TimelineProps } from './timeline'
 export { TimelineDescription, type TimelineDescriptionProps } from './timeline-description'
 export { TimelineItem, type TimelineItemProps } from './timeline-item'

@@ -5,14 +5,9 @@ import { cn, invalidAttrs } from '../../core'
 import { ControlFrame } from '../../primitives/control'
 import { densityPresets, useDensity } from '../../primitives/density'
 import { useSkeleton } from '../../providers/skeleton'
+import type { Step } from '../../recipes'
 import { kokkaku } from '../../recipes'
-import {
-	controlVariants,
-	k,
-	type TextareaVariants,
-	textareaVariants,
-} from '../../recipes/kata/textarea'
-import type { Step } from '../../recipes/ryu/sun'
+import { k, type TextareaVariants, textareaControl } from '../../recipes/kata/textarea'
 import { useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
 import { useFormText } from '../form/context'
@@ -93,7 +88,7 @@ export function Textarea({
 
 	return (
 		<ControlFrame
-			className={cn(hasActions && k.frame, controlVariants({ variant: resolvedVariant }))}
+			className={cn(hasActions && k.frame, textareaControl({ variant: resolvedVariant }))}
 		>
 			<textarea
 				data-slot="textarea"
@@ -101,7 +96,7 @@ export function Textarea({
 				rows={rows}
 				style={hasActionsStyle}
 				className={cn(
-					textareaVariants({
+					k({
 						variant: resolvedVariant,
 						density: token.density,
 						size: token.size,

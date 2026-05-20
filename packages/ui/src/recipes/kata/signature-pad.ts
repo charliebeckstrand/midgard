@@ -1,9 +1,6 @@
-import { iro } from '../ryu/iro'
-import { ji } from '../ryu/ji'
-import { sawari } from '../ryu/sawari'
-import { sen } from '../ryu/sen'
+import { hannou, iro, ji, sen } from '..'
 
-export const signaturePad = {
+export const k = {
 	base: [
 		'overflow-hidden',
 		'relative isolate',
@@ -11,7 +8,7 @@ export const signaturePad = {
 		sen.border,
 		'rounded-lg',
 		sen.focus.ring,
-		sawari.disabled,
+		hannou.disabled,
 	],
 	canvas: ['block w-full h-full', 'cursor-crosshair touch-none select-none'],
 	placeholder: [
@@ -23,5 +20,3 @@ export const signaturePad = {
 	],
 	actions: ['absolute right-2 bottom-2', 'flex items-center', 'gap-xs'],
 }
-
-export { signaturePad as k }

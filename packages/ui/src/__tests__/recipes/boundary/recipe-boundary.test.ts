@@ -2,13 +2,12 @@ import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-// `ryu/` is the public substrate scale layer (re-exported from
-// src/recipes/index.ts). `kata/` and `waku/` are internal-only — see the
-// header in src/recipes/index.ts for the full contract. This test pins the
-// three boundaries that keep them internal:
+// `kata/` and `genkei/` are internal-only — see the header in
+// src/recipes/index.ts for the full contract. This test pins the three
+// boundaries that keep them internal:
 //
 //   1. package.json `exports` never lists ./recipes or ./recipes/*.
-//   2. The recipes barrel never re-exports anything from kata/ or waku/.
+//   2. The recipes barrel never re-exports anything from kata/ or genkei/.
 //   3. No app or sibling package imports from 'ui/recipes/*'.
 
 const uiRoot = join(__dirname, '../../../..')
@@ -27,10 +26,10 @@ describe('recipes internal-boundary contract', () => {
 		expect(leaks, `package.json exports leaks recipes: ${leaks.join(', ')}`).toEqual([])
 	})
 
-	it('src/recipes/index.ts does not re-export from kata/ or waku/', () => {
+	it('src/recipes/index.ts does not re-export from kata/ or genkei/', () => {
 		const source = readFileSync(join(uiRoot, 'src/recipes/index.ts'), 'utf8')
 
-		const leaks = source.match(/from\s+['"]\.\/(?:kata|waku)\/[^'"]+['"]/g) ?? []
+		const leaks = source.match(/from\s+['"]\.\/(?:kata|genkei)\/[^'"]+['"]/g) ?? []
 
 		expect(leaks, `recipes barrel re-exports internals: ${leaks.join(', ')}`).toEqual([])
 	})

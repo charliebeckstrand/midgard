@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { control } from '../../recipes/waku/control'
+import { control } from '../../recipes/genkei/control'
 
 export type ControlFrameProps = ComponentPropsWithoutRef<'span'>
 

@@ -1,2 +1,2 @@
-export { type KbdVariants, kbdVariants } from '../../recipes/kata/kbd'
+export type { KbdVariants } from '../../recipes/kata/kbd'
 export { Kbd, type KbdProps } from './kbd'

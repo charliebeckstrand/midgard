@@ -1,55 +1,42 @@
-import { tv, type VariantProps } from 'tailwind-variants'
-import { iro } from '../ryu/iro'
-import { narabi } from '../ryu/narabi'
-import { omote } from '../ryu/omote'
-import { sen } from '../ryu/sen'
-import { take } from '../ryu/take'
-import { definePanelRecipe } from '../waku/panel'
+import { defineRecipe, iro, narabi, omote, sen, shaku, type VariantPropsOf } from '..'
+import { definePanelRecipe } from '../genkei/panel'
 
-export const sheet = definePanelRecipe({
-	panel: tv({
+export const k = definePanelRecipe({
+	panel: defineRecipe({
 		base: [
 			...omote.panel.chrome.flat(),
 			narabi.panel.base,
 			'absolute overflow-y-auto',
 			'sm:rounded-xl',
 		],
-		variants: {
-			side: {
-				right: [
-					'inset-y-0 right-0 w-full',
-					'max-sm:rounded-r-none',
-					'sm:top-4 sm:right-4 sm:bottom-4',
-				],
-				left: [
-					'inset-y-0 left-0 w-full',
-					'max-sm:rounded-l-none',
-					'sm:top-4 sm:left-4 sm:bottom-4',
-				],
-				top: narabi.slide.top,
-				bottom: narabi.slide.bottom,
-			},
-			size: take.panel,
-			surface: {
-				glass: [...omote.glass],
-				flat: [...omote.panel.bg],
-			},
+		side: {
+			right: [
+				'inset-y-0 right-0 w-full',
+				'max-sm:rounded-r-none',
+				'sm:top-4 sm:right-4 sm:bottom-4',
+			],
+			left: ['inset-y-0 left-0 w-full', 'max-sm:rounded-l-none', 'sm:top-4 sm:left-4 sm:bottom-4'],
+			top: narabi.slide.top,
+			bottom: narabi.slide.bottom,
 		},
-		compoundVariants: [
+		size: shaku.panel,
+		surface: {
+			glass: [...omote.glass],
+			flat: [...omote.panel.bg],
+		},
+		compound: [
 			{ side: 'right', size: 'full', class: 'sm:left-4' },
 			{ side: 'left', size: 'full', class: 'sm:right-4' },
 		],
-		defaultVariants: { side: 'right', size: 'md', surface: 'flat' },
+		defaults: { side: 'right', size: 'md', surface: 'flat' },
 	}),
-	backdrop: tv({
+	backdrop: defineRecipe({
 		base: 'absolute inset-0',
-		variants: {
-			surface: {
-				glass: [...omote.backdrop.glass],
-				flat: [...omote.backdrop.base],
-			},
+		surface: {
+			glass: [...omote.backdrop.glass],
+			flat: [...omote.backdrop.base],
 		},
-		defaultVariants: { surface: 'flat' },
+		defaults: { surface: 'flat' },
 	}),
 	title: { extra: 'px-6 pt-6' },
 	description: { extra: 'px-6' },
@@ -60,7 +47,4 @@ export const sheet = definePanelRecipe({
 	},
 })
 
-export type SheetPanelVariants = VariantProps<typeof sheet.panel>
-
-export const sheetPanelVariants = sheet.panel
-export const sheetBackdropVariants = sheet.backdrop
+export type SheetPanelVariants = VariantPropsOf<typeof k.panel>

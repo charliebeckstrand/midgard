@@ -1,2 +1,2 @@
-export { type DividerVariants, dividerVariants } from '../../recipes/kata/divider'
+export type { DividerVariants } from '../../recipes/kata/divider'
 export { Divider, type DividerProps } from './divider'

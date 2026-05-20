@@ -1,29 +1,40 @@
-import { tv, type VariantProps } from 'tailwind-variants'
-import { iro } from '../ryu/iro'
-import { ji } from '../ryu/ji'
+import { defineRecipe, iro, ji, type VariantPropsOf } from '..'
 
-export const statValue = tv({
-	base: ['font-semibold tracking-tight tabular-nums', ...iro.text.default],
-	variants: {
-		size: {
-			sm: ji.size['2xl'],
-			md: ji.size['3xl'],
-			lg: ji.size['4xl'],
-		},
+export const k = defineRecipe({
+	base: ['flex flex-col justify-center', 'h-full', 'gap-xs'],
+	slots: {
+		description: [ji.size.sm, ...iro.text.muted],
 	},
-	defaultVariants: { size: 'md' },
 })
 
-export const statDelta = tv({
-	base: ['inline-flex items-center', ji.size.sm, 'gap-xs', 'font-medium tabular-nums'],
-	variants: {
-		trend: {
-			up: 'text-green-600 dark:text-green-500',
-			down: 'text-red-600 dark:text-red-500',
-			neutral: [...iro.text.muted],
-		},
+export const label = defineRecipe({
+	base: [...iro.text.muted, 'font-medium'],
+	size: {
+		sm: ji.size.xs,
+		md: ji.size.sm,
+		lg: ji.size.md,
 	},
-	defaultVariants: { trend: 'neutral' },
+	defaults: { size: 'md' },
+})
+
+export const statValue = defineRecipe({
+	base: ['font-semibold tracking-tight tabular-nums', ...iro.text.default],
+	size: {
+		sm: ji.size['2xl'],
+		md: ji.size['3xl'],
+		lg: ji.size['4xl'],
+	},
+	defaults: { size: 'md' },
+})
+
+export const statDelta = defineRecipe({
+	base: ['inline-flex items-center', ji.size.sm, 'gap-xs', 'font-medium tabular-nums'],
+	trend: {
+		up: 'text-green-600 dark:text-green-500',
+		down: 'text-red-600 dark:text-red-500',
+		neutral: [...iro.text.muted],
+	},
+	defaults: { trend: 'neutral' },
 })
 
 /**
@@ -32,28 +43,24 @@ export const statDelta = tv({
  * doesn't shift layout. Widths are sensible defaults — caller can override via
  * `className`.
  */
-export const statValuePlaceholder = tv({
+export const statValuePlaceholder = defineRecipe({
 	base: '',
-	variants: {
-		size: {
-			sm: 'h-8 w-16',
-			md: 'h-9 w-20',
-			lg: 'h-10 w-24',
-		},
+	size: {
+		sm: 'h-8 w-16',
+		md: 'h-9 w-20',
+		lg: 'h-10 w-24',
 	},
-	defaultVariants: { size: 'md' },
+	defaults: { size: 'md' },
 })
 
-export const statLabelPlaceholder = tv({
+export const statLabelPlaceholder = defineRecipe({
 	base: '',
-	variants: {
-		size: {
-			sm: 'h-4 w-20',
-			md: 'h-5 w-24',
-			lg: 'h-6 w-28',
-		},
+	size: {
+		sm: 'h-4 w-20',
+		md: 'h-5 w-24',
+		lg: 'h-6 w-28',
 	},
-	defaultVariants: { size: 'md' },
+	defaults: { size: 'md' },
 })
 
 export const statPlaceholder = {
@@ -61,25 +68,5 @@ export const statPlaceholder = {
 	delta: 'h-5 w-12',
 }
 
-const label = tv({
-	base: [...iro.text.muted, 'font-medium'],
-	variants: {
-		size: {
-			sm: ji.size.xs,
-			md: ji.size.sm,
-			lg: ji.size.md,
-		},
-	},
-	defaultVariants: { size: 'md' },
-})
-
-export type StatValueVariants = VariantProps<typeof statValue>
-export type StatDeltaVariants = VariantProps<typeof statDelta>
-
-export const slots = {
-	base: ['flex flex-col justify-center', 'h-full', 'gap-xs'],
-	label,
-	description: [ji.size.sm, ...iro.text.muted],
-}
-
-export { statDelta as statDeltaVariants, statValue as statValueVariants, slots as k }
+export type StatValueVariants = VariantPropsOf<typeof statValue>
+export type StatDeltaVariants = VariantPropsOf<typeof statDelta>

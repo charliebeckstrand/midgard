@@ -1,7 +1,6 @@
-import { ji } from '../ryu/ji'
-import { sawari } from '../ryu/sawari'
+import { hannou, ji } from '..'
 
-export const nav = {
+export const k = {
 	list: {
 		base: 'flex',
 		orientation: {
@@ -12,13 +11,11 @@ export const nav = {
 	item: [
 		'group relative flex w-full items-center',
 		'p-2',
-		...sawari.nav,
-		...sawari.cursor,
+		...hannou.nav,
+		...hannou.cursor,
 		'gap-sm',
 		ji.size.md,
 		'text-left font-medium',
 		'rounded-lg',
 	],
 }
-
-export { nav as k }

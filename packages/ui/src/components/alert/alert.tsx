@@ -4,7 +4,7 @@ import { AlertTriangle, CheckCircle, Info, X, XCircle } from 'lucide-react'
 import { Children, isValidElement, type ReactElement, type ReactNode, useCallback } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
-import { type AlertVariants, alertVariants, k } from '../../recipes/kata/alert'
+import { type AlertVariants, k } from '../../recipes/kata/alert'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { AlertBody } from './alert-body'
@@ -114,7 +114,7 @@ export function Alert({
 			data-slot="alert"
 			role={role}
 			className={cn(
-				alertVariants({ variant, color: resolvedColor }),
+				k({ variant, color: resolvedColor }),
 				block && 'w-full',
 				severity && !closable && 'pr-6',
 				className,

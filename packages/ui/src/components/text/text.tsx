@@ -2,7 +2,7 @@ import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { useSkeleton } from '../../providers/skeleton'
 import { kokkaku } from '../../recipes'
-import { type TextVariants, textVariants } from '../../recipes/kata/text'
+import { k, type TextVariants } from '../../recipes/kata/text'
 import { Placeholder } from '../placeholder'
 
 export type TextProps = TextVariants & {
@@ -14,7 +14,5 @@ export function Text({ variant, color, className, ...props }: TextProps) {
 		return <Placeholder className={cn(kokkaku.text.base, className)} />
 	}
 
-	return (
-		<p data-slot="text" className={cn(textVariants({ variant, color }), className)} {...props} />
-	)
+	return <p data-slot="text" className={cn(k({ variant, color }), className)} {...props} />
 }

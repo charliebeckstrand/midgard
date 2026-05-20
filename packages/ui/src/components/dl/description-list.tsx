@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { dlVariants } from '../../recipes/kata/dl'
+import { k } from '../../recipes/kata/dl'
 import { type DlOrientation, DlProvider } from './context'
 
 export type DescriptionListVariants = {
@@ -21,7 +21,7 @@ export function DescriptionList({
 			<dl
 				data-slot="dl"
 				data-orientation={orientation}
-				className={cn(dlVariants({ orientation }), className)}
+				className={cn(k.root({ orientation }), className)}
 				{...props}
 			/>
 		</DlProvider>

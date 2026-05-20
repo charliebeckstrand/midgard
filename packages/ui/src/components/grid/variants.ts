@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import type { Ma } from '../../recipes/ryu/ma'
+import type { Ma } from '../../recipes'
 import { BREAKPOINTS, type Breakpoint, type Responsive, resolveResponsive } from '../../types'
 
 export type { Responsive }
@@ -232,7 +232,4 @@ export const justifyMap = {
 	stretch: 'justify-items-stretch',
 } as const
 
-export {
-	type GridDividerVariants,
-	gridDivider as gridDividerVariants,
-} from '../../recipes/kata/grid'
+export type { GridDividerVariants } from '../../recipes/kata/grid'

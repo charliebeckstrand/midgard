@@ -1,49 +1,40 @@
-import { tv } from 'tailwind-variants'
-import { mode } from '../../core/recipe/mode'
-import { iro } from '../ryu/iro'
-import { ji } from '../ryu/ji'
-import { sawari } from '../ryu/sawari'
-import { sen } from '../ryu/sen'
+import { defineRecipe, hannou, iro, ji, sen, type VariantPropsOf } from '..'
 
-export const tabIndicator = mode('bg-zinc-950', 'dark:bg-white')
+export const tabIndicator = ['bg-zinc-950', 'dark:bg-white']
 
-const tabList = tv({
+const list = defineRecipe({
 	base: ['flex', ...sen.borderSubtleColor],
-	variants: {
-		orientation: {
-			horizontal: ['gap-4', 'border-b'],
-			vertical: ['flex-col', 'border-l'],
-		},
+	orientation: {
+		horizontal: ['gap-4', 'border-b'],
+		vertical: ['flex-col', 'border-l'],
 	},
-	defaultVariants: { orientation: 'horizontal' },
+	defaults: { orientation: 'horizontal' },
 })
 
-const tabItem = tv({
+const tab = defineRecipe({
 	base: [
 		'relative flex items-center',
 		'gap-sm',
 		'font-medium',
 		...iro.text.tab,
 		sen.focus.indicator,
-		...sawari.disabled,
+		...hannou.disabled,
 		'outline-none',
-		...sawari.cursor,
+		...hannou.cursor,
 		'after:absolute after:rounded-full',
 		'after:bg-transparent',
 		'focus-visible:after:bg-blue-500',
 	],
-	variants: {
-		orientation: {
-			horizontal: ['after:inset-x-0 after:-bottom-px after:h-0.5'],
-			vertical: ['after:inset-y-0 after:-left-px after:w-0.5'],
-		},
-		size: {
-			sm: ji.size.sm,
-			md: ji.size.md,
-			lg: ji.size.lg,
-		},
+	orientation: {
+		horizontal: ['after:inset-x-0 after:-bottom-px after:h-0.5'],
+		vertical: ['after:inset-y-0 after:-left-px after:w-0.5'],
 	},
-	compoundVariants: [
+	size: {
+		sm: ji.size.sm,
+		md: ji.size.md,
+		lg: ji.size.lg,
+	},
+	compound: [
 		{ orientation: 'horizontal', size: 'sm', class: 'px-1 pb-3' },
 		{ orientation: 'horizontal', size: 'md', class: 'px-1 pb-4' },
 		{ orientation: 'horizontal', size: 'lg', class: 'px-1 pb-5' },
@@ -51,24 +42,24 @@ const tabItem = tv({
 		{ orientation: 'vertical', size: 'md', class: 'px-4 py-2' },
 		{ orientation: 'vertical', size: 'lg', class: 'px-5 py-2.5' },
 	],
-	defaultVariants: { orientation: 'horizontal', size: 'md' },
+	defaults: { orientation: 'horizontal', size: 'md' },
 })
 
-const tabIndicatorBar = tv({
-	base: ['rounded-full', tabIndicator],
-	variants: {
-		orientation: {
-			horizontal: 'inset-x-0 -bottom-px top-auto h-0.5',
-			vertical: 'inset-y-0 -left-px right-auto w-0.5',
-		},
+const indicator = defineRecipe({
+	base: ['rounded-full', ...tabIndicator],
+	orientation: {
+		horizontal: 'inset-x-0 -bottom-px top-auto h-0.5',
+		vertical: 'inset-y-0 -left-px right-auto w-0.5',
 	},
-	defaultVariants: { orientation: 'horizontal' },
+	defaults: { orientation: 'horizontal' },
 })
 
-export const tabs = {
-	list: tabList,
-	tab: tabItem,
-	indicator: tabIndicatorBar,
+export const k = {
+	list,
+	tab,
+	indicator,
 }
 
-export { tabs as k }
+export type TabListVariants = VariantPropsOf<typeof list>
+export type TabVariants = VariantPropsOf<typeof tab>
+export type TabIndicatorVariants = VariantPropsOf<typeof indicator>

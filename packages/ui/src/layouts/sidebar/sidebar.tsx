@@ -21,16 +21,7 @@ import { useScrollWithin } from '../../hooks'
 import { useOffcanvas } from '../../hooks/use-offcanvas'
 import { useDensity } from '../../primitives/density'
 import { OffcanvasProvider } from '../../primitives/offcanvas'
-import {
-	sidebarBodyVariants,
-	sidebarContentVariants,
-	sidebarContentWrapperVariants,
-	sidebarFloatingHotZoneVariants,
-	sidebarFooterVariants,
-	sidebarHeaderVariants,
-	sidebarLayoutVariants,
-	sidebarPanelVariants,
-} from './variants'
+import { k } from './variants'
 
 const [SidebarLayoutContextProvider, useSidebarLayoutContext] = createContext<{
 	actions?: ReactNode
@@ -81,18 +72,18 @@ export function SidebarLayout({
 	const { size } = useDensity()
 
 	return (
-		<Frame className={sidebarLayoutVariants()}>
+		<Frame className={k.layout()}>
 			{/* Hot zone to peek the floating sidebar */}
 			{floating && (
 				<div
 					aria-hidden
-					className={cn(sidebarFloatingHotZoneVariants())}
+					className={cn(k.floatingHotZone())}
 					onPointerEnter={() => setFloatingOpen(true)}
 				/>
 			)}
 
 			{/* Sidebar on desktop — inline when locked */}
-			{!floating && <div className={cn(sidebarPanelVariants(), panelClassName)}>{sidebar}</div>}
+			{!floating && <div className={cn(k.panel(), panelClassName)}>{sidebar}</div>}
 
 			{/* Sidebar on desktop — sheet when floating */}
 			{floating && (
@@ -162,8 +153,8 @@ export function SidebarLayout({
 
 			{/* Content */}
 			<SidebarLayoutContextProvider value={{ actions, size }}>
-				<Frame direction="col" className={sidebarContentWrapperVariants({ floating })}>
-					<Frame direction="col" className={sidebarContentVariants({ size, stickyHeader })}>
+				<Frame direction="col" className={k.contentWrapper({ floating })}>
+					<Frame direction="col" className={k.content({ size, stickyHeader })}>
 						{children}
 					</Frame>
 				</Frame>
@@ -178,7 +169,7 @@ export function SidebarLayoutHeader({ children, className }: SidebarLayoutHeader
 	const { actions, size } = useSidebarLayoutContext()
 
 	return (
-		<div data-slot="header" className={cn(sidebarHeaderVariants({ size }), className)}>
+		<div data-slot="header" className={cn(k.header({ size }), className)}>
 			<div className="flex-1 min-w-0">{children}</div>
 			{actions && <div className="shrink-0 max-lg:hidden flex items-center">{actions}</div>}
 		</div>
@@ -192,7 +183,7 @@ export type SidebarLayoutBodyProps = PropsWithChildren<{
 
 export function SidebarLayoutBody({ ref, children, className }: SidebarLayoutBodyProps) {
 	return (
-		<div ref={ref} data-slot="body" className={cn(sidebarBodyVariants(), className)}>
+		<div ref={ref} data-slot="body" className={cn(k.body(), className)}>
 			{children}
 		</div>
 	)
@@ -202,7 +193,7 @@ export type SidebarLayoutFooterProps = PropsWithChildren
 
 export function SidebarLayoutFooter({ children }: SidebarLayoutFooterProps) {
 	return (
-		<div data-slot="footer" className={sidebarFooterVariants()}>
+		<div data-slot="footer" className={k.footer()}>
 			{children}
 		</div>
 	)

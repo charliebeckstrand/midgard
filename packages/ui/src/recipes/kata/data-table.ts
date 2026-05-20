@@ -1,9 +1,6 @@
-import { iro } from '../ryu/iro'
-import { ji } from '../ryu/ji'
-import { omote } from '../ryu/omote'
-import { sen } from '../ryu/sen'
+import { iro, ji, omote, sen } from '..'
 
-export const dataTable = {
+export const k = {
 	wrapper: ['relative flex flex-col', 'gap-sm'],
 	stickyWrapper: 'overflow-auto [&>[data-slot=table]]:!overflow-visible',
 	stickyHead: ['sticky top-0 z-10', omote.surface],
@@ -32,5 +29,3 @@ export const dataTable = {
 	sortIconActive: iro.text.default,
 	rowLoading: 'animate-pulse opacity-60',
 }
-
-export { dataTable as k }

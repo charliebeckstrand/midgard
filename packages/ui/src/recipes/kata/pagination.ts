@@ -1,13 +1,29 @@
-import { tv, type VariantProps } from 'tailwind-variants'
-import { iro } from '../ryu/iro'
-import { ji } from '../ryu/ji'
-import { sawari } from '../ryu/sawari'
-import { sen } from '../ryu/sen'
+import { defineRecipe, hannou, iro, ji, sen, type VariantPropsOf } from '..'
 
-export const pagination = tv({ base: ['flex items-center list-none', 'gap-xs'] })
-export const paginationList = tv({ base: ['flex items-center list-none', 'gap-xs', 'm-0 p-0'] })
+export const k = defineRecipe({
+	base: ['flex items-center list-none', 'gap-xs'],
+	slots: {
+		nav: [
+			'inline-flex items-center justify-center',
+			'p-2',
+			'gap-xs',
+			ji.size.sm,
+			...iro.text.muted,
+			...iro.text.hover,
+			'font-medium',
+			sen.focus.ring,
+			...hannou.disabled,
+			...hannou.cursor,
+			'rounded-lg',
+		],
+	},
+})
 
-export const pageButton = tv({
+export const paginationList = defineRecipe({
+	base: ['flex items-center list-none', 'gap-xs', 'm-0 p-0'],
+})
+
+export const pageButton = defineRecipe({
 	base: [
 		'relative',
 		'inline-flex items-center justify-center',
@@ -17,20 +33,16 @@ export const pageButton = tv({
 		'font-medium',
 		'rounded-lg',
 		sen.focus.ring,
-		...sawari.cursor,
+		...hannou.cursor,
 	],
-	variants: {
-		current: {
-			true: [...iro.text.default],
-			false: [...iro.text.muted, ...iro.text.hover],
-		},
+	current: {
+		true: [...iro.text.default],
+		false: [...iro.text.muted, ...iro.text.hover],
 	},
-	defaultVariants: { current: false },
+	defaults: { current: false },
 })
 
-export type PageButtonVariants = VariantProps<typeof pageButton>
-
-export const paginationGap = tv({
+export const paginationGap = defineRecipe({
 	base: [
 		'inline-flex items-center justify-center',
 		'min-w-9',
@@ -40,25 +52,4 @@ export const paginationGap = tv({
 	],
 })
 
-export const slots = {
-	nav: [
-		'inline-flex items-center justify-center',
-		'p-2',
-		'gap-xs',
-		ji.size.sm,
-		...iro.text.muted,
-		...iro.text.hover,
-		'font-medium',
-		sen.focus.ring,
-		...sawari.disabled,
-		...sawari.cursor,
-		'rounded-lg',
-	],
-}
-
-export {
-	pageButton as pageButtonVariants,
-	pagination as paginationVariants,
-	paginationGap as paginationGapVariants,
-	paginationList as paginationListVariants,
-}
+export type PageButtonVariants = VariantPropsOf<typeof pageButton>

@@ -3,8 +3,8 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { useDensity } from '../../primitives/density'
-import { type JiSize, ji } from '../../recipes/ryu/ji'
-import type { Step } from '../../recipes/ryu/sun'
+import type { Step } from '../../recipes'
+import { type JiSize, ji } from '../../recipes'
 import { Heading } from '../heading'
 export type CardTitleProps = {
 	className?: string

@@ -1,21 +1,16 @@
-import { tv, type VariantProps } from 'tailwind-variants'
-import { sen } from '../ryu/sen'
+import { defineRecipe, sen, type VariantPropsOf } from '..'
 
-export const divider = tv({
+export const k = defineRecipe({
 	base: ['border-0'],
-	variants: {
-		orientation: {
-			horizontal: 'w-full border-t',
-			vertical: 'self-stretch border-l',
-		},
-		soft: {
-			true: [...sen.borderSubtleColor],
-			false: [...sen.borderColor],
-		},
+	orientation: {
+		horizontal: 'w-full border-t',
+		vertical: 'self-stretch border-l',
 	},
-	defaultVariants: { orientation: 'horizontal', soft: false },
+	soft: {
+		true: [...sen.borderSubtleColor],
+		false: [...sen.borderColor],
+	},
+	defaults: { orientation: 'horizontal', soft: false },
 })
 
-export type DividerVariants = VariantProps<typeof divider>
-
-export { divider as dividerVariants }
+export type DividerVariants = VariantPropsOf<typeof k>

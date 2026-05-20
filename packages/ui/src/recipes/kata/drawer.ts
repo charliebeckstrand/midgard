@@ -1,12 +1,8 @@
-import { tv, type VariantProps } from 'tailwind-variants'
-import { iro } from '../ryu/iro'
-import { narabi } from '../ryu/narabi'
-import { omote } from '../ryu/omote'
-import { sen } from '../ryu/sen'
-import { definePanelRecipe } from '../waku/panel'
+import { defineRecipe, iro, narabi, omote, sen, type VariantPropsOf } from '..'
+import { definePanelRecipe } from '../genkei/panel'
 
-export const drawer = definePanelRecipe({
-	panel: tv({
+export const k = definePanelRecipe({
+	panel: defineRecipe({
 		base: [
 			...omote.panel.chrome.flat(),
 			narabi.panel.base,
@@ -15,23 +11,19 @@ export const drawer = definePanelRecipe({
 			'w-full max-h-[85dvh]',
 			'rounded-t-xl',
 		],
-		variants: {
-			surface: {
-				glass: [...omote.glass],
-				flat: [...omote.panel.bg],
-			},
+		surface: {
+			glass: [...omote.glass],
+			flat: [...omote.panel.bg],
 		},
-		defaultVariants: { surface: 'flat' },
+		defaults: { surface: 'flat' },
 	}),
-	backdrop: tv({
+	backdrop: defineRecipe({
 		base: 'absolute inset-0',
-		variants: {
-			surface: {
-				glass: [...omote.backdrop.glass],
-				flat: [...omote.backdrop.base],
-			},
+		surface: {
+			glass: [...omote.backdrop.glass],
+			flat: [...omote.backdrop.base],
 		},
-		defaultVariants: { surface: 'flat' },
+		defaults: { surface: 'flat' },
 	}),
 	title: { extra: 'px-6 pt-6' },
 	description: { extra: 'px-6' },
@@ -42,7 +34,4 @@ export const drawer = definePanelRecipe({
 	},
 })
 
-export type DrawerPanelVariants = VariantProps<typeof drawer.panel>
-
-export const drawerPanelVariants = drawer.panel
-export const drawerBackdropVariants = drawer.backdrop
+export type DrawerPanelVariants = VariantPropsOf<typeof k.panel>

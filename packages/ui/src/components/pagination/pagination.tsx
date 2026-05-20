@@ -3,7 +3,7 @@
 import { type ComponentPropsWithoutRef, useRef } from 'react'
 import { cn } from '../../core'
 import { useRoving } from '../../hooks'
-import { paginationVariants } from '../../recipes/kata/pagination'
+import { k } from '../../recipes/kata/pagination'
 import { PAGINATION_ITEM_SELECTOR } from './pagination-constants'
 
 export type PaginationProps = ComponentPropsWithoutRef<'nav'>
@@ -25,7 +25,7 @@ export function Pagination({ className, onKeyDown, ...props }: PaginationProps) 
 				onKeyDown?.(e)
 				if (!e.defaultPrevented) handleRovingKeyDown(e)
 			}}
-			className={cn(paginationVariants(), className)}
+			className={cn(k(), className)}
 			{...props}
 		/>
 	)

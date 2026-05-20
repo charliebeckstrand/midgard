@@ -1,9 +1,4 @@
-export {
-	type ToolbarGroupVariants,
-	type ToolbarVariants,
-	toolbarGroupVariants,
-	toolbarVariants,
-} from '../../recipes/kata/toolbar'
+export type { ToolbarGroupVariants, ToolbarVariants } from '../../recipes/kata/toolbar'
 export type { ToolbarContextValue } from './context'
 export { Toolbar, type ToolbarProps } from './toolbar'
 export { ToolbarGroup, type ToolbarGroupProps } from './toolbar-group'

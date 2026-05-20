@@ -4,7 +4,7 @@ import { type ReactNode, useRef } from 'react'
 import { cn } from '../../core'
 import { useRoving } from '../../hooks'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
-import { type SegmentControlVariants, segmentControlVariants } from '../../recipes/kata/segment'
+import { k, type SegmentControlVariants } from '../../recipes/kata/segment'
 import { useSegmentContext } from './context'
 
 export type SegmentControlProps = SegmentControlVariants & {
@@ -38,7 +38,7 @@ export function SegmentControl({
 				role="radiogroup"
 				aria-label={ariaLabel}
 				onKeyDown={handleKeyDown}
-				className={cn(segmentControlVariants({ size }), className)}
+				className={cn(k.control({ size }), className)}
 			>
 				{children}
 			</div>

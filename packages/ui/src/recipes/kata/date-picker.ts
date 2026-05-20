@@ -1,45 +1,37 @@
-import { tv, type VariantProps } from 'tailwind-variants'
-import { iro } from '../ryu/iro'
-import { sawari } from '../ryu/sawari'
-import { control } from '../waku/control'
+import { defineRecipe, hannou, iro, type VariantPropsOf } from '..'
+import { control } from '../genkei/control'
 
-const datePickerButton = tv({
+const button = defineRecipe({
 	base: [
 		'flex items-center justify-between',
 		...control.field,
 		'text-left',
 		'rounded-lg',
 		'appearance-none',
-		...sawari.cursor,
+		...hannou.cursor,
 	],
-	variants: {
-		density: control.density,
-		size: control.size,
-	},
-	defaultVariants: { density: 'md', size: 'md' },
+	density: control.density,
+	size: control.size,
+	defaults: { density: 'md', size: 'md' },
 })
 
-const datePickerValue = tv({
+const value = defineRecipe({
 	base: ['block'],
-	variants: {
-		truncate: {
-			true: 'truncate',
-			false: '',
-		},
+	truncate: {
+		true: 'truncate',
+		false: '',
 	},
-	defaultVariants: { truncate: true },
+	defaults: { truncate: true },
 })
 
-export type DatePickerButtonVariants = VariantProps<typeof datePickerButton>
-
-export const datePicker = {
+export const k = {
 	control: {
 		default: control.surface.default,
 		glass: [],
 	},
-	button: datePickerButton,
-	value: datePickerValue,
+	button,
+	value,
 	icon: ['flex items-center', 'pointer-events-none', iro.text.muted],
 }
 
-export { datePicker as k, datePickerButton as datePickerButtonVariants }
+export type DatePickerButtonVariants = VariantPropsOf<typeof button>

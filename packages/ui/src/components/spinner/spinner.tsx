@@ -1,7 +1,7 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { useSizeWide } from '../../primitives/density'
-import { type SpinnerVariants, spinnerVariants } from '../../recipes/kata/spinner'
+import { k, type SpinnerVariants } from '../../recipes/kata/spinner'
 
 export type SpinnerProps = SpinnerVariants & {
 	label?: string
@@ -14,7 +14,7 @@ export function Spinner({ size, color, label = 'Loading', className, ...props }:
 	return (
 		<output
 			data-slot="spinner"
-			className={cn(spinnerVariants({ size: resolvedSize, color }), className)}
+			className={cn(k({ size: resolvedSize, color }), className)}
 			{...props}
 		>
 			<svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className="size-full">

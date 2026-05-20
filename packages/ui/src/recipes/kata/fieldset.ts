@@ -1,70 +1,58 @@
-import { tv } from 'tailwind-variants'
-import { iro } from '../ryu/iro'
-import { ji } from '../ryu/ji'
-import { narabi } from '../ryu/narabi'
-import { sawari } from '../ryu/sawari'
+import { defineRecipe, hannou, iro, ji, narabi, type VariantPropsOf } from '..'
 
-const label = tv({
+const label = defineRecipe({
 	base: [
 		'select-none',
-		sawari.cursor,
+		hannou.cursor,
 		'[[data-slot=field][data-disabled]_&]:cursor-not-allowed',
 		'[[data-slot=control][data-disabled]_&]:cursor-not-allowed',
 		iro.text.default,
-		sawari.disabled,
+		hannou.disabled,
 	],
-	variants: {
-		size: {
-			sm: ji.size.sm,
-			md: ji.size.md,
-			lg: ji.size.lg,
-		},
+	size: {
+		sm: ji.size.sm,
+		md: ji.size.md,
+		lg: ji.size.lg,
 	},
-	defaultVariants: { size: 'md' },
+	defaults: { size: 'md' },
 })
 
-const description = tv({
-	base: [iro.text.muted, sawari.disabled],
-	variants: {
-		size: {
-			sm: ji.size.sm,
-			md: ji.size.md,
-			lg: ji.size.lg,
-		},
+const description = defineRecipe({
+	base: [iro.text.muted, hannou.disabled],
+	size: {
+		sm: ji.size.sm,
+		md: ji.size.md,
+		lg: ji.size.lg,
 	},
-	defaultVariants: { size: 'md' },
+	defaults: { size: 'md' },
 })
 
-const message = tv({
-	base: [sawari.disabled],
-	variants: {
-		size: {
-			sm: ji.size.sm,
-			md: ji.size.md,
-			lg: ji.size.lg,
-		},
-		variant: {
-			error: iro.text.error,
-			success: iro.text.success,
-		},
+const message = defineRecipe({
+	base: [hannou.disabled],
+	size: {
+		sm: ji.size.sm,
+		md: ji.size.md,
+		lg: ji.size.lg,
 	},
-	defaultVariants: { size: 'md', variant: 'error' },
+	variant: {
+		error: iro.text.error,
+		success: iro.text.success,
+	},
+	defaults: { size: 'md', variant: 'error' },
 })
 
-const legend = tv({
-	base: ['font-semibold', iro.text.default, sawari.disabled],
-	variants: {
-		size: {
-			sm: ji.size.sm,
-			md: ji.size.md,
-			lg: ji.size.lg,
-		},
+const legend = defineRecipe({
+	base: ['font-semibold', iro.text.default, hannou.disabled],
+	size: {
+		sm: ji.size.sm,
+		md: ji.size.md,
+		lg: ji.size.lg,
 	},
-	defaultVariants: { size: 'md' },
+	defaults: { size: 'md' },
 })
 
-export const fieldset = {
-	base: ['[&>legend+*]:pt-4', sawari.disabled],
+export const k = {
+	base: ['[&>legend+*]:pt-4', hannou.disabled],
 	legend,
 	field: [
 		...narabi.field,
@@ -76,4 +64,4 @@ export const fieldset = {
 	message,
 }
 
-export { fieldset as k, message as messageVariants }
+export type FieldsetMessageVariants = VariantPropsOf<typeof message>

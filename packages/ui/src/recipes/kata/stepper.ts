@@ -1,66 +1,53 @@
-import { tv, type VariantProps } from 'tailwind-variants'
-import { iro } from '../ryu/iro'
-import { ji } from '../ryu/ji'
-import { sawari } from '../ryu/sawari'
-import { sen } from '../ryu/sen'
+import { defineRecipe, hannou, iro, ji, sen, type VariantPropsOf } from '..'
 
-export const stepper = tv({
+const stepper = defineRecipe({
 	base: 'flex w-full',
-	variants: {
-		orientation: {
-			horizontal: 'flex-row items-start gap-4 px-4',
-			vertical: 'flex-col items-start gap-4 pr-4 py-4',
-		},
+	orientation: {
+		horizontal: 'flex-row items-start gap-4 px-4',
+		vertical: 'flex-col items-start gap-4 pr-4 py-4',
 	},
-	defaultVariants: { orientation: 'horizontal' },
+	defaults: { orientation: 'horizontal' },
 })
 
-export const stepperStep = tv({
-	base: ['group relative text-left', 'outline-none', ...sawari.disabled, ...sawari.cursor],
-	variants: {
-		orientation: {
-			horizontal: 'flex shrink-0 flex-col items-center w-32 gap-0.5 text-center',
-			vertical: ['flex w-full items-center gap-4 py-1 first:pt-0', ...sen.borderSubtleColor],
-		},
+const step = defineRecipe({
+	base: ['group relative text-left', 'outline-none', ...hannou.disabled, ...hannou.cursor],
+	orientation: {
+		horizontal: 'flex shrink-0 flex-col items-center w-32 gap-0.5 text-center',
+		vertical: ['flex w-full items-center gap-4 py-1 first:pt-0', ...sen.borderSubtleColor],
 	},
-	defaultVariants: { orientation: 'horizontal' },
+	defaults: { orientation: 'horizontal' },
 })
 
-export const stepperTitle = tv({
+const title = defineRecipe({
 	base: ['text-sm font-medium leading-none', 'text-zinc-400', 'dark:text-zinc-600'],
-	variants: {
-		orientation: {
-			horizontal: 'mt-2',
-			vertical: '',
-		},
-		interactive: {
-			true: [
-				'group-data-[state=current]:text-zinc-950 dark:group-data-[state=current]:text-white',
-				'group-enabled:group-hover:group-not-data-[state=current]:text-zinc-500',
-			],
-			false: '',
-		},
+	orientation: {
+		horizontal: 'mt-2',
+		vertical: '',
 	},
-	defaultVariants: { orientation: 'horizontal', interactive: false },
+	interactive: {
+		true: [
+			'group-data-[state=current]:text-zinc-950 dark:group-data-[state=current]:text-white',
+			'group-enabled:group-hover:group-not-data-[state=current]:text-zinc-500',
+		],
+		false: '',
+	},
+	defaults: { orientation: 'horizontal', interactive: false },
 })
 
-export const stepperSeparator = tv({
+const separator = defineRecipe({
 	base: 'shrink-0',
-	variants: {
-		orientation: {
-			horizontal: ['-mx-12 mt-2 flex-1 self-start', 'border-t', ...sen.borderColor],
-			vertical: 'hidden',
-		},
+	orientation: {
+		horizontal: ['-mx-12 mt-2 flex-1 self-start', 'border-t', ...sen.borderColor],
+		vertical: 'hidden',
 	},
-	defaultVariants: { orientation: 'horizontal' },
+	defaults: { orientation: 'horizontal' },
 })
 
-export type StepperVariants = VariantProps<typeof stepper>
-export type StepperStepVariants = VariantProps<typeof stepperStep>
-export type StepperTitleVariants = VariantProps<typeof stepperTitle>
-export type StepperSeparatorVariants = VariantProps<typeof stepperSeparator>
-
-export const slots = {
+export const k = {
+	root: stepper,
+	step,
+	title,
+	separator,
 	content: 'flex flex-1 flex-col gap-1',
 	indicator: {
 		base: ['relative', 'size-3.5 shrink-0', 'rounded-full', 'bg-zinc-400', 'dark:bg-zinc-600'],
@@ -73,10 +60,7 @@ export const slots = {
 	activeIndicator: ['z-10', 'bg-blue-600 dark:bg-blue-600'],
 }
 
-export {
-	stepper as stepperVariants,
-	stepperSeparator as stepperSeparatorVariants,
-	stepperStep as stepperStepVariants,
-	stepperTitle as stepperTitleVariants,
-	slots as k,
-}
+export type StepperVariants = VariantPropsOf<typeof stepper>
+export type StepperStepVariants = VariantPropsOf<typeof step>
+export type StepperTitleVariants = VariantPropsOf<typeof title>
+export type StepperSeparatorVariants = VariantPropsOf<typeof separator>

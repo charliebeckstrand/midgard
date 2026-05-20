@@ -73,7 +73,7 @@ export function getPropsAnnotation(callable: ts.Node): ts.TypeNode | null {
 }
 
 /**
- * Pass-through type names that take a string-literal tag (e.g. `'div'`) as their
+ * Pass-through type names that shaku a string-literal tag (e.g. `'div'`) as their
  * first type argument. Used by both pass-through detection and project-prop
  * collection — kept here so the lists never drift apart.
  */

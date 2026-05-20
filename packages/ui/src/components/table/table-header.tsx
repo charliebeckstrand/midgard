@@ -2,7 +2,7 @@
 
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { tableHeaderVariants } from '../../recipes/kata/table'
+import { k } from '../../recipes/kata/table'
 import { useTable } from './context'
 
 export type TableHeaderProps = {
@@ -16,7 +16,7 @@ export function TableHeader({ className, children, scope = 'col', ...props }: Ta
 		<th
 			scope={scope}
 			data-slot="table-header"
-			className={cn(tableHeaderVariants({ size, grid }), className)}
+			className={cn(k.header({ size, grid }), className)}
 			{...props}
 		>
 			{children}
