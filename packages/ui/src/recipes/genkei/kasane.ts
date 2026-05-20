@@ -59,24 +59,24 @@ const focus = [
 
 /** Validation ring on the outer ring + `::after` — red / amber / green per data-* attribute. */
 const validation = [
-	'has-[[data-invalid]]:focus-within:after:ring-red-600',
-	'has-[[data-warning]]:focus-within:after:ring-amber-500',
-	'has-[[data-valid]]:focus-within:after:ring-green-600',
-	'has-[[data-invalid]]:data-open:after:ring-red-600',
-	'has-[[data-warning]]:data-open:after:ring-amber-500',
-	'has-[[data-invalid]]:ring-red-600',
-	'has-[[data-invalid]]:not-focus-within:after:ring-1',
-	'has-[[data-invalid]]:not-focus-within:after:ring-red-600',
-	'has-[[data-invalid]]:hover:ring-red-600',
-	'has-[[data-warning]]:ring-amber-500',
-	'has-[[data-warning]]:not-focus-within:after:ring-1',
-	'has-[[data-warning]]:not-focus-within:after:ring-amber-500',
-	'has-[[data-warning]]:hover:ring-amber-500',
 	'has-[[data-valid]]:ring-green-600',
+	'has-[[data-valid]]:hover:ring-green-600',
+	'has-[[data-valid]]:focus-within:after:ring-green-600',
 	'has-[[data-valid]]:not-focus-within:after:ring-1',
 	'has-[[data-valid]]:not-focus-within:after:ring-green-600',
-	'has-[[data-valid]]:hover:ring-green-600',
 	'has-[[data-valid]]:data-open:after:ring-green-600',
+	'has-[[data-warning]]:ring-amber-500',
+	'has-[[data-warning]]:hover:ring-amber-500',
+	'has-[[data-warning]]:focus-within:after:ring-amber-500',
+	'has-[[data-warning]]:not-focus-within:after:ring-1',
+	'has-[[data-warning]]:not-focus-within:after:ring-amber-500',
+	'has-[[data-warning]]:data-open:after:ring-amber-500',
+	'has-[[data-invalid]]:ring-red-600',
+	'has-[[data-invalid]]:hover:ring-red-600',
+	'has-[[data-invalid]]:focus-within:after:ring-red-600',
+	'has-[[data-invalid]]:not-focus-within:after:ring-1',
+	'has-[[data-invalid]]:not-focus-within:after:ring-red-600',
+	'has-[[data-invalid]]:data-open:after:ring-red-600',
 ]
 
 /** Disabled state — dims and locks pointer when the wrapped element is :disabled. */
