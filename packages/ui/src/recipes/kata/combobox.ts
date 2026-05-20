@@ -12,11 +12,11 @@ export const combobox = tv({
 	defaultVariants: { density: 'md', size: 'md' },
 })
 
-export const slots = {
+export const k = {
 	options: 'max-h-60',
 	empty: ['hidden only:block', 'p-2', ji.size.sm, iro.text.muted],
 }
 
 export type ComboboxVariants = VariantProps<typeof combobox>
 
-export { combobox as comboboxVariants, slots as k }
+export { combobox as comboboxVariants }

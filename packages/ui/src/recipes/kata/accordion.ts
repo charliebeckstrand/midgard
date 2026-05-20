@@ -40,7 +40,7 @@ export const accordionItem = tv({
 	defaultVariants: { variant: 'separated' },
 })
 
-export const slots = {
+export const k = {
 	trigger: [
 		'w-full flex items-center justify-between',
 		'gap-sm',
@@ -68,4 +68,4 @@ export const slots = {
 export type AccordionVariants = VariantProps<typeof accordion>
 export type AccordionItemVariants = VariantProps<typeof accordionItem>
 
-export { accordion as accordionVariants, accordionItem as accordionItemVariants, slots as k }
+export { accordion as accordionVariants, accordionItem as accordionItemVariants }

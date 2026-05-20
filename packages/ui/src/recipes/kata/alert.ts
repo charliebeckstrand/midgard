@@ -28,7 +28,7 @@ export const alert = tv({
 })
 
 /** Slot classes for sub-elements. */
-export const slots = {
+export const k = {
 	icon: 'shrink-0 self-center',
 	title: [ji.size.lg, 'leading-tight font-semibold'],
 	description: ['leading-tight', 'col-start-2'],
@@ -40,4 +40,4 @@ export const slots = {
 
 export type AlertVariants = VariantProps<typeof alert>
 
-export { alert as alertVariants, slots as k }
+export { alert as alertVariants }

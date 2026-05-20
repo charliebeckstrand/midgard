@@ -36,7 +36,7 @@ export const avatarInitials = tv({
 export const avatarImage = tv({ base: 'size-full object-cover' })
 
 /** Slot classes for avatar group and status ring. */
-export const slots = {
+export const k = {
 	group: {
 		base: 'flex items-center',
 		ring: '*:ring-2 *:ring-white dark:*:ring-zinc-900',
@@ -55,5 +55,4 @@ export {
 	avatar as avatarVariants,
 	avatarImage as avatarImageVariants,
 	avatarInitials as avatarInitialsVariants,
-	slots as k,
 }
