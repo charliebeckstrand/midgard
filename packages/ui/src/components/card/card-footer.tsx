@@ -2,8 +2,8 @@
 
 import { cn } from '../../core'
 import type { SlotProps } from '../../core/create-slot'
+import type { Step } from '../../core/recipe'
 import { useDensity } from '../../primitives/density'
-import type { Step } from '../../recipes/ryu/sun'
 
 export type CardFooterProps = SlotProps<'div'>
 

@@ -9,13 +9,13 @@ import {
 	useRef,
 } from 'react'
 import { cn } from '../../core'
+import type { Step } from '../../core/recipe'
 import { useScrollWithin } from '../../hooks'
 import { ActiveIndicator, useActiveIndicator } from '../../primitives/active-indicator'
 import { useDensity } from '../../primitives/density'
 import { OffcanvasContext } from '../../primitives/offcanvas'
 import type { PolymorphicProps } from '../../primitives/polymorphic'
 import { TouchTarget } from '../../primitives/touch-target'
-import type { Step } from '../../recipes/ryu/sun'
 import { Button } from '../button'
 import { Headless } from '../headless'
 

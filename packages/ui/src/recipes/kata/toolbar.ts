@@ -1,34 +1,32 @@
-import { tv, type VariantProps } from 'tailwind-variants'
-import { omote, sen } from '../../core/recipe'
+import { defineRecipe, omote, sen, type VariantPropsOf } from '../../core/recipe'
 
-export const toolbar = tv({
+const root = defineRecipe({
 	base: 'flex items-center',
-	variants: {
-		orientation: {
-			horizontal: 'flex-row flex-wrap gap-1',
-			vertical: 'flex-col w-fit gap-1',
-		},
-		variant: {
-			plain: '',
-			outline: [...sen.border, 'rounded-lg', 'p-1'],
-			solid: [...omote.tint, 'border border-transparent', 'rounded-lg', 'p-1'],
-		},
+	orientation: {
+		horizontal: 'flex-row flex-wrap gap-1',
+		vertical: 'flex-col w-fit gap-1',
 	},
-	defaultVariants: { orientation: 'horizontal', variant: 'plain' },
+	variant: {
+		plain: '',
+		outline: [...sen.border, 'rounded-lg', 'p-1'],
+		solid: [...omote.tint, 'border border-transparent', 'rounded-lg', 'p-1'],
+	},
+	defaults: { orientation: 'horizontal', variant: 'plain' },
 })
 
-export const toolbarGroup = tv({
+const group = defineRecipe({
 	base: 'flex items-center',
-	variants: {
-		orientation: {
-			horizontal: 'flex-row gap-0.5',
-			vertical: 'flex-col gap-0.5',
-		},
+	orientation: {
+		horizontal: 'flex-row gap-0.5',
+		vertical: 'flex-col gap-0.5',
 	},
-	defaultVariants: { orientation: 'horizontal' },
+	defaults: { orientation: 'horizontal' },
 })
 
-export type ToolbarVariants = VariantProps<typeof toolbar>
-export type ToolbarGroupVariants = VariantProps<typeof toolbarGroup>
+export const k = {
+	root,
+	group,
+}
 
-export { toolbar as toolbarVariants, toolbarGroup as toolbarGroupVariants }
+export type ToolbarVariants = VariantPropsOf<typeof root>
+export type ToolbarGroupVariants = VariantPropsOf<typeof group>

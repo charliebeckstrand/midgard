@@ -2,9 +2,9 @@
 
 import { cn } from '../../core'
 import type { SlotProps } from '../../core/create-slot'
+import type { Step } from '../../core/recipe'
+import { iro } from '../../core/recipe'
 import { useDensity } from '../../primitives/density'
-import { iro } from '../../recipes/ryu/iro'
-import type { Step } from '../../recipes/ryu/sun'
 
 export type CardHeaderProps = SlotProps<'div'>
 

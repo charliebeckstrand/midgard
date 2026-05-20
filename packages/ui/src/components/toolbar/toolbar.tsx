@@ -3,7 +3,7 @@
 import { type ReactNode, useRef } from 'react'
 import { cn } from '../../core'
 import { useRoving } from '../../hooks'
-import { type ToolbarVariants, toolbarVariants } from '../../recipes/kata/toolbar'
+import { k, type ToolbarVariants } from '../../recipes/kata/toolbar'
 import { type ToolbarContextValue, ToolbarProvider } from './context'
 import { TOOLBAR_ITEM_SELECTOR } from './toolbar-constants'
 import type { ToolbarOrientation } from './types'
@@ -43,7 +43,7 @@ export function Toolbar({
 				aria-labelledby={ariaLabelledBy}
 				aria-orientation={orientation}
 				onKeyDown={handleKeyDown}
-				className={cn(toolbarVariants({ orientation, variant }), className)}
+				className={cn(k.root({ orientation, variant }), className)}
 			>
 				{children}
 			</div>

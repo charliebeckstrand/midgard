@@ -2,7 +2,7 @@
 
 import { CornerLeftDown } from 'lucide-react'
 import { type Ref, useCallback, useImperativeHandle, useRef, useState } from 'react'
-import type { Color } from '../../recipes/ryu/iro'
+import type { Color } from '../../core/recipe'
 import { Button } from '../button'
 import type { ControlSize } from '../control/context'
 import { Icon } from '../icon'

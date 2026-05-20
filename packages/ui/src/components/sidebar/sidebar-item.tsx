@@ -1,5 +1,5 @@
+import type { Step } from '../../core/recipe'
 import { sidebarItemVariants } from '../../recipes/kata/sidebar'
-import type { Step } from '../../recipes/ryu/sun'
 import { Icon } from '../icon'
 import { createNavItem, type NavItemProps } from '../nav/nav-item-utilities'
 

@@ -1,7 +1,6 @@
-import { tv, type VariantProps } from 'tailwind-variants'
-import { sawari } from '../../core/recipe'
+import { defineRecipe, sawari, type VariantPropsOf } from '../../core/recipe'
 
-export const slider = tv({
+export const k = defineRecipe({
 	base: [
 		'w-full',
 		'appearance-none',
@@ -61,44 +60,40 @@ export const slider = tv({
 		'focus-visible:[&::-moz-range-thumb]:ring-blue-600',
 		'dark:focus-visible:[&::-moz-range-thumb]:ring-blue-600',
 	],
-	variants: {
-		size: {
-			// Vertical padding extends the native hit area without changing the visible thumb size.
-			sm: [
-				'py-3',
-				'[&::-webkit-slider-runnable-track]:h-1',
-				'[&::-webkit-slider-thumb]:size-3 [&::-webkit-slider-thumb]:-mt-1',
-				'[&::-moz-range-track]:h-1',
-				'[&::-moz-range-thumb]:size-3',
-			],
-			md: [
-				'py-4',
-				'[&::-webkit-slider-runnable-track]:h-1.5',
-				'[&::-webkit-slider-thumb]:size-4 [&::-webkit-slider-thumb]:-mt-[5px]',
-				'[&::-moz-range-track]:h-1.5',
-				'[&::-moz-range-thumb]:size-4',
-			],
-			lg: [
-				'py-5',
-				'[&::-webkit-slider-runnable-track]:h-2',
-				'[&::-webkit-slider-thumb]:size-5 [&::-webkit-slider-thumb]:-mt-[6px]',
-				'[&::-moz-range-track]:h-2',
-				'[&::-moz-range-thumb]:size-5',
-			],
-		},
-		color: {
-			zinc: '[--slider-fill:var(--color-zinc-600)] [--slider-track:var(--color-zinc-200)] dark:[--slider-fill:var(--color-zinc-400)] dark:[--slider-track:var(--color-zinc-700)]',
-			red: '[--slider-fill:var(--color-red-600)] [--slider-track:var(--color-zinc-200)] dark:[--slider-fill:var(--color-red-500)] dark:[--slider-track:var(--color-zinc-700)]',
-			amber:
-				'[--slider-fill:var(--color-amber-500)] [--slider-track:var(--color-zinc-200)] dark:[--slider-fill:var(--color-amber-500)] dark:[--slider-track:var(--color-zinc-700)]',
-			green:
-				'[--slider-fill:var(--color-green-600)] [--slider-track:var(--color-zinc-200)] dark:[--slider-fill:var(--color-green-500)] dark:[--slider-track:var(--color-zinc-700)]',
-			blue: '[--slider-fill:var(--color-blue-600)] [--slider-track:var(--color-zinc-200)] dark:[--slider-fill:var(--color-blue-500)] dark:[--slider-track:var(--color-zinc-700)]',
-		},
+	size: {
+		// Vertical padding extends the native hit area without changing the visible thumb size.
+		sm: [
+			'py-3',
+			'[&::-webkit-slider-runnable-track]:h-1',
+			'[&::-webkit-slider-thumb]:size-3 [&::-webkit-slider-thumb]:-mt-1',
+			'[&::-moz-range-track]:h-1',
+			'[&::-moz-range-thumb]:size-3',
+		],
+		md: [
+			'py-4',
+			'[&::-webkit-slider-runnable-track]:h-1.5',
+			'[&::-webkit-slider-thumb]:size-4 [&::-webkit-slider-thumb]:-mt-[5px]',
+			'[&::-moz-range-track]:h-1.5',
+			'[&::-moz-range-thumb]:size-4',
+		],
+		lg: [
+			'py-5',
+			'[&::-webkit-slider-runnable-track]:h-2',
+			'[&::-webkit-slider-thumb]:size-5 [&::-webkit-slider-thumb]:-mt-[6px]',
+			'[&::-moz-range-track]:h-2',
+			'[&::-moz-range-thumb]:size-5',
+		],
 	},
-	defaultVariants: { size: 'md', color: 'blue' },
+	color: {
+		zinc: '[--slider-fill:var(--color-zinc-600)] [--slider-track:var(--color-zinc-200)] dark:[--slider-fill:var(--color-zinc-400)] dark:[--slider-track:var(--color-zinc-700)]',
+		red: '[--slider-fill:var(--color-red-600)] [--slider-track:var(--color-zinc-200)] dark:[--slider-fill:var(--color-red-500)] dark:[--slider-track:var(--color-zinc-700)]',
+		amber:
+			'[--slider-fill:var(--color-amber-500)] [--slider-track:var(--color-zinc-200)] dark:[--slider-fill:var(--color-amber-500)] dark:[--slider-track:var(--color-zinc-700)]',
+		green:
+			'[--slider-fill:var(--color-green-600)] [--slider-track:var(--color-zinc-200)] dark:[--slider-fill:var(--color-green-500)] dark:[--slider-track:var(--color-zinc-700)]',
+		blue: '[--slider-fill:var(--color-blue-600)] [--slider-track:var(--color-zinc-200)] dark:[--slider-fill:var(--color-blue-500)] dark:[--slider-track:var(--color-zinc-700)]',
+	},
+	defaults: { size: 'md', color: 'blue' },
 })
 
-export type SliderVariants = VariantProps<typeof slider>
-
-export { slider as sliderVariants }
+export type SliderVariants = VariantPropsOf<typeof k>

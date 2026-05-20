@@ -2,11 +2,7 @@
 
 import { Check, Dot } from 'lucide-react'
 import { cn } from '../../core'
-import {
-	k,
-	passwordStrengthLabelVariants,
-	passwordStrengthSegmentVariants,
-} from '../../recipes/kata/password-strength'
+import { k } from '../../recipes/kata/password-strength'
 import { Icon } from '../icon'
 import {
 	type PasswordRule,
@@ -73,14 +69,14 @@ export function PasswordStrength({
 						key={strengthLevel.id}
 						data-slot="password-strength-segment"
 						data-active={i < activeCount || undefined}
-						className={passwordStrengthSegmentVariants({
+						className={k.segment({
 							level: i < activeCount ? level : 'empty',
 						})}
 					/>
 				))}
 			</div>
 			{showLabel && (
-				<div aria-live="polite" className={passwordStrengthLabelVariants({ level })}>
+				<div aria-live="polite" className={k.label({ level })}>
 					{label}
 				</div>
 			)}

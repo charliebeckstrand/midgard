@@ -11,10 +11,10 @@ import {
 	useState,
 } from 'react'
 import { cn } from '../../core'
+import type { Step } from '../../core/recipe'
 import { useControllable } from '../../hooks/use-controllable'
 import { Density, useDensity } from '../../primitives/density'
 import { k } from '../../recipes/kata/calendar'
-import type { Step } from '../../recipes/ryu/sun'
 import type { ButtonVariants } from '../button'
 import { CalendarGrid } from './calendar-grid'
 import { CalendarHeader } from './calendar-header'

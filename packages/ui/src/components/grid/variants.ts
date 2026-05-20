@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import type { Ma } from '../../recipes/ryu/ma'
+import type { Ma } from '../../core/recipe'
 import { BREAKPOINTS, type Breakpoint, type Responsive, resolveResponsive } from '../../types'
 
 export type { Responsive }

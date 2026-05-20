@@ -3,6 +3,7 @@
 import { motion } from 'motion/react'
 import { type ReactNode, useCallback, useMemo } from 'react'
 import { cn, createContext } from '../../core'
+import type { Step } from '../../core/recipe'
 import { Density, useDensity } from '../../primitives/density'
 import { Overlay } from '../../primitives/overlay'
 import { PanelA11yProvider, usePanelA11yScope } from '../../primitives/panel'
@@ -12,7 +13,6 @@ import {
 	drawerBackdropVariants,
 	drawerPanelVariants,
 } from '../../recipes/kata/drawer'
-import type { Step } from '../../recipes/ryu/sun'
 import { useResolvedSurface } from '../glass/context'
 
 type DrawerContextValue = {

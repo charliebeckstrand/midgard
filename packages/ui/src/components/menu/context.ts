@@ -2,7 +2,7 @@
 
 import type { CSSProperties, RefObject } from 'react'
 import { createContext } from '../../core'
-import type { Step } from '../../recipes/ryu/sun'
+import type { Step } from '../../core/recipe'
 
 type MenuStateValue = {
 	open: boolean

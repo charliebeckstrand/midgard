@@ -2,8 +2,8 @@
 
 import { type Ref, type RefObject, useCallback, useMemo } from 'react'
 import { cn } from '../../core'
+import type { Step } from '../../core/recipe'
 import { k } from '../../recipes/kata/calendar'
-import type { Step } from '../../recipes/ryu/sun'
 import {
 	Calendar,
 	type CalendarActive,

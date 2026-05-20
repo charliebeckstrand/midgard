@@ -1,7 +1,7 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
-import { type NavbarVariants, navbarVariants } from '../../recipes/kata/navbar'
+import { k, type NavbarVariants } from '../../recipes/kata/navbar'
 import { NavbarProvider } from './context'
 
 export type NavbarProps = NavbarVariants & ComponentPropsWithoutRef<'nav'>
@@ -19,7 +19,7 @@ export function Navbar({
 				<nav
 					data-slot="navbar"
 					aria-label={ariaLabel}
-					className={cn(navbarVariants({ variant }), className)}
+					className={cn(k({ variant }), className)}
 					{...props}
 				>
 					{children}

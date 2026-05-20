@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
+import type { Color } from '../../core/recipe'
 import { k } from '../../recipes/kata/timeline'
-import type { Color } from '../../recipes/ryu/iro'
 import { StatusDot, type StatusDotProps } from '../status'
 import { useTimeline } from './context'
 

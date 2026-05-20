@@ -1,7 +1,6 @@
 import { createSlot } from '../../core'
 import type { SlotProps } from '../../core/create-slot'
-import { iro } from '../../recipes/ryu/iro'
-import { ji } from '../../recipes/ryu/ji'
+import { iro, ji } from '../../core/recipe'
 
 export type CardDescriptionProps = SlotProps<'p'>
 

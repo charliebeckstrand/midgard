@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
+import type { Step } from '../../core/recipe'
 import { DensityScope } from '../../primitives/density'
 import { group } from '../../recipes/kata/avatar'
-import type { Step } from '../../recipes/ryu/sun'
 import { Avatar } from './avatar'
 
 export type AvatarGroupProps = {

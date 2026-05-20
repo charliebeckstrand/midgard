@@ -1,9 +1,8 @@
-import { tv } from 'tailwind-variants'
-import { iro, ji, sen, ugoki } from '../../core/recipe'
+import { defineRecipe, iro, ji, sen, ugoki } from '../../core/recipe'
 
 export type TreeSize = 'sm' | 'md' | 'lg'
 
-const treeItemContent = tv({
+const itemContent = defineRecipe({
 	base: [
 		'flex w-full items-center',
 		'py-1 px-2',
@@ -16,26 +15,22 @@ const treeItemContent = tv({
 		'select-none',
 		'data-[open]:text-zinc-950 dark:data-[open]:text-white',
 	],
-	variants: {
-		size: {
-			sm: ji.size.sm,
-			md: ji.size.md,
-			lg: ji.size.lg,
-		},
+	size: {
+		sm: ji.size.sm,
+		md: ji.size.md,
+		lg: ji.size.lg,
 	},
-	defaultVariants: { size: 'md' },
+	defaults: { size: 'md' },
 })
 
-const treeChevron = tv({
+const chevron = defineRecipe({
 	base: ['flex-none', 'flex items-center justify-center', ugoki.css.transform, ugoki.css.duration],
-	variants: {
-		size: {
-			sm: 'w-4',
-			md: 'w-5',
-			lg: 'w-6',
-		},
+	size: {
+		sm: 'w-4',
+		md: 'w-5',
+		lg: 'w-6',
 	},
-	defaultVariants: { size: 'md' },
+	defaults: { size: 'md' },
 })
 
 export const k = {
@@ -46,9 +41,9 @@ export const k = {
 		'[&>[data-slot=k-item]:last-child>[role=treeitem]]:pb-0',
 	],
 	item: [],
-	itemContent: treeItemContent,
+	itemContent,
 	itemContentCurrent: iro.text.default,
-	chevron: treeChevron,
+	chevron,
 	label: 'flex-1 truncate text-left',
 	group: 'overflow-hidden',
 	iconSize: {
@@ -63,5 +58,3 @@ export const k = {
 		lg: 2,
 	},
 } as const
-
-export { treeItemContent as treeItemContentVariants, treeChevron as treeChevronVariants }

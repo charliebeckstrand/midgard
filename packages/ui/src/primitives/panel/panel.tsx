@@ -2,8 +2,8 @@
 
 import { type ComponentPropsWithoutRef, useCallback, useEffect, useMemo, useState } from 'react'
 import { cn, createContext } from '../../core'
+import { narabi } from '../../core/recipe'
 import { useIdScope } from '../../hooks/use-id-scope'
-import { narabi } from '../../recipes/ryu/narabi'
 
 const defaultTitle = narabi.panel.title
 const defaultDescription = narabi.panel.description
