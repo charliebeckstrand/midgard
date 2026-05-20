@@ -54,9 +54,9 @@ export const pdfViewer = {
 		'group-focus-visible/thumb:after:ring-4',
 		'group-focus-visible/thumb:after:ring-blue-600',
 		'group-focus-visible/thumb:opacity-75',
-		'group-data-active/thumb:opacity-100',
+		'group-data-current/thumb:opacity-100',
 		'group-hover/thumb:opacity-75',
-		'group-data-active/thumb:hover:opacity-100',
+		'group-data-current/thumb:hover:opacity-100',
 	],
 	thumbnailImage: ['block w-full h-full object-contain'],
 	thumbnailFallback: ['flex items-center justify-center h-full w-full', ji.size.sm, iro.text.muted],
@@ -64,7 +64,7 @@ export const pdfViewer = {
 	thumbnailLabel: [
 		ji.size.sm,
 		iro.text.muted,
-		'group-data-active/thumb:text-zinc-950 dark:group-data-active/thumb:text-white',
+		'group-data-current/thumb:text-zinc-950 dark:group-data-current/thumb:text-white',
 		'tabular-nums select-none',
 	],
 	viewport: [

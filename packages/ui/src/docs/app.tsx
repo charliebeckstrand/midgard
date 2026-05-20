@@ -55,7 +55,7 @@ export function App() {
 				<ToggleIconButton
 					pressed={dark}
 					icon={<Moon />}
-					activeIcon={<Sun />}
+					pressedIcon={<Sun />}
 					aria-label="Toggle theme"
 					onClick={toggleDark}
 				/>

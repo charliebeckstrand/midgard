@@ -185,7 +185,7 @@ describe('flattenTree', () => {
 
 		expect(nodes).toHaveLength(1)
 
-		expect(nodes[0]?.kind).toBe('branch-open')
+		expect(nodes[0]?.type).toBe('branch-open')
 	})
 
 	it('emits open / leaf / close rows for an expanded branch', () => {
@@ -193,9 +193,9 @@ describe('flattenTree', () => {
 
 		const nodes = flattenTree(tree, undefined, new Set(['$']), '', false, new WeakMap())
 
-		const kinds = nodes.map((n) => n.kind)
+		const types = nodes.map((n) => n.type)
 
-		expect(kinds).toEqual(['branch-open', 'leaf', 'branch-close'])
+		expect(types).toEqual(['branch-open', 'leaf', 'branch-close'])
 	})
 
 	it('flags leaves matching the search term as highlighted', () => {
@@ -203,7 +203,7 @@ describe('flattenTree', () => {
 
 		const nodes = flattenTree(tree, undefined, new Set(['$']), 'alice', false, new WeakMap())
 
-		const leaf = nodes.find((n) => n.kind === 'leaf')
+		const leaf = nodes.find((n) => n.type === 'leaf')
 
 		expect(leaf?.highlighted).toBe(true)
 	})

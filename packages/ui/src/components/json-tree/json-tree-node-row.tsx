@@ -17,7 +17,7 @@ export type JsonNodeRowProps = {
  * stay aligned.
  */
 export function JsonTreeNodeRow({ node, onToggle }: JsonNodeRowProps) {
-	if (node.kind === 'leaf') {
+	if (node.type === 'leaf') {
 		return (
 			<JsonTreeLeafRow
 				depth={node.depth}
@@ -30,7 +30,7 @@ export function JsonTreeNodeRow({ node, onToggle }: JsonNodeRowProps) {
 
 	const isArray = Array.isArray(node.value)
 
-	if (node.kind === 'branch-close') {
+	if (node.type === 'branch-close') {
 		return <JsonTreeBranchClose depth={node.depth} isArray={isArray} />
 	}
 

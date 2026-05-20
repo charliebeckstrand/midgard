@@ -19,7 +19,7 @@ export default function ToggleIconButtonDemo() {
 				<ToggleIconButton
 					pressed={dark}
 					icon={<Moon />}
-					activeIcon={<Sun />}
+					pressedIcon={<Sun />}
 					onClick={() => setDark(!dark)}
 					aria-label="Toggle dark mode"
 				/>
@@ -29,7 +29,7 @@ export default function ToggleIconButtonDemo() {
 				<ToggleIconButton
 					pressed={noAnimation}
 					icon={<Heart />}
-					activeIcon={<Heart fill="currentColor" />}
+					pressedIcon={<Heart fill="currentColor" />}
 					animate={false}
 					onClick={() => setNoAnimation(!noAnimation)}
 					aria-label="Toggle heart"
@@ -40,7 +40,7 @@ export default function ToggleIconButtonDemo() {
 				<ToggleIconButton
 					pressed={muted}
 					icon={<Volume2 />}
-					activeIcon={<VolumeOff />}
+					pressedIcon={<VolumeOff />}
 					onClick={() => setMuted(!muted)}
 					aria-label="Toggle mute"
 				/>

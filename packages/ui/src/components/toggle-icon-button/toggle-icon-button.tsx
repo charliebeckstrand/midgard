@@ -12,7 +12,7 @@ type ToggleIconButtonLabel = { 'aria-label': string } | { 'aria-labelledby': str
 export type ToggleIconButtonProps = ToggleIconButtonLabel & {
 	pressed: boolean
 	icon: ReactElement
-	activeIcon?: ReactElement
+	pressedIcon?: ReactElement
 	animate?: boolean
 	size?: Size
 	className?: string
@@ -24,7 +24,7 @@ export type ToggleIconButtonProps = ToggleIconButtonLabel & {
 export function ToggleIconButton({
 	pressed,
 	icon,
-	activeIcon = icon,
+	pressedIcon = icon,
 	animate = true,
 	size,
 	className,
@@ -40,7 +40,7 @@ export function ToggleIconButton({
 				aria-pressed={pressed}
 				className={cn(k.base, className)}
 			>
-				<Icon icon={pressed ? activeIcon : icon} />
+				<Icon icon={pressed ? pressedIcon : icon} />
 			</Button>
 		)
 	}
@@ -66,7 +66,7 @@ export function ToggleIconButton({
 							pressed ? k.active : k.inactive,
 						)}
 					>
-						<Icon icon={activeIcon} />
+						<Icon icon={pressedIcon} />
 					</span>
 				</>
 			}

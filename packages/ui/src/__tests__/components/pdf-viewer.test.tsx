@@ -65,14 +65,14 @@ describe('PdfViewer', () => {
 		expect(allBySlot(container, 'pdf-viewer-thumbnail')).toHaveLength(3)
 	})
 
-	it('marks the active thumbnail with data-active', () => {
+	it('marks the current thumbnail with data-current', () => {
 		const { container } = renderUI(<PdfViewer pages={pages} defaultPage={2} />)
 
 		const thumbnails = allBySlot(container, 'pdf-viewer-thumbnail')
 
-		expect(thumbnails[0]).not.toHaveAttribute('data-active')
+		expect(thumbnails[0]).not.toHaveAttribute('data-current')
 
-		expect(thumbnails[1]).toHaveAttribute('data-active')
+		expect(thumbnails[1]).toHaveAttribute('data-current')
 	})
 
 	it('changes pages when a thumbnail is clicked', () => {

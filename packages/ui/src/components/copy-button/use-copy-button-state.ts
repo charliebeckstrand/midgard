@@ -8,7 +8,7 @@ export type UseCopyStateOptions = {
 }
 
 export type UseCopyStateResult = {
-	isCopied: boolean
+	copied: boolean
 	copy: () => Promise<void>
 }
 
@@ -17,7 +17,7 @@ export function useCopyButtonState({
 	timeout = 2000,
 	onCopiedChange,
 }: UseCopyStateOptions): UseCopyStateResult {
-	const [isCopied, setIsCopied] = useState(false)
+	const [copied, setCopied] = useState(false)
 
 	const onCopiedChangeRef = useRef(onCopiedChange)
 
@@ -29,7 +29,7 @@ export function useCopyButtonState({
 		try {
 			await navigator.clipboard.writeText(value)
 
-			setIsCopied(true)
+			setCopied(true)
 
 			onCopiedChangeRef.current?.(true)
 		} catch {
@@ -39,16 +39,16 @@ export function useCopyButtonState({
 	}, [value])
 
 	useEffect(() => {
-		if (!isCopied) return
+		if (!copied) return
 
 		const timer = setTimeout(() => {
-			setIsCopied(false)
+			setCopied(false)
 
 			onCopiedChangeRef.current?.(false)
 		}, timeout)
 
 		return () => clearTimeout(timer)
-	}, [isCopied, timeout])
+	}, [copied, timeout])
 
-	return { isCopied, copy }
+	return { copied, copy }
 }

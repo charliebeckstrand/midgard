@@ -15,7 +15,7 @@ export function PdfViewerThumbnails() {
 	const { pages, safePage, goToPage, loading, isDesktop, thumbsOpen, setThumbsOpen, rootRef } =
 		usePdfViewerContext()
 
-	const scrollActiveIntoView = useScrollWithin()
+	const scrollCurrentIntoView = useScrollWithin()
 
 	const sidebarRef = useRef<HTMLElement>(null)
 
@@ -57,17 +57,17 @@ export function PdfViewerThumbnails() {
 				: null}
 
 			{thumbnailList.map((item) => {
-				const isActive = item.pageNumber === safePage
+				const isCurrent = item.pageNumber === safePage
 
 				return (
 					<li key={item.key}>
 						<button
-							ref={isActive ? scrollActiveIntoView : undefined}
+							ref={isCurrent ? scrollCurrentIntoView : undefined}
 							type="button"
 							data-slot="pdf-viewer-thumbnail"
-							data-active={isActive || undefined}
+							data-current={isCurrent || undefined}
 							aria-label={`Go to ${item.label}`}
-							aria-current={isActive ? 'page' : undefined}
+							aria-current={isCurrent ? 'page' : undefined}
 							className={cn(k.thumbnail)}
 							onClick={() => {
 								goToPage(item.pageNumber)

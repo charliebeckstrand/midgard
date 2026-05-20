@@ -4,11 +4,16 @@ import { bySlot, fireEvent, renderUI, within } from '../helpers'
 
 describe('ToggleIconButton', () => {
 	const icon = <svg data-testid="icon" />
-	const activeIcon = <svg data-testid="active-icon" />
+	const pressedIcon = <svg data-testid="pressed-icon" />
 
 	it('renders with data-slot="toggle-icon-button"', () => {
 		const { container } = renderUI(
-			<ToggleIconButton pressed={false} icon={icon} activeIcon={activeIcon} aria-label="Toggle" />,
+			<ToggleIconButton
+				pressed={false}
+				icon={icon}
+				pressedIcon={pressedIcon}
+				aria-label="Toggle"
+			/>,
 		)
 
 		const el = bySlot(container, 'toggle-icon-button')
@@ -23,7 +28,7 @@ describe('ToggleIconButton', () => {
 			<ToggleIconButton
 				pressed={false}
 				icon={icon}
-				activeIcon={activeIcon}
+				pressedIcon={pressedIcon}
 				className="custom"
 				aria-label="Toggle"
 			/>,
@@ -36,7 +41,7 @@ describe('ToggleIconButton', () => {
 
 	it('sets aria-pressed based on pressed prop', () => {
 		const { container } = renderUI(
-			<ToggleIconButton pressed={true} icon={icon} activeIcon={activeIcon} aria-label="Toggle" />,
+			<ToggleIconButton pressed={true} icon={icon} pressedIcon={pressedIcon} aria-label="Toggle" />,
 		)
 
 		const el = bySlot(container, 'toggle-icon-button')
@@ -51,7 +56,7 @@ describe('ToggleIconButton', () => {
 			<ToggleIconButton
 				pressed={false}
 				icon={icon}
-				activeIcon={activeIcon}
+				pressedIcon={pressedIcon}
 				onClick={onClick}
 				aria-label="Toggle"
 			/>,
@@ -70,7 +75,7 @@ describe('ToggleIconButton', () => {
 				animate={false}
 				pressed={false}
 				icon={icon}
-				activeIcon={activeIcon}
+				pressedIcon={pressedIcon}
 				aria-label="Toggle"
 			/>,
 		)
@@ -81,7 +86,7 @@ describe('ToggleIconButton', () => {
 
 		expect(within(el).queryByTestId('icon')).toBeInTheDocument()
 
-		expect(within(el).queryByTestId('active-icon')).not.toBeInTheDocument()
+		expect(within(el).queryByTestId('pressed-icon')).not.toBeInTheDocument()
 	})
 
 	it('renders only the active icon when animate is false and pressed is true', () => {
@@ -90,27 +95,32 @@ describe('ToggleIconButton', () => {
 				animate={false}
 				pressed={true}
 				icon={icon}
-				activeIcon={activeIcon}
+				pressedIcon={pressedIcon}
 				aria-label="Toggle"
 			/>,
 		)
 
 		const el = bySlot(container, 'toggle-icon-button') as HTMLElement
 
-		expect(within(el).queryByTestId('active-icon')).toBeInTheDocument()
+		expect(within(el).queryByTestId('pressed-icon')).toBeInTheDocument()
 
 		expect(within(el).queryByTestId('icon')).not.toBeInTheDocument()
 	})
 
 	it('renders both icons (for the crossfade) when animate is true', () => {
 		const { container } = renderUI(
-			<ToggleIconButton pressed={false} icon={icon} activeIcon={activeIcon} aria-label="Toggle" />,
+			<ToggleIconButton
+				pressed={false}
+				icon={icon}
+				pressedIcon={pressedIcon}
+				aria-label="Toggle"
+			/>,
 		)
 
 		const el = bySlot(container, 'toggle-icon-button') as HTMLElement
 
 		expect(within(el).queryByTestId('icon')).toBeInTheDocument()
 
-		expect(within(el).queryByTestId('active-icon')).toBeInTheDocument()
+		expect(within(el).queryByTestId('pressed-icon')).toBeInTheDocument()
 	})
 })
