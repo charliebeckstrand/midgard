@@ -12,6 +12,8 @@ export type TabsContextValue = {
 	variant: TabsVariant
 	orientation: TabsOrientation
 	size: TabsSize
+	/** Stable scope used to auto-wire `aria-controls` / `aria-labelledby` between Tab and TabPanel when both carry a matching `value`. */
+	baseId: string
 }
 
 export const [TabsProvider, useTabsContext] = createContext<TabsContextValue | undefined>('Tabs', {

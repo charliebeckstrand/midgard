@@ -52,15 +52,28 @@ export function Tab({
 		}
 	}
 
+	// id resolution: explicit `id` wins; otherwise derive a stable pair from
+	// the parent Tabs' baseId + `value` so <Tab> and <TabPanel> auto-link
+	// without the caller wiring ids manually.
+	const tabId =
+		id ??
+		(value !== undefined && tabsContext?.baseId ? `${tabsContext.baseId}-tab-${value}` : undefined)
+
+	const panelId = id
+		? `${id}-panel`
+		: value !== undefined && tabsContext?.baseId
+			? `${tabsContext.baseId}-panel-${value}`
+			: undefined
+
 	return (
 		<span className="group relative" {...indicator.tapHandlers}>
 			<button
 				data-slot="tab"
 				data-current={current ? '' : undefined}
 				role="tab"
-				id={id}
+				id={tabId}
 				aria-selected={current ?? false}
-				aria-controls={id ? `${id}-panel` : undefined}
+				aria-controls={panelId}
 				tabIndex={current ? 0 : -1}
 				type="button"
 				className={cn(
