@@ -17,6 +17,10 @@ export type StepperProps = StepperVariants & {
 	orientation?: StepperOrientation
 	className?: string
 	children?: ReactNode
+	/** Accessible name for the step toolbar. Defaults to "Steps". */
+	'aria-label'?: string
+	/** External label reference; alternative to `aria-label`. */
+	'aria-labelledby'?: string
 }
 
 // Separates row content (steps, separators) from the panels group.
@@ -47,6 +51,8 @@ export function Stepper({
 	orientation,
 	className,
 	children,
+	'aria-label': ariaLabel = 'Steps',
+	'aria-labelledby': ariaLabelledBy,
 }: StepperProps) {
 	const isDesktop = useMinWidth(640)
 
@@ -82,6 +88,8 @@ export function Stepper({
 			data-slot="stepper"
 			data-orientation={resolvedOrientation}
 			role="toolbar"
+			aria-label={ariaLabelledBy ? undefined : ariaLabel}
+			aria-labelledby={ariaLabelledBy}
 			aria-orientation={resolvedOrientation}
 			onKeyDown={onValueChange !== undefined ? handleKeyDown : undefined}
 			className={cn(stepperVariants({ orientation: resolvedOrientation }), className)}
