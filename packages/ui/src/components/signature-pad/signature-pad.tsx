@@ -23,8 +23,8 @@ export type SignaturePadProps = {
 	strokeColor?: string
 	/** Stroke width in CSS pixels. Defaults to 2. */
 	strokeWidth?: number
-	/** Hide the built-in clear button. */
-	hideClear?: boolean
+	/** Render the built-in clear button. @default true */
+	clearable?: boolean
 	'aria-label'?: string
 	ref?: Ref<SignaturePadHandle>
 	className?: string
@@ -40,7 +40,7 @@ export function SignaturePad({
 	placeholder = 'Sign here',
 	strokeColor = '#18181b',
 	strokeWidth = 2,
-	hideClear,
+	clearable = true,
 	'aria-label': ariaLabel = 'Signature',
 	ref,
 	className,
@@ -82,7 +82,7 @@ export function SignaturePad({
 					{placeholder}
 				</div>
 			)}
-			{!hideClear && !disabled && !readOnly && !isEmpty && (
+			{clearable && !disabled && !readOnly && !isEmpty && (
 				<div data-slot="signature-pad-actions" className={cn(k.actions)}>
 					<Button
 						size="sm"

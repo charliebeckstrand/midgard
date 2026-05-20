@@ -64,7 +64,7 @@ function ImperativeHandleExample() {
 	return (
 		<Example title="Imperative handle">
 			<Stack gap="md">
-				<SignaturePad ref={ref} defaultValue={null} hideClear onValueChange={setValue} />
+				<SignaturePad ref={ref} defaultValue={null} clearable={false} onValueChange={setValue} />
 				{value && (
 					<Flex gap="sm">
 						<Button
