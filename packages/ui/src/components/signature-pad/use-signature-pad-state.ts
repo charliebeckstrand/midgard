@@ -36,7 +36,7 @@ export function useSignaturePadState({
 	const [current, setCurrent] = useControllable<string | null>({
 		value,
 		defaultValue: defaultValue ?? null,
-		onChange: onValueChange ? (next) => onValueChange(next ?? null) : undefined,
+		onValueChange: onValueChange ? (next) => onValueChange(next ?? null) : undefined,
 	})
 
 	const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -45,9 +45,9 @@ export function useSignaturePadState({
 
 	const lastEmittedRef = useRef<string | null>(null)
 
-	const [isEmpty, setIsEmpty] = useState(current == null)
+	const [empty, setEmpty] = useState(current == null)
 
-	useSignaturePadCanvasSizing({ containerRef, canvasRef, isEmpty, strokeColor, strokeWidth })
+	useSignaturePadCanvasSizing({ containerRef, canvasRef, empty, strokeColor, strokeWidth })
 
 	useEffect(() => {
 		if (current === lastEmittedRef.current) return
@@ -63,7 +63,7 @@ export function useSignaturePadState({
 		context.clearRect(0, 0, canvas.width, canvas.height)
 
 		if (!current) {
-			setIsEmpty(true)
+			setEmpty(true)
 
 			lastEmittedRef.current = null
 
@@ -72,7 +72,7 @@ export function useSignaturePadState({
 
 		drawSnapshot(canvas, current)
 
-		setIsEmpty(false)
+		setEmpty(false)
 
 		lastEmittedRef.current = current
 	}, [current])
@@ -83,8 +83,8 @@ export function useSignaturePadState({
 		readOnly,
 		strokeColor,
 		strokeWidth,
-		isEmpty,
-		setIsEmpty,
+		empty,
+		setEmpty,
 		lastEmittedRef,
 		setCurrent,
 	})
@@ -98,7 +98,7 @@ export function useSignaturePadState({
 			context?.clearRect(0, 0, canvas.width, canvas.height)
 		}
 
-		setIsEmpty(true)
+		setEmpty(true)
 
 		lastEmittedRef.current = null
 
@@ -110,15 +110,15 @@ export function useSignaturePadState({
 		() => ({
 			clear,
 			toDataURL: (type, quality) => canvasRef.current?.toDataURL(type, quality) ?? null,
-			isEmpty: () => isEmpty,
+			isEmpty: () => empty,
 		}),
-		[clear, isEmpty],
+		[clear, empty],
 	)
 
 	return {
 		containerRef,
 		canvasRef,
-		isEmpty,
+		empty,
 		handlePointerDown,
 		handlePointerMove,
 		commit,

@@ -20,7 +20,7 @@ export type UsePdfDocumentResult = {
 	pages: PdfViewerPage[]
 	/** Same-origin blob URL for the fetched PDF. Use this for download / print iframes. */
 	documentUrl: string | null
-	isLoading: boolean
+	loading: boolean
 	error: Error | null
 }
 
@@ -29,7 +29,7 @@ export function usePdfViewerDocument(src: string | undefined): UsePdfDocumentRes
 
 	const [documentUrl, setDocumentUrl] = useState<string | null>(null)
 
-	const [isLoading, setIsLoading] = useState(false)
+	const [loading, setLoading] = useState(false)
 
 	const [error, setError] = useState<Error | null>(null)
 
@@ -37,7 +37,7 @@ export function usePdfViewerDocument(src: string | undefined): UsePdfDocumentRes
 		if (!src) {
 			setPages([])
 			setDocumentUrl(null)
-			setIsLoading(false)
+			setLoading(false)
 			setError(null)
 
 			return
@@ -50,7 +50,7 @@ export function usePdfViewerDocument(src: string | undefined): UsePdfDocumentRes
 
 		setPages([])
 		setDocumentUrl(null)
-		setIsLoading(true)
+		setLoading(true)
 		setError(null)
 
 		;(async () => {
@@ -127,13 +127,13 @@ export function usePdfViewerDocument(src: string | undefined): UsePdfDocumentRes
 					setPages([...next])
 				}
 
-				if (!cancelled) setIsLoading(false)
+				if (!cancelled) setLoading(false)
 			} catch (err) {
 				if (cancelled) return
 
 				setError(err instanceof Error ? err : new Error(String(err)))
 
-				setIsLoading(false)
+				setLoading(false)
 			}
 		})()
 
@@ -146,5 +146,5 @@ export function usePdfViewerDocument(src: string | undefined): UsePdfDocumentRes
 		}
 	}, [src])
 
-	return { pages, documentUrl, isLoading, error }
+	return { pages, documentUrl, loading, error }
 }

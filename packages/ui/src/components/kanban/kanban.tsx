@@ -20,7 +20,7 @@ export type KanbanProps<T, C extends KanbanColumnShape<T>> = {
 	/** Ordered columns. Each column must have a stable `id` and an `items` array. */
 	columns: C[]
 	/** Stable key extractor for items. */
-	getItemKey: (item: T) => string
+	getKey: (item: T) => string
 	/** Called with the next columns whenever ordering changes. Omit for read-only. */
 	onValueChange?: (next: C[]) => void
 	/** Disable all drag / keyboard reorder interaction. */
@@ -33,7 +33,7 @@ export type KanbanProps<T, C extends KanbanColumnShape<T>> = {
 /** Multi-column board with drag-and-drop and keyboard reordering both within and across columns. */
 export function Kanban<T, C extends KanbanColumnShape<T>>({
 	columns,
-	getItemKey,
+	getKey,
 	onValueChange,
 	disabled,
 	children,
@@ -52,11 +52,11 @@ export function Kanban<T, C extends KanbanColumnShape<T>>({
 		handleDragOver,
 		handleDragEnd,
 		handleDragCancel,
-	} = useKanbanDrag({ columns, getItemKey, onValueChange })
+	} = useKanbanDrag({ columns, getKey, onValueChange })
 
 	const { liftedCardId, setLiftedCardId, onCardKeyDown, onCardBlur } = useKanbanKeyboard({
 		columns,
-		getItemKey,
+		getKey,
 		onValueChange,
 	})
 

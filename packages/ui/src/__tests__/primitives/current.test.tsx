@@ -18,19 +18,19 @@ describe('useCurrent', () => {
 })
 
 describe('useCurrentState', () => {
-	it('returns a context value with the current value and onChange', () => {
+	it('returns a context value with the current value and onValueChange', () => {
 		const { result } = renderHook(() => useCurrentState({ defaultValue: 'tab1' }))
 
 		expect(result.current.value).toBe('tab1')
 
-		expect(typeof result.current.onChange).toBe('function')
+		expect(typeof result.current.onValueChange).toBe('function')
 	})
 })
 
 describe('CurrentContents / CurrentContent', () => {
 	it('CurrentContents renders with correct data-slot', () => {
 		const { container } = renderUI(
-			<CurrentProvider value={{ value: 'a', onChange: undefined }}>
+			<CurrentProvider value={{ value: 'a', onValueChange: undefined }}>
 				<CurrentContents slotPrefix="test" fade={false}>
 					<CurrentContent slotPrefix="test" value="a">
 						Content A
@@ -44,7 +44,7 @@ describe('CurrentContents / CurrentContent', () => {
 
 	it('CurrentContent renders matching value', () => {
 		renderUI(
-			<CurrentProvider value={{ value: 'a', onChange: undefined }}>
+			<CurrentProvider value={{ value: 'a', onValueChange: undefined }}>
 				<CurrentContents slotPrefix="test" fade={false}>
 					<CurrentContent slotPrefix="test" value="a">
 						Content A
@@ -63,7 +63,7 @@ describe('CurrentContents / CurrentContent', () => {
 
 	it('CurrentContent renders all when no value set', () => {
 		renderUI(
-			<CurrentProvider value={{ value: undefined, onChange: undefined }}>
+			<CurrentProvider value={{ value: undefined, onValueChange: undefined }}>
 				<CurrentContents slotPrefix="test" fade={false}>
 					<CurrentContent slotPrefix="test" value="a">
 						A

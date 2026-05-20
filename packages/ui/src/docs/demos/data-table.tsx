@@ -71,7 +71,7 @@ function SortableExample() {
 		<DataTable
 			columns={sortableColumns}
 			rows={sortedPeople}
-			getRowKey={(row) => row.id}
+			getKey={(row) => row.id}
 			sort={{ value: sort, onValueChange: setSort }}
 		/>
 	)
@@ -90,11 +90,11 @@ export default function DataTableDemo() {
 					<DataTable
 						columns={columns}
 						rows={rows}
-						getRowKey={(row) => row.id}
+						getKey={(row) => row.id}
 					/>
 				`}
 			>
-				<DataTable columns={baseColumns} rows={people} getRowKey={(row) => row.id} />
+				<DataTable columns={baseColumns} rows={people} getKey={(row) => row.id} />
 			</Example>
 
 			<Example title="Sortable">
@@ -115,7 +115,7 @@ export default function DataTableDemo() {
 					<DataTable
 						columns={columns}
 						rows={rows}
-						getRowKey={(row) => row.id}
+						getKey={(row) => row.id}
 						selection={{ value: selection, onValueChange: setSelection }}
 					/>
 				`}
@@ -123,7 +123,7 @@ export default function DataTableDemo() {
 				<DataTable
 					columns={[{ id: 'select', selectable: true, width: '48px' }, ...baseColumns]}
 					rows={people}
-					getRowKey={(row) => row.id}
+					getKey={(row) => row.id}
 					selection={{ value: selection, onValueChange: (s) => setSelection(s ?? new Set()) }}
 				/>
 			</Example>
@@ -136,7 +136,7 @@ export default function DataTableDemo() {
 					<DataTable
 						columns={columns}
 						rows={rows}
-						getRowKey={(row) => row.id}
+						getKey={(row) => row.id}
 						selection={{
 							batchActions: (selected) => (
 								<Button size="sm" onClick={() => alert(selected.size + ' selected')}>
@@ -150,7 +150,7 @@ export default function DataTableDemo() {
 				<DataTable
 					columns={[{ id: 'select', selectable: true, width: '48px' }, ...baseColumns]}
 					rows={people}
-					getRowKey={(row) => row.id}
+					getKey={(row) => row.id}
 					selection={{
 						batchActions: (selected) => (
 							<HoldButton
@@ -191,25 +191,20 @@ export default function DataTableDemo() {
 						},
 					]}
 					rows={people}
-					getRowKey={(row) => row.id}
+					getKey={(row) => row.id}
 				/>
 			</Example>
 
 			<Example title="Striped">
-				<DataTable striped columns={baseColumns} rows={people} getRowKey={(row) => row.id} />
+				<DataTable striped columns={baseColumns} rows={people} getKey={(row) => row.id} />
 			</Example>
 
 			<Example title="Grid">
-				<DataTable grid columns={baseColumns} rows={people} getRowKey={(row) => row.id} />
+				<DataTable grid columns={baseColumns} rows={people} getKey={(row) => row.id} />
 			</Example>
 
 			<Example title="Compact density">
-				<DataTable
-					density="compact"
-					columns={baseColumns}
-					rows={people}
-					getRowKey={(row) => row.id}
-				/>
+				<DataTable density="compact" columns={baseColumns} rows={people} getKey={(row) => row.id} />
 			</Example>
 
 			<Example title="Sticky header" code={code`<DataTable stickyHeader maxHeight="200px" />`}>
@@ -218,12 +213,12 @@ export default function DataTableDemo() {
 					maxHeight="200px"
 					columns={baseColumns}
 					rows={[...people, ...people]}
-					getRowKey={(row, i) => `${row.id}-${i}`}
+					getKey={(row, i) => `${row.id}-${i}`}
 				/>
 			</Example>
 
 			<Example title="Loading">
-				<DataTable loading columns={baseColumns} rows={[]} getRowKey={(row) => row.id} />
+				<DataTable loading columns={baseColumns} rows={[]} getKey={(row) => row.id} />
 			</Example>
 
 			<Example
@@ -234,7 +229,7 @@ export default function DataTableDemo() {
 					<DataTable
 						columns={columns}
 						rows={rows}
-						getRowKey={(row) => row.id}
+						getKey={(row) => row.id}
 						columnManager={{ enabled: true, defaultHidden: new Set(['location']) }}
 					/>
 				`}
@@ -242,7 +237,7 @@ export default function DataTableDemo() {
 				<DataTable
 					columns={baseColumns}
 					rows={people}
-					getRowKey={(row) => row.id}
+					getKey={(row) => row.id}
 					columnManager={{ enabled: true }}
 				/>
 			</Example>

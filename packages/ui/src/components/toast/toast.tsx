@@ -42,7 +42,7 @@ export function Toast({ position = 'bottom-right' }: ToastProps) {
 								toast={t}
 								position={position}
 								zIndex={toasts.length - i}
-								showCloseButton={t.showCloseButton}
+								closable={t.closable}
 								onOpenChange={(open, id) => {
 									if (!open) dismiss(id)
 								}}

@@ -98,7 +98,7 @@ function setup(
 			rows: {
 				rowsRef: { current: rows },
 				editableCols: cols,
-				getRowKey: (r) => r.id,
+				getKey: (r) => r.id,
 				formatCell: (row, col) => String(row[col.id as keyof Row] ?? ''),
 				parseValue: (raw) => raw,
 			},
@@ -200,7 +200,7 @@ describe('useEditableGridWrapper: onWrapperKeyDown arrow navigation', () => {
 				rows: {
 					rowsRef: { current: [{ id: 'a', value: 'a1' }] },
 					editableCols: cols,
-					getRowKey: (r) => r.id,
+					getKey: (r) => r.id,
 					formatCell: () => '',
 					parseValue: (raw) => raw,
 				},
@@ -556,7 +556,7 @@ describe('useEditableGridWrapper: onWrapperFocus and onWrapperBlur', () => {
 				rows: {
 					rowsRef: { current: [{ id: 'a', value: '' }] },
 					editableCols: cols,
-					getRowKey: (r) => r.id,
+					getKey: (r) => r.id,
 					formatCell: () => '',
 					parseValue: (raw) => raw,
 				},

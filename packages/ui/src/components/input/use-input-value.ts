@@ -3,7 +3,7 @@
 import type { ChangeEventHandler, FocusEventHandler, InputHTMLAttributes } from 'react'
 import { type FormTextBinding, useFormText } from '../form/context'
 
-export type UseInputValueInput = {
+export type UseInputValueOptions = {
 	/** Whether the consumer passed a `value` prop at all (`'value' in props`). */
 	hasValueProp: boolean
 	name?: string
@@ -34,7 +34,7 @@ export function useInputValue({
 	value,
 	onChange,
 	onBlur,
-}: UseInputValueInput): UseInputValueResult {
+}: UseInputValueOptions): UseInputValueResult {
 	const binding = useFormText(name, { onChange, onBlur })
 
 	const bound = !hasValueProp && binding !== undefined

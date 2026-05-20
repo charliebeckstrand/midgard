@@ -28,7 +28,7 @@ export function CopyButton({
 	onCopiedChange,
 	...props
 }: CopyButtonProps) {
-	const { isCopied, copy } = useCopyButtonState({ value, timeout, onCopiedChange })
+	const { copied, copy } = useCopyButtonState({ value, timeout, onCopiedChange })
 
 	const handleClick = useCallback<NonNullable<CopyButtonProps['onClick']>>(
 		(event) => {
@@ -42,14 +42,14 @@ export function CopyButton({
 	return (
 		<ToggleIconButton
 			{...props}
-			pressed={isCopied}
+			pressed={copied}
 			icon={icon ?? <Clipboard />}
-			activeIcon={<Check />}
+			pressedIcon={<Check />}
 			size={size}
 			data-slot="copy-button"
-			disabled={isCopied || disabled}
+			disabled={copied || disabled}
 			onClick={handleClick}
-			aria-label={isCopied ? 'Copied' : 'Copy to clipboard'}
+			aria-label={copied ? 'Copied' : 'Copy to clipboard'}
 			className={cn(k.base, className)}
 		/>
 	)

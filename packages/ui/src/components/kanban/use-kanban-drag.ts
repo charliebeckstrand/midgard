@@ -6,11 +6,11 @@ import type { KanbanColumnShape } from './types'
 
 export function useKanbanDrag<T, C extends KanbanColumnShape<T>>({
 	columns,
-	getItemKey,
+	getKey,
 	onValueChange,
 }: {
 	columns: C[]
-	getItemKey: (item: T) => string
+	getKey: (item: T) => string
 	onValueChange?: (next: C[]) => void
 }) {
 	const [activeId, setActiveId] = useState<string | null>(null)
@@ -18,8 +18,8 @@ export function useKanbanDrag<T, C extends KanbanColumnShape<T>>({
 	const overlayMap = useRef(new Map<string, ReactNode>())
 
 	const columnItemIds = useMemo<Record<string, string[]>>(
-		() => Object.fromEntries(columns.map((c) => [c.id, c.items.map(getItemKey)])),
-		[columns, getItemKey],
+		() => Object.fromEntries(columns.map((c) => [c.id, c.items.map(getKey)])),
+		[columns, getKey],
 	)
 
 	// dnd-kit fires `dragOver` per pointer move; without this index, each call
@@ -29,12 +29,12 @@ export function useKanbanDrag<T, C extends KanbanColumnShape<T>>({
 
 		for (const col of columns) {
 			for (const item of col.items) {
-				m.set(getItemKey(item), col)
+				m.set(getKey(item), col)
 			}
 		}
 
 		return m
-	}, [columns, getItemKey])
+	}, [columns, getKey])
 
 	const findColumnByCardId = useCallback((id: string) => cardIndex.get(id), [cardIndex])
 
@@ -73,7 +73,7 @@ export function useKanbanDrag<T, C extends KanbanColumnShape<T>>({
 		// Same-column reorders are committed in dragEnd to avoid thrashing.
 		if (activeCol.id === overCol.id) return
 
-		const activeIdx = activeCol.items.findIndex((i) => getItemKey(i) === activeCardId)
+		const activeIdx = activeCol.items.findIndex((i) => getKey(i) === activeCardId)
 
 		if (activeIdx === -1) return
 
@@ -83,7 +83,7 @@ export function useKanbanDrag<T, C extends KanbanColumnShape<T>>({
 
 		const overIsColumn = columns.some((c) => c.id === overId)
 
-		const overCardIdx = overCol.items.findIndex((i) => getItemKey(i) === overId)
+		const overCardIdx = overCol.items.findIndex((i) => getKey(i) === overId)
 
 		const insertIdx = overIsColumn || overCardIdx === -1 ? overCol.items.length : overCardIdx
 
@@ -128,9 +128,9 @@ export function useKanbanDrag<T, C extends KanbanColumnShape<T>>({
 		// Cross-column moves already applied in dragOver.
 		if (activeCol.id !== overCol.id) return
 
-		const oldIdx = activeCol.items.findIndex((i) => getItemKey(i) === activeCardId)
+		const oldIdx = activeCol.items.findIndex((i) => getKey(i) === activeCardId)
 
-		const newIdx = activeCol.items.findIndex((i) => getItemKey(i) === overId)
+		const newIdx = activeCol.items.findIndex((i) => getKey(i) === overId)
 
 		if (oldIdx === -1 || newIdx === -1 || oldIdx === newIdx) return
 

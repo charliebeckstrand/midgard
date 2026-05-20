@@ -116,7 +116,7 @@ describe('Form', () => {
 		function Consumer() {
 			const status = useFormStatus()
 
-			return <span data-testid="valid">{String(status?.isValid)}</span>
+			return <span data-testid="valid">{String(status?.valid)}</span>
 		}
 
 		const { container } = renderUI(
@@ -483,6 +483,6 @@ describe('useFormStatus', () => {
 
 		const { result } = renderHook(() => useFormStatus(), { wrapper })
 
-		expect(result.current).toEqual({ submitting: false, isDirty: false, isValid: true })
+		expect(result.current).toEqual({ submitting: false, dirty: false, valid: true })
 	})
 })

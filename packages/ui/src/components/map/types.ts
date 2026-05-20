@@ -18,8 +18,8 @@ export type RouteData = {
 }
 
 export type GeofenceShape =
-	| { kind: 'circle'; center: LngLat; radiusMeters: number }
-	| { kind: 'polygon'; coordinates: LngLat[] }
+	| { type: 'circle'; center: LngLat; radiusMeters: number }
+	| { type: 'polygon'; coordinates: LngLat[] }
 
 /** A single message in a shipment's chat thread — local to `map/`, not the `ChatMessage` component. */
 export type ChatMessage = {

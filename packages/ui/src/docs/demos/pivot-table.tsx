@@ -33,7 +33,7 @@ export default function PivotTableDemo() {
 		<Stack gap="xl">
 			<Example title="Loads by lane">
 				<PivotTable
-					data={loads}
+					rows={loads}
 					keys={{ row: 'lane', column: 'period', value: 'loads' }}
 					rowHeader="Lane"
 					totals="both"
@@ -42,7 +42,7 @@ export default function PivotTableDemo() {
 
 			<Example title="Cost by lane">
 				<PivotTable
-					data={loads}
+					rows={loads}
 					keys={{ row: 'lane', column: 'carrier', value: 'cost' }}
 					aggregation="sum"
 					format={currency}
@@ -54,7 +54,7 @@ export default function PivotTableDemo() {
 
 			<Example title="Average cost per load">
 				<PivotTable
-					data={loads}
+					rows={loads}
 					keys={{ row: 'carrier', column: 'period', value: 'cost' }}
 					aggregation="avg"
 					format={currency}
@@ -67,7 +67,7 @@ export default function PivotTableDemo() {
 
 			<Example title="Load count">
 				<PivotTable
-					data={loads}
+					rows={loads}
 					keys={{ row: 'carrier', column: 'period', value: 'loads' }}
 					aggregation="count"
 					rowHeader="Carrier"

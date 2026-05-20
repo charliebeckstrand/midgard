@@ -2,9 +2,9 @@ import { Stack } from '../../components/stack'
 import {
 	Timeline,
 	TimelineDescription,
-	TimelineHeading,
 	TimelineItem,
 	TimelineTimestamp,
+	TimelineTitle,
 } from '../../components/timeline'
 import { Example } from '../components/example'
 
@@ -17,19 +17,19 @@ export default function TimelineDemo() {
 				<Timeline>
 					<TimelineItem>
 						<TimelineTimestamp>Jan 2026</TimelineTimestamp>
-						<TimelineHeading>Project kicked off</TimelineHeading>
+						<TimelineTitle>Project kicked off</TimelineTitle>
 						<TimelineDescription>Initial planning and team assembly.</TimelineDescription>
 					</TimelineItem>
 					<TimelineItem status="info">
 						<TimelineTimestamp>Feb 2026</TimelineTimestamp>
-						<TimelineHeading>Design completed</TimelineHeading>
+						<TimelineTitle>Design completed</TimelineTitle>
 						<TimelineDescription>
 							Finalized wireframes and design system tokens.
 						</TimelineDescription>
 					</TimelineItem>
 					<TimelineItem variant="outline">
 						<TimelineTimestamp>Mar 2026</TimelineTimestamp>
-						<TimelineHeading>Beta released</TimelineHeading>
+						<TimelineTitle>Beta released</TimelineTitle>
 						<TimelineDescription>Shipped to early adopters for feedback.</TimelineDescription>
 					</TimelineItem>
 				</Timeline>
@@ -39,15 +39,15 @@ export default function TimelineDemo() {
 				<Timeline orientation="horizontal">
 					<TimelineItem>
 						<TimelineTimestamp>Step 1</TimelineTimestamp>
-						<TimelineHeading>Register</TimelineHeading>
+						<TimelineTitle>Register</TimelineTitle>
 					</TimelineItem>
 					<TimelineItem>
 						<TimelineTimestamp>Step 2</TimelineTimestamp>
-						<TimelineHeading>Verify</TimelineHeading>
+						<TimelineTitle>Verify</TimelineTitle>
 					</TimelineItem>
 					<TimelineItem status="active">
 						<TimelineTimestamp>Step 3</TimelineTimestamp>
-						<TimelineHeading>Complete</TimelineHeading>
+						<TimelineTitle>Complete</TimelineTitle>
 					</TimelineItem>
 				</Timeline>
 			</Example>
@@ -56,19 +56,19 @@ export default function TimelineDemo() {
 				<Timeline variant="outline">
 					<TimelineItem>
 						<TimelineTimestamp>10:30 AM</TimelineTimestamp>
-						<TimelineHeading>Commit pushed</TimelineHeading>
+						<TimelineTitle>Commit pushed</TimelineTitle>
 						<TimelineDescription>
 							Updated dependencies and fixed linting errors.
 						</TimelineDescription>
 					</TimelineItem>
 					<TimelineItem>
 						<TimelineTimestamp>11:15 AM</TimelineTimestamp>
-						<TimelineHeading>Review requested</TimelineHeading>
+						<TimelineTitle>Review requested</TimelineTitle>
 						<TimelineDescription>Assigned to two reviewers for approval.</TimelineDescription>
 					</TimelineItem>
 					<TimelineItem status="active">
 						<TimelineTimestamp>2:00 PM</TimelineTimestamp>
-						<TimelineHeading>Merged to main</TimelineHeading>
+						<TimelineTitle>Merged to main</TimelineTitle>
 						<TimelineDescription>All checks passed, deployed to staging.</TimelineDescription>
 					</TimelineItem>
 				</Timeline>
@@ -78,12 +78,12 @@ export default function TimelineDemo() {
 				<Timeline variant="outline">
 					<TimelineItem>
 						<TimelineTimestamp>Apr 1, 2026</TimelineTimestamp>
-						<TimelineHeading>Feature development</TimelineHeading>
+						<TimelineTitle>Feature development</TimelineTitle>
 						<TimelineDescription>Implemented core functionality and tests.</TimelineDescription>
 					</TimelineItem>
 					<TimelineItem status="error" pulse>
 						<TimelineTimestamp>Apr 10, 2026</TimelineTimestamp>
-						<TimelineHeading>Deployment failed</TimelineHeading>
+						<TimelineTitle>Deployment failed</TimelineTitle>
 						<TimelineDescription>
 							Investigating root cause and rolling back changes.
 						</TimelineDescription>
@@ -95,17 +95,17 @@ export default function TimelineDemo() {
 				<Timeline>
 					<TimelineItem variant="solid" status="info">
 						<TimelineTimestamp>Step 1</TimelineTimestamp>
-						<TimelineHeading>Account created</TimelineHeading>
+						<TimelineTitle>Account created</TimelineTitle>
 						<TimelineDescription>Highlighted with a solid marker override.</TimelineDescription>
 					</TimelineItem>
 					<TimelineItem variant="outline">
 						<TimelineTimestamp>Step 2</TimelineTimestamp>
-						<TimelineHeading>Email verified</TimelineHeading>
+						<TimelineTitle>Email verified</TimelineTitle>
 						<TimelineDescription>Inherits the outline variant from Timeline.</TimelineDescription>
 					</TimelineItem>
 					<TimelineItem variant="outline">
 						<TimelineTimestamp>Step 3</TimelineTimestamp>
-						<TimelineHeading>Profile completed</TimelineHeading>
+						<TimelineTitle>Profile completed</TimelineTitle>
 						<TimelineDescription>Inherits the outline variant from Timeline.</TimelineDescription>
 					</TimelineItem>
 				</Timeline>

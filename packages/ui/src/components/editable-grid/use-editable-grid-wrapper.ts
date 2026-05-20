@@ -31,7 +31,7 @@ export function useEditableGridWrapper<T>({
 	},
 	mutations: { applyCellWrite, applyBulkFill },
 	draft: { editing, beginEdit },
-	rows: { rowsRef, editableCols, getRowKey, formatCell, parseValue },
+	rows: { rowsRef, editableCols, getKey, formatCell, parseValue },
 	selection: { selectionRef, setSelection },
 	wrapperRef,
 	onValueChange,
@@ -219,7 +219,7 @@ export function useEditableGridWrapper<T>({
 					if (!col || !row || col.readOnly) return
 
 					changes.push({
-						rowKey: getRowKey(row, rowIdx),
+						rowKey: getKey(row, rowIdx),
 						columnId: col.id,
 						value: parseValue(raw, row, col),
 					})
@@ -239,7 +239,7 @@ export function useEditableGridWrapper<T>({
 			editableCols,
 			rowsRef,
 			selectionRef,
-			getRowKey,
+			getKey,
 			parseValue,
 			onValueChange,
 			applyCellWrite,

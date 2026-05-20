@@ -4,9 +4,9 @@ import { ChevronDown } from 'lucide-react'
 import { useState } from 'react'
 import {
 	Accordion,
-	AccordionButton,
 	AccordionItem,
 	AccordionPanel,
+	AccordionTrigger,
 } from '../../components/accordion'
 import { Badge } from '../../components/badge'
 import { Code } from '../../components/code'
@@ -238,7 +238,7 @@ export function ApiReference({ api }: { api: ComponentApi[] }) {
 		<Accordion type="multiple">
 			{api.map((entry) => (
 				<AccordionItem key={entry.name} value={entry.name}>
-					<AccordionButton className="font-mono">{`<${entry.name} />`}</AccordionButton>
+					<AccordionTrigger className="font-mono">{`<${entry.name} />`}</AccordionTrigger>
 					<AccordionPanel>
 						<ComponentEntry entry={entry} />
 					</AccordionPanel>

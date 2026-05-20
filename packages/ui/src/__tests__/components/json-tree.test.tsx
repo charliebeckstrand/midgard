@@ -295,22 +295,22 @@ describe('json-tree: flattenTree', () => {
 		const out = flatten({ a: 1, b: 2 }, empty)
 
 		expect(out).toHaveLength(1)
-		expect(out[0]?.kind).toBe('branch-open')
+		expect(out[0]?.type).toBe('branch-open')
 	})
 
 	it('emits branch-open + children + branch-close when a branch is open', () => {
 		const out = flatten({ a: 1, b: 2 }, new Set(['root']))
 
-		expect(out.map((n) => n.kind)).toEqual(['branch-open', 'leaf', 'leaf', 'branch-close'])
+		expect(out.map((n) => n.type)).toEqual(['branch-open', 'leaf', 'leaf', 'branch-close'])
 	})
 
 	it('recurses into open nested branches', () => {
 		const data = { outer: { inner: { leaf: 1 } } }
 		const out = flatten(data, new Set(['root', 'root.outer', 'root.outer.inner']))
 
-		const kinds = out.map((n) => n.kind)
+		const types = out.map((n) => n.type)
 
-		expect(kinds).toEqual([
+		expect(types).toEqual([
 			'branch-open',
 			'branch-open',
 			'branch-open',
@@ -325,7 +325,7 @@ describe('json-tree: flattenTree', () => {
 		const data = { outer: { inner: { leaf: 1 } } }
 		const out = flatten(data, new Set(['root', 'root.outer', 'root.outer.inner']))
 
-		expect(out.find((n) => n.kind === 'leaf')?.depth).toBe(3)
+		expect(out.find((n) => n.type === 'leaf')?.depth).toBe(3)
 	})
 
 	it('filters leaves when search is active with filter=true', () => {
@@ -339,7 +339,7 @@ describe('json-tree: flattenTree', () => {
 			searchIndex,
 		)
 
-		expect(out.filter((n) => n.kind === 'leaf')).toHaveLength(1)
+		expect(out.filter((n) => n.type === 'leaf')).toHaveLength(1)
 	})
 })
 
@@ -508,7 +508,7 @@ describe('JsonTreeNodeRow', () => {
 		const { container } = renderUI(
 			<JsonTreeNodeRow
 				node={{
-					kind: 'leaf',
+					type: 'leaf',
 					path: 'root.a',
 					keyName: 'a',
 					value: 1,
@@ -530,7 +530,7 @@ describe('JsonTreeNodeRow', () => {
 		const { container } = renderUI(
 			<JsonTreeNodeRow
 				node={{
-					kind: 'leaf',
+					type: 'leaf',
 					path: 'root',
 					keyName: undefined,
 					value: 1,
@@ -550,7 +550,7 @@ describe('JsonTreeNodeRow', () => {
 		const { container } = renderUI(
 			<JsonTreeNodeRow
 				node={{
-					kind: 'leaf',
+					type: 'leaf',
 					path: 'root.a',
 					keyName: 'a',
 					value: 1,
@@ -567,7 +567,7 @@ describe('JsonTreeNodeRow', () => {
 	it('renders a branch-close row with the matching bracket for an array', () => {
 		const { container } = renderUI(
 			<JsonTreeNodeRow
-				node={{ kind: 'branch-close', path: 'root.a', depth: 1, value: [1, 2] }}
+				node={{ type: 'branch-close', path: 'root.a', depth: 1, value: [1, 2] }}
 				onToggle={() => {}}
 			/>,
 		)
@@ -582,7 +582,7 @@ describe('JsonTreeNodeRow', () => {
 	it('renders a branch-close row with the matching bracket for an object', () => {
 		const { container } = renderUI(
 			<JsonTreeNodeRow
-				node={{ kind: 'branch-close', path: 'root.a', depth: 1, value: { x: 1 } }}
+				node={{ type: 'branch-close', path: 'root.a', depth: 1, value: { x: 1 } }}
 				onToggle={() => {}}
 			/>,
 		)
@@ -594,7 +594,7 @@ describe('JsonTreeNodeRow', () => {
 		const { container } = renderUI(
 			<JsonTreeNodeRow
 				node={{
-					kind: 'branch-open',
+					type: 'branch-open',
 					path: 'root',
 					keyName: undefined,
 					value: [1, 2, 3],
@@ -620,7 +620,7 @@ describe('JsonTreeNodeRow', () => {
 		const { container } = renderUI(
 			<JsonTreeNodeRow
 				node={{
-					kind: 'branch-open',
+					type: 'branch-open',
 					path: 'root',
 					keyName: undefined,
 					value: {},
@@ -642,7 +642,7 @@ describe('JsonTreeNodeRow', () => {
 		renderUI(
 			<JsonTreeNodeRow
 				node={{
-					kind: 'branch-open',
+					type: 'branch-open',
 					path: 'root',
 					keyName: undefined,
 					value: [1],
@@ -664,7 +664,7 @@ describe('JsonTreeNodeRow', () => {
 		const { container } = renderUI(
 			<JsonTreeNodeRow
 				node={{
-					kind: 'branch-open',
+					type: 'branch-open',
 					path: 'root.a',
 					keyName: 'a',
 					value: { x: 1 },
@@ -688,7 +688,7 @@ describe('JsonTreeNodeRow', () => {
 		const { container } = renderUI(
 			<JsonTreeNodeRow
 				node={{
-					kind: 'branch-open',
+					type: 'branch-open',
 					path: 'root',
 					keyName: undefined,
 					value: { a: 1 },

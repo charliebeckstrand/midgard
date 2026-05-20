@@ -43,7 +43,7 @@ export type UseRelativeTimeOptions = {
 
 export type UseRelativeTimeResult = {
 	then: Date
-	isValid: boolean
+	valid: boolean
 	text: string
 }
 
@@ -57,23 +57,23 @@ export function useTimeAgoRelativeTime({
 
 	const then = date instanceof Date ? date : new Date(date)
 
-	const isValid = !Number.isNaN(then.getTime())
+	const valid = !Number.isNaN(then.getTime())
 
-	const diffMs = isValid ? then.getTime() - now.getTime() : 0
+	const diffMs = valid ? then.getTime() - now.getTime() : 0
 
 	const absMs = Math.abs(diffMs)
 
 	const adaptiveMs = interval === 'auto' ? adaptiveInterval(absMs) : interval
 
 	useEffect(() => {
-		if (!isValid) return
+		if (!valid) return
 
 		const id = window.setInterval(() => setNow(new Date()), adaptiveMs)
 
 		return () => window.clearInterval(id)
-	}, [adaptiveMs, isValid])
+	}, [adaptiveMs, valid])
 
-	if (!isValid) return { then, isValid, text: '' }
+	if (!valid) return { then, valid, text: '' }
 
 	let text: string
 
@@ -87,5 +87,5 @@ export function useTimeAgoRelativeTime({
 		text = formatter.format(Math.round(diffMs > 0 ? value : -value), unit)
 	}
 
-	return { then, isValid, text }
+	return { then, valid, text }
 }

@@ -157,7 +157,7 @@ export function List<T>({
 									attributes: {} as DraggableAttributes,
 									listeners: undefined,
 									style: {},
-									isDragging: true,
+									dragging: true,
 								}}
 							>
 								{children(activeItem, activeIndex)}

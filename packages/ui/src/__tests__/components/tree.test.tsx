@@ -396,10 +396,10 @@ describe('TreeItem', () => {
 		expect(child.style.paddingLeft).not.toBe('0.5rem')
 	})
 
-	it('renders an active TreeItem without throwing', () => {
+	it('renders a current TreeItem without throwing', () => {
 		const { container } = renderUI(
 			<Tree>
-				<TreeItem label="Selected" active />
+				<TreeItem label="Selected" current />
 			</Tree>,
 		)
 

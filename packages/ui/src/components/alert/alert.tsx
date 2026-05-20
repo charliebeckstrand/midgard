@@ -94,7 +94,7 @@ export function Alert({
 	const [open = true, setOpen] = useControllable<boolean>({
 		value: openProp,
 		defaultValue: defaultOpen,
-		onChange: onOpenChange ? (next) => onOpenChange(next ?? false) : undefined,
+		onValueChange: onOpenChange ? (next) => onOpenChange(next ?? false) : undefined,
 	})
 
 	const close = useCallback(() => setOpen(false), [setOpen])

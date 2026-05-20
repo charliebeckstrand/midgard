@@ -28,7 +28,7 @@ export function Popover({
 	const [open = false, setOpen] = useControllable<boolean>({
 		value: openProp,
 		defaultValue: false,
-		onChange: (next) => onOpenChange?.(next ?? false),
+		onValueChange: (next) => onOpenChange?.(next ?? false),
 	})
 
 	const triggerRef = useRef<HTMLButtonElement>(null)

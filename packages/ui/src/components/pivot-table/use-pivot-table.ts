@@ -22,8 +22,8 @@ export type UsePivotTableOptions = {
 }
 
 export type UsePivotTableResult = {
-	rows: string[]
-	columns: string[]
+	rowKeys: string[]
+	columnKeys: string[]
 	cellValue: (row: string, column: string) => number | undefined
 	rowTotal: (row: string) => number | undefined
 	colTotals: (number | undefined)[]
@@ -31,25 +31,25 @@ export type UsePivotTableResult = {
 }
 
 export function usePivotTable<T>(
-	data: readonly T[],
+	rows: readonly T[],
 	keys: PivotTableKeys<T>,
 	{ aggregation = 'sum', rowOrder, columnOrder }: UsePivotTableOptions = {},
 ): UsePivotTableResult {
-	const rows = useMemo(() => resolveAxis(data, keys.row, rowOrder), [data, keys.row, rowOrder])
+	const rowKeys = useMemo(() => resolveAxis(rows, keys.row, rowOrder), [rows, keys.row, rowOrder])
 
-	const columns = useMemo(
-		() => resolveAxis(data, keys.column, columnOrder),
-		[data, keys.column, columnOrder],
+	const columnKeys = useMemo(
+		() => resolveAxis(rows, keys.column, columnOrder),
+		[rows, keys.column, columnOrder],
 	)
 
 	const groups = useMemo(
-		() => groupValues(data, keys.row, keys.column, keys.value),
-		[data, keys.row, keys.column, keys.value],
+		() => groupValues(rows, keys.row, keys.column, keys.value),
+		[rows, keys.row, keys.column, keys.value],
 	)
 
 	const colTotals = useMemo(
-		() => columns.map((col) => aggregateColumn(groups, rows, col, aggregation)),
-		[columns, groups, rows, aggregation],
+		() => columnKeys.map((col) => aggregateColumn(groups, rowKeys, col, aggregation)),
+		[columnKeys, groups, rowKeys, aggregation],
 	)
 
 	const grandTotal = useMemo(() => aggregateAll(groups, aggregation), [groups, aggregation])
@@ -61,7 +61,7 @@ export function usePivotTable<T>(
 	}
 
 	const rowTotal = (row: string): number | undefined =>
-		aggregateRow(groups, row, columns, aggregation)
+		aggregateRow(groups, row, columnKeys, aggregation)
 
-	return { rows, columns, cellValue, rowTotal, colTotals, grandTotal }
+	return { rowKeys, columnKeys, cellValue, rowTotal, colTotals, grandTotal }
 }

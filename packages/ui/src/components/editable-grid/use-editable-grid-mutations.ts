@@ -12,7 +12,7 @@ import type {
 
 export function useEditableGridMutations<T>({
 	nav: { activeRef, anchorRef, extraCellsRef },
-	rows: { rowsRef, editableCols, getRowKey, parseValue },
+	rows: { rowsRef, editableCols, getKey, parseValue },
 	selection: { selectionRef, setSelection },
 	onValueChange,
 }: {
@@ -33,7 +33,7 @@ export function useEditableGridMutations<T>({
 
 			if (!currentRow) return
 
-			const rowKey = getRowKey(currentRow, rowIdx)
+			const rowKey = getKey(currentRow, rowIdx)
 
 			const value = parseValue(raw, currentRow, col)
 
@@ -46,7 +46,7 @@ export function useEditableGridMutations<T>({
 
 			if (inSel) {
 				currentRows.forEach((r, i) => {
-					const rk = getRowKey(r, i)
+					const rk = getKey(r, i)
 
 					if (sel.has(rk)) changes.push({ rowKey: rk, columnId: col.id, value })
 				})
@@ -58,7 +58,7 @@ export function useEditableGridMutations<T>({
 
 			if (sel.size > 0) setSelection(new Set())
 		},
-		[editableCols, rowsRef, selectionRef, getRowKey, parseValue, onValueChange, setSelection],
+		[editableCols, rowsRef, selectionRef, getKey, parseValue, onValueChange, setSelection],
 	)
 
 	const applyBulkFill = useCallback(
@@ -114,7 +114,7 @@ export function useEditableGridMutations<T>({
 				if (!col || !row || col.readOnly) continue
 
 				changes.push({
-					rowKey: getRowKey(row, r),
+					rowKey: getKey(row, r),
 					columnId: col.id,
 					value: parseValue(raw, row, col),
 				})
@@ -135,7 +135,7 @@ export function useEditableGridMutations<T>({
 			activeRef,
 			anchorRef,
 			extraCellsRef,
-			getRowKey,
+			getKey,
 			parseValue,
 			onValueChange,
 			setSelection,

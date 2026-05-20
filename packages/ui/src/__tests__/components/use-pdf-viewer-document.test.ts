@@ -60,7 +60,7 @@ describe('usePdfViewerDocument', () => {
 
 		expect(result.current.documentUrl).toBeNull()
 
-		expect(result.current.isLoading).toBe(false)
+		expect(result.current.loading).toBe(false)
 
 		expect(result.current.error).toBeNull()
 	})
@@ -79,6 +79,6 @@ describe('usePdfViewerDocument', () => {
 
 		expect(result.current.documentUrl).toBeNull()
 
-		expect(result.current.isLoading).toBe(false)
+		expect(result.current.loading).toBe(false)
 	})
 })

@@ -31,7 +31,7 @@ const EMPTY_SELECTION = new Set<string | number>()
 export type EditableGridProps<T> = TableVariants & {
 	columns: EditableGridColumn<T>[]
 	rows: T[]
-	getRowKey: (row: T, index: number) => string | number
+	getKey: (row: T, index: number) => string | number
 
 	sort?: DataTableSort
 	selection?: DataTableSelection
@@ -66,7 +66,7 @@ export type EditableGridProps<T> = TableVariants & {
 export function EditableGrid<T>({
 	columns,
 	rows,
-	getRowKey,
+	getKey,
 	sort: sortConfig,
 	selection: selectionConfig,
 	onValueChange,
@@ -83,7 +83,7 @@ export function EditableGrid<T>({
 	const [selectionRaw, setSelectionRaw] = useControllable<Set<string | number>>({
 		value: selectionConfig?.value,
 		defaultValue: selectionConfig?.defaultValue ?? new Set(),
-		onChange: selectionConfig?.onValueChange,
+		onValueChange: selectionConfig?.onValueChange,
 	})
 
 	const selection = selectionRaw ?? EMPTY_SELECTION
@@ -132,7 +132,7 @@ export function EditableGrid<T>({
 	const rowsApi: EditableGridRowsApi<T> = {
 		rowsRef,
 		editableCols,
-		getRowKey,
+		getKey,
 		formatCell,
 		parseValue,
 	}
@@ -197,7 +197,7 @@ export function EditableGrid<T>({
 			<DataTable
 				columns={augmentedColumns}
 				rows={rows}
-				getRowKey={getRowKey}
+				getKey={getKey}
 				sort={sortConfig}
 				selection={{ ...selectionConfig, value: selection, onValueChange: setSelectionRaw }}
 				rowClassName={rowClassName}

@@ -23,7 +23,7 @@ export function PdfViewerToolbar() {
 		rotate,
 		documentSrc,
 		filename,
-		isLoading,
+		loading,
 		isDesktop,
 		thumbsOpen,
 		setThumbsOpen,
@@ -31,7 +31,7 @@ export function PdfViewerToolbar() {
 
 	const isEmpty = total === 0
 
-	const controlsDisabled = isLoading || isEmpty
+	const controlsDisabled = loading || isEmpty
 
 	return (
 		<Toolbar aria-label="PDF controls" className={cn(k.toolbar)}>
@@ -45,7 +45,7 @@ export function PdfViewerToolbar() {
 										variant="plain"
 										aria-label="Show thumbnails"
 										aria-expanded={thumbsOpen}
-										disabled={isLoading}
+										disabled={loading}
 										onClick={() => setThumbsOpen(true)}
 									>
 										<Icon icon={<PanelLeft />} />
@@ -63,7 +63,7 @@ export function PdfViewerToolbar() {
 									if (next !== undefined) goToPage(next)
 								}}
 								displayValue={(v) => String(v)}
-								disabled={isLoading}
+								disabled={loading}
 								tabularNums
 							>
 								{pages.map((p, index) => {

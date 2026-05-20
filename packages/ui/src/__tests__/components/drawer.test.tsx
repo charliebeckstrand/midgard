@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
-import { Drawer, DrawerClose, DrawerOpen } from '../../components/drawer'
+import { Drawer, DrawerClose, DrawerTrigger } from '../../components/drawer'
 import { Density } from '../../providers/density'
 import { fireEvent, renderUI, screen } from '../helpers'
 
@@ -40,14 +40,14 @@ describe('Drawer', () => {
 	})
 })
 
-describe('DrawerOpen', () => {
+describe('DrawerTrigger', () => {
 	it('invokes the provided onClick when the child is clicked', () => {
 		const onClick = vi.fn()
 
 		renderUI(
-			<DrawerOpen onClick={onClick}>
+			<DrawerTrigger onClick={onClick}>
 				<button type="button">Open</button>
-			</DrawerOpen>,
+			</DrawerTrigger>,
 		)
 
 		fireEvent.click(screen.getByText('Open'))
@@ -59,11 +59,11 @@ describe('DrawerOpen', () => {
 		const childClick = vi.fn()
 
 		renderUI(
-			<DrawerOpen>
+			<DrawerTrigger>
 				<button type="button" onClick={childClick}>
 					Open
 				</button>
-			</DrawerOpen>,
+			</DrawerTrigger>,
 		)
 
 		fireEvent.click(screen.getByText('Open'))

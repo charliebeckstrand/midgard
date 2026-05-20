@@ -70,7 +70,7 @@ export function Accordion(props: AccordionProps) {
 	const [current = [], setCurrent] = useControllable<string[]>({
 		value: controlledValue,
 		defaultValue,
-		onChange: onControllableChange,
+		onValueChange: onControllableChange,
 	})
 
 	const isOpen = useCallback((value: string) => current.includes(value), [current])
@@ -104,7 +104,7 @@ export function Accordion(props: AccordionProps) {
 	const ref = useRef<HTMLDivElement>(null)
 
 	const handleKeyDown = useRoving(ref, {
-		itemSelector: '[data-slot="accordion-button"]:not(:disabled)',
+		itemSelector: '[data-slot="accordion-trigger"]:not(:disabled)',
 	})
 
 	return (

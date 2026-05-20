@@ -26,9 +26,9 @@ export function TimeAgo({
 	title = true,
 	...props
 }: TimeAgoProps) {
-	const { then, isValid, text } = useTimeAgoRelativeTime({ date, format, locale, interval })
+	const { then, valid, text } = useTimeAgoRelativeTime({ date, format, locale, interval })
 
-	if (!isValid) return <time data-slot="time-ago" {...props} />
+	if (!valid) return <time data-slot="time-ago" {...props} />
 
 	const resolvedTitle =
 		title === true ? then.toLocaleString(locale) : title === false ? undefined : title

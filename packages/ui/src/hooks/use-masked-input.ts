@@ -64,7 +64,7 @@ export function useMaskedInput({
 	const [current, setCurrent] = useControllable<string>({
 		value,
 		defaultValue: defaultValue !== undefined ? format(defaultValue) : '',
-		onChange: onChange ? (v) => onChange(v ?? '') : undefined,
+		onValueChange: onChange ? (v) => onChange(v ?? '') : undefined,
 	})
 
 	const inputRef = useRef<HTMLInputElement | null>(null)

@@ -15,7 +15,7 @@ describe('PivotTable · lane × period (10 × 12 cells)', () => {
 	bench('1,000 source rows', () => {
 		render(
 			<PivotTable
-				data={rows1k}
+				rows={rows1k}
 				keys={{ row: 'lane', column: 'period', value: 'loads' }}
 				aggregation="sum"
 			/>,
@@ -27,7 +27,7 @@ describe('PivotTable · lane × period (10 × 12 cells)', () => {
 	bench('10,000 source rows', () => {
 		render(
 			<PivotTable
-				data={rows10k}
+				rows={rows10k}
 				keys={{ row: 'lane', column: 'period', value: 'loads' }}
 				aggregation="sum"
 			/>,
@@ -39,7 +39,7 @@ describe('PivotTable · lane × period (10 × 12 cells)', () => {
 	bench('50,000 source rows', () => {
 		render(
 			<PivotTable
-				data={rows50k}
+				rows={rows50k}
 				keys={{ row: 'lane', column: 'period', value: 'loads' }}
 				aggregation="sum"
 			/>,
@@ -53,7 +53,7 @@ describe('PivotTable · carrier × destination × totals', () => {
 	bench('10,000 rows · totals="both"', () => {
 		render(
 			<PivotTable
-				data={rows10k}
+				rows={rows10k}
 				keys={{ row: 'carrier', column: 'destination', value: 'weight' }}
 				aggregation="avg"
 				totals="both"
@@ -66,7 +66,7 @@ describe('PivotTable · carrier × destination × totals', () => {
 	bench('10,000 rows · totals="none"', () => {
 		render(
 			<PivotTable
-				data={rows10k}
+				rows={rows10k}
 				keys={{ row: 'carrier', column: 'destination', value: 'weight' }}
 				aggregation="avg"
 				totals="none"
@@ -82,7 +82,7 @@ describe('PivotTable · aggregation comparison (10k rows)', () => {
 		bench(`aggregation="${aggregation}"`, () => {
 			render(
 				<PivotTable
-					data={rows10k}
+					rows={rows10k}
 					keys={{ row: 'lane', column: 'period', value: 'loads' }}
 					aggregation={aggregation}
 				/>,

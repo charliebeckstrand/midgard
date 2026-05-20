@@ -501,19 +501,19 @@ describe('MapGeofence', () => {
 	it('mounts without throwing', async () => {
 		const { container } = renderUI(
 			<MapView>
-				<MapGeofence shape={{ kind: 'circle', center: [0, 0], radiusMeters: 500 }} />
+				<MapGeofence shape={{ type: 'circle', center: [0, 0], radiusMeters: 500 }} />
 			</MapView>,
 		)
 
 		await waitFor(() => expect(bySlot(container, 'map')).toHaveAttribute('data-ready', 'true'))
 	})
 
-	it('renders a polygon-kind shape', async () => {
+	it('renders a polygon shape', async () => {
 		const { container } = renderUI(
 			<MapView>
 				<MapGeofence
 					shape={{
-						kind: 'polygon',
+						type: 'polygon',
 						coordinates: [
 							[0, 0],
 							[1, 0],
@@ -535,7 +535,7 @@ describe('MapGeofence', () => {
 			<MapView>
 				<MapGeofence
 					shape={{
-						kind: 'polygon',
+						type: 'polygon',
 						coordinates: [
 							[0, 0],
 							[1, 0],
@@ -553,7 +553,7 @@ describe('MapGeofence', () => {
 	it('cleans up its source and layers on unmount', async () => {
 		const { container, unmount } = renderUI(
 			<MapView>
-				<MapGeofence shape={{ kind: 'circle', center: [0, 0], radiusMeters: 200 }} />
+				<MapGeofence shape={{ type: 'circle', center: [0, 0], radiusMeters: 200 }} />
 			</MapView>,
 		)
 
@@ -569,7 +569,7 @@ describe('MapGeofence', () => {
 		const { container } = renderUI(
 			<MapView>
 				<MapGeofence
-					shape={{ kind: 'circle', center: [0, 0], radiusMeters: 200 }}
+					shape={{ type: 'circle', center: [0, 0], radiusMeters: 200 }}
 					color="#ff0000"
 					fillOpacity={0.5}
 					strokeColor="#00ff00"

@@ -3,9 +3,9 @@
 import { useState } from 'react'
 import {
 	Accordion,
-	AccordionButton,
 	AccordionItem,
 	AccordionPanel,
+	AccordionTrigger,
 } from '../../components/accordion'
 import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
@@ -45,7 +45,7 @@ export default function AccordionDemo() {
 				<Accordion variant={variant} defaultValue="shipping">
 					{items.map((item) => (
 						<AccordionItem key={item.value} value={item.value}>
-							<AccordionButton>{item.title}</AccordionButton>
+							<AccordionTrigger>{item.title}</AccordionTrigger>
 							<AccordionPanel>{item.body}</AccordionPanel>
 						</AccordionItem>
 					))}
@@ -56,7 +56,7 @@ export default function AccordionDemo() {
 				<Accordion type="multiple" variant="outline" defaultValue={['shipping', 'returns']}>
 					{items.map((item) => (
 						<AccordionItem key={item.value} value={item.value}>
-							<AccordionButton>{item.title}</AccordionButton>
+							<AccordionTrigger>{item.title}</AccordionTrigger>
 							<AccordionPanel>{item.body}</AccordionPanel>
 						</AccordionItem>
 					))}
@@ -67,7 +67,7 @@ export default function AccordionDemo() {
 				<Accordion variant="plain" defaultValue="shipping">
 					{items.map((item) => (
 						<AccordionItem key={item.value} value={item.value} disabled={item.value === 'support'}>
-							<AccordionButton>{item.title}</AccordionButton>
+							<AccordionTrigger>{item.title}</AccordionTrigger>
 							<AccordionPanel>{item.body}</AccordionPanel>
 						</AccordionItem>
 					))}

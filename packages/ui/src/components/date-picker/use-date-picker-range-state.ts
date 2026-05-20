@@ -28,7 +28,7 @@ export function useDatePickerRangeState({
 	const [value, setValue] = useControllable({
 		value: valueProp,
 		defaultValue,
-		onChange: onValueChange,
+		onValueChange,
 	})
 
 	const [open, setOpen] = useState(false)

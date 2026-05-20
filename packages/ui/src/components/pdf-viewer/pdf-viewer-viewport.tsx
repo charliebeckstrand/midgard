@@ -17,7 +17,7 @@ export function PdfViewerViewport() {
 		activePage,
 		safePage,
 		rotation,
-		isLoading,
+		loading,
 		error,
 		visible,
 		onImageLoad,
@@ -32,7 +32,7 @@ export function PdfViewerViewport() {
 			className={cn(k.viewport)}
 			style={{ aspectRatio }}
 		>
-			{activePage && !isLoading ? (
+			{activePage && !loading ? (
 				<div
 					data-slot="pdf-viewer-page-frame"
 					className={cn(k.pageFrame)}
@@ -54,7 +54,7 @@ export function PdfViewerViewport() {
 				</div>
 			) : error ? (
 				<div className={cn(k.pageEmpty)}>Failed to load PDF: {error.message}</div>
-			) : isLoading ? (
+			) : loading ? (
 				<output
 					data-slot="pdf-viewer-page-frame"
 					aria-label="Loading PDF"

@@ -25,14 +25,14 @@ export function useSortableItem({ id, disabled = false }: UseSortableItemOptions
 		listeners,
 		transform,
 		transition,
-		isDragging,
+		isDragging: dragging,
 	} = useSortable({ id, disabled })
 
 	const style: CSSProperties = {
 		transform: CSS.Transform.toString(transform),
 		transition,
-		opacity: isDragging ? 0 : 1,
+		opacity: dragging ? 0 : 1,
 	}
 
-	return { setNodeRef, setActivatorNodeRef, attributes, listeners, style, isDragging }
+	return { setNodeRef, setActivatorNodeRef, attributes, listeners, style, dragging }
 }

@@ -130,7 +130,7 @@ export function valueType(value: JsonValue): JsonValueType {
 
 export type FlatNode =
 	| {
-			kind: 'leaf'
+			type: 'leaf'
 			path: string
 			keyName: string | number | undefined
 			value: JsonValue
@@ -138,7 +138,7 @@ export type FlatNode =
 			highlighted: boolean
 	  }
 	| {
-			kind: 'branch-open'
+			type: 'branch-open'
 			path: string
 			keyName: string | number | undefined
 			value: JsonValue[] | { [key: string]: JsonValue }
@@ -148,7 +148,7 @@ export type FlatNode =
 			highlighted: boolean
 	  }
 	| {
-			kind: 'branch-close'
+			type: 'branch-close'
 			path: string
 			depth: number
 			value: JsonValue[] | { [key: string]: JsonValue }
@@ -184,7 +184,7 @@ export function flattenTree(
 		if (!isBranch(value)) {
 			if (filter && search && !highlighted) return
 
-			out.push({ kind: 'leaf', path, keyName, value, depth, highlighted })
+			out.push({ type: 'leaf', path, keyName, value, depth, highlighted })
 
 			return
 		}
@@ -197,7 +197,7 @@ export function flattenTree(
 		const count = entries.length
 
 		out.push({
-			kind: 'branch-open',
+			type: 'branch-open',
 			path,
 			keyName,
 			value,
@@ -215,7 +215,7 @@ export function flattenTree(
 			walk(childValue, childKey, childPath, depth + 1)
 		}
 
-		out.push({ kind: 'branch-close', path, depth, value })
+		out.push({ type: 'branch-close', path, depth, value })
 	}
 
 	walk(data, rootKey, String(rootKey ?? '$'), 0)

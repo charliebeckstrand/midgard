@@ -89,8 +89,8 @@ export function useFormField(name: string | undefined): FormFieldState | undefin
 
 export type FormStatus = {
 	submitting: boolean
-	isDirty: boolean
-	isValid: boolean
+	dirty: boolean
+	valid: boolean
 }
 
 /** Returns form-level status, or undefined outside a Form. */
@@ -101,8 +101,8 @@ export function useFormStatus(): FormStatus | undefined {
 
 	return {
 		submitting: context.submitting,
-		isDirty: context.isDirty,
-		isValid: context.isValid,
+		dirty: context.isDirty,
+		valid: context.isValid,
 	}
 }
 

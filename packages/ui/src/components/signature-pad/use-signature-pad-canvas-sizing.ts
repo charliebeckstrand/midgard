@@ -4,7 +4,7 @@ import { configureStroke, drawSnapshot } from './signature-pad-utilities'
 type UseCanvasSizingOptions = {
 	containerRef: RefObject<HTMLDivElement | null>
 	canvasRef: RefObject<HTMLCanvasElement | null>
-	isEmpty: boolean
+	empty: boolean
 	strokeColor: string
 	strokeWidth: number
 }
@@ -16,13 +16,13 @@ type UseCanvasSizingOptions = {
 export function useSignaturePadCanvasSizing({
 	containerRef,
 	canvasRef,
-	isEmpty,
+	empty,
 	strokeColor,
 	strokeWidth,
 }: UseCanvasSizingOptions) {
-	const sizingRef = useRef({ isEmpty, strokeColor, strokeWidth })
+	const sizingRef = useRef({ empty, strokeColor, strokeWidth })
 
-	sizingRef.current = { isEmpty, strokeColor, strokeWidth }
+	sizingRef.current = { empty, strokeColor, strokeWidth }
 
 	useEffect(() => {
 		const container = containerRef.current
@@ -38,11 +38,7 @@ export function useSignaturePadCanvasSizing({
 
 			if (width === 0 || height === 0) return
 
-			const {
-				isEmpty: currentEmpty,
-				strokeColor: color,
-				strokeWidth: lineWidth,
-			} = sizingRef.current
+			const { empty: currentEmpty, strokeColor: color, strokeWidth: lineWidth } = sizingRef.current
 
 			const dpr = window.devicePixelRatio || 1
 

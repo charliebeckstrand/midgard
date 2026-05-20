@@ -5,20 +5,20 @@ import { Alert, type AlertProps } from '../alert'
 import { Kbd, type KbdProps } from '../kbd'
 
 export type CommandPaletteGroupProps = ComponentPropsWithoutRef<'div'> & {
-	heading?: ReactNode
+	title?: ReactNode
 }
 
 export function CommandPaletteGroup({
-	heading,
+	title,
 	className,
 	children,
 	...props
 }: CommandPaletteGroupProps) {
 	return (
 		<div data-slot="command-palette-group" className={cn(k.group, className)} {...props}>
-			{heading && (
-				<div data-slot="command-palette-heading" className={cn(k.heading)}>
-					{heading}
+			{title && (
+				<div data-slot="command-palette-title" className={cn(k.title)}>
+					{title}
 				</div>
 			)}
 			{children}

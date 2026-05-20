@@ -30,7 +30,7 @@ export function Tabs({
 	children,
 	...props
 }: TabsProps) {
-	const context = useCurrentState({ value, defaultValue, onChange: onValueChange })
+	const context = useCurrentState({ value, defaultValue, onValueChange })
 
 	const inherited = useDensity()
 

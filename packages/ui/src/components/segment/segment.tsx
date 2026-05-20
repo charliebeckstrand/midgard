@@ -24,7 +24,7 @@ export function Segment({
 	const currentContext = useCurrentState({
 		value: valueProp,
 		defaultValue,
-		onChange: onValueChange,
+		onValueChange,
 	})
 
 	const segmentContext = useMemo(() => ({ size: size ?? ('md' as const) }), [size])

@@ -5,7 +5,7 @@ import { sawari } from '../ryu/sawari'
 
 export const commandPalette = {
 	group: 'py-1 first:pt-0 last:pb-0',
-	heading: ['p-2', ji.size.xs, iro.text.muted, 'font-medium'],
+	title: ['p-2', ji.size.xs, iro.text.muted, 'font-medium'],
 	item: [
 		'group/option flex w-full items-center',
 		'px-2',

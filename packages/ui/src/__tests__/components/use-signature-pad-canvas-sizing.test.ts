@@ -11,7 +11,7 @@ function setup(opts: {
 	containerSize?: { width: number; height: number } | null
 	canvasNull?: boolean
 	contextNull?: boolean
-	isEmpty?: boolean
+	empty?: boolean
 }) {
 	const containerSize =
 		opts.containerSize === undefined ? { width: 320, height: 80 } : opts.containerSize
@@ -43,7 +43,7 @@ function setup(opts: {
 		useSignaturePadCanvasSizing({
 			containerRef: containerRef as ContainerRef,
 			canvasRef: canvasRef as CanvasRef,
-			isEmpty: opts.isEmpty ?? true,
+			empty: opts.empty ?? true,
 			strokeColor: '#000',
 			strokeWidth: 2,
 		})

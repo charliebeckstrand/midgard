@@ -15,7 +15,7 @@ import type { CalendarPickerGridCell } from './calendar-picker-grid'
 import { calendarPickerReducer, initialCalendarPickerState } from './calendar-picker-reducer'
 import { useCalendarFocus } from './use-calendar-focus'
 
-export type UseCalendarPickerInput = {
+export type UseCalendarPickerOptions = {
 	year: number
 	month: number
 	today: Date
@@ -52,7 +52,7 @@ export function useCalendarPicker({
 	onNavigate,
 	open: openProp,
 	onOpenChange,
-}: UseCalendarPickerInput): UseCalendarPickerResult {
+}: UseCalendarPickerOptions): UseCalendarPickerResult {
 	const handleOpenChange = useCallback(
 		(value: boolean | undefined) => {
 			if (value !== undefined) onOpenChange?.(value)
@@ -63,7 +63,7 @@ export function useCalendarPicker({
 	const [pickerOpen, setPickerOpen] = useControllable({
 		value: openProp,
 		defaultValue: false,
-		onChange: handleOpenChange,
+		onValueChange: handleOpenChange,
 	})
 
 	const [state, dispatch] = useReducer(calendarPickerReducer, year, initialCalendarPickerState)

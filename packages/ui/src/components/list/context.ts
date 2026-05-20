@@ -42,7 +42,7 @@ export type ListItemContext = {
 	/** Transform + transition + opacity style for the `<li>`. */
 	style: CSSProperties
 	/** Whether this item is currently being dragged. */
-	isDragging: boolean
+	dragging: boolean
 }
 
 export const [ListItemProvider, useListItemContext] = createContext<ListItemContext>('ListItem')

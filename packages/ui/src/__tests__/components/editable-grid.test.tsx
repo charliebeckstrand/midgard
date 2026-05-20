@@ -26,7 +26,7 @@ describe('EditableGrid', () => {
 			<EditableGrid
 				columns={columns}
 				rows={rows}
-				getRowKey={(row) => row.id}
+				getKey={(row) => row.id}
 				onValueChange={() => {}}
 			/>,
 		)
@@ -43,7 +43,7 @@ describe('EditableGrid', () => {
 			<EditableGrid
 				columns={columns}
 				rows={rows}
-				getRowKey={(row) => row.id}
+				getKey={(row) => row.id}
 				onValueChange={() => {}}
 				className="custom"
 			/>,
@@ -57,7 +57,7 @@ describe('EditableGrid', () => {
 			<EditableGrid
 				columns={columns}
 				rows={rows}
-				getRowKey={(row) => row.id}
+				getKey={(row) => row.id}
 				onValueChange={() => {}}
 			/>,
 		)
@@ -76,7 +76,7 @@ describe('EditableGrid', () => {
 			<EditableGrid
 				columns={columns}
 				rows={rows}
-				getRowKey={(row) => row.id}
+				getKey={(row) => row.id}
 				onValueChange={() => {}}
 			/>,
 		)
@@ -89,7 +89,7 @@ describe('EditableGrid', () => {
 			<EditableGrid
 				columns={columns}
 				rows={rows}
-				getRowKey={(row) => row.id}
+				getKey={(row) => row.id}
 				onValueChange={() => {}}
 			/>,
 		)
@@ -108,7 +108,7 @@ describe('EditableGrid', () => {
 			<EditableGrid
 				columns={columns}
 				rows={rows}
-				getRowKey={(row) => row.id}
+				getKey={(row) => row.id}
 				onValueChange={onChange}
 			/>,
 		)
@@ -135,7 +135,7 @@ describe('EditableGrid', () => {
 			<EditableGrid
 				columns={columns}
 				rows={rows}
-				getRowKey={(row) => row.id}
+				getKey={(row) => row.id}
 				onValueChange={onChange}
 			/>,
 		)
@@ -160,7 +160,7 @@ describe('EditableGrid', () => {
 			<EditableGrid
 				columns={columns}
 				rows={rows}
-				getRowKey={(row) => row.id}
+				getKey={(row) => row.id}
 				onValueChange={onChange}
 			/>,
 		)
@@ -189,7 +189,7 @@ describe('EditableGrid', () => {
 			<EditableGrid
 				columns={priced}
 				rows={rows}
-				getRowKey={(row) => row.id}
+				getKey={(row) => row.id}
 				onValueChange={onChange}
 			/>,
 		)
@@ -215,7 +215,7 @@ describe('EditableGrid', () => {
 				<EditableGrid
 					columns={columns}
 					rows={rows}
-					getRowKey={(row) => row.id}
+					getKey={(row) => row.id}
 					selection={{ value: selection }}
 					onValueChange={captured}
 				/>
@@ -249,7 +249,7 @@ describe('EditableGrid', () => {
 			<EditableGrid
 				columns={columns}
 				rows={rows}
-				getRowKey={(row) => row.id}
+				getKey={(row) => row.id}
 				onValueChange={() => {}}
 			/>,
 		)
@@ -275,7 +275,7 @@ describe('EditableGrid', () => {
 			<EditableGrid
 				columns={columns}
 				rows={rows}
-				getRowKey={(row) => row.id}
+				getKey={(row) => row.id}
 				onValueChange={onChange}
 			/>,
 		)
@@ -295,7 +295,7 @@ describe('EditableGrid', () => {
 			<EditableGrid
 				columns={columns}
 				rows={rows}
-				getRowKey={(row) => row.id}
+				getKey={(row) => row.id}
 				onValueChange={() => {}}
 			/>,
 		)
@@ -328,7 +328,7 @@ describe('EditableGrid', () => {
 			<EditableGrid
 				columns={editable}
 				rows={rows}
-				getRowKey={(row) => row.id}
+				getKey={(row) => row.id}
 				onValueChange={onChange}
 			/>,
 		)
@@ -360,7 +360,7 @@ describe('EditableGrid', () => {
 			<EditableGrid
 				columns={editable}
 				rows={rows}
-				getRowKey={(row) => row.id}
+				getKey={(row) => row.id}
 				onValueChange={onChange}
 			/>,
 		)
@@ -395,7 +395,7 @@ describe('EditableGrid', () => {
 			<EditableGrid
 				columns={priced}
 				rows={rows}
-				getRowKey={(row) => row.id}
+				getKey={(row) => row.id}
 				onValueChange={onChange}
 			/>,
 		)
@@ -419,7 +419,7 @@ describe('EditableGrid', () => {
 			<EditableGrid
 				columns={editable}
 				rows={rows}
-				getRowKey={(row) => row.id}
+				getKey={(row) => row.id}
 				onValueChange={onChange}
 			/>,
 		)
@@ -450,7 +450,7 @@ describe('EditableGrid', () => {
 			<EditableGrid
 				columns={columns}
 				rows={manyRows}
-				getRowKey={(row) => row.id}
+				getKey={(row) => row.id}
 				onValueChange={() => {}}
 				virtualize
 				maxHeight="300px"
@@ -467,7 +467,7 @@ describe('EditableGrid', () => {
 			<EditableGrid
 				columns={columns}
 				rows={rows}
-				getRowKey={(row) => row.id}
+				getKey={(row) => row.id}
 				onValueChange={() => {}}
 			/>,
 		)
@@ -487,7 +487,7 @@ describe('EditableGrid', () => {
 			<EditableGrid
 				columns={columns}
 				rows={rows}
-				getRowKey={(row) => row.id}
+				getKey={(row) => row.id}
 				onValueChange={() => {}}
 			/>,
 		)
@@ -517,7 +517,7 @@ describe('EditableGrid', () => {
 			<EditableGrid
 				columns={mixedColumns}
 				rows={rows}
-				getRowKey={(row) => row.id}
+				getKey={(row) => row.id}
 				onValueChange={() => {}}
 			/>,
 		)

@@ -23,8 +23,8 @@ export type SignaturePadProps = {
 	strokeColor?: string
 	/** Stroke width in CSS pixels. Defaults to 2. */
 	strokeWidth?: number
-	/** Hide the built-in clear button. */
-	hideClear?: boolean
+	/** Render the built-in clear button. @default true */
+	clearable?: boolean
 	'aria-label'?: string
 	ref?: Ref<SignaturePadHandle>
 	className?: string
@@ -40,12 +40,12 @@ export function SignaturePad({
 	placeholder = 'Sign here',
 	strokeColor = '#18181b',
 	strokeWidth = 2,
-	hideClear,
+	clearable = true,
 	'aria-label': ariaLabel = 'Signature',
 	ref,
 	className,
 }: SignaturePadProps) {
-	const { containerRef, canvasRef, isEmpty, handlePointerDown, handlePointerMove, commit, clear } =
+	const { containerRef, canvasRef, empty, handlePointerDown, handlePointerMove, commit, clear } =
 		useSignaturePadState({
 			value,
 			defaultValue,
@@ -61,7 +61,7 @@ export function SignaturePad({
 		<div
 			ref={containerRef}
 			data-slot="signature-pad"
-			data-empty={isEmpty || undefined}
+			data-empty={empty || undefined}
 			data-disabled={disabled || undefined}
 			data-readonly={readOnly || undefined}
 			className={cn(k.base, 'h-40', className)}
@@ -77,12 +77,12 @@ export function SignaturePad({
 				onPointerCancel={commit}
 				onPointerLeave={commit}
 			/>
-			{isEmpty && !disabled && (
+			{empty && !disabled && (
 				<div data-slot="signature-pad-placeholder" className={cn(k.placeholder)}>
 					{placeholder}
 				</div>
 			)}
-			{!hideClear && !disabled && !readOnly && !isEmpty && (
+			{clearable && !disabled && !readOnly && !empty && (
 				<div data-slot="signature-pad-actions" className={cn(k.actions)}>
 					<Button
 						size="sm"

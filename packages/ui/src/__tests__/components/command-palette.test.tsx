@@ -91,26 +91,26 @@ describe('CommandPaletteGroup', () => {
 		expect(bySlot(container, 'command-palette-group')).toBeInTheDocument()
 	})
 
-	it('renders the heading when provided', () => {
+	it('renders the title when provided', () => {
 		const { container } = renderUI(
-			<CommandPaletteGroup heading="Actions">
+			<CommandPaletteGroup title="Actions">
 				<div>child</div>
 			</CommandPaletteGroup>,
 		)
 
-		const heading = bySlot(container, 'command-palette-heading')
+		const title = bySlot(container, 'command-palette-title')
 
-		expect(heading).toHaveTextContent('Actions')
+		expect(title).toHaveTextContent('Actions')
 	})
 
-	it('omits the heading slot when no heading is provided', () => {
+	it('omits the title slot when no title is provided', () => {
 		const { container } = renderUI(
 			<CommandPaletteGroup>
 				<div>child</div>
 			</CommandPaletteGroup>,
 		)
 
-		expect(bySlot(container, 'command-palette-heading')).not.toBeInTheDocument()
+		expect(bySlot(container, 'command-palette-title')).not.toBeInTheDocument()
 	})
 
 	it('applies a custom className to the group', () => {

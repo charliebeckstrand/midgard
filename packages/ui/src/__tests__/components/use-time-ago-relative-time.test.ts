@@ -26,10 +26,10 @@ afterEach(() => {
 })
 
 describe('useTimeAgoRelativeTime', () => {
-	it('returns isValid=false and empty text for an unparsable date', () => {
+	it('returns valid=false and empty text for an unparsable date', () => {
 		const { result } = renderHook(() => useTimeAgoRelativeTime({ date: 'not-a-date' }))
 
-		expect(result.current.isValid).toBe(false)
+		expect(result.current.valid).toBe(false)
 
 		expect(result.current.text).toBe('')
 	})
@@ -105,7 +105,7 @@ describe('useTimeAgoRelativeTime', () => {
 	it('accepts a numeric timestamp', () => {
 		const { result } = renderHook(() => useTimeAgoRelativeTime({ date: NOW.getTime() - 30 * SEC }))
 
-		expect(result.current.isValid).toBe(true)
+		expect(result.current.valid).toBe(true)
 	})
 
 	it('accepts an ISO string', () => {
@@ -113,7 +113,7 @@ describe('useTimeAgoRelativeTime', () => {
 			useTimeAgoRelativeTime({ date: new Date(NOW.getTime() - 60 * SEC).toISOString() }),
 		)
 
-		expect(result.current.isValid).toBe(true)
+		expect(result.current.valid).toBe(true)
 	})
 
 	it('honors an explicit numeric interval over the adaptive default', () => {

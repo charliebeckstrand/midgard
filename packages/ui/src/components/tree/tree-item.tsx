@@ -18,8 +18,8 @@ export type TreeItemProps = {
 	open?: boolean
 	/** Called when the user toggles the item. Fires in both controlled and uncontrolled modes. */
 	onOpenChange?: (open: boolean) => void
-	/** Active/selected state. */
-	active?: boolean
+	/** Current/selected state. */
+	current?: boolean
 	/** Slot before the icon (e.g. a Checkbox). Clicks here don't toggle the row. */
 	prefix?: ReactNode
 	/** Slot after the label. Clicks here don't toggle the row. */
@@ -35,7 +35,7 @@ export function TreeItem({
 	defaultOpen = false,
 	open: controlledOpen,
 	onOpenChange,
-	active,
+	current,
 	prefix,
 	suffix,
 	children,
@@ -64,7 +64,7 @@ export function TreeItem({
 				icon={icon}
 				prefix={prefix}
 				suffix={suffix}
-				active={active}
+				current={current}
 				hasChildren={hasChildren}
 				open={open}
 				onOpenChange={setOpen}

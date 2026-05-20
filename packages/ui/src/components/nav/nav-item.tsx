@@ -29,7 +29,7 @@ export function NavItem({ value, current, onClick, ...props }: NavMenuItemProps)
 		onClick?.(e as MouseEvent<HTMLButtonElement> & MouseEvent<HTMLAnchorElement>)
 
 		if (value !== undefined) {
-			context?.onChange?.(value)
+			context?.onValueChange?.(value)
 		}
 	}
 

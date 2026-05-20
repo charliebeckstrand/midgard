@@ -86,7 +86,7 @@ export function JsonTreeVirtualized({
 
 				if (!node) return null
 
-				return <JsonTreeNodeRow key={`${node.kind}:${node.path}`} node={node} onToggle={toggle} />
+				return <JsonTreeNodeRow key={`${node.type}:${node.path}`} node={node} onToggle={toggle} />
 			})}
 			{bottomSpacer > 0 && <div data-slot="json-tree-spacer" style={{ height: bottomSpacer }} />}
 		</div>

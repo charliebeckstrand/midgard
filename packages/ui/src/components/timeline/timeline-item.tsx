@@ -6,14 +6,14 @@ import type { TimelineMarkerConfig } from './timeline-marker'
 import { TimelineMarker } from './timeline-marker'
 
 export type TimelineItemProps = {
-	active?: boolean
+	current?: boolean
 	variant?: TimelineVariant
 	className?: string
 	children?: ReactNode
 } & TimelineMarkerConfig
 
 export function TimelineItem(props: TimelineItemProps) {
-	const { active, variant: variantProp, className, children, ...markerConfig } = props
+	const { current, variant: variantProp, className, children, ...markerConfig } = props
 
 	const { orientation, variant: contextVariant } = useTimeline()
 
@@ -32,7 +32,7 @@ export function TimelineItem(props: TimelineItemProps) {
 	return (
 		<li
 			data-slot="timeline-item"
-			data-active={active || undefined}
+			data-current={current || undefined}
 			className={cn(timelineItemVariants({ orientation }), className)}
 		>
 			<TimelineProvider value={providerValue}>

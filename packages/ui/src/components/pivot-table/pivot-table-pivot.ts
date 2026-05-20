@@ -11,7 +11,7 @@ export function defaultFormat(value: number): string {
 }
 
 export function resolveAxis<T>(
-	data: readonly T[],
+	rows: readonly T[],
 	key: keyof T & string,
 	explicit: readonly string[] | undefined,
 ): string[] {
@@ -28,7 +28,7 @@ export function resolveAxis<T>(
 		}
 	}
 
-	for (const row of data) {
+	for (const row of rows) {
 		const value = String(row[key])
 
 		if (!seen.has(value)) {
@@ -42,14 +42,14 @@ export function resolveAxis<T>(
 }
 
 export function groupValues<T>(
-	data: readonly T[],
+	rows: readonly T[],
 	rowKey: keyof T & string,
 	columnKey: keyof T & string,
 	valueKey: keyof T & string,
 ): Map<string, Map<string, number[]>> {
 	const groups = new Map<string, Map<string, number[]>>()
 
-	for (const entry of data) {
+	for (const entry of rows) {
 		const r = String(entry[rowKey])
 		const c = String(entry[columnKey])
 
@@ -93,12 +93,12 @@ export function aggregate(values: readonly number[], op: PivotAggregation): numb
 export function aggregateRow(
 	groups: Map<string, Map<string, number[]>>,
 	row: string,
-	columns: readonly string[],
+	columnKeys: readonly string[],
 	op: PivotAggregation,
 ): number | undefined {
 	const values: number[] = []
 
-	for (const col of columns) {
+	for (const col of columnKeys) {
 		const bucket = groups.get(row)?.get(col)
 
 		if (bucket) values.push(...bucket)
@@ -109,13 +109,13 @@ export function aggregateRow(
 
 export function aggregateColumn(
 	groups: Map<string, Map<string, number[]>>,
-	rows: readonly string[],
+	rowKeys: readonly string[],
 	col: string,
 	op: PivotAggregation,
 ): number | undefined {
 	const values: number[] = []
 
-	for (const row of rows) {
+	for (const row of rowKeys) {
 		const bucket = groups.get(row)?.get(col)
 
 		if (bucket) values.push(...bucket)

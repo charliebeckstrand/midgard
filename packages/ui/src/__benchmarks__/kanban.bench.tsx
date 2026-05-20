@@ -18,7 +18,7 @@ const largeBoard = makeKanbanColumns(8, 250)
 
 function Board({ columns }: { columns: { id: string; items: KanbanItem[] }[] }) {
 	return (
-		<Kanban columns={columns} getItemKey={getKey} onValueChange={noop}>
+		<Kanban columns={columns} getKey={getKey} onValueChange={noop}>
 			{columns.map((col) => (
 				<KanbanColumn key={col.id} columnId={col.id}>
 					<KanbanColumnHeader>

@@ -23,25 +23,25 @@ const rows10k = makeShipments(10_000)
 
 describe('DataTable · initial render', () => {
 	bench('100 rows × 8 cols', () => {
-		render(<DataTable columns={COLUMNS} rows={rows100} getRowKey={getKey} />)
+		render(<DataTable columns={COLUMNS} rows={rows100} getKey={getKey} />)
 
 		cleanup()
 	})
 
 	bench('1,000 rows × 8 cols', () => {
-		render(<DataTable columns={COLUMNS} rows={rows1k} getRowKey={getKey} />)
+		render(<DataTable columns={COLUMNS} rows={rows1k} getKey={getKey} />)
 
 		cleanup()
 	})
 
 	bench('5,000 rows × 8 cols', () => {
-		render(<DataTable columns={COLUMNS} rows={rows5k} getRowKey={getKey} />)
+		render(<DataTable columns={COLUMNS} rows={rows5k} getKey={getKey} />)
 
 		cleanup()
 	})
 
 	bench('10,000 rows × 8 cols', () => {
-		render(<DataTable columns={COLUMNS} rows={rows10k} getRowKey={getKey} />)
+		render(<DataTable columns={COLUMNS} rows={rows10k} getKey={getKey} />)
 
 		cleanup()
 	})
@@ -57,12 +57,7 @@ describe('DataTable · with selection column', () => {
 		const selection = new Set(rows1k.filter((_, i) => i % 10 === 0).map(getKey))
 
 		render(
-			<DataTable
-				columns={cols}
-				rows={rows1k}
-				getRowKey={getKey}
-				selection={{ value: selection }}
-			/>,
+			<DataTable columns={cols} rows={rows1k} getKey={getKey} selection={{ value: selection }} />,
 		)
 
 		cleanup()
@@ -72,12 +67,7 @@ describe('DataTable · with selection column', () => {
 		const selection = new Set(rows1k.map(getKey))
 
 		render(
-			<DataTable
-				columns={cols}
-				rows={rows1k}
-				getRowKey={getKey}
-				selection={{ value: selection }}
-			/>,
+			<DataTable columns={cols} rows={rows1k} getKey={getKey} selection={{ value: selection }} />,
 		)
 
 		cleanup()
@@ -102,7 +92,7 @@ describe('DataTable · column-order logic (visibleColumns memo)', () => {
 			<DataTable
 				columns={manyColumns}
 				rows={rows100}
-				getRowKey={getKey}
+				getKey={getKey}
 				columnManager={{ hidden, order }}
 			/>,
 		)
@@ -114,7 +104,7 @@ describe('DataTable · column-order logic (visibleColumns memo)', () => {
 describe('DataTable · virtualized initial render', () => {
 	bench('1,000 rows × 8 cols · virtualize', () => {
 		render(
-			<DataTable columns={COLUMNS} rows={rows1k} getRowKey={getKey} virtualize maxHeight="600px" />,
+			<DataTable columns={COLUMNS} rows={rows1k} getKey={getKey} virtualize maxHeight="600px" />,
 		)
 
 		cleanup()
@@ -122,13 +112,7 @@ describe('DataTable · virtualized initial render', () => {
 
 	bench('10,000 rows × 8 cols · virtualize', () => {
 		render(
-			<DataTable
-				columns={COLUMNS}
-				rows={rows10k}
-				getRowKey={getKey}
-				virtualize
-				maxHeight="600px"
-			/>,
+			<DataTable columns={COLUMNS} rows={rows10k} getKey={getKey} virtualize maxHeight="600px" />,
 		)
 
 		cleanup()
@@ -145,12 +129,7 @@ describe('DataTable · rerender after selection toggle (1,000 rows)', () => {
 		let selection = new Set<string | number>()
 
 		const { rerender } = render(
-			<DataTable
-				columns={cols}
-				rows={rows1k}
-				getRowKey={getKey}
-				selection={{ value: selection }}
-			/>,
+			<DataTable columns={cols} rows={rows1k} getKey={getKey} selection={{ value: selection }} />,
 		)
 
 		for (let i = 0; i < 5; i++) {
@@ -161,12 +140,7 @@ describe('DataTable · rerender after selection toggle (1,000 rows)', () => {
 			selection.add(key)
 
 			rerender(
-				<DataTable
-					columns={cols}
-					rows={rows1k}
-					getRowKey={getKey}
-					selection={{ value: selection }}
-				/>,
+				<DataTable columns={cols} rows={rows1k} getKey={getKey} selection={{ value: selection }} />,
 			)
 		}
 

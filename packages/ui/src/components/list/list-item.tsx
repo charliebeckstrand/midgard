@@ -8,13 +8,13 @@ import { ListHandle } from './list-handle'
 
 export type ListItemProps = {
 	/** Content rendered before the main content — replaces the auto-inserted `<ListHandle>` when provided. */
-	leading?: ReactNode
+	prefix?: ReactNode
 	children?: ReactNode
 	className?: string
 }
 
-export function ListItem({ leading, children, className }: ListItemProps) {
-	const { id, setNodeRef, attributes, style, isDragging } = useListItemContext()
+export function ListItem({ prefix, children, className }: ListItemProps) {
+	const { id, setNodeRef, attributes, style, dragging } = useListItemContext()
 
 	const { variant, sortable, interactive, liftedId, onItemKeyDown, onItemBlur } = useListContext()
 
@@ -34,11 +34,11 @@ export function ListItem({ leading, children, className }: ListItemProps) {
 			{...(interactive ? dragAttrs : {})}
 			data-slot="list-item"
 			data-item-id={id}
-			data-active={isDragging || undefined}
+			data-active={dragging || undefined}
 			data-lifted={lifted || undefined}
-			className={cn(k.item(variant), isDragging && k.itemActive, lifted && k.itemLifted, className)}
+			className={cn(k.item(variant), dragging && k.itemActive, lifted && k.itemLifted, className)}
 		>
-			{leading ?? (sortable ? <ListHandle /> : null)}
+			{prefix ?? (sortable ? <ListHandle /> : null)}
 			<div className={k.content}>{children}</div>
 		</li>
 	)
