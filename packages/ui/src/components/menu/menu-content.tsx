@@ -13,9 +13,18 @@ import { useMenuActions, useMenuState } from './context'
 export type MenuContentProps = {
 	className?: string
 	children: ReactNode
+	/** Accessible name for the `role="menu"` container. */
+	'aria-label'?: string
+	/** External label reference; alternative to `aria-label`. */
+	'aria-labelledby'?: string
 }
 
-export function MenuContent({ className, children }: MenuContentProps) {
+export function MenuContent({
+	className,
+	children,
+	'aria-label': ariaLabel,
+	'aria-labelledby': ariaLabelledBy,
+}: MenuContentProps) {
 	const { open, floatingStyles, getFloatingProps, size } = useMenuState()
 	const { close, static: isStatic, setFloating } = useMenuActions()
 	const glass = useGlass()
@@ -25,6 +34,8 @@ export function MenuContent({ className, children }: MenuContentProps) {
 			<Density density={size} size={size}>
 				<PopoverPanel
 					role="menu"
+					aria-label={ariaLabel}
+					aria-labelledby={ariaLabelledBy}
 					itemSelector='[role="menuitem"]:not([data-disabled])'
 					glass={glass}
 					className={cn(k.content, className)}
@@ -43,6 +54,8 @@ export function MenuContent({ className, children }: MenuContentProps) {
 						<Density density={size} size={size}>
 							<PopoverPanel
 								role="menu"
+								aria-label={ariaLabel}
+								aria-labelledby={ariaLabelledBy}
 								itemSelector='[role="menuitem"]:not([data-disabled])'
 								glass={glass}
 								className={cn('relative', k.content, className)}

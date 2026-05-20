@@ -24,6 +24,8 @@ export type JsonTreeVirtualizedProps = {
 	maxHeight: string
 	onKeyDown: KeyboardEventHandler<HTMLDivElement>
 	className?: string
+	'aria-label'?: string
+	'aria-labelledby'?: string
 }
 
 export function JsonTreeVirtualized({
@@ -40,6 +42,8 @@ export function JsonTreeVirtualized({
 	maxHeight,
 	onKeyDown,
 	className,
+	'aria-label': ariaLabel,
+	'aria-labelledby': ariaLabelledBy,
 }: JsonTreeVirtualizedProps) {
 	const { expanded, toggle } = useJsonTreeExpansion({
 		initial: () => collectPaths(data, rootKey, defaultExpandDepth),
@@ -75,6 +79,8 @@ export function JsonTreeVirtualized({
 		<div
 			ref={ref}
 			role="tree"
+			aria-label={ariaLabel}
+			aria-labelledby={ariaLabelledBy}
 			data-slot="json-tree"
 			className={cn(k.base, className)}
 			style={{ maxHeight, overflow: 'auto' }}

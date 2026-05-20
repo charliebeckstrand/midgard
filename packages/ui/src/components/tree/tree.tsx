@@ -19,9 +19,20 @@ export type TreeProps = {
 	indent?: boolean
 	children: ReactNode
 	className?: string
+	/** Accessible name for the `role="tree"` container. Required for assistive tech. */
+	'aria-label'?: string
+	/** External label reference; alternative to `aria-label`. */
+	'aria-labelledby'?: string
 }
 
-export function Tree({ size, indent = false, children, className }: TreeProps) {
+export function Tree({
+	size,
+	indent = false,
+	children,
+	className,
+	'aria-label': ariaLabel,
+	'aria-labelledby': ariaLabelledBy,
+}: TreeProps) {
 	const ref = useRef<HTMLDivElement>(null)
 
 	const handleKeyDown = useRoving(ref, {
@@ -71,6 +82,8 @@ export function Tree({ size, indent = false, children, className }: TreeProps) {
 			<div
 				ref={ref}
 				role="tree"
+				aria-label={ariaLabel}
+				aria-labelledby={ariaLabelledBy}
 				data-slot="tree"
 				className={cn(k.base, className)}
 				onKeyDown={handleKeyDown}

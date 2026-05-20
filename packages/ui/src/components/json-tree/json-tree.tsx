@@ -36,6 +36,10 @@ export type JsonTreeProps = {
 	/** Scroll-container height when `virtualize` is on. */
 	maxHeight?: string
 	className?: string
+	/** Accessible name for the `role="tree"` container. Required for assistive tech. */
+	'aria-label'?: string
+	/** External label reference; alternative to `aria-label`. */
+	'aria-labelledby'?: string
 }
 
 /** Collapsible tree view for arbitrary JSON — supports search highlighting, controlled expansion, and optional row virtualization. */
@@ -49,6 +53,8 @@ export function JsonTree({
 	virtualize,
 	maxHeight,
 	className,
+	'aria-label': ariaLabel,
+	'aria-labelledby': ariaLabelledBy,
 }: JsonTreeProps) {
 	const ref = useRef<HTMLDivElement>(null)
 
@@ -85,6 +91,8 @@ export function JsonTree({
 				maxHeight={maxHeight ?? ''}
 				onKeyDown={handleKeyDown}
 				className={className}
+				aria-label={ariaLabel}
+				aria-labelledby={ariaLabelledBy}
 			/>
 		)
 	}
@@ -105,6 +113,8 @@ export function JsonTree({
 			<div
 				ref={ref}
 				role="tree"
+				aria-label={ariaLabel}
+				aria-labelledby={ariaLabelledBy}
 				data-slot="json-tree"
 				className={cn(k.base, className)}
 				onKeyDown={handleKeyDown}

@@ -17,6 +17,8 @@ export function PopoverPanel({
 	autoFocus = true,
 	glass = false,
 	onKeyDown: onKeyDownProp,
+	'aria-label': ariaLabel,
+	'aria-labelledby': ariaLabelledBy,
 }: {
 	id?: string
 	className?: string
@@ -27,6 +29,10 @@ export function PopoverPanel({
 	/** Apply glass surface chrome instead of the default popover surface. */
 	glass?: boolean
 	onKeyDown?: KeyboardEventHandler
+	/** Accessible name for the panel's `role`. Required when the role demands a name (`menu`, `listbox`, `tree`, etc.). */
+	'aria-label'?: string
+	/** External label reference; alternative to `aria-label`. */
+	'aria-labelledby'?: string
 }) {
 	const menuRef = useRef<HTMLDivElement>(null)
 
@@ -55,6 +61,8 @@ export function PopoverPanel({
 				id={id}
 				data-slot="popover-panel"
 				role={role}
+				aria-label={ariaLabel}
+				aria-labelledby={ariaLabelledBy}
 				tabIndex={-1}
 				{...ugoki.popover}
 				onKeyDown={(e) => {
