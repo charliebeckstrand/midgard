@@ -1,6 +1,7 @@
 export { type Color, colors } from './colors'
 export { iro } from './iro'
 export { type JiSize, ji } from './ji'
+export { kokkaku } from './kokkaku'
 export { type Ma, ma } from './ma'
 export { defineColors, mode } from './mode'
 export { narabi } from './narabi'
