@@ -34,13 +34,10 @@ export type RecipeBase = {
 
 /**
  * A recipe config: reserved fields plus any number of variant axes at the
- * top level. `C` is the concrete config the kata passes; the engine uses
- * `AxesOf<C>` to walk the non-reserved fields.
+ * top level. The engine accepts any object that satisfies `RecipeBase`;
+ * non-reserved fields are treated as variant axes at runtime.
  */
-export type RecipeConfig = RecipeBase & {
-	// biome-ignore lint/suspicious/noExplicitAny: index signature must accept the reserved-field types alongside VariantAxis; the runtime distinguishes them.
-	[axis: string]: any
-}
+export type RecipeConfig = RecipeBase
 
 /** The non-reserved (variant axis) fields of a config. */
 export type AxesOf<C> = {
@@ -58,11 +55,9 @@ export type ResolvedConfig = {
 
 export type Recipe<C extends RecipeBase> = {
 	(props?: ComputedProps<C>): string
-	/** Pre-merged static slot classes. */
-	k: { [K in keyof NonNullable<C['slots']>]: string }
 	/** Resolved config — exposed for introspection. */
 	readonly config: ResolvedConfig
-}
+} & { [K in keyof NonNullable<C['slots']>]: string }
 
 /** Explicit `variant:` keys declared by the kata, or `never` if absent. */
 type ExplicitVariantKeys<C> = C extends { variant: infer V } ? keyof V & string : never
@@ -86,4 +81,8 @@ export type ComputedProps<C> = {
  *   export type ButtonVariants = VariantPropsOf<typeof button>
  */
 export type VariantPropsOf<R> =
-	R extends Recipe<infer C> ? ComputedProps<C> : R extends RecipeBase ? ComputedProps<R> : never
+	R extends Recipe<infer C extends RecipeBase>
+		? ComputedProps<C>
+		: R extends RecipeBase
+			? ComputedProps<R>
+			: never

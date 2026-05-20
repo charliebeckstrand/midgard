@@ -6,15 +6,14 @@
  *   - `base`, `variants`, `compound`, `defaults` — applied in that order
  *     per call. Class composition runs through `clsx` (conditional input)
  *     and `tailwind-merge` (conflict resolution).
- *   - `slots` — pre-merged once at recipe-creation time and exposed via
- *     the `k` property on the returned recipe.
+ *   - `slots` — pre-merged once at recipe-creation time and merged onto the
+ *     recipe as direct properties (e.g. `recipe.title`, `recipe.body`).
  *   - `palette` — expanded at creation time into an implicit `color` axis
  *     and a flock of compound rules. See `palette.ts`.
  *
- * The engine adds nothing the call site can't already see in the config:
- * what you write is what the recipe contains. The only implicit move is
- * palette expansion, which is deliberately a top-level field so its
- * presence is obvious.
+ * The kata exports the recipe directly (typically as `k`); callers use
+ * `k(...)` for the variant call and `k.title` for slot classes — a single
+ * binding per kata.
  */
 
 import type { ClassValue } from 'clsx'
@@ -47,9 +46,11 @@ const twMerge = extendTailwindMerge({
 export function defineRecipe<C extends RecipeConfig>(config: C): Recipe<C> {
 	const resolved = expand(config)
 
-	const slotCache = Object.fromEntries(
-		Object.entries(resolved.slots).map(([slot, value]) => [slot, twMerge(clsx(value))]),
-	) as { [K in keyof NonNullable<C['slots']>]: string }
+	const slotCache: Record<string, string> = {}
+
+	for (const [slot, value] of Object.entries(resolved.slots)) {
+		slotCache[slot] = twMerge(clsx(value))
+	}
 
 	function recipe(props?: ComputedProps<C>): string {
 		const values = { ...resolved.defaults, ...(props as Record<string, string | undefined>) }
@@ -69,13 +70,13 @@ export function defineRecipe<C extends RecipeConfig>(config: C): Recipe<C> {
 		return twMerge(clsx(acc))
 	}
 
-	recipe.k = slotCache
+	Object.assign(recipe, slotCache)
 
 	Object.defineProperty(recipe, 'config', { value: resolved, enumerable: false })
 
-	// `recipe` is a function that we've dynamically extended with `.k` (via
-	// assignment) and `.config` (via `defineProperty`). The type system can't
-	// see those attachments, so we assert the final shape ourselves.
+	// `recipe` is a function that we've dynamically extended with slot
+	// properties (via Object.assign) and `.config` (via defineProperty). The
+	// type system can't see those attachments, so we assert the final shape.
 	return recipe as Recipe<C>
 }
 

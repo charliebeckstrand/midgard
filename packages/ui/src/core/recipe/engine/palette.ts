@@ -30,7 +30,7 @@ import type { CompoundRule } from './types'
 
 export type PaletteEntry = Record<Color, string[]> | readonly Record<Color, string[]>[]
 
-export type PaletteConfig<E extends string = string, M extends string = string> = {
+export type PaletteConfig<E extends string = never, M extends string = string> = {
 	matrix: Record<M, PaletteEntry>
 	overlays: Record<E, ClassValue>
 }
