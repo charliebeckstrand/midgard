@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { type DividerVariants, dividerVariants } from '../../recipes/kata/divider'
+import { type DividerVariants, k } from '../../recipes/kata/divider'
 
 export type DividerProps = DividerVariants & {
 	className?: string
@@ -12,7 +12,7 @@ export function Divider({ orientation, soft, className, ...props }: DividerProps
 			data-slot="divider"
 			role={orientation === 'vertical' ? 'separator' : undefined}
 			aria-orientation={orientation === 'vertical' ? 'vertical' : undefined}
-			className={cn(dividerVariants({ orientation, soft }), className)}
+			className={cn(k({ orientation, soft }), className)}
 			{...props}
 		/>
 	)

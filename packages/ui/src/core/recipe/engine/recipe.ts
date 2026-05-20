@@ -53,7 +53,15 @@ export function defineRecipe<C extends RecipeConfig>(config: C): Recipe<C> {
 	}
 
 	function recipe(props?: ComputedProps<C>): string {
-		const values = { ...resolved.defaults, ...(props as Record<string, string | undefined>) }
+		const raw = { ...resolved.defaults, ...(props as Record<string, unknown>) }
+
+		// Boolean-keyed axes (`{ true: …, false: … }`) lookup by stringified key,
+		// so callers can pass either a boolean or its stringified form.
+		const values: Record<string, string | undefined> = {}
+
+		for (const [key, value] of Object.entries(raw)) {
+			values[key] = typeof value === 'boolean' ? String(value) : (value as string | undefined)
+		}
 
 		const acc: ClassValue[] = [resolved.base]
 

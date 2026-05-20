@@ -29,7 +29,7 @@ export type RecipeBase = {
 	palette?: PaletteConfig
 	compound?: CompoundRule[]
 	slots?: Record<string, ClassValue>
-	defaults?: Record<string, string>
+	defaults?: Record<string, string | boolean>
 }
 
 /**
@@ -50,7 +50,7 @@ export type ResolvedConfig = {
 	variants: Record<string, Record<string, ClassValue>>
 	compound: CompoundRule[]
 	slots: Record<string, ClassValue>
-	defaults: Record<string, string>
+	defaults: Record<string, string | boolean>
 }
 
 export type Recipe<C extends RecipeBase> = {
@@ -62,9 +62,20 @@ export type Recipe<C extends RecipeBase> = {
 /** Explicit `variant:` keys declared by the kata, or `never` if absent. */
 type ExplicitVariantKeys<C> = C extends { variant: infer V } ? keyof V & string : never
 
+/**
+ * The prop value type for an axis. If the axis has both `true` and `false`
+ * keys, it accepts a boolean (a common shorthand for binary variants).
+ * Otherwise it accepts the union of string-literal keys.
+ */
+type AxisValue<A> = 'true' extends keyof A
+	? 'false' extends keyof A
+		? boolean
+		: keyof A & string
+	: keyof A & string
+
 /** Computed prop shape for a given config — used internally and by `VariantPropsOf`. */
 export type ComputedProps<C> = {
-	[K in keyof AxesOf<C> as K extends 'variant' ? never : K]?: keyof AxesOf<C>[K] & string
+	[K in keyof AxesOf<C> as K extends 'variant' ? never : K]?: AxisValue<AxesOf<C>[K]>
 } & (C extends { palette: PaletteConfig<infer E, infer M> }
 	? {
 			variant?: (M & string) | ExplicitVariantKeys<C>
