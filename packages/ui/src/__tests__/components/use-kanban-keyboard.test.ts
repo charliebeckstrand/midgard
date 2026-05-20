@@ -21,7 +21,7 @@ describe('useKanbanKeyboard: lift state', () => {
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
 				columns: makeColumns(),
-				getItemKey: (i) => i.id,
+				getKey: (i) => i.id,
 			}),
 		)
 
@@ -44,7 +44,7 @@ describe('useKanbanKeyboard: lift state', () => {
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
 				columns: makeColumns(),
-				getItemKey: (i) => i.id,
+				getKey: (i) => i.id,
 			}),
 		)
 
@@ -59,7 +59,7 @@ describe('useKanbanKeyboard: lift state', () => {
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
 				columns: makeColumns(),
-				getItemKey: (i) => i.id,
+				getKey: (i) => i.id,
 			}),
 		)
 
@@ -78,7 +78,7 @@ describe('useKanbanKeyboard: lift state', () => {
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
 				columns: makeColumns(),
-				getItemKey: (i) => i.id,
+				getKey: (i) => i.id,
 			}),
 		)
 
@@ -119,7 +119,7 @@ describe('useKanbanKeyboard: focus navigation', () => {
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
 				columns: makeColumns(),
-				getItemKey: (i) => i.id,
+				getKey: (i) => i.id,
 			}),
 		)
 
@@ -138,7 +138,7 @@ describe('useKanbanKeyboard: focus navigation', () => {
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
 				columns: makeColumns(),
-				getItemKey: (i) => i.id,
+				getKey: (i) => i.id,
 			}),
 		)
 
@@ -153,7 +153,7 @@ describe('useKanbanKeyboard: focus navigation', () => {
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
 				columns: makeColumns(),
-				getItemKey: (i) => i.id,
+				getKey: (i) => i.id,
 			}),
 		)
 
@@ -168,7 +168,7 @@ describe('useKanbanKeyboard: focus navigation', () => {
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
 				columns: makeColumns(),
-				getItemKey: (i) => i.id,
+				getKey: (i) => i.id,
 			}),
 		)
 
@@ -183,7 +183,7 @@ describe('useKanbanKeyboard: focus navigation', () => {
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
 				columns: makeColumns(),
-				getItemKey: (i) => i.id,
+				getKey: (i) => i.id,
 			}),
 		)
 
@@ -198,7 +198,7 @@ describe('useKanbanKeyboard: focus navigation', () => {
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
 				columns: makeColumns(),
-				getItemKey: (i) => i.id,
+				getKey: (i) => i.id,
 			}),
 		)
 
@@ -215,7 +215,7 @@ describe('useKanbanKeyboard: focus navigation', () => {
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
 				columns: makeColumns(),
-				getItemKey: (i) => i.id,
+				getKey: (i) => i.id,
 			}),
 		)
 
@@ -232,7 +232,7 @@ describe('useKanbanKeyboard: focus navigation', () => {
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
 				columns: makeColumns(),
-				getItemKey: (i) => i.id,
+				getKey: (i) => i.id,
 			}),
 		)
 
@@ -253,7 +253,7 @@ describe('useKanbanKeyboard: reordering a lifted card', () => {
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
 				columns: makeColumns(),
-				getItemKey: (i) => i.id,
+				getKey: (i) => i.id,
 				onValueChange,
 			}),
 		)
@@ -279,7 +279,7 @@ describe('useKanbanKeyboard: reordering a lifted card', () => {
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
 				columns: makeColumns(),
-				getItemKey: (i) => i.id,
+				getKey: (i) => i.id,
 				onValueChange,
 			}),
 		)
@@ -301,7 +301,7 @@ describe('useKanbanKeyboard: reordering a lifted card', () => {
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
 				columns: makeColumns(),
-				getItemKey: (i) => i.id,
+				getKey: (i) => i.id,
 				onValueChange,
 			}),
 		)
@@ -327,7 +327,7 @@ describe('useKanbanKeyboard: reordering a lifted card', () => {
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
 				columns: makeColumns(),
-				getItemKey: (i) => i.id,
+				getKey: (i) => i.id,
 				onValueChange,
 			}),
 		)
@@ -347,7 +347,7 @@ describe('useKanbanKeyboard: reordering a lifted card', () => {
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
 				columns: makeColumns(),
-				getItemKey: (i) => i.id,
+				getKey: (i) => i.id,
 			}),
 		)
 
@@ -368,7 +368,7 @@ describe('useKanbanKeyboard: reordering a lifted card', () => {
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
 				columns: makeColumns(),
-				getItemKey: (i) => i.id,
+				getKey: (i) => i.id,
 				onValueChange,
 			}),
 		)
@@ -390,7 +390,7 @@ describe('useKanbanKeyboard: reordering a lifted card', () => {
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
 				columns: makeColumns(),
-				getItemKey: (i) => i.id,
+				getKey: (i) => i.id,
 			}),
 		)
 
@@ -413,7 +413,7 @@ describe('useKanbanKeyboard: reordering a lifted card', () => {
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
 				columns: makeColumns(),
-				getItemKey: (i) => i.id,
+				getKey: (i) => i.id,
 				onValueChange,
 			}),
 		)
@@ -445,7 +445,7 @@ describe('useKanbanKeyboard: reordering a lifted card', () => {
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
 				columns: makeColumns(),
-				getItemKey: (i) => i.id,
+				getKey: (i) => i.id,
 				onValueChange,
 			}),
 		)

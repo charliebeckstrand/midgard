@@ -31,7 +31,7 @@ export type EditableGridColumn<T> = {
 export type EditableGridRowsApi<T> = {
 	rowsRef: RefObject<T[]>
 	editableCols: EditableGridColumn<T>[]
-	getRowKey: (row: T, index: number) => string | number
+	getKey: (row: T, index: number) => string | number
 	formatCell: (row: T, col: EditableGridColumn<T>) => string
 	parseValue: (raw: string, row: T, col: EditableGridColumn<T>) => unknown
 }

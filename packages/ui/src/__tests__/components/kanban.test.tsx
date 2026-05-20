@@ -21,7 +21,7 @@ function Board({ onValueChange }: { onValueChange?: (next: Column[]) => void } =
 	return (
 		<Kanban
 			columns={columns}
-			getItemKey={(item: Item) => item.id}
+			getKey={(item: Item) => item.id}
 			onValueChange={onValueChange}
 			aria-label="Board"
 		>
@@ -64,7 +64,7 @@ describe('Kanban', () => {
 		const { container } = renderUI(
 			<Kanban
 				columns={columns}
-				getItemKey={(item: Item) => item.id}
+				getKey={(item: Item) => item.id}
 				className="custom"
 				aria-label="Board"
 			/>,
@@ -114,7 +114,7 @@ describe('KanbanColumn', () => {
 		const empty: Column[] = [emptyColumn]
 
 		renderUI(
-			<Kanban columns={empty} getItemKey={(item: Item) => item.id}>
+			<Kanban columns={empty} getKey={(item: Item) => item.id}>
 				<KanbanColumn columnId="empty">
 					<KanbanColumnHeader>
 						<KanbanColumnTitle>Empty</KanbanColumnTitle>
@@ -161,7 +161,7 @@ describe('KanbanCard', () => {
 
 	it('applies custom className on the card', () => {
 		const { container } = renderUI(
-			<Kanban columns={columns} getItemKey={(item: Item) => item.id}>
+			<Kanban columns={columns} getKey={(item: Item) => item.id}>
 				<KanbanColumn columnId="todo">
 					<KanbanColumnBody>
 						<KanbanCard cardId="1" className="custom-card">
@@ -177,7 +177,7 @@ describe('KanbanCard', () => {
 
 	it('marks cards as disabled and omits the aria-label when the board is non-interactive', () => {
 		const { container } = renderUI(
-			<Kanban columns={columns} getItemKey={(item: Item) => item.id}>
+			<Kanban columns={columns} getKey={(item: Item) => item.id}>
 				<KanbanColumn columnId="todo">
 					<KanbanColumnBody>
 						<KanbanCard cardId="1">One</KanbanCard>
@@ -205,7 +205,7 @@ describe('KanbanCard', () => {
 
 	it('honors a custom aria-label on an interactive card', () => {
 		const { container } = renderUI(
-			<Kanban columns={columns} getItemKey={(item: Item) => item.id} onValueChange={() => {}}>
+			<Kanban columns={columns} getKey={(item: Item) => item.id} onValueChange={() => {}}>
 				<KanbanColumn columnId="todo">
 					<KanbanColumnBody>
 						<KanbanCard cardId="1" aria-label="Card One">
@@ -264,7 +264,7 @@ describe('KanbanColumnBody', () => {
 
 	it('renders nothing when the column is empty and no fallback is provided', () => {
 		const { container } = renderUI(
-			<Kanban columns={[{ id: 'x', title: 'X', items: [] }]} getItemKey={(i: Item) => i.id}>
+			<Kanban columns={[{ id: 'x', title: 'X', items: [] }]} getKey={(i: Item) => i.id}>
 				<KanbanColumn columnId="x">
 					<KanbanColumnBody />
 				</KanbanColumn>

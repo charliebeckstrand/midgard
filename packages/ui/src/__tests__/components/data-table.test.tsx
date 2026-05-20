@@ -13,12 +13,10 @@ describe('DataTable', () => {
 		{ name: 'Bob', age: 25 },
 	]
 
-	const getRowKey = (row: { name: string }) => row.name
+	const getKey = (row: { name: string }) => row.name
 
 	it('renders with data-slot="data-table"', () => {
-		const { container } = renderUI(
-			<DataTable columns={columns} rows={rows} getRowKey={getRowKey} />,
-		)
+		const { container } = renderUI(<DataTable columns={columns} rows={rows} getKey={getKey} />)
 
 		const el = bySlot(container, 'data-table')
 
@@ -26,7 +24,7 @@ describe('DataTable', () => {
 	})
 
 	it('renders column headers', () => {
-		renderUI(<DataTable columns={columns} rows={rows} getRowKey={getRowKey} />)
+		renderUI(<DataTable columns={columns} rows={rows} getKey={getKey} />)
 
 		expect(screen.getByText('Name')).toBeInTheDocument()
 
@@ -34,7 +32,7 @@ describe('DataTable', () => {
 	})
 
 	it('renders row data', () => {
-		renderUI(<DataTable columns={columns} rows={rows} getRowKey={getRowKey} />)
+		renderUI(<DataTable columns={columns} rows={rows} getKey={getKey} />)
 
 		expect(screen.getByText('Alice')).toBeInTheDocument()
 
@@ -45,14 +43,14 @@ describe('DataTable', () => {
 
 	it('applies custom className', () => {
 		const { container } = renderUI(
-			<DataTable columns={columns} rows={rows} getRowKey={getRowKey} className="custom" />,
+			<DataTable columns={columns} rows={rows} getKey={getKey} className="custom" />,
 		)
 
 		expect(container.querySelector('.custom')).toBeInTheDocument()
 	})
 
 	it('shows loading spinner when loading', () => {
-		renderUI(<DataTable columns={columns} rows={rows} getRowKey={getRowKey} loading />)
+		renderUI(<DataTable columns={columns} rows={rows} getKey={getKey} loading />)
 
 		expect(screen.queryByText('Alice')).not.toBeInTheDocument()
 	})
@@ -60,7 +58,7 @@ describe('DataTable', () => {
 	it('renders a selection checkbox column when a column declares selectable', () => {
 		const selectColumns = [{ id: 'select', selectable: true }, ...columns]
 
-		renderUI(<DataTable columns={selectColumns} rows={rows} getRowKey={getRowKey} />)
+		renderUI(<DataTable columns={selectColumns} rows={rows} getKey={getKey} />)
 
 		const checkboxes = screen.getAllByRole('checkbox', { name: /Select row/ })
 
@@ -76,7 +74,7 @@ describe('DataTable', () => {
 			},
 		]
 
-		renderUI(<DataTable columns={actionsColumns} rows={rows} getRowKey={getRowKey} />)
+		renderUI(<DataTable columns={actionsColumns} rows={rows} getKey={getKey} />)
 
 		expect(screen.getByRole('button', { name: 'Edit Alice' })).toBeInTheDocument()
 
@@ -97,7 +95,7 @@ describe('DataTable', () => {
 		]
 
 		const { container } = renderUI(
-			<DataTable columns={cellPropsColumns} rows={rows} getRowKey={getRowKey} />,
+			<DataTable columns={cellPropsColumns} rows={rows} getKey={getKey} />,
 		)
 
 		const cells = container.querySelectorAll('tbody td')
@@ -113,7 +111,7 @@ describe('DataTable', () => {
 		const sparseColumns = [{ id: 'empty', title: 'Empty' }]
 
 		const { container } = renderUI(
-			<DataTable columns={sparseColumns} rows={rows} getRowKey={getRowKey} />,
+			<DataTable columns={sparseColumns} rows={rows} getKey={getKey} />,
 		)
 
 		const cells = container.querySelectorAll('tbody td')
@@ -142,7 +140,7 @@ describe('DataTable', () => {
 		]
 
 		it('renders a sort button for sortable columns', () => {
-			renderUI(<DataTable columns={sortableColumns} rows={rows} getRowKey={getRowKey} />)
+			renderUI(<DataTable columns={sortableColumns} rows={rows} getKey={getKey} />)
 
 			expect(screen.getByRole('button', { name: 'Sort by Name' })).toBeInTheDocument()
 		})
@@ -154,7 +152,7 @@ describe('DataTable', () => {
 				<DataTable
 					columns={sortableColumns}
 					rows={rows}
-					getRowKey={getRowKey}
+					getKey={getKey}
 					sort={{ onValueChange }}
 				/>,
 			)
@@ -173,7 +171,7 @@ describe('DataTable', () => {
 				<DataTable
 					columns={sortableColumns}
 					rows={rows}
-					getRowKey={getRowKey}
+					getKey={getKey}
 					sort={{ defaultValue: { column: 'name', direction: 'asc' }, onValueChange }}
 				/>,
 			)
@@ -192,7 +190,7 @@ describe('DataTable', () => {
 				<DataTable
 					columns={sortableColumns}
 					rows={rows}
-					getRowKey={getRowKey}
+					getKey={getKey}
 					sort={{ defaultValue: { column: 'name', direction: 'desc' }, onValueChange }}
 				/>,
 			)
@@ -209,7 +207,7 @@ describe('DataTable', () => {
 				<DataTable
 					columns={sortableColumns}
 					rows={rows}
-					getRowKey={getRowKey}
+					getKey={getKey}
 					sort={{ value: { column: 'name', direction: 'asc' } }}
 				/>,
 			)
@@ -229,7 +227,7 @@ describe('DataTable', () => {
 				<DataTable
 					columns={sortableColumns}
 					rows={rows}
-					getRowKey={getRowKey}
+					getKey={getKey}
 					sort={{ value: { column: 'age', direction: 'desc' } }}
 				/>,
 			)
@@ -249,7 +247,7 @@ describe('DataTable', () => {
 				},
 			]
 
-			renderUI(<DataTable columns={richColumns} rows={rows} getRowKey={getRowKey} />)
+			renderUI(<DataTable columns={richColumns} rows={rows} getKey={getKey} />)
 
 			expect(screen.getByRole('button', { name: 'Sort by name' })).toBeInTheDocument()
 		})
@@ -269,7 +267,7 @@ describe('DataTable', () => {
 				},
 			]
 
-			renderUI(<DataTable columns={mixedColumns} rows={rows} getRowKey={getRowKey} />)
+			renderUI(<DataTable columns={mixedColumns} rows={rows} getKey={getKey} />)
 
 			expect(screen.queryByRole('button', { name: 'Sort by Name' })).not.toBeInTheDocument()
 
@@ -292,7 +290,7 @@ describe('DataTable', () => {
 			]
 
 			const { container } = renderUI(
-				<DataTable columns={columnsWithChrome} rows={rows} getRowKey={getRowKey} />,
+				<DataTable columns={columnsWithChrome} rows={rows} getKey={getKey} />,
 			)
 
 			const headers = container.querySelectorAll('thead th')
@@ -308,13 +306,7 @@ describe('DataTable', () => {
 
 		it('adds sticky-header chrome when stickyHeader is set', () => {
 			const { container } = renderUI(
-				<DataTable
-					columns={columns}
-					rows={rows}
-					getRowKey={getRowKey}
-					stickyHeader
-					maxHeight="200px"
-				/>,
+				<DataTable columns={columns} rows={rows} getKey={getKey} stickyHeader maxHeight="200px" />,
 			)
 
 			// Sticky header forces the scroll wrapper to render.
@@ -332,7 +324,7 @@ describe('DataTable', () => {
 				<DataTable
 					columns={selectColumns}
 					rows={rows}
-					getRowKey={getRowKey}
+					getKey={getKey}
 					selection={{ onValueChange }}
 				/>,
 			)
@@ -355,7 +347,7 @@ describe('DataTable', () => {
 				<DataTable
 					columns={selectColumns}
 					rows={rows}
-					getRowKey={getRowKey}
+					getKey={getKey}
 					selection={{ value: new Set(['Alice']) }}
 				/>,
 			)
@@ -372,7 +364,7 @@ describe('DataTable', () => {
 				<DataTable
 					columns={selectColumns}
 					rows={rows}
-					getRowKey={getRowKey}
+					getKey={getKey}
 					selection={{
 						value: new Set(['Alice']),
 						batchActions: (sel) => <button type="button">Delete {sel.size}</button>,
@@ -390,7 +382,7 @@ describe('DataTable', () => {
 				<DataTable
 					columns={selectColumns}
 					rows={rows}
-					getRowKey={getRowKey}
+					getKey={getKey}
 					selection={{
 						batchActions: (sel) => <button type="button">Delete {sel.size}</button>,
 					}}
@@ -409,7 +401,7 @@ describe('DataTable', () => {
 				<DataTable
 					columns={selectColumns}
 					rows={rows}
-					getRowKey={getRowKey}
+					getKey={getKey}
 					selection={{ onValueChange }}
 				/>,
 			)
@@ -426,7 +418,7 @@ describe('DataTable', () => {
 				<DataTable
 					columns={selectColumns}
 					rows={rows}
-					getRowKey={getRowKey}
+					getKey={getKey}
 					selection={{ value: new Set(['Alice']) }}
 				/>,
 			)
@@ -443,7 +435,7 @@ describe('DataTable', () => {
 				<DataTable
 					columns={columns}
 					rows={rows}
-					getRowKey={getRowKey}
+					getKey={getKey}
 					rowLoading={(row) => row.name === 'Alice'}
 				/>,
 			)
@@ -461,7 +453,7 @@ describe('DataTable', () => {
 				<DataTable
 					columns={columns}
 					rows={rows}
-					getRowKey={getRowKey}
+					getKey={getKey}
 					columnManager={{ enabled: true }}
 				/>,
 			)
@@ -474,7 +466,7 @@ describe('DataTable', () => {
 				<DataTable
 					columns={columns}
 					rows={rows}
-					getRowKey={getRowKey}
+					getKey={getKey}
 					columnManager={{ enabled: true, label: 'Manage' }}
 				/>,
 			)
@@ -487,7 +479,7 @@ describe('DataTable', () => {
 				<DataTable
 					columns={columns}
 					rows={rows}
-					getRowKey={getRowKey}
+					getKey={getKey}
 					columnManager={{ enabled: true, defaultHidden: new Set(['age']) }}
 				/>,
 			)
@@ -502,7 +494,7 @@ describe('DataTable', () => {
 				<DataTable
 					columns={columns}
 					rows={rows}
-					getRowKey={getRowKey}
+					getKey={getKey}
 					columnManager={{ enabled: true, order: ['age', 'name'] }}
 				/>,
 			)
@@ -526,7 +518,7 @@ describe('DataTable', () => {
 				<DataTable
 					columns={selectColumns}
 					rows={rows}
-					getRowKey={getRowKey}
+					getKey={getKey}
 					columnManager={{
 						enabled: true,
 						defaultHidden: new Set(['select', 'actions', 'name']),
@@ -549,7 +541,7 @@ describe('DataTable', () => {
 				<DataTable
 					columns={[columns[0] as (typeof columns)[number]]}
 					rows={rows}
-					getRowKey={getRowKey}
+					getKey={getKey}
 					columnManager={{ enabled: true, defaultOrder: ['name'] }}
 				/>,
 			)
@@ -560,7 +552,7 @@ describe('DataTable', () => {
 				<DataTable
 					columns={columns}
 					rows={rows}
-					getRowKey={getRowKey}
+					getKey={getKey}
 					columnManager={{ enabled: true, defaultOrder: ['name'] }}
 				/>,
 			)
@@ -579,7 +571,7 @@ describe('DataTable', () => {
 				<DataTable
 					columns={columns}
 					rows={rows}
-					getRowKey={getRowKey}
+					getKey={getKey}
 					columnManager={{ enabled: true, onOrderChange, onHiddenChange }}
 				/>,
 			)
@@ -602,7 +594,7 @@ describe('DataTable', () => {
 
 		it('throws when virtualize is set without maxHeight', () => {
 			expect(() =>
-				renderUI(<DataTable columns={columns} rows={manyRows} getRowKey={getRowKey} virtualize />),
+				renderUI(<DataTable columns={columns} rows={manyRows} getKey={getKey} virtualize />),
 			).toThrow(/requires `maxHeight`/)
 		})
 
@@ -611,7 +603,7 @@ describe('DataTable', () => {
 				<DataTable
 					columns={columns}
 					rows={manyRows}
-					getRowKey={getRowKey}
+					getKey={getKey}
 					virtualize
 					maxHeight="300px"
 				/>,
@@ -629,7 +621,7 @@ describe('DataTable', () => {
 				<DataTable
 					columns={columns}
 					rows={manyRows}
-					getRowKey={getRowKey}
+					getKey={getKey}
 					virtualize={{ estimateSize: 32, overscan: 5 }}
 					maxHeight="300px"
 				/>,

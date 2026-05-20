@@ -51,7 +51,7 @@ export type DataTableColumnManagerConfig = {
 export type DataTableProps<T> = TableVariants & {
 	columns: DataTableColumn<T>[]
 	rows: T[]
-	getRowKey: (row: T, index: number) => string | number
+	getKey: (row: T, index: number) => string | number
 
 	sort?: DataTableSort
 	selection?: DataTableSelection
@@ -94,7 +94,7 @@ export type DataTableProps<T> = TableVariants & {
 export function DataTable<T>({
 	columns,
 	rows,
-	getRowKey,
+	getKey,
 	sort: sortConfig,
 	selection: selectionConfig,
 	columnManager: columnManagerConfig,
@@ -145,8 +145,8 @@ export function DataTable<T>({
 	} = useDataTableColumns<T>({ columns, columnManagerConfig })
 
 	const rowKeys = useMemo<(string | number)[]>(
-		() => rows.map((row, i) => getRowKey(row, i)),
-		[rows, getRowKey],
+		() => rows.map((row, i) => getKey(row, i)),
+		[rows, getKey],
 	)
 
 	const { selection, toggleRow, toggleAll, allSelected, someSelected } = useDataTableSelection({
@@ -201,7 +201,7 @@ export function DataTable<T>({
 				rows={rows}
 				rowKeys={rowKeys}
 				visibleColumns={visibleColumns}
-				getRowKey={getRowKey}
+				getKey={getKey}
 				rowLoading={rowLoading}
 				rowClassName={rowClassName}
 				virtualize={virtualizeEnabled ? { scrollRef, estimateSize, overscan } : null}

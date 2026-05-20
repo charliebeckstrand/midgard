@@ -21,7 +21,7 @@ function setup(options: { columns?: Column[]; onValueChange?: (next: Column[]) =
 	const { result } = renderHook(() =>
 		useKanbanDrag<Card, Column>({
 			columns,
-			getItemKey: (i) => i.id,
+			getKey: (i) => i.id,
 			onValueChange,
 		}),
 	)
@@ -66,7 +66,7 @@ describe('useKanbanDrag: state', () => {
 		const { result } = renderHook(() =>
 			useKanbanDrag<Card, Column>({
 				columns: baseColumns,
-				getItemKey: (i) => i.id,
+				getKey: (i) => i.id,
 				onValueChange: () => {},
 			}),
 		)
@@ -82,7 +82,7 @@ describe('useKanbanDrag: state', () => {
 		const { result } = renderHook(() =>
 			useKanbanDrag<Card, Column>({
 				columns: baseColumns,
-				getItemKey: (i) => i.id,
+				getKey: (i) => i.id,
 				onValueChange: () => {},
 			}),
 		)
@@ -102,7 +102,7 @@ describe('useKanbanDrag: state', () => {
 		const { result } = renderHook(() =>
 			useKanbanDrag<Card, Column>({
 				columns: baseColumns,
-				getItemKey: (i) => i.id,
+				getKey: (i) => i.id,
 				onValueChange: () => {},
 			}),
 		)
@@ -182,7 +182,7 @@ describe('useKanbanDrag: handleDragOver cross-column moves', () => {
 		const { result } = renderHook(() =>
 			useKanbanDrag<Card, Column>({
 				columns: baseColumns,
-				getItemKey: (i) => i.id,
+				getKey: (i) => i.id,
 			}),
 		)
 
@@ -227,7 +227,7 @@ describe('useKanbanDrag: handleDragEnd same-column reorder', () => {
 		const { result } = renderHook(() =>
 			useKanbanDrag<Card, Column>({
 				columns: baseColumns,
-				getItemKey: (i) => i.id,
+				getKey: (i) => i.id,
 			}),
 		)
 

@@ -67,7 +67,7 @@ function setup(overrides: Overrides = {}) {
 			] as Row[],
 		},
 		editableCols: cols,
-		getRowKey: (r: Row) => r.id,
+		getKey: (r: Row) => r.id,
 		formatCell: (row: Row, col: EditableGridColumn<Row>) => String(row[col.id as keyof Row] ?? ''),
 		parseValue: (raw: string) => raw,
 	}

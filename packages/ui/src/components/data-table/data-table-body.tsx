@@ -11,7 +11,7 @@ type DataTableBodyProps<T> = {
 	rows: T[]
 	rowKeys: (string | number)[]
 	visibleColumns: DataTableColumn<T>[]
-	getRowKey: (row: T, index: number) => string | number
+	getKey: (row: T, index: number) => string | number
 	rowLoading?: (row: T) => boolean
 	rowClassName?: (row: T) => string | undefined
 	virtualize: {
@@ -26,7 +26,7 @@ export function DataTableBody<T>({
 	rows,
 	rowKeys,
 	visibleColumns,
-	getRowKey,
+	getKey,
 	rowLoading,
 	rowClassName,
 	virtualize,
@@ -51,7 +51,7 @@ export function DataTableBody<T>({
 	return (
 		<TableBody>
 			{rows.map((row, index) => {
-				const key = rowKeys[index] ?? getRowKey(row, index)
+				const key = rowKeys[index] ?? getKey(row, index)
 
 				return (
 					<DataTableRow<T>

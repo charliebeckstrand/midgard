@@ -66,7 +66,7 @@ function DefaultExample() {
 			<Stack gap="sm">
 				<Kanban
 					columns={columns}
-					getItemKey={(load: Load) => load.id}
+					getKey={(load: Load) => load.id}
 					onValueChange={setColumns}
 					aria-label="Load dispatch board"
 				>
@@ -96,7 +96,7 @@ function DefaultExample() {
 function ReadOnlyExample() {
 	return (
 		<Example title="Read-only">
-			<Kanban columns={initialColumns} getItemKey={(load: Load) => load.id} aria-label="Loads">
+			<Kanban columns={initialColumns} getKey={(load: Load) => load.id} aria-label="Loads">
 				{initialColumns.map((column) => (
 					<KanbanColumn key={column.id} columnId={column.id}>
 						<KanbanColumnHeader>
@@ -125,7 +125,7 @@ function DisabledExample() {
 		<Example title="Disabled">
 			<Kanban
 				columns={columns}
-				getItemKey={(load: Load) => load.id}
+				getKey={(load: Load) => load.id}
 				onValueChange={setColumns}
 				disabled
 			>

@@ -46,7 +46,7 @@ function setup(
 			rows: {
 				rowsRef: { current: rows },
 				editableCols: cols,
-				getRowKey: (r) => r.id,
+				getKey: (r) => r.id,
 				formatCell: () => '',
 				parseValue: (raw: string) => raw,
 			},
