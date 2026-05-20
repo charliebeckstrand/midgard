@@ -21,7 +21,7 @@
 
 import type { ClassValue } from 'clsx'
 
-import { type Color, colors as colorList } from '../../../recipes/kiso/colors'
+import { type Color, colors as colorList } from '../colors'
 
 import type { CompoundRule } from './types'
 

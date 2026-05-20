@@ -10,8 +10,7 @@
  * Layer: kiso · Concern: colour
  */
 
-import { mode } from './mode'
-import { shades } from './shades'
+import { mode, shades } from '../../core/recipe'
 
 const bg = {
 	surface: mode('bg-white', 'dark:bg-zinc-900'),
