@@ -26,12 +26,7 @@
  * Layer: waku · Concern: control field archetype
  */
 
-import { iro } from '../ryu/iro'
-import { ji } from '../ryu/ji'
-import { omote } from '../ryu/omote'
-import { sawari } from '../ryu/sawari'
-import { sen } from '../ryu/sen'
-import { tsunagi } from '../ryu/tsunagi'
+import { iro, ji, omote, sawari, sen, tsunagi } from '../../core/recipe'
 import { kasane } from './kasane'
 
 // `tsunagi.base` is data-attribute-gated, so it stays inert until a `<Group>`

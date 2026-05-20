@@ -12,10 +12,7 @@
  * Layer: waku · Concern: option-row archetype
  */
 
-import { iro } from '../ryu/iro'
-import { ji } from '../ryu/ji'
-import { narabi } from '../ryu/narabi'
-import { sawari } from '../ryu/sawari'
+import { iro, ji, narabi, sawari } from '../../core/recipe'
 
 const base = [
 	'group/option grid w-full items-baseline',
