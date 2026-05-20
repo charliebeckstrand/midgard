@@ -40,10 +40,10 @@ describe('Calendar', () => {
 		expect(el?.textContent).toContain('Mo')
 	})
 
-	it('renders day buttons in a listbox', () => {
+	it('renders day buttons inside a labelled grid', () => {
 		renderUI(<Calendar />)
 
-		expect(screen.getByRole('listbox')).toBeInTheDocument()
+		expect(screen.getByRole('table', { name: 'Calendar' })).toBeInTheDocument()
 	})
 
 	it('calls onValueChange when a day is clicked', async () => {

@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import type { KeyboardEvent, ReactNode, RefObject } from 'react'
+import { type KeyboardEvent, type ReactNode, type RefObject, useMemo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/calendar'
 import type { Step } from '../../recipes/ryu/sun'
@@ -16,7 +16,7 @@ export type CalendarPickerGridCell = {
 
 export type CalendarPickerGridProps = {
 	headerRef: RefObject<HTMLDivElement | null>
-	gridRef: RefObject<HTMLDivElement | null>
+	gridRef: RefObject<HTMLTableElement | null>
 	onHeaderKeyDown: (event: KeyboardEvent<HTMLElement>) => void
 	onGridKeyDown: (event: KeyboardEvent<HTMLElement>) => void
 	prevLabel: string
@@ -28,7 +28,11 @@ export type CalendarPickerGridProps = {
 	cells: CalendarPickerGridCell[]
 	cellBlock?: boolean
 	size: Step
+	gridLabel: string
+	toolbarLabel: string
 }
+
+const PICKER_COLS = 3
 
 export function CalendarPickerGrid({
 	headerRef,
@@ -44,12 +48,25 @@ export function CalendarPickerGrid({
 	cells,
 	cellBlock = false,
 	size,
+	gridLabel,
+	toolbarLabel,
 }: CalendarPickerGridProps) {
+	const rows = useMemo(() => {
+		const result: CalendarPickerGridCell[][] = []
+
+		for (let i = 0; i < cells.length; i += PICKER_COLS) {
+			result.push(cells.slice(i, i + PICKER_COLS))
+		}
+
+		return result
+	}, [cells])
+
 	return (
 		<>
 			<div
 				ref={headerRef}
 				role="toolbar"
+				aria-label={toolbarLabel}
 				onKeyDown={onHeaderKeyDown}
 				className={cn(k.header({ size }))}
 			>
@@ -69,25 +86,33 @@ export function CalendarPickerGrid({
 					prefix={<Icon icon={<ChevronRight />} />}
 				/>
 			</div>
-			<div
+			<table
 				ref={gridRef}
-				role="listbox"
+				aria-label={gridLabel}
 				onKeyDown={onGridKeyDown}
 				className={cn(k.picker.grid({ size }))}
 			>
-				{cells.map((cell) => (
-					<Button
-						key={cell.key}
-						variant={cell.selected ? 'solid' : 'plain'}
-						data-selected={cell.selected || undefined}
-						block={cellBlock}
-						onClick={cell.onSelect}
-						className={cn(cell.current && !cell.selected && k.picker.cellCurrent)}
-					>
-						{cell.label}
-					</Button>
-				))}
-			</div>
+				<tbody className="contents">
+					{rows.map((row) => (
+						<tr key={String(row[0]?.key)} className="contents">
+							{row.map((cell) => (
+								<td key={cell.key} className="contents">
+									<Button
+										variant={cell.selected ? 'solid' : 'plain'}
+										aria-pressed={cell.selected}
+										data-selected={cell.selected || undefined}
+										block={cellBlock}
+										onClick={cell.onSelect}
+										className={cn(cell.current && !cell.selected && k.picker.cellCurrent)}
+									>
+										{cell.label}
+									</Button>
+								</td>
+							))}
+						</tr>
+					))}
+				</tbody>
+			</table>
 		</>
 	)
 }

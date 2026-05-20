@@ -14,7 +14,6 @@ export type DayCellProps = {
 	variant?: ButtonVariants['variant']
 	color?: ButtonVariants['color']
 	className?: string
-	gridColumnStart?: number
 	onSelect: (date: Date) => void
 	onMouseEnter?: () => void
 	onMouseLeave?: () => void
@@ -29,7 +28,6 @@ export const CalendarDayCell = memo(function CalendarDayCell({
 	variant,
 	color,
 	className,
-	gridColumnStart,
 	onSelect,
 	onMouseEnter,
 	onMouseLeave,
@@ -47,7 +45,6 @@ export const CalendarDayCell = memo(function CalendarDayCell({
 			onClick={handleClick}
 			onMouseEnter={onMouseEnter}
 			onMouseLeave={onMouseLeave}
-			style={gridColumnStart ? { gridColumnStart } : undefined}
 			className={cn(
 				k.day.base,
 				isActive && (selected ? k.day.activeSelected : k.day.active),

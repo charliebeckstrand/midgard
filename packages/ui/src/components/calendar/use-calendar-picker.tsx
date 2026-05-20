@@ -33,13 +33,15 @@ export type CalendarPickerViewConfig = {
 	onCenter: () => void
 	cells: CalendarPickerGridCell[]
 	cellBlock: boolean
+	gridLabel: string
+	toolbarLabel: string
 }
 
 export type UseCalendarPickerResult = {
 	pickerOpen: boolean | undefined
 	handlePickerOpen: (open: boolean) => void
 	pickerHeaderRef: RefObject<HTMLDivElement | null>
-	pickerGridRef: RefObject<HTMLDivElement | null>
+	pickerGridRef: RefObject<HTMLTableElement | null>
 	handleHeaderKeyDown: (event: KeyboardEvent<HTMLElement>) => void
 	handleGridKeyDown: (event: KeyboardEvent<HTMLElement>) => void
 	viewConfig: CalendarPickerViewConfig
@@ -73,7 +75,7 @@ export function useCalendarPicker({
 	const decadeStart = Math.floor(decadeYear / 10) * 10
 
 	const pickerHeaderRef = useRef<HTMLDivElement>(null)
-	const pickerGridRef = useRef<HTMLDivElement>(null)
+	const pickerGridRef = useRef<HTMLTableElement>(null)
 
 	const { handleHeaderKeyDown, handleGridKeyDown } = useCalendarFocus({
 		headerRef: pickerHeaderRef,
@@ -157,6 +159,8 @@ export function useCalendarPicker({
 					},
 					cells: monthCells,
 					cellBlock: true,
+					gridLabel: `Months in ${pickerYear}`,
+					toolbarLabel: 'Year navigation',
 				}
 			: {
 					prevLabel: 'Previous decade',
@@ -175,6 +179,8 @@ export function useCalendarPicker({
 					},
 					cells: yearCells,
 					cellBlock: false,
+					gridLabel: `Years ${decadeStart}–${decadeStart + 9}`,
+					toolbarLabel: 'Decade navigation',
 				}
 
 	return {

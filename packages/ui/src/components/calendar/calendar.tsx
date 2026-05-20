@@ -141,7 +141,7 @@ export function Calendar({
 	)
 
 	const headerRef = useRef<HTMLDivElement>(null)
-	const gridRef = useRef<HTMLDivElement>(null)
+	const gridRef = useRef<HTMLTableElement>(null)
 
 	const { handleHeaderKeyDown, handleGridKeyDown, handleFooterKeyDown } = useCalendarFocus({
 		headerRef,

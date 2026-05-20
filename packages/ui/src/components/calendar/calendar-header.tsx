@@ -44,6 +44,7 @@ export function CalendarHeader({
 		<div
 			ref={headerRef}
 			role="toolbar"
+			aria-label="Calendar navigation"
 			onKeyDown={onHeaderKeyDown}
 			className={cn(k.header({ size }))}
 		>
