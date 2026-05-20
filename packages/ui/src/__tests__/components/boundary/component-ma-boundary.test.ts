@@ -2,21 +2,24 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { basename, join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-// `Ma` is the spacing-concern substrate (Tier 1 · padding / margin / gap).
-// Layout primitives (Box, Flex, Grid, Split) compose it into their variants
-// — that's its public role. Components whose `size` prop spans the same
-// value union (`Button`, `Spinner`, `ProgressGauge`, ...) get the shape from
-// their kata recipe's `VariantProps`; reaching for `Ma` directly is
-// redundant aliasing that silently crosses the spacing → sizing boundary.
+// `Ma` is kiso's spacing axis — padding, margin, gap. Layout primitives
+// (Box, Flex, Grid, Split) compose it into their `variants.ts` files; that is
+// its public role. Every other component derives the same union from its
+// kata recipe's `VariantPropsOf`. Importing `Ma` directly anywhere else
+// silently crosses the spacing → sizing boundary.
 
 const componentsDir = join(__dirname, '../../../components')
 
 const srcDir = join(__dirname, '../../..')
 
-const MA_IMPORT = /import\s+(?:type\s+)?\{[^}]*\bMa\b[^}]*\}\s+from\s+['"][^'"]*core\/recipe['"]/
+// `Ma` reaches consumers through the `recipes` barrel (`from '…/recipes'`),
+// re-exported from `recipes/kiso/ma.ts`. Match the barrel and any deeper
+// path under `recipes/` so a kiso-level deep import can't slip past.
+const MA_IMPORT =
+	/import\s+(?:type\s+)?\{[^}]*\bMa\b[^}]*\}\s+from\s+['"][^'"]*\/recipes(?:\/[^'"]+)?['"]/
 
 describe('component Ma import boundary', () => {
-	it('only variants.ts may import the Ma type from core/recipe', () => {
+	it('only variants.ts may import the Ma type from the recipes barrel', () => {
 		const violations: string[] = []
 
 		walk(componentsDir, (file, content) => {

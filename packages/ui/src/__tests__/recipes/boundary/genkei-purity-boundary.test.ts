@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 
 // genkei/ holds compound chrome shared by ≥2 components — control, popover,
 // option, panel, kasane. It sits below the component surface and must stay
-// there: genkei may compose the substrate and other genkei, but a genkei module
+// there: genkei may compose kiso and other genkei, but a genkei module
 // reaching up into components, layouts, primitives, hooks, or providers
 // would invert the dependency direction and pull stateful React or component
 // context into the recipe layer.
