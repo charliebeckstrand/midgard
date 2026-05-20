@@ -11,7 +11,7 @@ import { usePdfViewerPageSize } from './use-pdf-viewer-page-size'
 import { usePdfViewerPagination } from './use-pdf-viewer-pagination'
 import { usePdfViewerViewportSize } from './use-pdf-viewer-viewport-size'
 
-export type UsePdfViewerInput = {
+export type UsePdfViewerOptions = {
 	pages?: PdfViewerPage[]
 	src?: string
 	filename?: string
@@ -56,7 +56,7 @@ export function usePdfViewer({
 	defaultZoom = 1,
 	zoomLevels = [0.5, 0.75, 1, 1.25, 1.5, 2, 3],
 	defaultRotation = 0,
-}: UsePdfViewerInput): UsePdfViewerResult {
+}: UsePdfViewerOptions): UsePdfViewerResult {
 	const shouldLoadFromSrc = !pagesProp && !!src
 
 	const {
