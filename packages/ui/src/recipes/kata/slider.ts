@@ -1,5 +1,5 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { sawari } from '../ryu/sawari'
+import { sawari } from '../../core/recipe'
 
 export const slider = tv({
 	base: [

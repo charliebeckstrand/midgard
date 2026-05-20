@@ -1,7 +1,6 @@
 import { tv } from 'tailwind-variants'
+import { iro, sen } from '../../core/recipe'
 import { mode } from '../../core/recipe/mode'
-import { iro } from '../ryu/iro'
-import { sen } from '../ryu/sen'
 
 const cellSize = {
 	sm: 'px-xs py-xs',
@@ -26,7 +25,7 @@ const tableHeader = tv({
 	defaultVariants: { size: 'md', grid: false },
 })
 
-export const table = {
+export const k = {
 	base: 'w-full text-left text-base',
 	head: [iro.text.muted, sen.borderSubtleColor],
 	header: tableHeader,
@@ -35,4 +34,4 @@ export const table = {
 	striped: mode('*:even:bg-zinc-950/2.5', 'dark:*:even:bg-white/2.5'),
 }
 
-export { table as k, tableCell as tableCellVariants, tableHeader as tableHeaderVariants }
+export { tableCell as tableCellVariants, tableHeader as tableHeaderVariants }

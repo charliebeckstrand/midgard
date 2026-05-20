@@ -1,7 +1,6 @@
-import { ji } from '../ryu/ji'
-import { sawari } from '../ryu/sawari'
+import { ji, sawari } from '../../core/recipe'
 
-export const nav = {
+export const k = {
 	list: {
 		base: 'flex',
 		orientation: {
@@ -20,5 +19,3 @@ export const nav = {
 		'rounded-lg',
 	],
 }
-
-export { nav as k }

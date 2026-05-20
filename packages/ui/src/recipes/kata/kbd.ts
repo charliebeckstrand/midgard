@@ -1,5 +1,5 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { take } from '../ryu/take'
+import { take } from '../../core/recipe'
 
 export const kbd = tv({
 	base: ['inline-flex items-center justify-center', ...take.mark.base],

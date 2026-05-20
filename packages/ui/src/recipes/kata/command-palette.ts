@@ -1,9 +1,6 @@
-import { iro } from '../ryu/iro'
-import { ji } from '../ryu/ji'
-import { narabi } from '../ryu/narabi'
-import { sawari } from '../ryu/sawari'
+import { iro, ji, narabi, sawari } from '../../core/recipe'
 
-export const commandPalette = {
+export const k = {
 	group: 'py-1 first:pt-0 last:pb-0',
 	title: ['p-2', ji.size.xs, iro.text.muted, 'font-medium'],
 	item: [
@@ -19,5 +16,3 @@ export const commandPalette = {
 	description: [narabi.description, ji.size.xs, iro.text.muted],
 	shortcut: 'ml-auto',
 }
-
-export { commandPalette as k }

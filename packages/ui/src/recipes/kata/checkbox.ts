@@ -1,7 +1,6 @@
 import { tv, type VariantProps } from 'tailwind-variants'
+import { iro, sen } from '../../core/recipe'
 import { defineColors } from '../../core/recipe/mode'
-import { iro } from '../ryu/iro'
-import { sen } from '../ryu/sen'
 import { control } from '../waku/control'
 
 const color = defineColors({

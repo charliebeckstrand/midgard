@@ -1,9 +1,5 @@
 import { tv } from 'tailwind-variants'
-import { iro } from '../ryu/iro'
-import { ji } from '../ryu/ji'
-import { narabi } from '../ryu/narabi'
-import { sawari } from '../ryu/sawari'
-import { sen } from '../ryu/sen'
+import { iro, ji, narabi, sawari, sen } from '../../core/recipe'
 
 const menuItem = tv({
 	base: ['group/option flex w-full items-center', ...sawari.item, ...narabi.item],
@@ -17,7 +13,7 @@ const menuItem = tv({
 	defaultVariants: { size: 'md' },
 })
 
-export const menu = {
+export const k = {
 	content: ['min-w-48', 'max-h-60'],
 	item: menuItem,
 	section: 'first:pt-0 last:pb-0',
@@ -27,5 +23,3 @@ export const menu = {
 	shortcut: 'ml-auto',
 	separator: sen.divider,
 }
-
-export { menu as k }

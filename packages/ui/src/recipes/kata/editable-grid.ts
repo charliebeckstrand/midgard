@@ -1,6 +1,5 @@
 import { tv } from 'tailwind-variants'
-import { iro } from '../ryu/iro'
-import { sen } from '../ryu/sen'
+import { iro, sen } from '../../core/recipe'
 
 const editableGridCell = tv({
 	base: [

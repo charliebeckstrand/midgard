@@ -1,8 +1,5 @@
 import { tv } from 'tailwind-variants'
-import { iro } from '../ryu/iro'
-import { ji } from '../ryu/ji'
-import { narabi } from '../ryu/narabi'
-import { sawari } from '../ryu/sawari'
+import { iro, ji, narabi, sawari } from '../../core/recipe'
 
 const label = tv({
 	base: [
@@ -63,7 +60,7 @@ const legend = tv({
 	defaultVariants: { size: 'md' },
 })
 
-export const fieldset = {
+export const k = {
 	base: ['[&>legend+*]:pt-4', sawari.disabled],
 	legend,
 	field: [
@@ -76,4 +73,4 @@ export const fieldset = {
 	message,
 }
 
-export { fieldset as k, message as messageVariants }
+export { message as messageVariants }

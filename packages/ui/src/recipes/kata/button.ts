@@ -1,11 +1,5 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { colorVariants } from '../../core/recipe'
-import { iro, merge } from '../ryu/iro'
-import { ji } from '../ryu/ji'
-import { sawari } from '../ryu/sawari'
-import { sen } from '../ryu/sen'
-import { take } from '../ryu/take'
-import { tsunagi } from '../ryu/tsunagi'
+import { colorVariants, iro, ji, merge, sawari, sen, take, tsunagi } from '../../core/recipe'
 
 const { solid, soft, outline, plain, bare } = iro.palette
 const { inherit } = iro.text

@@ -1,6 +1,5 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { omote } from '../ryu/omote'
-import { sen } from '../ryu/sen'
+import { omote, sen } from '../../core/recipe'
 
 export const toolbar = tv({
 	base: 'flex items-center',

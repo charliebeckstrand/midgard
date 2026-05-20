@@ -1,5 +1,5 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { iro } from '../ryu/iro'
+import { iro } from '../../core/recipe'
 
 export const text = tv({
 	variants: {

@@ -1,6 +1,6 @@
-import { sen } from '../ryu/sen'
+import { sen } from '../../core/recipe'
 
-export const dataTableColumnManager = {
+export const k = {
 	root: ['flex flex-col', 'gap-sm'],
 	pin: [
 		'inline-flex flex-none items-center justify-center',
@@ -9,5 +9,3 @@ export const dataTableColumnManager = {
 	],
 	footer: ['flex items-center justify-end', 'gap-xs', 'pt-2', 'border-t', ...sen.borderSubtleColor],
 }
-
-export { dataTableColumnManager as k }

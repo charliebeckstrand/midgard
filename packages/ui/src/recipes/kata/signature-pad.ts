@@ -1,9 +1,6 @@
-import { iro } from '../ryu/iro'
-import { ji } from '../ryu/ji'
-import { sawari } from '../ryu/sawari'
-import { sen } from '../ryu/sen'
+import { iro, ji, sawari, sen } from '../../core/recipe'
 
-export const signaturePad = {
+export const k = {
 	base: [
 		'overflow-hidden',
 		'relative isolate',
@@ -23,5 +20,3 @@ export const signaturePad = {
 	],
 	actions: ['absolute right-2 bottom-2', 'flex items-center', 'gap-xs'],
 }
-
-export { signaturePad as k }

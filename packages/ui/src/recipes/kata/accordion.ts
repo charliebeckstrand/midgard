@@ -1,9 +1,5 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { iro } from '../ryu/iro'
-import { ji } from '../ryu/ji'
-import { sawari } from '../ryu/sawari'
-import { sen } from '../ryu/sen'
-import { ugoki } from '../ryu/ugoki'
+import { iro, ji, sawari, sen, ugoki } from '../../core/recipe'
 
 export const accordion = tv({
 	base: 'flex flex-col',

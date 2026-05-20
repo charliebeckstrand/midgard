@@ -1,7 +1,5 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { colorVariants } from '../../core/recipe'
-import { iro, merge } from '../ryu/iro'
-import { ji } from '../ryu/ji'
+import { colorVariants, iro, ji, merge } from '../../core/recipe'
 
 const { solid, soft, outline, plain } = iro.palette
 

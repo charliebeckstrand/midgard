@@ -1,8 +1,5 @@
 import { tv } from 'tailwind-variants'
-import { ji } from '../ryu/ji'
-import { sawari } from '../ryu/sawari'
-import { sen } from '../ryu/sen'
-import { take } from '../ryu/take'
+import { ji, sawari, sen, take } from '../../core/recipe'
 
 const sidebarItem = tv({
 	base: [
@@ -23,7 +20,7 @@ const sidebarItem = tv({
 	defaultVariants: { size: 'md' },
 })
 
-export const sidebar = {
+export const k = {
 	base: ['overflow-y-auto', 'flex flex-col gap-y-4', 'h-full', 'py-6', 'px-4'],
 	item: sidebarItem,
 	section: ['flex flex-col', 'gap-0.5'],
@@ -34,4 +31,4 @@ export const sidebar = {
 	footer: ['sticky bottom-0', 'flex flex-col', 'gap-0.5', 'mt-auto'],
 }
 
-export { sidebar as k, sidebarItem as sidebarItemVariants }
+export { sidebarItem as sidebarItemVariants }

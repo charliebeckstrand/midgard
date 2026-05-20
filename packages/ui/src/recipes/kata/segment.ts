@@ -1,8 +1,5 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { ji } from '../ryu/ji'
-import { omote } from '../ryu/omote'
-import { sawari } from '../ryu/sawari'
-import { sen } from '../ryu/sen'
+import { ji, omote, sawari, sen } from '../../core/recipe'
 
 export const segmentControl = tv({
 	base: ['inline-flex items-center', 'rounded-lg', ...omote.tint],
@@ -41,7 +38,7 @@ export const segmentItem = tv({
 export type SegmentControlVariants = VariantProps<typeof segmentControl>
 export type SegmentItemVariants = VariantProps<typeof segmentItem>
 
-export const slots = {
+export const k = {
 	indicator: ['bg-white', 'dark:bg-zinc-600'],
 }
 
@@ -49,7 +46,7 @@ export const slots = {
 export const segment = {
 	control: segmentControl,
 	item: segmentItem,
-	indicator: slots.indicator,
+	indicator: k.indicator,
 }
 
-export { segmentControl as segmentControlVariants, segmentItem as segmentItemVariants, slots as k }
+export { segmentControl as segmentControlVariants, segmentItem as segmentItemVariants }

@@ -1,7 +1,6 @@
-import { sawari } from '../ryu/sawari'
-import { sen } from '../ryu/sen'
+import { sawari, sen } from '../../core/recipe'
 
-export const map = {
+export const k = {
 	base: [
 		'relative isolate overflow-hidden',
 		'w-full h-full',
@@ -11,5 +10,3 @@ export const map = {
 	],
 	canvas: ['absolute inset-0'],
 }
-
-export { map as k }

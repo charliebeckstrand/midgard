@@ -1,8 +1,6 @@
 import { tv, type VariantProps } from 'tailwind-variants'
+import { iro, sawari, sen } from '../../core/recipe'
 import { defineColors } from '../../core/recipe/mode'
-import { iro } from '../ryu/iro'
-import { sawari } from '../ryu/sawari'
-import { sen } from '../ryu/sen'
 import { control } from '../waku/control'
 
 const color = defineColors({
@@ -52,8 +50,8 @@ export const radioIndicatorSize = {
 
 export const radioInput = tv({ base: control.check.hidden })
 
-export const slots = { disabled: iro.text.disabled }
+export const k = { disabled: iro.text.disabled }
 
 export type RadioVariants = VariantProps<typeof radio>
 
-export { radio as radioVariants, radioInput as radioInputVariants, slots as k }
+export { radio as radioVariants, radioInput as radioInputVariants }

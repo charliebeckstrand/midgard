@@ -1,5 +1,5 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { sawari } from '../ryu/sawari'
+import { sawari } from '../../core/recipe'
 import { control } from '../waku/control'
 
 export const listbox = tv({
@@ -30,7 +30,7 @@ const value = tv({
 	defaultVariants: { truncate: true },
 })
 
-export const slots = {
+export const k = {
 	options: 'max-h-60',
 	panel: 'relative min-w-full',
 	value,
@@ -38,4 +38,4 @@ export const slots = {
 
 export type ListboxVariants = VariantProps<typeof listbox>
 
-export { listbox as listboxVariants, slots as k }
+export { listbox as listboxVariants }

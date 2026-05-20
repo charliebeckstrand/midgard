@@ -1,5 +1,5 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { iro } from '../ryu/iro'
+import { iro } from '../../core/recipe'
 import { control } from '../waku/control'
 
 export const input = tv({
@@ -28,7 +28,7 @@ export const inputControl = tv({
 	defaultVariants: { variant: 'default' },
 })
 
-export const slots = {
+export const k = {
 	affix: ['flex items-center min-w-0', '*:data-[slot=icon]:pointer-events-none', ...iro.text.muted],
 	prefix: control.affix.prefix,
 	suffix: control.affix.suffix,
@@ -38,4 +38,4 @@ export const slots = {
 
 export type InputVariants = VariantProps<typeof input>
 
-export { input as inputVariants, inputControl as controlVariants, slots as k }
+export { input as inputVariants, inputControl as controlVariants }

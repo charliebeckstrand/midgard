@@ -1,8 +1,5 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { iro } from '../ryu/iro'
-import { ji } from '../ryu/ji'
-import { sawari } from '../ryu/sawari'
-import { sen } from '../ryu/sen'
+import { iro, ji, sawari, sen } from '../../core/recipe'
 
 export const stepper = tv({
 	base: 'flex w-full',

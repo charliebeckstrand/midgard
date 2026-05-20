@@ -1,6 +1,5 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { iro } from '../ryu/iro'
-import { ji } from '../ryu/ji'
+import { iro, ji } from '../../core/recipe'
 
 export const statValue = tv({
 	base: ['font-semibold tracking-tight tabular-nums', ...iro.text.default],
@@ -76,10 +75,10 @@ const label = tv({
 export type StatValueVariants = VariantProps<typeof statValue>
 export type StatDeltaVariants = VariantProps<typeof statDelta>
 
-export const slots = {
+export const k = {
 	base: ['flex flex-col justify-center', 'h-full', 'gap-xs'],
 	label,
 	description: [ji.size.sm, ...iro.text.muted],
 }
 
-export { statDelta as statDeltaVariants, statValue as statValueVariants, slots as k }
+export { statDelta as statDeltaVariants, statValue as statValueVariants }

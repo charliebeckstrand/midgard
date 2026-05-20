@@ -1,6 +1,5 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { ji } from '../ryu/ji'
-import { take } from '../ryu/take'
+import { ji, take } from '../../core/recipe'
 
 const blockBg = 'bg-[#0d1117]'
 
@@ -23,7 +22,7 @@ export const codeBlock = tv({
 	defaultVariants: { inline: false },
 })
 
-export const slots = {
+export const k = {
 	block: {
 		content: '[&_pre]:overflow-x-auto [&_pre]:p-4 [&_pre]:text-sm',
 		contentCopy: '[&_pre]:pr-14',
@@ -37,4 +36,4 @@ export const slots = {
 export type CodeVariants = VariantProps<typeof code>
 export type CodeBlockVariants = VariantProps<typeof codeBlock>
 
-export { code as codeVariants, codeBlock as codeBlockVariants, slots as k }
+export { code as codeVariants, codeBlock as codeBlockVariants }

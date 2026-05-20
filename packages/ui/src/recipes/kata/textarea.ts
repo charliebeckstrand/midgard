@@ -1,5 +1,5 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { sen } from '../ryu/sen'
+import { sen } from '../../core/recipe'
 import { control } from '../waku/control'
 
 export const textarea = tv({
@@ -39,7 +39,7 @@ export const textareaControl = tv({
 	defaultVariants: { variant: 'default' },
 })
 
-export const slots = {
+export const k = {
 	/** Strips textarea chrome when nested inside a framed container. */
 	bare: ['border-0', 'rounded-none', 'focus:outline-hidden'],
 	/** ControlFrame border when an actions slot is present. */
@@ -50,4 +50,4 @@ export const slots = {
 
 export type TextareaVariants = VariantProps<typeof textarea>
 
-export { textarea as textareaVariants, textareaControl as controlVariants, slots as k }
+export { textarea as textareaVariants, textareaControl as controlVariants }

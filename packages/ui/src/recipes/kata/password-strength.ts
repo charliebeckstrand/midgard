@@ -1,6 +1,5 @@
 import { tv } from 'tailwind-variants'
-import { iro } from '../ryu/iro'
-import { ji } from '../ryu/ji'
+import { iro, ji } from '../../core/recipe'
 
 const passwordStrengthSegment = tv({
 	base: ['flex-1 h-1', 'rounded-full', 'bg-zinc-200 dark:bg-zinc-700'],

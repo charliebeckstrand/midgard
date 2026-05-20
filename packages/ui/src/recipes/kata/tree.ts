@@ -1,8 +1,5 @@
 import { tv } from 'tailwind-variants'
-import { iro } from '../ryu/iro'
-import { ji } from '../ryu/ji'
-import { sen } from '../ryu/sen'
-import { ugoki } from '../ryu/ugoki'
+import { iro, ji, sen, ugoki } from '../../core/recipe'
 
 export type TreeSize = 'sm' | 'md' | 'lg'
 
@@ -41,12 +38,12 @@ const treeChevron = tv({
 	defaultVariants: { size: 'md' },
 })
 
-export const tree = {
+export const k = {
 	base: [
 		'flex flex-col',
-		// Trim outer vertical padding on the edge rows so the tree sits flush with its container.
-		'[&>[data-slot=tree-item]:first-child>[role=treeitem]]:pt-0',
-		'[&>[data-slot=tree-item]:last-child>[role=treeitem]]:pb-0',
+		// Trim outer vertical padding on the edge rows so the k sits flush with its container.
+		'[&>[data-slot=k-item]:first-child>[role=treeitem]]:pt-0',
+		'[&>[data-slot=k-item]:last-child>[role=treeitem]]:pb-0',
 	],
 	item: [],
 	itemContent: treeItemContent,
@@ -67,4 +64,4 @@ export const tree = {
 	},
 } as const
 
-export { tree as k, treeItemContent as treeItemContentVariants, treeChevron as treeChevronVariants }
+export { treeItemContent as treeItemContentVariants, treeChevron as treeChevronVariants }

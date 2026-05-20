@@ -20,7 +20,7 @@ export const toastViewport = tv({
 
 export type ToastViewportVariants = VariantProps<typeof toastViewport>
 
-export const slots = {
+export const k = {
 	scroll: [
 		'flex flex-col max-h-full overflow-y-auto overscroll-contain',
 		'w-fit max-sm:w-full',
@@ -30,6 +30,6 @@ export const slots = {
 }
 
 /** Kept for the `kata` barrel — not consumed directly. */
-export const toast = { viewport: toastViewport, ...slots }
+export const toast = { viewport: toastViewport, ...k }
 
-export { toastViewport as toastViewportVariants, slots as k }
+export { toastViewport as toastViewportVariants }

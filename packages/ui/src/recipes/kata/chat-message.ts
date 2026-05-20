@@ -1,5 +1,5 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { ji } from '../ryu/ji'
+import { ji } from '../../core/recipe'
 
 export const chatMessage = tv({
 	base: 'flex flex-col',

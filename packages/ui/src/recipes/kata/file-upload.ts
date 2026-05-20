@@ -1,9 +1,6 @@
-import { iro } from '../ryu/iro'
-import { ji } from '../ryu/ji'
-import { sawari } from '../ryu/sawari'
-import { sen } from '../ryu/sen'
+import { iro, ji, sawari, sen } from '../../core/recipe'
 
-export const fileUpload = {
+export const k = {
 	dropzone: [
 		'flex flex-col items-center justify-center',
 		'gap-xs',
@@ -25,5 +22,4 @@ export const fileUpload = {
 	label: ['font-medium', iro.text.default],
 }
 
-export { fileUpload as k }
-export const fileUploadClasses = fileUpload.dropzone
+export const fileUploadClasses = k.dropzone

@@ -1,5 +1,5 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { sen } from '../ryu/sen'
+import { sen } from '../../core/recipe'
 
 export const navbar = tv({
 	base: ['flex items-center gap-4', 'overflow-x-auto', 'px-4 py-2.5', 'rounded-lg', 'border'],

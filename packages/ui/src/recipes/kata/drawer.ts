@@ -1,8 +1,5 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { iro } from '../ryu/iro'
-import { narabi } from '../ryu/narabi'
-import { omote } from '../ryu/omote'
-import { sen } from '../ryu/sen'
+import { iro, narabi, omote, sen } from '../../core/recipe'
 import { definePanelRecipe } from '../waku/panel'
 
 export const drawer = definePanelRecipe({

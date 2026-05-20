@@ -1,5 +1,5 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { sawari } from '../ryu/sawari'
+import { sawari } from '../../core/recipe'
 
 const rangeSliderRoot = tv({
 	base: ['relative', 'w-full', ...sawari.cursor, 'select-none', 'touch-none', sawari.disabled],

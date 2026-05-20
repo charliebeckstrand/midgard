@@ -1,9 +1,6 @@
 import { tv } from 'tailwind-variants'
+import { iro, ji, sawari, sen } from '../../core/recipe'
 import { mode } from '../../core/recipe/mode'
-import { iro } from '../ryu/iro'
-import { ji } from '../ryu/ji'
-import { sawari } from '../ryu/sawari'
-import { sen } from '../ryu/sen'
 
 export const tabIndicator = mode('bg-zinc-950', 'dark:bg-white')
 
@@ -65,10 +62,8 @@ const tabIndicatorBar = tv({
 	defaultVariants: { orientation: 'horizontal' },
 })
 
-export const tabs = {
+export const k = {
 	list: tabList,
 	tab: tabItem,
 	indicator: tabIndicatorBar,
 }
-
-export { tabs as k }

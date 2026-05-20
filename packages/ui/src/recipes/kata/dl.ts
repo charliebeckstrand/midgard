@@ -1,7 +1,5 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { iro } from '../ryu/iro'
-import { ji } from '../ryu/ji'
-import { sen } from '../ryu/sen'
+import { iro, ji, sen } from '../../core/recipe'
 
 export const dl = tv({
 	base: ji.size.sm,

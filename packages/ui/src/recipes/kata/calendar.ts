@@ -1,7 +1,5 @@
 import { tv } from 'tailwind-variants'
-import { iro } from '../ryu/iro'
-import { ji } from '../ryu/ji'
-import { sen } from '../ryu/sen'
+import { iro, ji, sen } from '../../core/recipe'
 import { buttonSoft } from './button'
 
 const base = tv({
@@ -64,7 +62,7 @@ const weekday = tv({
 	defaultVariants: { size: 'md' },
 })
 
-export const calendar = {
+export const k = {
 	base,
 	grid: 'grid grid-cols-7',
 	header,
@@ -82,5 +80,3 @@ export const calendar = {
 		rangeRightEdge: 'rounded-l-none',
 	},
 }
-
-export { calendar as k }

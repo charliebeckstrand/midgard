@@ -1,11 +1,7 @@
-import { iro } from '../ryu/iro'
-import { ji } from '../ryu/ji'
-import { omote } from '../ryu/omote'
-import { sawari } from '../ryu/sawari'
-import { sen } from '../ryu/sen'
+import { iro, ji, omote, sawari, sen } from '../../core/recipe'
 import { tabIndicator } from './tabs'
 
-export const bottomNav = {
+export const k = {
 	base: [
 		'sticky inset-x-0 bottom-0 z-40',
 		'flex items-stretch justify-around',
@@ -27,5 +23,3 @@ export const bottomNav = {
 	current: [iro.text.default],
 	indicator: ['inset-x-4 bottom-auto top-0', 'h-0.5', 'rounded-full', tabIndicator],
 }
-
-export { bottomNav as k }

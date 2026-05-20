@@ -1,6 +1,5 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { iro } from '../ryu/iro'
-import { sawari } from '../ryu/sawari'
+import { iro, sawari } from '../../core/recipe'
 import { control } from '../waku/control'
 
 const datePickerButton = tv({
@@ -32,7 +31,7 @@ const datePickerValue = tv({
 
 export type DatePickerButtonVariants = VariantProps<typeof datePickerButton>
 
-export const datePicker = {
+export const k = {
 	control: {
 		default: control.surface.default,
 		glass: [],
@@ -42,4 +41,4 @@ export const datePicker = {
 	icon: ['flex items-center', 'pointer-events-none', iro.text.muted],
 }
 
-export { datePicker as k, datePickerButton as datePickerButtonVariants }
+export { datePickerButton as datePickerButtonVariants }

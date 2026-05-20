@@ -1,8 +1,6 @@
-import { iro } from '../ryu/iro'
-import { ji } from '../ryu/ji'
-import { sen } from '../ryu/sen'
+import { iro, ji, sen } from '../../core/recipe'
 
-export const kanban = {
+export const k = {
 	base: ['overflow-x-auto flex gap-4 items-stretch', 'min-h-0'],
 	column: [
 		'flex flex-col min-w-0',
@@ -19,7 +17,7 @@ export const kanban = {
 	columnBody: ['flex flex-col flex-1', 'gap-xs', 'overflow-y-auto'],
 	columnEmpty: ['flex items-center justify-center', 'min-h-16', ji.size.sm, iro.text.muted],
 	card: [
-		'group/kanban-card',
+		'group/k-card',
 		'flex flex-col',
 		'gap-xs',
 		'p-2',
@@ -37,5 +35,3 @@ export const kanban = {
 	cardLifted: sen.focus.lifted,
 	cardActive: 'z-10 shadow-lg relative opacity-95',
 }
-
-export { kanban as k }

@@ -1,6 +1,4 @@
-import { iro } from '../ryu/iro'
-import { ji } from '../ryu/ji'
-import { ugoki } from '../ryu/ugoki'
+import { iro, ji, ugoki } from '../../core/recipe'
 
 export type JsonValueType = 'string' | 'number' | 'boolean' | 'null' | 'key'
 
@@ -22,7 +20,7 @@ const rowBase = [
 	'has-focus-visible:bg-blue-100/60 dark:has-focus-visible:bg-blue-600/30',
 ]
 
-export const jsonTree = {
+export const k = {
 	base: 'inline-flex flex-col font-mono',
 	row: rowBase,
 	leaf: ['flex flex-1 items-center min-w-0 outline-none', 'gap-xs'],
@@ -44,5 +42,3 @@ export const jsonTree = {
 	group: 'overflow-hidden',
 	highlight: ['bg-amber-100/60', 'dark:bg-amber-500/15', 'rounded-lg'],
 }
-
-export { jsonTree as k }

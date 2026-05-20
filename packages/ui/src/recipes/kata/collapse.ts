@@ -1,9 +1,6 @@
-import { iro } from '../ryu/iro'
-import { ji } from '../ryu/ji'
-import { sawari } from '../ryu/sawari'
-import { sen } from '../ryu/sen'
+import { iro, ji, sawari, sen } from '../../core/recipe'
 
-export const collapse = {
+export const k = {
 	base: 'group/collapse',
 	trigger: [
 		'inline-flex items-center',
@@ -19,5 +16,3 @@ export const collapse = {
 	],
 	panel: 'overflow-hidden',
 }
-
-export { collapse as k }

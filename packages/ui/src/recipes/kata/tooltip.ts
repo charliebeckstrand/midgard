@@ -1,8 +1,5 @@
 import { tv } from 'tailwind-variants'
-import { iro } from '../ryu/iro'
-import { ji } from '../ryu/ji'
-import { omote } from '../ryu/omote'
-import { sen } from '../ryu/sen'
+import { iro, ji, omote, sen } from '../../core/recipe'
 
 const content = tv({
 	base: [iro.text.default, 'font-medium', 'whitespace-nowrap', 'rounded-lg', 'pointer-events-none'],
@@ -16,7 +13,7 @@ const content = tv({
 	defaultVariants: { size: 'md' },
 })
 
-export const tooltip = {
+export const k = {
 	trigger: 'inline-flex items-center',
 	triggerEnabled: 'cursor-help *:cursor-help',
 	portal: 'z-100',
@@ -26,5 +23,3 @@ export const tooltip = {
 		glass: [omote.glass, sen.outline],
 	},
 }
-
-export { tooltip as k }

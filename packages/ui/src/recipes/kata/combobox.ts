@@ -1,6 +1,5 @@
 import { tv, type VariantProps } from 'tailwind-variants'
-import { iro } from '../ryu/iro'
-import { ji } from '../ryu/ji'
+import { iro, ji } from '../../core/recipe'
 import { control } from '../waku/control'
 
 export const combobox = tv({
