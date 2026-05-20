@@ -8,8 +8,8 @@ import {
 	type ReactNode,
 	useMemo,
 } from 'react'
-import type { GroupOrientation, GroupPosition } from '../../core/recipe'
 import { JoinProvider } from '../../primitives/join'
+import type { GroupOrientation, GroupPosition } from '../../recipes'
 
 function positionAt(index: number, length: number): GroupPosition {
 	if (length === 1) return 'only'

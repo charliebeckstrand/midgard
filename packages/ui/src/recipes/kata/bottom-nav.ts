@@ -1,4 +1,4 @@
-import { hannou, iro, ji, omote, sen } from '../../core/recipe'
+import { hannou, iro, ji, omote, sen } from '..'
 import { tabIndicator } from './tabs'
 
 export const k = {

@@ -1,4 +1,4 @@
-import { iro, ji, omote, sen } from '../../core/recipe'
+import { iro, ji, omote, sen } from '..'
 
 export const k = {
 	wrapper: ['relative flex flex-col', 'gap-sm'],

@@ -1,4 +1,4 @@
-import { iro, ji, sen } from '../../core/recipe'
+import { iro, ji, sen } from '..'
 
 export const k = {
 	base: ['overflow-x-auto flex gap-4 items-stretch', 'min-h-0'],

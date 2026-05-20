@@ -12,7 +12,7 @@
  * Layer: kiso · Concern: group joins
  */
 
-import type { Orientation } from '../../../types'
+import type { Orientation } from '../../types'
 
 export const tsunagi = {
 	/**

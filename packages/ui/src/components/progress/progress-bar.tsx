@@ -2,8 +2,8 @@
 
 import { motion } from 'motion/react'
 import { cn } from '../../core'
-import type { Step } from '../../core/recipe'
 import { ReducedMotion } from '../../primitives/reduced-motion'
+import type { Step } from '../../recipes'
 import { k, type ProgressBarFillVariants, progressBarFill } from '../../recipes/kata/progress'
 import { clamp, pct } from '../../utilities'
 

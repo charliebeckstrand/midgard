@@ -1,4 +1,4 @@
-import { defineRecipe, iro, ji, sen } from '../../core/recipe'
+import { defineRecipe, iro, ji, sen } from '..'
 import { buttonSoft } from './button'
 
 const base = defineRecipe({

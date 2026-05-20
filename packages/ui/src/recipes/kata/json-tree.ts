@@ -1,4 +1,4 @@
-import { iro, ji, ugoki } from '../../core/recipe'
+import { iro, ji, ugoki } from '..'
 
 export type JsonValueType = 'string' | 'number' | 'boolean' | 'null' | 'key'
 

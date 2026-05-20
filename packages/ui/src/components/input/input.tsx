@@ -2,12 +2,12 @@
 
 import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
 import { cn, invalidAttrs } from '../../core'
-import type { Step } from '../../core/recipe'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { AffixProvider, affixStepDown } from '../../primitives/affix'
 import { ControlFrame } from '../../primitives/control'
 import { DensityScope, densityPresets, useDensity } from '../../primitives/density'
 import { useSkeleton } from '../../providers/skeleton'
+import type { Step } from '../../recipes'
 import {
 	autofill,
 	type InputVariants,

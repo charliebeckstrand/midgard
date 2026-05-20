@@ -11,9 +11,9 @@ import {
 	useRole,
 } from '@floating-ui/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { Step } from '../../core/recipe'
 import { useFloatingPanel, useHasHover } from '../../hooks'
 import { subscribeOverlayOpened } from '../../primitives/overlay'
+import type { Step } from '../../recipes'
 
 export type UseTooltipStateOptions = {
 	placement?: Placement

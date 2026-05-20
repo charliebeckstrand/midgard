@@ -9,7 +9,7 @@ import {
 	shaku,
 	tsunagi,
 	type VariantPropsOf,
-} from '../../core/recipe'
+} from '..'
 
 const { solid, soft, outline, plain, bare } = iro.palette
 const { inherit } = iro.text

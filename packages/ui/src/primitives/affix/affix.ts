@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext } from '../../core'
-import type { Ma, Step } from '../../core/recipe'
+import type { Ma, Step } from '../../recipes'
 
 /**
  * Narrow `Ma`-typed cascade for slot-context broadcasting, written by

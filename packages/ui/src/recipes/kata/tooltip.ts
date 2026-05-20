@@ -1,4 +1,4 @@
-import { defineRecipe, iro, ji, omote, sen } from '../../core/recipe'
+import { defineRecipe, iro, ji, omote, sen } from '..'
 
 const content = defineRecipe({
 	base: [iro.text.default, 'font-medium', 'whitespace-nowrap', 'rounded-lg', 'pointer-events-none'],

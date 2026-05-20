@@ -1,4 +1,4 @@
-import { defineRecipe, hannou, iro, ji, sen, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, hannou, iro, ji, sen, type VariantPropsOf } from '..'
 
 export const k = defineRecipe({
 	base: ['flex items-center list-none', 'gap-xs'],

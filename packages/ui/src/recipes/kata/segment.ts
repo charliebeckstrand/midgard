@@ -1,4 +1,4 @@
-import { defineRecipe, hannou, ji, omote, sen, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, hannou, ji, omote, sen, type VariantPropsOf } from '..'
 
 const control = defineRecipe({
 	base: ['inline-flex items-center', 'rounded-lg', ...omote.tint],

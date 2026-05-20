@@ -1,4 +1,4 @@
-import type { Ma } from '../../core/recipe'
+import type { Ma } from '../../recipes'
 import { alignMap, type FlexAlign } from '../flex/variants'
 
 export { alignMap }

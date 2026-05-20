@@ -2,7 +2,7 @@
 
 import { type ReactNode, useMemo } from 'react'
 import { createContext } from '../../core'
-import type { Ma, Step } from '../../core/recipe'
+import type { Ma, Step } from '../../recipes'
 import { useAffix } from '../affix'
 
 /**

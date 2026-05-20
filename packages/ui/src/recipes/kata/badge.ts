@@ -1,4 +1,4 @@
-import { defineRecipe, iro, ji, palette, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, iro, ji, palette, type VariantPropsOf } from '..'
 
 const { solid, soft, outline, plain } = iro.palette
 

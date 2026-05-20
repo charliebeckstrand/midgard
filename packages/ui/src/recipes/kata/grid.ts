@@ -1,4 +1,4 @@
-import { defineRecipe, sen, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, sen, type VariantPropsOf } from '..'
 
 const divider = defineRecipe({
 	base: 'border-t col-span-full',

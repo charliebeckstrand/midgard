@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
-import type { Step } from '../../core/recipe'
 import { DensityScope } from '../../primitives/density'
+import type { Step } from '../../recipes'
 import { group } from '../../recipes/kata/avatar'
 import { Avatar } from './avatar'
 

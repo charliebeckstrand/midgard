@@ -1,4 +1,4 @@
-import { hannou, iro, ji, sen } from '../../core/recipe'
+import { hannou, iro, ji, sen } from '..'
 
 export const k = {
 	base: [

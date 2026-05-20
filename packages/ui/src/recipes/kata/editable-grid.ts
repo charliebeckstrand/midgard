@@ -1,4 +1,4 @@
-import { defineRecipe, iro, sen, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, iro, sen, type VariantPropsOf } from '..'
 
 const cell = defineRecipe({
 	base: [

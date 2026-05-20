@@ -1,4 +1,4 @@
-import { defineRecipe, hannou, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, hannou, type VariantPropsOf } from '..'
 
 const root = defineRecipe({
 	base: ['relative', 'w-full', ...hannou.cursor, 'select-none', 'touch-none', hannou.disabled],

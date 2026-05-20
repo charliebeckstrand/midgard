@@ -1,4 +1,4 @@
-import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, type VariantPropsOf } from '..'
 
 export const k = defineRecipe({
 	base: 'inline-block rounded-full',

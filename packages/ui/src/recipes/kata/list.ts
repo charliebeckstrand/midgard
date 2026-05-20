@@ -1,4 +1,4 @@
-import { hannou, iro, ji, omote, sen } from '../../core/recipe'
+import { hannou, iro, ji, omote, sen } from '..'
 
 export type ListVariant = 'separated' | 'outline' | 'plain' | 'solid'
 

@@ -1,4 +1,4 @@
-import { defineRecipe, iro, ji, sen, ugoki } from '../../core/recipe'
+import { defineRecipe, iro, ji, sen, ugoki } from '..'
 
 export type TreeSize = 'sm' | 'md' | 'lg'
 

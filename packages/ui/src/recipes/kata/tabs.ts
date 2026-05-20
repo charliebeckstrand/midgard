@@ -1,4 +1,4 @@
-import { defineRecipe, hannou, iro, ji, sen, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, hannou, iro, ji, sen, type VariantPropsOf } from '..'
 
 export const tabIndicator = ['bg-zinc-950', 'dark:bg-white']
 

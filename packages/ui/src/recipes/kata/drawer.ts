@@ -1,4 +1,4 @@
-import { defineRecipe, iro, narabi, omote, sen, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, iro, narabi, omote, sen, type VariantPropsOf } from '..'
 import { definePanelRecipe } from '../genkei/panel'
 
 export const k = definePanelRecipe({

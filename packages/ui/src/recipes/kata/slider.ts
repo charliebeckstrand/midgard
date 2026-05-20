@@ -1,4 +1,4 @@
-import { defineRecipe, hannou, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, hannou, type VariantPropsOf } from '..'
 
 export const k = defineRecipe({
 	base: [

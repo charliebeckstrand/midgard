@@ -1,4 +1,4 @@
-import { defineRecipe, hannou, iro, ji, narabi, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, hannou, iro, ji, narabi, type VariantPropsOf } from '..'
 
 const label = defineRecipe({
 	base: [

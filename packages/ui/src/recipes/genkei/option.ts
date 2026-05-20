@@ -12,7 +12,7 @@
  * Layer: genkei · Concern: option-row archetype
  */
 
-import { hannou, iro, ji, narabi } from '../../core/recipe'
+import { hannou, iro, ji, narabi } from '..'
 
 const base = [
 	'group/option grid w-full items-baseline',

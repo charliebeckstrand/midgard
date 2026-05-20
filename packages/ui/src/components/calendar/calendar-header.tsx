@@ -3,7 +3,7 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import type { KeyboardEventHandler, RefObject } from 'react'
 import { cn } from '../../core'
-import type { Step } from '../../core/recipe'
+import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/calendar'
 import { Button } from '../button'
 import { Icon } from '../icon'

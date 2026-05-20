@@ -1,4 +1,4 @@
-import { hannou, iro, ji, narabi } from '../../core/recipe'
+import { hannou, iro, ji, narabi } from '..'
 
 export const k = {
 	group: 'py-1 first:pt-0 last:pb-0',

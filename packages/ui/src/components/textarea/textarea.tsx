@@ -2,10 +2,10 @@
 
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { cn, invalidAttrs } from '../../core'
-import type { Step } from '../../core/recipe'
 import { ControlFrame } from '../../primitives/control'
 import { densityPresets, useDensity } from '../../primitives/density'
 import { useSkeleton } from '../../providers/skeleton'
+import type { Step } from '../../recipes'
 import { kokkaku } from '../../recipes'
 import { k, type TextareaVariants, textareaControl } from '../../recipes/kata/textarea'
 import { useControl } from '../control/context'

@@ -1,4 +1,4 @@
-import { defineRecipe, omote, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, omote, type VariantPropsOf } from '../../recipes'
 
 const layout = defineRecipe({
 	base: [

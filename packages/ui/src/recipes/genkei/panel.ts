@@ -1,4 +1,4 @@
-import { narabi } from '../../core/recipe'
+import { narabi } from '..'
 
 type Slot = {
 	/** Classes appended after the narabi.panel.* default for this slot. */

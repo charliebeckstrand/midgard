@@ -2,7 +2,7 @@
 
 import type { CSSProperties } from 'react'
 import { createContext } from '../../core'
-import type { Step } from '../../core/recipe'
+import type { Step } from '../../recipes'
 
 type TooltipContextValue = {
 	open: boolean

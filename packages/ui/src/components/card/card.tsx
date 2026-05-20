@@ -1,10 +1,9 @@
 'use client'
 
 import { cn } from '../../core'
-import { type Step, sun } from '../../core/recipe'
 import { DensityScope, densityPresets, useDensity } from '../../primitives/density'
 import { useSkeleton } from '../../providers/skeleton'
-import { kokkaku } from '../../recipes'
+import { kokkaku, type Step, sun } from '../../recipes'
 import { Box, type BoxProps } from '../box'
 import { Placeholder } from '../placeholder'
 

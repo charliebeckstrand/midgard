@@ -1,4 +1,4 @@
-import { defineRecipe, sen, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, sen, type VariantPropsOf } from '..'
 import { control } from '../genkei/control'
 
 export const k = defineRecipe({

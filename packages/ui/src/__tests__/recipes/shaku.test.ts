@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { shaku } from '../../core/recipe'
+import { shaku } from '../../recipes'
 
 describe('shaku.combobox', () => {
 	it('positions the icon 1px inside the control border', () => {

@@ -1,4 +1,4 @@
-import { iro } from '../../core/recipe'
+import { iro } from '..'
 
 export const k = {
 	base: [

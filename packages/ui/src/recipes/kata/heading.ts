@@ -1,4 +1,4 @@
-import { defineRecipe, iro, ji, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, iro, ji, type VariantPropsOf } from '..'
 
 export const k = defineRecipe({
 	base: [...iro.text.default],

@@ -1,4 +1,4 @@
-import { defineRecipe, hannou, iro, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, hannou, iro, type VariantPropsOf } from '..'
 import { control } from '../genkei/control'
 
 const button = defineRecipe({

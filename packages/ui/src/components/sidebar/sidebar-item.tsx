@@ -1,4 +1,4 @@
-import type { Step } from '../../core/recipe'
+import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/sidebar'
 import { Icon } from '../icon'
 import { createNavItem, type NavItemProps } from '../nav/nav-item-utilities'

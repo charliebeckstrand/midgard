@@ -1,4 +1,4 @@
-import { defineRecipe, ji, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, ji, type VariantPropsOf } from '..'
 
 export const k = defineRecipe({
 	base: 'flex flex-col',

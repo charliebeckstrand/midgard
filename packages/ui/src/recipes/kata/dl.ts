@@ -1,4 +1,4 @@
-import { defineRecipe, iro, ji, sen, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, iro, ji, sen, type VariantPropsOf } from '..'
 
 const root = defineRecipe({
 	base: ji.size.sm,

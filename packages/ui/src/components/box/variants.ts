@@ -1,4 +1,4 @@
-import type { Ma } from '../../core/recipe'
+import type { Ma } from '../../recipes'
 import { omote, sen } from '../../recipes'
 
 export type BoxPadding = Ma

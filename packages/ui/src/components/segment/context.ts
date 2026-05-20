@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext } from '../../core'
-import type { Step } from '../../core/recipe'
+import type { Step } from '../../recipes'
 
 export type SegmentContextValue = {
 	size: Step

@@ -2,7 +2,7 @@
 
 import type { KeyboardEventHandler, RefObject } from 'react'
 import { cn } from '../../core'
-import type { Step } from '../../core/recipe'
+import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/calendar'
 import type { CalendarDayContext, CalendarDayProps } from './calendar'
 import { WEEKDAYS } from './calendar-constants'

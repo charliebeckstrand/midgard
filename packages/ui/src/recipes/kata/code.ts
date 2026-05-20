@@ -1,4 +1,4 @@
-import { defineRecipe, ji, shaku, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, ji, shaku, type VariantPropsOf } from '..'
 
 const blockBg = 'bg-[#0d1117]'
 

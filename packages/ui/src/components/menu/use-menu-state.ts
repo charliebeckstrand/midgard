@@ -8,9 +8,9 @@ import {
 	useRole,
 } from '@floating-ui/react'
 import { type MouseEvent, useCallback, useMemo, useRef, useState } from 'react'
-import type { Step } from '../../core/recipe'
 import { useFloatingPanel } from '../../hooks'
 import { useDensity } from '../../primitives/density'
+import type { Step } from '../../recipes'
 
 export type UseMenuStateOptions = {
 	defaultOpen?: boolean

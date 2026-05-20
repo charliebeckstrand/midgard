@@ -1,4 +1,4 @@
-import { defineRecipe, iro, palette, shaku, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, iro, palette, shaku, type VariantPropsOf } from '..'
 
 const { solid, soft, outline } = iro.palette
 

@@ -26,7 +26,7 @@
  * Layer: genkei · Concern: control field archetype
  */
 
-import { hannou, iro, ji, omote, sen, tsunagi } from '../../core/recipe'
+import { hannou, iro, ji, omote, sen, tsunagi } from '..'
 import { kasane } from './kasane'
 
 // `tsunagi.base` is data-attribute-gated, so it stays inert until a `<Group>`

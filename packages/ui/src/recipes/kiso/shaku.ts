@@ -9,7 +9,7 @@
  * Layer: kiso · Concern: sizing
  */
 
-import type { ScrollOrientation } from '../../../types'
+import type { ScrollOrientation } from '../../types'
 
 /** Icon slot — sizes `data-slot="icon"` children per density step. */
 const icon = {

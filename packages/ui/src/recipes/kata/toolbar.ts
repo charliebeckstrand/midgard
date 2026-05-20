@@ -1,4 +1,4 @@
-import { defineRecipe, omote, sen, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, omote, sen, type VariantPropsOf } from '..'
 
 const root = defineRecipe({
 	base: 'flex items-center',

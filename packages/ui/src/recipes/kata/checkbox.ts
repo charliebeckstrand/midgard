@@ -1,4 +1,4 @@
-import { defineColors, defineRecipe, iro, sen, type VariantPropsOf } from '../../core/recipe'
+import { defineColors, defineRecipe, iro, sen, type VariantPropsOf } from '..'
 import { control } from '../genkei/control'
 
 const color = defineColors({

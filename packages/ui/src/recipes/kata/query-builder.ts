@@ -1,4 +1,4 @@
-import { sen } from '../../core/recipe'
+import { sen } from '..'
 
 export const k = {
 	base: ['flex flex-col gap-3 p-3', sen.border, 'rounded-lg'],

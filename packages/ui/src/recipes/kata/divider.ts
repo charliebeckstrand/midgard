@@ -1,4 +1,4 @@
-import { defineRecipe, sen, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, sen, type VariantPropsOf } from '..'
 
 export const k = defineRecipe({
 	base: ['border-0'],
