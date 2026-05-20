@@ -19,11 +19,11 @@ export type SearchInputProps = Omit<
 }
 
 export function SearchInput({
-	loading,
-	onClear,
 	value,
 	defaultValue,
+	loading,
 	onChange,
+	onClear,
 	ref,
 	...props
 }: SearchInputProps) {
