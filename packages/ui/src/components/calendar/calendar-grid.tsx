@@ -59,7 +59,13 @@ export function CalendarGrid({
 
 					const isActive = activeGridDate != null && isSameDay(date, activeGridDate)
 
-					const dayProps = getDayProps?.({ date, disabled, isToday, isSelected, isActive })
+					const dayProps = getDayProps?.({
+						date,
+						disabled,
+						today: isToday,
+						selected: isSelected,
+						active: isActive,
+					})
 
 					const selected = dayProps?.selected ?? isSelected
 

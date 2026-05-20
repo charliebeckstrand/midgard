@@ -37,9 +37,9 @@ export type CalendarHandle = {
 export type CalendarDayContext = {
 	date: Date
 	disabled: boolean
-	isToday: boolean
-	isSelected: boolean
-	isActive: boolean
+	today: boolean
+	selected: boolean
+	active: boolean
 }
 
 export type CalendarDayProps = {
