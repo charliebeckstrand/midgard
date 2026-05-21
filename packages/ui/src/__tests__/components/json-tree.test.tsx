@@ -286,6 +286,7 @@ describe('json-tree: flattenTree', () => {
 		rootKey = 'root',
 	) {
 		const searchIndex = buildSearchIndex(data, '')
+
 		const { value, filter } = normalizeSearch(undefined)
 
 		return flattenTree(data, rootKey, expanded, value, filter, searchIndex)
@@ -295,6 +296,7 @@ describe('json-tree: flattenTree', () => {
 		const out = flatten({ a: 1, b: 2 }, empty)
 
 		expect(out).toHaveLength(1)
+
 		expect(out[0]?.type).toBe('branch-open')
 	})
 
@@ -306,6 +308,7 @@ describe('json-tree: flattenTree', () => {
 
 	it('recurses into open nested branches', () => {
 		const data = { outer: { inner: { leaf: 1 } } }
+
 		const out = flatten(data, new Set(['root', 'root.outer', 'root.outer.inner']))
 
 		const types = out.map((n) => n.type)
@@ -330,6 +333,7 @@ describe('json-tree: flattenTree', () => {
 
 	it('filters leaves when search is active with filter=true', () => {
 		const searchIndex = buildSearchIndex({ a: 'yes', b: 'no' }, 'yes')
+
 		const out = flattenTree(
 			{ a: 'yes', b: 'no' },
 			'root',

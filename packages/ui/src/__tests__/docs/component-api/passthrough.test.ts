@@ -122,7 +122,9 @@ describe('detectPassThroughs — Omit + Intersection', () => {
 		const out = detectPassThroughs(node, checker)
 
 		expect(out).toHaveLength(1)
+
 		expect(out[0]?.element).toBe('button')
+
 		expect(out[0]?.omitted?.sort()).toEqual(['onClick', 'type'].sort())
 	})
 
@@ -203,7 +205,9 @@ describe('detectPassThroughs — Omit + Intersection', () => {
 		const out = detectPassThroughs(node, checker)
 
 		expect(out).toHaveLength(1)
+
 		expect(out[0]?.element).toBe('button')
+
 		expect(out[0]?.omitted?.sort()).toEqual(['onClick', 'type'].sort())
 	})
 })

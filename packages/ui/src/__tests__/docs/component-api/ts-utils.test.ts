@@ -86,6 +86,7 @@ describe('unwrapFunctionLike', () => {
 		const out = unwrapFunctionLike(fn)
 
 		expect(out).toBeTruthy()
+
 		expect(ts.isFunctionDeclaration(out as ts.Node)).toBe(true)
 	})
 
@@ -95,6 +96,7 @@ describe('unwrapFunctionLike', () => {
 		const init = decl.declarationList.declarations[0]?.initializer
 
 		expect(init).toBeTruthy()
+
 		expect(ts.isArrowFunction(unwrapFunctionLike(init as ts.Node) as ts.Node)).toBe(true)
 	})
 
@@ -108,6 +110,7 @@ describe('unwrapFunctionLike', () => {
 		const fn = unwrapFunctionLike(init as ts.Node)
 
 		expect(fn).toBeTruthy()
+
 		expect(ts.isArrowFunction(fn as ts.Node)).toBe(true)
 	})
 
@@ -137,6 +140,7 @@ describe('getPropsAnnotation', () => {
 		const annotation = getPropsAnnotation(fn)
 
 		expect(annotation).toBeTruthy()
+
 		expect((annotation as ts.TypeReferenceNode).typeName.getText()).toBe('Bar')
 	})
 

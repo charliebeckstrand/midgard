@@ -197,11 +197,11 @@ describe('CurrencyInput', () => {
 
 		const user = userEvent.setup()
 
-		input.focus()
+		await user.click(input)
 
 		await user.type(input, '5')
 
-		input.blur()
+		await user.tab()
 
 		expect(onBlur).toHaveBeenCalled()
 	})

@@ -39,6 +39,7 @@ describe('shades', () => {
 		// `shades` spreads the tuple, so a downstream caller mutating the
 		// output array can't leak into the source spec.
 		const tuple = ['text-zinc-700', 'dark:text-zinc-400'] as const
+
 		const out = shades({
 			zinc: tuple,
 			red: 'text-red-700',
@@ -48,6 +49,7 @@ describe('shades', () => {
 		})
 
 		expect(out.zinc).not.toBe(tuple)
+
 		expect(out.zinc).toEqual([...tuple])
 	})
 })

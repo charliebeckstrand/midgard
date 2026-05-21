@@ -93,8 +93,8 @@ describe('defineRecipe', () => {
 		const out = recipe({ size: 'lg' })
 
 		expect(out).toContain('p-4')
-		expect(out).not.toContain('p-2')
 		expect(out).toContain('rounded')
+		expect(out).not.toContain('p-2')
 	})
 
 	it('user compound rules win over palette compounds on the same (variant × colour)', () => {
