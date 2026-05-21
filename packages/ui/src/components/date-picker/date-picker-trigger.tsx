@@ -8,8 +8,10 @@ import { useIsTruncated } from '../../hooks'
 import { ControlFrame } from '../../primitives/control'
 import { iro } from '../../recipes'
 import { k } from '../../recipes/kata/date-picker'
+import { Button } from '../button'
 import type { ControlSize } from '../control/context'
 import { useGlass } from '../glass/context'
+import { Headless } from '../headless'
 import { Icon } from '../icon'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 
@@ -72,29 +74,31 @@ export function DatePickerTrigger({
 				data-group-orientation={dataGroupOrientation}
 				className={cn('', k.control[glass ? 'glass' : 'default'])}
 			>
-				<button
-					ref={triggerRef}
-					type="button"
-					id={triggerId}
-					aria-haspopup="dialog"
-					aria-expanded={open}
-					data-slot="datepicker-button"
-					disabled={disabled}
-					onClick={() => onOpenChange(!open)}
-					onKeyDown={onKeyDown}
-					className={cn(k.button({ density: size, size }))}
-				>
-					<Tooltip
-						enabled={truncate && isTruncated && Boolean(displayValue)}
-						className={truncate ? 'min-w-0 flex-1 overflow-hidden' : 'flex-1'}
+				<Headless>
+					<Button
+						ref={triggerRef}
+						type="button"
+						id={triggerId}
+						aria-haspopup="dialog"
+						aria-expanded={open}
+						data-slot="datepicker-button"
+						disabled={disabled}
+						onClick={() => onOpenChange(!open)}
+						onKeyDown={onKeyDown}
+						className={cn(k.button({ density: size, size }))}
 					>
-						<TooltipTrigger>{valueNode}</TooltipTrigger>
-						<TooltipContent>{displayValue}</TooltipContent>
-					</Tooltip>
-					<span className={cn(k.icon)}>
-						<Icon icon={<CalendarIcon />} size={iconSize[size]} />
-					</span>
-				</button>
+						<Tooltip
+							enabled={truncate && isTruncated && Boolean(displayValue)}
+							className={truncate ? 'min-w-0 flex-1 overflow-hidden' : 'flex-1'}
+						>
+							<TooltipTrigger>{valueNode}</TooltipTrigger>
+							<TooltipContent>{displayValue}</TooltipContent>
+						</Tooltip>
+						<span className={cn(k.icon)}>
+							<Icon icon={<CalendarIcon />} size={iconSize[size]} />
+						</span>
+					</Button>
+				</Headless>
 			</ControlFrame>
 		</div>
 	)
