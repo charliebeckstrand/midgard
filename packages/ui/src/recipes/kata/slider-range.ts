@@ -27,20 +27,13 @@ const thumb = defineRecipe({
 		'absolute',
 		'rounded-full',
 		'-translate-x-1/2',
-		// Color (light)
 		'bg-white',
 		'ring-1 ring-zinc-950/20',
-		// Color (dark)
 		'dark:ring-white/20',
-		// Effects
 		'shadow-sm',
-		// Transition
 		'transition-transform',
-		// Hover
 		'hover:scale-110',
-		// Active
 		'active:scale-110',
-		// Focus
 		'focus-visible:outline-none',
 		'focus-visible:ring-4',
 		'focus-visible:ring-blue-600',

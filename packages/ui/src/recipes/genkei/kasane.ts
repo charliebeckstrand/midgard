@@ -108,6 +108,6 @@ export const kasane = {
 	focus,
 	validation,
 	disabled,
-	/** Convenience: the full 7-layer stack, in the order they should be spread into className. */
+	/** Convenience: every fragment in the correct spread order for a `className`. */
 	all: [...base, ...inset, ...overlay, ...hover, ...focus, ...validation, ...disabled],
 } as const

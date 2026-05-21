@@ -32,12 +32,10 @@ const disabled = [
 	ugoki.css.duration,
 ]
 
-// Single source of truth for cursor feedback. `cursor-pointer` is the base;
-// the four `cursor-not-allowed` variants win on specificity when the element
-// itself is disabled (`:disabled` / `data-disabled`) or wraps a disabled
-// descendant (`has-[:disabled]` / `has-[data-disabled]`). Keeping the base
-// at one-class specificity also lets parent overrides like
-// `has-disabled:**:cursor-not-allowed` win for sibling-label patterns.
+// `cursor-pointer` stays at one-class specificity so the disabled variants
+// below override it on the element or its descendants — and so parent
+// overrides like `has-disabled:**:cursor-not-allowed` still win for
+// sibling-label patterns.
 const cursor = [
 	'cursor-pointer',
 	'disabled:cursor-not-allowed',

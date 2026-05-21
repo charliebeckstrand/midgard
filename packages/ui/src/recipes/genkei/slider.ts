@@ -1,12 +1,11 @@
 /**
  * Slider (スライダー) — colour palette.
  *
- * Shared `--slider-fill` / `--slider-track` CSS-variable bundle consumed by
- * both single-thumb `<Slider />` (paints the track via a webkit / moz
- * gradient on the native input) and multi-thumb `<SliderRange />` (paints a
- * dedicated fill element). The two implementations differ in selector
- * surface but read the same variables, so promoting the colour table to
- * genkei keeps them visually identical without a kata-to-kata fork.
+ * Shared `--slider-fill` / `--slider-track` CSS-variable bundle. `<Slider />`
+ * paints the track through a webkit / moz gradient on the native input;
+ * `<SliderRange />` paints a dedicated fill element. Different selector
+ * surfaces, same variables — so the table lives here rather than forking
+ * across kata.
  *
  * Layer: genkei · Concern: slider palette
  */
