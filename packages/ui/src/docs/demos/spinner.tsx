@@ -9,17 +9,18 @@ import { Example } from '../components/example'
 import { capitalize } from '../components/format'
 import { LabeledColumn } from '../components/labeled'
 import { SizeListbox } from '../components/size-listbox'
-import { sizes as buttonSizes } from '../demos/button'
 
 export const meta = { category: 'Feedback' }
 
 const sizes = ['xs', 'sm', 'md', 'lg', 'xl'] as const
 
+const buttonSizes = ['xs', 'sm', 'md', 'lg'] as const
+
 type ButtonSize = (typeof buttonSizes)[number]
 
 const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 
-export default function SpinnerDemo() {
+export function Demo() {
 	const [buttonSize, setButtonSize] = useState<ButtonSize>('md')
 
 	return (

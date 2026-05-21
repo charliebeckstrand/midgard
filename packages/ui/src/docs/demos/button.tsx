@@ -18,7 +18,7 @@ type Variant = (typeof variants)[number]
 
 const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 
-export const sizes = ['xs', 'sm', 'md', 'lg'] as const
+const sizes = ['xs', 'sm', 'md', 'lg'] as const
 
 type Size = (typeof sizes)[number]
 
