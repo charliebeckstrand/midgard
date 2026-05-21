@@ -61,7 +61,6 @@ export function Button({
 
 	const loadingOptions = typeof loadingProp === 'object' ? loadingProp : undefined
 
-	const glass = useGlass()
 	const headless = useHeadless()
 	const skeleton = useSkeleton()
 
@@ -82,13 +81,7 @@ export function Button({
 		)
 	}
 
-	const resolvedVariant = variant ?? (glass ? 'glass' : undefined)
-
-	const classes = cn(
-		k({ variant: resolvedVariant, color, size: resolvedSize }),
-		block && 'w-full',
-		className,
-	)
+	const classes = cn(k({ variant, color, size: resolvedSize }), block && 'w-full', className)
 
 	if (skeleton) {
 		return <ButtonSkeleton size={size} className={className} />
@@ -118,7 +111,7 @@ export function Button({
 					<Link
 						ref={ref as Ref<HTMLAnchorElement>}
 						data-slot={dataSlot}
-						data-variant={resolvedVariant}
+						data-variant={variant}
 						data-has-prefix={!!prefix || undefined}
 						data-has-label={labelled || undefined}
 						data-has-suffix={!!suffix || undefined}
@@ -146,7 +139,7 @@ export function Button({
 				{...(spring && buttonSpring)}
 				ref={ref as Ref<HTMLButtonElement>}
 				data-slot={dataSlot}
-				data-variant={resolvedVariant}
+				data-variant={variant}
 				data-has-prefix={!!prefix || undefined}
 				data-has-label={labelled || undefined}
 				data-has-suffix={!!suffix || undefined}
