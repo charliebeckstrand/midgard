@@ -146,11 +146,6 @@ function inlineSourceType(symbol: ts.Symbol): string | null {
  * A "real" prop has at least one declaration in project source — symbols
  * declared only in `node_modules` (HTML attrs, React typings, library mapped
  * types) are pass-through, not authored props.
- *
- * `VariantProps<typeof recipe>` keys are the exception: they declare inside
- * `tailwind-variants` but the recipe's value lands back in project source,
- * so `getDeclarations()` includes the project site through the symbol's
- * intersection origin and they qualify here.
  */
 function hasProjectDeclaration(symbol: ts.Symbol): boolean {
 	const declarations = symbol.getDeclarations() ?? []

@@ -43,7 +43,7 @@ Inside `src/components/<name>/` (and the parallel `primitives/`):
 | Hooks | `use-<name>-<hook>.ts` (or `.tsx` when the hook returns JSX) | folder name (or its singular stem) appears in every hook filename. Never bare. |
 | Context | `context.ts` | `.tsx` only when the file exports a provider component containing JSX. |
 | Types | `types.ts` | when extracted from the main file. |
-| Variants | `variants.ts` | when the recipe / `tailwind-variants` config is extracted alongside the component. |
+| Variants | `variants.ts` | when the recipe config is extracted alongside the component. |
 | Slots | `slots.tsx` (or `slots.ts`) | for components exposing a composable slot API. |
 | Barrel | `index.ts` | re-exports only. |
 

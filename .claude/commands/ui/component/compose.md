@@ -37,12 +37,13 @@ Inspect the target package's `package.json`. Known deps:
 
 | Dep | System |
 | --- | --- |
-| `tailwind-variants` or `cva` | variant recipe library |
 | `vanilla-extract` | typed CSS-in-TS with sprinkles |
 | `stitches` / `@stitches/react` | runtime CSS-in-JS |
 | `styled-components` / `emotion` | tagged-template CSS-in-JS |
 | `tailwindcss` only (no variant lib) | utility classes via a `cn`-style helper |
 | `*.module.css` files in `componentsDir` | CSS Modules |
+
+A local variant-recipe DSL (typically a `recipes/` or `tokens/` module exporting `defineRecipe` / `VariantPropsOf` or similar helpers) counts as a variant recipe library — sibling reads in §1b expose the exact entrypoint.
 
 No signal fires → fall back to §1b sibling reads.
 
@@ -56,7 +57,7 @@ Read **1–2 existing components** in the target `componentsDir`. Extract:
 - Where variant/recipe logic lives (sibling `variants.ts`, colocated, or `tokensDir`).
 - Export style (named vs default, `export function` vs `export const`).
 - Barrel/index conventions.
-- The project's `cn`-equivalent: `clsx`, `classnames`, `cva`, `tailwind-merge`, or a local helper.
+- The project's `cn`-equivalent: `clsx`, `classnames`, `tailwind-merge`, or a local helper.
 - Whether components carry a stable DOM marker (`data-slot` / `data-part` / similar).
 
 When siblings disagree, prefer the most recent (highest mtime). §3 follows what 1b finds — don't default to the most-decomposed shape when siblings are simpler.
@@ -110,12 +111,12 @@ Apply `[layout-heuristics]`. When siblings consistently violate even the fallbac
 
 If the component owns genuinely new styling that isn't expressible through composition, create the variant recipe in the location siblings use. Inline if siblings inline; sibling `variants.ts` if siblings split; `tokensDir` if siblings centralize.
 
-Example — `tailwind-variants` recipe with size and tone variants, plus a slots map. Adjust to the detected styling system:
+Example — recipe with size and tone variants, plus a slots map. Substitute the detected recipe entrypoint (`tv`, `defineRecipe`, `recipe`, …) and its companion variant-props helper for `recipe` / `VariantsFor` below:
 
 ```ts
-import { tv, type VariantProps } from 'tailwind-variants'
+import { recipe, type VariantsFor } from '<project recipe module>'
 
-export const widget = tv({
+export const widget = recipe({
   base: 'inline-flex items-center gap-2',
   variants: {
     tone: {
@@ -131,7 +132,7 @@ export const widget = tv({
   defaultVariants: { tone: 'neutral', size: 'md' },
 })
 
-export type WidgetVariants = VariantProps<typeof widget>
+export type WidgetVariants = VariantsFor<typeof widget>
 
 export const widgetSlots = {
   icon: 'shrink-0',
@@ -144,7 +145,7 @@ If `tokensDir` exposes pre-built tone/size/spacing helpers, compose them instead
 ```ts
 import { tokens } from '@/tokens'
 
-export const widget = tv({
+export const widget = recipe({
   base: ['inline-flex items-center', tokens.gap.md],
   variants: {
     size: {

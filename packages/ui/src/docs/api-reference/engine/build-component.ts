@@ -17,7 +17,7 @@ export function buildComponent(decl: ComponentDecl, checker: ts.TypeChecker): Co
 
 	const passThrough = annotation ? extractPassThrough(annotation, checker) : []
 	const projectNames = annotation ? extractProjectPropNames(annotation, checker) : null
-	const defaults = extractDefaults(callable, annotation, checker)
+	const defaults = extractDefaults(callable)
 
 	const props = propsType ? extractProps(callable, propsType, projectNames, defaults, checker) : []
 
