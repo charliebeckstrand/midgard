@@ -1,5 +1,5 @@
-declare module 'virtual:component-api' {
-	import type { ComponentApi } from './component-api'
+declare module 'virtual:api-reference' {
+	import type { ComponentApi } from './api-reference'
 
 	const data: Record<string, ComponentApi[]>
 

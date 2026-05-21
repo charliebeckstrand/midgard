@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 import { visualizer } from 'rollup-plugin-visualizer'
 import { defineConfig } from 'vite'
 import {
-	componentApiPlugin,
+	apiReferencePlugin,
 	componentTagsPlugin,
 	demoMetasPlugin,
 	deriveCodePlugin,
@@ -19,7 +19,7 @@ export default defineConfig({
 		componentTagsPlugin(),
 		react(),
 		tailwindcss(),
-		componentApiPlugin(),
+		apiReferencePlugin(),
 		demoMetasPlugin(),
 		analyze &&
 			visualizer({

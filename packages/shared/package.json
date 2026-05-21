@@ -26,9 +26,9 @@
 	"dependencies": {
 		"@heroicons/react": "^2.2.0",
 		"auth": "workspace:*",
-		"ui": "workspace:*",
 		"eventsource-parser": "^3.0.6",
-		"react-textarea-autosize": "^8.5.9"
+		"react-textarea-autosize": "^8.5.9",
+		"ui": "workspace:*"
 	},
 	"peerDependencies": {
 		"next": "^15.0.0 || ^16.0.0",
@@ -41,6 +41,6 @@
 		"next": "^16.1.0",
 		"react": "^19.1.0",
 		"tsup": "^8.5.1",
-		"typescript": "^5.9.3"
+		"typescript": "^6.0.2"
 	}
 }

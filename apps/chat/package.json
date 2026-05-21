@@ -14,12 +14,12 @@
 	},
 	"dependencies": {
 		"@heroicons/react": "^2.2.0",
-		"ui": "workspace:*",
 		"auth": "workspace:*",
 		"next": "^16.1.0",
 		"react": "^19.1.0",
 		"react-dom": "^19.1.0",
-		"shared": "workspace:*"
+		"shared": "workspace:*",
+		"ui": "workspace:*"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.4.6",
@@ -28,6 +28,6 @@
 		"@types/react": "^19.1.6",
 		"@types/react-dom": "^19.1.6",
 		"tailwindcss": "^4.1.0",
-		"typescript": "^5.9.3"
+		"typescript": "^6.0.2"
 	}
 }
