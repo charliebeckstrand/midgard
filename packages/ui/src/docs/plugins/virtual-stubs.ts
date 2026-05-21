@@ -1,18 +1,15 @@
 import type { Plugin } from 'vite'
 
 /**
- * Stub the docs-only virtual modules for vitest.
- *
- * Vite's dependency scanner crawls `src/docs/registry.ts` at startup and
- * warns when `virtual:component-api` / `virtual:demo-metas` can't be
- * resolved. The real plugins (componentApiPlugin, demoMetasPlugin) only
- * run during the docs build — parsePackage builds a TS program over the
- * whole package, which is wasted work for tests that never touch the
- * registry. Stubbing the IDs with empty defaults keeps the scan quiet
- * without paying that cost.
+ * Stub the docs-only virtual modules for vitest. Vite's dep scanner crawls
+ * `src/docs/registry.ts` at startup and warns when `virtual:api-reference` /
+ * `virtual:demo-metas` can't be resolved; the real plugins only run during
+ * the docs build, and `buildApi` walks a TS program over the whole package
+ * — wasted work for tests that never touch the registry. Empty defaults
+ * keep the scan quiet without paying that cost.
  */
 export function virtualStubsPlugin(): Plugin {
-	const ids = new Set(['virtual:component-api', 'virtual:demo-metas'])
+	const ids = new Set(['virtual:api-reference', 'virtual:demo-metas'])
 
 	return {
 		name: 'docs-virtual-stubs',

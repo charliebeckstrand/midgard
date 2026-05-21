@@ -1,7 +1,7 @@
-import apiData from 'virtual:component-api'
+import apiData from 'virtual:api-reference'
 import demoMetas from 'virtual:demo-metas'
 import type { ComponentType } from 'react'
-import type { ComponentApi } from './component-api'
+import type { ComponentApi } from './api-reference'
 
 // ---------------------------------------------------------------------------
 // Lazy demo loaders (no demo code loaded until navigated to)
@@ -90,7 +90,7 @@ export function preloadDemo(id: string) {
 }
 
 // ---------------------------------------------------------------------------
-// Component API — pre-computed at build time via virtual:component-api
+// Component API — pre-computed at build time via virtual:api-reference
 // ---------------------------------------------------------------------------
 
 /** Return the pre-computed API for a component, or undefined if none exists. */

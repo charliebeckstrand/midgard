@@ -6,8 +6,8 @@ import {
 	AccordionPanel,
 	AccordionTrigger,
 } from '../../../components/accordion'
-import type { ComponentApi } from '../../component-api'
-import { ComponentEntry } from './api-reference-component-entry'
+import type { ComponentApi } from '../../api-reference/types'
+import { ComponentEntry } from './component-entry'
 
 export function ApiReference({ api }: { api: ComponentApi[] }) {
 	return (
