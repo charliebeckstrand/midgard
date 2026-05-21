@@ -25,13 +25,13 @@ describe('runValidators', () => {
 	it('runs every validator when validateOn is "change"', () => {
 		const errors = runValidators(validators, { name: '', age: 10 }, {}, 'change')
 
-		expect(errors).toEqual({ name: 'required', age: 'too young' })
+		expect(errors).toEqual({ name: ['required'], age: ['too young'] })
 	})
 
 	it('skips untouched fields when validateOn is "touched"', () => {
 		const errors = runValidators(validators, { name: '', age: 10 }, { name: true }, 'touched')
 
-		expect(errors).toEqual({ name: 'required' })
+		expect(errors).toEqual({ name: ['required'] })
 	})
 
 	it('skips every field when validateOn is "submit" and no fields are forced', () => {
@@ -41,13 +41,36 @@ describe('runValidators', () => {
 	it('forces validation for the listed fields regardless of validateOn', () => {
 		const errors = runValidators(validators, { name: '', age: 10 }, {}, 'submit', ['age'])
 
-		expect(errors).toEqual({ age: 'too young' })
+		expect(errors).toEqual({ age: ['too young'] })
 	})
 
 	it('records undefined for fields that pass validation', () => {
 		const errors = runValidators(validators, { name: 'ok', age: 30 }, {}, 'change')
 
 		expect(errors).toEqual({ name: undefined, age: undefined })
+	})
+
+	it('normalizes a string validator return into a single-element array', () => {
+		const errors = runValidators({ name: () => 'required' }, { name: '', age: 0 }, {}, 'change')
+
+		expect(errors).toEqual({ name: ['required'] })
+	})
+
+	it('keeps an array validator return as-is and collects every issue', () => {
+		const errors = runValidators(
+			{ name: () => ['too short', 'no digits'] },
+			{ name: '', age: 0 },
+			{},
+			'change',
+		)
+
+		expect(errors).toEqual({ name: ['too short', 'no digits'] })
+	})
+
+	it('normalizes an empty-array validator return to undefined', () => {
+		const errors = runValidators({ name: () => [] }, { name: '', age: 0 }, {}, 'change')
+
+		expect(errors).toEqual({ name: undefined })
 	})
 
 	it('skips fields without a registered validator', () => {
@@ -77,7 +100,7 @@ describe('formReducer', () => {
 		it('does not validate when validateOn is "submit"', () => {
 			const prior: FormState<Values> = {
 				values: { name: '', age: 0 },
-				errors: { name: 'stale' },
+				errors: { name: ['stale'] },
 				touched: {},
 			}
 
@@ -102,7 +125,7 @@ describe('formReducer', () => {
 				validateOn: 'change',
 			})
 
-			expect(next.errors).toEqual({ name: 'required', age: 'too young' })
+			expect(next.errors).toEqual({ name: ['required'], age: ['too young'] })
 		})
 
 		it('keeps the same errors reference when no validator produces a new error', () => {
@@ -147,7 +170,7 @@ describe('formReducer', () => {
 			})
 
 			expect(next.touched).toEqual({ name: true })
-			expect(next.errors).toEqual({ name: 'required' })
+			expect(next.errors).toEqual({ name: ['required'] })
 		})
 
 		it('does not validate other fields when one field is touched', () => {
@@ -166,25 +189,34 @@ describe('formReducer', () => {
 		it('merges external errors into existing errors', () => {
 			const prior: FormState<Values> = {
 				values: { name: '', age: 0 },
-				errors: { age: 'prev' },
+				errors: { age: ['prev'] },
 				touched: {},
 			}
 
 			const next = formReducer(prior, {
 				type: 'set-errors-external',
-				errors: { name: 'server says no' },
+				errors: { name: ['server says no'] },
 			})
 
-			expect(next.errors).toEqual({ age: 'prev', name: 'server says no' })
+			expect(next.errors).toEqual({ age: ['prev'], name: ['server says no'] })
 		})
 
-		it('marks fields with truthy errors as touched', () => {
+		it('marks fields with non-empty errors as touched', () => {
 			const next = formReducer(initialState(), {
 				type: 'set-errors-external',
-				errors: { name: 'bad', age: undefined },
+				errors: { name: ['bad'], age: undefined },
 			})
 
 			expect(next.touched).toEqual({ name: true })
+		})
+
+		it('does not mark fields touched when the issue list is empty', () => {
+			const next = formReducer(initialState(), {
+				type: 'set-errors-external',
+				errors: { name: [] },
+			})
+
+			expect(next.touched).toEqual({})
 		})
 	})
 
@@ -192,7 +224,7 @@ describe('formReducer', () => {
 		it('returns a clean state with the provided defaults', () => {
 			const prior: FormState<Values> = {
 				values: { name: 'dirty', age: 99 },
-				errors: { name: 'oops' },
+				errors: { name: ['oops'] },
 				touched: { name: true, age: true },
 			}
 
@@ -213,18 +245,18 @@ describe('formReducer', () => {
 		it('replaces errors and touched while preserving values', () => {
 			const prior: FormState<Values> = {
 				values: { name: 'Ada', age: 30 },
-				errors: { name: 'stale' },
+				errors: { name: ['stale'] },
 				touched: {},
 			}
 
 			const next = formReducer(prior, {
 				type: 'submit-validate',
-				errors: { age: 'too young' },
+				errors: { age: ['too young'] },
 				touched: { name: true, age: true },
 			})
 
 			expect(next.values).toBe(prior.values)
-			expect(next.errors).toEqual({ age: 'too young' })
+			expect(next.errors).toEqual({ age: ['too young'] })
 			expect(next.touched).toEqual({ name: true, age: true })
 		})
 	})

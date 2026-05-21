@@ -7,6 +7,7 @@ import {
 	type FormAction,
 	type FormState,
 	formReducer,
+	normalizeIssues,
 	runValidators,
 	type Touched,
 	type ValidateOn,
@@ -14,7 +15,7 @@ import {
 } from './form-reducer'
 
 export type FormHelpers<T> = {
-	setErrors: (errors: Partial<Record<keyof T, string>>) => void
+	setErrors: (errors: Partial<Record<keyof T, string | string[]>>) => void
 	reset: () => void
 }
 
@@ -81,7 +82,7 @@ export function useFormReducer<T extends Record<string, unknown>>({
 
 		const errs = runValidators(v, values, {}, validateOn, Object.keys(v))
 
-		return !Object.values(errs).some((err) => err !== undefined)
+		return !Object.values(errs).some((issues) => issues !== undefined && issues.length > 0)
 	}, [values, validateOn])
 
 	const getValue = useCallback((name: string) => valuesRef.current[name as keyof T], [])
@@ -100,8 +101,12 @@ export function useFormReducer<T extends Record<string, unknown>>({
 		[validateOn],
 	)
 
-	const setErrorsExternal = useCallback((errs: Errors) => {
-		dispatch({ type: 'set-errors-external', errors: errs })
+	const setErrorsExternal = useCallback((errs: Record<string, string | string[] | undefined>) => {
+		const normalized: Errors = {}
+
+		for (const key in errs) normalized[key] = normalizeIssues(errs[key])
+
+		dispatch({ type: 'set-errors-external', errors: normalized })
 	}, [])
 
 	const reset = useCallback(() => {
@@ -128,7 +133,8 @@ export function useFormReducer<T extends Record<string, unknown>>({
 
 			dispatch({ type: 'submit-validate', touched: allTouched, errors: submitErrors })
 
-			if (Object.values(submitErrors).some((err) => err !== undefined)) return
+			if (Object.values(submitErrors).some((issues) => issues !== undefined && issues.length > 0))
+				return
 
 			if (!onSubmit) return
 

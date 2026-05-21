@@ -1,6 +1,9 @@
-export type Errors = Record<string, string | undefined>
+export type Errors = Record<string, string[] | undefined>
 export type Touched = Record<string, boolean>
-export type Validator<T, K extends keyof T> = (value: T[K], values: T) => string | undefined
+export type Validator<T, K extends keyof T> = (
+	value: T[K],
+	values: T,
+) => string | string[] | undefined
 export type Validators<T> = { [K in keyof T]?: Validator<T, K> }
 export type ValidateOn = 'touched' | 'change' | 'submit'
 
@@ -49,11 +52,21 @@ export function runValidators<T extends Record<string, unknown>>(
 		if (!fn) continue
 
 		if (forced || validateOn === 'change' || (validateOn === 'touched' && touched[key])) {
-			result[key] = fn(values[key as keyof T], values)
+			const out = fn(values[key as keyof T], values)
+
+			result[key] = normalizeIssues(out)
 		}
 	}
 
 	return result
+}
+
+export function normalizeIssues(out: string | string[] | undefined): string[] | undefined {
+	if (out === undefined) return undefined
+
+	if (typeof out === 'string') return [out]
+
+	return out.length > 0 ? out : undefined
 }
 
 export function formReducer<T extends Record<string, unknown>>(
@@ -101,7 +114,9 @@ export function formReducer<T extends Record<string, unknown>>(
 			const nextTouched = { ...state.touched }
 
 			for (const key in action.errors) {
-				if (action.errors[key]) nextTouched[key] = true
+				const issues = action.errors[key]
+
+				if (issues !== undefined && issues.length > 0) nextTouched[key] = true
 			}
 
 			return { values: state.values, errors: nextErrors, touched: nextTouched }

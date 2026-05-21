@@ -222,7 +222,7 @@ describe('Form', () => {
 
 	it('exposes helpers to onSubmit and allows setting external errors', async () => {
 		const onSubmit = vi.fn(
-			(_values, helpers: { setErrors: (e: Record<string, string>) => void }) => {
+			(_values, helpers: { setErrors: (e: Record<string, string | string[]>) => void }) => {
 				helpers.setErrors({ name: 'taken' })
 			},
 		)
@@ -230,7 +230,7 @@ describe('Form', () => {
 		function Consumer() {
 			const field = useFormField('name')
 
-			return <span data-testid="error">{field?.error ?? ''}</span>
+			return <span data-testid="error">{field?.errors?.[0] ?? ''}</span>
 		}
 
 		const { container } = renderUI(
