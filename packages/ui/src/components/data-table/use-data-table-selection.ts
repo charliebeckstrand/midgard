@@ -9,6 +9,7 @@ export type UseDataTableSelectionOptions = {
 
 export type UseDataTableSelectionResult = {
 	selection: Set<string | number>
+	setSelection: (next: Set<string | number>) => void
 	toggleRow: (key: string | number) => void
 	toggleAll: () => void
 	allSelected: boolean
@@ -68,5 +69,12 @@ export function useDataTableSelection({
 		})
 	}, [setSelectionRaw])
 
-	return { selection, toggleRow, toggleAll, allSelected, someSelected }
+	const setSelection = useCallback(
+		(next: Set<string | number>) => {
+			setSelectionRaw(next)
+		},
+		[setSelectionRaw],
+	)
+
+	return { selection, setSelection, toggleRow, toggleAll, allSelected, someSelected }
 }

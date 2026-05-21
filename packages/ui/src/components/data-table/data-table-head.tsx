@@ -14,9 +14,10 @@ import type { DataTableColumn } from './types'
 
 type DataTableHeadProps<T> = {
 	columns: DataTableColumn<T>[]
+	hasRows: boolean
 }
 
-export function DataTableHead<T>({ columns }: DataTableHeadProps<T>) {
+export function DataTableHead<T>({ columns, hasRows }: DataTableHeadProps<T>) {
 	const { allSelected, someSelected, toggleAll, sort, toggleSort, stickyHeader } = useDataTable()
 
 	return (
@@ -30,12 +31,14 @@ export function DataTableHead<T>({ columns }: DataTableHeadProps<T>) {
 								className={cn(k.selectCell, stickyHeader && k.stickyHead, col.headerClassName)}
 								style={col.width ? { width: col.width } : undefined}
 							>
-								<Checkbox
-									checked={allSelected}
-									indeterminate={someSelected && !allSelected}
-									onChange={toggleAll}
-									aria-label="Select all rows"
-								/>
+								{hasRows && (
+									<Checkbox
+										checked={allSelected}
+										indeterminate={someSelected && !allSelected}
+										onChange={toggleAll}
+										aria-label="Select all rows"
+									/>
+								)}
 							</TableHeader>
 						)
 					}

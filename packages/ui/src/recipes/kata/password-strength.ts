@@ -15,10 +15,10 @@ const segment = defineRecipe({
 const label = defineRecipe({
 	base: [ji.sm, 'font-medium'],
 	level: {
-		weak: iro.palette.bare.text.red,
-		fair: iro.palette.bare.text.amber,
-		good: iro.palette.bare.text.blue,
-		strong: iro.palette.bare.text.green,
+		weak: iro.text.error,
+		fair: iro.text.warning,
+		good: iro.text.primary,
+		strong: iro.text.success,
 		empty: iro.text.muted,
 	},
 	defaults: { level: 'empty' },

@@ -3,9 +3,11 @@ import { defineRecipe, iro, type VariantPropsOf } from '..'
 export const k = defineRecipe({
 	variant: {
 		default: [...iro.text.default],
+		primary: [...iro.text.primary],
+		success: [...iro.text.success],
+		warning: [...iro.text.warning],
+		error: [...iro.text.error],
 		muted: [...iro.text.muted],
-		error: iro.text.error,
-		warning: iro.text.warning,
 	},
 	color: {
 		current: 'text-current dark:text-current',

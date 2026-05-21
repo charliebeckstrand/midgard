@@ -28,7 +28,10 @@ export type DataTableSelection = {
 	value?: Set<string | number>
 	defaultValue?: Set<string | number>
 	onValueChange?: (selection: Set<string | number> | undefined) => void
-	batchActions?: (selection: Set<string | number>) => ReactNode
+	batchActions?: (params: {
+		selection: Set<string | number>
+		setSelection: (next: Set<string | number>) => void
+	}) => ReactNode
 }
 
 export type DataTableColumnManagerConfig = {
@@ -64,6 +67,12 @@ export type DataTableProps<T> = TableVariants & {
 
 	loading?: boolean
 	rowLoading?: (row: T) => boolean
+
+	/**
+	 * Content shown in place of the body when `rows` is empty and `loading` is
+	 * false. Defaults to a "No items" message.
+	 */
+	empty?: ReactNode
 
 	/**
 	 * Enables row virtualization via `@tanstack/react-virtual`. Only rows in
@@ -103,6 +112,7 @@ export function DataTable<T>({
 	maxHeight,
 	loading = false,
 	rowLoading,
+	empty,
 	virtualize,
 	tableProps,
 	density,
@@ -149,10 +159,11 @@ export function DataTable<T>({
 		[rows, getKey],
 	)
 
-	const { selection, toggleRow, toggleAll, allSelected, someSelected } = useDataTableSelection({
-		selectionConfig,
-		rowKeys,
-	})
+	const { selection, setSelection, toggleRow, toggleAll, allSelected, someSelected } =
+		useDataTableSelection({
+			selectionConfig,
+			rowKeys,
+		})
 
 	const toggleSort = useCallback(
 		(column: string | number) => {
@@ -194,7 +205,7 @@ export function DataTable<T>({
 			className={className}
 			tableProps={tableProps}
 		>
-			<DataTableHead columns={visibleColumns} />
+			<DataTableHead columns={visibleColumns} hasRows={rows.length > 0} />
 
 			<DataTableBody<T>
 				loading={loading}
@@ -204,6 +215,7 @@ export function DataTable<T>({
 				getKey={getKey}
 				rowLoading={rowLoading}
 				rowClassName={rowClassName}
+				empty={empty}
 				virtualize={virtualizeEnabled ? { scrollRef, estimateSize, overscan } : null}
 			/>
 		</Table>
@@ -224,7 +236,9 @@ export function DataTable<T>({
 					/>
 				)}
 
-				{batchActions && <Toolbar>{someSelected && batchActions(selection)}</Toolbar>}
+				{batchActions && (
+					<Toolbar>{someSelected && batchActions({ selection, setSelection })}</Toolbar>
+				)}
 
 				{needsScrollWrapper ? (
 					<div

@@ -1,6 +1,7 @@
 export { Table, type TableElementProps, type TableProps, type TableVariants } from './table'
 export { TableBody, type TableBodyProps } from './table-body'
 export { TableCell, type TableCellProps } from './table-cell'
+export { TableEmpty, type TableEmptyProps } from './table-empty'
 export { TableHead, type TableHeadProps } from './table-head'
 export { TableHeader, type TableHeaderProps } from './table-header'
 export { TableLoading, type TableLoadingProps } from './table-loading'

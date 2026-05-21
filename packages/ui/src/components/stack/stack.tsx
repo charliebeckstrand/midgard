@@ -13,7 +13,7 @@ export type StackProps = FlexProps
 export function Stack({ direction = 'col', gap, ...props }: StackProps) {
 	const density = useDensityNullable()
 
-	const resolvedGap = gap ?? density?.density ?? 'lg'
+	const resolvedGap = gap ?? density?.density ?? 'md'
 
 	return <FlexBase dataSlot="stack" direction={direction} gap={resolvedGap} {...props} />
 }

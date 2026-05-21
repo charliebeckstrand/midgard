@@ -67,6 +67,10 @@ describe('resolveGap', () => {
 		expect(resolveGap('md').length).toBe(1)
 	})
 
+	it('resolves 0 to gap-0', () => {
+		expect(resolveGap(0)).toEqual(['gap-0'])
+	})
+
 	it('emits breakpoint-prefixed classes for a responsive value', () => {
 		const result = resolveGap({ initial: 'sm', md: 'lg' })
 

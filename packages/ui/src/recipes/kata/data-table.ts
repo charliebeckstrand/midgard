@@ -1,4 +1,4 @@
-import { iro, ji, omote, sen } from '..'
+import { hannou, iro, ji, omote, sen } from '..'
 
 export const k = {
 	wrapper: ['relative flex flex-col', 'gap-sm'],
@@ -23,6 +23,7 @@ export const k = {
 		iro.text.muted,
 		iro.text.hover,
 		sen.focus.ring,
+		hannou.cursor,
 		'select-none',
 	],
 	sortIcon: iro.text.muted,

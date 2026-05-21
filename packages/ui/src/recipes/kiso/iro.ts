@@ -24,12 +24,21 @@ const bg = {
 	},
 }
 
+const text = shades({
+	zinc: ['text-zinc-700', 'dark:text-zinc-400'],
+	red: ['text-red-700', 'dark:text-red-400'],
+	amber: ['text-amber-700', 'dark:text-amber-400'],
+	green: ['text-green-700', 'dark:text-green-400'],
+	blue: ['text-blue-700', 'dark:text-blue-400'],
+})
+
 const textBundle = {
 	default: mode('text-zinc-950', 'dark:text-white'),
-	muted: mode('text-zinc-500', 'dark:text-zinc-400'),
-	success: 'text-green-600',
-	warning: mode('text-amber-500', 'dark:text-amber-400'),
-	error: 'text-red-600',
+	primary: mode('text-blue-600', 'dark:text-blue-500'),
+	success: mode('text-green-600', 'dark:text-green-500'),
+	warning: mode('text-amber-600', 'dark:text-amber-500'),
+	error: mode('text-red-600', 'dark:text-red-500'),
+	muted: mode('text-zinc-500', 'dark:text-zinc-500'),
 	disabled: mode(
 		['has-disabled:text-zinc-500', 'has-disabled:**:data-[slot=label]:text-zinc-500'],
 		['dark:has-disabled:text-zinc-400', 'dark:has-disabled:**:data-[slot=label]:text-zinc-400'],
@@ -55,14 +64,6 @@ const textBundle = {
 		],
 	),
 }
-
-const text = shades({
-	zinc: ['text-zinc-700', 'dark:text-zinc-400'],
-	red: ['text-red-700', 'dark:text-red-400'],
-	amber: ['text-amber-700', 'dark:text-amber-400'],
-	green: ['text-green-700', 'dark:text-green-400'],
-	blue: ['text-blue-700', 'dark:text-blue-400'],
-})
 
 const hover = shades({
 	zinc: ['not-disabled:hover:bg-zinc-600/15', 'dark:not-disabled:hover:bg-zinc-500/15'],

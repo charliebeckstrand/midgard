@@ -32,6 +32,7 @@ export const k = {
 	row: [],
 	cell,
 	striped: ['*:even:bg-zinc-950/2.5', 'dark:*:even:bg-white/2.5'],
+	empty: ['text-center', iro.text.muted],
 }
 
 export type TableCellVariants = VariantPropsOf<typeof cell>

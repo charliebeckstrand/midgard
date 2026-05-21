@@ -54,6 +54,10 @@ const sortableColumns: DataTableColumn<Person>[] = baseColumns.map((col) =>
 	col.id === 'name' || col.id === 'email' || col.id === 'role' ? { ...col, sortable: true } : col,
 )
 
+function DefaultExample() {
+	return <DataTable columns={baseColumns} rows={people} getKey={(row) => row.id} />
+}
+
 function SortableExample() {
 	const [sort, setSort] = useState<SortState | undefined>({ column: 'name', direction: 'asc' })
 
@@ -77,122 +81,99 @@ function SortableExample() {
 	)
 }
 
-export default function DataTableDemo() {
+const SelectionExample = () => {
 	const [selection, setSelection] = useState<Set<string | number>>(new Set())
 
 	return (
-		<Stack gap="xl">
-			<Example
-				title="Default"
-				code={code`
-					import { DataTable } from 'ui/data-table'
+		<DataTable
+			columns={[{ id: 'select', selectable: true, width: '48px' }, ...baseColumns]}
+			rows={people}
+			getKey={(row) => row.id}
+			selection={{ value: selection, onValueChange: (s) => setSelection(s ?? new Set()) }}
+		/>
+	)
+}
 
-					<DataTable
-						columns={columns}
-						rows={rows}
-						getKey={(row) => row.id}
-					/>
-				`}
-			>
-				<DataTable columns={baseColumns} rows={people} getKey={(row) => row.id} />
+const BatchActionsExample = () => {
+	const [rows, setRows] = useState(people)
+
+	return rows.length ? (
+		<DataTable
+			columns={[{ id: 'select', selectable: true }, ...baseColumns]}
+			rows={rows}
+			getKey={(row) => row.id}
+			selection={{
+				batchActions: ({ selection, setSelection }) => (
+					<HoldButton
+						size="sm"
+						color="red"
+						variant="soft"
+						onComplete={() => {
+							setRows((prev) => prev.filter((row) => !selection.has(row.id)))
+
+							setSelection(new Set())
+						}}
+					>
+						Delete {selection.size} items
+					</HoldButton>
+				),
+			}}
+		/>
+	) : (
+		<Button color="red" variant="soft" onClick={() => setRows(people)}>
+			Reset
+		</Button>
+	)
+}
+
+const RowActionsExample = () => {
+	return (
+		<DataTable
+			columns={[
+				...baseColumns,
+				{
+					id: 'actions',
+					actions: () => <Button color="blue">Edit</Button>,
+				},
+			]}
+			rows={people}
+			getKey={(row) => row.id}
+		/>
+	)
+}
+
+const ColumnManagerExample = () => {
+	return (
+		<DataTable
+			columns={baseColumns}
+			rows={people}
+			getKey={(row) => row.id}
+			columnManager={{ enabled: true }}
+		/>
+	)
+}
+
+export default function DataTableDemo() {
+	return (
+		<Stack gap="xl">
+			<Example title="Default">
+				<DefaultExample />
 			</Example>
 
 			<Example title="Sortable">
 				<SortableExample />
 			</Example>
 
-			<Example
-				title="Selection"
-				code={code`
-					import { DataTable } from 'ui/data-table'
-
-					const columns = [
-						{ id: 'select', selectable: true, width: '48px' },
-						{ id: 'name', title: 'Name', cell: (row) => row.name },
-						...
-					]
-
-					<DataTable
-						columns={columns}
-						rows={rows}
-						getKey={(row) => row.id}
-						selection={{ value: selection, onValueChange: setSelection }}
-					/>
-				`}
-			>
-				<DataTable
-					columns={[{ id: 'select', selectable: true, width: '48px' }, ...baseColumns]}
-					rows={people}
-					getKey={(row) => row.id}
-					selection={{ value: selection, onValueChange: (s) => setSelection(s ?? new Set()) }}
-				/>
+			<Example title="Selection">
+				<SelectionExample />
 			</Example>
 
-			<Example
-				title="Batch actions"
-				code={code`
-					import { DataTable } from 'ui/data-table'
-
-					<DataTable
-						columns={columns}
-						rows={rows}
-						getKey={(row) => row.id}
-						selection={{
-							batchActions: (selected) => (
-								<Button size="sm" onClick={() => alert(selected.size + ' selected')}>
-									Delete
-								</Button>
-							),
-						}}
-					/>
-				`}
-			>
-				<DataTable
-					columns={[{ id: 'select', selectable: true, width: '48px' }, ...baseColumns]}
-					rows={people}
-					getKey={(row) => row.id}
-					selection={{
-						batchActions: (selected) => (
-							<HoldButton
-								size="sm"
-								color="red"
-								variant="soft"
-								onComplete={() => {
-									setSelection(new Set())
-								}}
-							>
-								Delete {selected.size > 0 && selected.size} items
-							</HoldButton>
-						),
-					}}
-				/>
+			<Example title="Batch actions">
+				<BatchActionsExample />
 			</Example>
 
-			<Example
-				title="Row actions"
-				code={code`
-					import { DataTable } from 'ui/data-table'
-
-					const columns = [
-						...columns,
-						{
-							id: 'actions',
-							actions: (row) => <Button color="blue">Edit</Button>,
-						},
-					]
-				`}
-			>
-				<DataTable
-					columns={[
-						...baseColumns,
-						{
-							id: 'actions',
-							actions: () => <Button color="blue">Edit</Button>,
-						},
-					]}
-					rows={people}
-					getKey={(row) => row.id}
-				/>
+			<Example title="Row actions">
+				<RowActionsExample />
 			</Example>
 
 			<Example title="Striped">
@@ -221,25 +202,12 @@ export default function DataTableDemo() {
 				<DataTable loading columns={baseColumns} rows={[]} getKey={(row) => row.id} />
 			</Example>
 
-			<Example
-				title="Column Manager"
-				code={code`
-					import { DataTable } from 'ui/data-table'
+			<Example title="Empty">
+				<DataTable columns={baseColumns} rows={[]} getKey={(row) => row.id} />
+			</Example>
 
-					<DataTable
-						columns={columns}
-						rows={rows}
-						getKey={(row) => row.id}
-						columnManager={{ enabled: true, defaultHidden: new Set(['location']) }}
-					/>
-				`}
-			>
-				<DataTable
-					columns={baseColumns}
-					rows={people}
-					getKey={(row) => row.id}
-					columnManager={{ enabled: true }}
-				/>
+			<Example title="Column Manager">
+				<ColumnManagerExample />
 			</Example>
 		</Stack>
 	)

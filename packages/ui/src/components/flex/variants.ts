@@ -1,9 +1,10 @@
 import type { Ma } from '../../recipes'
 import { type Breakpoint, type Responsive, resolveResponsive } from '../../types'
 
-export type FlexGap = Ma
+export type FlexGap = Ma | 0
 
 export const gapMap = {
+	0: 'gap-0',
 	xs: 'gap-xs',
 	sm: 'gap-sm',
 	md: 'gap-md',

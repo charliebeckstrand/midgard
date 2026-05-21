@@ -1,7 +1,7 @@
 'use client'
 
-import type { RefObject } from 'react'
-import { TableBody, TableLoading } from '../table'
+import type { ReactNode, RefObject } from 'react'
+import { TableBody, TableEmpty, TableLoading } from '../table'
 import { DataTableRow } from './data-table-row'
 import { DataTableVirtualizedBody } from './data-table-virtualized-body'
 import type { DataTableColumn } from './types'
@@ -14,6 +14,7 @@ type DataTableBodyProps<T> = {
 	getKey: (row: T, index: number) => string | number
 	rowLoading?: (row: T) => boolean
 	rowClassName?: (row: T) => string | undefined
+	empty: ReactNode
 	virtualize: {
 		scrollRef: RefObject<HTMLDivElement | null>
 		estimateSize: number
@@ -29,9 +30,12 @@ export function DataTableBody<T>({
 	getKey,
 	rowLoading,
 	rowClassName,
+	empty,
 	virtualize,
 }: DataTableBodyProps<T>) {
 	if (loading) return <TableLoading columns={visibleColumns.length} />
+
+	if (rows.length === 0) return <TableEmpty columns={visibleColumns.length}>{empty}</TableEmpty>
 
 	if (virtualize) {
 		return (

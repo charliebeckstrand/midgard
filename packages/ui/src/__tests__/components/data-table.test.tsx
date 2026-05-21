@@ -3,17 +3,19 @@ import { DataTable } from '../../components/data-table'
 import { bySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
 
 describe('DataTable', () => {
+	type Row = { name: string; age: number }
+
 	const columns = [
-		{ id: 'name', title: 'Name', cell: (row: { name: string }) => row.name },
-		{ id: 'age', title: 'Age', cell: (row: { age: number }) => row.age },
+		{ id: 'name', title: 'Name', cell: (row: Row) => row.name },
+		{ id: 'age', title: 'Age', cell: (row: Row) => row.age },
 	]
 
-	const rows = [
+	const rows: Row[] = [
 		{ name: 'Alice', age: 30 },
 		{ name: 'Bob', age: 25 },
 	]
 
-	const getKey = (row: { name: string }) => row.name
+	const getKey = (row: Row) => row.name
 
 	it('renders with data-slot="data-table"', () => {
 		const { container } = renderUI(<DataTable columns={columns} rows={rows} getKey={getKey} />)
@@ -53,6 +55,24 @@ describe('DataTable', () => {
 		renderUI(<DataTable columns={columns} rows={rows} getKey={getKey} loading />)
 
 		expect(screen.queryByText('Alice')).not.toBeInTheDocument()
+	})
+
+	it('renders a default empty state when there are no rows', () => {
+		renderUI(<DataTable columns={columns} rows={[]} getKey={getKey} />)
+
+		expect(screen.getByText('No items')).toBeInTheDocument()
+	})
+
+	it('renders custom empty content when `empty` is provided', () => {
+		renderUI(<DataTable columns={columns} rows={[]} getKey={getKey} empty="No people match" />)
+
+		expect(screen.getByText('No people match')).toBeInTheDocument()
+	})
+
+	it('prefers the loading skeleton over the empty state', () => {
+		renderUI(<DataTable columns={columns} rows={[]} getKey={getKey} loading />)
+
+		expect(screen.queryByText('No items')).not.toBeInTheDocument()
 	})
 
 	it('renders a selection checkbox column when a column declares selectable', () => {
@@ -315,6 +335,14 @@ describe('DataTable', () => {
 	})
 
 	describe('selection', () => {
+		it('hides the select-all header checkbox when there are no rows', () => {
+			const selectColumns = [{ id: 'select', selectable: true }, ...columns]
+
+			renderUI(<DataTable columns={selectColumns} rows={[]} getKey={getKey} />)
+
+			expect(screen.queryByRole('checkbox', { name: 'Select all rows' })).not.toBeInTheDocument()
+		})
+
 		it('renders an active select-all checkbox header that toggles every row', async () => {
 			const onValueChange = vi.fn()
 
@@ -367,7 +395,7 @@ describe('DataTable', () => {
 					getKey={getKey}
 					selection={{
 						value: new Set(['Alice']),
-						batchActions: (sel) => <button type="button">Delete {sel.size}</button>,
+						batchActions: ({ selection }) => <button type="button">Delete {selection.size}</button>,
 					}}
 				/>,
 			)
@@ -384,7 +412,7 @@ describe('DataTable', () => {
 					rows={rows}
 					getKey={getKey}
 					selection={{
-						batchActions: (sel) => <button type="button">Delete {sel.size}</button>,
+						batchActions: ({ selection }) => <button type="button">Delete {selection.size}</button>,
 					}}
 				/>,
 			)
