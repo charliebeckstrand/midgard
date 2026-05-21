@@ -7,7 +7,6 @@ import { Filters, FiltersClear, FiltersField, useFilters } from '../../component
 import { Flex } from '../../components/flex'
 import { Heading } from '../../components/heading'
 import { Icon } from '../../components/icon'
-import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 import { SearchInput } from '../../components/search-input'
 import { Select, SelectLabel, SelectOption } from '../../components/select'
 import {
@@ -30,6 +29,7 @@ import {
 import { Text } from '../../components/text'
 import { SidebarLayout, SidebarLayoutBody, SidebarLayoutHeader } from '../../layouts'
 import { Density, type DensityLevel } from '../../providers/density'
+import { DensityListbox } from '../components/density-listbox'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Providers' }
@@ -48,12 +48,6 @@ const orders = [
 	{ id: 'ORD-7294', customer: 'William Kim', status: 'Pending', amount: '$99.00' },
 	{ id: 'ORD-7295', customer: 'Sofia Davis', status: 'Completed', amount: '$149.00' },
 	{ id: 'ORD-7296', customer: 'Ethan Brown', status: 'Processing', amount: '$59.00' },
-]
-
-const levels: { value: DensityLevel; label: string }[] = [
-	{ value: 'loose', label: 'Loose' },
-	{ value: 'snug', label: 'Snug' },
-	{ value: 'compact', label: 'Compact' },
 ]
 
 type OrderFilters = {
@@ -135,22 +129,7 @@ export default function SidebarPageDemo() {
 	)
 
 	return (
-		<Example
-			actions={
-				<Listbox<DensityLevel>
-					value={density}
-					onValueChange={(v) => v && setDensity(v)}
-					displayValue={(v) => levels.find((t) => t.value === v)?.label ?? v}
-					placeholder="Select density"
-				>
-					{levels.map((level) => (
-						<ListboxOption key={level.value} value={level.value}>
-							<ListboxLabel>{level.label}</ListboxLabel>
-						</ListboxOption>
-					))}
-				</Listbox>
-			}
-		>
+		<Example actions={<DensityListbox value={density} onValueChange={setDensity} />}>
 			<Stack gap="md">
 				<Density density={density}>
 					<SidebarLayout sidebar={sidebar}>

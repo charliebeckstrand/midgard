@@ -1,12 +1,12 @@
 import { act, renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { KanbanColumnShape } from '../../components/kanban/types'
+import type { KanbanColumnBase } from '../../components/kanban/types'
 import { useKanbanKeyboard } from '../../components/kanban/use-kanban-keyboard'
 import { makeKeyEvent } from '../helpers'
 
 type Card = { id: string }
 
-type Column = KanbanColumnShape<Card> & { id: string; items: Card[] }
+type Column = KanbanColumnBase<Card> & { id: string; items: Card[] }
 
 function makeColumns(): Column[] {
 	return [

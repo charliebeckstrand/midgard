@@ -1,1 +1,1 @@
-export type KanbanColumnShape<T> = { id: string; items: T[] }
+export type KanbanColumnBase<T> = { id: string; items: T[] }

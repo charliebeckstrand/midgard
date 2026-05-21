@@ -5,6 +5,7 @@ import { CodeBlock } from '../../components/code'
 import { Collapse, CollapsePanel, CollapseTrigger } from '../../components/collapse'
 import { Flex } from '../../components/flex'
 import { Heading } from '../../components/heading'
+import { Spacer } from '../../components/spacer'
 import { Stack } from '../../components/stack'
 import { deriveCode } from '../derive-code'
 
@@ -35,8 +36,9 @@ export function Example({
 	return (
 		<Stack gap="sm">
 			{(title || actions) && (
-				<Flex justify="between" gap="sm">
+				<Flex gap="md">
 					{title && <Heading level={3}>{title}</Heading>}
+					<Spacer />
 					{actions}
 				</Flex>
 			)}

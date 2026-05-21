@@ -18,4 +18,4 @@ export {
 	KanbanColumnTitle,
 	type KanbanColumnTitleProps,
 } from './kanban-column-header'
-export type { KanbanColumnShape } from './types'
+export type { KanbanColumnBase } from './types'

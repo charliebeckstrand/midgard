@@ -5,6 +5,13 @@ import type { Step } from '../../recipes'
 
 export type DensityLevel = 'loose' | 'snug' | 'compact'
 
+/** @see `densityToSize` for the 1:1 mapping of these friendly levels to the `Step` cascade. */
+export const densityLevels: { label: string; value: DensityLevel }[] = [
+	{ label: 'Loose', value: 'loose' },
+	{ label: 'Snug', value: 'snug' },
+	{ label: 'Compact', value: 'compact' },
+]
+
 /** Friendly density level → `Step` carried by the Density primitive. 1:1 mapping. */
 export const densityToSize: Record<DensityLevel, Step> = {
 	loose: 'lg',

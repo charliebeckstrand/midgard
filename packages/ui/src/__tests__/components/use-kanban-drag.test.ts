@@ -1,12 +1,12 @@
 import type { DragEndEvent, DragOverEvent, DragStartEvent } from '@dnd-kit/core'
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import type { KanbanColumnShape } from '../../components/kanban/types'
+import type { KanbanColumnBase } from '../../components/kanban/types'
 import { useKanbanDrag } from '../../components/kanban/use-kanban-drag'
 
 type Card = { id: string }
 
-type Column = KanbanColumnShape<Card> & { title: string }
+type Column = KanbanColumnBase<Card> & { title: string }
 
 const baseColumns: Column[] = [
 	{ id: 'todo', title: 'Todo', items: [{ id: 'a' }, { id: 'b' }] },

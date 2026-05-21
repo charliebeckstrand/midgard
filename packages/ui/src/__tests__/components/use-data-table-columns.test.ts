@@ -5,7 +5,7 @@ import { useDataTableColumns } from '../../components/data-table/use-data-table-
 
 type Row = { name: string; age: number; status: string }
 
-const baseColumns: DataTableColumn<Row>[] = [
+const columns: DataTableColumn<Row>[] = [
 	{ id: 'name', title: 'Name', cell: (r) => r.name },
 	{ id: 'age', title: 'Age', cell: (r) => r.age },
 	{ id: 'status', title: 'Status', cell: (r) => r.status },
@@ -14,7 +14,7 @@ const baseColumns: DataTableColumn<Row>[] = [
 describe('useDataTableColumns', () => {
 	it('defaults columnOrder to the column ids in declaration order', () => {
 		const { result } = renderHook(() =>
-			useDataTableColumns<Row>({ columns: baseColumns, columnManagerConfig: undefined }),
+			useDataTableColumns<Row>({ columns, columnManagerConfig: undefined }),
 		)
 
 		expect(result.current.columnOrder).toEqual(['name', 'age', 'status'])
@@ -22,7 +22,7 @@ describe('useDataTableColumns', () => {
 
 	it('exposes empty hidden set by default', () => {
 		const { result } = renderHook(() =>
-			useDataTableColumns<Row>({ columns: baseColumns, columnManagerConfig: undefined }),
+			useDataTableColumns<Row>({ columns, columnManagerConfig: undefined }),
 		)
 
 		expect(result.current.hiddenColumns.size).toBe(0)
@@ -30,7 +30,7 @@ describe('useDataTableColumns', () => {
 
 	it('exposes the default manage-columns label as "Columns"', () => {
 		const { result } = renderHook(() =>
-			useDataTableColumns<Row>({ columns: baseColumns, columnManagerConfig: undefined }),
+			useDataTableColumns<Row>({ columns, columnManagerConfig: undefined }),
 		)
 
 		expect(result.current.manageColumnsLabel).toBe('Columns')
@@ -39,7 +39,7 @@ describe('useDataTableColumns', () => {
 	it('reads manageColumns from columnManagerConfig.enabled', () => {
 		const { result } = renderHook(() =>
 			useDataTableColumns<Row>({
-				columns: baseColumns,
+				columns,
 				columnManagerConfig: { enabled: true },
 			}),
 		)
@@ -50,7 +50,7 @@ describe('useDataTableColumns', () => {
 	it('honors a controlled order from columnManagerConfig.order', () => {
 		const { result } = renderHook(() =>
 			useDataTableColumns<Row>({
-				columns: baseColumns,
+				columns,
 				columnManagerConfig: { order: ['age', 'name', 'status'] },
 			}),
 		)
@@ -63,7 +63,7 @@ describe('useDataTableColumns', () => {
 	it('uses defaultOrder when no controlled order is supplied', () => {
 		const { result } = renderHook(() =>
 			useDataTableColumns<Row>({
-				columns: baseColumns,
+				columns,
 				columnManagerConfig: { defaultOrder: ['status', 'name', 'age'] },
 			}),
 		)
@@ -74,7 +74,7 @@ describe('useDataTableColumns', () => {
 	it('drops a hidden column from visibleColumns', () => {
 		const { result } = renderHook(() =>
 			useDataTableColumns<Row>({
-				columns: baseColumns,
+				columns,
 				columnManagerConfig: { defaultHidden: new Set(['age']) },
 			}),
 		)
@@ -91,7 +91,7 @@ describe('useDataTableColumns', () => {
 
 		const { result } = renderHook(() =>
 			useDataTableColumns<Row>({
-				columns: baseColumns,
+				columns,
 				columnManagerConfig: { onHiddenChange, defaultHidden: new Set() },
 			}),
 		)
@@ -108,7 +108,7 @@ describe('useDataTableColumns', () => {
 
 		const { result } = renderHook(() =>
 			useDataTableColumns<Row>({
-				columns: baseColumns,
+				columns,
 				columnManagerConfig: { onOrderChange },
 			}),
 		)
@@ -184,7 +184,7 @@ describe('useDataTableColumns', () => {
 	it('honors a custom manage-columns label', () => {
 		const { result } = renderHook(() =>
 			useDataTableColumns<Row>({
-				columns: baseColumns,
+				columns,
 				columnManagerConfig: { enabled: true, label: 'Manage' },
 			}),
 		)
@@ -195,7 +195,7 @@ describe('useDataTableColumns', () => {
 	it('appends columns missing from the stored order at the end', () => {
 		const { result } = renderHook(() =>
 			useDataTableColumns<Row>({
-				columns: baseColumns,
+				columns,
 				columnManagerConfig: { order: ['name'] },
 			}),
 		)
@@ -213,13 +213,13 @@ describe('useDataTableColumns', () => {
 		const { result, rerender } = renderHook(
 			({ cols }: { cols: DataTableColumn<Row>[] }) =>
 				useDataTableColumns<Row>({ columns: cols, columnManagerConfig: undefined }),
-			{ initialProps: { cols: baseColumns } },
+			{ initialProps: { cols: columns } },
 		)
 
 		const first = result.current.visibleColumns
 
 		// Same columns, new array — should still reuse the cached reference.
-		rerender({ cols: [...baseColumns] })
+		rerender({ cols: [...columns] })
 
 		expect(result.current.visibleColumns).toBe(first)
 	})
@@ -253,7 +253,7 @@ describe('useDataTableColumns', () => {
 
 		const { result } = renderHook(() =>
 			useDataTableColumns<Row>({
-				columns: baseColumns,
+				columns,
 				columnManagerConfig: { hidden, defaultHidden: new Set(['age']) },
 			}),
 		)
@@ -270,7 +270,7 @@ describe('useDataTableColumns', () => {
 		const { result, rerender } = renderHook(
 			({ hidden }: { hidden: Set<string | number> }) =>
 				useDataTableColumns<Row>({
-					columns: baseColumns,
+					columns,
 					columnManagerConfig: { hidden },
 				}),
 			{ initialProps: { hidden: new Set<string | number>() } },
@@ -288,7 +288,7 @@ describe('useDataTableColumns', () => {
 	it('honors manageColumns=false when columnManagerConfig.enabled is unset', () => {
 		const { result } = renderHook(() =>
 			useDataTableColumns<Row>({
-				columns: baseColumns,
+				columns,
 				columnManagerConfig: { label: 'Anything' },
 			}),
 		)

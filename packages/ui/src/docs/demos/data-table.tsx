@@ -6,7 +6,9 @@ import { Button } from '../../components/button'
 import { DataTable, type DataTableColumn, type SortState } from '../../components/data-table'
 import { HoldButton } from '../../components/hold-button'
 import { Stack } from '../../components/stack'
+import { Density, type DensityLevel } from '../../providers/density'
 import { code } from '../code'
+import { DensityListbox } from '../components/density-listbox'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Table' }
@@ -39,7 +41,7 @@ const people: Person[] = [
 	},
 ]
 
-const baseColumns: DataTableColumn<Person>[] = [
+const columns: DataTableColumn<Person>[] = [
 	{ id: 'name', title: 'Name', cell: (row) => row.name },
 	{ id: 'email', title: 'Email', cell: (row) => row.email },
 	{ id: 'role', title: 'Role', cell: (row) => row.role },
@@ -50,12 +52,12 @@ const baseColumns: DataTableColumn<Person>[] = [
 	},
 ]
 
-const sortableColumns: DataTableColumn<Person>[] = baseColumns.map((col) =>
+const sortableColumns: DataTableColumn<Person>[] = columns.map((col) =>
 	col.id === 'name' || col.id === 'email' || col.id === 'role' ? { ...col, sortable: true } : col,
 )
 
 function DefaultExample() {
-	return <DataTable columns={baseColumns} rows={people} getKey={(row) => row.id} />
+	return <DataTable columns={columns} rows={people} getKey={(row) => row.id} />
 }
 
 function SortableExample() {
@@ -86,7 +88,7 @@ const SelectionExample = () => {
 
 	return (
 		<DataTable
-			columns={[{ id: 'select', selectable: true, width: '48px' }, ...baseColumns]}
+			columns={[{ id: 'select', selectable: true, width: '48px' }, ...columns]}
 			rows={people}
 			getKey={(row) => row.id}
 			selection={{ value: selection, onValueChange: (s) => setSelection(s ?? new Set()) }}
@@ -99,7 +101,7 @@ const BatchActionsExample = () => {
 
 	return rows.length ? (
 		<DataTable
-			columns={[{ id: 'select', selectable: true }, ...baseColumns]}
+			columns={[{ id: 'select', selectable: true }, ...columns]}
 			rows={rows}
 			getKey={(row) => row.id}
 			selection={{
@@ -130,7 +132,7 @@ const RowActionsExample = () => {
 	return (
 		<DataTable
 			columns={[
-				...baseColumns,
+				...columns,
 				{
 					id: 'actions',
 					actions: () => <Button color="blue">Edit</Button>,
@@ -142,10 +144,18 @@ const RowActionsExample = () => {
 	)
 }
 
+function DensityExample({ density }: { density: DensityLevel }) {
+	return (
+		<Density density={density}>
+			<DataTable columns={columns} rows={people} getKey={(row) => row.id} />
+		</Density>
+	)
+}
+
 const ColumnManagerExample = () => {
 	return (
 		<DataTable
-			columns={baseColumns}
+			columns={columns}
 			rows={people}
 			getKey={(row) => row.id}
 			columnManager={{ enabled: true }}
@@ -154,6 +164,8 @@ const ColumnManagerExample = () => {
 }
 
 export default function DataTableDemo() {
+	const [density, setDensity] = useState<DensityLevel>('snug')
+
 	return (
 		<Stack gap="xl">
 			<Example title="Default">
@@ -177,33 +189,36 @@ export default function DataTableDemo() {
 			</Example>
 
 			<Example title="Striped">
-				<DataTable striped columns={baseColumns} rows={people} getKey={(row) => row.id} />
+				<DataTable striped columns={columns} rows={people} getKey={(row) => row.id} />
 			</Example>
 
 			<Example title="Grid">
-				<DataTable grid columns={baseColumns} rows={people} getKey={(row) => row.id} />
+				<DataTable grid columns={columns} rows={people} getKey={(row) => row.id} />
 			</Example>
 
-			<Example title="Compact density">
-				<DataTable density="compact" columns={baseColumns} rows={people} getKey={(row) => row.id} />
+			<Example
+				title="Density"
+				actions={<DensityListbox value={density} onValueChange={setDensity} />}
+			>
+				<DensityExample density={density} />
 			</Example>
 
 			<Example title="Sticky header" code={code`<DataTable stickyHeader maxHeight="200px" />`}>
 				<DataTable
 					stickyHeader
 					maxHeight="200px"
-					columns={baseColumns}
+					columns={columns}
 					rows={[...people, ...people]}
 					getKey={(row, i) => `${row.id}-${i}`}
 				/>
 			</Example>
 
 			<Example title="Loading">
-				<DataTable loading columns={baseColumns} rows={[]} getKey={(row) => row.id} />
+				<DataTable loading columns={columns} rows={[]} getKey={(row) => row.id} />
 			</Example>
 
 			<Example title="Empty">
-				<DataTable columns={baseColumns} rows={[]} getKey={(row) => row.id} />
+				<DataTable columns={columns} rows={[]} getKey={(row) => row.id} />
 			</Example>
 
 			<Example title="Column Manager">

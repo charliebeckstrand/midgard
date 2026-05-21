@@ -1,9 +1,9 @@
 'use client'
 
 import { type KeyboardEvent, useCallback, useRef, useState } from 'react'
-import type { KanbanColumnShape } from './types'
+import type { KanbanColumnBase } from './types'
 
-export function useKanbanKeyboard<T, C extends KanbanColumnShape<T>>({
+export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 	columns,
 	getKey,
 	onValueChange,

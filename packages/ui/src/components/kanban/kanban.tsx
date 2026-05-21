@@ -12,11 +12,11 @@ import { type ReactNode, useCallback, useMemo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/kanban'
 import { KanbanProvider } from './context'
-import type { KanbanColumnShape } from './types'
+import type { KanbanColumnBase } from './types'
 import { useKanbanDrag } from './use-kanban-drag'
 import { useKanbanKeyboard } from './use-kanban-keyboard'
 
-export type KanbanProps<T, C extends KanbanColumnShape<T>> = {
+export type KanbanProps<T, C extends KanbanColumnBase<T>> = {
 	/** Ordered columns. Each column must have a stable `id` and an `items` array. */
 	columns: C[]
 	/** Stable key extractor for items. */
@@ -31,7 +31,7 @@ export type KanbanProps<T, C extends KanbanColumnShape<T>> = {
 }
 
 /** Multi-column board with drag-and-drop and keyboard reordering both within and across columns. */
-export function Kanban<T, C extends KanbanColumnShape<T>>({
+export function Kanban<T, C extends KanbanColumnBase<T>>({
 	columns,
 	getKey,
 	onValueChange,
