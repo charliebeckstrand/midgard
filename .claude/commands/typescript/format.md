@@ -1,10 +1,10 @@
 # typescript:format
 
-TRIGGER when: format, tidy, align, or normalize TypeScript — a file, a directory, or the staged diff. Also when `/postmortem` chains here ahead of `/typescript:review`. Also when the user says "format this", "tidy the TS", "make it match the house style", "apply our conventions".
+TRIGGER when: format, tidy, align, or normalize TypeScript. Opt in casually — name a file to format only that file, a directory or list of paths to batch-format, or nothing at all to format the staged diff. Also when `/postmortem` chains here ahead of `/typescript:review`, or when the user says "format this", "tidy the TS", "make it match the house style".
 
-Apply the repo's TypeScript formatting and structural conventions to `.ts` / `.tsx` code. Biome covers the bulk (indent, quote, line width, import order); this skill covers the conventions Biome doesn't see — `type` vs `interface`, named-only exports, vertical breathing between statements, `'use client'` placement, JSDoc shape, constant naming. Auto-fixes what is safely mechanical; surfaces the rest as findings.
+Apply the repo's TypeScript structural conventions to `.ts` / `.tsx` — the ones Biome doesn't see: `type` over `interface`, named-only exports, vertical breathing between statements, `'use client'` placement, JSDoc shape, constant naming. Auto-applies the mechanical fixes; surfaces the rest as findings.
 
-This skill writes code. It is **not** a review — it applies fixes and reports what it did. Use `/typescript:review` for verdict-style gating.
+This skill writes code. Use `/typescript:review` for PASS / BLOCK gating on the same surface.
 
 ---
 
@@ -15,10 +15,10 @@ $ARGUMENTS
 Recognized hints:
 
 - No argument → **diff mode**. Format the staged diff (or `git diff HEAD` when nothing is staged). Used by `/postmortem`.
-- A path to a `.ts` / `.tsx` file → **file mode**. Format that one file.
+- A path to a `.ts` / `.tsx` file → **file mode**. Format that one file and stop.
 - A directory → **dir mode**. Format every `.ts` / `.tsx` directly inside (non-recursive; pass explicit paths for recursion).
-- Multiple paths (any mix of files and directories, space-separated) → **multi mode**. Each is expanded; the union is formatted in one pass.
-- `--dry-run` → run every check but write nothing; report the diff that *would* be applied.
+- Multiple paths, any mix of files and directories, space-separated → **multi mode**. Each path expands as above; the union formats in one pass.
+- `--dry-run` → run every check, write nothing, report the diff that *would* apply.
 - `--only=<biome|structure|surface>` → restrict to one phase (see §3). Stacks: `--only=biome --only=structure`.
 
 ---
@@ -138,10 +138,10 @@ Header:
 Then one of:
 
 - **CLEAN** — no edits applied, no findings. One line. Hand control back.
-- **APPLIED** — edits written. List each modified file. Tell the caller to re-stage (`git add -u`) and, when invoked by `/postmortem`, that the chain halts pending the user's restage.
-- **BLOCK** — list every BLOCK finding with `file:line` and the fix or migration route. Refuse to claim CLEAN until resolved. Advisories are listed below the BLOCK section but do not gate the verdict.
+- **APPLIED** — edits written. List every modified file. Tell the caller to restage (`git add -u`); when invoked by `/postmortem`, the chain halts pending that restage.
+- **BLOCK** — list every BLOCK finding with `file:line` and the fix or migration route. Refuse CLEAN until resolved. List advisories below; they do not gate the verdict.
 
-Always emit the file list under APPLIED — silent rewrites lose the user's trust.
+Never rewrite silently. Every APPLIED verdict carries the full modified-file list.
 
 ---
 
@@ -176,7 +176,7 @@ Citations for the rules above. Read this section when a finding's rationale need
 
 ### 5e. Vertical breathing
 
-The repo's signature style. The default is **one blank line between adjacent statements** so the reader's eye lands on one operation per beat. Blanks go between:
+The repo's signature style. Default to **one blank line between adjacent statements** — the reader's eye lands on one operation per beat. Blanks go between:
 
 - Two `const` / `let` declarations.
 - Two hook calls (`useState`, `useEffect`, `useCallback`).
@@ -214,7 +214,7 @@ export type Orientation = 'horizontal' | 'vertical'
 export type ScrollOrientation = 'horizontal' | 'vertical' | 'both'
 ```
 
-The first set rhymes — `DEFAULT_`, `tag` — the eye reads them as one stanza. The second set diverges immediately after the keyword (`const` vs `type`, or `Orientation` vs `ScrollOrientation` — `Scroll` breaks the alignment). Imports always pack — Biome owns that block. When in doubt, sample a sibling in the same directory; defaulting to a blank line is the safer error.
+The first set rhymes — `DEFAULT_`, `tag` — the eye reads them as one stanza. The second set diverges immediately after the keyword (`const` vs `type`, or `Orientation` vs `ScrollOrientation` — `Scroll` breaks the alignment). Imports always pack; Biome owns that block. When in doubt, sample a sibling. Default to a blank line.
 
 ### 5f. JSDoc
 
@@ -251,7 +251,7 @@ Every component or hook file exports a symbol whose PascalCase (or `useCamelCase
 ## Rules
 
 - This skill writes. APPLIED means files changed on disk; cite every one.
-- Never silently overwrite uncommitted work — diff mode operates on already-staged or already-tracked files; new untracked files in the surface get formatted, but a file with uncommitted changes that *isn't* in the diff is left alone.
+- Never touch uncommitted work outside the surface. Diff mode formats only files in the diff; file / dir / multi modes format the explicit paths and nothing else.
 - BLOCK halts the caller's chain. When invoked by `/postmortem`, BLOCK refuses to advance to extras or `/typescript:review`.
 - Never auto-create JSDoc — the writer owns the words.
 - Never extend the `ALLOWLIST` in `component-filename-boundary.test.ts`. Fix the file or the export.
