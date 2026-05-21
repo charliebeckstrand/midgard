@@ -1,4 +1,5 @@
 import { ts } from 'ts-morph'
+import { formatPropType } from './format-type'
 import { unaliasSymbol } from './ts-utils'
 
 const TYPE_NAME_RE = /\b([A-Z][A-Za-z0-9_]*)\b/g
@@ -33,12 +34,27 @@ const BUILTIN_TYPES = new Set([
 ])
 
 /**
- * Resolve every named-type reference in a rendered prop type to its source
- * text, so the docs panel can show each alias' definition. Recurses through
+ * Recipe-engine plumbing — `Recipe`, `RecipeBase`, `ResolvedConfig`,
+ * `VariantPropsOf`, … — has nothing to do with the prop the user is
+ * inspecting. Treat the engine directory the same as `node_modules`.
+ */
+const ENGINE_PATH_SEGMENT = '/core/recipe/engine/'
+
+/**
+ * Resolve every named-type reference in a rendered prop type to its display
+ * form, so the docs panel can show each alias' definition. Recurses through
  * references discovered inside each definition.
  *
- * Scope is project source only — node_modules, React/DOM typings, and
- * built-in utility types (`Array`, `Pick`, …) are excluded.
+ * Object-shaped aliases render as an apparent-property body — the shape the
+ * caller would actually pass — instead of the alias's raw source text, so
+ * `Pick<…>` / `Omit<…>` / intersection compositions collapse to one card.
+ * Intersection arms declared in `node_modules` or the recipe engine drop out
+ * before properties are enumerated, so HTML pass-throughs don't flood the
+ * panel (the API Reference's pass-through section already covers them).
+ *
+ * Scope is project source only — `node_modules`, React/DOM typings, recipe
+ * engine internals, and built-in utility types (`Array`, `Pick`, …) are
+ * excluded.
  */
 export function extractReferences(
 	formattedType: string,
@@ -118,9 +134,13 @@ function resolveAliasDefinition(
 	const aliased = unaliasSymbol(symbol, checker)
 
 	for (const decl of aliased.getDeclarations() ?? []) {
-		if (decl.getSourceFile().fileName.includes('/node_modules/')) continue
+		if (isExternalDeclaration(decl)) continue
 
 		if (ts.isTypeAliasDeclaration(decl)) {
+			const shape = formatApparentShape(aliased, decl, checker)
+
+			if (shape) return { text: dedent(shape), declaration: decl }
+
 			const params = typeParameterList(decl.typeParameters)
 			const body = `${params ? `${params} = ` : ''}${decl.type.getText()}`
 
@@ -128,11 +148,90 @@ function resolveAliasDefinition(
 		}
 
 		if (ts.isInterfaceDeclaration(decl)) {
+			const shape = formatApparentShape(aliased, decl, checker)
+
+			if (shape) return { text: dedent(shape), declaration: decl }
+
 			return { text: dedent(formatInterface(decl)), declaration: decl }
 		}
 	}
 
 	return null
+}
+
+/**
+ * Declarations under `node_modules` or the recipe engine are treated as
+ * opaque — neither resolves to a reference card, and properties contributed
+ * by them are filtered out of apparent-shape bodies.
+ */
+function isExternalDeclaration(decl: ts.Declaration): boolean {
+	const file = decl.getSourceFile().fileName
+
+	return file.includes('/node_modules/') || file.includes(ENGINE_PATH_SEGMENT)
+}
+
+/**
+ * Render an object-shaped alias as its resolved apparent shape rather than
+ * the alias' source text. Property symbols whose declarations are all
+ * external are dropped — that's how `Omit<HTMLAttributes<…>, …> & { … }`
+ * collapses to just the project arm without enumerating every HTML attr.
+ *
+ * Returns `null` for primitives, literal unions, and function types so the
+ * caller falls back to source text — those declarations are already concise
+ * as written.
+ */
+function formatApparentShape(
+	symbol: ts.Symbol,
+	decl: ts.TypeAliasDeclaration | ts.InterfaceDeclaration,
+	checker: ts.TypeChecker,
+): string | null {
+	// Evaluate the type expression at the declaration site so mapped-type
+	// wrappers (`Pick`, `Omit`, …) materialize their resolved properties.
+	// `getDeclaredTypeOfSymbol` returns the type as written, which for a
+	// `type X = Pick<…, …>` keeps Pick as an opaque TypeReference whose
+	// `getProperties()` is empty until apparent-type resolution.
+	const declaredType = ts.isTypeAliasDeclaration(decl)
+		? checker.getTypeFromTypeNode(decl.type)
+		: checker.getDeclaredTypeOfSymbol(symbol)
+
+	// Function types and hybrid callables read better as source text — their
+	// call signature is the whole point.
+	if (declaredType.getCallSignatures().length > 0) return null
+
+	const properties: { name: string; sym: ts.Symbol }[] = []
+
+	for (const propSym of checker.getPropertiesOfType(declaredType)) {
+		if (isExternalPropertySymbol(propSym)) continue
+
+		properties.push({ name: propSym.getName(), sym: propSym })
+	}
+
+	if (properties.length === 0) return null
+
+	const params = typeParameterList(decl.typeParameters)
+
+	const lines = properties.map(({ name, sym }) => {
+		const propType = checker.getTypeOfSymbolAtLocation(sym, decl)
+		const optional = !!(sym.flags & ts.SymbolFlags.Optional)
+		const formatted = formatPropType(propType, checker, decl)
+
+		return `\t${name}${optional ? '?' : ''}: ${formatted}`
+	})
+
+	return `${params ? `${params} = ` : ''}{\n${lines.join('\n')}\n}`
+}
+
+/**
+ * A property whose every declaration site sits in `node_modules` or the
+ * recipe engine — i.e. it came in through an external intersection arm and
+ * is not a prop the project's surface API accepts.
+ */
+function isExternalPropertySymbol(symbol: ts.Symbol): boolean {
+	const declarations = symbol.getDeclarations() ?? []
+
+	if (declarations.length === 0) return false
+
+	return declarations.every(isExternalDeclaration)
 }
 
 function formatInterface(decl: ts.InterfaceDeclaration): string {

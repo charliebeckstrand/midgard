@@ -216,7 +216,7 @@ function FormStatusDisplay() {
 
 	return (
 		<Flex gap="sm" align="start">
-			<Badge variant="outline" color={form.isDirty ? 'green' : 'red'}>
+			<Badge variant="outline" color={form.isDirty ? 'amber' : 'green'}>
 				dirty: {form.isDirty ? 'yes' : 'no'}
 			</Badge>
 			<Badge variant="outline" color={form.isValid ? 'green' : 'red'}>

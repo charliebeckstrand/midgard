@@ -19,6 +19,7 @@ export function extractDefaults(
 	checker: ts.TypeChecker,
 ): Map<string, string> {
 	const cva = annotation ? collectCvaDefaults(annotation, checker) : new Map()
+
 	const inline = collectInlineDefaults(callable)
 
 	return new Map<string, string>([...cva, ...inline])

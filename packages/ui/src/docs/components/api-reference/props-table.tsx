@@ -16,9 +16,9 @@ export function PropsTable({ rows }: { rows: PropDef[] }) {
 		<Table>
 			<TableHead>
 				<TableRow>
-					<TableHeader className="whitespace-nowrap">Prop</TableHeader>
-					<TableHeader>Type</TableHeader>
-					<TableHeader>Default</TableHeader>
+					<TableHeader className="w-1/4">Prop</TableHeader>
+					<TableHeader className="w-1/2">Type</TableHeader>
+					<TableHeader className="w-1/4">Default</TableHeader>
 				</TableRow>
 			</TableHead>
 			<TableBody>
@@ -27,7 +27,7 @@ export function PropsTable({ rows }: { rows: PropDef[] }) {
 						<TableCell className="font-mono font-medium align-center whitespace-nowrap">
 							{prop.name}
 						</TableCell>
-						<TableCell className="w-full">
+						<TableCell>
 							<TypeCell prop={prop} />
 						</TableCell>
 						<TableCell className="font-mono text-zinc-500 dark:text-zinc-400 align-center whitespace-nowrap">

@@ -51,7 +51,7 @@ export function ComponentEntry({ entry }: { entry: ComponentApi }) {
 function Section({ title, rows }: { title: string; rows: PropDef[] }) {
 	return (
 		<div className="space-y-4">
-			<Heading level={4}>{title}</Heading>
+			<Heading level={3}>{title}</Heading>
 			<PropsTable rows={rows} />
 		</div>
 	)

@@ -30,10 +30,8 @@ const tags = [
 	'biome',
 	'pnpm',
 	'turborepo',
-	'cva',
 	'lucide',
 	'clsx',
-	'zustand',
 	'floating-ui',
 	'shiki',
 ]

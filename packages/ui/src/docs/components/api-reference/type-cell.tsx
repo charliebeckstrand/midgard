@@ -52,7 +52,7 @@ export function TypeCell({ prop }: { prop: PropDef }) {
 
 	return (
 		<>
-			<Flex gap="md" direction={{ initial: 'row', xl: 'col' }}>
+			<Flex gap="md" direction={{ initial: 'row', xl: 'col' }} wrap>
 				<Badge className="text-sm">{prop.type}</Badge>
 				<Button variant="plain" size="sm" onClick={() => setOpen(true)}>
 					View references

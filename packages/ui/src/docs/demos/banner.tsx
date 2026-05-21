@@ -27,7 +27,7 @@ function ClosableExample() {
 
 	return (
 		<Banner
-			type="info"
+			severity="info"
 			title="New version available"
 			description="Version 2.0 has been released with new features and improvements."
 			onOpenChange={(open) => setVisible(open)}
@@ -40,12 +40,12 @@ export function Demo() {
 
 	return (
 		<Stack gap="xl">
-			<Example title="Types">
+			<Example title="Severity">
 				<Stack className="gap-0 -mx-4">
 					{types.map((type) => (
 						<Banner
 							key={type}
-							type={type}
+							severity={type}
 							title={`${capitalize(type)} — this is a ${type} banner`}
 							closable={false}
 						/>
@@ -66,7 +66,7 @@ export function Demo() {
 			<Example title="With description">
 				<div className="-mx-4">
 					<Banner
-						type="warning"
+						severity="warning"
 						title="Scheduled maintenance"
 						description="The system will be offline on Sunday from 2am to 4am."
 						closable={false}
@@ -81,7 +81,7 @@ export function Demo() {
 			<Example title="With actions">
 				<div className="-mx-4">
 					<Banner
-						type="info"
+						severity="info"
 						title="New version available"
 						description="Version 2.0 has been released with new features and improvements."
 						actions={
