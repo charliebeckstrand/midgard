@@ -1,4 +1,5 @@
 import { defineRecipe, hannou, type VariantPropsOf } from '..'
+import { slider } from '../genkei/slider'
 
 export const k = defineRecipe({
 	base: [
@@ -84,15 +85,7 @@ export const k = defineRecipe({
 			'[&::-moz-range-thumb]:size-5',
 		],
 	},
-	color: {
-		zinc: '[--slider-fill:var(--color-zinc-600)] [--slider-track:var(--color-zinc-200)] dark:[--slider-fill:var(--color-zinc-400)] dark:[--slider-track:var(--color-zinc-700)]',
-		red: '[--slider-fill:var(--color-red-600)] [--slider-track:var(--color-zinc-200)] dark:[--slider-fill:var(--color-red-500)] dark:[--slider-track:var(--color-zinc-700)]',
-		amber:
-			'[--slider-fill:var(--color-amber-500)] [--slider-track:var(--color-zinc-200)] dark:[--slider-fill:var(--color-amber-500)] dark:[--slider-track:var(--color-zinc-700)]',
-		green:
-			'[--slider-fill:var(--color-green-600)] [--slider-track:var(--color-zinc-200)] dark:[--slider-fill:var(--color-green-500)] dark:[--slider-track:var(--color-zinc-700)]',
-		blue: '[--slider-fill:var(--color-blue-600)] [--slider-track:var(--color-zinc-200)] dark:[--slider-fill:var(--color-blue-500)] dark:[--slider-track:var(--color-zinc-700)]',
-	},
+	color: slider.color,
 	defaults: { size: 'md', color: 'blue' },
 })
 

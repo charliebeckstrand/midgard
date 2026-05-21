@@ -37,6 +37,7 @@ Filenames are `<name>.ts`, matching the module's named export.
 | `option`  | Option-row archetype — `base` (shared) + `size` map + `content` / `label` / `description` fragments for select-like rows.                                                                                                              | `primitives/option`, consumed by `combobox`, `listbox`, `select` via `createSelectOption`.                |
 | `panel`   | Floating panel archetype — a `definePanelRecipe` factory that builds title / description / header / body / actions / close slot recipes around the caller's `panel` (and optional `backdrop`) `defineRecipe()` recipes. Backed by `narabi.panel`. | `dialog`, `drawer`, `sheet`, `inspector`.                                                                 |
 | `popover` | Floating overlay archetype — shared `trigger` / `portal` / `panel` class fragments for any component that pops a floating panel anchored to a trigger.                                                                                 | `popover`, `combobox`, `listbox`, `date-picker`, `primitives/popover`.                                    |
+| `slider`  | Slider palette — the `--slider-fill` / `--slider-track` CSS-variable bundle per colour. Promoted because both kata read the same variables despite painting through different selector surfaces (native pseudo vs custom DOM).         | `slider`, `slider-range`.                                                                                 |
 
 ## kasane (重ね) — the signature primitive
 
