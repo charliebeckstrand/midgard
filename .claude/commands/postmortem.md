@@ -7,8 +7,9 @@ Trivial diffs (docs, comments, formatting, dependency-free renames) proceed dire
 ## What it decides
 
 - **PROCEED** — commit without further checks. The diff is mechanical or non-functional.
-- **REVIEW** — chain into `/typescript:review` because the diff carries logical risk.
-- **REVIEW + EXTRAS** — chain into one or more of `/audit:a11y`, `/tests:compose`, then `/typescript:review`, in that order.
+- **FORMAT** — chain into `/typescript:format` alone. The diff touches `.ts` / `.tsx` but carries no logical risk; the format pass is the only gate.
+- **REVIEW** — chain into `/typescript:format` then `/typescript:review` because the diff carries logical risk.
+- **REVIEW + EXTRAS** — chain into `/typescript:format`, then one or more of `/audit:a11y`, `/tests:compose`, then `/typescript:review`, in that order.
 - **BLOCK** — refuse to commit and surface the reason (half-finished work, debug code, secrets).
 
 **Canonical sources cited by handle:**
@@ -66,11 +67,12 @@ Apply these signals against the diff. Collect every match — a diff may match m
 | New logic without matching tests | A new exported function, or a new conditional with more than one branch, with no corresponding `*.test.*` / `*.spec.*` change in the diff | `/tests:compose` |
 | Smells like over-engineering | Single-use abstraction, speculative generic, premature interface, unused parameter, dead branch | `/typescript:review --angle=simplification` |
 | Logic edit, type surface change, multi-file change, new dependency | Conditional logic edited, exported type changed, ≥3 source files modified, `package.json` dependency added | `/typescript:review` |
+| TS surface touched, no logical risk | `.ts` / `.tsx` modified but no row above matched (cosmetic rename of a local, JSDoc edit on a TS file, formatting drift) | `/typescript:format` |
 | Docs / comments / formatting only | Diff hits only `*.md`, comment lines, or whitespace; no executable lines changed | PROCEED |
 | Dependency-free rename | Symbol renamed with all call sites updated, no behavior change | PROCEED |
 | Debug code, half-finished work, secrets in diff | `console.log`, `debugger`, `// TODO: revert`, commented-out blocks, real credentials | BLOCK |
 
-Union the matched handoffs, then order them: extras (`/audit:a11y`, `/tests:compose`) first, then `/typescript:review`. `/typescript:review` is always last in the chain, never parallel — it reviews the change as-is, including any edits the extras prompt. When multiple rows route to `/typescript:review` with `--angle=` flags, stack them on a single invocation (`/typescript:review --angle=security --angle=simplification`) rather than running the reviewer twice.
+Union the matched handoffs, then order them: `/typescript:format` first (whenever any `.ts` / `.tsx` is in the surface), then extras (`/audit:a11y`, `/tests:compose`), then `/typescript:review`. `/typescript:format` always runs ahead of extras and review so the downstream skills see formatted code — and so a format APPLIED verdict halts the chain for restage before the reviewer wastes effort. `/typescript:review` is always last, never parallel — it reviews the change as-is, including any edits the format pass and extras prompted. When multiple rows route to `/typescript:review` with `--angle=` flags, stack them on a single invocation (`/typescript:review --angle=security --angle=simplification`) rather than running the reviewer twice.
 
 ### 3a. Verify ui package format alignment
 
@@ -101,18 +103,19 @@ If the manifest's directory field for a kind is `null` (e.g. `primitivesDir: nul
 Print the verdict in one line:
 
 ```
-<N> files changed · classification: <PROCEED|REVIEW|REVIEW+EXTRAS|BLOCK> · chain: <skill-1> → <skill-2> → …
+<N> files changed · classification: <PROCEED|FORMAT|REVIEW|REVIEW+EXTRAS|BLOCK> · chain: <skill-1> → <skill-2> → …
 ```
 
 Then one of:
 
 - **PROCEED** — state the reason in one sentence (`docs-only`, `whitespace-only`, `mechanical rename with all call sites updated`). Hand control back to the user.
-- **REVIEW** or **REVIEW + EXTRAS** — invoke the chained skills in order. Each must clear without a blocking finding before the next runs: gates (`/typescript:review`, `/tests:compose`) must return PASS; audits (`/audit:a11y`, `/tests:audit`, `/ui:audit`, `/ui:docs:audit`) must return CLEAN or DEVIATIONS PRESENT. The user may waive any finding to advance.
+- **FORMAT** — invoke `/typescript:format`. CLEAN advances to commit; APPLIED halts pending restage; BLOCK halts pending fixes.
+- **REVIEW** or **REVIEW + EXTRAS** — invoke the chained skills in order. Each must clear without a blocking finding before the next runs: `/typescript:format` must return CLEAN (APPLIED halts the chain pending restage); gates (`/typescript:review`, `/tests:compose`) must return PASS; audits (`/audit:a11y`, `/tests:audit`, `/ui:audit`, `/ui:docs:audit`) must return CLEAN or DEVIATIONS PRESENT. The user may waive any finding to advance.
 - **BLOCK** — list every blocking observation with `file:line` citations. Refuse to chain further. Do not run `git commit` until the user resolves or explicitly overrides.
 
 ### 5. Hand off
 
-For each skill in the chain, invoke it and wait for its verdict. Two verdict shapes appear: gates return **PASS / BLOCK**; audits return **CLEAN / DEVIATIONS PRESENT / FAIL**. Advance the chain on PASS or CLEAN; on DEVIATIONS PRESENT, surface the findings and advance unless the user halts; on BLOCK or FAIL, stop the chain — `git commit` does not run until findings are resolved or explicitly waived.
+For each skill in the chain, invoke it and wait for its verdict. Three verdict shapes appear: format returns **CLEAN / APPLIED / BLOCK**; gates return **PASS / BLOCK**; audits return **CLEAN / DEVIATIONS PRESENT / FAIL**. Advance the chain on CLEAN or PASS; on APPLIED, surface the modified file list, halt the chain, and recommend `git add -u` before re-running `/postmortem` so the downstream skills see the formatted code; on DEVIATIONS PRESENT, surface the findings and advance unless the user halts; on BLOCK or FAIL, stop the chain — `git commit` does not run until findings are resolved or explicitly waived.
 
 When the chain finishes clean, state the change is ready to commit. Do not run `git commit` yourself unless the user explicitly asked.
 
@@ -120,9 +123,10 @@ When the chain finishes clean, state the change is ready to commit. Do not run `
 
 - **README typo fix** — one file, `*.md`, no code paths. Verdict: PROCEED. No chain.
 - **Rename `formatCurrency` → `formatMoney` across 4 files** — symbol rename, every call site updated. Verdict: PROCEED.
-- **New `SizeProvider` context with `useSize` hook** — new logic, no tests in diff, new file under `componentsDir`. Verdict: REVIEW + EXTRAS. Chain: `/tests:compose` → `/audit:a11y` → `/typescript:review`.
-- **Patch a JWT verification edge case in `auth/verifyToken.ts`** — auth path touched, logic edit. Verdict: REVIEW. Chain: `/typescript:review --angle=security`.
-- **Introduce `WidgetFactory<T>` with a single caller** — speculative generic abstraction. Verdict: REVIEW. Chain: `/typescript:review --angle=simplification`.
+- **New `SizeProvider` context with `useSize` hook** — new logic, no tests in diff, new file under `componentsDir`. Verdict: REVIEW + EXTRAS. Chain: `/typescript:format` → `/tests:compose` → `/audit:a11y` → `/typescript:review`.
+- **Patch a JWT verification edge case in `auth/verifyToken.ts`** — auth path touched, logic edit. Verdict: REVIEW. Chain: `/typescript:format` → `/typescript:review --angle=security`.
+- **Introduce `WidgetFactory<T>` with a single caller** — speculative generic abstraction. Verdict: REVIEW. Chain: `/typescript:format` → `/typescript:review --angle=simplification`.
+- **JSDoc edit on `useControllable`** — cosmetic comment change on a TS file, no logic touched. Verdict: FORMAT. Chain: `/typescript:format`.
 - **`console.log("debug:", user)` left in a handler** — debug code in diff. Verdict: BLOCK. Cite `path/to/file.ts:42`. Commit refused.
 
 ## Rules

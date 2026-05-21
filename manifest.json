@@ -177,6 +177,10 @@
 				"trigger": "writing tests for components, hooks, utilities, or modules"
 			},
 			{
+				"skill": "/typescript:format",
+				"trigger": "after any session that touched .ts / .tsx — invoked first in /postmortem's chain and listed in CLAUDE.md § Quality check as the per-session format gate"
+			},
+			{
 				"skill": "/typescript:review",
 				"trigger": "only via /postmortem (diff mode) or /ui:component:compose & /tests:compose (file mode) — do not invoke directly outside those paths unless explicitly asked"
 			}
