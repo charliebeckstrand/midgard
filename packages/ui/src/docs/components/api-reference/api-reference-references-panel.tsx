@@ -15,7 +15,7 @@ export function ReferencesPanel({ references }: { references: Record<string, str
 			{entries.map(([name, def]) =>
 				def.includes('\n') ? (
 					<Flex key={name}>
-						<CodeBlock key={name} code={def} className="inline-flex" />
+						<CodeBlock key={name} code={def} />
 					</Flex>
 				) : (
 					<Flex key={name} gap="sm" align="baseline" wrap>

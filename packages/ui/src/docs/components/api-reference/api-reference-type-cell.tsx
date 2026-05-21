@@ -73,7 +73,7 @@ export function TypeCell({
 				</Button>
 			</Flex>
 			<Glass>
-				<Sheet size="full" open={open} onOpenChange={setOpen}>
+				<Sheet open={open} onOpenChange={setOpen}>
 					<SheetTitle className="font-mono">{name}</SheetTitle>
 					<SheetDescription className="font-mono">{type}</SheetDescription>
 					<SheetBody>
