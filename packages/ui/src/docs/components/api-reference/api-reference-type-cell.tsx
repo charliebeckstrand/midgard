@@ -67,7 +67,7 @@ export function TypeCell({
 		<>
 			<Flex gap="md">
 				<Badge>{type}</Badge>
-				<Button variant="bare" size="sm" onClick={() => setOpen(true)}>
+				<Button variant="plain" size="sm" onClick={() => setOpen(true)}>
 					View references
 					<Icon icon={<ChevronRight />} />
 				</Button>
