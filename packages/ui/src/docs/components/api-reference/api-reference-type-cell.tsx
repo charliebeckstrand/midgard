@@ -1,11 +1,10 @@
 'use client'
 
-import { ChevronRight } from 'lucide-react'
 import { useState } from 'react'
 import { Badge } from '../../../components/badge'
 import { Button } from '../../../components/button'
+import { Flex } from '../../../components/flex'
 import { Glass } from '../../../components/glass'
-import { Icon } from '../../../components/icon'
 import {
 	Sheet,
 	SheetActions,
@@ -15,7 +14,7 @@ import {
 } from '../../../components/sheet'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { ReferencesPanel } from './api-reference-references-panel'
-import { TypeBadges } from './api-reference-type-badges'
+import { splitUnion } from './api-reference-split-union'
 
 /**
  * Renders the Type cell of the props table. Simple types (primitives, literals,
@@ -53,19 +52,19 @@ export function TypeCell({
 	const hasReferences = !!references && Object.keys(references).length > 0
 
 	if (!hasReferences) {
-		return <TypeBadges type={type} />
+		return (
+			<Flex gap="sm" align="center" wrap>
+				{splitUnion(type).map((t) => (
+					<Badge key={t}>{t.replace(/^'|'$/g, '')}</Badge>
+				))}
+			</Flex>
+		)
 	}
 
 	return (
 		<>
-			<Button
-				variant="bare"
-				aria-haspopup="dialog"
-				aria-expanded={open}
-				onClick={() => setOpen(true)}
-			>
-				<TypeBadges type={type} />
-				<Icon icon={<ChevronRight />} />
+			<Button aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen(true)}>
+				{type}
 			</Button>
 			<Glass>
 				<Sheet size="full" open={open} onOpenChange={setOpen}>
