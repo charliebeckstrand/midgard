@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react'
-import type { ReactNode } from 'react'
+import { type ReactNode, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import {
 	Form,
@@ -472,6 +472,242 @@ describe('Form', () => {
 		})
 
 		expect(screen.getByTestId('dirty').textContent).toBe('clean')
+	})
+
+	it('replaces values when the controlled `values` prop reference changes', () => {
+		function ValueProbe() {
+			const field = useFormField('name')
+
+			return <span data-testid="value">{String(field?.value ?? '')}</span>
+		}
+
+		function Host() {
+			const [values, setValues] = useState({ name: 'Ada' })
+
+			return (
+				<>
+					<button type="button" onClick={() => setValues({ name: 'Grace' })}>
+						sync
+					</button>
+					<Form defaultValues={{ name: '' }} values={values}>
+						<ValueProbe />
+					</Form>
+				</>
+			)
+		}
+
+		renderUI(<Host />)
+
+		expect(screen.getByTestId('value').textContent).toBe('Ada')
+
+		act(() => {
+			screen.getByText('sync').click()
+		})
+
+		expect(screen.getByTestId('value').textContent).toBe('Grace')
+	})
+
+	it('shifts the dirty baseline after a controlled values sync', () => {
+		function DirtyProbe() {
+			const field = useFormField('name')
+
+			return <span data-testid="dirty">{field?.dirty ? 'dirty' : 'clean'}</span>
+		}
+
+		function Host() {
+			const [values, setValues] = useState({ name: 'Ada' })
+
+			return (
+				<>
+					<button type="button" onClick={() => setValues({ name: 'Grace' })}>
+						sync
+					</button>
+					<Form defaultValues={{ name: '' }} values={values}>
+						<DirtyProbe />
+					</Form>
+				</>
+			)
+		}
+
+		renderUI(<Host />)
+
+		expect(screen.getByTestId('dirty').textContent).toBe('clean')
+
+		act(() => {
+			screen.getByText('sync').click()
+		})
+
+		expect(screen.getByTestId('dirty').textContent).toBe('clean')
+	})
+
+	it('preserves touched and errors across a controlled values sync', () => {
+		function TouchedProbe() {
+			const field = useFormField('name')
+
+			return (
+				<>
+					<span data-testid="touched">{field?.touched ? 'touched' : 'untouched'}</span>
+					<span data-testid="error">{field?.errors?.[0] ?? ''}</span>
+				</>
+			)
+		}
+
+		function Host() {
+			const [values, setValues] = useState({ name: '' })
+
+			return (
+				<>
+					<button type="button" onClick={() => setValues({ name: 'server-data' })}>
+						sync
+					</button>
+					<Form
+						defaultValues={{ name: '' }}
+						values={values}
+						validate={{ name: (v) => (v.length === 0 ? 'required' : undefined) }}
+					>
+						<TouchedProbe />
+					</Form>
+				</>
+			)
+		}
+
+		const { container } = renderUI(<Host />)
+
+		const form = bySlot(container, 'form') as HTMLFormElement
+
+		// Touch the form so `touched.name` and `errors.name` exist before sync.
+		act(() => {
+			fireEvent.submit(form)
+		})
+
+		expect(screen.getByTestId('touched').textContent).toBe('touched')
+		expect(screen.getByTestId('error').textContent).toBe('required')
+
+		act(() => {
+			screen.getByText('sync').click()
+		})
+
+		expect(screen.getByTestId('touched').textContent).toBe('touched')
+		expect(screen.getByTestId('error').textContent).toBe('required')
+	})
+
+	it('does not re-sync when the values reference is unchanged across renders', () => {
+		function ValueProbe() {
+			const field = useFormField('name')
+
+			return <span data-testid="value">{String(field?.value ?? '')}</span>
+		}
+
+		const stableValues = { name: 'Ada' }
+
+		function Host() {
+			const [tick, setTick] = useState(0)
+
+			return (
+				<>
+					<button type="button" onClick={() => setTick((t) => t + 1)}>
+						bump · {tick}
+					</button>
+					<Form defaultValues={{ name: '' }} values={stableValues}>
+						<ValueProbe />
+					</Form>
+				</>
+			)
+		}
+
+		renderUI(<Host />)
+
+		expect(screen.getByTestId('value').textContent).toBe('Ada')
+
+		act(() => {
+			screen.getByText(/bump/).click()
+		})
+
+		// Same reference → no sync triggered, value still reflects the initial sync.
+		expect(screen.getByTestId('value').textContent).toBe('Ada')
+	})
+
+	it('reset(nextDefaults) shifts the baseline and clears errors and touched', () => {
+		function Probe() {
+			const field = useFormField('name')
+			const actions = useFormActions()
+
+			return (
+				<>
+					<span data-testid="value">{String(field?.value ?? '')}</span>
+					<span data-testid="dirty">{field?.dirty ? 'dirty' : 'clean'}</span>
+					<span data-testid="touched">{field?.touched ? 'touched' : 'untouched'}</span>
+					<span data-testid="error">{field?.errors?.[0] ?? ''}</span>
+					<button type="button" onClick={() => actions?.reset({ name: 'Grace' })}>
+						reset-new
+					</button>
+				</>
+			)
+		}
+
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ name: 'Ada' }}
+				validate={{ name: (v) => (v.length === 0 ? 'required' : undefined) }}
+			>
+				<Probe />
+			</Form>,
+		)
+
+		const form = bySlot(container, 'form') as HTMLFormElement
+
+		// Dirty the form and provoke an error before the reset.
+		act(() => {
+			fireEvent.submit(form)
+		})
+
+		expect(screen.getByTestId('touched').textContent).toBe('touched')
+
+		act(() => {
+			screen.getByText('reset-new').click()
+		})
+
+		expect(screen.getByTestId('value').textContent).toBe('Grace')
+		expect(screen.getByTestId('dirty').textContent).toBe('clean')
+		expect(screen.getByTestId('touched').textContent).toBe('untouched')
+		expect(screen.getByTestId('error').textContent).toBe('')
+	})
+
+	it('reset() with no args reverts to the original defaultValues', () => {
+		function Probe() {
+			const field = useFormField('name')
+			const actions = useFormActions()
+
+			return (
+				<>
+					<span data-testid="value">{String(field?.value ?? '')}</span>
+					<button type="button" onClick={() => actions?.setValue('name', 'Grace')}>
+						mutate
+					</button>
+					<button type="button" onClick={() => actions?.reset()}>
+						reset
+					</button>
+				</>
+			)
+		}
+
+		renderUI(
+			<Form defaultValues={{ name: 'Ada' }}>
+				<Probe />
+			</Form>,
+		)
+
+		act(() => {
+			screen.getByText('mutate').click()
+		})
+
+		expect(screen.getByTestId('value').textContent).toBe('Grace')
+
+		act(() => {
+			screen.getByText('reset').click()
+		})
+
+		expect(screen.getByTestId('value').textContent).toBe('Ada')
 	})
 })
 

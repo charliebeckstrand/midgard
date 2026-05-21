@@ -242,6 +242,38 @@ describe('formReducer', () => {
 		})
 	})
 
+	describe('sync-values', () => {
+		it('replaces values without touching errors or touched', () => {
+			const prior: FormState<Values> = {
+				values: { name: 'Ada', age: 30 },
+				errors: { age: ['too young'] },
+				touched: { name: true },
+			}
+
+			const next = formReducer(prior, {
+				type: 'sync-values',
+				values: { name: 'Grace', age: 45 },
+			})
+
+			expect(next.values).toEqual({ name: 'Grace', age: 45 })
+			expect(next.errors).toBe(prior.errors)
+			expect(next.touched).toBe(prior.touched)
+		})
+
+		it('is a no-op when the values reference is unchanged', () => {
+			const sharedValues = { name: 'Ada', age: 30 }
+			const prior: FormState<Values> = {
+				values: sharedValues,
+				errors: {},
+				touched: {},
+			}
+
+			const next = formReducer(prior, { type: 'sync-values', values: sharedValues })
+
+			expect(next).toBe(prior)
+		})
+	})
+
 	describe('submit-validate', () => {
 		it('replaces errors and touched while preserving values', () => {
 			const prior: FormState<Values> = {

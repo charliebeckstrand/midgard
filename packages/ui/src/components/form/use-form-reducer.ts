@@ -1,6 +1,14 @@
 'use client'
 
-import { type SyntheticEvent, useCallback, useMemo, useReducer, useRef, useState } from 'react'
+import {
+	type SyntheticEvent,
+	useCallback,
+	useEffect,
+	useMemo,
+	useReducer,
+	useRef,
+	useState,
+} from 'react'
 import type { FormActions, FormStateValue } from './context'
 import {
 	type Errors,
@@ -32,7 +40,7 @@ export type SubmitOutcome<T> = { ok: true; values: T } | { ok: false; error: Err
 
 export type FormHelpers<T> = {
 	setErrors: (errors: Partial<Record<keyof T, string | string[]>>) => void
-	reset: () => void
+	reset: (nextDefaults?: T) => void
 }
 
 /**
@@ -61,6 +69,13 @@ function extractFieldErrors(
 
 export type UseFormReducerOptions<T extends Record<string, unknown>> = {
 	defaultValues: T
+	/**
+	 * Controlled re-sync source. When the reference changes, `values` is
+	 * replaced and the dirty baseline shifts to match — `touched`, `errors`,
+	 * and `submitting` are preserved. Use a stable reference (memoize when
+	 * derived per render) to avoid sync loops.
+	 */
+	values?: T
 	validate?: Validators<T>
 	validateOn: ValidateOn
 	onSubmit?: FormSubmitHandler<T>
@@ -77,21 +92,27 @@ export type UseFormReducerResult = {
 
 export function useFormReducer<T extends Record<string, unknown>>({
 	defaultValues,
+	values: controlledValues,
 	validate,
 	validateOn,
 	onSubmit,
 	onSettled,
 	onReset,
 }: UseFormReducerOptions<T>): UseFormReducerResult {
+	// `values` wins over `defaultValues` when both are passed: it represents the
+	// controlled source of truth, and `defaultValues` is the fallback for the
+	// uncontrolled flow.
+	const initialValues = controlledValues ?? defaultValues
+
 	const [state, dispatch] = useReducer(
 		formReducer as (state: FormState<T>, action: FormAction<T>) => FormState<T>,
 		undefined,
-		(): FormState<T> => ({ values: { ...defaultValues }, errors: {}, touched: {} }),
+		(): FormState<T> => ({ values: { ...initialValues }, errors: {}, touched: {} }),
 	)
 
 	const [submitting, setSubmitting] = useState(false)
 
-	const defaultsRef = useRef(defaultValues)
+	const defaultsRef = useRef(initialValues)
 
 	const validateRef = useRef(validate)
 
@@ -155,11 +176,36 @@ export function useFormReducer<T extends Record<string, unknown>>({
 		dispatch({ type: 'set-errors-external', errors: normalized })
 	}, [])
 
-	const reset = useCallback(() => {
-		dispatch({ type: 'reset', defaults: { ...defaultsRef.current } })
+	const reset = useCallback(
+		// Wider parameter than `T` so the same callback satisfies the context-
+		// level `FormActions` shape (which has no `T`); the per-form
+		// `FormHelpers<T>` narrows it back at the consumer site via contravariance.
+		(nextDefaults?: Record<string, unknown>) => {
+			if (nextDefaults !== undefined) defaultsRef.current = nextDefaults as T
 
-		onReset?.()
-	}, [onReset])
+			dispatch({ type: 'reset', defaults: { ...defaultsRef.current } })
+
+			onReset?.()
+		},
+		[onReset],
+	)
+
+	// Watch the controlled `values` prop. On reference change, replace `values`
+	// and shift the dirty baseline; `touched`/`errors`/`submitting` are
+	// preserved on purpose so users mid-typing don't get their progress wiped.
+	// `reset(nextDefaults)` is the "start over" pathway when that's what you want.
+	const lastSyncedValuesRef = useRef(controlledValues)
+
+	useEffect(() => {
+		if (controlledValues === undefined) return
+
+		if (controlledValues === lastSyncedValuesRef.current) return
+
+		defaultsRef.current = controlledValues
+		lastSyncedValuesRef.current = controlledValues
+
+		dispatch({ type: 'sync-values', values: controlledValues })
+	}, [controlledValues])
 
 	const handleSubmit = useCallback(
 		async (e: SyntheticEvent<HTMLFormElement>) => {

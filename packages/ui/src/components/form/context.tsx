@@ -18,7 +18,7 @@ export type FormActions = {
 	setValue: (name: string, value: unknown) => void
 	setErrors: (errors: Record<string, string | string[] | undefined>) => void
 	setTouched: (name: string) => void
-	reset: () => void
+	reset: (nextDefaults?: Record<string, unknown>) => void
 }
 
 /** Combined shape for consumers that need both state and actions. */

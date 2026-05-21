@@ -28,6 +28,7 @@ export type FormAction<T> =
 			validateOn: ValidateOn
 	  }
 	| { type: 'set-errors-external'; errors: Errors }
+	| { type: 'sync-values'; values: T }
 	| { type: 'reset'; defaults: T }
 	| { type: 'submit-validate'; touched: Touched; errors: Errors }
 
@@ -168,6 +169,10 @@ export function formReducer<T extends Record<string, unknown>>(
 
 			return { ...state, errors: nextErrors, touched: nextTouched }
 		}
+		case 'sync-values':
+			if (state.values === action.values) return state
+
+			return { ...state, values: action.values }
 		case 'reset':
 			return { values: action.defaults, errors: {}, touched: {} }
 		case 'submit-validate':

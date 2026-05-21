@@ -377,6 +377,75 @@ function ServerErrorFormExample() {
 	)
 }
 
+function ControlledValuesFormExample() {
+	const [user, setUser] = useState<{ email: string; name: string } | undefined>(undefined)
+	const [loading, setLoading] = useState(false)
+
+	async function loadUser() {
+		setLoading(true)
+
+		await simulateAsyncSubmission()
+
+		setUser({ email: 'ada@example.com', name: 'Ada Lovelace' })
+
+		setLoading(false)
+	}
+
+	return (
+		<Example
+			title="Controlled re-sync via values"
+			code={code`
+				import { Form } from 'ui/form'
+				import { Field, Label } from 'ui/fieldset'
+				import { Input } from 'ui/input'
+				import { Button } from 'ui/button'
+
+				const [user, setUser] = useState<User | undefined>(undefined)
+
+				async function loadUser() {
+					const data = await fetch('/api/me').then((r) => r.json())
+					setUser(data)
+				}
+
+				<Form
+					defaultValues={{ email: '', name: '' }}
+					values={user}
+				>
+					<Field>
+						<Label>Email</Label>
+						<Input name="email" type="email" />
+					</Field>
+					<Field>
+						<Label>Name</Label>
+						<Input name="name" />
+					</Field>
+				</Form>
+			`}
+		>
+			<Stack gap="lg">
+				<Flex gap="sm" align="center">
+					<Button onClick={loadUser} loading={loading}>
+						Load user
+					</Button>
+					{user && <Badge color="green">Fetched · {user.email}</Badge>}
+				</Flex>
+				<Form defaultValues={{ email: '', name: '' }} values={user}>
+					<Stack gap="lg">
+						<Field autoComplete="email">
+							<Label>Email</Label>
+							<Input name="email" type="email" placeholder="—" />
+						</Field>
+						<Field autoComplete="name">
+							<Label>Name</Label>
+							<Input name="name" placeholder="—" />
+						</Field>
+					</Stack>
+				</Form>
+			</Stack>
+		</Example>
+	)
+}
+
 function SubmitOutcomeFormExample() {
 	const [outcome, setOutcome] = useState<SubmitOutcome<{ email: string }> | null>(null)
 	const [failNext, setFailNext] = useState(false)
@@ -548,6 +617,7 @@ export function Demo() {
 			<ValidationFormExample />
 			<DirtyTouchedFormExample />
 			<ServerErrorFormExample />
+			<ControlledValuesFormExample />
 			<SubmitOutcomeFormExample />
 			<ToggleFormExample />
 		</Stack>

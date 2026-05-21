@@ -16,6 +16,13 @@ export type { FormHelpers, FormSubmitHandler, SubmitOutcome, SubmitResult }
 
 export type FormProps<T extends Record<string, unknown>> = {
 	defaultValues: T
+	/**
+	 * Controlled re-sync source. When the reference changes, `values` is
+	 * replaced and the dirty baseline shifts to match; `touched` and `errors`
+	 * are preserved. Use a stable reference — memoize derived objects to
+	 * avoid sync loops.
+	 */
+	values?: T
 	validate?: Validators<T>
 	validateOn?: ValidateOn
 	onSubmit?: FormSubmitHandler<T>
@@ -24,10 +31,14 @@ export type FormProps<T extends Record<string, unknown>> = {
 	disabled?: boolean
 	className?: string
 	children: ReactNode
-} & Omit<ComponentPropsWithoutRef<'form'>, 'onSubmit' | 'onReset' | 'children' | 'className'>
+} & Omit<
+	ComponentPropsWithoutRef<'form'>,
+	'onSubmit' | 'onReset' | 'children' | 'className' | 'values'
+>
 
 export function Form<T extends Record<string, unknown>>({
 	defaultValues,
+	values,
 	validate,
 	validateOn = 'touched',
 	onSubmit,
@@ -40,6 +51,7 @@ export function Form<T extends Record<string, unknown>>({
 }: FormProps<T>) {
 	const { formState, actions, handleSubmit, handleReset } = useFormReducer({
 		defaultValues,
+		values,
 		validate,
 		validateOn,
 		onSubmit,
