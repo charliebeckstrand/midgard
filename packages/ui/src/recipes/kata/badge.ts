@@ -1,4 +1,4 @@
-import { defineRecipe, iro, ji, palette, type VariantPropsOf } from '..'
+import { defineRecipe, iro, ji, palette, shaku, type VariantPropsOf } from '..'
 
 const { solid, soft, outline, plain } = iro.palette
 
@@ -9,32 +9,28 @@ export const k = defineRecipe({
 	},
 	size: {
 		xs: [
-			'px-1 py-0.25',
-			'gap-0.5',
 			ji.xs,
-			'data-[has-prefix]:has-[button]:pr-2',
-			'data-[has-suffix]:has-[button]:pl-2',
+			shaku.icon.xs,
+			'gap-0.5',
+			'py-[calc(--spacing(0.75)-1px)] px-[calc(--spacing(1.5)-1px)]',
 		],
 		sm: [
-			'px-1.5 py-0.5',
-			'gap-1',
 			ji.sm,
-			'data-[has-prefix]:has-[button]:pr-2.5',
-			'data-[has-suffix]:has-[button]:pl-2.5',
+			shaku.icon.sm,
+			'gap-0.75',
+			'py-[calc(--spacing(1)-1px)] px-[calc(--spacing(2)-1px)]',
 		],
 		md: [
-			'px-2 py-1',
-			'gap-1.5',
 			ji.md,
-			'data-[has-prefix]:has-[button]:pr-3',
-			'data-[has-suffix]:has-[button]:pl-3',
+			shaku.icon.md,
+			'gap-xs',
+			'py-[calc(--spacing(1.25)-1px)] px-[calc(--spacing(2.5)-1px)]',
 		],
 		lg: [
-			'px-2.5 py-1.5',
-			'gap-2',
 			ji.lg,
-			'data-[has-prefix]:has-[button]:pr-3.5',
-			'data-[has-suffix]:has-[button]:pl-3.5',
+			shaku.icon.lg,
+			'gap-sm',
+			'py-[calc(--spacing(1.5)-1px)] px-[calc(--spacing(3)-1px)]',
 		],
 	},
 	rounded: {
