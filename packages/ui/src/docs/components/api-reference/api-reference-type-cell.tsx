@@ -65,8 +65,14 @@ export function TypeCell({
 
 	return (
 		<>
-			<Flex gap="md">
-				<Badge>{type}</Badge>
+			<Flex
+				gap="md"
+				direction={{
+					initial: 'row',
+					xl: 'col',
+				}}
+			>
+				<Badge className="text-sm">{type}</Badge>
 				<Button variant="plain" size="sm" onClick={() => setOpen(true)}>
 					View references
 					<Icon icon={<ChevronRight />} />

@@ -16,9 +16,9 @@ export function PropRowsTable({ rows }: { rows: PropDef[] }) {
 		<Table>
 			<TableHead>
 				<TableRow>
-					<TableHeader className="w-px whitespace-nowrap">Prop</TableHeader>
-					<TableHeader className="w-full">Type</TableHeader>
-					<TableHeader className="w-px whitespace-nowrap">Default</TableHeader>
+					<TableHeader className="whitespace-nowrap">Prop</TableHeader>
+					<TableHeader>Type</TableHeader>
+					<TableHeader>Default</TableHeader>
 				</TableRow>
 			</TableHead>
 			<TableBody>
