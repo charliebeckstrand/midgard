@@ -1,10 +1,12 @@
 'use client'
 
+import { ChevronRight } from 'lucide-react'
 import { useState } from 'react'
 import { Badge } from '../../../components/badge'
 import { Button } from '../../../components/button'
 import { Flex } from '../../../components/flex'
 import { Glass } from '../../../components/glass'
+import { Icon } from '../../../components/icon'
 import {
 	Sheet,
 	SheetActions,
@@ -63,9 +65,13 @@ export function TypeCell({
 
 	return (
 		<>
-			<Button aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen(true)}>
-				{type}
-			</Button>
+			<Flex gap="md">
+				<Badge>{type}</Badge>
+				<Button variant="bare" size="sm" onClick={() => setOpen(true)}>
+					View references
+					<Icon icon={<ChevronRight />} />
+				</Button>
+			</Flex>
 			<Glass>
 				<Sheet size="full" open={open} onOpenChange={setOpen}>
 					<SheetTitle className="font-mono">{name}</SheetTitle>
