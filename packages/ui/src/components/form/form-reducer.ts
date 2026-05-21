@@ -69,6 +69,53 @@ export function normalizeIssues(out: string | string[] | undefined): string[] | 
 	return out.length > 0 ? out : undefined
 }
 
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+	if (value === null || typeof value !== 'object') return false
+
+	const proto = Object.getPrototypeOf(value)
+
+	return proto === null || proto === Object.prototype
+}
+
+/**
+ * Equality for the `dirty` derivation. Reference first, then structural over
+ * `Date`, plain arrays, and plain objects. Falls back to reference equality
+ * for `File`, `Map`, `Set`, and class instances, where structural comparison
+ * would be wrong or expensive.
+ */
+export function valuesEqual(a: unknown, b: unknown): boolean {
+	if (Object.is(a, b)) return true
+
+	if (a instanceof Date && b instanceof Date) return a.getTime() === b.getTime()
+
+	if (Array.isArray(a) && Array.isArray(b)) {
+		if (a.length !== b.length) return false
+
+		for (let i = 0; i < a.length; i++) {
+			if (!valuesEqual(a[i], b[i])) return false
+		}
+
+		return true
+	}
+
+	if (isPlainObject(a) && isPlainObject(b)) {
+		const ak = Object.keys(a)
+		const bk = Object.keys(b)
+
+		if (ak.length !== bk.length) return false
+
+		for (const key of ak) {
+			if (!Object.hasOwn(b, key)) return false
+
+			if (!valuesEqual(a[key], b[key])) return false
+		}
+
+		return true
+	}
+
+	return false
+}
+
 export function formReducer<T extends Record<string, unknown>>(
 	state: FormState<T>,
 	action: FormAction<T>,
@@ -78,16 +125,16 @@ export function formReducer<T extends Record<string, unknown>>(
 			const nextValues = { ...state.values, [action.name]: action.value } as T
 
 			if (action.validateOn === 'submit') {
-				return { values: nextValues, errors: state.errors, touched: state.touched }
+				return { ...state, values: nextValues }
 			}
 
 			const newErrors = runValidators(action.validate, nextValues, state.touched, action.validateOn)
 
 			return {
+				...state,
 				values: nextValues,
 				errors:
 					Object.keys(newErrors).length > 0 ? { ...state.errors, ...newErrors } : state.errors,
-				touched: state.touched,
 			}
 		}
 		case 'set-touched': {
@@ -104,7 +151,7 @@ export function formReducer<T extends Record<string, unknown>>(
 			)
 
 			return {
-				values: state.values,
+				...state,
 				errors: { ...state.errors, ...newErrors },
 				touched: nextTouched,
 			}
@@ -119,11 +166,15 @@ export function formReducer<T extends Record<string, unknown>>(
 				if (issues !== undefined && issues.length > 0) nextTouched[key] = true
 			}
 
-			return { values: state.values, errors: nextErrors, touched: nextTouched }
+			return { ...state, errors: nextErrors, touched: nextTouched }
 		}
 		case 'reset':
 			return { values: action.defaults, errors: {}, touched: {} }
 		case 'submit-validate':
-			return { values: state.values, errors: action.errors, touched: action.touched }
+			return {
+				...state,
+				errors: action.errors,
+				touched: action.touched,
+			}
 	}
 }

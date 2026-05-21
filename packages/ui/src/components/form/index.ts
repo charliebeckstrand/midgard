@@ -14,7 +14,14 @@ export {
 	useFormText,
 	useFormToggle,
 } from './context'
-export { Form, type FormHelpers, type FormProps } from './form'
+export {
+	Form,
+	type FormHelpers,
+	type FormProps,
+	type FormSubmitHandler,
+	type SubmitOutcome,
+	type SubmitResult,
+} from './form'
 export {
 	type ZodIssue,
 	type ZodLike,

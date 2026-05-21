@@ -4,6 +4,7 @@ import {
 	formReducer,
 	runValidators,
 	type Validators,
+	valuesEqual,
 } from '../../components/form/form-reducer'
 
 type Values = { name: string; age: number }
@@ -259,5 +260,58 @@ describe('formReducer', () => {
 			expect(next.errors).toEqual({ age: ['too young'] })
 			expect(next.touched).toEqual({ name: true, age: true })
 		})
+	})
+})
+
+describe('valuesEqual', () => {
+	it('treats reference-equal values as equal', () => {
+		const o = { a: 1 }
+
+		expect(valuesEqual(o, o)).toBe(true)
+	})
+
+	it('handles primitives via Object.is', () => {
+		expect(valuesEqual(1, 1)).toBe(true)
+		expect(valuesEqual('a', 'a')).toBe(true)
+		expect(valuesEqual(Number.NaN, Number.NaN)).toBe(true)
+		expect(valuesEqual(0, -0)).toBe(false)
+		expect(valuesEqual(null, undefined)).toBe(false)
+	})
+
+	it('compares Date by timestamp', () => {
+		expect(valuesEqual(new Date(2026, 0, 1), new Date(2026, 0, 1))).toBe(true)
+		expect(valuesEqual(new Date(2026, 0, 1), new Date(2026, 0, 2))).toBe(false)
+	})
+
+	it('compares arrays structurally', () => {
+		expect(valuesEqual([], [])).toBe(true)
+		expect(valuesEqual(['a', 'b'], ['a', 'b'])).toBe(true)
+		expect(valuesEqual(['a', 'b'], ['a', 'c'])).toBe(false)
+		expect(valuesEqual([1], [1, 2])).toBe(false)
+	})
+
+	it('compares plain objects structurally', () => {
+		expect(valuesEqual({}, {})).toBe(true)
+		expect(valuesEqual({ a: 1 }, { a: 1 })).toBe(true)
+		expect(valuesEqual({ a: 1, b: 2 }, { a: 1, b: 2 })).toBe(true)
+		expect(valuesEqual({ a: 1, b: 2 }, { a: 1, b: 3 })).toBe(false)
+		expect(valuesEqual({ a: 1 }, { a: 1, b: 2 })).toBe(false)
+	})
+
+	it('recurses into nested arrays and objects', () => {
+		expect(
+			valuesEqual({ tags: ['a', 'b'], meta: { x: 1 } }, { tags: ['a', 'b'], meta: { x: 1 } }),
+		).toBe(true)
+		expect(
+			valuesEqual({ tags: ['a', 'b'], meta: { x: 1 } }, { tags: ['a', 'b'], meta: { x: 2 } }),
+		).toBe(false)
+	})
+
+	it('falls back to reference equality for non-plain objects', () => {
+		const f1 = new File([], 'a.txt')
+		const f2 = new File([], 'a.txt')
+
+		expect(valuesEqual(f1, f1)).toBe(true)
+		expect(valuesEqual(f1, f2)).toBe(false)
 	})
 })

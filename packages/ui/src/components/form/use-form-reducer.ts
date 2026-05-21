@@ -12,18 +12,59 @@ import {
 	type Touched,
 	type ValidateOn,
 	type Validators,
+	valuesEqual,
 } from './form-reducer'
+
+/**
+ * Optional shape returned from `onSubmit` to surface server-side validation
+ * issues without round-tripping through `helpers.setErrors`.
+ */
+export type SubmitResult<T> = {
+	fieldErrors?: Partial<Record<keyof T, string | string[] | undefined>>
+}
+
+/**
+ * Terminal outcome of one submit attempt, delivered to `onSettled`. Client
+ * validation failures and `{ fieldErrors }` returns are mid-flow (the user
+ * will fix and retry) and do not fire `onSettled`.
+ */
+export type SubmitOutcome<T> = { ok: true; values: T } | { ok: false; error: Error }
 
 export type FormHelpers<T> = {
 	setErrors: (errors: Partial<Record<keyof T, string | string[]>>) => void
 	reset: () => void
 }
 
+/**
+ * Return nothing (or `Promise<void>`) for success; optionally return a
+ * `SubmitResult<T>` — sync or async — to surface server-side validation
+ * issues without going through `helpers.setErrors`. Throw or reject to
+ * trigger `onSettled({ ok: false, error })`. Annotate the return as
+ * `satisfies SubmitResult<T>` for autocomplete on the shape.
+ */
+export type FormSubmitHandler<T> = (values: T, helpers: FormHelpers<T>) => unknown
+
+/** Narrows the loosely-typed handler return to a `fieldErrors` shape, if present. */
+function extractFieldErrors(
+	raw: unknown,
+): Record<string, string | string[] | undefined> | undefined {
+	if (raw === null || typeof raw !== 'object') return undefined
+
+	if (!('fieldErrors' in raw)) return undefined
+
+	const fieldErrors = (raw as { fieldErrors?: unknown }).fieldErrors
+
+	if (fieldErrors === null || typeof fieldErrors !== 'object') return undefined
+
+	return fieldErrors as Record<string, string | string[] | undefined>
+}
+
 export type UseFormReducerOptions<T extends Record<string, unknown>> = {
 	defaultValues: T
 	validate?: Validators<T>
 	validateOn: ValidateOn
-	onSubmit?: (values: T, helpers: FormHelpers<T>) => void | Promise<void>
+	onSubmit?: FormSubmitHandler<T>
+	onSettled?: (outcome: SubmitOutcome<T>) => void
 	onReset?: () => void
 }
 
@@ -39,6 +80,7 @@ export function useFormReducer<T extends Record<string, unknown>>({
 	validate,
 	validateOn,
 	onSubmit,
+	onSettled,
 	onReset,
 }: UseFormReducerOptions<T>): UseFormReducerResult {
 	const [state, dispatch] = useReducer(
@@ -55,6 +97,10 @@ export function useFormReducer<T extends Record<string, unknown>>({
 
 	validateRef.current = validate
 
+	const onSettledRef = useRef(onSettled)
+
+	onSettledRef.current = onSettled
+
 	const { values, errors, touched } = state
 
 	// Mirror current values so getValue stays stable across re-renders;
@@ -67,7 +113,7 @@ export function useFormReducer<T extends Record<string, unknown>>({
 		const d: Record<string, boolean> = {}
 
 		for (const key in values) {
-			d[key] = values[key] !== defaultsRef.current[key]
+			d[key] = !valuesEqual(values[key], defaultsRef.current[key])
 		}
 
 		return d
@@ -141,9 +187,23 @@ export function useFormReducer<T extends Record<string, unknown>>({
 			setSubmitting(true)
 
 			try {
-				await onSubmit(valuesRef.current, {
+				const raw = await onSubmit(valuesRef.current, {
 					setErrors: setErrorsExternal,
 					reset,
+				})
+
+				const fieldErrors = extractFieldErrors(raw)
+
+				if (fieldErrors) {
+					// Mid-flow: the user will fix and retry, not a terminal outcome.
+					setErrorsExternal(fieldErrors)
+				} else {
+					onSettledRef.current?.({ ok: true, values: valuesRef.current })
+				}
+			} catch (err) {
+				onSettledRef.current?.({
+					ok: false,
+					error: err instanceof Error ? err : new Error(String(err)),
 				})
 			} finally {
 				setSubmitting(false)

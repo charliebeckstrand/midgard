@@ -281,6 +281,198 @@ describe('Form', () => {
 
 		expect(fieldset).not.toBeDisabled()
 	})
+
+	it('delivers { ok: true, values } to onSettled when onSubmit returns void', async () => {
+		const onSettled = vi.fn()
+
+		const { container } = renderUI(
+			<Form defaultValues={{ name: 'Ada' }} onSubmit={() => {}} onSettled={onSettled}>
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		const form = bySlot(container, 'form') as HTMLFormElement
+
+		await act(async () => {
+			fireEvent.submit(form)
+		})
+
+		expect(onSettled).toHaveBeenCalledTimes(1)
+		expect(onSettled).toHaveBeenCalledWith({ ok: true, values: { name: 'Ada' } })
+	})
+
+	it('delivers { ok: false, error } to onSettled when onSubmit throws', async () => {
+		const failure = new Error('rate limited')
+		const onSettled = vi.fn()
+
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ name: 'Ada' }}
+				onSubmit={() => {
+					throw failure
+				}}
+				onSettled={onSettled}
+			>
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		const form = bySlot(container, 'form') as HTMLFormElement
+
+		await act(async () => {
+			fireEvent.submit(form)
+		})
+
+		expect(onSettled).toHaveBeenCalledTimes(1)
+		expect(onSettled).toHaveBeenCalledWith({ ok: false, error: failure })
+	})
+
+	it('wraps non-Error throws in Error before delivering them to onSettled', async () => {
+		const onSettled = vi.fn()
+
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ name: 'Ada' }}
+				onSubmit={() => {
+					throw 'boom'
+				}}
+				onSettled={onSettled}
+			>
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		const form = bySlot(container, 'form') as HTMLFormElement
+
+		await act(async () => {
+			fireEvent.submit(form)
+		})
+
+		expect(onSettled).toHaveBeenCalledTimes(1)
+
+		const outcome = onSettled.mock.calls[0]?.[0] as { ok: false; error: Error }
+
+		expect(outcome.ok).toBe(false)
+		expect(outcome.error).toBeInstanceOf(Error)
+		expect(outcome.error.message).toBe('boom')
+	})
+
+	it('does not fire onSettled when onSubmit returns { fieldErrors }', async () => {
+		const onSettled = vi.fn()
+
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ name: 'Ada' }}
+				onSubmit={() => ({ fieldErrors: { name: 'taken' } })}
+				onSettled={onSettled}
+			>
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		const form = bySlot(container, 'form') as HTMLFormElement
+
+		await act(async () => {
+			fireEvent.submit(form)
+		})
+
+		expect(onSettled).not.toHaveBeenCalled()
+	})
+
+	it('does not fire onSettled when client validation blocks submission', async () => {
+		const onSubmit = vi.fn()
+		const onSettled = vi.fn()
+
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ name: '' }}
+				validate={{ name: (value) => (value.length === 0 ? 'required' : undefined) }}
+				onSubmit={onSubmit}
+				onSettled={onSettled}
+			>
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		const form = bySlot(container, 'form') as HTMLFormElement
+
+		await act(async () => {
+			fireEvent.submit(form)
+		})
+
+		expect(onSubmit).not.toHaveBeenCalled()
+		expect(onSettled).not.toHaveBeenCalled()
+	})
+
+	it('applies fieldErrors returned from onSubmit', async () => {
+		function ErrorProbe() {
+			const field = useFormField('name')
+
+			return <span data-testid="field-error">{field?.errors?.[0] ?? ''}</span>
+		}
+
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ name: 'Ada' }}
+				onSubmit={() => ({ fieldErrors: { name: 'taken on the server' } })}
+			>
+				<ErrorProbe />
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		const form = bySlot(container, 'form') as HTMLFormElement
+
+		await act(async () => {
+			fireEvent.submit(form)
+		})
+
+		expect(screen.getByTestId('field-error').textContent).toBe('taken on the server')
+	})
+
+	it('marks an object-valued field clean after restoring its structural value', () => {
+		function DirtyProbe() {
+			const field = useFormField('tags')
+
+			return <span data-testid="dirty">{field?.dirty ? 'dirty' : 'clean'}</span>
+		}
+
+		function Controls() {
+			const field = useFormField('tags')
+
+			return (
+				<>
+					<button type="button" onClick={() => field?.setValue(['a'])}>
+						mutate
+					</button>
+					<button type="button" onClick={() => field?.setValue([])}>
+						restore
+					</button>
+				</>
+			)
+		}
+
+		renderUI(
+			<Form defaultValues={{ tags: [] as string[] }}>
+				<DirtyProbe />
+				<Controls />
+			</Form>,
+		)
+
+		expect(screen.getByTestId('dirty').textContent).toBe('clean')
+
+		act(() => {
+			screen.getByText('mutate').click()
+		})
+
+		expect(screen.getByTestId('dirty').textContent).toBe('dirty')
+
+		act(() => {
+			screen.getByText('restore').click()
+		})
+
+		expect(screen.getByTestId('dirty').textContent).toBe('clean')
+	})
 })
 
 function makeWrapper<T extends Record<string, unknown>>(defaultValues: T) {
