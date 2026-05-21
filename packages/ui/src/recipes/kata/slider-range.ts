@@ -1,4 +1,5 @@
 import { defineRecipe, hannou, type VariantPropsOf } from '..'
+import { slider } from '../genkei/slider'
 
 const root = defineRecipe({
 	base: ['relative', 'w-full', ...hannou.cursor, 'select-none', 'touch-none', hannou.disabled],
@@ -7,15 +8,7 @@ const root = defineRecipe({
 		md: 'py-4',
 		lg: 'py-5',
 	},
-	color: {
-		zinc: '[--slider-fill:var(--color-zinc-600)] [--slider-track:var(--color-zinc-200)] dark:[--slider-fill:var(--color-zinc-400)] dark:[--slider-track:var(--color-zinc-700)]',
-		red: '[--slider-fill:var(--color-red-600)] [--slider-track:var(--color-zinc-200)] dark:[--slider-fill:var(--color-red-500)] dark:[--slider-track:var(--color-zinc-700)]',
-		amber:
-			'[--slider-fill:var(--color-amber-500)] [--slider-track:var(--color-zinc-200)] dark:[--slider-fill:var(--color-amber-500)] dark:[--slider-track:var(--color-zinc-700)]',
-		green:
-			'[--slider-fill:var(--color-green-600)] [--slider-track:var(--color-zinc-200)] dark:[--slider-fill:var(--color-green-500)] dark:[--slider-track:var(--color-zinc-700)]',
-		blue: '[--slider-fill:var(--color-blue-600)] [--slider-track:var(--color-zinc-200)] dark:[--slider-fill:var(--color-blue-500)] dark:[--slider-track:var(--color-zinc-700)]',
-	},
+	color: slider.color,
 	defaults: { size: 'md', color: 'blue' },
 })
 
@@ -34,20 +27,13 @@ const thumb = defineRecipe({
 		'absolute',
 		'rounded-full',
 		'-translate-x-1/2',
-		// Color (light)
 		'bg-white',
 		'ring-1 ring-zinc-950/20',
-		// Color (dark)
 		'dark:ring-white/20',
-		// Effects
 		'shadow-sm',
-		// Transition
 		'transition-transform',
-		// Hover
 		'hover:scale-110',
-		// Active
 		'active:scale-110',
-		// Focus
 		'focus-visible:outline-none',
 		'focus-visible:ring-4',
 		'focus-visible:ring-blue-600',

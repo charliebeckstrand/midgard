@@ -1,10 +1,10 @@
-import { defineRecipe, type VariantPropsOf } from '..'
+import { defineRecipe, iro, type VariantPropsOf } from '..'
 
 export const k = defineRecipe({
 	base: 'inline-block rounded-full',
 	variant: {
 		solid: 'bg-current',
-		outline: 'border-2 border-current bg-white dark:bg-zinc-900',
+		outline: ['border-2 border-current', ...iro.bg.surface],
 	},
 	status: {
 		inactive: 'text-zinc-300 dark:text-zinc-400',

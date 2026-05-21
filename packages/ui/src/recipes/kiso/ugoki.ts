@@ -7,14 +7,12 @@
  * Layer: kiso · Concern: motion
  */
 
-const slideTransition = { duration: 0.15 } as const
-
-function slideConfig(axis: 'x' | 'y', value: string) {
+function slideConfig(axis: 'x' | 'y', value: string, ease?: 'easeOut') {
 	return {
 		initial: { [axis]: value, opacity: 1 },
-		animate: { x: 0, y: 0, opacity: 1 },
+		animate: { [axis]: 0, opacity: 1 },
 		exit: { [axis]: value, opacity: 1 },
-		transition: slideTransition,
+		transition: ease ? { duration: 0.15, ease } : { duration: 0.15 },
 	}
 }
 
@@ -64,30 +62,10 @@ export const ugoki = {
 
 	/** Toast slide from edge, keyed by position side. */
 	toast: {
-		right: {
-			initial: { x: '100%', opacity: 1 },
-			animate: { x: 0, opacity: 1 },
-			exit: { x: '100%', opacity: 1 },
-			transition: { duration: 0.15, ease: 'easeOut' as const },
-		},
-		left: {
-			initial: { x: '-100%', opacity: 1 },
-			animate: { x: 0, opacity: 1 },
-			exit: { x: '-100%', opacity: 1 },
-			transition: { duration: 0.15, ease: 'easeOut' as const },
-		},
-		bottom: {
-			initial: { y: '100%', opacity: 1 },
-			animate: { y: 0, opacity: 1 },
-			exit: { y: '100%', opacity: 1 },
-			transition: { duration: 0.15, ease: 'easeOut' as const },
-		},
-		top: {
-			initial: { y: '-100%', opacity: 1 },
-			animate: { y: 0, opacity: 1 },
-			exit: { y: '-100%', opacity: 1 },
-			transition: { duration: 0.15, ease: 'easeOut' as const },
-		},
+		right: slideConfig('x', '100%', 'easeOut'),
+		left: slideConfig('x', '-100%', 'easeOut'),
+		top: slideConfig('y', '-100%', 'easeOut'),
+		bottom: slideConfig('y', '100%', 'easeOut'),
 	},
 
 	/** Tooltip fade with subtle scale. */

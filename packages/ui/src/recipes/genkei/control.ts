@@ -26,7 +26,7 @@
  * Layer: genkei · Concern: control field archetype
  */
 
-import { hannou, iro, ji, omote, sen, tsunagi } from '..'
+import { hannou, iro, ji, mode, omote, sen, tsunagi } from '..'
 import { kasane } from './kasane'
 
 // `tsunagi.base` is data-attribute-gated, so it stays inert until a `<Group>`
@@ -36,12 +36,10 @@ import { kasane } from './kasane'
 const frame = ['group/control flex items-center', 'relative w-full', ...kasane.all, ...tsunagi.base]
 
 const surface = {
-	default: [
-		'bg-white',
-		'dark:bg-white/5',
-		'has-[>:disabled]:before:bg-zinc-950/5',
-		'dark:before:hidden',
-	],
+	default: mode(
+		['bg-white', 'has-[>:disabled]:before:bg-zinc-950/5'],
+		['dark:bg-white/5', 'dark:before:hidden'],
+	),
 	outline: [...sen.borderEmphasis, 'hover:border-zinc-950/30', 'dark:hover:border-white/30'],
 	glass: ['bg-transparent', omote.blur.md],
 } as const
@@ -134,15 +132,21 @@ const check = {
 	hidden: ['absolute inset-0', 'opacity-0', ...hannou.cursor, sen.forced.control],
 	/** Custom check surface (the visible box / circle). */
 	surface: [
-		'bg-white',
 		'border',
-		'border-zinc-950/15',
-		'not-has-[:disabled]:hover:border-zinc-950/30',
-		'not-has-[:disabled]:group-hover/field:border-zinc-950/30',
-		'dark:bg-white/5',
-		'dark:border-white/15',
-		'dark:not-has-[:disabled]:hover:border-white/30',
-		'dark:not-has-[:disabled]:group-hover/field:border-white/30',
+		...mode(
+			[
+				'bg-white',
+				'border-zinc-950/15',
+				'not-has-[:disabled]:hover:border-zinc-950/30',
+				'not-has-[:disabled]:group-hover/field:border-zinc-950/30',
+			],
+			[
+				'dark:bg-white/5',
+				'dark:border-white/15',
+				'dark:not-has-[:disabled]:hover:border-white/30',
+				'dark:not-has-[:disabled]:group-hover/field:border-white/30',
+			],
+		),
 		'has-[:disabled]:opacity-50 has-[:disabled]:cursor-not-allowed',
 	],
 }

@@ -7,6 +7,8 @@
  * Layer: kiso · Concern: interaction
  */
 
+import { mode } from '../../core/recipe'
+
 import { iro } from './iro'
 import { ji } from './ji'
 import { sen } from './sen'
@@ -30,12 +32,10 @@ const disabled = [
 	ugoki.css.duration,
 ]
 
-// Single source of truth for cursor feedback. `cursor-pointer` is the base;
-// the four `cursor-not-allowed` variants win on specificity when the element
-// itself is disabled (`:disabled` / `data-disabled`) or wraps a disabled
-// descendant (`has-[:disabled]` / `has-[data-disabled]`). Keeping the base
-// at one-class specificity also lets parent overrides like
-// `has-disabled:**:cursor-not-allowed` win for sibling-label patterns.
+// `cursor-pointer` stays at one-class specificity so the disabled variants
+// below override it on the element or its descendants — and so parent
+// overrides like `has-disabled:**:cursor-not-allowed` still win for
+// sibling-label patterns.
 const cursor = [
 	'cursor-pointer',
 	'disabled:cursor-not-allowed',
@@ -44,40 +44,44 @@ const cursor = [
 	'has-[data-disabled]:cursor-not-allowed',
 ]
 
-const motoi = {
-	item: [
-		'sm:py-1.5 py-2.5',
-		'outline-hidden',
-		ji.md,
-		sen.forced.text,
-		sen.forced.focus,
-		disabled,
-		cursor,
-	],
-	nav: [shaku.icon.md],
-}
-
-const hiru = {
-	item: [
+// Hover / focus tint for menu and listbox items — mode-neutral wash at low
+// alpha on the active surface.
+const itemTint = mode(
+	[
 		'not-disabled:not-data-disabled:hover:bg-zinc-950/5',
 		'not-disabled:not-data-disabled:focus:bg-zinc-950/5',
 	],
-	nav: ['group-hover:bg-zinc-950/5'],
-}
-
-const yoru = {
-	item: [
+	[
 		'dark:not-disabled:not-data-disabled:hover:bg-white/5',
 		'dark:not-disabled:not-data-disabled:focus:bg-white/5',
 	],
-	nav: ['dark:text-white', 'dark:group-hover:bg-white/5'],
-}
+)
 
-const item = [iro.text.default, 'rounded-lg', motoi.item, hiru.item, yoru.item, glassItem]
+const item = [
+	iro.text.default,
+	'rounded-lg',
+	'sm:py-1.5 py-2.5',
+	'outline-hidden',
+	ji.md,
+	sen.forced.text,
+	sen.forced.focus,
+	disabled,
+	cursor,
+	itemTint,
+	glassItem,
+]
+
+const nav = [
+	shaku.icon.md,
+	'group-hover:bg-zinc-950/5',
+	'dark:text-white',
+	'dark:group-hover:bg-white/5',
+	sen.focus.inset,
+]
 
 export const hannou = {
 	item,
-	nav: [motoi.nav, hiru.nav, yoru.nav, sen.focus.inset],
+	nav,
 	/** Disabled / dormant state. */
 	disabled,
 	/** Cursor feedback — pointer when interactive, not-allowed when disabled. */

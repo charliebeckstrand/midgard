@@ -15,10 +15,10 @@ const segment = defineRecipe({
 const label = defineRecipe({
 	base: [ji.sm, 'font-medium'],
 	level: {
-		weak: 'text-red-600 dark:text-red-500',
-		fair: 'text-amber-600 dark:text-amber-500',
-		good: 'text-blue-600 dark:text-blue-500',
-		strong: 'text-green-600 dark:text-green-500',
+		weak: iro.palette.bare.text.red,
+		fair: iro.palette.bare.text.amber,
+		good: iro.palette.bare.text.blue,
+		strong: iro.palette.bare.text.green,
 		empty: iro.text.muted,
 	},
 	defaults: { level: 'empty' },
@@ -32,7 +32,7 @@ export const k = {
 	rules: ['flex flex-col', 'gap-0.5'],
 	rule: ['inline-flex items-center', 'gap-xs', ji.sm],
 	ruleIcon: 'size-4 shrink-0',
-	ruleIconPass: 'text-green-600 dark:text-green-500',
+	ruleIconPass: iro.palette.bare.text.green,
 	ruleIconFail: iro.text.muted,
 	ruleText: iro.text.muted,
 	ruleTextPass: iro.text.default,

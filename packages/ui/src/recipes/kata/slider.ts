@@ -1,4 +1,5 @@
 import { defineRecipe, hannou, type VariantPropsOf } from '..'
+import { slider } from '../genkei/slider'
 
 export const k = defineRecipe({
 	base: [
@@ -14,23 +15,15 @@ export const k = defineRecipe({
 		'[&::-webkit-slider-runnable-track]:rounded-full',
 		'[&::-webkit-slider-runnable-track]:bg-[linear-gradient(to_right,var(--slider-fill)_0,var(--slider-fill)_var(--slider-value,0%),var(--slider-track)_var(--slider-value,0%),var(--slider-track)_100%)]',
 
-		// Layout
 		'[&::-webkit-slider-thumb]:appearance-none',
 		'[&::-webkit-slider-thumb]:rounded-full',
-		// Color (light)
 		'[&::-webkit-slider-thumb]:bg-white',
 		'[&::-webkit-slider-thumb]:ring-1 [&::-webkit-slider-thumb]:ring-zinc-950/20',
-		// Color (dark)
 		'dark:[&::-webkit-slider-thumb]:ring-white/20',
-		// Effects
 		'[&::-webkit-slider-thumb]:shadow-sm',
-		// Transition
 		'[&::-webkit-slider-thumb]:transition-transform',
-		// Hover
 		'hover:not-disabled:[&::-webkit-slider-thumb]:scale-110',
-		// Active
 		'active:not-disabled:[&::-webkit-slider-thumb]:scale-110',
-		// Focus
 		'focus-visible:[&::-webkit-slider-thumb]:ring-4',
 		'focus-visible:[&::-webkit-slider-thumb]:ring-blue-600',
 		'dark:focus-visible:[&::-webkit-slider-thumb]:ring-blue-600',
@@ -39,23 +32,15 @@ export const k = defineRecipe({
 		'[&::-moz-range-track]:rounded-full',
 		'[&::-moz-range-track]:bg-[linear-gradient(to_right,var(--slider-fill)_0,var(--slider-fill)_var(--slider-value,0%),var(--slider-track)_var(--slider-value,0%),var(--slider-track)_100%)]',
 
-		// Layout
 		'[&::-moz-range-thumb]:rounded-full',
-		// Color (light)
 		'[&::-moz-range-thumb]:bg-white',
 		'[&::-moz-range-thumb]:border-0',
 		'[&::-moz-range-thumb]:ring-1 [&::-moz-range-thumb]:ring-zinc-950/20',
-		// Color (dark)
 		'dark:[&::-moz-range-thumb]:ring-white/20',
-		// Effects
 		'[&::-moz-range-thumb]:shadow-sm',
-		// Transition
 		'[&::-moz-range-thumb]:transition-transform',
-		// Hover
 		'hover:not-disabled:[&::-moz-range-thumb]:scale-110',
-		// Active
 		'active:not-disabled:[&::-moz-range-thumb]:scale-110',
-		// Focus
 		'focus-visible:[&::-moz-range-thumb]:ring-4',
 		'focus-visible:[&::-moz-range-thumb]:ring-blue-600',
 		'dark:focus-visible:[&::-moz-range-thumb]:ring-blue-600',
@@ -84,15 +69,7 @@ export const k = defineRecipe({
 			'[&::-moz-range-thumb]:size-5',
 		],
 	},
-	color: {
-		zinc: '[--slider-fill:var(--color-zinc-600)] [--slider-track:var(--color-zinc-200)] dark:[--slider-fill:var(--color-zinc-400)] dark:[--slider-track:var(--color-zinc-700)]',
-		red: '[--slider-fill:var(--color-red-600)] [--slider-track:var(--color-zinc-200)] dark:[--slider-fill:var(--color-red-500)] dark:[--slider-track:var(--color-zinc-700)]',
-		amber:
-			'[--slider-fill:var(--color-amber-500)] [--slider-track:var(--color-zinc-200)] dark:[--slider-fill:var(--color-amber-500)] dark:[--slider-track:var(--color-zinc-700)]',
-		green:
-			'[--slider-fill:var(--color-green-600)] [--slider-track:var(--color-zinc-200)] dark:[--slider-fill:var(--color-green-500)] dark:[--slider-track:var(--color-zinc-700)]',
-		blue: '[--slider-fill:var(--color-blue-600)] [--slider-track:var(--color-zinc-200)] dark:[--slider-fill:var(--color-blue-500)] dark:[--slider-track:var(--color-zinc-700)]',
-	},
+	color: slider.color,
 	defaults: { size: 'md', color: 'blue' },
 })
 

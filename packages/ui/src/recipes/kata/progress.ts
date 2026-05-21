@@ -14,44 +14,11 @@ export const k = defineRecipe({
 	defaults: { size: 'md' },
 })
 
-export const progressBarFill = defineRecipe({
-	base: ['h-full', 'rounded-full'],
-	color: {
-		zinc: 'bg-zinc-600 dark:bg-zinc-400',
-		red: 'bg-red-600 dark:bg-red-500',
-		amber: 'bg-amber-500',
-		green: 'bg-green-600 dark:bg-green-500',
-		blue: 'bg-blue-600 dark:bg-blue-500',
-	},
-	defaults: { color: 'zinc' },
-})
-
-export const progressGauge = defineRecipe({
-	base: ['relative', 'inline-flex items-center justify-center'],
-	size: {
-		sm: 'size-12',
-		md: 'size-16',
-		lg: 'size-20',
-		xl: 'size-24',
-	},
-	defaults: { size: 'md' },
-})
-
-export const progressGaugeLabel = defineRecipe({
-	base: ['absolute', 'font-semibold', ...iro.text.default],
-	size: {
-		sm: 'text-xs',
-		md: 'text-sm',
-		lg: 'text-md',
-		xl: 'text-lg',
-	},
-	defaults: { size: 'md' },
-})
-
 /**
- * Per-colour stroke / fill / bg classes shared between bar + gauge. Indexed
- * by the consumer's `color` prop; not a `defineRecipe` axis because the
- * three sub-tokens are emitted to different elements.
+ * Per-colour fill / bg / stroke classes shared between bar + gauge. The
+ * gauge reads all three (`fill` on the indicator circle, `stroke` on the
+ * track, `bg` on the central label); `progressBarFill` indexes into the
+ * `bg` slice for its colour axis.
  */
 export const color = {
 	zinc: {
@@ -80,6 +47,40 @@ export const color = {
 		stroke: 'stroke-blue-600 dark:stroke-blue-500',
 	},
 }
+
+export const progressBarFill = defineRecipe({
+	base: ['h-full', 'rounded-full'],
+	color: {
+		zinc: color.zinc.bg,
+		red: color.red.bg,
+		amber: color.amber.bg,
+		green: color.green.bg,
+		blue: color.blue.bg,
+	},
+	defaults: { color: 'zinc' },
+})
+
+export const progressGauge = defineRecipe({
+	base: ['relative', 'inline-flex items-center justify-center'],
+	size: {
+		sm: 'size-12',
+		md: 'size-16',
+		lg: 'size-20',
+		xl: 'size-24',
+	},
+	defaults: { size: 'md' },
+})
+
+export const progressGaugeLabel = defineRecipe({
+	base: ['absolute', 'font-semibold', ...iro.text.default],
+	size: {
+		sm: 'text-xs',
+		md: 'text-sm',
+		lg: 'text-md',
+		xl: 'text-lg',
+	},
+	defaults: { size: 'md' },
+})
 
 export type ProgressTrackVariants = VariantPropsOf<typeof k>
 export type ProgressBarFillVariants = VariantPropsOf<typeof progressBarFill>
