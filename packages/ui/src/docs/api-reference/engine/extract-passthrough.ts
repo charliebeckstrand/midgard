@@ -8,11 +8,12 @@ import {
 } from './ts-utils'
 
 /**
- * Walk a component's props-type annotation to detect HTML pass-through. A
- * component passes through `<tag>` attrs when its annotation contains:
+ * Detect HTML pass-through in a props-type annotation. A component passes
+ * through `<tag>` attrs when the annotation contains:
+ *
  *   - `ComponentPropsWithRef<'tag'>` / `ComponentPropsWithoutRef<'tag'>`
  *   - `*HTMLAttributes<HTMLTagElement>`
- *   - `PolymorphicProps<'tag'>` (project-specific helper)
+ *   - `PolymorphicProps<'tag'>` (project helper)
  */
 export function extractPassThrough(
 	annotation: ts.TypeNode,
@@ -34,8 +35,8 @@ function walk(
 	checker: ts.TypeChecker,
 ): void {
 	// Key by node + omitted context: the same alias reached through different
-	// `Omit<…>` wrappers needs to be re-walked so each visit's omitted keys
-	// land on its own pass-through entry.
+	// `Omit<…>` wrappers must re-walk so each visit's omitted keys land on
+	// their own pass-through entry.
 	const key = `${node.getSourceFile().fileName}:${node.pos}:${node.end} ${omitted.join('|')}`
 
 	if (visited.has(key)) return
@@ -58,7 +59,7 @@ function walk(
 
 	const name = typeRefName(node.typeName)
 
-	// Omit<T, 'a' | 'b'> — recurse with extra omitted keys
+	// Omit<T, 'a' | 'b'> — recurse, carrying the keys forward.
 	if (name === 'Omit') {
 		const [inner, keys] = node.typeArguments ?? []
 
@@ -67,8 +68,7 @@ function walk(
 		return
 	}
 
-	// Pick narrows the surface; pass-through inside Pick isn't worth surfacing
-	// (we'd be claiming pass-through for a tiny slice).
+	// Pick narrows to a slice — claiming pass-through for it would mislead.
 	if (name === 'Pick') return
 
 	const direct = matchDirectPassThrough(name, node.typeArguments ?? [], checker)
@@ -79,16 +79,13 @@ function walk(
 		return
 	}
 
-	// Named type reference — follow the alias and walk its target.
+	// Project alias — follow to its RHS and keep walking.
 	const target = resolveTypeAliasTarget(node.typeName, checker)
 
 	if (target) walk(target, omitted, out, visited, checker)
 }
 
-/**
- * Match the recognized pass-through type names. Returns the HTML element name
- * (e.g. `'input'`, `'div'`) when matched, otherwise null.
- */
+/** HTML element name for a recognized pass-through type; null otherwise. */
 function matchDirectPassThrough(
 	name: string,
 	typeArgs: readonly ts.TypeNode[],
@@ -121,13 +118,12 @@ function extractStringLiteral(
 }
 
 /**
- * Class-name stems where the lowercased stem differs from the HTML tag. For
- * the unlisted majority (`HTMLDivElement` → `div`, `HTMLInputElement` →
- * `input`, …) the lowercased stem *is* the tag. Ambiguous classes resolve to
- * the most representative tag — `HTMLHeadingElement` covers h1..h6,
- * `HTMLTableCellElement` covers td and th, `HTMLTableSectionElement` covers
- * tbody/thead/tfoot, `HTMLModElement` covers del/ins, `HTMLQuoteElement`
- * covers q and blockquote.
+ * Class-name stems whose HTML tag differs from the lowercased stem. The
+ * unlisted majority (`HTMLDivElement` → `div`, `HTMLInputElement` → `input`,
+ * …) falls through to the lowercased stem. Ambiguous classes — `HTMLHeading`
+ * covers `h1..h6`, `HTMLTableCell` covers `td` and `th`, `HTMLTableSection`
+ * covers `tbody/thead/tfoot`, `HTMLMod` covers `del/ins`, `HTMLQuote`
+ * covers `q` and `blockquote` — pick the most representative tag.
  */
 const HTML_ELEMENT_TAG_OVERRIDES: ReadonlyMap<string, string> = new Map([
 	['Anchor', 'a'],

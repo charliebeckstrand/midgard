@@ -1,4 +1,4 @@
-/** Split a type expression on top-level `|`, respecting nesting and strings. */
+/** Split a type expression on top-level `|`, ignoring `|` inside nesting and strings. */
 export function splitUnion(type: string): string[] {
 	const parts: string[] = []
 

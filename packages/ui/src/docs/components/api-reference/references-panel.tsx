@@ -6,9 +6,8 @@ import { Stack } from '../../../components/stack'
 import { TypeBadges } from './type-badges'
 
 /**
- * Render each referenced type definition. Multi-line bodies (interfaces,
- * mapped types) get a `<CodeBlock>`; single-line bodies (`'a' | 'b'`-style
- * unions) get the same badge treatment as the props table for consistency.
+ * Multi-line definitions (interfaces, mapped types) render as `<CodeBlock>`.
+ * Single-line definitions reuse the props-table badges for consistency.
  */
 export function ReferencesPanel({ references }: { references: Record<string, string> }) {
 	const entries = Object.entries(references)

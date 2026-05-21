@@ -8,18 +8,9 @@ const IGNORED_PROPS = new Set(['className', 'children', 'ref', 'key'])
 type CollectedProp = { name: string; symbol: ts.Symbol; types: ts.Type[] }
 
 /**
- * Resolve every prop the component accepts, filtered down to project-authored
- * ones. Returns a list of `PropDef` ready for the API reference table.
- *
- * The flow is:
- *
- *   1. Read each prop from the resolved props type, walking union arms so
- *      discriminated-union members surface with their own arm-bound types.
- *   2. Filter to project-authored names (caller passes in the authoritative
- *      set when the props parameter has a type annotation; otherwise we fall
- *      back to a per-symbol heuristic).
- *   3. Format each remaining prop's type to a display string and resolve any
- *      named references inside.
+ * Resolve every project-authored prop the component accepts. `projectNames`
+ * is the authoritative filter when an annotation is available; without one,
+ * fall back to a per-symbol declaration-source heuristic.
  */
 export function extractProps(
 	callable: ts.SignatureDeclaration,
@@ -46,14 +37,13 @@ export function extractProps(
 }
 
 /**
- * `propsType.getProperties()` on a union returns only the *intersection* of
- * arm properties, dropping discriminated-union members. Walk arms separately
- * so each arm-only prop surfaces with its own arm-bound symbol, and so that
- * when the same prop name shows up in multiple arms with distinct types,
- * every contributing arm-type is collected.
+ * `propsType.getProperties()` on a union returns only the intersection of arm
+ * properties, dropping discriminated members. Walk arms separately so each
+ * arm-only prop surfaces with its own symbol, and so a prop that appears in
+ * multiple arms with distinct types collects every contributing arm-type.
  *
  * Intersections are already merged by `getProperties()`, but their arms may
- * themselves contain unions — recurse so nested unions are still split.
+ * themselves contain unions — recurse to split nested unions too.
  */
 function collectAllProperties(
 	type: ts.Type,
@@ -121,10 +111,7 @@ function buildPropDef(
 	return prop
 }
 
-/**
- * Format every contributing arm-type for a prop, dedupe by rendered text, and
- * join with `|` when more than one distinct rendering remains.
- */
+/** Render each arm-type, dedupe by output text, and join distinct renderings with `|`. */
 function formatPropTypes(types: ts.Type[], location: ts.Node, checker: ts.TypeChecker): string {
 	const rendered: string[] = []
 
@@ -138,14 +125,10 @@ function formatPropTypes(types: ts.Type[], location: ts.Node, checker: ts.TypeCh
 }
 
 /**
- * Use the prop's source-text annotation when its declaration carries an
- * inline structural shape (mapped types, object literals) — TS otherwise
- * expands these into uglier forms like
- * `{ [K in keyof T]?: Validator<T, K> | undefined; }`. The bare TypeNode
- * source preserves what the user wrote.
- *
- * Only used as a targeted override; type references and primitives still
- * flow through the formatter so they pick up alias / generic resolution.
+ * Targeted override: when the prop's declaration is a mapped type, return
+ * its source text instead of letting the formatter expand it into noise
+ * like `{ [K in keyof T]?: Validator<T, K> | undefined }`. Type references
+ * and primitives still flow through the formatter for alias resolution.
  */
 function inlineSourceType(symbol: ts.Symbol): string | null {
 	const decl = symbol.getDeclarations()?.[0]
@@ -160,16 +143,14 @@ function inlineSourceType(symbol: ts.Symbol): string | null {
 }
 
 /**
- * A property qualifies as a "real" prop when it has at least one declaration
- * in project source — i.e. `node_modules` declarations alone (HTML attrs,
- * React typings, library mapped types) are pass-through, not authored props.
+ * A "real" prop has at least one declaration in project source — symbols
+ * declared only in `node_modules` (HTML attrs, React typings, library mapped
+ * types) are pass-through, not authored props.
  *
- * Caveat: props derived from `VariantProps<typeof recipe>` declare in
- * tailwind-variants' source. Those are intentionally re-attributed via
- * `externalFrom` rather than skipped — `hasProjectDeclaration` returns true
- * for them only when the recipe's value flows back into a project-source
- * declaration site, which `getDeclarations()` includes via the symbol's
- * intersection origin.
+ * `VariantProps<typeof recipe>` keys are the exception: they declare inside
+ * `tailwind-variants` but the recipe's value lands back in project source,
+ * so `getDeclarations()` includes the project site through the symbol's
+ * intersection origin and they qualify here.
  */
 function hasProjectDeclaration(symbol: ts.Symbol): boolean {
 	const declarations = symbol.getDeclarations() ?? []
@@ -179,10 +160,7 @@ function hasProjectDeclaration(symbol: ts.Symbol): boolean {
 	return declarations.some((decl) => !decl.getSourceFile().fileName.includes('/node_modules/'))
 }
 
-/**
- * Determine which external npm package a symbol's declarations come from.
- * Returns `undefined` for project-local or standard-library symbols.
- */
+/** External npm package the symbol declares in — `undefined` for project source and the stdlib. */
 function getExternalPackage(symbol: ts.Symbol): string | undefined {
 	const decl = symbol.getDeclarations()?.[0]
 
@@ -193,7 +171,7 @@ function getExternalPackage(symbol: ts.Symbol): string | undefined {
 
 	if (!pkg) return undefined
 
-	// Skip TS lib + React typings (those are background, not "external" in the docs sense)
+	// TS lib + React typings are background context, not "external" in the docs sense.
 	if (pkg === 'typescript' || pkg === '@types/react' || pkg === '@types/react-dom') {
 		return undefined
 	}
@@ -202,10 +180,8 @@ function getExternalPackage(symbol: ts.Symbol): string | undefined {
 }
 
 /**
- * Pull the package name out of a node_modules path. Handles plain layouts
- * (`/node_modules/foo/...`, `/node_modules/@scope/foo/...`) and pnpm's nested
- * layout (`/node_modules/.pnpm/foo@x.y.z/node_modules/foo/...`) by always
- * preferring the segment after the last `/node_modules/`.
+ * Take the segment after the last `/node_modules/`, which covers plain
+ * layouts and pnpm's `.pnpm/<pkg>@<ver>/node_modules/<pkg>/...` nesting.
  */
 function parsePackageName(file: string): string | null {
 	const idx = file.lastIndexOf('/node_modules/')

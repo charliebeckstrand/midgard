@@ -2,16 +2,16 @@ import { ts } from 'ts-morph'
 import { resolveTypeAliasTarget, typeRefName, unaliasSymbol } from './ts-utils'
 
 /**
- * Collect every visible default value for a component's props. Combines two
- * sources, with inline destructuring winning on conflicts:
+ * Collect every visible default for a component's props, merging two sources:
  *
  *   - **Inline destructured defaults** — `function Foo({ size = 'md' })`
- *     reads off the function parameter directly.
+ *     read off the parameter binding.
  *   - **CVA `defaultVariants`** — when the props type references
- *     `VariantProps<typeof recipe>`, follows the recipe to its `tv({...})` /
- *     `cva({...})` call and reads the `defaultVariants` object literal.
+ *     `VariantProps<typeof recipe>`, follow the recipe to its
+ *     `tv({...})` / `cva({...})` call.
  *
- * Values are kept quoted (`'md'`) so they render the same way as the source.
+ * Inline wins on conflict; it's the value the component actually applies at
+ * runtime. Values keep their source quoting so they render as authored.
  */
 export function extractDefaults(
 	callable: ts.SignatureDeclaration,
@@ -21,7 +21,6 @@ export function extractDefaults(
 	const cva = annotation ? collectCvaDefaults(annotation, checker) : new Map()
 	const inline = collectInlineDefaults(callable)
 
-	// Inline wins — it's the value the component actually applies at runtime.
 	return new Map<string, string>([...cva, ...inline])
 }
 
@@ -45,7 +44,7 @@ function collectInlineDefaults(callable: ts.SignatureDeclaration): Map<string, s
 
 		if (!name) continue
 
-		// Source text preserves quotes, parens, etc.
+		// Source text preserves the author's quoting, parens, etc.
 		defaults.set(name, element.initializer.getText())
 	}
 
@@ -99,18 +98,16 @@ function walkAnnotation(
 		return
 	}
 
-	// Follow project type aliases — `VariantProps<...>` may live behind a
-	// project-defined alias like `ButtonVariants`.
+	// `VariantProps<...>` may live behind a project alias like `ButtonVariants`.
 	const target = resolveTypeAliasTarget(node.typeName, checker)
 
 	if (target) walkAnnotation(target, out, visited, checker)
 }
 
 /**
- * Given the type-argument of `VariantProps<T>`, follow `typeof recipe` to the
- * recipe's `tv({ ... })` initializer and read its `defaultVariants`. Aliased
- * forms (`type RecipeType = typeof recipe; VariantProps<RecipeType>`) are
- * resolved through one alias hop before bailing.
+ * Follow `typeof recipe` (the type-argument of `VariantProps<T>`) to its
+ * `tv({ ... })` initializer and read `defaultVariants`. One alias hop is
+ * resolved — `type RecipeType = typeof recipe; VariantProps<RecipeType>`.
  */
 function collectFromVariantProps(
 	arg: ts.TypeNode,
@@ -142,7 +139,7 @@ function collectFromVariantProps(
 	}
 }
 
-/** Read `defaultVariants` out of a `tv({ ... })` / `cva({ ... })` call expression. */
+/** Pull `defaultVariants` out of a `tv({ ... })` / `cva({ ... })` call. */
 function readDefaultVariants(
 	node: ts.Expression,
 	checker: ts.TypeChecker,
@@ -179,10 +176,8 @@ function readDefaultVariants(
 }
 
 /**
- * Resolve a type-argument to its underlying `typeof X` query node. Handles
- * the direct form and one level of project-alias indirection (`type R =
- * typeof recipe` followed by `VariantProps<R>`). Parenthesized type nodes are
- * unwrapped along the way.
+ * Unwrap a type-argument to its underlying `typeof X` query, peeking through
+ * parens and one level of project-alias indirection (`type R = typeof recipe`).
  */
 function unwrapToTypeQuery(node: ts.TypeNode, checker: ts.TypeChecker): ts.TypeQueryNode | null {
 	if (ts.isParenthesizedTypeNode(node)) return unwrapToTypeQuery(node.type, checker)
@@ -199,9 +194,9 @@ function unwrapToTypeQuery(node: ts.TypeNode, checker: ts.TypeChecker): ts.TypeQ
 }
 
 /**
- * Read the string key of a property-assignment name. Accepts identifiers,
- * string literals, and computed names whose expression is a string literal
- * (`['size']: 'md'`). Returns null for anything else (numeric, dynamic).
+ * String key of a property-assignment name — covers identifiers, string
+ * literals, and `['size']`-style computed names. Numeric or dynamic keys
+ * return null.
  */
 function propertyKeyName(name: ts.PropertyName): string | null {
 	if (ts.isIdentifier(name) || ts.isStringLiteral(name)) return name.text
@@ -214,10 +209,9 @@ function propertyKeyName(name: ts.PropertyName): string | null {
 }
 
 /**
- * Resolve an argument expression to the underlying object literal. Handles
- * direct literals (`tv({ ... })`), identifier indirection (`const config = {
- * ... }; tv(config)`), and the usual `as const` / `satisfies` / parens
- * wrappers authors put around CVA configs.
+ * Resolve to the underlying object literal, peeling `as const` / `satisfies` /
+ * parens wrappers and one hop of identifier indirection — `const config = {…};
+ * tv(config)`.
  */
 function resolveToObjectLiteral(
 	node: ts.Expression | undefined,

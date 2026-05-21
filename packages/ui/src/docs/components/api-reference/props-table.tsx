@@ -8,7 +8,7 @@ import {
 	TableHeader,
 	TableRow,
 } from '../../../components/table'
-import type { PropDef } from '../types'
+import type { PropDef } from '../../api-reference/types'
 import { TypeCell } from './type-cell'
 
 export function PropsTable({ rows }: { rows: PropDef[] }) {

@@ -6,10 +6,9 @@ import { findComponent, readPublicExports } from './find-components'
 import { openProject } from './project'
 
 /**
- * Build API reference data for every component under `<srcDir>/components` —
- * returns a map of `{ [componentDirName]: ComponentApi[] }`. One ts-morph
- * Project covers the whole package so the type checker can resolve
- * cross-file references in a single pass.
+ * Extract API reference data for every component under `<srcDir>/components`,
+ * keyed by directory name. One ts-morph Project covers the whole package so
+ * the type checker resolves cross-file references in a single pass.
  */
 export function buildApi(srcDir: string): Record<string, ComponentApi[]> {
 	const componentsDir = path.join(srcDir, 'components')

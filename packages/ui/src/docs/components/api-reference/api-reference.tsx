@@ -6,7 +6,7 @@ import {
 	AccordionPanel,
 	AccordionTrigger,
 } from '../../../components/accordion'
-import type { ComponentApi } from '../types'
+import type { ComponentApi } from '../../api-reference/types'
 import { ComponentEntry } from './component-entry'
 
 export function ApiReference({ api }: { api: ComponentApi[] }) {

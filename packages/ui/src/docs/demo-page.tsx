@@ -7,7 +7,7 @@ import { Heading } from '../components/heading'
 import { Icon } from '../components/icon'
 import { Stack } from '../components/stack'
 import { SidebarLayoutHeader } from '../layouts'
-import { ApiReference } from './api-reference'
+import { ApiReference } from './components/api-reference'
 import type { Demo } from './registry'
 import { getComponentApi, loadDemo } from './registry'
 

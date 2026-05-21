@@ -15,20 +15,18 @@ import {
 	SheetTitle,
 } from '../../../components/sheet'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
-import type { PropDef } from '../types'
+import type { PropDef } from '../../api-reference/types'
 import { ReferencesPanel } from './references-panel'
 import { TypeBadges } from './type-badges'
 
 /**
- * Renders the Type column of the props table. Picks one of three modes:
+ * Type-column cell. Picks one of three modes:
  *
- *   - **External** (`externalFrom` set): one outline badge with a tooltip
- *     pointing to the source package — the type isn't authored here, so
- *     hover-to-source is more useful than splitting it into badges.
- *   - **References**: the type names one or more project-authored aliases —
- *     show the bare type and open a Sheet with the resolved definitions.
- *   - **Simple** (default): primitives / literals / unions thereof — render
- *     as plain badges via `TypeBadges`.
+ *   - **External** — outline badge with a source-package tooltip. The type
+ *     isn't authored here, so hover-to-source beats splitting into badges.
+ *   - **References** — bare type plus a Sheet trigger for the resolved
+ *     definitions of every referenced alias.
+ *   - **Simple** (default) — plain badges via `TypeBadges`.
  */
 export function TypeCell({ prop }: { prop: PropDef }) {
 	const [open, setOpen] = useState(false)

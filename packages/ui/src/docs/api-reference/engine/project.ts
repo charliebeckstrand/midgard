@@ -2,12 +2,9 @@ import path from 'node:path'
 import { Project } from 'ts-morph'
 
 /**
- * Open a ts-morph Project rooted at the package's tsconfig. The package's
- * `tsconfig.json` already excludes `src/docs`, which is exactly what we want:
- * docs files aren't components, so they don't appear in the project's source
- * surface.
- *
- * @param srcDir - the package's `src/` directory; the tsconfig sits one level up.
+ * Open a ts-morph Project rooted at the package's `tsconfig.json` (one level
+ * above `srcDir`). That config excludes `src/docs`, so docs files stay out of
+ * the project's source surface.
  */
 export function openProject(srcDir: string): Project {
 	return new Project({

@@ -1,21 +1,20 @@
 export type PropDef = {
 	name: string
-	/** Type expression as written in source, e.g. "DataTableColumn<T>[]" */
+	/** Type expression as written in source — e.g. `DataTableColumn<T>[]`. */
 	type: string
 	/**
-	 * Definitions of named types appearing anywhere in the type expression —
-	 * including those nested inside generics, arrays, function params/returns,
-	 * and tuples. Object bodies are summarized to their key list for display.
+	 * Source text of every named type appearing in `type`, including names
+	 * nested inside generics, arrays, function signatures, and tuples.
 	 */
 	references?: Record<string, string>
 	default?: string
-	/** Package name when the type is imported from an external library (e.g. "@floating-ui/react") */
+	/** External package the type originates from — e.g. `@floating-ui/react`. */
 	externalFrom?: string
 }
 
 /**
- * Represents a natural HTML pass-through (e.g. `ComponentPropsWithoutRef<'button'>`).
- * Components that spread `...props` onto a DOM element inherit all of that element's attrs.
+ * HTML pass-through inherited from the underlying DOM element — i.e. the
+ * component spreads `...props` onto a `<tag>` and surfaces all its attrs.
  */
 export type PassThrough = {
 	element: string

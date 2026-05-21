@@ -2,12 +2,9 @@
 
 import { Fragment } from 'react'
 import { Code } from '../../../components/code'
-import type { PassThrough } from '../types'
+import type { PassThrough } from '../../api-reference/types'
 
-/**
- * Render the "Also accepts all <button>, <a> HTML attributes." line that sits
- * below the props table when a component spreads `...props` onto a DOM element.
- */
+/** Footer line that names the inherited DOM elements below the props table. */
 export function PassThroughNote({ entries }: { entries: readonly PassThrough[] }) {
 	if (entries.length === 0) return null
 

@@ -7,11 +7,7 @@ import { extractProps } from './extract-props'
 import type { ComponentDecl } from './find-components'
 import { getPropsAnnotation, unwrapFunctionLike } from './find-components'
 
-/**
- * Build the `ComponentApi` for one component — props, pass-through, defaults.
- * Resolves the props parameter type via the type checker, then funnels it
- * through the focused extractors.
- */
+/** Assemble the `ComponentApi` for one component from the focused extractors. */
 export function buildComponent(decl: ComponentDecl, checker: ts.TypeChecker): ComponentApi {
 	const inner = unwrapFunctionLike(decl.callable) ?? decl.callable
 	const callable = inner.compilerNode as ts.SignatureDeclaration
@@ -32,7 +28,6 @@ export function buildComponent(decl: ComponentDecl, checker: ts.TypeChecker): Co
 	return api
 }
 
-/** Resolve the props type from the component's callable signature. */
 function resolvePropsType(callable: ts.Node, checker: ts.TypeChecker): ts.Type | null {
 	const type = checker.getTypeAtLocation(callable)
 	const sig = type.getCallSignatures()[0]

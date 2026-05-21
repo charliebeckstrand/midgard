@@ -1,18 +1,18 @@
 import { ts } from 'ts-morph'
 
-/** Get the dot-separated name from a TypeName — `Foo` or `Foo.Bar`. */
+/** Dot-joined name of a TypeName — `Foo`, `Foo.Bar`, `Foo.Bar.Baz`. */
 export function typeRefName(name: ts.EntityName): string {
 	if (ts.isIdentifier(name)) return name.text
 
 	return `${typeRefName(name.left)}.${name.right.text}`
 }
 
-/** Resolve a symbol through import aliasing (`import { Foo } from '…'`). */
+/** Follow `import { Foo } from '…'` aliases to the underlying symbol. */
 export function unaliasSymbol(symbol: ts.Symbol, checker: ts.TypeChecker): ts.Symbol {
 	return symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol
 }
 
-/** Follow a type-name reference to its `type X = …` RHS, if any. */
+/** RHS of `type X = …` for a type-name reference, or null if not an alias. */
 export function resolveTypeAliasTarget(
 	name: ts.EntityName,
 	checker: ts.TypeChecker,
@@ -30,7 +30,7 @@ export function resolveTypeAliasTarget(
 	return null
 }
 
-/** Collect string-literal values from a `'a' | 'b'`-style type node. */
+/** String-literal values from a `'a' | 'b'`-style type node. */
 export function stringLiteralKeys(node: ts.TypeNode | undefined): string[] {
 	if (!node) return []
 
@@ -42,9 +42,9 @@ export function stringLiteralKeys(node: ts.TypeNode | undefined): string[] {
 }
 
 /**
- * Pass-through type names that take a string-literal tag (e.g. `'div'`) as
- * their first type argument. Used by both pass-through detection and
- * project-prop collection — kept here so the lists never drift apart.
+ * Pass-through type names whose first type argument is a string-literal tag
+ * (`'div'`, `'button'`, …). Shared between pass-through detection and
+ * project-prop collection so the two lists never drift.
  */
 export const STRING_LITERAL_PASS_THROUGHS: ReadonlySet<string> = new Set([
 	'ComponentPropsWithRef',
@@ -55,7 +55,7 @@ export const STRING_LITERAL_PASS_THROUGHS: ReadonlySet<string> = new Set([
 	'PolymorphicProps',
 ])
 
-/** Whether a type-reference name represents a recognized HTML/React pass-through. */
+/** Whether a type-reference name is a recognized HTML/React pass-through. */
 export function isPassThroughTypeName(name: string): boolean {
 	return STRING_LITERAL_PASS_THROUGHS.has(name) || name.endsWith('HTMLAttributes')
 }

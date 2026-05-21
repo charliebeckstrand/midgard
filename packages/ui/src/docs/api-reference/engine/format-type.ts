@@ -4,24 +4,22 @@ const TYPE_FORMAT_FLAGS =
 	ts.TypeFormatFlags.NoTruncation | ts.TypeFormatFlags.UseAliasDefinedOutsideCurrentScope
 
 /**
- * Format a TypeScript Type as a short, display-friendly string. Uses type
- * aliases when available so we get `BoxPadding` instead of the inlined union,
- * and avoids truncation of large unions.
+ * Format a `ts.Type` as a short, display-friendly string. Prefers named
+ * aliases over expanded unions, and renders large unions in full rather than
+ * truncating.
  *
- * Special-cases:
- *   - If the type has an `aliasSymbol` (a named alias like `ReactNode`), use
- *     the alias name directly to avoid expanding it to its underlying union.
- *   - If the type is an interface or class instance (e.g. `ReactElement`),
- *     use the declaration's name — TS otherwise renders it with its own
- *     type-parameter defaults filled in (`ReactElement<unknown, …>`).
- *   - For a generic type parameter (`T`), fall back to its default or
- *     constraint when declared so e.g. `Filters<T extends FilterValue>` shows
- *     `FilterValue` instead of a bare `T` that means nothing in isolation.
- *   - Render string-literal members with single quotes.
+ *   - Named alias (`ReactNode`, `BoxPadding`) — use the alias name directly.
+ *   - Interface or class instance (`ReactElement`) — use the declaration's
+ *     name; TS otherwise fills in type-parameter defaults
+ *     (`ReactElement<unknown, …>`).
+ *   - Generic type parameter — fall back to its default or constraint, so
+ *     `Filters<T extends FilterValue>` shows `FilterValue` rather than a
+ *     meaningless bare `T`.
+ *   - String-literal members render with single quotes.
  *
- * Operates on raw compiler types (not ts-morph wrappers) because the recursion
- * needs to format types returned by `getDefaultFromTypeParameter` /
- * `getBaseConstraintOfType`, which ts-morph doesn't surface as wrapped Types.
+ * Works on raw compiler types (not ts-morph wrappers) so recursion can format
+ * types returned by `getDefaultFromTypeParameter` / `getBaseConstraintOfType`,
+ * which ts-morph doesn't surface as wrapped Types.
  */
 export function formatType(type: ts.Type, checker: ts.TypeChecker, location?: ts.Node): string {
 	const named = namedTypeShortName(type, checker, location)
@@ -40,9 +38,8 @@ export function formatType(type: ts.Type, checker: ts.TypeChecker, location?: ts
 }
 
 /**
- * Format a prop's type. Same as `formatType` but strips `| undefined` from
- * optional unions so the rendered surface doesn't carry redundant noise on
- * every optional prop.
+ * Same as `formatType`, but strips `| undefined` from optional unions so
+ * every optional prop doesn't carry redundant noise.
  */
 export function formatPropType(type: ts.Type, checker: ts.TypeChecker, location?: ts.Node): string {
 	const named = namedTypeShortName(type, checker, location)
@@ -67,12 +64,9 @@ export function formatPropType(type: ts.Type, checker: ts.TypeChecker, location?
 }
 
 /**
- * Return the short name of a type whose identity is a named declaration
- * (alias / interface / class) rather than a structural shape.
- *
- * When the type carries no type arguments — or all of its trailing type
- * arguments match their declared defaults — the bare name is preferred:
- * `ReactElement` instead of TS's expanded `ReactElement<unknown, …>`.
+ * Short name for a type whose identity is a named declaration (alias /
+ * interface / class). Trims trailing type arguments that match their
+ * declared defaults so `ReactElement` wins over `ReactElement<unknown, …>`.
  */
 function namedTypeShortName(
 	type: ts.Type,
@@ -116,14 +110,14 @@ function namedTypeShortName(
 }
 
 /**
- * Strip trailing arguments that match their parameter's declared default —
+ * Drop trailing arguments that match their parameter's declared default —
  * what's left is what the source actually wrote. Returns `null` to signal
- * "give up; let TS render the full thing" (mismatched arity, missing defaults
- * mid-list, …).
+ * "give up; let TS render the full thing" (mismatched arity, missing
+ * defaults mid-list, …).
  *
- * A default expression may reference an earlier type parameter (`type Foo<T,
- * U = T>`); we resolve those against the supplied arg at the earlier position
- * rather than letting them collapse to the bare unbound parameter.
+ * A default may reference an earlier type parameter (`type Foo<T, U = T>`).
+ * Resolve those against the supplied arg at the earlier position, otherwise
+ * they collapse to the bare unbound parameter and the comparison fails.
  */
 function trimDefaultArgs(
 	args: readonly ts.Type[] | undefined,
@@ -179,10 +173,9 @@ function formatNameWithArgs(
 
 /**
  * Format a single-call-signature function type by recursing into each
- * parameter type and the return type — so nested type parameters (`T` inside
- * `(value: T) => void`) hit the same fallback as top-level types and resolve
- * to their constraint/default. Only single-call-signature types qualify;
- * overloads / hybrid types are left to TS's default rendering.
+ * parameter and the return type — so nested type parameters (`T` inside
+ * `(value: T) => void`) hit the same default / constraint fallback as
+ * top-level types. Overloads and hybrid types defer to TS's default.
  */
 function formatFunctionType(
 	type: ts.Type,
@@ -215,11 +208,11 @@ function formatFunctionType(
 }
 
 /**
- * For a generic type parameter (`T`) prefer its default, then its constraint —
- * a bare parameter name like `T` is meaningless without the surrounding
- * generic context, but the default/constraint is what callers actually pass.
- * Returns null when the type is not a parameter, or the parameter has neither
- * default nor constraint (in which case showing `T` is the most honest output).
+ * For a generic type parameter, prefer its default, then its constraint —
+ * a bare `T` means nothing outside its generic context, but the default
+ * or constraint is what callers actually pass. Returns null when the type
+ * isn't a parameter, or when neither default nor constraint exists (in
+ * which case showing `T` is the most honest output).
  */
 function typeParameterFallback(
 	type: ts.Type,
@@ -238,14 +231,14 @@ function typeParameterFallback(
 	return formatType(fallback, checker, location)
 }
 
-/** Convert TS double-quoted string literals to single quotes. */
+/** TS emits double quotes; the rest of the docs use single. */
 function toSingleQuotes(s: string): string {
 	return s.replace(/"([^"\\]*)"/g, "'$1'")
 }
 
 /**
- * Narrow a Type to a type reference — an object type whose identity is a
- * generic instantiation. `getTypeArguments()` is only meaningful on these.
+ * Narrow to a type reference — an object type whose identity is a generic
+ * instantiation. `getTypeArguments()` is only meaningful on these.
  */
 function isTypeReference(type: ts.Type): type is ts.TypeReference {
 	if (!(type.flags & ts.TypeFlags.Object)) return false
