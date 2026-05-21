@@ -2,8 +2,7 @@ packages:
   - apps/*
   - packages/*
 
-ignoredBuiltDependencies:
-  - esbuild
-  - sharp
-onlyBuiltDependencies:
-  - lefthook
+allowBuilds:
+  esbuild: false
+  lefthook: true
+  sharp: false
