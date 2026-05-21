@@ -70,10 +70,9 @@ function extractFieldErrors(
 export type UseFormReducerOptions<T extends Record<string, unknown>> = {
 	defaultValues: T
 	/**
-	 * Controlled re-sync source. When the reference changes, `values` is
-	 * replaced and the dirty baseline shifts to match — `touched`, `errors`,
-	 * and `submitting` are preserved. Use a stable reference (memoize when
-	 * derived per render) to avoid sync loops.
+	 * Controlled re-sync source. Reference change → `values` replaced and the
+	 * dirty baseline shifts; `touched`, `errors`, and `submitting` stay put.
+	 * Pass a stable reference — memoize derived objects to avoid sync loops.
 	 */
 	values?: T
 	validate?: Validators<T>
@@ -99,9 +98,6 @@ export function useFormReducer<T extends Record<string, unknown>>({
 	onSettled,
 	onReset,
 }: UseFormReducerOptions<T>): UseFormReducerResult {
-	// `values` wins over `defaultValues` when both are passed: it represents the
-	// controlled source of truth, and `defaultValues` is the fallback for the
-	// uncontrolled flow.
 	const initialValues = controlledValues ?? defaultValues
 
 	const [state, dispatch] = useReducer(
@@ -177,9 +173,8 @@ export function useFormReducer<T extends Record<string, unknown>>({
 	}, [])
 
 	const reset = useCallback(
-		// Wider parameter than `T` so the same callback satisfies the context-
-		// level `FormActions` shape (which has no `T`); the per-form
-		// `FormHelpers<T>` narrows it back at the consumer site via contravariance.
+		// Typed wider than `T` so it satisfies `FormActions.reset` (no `T` at the
+		// context level); `FormHelpers<T>` re-narrows at the consumer via contravariance.
 		(nextDefaults?: Record<string, unknown>) => {
 			if (nextDefaults !== undefined) defaultsRef.current = nextDefaults as T
 
@@ -190,10 +185,10 @@ export function useFormReducer<T extends Record<string, unknown>>({
 		[onReset],
 	)
 
-	// Watch the controlled `values` prop. On reference change, replace `values`
-	// and shift the dirty baseline; `touched`/`errors`/`submitting` are
-	// preserved on purpose so users mid-typing don't get their progress wiped.
-	// `reset(nextDefaults)` is the "start over" pathway when that's what you want.
+	// Watch the controlled `values` prop. Reference change → replace `values`
+	// and shift the dirty baseline; `touched`/`errors`/`submitting` stay put
+	// so users mid-typing don't lose progress. Use `reset(nextDefaults)` to
+	// start over.
 	const lastSyncedValuesRef = useRef(controlledValues)
 
 	useEffect(() => {

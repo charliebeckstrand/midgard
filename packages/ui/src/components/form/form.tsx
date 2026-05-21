@@ -17,10 +17,9 @@ export type { FormHelpers, FormSubmitHandler, SubmitOutcome, SubmitResult }
 export type FormProps<T extends Record<string, unknown>> = {
 	defaultValues: T
 	/**
-	 * Controlled re-sync source. When the reference changes, `values` is
-	 * replaced and the dirty baseline shifts to match; `touched` and `errors`
-	 * are preserved. Use a stable reference — memoize derived objects to
-	 * avoid sync loops.
+	 * Controlled re-sync source. Reference change → `values` replaced and the
+	 * dirty baseline shifts; `touched`, `errors`, and `submitting` stay put.
+	 * Pass a stable reference — memoize derived objects to avoid sync loops.
 	 */
 	values?: T
 	validate?: Validators<T>
