@@ -4,24 +4,29 @@ Multi-element, multi-state archetypes shared by ≥2 kata.
 
 ## Boundary
 
-`genkei/` is internal — omitted from `package.json` `exports` and not
-re-exported from `src/recipes/index.ts`. Kata consume genkei via relative
-path. The contract is pinned by
-`src/__tests__/recipes/internal-boundary.test.ts`.
+`genkei/` is internal — omitted from `package.json` `exports` and
+not re-exported from `src/recipes/index.ts`. Kata consume genkei via
+relative path: `from '../genkei/<name>'`. A genkei composes
+[`kiso/`](../kiso/README.md) and sibling genkei freely; sideways
+composition between [`kata/`](../kata/README.md) is forbidden and
+shared concerns promote here instead. The contract is pinned by
+`src/__tests__/recipes/boundary/genkei-boundary.test.ts`.
 
 ## Wire format
 
 Every genkei export is a class fragment (`string[]`) or a map of
-fragments (`Record<string, string[]>`). **`defineRecipe()` is never invoked
-inside genkei** — it is called only at the kata public surface, where
-the variants axis is declared.
+fragments (`Record<string, string[]>`). **`defineRecipe()` is never
+invoked inside genkei** — it is called only at the kata public
+surface, where the variants axis is declared.
 
-A single wire format means any kata can compose any genkei export
-without translating between fragment-arrays and `defineRecipe()`-callables. The
-panel family preserves `VariantProps<typeof X>` inference via the
-`definePanelRecipe` factory — callers pass their `defineRecipe()` results as
-generics, and the factory forwards them unchanged while emitting
-fragments for the zero-variant slots.
+A single wire format lets any kata compose any genkei export with no
+translation between fragment-arrays and `defineRecipe()`-callables.
+The panel family preserves `VariantProps<typeof X>` inference via
+the `definePanelRecipe` factory: callers pass their `defineRecipe()`
+results as generics, and the factory forwards them unchanged while
+emitting fragments for the zero-variant slots.
+
+Filenames are `<name>.ts`, matching the module's named export.
 
 ## Modules
 
@@ -35,9 +40,9 @@ fragments for the zero-variant slots.
 
 ## kasane (重ね) — the signature primitive
 
-Most libraries build a single ring around a control and swap its
-colour for focus and validation. `kasane` uses a four-layer stack on a
-single element so the states compose without conflict:
+Most ring chromes swap a single ring's colour to express focus and
+validation. `kasane` stacks four layers on a single element so the
+states compose without conflict:
 
 1. **Outer ring** (`kasane.base` — a solid
    `ring-1 ring-inset ring-zinc-300 dark:ring-zinc-700`) — the resting
@@ -49,14 +54,24 @@ single element so the states compose without conflict:
 3. **`::after` overlay** — invisible at rest; gains a 2 px ring on
    focus (`focus-within` / `data-open`).
 4. **Validation overlay** — `data-invalid` / `data-warning` /
-   `data-valid` recolour both the outer ring and the `::after`
-   overlay, taking precedence over the focus colour.
+   `data-valid` recolour the outer ring and the `::after` overlay,
+   taking precedence over the focus colour.
 
-The whole stack is `kasane.all`. Individual layers are exported as
+The full stack is `kasane.all`. Individual layers are exported as
 `kasane.{base,inset,overlay,hover,focus,validation,disabled}` so a
-custom field can opt into a subset (e.g. focus + validation without
-disabled).
+custom field can opt into a subset — focus + validation without
+disabled, for example.
 
-`kasane`'s layered chrome is the named identity element of this
-library — it makes components feel coherent without resorting to a
-heavyweight component shell.
+`kasane`'s layered chrome is the named identity of the library — it
+gives components a coherent feel without a heavyweight component
+shell.
+
+## Rules
+
+- **Two consumers, or it doesn't belong here.** A fragment with one
+  kata consumer stays inline. Promotion is earned by duplication.
+- **No `defineRecipe()`.** Genkei emits class fragments and fragment
+  maps; the variants axis is declared at the kata surface.
+- **Compose, don't fork.** A genkei that re-derives a token already
+  in [`kiso/`](../kiso/README.md) is a defect; fold the duplication
+  back into kiso.

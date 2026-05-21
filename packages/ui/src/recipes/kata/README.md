@@ -7,9 +7,10 @@ Per-component recipes. One file per `src/components/<name>/`.
 `kata/` is internal — omitted from `package.json` `exports` and not
 re-exported from `src/recipes/index.ts`. Components consume kata via
 relative path: `from '../../recipes/kata/<name>'`. A kata composes
-freely from the substrate (`recipes/kiso`) and `genkei/`; sideways
-composition between kata is forbidden — shared concerns promote to
-`genkei/` instead. The contract is pinned by
+freely from the substrate ([`kiso/`](../kiso/README.md)) and
+[`genkei/`](../genkei/README.md); sideways composition between kata
+is forbidden — shared concerns promote to `genkei/` instead. The
+contract is pinned by
 `src/__tests__/recipes/boundary/recipe-boundary.test.ts`.
 
 ## Shape
