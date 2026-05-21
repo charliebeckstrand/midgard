@@ -1,4 +1,4 @@
-import { defineRecipe, ji, type VariantPropsOf } from '..'
+import { defineRecipe, iro, ji, type VariantPropsOf } from '..'
 
 export const k = defineRecipe({
 	base: 'flex flex-col',
@@ -8,7 +8,7 @@ export const k = defineRecipe({
 		system: 'items-center',
 	},
 	slots: {
-		timestamp: [ji.xs, 'mt-1 text-zinc-500 dark:text-zinc-400'],
+		timestamp: [ji.xs, 'mt-1', ...iro.text.muted],
 		cursor: [
 			'ml-1 inline-block h-[1em] w-[2px] align-[-0.15em]',
 			'bg-current',
@@ -24,7 +24,7 @@ export const bubble = defineRecipe({
 	type: {
 		user: ['bg-blue-600 text-white', 'rounded-br-md'],
 		assistant: ['bg-zinc-200 text-zinc-950 dark:bg-white/10 dark:text-white', 'rounded-bl-md'],
-		system: [ji.md, 'text-zinc-500 dark:text-zinc-400', 'bg-transparent px-0'],
+		system: [ji.md, ...iro.text.muted, 'bg-transparent px-0'],
 	},
 	defaults: { type: 'assistant' },
 })
