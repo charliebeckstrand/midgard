@@ -1,7 +1,6 @@
 # Recipes
 
-The design layer of the UI package. Components compose the recipes
-here rather than reinventing them.
+The design layer of the UI package.
 
 | Layer                                          | Reach    | What                                                                                                  |
 | ---------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------- |
