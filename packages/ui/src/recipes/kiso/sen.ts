@@ -9,63 +9,60 @@
  * Layer: kiso · Concern: lines
  */
 
-const motoi = {
-	border: 'border',
-	outline: 'outline',
-	ring: 'ring-1',
-	divider: 'border-t',
-}
+import { defineColors } from '../../core/recipe'
 
-const hiru = {
-	border: 'border-zinc-950/10',
-	borderEmphasis: 'border-zinc-950/20',
-	borderSubtle: 'border-zinc-950/5',
-	borderTransparent: 'border-transparent',
-	outline: 'outline-1 outline-zinc-950/10',
-	outlineStrong: 'outline-1 outline-zinc-950/15',
-	outlineSubtle: 'outline-1 outline-zinc-950/5',
-	ring: 'ring-zinc-950/10',
-}
-
-const yoru = {
-	border: 'dark:border-white/10',
-	borderEmphasis: 'dark:border-white/20',
-	borderSubtle: 'dark:border-white/5',
-	borderTransparent: 'dark:border-transparent',
-	outline: 'dark:outline-1 dark:outline-white/10',
-	outlineStrong: 'dark:outline-1 dark:outline-white/15',
-	outlineSubtle: 'dark:outline-1 dark:outline-white/5',
-	ring: 'dark:ring-white/10',
-}
+// Light/dark colour pairs for every line tone the module exposes. Public
+// entries below compose these with their structural width (`border`,
+// `outline`, `ring-1`, `border-t`) via array spread; colour-only siblings
+// (`borderColor`, `borderSubtleColor`) re-export the pair directly.
+const tone = defineColors({
+	border: { light: 'border-zinc-950/10', dark: 'dark:border-white/10' },
+	borderEmphasis: { light: 'border-zinc-950/20', dark: 'dark:border-white/20' },
+	borderSubtle: { light: 'border-zinc-950/5', dark: 'dark:border-white/5' },
+	borderTransparent: { light: 'border-transparent', dark: 'dark:border-transparent' },
+	outline: {
+		light: 'outline-1 outline-zinc-950/10',
+		dark: 'dark:outline-1 dark:outline-white/10',
+	},
+	outlineStrong: {
+		light: 'outline-1 outline-zinc-950/15',
+		dark: 'dark:outline-1 dark:outline-white/15',
+	},
+	outlineSubtle: {
+		light: 'outline-1 outline-zinc-950/5',
+		dark: 'dark:outline-1 dark:outline-white/5',
+	},
+	ring: { light: 'ring-zinc-950/10', dark: 'dark:ring-white/10' },
+})
 
 export const sen = {
 	/** Default border — 1 px, low-contrast palette. */
-	border: [motoi.border, hiru.border, yoru.border],
+	border: ['border', ...tone.border],
 	/** Border colour only (for composites that already apply width). */
-	borderColor: [hiru.border, yoru.border],
+	borderColor: tone.border,
 	/** Emphasis border — hover / active states. */
-	borderEmphasis: [motoi.border, hiru.borderEmphasis, yoru.borderEmphasis],
+	borderEmphasis: ['border', ...tone.borderEmphasis],
 	/** Subtle border — secondary separators. */
-	borderSubtle: [motoi.border, hiru.borderSubtle, yoru.borderSubtle],
+	borderSubtle: ['border', ...tone.borderSubtle],
 	/** Subtle border colour only. */
-	borderSubtleColor: [hiru.borderSubtle, yoru.borderSubtle],
+	borderSubtleColor: tone.borderSubtle,
 	/** Transparent border — reserves layout space without a visible edge. */
-	borderTransparent: [hiru.borderTransparent, yoru.borderTransparent],
+	borderTransparent: tone.borderTransparent,
 
 	/** Default outline — 1 px outline-style line. */
-	outline: [motoi.outline, hiru.outline, yoru.outline],
+	outline: ['outline', ...tone.outline],
 	/** Stronger outline — for emphasis on dark backgrounds. */
-	outlineStrong: [motoi.outline, hiru.outlineStrong, yoru.outlineStrong],
+	outlineStrong: ['outline', ...tone.outlineStrong],
 	/** Subtle outline — secondary separators. */
-	outlineSubtle: [motoi.outline, hiru.outlineSubtle, yoru.outlineSubtle],
+	outlineSubtle: ['outline', ...tone.outlineSubtle],
 
 	/** Default ring — 1 px outline-style line. */
-	ring: [motoi.ring, hiru.ring, yoru.ring],
+	ring: ['ring-1', ...tone.ring],
 	/** Inset ring — sits inside the element, subtle in light / stronger in dark. */
-	ringInset: [motoi.ring, hiru.ring, yoru.ring, 'ring-inset'],
+	ringInset: ['ring-1', ...tone.ring, 'ring-inset'],
 
 	/** Top divider — `border-t` with subtle colour. */
-	divider: [motoi.divider, hiru.borderSubtle, yoru.borderSubtle],
+	divider: ['border-t', ...tone.borderSubtle],
 
 	/** Focus indicators — how an element signals keyboard focus. */
 	focus: {
