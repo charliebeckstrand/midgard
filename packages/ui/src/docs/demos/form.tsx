@@ -7,12 +7,13 @@ import { Checkbox, CheckboxField } from '../../components/checkbox'
 import { Control } from '../../components/control'
 import { Field, Label, Message } from '../../components/fieldset'
 import { Flex } from '../../components/flex'
-import { Form, useFormContext } from '../../components/form'
+import { Form, type SubmitOutcome, useFormContext } from '../../components/form'
 import { Input } from '../../components/input'
 import { JsonTree } from '../../components/json-tree'
 import { NumberInput } from '../../components/number-input'
 import { PasswordInput } from '../../components/password-input'
 import { Stack } from '../../components/stack'
+import { SubmitButton } from '../../components/submit-button'
 import { Switch, SwitchField } from '../../components/switch'
 import { Textarea } from '../../components/textarea'
 import { code } from '../code'
@@ -376,6 +377,74 @@ function ServerErrorFormExample() {
 	)
 }
 
+function SubmitOutcomeFormExample() {
+	const [outcome, setOutcome] = useState<SubmitOutcome<{ email: string }> | null>(null)
+	const [failNext, setFailNext] = useState(false)
+
+	return (
+		<Example
+			title="onSettled + SubmitButton"
+			code={code`
+				import { Form, type SubmitOutcome } from 'ui/form'
+				import { SubmitButton } from 'ui/submit-button'
+				import { Field, Label } from 'ui/fieldset'
+				import { Input } from 'ui/input'
+				import { Switch } from 'ui/switch'
+
+				const [outcome, setOutcome] = useState<SubmitOutcome<{ email: string }> | null>(null)
+				const [failNext, setFailNext] = useState(false)
+
+				<Form
+					defaultValues={{ email: '' }}
+					onSubmit={async (_values) => {
+						await simulateAsyncSubmission()
+
+						if (failNext) throw new Error('Rate limited — try again in 30s')
+					}}
+					onSettled={setOutcome}
+				>
+					<Field>
+						<Label>Email</Label>
+						<Input name="email" type="email" placeholder="you@example.com" />
+					</Field>
+					<SubmitButton>Save</SubmitButton>
+				</Form>
+			`}
+		>
+			<Stack gap="lg">
+				<Flex gap="sm" align="center">
+					<Switch checked={failNext} onChange={(e) => setFailNext(e.target.checked)} />
+					<span>Fail next submit</span>
+				</Flex>
+				<Form
+					defaultValues={{ email: '' }}
+					onSubmit={async (_values) => {
+						await simulateAsyncSubmission()
+
+						if (failNext) throw new Error('Rate limited — try again in 30s')
+					}}
+					onSettled={setOutcome}
+				>
+					<Stack gap="lg">
+						<Field autoComplete="email">
+							<Label>Email</Label>
+							<Input name="email" type="email" placeholder="you@example.com" />
+						</Field>
+						<SubmitButton>Save</SubmitButton>
+					</Stack>
+				</Form>
+				{outcome && (
+					<Badge color={outcome.ok ? 'green' : 'red'}>
+						{outcome.ok
+							? `ok · submitted ${JSON.stringify(outcome.values)}`
+							: `failed · ${outcome.error.message}`}
+					</Badge>
+				)}
+			</Stack>
+		</Example>
+	)
+}
+
 function ToggleFormExample() {
 	const [result, setResult] = useState<string>('')
 
@@ -479,6 +548,7 @@ export function Demo() {
 			<ValidationFormExample />
 			<DirtyTouchedFormExample />
 			<ServerErrorFormExample />
+			<SubmitOutcomeFormExample />
 			<ToggleFormExample />
 		</Stack>
 	)
