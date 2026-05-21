@@ -29,6 +29,16 @@ For non-trivial work (3+ file edits, or any change spanning multiple packages), 
 
 Formatting is tooling's job. Never fight the formatter.
 
+## Quality check
+
+A session's work is not done until it has cleared the quality chain. `/postmortem` orchestrates the chain at commit time, but it doesn't run on every session — explorations, partial work, and answers-without-commits all bypass it. Run the chain yourself before saying "done", on every session, in this order:
+
+1. **`/typescript:format`** — run whenever the session touched `.ts` / `.tsx`. Applies the repo's structural conventions (the ones Biome doesn't see) and surfaces non-mechanical concerns. Cheap; always safe to run.
+2. **`/orator comments`** (or `/orator` on the relevant prose surface) — run whenever the session wrote prose: code comments, JSDoc, READMEs, commit / PR copy. Polishes language without touching facts.
+3. **`/typescript:review`** — run only when the change carries logical risk (logic edit, type surface change, multi-file change, new dependency, auth / security surface, speculative abstraction). Cosmetic JSDoc, formatting-only, and mechanical renames do not need it. When unclear, defer to `/postmortem`'s classification table — it owns the canonical risk signals.
+
+The chain runs in that order: format the surface first so the next two skills see clean code; polish prose next; vet logic last. A BLOCK from any step halts the session's "done" claim until resolved or explicitly waived.
+
 ## Git
 
 - Imperative mood. Commit by feature group. Split only when changes are genuinely independent.
@@ -57,6 +67,7 @@ Each skill's canonical description lives in its own file. The catalog below is a
 ### Authoring
 
 - **`/tests:compose`** — write tests for any target (components, hooks, utilities, modules).
+- **`/typescript:format`** — apply the repo's TypeScript structural conventions (`type` vs `interface`, named exports, vertical breathing, `'use client'` placement, JSDoc shape). Runs Biome under the hood; surfaces non-mechanical concerns as BLOCK. Invoked by `/postmortem` ahead of every review; safe to run standalone after any TS edit.
 - **`/typescript:migrate`** — staged type-shaped migrations (`rename`, `lift`, `enum-to-const`, `any-to-unknown`, `jsdoc-to-ts`, `tighten`).
 - **`/orator`** — polish or compose prose (comments, docstrings, READMEs, commit/PR copy, release notes) in the project's house voice.
 
