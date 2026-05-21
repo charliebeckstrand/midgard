@@ -1,0 +1,26 @@
+'use client'
+
+import { Button, type ButtonProps } from '../button'
+import { useFormStatus } from '../form'
+
+// `ButtonProps` distributes over `href` (button vs. anchor). Narrow to the
+// button branch first so native props like `disabled` survive the `Omit`.
+export type SubmitButtonProps = Omit<Extract<ButtonProps, { href?: never }>, 'type' | 'loading'>
+
+/**
+ * Submit button bound to the enclosing `<Form>`. Reflects `submitting` via
+ * `loading`; falls back to `type="submit"` outside a Form. Doesn't auto-disable
+ * on validity — submitting an invalid form runs full validation and surfaces
+ * every error, where a disabled button just hides why nothing happens.
+ */
+export function SubmitButton({ disabled, children, ...props }: SubmitButtonProps) {
+	const status = useFormStatus()
+
+	const submitting = status?.submitting ?? false
+
+	return (
+		<Button {...props} type="submit" loading={submitting} disabled={disabled || submitting}>
+			{children}
+		</Button>
+	)
+}

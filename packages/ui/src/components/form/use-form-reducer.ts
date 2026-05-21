@@ -1,28 +1,84 @@
 'use client'
 
-import { type SyntheticEvent, useCallback, useMemo, useReducer, useRef, useState } from 'react'
+import {
+	type SyntheticEvent,
+	useCallback,
+	useEffect,
+	useMemo,
+	useReducer,
+	useRef,
+	useState,
+} from 'react'
 import type { FormActions, FormStateValue } from './context'
 import {
 	type Errors,
 	type FormAction,
 	type FormState,
 	formReducer,
+	normalizeIssues,
 	runValidators,
 	type Touched,
 	type ValidateOn,
 	type Validators,
+	valuesEqual,
 } from './form-reducer'
 
+/**
+ * Optional shape returned from `onSubmit` to surface server-side validation
+ * issues without round-tripping through `helpers.setErrors`.
+ */
+export type SubmitResult<T> = {
+	fieldErrors?: Partial<Record<keyof T, string | string[] | undefined>>
+}
+
+/**
+ * Terminal outcome of one submit attempt, delivered to `onSettled`. Client
+ * validation failures and `{ fieldErrors }` returns are mid-flow (the user
+ * will fix and retry) and do not fire `onSettled`.
+ */
+export type SubmitOutcome<T> = { ok: true; values: T } | { ok: false; error: Error }
+
 export type FormHelpers<T> = {
-	setErrors: (errors: Partial<Record<keyof T, string>>) => void
-	reset: () => void
+	setErrors: (errors: Partial<Record<keyof T, string | string[]>>) => void
+	reset: (nextDefaults?: T) => void
+}
+
+/**
+ * Return nothing (or `Promise<void>`) for success; optionally return a
+ * `SubmitResult<T>` — sync or async — to surface server-side validation
+ * issues without going through `helpers.setErrors`. Throw or reject to
+ * trigger `onSettled({ ok: false, error })`. Annotate the return as
+ * `satisfies SubmitResult<T>` for autocomplete on the shape.
+ */
+export type FormSubmitHandler<T> = (values: T, helpers: FormHelpers<T>) => unknown
+
+/** Narrows the loosely-typed handler return to a `fieldErrors` shape, if present. */
+function extractFieldErrors(
+	raw: unknown,
+): Record<string, string | string[] | undefined> | undefined {
+	if (raw === null || typeof raw !== 'object') return undefined
+
+	if (!('fieldErrors' in raw)) return undefined
+
+	const fieldErrors = (raw as { fieldErrors?: unknown }).fieldErrors
+
+	if (fieldErrors === null || typeof fieldErrors !== 'object') return undefined
+
+	return fieldErrors as Record<string, string | string[] | undefined>
 }
 
 export type UseFormReducerOptions<T extends Record<string, unknown>> = {
 	defaultValues: T
+	/**
+	 * Controlled re-sync source. Reference change → `values` replaced and the
+	 * dirty baseline shifts; `touched`, `errors`, and `submitting` stay put.
+	 * Pass a stable reference — memoize derived objects to avoid sync loops.
+	 */
+	values?: T
 	validate?: Validators<T>
 	validateOn: ValidateOn
-	onSubmit?: (values: T, helpers: FormHelpers<T>) => void | Promise<void>
+	onSubmit?: FormSubmitHandler<T>
+	onSettled?: (outcome: SubmitOutcome<T>) => void
 	onReset?: () => void
 }
 
@@ -35,24 +91,32 @@ export type UseFormReducerResult = {
 
 export function useFormReducer<T extends Record<string, unknown>>({
 	defaultValues,
+	values: controlledValues,
 	validate,
 	validateOn,
 	onSubmit,
+	onSettled,
 	onReset,
 }: UseFormReducerOptions<T>): UseFormReducerResult {
+	const initialValues = controlledValues ?? defaultValues
+
 	const [state, dispatch] = useReducer(
 		formReducer as (state: FormState<T>, action: FormAction<T>) => FormState<T>,
 		undefined,
-		(): FormState<T> => ({ values: { ...defaultValues }, errors: {}, touched: {} }),
+		(): FormState<T> => ({ values: { ...initialValues }, errors: {}, touched: {} }),
 	)
 
 	const [submitting, setSubmitting] = useState(false)
 
-	const defaultsRef = useRef(defaultValues)
+	const defaultsRef = useRef(initialValues)
 
 	const validateRef = useRef(validate)
 
 	validateRef.current = validate
+
+	const onSettledRef = useRef(onSettled)
+
+	onSettledRef.current = onSettled
 
 	const { values, errors, touched } = state
 
@@ -66,7 +130,7 @@ export function useFormReducer<T extends Record<string, unknown>>({
 		const d: Record<string, boolean> = {}
 
 		for (const key in values) {
-			d[key] = values[key] !== defaultsRef.current[key]
+			d[key] = !valuesEqual(values[key], defaultsRef.current[key])
 		}
 
 		return d
@@ -81,7 +145,7 @@ export function useFormReducer<T extends Record<string, unknown>>({
 
 		const errs = runValidators(v, values, {}, validateOn, Object.keys(v))
 
-		return !Object.values(errs).some((err) => err !== undefined)
+		return !Object.values(errs).some((issues) => issues !== undefined && issues.length > 0)
 	}, [values, validateOn])
 
 	const getValue = useCallback((name: string) => valuesRef.current[name as keyof T], [])
@@ -100,15 +164,43 @@ export function useFormReducer<T extends Record<string, unknown>>({
 		[validateOn],
 	)
 
-	const setErrorsExternal = useCallback((errs: Errors) => {
-		dispatch({ type: 'set-errors-external', errors: errs })
+	const setErrorsExternal = useCallback((errs: Record<string, string | string[] | undefined>) => {
+		const normalized: Errors = {}
+
+		for (const key in errs) normalized[key] = normalizeIssues(errs[key])
+
+		dispatch({ type: 'set-errors-external', errors: normalized })
 	}, [])
 
-	const reset = useCallback(() => {
-		dispatch({ type: 'reset', defaults: { ...defaultsRef.current } })
+	const reset = useCallback(
+		// Typed wider than `T` so it satisfies `FormActions.reset` (no `T` at the
+		// context level); `FormHelpers<T>` re-narrows at the consumer via contravariance.
+		(nextDefaults?: Record<string, unknown>) => {
+			if (nextDefaults !== undefined) defaultsRef.current = nextDefaults as T
 
-		onReset?.()
-	}, [onReset])
+			dispatch({ type: 'reset', defaults: { ...defaultsRef.current } })
+
+			onReset?.()
+		},
+		[onReset],
+	)
+
+	// Watch the controlled `values` prop. Reference change → replace `values`
+	// and shift the dirty baseline; `touched`/`errors`/`submitting` stay put
+	// so users mid-typing don't lose progress. Use `reset(nextDefaults)` to
+	// start over.
+	const lastSyncedValuesRef = useRef(controlledValues)
+
+	useEffect(() => {
+		if (controlledValues === undefined) return
+
+		if (controlledValues === lastSyncedValuesRef.current) return
+
+		defaultsRef.current = controlledValues
+		lastSyncedValuesRef.current = controlledValues
+
+		dispatch({ type: 'sync-values', values: controlledValues })
+	}, [controlledValues])
 
 	const handleSubmit = useCallback(
 		async (e: SyntheticEvent<HTMLFormElement>) => {
@@ -128,16 +220,31 @@ export function useFormReducer<T extends Record<string, unknown>>({
 
 			dispatch({ type: 'submit-validate', touched: allTouched, errors: submitErrors })
 
-			if (Object.values(submitErrors).some((err) => err !== undefined)) return
+			if (Object.values(submitErrors).some((issues) => issues !== undefined && issues.length > 0))
+				return
 
 			if (!onSubmit) return
 
 			setSubmitting(true)
 
 			try {
-				await onSubmit(valuesRef.current, {
+				const raw = await onSubmit(valuesRef.current, {
 					setErrors: setErrorsExternal,
 					reset,
+				})
+
+				const fieldErrors = extractFieldErrors(raw)
+
+				if (fieldErrors) {
+					// Mid-flow: the user will fix and retry, not a terminal outcome.
+					setErrorsExternal(fieldErrors)
+				} else {
+					onSettledRef.current?.({ ok: true, values: valuesRef.current })
+				}
+			} catch (err) {
+				onSettledRef.current?.({
+					ok: false,
+					error: err instanceof Error ? err : new Error(String(err)),
 				})
 			} finally {
 				setSubmitting(false)

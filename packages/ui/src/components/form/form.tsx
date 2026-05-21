@@ -4,26 +4,44 @@ import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { Fieldset } from '../fieldset'
 import { FormProvider } from './context'
 import type { ValidateOn, Validators } from './form-reducer'
-import { type FormHelpers, useFormReducer } from './use-form-reducer'
+import {
+	type FormHelpers,
+	type FormSubmitHandler,
+	type SubmitOutcome,
+	type SubmitResult,
+	useFormReducer,
+} from './use-form-reducer'
 
-export type { FormHelpers }
+export type { FormHelpers, FormSubmitHandler, SubmitOutcome, SubmitResult }
 
 export type FormProps<T extends Record<string, unknown>> = {
 	defaultValues: T
+	/**
+	 * Controlled re-sync source. Reference change → `values` replaced and the
+	 * dirty baseline shifts; `touched`, `errors`, and `submitting` stay put.
+	 * Pass a stable reference — memoize derived objects to avoid sync loops.
+	 */
+	values?: T
 	validate?: Validators<T>
 	validateOn?: ValidateOn
-	onSubmit?: (values: T, helpers: FormHelpers<T>) => void | Promise<void>
+	onSubmit?: FormSubmitHandler<T>
+	onSettled?: (outcome: SubmitOutcome<T>) => void
 	onReset?: () => void
 	disabled?: boolean
 	className?: string
 	children: ReactNode
-} & Omit<ComponentPropsWithoutRef<'form'>, 'onSubmit' | 'onReset' | 'children' | 'className'>
+} & Omit<
+	ComponentPropsWithoutRef<'form'>,
+	'onSubmit' | 'onReset' | 'children' | 'className' | 'values'
+>
 
 export function Form<T extends Record<string, unknown>>({
 	defaultValues,
+	values,
 	validate,
 	validateOn = 'touched',
 	onSubmit,
+	onSettled,
 	onReset,
 	disabled,
 	className,
@@ -32,9 +50,11 @@ export function Form<T extends Record<string, unknown>>({
 }: FormProps<T>) {
 	const { formState, actions, handleSubmit, handleReset } = useFormReducer({
 		defaultValues,
+		values,
 		validate,
 		validateOn,
 		onSubmit,
+		onSettled,
 		onReset,
 	})
 

@@ -1,6 +1,9 @@
-export type Errors = Record<string, string | undefined>
+export type Errors = Record<string, string[] | undefined>
 export type Touched = Record<string, boolean>
-export type Validator<T, K extends keyof T> = (value: T[K], values: T) => string | undefined
+export type Validator<T, K extends keyof T> = (
+	value: T[K],
+	values: T,
+) => string | string[] | undefined
 export type Validators<T> = { [K in keyof T]?: Validator<T, K> }
 export type ValidateOn = 'touched' | 'change' | 'submit'
 
@@ -25,6 +28,7 @@ export type FormAction<T> =
 			validateOn: ValidateOn
 	  }
 	| { type: 'set-errors-external'; errors: Errors }
+	| { type: 'sync-values'; values: T }
 	| { type: 'reset'; defaults: T }
 	| { type: 'submit-validate'; touched: Touched; errors: Errors }
 
@@ -49,11 +53,68 @@ export function runValidators<T extends Record<string, unknown>>(
 		if (!fn) continue
 
 		if (forced || validateOn === 'change' || (validateOn === 'touched' && touched[key])) {
-			result[key] = fn(values[key as keyof T], values)
+			const out = fn(values[key as keyof T], values)
+
+			result[key] = normalizeIssues(out)
 		}
 	}
 
 	return result
+}
+
+export function normalizeIssues(out: string | string[] | undefined): string[] | undefined {
+	if (out === undefined) return undefined
+
+	if (typeof out === 'string') return [out]
+
+	return out.length > 0 ? out : undefined
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+	if (value === null || typeof value !== 'object') return false
+
+	const proto = Object.getPrototypeOf(value)
+
+	return proto === null || proto === Object.prototype
+}
+
+/**
+ * Equality for the `dirty` derivation. Reference first, then structural over
+ * `Date`, plain arrays, and plain objects. Falls back to reference equality
+ * for `File`, `Map`, `Set`, and class instances, where structural comparison
+ * would be wrong or expensive.
+ */
+export function valuesEqual(a: unknown, b: unknown): boolean {
+	if (Object.is(a, b)) return true
+
+	if (a instanceof Date && b instanceof Date) return a.getTime() === b.getTime()
+
+	if (Array.isArray(a) && Array.isArray(b)) {
+		if (a.length !== b.length) return false
+
+		for (let i = 0; i < a.length; i++) {
+			if (!valuesEqual(a[i], b[i])) return false
+		}
+
+		return true
+	}
+
+	if (isPlainObject(a) && isPlainObject(b)) {
+		const ak = Object.keys(a)
+		const bk = Object.keys(b)
+
+		if (ak.length !== bk.length) return false
+
+		for (const key of ak) {
+			if (!Object.hasOwn(b, key)) return false
+
+			if (!valuesEqual(a[key], b[key])) return false
+		}
+
+		return true
+	}
+
+	return false
 }
 
 export function formReducer<T extends Record<string, unknown>>(
@@ -65,16 +126,16 @@ export function formReducer<T extends Record<string, unknown>>(
 			const nextValues = { ...state.values, [action.name]: action.value } as T
 
 			if (action.validateOn === 'submit') {
-				return { values: nextValues, errors: state.errors, touched: state.touched }
+				return { ...state, values: nextValues }
 			}
 
 			const newErrors = runValidators(action.validate, nextValues, state.touched, action.validateOn)
 
 			return {
+				...state,
 				values: nextValues,
 				errors:
 					Object.keys(newErrors).length > 0 ? { ...state.errors, ...newErrors } : state.errors,
-				touched: state.touched,
 			}
 		}
 		case 'set-touched': {
@@ -91,7 +152,7 @@ export function formReducer<T extends Record<string, unknown>>(
 			)
 
 			return {
-				values: state.values,
+				...state,
 				errors: { ...state.errors, ...newErrors },
 				touched: nextTouched,
 			}
@@ -101,14 +162,24 @@ export function formReducer<T extends Record<string, unknown>>(
 			const nextTouched = { ...state.touched }
 
 			for (const key in action.errors) {
-				if (action.errors[key]) nextTouched[key] = true
+				const issues = action.errors[key]
+
+				if (issues !== undefined && issues.length > 0) nextTouched[key] = true
 			}
 
-			return { values: state.values, errors: nextErrors, touched: nextTouched }
+			return { ...state, errors: nextErrors, touched: nextTouched }
 		}
+		case 'sync-values':
+			if (state.values === action.values) return state
+
+			return { ...state, values: action.values }
 		case 'reset':
 			return { values: action.defaults, errors: {}, touched: {} }
 		case 'submit-validate':
-			return { values: state.values, errors: action.errors, touched: action.touched }
+			return {
+				...state,
+				errors: action.errors,
+				touched: action.touched,
+			}
 	}
 }

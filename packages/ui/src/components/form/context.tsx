@@ -5,7 +5,7 @@ import { createContext } from '../../core'
 
 export type FormStateValue = {
 	values: Record<string, unknown>
-	errors: Record<string, string | undefined>
+	errors: Record<string, string[] | undefined>
 	touched: Record<string, boolean>
 	dirty: Record<string, boolean>
 	isDirty: boolean
@@ -16,9 +16,9 @@ export type FormStateValue = {
 export type FormActions = {
 	getValue: (name: string) => unknown
 	setValue: (name: string, value: unknown) => void
-	setErrors: (errors: Record<string, string | undefined>) => void
+	setErrors: (errors: Record<string, string | string[] | undefined>) => void
 	setTouched: (name: string) => void
-	reset: () => void
+	reset: (nextDefaults?: Record<string, unknown>) => void
 }
 
 /** Combined shape for consumers that need both state and actions. */
@@ -66,7 +66,7 @@ export type FormFieldState = {
 	value: unknown
 	setValue: (value: unknown) => void
 	setTouched: () => void
-	error: string | undefined
+	errors: string[] | undefined
 	touched: boolean
 	dirty: boolean
 }
@@ -81,7 +81,7 @@ export function useFormField(name: string | undefined): FormFieldState | undefin
 		value: context.getValue(name),
 		setValue: (v) => context.setValue(name, v),
 		setTouched: () => context.setTouched(name),
-		error: context.errors[name],
+		errors: context.errors[name],
 		touched: context.touched[name] ?? false,
 		dirty: context.dirty[name] ?? false,
 	}
@@ -141,7 +141,7 @@ export function useFormText<E extends HTMLInputElement | HTMLTextAreaElement = H
 			field.setTouched()
 			handlers?.onBlur?.(e)
 		},
-		invalid: field.error !== undefined,
+		invalid: field.errors !== undefined && field.errors.length > 0,
 	}
 }
 
@@ -167,6 +167,6 @@ export function useFormToggle(
 			field.setTouched()
 			handlers?.onChange?.(e)
 		},
-		invalid: field.error !== undefined,
+		invalid: field.errors !== undefined && field.errors.length > 0,
 	}
 }
