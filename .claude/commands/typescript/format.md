@@ -1,6 +1,6 @@
 # typescript:format
 
-TRIGGER when: format, tidy, align, or normalize TypeScript. Opt in casually — name a file to format only that file, a directory or list of paths to batch-format, or nothing at all to format the staged diff. Also when `/postmortem` chains here ahead of `/typescript:review`, or when the user says "format this", "tidy the TS", "make it match the house style".
+TRIGGER when: format, tidy, align, or normalize TypeScript. Opt in casually — name a file to format only that file, a directory or list of paths to batch-format, or nothing at all to format the staged diff. Also when `/postmortem` chains here ahead of `/typescript:review`.
 
 Apply the repo's TypeScript structural conventions to `.ts` / `.tsx` — the ones Biome doesn't see: `type` over `interface`, named-only exports, vertical breathing between statements, `'use client'` placement, JSDoc shape, constant naming. Auto-applies the mechanical fixes; surfaces the rest as findings.
 
