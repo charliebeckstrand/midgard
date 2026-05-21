@@ -11,7 +11,7 @@ export const meta = { category: 'Data Display' }
 
 const sizes = ['xs', 'sm', 'md', 'lg'] as const
 
-export default function IconDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<Alert severity="info" closable>

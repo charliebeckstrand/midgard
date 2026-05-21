@@ -36,7 +36,7 @@ function DestructiveHoldButtonExample() {
 	)
 }
 
-export default function HoldButtonDemo() {
+export function Demo() {
 	const [count, setCount] = useState(0)
 
 	const [variant, setVariant] = useState<Variant>('solid')

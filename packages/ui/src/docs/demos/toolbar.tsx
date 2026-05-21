@@ -59,7 +59,7 @@ function FormattingToolbarExample() {
 	)
 }
 
-export default function ToolbarDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<Example title="Default">

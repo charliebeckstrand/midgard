@@ -241,7 +241,7 @@ function ItemActionsSidebarExample() {
 	)
 }
 
-export default function SidebarDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<Example title="Default">

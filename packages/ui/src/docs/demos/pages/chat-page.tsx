@@ -93,7 +93,7 @@ function ChatMessage({ role, children }: { role: 'user' | 'agent'; children: Rea
 	)
 }
 
-export default function ChatPageDemo() {
+export function Demo() {
 	const [messages, setMessages] = useState(initialMessages)
 
 	const [input, setInput] = useState('')

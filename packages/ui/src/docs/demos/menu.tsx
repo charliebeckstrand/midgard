@@ -1,4 +1,5 @@
 'use client'
+
 import { ChevronDown } from 'lucide-react'
 import { useState } from 'react'
 import { Box } from '../../components/box'
@@ -23,7 +24,7 @@ export const meta = { category: 'Overlay' }
 
 const surfaces = ['default', 'glass'] as const
 
-export default function MenuDemo() {
+export function Demo() {
 	const [dropdownSurface, setDropdownSurface] = useState<(typeof surfaces)[number]>('default')
 	const [contextSurface, setContextSurface] = useState<(typeof surfaces)[number]>('default')
 

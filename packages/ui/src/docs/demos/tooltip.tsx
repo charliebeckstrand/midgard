@@ -9,7 +9,7 @@ export const meta = { category: 'Overlay' }
 
 const placements = ['left', 'top', 'bottom', 'right'] as const
 
-export default function TooltipDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<Example title="Default">

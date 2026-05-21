@@ -42,6 +42,9 @@ function ControlledExample() {
 		<Example title="Controlled">
 			<Stack gap="md">
 				<QueryBuilder fields={fields} value={query} onValueChange={setQuery} />
+				{/* QueryGroupNode declares `value: unknown` and an optional combinator; this demo
+				    only feeds string values with a combinator on every node, so the tree is
+				    JSON-shaped in practice. */}
 				<JsonTree data={query as unknown as JsonValue} defaultExpandDepth={Infinity} />
 			</Stack>
 		</Example>
@@ -56,7 +59,7 @@ function DisabledExample() {
 	)
 }
 
-export default function QueryBuilderDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<ControlledExample />

@@ -7,7 +7,7 @@ import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
 
-export default function CalendarDemo() {
+export function Demo() {
 	const [date, setDate] = useState<Date | undefined>(undefined)
 
 	const min = new Date()

@@ -55,7 +55,7 @@ function ClosableBlockExample() {
 	)
 }
 
-export default function AlertDemo() {
+export function Demo() {
 	const [colorVariant, setColorVariant] = useState<(typeof colorVariants)[number]>('soft')
 
 	return (

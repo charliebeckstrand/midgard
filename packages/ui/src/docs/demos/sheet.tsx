@@ -9,7 +9,7 @@ import { Example } from '../components/example'
 
 export const meta = { category: 'Overlay' }
 
-export default function SheetDemo() {
+export function Demo() {
 	const [leftOpen, setLeftOpen] = useState(false)
 	const [rightOpen, setRightOpen] = useState(false)
 	const [glassLeftOpen, setGlassLeftOpen] = useState(false)

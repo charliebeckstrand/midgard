@@ -41,7 +41,7 @@ function ControlledCollapseExample() {
 	)
 }
 
-export default function CollapseDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<Example title="Default">

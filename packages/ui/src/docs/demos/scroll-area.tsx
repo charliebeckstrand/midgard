@@ -38,7 +38,7 @@ const tags = [
 	'shiki',
 ]
 
-export default function ScrollAreaDemo() {
+export function Demo() {
 	const [verticalSize, setVerticalSize] = useState<Size>('md')
 	const [horizontalSize, setHorizontalSize] = useState<Size>('md')
 	const [bothSize, setBothSize] = useState<Size>('md')

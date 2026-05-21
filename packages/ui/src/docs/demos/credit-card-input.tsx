@@ -73,7 +73,7 @@ function ComposedExample() {
 	)
 }
 
-export default function CreditCardInputDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<Example title="Default">

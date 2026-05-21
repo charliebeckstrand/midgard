@@ -52,7 +52,7 @@ function StreamingExample() {
 	)
 }
 
-export default function ChatPromptDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<Example title="Default">

@@ -7,7 +7,7 @@ export const meta = { category: 'Layout' }
 
 const Pane = () => <Card className="h-full" />
 
-export default function ResizableDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<Example title="Horizontal">

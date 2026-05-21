@@ -78,7 +78,7 @@ function CustomRulesExample() {
 	)
 }
 
-export default function PasswordStrengthDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<Example title="With password input">

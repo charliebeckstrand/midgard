@@ -21,7 +21,7 @@ const sizes = [
 	{ value: 'lg', label: 'large' },
 ] as const
 
-export default function BadgeDemo() {
+export function Demo() {
 	const [colorVariant, setColorVariant] = useState<(typeof colorVariants)[number]>('solid')
 
 	return (

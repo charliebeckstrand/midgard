@@ -94,7 +94,7 @@ function FilterExample() {
 	)
 }
 
-export default function JsonTreeDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<Example title="Default">

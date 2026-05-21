@@ -146,7 +146,7 @@ function ProfileCardExample() {
 	)
 }
 
-export default function SkeletonDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<DynamicExample />

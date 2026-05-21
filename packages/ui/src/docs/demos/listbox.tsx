@@ -61,7 +61,7 @@ function MultiListboxExample() {
 	)
 }
 
-export default function ListboxDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<Example title="Single">

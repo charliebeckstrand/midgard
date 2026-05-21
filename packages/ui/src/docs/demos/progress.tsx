@@ -18,7 +18,7 @@ const barSizes = ['sm', 'md', 'lg'] as const
 
 const gaugeSizes = ['sm', 'md', 'lg', 'xl'] as const
 
-export default function ProgressDemo() {
+export function Demo() {
 	const [barValue, setBarValue] = useState(50)
 	const [gaugeValue, setGaugeValue] = useState(50)
 

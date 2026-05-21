@@ -149,7 +149,7 @@ function DisabledExample() {
 	)
 }
 
-export default function KanbanDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<DefaultExample />

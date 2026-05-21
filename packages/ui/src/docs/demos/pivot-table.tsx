@@ -28,7 +28,7 @@ const loads: LoadRow[] = [
 const currency = (value: number) =>
 	value.toLocaleString(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
 
-export default function PivotTableDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<Example title="Loads by lane">

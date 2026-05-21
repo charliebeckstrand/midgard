@@ -15,7 +15,7 @@ import { Example } from '../components/example'
 
 export const meta = { category: 'Layout' }
 
-export default function CardDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<Alert severity="info" closable>

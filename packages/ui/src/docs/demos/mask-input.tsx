@@ -87,7 +87,7 @@ function ControlledExample() {
 	)
 }
 
-export default function MaskInputDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<Example

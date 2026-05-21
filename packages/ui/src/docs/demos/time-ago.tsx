@@ -12,7 +12,7 @@ const MIN = 60 * SEC
 const HOUR = 60 * MIN
 const DAY = 24 * HOUR
 
-export default function TimeAgoDemo() {
+export function Demo() {
 	const now = Date.now()
 
 	return (

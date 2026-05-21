@@ -6,7 +6,7 @@ export const meta = { category: 'Navigation' }
 
 const tabs = ['Account', 'Notifications', 'Billing'] as const
 
-export default function TabsDemo() {
+export function Demo() {
 	return (
 		<>
 			<Example title="Default">

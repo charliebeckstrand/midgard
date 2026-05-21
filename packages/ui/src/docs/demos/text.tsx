@@ -6,7 +6,7 @@ export const meta = { category: 'Data Display' }
 
 const variants = ['default', 'primary', 'success', 'warning', 'error', 'muted'] as const
 
-export default function TextDemo() {
+export function Demo() {
 	return (
 		<Stack>
 			<Example title="Variants">

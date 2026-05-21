@@ -98,7 +98,7 @@ function SheetExample() {
 	)
 }
 
-export default function GlassDemo() {
+export function Demo() {
 	const [comboboxValue, setComboboxValue] = useState<string | undefined>(undefined)
 
 	const [date, setDate] = useState<Date | undefined>(undefined)

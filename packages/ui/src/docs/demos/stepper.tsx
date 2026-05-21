@@ -25,7 +25,7 @@ const steps = [
 	},
 ]
 
-export default function StepperDemo() {
+export function Demo() {
 	const [horizontalValue, setHorizontalValue] = useState(1)
 	const [verticalValue, setVerticalValue] = useState(1)
 	const [linearValue, setLinearValue] = useState(0)

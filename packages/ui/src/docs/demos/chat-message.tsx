@@ -8,7 +8,7 @@ import { Example } from '../components/example'
 
 export const meta = { category: 'Chat' }
 
-export default function ChatMessageDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<Example

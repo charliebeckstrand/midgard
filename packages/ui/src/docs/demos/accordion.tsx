@@ -33,7 +33,7 @@ const items = [
 	},
 ]
 
-export default function AccordionDemo() {
+export function Demo() {
 	const [variant, setVariant] = useState<(typeof variants)[number]>('separated')
 
 	return (

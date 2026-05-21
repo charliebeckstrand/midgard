@@ -97,7 +97,7 @@ function OrdersFilters({ value, onValueChange }: OrdersFiltersProps) {
 	)
 }
 
-export default function SidebarPageDemo() {
+export function Demo() {
 	const [density, setDensity] = useState<DensityLevel>('snug')
 
 	const [filters, setFilters] = useState<OrderFilters>({

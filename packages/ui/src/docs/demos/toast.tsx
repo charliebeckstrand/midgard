@@ -112,7 +112,7 @@ function ActionToastButtonExample() {
 	)
 }
 
-export default function ToastDemo() {
+export function Demo() {
 	return (
 		<ToastProvider>
 			<Stack gap="xl">

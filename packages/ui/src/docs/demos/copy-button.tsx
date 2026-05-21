@@ -6,7 +6,7 @@ import { Example } from '../components/example'
 
 export const meta = { category: 'Button' }
 
-export default function CopyButtonDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<Example title="Default">

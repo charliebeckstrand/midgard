@@ -21,7 +21,7 @@ function ControlledExample() {
 	)
 }
 
-export default function NumberInputDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<Example title="Variants">

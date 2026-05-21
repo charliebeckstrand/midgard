@@ -235,7 +235,7 @@ function InfoOnlyExample() {
 	)
 }
 
-export default function MapDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<PresetsExample />

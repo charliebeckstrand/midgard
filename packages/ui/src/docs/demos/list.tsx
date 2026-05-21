@@ -152,7 +152,7 @@ function DisabledExample() {
 	)
 }
 
-export default function ListDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<DefaultExample />

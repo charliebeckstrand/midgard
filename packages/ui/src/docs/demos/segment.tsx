@@ -40,7 +40,7 @@ const sizes: Size[] = ['sm', 'md', 'lg']
 
 const statusColor = { Active: 'green', Archived: 'zinc' } as const
 
-export default function SegmentDemo() {
+export function Demo() {
 	const [sizeValues, setSizeValues] = useState<Record<Size, Size>>({ sm: 'sm', md: 'md', lg: 'lg' })
 
 	const [view, setView] = useState('List')

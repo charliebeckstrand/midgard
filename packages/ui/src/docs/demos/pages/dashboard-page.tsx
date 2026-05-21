@@ -97,7 +97,7 @@ function DashboardFilters() {
 	)
 }
 
-export default function DashboardPageDemo() {
+export function Demo() {
 	return (
 		<Example>
 			<DashboardLayout filters={<DashboardFilters />}>
