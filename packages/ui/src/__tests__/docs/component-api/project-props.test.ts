@@ -121,6 +121,29 @@ describe('collectProjectPropNames', () => {
 		expect([...names]).toEqual(['size'])
 	})
 
+	it('recurses into Extract<T, U> rather than expanding the resolved type', () => {
+		// Without Extract handling, the resolved conditional type would fan
+		// out into every property of T's union arms (including HTML attrs
+		// when T includes a pass-through).
+		const names = projectNames(
+			{
+				'index.ts': [
+					`import type { ComponentPropsWithoutRef } from 'react'`,
+					`type Poly = ({ href?: never } & ComponentPropsWithoutRef<'button'>) | ({ href: string } & { rel?: string })`,
+					`type FooProps = Extract<Poly, { href?: never }> & { size?: 'sm' }`,
+					`export type _Use = FooProps`,
+				].join('\n'),
+			},
+			'FooProps',
+		)
+
+		// `size` from the project-authored intersection arm survives; the
+		// pass-through arm inside Extract<…> is dropped, so `aria-*` etc.
+		// don't leak through.
+		expect(names.has('size')).toBe(true)
+		expect([...names].some((n) => n.startsWith('aria-'))).toBe(false)
+	})
+
 	it('walks union members', () => {
 		const names = projectNames(
 			{

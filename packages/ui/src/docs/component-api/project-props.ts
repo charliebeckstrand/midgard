@@ -60,6 +60,7 @@ function walk(
 				names.add(member.name.text)
 			}
 		}
+
 		return
 	}
 
@@ -81,6 +82,7 @@ function walk(
 	// resolved type already; we don't need to re-strip here).
 	if (refName === 'Omit') {
 		const inner = node.typeArguments?.[0]
+
 		if (inner) walk(inner, names, visited, checker)
 
 		return
@@ -89,7 +91,20 @@ function walk(
 	// Pick<T, K> — narrow to listed keys
 	if (refName === 'Pick') {
 		const [, keys] = node.typeArguments ?? []
+
 		for (const k of stringLiteralKeys(keys)) names.add(k)
+
+		return
+	}
+
+	// Extract<T, U> / Exclude<T, U> — discriminated-union splitters. The
+	// narrowing predicate U is structural, not a prop source; recurse into T
+	// so its pass-through arms are still honored. Without this, T's resolved
+	// type fans out into every HTML attr (aria-*, on*, ...).
+	if (refName === 'Extract' || refName === 'Exclude') {
+		const inner = node.typeArguments?.[0]
+
+		if (inner) walk(inner, names, visited, checker)
 
 		return
 	}

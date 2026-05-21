@@ -92,6 +92,7 @@ function collectAllProperties(
 		// dropped.
 		for (const sym of t.getProperties()) {
 			const name = sym.getName()
+
 			const armType = checker.getTypeOfSymbolAtLocation(sym, callable)
 
 			const existing = seen.get(name)
