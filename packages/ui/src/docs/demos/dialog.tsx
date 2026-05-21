@@ -20,6 +20,7 @@ export const meta = { category: 'Overlay' }
 
 export default function DialogDemo() {
 	const [open, setOpen] = useState(false)
+
 	const [glassOpen, setGlassOpen] = useState(false)
 
 	return (
