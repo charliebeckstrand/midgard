@@ -131,11 +131,11 @@ function resolveAliasDefinition(
 			const params = typeParameterList(decl.typeParameters)
 			const body = `${params ? `${params} = ` : ''}${decl.type.getText()}`
 
-			return { text: normalizeWhitespace(body), declaration: decl }
+			return { text: dedent(body), declaration: decl }
 		}
 
 		if (ts.isInterfaceDeclaration(decl)) {
-			return { text: normalizeWhitespace(formatInterface(decl)), declaration: decl }
+			return { text: dedent(formatInterface(decl)), declaration: decl }
 		}
 	}
 
@@ -148,11 +148,15 @@ function formatInterface(decl: ts.InterfaceDeclaration): string {
 	const heritage =
 		decl.heritageClauses?.flatMap((clause) => clause.types.map((t) => t.getText())) ?? []
 
-	const members = decl.members.map((m) => m.getText().trim()).join(' ')
+	const fullText = decl.getText()
+
+	const braceStart = fullText.indexOf('{')
+
+	const body = braceStart >= 0 ? fullText.slice(braceStart) : '{}'
 
 	const heritagePart = heritage.length > 0 ? `extends ${heritage.join(', ')} ` : ''
 
-	return `${params ? `${params} ` : ''}${heritagePart}{ ${members} }`
+	return `${params ? `${params} ` : ''}${heritagePart}${body}`
 }
 
 function typeParameterList(params: ts.NodeArray<ts.TypeParameterDeclaration> | undefined): string {
@@ -161,6 +165,31 @@ function typeParameterList(params: ts.NodeArray<ts.TypeParameterDeclaration> | u
 	return `<${params.map((p) => p.getText()).join(', ')}>`
 }
 
-function normalizeWhitespace(s: string): string {
-	return s.replace(/\s+/g, ' ').trim()
+/**
+ * Strip the common leading indentation from a multi-line source fragment so
+ * the body is anchored at column 0 regardless of where the declaration sat in
+ * its own source file (top level, inside a namespace, etc.).
+ */
+function dedent(text: string): string {
+	const lines = text.split('\n')
+
+	if (lines.length <= 1) return text
+
+	let minIndent = Infinity
+
+	for (let i = 1; i < lines.length; i++) {
+		const line = lines[i]
+
+		if (!line || line.trim().length === 0) continue
+
+		const match = line.match(/^[ \t]*/)
+
+		const indent = match ? match[0].length : 0
+
+		if (indent < minIndent) minIndent = indent
+	}
+
+	if (minIndent === Infinity || minIndent === 0) return text
+
+	return lines.map((line, i) => (i === 0 ? line : line.slice(minIndent))).join('\n')
 }

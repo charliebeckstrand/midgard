@@ -25,8 +25,8 @@ export const k = definePanelRecipe({
 			flat: [...omote.panel.bg],
 		},
 		compound: [
-			{ side: 'right', size: 'full', class: 'sm:left-4' },
-			{ side: 'left', size: 'full', class: 'sm:right-4' },
+			{ side: 'right', size: 'full', class: 'sm:left-4 sm:max-w-[calc(100%-2rem)]' },
+			{ side: 'left', size: 'full', class: 'sm:right-4 sm:max-w-[calc(100%-2rem)]' },
 		],
 		defaults: { side: 'right', size: 'md', surface: 'flat' },
 	}),
