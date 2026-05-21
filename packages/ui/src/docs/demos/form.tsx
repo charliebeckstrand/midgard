@@ -472,7 +472,7 @@ function ToggleFormExample() {
 	)
 }
 
-export default function FormDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<BoundFieldsFormExample />

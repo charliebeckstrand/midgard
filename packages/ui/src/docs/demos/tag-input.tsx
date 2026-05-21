@@ -54,7 +54,7 @@ function MaxTagInputExample() {
 	)
 }
 
-export default function TagInputDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<Example title="Default">

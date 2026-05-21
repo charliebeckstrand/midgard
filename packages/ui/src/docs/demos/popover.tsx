@@ -26,7 +26,7 @@ const popoverContent = (
 	</>
 )
 
-export default function PopoverDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<Example title="Default">

@@ -57,7 +57,7 @@ function CurrencyExample() {
 	)
 }
 
-export default function OdometerDemo() {
+export function Demo() {
 	const [value, setValue] = useState(1284)
 
 	return (

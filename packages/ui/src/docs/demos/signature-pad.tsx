@@ -107,7 +107,7 @@ function DisabledExample() {
 	)
 }
 
-export default function SignaturePadDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<DefaultExample />

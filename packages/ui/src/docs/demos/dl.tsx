@@ -3,7 +3,7 @@ import { Example } from '../components/example'
 
 export const meta = { name: 'DL', category: 'Data Display' }
 
-export default function DLDemo() {
+export function Demo() {
 	return (
 		<Example title="Default">
 			<DescriptionList>

@@ -7,7 +7,7 @@ export const meta = { category: 'Forms' }
 
 const colors = ['blue', 'green', 'red'] as const
 
-export default function CheckboxDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<Example title="Default">

@@ -35,7 +35,7 @@ function ClosableExample() {
 	)
 }
 
-export default function BannerDemo() {
+export function Demo() {
 	const [variant, setVariant] = useState<(typeof variants)[number]>('soft')
 
 	return (

@@ -8,7 +8,7 @@ import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
 
-export default function DatePickerDemo() {
+export function Demo() {
 	const [date, setDate] = useState<Date | undefined>(undefined)
 	const [range, setRange] = useState<[Date, Date] | undefined>(undefined)
 	const [glassRange, setGlassRange] = useState<[Date, Date] | undefined>(undefined)

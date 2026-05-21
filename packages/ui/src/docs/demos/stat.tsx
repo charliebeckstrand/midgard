@@ -8,7 +8,7 @@ import { Example } from '../components/example'
 
 export const meta = { category: 'Data Display' }
 
-export default function StatDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<Example title="Default">

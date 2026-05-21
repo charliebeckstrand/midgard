@@ -26,7 +26,7 @@ function ControlledExample() {
 	)
 }
 
-export default function SearchInputDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<Example title="Default">

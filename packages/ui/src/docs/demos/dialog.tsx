@@ -18,7 +18,7 @@ import { Example } from '../components/example'
 
 export const meta = { category: 'Overlay' }
 
-export default function DialogDemo() {
+export function Demo() {
 	const [open, setOpen] = useState(false)
 
 	const [glassOpen, setGlassOpen] = useState(false)

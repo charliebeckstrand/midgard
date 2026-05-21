@@ -54,7 +54,7 @@ function PresetsExample() {
 	)
 }
 
-export default function AspectRatioDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<PresetsExample />

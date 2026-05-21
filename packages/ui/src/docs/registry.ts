@@ -9,12 +9,11 @@ import type { ComponentApi } from './api-reference'
 
 type DemoMeta = { name?: string; category?: string }
 
-type DemoModule = {
-	default: ComponentType
-	meta?: DemoMeta
-}
-
-const loaders = import.meta.glob<DemoModule>(['./demos/*.tsx', './demos/pages/*.tsx'])
+// Each demo exports a `Demo` component — the glob's `import` option resolves
+// loaders directly to that symbol so we never bind to a default export.
+const loaders = import.meta.glob<ComponentType>(['./demos/*.tsx', './demos/pages/*.tsx'], {
+	import: 'Demo',
+})
 
 function pathToId(path: string) {
 	return path
@@ -23,7 +22,7 @@ function pathToId(path: string) {
 		.replace(/\//g, '-')
 }
 
-const loaderById = new Map<string, () => Promise<DemoModule>>()
+const loaderById = new Map<string, () => Promise<ComponentType>>()
 
 for (const [path, loader] of Object.entries(loaders)) {
 	loaderById.set(pathToId(path), loader)
@@ -64,7 +63,7 @@ export function loadDemo(id: string): Promise<ComponentType> {
 
 	if (!loader) throw new Error(`No demo found for id: ${id}`)
 
-	const tracked = loader().then((mod) => mod.default) as TrackedPromise<ComponentType>
+	const tracked = loader() as TrackedPromise<ComponentType>
 
 	tracked.status = 'pending'
 

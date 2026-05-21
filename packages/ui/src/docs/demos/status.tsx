@@ -15,7 +15,7 @@ const statuses = ['inactive', 'active', 'info', 'warning', 'error'] as const
 
 const sizes = ['xs', 'sm', 'md', 'lg'] as const
 
-export default function StatusDemo() {
+export function Demo() {
 	const [status, setStatus] = useState<(typeof statuses)[number]>('active')
 	const [pulseSize, setPulseSize] = useState<(typeof sizes)[number]>('md')
 

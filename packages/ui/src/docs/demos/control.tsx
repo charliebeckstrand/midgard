@@ -35,7 +35,7 @@ function RequiredExample() {
 	)
 }
 
-export default function ControlDemo() {
+export function Demo() {
 	const [disabled, setDisabled] = useState(false)
 
 	return (

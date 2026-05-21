@@ -13,7 +13,7 @@ const sizes = ['sm', 'md', 'lg'] as const
 
 type Size = (typeof sizes)[number]
 
-export default function SwitchDemo() {
+export function Demo() {
 	const [size, setSize] = useState<Size>('md')
 
 	return (

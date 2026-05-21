@@ -9,7 +9,7 @@ import { Example } from '../components/example'
 
 export const meta = { category: 'Navigation' }
 
-export default function BreadcrumbDemo() {
+export function Demo() {
 	return (
 		<Example title="Default">
 			<Breadcrumb>

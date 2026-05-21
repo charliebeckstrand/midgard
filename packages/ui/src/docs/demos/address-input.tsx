@@ -125,7 +125,7 @@ function CustomProviderExample() {
 	)
 }
 
-export default function AddressInputDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<Alert severity="info" closable>

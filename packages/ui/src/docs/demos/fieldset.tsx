@@ -7,7 +7,7 @@ import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
 
-export default function FieldsetDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<Example title="Default">

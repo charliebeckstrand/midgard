@@ -8,7 +8,7 @@ import { Example } from '../components/example'
 
 export const meta = { category: 'Button' }
 
-export default function ToggleIconButtonDemo() {
+export function Demo() {
 	const [dark, setDark] = useState(false)
 	const [noAnimation, setNoAnimation] = useState(false)
 	const [muted, setMuted] = useState(false)

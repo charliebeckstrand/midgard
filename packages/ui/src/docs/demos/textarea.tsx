@@ -46,7 +46,7 @@ function WithActionsExample() {
 	)
 }
 
-export default function TextareaDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<Example title="Default">

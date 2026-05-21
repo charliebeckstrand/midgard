@@ -22,7 +22,7 @@ const sizes = ['xs', 'sm', 'md', 'lg'] as const
 
 type Size = (typeof sizes)[number]
 
-export default function ButtonDemo() {
+export function Demo() {
 	const [colorVariant, setColorVariant] = useState<Variant>('solid')
 
 	const [iconSize, setIconSize] = useState<Size>('md')

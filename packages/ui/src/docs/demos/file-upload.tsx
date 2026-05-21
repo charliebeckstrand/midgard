@@ -80,7 +80,7 @@ function DisabledExample() {
 	)
 }
 
-export default function FileUploadDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<Example title="Default">

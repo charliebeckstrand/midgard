@@ -10,7 +10,7 @@ import { Example } from '../components/example'
 
 export const meta = { category: 'Data Display' }
 
-export default function TimelineDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<Example title="Vertical">

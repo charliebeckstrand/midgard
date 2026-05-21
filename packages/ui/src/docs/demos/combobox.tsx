@@ -71,7 +71,7 @@ function MultiComboboxExample() {
 	)
 }
 
-export default function ComboboxDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<Example title="Single">

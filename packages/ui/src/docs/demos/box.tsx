@@ -4,7 +4,7 @@ import { Example } from '../components/example'
 
 export const meta = { category: 'Layout' }
 
-export default function BoxDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<Example title="Default">

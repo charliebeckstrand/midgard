@@ -99,7 +99,7 @@ function RangeStepSliderExample() {
 	)
 }
 
-export default function SliderDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<InteractiveExample />

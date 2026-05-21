@@ -8,7 +8,7 @@ import { Example } from '../components/example'
 
 export const meta = { category: 'Navigation' }
 
-export default function NavDemo() {
+export function Demo() {
 	const [current, setCurrent] = useState('account')
 
 	return (

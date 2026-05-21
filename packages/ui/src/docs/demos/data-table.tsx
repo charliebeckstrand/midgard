@@ -163,7 +163,7 @@ const ColumnManagerExample = () => {
 	)
 }
 
-export default function DataTableDemo() {
+export function Demo() {
 	const [density, setDensity] = useState<DensityLevel>('snug')
 
 	return (

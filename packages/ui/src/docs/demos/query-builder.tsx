@@ -56,7 +56,7 @@ function DisabledExample() {
 	)
 }
 
-export default function QueryBuilderDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<ControlledExample />

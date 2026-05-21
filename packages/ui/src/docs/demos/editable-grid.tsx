@@ -68,7 +68,7 @@ function applyChanges<T extends { id: number }>(rows: T[], changes: CellChange[]
 	})
 }
 
-export default function EditableGridDemo() {
+export function Demo() {
 	const [rates, setRates] = useState<LaneRate[]>(initialRates)
 
 	const [bulkRates, setBulkRates] = useState<LaneRate[]>(initialRates)

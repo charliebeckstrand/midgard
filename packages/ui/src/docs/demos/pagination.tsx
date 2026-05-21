@@ -24,7 +24,7 @@ function getVisiblePages(current: number, total: number): (number | 'gap')[] {
 	return [1, 'gap', current - 1, current, current + 1, 'gap', total]
 }
 
-export default function PaginationDemo() {
+export function Demo() {
 	const [page, setPage] = useState(1)
 
 	const visible = getVisiblePages(page, totalPages)

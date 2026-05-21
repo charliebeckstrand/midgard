@@ -21,7 +21,7 @@ const childOptions: { value: ChildType; label: string }[] = [
 	{ value: 'input', label: 'Input' },
 ]
 
-export default function GroupDemo() {
+export function Demo() {
 	const [child, setChild] = useState<ChildType>('button')
 
 	const isInput = child === 'input'

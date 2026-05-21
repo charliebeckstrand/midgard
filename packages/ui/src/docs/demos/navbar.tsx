@@ -45,7 +45,7 @@ function NavProviderDemo() {
 	)
 }
 
-export default function NavbarDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<Example title="Default">

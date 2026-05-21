@@ -21,7 +21,7 @@ function ControlledExample() {
 	)
 }
 
-export default function ZipcodeInputDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<Example title="US">

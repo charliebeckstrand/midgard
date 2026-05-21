@@ -181,7 +181,7 @@ function RenderPropsExample() {
 	)
 }
 
-export default function FilterDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<Example title="Basic">

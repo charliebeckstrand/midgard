@@ -19,7 +19,7 @@ const users = [
 	{ name: 'Tom Cook', email: 'tom@example.com', role: 'Editor' },
 ]
 
-export default function TableDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<Example title="Default">

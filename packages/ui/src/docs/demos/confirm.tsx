@@ -12,7 +12,7 @@ import { Example } from '../components/example'
 
 export const meta = { category: 'Overlay' }
 
-export default function ConfirmDemo() {
+export function Demo() {
 	const [discardOpen, setDiscardOpen] = useState(false)
 	const [termsConditionsOpen, setTermsConditionsOpen] = useState(false)
 	const [accepted, setAccepted] = useState(false)

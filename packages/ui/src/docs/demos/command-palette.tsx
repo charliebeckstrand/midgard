@@ -110,7 +110,7 @@ function filterCommands(query: string) {
 	)
 }
 
-export default function CommandPaletteDemo() {
+export function Demo() {
 	const [open, setOpen] = useState(false)
 
 	// Open on ⌘K / Ctrl+K

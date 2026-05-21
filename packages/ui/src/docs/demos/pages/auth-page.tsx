@@ -24,7 +24,7 @@ const Form = ({
 	</form>
 )
 
-export default function AuthPageDemo() {
+export function Demo() {
 	const [submitting, setSubmitting] = useState(false)
 
 	const handleSubmit: ComponentProps<'form'>['onSubmit'] = (e) => {

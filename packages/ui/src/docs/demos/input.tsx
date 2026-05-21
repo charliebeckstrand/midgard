@@ -10,7 +10,7 @@ export const meta = { category: 'Forms' }
 
 const variants = ['default', 'outline'] as const
 
-export default function InputDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<Example title="Variants">

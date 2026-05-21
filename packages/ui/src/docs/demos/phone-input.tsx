@@ -21,7 +21,7 @@ function ControlledExample() {
 	)
 }
 
-export default function PhoneInputDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<Example title="Default (US)">

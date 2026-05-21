@@ -38,7 +38,7 @@ function EmptyExample() {
 	)
 }
 
-export default function PdfViewerDemo() {
+export function Demo() {
 	return (
 		<Stack gap="xl">
 			<DefaultExample />
