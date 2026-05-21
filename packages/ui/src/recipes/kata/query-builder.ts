@@ -6,6 +6,6 @@ export const k = {
 	groupNested: ['p-3 bg-zinc-50 dark:bg-zinc-900/40', sen.border, 'rounded-lg'],
 	rule: ['p-2', sen.border, 'rounded-lg'],
 	rowRemove: 'flex-none',
-	separator: 'text-xs font-medium text-zinc-400 dark:text-zinc-500 uppercase',
+	separator: 'text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase',
 	actions: 'flex items-center gap-2',
 }

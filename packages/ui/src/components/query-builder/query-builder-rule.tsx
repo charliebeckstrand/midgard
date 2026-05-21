@@ -113,7 +113,8 @@ function QueryBuilderRuleImpl({ rule, className }: QueryBuilderRuleProps) {
 			</Flex>
 
 			<Button
-				variant="plain"
+				variant="bare"
+				color="red"
 				aria-label="Remove rule"
 				disabled={disabled}
 				className={k.rowRemove}

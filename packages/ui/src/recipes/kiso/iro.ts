@@ -38,7 +38,7 @@ const textBundle = {
 	success: mode('text-green-600', 'dark:text-green-500'),
 	warning: mode('text-amber-600', 'dark:text-amber-500'),
 	error: mode('text-red-600', 'dark:text-red-500'),
-	muted: mode('text-zinc-500', 'dark:text-zinc-500'),
+	muted: mode('text-zinc-500', 'dark:text-zinc-400'),
 	disabled: mode(
 		['has-disabled:text-zinc-500', 'has-disabled:**:data-[slot=label]:text-zinc-500'],
 		['dark:has-disabled:text-zinc-400', 'dark:has-disabled:**:data-[slot=label]:text-zinc-400'],
