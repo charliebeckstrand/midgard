@@ -1,37 +1,54 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import { Node, Project, SyntaxKind } from 'ts-morph'
 import type { Plugin } from 'vite'
 import { virtualJsonHooks } from './virtual-json'
 
 type DemoMeta = { name?: string; category?: string }
 
+const META_KEYS: ReadonlySet<string> = new Set(['name', 'category'])
+
+function isMetaKey(key: string): key is keyof DemoMeta {
+	return META_KEYS.has(key)
+}
+
 /**
  * Parse `export const meta = { name?: '...', category?: '...' }` out of a
- * demo source file. Intentionally strict — demo metas are hand-authored and
- * shaped uniformly, so a regex is enough and avoids pulling in a parser.
+ * demo source file. Drops unknown keys and non-string-literal values so the
+ * registry only ever sees the typed shape.
  */
-function parseMeta(source: string): DemoMeta {
-	const match = source.match(/export\s+const\s+meta\s*=\s*\{([^}]*)\}/)
+function parseMeta(project: Project, fileName: string, source: string): DemoMeta {
+	const sf = project.createSourceFile(fileName, source, { overwrite: true })
 
-	if (!match) return {}
+	const decl = sf.getVariableDeclaration('meta')
 
-	const body = match[1] ?? ''
+	if (!decl?.isExported()) return {}
+
+	const init = decl.getInitializerIfKind(SyntaxKind.ObjectLiteralExpression)
+
+	if (!init) return {}
 
 	const meta: DemoMeta = {}
 
-	const name = body.match(/name\s*:\s*['"]([^'"]+)['"]/)
+	for (const prop of init.getProperties()) {
+		if (!Node.isPropertyAssignment(prop)) continue
 
-	const category = body.match(/category\s*:\s*['"]([^'"]+)['"]/)
+		const key = prop.getName()
 
-	if (name) meta.name = name[1]
+		if (!isMetaKey(key)) continue
 
-	if (category) meta.category = category[1]
+		const value = prop.getInitializerIfKind(SyntaxKind.StringLiteral)
+
+		if (value) meta[key] = value.getLiteralText()
+	}
 
 	return meta
 }
 
 function generate(demosDir: string): Record<string, DemoMeta> {
 	if (!fs.existsSync(demosDir)) return {}
+
+	const project = new Project({ useInMemoryFileSystem: true, skipLoadingLibFiles: true })
 
 	const result: Record<string, DemoMeta> = {}
 
@@ -42,7 +59,7 @@ function generate(demosDir: string): Record<string, DemoMeta> {
 
 		const rel = path.relative(demosDir, full).replaceAll(path.sep, '/')
 
-		result[`./demos/${rel}`] = parseMeta(fs.readFileSync(full, 'utf-8'))
+		result[`./demos/${rel}`] = parseMeta(project, full, fs.readFileSync(full, 'utf-8'))
 	}
 
 	return result
