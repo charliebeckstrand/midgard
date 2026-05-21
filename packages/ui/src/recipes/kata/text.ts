@@ -5,6 +5,7 @@ export const k = defineRecipe({
 		default: [...iro.text.default],
 		muted: [...iro.text.muted],
 		error: iro.text.error,
+		warning: iro.text.warning,
 	},
 	color: {
 		current: 'text-current dark:text-current',

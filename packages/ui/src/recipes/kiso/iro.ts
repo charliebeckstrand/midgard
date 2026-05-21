@@ -27,8 +27,9 @@ const bg = {
 const textBundle = {
 	default: mode('text-zinc-950', 'dark:text-white'),
 	muted: mode('text-zinc-500', 'dark:text-zinc-400'),
-	error: 'text-red-600',
 	success: 'text-green-600',
+	warning: mode('text-amber-500', 'dark:text-amber-400'),
+	error: 'text-red-600',
 	disabled: mode(
 		['has-disabled:text-zinc-500', 'has-disabled:**:data-[slot=label]:text-zinc-500'],
 		['dark:has-disabled:text-zinc-400', 'dark:has-disabled:**:data-[slot=label]:text-zinc-400'],
