@@ -9,7 +9,7 @@ export default defineConfig({
 	target: 'node22',
 	outDir: 'dist',
 	clean: true,
-	dts: true,
+	dts: false,
 	sourcemap: false,
 	splitting: false,
 	banner: { js: "'use client'" },
