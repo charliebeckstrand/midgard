@@ -35,7 +35,6 @@ export const k = defineRecipe({
 	],
 	variant: {
 		outline: 'ring-1 ring-inset',
-		glass: '',
 	},
 	size: {
 		xs: [
