@@ -57,20 +57,30 @@ const focus = [
 	'data-open:z-10',
 ]
 
-/** Validation ring on the outer ring + `::after` — red / amber / green per data-* attribute. */
-const validation = [
+// Per-state validation rings on the outer ring + `::after`. The three blocks
+// share the same six-selector shape (`ring`, `hover:ring`, `focus-within:after:ring`,
+// `not-focus-within:after:ring-1`, `not-focus-within:after:ring-<color>`,
+// `data-open:after:ring`). The literal selector strings have to live here
+// because Tailwind's source scanner can't see template-constructed classes.
+const valid = [
 	'has-[[data-valid]]:ring-green-600',
 	'has-[[data-valid]]:hover:ring-green-600',
 	'has-[[data-valid]]:focus-within:after:ring-green-600',
 	'has-[[data-valid]]:not-focus-within:after:ring-1',
 	'has-[[data-valid]]:not-focus-within:after:ring-green-600',
 	'has-[[data-valid]]:data-open:after:ring-green-600',
+]
+
+const warning = [
 	'has-[[data-warning]]:ring-amber-500',
 	'has-[[data-warning]]:hover:ring-amber-500',
 	'has-[[data-warning]]:focus-within:after:ring-amber-500',
 	'has-[[data-warning]]:not-focus-within:after:ring-1',
 	'has-[[data-warning]]:not-focus-within:after:ring-amber-500',
 	'has-[[data-warning]]:data-open:after:ring-amber-500',
+]
+
+const invalid = [
 	'has-[[data-invalid]]:ring-red-600',
 	'has-[[data-invalid]]:hover:ring-red-600',
 	'has-[[data-invalid]]:focus-within:after:ring-red-600',
@@ -78,6 +88,9 @@ const validation = [
 	'has-[[data-invalid]]:not-focus-within:after:ring-red-600',
 	'has-[[data-invalid]]:data-open:after:ring-red-600',
 ]
+
+/** Validation ring on the outer ring + `::after` — red / amber / green per data-* attribute. */
+const validation = [...valid, ...warning, ...invalid]
 
 /** Disabled state — dims and locks pointer when the wrapped element is :disabled. */
 const disabled = [
