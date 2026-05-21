@@ -15,6 +15,7 @@ import { Checkbox } from '../checkbox'
 import { Description, Field, Label, Message } from '../fieldset'
 import { Input } from '../input'
 import { Radio } from '../radio'
+import { SearchInput } from '../search-input'
 import { Switch } from '../switch'
 import { Textarea } from '../textarea'
 import { useFilters } from './context'
@@ -32,10 +33,25 @@ function isDecoration(child: ReactElement): boolean {
 // Children that take a DOM ChangeEvent on `onChange`; everything else gets the
 // value-shaped `onValueChange`. The same dispatcher handles both at runtime,
 // only the prop name differs.
-const EVENT_CALLBACK_TYPES = new Set<ElementType>([Input, Textarea, Checkbox, Switch, Radio])
+const EVENT_CALLBACK_TYPES = new Set<ElementType>([
+	Input,
+	SearchInput,
+	Textarea,
+	Checkbox,
+	Switch,
+	Radio,
+])
 
 function expectsEventCallback(child: ReactElement): boolean {
 	return EVENT_CALLBACK_TYPES.has(child.type as ElementType)
+}
+
+// Children that expose an `onClear` callback for in-control reset affordances
+// (e.g. SearchInput's X button). Wired to clear the filter slot.
+const CLEAR_CALLBACK_TYPES = new Set<ElementType>([SearchInput])
+
+function expectsClearCallback(child: ReactElement): boolean {
+	return CLEAR_CALLBACK_TYPES.has(child.type as ElementType)
 }
 
 export type FiltersFieldRenderProps = {
@@ -67,6 +83,10 @@ export function FiltersField({ name, children, className }: FiltersFieldProps) {
 		[name, setValue],
 	)
 
+	const handleClear = useCallback(() => {
+		setValue(name, undefined)
+	}, [name, setValue])
+
 	// Render prop pattern
 	if (typeof children === 'function') {
 		const renderProps: FiltersFieldRenderProps = {
@@ -97,10 +117,14 @@ export function FiltersField({ name, children, className }: FiltersFieldProps) {
 
 		const handlerProp = expectsEventCallback(child) ? 'onChange' : 'onValueChange'
 
-		return cloneElement(child as ReactElement<Record<string, unknown>>, {
+		const cloned: Record<string, unknown> = {
 			value: fieldValue ?? null,
 			[handlerProp]: handleChange,
-		})
+		}
+
+		if (expectsClearCallback(child)) cloned.onClear = handleClear
+
+		return cloneElement(child as ReactElement<Record<string, unknown>>, cloned)
 	})
 
 	return (
