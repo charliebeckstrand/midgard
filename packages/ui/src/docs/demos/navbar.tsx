@@ -6,7 +6,6 @@ import { Card } from '../../components/card'
 import { Nav, NavContent, NavContents, NavItem, NavList, NavProvider } from '../../components/nav'
 import { Navbar } from '../../components/navbar'
 import { Spacer } from '../../components/spacer'
-import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Navigation' }
@@ -47,7 +46,7 @@ function NavProviderDemo() {
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Default">
 				<Navbar variant="outline">
 					<Nav value="home">
@@ -89,6 +88,6 @@ export function Demo() {
 					</NavList>
 				</Navbar>
 			</Example>
-		</Stack>
+		</>
 	)
 }

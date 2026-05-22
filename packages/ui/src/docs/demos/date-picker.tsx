@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { DatePicker } from '../../components/date-picker'
 import { Glass } from '../../components/glass'
-import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
@@ -14,7 +13,7 @@ export function Demo() {
 	const [glassRange, setGlassRange] = useState<[Date, Date] | undefined>(undefined)
 
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Default">
 				<DatePicker value={date} onValueChange={setDate} />
 			</Example>
@@ -32,6 +31,6 @@ export function Demo() {
 					<DatePicker range value={glassRange} onValueChange={setGlassRange} />
 				</Glass>
 			</Example>
-		</Stack>
+		</>
 	)
 }

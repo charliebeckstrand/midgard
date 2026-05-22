@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { Button } from '../../components/button'
 import { Flex } from '../../components/flex'
 import { Sheet, SheetActions, SheetBody, SheetTitle } from '../../components/sheet'
-import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Overlay' }
@@ -16,7 +15,7 @@ export function Demo() {
 	const [glassRightOpen, setGlassRightOpen] = useState(false)
 
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Default">
 				<Flex gap="md">
 					<Button variant="outline" onClick={() => setLeftOpen(true)}>
@@ -78,6 +77,6 @@ export function Demo() {
 					</Sheet>
 				</Flex>
 			</Example>
-		</Stack>
+		</>
 	)
 }

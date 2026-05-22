@@ -10,7 +10,7 @@ export const meta = { category: 'Chat' }
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Example
 				title="Default"
 				code={code`
@@ -94,6 +94,6 @@ export function Demo() {
 					Heading out now, ETA 3pm.
 				</ChatMessage>
 			</Example>
-		</Stack>
+		</>
 	)
 }

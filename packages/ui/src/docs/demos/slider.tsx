@@ -101,7 +101,7 @@ function RangeStepSliderExample() {
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<InteractiveExample />
 
 			<Example title="Sizes">
@@ -135,6 +135,6 @@ export function Demo() {
 			<Example title="Disabled">
 				<Slider disabled defaultValue={50} />
 			</Example>
-		</Stack>
+		</>
 	)
 }

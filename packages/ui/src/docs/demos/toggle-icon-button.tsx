@@ -2,7 +2,6 @@
 
 import { Heart, Moon, Sun, Volume2, VolumeOff } from 'lucide-react'
 import { useState } from 'react'
-import { Stack } from '../../components/stack'
 import { ToggleIconButton } from '../../components/toggle-icon-button'
 import { Example } from '../components/example'
 
@@ -14,7 +13,7 @@ export function Demo() {
 	const [muted, setMuted] = useState(false)
 
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Default">
 				<ToggleIconButton
 					pressed={dark}
@@ -45,6 +44,6 @@ export function Demo() {
 					aria-label="Toggle mute"
 				/>
 			</Example>
-		</Stack>
+		</>
 	)
 }

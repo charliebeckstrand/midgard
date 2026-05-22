@@ -193,7 +193,7 @@ export default function ComponentDemo() {
   const [variant, setVariant] = useState<Variant>('solid')
 
   return (
-    <Stack gap="xl">
+    <>
       <Example title="Variants">
         <Flex wrap gap="sm">
           {variants.map((v) => (
@@ -217,7 +217,7 @@ export default function ComponentDemo() {
 
       <Example title="Disabled"><Component disabled>Disabled</Component></Example>
       <Example title="Loading"><Component loading>Loading</Component></Example>
-    </Stack>
+    </>
   )
 }
 ```

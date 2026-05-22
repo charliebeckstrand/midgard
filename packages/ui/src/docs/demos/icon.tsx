@@ -3,7 +3,6 @@ import { Alert, AlertDescription, AlertTitle } from '../../components/alert'
 import { Code } from '../../components/code'
 import { Flex } from '../../components/flex'
 import { Icon } from '../../components/icon'
-import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 import { LabeledColumn } from '../components/labeled'
 
@@ -13,7 +12,7 @@ const sizes = ['xs', 'sm', 'md', 'lg'] as const
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Alert severity="info" closable>
 				<AlertTitle>SVG support</AlertTitle>
 				<AlertDescription>
@@ -45,6 +44,6 @@ export function Demo() {
 					<Icon icon={<Star />} size={32} />
 				</div>
 			</Example>
-		</Stack>
+		</>
 	)
 }

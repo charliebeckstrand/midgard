@@ -43,7 +43,7 @@ function ControlledCollapseExample() {
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Default">
 				<Collapse trigger="Toggle details">
 					<Text variant="muted">
@@ -68,6 +68,6 @@ export function Demo() {
 			<Example title="Controlled">
 				<ControlledCollapseExample />
 			</Example>
-		</Stack>
+		</>
 	)
 }

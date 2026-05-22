@@ -39,7 +39,7 @@ export function Demo() {
 	const [variant, setVariant] = useState<(typeof variants)[number]>('soft')
 
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Severity">
 				<Stack className="gap-0 -mx-4">
 					{types.map((type) => (
@@ -93,6 +93,6 @@ export function Demo() {
 					/>
 				</div>
 			</Example>
-		</Stack>
+		</>
 	)
 }

@@ -18,7 +18,7 @@ export function Demo() {
 	const [accepted, setAccepted] = useState(false)
 
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Confirm">
 				<Button color="amber" onClick={() => setDiscardOpen(true)}>
 					Discard changes
@@ -78,6 +78,6 @@ export function Demo() {
 					</DialogBody>
 				</Confirm>
 			</Example>
-		</Stack>
+		</>
 	)
 }

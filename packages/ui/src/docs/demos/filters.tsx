@@ -10,7 +10,6 @@ import { Input } from '../../components/input'
 import { JsonTree } from '../../components/json-tree'
 import { NumberInput } from '../../components/number-input'
 import { Select, SelectLabel, SelectOption } from '../../components/select'
-import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
@@ -183,7 +182,7 @@ function RenderPropsExample() {
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Basic">
 				<BasicExample />
 			</Example>
@@ -195,6 +194,6 @@ export function Demo() {
 			<Example title="Render Props">
 				<RenderPropsExample />
 			</Example>
-		</Stack>
+		</>
 	)
 }

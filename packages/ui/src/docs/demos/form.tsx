@@ -16,39 +16,59 @@ import { Stack } from '../../components/stack'
 import { SubmitButton } from '../../components/submit-button'
 import { Switch, SwitchField } from '../../components/switch'
 import { Textarea } from '../../components/textarea'
-import { code } from '../code'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
+
+function ResetButton() {
+	return (
+		<Button type="reset" variant="soft" color="red">
+			Reset
+		</Button>
+	)
+}
+
+function StatusDisplay() {
+	const form = useFormContext()
+
+	if (!form) return null
+
+	return (
+		<Flex gap="sm" align="start">
+			<Badge variant="outline" color={form.isDirty ? 'amber' : 'green'}>
+				dirty: {form.isDirty ? 'yes' : 'no'}
+			</Badge>
+			<Badge variant="outline" color={form.isValid ? 'green' : 'red'}>
+				valid: {form.isValid ? 'yes' : 'no'}
+			</Badge>
+		</Flex>
+	)
+}
 
 async function simulateAsyncSubmission() {
 	return new Promise<void>((r) => setTimeout(r, 1000))
 }
 
-function BoundFieldsFormExample() {
+function DefaultExample() {
 	const [result, setResult] = useState<string>('')
 
 	return (
-		<Example
-			title="Auto-bound fields"
-			code={code`
-				import { Form } from 'ui/form'
-				import { Field, Label } from 'ui/fieldset'
-				import { Input } from 'ui/input'
-				import { NumberInput } from 'ui/number-input'
-				import { Button } from 'ui/button'
+		<>
+			<Form
+				defaultValues={{ name: '', email: '', age: 0 }}
+				onSubmit={async (values) => {
+					await simulateAsyncSubmission()
 
-				const [result, setResult] = useState<string>('')
-
-				<Form
-					defaultValues={{ name: '', email: '', age: 0 }}
-					onSubmit={async (values) => setResult(JSON.stringify(values, null, 2))}
-				>
-					<Field>
+					setResult(JSON.stringify(values, null, 2))
+				}}
+				onReset={() => setResult('')}
+			>
+				<Stack gap="lg">
+					<Field autoComplete="name">
 						<Label>Name</Label>
 						<Input name="name" placeholder="Jane Doe" />
 					</Field>
-					<Field>
+					<Field autoComplete="email">
 						<Label>Email</Label>
 						<Input name="email" type="email" placeholder="jane@example.com" />
 					</Field>
@@ -56,105 +76,22 @@ function BoundFieldsFormExample() {
 						<Label>Age</Label>
 						<NumberInput name="age" min={0} max={150} />
 					</Field>
-					<Button type="submit">Submit</Button>
-				</Form>
-			`}
-		>
-			<Stack gap="lg">
-				<Form
-					defaultValues={{ name: '', email: '', age: 0 }}
-					onSubmit={async (values) => {
-						await simulateAsyncSubmission()
-
-						setResult(JSON.stringify(values, null, 2))
-					}}
-					onReset={() => setResult('')}
-				>
-					<Stack gap="lg">
-						<Field autoComplete="name">
-							<Label>Name</Label>
-							<Input name="name" placeholder="Jane Doe" />
-						</Field>
-						<Field autoComplete="email">
-							<Label>Email</Label>
-							<Input name="email" type="email" placeholder="jane@example.com" />
-						</Field>
-						<Field>
-							<Label>Age</Label>
-							<NumberInput name="age" min={0} max={150} />
-						</Field>
-						<Flex gap="sm">
-							<Button type="submit">Submit</Button>
-							{result && (
-								<Button type="reset" variant="soft" color="red">
-									Reset
-								</Button>
-							)}
-						</Flex>
-					</Stack>
-				</Form>
-				{result && <JsonTree data={JSON.parse(result)} />}
-			</Stack>
-		</Example>
+					<Flex gap="sm">
+						<SubmitButton color="blue">Submit</SubmitButton>
+						{result && <ResetButton />}
+					</Flex>
+				</Stack>
+			</Form>
+			{result && <JsonTree data={JSON.parse(result)} />}
+		</>
 	)
 }
 
-function ValidationFormExample() {
+function ValidationExample() {
 	const [result, setResult] = useState<string>('')
 
 	return (
-		<Example
-			title="Validation"
-			code={code`
-				import { Form } from 'ui/form'
-				import { Field, Label, Message } from 'ui/fieldset'
-				import { Input } from 'ui/input'
-				import { PasswordInput } from 'ui/password-input'
-				import { Button } from 'ui/button'
-				import { Stack } from 'ui/stack'
-
-				const [result, setResult] = useState<string>('')
-
-				<Form
-					defaultValues={{ email: '', password: '', confirmPassword: '' }}
-					validate={{
-						email: (v) => {
-							if (!v) return 'Email is required'
-
-							if (!v.includes('@')) return 'Must be a valid email'
-
-							return undefined
-						},
-						password: (v) => (v.length < 8 ? 'Password must be at least 8 characters' : undefined),
-						confirmPassword: (_v, values) => {
-							if (values.password !== _v) return 'Passwords do not match'
-
-							return undefined
-						},
-					}}
-					onSubmit={async (values) => setResult(JSON.stringify(values, null, 2))}
-				>
-					<Stack gap="lg">
-						<Field>
-							<Label>Email</Label>
-							<Input name="email" type="email" placeholder="jane@example.com" />
-							<Message name="email" />
-						</Field>
-						<Field>
-							<Label>Password</Label>
-							<PasswordInput name="password" placeholder="Min 8 characters" />
-							<Message name="password" />
-						</Field>
-						<Field>
-							<Label>Confirm password</Label>
-							<PasswordInput name="confirmPassword" placeholder="Re-enter password" />
-							<Message name="confirmPassword" />
-						</Field>
-						<Button type="submit">Create account</Button>
-					</Stack>
-				</Form>
-			`}
-		>
+		<>
 			<Form
 				defaultValues={{ email: '', password: '', confirmPassword: '' }}
 				validate={{
@@ -196,75 +133,21 @@ function ValidationFormExample() {
 						<Message name="confirmPassword" />
 					</Field>
 					<Flex gap="sm">
-						<Button type="submit">Create account</Button>
-						{result && (
-							<Button type="reset" variant="soft" color="red">
-								Reset
-							</Button>
-						)}
+						<SubmitButton color="green">Create account</SubmitButton>
+						{result && <ResetButton />}
 					</Flex>
 				</Stack>
 			</Form>
 			{result && <JsonTree data={JSON.parse(result)} />}
-		</Example>
+		</>
 	)
 }
 
-function FormStatusDisplay() {
-	const form = useFormContext()
-
-	if (!form) return null
-
-	return (
-		<Flex gap="sm" align="start">
-			<Badge variant="outline" color={form.isDirty ? 'amber' : 'green'}>
-				dirty: {form.isDirty ? 'yes' : 'no'}
-			</Badge>
-			<Badge variant="outline" color={form.isValid ? 'green' : 'red'}>
-				valid: {form.isValid ? 'yes' : 'no'}
-			</Badge>
-		</Flex>
-	)
-}
-
-function DirtyTouchedFormExample() {
+function DirtyTouchedExample() {
 	const [result, setResult] = useState<string>('')
 
 	return (
-		<Example
-			title="Dirty + touched tracking"
-			code={code`
-				import { Form } from 'ui/form'
-				import { Field, Label, Message } from 'ui/fieldset'
-				import { Input } from 'ui/input'
-				import { Button } from 'ui/button'
-				import { Stack } from 'ui/stack'
-
-				const [result, setResult] = useState<string>('')
-
-				<Form
-					defaultValues={{ username: 'admin', bio: '' }}
-					validate={{
-						username: (v) => (v.length < 3 ? 'At least 3 characters' : undefined),
-						bio: (v) => (v.length > 200 ? 'Too long' : undefined),
-					}}
-					onSubmit={async (values) => setResult(JSON.stringify(values, null, 2))}
-				>
-					<Field>
-						<Label>Username</Label>
-						<Input name="username" />
-						<Message name="username" />
-					</Field>
-					<Field>
-						<Label>Bio</Label>
-						<Textarea name="bio" placeholder="Tell us about yourself" />
-						<Message name="bio" />
-					</Field>
-
-					<Button type="submit">Save</Button>
-				</Form>
-			`}
-		>
+		<>
 			<Form
 				defaultValues={{ username: 'admin', bio: '' }}
 				validate={{
@@ -279,6 +162,8 @@ function DirtyTouchedFormExample() {
 				onReset={() => setResult('')}
 			>
 				<Stack gap="lg">
+					<StatusDisplay />
+
 					<Field autoComplete="username">
 						<Label>Username</Label>
 						<Input name="username" />
@@ -290,95 +175,51 @@ function DirtyTouchedFormExample() {
 						<Message name="bio" />
 					</Field>
 
-					<FormStatusDisplay />
-
 					<Flex gap="sm">
-						<Button type="submit">Save</Button>
-						{result && (
-							<Button type="reset" variant="soft" color="red">
-								Reset
-							</Button>
-						)}
+						<SubmitButton color="blue">Save</SubmitButton>
+						{result && <ResetButton />}
 					</Flex>
 				</Stack>
 			</Form>
 			{result && <JsonTree data={JSON.parse(result)} />}
-		</Example>
+		</>
 	)
 }
 
-function ServerErrorFormExample() {
+function ServerErrorExample() {
 	const [loading, setLoading] = useState(false)
 
 	return (
-		<Example
-			title="Server error injection"
-			code={code`
-				import { Form } from 'ui/form'
-				import { Field, Label, Message } from 'ui/fieldset'
-				import { Input } from 'ui/input'
-				import { Button } from 'ui/button'
-				import { Stack } from 'ui/stack'
+		<Form
+			defaultValues={{ username: '' }}
+			validate={{
+				username: (v) => (!v ? 'Username is required' : undefined),
+			}}
+			onSubmit={async (_values, context) => {
+				setLoading(true)
 
-				const [loading, setLoading] = useState(false)
+				await simulateAsyncSubmission()
 
-				<Form
-					defaultValues={{ username: '' }}
-					validate={{
-						username: (v) => (!v ? 'Username is required' : undefined),
-					}}
-					onSubmit={async (_values, context) => {
-						setLoading(true)
+				context.setErrors({ username: 'This username is already taken' })
 
-						// Simulate a server error response after an async submission
-						await simulateAsyncSubmission()
-
-						context.setErrors({ username: 'This username is already taken' })
-
-						setLoading(false)
-					}}
-				>
-					<Stack gap="lg">
-						<Field>
-							<Label>Username</Label>
-							<Input name="username" placeholder="Pick a username" loading={loading} />
-							<Message name="username" />
-						</Field>
-						<Button type="submit">Register</Button>
-					</Stack>
-				</Form>
-			`}
+				setLoading(false)
+			}}
 		>
-			<Form
-				defaultValues={{ username: '' }}
-				validate={{
-					username: (v) => (!v ? 'Username is required' : undefined),
-				}}
-				onSubmit={async (_values, context) => {
-					setLoading(true)
-
-					await simulateAsyncSubmission()
-
-					context.setErrors({ username: 'This username is already taken' })
-
-					setLoading(false)
-				}}
-			>
-				<Stack gap="lg">
-					<Field autoComplete="username">
-						<Label>Username</Label>
-						<Input name="username" placeholder="Pick a username" loading={loading} />
-						<Message name="username" />
-					</Field>
-					<Button type="submit">Register</Button>
-				</Stack>
-			</Form>
-		</Example>
+			<Stack gap="lg">
+				<Field autoComplete="username">
+					<Label>Username</Label>
+					<Input name="username" placeholder="Pick a username" loading={loading} />
+					<Message name="username" />
+				</Field>
+				<SubmitButton color="green">Register</SubmitButton>
+			</Stack>
+		</Form>
 	)
 }
 
-function ControlledValuesFormExample() {
+function ControlledValuesExample() {
 	const [user, setUser] = useState<{ email: string; name: string } | undefined>(undefined)
+
 	const [loading, setLoading] = useState(false)
 
 	async function loadUser() {
@@ -392,177 +233,81 @@ function ControlledValuesFormExample() {
 	}
 
 	return (
-		<Example
-			title="Controlled re-sync via values"
-			code={code`
-				import { Form } from 'ui/form'
-				import { Field, Label } from 'ui/fieldset'
-				import { Input } from 'ui/input'
-				import { Button } from 'ui/button'
-
-				const [user, setUser] = useState<User | undefined>(undefined)
-
-				async function loadUser() {
-					const data = await fetch('/api/me').then((r) => r.json())
-					setUser(data)
-				}
-
-				<Form
-					defaultValues={{ email: '', name: '' }}
-					values={user}
-				>
-					<Field>
+		<>
+			<Button onClick={loadUser} loading={loading}>
+				Load user
+			</Button>
+			<Form defaultValues={{ email: '', name: '' }} values={user} disabled={loading}>
+				<Stack gap="lg">
+					<Field autoComplete="email">
 						<Label>Email</Label>
 						<Input name="email" type="email" />
 					</Field>
-					<Field>
+					<Field autoComplete="name">
 						<Label>Name</Label>
 						<Input name="name" />
 					</Field>
-				</Form>
-			`}
-		>
-			<Stack gap="lg">
-				<Flex gap="sm" align="center">
-					<Button onClick={loadUser} loading={loading}>
-						Load user
-					</Button>
-					{user && <Badge color="green">Fetched · {user.email}</Badge>}
-				</Flex>
-				<Form defaultValues={{ email: '', name: '' }} values={user}>
-					<Stack gap="lg">
-						<Field autoComplete="email">
-							<Label>Email</Label>
-							<Input name="email" type="email" placeholder="—" />
-						</Field>
-						<Field autoComplete="name">
-							<Label>Name</Label>
-							<Input name="name" placeholder="—" />
-						</Field>
-					</Stack>
-				</Form>
-			</Stack>
-		</Example>
+				</Stack>
+			</Form>
+			{user && (
+				<Button variant="soft" color="red" onClick={() => setUser(undefined)}>
+					Reset
+				</Button>
+			)}
+		</>
 	)
 }
 
-function SubmitOutcomeFormExample() {
+function OnSettledExample() {
 	const [outcome, setOutcome] = useState<SubmitOutcome<{ email: string }> | null>(null)
+
 	const [failNext, setFailNext] = useState(false)
 
 	return (
-		<Example
-			title="onSettled + SubmitButton"
-			code={code`
-				import { Form, type SubmitOutcome } from 'ui/form'
-				import { SubmitButton } from 'ui/submit-button'
-				import { Field, Label } from 'ui/fieldset'
-				import { Input } from 'ui/input'
-				import { Switch } from 'ui/switch'
+		<Stack gap="lg">
+			<Control>
+				<SwitchField>
+					<Switch checked={failNext} onChange={(e) => setFailNext(e.target.checked)} />
+					<Label>Simulate server failure</Label>
+				</SwitchField>
+			</Control>
+			<Form
+				defaultValues={{ email: '' }}
+				onSubmit={async (_values) => {
+					await simulateAsyncSubmission()
 
-				const [outcome, setOutcome] = useState<SubmitOutcome<{ email: string }> | null>(null)
-				const [failNext, setFailNext] = useState(false)
-
-				<Form
-					defaultValues={{ email: '' }}
-					onSubmit={async (_values) => {
-						await simulateAsyncSubmission()
-
-						if (failNext) throw new Error('Rate limited — try again in 30s')
-					}}
-					onSettled={setOutcome}
-				>
-					<Field>
+					if (failNext) throw new Error('Rate limited — try again in 30s')
+				}}
+				onSettled={setOutcome}
+				onReset={() => setOutcome(null)}
+			>
+				<Stack gap="lg">
+					<Field autoComplete="email">
 						<Label>Email</Label>
 						<Input name="email" type="email" placeholder="you@example.com" />
 					</Field>
-					<SubmitButton>Save</SubmitButton>
-				</Form>
-			`}
-		>
-			<Stack gap="lg">
-				<Flex gap="sm" align="center">
-					<Switch checked={failNext} onChange={(e) => setFailNext(e.target.checked)} />
-					<span>Fail next submit</span>
-				</Flex>
-				<Form
-					defaultValues={{ email: '' }}
-					onSubmit={async (_values) => {
-						await simulateAsyncSubmission()
-
-						if (failNext) throw new Error('Rate limited — try again in 30s')
-					}}
-					onSettled={setOutcome}
-				>
-					<Stack gap="lg">
-						<Field autoComplete="email">
-							<Label>Email</Label>
-							<Input name="email" type="email" placeholder="you@example.com" />
-						</Field>
-						<SubmitButton>Save</SubmitButton>
-					</Stack>
-				</Form>
-				{outcome && (
-					<Badge color={outcome.ok ? 'green' : 'red'}>
-						{outcome.ok
-							? `ok · submitted ${JSON.stringify(outcome.values)}`
-							: `failed · ${outcome.error.message}`}
-					</Badge>
-				)}
-			</Stack>
-		</Example>
+					<Flex gap="sm">
+						<SubmitButton color="blue">Save</SubmitButton>
+						{outcome && <ResetButton />}
+					</Flex>
+				</Stack>
+			</Form>
+			{outcome && (
+				<Badge color={outcome.ok ? 'green' : 'red'}>
+					{outcome.ok
+						? `ok · submitted ${JSON.stringify(outcome.values)}`
+						: `failed · ${outcome.error.message}`}
+				</Badge>
+			)}
+		</Stack>
 	)
 }
 
-function ToggleFormExample() {
+function OptInExample() {
 	const [result, setResult] = useState<string>('')
 
 	return (
-		<Example
-			title="Checkbox + switch"
-			code={code`
-				import { Form } from 'ui/form'
-				import { Control } from 'ui/control'
-				import { Checkbox, CheckboxField } from 'ui/checkbox'
-				import { Switch, SwitchField } from 'ui/switch'
-				import { Label } from 'ui/fieldset'
-				import { Button } from 'ui/button'
-				import { Stack } from 'ui/stack'
-
-				const [result, setResult] = useState<string>('')
-
-				<Form
-					defaultValues={{ terms: false, newsletter: false, darkMode: false }}
-					validate={{
-						terms: (v) => (!v ? 'You must accept the terms and conditions' : undefined),
-					}}
-					onSubmit={(values) => setResult(JSON.stringify(values, null, 2))}
-				>
-					<Stack gap="lg">
-						<Control>
-							<CheckboxField>
-								<Checkbox name="terms" />
-								<Label>Accept terms and conditions</Label>
-							</CheckboxField>
-						</Control>
-						<Message name="terms" />
-						<Control>
-							<CheckboxField>
-								<Checkbox name="newsletter" />
-								<Label>Subscribe to newsletter</Label>
-							</CheckboxField>
-						</Control>
-						<Control>
-							<SwitchField>
-								<Switch name="darkMode" />
-								<Label>Dark mode</Label>
-							</SwitchField>
-						</Control>
-						<Button type="submit">Submit</Button>
-					</Stack>
-				</Form>
-			`}
-		>
+		<>
 			<Form
 				defaultValues={{ terms: false, newsletter: false, darkMode: false }}
 				validate={{
@@ -589,14 +334,8 @@ function ToggleFormExample() {
 							<Label>Subscribe to newsletter</Label>
 						</CheckboxField>
 					</Control>
-					<Control>
-						<SwitchField>
-							<Switch name="darkMode" />
-							<Label>Dark mode</Label>
-						</SwitchField>
-					</Control>
 					<Flex gap="sm">
-						<Button type="submit">Submit</Button>
+						<SubmitButton color="blue">Submit</SubmitButton>
 						{result && (
 							<Button type="reset" variant="soft" color="red">
 								Reset
@@ -606,20 +345,34 @@ function ToggleFormExample() {
 				</Stack>
 			</Form>
 			{result && <JsonTree data={JSON.parse(result)} />}
-		</Example>
+		</>
 	)
 }
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
-			<BoundFieldsFormExample />
-			<ValidationFormExample />
-			<DirtyTouchedFormExample />
-			<ServerErrorFormExample />
-			<ControlledValuesFormExample />
-			<SubmitOutcomeFormExample />
-			<ToggleFormExample />
-		</Stack>
+		<>
+			<Example title="Default">
+				<DefaultExample />
+			</Example>
+			<Example title="Validation">
+				<ValidationExample />
+			</Example>
+			<Example title="Dirty and touched state">
+				<DirtyTouchedExample />
+			</Example>
+			<Example title="Server error">
+				<ServerErrorExample />
+			</Example>
+			<Example title="Controlled values">
+				<ControlledValuesExample />
+			</Example>
+			<Example title="onSettled">
+				<OnSettledExample />
+			</Example>
+			<Example title="Opt-in">
+				<OptInExample />
+			</Example>
+		</>
 	)
 }

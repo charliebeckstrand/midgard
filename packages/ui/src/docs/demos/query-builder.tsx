@@ -61,9 +61,9 @@ function DisabledExample() {
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<ControlledExample />
 			<DisabledExample />
-		</Stack>
+		</>
 	)
 }

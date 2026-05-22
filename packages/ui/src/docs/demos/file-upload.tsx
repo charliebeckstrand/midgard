@@ -4,7 +4,6 @@ import { Upload } from 'lucide-react'
 import { type ReactNode, useState } from 'react'
 import { FileUpload } from '../../components/file-upload'
 import { Icon } from '../../components/icon'
-import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
 import { Example } from '../components/example'
 
@@ -82,7 +81,7 @@ function DisabledExample() {
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Default">
 				<AreaExample />
 			</Example>
@@ -102,6 +101,6 @@ export function Demo() {
 			<Example title="Disabled">
 				<DisabledExample />
 			</Example>
-		</Stack>
+		</>
 	)
 }

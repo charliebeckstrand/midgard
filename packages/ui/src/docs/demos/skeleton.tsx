@@ -11,7 +11,6 @@ import { Flex } from '../../components/flex'
 import { Heading } from '../../components/heading'
 import { Input } from '../../components/input'
 import { Radio } from '../../components/radio'
-import { Stack } from '../../components/stack'
 import { Switch } from '../../components/switch'
 import { Text } from '../../components/text'
 import { Textarea } from '../../components/textarea'
@@ -148,7 +147,7 @@ function ProfileCardExample() {
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<DynamicExample />
 
 			<Example title="Form">
@@ -158,6 +157,6 @@ export function Demo() {
 			<Example title="Profile card">
 				<ProfileCardExample />
 			</Example>
-		</Stack>
+		</>
 	)
 }

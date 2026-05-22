@@ -16,7 +16,7 @@ export function Demo() {
 	const now = Date.now()
 
 	return (
-		<Stack gap="xl">
+		<>
 			<Example
 				title="Recent"
 				code={code`
@@ -128,6 +128,6 @@ export function Demo() {
 					</Flex>
 				</Stack>
 			</Example>
-		</Stack>
+		</>
 	)
 }

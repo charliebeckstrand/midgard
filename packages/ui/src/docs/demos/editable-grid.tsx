@@ -9,7 +9,6 @@ import {
 } from '../../components/editable-grid'
 import { Flex } from '../../components/flex'
 import { Icon } from '../../components/icon'
-import { Stack } from '../../components/stack'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { code } from '../code'
 import { Example } from '../components/example'
@@ -106,7 +105,7 @@ export function Demo() {
 	)
 
 	return (
-		<Stack gap="xl">
+		<>
 			<Example
 				title="Default"
 				code={code`
@@ -190,6 +189,6 @@ export function Demo() {
 					onValueChange={(changes) => setBulkRates((prev) => applyChanges(prev, changes))}
 				/>
 			</Example>
-		</Stack>
+		</>
 	)
 }

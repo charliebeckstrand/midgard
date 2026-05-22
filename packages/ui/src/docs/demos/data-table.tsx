@@ -5,7 +5,6 @@ import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'
 import { DataTable, type DataTableColumn, type SortState } from '../../components/data-table'
 import { HoldButton } from '../../components/hold-button'
-import { Stack } from '../../components/stack'
 import { Density, type DensityLevel } from '../../providers/density'
 import { code } from '../code'
 import { DensityListbox } from '../components/density-listbox'
@@ -167,7 +166,7 @@ export function Demo() {
 	const [density, setDensity] = useState<DensityLevel>('snug')
 
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Default">
 				<DefaultExample />
 			</Example>
@@ -224,6 +223,6 @@ export function Demo() {
 			<Example title="Column Manager">
 				<ColumnManagerExample />
 			</Example>
-		</Stack>
+		</>
 	)
 }

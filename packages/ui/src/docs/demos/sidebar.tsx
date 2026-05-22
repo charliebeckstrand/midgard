@@ -243,7 +243,7 @@ function ItemActionsSidebarExample() {
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Default">
 				<DefaultSidebarExample />
 			</Example>
@@ -259,6 +259,6 @@ export function Demo() {
 			<Example title="With item actions">
 				<ItemActionsSidebarExample />
 			</Example>
-		</Stack>
+		</>
 	)
 }

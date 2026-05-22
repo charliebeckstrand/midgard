@@ -1,14 +1,13 @@
 import { Field, Label } from '../../components/fieldset'
 import { PasswordConfirm, PasswordConfirmInput } from '../../components/password-confirm'
 import { PasswordInput } from '../../components/password-input'
-import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Password' }
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Default">
 				<PasswordConfirm warning="Passwords do not match">
 					<Field>
@@ -38,6 +37,6 @@ export function Demo() {
 					</Field>
 				</PasswordConfirm>
 			</Example>
-		</Stack>
+		</>
 	)
 }

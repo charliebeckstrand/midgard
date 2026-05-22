@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { Button } from '../../components/button'
 import { Flex } from '../../components/flex'
 import { Spinner } from '../../components/spinner'
-import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 import { capitalize } from '../components/format'
 import { LabeledColumn } from '../components/labeled'
@@ -24,7 +23,7 @@ export function Demo() {
 	const [buttonSize, setButtonSize] = useState<ButtonSize>('md')
 
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Default">
 				<Spinner />
 			</Example>
@@ -64,6 +63,6 @@ export function Demo() {
 					</Button>
 				</Flex>
 			</Example>
-		</Stack>
+		</>
 	)
 }

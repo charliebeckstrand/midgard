@@ -1,12 +1,11 @@
 import { Divider } from '../../components/divider'
-import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Layout' }
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Default">
 				<Divider />
 			</Example>
@@ -14,6 +13,6 @@ export function Demo() {
 			<Example title="Soft">
 				<Divider soft />
 			</Example>
-		</Stack>
+		</>
 	)
 }

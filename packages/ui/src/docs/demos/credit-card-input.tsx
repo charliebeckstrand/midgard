@@ -75,7 +75,7 @@ function ComposedExample() {
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Default">
 				<Field>
 					<Label>Card number</Label>
@@ -132,6 +132,6 @@ export function Demo() {
 					<CreditCardInput data-invalid />
 				</Field>
 			</Example>
-		</Stack>
+		</>
 	)
 }

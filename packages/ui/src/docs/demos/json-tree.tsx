@@ -96,7 +96,7 @@ function FilterExample() {
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Default">
 				<JsonTree data={sample} />
 			</Example>
@@ -123,6 +123,6 @@ export function Demo() {
 					defaultExpandDepth={Number.POSITIVE_INFINITY}
 				/>
 			</Example>
-		</Stack>
+		</>
 	)
 }

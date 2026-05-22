@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { Badge } from '../../components/badge'
 import { Flex } from '../../components/flex'
-import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 import { VariantListbox } from '../components/variant-listbox'
 
@@ -25,7 +24,7 @@ export function Demo() {
 	const [colorVariant, setColorVariant] = useState<(typeof colorVariants)[number]>('solid')
 
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Variants">
 				<Flex wrap gap="sm">
 					{variants.map((variant) => (
@@ -74,6 +73,6 @@ export function Demo() {
 					))}
 				</Flex>
 			</Example>
-		</Stack>
+		</>
 	)
 }

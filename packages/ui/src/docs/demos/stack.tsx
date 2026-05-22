@@ -8,7 +8,7 @@ export const meta = { category: 'Layout' }
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Column">
 				<Stack gap="md">
 					<Card>One</Card>
@@ -53,6 +53,6 @@ export function Demo() {
 					<Button>Save changes</Button>
 				</Stack>
 			</Example>
-		</Stack>
+		</>
 	)
 }

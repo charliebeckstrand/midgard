@@ -20,7 +20,7 @@ export function Demo() {
 	const [pulseSize, setPulseSize] = useState<(typeof sizes)[number]>('md')
 
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Statuses">
 				<Stack gap="md">
 					{statuses.map((s) => (
@@ -65,6 +65,6 @@ export function Demo() {
 					<StatusDot status="error" size={pulseSize} pulse />
 				</Flex>
 			</Example>
-		</Stack>
+		</>
 	)
 }

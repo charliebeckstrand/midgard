@@ -42,7 +42,7 @@ export function Demo() {
 	const [bothSize, setBothSize] = useState<Size>('md')
 
 	return (
-		<Stack gap="xl">
+		<>
 			<Example
 				title="Vertical with size"
 				actions={<SizeListbox sizes={sizes} value={verticalSize} onValueChange={setVerticalSize} />}
@@ -122,6 +122,6 @@ export function Demo() {
 					</CardBody>
 				</Card>
 			</Example>
-		</Stack>
+		</>
 	)
 }

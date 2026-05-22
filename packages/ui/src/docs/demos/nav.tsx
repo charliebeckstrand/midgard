@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { Card } from '../../components/card'
 import { NavContent, NavContents, NavItem, NavList, NavProvider } from '../../components/nav'
-import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Navigation' }
@@ -12,7 +11,7 @@ export function Demo() {
 	const [current, setCurrent] = useState('account')
 
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Default">
 				<NavList orientation="horizontal">
 					<NavItem value="home">Home</NavItem>
@@ -45,6 +44,6 @@ export function Demo() {
 					<NavItem href="#docs">Documentation</NavItem>
 				</NavList>
 			</Example>
-		</Stack>
+		</>
 	)
 }

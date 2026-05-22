@@ -61,7 +61,7 @@ function FormattingToolbarExample() {
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Default">
 				<FormattingToolbarExample />
 			</Example>
@@ -121,6 +121,6 @@ export function Demo() {
 					</Button>
 				</Toolbar>
 			</Example>
-		</Stack>
+		</>
 	)
 }

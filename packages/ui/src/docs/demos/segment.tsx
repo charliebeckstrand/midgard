@@ -48,7 +48,7 @@ export function Demo() {
 	const [filter, setFilter] = useState('All')
 
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Default">
 				<Stack gap="lg">
 					<Segment value={view} onValueChange={(v) => setView(v ?? 'List')}>
@@ -151,6 +151,6 @@ export function Demo() {
 					</SegmentControl>
 				</Segment>
 			</Example>
-		</Stack>
+		</>
 	)
 }

@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { Field, Label } from '../../components/fieldset'
 import { MaskInput } from '../../components/mask-input'
-import { Stack } from '../../components/stack'
 import { code } from '../code'
 import { Example } from '../components/example'
 
@@ -89,7 +88,7 @@ function ControlledExample() {
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Example
 				title="License plate"
 				code={code`
@@ -203,6 +202,6 @@ export function Demo() {
 					<MaskInput disabled format={formatSsn} defaultValue="123456789" />
 				</Field>
 			</Example>
-		</Stack>
+		</>
 	)
 }

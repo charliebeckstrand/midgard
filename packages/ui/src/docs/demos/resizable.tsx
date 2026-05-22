@@ -1,6 +1,5 @@
 import { Card } from '../../components/card'
 import { ResizableGroup, ResizableHandle, ResizablePanel } from '../../components/resizable'
-import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Layout' }
@@ -9,7 +8,7 @@ const Pane = () => <Card className="h-full" />
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Horizontal">
 				<div className="h-48">
 					<ResizableGroup>
@@ -55,6 +54,6 @@ export function Demo() {
 					</ResizableGroup>
 				</div>
 			</Example>
-		</Stack>
+		</>
 	)
 }

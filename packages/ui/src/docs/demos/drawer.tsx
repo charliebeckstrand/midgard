@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { Button } from '../../components/button'
 import { Drawer, DrawerActions, DrawerBody, DrawerTitle } from '../../components/drawer'
-import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Overlay' }
@@ -13,7 +12,7 @@ export function Demo() {
 	const [glassOpen, setGlassOpen] = useState(false)
 
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Default">
 				<Button onClick={() => setOpen(true)}>Open Drawer</Button>
 				<Drawer open={open} onOpenChange={setOpen}>
@@ -41,6 +40,6 @@ export function Demo() {
 					</DrawerActions>
 				</Drawer>
 			</Example>
-		</Stack>
+		</>
 	)
 }

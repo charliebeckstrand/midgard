@@ -39,7 +39,7 @@ export function Demo() {
 	const [disabled, setDisabled] = useState(false)
 
 	return (
-		<Stack gap="xl">
+		<>
 			<Alert severity="info" variant="soft" closable>
 				<AlertDescription>
 					Control generates and propagates a stable ID and state to control-aware children.
@@ -107,6 +107,6 @@ export function Demo() {
 					<Input value="acct_1234567890" />
 				</Control>
 			</Example>
-		</Stack>
+		</>
 	)
 }

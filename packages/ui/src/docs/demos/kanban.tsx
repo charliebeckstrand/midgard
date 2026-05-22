@@ -151,10 +151,10 @@ function DisabledExample() {
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<DefaultExample />
 			<ReadOnlyExample />
 			<DisabledExample />
-		</Stack>
+		</>
 	)
 }

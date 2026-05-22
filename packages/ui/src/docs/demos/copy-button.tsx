@@ -1,14 +1,13 @@
 import { Copy } from 'lucide-react'
 import { CopyButton } from '../../components/copy-button'
 import { Flex } from '../../components/flex'
-import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Button' }
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Default">
 				<CopyButton value="Hello, world!" />
 			</Example>
@@ -25,6 +24,6 @@ export function Demo() {
 			<Example title="Custom icon">
 				<CopyButton value="https://example.com" icon={<Copy />} />
 			</Example>
-		</Stack>
+		</>
 	)
 }

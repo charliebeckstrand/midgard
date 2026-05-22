@@ -104,7 +104,7 @@ export function Demo() {
 	const [date, setDate] = useState<Date | undefined>(undefined)
 
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Glass wrapper">
 				<Glass>
 					<Stack>
@@ -196,6 +196,6 @@ export function Demo() {
 					</Flex>
 				</Glass>
 			</Example>
-		</Stack>
+		</>
 	)
 }

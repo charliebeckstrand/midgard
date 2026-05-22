@@ -24,7 +24,6 @@ import {
 } from '../../components/command-palette'
 import { Icon } from '../../components/icon'
 import { Kbd } from '../../components/kbd'
-import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Overlay' }
@@ -129,47 +128,45 @@ export function Demo() {
 	}, [])
 
 	return (
-		<Stack gap="xl">
-			<Example title="Default">
-				<Button color="blue" variant="soft" suffix={<Kbd cmd>K</Kbd>} onClick={() => setOpen(true)}>
-					Open command palette
-				</Button>
+		<Example title="Default">
+			<Button color="blue" variant="soft" suffix={<Kbd cmd>K</Kbd>} onClick={() => setOpen(true)}>
+				Open command palette
+			</Button>
 
-				<CommandPalette open={open} onOpenChange={setOpen}>
-					{(query) => {
-						const results = filterCommands(query)
+			<CommandPalette open={open} onOpenChange={setOpen}>
+				{(query) => {
+					const results = filterCommands(query)
 
-						if (!results.length) {
-							return (
-								<Alert severity="warning" block>
-									<AlertTitle>No commands found</AlertTitle>
-								</Alert>
-							)
-						}
+					if (!results.length) {
+						return (
+							<Alert severity="warning" block>
+								<AlertTitle>No commands found</AlertTitle>
+							</Alert>
+						)
+					}
 
-						return groups.map((group) => {
-							const items = results.filter((c) => c.group === group)
+					return groups.map((group) => {
+						const items = results.filter((c) => c.group === group)
 
-							if (!items.length) return null
+						if (!items.length) return null
 
-							return (
-								<CommandPaletteGroup key={group} title={group}>
-									{items.map((c) => (
-										<CommandPaletteItem key={c.id}>
-											<Icon icon={c.icon} size="sm" />
-											<CommandPaletteLabel>{c.label}</CommandPaletteLabel>
-											{c.description && (
-												<CommandPaletteDescription>{c.description}</CommandPaletteDescription>
-											)}
-											{c.shortcut && <CommandPaletteShortcut>{c.shortcut}</CommandPaletteShortcut>}
-										</CommandPaletteItem>
-									))}
-								</CommandPaletteGroup>
-							)
-						})
-					}}
-				</CommandPalette>
-			</Example>
-		</Stack>
+						return (
+							<CommandPaletteGroup key={group} title={group}>
+								{items.map((c) => (
+									<CommandPaletteItem key={c.id}>
+										<Icon icon={c.icon} size="sm" />
+										<CommandPaletteLabel>{c.label}</CommandPaletteLabel>
+										{c.description && (
+											<CommandPaletteDescription>{c.description}</CommandPaletteDescription>
+										)}
+										{c.shortcut && <CommandPaletteShortcut>{c.shortcut}</CommandPaletteShortcut>}
+									</CommandPaletteItem>
+								))}
+							</CommandPaletteGroup>
+						)
+					})
+				}}
+			</CommandPalette>
+		</Example>
 	)
 }

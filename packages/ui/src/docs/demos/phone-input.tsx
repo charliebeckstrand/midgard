@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { Field, Label } from '../../components/fieldset'
 import { PhoneInput } from '../../components/phone-input'
-import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Input' }
@@ -23,7 +22,7 @@ function ControlledExample() {
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Default (US)">
 				<Field>
 					<Label>Phone</Label>
@@ -68,6 +67,6 @@ export function Demo() {
 					<PhoneInput data-invalid placeholder="(555) 555-5555" />
 				</Field>
 			</Example>
-		</Stack>
+		</>
 	)
 }

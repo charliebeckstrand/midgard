@@ -61,7 +61,7 @@ export function Demo() {
 	const [value, setValue] = useState(1284)
 
 	return (
-		<Stack gap="xl">
+		<>
 			<CounterExample />
 			<CurrencyExample />
 
@@ -76,6 +76,6 @@ export function Demo() {
 				</div>
 				<Button onClick={() => setValue(Math.random() * 100_000)}>Randomize</Button>
 			</Example>
-		</Stack>
+		</>
 	)
 }

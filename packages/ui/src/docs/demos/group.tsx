@@ -27,7 +27,7 @@ export function Demo() {
 	const isInput = child === 'input'
 
 	return (
-		<Stack gap="xl">
+		<>
 			<Flex gap="sm">
 				<Control>
 					<Listbox<ChildType>
@@ -151,6 +151,6 @@ export function Demo() {
 					</Group>
 				</Stack>
 			</Example>
-		</Stack>
+		</>
 	)
 }

@@ -5,7 +5,6 @@ import { useState } from 'react'
 import { Button } from '../../components/button'
 import { Flex } from '../../components/flex'
 import { Icon } from '../../components/icon'
-import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 import { SizeListbox, sizeLabels } from '../components/size-listbox'
 import { VariantListbox } from '../components/variant-listbox'
@@ -29,7 +28,7 @@ export function Demo() {
 	const [iconOnlySize, setIconOnlySize] = useState<Size>('md')
 
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Variants">
 				<Flex wrap gap="sm">
 					{variants.map((variant) => (
@@ -111,6 +110,6 @@ export function Demo() {
 			<Example title="Loading">
 				<Button loading>Loading</Button>
 			</Example>
-		</Stack>
+		</>
 	)
 }

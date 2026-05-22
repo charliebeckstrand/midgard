@@ -1,4 +1,3 @@
-import { Stack } from '../../components/stack'
 import {
 	Timeline,
 	TimelineDescription,
@@ -12,7 +11,7 @@ export const meta = { category: 'Data Display' }
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Vertical">
 				<Timeline>
 					<TimelineItem>
@@ -110,6 +109,6 @@ export function Demo() {
 					</TimelineItem>
 				</Timeline>
 			</Example>
-		</Stack>
+		</>
 	)
 }

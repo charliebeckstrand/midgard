@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { Description, Label } from '../../components/fieldset'
-import { Stack } from '../../components/stack'
 import { Switch, SwitchField } from '../../components/switch'
 import { Example } from '../components/example'
 import { SizeListbox } from '../components/size-listbox'
@@ -17,7 +16,7 @@ export function Demo() {
 	const [size, setSize] = useState<Size>('md')
 
 	return (
-		<Stack gap="xl">
+		<>
 			<Example
 				title="Default"
 				actions={<SizeListbox sizes={sizes} value={size} onValueChange={setSize} />}
@@ -66,6 +65,6 @@ export function Demo() {
 					<Switch id="switch-disabled" disabled />
 				</SwitchField>
 			</Example>
-		</Stack>
+		</>
 	)
 }

@@ -24,7 +24,7 @@ export function Demo() {
 	const [glassOpen, setGlassOpen] = useState(false)
 
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Dialog">
 				<Button color="green" onClick={() => setOpen(true)}>
 					Create project
@@ -74,6 +74,6 @@ export function Demo() {
 					</DialogActions>
 				</Dialog>
 			</Example>
-		</Stack>
+		</>
 	)
 }

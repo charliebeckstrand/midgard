@@ -30,7 +30,7 @@ export function Demo() {
 	const [statusSize, setStatusSize] = useState<Size>('md')
 
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Variants">
 				<Stack gap="sm">
 					{variants.map((v) => (
@@ -85,6 +85,6 @@ export function Demo() {
 					<Avatar size={statusSize} initials="GH" status="error" />
 				</Flex>
 			</Example>
-		</Stack>
+		</>
 	)
 }

@@ -7,7 +7,6 @@ import {
 	AccordionPanel,
 	AccordionTrigger,
 } from '../../components/accordion'
-import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 import { VariantListbox } from '../components/variant-listbox'
 
@@ -37,7 +36,7 @@ export function Demo() {
 	const [variant, setVariant] = useState<(typeof variants)[number]>('separated')
 
 	return (
-		<Stack gap="xl">
+		<>
 			<Example
 				title="Default"
 				actions={<VariantListbox variants={variants} value={variant} onValueChange={setVariant} />}
@@ -73,6 +72,6 @@ export function Demo() {
 					))}
 				</Accordion>
 			</Example>
-		</Stack>
+		</>
 	)
 }

@@ -9,7 +9,7 @@ export const meta = { category: 'Forms' }
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Default">
 				<Fieldset>
 					<Legend>Profile</Legend>
@@ -59,6 +59,6 @@ export function Demo() {
 					</Field>
 				</Stack>
 			</Example>
-		</Stack>
+		</>
 	)
 }

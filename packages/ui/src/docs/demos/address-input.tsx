@@ -8,7 +8,6 @@ import {
 } from '../../components/address-input'
 import { Alert } from '../../components/alert'
 import { Field, Label } from '../../components/fieldset'
-import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
 import { Example } from '../components/example'
 
@@ -127,7 +126,7 @@ function CustomProviderExample() {
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Alert severity="info" closable>
 				<Text>
 					AddressInput uses the{' '}
@@ -155,6 +154,6 @@ export function Demo() {
 			<Example title="Custom provider">
 				<CustomProviderExample />
 			</Example>
-		</Stack>
+		</>
 	)
 }

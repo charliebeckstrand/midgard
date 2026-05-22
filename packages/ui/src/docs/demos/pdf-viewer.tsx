@@ -1,5 +1,4 @@
 import { PdfViewer } from '../../components/pdf-viewer'
-import { Stack } from '../../components/stack'
 import { code } from '../code'
 import { Example } from '../components/example'
 
@@ -40,9 +39,9 @@ function EmptyExample() {
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<DefaultExample />
 			<EmptyExample />
-		</Stack>
+		</>
 	)
 }

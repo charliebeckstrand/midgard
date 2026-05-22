@@ -28,7 +28,7 @@ const popoverContent = (
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Default">
 				<Popover>
 					<PopoverTrigger>
@@ -109,6 +109,6 @@ export function Demo() {
 					</Popover>
 				</Glass>
 			</Example>
-		</Stack>
+		</>
 	)
 }

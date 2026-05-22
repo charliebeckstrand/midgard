@@ -15,7 +15,6 @@ import {
 	MenuSeparator,
 	MenuTrigger,
 } from '../../components/menu'
-import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
 import { Example } from '../components/example'
 import { VariantListbox } from '../components/variant-listbox'
@@ -86,7 +85,7 @@ export function Demo() {
 	)
 
 	return (
-		<Stack gap="xl">
+		<>
 			<Example
 				title="Dropdown Menu"
 				actions={
@@ -112,6 +111,6 @@ export function Demo() {
 			>
 				{contextSurface === 'glass' ? <Glass>{context}</Glass> : context}
 			</Example>
-		</Stack>
+		</>
 	)
 }
