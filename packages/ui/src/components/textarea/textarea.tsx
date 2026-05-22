@@ -87,7 +87,7 @@ export function Textarea({
 
 	return (
 		<ControlFrame
-			className={cn(hasActions && k.frame, k.textareaControl({ variant: resolvedVariant }))}
+			className={cn(hasActions && k.frame, k.inputControl({ variant: resolvedVariant }))}
 		>
 			<textarea
 				data-slot="textarea"

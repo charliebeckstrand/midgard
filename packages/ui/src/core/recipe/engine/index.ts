@@ -1,3 +1,4 @@
+export { type ApplicatorReturn, applyRecipe, defineApplicator } from './applicator'
 export { type PaletteConfig, type PaletteEntry, palette } from './palette'
 export { defineRecipe } from './recipe'
 export type {

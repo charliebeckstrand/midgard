@@ -1,28 +1,10 @@
-import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
-import { control } from '../genkei/control'
+import type { VariantPropsOf } from '../../core/recipe'
+import { control } from '../katakana'
 import { kokkaku, sen } from '../kiso'
 
-const { input, density, size, surface } = control
-
-const textareaControl = defineRecipe({
-	variant: {
-		default: surface.default,
-		outline: [],
-		glass: surface.glass,
-	},
-	defaults: { variant: 'default' },
-})
-
-export const k = defineRecipe(
+export const k = control(
 	{
-		base: ['block', ...input, 'rounded-lg', 'min-h-10'],
-		variant: {
-			default: [],
-			outline: [],
-			glass: [],
-		},
-		density,
-		size,
+		base: ['block', 'min-h-10'],
 		resize: {
 			none: 'resize-none',
 			vertical: 'resize-y',
@@ -37,16 +19,9 @@ export const k = defineRecipe(
 			/** Actions row beneath the textarea. */
 			actions: 'flex items-center mt-auto gap-2 pr-2 pb-2',
 		},
-		defaults: {
-			variant: 'default',
-			density: 'md',
-			size: 'md',
-			resize: 'none',
-			autoResize: false,
-		},
+		defaults: { resize: 'none', autoResize: false },
 	},
 	{
-		textareaControl,
 		skeleton: kokkaku.textarea,
 	},
 )

@@ -1,9 +1,9 @@
 import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
-import { definePanelRecipe } from '../genkei/panel'
+import { panel } from '../katakana'
 import { narabi, omote, shaku, ugoki } from '../kiso'
 
 export const k = {
-	...definePanelRecipe({
+	...panel({
 		panel: defineRecipe({
 			base: [
 				...omote.panel.chrome.flat(),
