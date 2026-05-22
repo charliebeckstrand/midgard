@@ -7,8 +7,7 @@ import { cn } from '../../core'
 import { Density, useDensity } from '../../primitives/density'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import type { Step } from '../../recipes'
-import { iro, omote, ugoki } from '../../recipes'
-import { k } from '../../recipes/genkei/popover'
+import { k } from '../../recipes/kata/popover'
 import { Box, type BoxPadding } from '../box'
 import { useGlass } from '../glass/context'
 import { usePopoverContext } from './context'
@@ -66,12 +65,12 @@ export function PopoverContent({
 							{...getFloatingProps()}
 						>
 							<motion.div
-								{...ugoki.popover}
+								{...k.panel.motion}
 								ref={contentRef}
 								tabIndex={autoFocus ? -1 : undefined}
 								data-slot="popover-content"
 								data-step={resolvedSize}
-								className={cn('z-50', iro.text.default, glass && omote.glass)}
+								className={cn('z-50', k.text, glass && k.panel.glass)}
 							>
 								<Density density={resolvedSize} size={resolvedSize}>
 									<Box

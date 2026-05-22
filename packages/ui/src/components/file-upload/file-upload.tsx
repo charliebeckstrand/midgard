@@ -3,8 +3,7 @@
 import { Upload } from 'lucide-react'
 import type { ComponentProps, ReactNode } from 'react'
 import { cn } from '../../core'
-import { hannou } from '../../recipes'
-import { fileUploadClasses, k } from '../../recipes/kata/file-upload'
+import { k } from '../../recipes/kata/file-upload'
 import { AspectRatio, type AspectRatioProps } from '../aspect-ratio'
 import { Button } from '../button'
 import type { ControlSize } from '../control/context'
@@ -92,7 +91,7 @@ export function FileUpload(props: FileUploadProps) {
 					value={label ?? ''}
 					placeholder={placeholder ?? 'Choose a file'}
 					onClick={openPicker}
-					className={cn('file:hidden', hannou.cursor)}
+					className={cn('file:hidden', k.cursor)}
 					suffix={<Icon icon={<Upload />} />}
 				/>
 			</div>
@@ -109,7 +108,7 @@ export function FileUpload(props: FileUploadProps) {
 					size={size}
 					color={color}
 					disabled={disabled}
-					className={cn(hannou.cursor)}
+					className={cn(k.cursor)}
 					onClick={openPicker}
 				>
 					<Icon icon={<Upload />} />
@@ -134,7 +133,7 @@ export function FileUpload(props: FileUploadProps) {
 				onDragEnter={handleDragEnter}
 				onDragLeave={handleDragLeave}
 				onDrop={handleDrop}
-				className={cn(fileUploadClasses, 'size-full', className)}
+				className={cn(k.dropzone, 'size-full', className)}
 			>
 				{hiddenInput}
 				{children ?? (

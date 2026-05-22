@@ -1,7 +1,7 @@
 import { createSlot } from '../../core'
 import type { SlotProps } from '../../core/create-slot'
-import { iro, ji } from '../../recipes'
+import { k } from '../../recipes/kata/card'
 
 export type CardDescriptionProps = SlotProps<'p'>
 
-export const CardDescription = createSlot('p', 'card-description', ji.sm, iro.text.muted)
+export const CardDescription = createSlot('p', 'card-description', ...k.description)

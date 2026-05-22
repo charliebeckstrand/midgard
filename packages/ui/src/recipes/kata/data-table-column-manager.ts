@@ -1,5 +1,4 @@
-import { sen } from '..'
-
+import { sen } from '../kiso'
 export const k = {
 	root: ['flex flex-col', 'gap-sm'],
 	pin: [

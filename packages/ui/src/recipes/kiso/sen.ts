@@ -11,10 +11,8 @@
 
 import { defineColors } from '../../core/recipe'
 
-// Light/dark colour pairs for every line tone the module exposes. Public
-// entries below compose these with their structural width (`border`,
-// `outline`, `ring-1`, `border-t`) via array spread; colour-only siblings
-// (`borderColor`, `borderSubtleColor`) re-export the pair directly.
+// Light/dark colour pairs. Public exports below compose these with structural
+// width via array spread; colour-only siblings re-export the pair directly.
 const tone = defineColors({
 	border: { light: 'border-zinc-950/10', dark: 'dark:border-white/10' },
 	borderEmphasis: { light: 'border-zinc-950/20', dark: 'dark:border-white/20' },

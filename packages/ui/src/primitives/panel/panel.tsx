@@ -3,12 +3,12 @@
 import { type ComponentPropsWithoutRef, useCallback, useEffect, useMemo, useState } from 'react'
 import { cn, createContext } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
-import { narabi } from '../../recipes'
+import { k } from '../../recipes/kata/panel'
 
-const DEFAULT_TITLE = narabi.panel.title
-const DEFAULT_DESCRIPTION = narabi.panel.description
-const DEFAULT_BODY = narabi.panel.body
-const DEFAULT_ACTIONS = narabi.panel.actions
+const DEFAULT_TITLE = k.title
+const DEFAULT_DESCRIPTION = k.description
+const DEFAULT_BODY = k.body
+const DEFAULT_ACTIONS = k.actions
 
 export type PanelTitleProps = ComponentPropsWithoutRef<'h2'>
 export type PanelDescriptionProps = ComponentPropsWithoutRef<'p'>

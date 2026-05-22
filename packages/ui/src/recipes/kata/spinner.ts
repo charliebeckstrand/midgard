@@ -1,5 +1,4 @@
-import { defineRecipe, type VariantPropsOf } from '..'
-
+import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
 export const k = defineRecipe({
 	base: 'inline-block shrink-0 animate-spin',
 	size: {

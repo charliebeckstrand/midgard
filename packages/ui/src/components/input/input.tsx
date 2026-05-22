@@ -8,14 +8,7 @@ import { ControlFrame } from '../../primitives/control'
 import { DensityScope, densityPresets, useDensity } from '../../primitives/density'
 import { useSkeleton } from '../../providers/skeleton'
 import type { Step } from '../../recipes'
-import {
-	autofill,
-	type InputVariants,
-	inputControl,
-	k,
-	prefix as prefixPad,
-	suffix as suffixPad,
-} from '../../recipes/kata/input'
+import { type InputVariants, k } from '../../recipes/kata/input'
 import { useControl } from '../control/context'
 import { ControlSkeleton } from '../control/control-skeleton'
 import { useControlProps } from '../control/use-control-props'
@@ -131,12 +124,12 @@ export function Input(props: InputProps) {
 					data-group={dataGroup}
 					data-group-orientation={dataGroupOrientation}
 					className={cn(
-						inputControl({ variant: resolvedVariant }),
+						k.inputControl({ variant: resolvedVariant }),
 						hasAffix && 'group/control flex flex-wrap items-center',
 					)}
 				>
 					{resolvedPrefix && (
-						<span className={cn('peer/prefix', k.affix, prefixPad[token.density])}>
+						<span className={cn('peer/prefix', k.affix, k.prefix[token.density])}>
 							{resolvedPrefix}
 						</span>
 					)}
@@ -160,8 +153,8 @@ export function Input(props: InputProps) {
 								density: token.density,
 								size: token.size,
 							}),
-							resolvedPrefix && autofill.prefix[token.density],
-							resolvedSuffix && autofill.suffix[token.density],
+							resolvedPrefix && k.autofill.prefix[token.density],
+							resolvedSuffix && k.autofill.suffix[token.density],
 							className,
 						)}
 						{...invalidAttrs(resolvedInvalid)}
@@ -169,7 +162,7 @@ export function Input(props: InputProps) {
 					/>
 
 					{resolvedSuffix && (
-						<span data-slot="suffix" className={cn(k.affix, suffixPad[token.density])}>
+						<span data-slot="suffix" className={cn(k.affix, k.suffix[token.density])}>
 							{resolvedSuffix}
 						</span>
 					)}

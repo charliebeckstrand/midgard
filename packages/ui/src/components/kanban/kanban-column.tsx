@@ -38,7 +38,7 @@ export function KanbanColumn({
 					data-column-id={columnId}
 					data-over={over || undefined}
 					aria-label={ariaLabel}
-					className={cn(k.column, over && k.columnOver, className)}
+					className={cn(k.column.base, over && k.column.over, className)}
 				>
 					{children}
 				</section>

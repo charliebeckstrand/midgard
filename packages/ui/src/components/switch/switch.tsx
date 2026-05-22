@@ -4,13 +4,7 @@ import type { ComponentPropsWithoutRef } from 'react'
 import { cn, invalidAttrs } from '../../core'
 import { useDensity } from '../../primitives/density'
 import { useSkeleton } from '../../providers/skeleton'
-import { kokkaku } from '../../recipes'
-import {
-	type SwitchVariants,
-	input as switchInput,
-	k as switchRecipe,
-	thumb as switchThumb,
-} from '../../recipes/kata/switch'
+import { k, type SwitchVariants } from '../../recipes/kata/switch'
 import { useControlProps } from '../control/use-control-props'
 import { useFormToggle } from '../form/context'
 import { Placeholder } from '../placeholder'
@@ -47,7 +41,7 @@ export function Switch({
 	if (useSkeleton()) {
 		return (
 			<Placeholder
-				className={cn(kokkaku.switch.base, kokkaku.switch.size[resolvedSize ?? 'md'], className)}
+				className={cn(k.skeleton.base, k.skeleton.size[resolvedSize ?? 'md'], className)}
 			/>
 		)
 	}
@@ -56,7 +50,7 @@ export function Switch({
 		<label
 			data-slot="control"
 			{...(resolvedDisabled ? { 'data-disabled': true } : {})}
-			className={cn(switchRecipe({ size: resolvedSize, color }), className)}
+			className={cn(k({ size: resolvedSize, color }), className)}
 		>
 			<input
 				type="checkbox"
@@ -70,10 +64,10 @@ export function Switch({
 				aria-checked={!!(binding?.checked ?? checked)}
 				onChange={binding?.onChange ?? onChange}
 				{...invalidAttrs(resolvedInvalid)}
-				className={switchInput()}
+				className={k.input()}
 				{...props}
 			/>
-			<span data-slot="switch-thumb" aria-hidden="true" className={switchThumb()} />
+			<span data-slot="switch-thumb" aria-hidden="true" className={k.thumb()} />
 		</label>
 	)
 }

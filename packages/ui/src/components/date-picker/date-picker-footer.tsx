@@ -4,7 +4,7 @@ import type { KeyboardEvent, RefObject } from 'react'
 
 import { cn } from '../../core'
 import { useDensity } from '../../primitives/density'
-import { k as kCalendar } from '../../recipes/kata/calendar'
+import { k } from '../../recipes/kata/calendar'
 import { Button } from '../button'
 import type { CalendarActive } from '../calendar'
 import type { FooterButton } from './use-date-picker-keyboard'
@@ -36,7 +36,7 @@ export function DatePickerFooter({
 			role="toolbar"
 			data-slot="calendar-footer"
 			onKeyDown={onKeyDown}
-			className={cn(kCalendar.footer({ size }))}
+			className={cn(k.footer({ size }))}
 		>
 			{footerButtons.map((kind, index) => {
 				const isActive = active?.zone === 'footer' && active.index === index
@@ -49,7 +49,7 @@ export function DatePickerFooter({
 							color="amber"
 							onClick={onClear}
 							aria-label="Clear selection"
-							className={cn(isActive && kCalendar.day.active)}
+							className={cn(isActive && k.day.active)}
 						>
 							Clear
 						</Button>
@@ -62,7 +62,7 @@ export function DatePickerFooter({
 						variant="soft"
 						color="blue"
 						onClick={onToday}
-						className={cn(isActive && kCalendar.day.active)}
+						className={cn(isActive && k.day.active)}
 					>
 						Today
 					</Button>

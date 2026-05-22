@@ -1,5 +1,4 @@
-import { hannou, sen } from '..'
-
+import { hannou, sen } from '../kiso'
 export const k = {
 	base: [
 		'relative isolate overflow-hidden',

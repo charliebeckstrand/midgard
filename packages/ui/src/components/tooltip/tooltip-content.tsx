@@ -7,7 +7,6 @@ import { cn } from '../../core'
 import { useDensity } from '../../primitives/density'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import type { Step } from '../../recipes'
-import { ugoki } from '../../recipes'
 import { k } from '../../recipes/kata/tooltip'
 import { useGlass } from '../glass/context'
 import { useTooltipContext } from './context'
@@ -57,7 +56,7 @@ export function TooltipContent({ size, className, children }: TooltipContentProp
 							{...getFloatingProps()}
 						>
 							<motion.div
-								{...ugoki.tooltip}
+								{...k.motion}
 								className={cn(
 									k.content({ size: resolvedSize }),
 									k.surface[glass ? 'glass' : 'default'],

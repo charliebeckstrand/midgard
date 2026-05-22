@@ -1,5 +1,5 @@
-import { defineRecipe, iro, type VariantPropsOf } from '..'
-
+import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { iro } from '../kiso'
 export const k = defineRecipe({
 	base: 'inline-block rounded-full',
 	variant: {

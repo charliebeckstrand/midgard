@@ -3,7 +3,7 @@
 import { motion } from 'motion/react'
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
-import { ugoki } from '../../recipes'
+import { k } from '../../recipes/kata/ready-reveal'
 import { ReducedMotion } from '../reduced-motion'
 
 export type ReadyRevealProps = {
@@ -38,7 +38,7 @@ export function ReadyReveal({ ready, placeholder, children, className }: ReadyRe
 					aria-hidden={ready}
 					animate={ready ? HIDDEN : VISIBLE}
 					initial={false}
-					transition={ugoki.reveal.transition}
+					transition={k.transition}
 					style={{ ...GRID_CELL, pointerEvents: ready ? 'none' : undefined }}
 				>
 					{placeholder}
@@ -46,7 +46,7 @@ export function ReadyReveal({ ready, placeholder, children, className }: ReadyRe
 				<motion.div
 					animate={ready ? VISIBLE : HIDDEN}
 					initial={false}
-					transition={ugoki.reveal.transition}
+					transition={k.transition}
 					style={{ ...GRID_CELL, pointerEvents: ready ? undefined : 'none' }}
 				>
 					{children}

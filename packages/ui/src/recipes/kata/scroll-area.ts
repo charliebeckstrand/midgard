@@ -1,5 +1,6 @@
+import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
 import type { ScrollOrientation } from '../../types'
-import { defineRecipe, sen, shaku, ugoki, type VariantPropsOf } from '..'
+import { sen, shaku, ugoki } from '../kiso'
 
 type Orientation = ScrollOrientation
 type Size = keyof (typeof shaku.scrollArea)['vertical']

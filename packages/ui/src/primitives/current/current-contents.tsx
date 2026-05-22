@@ -3,7 +3,7 @@
 import { motion } from 'motion/react'
 import { type ComponentPropsWithoutRef, useRef } from 'react'
 import { cn } from '../../core'
-import { ugoki } from '../../recipes'
+import { k } from '../../recipes/kata/current'
 import { ReducedMotion } from '../reduced-motion'
 import { CurrentFadeProvider } from './current'
 import { useCurrentContentsHeight } from './use-current-contents-height'
@@ -48,7 +48,7 @@ export function CurrentContents({
 					data-slot={`${slotPrefix}-contents`}
 					animate={height !== undefined ? { height } : undefined}
 					initial={false}
-					transition={ugoki.reveal.transition}
+					transition={k.transition}
 					className={cn('relative overflow-hidden', className)}
 				>
 					{children}

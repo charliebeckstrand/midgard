@@ -24,7 +24,7 @@ export function StepperIndicator({ className, ...props }: StepperIndicatorProps)
 			{...props}
 		>
 			{state === 'current' && (
-				<ActiveIndicator className={cn(k.activeIndicator)} style={{ borderRadius: '9999px' }} />
+				<ActiveIndicator className={cn(k.indicator.active)} style={{ borderRadius: '9999px' }} />
 			)}
 		</span>
 	)

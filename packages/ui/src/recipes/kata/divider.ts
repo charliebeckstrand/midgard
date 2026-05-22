@@ -1,5 +1,5 @@
-import { defineRecipe, sen, type VariantPropsOf } from '..'
-
+import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { sen } from '../kiso'
 export const k = defineRecipe({
 	base: ['border-0'],
 	orientation: {

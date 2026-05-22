@@ -6,7 +6,6 @@ import type { CSSProperties, ReactNode, Ref } from 'react'
 import { cn } from '../../core'
 import { Density } from '../../primitives/density'
 import { PopoverPanel } from '../../primitives/popover'
-import { popover as kPopover } from '../../recipes/genkei/popover'
 import { k } from '../../recipes/kata/combobox'
 import type { ControlSize } from '../control/context'
 
@@ -63,7 +62,7 @@ export function ComboboxPanel({
 							}}
 							data-editing={editing || undefined}
 							style={floatingStyles}
-							className={cn('group/combobox', kPopover.portal)}
+							className={cn('group/combobox', k.portal)}
 							{...getFloatingProps()}
 						>
 							<Density density={density} size={size}>

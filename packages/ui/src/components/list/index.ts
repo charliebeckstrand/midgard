@@ -1,4 +1,3 @@
-export { k as listVariants } from '../../recipes/kata/list'
 export {
 	type ListContext,
 	type ListItemContext,

@@ -1,4 +1,3 @@
-export { k as mapVariants } from '../../recipes/kata/map'
 export { Map, type MapCamera, type MapProps } from './map'
 export { MapGeofence, type MapGeofenceProps } from './map-geofence'
 export { MapMarker, type MapMarkerProps } from './map-marker'

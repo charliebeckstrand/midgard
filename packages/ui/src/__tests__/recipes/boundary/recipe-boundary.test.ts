@@ -2,13 +2,15 @@ import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-// `kata/` and `genkei/` are internal-only — see the header in
-// src/recipes/index.ts for the full contract. This test pins the three
+// `kata/`, `genkei/`, and `kiso/` are internal-only — see the header in
+// src/recipes/index.ts for the full contract. This test pins the four
 // boundaries that keep them internal:
 //
 //   1. package.json `exports` never lists ./recipes or ./recipes/*.
-//   2. The recipes barrel never re-exports anything from kata/ or genkei/.
-//   3. No app or sibling package imports from 'ui/recipes/*'.
+//   2. The recipes barrel never re-exports anything from kata/, genkei/, or
+//      kiso/ value bindings — only type re-exports flow through it.
+//   3. The recipes barrel surfaces types only (no value `export` statements).
+//   4. No app or sibling package imports from 'ui/recipes/*'.
 
 const uiRoot = join(__dirname, '../../../..')
 const workspaceRoot = join(uiRoot, '../..')
@@ -32,6 +34,46 @@ describe('recipes internal-boundary contract', () => {
 		const leaks = source.match(/from\s+['"]\.\/(?:kata|genkei)\/[^'"]+['"]/g) ?? []
 
 		expect(leaks, `recipes barrel re-exports internals: ${leaks.join(', ')}`).toEqual([])
+	})
+
+	it('src/recipes/index.ts is types-only — no value exports', () => {
+		const source = readFileSync(join(uiRoot, 'src/recipes/index.ts'), 'utf8')
+
+		// Strip block comments so the JSDoc header (which may contain code-like
+		// snippets) doesn't trigger the value-export scan.
+		const stripped = source.replace(/\/\*[\s\S]*?\*\//g, '')
+
+		// Every `export` must carry the `type` keyword: either `export type {…}`
+		// or `export { type X, type Y } …`. A bare `export {…}` or `export *`
+		// would leak runtime values through the barrel.
+		const violations: string[] = []
+
+		for (const line of stripped.split('\n')) {
+			const trimmed = line.trim()
+
+			if (!trimmed.startsWith('export')) continue
+
+			if (/^export\s+type\s+/.test(trimmed)) continue
+
+			if (/^export\s+\{[^}]*\}/.test(trimmed)) {
+				const inner = trimmed.match(/\{([^}]*)\}/)?.[1] ?? ''
+
+				const allTyped = inner
+					.split(',')
+					.map((s) => s.trim())
+					.filter(Boolean)
+					.every((s) => s.startsWith('type '))
+
+				if (allTyped) continue
+			}
+
+			violations.push(trimmed)
+		}
+
+		expect(
+			violations,
+			`recipes barrel leaks runtime values:\n  ${violations.join('\n  ')}`,
+		).toEqual([])
 	})
 
 	it('no app or sibling package imports from ui/recipes/*', () => {

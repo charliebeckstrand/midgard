@@ -2,7 +2,7 @@ import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { useDensity } from '../../primitives/density'
 import { useSkeleton } from '../../providers/skeleton'
-import { label, statLabelPlaceholder } from '../../recipes/kata/stat'
+import { k } from '../../recipes/kata/stat'
 import { Placeholder } from '../placeholder'
 
 export type StatLabelProps = {
@@ -17,11 +17,11 @@ export function StatLabel({ className, children, ...props }: StatLabelProps) {
 	const { size } = useDensity()
 
 	if (useSkeleton()) {
-		return <Placeholder className={cn(statLabelPlaceholder({ size }), className)} />
+		return <Placeholder className={cn(k.skeleton.label({ size }), className)} />
 	}
 
 	return (
-		<div data-slot="stat-label" className={cn(label({ size }), className)} {...props}>
+		<div data-slot="stat-label" className={cn(k.label({ size }), className)} {...props}>
 			{children}
 		</div>
 	)

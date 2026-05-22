@@ -1,9 +1,7 @@
 'use client'
 
 import { type ComponentPropsWithoutRef, useRef } from 'react'
-import { cn } from '../../core'
 import { useRoving } from '../../hooks'
-import { k } from '../../recipes/kata/breadcrumb'
 
 export type BreadcrumbProps = ComponentPropsWithoutRef<'nav'>
 
@@ -24,7 +22,7 @@ export function Breadcrumb({ className, onKeyDown, ...props }: BreadcrumbProps) 
 				onKeyDown?.(e)
 				if (!e.defaultPrevented) handleRovingKeyDown(e)
 			}}
-			className={cn(k.root(), className)}
+			className={className}
 			{...props}
 		/>
 	)

@@ -9,7 +9,7 @@ export type KanbanColumnHeaderProps = {
 
 export function KanbanColumnHeader({ children, className }: KanbanColumnHeaderProps) {
 	return (
-		<div data-slot="kanban-column-header" className={cn(k.columnHeader, className)}>
+		<div data-slot="kanban-column-header" className={cn(k.column.header, className)}>
 			{children}
 		</div>
 	)
@@ -22,7 +22,7 @@ export type KanbanColumnTitleProps = {
 
 export function KanbanColumnTitle({ children, className }: KanbanColumnTitleProps) {
 	return (
-		<span data-slot="kanban-column-title" className={cn(k.columnTitle, className)}>
+		<span data-slot="kanban-column-title" className={cn(k.column.title, className)}>
 			{children}
 		</span>
 	)
