@@ -5,10 +5,10 @@ import { cn, createContext } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { narabi } from '../../recipes'
 
-const defaultTitle = narabi.panel.title
-const defaultDescription = narabi.panel.description
-const defaultBody = narabi.panel.body
-const defaultActions = narabi.panel.actions
+const DEFAULT_TITLE = narabi.panel.title
+const DEFAULT_DESCRIPTION = narabi.panel.description
+const DEFAULT_BODY = narabi.panel.body
+const DEFAULT_ACTIONS = narabi.panel.actions
 
 export type PanelTitleProps = ComponentPropsWithoutRef<'h2'>
 export type PanelDescriptionProps = ComponentPropsWithoutRef<'p'>
@@ -88,10 +88,10 @@ type PanelSlots = {
 }
 
 export function createPanel(prefix: string, slots?: PanelSlots) {
-	const titleCls = slots?.title ?? defaultTitle
-	const descriptionCls = slots?.description ?? defaultDescription
-	const bodyCls = slots?.body ?? defaultBody
-	const actionsCls = slots?.actions ?? defaultActions
+	const titleCls = slots?.title ?? DEFAULT_TITLE
+	const descriptionCls = slots?.description ?? DEFAULT_DESCRIPTION
+	const bodyCls = slots?.body ?? DEFAULT_BODY
+	const actionsCls = slots?.actions ?? DEFAULT_ACTIONS
 
 	function Title({ className, id, ...props }: PanelTitleProps) {
 		const { titleId, registerTitle } = usePanelA11y()

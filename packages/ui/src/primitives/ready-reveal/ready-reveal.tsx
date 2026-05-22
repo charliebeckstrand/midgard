@@ -17,15 +17,15 @@ export type ReadyRevealProps = {
 	className?: string
 }
 
-const hidden = { opacity: 0, filter: 'blur(4px)' }
-const visible = { opacity: 1, filter: 'blur(0px)' }
+const HIDDEN = { opacity: 0, filter: 'blur(4px)' }
+const VISIBLE = { opacity: 1, filter: 'blur(0px)' }
 
-const gridCell = { gridArea: '1 / 1' } as const
+const GRID_CELL = { gridArea: '1 / 1' } as const
 
 /**
  * Crossfade transition between a placeholder and real content.
  * The placeholder should mirror the content layout so dimensions stay stable.
- * */
+ */
 export function ReadyReveal({ ready, placeholder, children, className }: ReadyRevealProps) {
 	return (
 		<ReducedMotion>
@@ -36,18 +36,18 @@ export function ReadyReveal({ ready, placeholder, children, className }: ReadyRe
 			>
 				<motion.div
 					aria-hidden={ready}
-					animate={ready ? hidden : visible}
+					animate={ready ? HIDDEN : VISIBLE}
 					initial={false}
 					transition={ugoki.reveal.transition}
-					style={{ ...gridCell, pointerEvents: ready ? 'none' : undefined }}
+					style={{ ...GRID_CELL, pointerEvents: ready ? 'none' : undefined }}
 				>
 					{placeholder}
 				</motion.div>
 				<motion.div
-					animate={ready ? visible : hidden}
+					animate={ready ? VISIBLE : HIDDEN}
 					initial={false}
 					transition={ugoki.reveal.transition}
-					style={{ ...gridCell, pointerEvents: ready ? undefined : 'none' }}
+					style={{ ...GRID_CELL, pointerEvents: ready ? undefined : 'none' }}
 				>
 					{children}
 				</motion.div>

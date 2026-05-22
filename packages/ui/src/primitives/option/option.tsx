@@ -6,7 +6,7 @@ import { cn } from '../../core'
 import { option as k } from '../../recipes/genkei/option'
 import { useDensity } from '../density'
 
-const defaultCheckIcon = (
+const DEFAULT_CHECK_ICON = (
 	<Check
 		aria-hidden="true"
 		data-slot="icon"
@@ -36,7 +36,7 @@ export function BaseOption({
 
 	const sharedClasses = cn(k.content)
 
-	const checkIcon = icon ?? defaultCheckIcon
+	const checkIcon = icon ?? DEFAULT_CHECK_ICON
 
 	return (
 		<div
