@@ -5,18 +5,18 @@ Substrate tokens. One file per concern.
 ## Boundary
 
 `kiso/` is internal — its values are consumed only by `genkei/`,
-`kata/`, and `layouts/*/variants.ts`. Components and primitives reach
-kiso through their owning kata (`recipes/kata/<name>`). Foundational types
-(`Step`, `SunStep`, `Ma`, `Ji`, `Color`, `GroupOrientation`,
-`GroupPosition`) flow through the types-only `recipes` barrel so
-consumers can derive prop unions without threading the type through
-their funnel.
+`katakana/`, `kata/`, and `layouts/*/variants.ts`. Components and
+primitives reach kiso through their owning kata (`recipes/kata/<name>`).
+Foundational types (`Step`, `SunStep`, `Ma`, `Ji`, `Color`,
+`GroupOrientation`, `GroupPosition`) flow through the types-only
+`recipes` barrel so consumers can derive prop unions without threading
+the type through their funnel.
 
 Composition flows downward only. Modules may import siblings —
 `narabi` reads `iro` · `ji` · `sen` · `shaku`, `hannou` reads the
 same plus `ugoki`, `omote` reads `iro` · `sen`, `kokkaku` reads
-`shaku` — but never reach upward into `genkei/` or `kata/`. The
-contract is pinned by
+`shaku` — but never reach upward into `genkei/`, `katakana/`, or
+`kata/`. The contract is pinned by
 `src/__tests__/recipes/boundary/recipe-boundary.test.ts`,
 `src/__tests__/components/boundary/component-recipe-boundary.test.ts`,
 and
@@ -45,6 +45,7 @@ Filenames are `<name>.ts`, matching the module's named export.
 | ---------------- | ---------------------------------------------------------------------------------------------------------------- |
 | `iro` (色)       | Semantic colour bundles and the variant × slot palette matrix (`solid` / `soft` / `outline` / `plain` / `bare`). |
 | `ji` (字)        | Type-size scale — font-size with line-height bundled.                                                            |
+| `kasane` (重ね)  | The signature 4-layer chrome — inset fill, hover ring, focus ring, validation ring — stacked on a single element. |
 | `ma` (間)        | Named spacing scale shared by padding, margin, and gap; projected as first-class Tailwind utilities.             |
 | `narabi` (並び)  | Sibling arrangement — field stacks, panel slot layout, toggle grids, group adjacency.                            |
 | `omote` (面)     | Surface chromes — surface · panel · popover · glass · backdrop · content · tint · skeleton.                      |

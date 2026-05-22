@@ -7,8 +7,7 @@
  */
 
 import { mode } from '../../core/recipe'
-import { hannou, iro, ji, omote, sen, tsunagi } from '../kiso'
-import { kasane } from './kasane'
+import { hannou, iro, ji, kasane, omote, sen, tsunagi } from '../kiso'
 
 // `tsunagi.base` is data-attribute-gated, so it stays inert until a `<Group>`
 // stamps `data-group` / `data-group-orientation` onto the frame. Including it

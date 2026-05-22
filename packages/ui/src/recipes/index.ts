@@ -1,12 +1,17 @@
 /**
  * Recipes — the design-system layer of the UI package.
  *
- *   kiso/   — substrate. Design-token primitives (iro / ji / ma / narabi /
- *             omote / hannou / sen / shaku / sun / tsunagi / ugoki /
- *             kokkaku). Consumed by kata and genkei only.
- *   genkei/ — multi-element archetypes shared by ≥2 kata. Consumed by kata.
- *   kata/   — per-component recipes (1:1 with `src/components/<name>/`).
- *             Consumed by components and primitives.
+ *   kiso/     — substrate. Design-token primitives (iro / ji / ma / narabi /
+ *               omote / hannou / sen / shaku / sun / tsunagi / ugoki /
+ *               kokkaku / kasane). Consumed by genkei, katakana, kata.
+ *   genkei/   — raw class-fragment data for the archetypes (control /
+ *               popover / segment / slider). Consumed by katakana
+ *               applicators and by kata that need a fragment subset.
+ *   katakana/ — function-shaped applicators that wrap genkei fragments
+ *               into ready-to-call recipe surfaces. Consumed by kata
+ *               that match an archetype shape.
+ *   kata/     — per-component recipes (1:1 with `src/components/<name>/`).
+ *               Consumed by components and primitives.
  *
  * Components and primitives reach the recipe layer through their owning
  * kata (`from '../../recipes/kata/<name>'`). Cross-layer value imports are

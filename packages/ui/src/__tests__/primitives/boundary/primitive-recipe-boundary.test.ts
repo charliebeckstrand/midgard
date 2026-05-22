@@ -4,11 +4,11 @@ import { describe, expect, it } from 'vitest'
 
 // Primitives reach the recipe layer through their owning kata, the same
 // funnel components use. Value imports from `recipes` (the types-only
-// barrel), `recipes/genkei/*`, or `recipes/kiso/*` would bypass the kata
-// curation and pull substrate or archetype fragments into the primitive
-// layer directly. Type-only imports from the barrel are fine — primitives
-// derive prop unions from `Step` / `Ma` / `Color` / `Ji` /
-// `GroupOrientation` / `GroupPosition`.
+// barrel), `recipes/katakana/*`, `recipes/genkei/*`, or `recipes/kiso/*`
+// would bypass the kata curation and pull applicator, archetype, or
+// substrate fragments into the primitive layer directly. Type-only imports
+// from the barrel are fine — primitives derive prop unions from `Step` /
+// `Ma` / `Color` / `Ji` / `GroupOrientation` / `GroupPosition`.
 
 const primitivesDir = join(__dirname, '../../../primitives')
 const srcDir = join(__dirname, '../../..')
@@ -37,7 +37,7 @@ describe('primitive recipe-import boundary', () => {
 
 				const isBarrel = /\/recipes['"]?$/.test(path) || path.endsWith('/recipes')
 
-				const isGenkeiOrKiso = /\/recipes\/(?:genkei|kiso)\//.test(path)
+				const isInternalLayer = /\/recipes\/(?:katakana|genkei|kiso)\//.test(path)
 
 				if (isBarrel && isTypeOnly) continue
 
@@ -46,7 +46,7 @@ describe('primitive recipe-import boundary', () => {
 					continue
 				}
 
-				if (isGenkeiOrKiso) {
+				if (isInternalLayer) {
 					violations.push(`${rel}: forbidden import from ${path} — ${match[0]}`)
 				}
 			}

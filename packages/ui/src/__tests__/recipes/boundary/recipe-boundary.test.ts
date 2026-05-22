@@ -2,13 +2,13 @@ import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-// `kata/`, `genkei/`, and `kiso/` are internal-only — see the header in
-// src/recipes/index.ts for the full contract. This test pins the four
-// boundaries that keep them internal:
+// `kata/`, `katakana/`, `genkei/`, and `kiso/` are internal-only — see the
+// header in src/recipes/index.ts for the full contract. This test pins the
+// four boundaries that keep them internal:
 //
 //   1. package.json `exports` never lists ./recipes or ./recipes/*.
-//   2. The recipes barrel never re-exports anything from kata/, genkei/, or
-//      kiso/ value bindings — only type re-exports flow through it.
+//   2. The recipes barrel never re-exports anything from kata/, katakana/,
+//      genkei/, or kiso/ value bindings — only type re-exports flow through it.
 //   3. The recipes barrel surfaces types only (no value `export` statements).
 //   4. No app or sibling package imports from 'ui/recipes/*'.
 
@@ -28,10 +28,10 @@ describe('recipes internal-boundary contract', () => {
 		expect(leaks, `package.json exports leaks recipes: ${leaks.join(', ')}`).toEqual([])
 	})
 
-	it('src/recipes/index.ts does not re-export from kata/ or genkei/', () => {
+	it('src/recipes/index.ts does not re-export from kata/, katakana/, or genkei/', () => {
 		const source = readFileSync(join(uiRoot, 'src/recipes/index.ts'), 'utf8')
 
-		const leaks = source.match(/from\s+['"]\.\/(?:kata|genkei)\/[^'"]+['"]/g) ?? []
+		const leaks = source.match(/from\s+['"]\.\/(?:kata|katakana|genkei)\/[^'"]+['"]/g) ?? []
 
 		expect(leaks, `recipes barrel re-exports internals: ${leaks.join(', ')}`).toEqual([])
 	})
