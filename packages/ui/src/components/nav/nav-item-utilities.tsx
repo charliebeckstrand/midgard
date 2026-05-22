@@ -71,8 +71,8 @@ export function createNavItem(config: NavItemConfig) {
 		const indicator = useActiveIndicator()
 		const inherited = useDensity()
 
+		const radius = useRadius(size)
 		const resolvedSize = size ?? inherited.size
-		const radius = useRadius(resolvedSize)
 
 		const offcanvas = use(OffcanvasContext)
 

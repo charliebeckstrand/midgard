@@ -12,8 +12,8 @@ export type ButtonSkeletonProps = {
 }
 
 export function ButtonSkeleton({ size, className }: ButtonSkeletonProps) {
+	const radius = useRadius(size)
 	const resolvedSize = useSizeWide(size)
-	const radius = useRadius(resolvedSize)
 
 	return <Placeholder className={cn(k.skeleton.size[resolvedSize], radius, className)} />
 }

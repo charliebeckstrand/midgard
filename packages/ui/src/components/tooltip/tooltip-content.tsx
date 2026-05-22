@@ -38,8 +38,8 @@ export function TooltipContent({ size, className, children }: TooltipContentProp
 	const glass = useGlass()
 	const inherited = useDensity()
 
+	const radius = useRadius(size)
 	const resolvedSize: Step = size ?? rootSize ?? inherited.size
-	const radius = useRadius(resolvedSize)
 
 	return (
 		<FloatingPortal>

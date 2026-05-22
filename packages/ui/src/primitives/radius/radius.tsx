@@ -3,6 +3,7 @@
 import { type ReactNode, useMemo } from 'react'
 import { createContext } from '../../core'
 import type { Ma } from '../../recipes'
+import { useSizeWide } from '../density'
 
 /**
  * Radius token — broadcast by `<Radius>`, read by every size-aware component
@@ -55,12 +56,15 @@ export function useRadiusToken(): RadiusToken {
 export { useRadiusTokenNullable }
 
 /**
- * Resolve a `rounded-*` class for the given size step via the active token.
- * The caller passes its already-resolved size (after `useSizeWide` / density
- * cascade); this hook is purely a token → class lookup.
+ * Resolve a `rounded-*` class for the size step. Mirrors `useSizeWide`'s
+ * cascade — `explicit ?? Affix ?? Density.size` — so call sites can lead with
+ * `const radius = useRadius(size)` next to (or above) their own `resolvedSize`
+ * computation without threading the cascade through twice.
  */
-export function useRadius(size: Ma): string {
-	return radiusClassMap[useRadiusToken()[size]]
+export function useRadius(size?: Ma): string {
+	const resolved = useSizeWide(size)
+
+	return radiusClassMap[useRadiusToken()[resolved]]
 }
 
 /** Caller surface for `<Radius>`. Set any axis explicitly; omit to inherit. */

@@ -64,8 +64,8 @@ export function Button({
 	const headless = useHeadless()
 	const skeleton = useSkeleton()
 
+	const radius = useRadius(size)
 	const resolvedSize = useSizeWide(size)
-	const radius = useRadius(resolvedSize)
 
 	if (headless) {
 		return (
