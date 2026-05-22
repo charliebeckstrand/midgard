@@ -1,6 +1,7 @@
 export { hannou } from './hannou'
 export { iro } from './iro'
 export { type Ji, ji } from './ji'
+export { kasane } from './kasane'
 export { type Kokkaku, kokkaku } from './kokkaku'
 export { type Ma, ma } from './ma'
 export { narabi } from './narabi'

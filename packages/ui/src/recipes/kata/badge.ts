@@ -1,9 +1,10 @@
-import { defineRecipe, palette, type VariantPropsOf } from '../../core/recipe'
+import { palette, type VariantPropsOf } from '../../core/recipe'
+import { recipe } from '../katakana'
 import { iro, ji, kokkaku, shaku } from '../kiso'
 
 const { solid, soft, outline, plain } = iro.palette
 
-export const k = defineRecipe(
+export const k = recipe(
 	{
 		base: ['group', 'inline-flex w-fit items-center', 'font-medium'],
 		variant: {

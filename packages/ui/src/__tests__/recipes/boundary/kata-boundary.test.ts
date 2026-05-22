@@ -10,6 +10,11 @@ const RECIPE_IMPORT =
 function isSanctioned(rel: string): boolean {
 	if (rel.startsWith('recipes/kata/') && rel.endsWith('.ts')) return true
 
+	// katakana/ is the applicator layer — it calls defineRecipe on behalf of
+	// kata. Mock-phase sanctioning; once every kata routes through katakana,
+	// `recipes/kata/` comes off this list and only katakana retains access.
+	if (rel.startsWith('recipes/katakana/') && rel.endsWith('.ts')) return true
+
 	if (/^layouts\/[^/]+\/variants\.ts$/.test(rel)) return true
 
 	return false
