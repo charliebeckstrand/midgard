@@ -4,6 +4,17 @@
 	--step-md: calc(var(--spacing) * 3);
 	--step-lg: calc(var(--spacing) * 4);
 	--step-xl: calc(var(--spacing) * 6);
+
+	/* Default `border-radius / height` proportion. Override via `<Radius ratio>`
+	   or by re-setting `--ui-radius-ratio` on any subtree. */
+	--ui-radius-ratio: 0.22;
+}
+
+/* radius-N — pixel-perfect rounded-corner utility for an element whose
+   effective height is `--spacing(N)`. The radius scales with the active
+   ratio so every size step renders at the same proportion. */
+@utility radius-* {
+	border-radius: calc(--spacing(--value(integer)) * var(--ui-radius-ratio));
 }
 
 @utility p-xs { padding: var(--step-xs); }

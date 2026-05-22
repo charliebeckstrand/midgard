@@ -32,7 +32,7 @@ export const k = defineRecipe(
 				'gap-0.5',
 				'p-[calc(--spacing(1.5)-1px)]',
 				'data-[has-label]:py-[calc(--spacing(1)-1px)]',
-				'rounded-[calc(--spacing(6)*var(--ui-radius-ratio,0.22))]',
+				'radius-6',
 			],
 			sm: [
 				ji.sm,
@@ -40,7 +40,7 @@ export const k = defineRecipe(
 				'gap-0.75',
 				'p-[calc(--spacing(2)-1px)]',
 				'data-[has-label]:py-[calc(--spacing(1.5)-1px)]',
-				'rounded-[calc(--spacing(8)*var(--ui-radius-ratio,0.22))]',
+				'radius-8',
 			],
 			md: [
 				ji.md,
@@ -48,7 +48,7 @@ export const k = defineRecipe(
 				'gap-xs',
 				'p-[calc(--spacing(2.5)-1px)]',
 				'data-[has-label]:py-[calc(--spacing(2)-1px)]',
-				'rounded-[calc(--spacing(10)*var(--ui-radius-ratio,0.22))]',
+				'radius-10',
 			],
 			lg: [
 				ji.lg,
@@ -56,7 +56,7 @@ export const k = defineRecipe(
 				'gap-sm',
 				'p-[calc(--spacing(3)-1px)]',
 				'data-[has-label]:py-[calc(--spacing(2.5)-1px)]',
-				'rounded-[calc(--spacing(12)*var(--ui-radius-ratio,0.22))]',
+				'radius-12',
 			],
 		},
 		palette: palette(

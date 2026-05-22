@@ -28,10 +28,10 @@ const badge = {
 
 const button = {
 	size: {
-		xs: ['h-6', 'w-16', 'rounded-[calc(--spacing(6)*var(--ui-radius-ratio,0.22))]'],
-		sm: ['h-8', 'w-20', 'rounded-[calc(--spacing(8)*var(--ui-radius-ratio,0.22))]'],
-		md: ['h-10', 'w-24', 'rounded-[calc(--spacing(10)*var(--ui-radius-ratio,0.22))]'],
-		lg: ['h-12', 'w-28', 'rounded-[calc(--spacing(12)*var(--ui-radius-ratio,0.22))]'],
+		xs: ['h-6', 'w-16', 'radius-6'],
+		sm: ['h-8', 'w-20', 'radius-8'],
+		md: ['h-10', 'w-24', 'radius-10'],
+		lg: ['h-12', 'w-28', 'radius-12'],
 	},
 	defaults: { size: 'md' as const },
 }

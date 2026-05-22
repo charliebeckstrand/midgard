@@ -16,6 +16,6 @@ export const k = {
 		'gap-sm',
 		ji.md,
 		'text-left font-medium',
-		'rounded-[calc(--spacing(10)*var(--ui-radius-ratio,0.22))]',
+		'radius-10',
 	],
 }

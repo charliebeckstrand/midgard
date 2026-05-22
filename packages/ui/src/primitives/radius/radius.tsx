@@ -8,18 +8,19 @@ import { createContext } from '../../core'
  * ratio, so every size step renders at the same `radius / height` proportion
  * pixel-for-pixel.
  *
- * Recipes carry the per-size geometry. Each size variant adds a class shaped
- * like `rounded-[calc(--spacing(N)*var(--ui-radius-ratio,0.22))]`, where `N`
- * is the size's effective height in Tailwind spacing units (so `--spacing(N)`
- * resolves to the same length the layout pads to). CSS does the math at
- * render time — no per-tier Tailwind class, no rounding to the nearest
- * `rounded-md / lg / xl`.
+ * Recipes carry the per-size geometry. Each size variant adds the
+ * `radius-N` utility (defined in `theme.css`) where `N` is the size's
+ * effective height in Tailwind spacing units. The utility expands to
+ * `border-radius: calc(--spacing(N) * var(--ui-radius-ratio))`, so CSS does
+ * the math at render time — no per-tier Tailwind class, no rounding to the
+ * nearest `rounded-md / lg / xl`.
  *
- * `<Radius ratio>` overrides the proportion for a subtree by writing
- * `--ui-radius-ratio` onto a `display:contents` wrapper; every descendant
- * recipe's `calc()` picks it up via CSS cascade. The numeric value is also
- * mirrored through React context for callers that build their own inline
- * radius via {@link useRadiusRatio}.
+ * The `--ui-radius-ratio` default (0.22) lives in the `@theme` block;
+ * `<Radius ratio>` writes the variable onto a `display:contents` wrapper to
+ * override it for a subtree, and every descendant recipe picks it up via the
+ * CSS variable cascade. The numeric value is also mirrored through React
+ * context for callers that build their own inline radius via
+ * {@link useRadiusRatio}.
  */
 export const DEFAULT_RADIUS_RATIO = 0.22
 
