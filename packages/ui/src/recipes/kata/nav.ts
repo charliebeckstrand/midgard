@@ -15,6 +15,5 @@ export const k = {
 		'gap-sm',
 		ji.md,
 		'text-left font-medium',
-		'rounded-lg',
 	],
 }

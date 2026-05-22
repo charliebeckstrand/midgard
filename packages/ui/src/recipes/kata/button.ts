@@ -16,7 +16,7 @@ export const k = defineRecipe(
 		base: [
 			'relative isolate',
 			'inline-flex items-center justify-center',
-			'w-fit shrink-0 font-semibold rounded-lg',
+			'w-fit shrink-0 font-semibold',
 			sen.focus.inset,
 			...hannou.disabled,
 			...hannou.cursor,

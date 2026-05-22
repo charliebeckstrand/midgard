@@ -27,7 +27,6 @@ const badge = {
 }
 
 const button = {
-	base: 'rounded-lg',
 	size: {
 		xs: ['h-6', 'w-16'],
 		sm: ['h-7', 'w-20'],

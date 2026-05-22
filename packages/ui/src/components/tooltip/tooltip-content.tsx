@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { useDensity } from '../../primitives/density'
+import { useRadius } from '../../primitives/radius'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/tooltip'
@@ -38,6 +39,7 @@ export function TooltipContent({ size, className, children }: TooltipContentProp
 	const inherited = useDensity()
 
 	const resolvedSize: Step = size ?? rootSize ?? inherited.size
+	const radius = useRadius(resolvedSize)
 
 	return (
 		<FloatingPortal>
@@ -59,6 +61,7 @@ export function TooltipContent({ size, className, children }: TooltipContentProp
 								{...k.motion}
 								className={cn(
 									k.content({ size: resolvedSize }),
+									radius,
 									k.surface[glass ? 'glass' : 'default'],
 									interactive && 'pointer-events-auto',
 									className,

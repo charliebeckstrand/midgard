@@ -3,6 +3,7 @@
 import { ChevronRight } from 'lucide-react'
 import type { KeyboardEvent, MouseEvent, ReactElement, ReactNode } from 'react'
 import { cn } from '../../core'
+import { useRadius } from '../../primitives/radius'
 import { k } from '../../recipes/kata/tree'
 import { Icon } from '../icon'
 import { useTreeContext } from './context'
@@ -32,6 +33,7 @@ export function TreeItemContent({
 	className,
 }: TreeItemContentProps) {
 	const { depth, size, indent } = useTreeContext()
+	const radius = useRadius(size)
 
 	const paddingLeft = indent ? `${0.5 + depth * k.indentStep[size]}rem` : '0.5rem'
 
@@ -96,6 +98,7 @@ export function TreeItemContent({
 			className={cn(
 				'group/tree-item',
 				k.itemContent({ size }),
+				radius,
 				current && k.itemContent.current,
 				className,
 			)}

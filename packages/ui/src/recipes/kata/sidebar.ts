@@ -8,7 +8,6 @@ const item = defineRecipe({
 		'group relative',
 		'flex w-full items-center',
 		'text-left',
-		'rounded-lg',
 	],
 	size: {
 		sm: [ji.sm, 'gap-xs', 'p-1.5', shaku.icon.sm],

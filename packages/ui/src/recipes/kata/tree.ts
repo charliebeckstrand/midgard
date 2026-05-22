@@ -11,7 +11,6 @@ const itemContent = defineRecipe(
 			'gap-2',
 			iro.text.muted,
 			iro.text.hover,
-			'rounded-lg',
 			sen.focus.inset,
 			'cursor-pointer',
 			'select-none',

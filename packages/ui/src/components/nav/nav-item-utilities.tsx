@@ -14,6 +14,7 @@ import { ActiveIndicator, useActiveIndicator } from '../../primitives/active-ind
 import { useDensity } from '../../primitives/density'
 import { OffcanvasContext } from '../../primitives/offcanvas'
 import type { PolymorphicProps } from '../../primitives/polymorphic'
+import { useRadius } from '../../primitives/radius'
 import { TouchTarget } from '../../primitives/touch-target'
 import type { Step } from '../../recipes'
 import { Button } from '../button'
@@ -71,6 +72,7 @@ export function createNavItem(config: NavItemConfig) {
 		const inherited = useDensity()
 
 		const resolvedSize = size ?? inherited.size
+		const radius = useRadius(resolvedSize)
 
 		const offcanvas = use(OffcanvasContext)
 
@@ -102,7 +104,12 @@ export function createNavItem(config: NavItemConfig) {
 						dataSlot={innerSlot}
 						data-current={current ? '' : undefined}
 						aria-current={current ? 'page' : undefined}
-						className={cn(config.variants({ size: resolvedSize }), 'relative z-10', className)}
+						className={cn(
+							config.variants({ size: resolvedSize }),
+							radius,
+							'relative z-10',
+							className,
+						)}
 						onClick={handleClick}
 						{...props}
 					>
