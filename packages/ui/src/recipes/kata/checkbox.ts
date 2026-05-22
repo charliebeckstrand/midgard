@@ -1,8 +1,5 @@
-import { defineColors, defineRecipe, type VariantPropsOf } from '../../core/recipe'
-import { control } from '../genkei/control'
-import { iro, kokkaku, sen } from '../kiso'
-
-const { check } = control
+import { check, defineColors, type VariantPropsOf } from '../katakana'
+import { kokkaku } from '../kiso'
 
 const color = defineColors({
 	zinc: '[--checkbox-check:var(--color-white)] [--checkbox-checked-bg:var(--color-zinc-600)] [--checkbox-checked-border:var(--color-zinc-700)]/90',
@@ -14,15 +11,11 @@ const color = defineColors({
 	blue: '[--checkbox-check:var(--color-white)] [--checkbox-checked-bg:var(--color-blue-600)] [--checkbox-checked-border:var(--color-blue-800)]/90',
 })
 
-export const k = defineRecipe(
+export const k = check(
 	{
 		base: [
-			'relative',
-			'inline-flex items-center justify-center',
-			sen.focus.outline,
 			'has-checked:*:data-[slot=checkbox-check]:opacity-100',
 			'has-[:indeterminate]:*:data-[slot=checkbox-check]:opacity-100',
-			...check.surface,
 			'[--checkbox-checked-border:transparent]',
 			'has-checked:bg-(--checkbox-checked-bg) has-checked:border-(--checkbox-checked-border)',
 			'has-[disabled]:cursor-not-allowed has-[disabled]:opacity-50',
@@ -36,18 +29,14 @@ export const k = defineRecipe(
 			md: ['size-4.5', 'rounded-[--spacing(1)]'],
 			lg: ['size-5', 'rounded-[--spacing(1.25)]'],
 		},
-		defaults: { color: 'zinc', size: 'md' },
 	},
 	{
-		input: defineRecipe({ base: check.hidden }),
 		/** Check-icon size class per checkbox size step. Read by the component. */
 		checkSize: {
 			sm: 'size-3',
 			md: 'size-3.5',
 			lg: 'size-4',
 		} as const,
-		/** Disabled-state text class shared by the checkbox field wrapper. */
-		disabled: iro.text.disabled,
 		skeleton: kokkaku.checkbox,
 	},
 )
