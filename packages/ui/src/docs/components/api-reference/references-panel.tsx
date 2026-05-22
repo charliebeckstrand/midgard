@@ -1,7 +1,7 @@
 'use client'
 
-import { Badge } from '../../../components/badge'
 import { CodeBlock } from '../../../components/code'
+import { Heading } from '../../../components/heading'
 import { Stack } from '../../../components/stack'
 import { TypeBadges } from './type-badges'
 
@@ -19,8 +19,8 @@ export function ReferencesPanel({ references }: { references: Record<string, str
 	return (
 		<Stack gap="lg">
 			{entries.map(([name, def]) => (
-				<Stack key={name} gap="md">
-					<Badge variant="outline">{name}</Badge>
+				<Stack key={name} gap="sm">
+					<Heading level={5}>{name}</Heading>
 					{def.includes('\n') ? <CodeBlock code={def} /> : <TypeBadges type={def} />}
 				</Stack>
 			))}
