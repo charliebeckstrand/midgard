@@ -4,14 +4,12 @@ import { kokkaku, sen } from '../kiso'
 export const k = control(
 	{
 		base: ['block', 'min-h-10'],
-		axes: {
-			resize: {
-				none: 'resize-none',
-				vertical: 'resize-y',
-				horizontal: 'resize-x',
-			},
-			autoResize: { true: 'field-sizing-content', false: '' },
+		resize: {
+			none: 'resize-none',
+			vertical: 'resize-y',
+			horizontal: 'resize-x',
 		},
+		autoResize: { true: 'field-sizing-content', false: '' },
 		slots: {
 			/** Strips textarea chrome when nested inside a framed container. */
 			bare: ['border-0', 'rounded-none', 'focus:outline-hidden'],

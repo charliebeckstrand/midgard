@@ -16,15 +16,12 @@
  * and the genkei folder dissolves.
  */
 
-import type { ClassValue } from 'clsx'
-
 import {
 	type ApplicatorOverlay,
 	type ApplicatorReturn,
 	applyRecipe,
 	defineRecipe,
 	type Empty,
-	type VariantAxis,
 	type VariantPropsOf,
 } from '../../core/recipe'
 import { control } from '../genkei/control'
@@ -81,13 +78,12 @@ export function control_<
 	// gates inside `applyRecipe` fold cleanly when the kata declares no
 	// overlay. Other empty-shaped candidates (`never`, `Record<string, never>`)
 	// either break the gate or leak a wide index signature into the result.
-	Slots extends Record<string, ClassValue> = Empty,
-	Axes extends Record<string, VariantAxis> = Empty,
+	Overlay extends ApplicatorOverlay = Empty,
 	Extras extends Record<string, unknown> = Empty,
 >(
-	config: ApplicatorOverlay<Slots, Axes> = {},
+	config?: Overlay,
 	extras?: Extras,
-): ApplicatorReturn<typeof standardConfig, typeof standardExtras, Slots, Axes, Extras> {
+): ApplicatorReturn<typeof standardConfig, typeof standardExtras, Overlay, Extras> {
 	return applyRecipe({ config: standardConfig, extras: standardExtras }, config, extras)
 }
 
