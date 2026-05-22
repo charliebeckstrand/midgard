@@ -2,13 +2,13 @@
  * Katakana 片仮名 — the recipe applicator layer.
  *
  * **Mock — viability experiment, not the final shape.** The full proposal is
- * to dissolve `genkei/` and route every kata through this layer. Today four
+ * to dissolve `genkei/` and route every kata through this layer. Today five
  * entries are wired: a generic `recipe` (catch-all, thin re-export of
  * `defineRecipe`), `control` (text-input branch of the Control archetype),
  * `check` (check-input branch of the Control archetype, covering checkbox
- * and radio), and `popover` (floating-overlay archetype). The remaining
- * archetypes — `panel`, `segment` — will land here when the experiment
- * graduates.
+ * and radio), `popover` (floating-overlay archetype), and `segment`
+ * (segmented-control archetype shared by Segment and Tabs). The remaining
+ * archetype — `panel` — will land here when the experiment graduates.
  *
  * Shape of a katakana entry: a function that takes a kata's per-call
  * configuration (extra base, slots, defaults, axis overlays) and returns the
@@ -37,3 +37,4 @@ export { type CheckVariants, check } from './check'
 export { type ControlVariants, control } from './control'
 export { popover } from './popover'
 export { recipe } from './recipe'
+export { type SegmentControlVariants, type SegmentItemVariants, segment } from './segment'
