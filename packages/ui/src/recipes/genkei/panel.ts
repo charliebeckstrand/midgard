@@ -1,3 +1,12 @@
+/**
+ * Panel factory — slot bundle shared by dialog, drawer, and sheet kata.
+ *
+ * Wraps caller-supplied `panel` (and optional `backdrop`) recipes so they keep
+ * their variant inference, and emits zero-variant class fragments for the
+ * standard slots (title, description, header, body, actions, close) by
+ * composing `narabi.panel` with caller extras.
+ */
+
 import { narabi } from '../kiso'
 
 type Slot = {

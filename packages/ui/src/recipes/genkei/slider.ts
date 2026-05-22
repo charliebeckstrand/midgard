@@ -1,13 +1,8 @@
 /**
- * Slider (スライダー) — colour palette.
- *
- * Shared `--slider-fill` / `--slider-track` CSS-variable bundle. `<Slider />`
- * paints the track through a webkit / moz gradient on the native input;
- * `<SliderRange />` paints a dedicated fill element. Different selector
- * surfaces, same variables — so the table lives here rather than forking
- * across kata.
- *
- * Layer: genkei · Concern: slider palette
+ * Slider colour palette — shared `--slider-fill` / `--slider-track` variable
+ * bundle. `<Slider />` paints via a webkit / moz gradient on the native input;
+ * `<SliderRange />` paints a dedicated fill element. Same variables, different
+ * surfaces — so the table lives here rather than forking across kata.
  */
 
 export const slider = {

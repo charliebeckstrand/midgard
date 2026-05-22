@@ -1,29 +1,9 @@
 /**
- * Single source of truth for the control family — every recipe whose visual
- * identity is "a framed surface that wraps a user-input element".
+ * Control family archetype — the framed surface that wraps a user-input element.
  *
- * Consumers (input, textarea, listbox, combobox, datepicker, checkbox, radio,
- * and the ControlFrame primitive) compose from here rather than redefining any
- * of these concerns. If a new shared control concern emerges, add it here.
- *
- * Owns:
- *   - `frame`     — outer chrome: composes `kasane` (the 4-layer signature) +
- *                   block layout.
- *   - `surface`   — surface chrome variants (default / outline / glass).
- *   - `input`     — inner input element classes: transparent bg, no native
- *                   outline, placeholder colour, disabled cursor. Spread into
- *                   the input/textarea/button element of the framed control.
- *   - `density`   — border-compensated padding, keyed by the density axis.
- *   - `size`      — font size, keyed by the size axis.
- *   - `affix`     — prefix / suffix slot padding (tracks density).
- *   - `resets`    — browser-default resets keyed by input type.
- *   - `check`     — visually hidden native input + custom check surface.
- *
- * Exposes plain class fragments (`string[]`) and fragment maps. Per the
- * genkei wire-format contract, `defineRecipe()` is invoked only at the kata public
- * surface; consumers compose these fragments into whatever shape they need.
- *
- * Layer: genkei · Concern: control field archetype
+ * Consumed by input, textarea, listbox, combobox, date-picker, checkbox, radio,
+ * and ControlFrame. Exposes class fragments (frame, surface, input, density,
+ * size, affix, resets, check) that each kata composes into its own recipe.
  */
 
 import { mode } from '../../core/recipe'

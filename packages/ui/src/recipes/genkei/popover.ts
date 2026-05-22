@@ -1,11 +1,8 @@
 /**
- * Popover archetype — floating overlay shared by `popover`, `combobox`,
- * `listbox`, `date-picker` kata. Owns the trigger / portal positioning and
- * the panel slot bundle (base classes + surface chromes + ring + motion).
- * Property names mirror the kata slot layout so consumers can destructure
- * and pass through directly.
- *
- * Layer: genkei · Concern: floating overlay
+ * Popover archetype — floating overlay shared by popover, combobox, listbox,
+ * and date-picker kata. Owns the trigger and portal classes plus the panel
+ * slot bundle (base, surface, glass, ring, motion). Property names mirror the
+ * kata slot layout so consumers can destructure and pass through.
  */
 
 import { omote, sen, ugoki } from '../kiso'
