@@ -1,25 +1,10 @@
 /**
  * Kasane (重ね) — Layered.
  *
- * The library's signature chrome primitive: a four-layer stack that lives on
- * a single element and lets each visual concern (inset fill, hover ring,
- * focus ring, validation ring) be applied independently without conflict.
- *
- * Most libraries collapse these into a single ring + colour swap. The kasane
- * pattern uses `::before` for the inset fill and `::after` for the focus /
- * validation overlay, so the four states compose freely:
- *
- *   - The outer `ring` carries the resting border + hover colour.
- *   - The `::before` fills the 1 px inset so the surface paints inside the ring.
- *   - The `::after` provides the focus-visible / validation 2 px ring overlay.
- *   - The `::after` is again recoloured by `data-invalid` / `data-warning` /
- *     `data-valid` selectors that take precedence over the focus colour.
- *
- * Spread `kasane.all` into a single element's className for the full effect,
- * or compose individual layers when a kata only wants a subset (e.g. hover
- * + focus without validation).
- *
- * Layer: genkei · Concern: layered chrome
+ * The library's signature chrome primitive: a four-layer stack on a single
+ * element so inset fill, hover ring, focus ring, and validation ring compose
+ * without conflict. Spread `kasane.all` for the full effect, or pick layers
+ * when a kata only wants a subset.
  */
 
 /**

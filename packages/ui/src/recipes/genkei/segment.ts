@@ -1,13 +1,8 @@
 /**
- * Segmented-control archetype — the rounded box with a sliding indicator
+ * Segmented-control archetype — the rounded box with a sliding indicator,
  * shared by the standalone `<Segment>` family and `<Tabs variant="segment">`.
- *
- * Owns the control / item / indicator fragments. Per the genkei wire-format
- * contract, `defineRecipe()` is invoked only at the kata surface; each
- * consuming kata spreads `control` and `item` into its own
- * `defineRecipe({ ..., defaults })` call.
- *
- * Layer: genkei · Concern: segmented-control archetype
+ * Exposes control / item / indicator fragments for each kata to spread into
+ * its own recipe.
  */
 
 import { hannou, ji, omote, sen } from '../kiso'
