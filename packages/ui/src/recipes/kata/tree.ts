@@ -17,9 +17,9 @@ const itemContent = defineRecipe(
 			'data-[open]:text-zinc-950 dark:data-[open]:text-white',
 		],
 		size: {
-			sm: ji.sm,
-			md: ji.md,
-			lg: ji.lg,
+			sm: [ji.sm, 'rounded-[calc(--spacing(7)*var(--ui-radius-ratio,0.22))]'],
+			md: [ji.md, 'rounded-[calc(--spacing(8)*var(--ui-radius-ratio,0.22))]'],
+			lg: [ji.lg, 'rounded-[calc(--spacing(9)*var(--ui-radius-ratio,0.22))]'],
 		},
 		defaults: { size: 'md' },
 	},

@@ -1,95 +1,53 @@
 'use client'
 
-import { type ReactNode, useMemo } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { createContext } from '../../core'
-import type { Ma } from '../../recipes'
-import { useSizeWide } from '../density'
 
 /**
- * Radius token — broadcast by `<Radius>`, read by every size-aware component
- * through {@link useRadius}.
+ * Radius primitive — `border-radius` derived from element height by a single
+ * ratio, so every size step renders at the same `radius / height` proportion
+ * pixel-for-pixel.
  *
- * Maps each interactive size step (`xs..xl`) to a Tailwind `rounded-*` level.
- * Components resolve their size first (via Density / Affix / explicit prop),
- * then call `useRadius(size)` to pick the level out of the active token.
+ * Recipes carry the per-size geometry. Each size variant adds a class shaped
+ * like `rounded-[calc(--spacing(N)*var(--ui-radius-ratio,0.22))]`, where `N`
+ * is the size's effective height in Tailwind spacing units (so `--spacing(N)`
+ * resolves to the same length the layout pads to). CSS does the math at
+ * render time — no per-tier Tailwind class, no rounding to the nearest
+ * `rounded-md / lg / xl`.
  *
- * The default scale targets a roughly constant radius-to-height ratio across
- * sizes — a static `rounded-lg` looks proportionally too round at small
- * heights and too sharp at large ones.
+ * `<Radius ratio>` overrides the proportion for a subtree by writing
+ * `--ui-radius-ratio` onto a `display:contents` wrapper; every descendant
+ * recipe's `calc()` picks it up via CSS cascade. The numeric value is also
+ * mirrored through React context for callers that build their own inline
+ * radius via {@link useRadiusRatio}.
  */
-export type RadiusKey = 'none' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full'
+export const DEFAULT_RADIUS_RATIO = 0.22
 
-export type RadiusToken = Record<Ma, RadiusKey>
-
-/** Diagonal preset — `xs/sm` shrink to `md`, `md` keeps `lg`, `lg/xl` bump to `xl`. */
-export const defaultRadiusScale: RadiusToken = {
-	xs: 'md',
-	sm: 'md',
-	md: 'lg',
-	lg: 'xl',
-	xl: 'xl',
-}
-
-/** Tailwind `rounded-*` class per radius key. Listed literally so the JIT scanner sees them. */
-export const radiusClassMap: Record<RadiusKey, string> = {
-	none: 'rounded-none',
-	sm: 'rounded-sm',
-	md: 'rounded-md',
-	lg: 'rounded-lg',
-	xl: 'rounded-xl',
-	'2xl': 'rounded-2xl',
-	full: 'rounded-full',
-}
-
-const [RadiusValueProvider, useRadiusTokenNullable] = createContext<RadiusToken | null>('Radius', {
+const [RadiusValueProvider, useRadiusRatioNullable] = createContext<number | null>('Radius', {
 	default: null,
 })
 
-/**
- * Read the active radius token. Falls back to {@link defaultRadiusScale} when
- * no provider is in the tree.
- */
-export function useRadiusToken(): RadiusToken {
-	return useRadiusTokenNullable() ?? defaultRadiusScale
+/** Read the active ratio. Falls back to {@link DEFAULT_RADIUS_RATIO}. */
+export function useRadiusRatio(): number {
+	return useRadiusRatioNullable() ?? DEFAULT_RADIUS_RATIO
 }
 
-export { useRadiusTokenNullable }
+export { useRadiusRatioNullable }
+
+export type RadiusProps = { ratio: number; children: ReactNode }
 
 /**
- * Resolve a `rounded-*` class for the size step. Mirrors `useSizeWide`'s
- * cascade — `explicit ?? Affix ?? Density.size` — so call sites can lead with
- * `const radius = useRadius(size)` next to (or above) their own `resolvedSize`
- * computation without threading the cascade through twice.
+ * Broadcasts a radius ratio. Sets `--ui-radius-ratio` on a `display:contents`
+ * wrapper so descendant Tailwind `rounded-[calc(...*var(--ui-radius-ratio))]`
+ * classes resolve through it via the CSS variable cascade. Nest to override
+ * deeper subtrees.
  */
-export function useRadius(size?: Ma): string {
-	const resolved = useSizeWide(size)
-
-	return radiusClassMap[useRadiusToken()[resolved]]
-}
-
-/** Caller surface for `<Radius>`. Set any axis explicitly; omit to inherit. */
-export type RadiusInput = Partial<RadiusToken>
-
-export type RadiusProps = RadiusInput & { children: ReactNode }
-
-/**
- * Broadcasts a radius token to descendants. Each axis cascades independently
- * — `<Radius lg="2xl">` overrides the `lg` step while inheriting the rest
- * from the surrounding context.
- */
-export function Radius({ children, xs, sm, md, lg, xl }: RadiusProps) {
-	const parent = useRadiusToken()
-
-	const token = useMemo<RadiusToken>(
-		() => ({
-			xs: xs ?? parent.xs,
-			sm: sm ?? parent.sm,
-			md: md ?? parent.md,
-			lg: lg ?? parent.lg,
-			xl: xl ?? parent.xl,
-		}),
-		[xs, sm, md, lg, xl, parent],
+export function Radius({ ratio, children }: RadiusProps) {
+	return (
+		<RadiusValueProvider value={ratio}>
+			<div className="contents" style={{ '--ui-radius-ratio': ratio } as CSSProperties}>
+				{children}
+			</div>
+		</RadiusValueProvider>
 	)
-
-	return <RadiusValueProvider value={token}>{children}</RadiusValueProvider>
 }

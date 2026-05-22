@@ -6,7 +6,6 @@ import { cn } from '../../core'
 import { AffixProvider } from '../../primitives/affix'
 import { useSizeWide } from '../../primitives/density'
 import type { PolymorphicProps } from '../../primitives/polymorphic'
-import { useRadius } from '../../primitives/radius'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { TouchTarget } from '../../primitives/touch-target'
 import { useSkeleton } from '../../providers/skeleton'
@@ -64,7 +63,6 @@ export function Button({
 	const headless = useHeadless()
 	const skeleton = useSkeleton()
 
-	const radius = useRadius(size)
 	const resolvedSize = useSizeWide(size)
 
 	if (headless) {
@@ -82,12 +80,7 @@ export function Button({
 		)
 	}
 
-	const classes = cn(
-		k({ variant, color, size: resolvedSize }),
-		radius,
-		block && 'w-full',
-		className,
-	)
+	const classes = cn(k({ variant, color, size: resolvedSize }), block && 'w-full', className)
 
 	if (skeleton) {
 		return <ButtonSkeleton size={size} className={className} />
