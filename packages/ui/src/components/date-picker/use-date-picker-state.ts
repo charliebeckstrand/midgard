@@ -72,6 +72,8 @@ export function useDatePickerState({
 			setValue(date)
 
 			closeCalendar()
+
+			triggerRef.current?.focus()
 		},
 		[closeCalendar, setValue],
 	)
@@ -80,6 +82,8 @@ export function useDatePickerState({
 		setValue(undefined)
 
 		closeCalendar()
+
+		triggerRef.current?.focus()
 	}, [closeCalendar, setValue])
 
 	const handleSelectToday = useCallback(() => {

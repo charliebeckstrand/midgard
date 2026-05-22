@@ -88,6 +88,8 @@ export function useDatePickerRangeState({
 		pendingRef.current = { value: undefined }
 
 		closeCalendar()
+
+		triggerRef.current?.focus()
 	}, [closeCalendar])
 
 	const handleSelect = useCallback(
@@ -107,6 +109,8 @@ export function useDatePickerRangeState({
 				pendingRef.current = { value: range }
 
 				closeCalendar()
+
+				triggerRef.current?.focus()
 			}
 		},
 		[closeCalendar, rangeStart],
