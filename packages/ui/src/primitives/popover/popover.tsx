@@ -56,9 +56,9 @@ export function PopoverPanel({
 				role={role}
 				tabIndex={-1}
 				{...k.panel.motion}
-				onKeyDown={(e) => {
-					handleKeyDown(e)
-					onKeyDownProp?.(e)
+				onKeyDown={(event) => {
+					handleKeyDown(event)
+					onKeyDownProp?.(event)
 				}}
 				className={cn(
 					glass ? ['group/glass', k.panel.glass, k.panel.ring] : k.panel.surface,

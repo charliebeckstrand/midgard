@@ -47,9 +47,9 @@ export function BaseOption({
 			data-disabled={disabled ? '' : undefined}
 			tabIndex={-1}
 			onClick={() => !disabled && onSelect()}
-			onKeyDown={(e) => {
-				if (e.key === 'Enter' || e.key === ' ') {
-					e.preventDefault()
+			onKeyDown={(event) => {
+				if (event.key === 'Enter' || event.key === ' ') {
+					event.preventDefault()
 
 					if (!disabled) onSelect()
 				}
