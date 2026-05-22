@@ -15,7 +15,7 @@ export type CommandPaletteProps = Pick<DialogPanelVariants, 'size'> & {
 	onOpenChange: (open: boolean) => void
 	placeholder?: string
 	icon?: ReactNode
-	outsideClick?: boolean
+	dismissOnBackdrop?: boolean
 	className?: string
 	/**
 	 * Items to render in the palette. Pass a function to receive the live query
@@ -32,7 +32,7 @@ export function CommandPalette({
 	onOpenChange,
 	placeholder = 'Type a command or search',
 	icon,
-	outsideClick = true,
+	dismissOnBackdrop = true,
 	size = '2xl',
 	className,
 	children,
@@ -47,7 +47,7 @@ export function CommandPalette({
 			open={open}
 			onOpenChange={onOpenChange}
 			align="start"
-			outsideClick={outsideClick}
+			dismissOnBackdrop={dismissOnBackdrop}
 			size={size}
 			className={className}
 		>

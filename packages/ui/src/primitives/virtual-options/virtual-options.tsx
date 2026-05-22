@@ -52,10 +52,10 @@ export function VirtualOptions<T>({
 	return (
 		<div ref={containerRef} data-slot="virtual-options">
 			{topSpacer > 0 && <div data-slot="virtual-options-spacer" style={{ height: topSpacer }} />}
-			{virtualItems.map((vi) => {
-				const item = items[vi.index] as T
+			{virtualItems.map((virtualItem) => {
+				const item = items[virtualItem.index] as T
 
-				return children(item, vi.index)
+				return children(item, virtualItem.index)
 			})}
 			{bottomSpacer > 0 && (
 				<div data-slot="virtual-options-spacer" style={{ height: bottomSpacer }} />

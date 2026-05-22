@@ -50,11 +50,11 @@ const STEP_DOWN: Record<Step, Step> = { sm: 'sm', md: 'sm', lg: 'md' }
  * `<SelectTrigger>` chevron. Single function for both axes; they share the
  * `Step` scale.
  */
-export function stepDown(s: Step): Step {
-	return STEP_DOWN[s]
+export function stepDown(hostSize: Step): Step {
+	return STEP_DOWN[hostSize]
 }
 
-const [DensityProviderRaw, useDensityNullable] = createContext<DensityToken | null>('Density', {
+const [DensityValueProvider, useDensityNullable] = createContext<DensityToken | null>('Density', {
 	default: null,
 })
 
@@ -115,7 +115,7 @@ export function Density({ children, scale, density: densityProp, size: sizeProp 
 		}
 	}, [scale, densityProp, sizeProp, parent])
 
-	return <DensityProviderRaw value={token}>{children}</DensityProviderRaw>
+	return <DensityValueProvider value={token}>{children}</DensityValueProvider>
 }
 
 /**

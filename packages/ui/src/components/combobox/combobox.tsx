@@ -194,7 +194,7 @@ export function Combobox<T>({
 	const rendered = typeof children === 'function' ? children(query) : children
 
 	const contextValue = useMemo(
-		() => ({ value, multiple, select: select as (v: unknown) => void, query }),
+		() => ({ value, multiple, onSelect: select as (v: unknown) => void, query }),
 		[value, multiple, select, query],
 	)
 

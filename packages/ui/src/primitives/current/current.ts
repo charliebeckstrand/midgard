@@ -6,7 +6,7 @@ import { useControllable } from '../../hooks'
 
 export type CurrentContextValue = {
 	value: string | undefined
-	onValueChange: ((value: string) => void) | undefined
+	onValueChange: ((value: string | undefined) => void) | undefined
 }
 
 /**

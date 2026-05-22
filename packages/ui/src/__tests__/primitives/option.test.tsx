@@ -187,12 +187,12 @@ const TestContext: FC<{ children: ReactNode; value?: unknown; multiple?: boolean
 	value,
 	multiple,
 }) => {
-	contextValue = { value, multiple: multiple ?? false, select: mockSelect }
+	contextValue = { value, multiple: multiple ?? false, onSelect: mockSelect }
 
 	return <>{children}</>
 }
 
-let contextValue = { value: undefined as unknown, multiple: false, select: mockSelect }
+let contextValue = { value: undefined as unknown, multiple: false, onSelect: mockSelect }
 
 const { Option, Label, Description } = createSelectOption({
 	slotPrefix: 'test',
@@ -203,7 +203,7 @@ describe('createSelectOption', () => {
 	beforeEach(() => {
 		mockSelect.mockClear()
 
-		contextValue = { value: undefined, multiple: false, select: mockSelect }
+		contextValue = { value: undefined, multiple: false, onSelect: mockSelect }
 	})
 
 	it('Option renders with correct data-slot', () => {

@@ -28,9 +28,9 @@ export function CurrentContents({
 	children,
 	...props
 }: CurrentContentsProps) {
-	const ref = useRef<HTMLDivElement>(null)
+	const containerRef = useRef<HTMLDivElement>(null)
 
-	const height = useCurrentContentsHeight(ref, fade)
+	const height = useCurrentContentsHeight(containerRef, fade)
 
 	if (!fade) {
 		return (
@@ -44,7 +44,7 @@ export function CurrentContents({
 		<CurrentFadeProvider value>
 			<ReducedMotion>
 				<motion.div
-					ref={ref}
+					ref={containerRef}
 					data-slot={`${slotPrefix}-contents`}
 					animate={height !== undefined ? { height } : undefined}
 					initial={false}

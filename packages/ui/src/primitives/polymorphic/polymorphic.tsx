@@ -22,12 +22,15 @@ export function Polymorphic<Fallback extends keyof JSX.IntrinsicElements>({
 	...rest
 }: {
 	as: Fallback
-	href: string | undefined
+	href?: string
 	ref?: Ref<Element>
 	dataSlot: string
 	className: string
 	children: ReactNode
-} & Record<string, unknown>) {
+} & (
+	| Omit<ComponentPropsWithoutRef<Fallback>, 'href' | 'ref' | 'className' | 'children'>
+	| Omit<LinkProps, 'href' | 'ref' | 'className' | 'children'>
+)) {
 	const { component: LinkComponent } = useLink()
 
 	if (href !== undefined) {

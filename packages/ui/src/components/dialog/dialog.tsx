@@ -13,7 +13,7 @@ export type DialogProps = DialogPanelVariants & {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	align?: 'center' | 'start'
-	outsideClick?: boolean
+	dismissOnBackdrop?: boolean
 	glass?: boolean
 	className?: string
 	children: ReactNode
@@ -28,7 +28,7 @@ export function Dialog({
 	open,
 	onOpenChange,
 	align = 'center',
-	outsideClick = true,
+	dismissOnBackdrop = true,
 	surface,
 	size,
 	glass,
@@ -45,7 +45,7 @@ export function Dialog({
 		<Overlay
 			open={open}
 			onOpenChange={onOpenChange}
-			outsideClick={outsideClick}
+			dismissOnBackdrop={dismissOnBackdrop}
 			glass={resolvedSurface === 'glass'}
 		>
 			<div

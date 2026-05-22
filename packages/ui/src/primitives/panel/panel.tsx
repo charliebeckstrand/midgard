@@ -5,10 +5,10 @@ import { cn, createContext } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { k } from '../../recipes/kata/panel'
 
-const defaultTitle = k.title
-const defaultDescription = k.description
-const defaultBody = k.body
-const defaultActions = k.actions
+const DEFAULT_TITLE = k.title
+const DEFAULT_DESCRIPTION = k.description
+const DEFAULT_BODY = k.body
+const DEFAULT_ACTIONS = k.actions
 
 export type PanelTitleProps = ComponentPropsWithoutRef<'h2'>
 export type PanelDescriptionProps = ComponentPropsWithoutRef<'p'>
@@ -26,26 +26,15 @@ export const [PanelA11yProvider, usePanelA11y] = createContext<PanelA11yContextV
 	default: {},
 })
 
-function useTitleRegistration() {
-	const [hasTitle, setHasTitle] = useState(false)
+function useSlotRegistration() {
+	const [present, setPresent] = useState(false)
 
-	const registerTitle = useCallback(() => {
-		setHasTitle(true)
-		return () => setHasTitle(false)
+	const register = useCallback(() => {
+		setPresent(true)
+		return () => setPresent(false)
 	}, [])
 
-	return { hasTitle, registerTitle }
-}
-
-function useDescriptionRegistration() {
-	const [hasDescription, setHasDescription] = useState(false)
-
-	const registerDescription = useCallback(() => {
-		setHasDescription(true)
-		return () => setHasDescription(false)
-	}, [])
-
-	return { hasDescription, registerDescription }
+	return [present, register] as const
 }
 
 /**
@@ -61,8 +50,8 @@ export function usePanelA11yScope() {
 	const titleId = scope.sub('title')
 	const descriptionId = scope.sub('description')
 
-	const { hasTitle, registerTitle } = useTitleRegistration()
-	const { hasDescription, registerDescription } = useDescriptionRegistration()
+	const [hasTitle, registerTitle] = useSlotRegistration()
+	const [hasDescription, registerDescription] = useSlotRegistration()
 
 	const panelAriaProps = {
 		role: 'dialog' as const,
@@ -87,11 +76,11 @@ type PanelSlots = {
 	actions?: string | string[]
 }
 
-export function createPanel(prefix: string, slots?: PanelSlots) {
-	const titleCls = slots?.title ?? defaultTitle
-	const descriptionCls = slots?.description ?? defaultDescription
-	const bodyCls = slots?.body ?? defaultBody
-	const actionsCls = slots?.actions ?? defaultActions
+export function createPanel(slotPrefix: string, slots?: PanelSlots) {
+	const titleClass = slots?.title ?? DEFAULT_TITLE
+	const descriptionClass = slots?.description ?? DEFAULT_DESCRIPTION
+	const bodyClass = slots?.body ?? DEFAULT_BODY
+	const actionsClass = slots?.actions ?? DEFAULT_ACTIONS
 
 	function Title({ className, id, ...props }: PanelTitleProps) {
 		const { titleId, registerTitle } = usePanelA11y()
@@ -101,8 +90,8 @@ export function createPanel(prefix: string, slots?: PanelSlots) {
 		return (
 			<h2
 				id={id ?? titleId}
-				data-slot={`${prefix}-title`}
-				className={cn(titleCls, className)}
+				data-slot={`${slotPrefix}-title`}
+				className={cn(titleClass, className)}
 				{...props}
 			/>
 		)
@@ -116,19 +105,21 @@ export function createPanel(prefix: string, slots?: PanelSlots) {
 		return (
 			<p
 				id={id ?? descriptionId}
-				data-slot={`${prefix}-description`}
-				className={cn(descriptionCls, className)}
+				data-slot={`${slotPrefix}-description`}
+				className={cn(descriptionClass, className)}
 				{...props}
 			/>
 		)
 	}
 
 	function Body({ className, ...props }: PanelBodyProps) {
-		return <div data-slot={`${prefix}-body`} className={cn(bodyCls, className)} {...props} />
+		return <div data-slot={`${slotPrefix}-body`} className={cn(bodyClass, className)} {...props} />
 	}
 
 	function Actions({ className, ...props }: PanelActionsProps) {
-		return <div data-slot={`${prefix}-actions`} className={cn(actionsCls, className)} {...props} />
+		return (
+			<div data-slot={`${slotPrefix}-actions`} className={cn(actionsClass, className)} {...props} />
+		)
 	}
 
 	return { Title, Description, Body, Actions }

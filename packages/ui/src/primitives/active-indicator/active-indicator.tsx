@@ -40,13 +40,10 @@ export function useActiveIndicator() {
 		animate(scope.current, { scale: 1 }, k.spring)
 	}, [animate, scope])
 
-	return useMemo(
-		() => ({
-			ref: scope,
-			tapHandlers: { onPointerDown, onPointerUp, onPointerLeave: onPointerUp },
-		}),
-		[scope, onPointerDown, onPointerUp],
-	)
+	return {
+		ref: scope,
+		tapHandlers: { onPointerDown, onPointerUp, onPointerLeave: onPointerUp },
+	}
 }
 
 /**

@@ -79,11 +79,11 @@ describe('Overlay', () => {
 		expect(onOpenChange).toHaveBeenCalledWith(false)
 	})
 
-	it('does not close on backdrop click when outsideClick=false', () => {
+	it('does not close on backdrop click when dismissOnBackdrop=false', () => {
 		const onOpenChange = vi.fn()
 
 		renderUI(
-			<Overlay open outsideClick={false} onOpenChange={onOpenChange}>
+			<Overlay open dismissOnBackdrop={false} onOpenChange={onOpenChange}>
 				<span>content</span>
 			</Overlay>,
 		)

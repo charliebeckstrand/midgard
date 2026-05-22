@@ -27,38 +27,38 @@ export function PopoverPanel({
 	glass?: boolean
 	onKeyDown?: KeyboardEventHandler
 }) {
-	const menuRef = useRef<HTMLDivElement>(null)
+	const panelRef = useRef<HTMLDivElement>(null)
 
-	const handleKeyDown = useRoving(menuRef, { itemSelector, focusOnEmpty: true })
+	const handleKeyDown = useRoving(panelRef, { itemSelector, focusOnEmpty: true })
 
 	const scrollWithin = useScrollWithin()
 
 	useLayoutEffect(() => {
-		if (!autoFocus || !menuRef.current) return
+		if (!autoFocus || !panelRef.current) return
 
-		const selected = menuRef.current.querySelector<HTMLElement>(`${itemSelector}[data-selected]`)
+		const selected = panelRef.current.querySelector<HTMLElement>(`${itemSelector}[data-selected]`)
 
 		if (selected) {
 			selected.focus()
 
 			scrollWithin(selected, { block: 'nearest' })
 		} else {
-			menuRef.current.focus()
+			panelRef.current.focus()
 		}
 	}, [autoFocus, itemSelector, scrollWithin])
 
 	return (
 		<ReducedMotion>
 			<motion.div
-				ref={menuRef}
+				ref={panelRef}
 				id={id}
 				data-slot="popover-panel"
 				role={role}
 				tabIndex={-1}
 				{...k.panel.motion}
-				onKeyDown={(e) => {
-					handleKeyDown(e)
-					onKeyDownProp?.(e)
+				onKeyDown={(event) => {
+					handleKeyDown(event)
+					onKeyDownProp?.(event)
 				}}
 				className={cn(
 					glass ? ['group/glass', k.panel.glass, k.panel.ring] : k.panel.surface,
