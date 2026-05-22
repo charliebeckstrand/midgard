@@ -8,12 +8,12 @@
  * recipes into the standard slot bundle (title / description / header /
  * body / actions / close), composing `narabi.panel` with caller extras.
  *
- * This is the third applicator shape in the katakana layer:
- *   - `control` / `check` — applicator owns the recipe (kata supplies a
- *     thin overlay; `defineApplicator` + `applyRecipe` handle it)
- *   - `popover` / `segment` — applicator owns the bundle (kata calls a
- *     zero- or low-arg function and reads back the bundle)
- *   - `panel` — kata owns the recipe; applicator wraps it with slots
+ * Panel is one of three archetypes that doesn't fit `defineApplicator`'s
+ * shape and hand-rolls instead — popover (no `defineRecipe` calls),
+ * segment (two `defineRecipe` calls inside a bundle), and panel
+ * (caller-supplied `defineRecipe` results). Each hand-rolls for its own
+ * reason; none represent a separate paradigm from the applicator pattern
+ * the helper expresses.
  */
 
 import { narabi } from '../kiso'
@@ -27,12 +27,7 @@ type Base = {
 	base: string | string[]
 }
 
-/**
- * Per-call configuration for the panel applicator. The kata supplies
- * `defineRecipe(...)` results for `panel` (and optionally `backdrop`),
- * plus per-slot extras for the standard slot bundle.
- */
-export type PanelInput<P, B = undefined> = {
+type PanelInput<P, B = undefined> = {
 	/** Recipe for the panel root element. Defines positioning, size, glass, etc. */
 	panel: P
 	/** Recipe for the backdrop. Present on modal variants (dialog, drawer, sheet). */
@@ -85,6 +80,10 @@ export function panel<P, B = undefined>(
 } {
 	return {
 		panel: input.panel,
+		// When B defaults to `undefined`, `input.backdrop` is also undefined
+		// and the cast normalises the optional field to match the return
+		// type. When the caller supplies a recipe, B is inferred from the
+		// input and the cast is a no-op.
 		backdrop: input.backdrop as B,
 		title: [...narabi.panel.title, ...toArray(input.title?.extra)],
 		description: [...narabi.panel.description, ...toArray(input.description?.extra)],

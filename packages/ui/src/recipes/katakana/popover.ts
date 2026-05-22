@@ -3,9 +3,9 @@
  * `combobox`, `listbox`, and `date-picker`. Returns the trigger / portal /
  * text / panel bundle the consumers read.
  *
- * Unlike `control`, the popover archetype has no variant axis — the bundle
- * is class fragments, not a `defineRecipe(...)` callable, so the applicator
- * doesn't go through `defineApplicator` / `applyRecipe`. It assembles the
+ * Popover has no variant axis — the bundle is class fragments, not a
+ * `defineRecipe(...)` callable — so the applicator doesn't fit
+ * `defineApplicator`'s shape and hand-rolls instead. It assembles the
  * bundle and lets the kata override the `text` fragment (the only
  * fragment that varies across consumers today).
  */
@@ -17,13 +17,7 @@ import { iro } from '../kiso'
 
 const { trigger, portal, panel } = popoverFragments
 
-/**
- * Per-call configuration for the popover applicator. Popover has no
- * variant axis (the bundle is class fragments, not a `defineRecipe(...)`
- * callable), so this is the popover analogue of the `…Variants` prop
- * union the recipe-shaped applicators expose.
- */
-export type PopoverConfig = {
+type PopoverConfig = {
 	/** Text fragment applied inside the panel. Defaults to `iro.text.default`. */
 	text?: ClassValue
 }

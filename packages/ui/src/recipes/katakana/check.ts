@@ -5,8 +5,7 @@
  * `check.surface` chrome plus a kata-specific indicator overlay.
  *
  * `switch` reads only `check.hidden` (its chrome is a sliding thumb on a
- * track, not a box with a check mark) and routes through the catch-all
- * `recipe(...)` instead.
+ * track, not a box with a check mark) and uses `defineRecipe` directly.
  *
  * Returns a recipe callable as `k({ color, size, …extraAxes })`:
  *   - any caller-defined slots are direct strings.
@@ -19,14 +18,14 @@
  * `--…-checked-{bg,border}` overlay — via `config.base` and the standard
  * `color` / `size` axes. The indicator sub-recipe (`checkSize`,
  * `indicatorSize`) and `skeleton` flow through the kata's `extras`.
+ *
+ * Kata derive their own variant type via `VariantPropsOf<typeof k>`;
+ * checkbox and radio both add `color` and `size` axes, so the empty-
+ * overlay prop union the applicator would expose doesn't match what
+ * any real check-input kata declares.
  */
 
-import {
-	type ApplicatorReturn,
-	defineApplicator,
-	defineRecipe,
-	type VariantPropsOf,
-} from '../../core/recipe'
+import { defineApplicator, defineRecipe } from '../../core/recipe'
 import { control as controlFragments } from '../genkei/control'
 import { hannou, iro, sen } from '../kiso'
 
@@ -51,16 +50,3 @@ const standardExtras = {
 }
 
 export const check = defineApplicator({ config: standardConfig, extras: standardExtras })
-
-/**
- * Prop union of the surface recipe when the kata declares no extra axes.
- * Kata that add extra axes derive their own variant type via
- * `VariantPropsOf<typeof k>`.
- *
- * Pinned via `ApplicatorReturn` rather than `ReturnType<typeof check>`
- * because the latter widens each generic to its constraint, which yields
- * a polluted prop union (every string axis resolves to `boolean | undefined`).
- */
-export type CheckVariants = VariantPropsOf<
-	ApplicatorReturn<typeof standardConfig, typeof standardExtras>
->

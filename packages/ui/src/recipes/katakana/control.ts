@@ -6,8 +6,8 @@
  * surface vocabulary.
  *
  * The check-input branch (`checkbox`, `radio`) lives in a sibling `check`
- * applicator; `switch` reads only `check.hidden` and routes through the
- * catch-all `recipe(...)` instead.
+ * applicator; `switch` reads only `check.hidden` and uses `defineRecipe`
+ * directly.
  *
  * Returns a recipe callable as `k({ variant, density, size, …extraAxes })`:
  *   - `k.number` and any caller-defined slots are direct strings.

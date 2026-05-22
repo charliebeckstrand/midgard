@@ -16,11 +16,11 @@
  * applicator function — every `defineRecipe`-wrapping katakana entry
  * collapses to a one-liner declaration.
  *
- * `Empty` and `Merge` are exported so applicator authors can pin a
- * variants type to the empty-overlay shape — e.g.
- * `VariantPropsOf<ApplicatorReturn<typeof standardConfig, typeof standardExtras>>`
- * resolves to the archetype's base prop union, not the constraint-widened
- * one a bare `ReturnType<typeof applicator>` would yield.
+ * Applicator authors derive their archetype's empty-overlay prop union
+ * via `VariantPropsOf<ApplicatorReturn<typeof standardConfig, typeof
+ * standardExtras>>` — referencing `ApplicatorReturn` directly avoids the
+ * `ReturnType<typeof applicator>` widen that yields a constraint-resolved
+ * (and therefore polluted) prop union.
  */
 
 import type { ClassValue } from 'clsx'
@@ -40,14 +40,14 @@ import type { Recipe, RecipeConfig } from './types'
  * slot mapped types — every string axis would then resolve to
  * `boolean | undefined` in consumer prop unions.
  */
-export type Empty = Record<never, never>
+type Empty = Record<never, never>
 
 /**
  * Conditional intersection. Folds to `Base` when `Add` has no keys, so a
  * generic with the `Empty` default doesn't leak a wide index signature
  * into the result type.
  */
-export type Merge<Base, Add> = [keyof Add] extends [never] ? Base : Base & Add
+type Merge<Base, Add> = [keyof Add] extends [never] ? Base : Base & Add
 
 /**
  * Reserved fields of a `RecipeConfig`. Every other top-level key in the
@@ -68,7 +68,7 @@ type ReservedField = 'base' | 'palette' | 'compound' | 'slots' | 'defaults'
  * axes), and `ApplicatorReturn` extracts the pieces it needs via
  * `Omit` / `extends-infer`.
  */
-export type ApplicatorOverlay = RecipeConfig
+type ApplicatorOverlay = RecipeConfig
 
 /**
  * Extract the caller's slot shape from their overlay. Falls back to
