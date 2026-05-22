@@ -72,6 +72,8 @@ export type UseFormReducerOptions<T extends Record<string, unknown>> = {
 	/**
 	 * Controlled re-sync source. Reference change → `values` replaced and the
 	 * dirty baseline shifts; `touched`, `errors`, and `submitting` stay put.
+	 * Passing `undefined` re-syncs to `defaultValues` under the same contract,
+	 * so consumers can toggle between an external source and the baseline.
 	 * Pass a stable reference — memoize derived objects to avoid sync loops.
 	 */
 	values?: T
@@ -109,6 +111,11 @@ export function useFormReducer<T extends Record<string, unknown>>({
 	const [submitting, setSubmitting] = useState(false)
 
 	const defaultsRef = useRef(initialValues)
+
+	// Mount-time snapshot of `defaultValues` for falling back when `controlledValues`
+	// transitions to `undefined`. `defaultsRef` shifts each time we sync, so we can't
+	// reuse it to restore the original baseline.
+	const initialDefaultsRef = useRef(defaultValues)
 
 	const validateRef = useRef(validate)
 
@@ -187,19 +194,20 @@ export function useFormReducer<T extends Record<string, unknown>>({
 
 	// Watch the controlled `values` prop. Reference change → replace `values`
 	// and shift the dirty baseline; `touched`/`errors`/`submitting` stay put
-	// so users mid-typing don't lose progress. Use `reset(nextDefaults)` to
-	// start over.
+	// so users mid-typing don't lose progress. Transitioning to `undefined`
+	// re-syncs to the mount-time `defaultValues` under the same contract.
+	// Use `reset(nextDefaults)` to also clear touched and errors.
 	const lastSyncedValuesRef = useRef(controlledValues)
 
 	useEffect(() => {
-		if (controlledValues === undefined) return
-
 		if (controlledValues === lastSyncedValuesRef.current) return
 
-		defaultsRef.current = controlledValues
+		const next = controlledValues ?? initialDefaultsRef.current
+
+		defaultsRef.current = next
 		lastSyncedValuesRef.current = controlledValues
 
-		dispatch({ type: 'sync-values', values: controlledValues })
+		dispatch({ type: 'sync-values', values: next })
 	}, [controlledValues])
 
 	const handleSubmit = useCallback(

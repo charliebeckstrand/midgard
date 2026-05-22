@@ -627,6 +627,39 @@ describe('Form', () => {
 		expect(screen.getByTestId('value').textContent).toBe('Ada')
 	})
 
+	it('re-syncs to defaultValues when controlled values transitions back to undefined', () => {
+		function ValueProbe() {
+			const field = useFormField('name')
+
+			return <span data-testid="value">{String(field?.value ?? '')}</span>
+		}
+
+		function Host() {
+			const [values, setValues] = useState<{ name: string } | undefined>({ name: 'Ada' })
+
+			return (
+				<>
+					<button type="button" onClick={() => setValues(undefined)}>
+						clear
+					</button>
+					<Form defaultValues={{ name: 'baseline' }} values={values}>
+						<ValueProbe />
+					</Form>
+				</>
+			)
+		}
+
+		renderUI(<Host />)
+
+		expect(screen.getByTestId('value').textContent).toBe('Ada')
+
+		act(() => {
+			screen.getByText('clear').click()
+		})
+
+		expect(screen.getByTestId('value').textContent).toBe('baseline')
+	})
+
 	it('reset(nextDefaults) shifts the baseline and clears errors and touched', () => {
 		function Probe() {
 			const field = useFormField('name')
