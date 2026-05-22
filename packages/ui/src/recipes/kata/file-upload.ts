@@ -1,4 +1,4 @@
-import { hannou, iro, ji, sen } from '..'
+import { hannou, iro, ji, sen } from '../kiso'
 
 export const k = {
 	dropzone: [
@@ -20,6 +20,5 @@ export const k = {
 	],
 	icon: 'shrink-0',
 	label: ['font-medium', iro.text.default],
+	cursor: hannou.cursor,
 }
-
-export const fileUploadClasses = k.dropzone

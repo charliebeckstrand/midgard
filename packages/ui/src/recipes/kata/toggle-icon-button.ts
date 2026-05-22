@@ -1,5 +1,4 @@
-import { iro } from '..'
-
+import { iro } from '../kiso'
 export const k = {
 	base: [
 		'relative',

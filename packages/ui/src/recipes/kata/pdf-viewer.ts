@@ -1,5 +1,4 @@
-import { hannou, iro, ji, omote, sen } from '..'
-
+import { hannou, iro, ji, omote, sen } from '../kiso'
 export const k = {
 	base: ['relative flex flex-col', 'overflow-hidden', omote.surface, sen.border],
 	toolbar: [

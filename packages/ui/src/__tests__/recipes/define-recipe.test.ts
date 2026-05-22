@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { defineRecipe, palette } from '../../recipes'
+import { defineRecipe, palette } from '../../core/recipe'
 import { k as button } from '../../recipes/kata/button'
 
 describe('defineRecipe', () => {

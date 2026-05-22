@@ -58,10 +58,8 @@ const focus = [
 ]
 
 // Per-state validation rings on the outer ring + `::after`. The three blocks
-// share the same six-selector shape (`ring`, `hover:ring`, `focus-within:after:ring`,
-// `not-focus-within:after:ring-1`, `not-focus-within:after:ring-<color>`,
-// `data-open:after:ring`). The literal selector strings have to live here
-// because Tailwind's source scanner can't see template-constructed classes.
+// share the same six-selector shape; literal selectors live here because
+// Tailwind's source scanner can't see template-constructed classes.
 const valid = [
 	'has-[[data-valid]]:ring-green-600',
 	'has-[[data-valid]]:hover:ring-green-600',

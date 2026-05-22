@@ -1,5 +1,5 @@
 import type { Ma } from '../../recipes'
-import { omote, sen } from '../../recipes'
+import type { k } from '../../recipes/kata/box'
 
 export type BoxPadding = Ma
 export type BoxMargin = Ma | 'auto'
@@ -55,21 +55,6 @@ export const myMap = {
 	auto: 'my-auto',
 } as const satisfies Record<BoxMargin, string>
 
-export const bgMap = {
-	none: 'bg-transparent',
-	surface: omote.surface,
-	tint: omote.tint,
-	panel: omote.panel.bg,
-	popover: omote.popover,
-	glass: omote.glass,
-} as const
-
-export const outlineMap = {
-	default: sen.outline,
-	subtle: sen.outlineSubtle,
-	strong: sen.outlineStrong,
-} as const
-
 export const radiusMap = {
 	none: 'rounded-none',
 	sm: 'rounded-sm',
@@ -79,6 +64,6 @@ export const radiusMap = {
 	full: 'rounded-full',
 } as const
 
-export type BoxBg = keyof typeof bgMap
-export type BoxOutline = boolean | keyof typeof outlineMap
+export type BoxBg = keyof typeof k.bg
+export type BoxOutline = boolean | keyof typeof k.outline
 export type BoxRadius = keyof typeof radiusMap

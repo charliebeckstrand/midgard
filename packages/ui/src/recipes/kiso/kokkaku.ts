@@ -54,18 +54,15 @@ const checkbox = {
 const formControl = {
 	base: ['rounded-lg'],
 	/**
-	 * Standalone-skeleton default. A form-control placeholder applied outside
-	 * a `<Group>` fills its parent (matching the typical real-mode behavior of
-	 * a form control with `w-full` ancestry like `ControlFrame`).
+	 * Standalone-skeleton default — outside a `<Group>`, fills its parent
+	 * (matching `ControlFrame`'s `w-full` ancestry).
 	 */
 	full: ['w-full'],
 	/**
 	 * Group-skeleton default. Inside a `<Group>` the placeholder has no
-	 * intrinsic content to size from, so we can't mirror the real control's
-	 * content-driven width. Default to growing (so sibling placeholders share
-	 * the row) with a size-aware floor so the skeleton stays visible even
-	 * when a sibling claims the rest of the row. Consumers can still override
-	 * via `className` — e.g. `w-44 flex-none` to pin a fixed slot.
+	 * intrinsic content to size from, so it defaults to growing (sibling
+	 * placeholders share the row) with a size-aware floor. Override via
+	 * `className` (e.g. `w-44 flex-none`) to pin a fixed slot.
 	 */
 	group: {
 		sm: 'flex-1 min-w-16',

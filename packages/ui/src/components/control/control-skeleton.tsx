@@ -3,7 +3,7 @@
 import { cn } from '../../core'
 import { useDensity } from '../../primitives/density'
 import { useJoin } from '../../primitives/join'
-import { kokkaku } from '../../recipes'
+import { k } from '../../recipes/kata/control'
 import { Placeholder } from '../placeholder'
 import type { ControlSize } from './context'
 
@@ -21,9 +21,9 @@ export function ControlSkeleton({ size, className }: ControlSkeletonProps) {
 	return (
 		<Placeholder
 			className={cn(
-				kokkaku.formControl.base,
-				join ? kokkaku.formControl.group[resolvedSize] : kokkaku.formControl.full,
-				kokkaku.formControl.size[resolvedSize],
+				k.skeleton.base,
+				join ? k.skeleton.group[resolvedSize] : k.skeleton.full,
+				k.skeleton.size[resolvedSize],
 				className,
 			)}
 		/>

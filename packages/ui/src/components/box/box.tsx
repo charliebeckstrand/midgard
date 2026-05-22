@@ -2,17 +2,16 @@ import type { Ref } from 'react'
 import { cn } from '../../core'
 import { useDensityNullable } from '../../primitives/density'
 import { Polymorphic, type PolymorphicProps } from '../../primitives/polymorphic'
+import { k } from '../../recipes/kata/box'
 import {
 	type BoxBg,
 	type BoxMargin,
 	type BoxOutline,
 	type BoxPadding,
 	type BoxRadius,
-	bgMap,
 	marginMap,
 	mxMap,
 	myMap,
-	outlineMap,
 	paddingMap,
 	pxMap,
 	pyMap,
@@ -50,9 +49,9 @@ export type BoxProps<Omitted extends PropertyKey = never> = Omit<BoxBaseProps, O
 function resolveOutline(outline: BoxOutline | undefined): string | readonly string[] | undefined {
 	if (!outline) return undefined
 
-	if (outline === true) return outlineMap.default
+	if (outline === true) return k.outline.default
 
-	return outlineMap[outline]
+	return k.outline[outline]
 }
 
 export function Box({
@@ -92,7 +91,7 @@ export function Box({
 				mx !== undefined && mxMap[mx],
 				my !== undefined && myMap[my],
 				radius && radiusMap[radius],
-				bg && bgMap[bg],
+				bg && k.bg[bg],
 				resolveOutline(outline),
 				className,
 			)}

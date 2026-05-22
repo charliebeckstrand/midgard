@@ -1,4 +1,4 @@
-import { hannou, iro, ji, sen } from '..'
+import { hannou, iro, ji, sen, ugoki } from '../kiso'
 
 export const k = {
 	base: 'group/collapse',
@@ -15,4 +15,5 @@ export const k = {
 		...hannou.cursor,
 	],
 	panel: 'overflow-hidden',
+	motion: ugoki.collapse,
 }

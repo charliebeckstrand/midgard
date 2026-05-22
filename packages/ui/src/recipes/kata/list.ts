@@ -1,5 +1,4 @@
-import { hannou, iro, ji, omote, sen } from '..'
-
+import { hannou, iro, ji, omote, sen } from '../kiso'
 export type ListVariant = 'separated' | 'outline' | 'plain' | 'solid'
 
 const rootBase = ['flex flex-col', 'm-0 p-0', 'k-none']

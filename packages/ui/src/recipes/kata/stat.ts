@@ -1,13 +1,7 @@
-import { defineRecipe, iro, ji, type VariantPropsOf } from '..'
+import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { iro, ji } from '../kiso'
 
-export const k = defineRecipe({
-	base: ['flex flex-col justify-center', 'h-full', 'gap-xs'],
-	slots: {
-		description: [ji.sm, ...iro.text.muted],
-	},
-})
-
-export const label = defineRecipe({
+const label = defineRecipe({
 	base: [...iro.text.muted, 'font-medium'],
 	size: {
 		sm: ji.xs,
@@ -17,7 +11,7 @@ export const label = defineRecipe({
 	defaults: { size: 'md' },
 })
 
-export const statValue = defineRecipe({
+const value = defineRecipe({
 	base: ['font-semibold tracking-tight tabular-nums', ...iro.text.default],
 	size: {
 		sm: ji['2xl'],
@@ -27,7 +21,7 @@ export const statValue = defineRecipe({
 	defaults: { size: 'md' },
 })
 
-export const statDelta = defineRecipe({
+const delta = defineRecipe({
 	base: ['inline-flex items-center', ji.sm, 'gap-xs', 'font-medium tabular-nums'],
 	trend: {
 		up: 'text-green-600 dark:text-green-500',
@@ -43,30 +37,43 @@ export const statDelta = defineRecipe({
  * doesn't shift layout. Widths are sensible defaults — caller can override via
  * `className`.
  */
-export const statValuePlaceholder = defineRecipe({
-	base: '',
-	size: {
-		sm: 'h-8 w-16',
-		md: 'h-9 w-20',
-		lg: 'h-10 w-24',
-	},
-	defaults: { size: 'md' },
-})
-
-export const statLabelPlaceholder = defineRecipe({
-	base: '',
-	size: {
-		sm: 'h-4 w-20',
-		md: 'h-5 w-24',
-		lg: 'h-6 w-28',
-	},
-	defaults: { size: 'md' },
-})
-
-export const statPlaceholder = {
+const skeleton = {
+	value: defineRecipe({
+		base: '',
+		size: {
+			sm: 'h-8 w-16',
+			md: 'h-9 w-20',
+			lg: 'h-10 w-24',
+		},
+		defaults: { size: 'md' },
+	}),
+	label: defineRecipe({
+		base: '',
+		size: {
+			sm: 'h-4 w-20',
+			md: 'h-5 w-24',
+			lg: 'h-6 w-28',
+		},
+		defaults: { size: 'md' },
+	}),
 	description: 'h-5 w-20',
 	delta: 'h-5 w-12',
 }
 
-export type StatValueVariants = VariantPropsOf<typeof statValue>
-export type StatDeltaVariants = VariantPropsOf<typeof statDelta>
+export const k = defineRecipe(
+	{
+		base: ['flex flex-col justify-center', 'h-full', 'gap-xs'],
+		slots: {
+			description: [ji.sm, ...iro.text.muted],
+		},
+	},
+	{
+		label,
+		value,
+		delta,
+		skeleton,
+	},
+)
+
+export type StatValueVariants = VariantPropsOf<typeof value>
+export type StatDeltaVariants = VariantPropsOf<typeof delta>

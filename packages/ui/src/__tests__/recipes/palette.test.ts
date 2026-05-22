@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { defineRecipe, palette } from '../../recipes'
+import { defineRecipe, palette } from '../../core/recipe'
 
 describe('palette', () => {
 	it('exposes the matrix unchanged on the returned config', () => {

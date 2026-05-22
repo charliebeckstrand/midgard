@@ -7,7 +7,7 @@ import { createPortal } from 'react-dom'
 import { cn } from '../../core'
 import { useDismissable } from '../../hooks/use-dismissable'
 import { useScrollLock } from '../../hooks/use-scroll-lock'
-import { omote, ugoki } from '../../recipes'
+import { k } from '../../recipes/kata/overlay'
 import { ReducedMotion } from '../reduced-motion'
 import { notifyOverlayOpened } from './overlay-signal'
 
@@ -70,11 +70,10 @@ export function Overlay({
 							{...props}
 						>
 							<motion.div
-								{...ugoki.overlay}
+								{...k.motion}
 								data-slot="overlay-backdrop"
 								className={
-									className ??
-									cn('absolute inset-0', glass ? omote.backdrop.glass : omote.backdrop.base)
+									className ?? cn('absolute inset-0', glass ? k.backdrop.glass : k.backdrop.base)
 								}
 								onClick={outsideClick ? () => onOpenChange(false) : undefined}
 								aria-hidden="true"

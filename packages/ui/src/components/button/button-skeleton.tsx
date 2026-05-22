@@ -2,8 +2,7 @@
 
 import { cn } from '../../core'
 import { useSizeWide } from '../../primitives/density'
-import { kokkaku } from '../../recipes'
-import type { ButtonVariants } from '../../recipes/kata/button'
+import { type ButtonVariants, k } from '../../recipes/kata/button'
 import { Placeholder } from '../placeholder'
 
 export type ButtonSkeletonProps = {
@@ -14,9 +13,5 @@ export type ButtonSkeletonProps = {
 export function ButtonSkeleton({ size, className }: ButtonSkeletonProps) {
 	const resolvedSize = useSizeWide(size)
 
-	return (
-		<Placeholder
-			className={cn(kokkaku.button.base, kokkaku.button.size[resolvedSize], className)}
-		/>
-	)
+	return <Placeholder className={cn(k.skeleton.base, k.skeleton.size[resolvedSize], className)} />
 }

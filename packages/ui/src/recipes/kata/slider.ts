@@ -1,5 +1,8 @@
-import { defineRecipe, hannou, type VariantPropsOf } from '..'
+import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
 import { slider } from '../genkei/slider'
+import { hannou } from '../kiso'
+
+const { color } = slider
 
 export const k = defineRecipe({
 	base: [
@@ -69,7 +72,7 @@ export const k = defineRecipe({
 			'[&::-moz-range-thumb]:size-5',
 		],
 	},
-	color: slider.color,
+	color,
 	defaults: { size: 'md', color: 'blue' },
 })
 

@@ -1,4 +1,4 @@
-import { narabi } from '..'
+import { narabi } from '../kiso'
 
 type Slot = {
 	/** Classes appended after the narabi.panel.* default for this slot. */
@@ -34,12 +34,11 @@ function toArray(v?: string | string[]): string[] {
 /**
  * Factory for defining a panel recipe.
  *
- * The `panel` and (optional) `backdrop` slots are caller-supplied
- * `defineRecipe(...)` results — they carry real variants (size, surface, side)
- * and stay callable so consumers keep `VariantPropsOf<typeof result.panel>`
- * inference. The other slots (title, description, header, body, actions,
- * close) are zero-variant class fragments built from `narabi.panel` plus
- * optional caller-supplied extras; they are returned as `string[]` and
+ * `panel` and (optional) `backdrop` are caller-supplied `defineRecipe(...)`
+ * results — they carry variants (size, surface, side) and stay callable so
+ * consumers keep `VariantPropsOf<typeof result.panel>` inference. The other
+ * slots (title, description, header, body, actions, close) are zero-variant
+ * class fragments built from `narabi.panel` plus optional caller extras,
  * applied via `cn(...)` at the call site.
  */
 export function definePanelRecipe<P, B = undefined>(

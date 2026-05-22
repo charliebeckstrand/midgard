@@ -2,7 +2,7 @@
 
 import { type ReactNode, useCallback, useMemo } from 'react'
 import { cn } from '../../core'
-import { item } from '../../recipes/kata/accordion'
+import { k } from '../../recipes/kata/accordion'
 import { AccordionItemProvider, useAccordion } from './context'
 
 export type AccordionItemProps = {
@@ -36,7 +36,7 @@ export function AccordionItem({
 			<div
 				data-slot="accordion-item"
 				data-open={open || undefined}
-				className={cn(item({ variant: accordion.variant }), className)}
+				className={cn(k.item({ variant: accordion.variant }), className)}
 			>
 				{children}
 			</div>

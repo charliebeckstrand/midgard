@@ -1,42 +1,45 @@
-import { defineRecipe, iro, type VariantPropsOf } from '..'
+import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
 import { control } from '../genkei/control'
+import { iro } from '../kiso'
 
-export const k = defineRecipe({
-	base: [...control.field, 'block', 'rounded-lg'],
-	variant: {
-		default: [],
-		outline: [],
-		glass: [],
+const { input, density, size, resets, surface, affix } = control
+
+export const k = defineRecipe(
+	{
+		base: [...input, 'block', 'rounded-lg'],
+		variant: {
+			default: [],
+			outline: [],
+			glass: [],
+		},
+		density,
+		size,
+		slots: {
+			affix: [
+				'flex items-center min-w-0',
+				'*:data-[slot=icon]:pointer-events-none',
+				...iro.text.muted,
+			],
+			number: resets.number,
+		},
+		defaults: { variant: 'default', density: 'md', size: 'md' },
 	},
-	density: control.density,
-	size: control.size,
-	slots: {
-		affix: [
-			'flex items-center min-w-0',
-			'*:data-[slot=icon]:pointer-events-none',
-			...iro.text.muted,
-		],
-		number: control.resets.number,
+	{
+		inputControl: defineRecipe({
+			variant: {
+				default: surface.default,
+				outline: [],
+				glass: surface.glass,
+			},
+			defaults: { variant: 'default' },
+		}),
+		/** Density-keyed prefix padding for the input affix slot. */
+		prefix: affix.prefix,
+		/** Density-keyed suffix padding for the input affix slot. */
+		suffix: affix.suffix,
+		/** Density-keyed autofill offset compensation. */
+		autofill: affix.autofill,
 	},
-	defaults: { variant: 'default', density: 'md', size: 'md' },
-})
-
-export const inputControl = defineRecipe({
-	variant: {
-		default: control.surface.default,
-		outline: [],
-		glass: control.surface.glass,
-	},
-	defaults: { variant: 'default' },
-})
-
-/** Density-keyed prefix padding for the input affix slot. */
-export const prefix = control.affix.prefix
-
-/** Density-keyed suffix padding for the input affix slot. */
-export const suffix = control.affix.suffix
-
-/** Density-keyed autofill offset compensation. */
-export const autofill = control.affix.autofill
+)
 
 export type InputVariants = VariantPropsOf<typeof k>

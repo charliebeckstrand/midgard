@@ -3,16 +3,15 @@
 import { motion } from 'motion/react'
 import { cn } from '../../core'
 import type { ToastData, ToastPosition, ToastSeverity } from '../../providers/toast/types'
-import { ugoki } from '../../recipes'
 import { k } from '../../recipes/kata/toast'
 import { Alert } from '../alert'
 
 function getToastMotion(position: ToastPosition) {
-	if (position.startsWith('bottom')) return ugoki.toast.bottom
-	if (position.startsWith('top')) return ugoki.toast.top
-	if (position.endsWith('right')) return ugoki.toast.right
+	if (position.startsWith('bottom')) return k.motion.bottom
+	if (position.startsWith('top')) return k.motion.top
+	if (position.endsWith('right')) return k.motion.right
 
-	return ugoki.toast.left
+	return k.motion.left
 }
 
 const severityAlertMap: Record<

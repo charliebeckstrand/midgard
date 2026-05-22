@@ -3,7 +3,7 @@
 import { cn } from '../../core'
 import { ActiveIndicator, useActiveIndicator } from '../../primitives/active-indicator'
 import { Polymorphic, type PolymorphicProps } from '../../primitives/polymorphic'
-import { pageButton } from '../../recipes/kata/pagination'
+import { k } from '../../recipes/kata/pagination'
 
 type PaginationPageBaseProps = {
 	current?: boolean
@@ -29,7 +29,7 @@ export function PaginationPage({
 					dataSlot="pagination-page"
 					href={href}
 					aria-current={current ? 'page' : undefined}
-					className={cn(pageButton({ current }), 'relative z-1', className)}
+					className={cn(k.pageButton({ current }), 'relative z-1', className)}
 					{...props}
 				>
 					{children}

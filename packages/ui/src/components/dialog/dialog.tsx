@@ -6,8 +6,7 @@ import { cn } from '../../core'
 import { useMinWidth } from '../../hooks'
 import { Overlay } from '../../primitives/overlay'
 import { PanelA11yProvider, usePanelA11yScope } from '../../primitives/panel'
-import { ugoki } from '../../recipes'
-import { type DialogPanelVariants, k as dialog } from '../../recipes/kata/dialog'
+import { type DialogPanelVariants, k } from '../../recipes/kata/dialog'
 import { useResolvedSurface } from '../glass/context'
 
 export type DialogProps = DialogPanelVariants & {
@@ -56,12 +55,12 @@ export function Dialog({
 				)}
 			>
 				<motion.div
-					{...(isDesktop ? ugoki.popover : ugoki.panel.bottom)}
+					{...(isDesktop ? k.motion.desktop : k.motion.mobile)}
 					{...panelAriaProps}
 					data-slot="dialog"
 					className={cn(
 						'pointer-events-auto',
-						dialog.panel({ surface: resolvedSurface, size }),
+						k.panel({ surface: resolvedSurface, size }),
 						className,
 					)}
 				>

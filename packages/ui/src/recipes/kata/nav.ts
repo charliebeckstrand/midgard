@@ -1,5 +1,4 @@
-import { hannou, ji } from '..'
-
+import { hannou, ji } from '../kiso'
 export const k = {
 	list: {
 		base: 'flex',

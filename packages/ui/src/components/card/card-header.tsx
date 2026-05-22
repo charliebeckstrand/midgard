@@ -4,7 +4,7 @@ import { cn } from '../../core'
 import type { SlotProps } from '../../core/create-slot'
 import { useDensity } from '../../primitives/density'
 import type { Step } from '../../recipes'
-import { iro } from '../../recipes'
+import { k } from '../../recipes/kata/card'
 
 export type CardHeaderProps = SlotProps<'div'>
 
@@ -18,10 +18,6 @@ export function CardHeader({ className, ...props }: CardHeaderProps) {
 	const { density } = useDensity()
 
 	return (
-		<div
-			data-slot="card-header"
-			className={cn(padding[density], iro.text.default, className)}
-			{...props}
-		/>
+		<div data-slot="card-header" className={cn(padding[density], k.header, className)} {...props} />
 	)
 }

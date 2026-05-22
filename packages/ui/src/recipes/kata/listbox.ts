@@ -1,31 +1,41 @@
-import { defineRecipe, hannou, type VariantPropsOf } from '..'
+import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
 import { control } from '../genkei/control'
+import { popover } from '../genkei/popover'
+import { hannou, iro } from '../kiso'
 
-export const k = defineRecipe({
-	base: [
-		'flex items-center',
-		'w-full',
-		'text-left',
-		...control.field,
-		'rounded-lg',
-		'appearance-none',
-		...hannou.cursor,
-	],
-	density: control.density,
-	size: control.size,
-	slots: {
-		options: 'max-h-60',
-		panel: 'relative min-w-full',
-	},
-	defaults: { density: 'md', size: 'md' },
-})
+const { input, density, size } = control
+const { portal } = popover
 
-export const value = defineRecipe({
-	truncate: {
-		true: 'flex-1 min-w-0 truncate',
-		false: '',
+export const k = defineRecipe(
+	{
+		base: [
+			'flex items-center',
+			'w-full',
+			'text-left',
+			...input,
+			'rounded-lg',
+			'appearance-none',
+			...hannou.cursor,
+		],
+		density,
+		size,
+		slots: {
+			options: 'max-h-60',
+			panel: 'relative min-w-full',
+		},
+		defaults: { density: 'md', size: 'md' },
 	},
-	defaults: { truncate: true },
-})
+	{
+		value: defineRecipe({
+			truncate: {
+				true: 'flex-1 min-w-0 truncate',
+				false: '',
+			},
+			defaults: { truncate: true },
+		}),
+		portal,
+		placeholder: iro.text.muted,
+	},
+)
 
 export type ListboxVariants = VariantPropsOf<typeof k>

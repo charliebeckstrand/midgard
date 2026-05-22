@@ -4,7 +4,6 @@ import { AnimatePresence, motion } from 'motion/react'
 import type { ReactNode } from 'react'
 import { cn } from '../../core/cn'
 import { ReducedMotion } from '../../primitives/reduced-motion'
-import { ugoki } from '../../recipes'
 import { k } from '../../recipes/kata/collapse'
 import { useCollapseContext } from './context'
 
@@ -39,7 +38,7 @@ export function CollapsePanel({ children, className }: CollapsePanelProps) {
 						id={panelId}
 						aria-labelledby={triggerId}
 						data-slot="collapse-panel"
-						{...ugoki.collapse[variant]}
+						{...k.motion[variant]}
 						className={cn(k.panel, className)}
 					>
 						{children}

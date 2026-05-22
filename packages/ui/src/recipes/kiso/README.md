@@ -4,18 +4,23 @@ Substrate tokens. One file per concern.
 
 ## Boundary
 
-`kiso/` is the only recipe layer with a public surface. Every export
-in `src/recipes/kiso/index.ts` is re-exported from
-`src/recipes/index.ts` and ships through the package's `exports`.
-[`genkei/`](../genkei/README.md), [`kata/`](../kata/README.md), and
-components compose freely from kiso.
+`kiso/` is internal — its values are consumed only by `genkei/`,
+`kata/`, and `layouts/*/variants.ts`. Components and primitives reach
+kiso through their owning kata (`recipes/kata/<name>`). Foundational types
+(`Step`, `SunStep`, `Ma`, `Ji`, `Color`, `GroupOrientation`,
+`GroupPosition`) flow through the types-only `recipes` barrel so
+consumers can derive prop unions without threading the type through
+their funnel.
 
 Composition flows downward only. Modules may import siblings —
 `narabi` reads `iro` · `ji` · `sen` · `shaku`, `hannou` reads the
 same plus `ugoki`, `omote` reads `iro` · `sen`, `kokkaku` reads
 `shaku` — but never reach upward into `genkei/` or `kata/`. The
 contract is pinned by
-`src/__tests__/recipes/boundary/recipe-boundary.test.ts`.
+`src/__tests__/recipes/boundary/recipe-boundary.test.ts`,
+`src/__tests__/components/boundary/component-recipe-boundary.test.ts`,
+and
+`src/__tests__/primitives/boundary/primitive-recipe-boundary.test.ts`.
 
 ## Shape
 

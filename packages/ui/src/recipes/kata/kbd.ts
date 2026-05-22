@@ -1,5 +1,5 @@
-import { defineRecipe, shaku, type VariantPropsOf } from '..'
-
+import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { shaku } from '../kiso'
 export const k = defineRecipe({
 	base: ['inline-flex items-center justify-center', ...shaku.mark.base],
 	size: shaku.mark.size,

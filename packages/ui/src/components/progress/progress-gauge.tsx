@@ -5,17 +5,11 @@ import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { useSizeWide } from '../../primitives/density'
 import { ReducedMotion } from '../../primitives/reduced-motion'
-import {
-	k,
-	type ProgressGaugeVariants,
-	color as progressColor,
-	progressGauge,
-	progressGaugeLabel,
-} from '../../recipes/kata/progress'
+import { k, type ProgressGaugeVariants } from '../../recipes/kata/progress'
 import { clamp, pct } from '../../utilities'
 import { GAUGE_VIEW_BOX } from './progress-gauge-constants'
 
-type ProgressColor = keyof typeof progressColor
+type ProgressColor = keyof typeof k.color
 
 // A progressbar role needs an accessible name; require one of these at the type
 // level so consumers can't ship an unlabeled gauge.
@@ -61,7 +55,7 @@ export function ProgressGauge({
 			aria-valuemin={0}
 			aria-valuemax={max}
 			{...labelProps}
-			className={cn(progressGauge({ size: resolvedSize }), className)}
+			className={cn(k.gauge.root({ size: resolvedSize }), className)}
 		>
 			<ReducedMotion>
 				<svg
@@ -76,7 +70,7 @@ export function ProgressGauge({
 						r={radius}
 						fill="none"
 						strokeWidth={strokeWidth}
-						className={cn(k.trackStroke)}
+						className={cn(k.gauge.track)}
 						strokeLinecap="round"
 					/>
 
@@ -89,7 +83,7 @@ export function ProgressGauge({
 						strokeWidth={strokeWidth}
 						strokeLinecap="round"
 						strokeDasharray={circumference}
-						className={cn(progressColor[color].stroke)}
+						className={cn(k.color[color].stroke)}
 						initial={{ strokeDashoffset: circumference }}
 						animate={{ strokeDashoffset: offset }}
 						transition={{ type: 'spring', stiffness: 100, damping: 20 }}
@@ -98,7 +92,7 @@ export function ProgressGauge({
 			</ReducedMotion>
 
 			{resolvedLabel != null && (
-				<span className={progressGaugeLabel({ size: resolvedSize })}>{resolvedLabel}</span>
+				<span className={k.gauge.label({ size: resolvedSize })}>{resolvedLabel}</span>
 			)}
 		</div>
 	)

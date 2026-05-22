@@ -6,8 +6,7 @@ import { ControlFrame } from '../../primitives/control'
 import { densityPresets, useDensity } from '../../primitives/density'
 import { useSkeleton } from '../../providers/skeleton'
 import type { Step } from '../../recipes'
-import { kokkaku } from '../../recipes'
-import { k, type TextareaVariants, textareaControl } from '../../recipes/kata/textarea'
+import { k, type TextareaVariants } from '../../recipes/kata/textarea'
 import { useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
 import { useFormText } from '../form/context'
@@ -61,7 +60,7 @@ export function Textarea({
 	if (useSkeleton()) {
 		return (
 			<Placeholder
-				className={cn(kokkaku.textarea.base, className)}
+				className={cn(k.skeleton.base, className)}
 				style={{ height: `calc(${rows}lh + 1rem)` }}
 			/>
 		)
@@ -88,7 +87,7 @@ export function Textarea({
 
 	return (
 		<ControlFrame
-			className={cn(hasActions && k.frame, textareaControl({ variant: resolvedVariant }))}
+			className={cn(hasActions && k.frame, k.textareaControl({ variant: resolvedVariant }))}
 		>
 			<textarea
 				data-slot="textarea"

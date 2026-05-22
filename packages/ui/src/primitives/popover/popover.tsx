@@ -4,8 +4,7 @@ import { motion } from 'motion/react'
 import { type KeyboardEventHandler, type ReactNode, useLayoutEffect, useRef } from 'react'
 import { cn } from '../../core'
 import { useRoving, useScrollWithin } from '../../hooks'
-import { omote, sen, ugoki } from '../../recipes'
-import { popover } from '../../recipes/genkei/popover'
+import { k } from '../../recipes/kata/popover'
 import { ReducedMotion } from '../reduced-motion'
 
 export function PopoverPanel({
@@ -56,14 +55,14 @@ export function PopoverPanel({
 				data-slot="popover-panel"
 				role={role}
 				tabIndex={-1}
-				{...ugoki.popover}
+				{...k.panel.motion}
 				onKeyDown={(e) => {
 					handleKeyDown(e)
 					onKeyDownProp?.(e)
 				}}
 				className={cn(
-					glass ? ['group/glass', omote.glass, sen.ring] : omote.popover,
-					popover.panel,
+					glass ? ['group/glass', k.panel.glass, k.panel.ring] : k.panel.surface,
+					k.panel.base,
 					className,
 				)}
 			>
