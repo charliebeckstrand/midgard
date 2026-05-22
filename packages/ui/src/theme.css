@@ -10,9 +10,9 @@
 	--ui-radius-ratio: 0.22;
 }
 
-/* radius-N — pixel-perfect rounded-corner utility for an element whose
-   effective height is `--spacing(N)`. The radius scales with the active
-   ratio so every size step renders at the same proportion. */
+/* radius-N — rounded-corner utility for an element of height `--spacing(N)`.
+   Border radius scales with `--ui-radius-ratio`, so every size step renders
+   at the same `radius / height` proportion. */
 @utility radius-* {
 	border-radius: calc(--spacing(--value(integer)) * var(--ui-radius-ratio));
 }
