@@ -26,26 +26,15 @@ export const [PanelA11yProvider, usePanelA11y] = createContext<PanelA11yContextV
 	default: {},
 })
 
-function useTitleRegistration() {
-	const [hasTitle, setHasTitle] = useState(false)
+function useSlotRegistration() {
+	const [present, setPresent] = useState(false)
 
-	const registerTitle = useCallback(() => {
-		setHasTitle(true)
-		return () => setHasTitle(false)
+	const register = useCallback(() => {
+		setPresent(true)
+		return () => setPresent(false)
 	}, [])
 
-	return { hasTitle, registerTitle }
-}
-
-function useDescriptionRegistration() {
-	const [hasDescription, setHasDescription] = useState(false)
-
-	const registerDescription = useCallback(() => {
-		setHasDescription(true)
-		return () => setHasDescription(false)
-	}, [])
-
-	return { hasDescription, registerDescription }
+	return [present, register] as const
 }
 
 /**
@@ -61,8 +50,8 @@ export function usePanelA11yScope() {
 	const titleId = scope.sub('title')
 	const descriptionId = scope.sub('description')
 
-	const { hasTitle, registerTitle } = useTitleRegistration()
-	const { hasDescription, registerDescription } = useDescriptionRegistration()
+	const [hasTitle, registerTitle] = useSlotRegistration()
+	const [hasDescription, registerDescription] = useSlotRegistration()
 
 	const panelAriaProps = {
 		role: 'dialog' as const,
