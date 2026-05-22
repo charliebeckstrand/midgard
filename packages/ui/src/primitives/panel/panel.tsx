@@ -87,7 +87,7 @@ type PanelSlots = {
 	actions?: string | string[]
 }
 
-export function createPanel(prefix: string, slots?: PanelSlots) {
+export function createPanel(slotPrefix: string, slots?: PanelSlots) {
 	const titleCls = slots?.title ?? DEFAULT_TITLE
 	const descriptionCls = slots?.description ?? DEFAULT_DESCRIPTION
 	const bodyCls = slots?.body ?? DEFAULT_BODY
@@ -101,7 +101,7 @@ export function createPanel(prefix: string, slots?: PanelSlots) {
 		return (
 			<h2
 				id={id ?? titleId}
-				data-slot={`${prefix}-title`}
+				data-slot={`${slotPrefix}-title`}
 				className={cn(titleCls, className)}
 				{...props}
 			/>
@@ -116,7 +116,7 @@ export function createPanel(prefix: string, slots?: PanelSlots) {
 		return (
 			<p
 				id={id ?? descriptionId}
-				data-slot={`${prefix}-description`}
+				data-slot={`${slotPrefix}-description`}
 				className={cn(descriptionCls, className)}
 				{...props}
 			/>
@@ -124,11 +124,13 @@ export function createPanel(prefix: string, slots?: PanelSlots) {
 	}
 
 	function Body({ className, ...props }: PanelBodyProps) {
-		return <div data-slot={`${prefix}-body`} className={cn(bodyCls, className)} {...props} />
+		return <div data-slot={`${slotPrefix}-body`} className={cn(bodyCls, className)} {...props} />
 	}
 
 	function Actions({ className, ...props }: PanelActionsProps) {
-		return <div data-slot={`${prefix}-actions`} className={cn(actionsCls, className)} {...props} />
+		return (
+			<div data-slot={`${slotPrefix}-actions`} className={cn(actionsCls, className)} {...props} />
+		)
 	}
 
 	return { Title, Description, Body, Actions }
