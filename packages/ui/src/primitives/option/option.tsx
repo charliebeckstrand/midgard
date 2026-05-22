@@ -91,8 +91,8 @@ export function OptionDescription({
 	)
 }
 
-export type OptionProps = {
-	value: unknown
+export type OptionProps<TValue = unknown> = {
+	value: TValue
 	disabled?: boolean
 	icon?: ReactNode
 	className?: string
@@ -115,16 +115,16 @@ export type OptionDescriptionProps = ComponentPropsWithoutRef<'span'>
  * cascade. When omitted, the primitive falls back to a static lucide `<Check>`
  * so direct callers still render something sensible.
  */
-export function createSelectOption(config: {
+export function createSelectOption<TValue = unknown>(config: {
 	slotPrefix: string
 	useContext: () => {
-		value: unknown
+		value: TValue | TValue[] | undefined
 		multiple?: boolean
-		onSelect: (value: unknown) => void
+		onSelect: (value: TValue) => void
 	}
 	CheckIcon?: ComponentType
 }) {
-	function Option({ value, disabled, icon, className, children }: OptionProps) {
+	function Option({ value, disabled, icon, className, children }: OptionProps<TValue>) {
 		const { value: selectedValue, multiple, onSelect } = config.useContext()
 
 		const selected =
