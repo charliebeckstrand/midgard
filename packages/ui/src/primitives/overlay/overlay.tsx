@@ -14,7 +14,7 @@ import { notifyOverlayOpened } from './overlay-signal'
 export type OverlayProps = {
 	open: boolean
 	onOpenChange: (open: boolean) => void
-	outsideClick?: boolean
+	dismissOnBackdrop?: boolean
 	glass?: boolean
 	className?: string
 	children: ReactNode
@@ -32,7 +32,7 @@ export type OverlayProps = {
 export function Overlay({
 	open,
 	onOpenChange,
-	outsideClick = true,
+	dismissOnBackdrop = true,
 	glass,
 	className,
 	children,
@@ -75,7 +75,7 @@ export function Overlay({
 								className={
 									className ?? cn('absolute inset-0', glass ? k.backdrop.glass : k.backdrop.base)
 								}
-								onClick={outsideClick ? () => onOpenChange(false) : undefined}
+								onClick={dismissOnBackdrop ? () => onOpenChange(false) : undefined}
 								aria-hidden="true"
 							/>
 							{children}
