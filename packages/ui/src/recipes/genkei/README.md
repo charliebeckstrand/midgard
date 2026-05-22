@@ -48,10 +48,6 @@ This mirrors how kata's single `k` export works for components and
 primitives (1:1, so a single name is enough) and acknowledges that
 genkei is the many-to-many sharing layer.
 
-The `definePanelRecipe` factory (in `genkei/panel.ts`) is a recipe
-builder, not a fragment surface — it stays a named export alongside
-the slot surface so kata can call it during recipe construction.
-
 ## Wire format
 
 Every value on a genkei export is a class fragment (`string[]`) or a
@@ -61,10 +57,6 @@ surface, where the variants axis is declared.
 
 A single wire format lets any kata compose any genkei export with no
 translation between fragment-arrays and `defineRecipe()`-callables.
-The panel family preserves `VariantProps<typeof X>` inference via
-the `definePanelRecipe` factory: callers pass their `defineRecipe()`
-results as generics, and the factory forwards them unchanged while
-emitting fragments for the zero-variant slots.
 
 Filenames are `<name>.ts`, matching the module's named export.
 
@@ -74,7 +66,6 @@ Filenames are `<name>.ts`, matching the module's named export.
 | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
 | `control` | Field archetype: frame + surface + field reset + size + icon + affix + resets + check. Composes `kasane` for the chrome.                                                                                                               | `input`, `textarea`, `listbox`, `combobox`, `date-picker`, `checkbox`, `radio`, `switch`, `control` (ControlFrame primitive). |
 | `kasane`  | The signature 4-layer chrome (inset / hover / focus / validation rings).                                                                                                                                                               | `genkei/control` (internal).                                                                                |
-| `panel`   | Floating panel archetype — the `definePanelRecipe` factory that builds title / description / header / body / actions / close slot recipes around the caller's `panel` (and optional `backdrop`) `defineRecipe()` recipes. Backed by `narabi.panel`. | `dialog`, `drawer`, `sheet`.                                                                              |
 | `popover` | Floating overlay archetype — shared `trigger` / `portal` / `panel` fragments plus motion / surface / glass / ring class fragments for any kata that pops a floating panel anchored to a trigger.                                       | `popover`, `combobox`, `listbox`, `date-picker`.                                                          |
 | `segment` | Segmented-control archetype — `control` / `item` size maps plus `indicator` colour fragments shared by the standalone `<Segment>` and `<Tabs variant="segment">`.                                                                      | `segment`, `tabs`.                                                                                        |
 | `slider`  | Slider palette — the `--slider-fill` / `--slider-track` CSS-variable bundle per colour. Promoted because both kata read the same variables despite painting through different selector surfaces (native pseudo vs custom DOM).         | `slider`, `slider-range`.                                                                                 |

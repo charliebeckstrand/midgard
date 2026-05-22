@@ -17,7 +17,13 @@ import { iro } from '../kiso'
 
 const { trigger, portal, panel } = popoverFragments
 
-type PopoverConfig = {
+/**
+ * Per-call configuration for the popover applicator. Popover has no
+ * variant axis (the bundle is class fragments, not a `defineRecipe(...)`
+ * callable), so this is the popover analogue of the `…Variants` prop
+ * union the recipe-shaped applicators expose.
+ */
+export type PopoverConfig = {
 	/** Text fragment applied inside the panel. Defaults to `iro.text.default`. */
 	text?: ClassValue
 }
