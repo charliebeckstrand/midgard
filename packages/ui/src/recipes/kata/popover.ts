@@ -1,11 +1,3 @@
-import { popover } from '../genkei/popover'
-import { iro } from '../kiso'
+import { popover } from '../katakana'
 
-const { trigger, portal, panel } = popover
-
-export const k = {
-	trigger,
-	portal,
-	text: iro.text.default,
-	panel,
-}
+export const k = popover()

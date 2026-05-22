@@ -18,49 +18,111 @@
 
 import type { ClassValue } from 'clsx'
 
-import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, type Recipe, type VariantAxis, type VariantPropsOf } from '../../core/recipe'
 import { control } from '../genkei/control'
 
 const { input, density, size, surface, affix, resets } = control
 
-/** The surface vocabulary every text-input control inherits. */
-type Surface = 'default' | 'outline' | 'glass'
-
-type ControlInput<Slots extends Record<string, ClassValue>> = {
+type ControlInput<
+	Slots extends Record<string, ClassValue>,
+	Axes extends Record<string, VariantAxis>,
+> = {
 	/** Extra classes appended to the control frame base. */
 	base?: ClassValue
 	/** Border-radius for the frame. Defaults to `rounded-lg`. */
 	rounded?: ClassValue
+	/**
+	 * Extra variant axes beyond the auto-wired `variant` / `density` / `size`.
+	 * `textarea` uses this for `resize` and `autoResize`. Reserved keys
+	 * (`variant`, `density`, `size`, `base`, `slots`, `defaults`, …) collide;
+	 * the engine throws on duplicate axis declarations.
+	 */
+	axes?: Axes
 	/** Kata-defined slots. `number` is auto-wired and need not be redeclared. */
 	slots?: Slots
-	/** Defaults for the variant / density / size axes. */
-	defaults?: {
-		variant?: Surface
-		density?: 'sm' | 'md' | 'lg'
-		size?: 'sm' | 'md' | 'lg'
-	}
+	/** Defaults for the variant / density / size axes plus any extra axes the kata declared. */
+	defaults?: Record<string, string | number | boolean>
 }
+
+/**
+ * The shape `control(...)` returns. Explicit so TypeScript preserves the
+ * caller's Slots / Axes / Extras keys through the engine's `defineRecipe`
+ * inference — without this, generic spreads (`...cfg.slots`, `...cfg.axes`,
+ * `...extras`) collapse to their constraint and consumers can't index into
+ * their own slots. The intersection here mirrors what `defineRecipe(config,
+ * extras)` returns at runtime: the recipe is callable on the merged variant
+ * axes, the slots merge `number` with the caller's `Slots`, and the
+ * `inputControl` / `prefix` / `suffix` / `autofill` extras stack with the
+ * caller's `Extras`.
+ */
+// Type-level "no extra keys" marker. `keyof Empty = never`, which the `Merge`
+// gate below relies on to fold to `Base` when the caller declares no axes /
+// slots / extras. Biome's suggested replacements (`object`, `unknown`,
+// `Record<keyof any, never>`) all have a non-empty keyof and would break the
+// gate, so the empty object literal type is the right primitive here.
+// biome-ignore lint/complexity/noBannedTypes: see comment above.
+type Empty = {}
+
+// Conditional intersection. A naive `Base & Add` with the empty-default
+// would leak the constraint's wide index signature into the result type,
+// which collides with the engine's `AxesOf` / slot mapped types and poisons
+// consumer prop unions (every string axis resolves to `boolean`). Only fold
+// the caller's generic into the result when it actually carries keys.
+type Merge<Base, Add> = [keyof Add] extends [never] ? Base : Base & Add
+
+type BaseControlConfig<Slots extends Record<string, ClassValue>> = {
+	base: ClassValue
+	variant: { default: ClassValue; outline: ClassValue; glass: ClassValue }
+	density: typeof density
+	size: typeof size
+	slots: Merge<{ number: ClassValue }, Slots>
+	defaults: Record<string, string | number | boolean>
+}
+
+type StandardExtras = {
+	inputControl: Recipe<{
+		variant: { default: ClassValue; outline: ClassValue; glass: ClassValue }
+		defaults: { variant: 'default' }
+	}>
+	prefix: typeof affix.prefix
+	suffix: typeof affix.suffix
+	autofill: typeof affix.autofill
+}
+
+type ControlReturn<
+	Slots extends Record<string, ClassValue>,
+	Axes extends Record<string, VariantAxis>,
+	Extras extends Record<string, unknown>,
+> = Recipe<Merge<BaseControlConfig<Slots>, Axes>> & Merge<StandardExtras, Extras>
 
 /**
  * Build the kata `k` surface for a text-input control.
  *
  * The returned recipe:
- *   - is callable as `k({ variant, density, size })` — outer frame classes
+ *   - is callable as `k({ variant, density, size, …extraAxes })` — outer frame classes
  *   - exposes `k.number` and any caller-defined slots as direct strings
  *   - exposes `k.inputControl({ variant })` — surface recipe for the inner
  *     `<input>` element (`default` paints surface.default, `glass` paints
  *     surface.glass, `outline` is empty so kata can layer borders)
  *   - exposes `k.prefix` / `k.suffix` / `k.autofill` — density-keyed
  *     affix-padding tables read by the component
+ *
+ * `extras` (second argument) mirrors `defineRecipe`'s extras slot — kata
+ * use it to attach kata-specific siblings (`skeleton`, `motion`, custom
+ * sub-recipes) alongside the applicator's standard wires.
  */
-export function control_<Slots extends Record<string, ClassValue> = Record<string, never>>(
-	cfg: ControlInput<Slots> = {},
-) {
+export function control_<
+	// Defaults pin to the empty-keyof marker so the `Merge` gates fold cleanly
+	// when the caller declares no axes / slots / extras.
+	Slots extends Record<string, ClassValue> = Empty,
+	Axes extends Record<string, VariantAxis> = Empty,
+	Extras extends Record<string, unknown> = Empty,
+>(cfg: ControlInput<Slots, Axes> = {}, extras?: Extras): ControlReturn<Slots, Axes, Extras> {
 	const rounded = cfg.rounded ?? 'rounded-lg'
 
-	const callerBase: ClassValue[] = cfg.base === undefined ? [] : [cfg.base]
+	const callerBase = cfg.base === undefined ? [] : [cfg.base]
 
-	const main = defineRecipe(
+	return defineRecipe(
 		{
 			base: [...input, rounded, ...callerBase],
 			variant: {
@@ -70,9 +132,10 @@ export function control_<Slots extends Record<string, ClassValue> = Record<strin
 			},
 			density,
 			size,
+			...cfg.axes,
 			slots: {
 				number: resets.number,
-				...(cfg.slots ?? ({} as Slots)),
+				...cfg.slots,
 			},
 			defaults: {
 				variant: 'default',
@@ -93,10 +156,9 @@ export function control_<Slots extends Record<string, ClassValue> = Record<strin
 			prefix: affix.prefix,
 			suffix: affix.suffix,
 			autofill: affix.autofill,
+			...extras,
 		},
-	)
-
-	return main
+	) as ControlReturn<Slots, Axes, Extras>
 }
 
 // `control` is also the name of the const in `genkei/control`. While both
@@ -105,5 +167,13 @@ export function control_<Slots extends Record<string, ClassValue> = Record<strin
 // way out so kata sites read `control({ … })`.
 export { control_ as control }
 
-/** Prop union of the outer-frame recipe — the shape a kata's main `k({…})` accepts. */
-export type ControlVariants = VariantPropsOf<ReturnType<typeof control_>>
+/**
+ * Prop union of the outer-frame recipe when the kata declares no extra axes.
+ * Kata that add extra axes (e.g. `textarea`'s `resize`) derive their own
+ * variant type via `VariantPropsOf<typeof k>`.
+ *
+ * Pinned to the empty-generic shape because `ReturnType<typeof control_>`
+ * widens each generic to its constraint, which yields a polluted prop union
+ * (every string axis resolves to `boolean | undefined`).
+ */
+export type ControlVariants = VariantPropsOf<ControlReturn<Empty, Empty, Empty>>

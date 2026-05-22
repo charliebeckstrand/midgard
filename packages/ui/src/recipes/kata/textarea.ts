@@ -1,34 +1,17 @@
-import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
-import { control } from '../genkei/control'
+import { control, type VariantPropsOf } from '../katakana'
 import { kokkaku, sen } from '../kiso'
 
-const { input, density, size, surface } = control
-
-const textareaControl = defineRecipe({
-	variant: {
-		default: surface.default,
-		outline: [],
-		glass: surface.glass,
-	},
-	defaults: { variant: 'default' },
-})
-
-export const k = defineRecipe(
+export const k = control(
 	{
-		base: ['block', ...input, 'rounded-lg', 'min-h-10'],
-		variant: {
-			default: [],
-			outline: [],
-			glass: [],
+		base: ['block', 'min-h-10'],
+		axes: {
+			resize: {
+				none: 'resize-none',
+				vertical: 'resize-y',
+				horizontal: 'resize-x',
+			},
+			autoResize: { true: 'field-sizing-content', false: '' },
 		},
-		density,
-		size,
-		resize: {
-			none: 'resize-none',
-			vertical: 'resize-y',
-			horizontal: 'resize-x',
-		},
-		autoResize: { true: 'field-sizing-content', false: '' },
 		slots: {
 			/** Strips textarea chrome when nested inside a framed container. */
 			bare: ['border-0', 'rounded-none', 'focus:outline-hidden'],
@@ -37,16 +20,9 @@ export const k = defineRecipe(
 			/** Actions row beneath the textarea. */
 			actions: 'flex items-center mt-auto gap-2 pr-2 pb-2',
 		},
-		defaults: {
-			variant: 'default',
-			density: 'md',
-			size: 'md',
-			resize: 'none',
-			autoResize: false,
-		},
+		defaults: { resize: 'none', autoResize: false },
 	},
 	{
-		textareaControl,
 		skeleton: kokkaku.textarea,
 	},
 )
