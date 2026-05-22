@@ -1,6 +1,5 @@
-import { defineColors, type VariantPropsOf } from '../../core/recipe'
+import { defineColors, defineRecipe, type VariantPropsOf } from '../../core/recipe'
 import { control } from '../genkei/control'
-import { recipe } from '../katakana'
 import { hannou, iro, kokkaku, narabi, sen } from '../kiso'
 
 const { check } = control
@@ -48,7 +47,7 @@ const color = defineColors({
 
 const track = ['bg-zinc-200', 'dark:bg-white/10', ...sen.ringInset]
 
-const field = recipe({
+const field = defineRecipe({
 	base: [...narabi.toggle, '*:data-[slot=control]:row-span-2 *:data-[slot=control]:mt-0'],
 	size: {
 		sm: 'grid-cols-[2rem_1fr]',
@@ -58,7 +57,7 @@ const field = recipe({
 	defaults: { size: 'md' },
 })
 
-export const k = recipe(
+export const k = defineRecipe(
 	{
 		base: [
 			'relative inline-flex shrink-0 items-center',
@@ -96,8 +95,8 @@ export const k = recipe(
 		defaults: { color: 'zinc', size: 'md' },
 	},
 	{
-		input: recipe({ base: check.hidden }),
-		thumb: recipe({
+		input: defineRecipe({ base: check.hidden }),
+		thumb: defineRecipe({
 			base: [
 				'absolute top-1 left-1 inline-block',
 				'bg-white ring-1 ring-zinc-950/5',

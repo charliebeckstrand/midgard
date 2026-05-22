@@ -1,8 +1,8 @@
-import type { VariantPropsOf } from '../../core/recipe'
-import { recipe, segment } from '../katakana'
+import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { segment } from '../katakana'
 import { hannou, iro, ji, sen } from '../kiso'
 
-const list = recipe({
+const list = defineRecipe({
 	base: ['flex', ...sen.borderSubtleColor],
 	orientation: {
 		horizontal: ['gap-4', 'border-b'],
@@ -11,7 +11,7 @@ const list = recipe({
 	defaults: { orientation: 'horizontal' },
 })
 
-const tab = recipe({
+const tab = defineRecipe({
 	base: [
 		'relative flex items-center',
 		'gap-sm',
@@ -45,7 +45,7 @@ const tab = recipe({
 	defaults: { orientation: 'horizontal', size: 'md' },
 })
 
-const indicator = recipe({
+const indicator = defineRecipe({
 	base: ['rounded-full', 'bg-zinc-950', 'dark:bg-white'],
 	orientation: {
 		horizontal: 'inset-x-0 -bottom-px top-auto h-0.5',
