@@ -1,7 +1,7 @@
 export {
 	type ApplicatorOverlay,
 	type ApplicatorReturn,
-	composeRecipe,
+	applyRecipe,
 	type Empty,
 	type Merge,
 } from './applicator'

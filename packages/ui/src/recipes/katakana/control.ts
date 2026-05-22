@@ -21,7 +21,7 @@ import type { ClassValue } from 'clsx'
 import {
 	type ApplicatorOverlay,
 	type ApplicatorReturn,
-	composeRecipe,
+	applyRecipe,
 	defineRecipe,
 	type Empty,
 	type VariantAxis,
@@ -78,17 +78,17 @@ const standardExtras = {
  */
 export function control_<
 	// Defaults pin to `Empty` (the `{}` alias core exports) so the `Merge`
-	// gates inside `composeRecipe` fold cleanly when the kata declares no
+	// gates inside `applyRecipe` fold cleanly when the kata declares no
 	// overlay. Other empty-shaped candidates (`never`, `Record<string, never>`)
 	// either break the gate or leak a wide index signature into the result.
 	Slots extends Record<string, ClassValue> = Empty,
 	Axes extends Record<string, VariantAxis> = Empty,
 	Extras extends Record<string, unknown> = Empty,
 >(
-	cfg: ApplicatorOverlay<Slots, Axes, Extras> = {},
+	config: ApplicatorOverlay<Slots, Axes> = {},
 	extras?: Extras,
 ): ApplicatorReturn<typeof standardConfig, typeof standardExtras, Slots, Axes, Extras> {
-	return composeRecipe({ config: standardConfig, extras: standardExtras }, { ...cfg, extras })
+	return applyRecipe({ config: standardConfig, extras: standardExtras }, config, extras)
 }
 
 // `control` is also the name of the const in `genkei/control`. While both

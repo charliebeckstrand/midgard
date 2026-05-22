@@ -9,9 +9,9 @@
  * call — loses key information at TypeScript's literal-type inference
  * step, leaving consumers unable to index into their own slots / axes.
  *
- * `composeRecipe` absorbs the workaround in one place: explicit return
- * type, conditional intersection that folds the empty-overlay case, and a
- * single cast at the engine boundary.
+ * `applyRecipe` absorbs the workaround in one place: explicit return
+ * type, conditional intersection that folds the empty-overlay case, and
+ * a single cast at the engine boundary.
  *
  * `Empty` and `Merge` are exported so applicator authors can pin a
  * variants type to the empty-overlay shape — e.g.
@@ -46,14 +46,16 @@ export type Empty = {}
 export type Merge<Base, Add> = [keyof Add] extends [never] ? Base : Base & Add
 
 /**
- * The per-call overlay a kata hands an applicator. Mirrors `RecipeConfig`'s
- * reserved keys plus an `axes` slot for extra variant axes the kata
- * declares beyond the archetype's standard set.
+ * The per-call recipe-config overlay a kata hands an applicator. Mirrors
+ * the non-`extras` half of `defineRecipe`'s reserved keys plus an `axes`
+ * slot for extra variant axes the kata declares beyond the archetype's
+ * standard set. Kata-specific siblings (`skeleton`, `motion`, custom
+ * sub-recipes) flow through the applicator's separate `extras` argument,
+ * mirroring `defineRecipe(config, extras)` end-to-end.
  */
 export type ApplicatorOverlay<
 	Slots extends Record<string, ClassValue>,
 	Axes extends Record<string, VariantAxis>,
-	Extras extends Record<string, unknown>,
 > = {
 	/** Extra classes appended to the archetype's standard base. */
 	base?: ClassValue
@@ -63,12 +65,10 @@ export type ApplicatorOverlay<
 	axes?: Axes
 	/** Overrides for the archetype's standard defaults. */
 	defaults?: Record<string, string | number | boolean>
-	/** Extra extras merged with the archetype's standard extras. */
-	extras?: Extras
 }
 
 /**
- * The shape `composeRecipe(...)` returns. Exposed so an applicator can
+ * The shape `applyRecipe(...)` returns. Exposed so an applicator can
  * pin its `Variants` type alias to the empty-overlay case — e.g.
  *
  *   export type ControlVariants = VariantPropsOf<
@@ -95,9 +95,15 @@ export type ApplicatorReturn<
 	Merge<StdExtras, CallerExtras>
 
 /**
- * Compose an archetype's standard config + extras with a kata's per-call
+ * Apply an archetype's standard config + extras over a kata's per-call
  * overlay and forward the union to `defineRecipe`. The applicator pattern,
  * crystallized.
+ *
+ * Signature mirrors `defineRecipe(config, extras)` end-to-end — the
+ * caller's recipe-config overlay flows through `config` (second arg);
+ * kata-specific siblings flow through `extras` (third arg). Standard
+ * pieces live in `std.config` / `std.extras` at the archetype module's
+ * top level.
  *
  * Without this helper, every applicator must hand-roll the type machinery
  * (`Empty`, `Merge`, explicit return-type cast) because TypeScript loses
@@ -118,14 +124,15 @@ export type ApplicatorReturn<
  *     prefix: affix.prefix, suffix: affix.suffix, autofill: affix.autofill,
  *   }
  *
- *   export function control<S, A, E>(cfg = {}, extras?) {
- *     return composeRecipe(
+ *   export function control(config = {}, extras?) {
+ *     return applyRecipe(
  *       { config: standardConfig, extras: standardExtras },
- *       { ...cfg, extras },
+ *       config,
+ *       extras,
  *     )
  *   }
  */
-export function composeRecipe<
+export function applyRecipe<
 	StdConfig extends RecipeConfig,
 	StdExtras extends Record<string, unknown>,
 	CallerSlots extends Record<string, ClassValue> = Empty,
@@ -133,31 +140,32 @@ export function composeRecipe<
 	CallerExtras extends Record<string, unknown> = Empty,
 >(
 	std: { config: StdConfig; extras: StdExtras },
-	caller: ApplicatorOverlay<CallerSlots, CallerAxes, CallerExtras> = {},
+	config: ApplicatorOverlay<CallerSlots, CallerAxes> = {},
+	extras?: CallerExtras,
 ): ApplicatorReturn<StdConfig, StdExtras, CallerSlots, CallerAxes, CallerExtras> {
 	const stdBase = std.config.base
 	const baseArray: ClassValue[] =
 		stdBase === undefined ? [] : Array.isArray(stdBase) ? [...stdBase] : [stdBase]
 
-	if (caller.base !== undefined) baseArray.push(caller.base)
+	if (config.base !== undefined) baseArray.push(config.base)
 
 	const mergedConfig = {
 		...std.config,
-		...caller.axes,
+		...config.axes,
 		base: baseArray,
 		slots: {
 			...std.config.slots,
-			...caller.slots,
+			...config.slots,
 		},
 		defaults: {
 			...std.config.defaults,
-			...caller.defaults,
+			...config.defaults,
 		},
 	}
 
 	const mergedExtras = {
 		...std.extras,
-		...caller.extras,
+		...extras,
 	}
 
 	return defineRecipe(mergedConfig, mergedExtras) as ApplicatorReturn<
