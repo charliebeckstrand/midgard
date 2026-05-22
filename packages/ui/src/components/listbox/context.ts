@@ -5,7 +5,7 @@ import { createContext } from '../../core'
 type ListboxContextValue<T = unknown> = {
 	value: T | T[] | undefined
 	multiple: boolean
-	select: (value: T) => void
+	onSelect: (value: T) => void
 	close: () => void
 }
 

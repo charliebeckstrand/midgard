@@ -110,12 +110,12 @@ export function createSelectOption(config: {
 	useContext: () => {
 		value: unknown
 		multiple?: boolean
-		select: (value: unknown) => void
+		onSelect: (value: unknown) => void
 	}
 	CheckIcon?: ComponentType
 }) {
 	function Option({ value, disabled, icon, className, children }: OptionProps) {
-		const { value: selectedValue, multiple, select } = config.useContext()
+		const { value: selectedValue, multiple, onSelect } = config.useContext()
 
 		const selected =
 			multiple && Array.isArray(selectedValue)
@@ -129,7 +129,7 @@ export function createSelectOption(config: {
 				selected={selected}
 				disabled={disabled}
 				icon={resolvedIcon}
-				onSelect={() => select(value)}
+				onSelect={() => onSelect(value)}
 				data-slot={`${config.slotPrefix}-option`}
 				className={className}
 			>

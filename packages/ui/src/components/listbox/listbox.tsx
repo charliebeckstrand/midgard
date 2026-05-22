@@ -127,7 +127,7 @@ export function Listbox<T>({
 	const label = resolveLabel({ value, displayValue, multiple })
 
 	const contextValue = useMemo(
-		() => ({ value, multiple, select: select as (v: unknown) => void, close }),
+		() => ({ value, multiple, onSelect: select as (v: unknown) => void, close }),
 		[value, multiple, select, close],
 	)
 
