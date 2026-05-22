@@ -9,6 +9,7 @@ import type { CalendarActive, CalendarHandle } from '../calendar'
 import { useControl } from '../control/context'
 import type { DatePickerBaseProps, DatePickerSingleProps } from './date-picker'
 import { addDays, clampDate, formatDate } from './date-picker-utilities'
+import { useDatePickerEscapeFocus } from './use-date-picker-escape-focus'
 import { type FooterButton, useDatePickerKeyboard } from './use-date-picker-keyboard'
 
 export function useDatePickerState({
@@ -33,6 +34,8 @@ export function useDatePickerState({
 	const [open, setOpen] = useState(false)
 
 	const [active, setActive] = useState<CalendarActive | null>(null)
+
+	const triggerRef = useRef<HTMLButtonElement>(null)
 
 	const calendarRef = useRef<CalendarHandle>(null)
 
@@ -115,6 +118,8 @@ export function useDatePickerState({
 		role: 'dialog',
 	})
 
+	useDatePickerEscapeFocus(context, triggerRef)
+
 	const onTriggerKeyDown = useDatePickerKeyboard({
 		disabled,
 		open,
@@ -132,6 +137,7 @@ export function useDatePickerState({
 
 	return {
 		triggerId: scope.id,
+		triggerRef,
 		displayValue: value ? formatDate(value) : '',
 		open,
 		onOpenChange: handleOpenChange,

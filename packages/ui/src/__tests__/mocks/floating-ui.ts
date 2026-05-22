@@ -49,7 +49,11 @@ const floatingUIMock = {
 			floating: { current: null },
 		},
 		floatingStyles: {},
-		context: { open: opts?.open, onOpenChange: opts?.onOpenChange } as MockContext,
+		context: {
+			open: opts?.open,
+			onOpenChange: opts?.onOpenChange,
+			events: { emit: noop, on: noop, off: noop },
+		} as MockContext,
 		x: 0,
 		y: 0,
 		strategy: 'absolute',
