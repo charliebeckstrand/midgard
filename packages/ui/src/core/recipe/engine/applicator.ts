@@ -1,26 +1,25 @@
 /**
- * Applicator helpers — the type-and-runtime machinery the katakana layer
- * needs to wrap `defineRecipe` while preserving caller-side generic typing.
+ * Applicator helpers — the types and runtime the katakana layer uses to
+ * wrap `defineRecipe` without losing caller-side generic typing.
  *
- * An applicator is a function that takes an archetype's standard config /
- * extras and folds in a kata's per-call overlays (extra base classes,
- * extra slots, extra variant axes, extra sub-recipes). The naïve version
- * — spread the caller's generics into a `defineRecipe(config, extras)`
- * call — loses key information at TypeScript's literal-type inference
- * step, leaving consumers unable to index into their own slots / axes.
+ * An applicator takes an archetype's standard config / extras and folds
+ * in a kata's per-call overlays — extra base classes, slots, variant
+ * axes, sub-recipes. Spread the caller's generics straight into a
+ * `defineRecipe(config, extras)` call and TypeScript loses the key types
+ * at the literal-inference step; consumers can't then index into their
+ * own slots or axes.
  *
- * `applyRecipe` absorbs the workaround in one place: explicit return
- * type, conditional intersection that folds the empty-overlay case, and
- * a single cast at the engine boundary. `defineApplicator` is the
- * sugar that bakes an archetype's standard pieces into a ready-to-call
- * applicator function — every `defineRecipe`-wrapping katakana entry
- * collapses to a one-liner declaration.
+ * `applyRecipe` absorbs the workaround in one place — explicit return
+ * type, conditional intersection that folds the empty-overlay case,
+ * single cast at the engine boundary. `defineApplicator` bakes an
+ * archetype's standard pieces into a ready-to-call applicator; every
+ * `defineRecipe`-wrapping katakana entry collapses to a one-liner.
  *
- * Applicator authors derive their archetype's empty-overlay prop union
- * via `VariantPropsOf<ApplicatorReturn<typeof standardConfig, typeof
- * standardExtras>>` — referencing `ApplicatorReturn` directly avoids the
- * `ReturnType<typeof applicator>` widen that yields a constraint-resolved
- * (and therefore polluted) prop union.
+ * Applicator authors derive the empty-overlay prop union via
+ * `VariantPropsOf<ApplicatorReturn<typeof standardConfig, typeof
+ * standardExtras>>`. `ReturnType<typeof applicator>` widens each generic
+ * to its constraint and pollutes the prop union, so reference
+ * `ApplicatorReturn` directly.
  */
 
 import type { ClassValue } from 'clsx'
@@ -29,16 +28,13 @@ import { defineRecipe } from './recipe'
 import type { Recipe, RecipeConfig } from './types'
 
 /**
- * Type-level "no extra keys" marker — the empty mapped type, written as
- * `Record<never, never>` so it isn't `{}` (which biome bans because it
- * accepts any non-nullish value, including primitives).
- *
- * `keyof Empty = never`, which `Merge` relies on to fold to the base when
- * the caller declares no overlay. Biome's officially suggested
- * replacements (`object`, `unknown`, `Record<keyof any, never>`) either
- * widen or carry an index signature that poisons the engine's `AxesOf` /
- * slot mapped types — every string axis would then resolve to
- * `boolean | undefined` in consumer prop unions.
+ * Empty — the empty mapped type. `keyof Empty = never`, which `Merge`
+ * folds against when the caller declares no overlay. Spelled
+ * `Record<never, never>` rather than `{}` because biome bans the latter;
+ * biome's other suggestions (`object`, `unknown`, `Record<keyof any,
+ * never>`) all widen or carry an index signature that poisons the
+ * engine's `AxesOf` and slot mapped types — every string axis would then
+ * resolve to `boolean | undefined` in consumer prop unions.
  */
 type Empty = Record<never, never>
 
@@ -56,17 +52,14 @@ type Merge<Base, Add> = [keyof Add] extends [never] ? Base : Base & Add
 type ReservedField = 'base' | 'palette' | 'compound' | 'slots' | 'defaults'
 
 /**
- * The per-call recipe-config overlay a kata hands an applicator. Mirrors
- * `defineRecipe`'s config shape — extra variant axes are top-level keys
- * (just as `density` / `size` are top-level in `defineRecipe`), not nested
- * under an `axes` field. Kata-specific siblings (`skeleton`, `motion`,
- * custom sub-recipes) flow through the applicator's separate `extras`
- * argument, mirroring `defineRecipe(config, extras)` end-to-end.
- *
- * The shape is `RecipeConfig` itself; the inferred `Overlay` generic at
- * the call site captures the literal (including any caller-declared
- * axes), and `ApplicatorReturn` extracts the pieces it needs via
- * `Omit` / `extends-infer`.
+ * The per-call overlay a kata hands an applicator. Identical to
+ * `RecipeConfig` — extra variant axes are top-level keys (like `density`
+ * / `size` in `defineRecipe`), not nested under an `axes` field.
+ * Kata-specific siblings (`skeleton`, `motion`, sub-recipes) flow
+ * through the applicator's separate `extras` argument, mirroring
+ * `defineRecipe(config, extras)` end-to-end. `ApplicatorReturn` extracts
+ * slots and axes from the inferred `Overlay` via `Omit` and
+ * `extends-infer`.
  */
 type ApplicatorOverlay = RecipeConfig
 
@@ -81,15 +74,16 @@ type SlotsOf<Overlay> = Overlay extends { slots: infer S }
 	: Empty
 
 /**
- * The shape `applyRecipe(...)` returns. Exposed so an applicator can
- * pin its `Variants` type alias to the empty-overlay case — e.g.
+ * The shape `applyRecipe(...)` returns. Applicator authors pin their
+ * archetype's empty-overlay variant type against it directly:
  *
  *   export type ControlVariants = VariantPropsOf<
  *     ApplicatorReturn<typeof standardConfig, typeof standardExtras>
  *   >
  *
- * referencing the type directly avoids the `ReturnType<typeof fn>` widen
- * that yields a constraint-resolved (and therefore polluted) prop union.
+ * `ReturnType<typeof applicator>` widens each generic to its constraint
+ * and pollutes the prop union; `ApplicatorReturn` resolves to the
+ * empty-overlay shape instead.
  */
 export type ApplicatorReturn<
 	StandardConfig extends RecipeConfig,
@@ -107,31 +101,25 @@ export type ApplicatorReturn<
 	Merge<StandardExtras, CallerExtras>
 
 /**
- * Apply an archetype's standard config + extras over a kata's per-call
- * overlay and forward the union to `defineRecipe`. The applicator pattern,
- * crystallized.
+ * Apply an archetype's standard config / extras over a kata's per-call
+ * overlay and forward to `defineRecipe`.
  *
- * Signature mirrors `defineRecipe(config, extras)` end-to-end — the
- * caller's recipe-config overlay flows through `config` (second arg);
- * kata-specific siblings flow through `extras` (third arg). Standard
- * pieces live in `standard.config` / `standard.extras` at the archetype
- * module's top level.
+ * Signature mirrors `defineRecipe(config, extras)` — the caller's
+ * recipe-config overlay flows through `config` (second arg); kata-
+ * specific siblings flow through `extras` (third arg). Standard pieces
+ * live at the archetype module's top level in `standard.config` /
+ * `standard.extras`.
  *
  * Merge semantics:
- *   - `base`: standard's base then caller's base (concatenated).
- *   - `slots`: shallow merge, caller's keys override standard's.
- *   - `defaults`: shallow merge, caller's keys override standard's.
- *   - `palette`: caller's overrides standard's (palettes don't merge —
- *     they replace).
- *   - `compound`: standard's rules then caller's rules (concatenated —
- *     every rule still gets a chance to match).
- *   - variant axes (every other top-level key): shallow merge, caller's
- *     overrides standard's on axis-name conflicts.
- *
- * Without this helper, every applicator must hand-roll the type machinery
- * (`Empty`, `Merge`, explicit return-type cast) because TypeScript loses
- * generic key information through the spread inference into `defineRecipe`'s
- * `C` parameter.
+ *   - `base` — standard's then caller's, concatenated.
+ *   - `slots` — shallow merge; caller's keys override.
+ *   - `defaults` — shallow merge; caller's keys override.
+ *   - `palette` — caller's overrides standard's; palettes replace, they
+ *     don't merge.
+ *   - `compound` — standard's then caller's, concatenated; every rule
+ *     still gets a chance to match.
+ *   - variant axes (every other top-level key) — shallow merge; caller's
+ *     overrides on axis-name conflicts.
  *
  * Prefer `defineApplicator(standard)` for the common `(config, extras)`
  * signature; reach for `applyRecipe` directly only when an applicator
@@ -199,13 +187,11 @@ export function applyRecipe<
 }
 
 /**
- * Bake an archetype's standard config + extras into a ready-to-call
- * applicator function. The returned function is the public surface a kata
- * imports from `katakana/<archetype>`.
- *
- * Equivalent to a thin wrapper around `applyRecipe`, but collapses the
- * generic-forwarding boilerplate every `defineRecipe`-wrapping applicator
- * would otherwise repeat.
+ * Bake an archetype's standard config / extras into a ready-to-call
+ * applicator. The returned function is the public surface a kata imports
+ * from `katakana/<archetype>`. Thin wrapper around `applyRecipe` that
+ * hides the generic-forwarding boilerplate every `defineRecipe`-wrapping
+ * applicator would otherwise repeat.
  *
  * @example
  *   const standardConfig = { … }

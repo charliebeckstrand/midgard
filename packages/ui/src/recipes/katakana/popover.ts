@@ -1,13 +1,13 @@
 /**
  * Popover applicator — floating-overlay archetype shared by `popover`,
- * `combobox`, `listbox`, and `date-picker`. Returns the trigger / portal /
- * text / panel bundle the consumers read.
+ * `combobox`, `listbox`, and `date-picker`. Returns the trigger / portal
+ * / text / panel bundle the consumers read.
  *
  * Popover has no variant axis — the bundle is class fragments, not a
- * `defineRecipe(...)` callable — so the applicator doesn't fit
- * `defineApplicator`'s shape and hand-rolls instead. It assembles the
- * bundle and lets the kata override the `text` fragment (the only
- * fragment that varies across consumers today).
+ * `defineRecipe(...)` callable — so the applicator hand-rolls instead of
+ * routing through `defineApplicator`. It assembles the bundle and lets
+ * the kata override the `text` fragment, the only fragment that varies
+ * across consumers today.
  */
 
 import type { ClassValue } from 'clsx'

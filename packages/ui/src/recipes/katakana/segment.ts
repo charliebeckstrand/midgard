@@ -1,12 +1,10 @@
 /**
  * Segment applicator — segmented-control archetype shared by `<Segment>`
- * (standalone) and `<Tabs variant="segment">`. Returns the control / item
- * recipe pair plus the indicator fragment.
+ * (standalone) and `<Tabs variant="segment">`.
  *
- * Unlike `control` / `check`, segment isn't a single `defineRecipe` wrap —
- * it's a two-recipe bundle (control wraps the outer chrome; item wraps
- * each segment), so it doesn't go through `defineApplicator`. The bundle
- * pattern mirrors `popover`.
+ * Two `defineRecipe` calls wrapped in a bundle: `control` for the outer
+ * chrome, `item` for each segment. The two-recipe shape doesn't fit
+ * `defineApplicator`, so segment hand-rolls — same pattern as `popover`.
  *
  * Returns the kata `k` surface:
  *   - `control` — outer chrome recipe, callable as `control({ size })`

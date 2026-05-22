@@ -1,19 +1,18 @@
 /**
  * Panel applicator — slot bundle shared by `dialog`, `drawer`, and
- * `sheet`. Each kata's panel needs its own variant axes (size, surface,
- * side for sheet; surface for drawer; size + surface for dialog), so
- * unlike `control` / `check`, the applicator doesn't own the variant
- * axes — the kata defines them via its own `defineRecipe` call and hands
- * the result to `panel(...)`. The applicator stitches those caller-owned
- * recipes into the standard slot bundle (title / description / header /
- * body / actions / close), composing `narabi.panel` with caller extras.
+ * `sheet`.
  *
- * Panel is one of three archetypes that doesn't fit `defineApplicator`'s
- * shape and hand-rolls instead — popover (no `defineRecipe` calls),
- * segment (two `defineRecipe` calls inside a bundle), and panel
- * (caller-supplied `defineRecipe` results). Each hand-rolls for its own
- * reason; none represent a separate paradigm from the applicator pattern
- * the helper expresses.
+ * Each kata's panel has its own variant axes (size + surface + side for
+ * sheet, surface for drawer, size + surface for dialog), so unlike
+ * `control` / `check`, the applicator doesn't own the variants. The
+ * kata defines them via its own `defineRecipe` call and hands the result
+ * to `panel(...)`, which stitches it into the standard slot bundle
+ * (title / description / header / body / actions / close) by composing
+ * `narabi.panel` with caller extras.
+ *
+ * Like `popover` and `segment`, `panel` doesn't fit `defineApplicator`'s
+ * shape and hand-rolls — see `katakana/index.ts` for how the three
+ * exceptions sit alongside the helper.
  */
 
 import { narabi } from '../kiso'
@@ -55,16 +54,16 @@ function toArray(v?: string | string[]): string[] {
 /**
  * Build the panel slot bundle.
  *
- * `panel` and (optional) `backdrop` are caller-supplied `defineRecipe(...)`
- * results — they carry the kata's variants (size, surface, side, …) and
- * stay callable, so consumers keep `VariantPropsOf<typeof result.panel>`
+ * `panel` and (optional) `backdrop` are caller-supplied
+ * `defineRecipe(...)` results — they carry the kata's variants and stay
+ * callable, so consumers keep `VariantPropsOf<typeof result.panel>`
  * inference. The other slots (title, description, header, body, actions,
  * close) are zero-variant class fragments built from `narabi.panel` plus
  * optional caller extras, applied via `cn(...)` at the call site.
  *
- * The function name `panel` mirrors the field name `input.panel` — the
- * outer call carries parentheses, the inner field carries a colon, so
- * the JS syntax keeps them visually distinct.
+ * The function name `panel` collides visually with the field
+ * `input.panel`; the JS syntax (parens vs colon) keeps them distinct at
+ * call sites.
  */
 export function panel<P, B = undefined>(
 	input: PanelInput<P, B>,
@@ -80,10 +79,9 @@ export function panel<P, B = undefined>(
 } {
 	return {
 		panel: input.panel,
-		// When B defaults to `undefined`, `input.backdrop` is also undefined
-		// and the cast normalises the optional field to match the return
-		// type. When the caller supplies a recipe, B is inferred from the
-		// input and the cast is a no-op.
+		// `B` defaults to `undefined` when the caller omits backdrop; the
+		// cast normalises the optional field to match the return. When B
+		// is inferred from a passed recipe, the cast is a no-op.
 		backdrop: input.backdrop as B,
 		title: [...narabi.panel.title, ...toArray(input.title?.extra)],
 		description: [...narabi.panel.description, ...toArray(input.description?.extra)],

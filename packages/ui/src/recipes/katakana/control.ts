@@ -1,19 +1,20 @@
 /**
  * Control applicator — the text-input branch of the Control family
  * archetype. Covers `input`, `textarea`, `listbox`, `combobox`, and
- * `date-picker` — every kata that frames a user-input element with the
- * library's signature kasane chrome and the `default` / `outline` / `glass`
+ * `date-picker`: kata that frame a user-input element with the library's
+ * signature kasane chrome and the `default` / `outline` / `glass`
  * surface vocabulary.
  *
- * The check-input branch (`checkbox`, `radio`) lives in a sibling `check`
- * applicator; `switch` reads only `check.hidden` and uses `defineRecipe`
- * directly.
+ * The check-input branch (`checkbox`, `radio`) lives in a sibling
+ * `check` applicator; `switch` reads only `check.hidden` and uses
+ * `defineRecipe` directly.
  *
  * Returns a recipe callable as `k({ variant, density, size, …extraAxes })`:
- *   - `k.number` and any caller-defined slots are direct strings.
+ *   - `k.number` and caller-defined slots are direct strings.
  *   - `k.inputControl({ variant })` is the surface recipe for the inner
- *     `<input>` element — `default` paints surface.default, `glass` paints
- *     surface.glass, `outline` is empty so kata can layer borders.
+ *     `<input>` element — `default` paints `surface.default`, `glass`
+ *     paints `surface.glass`, `outline` is empty so kata can layer
+ *     borders.
  *   - `k.prefix` / `k.suffix` / `k.autofill` are density-keyed
  *     affix-padding tables read by the component.
  */
@@ -60,13 +61,13 @@ const standardExtras = {
 export const control = defineApplicator({ config: standardConfig, extras: standardExtras })
 
 /**
- * Prop union of the outer-frame recipe when the kata declares no extra axes.
- * Kata that add extra axes (e.g. `textarea`'s `resize`) derive their own
+ * Prop union of the outer-frame recipe for a kata with no extra axes.
+ * Kata that add axes (e.g. `textarea`'s `resize`) derive their own
  * variant type via `VariantPropsOf<typeof k>`.
  *
- * Pinned via `ApplicatorReturn` rather than `ReturnType<typeof control>`
- * because the latter widens each generic to its constraint, which yields a
- * polluted prop union (every string axis resolves to `boolean | undefined`).
+ * Pinned via `ApplicatorReturn` rather than `ReturnType<typeof control>`:
+ * the latter widens each generic to its constraint and yields a polluted
+ * prop union — every string axis resolves to `boolean | undefined`.
  */
 export type ControlVariants = VariantPropsOf<
 	ApplicatorReturn<typeof standardConfig, typeof standardExtras>
