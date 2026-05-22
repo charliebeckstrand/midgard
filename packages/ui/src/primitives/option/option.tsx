@@ -20,7 +20,17 @@ export type BaseOptionProps = {
 	selected: boolean
 	disabled?: boolean
 	onSelect: () => void
-} & Omit<ComponentPropsWithoutRef<'div'>, 'className' | 'onSelect'>
+} & Omit<
+	ComponentPropsWithoutRef<'div'>,
+	| 'className'
+	| 'onSelect'
+	| 'onClick'
+	| 'onKeyDown'
+	| 'role'
+	| 'aria-selected'
+	| 'aria-disabled'
+	| 'tabIndex'
+>
 
 /** Shared option row for select-like components. */
 export function BaseOption({

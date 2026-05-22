@@ -5,7 +5,7 @@ import { type CurrentContextValue, CurrentProvider } from '../../primitives/curr
 
 export type NavProps = Omit<ComponentPropsWithoutRef<'nav'>, 'onChange'> & {
 	value?: string
-	onValueChange?: (value: string) => void
+	onValueChange?: (value: string | undefined) => void
 }
 
 export function Nav({ value, onValueChange, className, children, ...props }: NavProps) {

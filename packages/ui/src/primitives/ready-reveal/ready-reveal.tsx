@@ -44,6 +44,7 @@ export function ReadyReveal({ ready, placeholder, children, className }: ReadyRe
 					{placeholder}
 				</motion.div>
 				<motion.div
+					aria-hidden={!ready}
 					animate={ready ? VISIBLE : HIDDEN}
 					initial={false}
 					transition={k.transition}
