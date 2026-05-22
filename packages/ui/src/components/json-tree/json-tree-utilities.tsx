@@ -1,5 +1,5 @@
 import { cn } from '../../core'
-import { type JsonValueType, jsonValueColor, k } from '../../recipes/kata/json-tree'
+import { type JsonValueType, k } from '../../recipes/kata/json-tree'
 import type { JsonValue } from './types'
 
 export type Search = string | { value: string; filter?: boolean }
@@ -248,5 +248,5 @@ export function PrimitiveValue({ value }: { value: JsonValue }) {
 
 	const display = value === null ? 'null' : type === 'string' ? `"${value}"` : String(value)
 
-	return <span className={cn(jsonValueColor[type])}>{display}</span>
+	return <span className={cn(k.valueColor[type])}>{display}</span>
 }

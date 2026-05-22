@@ -1,8 +1,8 @@
-import { iro, ji, ugoki } from '..'
+import { iro, ji, ugoki } from '../kiso'
 
 export type JsonValueType = 'string' | 'number' | 'boolean' | 'null' | 'key'
 
-export const jsonValueColor: Record<JsonValueType, readonly string[] | string> = {
+const jsonValueColor: Record<JsonValueType, readonly string[] | string> = {
 	key: ['text-sky-700', 'dark:text-sky-400'],
 	string: ['text-emerald-700', 'dark:text-emerald-400'],
 	number: ['text-amber-700', 'dark:text-amber-400'],
@@ -41,4 +41,6 @@ export const k = {
 	summary: iro.text.muted,
 	group: 'overflow-hidden',
 	highlight: ['bg-amber-100/60', 'dark:bg-amber-500/15', 'rounded-lg'],
+	motion: ugoki.collapse.fade,
+	valueColor: jsonValueColor,
 }

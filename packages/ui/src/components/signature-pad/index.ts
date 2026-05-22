@@ -1,4 +1,3 @@
-export { k as signaturePadVariants } from '../../recipes/kata/signature-pad'
 export {
 	SignaturePad,
 	type SignaturePadHandle,

@@ -1,6 +1,5 @@
-import { defineRecipe, iro, ji, sen, type VariantPropsOf } from '..'
-
-const root = defineRecipe({ base: '' })
+import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { iro, ji, sen } from '../kiso'
 
 const list = defineRecipe({
 	base: ['flex flex-wrap items-center', 'gap-sm', 'break-words', ji.md],
@@ -29,7 +28,6 @@ const separator = defineRecipe({
 })
 
 export const k = {
-	root,
 	list,
 	item,
 	link,

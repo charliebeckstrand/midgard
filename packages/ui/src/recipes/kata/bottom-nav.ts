@@ -1,5 +1,4 @@
-import { hannou, iro, ji, omote, sen } from '..'
-import { tabIndicator } from './tabs'
+import { hannou, iro, ji, omote, sen } from '../kiso'
 
 export const k = {
 	base: [
@@ -21,5 +20,11 @@ export const k = {
 		...hannou.cursor,
 	],
 	current: [iro.text.default],
-	indicator: ['inset-x-4 bottom-auto top-0', 'h-0.5', 'rounded-full', tabIndicator],
+	indicator: [
+		'inset-x-4 bottom-auto top-0',
+		'h-0.5',
+		'rounded-full',
+		'bg-zinc-950',
+		'dark:bg-white',
+	],
 }

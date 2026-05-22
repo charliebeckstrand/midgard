@@ -102,7 +102,7 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 								data-slot="kanban-card"
 								data-card-id={activeId}
 								data-overlay="true"
-								className={cn(k.card, k.cardDraggable, k.cardActive)}
+								className={cn(k.card.base, k.card.draggable, k.card.active)}
 							>
 								{overlayMap.current.get(activeId)}
 							</div>

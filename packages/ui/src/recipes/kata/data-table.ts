@@ -1,5 +1,4 @@
-import { hannou, iro, ji, omote, sen } from '..'
-
+import { hannou, iro, ji, omote, sen } from '../kiso'
 export const k = {
 	wrapper: ['relative flex flex-col', 'gap-sm'],
 	stickyWrapper: 'overflow-auto [&>[data-slot=table]]:!overflow-visible',

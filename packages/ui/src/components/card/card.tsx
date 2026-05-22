@@ -3,7 +3,8 @@
 import { cn } from '../../core'
 import { DensityScope, densityPresets, useDensity } from '../../primitives/density'
 import { useSkeleton } from '../../providers/skeleton'
-import { kokkaku, type Step, sun } from '../../recipes'
+import type { Step } from '../../recipes'
+import { k } from '../../recipes/kata/card'
 import { Box, type BoxProps } from '../box'
 import { Placeholder } from '../placeholder'
 
@@ -29,9 +30,7 @@ export function Card({
 	const token = size ? densityPresets[size] : inherited
 
 	if (useSkeleton()) {
-		return (
-			<Placeholder className={cn(kokkaku.card.base, kokkaku.card.size[token.size], className)} />
-		)
+		return <Placeholder className={cn(k.skeleton.base, k.skeleton.size[token.size], className)} />
 	}
 
 	return (
@@ -40,7 +39,7 @@ export function Card({
 			p={token.density}
 			bg={bg}
 			outline={outline}
-			radius={sun[token.size].radius}
+			radius={k.radiusForStep[token.size]}
 			data-step={token.size}
 			className={cn(
 				'overflow-hidden -outline-offset-1',

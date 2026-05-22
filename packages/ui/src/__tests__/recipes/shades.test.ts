@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { shades } from '../../recipes'
+import { shades } from '../../core/recipe'
 
 describe('shades', () => {
 	it('wraps a plain string entry in a single-element array', () => {

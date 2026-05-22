@@ -7,8 +7,7 @@ import { Density, useDensity } from '../../primitives/density'
 import { Overlay } from '../../primitives/overlay'
 import { PanelA11yProvider, usePanelA11yScope } from '../../primitives/panel'
 import type { Step } from '../../recipes'
-import { ugoki } from '../../recipes'
-import { type DrawerPanelVariants, k as drawer } from '../../recipes/kata/drawer'
+import { type DrawerPanelVariants, k } from '../../recipes/kata/drawer'
 import { useResolvedSurface } from '../glass/context'
 
 type DrawerContextValue = {
@@ -55,15 +54,15 @@ export function Drawer({
 		<Overlay
 			open={open}
 			onOpenChange={onOpenChange}
-			className={drawer.backdrop({ surface: resolvedSurface })}
+			className={k.backdrop({ surface: resolvedSurface })}
 		>
 			<motion.div
-				{...ugoki.panel.bottom}
+				{...k.motion}
 				{...panelAriaProps}
 				data-slot="drawer"
 				data-step={resolvedSize}
 				onClick={(e) => e.stopPropagation()}
-				className={cn(drawer.panel({ surface: resolvedSurface }), className)}
+				className={cn(k.panel({ surface: resolvedSurface }), className)}
 			>
 				<DrawerProvider value={contextValue}>
 					<PanelA11yProvider value={providerValue}>

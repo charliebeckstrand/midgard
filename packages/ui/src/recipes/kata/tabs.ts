@@ -1,6 +1,8 @@
-import { defineRecipe, hannou, iro, ji, sen, type VariantPropsOf } from '..'
+import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { segment } from '../genkei/segment'
+import { hannou, iro, ji, sen } from '../kiso'
 
-export const tabIndicator = ['bg-zinc-950', 'dark:bg-white']
+const { control: segmentControlBase, item: segmentItemBase } = segment
 
 const list = defineRecipe({
 	base: ['flex', ...sen.borderSubtleColor],
@@ -46,7 +48,7 @@ const tab = defineRecipe({
 })
 
 const indicator = defineRecipe({
-	base: ['rounded-full', ...tabIndicator],
+	base: ['rounded-full', 'bg-zinc-950', 'dark:bg-white'],
 	orientation: {
 		horizontal: 'inset-x-0 -bottom-px top-auto h-0.5',
 		vertical: 'inset-y-0 -left-px right-auto w-0.5',
@@ -58,6 +60,11 @@ export const k = {
 	list,
 	tab,
 	indicator,
+	segment: {
+		control: defineRecipe({ ...segmentControlBase, defaults: { size: 'md' } }),
+		item: defineRecipe({ ...segmentItemBase, defaults: { size: 'md' } }),
+		indicator: segment.indicator,
+	},
 }
 
 export type TabListVariants = VariantPropsOf<typeof list>

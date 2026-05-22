@@ -1,4 +1,5 @@
-import { defineRecipe, hannou, ji, sen, shaku, type VariantPropsOf } from '..'
+import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { hannou, ji, sen, shaku } from '../kiso'
 
 const item = defineRecipe({
 	base: [

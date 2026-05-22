@@ -15,8 +15,8 @@ import { sen } from './sen'
 import { shaku } from './shaku'
 import { ugoki } from './ugoki'
 
-// Hover/focus highlight for items inside a glass parent. Lives here as a state
-// concern, even though the surface chrome that triggers it lives in `omote`.
+// Hover / focus highlight for items inside a glass parent. Lives here as a
+// state concern; the surface chrome that triggers it lives in `omote`.
 const glassItem = [
 	'group-data-[glass]/glass:not-disabled:not-data-disabled:hover:bg-zinc-950/10',
 	'group-data-[glass]/glass:not-disabled:not-data-disabled:focus:bg-zinc-950/10',
@@ -33,9 +33,9 @@ const disabled = [
 ]
 
 // `cursor-pointer` stays at one-class specificity so the disabled variants
-// below override it on the element or its descendants — and so parent
-// overrides like `has-disabled:**:cursor-not-allowed` still win for
-// sibling-label patterns.
+// below override it on the element or its descendants, and so parent
+// overrides like `has-disabled:**:cursor-not-allowed` win for sibling-label
+// patterns.
 const cursor = [
 	'cursor-pointer',
 	'disabled:cursor-not-allowed',

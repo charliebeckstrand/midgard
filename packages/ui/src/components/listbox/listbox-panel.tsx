@@ -6,7 +6,6 @@ import type { CSSProperties, ReactNode } from 'react'
 import { cn } from '../../core'
 import { Density } from '../../primitives/density'
 import { PopoverPanel } from '../../primitives/popover'
-import { popover as kPopover } from '../../recipes/genkei/popover'
 import { k } from '../../recipes/kata/listbox'
 import type { ControlSize } from '../control/context'
 
@@ -49,7 +48,7 @@ export function ListboxPanel({
 					<div
 						ref={setFloating}
 						style={floatingStyles}
-						className={kPopover.portal}
+						className={k.portal}
 						{...getFloatingProps()}
 					>
 						<Density density={density} size={size}>

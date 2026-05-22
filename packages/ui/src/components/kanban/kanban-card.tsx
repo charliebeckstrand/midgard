@@ -53,10 +53,10 @@ export function KanbanCard({
 			data-lifted={lifted || undefined}
 			data-disabled={!interactive || undefined}
 			className={cn(
-				k.card,
-				interactive && k.cardDraggable,
-				dragging && k.cardDragging,
-				lifted && k.cardLifted,
+				k.card.base,
+				interactive && k.card.draggable,
+				dragging && k.card.dragging,
+				lifted && k.card.lifted,
 				className,
 			)}
 		>

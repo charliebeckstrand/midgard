@@ -1,5 +1,4 @@
-import { hannou, iro, ji, sen } from '..'
-
+import { hannou, iro, ji, sen } from '../kiso'
 export const k = {
 	base: [
 		'overflow-hidden',

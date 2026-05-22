@@ -6,7 +6,6 @@ import { type KeyboardEvent, type Ref, useRef } from 'react'
 import { cn } from '../../core'
 import { useIsTruncated } from '../../hooks'
 import { ControlFrame } from '../../primitives/control'
-import { iro } from '../../recipes'
 import { k } from '../../recipes/kata/date-picker'
 import { Button } from '../button'
 import type { ControlSize } from '../control/context'
@@ -62,7 +61,7 @@ export function DatePickerTrigger({
 
 	const valueNode = (
 		<span ref={valueRef} className={k.value({ truncate })}>
-			{displayValue || <span className={cn(iro.text.muted)}>{placeholder}</span>}
+			{displayValue || <span className={cn(k.placeholder)}>{placeholder}</span>}
 		</span>
 	)
 
@@ -72,7 +71,7 @@ export function DatePickerTrigger({
 				data-open={open || undefined}
 				data-group={dataGroup}
 				data-group-orientation={dataGroupOrientation}
-				className={cn('', k.control[glass ? 'glass' : 'default'])}
+				className={cn('', k.surface[glass ? 'glass' : 'default'])}
 			>
 				<Headless>
 					<Button

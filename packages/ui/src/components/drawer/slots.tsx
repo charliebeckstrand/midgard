@@ -5,7 +5,7 @@ import {
 	type PanelDescriptionProps,
 	type PanelTitleProps,
 } from '../../primitives/panel'
-import { k as drawer } from '../../recipes/kata/drawer'
+import { k } from '../../recipes/kata/drawer'
 
 export type DrawerTitleProps = PanelTitleProps
 export type DrawerDescriptionProps = PanelDescriptionProps
@@ -13,10 +13,10 @@ export type DrawerBodyProps = PanelBodyProps
 export type DrawerActionsProps = PanelActionsProps
 
 const { Title, Description, Body, Actions } = createPanel('drawer', {
-	title: drawer.title,
-	description: drawer.description,
-	body: drawer.body,
-	actions: drawer.actions,
+	title: k.title,
+	description: k.description,
+	body: k.body,
+	actions: k.actions,
 })
 
 export {

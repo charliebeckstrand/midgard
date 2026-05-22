@@ -5,8 +5,7 @@ import { type ReactNode, type RefObject, useCallback, useMemo } from 'react'
 import { cn } from '../../core'
 import { Overlay } from '../../primitives/overlay'
 import { PanelA11yProvider, usePanelA11yScope } from '../../primitives/panel'
-import { ugoki } from '../../recipes'
-import { type SheetPanelVariants, k as sheet } from '../../recipes/kata/sheet'
+import { k, type SheetPanelVariants } from '../../recipes/kata/sheet'
 import { useResolvedSurface } from '../glass/context'
 import { SheetProvider } from './context'
 
@@ -55,14 +54,14 @@ export function Sheet({
 			onOpenChange={onOpenChange}
 			container={container}
 			initialFocus={initialFocus}
-			className={sheet.backdrop({ surface: resolvedSurface })}
+			className={k.backdrop({ surface: resolvedSurface })}
 		>
 			<motion.div
-				{...ugoki.panel[resolvedSide]}
+				{...k.motion[resolvedSide]}
 				{...panelAriaProps}
 				data-slot="sheet"
 				onClick={(e) => e.stopPropagation()}
-				className={cn(sheet.panel({ side, size, surface: resolvedSurface }), className)}
+				className={cn(k.panel({ side, size, surface: resolvedSurface }), className)}
 			>
 				<SheetProvider value={contextValue}>
 					<PanelA11yProvider value={providerValue}>{children}</PanelA11yProvider>

@@ -1,7 +1,6 @@
 import { cn } from '../../core'
 import { DensityScope, useDensity } from '../../primitives/density'
-import { kokkaku } from '../../recipes'
-import type { AvatarVariants } from '../../recipes/kata/avatar'
+import { type AvatarVariants, k } from '../../recipes/kata/avatar'
 import { Placeholder } from '../placeholder'
 
 export type AvatarSkeletonProps = {
@@ -16,9 +15,7 @@ export function AvatarSkeleton({ size, className }: AvatarSkeletonProps) {
 
 	return (
 		<DensityScope scale={size}>
-			<Placeholder
-				className={cn(kokkaku.avatar.base, kokkaku.avatar.size[resolvedSize], className)}
-			/>
+			<Placeholder className={cn(k.skeleton.base, k.skeleton.size[resolvedSize], className)} />
 		</DensityScope>
 	)
 }

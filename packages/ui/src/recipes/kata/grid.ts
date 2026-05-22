@@ -1,4 +1,5 @@
-import { defineRecipe, sen, type VariantPropsOf } from '..'
+import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { sen } from '../kiso'
 
 const divider = defineRecipe({
 	base: 'border-t col-span-full',
@@ -9,7 +10,6 @@ const divider = defineRecipe({
 	defaults: { soft: false },
 })
 
-/** Kept for the `kata` barrel — not consumed directly. */
 export const k = { divider }
 
 export type GridDividerVariants = VariantPropsOf<typeof divider>

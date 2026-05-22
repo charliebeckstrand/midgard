@@ -10,11 +10,11 @@
  *   - `frame`     — outer chrome: composes `kasane` (the 4-layer signature) +
  *                   block layout.
  *   - `surface`   — surface chrome variants (default / outline / glass).
- *   - `field`     — inner field reset: transparent bg, no native outline,
- *                   placeholder colour, disabled cursor.
+ *   - `input`     — inner input element classes: transparent bg, no native
+ *                   outline, placeholder colour, disabled cursor. Spread into
+ *                   the input/textarea/button element of the framed control.
  *   - `density`   — border-compensated padding, keyed by the density axis.
  *   - `size`      — font size, keyed by the size axis.
- *   - `icon`      — chevron / affix slot layout.
  *   - `affix`     — prefix / suffix slot padding (tracks density).
  *   - `resets`    — browser-default resets keyed by input type.
  *   - `check`     — visually hidden native input + custom check surface.
@@ -26,7 +26,8 @@
  * Layer: genkei · Concern: control field archetype
  */
 
-import { hannou, iro, ji, mode, omote, sen, tsunagi } from '..'
+import { mode } from '../../core/recipe'
+import { hannou, iro, ji, omote, sen, tsunagi } from '../kiso'
 import { kasane } from './kasane'
 
 // `tsunagi.base` is data-attribute-gated, so it stays inert until a `<Group>`
@@ -44,7 +45,7 @@ const surface = {
 	glass: ['bg-transparent', omote.blur.md],
 } as const
 
-const field = [
+const input = [
 	'gap-sm',
 	'relative',
 	'w-full min-w-0 flex-1',
@@ -72,8 +73,6 @@ const size = {
 	md: ji.md,
 	lg: ji.lg,
 } as const
-
-const icon = ['flex items-center', 'pr-2', 'pointer-events-none']
 
 const affix = {
 	prefix: {
@@ -154,10 +153,9 @@ const check = {
 export const control = {
 	frame,
 	surface,
-	field,
+	input,
 	density,
 	size,
-	icon,
 	affix,
 	resets,
 	check,

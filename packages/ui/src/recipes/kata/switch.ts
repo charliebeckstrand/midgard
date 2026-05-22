@@ -1,5 +1,8 @@
-import { defineColors, defineRecipe, hannou, iro, sen, type VariantPropsOf } from '..'
+import { defineColors, defineRecipe, type VariantPropsOf } from '../../core/recipe'
 import { control } from '../genkei/control'
+import { hannou, iro, kokkaku, narabi, sen } from '../kiso'
+
+const { check } = control
 
 const color = defineColors({
 	zinc: {
@@ -44,58 +47,8 @@ const color = defineColors({
 
 const track = ['bg-zinc-200', 'dark:bg-white/10', ...sen.ringInset]
 
-export const k = defineRecipe({
-	base: [
-		'relative inline-flex shrink-0 items-center',
-		sen.focus.outline,
-		...hannou.cursor,
-		'has-checked:*:data-[slot=switch-thumb]:bg-(--switch)',
-		'has-checked:*:data-[slot=switch-thumb]:shadow-(--switch-shadow)',
-		'has-checked:*:data-[slot=switch-thumb]:ring-(--switch-ring)',
-		'rounded-full',
-		...track,
-		'has-checked:bg-(--switch-bg) has-checked:ring-(--switch-bg-ring) has-checked:ring-inset',
-		'not-has-[:disabled]:not-has-[:checked]:hover:bg-zinc-300',
-		'dark:not-has-[:disabled]:not-has-[:checked]:hover:bg-white/15',
-		'not-has-[:disabled]:has-checked:hover:opacity-90',
-		'has-[:disabled]:opacity-50 has-[:disabled]:cursor-not-allowed',
-	],
-	color,
-	size: {
-		sm: [
-			'h-5 w-8',
-			'*:data-[slot=switch-thumb]:size-3',
-			'has-checked:*:data-[slot=switch-thumb]:left-4',
-		],
-		md: [
-			'h-6 w-10',
-			'*:data-[slot=switch-thumb]:size-4',
-			'has-checked:*:data-[slot=switch-thumb]:left-5',
-		],
-		lg: [
-			'h-7 w-12',
-			'*:data-[slot=switch-thumb]:size-5',
-			'has-checked:*:data-[slot=switch-thumb]:left-6',
-		],
-	},
-	defaults: { color: 'zinc', size: 'md' },
-})
-
-export const input = defineRecipe({ base: control.check.hidden })
-
-export const thumb = defineRecipe({
-	base: [
-		'absolute top-1 left-1 inline-block',
-		'bg-white ring-1 ring-zinc-950/5',
-		'shadow-sm',
-		'rounded-full',
-		'pointer-events-none',
-		'transition-[left] duration-200 ease-in-out',
-	],
-})
-
-export const field = defineRecipe({
-	base: '*:data-[slot=control]:row-span-2 *:data-[slot=control]:mt-0',
+const field = defineRecipe({
+	base: [...narabi.toggle, '*:data-[slot=control]:row-span-2 *:data-[slot=control]:mt-0'],
 	size: {
 		sm: 'grid-cols-[2rem_1fr]',
 		md: 'grid-cols-[2.5rem_1fr]',
@@ -104,8 +57,61 @@ export const field = defineRecipe({
 	defaults: { size: 'md' },
 })
 
-/** Disabled-state text class shared by the switch field wrapper. */
-export const disabled = iro.text.disabled
+export const k = defineRecipe(
+	{
+		base: [
+			'relative inline-flex shrink-0 items-center',
+			sen.focus.outline,
+			...hannou.cursor,
+			'has-checked:*:data-[slot=switch-thumb]:bg-(--switch)',
+			'has-checked:*:data-[slot=switch-thumb]:shadow-(--switch-shadow)',
+			'has-checked:*:data-[slot=switch-thumb]:ring-(--switch-ring)',
+			'rounded-full',
+			...track,
+			'has-checked:bg-(--switch-bg) has-checked:ring-(--switch-bg-ring) has-checked:ring-inset',
+			'not-has-[:disabled]:not-has-[:checked]:hover:bg-zinc-300',
+			'dark:not-has-[:disabled]:not-has-[:checked]:hover:bg-white/15',
+			'not-has-[:disabled]:has-checked:hover:opacity-90',
+			'has-[:disabled]:opacity-50 has-[:disabled]:cursor-not-allowed',
+		],
+		color,
+		size: {
+			sm: [
+				'h-5 w-8',
+				'*:data-[slot=switch-thumb]:size-3',
+				'has-checked:*:data-[slot=switch-thumb]:left-4',
+			],
+			md: [
+				'h-6 w-10',
+				'*:data-[slot=switch-thumb]:size-4',
+				'has-checked:*:data-[slot=switch-thumb]:left-5',
+			],
+			lg: [
+				'h-7 w-12',
+				'*:data-[slot=switch-thumb]:size-5',
+				'has-checked:*:data-[slot=switch-thumb]:left-6',
+			],
+		},
+		defaults: { color: 'zinc', size: 'md' },
+	},
+	{
+		input: defineRecipe({ base: check.hidden }),
+		thumb: defineRecipe({
+			base: [
+				'absolute top-1 left-1 inline-block',
+				'bg-white ring-1 ring-zinc-950/5',
+				'shadow-sm',
+				'rounded-full',
+				'pointer-events-none',
+				'transition-[left] duration-200 ease-in-out',
+			],
+		}),
+		field,
+		/** Disabled-state text class shared by the switch field wrapper. */
+		disabled: iro.text.disabled,
+		skeleton: kokkaku.switch,
+	},
+)
 
 export type SwitchVariants = VariantPropsOf<typeof k>
 export type SwitchFieldVariants = VariantPropsOf<typeof field>

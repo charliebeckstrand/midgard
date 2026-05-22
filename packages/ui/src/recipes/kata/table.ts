@@ -1,4 +1,5 @@
-import { defineRecipe, iro, sen, type VariantPropsOf } from '..'
+import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { iro, sen } from '../kiso'
 
 const cellSize = {
 	sm: 'px-xs py-xs',

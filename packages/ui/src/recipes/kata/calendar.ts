@@ -1,5 +1,7 @@
-import { defineRecipe, iro, ji, sen } from '..'
-import { buttonSoft } from './button'
+import { defineRecipe } from '../../core/recipe'
+import { iro, ji, sen } from '../kiso'
+
+const { soft } = iro.palette
 
 const base = defineRecipe({
 	base: ['inline-flex flex-col', 'select-none'],
@@ -58,7 +60,7 @@ export const k = {
 	footer,
 	picker: {
 		grid: pickerGrid,
-		cellCurrent: ['font-semibold', ...buttonSoft.blue],
+		cellCurrent: ['font-semibold', soft.bg.blue, soft.text.blue, soft.hover.blue],
 	},
 	weekday,
 	day: {

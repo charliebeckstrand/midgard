@@ -1,4 +1,5 @@
-import { defineRecipe, iro, ji } from '..'
+import { defineRecipe } from '../../core/recipe'
+import { iro, ji } from '../kiso'
 
 const segment = defineRecipe({
 	base: ['flex-1 h-1', 'rounded-full', 'bg-zinc-200 dark:bg-zinc-700'],

@@ -1,4 +1,5 @@
-import { defineRecipe, iro, ji, type VariantPropsOf } from '..'
+import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { iro, ji } from '../kiso'
 
 const timeline = defineRecipe({
 	base: ['list-none p-0 m-0'],

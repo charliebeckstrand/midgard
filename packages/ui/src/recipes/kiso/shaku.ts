@@ -19,7 +19,7 @@ const icon = {
 	lg: '*:data-[slot=icon]:size-6 *:data-[slot=icon]:shrink-0',
 }
 
-/** Avatar dimension scale */
+/** Avatar dimension scale. */
 const avatar = {
 	sm: 'size-7',
 	md: 'size-9',

@@ -1,5 +1,4 @@
-import { hannou, iro, ji, narabi } from '..'
-
+import { hannou, iro, ji, narabi } from '../kiso'
 export const k = {
 	group: 'py-1 first:pt-0 last:pb-0',
 	title: ['p-2', ji.xs, iro.text.muted, 'font-medium'],

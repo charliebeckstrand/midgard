@@ -13,8 +13,8 @@ export function KanbanColumnBody({ empty, children, className }: KanbanColumnBod
 	const hasChildren = Array.isArray(children) ? children.length > 0 : children != null
 
 	return (
-		<div data-slot="kanban-column-body" className={cn(k.columnBody, className)}>
-			{hasChildren ? children : empty ? <div className={cn(k.columnEmpty)}>{empty}</div> : null}
+		<div data-slot="kanban-column-body" className={cn(k.column.body, className)}>
+			{hasChildren ? children : empty ? <div className={cn(k.column.empty)}>{empty}</div> : null}
 		</div>
 	)
 }

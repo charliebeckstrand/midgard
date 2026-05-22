@@ -3,9 +3,11 @@ import { join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 // Primitives are foundational React/HTML abstractions consumed by components.
-// They must not reach back upward into components, layouts, or per-component
-// kata recipes — that would invert the dependency direction and pull
-// component context into the primitive layer.
+// They must not reach back upward into components or layouts — that would
+// invert the dependency direction and pull component context into the
+// primitive layer. They DO reach `recipes/kata/` (the recipe funnel),
+// since kata is the curated recipe surface for every UI unit (components
+// and primitives both).
 
 const primitivesDir = join(__dirname, '../../../primitives')
 const srcDir = join(__dirname, '../../..')
@@ -13,11 +15,10 @@ const srcDir = join(__dirname, '../../..')
 const FORBIDDEN_PATTERNS = [
 	{ label: 'components/', regex: /from\s+['"][^'"]*\/components\/[^'"]+['"]/g },
 	{ label: 'layouts/', regex: /from\s+['"][^'"]*\/layouts\/[^'"]+['"]/g },
-	{ label: 'recipes/kata/', regex: /from\s+['"][^'"]*\/recipes\/kata\/[^'"]+['"]/g },
 ] as const
 
 describe('primitive purity boundary', () => {
-	it('primitives do not import from components, layouts, or recipes/kata', () => {
+	it('primitives do not import from components or layouts', () => {
 		const violations: string[] = []
 
 		walk(primitivesDir, (file, content) => {
@@ -34,7 +35,7 @@ describe('primitive purity boundary', () => {
 
 		expect(
 			violations,
-			`primitives reach upward into higher layers:\n  ${violations.join('\n  ')}`,
+			`primitives reach upward into the component / layout layer:\n  ${violations.join('\n  ')}`,
 		).toEqual([])
 	})
 })

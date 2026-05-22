@@ -1,4 +1,5 @@
-import { defineRecipe, iro, ji, omote, sen } from '..'
+import { defineRecipe } from '../../core/recipe'
+import { iro, ji, omote, sen, ugoki } from '../kiso'
 
 const content = defineRecipe({
 	base: [iro.text.default, 'font-medium', 'whitespace-nowrap', 'rounded-lg', 'pointer-events-none'],
@@ -19,4 +20,5 @@ export const k = {
 		default: omote.popover,
 		glass: [omote.glass, sen.outline],
 	},
+	motion: ugoki.tooltip,
 }
