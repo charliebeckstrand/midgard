@@ -1,4 +1,5 @@
-import { control, type VariantPropsOf } from '../katakana'
+import type { VariantPropsOf } from '../../core/recipe'
+import { control } from '../katakana'
 import { kokkaku, sen } from '../kiso'
 
 export const k = control(

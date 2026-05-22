@@ -1,4 +1,5 @@
-import { check, defineColors, type VariantPropsOf } from '../katakana'
+import { defineColors, type VariantPropsOf } from '../../core/recipe'
+import { check } from '../katakana'
 import { kokkaku } from '../kiso'
 
 const color = defineColors({

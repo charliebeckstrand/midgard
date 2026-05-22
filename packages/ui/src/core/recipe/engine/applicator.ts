@@ -11,7 +11,10 @@
  *
  * `applyRecipe` absorbs the workaround in one place: explicit return
  * type, conditional intersection that folds the empty-overlay case, and
- * a single cast at the engine boundary.
+ * a single cast at the engine boundary. `defineApplicator` is the
+ * sugar that bakes an archetype's standard pieces into a ready-to-call
+ * applicator function — every `defineRecipe`-wrapping katakana entry
+ * collapses to a one-liner declaration.
  *
  * `Empty` and `Merge` are exported so applicator authors can pin a
  * variants type to the empty-overlay shape — e.g.
@@ -111,35 +114,28 @@ export type ApplicatorReturn<
  * Signature mirrors `defineRecipe(config, extras)` end-to-end — the
  * caller's recipe-config overlay flows through `config` (second arg);
  * kata-specific siblings flow through `extras` (third arg). Standard
- * pieces live in `standard.config` / `standard.extras` at the archetype module's
- * top level.
+ * pieces live in `standard.config` / `standard.extras` at the archetype
+ * module's top level.
+ *
+ * Merge semantics:
+ *   - `base`: standard's base then caller's base (concatenated).
+ *   - `slots`: shallow merge, caller's keys override standard's.
+ *   - `defaults`: shallow merge, caller's keys override standard's.
+ *   - `palette`: caller's overrides standard's (palettes don't merge —
+ *     they replace).
+ *   - `compound`: standard's rules then caller's rules (concatenated —
+ *     every rule still gets a chance to match).
+ *   - variant axes (every other top-level key): shallow merge, caller's
+ *     overrides standard's on axis-name conflicts.
  *
  * Without this helper, every applicator must hand-roll the type machinery
  * (`Empty`, `Merge`, explicit return-type cast) because TypeScript loses
  * generic key information through the spread inference into `defineRecipe`'s
  * `C` parameter.
  *
- * @example
- *   const standardConfig = {
- *     base: [...input, 'rounded-lg'],
- *     variant: { default: [], outline: [], glass: [] },
- *     density, size,
- *     slots: { number: resets.number },
- *     defaults: { variant: 'default', density: 'md', size: 'md' },
- *   }
- *
- *   const standardExtras = {
- *     inputControl: defineRecipe({ … }),
- *     prefix: affix.prefix, suffix: affix.suffix, autofill: affix.autofill,
- *   }
- *
- *   export function control(config = {}, extras?) {
- *     return applyRecipe(
- *       { config: standardConfig, extras: standardExtras },
- *       config,
- *       extras,
- *     )
- *   }
+ * Prefer `defineApplicator(standard)` for the common `(config, extras)`
+ * signature; reach for `applyRecipe` directly only when an applicator
+ * needs a non-standard public surface.
  */
 export function applyRecipe<
 	StandardConfig extends RecipeConfig,
@@ -157,9 +153,9 @@ export function applyRecipe<
 		base: callerBase,
 		slots: callerSlots,
 		defaults: callerDefaults,
-		palette: _ignoredPalette,
-		compound: _ignoredCompound,
-		...axes
+		compound: callerCompound,
+		// Palette flows through `restConfig` below — caller's overrides standard's.
+		...restConfig
 	} = overlay
 
 	const standardBase = standard.config.base
@@ -172,9 +168,11 @@ export function applyRecipe<
 
 	if (callerBase !== undefined) baseArray.push(callerBase)
 
+	const mergedCompound = [...(standard.config.compound ?? []), ...(callerCompound ?? [])]
+
 	const mergedConfig = {
 		...standard.config,
-		...axes,
+		...restConfig,
 		base: baseArray,
 		slots: {
 			...standard.config.slots,
@@ -184,6 +182,7 @@ export function applyRecipe<
 			...standard.config.defaults,
 			...callerDefaults,
 		},
+		compound: mergedCompound,
 	}
 
 	const mergedExtras = {
@@ -197,4 +196,42 @@ export function applyRecipe<
 		Overlay,
 		CallerExtras
 	>
+}
+
+/**
+ * Bake an archetype's standard config + extras into a ready-to-call
+ * applicator function. The returned function is the public surface a kata
+ * imports from `katakana/<archetype>`.
+ *
+ * Equivalent to a thin wrapper around `applyRecipe`, but collapses the
+ * generic-forwarding boilerplate every `defineRecipe`-wrapping applicator
+ * would otherwise repeat.
+ *
+ * @example
+ *   const standardConfig = { … }
+ *   const standardExtras = { … }
+ *
+ *   export const control = defineApplicator({
+ *     config: standardConfig,
+ *     extras: standardExtras,
+ *   })
+ *
+ *   export type ControlVariants = VariantPropsOf<
+ *     ApplicatorReturn<typeof standardConfig, typeof standardExtras>
+ *   >
+ */
+export function defineApplicator<
+	StandardConfig extends RecipeConfig,
+	StandardExtras extends Record<string, unknown>,
+>(standard: {
+	config: StandardConfig
+	extras: StandardExtras
+}): <
+	Overlay extends ApplicatorOverlay = Empty,
+	CallerExtras extends Record<string, unknown> = Empty,
+>(
+	config?: Overlay,
+	extras?: CallerExtras,
+) => ApplicatorReturn<StandardConfig, StandardExtras, Overlay, CallerExtras> {
+	return (config, extras) => applyRecipe(standard, config, extras)
 }

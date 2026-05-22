@@ -2,6 +2,7 @@ export {
 	type ApplicatorOverlay,
 	type ApplicatorReturn,
 	applyRecipe,
+	defineApplicator,
 	type Empty,
 	type Merge,
 } from './applicator'

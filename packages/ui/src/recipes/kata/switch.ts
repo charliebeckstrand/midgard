@@ -1,5 +1,6 @@
+import { defineColors, type VariantPropsOf } from '../../core/recipe'
 import { control } from '../genkei/control'
-import { defineColors, recipe, type VariantPropsOf } from '../katakana'
+import { recipe } from '../katakana'
 import { hannou, iro, kokkaku, narabi, sen } from '../kiso'
 
 const { check } = control

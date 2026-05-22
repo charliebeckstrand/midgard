@@ -16,14 +16,23 @@
  * archetype's frame composition, fragment wiring, and sub-recipe attachment;
  * the kata stays a thin call site.
  *
- * `VariantPropsOf` is re-exported so kata that declare extra axes (e.g.
- * `textarea`'s `resize` / `autoResize`) can derive their full prop union
- * without reaching back to `core/recipe`. `defineColors` is re-exported
- * so kata can author their colour palettes from the same single import
- * surface they use for applicators.
+ * `defineRecipe`-wrapping applicators (`control`, `check`, and every future
+ * variant-axis-bearing archetype) collapse to a `defineApplicator(standard)`
+ * call. Bundle-returning applicators (`popover`) stay hand-rolled — they
+ * don't go through `defineRecipe`.
+ *
+ * **Genkei sourcing during the mock.** Applicators currently reach into
+ * `genkei/*` for their archetype fragments so the un-converted kata
+ * continue to type-check against the existing layer. When the migration
+ * completes, `genkei/` dissolves and its content folds into the
+ * corresponding katakana applicator file.
+ *
+ * **What this barrel surfaces.** Applicators only. Engine primitives
+ * (`defineColors`, `palette`, `VariantPropsOf`, …) stay in `core/recipe`
+ * and kata import them from there — re-exporting them through katakana
+ * would conflate "the applicator layer" with "the recipe engine."
  */
 
-export { defineColors, type VariantPropsOf } from '../../core/recipe'
 export { type CheckVariants, check } from './check'
 export { type ControlVariants, control } from './control'
 export { popover } from './popover'
