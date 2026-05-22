@@ -54,7 +54,7 @@ export function stepDown(s: Step): Step {
 	return STEP_DOWN[s]
 }
 
-const [DensityProviderRaw, useDensityNullable] = createContext<DensityToken | null>('Density', {
+const [DensityValueProvider, useDensityNullable] = createContext<DensityToken | null>('Density', {
 	default: null,
 })
 
@@ -115,7 +115,7 @@ export function Density({ children, scale, density: densityProp, size: sizeProp 
 		}
 	}, [scale, densityProp, sizeProp, parent])
 
-	return <DensityProviderRaw value={token}>{children}</DensityProviderRaw>
+	return <DensityValueProvider value={token}>{children}</DensityValueProvider>
 }
 
 /**
