@@ -7,10 +7,9 @@ import { describe, expect, it } from 'vitest'
 // `ma` is a TypeScript label set that maps semantic sizes (xs/sm/md/lg/xl)
 // to Tailwind numeric spacing tokens. Two rules keep the abstraction honest:
 //
-//   1. No file may use the legacy `p-{ma}`, `m-{ma}`, `gap-{ma}` utilities.
-//      Those are projected by an `@utility` rename layer in `src/theme.css`
-//      that is being retired. Compose Tailwind natives directly (`p-3`,
-//      `gap-2`) from `ma`'s values via a static `Record<Ma, string>` lookup.
+//   1. No file may use the `p-{ma}`, `m-{ma}`, `gap-{ma}` shape. Compose
+//      Tailwind natives directly (`p-3`, `gap-2`) from `ma`'s values via
+//      a static `Record<Ma, string>` lookup.
 //
 //   2. The `calc(--spacing(v)-1px)` formula (ring-compensated padding) lives
 //      only in `recipes/kiso/kasane.ts` — consumers reach it through
