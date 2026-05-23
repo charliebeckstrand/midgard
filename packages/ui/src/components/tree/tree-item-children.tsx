@@ -6,7 +6,7 @@ import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k } from '../../recipes/kata/tree'
 import { TreeProvider, useTreeContext } from './context'
 
-export type TreeItemChildrenProps = {
+type TreeItemChildrenProps = {
 	open: boolean
 	label: ReactNode
 	children: ReactNode

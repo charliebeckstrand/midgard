@@ -7,7 +7,7 @@ import { Button } from '../button'
 import type { ControlSize } from '../control/context'
 import { Headless } from '../headless'
 
-export type ListboxButtonProps = {
+type ListboxButtonProps = {
 	id?: string
 	ref: Ref<HTMLButtonElement>
 	open: boolean

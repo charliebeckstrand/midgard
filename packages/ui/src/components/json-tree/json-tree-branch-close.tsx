@@ -2,7 +2,7 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/json-tree'
 import { INDENT_REM } from './json-tree-constants'
 
-export type JsonTreeBranchCloseProps = {
+type JsonTreeBranchCloseProps = {
 	depth: number
 	isArray: boolean
 }

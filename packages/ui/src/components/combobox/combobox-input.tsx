@@ -20,7 +20,7 @@ type ComboboxInputHandlers = {
 	onKeyDown: KeyboardEventHandler<HTMLInputElement>
 }
 
-export type ComboboxInputProps = {
+type ComboboxInputProps = {
 	id?: string
 	ref: Ref<HTMLInputElement>
 	type?: InputHTMLAttributes<HTMLInputElement>['type']

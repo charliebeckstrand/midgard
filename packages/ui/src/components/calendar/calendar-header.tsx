@@ -9,7 +9,7 @@ import { Button } from '../button'
 import { Icon } from '../icon'
 import { CalendarPicker } from './calendar-picker'
 
-export type CalendarHeaderProps = {
+type CalendarHeaderProps = {
 	headerRef: RefObject<HTMLDivElement | null>
 	onHeaderKeyDown: KeyboardEventHandler<HTMLElement>
 	size: Step

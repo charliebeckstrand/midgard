@@ -8,7 +8,7 @@ import { Icon } from '../icon'
 import { useTreeContext } from './context'
 import { AFFIX_SELECTOR, PREFIX_INTERACTIVE_SELECTOR } from './tree-constants'
 
-export type TreeItemContentProps = {
+type TreeItemContentProps = {
 	label: ReactNode
 	icon?: ReactElement
 	prefix?: ReactNode

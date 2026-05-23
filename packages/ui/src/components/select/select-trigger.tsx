@@ -7,7 +7,7 @@ import { ControlFrame } from '../../primitives/control'
 import { k } from '../../recipes/kata/select'
 import type { ControlSize } from '../control/context'
 
-export type SelectTriggerProps = {
+type SelectTriggerProps = {
 	open: boolean
 	setReference: Ref<HTMLDivElement>
 	getReferenceProps: () => Record<string, unknown>

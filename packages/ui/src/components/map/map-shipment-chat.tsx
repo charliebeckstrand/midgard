@@ -11,7 +11,7 @@ import { Input } from '../input'
 import { Stack } from '../stack'
 import type { ChatMessage as ChatMessageData } from './types'
 
-export type MapShipmentChatProps = {
+type MapShipmentChatProps = {
 	messages: ChatMessageData[]
 	onSend?: (body: string) => unknown | Promise<unknown>
 }

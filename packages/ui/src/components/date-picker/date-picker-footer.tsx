@@ -9,7 +9,7 @@ import { Button } from '../button'
 import type { CalendarActive } from '../calendar'
 import type { FooterButton } from './use-date-picker-keyboard'
 
-export type DatePickerFooterProps = {
+type DatePickerFooterProps = {
 	active: CalendarActive | null
 	footerButtons: FooterButton[]
 	onClear: () => void

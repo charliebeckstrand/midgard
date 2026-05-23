@@ -9,7 +9,7 @@ import { PopoverPanel } from '../../primitives/popover'
 import { k } from '../../recipes/kata/listbox'
 import type { ControlSize } from '../control/context'
 
-export type ListboxPanelProps = {
+type ListboxPanelProps = {
 	id: string
 	open: boolean
 	glass: boolean

@@ -6,7 +6,7 @@ import { Badge } from '../badge'
 import { Button } from '../button'
 import { Icon } from '../icon'
 
-export type TagInputBadgeProps = {
+type TagInputBadgeProps = {
 	label: string
 	color: Color
 	disabled?: boolean
