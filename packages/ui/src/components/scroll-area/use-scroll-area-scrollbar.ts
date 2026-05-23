@@ -8,7 +8,7 @@ import {
 	useState,
 } from 'react'
 import type { ScrollOrientation } from '../../types'
-import { HIDDEN_THUMB, SCROLL_FADE_DELAY_MS, type ThumbState } from './scroll-area-constants'
+import { hiddenThumb, SCROLL_FADE_DELAY_MS, type ThumbState } from './scroll-area-constants'
 import { computeThumb, findScrollableAncestor } from './scroll-area-utilities'
 import type { ScrollbarMode } from './types'
 
@@ -29,8 +29,8 @@ export function useScrollAreaScrollbar({ orientation, scrollbar }: UseScrollbarO
 	const horizontalTrackRef = useRef<HTMLDivElement>(null)
 	const scrollFadeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-	const [verticalThumb, setVerticalThumb] = useState<ThumbState>(HIDDEN_THUMB)
-	const [horizontalThumb, setHorizontalThumb] = useState<ThumbState>(HIDDEN_THUMB)
+	const [verticalThumb, setVerticalThumb] = useState<ThumbState>(hiddenThumb)
+	const [horizontalThumb, setHorizontalThumb] = useState<ThumbState>(hiddenThumb)
 	const [isScrolling, setIsScrolling] = useState(false)
 
 	const hasVertical = orientation === 'vertical' || orientation === 'both'
