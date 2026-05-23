@@ -70,7 +70,7 @@ export function PopoverContent({
 								tabIndex={autoFocus ? -1 : undefined}
 								data-slot="popover-content"
 								data-step={resolvedSize}
-								className={cn('z-50', k.text, glass && k.panel.glass)}
+								className={cn(k.text, glass && k.panel.glass)}
 							>
 								<Density density={resolvedSize} size={resolvedSize}>
 									<Box
