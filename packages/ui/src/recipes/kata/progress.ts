@@ -63,7 +63,7 @@ const gaugeLabel = defineRecipe({
 	size: {
 		sm: ji.xs,
 		md: ji.sm,
-		lg: 'text-md',
+		lg: ji.md,
 		xl: ji.lg,
 	},
 	defaults: { size: 'md' },
