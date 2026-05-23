@@ -2,6 +2,12 @@ export { type UseControllableOptions, useControllable } from './use-controllable
 export { type UseDeferredToggleOptions, useDeferredToggle } from './use-deferred-toggle'
 export { type UseDismissableOptions, useDismissable } from './use-dismissable'
 export {
+	type FloatingDisclosureGate,
+	type FloatingDisclosureRole,
+	type UseFloatingDisclosureOptions,
+	useFloatingDisclosure,
+} from './use-floating-disclosure'
+export {
 	type UseFloatingPanelOptions,
 	type UseFloatingUIOptions,
 	useFloatingPanel,

@@ -1,10 +1,9 @@
 'use client'
 
-import { type Placement, useClick, useDismiss, useInteractions, useRole } from '@floating-ui/react'
-import { type ReactNode, useCallback, useEffect, useMemo, useRef } from 'react'
+import { type Placement, useClick, useInteractions } from '@floating-ui/react'
+import { type ReactNode, useEffect, useMemo } from 'react'
 import { cn } from '../../core'
-import { useFloatingPanel } from '../../hooks'
-import { useControllable } from '../../hooks/use-controllable'
+import { useFloatingDisclosure } from '../../hooks'
 import { notifyOverlayOpened } from '../../primitives/overlay'
 import { PopoverProvider } from './context'
 
@@ -25,33 +24,18 @@ export function Popover({
 	className,
 	children,
 }: PopoverProps) {
-	const [open = false, setOpen] = useControllable<boolean>({
-		value: openProp,
-		defaultValue: false,
-		onValueChange: (next) => onOpenChange?.(next ?? false),
-	})
-
-	const triggerRef = useRef<HTMLButtonElement>(null)
-
-	const { refs, floatingStyles, context } = useFloatingPanel({
-		placement,
-		open,
-		onOpenChange: setOpen,
-		offset: 8,
-		restoreFocusTo: triggerRef,
-	})
+	const { open, setOpen, close, triggerRef, refs, floatingStyles, context, dismiss, role } =
+		useFloatingDisclosure({
+			open: openProp,
+			onOpenChange,
+			role: 'dialog',
+			placement,
+			offset: 8,
+		})
 
 	const click = useClick(context)
 
-	const dismiss = useDismiss(context)
-
-	const role = useRole(context, { role: 'dialog' })
-
 	const { getReferenceProps, getFloatingProps } = useInteractions([click, dismiss, role])
-
-	const close = useCallback(() => {
-		setOpen(false)
-	}, [setOpen])
 
 	useEffect(() => {
 		if (open) notifyOverlayOpened()
@@ -74,6 +58,7 @@ export function Popover({
 			open,
 			setOpen,
 			close,
+			triggerRef,
 			refs.setReference,
 			refs.setFloating,
 			floatingStyles,
