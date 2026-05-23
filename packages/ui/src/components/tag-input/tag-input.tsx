@@ -5,6 +5,7 @@ import { type Ref, useCallback, useImperativeHandle, useRef, useState } from 're
 import type { Color } from '../../recipes'
 import { Button } from '../button'
 import type { ControlSize } from '../control/context'
+import { Flex } from '../flex'
 import { Icon } from '../icon'
 import { Input } from '../input'
 import { TagInputBadge } from './tag-input-badge'
@@ -65,8 +66,6 @@ export function TagInput({
 
 	const [inputValue, setInputValue] = useState('')
 
-	const resolvedSize = size ?? 'md'
-
 	const resolvedColor = tag?.color ?? 'zinc'
 
 	const clearInput = useCallback(() => setInputValue(''), [])
@@ -95,18 +94,17 @@ export function TagInput({
 
 	const badges =
 		tags.length > 0 ? (
-			<span data-slot="tag-input" className="flex flex-wrap gap-1 min-w-0 cursor-text">
+			<Flex data-slot="tags" gap="xs" wrap>
 				{tags.map((t, i) => (
 					<TagInputBadge
 						key={t}
 						label={t}
-						size={resolvedSize}
 						color={resolvedColor}
 						disabled={disabled}
 						onRemove={() => removeTag(i)}
 					/>
 				))}
-			</span>
+			</Flex>
 		) : undefined
 
 	return (
@@ -124,7 +122,7 @@ export function TagInput({
 			prefix={badges}
 			suffix={
 				<Button
-					color="blue"
+					variant="bare"
 					disabled={disabled || atMax || inputValue.trim() === ''}
 					onMouseDown={(e) => e.preventDefault()}
 					onClick={handleSubmit}
