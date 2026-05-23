@@ -21,6 +21,7 @@ export { type UseMaskedInputOptions, useMaskedInput } from './use-masked-input'
 export { useMediaQuery } from './use-media-query'
 export { useMinWidth } from './use-min-width'
 export { useOffcanvas } from './use-offcanvas'
+export { useResizeObserver } from './use-resize-observer'
 export { type UseRippleOptions, useRipple } from './use-ripple'
 export {
 	type Orientation,
