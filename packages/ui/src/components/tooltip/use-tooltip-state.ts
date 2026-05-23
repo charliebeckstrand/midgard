@@ -10,7 +10,7 @@ import {
 } from '@floating-ui/react'
 import { useEffect, useMemo, useRef } from 'react'
 import { useFloatingDisclosure, useHasHover } from '../../hooks'
-import { subscribeOverlayOpened } from '../../primitives/overlay'
+import { subscribeOverlaySignal } from '../../primitives/overlay'
 import type { Step } from '../../recipes'
 
 export type UseTooltipStateOptions = {
@@ -78,7 +78,7 @@ export function useTooltipState({
 	useEffect(() => {
 		if (!open) return
 
-		return subscribeOverlayOpened(() => setOpen(false))
+		return subscribeOverlaySignal(() => setOpen(false))
 	}, [open, setOpen])
 
 	const hasHover = useHasHover()

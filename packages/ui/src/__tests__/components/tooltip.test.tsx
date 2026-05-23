@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { TooltipProvider } from '../../components/tooltip/context'
-import { notifyOverlayOpened } from '../../primitives/overlay'
+import { notifyOverlaySignal } from '../../primitives/overlay'
 import { act, bySlot, renderUI, screen, userEvent, waitFor } from '../helpers'
 
 const noop = () => {}
@@ -68,7 +68,7 @@ describe('Tooltip', () => {
 
 		await waitFor(() => expect(screen.getByText('Tooltip text')).toBeInTheDocument())
 
-		act(() => notifyOverlayOpened())
+		act(() => notifyOverlaySignal())
 
 		expect(screen.queryByText('Tooltip text')).not.toBeInTheDocument()
 	})
