@@ -2,6 +2,7 @@
 
 import { useLayoutEffect, useRef } from 'react'
 import { k } from '../../recipes/kata/editable-grid'
+import { editorKeyHandler } from './editable-grid-editor-utilities'
 import type { EditableGridEditorProps } from './types'
 
 /**
@@ -20,12 +21,10 @@ export function EditableGridTextEditor<T>({
 }: EditableGridEditorProps<T>) {
 	const inputRef = useRef<HTMLInputElement>(null)
 
-	const selectAllRef = useRef(selectAllOnFocus)
+	// Snapshot the focus mode at mount; the effect must not re-run when the
+	// user types and the draft / formatted comparison flips.
+	const selectAllOnMount = useRef(selectAllOnFocus).current
 
-	selectAllRef.current = selectAllOnFocus
-
-	// Focus and place the caret once on mount; subsequent re-renders (the user
-	// typing into the input) must not reset the selection.
 	useLayoutEffect(() => {
 		const input = inputRef.current
 
@@ -33,9 +32,9 @@ export function EditableGridTextEditor<T>({
 
 		input.focus()
 
-		if (selectAllRef.current) input.select()
+		if (selectAllOnMount) input.select()
 		else input.setSelectionRange(input.value.length, input.value.length)
-	}, [])
+	}, [selectAllOnMount])
 
 	return (
 		<input
@@ -47,19 +46,7 @@ export function EditableGridTextEditor<T>({
 			value={draft}
 			onChange={(e) => setDraft(e.target.value)}
 			onBlur={() => commit('none')}
-			onKeyDown={(e) => {
-				if (e.key === 'Enter') {
-					e.preventDefault()
-
-					commit('down')
-				} else if (e.key === 'Escape') {
-					e.preventDefault()
-
-					cancel()
-				} else if (e.key === 'Tab') {
-					if (commit(e.shiftKey ? 'left' : 'right')) e.preventDefault()
-				}
-			}}
+			onKeyDown={editorKeyHandler(commit, cancel)}
 		/>
 	)
 }
