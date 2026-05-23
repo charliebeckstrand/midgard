@@ -2,7 +2,7 @@
 
 import { type KeyboardEvent, useCallback } from 'react'
 
-export type UseKeyboardOptions = {
+type UseKeyboardOptions = {
 	/** Current input value. */
 	inputValue: string
 	/** Attempt to add a tag. Returns true on success. */

@@ -15,7 +15,7 @@ import { useFloatingPanel, useHasHover } from '../../hooks'
 import { subscribeOverlayOpened } from '../../primitives/overlay'
 import type { Step } from '../../recipes'
 
-export type UseTooltipStateOptions = {
+type UseTooltipStateOptions = {
 	placement?: Placement
 	delay?: number
 	interactive?: boolean

@@ -3,7 +3,7 @@
 import { useCallback, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useRoving } from '../../hooks'
 
-export type UseCommandPaletteStateOptions = {
+type UseCommandPaletteStateOptions = {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 }

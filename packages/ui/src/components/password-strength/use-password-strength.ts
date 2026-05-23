@@ -15,18 +15,18 @@ export type PasswordStrengthChange = {
 	passed: string[]
 }
 
-export type PasswordRuleResult = {
+type PasswordRuleResult = {
 	rule: PasswordRule
 	passed: boolean
 }
 
-export type UsePasswordStrengthOptions = {
+type UsePasswordStrengthOptions = {
 	value: string
 	rules: readonly PasswordRule[]
 	onStrengthChange?: (strength: PasswordStrengthChange) => void
 }
 
-export type UsePasswordStrengthResult = {
+type UsePasswordStrengthResult = {
 	results: PasswordRuleResult[]
 	level: StrengthLevel
 	passedCount: number

@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
 import { useControllable } from '../../hooks'
 
-export type UseTagInputOptions = {
+type UseTagInputOptions = {
 	value?: string[]
 	defaultValue?: string[]
 	onValueChange?: (value: string[] | undefined) => void

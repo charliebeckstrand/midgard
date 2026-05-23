@@ -2,12 +2,12 @@ import { useCallback, useRef } from 'react'
 import { useControllable } from '../../hooks'
 import type { DataTableSelection } from './data-table'
 
-export type UseDataTableSelectionOptions = {
+type UseDataTableSelectionOptions = {
 	selectionConfig: DataTableSelection | undefined
 	rowKeys: (string | number)[]
 }
 
-export type UseDataTableSelectionResult = {
+type UseDataTableSelectionResult = {
 	selection: Set<string | number>
 	setSelection: (next: Set<string | number>) => void
 	toggleRow: (key: string | number) => void

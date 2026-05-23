@@ -16,7 +16,7 @@ async function configureWorker() {
 	pdfjs.GlobalWorkerOptions.workerSrc = workerUrlModule.default
 }
 
-export type UsePdfDocumentResult = {
+type UsePdfDocumentResult = {
 	pages: PdfViewerPage[]
 	/** Same-origin blob URL for the fetched PDF. Use this for download / print iframes. */
 	documentUrl: string | null

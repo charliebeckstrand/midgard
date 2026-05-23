@@ -12,7 +12,7 @@ import { useFloatingPanel } from '../../hooks'
 import { useDensity } from '../../primitives/density'
 import type { Step } from '../../recipes'
 
-export type UseMenuStateOptions = {
+type UseMenuStateOptions = {
 	defaultOpen?: boolean
 	placement?: Placement
 	size?: Step

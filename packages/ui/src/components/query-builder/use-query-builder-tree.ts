@@ -4,14 +4,14 @@ import type { QueryBuilderActions } from './context'
 import { addChild, createGroup, createRule, mapNode, removeChild } from './query-builder-utilities'
 import type { QueryField, QueryGroup } from './types'
 
-export type UseQueryBuilderTreeOptions = {
+type UseQueryBuilderTreeOptions = {
 	fields: QueryField[]
 	value?: QueryGroup
 	defaultValue?: QueryGroup
 	onValueChange?: (value: QueryGroup) => void
 }
 
-export type UseQueryBuilderTreeResult = {
+type UseQueryBuilderTreeResult = {
 	root: QueryGroup
 	actions: QueryBuilderActions
 }

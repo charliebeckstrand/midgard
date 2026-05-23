@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from 'react'
 
-export type UsePageRotationResult = {
+type UsePageRotationResult = {
 	/** Raw rotation in degrees for the active page. May be ≥ 360. */
 	rotation: number
 	/** Rotation reduced to one of `0 | 90 | 180 | 270`. */

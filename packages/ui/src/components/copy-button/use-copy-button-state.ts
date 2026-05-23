@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-export type UseCopyStateOptions = {
+type UseCopyStateOptions = {
 	value: string
 	/** Milliseconds before the "copied" flag resets. @default 2000 */
 	timeout?: number
 	onCopiedChange?: (copied: boolean) => void
 }
 
-export type UseCopyStateResult = {
+type UseCopyStateResult = {
 	copied: boolean
 	copy: () => Promise<void>
 }
