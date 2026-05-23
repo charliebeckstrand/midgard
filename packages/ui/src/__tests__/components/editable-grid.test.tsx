@@ -4,6 +4,7 @@ import {
 	type CellChange,
 	EditableGrid,
 	type EditableGridColumn,
+	type EditableGridEditorProps,
 } from '../../components/editable-grid'
 import { allBySlot, bySlot, fireEvent, renderUI, screen } from '../helpers'
 
@@ -584,5 +585,53 @@ describe('EditableGrid', () => {
 		expect(screen.getAllByRole('checkbox', { name: /Select row/ }).length).toBe(rows.length)
 
 		expect(screen.getByText('Edit 1')).toBeInTheDocument()
+	})
+
+	it('renders a column-supplied editor slot in place of the default input', () => {
+		const onChange = vi.fn()
+
+		function CustomEditor({ draft, setDraft, commit }: EditableGridEditorProps<Row>) {
+			return (
+				<input
+					data-slot="custom-editor"
+					value={draft}
+					onChange={(e) => setDraft(e.target.value)}
+					onKeyDown={(e) => {
+						if (e.key === 'Enter') {
+							e.preventDefault()
+
+							commit('down')
+						}
+					}}
+				/>
+			)
+		}
+
+		const editable: EditableGridColumn<Row>[] = [
+			{ id: 'rate', title: 'Rate', field: 'rate', editor: CustomEditor },
+		]
+
+		const { container } = renderUI(
+			<EditableGrid
+				columns={editable}
+				rows={rows}
+				getKey={(row) => row.id}
+				onValueChange={onChange}
+			/>,
+		)
+
+		fireEvent.doubleClick(allBySlot(container, 'editable-grid-cell')[0] as HTMLElement)
+
+		const customInput = bySlot(container, 'custom-editor') as HTMLInputElement
+
+		expect(customInput).toBeInTheDocument()
+
+		expect(bySlot(container, 'editable-grid-input')).not.toBeInTheDocument()
+
+		fireEvent.change(customInput, { target: { value: '8.88' } })
+
+		fireEvent.keyDown(customInput, { key: 'Enter' })
+
+		expect(onChange).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'rate', value: '8.88' }])
 	})
 })

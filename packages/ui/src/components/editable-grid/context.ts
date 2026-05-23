@@ -1,7 +1,8 @@
 'use client'
 
+import type { Dispatch, SetStateAction } from 'react'
 import { createContext } from '../../core'
-import type { Coord } from './types'
+import type { Coord, EditableGridCommitAdvance } from './types'
 
 export type EditableGridContextValue = {
 	active: Coord | null
@@ -9,11 +10,11 @@ export type EditableGridContextValue = {
 	extraCells: Set<string>
 	editing: boolean
 	draft: string
-	setDraft: (value: string) => void
+	setDraft: Dispatch<SetStateAction<string>>
 	setActive: (coord: Coord, extend?: boolean) => void
 	addCellToSelection: (coord: Coord) => void
 	beginEdit: (coord: Coord, initial?: string, original?: string) => void
-	commitEdit: (advance: 'down' | 'right' | 'left' | 'none') => boolean
+	commitEdit: (advance: EditableGridCommitAdvance) => boolean
 	cancelEdit: () => void
 }
 
