@@ -3,7 +3,7 @@
 import { createContext } from '../../core'
 import type { Responsive } from './variants'
 
-export type GridContextValue = {
+type GridContextValue = {
 	columns: Responsive<number> | undefined
 }
 

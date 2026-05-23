@@ -2,9 +2,9 @@
 
 import { createContext } from '../../core/create-context'
 
-export type CollapseAnimation = boolean | 'fade' | 'slide'
+type CollapseAnimation = boolean | 'fade' | 'slide'
 
-export type CollapseContextValue = {
+type CollapseContextValue = {
 	open: boolean
 	toggle: () => void
 	animate: CollapseAnimation

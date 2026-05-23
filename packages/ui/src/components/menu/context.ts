@@ -21,7 +21,7 @@ type MenuActionsValue = {
 	setFloating: (node: HTMLElement | null) => void
 }
 
-export type MenuContextValue = MenuStateValue & MenuActionsValue
+type MenuContextValue = MenuStateValue & MenuActionsValue
 
 export const [MenuStateProvider, useMenuState] = createContext<MenuStateValue>('Menu')
 export const [MenuActionsProvider, useMenuActions] = createContext<MenuActionsValue>('Menu')
