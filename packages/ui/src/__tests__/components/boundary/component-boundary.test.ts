@@ -5,12 +5,11 @@ import { describe, expect, it } from 'vitest'
 // Two invariants keep components composing through their public surface
 // rather than reaching into each other's files:
 //
-//   1. A component's index.ts re-exports only from within its own folder,
+//   1. A component's index.ts re-exports only from within its own folder, or
 //      from its owning kata — `recipes/kata/<same-name>` and any sub-kata
-//      `recipes/kata/<same-name>-<anything>` — or from a shared primitive
-//      under `primitives/<name>`. Kata variants and primitives are part of
-//      the component's public foundation; re-exporting from a sibling
-//      component's internals is not.
+//      `recipes/kata/<same-name>-<anything>`. Kata variants are part of the
+//      component's public API; re-exporting from a sibling component's
+//      internals is not.
 //   2. No file imports a sibling component's main `<name>.tsx` via a deep
 //      relative path (`'../<other>/<other>'`). The barrel — `'../<other>'` —
 //      is the public entry point; deep main-file imports bypass it.
@@ -46,8 +45,6 @@ describe('component internals boundary', () => {
 				if (!target || target.startsWith('./')) continue
 
 				if (isOwnKataReexport(target, entry.name)) continue
-
-				if (isPrimitiveReexport(target)) continue
 
 				violations.push(`components/${entry.name}/index.ts → ${target}`)
 			}
@@ -85,10 +82,6 @@ function isOwnKataReexport(target: string, component: string): boolean {
 	if (!kataName) return false
 
 	return kataName === component || kataName.startsWith(`${component}-`)
-}
-
-function isPrimitiveReexport(target: string): boolean {
-	return /(?:^|\/)primitives\/[a-z][a-z0-9-]*$/.test(target)
 }
 
 function walk(dir: string, visit: (file: string, content: string) => void) {

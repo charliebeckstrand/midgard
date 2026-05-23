@@ -1,11 +1,7 @@
-export {
-	PanelClose as DialogClose,
-	type PanelCloseProps as DialogCloseProps,
-	PanelTrigger as DialogTrigger,
-	type PanelTriggerProps as DialogTriggerProps,
-} from '../../primitives/panel'
 export type { DialogPanelVariants } from '../../recipes/kata/dialog'
 export { Dialog, type DialogProps } from './dialog'
+export { DialogClose, type DialogCloseProps } from './dialog-close'
+export { DialogTrigger, type DialogTriggerProps } from './dialog-trigger'
 export {
 	DialogBody,
 	type DialogBodyProps,

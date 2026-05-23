@@ -1,11 +1,7 @@
-export {
-	PanelClose as SheetClose,
-	type PanelCloseProps as SheetCloseProps,
-	PanelTrigger as SheetTrigger,
-	type PanelTriggerProps as SheetTriggerProps,
-} from '../../primitives/panel'
 export type { SheetPanelVariants } from '../../recipes/kata/sheet'
 export { Sheet, type SheetProps } from './sheet'
+export { SheetClose, type SheetCloseProps } from './sheet-close'
+export { SheetTrigger, type SheetTriggerProps } from './sheet-trigger'
 export {
 	SheetBody,
 	type SheetBodyProps,
