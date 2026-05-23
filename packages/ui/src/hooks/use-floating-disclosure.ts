@@ -12,11 +12,11 @@ import { type CSSProperties, type RefObject, useCallback, useRef } from 'react'
 import { useControllable } from './use-controllable'
 import { type UseFloatingPanelOptions, useFloatingPanel } from './use-floating-ui'
 
-export type FloatingDisclosureRole = 'dialog' | 'menu' | 'tooltip' | 'listbox'
+type FloatingDisclosureRole = 'dialog' | 'menu' | 'tooltip' | 'listbox'
 
-export type FloatingDisclosureGate = (next: boolean, refs: ExtendedRefs<ReferenceType>) => boolean
+type FloatingDisclosureGate = (next: boolean, refs: ExtendedRefs<ReferenceType>) => boolean
 
-export type UseFloatingDisclosureOptions = Omit<
+type UseFloatingDisclosureOptions = Omit<
 	UseFloatingPanelOptions,
 	'open' | 'onOpenChange' | 'restoreFocusTo'
 > & {

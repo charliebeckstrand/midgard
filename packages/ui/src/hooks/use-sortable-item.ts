@@ -4,7 +4,7 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import type { CSSProperties } from 'react'
 
-export type UseSortableItemOptions = {
+type UseSortableItemOptions = {
 	/** Stable id matching the enclosing `SortableContext` items array. */
 	id: string
 	/** Disable pointer + keyboard interaction for this item. */

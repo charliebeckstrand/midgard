@@ -2,7 +2,7 @@
 
 import { useCallback, useId, useMemo } from 'react'
 
-export type UseIdScopeOptions = {
+type UseIdScopeOptions = {
 	id?: string
 }
 

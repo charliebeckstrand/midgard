@@ -2,7 +2,7 @@
 
 import { type RefObject, useEffect, useRef } from 'react'
 
-export type UseDismissableOptions<T extends HTMLElement = HTMLDivElement> = {
+type UseDismissableOptions<T extends HTMLElement = HTMLDivElement> = {
 	open: boolean
 	onDismiss: () => void
 	/** Escape key closes. @default true */

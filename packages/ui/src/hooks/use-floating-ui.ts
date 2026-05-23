@@ -110,7 +110,7 @@ export function useFloatingPanel({
 	return { refs, floatingStyles, context }
 }
 
-export type UseFloatingUIOptions = UseFloatingPanelOptions & {
+type UseFloatingUIOptions = UseFloatingPanelOptions & {
 	role?: 'listbox' | 'menu' | 'dialog' | 'tooltip'
 }
 

@@ -11,7 +11,7 @@ type RippleEntry = {
 	size: number
 }
 
-export type UseRippleOptions = {
+type UseRippleOptions = {
 	duration?: number
 }
 
