@@ -16,6 +16,8 @@ import {
 	type CellChange,
 	EditableGrid,
 	type EditableGridColumn,
+	EditableGridCurrencyEditor,
+	EditableGridNumberEditor,
 } from '../../components/editable-grid'
 import { Field, Label } from '../../components/fieldset'
 import { Flex } from '../../components/flex'
@@ -105,18 +107,21 @@ export function Demo() {
 				title: 'Per-mile',
 				field: 'perMile',
 				format: (r) => currency.format(r.perMile),
+				editor: EditableGridCurrencyEditor,
 			}),
 			numericColumn({
 				id: 'minCharge',
 				title: 'Min charge',
 				field: 'minCharge',
 				format: (r) => currency.format(r.minCharge),
+				editor: EditableGridCurrencyEditor,
 			}),
 			numericColumn({
 				id: 'fuelPct',
 				title: 'Fuel %',
 				field: 'fuelPct',
 				format: (r) => `${r.fuelPct}%`,
+				editor: (props) => <EditableGridNumberEditor {...props} min={0} max={100} step={1} />,
 			}),
 		],
 		[],
