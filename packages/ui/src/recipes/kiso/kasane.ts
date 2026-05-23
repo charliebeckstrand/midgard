@@ -212,6 +212,56 @@ const ro = (v: RadiusStop) => roStops[v]
 /** Outer + inset + overlay radii, coordinated for the full kasane stack. */
 const radius = (v: RadiusStop) => [rStops[v], riStops[v], roStops[v]] as const
 
+// Gap between flex / grid children. Unlike padding, gap is not ring-
+// compensated (gap doesn't intersect the outer ring), so the helpers
+// pass through to Tailwind's native `gap-v` / `gap-x-v` / `gap-y-v`
+// without subtracting 1 px. The design rule applied across density-keyed
+// kata is `gap = py / 2` (rounded to the spacing scale).
+
+const gStops = {
+	'0.25': 'gap-0.25',
+	'0.5': 'gap-0.5',
+	'0.75': 'gap-0.75',
+	'1': 'gap-1',
+	'1.25': 'gap-1.25',
+	'1.5': 'gap-1.5',
+	'2': 'gap-2',
+	'2.5': 'gap-2.5',
+	'3': 'gap-3',
+} as const
+
+const gxStops = {
+	'0.25': 'gap-x-0.25',
+	'0.5': 'gap-x-0.5',
+	'0.75': 'gap-x-0.75',
+	'1': 'gap-x-1',
+	'1.25': 'gap-x-1.25',
+	'1.5': 'gap-x-1.5',
+	'2': 'gap-x-2',
+	'2.5': 'gap-x-2.5',
+	'3': 'gap-x-3',
+} as const
+
+const gyStops = {
+	'0.25': 'gap-y-0.25',
+	'0.5': 'gap-y-0.5',
+	'0.75': 'gap-y-0.75',
+	'1': 'gap-y-1',
+	'1.25': 'gap-y-1.25',
+	'1.5': 'gap-y-1.5',
+	'2': 'gap-y-2',
+	'2.5': 'gap-y-2.5',
+	'3': 'gap-y-3',
+} as const
+
+type GapStop = keyof typeof gStops
+
+const g = (v: GapStop) => gStops[v]
+
+const gx = (v: GapStop) => gxStops[v]
+
+const gy = (v: GapStop) => gyStops[v]
+
 export const kasane = {
 	base,
 	inset,
@@ -229,6 +279,9 @@ export const kasane = {
 	ri,
 	ro,
 	radius,
+	g,
+	gx,
+	gy,
 	/** Convenience: every fragment in the correct spread order for a `className`. */
 	all: [...base, ...inset, ...overlay, ...hover, ...focus, ...validation, ...disabled],
 } as const
