@@ -3,10 +3,9 @@
 import { Check, Minus } from 'lucide-react'
 import { type ComponentPropsWithRef, type ReactNode, useCallback, useRef } from 'react'
 import { cn, invalidAttrs } from '../../core'
-import { useDensity } from '../../primitives/density'
 import { useSkeleton } from '../../providers/skeleton'
 import { type CheckboxVariants, k } from '../../recipes/kata/checkbox'
-import { useControlProps } from '../control/use-control-props'
+import { useControlToggle } from '../control/use-control-toggle'
 import { useFormToggle } from '../form/context'
 import { CheckboxSkeleton } from './checkbox-skeleton'
 
@@ -38,13 +37,10 @@ export function Checkbox({
 		disabled: resolvedDisabled,
 		required: resolvedRequired,
 		invalid: resolvedInvalid,
-	} = useControlProps({ id, disabled, required, binding })
+		size: resolvedSize,
+	} = useControlToggle({ id, disabled, required, size, binding })
 
 	const internalRef = useRef<HTMLInputElement>(null)
-
-	const inherited = useDensity()
-
-	const resolvedSize = size ?? inherited.size
 
 	const setRef = useCallback(
 		(el: HTMLInputElement | null) => {

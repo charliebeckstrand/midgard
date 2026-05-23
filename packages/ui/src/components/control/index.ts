@@ -11,3 +11,4 @@ export {
 	type UseControlPropsResult,
 	useControlProps,
 } from './use-control-props'
+export { useControlToggle } from './use-control-toggle'

@@ -2,10 +2,9 @@
 
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn, invalidAttrs } from '../../core'
-import { useDensity } from '../../primitives/density'
 import { useSkeleton } from '../../providers/skeleton'
 import { k, type SwitchVariants } from '../../recipes/kata/switch'
-import { useControlProps } from '../control/use-control-props'
+import { useControlToggle } from '../control/use-control-toggle'
 import { useFormToggle } from '../form/context'
 import { Placeholder } from '../placeholder'
 
@@ -27,16 +26,13 @@ export function Switch({
 }: SwitchProps) {
 	const binding = useFormToggle(name, { onChange })
 
-	const inherited = useDensity()
-
-	const resolvedSize = size ?? inherited.size
-
 	const {
 		id: resolvedId,
 		disabled: resolvedDisabled,
 		required: resolvedRequired,
 		invalid: resolvedInvalid,
-	} = useControlProps({ id, disabled, required, binding })
+		size: resolvedSize,
+	} = useControlToggle({ id, disabled, required, size, binding })
 
 	if (useSkeleton()) {
 		return (
