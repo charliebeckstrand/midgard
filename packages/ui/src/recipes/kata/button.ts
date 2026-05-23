@@ -29,7 +29,7 @@ export const k = defineRecipe(
 			xs: [
 				ji.xs,
 				shaku.icon.xs,
-				kasane.g('1'),
+				kasane.g('0.5'),
 				kasane.p('1.5'),
 				kasane.r('1'),
 				'data-[has-label]:py-[calc(--spacing(1)-1px)]',
@@ -37,7 +37,7 @@ export const k = defineRecipe(
 			sm: [
 				ji.sm,
 				shaku.icon.sm,
-				kasane.g('1.5'),
+				kasane.g('0.75'),
 				kasane.p('2'),
 				kasane.r('1.5'),
 				'data-[has-label]:py-[calc(--spacing(1.5)-1px)]',
@@ -45,7 +45,7 @@ export const k = defineRecipe(
 			md: [
 				ji.md,
 				shaku.icon.md,
-				kasane.g('2'),
+				kasane.g('1'),
 				kasane.p('2.5'),
 				kasane.r('2'),
 				'data-[has-label]:py-[calc(--spacing(2)-1px)]',
@@ -53,7 +53,7 @@ export const k = defineRecipe(
 			lg: [
 				ji.lg,
 				shaku.icon.lg,
-				kasane.g('2.5'),
+				kasane.g('1.25'),
 				kasane.p('3'),
 				kasane.r('2.5'),
 				'data-[has-label]:py-[calc(--spacing(2.5)-1px)]',
