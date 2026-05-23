@@ -1,17 +1,17 @@
 import { describe, expect, it } from 'vitest'
-import { HIDDEN_THUMB, MIN_THUMB_SIZE } from '../../components/scroll-area/scroll-area-constants'
+import { hiddenThumb, MIN_THUMB_SIZE } from '../../components/scroll-area/scroll-area-constants'
 import {
 	computeThumb,
 	findScrollableAncestor,
 } from '../../components/scroll-area/scroll-area-utilities'
 
 describe('computeThumb', () => {
-	it('returns HIDDEN_THUMB when content fits the viewport', () => {
-		expect(computeThumb(0, 100, 80, 100)).toBe(HIDDEN_THUMB)
+	it('returns hiddenThumb when content fits the viewport', () => {
+		expect(computeThumb(0, 100, 80, 100)).toBe(hiddenThumb)
 	})
 
-	it('returns HIDDEN_THUMB when trackSize is 0', () => {
-		expect(computeThumb(0, 100, 400, 0)).toBe(HIDDEN_THUMB)
+	it('returns hiddenThumb when trackSize is 0', () => {
+		expect(computeThumb(0, 100, 400, 0)).toBe(hiddenThumb)
 	})
 
 	it('sizes the thumb proportional to the viewport / content ratio', () => {
