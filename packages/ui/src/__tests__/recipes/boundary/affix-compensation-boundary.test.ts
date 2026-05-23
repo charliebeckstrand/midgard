@@ -27,9 +27,11 @@ const SPACING_RE = /calc\(--spacing\(([\d.]+)\)/
 function findSpacing(classes: readonly unknown[], prefix: string): number {
 	for (const cls of classes.flat(Number.POSITIVE_INFINITY)) {
 		if (typeof cls !== 'string') continue
+
 		if (!cls.startsWith(prefix)) continue
 
 		const match = cls.match(SPACING_RE)
+
 		if (match) return Number(match[1])
 	}
 
@@ -41,9 +43,13 @@ const STEPS = ['sm', 'md', 'lg'] as const satisfies readonly Step[]
 describe('control affix has-button compensation', () => {
 	for (const step of STEPS) {
 		const buttonSize = affixStepDown(step)
+
 		const hostPx = findSpacing(control.density[step], 'px-[')
+
 		const buttonClasses = button.config.variants.size?.[buttonSize] as readonly unknown[]
+
 		const buttonPx = findSpacing(buttonClasses, 'p-[')
+
 		const expected = hostPx - buttonPx
 
 		it(`${step}: affix.prefix has-button override = input.px (${hostPx}) − stepped-down button.p (${buttonPx}) = ${expected}`, () => {
@@ -68,8 +74,11 @@ describe('control affix has-button compensation', () => {
 	it('the compensation collapses to a constant across all density steps (the lockstep guarantee)', () => {
 		const deltas = STEPS.map((step) => {
 			const buttonSize = affixStepDown(step)
+
 			const hostPx = findSpacing(control.density[step], 'px-[')
+
 			const buttonClasses = button.config.variants.size?.[buttonSize] as readonly unknown[]
+
 			const buttonPx = findSpacing(buttonClasses, 'p-[')
 
 			return hostPx - buttonPx
