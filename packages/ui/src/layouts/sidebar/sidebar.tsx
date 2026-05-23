@@ -35,7 +35,7 @@ function navbarPaddingForSize(size: 'sm' | 'md' | 'lg'): string {
 	return 'p-6'
 }
 
-export type SidebarLayoutProps = PropsWithChildren<{
+type SidebarLayoutProps = PropsWithChildren<{
 	navbar?: ReactNode
 	sidebar: ReactNode
 	actions?: ReactNode
@@ -163,7 +163,7 @@ export function SidebarLayout({
 	)
 }
 
-export type SidebarLayoutHeaderProps = PropsWithChildren<{ className?: string }>
+type SidebarLayoutHeaderProps = PropsWithChildren<{ className?: string }>
 
 export function SidebarLayoutHeader({ children, className }: SidebarLayoutHeaderProps) {
 	const { actions, size } = useSidebarLayoutContext()
@@ -176,7 +176,7 @@ export function SidebarLayoutHeader({ children, className }: SidebarLayoutHeader
 	)
 }
 
-export type SidebarLayoutBodyProps = PropsWithChildren<{
+type SidebarLayoutBodyProps = PropsWithChildren<{
 	className?: string
 	ref?: Ref<HTMLDivElement>
 }>
@@ -189,7 +189,7 @@ export function SidebarLayoutBody({ ref, children, className }: SidebarLayoutBod
 	)
 }
 
-export type SidebarLayoutFooterProps = PropsWithChildren
+type SidebarLayoutFooterProps = PropsWithChildren
 
 export function SidebarLayoutFooter({ children }: SidebarLayoutFooterProps) {
 	return (

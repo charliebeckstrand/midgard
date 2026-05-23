@@ -10,7 +10,7 @@ import { Stack } from '../components/stack'
 import { useOffcanvas } from '../hooks/use-offcanvas'
 import { StackedLayout } from './stacked'
 
-export type DashboardLayoutProps = PropsWithChildren<{
+type DashboardLayoutProps = PropsWithChildren<{
 	filters?: ReactNode
 }>
 

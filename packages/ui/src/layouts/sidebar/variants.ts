@@ -1,4 +1,4 @@
-import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe } from '../../core/recipe'
 import { omote } from '../../recipes/kiso'
 
 const layout = defineRecipe({
@@ -78,11 +78,3 @@ export const k = {
 	body,
 	footer,
 }
-
-export type SidebarLayoutVariants = VariantPropsOf<typeof layout>
-export type SidebarPanelVariants = VariantPropsOf<typeof panel>
-export type SidebarContentWrapperVariants = VariantPropsOf<typeof contentWrapper>
-export type SidebarContentVariants = VariantPropsOf<typeof content>
-export type SidebarHeaderVariants = VariantPropsOf<typeof header>
-export type SidebarBodyVariants = VariantPropsOf<typeof body>
-export type SidebarFooterVariants = VariantPropsOf<typeof footer>
