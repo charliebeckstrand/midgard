@@ -12,7 +12,7 @@
  *   - `indicator` — class fragment for the sliding indicator
  */
 
-import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { segment as segmentFragments } from '../genkei/segment'
 
 const { control: controlFragments, item: itemFragments, indicator } = segmentFragments
@@ -25,5 +25,5 @@ export function segment() {
 	return { control, item, indicator }
 }
 
-export type SegmentControlVariants = VariantPropsOf<typeof control>
-export type SegmentItemVariants = VariantPropsOf<typeof item>
+export type SegmentControlVariants = VariantProps<typeof control>
+export type SegmentItemVariants = VariantProps<typeof item>

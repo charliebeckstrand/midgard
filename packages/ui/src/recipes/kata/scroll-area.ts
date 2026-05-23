@@ -1,4 +1,4 @@
-import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, type VariantProps } from '../../core/recipe'
 import type { ScrollOrientation } from '../../types'
 import { sen, shaku, ugoki } from '../kiso'
 
@@ -92,5 +92,5 @@ export const k = {
 	thumb,
 }
 
-export type ScrollAreaWrapperVariants = VariantPropsOf<typeof wrapper>
-export type ScrollAreaViewportVariants = VariantPropsOf<typeof viewport>
+export type ScrollAreaWrapperVariants = VariantProps<typeof wrapper>
+export type ScrollAreaViewportVariants = VariantProps<typeof viewport>

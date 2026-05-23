@@ -1,4 +1,4 @@
-import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { panel } from '../katakana'
 import { iro, narabi, omote, sen, shaku, ugoki } from '../kiso'
 
@@ -55,4 +55,4 @@ export const k = {
 	motion: ugoki.panel,
 }
 
-export type SheetPanelVariants = VariantPropsOf<typeof k.panel>
+export type SheetPanelVariants = VariantProps<typeof k.panel>

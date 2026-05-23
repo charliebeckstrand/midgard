@@ -1,4 +1,4 @@
-import { defineColors, defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { defineColors, defineRecipe, type VariantProps } from '../../core/recipe'
 import { control } from '../genkei/control'
 import { hannou, iro, kokkaku, narabi, sen } from '../kiso'
 
@@ -113,5 +113,5 @@ export const k = defineRecipe(
 	},
 )
 
-export type SwitchVariants = VariantPropsOf<typeof k>
-export type SwitchFieldVariants = VariantPropsOf<typeof field>
+export type SwitchVariants = VariantProps<typeof k>
+export type SwitchFieldVariants = VariantProps<typeof field>

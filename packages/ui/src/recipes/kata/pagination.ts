@@ -1,4 +1,4 @@
-import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { hannou, iro, ji, sen } from '../kiso'
 
 const list = defineRecipe({
@@ -45,4 +45,4 @@ export const k = defineRecipe(
 	},
 )
 
-export type PageButtonVariants = VariantPropsOf<typeof pageButton>
+export type PageButtonVariants = VariantProps<typeof pageButton>

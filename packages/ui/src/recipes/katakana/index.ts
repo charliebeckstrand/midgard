@@ -38,7 +38,7 @@
  * layering.
  *
  * **What the barrel surfaces.** Applicators only. Engine primitives
- * (`defineRecipe`, `defineColors`, `palette`, `VariantPropsOf`, …) stay
+ * (`defineRecipe`, `defineColors`, `palette`, `VariantProps`, …) stay
  * in `core/recipe`; kata import them from there. A kata that doesn't
  * fit any archetype calls `defineRecipe` directly — routing it through
  * a katakana alias would conflate the applicator layer with the recipe
@@ -47,7 +47,7 @@
  * Type exports follow real consumer needs, not surface parity. `control`
  * and `segment` expose variant types because consumer components import
  * them. `check`, `popover`, and `panel` don't — checkbox and radio
- * compute their own variants from `VariantPropsOf<typeof k>` (extra
+ * compute their own variants from `VariantProps<typeof k>` (extra
  * axes the applicator doesn't own), and panel's input shape is generic
  * per-kata.
  */

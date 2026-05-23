@@ -20,7 +20,7 @@
  * standard `color` / `size` axes. The indicator sub-recipe (`checkSize`,
  * `indicatorSize`) and `skeleton` flow through the kata's `extras`.
  *
- * Kata derive their own variant type via `VariantPropsOf<typeof k>`.
+ * Kata derive their own variant type via `VariantProps<typeof k>`.
  * Checkbox and radio both add `color` and `size` axes, so the
  * empty-overlay prop union the applicator could expose wouldn't match
  * any real check-input kata.

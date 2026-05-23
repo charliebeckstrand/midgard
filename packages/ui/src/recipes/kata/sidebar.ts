@@ -1,4 +1,4 @@
-import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { hannou, ji, kasane, sen, shaku } from '../kiso'
 
 const item = defineRecipe({
@@ -28,4 +28,4 @@ export const k = {
 	footer: ['sticky bottom-0', 'flex flex-col', 'gap-0.5', 'mt-auto'],
 }
 
-export type SidebarItemVariants = VariantPropsOf<typeof item>
+export type SidebarItemVariants = VariantProps<typeof item>

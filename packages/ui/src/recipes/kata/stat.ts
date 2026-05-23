@@ -1,4 +1,4 @@
-import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { iro, ji } from '../kiso'
 
 const label = defineRecipe({
@@ -75,5 +75,5 @@ export const k = defineRecipe(
 	},
 )
 
-export type StatValueVariants = VariantPropsOf<typeof value>
-export type StatDeltaVariants = VariantPropsOf<typeof delta>
+export type StatValueVariants = VariantProps<typeof value>
+export type StatDeltaVariants = VariantProps<typeof delta>

@@ -1,4 +1,4 @@
-import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { ugoki } from '../kiso'
 
 const viewport = defineRecipe({
@@ -28,4 +28,4 @@ export const k = {
 	motion: ugoki.toast,
 }
 
-export type ToastViewportVariants = VariantPropsOf<typeof viewport>
+export type ToastViewportVariants = VariantProps<typeof viewport>

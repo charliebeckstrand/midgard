@@ -16,7 +16,7 @@
  * `defineRecipe`-wrapping katakana entry collapses to a one-liner.
  *
  * Applicator authors derive the empty-overlay prop union via
- * `VariantPropsOf<ApplicatorReturn<typeof standardConfig, typeof
+ * `VariantProps<ApplicatorReturn<typeof standardConfig, typeof
  * standardExtras>>`. `ReturnType<typeof applicator>` widens each generic
  * to its constraint and pollutes the prop union, so reference
  * `ApplicatorReturn` directly.
@@ -72,7 +72,7 @@ type SlotsOf<Overlay> = Overlay extends { slots: infer S }
  * The shape `applyRecipe(...)` returns. Applicator authors pin their
  * archetype's empty-overlay variant type against it directly:
  *
- *   export type ControlVariants = VariantPropsOf<
+ *   export type ControlVariants = VariantProps<
  *     ApplicatorReturn<typeof standardConfig, typeof standardExtras>
  *   >
  *
@@ -201,7 +201,7 @@ export function applyRecipe<
  *     extras: standardExtras,
  *   })
  *
- *   export type ControlVariants = VariantPropsOf<
+ *   export type ControlVariants = VariantProps<
  *     ApplicatorReturn<typeof standardConfig, typeof standardExtras>
  *   >
  */

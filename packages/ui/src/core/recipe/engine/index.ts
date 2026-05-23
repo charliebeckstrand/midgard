@@ -7,5 +7,5 @@ export type {
 	RecipeConfig,
 	ResolvedConfig,
 	VariantAxis,
-	VariantPropsOf,
+	VariantProps,
 } from './types'

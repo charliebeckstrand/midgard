@@ -1,4 +1,4 @@
-import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { sen } from '../kiso'
 export const k = defineRecipe({
 	base: ['border-0'],
@@ -13,4 +13,4 @@ export const k = defineRecipe({
 	defaults: { orientation: 'horizontal', soft: false },
 })
 
-export type DividerVariants = VariantPropsOf<typeof k>
+export type DividerVariants = VariantProps<typeof k>

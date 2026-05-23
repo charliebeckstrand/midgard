@@ -1,4 +1,4 @@
-import type { VariantPropsOf } from '../../core/recipe'
+import type { VariantProps } from '../../core/recipe'
 import { control } from '../katakana'
 import { kokkaku, sen } from '../kiso'
 
@@ -22,4 +22,4 @@ export const k = control({
 	skeleton: kokkaku.textarea,
 })
 
-export type TextareaVariants = VariantPropsOf<typeof k>
+export type TextareaVariants = VariantProps<typeof k>

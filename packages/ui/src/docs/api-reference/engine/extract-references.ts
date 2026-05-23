@@ -35,7 +35,7 @@ const BUILTIN_TYPES = new Set([
 
 /**
  * Recipe-engine plumbing — `Recipe`, `RecipeBase`, `ResolvedConfig`,
- * `VariantPropsOf`, … — has nothing to do with the prop the user is
+ * `VariantProps`, … — has nothing to do with the prop the user is
  * inspecting. Treat the engine directory the same as `node_modules`.
  */
 const ENGINE_PATH_SEGMENT = '/core/recipe/engine/'

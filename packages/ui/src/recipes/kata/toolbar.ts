@@ -1,4 +1,4 @@
-import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { omote, sen } from '../kiso'
 
 const root = defineRecipe({
@@ -29,5 +29,5 @@ export const k = {
 	group,
 }
 
-export type ToolbarVariants = VariantPropsOf<typeof root>
-export type ToolbarGroupVariants = VariantPropsOf<typeof group>
+export type ToolbarVariants = VariantProps<typeof root>
+export type ToolbarGroupVariants = VariantProps<typeof group>
