@@ -25,7 +25,7 @@ const surface = {
 } as const
 
 const input = [
-	'gap-sm',
+	'gap-2',
 	'relative',
 	'w-full min-w-0 flex-1',
 	'border-0',

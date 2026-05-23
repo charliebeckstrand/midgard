@@ -4,7 +4,7 @@ export type ListVariant = 'separated' | 'outline' | 'plain' | 'solid'
 const rootBase = ['flex flex-col', 'm-0 p-0', 'k-none']
 
 const rootVariant = {
-	separated: ['gap-sm'],
+	separated: ['gap-2'],
 	outline: [
 		'overflow-hidden',
 		'rounded-lg',
@@ -13,13 +13,13 @@ const rootVariant = {
 		'dark:divide-white/10',
 	],
 	plain: ['divide-y divide-zinc-950/10', 'dark:divide-white/10'],
-	solid: ['gap-sm'],
+	solid: ['gap-2'],
 } satisfies Record<ListVariant, unknown>
 
 const itemBase = [
 	'group/k-item',
 	'flex items-center',
-	'gap-sm',
+	'gap-2',
 	'gap-y-0',
 	ji.md,
 	iro.text.default,
@@ -27,10 +27,10 @@ const itemBase = [
 ]
 
 const itemVariant = {
-	separated: ['p-md', ...iro.bg.surface, sen.border, 'rounded-lg'],
-	outline: ['p-md'],
-	plain: ['px-sm', 'py-1.5'],
-	solid: ['p-md', ...omote.tint, sen.border, 'rounded-lg'],
+	separated: ['p-3', ...iro.bg.surface, sen.border, 'rounded-lg'],
+	outline: ['p-3'],
+	plain: ['px-2', 'py-1.5'],
+	solid: ['p-3', ...omote.tint, sen.border, 'rounded-lg'],
 } satisfies Record<ListVariant, unknown>
 
 export const k = {

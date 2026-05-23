@@ -26,12 +26,12 @@ const label = defineRecipe({
 })
 
 export const k = {
-	root: ['flex flex-col', 'gap-sm'],
-	meter: ['flex items-center', 'gap-xs'],
+	root: ['flex flex-col', 'gap-2'],
+	meter: ['flex items-center', 'gap-1'],
 	segment,
 	label,
 	rules: ['flex flex-col', 'gap-0.5'],
-	rule: ['inline-flex items-center', 'gap-xs', ji.sm],
+	rule: ['inline-flex items-center', 'gap-1', ji.sm],
 	ruleIcon: 'size-4 shrink-0',
 	ruleIconPass: iro.palette.bare.text.green,
 	ruleIconFail: iro.text.muted,

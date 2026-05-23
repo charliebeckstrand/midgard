@@ -3,7 +3,7 @@ import { hannou, iro, ji, sen } from '../kiso'
 export const k = {
 	dropzone: [
 		'flex flex-col items-center justify-center',
-		'gap-xs',
+		'gap-1',
 		ji.md,
 		iro.text.muted,
 		'rounded-lg',

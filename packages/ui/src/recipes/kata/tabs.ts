@@ -14,7 +14,7 @@ const list = defineRecipe({
 const tab = defineRecipe({
 	base: [
 		'relative flex items-center',
-		'gap-sm',
+		'gap-2',
 		'font-medium',
 		...iro.text.tab,
 		sen.focus.indicator,

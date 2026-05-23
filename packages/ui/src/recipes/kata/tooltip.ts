@@ -4,9 +4,9 @@ import { iro, ji, omote, sen, ugoki } from '../kiso'
 const content = defineRecipe({
 	base: [iro.text.default, 'font-medium', 'whitespace-nowrap', 'rounded-lg', 'pointer-events-none'],
 	size: {
-		sm: ['px-xs py-xs', ji.sm],
-		md: ['px-sm py-sm', ji.md],
-		lg: ['px-md py-md', ji.lg],
+		sm: ['px-1 py-1', ji.sm],
+		md: ['px-2 py-2', ji.md],
+		lg: ['px-3 py-3', ji.lg],
 	},
 	defaults: { size: 'md' },
 })

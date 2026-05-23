@@ -13,7 +13,7 @@ const jsonValueColor: Record<JsonValueType, readonly string[] | string> = {
 const rowBase = [
 	'group/json-node',
 	'flex w-full items-center',
-	'gap-xs',
+	'gap-1',
 	'py-0.5',
 	ji.sm,
 	'rounded-lg',
@@ -23,16 +23,16 @@ const rowBase = [
 export const k = {
 	base: 'inline-flex flex-col font-mono',
 	row: rowBase,
-	leaf: ['flex flex-1 items-center min-w-0 outline-none', 'gap-xs'],
+	leaf: ['flex flex-1 items-center min-w-0 outline-none', 'gap-1'],
 	toggle: [
 		'flex flex-1 items-center min-w-0 text-left cursor-pointer outline-none',
-		'gap-xs',
+		'gap-1',
 		iro.text.muted,
 		iro.text.hover,
 		'data-[open]:text-zinc-950 dark:data-[open]:text-white',
 		'rounded-lg',
 	],
-	content: ['inline-flex items-center min-w-0', 'gap-xs'],
+	content: ['inline-flex items-center min-w-0', 'gap-1'],
 	chevron: ['flex-none', ugoki.css.transform, ugoki.css.duration],
 	chevronSpacer: 'inline-block w-4 flex-none',
 	key: jsonValueColor.key,

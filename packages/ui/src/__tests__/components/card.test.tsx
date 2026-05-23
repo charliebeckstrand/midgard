@@ -174,7 +174,7 @@ describe('Card size system', () => {
 			</Card>,
 		)
 
-		expect(bySlot(container, 'card-body')?.className).toContain('p-sm')
+		expect(bySlot(container, 'card-body')?.className).toContain('p-2')
 	})
 
 	it('CardHeader picks its padding from the surrounding density', () => {
@@ -186,8 +186,8 @@ describe('Card size system', () => {
 
 		const cls = bySlot(container, 'card-header')?.className ?? ''
 
-		expect(cls).toContain('px-lg')
-		expect(cls).toContain('pt-lg')
+		expect(cls).toContain('px-4')
+		expect(cls).toContain('pt-4')
 	})
 
 	it('CardTitle text size tracks the Card size, bumped one step up', () => {

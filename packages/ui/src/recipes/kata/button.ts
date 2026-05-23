@@ -43,14 +43,14 @@ export const k = defineRecipe(
 			md: [
 				ji.md,
 				shaku.icon.md,
-				'gap-xs',
+				'gap-1',
 				'p-[calc(--spacing(2.5)-1px)]',
 				'data-[has-label]:py-[calc(--spacing(2)-1px)]',
 			],
 			lg: [
 				ji.lg,
 				shaku.icon.lg,
-				'gap-sm',
+				'gap-2',
 				'p-[calc(--spacing(3)-1px)]',
 				'data-[has-label]:py-[calc(--spacing(2.5)-1px)]',
 			],

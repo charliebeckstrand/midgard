@@ -72,7 +72,7 @@ describe('Grid', () => {
 	it('applies the gap class for an explicit gap value', () => {
 		const { container } = renderUI(<Grid gap="lg">content</Grid>)
 
-		expect(bySlot(container, 'grid')?.className).toContain('gap-lg')
+		expect(bySlot(container, 'grid')?.className).toContain('gap-4')
 	})
 
 	it('applies a responsive gap object', () => {
@@ -80,9 +80,9 @@ describe('Grid', () => {
 
 		const cls = bySlot(container, 'grid')?.className ?? ''
 
-		expect(cls).toContain('gap-sm')
+		expect(cls).toContain('gap-2')
 
-		expect(cls).toContain('md:gap-xl')
+		expect(cls).toContain('md:gap-6')
 	})
 
 	it('applies flow, align, and justify classes', () => {

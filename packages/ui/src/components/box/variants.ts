@@ -5,53 +5,53 @@ export type BoxPadding = Ma
 export type BoxMargin = Ma | 'auto'
 
 export const paddingMap = {
-	xs: 'p-xs',
-	sm: 'p-sm',
-	md: 'p-md',
-	lg: 'p-lg',
-	xl: 'p-xl',
+	xs: 'p-1',
+	sm: 'p-2',
+	md: 'p-3',
+	lg: 'p-4',
+	xl: 'p-6',
 } as const satisfies Record<BoxPadding, string>
 
 export const pxMap = {
-	xs: 'px-xs',
-	sm: 'px-sm',
-	md: 'px-md',
-	lg: 'px-lg',
-	xl: 'px-xl',
+	xs: 'px-1',
+	sm: 'px-2',
+	md: 'px-3',
+	lg: 'px-4',
+	xl: 'px-6',
 } as const satisfies Record<BoxPadding, string>
 
 export const pyMap = {
-	xs: 'py-xs',
-	sm: 'py-sm',
-	md: 'py-md',
-	lg: 'py-lg',
-	xl: 'py-xl',
+	xs: 'py-1',
+	sm: 'py-2',
+	md: 'py-3',
+	lg: 'py-4',
+	xl: 'py-6',
 } as const satisfies Record<BoxPadding, string>
 
 export const marginMap = {
-	xs: 'm-xs',
-	sm: 'm-sm',
-	md: 'm-md',
-	lg: 'm-lg',
-	xl: 'm-xl',
+	xs: 'm-1',
+	sm: 'm-2',
+	md: 'm-3',
+	lg: 'm-4',
+	xl: 'm-6',
 	auto: 'm-auto',
 } as const satisfies Record<BoxMargin, string>
 
 export const mxMap = {
-	xs: 'mx-xs',
-	sm: 'mx-sm',
-	md: 'mx-md',
-	lg: 'mx-lg',
-	xl: 'mx-xl',
+	xs: 'mx-1',
+	sm: 'mx-2',
+	md: 'mx-3',
+	lg: 'mx-4',
+	xl: 'mx-6',
 	auto: 'mx-auto',
 } as const satisfies Record<BoxMargin, string>
 
 export const myMap = {
-	xs: 'my-xs',
-	sm: 'my-sm',
-	md: 'my-md',
-	lg: 'my-lg',
-	xl: 'my-xl',
+	xs: 'my-1',
+	sm: 'my-2',
+	md: 'my-3',
+	lg: 'my-4',
+	xl: 'my-6',
 	auto: 'my-auto',
 } as const satisfies Record<BoxMargin, string>
 

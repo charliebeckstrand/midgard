@@ -16,9 +16,9 @@ const base = defineRecipe({
 const header = defineRecipe({
 	base: 'flex items-center justify-between',
 	size: {
-		sm: 'mb-xs',
-		md: 'mb-sm',
-		lg: 'mb-md',
+		sm: 'mb-1',
+		md: 'mb-2',
+		lg: 'mb-3',
 	},
 	defaults: { size: 'md' },
 })
@@ -26,9 +26,9 @@ const header = defineRecipe({
 const footer = defineRecipe({
 	base: ['flex items-center justify-center'],
 	size: {
-		sm: 'pb-xs gap-xs',
-		md: 'pb-xs gap-sm',
-		lg: 'pb-md gap-md',
+		sm: 'pb-1 gap-1',
+		md: 'pb-1 gap-2',
+		lg: 'pb-3 gap-3',
 	},
 	defaults: { size: 'md' },
 })
@@ -36,9 +36,9 @@ const footer = defineRecipe({
 const pickerGrid = defineRecipe({
 	base: 'grid grid-cols-3',
 	size: {
-		sm: 'px-sm',
-		md: 'px-md',
-		lg: 'px-lg',
+		sm: 'px-2',
+		md: 'px-3',
+		lg: 'px-4',
 	},
 	defaults: { size: 'md' },
 })

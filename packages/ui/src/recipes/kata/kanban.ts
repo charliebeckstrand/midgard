@@ -5,7 +5,7 @@ export const k = {
 	column: {
 		base: [
 			'flex flex-col min-w-0',
-			'gap-sm',
+			'gap-2',
 			'w-72 shrink-0',
 			'p-4',
 			'bg-zinc-50 dark:bg-zinc-900/50',
@@ -13,16 +13,16 @@ export const k = {
 			'rounded-lg',
 		],
 		over: '',
-		header: ['flex items-center', 'gap-sm', ji.md, iro.text.default, 'font-semibold'],
+		header: ['flex items-center', 'gap-2', ji.md, iro.text.default, 'font-semibold'],
 		title: 'flex-1 min-w-0 truncate',
-		body: ['flex flex-col flex-1', 'gap-xs', 'overflow-y-auto'],
+		body: ['flex flex-col flex-1', 'gap-1', 'overflow-y-auto'],
 		empty: ['flex items-center justify-center', 'min-h-16', ji.sm, iro.text.muted],
 	},
 	card: {
 		base: [
 			'group/kanban-card',
 			'flex flex-col',
-			'gap-xs',
+			'gap-1',
 			'p-2',
 			'bg-white dark:bg-zinc-950',
 			sen.border,

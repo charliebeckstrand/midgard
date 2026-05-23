@@ -120,8 +120,8 @@ describe('Box', () => {
 			</Density>,
 		)
 
-		// compact → sm step → p-sm via paddingMap.
-		expect(bySlot(container, 'box')?.className).toContain('p-sm')
+		// compact → sm step → p-2 via paddingMap.
+		expect(bySlot(container, 'box')?.className).toContain('p-2')
 	})
 
 	it('explicit p prop wins over the ambient Density', () => {
@@ -133,9 +133,9 @@ describe('Box', () => {
 
 		const el = bySlot(container, 'box') as HTMLElement
 
-		expect(el.className).toContain('p-lg')
+		expect(el.className).toContain('p-4')
 
-		expect(el.className).not.toContain('p-sm')
+		expect(el.className).not.toContain('p-2')
 	})
 
 	it('does not apply any padding class when no p and no ambient Density are present', () => {

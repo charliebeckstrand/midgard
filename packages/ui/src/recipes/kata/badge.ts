@@ -25,13 +25,13 @@ export const k = defineRecipe(
 			md: [
 				ji.md,
 				shaku.icon.md,
-				'gap-xs',
+				'gap-1',
 				'py-[calc(--spacing(1.25)-1px)] px-[calc(--spacing(2.5)-1px)]',
 			],
 			lg: [
 				ji.lg,
 				shaku.icon.lg,
-				'gap-sm',
+				'gap-2',
 				'py-[calc(--spacing(1.5)-1px)] px-[calc(--spacing(3)-1px)]',
 			],
 		},

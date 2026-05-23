@@ -4,7 +4,7 @@ export const k = {
 		base: 'flex',
 		orientation: {
 			vertical: ['flex-col', 'gap-0.5'],
-			horizontal: ['flex-row', 'gap-xs'],
+			horizontal: ['flex-row', 'gap-1'],
 		},
 	},
 	item: [
@@ -12,7 +12,7 @@ export const k = {
 		'p-2',
 		...hannou.nav,
 		...hannou.cursor,
-		'gap-sm',
+		'gap-2',
 		ji.md,
 		'text-left font-medium',
 		'rounded-lg',

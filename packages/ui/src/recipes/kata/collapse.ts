@@ -4,7 +4,7 @@ export const k = {
 	base: 'group/collapse',
 	trigger: [
 		'inline-flex items-center',
-		'gap-sm',
+		'gap-2',
 		ji.md,
 		iro.text.muted,
 		iro.text.hover,

@@ -8,9 +8,9 @@ import type { Step } from '../../recipes'
 export type CardBodyProps = SlotProps<'div'>
 
 const padding: Record<Step, string> = {
-	sm: 'p-sm',
-	md: 'p-md',
-	lg: 'p-lg',
+	sm: 'p-2',
+	md: 'p-3',
+	lg: 'p-4',
 }
 
 export function CardBody({ className, ...props }: CardBodyProps) {

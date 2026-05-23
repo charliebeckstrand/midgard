@@ -20,7 +20,7 @@ export const k = defineRecipe(
 	{
 		base: 'flex flex-col',
 		variant: {
-			separated: 'gap-xs',
+			separated: 'gap-1',
 			outline: [
 				'overflow-hidden',
 				'rounded-lg',
@@ -33,7 +33,7 @@ export const k = defineRecipe(
 		slots: {
 			trigger: [
 				'w-full flex items-center justify-between',
-				'gap-sm',
+				'gap-2',
 				'p-4',
 				ji.md,
 				iro.text.muted,

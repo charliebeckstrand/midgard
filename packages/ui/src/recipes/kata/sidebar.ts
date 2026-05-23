@@ -11,9 +11,9 @@ const item = defineRecipe({
 		'rounded-lg',
 	],
 	size: {
-		sm: [ji.sm, 'gap-xs', 'p-1.5', shaku.icon.sm],
-		md: [ji.md, 'gap-sm', 'p-2', shaku.icon.md],
-		lg: [ji.lg, 'gap-md', 'p-2.5', shaku.icon.lg],
+		sm: [ji.sm, 'gap-1', 'p-1.5', shaku.icon.sm],
+		md: [ji.md, 'gap-2', 'p-2', shaku.icon.md],
+		lg: [ji.lg, 'gap-3', 'p-2.5', shaku.icon.lg],
 	},
 	defaults: { size: 'md' },
 })
@@ -23,8 +23,8 @@ export const k = {
 	item,
 	section: ['flex flex-col', 'gap-0.5'],
 	label: ['truncate'],
-	header: ['flex items-center justify-between', 'gap-md', '**:data-[slot=heading]:leading-none'],
-	body: ['overflow-y-auto', 'flex flex-1 flex-col', 'gap-lg'],
+	header: ['flex items-center justify-between', 'gap-3', '**:data-[slot=heading]:leading-none'],
+	body: ['overflow-y-auto', 'flex flex-1 flex-col', 'gap-4'],
 	divider: sen.divider,
 	footer: ['sticky bottom-0', 'flex flex-col', 'gap-0.5', 'mt-auto'],
 }

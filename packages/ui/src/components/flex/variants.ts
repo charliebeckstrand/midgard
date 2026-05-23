@@ -5,11 +5,11 @@ export type FlexGap = Ma | 0
 
 export const gapMap = {
 	0: 'gap-0',
-	xs: 'gap-xs',
-	sm: 'gap-sm',
-	md: 'gap-md',
-	lg: 'gap-lg',
-	xl: 'gap-xl',
+	xs: 'gap-1',
+	sm: 'gap-2',
+	md: 'gap-3',
+	lg: 'gap-4',
+	xl: 'gap-6',
 } as const satisfies Record<FlexGap, string>
 
 export const directionMap = {

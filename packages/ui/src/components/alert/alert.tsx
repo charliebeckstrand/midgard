@@ -123,7 +123,7 @@ export function Alert({
 			<div
 				className={cn(
 					k.content,
-					resolvedIcon ? 'grid grid-cols-[auto_minmax(0,1fr)] gap-x-sm' : 'flex flex-col',
+					resolvedIcon ? 'grid grid-cols-[auto_minmax(0,1fr)] gap-x-2' : 'flex flex-col',
 				)}
 			>
 				{resolvedIcon && <Icon icon={resolvedIcon} className={cn(k.icon)} />}

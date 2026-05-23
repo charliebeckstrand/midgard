@@ -35,49 +35,8 @@ const RENAMED_UTILITY =
 
 const RAW_CALC = /calc\(--spacing\(/
 
-/**
- * Files still spelling `p-{ma}` / `m-{ma}` / `gap-{ma}` from the legacy
- * `theme.css` rename layer. Each entry will be removed as the sweep
- * migrates that file to Tailwind natives composed from `ma`.
- */
-const RENAMED_UTILITY_ALLOWLIST = new Set([
-	'components/alert/alert.tsx',
-	'components/box/variants.ts',
-	'components/card/card-body.tsx',
-	'components/card/card-footer.tsx',
-	'components/card/card-header.tsx',
-	'components/flex/variants.ts',
-	'components/grid/variants.ts',
-	'components/split/variants.ts',
-	'recipes/genkei/control.ts',
-	'recipes/genkei/segment.ts',
-	'recipes/kata/accordion.ts',
-	'recipes/kata/alert.ts',
-	'recipes/kata/badge.ts',
-	'recipes/kata/bottom-nav.ts',
-	'recipes/kata/breadcrumb.ts',
-	'recipes/kata/button.ts',
-	'recipes/kata/calendar.ts',
-	'recipes/kata/collapse.ts',
-	'recipes/kata/command-palette.ts',
-	'recipes/kata/data-table-column-manager.ts',
-	'recipes/kata/data-table.ts',
-	'recipes/kata/editable-grid.ts',
-	'recipes/kata/file-upload.ts',
-	'recipes/kata/json-tree.ts',
-	'recipes/kata/kanban.ts',
-	'recipes/kata/list.ts',
-	'recipes/kata/nav.ts',
-	'recipes/kata/pagination.ts',
-	'recipes/kata/password-strength.ts',
-	'recipes/kata/pdf-viewer.ts',
-	'recipes/kata/sidebar.ts',
-	'recipes/kata/signature-pad.ts',
-	'recipes/kata/stat.ts',
-	'recipes/kata/table.ts',
-	'recipes/kata/tabs.ts',
-	'recipes/kata/tooltip.ts',
-])
+/** Empty — every file has migrated. The rule is now a regression guard. */
+const RENAMED_UTILITY_ALLOWLIST = new Set<string>()
 
 /**
  * Files still spelling `calc(--spacing(v)-1px)` inline. Bare cases will
