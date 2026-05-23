@@ -1,5 +1,42 @@
-import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { type Color, defineRecipe, type VariantPropsOf } from '../../core/recipe'
 import { iro, ji } from '../kiso'
+
+/**
+ * Per-colour marker appearance. `dot` paints the status indicator;
+ * `lineBefore` / `lineAfter` paint the inbound / outbound line segments.
+ * Each colour's three surfaces sit on one row so a palette tweak is a
+ * single-line edit. The `before:` / `after:` prefixes stay verbatim in
+ * source — Tailwind's scanner only picks up class literals, so a derived
+ * `lineAfter = lineBefore.replace('before:', 'after:')` would silently
+ * drop the generated classes.
+ */
+const markerPalette: Record<Color, { dot: string; lineBefore: string; lineAfter: string }> = {
+	zinc: {
+		dot: 'text-zinc-500 dark:text-zinc-400',
+		lineBefore: 'before:bg-zinc-200 dark:before:bg-zinc-700',
+		lineAfter: 'after:bg-zinc-200 dark:after:bg-zinc-700',
+	},
+	red: {
+		dot: 'text-red-500 dark:text-red-500',
+		lineBefore: 'before:bg-red-500 dark:before:bg-red-500',
+		lineAfter: 'after:bg-red-500 dark:after:bg-red-500',
+	},
+	amber: {
+		dot: 'text-amber-500 dark:text-amber-500',
+		lineBefore: 'before:bg-amber-500 dark:before:bg-amber-500',
+		lineAfter: 'after:bg-amber-500 dark:after:bg-amber-500',
+	},
+	green: {
+		dot: 'text-green-500 dark:text-green-500',
+		lineBefore: 'before:bg-green-500 dark:before:bg-green-500',
+		lineAfter: 'after:bg-green-500 dark:after:bg-green-500',
+	},
+	blue: {
+		dot: 'text-blue-500 dark:text-blue-500',
+		lineBefore: 'before:bg-blue-500 dark:before:bg-blue-500',
+		lineAfter: 'after:bg-blue-500 dark:after:bg-blue-500',
+	},
+}
 
 const timeline = defineRecipe({
 	base: ['list-none p-0 m-0'],
@@ -67,38 +104,18 @@ export const k = {
 		vertical: [
 			'col-start-1 row-start-1 self-center justify-self-center',
 			'before:bottom-full before:left-1/2 before:-translate-x-1/2',
-			'before:h-[100vh] before:w-0.5 before:bg-zinc-200 dark:before:bg-zinc-700',
+			'before:h-[100vh] before:w-0.5',
 			'after:top-full after:left-1/2 after:-translate-x-1/2',
-			'after:h-[100vh] after:w-0.5 after:bg-zinc-200 dark:after:bg-zinc-700',
+			'after:h-[100vh] after:w-0.5',
 		],
 		horizontal: [
 			'absolute top-0 left-[6.5px]',
 			'before:right-full before:top-1/2 before:-translate-y-1/2',
-			'before:h-0.5 before:w-[100vw] before:bg-zinc-200 dark:before:bg-zinc-700',
+			'before:h-0.5 before:w-[100vw]',
 			'after:left-full after:top-1/2 after:-translate-y-1/2',
-			'after:h-0.5 after:w-[100vw] after:bg-zinc-200 dark:after:bg-zinc-700',
+			'after:h-0.5 after:w-[100vw]',
 		],
-		color: {
-			zinc: 'text-zinc-500 dark:text-zinc-400',
-			red: 'text-red-500 dark:text-red-500',
-			amber: 'text-amber-500 dark:text-amber-500',
-			green: 'text-green-500 dark:text-green-500',
-			blue: 'text-blue-500 dark:text-blue-500',
-		},
-		lineBefore: {
-			zinc: 'before:bg-zinc-200 dark:before:bg-zinc-700',
-			red: 'before:bg-red-500 dark:before:bg-red-500',
-			amber: 'before:bg-amber-500 dark:before:bg-amber-500',
-			green: 'before:bg-green-500 dark:before:bg-green-500',
-			blue: 'before:bg-blue-500 dark:before:bg-blue-500',
-		},
-		lineAfter: {
-			zinc: 'after:bg-zinc-200 dark:after:bg-zinc-700',
-			red: 'after:bg-red-500 dark:after:bg-red-500',
-			amber: 'after:bg-amber-500 dark:after:bg-amber-500',
-			green: 'after:bg-green-500 dark:after:bg-green-500',
-			blue: 'after:bg-blue-500 dark:after:bg-blue-500',
-		},
+		palette: markerPalette,
 	},
 	title,
 	description,

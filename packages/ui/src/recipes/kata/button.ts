@@ -77,6 +77,7 @@ export const k = defineRecipe(
 			},
 		],
 		defaults: { variant: 'solid', color: 'zinc', size: 'md' },
+		skeleton: kokkaku.button,
 	},
 	{
 		solid: solidBundle,
@@ -86,7 +87,6 @@ export const k = defineRecipe(
 		bare: bareBundle,
 		ghost: ghostBundle,
 		motion: ugoki.spring,
-		skeleton: kokkaku.button,
 	},
 )
 
