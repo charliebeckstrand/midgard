@@ -1,5 +1,5 @@
 import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
-import { hannou, ji, sen, shaku } from '../kiso'
+import { hannou, ji, kasane, sen, shaku } from '../kiso'
 
 const item = defineRecipe({
 	base: [
@@ -8,12 +8,11 @@ const item = defineRecipe({
 		'group relative',
 		'flex w-full items-center',
 		'text-left',
-		'rounded-lg',
 	],
 	size: {
-		sm: [ji.sm, 'gap-1', 'p-1.5', shaku.icon.sm],
-		md: [ji.md, 'gap-2', 'p-2', shaku.icon.md],
-		lg: [ji.lg, 'gap-3', 'p-2.5', shaku.icon.lg],
+		sm: [ji.sm, 'gap-1', 'p-1.5', kasane.r('1.5'), shaku.icon.sm],
+		md: [ji.md, 'gap-2', 'p-2', kasane.r('2'), shaku.icon.md],
+		lg: [ji.lg, 'gap-3', 'p-2.5', kasane.r('2.5'), shaku.icon.lg],
 	},
 	defaults: { size: 'md' },
 })

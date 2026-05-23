@@ -11,7 +11,6 @@ const button = defineRecipe({
 		'flex items-center justify-between',
 		...input,
 		'text-left',
-		'rounded-lg',
 		'appearance-none',
 		...hannou.cursor,
 	],

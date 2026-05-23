@@ -8,7 +8,7 @@ const { portal } = popover
 
 export const k = defineRecipe(
 	{
-		base: ['block', 'truncate', ...input, 'rounded-lg'],
+		base: ['block', 'truncate', ...input],
 		density,
 		size,
 		slots: {

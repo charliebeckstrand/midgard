@@ -37,16 +37,19 @@ const input = [
 	'dark:placeholder:text-zinc-400',
 ]
 
-// Tracks the `density` axis of the Density token (padding dimension on
-// the inner input). Affix padding (`affix.prefix`, `affix.suffix`,
+// Tracks the `density` axis of the Density token (padding + radius
+// dimension). Affix padding (`affix.prefix`, `affix.suffix`,
 // `affix.autofill`) below is the same axis — keyed by the density step,
-// not the size step. Corner radius — which lives on the outer frame, not
-// the inner input — is exposed by `kata/control.ts` as `frameRadius` and
-// applied by `<ControlFrame>` via `useDensity()`.
+// not the size step. Corner radius matches `py` at every step for a
+// constant 1:1 padding-to-radius ratio across non-ControlFrame controls
+// (listbox, combobox, date-picker button); for ControlFrame consumers
+// (input, textarea, select trigger), `kata/control.ts` exposes
+// `frameRadius` and `<ControlFrame>` reads it from `useDensity()` so the
+// chrome on the wrapping frame carries the matching radius.
 const density = {
-	sm: [kasane.px('2.5'), kasane.py('1.5')],
-	md: [kasane.px('3'), kasane.py('2')],
-	lg: [kasane.px('3.5'), kasane.py('2.5')],
+	sm: [kasane.px('2.5'), kasane.py('1.5'), kasane.r('1.5')],
+	md: [kasane.px('3'), kasane.py('2'), kasane.r('2')],
+	lg: [kasane.px('3.5'), kasane.py('2.5'), kasane.r('2.5')],
 } as const
 
 // Tracks the `size` axis of the Density token (text + icon dimension).

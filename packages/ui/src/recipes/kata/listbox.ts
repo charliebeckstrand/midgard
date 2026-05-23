@@ -13,7 +13,6 @@ export const k = defineRecipe(
 			'w-full',
 			'text-left',
 			...input,
-			'rounded-lg',
 			'appearance-none',
 			...hannou.cursor,
 		],

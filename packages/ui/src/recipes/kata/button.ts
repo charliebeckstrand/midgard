@@ -16,7 +16,7 @@ export const k = defineRecipe(
 		base: [
 			'relative isolate',
 			'inline-flex items-center justify-center',
-			'w-fit shrink-0 font-semibold rounded-lg',
+			'w-fit shrink-0 font-semibold',
 			sen.focus.inset,
 			...hannou.disabled,
 			...hannou.cursor,
@@ -31,6 +31,7 @@ export const k = defineRecipe(
 				shaku.icon.xs,
 				'gap-0.5',
 				kasane.p('1.5'),
+				kasane.r('1'),
 				'data-[has-label]:py-[calc(--spacing(1)-1px)]',
 			],
 			sm: [
@@ -38,6 +39,7 @@ export const k = defineRecipe(
 				shaku.icon.sm,
 				'gap-0.75',
 				kasane.p('2'),
+				kasane.r('1.5'),
 				'data-[has-label]:py-[calc(--spacing(1.5)-1px)]',
 			],
 			md: [
@@ -45,6 +47,7 @@ export const k = defineRecipe(
 				shaku.icon.md,
 				'gap-1',
 				kasane.p('2.5'),
+				kasane.r('2'),
 				'data-[has-label]:py-[calc(--spacing(2)-1px)]',
 			],
 			lg: [
@@ -52,6 +55,7 @@ export const k = defineRecipe(
 				shaku.icon.lg,
 				'gap-2',
 				kasane.p('3'),
+				kasane.r('2.5'),
 				'data-[has-label]:py-[calc(--spacing(2.5)-1px)]',
 			],
 		},
