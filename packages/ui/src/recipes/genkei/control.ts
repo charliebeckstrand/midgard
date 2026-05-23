@@ -61,27 +61,50 @@ const size = {
 
 // Equidistance invariant: affix padding equals `input.px` so a text
 // affix's *content* sits the same distance from chrome as input-text
-// does in an affix-less control. When the slot hosts an element that
-// carries its own outer chrome — a non-bare `<Button>`, a `<Badge>`,
-// or anything else that opts in via `data-padded` — the affix padding
-// shrinks by that element's own `pl` so its *content* lands at the
-// same position. The compensation collapses to a constant `1`
-// spacing-unit at every density step because `affixStepDown`
-// (`primitives/affix/affix.ts`) moves the slot's child one notch down
-// per density step, and both scales grow 0.5 per notch — the
-// increments cancel. The boundary test at
-// `__tests__/recipes/boundary/affix-compensation-boundary.test.ts`
+// does in an affix-less control. When the slot hosts an element
+// with its own outer chrome — a non-bare `<Button>` or a `<Badge>`,
+// matched on `data-slot` — the affix padding shrinks by that
+// element's own `pl` so its *content* lands at the same position.
+// The compensation collapses to a constant `1` spacing-unit at every
+// density step because `affixStepDown` (`primitives/affix/affix.ts`)
+// moves the slot's child one notch down per density step, and both
+// scales grow 0.5 per notch — the increments cancel. The boundary
+// test at `__tests__/recipes/boundary/affix-compensation-boundary.test.ts`
 // pins this against the live recipes.
 const affix = {
 	prefix: {
-		sm: [kasane.pl('2.5'), 'has-[[data-padded]]:pl-[calc(--spacing(1)-1px)]'],
-		md: [kasane.pl('3'), 'has-[[data-padded]]:pl-[calc(--spacing(1)-1px)]'],
-		lg: [kasane.pl('3.5'), 'has-[[data-padded]]:pl-[calc(--spacing(1)-1px)]'],
+		sm: [
+			kasane.pl('2.5'),
+			'has-[>[data-slot=badge]]:pl-[calc(--spacing(1)-1px)]',
+			'has-[>[data-slot=button]:not([data-variant=bare])]:pl-[calc(--spacing(1)-1px)]',
+		],
+		md: [
+			kasane.pl('3'),
+			'has-[>[data-slot=badge]]:pl-[calc(--spacing(1)-1px)]',
+			'has-[>[data-slot=button]:not([data-variant=bare])]:pl-[calc(--spacing(1)-1px)]',
+		],
+		lg: [
+			kasane.pl('3.5'),
+			'has-[>[data-slot=badge]]:pl-[calc(--spacing(1)-1px)]',
+			'has-[>[data-slot=button]:not([data-variant=bare])]:pl-[calc(--spacing(1)-1px)]',
+		],
 	},
 	suffix: {
-		sm: [kasane.pr('2.5'), 'has-[[data-padded]]:pr-[calc(--spacing(1)-1px)]'],
-		md: [kasane.pr('3'), 'has-[[data-padded]]:pr-[calc(--spacing(1)-1px)]'],
-		lg: [kasane.pr('3.5'), 'has-[[data-padded]]:pr-[calc(--spacing(1)-1px)]'],
+		sm: [
+			kasane.pr('2.5'),
+			'has-[>[data-slot=badge]]:pr-[calc(--spacing(1)-1px)]',
+			'has-[>[data-slot=button]:not([data-variant=bare])]:pr-[calc(--spacing(1)-1px)]',
+		],
+		md: [
+			kasane.pr('3'),
+			'has-[>[data-slot=badge]]:pr-[calc(--spacing(1)-1px)]',
+			'has-[>[data-slot=button]:not([data-variant=bare])]:pr-[calc(--spacing(1)-1px)]',
+		],
+		lg: [
+			kasane.pr('3.5'),
+			'has-[>[data-slot=badge]]:pr-[calc(--spacing(1)-1px)]',
+			'has-[>[data-slot=button]:not([data-variant=bare])]:pr-[calc(--spacing(1)-1px)]',
+		],
 	},
 } as const
 

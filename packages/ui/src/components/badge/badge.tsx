@@ -51,7 +51,6 @@ export function Badge({
 				as="span"
 				dataSlot="badge"
 				data-step={resolvedSize}
-				data-padded=""
 				data-has-prefix={prefix ? '' : undefined}
 				data-has-suffix={suffix ? '' : undefined}
 				href={href}
