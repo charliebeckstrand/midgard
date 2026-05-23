@@ -9,9 +9,9 @@ import { Glass } from '../../../components/glass'
 import { Icon } from '../../../components/icon'
 import {
 	Sheet,
-	SheetActions,
 	SheetBody,
 	SheetDescription,
+	SheetFooter,
 	SheetHeader,
 	SheetTitle,
 } from '../../../components/sheet'
@@ -69,9 +69,9 @@ export function TypeCell({ prop }: { prop: PropDef }) {
 					<SheetBody>
 						<ReferencesPanel references={prop.references ?? {}} />
 					</SheetBody>
-					<SheetActions>
+					<SheetFooter>
 						<Button onClick={() => setOpen(false)}>Close</Button>
-					</SheetActions>
+					</SheetFooter>
 				</Sheet>
 			</Glass>
 		</>

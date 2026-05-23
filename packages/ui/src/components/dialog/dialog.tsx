@@ -5,7 +5,12 @@ import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { useMinWidth } from '../../hooks'
 import { Overlay } from '../../primitives/overlay'
-import { PanelA11yProvider, usePanelA11yScope } from '../../primitives/panel'
+import {
+	PanelA11yProvider,
+	PanelCloseProvider,
+	usePanelA11yScope,
+	usePanelCloseValue,
+} from '../../primitives/panel'
 import { type DialogPanelVariants, k } from '../../recipes/kata/dialog'
 import { useResolvedSurface } from '../glass/context'
 
@@ -41,6 +46,8 @@ export function Dialog({
 
 	const { panelAriaProps, providerValue } = usePanelA11yScope()
 
+	const closeValue = usePanelCloseValue(onOpenChange)
+
 	return (
 		<Overlay
 			open={open}
@@ -64,7 +71,9 @@ export function Dialog({
 						className,
 					)}
 				>
-					<PanelA11yProvider value={providerValue}>{children}</PanelA11yProvider>
+					<PanelCloseProvider value={closeValue}>
+						<PanelA11yProvider value={providerValue}>{children}</PanelA11yProvider>
+					</PanelCloseProvider>
 				</motion.div>
 			</div>
 		</Overlay>

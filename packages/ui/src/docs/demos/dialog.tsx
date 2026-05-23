@@ -4,9 +4,9 @@ import { useState } from 'react'
 import { Button } from '../../components/button'
 import {
 	Dialog,
-	DialogActions,
 	DialogBody,
 	DialogDescription,
+	DialogFooter,
 	DialogHeader,
 	DialogTitle,
 } from '../../components/dialog'
@@ -47,14 +47,14 @@ export function Demo() {
 							</Field>
 						</Stack>
 					</DialogBody>
-					<DialogActions>
+					<DialogFooter>
 						<Button variant="plain" onClick={() => setOpen(false)}>
 							Cancel
 						</Button>
 						<Button color="green" onClick={() => setOpen(false)}>
 							Create project
 						</Button>
-					</DialogActions>
+					</DialogFooter>
 				</Dialog>
 			</Example>
 
@@ -70,11 +70,11 @@ export function Demo() {
 							</Text>
 						</Stack>
 					</DialogBody>
-					<DialogActions>
+					<DialogFooter>
 						<Button variant="plain" onClick={() => setGlassOpen(false)}>
 							Close
 						</Button>
-					</DialogActions>
+					</DialogFooter>
 				</Dialog>
 			</Example>
 		</>

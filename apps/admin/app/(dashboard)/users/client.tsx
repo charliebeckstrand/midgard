@@ -4,7 +4,7 @@ import type { User } from 'auth/user'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { Button } from 'ui/button'
-import { Dialog, DialogActions, DialogBody, DialogTitle } from 'ui/dialog'
+import { Dialog, DialogBody, DialogFooter, DialogTitle } from 'ui/dialog'
 import { Field, Fieldset, Label } from 'ui/fieldset'
 import { Flex } from 'ui/flex'
 import { Heading } from 'ui/heading'
@@ -73,12 +73,12 @@ function EditUserDialog({ user, onOpenChange }: EditUserDialogProps) {
 					</Field>
 				</Fieldset>
 			</DialogBody>
-			<DialogActions>
+			<DialogFooter>
 				<Button variant="plain" onClick={() => onOpenChange(false)}>
 					Cancel
 				</Button>
 				<Button color="blue">Save</Button>
-			</DialogActions>
+			</DialogFooter>
 		</Dialog>
 	)
 }

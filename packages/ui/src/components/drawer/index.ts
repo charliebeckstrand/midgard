@@ -1,14 +1,18 @@
+export {
+	PanelClose as DrawerClose,
+	type PanelCloseProps as DrawerCloseProps,
+	PanelTrigger as DrawerTrigger,
+	type PanelTriggerProps as DrawerTriggerProps,
+} from '../../primitives/panel'
 export type { DrawerPanelVariants } from '../../recipes/kata/drawer'
 export { Drawer, type DrawerProps } from './drawer'
-export { DrawerClose, type DrawerCloseProps } from './drawer-close'
-export { DrawerTrigger, type DrawerTriggerProps } from './drawer-trigger'
 export {
-	DrawerActions,
-	type DrawerActionsProps,
 	DrawerBody,
 	type DrawerBodyProps,
 	DrawerDescription,
 	type DrawerDescriptionProps,
+	DrawerFooter,
+	type DrawerFooterProps,
 	DrawerHeader,
 	type DrawerHeaderProps,
 	DrawerTitle,

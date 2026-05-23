@@ -9,14 +9,14 @@ const DEFAULT_TITLE = k.title
 const DEFAULT_DESCRIPTION = k.description
 const DEFAULT_HEADER = k.header
 const DEFAULT_BODY = k.body
-const DEFAULT_ACTIONS = k.actions
+const DEFAULT_FOOTER = k.footer
 const DEFAULT_CONTENT = k.content
 
 export type PanelTitleProps = ComponentPropsWithoutRef<'h2'>
 export type PanelDescriptionProps = ComponentPropsWithoutRef<'p'>
 export type PanelHeaderProps = ComponentPropsWithoutRef<'div'>
 export type PanelBodyProps = ComponentPropsWithoutRef<'div'>
-export type PanelActionsProps = ComponentPropsWithoutRef<'div'>
+export type PanelFooterProps = ComponentPropsWithoutRef<'div'>
 export type PanelContentProps = ComponentPropsWithoutRef<'div'>
 
 type PanelA11yContextValue = {
@@ -72,13 +72,13 @@ export function usePanelA11yScope() {
 	return { panelAriaProps, providerValue }
 }
 
-/** Creates Title, Description, Header, Body, Actions, and Content slot components for a panel prefix. */
+/** Creates Title, Description, Header, Body, Footer, and Content slot components for a panel prefix. */
 type PanelSlots = {
 	title?: string | string[]
 	description?: string | string[]
 	header?: string | string[]
 	body?: string | string[]
-	actions?: string | string[]
+	footer?: string | string[]
 	content?: string | string[]
 }
 
@@ -87,7 +87,7 @@ export function createPanel(slotPrefix: string, slots?: PanelSlots) {
 	const descriptionClass = slots?.description ?? DEFAULT_DESCRIPTION
 	const headerClass = slots?.header ?? DEFAULT_HEADER
 	const bodyClass = slots?.body ?? DEFAULT_BODY
-	const actionsClass = slots?.actions ?? DEFAULT_ACTIONS
+	const footerClass = slots?.footer ?? DEFAULT_FOOTER
 	const contentClass = slots?.content ?? DEFAULT_CONTENT
 
 	function Title({ className, id, ...props }: PanelTitleProps) {
@@ -130,9 +130,9 @@ export function createPanel(slotPrefix: string, slots?: PanelSlots) {
 		return <div data-slot={`${slotPrefix}-body`} className={cn(bodyClass, className)} {...props} />
 	}
 
-	function Actions({ className, ...props }: PanelActionsProps) {
+	function Footer({ className, ...props }: PanelFooterProps) {
 		return (
-			<div data-slot={`${slotPrefix}-actions`} className={cn(actionsClass, className)} {...props} />
+			<div data-slot={`${slotPrefix}-footer`} className={cn(footerClass, className)} {...props} />
 		)
 	}
 
@@ -142,5 +142,5 @@ export function createPanel(slotPrefix: string, slots?: PanelSlots) {
 		)
 	}
 
-	return { Title, Description, Header, Body, Actions, Content }
+	return { Title, Description, Header, Body, Footer, Content }
 }

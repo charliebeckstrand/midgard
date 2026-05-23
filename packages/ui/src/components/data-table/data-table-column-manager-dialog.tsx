@@ -3,7 +3,7 @@
 import { SlidersHorizontal } from 'lucide-react'
 import { type ReactNode, useState } from 'react'
 import { Button } from '../button'
-import { Dialog, DialogActions, DialogBody, DialogTitle } from '../dialog'
+import { Dialog, DialogBody, DialogFooter, DialogTitle } from '../dialog'
 import { Icon } from '../icon'
 import { Toolbar } from '../toolbar'
 import { DataTableColumnManager } from './data-table-column-manager'
@@ -51,11 +51,11 @@ export function DataTableColumnManagerDialog({
 						onSavePreset={onSavePreset}
 					/>
 				</DialogBody>
-				<DialogActions>
+				<DialogFooter>
 					<Button variant="plain" onClick={() => setOpen(false)}>
 						Done
 					</Button>
-				</DialogActions>
+				</DialogFooter>
 			</Dialog>
 		</>
 	)

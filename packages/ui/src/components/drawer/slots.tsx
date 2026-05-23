@@ -1,8 +1,8 @@
 import {
 	createPanel,
-	type PanelActionsProps,
 	type PanelBodyProps,
 	type PanelDescriptionProps,
+	type PanelFooterProps,
 	type PanelHeaderProps,
 	type PanelTitleProps,
 } from '../../primitives/panel'
@@ -12,20 +12,20 @@ export type DrawerTitleProps = PanelTitleProps
 export type DrawerDescriptionProps = PanelDescriptionProps
 export type DrawerHeaderProps = PanelHeaderProps
 export type DrawerBodyProps = PanelBodyProps
-export type DrawerActionsProps = PanelActionsProps
+export type DrawerFooterProps = PanelFooterProps
 
-const { Title, Description, Header, Body, Actions } = createPanel('drawer', {
+const { Title, Description, Header, Body, Footer } = createPanel('drawer', {
 	title: k.title,
 	description: k.description,
 	header: k.header,
 	body: k.body,
-	actions: k.actions,
+	footer: k.footer,
 })
 
 export {
-	Actions as DrawerActions,
 	Body as DrawerBody,
 	Description as DrawerDescription,
+	Footer as DrawerFooter,
 	Header as DrawerHeader,
 	Title as DrawerTitle,
 }

@@ -1,0 +1,23 @@
+'use client'
+
+import { cloneElement, type MouseEvent, type MouseEventHandler, type ReactElement } from 'react'
+import { usePanelCloseContext } from './panel-close-context'
+
+export type PanelCloseProps = {
+	children: ReactElement<{ onClick?: MouseEventHandler }>
+}
+
+/**
+ * Wraps a single child so clicking it closes the enclosing panel (Dialog, Sheet,
+ * Drawer). The child's own `onClick` runs first, then the panel's `close()`.
+ */
+export function PanelClose({ children }: PanelCloseProps) {
+	const { close } = usePanelCloseContext()
+
+	return cloneElement(children, {
+		onClick: (e: MouseEvent) => {
+			children.props.onClick?.(e)
+			close()
+		},
+	})
+}
