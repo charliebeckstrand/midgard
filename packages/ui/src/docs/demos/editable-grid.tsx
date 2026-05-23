@@ -10,6 +10,7 @@ import {
 	DialogBody,
 	DialogContent,
 	DialogDescription,
+	DialogHeader,
 	DialogTitle,
 } from '../../components/dialog'
 import {
@@ -242,18 +243,20 @@ export function Demo() {
 					onValueChange={(changes) => setBulkRates((prev) => applyChanges(prev, changes))}
 				/>
 				<Dialog open={editOpen} onOpenChange={setEditOpen}>
-					<DialogTitle>Edit {selection.size} selected</DialogTitle>
-					{selection.size > 1 && (
-						<DialogDescription>
-							<Flex gap="md">
-								<Icon icon={<Info />} />
-								<span>
-									Leave a field blank to keep the current value, or enter a new value to apply it to
-									all selected rows.
-								</span>
-							</Flex>
-						</DialogDescription>
-					)}
+					<DialogHeader>
+						<DialogTitle>Edit {selection.size} selected</DialogTitle>
+						{selection.size > 1 && (
+							<DialogDescription>
+								<Flex gap="md">
+									<Icon icon={<Info />} />
+									<span>
+										Leave a field blank to keep the current value, or enter a new value to apply it
+										to all selected rows.
+									</span>
+								</Flex>
+							</DialogDescription>
+						)}
+					</DialogHeader>
 					<DialogContent>
 						<Form
 							defaultValues={editDefaults}

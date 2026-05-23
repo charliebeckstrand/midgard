@@ -6,6 +6,7 @@ import {
 	Dialog,
 	DialogActions,
 	DialogDescription,
+	DialogHeader,
 	type DialogPanelVariants,
 	DialogTitle,
 } from '../dialog'
@@ -44,8 +45,12 @@ export function Confirm({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange} size={size} className={className}>
-			{title && <DialogTitle>{title}</DialogTitle>}
-			{description && <DialogDescription>{description}</DialogDescription>}
+			{(title || description) && (
+				<DialogHeader>
+					{title && <DialogTitle>{title}</DialogTitle>}
+					{description && <DialogDescription>{description}</DialogDescription>}
+				</DialogHeader>
+			)}
 			{children}
 			<DialogActions>
 				<Button variant="plain" color={cancel?.color} disabled={cancel?.disabled} onClick={close}>
