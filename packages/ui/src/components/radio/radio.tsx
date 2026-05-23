@@ -2,10 +2,9 @@
 
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn, invalidAttrs } from '../../core'
-import { useDensity } from '../../primitives/density'
 import { useSkeleton } from '../../providers/skeleton'
 import { k, type RadioVariants } from '../../recipes/kata/radio'
-import { useControlProps } from '../control/use-control-props'
+import { useControlToggle } from '../control/use-control-toggle'
 import { Placeholder } from '../placeholder'
 
 export type RadioProps = RadioVariants & {
@@ -18,11 +17,8 @@ export function Radio({ className, color, size, id, disabled, required, ...props
 		disabled: resolvedDisabled,
 		required: resolvedRequired,
 		invalid: resolvedInvalid,
-	} = useControlProps({ id, disabled, required })
-
-	const inherited = useDensity()
-
-	const resolvedSize = size ?? inherited.size
+		size: resolvedSize,
+	} = useControlToggle({ id, disabled, required, size })
 
 	if (useSkeleton()) {
 		return <Placeholder className={cn(k.skeleton.base, className)} />
