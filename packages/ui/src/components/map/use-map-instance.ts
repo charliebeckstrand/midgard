@@ -1,7 +1,8 @@
 'use client'
 
 import type { Map as MapLibreMap, StyleSpecification } from 'maplibre-gl'
-import { type RefObject, useEffect, useMemo, useRef, useState } from 'react'
+import { type RefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useResizeObserver } from '../../hooks'
 import type { MapContextValue } from './context'
 import { loadMapLibre } from './map-loader'
 import type { LngLat } from './types'
@@ -147,19 +148,15 @@ export function useMapInstance({
 	// MapLibre measures the container at construction and won't reflow when the
 	// container resizes (responsive layout, sidebar collapse, etc.) without a
 	// nudge — so the canvas would stay at its initial size and clip or stretch.
-	useEffect(() => {
+	const resize = useCallback(() => {
 		const map = mapRef.current
 
-		const container = containerRef.current
+		if (!map || !ready) return
 
-		if (!map || !container || !ready) return
-
-		const observer = new ResizeObserver(() => map.resize())
-
-		observer.observe(container)
-
-		return () => observer.disconnect()
+		map.resize()
 	}, [ready])
+
+	useResizeObserver(containerRef, resize)
 
 	// Stable context — getMap and onReady read from refs, so the value
 	// identity never changes across renders.
