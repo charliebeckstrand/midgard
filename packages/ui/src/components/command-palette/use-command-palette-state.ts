@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useId, useMemo, useRef, useState } from 'react'
 import { useRoving } from '../../hooks'
 
 type UseCommandPaletteStateOptions = {
@@ -30,11 +30,6 @@ export function useCommandPaletteState({ open, onOpenChange }: UseCommandPalette
 
 		if (!open) setQuery('')
 	}
-
-	// Focus input on open
-	useLayoutEffect(() => {
-		if (open) inputRef.current?.focus()
-	}, [open])
 
 	const close = useCallback(() => onOpenChange(false), [onOpenChange])
 

@@ -50,6 +50,7 @@ export function CommandPalette({
 			dismissOnBackdrop={dismissOnBackdrop}
 			size={size}
 			className={className}
+			initialFocus={inputRef}
 		>
 			<CommandPaletteProvider value={context}>
 				<Flex gap="sm">

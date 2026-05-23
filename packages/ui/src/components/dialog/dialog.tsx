@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
-import type { ReactNode } from 'react'
+import type { ReactNode, RefObject } from 'react'
 import { cn } from '../../core'
 import { useMinWidth } from '../../hooks'
 import { Overlay } from '../../primitives/overlay'
@@ -22,6 +22,8 @@ export type DialogProps = DialogPanelVariants & {
 	glass?: boolean
 	className?: string
 	children: ReactNode
+	/** Element to receive initial focus when the dialog opens. Defaults to the first tabbable child. */
+	initialFocus?: RefObject<HTMLElement | null>
 }
 
 const alignClasses = {
@@ -39,6 +41,7 @@ export function Dialog({
 	glass,
 	className,
 	children,
+	initialFocus,
 }: DialogProps) {
 	const resolvedSurface = useResolvedSurface(surface, glass)
 
@@ -54,6 +57,7 @@ export function Dialog({
 			onOpenChange={onOpenChange}
 			dismissOnBackdrop={dismissOnBackdrop}
 			glass={resolvedSurface === 'glass'}
+			initialFocus={initialFocus}
 		>
 			<div
 				className={cn(
