@@ -59,16 +59,30 @@ const size = {
 	lg: ji.lg,
 } as const
 
+// The chrome-facing affix padding equals `input.px` so that the *content*
+// of a text affix (or no affix at all) sits at the same horizontal
+// distance from the chrome edge — equidistance is the invariant.
+//
+// When the affix slot hosts a button (not `data-variant=bare`, which has
+// no padding of its own), the affix's chrome-facing padding shrinks to
+// compensate for the button's own `pl` so the button's *content* lands at
+// the same equidistant position. The compensation collapses to a
+// constant `1` spacing-unit at every density step because `affixStepDown`
+// (see `primitives/affix/affix.ts`) moves the affix-slot button exactly
+// one notch down per density step, and both scales grow by 0.5 per
+// notch — the increments cancel. The
+// `recipes/boundary/affix-compensation-boundary.test.ts` boundary test
+// verifies the invariant against the live recipe values.
 const affix = {
 	prefix: {
-		sm: [kasane.pl('2.5'), 'has-[button:not([data-variant=bare])]:pl-[calc(--spacing(1.5)-1px)]'],
-		md: [kasane.pl('3'), 'has-[button:not([data-variant=bare])]:pl-[calc(--spacing(2)-1px)]'],
-		lg: [kasane.pl('3.5'), 'has-[button:not([data-variant=bare])]:pl-[calc(--spacing(2.5)-1px)]'],
+		sm: [kasane.pl('2.5'), 'has-[button:not([data-variant=bare])]:pl-[calc(--spacing(1)-1px)]'],
+		md: [kasane.pl('3'), 'has-[button:not([data-variant=bare])]:pl-[calc(--spacing(1)-1px)]'],
+		lg: [kasane.pl('3.5'), 'has-[button:not([data-variant=bare])]:pl-[calc(--spacing(1)-1px)]'],
 	},
 	suffix: {
-		sm: [kasane.pr('2.5'), 'has-[button:not([data-variant=bare])]:pr-[calc(--spacing(1.5)-1px)]'],
-		md: [kasane.pr('3'), 'has-[button:not([data-variant=bare])]:pr-[calc(--spacing(2)-1px)]'],
-		lg: [kasane.pr('3.5'), 'has-[button:not([data-variant=bare])]:pr-[calc(--spacing(2.5)-1px)]'],
+		sm: [kasane.pr('2.5'), 'has-[button:not([data-variant=bare])]:pr-[calc(--spacing(1)-1px)]'],
+		md: [kasane.pr('3'), 'has-[button:not([data-variant=bare])]:pr-[calc(--spacing(1)-1px)]'],
+		lg: [kasane.pr('3.5'), 'has-[button:not([data-variant=bare])]:pr-[calc(--spacing(1)-1px)]'],
 	},
 	autofill: {
 		prefix: {

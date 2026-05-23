@@ -124,7 +124,6 @@ export function TagInput({
 			prefix={badges}
 			suffix={
 				<Button
-					size="xs"
 					color="blue"
 					disabled={disabled || atMax || inputValue.trim() === ''}
 					onMouseDown={(e) => e.preventDefault()}
