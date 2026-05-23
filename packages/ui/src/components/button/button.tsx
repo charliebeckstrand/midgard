@@ -112,6 +112,7 @@ export function Button({
 						data-slot={dataSlot}
 						data-size={resolvedSize}
 						data-variant={variant}
+						data-padded={variant === 'bare' ? undefined : ''}
 						data-has-prefix={!!prefix || undefined}
 						data-has-label={labelled || undefined}
 						data-has-suffix={!!suffix || undefined}
@@ -141,6 +142,7 @@ export function Button({
 				data-slot={dataSlot}
 				data-size={resolvedSize}
 				data-variant={variant}
+				data-padded={variant === 'bare' ? undefined : ''}
 				data-has-prefix={!!prefix || undefined}
 				data-has-label={labelled || undefined}
 				data-has-suffix={!!suffix || undefined}

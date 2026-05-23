@@ -5,23 +5,27 @@ import type { Step } from '../../../recipes'
 import { control } from '../../../recipes/genkei/control'
 import { k as button } from '../../../recipes/kata/button'
 
-// Affix has-button compensation invariant.
+// Affix `data-padded` compensation invariant.
 //
 // Equidistance: affix padding equals `input.px` so a text affix's
 // *content* sits the same distance from chrome as input-text does in
 // an affix-less control.
 //
-// When a non-bare button lives in the slot, the affix padding shrinks
-// by the button's `pl` so the button's *content* lands at the same
-// position. `affixStepDown` moves the slot button one notch down per
-// host density step. Both scales grow 0.5 per notch, so the increments
-// cancel and the compensation collapses to a constant:
+// When the slot hosts an element with its own outer chrome — anything
+// that opts in via `data-padded` (currently non-bare Button and all
+// Badge) — the affix padding shrinks by that element's own `pl` so
+// its *content* lands at the same position. `affixStepDown` moves the
+// slot's child one notch down per host density step. Both scales grow
+// 0.5 per notch, so the increments cancel and the compensation
+// collapses to a constant:
 //
-//   affix.pl(has-button) = input.px − button.p[affixStepDown(step)] = 1
+//   affix.pl(has-padded) = input.px − child.p[affixStepDown(step)] = 1
 //
 // The test parses live recipe values rather than the literal `1` — if
 // any of (input.px, button.p, affixStepDown) drifts, the assertion
-// fails with the calculated delta and points at the source.
+// fails with the calculated delta and points at the source. Button's
+// `p` stands in for any chip's `p` because Button and Badge share the
+// same per-step horizontal padding scale (kasane.p).
 
 const SPACING_RE = /calc\(--spacing\(([\d.]+)\)/
 
@@ -54,19 +58,13 @@ describe('control affix has-button compensation', () => {
 		const expected = hostPx - buttonPx
 
 		it(`${step}: affix.prefix has-button override = input.px (${hostPx}) − stepped-down button.p (${buttonPx}) = ${expected}`, () => {
-			const actual = findSpacing(
-				control.affix.prefix[step],
-				'has-[button:not([data-variant=bare])]:pl-[',
-			)
+			const actual = findSpacing(control.affix.prefix[step], 'has-[[data-padded]]:pl-[')
 
 			expect(actual).toBe(expected)
 		})
 
 		it(`${step}: affix.suffix has-button override = input.px (${hostPx}) − stepped-down button.p (${buttonPx}) = ${expected}`, () => {
-			const actual = findSpacing(
-				control.affix.suffix[step],
-				'has-[button:not([data-variant=bare])]:pr-[',
-			)
+			const actual = findSpacing(control.affix.suffix[step], 'has-[[data-padded]]:pr-[')
 
 			expect(actual).toBe(expected)
 		})
