@@ -4,7 +4,7 @@ import { createPanel, PanelA11yProvider, usePanelA11y } from '../../primitives/p
 import { bySlot, renderUI } from '../helpers'
 
 describe('createPanel', () => {
-	const { Title, Description, Body, Actions, Content } = createPanel('dialog')
+	const { Title, Description, Header, Body, Actions, Content } = createPanel('dialog')
 
 	it('Title renders with correct data-slot', () => {
 		const { container } = renderUI(<Title>My Title</Title>)
@@ -24,6 +24,16 @@ describe('createPanel', () => {
 		expect(el).toBeInTheDocument()
 
 		expect(el?.tagName).toBe('P')
+	})
+
+	it('Header renders with correct data-slot', () => {
+		const { container } = renderUI(<Header>Header content</Header>)
+
+		const el = bySlot(container, 'dialog-header')
+
+		expect(el).toBeInTheDocument()
+
+		expect(el?.tagName).toBe('DIV')
 	})
 
 	it('Body renders with correct data-slot', () => {

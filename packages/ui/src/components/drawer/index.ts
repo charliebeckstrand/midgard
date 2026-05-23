@@ -9,6 +9,8 @@ export {
 	type DrawerBodyProps,
 	DrawerDescription,
 	type DrawerDescriptionProps,
+	DrawerHeader,
+	type DrawerHeaderProps,
 	DrawerTitle,
 	type DrawerTitleProps,
 } from './slots'

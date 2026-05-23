@@ -26,15 +26,24 @@ const item = [shaku.icon.md, 'text-inherit', sen.forced.icon]
 /** Truncated description with a spacer pseudo-element for overflow. */
 const description = ['flex', 'flex-1', 'overflow-hidden', 'before:w-2 before:min-w-0 before:shrink']
 
-/** Panel slot layout shared by dialog and sheet. */
+/**
+ * Panel slot layout shared by dialog, sheet, and drawer.
+ *
+ * Slot gaps come from `space-y-4` on `base`, not per-slot `mt-*` — so slots
+ * compose in any order without each one paying for its own first-child reset.
+ * `header` is the optional tight-gap wrapper for title + description (the only
+ * pair where 4 feels loose); everything else stands on its own at 4.
+ */
 const panel = {
-	base: 'flex flex-col',
+	base: 'flex flex-col space-y-4',
 	title: [...iro.text.default, ji.lg, 'font-semibold leading-none'],
-	description: [...iro.text.muted, ji.md, 'leading-tight', 'mt-2 first:mt-0'],
-	/** Optional wrapper around body + actions — sits in the body slot so a Form (or other) can wrap both without losing the description-to-body gap. */
-	content: 'flex flex-col min-h-0 mt-4 first:mt-0',
-	body: [...iro.text.muted, 'min-h-0 mt-4 first:mt-0', 'overflow-y-auto'],
-	actions: ['flex items-center justify-end gap-2', 'mt-4 first:mt-0'],
+	description: [...iro.text.muted, ji.md, 'leading-tight'],
+	/** Optional wrapper around title + description for the tighter 2-unit gap; sits outside the body's overflow container. */
+	header: 'flex flex-col space-y-2',
+	/** Optional wrapper around body + actions — lets a Form (or other) wrap both without breaking the panel's slot rhythm. */
+	content: 'flex flex-col min-h-0 space-y-4',
+	body: [...iro.text.muted, 'min-h-0', 'overflow-y-auto'],
+	actions: ['flex items-center justify-end gap-2'],
 }
 
 const slide = {

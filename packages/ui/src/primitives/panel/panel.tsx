@@ -7,12 +7,14 @@ import { k } from '../../recipes/kata/panel'
 
 const DEFAULT_TITLE = k.title
 const DEFAULT_DESCRIPTION = k.description
+const DEFAULT_HEADER = k.header
 const DEFAULT_BODY = k.body
 const DEFAULT_ACTIONS = k.actions
 const DEFAULT_CONTENT = k.content
 
 export type PanelTitleProps = ComponentPropsWithoutRef<'h2'>
 export type PanelDescriptionProps = ComponentPropsWithoutRef<'p'>
+export type PanelHeaderProps = ComponentPropsWithoutRef<'div'>
 export type PanelBodyProps = ComponentPropsWithoutRef<'div'>
 export type PanelActionsProps = ComponentPropsWithoutRef<'div'>
 export type PanelContentProps = ComponentPropsWithoutRef<'div'>
@@ -70,10 +72,11 @@ export function usePanelA11yScope() {
 	return { panelAriaProps, providerValue }
 }
 
-/** Creates Title, Description, Body, Actions, and Content slot components for a panel prefix. */
+/** Creates Title, Description, Header, Body, Actions, and Content slot components for a panel prefix. */
 type PanelSlots = {
 	title?: string | string[]
 	description?: string | string[]
+	header?: string | string[]
 	body?: string | string[]
 	actions?: string | string[]
 	content?: string | string[]
@@ -82,6 +85,7 @@ type PanelSlots = {
 export function createPanel(slotPrefix: string, slots?: PanelSlots) {
 	const titleClass = slots?.title ?? DEFAULT_TITLE
 	const descriptionClass = slots?.description ?? DEFAULT_DESCRIPTION
+	const headerClass = slots?.header ?? DEFAULT_HEADER
 	const bodyClass = slots?.body ?? DEFAULT_BODY
 	const actionsClass = slots?.actions ?? DEFAULT_ACTIONS
 	const contentClass = slots?.content ?? DEFAULT_CONTENT
@@ -116,6 +120,12 @@ export function createPanel(slotPrefix: string, slots?: PanelSlots) {
 		)
 	}
 
+	function Header({ className, ...props }: PanelHeaderProps) {
+		return (
+			<div data-slot={`${slotPrefix}-header`} className={cn(headerClass, className)} {...props} />
+		)
+	}
+
 	function Body({ className, ...props }: PanelBodyProps) {
 		return <div data-slot={`${slotPrefix}-body`} className={cn(bodyClass, className)} {...props} />
 	}
@@ -132,5 +142,5 @@ export function createPanel(slotPrefix: string, slots?: PanelSlots) {
 		)
 	}
 
-	return { Title, Description, Body, Actions, Content }
+	return { Title, Description, Header, Body, Actions, Content }
 }

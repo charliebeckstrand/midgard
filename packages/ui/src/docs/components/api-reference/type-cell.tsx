@@ -12,6 +12,7 @@ import {
 	SheetActions,
 	SheetBody,
 	SheetDescription,
+	SheetHeader,
 	SheetTitle,
 } from '../../../components/sheet'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
@@ -61,8 +62,10 @@ export function TypeCell({ prop }: { prop: PropDef }) {
 			</Flex>
 			<Glass>
 				<Sheet open={open} onOpenChange={setOpen}>
-					<SheetTitle className="font-mono">{prop.name}</SheetTitle>
-					<SheetDescription className="font-mono">{prop.type}</SheetDescription>
+					<SheetHeader>
+						<SheetTitle className="font-mono">{prop.name}</SheetTitle>
+						<SheetDescription className="font-mono">{prop.type}</SheetDescription>
+					</SheetHeader>
 					<SheetBody>
 						<ReferencesPanel references={prop.references ?? {}} />
 					</SheetBody>
