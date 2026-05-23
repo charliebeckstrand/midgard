@@ -3,10 +3,10 @@
 import { Button } from '../button'
 import {
 	Sheet,
-	SheetActions,
 	SheetBody,
 	SheetClose,
 	SheetDescription,
+	SheetFooter,
 	SheetHeader,
 	SheetTitle,
 } from '../sheet'
@@ -70,11 +70,11 @@ export function MapRouteTimeline({ open, onOpenChange, stops }: MapRouteTimeline
 					})}
 				</Timeline>
 			</SheetBody>
-			<SheetActions>
+			<SheetFooter>
 				<SheetClose>
 					<Button>Close</Button>
 				</SheetClose>
-			</SheetActions>
+			</SheetFooter>
 		</Sheet>
 	)
 }

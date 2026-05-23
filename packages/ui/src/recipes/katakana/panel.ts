@@ -7,7 +7,7 @@
  * `control` / `check`, the applicator doesn't own the variants. The
  * kata defines them via its own `defineRecipe` call and hands the result
  * to `panel(...)`, which stitches it into the standard slot bundle
- * (title / description / header / body / actions / close) by composing
+ * (title / description / header / body / footer / close) by composing
  * `narabi.panel` with caller extras.
  *
  * Like `popover` and `segment`, `panel` doesn't fit `defineApplicator`'s
@@ -39,8 +39,8 @@ type PanelInput<P, B = undefined> = {
 	header?: Slot
 	/** Extra padding / layout for the Body slot. */
 	body?: Slot
-	/** Extra padding / layout for the Actions slot. */
-	actions?: Slot
+	/** Extra padding / layout for the Footer slot. */
+	footer?: Slot
 	/** Classes for the Close button. */
 	close?: Base
 }
@@ -57,7 +57,7 @@ function toArray(v?: string | string[]): string[] {
  * `panel` and (optional) `backdrop` are caller-supplied
  * `defineRecipe(...)` results — they carry the kata's variants and stay
  * callable, so consumers keep `VariantPropsOf<typeof result.panel>`
- * inference. The other slots (title, description, header, body, actions,
+ * inference. The other slots (title, description, header, body, footer,
  * close) are zero-variant class fragments built from `narabi.panel` plus
  * optional caller extras, applied via `cn(...)` at the call site.
  *
@@ -74,7 +74,7 @@ export function panel<P, B = undefined>(
 	description: string[]
 	header: string[]
 	body: string[]
-	actions: string[]
+	footer: string[]
 	close: string[]
 } {
 	return {
@@ -87,7 +87,7 @@ export function panel<P, B = undefined>(
 		description: [...narabi.panel.description, ...toArray(input.description?.extra)],
 		header: [narabi.panel.header, ...toArray(input.header?.extra)],
 		body: [...narabi.panel.body, ...toArray(input.body?.extra)],
-		actions: [...narabi.panel.actions, ...toArray(input.actions?.extra)],
+		footer: [...narabi.panel.footer, ...toArray(input.footer?.extra)],
 		close: toArray(input.close?.base),
 	}
 }

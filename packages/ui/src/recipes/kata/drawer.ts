@@ -29,7 +29,7 @@ export const k = {
 		}),
 		title: { extra: 'px-6 pt-6' },
 		description: { extra: 'px-6' },
-		actions: { extra: 'px-6 pb-6' },
+		footer: { extra: 'px-6 pb-6' },
 		body: { extra: ['flex-1 overflow-y-auto overscroll-y-contain', 'px-6 last:mb-6'] },
 		close: {
 			base: ['absolute right-4 top-4', 'p-1', ...iro.text.muted, sen.focus.inset, 'rounded-md'],

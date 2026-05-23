@@ -46,7 +46,7 @@ export const k = {
 		}),
 		title: { extra: 'px-6 pt-6' },
 		description: { extra: 'px-6' },
-		actions: { extra: 'px-6 pb-6' },
+		footer: { extra: 'px-6 pb-6' },
 		body: { extra: ['flex-1 overflow-y-auto px-6 first:pt-6'] },
 		close: {
 			base: [...iro.text.muted, sen.focus.inset, 'rounded-md', 'absolute right-5 top-5', 'p-1'],

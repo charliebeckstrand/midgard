@@ -40,10 +40,10 @@ const panel = {
 	description: [...iro.text.muted, ji.md, 'leading-tight'],
 	/** Optional wrapper around title + description for the tighter 2-unit gap; sits outside the body's overflow container. */
 	header: 'flex flex-col space-y-2',
-	/** Optional wrapper around body + actions — lets a Form (or other) wrap both without breaking the panel's slot rhythm. */
+	/** Optional wrapper around body + footer — lets a Form (or other) wrap both without breaking the panel's slot rhythm. */
 	content: 'flex flex-col min-h-0 space-y-4',
 	body: [...iro.text.muted, 'min-h-0', 'overflow-y-auto'],
-	actions: ['flex items-center justify-end gap-2'],
+	footer: ['flex items-center justify-end gap-2'],
 }
 
 const slide = {

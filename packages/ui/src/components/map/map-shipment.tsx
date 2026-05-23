@@ -3,7 +3,7 @@
 import { Truck } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../button'
-import { Dialog, DialogActions, DialogBody, DialogTitle } from '../dialog'
+import { Dialog, DialogBody, DialogFooter, DialogTitle } from '../dialog'
 import { DescriptionDetails, DescriptionList, DescriptionTerm } from '../dl'
 import { Icon } from '../icon'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../tabs'
@@ -58,9 +58,9 @@ export function MapShipment({ data, onSendMessage, onSelect }: MapShipmentProps)
 					) : (
 						<ShipmentInfo data={data} />
 					)}
-					<DialogActions>
+					<DialogFooter>
 						<Button onClick={() => setOpen(false)}>Close</Button>
-					</DialogActions>
+					</DialogFooter>
 				</DialogBody>
 			</Dialog>
 		</>

@@ -4,8 +4,8 @@ import type { ReactNode } from 'react'
 import { Button, type ButtonVariants } from '../button'
 import {
 	Dialog,
-	DialogActions,
 	DialogDescription,
+	DialogFooter,
 	DialogHeader,
 	type DialogPanelVariants,
 	DialogTitle,
@@ -52,14 +52,14 @@ export function Confirm({
 				</DialogHeader>
 			)}
 			{children}
-			<DialogActions>
+			<DialogFooter>
 				<Button variant="plain" color={cancel?.color} disabled={cancel?.disabled} onClick={close}>
 					{cancel?.label ?? 'Cancel'}
 				</Button>
 				<Button color={confirm?.color} disabled={confirm?.disabled} onClick={onConfirm}>
 					{confirm?.label ?? 'Confirm'}
 				</Button>
-			</DialogActions>
+			</DialogFooter>
 		</Dialog>
 	)
 }

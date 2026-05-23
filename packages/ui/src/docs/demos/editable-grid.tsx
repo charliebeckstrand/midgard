@@ -6,10 +6,10 @@ import { Button } from '../../components/button'
 import { CurrencyInput } from '../../components/currency-input'
 import {
 	Dialog,
-	DialogActions,
 	DialogBody,
 	DialogContent,
 	DialogDescription,
+	DialogFooter,
 	DialogHeader,
 	DialogTitle,
 } from '../../components/dialog'
@@ -297,12 +297,12 @@ export function Demo() {
 									</Field>
 								</Stack>
 							</DialogBody>
-							<DialogActions>
+							<DialogFooter>
 								<Button variant="plain" onClick={() => setEditOpen(false)}>
 									Cancel
 								</Button>
 								<SubmitButton color="blue">Apply</SubmitButton>
-							</DialogActions>
+							</DialogFooter>
 						</Form>
 					</DialogContent>
 				</Dialog>

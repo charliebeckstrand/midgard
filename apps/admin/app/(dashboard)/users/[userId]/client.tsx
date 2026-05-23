@@ -6,7 +6,7 @@ import { useCallback, useEffect, useState } from 'react'
 import type { Chat, ChatContent } from 'shared/chat'
 import { ChatMessages } from 'shared/chat'
 import { Button } from 'ui/button'
-import { Dialog, DialogActions, DialogBody, DialogTitle } from 'ui/dialog'
+import { Dialog, DialogBody, DialogFooter, DialogTitle } from 'ui/dialog'
 import { Flex } from 'ui/flex'
 import { Heading } from 'ui/heading'
 import { Icon } from 'ui/icon'
@@ -148,14 +148,14 @@ export function UserDetailsClient({ details, chats: initialChats }: UserDetailsC
 						"<strong>{confirmDeleteChat}</strong>"?
 					</div>
 				</DialogBody>
-				<DialogActions>
+				<DialogFooter>
 					<Button variant="outline" onClick={() => setConfirmDeleteChat(null)}>
 						Cancel
 					</Button>
 					<Button color="red" onClick={() => confirmDeleteChat && deleteChat(confirmDeleteChat)}>
 						Delete
 					</Button>
-				</DialogActions>
+				</DialogFooter>
 			</Dialog>
 		</>
 	)
