@@ -1,5 +1,5 @@
 import { defineRecipe, merge, palette, type VariantPropsOf } from '../../core/recipe'
-import { hannou, iro, ji, kokkaku, sen, shaku, tsunagi, ugoki } from '../kiso'
+import { hannou, iro, ji, kasane, kokkaku, sen, shaku, tsunagi, ugoki } from '../kiso'
 
 const { solid, soft, outline, plain, bare } = iro.palette
 const { inherit } = iro.text
@@ -30,28 +30,28 @@ export const k = defineRecipe(
 				ji.xs,
 				shaku.icon.xs,
 				'gap-0.5',
-				'p-[calc(--spacing(1.5)-1px)]',
+				kasane.p('1.5'),
 				'data-[has-label]:py-[calc(--spacing(1)-1px)]',
 			],
 			sm: [
 				ji.sm,
 				shaku.icon.sm,
 				'gap-0.75',
-				'p-[calc(--spacing(2)-1px)]',
+				kasane.p('2'),
 				'data-[has-label]:py-[calc(--spacing(1.5)-1px)]',
 			],
 			md: [
 				ji.md,
 				shaku.icon.md,
 				'gap-1',
-				'p-[calc(--spacing(2.5)-1px)]',
+				kasane.p('2.5'),
 				'data-[has-label]:py-[calc(--spacing(2)-1px)]',
 			],
 			lg: [
 				ji.lg,
 				shaku.icon.lg,
 				'gap-2',
-				'p-[calc(--spacing(3)-1px)]',
+				kasane.p('3'),
 				'data-[has-label]:py-[calc(--spacing(2.5)-1px)]',
 			],
 		},

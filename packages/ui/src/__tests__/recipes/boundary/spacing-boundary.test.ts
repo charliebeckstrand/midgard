@@ -17,9 +17,11 @@ import { describe, expect, it } from 'vitest'
 //      `kasane.p / px / py / pl / pr`. Inline literals are forbidden so the
 //      formula has a single source of truth.
 //
-// Each rule carries an ALLOWLIST of files that haven't been migrated yet.
-// Entries are removed as the sweep proceeds; when both lists are empty,
-// `src/theme.css` can be deleted.
+// Both rules carry an ALLOWLIST of files exempt from the check. The first
+// list is empty — every legacy-utility consumer has migrated. The second
+// retains entries whose remaining `calc(--spacing(…))` literals carry
+// Tailwind variant prefixes (`data-*`, `has-*`, `autofill:*`); variants
+// must appear in source and so can't move behind the kasane helpers.
 
 const srcDir = join(__dirname, '../../..')
 
@@ -39,16 +41,13 @@ const RAW_CALC = /calc\(--spacing\(/
 const RENAMED_UTILITY_ALLOWLIST = new Set<string>()
 
 /**
- * Files still spelling `calc(--spacing(v)-1px)` inline. Bare cases will
- * migrate to `kasane.p / px / py / pl / pr`; variant-prefixed cases
- * (`data-*:py-[…]`, `has-*:pl-[…]`) stay inline by necessity, so these
- * files may remain on the list with reduced surface after the sweep.
+ * Files still spelling `calc(--spacing(v)-1px)` inline — variant-prefixed
+ * cases (`data-*:py-[…]`, `has-*:pl-[…]`, `autofill:ml-[…]`) stay inline
+ * because Tailwind variants must appear in source, not at runtime. The
+ * bare cases in these files have already migrated to `kasane.p / px / py /
+ * pl / pr`.
  */
-const RAW_CALC_ALLOWLIST = new Set([
-	'recipes/genkei/control.ts',
-	'recipes/kata/badge.ts',
-	'recipes/kata/button.ts',
-])
+const RAW_CALC_ALLOWLIST = new Set(['recipes/genkei/control.ts', 'recipes/kata/button.ts'])
 
 describe('spacing boundary', () => {
 	it('no file outside the allowlist uses the legacy renamed spacing utilities', () => {

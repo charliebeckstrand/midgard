@@ -41,9 +41,9 @@ const input = [
 // Affix padding (`affix.prefix`, `affix.suffix`, `affix.autofill`) below is
 // the same axis — keyed by the density step, not the size step.
 const density = {
-	sm: 'px-[calc(--spacing(2.5)-1px)] py-[calc(--spacing(1.5)-1px)]',
-	md: 'px-[calc(--spacing(3)-1px)] py-[calc(--spacing(2)-1px)]',
-	lg: 'px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)]',
+	sm: [kasane.px('2.5'), kasane.py('1.5')],
+	md: [kasane.px('3'), kasane.py('2')],
+	lg: [kasane.px('3.5'), kasane.py('2.5')],
 } as const
 
 // Tracks the `size` axis of the Density token (text + icon dimension).
@@ -55,32 +55,14 @@ const size = {
 
 const affix = {
 	prefix: {
-		sm: [
-			'pl-[calc(--spacing(2.5)-1px)]',
-			'has-[button:not([data-variant=bare])]:pl-[calc(--spacing(1.5)-1px)]',
-		],
-		md: [
-			'pl-[calc(--spacing(3)-1px)]',
-			'has-[button:not([data-variant=bare])]:pl-[calc(--spacing(2)-1px)]',
-		],
-		lg: [
-			'pl-[calc(--spacing(3.5)-1px)]',
-			'has-[button:not([data-variant=bare])]:pl-[calc(--spacing(2.5)-1px)]',
-		],
+		sm: [kasane.pl('2.5'), 'has-[button:not([data-variant=bare])]:pl-[calc(--spacing(1.5)-1px)]'],
+		md: [kasane.pl('3'), 'has-[button:not([data-variant=bare])]:pl-[calc(--spacing(2)-1px)]'],
+		lg: [kasane.pl('3.5'), 'has-[button:not([data-variant=bare])]:pl-[calc(--spacing(2.5)-1px)]'],
 	},
 	suffix: {
-		sm: [
-			'pr-[calc(--spacing(2.5)-1px)]',
-			'has-[button:not([data-variant=bare])]:pr-[calc(--spacing(1.5)-1px)]',
-		],
-		md: [
-			'pr-[calc(--spacing(3)-1px)]',
-			'has-[button:not([data-variant=bare])]:pr-[calc(--spacing(2)-1px)]',
-		],
-		lg: [
-			'pr-[calc(--spacing(3.5)-1px)]',
-			'has-[button:not([data-variant=bare])]:pr-[calc(--spacing(2.5)-1px)]',
-		],
+		sm: [kasane.pr('2.5'), 'has-[button:not([data-variant=bare])]:pr-[calc(--spacing(1.5)-1px)]'],
+		md: [kasane.pr('3'), 'has-[button:not([data-variant=bare])]:pr-[calc(--spacing(2)-1px)]'],
+		lg: [kasane.pr('3.5'), 'has-[button:not([data-variant=bare])]:pr-[calc(--spacing(2.5)-1px)]'],
 	},
 	autofill: {
 		prefix: {
