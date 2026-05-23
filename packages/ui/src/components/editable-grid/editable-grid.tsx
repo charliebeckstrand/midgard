@@ -139,7 +139,6 @@ export function EditableGrid<T>({
 
 	const selectionApi: EditableGridSelectionApi = {
 		selectionRef,
-		setSelection: setSelectionRaw,
 	}
 
 	const nav = useEditableGridNavigation<T>({
@@ -162,7 +161,6 @@ export function EditableGrid<T>({
 			mutations,
 			draft,
 			rows: rowsApi,
-			selection: selectionApi,
 			wrapperRef,
 			onValueChange,
 		})

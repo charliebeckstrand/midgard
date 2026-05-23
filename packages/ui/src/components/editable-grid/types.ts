@@ -38,7 +38,6 @@ export type EditableGridRowsApi<T> = {
 
 export type EditableGridSelectionApi = {
 	selectionRef: RefObject<Set<string | number>>
-	setSelection: (selection: Set<string | number>) => void
 }
 
 export type EditableGridNavigationApi = {

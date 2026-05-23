@@ -12,7 +12,6 @@ type BadgeBaseProps = BadgeVariants & {
 	className?: string
 	prefix?: ReactNode
 	suffix?: ReactNode
-	dataPadded?: string | boolean
 }
 
 export type BadgeProps = BadgeBaseProps & PolymorphicProps<'span', 'prefix'>
@@ -36,7 +35,6 @@ export function Badge({
 	className,
 	children,
 	href,
-	dataPadded = true,
 	prefix,
 	suffix,
 	...props
@@ -53,7 +51,7 @@ export function Badge({
 				as="span"
 				dataSlot="badge"
 				data-step={resolvedSize}
-				data-padded={dataPadded}
+				data-padded=""
 				data-has-prefix={prefix ? '' : undefined}
 				data-has-suffix={suffix ? '' : undefined}
 				href={href}

@@ -66,6 +66,7 @@ export function useEditableGridAugmentedColumns<T>({
 							if (showInput) return
 
 							e.preventDefault()
+
 							e.currentTarget.closest<HTMLElement>('[role=grid]')?.focus()
 
 							const coord = { row: rowIdx, col: colIdx }

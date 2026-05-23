@@ -5,6 +5,8 @@ export {
 	type DialogActionsProps,
 	DialogBody,
 	type DialogBodyProps,
+	DialogContent,
+	type DialogContentProps,
 	DialogDescription,
 	type DialogDescriptionProps,
 	DialogTitle,

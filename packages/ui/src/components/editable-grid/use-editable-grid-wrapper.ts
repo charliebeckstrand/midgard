@@ -13,7 +13,6 @@ import type {
 	EditableGridMutationsApi,
 	EditableGridNavigationApi,
 	EditableGridRowsApi,
-	EditableGridSelectionApi,
 } from './types'
 
 export function useEditableGridWrapper<T>({
@@ -32,7 +31,6 @@ export function useEditableGridWrapper<T>({
 	mutations: { applyCellWrite, applyBulkFill },
 	draft: { editing, beginEdit },
 	rows: { rowsRef, editableCols, getKey, formatCell, parseValue },
-	selection: { selectionRef, setSelection },
 	wrapperRef,
 	onValueChange,
 }: {
@@ -40,7 +38,6 @@ export function useEditableGridWrapper<T>({
 	mutations: EditableGridMutationsApi
 	draft: EditableGridDraftApi
 	rows: EditableGridRowsApi<T>
-	selection: EditableGridSelectionApi
 	wrapperRef: RefObject<HTMLTableElement | null>
 	onValueChange: (changes: CellChange[]) => void
 }) {
@@ -53,6 +50,49 @@ export function useEditableGridWrapper<T>({
 			if (rowsRef.current.length === 0 || editableCols.length === 0) return
 
 			const key = e.key
+
+			const wrapper = wrapperRef.current
+
+			// Events bubbled up from an in-grid selection checkbox: only Tab forward
+			// is intercepted (to bridge into the cell cursor). Shift+Tab, Space, and
+			// the rest pass through so native checkbox behavior keeps working.
+			const tgt = e.target
+
+			if (
+				wrapper &&
+				tgt instanceof HTMLInputElement &&
+				tgt.type === 'checkbox' &&
+				tgt !== (wrapper as Element) &&
+				wrapper.contains(tgt)
+			) {
+				if (key !== 'Tab' || e.shiftKey) return
+
+				const tr = tgt.closest('tr')
+
+				const section = tr?.parentElement
+
+				if (!tr || !section) return
+
+				let targetRow: number
+
+				if (section.tagName === 'THEAD') {
+					targetRow = 0
+				} else if (section.tagName === 'TBODY') {
+					targetRow = Array.prototype.indexOf.call(section.children, tr)
+				} else {
+					return
+				}
+
+				if (targetRow < 0 || targetRow >= rowsRef.current.length) return
+
+				e.preventDefault()
+
+				moveActiveTo({ row: targetRow, col: 0 })
+
+				wrapper.focus()
+
+				return
+			}
 
 			switch (key) {
 				case 'ArrowUp':
@@ -79,10 +119,35 @@ export function useEditableGridWrapper<T>({
 					moveActive(0, 1, e.shiftKey)
 
 					return
-				case 'Tab':
+				case 'Tab': {
+					// Shift+Tab from the leftmost editable column hands focus to the
+					// row's selection checkbox (when present). Active state is cleared
+					// so the user can keep tabbing past header / out of the grid
+					// without bouncing back into the cell cursor.
+					if (e.shiftKey && active?.col === 0 && wrapper) {
+						const tr = wrapper.tBodies[0]?.rows[active.row]
+
+						const cb = tr?.querySelector<HTMLInputElement>('input[type="checkbox"]')
+
+						if (cb) {
+							e.preventDefault()
+
+							setActive(null)
+
+							setAnchor(null)
+
+							setExtraCells(new Set())
+
+							cb.focus()
+
+							return
+						}
+					}
+
 					if (moveActiveTab(e.shiftKey ? -1 : 1)) e.preventDefault()
 
 					return
+				}
 				case 'Home': {
 					e.preventDefault()
 
@@ -165,6 +230,7 @@ export function useEditableGridWrapper<T>({
 			editableCols,
 			rowsRef,
 			activeRef,
+			wrapperRef,
 			moveActive,
 			moveActiveTo,
 			moveActiveTab,
@@ -226,11 +292,7 @@ export function useEditableGridWrapper<T>({
 				})
 			})
 
-			if (changes.length) {
-				onValueChange(changes)
-
-				if (selectionRef.current.size > 0) setSelection(new Set())
-			}
+			if (changes.length) onValueChange(changes)
 		},
 		[
 			editing,
@@ -238,13 +300,11 @@ export function useEditableGridWrapper<T>({
 			hasMultiSelection,
 			editableCols,
 			rowsRef,
-			selectionRef,
 			getKey,
 			parseValue,
 			onValueChange,
 			applyCellWrite,
 			applyBulkFill,
-			setSelection,
 		],
 	)
 

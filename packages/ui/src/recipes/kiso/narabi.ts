@@ -30,9 +30,11 @@ const description = ['flex', 'flex-1', 'overflow-hidden', 'before:w-2 before:min
 const panel = {
 	base: 'flex flex-col',
 	title: [...iro.text.default, ji.lg, 'font-semibold leading-none'],
-	description: [...iro.text.muted, ji.md, 'mt-2 first:mt-0'],
-	body: [...iro.text.muted, 'min-h-0', 'mt-4 first:mt-0', 'overflow-y-auto'],
-	actions: ['flex items-center justify-end', 'mt-6 first:mt-0', 'gap-2'],
+	description: [...iro.text.muted, ji.md, 'leading-tight', 'mt-2 first:mt-0'],
+	/** Optional wrapper around body + actions — sits in the body slot so a Form (or other) can wrap both without losing the description-to-body gap. */
+	content: 'flex flex-col min-h-0 mt-4 first:mt-0',
+	body: [...iro.text.muted, 'min-h-0 mt-4 first:mt-0', 'overflow-y-auto'],
+	actions: ['flex items-center justify-end gap-2', 'mt-4 first:mt-0'],
 }
 
 const slide = {
