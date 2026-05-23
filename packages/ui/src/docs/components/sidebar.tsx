@@ -74,7 +74,7 @@ export function SidebarContent({ route }: { route: string }) {
 				}}
 			</Combobox>
 			<SidebarBody>
-				<div className="flex flex-col gap-md">
+				<div className="flex flex-col gap-3">
 					{sortedCategories.map(([category, items]) => (
 						<Fragment key={category}>
 							<span className="text-zinc-500 leading-none px-2">{category}</span>

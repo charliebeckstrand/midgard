@@ -3,6 +3,7 @@
 import { PanelLeft, PanelLeftDashed } from 'lucide-react'
 import { use } from 'react'
 import { Button } from '../components/button'
+import { Flex } from '../components/flex'
 import { Heading } from '../components/heading'
 import { Icon } from '../components/icon'
 import { Stack } from '../components/stack'
@@ -27,7 +28,7 @@ export function DemoPage({
 	return (
 		<>
 			<SidebarLayoutHeader>
-				<div className="flex items-center gap-md">
+				<Flex align="center" gap="md">
 					<Button
 						variant="bare"
 						className="max-lg:hidden"
@@ -37,7 +38,7 @@ export function DemoPage({
 						<Icon icon={locked ? <PanelLeftDashed /> : <PanelLeft />} />
 					</Button>
 					<Heading>{demo.name}</Heading>
-				</div>
+				</Flex>
 			</SidebarLayoutHeader>
 			<Stack gap="xl">
 				<Component />
