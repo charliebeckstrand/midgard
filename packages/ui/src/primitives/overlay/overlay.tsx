@@ -11,7 +11,7 @@ import { k } from '../../recipes/kata/overlay'
 import { ReducedMotion } from '../reduced-motion'
 import { notifyOverlaySignal } from './overlay-signal'
 
-export type OverlayProps = {
+type OverlayProps = {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	dismissOnBackdrop?: boolean

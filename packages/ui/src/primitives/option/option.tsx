@@ -14,7 +14,7 @@ const DEFAULT_CHECK_ICON = (
 	/>
 )
 
-export type BaseOptionProps = {
+type BaseOptionProps = {
 	className?: string
 	icon?: ReactNode
 	selected: boolean

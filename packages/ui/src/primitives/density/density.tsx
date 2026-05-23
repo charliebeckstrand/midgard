@@ -22,7 +22,7 @@ import { useAffix } from '../affix'
  * API can carry friendlier labels (e.g. `compact / cozy / comfortable`)
  * without a refactor — translation lives at the prop surface, not the token.
  */
-export type DensityToken = {
+type DensityToken = {
 	density: Step
 	size: Step
 }
@@ -33,7 +33,7 @@ export type DensityToken = {
  * baseline with a preset (both axes), then explicit per-axis overrides still
  * win.
  */
-export type DensityInput = Partial<DensityToken> & { scale?: Step }
+type DensityInput = Partial<DensityToken> & { scale?: Step }
 
 /** Diagonal preset table — `scale="md"` resolves to `{ density: 'md', size: 'md' }`. */
 export const densityPresets: Record<Step, DensityToken> = {
