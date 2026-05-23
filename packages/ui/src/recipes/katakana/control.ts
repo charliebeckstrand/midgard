@@ -15,8 +15,8 @@
  *     `<input>` element — `default` paints `surface.default`, `glass`
  *     paints `surface.glass`, `outline` is empty so kata can layer
  *     borders.
- *   - `k.prefix` / `k.suffix` / `k.autofill` are density-keyed
- *     affix-padding tables read by the component.
+ *   - `k.prefix` / `k.suffix` are density-keyed affix-padding tables
+ *     read by the component.
  */
 
 import {
@@ -55,7 +55,6 @@ const standardExtras = {
 	}),
 	prefix: affix.prefix,
 	suffix: affix.suffix,
-	autofill: affix.autofill,
 }
 
 export const control = defineApplicator({ config: standardConfig, extras: standardExtras })

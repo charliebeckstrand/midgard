@@ -1,5 +1,5 @@
 import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
-import { hannou, ji, sen, shaku } from '../kiso'
+import { hannou, ji, kasane, sen, shaku } from '../kiso'
 
 const item = defineRecipe({
 	base: [
@@ -8,12 +8,11 @@ const item = defineRecipe({
 		'group relative',
 		'flex w-full items-center',
 		'text-left',
-		'rounded-lg',
 	],
 	size: {
-		sm: [ji.sm, 'gap-xs', 'p-1.5', shaku.icon.sm],
-		md: [ji.md, 'gap-sm', 'p-2', shaku.icon.md],
-		lg: [ji.lg, 'gap-md', 'p-2.5', shaku.icon.lg],
+		sm: [ji.sm, kasane.g('1.5'), kasane.p('1.5'), kasane.r('1.5'), shaku.icon.sm],
+		md: [ji.md, kasane.g('2'), kasane.p('2'), kasane.r('2'), shaku.icon.md],
+		lg: [ji.lg, kasane.g('2.5'), kasane.p('2.5'), kasane.r('2.5'), shaku.icon.lg],
 	},
 	defaults: { size: 'md' },
 })
@@ -23,8 +22,8 @@ export const k = {
 	item,
 	section: ['flex flex-col', 'gap-0.5'],
 	label: ['truncate'],
-	header: ['flex items-center justify-between', 'gap-md', '**:data-[slot=heading]:leading-none'],
-	body: ['overflow-y-auto', 'flex flex-1 flex-col', 'gap-lg'],
+	header: ['flex items-center justify-between', 'gap-3', '**:data-[slot=heading]:leading-none'],
+	body: ['overflow-y-auto', 'flex flex-1 flex-col', 'gap-4'],
 	divider: sen.divider,
 	footer: ['sticky bottom-0', 'flex flex-col', 'gap-0.5', 'mt-auto'],
 }

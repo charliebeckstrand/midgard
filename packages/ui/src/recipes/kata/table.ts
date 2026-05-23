@@ -2,9 +2,9 @@ import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
 import { iro, sen } from '../kiso'
 
 const cellSize = {
-	sm: 'px-xs py-xs',
-	md: 'px-sm py-sm',
-	lg: 'px-md py-md',
+	sm: 'px-1 py-1',
+	md: 'px-2 py-2',
+	lg: 'px-3 py-3',
 }
 
 const grid = {

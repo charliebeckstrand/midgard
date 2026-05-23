@@ -4,7 +4,7 @@ import { iro, ji } from '../kiso'
 const { solid, soft, outline, plain } = iro.palette
 
 export const k = defineRecipe({
-	base: ['flex w-fit items-center', 'p-4', 'gap-sm', ji.md, 'rounded-lg'],
+	base: ['flex w-fit items-center', 'p-4', 'gap-2', ji.md, 'rounded-lg'],
 	variant: {
 		outline: 'ring-1 ring-inset',
 	},
@@ -18,9 +18,9 @@ export const k = defineRecipe({
 		icon: 'shrink-0 self-center',
 		title: [ji.lg, 'leading-tight font-semibold'],
 		description: ['leading-tight', 'col-start-2'],
-		content: ['flex-1 min-w-0', 'gap-md'],
+		content: ['flex-1 min-w-0', 'gap-3'],
 		body: 'col-start-2',
-		actions: ['flex items-center', 'gap-xs'],
+		actions: ['flex items-center', 'gap-1'],
 		close: 'shrink-0',
 	},
 	defaults: { variant: 'soft', color: 'zinc' },

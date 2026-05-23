@@ -1,5 +1,5 @@
 import { defineRecipe, palette, type VariantPropsOf } from '../../core/recipe'
-import { iro, ji, kokkaku, shaku } from '../kiso'
+import { iro, ji, kasane, kokkaku, shaku } from '../kiso'
 
 const { solid, soft, outline, plain } = iro.palette
 
@@ -10,30 +10,10 @@ export const k = defineRecipe(
 			outline: 'ring-1 ring-inset',
 		},
 		size: {
-			xs: [
-				ji.xs,
-				shaku.icon.xs,
-				'gap-0.5',
-				'py-[calc(--spacing(0.75)-1px)] px-[calc(--spacing(1.5)-1px)]',
-			],
-			sm: [
-				ji.sm,
-				shaku.icon.sm,
-				'gap-0.75',
-				'py-[calc(--spacing(1)-1px)] px-[calc(--spacing(2)-1px)]',
-			],
-			md: [
-				ji.md,
-				shaku.icon.md,
-				'gap-xs',
-				'py-[calc(--spacing(1.25)-1px)] px-[calc(--spacing(2.5)-1px)]',
-			],
-			lg: [
-				ji.lg,
-				shaku.icon.lg,
-				'gap-sm',
-				'py-[calc(--spacing(1.5)-1px)] px-[calc(--spacing(3)-1px)]',
-			],
+			xs: [ji.xs, shaku.icon.xs, kasane.g('0.5'), kasane.py('0.75'), kasane.px('1.5')],
+			sm: [ji.sm, shaku.icon.sm, kasane.g('0.5'), kasane.py('1'), kasane.px('2')],
+			md: [ji.md, shaku.icon.md, kasane.g('0.75'), kasane.py('1.25'), kasane.px('2.5')],
+			lg: [ji.lg, shaku.icon.lg, kasane.g('0.75'), kasane.py('1.5'), kasane.px('3')],
 		},
 		rounded: {
 			none: 'rounded-none',

@@ -25,7 +25,6 @@ const surface = {
 } as const
 
 const input = [
-	'gap-sm',
 	'relative',
 	'w-full min-w-0 flex-1',
 	'border-0',
@@ -37,13 +36,20 @@ const input = [
 	'dark:placeholder:text-zinc-400',
 ]
 
-// Tracks the `density` axis of the Density token (padding + gap dimension).
-// Affix padding (`affix.prefix`, `affix.suffix`, `affix.autofill`) below is
-// the same axis — keyed by the density step, not the size step.
+// Tracks the `density` axis of the Density token (padding + radius +
+// child-gap dimension). Affix padding (`affix.prefix`, `affix.suffix`)
+// below is the same axis — keyed by the density step, not the size step.
+// Corner radius matches `py` at every step for a constant 1:1
+// padding-to-radius ratio across non-ControlFrame controls (listbox,
+// combobox, date-picker button); for ControlFrame consumers (input,
+// textarea, select trigger), `kata/control.ts` exposes `frameRadius` and
+// `<ControlFrame>` reads it from `useDensity()` so the chrome on the
+// wrapping frame carries the matching radius. Gap = py/2 at every step
+// (rounded to the spacing scale).
 const density = {
-	sm: 'px-[calc(--spacing(2.5)-1px)] py-[calc(--spacing(1.5)-1px)]',
-	md: 'px-[calc(--spacing(3)-1px)] py-[calc(--spacing(2)-1px)]',
-	lg: 'px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)]',
+	sm: [kasane.px('2.5'), kasane.py('1.5'), kasane.r('1.5'), kasane.g('0.75')],
+	md: [kasane.px('3'), kasane.py('2'), kasane.r('2'), kasane.g('1')],
+	lg: [kasane.px('3.5'), kasane.py('2.5'), kasane.r('2.5'), kasane.g('1.25')],
 } as const
 
 // Tracks the `size` axis of the Density token (text + icon dimension).
@@ -53,46 +59,29 @@ const size = {
 	lg: ji.lg,
 } as const
 
+// Equidistance invariant: affix padding equals `input.px` so a text
+// affix's *content* sits the same distance from chrome as input-text
+// does in an affix-less control. When the slot hosts an element that
+// carries its own outer chrome — a non-bare `<Button>`, a `<Badge>`,
+// or anything else that opts in via `data-padded` — the affix padding
+// shrinks by that element's own `pl` so its *content* lands at the
+// same position. The compensation collapses to a constant `1`
+// spacing-unit at every density step because `affixStepDown`
+// (`primitives/affix/affix.ts`) moves the slot's child one notch down
+// per density step, and both scales grow 0.5 per notch — the
+// increments cancel. The boundary test at
+// `__tests__/recipes/boundary/affix-compensation-boundary.test.ts`
+// pins this against the live recipes.
 const affix = {
 	prefix: {
-		sm: [
-			'pl-[calc(--spacing(2.5)-1px)]',
-			'has-[button:not([data-variant=bare])]:pl-[calc(--spacing(1.5)-1px)]',
-		],
-		md: [
-			'pl-[calc(--spacing(3)-1px)]',
-			'has-[button:not([data-variant=bare])]:pl-[calc(--spacing(2)-1px)]',
-		],
-		lg: [
-			'pl-[calc(--spacing(3.5)-1px)]',
-			'has-[button:not([data-variant=bare])]:pl-[calc(--spacing(2.5)-1px)]',
-		],
+		sm: [kasane.pl('2.5'), 'has-[[data-padded]]:pl-[calc(--spacing(1)-1px)]'],
+		md: [kasane.pl('3'), 'has-[[data-padded]]:pl-[calc(--spacing(1)-1px)]'],
+		lg: [kasane.pl('3.5'), 'has-[[data-padded]]:pl-[calc(--spacing(1)-1px)]'],
 	},
 	suffix: {
-		sm: [
-			'pr-[calc(--spacing(2.5)-1px)]',
-			'has-[button:not([data-variant=bare])]:pr-[calc(--spacing(1.5)-1px)]',
-		],
-		md: [
-			'pr-[calc(--spacing(3)-1px)]',
-			'has-[button:not([data-variant=bare])]:pr-[calc(--spacing(2)-1px)]',
-		],
-		lg: [
-			'pr-[calc(--spacing(3.5)-1px)]',
-			'has-[button:not([data-variant=bare])]:pr-[calc(--spacing(2.5)-1px)]',
-		],
-	},
-	autofill: {
-		prefix: {
-			sm: 'autofill:ml-[calc(--spacing(2.5)-1px)] peer-has-[button]/prefix:autofill:ml-1',
-			md: 'autofill:ml-[calc(--spacing(3)-1px)] peer-has-[button]/prefix:autofill:ml-1.5',
-			lg: 'autofill:ml-[calc(--spacing(3.5)-1px)] peer-has-[button]/prefix:autofill:ml-2',
-		},
-		suffix: {
-			sm: 'autofill:mr-[calc(--spacing(2.5)-1px)] group-has-[[data-slot=suffix]_button]/control:autofill:mr-1',
-			md: 'autofill:mr-[calc(--spacing(3)-1px)] group-has-[[data-slot=suffix]_button]/control:autofill:mr-1.5',
-			lg: 'autofill:mr-[calc(--spacing(3.5)-1px)] group-has-[[data-slot=suffix]_button]/control:autofill:mr-2',
-		},
+		sm: [kasane.pr('2.5'), 'has-[[data-padded]]:pr-[calc(--spacing(1)-1px)]'],
+		md: [kasane.pr('3'), 'has-[[data-padded]]:pr-[calc(--spacing(1)-1px)]'],
+		lg: [kasane.pr('3.5'), 'has-[[data-padded]]:pr-[calc(--spacing(1)-1px)]'],
 	},
 } as const
 

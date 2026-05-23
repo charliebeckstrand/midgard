@@ -1,24 +1,24 @@
 import { defineRecipe } from '../../core/recipe'
-import { iro, ji, omote, sen, ugoki } from '../kiso'
+import { iro, ji, kasane, omote, sen, ugoki } from '../kiso'
 
 const content = defineRecipe({
-	base: [iro.text.default, 'font-medium', 'whitespace-nowrap', 'rounded-lg', 'pointer-events-none'],
+	base: [iro.text.default, 'font-medium', 'whitespace-nowrap'],
 	size: {
-		sm: ['px-xs py-xs', ji.sm],
-		md: ['px-sm py-sm', ji.md],
-		lg: ['px-md py-md', ji.lg],
+		sm: [kasane.p('1'), kasane.r('1'), ji.sm],
+		md: [kasane.p('2'), kasane.r('2'), ji.md],
+		lg: [kasane.p('3'), kasane.r('3'), ji.lg],
 	},
 	defaults: { size: 'md' },
 })
 
 export const k = {
 	trigger: 'inline-flex items-center',
-	triggerEnabled: 'cursor-help *:cursor-help',
 	portal: 'z-100',
+	cursor: 'cursor-help *:cursor-help',
 	content,
 	surface: {
 		default: omote.popover,
-		glass: [omote.glass, sen.outline],
+		glass: [omote.glass, sen.ring],
 	},
 	motion: ugoki.tooltip,
 }

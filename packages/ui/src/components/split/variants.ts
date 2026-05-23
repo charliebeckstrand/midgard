@@ -8,11 +8,11 @@ export type SplitAlign = FlexAlign
 export type SplitGap = Ma
 
 export const gapMap = {
-	xs: 'gap-xs',
-	sm: 'gap-sm',
-	md: 'gap-md',
-	lg: 'gap-lg',
-	xl: 'gap-xl',
+	xs: 'gap-1',
+	sm: 'gap-2',
+	md: 'gap-3',
+	lg: 'gap-4',
+	xl: 'gap-6',
 } as const satisfies Record<SplitGap, string>
 
 export const ratioTuples = {

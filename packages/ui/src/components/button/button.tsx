@@ -110,7 +110,9 @@ export function Button({
 					<Link
 						ref={ref as Ref<HTMLAnchorElement>}
 						data-slot={dataSlot}
+						data-step={resolvedSize}
 						data-variant={variant}
+						data-padded={variant === 'bare' ? undefined : ''}
 						data-has-prefix={!!prefix || undefined}
 						data-has-label={labelled || undefined}
 						data-has-suffix={!!suffix || undefined}
@@ -138,7 +140,9 @@ export function Button({
 				{...(spring && buttonSpring)}
 				ref={ref as Ref<HTMLButtonElement>}
 				data-slot={dataSlot}
+				data-step={resolvedSize}
 				data-variant={variant}
+				data-padded={variant === 'bare' ? undefined : ''}
 				data-has-prefix={!!prefix || undefined}
 				data-has-label={labelled || undefined}
 				data-has-suffix={!!suffix || undefined}

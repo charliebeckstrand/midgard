@@ -10,9 +10,9 @@ import { hannou, ji, omote, sen } from '../kiso'
 const control = {
 	base: ['inline-flex items-center', 'rounded-lg', ...omote.tint],
 	size: {
-		sm: ['p-0.5', 'gap-xs'],
-		md: ['p-1', 'gap-sm'],
-		lg: ['p-1', 'gap-md'],
+		sm: ['p-0.5', 'gap-1'],
+		md: ['p-1', 'gap-2'],
+		lg: ['p-1', 'gap-3'],
 	},
 }
 

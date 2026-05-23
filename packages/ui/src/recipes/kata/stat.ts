@@ -22,7 +22,7 @@ const value = defineRecipe({
 })
 
 const delta = defineRecipe({
-	base: ['inline-flex items-center', ji.sm, 'gap-xs', 'font-medium tabular-nums'],
+	base: ['inline-flex items-center', ji.sm, 'gap-1', 'font-medium tabular-nums'],
 	trend: {
 		up: 'text-green-600 dark:text-green-500',
 		down: 'text-red-600 dark:text-red-500',
@@ -62,7 +62,7 @@ const skeleton = {
 
 export const k = defineRecipe(
 	{
-		base: ['flex flex-col justify-center', 'h-full', 'gap-xs'],
+		base: ['flex flex-col justify-center', 'h-full', 'gap-1'],
 		slots: {
 			description: [ji.sm, ...iro.text.muted],
 		},

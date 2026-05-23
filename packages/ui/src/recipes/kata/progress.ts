@@ -1,5 +1,5 @@
 import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
-import { iro } from '../kiso'
+import { iro, ji } from '../kiso'
 
 /**
  * Per-colour fill / bg / stroke classes shared between bar + gauge. The
@@ -61,10 +61,10 @@ const gaugeRoot = defineRecipe({
 const gaugeLabel = defineRecipe({
 	base: ['absolute', 'font-semibold', ...iro.text.default],
 	size: {
-		sm: 'text-xs',
-		md: 'text-sm',
-		lg: 'text-md',
-		xl: 'text-lg',
+		sm: ji.xs,
+		md: ji.sm,
+		lg: ji.md,
+		xl: ji.lg,
 	},
 	defaults: { size: 'md' },
 })

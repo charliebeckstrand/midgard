@@ -17,5 +17,5 @@ export const k = {
 		iro.text.muted,
 		'pointer-events-none',
 	],
-	actions: ['absolute right-2 bottom-2', 'flex items-center', 'gap-xs'],
+	actions: ['absolute right-2 bottom-2', 'flex items-center', 'gap-1'],
 }

@@ -2,7 +2,7 @@ import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
 import { hannou, iro, ji, sen } from '../kiso'
 
 const list = defineRecipe({
-	base: ['flex items-center list-none', 'gap-xs', 'm-0 p-0'],
+	base: ['flex items-center list-none', 'gap-1', 'm-0 p-0'],
 })
 
 const pageButton = defineRecipe({
@@ -36,7 +36,7 @@ const gap = defineRecipe({
 
 export const k = defineRecipe(
 	{
-		base: ['flex items-center list-none', 'gap-xs'],
+		base: ['flex items-center list-none', 'gap-1'],
 	},
 	{
 		list,

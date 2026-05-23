@@ -59,8 +59,8 @@ export function TooltipContent({ size, className, children }: TooltipContentProp
 								{...k.motion}
 								className={cn(
 									k.content({ size: resolvedSize }),
+									interactive ? 'pointer-events-auto' : 'pointer-events-none',
 									k.surface[glass ? 'glass' : 'default'],
-									interactive && 'pointer-events-auto',
 									className,
 								)}
 							>

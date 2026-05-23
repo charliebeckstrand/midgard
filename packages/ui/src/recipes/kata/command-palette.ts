@@ -5,7 +5,7 @@ export const k = {
 	item: [
 		'group/option flex w-full items-center',
 		'px-2',
-		'gap-sm',
+		'gap-2',
 		...hannou.item,
 		...narabi.item,
 		'data-active:bg-zinc-950/5',

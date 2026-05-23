@@ -8,19 +8,21 @@
  */
 
 /**
- * Base ring + radius that the layers are applied on top of. The ring uses
- * solid colours (not translucent like `sen.ringInset`) so adjacent rings in
- * a group can overlap by 1 px without alpha-stacking into a darker line at
- * the join.
+ * Base ring that the layers are applied on top of. The ring uses solid
+ * colours (not translucent like `sen.ringInset`) so adjacent rings in a
+ * group can overlap by 1 px without alpha-stacking into a darker line at
+ * the join. Radius is not bundled — composers add `kasane.radius(v)` (or
+ * `kasane.r(v)` for the outer-only case) so corner rounding can track
+ * each component's density step rather than living as a fixed token.
  */
-const base = ['ring-1 ring-inset ring-zinc-300 dark:ring-zinc-700', 'rounded-lg']
+const base = ['ring-1 ring-inset ring-zinc-300 dark:ring-zinc-700']
 
 /** `::before` inset fill — paints the surface inside the 1 px outer ring. */
-const inset = ['before:absolute before:inset-px before:rounded-[calc(var(--radius-lg)-1px)]']
+const inset = ['before:absolute before:inset-px']
 
 /** `::after` overlay used by focus and validation rings. */
 const overlay = [
-	'after:absolute after:inset-0 after:rounded-lg after:ring-transparent after:ring-inset after:pointer-events-none',
+	'after:absolute after:inset-0 after:ring-transparent after:ring-inset after:pointer-events-none',
 ]
 
 /** Outer ring colour on hover — one shade darker / lighter than resting. */
@@ -83,6 +85,183 @@ const disabled = [
 	'has-[>:disabled]:**:cursor-not-allowed',
 ]
 
+// Ring-compensated padding. Each stop subtracts 1 px from the relevant axis
+// so the content area lines up with the inset fill rather than the outer
+// ring. The literal class strings live here as static maps so Tailwind's
+// JIT scanner sees every utility the codebase generates. Variant-prefixed
+// cases (`data-*`, `has-*`, `autofill:*`) stay inline at their call sites
+// — Tailwind variants must appear in source, not at runtime.
+
+const pStops = {
+	'0.75': 'p-[calc(--spacing(0.75)-1px)]',
+	'1': 'p-[calc(--spacing(1)-1px)]',
+	'1.25': 'p-[calc(--spacing(1.25)-1px)]',
+	'1.5': 'p-[calc(--spacing(1.5)-1px)]',
+	'2': 'p-[calc(--spacing(2)-1px)]',
+	'2.5': 'p-[calc(--spacing(2.5)-1px)]',
+	'3': 'p-[calc(--spacing(3)-1px)]',
+	'3.5': 'p-[calc(--spacing(3.5)-1px)]',
+} as const
+
+const pxStops = {
+	'0.75': 'px-[calc(--spacing(0.75)-1px)]',
+	'1': 'px-[calc(--spacing(1)-1px)]',
+	'1.25': 'px-[calc(--spacing(1.25)-1px)]',
+	'1.5': 'px-[calc(--spacing(1.5)-1px)]',
+	'2': 'px-[calc(--spacing(2)-1px)]',
+	'2.5': 'px-[calc(--spacing(2.5)-1px)]',
+	'3': 'px-[calc(--spacing(3)-1px)]',
+	'3.5': 'px-[calc(--spacing(3.5)-1px)]',
+} as const
+
+const pyStops = {
+	'0.75': 'py-[calc(--spacing(0.75)-1px)]',
+	'1': 'py-[calc(--spacing(1)-1px)]',
+	'1.25': 'py-[calc(--spacing(1.25)-1px)]',
+	'1.5': 'py-[calc(--spacing(1.5)-1px)]',
+	'2': 'py-[calc(--spacing(2)-1px)]',
+	'2.5': 'py-[calc(--spacing(2.5)-1px)]',
+	'3': 'py-[calc(--spacing(3)-1px)]',
+	'3.5': 'py-[calc(--spacing(3.5)-1px)]',
+} as const
+
+const plStops = {
+	'0.75': 'pl-[calc(--spacing(0.75)-1px)]',
+	'1': 'pl-[calc(--spacing(1)-1px)]',
+	'1.25': 'pl-[calc(--spacing(1.25)-1px)]',
+	'1.5': 'pl-[calc(--spacing(1.5)-1px)]',
+	'2': 'pl-[calc(--spacing(2)-1px)]',
+	'2.5': 'pl-[calc(--spacing(2.5)-1px)]',
+	'3': 'pl-[calc(--spacing(3)-1px)]',
+	'3.5': 'pl-[calc(--spacing(3.5)-1px)]',
+} as const
+
+const prStops = {
+	'0.75': 'pr-[calc(--spacing(0.75)-1px)]',
+	'1': 'pr-[calc(--spacing(1)-1px)]',
+	'1.25': 'pr-[calc(--spacing(1.25)-1px)]',
+	'1.5': 'pr-[calc(--spacing(1.5)-1px)]',
+	'2': 'pr-[calc(--spacing(2)-1px)]',
+	'2.5': 'pr-[calc(--spacing(2.5)-1px)]',
+	'3': 'pr-[calc(--spacing(3)-1px)]',
+	'3.5': 'pr-[calc(--spacing(3.5)-1px)]',
+} as const
+
+type PadStop = keyof typeof pStops
+
+const p = (v: PadStop) => pStops[v]
+
+const px = (v: PadStop) => pxStops[v]
+
+const py = (v: PadStop) => pyStops[v]
+
+const pl = (v: PadStop) => plStops[v]
+
+const pr = (v: PadStop) => prStops[v]
+
+// Pixel-perfect corner radii. Each stop pairs an outer-element class
+// (`rounded-[--spacing(v)]`) with the matching `::before` inset (`-1px` so
+// the inset fill sits inside the 1 px outer ring) and `::after` overlay
+// (same radius as outer; the overlay sits at `inset-0`, not `inset-px`).
+// Using the `--spacing` scale rather than Tailwind's named radius tokens
+// keeps radius and padding proportional — a component with
+// `kasane.py('2')` lands on `kasane.r('2')` for a 1:1 padding-to-radius
+// ratio at every density step.
+
+const rStops = {
+	'0.5': 'rounded-[--spacing(0.5)]',
+	'0.75': 'rounded-[--spacing(0.75)]',
+	'1': 'rounded-[--spacing(1)]',
+	'1.25': 'rounded-[--spacing(1.25)]',
+	'1.5': 'rounded-[--spacing(1.5)]',
+	'2': 'rounded-[--spacing(2)]',
+	'2.5': 'rounded-[--spacing(2.5)]',
+	'3': 'rounded-[--spacing(3)]',
+} as const
+
+const riStops = {
+	'0.5': 'before:rounded-[calc(--spacing(0.5)-1px)]',
+	'0.75': 'before:rounded-[calc(--spacing(0.75)-1px)]',
+	'1': 'before:rounded-[calc(--spacing(1)-1px)]',
+	'1.25': 'before:rounded-[calc(--spacing(1.25)-1px)]',
+	'1.5': 'before:rounded-[calc(--spacing(1.5)-1px)]',
+	'2': 'before:rounded-[calc(--spacing(2)-1px)]',
+	'2.5': 'before:rounded-[calc(--spacing(2.5)-1px)]',
+	'3': 'before:rounded-[calc(--spacing(3)-1px)]',
+} as const
+
+const roStops = {
+	'0.5': 'after:rounded-[--spacing(0.5)]',
+	'0.75': 'after:rounded-[--spacing(0.75)]',
+	'1': 'after:rounded-[--spacing(1)]',
+	'1.25': 'after:rounded-[--spacing(1.25)]',
+	'1.5': 'after:rounded-[--spacing(1.5)]',
+	'2': 'after:rounded-[--spacing(2)]',
+	'2.5': 'after:rounded-[--spacing(2.5)]',
+	'3': 'after:rounded-[--spacing(3)]',
+} as const
+
+type RadiusStop = keyof typeof rStops
+
+const r = (v: RadiusStop) => rStops[v]
+
+const ri = (v: RadiusStop) => riStops[v]
+
+const ro = (v: RadiusStop) => roStops[v]
+
+/** Outer + inset + overlay radii, coordinated for the full kasane stack. */
+const radius = (v: RadiusStop) => [rStops[v], riStops[v], roStops[v]] as const
+
+// Gap between flex / grid children. Unlike padding, gap is not ring-
+// compensated (gap doesn't intersect the outer ring), so the helpers
+// pass through to Tailwind's native `gap-v` / `gap-x-v` / `gap-y-v`
+// without subtracting 1 px. The design rule applied across density-keyed
+// kata is `gap = py / 2` (rounded to the spacing scale).
+
+const gStops = {
+	'0.25': 'gap-0.25',
+	'0.5': 'gap-0.5',
+	'0.75': 'gap-0.75',
+	'1': 'gap-1',
+	'1.25': 'gap-1.25',
+	'1.5': 'gap-1.5',
+	'2': 'gap-2',
+	'2.5': 'gap-2.5',
+	'3': 'gap-3',
+} as const
+
+const gxStops = {
+	'0.25': 'gap-x-0.25',
+	'0.5': 'gap-x-0.5',
+	'0.75': 'gap-x-0.75',
+	'1': 'gap-x-1',
+	'1.25': 'gap-x-1.25',
+	'1.5': 'gap-x-1.5',
+	'2': 'gap-x-2',
+	'2.5': 'gap-x-2.5',
+	'3': 'gap-x-3',
+} as const
+
+const gyStops = {
+	'0.25': 'gap-y-0.25',
+	'0.5': 'gap-y-0.5',
+	'0.75': 'gap-y-0.75',
+	'1': 'gap-y-1',
+	'1.25': 'gap-y-1.25',
+	'1.5': 'gap-y-1.5',
+	'2': 'gap-y-2',
+	'2.5': 'gap-y-2.5',
+	'3': 'gap-y-3',
+} as const
+
+type GapStop = keyof typeof gStops
+
+const g = (v: GapStop) => gStops[v]
+
+const gx = (v: GapStop) => gxStops[v]
+
+const gy = (v: GapStop) => gyStops[v]
+
 export const kasane = {
 	base,
 	inset,
@@ -91,6 +270,18 @@ export const kasane = {
 	focus,
 	validation,
 	disabled,
+	p,
+	px,
+	py,
+	pl,
+	pr,
+	r,
+	ri,
+	ro,
+	radius,
+	g,
+	gx,
+	gy,
 	/** Convenience: every fragment in the correct spread order for a `className`. */
 	all: [...base, ...inset, ...overlay, ...hover, ...focus, ...validation, ...disabled],
 } as const

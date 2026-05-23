@@ -1,6 +1,6 @@
 import { defineColors, type VariantPropsOf } from '../../core/recipe'
 import { check } from '../katakana'
-import { kokkaku } from '../kiso'
+import { kasane, kokkaku } from '../kiso'
 
 const color = defineColors({
 	zinc: '[--checkbox-check:var(--color-white)] [--checkbox-checked-bg:var(--color-zinc-600)] [--checkbox-checked-border:var(--color-zinc-700)]/90',
@@ -26,9 +26,9 @@ export const k = check(
 		],
 		color,
 		size: {
-			sm: ['size-4', 'rounded-[--spacing(0.75)]'],
-			md: ['size-4.5', 'rounded-[--spacing(1)]'],
-			lg: ['size-5', 'rounded-[--spacing(1.25)]'],
+			sm: ['size-4', kasane.r('0.75')],
+			md: ['size-4.5', kasane.r('1')],
+			lg: ['size-5', kasane.r('1.25')],
 		},
 	},
 	{

@@ -81,11 +81,11 @@ const ROWS: ClassMap = {
 }
 
 const GAP_MAP = {
-	xs: 'gap-xs',
-	sm: 'gap-sm',
-	md: 'gap-md',
-	lg: 'gap-lg',
-	xl: 'gap-xl',
+	xs: 'gap-1',
+	sm: 'gap-2',
+	md: 'gap-3',
+	lg: 'gap-4',
+	xl: 'gap-6',
 } as const satisfies Record<GridGap, string>
 
 const SPAN: ClassMap = {

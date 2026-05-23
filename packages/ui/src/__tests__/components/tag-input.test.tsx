@@ -201,10 +201,10 @@ describe('TagInput', () => {
 		expect(removeButtons.length).toBe(0)
 	})
 
-	it('renders tag-input slot when tags exist', () => {
+	it('renders tags slot when tags exist', () => {
 		const { container } = renderUI(<TagInput defaultValue={['react']} />)
 
-		expect(bySlot(container, 'tag-input')).toBeInTheDocument()
+		expect(bySlot(container, 'tags')).toBeInTheDocument()
 	})
 
 	it('has aria-label on the input derived from placeholder', () => {

@@ -1,5 +1,5 @@
 import { defineRecipe, merge, palette, type VariantPropsOf } from '../../core/recipe'
-import { hannou, iro, ji, kokkaku, sen, shaku, tsunagi, ugoki } from '../kiso'
+import { hannou, iro, ji, kasane, kokkaku, sen, shaku, tsunagi, ugoki } from '../kiso'
 
 const { solid, soft, outline, plain, bare } = iro.palette
 const { inherit } = iro.text
@@ -16,7 +16,7 @@ export const k = defineRecipe(
 		base: [
 			'relative isolate',
 			'inline-flex items-center justify-center',
-			'w-fit shrink-0 font-semibold rounded-lg',
+			'w-fit shrink-0 font-semibold',
 			sen.focus.inset,
 			...hannou.disabled,
 			...hannou.cursor,
@@ -29,29 +29,33 @@ export const k = defineRecipe(
 			xs: [
 				ji.xs,
 				shaku.icon.xs,
-				'gap-0.5',
-				'p-[calc(--spacing(1.5)-1px)]',
+				kasane.g('0.5'),
+				kasane.p('1.5'),
+				kasane.r('1'),
 				'data-[has-label]:py-[calc(--spacing(1)-1px)]',
 			],
 			sm: [
 				ji.sm,
 				shaku.icon.sm,
-				'gap-0.75',
-				'p-[calc(--spacing(2)-1px)]',
+				kasane.g('0.75'),
+				kasane.p('2'),
+				kasane.r('1.5'),
 				'data-[has-label]:py-[calc(--spacing(1.5)-1px)]',
 			],
 			md: [
 				ji.md,
 				shaku.icon.md,
-				'gap-xs',
-				'p-[calc(--spacing(2.5)-1px)]',
+				kasane.g('1'),
+				kasane.p('2.5'),
+				kasane.r('2'),
 				'data-[has-label]:py-[calc(--spacing(2)-1px)]',
 			],
 			lg: [
 				ji.lg,
 				shaku.icon.lg,
-				'gap-sm',
-				'p-[calc(--spacing(3)-1px)]',
+				kasane.g('1.25'),
+				kasane.p('3'),
+				kasane.r('2.5'),
 				'data-[has-label]:py-[calc(--spacing(2.5)-1px)]',
 			],
 		},

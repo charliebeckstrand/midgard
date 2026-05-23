@@ -2,11 +2,11 @@ import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
 import { iro, ji, sen } from '../kiso'
 
 const list = defineRecipe({
-	base: ['flex flex-wrap items-center', 'gap-sm', 'break-words', ji.md],
+	base: ['flex flex-wrap items-center', 'gap-2', 'break-words', ji.md],
 })
 
 const item = defineRecipe({
-	base: ['inline-flex items-center', 'gap-sm'],
+	base: ['inline-flex items-center', 'gap-2'],
 	current: {
 		true: [iro.text.default, 'font-normal'],
 		false: '',
