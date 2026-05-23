@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { Density as DensityPrimitive } from '../../primitives/density'
 import { type DensityLevel, DensityProvider, densityToSize } from './context'
 
-export type DensityProps = {
+type DensityProps = {
 	density: DensityLevel
 	className?: string
 	children: ReactNode

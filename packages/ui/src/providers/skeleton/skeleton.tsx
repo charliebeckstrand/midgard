@@ -3,7 +3,7 @@ import { cn } from '../../core'
 import { ReadyReveal } from '../../primitives/ready-reveal'
 import { SkeletonProvider } from './context'
 
-export type SkeletonProps = {
+type SkeletonProps = {
 	/** When provided, crossfades from skeleton to real content as ready flips. */
 	ready?: boolean
 	className?: string

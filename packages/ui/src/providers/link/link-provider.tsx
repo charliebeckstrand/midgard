@@ -3,7 +3,7 @@
 import { type ReactNode, useMemo } from 'react'
 import { type LinkComponent, type LinkContextValue, LinkValueProvider } from '../../primitives/link'
 
-export type LinkProviderProps = {
+type LinkProviderProps = {
 	/**
 	 * Framework-specific link component (e.g. `next/link`'s default export) that
 	 * the library should render whenever it emits a link. Defaults to a plain
