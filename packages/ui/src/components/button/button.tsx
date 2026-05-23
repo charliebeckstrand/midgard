@@ -18,7 +18,7 @@ import { ButtonHeadless } from './button-headless'
 import { ButtonSkeleton } from './button-skeleton'
 import { hasLabelContent } from './button-utilities'
 
-export type LoadingOptions = Pick<SpinnerProps, 'color' | 'size' | 'label'>
+type LoadingOptions = Pick<SpinnerProps, 'color' | 'size' | 'label'>
 
 type ButtonBaseProps = ButtonVariants & {
 	block?: boolean

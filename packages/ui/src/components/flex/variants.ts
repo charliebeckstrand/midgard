@@ -3,7 +3,7 @@ import { type Breakpoint, type Responsive, resolveResponsive } from '../../types
 
 export type FlexGap = Ma | 0
 
-export const gapMap = {
+const gapMap = {
 	0: 'gap-0',
 	xs: 'gap-1',
 	sm: 'gap-2',
@@ -12,7 +12,7 @@ export const gapMap = {
 	xl: 'gap-6',
 } as const satisfies Record<FlexGap, string>
 
-export const directionMap = {
+const directionMap = {
 	row: 'flex-row',
 	col: 'flex-col',
 	'row-reverse': 'flex-row-reverse',
@@ -27,7 +27,7 @@ export const alignMap = {
 	baseline: 'items-baseline',
 } as const
 
-export const justifyMap = {
+const justifyMap = {
 	start: 'justify-start',
 	center: 'justify-center',
 	end: 'justify-end',

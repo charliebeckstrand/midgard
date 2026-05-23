@@ -1,4 +1,4 @@
-export type CalendarPickerView = 'months' | 'years'
+type CalendarPickerView = 'months' | 'years'
 
 export type CalendarPickerState = {
 	view: CalendarPickerView
@@ -6,7 +6,7 @@ export type CalendarPickerState = {
 	decadeYear: number
 }
 
-export type CalendarPickerAction =
+type CalendarPickerAction =
 	| { type: 'open'; year: number }
 	| { type: 'stepYear'; delta: number }
 	| { type: 'stepDecade'; delta: number }

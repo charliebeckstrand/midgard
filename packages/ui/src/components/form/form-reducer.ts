@@ -1,9 +1,6 @@
 export type Errors = Record<string, string[] | undefined>
 export type Touched = Record<string, boolean>
-export type Validator<T, K extends keyof T> = (
-	value: T[K],
-	values: T,
-) => string | string[] | undefined
+type Validator<T, K extends keyof T> = (value: T[K], values: T) => string | string[] | undefined
 export type Validators<T> = { [K in keyof T]?: Validator<T, K> }
 export type ValidateOn = 'touched' | 'change' | 'submit'
 

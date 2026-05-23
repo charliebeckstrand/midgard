@@ -10,7 +10,7 @@ import { buildSearchIndex, normalizeSearch, type Search } from './json-tree-util
 import { JsonTreeVirtualized } from './json-tree-virtualized'
 import type { JsonValue } from './types'
 
-export type JsonTreeVirtualize = boolean | { estimateSize?: number; overscan?: number }
+type JsonTreeVirtualize = boolean | { estimateSize?: number; overscan?: number }
 
 export type JsonTreeProps = {
 	/** The JSON value to render. */
