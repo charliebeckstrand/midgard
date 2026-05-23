@@ -5,15 +5,18 @@ type Listener = () => void
 const listeners = new Set<Listener>()
 
 /**
- * Notify subscribers that a modal overlay (dialog, sheet, drawer, popover)
- * has opened. Tooltips subscribe so a tap on a tooltip-wrapped trigger
- * doesn't strand the tooltip above the new overlay.
+ * Broadcast an overlay-lifecycle signal. Modal-style surfaces (dialog,
+ * sheet, drawer, popover) fire it when they open so non-modal floats —
+ * tooltips today — can drop themselves before being stranded above the
+ * new overlay. Carries no payload; the only current consumer treats any
+ * signal as "close yourself." The generic name leaves room to extend
+ * later without renaming.
  */
-export function notifyOverlayOpened(): void {
+export function notifyOverlaySignal(): void {
 	for (const listener of listeners) listener()
 }
 
-export function subscribeOverlayOpened(listener: Listener): () => void {
+export function subscribeOverlaySignal(listener: Listener): () => void {
 	listeners.add(listener)
 
 	return () => {

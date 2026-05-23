@@ -4,15 +4,13 @@ import {
 	type Placement,
 	safePolygon,
 	useClick,
-	useDismiss,
 	useFocus,
 	useHover,
 	useInteractions,
-	useRole,
 } from '@floating-ui/react'
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { useFloatingPanel, useHasHover } from '../../hooks'
-import { subscribeOverlayOpened } from '../../primitives/overlay'
+import { useEffect, useMemo, useRef } from 'react'
+import { useFloatingDisclosure, useHasHover } from '../../hooks'
+import { subscribeOverlaySignal } from '../../primitives/overlay'
 import type { Step } from '../../recipes'
 
 export type UseTooltipStateOptions = {
@@ -32,21 +30,19 @@ export function useTooltipState({
 	size,
 	className,
 }: UseTooltipStateOptions) {
-	const [open, setOpen] = useState(false)
-
-	const { refs, floatingStyles, context } = useFloatingPanel({
+	const { open, setOpen, refs, floatingStyles, context, dismiss, role } = useFloatingDisclosure({
+		role: 'tooltip',
 		placement,
-		open,
-		onOpenChange: (next) => {
-			if (next && !enabled) return
-
-			const reference = refs.reference.current
-
-			if (next && reference instanceof Element && reference.querySelector(':disabled')) return
-
-			setOpen(next)
-		},
 		offset: 8,
+		gate: (next, gateRefs) => {
+			if (next && !enabled) return false
+
+			const reference = gateRefs.reference.current
+
+			if (next && reference instanceof Element && reference.querySelector(':disabled')) return false
+
+			return true
+		},
 	})
 
 	const prevEnabledRef = useRef(enabled)
@@ -82,8 +78,8 @@ export function useTooltipState({
 	useEffect(() => {
 		if (!open) return
 
-		return subscribeOverlayOpened(() => setOpen(false))
-	}, [open])
+		return subscribeOverlaySignal(() => setOpen(false))
+	}, [open, setOpen])
 
 	const hasHover = useHasHover()
 
@@ -96,10 +92,6 @@ export function useTooltipState({
 	const click = useClick(context, { enabled: enabled && !hasHover })
 
 	const focus = useFocus(context, { enabled })
-
-	const dismiss = useDismiss(context)
-
-	const role = useRole(context, { role: 'tooltip' })
 
 	const { getReferenceProps, getFloatingProps } = useInteractions([
 		hover,

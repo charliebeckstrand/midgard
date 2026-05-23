@@ -9,7 +9,7 @@ import { useDismissable } from '../../hooks/use-dismissable'
 import { useScrollLock } from '../../hooks/use-scroll-lock'
 import { k } from '../../recipes/kata/overlay'
 import { ReducedMotion } from '../reduced-motion'
-import { notifyOverlayOpened } from './overlay-signal'
+import { notifyOverlaySignal } from './overlay-signal'
 
 export type OverlayProps = {
 	open: boolean
@@ -53,7 +53,7 @@ export function Overlay({
 	useScrollLock(open && !scoped)
 
 	useEffect(() => {
-		if (open) notifyOverlayOpened()
+		if (open) notifyOverlaySignal()
 	}, [open])
 
 	if (typeof document === 'undefined') return null
