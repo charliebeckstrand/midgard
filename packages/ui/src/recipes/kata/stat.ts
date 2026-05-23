@@ -66,12 +66,12 @@ export const k = defineRecipe(
 		slots: {
 			description: [ji.sm, ...iro.text.muted],
 		},
+		skeleton,
 	},
 	{
 		label,
 		value,
 		delta,
-		skeleton,
 	},
 )
 

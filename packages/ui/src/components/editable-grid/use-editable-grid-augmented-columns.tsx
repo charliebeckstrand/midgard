@@ -5,6 +5,7 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/editable-grid'
 import type { DataTableColumn } from '../data-table'
 import { EditableGridCell } from './editable-grid-cell'
+import { EditableGridTextEditor } from './editable-grid-text-editor'
 import type { EditableGridColumn, EditableGridDraftApi, EditableGridNavigationApi } from './types'
 
 type UseEditableGridAugmentedColumns<T> = {
@@ -44,6 +45,8 @@ export function useEditableGridAugmentedColumns<T>({
 			const align = col.align ?? 'left'
 
 			const readOnly = col.readOnly ?? false
+
+			const editor = col.editor ?? EditableGridTextEditor
 
 			return {
 				id: col.id,
@@ -93,6 +96,9 @@ export function useEditableGridAugmentedColumns<T>({
 							readOnly={readOnly}
 							align={align}
 							formatted={formatted}
+							row={row}
+							column={col}
+							editor={editor}
 						/>
 					)
 				},

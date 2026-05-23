@@ -30,6 +30,7 @@ export const k = check(
 			md: ['size-4.5', kasane.r('1')],
 			lg: ['size-5', kasane.r('1.25')],
 		},
+		skeleton: kokkaku.checkbox,
 	},
 	{
 		/** Check-icon size class per checkbox size step. Read by the component. */
@@ -38,7 +39,6 @@ export const k = check(
 			md: 'size-3.5',
 			lg: 'size-4',
 		} as const,
-		skeleton: kokkaku.checkbox,
 	},
 )
 

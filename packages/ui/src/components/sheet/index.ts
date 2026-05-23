@@ -9,6 +9,8 @@ export {
 	type SheetBodyProps,
 	SheetDescription,
 	type SheetDescriptionProps,
+	SheetHeader,
+	type SheetHeaderProps,
 	SheetTitle,
 	type SheetTitleProps,
 } from './slots'

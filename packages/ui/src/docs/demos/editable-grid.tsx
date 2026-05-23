@@ -10,12 +10,15 @@ import {
 	DialogBody,
 	DialogContent,
 	DialogDescription,
+	DialogHeader,
 	DialogTitle,
 } from '../../components/dialog'
 import {
 	type CellChange,
 	EditableGrid,
 	type EditableGridColumn,
+	EditableGridCurrencyEditor,
+	EditableGridNumberEditor,
 } from '../../components/editable-grid'
 import { Field, Label } from '../../components/fieldset'
 import { Flex } from '../../components/flex'
@@ -105,18 +108,21 @@ export function Demo() {
 				title: 'Per-mile',
 				field: 'perMile',
 				format: (r) => currency.format(r.perMile),
+				editor: EditableGridCurrencyEditor,
 			}),
 			numericColumn({
 				id: 'minCharge',
 				title: 'Min charge',
 				field: 'minCharge',
 				format: (r) => currency.format(r.minCharge),
+				editor: EditableGridCurrencyEditor,
 			}),
 			numericColumn({
 				id: 'fuelPct',
 				title: 'Fuel %',
 				field: 'fuelPct',
 				format: (r) => `${r.fuelPct}%`,
+				editor: (props) => <EditableGridNumberEditor {...props} min={0} max={100} step={1} />,
 			}),
 		],
 		[],
@@ -242,18 +248,20 @@ export function Demo() {
 					onValueChange={(changes) => setBulkRates((prev) => applyChanges(prev, changes))}
 				/>
 				<Dialog open={editOpen} onOpenChange={setEditOpen}>
-					<DialogTitle>Edit {selection.size} selected</DialogTitle>
-					{selection.size > 1 && (
-						<DialogDescription>
-							<Flex gap="md">
-								<Icon icon={<Info />} />
-								<span>
-									Leave a field blank to keep the current value, or enter a new value to apply it to
-									all selected rows.
-								</span>
-							</Flex>
-						</DialogDescription>
-					)}
+					<DialogHeader>
+						<DialogTitle>Edit {selection.size} selected</DialogTitle>
+						{selection.size > 1 && (
+							<DialogDescription>
+								<Flex gap="md">
+									<Icon icon={<Info />} />
+									<span>
+										Leave a field blank to keep the current value, or enter a new value to apply it
+										to all selected rows.
+									</span>
+								</Flex>
+							</DialogDescription>
+						)}
+					</DialogHeader>
 					<DialogContent>
 						<Form
 							defaultValues={editDefaults}

@@ -25,7 +25,7 @@
 import type { ClassValue } from 'clsx'
 
 import { defineRecipe } from './recipe'
-import type { Recipe, RecipeConfig } from './types'
+import type { Recipe, RecipeConfig, ReservedField } from './types'
 
 /**
  * Empty — the empty mapped type. `keyof Empty = never`, which `Merge`
@@ -46,20 +46,15 @@ type Empty = Record<never, never>
 type Merge<Base, Add> = [keyof Add] extends [never] ? Base : Base & Add
 
 /**
- * Reserved fields of a `RecipeConfig`. Every other top-level key in the
- * config literal is interpreted by the engine as a variant axis.
- */
-type ReservedField = 'base' | 'palette' | 'compound' | 'slots' | 'defaults'
-
-/**
  * The per-call overlay a kata hands an applicator. Identical to
  * `RecipeConfig` — extra variant axes are top-level keys (like `density`
  * / `size` in `defineRecipe`), not nested under an `axes` field.
- * Kata-specific siblings (`skeleton`, `motion`, sub-recipes) flow
- * through the applicator's separate `extras` argument, mirroring
- * `defineRecipe(config, extras)` end-to-end. `ApplicatorReturn` extracts
- * slots and axes from the inferred `Overlay` via `Omit` and
- * `extends-infer`.
+ * Callable siblings (`motion`, sub-recipes) flow through the
+ * applicator's separate `extras` argument, mirroring
+ * `defineRecipe(config, extras)` end-to-end; `skeleton` rides the
+ * overlay itself and reaches `Recipe<…>` via the targeted exclusion in
+ * `ApplicatorReturn`. `ApplicatorReturn` extracts slots and axes from
+ * the inferred `Overlay` via `Omit` and `extends-infer`.
  */
 type ApplicatorOverlay = RecipeConfig
 
@@ -95,7 +90,11 @@ export type ApplicatorReturn<
 		Omit<StandardConfig, 'slots'> & {
 			slots: Merge<NonNullable<StandardConfig['slots']>, SlotsOf<Overlay>>
 		},
-		Omit<Overlay, ReservedField>
+		// Keep `skeleton` in the overlay so it flows into `Recipe<…>` and
+		// surfaces as `k.skeleton` with its caller-inferred type. Other
+		// reserved fields stay stripped — the runtime merges them via the
+		// explicit branches in `applyRecipe`.
+		Omit<Overlay, Exclude<ReservedField, 'skeleton'>>
 	>
 > &
 	Merge<StandardExtras, CallerExtras>

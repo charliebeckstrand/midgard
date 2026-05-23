@@ -93,6 +93,7 @@ export const k = defineRecipe(
 			],
 		},
 		defaults: { color: 'zinc', size: 'md' },
+		skeleton: kokkaku.switch,
 	},
 	{
 		input: defineRecipe({ base: check.hidden }),
@@ -109,7 +110,6 @@ export const k = defineRecipe(
 		field,
 		/** Disabled-state text class shared by the switch field wrapper. */
 		disabled: iro.text.disabled,
-		skeleton: kokkaku.switch,
 	},
 )
 

@@ -1,10 +1,9 @@
 'use client'
 
-import { FloatingPortal } from '@floating-ui/react'
-import { AnimatePresence } from 'motion/react'
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { Density } from '../../primitives/density'
+import { FloatingSurface } from '../../primitives/floating-surface'
 import { PopoverPanel } from '../../primitives/popover'
 import { k } from '../../recipes/kata/menu'
 import { useGlass } from '../glass/context'
@@ -36,26 +35,25 @@ export function MenuContent({ className, children }: MenuContentProps) {
 	}
 
 	return (
-		<FloatingPortal>
-			<AnimatePresence>
-				{open && (
-					<div ref={setFloating} style={floatingStyles} className="z-100" {...getFloatingProps()}>
-						<Density density={size} size={size}>
-							<PopoverPanel
-								role="menu"
-								itemSelector='[role="menuitem"]:not([data-disabled])'
-								glass={glass}
-								className={cn('relative', k.content, className)}
-								onKeyDown={(e) => {
-									if (e.key === 'Escape') close()
-								}}
-							>
-								{children}
-							</PopoverPanel>
-						</Density>
-					</div>
-				)}
-			</AnimatePresence>
-		</FloatingPortal>
+		<FloatingSurface
+			open={open}
+			setFloating={setFloating}
+			floatingStyles={floatingStyles}
+			getFloatingProps={getFloatingProps}
+		>
+			<Density density={size} size={size}>
+				<PopoverPanel
+					role="menu"
+					itemSelector='[role="menuitem"]:not([data-disabled])'
+					glass={glass}
+					className={cn('relative', k.content, className)}
+					onKeyDown={(e) => {
+						if (e.key === 'Escape') close()
+					}}
+				>
+					{children}
+				</PopoverPanel>
+			</Density>
+		</FloatingSurface>
 	)
 }

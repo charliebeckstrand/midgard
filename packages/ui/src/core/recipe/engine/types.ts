@@ -1,11 +1,12 @@
 /**
  * Public types for the recipe engine.
  *
- * `RecipeConfig` is the shape a kata declares — five reserved fields
- * (`base`, `palette`, `compound`, `slots`, `defaults`) plus any number of
- * variant axes as top-level fields. `Recipe<C>` is what `defineRecipe`
- * returns. `VariantPropsOf<R>` extracts the prop shape from either side —
- * use it in kata to type the consumer-facing `<Name>Variants` export.
+ * `RecipeConfig` is the shape a kata declares — six reserved fields
+ * (`base`, `palette`, `compound`, `slots`, `defaults`, `skeleton`) plus
+ * any number of variant axes as top-level fields. `Recipe<C>` is what
+ * `defineRecipe` returns. `VariantPropsOf<R>` extracts the prop shape
+ * from either side — use it in kata to type the consumer-facing
+ * `<Name>Variants` export.
  */
 
 import type { ClassValue } from 'clsx'
@@ -21,7 +22,7 @@ export type VariantAxis = Record<string, ClassValue>
 export type CompoundRule = Record<string, string | ClassValue> & { class: ClassValue }
 
 /** Reserved top-level config field names — kata may not use these as axis names. */
-export type ReservedField = 'base' | 'palette' | 'compound' | 'slots' | 'defaults'
+export type ReservedField = 'base' | 'palette' | 'compound' | 'slots' | 'defaults' | 'skeleton'
 
 /** The reserved fields' types. */
 type RecipeBase = {
@@ -30,6 +31,16 @@ type RecipeBase = {
 	compound?: CompoundRule[]
 	slots?: Record<string, ClassValue>
 	defaults?: Record<string, string | number | boolean>
+	/**
+	 * Skeleton payload — a `kokkaku.<name>` config the consumer reads as
+	 * `k.skeleton.base` / `k.skeleton.size[…]`. Attached to the recipe at
+	 * creation time and exposed with its inferred type preserved. Sits at
+	 * the config root because skeleton is a recipe property, not a sibling
+	 * shape — kata that need genuinely callable siblings (sub-recipes,
+	 * motion bundles, fragment maps) still pass them via the `extras`
+	 * second argument.
+	 */
+	skeleton?: unknown
 }
 
 /**
@@ -57,7 +68,9 @@ export type Recipe<C extends RecipeBase> = {
 	(props?: ComputedProps<C>): string
 	/** Resolved config — exposed for introspection. */
 	readonly config: ResolvedConfig
-} & { [K in keyof NonNullable<C['slots']>]: string }
+} & { [K in keyof NonNullable<C['slots']>]: string } & (C['skeleton'] extends undefined
+		? unknown
+		: { skeleton: C['skeleton'] })
 
 /** Explicit `variant:` keys declared by the kata, or `never` if absent. */
 type ExplicitVariantKeys<C> = C extends { variant: infer V } ? keyof V & string : never

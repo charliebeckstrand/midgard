@@ -9,6 +9,8 @@ export {
 	type DialogContentProps,
 	DialogDescription,
 	type DialogDescriptionProps,
+	DialogHeader,
+	type DialogHeaderProps,
 	DialogTitle,
 	type DialogTitleProps,
 } from './slots'

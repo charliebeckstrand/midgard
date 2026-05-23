@@ -7,6 +7,7 @@ import {
 	DialogActions,
 	DialogBody,
 	DialogDescription,
+	DialogHeader,
 	DialogTitle,
 } from '../../components/dialog'
 import { Field, Label } from '../../components/fieldset'
@@ -30,8 +31,10 @@ export function Demo() {
 					Create project
 				</Button>
 				<Dialog open={open} onOpenChange={setOpen}>
-					<DialogTitle>Create project</DialogTitle>
-					<DialogDescription>Enter the details for your new project.</DialogDescription>
+					<DialogHeader>
+						<DialogTitle>Create project</DialogTitle>
+						<DialogDescription>Enter the details for your new project.</DialogDescription>
+					</DialogHeader>
 					<DialogBody>
 						<Stack gap="lg">
 							<Field>

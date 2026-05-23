@@ -35,8 +35,8 @@ type PanelInput<P, B = undefined> = {
 	title?: Slot
 	/** Extra padding / layout for the Description slot. */
 	description?: Slot
-	/** Classes for the Header strip. */
-	header?: Base
+	/** Extra padding / layout for the Header slot (the optional title + description wrapper). */
+	header?: Slot
 	/** Extra padding / layout for the Body slot. */
 	body?: Slot
 	/** Extra padding / layout for the Actions slot. */
@@ -85,7 +85,7 @@ export function panel<P, B = undefined>(
 		backdrop: input.backdrop as B,
 		title: [...narabi.panel.title, ...toArray(input.title?.extra)],
 		description: [...narabi.panel.description, ...toArray(input.description?.extra)],
-		header: toArray(input.header?.base),
+		header: [narabi.panel.header, ...toArray(input.header?.extra)],
 		body: [...narabi.panel.body, ...toArray(input.body?.extra)],
 		actions: [...narabi.panel.actions, ...toArray(input.actions?.extra)],
 		close: toArray(input.close?.base),

@@ -31,6 +31,7 @@ export const k = check(
 			md: 'size-4.5',
 			lg: 'size-5',
 		},
+		skeleton: kokkaku.radio,
 	},
 	{
 		/** Indicator dot size class per radio size step. Read by the component. */
@@ -39,7 +40,6 @@ export const k = check(
 			md: 'size-1.5',
 			lg: 'size-2',
 		} as const,
-		skeleton: kokkaku.radio,
 	},
 )
 

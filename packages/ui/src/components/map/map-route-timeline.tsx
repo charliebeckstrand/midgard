@@ -1,7 +1,15 @@
 'use client'
 
 import { Button } from '../button'
-import { Sheet, SheetActions, SheetBody, SheetClose, SheetDescription, SheetTitle } from '../sheet'
+import {
+	Sheet,
+	SheetActions,
+	SheetBody,
+	SheetClose,
+	SheetDescription,
+	SheetHeader,
+	SheetTitle,
+} from '../sheet'
 import {
 	Timeline,
 	TimelineDescription,
@@ -23,12 +31,14 @@ export function MapRouteTimeline({ open, onOpenChange, stops }: MapRouteTimeline
 
 	return (
 		<Sheet open={open} onOpenChange={onOpenChange} size="sm">
-			<SheetTitle>Route timeline</SheetTitle>
-			{stops.length > 0 && (
-				<SheetDescription>
-					{stops.length} stop{stops.length === 1 ? '' : 's'}
-				</SheetDescription>
-			)}
+			<SheetHeader>
+				<SheetTitle>Route timeline</SheetTitle>
+				{stops.length > 0 && (
+					<SheetDescription>
+						{stops.length} stop{stops.length === 1 ? '' : 's'}
+					</SheetDescription>
+				)}
+			</SheetHeader>
 			<SheetBody>
 				<Timeline>
 					{stops.map((stop, index) => {
