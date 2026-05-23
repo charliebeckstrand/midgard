@@ -1,4 +1,4 @@
-import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe } from '../../core/recipe'
 import { segment } from '../katakana'
 import { hannou, iro, ji, sen } from '../kiso'
 
@@ -60,7 +60,3 @@ export const k = {
 	indicator,
 	segment: segment(),
 }
-
-export type TabListVariants = VariantPropsOf<typeof list>
-export type TabVariants = VariantPropsOf<typeof tab>
-export type TabIndicatorVariants = VariantPropsOf<typeof indicator>
