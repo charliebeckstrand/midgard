@@ -37,15 +37,15 @@ const input = [
 ]
 
 // Tracks the `density` axis of the Density token (padding + radius +
-// child-gap dimension). Affix padding (`affix.prefix`, `affix.suffix`,
-// `affix.autofill`) below is the same axis — keyed by the density step,
-// not the size step. Corner radius matches `py` at every step for a
-// constant 1:1 padding-to-radius ratio across non-ControlFrame controls
-// (listbox, combobox, date-picker button); for ControlFrame consumers
-// (input, textarea, select trigger), `kata/control.ts` exposes
-// `frameRadius` and `<ControlFrame>` reads it from `useDensity()` so the
-// chrome on the wrapping frame carries the matching radius. Gap = py/2
-// at every step (rounded to the spacing scale).
+// child-gap dimension). Affix padding (`affix.prefix`, `affix.suffix`)
+// below is the same axis — keyed by the density step, not the size step.
+// Corner radius matches `py` at every step for a constant 1:1
+// padding-to-radius ratio across non-ControlFrame controls (listbox,
+// combobox, date-picker button); for ControlFrame consumers (input,
+// textarea, select trigger), `kata/control.ts` exposes `frameRadius` and
+// `<ControlFrame>` reads it from `useDensity()` so the chrome on the
+// wrapping frame carries the matching radius. Gap = py/2 at every step
+// (rounded to the spacing scale).
 const density = {
 	sm: [kasane.px('2.5'), kasane.py('1.5'), kasane.r('1.5'), kasane.g('0.75')],
 	md: [kasane.px('3'), kasane.py('2'), kasane.r('2'), kasane.g('1')],
@@ -82,18 +82,6 @@ const affix = {
 		sm: [kasane.pr('2.5'), 'has-[[data-padded]]:pr-[calc(--spacing(1)-1px)]'],
 		md: [kasane.pr('3'), 'has-[[data-padded]]:pr-[calc(--spacing(1)-1px)]'],
 		lg: [kasane.pr('3.5'), 'has-[[data-padded]]:pr-[calc(--spacing(1)-1px)]'],
-	},
-	autofill: {
-		prefix: {
-			sm: 'autofill:ml-[calc(--spacing(2.5)-1px)] peer-has-[button]/prefix:autofill:ml-1',
-			md: 'autofill:ml-[calc(--spacing(3)-1px)] peer-has-[button]/prefix:autofill:ml-1.5',
-			lg: 'autofill:ml-[calc(--spacing(3.5)-1px)] peer-has-[button]/prefix:autofill:ml-2',
-		},
-		suffix: {
-			sm: 'autofill:mr-[calc(--spacing(2.5)-1px)] group-has-[[data-slot=suffix]_button]/control:autofill:mr-1',
-			md: 'autofill:mr-[calc(--spacing(3)-1px)] group-has-[[data-slot=suffix]_button]/control:autofill:mr-1.5',
-			lg: 'autofill:mr-[calc(--spacing(3.5)-1px)] group-has-[[data-slot=suffix]_button]/control:autofill:mr-2',
-		},
 	},
 } as const
 

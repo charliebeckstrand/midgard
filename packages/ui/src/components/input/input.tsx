@@ -153,8 +153,6 @@ export function Input(props: InputProps) {
 								density: token.density,
 								size: token.size,
 							}),
-							resolvedPrefix && k.autofill.prefix[token.density],
-							resolvedSuffix && k.autofill.suffix[token.density],
 							className,
 						)}
 						{...invalidAttrs(resolvedInvalid)}
