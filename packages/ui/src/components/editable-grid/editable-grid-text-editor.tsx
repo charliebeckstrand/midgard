@@ -2,13 +2,15 @@
 
 import { useLayoutEffect, useRef } from 'react'
 import { k } from '../../recipes/kata/editable-grid'
+import { Headless } from '../headless'
+import { Input } from '../input'
 import { editorKeyHandler } from './editable-grid-editor-utilities'
 import type { EditableGridEditorProps } from './types'
 
 /**
- * Default inline editor. Renders a bare `<input>` that fills the cell, mirrors
- * the cell's draft buffer, and routes Enter / Tab / Escape / blur through the
- * grid's commit and cancel callbacks.
+ * Default inline editor. Wraps `Input` in `Headless` so it renders as a bare
+ * element that fills the cell, mirrors the cell's draft buffer, and routes
+ * Enter / Tab / Escape / blur through the grid's commit and cancel callbacks.
  */
 export function EditableGridTextEditor<T>({
 	draft,
@@ -37,16 +39,17 @@ export function EditableGridTextEditor<T>({
 	}, [selectAllOnMount])
 
 	return (
-		<input
-			ref={inputRef}
-			data-slot="editable-grid-input"
-			size={1}
-			aria-label={ariaLabel}
-			className={k.editInput({ align })}
-			value={draft}
-			onChange={(e) => setDraft(e.target.value)}
-			onBlur={() => commit('none')}
-			onKeyDown={editorKeyHandler(commit, cancel)}
-		/>
+		<Headless>
+			<Input
+				ref={inputRef}
+				data-slot="editable-grid-input"
+				aria-label={ariaLabel}
+				className={k.editInput({ align })}
+				value={draft}
+				onChange={(e) => setDraft(e.target.value)}
+				onBlur={() => commit('none')}
+				onKeyDown={editorKeyHandler(commit, cancel)}
+			/>
+		</Headless>
 	)
 }
