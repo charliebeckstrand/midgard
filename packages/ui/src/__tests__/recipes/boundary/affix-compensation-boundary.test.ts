@@ -5,22 +5,23 @@ import type { Step } from '../../../recipes'
 import { control } from '../../../recipes/genkei/control'
 import { k as button } from '../../../recipes/kata/button'
 
-// The chrome-facing affix padding equals `input.px` so the visible content
-// of a text affix sits at the same horizontal distance from the chrome edge
-// as text content of an affix-less input — `affix.pl = input.px` is the
-// equidistance invariant.
+// Affix has-button compensation invariant.
 //
-// When a non-bare button lives in the affix slot, the affix's chrome-facing
-// padding shrinks by the button's own `pl` so the button's *content* lands
-// at the same equidistant position. Because `affixStepDown` moves the
-// stepped-down button exactly one notch per host density step, and both
-// scales grow 0.5 per notch, the compensation collapses to a constant:
+// Equidistance: affix padding equals `input.px` so a text affix's
+// *content* sits the same distance from chrome as input-text does in
+// an affix-less control.
+//
+// When a non-bare button lives in the slot, the affix padding shrinks
+// by the button's `pl` so the button's *content* lands at the same
+// position. `affixStepDown` moves the slot button one notch down per
+// host density step. Both scales grow 0.5 per notch, so the increments
+// cancel and the compensation collapses to a constant:
 //
 //   affix.pl(has-button) = input.px − button.p[affixStepDown(step)] = 1
 //
-// This boundary parses the live recipe values rather than hard-coding the
-// expected number — if any of (input.px, button.p, affixStepDown) drift,
-// the test fails with the calculated delta and points at the source.
+// The test parses live recipe values rather than the literal `1` — if
+// any of (input.px, button.p, affixStepDown) drifts, the assertion
+// fails with the calculated delta and points at the source.
 
 const SPACING_RE = /calc\(--spacing\(([\d.]+)\)/
 
