@@ -10,11 +10,15 @@
  *     as direct properties (`recipe.title`, `recipe.body`).
  *   - `palette` expands at creation time into an implicit `color` axis
  *     plus compound rules. See `palette.ts`.
+ *   - `skeleton` is reserved at the config root and attaches to the
+ *     recipe as `k.skeleton` with its caller-inferred type. Lives with
+ *     the other reserved fields because the payload describes the
+ *     recipe, not a callable sibling.
  *   - `extras` (optional second argument) attaches arbitrary kata-shaped
- *     siblings to the recipe — `skeleton`, `motion`, sub-recipes,
- *     fragment maps. The returned recipe stays callable as `k({...})`
- *     and gains the extras as direct properties (`k.skeleton`,
- *     `k.motion`). Keeps every kata's public surface to a single binding.
+ *     siblings to the recipe — `motion`, sub-recipes, fragment maps.
+ *     The returned recipe stays callable as `k({...})` and gains the
+ *     extras as direct properties (`k.motion`). Keeps every kata's
+ *     public surface to a single binding.
  *
  * The kata exports the recipe as `k`; callers use `k(...)` for the variant
  * call and `k.title` for slot classes — one binding per kata.
@@ -41,6 +45,7 @@ const RESERVED: ReadonlySet<ReservedField> = new Set([
 	'compound',
 	'slots',
 	'defaults',
+	'skeleton',
 ])
 
 const twMerge = extendTailwindMerge({
@@ -99,6 +104,8 @@ export function defineRecipe<C extends RecipeConfig, X extends Record<string, un
 	}
 
 	Object.assign(recipe, slotCache)
+
+	if (config.skeleton !== undefined) Object.assign(recipe, { skeleton: config.skeleton })
 
 	if (extras) Object.assign(recipe, extras)
 

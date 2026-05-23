@@ -22,6 +22,7 @@ export const k = defineRecipe(
 			outline: [outline.ring, outline.text],
 		}),
 		defaults: { variant: 'solid', color: 'zinc', size: 'md' },
+		skeleton: kokkaku.avatar,
 	},
 	{
 		initials: 'select-none fill-current text-[48px] font-medium uppercase',
@@ -38,7 +39,6 @@ export const k = defineRecipe(
 		},
 		/** Ring around an avatar's status indicator. */
 		statusRing: 'ring-2 ring-white dark:ring-zinc-900',
-		skeleton: kokkaku.avatar,
 	},
 )
 
