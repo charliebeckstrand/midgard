@@ -14,7 +14,7 @@ export type CalendarPickerGridCell = {
 	onSelect: () => void
 }
 
-export type CalendarPickerGridProps = {
+type CalendarPickerGridProps = {
 	headerRef: RefObject<HTMLDivElement | null>
 	gridRef: RefObject<HTMLDivElement | null>
 	onHeaderKeyDown: (event: KeyboardEvent<HTMLElement>) => void

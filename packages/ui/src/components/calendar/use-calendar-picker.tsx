@@ -15,7 +15,7 @@ import type { CalendarPickerGridCell } from './calendar-picker-grid'
 import { calendarPickerReducer, initialCalendarPickerState } from './calendar-picker-reducer'
 import { useCalendarFocus } from './use-calendar-focus'
 
-export type UseCalendarPickerOptions = {
+type UseCalendarPickerOptions = {
 	year: number
 	month: number
 	today: Date
@@ -24,7 +24,7 @@ export type UseCalendarPickerOptions = {
 	onOpenChange?: (open: boolean) => void
 }
 
-export type CalendarPickerViewConfig = {
+type CalendarPickerViewConfig = {
 	prevLabel: string
 	nextLabel: string
 	centerLabel: ReactNode
@@ -35,7 +35,7 @@ export type CalendarPickerViewConfig = {
 	cellBlock: boolean
 }
 
-export type UseCalendarPickerResult = {
+type UseCalendarPickerResult = {
 	pickerOpen: boolean | undefined
 	handlePickerOpen: (open: boolean) => void
 	pickerHeaderRef: RefObject<HTMLDivElement | null>

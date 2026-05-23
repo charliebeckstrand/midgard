@@ -106,10 +106,3 @@ export const shaku = {
 	combobox,
 	listbox,
 } as const
-
-export namespace shaku {
-	export type IconSize = keyof typeof shaku.icon
-	export type MarkSize = keyof typeof shaku.mark.size
-	export type AvatarSize = keyof typeof shaku.avatar
-	export type PanelSize = keyof typeof shaku.panel
-}

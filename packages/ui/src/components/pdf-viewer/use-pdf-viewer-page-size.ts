@@ -5,7 +5,7 @@ import type { PdfViewerPage } from './types'
 
 type Size = { width: number; height: number }
 
-export type UsePageSizeResult = {
+type UsePageSizeResult = {
 	/** Intrinsic page size: caller-supplied dimensions, the measured natural size, or `null` pre-load. */
 	pageSize: Size | null
 	/** Wire to the active page `<img>`'s `onLoad` so the hook can capture the natural size. */

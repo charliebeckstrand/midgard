@@ -6,7 +6,7 @@ export type DatePickerRangeState = {
 	active: CalendarActive | null
 }
 
-export type DatePickerRangeAction =
+type DatePickerRangeAction =
 	| { type: 'reset' }
 	| { type: 'startRange'; date: Date }
 	| { type: 'pinEndpoint'; date: Date }

@@ -9,7 +9,7 @@ export type ComponentInfo = { name: string; module: string }
  * satisfies this structurally, but the default registry uses a tag-based
  * reader rather than a Map.
  */
-export type ComponentLookup = {
+type ComponentLookup = {
 	get(type: unknown): ComponentInfo | undefined
 }
 

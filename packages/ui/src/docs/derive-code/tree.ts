@@ -26,7 +26,7 @@ export function elementChildren(element: ReactElement): ReactNode[] {
 	return Children.toArray((element.props as { children?: ReactNode }).children)
 }
 
-export type ChildItem = { kind: 'text'; value: string } | { kind: 'element'; value: ReactElement }
+type ChildItem = { kind: 'text'; value: string } | { kind: 'element'; value: ReactElement }
 
 /**
  * Walk children in source order, flattening pass-through wrappers and

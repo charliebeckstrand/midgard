@@ -18,7 +18,7 @@ export type GridGap = Ma
 
 type ClassMap = Record<Breakpoint, string>
 
-export type ResolvedResponsive = {
+type ResolvedResponsive = {
 	classes: string[]
 	style: CSSProperties
 }

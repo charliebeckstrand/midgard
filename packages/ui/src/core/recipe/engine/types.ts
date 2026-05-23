@@ -25,7 +25,7 @@ export type CompoundRule = Record<string, string | ClassValue> & { class: ClassV
 export type ReservedField = 'base' | 'palette' | 'compound' | 'slots' | 'defaults' | 'skeleton'
 
 /** The reserved fields' types. */
-export type RecipeBase = {
+type RecipeBase = {
 	base?: ClassValue
 	palette?: PaletteConfig
 	compound?: CompoundRule[]
@@ -51,7 +51,7 @@ export type RecipeBase = {
 export type RecipeConfig = RecipeBase
 
 /** The non-reserved (variant axis) fields of a config. */
-export type AxesOf<C> = {
+type AxesOf<C> = {
 	[K in keyof C as K extends ReservedField ? never : K]: C[K] extends VariantAxis ? C[K] : never
 }
 

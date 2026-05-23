@@ -1,7 +1,7 @@
 import { animate } from 'motion'
 import { useEffect, useRef, useState } from 'react'
 
-export type UseAnimatedValueOptions = {
+type UseAnimatedValueOptions = {
 	value: number
 	/** Animation duration in ms. Pass `0` to snap. @default 800 */
 	duration?: number

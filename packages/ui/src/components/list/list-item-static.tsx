@@ -4,7 +4,7 @@ import type { ReactNode } from 'react'
 import { noop } from '../../utilities'
 import { ListItemProvider } from './context'
 
-export type ListItemStaticProps = {
+type ListItemStaticProps = {
 	id: string
 	children: ReactNode
 }

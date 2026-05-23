@@ -12,7 +12,7 @@ import { Box } from '../box'
 import type { ControlSize } from '../control/context'
 import { useGlass } from '../glass/context'
 
-export type DatePickerContentProps = {
+type DatePickerContentProps = {
 	open: boolean
 	setFloating: (node: HTMLElement | null) => void
 	floatingStyles: CSSProperties

@@ -1,4 +1,4 @@
-import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe } from '../../core/recipe'
 import { control } from '../genkei/control'
 import { popover } from '../genkei/popover'
 import { hannou, iro } from '../kiso'
@@ -44,5 +44,3 @@ export const k = {
 		glass: panel.glass,
 	},
 }
-
-export type DatePickerButtonVariants = VariantPropsOf<typeof button>

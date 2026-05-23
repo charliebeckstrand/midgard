@@ -4,7 +4,7 @@ import type { ReactNode } from 'react'
 import { useSortableItem } from '../../hooks'
 import { ListItemProvider } from './context'
 
-export type ListItemSortableProps = {
+type ListItemSortableProps = {
 	id: string
 	children: ReactNode
 }

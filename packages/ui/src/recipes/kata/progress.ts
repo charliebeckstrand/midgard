@@ -96,4 +96,3 @@ export const k = defineRecipe(
 export type ProgressTrackVariants = VariantPropsOf<typeof k>
 export type ProgressBarFillVariants = VariantPropsOf<typeof barFill>
 export type ProgressGaugeVariants = VariantPropsOf<typeof gaugeRoot>
-export type ProgressGaugeLabelVariants = VariantPropsOf<typeof gaugeLabel>

@@ -3,7 +3,7 @@
 import { useControllable } from '../../hooks'
 import { clamp } from '../../utilities'
 
-export type UsePdfPaginationOptions = {
+type UsePdfPaginationOptions = {
 	total: number
 	/** Controlled 1-based page. */
 	page?: number
@@ -12,7 +12,7 @@ export type UsePdfPaginationOptions = {
 	onPageChange?: (page: number) => void
 }
 
-export type UsePdfPaginationResult = {
+type UsePdfPaginationResult = {
 	/** Current page clamped to `[1, total]`, or `0` when `total === 0`. */
 	safePage: number
 	/** Clamp, round, and commit a page number. No-op when `total === 0`. */

@@ -5,7 +5,7 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/calendar'
 import { Button, type ButtonVariants } from '../button'
 
-export type DayCellProps = {
+type DayCellProps = {
 	date: Date
 	disabled: boolean
 	isToday: boolean

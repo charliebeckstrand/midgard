@@ -8,7 +8,7 @@ export type TabsVariant = 'tab' | 'segment'
 export type TabsOrientation = Orientation
 export type TabsSize = Step
 
-export type TabsContextValue = {
+type TabsContextValue = {
 	variant: TabsVariant
 	orientation: TabsOrientation
 	size: TabsSize

@@ -5,7 +5,7 @@ import { k } from '../../recipes/kata/editable-grid'
 import { useEditableGrid } from './context'
 import type { EditableGridColumn, EditableGridEditor } from './types'
 
-export type EditableGridCellContentProps<T> = {
+type EditableGridCellContentProps<T> = {
 	rowIdx: number
 	colIdx: number
 	readOnly: boolean

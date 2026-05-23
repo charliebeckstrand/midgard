@@ -20,7 +20,7 @@ import {
 import { formatTimestamp, resolveCurrentIndex } from './map-route-utilities'
 import type { RouteStop } from './types'
 
-export type MapRouteTimelineProps = {
+type MapRouteTimelineProps = {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	stops: RouteStop[]

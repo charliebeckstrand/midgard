@@ -1,4 +1,4 @@
-import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe } from '../../core/recipe'
 import { control } from '../genkei/control'
 import { popover } from '../genkei/popover'
 import { iro, ji } from '../kiso'
@@ -21,5 +21,3 @@ export const k = defineRecipe(
 		portal,
 	},
 )
-
-export type ComboboxVariants = VariantPropsOf<typeof k>

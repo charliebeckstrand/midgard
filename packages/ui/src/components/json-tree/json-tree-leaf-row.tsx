@@ -4,7 +4,7 @@ import { INDENT_REM } from './json-tree-constants'
 import { NodeKey, PrimitiveValue } from './json-tree-utilities'
 import type { JsonValue } from './types'
 
-export type JsonTreeLeafRowProps = {
+type JsonTreeLeafRowProps = {
 	depth: number
 	keyName?: string | number
 	value: JsonValue

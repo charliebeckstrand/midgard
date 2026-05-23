@@ -1,4 +1,4 @@
-import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe } from '../../core/recipe'
 import { iro, sen } from '../kiso'
 
 const cellSize = {
@@ -35,6 +35,3 @@ export const k = {
 	striped: ['*:even:bg-zinc-950/2.5', 'dark:*:even:bg-white/2.5'],
 	empty: ['text-center', iro.text.muted],
 }
-
-export type TableCellVariants = VariantPropsOf<typeof cell>
-export type TableHeaderVariants = VariantPropsOf<typeof header>

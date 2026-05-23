@@ -24,5 +24,3 @@ export const k = {
 	label: 'truncate group-data-selected/option:font-bold',
 	description: [narabi.description, iro.text.muted],
 } as const
-
-export type OptionSize = keyof typeof k.size

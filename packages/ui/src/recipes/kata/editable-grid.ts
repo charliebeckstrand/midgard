@@ -1,4 +1,4 @@
-import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe } from '../../core/recipe'
 import { iro, sen } from '../kiso'
 
 const cell = defineRecipe({
@@ -39,6 +39,3 @@ export const k = {
 	cellReadOnly: ['cursor-default', iro.text.muted],
 	editInput,
 }
-
-export type EditableGridCellVariants = VariantPropsOf<typeof cell>
-export type EditableGridCellInputVariants = VariantPropsOf<typeof editInput>

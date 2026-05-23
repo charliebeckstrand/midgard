@@ -67,7 +67,7 @@ function extractFieldErrors(
 	return fieldErrors as Record<string, string | string[] | undefined>
 }
 
-export type UseFormReducerOptions<T extends Record<string, unknown>> = {
+type UseFormReducerOptions<T extends Record<string, unknown>> = {
 	defaultValues: T
 	/**
 	 * Controlled re-sync source. Reference change → `values` replaced and the
@@ -84,7 +84,7 @@ export type UseFormReducerOptions<T extends Record<string, unknown>> = {
 	onReset?: () => void
 }
 
-export type UseFormReducerResult = {
+type UseFormReducerResult = {
 	formState: FormStateValue
 	actions: FormActions
 	handleSubmit: (e: SyntheticEvent<HTMLFormElement>) => Promise<void>

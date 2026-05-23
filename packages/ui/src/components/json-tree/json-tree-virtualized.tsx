@@ -10,7 +10,7 @@ import { type buildSearchIndex, collectPaths, flattenTree } from './json-tree-ut
 import type { JsonValue } from './types'
 import { useJsonTreeExpansion } from './use-json-tree-expansion'
 
-export type JsonTreeVirtualizedProps = {
+type JsonTreeVirtualizedProps = {
 	ref: RefObject<HTMLDivElement | null>
 	data: JsonValue
 	rootKey: string | undefined

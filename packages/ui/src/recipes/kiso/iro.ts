@@ -153,7 +153,7 @@ const bare = {
 	}),
 }
 
-export const palette = { solid, soft, outline, plain, bare }
+const palette = { solid, soft, outline, plain, bare }
 
 export const iro = {
 	bg,

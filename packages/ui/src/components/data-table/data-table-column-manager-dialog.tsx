@@ -9,7 +9,7 @@ import { Toolbar } from '../toolbar'
 import { DataTableColumnManager } from './data-table-column-manager'
 import type { DataTableColumnManagerItem, DataTableColumnManagerPreset } from './types'
 
-export type DataTableColumnManagerDialogProps = {
+type DataTableColumnManagerDialogProps = {
 	label: ReactNode
 	columns: DataTableColumnManagerItem[]
 	order: (string | number)[]

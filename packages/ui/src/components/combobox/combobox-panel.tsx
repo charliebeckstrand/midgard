@@ -9,7 +9,7 @@ import { PopoverPanel } from '../../primitives/popover'
 import { k } from '../../recipes/kata/combobox'
 import type { ControlSize } from '../control/context'
 
-export type ComboboxPanelProps = {
+type ComboboxPanelProps = {
 	id: string
 	open: boolean
 	editing: boolean

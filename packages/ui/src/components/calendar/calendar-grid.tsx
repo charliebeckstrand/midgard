@@ -9,7 +9,7 @@ import { WEEKDAYS } from './calendar-constants'
 import { CalendarDayCell } from './calendar-day-cell'
 import { isSameDay } from './calendar-utilities'
 
-export type CalendarGridProps = {
+type CalendarGridProps = {
 	gridRef: RefObject<HTMLDivElement | null>
 	onGridKeyDown: KeyboardEventHandler<HTMLElement>
 	size: Step

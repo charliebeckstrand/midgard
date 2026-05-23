@@ -17,7 +17,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 // Calendar icon is one step smaller than the trigger size (matches Input / SelectTrigger).
 const iconSize = { sm: 'xs', md: 'sm', lg: 'md' } as const
 
-export type DatePickerTriggerProps = {
+type DatePickerTriggerProps = {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	triggerId?: string

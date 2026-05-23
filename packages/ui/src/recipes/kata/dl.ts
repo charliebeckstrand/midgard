@@ -1,4 +1,4 @@
-import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe } from '../../core/recipe'
 import { iro, ji, sen } from '../kiso'
 
 const root = defineRecipe({
@@ -38,7 +38,3 @@ export const k = {
 	term,
 	details,
 }
-
-export type DlVariants = VariantPropsOf<typeof root>
-export type DlTermVariants = VariantPropsOf<typeof term>
-export type DlDetailsVariants = VariantPropsOf<typeof details>

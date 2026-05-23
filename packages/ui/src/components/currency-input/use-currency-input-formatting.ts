@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 
-export type UseCurrencyFormattingOptions = {
+type UseCurrencyFormattingOptions = {
 	/** ISO 4217 currency code. Defaults to `USD`. */
 	currency?: string
 	/** BCP 47 locale tag. Defaults to the runtime default. */
@@ -9,7 +9,7 @@ export type UseCurrencyFormattingOptions = {
 	precision?: number
 }
 
-export type UseCurrencyFormattingResult = {
+type UseCurrencyFormattingResult = {
 	displayFormatter: Intl.NumberFormat
 	symbol: string
 	symbolIsPrefix: boolean

@@ -15,12 +15,12 @@ function sameElements<T>(a: readonly T[], b: readonly T[]): boolean {
 	return true
 }
 
-export type UseDataTableColumnsOptions<T> = {
+type UseDataTableColumnsOptions<T> = {
 	columns: DataTableColumn<T>[]
 	columnManagerConfig: DataTableColumnManagerConfig | undefined
 }
 
-export type UseDataTableColumnsResult<T> = {
+type UseDataTableColumnsResult<T> = {
 	columnOrder: (string | number)[]
 	setColumnOrder: (next: (string | number)[]) => void
 	hiddenColumns: Set<string | number>

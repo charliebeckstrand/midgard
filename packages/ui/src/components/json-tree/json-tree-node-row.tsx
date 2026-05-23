@@ -5,7 +5,7 @@ import { JsonTreeBranchHeader } from './json-tree-branch-header'
 import { JsonTreeLeafRow } from './json-tree-leaf-row'
 import type { FlatNode } from './json-tree-utilities'
 
-export type JsonNodeRowProps = {
+type JsonNodeRowProps = {
 	node: FlatNode
 	onToggle: (path: string) => void
 }

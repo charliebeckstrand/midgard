@@ -13,7 +13,7 @@ import { useFloatingDisclosure, useHasHover } from '../../hooks'
 import { subscribeOverlaySignal } from '../../primitives/overlay'
 import type { Step } from '../../recipes'
 
-export type UseTooltipStateOptions = {
+type UseTooltipStateOptions = {
 	placement?: Placement
 	delay?: number
 	interactive?: boolean
