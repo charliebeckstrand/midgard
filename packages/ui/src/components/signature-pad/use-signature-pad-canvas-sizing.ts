@@ -41,7 +41,7 @@ export function useSignaturePadCanvasSizing({
 
 		if (width === 0 || height === 0) return
 
-		const { empty: currentEmpty, strokeColor: color, strokeWidth: lineWidth } = sizingRef.current
+		const { empty: currentEmpty, strokeColor, strokeWidth } = sizingRef.current
 
 		const dpr = window.devicePixelRatio || 1
 
@@ -59,7 +59,7 @@ export function useSignaturePadCanvasSizing({
 
 		context.scale(dpr, dpr)
 
-		configureStroke(context, color, lineWidth)
+		configureStroke(context, strokeColor, strokeWidth)
 
 		if (snapshot) {
 			drawSnapshot(canvas, snapshot)
