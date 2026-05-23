@@ -59,20 +59,18 @@ const size = {
 	lg: ji.lg,
 } as const
 
-// The chrome-facing affix padding equals `input.px` so that the *content*
-// of a text affix (or no affix at all) sits at the same horizontal
-// distance from the chrome edge — equidistance is the invariant.
-//
-// When the affix slot hosts a button (not `data-variant=bare`, which has
-// no padding of its own), the affix's chrome-facing padding shrinks to
-// compensate for the button's own `pl` so the button's *content* lands at
-// the same equidistant position. The compensation collapses to a
-// constant `1` spacing-unit at every density step because `affixStepDown`
-// (see `primitives/affix/affix.ts`) moves the affix-slot button exactly
-// one notch down per density step, and both scales grow by 0.5 per
-// notch — the increments cancel. The
-// `recipes/boundary/affix-compensation-boundary.test.ts` boundary test
-// verifies the invariant against the live recipe values.
+// Equidistance invariant: affix padding equals `input.px` so a text
+// affix's *content* sits the same distance from chrome as input-text
+// does in an affix-less control. When a non-bare button lives in the
+// slot — `data-variant=bare` opts out because it has no padding to
+// compensate for — the affix padding shrinks by the button's `pl` so
+// the button's *content* lands at the same position. The compensation
+// collapses to a constant `1` spacing-unit at every density step
+// because `affixStepDown` (`primitives/affix/affix.ts`) moves the slot
+// button one notch down per density step, and both scales grow 0.5 per
+// notch — the increments cancel. The boundary test at
+// `__tests__/recipes/boundary/affix-compensation-boundary.test.ts`
+// pins this against the live recipes.
 const affix = {
 	prefix: {
 		sm: [kasane.pl('2.5'), 'has-[button:not([data-variant=bare])]:pl-[calc(--spacing(1)-1px)]'],
