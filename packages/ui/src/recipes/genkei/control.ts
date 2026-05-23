@@ -37,13 +37,15 @@ const input = [
 	'dark:placeholder:text-zinc-400',
 ]
 
-// Tracks the `density` axis of the Density token (padding + gap dimension).
-// Affix padding (`affix.prefix`, `affix.suffix`, `affix.autofill`) below is
-// the same axis — keyed by the density step, not the size step.
+// Tracks the `density` axis of the Density token (padding + radius
+// dimension). Affix padding (`affix.prefix`, `affix.suffix`,
+// `affix.autofill`) below is the same axis — keyed by the density step,
+// not the size step. Corner radius matches `py` at every step so the
+// padding-to-radius ratio stays constant across the family.
 const density = {
-	sm: [kasane.px('2.5'), kasane.py('1.5')],
-	md: [kasane.px('3'), kasane.py('2')],
-	lg: [kasane.px('3.5'), kasane.py('2.5')],
+	sm: [kasane.px('2.5'), kasane.py('1.5'), ...kasane.radius('1.5')],
+	md: [kasane.px('3'), kasane.py('2'), ...kasane.radius('2')],
+	lg: [kasane.px('3.5'), kasane.py('2.5'), ...kasane.radius('2.5')],
 } as const
 
 // Tracks the `size` axis of the Density token (text + icon dimension).

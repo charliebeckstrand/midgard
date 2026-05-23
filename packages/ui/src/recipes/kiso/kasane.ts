@@ -8,19 +8,21 @@
  */
 
 /**
- * Base ring + radius that the layers are applied on top of. The ring uses
- * solid colours (not translucent like `sen.ringInset`) so adjacent rings in
- * a group can overlap by 1 px without alpha-stacking into a darker line at
- * the join.
+ * Base ring that the layers are applied on top of. The ring uses solid
+ * colours (not translucent like `sen.ringInset`) so adjacent rings in a
+ * group can overlap by 1 px without alpha-stacking into a darker line at
+ * the join. Radius is not bundled — composers add `kasane.radius(v)` (or
+ * `kasane.r(v)` for the outer-only case) so corner rounding can track
+ * each component's density step rather than living as a fixed token.
  */
-const base = ['ring-1 ring-inset ring-zinc-300 dark:ring-zinc-700', 'rounded-lg']
+const base = ['ring-1 ring-inset ring-zinc-300 dark:ring-zinc-700']
 
 /** `::before` inset fill — paints the surface inside the 1 px outer ring. */
-const inset = ['before:absolute before:inset-px before:rounded-[calc(var(--radius-lg)-1px)]']
+const inset = ['before:absolute before:inset-px']
 
 /** `::after` overlay used by focus and validation rings. */
 const overlay = [
-	'after:absolute after:inset-0 after:rounded-lg after:ring-transparent after:ring-inset after:pointer-events-none',
+	'after:absolute after:inset-0 after:ring-transparent after:ring-inset after:pointer-events-none',
 ]
 
 /** Outer ring colour on hover — one shade darker / lighter than resting. */
@@ -157,6 +159,59 @@ const pl = (v: PadStop) => plStops[v]
 
 const pr = (v: PadStop) => prStops[v]
 
+// Pixel-perfect corner radii. Each stop pairs an outer-element class
+// (`rounded-[--spacing(v)]`) with the matching `::before` inset (`-1px` so
+// the inset fill sits inside the 1 px outer ring) and `::after` overlay
+// (same radius as outer; the overlay sits at `inset-0`, not `inset-px`).
+// Using the `--spacing` scale rather than Tailwind's named radius tokens
+// keeps radius and padding proportional — a component with
+// `kasane.py('2')` lands on `kasane.r('2')` for a 1:1 padding-to-radius
+// ratio at every density step.
+
+const rStops = {
+	'0.5': 'rounded-[--spacing(0.5)]',
+	'0.75': 'rounded-[--spacing(0.75)]',
+	'1': 'rounded-[--spacing(1)]',
+	'1.25': 'rounded-[--spacing(1.25)]',
+	'1.5': 'rounded-[--spacing(1.5)]',
+	'2': 'rounded-[--spacing(2)]',
+	'2.5': 'rounded-[--spacing(2.5)]',
+	'3': 'rounded-[--spacing(3)]',
+} as const
+
+const riStops = {
+	'0.5': 'before:rounded-[calc(--spacing(0.5)-1px)]',
+	'0.75': 'before:rounded-[calc(--spacing(0.75)-1px)]',
+	'1': 'before:rounded-[calc(--spacing(1)-1px)]',
+	'1.25': 'before:rounded-[calc(--spacing(1.25)-1px)]',
+	'1.5': 'before:rounded-[calc(--spacing(1.5)-1px)]',
+	'2': 'before:rounded-[calc(--spacing(2)-1px)]',
+	'2.5': 'before:rounded-[calc(--spacing(2.5)-1px)]',
+	'3': 'before:rounded-[calc(--spacing(3)-1px)]',
+} as const
+
+const roStops = {
+	'0.5': 'after:rounded-[--spacing(0.5)]',
+	'0.75': 'after:rounded-[--spacing(0.75)]',
+	'1': 'after:rounded-[--spacing(1)]',
+	'1.25': 'after:rounded-[--spacing(1.25)]',
+	'1.5': 'after:rounded-[--spacing(1.5)]',
+	'2': 'after:rounded-[--spacing(2)]',
+	'2.5': 'after:rounded-[--spacing(2.5)]',
+	'3': 'after:rounded-[--spacing(3)]',
+} as const
+
+type RadiusStop = keyof typeof rStops
+
+const r = (v: RadiusStop) => rStops[v]
+
+const ri = (v: RadiusStop) => riStops[v]
+
+const ro = (v: RadiusStop) => roStops[v]
+
+/** Outer + inset + overlay radii, coordinated for the full kasane stack. */
+const radius = (v: RadiusStop) => [rStops[v], riStops[v], roStops[v]] as const
+
 export const kasane = {
 	base,
 	inset,
@@ -170,6 +225,10 @@ export const kasane = {
 	py,
 	pl,
 	pr,
+	r,
+	ri,
+	ro,
+	radius,
 	/** Convenience: every fragment in the correct spread order for a `className`. */
 	all: [...base, ...inset, ...overlay, ...hover, ...focus, ...validation, ...disabled],
 } as const
