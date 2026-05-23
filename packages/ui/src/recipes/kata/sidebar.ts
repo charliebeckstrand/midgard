@@ -10,9 +10,9 @@ const item = defineRecipe({
 		'text-left',
 	],
 	size: {
-		sm: [ji.sm, kasane.g('0.75'), 'p-1.5', kasane.r('1.5'), shaku.icon.sm],
-		md: [ji.md, kasane.g('1'), 'p-2', kasane.r('2'), shaku.icon.md],
-		lg: [ji.lg, kasane.g('1.25'), 'p-2.5', kasane.r('2.5'), shaku.icon.lg],
+		sm: [ji.sm, kasane.g('1.5'), 'p-1.5', kasane.r('1.5'), shaku.icon.sm],
+		md: [ji.md, kasane.g('2'), 'p-2', kasane.r('2'), shaku.icon.md],
+		lg: [ji.lg, kasane.g('2.5'), 'p-2.5', kasane.r('2.5'), shaku.icon.lg],
 	},
 	defaults: { size: 'md' },
 })

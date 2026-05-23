@@ -44,12 +44,12 @@ const input = [
 // (listbox, combobox, date-picker button); for ControlFrame consumers
 // (input, textarea, select trigger), `kata/control.ts` exposes
 // `frameRadius` and `<ControlFrame>` reads it from `useDensity()` so the
-// chrome on the wrapping frame carries the matching radius. Gap = py/2
-// at every step (rounded to the spacing scale).
+// chrome on the wrapping frame carries the matching radius. Gap = py at
+// every step (1:1 with padding and radius).
 const density = {
-	sm: [kasane.px('2.5'), kasane.py('1.5'), kasane.r('1.5'), kasane.g('0.75')],
-	md: [kasane.px('3'), kasane.py('2'), kasane.r('2'), kasane.g('1')],
-	lg: [kasane.px('3.5'), kasane.py('2.5'), kasane.r('2.5'), kasane.g('1.25')],
+	sm: [kasane.px('2.5'), kasane.py('1.5'), kasane.r('1.5'), kasane.g('1.5')],
+	md: [kasane.px('3'), kasane.py('2'), kasane.r('2'), kasane.g('2')],
+	lg: [kasane.px('3.5'), kasane.py('2.5'), kasane.r('2.5'), kasane.g('2.5')],
 } as const
 
 // Tracks the `size` axis of the Density token (text + icon dimension).
