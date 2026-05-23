@@ -1,4 +1,4 @@
-import { iro, ji, sen } from '../kiso'
+import { hannou, iro, ji, sen } from '../kiso'
 
 export const k = {
 	base: ['overflow-x-auto flex gap-4 items-stretch', 'min-h-0'],
@@ -31,7 +31,8 @@ export const k = {
 			'rounded-md',
 			'transition-shadow',
 			sen.focus.inset,
-			'data-disabled:opacity-75 data-disabled:cursor-not-allowed',
+			...hannou.disabled,
+			...hannou.cursor,
 		],
 		draggable: 'cursor-grab touch-none select-none',
 		dragging: '',

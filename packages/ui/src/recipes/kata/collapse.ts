@@ -11,7 +11,7 @@ export const k = {
 		'group-data-[open]/collapse:text-zinc-950',
 		'dark:group-data-[open]/collapse:text-white',
 		sen.focus.ring,
-		'disabled:opacity-50 disabled:cursor-not-allowed',
+		...hannou.disabled,
 		...hannou.cursor,
 	],
 	panel: 'overflow-hidden',

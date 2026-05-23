@@ -42,7 +42,7 @@ export const k = defineRecipe(
 				'group-data-[open]/accordion-item:text-zinc-950',
 				'dark:group-data-[open]/accordion-item:text-white',
 				'focus-visible:outline-none',
-				'disabled:opacity-50 disabled:cursor-not-allowed',
+				...hannou.disabled,
 				...hannou.cursor,
 			],
 			indicator: [
