@@ -4,7 +4,7 @@
  * `RecipeConfig` is the shape a kata declares — six reserved fields
  * (`base`, `palette`, `compound`, `slots`, `defaults`, `skeleton`) plus
  * any number of variant axes as top-level fields. `Recipe<C>` is what
- * `defineRecipe` returns. `VariantPropsOf<R>` extracts the prop shape
+ * `defineRecipe` returns. `VariantProps<R>` extracts the prop shape
  * from either side — use it in kata to type the consumer-facing
  * `<Name>Variants` export.
  */
@@ -82,7 +82,7 @@ type ExplicitVariantKeys<C> = C extends { variant: infer V } ? keyof V & string 
  */
 type AxisValue<A> = 'true' extends keyof A ? ('false' extends keyof A ? boolean : keyof A) : keyof A
 
-/** Computed prop shape for a given config — used internally and by `VariantPropsOf`. */
+/** Computed prop shape for a given config — used internally and by `VariantProps`. */
 export type ComputedProps<C> = {
 	[K in keyof AxesOf<C> as K extends 'variant' ? never : K]?: AxisValue<AxesOf<C>[K]>
 } & (C extends { palette: PaletteConfig<infer E, infer M> }
@@ -98,9 +98,9 @@ export type ComputedProps<C> = {
  * Extracts the prop shape from either a `Recipe<C>` or a `RecipeConfig`.
  *
  * @example
- *   export type ButtonVariants = VariantPropsOf<typeof button>
+ *   export type ButtonVariants = VariantProps<typeof button>
  */
-export type VariantPropsOf<R> =
+export type VariantProps<R> =
 	R extends Recipe<infer C extends RecipeBase>
 		? ComputedProps<C>
 		: R extends RecipeBase

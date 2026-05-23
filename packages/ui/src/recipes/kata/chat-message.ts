@@ -1,4 +1,4 @@
-import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { iro, ji } from '../kiso'
 
 const bubble = defineRecipe({
@@ -33,5 +33,5 @@ export const k = defineRecipe(
 	{ bubble },
 )
 
-export type ChatMessageVariants = VariantPropsOf<typeof k>
-export type ChatMessageBubbleVariants = VariantPropsOf<typeof bubble>
+export type ChatMessageVariants = VariantProps<typeof k>
+export type ChatMessageBubbleVariants = VariantProps<typeof bubble>

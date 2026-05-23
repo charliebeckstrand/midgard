@@ -1,40 +1,22 @@
-export { type UseControllableOptions, useControllable } from './use-controllable'
-export { type UseDeferredToggleOptions, useDeferredToggle } from './use-deferred-toggle'
-export { type UseDismissableOptions, useDismissable } from './use-dismissable'
-export {
-	type FloatingDisclosureGate,
-	type FloatingDisclosureRole,
-	type UseFloatingDisclosureOptions,
-	useFloatingDisclosure,
-} from './use-floating-disclosure'
-export {
-	type UseFloatingPanelOptions,
-	type UseFloatingUIOptions,
-	useFloatingPanel,
-	useFloatingUI,
-} from './use-floating-ui'
+export { useControllable } from './use-controllable'
+export { useDeferredToggle } from './use-deferred-toggle'
+export { useDismissable } from './use-dismissable'
+export { useFloatingDisclosure } from './use-floating-disclosure'
+export { useFloatingPanel, useFloatingUI } from './use-floating-ui'
 export { useHasHover } from './use-has-hover'
-export { type UseIdScopeOptions, useIdScope } from './use-id-scope'
+export { useIdScope } from './use-id-scope'
 export { useIsTruncated } from './use-is-truncated'
 export { useKeyboardSettled } from './use-keyboard-settled'
-export { type UseMaskedInputOptions, useMaskedInput } from './use-masked-input'
+export { useMaskedInput } from './use-masked-input'
 export { useMediaQuery } from './use-media-query'
 export { useMinWidth } from './use-min-width'
 export { useOffcanvas } from './use-offcanvas'
 export { useResizeObserver } from './use-resize-observer'
-export { type UseRippleOptions, useRipple } from './use-ripple'
-export {
-	type Orientation,
-	type RovingConfig,
-	type UseRovingOptions,
-	useRoving,
-} from './use-roving'
+export { useRipple } from './use-ripple'
+export { useRoving } from './use-roving'
 export { useScrollLock } from './use-scroll-lock'
-export {
-	type UseScrollWithinOptions,
-	useScrollWithin,
-} from './use-scroll-within'
+export { useScrollWithin } from './use-scroll-within'
 export { useSelectableValueChange } from './use-selectable-value-change'
-export { type UseSortableItemOptions, useSortableItem } from './use-sortable-item'
-export { type UseSortableListOptions, useSortableList } from './use-sortable-list'
-export { type UseSortableSensorsOptions, useSortableSensors } from './use-sortable-sensors'
+export { useSortableItem } from './use-sortable-item'
+export { useSortableList } from './use-sortable-list'
+export { useSortableSensors } from './use-sortable-sensors'

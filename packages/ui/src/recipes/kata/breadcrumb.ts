@@ -1,4 +1,4 @@
-import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { iro, ji, sen } from '../kiso'
 
 const list = defineRecipe({
@@ -34,5 +34,5 @@ export const k = {
 	separator,
 }
 
-export type BreadcrumbItemVariants = VariantPropsOf<typeof item>
-export type BreadcrumbLinkVariants = VariantPropsOf<typeof link>
+export type BreadcrumbItemVariants = VariantProps<typeof item>
+export type BreadcrumbLinkVariants = VariantProps<typeof link>

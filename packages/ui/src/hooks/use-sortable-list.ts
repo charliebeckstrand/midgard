@@ -10,7 +10,7 @@ import { useCallback, useMemo, useState } from 'react'
 import type { Orientation } from '../types'
 import { useSortableSensors } from './use-sortable-sensors'
 
-export type UseSortableListOptions<T> = {
+type UseSortableListOptions<T> = {
 	/** Ordered items. */
 	items: T[]
 	/** Stable key extractor. */

@@ -1,4 +1,4 @@
-import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { hannou, iro, ji, sen, ugoki } from '../kiso'
 
 const item = defineRecipe({
@@ -59,5 +59,5 @@ export const k = defineRecipe(
 	{ item },
 )
 
-export type AccordionVariants = VariantPropsOf<typeof k>
-export type AccordionItemVariants = VariantPropsOf<typeof item>
+export type AccordionVariants = VariantProps<typeof k>
+export type AccordionItemVariants = VariantProps<typeof item>

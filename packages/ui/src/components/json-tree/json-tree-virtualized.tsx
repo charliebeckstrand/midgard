@@ -81,8 +81,8 @@ export function JsonTreeVirtualized({
 			onKeyDown={onKeyDown}
 		>
 			{topSpacer > 0 && <div data-slot="json-tree-spacer" style={{ height: topSpacer }} />}
-			{virtualItems.map((vi) => {
-				const node = flatNodes[vi.index]
+			{virtualItems.map((virtualItem) => {
+				const node = flatNodes[virtualItem.index]
 
 				if (!node) return null
 

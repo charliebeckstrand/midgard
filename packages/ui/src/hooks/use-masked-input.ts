@@ -3,7 +3,7 @@
 import { type ChangeEvent, type Ref, useCallback, useLayoutEffect, useRef } from 'react'
 import { useControllable } from './use-controllable'
 
-export type UseMaskedInputOptions = {
+type UseMaskedInputOptions = {
 	value?: string
 	defaultValue?: string
 	onChange?: (value: string) => void

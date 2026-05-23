@@ -5,7 +5,7 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/control'
 import { useDensity } from '../density'
 
-export type ControlFrameProps = ComponentPropsWithoutRef<'span'>
+type ControlFrameProps = ComponentPropsWithoutRef<'span'>
 
 /** Outer chrome wrapper providing shared focus ring, border, and disabled state for form inputs. */
 export function ControlFrame({ className, ...props }: ControlFrameProps) {

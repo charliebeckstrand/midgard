@@ -1,2 +1,2 @@
-export { type LocaleConfig, useLocale } from './context'
-export { LocaleProvider, type LocaleProviderProps } from './locale'
+export { useLocale } from './context'
+export { LocaleProvider } from './locale'

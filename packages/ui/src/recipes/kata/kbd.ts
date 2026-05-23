@@ -1,4 +1,4 @@
-import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { shaku } from '../kiso'
 export const k = defineRecipe({
 	base: ['inline-flex items-center justify-center', ...shaku.mark.base],
@@ -6,4 +6,4 @@ export const k = defineRecipe({
 	defaults: { size: 'md' },
 })
 
-export type KbdVariants = VariantPropsOf<typeof k>
+export type KbdVariants = VariantProps<typeof k>

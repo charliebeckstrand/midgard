@@ -1,4 +1,4 @@
-import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { panel } from '../katakana'
 import { iro, narabi, omote, sen, ugoki } from '../kiso'
 
@@ -38,4 +38,4 @@ export const k = {
 	motion: ugoki.panel.bottom,
 }
 
-export type DrawerPanelVariants = VariantPropsOf<typeof k.panel>
+export type DrawerPanelVariants = VariantProps<typeof k.panel>

@@ -11,12 +11,12 @@ import { Heading } from 'ui/heading'
 import { Input } from 'ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from 'ui/table'
 
-interface UsersClientProps {
+type UsersClientProps = {
 	users: User[]
 	currentUser: User | undefined
 }
 
-interface EditUserDialogProps {
+type EditUserDialogProps = {
 	user: User | null
 	onOpenChange: (open: boolean) => void
 }

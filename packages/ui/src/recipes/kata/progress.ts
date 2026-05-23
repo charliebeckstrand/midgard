@@ -1,4 +1,4 @@
-import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { iro, ji } from '../kiso'
 
 /**
@@ -93,6 +93,6 @@ export const k = defineRecipe(
 	},
 )
 
-export type ProgressTrackVariants = VariantPropsOf<typeof k>
-export type ProgressBarFillVariants = VariantPropsOf<typeof barFill>
-export type ProgressGaugeVariants = VariantPropsOf<typeof gaugeRoot>
+export type ProgressTrackVariants = VariantProps<typeof k>
+export type ProgressBarFillVariants = VariantProps<typeof barFill>
+export type ProgressGaugeVariants = VariantProps<typeof gaugeRoot>

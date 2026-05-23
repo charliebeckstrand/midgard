@@ -4,7 +4,7 @@ import { ChatComposer } from './composer'
 import { ChatMessages } from './messages'
 import type { ChatContent } from './types'
 
-interface ChatLayoutProps {
+type ChatLayoutProps = {
 	messages: ChatContent[]
 	sending?: boolean
 	isDraft?: boolean

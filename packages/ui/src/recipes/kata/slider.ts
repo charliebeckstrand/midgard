@@ -1,4 +1,4 @@
-import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { slider } from '../genkei/slider'
 import { hannou } from '../kiso'
 
@@ -76,4 +76,4 @@ export const k = defineRecipe({
 	defaults: { size: 'md', color: 'blue' },
 })
 
-export type SliderVariants = VariantPropsOf<typeof k>
+export type SliderVariants = VariantProps<typeof k>

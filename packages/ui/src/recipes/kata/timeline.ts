@@ -1,4 +1,4 @@
-import { type Color, defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { type Color, defineRecipe, type VariantProps } from '../../core/recipe'
 import { iro, ji } from '../kiso'
 
 /**
@@ -122,4 +122,4 @@ export const k = {
 	timestamp,
 }
 
-export type TimelineVariants = VariantPropsOf<typeof timeline>
+export type TimelineVariants = VariantProps<typeof timeline>

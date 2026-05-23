@@ -1,4 +1,4 @@
-import { defineColors, type VariantPropsOf } from '../../core/recipe'
+import { defineColors, type VariantProps } from '../../core/recipe'
 import { check } from '../katakana'
 import { kokkaku } from '../kiso'
 
@@ -43,4 +43,4 @@ export const k = check(
 	},
 )
 
-export type RadioVariants = VariantPropsOf<typeof k>
+export type RadioVariants = VariantProps<typeof k>

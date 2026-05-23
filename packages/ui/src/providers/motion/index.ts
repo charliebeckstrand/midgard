@@ -1,1 +1,1 @@
-export { Motion, type MotionProps } from './motion'
+export { Motion } from './motion'

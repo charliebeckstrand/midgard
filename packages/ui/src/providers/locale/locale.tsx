@@ -1,7 +1,7 @@
 import { type ReactNode, useMemo } from 'react'
 import { type LocaleConfig, LocaleValueProvider } from './context'
 
-export type LocaleProviderProps = LocaleConfig & {
+type LocaleProviderProps = LocaleConfig & {
 	children: ReactNode
 }
 

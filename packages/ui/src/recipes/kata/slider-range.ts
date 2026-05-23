@@ -1,4 +1,4 @@
-import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { slider } from '../genkei/slider'
 import { hannou } from '../kiso'
 
@@ -57,4 +57,4 @@ export const k = {
 	thumb,
 }
 
-export type RangeSliderVariants = VariantPropsOf<typeof root>
+export type RangeSliderVariants = VariantProps<typeof root>

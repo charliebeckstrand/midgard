@@ -1,4 +1,4 @@
-import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { iro, kokkaku } from '../kiso'
 
 export const k = defineRecipe({
@@ -22,4 +22,4 @@ export const k = defineRecipe({
 	skeleton: kokkaku.text,
 })
 
-export type TextVariants = VariantPropsOf<typeof k>
+export type TextVariants = VariantProps<typeof k>

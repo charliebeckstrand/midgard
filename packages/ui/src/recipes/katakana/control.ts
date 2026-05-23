@@ -23,7 +23,7 @@ import {
 	type ApplicatorReturn,
 	defineApplicator,
 	defineRecipe,
-	type VariantPropsOf,
+	type VariantProps,
 } from '../../core/recipe'
 import { control as controlFragments } from '../genkei/control'
 
@@ -62,12 +62,12 @@ export const control = defineApplicator({ config: standardConfig, extras: standa
 /**
  * Prop union of the outer-frame recipe for a kata with no extra axes.
  * Kata that add axes (e.g. `textarea`'s `resize`) derive their own
- * variant type via `VariantPropsOf<typeof k>`.
+ * variant type via `VariantProps<typeof k>`.
  *
  * Pinned via `ApplicatorReturn` rather than `ReturnType<typeof control>`:
  * the latter widens each generic to its constraint and yields a polluted
  * prop union — every string axis resolves to `boolean | undefined`.
  */
-export type ControlVariants = VariantPropsOf<
+export type ControlVariants = VariantProps<
 	ApplicatorReturn<typeof standardConfig, typeof standardExtras>
 >

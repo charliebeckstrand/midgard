@@ -1,4 +1,4 @@
-import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { ji, shaku } from '../kiso'
 
 const blockBg = 'bg-[#0d1117]'
@@ -32,5 +32,5 @@ export const k = defineRecipe(
 	},
 )
 
-export type CodeVariants = VariantPropsOf<typeof k>
-export type CodeBlockVariants = VariantPropsOf<typeof codeBlock>
+export type CodeVariants = VariantProps<typeof k>
+export type CodeBlockVariants = VariantProps<typeof codeBlock>

@@ -56,7 +56,7 @@ function toArray(v?: string | string[]): string[] {
  *
  * `panel` and (optional) `backdrop` are caller-supplied
  * `defineRecipe(...)` results — they carry the kata's variants and stay
- * callable, so consumers keep `VariantPropsOf<typeof result.panel>`
+ * callable, so consumers keep `VariantProps<typeof result.panel>`
  * inference. The other slots (title, description, header, body, footer,
  * close) are zero-variant class fragments built from `narabi.panel` plus
  * optional caller extras, applied via `cn(...)` at the call site.

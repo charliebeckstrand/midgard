@@ -1,4 +1,4 @@
-import { defineRecipe, palette, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, palette, type VariantProps } from '../../core/recipe'
 import { iro, ji, kasane, kokkaku, shaku } from '../kiso'
 
 const { solid, soft, outline, plain } = iro.palette
@@ -32,4 +32,4 @@ export const k = defineRecipe({
 	skeleton: kokkaku.badge,
 })
 
-export type BadgeVariants = VariantPropsOf<typeof k>
+export type BadgeVariants = VariantProps<typeof k>

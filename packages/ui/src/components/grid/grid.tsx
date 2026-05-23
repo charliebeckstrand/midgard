@@ -42,7 +42,7 @@ export function Grid({
 	const resolvedGap = gap ?? density?.density ?? 'md'
 
 	const cols = resolveCols(columns)
-	const rws = resolveRows(rows)
+	const resolvedRows = resolveRows(rows)
 
 	return (
 		<GridProvider value={{ columns }}>
@@ -51,14 +51,14 @@ export function Grid({
 				className={cn(
 					'grid',
 					...cols.classes,
-					...rws.classes,
+					...resolvedRows.classes,
 					...resolveGap(resolvedGap),
 					flow && flowMap[flow],
 					align && alignMap[align],
 					justify && justifyMap[justify],
 					className,
 				)}
-				style={{ ...cols.style, ...rws.style, ...style }}
+				style={{ ...cols.style, ...resolvedRows.style, ...style }}
 				{...props}
 			>
 				{children}

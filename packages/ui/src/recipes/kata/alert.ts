@@ -1,4 +1,4 @@
-import { defineRecipe, palette, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, palette, type VariantProps } from '../../core/recipe'
 import { iro, ji } from '../kiso'
 
 const { solid, soft, outline, plain } = iro.palette
@@ -26,4 +26,4 @@ export const k = defineRecipe({
 	defaults: { variant: 'soft', color: 'zinc' },
 })
 
-export type AlertVariants = VariantPropsOf<typeof k>
+export type AlertVariants = VariantProps<typeof k>

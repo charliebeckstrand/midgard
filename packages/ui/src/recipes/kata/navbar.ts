@@ -1,4 +1,4 @@
-import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { sen } from '../kiso'
 export const k = defineRecipe({
 	base: ['flex items-center gap-4', 'overflow-x-auto', 'px-4 py-2.5', 'rounded-lg', 'border'],
@@ -9,4 +9,4 @@ export const k = defineRecipe({
 	defaults: { variant: 'outline' },
 })
 
-export type NavbarVariants = VariantPropsOf<typeof k>
+export type NavbarVariants = VariantProps<typeof k>

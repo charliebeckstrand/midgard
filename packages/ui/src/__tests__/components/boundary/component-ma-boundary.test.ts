@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 // `Ma` is kiso's spacing axis — padding, margin, gap. Layout primitives
 // (Box, Flex, Grid, Split) compose it into their `variants.ts` files; that is
 // its public role. Every other component derives the same union from its
-// kata recipe's `VariantPropsOf`. Importing `Ma` directly anywhere else
+// kata recipe's `VariantProps`. Importing `Ma` directly anywhere else
 // silently crosses the spacing → sizing boundary.
 
 const componentsDir = join(__dirname, '../../../components')
@@ -34,7 +34,7 @@ describe('component Ma import boundary', () => {
 
 		expect(
 			violations,
-			`component file imports Ma directly — derive size from the kata's VariantPropsOf instead:\n  ${violations.join('\n  ')}`,
+			`component file imports Ma directly — derive size from the kata's VariantProps instead:\n  ${violations.join('\n  ')}`,
 		).toEqual([])
 	})
 })

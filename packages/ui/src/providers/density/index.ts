@@ -5,4 +5,4 @@ export {
 	densityToSize,
 	useDensity,
 } from './context'
-export { Density, type DensityProps } from './density'
+export { Density } from './density'

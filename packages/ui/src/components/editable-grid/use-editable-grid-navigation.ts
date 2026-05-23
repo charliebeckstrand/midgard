@@ -3,7 +3,9 @@
 import { type RefObject, useCallback, useRef, useState } from 'react'
 import type { Coord, EditableGridNavigationApi } from './types'
 
-export const cellKey = (row: number, col: number) => `${row},${col}`
+export function cellKey(row: number, col: number): string {
+	return `${row},${col}`
+}
 
 export function useEditableGridNavigation<T>({
 	rowsRef,

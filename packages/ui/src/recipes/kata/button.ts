@@ -1,4 +1,4 @@
-import { defineRecipe, merge, palette, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, merge, palette, type VariantProps } from '../../core/recipe'
 import { hannou, iro, ji, kasane, kokkaku, sen, shaku, tsunagi, ugoki } from '../kiso'
 
 const { solid, soft, outline, plain, bare } = iro.palette
@@ -90,4 +90,4 @@ export const k = defineRecipe(
 	},
 )
 
-export type ButtonVariants = VariantPropsOf<typeof k>
+export type ButtonVariants = VariantProps<typeof k>

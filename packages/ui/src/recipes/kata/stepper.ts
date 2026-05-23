@@ -1,4 +1,4 @@
-import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { hannou, iro, ji, sen } from '../kiso'
 
 const stepper = defineRecipe({
@@ -61,7 +61,7 @@ export const k = {
 	description: [ji.sm, ...iro.text.muted],
 }
 
-export type StepperVariants = VariantPropsOf<typeof stepper>
-export type StepperStepVariants = VariantPropsOf<typeof step>
-export type StepperTitleVariants = VariantPropsOf<typeof title>
-export type StepperSeparatorVariants = VariantPropsOf<typeof separator>
+export type StepperVariants = VariantProps<typeof stepper>
+export type StepperStepVariants = VariantProps<typeof step>
+export type StepperTitleVariants = VariantProps<typeof title>
+export type StepperSeparatorVariants = VariantProps<typeof separator>

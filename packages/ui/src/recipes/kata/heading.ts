@@ -1,4 +1,4 @@
-import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { iro, ji, kokkaku } from '../kiso'
 
 export const k = defineRecipe({
@@ -15,4 +15,4 @@ export const k = defineRecipe({
 	skeleton: kokkaku.heading,
 })
 
-export type HeadingVariants = VariantPropsOf<typeof k>
+export type HeadingVariants = VariantProps<typeof k>

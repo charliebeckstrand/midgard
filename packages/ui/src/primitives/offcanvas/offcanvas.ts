@@ -2,7 +2,7 @@
 
 import { createContext } from '../../core'
 
-export type OffcanvasContextValue = {
+type OffcanvasContextValue = {
 	close: () => void
 }
 

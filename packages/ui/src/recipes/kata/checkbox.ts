@@ -1,4 +1,4 @@
-import { defineColors, type VariantPropsOf } from '../../core/recipe'
+import { defineColors, type VariantProps } from '../../core/recipe'
 import { check } from '../katakana'
 import { kasane, kokkaku } from '../kiso'
 
@@ -42,4 +42,4 @@ export const k = check(
 	},
 )
 
-export type CheckboxVariants = VariantPropsOf<typeof k>
+export type CheckboxVariants = VariantProps<typeof k>

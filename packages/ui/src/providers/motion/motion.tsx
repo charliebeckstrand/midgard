@@ -3,7 +3,7 @@
 import { MotionConfig } from 'motion/react'
 import type { ReactNode } from 'react'
 
-export type MotionProps = {
+type MotionProps = {
 	/**
 	 * How descendant `motion.*` components should treat
 	 * `prefers-reduced-motion`:

@@ -21,24 +21,24 @@ export function useKeyboardSettled() {
 
 		rafRef.current = null
 
-		const vv = window.visualViewport
+		const viewport = window.visualViewport
 
 		// No visual viewport API or not a touch device — fire now
-		if (!vv || !('ontouchstart' in window)) {
+		if (!viewport || !('ontouchstart' in window)) {
 			callback()
 
 			return
 		}
 
 		// Keyboard already visible
-		if (vv.height < window.innerHeight * 0.85) {
+		if (viewport.height < window.innerHeight * 0.85) {
 			callback()
 
 			return
 		}
 
 		// Poll until the viewport height stabilises after the keyboard starts appearing
-		const initialHeight = vv.height
+		const initialHeight = viewport.height
 
 		let lastHeight = initialHeight
 
@@ -51,7 +51,7 @@ export function useKeyboardSettled() {
 		const check = () => {
 			totalFrames++
 
-			const currentHeight = vv.height
+			const currentHeight = viewport.height
 
 			if (!heightChanged && currentHeight !== initialHeight) {
 				heightChanged = true

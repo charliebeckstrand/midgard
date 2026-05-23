@@ -1,4 +1,4 @@
-import { defineRecipe, type VariantPropsOf } from '../../core/recipe'
+import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { iro } from '../kiso'
 export const k = defineRecipe({
 	base: 'inline-block rounded-full',
@@ -32,4 +32,4 @@ export const k = defineRecipe({
 	},
 })
 
-export type StatusDotVariants = VariantPropsOf<typeof k>
+export type StatusDotVariants = VariantProps<typeof k>
