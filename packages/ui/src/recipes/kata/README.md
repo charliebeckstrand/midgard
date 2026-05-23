@@ -1,4 +1,4 @@
-# Kata 型 - Forms
+# Kata 型 - Form
 
 One file per unit — usually `src/components/<name>/`, sometimes
 `src/primitives/<name>/` when the primitive needs its own recipe surface.
