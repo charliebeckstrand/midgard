@@ -16,7 +16,7 @@ import { Stack } from 'ui/stack'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from 'ui/table'
 import { Text } from 'ui/text'
 
-interface UserDetailsClientProps {
+type UserDetailsClientProps = {
 	details: User | null
 	chats: Chat[] | null
 }
