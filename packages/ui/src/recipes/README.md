@@ -7,7 +7,7 @@ The design layer of the UI package.
 | [Kiso 基礎 - Foundation](./kiso/README.md)     | Internal | Substrate tokens — iro · ji · ma · narabi · omote · hannou · sen · shaku · sun · tsunagi · ugoki · kokkaku · kasane.       |
 | [Genkei 原型 - Archetypes](./genkei/README.md) | Internal | Raw class-fragment data for the archetypes — control · popover · segment · slider.                                         |
 | [Katakana 片仮名 - Applicators](./katakana/README.md) | Internal | Function-shaped applicators that wrap genkei fragments into ready-to-use recipes for kata that match an archetype.   |
-| [Kata 型 - Forms](./kata/README.md)            | Internal | Per-unit recipes — the funnel components and primitives both read.                                                         |
+| [Kata 型 - Form](./kata/README.md)            | Internal | Per-unit recipes — the funnel components and primitives both read.                                                         |
 
 The recipe engine (`defineRecipe`, `palette`, `merge`), the colour axis
 (`colors`, `Color`), the `mode` / `shades` authoring helpers, and the
