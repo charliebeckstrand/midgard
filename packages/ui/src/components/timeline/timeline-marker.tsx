@@ -35,9 +35,9 @@ export function TimelineMarker({
 			className={cn(
 				k.marker.base,
 				orientation === 'vertical' ? k.marker.vertical : k.marker.horizontal,
-				color && k.marker.color[color],
-				lineBefore && k.marker.lineBefore[lineBefore],
-				lineAfter && k.marker.lineAfter[lineAfter],
+				color && k.marker.palette[color].dot,
+				k.marker.palette[lineBefore ?? 'zinc'].lineBefore,
+				k.marker.palette[lineAfter ?? 'zinc'].lineAfter,
 				children != null && 'size-auto',
 				className,
 			)}
