@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
-import { createPanel, PanelA11yProvider, usePanelA11y } from '../../primitives/panel'
+import { describe, expect, it, vi } from 'vitest'
+import { createPanel, PanelA11yProvider, PanelClose, usePanelA11y } from '../../primitives/panel'
 import { bySlot, renderUI } from '../helpers'
 
 describe('createPanel', () => {
@@ -92,5 +92,19 @@ describe('usePanelA11y', () => {
 		const { result } = renderHook(() => usePanelA11y())
 
 		expect(result.current).toEqual({})
+	})
+})
+
+describe('PanelClose', () => {
+	it('throws a descriptive error when rendered outside a modal panel root', () => {
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		expect(() =>
+			renderUI(
+				<PanelClose>
+					<button type="button">Close</button>
+				</PanelClose>,
+			),
+		).toThrow('PanelClose must be rendered inside a Dialog, Sheet, or Drawer')
 	})
 })
