@@ -30,13 +30,6 @@ Write terse, technical prose. Optimize for information density.
 - **Check fails after an edit → fix the cause; never weaken the check.** A legitimate test change earns its own commit and an explanation. Deleting assertions, marking `.skip`, or stripping `expect` calls to make a suite green is a blocking failure regardless of intent.
 - **Work is done when `/postmortem` returns PROCEED**, or every chained downstream skill clears without a blocking finding (see `/postmortem` §4–§5 for the verdict-shape protocol), and you have re-read the diff.
 
-## Architecture
-
-- Duplication across call sites earns a shared utility; a single use case does not.
-- Build from small, composable pieces. Colocate what belongs together.
-- Dependencies flow inward. Shared packages never depend on application code.
-- Lean on the type system. Hard-to-express types signal a design problem.
-
 ## Workflow
 
 Delegate research to subagents — one focused task per agent — and keep the main context window clean. Summarize at milestones, not line by line.
