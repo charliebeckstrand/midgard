@@ -1,3 +1,8 @@
+---
+name: orator
+description: Use when polishing, composing, refining, or rewriting any prose in the repo — markdown bodies, code comments, docstrings, READMEs, commit and PR copy, release notes. Invoke automatically before saving or pushing any prose edit to a tracked file, even when the user didn't ask explicitly. Enforces the project's voice (terse, direct, no ornaments) via the §3 / §3a / §3b rule sets below.
+---
+
 # orator
 
 TRIGGER when: polish, compose, refine, or rewrite prose.
