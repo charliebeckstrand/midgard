@@ -11,7 +11,7 @@ import {
 	Trash2,
 	User,
 } from 'lucide-react'
-import { type ReactElement, useEffect, useState } from 'react'
+import { type ReactElement, useState } from 'react'
 import { Alert, AlertTitle } from '../../components/alert'
 import { Button } from '../../components/button'
 import {
@@ -24,6 +24,7 @@ import {
 } from '../../components/command-palette'
 import { Icon } from '../../components/icon'
 import { Kbd } from '../../components/kbd'
+import { useKeybindings } from '../../hooks/use-keybindings'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Overlay' }
@@ -112,20 +113,16 @@ function filterCommands(query: string) {
 export function Demo() {
 	const [open, setOpen] = useState(false)
 
-	// Open on ⌘K / Ctrl+K
-	useEffect(() => {
-		function onKeyDown(e: KeyboardEvent) {
-			if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+	useKeybindings(
+		{
+			'$mod+KeyK': (e) => {
 				e.preventDefault()
 
 				setOpen((prev) => !prev)
-			}
-		}
-
-		document.addEventListener('keydown', onKeyDown)
-
-		return () => document.removeEventListener('keydown', onKeyDown)
-	}, [])
+			},
+		},
+		{ ignore: () => false },
+	)
 
 	return (
 		<Example title="Default">
