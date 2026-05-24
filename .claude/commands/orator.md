@@ -1,8 +1,8 @@
 # orator
 
-TRIGGER when: polish, compose, refine, recite, articulate, or rewrite prose.
+TRIGGER when: polish, compose, refine, or rewrite prose.
 
-Polish language, not facts. Match the project's voice; never impose a foreign tone.
+Polish language, not facts. Match the project's voice.
 
 ## Arguments
 
@@ -10,12 +10,12 @@ $ARGUMENTS
 
 Recognized hints:
 
-- A file or directory path → refine mode; polish prose under that scope.
-- A surface hint (`comments`, `docstrings`, `readme`, `commit`, `pr`, `release-note`) → restrict refine to that surface.
-- A natural-language brief → compose mode; produce fresh prose.
+- Path → refine mode; polish prose under that scope.
+- Surface hint (`comments`, `docstrings`, `readme`, `commit`, `pr`, `release-note`) → refine only that surface.
+- Natural-language brief → compose mode; write fresh prose.
 - `--dry-run` → emit the diff inline without writing.
 
-Ask one specific clarifying question if nothing in the conversation resolves to a target.
+Ask one specific clarifying question if no target resolves from context.
 
 ---
 
@@ -41,7 +41,7 @@ Pick by target path:
 | Commits, PRs, READMEs, design docs, release notes, any other `*.md` | §3 shared + §3a human-prose |
 | In-conversation prose with no path context | §3 shared only |
 
-Don't guess when the target is ambiguous — applying §3 alone is correct; half-applying §3a or §3b is not. When a directory target spans multiple kinds, resolve the rule set per file.
+Ambiguous target: apply §3 alone — half-applying §3a or §3b is wrong. Directory target spanning kinds: resolve per file.
 
 ---
 
@@ -50,10 +50,10 @@ Don't guess when the target is ambiguous — applying §3 alone is correct; half
 Read, in order:
 
 1. `CLAUDE.md` and any file in `conventions.files`. Declared rules win every tie.
-2. 2–3 sibling artifacts of the same kind as the target — sibling comments inside the file, sibling READMEs for a README task, `git log --pretty=%B -n 20` for commits, sibling skill files for skill-file work.
+2. 2–3 sibling artifacts — comments inside the file, READMEs for a README task, `git log --pretty=%B -n 20` for commits, skill files for skill-file work.
 3. `conventions.vocabularyGlossary`. Preserve glossary terms unaltered.
 
-Lock: register, tense, sentence rhythm, punctuation, capitalization, vocabulary, markdown idioms. For skill-file targets, also lock structural shape — TRIGGER preamble, numbered `## N.` steps, `## Arguments`, `## Rules` footer.
+Lock: register, tense, sentence rhythm, punctuation, capitalization, vocabulary, markdown idioms. Skill-file targets: also lock structural shape — TRIGGER preamble, numbered `## N.` steps, `## Arguments`, `## Rules` footer.
 
 ---
 
@@ -85,7 +85,7 @@ Surface adjustments:
 2. **Imperative, verb-first.** The reader is an agent.
 3. **Spell out algorithms.** Name the field, the path, the predicate — "read `scripts.check-types`; skip the package when null" beats "whichever the package declares".
 4. **Cite by handle.** Reference `[handle]` defined elsewhere; never re-list contents inline.
-5. **Tables and numbered steps over paragraphs.** Structure carries semantics the reader follows directly.
+5. **Tables and numbered steps over paragraphs.** Structure carries semantics directly.
 6. **No cadence variation.** Five short imperatives in a row are correct, not choppy.
 7. **Match the project's code style in examples.** Blank lines between top-level statements in function bodies (hooks, early returns, the main `return`).
 
@@ -101,7 +101,7 @@ Surface adjustments:
 
 ## 5. Output
 
-**Refine.** Unified diff per file. Header line: `<N> files · <M> rewrites · <K> flagged-for-deletion`. Above each file's diff, list the principles cited. End with one sentence on what to review carefully — deletions, voice shifts, anything that touched meaning.
+**Refine.** Unified diff per file. Header line: `<N> files · <M> rewrites · <K> flagged-for-deletion`. Above each file's diff, list the principles cited. End with one line flagging what to review — deletions, voice shifts, edits that touched meaning.
 
 **Compose.** Emit the draft inline. End with one sentence offering a sharper version or asking which paragraph to push further.
 
@@ -111,8 +111,8 @@ Surface adjustments:
 
 - **Polish prose, never facts.** Flag suspect claims; don't silently rewrite into something correct-sounding.
 - **Lock voice from samples, not instinct.** Foreign register (corporate, academic, marketing) is a defect unless the samples carry it.
-- **No adornment.** Eloquence here is precision and economy. If a sentence reads as "literary", rewrite it plainer.
+- **No adornment.** If a sentence reads "literary", rewrite it plainer.
 - **Don't touch executable code.** Identifiers, strings, code blocks, and fenced examples stay byte-identical.
 - **Don't preserve smell.** Comments that restate WHAT or carry transient context are flagged for deletion — polishing them entrenches the smell.
 - **Don't pad rationales.** A long rationale means the rewrite did too much.
-- **Rule set is path-determined.** Don't guess on ambiguous targets; apply only the shared rules (§3).
+- **Rule set is path-determined.** On ambiguous targets, apply only §3.
