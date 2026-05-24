@@ -25,13 +25,17 @@ Write terse, technical prose. Optimize for information density.
 
 Delegate research to subagents — one focused task per agent — and keep the main context window clean. Summarize at milestones, not line by line.
 
-## Quality check**
+## Quality check
 
-Not done until the chain clears. `/postmortem` runs at commit time; commit-less sessions (exploration, Q&A, partial work) skip — so run yourself before claiming "done":
+Not done until the chain clears. 
+
+`/postmortem` runs at commit time; commit-less sessions (exploration, Q&A, partial work) skip.
 
 1. `/typescript:format` — touched `.ts`/`.tsx`.
 2. `/orator comments` — wrote prose (comments, JSDoc, READMEs, commit/PR copy).
-3. `/typescript:review` — logical risk only: logic, types, multi-file, new deps, auth/security, speculative abstraction. Skip cosmetic/formatting/renames; unsure → `/postmortem` table.
+3. `/typescript:review` — when the change carries logical risk.
+   Risk: logic edits, type-surface changes, multi-file changes, new deps, auth/security.
+   Skip: cosmetic, formatting-only, mechanical renames. Unsure → `/postmortem`.
 
 Format first. Any BLOCK halts "done" until resolved or waived.
 
