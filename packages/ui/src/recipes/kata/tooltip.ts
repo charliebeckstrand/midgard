@@ -2,7 +2,7 @@ import { defineRecipe } from '../../core/recipe'
 import { iro, ji, kasane, omote, sen, ugoki } from '../kiso'
 
 const content = defineRecipe({
-	base: [iro.text.default, 'font-medium', 'whitespace-nowrap'],
+	base: [iro.text.default, 'font-medium', 'max-w-sm'],
 	size: {
 		sm: [kasane.p('1'), kasane.r('1'), ji.sm],
 		md: [kasane.p('2'), kasane.r('2'), ji.md],
