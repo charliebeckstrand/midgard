@@ -37,7 +37,7 @@ Not done until the chain clears.
    Risk: logic edits, type-surface changes, multi-file changes, new deps, auth/security.
    Skip: cosmetic, formatting-only, mechanical renames. Unsure → `/postmortem`.
 
-Format first. Any BLOCK halts "done" until resolved or waived.
+Any BLOCK halts "done" until resolved or waived.
 
 ## Git
 
