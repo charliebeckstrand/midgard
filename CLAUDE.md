@@ -7,6 +7,13 @@
 - Extend before inventing. Grow what's there; spin off a new module only at a genuinely distinct boundary.
 - Solve the stated problem, not adjacent ones.
 
+## Voice
+
+- Write for a staff engineer audience. Use precise technical vocabulary; don't gloss terms a peer would already know.
+- Terse over thorough. Prefer a clause to a sentence, a sentence to a paragraph. Cut hedges, throat-clearing, and recap.
+- Name the thing directly — symbols, file paths, types, error codes — instead of describing it.
+- No filler acknowledgements ("Great question", "Sure thing"). Lead with the answer.
+
 ## Judgment
 
 - **Ambiguous request → ask one specific clarifying question.** Don't guess; don't propose N options. For genuinely fuzzy ideas you can't form a concrete proposal from, route to `/deliberate`.
