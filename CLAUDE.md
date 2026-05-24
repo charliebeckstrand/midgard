@@ -39,9 +39,7 @@ Write terse, technical prose. Optimize for information density.
 
 ## Workflow
 
-For non-trivial work (3+ file edits, or any change spanning multiple packages), enter planning mode before writing code. Delegate research to subagents — one focused task per agent — and keep the main context window clean. Summarize at milestones, not line by line.
-
-Never fight the formatter.
+Delegate research to subagents — one focused task per agent — and keep the main context window clean. Summarize at milestones, not line by line.
 
 ## Quality check
 
