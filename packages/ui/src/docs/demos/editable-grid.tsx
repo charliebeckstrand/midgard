@@ -2,13 +2,13 @@
 
 import { Info } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { Alert } from '../../components/alert'
 import { Button } from '../../components/button'
 import { CurrencyInput } from '../../components/currency-input'
 import {
 	Dialog,
 	DialogBody,
 	DialogContent,
-	DialogDescription,
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
@@ -221,7 +221,7 @@ export function Demo() {
 									Deselect all
 								</Button>
 								<Button variant="soft" color="blue" onClick={() => setEditOpen(true)}>
-									Edit selected
+									Edit selected ({selection.size})
 								</Button>
 								{hasChanges && (
 									<HoldButton
@@ -249,17 +249,18 @@ export function Demo() {
 				/>
 				<Dialog open={editOpen} onOpenChange={setEditOpen}>
 					<DialogHeader>
-						<DialogTitle>Edit {selection.size} selected</DialogTitle>
-						{selection.size > 1 && (
-							<Flex gap="md" align="center">
-								<Icon icon={<Info />} />
-								<DialogDescription>
-									Leave a field blank to keep the current value, or enter a new value to apply it to
-									all selected rows.
-								</DialogDescription>
-							</Flex>
-						)}
+						<DialogTitle>Edit selected ({selection.size})</DialogTitle>
 					</DialogHeader>
+
+					{selection.size > 1 && (
+						<Alert severity="info" closable>
+							<Flex gap="md" align="center">
+								Enter a value to apply it across all selected rows; leave blank to keep current
+								values.
+							</Flex>
+						</Alert>
+					)}
+
 					<Form
 						defaultValues={editDefaults}
 						onSubmit={(values) => {
