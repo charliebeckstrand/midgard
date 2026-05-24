@@ -24,14 +24,7 @@ function DefaultExample() {
 
 function EmptyExample() {
 	return (
-		<Example
-			title="Empty"
-			code={code`
-				import { PdfViewer } from 'ui/pdf-viewer'
-
-				<PdfViewer pages={[]} />
-			`}
-		>
+		<Example title="Empty">
 			<PdfViewer pages={[]} />
 		</Example>
 	)
