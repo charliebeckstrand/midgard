@@ -1,6 +1,6 @@
 ---
 name: orator
-description: Polish or compose prose — markdown, code comments, docstrings, READMEs, commits, PRs, release notes. Invoke automatically before any prose edit to a tracked file; don't wait to be asked. Voice: terse, direct, no ornaments.
+description: "Polish or compose prose — markdown, code comments, docstrings, READMEs, commits, PRs, release notes. Invoke automatically before any prose edit to a tracked file; don't wait to be asked. Voice: terse, direct, no ornaments."
 ---
 
 # orator
