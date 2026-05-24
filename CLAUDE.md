@@ -25,7 +25,7 @@ Write terse, technical prose. Optimize for information density.
 
 Delegate research to subagents — one focused task per agent — and keep the main context window clean. Summarize at milestones, not line by line.
 
-**Quality check**
+## Quality check**
 
 Not done until the chain clears. `/postmortem` runs at commit time; commit-less sessions (exploration, Q&A, partial work) skip — so run yourself before claiming "done":
 
