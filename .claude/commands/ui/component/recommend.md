@@ -46,7 +46,7 @@ Look for tokens/recipes entries with no matching component, and components missi
 
 ### 2d. Project-declared exclusions
 
-Read `CLAUDE.md` and `AGENTS.md` for any "skip-recommend" or "do not scaffold" list. Authoritative — never propose what's declared there.
+Read `CLAUDE.md` or `AGENTS.md` (whichever exists) for any "skip-recommend" or "do not scaffold" list. Authoritative — never propose what's declared there.
 
 ---
 
