@@ -2,9 +2,9 @@
 
 TRIGGER when: audit, check, review, or scan TypeScript — a file, package, or the whole repo. "Is this idiomatic", "any TS smells", "tighten the types in X", "is `any` anywhere". Pass a target for per-file mode; pass nothing for the project-wide sweep.
 
-Compare `.ts` / `.tsx` against the principles in `/typescript:review` (§5 universal, §6 advanced features). Report deviations as `file:line` entries by severity. Source analysis only — no tests, no type-checker. CLEAN runs emit no entries; CLEAN is the goal, not the exception.
+Compare `.ts` / `.tsx` against the principles in `/typescript:review` (§5 universal, §6 advanced features). Report deviations as `file:line` entries by severity. Source analysis only — no tests, no type-checker. CLEAN runs emit no entries; CLEAN is the goal.
 
-This skill detects violations; it doesn't restate them. Principles live in `/typescript:review`.
+Detects violations; doesn't restate them. Principles live in `/typescript:review`.
 
 ## Arguments
 
@@ -66,7 +66,7 @@ For the sweep, derive the dominant convention per package (most common pattern i
 
 Each category cites the canonical principle in `/typescript:review`. A check fires only when the code violates the principle (or reaches for a heavier alternative when the catalog covers the simpler form). A check that holds emits nothing.
 
-Low severity is a gate, not a quota. A Low finding earns its row only when it would survive a second reader's review.
+Low severity is a gate, not a quota. A Low finding earns its row only when it survives a second reader's review.
 
 ### 3.1 Type holes
 
@@ -196,9 +196,9 @@ By mode:
 
 - Audits, doesn't edit. The verdict is the deliverable; findings are evidence.
 - CLEAN is the expected outcome on a healthy file. Don't manufacture Low findings to justify a non-empty report.
-- Surface a finding only when the principle is violated — not every `as` is wrong; flag unjustified ones.
+- Surface a finding only when the principle is violated. Not every `as` is wrong; flag unjustified ones.
 - `conventions.principles` overrides universal defaults. State the override whenever one fires.
 - Skip what the linter already enforces (read `linter` from the manifest).
-- `/typescript:review` handles staged-diff and new-file gating — don't re-implement its role.
+- `/typescript:review` handles staged-diff and new-file gating. Don't re-implement its role.
 - Don't pad. CLEAN is one line. Each finding is `file:line` + one-line fix.
 - Fabricated identifiers in examples only — never a real project symbol.

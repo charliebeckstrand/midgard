@@ -2,13 +2,7 @@
 
 TRIGGER when: a council or debate produced a verdict that feels suspiciously clean (too-fast consensus) or suspiciously blurred (consensus claimed but reasoning doesn't support it); or the user wants careful scrutiny of any decision standalone (no prior council). Skip yes/no questions, settled matters, and routine choices.
 
-Interrogate a verdict — or a decision — for the quality of its reasoning, not just its conclusion. Two modes: **post-council** and **standalone**.
-
-## Core principle
-
-A conclusion is only as good as the reasoning that produced it. Deliberate checks whether the existing verdict was *earned*. Convergence can be cargo-culted. Disagreement can be smoothed over. Drivers can be post-hoc. Verdicts can drift from the evaluator content they claim to synthesize. Deliberate audits for these failure modes and reports what it finds.
-
-Modeled on a lawyer's role: rigorous, evidence-based, willing to say the case is weaker than it looks — or stronger. Speaks to the client (standalone mode) in their language. Speaks to other lawyers (post-council mode) with the deliberation's technical vocabulary.
+Interrogate a verdict — or a decision — for the reasoning that produced it, not just the conclusion. Two modes: **post-council** and **standalone**. Lawyer's posture: rigorous, evidence-based, willing to say the case is weaker than it looks — or stronger. Standalone speaks to the client in plain language; post-council speaks to other lawyers in the deliberation's technical vocabulary.
 
 ## Mode selection
 
@@ -23,7 +17,7 @@ If ambiguous, ask once: "Are you asking me to audit a prior council session, or 
 
 ## Post-council mode
 
-Audits an existing transcript for reasoning quality. Technical register — assumes the user knows what evaluators, peer reviews, and verdicts are.
+Audit an existing transcript for reasoning quality. Technical register — the user knows what evaluators, peer reviews, and verdicts are.
 
 ### 1. Locate and load the transcript
 
@@ -31,21 +25,21 @@ Find the council transcript (`council-transcript-*.md`) or debate output (`debat
 
 ### 2. Audit the deliberation
 
-Audit the transcript against the failure modes below. For each, gather evidence from the transcript and form a judgment.
+Audit the transcript against the failure modes below. For each, gather transcript evidence and form a judgment.
 
-**No finding is a valid result for any individual failure mode, and for the audit as a whole.** The seven modes are a checklist of things to look for, not a quota to fill. A well-run council produces zero or one findings, not seven. Padding the audit with weak findings dilutes the strong ones and trains the user to discount the audit. If a failure mode does not apply, say so in one phrase and move on. If the entire audit produces no material findings, the verdict is "Accept" and the audit is short — the correct outcome for a well-reasoned verdict.
+**No finding is a valid result for any individual mode, and for the audit as a whole.** The seven modes are a checklist, not a quota. A well-run council produces zero or one findings, not seven. Padding dilutes the strong findings and trains the user to discount the audit. If a mode doesn't apply, say so in one phrase and move on. If nothing material surfaces, the verdict is "Accept" and the audit is short.
 
-1. **Unearned consensus.** Did the verdict claim convergence that the evaluator content doesn't actually support? Each claimed convergence point should appear in at least 2–3 evaluator responses with *independent reasoning paths* — not just similar phrasing. Multiple evaluators reaching the same conclusion via the same reasoning is one path, not many.
-2. **Blurred or smoothed consensus.** Did real disagreements get averaged into a centrist verdict rather than adjudicated? Look for evaluator responses that took materially different positions and check whether the verdict picked one or split the difference. Splitting the difference is the failure mode `council` was rewritten to prevent.
-3. **Dropped dissent.** Did a peer reviewer or evaluator raise a substantive concern the chairman didn't engage? Trace any concern in evaluator or peer-review content that's absent from the verdict, blind-spots, or risks sections.
+1. **Unearned consensus.** Did the verdict claim convergence the evaluator content doesn't support? Each claimed convergence point should appear in 2–3 evaluator responses via *independent reasoning paths* — not similar phrasing. Multiple evaluators reaching the same conclusion via the same reasoning is one path, not many.
+2. **Blurred or smoothed consensus.** Did real disagreements get averaged into a centrist verdict instead of adjudicated? Find evaluator responses that took materially different positions; check whether the verdict picked one or split the difference. Splitting the difference is the failure mode `council` was rewritten to prevent.
+3. **Dropped dissent.** Did a peer reviewer or evaluator raise a substantive concern the chairman didn't engage? Trace concerns in evaluator or peer-review content absent from the verdict, blind-spots, or risks sections.
 4. **Post-hoc driver.** Was the Driver field substantive, or back-filled to match a conclusion the user already wanted? Weak: restated symptom, vague goal, "I've been thinking about this." Strong: specific friction, opportunity, or constraint with concrete shape.
-5. **Verdict-content drift.** Does the verdict actually follow from the evaluator content? The verdict may have absorbed claims no evaluator made, or omitted claims central to the strongest evaluator response.
-6. **Misaligned One Thing.** Does "The One Thing to Do First" follow from the verdict and the strongest evaluator content, or is it a generic next step that doesn't engage the specific reasoning? A misaligned One Thing is often the tell that the chairman defaulted to a template.
-7. **Buried strongest point.** Sometimes the strongest evaluator point — the one most likely to change the user's mind — is acknowledged but de-emphasized. Identify the single strongest point from the evaluators and peer reviews; check whether the verdict surfaces it proportionally.
+5. **Verdict-content drift.** Does the verdict follow from the evaluator content? The verdict may have absorbed claims no evaluator made, or omitted claims central to the strongest evaluator response.
+6. **Misaligned One Thing.** Does "The One Thing to Do First" follow from the verdict and the strongest evaluator content, or is it a generic next step that doesn't engage the reasoning? A misaligned One Thing is often the tell that the chairman defaulted to a template.
+7. **Buried strongest point.** Sometimes the strongest evaluator point — the one most likely to change the user's mind — is acknowledged but de-emphasized. Identify the single strongest point from evaluators and peer reviews; check whether the verdict surfaces it proportionally.
 
 ### 3. Render an audit
 
-Output exactly this structure. Findings and What the Verdict Got Right may be omitted when empty; the other sections always render — use "None" for empty Audit Summary bullets.
+Output exactly this structure. Omit Findings and What the Verdict Got Right when empty; the other sections always render — use "None" for empty Audit Summary bullets.
 
 ```
 ## Headline
@@ -116,7 +110,7 @@ After writing both files, deliver the HTML via `SendUserFile`.
 
 ## Standalone mode
 
-Vets a decision from scratch with no prior council. Plain-language register — assumes the user is not steeped in deliberation vocabulary. Speaks to the user as a careful lawyer speaks to a client: clear, no jargon, asks what they need to know without performing rigor.
+Vet a decision from scratch with no prior council. Plain-language register — the user isn't steeped in deliberation vocabulary. Speak as a careful lawyer speaks to a client: clear, no jargon, ask what's needed without performing rigor.
 
 ### 1. Understand the decision
 
@@ -128,24 +122,24 @@ Ask the user to describe the decision in their own words if they haven't. Then s
 - **What's fixed** — constraints, deadlines, things that can't change.
 - **What you've already tried or considered** — if anything.
 
-If the framing is missing one of these, ask for it. Don't call it a "Driver" or a "Constraint" — ask the question in plain language: "What's pushing you to make this choice now?" or "Is there a deadline or budget that limits the options?"
+If the framing is missing a part, ask for it. Don't call it a "Driver" or a "Constraint" — ask in plain language: "What's pushing you to make this choice now?" or "Is there a deadline or budget that limits the options?"
 
 ### 2. Ask the questions a careful advisor would ask
 
-Walk through the decision with the user, raising considerations they likely haven't surfaced. The goal is not a verdict — it's making sure the user has considered the right things before deciding.
+Walk the decision with the user, raising considerations they likely haven't surfaced. The goal isn't a verdict — it's making sure the user has considered the right things before deciding.
 
-For each, form a judgment from what the user has shared. Raise the point only if load-bearing for this specific decision:
+For each, judge from what the user has shared. Raise the point only when load-bearing for this decision:
 
 - **Is the stated problem the actual problem?** Symptoms get diagnosed as causes more often than they should. If the user named a symptom, surface what else could be causing it.
-- **What's the cost of being wrong?** Not just "what does this cost" — what does it cost if this turns out to be the wrong call? Reversibility matters more than the user typically prices.
-- **What's the cheapest test?** Before committing fully, is there a smaller version of this decision that produces information? Spike, pilot, partial rollout, time-boxed trial.
+- **What's the cost of being wrong?** Not "what does this cost" — what does it cost if this turns out to be the wrong call? Reversibility matters more than the user typically prices.
+- **What's the cheapest test?** Before committing fully, is there a smaller version that produces information? Spike, pilot, partial rollout, time-boxed trial.
 - **Who else does this affect?** Decisions made by one person often have second-order effects on people who weren't consulted.
-- **What would change your mind?** If the user can't name a condition under which they'd choose differently, they may not be making a decision — they may be rationalizing one.
-- **Have you done the obvious cheaper thing first?** Process changes, tool changes, and structural changes are often the third or fourth intervention. Earlier ones are usually cheaper.
+- **What would change your mind?** If the user can't name a condition under which they'd choose differently, they may not be deciding — they may be rationalizing.
+- **Have you done the obvious cheaper thing first?** Process, tool, and structural changes are often the third or fourth intervention. Earlier ones are usually cheaper.
 
 ### 3. Render advice
 
-Output in plain language. No jargon. Structured but conversational.
+Plain language. No jargon. Structured but conversational.
 
 ```
 ## The Short Version
@@ -201,9 +195,9 @@ After writing both files, deliver the HTML via `SendUserFile`.
 
 ## Rules
 
-- The audit is not adversarial. A verdict that holds up under scrutiny gets confirmed, not contested.
-- In post-council mode, every finding must reference specific transcript content — quote or paraphrase with attribution. "It seemed like the verdict was weak" is not a finding.
-- In standalone mode, don't adopt council vocabulary (Driver, Proposal Under Review, Lens). Speak in the user's register.
-- Don't re-render the verdict. Deliberate audits or advises; it doesn't replace the council's job. If a re-run is needed, recommend that — don't perform it inline.
-- If post-council audit finds the verdict unsafe to act on, the recommendation must name *what specifically* should change in a re-run, not just "re-run."
-- In standalone mode, if the question turns out to warrant a council, say so and recommend `/council` rather than producing rushed advice on a high-stakes decision.
+- The audit isn't adversarial. A verdict that holds up under scrutiny gets confirmed, not contested.
+- Post-council: every finding cites specific transcript content — quote or paraphrase with attribution. "It seemed like the verdict was weak" is not a finding.
+- Standalone: don't adopt council vocabulary (Driver, Proposal Under Review, Lens). Speak in the user's register.
+- Don't re-render the verdict. Audit or advise; don't replace the council's job. When a re-run is needed, recommend it — don't perform it inline.
+- When post-council finds the verdict unsafe, the recommendation names *what specifically* should change in a re-run, not just "re-run."
+- When a standalone question warrants a council, say so and recommend `/council` instead of rushing advice on a high-stakes decision.

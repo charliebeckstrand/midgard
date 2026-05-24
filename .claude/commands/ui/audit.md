@@ -4,7 +4,7 @@ TRIGGER when: audit, check, review, or scan a UI component (or every component i
 
 Compare UI source against the per-component health baseline (sibling-calibrated thresholds + `[layout-heuristics]` + `[framework-discipline]`). Report deviations as `file:line` entries by severity. Source-only — no dev server, no test run, no headless browser.
 
-CLEAN runs emit no table. The audit confirms the baseline; on a mature, frequently-audited package, CLEAN is the expected outcome. Typical invocation names a single component; without a target, sweeps every component and ranks only those that deviated.
+CLEAN runs emit no table. The audit confirms the baseline; on a mature, frequently-audited package, CLEAN is expected. Typical invocation names a single component; without a target, sweeps every component and ranks only those that deviated.
 
 **Scope boundaries** (sibling skill owns the finding):
 
@@ -63,7 +63,7 @@ Record the mode: `single` / `changed` / `suite`.
 
 ## 3. Parse targets
 
-Parse `.tsx` / `.jsx` with a TypeScript/Babel JSX AST. Regex is not sufficient for prop-surface, branch, or split checks.
+Parse `.tsx` / `.jsx` with a TypeScript/Babel JSX AST. Regex won't cut it for prop-surface, branch, or split checks.
 
 Per file capture:
 
@@ -92,7 +92,7 @@ Per audited component, glob the parent directory and read the **3 alphabetically
 
 Each check defines one baseline. A check that holds emits nothing.
 
-A nit earns its row only when it would survive a second reader's review. On a frequently-audited component, expect most nits to hold.
+A nit earns its row only when it survives a second reader's review. On a frequently-audited component, expect most nits to hold.
 
 | Severity | Meaning |
 |---|---|
@@ -183,7 +183,7 @@ Don't propose consolidation across packages — that's `/audit:refactor`.
 
 ### 5.11. Layout drift (cites `[layout-heuristics]` in `/ui:component:compose`)
 
-Detect deviations from the dominant sibling pattern; fallback heuristics apply when siblings disagree. A pattern counts as established when at least 2 of the 3 sampled siblings agree; with fewer agreeing, skip these checks. Flag only when the audited component diverges from the established sibling pattern — package-wide convention drift belongs to `/audit:refactor`.
+Detect deviations from the dominant sibling pattern; fallback heuristics apply when siblings disagree. A pattern counts as established when at least 2 of 3 sampled siblings agree; with fewer agreeing, skip. Flag only when the audited component diverges from the established sibling pattern — package-wide drift belongs to `/audit:refactor`.
 
 - **warning** — siblings ship one component per file, but the audited file declares **two or more nontrivial** exported PascalCase components. Nontrivial: own state or > 20 JSX lines (more than a thin wrapper, a single-line `createSlot`, or a type-aliased projection over a shared primitive). Trivial multi-exports fall under `[layout-heuristics]`'s "truly trivial helpers stay inline" carve-out and don't fire. Suggest splitting each nontrivial export.
 - **warning** — a type declared inline in the audited file is imported by a sibling file in the same directory. Cross-file imports earn a colocated `types.ts` regardless of sibling pattern. Cite both `file:line`s.
@@ -249,7 +249,7 @@ Stratify by severity so the narrative form is reserved for the components that w
 | Two or more warnings | Full per-component section |
 | One warning, or only nits | Row in the *Other deviations* table |
 
-Single-finding and nit-only components are well-served by a one-row entry — tying nothing together is not narrative.
+Single-finding and nit-only components are well-served by a one-row entry — tying nothing together isn't narrative.
 
 ### Per-component section
 
@@ -288,9 +288,9 @@ Single-finding and nit-only components are well-served by a one-row entry — ty
 Subsection rules:
 
 - **Status line** — pipe-separated: path · verdict · counts · score.
-- **Overview** — one or two sentences tying the findings together into a narrative; don't restate them. ≤80 words.
-- **Findings** — table with `Severity · Rule · Location · What's wrong`. Order by severity (blocker → warning → nit).
-- **Suggested resolution** — ordered list. Each item names the action and (when concrete) shows the code or the file move. One item per finding when possible; group when two findings share a resolution.
+- **Overview** — one or two sentences tying the findings into a narrative; don't restate them. ≤80 words.
+- **Findings** — table: `Severity · Rule · Location · What's wrong`. Order by severity (blocker → warning → nit).
+- **Suggested resolution** — ordered list. Each item names the action and (when concrete) shows the code or file move. One item per finding when possible; group when two findings share a resolution.
 
 ### Other deviations table
 
@@ -306,7 +306,7 @@ For components that didn't earn a full section but still deviated, emit one shar
 | Tooltip | nit | naming-drift | tooltip.tsx:14, tooltip.tsx:42 | `visible` shadows the package's `isOpen` convention |
 ```
 
-One row per finding; components with multiple findings appear in multiple rows (grouped by component name). Order: by component score descending, then severity within component (warning → nit). Omit the table when no components fall into this tier.
+One row per finding; components with multiple findings appear in multiple rows (grouped by component name). Order: component score descending, then severity within component (warning → nit). Omit the table when no components fall into this tier.
 
 ### Roll-up (footer)
 
@@ -321,7 +321,7 @@ Split candidates: <count> · Consolidate candidates: <count>
 
 Always emit alongside the markdown report. Save `ui-audit-[timestamp].html` to cwd; deliver via `SendUserFile` (status `normal`, caption naming the scope). Capture one timestamp via `date +%Y%m%d-%H%M%S` at the start of this step.
 
-Self-contained — one file, inline `<style>`, no external assets, no scripts. Must render correctly when opened directly in a browser.
+Self-contained — one file, inline `<style>`, no external assets, no scripts. Must render directly in a browser.
 
 Required structure, in order:
 
@@ -437,6 +437,6 @@ Finding: `warning · mirrored-state · widget.tsx:2 · drop the current state; r
 - Read source; never edit.
 - The verdict is the deliverable; deviations are evidence. CLEAN is a successful run. Don't manufacture nits.
 - Calibrate against sibling components (§4) before flagging size or prop-surface; blanket thresholds are fallback.
-- Split / consolidate findings must cite line range and minimal prop interface.
+- Split / consolidate findings cite line range and minimal prop interface.
 - In `suite` mode: rank, then truncate.
 - `[layout-heuristics]` and `[framework-discipline]` live in `/ui:component:compose`. Surface violations; don't restate.

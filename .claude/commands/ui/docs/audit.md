@@ -4,7 +4,7 @@ TRIGGER when: audit, check, review, or scan the project's component docs / demos
 
 Compare component docs files against the docs baseline (coverage + required exports + example-wrapper discipline + prop-surface sync). Report deviations as `file:line` entries by severity. CLEAN runs emit no table.
 
-With a target, audits that target; without one, sweeps every demo file and ranks only those that deviated.
+With a target, audit that target; without, sweep every demo file and rank only those that deviated.
 
 ## Arguments
 
@@ -71,7 +71,7 @@ Record the mode: `single` / `changed` / `suite`.
 
 ## 4. Checks
 
-Each check defines one baseline. A check that holds emits nothing. A nit earns its row only when it would survive a second reader's review.
+Each check defines one baseline. A check that holds emits nothing. A nit earns its row only when it survives a second reader's review.
 
 | Severity | Meaning |
 |---|---|
@@ -201,6 +201,6 @@ Never auto-rewrite the `<Example>` body — choosing which axes to demonstrate i
 - Source analysis only. Never boot a dev server, never run the project's build, never write to docs files without explicit go-ahead.
 - The verdict is the deliverable; deviations are evidence. CLEAN is a successful run. Don't manufacture nits.
 - `componentsDir` is the source of truth for what components exist. Never rely on a memorized list.
-- When the project's docs system doesn't match any signal in §2, surface that and stop — don't invent a docs convention.
+- When the project's docs system matches no §2 signal, surface that and stop — don't invent a docs convention.
 - Honor exclusion lists in `CLAUDE.md` / `AGENTS.md` / the docs registry's own skip list.
 - In `suite` mode: rank, then truncate.

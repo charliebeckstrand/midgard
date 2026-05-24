@@ -2,22 +2,18 @@
 
 TRIGGER when: a question deserves scrutiny but doesn't warrant `/council`; the user wants to be rubber-ducked by more than one party; moderate stakes with one or two real tradeoffs; council triage routed here. Skip yes/no questions, factual lookups, and decisions with one obvious answer.
 
-Run a question through two parties using propose-interrogate-swap, then produce a brief joint synthesis. Markdown output only.
-
-## Core principle
-
-Two parties take turns proposing and interrogating. Neither is locked into a stance — both can endorse the same path. The interrogator references the proposer's specific claims, not parallel analysis. After two rounds (one per party as proposer), both parties write a joint synthesis covering agreement, remaining disagreement, and the recommended path.
+Two parties propose and interrogate in turn — neither locked into a stance, both may endorse the same path. The interrogator engages the proposer's specific claims, not parallel analysis. After two rounds, both write one joint synthesis. Markdown output only.
 
 ## Flow
 
 ### 1. Frame the question
 
-Scan for context: `CLAUDE.md` and files the user referenced. Cap at 3 reads.
+Read for context: `CLAUDE.md` and files the user referenced. Cap at 3 reads.
 
 Construct a brief **Question Frame**:
 
-- **Question** — 1–2 sentences stating the actual decision or proposal.
-- **Driver** — why this is being considered now. If the user hasn't said and context doesn't imply, ask.
+- **Question** — 1–2 sentences stating the decision or proposal.
+- **Driver** — why now. Ask if the user hasn't said and context doesn't imply.
 - **Constraints** — what's fixed (budget, timeline, reversibility, context). Surface explicitly.
 - **User's current prior** — what the user leans toward, if stated.
 
@@ -140,7 +136,7 @@ Do not relitigate your original case. Engage what Party B proposed. Do not propo
 
 ### 6. Joint synthesis
 
-Both parties now write a single joint synthesis. Pass everything to one synthesizer agent:
+Pass everything to one synthesizer agent:
 
 ```
 You are the synthesizer for a two-party debate. You have full visibility into both parties' work.
@@ -180,11 +176,11 @@ Output exactly this structure:
 
 ### 7. Output
 
-Save one Markdown file to cwd. Capture the filename timestamp via `date +%Y%m%d-%H%M%S` at the start of this step. No HTML, no separate transcript.
+Save one Markdown file to cwd. Capture the filename timestamp via `date +%Y%m%d-%H%M%S` at the start of this step. No HTML; no separate transcript.
 
 #### `debate-[timestamp].md`
 
-Plain Markdown. Sections, in order:
+Plain Markdown. Sections in order:
 
 1. Original question (verbatim)
 2. Question Frame (full block)
@@ -198,9 +194,9 @@ Deliver the file via `SendUserFile` (status `normal`, caption naming the topic).
 
 ## Rules
 
-- The four party calls are sequential, not parallel. Each must see the prior turn.
-- The synthesizer is a separate agent — not Party A or Party B. Independence matters.
-- Neither party is positionally pro or con. Both can endorse the same path.
+- The four party calls are sequential. Each must see the prior turn.
+- The synthesizer is a separate agent — not Party A, not Party B. Independence matters.
+- Neither party is positionally pro or con. Both may endorse the same path.
 - The interrogator doesn't propose an alternative in their round.
-- If both parties converge on the same path with no residual disagreement, the synthesis is short — don't pad it.
-- If the question turns out to be high-stakes mid-debate, the synthesizer can recommend escalating to `/council` rather than rendering a final recommendation.
+- When the parties converge with no residual disagreement, keep the synthesis short. Don't pad.
+- When the question turns out to be high-stakes mid-debate, the synthesizer escalates to `/council` instead of rendering a final recommendation.

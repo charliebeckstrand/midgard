@@ -37,7 +37,7 @@ Find the plan to stress-test, in priority order:
 
 ### 2. Frame
 
-Read `CLAUDE.md`, the plan, and any files the plan references. Use `Glob` + `Read`. Reframe the plan into a neutral one-paragraph summary: goal, approach, scope, where the work touches.
+Read `CLAUDE.md`, the plan, and any files the plan references. Use `Glob` + `Read`. Reframe into a neutral one-paragraph summary: goal, approach, scope, where the work touches.
 
 ### 3. Convene (parallel)
 
@@ -150,9 +150,9 @@ Save two files to cwd. Capture the filename timestamp via `date +%Y%m%d-%H%M%S` 
 
 ## Rules
 
-- Spawn archetypes and reviewers in parallel — never sequentially.
+- Spawn archetypes and reviewers in parallel.
 - Anonymize before peer review. Reviewers must not know which archetype wrote which narrative.
-- Past tense, always. Narratives are reports of failures that already happened, not predictions.
-- The Examiner may override the loudest narrative if peer reviews show it's overdramatized. When overriding, name the replacement explicitly in Most Likely Failure — don't hedge between them.
+- Past tense, always. Narratives report failures that already happened; they don't predict.
+- The Examiner may override the loudest narrative when peer reviews show it's overdramatized. When overriding, name the replacement explicitly in Most Likely Failure — don't hedge between them.
 - Don't premortem trivial plans. If the failure mode is obvious or the plan is a one-line change, skip.
-- If no concrete plan exists, route to `/council` (decision still open) or `/deliberate` (idea still vague).
+- When no concrete plan exists, route to `/council` (decision still open) or `/deliberate` (idea still vague).
