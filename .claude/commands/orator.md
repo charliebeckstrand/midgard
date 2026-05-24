@@ -2,7 +2,7 @@
 
 TRIGGER when: polish, compose, refine, or rewrite prose.
 
-Polish language, not facts. Match the project's voice; never impose a foreign tone.
+Polish language, not facts. Match the project's voice.
 
 ## Arguments
 
@@ -50,7 +50,7 @@ Ambiguous target: apply §3 alone — half-applying §3a or §3b is wrong. Direc
 Read, in order:
 
 1. `CLAUDE.md` and any file in `conventions.files`. Declared rules win every tie.
-2. 2–3 sibling artifacts of the same kind as the target — sibling comments inside the file, sibling READMEs for a README task, `git log --pretty=%B -n 20` for commits, sibling skill files for skill-file work.
+2. 2–3 sibling artifacts — comments inside the file, READMEs for a README task, `git log --pretty=%B -n 20` for commits, skill files for skill-file work.
 3. `conventions.vocabularyGlossary`. Preserve glossary terms unaltered.
 
 Lock: register, tense, sentence rhythm, punctuation, capitalization, vocabulary, markdown idioms. Skill-file targets: also lock structural shape — TRIGGER preamble, numbered `## N.` steps, `## Arguments`, `## Rules` footer.
@@ -111,7 +111,7 @@ Surface adjustments:
 
 - **Polish prose, never facts.** Flag suspect claims; don't silently rewrite into something correct-sounding.
 - **Lock voice from samples, not instinct.** Foreign register (corporate, academic, marketing) is a defect unless the samples carry it.
-- **No adornment.** Eloquence here is precision and economy — if a sentence reads "literary", rewrite it plainer.
+- **No adornment.** If a sentence reads "literary", rewrite it plainer.
 - **Don't touch executable code.** Identifiers, strings, code blocks, and fenced examples stay byte-identical.
 - **Don't preserve smell.** Comments that restate WHAT or carry transient context are flagged for deletion — polishing them entrenches the smell.
 - **Don't pad rationales.** A long rationale means the rewrite did too much.
