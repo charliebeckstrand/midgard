@@ -4,7 +4,7 @@ TRIGGER when: recommend, suggest, surface, or identify refactor opportunities �
 
 Survey the project for refactor opportunities, rank high-confidence candidates, and — for chosen candidates — produce a staged execution plan and run it.
 
-Recommendations clear a confidence bar; this skill never pads the table to justify the run. Zero candidates is a valid outcome. Every candidate cites concrete evidence: file paths, line numbers, callsite counts.
+Recommendations clear a confidence bar; never pad the table to justify the run. Zero candidates is a valid outcome. Every candidate cites concrete evidence: file paths, line numbers, callsite counts.
 
 **Scope boundaries** (when a finding lives elsewhere, name the sibling and move on):
 
@@ -58,14 +58,14 @@ Run heuristics in parallel where independent. Each produces zero or more candida
 Find clusters of near-identical code across files. Threshold: 8+ lines duplicated, normalized for whitespace and identifier names. Per cluster:
 
 - Locations (`file:line` per occurrence).
-- Outline of shared shape.
+- Outline of the shared shape.
 - Suggested extraction target — lowest-common scope (same package, then shared package, then root utility).
 
 Skip clusters that model different domain concepts despite syntactic similarity (two CRUD handlers sharing a try/catch shape but operating on unrelated entities). Flag only when call sites share shape **and** domain concept.
 
 ### 3b. Layering / dependency-direction violations
 
-Build the package dependency graph from `package.json#dependencies` + `peerDependencies`. Compare to declared layering rules in `conventions.principles` (e.g. "shared packages do not depend on app code"). Flag violating edges.
+Build the package dependency graph from `package.json#dependencies` + `peerDependencies`. Compare against declared layering rules in `conventions.principles` (e.g. "shared packages do not depend on app code"). Flag violating edges.
 
 Also flag intra-package layering breaks when the source tree implies layers (a `core/` directory importing from a `features/` sibling). Inspect import paths; report `file:line` of the offending import.
 
@@ -75,9 +75,9 @@ Find exported functions, components, hooks, or types whose only consumer is one 
 
 Per candidate: declaration `file:line`, sole consumer `file:line`, one-sentence rationale.
 
-Skip exports that are part of a public API surface (re-exported from a package barrel that other packages import) — those have unseen consumers.
+Skip exports on a public API surface (re-exported from a package barrel another package imports) — those have unseen consumers.
 
-When the single use is within the same package and the abstraction is a component, skip and surface one line: `→ /ui:audit for component consolidation in <package>`. Flag here only for non-component single-use (a utility, a hook used by one file, a type used in one place).
+When the single use is intra-package and the abstraction is a component, skip and surface one line: `→ /ui:audit for component consolidation in <package>`. Flag here only for non-component single-use (a utility, a hook used by one file, a type used in one place).
 
 ### 3d. Naming / convention inconsistencies
 
@@ -120,7 +120,7 @@ Be conservative — only flag high-confidence patterns.
 
 ## 4. Score and rank
 
-Per candidate. The bar is gatekeeping, not filtering — a low-priority candidate is dropped, not demoted into the report.
+The bar gatekeeps, doesn't filter — a low-priority candidate is dropped, not demoted into the report.
 
 | Axis | Promotes |
 |---|---|
@@ -136,7 +136,7 @@ When `conventions.principles` cites a relevant rule, bump Impact one notch for c
 
 ## 5. Present recommendations
 
-If no candidate cleared the bar: **NO RECOMMENDATIONS** in one line. Note any heuristic skipped for lack of signal so the user knows the coverage. Don't invent low-confidence candidates to populate the table.
+If no candidate cleared the bar: **NO RECOMMENDATIONS** in one line. Note any heuristic skipped for lack of signal so the user knows the coverage. Don't invent low-confidence candidates.
 
 Otherwise, one ranked table:
 
@@ -155,14 +155,14 @@ Column rules:
 
 After the table, a short paragraph naming:
 
-- Heuristics that ran and confirmed the baseline ("no layering violations", "no dead exports") — evidence the survey worked.
-- Heuristics skipped because the stack lacks the relevant signal (e.g. no Next-specific scan in a React-only package).
+- Heuristics that ran and confirmed the baseline ("no layering violations", "no dead exports") — proof the survey worked.
+- Heuristics skipped for lack of signal (e.g. no Next-specific scan in a React-only package).
 
 ---
 
 ## 6. Plan execution
 
-Ask which candidates to act on. Per chosen candidate, produce an execution plan **before any edits**. The plan is the deliverable of this step; execution comes after the user reviews it.
+Ask which candidates to act on. Per chosen candidate, produce an execution plan **before any edits**. The plan is this step's deliverable; execution comes after the user reviews it.
 
 ### 6a. Plan shape
 
@@ -195,24 +195,24 @@ Pattern-specific sequencing:
 
 ### 6b. Type-shaped work delegates to `/typescript:migrate`
 
-When the candidate is a rename, a lift to a shared home, an `enum`-to-`as const` conversion, an `any`-to-`unknown` tightening, or a JSDoc-to-TS migration, the stages call `/typescript:migrate <mode> <target>` rather than editing inline. `/typescript:migrate` runs its own staging and test gates; `/audit:refactor` orchestrates.
+When the candidate is a rename, a lift, an `enum`-to-`as const` conversion, an `any`-to-`unknown` tightening, or a JSDoc-to-TS migration, the stages call `/typescript:migrate <mode> <target>` instead of editing inline. `/typescript:migrate` runs its own staging and test gates; this skill orchestrates.
 
 Non-type refactors (duplication extract, layering inversion, long-file split) execute inline.
 
 ### 6c. Premortem before executing
 
-Write the plan to `~/.claude/plans/audit-refactor-<candidate-slug>-<timestamp>.md`, then invoke `/premortem` on it before the user approves execution. Premortem picks it up automatically.
+Write the plan to `~/.claude/plans/audit-refactor-<candidate-slug>-<timestamp>.md`, then invoke `/premortem` before the user approves execution. Premortem picks it up automatically.
 
-If premortem returns concrete diffs to the plan, apply them. If premortem flags a Point-of-No-Return failure (irreversible artifact, lossy stage), add a checkpoint before the irreversible step.
+When premortem returns concrete diffs to the plan, apply them. When premortem flags a Point-of-No-Return failure (irreversible artifact, lossy stage), add a checkpoint before the irreversible step.
 
 ### 6d. Execute stage by stage
 
-After premortem-driven revisions, ask the user to confirm execution. Per stage:
+After premortem revisions, ask the user to confirm execution. Per stage:
 
 1. Perform the stage's edits.
 2. Run the stage's test gate (scoped, per §6a).
 3. If the gate fails: stop, surface, don't advance.
-4. If the gate passes: invoke `/postmortem` for that stage's diff. `/postmortem` decides whether `/typescript:review` runs.
+4. If the gate passes: invoke `/postmortem` for the stage's diff. `/postmortem` decides whether `/typescript:review` runs.
 5. After `/postmortem` returns PROCEED, ask the user to commit. **Never auto-commit.**
 6. Advance only after the previous stage is committed.
 
@@ -220,7 +220,7 @@ Atomic, scoped changes per stage. Never bundle unrelated refactors.
 
 ### 6e. Handoff when out of scope
 
-When a chosen item turns out to be in a sibling's scope (a component-level consolidate showed up under `single-use`, an a11y issue surfaced via `dead-export`), invoke that sibling. The plan still applies — `/ui:audit`'s consolidate flow produces its own staging.
+When a chosen item lands in a sibling's scope (a component-level consolidate showed up under `single-use`, an a11y issue surfaced via `dead-export`), invoke that sibling. The plan still applies — `/ui:audit`'s consolidate flow produces its own staging.
 
 ---
 
@@ -284,10 +284,10 @@ const [lang] = (req.headers['accept-language'] ?? 'en-US').split('-')
 
 - Every candidate cites `file:line` evidence. Vague suggestions ("consider extracting") are not allowed.
 - Confidence is a gate, not a tiebreaker. A long candidate list signals the bar was too low — re-tune, don't ship.
-- The expected outcome on a healthy codebase: NO RECOMMENDATIONS or one to three candidates. A table of ten is suspicious.
+- Expected on a healthy codebase: NO RECOMMENDATIONS or one to three candidates. A table of ten is suspicious.
 - Don't propose refactors that contradict `conventions.principles`.
 - Don't propose stylistic-only changes the formatter handles.
 - Recommendations are suggestions; execution requires user approval at each stage. **Never auto-execute, never auto-commit, never bundle stages.**
 - Always premortem the plan before execution. Plan goes to `~/.claude/plans/audit-refactor-<slug>-<timestamp>.md`; `/premortem` picks it up.
-- Type-shaped execution delegates to `/typescript:migrate`. This skill orchestrates; it doesn't perform `rename` / `lift` / `enum-to-const` / `any-to-unknown` / `jsdoc-to-ts` directly.
+- Type-shaped execution delegates to `/typescript:migrate`. Orchestrate; don't perform `rename` / `lift` / `enum-to-const` / `any-to-unknown` / `jsdoc-to-ts` directly.
 - Component-internal smells, type smells, a11y issues belong to sibling skills. Stay in lane.

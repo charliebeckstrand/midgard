@@ -2,39 +2,33 @@
 
 TRIGGER when: council, war-room, evaluate, or pressure-test a concrete proposal or decision; "should I X or Y", "which option", "what would you do", "I'm torn"; or plan mode is active for non-trivial work (3+ steps, multiple viable approaches, real tradeoffs). Skip yes/no questions, factual lookups, reversible low-stakes choices, and planning where the path is obvious.
 
-Run a proposal through 5 evaluators using shared lenses, peer-review anonymously, then render a verdict.
-
-## Core principle
-
-Five evaluators examine one **concrete proposal** through different lenses. None holds an assigned stance. Report convergence when it's real; surface disagreement when it's substantive. The chairman renders a verdict — including reject — and may side with a minority when the minority's reasoning is stronger.
+Five evaluators examine one concrete proposal through different lenses, peer-review anonymously, then the chairman renders a verdict. No assigned stances. Chairman may side with a minority when its reasoning is stronger.
 
 ## Flow
 
 ### 1. Triage
 
-Assess the question before convening:
-
 | Signal | Action |
 |---|---|
-| Obvious answer, cheaply reversible, low blast-radius, or pure factual lookup | Skip council; answer directly |
+| Obvious answer, cheaply reversible, low blast-radius, or pure factual lookup | Skip; answer directly |
 | Too vague to extract a proposal | Ask one clarifying question; re-triage |
-| Moderate stakes, 1–2 real tradeoffs, or rubber-duck request | Route to `/debate`; tell the user why |
+| Moderate stakes, 1–2 real tradeoffs, or rubber-duck request | Route to `/debate`; say why |
 | High stakes, non-obvious tradeoffs, low reversibility, or affects parties beyond the user | Continue to §2 |
 
 ### 2. Frame the proposal
 
-Scan for context: `CLAUDE.md`, files the user referenced, the most recent `council-transcript-*.md` in cwd if relevant. Cap at 5 reads.
+Read for context: `CLAUDE.md`, files the user referenced, the most recent `council-transcript-*.md` in cwd if relevant. Cap at 5 reads.
 
-Construct a **Proposal Under Review** with these required parts:
+Construct a **Proposal Under Review** with every part:
 
 - **Proposal** — 1–3 sentences. Concrete, not topical.
-- **Driver** — the specific friction, opportunity, or goal motivating this. *Why now, why this?* If the user hasn't said and context doesn't imply, ask before convening.
-- **Key assumption** — the central claim the proposal rests on. If wrong, the proposal fails.
+- **Driver** — the specific friction, opportunity, or goal. *Why now, why this?* Ask if the user hasn't said and context doesn't imply.
+- **Key assumption** — the central claim. If wrong, the proposal fails.
 - **Success criterion** — what observably happens if this works.
 - **User's current prior** — what the user leans toward, in their framing.
-- **Constraints** — budget, timeline, reversibility, what's been tried, team/context. Surface explicitly; don't assume.
+- **Constraints** — budget, timeline, reversibility, what's been tried, team/context. Surface explicitly.
 
-If the user brought a vague question rather than a proposal, draft the proposal yourself and confirm in one message before convening. The user can amend.
+If the user brought a vague question, draft the proposal yourself and confirm in one message before convening. The user can amend.
 
 ### 3. Convene evaluators (parallel)
 
@@ -172,15 +166,15 @@ Output exactly this structure, omitting any section that does not apply. Headlin
 
 ### 6. Report + transcript
 
-Save two files to cwd and deliver the HTML via `SendUserFile` (status `normal`, caption naming the topic). Capture one timestamp at the start of this step via `date +%Y%m%d-%H%M%S` and reuse for both filenames.
+Save two files to cwd and deliver the HTML via `SendUserFile` (status `normal`, caption naming the topic). Capture one timestamp at the start of this step via `date +%Y%m%d-%H%M%S`; reuse for both filenames.
 
 #### `council-transcript-[timestamp].md`
 
-Plain Markdown. Sections in order: original question (verbatim), Proposal Under Review (full block including driver and constraints), anonymization mapping table (Letter → Lens), each evaluator's full response under their lens name, each peer review under its number, chairman's full output (Headline, Cliff Notes, Verdict, One Thing, and all supporting sections that applied). No styling.
+Plain Markdown. Sections in order: original question (verbatim); Proposal Under Review (full block, driver and constraints included); anonymization mapping table (Letter → Lens); each evaluator's full response under their lens name; each peer review under its number; chairman's full output (Headline, Cliff Notes, Verdict, One Thing, every supporting section that applied). No styling.
 
 #### `council-report-[timestamp].html`
 
-Self-contained — one file, inline `<style>`, no external assets, no scripts. Must render correctly when opened directly in a browser.
+Self-contained — one file, inline `<style>`, no external assets, no scripts. Must render directly in a browser.
 
 Required structure, in order:
 
@@ -206,7 +200,7 @@ Required structure, in order:
 13. **Peer Reviews** — one `<details>` panel, collapsed, containing all five reviews under `<h3>Reviewer N</h3>` headers.
 14. **Footer** — muted, centered: "Council session — 5 evaluators, 5 anonymous peer reviews, 1 chairman verdict. Run `deliberate` on this transcript if the verdict needs interrogation."
 
-Sections 7–10 are omitted entirely if the chairman's verdict did not include them. The report reflects the actual shape of the deliberation, not a fixed template.
+Omit sections 7–10 when the chairman's verdict did not include them. The report reflects the actual shape of the deliberation, not a fixed template.
 
 Required styling:
 
@@ -224,10 +218,10 @@ After writing both files, deliver the HTML via `SendUserFile`.
 
 ## Rules
 
-- Spawn evaluators and reviewers in parallel — never sequentially.
+- Spawn evaluators and reviewers in parallel.
 - Anonymize before peer review. Reviewers must not know which lens produced which response.
-- The chairman renders a verdict and may override the majority when the minority's reasoning is stronger.
-- The chairman doesn't manufacture disagreement. If the council converged, the verdict reflects that.
-- The chairman doesn't manufacture consensus either. Real disagreements are surfaced and adjudicated, not averaged.
-- Triage out questions that don't warrant the protocol. Route to `/debate` when the question deserves scrutiny but not full council ceremony.
+- The chairman renders a verdict; override the majority when the minority's reasoning is stronger.
+- Don't manufacture disagreement. If the council converged, the verdict reflects that.
+- Don't manufacture consensus. Surface and adjudicate real disagreements; don't average them.
+- Triage out questions the protocol doesn't fit. Route to `/debate` when scrutiny is warranted but ceremony isn't.
 - If the question can't be reduced to a concrete proposal, don't convene. Ask for what's missing.

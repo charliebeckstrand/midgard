@@ -2,7 +2,7 @@
 
 TRIGGER when: create, add, build, or scaffold a new UI component.
 
-Create a new component in the project's UI library package. Structure, vocabulary, and styling vary per project — discover them from the manifest and sibling samples, then match.
+Create a new component in the project's UI library package. Structure, vocabulary, and styling vary per project — discover from the manifest and sibling samples, then match.
 
 ## Arguments
 
@@ -43,7 +43,7 @@ Inspect the target package's `package.json`. Known deps:
 | `tailwindcss` only (no variant lib) | utility classes via a `cn`-style helper |
 | `*.module.css` files in `componentsDir` | CSS Modules |
 
-A local variant-recipe DSL (typically a `recipes/` or `tokens/` module exporting `defineRecipe` / `VariantPropsOf` or similar helpers) counts as a variant recipe library — sibling reads in §1b expose the exact entrypoint.
+A local variant-recipe DSL (typically a `recipes/` or `tokens/` module exporting `defineRecipe` / `VariantPropsOf` or similar) counts as a variant recipe library — §1b sibling reads expose the exact entrypoint.
 
 No signal fires → fall back to §1b sibling reads.
 
@@ -60,15 +60,15 @@ Read **1–2 existing components** in the target `componentsDir`. Extract:
 - The project's `cn`-equivalent: `clsx`, `classnames`, `tailwind-merge`, or a local helper.
 - Whether components carry a stable DOM marker (`data-slot` / `data-part` / similar).
 
-When siblings disagree, prefer the most recent (highest mtime). §3 follows what 1b finds — don't default to the most-decomposed shape when siblings are simpler.
+When siblings disagree, prefer the most recent (highest mtime). §3 follows §1b's findings — don't default to the most-decomposed shape when siblings are simpler.
 
 ### 1c. Detect design tokens / recipes
 
-If `tokensDir` is set, read its `index.*` and one representative token file. Note the categories the project exposes (colors, typography, spacing, radii, motion) so you can compose them instead of inventing literals.
+If `tokensDir` is set, read its `index.*` and one representative token file. Note the categories exposed (colors, typography, spacing, radii, motion) so you compose them instead of inventing literals.
 
 ### 1d. Note whether a docs system exists
 
-Look for: `docs/` directory under the package, `.storybook/`, MDX directory, `playground/`, auto-discovery via `import.meta.glob`. Authoring docs is `/ui:docs:compose`'s job — record presence; delegate in §3g.
+Look for: `docs/` under the package, `.storybook/`, MDX directory, `playground/`, auto-discovery via `import.meta.glob`. Docs authoring belongs to `/ui:docs:compose` — record presence; delegate in §3g.
 
 ---
 
@@ -93,7 +93,7 @@ If "yes", compose the existing piece instead of inventing one:
 - Needs controlled-or-uncontrolled state? → project's `useControllable` equivalent (search `hooksDir`).
 - Needs floating positioning? → project's floating-positioning hook (search `hooksDir`).
 
-If none apply and styling is fully covered by composition, skip the recipe / variants step in §3 — the new component is a thin assembly file.
+If none apply and styling is fully covered by composition, skip §3's recipe / variants step — the new component is a thin assembly file.
 
 A "command palette" composes `<Dialog>`, `<Input>`, and `<Listbox>` (or equivalents). It doesn't re-implement overlays, motion, or option rendering.
 
@@ -109,9 +109,9 @@ Apply `[layout-heuristics]`. When siblings consistently violate even the fallbac
 
 ### 3b. Variants / recipe
 
-If the component owns genuinely new styling that isn't expressible through composition, create the variant recipe in the location siblings use. Inline if siblings inline; sibling `variants.ts` if siblings split; `tokensDir` if siblings centralize.
+If the component owns genuinely new styling not expressible through composition, create the variant recipe where siblings put theirs. Inline when siblings inline; sibling `variants.ts` when siblings split; `tokensDir` when siblings centralize.
 
-Example — recipe with size and tone variants, plus a slots map. Substitute the detected recipe entrypoint (`tv`, `defineRecipe`, `recipe`, …) and its companion variant-props helper for `recipe` / `VariantsFor` below:
+Example — recipe with size and tone variants plus a slots map. Substitute the detected recipe entrypoint (`tv`, `defineRecipe`, `recipe`, …) and its companion variant-props helper for `recipe` / `VariantsFor` below:
 
 ```ts
 import { recipe, type VariantsFor } from '<project recipe module>'
@@ -218,7 +218,7 @@ Always merge `className` with computed classes — never overwrite.
 
 ### 3d. Context (only if sub-components share state)
 
-For compound components whose sub-parts need access to common state, use the project's typed context helper if one exists (search `primitivesDir` and `hooksDir`). Otherwise use React's native `createContext`.
+For compound components whose sub-parts share state, use the project's typed context helper if one exists (search `primitivesDir` and `hooksDir`). Otherwise React's native `createContext`.
 
 ```ts
 import { createSafeContext } from '@/utils/context'
@@ -242,7 +242,7 @@ For single-file components with no folder, skip.
 
 ### 3f. Package / module export entry
 
-If the package exposes per-component subpath exports in `package.json#exports` (skip if the existing entry is a single wildcard like `"./*"`), add one alphabetically:
+If the package exposes per-component subpath exports in `package.json#exports` (skip when the existing entry is a single wildcard like `"./*"`), add one alphabetically:
 
 ```jsonc
 "./widget": {
@@ -261,7 +261,7 @@ If §1d found a docs system:
 /ui:docs:compose <ComponentName>
 ```
 
-That skill reads the same manifest, samples sibling docs files, and produces a docs page. Don't author the docs file inline.
+It reads the same manifest, samples sibling docs files, and produces a docs page. Don't author the docs file inline.
 
 If no docs system, skip.
 
@@ -297,7 +297,7 @@ Cited by `/ui:audit` §5.11 and any future skill that detects or prevents layout
 
 **Fallback heuristics when siblings disagree or are too few:**
 
-- **Sub-components** earn their own file when nontrivial (own state, more than a handful of JSX lines, or reused). Truly trivial single-use helpers stay inline.
+- **Sub-components** earn their own file when nontrivial (own state, more than a handful of JSX lines, reused). Truly trivial single-use helpers stay inline.
 - **A shared `types.ts`** is worth creating when two or more files in the component's folder need the same type. Don't pre-create one for types only one file uses.
 - **Custom hooks** belong in their own files when nontrivial or reusable beyond the component. Small one-liners coupled to a single component stay inline.
 
@@ -312,8 +312,8 @@ Split where the boundary is clear and the pieces earn separation.
 Cited by `/ui:audit` §5.12 and any future skill that detects or prevents framework smells.
 
 - **`'use client'`** — add **only** when the component uses hooks, event handlers, or browser APIs, and only in packages whose `framework` is `next` or that are consumed by Next server components. Match the sibling convention. Never add it to a component that has none of these.
-- **`forwardRef`** — when declared, the ref must be forwarded to a DOM element or to a child component that accepts a ref. A `forwardRef` whose ref parameter is never used is a smell.
-- **Stable DOM markers** — components carry a stable marker (`data-slot`, `data-part`, `data-component`) only when sibling components do. Match the project's convention; don't introduce markers unilaterally.
+- **`forwardRef`** — when declared, the ref must forward to a DOM element or to a child component that accepts a ref. A `forwardRef` whose ref parameter is never used is a smell.
+- **Stable DOM markers** — carry a stable marker (`data-slot`, `data-part`, `data-component`) only when sibling components do. Match the project's convention; don't introduce markers unilaterally.
 - **`className` merge** — always merge incoming `className` with computed classes through the project's `cn` helper. Never overwrite or drop.
 - **Memoization (`useMemo` / `useCallback`)** — apply only when the computation is non-trivial. Memoizing a literal, an identity expression, or a single property access is noise and may itself be the smell `/ui:audit` §5.12 flags.
 
@@ -338,6 +338,6 @@ Cited by `/ui:audit` §5.12 and any future skill that detects or prevents framew
 ## Rules
 
 - The manifest is the source of truth for paths, framework, and toolchain. Never hard-code those facts.
-- If a manifest field is `null` and the user's request doesn't disambiguate, ask before guessing.
-- Project-specific exclusion lists ("don't scaffold a `rating` here") live in `CLAUDE.md` or `AGENTS.md`. Honor them; don't bake an exclusion list into this skill.
+- When a manifest field is `null` and the user's request doesn't disambiguate, ask before guessing.
+- Project-specific exclusion lists ("don't scaffold a `rating` here") live in `CLAUDE.md` or `AGENTS.md`. Honor them; don't bake one into this skill.
 - `[layout-heuristics]` and `[framework-discipline]` are the canonical source for those conventions. Update only here; consumer skills cite by handle.

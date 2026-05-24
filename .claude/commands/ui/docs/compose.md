@@ -2,7 +2,7 @@
 
 TRIGGER when: create, add, write, or scaffold a docs page, demo, or example file for a UI component. Runs automatically when `/ui:component:compose` finishes creating a new component and the project has a docs system.
 
-Create a single docs/demo file matching the project's docs system. The exact system (Storybook MDX, Vite playground, `import.meta.glob`-driven registry) varies — discover, then match.
+Create a single docs/demo file matching the project's docs system. The system (Storybook MDX, Vite playground, `import.meta.glob`-driven registry) varies — discover, then match.
 
 Demonstrate the component's **API surface** — variants, sizes, states, common compositions — in a form the project's code-derivation tooling (if any) can parse into copy-paste snippets.
 
@@ -43,7 +43,7 @@ Capture:
 - **Demo file path** the new file should occupy (e.g. `packages/ui/src/docs/demos/<name>.tsx`).
 - **Registry mechanism** — glob auto-discovery, an explicit `index.ts` registry, or Storybook CSF auto-titles.
 - **Example wrapper** — `<Example>`, `<Story>`, `<Demo>`, `<Showcase>`. Read its props.
-- **Code-derivation walker** — search for `deriveCode` / `extractCode` / similar. If present, the wrapper auto-generates the "Show code" block; if not, expects an explicit `code` prop. If a specific capability (helper extraction in §3c, collapse in §3b) can't be confirmed from the walker's source, treat it as absent.
+- **Code-derivation walker** — search for `deriveCode` / `extractCode` / similar. When present, the wrapper auto-generates the "Show code" block; when absent, it expects an explicit `code` prop. When a specific capability (helper extraction in §3c, collapse in §3b) can't be confirmed from the walker's source, treat it as absent.
 
 No signal fires → ask where docs live; never guess.
 
@@ -61,8 +61,8 @@ Extract:
 
 - File extension and casing (almost always `<name>.tsx` matching the component's kebab-case identifier).
 - Default export shape (usually `export default function <Name>Demo() { … }`).
-- **Meta export** — most projects expose `export const meta = { category: '…' }`. Drives docs sidebar grouping.
-- **Example wrapper's props** — typically some combination of `title`, `actions`, `prefix`, `preview`, `footer`, `code`, `children`.
+- **Meta export** — most projects expose `export const meta = { category: '…' }`. Drives sidebar grouping.
+- **Example wrapper's props** — usually some combination of `title`, `actions`, `prefix`, `preview`, `footer`, `code`, `children`.
 - **Controls helpers** — variant/size/color pickers usually live as shared components under `docs/components/`. Reuse; don't reinvent.
 - **`'use client'` discipline** — match the sibling that uses similar React features.
 - **Section ordering** — typically variants → colors/tones → sizes → states (loading/disabled) → compound examples.
@@ -80,7 +80,7 @@ The whole point is rendered output **and** the source for the exact snippet that
 
 The walker matches build-time-tagged components from the project's barrels:
 
-- Put the actual `<Button>` / `<Dialog>` / etc. inside the example, not a locally-defined wrapper like `<MyButtonRow />` (opaque to the walker unless the project has helper extraction).
+- Put the actual `<Button>` / `<Dialog>` / etc. inside the example, not a locally-defined wrapper like `<MyButtonRow />` — opaque to the walker unless the project has helper extraction.
 - Compose with project layout primitives (`<Stack>`, `<Flex>`, `<Grid>`) instead of raw `<div>` flex utilities — the walker treats unknown wrappers as transparent, but the snippet reads better with named layout.
 - Avoid one-off styling wrappers like `<div className="grid grid-cols-3">` — they vanish in the derived snippet.
 
@@ -98,11 +98,11 @@ The walker matches build-time-tagged components from the project's barrels:
 </Example>
 ```
 
-Walkers typically collapse runs of 3+ identical iterated siblings to a single representative. The explicit `key={variant}` is the signal. If the project's walker collapses, lean into it.
+Walkers typically collapse runs of 3+ identical iterated siblings to a single representative. The explicit `key={variant}` is the signal. When the project's walker collapses, lean into it.
 
 ### 3c. Author state in a sub-helper when the snippet would otherwise be noisy
 
-If the example needs `useState` and the project has helper extraction (top-level PascalCase helpers tagged with their full source as `__code`), extract:
+When the example needs `useState` and the project has helper extraction (top-level PascalCase helpers tagged with their full source as `__code`), extract:
 
 ```tsx
 function CreateProjectDialog() {
@@ -125,7 +125,7 @@ export default function DialogDemo() {
 }
 ```
 
-The walker reads `__code` and renders the helper's source in the derived snippet. Confirm the project actually has this plugin before relying on it; otherwise inline the state.
+The walker reads `__code` and renders the helper's source in the derived snippet. Confirm the project ships this plugin before relying on it; otherwise inline the state.
 
 ### 3d. Use the explicit `code` escape hatch only when needed
 
@@ -224,7 +224,7 @@ export default function ComponentDemo() {
 
 ### 4d. Choose which sections to write
 
-Walk the component's prop surface (read the source). Produce one section per meaningful axis — no more.
+Walk the component's prop surface (read the source). One section per meaningful axis. No more.
 
 | Axis | Title convention | Notes |
 | --- | --- | --- |
@@ -242,7 +242,7 @@ Skip axes the component doesn't have. Never invent props in the docs that don't 
 
 ### 4e. Reuse the docs controls helpers
 
-If the project has shared controls under the docs directory discovered in §1 (size pickers, variant pickers, color pickers, value steppers), import and use them instead of writing fresh `<select>` elements inline. They keep docs visually consistent and typically render through the project's components, participating in code derivation cleanly.
+When the project has shared controls under the docs directory from §1 (size pickers, variant pickers, color pickers, value steppers), import and use them instead of writing fresh `<select>` elements inline. They keep docs visually consistent and typically render through the project's components, participating in code derivation cleanly.
 
 ---
 
@@ -263,10 +263,10 @@ Check the registry's sort order. Most projects sort alphabetically; some respect
 
 Before declaring done:
 
-- If the user is running the docs dev server, navigate to the new page; the route should be reachable and every example should render without console errors. Otherwise rely on the type-check and snapshot/derived-code check below.
+- When the user is running the docs dev server, navigate to the new page; the route should be reachable and every example should render without console errors. Otherwise rely on the type-check and snapshot/derived-code check below.
 - Confirm the derived snippet for each example matches the rendered JSX.
-- If the project has a docs test (a snapshot of `deriveCode` output, an a11y axe pass, a render smoke test), run it.
-- If the docs file uses `code` overrides, confirm each matches what the example would emit on its own; if they agree, drop the override.
+- When the project has a docs test (a snapshot of `deriveCode` output, an a11y axe pass, a render smoke test), run it.
+- When the docs file uses `code` overrides, confirm each matches what the example would emit on its own; when they agree, drop the override.
 
 ---
 
@@ -289,6 +289,6 @@ Before declaring done:
 
 ## Rules
 
-- The docs file's job is to demonstrate the API surface, not to recite internals. If a section doesn't teach the reader something they can act on, cut it.
-- Trust the code-derivation walker. Fighting it creates two sources of truth that will drift.
-- Never propose changes to the docs walker, the example wrapper, or any shared docs infrastructure from inside this skill. If a component genuinely can't be documented with the existing tooling, surface that as a finding and let the user decide.
+- The docs file's job is to demonstrate the API surface, not to recite internals. When a section doesn't teach the reader something they can act on, cut it.
+- Trust the code-derivation walker. Fighting it creates two sources of truth that drift.
+- Never propose changes to the docs walker, the example wrapper, or any shared docs infrastructure from inside this skill. When a component genuinely can't be documented with the existing tooling, surface as a finding and let the user decide.

@@ -2,7 +2,7 @@
 
 TRIGGER when: recommend, suggest, propose, or identify new UI components; "what's missing", "what to build next", "how to expand the library".
 
-Analyze the project's UI inventory and recommend new components that complement what's there. Base recommendations on real gaps, observed composition style, and the project's design philosophy.
+Analyze the project's UI inventory and recommend new components that complement what's there. Base recommendations on real gaps, observed composition style, and the design philosophy.
 
 ## Arguments
 
@@ -42,11 +42,11 @@ Glob `primitivesDir`, `hooksDir`, and `tokensDir` (when set). These are the buil
 
 ### 2c. Partially built work
 
-Look for entries in the tokens/recipes directory with no matching component, and components missing demos or tests — both signal in-progress work. Surface in §5 under a separate "in-progress" note, not as recommendations.
+Look for tokens/recipes entries with no matching component, and components missing demos or tests — both signal in-progress work. Surface in §5 under a separate "in-progress" note, not as recommendations.
 
 ### 2d. Project-declared exclusions
 
-Read `CLAUDE.md` and `AGENTS.md` for any "skip-recommend" or "do not scaffold" list. Anything declared there is authoritative — never propose it.
+Read `CLAUDE.md` or `AGENTS.md` (whichever exists) for any "skip-recommend" or "do not scaffold" list. Authoritative — never propose what's declared there.
 
 ---
 
@@ -70,9 +70,9 @@ For each candidate the project doesn't ship and isn't on the exclusion list, dec
 A real gap:
 
 - Commonly needed in applications of the kind this project targets (infer from conventions docs and existing components).
-- Mostly built from existing primitives / hooks / tokens (would feel native, not bolted on).
+- Builds mostly from existing primitives / hooks / tokens (feels native, not bolted on).
 - API surface well-defined and focused — not a sprawling subsystem.
-- Not a trivial single-element wrapper — meaningful abstraction required.
+- Not a trivial single-element wrapper — earns the abstraction.
 
 ---
 
@@ -115,7 +115,7 @@ After the table, add a short paragraph noting any **declined** categories ("no F
 
 ## 6. Offer to create
 
-Ask which recommendations to scaffold. Per chosen item, invoke `/ui:component:compose <name>` sequentially — wait for each to complete before starting the next.
+Ask which recommendations to scaffold. Per chosen item, invoke `/ui:component:compose <name>` sequentially — wait for each before the next.
 
 ---
 
@@ -125,4 +125,4 @@ Ask which recommendations to scaffold. Per chosen item, invoke `/ui:component:co
 - Never propose anything on the project's exclusion list.
 - Never propose trivial wrappers around a single HTML element with no meaningful abstraction.
 - Read existing components for **design philosophy** — some libraries favor monolithic widgets, some favor composable primitives. Match what you observe.
-- If the user constrained the request, narrow accordingly.
+- When the user constrained the request, narrow accordingly.

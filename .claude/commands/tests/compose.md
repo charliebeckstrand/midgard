@@ -26,7 +26,7 @@ Per package, capture:
 | `scripts.check-types` | type-check command (skip when null) |
 | `packageManager` | `<pm>` substitution for run commands |
 
-Read `testHelpersDir`. If `null`, glob the package source for `test-utils.{ts,tsx}`, `setup.{ts,tsx}`, `helpers.{ts,tsx}`, or `__tests__/helpers/`. With multiple matches, prefer the one whose exports include a `render` or `renderHook` wrapper; otherwise use the closest to the source file. Prefer the file's exports over raw library calls.
+Read `testHelpersDir`. If `null`, glob the package source for `test-utils.{ts,tsx}`, `setup.{ts,tsx}`, `helpers.{ts,tsx}`, or `__tests__/helpers/`. With multiple matches, prefer the one whose exports include a `render` or `renderHook` wrapper; otherwise the closest to the source file. Prefer the file's exports over raw library calls.
 
 ---
 
@@ -47,7 +47,7 @@ Extension: renders JSX → `.test.tsx`; pure modules and hooks → `.test.ts`.
 Capture before writing:
 
 - **Components / primitives** — root element tag, stable DOM marker (`data-slot`, `data-part`), prop surface (variants, `className`, `children`, refs, event handlers), context-fallback patterns, polymorphism (`href` / `as`), compound sub-parts.
-- **Hooks** — input/output shape, internal state, callbacks, side effects, memoization guarantees, browser APIs read at module load.
+- **Hooks** — input/output shape, internal state, callbacks, side effects, memoization guarantees, module-load browser-API reads.
 - **Utilities / pure modules** — public API, documented edge cases, external dependencies that need mocking.
 
 ---
@@ -262,7 +262,7 @@ If the test fails, fix it and re-run.
 
 ## 6. Type-check
 
-Read `scripts.check-types` from the manifest. If null, skip the type-check (no script declared). Otherwise:
+Read `scripts.check-types` from the manifest. If null, skip — no script declared. Otherwise:
 
 ```
 <pm> turbo check-types --filter=<pkg>
@@ -280,9 +280,9 @@ Invoke `/typescript:review` against the new test file before declaring done:
 /typescript:review <path-to-new-test-file>
 ```
 
-Not done until `/typescript:review` returns PASS. On BLOCK, emit a final message starting with `BLOCK:` followed by the findings; otherwise emit `PASS`. `/ui:component:compose` reads the first token.
+Not done until it returns PASS. On BLOCK, emit a final message starting with `BLOCK:` followed by the findings; otherwise emit `PASS`. `/ui:component:compose` reads the first token.
 
-When invoked **from** `/typescript:review` itself (file mode against a freshly-written test), skip this step to avoid recursion — the parent already covers it.
+When invoked **from** `/typescript:review` itself (file mode against a freshly-written test), skip this step to avoid recursion — the parent covers it.
 
 ---
 
